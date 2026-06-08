@@ -167,6 +167,27 @@ public sealed class FrontedBehaviorTriggerEvaluatorTest
     }
 
     [Fact]
+    public void TriggerEvaluator_SelfTagCompare_Works()
+    {
+        var trigger = new TriggerDescriptor
+        {
+            EventType = "Selection.CharacterSelected",
+            Filters =
+            [
+                new TriggerFilter { Left = "Event.PlayerIndex", Operator = TriggerFilterOperator.Equals, Right = "SelfTag.PlayerIndex" }
+            ]
+        };
+        var behaviorEvent = new FrontedBehaviorEvent
+        {
+            EventType = "Selection.CharacterSelected",
+            Payload = new Dictionary<string, object?> { ["PlayerIndex"] = 0 }
+        };
+        var selfTags = new Dictionary<string, string> { ["PlayerIndex"] = "0" };
+
+        Assert.True(_evaluator.Evaluate(trigger, behaviorEvent, selfTags));
+    }
+
+    [Fact]
     public void TriggerEvaluator_MissingPayload_FailsSafely()
     {
         var trigger = new TriggerDescriptor

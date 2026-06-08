@@ -3,6 +3,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.ViewModels.FrontedDesigner;
 using neo_bpsys_wpf.ViewModels.FrontedDesigner.GraphEditor;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -85,6 +86,103 @@ public class FrontedNodeGraphEditorViewModelTest
 
         Assert.Equal("hello", editor.SelectedNode.Model.Properties["Message"].GetString());
         Assert.True(dirty > 0);
+    }
+
+    [Fact]
+    public void RotationProperty_ValidatesFiniteNumber()
+    {
+        var editor = CreateEditorWithNodes("action.animateProperty");
+        editor.SelectedNode!.Properties.Single(property => property.Descriptor.Name == "PropertyName").TextValue = "Rotation";
+        var to = editor.SelectedNode.Properties.Single(property => property.Descriptor.Name == "To");
+
+        to.TextValue = "NaN";
+
+        Assert.True(to.HasValidationError);
+        Assert.NotEqual("NaN", editor.SelectedNode.Model.Properties["To"].GetString());
+    }
+
+    [Fact]
+    public void OpacityProperty_ValidatesRange()
+    {
+        var editor = CreateEditorWithNodes("action.animateProperty");
+        editor.SelectedNode!.Properties.Single(property => property.Descriptor.Name == "PropertyName").TextValue = "Opacity";
+        var to = editor.SelectedNode.Properties.Single(property => property.Descriptor.Name == "To");
+
+        to.TextValue = "2";
+
+        Assert.True(to.HasValidationError);
+    }
+
+    [Fact]
+    public void ColorProperty_AcceptsNamedColor()
+    {
+        var editor = CreateEditorWithNodes("action.setProperty");
+        editor.SelectedNode!.Properties.Single(property => property.Descriptor.Name == "PropertyName").TextValue = "FillColor";
+        var value = editor.SelectedNode.Properties.Single(property => property.Descriptor.Name == "Value");
+
+        value.TextValue = "White";
+
+        Assert.False(value.HasValidationError);
+        Assert.Equal("#FFFFFFFF", editor.SelectedNode.Model.Properties["Value"].GetString());
+    }
+
+    [Fact]
+    public void PropertyNameText_UpdatesDynamicValueEditorImmediately()
+    {
+        var editor = new FrontedNodeGraphEditorViewModel(
+            new FrontedNodeGraph(),
+            localize: (key, fallback) => key == "Designer.Property.FillColor" ? "Fill Color Localized" : fallback);
+        editor.AddNode("action.animateProperty");
+        var propertyName = editor.SelectedNode!.Properties.Single(property => property.Descriptor.Name == "PropertyName");
+        var to = editor.SelectedNode.Properties.Single(property => property.Descriptor.Name == "To");
+
+        propertyName.PropertyNameText = "Fill Color Localized";
+
+        Assert.Equal("FillColor", editor.SelectedNode.Model.Properties["PropertyName"].GetString());
+        Assert.True(to.IsColor);
+        Assert.False(to.IsText);
+    }
+
+    [Fact]
+    public void PropertyAndEasingOptions_ExposeLocalizedDisplayNames()
+    {
+        var editor = new FrontedNodeGraphEditorViewModel(
+            new FrontedNodeGraph(),
+            localize: (key, fallback) => key switch
+            {
+                "Designer.Property.Opacity" => "Opacity Localized",
+                "Designer.Option.Easing.SineInOut" => "Sine In Out Localized",
+                _ => fallback
+            });
+        editor.AddNode("action.animateProperty");
+        var propertyName = editor.SelectedNode!.Properties.Single(property => property.Descriptor.Name == "PropertyName");
+        var easing = editor.SelectedNode.Properties.Single(property => property.Descriptor.Name == "Easing");
+
+        Assert.Contains(propertyName.LocalizedOptions, option => option.Value == "Opacity" && option.DisplayName == "Opacity Localized");
+        Assert.Contains(easing.LocalizedOptions, option => option.Value == "SineInOut" && option.DisplayName == "Sine In Out Localized");
+
+        easing.SuggestionText = "Sine In Out Localized";
+
+        Assert.Equal("SineInOut", editor.SelectedNode.Model.Properties["Easing"].GetString());
+    }
+
+    [Fact]
+    public void TargetEditor_StoresSelfOrGuidReference()
+    {
+        var targetGuid = Guid.NewGuid();
+        var editor = new FrontedNodeGraphEditorViewModel(
+            new FrontedNodeGraph(),
+            targetOptions:
+            [
+                new FrontedNodeTargetOptionViewModel("Self", "Self"),
+                new FrontedNodeTargetOptionViewModel($"guid:{targetGuid}", "Target")
+            ]);
+        editor.AddNode("action.setProperty");
+        var target = editor.SelectedNode!.Properties.Single(property => property.Descriptor.Name == "Target");
+
+        target.TargetValue = $"guid:{targetGuid}";
+
+        Assert.Equal($"guid:{targetGuid}", editor.SelectedNode.Model.Properties["Target"].GetString());
     }
 
     [Fact]

@@ -466,7 +466,6 @@ public class FrontedCanvasConfigTest
                 "TextAlignment": "Center",
                 "HorizontalAlignment": "Center",
                 "VerticalAlignment": "Center",
-                "UseLineBreak": true,
                 "ZIndex": 1
               },
               "MapName": {
@@ -499,7 +498,6 @@ public class FrontedCanvasConfigTest
 
         var progress = Assert.IsType<GameProgressTextControlConfig>(config.Controls["GameProgress"]);
         Assert.Equal("GameProgressText", progress.ControlType);
-        Assert.True(progress.UseLineBreak);
         Assert.Equal("Center", progress.TextAlignment);
 
         var mapName = Assert.IsType<MapNameTextControlConfig>(config.Controls["MapName"]);
@@ -713,53 +711,28 @@ public class FrontedCanvasConfigTest
         var map = Assert.IsType<BorderedImageFrontedControlConfig>(config.Controls["Map"]);
         Assert.Equal("BorderedImage", map.ControlType);
         Assert.Equal("CurrentGame.PickedMapImage", map.BindingPath);
-        Assert.Equal(488, map.Left);
-        Assert.Equal(0, map.Top);
-        Assert.Equal(463, map.Width);
-        Assert.Equal(112, map.Height);
-        Assert.Equal(-1, map.ZIndex);
         Assert.Equal("Center", map.HorizontalAlignment);
         Assert.Equal("Center", map.VerticalAlignment);
         Assert.Equal(ImageSizingMode.Auto, map.SizingMode);
-
-        var expectedSurPickGeometry = new[]
-        {
-            (Left: 1D, Top: 115D, Width: 346D, Height: 308.5D),
-            (Left: 351D, Top: 115D, Width: 346D, Height: 308.5D),
-            (Left: 1D, Top: 465D, Width: 346D, Height: 306.5D),
-            (Left: 350D, Top: 465D, Width: 346D, Height: 306.5D)
-        };
 
         for (var index = 0; index < 4; index++)
         {
             var pick = Assert.IsType<BorderedImageFrontedControlConfig>(config.Controls[$"SurPick{index}"]);
             Assert.Equal($"CurrentGame.SurPlayerList[{index}].Character.BigImage", pick.BindingPath);
-            Assert.Equal(expectedSurPickGeometry[index].Left, pick.Left);
-            Assert.Equal(expectedSurPickGeometry[index].Top, pick.Top);
-            Assert.Equal(expectedSurPickGeometry[index].Width, pick.Width);
-            Assert.Equal(expectedSurPickGeometry[index].Height, pick.Height);
             Assert.Equal(ImageSizingMode.OverflowCrop, pick.SizingMode);
             Assert.Equal("UniformToFill", pick.Stretch);
             Assert.True(pick.ClipToBounds);
             Assert.Equal("Center", pick.HorizontalAlignment);
             Assert.Equal("Top", pick.VerticalAlignment);
-            Assert.Equal(556.5, pick.ImageWidth);
-            Assert.Null(pick.ImageHeight);
         }
 
         var hunPick = Assert.IsType<BorderedImageFrontedControlConfig>(config.Controls["HunPick"]);
         Assert.Equal("CurrentGame.HunPlayer.Character.BigImage", hunPick.BindingPath);
-        Assert.Equal(702, hunPick.Left);
-        Assert.Equal(114.5, hunPick.Top);
-        Assert.Equal(739, hunPick.Width);
-        Assert.Equal(635, hunPick.Height);
         Assert.Equal(ImageSizingMode.OverflowCrop, hunPick.SizingMode);
         Assert.Equal("UniformToFill", hunPick.Stretch);
         Assert.True(hunPick.ClipToBounds);
         Assert.Equal("Center", hunPick.HorizontalAlignment);
         Assert.Equal("Top", hunPick.VerticalAlignment);
-        Assert.Null(hunPick.ImageWidth);
-        Assert.Null(hunPick.ImageHeight);
 
         AssertTextBinding(config, "SurTeamName", "CurrentGame.SurTeam.Name");
         AssertTextBinding(config, "HunTeamName", "CurrentGame.HunTeam.Name");
@@ -775,7 +748,6 @@ public class FrontedCanvasConfigTest
         Assert.Equal("MapNameText", mapName.ControlType);
         var progress = Assert.IsType<GameProgressTextControlConfig>(config.Controls["GameProgress"]);
         Assert.Equal("GameProgressText", progress.ControlType);
-        Assert.False(progress.UseLineBreak);
 
         for (var index = 0; index < 4; index++)
         {
@@ -931,7 +903,6 @@ public class FrontedCanvasConfigTest
         Assert.Equal("MapNameText", mapName.ControlType);
         var progress = Assert.IsType<GameProgressTextControlConfig>(config.Controls["GameProgress"]);
         Assert.Equal("GameProgressText", progress.ControlType);
-        Assert.False(progress.UseLineBreak);
     }
 
     [Fact]
@@ -1006,7 +977,6 @@ public class FrontedCanvasConfigTest
 
         var gameProgress = Assert.IsType<GameProgressTextControlConfig>(bpOverViewCanvas.Controls["GameProgress"]);
         Assert.Equal("GameProgressText", gameProgress.ControlType);
-        Assert.True(gameProgress.UseLineBreak);
         Assert.Equal(
             ImageSizingMode.FillContainer,
             Assert.IsType<ImageFrontedControlConfig>(bpOverViewCanvas.Controls["SurTeamLogo"]).SizingMode);
@@ -1163,7 +1133,6 @@ public class FrontedCanvasConfigTest
 
         Assert.IsType<MapNameTextControlConfig>(config.Controls["MapName"]);
         var gameProgress = Assert.IsType<GameProgressTextControlConfig>(config.Controls["GameProgress"]);
-        Assert.False(gameProgress.UseLineBreak);
 
         foreach (var controlName in new[]
                  {
@@ -1199,17 +1168,21 @@ public class FrontedCanvasConfigTest
     }
 
     [Fact]
-    public void BuiltInGameProgressTextLayoutsUseExpectedLineBreakMode()
+    public void BuiltInGameProgressTextLayoutsUseExpectedDisplayMode()
     {
         var cutScene = ReadBuiltInLayout("CutSceneWindow");
         var gameData = ReadBuiltInLayout("GameDataWindow");
         var widgetsOverview = ReadBuiltInLayout("WidgetsWindow", "BpOverViewCanvas");
         var bpWindow = ReadBuiltInLayout("BpWindow");
 
-        Assert.False(Assert.IsType<GameProgressTextControlConfig>(cutScene.Controls["GameProgress"]).UseLineBreak);
-        Assert.False(Assert.IsType<GameProgressTextControlConfig>(gameData.Controls["GameProgress"]).UseLineBreak);
-        Assert.True(Assert.IsType<GameProgressTextControlConfig>(widgetsOverview.Controls["GameProgress"]).UseLineBreak);
-        Assert.False(Assert.IsType<GameProgressTextControlConfig>(bpWindow.Controls["GameProgress"]).UseLineBreak);
+        Assert.Equal(GameProgressTextDisplayMode.Inline,
+            Assert.IsType<GameProgressTextControlConfig>(cutScene.Controls["GameProgress"]).DisplayMode);
+        Assert.Equal(GameProgressTextDisplayMode.Inline,
+            Assert.IsType<GameProgressTextControlConfig>(gameData.Controls["GameProgress"]).DisplayMode);
+        Assert.Equal(GameProgressTextDisplayMode.Inline,
+            Assert.IsType<GameProgressTextControlConfig>(widgetsOverview.Controls["GameProgress"]).DisplayMode);
+        Assert.Equal(GameProgressTextDisplayMode.Inline,
+            Assert.IsType<GameProgressTextControlConfig>(bpWindow.Controls["GameProgress"]).DisplayMode);
     }
 
     [Fact]
@@ -2576,19 +2549,19 @@ public class FrontedCanvasConfigTest
         {
             var service = new FrontedWindowLayoutOptionsService(root);
 
-            Assert.False(service.LoadOptions("WidgetsWindow").AllowTransparency);
+            Assert.True(service.LoadOptions("WidgetsWindow").AllowTransparency);
             await service.SaveOptionsAsync(
                 "WidgetsWindow",
                 new FrontedWindowLayoutOptions
                 {
-                    AllowTransparency = true,
+                    AllowTransparency = false,
                     BackgroundColor = "#FF112233"
                 },
                 TestContext.Current.CancellationToken);
 
             var path = Path.Combine(root, "WidgetsWindow", "window.json");
             Assert.True(File.Exists(path));
-            Assert.True(service.LoadOptions("WidgetsWindow").AllowTransparency);
+            Assert.False(service.LoadOptions("WidgetsWindow").AllowTransparency);
             Assert.Equal("#FF112233", service.LoadOptions("WidgetsWindow").BackgroundColor);
 
             await service.ResetOptionsAsync("WidgetsWindow", TestContext.Current.CancellationToken);

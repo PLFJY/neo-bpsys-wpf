@@ -82,4 +82,56 @@ public class FrontedNodeGraphValidatorTest
 
         Assert.Contains(messages, message => message.Code == "RequiredPropertyMissing");
     }
+
+    [Fact]
+    public void Validate_AnimateOpacityRejectsOutOfRange()
+    {
+        var node = _catalog.CreateNode("action.animateProperty");
+        node.Properties["PropertyName"] = JsonSerializer.SerializeToElement("Opacity");
+        node.Properties["To"] = JsonSerializer.SerializeToElement("2");
+        var graph = new FrontedNodeGraph { Nodes = [_catalog.CreateNode("flow.start"), node] };
+
+        var messages = new FrontedNodeGraphValidator(_catalog).Validate(graph);
+
+        Assert.Contains(messages, message => message.Code == "InvalidNumericValue" && message.PropertyName == "To");
+    }
+
+    [Fact]
+    public void Validate_AnimateFillColorAcceptsNamedColor()
+    {
+        var node = _catalog.CreateNode("action.animateProperty");
+        node.Properties["PropertyName"] = JsonSerializer.SerializeToElement("FillColor");
+        node.Properties["To"] = JsonSerializer.SerializeToElement("White");
+        var graph = new FrontedNodeGraph { Nodes = [_catalog.CreateNode("flow.start"), node] };
+
+        var messages = new FrontedNodeGraphValidator(_catalog).Validate(graph);
+
+        Assert.DoesNotContain(messages, message => message.Code == "InvalidColorValue");
+    }
+
+    [Fact]
+    public void Validate_VisibilityRejectsInvalidValue()
+    {
+        var node = _catalog.CreateNode("action.setProperty");
+        node.Properties["PropertyName"] = JsonSerializer.SerializeToElement("Visibility");
+        node.Properties["Value"] = JsonSerializer.SerializeToElement("Shown");
+        var graph = new FrontedNodeGraph { Nodes = [_catalog.CreateNode("flow.start"), node] };
+
+        var messages = new FrontedNodeGraphValidator(_catalog).Validate(graph);
+
+        Assert.Contains(messages, message => message.Code == "InvalidVisibilityValue");
+    }
+
+    [Fact]
+    public void Validate_RotationRejectsNaN()
+    {
+        var node = _catalog.CreateNode("action.animateProperty");
+        node.Properties["PropertyName"] = JsonSerializer.SerializeToElement("Rotation");
+        node.Properties["To"] = JsonSerializer.SerializeToElement("NaN");
+        var graph = new FrontedNodeGraph { Nodes = [_catalog.CreateNode("flow.start"), node] };
+
+        var messages = new FrontedNodeGraphValidator(_catalog).Validate(graph);
+
+        Assert.Contains(messages, message => message.Code == "InvalidNumericValue");
+    }
 }

@@ -35,33 +35,13 @@ public sealed class FrontedNodeCatalog
         var flowIn = Port("In", FrontedNodePortKind.FlowIn);
         var flowOut = Port("Out", FrontedNodePortKind.FlowOut);
         var valueOut = Port("Value", FrontedNodePortKind.ValueOut, "object");
-        var propertyOptions = new[]
-        {
-            "Opacity",
-            "Visibility",
-            "VisualOffsetX",
-            "VisualOffsetY",
-            "ScaleX",
-            "ScaleY",
-            "Rotation",
-            "Width",
-            "Height",
-            "FillColor",
-            "StrokeColor",
-            "StrokeThickness",
-            "TextColor",
-            "Foreground",
-            "FontSize",
-            "TintColor",
-            "TintStrength",
-            "TextureStrength"
-        };
+        var propertyOptions = FrontedBehaviorPropertyMetadata.CommonPropertyNames;
         var easingOptions = new[] { "Linear", "SineInOut", "CubicOut", "CubicIn", "CubicInOut", "BackOut" };
         return
         [
             Node("flow.start", "Flow", [], [flowOut]),
             Node("flow.end", "Flow", [flowIn], []),
-            Node("flow.delay", "Flow", [flowIn], [flowOut], Prop("DurationMs", FrontedNodePropertyType.Number, 300, FrontedNodePropertyEditorKind.Number, true)),
+            Node("flow.delay", "Flow", [flowIn], [flowOut], Prop("DurationMs", FrontedNodePropertyType.Number, 300, FrontedNodePropertyEditorKind.Number, true, unit: "ms")),
             Node("flow.sequence", "Flow", [flowIn], [Port("Step1", FrontedNodePortKind.FlowOut), Port("Step2", FrontedNodePortKind.FlowOut), Port("Step3", FrontedNodePortKind.FlowOut)]),
             Node("flow.parallel", "Flow", [flowIn], [Port("Branch1", FrontedNodePortKind.FlowOut), Port("Branch2", FrontedNodePortKind.FlowOut), Port("Branch3", FrontedNodePortKind.FlowOut)]),
             Node("flow.if", "Flow", [flowIn], [Port("True", FrontedNodePortKind.FlowOut), Port("False", FrontedNodePortKind.FlowOut)],
@@ -71,17 +51,17 @@ public sealed class FrontedNodeCatalog
             Node("action.log", "Action", [flowIn], [flowOut], Prop("Message", FrontedNodePropertyType.String, "", FrontedNodePropertyEditorKind.Text)),
             Node("action.setProperty", "Action", [flowIn], [flowOut],
                 Prop("Target", FrontedNodePropertyType.String, "Self", FrontedNodePropertyEditorKind.ControlReference, true),
-                Prop("PropertyName", FrontedNodePropertyType.String, "", FrontedNodePropertyEditorKind.Text, true, propertyOptions),
+                Prop("PropertyName", FrontedNodePropertyType.String, "", FrontedNodePropertyEditorKind.PropertyName, true, propertyOptions),
                 Prop("Value", FrontedNodePropertyType.String, "", FrontedNodePropertyEditorKind.Text)),
             Node("action.resetProperty", "Action", [flowIn], [flowOut],
                 Prop("Target", FrontedNodePropertyType.String, "Self", FrontedNodePropertyEditorKind.ControlReference, true),
-                Prop("PropertyName", FrontedNodePropertyType.String, "All", FrontedNodePropertyEditorKind.Text, true, ["All", .. propertyOptions])),
+                Prop("PropertyName", FrontedNodePropertyType.String, "All", FrontedNodePropertyEditorKind.PropertyName, true, ["All", .. propertyOptions])),
             Node("action.animateProperty", "Action", [flowIn], [flowOut],
                 Prop("Target", FrontedNodePropertyType.String, "Self", FrontedNodePropertyEditorKind.ControlReference, true),
-                Prop("PropertyName", FrontedNodePropertyType.String, "", FrontedNodePropertyEditorKind.Text, true, propertyOptions),
+                Prop("PropertyName", FrontedNodePropertyType.String, "", FrontedNodePropertyEditorKind.PropertyName, true, propertyOptions),
                 Prop("From", FrontedNodePropertyType.String, "", FrontedNodePropertyEditorKind.Text),
                 Prop("To", FrontedNodePropertyType.String, "", FrontedNodePropertyEditorKind.Text),
-                Prop("DurationMs", FrontedNodePropertyType.Number, 300, FrontedNodePropertyEditorKind.Number, true),
+                Prop("DurationMs", FrontedNodePropertyType.Number, 300, FrontedNodePropertyEditorKind.Number, true, unit: "ms"),
                 Prop("Easing", FrontedNodePropertyType.String, "Linear", FrontedNodePropertyEditorKind.Text, false, easingOptions)),
             Node("value.number", "Value", [], [valueOut], Prop("Value", FrontedNodePropertyType.Number, 0, FrontedNodePropertyEditorKind.Number)),
             Node("value.string", "Value", [], [valueOut], Prop("Value", FrontedNodePropertyType.String, "", FrontedNodePropertyEditorKind.Text)),
@@ -125,7 +105,8 @@ public sealed class FrontedNodeCatalog
         object value,
         FrontedNodePropertyEditorKind editor,
         bool required = false,
-        IReadOnlyList<string>? options = null) =>
+        IReadOnlyList<string>? options = null,
+        string? unit = null) =>
         new()
         {
             Name = name,
@@ -134,7 +115,8 @@ public sealed class FrontedNodeCatalog
             DefaultValue = JsonSerializer.SerializeToElement(value),
             EditorKind = editor,
             IsRequired = required,
-            Options = options ?? []
+            Options = options ?? [],
+            Unit = unit
         };
 
     private static string NodeKey(string nodeType) =>

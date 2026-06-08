@@ -365,7 +365,6 @@
     "FontWeight": "Normal",
     "Color": "#FFFFFFFF",
     "FontSize": 16,
-    "UseLineBreak": false,
     "ZIndex": 1
   },
   "HunGlobalBan0": {

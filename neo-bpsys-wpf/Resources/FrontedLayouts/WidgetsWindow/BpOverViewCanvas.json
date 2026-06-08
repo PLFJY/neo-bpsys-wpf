@@ -224,7 +224,6 @@
     "FontWeight": "Normal",
     "Color": "#FFFFFFFF",
     "FontSize": 22,
-    "UseLineBreak": true,
     "ZIndex": 2
   },
   "GameScoresSur": {

@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace neo_bpsys_wpf.Core.Enums;
 
@@ -6,6 +6,7 @@ namespace neo_bpsys_wpf.Core.Enums;
 public enum LanguageKey
 {
     System,
+    FollowApp,
     zh_Hans,
     en_US,
     ja_JP

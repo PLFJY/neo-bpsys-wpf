@@ -14,7 +14,7 @@ public static class FrontedPropertyColorHelper
     public static Color FallbackColor { get; } = Colors.White;
 
     /// <summary>
-    /// Parses a <c>#RRGGBB</c> or <c>#AARRGGBB</c> color string without throwing.
+    /// Parses a <c>#RRGGBB</c>, <c>#AARRGGBB</c>, or WPF named color string without throwing.
     /// RGB input is treated as fully opaque.
     /// </summary>
     public static bool TryParseArgbColor(string? value, out Color color)

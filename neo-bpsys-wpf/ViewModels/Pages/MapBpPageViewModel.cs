@@ -19,6 +19,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMessage>
 {
     private readonly ISharedDataService _sharedDataService;
+    private readonly ISettingsHostService? _settingsHostService;
 
 
 #pragma warning disable CS8618 
@@ -30,8 +31,14 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
     }
 
     public MapBpPageViewModel(ISharedDataService sharedDataService)
+        : this(sharedDataService, null)
+    {
+    }
+
+    public MapBpPageViewModel(ISharedDataService sharedDataService, ISettingsHostService? settingsHostService)
     {
         _sharedDataService = sharedDataService;
+        _settingsHostService = settingsHostService;
         MapSelectTeamsList =
         [
             new MapSelectTeam(_sharedDataService.HomeTeam, TeamType.HomeTeam),
@@ -155,26 +162,36 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
     {
         IsPickHighlighted = message.GameAction == GameAction.PickMap;
         IsBanHighlighted = message.GameAction == GameAction.BanMap;
+        var useLegacyBreathing = _settingsHostService?.Settings.UseLegacyGuidanceBreathing != false;
         switch (message.GameAction)
         {
             case GameAction.PickMap:
                 PickMapTeam = MapSelectTeamsList.First(x =>
                     x.TeamType == (message.Index?[0] == 0 ? TeamType.HomeTeam : TeamType.AwayTeam));
-                IsBreathing = true;
-                IsCampVisible = false;
+                if (useLegacyBreathing)
+                {
+                    IsBreathing = true;
+                    IsCampVisible = false;
+                }
                 break;
             case GameAction.BanMap:
                 BanMapTeam = MapSelectTeamsList.First(x =>
                     x.TeamType == (message.Index?[0] == 0 ? TeamType.HomeTeam : TeamType.AwayTeam));
-                IsBreathing = true;
-                IsCampVisible = false;
+                if (useLegacyBreathing)
+                {
+                    IsBreathing = true;
+                    IsCampVisible = false;
+                }
                 break;
             case GameAction.PickCamp:
-                IsCampVisible = true;
-                IsBreathing = true;
+                if (useLegacyBreathing)
+                {
+                    IsCampVisible = true;
+                    IsBreathing = true;
+                }
                 break;
             default:
-                if (IsBreathing) IsBreathing = false;
+                if (useLegacyBreathing && IsBreathing) IsBreathing = false;
                 break;
         }
     }

@@ -163,6 +163,81 @@ public class FrontedSharedDataBehaviorEventBridgeTest
         Assert.Equal(0, publishedCount);
     }
 
+    [Fact]
+    public async Task CharacterSelectionBridge_PublishesCharacterSelected()
+    {
+        using var semaphore = new SemaphoreSlim(0, 1);
+        FrontedBehaviorEvent? received = null;
+        var sharedData = new MockSharedDataService();
+        var selection = new MockCharacterSelectionService();
+        var bus = new MockEventBus();
+
+        using (bus.Subscribe(null, ev =>
+        {
+            received = ev;
+            semaphore.Release();
+            return Task.CompletedTask;
+        }))
+        {
+            using var bridge = new FrontedSharedDataBehaviorEventBridge(
+                sharedData,
+                bus,
+                NullLogger<FrontedSharedDataBehaviorEventBridge>.Instance,
+                characterSelectionService: selection);
+            bridge.Start();
+
+            selection.FireCharacterSelected(new CharacterSelectedEventArgs(Camp.Sur, 0));
+
+            Assert.True(await semaphore.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
+        }
+
+        Assert.NotNull(received);
+        Assert.Equal("Selection.CharacterSelected", received!.EventType);
+        Assert.Equal("CharacterSelectionService", received.Source);
+        Assert.Equal(Camp.Sur, received.Payload["Camp"]);
+        Assert.Equal(0, received.Payload["PlayerIndex"]);
+    }
+
+    [Fact]
+    public async Task GameGuidanceBridge_PublishesHighlightChanged()
+    {
+        using var semaphore = new SemaphoreSlim(0, 1);
+        FrontedBehaviorEvent? received = null;
+        var sharedData = new MockSharedDataService();
+        var guidance = new MockGameGuidanceService();
+        var bus = new MockEventBus();
+
+        using (bus.Subscribe(null, ev =>
+        {
+            if (ev.EventType != "Guidance.HighlightChanged")
+            {
+                return Task.CompletedTask;
+            }
+
+            received = ev;
+            semaphore.Release();
+            return Task.CompletedTask;
+        }))
+        {
+            using var bridge = new FrontedSharedDataBehaviorEventBridge(
+                sharedData,
+                bus,
+                NullLogger<FrontedSharedDataBehaviorEventBridge>.Instance,
+                gameGuidanceService: guidance);
+            bridge.Start();
+
+            guidance.FireHighlightChanged(new GameGuidanceHighlightChangedEventArgs(GameAction.BanSur, [0]));
+
+            Assert.True(await semaphore.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
+        }
+
+        Assert.NotNull(received);
+        Assert.Equal("GameGuidanceService", received!.Source);
+        Assert.Equal(GameAction.BanSur, received.Payload["Action"]);
+        Assert.Equal(0, received.Payload["Index"]);
+        Assert.False(received.Payload.ContainsKey("IsActive"));
+    }
+
     /// <summary>
     /// Test event args for the CharacterPicked event on <see cref="MockSharedDataService"/>.
     /// </summary>
@@ -285,6 +360,35 @@ public class FrontedSharedDataBehaviorEventBridgeTest
         public void FireCharacterPicked(CharacterPickedEventArgs args) => CharacterPicked?.Invoke(this, args);
 
         public void FireUnmarkedEvent() => UnmarkedEvent?.Invoke(this, System.EventArgs.Empty);
+    }
+
+    private sealed class MockCharacterSelectionService : ICharacterSelectionService
+    {
+        public event EventHandler<CharacterSelectedEventArgs>? CharacterSelected;
+        public event EventHandler<CharacterBannedEventArgs>? CharacterBanned;
+
+        public Task SelectSurvivorAsync(int playerIndex, Character? character, bool playAnimation = true, bool isRecordGlobalBan = true) => Task.CompletedTask;
+        public Task SelectHunterAsync(Character? character, bool playAnimation = true, bool isRecordGlobalBan = true) => Task.CompletedTask;
+        public Task BanCharacterAsync(Camp camp, int index, Character? character, bool playAnimation = true) => Task.CompletedTask;
+        public Task SwapSurvivorsAsync(int sourceIndex, int targetIndex, bool playAnimation = true) => Task.CompletedTask;
+        public void FireCharacterSelected(CharacterSelectedEventArgs args) => CharacterSelected?.Invoke(this, args);
+    }
+
+    private sealed class MockGameGuidanceService : IGameGuidanceService
+    {
+        public bool IsGuidanceStarted { get; set; }
+        public event EventHandler<GameGuidanceStateChangedEventArgs>? GuidanceStateChanged;
+        public event EventHandler<GameGuidanceStateChangedEventArgs>? GuidanceStarted;
+        public event EventHandler<GameGuidanceStateChangedEventArgs>? GuidanceStopped;
+        public event EventHandler<GameGuidanceStepChangedEventArgs>? GuidanceStepChanged;
+        public event EventHandler<GameGuidanceHighlightChangedEventArgs>? GuidanceHighlightChanged;
+        public event EventHandler<GameGuidanceHighlightChangedEventArgs>? GuidanceHighlightCleared;
+
+        public Task<string?> StartGuidance() => Task.FromResult<string?>(null);
+        public Task<string?> NextStepAsync() => Task.FromResult<string?>(null);
+        public Task<string?> PrevStepAsync() => Task.FromResult<string?>(null);
+        public void StopGuidance() { }
+        public void FireHighlightChanged(GameGuidanceHighlightChangedEventArgs args) => GuidanceHighlightChanged?.Invoke(this, args);
     }
 
     /// <summary>

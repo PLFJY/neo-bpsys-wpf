@@ -9,7 +9,7 @@ using System.Windows.Threading;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Bridges attributed events from <see cref="ISharedDataService" /> and <see cref="IGameGuidanceService" />
+/// Bridges attributed events from shared-data and gameplay services
 /// to <see cref="IFrontedEventBus" />.
 /// Subscribes to each event on the service interfaces that is annotated with
 /// <see cref="FrontedBehaviorEventAttribute" /> and publishes <see cref="FrontedBehaviorEvent" />
@@ -63,22 +63,22 @@ public sealed class FrontedSharedDataBehaviorEventBridge : IDisposable
                 return;
             }
 
-            var scanTargets = new List<(Type InterfaceType, object ServiceInstance)>
+            var scanTargets = new List<(Type InterfaceType, object ServiceInstance, string SourceName)>
             {
-                (typeof(ISharedDataService), _sharedDataService)
+                (typeof(ISharedDataService), _sharedDataService, "SharedDataService")
             };
 
             if (_gameGuidanceService is not null)
             {
-                scanTargets.Add((typeof(IGameGuidanceService), _gameGuidanceService));
+                scanTargets.Add((typeof(IGameGuidanceService), _gameGuidanceService, "GameGuidanceService"));
             }
 
             if (_characterSelectionService is not null)
             {
-                scanTargets.Add((typeof(ICharacterSelectionService), _characterSelectionService));
+                scanTargets.Add((typeof(ICharacterSelectionService), _characterSelectionService, "CharacterSelectionService"));
             }
 
-            foreach (var (interfaceType, serviceInstance) in scanTargets)
+            foreach (var (interfaceType, serviceInstance, sourceName) in scanTargets)
             {
                 foreach (var eventInfo in interfaceType.GetEvents(BindingFlags.Instance | BindingFlags.Public))
                 {
@@ -89,7 +89,7 @@ public sealed class FrontedSharedDataBehaviorEventBridge : IDisposable
                     }
 
                     var payloadAttributes = eventInfo.GetCustomAttributes<FrontedBehaviorEventPayloadAttribute>().ToArray();
-                    SubscribeToEvent(eventInfo, metadata, payloadAttributes, serviceInstance);
+                    SubscribeToEvent(eventInfo, metadata, payloadAttributes, serviceInstance, sourceName);
                 }
             }
 
@@ -101,14 +101,15 @@ public sealed class FrontedSharedDataBehaviorEventBridge : IDisposable
         EventInfo eventInfo,
         FrontedBehaviorEventAttribute metadata,
         FrontedBehaviorEventPayloadAttribute[] payloadAttributes,
-        object serviceInstance)
+        object serviceInstance,
+        string sourceName)
     {
         try
         {
             // Create a handler delegate that matches the event's specific delegate type.
             // The event may be EventHandler (non-generic) or EventHandler<TEventArgs> (generic).
             // We create the correct delegate type via reflection so the add accessor accepts it.
-            var handler = CreateMatchingDelegate(eventInfo, metadata, payloadAttributes);
+            var handler = CreateMatchingDelegate(eventInfo, metadata, payloadAttributes, serviceInstance, sourceName);
             if (handler is null)
             {
                 _logger.LogWarning("Cannot create handler for {EventName}.", eventInfo.Name);
@@ -145,7 +146,9 @@ public sealed class FrontedSharedDataBehaviorEventBridge : IDisposable
     private Delegate? CreateMatchingDelegate(
         EventInfo eventInfo,
         FrontedBehaviorEventAttribute metadata,
-        FrontedBehaviorEventPayloadAttribute[] payloadAttributes)
+        FrontedBehaviorEventPayloadAttribute[] payloadAttributes,
+        object serviceInstance,
+        string sourceName)
     {
         var handlerType = eventInfo.EventHandlerType;
 
@@ -153,8 +156,8 @@ public sealed class FrontedSharedDataBehaviorEventBridge : IDisposable
         {
             EventHandler handler = (sender, args) =>
             {
-                var payload = BuildPayload(payloadAttributes, sender, args);
-                PublishBehaviorEvent(metadata, payload);
+                var payload = BuildPayload(payloadAttributes, serviceInstance, sender, args);
+                PublishBehaviorEvent(metadata, payload, sourceName);
             };
             return handler;
         }
@@ -169,7 +172,7 @@ public sealed class FrontedSharedDataBehaviorEventBridge : IDisposable
                 .GetMethod(nameof(CreateGenericHandler), BindingFlags.NonPublic | BindingFlags.Instance)!;
             var closedMethod = openMethod.MakeGenericMethod(eventArgsType);
 
-            var handler = (Delegate)closedMethod.Invoke(this, [metadata, payloadAttributes])!;
+            var handler = (Delegate)closedMethod.Invoke(this, [metadata, payloadAttributes, serviceInstance, sourceName])!;
             return handler;
         }
 
@@ -181,25 +184,27 @@ public sealed class FrontedSharedDataBehaviorEventBridge : IDisposable
     /// </summary>
     private Delegate CreateGenericHandler<TEventArgs>(
         FrontedBehaviorEventAttribute metadata,
-        FrontedBehaviorEventPayloadAttribute[] payloadAttributes)
-        where TEventArgs : EventArgs
+        FrontedBehaviorEventPayloadAttribute[] payloadAttributes,
+        object serviceInstance,
+        string sourceName)
     {
         EventHandler<TEventArgs> handler = (sender, args) =>
         {
-            var payload = BuildPayload(payloadAttributes, sender, args);
-            PublishBehaviorEvent(metadata, payload);
+            var payload = BuildPayload(payloadAttributes, serviceInstance, sender, args);
+            PublishBehaviorEvent(metadata, payload, sourceName);
         };
         return handler;
     }
 
     private void PublishBehaviorEvent(
         FrontedBehaviorEventAttribute metadata,
-        IReadOnlyDictionary<string, object?> payload)
+        IReadOnlyDictionary<string, object?> payload,
+        string sourceName)
     {
         var behaviorEvent = new FrontedBehaviorEvent
         {
             EventType = metadata.EventType,
-            Source = "SharedDataService",
+            Source = sourceName,
             Timestamp = DateTimeOffset.UtcNow,
             IsPreview = false,
             Payload = payload
@@ -210,8 +215,9 @@ public sealed class FrontedSharedDataBehaviorEventBridge : IDisposable
 
     private IReadOnlyDictionary<string, object?> BuildPayload(
         FrontedBehaviorEventPayloadAttribute[] payloadAttributes,
+        object serviceInstance,
         object? sender,
-        EventArgs args)
+        object? args)
     {
         if (payloadAttributes.Length == 0)
         {
@@ -232,7 +238,7 @@ public sealed class FrontedSharedDataBehaviorEventBridge : IDisposable
             {
                 value = attr.Source switch
                 {
-                    FrontedBehaviorPayloadSource.ServiceProperty => ResolveServiceProperty(attr.SourcePath),
+                    FrontedBehaviorPayloadSource.ServiceProperty => ResolveServiceProperty(serviceInstance, attr.SourcePath),
                     FrontedBehaviorPayloadSource.EventArgsProperty => ResolveEventArgsProperty(args, attr.SourcePath),
                     FrontedBehaviorPayloadSource.SenderProperty => ResolveSenderProperty(sender, attr.SourcePath),
                     _ => null
@@ -251,7 +257,7 @@ public sealed class FrontedSharedDataBehaviorEventBridge : IDisposable
         return result;
     }
 
-    private object? ResolveServiceProperty(string? sourcePath)
+    private static object? ResolveServiceProperty(object serviceInstance, string? sourcePath)
     {
         if (string.IsNullOrWhiteSpace(sourcePath))
         {
@@ -259,7 +265,7 @@ public sealed class FrontedSharedDataBehaviorEventBridge : IDisposable
         }
 
         var parts = sourcePath.Split('.', StringSplitOptions.RemoveEmptyEntries);
-        object? current = _sharedDataService;
+        object? current = serviceInstance;
         foreach (var part in parts)
         {
             if (current is null) return null;
@@ -271,7 +277,7 @@ public sealed class FrontedSharedDataBehaviorEventBridge : IDisposable
         return current;
     }
 
-    private static object? ResolveEventArgsProperty(EventArgs args, string? sourcePath)
+    private static object? ResolveEventArgsProperty(object? args, string? sourcePath)
     {
         if (string.IsNullOrWhiteSpace(sourcePath) || args is null)
         {

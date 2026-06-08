@@ -36,6 +36,12 @@ public static class ColorHelper
             : DefaultColorHex;
     }
 
+    /// <summary>
+    /// Tries to parse a color from <c>#RRGGBB</c>, <c>#AARRGGBB</c>, or a WPF named color.
+    /// </summary>
+    /// <param name="value">The color text to parse.</param>
+    /// <param name="color">The parsed color when parsing succeeds.</param>
+    /// <returns><c>true</c> when the value is a supported color; otherwise <c>false</c>.</returns>
     public static bool TryParseColor(string? value, out Color color)
     {
         color = Colors.White;
@@ -45,6 +51,29 @@ public static class ColorHelper
         }
 
         var text = value.Trim();
+        if (!text.StartsWith('#'))
+        {
+            try
+            {
+                var converted = ColorConverter.ConvertFromString(text);
+                if (converted is Color namedColor)
+                {
+                    color = namedColor;
+                    return true;
+                }
+            }
+            catch (FormatException)
+            {
+                return false;
+            }
+            catch (NotSupportedException)
+            {
+                return false;
+            }
+
+            return false;
+        }
+
         if (text.StartsWith('#'))
         {
             text = text[1..];

@@ -22,6 +22,11 @@ public partial class Settings : ObservableObjectBase
 
     public bool IsRecordGlobalBan { get; set; } = true;
 
+    /// <summary>
+    /// 是否使用旧的对局引导呼吸灯逻辑。
+    /// </summary>
+    public bool UseLegacyGuidanceBreathing { get; set; } = true;
+
     public bool IsClassicMode { get; set; } = false;
 
     public string? OcrModelKey { get; set; }

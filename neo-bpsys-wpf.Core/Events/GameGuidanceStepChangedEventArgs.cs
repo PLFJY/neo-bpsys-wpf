@@ -33,6 +33,16 @@ public class GameGuidanceStepChangedEventArgs(
     public List<int>? Index { get; } = index;
 
     /// <summary>
+    /// 当前操作的控件索引列表。
+    /// </summary>
+    public List<int>? Indexes => Index;
+
+    /// <summary>
+    /// 第一个操作控件索引，null 表示没有指定索引。
+    /// </summary>
+    public int? FirstIndex => Index?.FirstOrDefault();
+
+    /// <summary>
     /// 当前步骤计时（秒），可能为 null
     /// </summary>
     public int? Time { get; } = time;
@@ -41,4 +51,5 @@ public class GameGuidanceStepChangedEventArgs(
     /// 当前步骤的本地化名称
     /// </summary>
     public string ActionName { get; } = actionName;
+
 }

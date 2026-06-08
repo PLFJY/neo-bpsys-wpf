@@ -83,6 +83,82 @@ public sealed class FrontedNodeGraphValidator(FrontedNodeCatalog? catalog = null
         {
             messages.Add(Message(FrontedNodeGraphValidationSeverity.Error, "InvalidIfOperator", "If operator is invalid.", node.NodeId, propertyName: "Operator"));
         }
+
+        ValidateActionPropertyNode(node, messages);
+    }
+
+    private static void ValidateActionPropertyNode(FrontedNode node, ICollection<FrontedNodeGraphValidationMessage> messages)
+    {
+        if (node.NodeType is not ("action.animateProperty" or "action.setProperty" or "action.resetProperty"))
+        {
+            return;
+        }
+
+        var target = GetString(node, "Target");
+        if (string.IsNullOrWhiteSpace(target))
+        {
+            var severity = node.NodeType == "action.resetProperty"
+                ? FrontedNodeGraphValidationSeverity.Error
+                : FrontedNodeGraphValidationSeverity.Warning;
+            messages.Add(Message(severity, "TargetRequired", "Target is required; Self will be used for legacy nodes.", node.NodeId, propertyName: "Target"));
+        }
+
+        var propertyName = GetString(node, "PropertyName");
+        if (node.NodeType is "action.animateProperty" or "action.setProperty"
+            && string.IsNullOrWhiteSpace(propertyName))
+        {
+            messages.Add(Message(FrontedNodeGraphValidationSeverity.Error, "PropertyNameRequired", "PropertyName is required.", node.NodeId, propertyName: "PropertyName"));
+            return;
+        }
+
+        if (node.NodeType == "action.animateProperty")
+        {
+            ValidatePropertyValue(node, propertyName, "From", messages, allowEmpty: true);
+            ValidatePropertyValue(node, propertyName, "To", messages, allowEmpty: false);
+        }
+        else if (node.NodeType == "action.setProperty")
+        {
+            ValidatePropertyValue(node, propertyName, "Value", messages, allowEmpty: false);
+        }
+    }
+
+    private static void ValidatePropertyValue(
+        FrontedNode node,
+        string? propertyName,
+        string valuePropertyName,
+        ICollection<FrontedNodeGraphValidationMessage> messages,
+        bool allowEmpty)
+    {
+        var value = GetString(node, valuePropertyName);
+        if (allowEmpty && string.IsNullOrWhiteSpace(value))
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            messages.Add(Message(
+                FrontedNodeGraphValidationSeverity.Warning,
+                "PropertyValueMissing",
+                $"{valuePropertyName} is empty; the runtime will keep the legacy default value behavior.",
+                node.NodeId,
+                propertyName: valuePropertyName));
+            return;
+        }
+
+        if (FrontedBehaviorPropertyMetadata.TryValidateValue(propertyName, value, out var validationMessage))
+        {
+            return;
+        }
+
+        var code = FrontedBehaviorPropertyMetadata.IsColorProperty(propertyName)
+            ? "InvalidColorValue"
+            : FrontedBehaviorPropertyMetadata.IsVisibilityProperty(propertyName)
+                ? "InvalidVisibilityValue"
+                : FrontedBehaviorPropertyMetadata.IsNumericProperty(propertyName)
+                    ? "InvalidNumericValue"
+                    : "InvalidPropertyValue";
+        messages.Add(Message(FrontedNodeGraphValidationSeverity.Error, code, validationMessage, node.NodeId, propertyName: valuePropertyName));
     }
 
     private void ValidateConnection(FrontedNodeGraph graph, FrontedNodeConnection connection, ICollection<FrontedNodeGraphValidationMessage> messages)
@@ -140,6 +216,18 @@ public sealed class FrontedNodeGraphValidator(FrontedNodeCatalog? catalog = null
         return node.Properties.TryGetValue(propertyName, out var element)
                && (element.ValueKind == JsonValueKind.Number && element.TryGetInt32(out value)
                    || element.ValueKind == JsonValueKind.String && int.TryParse(element.GetString(), out value));
+    }
+
+    private static string? GetString(FrontedNode node, string propertyName)
+    {
+        if (!node.Properties.TryGetValue(propertyName, out var element))
+        {
+            return null;
+        }
+
+        return element.ValueKind == JsonValueKind.String
+            ? element.GetString()
+            : element.ToString();
     }
 
     private static FrontedNodeGraphValidationMessage Message(

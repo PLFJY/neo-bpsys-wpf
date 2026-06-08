@@ -299,6 +299,23 @@ public class BehaviorPanelViewModelTest
         Assert.Equal(TriggerFilterValueKind.Literal, filter.RightValueKind);
     }
 
+    [Fact]
+    public void BehaviorTags_EditorUpdatesConfigAndMarksDirty()
+    {
+        var dirty = 0;
+        var panel = CreatePanel(markLayoutDirty: () => dirty++);
+        var item = CreateItem(Guid.NewGuid());
+        panel.SetSelectedControl(item);
+
+        panel.TagsEditor.AddTag();
+        var row = Assert.Single(panel.TagsEditor.Tags);
+        row.Key = "Camp";
+        row.Value = "Sur";
+
+        Assert.Equal("Sur", item.Config.BehaviorTags["Camp"]);
+        Assert.True(dirty > 0);
+    }
+
     private static BehaviorPanelViewModel CreatePanel(
         Action? markLayoutDirty = null,
         Action? markBehaviorsDirty = null)

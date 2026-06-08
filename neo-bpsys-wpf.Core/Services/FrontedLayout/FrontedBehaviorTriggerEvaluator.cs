@@ -70,7 +70,8 @@ public sealed class FrontedBehaviorTriggerEvaluator
         try
         {
             var leftValue = ResolveLeftValue(filter.Left, behaviorEvent, selfTags);
-            return FrontedTriggerFilterTextComparer.Evaluate(leftValue, filter.Operator, filter.Right);
+            var rightValue = ResolveOperandValue(filter.Right, behaviorEvent, selfTags);
+            return FrontedTriggerFilterTextComparer.Evaluate(leftValue, filter.Operator, rightValue?.ToString());
         }
         catch (Exception ex)
         {
@@ -84,22 +85,28 @@ public sealed class FrontedBehaviorTriggerEvaluator
     private static object? ResolveLeftValue(
         string left,
         FrontedBehaviorEvent behaviorEvent,
+        IReadOnlyDictionary<string, string>? selfTags) =>
+        ResolveOperandValue(left, behaviorEvent, selfTags);
+
+    private static object? ResolveOperandValue(
+        string? text,
+        FrontedBehaviorEvent behaviorEvent,
         IReadOnlyDictionary<string, string>? selfTags)
     {
-        if (string.IsNullOrEmpty(left))
+        if (string.IsNullOrEmpty(text))
         {
             return null;
         }
 
-        if (left.StartsWith("Event.", StringComparison.Ordinal))
+        if (text.StartsWith("Event.", StringComparison.Ordinal))
         {
-            var key = left["Event.".Length..];
+            var key = text["Event.".Length..];
             return behaviorEvent.Payload.TryGetValue(key, out var value) ? value : null;
         }
 
-        if (left.StartsWith("SelfTag.", StringComparison.Ordinal))
+        if (text.StartsWith("SelfTag.", StringComparison.Ordinal))
         {
-            var key = left["SelfTag.".Length..];
+            var key = text["SelfTag.".Length..];
             if (selfTags is not null && selfTags.TryGetValue(key, out var tagValue))
             {
                 return tagValue;
@@ -109,6 +116,6 @@ public sealed class FrontedBehaviorTriggerEvaluator
         }
 
         // Literal text
-        return left;
+        return text;
     }
 }

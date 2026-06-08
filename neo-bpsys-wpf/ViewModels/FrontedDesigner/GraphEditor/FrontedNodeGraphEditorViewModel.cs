@@ -1,8 +1,11 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
@@ -18,6 +21,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     private readonly Func<FrontedAnimationExecutionContext?>? _createAnimationContext;
     private readonly Action _markDirty;
     private readonly Func<string, string, string> _localize;
+    private readonly IReadOnlyList<FrontedNodeTargetOptionViewModel> _targetOptions;
     private CancellationTokenSource? _previewCancellation;
     private FrontedNodePortViewModel? _pendingPort;
     private readonly Stack<string> _undoStack = new();
@@ -36,7 +40,8 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         Func<FrontedAnimationExecutionContext?>? createAnimationContext = null,
         Action? markDirty = null,
         Func<string, string, string>? localize = null,
-        Action? save = null)
+        Action? save = null,
+        IReadOnlyList<FrontedNodeTargetOptionViewModel>? targetOptions = null)
     {
         Graph = graph;
         _catalog = catalog ?? new FrontedNodeCatalog();
@@ -47,6 +52,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         _markDirty = markDirty ?? (() => { });
         _localize = localize ?? ((_, fallback) => fallback);
         _save = save ?? (() => { });
+        _targetOptions = targetOptions ?? [new FrontedNodeTargetOptionViewModel("Self", _localize("Designer.Graph.Target.Self", "Self"))];
         Catalog = _catalog.Nodes
             .Where(IsAnimationEditorCatalogNode)
             .Select(descriptor => new FrontedNodeCatalogItemViewModel(descriptor, _localize))
@@ -537,7 +543,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     }
 
     private FrontedNodeEditorViewModel CreateNode(FrontedNode node) =>
-        new(node, _catalog.Find(node.NodeType), _markDirty, ValidateGraph, _localize);
+        new(node, _catalog.Find(node.NodeType), _markDirty, ValidateGraph, _localize, _targetOptions);
 
     private void ReloadConnections()
     {
@@ -667,7 +673,8 @@ public sealed partial class FrontedNodeEditorViewModel : ObservableObject
         FrontedNodeTypeDescriptor? descriptor,
         Action markDirty,
         Action validate,
-        Func<string, string, string> localize)
+        Func<string, string, string> localize,
+        IReadOnlyList<FrontedNodeTargetOptionViewModel> targetOptions)
     {
         Model = model;
         Descriptor = descriptor;
@@ -677,7 +684,20 @@ public sealed partial class FrontedNodeEditorViewModel : ObservableObject
         Description = descriptor is null ? model.NodeType : localize(descriptor.DescriptionKey, model.NodeType);
         InputPorts = descriptor?.InputPorts.Select((port, index) => new FrontedNodePortViewModel(this, port, index)).ToArray() ?? [];
         OutputPorts = descriptor?.OutputPorts.Select((port, index) => new FrontedNodePortViewModel(this, port, index)).ToArray() ?? [];
-        Properties = descriptor?.Properties.Select(property => new FrontedNodePropertyEditorViewModel(model, property, markDirty, validate, localize)).ToArray() ?? [];
+        var properties = descriptor?.Properties
+            .Select(property => new FrontedNodePropertyEditorViewModel(model, property, markDirty, validate, localize, targetOptions))
+            .ToArray() ?? [];
+        Properties = properties;
+        foreach (var property in properties)
+        {
+            property.SetRefreshRelatedProperties(() =>
+            {
+                foreach (var item in properties)
+                {
+                    item.RefreshEditorState();
+                }
+            });
+        }
     }
 
     public FrontedNode Model { get; }
@@ -766,20 +786,40 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
     private readonly FrontedNode _node;
     private readonly Action _markDirty;
     private readonly Action _validate;
+    private readonly IReadOnlyList<FrontedNodeTargetOptionViewModel> _targetOptions;
+    private readonly Func<string, string, string> _localize;
+    private readonly IReadOnlyList<FrontedNodePropertyOptionViewModel> _localizedOptions;
+    private readonly IReadOnlyList<FrontedNodePropertyOptionViewModel> _visibilityOptions;
+    private Action? _refreshRelatedProperties;
+    private string? _validationError;
+    private Color _colorValue = Colors.White;
 
     public FrontedNodePropertyEditorViewModel(
         FrontedNode node,
         FrontedNodePropertyDescriptor descriptor,
         Action markDirty,
         Action validate,
-        Func<string, string, string> localize)
+        Func<string, string, string> localize,
+        IReadOnlyList<FrontedNodeTargetOptionViewModel> targetOptions)
     {
         _node = node;
         Descriptor = descriptor;
         _markDirty = markDirty;
         _validate = validate;
+        _targetOptions = targetOptions;
+        _localize = localize;
         DisplayName = localize(descriptor.DisplayNameKey, descriptor.Name);
         Description = localize($"{descriptor.DisplayNameKey}.Description", descriptor.Name);
+        _localizedOptions = descriptor.Options
+            .Select(option => new FrontedNodePropertyOptionViewModel(option, LocalizeOption(option)))
+            .ToArray();
+        _visibilityOptions = FrontedBehaviorPropertyMetadata.VisibilityOptions
+            .Select(option => new FrontedNodePropertyOptionViewModel(option, localize($"Designer.Option.Visibility.{option}", option)))
+            .ToArray();
+        if (ColorHelper.TryParseColor(TextValue, out var color))
+        {
+            _colorValue = color;
+        }
     }
 
     public FrontedNodePropertyDescriptor Descriptor { get; }
@@ -787,16 +827,60 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
     public string Description { get; }
     public bool IsBoolean => Descriptor.EditorKind == FrontedNodePropertyEditorKind.Boolean;
     public bool IsEnum => Descriptor.EditorKind == FrontedNodePropertyEditorKind.Enum;
-    public bool HasTextSuggestions => !IsBoolean && !IsEnum && Descriptor.Options.Count > 0;
-    public bool IsText => !IsBoolean && !IsEnum && !HasTextSuggestions;
+    public bool IsNumber => Descriptor.EditorKind == FrontedNodePropertyEditorKind.Number || IsNumericDynamicValue;
+    public bool IsColor => Descriptor.EditorKind == FrontedNodePropertyEditorKind.Color || IsColorDynamicValue;
+    public bool IsControlReference => Descriptor.EditorKind == FrontedNodePropertyEditorKind.ControlReference;
+    public bool IsPropertyName => Descriptor.EditorKind == FrontedNodePropertyEditorKind.PropertyName;
+    public bool IsVisibilityValue => IsDynamicValue && FrontedBehaviorPropertyMetadata.IsVisibilityProperty(CurrentBehaviorPropertyName);
+    public bool HasTextSuggestions => !IsBoolean && !IsEnum && !IsNumber && !IsColor && !IsControlReference && !IsPropertyName && Descriptor.Options.Count > 0;
+    public bool IsText => !IsBoolean && !IsEnum && !IsNumber && !IsColor && !IsControlReference && !IsPropertyName && !HasTextSuggestions && !IsVisibilityValue;
     public IReadOnlyList<string> Options => Descriptor.Options;
+    public IReadOnlyList<FrontedNodePropertyOptionViewModel> LocalizedOptions => _localizedOptions;
+    public IReadOnlyList<FrontedNodePropertyOptionViewModel> VisibilityOptions => _visibilityOptions;
+    public IReadOnlyList<FrontedNodeTargetOptionViewModel> TargetOptions => EnsureCurrentTargetOption();
+    public string? Unit => IsRotation ? "°" : Descriptor.Unit;
+    public bool HasUnit => !string.IsNullOrWhiteSpace(Unit);
+    public bool HasValidationError => !string.IsNullOrWhiteSpace(ValidationError);
+    public string? ValidationError
+    {
+        get => _validationError;
+        private set
+        {
+            if (SetProperty(ref _validationError, value))
+            {
+                OnPropertyChanged(nameof(HasValidationError));
+            }
+        }
+    }
+    public Color ColorValue
+    {
+        get => _colorValue;
+        set
+        {
+            if (!SetProperty(ref _colorValue, value))
+            {
+                return;
+            }
+
+            TextValue = value.ToArgbHexString();
+        }
+    }
 
     public string TextValue
     {
         get => Read().ValueKind == JsonValueKind.String ? Read().GetString() ?? string.Empty : Read().ToString();
-        set => Write(Descriptor.PropertyType == FrontedNodePropertyType.Number && double.TryParse(value, out var number)
-            ? JsonSerializer.SerializeToElement(number)
-            : JsonSerializer.SerializeToElement(value));
+        set
+        {
+            if (!ValidateTextValue(value, out var normalized))
+            {
+                OnPropertyChanged(nameof(TextValue));
+                return;
+            }
+
+            Write(Descriptor.PropertyType == FrontedNodePropertyType.Number && double.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out var number)
+                ? JsonSerializer.SerializeToElement(number)
+                : JsonSerializer.SerializeToElement(normalized));
+        }
     }
 
     public bool BooleanValue
@@ -811,6 +895,52 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
         set => Write(JsonSerializer.SerializeToElement(value));
     }
 
+    public string TargetValue
+    {
+        get => TextValue;
+        set => TextValue = value;
+    }
+
+    public string PropertyNameValue
+    {
+        get => TextValue;
+        set => TextValue = value;
+    }
+
+    public string PropertyNameText
+    {
+        get => DisplayForValue(TextValue);
+        set => TextValue = ValueForDisplay(value);
+    }
+
+    public string SuggestionText
+    {
+        get => DisplayForValue(TextValue);
+        set => TextValue = ValueForDisplay(value);
+    }
+
+    public string VisibilityValue
+    {
+        get => TextValue;
+        set => TextValue = value;
+    }
+
+    public void SetRefreshRelatedProperties(Action refreshRelatedProperties)
+    {
+        _refreshRelatedProperties = refreshRelatedProperties;
+    }
+
+    public void RefreshEditorState()
+    {
+        OnPropertyChanged(nameof(IsNumber));
+        OnPropertyChanged(nameof(IsColor));
+        OnPropertyChanged(nameof(IsVisibilityValue));
+        OnPropertyChanged(nameof(IsText));
+        OnPropertyChanged(nameof(HasTextSuggestions));
+        OnPropertyChanged(nameof(Unit));
+        OnPropertyChanged(nameof(HasUnit));
+    }
+
     private JsonElement Read() => _node.Properties.TryGetValue(Descriptor.Name, out var value) ? value : Descriptor.DefaultValue;
 
     private void Write(JsonElement value)
@@ -818,11 +948,130 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
         _node.Properties[Descriptor.Name] = value;
         _markDirty();
         _validate();
+        ValidationError = null;
+        if (IsColor && ColorHelper.TryParseColor(TextValue, out var color))
+        {
+            SetProperty(ref _colorValue, color, nameof(ColorValue));
+        }
         OnPropertyChanged(nameof(TextValue));
         OnPropertyChanged(nameof(BooleanValue));
         OnPropertyChanged(nameof(EnumValue));
+        OnPropertyChanged(nameof(TargetValue));
+        OnPropertyChanged(nameof(PropertyNameValue));
+        OnPropertyChanged(nameof(PropertyNameText));
+        OnPropertyChanged(nameof(SuggestionText));
+        OnPropertyChanged(nameof(VisibilityValue));
+        _refreshRelatedProperties?.Invoke();
     }
+
+    private bool ValidateTextValue(string? value, out string normalized)
+    {
+        normalized = value ?? string.Empty;
+        if (IsColor)
+        {
+            if (!ColorHelper.TryNormalizeHex(value, out normalized))
+            {
+                ValidationError = "Invalid color. Use #RRGGBB, #AARRGGBB, or a WPF color name.";
+                return false;
+            }
+
+            return true;
+        }
+
+        if (IsNumber)
+        {
+            if (!double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var number) || !double.IsFinite(number))
+            {
+                ValidationError = "Value must be a finite number.";
+                return false;
+            }
+
+            if (!FrontedBehaviorPropertyMetadata.TryValidateValue(EffectivePropertyNameForValidation(), value, out var message))
+            {
+                ValidationError = message;
+                return false;
+            }
+
+            normalized = number.ToString(CultureInfo.InvariantCulture);
+            return true;
+        }
+
+        if (IsVisibilityValue
+            && !FrontedBehaviorPropertyMetadata.VisibilityOptions.Any(option => string.Equals(option, value, StringComparison.OrdinalIgnoreCase)))
+        {
+            ValidationError = "Visibility must be Visible, Hidden, or Collapsed.";
+            return false;
+        }
+
+        ValidationError = null;
+        return true;
+    }
+
+    private IReadOnlyList<FrontedNodeTargetOptionViewModel> EnsureCurrentTargetOption()
+    {
+        if (!IsControlReference || string.IsNullOrWhiteSpace(TextValue)
+            || _targetOptions.Any(option => string.Equals(option.Value, TextValue, StringComparison.Ordinal)))
+        {
+            return _targetOptions;
+        }
+
+        return [.. _targetOptions, new FrontedNodeTargetOptionViewModel(TextValue, $"Unknown target ({TextValue})")];
+    }
+
+    private string LocalizeOption(string value)
+    {
+        if (IsPropertyName)
+        {
+            return _localize(
+                string.Equals(value, "All", StringComparison.OrdinalIgnoreCase)
+                    ? "Designer.Graph.PropertyName.All"
+                    : $"Designer.Property.{value}",
+                value);
+        }
+
+        return _localize($"Designer.Option.{Descriptor.Name}.{value}", value);
+    }
+
+    private string DisplayForValue(string value) =>
+        _localizedOptions.FirstOrDefault(option => string.Equals(option.Value, value, StringComparison.Ordinal))?.DisplayName
+        ?? value;
+
+    private string ValueForDisplay(string? display)
+    {
+        var value = display ?? string.Empty;
+        return _localizedOptions.FirstOrDefault(option =>
+                   string.Equals(option.DisplayName, value, StringComparison.Ordinal)
+                   || string.Equals(option.Value, value, StringComparison.Ordinal))?.Value
+               ?? value;
+    }
+
+    private string? CurrentBehaviorPropertyName =>
+        _node.Properties.TryGetValue("PropertyName", out var property)
+            ? property.ValueKind == JsonValueKind.String ? property.GetString() : property.ToString()
+            : null;
+
+    private bool IsDynamicValue => Descriptor.Name is "Value" or "From" or "To";
+    private bool IsColorDynamicValue => IsDynamicValue && FrontedBehaviorPropertyMetadata.IsColorProperty(CurrentBehaviorPropertyName);
+    private bool IsNumericDynamicValue => IsDynamicValue && FrontedBehaviorPropertyMetadata.IsNumericProperty(CurrentBehaviorPropertyName);
+    private bool IsRotation => string.Equals(Descriptor.Name, "Rotation", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(CurrentBehaviorPropertyName, "Rotation", StringComparison.OrdinalIgnoreCase);
+    private string? EffectivePropertyNameForValidation() =>
+        IsDynamicValue ? CurrentBehaviorPropertyName : Descriptor.Name;
 }
+
+/// <summary>
+/// Target option displayed by behavior graph target editors.
+/// </summary>
+/// <param name="Value">The persisted target reference value.</param>
+/// <param name="DisplayName">The user-facing target display name.</param>
+public sealed record FrontedNodeTargetOptionViewModel(string Value, string DisplayName);
+
+/// <summary>
+/// Option displayed by node property editors while preserving a stable stored value.
+/// </summary>
+/// <param name="Value">The value stored in node JSON.</param>
+/// <param name="DisplayName">The localized option label shown to the user.</param>
+public sealed record FrontedNodePropertyOptionViewModel(string Value, string DisplayName);
 
 public sealed class FrontedNodeCatalogItemViewModel
 {

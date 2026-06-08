@@ -2899,9 +2899,7 @@
   <data name="Designer.Property.EmptyText" xml:space="preserve">
     <value>Empty Text</value>
   </data>
-  <data name="Designer.Property.UseLineBreak" xml:space="preserve">
-    <value>Use Line Break</value>
-  </data>
+
   <data name="Designer.Property.TeamType" xml:space="preserve">
     <value>Team</value>
   </data>
@@ -3278,7 +3276,7 @@
     <value>Image</value>
   </data>
   <data name="Designer.Validation.InvalidArgbColor" xml:space="preserve">
-    <value>Invalid color. Use #RRGGBB or #AARRGGBB.</value>
+    <value>Invalid color. Use #RRGGBB, #AARRGGBB, or a WPF color name.</value>
   </data>
   <data name="Designer.PropertyGroup.Overlay" xml:space="preserve">
     <value>Overlay</value>
@@ -3485,7 +3483,7 @@
     <value>Name and BindingPath require Enter or apply button to commit;\nInvalid values keep the text and show red border;\nColorPicker updates Hex text; apply button commits;\nComboBox properties commit raw values while displaying localized names;\nBinding browser helps choose valid BindingPath;\nResource browser helps choose bpui/resource URI;\nBorderedImage has separate Border/Image properties;\nBorderedImage resize target can switch between outer border and inner image.</value>
   </data>
   <data name="Designer.Help.BuiltInControls.Content" xml:space="preserve">
-    <value>Text|Normal text control; TextBinding combines ordered dynamic sources and static Text is used when there are no sources.|Source order maps to {0}/{1}; an empty StringFormat joins with JoinSeparator.\nLocalizedText|Localized text control; static mode uses LocalizationKey, while TextBinding mode combines dynamic text before localization lookup.|A dynamic result that is not a resource key is displayed as raw text.\nImage|Direct image control whose root element is Image; use it for team logos, maps, simple images, and legacy direct Image semantics.|BindingPath binds an ImageSource; ImagePath is used only when BindingPath is empty; binding wins and ImagePath is not cleared automatically.\nBorderedImage|Outer Border plus inner Image; use it for framed, clipped, rounded, inner-sized, or resize-target-switchable image regions.|BindingPath and ImagePath follow the same priority as Image; Width/Height affect the border, ImageWidth/ImageHeight affect the inner image.\nGameProgressText|Generates game progress text from current game, half, BO3/BO5, and overtime rules.|Use UseLineBreak when the layout needs two lines; do not hard-code this business text into a normal Text control.\nMapNameText|Converts map enum/key values to localized map names; reads the picked map by default, or BindingPath can point to picked/banned map fields.|EmptyText is the fallback for no map; BindingPath should point to a Map/Map? field.\nGlobalScoreRow|Composite global score row; Cells define each half-score cell inside the parent frame, then MatchScore fills text and camp icons.|Normally used by ScoreGlobalWindow; move the parent for the whole row and edit child cells for individual score positions.\nTalentTraitDisplay|CutScene talent/trait display; reads fixed business data by DisplayKind and PlayerIndex.|Can follow trait visibility settings; do not hard-code individual talent icons in JSON.\nMapV2Display|Map BP v2 display; uses MapKey and reuses MapV2Presenter.|Suitable for WidgetsWindow map BP v2 layouts; do not hand-build the internal Map BP v2 visuals.\nGeneral notes|Choose dynamic data BindingPath from Binding Browser; choose ImagePath, BackgroundImage, LockImageSource, and similar resource paths from Resource Browser.|Prefer Resources/xxx.png or bpui://... for static resources and avoid long-term arbitrary absolute paths; missing or oversized images should warn or render empty, not crash the frontend window.</value>
+    <value>Text|Normal text control; TextBinding combines ordered dynamic sources and static Text is used when there are no sources.|Source order maps to {0}/{1}; an empty StringFormat joins with JoinSeparator.\nLocalizedText|Localized text control; static mode uses LocalizationKey, while TextBinding mode combines dynamic text before localization lookup.|A dynamic result that is not a resource key is displayed as raw text.\nImage|Direct image control whose root element is Image; use it for team logos, maps, simple images, and legacy direct Image semantics.|BindingPath binds an ImageSource; ImagePath is used only when BindingPath is empty; binding wins and ImagePath is not cleared automatically.\nBorderedImage|Outer Border plus inner Image; use it for framed, clipped, rounded, inner-sized, or resize-target-switchable image regions.|BindingPath and ImagePath follow the same priority as Image; Width/Height affect the border, ImageWidth/ImageHeight affect the inner image.\nGameProgressText|Generates game progress text from current game, half, BO3/BO5, and overtime rules.|Set DisplayMode to TwoLine when the layout needs two lines; do not hard-code this business text into a normal Text control.\nMapNameText|Converts map enum/key values to localized map names; reads the picked map by default, or BindingPath can point to picked/banned map fields.|EmptyText is the fallback for no map; BindingPath should point to a Map/Map? field.\nGlobalScoreRow|Composite global score row; Cells define each half-score cell inside the parent frame, then MatchScore fills text and camp icons.|Normally used by ScoreGlobalWindow; move the parent for the whole row and edit child cells for individual score positions.\nTalentTraitDisplay|CutScene talent/trait display; reads fixed business data by DisplayKind and PlayerIndex.|Can follow trait visibility settings; do not hard-code individual talent icons in JSON.\nMapV2Display|Map BP v2 display; uses MapKey and reuses MapV2Presenter.|Suitable for WidgetsWindow map BP v2 layouts; do not hand-build the internal Map BP v2 visuals.\nGeneral notes|Choose dynamic data BindingPath from Binding Browser; choose ImagePath, BackgroundImage, LockImageSource, and similar resource paths from Resource Browser.|Prefer Resources/xxx.png or bpui://... for static resources and avoid long-term arbitrary absolute paths; missing or oversized images should warn or render empty, not crash the frontend window.</value>
   </data>
   <data name="Designer.Help.AddDeleteCopyPaste.Content" xml:space="preserve">
     <value>Add Control inserts built-in/plugin controls;\nCopied control gets unique numbered name on paste;\nPaste offsets the new control;\nRuntime-critical/generated overlays may not be copyable/deletable;\nUndo/Redo can restore add, delete, paste, reorder operations.</value>
@@ -3937,7 +3935,10 @@
   <data name="Designer.Behaviors.Event.ManualTrigger" xml:space="preserve"><value>Manual trigger</value></data>
   <data name="Designer.Behaviors.Event.PluginEvent" xml:space="preserve"><value>Plugin event</value></data>
   <data name="Designer.Behaviors.Event.GuidanceHighlightChanged" xml:space="preserve"><value>Guidance highlight changed</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceHighlightCleared" xml:space="preserve"><value>Guidance highlight cleared</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceStarted" xml:space="preserve"><value>Guidance started</value></data>
   <data name="Designer.Behaviors.Event.GuidanceStateChanged" xml:space="preserve"><value>Guidance state changed</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceStopped" xml:space="preserve"><value>Guidance stopped</value></data>
   <data name="Designer.Behaviors.Event.GuidanceStepChanged" xml:space="preserve"><value>Guidance step changed</value></data>
   <data name="Designer.Behaviors.Category.Game" xml:space="preserve"><value>Game</value></data>
   <data name="Designer.Behaviors.Category.Guidance" xml:space="preserve"><value>Guidance</value></data>
@@ -3966,6 +3967,9 @@
   <data name="Designer.Behaviors.Payload.PickedMap" xml:space="preserve"><value>Picked map</value></data>
   <data name="Designer.Behaviors.Payload.Action" xml:space="preserve"><value>Action</value></data>
   <data name="Designer.Behaviors.Payload.ActionName" xml:space="preserve"><value>Action name</value></data>
+  <data name="Designer.Behaviors.Payload.Index" xml:space="preserve"><value>Index</value></data>
+  <data name="Designer.Behaviors.Payload.Indexes" xml:space="preserve"><value>Indexes</value></data>
+  <data name="Designer.Behaviors.Payload.Time" xml:space="preserve"><value>Time</value></data>
   <data name="Designer.Behaviors.Payload.GameAction" xml:space="preserve"><value>Highlighted action</value></data>
   <data name="Designer.Behaviors.Payload.IsStarted" xml:space="preserve"><value>Is started</value></data>
   <data name="Designer.Behaviors.Payload.StepIndex" xml:space="preserve"><value>Step index</value></data>
@@ -3994,8 +3998,15 @@
   <data name="Designer.Behaviors.Event.PickedMapChanged.Description" xml:space="preserve"><value>Fires when the picked map changes.</value></data>
   <data name="Designer.Behaviors.Event.MapV2BannedChanged.Description" xml:space="preserve"><value>Fires when map ban state changes.</value></data>
   <data name="Designer.Behaviors.Event.GuidanceHighlightChanged.Description" xml:space="preserve"><value>Fires when the guidance highlight changes.</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceHighlightCleared.Description" xml:space="preserve"><value>Fires when guidance clears the current highlight.</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceStarted.Description" xml:space="preserve"><value>Fires when guidance starts.</value></data>
   <data name="Designer.Behaviors.Event.GuidanceStateChanged.Description" xml:space="preserve"><value>Fires when guidance starts or stops.</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceStopped.Description" xml:space="preserve"><value>Fires when guidance stops.</value></data>
   <data name="Designer.Behaviors.Event.GuidanceStepChanged.Description" xml:space="preserve"><value>Fires when the guidance step changes.</value></data>
+  <data name="Designer.Behaviors.BehaviorTags" xml:space="preserve"><value>Behavior Tags</value></data>
+  <data name="Designer.Behaviors.AddBehaviorTag" xml:space="preserve"><value>Add tag</value></data>
+  <data name="Designer.Behaviors.TestTrigger" xml:space="preserve"><value>Test trigger</value></data>
+  <data name="Designer.Graph.Target.Self" xml:space="preserve"><value>Self</value></data>
   <data name="Designer.Behaviors.Event.CharacterSelected.Description" xml:space="preserve"><value>Fires when a character is selected (includes camp and player index).</value></data>
   <data name="Designer.Behaviors.Event.CharacterBanned.Description" xml:space="preserve"><value>Fires when a character is banned (includes camp and ban index).</value></data>
   <data name="Designer.Graph.NodeCatalog" xml:space="preserve"><value>Node catalog</value></data>
@@ -4070,18 +4081,34 @@ Select a control in the designer to preview animation here</value></data>
   <data name="Designer.Graph.Port.Branch2" xml:space="preserve"><value>Branch2</value></data>
   <data name="Designer.Graph.Port.Branch3" xml:space="preserve"><value>Branch3</value></data>
   <data name="Designer.Graph.Port.Value" xml:space="preserve"><value>Value</value></data>
-  <data name="Designer.Graph.Property.DurationMs" xml:space="preserve"><value>DurationMs</value></data>
+  <data name="Designer.Graph.Property.DurationMs" xml:space="preserve"><value>Duration</value></data>
   <data name="Designer.Graph.Property.Message" xml:space="preserve"><value>Message</value></data>
-  <data name="Designer.Graph.Property.Target" xml:space="preserve"><value>Target</value></data>
-  <data name="Designer.Graph.Property.PropertyName" xml:space="preserve"><value>PropertyName</value></data>
+  <data name="Designer.Graph.Property.Target" xml:space="preserve"><value>Target Control</value></data>
+  <data name="Designer.Graph.Property.PropertyName" xml:space="preserve"><value>Property Name</value></data>
   <data name="Designer.Graph.Property.Value" xml:space="preserve"><value>Value</value></data>
-  <data name="Designer.Graph.Property.From" xml:space="preserve"><value>From</value></data>
-  <data name="Designer.Graph.Property.To" xml:space="preserve"><value>To</value></data>
-  <data name="Designer.Graph.Property.Easing" xml:space="preserve"><value>Easing</value></data>
+  <data name="Designer.Graph.Property.From" xml:space="preserve"><value>From Value</value></data>
+  <data name="Designer.Graph.Property.To" xml:space="preserve"><value>To Value</value></data>
+  <data name="Designer.Graph.Property.Easing" xml:space="preserve"><value>Easing Function</value></data>
   <data name="Designer.Graph.Property.Left" xml:space="preserve"><value>Left</value></data>
   <data name="Designer.Graph.Property.Operator" xml:space="preserve"><value>Operator</value></data>
   <data name="Designer.Graph.Property.Right" xml:space="preserve"><value>Right</value></data>
   <data name="Designer.Graph.Property.Path" xml:space="preserve"><value>Path</value></data>
+  <data name="Designer.Graph.PropertyName.All" xml:space="preserve"><value>All Properties</value></data>
+  <data name="Designer.Option.Easing.Linear" xml:space="preserve"><value>Linear</value></data>
+  <data name="Designer.Option.Easing.SineInOut" xml:space="preserve"><value>Sine In/Out</value></data>
+  <data name="Designer.Option.Easing.CubicOut" xml:space="preserve"><value>Cubic Out</value></data>
+  <data name="Designer.Option.Easing.CubicIn" xml:space="preserve"><value>Cubic In</value></data>
+  <data name="Designer.Option.Easing.CubicInOut" xml:space="preserve"><value>Cubic In/Out</value></data>
+  <data name="Designer.Option.Easing.BackOut" xml:space="preserve"><value>Back Out</value></data>
+  <data name="Designer.Property.Opacity" xml:space="preserve"><value>Opacity</value></data>
+  <data name="Designer.Property.VisualOffsetX" xml:space="preserve"><value>Visual Offset X</value></data>
+  <data name="Designer.Property.VisualOffsetY" xml:space="preserve"><value>Visual Offset Y</value></data>
+  <data name="Designer.Property.ScaleX" xml:space="preserve"><value>Scale X</value></data>
+  <data name="Designer.Property.ScaleY" xml:space="preserve"><value>Scale Y</value></data>
+  <data name="Designer.Property.Rotation" xml:space="preserve"><value>Rotation</value></data>
+  <data name="Designer.Property.TextColor" xml:space="preserve"><value>Text Color</value></data>
+  <data name="Designer.Property.Foreground" xml:space="preserve"><value>Foreground</value></data>
+  <data name="Designer.Property.Background" xml:space="preserve"><value>Background</value></data>
   <data name="Designer.Graph.Validation.Description" xml:space="preserve"><value>Checks whether the graph has an entry node, valid connections, and required properties. It never deletes graph data; it only helps you fix preview and save-time issues.</value></data>
   <data name="Designer.Graph.DeleteConnection" xml:space="preserve"><value>Disconnect</value></data>
   <data name="Designer.Graph.Property.DurationMs.Description" xml:space="preserve"><value>Delay or animation duration in milliseconds.</value></data>
@@ -4131,4 +4158,41 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="Designer.Graph.ToolTipUndo" xml:space="preserve"><value>Undo (Ctrl+Z)</value></data>
   <data name="Designer.Graph.ToolTipRedo" xml:space="preserve"><value>Redo (Ctrl+Y)</value></data>
   <data name="Designer.Graph.ToolTipSave" xml:space="preserve"><value>Save (Ctrl+S)</value></data>
+  <data name="Designer.Property.DisplayMode" xml:space="preserve"><value>Display Mode</value></data>
+  <data name="Designer.Property.VerticalLanguageMode" xml:space="preserve"><value>Vertical Language Mode</value></data>
+  <data name="Designer.Property.LatinVerticalMode" xml:space="preserve"><value>Latin Vertical Mode</value></data>
+  <data name="Designer.Property.VerticalDirection" xml:space="preserve"><value>Direction</value></data>
+  <data name="Designer.Property.NumberStyle" xml:space="preserve"><value>Number Style</value></data>
+  <data name="Designer.Property.DisplayLanguage" xml:space="preserve"><value>Display Language</value></data>
+  <data name="Designer.Property.VerticalTextSpacing" xml:space="preserve"><value>Char Spacing</value></data>
+  <data name="Designer.Property.GroupSpacing" xml:space="preserve"><value>Group Spacing</value></data>
+  <data name="Designer.Property.ShowSeparator" xml:space="preserve"><value>Show Separator</value></data>
+  <data name="Designer.Property.SeparatorThickness" xml:space="preserve"><value>Separator Thickness</value></data>
+  <data name="Designer.Property.SeparatorColor" xml:space="preserve"><value>Separator Color</value></data>
+  <data name="Designer.Property.BackgroundColor" xml:space="preserve"><value>Background Color</value></data>
+  <data name="Designer.Property.PaddingLeft" xml:space="preserve"><value>Padding Left</value></data>
+  <data name="Designer.Property.PaddingTop" xml:space="preserve"><value>Padding Top</value></data>
+  <data name="Designer.Property.PaddingRight" xml:space="preserve"><value>Padding Right</value></data>
+  <data name="Designer.Property.PaddingBottom" xml:space="preserve"><value>Padding Bottom</value></data>
+  <data name="Designer.Option.DisplayMode.Inline" xml:space="preserve"><value>Inline</value></data>
+  <data name="Designer.Option.DisplayMode.TwoLine" xml:space="preserve"><value>Two Line</value></data>
+  <data name="Designer.Option.DisplayMode.VerticalHalfOnly" xml:space="preserve"><value>Vertical Half Only</value></data>
+  <data name="Designer.Option.DisplayMode.VerticalGameOnly" xml:space="preserve"><value>Vertical Game Only</value></data>
+  <data name="Designer.Option.DisplayMode.VerticalGameAndHalf" xml:space="preserve"><value>Vertical Game + Half</value></data>
+  <data name="Designer.Option.DisplayMode.VerticalSeparatedGameAndHalf" xml:space="preserve"><value>Vertical Separated Game + Half</value></data>
+  <data name="Designer.Option.DisplayMode.RibbonGameOnly" xml:space="preserve"><value>Ribbon Game Only</value></data>
+  <data name="Designer.Option.VerticalLanguageMode.Auto" xml:space="preserve"><value>Auto</value></data>
+  <data name="Designer.Option.VerticalLanguageMode.Upright" xml:space="preserve"><value>Upright</value></data>
+  <data name="Designer.Option.VerticalLanguageMode.RotateBlock" xml:space="preserve"><value>Rotate Block</value></data>
+  <data name="Designer.Option.VerticalLanguageMode.StackCharacters" xml:space="preserve"><value>Stack Characters</value></data>
+  <data name="Designer.Option.LatinVerticalMode.RotateBlock" xml:space="preserve"><value>Rotate Block</value></data>
+  <data name="Designer.Option.LatinVerticalMode.StackCharacters" xml:space="preserve"><value>Stack Characters</value></data>
+  <data name="Designer.Option.NumberStyle.Auto" xml:space="preserve"><value>Auto</value></data>
+  <data name="Designer.Option.NumberStyle.Arabic" xml:space="preserve"><value>Arabic</value></data>
+  <data name="Designer.Option.NumberStyle.CjkNumeral" xml:space="preserve"><value>CJK Numeral</value></data>
+  <data name="Designer.Option.VerticalDirection.Auto" xml:space="preserve"><value>Auto</value></data>
+  <data name="Designer.Option.VerticalDirection.FacingLeft" xml:space="preserve"><value>Facing Left</value></data>
+  <data name="Designer.Option.VerticalDirection.FacingRight" xml:space="preserve"><value>Facing Right</value></data>
+  <data name="Designer.Option.DisplayLanguage.FollowApp" xml:space="preserve"><value>Follow App</value></data>
+
 </root>

@@ -1,3 +1,4 @@
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using System.Linq;
 using Xunit;
@@ -55,5 +56,22 @@ public class FrontedNodeCatalogTest
 
         Assert.Contains(node.Properties, property => property.Name == "PropertyName" && property.IsRequired);
         Assert.Contains(node.Properties, property => property.Name == "DurationMs" && property.IsRequired);
+    }
+
+    [Fact]
+    public void VisibilityProperty_UsesEnumOptions()
+    {
+        Assert.Equal(["Visible", "Hidden", "Collapsed"], FrontedBehaviorPropertyMetadata.VisibilityOptions);
+    }
+
+    [Fact]
+    public void PropertyNameEditor_ProvidesCommonOptions()
+    {
+        var node = new FrontedNodeCatalog().Find("action.animateProperty")!;
+        var property = node.Properties.Single(property => property.Name == "PropertyName");
+
+        Assert.Equal(FrontedNodePropertyEditorKind.PropertyName, property.EditorKind);
+        Assert.Contains("Opacity", property.Options);
+        Assert.Contains("FillColor", property.Options);
     }
 }

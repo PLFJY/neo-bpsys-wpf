@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Collections;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
@@ -7,7 +8,7 @@ public static class FrontedTriggerFilterTextComparer
 {
     public static bool Evaluate(object? left, TriggerFilterOperator filterOperator, string? right)
     {
-        var leftText = left?.ToString() ?? string.Empty;
+        var leftText = FormatValue(left);
         var rightText = right ?? string.Empty;
 
         return filterOperator switch
@@ -23,6 +24,26 @@ public static class FrontedTriggerFilterTextComparer
             TriggerFilterOperator.Exists => left is not null,
             _ => false
         };
+    }
+
+    private static string FormatValue(object? value)
+    {
+        if (value is null)
+        {
+            return string.Empty;
+        }
+
+        if (value is string text)
+        {
+            return text;
+        }
+
+        if (value is IEnumerable enumerable)
+        {
+            return string.Join(",", enumerable.Cast<object?>());
+        }
+
+        return value.ToString() ?? string.Empty;
     }
 
     private static int Compare(string left, string right)

@@ -19,6 +19,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -2354,7 +2355,7 @@ public class FrontedLayoutDesignerFoundationTest
         var item = new FrontedControlDesignItem
         {
             Name = "Title",
-            Config = new TextFrontedControlConfig { Color = "red" }
+            Config = new TextFrontedControlConfig { Color = "not-a-color" }
         };
 
         var rows = BuildPropertyRows(CreateDocument([item]), item, localizer);
@@ -2447,7 +2448,8 @@ public class FrontedLayoutDesignerFoundationTest
         foreach (var type in BuiltInConfigTypes())
         {
             foreach (var property in type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                         .Where(property => property.GetIndexParameters().Length == 0 && property.CanRead))
+                         .Where(property => property.GetIndexParameters().Length == 0 && property.CanRead
+                                            && !property.IsDefined(typeof(JsonIgnoreAttribute), inherit: true)))
             {
                 var coreType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
                 if (coreType == typeof(string)
@@ -2471,6 +2473,10 @@ public class FrontedLayoutDesignerFoundationTest
             {
                 foreach (var option in row.Options!.OfType<FrontedPropertyEditorOption>())
                 {
+                    // DisplayLanguage 选项使用自定义键（zh_Hans/en_US/ja_JP），不生成 Designer.Option.* 条目
+                    if (row.PropertyName == "DisplayLanguage")
+                        continue;
+
                     requiredKeys.Add($"Designer.Option.{row.PropertyName}.{option.Value}");
                 }
             }

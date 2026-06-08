@@ -1,4 +1,6 @@
-﻿using WPFLocalizeExtension.Engine;
+﻿using neo_bpsys_wpf.Locales;
+using System.Globalization;
+using WPFLocalizeExtension.Engine;
 
 namespace neo_bpsys_wpf.Helpers;
 
@@ -27,4 +29,14 @@ public static class I18nHelper
             key,
             LocalizeDictionary.CurrentCulture)?
         .ToString() ?? key;
+
+    /// <summary>
+    /// 根据指定的资源键返回指定文化对应的本地化字符串。
+    /// 使用 <see cref="Lang.ResourceManager"/> 直接查找，确保文化参数被正确应用。
+    /// </summary>
+    /// <param name="key">资源键（例如 "MainWindow.Title"）。不能为空。</param>
+    /// <param name="culture">目标文化。</param>
+    /// <returns>若找到对应的本地化项，返回其字符串表示；否则返回传入的 <paramref name="key"/>。</returns>
+    public static string GetLocalizedString(string key, CultureInfo culture) =>
+        Lang.ResourceManager.GetString(key, culture) ?? key;
 }

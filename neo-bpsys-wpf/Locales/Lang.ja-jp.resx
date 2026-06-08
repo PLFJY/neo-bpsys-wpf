@@ -2252,25 +2252,25 @@
     <value>スナップグリッドサイズ</value>
   </data>
   <data name="GameProgressFree" xml:space="preserve">
-    <value>FREE GAME</value>
+    <value>フリーマッチ</value>
   </data>
   <data name="GameProgressGameOnlyFormat" xml:space="preserve">
-    <value>GAME {0}</value>
+    <value>第{0}試合</value>
   </data>
   <data name="GameProgressGameOvertimeOnlyFormat" xml:space="preserve">
-    <value>GAME {0} OVERTIME</value>
+    <value>第{0}試合 延長</value>
   </data>
   <data name="GameProgressGameHalfFormat" xml:space="preserve">
-    <value>GAME {0} {1}</value>
+    <value>第{0}試合 {1}</value>
   </data>
   <data name="GameProgressGameOvertimeHalfFormat" xml:space="preserve">
-    <value>GAME {0} OVERTIME {1}</value>
+    <value>第{0}試合 延長 {1}</value>
   </data>
   <data name="FirstHalf" xml:space="preserve">
-    <value>FIRST HALF</value>
+    <value>前半</value>
   </data>
   <data name="SecondHalf" xml:space="preserve">
-    <value>SECOND HALF</value>
+    <value>後半</value>
   </data>
   <data name="BindingBrowser" xml:space="preserve">
     <value>バインドブラウザー</value>
@@ -2902,9 +2902,7 @@
   <data name="Designer.Property.EmptyText" xml:space="preserve">
     <value>空表示テキスト</value>
   </data>
-  <data name="Designer.Property.UseLineBreak" xml:space="preserve">
-    <value>改行を使用</value>
-  </data>
+
   <data name="Designer.Property.TeamType" xml:space="preserve">
     <value>チーム</value>
   </data>
@@ -3281,7 +3279,7 @@
     <value>画像</value>
   </data>
   <data name="Designer.Validation.InvalidArgbColor" xml:space="preserve">
-    <value>色が無効です。#RRGGBB または #AARRGGBB を使用してください。</value>
+    <value>色が無効です。#RRGGBB、#AARRGGBB、または WPF の色名を使用してください。</value>
   </data>
   <data name="Designer.PropertyGroup.Overlay" xml:space="preserve">
     <value>オーバーレイ</value>
@@ -3488,7 +3486,7 @@
     <value>Name and BindingPath require Enter or apply button to commit;\nInvalid values keep the text and show red border;\nColorPicker updates Hex text; apply button commits;\nComboBox properties commit raw values while displaying localized names;\nBinding browser helps choose valid BindingPath;\nResource browser helps choose bpui/resource URI;\nBorderedImage has separate Border/Image properties;\nBorderedImage resize target can switch between outer border and inner image.</value>
   </data>
   <data name="Designer.Help.BuiltInControls.Content" xml:space="preserve">
-    <value>Text|通常のテキストコントロール。TextBinding は順序付きの複数ソースを結合し、ソースがない場合は静的 Text を表示します。|ソース順は {0}/{1} に対応し、StringFormat が空なら JoinSeparator で結合します。\nLocalizedText|ローカライズテキストコントロール。静的モードは LocalizationKey、TextBinding モードは動的テキストを結合してからローカライズを試みます。|動的結果がリソース key でない場合は元のテキストを表示します。\nImage|ルート要素が Image の直接画像コントロール。チームロゴ、マップ、単純な画像、旧 direct Image の意味を保つ場合に使います。|BindingPath は ImageSource をバインドします。ImagePath は BindingPath が空の時だけ使われます。バインドが優先され、ImagePath は自動削除されません。\nBorderedImage|外側 Border + 内側 Image。枠、クリップ、角丸、内部画像サイズ、リサイズ対象の切り替えが必要な画像領域に使います。|BindingPath と ImagePath の優先順位は Image と同じです。Width/Height は外枠、ImageWidth/ImageHeight は内部画像に作用します。\nGameProgressText|現在のゲーム、ハーフ、BO3/BO5、延長ルールから対局進行テキストを生成します。|2 行表示が必要な場合は UseLineBreak を使います。この種の業務文言を通常の Text に直接書かないでください。\nMapNameText|マップ enum/key をローカライズ済みマップ名に変換します。既定では選択マップを読み、BindingPath で picked/banned map フィールドを指定できます。|EmptyText はマップが空の時の表示です。BindingPath は Map/Map? フィールドを指すべきです。\nGlobalScoreRow|全体スコア行の複合コントロール。親フレーム内の Cells が各ハーフスコアセルを定義し、MatchScore からテキストと陣営アイコンを表示します。|通常は ScoreGlobalWindow で使います。親は行全体、子セルは個別スコア位置の編集に使います。\nTalentTraitDisplay|CutScene の天賦/補助特質表示。DisplayKind と PlayerIndex に応じて固定の業務データを読みます。|補助特質の表示設定にも従えます。JSON に個別の天賦アイコンを直接書かないでください。\nMapV2Display|Map BP v2 表示。MapKey を使い、MapV2Presenter を再利用します。|WidgetsWindow の Map BP v2 レイアウト向けです。内部の Map BP v2 表示要素を手作りしないでください。\n共通注意|動的データの BindingPath は Binding Browser で選びます。ImagePath、BackgroundImage、LockImageSource などのリソースパスは Resource Browser で選びます。|静的リソースは Resources/xxx.png または bpui://... を優先し、任意の絶対パスへ長期依存しないでください。画像が欠落または上限超過しても警告または空表示に留め、前台ウィンドウをクラッシュさせない設計です。</value>
+    <value>Text|通常のテキストコントロール。TextBinding は順序付きの複数ソースを結合し、ソースがない場合は静的 Text を表示します。|ソース順は {0}/{1} に対応し、StringFormat が空なら JoinSeparator で結合します。\nLocalizedText|ローカライズテキストコントロール。静的モードは LocalizationKey、TextBinding モードは動的テキストを結合してからローカライズを試みます。|動的結果がリソース key でない場合は元のテキストを表示します。\nImage|ルート要素が Image の直接画像コントロール。チームロゴ、マップ、単純な画像、旧 direct Image の意味を保つ場合に使います。|BindingPath は ImageSource をバインドします。ImagePath は BindingPath が空の時だけ使われます。バインドが優先され、ImagePath は自動削除されません。\nBorderedImage|外側 Border + 内側 Image。枠、クリップ、角丸、内部画像サイズ、リサイズ対象の切り替えが必要な画像領域に使います。|BindingPath と ImagePath の優先順位は Image と同じです。Width/Height は外枠、ImageWidth/ImageHeight は内部画像に作用します。\nGameProgressText|現在のゲーム、ハーフ、BO3/BO5、延長ルールから対局進行テキストを生成します。|2 行表示が必要な場合は DisplayMode を TwoLine に設定します。この種の業務文言を通常の Text に直接書かないでください。\nMapNameText|マップ enum/key をローカライズ済みマップ名に変換します。既定では選択マップを読み、BindingPath で picked/banned map フィールドを指定できます。|EmptyText はマップが空の時の表示です。BindingPath は Map/Map? フィールドを指すべきです。\nGlobalScoreRow|全体スコア行の複合コントロール。親フレーム内の Cells が各ハーフスコアセルを定義し、MatchScore からテキストと陣営アイコンを表示します。|通常は ScoreGlobalWindow で使います。親は行全体、子セルは個別スコア位置の編集に使います。\nTalentTraitDisplay|CutScene の天賦/補助特質表示。DisplayKind と PlayerIndex に応じて固定の業務データを読みます。|補助特質の表示設定にも従えます。JSON に個別の天賦アイコンを直接書かないでください。\nMapV2Display|Map BP v2 表示。MapKey を使い、MapV2Presenter を再利用します。|WidgetsWindow の Map BP v2 レイアウト向けです。内部の Map BP v2 表示要素を手作りしないでください。\n共通注意|動的データの BindingPath は Binding Browser で選びます。ImagePath、BackgroundImage、LockImageSource などのリソースパスは Resource Browser で選びます。|静的リソースは Resources/xxx.png または bpui://... を優先し、任意の絶対パスへ長期依存しないでください。画像が欠落または上限超過しても警告または空表示に留め、前台ウィンドウをクラッシュさせない設計です。</value>
   </data>
   <data name="Designer.Help.AddDeleteCopyPaste.Content" xml:space="preserve">
     <value>Add Control inserts built-in/plugin controls;\nCopied control gets unique numbered name on paste;\nPaste offsets the new control;\nRuntime-critical/generated overlays may not be copyable/deletable;\nUndo/Redo can restore add, delete, paste, reorder operations.</value>
@@ -3940,7 +3938,10 @@
   <data name="Designer.Behaviors.Event.ManualTrigger" xml:space="preserve"><value>手動トリガー</value></data>
   <data name="Designer.Behaviors.Event.PluginEvent" xml:space="preserve"><value>プラグインイベント</value></data>
   <data name="Designer.Behaviors.Event.GuidanceHighlightChanged" xml:space="preserve"><value>ガイダンスハイライト変更</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceHighlightCleared" xml:space="preserve"><value>ガイダンスハイライト解除</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceStarted" xml:space="preserve"><value>ガイダンス開始</value></data>
   <data name="Designer.Behaviors.Event.GuidanceStateChanged" xml:space="preserve"><value>ガイダンス状態変更</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceStopped" xml:space="preserve"><value>ガイダンス停止</value></data>
   <data name="Designer.Behaviors.Event.GuidanceStepChanged" xml:space="preserve"><value>ガイダンスステップ変更</value></data>
   <data name="Designer.Behaviors.Category.Game" xml:space="preserve"><value>対局</value></data>
   <data name="Designer.Behaviors.Category.Guidance" xml:space="preserve"><value>ガイダンス</value></data>
@@ -3969,6 +3970,9 @@
   <data name="Designer.Behaviors.Payload.PickedMap" xml:space="preserve"><value>選択マップ</value></data>
   <data name="Designer.Behaviors.Payload.Action" xml:space="preserve"><value>アクション</value></data>
   <data name="Designer.Behaviors.Payload.ActionName" xml:space="preserve"><value>アクション名</value></data>
+  <data name="Designer.Behaviors.Payload.Index" xml:space="preserve"><value>インデックス</value></data>
+  <data name="Designer.Behaviors.Payload.Indexes" xml:space="preserve"><value>インデックス一覧</value></data>
+  <data name="Designer.Behaviors.Payload.Time" xml:space="preserve"><value>時間</value></data>
   <data name="Designer.Behaviors.Payload.GameAction" xml:space="preserve"><value>ハイライトアクション</value></data>
   <data name="Designer.Behaviors.Payload.IsStarted" xml:space="preserve"><value>開始済み</value></data>
   <data name="Designer.Behaviors.Payload.StepIndex" xml:space="preserve"><value>ステップインデックス</value></data>
@@ -3997,8 +4001,15 @@
   <data name="Designer.Behaviors.Event.PickedMapChanged.Description" xml:space="preserve"><value>選択マップが変更された時に発生します。</value></data>
   <data name="Designer.Behaviors.Event.MapV2BannedChanged.Description" xml:space="preserve"><value>マップ Ban 状態が変更された時に発生します。</value></data>
   <data name="Designer.Behaviors.Event.GuidanceHighlightChanged.Description" xml:space="preserve"><value>ガイダンスハイライトが変更された時に発生します。</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceHighlightCleared.Description" xml:space="preserve"><value>ガイダンスのハイライトが解除された時に発生します。</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceStarted.Description" xml:space="preserve"><value>ガイダンスが開始された時に発生します。</value></data>
   <data name="Designer.Behaviors.Event.GuidanceStateChanged.Description" xml:space="preserve"><value>ガイダンスの開始または停止時に発生します。</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceStopped.Description" xml:space="preserve"><value>ガイダンスが停止された時に発生します。</value></data>
   <data name="Designer.Behaviors.Event.GuidanceStepChanged.Description" xml:space="preserve"><value>ガイダンスステップが切り替わった時に発生します。</value></data>
+  <data name="Designer.Behaviors.BehaviorTags" xml:space="preserve"><value>ビヘイビアタグ</value></data>
+  <data name="Designer.Behaviors.AddBehaviorTag" xml:space="preserve"><value>タグを追加</value></data>
+  <data name="Designer.Behaviors.TestTrigger" xml:space="preserve"><value>テスト実行</value></data>
+  <data name="Designer.Graph.Target.Self" xml:space="preserve"><value>自身</value></data>
   <data name="Designer.Behaviors.Event.CharacterSelected.Description" xml:space="preserve"><value>キャラクターが選択された時に発生します（陣営とプレイヤーインデックスを含む）。</value></data>
   <data name="Designer.Behaviors.Event.CharacterBanned.Description" xml:space="preserve"><value>キャラクターが禁止された時に発生します（陣営と禁止インデックスを含む）。</value></data>
   <data name="Designer.Graph.NodeCatalog" xml:space="preserve"><value>ノードカタログ</value></data>
@@ -4073,26 +4084,42 @@
   <data name="Designer.Graph.Port.Branch2" xml:space="preserve"><value>Branch2</value></data>
   <data name="Designer.Graph.Port.Branch3" xml:space="preserve"><value>Branch3</value></data>
   <data name="Designer.Graph.Port.Value" xml:space="preserve"><value>Value</value></data>
-  <data name="Designer.Graph.Property.DurationMs" xml:space="preserve"><value>DurationMs</value></data>
+  <data name="Designer.Graph.Property.DurationMs" xml:space="preserve"><value>時間</value></data>
   <data name="Designer.Graph.Property.Message" xml:space="preserve"><value>Message</value></data>
-  <data name="Designer.Graph.Property.Target" xml:space="preserve"><value>Target</value></data>
-  <data name="Designer.Graph.Property.PropertyName" xml:space="preserve"><value>PropertyName</value></data>
-  <data name="Designer.Graph.Property.Value" xml:space="preserve"><value>Value</value></data>
-  <data name="Designer.Graph.Property.From" xml:space="preserve"><value>From</value></data>
-  <data name="Designer.Graph.Property.To" xml:space="preserve"><value>To</value></data>
-  <data name="Designer.Graph.Property.Easing" xml:space="preserve"><value>Easing</value></data>
+  <data name="Designer.Graph.Property.Target" xml:space="preserve"><value>対象</value></data>
+  <data name="Designer.Graph.Property.PropertyName" xml:space="preserve"><value>プロパティ名</value></data>
+  <data name="Designer.Graph.Property.Value" xml:space="preserve"><value>値</value></data>
+  <data name="Designer.Graph.Property.From" xml:space="preserve"><value>開始値</value></data>
+  <data name="Designer.Graph.Property.To" xml:space="preserve"><value>終了値</value></data>
+  <data name="Designer.Graph.Property.Easing" xml:space="preserve"><value>イージング</value></data>
   <data name="Designer.Graph.Property.Left" xml:space="preserve"><value>Left</value></data>
   <data name="Designer.Graph.Property.Operator" xml:space="preserve"><value>Operator</value></data>
   <data name="Designer.Graph.Property.Right" xml:space="preserve"><value>Right</value></data>
   <data name="Designer.Graph.Property.Path" xml:space="preserve"><value>Path</value></data>
+  <data name="Designer.Graph.PropertyName.All" xml:space="preserve"><value>すべてのプロパティ</value></data>
+  <data name="Designer.Option.Easing.Linear" xml:space="preserve"><value>線形</value></data>
+  <data name="Designer.Option.Easing.SineInOut" xml:space="preserve"><value>サイン イン/アウト</value></data>
+  <data name="Designer.Option.Easing.CubicOut" xml:space="preserve"><value>キュービック アウト</value></data>
+  <data name="Designer.Option.Easing.CubicIn" xml:space="preserve"><value>キュービック イン</value></data>
+  <data name="Designer.Option.Easing.CubicInOut" xml:space="preserve"><value>キュービック イン/アウト</value></data>
+  <data name="Designer.Option.Easing.BackOut" xml:space="preserve"><value>バック アウト</value></data>
+  <data name="Designer.Property.Opacity" xml:space="preserve"><value>不透明度</value></data>
+  <data name="Designer.Property.VisualOffsetX" xml:space="preserve"><value>表示オフセット X</value></data>
+  <data name="Designer.Property.VisualOffsetY" xml:space="preserve"><value>表示オフセット Y</value></data>
+  <data name="Designer.Property.ScaleX" xml:space="preserve"><value>横スケール</value></data>
+  <data name="Designer.Property.ScaleY" xml:space="preserve"><value>縦スケール</value></data>
+  <data name="Designer.Property.Rotation" xml:space="preserve"><value>回転</value></data>
+  <data name="Designer.Property.TextColor" xml:space="preserve"><value>テキスト色</value></data>
+  <data name="Designer.Property.Foreground" xml:space="preserve"><value>前景色</value></data>
+  <data name="Designer.Property.Background" xml:space="preserve"><value>背景色</value></data>
   <data name="Designer.Graph.Validation.Description" xml:space="preserve"><value>開始ノード、接続、必須プロパティを確認します。グラフデータは削除せず、プレビューや保存前の修正を助けるための表示です。</value></data>
   <data name="Designer.Graph.DeleteConnection" xml:space="preserve"><value>接続を解除</value></data>
   <data name="Designer.Graph.Property.DurationMs.Description" xml:space="preserve"><value>待機またはアニメーションの時間です。単位はミリ秒です。</value></data>
   <data name="Designer.Graph.Property.Message.Description" xml:space="preserve"><value>プレビュー実行ログに出力するテキストです。</value></data>
-  <data name="Designer.Graph.Property.Target.Description" xml:space="preserve"><value>アクションの対象です。Phase 3 では要求を記録するだけで、実際のコントロールは変更しません。</value></data>
+  <data name="Designer.Graph.Property.Target.Description" xml:space="preserve"><value>アクションの対象です。Self はこのビヘイビアがバインドされているコントロール自身です。</value></data>
   <data name="Designer.Graph.Property.PropertyName.Description" xml:space="preserve"><value>設定、リセット、またはアニメーションするプロパティ名です。</value></data>
   <data name="Designer.Graph.Property.Value.Description" xml:space="preserve"><value>ノードの出力値、またはプロパティへ書き込む値です。</value></data>
-  <data name="Designer.Graph.Property.From.Description" xml:space="preserve"><value>アニメーション開始値です。Phase 3 では要求のみ記録します。</value></data>
+  <data name="Designer.Graph.Property.From.Description" xml:space="preserve"><value>アニメーション開始値です。Opacity の場合、0 は完全に透明な状態を表します。</value></data>
   <data name="Designer.Graph.Property.To.Description" xml:space="preserve"><value>アニメーション終了値です。例えば Opacity の場合 1 で完全不透明にアニメーションします。</value></data>
   <data name="Designer.Graph.Property.Easing.Description" xml:space="preserve"><value>後続のアニメーション実行時に使うイージング名です。</value></data>
   <data name="Designer.Graph.Property.Left.Description" xml:space="preserve"><value>比較の左側テキストです。複雑な発火条件は動作パネルで設定してください。</value></data>
@@ -4134,4 +4161,41 @@
   <data name="Designer.Graph.ToolTipUndo" xml:space="preserve"><value>元に戻す (Ctrl+Z)</value></data>
   <data name="Designer.Graph.ToolTipRedo" xml:space="preserve"><value>やり直す (Ctrl+Y)</value></data>
   <data name="Designer.Graph.ToolTipSave" xml:space="preserve"><value>保存 (Ctrl+S)</value></data>
+  <data name="Designer.Property.DisplayMode" xml:space="preserve"><value>表示モード</value></data>
+  <data name="Designer.Property.VerticalLanguageMode" xml:space="preserve"><value>縦書き言語モード</value></data>
+  <data name="Designer.Property.LatinVerticalMode" xml:space="preserve"><value>ラテン縦書きモード</value></data>
+  <data name="Designer.Property.VerticalDirection" xml:space="preserve"><value>方向</value></data>
+  <data name="Designer.Property.NumberStyle" xml:space="preserve"><value>数字スタイル</value></data>
+  <data name="Designer.Property.DisplayLanguage" xml:space="preserve"><value>表示言語</value></data>
+  <data name="Designer.Property.VerticalTextSpacing" xml:space="preserve"><value>文字間隔</value></data>
+  <data name="Designer.Property.GroupSpacing" xml:space="preserve"><value>グループ間隔</value></data>
+  <data name="Designer.Property.ShowSeparator" xml:space="preserve"><value>区切り線を表示</value></data>
+  <data name="Designer.Property.SeparatorThickness" xml:space="preserve"><value>区切り線の太さ</value></data>
+  <data name="Designer.Property.SeparatorColor" xml:space="preserve"><value>区切り線の色</value></data>
+  <data name="Designer.Property.BackgroundColor" xml:space="preserve"><value>背景色</value></data>
+  <data name="Designer.Property.PaddingLeft" xml:space="preserve"><value>左パディング</value></data>
+  <data name="Designer.Property.PaddingTop" xml:space="preserve"><value>上パディング</value></data>
+  <data name="Designer.Property.PaddingRight" xml:space="preserve"><value>右パディング</value></data>
+  <data name="Designer.Property.PaddingBottom" xml:space="preserve"><value>下パディング</value></data>
+  <data name="Designer.Option.DisplayMode.Inline" xml:space="preserve"><value>一行</value></data>
+  <data name="Designer.Option.DisplayMode.TwoLine" xml:space="preserve"><value>二行</value></data>
+  <data name="Designer.Option.DisplayMode.VerticalHalfOnly" xml:space="preserve"><value>縦書き前半/後半のみ</value></data>
+  <data name="Designer.Option.DisplayMode.VerticalGameOnly" xml:space="preserve"><value>縦書きゲームのみ</value></data>
+  <data name="Designer.Option.DisplayMode.VerticalGameAndHalf" xml:space="preserve"><value>縦書きゲーム+前半/後半</value></data>
+  <data name="Designer.Option.DisplayMode.VerticalSeparatedGameAndHalf" xml:space="preserve"><value>縦書き分離ゲーム+前半/後半</value></data>
+  <data name="Designer.Option.DisplayMode.RibbonGameOnly" xml:space="preserve"><value>Ribbon ゲームのみ</value></data>
+  <data name="Designer.Option.VerticalLanguageMode.Auto" xml:space="preserve"><value>自動</value></data>
+  <data name="Designer.Option.VerticalLanguageMode.Upright" xml:space="preserve"><value>縦書き正立</value></data>
+  <data name="Designer.Option.VerticalLanguageMode.RotateBlock" xml:space="preserve"><value>ブロック回転</value></data>
+  <data name="Designer.Option.VerticalLanguageMode.StackCharacters" xml:space="preserve"><value>文字積み重ね</value></data>
+  <data name="Designer.Option.LatinVerticalMode.RotateBlock" xml:space="preserve"><value>ブロック回転</value></data>
+  <data name="Designer.Option.LatinVerticalMode.StackCharacters" xml:space="preserve"><value>文字積み重ね</value></data>
+  <data name="Designer.Option.NumberStyle.Auto" xml:space="preserve"><value>自動</value></data>
+  <data name="Designer.Option.NumberStyle.Arabic" xml:space="preserve"><value>アラビア数字</value></data>
+  <data name="Designer.Option.NumberStyle.CjkNumeral" xml:space="preserve"><value>CJK 数字</value></data>
+  <data name="Designer.Option.VerticalDirection.Auto" xml:space="preserve"><value>自動</value></data>
+  <data name="Designer.Option.VerticalDirection.FacingLeft" xml:space="preserve"><value>左向き</value></data>
+  <data name="Designer.Option.VerticalDirection.FacingRight" xml:space="preserve"><value>右向き</value></data>
+  <data name="Designer.Option.DisplayLanguage.FollowApp" xml:space="preserve"><value>アプリに従う</value></data>
+
 </root>

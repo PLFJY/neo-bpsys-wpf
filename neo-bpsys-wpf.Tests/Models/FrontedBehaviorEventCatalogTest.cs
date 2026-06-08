@@ -16,13 +16,33 @@ public class FrontedBehaviorEventCatalogTest
     public void EventCatalog_OnlyAttributedSharedDataEventsIncluded()
     {
         var catalog = new FrontedBehaviorEventCatalog();
-        var attributedNames = typeof(ISharedDataService).GetEvents()
+        var sourceTypes = new[] { typeof(ISharedDataService), typeof(ICharacterSelectionService), typeof(IGameGuidanceService) };
+        var attributedNames = sourceTypes.SelectMany(type => type.GetEvents())
             .Where(info => info.GetCustomAttributes(typeof(FrontedBehaviorEventAttribute), false).Length > 0)
             .Select(info => info.Name)
             .ToArray();
 
         Assert.Equal(attributedNames.Length, catalog.Events.Count);
         Assert.DoesNotContain(catalog.Events, descriptor => descriptor.EventType == nameof(INotifyPropertyChanged.PropertyChanged));
+    }
+
+    [Fact]
+    public void EventCatalog_IncludesCharacterSelectionEvents()
+    {
+        var catalog = new FrontedBehaviorEventCatalog();
+
+        Assert.NotNull(catalog.Find("Selection.CharacterSelected"));
+        Assert.NotNull(catalog.Find("Selection.CharacterBanned"));
+    }
+
+    [Fact]
+    public void EventCatalog_IncludesGameGuidanceEvents()
+    {
+        var catalog = new FrontedBehaviorEventCatalog();
+
+        Assert.NotNull(catalog.Find("Guidance.HighlightChanged"));
+        Assert.NotNull(catalog.Find("Guidance.StepChanged"));
+        Assert.NotNull(catalog.Find("Guidance.HighlightCleared"));
     }
 
     [Fact]

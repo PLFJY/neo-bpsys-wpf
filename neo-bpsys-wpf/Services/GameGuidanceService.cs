@@ -78,10 +78,19 @@ public class GameGuidanceService(
     public event EventHandler<GameGuidanceStateChangedEventArgs>? GuidanceStateChanged;
 
     /// <inheritdoc/>
+    public event EventHandler<GameGuidanceStateChangedEventArgs>? GuidanceStarted;
+
+    /// <inheritdoc/>
+    public event EventHandler<GameGuidanceStateChangedEventArgs>? GuidanceStopped;
+
+    /// <inheritdoc/>
     public event EventHandler<GameGuidanceStepChangedEventArgs>? GuidanceStepChanged;
 
     /// <inheritdoc/>
     public event EventHandler<GameGuidanceHighlightChangedEventArgs>? GuidanceHighlightChanged;
+
+    /// <inheritdoc/>
+    public event EventHandler<GameGuidanceHighlightChangedEventArgs>? GuidanceHighlightCleared;
 
     public bool IsGuidanceStarted
     {
@@ -93,7 +102,16 @@ public class GameGuidanceService(
             _isGuidanceStarted = value;
             WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this, nameof(IsGuidanceStarted),
                 oldValue, value));
-            GuidanceStateChanged?.Invoke(this, new GameGuidanceStateChangedEventArgs(value));
+            var args = new GameGuidanceStateChangedEventArgs(value);
+            GuidanceStateChanged?.Invoke(this, args);
+            if (value)
+            {
+                GuidanceStarted?.Invoke(this, args);
+            }
+            else
+            {
+                GuidanceStopped?.Invoke(this, args);
+            }
         }
     }
 
@@ -178,7 +196,7 @@ public class GameGuidanceService(
         _currentStep = 0;
         _infoBarService.CloseInfoBar();
         WeakReferenceMessenger.Default.Send(new HighlightMessage(null, null));
-        GuidanceHighlightChanged?.Invoke(this, new GameGuidanceHighlightChangedEventArgs(null, null));
+        PublishHighlight(null, null);
         IsGuidanceStarted = false;
     }
 
@@ -199,7 +217,7 @@ public class GameGuidanceService(
 
             _infoBarService.ShowWarningInfoBar(I18nHelper.GetLocalizedString("AlreadyLastStep"));
             WeakReferenceMessenger.Default.Send(new HighlightMessage(GameAction.EndGuidance, null));
-            GuidanceHighlightChanged?.Invoke(this, new GameGuidanceHighlightChangedEventArgs(GameAction.EndGuidance, null));
+            PublishHighlight(GameAction.EndGuidance, null);
         }
         else
         {
@@ -258,9 +276,19 @@ public class GameGuidanceService(
             _currentStep, thisStep.Action, thisStep.Index, thisStep.Time, actionName));
 
         //触发高亮变化事件
-        GuidanceHighlightChanged?.Invoke(this, new GameGuidanceHighlightChangedEventArgs(thisStep.Action, thisStep.Index));
+        PublishHighlight(thisStep.Action, thisStep.Index);
 
         return actionName;
+    }
+
+    private void PublishHighlight(GameAction? action, List<int>? indexes)
+    {
+        var args = new GameGuidanceHighlightChangedEventArgs(action, indexes);
+        GuidanceHighlightChanged?.Invoke(this, args);
+        if (action is null)
+        {
+            GuidanceHighlightCleared?.Invoke(this, args);
+        }
     }
 
     public class GameProperty

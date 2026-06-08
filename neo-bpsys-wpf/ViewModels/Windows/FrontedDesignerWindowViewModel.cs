@@ -78,6 +78,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private readonly IFrontedWindowLayoutOptionsService? _windowLayoutOptionsService;
     private readonly IFrontedWindowService? _frontedWindowService;
     private readonly IFrontedBehaviorService _behaviorService;
+    private readonly IFrontedBehaviorRuntime? _behaviorRuntime;
     private readonly IFrontedAnimationRuntime? _animationRuntime;
     private readonly FrontedDesignerPreviewAnimationScope? _previewAnimationScope;
     private readonly ILogger<FrontedDesignerWindowViewModel> _logger;
@@ -163,6 +164,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         IFrontedBehaviorService behaviorService,
         IFrontedAnimationRuntime animationRuntime,
         FrontedDesignerPreviewAnimationScope previewAnimationScope,
+        IFrontedBehaviorRuntime behaviorRuntime,
         ILogger<FrontedDesignerWindowViewModel> logger)
     {
         _layoutService = layoutService;
@@ -179,6 +181,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _windowLayoutOptionsService = windowLayoutOptionsService;
         _frontedWindowService = frontedWindowService;
         _behaviorService = behaviorService;
+        _behaviorRuntime = behaviorRuntime;
         _animationRuntime = animationRuntime;
         _previewAnimationScope = previewAnimationScope;
         _logger = logger;
@@ -3524,7 +3527,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             MarkLayoutDirtyFromBehaviorPanel,
             MarkBehaviorsDirty,
             animationRuntime: _animationRuntime,
-            previewAnimationScope: _previewAnimationScope);
+            previewAnimationScope: _previewAnimationScope,
+            behaviorRuntime: _behaviorRuntime);
     }
 
     private void MarkLayoutDirtyFromBehaviorPanel()

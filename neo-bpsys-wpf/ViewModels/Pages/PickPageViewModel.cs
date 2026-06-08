@@ -127,6 +127,11 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
 
     public void Receive(HighlightMessage message)
     {
+        if (!_settingsHostService.Settings.UseLegacyGuidanceBreathing)
+        {
+            return;
+        }
+
         if (message.GameAction == GameAction.PickSur)
         {
             if (message.Index == null) return;

@@ -31,7 +31,8 @@ public enum FrontedNodePropertyEditorKind
     Enum,
     Color,
     ControlReference,
-    EventPath
+    EventPath,
+    PropertyName
 }
 
 public sealed class FrontedNodePortDescriptor
@@ -45,13 +46,45 @@ public sealed class FrontedNodePortDescriptor
 
 public sealed class FrontedNodePropertyDescriptor
 {
+    /// <summary>
+    /// Gets the stable property name stored in node JSON.
+    /// </summary>
     public required string Name { get; init; }
+
+    /// <summary>
+    /// Gets the localization key for the property label.
+    /// </summary>
     public required string DisplayNameKey { get; init; }
+
+    /// <summary>
+    /// Gets the high-level persisted value type.
+    /// </summary>
     public FrontedNodePropertyType PropertyType { get; init; }
+
+    /// <summary>
+    /// Gets the default JSON value for newly created nodes.
+    /// </summary>
     public JsonElement DefaultValue { get; init; }
+
+    /// <summary>
+    /// Gets the editor kind used by the Designer UI.
+    /// </summary>
     public FrontedNodePropertyEditorKind EditorKind { get; init; }
+
+    /// <summary>
+    /// Gets a value indicating whether the property is required.
+    /// </summary>
     public bool IsRequired { get; init; }
+
+    /// <summary>
+    /// Gets the available editor options.
+    /// </summary>
     public IReadOnlyList<string> Options { get; init; } = [];
+
+    /// <summary>
+    /// Gets an optional display unit for numeric values.
+    /// </summary>
+    public string? Unit { get; init; }
 }
 
 public sealed class FrontedNodeTypeDescriptor

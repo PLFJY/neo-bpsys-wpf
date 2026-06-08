@@ -22,11 +22,28 @@ public interface IGameGuidanceService
     event EventHandler<GameGuidanceStateChangedEventArgs>? GuidanceStateChanged;
 
     /// <summary>
+    /// 引导启动事件。
+    /// </summary>
+    [FrontedBehaviorEvent("Guidance.Started", DisplayNameKey = "Designer.Behaviors.Event.GuidanceStarted", DescriptionKey = "Designer.Behaviors.Event.GuidanceStarted.Description", Category = "Guidance", CategoryKey = "Designer.Behaviors.Category.Guidance")]
+    [FrontedBehaviorEventPayload("Event.IsStarted", DisplayNameKey = "Designer.Behaviors.Payload.IsStarted", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(GameGuidanceStateChangedEventArgs.IsStarted), TypeName = "bool")]
+    event EventHandler<GameGuidanceStateChangedEventArgs>? GuidanceStarted;
+
+    /// <summary>
+    /// 引导停止事件。
+    /// </summary>
+    [FrontedBehaviorEvent("Guidance.Stopped", DisplayNameKey = "Designer.Behaviors.Event.GuidanceStopped", DescriptionKey = "Designer.Behaviors.Event.GuidanceStopped.Description", Category = "Guidance", CategoryKey = "Designer.Behaviors.Category.Guidance")]
+    [FrontedBehaviorEventPayload("Event.IsStarted", DisplayNameKey = "Designer.Behaviors.Payload.IsStarted", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(GameGuidanceStateChangedEventArgs.IsStarted), TypeName = "bool")]
+    event EventHandler<GameGuidanceStateChangedEventArgs>? GuidanceStopped;
+
+    /// <summary>
     /// 引导步骤变化事件
     /// </summary>
     [FrontedBehaviorEvent("Guidance.StepChanged", DisplayNameKey = "Designer.Behaviors.Event.GuidanceStepChanged", DescriptionKey = "Designer.Behaviors.Event.GuidanceStepChanged.Description", Category = "Guidance", CategoryKey = "Designer.Behaviors.Category.Guidance")]
     [FrontedBehaviorEventPayload("Event.StepIndex", DisplayNameKey = "Designer.Behaviors.Payload.StepIndex", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(GameGuidanceStepChangedEventArgs.StepIndex), TypeName = "int")]
     [FrontedBehaviorEventPayload("Event.Action", DisplayNameKey = "Designer.Behaviors.Payload.Action", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(GameGuidanceStepChangedEventArgs.Action), TypeName = "GameAction")]
+    [FrontedBehaviorEventPayload("Event.Indexes", DisplayNameKey = "Designer.Behaviors.Payload.Indexes", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(GameGuidanceStepChangedEventArgs.Indexes), TypeName = "int[]")]
+    [FrontedBehaviorEventPayload("Event.Index", DisplayNameKey = "Designer.Behaviors.Payload.Index", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(GameGuidanceStepChangedEventArgs.FirstIndex), TypeName = "int")]
+    [FrontedBehaviorEventPayload("Event.Time", DisplayNameKey = "Designer.Behaviors.Payload.Time", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(GameGuidanceStepChangedEventArgs.Time), TypeName = "int")]
     [FrontedBehaviorEventPayload("Event.ActionName", DisplayNameKey = "Designer.Behaviors.Payload.ActionName", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(GameGuidanceStepChangedEventArgs.ActionName), TypeName = "string")]
     event EventHandler<GameGuidanceStepChangedEventArgs>? GuidanceStepChanged;
 
@@ -35,7 +52,16 @@ public interface IGameGuidanceService
     /// </summary>
     [FrontedBehaviorEvent("Guidance.HighlightChanged", DisplayNameKey = "Designer.Behaviors.Event.GuidanceHighlightChanged", DescriptionKey = "Designer.Behaviors.Event.GuidanceHighlightChanged.Description", Category = "Guidance", CategoryKey = "Designer.Behaviors.Category.Guidance")]
     [FrontedBehaviorEventPayload("Event.GameAction", DisplayNameKey = "Designer.Behaviors.Payload.GameAction", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(GameGuidanceHighlightChangedEventArgs.GameAction), TypeName = "GameAction")]
+    [FrontedBehaviorEventPayload("Event.Action", DisplayNameKey = "Designer.Behaviors.Payload.Action", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(GameGuidanceHighlightChangedEventArgs.Action), TypeName = "GameAction")]
+    [FrontedBehaviorEventPayload("Event.Indexes", DisplayNameKey = "Designer.Behaviors.Payload.Indexes", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(GameGuidanceHighlightChangedEventArgs.Indexes), TypeName = "int[]")]
+    [FrontedBehaviorEventPayload("Event.Index", DisplayNameKey = "Designer.Behaviors.Payload.Index", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(GameGuidanceHighlightChangedEventArgs.FirstIndex), TypeName = "int")]
     event EventHandler<GameGuidanceHighlightChangedEventArgs>? GuidanceHighlightChanged;
+
+    /// <summary>
+    /// 引导高亮清除事件。
+    /// </summary>
+    [FrontedBehaviorEvent("Guidance.HighlightCleared", DisplayNameKey = "Designer.Behaviors.Event.GuidanceHighlightCleared", DescriptionKey = "Designer.Behaviors.Event.GuidanceHighlightCleared.Description", Category = "Guidance", CategoryKey = "Designer.Behaviors.Category.Guidance")]
+    event EventHandler<GameGuidanceHighlightChangedEventArgs>? GuidanceHighlightCleared;
 
     /// <summary>
     /// 启动对局引导

@@ -444,6 +444,10 @@ public class FrontedLayoutValidator
 
                 break;
 
+            case GameProgressTextControlConfig gameProgress:
+                ValidateGameProgressText(item.Name, gameProgress, messages);
+                break;
+
             case ShapeFrontedControlConfigBase shape:
                 ValidateShape(item.Name, shape, messages);
                 break;
@@ -701,6 +705,104 @@ public class FrontedLayoutValidator
                     controlName,
                     nameof(polygon.Points)));
             }
+        }
+    }
+
+    private static void ValidateGameProgressText(
+        string controlName,
+        GameProgressTextControlConfig config,
+        ICollection<FrontedLayoutValidationMessage> messages)
+    {
+        if (config.FontSize <= 0)
+        {
+            messages.Add(Error(
+                "RequiredPropertyMissing",
+                $"Control '{controlName}' FontSize must be greater than 0.",
+                controlName,
+                nameof(config.FontSize)));
+        }
+
+        if (config.VerticalTextSpacing < 0)
+        {
+            messages.Add(Error(
+                "RequiredPropertyMissing",
+                $"Control '{controlName}' VerticalTextSpacing must be >= 0.",
+                controlName,
+                nameof(config.VerticalTextSpacing)));
+        }
+
+        if (config.GroupSpacing < 0)
+        {
+            messages.Add(Error(
+                "RequiredPropertyMissing",
+                $"Control '{controlName}' GroupSpacing must be >= 0.",
+                controlName,
+                nameof(config.GroupSpacing)));
+        }
+
+        if (config.SeparatorThickness < 0)
+        {
+            messages.Add(Error(
+                "RequiredPropertyMissing",
+                $"Control '{controlName}' SeparatorThickness must be >= 0.",
+                controlName,
+                nameof(config.SeparatorThickness)));
+        }
+
+        if (config.PaddingLeft < 0 || config.PaddingTop < 0 || config.PaddingRight < 0 || config.PaddingBottom < 0)
+        {
+            messages.Add(Error(
+                "RequiredPropertyMissing",
+                $"Control '{controlName}' Padding values must be >= 0.",
+                controlName,
+                "Padding"));
+        }
+
+        if (!string.IsNullOrWhiteSpace(config.SeparatorColor)
+            && !ColorHelper.TryNormalizeHex(config.SeparatorColor, out _))
+        {
+            messages.Add(Error(
+                "InvalidColorHex",
+                $"Control '{controlName}' SeparatorColor must be #RRGGBB or #AARRGGBB.",
+                controlName,
+                nameof(config.SeparatorColor)));
+        }
+
+        if (!string.IsNullOrWhiteSpace(config.BackgroundColor)
+            && !ColorHelper.TryNormalizeHex(config.BackgroundColor, out _))
+        {
+            messages.Add(Error(
+                "InvalidColorHex",
+                $"Control '{controlName}' BackgroundColor must be #RRGGBB or #AARRGGBB.",
+                controlName,
+                nameof(config.BackgroundColor)));
+        }
+
+        if (!Enum.IsDefined(config.DisplayMode))
+        {
+            messages.Add(Error(
+                "RequiredPropertyMissing",
+                $"Control '{controlName}' has invalid DisplayMode.",
+                controlName,
+                nameof(config.DisplayMode)));
+        }
+
+        if (!Enum.IsDefined(config.NumberStyle))
+        {
+            messages.Add(Error(
+                "RequiredPropertyMissing",
+                $"Control '{controlName}' has invalid NumberStyle.",
+                controlName,
+                nameof(config.NumberStyle)));
+        }
+
+        if (!Enum.IsDefined(config.LatinVerticalMode))
+        {
+            messages.Add(Error(
+                "RequiredPropertyMissing",
+                $"Control '{controlName}' has invalid LatinVerticalMode.",
+                controlName,
+                nameof(config.LatinVerticalMode)));
         }
     }
 

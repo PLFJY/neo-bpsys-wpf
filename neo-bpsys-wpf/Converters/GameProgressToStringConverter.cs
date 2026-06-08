@@ -19,8 +19,7 @@ public class GameProgressToStringConverter : IMultiValueConverter
 
         var text = GameProgressDisplayHelper.Format(
             gameProgress,
-            isBo3Mode,
-            parameter?.ToString() == "endl");
+            isBo3Mode);
 
         return string.IsNullOrEmpty(text) ? Binding.DoNothing : text;
     }

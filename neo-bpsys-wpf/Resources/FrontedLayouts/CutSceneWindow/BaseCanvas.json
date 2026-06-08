@@ -180,6 +180,70 @@
     "Width": 207,
     "Height": null,
     "ZIndex": 2,
+    "Visibility": "Collapsed",
+    "BindingPath": null
+  },
+  "SurTeamMajorPoint": {
+    "Text": null,
+    "TextBinding": {
+      "Sources": [
+        {
+          "Path": "CurrentGame.MatchScore.CurrentSurTeamMajorText",
+          "DisplayName": null,
+          "Format": null
+        }
+      ],
+      "StringFormat": null,
+      "JoinSeparator": "",
+      "NullText": "",
+      "FallbackText": ""
+    },
+    "HorizontalAlignment": "Center",
+    "VerticalAlignment": "Center",
+    "TextAlignment": "Center",
+    "TextWrapping": null,
+    "FontFamily": "Arial",
+    "FontWeight": "Bold",
+    "Color": "#FF000000",
+    "FontSize": 48,
+    "ControlType": "Text",
+    "Left": 360.5,
+    "Top": 9.5,
+    "Width": null,
+    "Height": null,
+    "ZIndex": 3,
+    "Visibility": "Collapsed",
+    "BindingPath": null
+  },
+  "HunTeamMajorPoint": {
+    "Text": null,
+    "TextBinding": {
+      "Sources": [
+        {
+          "Path": "CurrentGame.MatchScore.CurrentHunTeamMajorText",
+          "DisplayName": null,
+          "Format": null
+        }
+      ],
+      "StringFormat": null,
+      "JoinSeparator": "",
+      "NullText": "",
+      "FallbackText": ""
+    },
+    "HorizontalAlignment": "Center",
+    "VerticalAlignment": "Center",
+    "TextAlignment": "Center",
+    "TextWrapping": null,
+    "FontFamily": "Arial",
+    "FontWeight": "Bold",
+    "Color": "#FF000000",
+    "FontSize": 48,
+    "ControlType": "Text",
+    "Left": 990.5,
+    "Top": 9.5,
+    "Width": null,
+    "Height": null,
+    "ZIndex": 3,
     "Visibility": "Visible",
     "BindingPath": null
   },
@@ -529,7 +593,6 @@
     "TextAlignment": "Center",
     "HorizontalAlignment": "Center",
     "VerticalAlignment": "Center",
-    "UseLineBreak": false,
     "ControlType": "GameProgressText",
     "Left": 549,
     "Top": 84.5,

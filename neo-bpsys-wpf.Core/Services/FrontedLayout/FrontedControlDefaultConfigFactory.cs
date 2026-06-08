@@ -277,7 +277,19 @@ public class FrontedControlDefaultConfigFactory
                 FontSize = 24,
                 Color = "#FFFFFFFF",
                 TextAlignment = "Center",
-                UseLineBreak = false
+                DisplayMode = Core.Enums.GameProgressTextDisplayMode.Inline,
+                VerticalLanguageMode = Core.Enums.GameProgressVerticalLanguageMode.Auto,
+                LatinVerticalMode = Core.Enums.GameProgressLatinVerticalMode.RotateBlock,
+                NumberStyle = Core.Enums.GameProgressNumberStyle.Auto,
+                VerticalDirection = Core.Enums.GameProgressVerticalDirection.Auto,
+                DisplayLanguage = Core.Enums.LanguageKey.FollowApp,
+                GroupSpacing = 8,
+                PaddingLeft = 0,
+                PaddingTop = 0,
+                PaddingRight = 0,
+                PaddingBottom = 0,
+                ShowSeparator = false,
+                SeparatorThickness = 1
             },
             "TalentTraitDisplay" => new TalentTraitDisplayControlConfig
             {

@@ -23,6 +23,7 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
     private readonly IFrontedNodeGraphRuntime _graphRuntime;
     private readonly IFrontedAnimationRuntime? _animationRuntime;
     private readonly FrontedDesignerPreviewAnimationScope? _previewAnimationScope;
+    private readonly IFrontedBehaviorRuntime? _behaviorRuntime;
     private readonly JsonSerializerOptions _cloneJsonOptions = new()
     {
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
@@ -49,7 +50,8 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
         FrontedNodeGraphValidator? graphValidator = null,
         IFrontedNodeGraphRuntime? graphRuntime = null,
         IFrontedAnimationRuntime? animationRuntime = null,
-        FrontedDesignerPreviewAnimationScope? previewAnimationScope = null)
+        FrontedDesignerPreviewAnimationScope? previewAnimationScope = null,
+        IFrontedBehaviorRuntime? behaviorRuntime = null)
     {
         _localizationService = localizationService;
         _markLayoutDirty = markLayoutDirty;
@@ -59,10 +61,12 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
         _graphRuntime = graphRuntime ?? new FrontedNodeGraphRuntime(_nodeCatalog, _graphValidator);
         _animationRuntime = animationRuntime;
         _previewAnimationScope = previewAnimationScope;
+        _behaviorRuntime = behaviorRuntime;
         EventOptions = [.. eventCatalog.Events.Select(CreateEventOption)];
         OperatorOptions = CreateOperatorOptions();
         StopModeOptions = CreateEnumOptions<FrontedLoopStopMode>("Designer.Behaviors.StopMode");
         ReentryPolicyOptions = CreateEnumOptions<FrontedReentryPolicy>("Designer.Behaviors.ReentryPolicy");
+        TagsEditor = new BehaviorTagsEditorViewModel(markLayoutDirty);
     }
 
     public ObservableCollection<BehaviorEditorViewModel> Behaviors { get; } = [];
@@ -74,6 +78,11 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
     public IReadOnlyList<BehaviorOptionViewModel> StopModeOptions { get; }
 
     public IReadOnlyList<BehaviorOptionViewModel> ReentryPolicyOptions { get; }
+
+    /// <summary>
+    /// Gets the selected control behavior tags editor.
+    /// </summary>
+    public BehaviorTagsEditorViewModel TagsEditor { get; }
 
     public FrontedBehaviorDocument CurrentDocument { get; private set; } = new();
 
@@ -111,6 +120,7 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
     public void SetSelectedControl(FrontedControlDesignItem? selectedControl)
     {
         SelectedControl = selectedControl;
+        TagsEditor.SetConfig(selectedControl?.Config);
         RefreshForSelectedControl();
     }
 
@@ -323,7 +333,27 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
             _graphRuntime,
             _animationRuntime,
             _previewAnimationScope,
-            editor => AnimationEditorRequested?.Invoke(editor));
+            _behaviorRuntime,
+            editor => AnimationEditorRequested?.Invoke(editor),
+            CreateTargetOptions());
+    }
+
+    private IReadOnlyList<FrontedNodeTargetOptionViewModel> CreateTargetOptions()
+    {
+        var targets = new List<FrontedNodeTargetOptionViewModel>
+        {
+            new("Self", Localize("Designer.Graph.Target.Self", "Self"))
+        };
+
+        if (_previewAnimationScope is not null)
+        {
+            targets.AddRange(_previewAnimationScope.Targets.Select(target =>
+                new FrontedNodeTargetOptionViewModel(
+                    $"guid:{target.BehaviorGuid}",
+                    string.IsNullOrWhiteSpace(target.DisplayName) ? target.BehaviorGuid.ToString() : target.DisplayName)));
+        }
+
+        return targets;
     }
 
     private BehaviorEventOptionViewModel CreateEventOption(FrontedBehaviorEventDescriptor descriptor)
@@ -661,12 +691,16 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
         IFrontedNodeGraphRuntime graphRuntime,
         IFrontedAnimationRuntime? animationRuntime,
         FrontedDesignerPreviewAnimationScope? previewAnimationScope,
-        Action<FrontedBehaviorAnimationEditorViewModel> openAnimationEditor)
+        IFrontedBehaviorRuntime? behaviorRuntime,
+        Action<FrontedBehaviorAnimationEditorViewModel> openAnimationEditor,
+        IReadOnlyList<FrontedNodeTargetOptionViewModel>? targetOptions = null)
     {
         Model = model;
         _markDirty = markDirty;
         _localize = localize;
         _graphPlaceholder = graphPlaceholder;
+        TestTriggerCommand = new RelayCommand(() =>
+            behaviorRuntime?.PublishManualTrigger(string.IsNullOrWhiteSpace(Model.Name) ? Model.BehaviorId.ToString() : Model.Name));
 
         if (Model.Kind == FrontedBehaviorKind.OneShot)
         {
@@ -692,7 +726,8 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
                 graphRuntime,
                 animationRuntime,
                 previewAnimationScope,
-                markDirty)));
+                markDirty,
+                targetOptions)));
     }
 
     public FrontedBehavior Model { get; }
@@ -706,6 +741,11 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
     public LoopPolicyEditorViewModel LoopPolicy { get; }
 
     public IRelayCommand OpenAnimationEditorCommand { get; }
+
+    /// <summary>
+    /// Gets the command that publishes a manual behavior test trigger.
+    /// </summary>
+    public IRelayCommand TestTriggerCommand { get; }
 
     public string Name
     {
@@ -1016,7 +1056,8 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
         IFrontedNodeGraphRuntime? runtime = null,
         IFrontedAnimationRuntime? animationRuntime = null,
         FrontedDesignerPreviewAnimationScope? previewAnimationScope = null,
-        Action? markDirty = null)
+        Action? markDirty = null,
+        IReadOnlyList<FrontedNodeTargetOptionViewModel>? targetOptions = null)
     {
         _behavior = behavior;
         _runtime = runtime ?? new FrontedNodeGraphRuntime(catalog, validator);
@@ -1028,11 +1069,11 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
         Stages = IsLoop
             ?
             [
-                Stage(localize("Designer.Behaviors.StartAnimation", "Start animation"), behavior.StartGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize),
-                Stage(localize("Designer.Behaviors.LoopAnimation", "Loop animation"), behavior.LoopGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize),
-                Stage(localize("Designer.Behaviors.EndAnimation", "End animation"), behavior.StopGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize)
+                Stage(localize("Designer.Behaviors.StartAnimation", "Start animation"), behavior.StartGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions),
+                Stage(localize("Designer.Behaviors.LoopAnimation", "Loop animation"), behavior.LoopGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions),
+                Stage(localize("Designer.Behaviors.EndAnimation", "End animation"), behavior.StopGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions)
             ]
-            : [Stage(localize("Designer.Behaviors.Animation", "Animation"), behavior.Graph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize)];
+            : [Stage(localize("Designer.Behaviors.Animation", "Animation"), behavior.Graph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions)];
 
         PreviewStartCommand = new AsyncRelayCommand(PreviewStartAsync, () => IsLoop && !IsLoopPreviewRunning);
         PreviewLoopOnceCommand = new AsyncRelayCommand(PreviewLoopOnceAsync, () => IsLoop && !IsLoopPreviewRunning);
@@ -1067,7 +1108,8 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
         IFrontedAnimationRuntime? animationRuntime,
         FrontedDesignerPreviewAnimationScope? previewAnimationScope,
         Action? markDirty,
-        Func<string, string, string> localize)
+        Func<string, string, string> localize,
+        IReadOnlyList<FrontedNodeTargetOptionViewModel>? targetOptions)
     {
         var editorVm = new FrontedNodeGraphEditorViewModel(
             graph,
@@ -1077,7 +1119,8 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
             animationRuntime,
             previewAnimationScope is null ? null : () => previewAnimationScope.CreateContext(),
             markDirty,
-            localize)
+            localize,
+            targetOptions: targetOptions)
         {
             PreviewRoot = previewAnimationScope?.Root
         };

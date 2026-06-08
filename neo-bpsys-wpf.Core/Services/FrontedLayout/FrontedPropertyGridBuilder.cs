@@ -1,4 +1,5 @@
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
@@ -240,7 +241,7 @@ public class FrontedPropertyGridBuilder
             {
                 var message = _localizationService.GetDesignerText(
                     "Designer.Validation.InvalidArgbColor",
-                    "Invalid color. Use #RRGGBB or #AARRGGBB.");
+                    "Invalid color. Use #RRGGBB, #AARRGGBB, or a WPF color name.");
                 validationErrors.Add(message);
                 validationMessages.Add(CreatePropertyError(message, selectedItem.Name, property.Name));
             }
@@ -406,7 +407,7 @@ public class FrontedPropertyGridBuilder
         {
             var message = _localizationService.GetDesignerText(
                 "Designer.Validation.InvalidArgbColor",
-                "Invalid color. Use #RRGGBB or #AARRGGBB.");
+                "Invalid color. Use #RRGGBB, #AARRGGBB, or a WPF color name.");
             validationErrors.Add(message);
             validationMessages.Add(CreatePropertyError(message, selectedItem.Name, property.Name));
         }
@@ -621,8 +622,16 @@ public class FrontedPropertyGridBuilder
                 .ToArray();
         }
 
-        return Enum.GetValues(GetCoreType(property.PropertyType))
-            .Cast<object>()
+        var values = Enum.GetValues(GetCoreType(property.PropertyType))
+            .Cast<object>();
+
+        // DisplayLanguage 使用共用的 LanguageKey 枚举，但排除全局的 System 值
+        if (property.Name == nameof(GameProgressTextControlConfig.DisplayLanguage))
+        {
+            values = values.Where(v => v is not LanguageKey.System);
+        }
+
+        return values
             .Select(value => CreateOption(property.Name, value))
             .Cast<object>()
             .ToArray();
