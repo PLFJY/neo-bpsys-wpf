@@ -82,14 +82,17 @@ public sealed class FrontedNodeGraphRuntime(
                 await _delayProvider.DelayAsync(TimeSpan.FromMilliseconds(duration), state.CancellationToken);
                 await ExecuteOutputAsync(node, "Out", state);
                 break;
-            case "flow.sequence":
-                foreach (var port in new[] { "Step1", "Step2", "Step3" })
-                {
-                    await ExecuteOutputAsync(node, port, state);
-                }
-                break;
             case "flow.parallel":
-                await Task.WhenAll(new[] { "Branch1", "Branch2", "Branch3" }.Select(port => ExecuteOutputAsync(node, port, state)));
+                var branchPorts = new[] { "Branch1", "Branch2", "Branch3" };
+                var branchTasks = branchPorts
+                    .Where(port => state.Graph.GetOutgoing(node.NodeId, port).Any())
+                    .Select(port => ExecuteOutputAsync(node, port, state))
+                    .ToArray();
+                if (branchTasks.Length > 0)
+                {
+                    await Task.WhenAll(branchTasks);
+                }
+                await ExecuteOutputAsync(node, "Out", state);
                 break;
             case "flow.if":
                 var left = ResolveText(GetString(node, "Left"), state.Context);
@@ -112,7 +115,7 @@ public sealed class FrontedNodeGraphRuntime(
                 await ExecuteOutputAsync(node, "Out", state);
                 break;
             case "action.animateProperty":
-                await EmitActionAsync(node, FrontedGraphActionRequestType.AnimateProperty, state, ["From", "To", "Easing"], GetInt(node, "DurationMs"));
+                await EmitActionAsync(node, FrontedGraphActionRequestType.AnimateProperty, state, ["From", "To", "Easing"], GetInt(node, "DurationMs"), GetBool(node, "WaitForCompletion", true));
                 await ExecuteOutputAsync(node, "Out", state);
                 break;
             default:
@@ -136,7 +139,8 @@ public sealed class FrontedNodeGraphRuntime(
         FrontedGraphActionRequestType requestType,
         ExecutionState state,
         IReadOnlyList<string> valueNames,
-        int? durationMs = null)
+        int? durationMs = null,
+        bool waitForCompletion = true)
     {
         var request = new FrontedGraphActionRequest
         {
@@ -144,7 +148,8 @@ public sealed class FrontedNodeGraphRuntime(
             Target = GetString(node, "Target", "Self"),
             PropertyName = GetString(node, "PropertyName"),
             Values = valueNames.ToDictionary(name => name, name => (string?)GetString(node, name)),
-            DurationMs = durationMs
+            DurationMs = durationMs,
+            WaitForCompletion = waitForCompletion
         };
         state.Actions.Enqueue(request);
         Log(state.Logs, FrontedGraphExecutionLogLevel.Information, $"{requestType}: {request.Target}.{request.PropertyName}", node.NodeId);
@@ -189,6 +194,26 @@ public sealed class FrontedNodeGraphRuntime(
         return value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out var number)
             ? number
             : int.TryParse(value.ToString(), out number) ? number : 0;
+    }
+
+    private static bool GetBool(FrontedNode node, string name, bool fallback = false)
+    {
+        if (!node.Properties.TryGetValue(name, out var value))
+        {
+            return fallback;
+        }
+
+        if (value.ValueKind == JsonValueKind.True)
+        {
+            return true;
+        }
+
+        if (value.ValueKind == JsonValueKind.False)
+        {
+            return false;
+        }
+
+        return value.ValueKind == JsonValueKind.String && bool.TryParse(value.GetString(), out var result) ? result : fallback;
     }
 
     private static void Log(ConcurrentQueue<FrontedGraphExecutionLogItem> logs, FrontedGraphExecutionLogLevel level, string message, Guid? nodeId = null) =>

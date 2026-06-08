@@ -4538,9 +4538,6 @@
   <data name="Designer.Graph.Node.FlowDelay" xml:space="preserve">
     <value>Delay</value>
   </data>
-  <data name="Designer.Graph.Node.FlowSequence" xml:space="preserve">
-    <value>Sequence</value>
-  </data>
   <data name="Designer.Graph.Node.FlowParallel" xml:space="preserve">
     <value>Parallel</value>
   </data>
@@ -4589,11 +4586,8 @@
   <data name="Designer.Graph.Node.FlowDelay.Description" xml:space="preserve">
     <value>等待一段时间后继续执行。用于让两个属性请求之间错开，比如先淡出再淡入。</value>
   </data>
-  <data name="Designer.Graph.Node.FlowSequence.Description" xml:space="preserve">
-    <value>按 Step1、Step2、Step3 的顺序执行多个分支。适合把几段动作按固定顺序串起来。</value>
-  </data>
   <data name="Designer.Graph.Node.FlowParallel.Description" xml:space="preserve">
-    <value>同时执行多个分支，并等待所有分支结束。适合同步发出多个属性动画请求。</value>
+    <value>同时执行多个分支，等待所有分支完成后继续执行 Out。\nBranch 不连接 End 即视为完成。</value>
   </data>
   <data name="Designer.Graph.Node.FlowIf.Description" xml:space="preserve">
     <value>高级分支节点：按文本比较结果走 True 或 False。属性动画里一般不需要，优先用简单顺序流程。</value>
@@ -4661,6 +4655,9 @@
   <data name="Designer.Graph.Port.Branch3" xml:space="preserve">
     <value>Branch3</value>
   </data>
+  <data name="Designer.Graph.Port.Completed" xml:space="preserve">
+    <value>完成</value>
+  </data>
   <data name="Designer.Graph.Port.Value" xml:space="preserve">
     <value>Value</value>
   </data>
@@ -4700,6 +4697,9 @@
   <data name="Designer.Graph.Property.Path" xml:space="preserve">
     <value>Path</value>
   </data>
+  <data name="Designer.Graph.Property.WaitForCompletion" xml:space="preserve">
+    <value>等待动画完成</value>
+  </data>
   <data name="Designer.Graph.PropertyName.All" xml:space="preserve"><value>全部属性</value></data>
   <data name="Designer.Option.Easing.Linear" xml:space="preserve"><value>线性</value></data>
   <data name="Designer.Option.Easing.SineInOut" xml:space="preserve"><value>正弦缓入缓出</value></data>
@@ -4718,6 +4718,12 @@
   <data name="Designer.Property.Background" xml:space="preserve"><value>背景色</value></data>
   <data name="Designer.Graph.Validation.Description" xml:space="preserve">
     <value>检查节点图中是否缺少入口、连线是否有效、必填属性是否为空。检查结果不会删除图数据，只用于帮你修正预览和保存前的问题。</value>
+  </data>
+  <data name="Designer.Graph.Validation.GraphNoEnd" xml:space="preserve">
+    <value>图没有 End 节点；当没有出边时执行停止。</value>
+  </data>
+  <data name="Designer.Graph.Validation.ParallelNoBranches" xml:space="preserve">
+    <value>Parallel 没有已连接的分支；Out 将立即执行。</value>
   </data>
   <data name="Designer.Graph.DeleteConnection" xml:space="preserve">
     <value>断开连接</value>
@@ -4757,6 +4763,9 @@
   </data>
   <data name="Designer.Graph.Property.Path.Description" xml:space="preserve">
     <value>路径值。动画编辑器通常不需要配置事件路径。</value>
+  </data>
+  <data name="Designer.Graph.Property.WaitForCompletion.Description" xml:space="preserve">
+    <value>启动动画后，等待动画完成再继续执行后续节点。</value>
   </data>
   <data name="Designer.Graph.Help" xml:space="preserve">
     <value>帮助</value>
@@ -4945,6 +4954,10 @@
     <value>跟随应用</value>
   </data>
 
+  <data name="Designer.Graph.Connection.IncompatibleTypes" xml:space="preserve">
+    <value>端口类型不兼容，无法连接</value>
+  </data>
+
   <data name="Designer.Graph.Help.Content" xml:space="preserve">
     <value>此编辑器仅用于编辑行为触发后运行的属性动画流程。请在“行为”面板中配置事件、触发器和过滤器。
 
@@ -4957,5 +4970,38 @@
 值节点：Number/String/Boolean/Color 用于存储常量值，供后续值端口评估使用。ControlReference 用于存储目标引用；目前通常使用 Self 作为默认值。
 
 通过DeepL.com（免费版）翻译</value>
+  </data>
+  <data name="Designer.Graph.Port.ValueType.Boolean" xml:space="preserve">
+    <value>布尔</value>
+  </data>
+  <data name="Designer.Graph.Port.ValueType.Color" xml:space="preserve">
+    <value>颜色</value>
+  </data>
+  <data name="Designer.Graph.Port.ValueType.Control" xml:space="preserve">
+    <value>控件引用</value>
+  </data>
+  <data name="Designer.Graph.Port.ValueType.Number" xml:space="preserve">
+    <value>数字</value>
+  </data>
+  <data name="Designer.Graph.Port.ValueType.Object" xml:space="preserve">
+    <value>任意</value>
+  </data>
+  <data name="Designer.Graph.Port.ValueType.String" xml:space="preserve">
+    <value>文本</value>
+  </data>
+  <data name="Designer.Graph.PortKind.Flow" xml:space="preserve">
+    <value>流程</value>
+  </data>
+  <data name="Designer.Graph.PortKind.Value" xml:space="preserve">
+    <value>值</value>
+  </data>
+  <data name="Designer.Graph.Tooltip.CompatibleHint" xml:space="preserve">
+    <value>仅兼容同类型端口</value>
+  </data>
+  <data name="Designer.Graph.Tooltip.PortKind" xml:space="preserve">
+    <value>端口类型</value>
+  </data>
+  <data name="Designer.Graph.Tooltip.PortType" xml:space="preserve">
+    <value>值类型</value>
   </data>
 </root>

@@ -72,6 +72,19 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     [ObservableProperty]
     private FrontedNodeEditorViewModel? _selectedNode;
 
+    /// <summary>是否可以撤销</summary>
+    [ObservableProperty]
+    private bool _canUndo;
+
+    /// <summary>是否可以重做</summary>
+    [ObservableProperty]
+    private bool _canRedo;
+
+    /// <summary>是否有未保存的更改</summary>
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
+    private bool _isDirty;
+
     [ObservableProperty]
     private string _catalogSearchText = string.Empty;
 
@@ -367,6 +380,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
 
         _pendingPort = port;
         IsConnecting = true;
+        ApplyPortHighlights(port);
     }
 
     [RelayCommand]
@@ -377,16 +391,30 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
             return;
         }
 
-        AddConnection(_pendingPort, port);
+        var compatible = FrontedNodePortViewModel.ArePortsCompatible(_pendingPort.Descriptor, port.Descriptor)
+                         && Graph.GetIncoming(port.Node.Model.NodeId, port.Descriptor.Name).Count == 0;
+        if (compatible)
+        {
+            AddConnection(_pendingPort, port);
+        }
+        else
+        {
+            var message = _localize("Designer.Graph.Connection.IncompatibleTypes", "Incompatible port types, cannot connect.");
+            ExecutionLog.Add(new FrontedGraphExecutionLogItem
+            {
+                Level = FrontedGraphExecutionLogLevel.Warning,
+                Message = $"[{port.Node.DisplayName}.{port.Name}] {message}"
+            });
+        }
+
+        ClearPortHighlights();
         _pendingPort = null;
         IsConnecting = false;
     }
 
     public bool AddConnection(FrontedNodePortViewModel source, FrontedNodePortViewModel target)
     {
-        var compatible = source.Descriptor.PortKind == FrontedNodePortKind.FlowOut && target.Descriptor.PortKind == FrontedNodePortKind.FlowIn
-                         || source.Descriptor.PortKind == FrontedNodePortKind.ValueOut && target.Descriptor.PortKind == FrontedNodePortKind.ValueIn;
-        if (!compatible
+        if (!FrontedNodePortViewModel.ArePortsCompatible(source.Descriptor, target.Descriptor)
             || Graph.GetOutgoing(source.Node.Model.NodeId, source.Descriptor.Name).Count > 0
             || Graph.GetIncoming(target.Node.Model.NodeId, target.Descriptor.Name).Count > 0)
         {
@@ -403,6 +431,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         };
         Graph.Connections.Add(model);
         Connections.Add(new FrontedNodeConnectionViewModel(model, source.Node, target.Node));
+        RefreshPortConnectionStates();
         Changed();
         return true;
     }
@@ -416,7 +445,87 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         }
         CreateSnapshot();
         Connections.Remove(connection);
+        RefreshPortConnectionStates();
         Changed();
+    }
+
+    /// <summary>
+    /// 刷新所有端口的连接状态，标记已连接的端口。
+    /// </summary>
+    public void RefreshPortConnectionStates()
+    {
+        foreach (var node in Nodes)
+        {
+            foreach (var port in node.InputPorts)
+            {
+                port.IsConnected = Graph.Connections.Any(c =>
+                    c.TargetNodeId == node.Model.NodeId && c.TargetPort == port.Name);
+            }
+
+            foreach (var port in node.OutputPorts)
+            {
+                port.IsConnected = Graph.Connections.Any(c =>
+                    c.SourceNodeId == node.Model.NodeId && c.SourcePort == port.Name);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 根据待连端口设置所有端口的兼容高亮/变灰状态。
+    /// </summary>
+    public void ApplyPortHighlights(FrontedNodePortViewModel? pendingPort)
+    {
+        foreach (var node in Nodes)
+        {
+            foreach (var port in node.InputPorts)
+            {
+                var compatible = pendingPort is not null
+                    && FrontedNodePortViewModel.ArePortsCompatible(pendingPort.Descriptor, port.Descriptor)
+                    && Graph.GetIncoming(node.Model.NodeId, port.Descriptor.Name).Count == 0;
+                port.IsHighlighted = compatible;
+                port.IsDimmed = pendingPort is not null && !compatible;
+            }
+
+            foreach (var port in node.OutputPorts)
+            {
+                var compatible = pendingPort is not null
+                    && FrontedNodePortViewModel.ArePortsCompatible(pendingPort.Descriptor, port.Descriptor)
+                    && Graph.GetOutgoing(node.Model.NodeId, port.Descriptor.Name).Count == 0;
+                port.IsHighlighted = compatible;
+                port.IsDimmed = pendingPort is not null && !compatible;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 清除所有端口的高亮/变灰状态。
+    /// </summary>
+    public void ClearPortHighlights()
+    {
+        foreach (var node in Nodes)
+        {
+            foreach (var port in node.InputPorts)
+            {
+                port.IsHighlighted = false;
+                port.IsDimmed = false;
+            }
+
+            foreach (var port in node.OutputPorts)
+            {
+                port.IsHighlighted = false;
+                port.IsDimmed = false;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 取消当前正在进行的连接拖拽，清除高亮并重置状态。
+    /// </summary>
+    public void CancelConnection()
+    {
+        ClearPortHighlights();
+        _pendingPort = null;
+        IsConnecting = false;
     }
 
     [RelayCommand]
@@ -557,11 +666,13 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
                 Connections.Add(new FrontedNodeConnectionViewModel(model, source, target));
             }
         }
+        RefreshPortConnectionStates();
     }
 
     private void Changed()
     {
         _markDirty();
+        IsDirty = true;
         ValidateGraph();
         OnPropertyChanged(nameof(FilteredCatalog));
     }
@@ -593,10 +704,12 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
 
         _undoStack.Push(JsonSerializer.Serialize(Graph));
         _redoStack.Clear();
+        CanUndo = true;
+        CanRedo = false;
     }
 
     /// <summary>撤销</summary>
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanUndo))]
     public void Undo()
     {
         if (_undoStack.Count == 0)
@@ -608,10 +721,12 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         _isRestoring = true;
         RestoreGraph(snapshot);
         _isRestoring = false;
+        CanUndo = _undoStack.Count > 0;
+        CanRedo = _redoStack.Count > 0;
     }
 
     /// <summary>重做</summary>
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanRedo))]
     public void Redo()
     {
         if (_redoStack.Count == 0)
@@ -623,15 +738,19 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         _isRestoring = true;
         RestoreGraph(snapshot);
         _isRestoring = false;
+        CanUndo = _undoStack.Count > 0;
+        CanRedo = _redoStack.Count > 0;
     }
 
     /// <summary>保存当前图</summary>
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanSave))]
     public void Save()
     {
         _save();
-        _markDirty();
+        IsDirty = false;
     }
+
+    private bool CanSave() => IsDirty;
 
     private void RestoreGraph(FrontedNodeGraph? snapshot)
     {
@@ -682,8 +801,8 @@ public sealed partial class FrontedNodeEditorViewModel : ObservableObject
         _validate = validate;
         DisplayName = descriptor is null ? model.NodeType : localize(descriptor.DisplayNameKey, NodeFallback(model.NodeType));
         Description = descriptor is null ? model.NodeType : localize(descriptor.DescriptionKey, model.NodeType);
-        InputPorts = descriptor?.InputPorts.Select((port, index) => new FrontedNodePortViewModel(this, port, index)).ToArray() ?? [];
-        OutputPorts = descriptor?.OutputPorts.Select((port, index) => new FrontedNodePortViewModel(this, port, index)).ToArray() ?? [];
+        InputPorts = descriptor?.InputPorts.Select((port, index) => new FrontedNodePortViewModel(this, port, index, localize)).ToArray() ?? [];
+        OutputPorts = descriptor?.OutputPorts.Select((port, index) => new FrontedNodePortViewModel(this, port, index, localize)).ToArray() ?? [];
         var properties = descriptor?.Properties
             .Select(property => new FrontedNodePropertyEditorViewModel(model, property, markDirty, validate, localize, targetOptions))
             .ToArray() ?? [];
@@ -726,12 +845,98 @@ public sealed partial class FrontedNodeEditorViewModel : ObservableObject
     private static string NodeFallback(string nodeType) => nodeType.Split('.').LastOrDefault() ?? nodeType;
 }
 
-public sealed class FrontedNodePortViewModel(FrontedNodeEditorViewModel node, FrontedNodePortDescriptor descriptor, int index)
+public sealed partial class FrontedNodePortViewModel : ObservableObject
 {
-    public FrontedNodeEditorViewModel Node { get; } = node;
-    public FrontedNodePortDescriptor Descriptor { get; } = descriptor;
-    public int Index { get; } = index;
+    private readonly Func<string, string, string>? _localize;
+
+    public FrontedNodeEditorViewModel Node { get; }
+    public FrontedNodePortDescriptor Descriptor { get; }
+    public int Index { get; }
     public string Name => Descriptor.Name;
+
+    /// <summary>本地化的端口种类名称（"Flow" / "Value"）</summary>
+    public string PortKindName { get; }
+
+    /// <summary>本地化的值类型名称（"Number" / "String" / …），非值端口为 null</summary>
+    public string? ValueTypeName { get; }
+
+    /// <summary>基于端口类型的颜色十六进制值</summary>
+    public string PortColorHex { get; }
+
+    /// <summary>是否为 Flow 端口（FlowIn 或 FlowOut）</summary>
+    public bool IsFlowPort { get; }
+
+    /// <summary>连接过程中此端口与待连端口兼容</summary>
+    [ObservableProperty]
+    private bool _isHighlighted;
+
+    /// <summary>连接过程中此端口与待连端口不兼容</summary>
+    [ObservableProperty]
+    private bool _isDimmed;
+
+    /// <summary>此端口已有连线</summary>
+    [ObservableProperty]
+    private bool _isConnected;
+
+    public FrontedNodePortViewModel(FrontedNodeEditorViewModel node, FrontedNodePortDescriptor descriptor, int index, Func<string, string, string>? localize = null)
+    {
+        Node = node;
+        Descriptor = descriptor;
+        Index = index;
+        _localize = localize;
+
+        IsFlowPort = descriptor.PortKind is FrontedNodePortKind.FlowIn or FrontedNodePortKind.FlowOut;
+
+        PortKindName = IsFlowPort
+            ? Localize("Designer.Graph.PortKind.Flow", "Flow")
+            : Localize("Designer.Graph.PortKind.Value", "Value");
+
+        ValueTypeName = GetValueTypeDisplayName(descriptor.ValueType);
+        PortColorHex = GetPortColor(descriptor);
+    }
+
+    /// <summary>
+    /// 判断两个端口是否可以建立连接。委托到 <see cref="FrontedNodePortDescriptor.AreCompatible"/>。
+    /// </summary>
+    public static bool ArePortsCompatible(FrontedNodePortDescriptor source, FrontedNodePortDescriptor target) =>
+        FrontedNodePortDescriptor.AreCompatible(source, target);
+
+    /// <summary>获取端口在端口类型维度上的颜色映射</summary>
+    public static string GetPortColor(FrontedNodePortDescriptor descriptor)
+    {
+        if (descriptor.PortKind is FrontedNodePortKind.FlowIn or FrontedNodePortKind.FlowOut)
+            return "#4FC3F7"; // Blue
+
+        return descriptor.ValueType switch
+        {
+            FrontedNodePortValueType.Number => "#66BB6A",  // Green
+            FrontedNodePortValueType.String => "#AB47BC",  // Purple
+            FrontedNodePortValueType.Boolean => "#FFA726", // Orange
+            FrontedNodePortValueType.Color => "#EC407A",   // Pink
+            FrontedNodePortValueType.Control => "#26C6DA", // Cyan
+            FrontedNodePortValueType.Object => "#9E9E9E",  // Gray
+            _ => "#9E9E9E"                                  // Gray (unknown)
+        };
+    }
+
+    private string? GetValueTypeDisplayName(string? valueType)
+    {
+        if (valueType is null) return null;
+        var key = valueType switch
+        {
+            FrontedNodePortValueType.Number => "Designer.Graph.Port.ValueType.Number",
+            FrontedNodePortValueType.String => "Designer.Graph.Port.ValueType.String",
+            FrontedNodePortValueType.Boolean => "Designer.Graph.Port.ValueType.Boolean",
+            FrontedNodePortValueType.Color => "Designer.Graph.Port.ValueType.Color",
+            FrontedNodePortValueType.Control => "Designer.Graph.Port.ValueType.Control",
+            FrontedNodePortValueType.Object => "Designer.Graph.Port.ValueType.Object",
+            _ => null
+        };
+        return key is not null ? Localize(key, valueType) : valueType;
+    }
+
+    private string Localize(string key, string fallback) =>
+        _localize?.Invoke(key, fallback) ?? fallback;
 }
 
 public sealed partial class FrontedNodeConnectionViewModel(

@@ -1,8 +1,10 @@
 using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -242,6 +244,7 @@ public partial class FrontedNodeGraphEditorView : UserControl
         _dragStartPoint = GetPortPoint(sender, isOutput: true);
         ConnectionPreviewPath.Data = Geometry.Parse(CreateBezierPathData(_dragStartPoint, _dragStartPoint));
         ConnectionPreviewPath.Visibility = Visibility.Visible;
+        ConnectionPreviewPath.Stroke = new SolidColorBrush((Color)ColorConverter.ConvertFromString(port.PortColorHex));
         GraphCanvas.CaptureMouse();
         e.Handled = true;
     }
@@ -255,9 +258,27 @@ public partial class FrontedNodeGraphEditorView : UserControl
             return;
         }
 
-        editor.AddConnection(_dragSourcePort, target);
+        editor.CompleteConnection(target);
         EndConnectionDrag();
         e.Handled = true;
+    }
+
+    private void Port_OnMouseEnter(object sender, MouseEventArgs e)
+    {
+        // 连接拖拽中 hover 时，VisualTree 的 DataTrigger 会自动处理 IsHighlighted/IsDimmed 样式
+        // 此处仅确保光标正确
+        if (sender is FrameworkElement { DataContext: FrontedNodePortViewModel { IsDimmed: true } })
+        {
+            Mouse.OverrideCursor = Cursors.No;
+        }
+    }
+
+    private void Port_OnMouseLeave(object sender, MouseEventArgs e)
+    {
+        if (Mouse.OverrideCursor is not null)
+        {
+            Mouse.OverrideCursor = null;
+        }
     }
 
     private void GraphScrollViewer_OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
@@ -404,7 +425,7 @@ public partial class FrontedNodeGraphEditorView : UserControl
         var target = FindPortAt(e.GetPosition(GraphCanvas));
         if (target is not null && DataContext is FrontedNodeGraphEditorViewModel editor)
         {
-            editor.AddConnection(_dragSourcePort, target);
+            editor.CompleteConnection(target);
         }
 
         EndConnectionDrag();
@@ -513,6 +534,13 @@ public partial class FrontedNodeGraphEditorView : UserControl
         _dragSourcePort = null;
         ConnectionPreviewPath.Data = null;
         ConnectionPreviewPath.Visibility = Visibility.Collapsed;
+        ConnectionPreviewPath.Stroke = FindResource("SystemAccentColorPrimaryBrush") as Brush
+                                       ?? new SolidColorBrush(Colors.Gray);
+        if (DataContext is FrontedNodeGraphEditorViewModel editor)
+        {
+            editor.CancelConnection();
+        }
+
         if (GraphCanvas.IsMouseCaptured)
         {
             GraphCanvas.ReleaseMouseCapture();
@@ -918,4 +946,33 @@ public partial class FrontedNodeGraphEditorView : UserControl
             e.Data.GetData(CatalogNodeDragTokenFormat) as string,
             _activeCatalogDragToken,
             StringComparison.Ordinal);
+}
+
+/// <summary>
+/// 将十六进制颜色字符串（如 "#4FC3F7"）转换为 <see cref="SolidColorBrush"/> 的转换器。
+/// </summary>
+public sealed class HexToBrushConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is string hex && !string.IsNullOrEmpty(hex))
+        {
+            try
+            {
+                var color = (Color)ColorConverter.ConvertFromString(hex);
+                return new SolidColorBrush(color);
+            }
+            catch
+            {
+                // Fallback
+            }
+        }
+
+        return new SolidColorBrush(Colors.Gray);
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotSupportedException();
+    }
 }

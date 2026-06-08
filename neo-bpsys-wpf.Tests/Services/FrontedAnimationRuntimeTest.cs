@@ -11,7 +11,9 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Services;
@@ -205,6 +207,174 @@ public class FrontedAnimationRuntimeTest
         });
     }
 
+    [Fact]
+    public async Task SameProperty_NewAnimationCancelsOldButDoesNotRemoveNewConflict()
+    {
+        await RunOnStaThreadAsync(async () =>
+        {
+            var guid = Guid.NewGuid();
+            var root = new Canvas();
+            var element = Generated(new Border(), guid, "Target");
+            root.Children.Add(element);
+            var runtime = new FrontedAnimationRuntime();
+
+            // Start first long animation on Opacity
+            var firstTask = runtime.ExecuteAsync(new FrontedGraphActionRequest
+            {
+                RequestType = FrontedGraphActionRequestType.AnimateProperty,
+                Target = "Self",
+                PropertyName = "Opacity",
+                Values = new Dictionary<string, string?> { ["To"] = "0.5" },
+                DurationMs = 5000
+            }, Context(root, guid));
+
+            // Allow first animation to start
+            await Task.Yield();
+
+            // Start second animation on the same property (should cancel the first).
+            // Do NOT await completion — WPF animations require a HwndSource (window)
+            // to tick the animation clock; without one, BeginAnimation never fires
+            // the Completed event. Instead, the third animation below will cancel
+            // this one, and we verify conflict tracking via that operation.
+            _ = runtime.ExecuteAsync(new FrontedGraphActionRequest
+            {
+                RequestType = FrontedGraphActionRequestType.AnimateProperty,
+                Target = "Self",
+                PropertyName = "Opacity",
+                Values = new Dictionary<string, string?> { ["To"] = "0.8" },
+                DurationMs = 5000
+            }, Context(root, guid));
+
+            // Allow second animation to register in Conflicts
+            await Task.Yield();
+
+            // First animation should have completed (cancelled) without throwing
+            await firstTask;
+
+            // Start a third animation to verify the conflict tracking is intact,
+            // which also cancels the second animation via CancelConflict.
+            await runtime.ExecuteAsync(new FrontedGraphActionRequest
+            {
+                RequestType = FrontedGraphActionRequestType.AnimateProperty,
+                Target = "Self",
+                PropertyName = "Opacity",
+                Values = new Dictionary<string, string?> { ["To"] = "1.0" },
+                DurationMs = 0
+            }, Context(root, guid));
+
+            // Read the final value on the Dispatcher to avoid cross-thread issues
+            // when the await continuation runs on a ThreadPool thread after the
+            // CancelConflict chain schedules the second animation's continuation
+            // via RunContinuationsAsynchronously.
+            var finalOpacity = 0.0;
+            root.Dispatcher.Invoke(() => finalOpacity = element.Opacity);
+            Assert.Equal(1.0, finalOpacity, 3);
+        });
+    }
+
+    [Fact]
+    public async Task ResetAll_CancelsCurrentAnimationAndRestoresBase()
+    {
+        await RunOnStaThreadAsync(async () =>
+        {
+            var guid = Guid.NewGuid();
+            var root = new Canvas();
+            var element = Generated(new Border { Opacity = 0.25 }, guid, "Target");
+            root.Children.Add(element);
+            var runtime = new FrontedAnimationRuntime();
+
+            // Set property to change base
+            await runtime.ExecuteAsync(new FrontedGraphActionRequest
+            {
+                RequestType = FrontedGraphActionRequestType.SetProperty,
+                Target = "Self",
+                PropertyName = "Opacity",
+                Values = new Dictionary<string, string?> { ["Value"] = "0.5" }
+            }, Context(root, guid));
+
+            // Start long animation
+            var animTask = runtime.ExecuteAsync(new FrontedGraphActionRequest
+            {
+                RequestType = FrontedGraphActionRequestType.AnimateProperty,
+                Target = "Self",
+                PropertyName = "Opacity",
+                Values = new Dictionary<string, string?> { ["To"] = "0.9" },
+                DurationMs = 5000
+            }, Context(root, guid));
+
+            await Task.Yield();
+
+            // Reset all
+            runtime.ResetAll(Context(root, guid));
+            await animTask; // should complete without throwing
+
+            // Value should be restored to original base (0.25, not 0.5)
+            var finalOpacity = 0.0;
+            root.Dispatcher.Invoke(() => finalOpacity = element.Opacity);
+            Assert.Equal(0.25, finalOpacity, 3);
+        });
+    }
+
+    [Fact]
+    public async Task Release_CancelsFireAndForgetAnimation()
+    {
+        await RunOnStaThreadAsync(async () =>
+        {
+            var guid = Guid.NewGuid();
+            var root = new Canvas();
+            var element = Generated(new Border(), guid, "Target");
+            root.Children.Add(element);
+            var runtime = new FrontedAnimationRuntime();
+
+            // Start long animation with fire-and-forget semantics via the executor
+            var executor = new FrontedAnimationRuntimeActionExecutor(
+                runtime, root, guid, "Test", "window", "canvas");
+
+            await executor.ExecuteAsync(new FrontedGraphActionRequest
+            {
+                RequestType = FrontedGraphActionRequestType.AnimateProperty,
+                Target = "Self",
+                PropertyName = "Opacity",
+                Values = new Dictionary<string, string?> { ["To"] = "0.9" },
+                DurationMs = 5000,
+                WaitForCompletion = false
+            }, CancellationToken.None);
+
+            // Release should cancel all in-flight animations without throwing
+            runtime.Release(root);
+        });
+    }
+
+    [Fact]
+    public async Task WaitFalse_FireAndForget_DoesNotRaiseUnobservedException()
+    {
+        await RunOnStaThreadAsync(async () =>
+        {
+            var guid = Guid.NewGuid();
+            var root = new Canvas();
+            var element = Generated(new Border(), guid, "Target");
+            root.Children.Add(element);
+            var runtime = new FrontedAnimationRuntime();
+
+            var executor = new FrontedAnimationRuntimeActionExecutor(
+                runtime, root, guid, "Test", "window", "canvas");
+
+            // Fire-and-forget a long animation
+            await executor.ExecuteAsync(new FrontedGraphActionRequest
+            {
+                RequestType = FrontedGraphActionRequestType.AnimateProperty,
+                Target = "Self",
+                PropertyName = "Opacity",
+                Values = new Dictionary<string, string?> { ["To"] = "0.9" },
+                DurationMs = 50000,
+                WaitForCompletion = false
+            }, CancellationToken.None);
+
+            // Release should cleanly cancel without raising exceptions
+            runtime.Release(root);
+        });
+    }
+
     private static FrontedAnimationExecutionContext Context(Canvas root, Guid selfGuid) =>
         new()
         {
@@ -251,22 +421,32 @@ public class FrontedAnimationRuntimeTest
 
     private static Task RunOnStaThreadAsync(Func<Task> action)
     {
-        ExceptionDispatchInfo? exception = null;
+        var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var thread = new Thread(() =>
         {
             try
             {
-                action().GetAwaiter().GetResult();
+                var task = action();
+                // Pump the Dispatcher so that async continuations (posted via
+                // DispatcherSynchronizationContext) and WPF internal operations
+                // can progress.  Without this, await Task.Yield() and other
+                // continuations queued on the Dispatcher would never run.
+                var frame = new DispatcherFrame();
+                _ = task.ContinueWith(_ =>
+                {
+                    try { frame.Continue = false; } catch { }
+                }, TaskScheduler.Default);
+                Dispatcher.PushFrame(frame);
+                task.GetAwaiter().GetResult();
+                tcs.TrySetResult();
             }
             catch (Exception ex)
             {
-                exception = ExceptionDispatchInfo.Capture(ex);
+                tcs.TrySetException(ex);
             }
         });
         thread.SetApartmentState(ApartmentState.STA);
         thread.Start();
-        thread.Join();
-        exception?.Throw();
-        return Task.CompletedTask;
+        return tcs.Task;
     }
 }

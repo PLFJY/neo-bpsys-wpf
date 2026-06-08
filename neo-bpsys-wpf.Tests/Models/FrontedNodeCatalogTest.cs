@@ -16,7 +16,6 @@ public class FrontedNodeCatalogTest
         Assert.Contains("flow.start", nodeTypes);
         Assert.Contains("flow.end", nodeTypes);
         Assert.Contains("flow.delay", nodeTypes);
-        Assert.Contains("flow.sequence", nodeTypes);
         Assert.Contains("flow.parallel", nodeTypes);
         Assert.Contains("flow.if", nodeTypes);
         Assert.Contains("action.log", nodeTypes);

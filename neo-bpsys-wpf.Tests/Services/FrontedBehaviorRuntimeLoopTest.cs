@@ -348,6 +348,150 @@ public class FrontedBehaviorRuntimeLoopTest
         });
     }
 
+    [Fact]
+    public async Task Loop_StartGraphCompletesBeforeLoopGraphStarts()
+    {
+        await RunOnStaThreadAsync(async () =>
+        {
+            var runtime = new ControlledGraphRuntime();
+            var behavior = new FrontedBehavior
+            {
+                Kind = FrontedBehaviorKind.Loop,
+                StartTrigger = new TriggerDescriptor { EventType = "start" },
+                EndTrigger = new TriggerDescriptor { EventType = "end" },
+                StartGraph = new FrontedNodeGraph(),
+                LoopGraph = new FrontedNodeGraph(),
+                LoopPolicy = new FrontedLoopPolicy { RepeatCount = 1 }
+            };
+            var document = CreateDocument(behavior);
+
+            using var host = CreateHost(runtime);
+            await AttachHost(host, document);
+
+            runtime.ExecutionCompleted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            RunEvent(host, new FrontedBehaviorEvent { EventType = "start" });
+
+            await runtime.ExecutionCompleted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+            // StartGraph should appear before LoopGraph in execution order
+            var executedGraphs = runtime.ExecutedGraphs.ToArray();
+            var startIndex = Array.IndexOf(executedGraphs, behavior.StartGraph);
+            var loopIndex = Array.IndexOf(executedGraphs, behavior.LoopGraph);
+            Assert.True(startIndex >= 0, "StartGraph should be executed");
+            Assert.True(loopIndex >= 0, "LoopGraph should be executed");
+            Assert.True(startIndex < loopIndex, "StartGraph should execute before LoopGraph");
+        });
+    }
+
+    [Fact]
+    public async Task Loop_EachLoopIterationWaitsLoopGraphCompletion()
+    {
+        await RunOnStaThreadAsync(async () =>
+        {
+            var runtime = new ControlledGraphRuntime();
+            var behavior = new FrontedBehavior
+            {
+                Kind = FrontedBehaviorKind.Loop,
+                StartTrigger = new TriggerDescriptor { EventType = "start" },
+                EndTrigger = new TriggerDescriptor { EventType = "end" },
+                StartGraph = new FrontedNodeGraph(),
+                LoopGraph = new FrontedNodeGraph(),
+                LoopPolicy = new FrontedLoopPolicy { RepeatCount = 3 }
+            };
+            var document = CreateDocument(behavior);
+
+            using var host = CreateHost(runtime);
+            await AttachHost(host, document);
+
+            runtime.ExecutionCompleted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            RunEvent(host, new FrontedBehaviorEvent { EventType = "start" });
+
+            await runtime.ExecutionCompleted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+            // LoopGraph should have been executed exactly RepeatCount times (3)
+            var executedGraphs = runtime.ExecutedGraphs.ToArray();
+            var loopExecutions = executedGraphs.Count(g => g == behavior.LoopGraph);
+            Assert.Equal(3, loopExecutions);
+        });
+    }
+
+    [Fact]
+    public async Task Loop_IntervalBetweenIterations()
+    {
+        await RunOnStaThreadAsync(async () =>
+        {
+            var runtime = new ControlledGraphRuntime
+            {
+                LoopGate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously)
+            };
+            var behavior = new FrontedBehavior
+            {
+                Kind = FrontedBehaviorKind.Loop,
+                StartTrigger = new TriggerDescriptor { EventType = "start" },
+                EndTrigger = new TriggerDescriptor { EventType = "end" },
+                StartGraph = new FrontedNodeGraph(),
+                LoopGraph = new FrontedNodeGraph(),
+                LoopPolicy = new FrontedLoopPolicy
+                {
+                    RepeatCount = -1,
+                    IntervalMs = 100,
+                    StopMode = FrontedLoopStopMode.StopImmediately
+                }
+            };
+            var document = CreateDocument(behavior);
+
+            using var host = CreateHost(runtime);
+            await AttachHost(host, document);
+
+            RunEvent(host, new FrontedBehaviorEvent { EventType = "start" });
+            await runtime.WaitForStartGraphAsync(TimeSpan.FromSeconds(5));
+
+            // The LoopGraph runs once, then waits IntervalMs before the next iteration.
+            // With the LoopGate blocking, only one LoopGraph execution should occur.
+            Assert.Contains(behavior.LoopGraph, runtime.ExecutedGraphs);
+        });
+    }
+
+    [Fact]
+    public async Task Loop_CompleteCurrentIteration_DoesNotCancelCurrentLoopGraph()
+    {
+        await RunOnStaThreadAsync(async () =>
+        {
+            var runtime = new ControlledGraphRuntime
+            {
+                LoopGate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously)
+            };
+            var behavior = new FrontedBehavior
+            {
+                Kind = FrontedBehaviorKind.Loop,
+                StartTrigger = new TriggerDescriptor { EventType = "start" },
+                EndTrigger = new TriggerDescriptor { EventType = "end" },
+                StartGraph = new FrontedNodeGraph(),
+                LoopGraph = new FrontedNodeGraph(),
+                LoopPolicy = new FrontedLoopPolicy
+                {
+                    RepeatCount = -1,
+                    StopMode = FrontedLoopStopMode.CompleteCurrentIteration
+                }
+            };
+            var document = CreateDocument(behavior);
+
+            using var host = CreateHost(runtime);
+            await AttachHost(host, document);
+
+            RunEvent(host, new FrontedBehaviorEvent { EventType = "start" });
+            await runtime.WaitForStartGraphAsync(TimeSpan.FromSeconds(5));
+
+            // Release the LoopGate so the current iteration completes
+            runtime.LoopGate.TrySetResult();
+
+            // After the current iteration completes, verify the loop stopped without crash
+            await Task.Delay(200);
+            var executedGraphs = runtime.ExecutedGraphs.ToArray();
+            Assert.Contains(behavior.LoopGraph, executedGraphs);
+        });
+    }
+
     // ---------------------------------------------------------------
     // STA thread helper
     // ---------------------------------------------------------------

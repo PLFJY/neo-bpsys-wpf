@@ -49,6 +49,7 @@ public sealed class FrontedGraphActionRequest
     public string PropertyName { get; init; } = string.Empty;
     public IReadOnlyDictionary<string, string?> Values { get; init; } = new Dictionary<string, string?>();
     public int? DurationMs { get; init; }
+    public bool WaitForCompletion { get; init; } = true;
 }
 
 public sealed class FrontedGraphExecutionResult

@@ -35,11 +35,11 @@ Phase 3 已完成 Designer 预览侧的可视化节点图编辑 MVP 和图执行
 
 - 动画编辑器不再显示占位文本。OneShot 行为打开 `behavior.Graph` 的节点图编辑器；Loop 行为继续使用 Top `LocalTabs`，分别编辑 `StartGraph`、`LoopGraph` 和 `StopGraph`。
 - 节点图编辑器提供左侧节点目录、中间 Canvas、右侧属性编辑器、底部验证与执行日志。支持添加、选择、拖动、复制、删除节点，点击输出端口后点击兼容输入端口创建连接，并可删除连接。
-- 当前内置节点目录包含 Flow、Action、Value 三类节点。Flow 节点包括 Start、End、Delay、Sequence、Parallel、If；Action 节点包括 Log、SetProperty、ResetProperty、AnimateProperty；Value 节点包括 Number、String、Boolean、Color、EventValue、SelfTag、ControlReference。
+- 当前内置节点目录包含 Flow、Action、Value 三类节点。Flow 节点包括 Start、End、Delay、Parallel、If；Action 节点包括 Log、SetProperty、ResetProperty、AnimateProperty；Value 节点包括 Number、String、Boolean、Color、EventValue、SelfTag、ControlReference。
 - 图数据仍使用 Phase 1/2 的 `FrontedNodeGraph` / `FrontedNode` / `FrontedNodeConnection` JSON 模型，节点位置、属性和连接可以 roundtrip 保存。模型新增的查询/删除 helper 只提供纯模型逻辑，不改变持久化结构。
 - 图验证会报告缺失 Start、多个 Start、连接引用缺失节点、端口不存在、端口类型不兼容、重复或超过端口基数的连接、必填属性缺失，以及 Delay / AnimateProperty 的非法时长。验证消息会显示在编辑器中，但本阶段不阻止保存，以便用户保留并修复异常图。
-- Designer preview 通过 `FrontedNodeGraphRuntime` 执行当前选中图。支持 Start、End、Delay、Sequence、Parallel、If、Log，以及 SetProperty / ResetProperty / AnimateProperty 的 action request 生成。
-- 普通 Flow 输入/输出端口各最多一条连接；需要分支时应使用 Sequence、Parallel 或 If。多个 Start 会被视为错误并阻止 preview。
+- Designer preview 通过 `FrontedNodeGraphRuntime` 执行当前选中图。支持 Start、End、Delay、Parallel、If、Log，以及 SetProperty / ResetProperty / AnimateProperty 的 action request 生成。
+- 普通连线就是顺序执行。Flow 输入/输出端口各最多一条连接；需要分支时应使用 Parallel 或 If。Parallel 节点提供 In、Branch1/2/3 和 Out 端口：所有分支并发执行，Out 在所有分支完成后执行，分支末端无需连接 End 节点。多个 Start 会被视为错误并阻止 preview。
 - If 节点复用 Phase 2 的 `FrontedTriggerFilterTextComparer` 文本比较语义；`Event.*` 从预览上下文 payload 取值，`SelfTag.*` 从当前控件标签取值，其他左值按文本处理。
 - SetProperty、ResetProperty 和 AnimateProperty 在 Phase 3 只写入执行日志并生成 `FrontedGraphActionRequest`，不会修改 WPF 控件，也不会创建 Storyboard。真实 WPF 动画 runtime 属于 Phase 4。
 
@@ -51,7 +51,7 @@ Phase 4 已完成 Designer 预览侧的 WPF 动画与属性应用层：
 
 - `FrontedRenderer` 现在会把 `FrontedControlConfigBase.BehaviorGuid` 写入生成控件的 `FrontedRendererProperties.BehaviorGuid` 附加属性。缺失插件占位控件在 Designer 预览中也会携带该 Guid；`Guid.Empty` 会原样保留，渲染时不会自动生成新 Guid。
 - 新增 WPF 动画目标解析器。当前 action `Target` 字符串兼容 `Self`、原始 Guid、`guid:{...}`，并保留 registered name 作为显式 fallback。解析器只在当前预览 root/scope 内查找由 renderer 生成且 `BehaviorGuid` 匹配的控件；找不到目标时记录 warning 并跳过 action。
-- 新增 `IFrontedAnimationRuntime`、动画执行上下文、属性 adapter registry 与内置 adapters。GraphRuntime 仍返回 Phase 3 的 `FrontedGraphActionRequest` 列表，同时 `FrontedGraphExecutionContext.ActionExecutor` 可在 action 节点执行点立即消费请求，因此 Delay / Sequence 预览顺序不再被推迟到图执行结束后。
+- 新增 `IFrontedAnimationRuntime`、动画执行上下文、属性 adapter registry 与内置 adapters。GraphRuntime 仍返回 Phase 3 的 `FrontedGraphActionRequest` 列表，同时 `FrontedGraphExecutionContext.ActionExecutor` 可在 action 节点执行点立即消费请求，因此 Delay 预览顺序不再被推迟到图执行结束后。
 - Designer 动画编辑器的 Run Preview 会在可用时使用当前预览 Canvas、选中控件 `BehaviorGuid` 和选中控件名称创建 WPF 执行上下文。没有预览 scope 时会回退为 Phase 3 日志预览，并提示 “No preview target scope available.”。
 - Reset 当前目标 / Reset all preview 会把本次预览 session 捕获到的基础视觉值恢复到 WPF 控件上。基础值只存在于 runtime 内存中，不写回 layout JSON 或 behaviors JSON。
 
@@ -64,9 +64,11 @@ Phase 4 已完成 Designer 预览侧的 WPF 动画与属性应用层：
 | TextBlock / Control | `TextColor`、`Foreground`、`FontSize` |
 | BackgroundTintControlHost | `TintColor` |
 
+`AnimateProperty` 节点的 `WaitForCompletion` 属性默认为 `true`，执行将等待动画完成后才继续下一节点；设为 `false` 时动画启动后立即继续执行下一节点，不等待动画完成。
+
 `VisualOffsetX/Y`、`ScaleX/Y`、`Rotation` 使用 `RenderTransform`，不会修改 `Canvas.Left` / `Canvas.Top`，也不会污染布局配置。`FillColor`、`StrokeColor`、`TextColor` 使用 `SolidColorBrush`，颜色值支持 `#RRGGBB` / `#AARRGGBB`。不支持的属性会记录 warning 并跳过，不抛出异常。
 
-Loop 行为编辑器现在提供 Designer-only 生命周期预览：Preview Start、Preview Loop Once、Start Loop Preview、Stop Loop Preview、Preview Stop、Reset。Start Loop Preview 会先执行 `StartGraph`，再按 `LoopPolicy.RepeatCount` 与 `IntervalMs` 重复执行 `LoopGraph`；重复启动默认按 `ReentryPolicy.IgnoreIfRunning` 忽略，`InterruptPrevious` 会取消旧循环。Stop Loop Preview 会根据 `StopMode` 停止当前循环：`StopImmediately` 立即取消，`RunStopGraph` 取消后执行 `StopGraph`，`CompleteCurrentIteration` 请求当前轮完成后退出，并按 `ResetOnStop` 调用 reset。`AutoReverse` 当前只保存配置并提示，任意图的反向语义将在后续版本中提供。
+Loop 行为编辑器现在提供 Designer-only 生命周期预览：Preview Start、Preview Loop Once、Start Loop Preview、Stop Loop Preview、Preview Stop、Reset。Start Loop Preview 会先执行 `StartGraph`，再按 `LoopPolicy.RepeatCount` 与 `IntervalMs` 重复执行 `LoopGraph`；重复启动默认按 `ReentryPolicy.IgnoreIfRunning` 忽略，`InterruptPrevious` 会取消旧循环。Stop Loop Preview 会根据 `StopMode` 停止当前循环：`StopImmediately` 立即取消，`RunStopGraph` 取消后执行 `StopGraph`，`CompleteCurrentIteration` 请求当前轮完成后退出，并按 `ResetOnStop` 调用 reset。`AutoReverse` 当前只是配置占位符，尚未实现任意图的反向执行，该功能将在后续版本中提供。
 
 Phase 4 仍不实现：真实 `IFrontedEventBus`、从 `SharedDataService` 事件自动触发、真实前台窗口赛事事件播放、插件自定义 animatable property、Timeline 编辑器、断点调试器、Canvas/window 级行为列表。
 

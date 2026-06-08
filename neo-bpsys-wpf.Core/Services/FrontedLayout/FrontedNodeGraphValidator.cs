@@ -50,7 +50,51 @@ public sealed class FrontedNodeGraphValidator(FrontedNodeCatalog? catalog = null
             messages.Add(Message(FrontedNodeGraphValidationSeverity.Error, "InputMultipleConnections", "An input port can only have one connection.", nodeId: port.Key.TargetNodeId));
         }
 
+        ValidateParallelNodes(graph, messages);
+        ValidateEndNodes(graph, messages);
+
         return messages;
+    }
+
+    private void ValidateParallelNodes(FrontedNodeGraph graph, ICollection<FrontedNodeGraphValidationMessage> messages)
+    {
+        foreach (var node in graph.Nodes.Where(node => node.NodeType == "flow.parallel"))
+        {
+            var hasAnyBranch = new[] { "Branch1", "Branch2", "Branch3" }
+                .Any(port => graph.GetOutgoing(node.NodeId, port).Any());
+            if (!hasAnyBranch)
+            {
+                messages.Add(Message(
+                    FrontedNodeGraphValidationSeverity.Warning,
+                    "ParallelNoBranches",
+                    "Parallel node has no connected branches; Out will execute immediately.",
+                    node.NodeId));
+            }
+        }
+    }
+
+    private void ValidateEndNodes(FrontedNodeGraph graph, ICollection<FrontedNodeGraphValidationMessage> messages)
+    {
+        var ends = graph.Nodes.Where(node => node.NodeType == "flow.end").ToArray();
+        if (ends.Length == 0)
+        {
+            messages.Add(Message(
+                FrontedNodeGraphValidationSeverity.Warning,
+                "GraphNoEnd",
+                "Graph has no End node; execution will stop when no outgoing connection exists."));
+        }
+
+        foreach (var end in ends)
+        {
+            if (graph.GetOutgoing(end.NodeId).Any())
+            {
+                messages.Add(Message(
+                    FrontedNodeGraphValidationSeverity.Error,
+                    "EndHasOutConnections",
+                    "End node should not have outgoing connections.",
+                    end.NodeId));
+            }
+        }
     }
 
     private void ValidateNode(FrontedNode node, ICollection<FrontedNodeGraphValidationMessage> messages)
@@ -198,9 +242,7 @@ public sealed class FrontedNodeGraphValidator(FrontedNodeCatalog? catalog = null
             return;
         }
 
-        var compatible = sourcePort.PortKind == FrontedNodePortKind.FlowOut && targetPort.PortKind == FrontedNodePortKind.FlowIn
-                         || sourcePort.PortKind == FrontedNodePortKind.ValueOut && targetPort.PortKind == FrontedNodePortKind.ValueIn;
-        if (!compatible)
+        if (!FrontedNodePortDescriptor.AreCompatible(sourcePort, targetPort))
         {
             messages.Add(Message(FrontedNodeGraphValidationSeverity.Error, "IncompatiblePorts", "Connection ports are incompatible.", connectionId: connection.ConnectionId));
         }

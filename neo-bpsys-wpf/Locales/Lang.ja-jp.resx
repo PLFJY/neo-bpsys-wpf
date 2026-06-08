@@ -4041,7 +4041,6 @@
   <data name="Designer.Graph.Node.FlowStart" xml:space="preserve"><value>Start</value></data>
   <data name="Designer.Graph.Node.FlowEnd" xml:space="preserve"><value>End</value></data>
   <data name="Designer.Graph.Node.FlowDelay" xml:space="preserve"><value>Delay</value></data>
-  <data name="Designer.Graph.Node.FlowSequence" xml:space="preserve"><value>Sequence</value></data>
   <data name="Designer.Graph.Node.FlowParallel" xml:space="preserve"><value>Parallel</value></data>
   <data name="Designer.Graph.Node.FlowIf" xml:space="preserve"><value>If</value></data>
   <data name="Designer.Graph.Node.ActionLog" xml:space="preserve"><value>Log</value></data>
@@ -4058,8 +4057,7 @@
   <data name="Designer.Graph.Node.FlowStart.Description" xml:space="preserve"><value>アニメーションフローの入口です。通常は 1 つだけ置き、Out から最初のノードへ接続します。</value></data>
   <data name="Designer.Graph.Node.FlowEnd.Description" xml:space="preserve"><value>現在の分岐を終了します。最後のアクションの Out を End へ接続すると流れが明確になります。</value></data>
   <data name="Designer.Graph.Node.FlowDelay.Description" xml:space="preserve"><value>続行前に待機します。フェードアウト後にフェードインするような間隔づけに使います。</value></data>
-  <data name="Designer.Graph.Node.FlowSequence.Description" xml:space="preserve"><value>Step1、Step2、Step3 を順番に実行します。固定順のアクション列に使います。</value></data>
-  <data name="Designer.Graph.Node.FlowParallel.Description" xml:space="preserve"><value>複数分岐を同時に実行し、すべての完了を待ちます。複数のアニメーション要求を同時に出す時に使います。</value></data>
+  <data name="Designer.Graph.Node.FlowParallel.Description" xml:space="preserve"><value>接続されたすべてのブランチを同時に実行し、すべての完了後に Out に進みます。\nブランチは次の接続がない時点で完了とみなされます。</value></data>
   <data name="Designer.Graph.Node.FlowIf.Description" xml:space="preserve"><value>テキスト比較を使う高度な分岐です。単純なプロパティアニメーションでは通常不要です。</value></data>
   <data name="Designer.Graph.Node.ActionLog.Description" xml:space="preserve"><value>ここまで実行されたことを確認するため、プレビューログに 1 行出力します。</value></data>
   <data name="Designer.Graph.Node.ActionSetProperty.Description" xml:space="preserve"><value>プロパティ設定要求を出します。Phase 3 ではプレビュー表示だけで、実際のコントロールは変更しません。</value></data>
@@ -4082,6 +4080,7 @@
   <data name="Designer.Graph.Port.Branch1" xml:space="preserve"><value>Branch1</value></data>
   <data name="Designer.Graph.Port.Branch2" xml:space="preserve"><value>Branch2</value></data>
   <data name="Designer.Graph.Port.Branch3" xml:space="preserve"><value>Branch3</value></data>
+  <data name="Designer.Graph.Port.Completed" xml:space="preserve"><value>完了</value></data>
   <data name="Designer.Graph.Port.Value" xml:space="preserve"><value>Value</value></data>
   <data name="Designer.Graph.Property.DurationMs" xml:space="preserve"><value>時間</value></data>
   <data name="Designer.Graph.Property.Message" xml:space="preserve"><value>Message</value></data>
@@ -4095,6 +4094,7 @@
   <data name="Designer.Graph.Property.Operator" xml:space="preserve"><value>Operator</value></data>
   <data name="Designer.Graph.Property.Right" xml:space="preserve"><value>Right</value></data>
   <data name="Designer.Graph.Property.Path" xml:space="preserve"><value>Path</value></data>
+  <data name="Designer.Graph.Property.WaitForCompletion" xml:space="preserve"><value>アニメーション完了を待つ</value></data>
   <data name="Designer.Graph.PropertyName.All" xml:space="preserve"><value>すべてのプロパティ</value></data>
   <data name="Designer.Option.Easing.Linear" xml:space="preserve"><value>線形</value></data>
   <data name="Designer.Option.Easing.SineInOut" xml:space="preserve"><value>サイン イン/アウト</value></data>
@@ -4112,6 +4112,8 @@
   <data name="Designer.Property.Foreground" xml:space="preserve"><value>前景色</value></data>
   <data name="Designer.Property.Background" xml:space="preserve"><value>背景色</value></data>
   <data name="Designer.Graph.Validation.Description" xml:space="preserve"><value>開始ノード、接続、必須プロパティを確認します。グラフデータは削除せず、プレビューや保存前の修正を助けるための表示です。</value></data>
+  <data name="Designer.Graph.Validation.GraphNoEnd" xml:space="preserve"><value>グラフに End ノードがありません。出力接続がない場合に実行が停止します。</value></data>
+  <data name="Designer.Graph.Validation.ParallelNoBranches" xml:space="preserve"><value>Parallel に接続されたブランチがありません。Out が直ちに実行されます。</value></data>
   <data name="Designer.Graph.DeleteConnection" xml:space="preserve"><value>接続を解除</value></data>
   <data name="Designer.Graph.Property.DurationMs.Description" xml:space="preserve"><value>待機またはアニメーションの時間です。単位はミリ秒です。</value></data>
   <data name="Designer.Graph.Property.Message.Description" xml:space="preserve"><value>プレビュー実行ログに出力するテキストです。</value></data>
@@ -4125,6 +4127,7 @@
   <data name="Designer.Graph.Property.Operator.Description" xml:space="preserve"><value>動作トリガーフィルターと同じ意味のテキスト比較方法です。</value></data>
   <data name="Designer.Graph.Property.Right.Description" xml:space="preserve"><value>比較の右辺テキストです。</value></data>
   <data name="Designer.Graph.Property.Path.Description" xml:space="preserve"><value>パス値です。アニメーショングラフでは通常、イベントパスは不要です。</value></data>
+  <data name="Designer.Graph.Property.WaitForCompletion.Description" xml:space="preserve"><value>有効にすると、アニメーションが完了してから次のノードを実行します。</value></data>
   <data name="Designer.Graph.Help" xml:space="preserve"><value>ヘルプ</value></data>
   <data name="Designer.Graph.Help.Concepts.Title" xml:space="preserve"><value>基本概念</value></data>
   <data name="Designer.Graph.Help.Concepts.Content" xml:space="preserve"><value>ノードグラフエディターは、コントロールアニメーションを組み立てるビジュアルツールです。各グラフはノードと接続で構成されます。\nノードはアクション（例：プロパティ設定、アニメーション再生）を表し、接続は実行順序を決定します。\nグラフは Start ノードから実行を開始し、End ノードで終了します。\n\nノードは 3 つのカテゴリに分類されます：フロー制御ノード（実行順序の制御）、アクションノード（コントロールプロパティの操作）、値ノード（定数データの提供）。</value></data>
@@ -4196,5 +4199,17 @@
   <data name="Designer.Option.VerticalDirection.FacingLeft" xml:space="preserve"><value>左向き</value></data>
   <data name="Designer.Option.VerticalDirection.FacingRight" xml:space="preserve"><value>右向き</value></data>
   <data name="Designer.Option.DisplayLanguage.FollowApp" xml:space="preserve"><value>アプリに従う</value></data>
+  <data name="Designer.Graph.Connection.IncompatibleTypes" xml:space="preserve"><value>ポートタイプが互換性がありません</value></data>
+  <data name="Designer.Graph.Port.ValueType.Boolean" xml:space="preserve"><value>真偽値</value></data>
+  <data name="Designer.Graph.Port.ValueType.Color" xml:space="preserve"><value>色</value></data>
+  <data name="Designer.Graph.Port.ValueType.Control" xml:space="preserve"><value>コントロール参照</value></data>
+  <data name="Designer.Graph.Port.ValueType.Number" xml:space="preserve"><value>数値</value></data>
+  <data name="Designer.Graph.Port.ValueType.Object" xml:space="preserve"><value>任意</value></data>
+  <data name="Designer.Graph.Port.ValueType.String" xml:space="preserve"><value>テキスト</value></data>
+  <data name="Designer.Graph.PortKind.Flow" xml:space="preserve"><value>フロー</value></data>
+  <data name="Designer.Graph.PortKind.Value" xml:space="preserve"><value>値</value></data>
+  <data name="Designer.Graph.Tooltip.CompatibleHint" xml:space="preserve"><value>同じタイプのポートのみ接続可能</value></data>
+  <data name="Designer.Graph.Tooltip.PortKind" xml:space="preserve"><value>ポート種類</value></data>
+  <data name="Designer.Graph.Tooltip.PortType" xml:space="preserve"><value>値タイプ</value></data>
 
 </root>

@@ -7,6 +7,7 @@
     xmlns:primitives="clr-namespace:System.Windows.Controls.Primitives;assembly=PresentationFramework"
     xmlns:scrolling="clr-namespace:neo_bpsys_wpf.Controls.Modern.Scrolling"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:local="clr-namespace:neo_bpsys_wpf.Views.FrontedDesigner.GraphEditor"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
     lex:ResxLocalizationProvider.DefaultDictionary="Locales.Lang"
     scrolling:ModernScroll.Ownership="Self"
@@ -14,6 +15,7 @@
     PreviewKeyDown="FrontedNodeGraphEditorView_OnPreviewKeyDown">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <local:HexToBrushConverter x:Key="HexToBrushConverter" />
     </UserControl.Resources>
     <Grid ClipToBounds="True">
         <Grid.RowDefinitions>
@@ -361,35 +363,136 @@
                                                                 <ColumnDefinition />
                                                                 <ColumnDefinition />
                                                             </Grid.ColumnDefinitions>
+
+                                                            <!-- 输入端口：彩色圆点 + 弱标签 -->
                                                             <ItemsControl ItemsSource="{Binding InputPorts}">
                                                                 <ItemsControl.ItemTemplate>
                                                                     <DataTemplate>
                                                                         <Border
                                                                             Margin="0,1,2,1"
-                                                                            Padding="4,2"
-                                                                            Background="{DynamicResource ControlFillColorDefaultBrush}"
-                                                                            CornerRadius="4"
+                                                                            Padding="2"
+                                                                            Background="Transparent"
+                                                                            CornerRadius="3"
+                                                                            Cursor="Hand"
                                                                             MouseLeftButtonUp="InputPort_OnMouseLeftButtonUp"
-                                                                            ToolTip="{Binding Name}">
-                                                                            <TextBlock Foreground="{DynamicResource TextFillColorPrimaryBrush}" Text="{Binding Name}" />
+                                                                            MouseEnter="Port_OnMouseEnter"
+                                                                            MouseLeave="Port_OnMouseLeave">
+                                                                            <Border.Style>
+                                                                                <Style TargetType="Border">
+                                                                                    <Style.Triggers>
+                                                                                        <DataTrigger Binding="{Binding IsDimmed}" Value="True">
+                                                                                            <Setter Property="Opacity" Value="0.3" />
+                                                                                            <Setter Property="Cursor" Value="No" />
+                                                                                        </DataTrigger>
+                                                                                        <DataTrigger Binding="{Binding IsHighlighted}" Value="True">
+                                                                                            <Setter Property="Background" Value="#18FFFFFF" />
+                                                                                        </DataTrigger>
+                                                                                        <DataTrigger Binding="{Binding IsConnected}" Value="True">
+                                                                                            <Setter Property="BorderBrush" Value="{Binding PortColorHex, Converter={StaticResource HexToBrushConverter}}" />
+                                                                                            <Setter Property="BorderThickness" Value="1.5" />
+                                                                                        </DataTrigger>
+                                                                                    </Style.Triggers>
+                                                                                </Style>
+                                                                            </Border.Style>
+                                                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                                <Ellipse
+                                                                                    Width="10"
+                                                                                    Height="10"
+                                                                                    Fill="{Binding PortColorHex, Converter={StaticResource HexToBrushConverter}}"
+                                                                                    Stroke="#80FFFFFF"
+                                                                                    StrokeThickness="0.5" />
+                                                                                <TextBlock
+                                                                                    Margin="4,0,0,0"
+                                                                                    FontSize="11"
+                                                                                    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                                                                    Text="{Binding Name}" />
+                                                                            </StackPanel>
+                                                                            <Border.ToolTip>
+                                                                                <ToolTip>
+                                                                                    <StackPanel MaxWidth="240">
+                                                                                        <TextBlock FontWeight="SemiBold" Text="{Binding Name}" />
+                                                                                        <TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}">
+                                                                                            <Run Text="{lex:Loc Designer.Graph.Tooltip.PortKind}" /><Run Text=": " />
+                                                                                            <Run Text="{Binding PortKindName}" />
+                                                                                        </TextBlock>
+                                                                                        <TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}">
+                                                                                            <Run Text="{lex:Loc Designer.Graph.Tooltip.PortType}" /><Run Text=": " />
+                                                                                            <Run Text="{Binding ValueTypeName}" />
+                                                                                        </TextBlock>
+                                                                                        <TextBlock
+                                                                                            Margin="0,4,0,0"
+                                                                                            Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                                                                            Text="{lex:Loc Designer.Graph.Tooltip.CompatibleHint}" />
+                                                                                    </StackPanel>
+                                                                                </ToolTip>
+                                                                            </Border.ToolTip>
                                                                         </Border>
                                                                     </DataTemplate>
                                                                 </ItemsControl.ItemTemplate>
                                                             </ItemsControl>
+
+                                                            <!-- 输出端口：弱标签 + 彩色圆点 -->
                                                             <ItemsControl Grid.Column="1" ItemsSource="{Binding OutputPorts}">
                                                                 <ItemsControl.ItemTemplate>
                                                                     <DataTemplate>
                                                                         <Border
                                                                             Margin="2,1,0,1"
-                                                                            Padding="4,2"
-                                                                            Background="{DynamicResource ControlFillColorDefaultBrush}"
-                                                                            CornerRadius="4"
+                                                                            Padding="2"
+                                                                            Background="Transparent"
+                                                                            CornerRadius="3"
+                                                                            Cursor="Hand"
                                                                             MouseLeftButtonDown="OutputPort_OnMouseLeftButtonDown"
-                                                                            ToolTip="{Binding Name}">
-                                                                            <TextBlock
-                                                                                HorizontalAlignment="Right"
-                                                                                Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                                                                                Text="{Binding Name}" />
+                                                                            MouseEnter="Port_OnMouseEnter"
+                                                                            MouseLeave="Port_OnMouseLeave">
+                                                                            <Border.Style>
+                                                                                <Style TargetType="Border">
+                                                                                    <Style.Triggers>
+                                                                                        <DataTrigger Binding="{Binding IsDimmed}" Value="True">
+                                                                                            <Setter Property="Opacity" Value="0.3" />
+                                                                                            <Setter Property="Cursor" Value="No" />
+                                                                                        </DataTrigger>
+                                                                                        <DataTrigger Binding="{Binding IsHighlighted}" Value="True">
+                                                                                            <Setter Property="Background" Value="#18FFFFFF" />
+                                                                                        </DataTrigger>
+                                                                                        <DataTrigger Binding="{Binding IsConnected}" Value="True">
+                                                                                            <Setter Property="BorderBrush" Value="{Binding PortColorHex, Converter={StaticResource HexToBrushConverter}}" />
+                                                                                            <Setter Property="BorderThickness" Value="1.5" />
+                                                                                        </DataTrigger>
+                                                                                    </Style.Triggers>
+                                                                                </Style>
+                                                                            </Border.Style>
+                                                                            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                                                                                <TextBlock
+                                                                                    FontSize="11"
+                                                                                    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                                                                    Text="{Binding Name}" />
+                                                                                <Ellipse
+                                                                                    Width="10"
+                                                                                    Height="10"
+                                                                                    Margin="4,0,0,0"
+                                                                                    Fill="{Binding PortColorHex, Converter={StaticResource HexToBrushConverter}}"
+                                                                                    Stroke="#80FFFFFF"
+                                                                                    StrokeThickness="0.5" />
+                                                                            </StackPanel>
+                                                                            <Border.ToolTip>
+                                                                                <ToolTip>
+                                                                                    <StackPanel MaxWidth="240">
+                                                                                        <TextBlock FontWeight="SemiBold" Text="{Binding Name}" />
+                                                                                        <TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}">
+                                                                                            <Run Text="{lex:Loc Designer.Graph.Tooltip.PortKind}" /><Run Text=": " />
+                                                                                            <Run Text="{Binding PortKindName}" />
+                                                                                        </TextBlock>
+                                                                                        <TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}">
+                                                                                            <Run Text="{lex:Loc Designer.Graph.Tooltip.PortType}" /><Run Text=": " />
+                                                                                            <Run Text="{Binding ValueTypeName}" />
+                                                                                        </TextBlock>
+                                                                                        <TextBlock
+                                                                                            Margin="0,4,0,0"
+                                                                                            Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                                                                            Text="{lex:Loc Designer.Graph.Tooltip.CompatibleHint}" />
+                                                                                    </StackPanel>
+                                                                                </ToolTip>
+                                                                            </Border.ToolTip>
                                                                         </Border>
                                                                     </DataTemplate>
                                                                 </ItemsControl.ItemTemplate>

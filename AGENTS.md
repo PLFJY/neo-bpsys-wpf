@@ -59,4 +59,6 @@ git diff --check
 git diff --stat
 ```
 
+解决方案文件是 `neo-bpsys-wpf.slnx`
+
 更多内部说明见 `/docs/README.md`，尤其是 `/docs/known-limitations-and-roadmap.md`。

@@ -139,8 +139,9 @@ public sealed class FrontedAnimationRuntime(
             return;
         }
 
+        var conflictKey = new RuntimePropertyKey(target.Element, Normalize(action.PropertyName));
         var conflictCts = CancellationTokenSource.CreateLinkedTokenSource(effectiveContext.CancellationToken);
-        session.Conflicts[new RuntimePropertyKey(target.Element, Normalize(action.PropertyName))] = conflictCts;
+        session.Conflicts[conflictKey] = conflictCts;
         try
         {
             await adapter.AnimateAsync(
@@ -161,7 +162,14 @@ public sealed class FrontedAnimationRuntime(
         }
         finally
         {
-            session.Conflicts.Remove(new RuntimePropertyKey(target.Element, Normalize(action.PropertyName)));
+            // Only remove if we still own the conflict entry.
+            // If a newer animation for the same property has replaced our CTS,
+            // we must not remove the new entry.
+            if (session.Conflicts.TryGetValue(conflictKey, out var current)
+                && ReferenceEquals(current, conflictCts))
+            {
+                session.Conflicts.Remove(conflictKey);
+            }
             conflictCts.Dispose();
         }
     }
@@ -224,13 +232,12 @@ public sealed class FrontedAnimationRuntime(
     private static void CancelConflict(RuntimeSession session, FrameworkElement target, string propertyName)
     {
         var key = new RuntimePropertyKey(target, Normalize(propertyName));
-        if (!session.Conflicts.Remove(key, out var cts))
+        if (session.Conflicts.TryGetValue(key, out var cts))
         {
-            return;
+            cts.Cancel();
+            // Note: cleanup (remove + dispose) is handled by the animation's finally block.
+            // This avoids races where a new animation's CTS replaces ours before we clean up.
         }
-
-        cts.Cancel();
-        cts.Dispose();
     }
 
     private static string Normalize(string propertyName) =>

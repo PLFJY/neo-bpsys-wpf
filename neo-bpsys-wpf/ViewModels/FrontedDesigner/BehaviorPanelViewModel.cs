@@ -1074,12 +1074,28 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
     public string Title { get; }
     public bool IsLoop { get; }
     public IReadOnlyList<FrontedBehaviorAnimationStageViewModel> Stages { get; }
+
+    /// <summary>是否有任何 stage 包含未保存的更改</summary>
+    public bool HasUnsavedChanges => Stages.Any(s => s.GraphEditor.IsDirty);
+
     public IAsyncRelayCommand PreviewStartCommand { get; }
     public IAsyncRelayCommand PreviewLoopOnceCommand { get; }
     public IAsyncRelayCommand StartLoopPreviewCommand { get; }
     public IAsyncRelayCommand StopLoopPreviewCommand { get; }
     public IAsyncRelayCommand PreviewStopCommand { get; }
     public IRelayCommand ResetCommand { get; }
+
+    /// <summary>保存所有 stage 的更改</summary>
+    public void SaveAll()
+    {
+        foreach (var stage in Stages)
+        {
+            if (stage.GraphEditor.IsDirty)
+            {
+                stage.GraphEditor.SaveCommand.Execute(null);
+            }
+        }
+    }
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(PreviewStartCommand))]

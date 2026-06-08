@@ -4038,7 +4038,6 @@ Select a control in the designer to preview animation here</value></data>
   <data name="Designer.Graph.Node.FlowStart" xml:space="preserve"><value>Start</value></data>
   <data name="Designer.Graph.Node.FlowEnd" xml:space="preserve"><value>End</value></data>
   <data name="Designer.Graph.Node.FlowDelay" xml:space="preserve"><value>Delay</value></data>
-  <data name="Designer.Graph.Node.FlowSequence" xml:space="preserve"><value>Sequence</value></data>
   <data name="Designer.Graph.Node.FlowParallel" xml:space="preserve"><value>Parallel</value></data>
   <data name="Designer.Graph.Node.FlowIf" xml:space="preserve"><value>If</value></data>
   <data name="Designer.Graph.Node.ActionLog" xml:space="preserve"><value>Log</value></data>
@@ -4055,8 +4054,7 @@ Select a control in the designer to preview animation here</value></data>
   <data name="Designer.Graph.Node.FlowStart.Description" xml:space="preserve"><value>Animation flow entry. A graph normally has one Start, connected from Out to the first flow or action node.</value></data>
   <data name="Designer.Graph.Node.FlowEnd.Description" xml:space="preserve"><value>Finishes the current branch. Connect the final action Out to End to make the graph explicit.</value></data>
   <data name="Designer.Graph.Node.FlowDelay.Description" xml:space="preserve"><value>Waits before continuing. Use it to space out property requests, such as fade out and then fade in.</value></data>
-  <data name="Designer.Graph.Node.FlowSequence.Description" xml:space="preserve"><value>Runs Step1, Step2, and Step3 in order. Useful for a fixed ordered chain of actions.</value></data>
-  <data name="Designer.Graph.Node.FlowParallel.Description" xml:space="preserve"><value>Runs branches together and waits for all of them. Useful for issuing multiple animation requests at once.</value></data>
+  <data name="Designer.Graph.Node.FlowParallel.Description" xml:space="preserve"><value>Executes all connected branches concurrently, then continues via Out.\nBranches are considered complete when they have no further outgoing connection.</value></data>
   <data name="Designer.Graph.Node.FlowIf.Description" xml:space="preserve"><value>Advanced branch node using text comparison. Simple property animations usually do not need it.</value></data>
   <data name="Designer.Graph.Node.ActionLog.Description" xml:space="preserve"><value>Writes a line to the preview log so you can see that execution reached this point.</value></data>
   <data name="Designer.Graph.Node.ActionSetProperty.Description" xml:space="preserve"><value>Emits a set-property request that writes a value to the target control's property.</value></data>
@@ -4079,6 +4077,7 @@ Select a control in the designer to preview animation here</value></data>
   <data name="Designer.Graph.Port.Branch1" xml:space="preserve"><value>Branch1</value></data>
   <data name="Designer.Graph.Port.Branch2" xml:space="preserve"><value>Branch2</value></data>
   <data name="Designer.Graph.Port.Branch3" xml:space="preserve"><value>Branch3</value></data>
+  <data name="Designer.Graph.Port.Completed" xml:space="preserve"><value>Completed</value></data>
   <data name="Designer.Graph.Port.Value" xml:space="preserve"><value>Value</value></data>
   <data name="Designer.Graph.Property.DurationMs" xml:space="preserve"><value>Duration</value></data>
   <data name="Designer.Graph.Property.Message" xml:space="preserve"><value>Message</value></data>
@@ -4092,6 +4091,7 @@ Select a control in the designer to preview animation here</value></data>
   <data name="Designer.Graph.Property.Operator" xml:space="preserve"><value>Operator</value></data>
   <data name="Designer.Graph.Property.Right" xml:space="preserve"><value>Right</value></data>
   <data name="Designer.Graph.Property.Path" xml:space="preserve"><value>Path</value></data>
+  <data name="Designer.Graph.Property.WaitForCompletion" xml:space="preserve"><value>Wait for completion</value></data>
   <data name="Designer.Graph.PropertyName.All" xml:space="preserve"><value>All Properties</value></data>
   <data name="Designer.Option.Easing.Linear" xml:space="preserve"><value>Linear</value></data>
   <data name="Designer.Option.Easing.SineInOut" xml:space="preserve"><value>Sine In/Out</value></data>
@@ -4109,6 +4109,8 @@ Select a control in the designer to preview animation here</value></data>
   <data name="Designer.Property.Foreground" xml:space="preserve"><value>Foreground</value></data>
   <data name="Designer.Property.Background" xml:space="preserve"><value>Background</value></data>
   <data name="Designer.Graph.Validation.Description" xml:space="preserve"><value>Checks whether the graph has an entry node, valid connections, and required properties. It never deletes graph data; it only helps you fix preview and save-time issues.</value></data>
+  <data name="Designer.Graph.Validation.GraphNoEnd" xml:space="preserve"><value>Graph has no End node; execution will stop when no outgoing connection exists.</value></data>
+  <data name="Designer.Graph.Validation.ParallelNoBranches" xml:space="preserve"><value>Parallel node has no connected branches; Out will execute immediately.</value></data>
   <data name="Designer.Graph.DeleteConnection" xml:space="preserve"><value>Disconnect</value></data>
   <data name="Designer.Graph.Property.DurationMs.Description" xml:space="preserve"><value>Delay or animation duration in milliseconds.</value></data>
   <data name="Designer.Graph.Property.Message.Description" xml:space="preserve"><value>Text written to the preview execution log.</value></data>
@@ -4122,6 +4124,7 @@ Select a control in the designer to preview animation here</value></data>
   <data name="Designer.Graph.Property.Operator.Description" xml:space="preserve"><value>Text comparison operator, using the same semantics as behavior trigger filters.</value></data>
   <data name="Designer.Graph.Property.Right.Description" xml:space="preserve"><value>Right side comparison text.</value></data>
   <data name="Designer.Graph.Property.Path.Description" xml:space="preserve"><value>Path value. Animation graphs usually do not need event paths.</value></data>
+  <data name="Designer.Graph.Property.WaitForCompletion.Description" xml:space="preserve"><value>When enabled, execution waits for the animation to finish before continuing.</value></data>
   <data name="Designer.Graph.Help" xml:space="preserve"><value>Help</value></data>
   <data name="Designer.Graph.Help.Concepts.Title" xml:space="preserve"><value>Basic Concepts</value></data>
   <data name="Designer.Graph.Help.Concepts.Content" xml:space="preserve"><value>The node graph editor is a visual tool for composing control animations. Each graph consists of nodes and connections.\nNodes represent actions (e.g. set a property, play an animation); connections define execution order.\nA graph starts at the Start node and ends at an End node.\n\nNodes fall into three categories: flow control nodes (control execution order), action nodes (manipulate control properties), and value nodes (provide constant data).</value></data>
@@ -4193,5 +4196,17 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="Designer.Option.VerticalDirection.FacingLeft" xml:space="preserve"><value>Facing Left</value></data>
   <data name="Designer.Option.VerticalDirection.FacingRight" xml:space="preserve"><value>Facing Right</value></data>
   <data name="Designer.Option.DisplayLanguage.FollowApp" xml:space="preserve"><value>Follow App</value></data>
+  <data name="Designer.Graph.Connection.IncompatibleTypes" xml:space="preserve"><value>Incompatible port types, cannot connect</value></data>
+  <data name="Designer.Graph.Port.ValueType.Boolean" xml:space="preserve"><value>Boolean</value></data>
+  <data name="Designer.Graph.Port.ValueType.Color" xml:space="preserve"><value>Color</value></data>
+  <data name="Designer.Graph.Port.ValueType.Control" xml:space="preserve"><value>Control Reference</value></data>
+  <data name="Designer.Graph.Port.ValueType.Number" xml:space="preserve"><value>Number</value></data>
+  <data name="Designer.Graph.Port.ValueType.Object" xml:space="preserve"><value>Any</value></data>
+  <data name="Designer.Graph.Port.ValueType.String" xml:space="preserve"><value>String</value></data>
+  <data name="Designer.Graph.PortKind.Flow" xml:space="preserve"><value>Flow</value></data>
+  <data name="Designer.Graph.PortKind.Value" xml:space="preserve"><value>Value</value></data>
+  <data name="Designer.Graph.Tooltip.CompatibleHint" xml:space="preserve"><value>Only compatible with same type ports</value></data>
+  <data name="Designer.Graph.Tooltip.PortKind" xml:space="preserve"><value>Port Kind</value></data>
+  <data name="Designer.Graph.Tooltip.PortType" xml:space="preserve"><value>Value Type</value></data>
 
 </root>

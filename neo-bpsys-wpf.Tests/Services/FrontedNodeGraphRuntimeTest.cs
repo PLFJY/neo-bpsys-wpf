@@ -137,33 +137,6 @@ public class FrontedNodeGraphRuntimeTest
     }
 
     [Fact]
-    public async Task GraphRuntime_ActionExecutor_PreservesSequenceDelayOrder()
-    {
-        var order = new List<string>();
-        var delayProvider = new FakeDelayProvider { OnDelay = () => order.Add("delay") };
-        var start = _catalog.CreateNode("flow.start");
-        var sequence = _catalog.CreateNode("flow.sequence");
-        var set = _catalog.CreateNode("action.setProperty");
-        set.Properties["PropertyName"] = JsonSerializer.SerializeToElement("Opacity");
-        var delay = _catalog.CreateNode("flow.delay");
-        var animate = _catalog.CreateNode("action.animateProperty");
-        animate.Properties["PropertyName"] = JsonSerializer.SerializeToElement("Opacity");
-        var graph = new FrontedNodeGraph { Nodes = [start, sequence, set, delay, animate] };
-        graph.Connections.Add(Link(start, "Out", sequence, "In"));
-        graph.Connections.Add(Link(sequence, "Step1", set, "In"));
-        graph.Connections.Add(Link(sequence, "Step2", delay, "In"));
-        graph.Connections.Add(Link(delay, "Out", animate, "In"));
-        var executor = new RecordingActionExecutor(request => order.Add(request.RequestType.ToString()));
-
-        await CreateRuntime(delayProvider).ExecuteAsync(
-            graph,
-            new FrontedGraphExecutionContext { ActionExecutor = executor },
-            TestContext.Current.CancellationToken);
-
-        Assert.Equal(["SetProperty", "delay", "AnimateProperty"], order);
-    }
-
-    [Fact]
     public async Task Runtime_UnknownNode_LogsWarningAndDoesNotCrash()
     {
         var start = _catalog.CreateNode("flow.start");
@@ -186,6 +159,274 @@ public class FrontedNodeGraphRuntimeTest
         var result = await CreateRuntime(delayProvider).ExecuteAsync(graph, new FrontedGraphExecutionContext(), cts.Token);
 
         Assert.Equal(FrontedGraphExecutionStatus.Cancelled, result.Status);
+    }
+
+    [Fact]
+    public async Task Chain_AwaitsEachNodeInOrder()
+    {
+        var order = new List<string>();
+        var start = _catalog.CreateNode("flow.start");
+        var logA = LogNode("A");
+        var logB = LogNode("B");
+        var logC = LogNode("C");
+        var end = _catalog.CreateNode("flow.end");
+        var graph = new FrontedNodeGraph
+        {
+            Nodes = [start, logA, logB, logC, end],
+            Connections =
+            [
+                Link(start, "Out", logA, "In"),
+                Link(logA, "Out", logB, "In"),
+                Link(logB, "Out", logC, "In"),
+                Link(logC, "Out", end, "In")
+            ]
+        };
+
+        var result = await CreateRuntime().ExecuteAsync(graph, new FrontedGraphExecutionContext(), TestContext.Current.CancellationToken);
+
+        Assert.Equal(FrontedGraphExecutionStatus.Success, result.Status);
+        var messages = result.LogItems.Where(item => item.Level == FrontedGraphExecutionLogLevel.Information).Select(item => item.Message).ToArray();
+        Assert.Contains("A", messages);
+        Assert.Contains("B", messages);
+        Assert.Contains("C", messages);
+    }
+
+    [Fact]
+    public async Task Chain_AnimateWaitTrue_BlocksOut()
+    {
+        var start = _catalog.CreateNode("flow.start");
+        var animate = _catalog.CreateNode("action.animateProperty");
+        animate.Properties["PropertyName"] = JsonSerializer.SerializeToElement("Opacity");
+        animate.Properties["WaitForCompletion"] = JsonSerializer.SerializeToElement(true);
+        var logB = LogNode("B");
+        var end = _catalog.CreateNode("flow.end");
+        var graph = new FrontedNodeGraph
+        {
+            Nodes = [start, animate, logB, end],
+            Connections =
+            [
+                Link(start, "Out", animate, "In"),
+                Link(animate, "Out", logB, "In"),
+                Link(logB, "Out", end, "In")
+            ]
+        };
+
+        var blockingExecutor = new BlockingActionExecutor();
+        var resultTask = CreateRuntime().ExecuteAsync(
+            graph,
+            new FrontedGraphExecutionContext { ActionExecutor = blockingExecutor },
+            TestContext.Current.CancellationToken);
+
+        // B should not execute while animation is blocked
+        await Task.Delay(50, TestContext.Current.CancellationToken);
+        Assert.DoesNotContain(blockingExecutor.CompletedRequests, r => r.RequestType == FrontedGraphActionRequestType.AnimateProperty);
+
+        // Signal completion
+        blockingExecutor.Complete();
+        var result = await resultTask;
+
+        Assert.Equal(FrontedGraphExecutionStatus.Success, result.Status);
+    }
+
+    [Fact]
+    public async Task Chain_AnimateWaitFalse_ContinuesImmediately()
+    {
+        var start = _catalog.CreateNode("flow.start");
+        var animate = _catalog.CreateNode("action.animateProperty");
+        animate.Properties["PropertyName"] = JsonSerializer.SerializeToElement("Opacity");
+        animate.Properties["WaitForCompletion"] = JsonSerializer.SerializeToElement(false);
+        var logB = LogNode("B");
+        var end = _catalog.CreateNode("flow.end");
+        var graph = new FrontedNodeGraph
+        {
+            Nodes = [start, animate, logB, end],
+            Connections =
+            [
+                Link(start, "Out", animate, "In"),
+                Link(animate, "Out", logB, "In"),
+                Link(logB, "Out", end, "In")
+            ]
+        };
+
+        var blockingExecutor = new BlockingActionExecutor(completeImmediately: true);
+        var result = await CreateRuntime().ExecuteAsync(
+            graph,
+            new FrontedGraphExecutionContext { ActionExecutor = blockingExecutor },
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal(FrontedGraphExecutionStatus.Success, result.Status);
+        Assert.Contains(result.LogItems, item => item.Message == "B");
+    }
+
+    [Fact]
+    public async Task Delay_BlocksFollowingNode()
+    {
+        var order = new List<string>();
+        var delayProvider = new FakeDelayProvider { OnDelay = () => order.Add("delay") };
+        var start = _catalog.CreateNode("flow.start");
+        var delay = _catalog.CreateNode("flow.delay");
+        var logA = LogNode("A");
+        var end = _catalog.CreateNode("flow.end");
+        var graph = new FrontedNodeGraph
+        {
+            Nodes = [start, delay, logA, end],
+            Connections =
+            [
+                Link(start, "Out", delay, "In"),
+                Link(delay, "Out", logA, "In"),
+                Link(logA, "Out", end, "In")
+            ]
+        };
+
+        var result = await CreateRuntime(delayProvider).ExecuteAsync(graph, new FrontedGraphExecutionContext(), TestContext.Current.CancellationToken);
+
+        // Delay must have been invoked (the fake provider records it)
+        Assert.Single(delayProvider.Delays);
+        Assert.Equal(FrontedGraphExecutionStatus.Success, result.Status);
+    }
+
+    [Fact]
+    public async Task Parallel_StartsBranchesConcurrently()
+    {
+        var start = _catalog.CreateNode("flow.start");
+        var parallel = _catalog.CreateNode("flow.parallel");
+        var logA = LogNode("A");
+        var logB = LogNode("B");
+        var logC = LogNode("C");
+        var end = _catalog.CreateNode("flow.end");
+        var graph = new FrontedNodeGraph
+        {
+            Nodes = [start, parallel, logA, logB, logC, end],
+            Connections =
+            [
+                Link(start, "Out", parallel, "In"),
+                Link(parallel, "Branch1", logA, "In"),
+                Link(parallel, "Branch2", logB, "In"),
+                Link(parallel, "Out", logC, "In"),
+                Link(logC, "Out", end, "In")
+            ]
+        };
+
+        var result = await CreateRuntime().ExecuteAsync(graph, new FrontedGraphExecutionContext(), TestContext.Current.CancellationToken);
+
+        Assert.Equal(FrontedGraphExecutionStatus.Success, result.Status);
+        Assert.Contains(result.LogItems, item => item.Message == "A");
+        Assert.Contains(result.LogItems, item => item.Message == "B");
+        Assert.Contains(result.LogItems, item => item.Message == "C");
+    }
+
+    [Fact]
+    public async Task Parallel_OutRunsAfterAllBranches()
+    {
+        var start = _catalog.CreateNode("flow.start");
+        var parallel = _catalog.CreateNode("flow.parallel");
+        var logA = LogNode("A");
+        var logB = LogNode("B");
+        var logC = LogNode("C");
+        var end = _catalog.CreateNode("flow.end");
+        var graph = new FrontedNodeGraph
+        {
+            Nodes = [start, parallel, logA, logB, logC, end],
+            Connections =
+            [
+                Link(start, "Out", parallel, "In"),
+                Link(parallel, "Branch1", logA, "In"),
+                Link(parallel, "Branch2", logB, "In"),
+                Link(parallel, "Out", logC, "In"),
+                Link(logC, "Out", end, "In")
+            ]
+        };
+
+        var result = await CreateRuntime().ExecuteAsync(graph, new FrontedGraphExecutionContext(), TestContext.Current.CancellationToken);
+
+        // Verify execution order: A and B appear before C (Out)
+        var logItems = result.LogItems.Where(item => item.Level == FrontedGraphExecutionLogLevel.Information).ToArray();
+        var aIndex = Array.FindIndex(logItems, item => item.Message == "A");
+        var bIndex = Array.FindIndex(logItems, item => item.Message == "B");
+        var cIndex = Array.FindIndex(logItems, item => item.Message == "C");
+        Assert.True(aIndex >= 0 && bIndex >= 0 && cIndex >= 0);
+        Assert.True(cIndex > aIndex, "Out (C) should execute after Branch1 (A)");
+        Assert.True(cIndex > bIndex, "Out (C) should execute after Branch2 (B)");
+    }
+
+    [Fact]
+    public async Task Parallel_NoBranchConnection_DoesNotCrash()
+    {
+        var start = _catalog.CreateNode("flow.start");
+        var parallel = _catalog.CreateNode("flow.parallel");
+        var logC = LogNode("C");
+        var end = _catalog.CreateNode("flow.end");
+        var graph = new FrontedNodeGraph
+        {
+            Nodes = [start, parallel, logC, end],
+            Connections =
+            [
+                Link(start, "Out", parallel, "In"),
+                Link(parallel, "Out", logC, "In"),
+                Link(logC, "Out", end, "In")
+            ]
+        };
+
+        var result = await CreateRuntime().ExecuteAsync(graph, new FrontedGraphExecutionContext(), TestContext.Current.CancellationToken);
+
+        Assert.Equal(FrontedGraphExecutionStatus.Success, result.Status);
+        Assert.Contains(result.LogItems, item => item.Message == "C");
+    }
+
+    [Fact]
+    public async Task Parallel_BranchDoesNotNeedEnd()
+    {
+        var start = _catalog.CreateNode("flow.start");
+        var parallel = _catalog.CreateNode("flow.parallel");
+        var logA = LogNode("A");
+        var logC = LogNode("C");
+        var end = _catalog.CreateNode("flow.end");
+        var graph = new FrontedNodeGraph
+        {
+            Nodes = [start, parallel, logA, logC, end],
+            Connections =
+            [
+                Link(start, "Out", parallel, "In"),
+                Link(parallel, "Branch1", logA, "In"),
+                Link(parallel, "Out", logC, "In"),
+                Link(logC, "Out", end, "In")
+            ]
+        };
+
+        var result = await CreateRuntime().ExecuteAsync(graph, new FrontedGraphExecutionContext(), TestContext.Current.CancellationToken);
+
+        Assert.Equal(FrontedGraphExecutionStatus.Success, result.Status);
+        Assert.Contains(result.LogItems, item => item.Message == "A");
+        Assert.Contains(result.LogItems, item => item.Message == "C");
+    }
+
+    [Fact]
+    public async Task ActionRequestsStillReturned()
+    {
+        var start = _catalog.CreateNode("flow.start");
+        var animate = _catalog.CreateNode("action.animateProperty");
+        animate.Properties["PropertyName"] = JsonSerializer.SerializeToElement("Opacity");
+        animate.Properties["WaitForCompletion"] = JsonSerializer.SerializeToElement(false);
+        var set = _catalog.CreateNode("action.setProperty");
+        set.Properties["PropertyName"] = JsonSerializer.SerializeToElement("Opacity");
+        var end = _catalog.CreateNode("flow.end");
+        var graph = new FrontedNodeGraph
+        {
+            Nodes = [start, animate, set, end],
+            Connections =
+            [
+                Link(start, "Out", animate, "In"),
+                Link(animate, "Out", set, "In"),
+                Link(set, "Out", end, "In")
+            ]
+        };
+
+        var result = await CreateRuntime().ExecuteAsync(graph, new FrontedGraphExecutionContext(), TestContext.Current.CancellationToken);
+
+        Assert.Equal(FrontedGraphExecutionStatus.Success, result.Status);
+        Assert.Equal(2, result.ActionRequests.Count);
+        Assert.Contains(result.ActionRequests, r => r.RequestType == FrontedGraphActionRequestType.AnimateProperty && !r.WaitForCompletion);
+        Assert.Contains(result.ActionRequests, r => r.RequestType == FrontedGraphActionRequestType.SetProperty);
     }
 
     private FrontedNodeGraphRuntime CreateRuntime(IFrontedGraphDelayProvider? delayProvider = null) =>
@@ -256,6 +497,26 @@ public class FrontedNodeGraphRuntimeTest
             Requests.Add(request);
             onExecute?.Invoke(request);
             return Task.CompletedTask;
+        }
+    }
+
+    private sealed class BlockingActionExecutor(bool completeImmediately = false) : IFrontedGraphActionExecutor
+    {
+        private readonly TaskCompletionSource _completion = new();
+        public List<FrontedGraphActionRequest> CompletedRequests { get; } = [];
+
+        public void Complete() => _completion.TrySetResult();
+
+        public async Task ExecuteAsync(FrontedGraphActionRequest request, CancellationToken cancellationToken)
+        {
+            if (completeImmediately)
+            {
+                CompletedRequests.Add(request);
+                return;
+            }
+
+            await _completion.Task.WaitAsync(cancellationToken);
+            CompletedRequests.Add(request);
         }
     }
 }

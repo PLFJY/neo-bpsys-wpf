@@ -43,7 +43,7 @@ public sealed class FrontedAnimationRuntimeActionExecutor : IFrontedGraphActionE
     }
 
     /// <inheritdoc />
-    public async Task ExecuteAsync(FrontedGraphActionRequest request, CancellationToken cancellationToken)
+    public Task ExecuteAsync(FrontedGraphActionRequest request, CancellationToken cancellationToken)
     {
         var context = new FrontedAnimationExecutionContext
         {
@@ -57,6 +57,31 @@ public sealed class FrontedAnimationRuntimeActionExecutor : IFrontedGraphActionE
             CancellationToken = cancellationToken
         };
 
-        await _animationRuntime.ExecuteAsync(request, context, cancellationToken);
+        if (request.WaitForCompletion)
+        {
+            return _animationRuntime.ExecuteAsync(request, context, cancellationToken);
+        }
+
+        // Fire-and-forget: start the animation but don't wait for completion.
+        // The animation remains managed by AnimationRuntime and can be cancelled
+        // by Reset/Release/subsequent same-property animations.
+        FireAndForgetAsync(request, context, cancellationToken);
+        return Task.CompletedTask;
+    }
+
+    private async void FireAndForgetAsync(FrontedGraphActionRequest request, FrontedAnimationExecutionContext context, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _animationRuntime.ExecuteAsync(request, context, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected when a subsequent animation or Release/Reset cancels this one.
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Fire-and-forget animation failed for {Target}.{Property}", request.Target, request.PropertyName);
+        }
     }
 }

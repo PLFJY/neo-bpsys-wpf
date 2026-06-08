@@ -34,7 +34,7 @@ public sealed class FrontedNodeCatalog
     {
         var flowIn = Port("In", FrontedNodePortKind.FlowIn);
         var flowOut = Port("Out", FrontedNodePortKind.FlowOut);
-        var valueOut = Port("Value", FrontedNodePortKind.ValueOut, "object");
+        var objectOut = Port("Value", FrontedNodePortKind.ValueOut, FrontedNodePortValueType.Object);
         var propertyOptions = FrontedBehaviorPropertyMetadata.CommonPropertyNames;
         var easingOptions = new[] { "Linear", "SineInOut", "CubicOut", "CubicIn", "CubicInOut", "BackOut" };
         return
@@ -42,8 +42,7 @@ public sealed class FrontedNodeCatalog
             Node("flow.start", "Flow", [], [flowOut]),
             Node("flow.end", "Flow", [flowIn], []),
             Node("flow.delay", "Flow", [flowIn], [flowOut], Prop("DurationMs", FrontedNodePropertyType.Number, 300, FrontedNodePropertyEditorKind.Number, true, unit: "ms")),
-            Node("flow.sequence", "Flow", [flowIn], [Port("Step1", FrontedNodePortKind.FlowOut), Port("Step2", FrontedNodePortKind.FlowOut), Port("Step3", FrontedNodePortKind.FlowOut)]),
-            Node("flow.parallel", "Flow", [flowIn], [Port("Branch1", FrontedNodePortKind.FlowOut), Port("Branch2", FrontedNodePortKind.FlowOut), Port("Branch3", FrontedNodePortKind.FlowOut)]),
+            Node("flow.parallel", "Flow", [flowIn], [Port("Branch1", FrontedNodePortKind.FlowOut), Port("Branch2", FrontedNodePortKind.FlowOut), Port("Branch3", FrontedNodePortKind.FlowOut), Port("Out", FrontedNodePortKind.FlowOut)]),
             Node("flow.if", "Flow", [flowIn], [Port("True", FrontedNodePortKind.FlowOut), Port("False", FrontedNodePortKind.FlowOut)],
                 Prop("Left", FrontedNodePropertyType.String, "", FrontedNodePropertyEditorKind.EventPath, true),
                 Prop("Operator", FrontedNodePropertyType.Enum, TriggerFilterOperator.Equals.ToString(), FrontedNodePropertyEditorKind.Enum, true, Enum.GetNames<TriggerFilterOperator>()),
@@ -62,14 +61,15 @@ public sealed class FrontedNodeCatalog
                 Prop("From", FrontedNodePropertyType.String, "", FrontedNodePropertyEditorKind.Text),
                 Prop("To", FrontedNodePropertyType.String, "", FrontedNodePropertyEditorKind.Text),
                 Prop("DurationMs", FrontedNodePropertyType.Number, 300, FrontedNodePropertyEditorKind.Number, true, unit: "ms"),
-                Prop("Easing", FrontedNodePropertyType.String, "Linear", FrontedNodePropertyEditorKind.Text, false, easingOptions)),
-            Node("value.number", "Value", [], [valueOut], Prop("Value", FrontedNodePropertyType.Number, 0, FrontedNodePropertyEditorKind.Number)),
-            Node("value.string", "Value", [], [valueOut], Prop("Value", FrontedNodePropertyType.String, "", FrontedNodePropertyEditorKind.Text)),
-            Node("value.boolean", "Value", [], [valueOut], Prop("Value", FrontedNodePropertyType.Boolean, false, FrontedNodePropertyEditorKind.Boolean)),
-            Node("value.color", "Value", [], [Port("Value", FrontedNodePortKind.ValueOut, "color")], Prop("Value", FrontedNodePropertyType.Color, "#FFFFFFFF", FrontedNodePropertyEditorKind.Color)),
-            Node("value.eventValue", "Value", [], [valueOut], Prop("Path", FrontedNodePropertyType.String, "Event.", FrontedNodePropertyEditorKind.EventPath, true)),
-            Node("value.selfTag", "Value", [], [valueOut], Prop("Path", FrontedNodePropertyType.String, "SelfTag.", FrontedNodePropertyEditorKind.Text, true)),
-            Node("value.controlReference", "Value", [], [Port("Value", FrontedNodePortKind.ValueOut, "control")], Prop("Value", FrontedNodePropertyType.String, "Self", FrontedNodePropertyEditorKind.ControlReference, true))
+                Prop("Easing", FrontedNodePropertyType.String, "Linear", FrontedNodePropertyEditorKind.Text, false, easingOptions),
+                Prop("WaitForCompletion", FrontedNodePropertyType.Boolean, true, FrontedNodePropertyEditorKind.Boolean)),
+            Node("value.number", "Value", [], [Port("Value", FrontedNodePortKind.ValueOut, FrontedNodePortValueType.Number)], Prop("Value", FrontedNodePropertyType.Number, 0, FrontedNodePropertyEditorKind.Number)),
+            Node("value.string", "Value", [], [Port("Value", FrontedNodePortKind.ValueOut, FrontedNodePortValueType.String)], Prop("Value", FrontedNodePropertyType.String, "", FrontedNodePropertyEditorKind.Text)),
+            Node("value.boolean", "Value", [], [Port("Value", FrontedNodePortKind.ValueOut, FrontedNodePortValueType.Boolean)], Prop("Value", FrontedNodePropertyType.Boolean, false, FrontedNodePropertyEditorKind.Boolean)),
+            Node("value.color", "Value", [], [Port("Value", FrontedNodePortKind.ValueOut, FrontedNodePortValueType.Color)], Prop("Value", FrontedNodePropertyType.Color, "#FFFFFFFF", FrontedNodePropertyEditorKind.Color)),
+            Node("value.eventValue", "Value", [], [objectOut], Prop("Path", FrontedNodePropertyType.String, "Event.", FrontedNodePropertyEditorKind.EventPath, true)),
+            Node("value.selfTag", "Value", [], [objectOut], Prop("Path", FrontedNodePropertyType.String, "SelfTag.", FrontedNodePropertyEditorKind.Text, true)),
+            Node("value.controlReference", "Value", [], [Port("Value", FrontedNodePortKind.ValueOut, FrontedNodePortValueType.Control)], Prop("Value", FrontedNodePropertyType.String, "Self", FrontedNodePropertyEditorKind.ControlReference, true))
         ];
     }
 
