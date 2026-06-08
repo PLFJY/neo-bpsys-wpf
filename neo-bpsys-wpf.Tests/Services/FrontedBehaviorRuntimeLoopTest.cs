@@ -104,11 +104,11 @@ public class FrontedBehaviorRuntimeLoopTest
             await runtime.WaitForStartGraphAsync(TimeSpan.FromSeconds(5));
 
             // Now LoopGraph is blocked; publish end trigger
-            var stopGraphCompleted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-            runtime.ExecutionCompleted = stopGraphCompleted;
             RunEvent(host, new FrontedBehaviorEvent { EventType = "end" });
 
-            await stopGraphCompleted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            // Wait for StopGraph to appear in ExecutedGraphs (the unified lifecycle
+            // executes StopGraph in the same task after cancelling LoopGraph)
+            await WaitForGraphAsync(runtime, behavior.StopGraph, TimeSpan.FromSeconds(5));
 
             Assert.Contains(behavior.StopGraph, runtime.ExecutedGraphs);
         });
@@ -250,11 +250,9 @@ public class FrontedBehaviorRuntimeLoopTest
             RunEvent(host, new FrontedBehaviorEvent { EventType = "start" });
             await runtime.WaitForStartGraphAsync(TimeSpan.FromSeconds(5));
 
-            var stopCompleted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-            runtime.ExecutionCompleted = stopCompleted;
             RunEvent(host, new FrontedBehaviorEvent { EventType = "end" });
 
-            await stopCompleted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            await WaitForGraphAsync(runtime, behavior.StopGraph, TimeSpan.FromSeconds(5));
 
             Assert.Contains(behavior.BehaviorId, animationRuntime.ResetTargetCalls);
         });
@@ -338,11 +336,9 @@ public class FrontedBehaviorRuntimeLoopTest
             RunEvent(host, new FrontedBehaviorEvent { EventType = "start" });
             await runtime.WaitForStartGraphAsync(TimeSpan.FromSeconds(5));
 
-            var stopCompleted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-            runtime.ExecutionCompleted = stopCompleted;
             RunEvent(host, new FrontedBehaviorEvent { EventType = "end" });
 
-            await stopCompleted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            await WaitForGraphAsync(runtime, behavior.StopGraph, TimeSpan.FromSeconds(5));
 
             Assert.Contains(behavior.StopGraph, runtime.ExecutedGraphs);
         });
@@ -468,6 +464,7 @@ public class FrontedBehaviorRuntimeLoopTest
                 EndTrigger = new TriggerDescriptor { EventType = "end" },
                 StartGraph = new FrontedNodeGraph(),
                 LoopGraph = new FrontedNodeGraph(),
+                StopGraph = new FrontedNodeGraph(),
                 LoopPolicy = new FrontedLoopPolicy
                 {
                     RepeatCount = -1,
@@ -482,14 +479,143 @@ public class FrontedBehaviorRuntimeLoopTest
             RunEvent(host, new FrontedBehaviorEvent { EventType = "start" });
             await runtime.WaitForStartGraphAsync(TimeSpan.FromSeconds(5));
 
+            // Fire EndTrigger while LoopGraph is blocked — CompleteCurrentIteration
+            // should NOT cancel the CTS, allowing the current iteration to finish.
+            RunEvent(host, new FrontedBehaviorEvent { EventType = "end" });
+
             // Release the LoopGate so the current iteration completes
             runtime.LoopGate.TrySetResult();
 
-            // After the current iteration completes, verify the loop stopped without crash
-            await Task.Delay(200);
+            // Wait for StopGraph to appear, confirming the lifecycle executed
+            // StopGraph after the current LoopGraph iteration completed.
+            await WaitForGraphAsync(runtime, behavior.StopGraph, TimeSpan.FromSeconds(5));
+
             var executedGraphs = runtime.ExecutedGraphs.ToArray();
             Assert.Contains(behavior.LoopGraph, executedGraphs);
+            Assert.Contains(behavior.StopGraph, executedGraphs);
         });
+    }
+
+    /// <summary>
+    /// StartGraph 执行期间收到 EndTrigger，StartGraph 被取消后仍执行 StopGraph。
+    /// </summary>
+    [Fact]
+    public async Task Loop_EndTrigger_DuringStartGraph_StillExecutesStopGraph()
+    {
+        await RunOnStaThreadAsync(async () =>
+        {
+            var runtime = new ControlledGraphRuntime
+            {
+                // Block during StartGraph execution so EndTrigger can fire while Starting
+                StartGate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously)
+            };
+            var behavior = new FrontedBehavior
+            {
+                Kind = FrontedBehaviorKind.Loop,
+                StartTrigger = new TriggerDescriptor { EventType = "start" },
+                EndTrigger = new TriggerDescriptor { EventType = "end" },
+                StartGraph = new FrontedNodeGraph(),
+                LoopGraph = new FrontedNodeGraph(),
+                StopGraph = new FrontedNodeGraph(),
+                LoopPolicy = new FrontedLoopPolicy
+                {
+                    RepeatCount = -1,
+                    StopMode = FrontedLoopStopMode.RunStopGraph,
+                    ResetOnStop = false
+                }
+            };
+            var document = CreateDocument(behavior);
+
+            using var host = CreateHost(runtime);
+            await AttachHost(host, document);
+
+            // Start trigger fires — StartGraph begins, blocks on StartGate
+            RunEvent(host, new FrontedBehaviorEvent { EventType = "start" });
+            await Task.Delay(100); // Let StartGraph start and block
+
+            // EndTrigger fires while StartGraph is still executing (LoopPhase = Starting)
+            RunEvent(host, new FrontedBehaviorEvent { EventType = "end" });
+
+            // Release the StartGate so StartGraph completes (with cancellation)
+            runtime.StartGate.TrySetResult();
+
+            // The lifecycle should execute StopGraph even though StartGraph was cancelled
+            await WaitForGraphAsync(runtime, behavior.StopGraph, TimeSpan.FromSeconds(5));
+
+            Assert.Contains(behavior.StopGraph, runtime.ExecutedGraphs);
+        });
+    }
+
+    /// <summary>
+    /// StopMode=HoldCurrentState 时，停止后不调用 ResetTarget，保持当前动画状态。
+    /// </summary>
+    [Fact]
+    public async Task Loop_HoldCurrentState_DoesNotReset()
+    {
+        await RunOnStaThreadAsync(async () =>
+        {
+            var runtime = new ControlledGraphRuntime
+            {
+                LoopGate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously)
+            };
+            var animationRuntime = new RecordingAnimationRuntime();
+            var behavior = new FrontedBehavior
+            {
+                Kind = FrontedBehaviorKind.Loop,
+                StartTrigger = new TriggerDescriptor { EventType = "start" },
+                EndTrigger = new TriggerDescriptor { EventType = "end" },
+                StartGraph = new FrontedNodeGraph(),
+                LoopGraph = new FrontedNodeGraph(),
+                StopGraph = new FrontedNodeGraph(),
+                LoopPolicy = new FrontedLoopPolicy
+                {
+                    RepeatCount = -1,
+                    StopMode = FrontedLoopStopMode.HoldCurrentState,
+                    ResetOnStop = true
+                }
+            };
+            var document = CreateDocument(behavior);
+
+            using var host = CreateHost(runtime, animationRuntime);
+            await AttachHost(host, document);
+
+            RunEvent(host, new FrontedBehaviorEvent { EventType = "start" });
+            await runtime.WaitForStartGraphAsync(TimeSpan.FromSeconds(5));
+
+            RunEvent(host, new FrontedBehaviorEvent { EventType = "end" });
+
+            // Wait for lifecycle to complete (StopGraph should NOT be executed)
+            await Task.Delay(500);
+
+            // HoldCurrentState should NOT call ResetTarget
+            Assert.Empty(animationRuntime.ResetTargetCalls);
+        });
+    }
+
+    // ---------------------------------------------------------------
+    // Test helper: waits for a specific graph to appear in ExecutedGraphs
+    // ---------------------------------------------------------------
+
+    /// <summary>
+    /// Polls until <paramref name="graph"/> appears in <paramref name="runtime"/>.<see cref="ControlledGraphRuntime.ExecutedGraphs"/>.
+    /// Used to detect StopGraph execution in the unified lifecycle where StopGraph
+    /// runs in the same task (not a separate StopTask).
+    /// </summary>
+    private static async Task WaitForGraphAsync(
+        ControlledGraphRuntime runtime,
+        FrontedNodeGraph graph,
+        TimeSpan timeout)
+    {
+        var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        _ = Task.Run(async () =>
+        {
+            while (!runtime.ExecutedGraphs.Contains(graph))
+            {
+                await Task.Delay(30);
+            }
+            tcs.TrySetResult();
+        });
+        await tcs.Task.WaitAsync(timeout);
     }
 
     // ---------------------------------------------------------------
@@ -691,10 +817,16 @@ public class FrontedBehaviorRuntimeLoopTest
 
         /// <summary>
         /// When non-null, execution of any graph will block on this gate.
-        /// Used by <see cref="FrontedBehaviorRuntimeHost.ExecuteLoopStartAsync" /> to keep
+        /// Used by <see cref="FrontedBehaviorRuntimeHost.ExecuteLoopLifecycleAsync" /> to keep
         /// the LoopGraph "running" so that EndTrigger tests can fire.
         /// </summary>
         public TaskCompletionSource? LoopGate { get; set; }
+
+        /// <summary>
+        /// When non-null, the first graph execution (StartGraph) will block on this gate.
+        /// Used to test EndTrigger arriving during StartGraph execution.
+        /// </summary>
+        public TaskCompletionSource? StartGate { get; set; }
 
         /// <summary>
         /// When non-null, signals completion after an execution is recorded.
@@ -718,6 +850,24 @@ public class FrontedBehaviorRuntimeLoopTest
             if (StartGraphExecuted is not null)
             {
                 StartGraphExecuted.TrySetResult();
+            }
+
+            // Block during the first execution (StartGraph) when StartGate is set.
+            // Used to test EndTrigger arriving while StartGraph is in progress.
+            if (StartGate is not null && ExecutedGraphs.Count == 1)
+            {
+                using var registration = cancellationToken.Register(() =>
+                {
+                    try { StartGate.TrySetCanceled(cancellationToken); } catch { }
+                });
+                try
+                {
+                    await StartGate.Task;
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    // Normal cancellation — execution completed signal still fires below
+                }
             }
 
             // Block only the first LoopGraph execution. StartGraph and StopGraph should

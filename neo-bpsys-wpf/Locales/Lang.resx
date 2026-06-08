@@ -4530,52 +4530,52 @@
     <value>值</value>
   </data>
   <data name="Designer.Graph.Node.FlowStart" xml:space="preserve">
-    <value>Start</value>
+    <value>开始</value>
   </data>
   <data name="Designer.Graph.Node.FlowEnd" xml:space="preserve">
-    <value>End</value>
+    <value>结束</value>
   </data>
   <data name="Designer.Graph.Node.FlowDelay" xml:space="preserve">
-    <value>Delay</value>
+    <value>延迟</value>
   </data>
   <data name="Designer.Graph.Node.FlowParallel" xml:space="preserve">
-    <value>Parallel</value>
+    <value>并行</value>
   </data>
   <data name="Designer.Graph.Node.FlowIf" xml:space="preserve">
-    <value>If</value>
+    <value>条件判断</value>
   </data>
   <data name="Designer.Graph.Node.ActionLog" xml:space="preserve">
-    <value>Log</value>
+    <value>日志</value>
   </data>
   <data name="Designer.Graph.Node.ActionSetProperty" xml:space="preserve">
-    <value>SetProperty</value>
+    <value>设置属性</value>
   </data>
   <data name="Designer.Graph.Node.ActionResetProperty" xml:space="preserve">
-    <value>ResetProperty</value>
+    <value>重置属性</value>
   </data>
   <data name="Designer.Graph.Node.ActionAnimateProperty" xml:space="preserve">
-    <value>AnimateProperty</value>
+    <value>动画属性</value>
   </data>
   <data name="Designer.Graph.Node.ValueNumber" xml:space="preserve">
-    <value>Number</value>
+    <value>数字</value>
   </data>
   <data name="Designer.Graph.Node.ValueString" xml:space="preserve">
-    <value>String</value>
+    <value>文本</value>
   </data>
   <data name="Designer.Graph.Node.ValueBoolean" xml:space="preserve">
-    <value>Boolean</value>
+    <value>布尔</value>
   </data>
   <data name="Designer.Graph.Node.ValueColor" xml:space="preserve">
-    <value>Color</value>
+    <value>颜色</value>
   </data>
   <data name="Designer.Graph.Node.ValueEventValue" xml:space="preserve">
-    <value>EventValue</value>
+    <value>事件值</value>
   </data>
   <data name="Designer.Graph.Node.ValueSelfTag" xml:space="preserve">
-    <value>SelfTag</value>
+    <value>自身标签</value>
   </data>
   <data name="Designer.Graph.Node.ValueControlReference" xml:space="preserve">
-    <value>ControlReference</value>
+    <value>控件引用</value>
   </data>
   <data name="Designer.Graph.Node.FlowStart.Description" xml:space="preserve">
     <value>动画流程入口。每张图通常只放一个 Start，然后从 Out 连到第一个动作或流程节点。</value>

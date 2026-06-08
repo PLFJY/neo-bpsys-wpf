@@ -364,15 +364,13 @@
                                                                 <ColumnDefinition />
                                                             </Grid.ColumnDefinitions>
 
-                                                            <!-- 输入端口：彩色圆点 + 弱标签 -->
+                                                            <!-- 输入端口：彩色圆点 -->
                                                             <ItemsControl ItemsSource="{Binding InputPorts}">
                                                                 <ItemsControl.ItemTemplate>
                                                                     <DataTemplate>
                                                                         <Border
-                                                                            Margin="0,1,2,1"
-                                                                            Padding="2"
+                                                                            Margin="0,1,0,1"
                                                                             Background="Transparent"
-                                                                            CornerRadius="3"
                                                                             Cursor="Hand"
                                                                             MouseLeftButtonUp="InputPort_OnMouseLeftButtonUp"
                                                                             MouseEnter="Port_OnMouseEnter"
@@ -387,26 +385,14 @@
                                                                                         <DataTrigger Binding="{Binding IsHighlighted}" Value="True">
                                                                                             <Setter Property="Background" Value="#18FFFFFF" />
                                                                                         </DataTrigger>
-                                                                                        <DataTrigger Binding="{Binding IsConnected}" Value="True">
-                                                                                            <Setter Property="BorderBrush" Value="{Binding PortColorHex, Converter={StaticResource HexToBrushConverter}}" />
-                                                                                            <Setter Property="BorderThickness" Value="1.5" />
-                                                                                        </DataTrigger>
                                                                                     </Style.Triggers>
                                                                                 </Style>
                                                                             </Border.Style>
-                                                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                                                <Ellipse
-                                                                                    Width="10"
-                                                                                    Height="10"
-                                                                                    Fill="{Binding PortColorHex, Converter={StaticResource HexToBrushConverter}}"
-                                                                                    Stroke="#80FFFFFF"
-                                                                                    StrokeThickness="0.5" />
-                                                                                <TextBlock
-                                                                                    Margin="4,0,0,0"
-                                                                                    FontSize="11"
-                                                                                    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                                                                                    Text="{Binding Name}" />
-                                                                            </StackPanel>
+                                                                            <Ellipse
+                                                                                Width="10"
+                                                                                Height="10"
+                                                                                HorizontalAlignment="Left"
+                                                                                Fill="{Binding PortColorHex, Converter={StaticResource HexToBrushConverter}}" />
                                                                             <Border.ToolTip>
                                                                                 <ToolTip>
                                                                                     <StackPanel MaxWidth="240">
@@ -431,15 +417,13 @@
                                                                 </ItemsControl.ItemTemplate>
                                                             </ItemsControl>
 
-                                                            <!-- 输出端口：弱标签 + 彩色圆点 -->
+                                                            <!-- 输出端口：彩色圆点 -->
                                                             <ItemsControl Grid.Column="1" ItemsSource="{Binding OutputPorts}">
                                                                 <ItemsControl.ItemTemplate>
                                                                     <DataTemplate>
                                                                         <Border
-                                                                            Margin="2,1,0,1"
-                                                                            Padding="2"
+                                                                            Margin="0,1,0,1"
                                                                             Background="Transparent"
-                                                                            CornerRadius="3"
                                                                             Cursor="Hand"
                                                                             MouseLeftButtonDown="OutputPort_OnMouseLeftButtonDown"
                                                                             MouseEnter="Port_OnMouseEnter"
@@ -454,26 +438,14 @@
                                                                                         <DataTrigger Binding="{Binding IsHighlighted}" Value="True">
                                                                                             <Setter Property="Background" Value="#18FFFFFF" />
                                                                                         </DataTrigger>
-                                                                                        <DataTrigger Binding="{Binding IsConnected}" Value="True">
-                                                                                            <Setter Property="BorderBrush" Value="{Binding PortColorHex, Converter={StaticResource HexToBrushConverter}}" />
-                                                                                            <Setter Property="BorderThickness" Value="1.5" />
-                                                                                        </DataTrigger>
                                                                                     </Style.Triggers>
                                                                                 </Style>
                                                                             </Border.Style>
-                                                                            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                                                                                <TextBlock
-                                                                                    FontSize="11"
-                                                                                    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                                                                                    Text="{Binding Name}" />
-                                                                                <Ellipse
-                                                                                    Width="10"
-                                                                                    Height="10"
-                                                                                    Margin="4,0,0,0"
-                                                                                    Fill="{Binding PortColorHex, Converter={StaticResource HexToBrushConverter}}"
-                                                                                    Stroke="#80FFFFFF"
-                                                                                    StrokeThickness="0.5" />
-                                                                            </StackPanel>
+                                                                            <Ellipse
+                                                                                Width="10"
+                                                                                Height="10"
+                                                                                HorizontalAlignment="Right"
+                                                                                Fill="{Binding PortColorHex, Converter={StaticResource HexToBrushConverter}}" />
                                                                             <Border.ToolTip>
                                                                                 <ToolTip>
                                                                                     <StackPanel MaxWidth="240">

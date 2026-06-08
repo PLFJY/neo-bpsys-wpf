@@ -652,7 +652,13 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     }
 
     private FrontedNodeEditorViewModel CreateNode(FrontedNode node) =>
-        new(node, _catalog.Find(node.NodeType), _markDirty, ValidateGraph, _localize, _targetOptions);
+        new(node, _catalog.Find(node.NodeType), MarkDirtyAndSetIsDirty, ValidateGraph, _localize, _targetOptions);
+
+    private void MarkDirtyAndSetIsDirty()
+    {
+        _markDirty();
+        IsDirty = true;
+    }
 
     private void ReloadConnections()
     {
@@ -905,17 +911,17 @@ public sealed partial class FrontedNodePortViewModel : ObservableObject
     public static string GetPortColor(FrontedNodePortDescriptor descriptor)
     {
         if (descriptor.PortKind is FrontedNodePortKind.FlowIn or FrontedNodePortKind.FlowOut)
-            return "#4FC3F7"; // Blue
+            return "#1976D2"; // Blue（更饱和，与 Control 明显区分）
 
         return descriptor.ValueType switch
         {
-            FrontedNodePortValueType.Number => "#66BB6A",  // Green
-            FrontedNodePortValueType.String => "#AB47BC",  // Purple
-            FrontedNodePortValueType.Boolean => "#FFA726", // Orange
-            FrontedNodePortValueType.Color => "#EC407A",   // Pink
-            FrontedNodePortValueType.Control => "#26C6DA", // Cyan
-            FrontedNodePortValueType.Object => "#9E9E9E",  // Gray
-            _ => "#9E9E9E"                                  // Gray (unknown)
+            FrontedNodePortValueType.Number => "#43A047",  // Green
+            FrontedNodePortValueType.String => "#8E24AA",  // Purple
+            FrontedNodePortValueType.Boolean => "#FB8C00", // Orange
+            FrontedNodePortValueType.Color => "#E53935",   // Red（从粉色改为红色，与 String 区分）
+            FrontedNodePortValueType.Control => "#00897B", // Teal（从青色改为青绿，与 Flow 明显区分）
+            FrontedNodePortValueType.Object => "#757575",  // Gray
+            _ => "#757575"                                  // Gray (unknown)
         };
     }
 
