@@ -418,6 +418,9 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
                 // 不抛异常，继续到 Phase 3 判断是否执行 StopGraph
             }
 
+            // ── StartGraph 已完成，更新状态为 Looping ──
+            state.LoopPhase = LoopPhase.Looping;
+
             // ── Phase 2: LoopGraph (如果未被要求停止) ──
             if (!state.StopRequested)
             {
@@ -460,6 +463,9 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
                     // 不抛异常，继续到 Phase 3 判断是否执行 StopGraph
                 }
             }
+
+            // ── 准备停止，更新状态为 Stopping ──
+            state.LoopPhase = LoopPhase.Stopping;
 
             // ── Phase 3: StopGraph ──
             if (state.StopRequested)

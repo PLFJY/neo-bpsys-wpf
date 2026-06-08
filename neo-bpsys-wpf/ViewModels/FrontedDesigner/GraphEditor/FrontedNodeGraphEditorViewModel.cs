@@ -1282,7 +1282,11 @@ public sealed record FrontedNodeTargetOptionViewModel(string Value, string Displ
 /// </summary>
 /// <param name="Value">The value stored in node JSON.</param>
 /// <param name="DisplayName">The localized option label shown to the user.</param>
-public sealed record FrontedNodePropertyOptionViewModel(string Value, string DisplayName);
+public sealed record FrontedNodePropertyOptionViewModel(string Value, string DisplayName)
+{
+    /// <inheritdoc />
+    public override string ToString() => DisplayName;
+}
 
 public sealed class FrontedNodeCatalogItemViewModel
 {

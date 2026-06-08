@@ -115,6 +115,7 @@ Phase 5 已完成真实事件总线 + 前台运行时接入，把行为系统从
 - 状态机：Stopped → Starting（StartGraph 执行） → Looping（LoopGraph 重复） → Stopping（StopGraph 执行） → Stopped。
 - StartTrigger 匹配启动，EndTrigger 匹配停止。
 - 支持 `StopMode`（StopImmediately / RunStopGraph / CompleteCurrentIteration / HoldCurrentState）、`RepeatCount`、`IntervalMs`、`ResetOnStop`。`CompleteCurrentIteration` 不取消当前 `LoopGraph`，当前轮执行完成后执行 `StopGraph`，然后 reset/cleanup。
+- `LoopPhase` 状态机追踪生命周期阶段：`Starting`（StartGraph 执行中）→ `Looping`（LoopGraph 循环中）→ `Stopping`（StopGraph 执行中）→ `Stopped`（已清理）。
 - 同一 key（WindowId + CanvasName + BehaviorGuid + BehaviorId）不会启动多个 loop 实例。
 
 ### GraphRuntime + AnimationRuntime 集成
