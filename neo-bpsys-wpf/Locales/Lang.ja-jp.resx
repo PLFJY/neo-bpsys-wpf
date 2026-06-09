@@ -4220,5 +4220,7 @@
   <data name="Designer.Graph.Tooltip.CompatibleHint" xml:space="preserve"><value>同じタイプのポートのみ接続可能</value></data>
   <data name="Designer.Graph.Tooltip.PortKind" xml:space="preserve"><value>ポート種類</value></data>
   <data name="Designer.Graph.Tooltip.PortType" xml:space="preserve"><value>値タイプ</value></data>
-
+  <data name="FrontedWindowKind.BuiltIn" xml:space="preserve"><value>ビルトイン</value></data>
+  <data name="FrontedWindowKind.PluginXaml" xml:space="preserve"><value>プラグイン XAML</value></data>
+  <data name="FrontedWindowKind.PluginLayout" xml:space="preserve"><value>プラグイン v3</value></data>
 </root>

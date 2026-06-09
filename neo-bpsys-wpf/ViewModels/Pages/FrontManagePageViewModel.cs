@@ -1077,9 +1077,9 @@ public sealed class FrontedWindowManageItem
             FullWindowType = descriptor.FullWindowType,
             KindDisplay = descriptor.Kind switch
             {
-                FrontedWindowKind.PluginXaml => "Plugin XAML",
-                FrontedWindowKind.PluginLayout => "Plugin Layout",
-                _ => "Built-in"
+                FrontedWindowKind.PluginXaml => I18nHelper.GetLocalizedString("FrontedWindowKind.PluginXaml"),
+                FrontedWindowKind.PluginLayout => I18nHelper.GetLocalizedString("FrontedWindowKind.PluginLayout"),
+                _ => I18nHelper.GetLocalizedString("FrontedWindowKind.BuiltIn")
             },
             CanCustomize = descriptor.IsV3LayoutWindow && descriptor.Customizable
         };

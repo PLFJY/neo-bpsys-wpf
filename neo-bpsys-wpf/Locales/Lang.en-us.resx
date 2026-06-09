@@ -4217,5 +4217,7 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="Designer.Graph.Tooltip.CompatibleHint" xml:space="preserve"><value>Only compatible with same type ports</value></data>
   <data name="Designer.Graph.Tooltip.PortKind" xml:space="preserve"><value>Port Kind</value></data>
   <data name="Designer.Graph.Tooltip.PortType" xml:space="preserve"><value>Value Type</value></data>
-
+  <data name="FrontedWindowKind.BuiltIn" xml:space="preserve"><value>Built-in</value></data>
+  <data name="FrontedWindowKind.PluginXaml" xml:space="preserve"><value>Plugin XAML</value></data>
+  <data name="FrontedWindowKind.PluginLayout" xml:space="preserve"><value>Plugin v3</value></data>
 </root>

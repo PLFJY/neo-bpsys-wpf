@@ -4991,4 +4991,13 @@
   <data name="Designer.Graph.Tooltip.PortType" xml:space="preserve">
     <value>值类型</value>
   </data>
+  <data name="FrontedWindowKind.BuiltIn" xml:space="preserve">
+    <value>内置窗口</value>
+  </data>
+  <data name="FrontedWindowKind.PluginXaml" xml:space="preserve">
+    <value>插件 XAML 窗口</value>
+  </data>
+  <data name="FrontedWindowKind.PluginLayout" xml:space="preserve">
+    <value>插件 v3 窗口</value>
+  </data>
 </root>
