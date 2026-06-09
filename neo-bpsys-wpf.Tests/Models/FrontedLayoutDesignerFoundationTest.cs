@@ -2944,6 +2944,28 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
+    public void ApplyPropertyEdit_AllowsRenamingToDeletedControlName()
+    {
+        var text1 = new FrontedControlDesignItem { Name = "Text1", Config = new TextFrontedControlConfig() };
+        var text2 = new FrontedControlDesignItem { Name = "Text2", Config = new TextFrontedControlConfig() };
+        var document = CreateDocument([text1, text2]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+
+        // 删除 "Text1"
+        viewModel.SelectDesignItem(text1);
+        document.Controls.Remove(text1);
+
+        // 选择 "Text2" 并重命名为 "Text1"
+        viewModel.SelectDesignItem(text2);
+        var row = NameEditorRow();
+        var result = viewModel.ApplyPropertyEdit(row, "Text1");
+
+        Assert.True(result);
+        Assert.Equal("Text1", text2.Name);
+        Assert.False(row.HasEditError);
+    }
+
+    [Fact]
     public void ApplyPropertyEditUsesEditBufferForBindingPathAndAllowsEmptyText()
     {
         var item = new FrontedControlDesignItem

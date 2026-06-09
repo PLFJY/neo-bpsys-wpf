@@ -1,22 +1,24 @@
 {
   "Version": 3,
   "WindowSettings": {
-    "WindowWidth": 1440.0,
-    "WindowHeight": 810.0,
+    "WindowWidth": 1440,
+    "WindowHeight": 810,
+    "WindowLeft": null,
+    "WindowTop": null,
     "AllowsTransparency": true,
     "BackgroundColor": "#00000000",
     "Topmost": false,
     "ViewboxStretch": "Fill"
   },
   "CanvasSettings": {
-    "CanvasWidth": 1440.0,
-    "CanvasHeight": 810.0,
+    "CanvasWidth": 1440,
+    "CanvasHeight": 810,
     "BackgroundImage": "Resources/cutScene.png",
     "EnableBoModeStates": false,
     "BoModeStates": {}
   },
   "ControlLayout": {
-    "RequiredPlugins": null,
+    "RequiredPlugins": [],
     "Controls": {
       "SurTie": {
         "Text": null,
@@ -48,7 +50,8 @@
         "Height": null,
         "ZIndex": 3,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorTags": {}
       },
       "W1": {
         "Text": "W",
@@ -74,7 +77,8 @@
         "Height": null,
         "ZIndex": 3,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorTags": {}
       },
       "D1": {
         "Text": "D",
@@ -100,7 +104,8 @@
         "Height": null,
         "ZIndex": 3,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorTags": {}
       },
       "SurWin": {
         "Text": null,
@@ -132,7 +137,8 @@
         "Height": null,
         "ZIndex": 3,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorTags": {}
       },
       "SurTeamName": {
         "Text": null,
@@ -164,39 +170,8 @@
         "Height": null,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
-      },
-      "HunTeamName": {
-        "Text": null,
-        "TextBinding": {
-          "Sources": [
-            {
-              "Path": "CurrentGame.HunTeam.Name",
-              "DisplayName": null,
-              "Format": null
-            }
-          ],
-          "StringFormat": null,
-          "JoinSeparator": "",
-          "NullText": "",
-          "FallbackText": ""
-        },
-        "HorizontalAlignment": "Center",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Center",
-        "TextWrapping": "WrapWithOverflow",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
-        "FontWeight": "Bold",
-        "Color": "#FF000000",
-        "FontSize": 28,
-        "ControlType": "Text",
-        "Left": 1113.5,
-        "Top": 30,
-        "Width": 207,
-        "Height": null,
-        "ZIndex": 2,
-        "Visibility": "Collapsed",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorTags": {}
       },
       "SurTeamMajorPoint": {
         "Text": null,
@@ -228,39 +203,8 @@
         "Height": null,
         "ZIndex": 3,
         "Visibility": "Collapsed",
-        "BindingPath": null
-      },
-      "HunTeamMajorPoint": {
-        "Text": null,
-        "TextBinding": {
-          "Sources": [
-            {
-              "Path": "CurrentGame.MatchScore.CurrentHunTeamMajorText",
-              "DisplayName": null,
-              "Format": null
-            }
-          ],
-          "StringFormat": null,
-          "JoinSeparator": "",
-          "NullText": "",
-          "FallbackText": ""
-        },
-        "HorizontalAlignment": "Center",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Center",
-        "TextWrapping": null,
-        "FontFamily": "Arial",
-        "FontWeight": "Bold",
-        "Color": "#FF000000",
-        "FontSize": 48,
-        "ControlType": "Text",
-        "Left": 990.5,
-        "Top": 9.5,
-        "Width": null,
-        "Height": null,
-        "ZIndex": 3,
-        "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorTags": {}
       },
       "MapName": {
         "FontFamily": "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简",
@@ -278,7 +222,8 @@
         "Height": 27,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorTags": {}
       },
       "SurId0": {
         "Text": null,
@@ -310,7 +255,8 @@
         "Height": 39,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorTags": {}
       },
       "SurId1": {
         "Text": null,
@@ -342,7 +288,8 @@
         "Height": 38,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorTags": {}
       },
       "SurId2": {
         "Text": null,
@@ -374,7 +321,8 @@
         "Height": 38,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorTags": {}
       },
       "SurId3": {
         "Text": null,
@@ -406,7 +354,8 @@
         "Height": 32,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorTags": {}
       },
       "HunId": {
         "Text": null,
@@ -430,7 +379,7 @@
         "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
         "FontWeight": "Normal",
         "Color": "#FFFFFFFF",
-        "FontSize": 28,
+        "FontSize": 24,
         "ControlType": "Text",
         "Left": 720,
         "Top": 756,
@@ -438,7 +387,8 @@
         "Height": 51.5,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorTags": {}
       },
       "SurTalent0": {
         "DisplayKind": "SurvivorTalent",
@@ -455,7 +405,8 @@
         "Height": 36,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorTags": {}
       },
       "SurTalent1": {
         "DisplayKind": "SurvivorTalent",
@@ -472,7 +423,8 @@
         "Height": 38.5,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorTags": {}
       },
       "SurTalent2": {
         "DisplayKind": "SurvivorTalent",
@@ -489,7 +441,8 @@
         "Height": 37,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorTags": {}
       },
       "SurTalent3": {
         "DisplayKind": "SurvivorTalent",
@@ -506,7 +459,8 @@
         "Height": 37,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorTags": {}
       },
       "HunTalent": {
         "DisplayKind": "HunterTalent",
@@ -523,7 +477,8 @@
         "Height": 52,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorTags": {}
       },
       "Trait": {
         "DisplayKind": "HunterTrait",
@@ -540,7 +495,8 @@
         "Height": 56,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorTags": {}
       },
       "SurTeamLogo": {
         "SizingMode": "Auto",
@@ -569,7 +525,8 @@
         "Height": 85,
         "ZIndex": 1,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurTeam.Logo"
+        "BindingPath": "CurrentGame.SurTeam.Logo",
+        "BehaviorTags": {}
       },
       "HunTeamLogo": {
         "SizingMode": "Auto",
@@ -598,7 +555,8 @@
         "Height": 85,
         "ZIndex": 1,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.HunTeam.Logo"
+        "BindingPath": "CurrentGame.HunTeam.Logo",
+        "BehaviorTags": {}
       },
       "GameProgress": {
         "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
@@ -608,6 +566,22 @@
         "TextAlignment": "Center",
         "HorizontalAlignment": "Center",
         "VerticalAlignment": "Center",
+        "DisplayMode": 0,
+        "VerticalLanguageMode": 0,
+        "LatinVerticalMode": 0,
+        "VerticalDirection": 0,
+        "DisplayLanguage": "FollowApp",
+        "NumberStyle": 0,
+        "VerticalTextSpacing": 0,
+        "GroupSpacing": 8,
+        "ShowSeparator": false,
+        "SeparatorThickness": 1,
+        "SeparatorColor": null,
+        "BackgroundColor": null,
+        "PaddingLeft": 0,
+        "PaddingTop": 0,
+        "PaddingRight": 0,
+        "PaddingBottom": 0,
         "ControlType": "GameProgressText",
         "Left": 549,
         "Top": 84.5,
@@ -615,7 +589,8 @@
         "Height": 27.5,
         "ZIndex": 1,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorTags": {}
       },
       "SurPick0": {
         "ImageWidth": 556.5,
@@ -646,7 +621,8 @@
         "Height": 310,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurPlayerList[0].Character.BigImage"
+        "BindingPath": "CurrentGame.SurPlayerList[0].Character.BigImage",
+        "BehaviorTags": {}
       },
       "SurPick1": {
         "ImageWidth": 556.5,
@@ -677,7 +653,8 @@
         "Height": 310,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurPlayerList[1].Character.BigImage"
+        "BindingPath": "CurrentGame.SurPlayerList[1].Character.BigImage",
+        "BehaviorTags": {}
       },
       "SurPick2": {
         "ImageWidth": 556.5,
@@ -708,7 +685,8 @@
         "Height": 313,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurPlayerList[2].Character.BigImage"
+        "BindingPath": "CurrentGame.SurPlayerList[2].Character.BigImage",
+        "BehaviorTags": {}
       },
       "SurPick3": {
         "ImageWidth": 556.5,
@@ -739,7 +717,8 @@
         "Height": 313.5,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurPlayerList[3].Character.BigImage"
+        "BindingPath": "CurrentGame.SurPlayerList[3].Character.BigImage",
+        "BehaviorTags": {}
       },
       "HunPick": {
         "ImageWidth": null,
@@ -770,7 +749,8 @@
         "Height": 645,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.HunPlayer.Character.BigImage"
+        "BindingPath": "CurrentGame.HunPlayer.Character.BigImage",
+        "BehaviorTags": {}
       },
       "Sur1TeamColorBg": {
         "RadiusX": 0,
@@ -796,7 +776,8 @@
         "Height": 160,
         "ZIndex": -1,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorTags": {}
       },
       "Sur2TeamColorBg": {
         "RadiusX": 0,
@@ -822,7 +803,8 @@
         "Height": 160,
         "ZIndex": -1,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorTags": {}
       },
       "Sur3TeamColorBg": {
         "RadiusX": 0,
@@ -848,7 +830,8 @@
         "Height": 160,
         "ZIndex": -1,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorTags": {}
       },
       "Sur4TeamColorBg": {
         "RadiusX": 0,
@@ -874,7 +857,8 @@
         "Height": 160,
         "ZIndex": -1,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorTags": {}
       },
       "HunTeamColorBg": {
         "RadiusX": 0,
@@ -900,7 +884,8 @@
         "Height": 235.5,
         "ZIndex": -1,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorTags": {}
       },
       "Map": {
         "ImageWidth": null,
@@ -931,7 +916,8 @@
         "Height": 110,
         "ZIndex": -2,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.PickedMapImage"
+        "BindingPath": "CurrentGame.PickedMapImage",
+        "BehaviorTags": {}
       },
       "HunWin": {
         "Text": null,
@@ -963,7 +949,8 @@
         "Height": null,
         "ZIndex": 4,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorTags": {}
       },
       "HunTie": {
         "Text": null,
@@ -995,7 +982,8 @@
         "Height": null,
         "ZIndex": 5,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorTags": {}
       },
       "W2": {
         "Text": "W",
@@ -1021,7 +1009,8 @@
         "Height": null,
         "ZIndex": 6,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorTags": {}
       },
       "D2": {
         "Text": "D",
@@ -1047,7 +1036,8 @@
         "Height": null,
         "ZIndex": 7,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorTags": {}
       },
       "BackgroundTintSur": {
         "RadiusX": 0,
@@ -1065,7 +1055,8 @@
         "Height": 109.5,
         "ZIndex": -1,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorTags": {}
       },
       "BackgroundTintHun": {
         "RadiusX": 0,
@@ -1083,7 +1074,42 @@
         "Height": 110.5,
         "ZIndex": -1,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorTags": {}
+      },
+      "HunTeamName": {
+        "Text": null,
+        "TextBinding": {
+          "Sources": [
+            {
+              "Path": "CurrentGame.HunTeam.Name",
+              "DisplayName": null,
+              "Format": null
+            }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Center",
+        "TextWrapping": "WrapWithOverflow",
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
+        "FontWeight": "Bold",
+        "Color": "#FF000000",
+        "FontSize": 28,
+        "BehaviorGuid": "019eabe9-3022-7e75-94f2-2625185583ee",
+        "ControlType": "Text",
+        "Left": 1113.5,
+        "Top": 35,
+        "Width": 207,
+        "Height": null,
+        "ZIndex": 8,
+        "Visibility": "Visible",
+        "BindingPath": null,
+        "BehaviorTags": {}
       }
     }
   }

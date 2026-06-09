@@ -2738,9 +2738,12 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return false;
         }
 
-        if (CurrentDocument.Controls.Any(control =>
-                !ReferenceEquals(control, SelectedDesignItem)
-                && string.Equals(control.Name, newName, StringComparison.Ordinal)))
+        var existingNames = CurrentDocument.Controls
+            .Where(control => !ReferenceEquals(control, SelectedDesignItem))
+            .Select(control => control.Name)
+            .ToHashSet(StringComparer.Ordinal);
+
+        if (existingNames.Contains(newName))
         {
             SetPropertyEditError(
                 item,
