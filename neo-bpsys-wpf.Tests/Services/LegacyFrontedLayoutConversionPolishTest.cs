@@ -8,6 +8,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -51,6 +52,57 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
         Assert.False(LegacyConversionMessageFormatter.HasUserFacingWarnings(result));
         Assert.Equal(string.Empty, LegacyConversionMessageFormatter.BuildUserSummary(result));
         Assert.Contains("Legacy lock overlay geometry consumed", LegacyConversionMessageFormatter.BuildTechnicalDetails(result));
+    }
+
+    [Fact]
+    public async Task ConverterUsesLegacyCutSceneCompositeScoreBlueprint()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var builtInRoot = Path.Combine(root, "builtIn");
+            WriteBuiltInCutSceneLayoutWithIndependentScores(builtInRoot);
+            var archivePath = Path.Combine(root, "legacy.bpui");
+            CreateLegacyArchive(
+                archivePath,
+                configJson: "{}",
+                customResources: [],
+                layouts: new Dictionary<string, string>
+                {
+                    ["FrontElementsConfig/CutSceneWindowConfig-BaseCanvas.json"] =
+                        """
+                        {
+                          "SurTeamMajorPoint": { "Left": 380, "Top": 42, "Width": 120, "Height": 36 },
+                          "HunTeamMajorPoint": { "Left": 971, "Top": 42, "Width": 120, "Height": 36 }
+                        }
+                        """
+                });
+
+            var result = await ConvertAsync(builtInRoot, root, archivePath, "converted.legacy.cutscene-score");
+
+            Assert.True(result.Success, result.ErrorMessage);
+            using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
+            var layout = ReadLayout(archive, "FrontedLayouts/CutSceneWindow.json");
+
+            var sur = Assert.IsType<TextFrontedControlConfig>(layout.Controls["SurTeamMajorPoint"]);
+            var hun = Assert.IsType<TextFrontedControlConfig>(layout.Controls["HunTeamMajorPoint"]);
+            Assert.Equal(380, sur.Left);
+            Assert.Equal(42, sur.Top);
+            Assert.Equal(120, sur.Width);
+            Assert.Equal(36, sur.Height);
+            Assert.Equal(971, hun.Left);
+            Assert.Equal("CurrentGame.MatchScore.CurrentSurTeamMajorText", Assert.Single(sur.TextBinding!.Sources).Path);
+            Assert.Equal("CurrentGame.MatchScore.CurrentHunTeamMajorText", Assert.Single(hun.TextBinding!.Sources).Path);
+
+            foreach (var name in new[] { "SurWin", "SurTie", "W1", "D1", "HunWin", "HunTie", "W2", "D2" })
+            {
+                Assert.DoesNotContain(name, layout.Controls.Keys);
+            }
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
     }
 
     [Fact]
@@ -132,7 +184,7 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             AssertTextStyle(overview.Controls["GameScoresHun"], "#FF000000", "Bold", LegacyFont, 20);
 
             var mapV2 = ReadLayout(archive, "FrontedLayouts/MapV2Window.json");
-            var map = Assert.IsType<MapV2DisplayControlConfig>(mapV2.Controls["MapV2Display0"]);
+            var map = Assert.IsType<MapV2DisplayControlConfig>(mapV2.Controls["Arms_Factory"]);
             Assert.Equal("#FF060606", map.CampNameColor);
             Assert.Equal("Bold", map.CampNameFontWeight);
             Assert.Equal(LegacyFont, map.CampNameFontFamily);
@@ -303,10 +355,11 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
             var layout = ReadLayout(archive, "FrontedLayouts/BpOverviewWindow.json");
             var hun = Assert.IsType<ImageFrontedControlConfig>(layout.Controls["HunBanCurrent0"]);
-            Assert.Equal(11, hun.Left);
-            Assert.Equal(22, hun.Top);
-            Assert.Equal(33, hun.Width);
-            Assert.Equal(44, hun.Height);
+            Assert.Equal(1, hun.Left);
+            Assert.Equal(2, hun.Top);
+            Assert.Equal(3, hun.Width);
+            Assert.Equal(4, hun.Height);
+            Assert.Contains(result.Diagnostics, item => item.Contains("separate geometry is not representable", StringComparison.Ordinal));
             var sur = Assert.IsType<ImageFrontedControlConfig>(layout.Controls["SurBanCurrent0"]);
             Assert.Equal(100, sur.Left);
             Assert.Equal(20, sur.Top);
@@ -368,8 +421,8 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
             var bpLayout = ReadLayout(archive, "FrontedLayouts/BpWindow.json");
             var current = Assert.IsType<ImageFrontedControlConfig>(bpLayout.Controls["SurBanCurrent0"]);
-            var global = Assert.IsType<ImageFrontedControlConfig>(bpLayout.Controls["SurBanGlobal0"]);
-            var pick = Assert.IsType<ImageFrontedControlConfig>(bpLayout.Controls["SurPick0"]);
+            var global = Assert.IsType<ImageFrontedControlConfig>(bpLayout.Controls["SurGlobalBan0"]);
+            var pick = Assert.IsAssignableFrom<ImageFrontedControlConfig>(bpLayout.Controls["SurPick0"]);
             Assert.StartsWith("bpui://converted.legacy.assets/resources/images/CurrentBanLock-", current.LockImagePath);
             Assert.StartsWith("bpui://converted.legacy.assets/resources/images/GlobalBanLock-", global.LockImagePath);
             Assert.StartsWith("bpui://converted.legacy.assets/resources/images/PickingBorder-", pick.PickingBorderImagePath);
@@ -423,7 +476,7 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
                     ["FrontElementsConfig/WidgetsWindowConfig-MapV2Canvas.json"] =
                         """
                         {
-                          "MapV2Display0": { "Left": 10, "Top": 20, "Width": 300, "Height": 90 }
+                          "Arms_Factory": { "Left": 10, "Top": 20, "Width": 300, "Height": 90 }
                         }
                         """,
                     ["FrontElementsConfig/WidgetsWindowConfig-MapBpCanvas.json"] = "{}"
@@ -442,6 +495,18 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             Assert.Contains("FrontedLayouts/MapV2Window.json", entryNames);
             Assert.DoesNotContain("FrontedLayouts/MapBpWindow.json", entryNames);
 
+            var manifest = JsonNode.Parse(ReadZipEntry(archive, "manifest.json"))!.AsObject();
+            Assert.Equal(FrontedLayoutConstants.WindowCentricLayoutModel, manifest["LayoutModel"]!.GetValue<string>());
+            var layouts = manifest["Content"]!["Layouts"]!.AsArray();
+            Assert.All(layouts, layout =>
+            {
+                var entry = layout!.AsObject();
+                Assert.True(entry.ContainsKey("Window"));
+                Assert.True(entry.ContainsKey("Path"));
+                Assert.False(entry.ContainsKey("Canvas"));
+                Assert.StartsWith("FrontedLayouts/", entry["Path"]!.GetValue<string>());
+            });
+
             var overview = ReadWindowConfig(archive, "FrontedLayouts/BpOverviewWindow.json");
             Assert.Equal(1132, overview.WindowSettings.WindowWidth);
             Assert.Equal(182, overview.WindowSettings.WindowHeight);
@@ -458,7 +523,7 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             Assert.Equal(1440, mapV2.CanvasSettings.CanvasWidth);
             Assert.Equal(160, mapV2.CanvasSettings.CanvasHeight);
             Assert.StartsWith("bpui://converted.legacy.widgets/resources/images/mapv2-", mapV2.CanvasSettings.BackgroundImage);
-            var display = Assert.IsType<MapV2DisplayControlConfig>(mapV2.ControlLayout.Controls["MapV2Display0"]);
+            var display = Assert.IsType<MapV2DisplayControlConfig>(mapV2.ControlLayout.Controls["Arms_Factory"]);
             Assert.Equal(10, display.Left);
             Assert.Equal(20, display.Top);
             Assert.StartsWith("bpui://converted.legacy.widgets/resources/images/border-", display.PickingBorderImagePath);
@@ -599,6 +664,42 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             """);
     }
 
+    private static void WriteBuiltInCutSceneLayoutWithIndependentScores(string builtInRoot)
+    {
+        WriteFile(
+            Path.Combine(builtInRoot, "CutSceneWindow", "BaseCanvas.json"),
+            """
+            {
+              "Version": 3,
+              "CanvasWidth": 1440,
+              "CanvasHeight": 810,
+              "BackgroundImage": "Resources/cutScene.png",
+              "SurTeamMajorPoint": {
+                "ControlType": "Text",
+                "Left": 1,
+                "Top": 2,
+                "Visibility": "Collapsed",
+                "TextBinding": { "Sources": [ { "Path": "CurrentGame.MatchScore.CurrentSurTeamMajorText" } ] }
+              },
+              "HunTeamMajorPoint": {
+                "ControlType": "Text",
+                "Left": 3,
+                "Top": 4,
+                "Visibility": "Collapsed",
+                "TextBinding": { "Sources": [ { "Path": "CurrentGame.MatchScore.CurrentHunTeamMajorText" } ] }
+              },
+              "SurWin": { "ControlType": "Text", "Left": 10, "Top": 10, "TextBinding": { "Sources": [ { "Path": "CurrentGame.MatchScore.CurrentSurTeamMajorWin" } ] } },
+              "SurTie": { "ControlType": "Text", "Left": 20, "Top": 10, "TextBinding": { "Sources": [ { "Path": "CurrentGame.MatchScore.CurrentSurTeamMajorTie" } ] } },
+              "W1": { "ControlType": "Text", "Left": 30, "Top": 10, "Text": "W" },
+              "D1": { "ControlType": "Text", "Left": 40, "Top": 10, "Text": "D" },
+              "HunWin": { "ControlType": "Text", "Left": 50, "Top": 10, "TextBinding": { "Sources": [ { "Path": "CurrentGame.MatchScore.CurrentHunTeamMajorWin" } ] } },
+              "HunTie": { "ControlType": "Text", "Left": 60, "Top": 10, "TextBinding": { "Sources": [ { "Path": "CurrentGame.MatchScore.CurrentHunTeamMajorTie" } ] } },
+              "W2": { "ControlType": "Text", "Left": 70, "Top": 10, "Text": "W" },
+              "D2": { "ControlType": "Text", "Left": 80, "Top": 10, "Text": "D" }
+            }
+            """);
+    }
+
     private static void WriteBuiltInWidgetsOverviewLayout(string builtInRoot)
     {
         WriteFile(
@@ -645,13 +746,13 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
               "CanvasWidth": 1440,
               "CanvasHeight": 160,
               "BackgroundImage": "Resources/mapBpV2.png",
-              "MapV2Display0": {
+              "Arms_Factory": {
                 "ControlType": "MapV2Display",
                 "Left": 1,
                 "Top": 2,
                 "Width": 3,
                 "Height": 4,
-                "MapKey": "arms"
+                "MapKey": "ArmsFactory"
               }
             }
             """);
@@ -678,7 +779,7 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
                 "Width": 30,
                 "Height": 40
               },
-              "SurBanGlobal0": {
+              "SurGlobalBan0": {
                 "ControlType": "Image",
                 "BindingPath": "CurrentGame.SurTeam.GlobalBannedSurList[0].HeaderImageSingleColor",
                 "Lockable": true,
@@ -807,7 +908,7 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
 
         WriteFile(Path.Combine(builtInRoot, "WidgetsWindow", "MapV2Canvas.json"),
             TextLayout("""
-              "MapV2Display0": { "ControlType": "MapV2Display", "Left": 1, "Top": 1, "Width": 100, "Height": 100, "MapKey": "arms" }
+              "Arms_Factory": { "ControlType": "MapV2Display", "Left": 1, "Top": 1, "Width": 100, "Height": 100, "MapKey": "ArmsFactory" }
             """));
     }
 

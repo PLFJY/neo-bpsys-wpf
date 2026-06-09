@@ -387,7 +387,7 @@ CurrentGame.SurPlayerList[0].PictureShown
 
 转换服务负责理解旧 `Config.json`、`CustomUi/` 和 `FrontElementsConfig/` 的历史关系，并产出 v3 Canvas 布局与包元数据。
 
-当前转换策略是保守迁移：每个目标布局先加载当前内置 v3 layout，再按"精确控件名、窗口限定别名、聚合控件、已知旧 overlay 消费、规范化匹配、技术候选诊断"顺序迁移旧 `ElementInfo` 的几何。`ScoreGlobalWindow/BaseCanvas` 额外兼容旧 `MainTeamName` / `MainScoreTotal` 到 v3 `HomeTeamName` / `HomeScoreTotal`，并把旧半场格子聚合到 `GlobalScoreRow.Cells`。旧 `CustomUi/` 图片复制到包内 `resources/images/` 并生成 `bpui://{PackageId}/...` URI。旧 `Config.json` 只读取明确的前台图片/颜色字段用于安全映射，不覆盖全局设置。
+当前转换策略是保守迁移：目标 window 先从当前内置 v3 layout 读取 `WindowSettings`、`CanvasSettings`、默认资源路径和必要默认样式，再清空控件集合；实际输出控件由 legacy source window/canvas mapping 与旧 release XAML 对照出的 Legacy Control Blueprint 创建。转换器不能把当前内置 v3 layout 的 `ControlLayout.Controls` 当作 legacy 控件全集，否则当前新版控件会被错误带入旧 `.bpui` 转换结果。`WidgetsWindow/BpOverViewCanvas` 会拆分到 `BpOverviewWindow`，`WidgetsWindow/MapV2Canvas` 会拆分到 `MapV2Window`，`WidgetsWindow/MapBpCanvas` 仍因 MapBpV1 未接入 Designer v3 而跳过并告警。`ScoreGlobalWindow/BaseCanvas` 兼容旧 `MainTeamName` / `MainScoreTotal` 到 v3 `HomeTeamName` / `HomeScoreTotal`，并把旧半场格子聚合到 `GlobalScoreRow.Cells`。旧 Ban 锁 overlay 会折叠进 `Image` / `BorderedImage` 的 lockable metadata；overlay 的独立几何不再覆盖主图几何。旧 `CustomUi/` 图片复制到包内 `resources/images/` 并生成 `bpui://{PackageId}/...` URI。旧 `Config.json` 只读取明确的前台图片/颜色字段用于安全映射，不覆盖全局设置。
 
 legacy 转换会把 `ScoreWindowSettings.GlobalScoreBgImageUri` 写入 `ScoreGlobalWindow/BaseCanvas/BackgroundImage`，把 `ScoreWindowSettings.GlobalScoreBgImageUriBo3` 写入 `BoModeStates["Bo3"].BackgroundImage` 并启用 BO mode states。
 
