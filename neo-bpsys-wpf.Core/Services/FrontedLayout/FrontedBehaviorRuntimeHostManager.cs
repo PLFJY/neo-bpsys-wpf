@@ -1,12 +1,13 @@
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
 /// Singleton manager that creates and tracks <see cref="FrontedBehaviorRuntimeHost" /> instances
-/// keyed by (windowId, canvasName). Ensures proper cleanup on detach.
+/// keyed by window id. Ensures proper cleanup on detach.
 /// </summary>
 public sealed class FrontedBehaviorRuntimeHostManager : IDisposable
 {
@@ -41,7 +42,7 @@ public sealed class FrontedBehaviorRuntimeHostManager : IDisposable
 
     /// <summary>
     /// Attaches a behavior runtime host for the given context.
-    /// If a host already exists for the same (windowId, canvasName), it is detached first.
+    /// If a host already exists for the same window id, it is detached first.
     /// </summary>
     public async Task AttachHostAsync(FrontedBehaviorRuntimeContext context, CancellationToken cancellationToken = default)
     {
@@ -51,22 +52,21 @@ public sealed class FrontedBehaviorRuntimeHostManager : IDisposable
             return;
         }
 
-        var key = BuildKey(context.WindowId, context.CanvasName);
+        var key = BuildKey(context.WindowId);
 
         // Detach existing host first to prevent duplicate subscriptions
-        DetachHost(context.WindowId, context.CanvasName);
+        DetachHost(context.WindowId);
 
         // Load the behavior document
         var document = await _behaviorService.LoadDocumentAsync(
             context.WindowType,
-            context.CanvasName,
             cancellationToken);
 
         if (document.ControlBehaviorSets is null || document.ControlBehaviorSets.Count == 0)
         {
             _logger.LogDebug(
-                "No behaviors found for Window={WindowType}, Canvas={CanvasName}. Host will still be created.",
-                context.WindowType, context.CanvasName);
+                "No behaviors found for Window={WindowType}. Host will still be created.",
+                context.WindowType);
         }
 
         // Create and attach the host
@@ -94,7 +94,7 @@ public sealed class FrontedBehaviorRuntimeHostManager : IDisposable
             EventType = "CanvasLoaded",
             WindowId = context.WindowId,
             WindowType = context.WindowType,
-            CanvasName = context.CanvasName,
+            CanvasName = FrontedLayoutConstants.BaseCanvasName,
             Source = "WindowLifecycle",
             Timestamp = DateTimeOffset.UtcNow,
             IsPreview = context.IsDesignerPreview
@@ -103,12 +103,12 @@ public sealed class FrontedBehaviorRuntimeHostManager : IDisposable
     }
 
     /// <summary>
-    /// Detaches and disposes the host for the given (windowId, canvasName).
+    /// Detaches and disposes the host for the given window id.
     /// Cancels all running behaviors, releases the event subscription and animation session.
     /// </summary>
-    public void DetachHost(string windowId, string canvasName)
+    public void DetachHost(string windowId)
     {
-        var key = BuildKey(windowId, canvasName);
+        var key = BuildKey(windowId);
         FrontedBehaviorRuntimeHost? host;
 
         lock (_gate)
@@ -126,13 +126,13 @@ public sealed class FrontedBehaviorRuntimeHostManager : IDisposable
     /// <summary>
     /// Publishes a ManualTrigger event to the event bus.
     /// </summary>
-    public void PublishManualTrigger(string triggerName, string? windowId = null, string? canvasName = null)
+    public void PublishManualTrigger(string triggerName, string? windowId = null)
     {
         var manualEvent = new FrontedBehaviorEvent
         {
             EventType = "ManualTrigger",
             WindowId = windowId,
-            CanvasName = canvasName,
+            CanvasName = FrontedLayoutConstants.BaseCanvasName,
             Source = "Manual",
             Timestamp = DateTimeOffset.UtcNow,
             Payload = new Dictionary<string, object?>
@@ -176,17 +176,16 @@ public sealed class FrontedBehaviorRuntimeHostManager : IDisposable
     }
 
     /// <summary>
-    /// Gets the host for the given (windowId, canvasName), or null if not attached.
+    /// Gets the host for the given window id, or null if not attached.
     /// </summary>
-    internal FrontedBehaviorRuntimeHost? GetHost(string windowId, string canvasName)
+    internal FrontedBehaviorRuntimeHost? GetHost(string windowId)
     {
-        var key = BuildKey(windowId, canvasName);
+        var key = BuildKey(windowId);
         lock (_gate)
         {
             return _hosts.GetValueOrDefault(key);
         }
     }
 
-    private static string BuildKey(string windowId, string canvasName) =>
-        $"{windowId}::{canvasName}";
+    private static string BuildKey(string windowId) => windowId;
 }

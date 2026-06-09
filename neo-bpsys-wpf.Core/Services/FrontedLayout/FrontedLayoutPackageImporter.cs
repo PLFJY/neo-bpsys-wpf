@@ -123,10 +123,10 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
 
             var packageLayouts = await LoadPackageLayoutsAsync(stagingRoot, manifest!, cancellationToken);
             var missingPluginControls = FrontedLayoutPluginDependencyScanner.FindMissingPluginControls(
-                packageLayouts.Select(layout => (layout.Window, layout.Canvas, layout.Config)),
+                packageLayouts.Select(layout => (layout.Window, FrontedLayoutConstants.BaseCanvasName, layout.Config.ToCanvasConfig())),
                 _controlRegistry);
             var unsatisfiedPluginDependencies = FrontedLayoutPluginDependencyScanner.FindUnsatisfiedPluginDependencies(
-                packageLayouts.Select(layout => (layout.Window, layout.Canvas, layout.Config)),
+                packageLayouts.Select(layout => (layout.Window, FrontedLayoutConstants.BaseCanvasName, layout.Config.ToCanvasConfig())),
                 manifest!.PluginDependencies,
                 _controlRegistry,
                 _pluginMetadataProvider);
@@ -200,15 +200,20 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
         foreach (var layout in manifest.Content.Layouts)
         {
             var path = CombineInsideRoot(stagingRoot, layout.Path);
-            var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(
+            var config = JsonSerializer.Deserialize<FrontedWindowConfig>(
                 await File.ReadAllTextAsync(path, cancellationToken),
                 _jsonSerializerOptions)
                 ?? throw new FrontedLayoutConfigException($"Layout JSON is invalid: {layout.Path}");
-            layouts.Add(new PackageLayoutState(layout.Window, layout.Canvas, layout.Path, config));
+            config.SyncWindowSizeToCanvas();
+            await File.WriteAllTextAsync(
+                path,
+                JsonSerializer.Serialize(config, _jsonSerializerOptions),
+                cancellationToken);
+            layouts.Add(new PackageLayoutState(layout.Window, layout.Path, config));
         }
 
         manifest.PluginDependencies = FrontedLayoutPluginDependencyScanner.MergePackageDependencies(
-            layouts.Select(layout => (layout.Window, layout.Canvas, layout.Config)),
+            layouts.Select(layout => (layout.Window, FrontedLayoutConstants.BaseCanvasName, layout.Config.ToCanvasConfig())),
             manifest.PluginDependencies,
             _controlRegistry);
         return layouts;
@@ -230,6 +235,14 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
             return manifest.FormatVersion > 3
                 ? new FrontedLayoutPackageImportResult { Success = false, RequiresNewerApp = true, ErrorMessage = "Package requires a newer app version." }
                 : Fail("Invalid package manifest.");
+        }
+
+        if (!string.Equals(
+                manifest.LayoutModel,
+                FrontedLayoutConstants.WindowCentricLayoutModel,
+                StringComparison.Ordinal))
+        {
+            return Fail("Package layout model is not window-centric.");
         }
 
         if (!FrontedLayoutPackageManager.IsSafePackageId(manifest.PackageId)
@@ -283,11 +296,10 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
             return Fail("TooManyResources");
         }
 
-            foreach (var layout in manifest.Content.Layouts)
+        foreach (var layout in manifest.Content.Layouts)
             {
                 if (!IsSafeRelativePath(layout.Path)
-                || !FrontedLayoutWindowPathHelper.IsSafeFullWindowType(layout.Window)
-                || !IsSafePathSegment(layout.Canvas))
+                || !FrontedLayoutWindowPathHelper.IsSafeFullWindowType(layout.Window))
             {
                 return Fail("Layout path is not safe.");
             }
@@ -332,7 +344,7 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
 
             try
             {
-                var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(
+                var config = JsonSerializer.Deserialize<FrontedWindowConfig>(
                     await File.ReadAllTextAsync(layoutPath, cancellationToken),
                     _jsonSerializerOptions);
                 if (config is null)
@@ -340,7 +352,10 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
                     return Fail($"Layout JSON is invalid: {layout.Path}");
                 }
 
-                var validationMessages = _validator.Validate(layout.Window, layout.Canvas, config);
+                var validationMessages = _validator.Validate(
+                    layout.Window,
+                    FrontedLayoutConstants.BaseCanvasName,
+                    config.ToCanvasConfig());
                 var error = validationMessages.FirstOrDefault(message =>
                     message.Severity == global::neo_bpsys_wpf.Core.Models.FrontedLayout.Designer.FrontedLayoutValidationSeverity.Error
                     && !string.Equals(message.Code, "RuntimeCriticalRenameOrDelete", StringComparison.Ordinal));
@@ -772,9 +787,8 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
 
     private sealed record PackageLayoutState(
         string Window,
-        string Canvas,
         string Path,
-        FrontedCanvasConfig Config);
+        FrontedWindowConfig Config);
 }
 
 #pragma warning restore CS1591

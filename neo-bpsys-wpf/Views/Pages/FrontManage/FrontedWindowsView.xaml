@@ -3,7 +3,6 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:enums="clr-namespace:neo_bpsys_wpf.Core.Enums;assembly=neo-bpsys-wpf.Core"
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
@@ -24,262 +23,107 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <WrapPanel Margin="10,0,0,0" Orientation="Horizontal">
-        <Border Margin="0,0,10,10" Style="{StaticResource Card}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <TextBlock
-                    Grid.Row="0"
-                    FontSize="18"
-                    FontWeight="DemiBold"
-                    Text="{lex:Loc AllFrontendWindows}" />
-                <StackPanel
-                    Grid.Row="1"
-                    Margin="0,10,0,0"
-                    HorizontalAlignment="Center"
-                    Orientation="Horizontal">
-                    <ui:Button
-                        Height="50"
-                        Command="{Binding OpenFrontedDesignerCommand}"
-                        Content="{lex:Loc OpenFrontedDesigner}"
-                        Icon="{ui:SymbolIcon Symbol=Edit24}" />
-                    <ui:Button
-                        Height="50"
-                        Margin="10,0,0,0"
-                        Command="{Binding ShowAllWindowsCommand}"
-                        Content="{lex:Loc OpenAll}" />
-                    <ui:Button
-                        Height="50"
-                        Margin="10,0,0,0"
-                        Command="{Binding HideAllWindowsCommand}"
-                        Content="{lex:Loc CloseAll}" />
-                </StackPanel>
-                <TextBlock
-                    Grid.Row="2"
-                    Margin="0,10,0,0"
-                    HorizontalAlignment="Left"
-                    Text="{lex:Loc DesignerUnlockNote}"
-                    TextWrapping="WrapWithOverflow" />
-            </Grid>
-        </Border>
-        <Border Margin="0,0,10,10" Style="{StaticResource Card}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <TextBlock
-                    Grid.Row="0"
-                    FontSize="18"
-                    FontWeight="DemiBold"
-                    Text="{lex:Loc BPWindow}" />
-                <StackPanel
-                    Grid.Row="1"
-                    Margin="0,10,0,0"
-                    Orientation="Horizontal">
-                    <ui:Button
-                        Command="{Binding ShowWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontedWindowType.BpWindow}"
-                        Content="{lex:Loc Open}" />
-                    <ui:Button
-                        Margin="10,0,0,0"
-                        Command="{Binding HideWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontedWindowType.BpWindow}"
-                        Content="{lex:Loc Close}" />
-                </StackPanel>
-            </Grid>
-        </Border>
-        <Border Margin="0,0,10,10" Style="{StaticResource Card}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <TextBlock
-                    Grid.Row="0"
-                    FontSize="18"
-                    FontWeight="DemiBold"
-                    Text="{lex:Loc CutSceneWindow}" />
-                <StackPanel
-                    Grid.Row="1"
-                    Margin="0,10,0,0"
-                    Orientation="Horizontal">
-                    <ui:Button
-                        Command="{Binding ShowWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontedWindowType.CutSceneWindow}"
-                        Content="{lex:Loc Open}" />
-                    <ui:Button
-                        Margin="10,0,0,0"
-                        Command="{Binding HideWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontedWindowType.CutSceneWindow}"
-                        Content="{lex:Loc Close}" />
-                </StackPanel>
-            </Grid>
-        </Border>
-        <Border Margin="0,0,10,10" Style="{StaticResource Card}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <TextBlock
-                    Grid.Row="0"
-                    FontSize="18"
-                    FontWeight="DemiBold"
-                    Text="{lex:Loc ScoreComponent}" />
-                <StackPanel
-                    Grid.Row="1"
-                    Margin="0,10,0,0"
-                    Orientation="Horizontal">
-                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc SurvivorScoreInGame}" />
-                    <ui:Button
-                        Margin="10,0,0,0"
-                        Command="{Binding ShowWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontedWindowType.ScoreSurWindow}"
-                        Content="{lex:Loc Open}" />
-                    <ui:Button
-                        Margin="10,0,0,0"
-                        Command="{Binding HideWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontedWindowType.ScoreSurWindow}"
-                        Content="{lex:Loc Close}" />
-                </StackPanel>
-                <StackPanel
-                    Grid.Row="2"
-                    Margin="0,10,0,0"
-                    Orientation="Horizontal">
-                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc HunterScoreInGame}" />
-                    <ui:Button
-                        Margin="10,0,0,0"
-                        Command="{Binding ShowWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontedWindowType.ScoreHunWindow}"
-                        Content="{lex:Loc Open}" />
-                    <ui:Button
-                        Margin="10,0,0,0"
-                        Command="{Binding HideWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontedWindowType.ScoreHunWindow}"
-                        Content="{lex:Loc Close}" />
-                </StackPanel>
-                <StackPanel
-                    Grid.Row="3"
-                    Margin="0,10,0,0"
-                    Orientation="Horizontal">
-                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc ScoreStatistics}" />
-                    <ui:Button
-                        Margin="10,0,0,0"
-                        Command="{Binding ShowWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontedWindowType.ScoreGlobalWindow}"
-                        Content="{lex:Loc Open}" />
-                    <ui:Button
-                        Margin="10,0,0,0"
-                        Command="{Binding HideWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontedWindowType.ScoreGlobalWindow}"
-                        Content="{lex:Loc Close}" />
-                </StackPanel>
-            </Grid>
-        </Border>
-        <Border Margin="0,0,10,10" Style="{StaticResource Card}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <TextBlock
-                    Grid.Row="0"
-                    FontSize="18"
-                    FontWeight="DemiBold"
-                    Text="{lex:Loc GameStatisticsWindow}" />
-                <StackPanel
-                    Grid.Row="1"
-                    Margin="0,10,0,0"
-                    Orientation="Horizontal">
-                    <ui:Button
-                        Command="{Binding ShowWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontedWindowType.GameDataWindow}"
-                        Content="{lex:Loc Open}" />
-                    <ui:Button
-                        Margin="10,0,0,0"
-                        Command="{Binding HideWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontedWindowType.GameDataWindow}"
-                        Content="{lex:Loc Close}" />
-                </StackPanel>
-            </Grid>
-        </Border>
-        <Border Margin="0,0,10,10" Style="{StaticResource Card}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <TextBlock
-                    Grid.Row="0"
-                    FontSize="18"
-                    FontWeight="DemiBold"
-                    Text="{lex:Loc Widgets}" />
-                <StackPanel
-                    Grid.Row="1"
-                    Margin="0,10,0,0"
-                    Orientation="Horizontal">
-                    <ui:Button
-                        Command="{Binding ShowWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontedWindowType.WidgetsWindow}"
-                        Content="{lex:Loc Open}" />
-                    <ui:Button
-                        Margin="10,0,0,0"
-                        Command="{Binding HideWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontedWindowType.WidgetsWindow}"
-                        Content="{lex:Loc Close}" />
-                </StackPanel>
-            </Grid>
-        </Border>
-        <ItemsControl ItemsSource="{Binding ExternalFrontedWindows}">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <WrapPanel Orientation="Horizontal" />
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <Border Margin="0,0,10,10" Style="{StaticResource Card}">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="10,0,10,0">
+            <Border Margin="0,0,0,10" Style="{StaticResource Card}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock
+                        Grid.Row="0"
+                        FontSize="18"
+                        FontWeight="DemiBold"
+                        Text="{lex:Loc AllFrontendWindows}" />
+                    <StackPanel
+                        Grid.Row="1"
+                        Margin="0,10,0,0"
+                        HorizontalAlignment="Left"
+                        Orientation="Horizontal">
+                        <ui:Button
+                            Height="50"
+                            Command="{Binding OpenFrontedDesignerCommand}"
+                            Content="{lex:Loc OpenFrontedDesigner}"
+                            Icon="{ui:SymbolIcon Symbol=Edit24}" />
+                        <ui:Button
+                            Height="50"
+                            Margin="10,0,0,0"
+                            Command="{Binding ShowAllWindowsCommand}"
+                            Content="{lex:Loc OpenAll}" />
+                        <ui:Button
+                            Height="50"
+                            Margin="10,0,0,0"
+                            Command="{Binding HideAllWindowsCommand}"
+                            Content="{lex:Loc CloseAll}" />
+                    </StackPanel>
+                    <TextBlock
+                        Grid.Row="2"
+                        Margin="0,10,0,0"
+                        HorizontalAlignment="Left"
+                        Text="{lex:Loc DesignerUnlockNote}"
+                        TextWrapping="WrapWithOverflow" />
+                </Grid>
+            </Border>
+
+            <ItemsControl ItemsSource="{Binding ManageableWindowGroups}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Margin="0,0,0,16">
                             <TextBlock
-                                Grid.Row="0"
-                                FontSize="18"
+                                Margin="0,0,0,8"
+                                FontSize="16"
                                 FontWeight="DemiBold"
                                 Text="{Binding DisplayName}" />
-                            <TextBlock
-                                Grid.Row="1"
-                                Margin="0,6,0,0"
-                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                Text="{Binding KindDisplay}" />
-                            <StackPanel
-                                Grid.Row="2"
-                                Margin="0,10,0,0"
-                                Orientation="Horizontal">
-                                <ui:Button
-                                    Command="{Binding RelativeSource={RelativeSource AncestorType=ItemsControl}, Path=DataContext.ShowWindowCommand}"
-                                    CommandParameter="{Binding WindowId}"
-                                    Content="{lex:Loc Open}" />
-                                <ui:Button
-                                    Margin="10,0,0,0"
-                                    Command="{Binding RelativeSource={RelativeSource AncestorType=ItemsControl}, Path=DataContext.HideWindowCommand}"
-                                    CommandParameter="{Binding WindowId}"
-                                    Content="{lex:Loc Close}" />
-                            </StackPanel>
-                        </Grid>
-                    </Border>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
-    </WrapPanel>
+                            <ItemsControl ItemsSource="{Binding Windows}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Margin="0,0,10,10" Style="{StaticResource Card}">
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                </Grid.RowDefinitions>
+                                                <TextBlock
+                                                    Grid.Row="0"
+                                                    FontSize="18"
+                                                    FontWeight="DemiBold"
+                                                    Text="{Binding DisplayName}" />
+                                                <TextBlock
+                                                    Grid.Row="1"
+                                                    Margin="0,6,0,0"
+                                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                    Text="{Binding KindDisplay}" />
+                                                <StackPanel
+                                                    Grid.Row="2"
+                                                    Margin="0,10,0,0"
+                                                    Orientation="Horizontal">
+                                                    <ui:Button
+                                                        Command="{Binding DataContext.ShowWindowCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding WindowId}"
+                                                        Content="{lex:Loc Open}" />
+                                                    <ui:Button
+                                                        Margin="10,0,0,0"
+                                                        Command="{Binding DataContext.HideWindowCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding WindowId}"
+                                                        Content="{lex:Loc Close}" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </ScrollViewer>
 </UserControl>

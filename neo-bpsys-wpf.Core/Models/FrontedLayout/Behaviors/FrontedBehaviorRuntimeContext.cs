@@ -6,7 +6,7 @@ using System.Windows.Controls;
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 
 /// <summary>
-/// Context for attaching a behavior runtime to a fronted Canvas.
+/// Context for attaching a behavior runtime to a fronted window.
 /// </summary>
 public sealed class FrontedBehaviorRuntimeContext
 {
@@ -21,9 +21,9 @@ public sealed class FrontedBehaviorRuntimeContext
     public required string WindowType { get; init; }
 
     /// <summary>
-    /// Canvas name within the window, e.g. "BaseCanvas".
+    /// Internal canvas name within the window. Window-centric v3 layouts always use <c>BaseCanvas</c>.
     /// </summary>
-    public required string CanvasName { get; init; }
+    public string CanvasName { get; init; } = FrontedLayoutConstants.BaseCanvasName;
 
     /// <summary>
     /// The rendered Canvas root element.
@@ -31,9 +31,9 @@ public sealed class FrontedBehaviorRuntimeContext
     public required Canvas RootCanvas { get; init; }
 
     /// <summary>
-    /// Canvas layout configuration used for the current render.
+    /// Window layout configuration used for the current render.
     /// </summary>
-    public required FrontedCanvasConfig CanvasConfig { get; init; }
+    public required FrontedWindowConfig WindowConfig { get; init; }
 
     /// <summary>
     /// Shared data service instance for the application.

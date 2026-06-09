@@ -13,6 +13,7 @@ internal static class FrontedLayoutPluginDependencyScanner
         IFrontedControlRegistry? controlRegistry = null,
         IFrontedPluginMetadataProvider? pluginMetadataProvider = null)
     {
+        _ = canvasName;
         var existingByPackage = config.RequiredPlugins
             .Where(dependency => !string.IsNullOrWhiteSpace(dependency.PackageId))
             .GroupBy(dependency => dependency.PackageId, StringComparer.OrdinalIgnoreCase)
@@ -42,7 +43,7 @@ internal static class FrontedLayoutPluginDependencyScanner
                     MarketplaceId = string.IsNullOrWhiteSpace(existing?.MarketplaceId) ? group.Key : existing.MarketplaceId,
                     Reason = FrontedPluginDependencyReason.FrontedControl,
                     Controls = controls,
-                    RequiredBy = [$"{windowTypeName}/{canvasName}"]
+                    RequiredBy = [windowTypeName]
                 };
             })
             .ToList();
@@ -62,13 +63,13 @@ internal static class FrontedLayoutPluginDependencyScanner
                         ? displayName
                         : existing?.DisplayName ?? windowPackageId,
                     MarketplaceId = string.IsNullOrWhiteSpace(existing?.MarketplaceId) ? windowPackageId : existing.MarketplaceId,
-                    RequiredBy = [$"{windowTypeName}/{canvasName}"],
+                    RequiredBy = [windowTypeName],
                     Reason = FrontedPluginDependencyReason.FrontedWindow
                 });
             }
             else
             {
-                AddDistinct(windowDependency.RequiredBy, [$"{windowTypeName}/{canvasName}"]);
+                AddDistinct(windowDependency.RequiredBy, [windowTypeName]);
                 windowDependency.Reason = FrontedPluginDependencyReason.Both;
             }
         }

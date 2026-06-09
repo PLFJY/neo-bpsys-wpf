@@ -7,9 +7,9 @@ namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 /// Converts v3 <c>FullWindowType</c> identities to filesystem-safe layout paths.
 /// </summary>
 /// <remarks>
-/// Built-in identities map directly, for example <c>BpWindow</c> to <c>FrontedLayouts/BpWindow</c>.
+/// Built-in identities map directly, for example <c>BpWindow</c> to <c>FrontedLayouts/BpWindow.json</c>.
 /// Plugin identities map from <c>plugin:{PackageId}/{WindowTypeName}</c> to
-/// <c>FrontedLayouts/plugin/{PackageId}/{WindowTypeName}</c>.
+/// <c>FrontedLayouts/plugin/{PackageId}/{WindowTypeName}.json</c>.
 /// </remarks>
 public static partial class FrontedLayoutWindowPathHelper
 {
@@ -21,6 +21,9 @@ public static partial class FrontedLayoutWindowPathHelper
     /// <summary>
     /// Gets the safe folder path relative to the fronted layout root for a full window type.
     /// </summary>
+    /// <param name="fullWindowType">Built-in window type name or plugin full window type.</param>
+    /// <returns>Safe relative folder path without the layout JSON filename.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="fullWindowType"/> is not path-safe.</exception>
     public static string GetLayoutFolderRelativePath(string fullWindowType)
     {
         if (TryParsePluginFullWindowType(fullWindowType, out var packageId, out var windowTypeName))
@@ -35,9 +38,32 @@ public static partial class FrontedLayoutWindowPathHelper
     }
 
     /// <summary>
-    /// Gets the safe canvas layout JSON path relative to the fronted layout root.
+    /// Gets the safe window layout JSON path relative to the fronted layout root.
     /// </summary>
-    public static string GetLayoutRelativePath(string fullWindowType, string canvasName)
+    /// <param name="fullWindowType">Built-in window type name or plugin full window type.</param>
+    /// <returns>Safe relative layout JSON path.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="fullWindowType"/> is not path-safe.</exception>
+    public static string GetLayoutRelativePath(string fullWindowType)
+    {
+        if (TryParsePluginFullWindowType(fullWindowType, out var packageId, out var windowTypeName))
+        {
+            EnsureSafePathSegment(packageId, nameof(packageId));
+            EnsureSafePathSegment(windowTypeName, nameof(windowTypeName));
+            return Path.Combine("plugin", packageId, $"{windowTypeName}.json");
+        }
+
+        EnsureSafePathSegment(fullWindowType, nameof(fullWindowType));
+        return $"{fullWindowType}.json";
+    }
+
+    /// <summary>
+    /// Gets the safe legacy canvas layout JSON path relative to the fronted layout root.
+    /// </summary>
+    /// <param name="fullWindowType">Built-in window type name or plugin full window type.</param>
+    /// <param name="canvasName">Legacy canvas name.</param>
+    /// <returns>Safe relative legacy canvas layout JSON path.</returns>
+    /// <exception cref="ArgumentException">Thrown when the window type or canvas name is not path-safe.</exception>
+    public static string GetLegacyCanvasLayoutRelativePath(string fullWindowType, string canvasName)
     {
         EnsureSafePathSegment(canvasName, nameof(canvasName));
         return Path.Combine(GetLayoutFolderRelativePath(fullWindowType), $"{canvasName}.json");
@@ -46,6 +72,9 @@ public static partial class FrontedLayoutWindowPathHelper
     /// <summary>
     /// Gets the safe window options JSON path relative to the fronted layout root.
     /// </summary>
+    /// <param name="fullWindowType">Built-in window type name or plugin full window type.</param>
+    /// <returns>Safe relative window options JSON path.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="fullWindowType"/> is not path-safe.</exception>
     public static string GetWindowOptionsRelativePath(string fullWindowType)
     {
         return Path.Combine(GetLayoutFolderRelativePath(fullWindowType), "window.json");
@@ -54,6 +83,9 @@ public static partial class FrontedLayoutWindowPathHelper
     /// <summary>
     /// Converts a safe relative layout folder back to the corresponding full window type.
     /// </summary>
+    /// <param name="relativeFolder">Relative folder created by <see cref="GetLayoutFolderRelativePath"/>.</param>
+    /// <returns>The full window type represented by the folder.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="relativeFolder"/> is not a valid layout folder.</exception>
     public static string ToFullWindowTypeFromRelativeFolder(string relativeFolder)
     {
         var parts = relativeFolder
@@ -78,6 +110,8 @@ public static partial class FrontedLayoutWindowPathHelper
     /// <summary>
     /// Returns whether a full window type can be safely mapped to a layout path.
     /// </summary>
+    /// <param name="fullWindowType">Built-in window type name or plugin full window type.</param>
+    /// <returns><see langword="true"/> when the value can be mapped to a safe layout path.</returns>
     public static bool IsSafeFullWindowType(string fullWindowType)
     {
         try
@@ -94,6 +128,10 @@ public static partial class FrontedLayoutWindowPathHelper
     /// <summary>
     /// Parses a plugin full window type in the form <c>plugin:{PackageId}/{WindowTypeName}</c>.
     /// </summary>
+    /// <param name="fullWindowType">Full window type to parse.</param>
+    /// <param name="packageId">Parsed package id when parsing succeeds.</param>
+    /// <param name="windowTypeName">Parsed plugin window type name when parsing succeeds.</param>
+    /// <returns><see langword="true"/> when <paramref name="fullWindowType"/> is a valid plugin full window type.</returns>
     public static bool TryParsePluginFullWindowType(
         string fullWindowType,
         out string packageId,
@@ -122,6 +160,8 @@ public static partial class FrontedLayoutWindowPathHelper
     /// <summary>
     /// Returns whether a value is safe for one layout path segment.
     /// </summary>
+    /// <param name="value">Path segment value to validate.</param>
+    /// <returns><see langword="true"/> when the value is safe for a single layout path segment.</returns>
     public static bool IsSafePathSegment(string value)
     {
         return !string.IsNullOrWhiteSpace(value)

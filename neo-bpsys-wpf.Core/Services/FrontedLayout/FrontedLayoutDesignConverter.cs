@@ -198,7 +198,7 @@ public class FrontedLayoutDesignConverter
                     MarketplaceId = existing?.MarketplaceId,
                     Reason = FrontedPluginDependencyReason.FrontedControl,
                     Controls = controls,
-                    RequiredBy = [$"{document.WindowTypeName}/{document.CanvasName}"]
+                    RequiredBy = [document.WindowTypeName]
                 };
             })
             .ToList();
@@ -222,15 +222,15 @@ public class FrontedLayoutDesignConverter
                         : existing?.DisplayName ?? windowPackageId,
                     MarketplaceId = existing?.MarketplaceId,
                     Reason = FrontedPluginDependencyReason.FrontedWindow,
-                    RequiredBy = [$"{document.WindowTypeName}/{document.CanvasName}"]
+                    RequiredBy = [document.WindowTypeName]
                 });
             }
             else
             {
                 windowDependency.Reason = FrontedPluginDependencyReason.Both;
-                if (!windowDependency.RequiredBy.Contains($"{document.WindowTypeName}/{document.CanvasName}", StringComparer.Ordinal))
+                if (!windowDependency.RequiredBy.Contains(document.WindowTypeName, StringComparer.Ordinal))
                 {
-                    windowDependency.RequiredBy.Add($"{document.WindowTypeName}/{document.CanvasName}");
+                    windowDependency.RequiredBy.Add(document.WindowTypeName);
                 }
             }
         }

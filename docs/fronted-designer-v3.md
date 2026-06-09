@@ -1,16 +1,16 @@
 # Fronted Designer v3 设计文档
 
-本文是前台窗口设计者模式 v3 重构的设计文档。v3 目标是转向 JSON/config-driven UI：前台窗口 XAML 最终只保留外层 Canvas，控件由 JSON 配置描述，并由已注册的控件工厂创建。这样可以把布局、素材、控件类型和绑定关系放到可迁移、可导入导出的结构中，也为独立编辑窗口、插件扩展控件和新版 `.bpui` 包提供基础。
+本文是前台窗口设计者模式 v3 重构的设计文档。v3 已改为 Window-centric：布局管理单位只有 Window，每个 v3 layout window 运行时固定由 `FrontedWindowBase` 创建 `ViewBox -> Canvas BaseCanvas`，控件由 `FrontedWindowConfig` 描述并由已注册的控件工厂创建。Canvas/BaseCanvas 只是实现细节，不出现在用户概念、FrontManagePage、包路径或 manifest 中。
 
-当前所有内置前台窗口均已接入 v3 renderer：`ScoreSurWindow`、`ScoreHunWindow`、`ScoreGlobalWindow`、`CutSceneWindow`、`GameDataWindow`、`WidgetsWindow`、`BpWindow`。Designer v3 独立编辑器（`FrontedDesignerWindow`）是当前唯一的设计编辑器。
+当前内置 v3 layout window 包括 `ScoreSurWindow`、`ScoreHunWindow`、`ScoreGlobalWindow`、`CutSceneWindow`、`GameDataWindow`、`BpWindow`、`BpOverviewWindow` 和 `MapV2Window`。`WidgetsWindow` 和 MapV1 已删除；旧 `BpOverViewCanvas` 只在 legacy converter 中识别并迁移为 `BpOverviewWindow`。Designer v3 独立编辑器（`FrontedDesignerWindow`）是当前唯一的设计编辑器。
 
-> **下一阶段规划**: [Fronted Behavior Graph System — Phase 0 源码勘察报告](fronted-behavior-system.md) — 把 Designer v3 从静态前台布局编辑器升级成"事件驱动的控件动画/行为编排系统"。本报告包含 BehaviorGuid 接入点、behaviors 文件结构、Phase 1 实施步骤等全部勘察结论。
+Behavior Graph 相关设计见 [fronted-behavior-system.md](fronted-behavior-system.md)。该文档记录 BehaviorGuid、behaviors 文件结构、运行时触发和编辑器接入点。
 
 ## 1. 背景与目标
 
 当前设计者模式历史上是 XAML-first：前台窗口的具体控件直接写在各窗口 XAML 中，运行时再由 `FrontedWindowService` 扫描 Canvas 子元素并保存/恢复每个 Canvas 的 `ElementInfo`。这些旧版文件和 `Config.json` 前台自定义字段现在只作为 legacy 转换、迁移对照存在；当前运行时和编辑器路径是 Designer v3 + `FrontedLayouts`。SettingPage 旧前台自定义入口已移除，旧版真实窗口设计器也已移除。旧 `.bpui` 包与 `Config.json`、`CustomUi/`、`FrontElementsConfig/` 等历史结构的耦合只由 legacy 转换流程处理。
 
-v3 目标是转向 JSON/config-driven UI：前台窗口 XAML 最终只保留外层 Canvas，控件由 JSON 配置描述，并由已注册的控件工厂创建。这样可以把布局、素材、控件类型和绑定关系放到可迁移、可导入导出的结构中，也为独立编辑窗口、插件扩展控件和新版 `.bpui` 包打基础。
+v3 目标是转向 JSON/config-driven UI：v3 layout window 不需要独立 XAML，`FrontedWindowBase` 提供配置驱动 host；传统固定 XAML window 保持原行为。`WindowSettings` 应用于窗口，`CanvasSettings` 应用于内部 `BaseCanvas`，`ControlLayout` 交给 renderer 渲染。
 
 这项重构必须分阶段推进，不能在一个巨大提交中同时改设置版本、迁移、渲染器、窗口 XAML、编辑器和 `.bpui`。前台窗口会被 OBS 捕获，导播现场对稳定性要求高；每个阶段都应保持旧路径可回退，并优先迁移低风险窗口验证模型。
 
@@ -19,26 +19,27 @@ v3 目标是转向 JSON/config-driven UI：前台窗口 XAML 最终只保留外�
 | 文件类型 | v3 版本字段 | 说明 |
 | --- | --- | --- |
 | 主设置 `config.json` | `Version = 3` | 新创建的配置应写入 `Version = 3`。缺失或 `null` 表示 legacy 配置。 |
-| Canvas 布局配置 | `"Version": 3` | 每个前台 Canvas 独立一个 v3 布局配置文件。 |
+| Window 布局配置 | `"Version": 3` | 每个 v3 layout window 一个 `FrontedWindowConfig`。 |
 | v3 `.bpui` 包 | `"FormatVersion": 3` | 包格式版本。完整 manifest schema 见 [bpui-package-v3.md](bpui-package-v3.md)。 |
 
 这些版本号刻意对齐为 3，方便维护者和用户理解当前代际，但它们仍属于不同文件类型：`config.json` 版本不等于 Canvas 布局 schema 版本，也不等于 `.bpui` 包版本。后续代码实现时不要把三者混成一个枚举或一个迁移入口。
 
-`.bpui v3` 包必须只携带 Designer v3 前台布局、布局资源、manifest 和可选预览/说明，不得包含或覆盖全局 `Config.json`。manifest 使用根级 `MinVersion`，不包含 `App` 对象或 `App.MinVersion`。v3 包可以从 `FrontManagePage` 导入安装，激活时会把包内 `layouts/{Window}/{Canvas}.json` 和可选 `window.json` 复制到用户布局目录；激活内置布局会清空用户布局并回退到内置资源。legacy `.bpui` 会在导入前转换为干净 v3 包，运行时 renderer 仍只读取 v3 layout，不增加 legacy 兼容分支。
+`.bpui v3` 包必须只携带 Designer v3 前台布局、布局资源、manifest 和可选预览/说明，不得包含或覆盖全局 `Config.json`。manifest 使用根级 `MinVersion`，不包含 `App` 对象或 `App.MinVersion`，并标记 Window-centric layout model。v3 包可以从 `FrontManagePage` 导入安装，包内路径为 `FrontedLayouts/{WindowTypeName}.json` 和 `behaviors/{WindowTypeName}.behaviors.json`。legacy `.bpui` 会在导入前转换为干净 v3 包，运行时 renderer 仍只读取 v3 layout，不增加 legacy 兼容分支。
 
 `config.json` 中缺失或 `null` 的 `Version` 表示 legacy 配置。当前加载配置前会检测 raw JSON root，备份 legacy `Config.json` 后写回 `Version = 3`；该迁移只更新主设置版本，不迁移前台窗口布局、不生成 v3 Canvas 配置，也不移除旧前台设置。
 
-## 3. 新版 Canvas 配置文件结构
+## 3. 新版 Window 配置文件结构
 
 推荐路径：
 
 | 来源 | 路径 |
 | --- | --- |
-| 用户布局 | `%APPDATA%\neo-bpsys-wpf\FrontedLayouts\{WindowTypeName}\{CanvasName}.json` |
-| 内置默认布局 | `Resources\FrontedLayouts\{WindowTypeName}\{CanvasName}.json` |
-| 插件默认布局 | `{PluginFolder}\FrontedLayouts\{WindowTypeName}\{CanvasName}.json` |
+| 用户布局 | `%APPDATA%\neo-bpsys-wpf\FrontedLayouts\{WindowTypeName}.json` |
+| 内置默认布局 | `Resources\FrontedLayouts\{WindowTypeName}.json` |
+| 插件默认布局 | `{PluginFolder}\FrontedLayouts\{WindowTypeName}.json` |
+| behavior | `behaviors\{WindowTypeName}.behaviors.json` |
 
-每个前台 Canvas 使用独立布局配置文件。内置窗口的 `{WindowTypeName}` 使用窗口类型名，例如 `BpWindow`；插件窗口使用 `plugin:{PackageId}/{WindowTypeName}`，保存到用户目录时会映射为安全子路径。`{CanvasName}` 使用窗口 descriptor 声明的 Canvas 名称，例如 `BaseCanvas`。
+每个 v3 layout window 使用独立布局配置文件。内置窗口的 `{WindowTypeName}` 使用窗口类型名，例如 `BpWindow`；插件窗口使用 `plugin:{PackageId}/{WindowTypeName}`，保存到用户目录时会映射为安全子路径。内部如必须保留 CanvasName，唯一值为常量 `BaseCanvas`。
 
 以下路径属于 legacy 格式，仅由 legacy `.bpui` 转换流程使用，不再被运行时读取：
 
@@ -49,56 +50,51 @@ v3 目标是转向 JSON/config-driven UI：前台窗口 XAML 最终只保留外�
 
 v3 渲染路径优先读取新目录。legacy 文件只应进入迁移流程，不应让新运行时渲染代码长期保留旧格式分支。
 
-## 4. v3 Canvas config JSON 示例
+## 4. v3 Window config JSON 示例
 
 ```json
 {
   "Version": 3,
-  "CanvasWidth": 1440,
-  "CanvasHeight": 810,
-  "BackgroundImage": "Resources/bp.png",
-  "SurTeamName": {
-    "ControlType": "Text",
-    "Left": 580,
-    "Top": 720,
-    "Width": 120,
-    "Height": null,
-    "TextBinding": {
-      "Sources": [
-        { "Path": "CurrentGame.SurTeam.Name" }
-      ]
-    },
-    "HorizontalAlignment": "Center",
-    "VerticalAlignment": "Center",
-    "TextAlignment": "Center",
-    "TextWrapping": "WrapWithOverflow",
-    "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
-    "FontWeight": "Bold",
-    "Color": "#FFFFFFFF",
-    "FontSize": 28,
-    "ZIndex": 2
+  "WindowSettings": {
+    "WindowWidth": 1440,
+    "WindowHeight": 810,
+    "AllowsTransparency": true,
+    "BackgroundColor": "#00000000",
+    "Topmost": false,
+    "ViewboxStretch": "Fill"
   },
-  "StaticTitle": {
-    "ControlType": "Text",
-    "Left": 20,
-    "Top": 20,
-    "Text": "示例静态文本",
-    "Color": "#FFFFFFFF",
-    "FontSize": 28,
-    "ZIndex": 2
+  "CanvasSettings": {
+    "CanvasWidth": 1440,
+    "CanvasHeight": 810,
+    "BackgroundImage": "Resources/bp.png",
+    "EnableBoModeStates": false,
+    "BoModeStates": {}
   },
-  "SurPick1": {
-    "ControlType": "Image",
-    "Left": 143,
-    "Top": 620,
-    "Width": 141,
-    "Height": 160,
-    "BindingPath": "CurrentGame.SurPlayerList[1].PictureShown",
-    "ZIndex": 1,
-    "PickingBorderAvailable": true,
-    "PickingBorderName": "SurPickingBorder1",
-    "PickingBorderImagePath": "Resources/pickingBorder.png",
-    "Lockable": false
+  "ControlLayout": {
+    "RequiredPlugins": [],
+    "Controls": {
+      "SurTeamName": {
+        "ControlType": "Text",
+        "Left": 580,
+        "Top": 720,
+        "Width": 120,
+        "Height": null,
+        "TextBinding": {
+          "Sources": [
+            { "Path": "CurrentGame.SurTeam.Name" }
+          ]
+        },
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Center",
+        "TextWrapping": "WrapWithOverflow",
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
+        "FontWeight": "Bold",
+        "Color": "#FFFFFFFF",
+        "FontSize": 28,
+        "ZIndex": 2
+      }
+    }
   }
 }
 ```
@@ -107,7 +103,9 @@ v3 渲染路径优先读取新目录。legacy 文件只应进入迁移流程，�
 
 | 字段 | 要求 |
 | --- | --- |
-| root-level 控件 JSON key | 就是控件名。该名称同时作为 `FrontedCanvasConfig.Controls` key、生成控件 `FrameworkElement.Name`、namescope 注册名和编辑器设计项 `Name`。config object 内不应再加重复 `Name` 字段。 |
+| `WindowSettings` | 窗口级设置。`BackgroundColor` 属于这里，`ViewboxStretch` 保存字符串 enum 名称。 |
+| `CanvasSettings` | 内部 `BaseCanvas` 设置。没有 `BackgroundColor`；Canvas 纯色背景用 Rectangle / Shape 控件实现。 |
+| `ControlLayout.Controls` JSON key | 就是控件名。该名称同时作为控件 dictionary key、生成控件 `FrameworkElement.Name`、namescope 注册名和编辑器设计项 `Name`。config object 内不应再加重复 `Name` 字段。 |
 | JSON 属性名 | 使用 PascalCase，便于 C# 模型直接映射。 |
 | `Left` / `Top` / `Width` / `Height` | 使用真实 JSON number 或 `null`，不是字符串。 |
 | `ZIndex` | 使用数字字段名 `ZIndex`，不要使用 `Panel.ZIndex`。 |
@@ -115,11 +113,13 @@ v3 渲染路径优先读取新目录。legacy 文件只应进入迁移流程，�
 | 前台 UI 图片相对路径 | 默认把 `Resources/xxx.png` 解析到 `Resources/bpui` 下，除非后续代码显式提供其他 resolver。 |
 | 绝对路径 | 直接按文件系统路径读取。 |
 
-`BackgroundImage` 与控件图片路径由 `IFrontedResourceResolver` 解析。默认语义是绝对路径直接读取，`Resources/xxx.png` 映射到运行目录 `Resources/bpui/xxx.png`，其他相对路径保守地按 `Resources/bpui` 下资源处理。
+`CanvasSettings.BackgroundImage` 与控件图片路径由 `IFrontedResourceResolver` 解析。默认语义是绝对路径直接读取，`Resources/xxx.png` 映射到运行目录 `Resources/bpui/xxx.png`，其他相对路径保守地按 `Resources/bpui` 下资源处理。
 
-Canvas 可启用通用 BO3/BO5 状态：root-level `BackgroundImage` / `RequiredPlugins` / 控件表示默认/BO5 state，`EnableBoModeStates = true` 且 `BoModeStates["Bo3"]` 存在时，运行时会在 `ISharedDataService.IsBo3Mode == true` 时渲染 BO3 state。BO3 state 拥有独立 `BackgroundImage`、`RequiredPlugins` 和 `Controls`，因此控件位置、大小、ZIndex、绑定、静态文本和 `Visibility` 都可以与 BO5 不同。`BackgroundImageVariants` 已移除，不保留迁移兼容分支。
+当前实现暂时让窗口宽高跟随 Canvas 设计尺寸。`WindowSettings.WindowWidth` / `WindowHeight` 会在读取、保存、包导入导出和 legacy 转换时同步为 `CanvasSettings.CanvasWidth` / `CanvasHeight`；Designer 只需要编辑 Canvas 设计尺寸，不单独暴露窗口宽高控件。`ViewBox` 负责把固定设计坐标缩放到窗口内容区域，控件坐标不会随窗口 resize 被重写。
 
-layout validator 会校验 Canvas 级字段：`Version` 必须为 3，`CanvasWidth` / `CanvasHeight` 必须大于 0，`BackgroundImage` 非空且 resolver 可用时应能解析到文件。root-level 控件 JSON key 的重复检测必须发生在 raw JSON / converter 阶段；如果先反序列化成 `Dictionary<string, FrontedControlConfigBase>`，重复 key 可能已经丢失。
+Canvas 可启用通用 BO3/BO5 状态：`CanvasSettings` root 表示默认/BO5 state，`EnableBoModeStates = true` 且 `BoModeStates["Bo3"]` 存在时，运行时会在 `ISharedDataService.IsBo3Mode == true` 时渲染 BO3 state。BO3 state 拥有独立 `BackgroundImage`、`RequiredPlugins` 和 `Controls`，因此控件位置、大小、ZIndex、绑定、静态文本和 `Visibility` 都可以与 BO5 不同。`BackgroundImageVariants` 已移除，不保留迁移兼容分支。
+
+layout validator 会校验 Window-centric 字段：`Version` 必须为 3，`WindowSettings.WindowWidth` / `WindowHeight`、`CanvasSettings.CanvasWidth` / `CanvasHeight` 必须大于 0，`CanvasSettings.BackgroundImage` 非空且 resolver 可用时应能解析到文件。控件 JSON key 的重复检测必须发生在 raw JSON / converter 阶段；如果先反序列化成 `Dictionary<string, FrontedControlConfigBase>`，重复 key 可能已经丢失。
 
 ## 5. 内置控件模型
 
@@ -135,7 +135,7 @@ v3 内置控件类型如下：
 | `TalentTraitDisplay` | `CutSceneWindow` 默认布局控件，封装求生者/监管者固定天赋图标和监管者辅助特质图标。 |
 | `GameProgressText` | `CutSceneWindow` 默认布局控件，集中生成 BO3/BO5 相关的对局进度文本。 |
 | `MapNameText` | `CutSceneWindow` 默认布局控件，按地图 key 生成本地化地图名。 |
-| `MapV2Display` | `WidgetsWindow` 地图 BP v2 控件，复用 `MapV2Presenter`；地图卡片正常/禁用外框颜色由布局配置控制。 |
+| `MapV2Display` | `MapV2Window` 地图 BP v2 控件，复用 `MapV2Presenter`；地图卡片正常/禁用外框颜色由布局配置控制。 |
 | `BackgroundTintRectangle` / `BackgroundTintPolygon` | 自动使用当前有效 Canvas 背景图，生成保留纹理的静态染色副本，并按矩形或多边形区域对齐裁剪。 |
 
 背景局部染色控件不保存独立图片路径，也不要求用户重复选择 Canvas 背景。它们使用运行时解析后的 root/BO3 有效背景，支持静态 `TintColor` 或通过 `TintBindingPath` 绑定 `HomeTeam.ColorHex` / `AwayTeam.ColorHex`。`BaseColorWithTexture` 模式按可见矩形或多边形遮罩区域的局部平均亮度归一化，把 `TintColor` 作为该区域的目标基色，以源背景相对局部平均亮度提供纹理细节，`TextureStrength` 控制细节对比度；`TintStrength` 仍控制原图与处理结果的混合比例。队伍颜色或遮罩尺寸变化时会重新生成染色图；该实现是偶发 CPU 图像处理，不是实时 GPU shader。
@@ -240,7 +240,7 @@ Ban 位不再需要专用业务控件即可表达：当前局 Ban 绑定 `Curren
 
 旧 JSON 字段继续兼容读取：`BanLockAvailable` 映射到 `Lockable`，`BanLockImagePath` 映射到 `LockImagePath`，`PickingBorder` 映射到 `PickingBorderAvailable`，`PickingBorderImagePath` 保持原名。Property Grid 和新默认布局优先显示新字段名。
 
-`BpWindow` 已迁移到 `Resources/FrontedLayouts/BpWindow/BaseCanvas.json`。`BpWindow.xaml` 不再持有 BP 控件，只保留外层 `BaseCanvas`；默认布局中的 `SurPick0..3`、`HunPick`、`SurPickingBorder0..3` 和 `HunPickingBorder` 由 v3 renderer 生成或注册。renderer 会把控件名注册到窗口 namescope，因此 `AnimationService` 继续可以通过 `window.FindName(...)` 找到 pick 图和呼吸边框。
+`BpWindow` 已迁移到 `Resources/FrontedLayouts/BpWindow.json`。v3 layout window 由 `FrontedWindowBase` host 创建 `ViewBox -> BaseCanvas`；默认布局中的 `SurPick0..3`、`HunPick`、`SurPickingBorder0..3` 和 `HunPickingBorder` 由 v3 renderer 生成或注册。renderer 会把控件名注册到窗口 namescope，因此 `AnimationService` 继续可以通过 `window.FindName(...)` 找到 pick 图和呼吸边框。
 
 这些运行时关键名称集中在 `FrontedLayoutRuntimeContractCatalog` 中。校验器会检查 `BpWindow/BaseCanvas` 是否仍包含这些名称；缺失会报告错误。
 
@@ -346,7 +346,7 @@ layout JSON 中的 `plugin:*` 控件会先反序列化为通用 `PluginFrontedCo
 | 独立性 | 编辑窗口独立于真实前台输出窗口。不要在 OBS 捕获的真实窗口上直接编辑。 |
 | 模拟准确性 | 尽量模拟目标 Canvas 的尺寸、背景、控件、绑定和资源解析。 |
 | 标题栏偏移 | 必须考虑窗口标题栏导致的偏移问题。坐标计算以模拟 Canvas 内容区为准，不以窗口外边界为准。 |
-| 多 Canvas | `WidgetsWindow` 等多 Canvas 窗口必须逐 Canvas 编辑和保存。 |
+| Window-centric | Designer 只选择 Window；每个 v3 layout window 内部固定 `BaseCanvas`。 |
 | 命中测试 | 透明、空文本、空图片和初始隐藏控件必须通过独立 interaction layer 的透明 hitbox 选中。 |
 | Placeholder | 预览占位数据只属于编辑器，不写入 v3 layout JSON。 |
 | 中央区域 | 显示可缩放 Canvas preview。 |
@@ -393,42 +393,21 @@ legacy 转换会把 `ScoreWindowSettings.GlobalScoreBgImageUri` 写入 `ScoreGlo
 
 ## 10. 分阶段实现历史
 
-> 以下记录各阶段的完成范围，供追溯参考。
+> 以下记录已经落地的能力范围，供追溯参考。
 
-| 阶段 | 范围 | 当前状态 |
-| --- | --- | --- |
-| Phase 0 | 设计文档 only | 已完成 |
-| Phase 1 | `Settings.Version = 3`，legacy config 迁移 skeleton | 已完成 |
-| Phase 2 | v3 layout models、资源 resolver、Text/Image factory、renderer skeleton | 已完成 |
-| Phase 3 | `ScoreSurWindow` / `ScoreHunWindow` 迁移到 v3 renderer，绑定 `MatchScore` | 已完成 |
-| Phase 4 | `CutSceneWindow` 迁移，`TalentTraitDisplay` / `GameProgressText` / `MapNameText` 控件 | 已完成 |
-| Phase 5 | `GameDataWindow` 迁移，`LocalizedText` 控件 | 已完成 |
-| Phase 6 | `WidgetsWindow` 多 Canvas 迁移，当前 Ban 位改为 `Image` + `Lockable` / `MapV2Display` | 已完成 |
-| Phase 7 | `BpWindow` 迁移，Ban 位和 pick 呼吸边框改为 `Image` overlay | 已完成 |
-| Phase 8A | 独立编辑器设计规格 | 已完成 |
-| Phase 8B | 设计期基础：设计项模型、validator、引用扫描、关键名称 catalog | 已完成 |
-| Phase 8C | 独立编辑器 shell、窗口/Canvas 选择器、只读预览 | 已完成 |
-| Phase 8D | interaction layer、透明 hitbox、拖拽/缩放、键盘微调 | 已完成 |
-| Phase 8E | 基础 Property Grid、Name 编辑、运行时关键名称保护 | 已完成 |
-| Phase 8F | Add Control、默认 config factory、FontFamily 字体 ComboBox、Undo/Redo | 已完成 |
-| Phase 8G | Binding Browser、Resource Browser | 已完成 |
-| Phase 8H | 用户 layout save/reset、脏状态提示、吸附网格 | 已完成 |
-| Phase 9A | `.bpui v3` 文档规格 | 已完成 |
-| Phase 9B.0 | Canvas Properties GUI、`bpui://local` 资源规范化、Window Options | 已完成 |
-| Phase 9B.1 | `FrontManagePage` Layout Package Manager UI skeleton | 已完成 |
-| Phase 9C | v3 `.bpui` 导出、manifest 对话框、资源重写 | 已完成 |
-| Phase 9D | v3 `.bpui` 导入/安装/激活/删除 | 已完成 |
-| Phase 9F | legacy `.bpui` 转换器 | 已完成 |
-| Phase 12 | Designer v3 显示层 i18n | 已完成 |
-| Phase 13A | 插件前台控件文档和 schema | 已完成 |
-| Phase 13B | 插件控件 registry、descriptor API、runtime 缺失跳过 | 已完成 |
-| Phase 13C | Designer 插件控件支持、Add Control、缺失占位符 | 已完成 |
-| Phase 13C.5 | 示例插件清理 | 已完成 |
-| Phase 13D/15 | `.bpui` 依赖扫描、导出/导入、缺失保留 | 已完成 |
-| Phase 13E | 插件市场交互式安装/更新引导 | 已完成 |
-| Phase 13F | 安全、版本兼容、i18n 和测试收口 | 已完成 |
-| Phase 14B | 左侧图层面板：ZIndex 分组、同层排序、跨层移动 | 已完成 |
-| Phase 14D | 画布/对象智能对齐、临时辅助线 | 已完成 |
+| 能力 | 当前状态 |
+| --- | --- |
+| `Settings.Version = 3`、legacy config 迁移骨架 | 已完成 |
+| v3 layout models、资源 resolver、Text/Image factory、renderer skeleton | 已完成 |
+| `ScoreSurWindow` / `ScoreHunWindow` / `ScoreGlobalWindow` 迁移到 v3 renderer 并绑定 `MatchScore` | 已完成 |
+| `CutSceneWindow`、`GameDataWindow` 和 `BpWindow` 迁移到 v3 renderer | 已完成 |
+| `WidgetsWindow` 删除，`BpOverviewWindow` / `MapV2Window` 改为配置驱动窗口 | 已完成 |
+| 独立 Designer：Window 选择、只读预览、interaction layer、透明 hitbox、拖拽/缩放、键盘微调 | 已完成 |
+| Property Grid、Add Control、字体选择、Undo/Redo、Binding Browser、Resource Browser | 已完成 |
+| 用户 layout save/reset、脏状态提示、吸附网格 | 已完成 |
+| `.bpui v3` 导出、导入、安装、激活、删除和 legacy `.bpui` 转换 | 已完成 |
+| 插件前台控件、插件 Layout 窗口、依赖扫描、缺失插件占位符和市场引导 | 已完成 |
+| 安全限制、版本兼容、i18n、左侧图层面板和智能对齐 | 已完成 |
 
 ## 11. 明确非目标
 
@@ -437,7 +416,7 @@ legacy 转换会把 `ScoreWindowSettings.GlobalScoreBgImageUri` 写入 `ScoreGlo
 | 非目标 | 说明 |
 | --- | --- |
 | 修改无关运行时行为 | 不改 ViewModel、插件加载逻辑或未迁移窗口的运行逻辑。 |
-| 继续批量迁移 XAML | 当前已迁移 `ScoreSurWindow`、`ScoreHunWindow`、`ScoreGlobalWindow`、`CutSceneWindow`、`GameDataWindow`、`WidgetsWindow` 和 `BpWindow`；后续不应顺手改无关窗口。 |
+| 继续批量迁移 XAML | 当前 v3 layout window 通过 `FrontedWindowBase` host 渲染；`WidgetsWindow` 已删除，后续不应顺手改无关窗口。 |
 | 实现完整编辑器 UI | 当前编辑器已有交互层、Property Grid、Add Control、Binding/Resource Browser、保存/重置。仍不实现 Save As。 |
 | 修改 `AnimationService` 查找逻辑 | 当前 `AnimationService` 仍通过 `FindName` 查找动画目标。 |
 | 迁移 `.bpui` | 旧 `.bpui` 已有转换器。 |

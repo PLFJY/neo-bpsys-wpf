@@ -36,7 +36,7 @@ public class FrontedPluginDependency
     public List<string> Controls { get; set; } = [];
 
     /// <summary>
-    /// Layout locations that require this plugin, formatted as <c>{FullWindowType}/{CanvasName}</c>.
+    /// Layout windows that require this plugin, formatted as <c>{FullWindowType}</c>.
     /// Missing plugin window layouts are preserved in packages but not loaded until the plugin is installed.
     /// </summary>
     public List<string> RequiredBy { get; set; } = [];

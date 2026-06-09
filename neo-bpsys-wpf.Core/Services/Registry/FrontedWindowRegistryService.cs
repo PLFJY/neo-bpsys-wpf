@@ -28,7 +28,9 @@ public sealed class FrontedWindowRegistryService : IFrontedWindowRegistry
     {
         logger ??= NullLogger<FrontedWindowRegistryService>.Instance;
         _builtInWindows = RegisteredWindow
+            .Where(info => !string.Equals(info.Name, "WidgetsWindow", StringComparison.Ordinal))
             .Select(FrontedBuiltInWindowDescriptor.FromInfo)
+            .Concat(GetAdditionalBuiltInV3Windows())
             .ToArray();
 
         var acceptedPluginWindows = new List<FrontedPluginWindowDescriptor>();
@@ -93,8 +95,23 @@ public sealed class FrontedWindowRegistryService : IFrontedWindowRegistry
     public IReadOnlyList<IFrontedWindowDescriptor> GetCustomizableLayoutWindows()
     {
         return _windows
-            .Where(descriptor => descriptor.Kind is FrontedWindowKind.BuiltIn or FrontedWindowKind.PluginLayout)
-            .Where(descriptor => descriptor.Canvases.Any(canvas => canvas.Customizable))
+            .Where(descriptor => descriptor.IsV3LayoutWindow && descriptor.Customizable)
+            .ToArray();
+    }
+
+    public IReadOnlyList<IFrontedWindowDescriptor> GetManageableWindows()
+    {
+        return _windows
+            .Where(descriptor => descriptor.IsVisibleInFrontManage)
+            .OrderBy(descriptor => string.IsNullOrWhiteSpace(descriptor.GroupKey)
+                ? descriptor.IsPlugin ? "Plugin" : "BuiltIn"
+                : descriptor.GroupKey,
+                StringComparer.Ordinal)
+            .ThenBy(descriptor => descriptor.DisplayOrder ?? int.MaxValue)
+            .ThenBy(descriptor => string.IsNullOrWhiteSpace(descriptor.DisplayName)
+                ? descriptor.WindowTypeName
+                : descriptor.DisplayName,
+                StringComparer.OrdinalIgnoreCase)
             .ToArray();
     }
 
@@ -107,6 +124,53 @@ public sealed class FrontedWindowRegistryService : IFrontedWindowRegistry
     public IReadOnlyList<FrontedPluginWindowDescriptor> GetPluginWindows() => _pluginWindows;
 
     public IReadOnlyList<FrontedBuiltInWindowDescriptor> GetBuiltInWindows() => _builtInWindows;
+
+    private static IReadOnlyList<FrontedBuiltInWindowDescriptor> GetAdditionalBuiltInV3Windows()
+    {
+        return
+        [
+            new FrontedBuiltInWindowDescriptor
+            {
+                WindowId = "3F6AD6CC-9271-4FFB-A98A-91771F86C27F",
+                WindowTypeName = "BpOverviewWindow",
+                DisplayName = "BpOverviewWindow",
+                DisplayNameKey = "Designer.Window.BpOverviewWindow",
+                GroupKey = "BuiltIn",
+                DisplayOrder = 700,
+                IsV3LayoutWindow = true,
+                Customizable = true,
+                Canvases =
+                [
+                    new FrontedCanvasDescriptor
+                    {
+                        CanvasName = FrontedLayoutConstants.BaseCanvasName,
+                        DisplayName = FrontedLayoutConstants.BaseCanvasName,
+                        Customizable = true
+                    }
+                ]
+            },
+            new FrontedBuiltInWindowDescriptor
+            {
+                WindowId = "9898D1EF-6E45-4968-8B18-2016389E4C3E",
+                WindowTypeName = "MapV2Window",
+                DisplayName = "MapV2Window",
+                DisplayNameKey = "Designer.Window.MapV2Window",
+                GroupKey = "BuiltIn",
+                DisplayOrder = 710,
+                IsV3LayoutWindow = true,
+                Customizable = true,
+                Canvases =
+                [
+                    new FrontedCanvasDescriptor
+                    {
+                        CanvasName = FrontedLayoutConstants.BaseCanvasName,
+                        DisplayName = FrontedLayoutConstants.BaseCanvasName,
+                        Customizable = true
+                    }
+                ]
+            }
+        ];
+    }
 
     private static Dictionary<string, IFrontedWindowDescriptor> BuildIndex(
         IEnumerable<IFrontedWindowDescriptor> descriptors,

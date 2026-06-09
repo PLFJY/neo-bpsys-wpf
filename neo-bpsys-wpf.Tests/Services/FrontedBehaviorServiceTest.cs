@@ -46,7 +46,7 @@ public class FrontedBehaviorServiceTest
             });
 
             await service.SaveDocumentAsync(document, TestContext.Current.CancellationToken);
-            var loaded = await service.LoadDocumentAsync("BpWindow", "BaseCanvas", TestContext.Current.CancellationToken);
+            var loaded = await service.LoadDocumentAsync("BpWindow", TestContext.Current.CancellationToken);
 
             var loadedBehavior = Assert.Single(loaded.FindSet(behaviorGuid)!.Behaviors);
             Assert.Equal("Fade", loadedBehavior.Name);
@@ -68,7 +68,7 @@ public class FrontedBehaviorServiceTest
         {
             var service = CreateService(root);
 
-            var document = await service.LoadDocumentAsync("BpWindow", "BaseCanvas", TestContext.Current.CancellationToken);
+            var document = await service.LoadDocumentAsync("BpWindow", TestContext.Current.CancellationToken);
 
             Assert.Equal(1, document.Version);
             Assert.Equal("BpWindow", document.WindowType);
@@ -99,10 +99,10 @@ public class FrontedBehaviorServiceTest
             document.GetOrCreateSet(keptGuid, "Kept").Behaviors.Add(new FrontedBehavior { Name = "Kept" });
             await service.SaveDocumentAsync(document, TestContext.Current.CancellationToken);
 
-            var loaded = await service.LoadDocumentAsync("BpWindow", "BaseCanvas", TestContext.Current.CancellationToken);
+            var loaded = await service.LoadDocumentAsync("BpWindow", TestContext.Current.CancellationToken);
             service.RemoveBehaviors(removedGuid);
             await service.SaveDocumentAsync(loaded, TestContext.Current.CancellationToken);
-            var roundTrip = await service.LoadDocumentAsync("BpWindow", "BaseCanvas", TestContext.Current.CancellationToken);
+            var roundTrip = await service.LoadDocumentAsync("BpWindow", TestContext.Current.CancellationToken);
 
             Assert.Null(roundTrip.FindSet(removedGuid));
             Assert.NotNull(roundTrip.FindSet(keptGuid));

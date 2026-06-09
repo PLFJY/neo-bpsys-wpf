@@ -39,7 +39,7 @@ public partial class App
         services.AddSingleton<IUpdaterService, UpdaterService>();
 
         // Service containing navigation, same as INavigationWindow... but without window
-        services.AddSingleton<INavigationService, neo_bpsys_wpf.Services.NavigationService>();
+        services.AddSingleton<INavigationService, Services.NavigationService>();
 
         // SharedDataServices
         services.AddSingleton<ISharedDataService, SharedDataService>();
@@ -174,7 +174,6 @@ public partial class App
         services.AddFrontedWindow<ScoreSurWindow, ScoreWindowViewModel>();
         services.AddFrontedWindow<ScoreHunWindow, ScoreWindowViewModel>();
         services.AddFrontedWindow<GameDataWindow, GameDataWindowViewModel>();
-        services.AddFrontedWindow<WidgetsWindow, WidgetsWindowViewModel>();
         services.AddTransient<FrontedDesignerWindowViewModel>();
         services.AddTransient<FrontedDesignerWindow>();
         services.AddTransient<FrontedBindingBrowserWindowViewModel>();

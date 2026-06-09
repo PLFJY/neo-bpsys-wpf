@@ -1,0 +1,113 @@
+{
+  "Version": 3,
+  "WindowSettings": {
+    "WindowWidth": 1440.0,
+    "WindowHeight": 160.0,
+    "AllowsTransparency": true,
+    "BackgroundColor": "#00000000",
+    "Topmost": false,
+    "ViewboxStretch": "Fill"
+  },
+  "CanvasSettings": {
+    "CanvasWidth": 1440.0,
+    "CanvasHeight": 160.0,
+    "BackgroundImage": "Resources/mapBpV2.png",
+    "EnableBoModeStates": false,
+    "BoModeStates": {}
+  },
+  "ControlLayout": {
+    "RequiredPlugins": null,
+    "Controls": {
+      "Arms_Factory": {
+        "ControlType": "MapV2Display",
+        "Left": 50.5,
+        "Top": 0,
+        "Width": 149,
+        "Height": 160,
+        "MapKey": "ArmsFactory",
+        "MapBorderNormalColor": "#FF2B483B",
+        "MapBorderBannedColor": "#FF9C3E2F"
+      },
+      "The_Red_Church": {
+        "ControlType": "MapV2Display",
+        "Left": 204,
+        "Top": 0,
+        "Width": 151,
+        "Height": 160,
+        "MapKey": "TheRedChurch",
+        "MapBorderNormalColor": "#FF2B483B",
+        "MapBorderBannedColor": "#FF9C3E2F"
+      },
+      "Sacred_Heart_Hospital": {
+        "ControlType": "MapV2Display",
+        "Left": 359,
+        "Top": 0,
+        "Width": 151,
+        "Height": 160,
+        "MapKey": "SacredHeartHospital",
+        "MapBorderNormalColor": "#FF2B483B",
+        "MapBorderBannedColor": "#FF9C3E2F"
+      },
+      "Leo_s_Memory": {
+        "ControlType": "MapV2Display",
+        "Left": 514,
+        "Top": 0,
+        "Width": 151,
+        "Height": 160,
+        "MapKey": "LeosMemory",
+        "MapBorderNormalColor": "#FF2B483B",
+        "MapBorderBannedColor": "#FF9C3E2F"
+      },
+      "Moonlit_River_Park": {
+        "ControlType": "MapV2Display",
+        "Left": 669,
+        "Top": 0,
+        "Width": 151,
+        "Height": 160,
+        "MapKey": "MoonlitRiverPark",
+        "MapBorderNormalColor": "#FF2B483B",
+        "MapBorderBannedColor": "#FF9C3E2F"
+      },
+      "Lakeside_Village": {
+        "ControlType": "MapV2Display",
+        "Left": 824,
+        "Top": 0,
+        "Width": 151,
+        "Height": 160,
+        "MapKey": "LakesideVillage",
+        "MapBorderNormalColor": "#FF2B483B",
+        "MapBorderBannedColor": "#FF9C3E2F"
+      },
+      "Eversleeping_Town": {
+        "ControlType": "MapV2Display",
+        "Left": 979,
+        "Top": 0,
+        "Width": 151,
+        "Height": 160,
+        "MapKey": "EversleepingTown",
+        "MapBorderNormalColor": "#FF2B483B",
+        "MapBorderBannedColor": "#FF9C3E2F"
+      },
+      "Chinatown": {
+        "ControlType": "MapV2Display",
+        "Left": 1134,
+        "Top": 0,
+        "Width": 151,
+        "Height": 160,
+        "MapKey": "ChinaTown",
+        "MapBorderNormalColor": "#FF2B483B",
+        "MapBorderBannedColor": "#FF9C3E2F"
+      },
+      "Darkwoods": {
+        "ControlType": "MapV2Display",
+        "Left": 1289,
+        "Top": 0,
+        "Width": 151,
+        "Height": 160,
+        "MapKey": "Darkwoods",
+        "MapBorderNormalColor": "#FF2B483B",
+        "MapBorderBannedColor": "#FF9C3E2F"
+      }
+    }
+  }
+}

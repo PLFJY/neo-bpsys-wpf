@@ -208,7 +208,8 @@ public class SettingsHostService : ISettingsHostService
                     break;
                 case FrontedWindowType.GameDataWindow:
                     break;
-                case FrontedWindowType.WidgetsWindow:
+                case FrontedWindowType.BpOverviewWindow:
+                case FrontedWindowType.MapV2Window:
                     break;
                 default:
                     _logger.LogWarning("Unsupported window type for config reset: {WindowType}", windowType);

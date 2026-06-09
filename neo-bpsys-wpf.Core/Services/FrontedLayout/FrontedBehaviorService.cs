@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using System.IO;
 using System.Text.Encodings.Web;
@@ -50,13 +51,12 @@ public sealed class FrontedBehaviorService : IFrontedBehaviorService
     /// <inheritdoc />
     public async Task<FrontedBehaviorDocument> LoadDocumentAsync(
         string windowType,
-        string canvasName,
         CancellationToken cancellationToken = default)
     {
-        var path = await ResolveLoadPathAsync(windowType, canvasName, cancellationToken);
+        var path = await ResolveLoadPathAsync(windowType, cancellationToken);
         if (path is null || !File.Exists(path))
         {
-            _currentDocument = CreateEmptyDocument(windowType, canvasName);
+            _currentDocument = CreateEmptyDocument(windowType);
             return _currentDocument;
         }
 
@@ -69,8 +69,8 @@ public sealed class FrontedBehaviorService : IFrontedBehaviorService
 
             var json = await File.ReadAllTextAsync(path, cancellationToken);
             _currentDocument = JsonSerializer.Deserialize<FrontedBehaviorDocument>(json, _jsonSerializerOptions)
-                               ?? CreateEmptyDocument(windowType, canvasName);
-            NormalizeDocument(_currentDocument, windowType, canvasName);
+                               ?? CreateEmptyDocument(windowType);
+            NormalizeDocument(_currentDocument, windowType);
             return _currentDocument;
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
@@ -79,9 +79,9 @@ public sealed class FrontedBehaviorService : IFrontedBehaviorService
                 ex,
                 "Failed to load fronted behavior document. Window: {WindowType}, Canvas: {CanvasName}, Path: {Path}",
                 windowType,
-                canvasName,
+                FrontedLayoutConstants.BaseCanvasName,
                 path);
-            _currentDocument = CreateEmptyDocument(windowType, canvasName);
+            _currentDocument = CreateEmptyDocument(windowType);
             return _currentDocument;
         }
     }
@@ -96,14 +96,9 @@ public sealed class FrontedBehaviorService : IFrontedBehaviorService
             throw new ArgumentException("Behavior document WindowType is required.", nameof(document));
         }
 
-        if (string.IsNullOrWhiteSpace(document.CanvasName))
-        {
-            throw new ArgumentException("Behavior document CanvasName is required.", nameof(document));
-        }
-
-        NormalizeDocument(document, document.WindowType, document.CanvasName);
+        NormalizeDocument(document, document.WindowType);
         RemoveEmptySets(document);
-        var path = await ResolveSavePathAsync(document.WindowType, document.CanvasName, cancellationToken);
+        var path = await ResolveSavePathAsync(document.WindowType, cancellationToken);
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         var json = JsonSerializer.Serialize(document, _jsonSerializerOptions);
         await File.WriteAllTextAsync(path, json, cancellationToken);
@@ -118,12 +113,11 @@ public sealed class FrontedBehaviorService : IFrontedBehaviorService
 
     private async Task<string?> ResolveLoadPathAsync(
         string windowType,
-        string canvasName,
         CancellationToken cancellationToken)
     {
         if (_packageManager is null)
         {
-            return GetFallbackBehaviorPath(windowType, canvasName);
+            return GetFallbackBehaviorPath(windowType);
         }
 
         var active = await _packageManager.GetActivePackageStateAsync(cancellationToken);
@@ -132,64 +126,63 @@ public sealed class FrontedBehaviorService : IFrontedBehaviorService
             return null;
         }
 
-        return GetPackageBehaviorPath(active.PackageId, windowType, canvasName);
+        return GetPackageBehaviorPath(active.PackageId, windowType);
     }
 
     private async Task<string> ResolveSavePathAsync(
         string windowType,
-        string canvasName,
         CancellationToken cancellationToken)
     {
         if (_packageManager is null)
         {
-            return GetFallbackBehaviorPath(windowType, canvasName);
+            return GetFallbackBehaviorPath(windowType);
         }
 
         var package = await _packageManager.EnsureWritableActivePackageAsync(cancellationToken);
-        return GetPackageBehaviorPath(package.PackageId, windowType, canvasName);
+        return GetPackageBehaviorPath(package.PackageId, windowType);
     }
 
-    private string GetPackageBehaviorPath(string packageId, string windowType, string canvasName)
+    private string GetPackageBehaviorPath(string packageId, string windowType)
     {
         var layoutsRoot = _packageManager!.GetPackageLayoutsRootFolder(packageId);
         var packageRoot = Path.GetDirectoryName(Path.GetFullPath(layoutsRoot))
                           ?? throw new InvalidOperationException("Package layouts root has no parent.");
-        return Path.Combine(packageRoot, GetBehaviorRelativePath(windowType, canvasName));
+        return Path.Combine(packageRoot, GetBehaviorRelativePath(windowType));
     }
 
-    private string GetFallbackBehaviorPath(string windowType, string canvasName)
+    private string GetFallbackBehaviorPath(string windowType)
     {
-        return Path.Combine(_userLayoutStore.GetRootFolder(), GetBehaviorRelativePath(windowType, canvasName));
+        return Path.Combine(_userLayoutStore.GetRootFolder(), GetBehaviorRelativePath(windowType));
     }
 
-    private static string GetBehaviorRelativePath(string windowType, string canvasName)
+    private static string GetBehaviorRelativePath(string windowType)
     {
-        if (!FrontedLayoutWindowPathHelper.IsSafePathSegment(canvasName))
+        var layoutRelativePath = FrontedLayoutWindowPathHelper.GetLayoutRelativePath(windowType);
+        var folder = Path.GetDirectoryName(layoutRelativePath);
+        var fileName = $"{Path.GetFileNameWithoutExtension(layoutRelativePath)}.behaviors.json";
+        if (string.IsNullOrWhiteSpace(folder))
         {
-            throw new ArgumentException($"canvasName is not a safe layout path segment: {canvasName}", nameof(canvasName));
+            return Path.Combine("behaviors", fileName);
         }
 
-        return Path.Combine(
-            "behaviors",
-            FrontedLayoutWindowPathHelper.GetLayoutFolderRelativePath(windowType),
-            $"{canvasName}.behaviors.json");
+        return Path.Combine("behaviors", folder, fileName);
     }
 
-    private static FrontedBehaviorDocument CreateEmptyDocument(string windowType, string canvasName)
+    private static FrontedBehaviorDocument CreateEmptyDocument(string windowType)
     {
         return new FrontedBehaviorDocument
         {
             Version = 1,
             WindowType = windowType,
-            CanvasName = canvasName
+            CanvasName = FrontedLayoutConstants.BaseCanvasName
         };
     }
 
-    private static void NormalizeDocument(FrontedBehaviorDocument document, string windowType, string canvasName)
+    private static void NormalizeDocument(FrontedBehaviorDocument document, string windowType)
     {
         document.Version = 1;
         document.WindowType = string.IsNullOrWhiteSpace(document.WindowType) ? windowType : document.WindowType;
-        document.CanvasName = string.IsNullOrWhiteSpace(document.CanvasName) ? canvasName : document.CanvasName;
+        document.CanvasName = FrontedLayoutConstants.BaseCanvasName;
         document.ControlBehaviorSets ??= [];
 
         foreach (var set in document.ControlBehaviorSets)

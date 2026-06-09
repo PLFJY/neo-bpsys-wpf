@@ -8,47 +8,58 @@ namespace neo_bpsys_wpf.Core.Abstractions.Services;
 public interface IFrontedLayoutService
 {
     /// <summary>
-    /// 加载 Canvas 配置。
+    /// Loads a window-centric v3 layout config.
     /// </summary>
-    Task<FrontedCanvasConfig?> LoadCanvasConfigAsync(
+    /// <param name="windowTypeName">The full window type name.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The loaded config, or <see langword="null"/> when missing.</returns>
+    Task<FrontedWindowConfig?> LoadWindowConfigAsync(
         string windowTypeName,
-        string canvasName,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 加载 Canvas 配置并返回来源元数据。
+    /// Loads a window-centric v3 layout config and returns source metadata.
     /// </summary>
-    Task<FrontedLayoutLoadResult> LoadCanvasConfigWithMetadataAsync(
+    /// <param name="windowTypeName">The full window type name.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The load result.</returns>
+    Task<FrontedLayoutLoadResult> LoadWindowConfigWithMetadataAsync(
         string windowTypeName,
-        string canvasName,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 保存 Canvas 配置到用户布局路径。
+    /// Saves a window-centric v3 layout config.
     /// </summary>
-    Task SaveCanvasConfigAsync(
+    /// <param name="windowTypeName">The full window type name.</param>
+    /// <param name="config">The config to save.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task SaveWindowConfigAsync(
         string windowTypeName,
-        string canvasName,
-        FrontedCanvasConfig config,
+        FrontedWindowConfig config,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 删除用户布局。
+    /// Deletes the user window layout.
     /// </summary>
-    Task DeleteUserLayoutAsync(
+    /// <param name="windowTypeName">The full window type name.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task DeleteUserWindowLayoutAsync(
         string windowTypeName,
-        string canvasName,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 用户布局是否存在。
+    /// Returns whether a user window layout exists.
     /// </summary>
-    bool UserLayoutExists(string windowTypeName, string canvasName);
+    /// <param name="windowTypeName">The full window type name.</param>
+    /// <returns><see langword="true"/> when the user layout exists.</returns>
+    bool UserWindowLayoutExists(string windowTypeName);
 
     /// <summary>
-    /// 获取用户布局路径。
+    /// Gets the user window layout path.
     /// </summary>
-    string GetUserLayoutPath(string windowTypeName, string canvasName);
+    /// <param name="windowTypeName">The full window type name.</param>
+    /// <returns>The layout JSON path.</returns>
+    string GetUserWindowLayoutPath(string windowTypeName);
 
     /// <summary>
     /// 获取用户布局根目录。
@@ -56,20 +67,27 @@ public interface IFrontedLayoutService
     string GetUserLayoutRootFolder();
 
     /// <summary>
-    /// 直接读取内置默认布局，不走 fallback 链。用于"重置为内部布局"等场景。
+    /// Loads the built-in default window layout without the fallback chain.
     /// </summary>
-    Task<FrontedCanvasConfig?> LoadBuiltInDefaultLayoutAsync(
+    /// <param name="windowTypeName">The full window type name.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The built-in config, or <see langword="null"/> when missing or invalid.</returns>
+    Task<FrontedWindowConfig?> LoadBuiltInDefaultWindowLayoutAsync(
         string windowTypeName,
-        string canvasName,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 获取内置默认布局路径。
+    /// Gets the built-in default window layout path.
     /// </summary>
-    string GetBuiltInDefaultLayoutPath(string windowTypeName, string canvasName);
+    /// <param name="windowTypeName">The full window type name.</param>
+    /// <returns>The built-in layout JSON path.</returns>
+    string GetBuiltInDefaultWindowLayoutPath(string windowTypeName);
 
     /// <summary>
-    /// 获取插件默认布局路径。
+    /// Gets the plugin default window layout path.
     /// </summary>
-    string GetPluginDefaultLayoutPath(string pluginFolder, string windowTypeName, string canvasName);
+    /// <param name="pluginFolder">The plugin folder.</param>
+    /// <param name="windowTypeName">The plugin-local window type name.</param>
+    /// <returns>The plugin default layout JSON path.</returns>
+    string GetPluginDefaultWindowLayoutPath(string pluginFolder, string windowTypeName);
 }

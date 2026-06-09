@@ -214,9 +214,9 @@ public class FrontedBehaviorRuntimeTest
         {
             WindowId = "TestWindow",
             WindowType = "TestType",
-            CanvasName = "TestCanvas",
+            CanvasName = "BaseCanvas",
             RootCanvas = new Canvas(),
-            CanvasConfig = new FrontedCanvasConfig(),
+            WindowConfig = FrontedWindowConfig.FromCanvasConfig(new FrontedCanvasConfig()),
             SharedDataService = Mock.Of<ISharedDataService>()
         };
     }

@@ -28,7 +28,7 @@ public class FrontedBehaviorRuntimeHostTest
 
             var behaviorService = new Mock<IFrontedBehaviorService>();
             behaviorService
-                .Setup(s => s.LoadDocumentAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Setup(s => s.LoadDocumentAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(document);
 
             var eventBus = new FrontedEventBus();
@@ -67,7 +67,7 @@ public class FrontedBehaviorRuntimeHostTest
 
             var behaviorService = new Mock<IFrontedBehaviorService>();
             behaviorService
-                .Setup(s => s.LoadDocumentAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Setup(s => s.LoadDocumentAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(document);
 
             var eventBus = new FrontedEventBus();
@@ -101,7 +101,7 @@ public class FrontedBehaviorRuntimeHostTest
             });
 
             // Detach — should cancel all running behaviors
-            manager.DetachHost("TestWindow", "BaseCanvas");
+            manager.DetachHost("TestWindow");
 
             // Assert
             Assert.True(capturedCancellationToken.IsCancellationRequested);
@@ -120,7 +120,7 @@ public class FrontedBehaviorRuntimeHostTest
 
             var behaviorService = new Mock<IFrontedBehaviorService>();
             behaviorService
-                .Setup(s => s.LoadDocumentAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Setup(s => s.LoadDocumentAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(document);
 
             var eventBus = new Mock<IFrontedEventBus>();
@@ -137,7 +137,7 @@ public class FrontedBehaviorRuntimeHostTest
 
             // Act
             await manager.AttachHostAsync(context);
-            manager.DetachHost("TestWindow", "BaseCanvas");
+            manager.DetachHost("TestWindow");
 
             // Assert
             animationRuntime.Verify(r => r.Release(canvas), Times.Once);
@@ -158,7 +158,7 @@ public class FrontedBehaviorRuntimeHostTest
 
             var behaviorService = new Mock<IFrontedBehaviorService>();
             behaviorService
-                .Setup(s => s.LoadDocumentAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Setup(s => s.LoadDocumentAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(document);
 
             var eventBus = new FrontedEventBus();
@@ -177,7 +177,7 @@ public class FrontedBehaviorRuntimeHostTest
 
             // Act — attach, detach, re-attach
             await manager.AttachHostAsync(context);
-            manager.DetachHost("TestWindow", "BaseCanvas");
+            manager.DetachHost("TestWindow");
             await manager.AttachHostAsync(context);
 
             // Publish event — should only invoke ExecuteAsync once
@@ -206,7 +206,7 @@ public class FrontedBehaviorRuntimeHostTest
 
             var behaviorService = new Mock<IFrontedBehaviorService>();
             behaviorService
-                .Setup(s => s.LoadDocumentAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Setup(s => s.LoadDocumentAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(document);
 
             var eventBus = new FrontedEventBus();
@@ -270,7 +270,7 @@ public class FrontedBehaviorRuntimeHostTest
 
             var behaviorService = new Mock<IFrontedBehaviorService>();
             behaviorService
-                .Setup(s => s.LoadDocumentAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Setup(s => s.LoadDocumentAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(document);
 
             FrontedGraphExecutionContext? capturedContext = null;
@@ -303,7 +303,7 @@ public class FrontedBehaviorRuntimeHostTest
         WindowType = "BpWindow",
         CanvasName = "BaseCanvas",
         RootCanvas = canvas,
-        CanvasConfig = config ?? new FrontedCanvasConfig(),
+        WindowConfig = FrontedWindowConfig.FromCanvasConfig(config ?? new FrontedCanvasConfig()),
         SharedDataService = Mock.Of<ISharedDataService>(),
         IsDesignerPreview = false
     };

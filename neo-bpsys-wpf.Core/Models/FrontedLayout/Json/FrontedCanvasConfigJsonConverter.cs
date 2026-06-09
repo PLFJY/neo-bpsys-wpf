@@ -253,7 +253,7 @@ public class FrontedCanvasConfigJsonConverter : JsonConverter<FrontedCanvasConfi
         writer.WriteEndObject();
     }
 
-    private static FrontedControlConfigBase ReadControl(
+    internal static FrontedControlConfigBase ReadControl(
         string controlName,
         JsonElement element,
         JsonSerializerOptions options)

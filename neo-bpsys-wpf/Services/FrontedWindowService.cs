@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Controls;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
@@ -32,8 +33,6 @@ public class FrontedWindowService : IFrontedWindowService
 
     public Dictionary<string, bool> FrontedWindowStates { get; private set; } = [];
 
-    public List<(string, string)> FrontedCanvas { get; private set; } = [];
-
     public FrontedWindowService(
         IServiceProvider services,
         IFrontedWindowRegistry windowRegistry,
@@ -56,19 +55,9 @@ public class FrontedWindowService : IFrontedWindowService
 
     public void RegisterFrontedWindowAndCanvas(string windowId, Window window, string[]? canvasNames = null)
     {
-        canvasNames ??= ["BaseCanvas"];
-
         if (FrontedWindows.TryAdd(windowId, window))
         {
             FrontedWindowStates[windowId] = false;
-        }
-
-        foreach (var canvasName in canvasNames)
-        {
-            if (!FrontedCanvas.Contains((windowId, canvasName)))
-            {
-                FrontedCanvas.Add((windowId, canvasName));
-            }
         }
     }
 
@@ -84,10 +73,7 @@ public class FrontedWindowService : IFrontedWindowService
                     continue;
                 }
 
-                RegisterFrontedWindowAndCanvas(
-                    descriptor.WindowId,
-                    window,
-                    descriptor.Canvases.Select(canvas => canvas.CanvasName).ToArray());
+                RegisterFrontedWindowAndCanvas(descriptor.WindowId, window);
             }
             catch (Exception ex)
             {
@@ -104,13 +90,25 @@ public class FrontedWindowService : IFrontedWindowService
     {
         return descriptor switch
         {
+            { IsV3LayoutWindow: true } => CreateV3LayoutHostWindow(descriptor),
             FrontedBuiltInWindowDescriptor builtIn => CreateXamlWindow(builtIn.WindowType, null),
             FrontedPluginWindowDescriptor { Kind: FrontedWindowKind.PluginXaml } pluginXaml =>
                 CreateXamlWindow(pluginXaml.WindowType, pluginXaml.ViewModelType),
-            FrontedPluginWindowDescriptor { Kind: FrontedWindowKind.PluginLayout } pluginLayout =>
-                ActivatorUtilities.CreateInstance<FrontedPluginLayoutWindow>(_services, pluginLayout),
             _ => null
         };
+    }
+
+    private Window CreateV3LayoutHostWindow(IFrontedWindowDescriptor descriptor)
+    {
+        var window = new FrontedWindowBase();
+        window.InitializeV3LayoutHost(
+            descriptor,
+            _services.GetRequiredService<IFrontedLayoutService>(),
+            _services.GetRequiredService<IFrontedRenderer>(),
+            _services.GetRequiredService<ISharedDataService>(),
+            _services.GetService<IFrontedBehaviorRuntime>(),
+            _logger);
+        return window;
     }
 
     private Window? CreateXamlWindow(Type? windowType, Type? viewModelType)
@@ -152,10 +150,16 @@ public class FrontedWindowService : IFrontedWindowService
         return window?.GetType().Name;
     }
 
-    public void AllWindowShow()
+    public async void AllWindowShow()
     {
-        foreach (var window in FrontedWindows.Where(pair => !FrontedWindowStates[pair.Key]))
+        foreach (var window in FrontedWindows.Where(pair => !FrontedWindowStates[pair.Key]).ToArray())
         {
+            await PrepareWindowForShowAsync(window.Key, window.Value);
+            if (FrontedWindowStates[window.Key])
+            {
+                continue;
+            }
+
             ApplyWindowLayoutOptions(window.Key, window.Value);
             window.Value.Show();
             FrontedWindowStates[window.Key] = true;
@@ -201,7 +205,7 @@ public class FrontedWindowService : IFrontedWindowService
         ShowWindow(FrontedWindowHelper.GetFrontedWindowGuid(windowType));
     }
 
-    public void ShowWindow(string windowId)
+    public async void ShowWindow(string windowId)
     {
         if (!FrontedWindows.TryGetValue(windowId, out var window))
         {
@@ -217,14 +221,47 @@ public class FrontedWindowService : IFrontedWindowService
         }
 
         ApplyWindowLayoutOptions(windowId, window);
+        await PrepareWindowForShowAsync(windowId, window);
+        if (FrontedWindowStates[windowId])
+        {
+            return;
+        }
+
         window.Show();
         FrontedWindowStates[windowId] = true;
         PublishWindowShown(windowId);
     }
 
+    private async Task PrepareWindowForShowAsync(string windowId, Window window)
+    {
+        if (!_windowRegistry.TryGetByWindowId(windowId, out var descriptor)
+            || !descriptor.IsV3LayoutWindow
+            || window is not FrontedWindowBase frontedWindow)
+        {
+            return;
+        }
+
+        try
+        {
+            await frontedWindow.ReloadFrontedLayoutAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(
+                ex,
+                "Failed to prepare v3 fronted window before show. Window: {FullWindowType}",
+                descriptor.FullWindowType);
+        }
+    }
+
     private void ApplyWindowLayoutOptions(string windowId, Window window)
     {
         if (!_windowRegistry.TryGetByWindowId(windowId, out var descriptor))
+        {
+            return;
+        }
+
+        if (descriptor.IsV3LayoutWindow)
         {
             return;
         }

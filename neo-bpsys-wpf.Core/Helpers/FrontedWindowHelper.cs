@@ -16,7 +16,8 @@ public static class FrontedWindowHelper
         { FrontedWindowType.ScoreHunWindow, "EA69B342-DDA6-4394-BDFD-13368D76A6BA" },
         { FrontedWindowType.ScoreSurWindow, "4ED64F79-E47C-490D-B86A-AE396F279889" },
         { FrontedWindowType.GameDataWindow, "25378080-2085-4121-BE9A-94E987455CEC" },
-        { FrontedWindowType.WidgetsWindow, "712D2E21-B8DF-4220-8E3D-8AD0003DD079" }
+        { FrontedWindowType.BpOverviewWindow, "3F6AD6CC-9271-4FFB-A98A-91771F86C27F" },
+        { FrontedWindowType.MapV2Window, "9898D1EF-6E45-4968-8B18-2016389E4C3E" }
     };
 
     /// <summary>

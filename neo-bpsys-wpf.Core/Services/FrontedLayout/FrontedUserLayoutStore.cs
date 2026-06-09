@@ -19,27 +19,104 @@ public class FrontedUserLayoutStore : IFrontedUserLayoutStore
         MaxDepth = FrontedLayoutLimits.MaxJsonDepth
     };
 
+    /// <summary>
+    /// Initializes a user layout store under the default application data layout folder.
+    /// </summary>
     public FrontedUserLayoutStore()
         : this(AppConstants.FrontedLayoutsPath)
     {
     }
 
+    /// <summary>
+    /// Initializes a user layout store under a custom layout root folder.
+    /// </summary>
+    /// <param name="rootFolder">Root folder for user window layout JSON files.</param>
     public FrontedUserLayoutStore(string rootFolder)
     {
         _rootFolder = rootFolder;
     }
 
-    public bool Exists(string windowTypeName, string canvasName)
+    /// <inheritdoc />
+    public bool Exists(string windowTypeName)
     {
-        return File.Exists(GetLayoutPath(windowTypeName, canvasName));
+        return File.Exists(GetLayoutPath(windowTypeName));
     }
 
-    public async Task<FrontedCanvasConfig?> LoadAsync(
+    /// <inheritdoc />
+    public async Task<FrontedWindowConfig?> LoadAsync(
+        string windowTypeName,
+        CancellationToken cancellationToken = default)
+    {
+        var path = GetLayoutPath(windowTypeName);
+        if (!File.Exists(path))
+        {
+            return null;
+        }
+
+        if (new FileInfo(path).Length > FrontedLayoutLimits.MaxLayoutJsonBytes)
+        {
+            throw new InvalidDataException("LayoutJsonTooLarge");
+        }
+
+        var json = await File.ReadAllTextAsync(path, cancellationToken);
+        var config = JsonSerializer.Deserialize<FrontedWindowConfig>(json, _jsonSerializerOptions);
+        config?.SyncWindowSizeToCanvas();
+        return config;
+    }
+
+    /// <inheritdoc />
+    public async Task SaveAsync(
+        string windowTypeName,
+        FrontedWindowConfig config,
+        CancellationToken cancellationToken = default)
+    {
+        Directory.CreateDirectory(_rootFolder);
+
+        config.Version = 3;
+        config.SyncWindowSizeToCanvas();
+        var json = JsonSerializer.Serialize(config, _jsonSerializerOptions);
+        await File.WriteAllTextAsync(GetLayoutPath(windowTypeName), json, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task DeleteAsync(
+        string windowTypeName,
+        CancellationToken cancellationToken = default)
+    {
+        var path = GetLayoutPath(windowTypeName);
+        if (File.Exists(path))
+        {
+            File.Delete(path);
+        }
+
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc />
+    public string GetLayoutPath(string windowTypeName)
+    {
+        return Path.Combine(_rootFolder, FrontedLayoutWindowPathHelper.GetLayoutRelativePath(windowTypeName));
+    }
+
+    /// <inheritdoc />
+    public string GetRootFolder()
+    {
+        return _rootFolder;
+    }
+
+    /// <inheritdoc />
+    public bool LegacyCanvasExists(string windowTypeName, string canvasName)
+    {
+        return File.Exists(GetLegacyCanvasLayoutPath(windowTypeName, canvasName));
+    }
+
+    /// <inheritdoc />
+    public async Task<FrontedCanvasConfig?> LoadLegacyCanvasAsync(
         string windowTypeName,
         string canvasName,
         CancellationToken cancellationToken = default)
     {
-        var path = GetLayoutPath(windowTypeName, canvasName);
+        var path = GetLegacyCanvasLayoutPath(windowTypeName, canvasName);
         if (!File.Exists(path))
         {
             return null;
@@ -54,46 +131,11 @@ public class FrontedUserLayoutStore : IFrontedUserLayoutStore
         return JsonSerializer.Deserialize<FrontedCanvasConfig>(json, _jsonSerializerOptions);
     }
 
-    public async Task SaveAsync(
-        string windowTypeName,
-        string canvasName,
-        FrontedCanvasConfig config,
-        CancellationToken cancellationToken = default)
+    /// <inheritdoc />
+    public string GetLegacyCanvasLayoutPath(string windowTypeName, string canvasName)
     {
-        var folder = GetLayoutFolder(windowTypeName, canvasName);
-        Directory.CreateDirectory(folder);
-
-        config.Version = 3;
-        var json = JsonSerializer.Serialize(config, _jsonSerializerOptions);
-        await File.WriteAllTextAsync(GetLayoutPath(windowTypeName, canvasName), json, cancellationToken);
-    }
-
-    public Task DeleteAsync(
-        string windowTypeName,
-        string canvasName,
-        CancellationToken cancellationToken = default)
-    {
-        var path = GetLayoutPath(windowTypeName, canvasName);
-        if (File.Exists(path))
-        {
-            File.Delete(path);
-        }
-
-        return Task.CompletedTask;
-    }
-
-    public string GetLayoutPath(string windowTypeName, string canvasName)
-    {
-        return Path.Combine(GetLayoutFolder(windowTypeName, canvasName), $"{canvasName}.json");
-    }
-
-    public string GetLayoutFolder(string windowTypeName, string canvasName)
-    {
-        return Path.Combine(_rootFolder, FrontedLayoutWindowPathHelper.GetLayoutFolderRelativePath(windowTypeName));
-    }
-
-    public string GetRootFolder()
-    {
-        return _rootFolder;
+        return Path.Combine(
+            _rootFolder,
+            FrontedLayoutWindowPathHelper.GetLegacyCanvasLayoutRelativePath(windowTypeName, canvasName));
     }
 }

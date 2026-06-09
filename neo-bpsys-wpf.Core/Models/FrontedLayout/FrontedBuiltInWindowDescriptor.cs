@@ -1,4 +1,5 @@
 using neo_bpsys_wpf.Core.Attributes;
+using neo_bpsys_wpf.Core.Enums;
 
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
 
@@ -7,7 +8,7 @@ namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
 /// </summary>
 /// <remarks>
 /// Built-in <see cref="IFrontedWindowDescriptor.FullWindowType"/> values are the window type names,
-/// for example <c>BpWindow</c>, <c>WidgetsWindow</c>, or <c>ScoreGlobalWindow</c>.
+/// for example <c>BpWindow</c>, <c>BpOverviewWindow</c>, or <c>ScoreGlobalWindow</c>.
 /// </remarks>
 public sealed class FrontedBuiltInWindowDescriptor : IFrontedWindowDescriptor
 {
@@ -31,6 +32,21 @@ public sealed class FrontedBuiltInWindowDescriptor : IFrontedWindowDescriptor
 
     /// <inheritdoc />
     public string? DescriptionKey { get; init; }
+
+    /// <inheritdoc />
+    public string? GroupKey { get; init; }
+
+    /// <inheritdoc />
+    public int? DisplayOrder { get; init; }
+
+    /// <inheritdoc />
+    public bool IsVisibleInFrontManage { get; init; } = true;
+
+    /// <inheritdoc />
+    public bool IsV3LayoutWindow { get; init; }
+
+    /// <inheritdoc />
+    public bool Customizable { get; init; } = true;
 
     /// <inheritdoc />
     public FrontedWindowKind Kind => FrontedWindowKind.BuiltIn;
@@ -59,15 +75,24 @@ public sealed class FrontedBuiltInWindowDescriptor : IFrontedWindowDescriptor
             WindowId = info.Id,
             WindowTypeName = info.Name,
             DisplayName = info.Name,
+            DisplayNameKey = $"Designer.Window.{info.Name}",
+            GroupKey = "BuiltIn",
+            DisplayOrder = GetBuiltInDisplayOrder(info.Name),
             WindowType = info.WindowType,
-            Canvases = info.Canvas.Select(canvas => new FrontedCanvasDescriptor
+            IsV3LayoutWindow = true,
+            Canvases = [new FrontedCanvasDescriptor
             {
-                CanvasName = canvas.Name,
-                DisplayName = string.IsNullOrWhiteSpace(canvas.DisplayName)
-                    ? canvas.Name
-                    : canvas.DisplayName.Trim(),
+                CanvasName = FrontedLayoutConstants.BaseCanvasName,
+                DisplayName = FrontedLayoutConstants.BaseCanvasName,
                 Customizable = true
-            }).ToArray()
+            }]
         };
+    }
+
+    private static int GetBuiltInDisplayOrder(string windowTypeName)
+    {
+        return Enum.TryParse<FrontedWindowType>(windowTypeName, ignoreCase: false, out var windowType)
+            ? (int)windowType * 100
+            : int.MaxValue;
     }
 }

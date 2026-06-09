@@ -138,20 +138,19 @@ public class SettingsMigrationService : ISettingsMigrationService
 
         var layoutRoot = AppConstants.FrontedLayoutsPath;
         var builtInRoot = Path.Combine(AppConstants.ResourcesPath, "FrontedLayouts");
-        await MigrateCanvasAsync("BpWindow", "BaseCanvas", legacySettings.BpWindowSettings?.BgImageUri, cancellationToken);
-        await MigrateCanvasAsync("CutSceneWindow", "BaseCanvas", legacySettings.CutSceneWindowSettings?.BgUri, cancellationToken);
-        await MigrateCanvasAsync("ScoreSurWindow", "BaseCanvas", legacySettings.ScoreWindowSettings?.SurScoreBgImageUri, cancellationToken);
-        await MigrateCanvasAsync("ScoreHunWindow", "BaseCanvas", legacySettings.ScoreWindowSettings?.HunScoreBgImageUri, cancellationToken);
-        await MigrateCanvasAsync("ScoreGlobalWindow", "BaseCanvas", legacySettings.ScoreWindowSettings?.GlobalScoreBgImageUri, cancellationToken);
-        await MigrateCanvasAsync("GameDataWindow", "BaseCanvas", legacySettings.GameDataWindowSettings?.BgImageUri, cancellationToken);
-        await MigrateCanvasAsync("WidgetsWindow", "MapBpCanvas", legacySettings.WidgetsWindowSettings?.MapBpBgUri, cancellationToken);
-        await MigrateCanvasAsync("WidgetsWindow", "BpOverViewCanvas", legacySettings.WidgetsWindowSettings?.BpOverviewBgUri, cancellationToken);
-        await MigrateCanvasAsync("WidgetsWindow", "MapV2Canvas", legacySettings.WidgetsWindowSettings?.MapBpV2BgUri, cancellationToken);
+        await MigrateWindowAsync("BpWindow", "BaseCanvas", "BpWindow", legacySettings.BpWindowSettings?.BgImageUri, legacySettings.BpWindowSettings?.AllowsWindowTransparency == true, cancellationToken);
+        await MigrateWindowAsync("CutSceneWindow", "BaseCanvas", "CutSceneWindow", legacySettings.CutSceneWindowSettings?.BgUri, false, cancellationToken);
+        await MigrateWindowAsync("ScoreSurWindow", "BaseCanvas", "ScoreSurWindow", legacySettings.ScoreWindowSettings?.SurScoreBgImageUri, false, cancellationToken);
+        await MigrateWindowAsync("ScoreHunWindow", "BaseCanvas", "ScoreHunWindow", legacySettings.ScoreWindowSettings?.HunScoreBgImageUri, false, cancellationToken);
+        await MigrateWindowAsync("ScoreGlobalWindow", "BaseCanvas", "ScoreGlobalWindow", legacySettings.ScoreWindowSettings?.GlobalScoreBgImageUri, legacySettings.ScoreWindowSettings?.AllowsScoreGlobalWindowTransparency == true, cancellationToken);
+        await MigrateWindowAsync("GameDataWindow", "BaseCanvas", "GameDataWindow", legacySettings.GameDataWindowSettings?.BgImageUri, false, cancellationToken);
+        if (!string.IsNullOrWhiteSpace(legacySettings.WidgetsWindowSettings?.MapBpBgUri))
+        {
+            _logger.LogInformation("Legacy WidgetsWindow/MapBpCanvas was skipped because MapV1 is no longer supported.");
+        }
 
-        var optionsService = new FrontedWindowLayoutOptionsService(layoutRoot);
-        await SaveWindowOptionsAsync(optionsService, "BpWindow", legacySettings.BpWindowSettings?.AllowsWindowTransparency == true, cancellationToken);
-        await SaveWindowOptionsAsync(optionsService, "ScoreGlobalWindow", legacySettings.ScoreWindowSettings?.AllowsScoreGlobalWindowTransparency == true, cancellationToken);
-        await SaveWindowOptionsAsync(optionsService, "WidgetsWindow", legacySettings.WidgetsWindowSettings?.AllowsWindowTransparency == true, cancellationToken);
+        await MigrateWindowAsync("WidgetsWindow", "BpOverViewCanvas", "BpOverviewWindow", legacySettings.WidgetsWindowSettings?.BpOverviewBgUri, legacySettings.WidgetsWindowSettings?.AllowsWindowTransparency == true, cancellationToken);
+        await MigrateWindowAsync("WidgetsWindow", "MapV2Canvas", "MapV2Window", legacySettings.WidgetsWindowSettings?.MapBpV2BgUri, legacySettings.WidgetsWindowSettings?.AllowsWindowTransparency == true, cancellationToken);
 
         if (legacySettings.CutSceneWindowSettings?.IsBlackTalentAndTraitEnable == true)
         {
@@ -164,58 +163,57 @@ public class SettingsMigrationService : ISettingsMigrationService
             _logger.LogWarning("Legacy camp icon black-version settings have no active Designer v3 runtime setting and were not migrated.");
         }
 
-        async Task MigrateCanvasAsync(string window, string canvas, string? backgroundImage, CancellationToken ct)
+        async Task MigrateWindowAsync(
+            string legacyWindow,
+            string legacyCanvas,
+            string outputWindow,
+            string? backgroundImage,
+            bool allowTransparency,
+            CancellationToken ct)
         {
             if (string.IsNullOrWhiteSpace(backgroundImage)
-                && !LegacyFrontedTextStyleMigrator.HasLegacyTextStyles(window, legacySettings))
+                && !allowTransparency
+                && !LegacyFrontedTextStyleMigrator.HasLegacyTextStyles(legacyWindow, legacySettings))
             {
                 return;
             }
 
-            var builtInPath = Path.Combine(builtInRoot, window, $"{canvas}.json");
+            var builtInPath = Path.Combine(builtInRoot, $"{outputWindow}.json");
             if (!File.Exists(builtInPath))
             {
-                _logger.LogWarning("Built-in v3 layout missing during legacy migration: {Window}/{Canvas}", window, canvas);
+                _logger.LogWarning("Built-in v3 layout missing during legacy migration: {Window}", outputWindow);
                 return;
             }
 
-            var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(
+            var windowConfig = JsonSerializer.Deserialize<FrontedWindowConfig>(
                 await File.ReadAllTextAsync(builtInPath, ct),
                 _jsonSerializerOptions);
-            if (config is null)
+            if (windowConfig is null)
             {
-                _logger.LogWarning("Built-in v3 layout could not be read during legacy migration: {Window}/{Canvas}", window, canvas);
+                _logger.LogWarning("Built-in v3 layout could not be read during legacy migration: {Window}", outputWindow);
                 return;
             }
 
+            var config = windowConfig.ToCanvasConfig();
             if (!string.IsNullOrWhiteSpace(backgroundImage))
             {
                 config.BackgroundImage = backgroundImage;
             }
 
-            LegacyFrontedTextStyleMigrator.Apply(config, window, canvas, legacySettings);
-            var targetPath = Path.Combine(layoutRoot, window, $"{canvas}.json");
+            LegacyFrontedTextStyleMigrator.Apply(config, legacyWindow, legacyCanvas, legacySettings);
+            var targetConfig = FrontedWindowConfig.FromCanvasConfig(config);
+            var migratedWidth = targetConfig.WindowSettings.WindowWidth;
+            var migratedHeight = targetConfig.WindowSettings.WindowHeight;
+            targetConfig.WindowSettings = windowConfig.WindowSettings;
+            targetConfig.WindowSettings.WindowWidth = migratedWidth;
+            targetConfig.WindowSettings.WindowHeight = migratedHeight;
+            targetConfig.WindowSettings.AllowsTransparency = allowTransparency || windowConfig.WindowSettings.AllowsTransparency;
+            targetConfig.SyncWindowSizeToCanvas();
+            var targetPath = Path.Combine(layoutRoot, $"{outputWindow}.json");
             Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
-            await File.WriteAllTextAsync(targetPath, JsonSerializer.Serialize(config, _jsonSerializerOptions), ct);
-            _logger.LogInformation("Migrated legacy frontend background to Designer v3 layout: {Window}/{Canvas}", window, canvas);
+            await File.WriteAllTextAsync(targetPath, JsonSerializer.Serialize(targetConfig, _jsonSerializerOptions), ct);
+            _logger.LogInformation("Migrated legacy frontend settings to Designer v3 window layout: {Window}", outputWindow);
         }
-    }
-
-    private static async Task SaveWindowOptionsAsync(
-        FrontedWindowLayoutOptionsService optionsService,
-        string window,
-        bool allowTransparency,
-        CancellationToken cancellationToken)
-    {
-        if (!allowTransparency)
-        {
-            return;
-        }
-
-        await optionsService.SaveOptionsAsync(
-            window,
-            new FrontedWindowLayoutOptions { AllowTransparency = true },
-            cancellationToken);
     }
 
     private static bool HasLegacyFrontendSettings(LegacySettings settings)

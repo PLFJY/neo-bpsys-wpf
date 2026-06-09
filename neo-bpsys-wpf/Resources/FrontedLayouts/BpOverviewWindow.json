@@ -1,0 +1,319 @@
+{
+  "Version": 3,
+  "WindowSettings": {
+    "WindowWidth": 1132.0,
+    "WindowHeight": 182.0,
+    "AllowsTransparency": true,
+    "BackgroundColor": "#00000000",
+    "Topmost": false,
+    "ViewboxStretch": "Fill"
+  },
+  "CanvasSettings": {
+    "CanvasWidth": 1132.0,
+    "CanvasHeight": 182.0,
+    "BackgroundImage": "Resources/bpOverview.png",
+    "EnableBoModeStates": false,
+    "BoModeStates": {}
+  },
+  "ControlLayout": {
+    "RequiredPlugins": null,
+    "Controls": {
+      "SurTeamLogo": {
+        "ControlType": "Image",
+        "Left": 42,
+        "Top": 30,
+        "Width": 85,
+        "Height": 85,
+        "BindingPath": "CurrentGame.SurTeam.Logo",
+        "SizingMode": "FillContainer",
+        "Stretch": "Fill",
+        "CornerRadius": 8
+      },
+      "HunTeamLogo": {
+        "ControlType": "Image",
+        "Left": 1000,
+        "Top": 30,
+        "Width": 86,
+        "Height": 85,
+        "BindingPath": "CurrentGame.HunTeam.Logo",
+        "SizingMode": "FillContainer",
+        "Stretch": "Fill",
+        "CornerRadius": 8
+      },
+      "SurTeamNameInOverview": {
+        "ControlType": "Text",
+        "Left": 0,
+        "Top": 132,
+        "Width": 166,
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Center",
+        "TextWrapping": "WrapWithOverflow",
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "FontSize": 22,
+        "ZIndex": 1,
+        "TextBinding": {
+          "Sources": [
+            {
+              "Path": "CurrentGame.SurTeam.Name"
+            }
+          ]
+        }
+      },
+      "HunTeamNameInOverview": {
+        "ControlType": "Text",
+        "Left": 960,
+        "Top": 132,
+        "Width": 166,
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Center",
+        "TextWrapping": "WrapWithOverflow",
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "FontSize": 22,
+        "ZIndex": 1,
+        "TextBinding": {
+          "Sources": [
+            {
+              "Path": "CurrentGame.HunTeam.Name"
+            }
+          ]
+        }
+      },
+      "HunBanCurrent0": {
+        "ControlType": "Image",
+        "Left": 644,
+        "Top": 5,
+        "Width": 145,
+        "Height": 35,
+        "ZIndex": 1,
+        "SizingMode": "FillContainer",
+        "Stretch": "Uniform",
+        "Lockable": true,
+        "LockVisibleWhen": "VisibleWhenFalse",
+        "LockImagePath": "Resources/CurrentBanLock.png",
+        "BindingPath": "CurrentGame.CurrentHunBannedList[0].HeaderImageSingleColor",
+        "LockVisibilityBindingPath": "CanCurrentHunBannedList[0]"
+      },
+      "HunBanCurrent1": {
+        "ControlType": "Image",
+        "Left": 794,
+        "Top": 5,
+        "Width": 141,
+        "Height": 35,
+        "ZIndex": 1,
+        "SizingMode": "FillContainer",
+        "Stretch": "Uniform",
+        "Lockable": true,
+        "LockVisibleWhen": "VisibleWhenFalse",
+        "LockImagePath": "Resources/CurrentBanLock.png",
+        "BindingPath": "CurrentGame.CurrentHunBannedList[1].HeaderImageSingleColor",
+        "LockVisibilityBindingPath": "CanCurrentHunBannedList[1]"
+      },
+      "SurBanCurrent0": {
+        "ControlType": "Image",
+        "Left": 193,
+        "Top": 5,
+        "Width": 68,
+        "Height": 35,
+        "ZIndex": 1,
+        "SizingMode": "FillContainer",
+        "Stretch": "Uniform",
+        "Lockable": true,
+        "LockVisibleWhen": "VisibleWhenFalse",
+        "LockImagePath": "Resources/CurrentBanLock.png",
+        "BindingPath": "CurrentGame.CurrentSurBannedList[0].HeaderImageSingleColor",
+        "LockVisibilityBindingPath": "CanCurrentSurBannedList[0]"
+      },
+      "SurBanCurrent1": {
+        "ControlType": "Image",
+        "Left": 265,
+        "Top": 5,
+        "Width": 71,
+        "Height": 35,
+        "ZIndex": 1,
+        "SizingMode": "FillContainer",
+        "Stretch": "Uniform",
+        "Lockable": true,
+        "LockVisibleWhen": "VisibleWhenFalse",
+        "LockImagePath": "Resources/CurrentBanLock.png",
+        "BindingPath": "CurrentGame.CurrentSurBannedList[1].HeaderImageSingleColor",
+        "LockVisibilityBindingPath": "CanCurrentSurBannedList[1]"
+      },
+      "SurBanCurrent2": {
+        "ControlType": "Image",
+        "Left": 340,
+        "Top": 5,
+        "Width": 71,
+        "Height": 35,
+        "ZIndex": 1,
+        "SizingMode": "FillContainer",
+        "Stretch": "Uniform",
+        "Lockable": true,
+        "LockVisibleWhen": "VisibleWhenFalse",
+        "LockImagePath": "Resources/CurrentBanLock.png",
+        "BindingPath": "CurrentGame.CurrentSurBannedList[2].HeaderImageSingleColor",
+        "LockVisibilityBindingPath": "CanCurrentSurBannedList[2]"
+      },
+      "SurBanCurrent3": {
+        "ControlType": "Image",
+        "Left": 416,
+        "Top": 5,
+        "Width": 68,
+        "Height": 35,
+        "ZIndex": 1,
+        "SizingMode": "FillContainer",
+        "Stretch": "Uniform",
+        "Lockable": true,
+        "LockVisibleWhen": "VisibleWhenFalse",
+        "LockImagePath": "Resources/CurrentBanLock.png",
+        "BindingPath": "CurrentGame.CurrentSurBannedList[3].HeaderImageSingleColor",
+        "LockVisibilityBindingPath": "CanCurrentSurBannedList[3]"
+      },
+      "SurPick0": {
+        "ControlType": "BorderedImage",
+        "Left": 193,
+        "Top": 65,
+        "Width": 68,
+        "Height": 110,
+        "BindingPath": "CurrentGame.SurPlayerList[0].Character.HalfImage",
+        "SizingMode": "OverflowCrop",
+        "Stretch": "UniformToFill",
+        "ClipToBounds": true,
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center"
+      },
+      "SurPick1": {
+        "ControlType": "BorderedImage",
+        "Left": 265,
+        "Top": 65,
+        "Width": 71,
+        "Height": 110,
+        "BindingPath": "CurrentGame.SurPlayerList[1].Character.HalfImage",
+        "SizingMode": "OverflowCrop",
+        "Stretch": "UniformToFill",
+        "ClipToBounds": true,
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center"
+      },
+      "SurPick2": {
+        "ControlType": "BorderedImage",
+        "Left": 340,
+        "Top": 65,
+        "Width": 72,
+        "Height": 110,
+        "BindingPath": "CurrentGame.SurPlayerList[2].Character.HalfImage",
+        "SizingMode": "OverflowCrop",
+        "Stretch": "UniformToFill",
+        "ClipToBounds": true,
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center"
+      },
+      "SurPick3": {
+        "ControlType": "BorderedImage",
+        "Left": 416,
+        "Top": 65,
+        "Width": 68,
+        "Height": 110,
+        "BindingPath": "CurrentGame.SurPlayerList[3].Character.HalfImage",
+        "SizingMode": "OverflowCrop",
+        "Stretch": "UniformToFill",
+        "ClipToBounds": true,
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center"
+      },
+      "GameProgress": {
+        "ControlType": "GameProgressText",
+        "Left": 471,
+        "Top": 0,
+        "Width": 178,
+        "Height": 50,
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Center",
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "FontSize": 22,
+        "ZIndex": 2
+      },
+      "GameScoresSur": {
+        "ControlType": "Text",
+        "Left": 495,
+        "Top": 94,
+        "Width": 52,
+        "Height": 62,
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Center",
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "FontSize": 50,
+        "ZIndex": 1,
+        "TextBinding": {
+          "Sources": [
+            {
+              "Path": "CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText"
+            }
+          ]
+        }
+      },
+      "RatioChar": {
+        "ControlType": "Text",
+        "Left": 552,
+        "Top": 89,
+        "Width": 25,
+        "Height": 62,
+        "Text": ":",
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Center",
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "FontSize": 50,
+        "ZIndex": 1
+      },
+      "GameScoresHun": {
+        "ControlType": "Text",
+        "Left": 583,
+        "Top": 94,
+        "Width": 52,
+        "Height": 62,
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Center",
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "FontSize": 50,
+        "ZIndex": 1,
+        "TextBinding": {
+          "Sources": [
+            {
+              "Path": "CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText"
+            }
+          ]
+        }
+      },
+      "HunPick": {
+        "ControlType": "BorderedImage",
+        "Left": 644,
+        "Top": 45,
+        "Width": 291,
+        "Height": 130,
+        "BindingPath": "CurrentGame.HunPlayer.Character.HalfImage",
+        "SizingMode": "OverflowCrop",
+        "Stretch": "UniformToFill",
+        "ClipToBounds": true,
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center"
+      }
+    }
+  }
+}

@@ -9,7 +9,28 @@ namespace neo_bpsys_wpf.Core.Abstractions.Services;
 public interface IFrontedRenderer
 {
     /// <summary>
-    /// 按 v3 配置渲染 Canvas。
+    /// Renders a window-centric v3 layout to the internal BaseCanvas.
+    /// </summary>
+    /// <param name="canvas">The internal BaseCanvas.</param>
+    /// <param name="config">The window-centric config.</param>
+    /// <param name="context">The render context.</param>
+    void RenderToCanvas(Canvas canvas, FrontedWindowConfig config, FrontedRenderContext context);
+
+    /// <summary>
+    /// Renders a v3 control layout to the internal BaseCanvas.
+    /// </summary>
+    /// <param name="canvas">The internal BaseCanvas.</param>
+    /// <param name="canvasSettings">The canvas settings.</param>
+    /// <param name="controlLayout">The control layout.</param>
+    /// <param name="context">The render context.</param>
+    void RenderToCanvas(
+        Canvas canvas,
+        FrontedCanvasSettings canvasSettings,
+        FrontedControlLayout controlLayout,
+        FrontedRenderContext context);
+
+    /// <summary>
+    /// Renders a legacy canvas-centric v3 config for conversion and transitional helpers.
     /// </summary>
     void RenderToCanvas(Canvas canvas, FrontedCanvasConfig config, FrontedRenderContext context);
 }

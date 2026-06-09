@@ -193,7 +193,7 @@ public sealed class FrontedLayoutPackagePluginDependencyIssue
     public FrontedPluginDependencyReason Reason { get; set; } = FrontedPluginDependencyReason.Unknown;
 
     /// <summary>
-    /// Layout locations that require this plugin, formatted as <c>{FullWindowType}/{CanvasName}</c>.
+    /// Layout windows that require this plugin, formatted as <c>{FullWindowType}</c>.
     /// </summary>
     public List<string> RequiredBy { get; set; } = [];
 

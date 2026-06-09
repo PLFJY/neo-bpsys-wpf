@@ -328,7 +328,7 @@ public class FrontedLayoutPackageManagerTest
             using var archive = ZipFile.OpenRead(outputPath);
             var entryNames = archive.Entries.Select(entry => entry.FullName.Replace('\\', '/')).ToArray();
             Assert.Contains("manifest.json", entryNames);
-            Assert.Contains("layouts/ScoreSurWindow/BaseCanvas.json", entryNames);
+            Assert.Contains("FrontedLayouts/ScoreSurWindow.json", entryNames);
             Assert.DoesNotContain("Config.json", entryNames);
             Assert.DoesNotContain(entryNames, name => name.StartsWith("CustomUi/", StringComparison.OrdinalIgnoreCase));
             Assert.DoesNotContain(entryNames, name => name.StartsWith("FrontElementsConfig/", StringComparison.OrdinalIgnoreCase));
@@ -519,7 +519,7 @@ public class FrontedLayoutPackageManagerTest
             using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
             var entryNames = archive.Entries.Select(entry => entry.FullName.Replace('\\', '/')).ToArray();
             Assert.Contains("manifest.json", entryNames);
-            Assert.Contains("layouts/ScoreSurWindow/BaseCanvas.json", entryNames);
+            Assert.Contains("FrontedLayouts/ScoreSurWindow.json", entryNames);
             Assert.Contains(entryNames, name => name.StartsWith("resources/images/bg-", StringComparison.Ordinal));
             Assert.DoesNotContain("Config.json", entryNames);
             Assert.DoesNotContain(entryNames, name => name.StartsWith("CustomUi/", StringComparison.OrdinalIgnoreCase));
@@ -539,7 +539,7 @@ public class FrontedLayoutPackageManagerTest
                 manifestRoot.GetProperty("Content").GetProperty("Resources")[0].GetProperty("Sha256").GetString()));
 
             var layoutJson = ReadZipEntry(archive, "layouts/ScoreSurWindow/BaseCanvas.json");
-            var layout = JsonSerializer.Deserialize<neo_bpsys_wpf.Core.Models.FrontedLayout.FrontedCanvasConfig>(layoutJson)!;
+            var layout = JsonSerializer.Deserialize<FrontedWindowConfig>(layoutJson)!.ToCanvasConfig();
             Assert.Equal(3, layout.Version);
             Assert.StartsWith("bpui://converted.legacy.test/resources/images/bg-", layout.BackgroundImage);
             var control = layout.Controls["SurTeamName"];
@@ -583,7 +583,7 @@ public class FrontedLayoutPackageManagerTest
 
             using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
             var layoutJson = ReadZipEntry(archive, "layouts/ScoreGlobalWindow/BaseCanvas.json");
-            var layout = JsonSerializer.Deserialize<neo_bpsys_wpf.Core.Models.FrontedLayout.FrontedCanvasConfig>(layoutJson)!;
+            var layout = JsonSerializer.Deserialize<FrontedWindowConfig>(layoutJson)!.ToCanvasConfig();
 
             Assert.StartsWith("bpui://converted.legacy.score-global/resources/images/global-", layout.BackgroundImage);
             var homeName = layout.Controls["HomeTeamName"];
@@ -652,7 +652,7 @@ public class FrontedLayoutPackageManagerTest
             Assert.True(importResult.Success, importResult.ErrorMessage);
             Assert.True(File.Exists(Path.Combine(packageRoot, "converted.legacy.test", "manifest.json")));
             Assert.False(Directory.Exists(userLayoutRoot));
-            Assert.True(File.Exists(Path.Combine(packageRoot, "converted.legacy.test", "layouts", "ScoreSurWindow", "BaseCanvas.json")));
+            Assert.True(File.Exists(Path.Combine(packageRoot, "converted.legacy.test", "FrontedLayouts", "ScoreSurWindow.json")));
             var active = await manager.GetActivePackageStateAsync(TestContext.Current.CancellationToken);
             Assert.Equal("converted.legacy.test", active.PackageId);
         }
@@ -1053,8 +1053,8 @@ public class FrontedLayoutPackageManagerTest
         {
             var packageRoot = Path.Combine(root, "packages");
             var builtInRoot = Path.Combine(root, "builtIn");
-            var builtInLayout = Path.Combine(builtInRoot, "BpWindow", "BaseCanvas.json");
-            Directory.CreateDirectory(Path.GetDirectoryName(builtInLayout)!);
+            var builtInLayout = Path.Combine(builtInRoot, "BpWindow.json");
+            Directory.CreateDirectory(builtInRoot);
             File.WriteAllText(builtInLayout, """{"Version":3,"CanvasWidth":100,"CanvasHeight":100}""");
             var userRoot = Path.Combine(root, "userLayouts");
             var manager = new FrontedLayoutPackageManager(
@@ -1069,16 +1069,15 @@ public class FrontedLayoutPackageManagerTest
                 null,
                 null);
 
-            await service.SaveCanvasConfigAsync(
+            await service.SaveWindowConfigAsync(
                 "BpWindow",
-                "BaseCanvas",
-                new FrontedCanvasConfig { Version = 3, CanvasWidth = 200, CanvasHeight = 120 },
+                FrontedWindowConfig.FromCanvasConfig(new FrontedCanvasConfig { Version = 3, CanvasWidth = 200, CanvasHeight = 120 }),
                 TestContext.Current.CancellationToken);
 
             var active = await manager.GetActivePackageStateAsync(TestContext.Current.CancellationToken);
             Assert.Equal("user-layout-scheme-1", active.PackageId);
-            Assert.True(File.Exists(Path.Combine(packageRoot, "user-layout-scheme-1", "layouts", "BpWindow", "BaseCanvas.json")));
-            Assert.False(File.Exists(Path.Combine(userRoot, "BpWindow", "BaseCanvas.json")));
+            Assert.True(File.Exists(Path.Combine(packageRoot, "user-layout-scheme-1", "FrontedLayouts", "BpWindow.json")));
+            Assert.False(File.Exists(Path.Combine(userRoot, "BpWindow.json")));
             var packages = await manager.ListPackagesAsync(TestContext.Current.CancellationToken);
             Assert.Contains(packages, package => package.PackageId == "user-layout-scheme-1" && package.Name == "User Layout Scheme 1");
         }
@@ -1100,7 +1099,7 @@ public class FrontedLayoutPackageManagerTest
             WriteManifest(firstFolder, new { PackageId = "user-layout-scheme-1", Name = "User Layout Scheme 1" });
             var sourceFolder = Path.Combine(packageRoot, "package-a");
             WriteManifest(sourceFolder, new { PackageId = "package-a", Name = "Package A" });
-            var sourceLayout = Path.Combine(sourceFolder, "layouts", "plugin", "ExamplePlugin", "Overlay", "BaseCanvas.json");
+            var sourceLayout = Path.Combine(sourceFolder, "FrontedLayouts", "plugin", "ExamplePlugin", "Overlay.json");
             Directory.CreateDirectory(Path.GetDirectoryName(sourceLayout)!);
             File.WriteAllText(sourceLayout, """{"Version":3,"CanvasWidth":100,"CanvasHeight":100}""");
             var manager = new FrontedLayoutPackageManager(
@@ -1112,12 +1111,12 @@ public class FrontedLayoutPackageManagerTest
 
             Assert.Equal("user-layout-scheme-2", duplicate.PackageId);
             Assert.Equal("User Layout Scheme 2", duplicate.Name);
-            Assert.True(File.Exists(Path.Combine(packageRoot, "user-layout-scheme-2", "layouts", "plugin", "ExamplePlugin", "Overlay", "BaseCanvas.json")));
+            Assert.True(File.Exists(Path.Combine(packageRoot, "user-layout-scheme-2", "FrontedLayouts", "plugin", "ExamplePlugin", "Overlay.json")));
             Assert.True(File.Exists(sourceLayout));
             var active = await manager.GetActivePackageStateAsync(TestContext.Current.CancellationToken);
             Assert.Equal("user-layout-scheme-2", active.PackageId);
             Assert.Throws<InvalidOperationException>(() =>
-                manager.GetPackageLayoutPath(FrontedLayoutPackageManager.LocalPackageId, "BpWindow", "BaseCanvas"));
+                manager.GetPackageLayoutPath(FrontedLayoutPackageManager.LocalPackageId, "BpWindow"));
         }
         finally
         {
@@ -1243,21 +1242,28 @@ public class FrontedLayoutPackageManagerTest
                 2 => thirdBackgroundImage,
                 _ => "Resources/foo.png"
             };
-            var path = Path.Combine(builtInRoot, entry.WindowTypeName, $"{entry.CanvasName}.json");
+            var path = Path.Combine(builtInRoot, $"{entry.WindowTypeName}.json");
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             File.WriteAllText(path, $$"""
                                       {
                                         "Version": 3,
-                                        "CanvasWidth": 100,
-                                        "CanvasHeight": 100,
-                                        "BackgroundImage": "{{JsonEncodedText(background)}}",
-                                        "Image1": {
-                                          "ControlType": "Image",
-                                          "Left": 0,
-                                          "Top": 0,
-                                          "Width": 10,
-                                          "Height": 10,
-                                          "BanLockImagePath": "Resources/lock.png"
+                                        "CanvasSettings": {
+                                          "CanvasWidth": 100,
+                                          "CanvasHeight": 100,
+                                          "BackgroundImage": "{{JsonEncodedText(background)}}"
+                                        },
+                                        "ControlLayout": {
+                                          "RequiredPlugins": [],
+                                          "Controls": {
+                                            "Image1": {
+                                              "ControlType": "Image",
+                                              "Left": 0,
+                                              "Top": 0,
+                                              "Width": 10,
+                                              "Height": 10,
+                                              "BanLockImagePath": "Resources/lock.png"
+                                            }
+                                          }
                                         }
                                       }
                                       """);
@@ -1289,8 +1295,7 @@ public class FrontedLayoutPackageManagerTest
                     new FrontedLayoutPackageLayoutEntry
                     {
                         Window = "BpWindow",
-                        Canvas = "BaseCanvas",
-                        Path = "layouts/BpWindow/BaseCanvas.json"
+                        Path = "FrontedLayouts/BpWindow.json"
                     }
                 ],
                 Resources = includeResource
@@ -1309,13 +1314,19 @@ public class FrontedLayoutPackageManagerTest
         }));
         WriteZipEntry(
             archive,
-            "layouts/BpWindow/BaseCanvas.json",
+            "FrontedLayouts/BpWindow.json",
             $$"""
               {
                 "Version": 3,
-                "CanvasWidth": 100,
-                "CanvasHeight": 100,
-                "BackgroundImage": "{{JsonEncodedText(backgroundImage)}}"
+                "CanvasSettings": {
+                  "CanvasWidth": 100,
+                  "CanvasHeight": 100,
+                  "BackgroundImage": "{{JsonEncodedText(backgroundImage)}}"
+                },
+                "ControlLayout": {
+                  "RequiredPlugins": [],
+                  "Controls": {}
+                }
               }
               """);
         if (includeResource)
@@ -1478,10 +1489,9 @@ public class FrontedLayoutPackageManagerTest
 
     private static void WriteBuiltInLayoutForLegacyConversion(string builtInRoot)
     {
-        var layoutPath = Path.Combine(builtInRoot, "ScoreSurWindow", "BaseCanvas.json");
+        var layoutPath = Path.Combine(builtInRoot, "ScoreSurWindow.json");
         Directory.CreateDirectory(Path.GetDirectoryName(layoutPath)!);
-        File.WriteAllText(
-            layoutPath,
+        var canvasConfig = JsonSerializer.Deserialize<FrontedCanvasConfig>(
             """
             {
               "Version": 3,
@@ -1497,15 +1507,15 @@ public class FrontedLayoutPackageManagerTest
                 "Text": "Team"
               }
             }
-            """);
+            """)!;
+        File.WriteAllText(layoutPath, JsonSerializer.Serialize(FrontedWindowConfig.FromCanvasConfig(canvasConfig)));
     }
 
     private static void WriteBuiltInScoreGlobalLayoutForLegacyConversion(string builtInRoot)
     {
-        var layoutPath = Path.Combine(builtInRoot, "ScoreGlobalWindow", "BaseCanvas.json");
+        var layoutPath = Path.Combine(builtInRoot, "ScoreGlobalWindow.json");
         Directory.CreateDirectory(Path.GetDirectoryName(layoutPath)!);
-        File.WriteAllText(
-            layoutPath,
+        var canvasConfig = JsonSerializer.Deserialize<FrontedCanvasConfig>(
             """
             {
               "Version": 3,
@@ -1561,7 +1571,8 @@ public class FrontedLayoutPackageManagerTest
                 "HalfGameGap": 90
               }
             }
-            """);
+            """)!;
+        File.WriteAllText(layoutPath, JsonSerializer.Serialize(FrontedWindowConfig.FromCanvasConfig(canvasConfig)));
     }
 
     private static void WriteZipEntry(ZipArchive archive, string entryName, string text)
@@ -1597,10 +1608,39 @@ public class FrontedLayoutPackageManagerTest
 
     private static string ReadZipEntry(ZipArchive archive, string entryName)
     {
+        entryName = MapLegacyPackageLayoutEntry(entryName);
         var entry = archive.GetEntry(entryName) ?? throw new InvalidOperationException($"Missing zip entry {entryName}.");
         using var stream = entry.Open();
         using var reader = new StreamReader(stream);
         return reader.ReadToEnd();
+    }
+
+    private static string MapLegacyPackageLayoutEntry(string entryName)
+    {
+        var normalized = entryName.Replace('\\', '/');
+        if (!normalized.StartsWith("layouts/", StringComparison.OrdinalIgnoreCase)
+            || !normalized.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+        {
+            return entryName;
+        }
+
+        var parts = normalized.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length != 3)
+        {
+            return entryName;
+        }
+
+        var window = parts[1];
+        var canvas = Path.GetFileNameWithoutExtension(parts[2]);
+        var outputWindow = (window, canvas) switch
+        {
+            ("WidgetsWindow", "BpOverViewCanvas") => "BpOverviewWindow",
+            ("WidgetsWindow", "MapV2Canvas") => "MapV2Window",
+            (_, "BaseCanvas") => window,
+            _ => null
+        };
+
+        return outputWindow is null ? entryName : $"FrontedLayouts/{outputWindow}.json";
     }
 
     private static string CreateTempDirectory()

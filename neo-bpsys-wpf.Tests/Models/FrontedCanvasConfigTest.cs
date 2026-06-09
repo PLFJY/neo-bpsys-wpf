@@ -906,45 +906,10 @@ public class FrontedCanvasConfigTest
     }
 
     [Fact]
-    public void ReadsBuiltInWidgetsWindowLayouts()
+    public void ReadsBuiltInBpOverviewAndMapV2WindowLayouts()
     {
-        var mapBpCanvas = ReadBuiltInLayout("WidgetsWindow", "MapBpCanvas");
-        var bpOverViewCanvas = ReadBuiltInLayout("WidgetsWindow", "BpOverViewCanvas");
-        var mapV2Canvas = ReadBuiltInLayout("WidgetsWindow", "MapV2Canvas");
-
-        Assert.Equal(308, mapBpCanvas.CanvasWidth);
-        Assert.Equal(554, mapBpCanvas.CanvasHeight);
-        Assert.Equal("Resources/mapBp.png", mapBpCanvas.BackgroundImage);
-        foreach (var controlName in new[]
-                 {
-                     "PickedMap",
-                     "PickedMapName",
-                     "PickWord",
-                     "SurTeamName",
-                     "VS_Word",
-                     "HunTeamName",
-                     "BannedMap",
-                     "BannedMapName",
-                     "BanWord"
-                 })
-        {
-            Assert.Contains(controlName, mapBpCanvas.Controls.Keys);
-        }
-
-        var pickedMapName = Assert.IsType<MapNameTextControlConfig>(mapBpCanvas.Controls["PickedMapName"]);
-        Assert.Equal("CurrentGame.PickedMap", pickedMapName.BindingPath);
-        var bannedMapName = Assert.IsType<MapNameTextControlConfig>(mapBpCanvas.Controls["BannedMapName"]);
-        Assert.Equal("CurrentGame.BannedMap", bannedMapName.BindingPath);
-        foreach (var controlName in new[] { "PickedMap", "BannedMap" })
-        {
-            var mapImage = Assert.IsType<ImageFrontedControlConfig>(mapBpCanvas.Controls[controlName]);
-            Assert.Equal("Image", mapImage.ControlType);
-            Assert.Equal(290, mapImage.Width);
-            Assert.Equal(138, mapImage.Height);
-            Assert.Equal("UniformToFill", mapImage.Stretch);
-            Assert.False(mapImage.ClipToBounds);
-            Assert.Equal(8, mapImage.CornerRadius);
-        }
+        var bpOverViewCanvas = ReadBuiltInLayout("BpOverviewWindow");
+        var mapV2Canvas = ReadBuiltInLayout("MapV2Window");
 
         Assert.Equal(1132, bpOverViewCanvas.CanvasWidth);
         Assert.Equal(182, bpOverViewCanvas.CanvasHeight);
@@ -994,7 +959,7 @@ public class FrontedCanvasConfigTest
         AssertTextBinding(bpOverViewCanvas, "GameScoresSur", "CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText");
         AssertTextBinding(bpOverViewCanvas, "GameScoresHun", "CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText");
 
-        var bpOverViewCanvasText = File.ReadAllText(GetBuiltInLayoutPath("WidgetsWindow", "BpOverViewCanvas"));
+        var bpOverViewCanvasText = File.ReadAllText(GetBuiltInLayoutPath("BpOverviewWindow"));
         Assert.DoesNotContain("Team.Score", bpOverViewCanvasText);
         Assert.DoesNotContain("CurrentGame.SurTeam.Score", bpOverViewCanvasText);
         Assert.DoesNotContain("CurrentGame.HunTeam.Score", bpOverViewCanvasText);
@@ -1172,7 +1137,7 @@ public class FrontedCanvasConfigTest
     {
         var cutScene = ReadBuiltInLayout("CutSceneWindow");
         var gameData = ReadBuiltInLayout("GameDataWindow");
-        var widgetsOverview = ReadBuiltInLayout("WidgetsWindow", "BpOverViewCanvas");
+        var widgetsOverview = ReadBuiltInLayout("BpOverviewWindow");
         var bpWindow = ReadBuiltInLayout("BpWindow");
 
         Assert.Equal(GameProgressTextDisplayMode.Inline,
@@ -2627,17 +2592,13 @@ public class FrontedCanvasConfigTest
 
         Assert.True(File.Exists(path), path);
 
-        var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(File.ReadAllText(path));
+        var config = JsonSerializer.Deserialize<FrontedWindowConfig>(File.ReadAllText(path))?.ToCanvasConfig();
         Assert.NotNull(config);
         return config;
     }
 
     private static string GetBuiltInLayoutPath(string windowTypeName, string canvasName = "BaseCanvas") =>
-        Path.Combine(
-            AppConstants.ResourcesPath,
-            "FrontedLayouts",
-            windowTypeName,
-            $"{canvasName}.json");
+        Path.Combine(AppConstants.ResourcesPath, "FrontedLayouts", $"{windowTypeName}.json");
 
     private static TextFrontedControlConfig AssertTextBinding(
         FrontedCanvasConfig config,

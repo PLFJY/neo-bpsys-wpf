@@ -265,10 +265,10 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
 
         if (string.Equals(sourcePackageId, BuiltInPackageId, StringComparison.OrdinalIgnoreCase))
         {
-            await CopyDirectoryContentsAsync(
-                _builtInLayoutRoot,
-                Path.Combine(targetPath, "layouts"),
-                cancellationToken);
+                await CopyDirectoryContentsAsync(
+                    _builtInLayoutRoot,
+                    Path.Combine(targetPath, "FrontedLayouts"),
+                    cancellationToken);
         }
         else
         {
@@ -317,14 +317,14 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
         }
 
         EnsureSafePackageId(packageId);
-        return Path.Combine(GetInstalledPackagePath(packageId), "layouts");
+            return Path.Combine(GetInstalledPackagePath(packageId), "FrontedLayouts");
     }
 
-    public string GetPackageLayoutPath(string packageId, string fullWindowType, string canvasName)
+    public string GetPackageLayoutPath(string packageId, string fullWindowType)
     {
         return Path.Combine(
             GetPackageLayoutsRootFolder(packageId),
-            FrontedLayoutWindowPathHelper.GetLayoutRelativePath(fullWindowType, canvasName));
+            FrontedLayoutWindowPathHelper.GetLayoutRelativePath(fullWindowType));
     }
 
     public string GetPackageRootFolder()
@@ -363,7 +363,7 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
             Source = FrontedLayoutPackageSource.Installed,
             IsActive = string.Equals(packageIdFromFolder, activePackageId, StringComparison.OrdinalIgnoreCase),
             ValidationStatus = FrontedLayoutPackageValidationStatus.Valid,
-            LayoutCount = CountFiles(Path.Combine(directory, "layouts"), "*.json"),
+            LayoutCount = CountFiles(Path.Combine(directory, "FrontedLayouts"), "*.json"),
             ResourceCount = CountFiles(Path.Combine(directory, "resources"), "*")
         };
 
@@ -550,7 +550,7 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
 
     private static IEnumerable<FrontedLayoutPackageLayoutEntry> EnumerateLayoutEntries(string packagePath)
     {
-        var layoutsRoot = Path.Combine(packagePath, "layouts");
+        var layoutsRoot = Path.Combine(packagePath, "FrontedLayouts");
         if (!Directory.Exists(layoutsRoot))
         {
             yield break;
@@ -558,23 +558,11 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
 
         foreach (var file in Directory.EnumerateFiles(layoutsRoot, "*.json", SearchOption.AllDirectories))
         {
-            if (string.Equals(Path.GetFileName(file), "window.json", StringComparison.OrdinalIgnoreCase))
-            {
-                continue;
-            }
-
             var relativePath = Path.GetRelativePath(layoutsRoot, file);
-            var canvas = Path.GetFileNameWithoutExtension(file);
-            var folder = Path.GetDirectoryName(relativePath);
-            if (string.IsNullOrWhiteSpace(folder))
-            {
-                continue;
-            }
-
             string window;
             try
             {
-                window = FrontedLayoutWindowPathHelper.ToFullWindowTypeFromRelativeFolder(folder);
+                window = ToFullWindowTypeFromLayoutRelativePath(relativePath);
             }
             catch
             {
@@ -584,10 +572,31 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
             yield return new FrontedLayoutPackageLayoutEntry
             {
                 Window = window,
-                Canvas = canvas,
-                Path = Path.Combine("layouts", relativePath).Replace('\\', '/')
+                Path = Path.Combine("FrontedLayouts", relativePath).Replace('\\', '/')
             };
         }
+    }
+
+    private static string ToFullWindowTypeFromLayoutRelativePath(string relativePath)
+    {
+        var parts = relativePath
+            .Replace('\\', '/')
+            .Split('/', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 3
+            && string.Equals(parts[0], "plugin", StringComparison.OrdinalIgnoreCase)
+            && parts[2].EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+        {
+            var packageId = parts[1];
+            var windowTypeName = Path.GetFileNameWithoutExtension(parts[2]);
+            return $"{FrontedLayoutWindowPathHelper.PluginPrefix}{packageId}/{windowTypeName}";
+        }
+
+        if (parts.Length == 1 && parts[0].EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+        {
+            return Path.GetFileNameWithoutExtension(parts[0]);
+        }
+
+        throw new ArgumentException("Layout path is not a valid window-centric layout path.", nameof(relativePath));
     }
 
     private static IEnumerable<FrontedLayoutPackageResourceEntry> EnumerateResourceEntries(string packagePath)

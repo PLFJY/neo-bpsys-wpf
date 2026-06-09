@@ -178,7 +178,7 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             Assert.DoesNotContain(result.Warnings, item => item.Contains("GlobalScoreBgImageUriBo3", StringComparison.Ordinal));
             using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
             var layoutJson = ReadZipEntry(archive, "layouts/ScoreGlobalWindow/BaseCanvas.json");
-            var layout = JsonSerializer.Deserialize<FrontedCanvasConfig>(layoutJson)!;
+            var layout = JsonSerializer.Deserialize<FrontedWindowConfig>(layoutJson)!.ToCanvasConfig();
 
             Assert.StartsWith("bpui://converted.legacy.bo3-bg/resources/images/scoreGlobal-", layout.BackgroundImage);
             Assert.True(layout.EnableBoModeStates);
@@ -747,14 +747,25 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
 
     private static FrontedCanvasConfig ReadLayout(ZipArchive archive, string entryName)
     {
-        return JsonSerializer.Deserialize<FrontedCanvasConfig>(ReadZipEntry(archive, entryName), new JsonSerializerOptions
+        return JsonSerializer.Deserialize<FrontedWindowConfig>(ReadZipEntry(archive, entryName), new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
-        })!;
+        })!.ToCanvasConfig();
     }
 
     private static void WriteFile(string path, string text)
     {
+        if (TryMapLegacyBuiltInLayoutPath(path, out var mappedPath))
+        {
+            var canvasConfig = JsonSerializer.Deserialize<FrontedCanvasConfig>(text, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            })!;
+            Directory.CreateDirectory(Path.GetDirectoryName(mappedPath)!);
+            File.WriteAllText(mappedPath, JsonSerializer.Serialize(FrontedWindowConfig.FromCanvasConfig(canvasConfig)));
+            return;
+        }
+
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         File.WriteAllText(path, text);
     }
@@ -769,10 +780,66 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
 
     private static string ReadZipEntry(ZipArchive archive, string entryName)
     {
+        entryName = MapLegacyPackageLayoutEntry(entryName);
         var entry = archive.GetEntry(entryName) ?? throw new InvalidOperationException($"Missing zip entry {entryName}.");
         using var stream = entry.Open();
         using var reader = new StreamReader(stream);
         return reader.ReadToEnd();
+    }
+
+    private static bool TryMapLegacyBuiltInLayoutPath(string path, out string mappedPath)
+    {
+        mappedPath = path;
+        var canvas = Path.GetFileNameWithoutExtension(path);
+        var window = Path.GetFileName(Path.GetDirectoryName(path));
+        var root = Path.GetDirectoryName(Path.GetDirectoryName(path));
+        if (string.IsNullOrWhiteSpace(canvas) || string.IsNullOrWhiteSpace(window) || string.IsNullOrWhiteSpace(root))
+        {
+            return false;
+        }
+
+        var outputWindow = (window, canvas) switch
+        {
+            ("WidgetsWindow", "BpOverViewCanvas") => "BpOverviewWindow",
+            ("WidgetsWindow", "MapV2Canvas") => "MapV2Window",
+            (_, "BaseCanvas") => window,
+            _ => null
+        };
+        if (outputWindow is null)
+        {
+            return false;
+        }
+
+        mappedPath = Path.Combine(root, $"{outputWindow}.json");
+        return true;
+    }
+
+    private static string MapLegacyPackageLayoutEntry(string entryName)
+    {
+        var normalized = entryName.Replace('\\', '/');
+        if (!normalized.StartsWith("layouts/", StringComparison.OrdinalIgnoreCase)
+            || !normalized.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+        {
+            return entryName;
+        }
+
+        var parts = normalized.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length != 3)
+        {
+            return entryName;
+        }
+
+        var window = parts[1];
+        var canvas = Path.GetFileNameWithoutExtension(parts[2]);
+        var outputWindow = (window, canvas) switch
+        {
+            ("WidgetsWindow", "BpOverViewCanvas") => "BpOverviewWindow",
+            ("WidgetsWindow", "MapV2Canvas") => "MapV2Window",
+            (_, "BaseCanvas") => window,
+            _ => null
+        };
+
+        return outputWindow is null ? entryName : $"FrontedLayouts/{outputWindow}.json";
     }
 
     private static string CreateTempDirectory()

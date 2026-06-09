@@ -1,0 +1,110 @@
+# Fronted Layout v3 Window-centric
+
+Fronted Layout v3 现在只以前台窗口为布局管理单位，不再把 Canvas 暴露为用户、Designer、FrontManagePage 或 `.bpui` package 的管理单位。
+
+## 运行时结构
+
+每个 v3 layout window 由 `FrontedWindowBase` 作为配置驱动 host 创建：
+
+```text
+FrontedWindowBase
+  -> ViewBox
+     -> Canvas BaseCanvas
+```
+
+`BaseCanvas` 是内部实现细节。它只用于 renderer、behavior target resolver 和临时转换 helper 的 root canvas，不出现在布局路径、包 manifest、FrontManagePage 卡片或 Designer 选择器中。传统固定 XAML 前台窗口继续按原窗口逻辑创建，不强制使用 BaseCanvas。
+
+`AllowsTransparency` 必须在 WPF window source 初始化前应用。已显示窗口 reload layout 时不会直接修改 `AllowsTransparency`；如果配置变化，需要重开窗口或等待下次创建生效。`ViewBox` 负责缩放，控件坐标不因窗口大小变化而被重写。
+
+## 配置模型
+
+主路径模型是 `FrontedWindowConfig`：
+
+```json
+{
+  "Version": 3,
+  "WindowSettings": {
+    "WindowWidth": 1440,
+    "WindowHeight": 810,
+    "WindowLeft": null,
+    "WindowTop": null,
+    "AllowsTransparency": true,
+    "BackgroundColor": "#00000000",
+    "Topmost": false,
+    "ViewboxStretch": "Fill"
+  },
+  "CanvasSettings": {
+    "CanvasWidth": 1440,
+    "CanvasHeight": 810,
+    "BackgroundImage": null,
+    "EnableBoModeStates": false,
+    "BoModeStates": {}
+  },
+  "ControlLayout": {
+    "RequiredPlugins": [],
+    "Controls": {}
+  }
+}
+```
+
+`BackgroundColor` 属于 `WindowSettings`，不属于 `CanvasSettings`。Canvas 内纯色背景应通过 Rectangle/Shape 控件实现。`ViewboxStretch` 用字符串 enum 名称保存，不保存数字。窗口位置能力迁入 `WindowSettings.WindowLeft` / `WindowSettings.WindowTop`；旧窗口状态服务只作为适配层或 legacy 入口，不再另建 v3 Canvas options 文件。
+
+当前窗口宽高策略是“窗口跟随内部 BaseCanvas 设计尺寸”：读取、保存、包导入、包导出和 legacy 转换时都会把 `WindowSettings.WindowWidth` / `WindowHeight` 同步为 `CanvasSettings.CanvasWidth` / `CanvasHeight`。这样 ViewBox 缩放仍由窗口承载，但控件坐标始终以设计 Canvas 为准。后续如果要支持独立窗口尺寸 UI，需要先明确它和 Canvas 设计尺寸的比例语义。
+
+`FrontedCanvasConfig` 只允许作为 legacy converter、旧测试断言或临时转换 helper 使用。新的 LayoutService、Designer、runtime 和 package 主路径应读写 `FrontedWindowConfig`。
+
+## 路径
+
+用户、内置和包内布局都使用一级窗口路径：
+
+```text
+FrontedLayouts/{WindowTypeName}.json
+behaviors/{WindowTypeName}.behaviors.json
+```
+
+插件窗口的插件内默认布局为：
+
+```text
+Plugins/{PackageId}/FrontedLayouts/{WindowTypeName}.json
+```
+
+`.bpui` 包内结构为：
+
+```text
+FrontedLayouts/{WindowTypeName}.json
+behaviors/{WindowTypeName}.behaviors.json
+resources/...
+manifest.json
+```
+
+manifest 使用 window-centric layout model 标记，layout entry 只记录 Window 和 Path，不记录 Canvas。缺插件窗口或缺插件控件的数据文件必须保留；Registry 没有 descriptor 时不显示该窗口，但 importer/exporter/package manager 不删除未知 window layout 或 behavior 文件。
+
+## Registry 和窗口
+
+Registry descriptor 提供 `WindowId`、`WindowTypeName`、`FullWindowType`、`DisplayNameKey`、`GroupKey`、`DisplayOrder`、`IsVisibleInFrontManage`、`IsV3LayoutWindow`、`Customizable` 和 `Kind`。FrontManagePage 只从 registry 获取可管理窗口，按 `GroupKey` 分组、按 `DisplayOrder` 排序；缺失分组或顺序时使用稳定 fallback。
+
+`WidgetsWindow` 已删除。`MapBpCanvas` / MapV1 已删除且不注册。旧 `BpOverViewCanvas` 迁移为 `BpOverviewWindow`，旧 `MapV2Canvas` 迁移为 `MapV2Window`。这两个窗口都是 descriptor + `FrontedWindowBase` host 驱动，不创建独立 XAML。
+
+## Behavior
+
+Behavior 文件是 window-level：
+
+```text
+behaviors/{WindowTypeName}.behaviors.json
+```
+
+runtime host key 使用 Window scope。`FrontedBehaviorDocument.CanvasName` 如果暂时保留，固定写 `BaseCanvas`；UI、路径、runtime key 和 manifest 不使用 CanvasName。TargetResolver 仍从内部 BaseCanvas root 搜索 `BehaviorGuid`。
+
+## Legacy 转换
+
+Legacy `.bpui` 和旧 `Config.json` 继续支持，但输出新 `FrontedWindowConfig`。旧窗口尺寸、透明、背景色和位置映射到 `WindowSettings`；旧 Canvas 宽高、背景图和 BO 状态映射到 `CanvasSettings`；控件布局和 RequiredPlugins 映射到 `ControlLayout`。
+
+Legacy `WidgetsWindow` 映射规则：
+
+| 旧布局 | 新输出 |
+| --- | --- |
+| `WidgetsWindow/MapBpCanvas` | 跳过并记录 Info，MapV1 不再支持 |
+| `WidgetsWindow/BpOverViewCanvas` | `BpOverviewWindow.json` |
+| `WidgetsWindow/MapV2Canvas` | `MapV2Window.json` |
+
+MapV1 跳过不能导致导入失败。资源复制、`bpui://` 路径改写、TextSettings 迁移、GlobalScoreRow 聚合、BO5 overtime 消费和缺失插件 placeholder 规则继续保留。

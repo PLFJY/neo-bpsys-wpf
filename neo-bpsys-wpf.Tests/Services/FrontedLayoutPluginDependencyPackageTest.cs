@@ -198,10 +198,10 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
             Assert.Equal("plfjy.ExamplePlugin", dependency.PackageId);
             Assert.Null(dependency.MinVersion);
             Assert.Contains("plugin:plfjy.ExamplePlugin/TeamCard", dependency.Controls);
-            Assert.Contains("ScoreSurWindow/BaseCanvas", dependency.RequiredBy);
+            Assert.Contains("ScoreSurWindow", dependency.RequiredBy);
 
-            var layout = JsonSerializer.Deserialize<FrontedCanvasConfig>(
-                ReadZipEntry(archive, "layouts/ScoreSurWindow/BaseCanvas.json"))!;
+            var layout = JsonSerializer.Deserialize<FrontedWindowConfig>(
+                ReadZipEntry(archive, "FrontedLayouts/ScoreSurWindow.json"))!.ToCanvasConfig();
             var canvasDependency = Assert.Single(layout.RequiredPlugins);
             Assert.Equal("plfjy.ExamplePlugin", canvasDependency.PackageId);
         }
@@ -242,8 +242,8 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
             var manifestDependency = Assert.Single(ReadManifest(archive).PluginDependencies);
             Assert.Equal("1.0.0.0", manifestDependency.MinVersion);
 
-            var layout = JsonSerializer.Deserialize<FrontedCanvasConfig>(
-                ReadZipEntry(archive, "layouts/ScoreSurWindow/BaseCanvas.json"))!;
+            var layout = JsonSerializer.Deserialize<FrontedWindowConfig>(
+                ReadZipEntry(archive, "FrontedLayouts/ScoreSurWindow.json"))!.ToCanvasConfig();
             Assert.Equal("1.0.0.0", Assert.Single(layout.RequiredPlugins).MinVersion);
         }
         finally
@@ -335,8 +335,8 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
             Assert.True(result.Success, result.ErrorMessage);
             var missing = Assert.Single(result.MissingPluginControls);
             Assert.Equal("TeamCard1", missing.ControlName);
-            var importedLayoutPath = Path.Combine(packageRoot, "package-with-plugin", "layouts", "BpWindow", "BaseCanvas.json");
-            var imported = JsonSerializer.Deserialize<FrontedCanvasConfig>(File.ReadAllText(importedLayoutPath))!;
+            var importedLayoutPath = Path.Combine(packageRoot, "package-with-plugin", "FrontedLayouts", "BpWindow.json");
+            var imported = JsonSerializer.Deserialize<FrontedWindowConfig>(File.ReadAllText(importedLayoutPath))!.ToCanvasConfig();
             Assert.True(imported.Controls.ContainsKey("TeamCard1"));
             Assert.True(imported.Controls.ContainsKey("Title"));
             Assert.NotEmpty(imported.RequiredPlugins);
@@ -439,7 +439,7 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
 
             Assert.True(result.Success, result.ErrorMessage);
             Assert.True(File.Exists(Path.Combine(root, "packages", "basic-package", "resources", "images", "a.png")));
-            Assert.True(File.Exists(Path.Combine(root, "packages", "basic-package", "layouts", "BpWindow", "BaseCanvas.json")));
+            Assert.True(File.Exists(Path.Combine(root, "packages", "basic-package", "FrontedLayouts", "BpWindow.json")));
         }
         finally
         {
@@ -568,7 +568,7 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
         var first = true;
         foreach (var entry in new FrontedDesignerLayoutCatalog().GetEntries())
         {
-            var path = Path.Combine(builtInRoot, entry.WindowTypeName, $"{entry.CanvasName}.json");
+            var path = Path.Combine(builtInRoot, $"{entry.WindowTypeName}.json");
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             var pluginJson = first && includePluginOnFirstLayout
                 ? """
@@ -587,12 +587,19 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
                 $$"""
                   {
                     "Version": 3,
-                    "CanvasWidth": 100,
-                    "CanvasHeight": 100,
-                    "Title": {
-                      "ControlType": "Text",
-                      "Text": "Built-in"
-                    }{{pluginJson}}
+                    "CanvasSettings": {
+                      "CanvasWidth": 100,
+                      "CanvasHeight": 100
+                    },
+                    "ControlLayout": {
+                      "RequiredPlugins": [],
+                      "Controls": {
+                        "Title": {
+                          "ControlType": "Text",
+                          "Text": "Built-in"
+                        }{{pluginJson}}
+                      }
+                    }
                   }
                   """);
             first = false;
@@ -620,7 +627,7 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
                     Controls = includeActualPluginControl
                         ? ["plugin:plfjy.ExamplePlugin/TeamCard"]
                         : [],
-                    RequiredBy = ["BpWindow/BaseCanvas"]
+                    RequiredBy = ["BpWindow"]
                 }
             ],
             Content = new FrontedLayoutPackageManifestContent
@@ -630,8 +637,7 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
                     new FrontedLayoutPackageLayoutEntry
                     {
                         Window = "BpWindow",
-                        Canvas = "BaseCanvas",
-                        Path = "layouts/BpWindow/BaseCanvas.json"
+                        Path = "FrontedLayouts/BpWindow.json"
                     }
                 ]
             }
@@ -651,23 +657,29 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
             : string.Empty;
         WriteZipEntry(
             archive,
-            "layouts/BpWindow/BaseCanvas.json",
+            "FrontedLayouts/BpWindow.json",
             $$"""
               {
                 "Version": 3,
-                "CanvasWidth": 100,
-                "CanvasHeight": 100,
-                "RequiredPlugins": [
-                  {
-                    "PackageId": "plfjy.ExamplePlugin",
-                    "MinVersion": {{JsonSerializer.Serialize(minVersion)}},
-                    "Controls": {{(includeActualPluginControl ? "[\"plugin:plfjy.ExamplePlugin/TeamCard\"]" : "[]")}}
+                "CanvasSettings": {
+                  "CanvasWidth": 100,
+                  "CanvasHeight": 100
+                },
+                "ControlLayout": {
+                  "RequiredPlugins": [
+                    {
+                      "PackageId": "plfjy.ExamplePlugin",
+                      "MinVersion": {{JsonSerializer.Serialize(minVersion)}},
+                      "Controls": {{(includeActualPluginControl ? "[\"plugin:plfjy.ExamplePlugin/TeamCard\"]" : "[]")}}
+                    }
+                  ],
+                  "Controls": {
+                    "Title": {
+                      "ControlType": "Text",
+                      "Text": "Built-in"
+                    }{{pluginJson}}
                   }
-                ],
-                "Title": {
-                  "ControlType": "Text",
-                  "Text": "Built-in"
-                }{{pluginJson}}
+                }
               }
               """);
     }
@@ -686,23 +698,29 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
                     new FrontedLayoutPackageLayoutEntry
                     {
                         Window = "BpWindow",
-                        Canvas = "BaseCanvas",
-                        Path = "layouts/BpWindow/BaseCanvas.json"
+                        Path = "FrontedLayouts/BpWindow.json"
                     }
                 ]
             }
         }));
         WriteZipEntry(
             archive,
-            "layouts/BpWindow/BaseCanvas.json",
+            "FrontedLayouts/BpWindow.json",
             """
             {
               "Version": 3,
-              "CanvasWidth": 100,
-              "CanvasHeight": 100,
-              "Title": {
-                "ControlType": "Text",
-                "Text": "Built-in"
+              "CanvasSettings": {
+                "CanvasWidth": 100,
+                "CanvasHeight": 100
+              },
+              "ControlLayout": {
+                "RequiredPlugins": [],
+                "Controls": {
+                  "Title": {
+                    "ControlType": "Text",
+                    "Text": "Built-in"
+                  }
+                }
               }
             }
             """);

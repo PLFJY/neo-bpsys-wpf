@@ -47,6 +47,31 @@ public interface IFrontedWindowDescriptor
     string? DescriptionKey { get; }
 
     /// <summary>
+    /// Stable management group key.
+    /// </summary>
+    string? GroupKey { get; }
+
+    /// <summary>
+    /// Stable display order inside the management group.
+    /// </summary>
+    int? DisplayOrder { get; }
+
+    /// <summary>
+    /// Whether this window is visible in the frontend management page.
+    /// </summary>
+    bool IsVisibleInFrontManage { get; }
+
+    /// <summary>
+    /// Whether this window is rendered by the window-centric v3 layout host.
+    /// </summary>
+    bool IsV3LayoutWindow { get; }
+
+    /// <summary>
+    /// Whether the window layout can be customized.
+    /// </summary>
+    bool Customizable { get; }
+
+    /// <summary>
     /// Provider and editing mode for this fronted window.
     /// </summary>
     FrontedWindowKind Kind { get; }
@@ -62,7 +87,7 @@ public interface IFrontedWindowDescriptor
     string? PackageId { get; }
 
     /// <summary>
-    /// Canvases exposed by this window. Only customizable canvases participate in Designer v3 layout editing.
+    /// Internal legacy canvas descriptors. Window-centric v3 descriptors only expose <c>BaseCanvas</c>.
     /// </summary>
     IReadOnlyList<FrontedCanvasDescriptor> Canvases { get; }
 }

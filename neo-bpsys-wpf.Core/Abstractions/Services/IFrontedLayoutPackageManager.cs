@@ -26,7 +26,7 @@ public interface IFrontedLayoutPackageManager
 
     string GetPackageLayoutsRootFolder(string packageId);
 
-    string GetPackageLayoutPath(string packageId, string fullWindowType, string canvasName);
+    string GetPackageLayoutPath(string packageId, string fullWindowType);
 
     string GetPackageRootFolder();
 }

@@ -299,14 +299,6 @@
                         ItemsSource="{Binding WindowOptions}"
                         SelectedItem="{Binding SelectedWindow}"
                         SelectionChanged="Selector_OnSelectionChanged" />
-                    <ComboBox
-                        Width="200"
-                        MaxWidth="220"
-                        Margin="0,0,8,8"
-                        DisplayMemberPath="CanvasDisplayName"
-                        ItemsSource="{Binding CanvasOptions}"
-                        SelectedItem="{Binding SelectedCanvas}"
-                        SelectionChanged="Selector_OnSelectionChanged" />
                     <ui:Button
                         Margin="0,0,8,8"
                         Command="{Binding UndoCommand}"

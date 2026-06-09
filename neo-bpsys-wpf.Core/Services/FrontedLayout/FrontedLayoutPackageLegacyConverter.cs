@@ -242,6 +242,13 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                 continue;
             }
 
+            if (string.Equals(window, "WidgetsWindow", StringComparison.Ordinal)
+                && string.Equals(canvas, "MapBpCanvas", StringComparison.Ordinal))
+            {
+                infos.Add("Legacy WidgetsWindow/MapBpCanvas was skipped because MapV1 is no longer supported.");
+                continue;
+            }
+
             var config = await LoadBuiltInConfigAsync(window, canvas, cancellationToken);
             ApplyFrontendConfigValues(config, window, canvas, configValueMap, infos, diagnostics);
             if (legacySettings is not null)
@@ -263,16 +270,29 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                 continue;
             }
 
-            var relativePath = ToZipPath("layouts", window, $"{canvas}.json");
+            var outputWindow = window;
+            if (string.Equals(window, "WidgetsWindow", StringComparison.Ordinal)
+                && string.Equals(canvas, "BpOverViewCanvas", StringComparison.Ordinal))
+            {
+                outputWindow = "BpOverviewWindow";
+            }
+            else if (string.Equals(window, "WidgetsWindow", StringComparison.Ordinal)
+                     && string.Equals(canvas, "MapV2Canvas", StringComparison.Ordinal))
+            {
+                outputWindow = "MapV2Window";
+            }
+
+            var relativePath = ToZipPath("FrontedLayouts", $"{outputWindow}.json");
             var targetPath = Path.Combine(stagingRoot, relativePath.Replace('/', Path.DirectorySeparatorChar));
             Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
-            var json = JsonSerializer.Serialize(config, _jsonOptions);
+            var windowConfig = FrontedWindowConfig.FromCanvasConfig(config);
+            windowConfig.SyncWindowSizeToCanvas();
+            var json = JsonSerializer.Serialize(windowConfig, _jsonOptions);
             await File.WriteAllTextAsync(targetPath, json, cancellationToken);
 
             manifest.Content.Layouts.Add(new FrontedLayoutPackageLayoutEntry
             {
-                Window = window,
-                Canvas = canvas,
+                Window = outputWindow,
                 Path = relativePath
             });
             convertedCount++;
@@ -286,10 +306,22 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         string canvas,
         CancellationToken cancellationToken)
     {
-        var path = Path.Combine(_builtInLayoutRoot, window, $"{canvas}.json");
+        var windowPathName = window;
+        if (string.Equals(window, "WidgetsWindow", StringComparison.Ordinal)
+            && string.Equals(canvas, "BpOverViewCanvas", StringComparison.Ordinal))
+        {
+            windowPathName = "BpOverviewWindow";
+        }
+        else if (string.Equals(window, "WidgetsWindow", StringComparison.Ordinal)
+                 && string.Equals(canvas, "MapV2Canvas", StringComparison.Ordinal))
+        {
+            windowPathName = "MapV2Window";
+        }
+
+        var path = Path.Combine(_builtInLayoutRoot, $"{windowPathName}.json");
         if (!File.Exists(path))
         {
-            throw new FileNotFoundException($"Built-in v3 layout was not found: {window}/{canvas}", path);
+            throw new FileNotFoundException($"Built-in v3 layout was not found: {windowPathName}", path);
         }
 
         if (new FileInfo(path).Length > FrontedLayoutLimits.MaxLayoutJsonBytes)
@@ -298,8 +330,9 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         }
 
         var json = await File.ReadAllTextAsync(path, cancellationToken);
-        return JsonSerializer.Deserialize<FrontedCanvasConfig>(json, _jsonOptions)
-               ?? throw new InvalidOperationException($"Built-in v3 layout could not be read: {window}/{canvas}");
+        var windowConfig = JsonSerializer.Deserialize<FrontedWindowConfig>(json, _jsonOptions)
+                           ?? throw new InvalidOperationException($"Built-in v3 layout could not be read: {windowPathName}");
+        return windowConfig.ToCanvasConfig();
     }
 
     private static void ApplyLegacyGeometry(

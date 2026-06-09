@@ -126,7 +126,6 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
             {
                 var manifest = CreateManifest(request);
                 await ExportLayoutsAsync(staging, entries, manifest, resourceState, cancellationToken);
-                await ExportWindowOptionsAsync(staging, entries, cancellationToken);
                 await ExportBehaviorsAsync(staging, entries, cancellationToken);
                 manifest.Content.Resources = resourceState.Resources;
 
@@ -188,39 +187,40 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
         {
             cancellationToken.ThrowIfCancellationRequested();
             EnsureSafeFullWindowType(entry.WindowTypeName, nameof(entry.WindowTypeName));
-            EnsureSafePathSegment(entry.CanvasName, nameof(entry.CanvasName));
 
-            var loadResult = await _layoutService.LoadCanvasConfigWithMetadataAsync(
+            var loadResult = await _layoutService.LoadWindowConfigWithMetadataAsync(
                 entry.WindowTypeName,
-                entry.CanvasName,
                 cancellationToken);
             var config = loadResult.Config
                          ?? throw new InvalidOperationException(
-                             $"Layout {entry.WindowTypeName}/{entry.CanvasName} could not be loaded.");
+                             $"Layout {entry.WindowTypeName} could not be loaded.");
 
             if (config.Version != 3)
             {
                 throw new InvalidOperationException(
-                    $"Layout {entry.WindowTypeName}/{entry.CanvasName} has unsupported Version {config.Version}.");
+                    $"Layout {entry.WindowTypeName} has unsupported Version {config.Version}.");
             }
 
+            var canvasConfig = config.ToCanvasConfig();
             FrontedLayoutPluginDependencyScanner.SyncCanvasRequiredPlugins(
-                config,
+                canvasConfig,
                 entry.WindowTypeName,
-                entry.CanvasName,
+                FrontedLayoutConstants.BaseCanvasName,
                 _controlRegistry,
                 _pluginMetadataProvider);
-            exportedLayouts.Add((entry.WindowTypeName, entry.CanvasName, config));
+            config.ControlLayout.RequiredPlugins = canvasConfig.RequiredPlugins;
+            config.SyncWindowSizeToCanvas();
+            exportedLayouts.Add((entry.WindowTypeName, FrontedLayoutConstants.BaseCanvasName, canvasConfig));
 
             var layoutJson = JsonSerializer.Serialize(config, _jsonSerializerOptions);
             var node = JsonNode.Parse(layoutJson)
                        ?? throw new InvalidOperationException(
-                           $"Layout {entry.WindowTypeName}/{entry.CanvasName} serialized to empty JSON.");
+                           $"Layout {entry.WindowTypeName} serialized to empty JSON.");
             RewriteResourcePaths(node, null, staging, resourceState);
 
             var relativePath = ToZipPath(
-                "layouts",
-                FrontedLayoutWindowPathHelper.GetLayoutRelativePath(entry.WindowTypeName, entry.CanvasName)
+                "FrontedLayouts",
+                FrontedLayoutWindowPathHelper.GetLayoutRelativePath(entry.WindowTypeName)
                     .Replace('\\', '/'));
             var targetPath = Path.Combine(staging, relativePath.Replace('/', Path.DirectorySeparatorChar));
             Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
@@ -229,7 +229,6 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
             manifest.Content.Layouts.Add(new FrontedLayoutPackageLayoutEntry
             {
                 Window = entry.WindowTypeName,
-                Canvas = entry.CanvasName,
                 Path = relativePath
             });
         }
@@ -239,36 +238,6 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
             manifest.PluginDependencies,
             _controlRegistry,
             _pluginMetadataProvider);
-    }
-
-    private async Task ExportWindowOptionsAsync(
-        string staging,
-        IReadOnlyList<FrontedDesignerLayoutCatalogEntry> entries,
-        CancellationToken cancellationToken)
-    {
-        foreach (var windowTypeName in entries.Select(entry => entry.WindowTypeName).Distinct(StringComparer.Ordinal))
-        {
-            var optionsPath = _windowLayoutOptionsService.GetUserOptionsPath(windowTypeName);
-            if (!File.Exists(optionsPath))
-            {
-                continue;
-            }
-
-            var options = _windowLayoutOptionsService.LoadOptions(windowTypeName);
-            if (options is { Version: 3, AllowTransparency: false }
-                && string.IsNullOrWhiteSpace(options.BackgroundColor))
-            {
-                continue;
-            }
-
-            var relativePath = ToZipPath(
-                "layouts",
-                FrontedLayoutWindowPathHelper.GetWindowOptionsRelativePath(windowTypeName).Replace('\\', '/'));
-            var targetPath = Path.Combine(staging, relativePath.Replace('/', Path.DirectorySeparatorChar));
-            Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
-            var json = JsonSerializer.Serialize(options, _jsonSerializerOptions);
-            await File.WriteAllTextAsync(targetPath, json, cancellationToken);
-        }
     }
 
     private async Task ExportBehaviorsAsync(
@@ -288,7 +257,6 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
             {
                 var document = await _behaviorService.LoadDocumentAsync(
                     entry.WindowTypeName,
-                    entry.CanvasName,
                     cancellationToken);
 
                 // Only export if there are behavior sets
@@ -299,8 +267,9 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
 
                 var relativePath = ToZipPath(
                     "behaviors",
-                    FrontedLayoutWindowPathHelper.GetLayoutRelativePath(entry.WindowTypeName, entry.CanvasName)
-                        .Replace('\\', '/'));
+                    Path.ChangeExtension(
+                        FrontedLayoutWindowPathHelper.GetLayoutRelativePath(entry.WindowTypeName),
+                        ".behaviors.json").Replace('\\', '/'));
                 var targetPath = Path.Combine(staging, relativePath.Replace('/', Path.DirectorySeparatorChar));
                 Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
                 var behaviorJson = JsonSerializer.Serialize(document, _jsonSerializerOptions);
@@ -309,8 +278,8 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
             catch (Exception ex)
             {
                 _logger.LogWarning(ex,
-                    "Failed to export behaviors for {Window}/{Canvas}.",
-                    entry.WindowTypeName, entry.CanvasName);
+                    "Failed to export behaviors for {Window}.",
+                    entry.WindowTypeName);
             }
         }
     }
@@ -485,10 +454,6 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
         var entries = _layoutCatalog.GetEntries().Where(entry => entry is { IsMigrated: true, IsEditable: true });
         return request.ExportScope switch
         {
-            FrontedLayoutPackageExportScope.CurrentCanvas => entries
-                .Where(entry => string.Equals(entry.WindowTypeName, request.WindowTypeName, StringComparison.Ordinal)
-                                && string.Equals(entry.CanvasName, request.CanvasName, StringComparison.Ordinal))
-                .ToArray(),
             FrontedLayoutPackageExportScope.CurrentWindow => entries
                 .Where(entry => string.Equals(entry.WindowTypeName, request.WindowTypeName, StringComparison.Ordinal))
                 .ToArray(),
@@ -524,12 +489,6 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
         if (string.IsNullOrWhiteSpace(request.OutputPath))
         {
             throw new ArgumentException("Output path is required.", nameof(request));
-        }
-
-        if (request.ExportScope == FrontedLayoutPackageExportScope.CurrentCanvas
-            && (string.IsNullOrWhiteSpace(request.WindowTypeName) || string.IsNullOrWhiteSpace(request.CanvasName)))
-        {
-            throw new ArgumentException("Current canvas export requires a selected window and canvas.", nameof(request));
         }
 
         if (request.ExportScope == FrontedLayoutPackageExportScope.CurrentWindow

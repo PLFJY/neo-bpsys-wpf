@@ -27,15 +27,15 @@ public sealed class FrontedBehaviorRuntime : IFrontedBehaviorRuntime
     }
 
     /// <inheritdoc />
-    public Task DetachAsync(string windowId, string canvasName, CancellationToken cancellationToken = default)
+    public Task DetachAsync(string windowId, CancellationToken cancellationToken = default)
     {
-        _hostManager.DetachHost(windowId, canvasName);
+        _hostManager.DetachHost(windowId);
         return Task.CompletedTask;
     }
 
     /// <inheritdoc />
-    public void PublishManualTrigger(string triggerName, string? windowId = null, string? canvasName = null)
+    public void PublishManualTrigger(string triggerName, string? windowId = null)
     {
-        _hostManager.PublishManualTrigger(triggerName, windowId, canvasName);
+        _hostManager.PublishManualTrigger(triggerName, windowId);
     }
 }

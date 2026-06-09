@@ -10,6 +10,8 @@ public sealed class FrontedLayoutPackageManifest
 
     public int FormatVersion { get; set; } = 3;
 
+    public string LayoutModel { get; set; } = FrontedLayoutConstants.WindowCentricLayoutModel;
+
     public string PackageId { get; set; } = string.Empty;
 
     public string Name { get; set; } = string.Empty;
@@ -43,8 +45,6 @@ public sealed class FrontedLayoutPackageManifestContent
 public sealed class FrontedLayoutPackageLayoutEntry
 {
     public string Window { get; set; } = string.Empty;
-
-    public string Canvas { get; set; } = string.Empty;
 
     public string Path { get; set; } = string.Empty;
 }

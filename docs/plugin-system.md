@@ -168,7 +168,7 @@ public sealed class FrontedPluginPropertyDescriptor
 | `FullWindowType` | 布局 / `.bpui` 身份；内置为 `BpWindow`，插件为 `plugin:{PackageId}/{WindowTypeName}` |
 | `PackageId` | 插件 `manifest.yml` 的 `id` |
 
-Plugin XAML Window 由插件提供 WPF `Window` 类型，出现在 FrontManage，不默认进入 Designer。Plugin v3 Layout Window 由宿主标准 layout host 渲染，默认布局来自 `Plugins/{PackageId}/FrontedLayouts/{WindowTypeName}/{CanvasName}.json`；`Customizable=true` 的 Canvas 会进入 Designer。
+Plugin XAML Window 由插件提供 WPF `Window` 类型，出现在 FrontManage，不默认进入 Designer。Plugin v3 Layout Window 由宿主标准 `FrontedWindowBase` layout host 渲染，默认布局来自 `Plugins/{PackageId}/FrontedLayouts/{WindowTypeName}.json`；`Customizable=true` 的 v3 layout window 会进入 Designer。Canvas/BaseCanvas 只是运行时实现细节，不出现在插件默认布局路径或 manifest 中。
 
 示例：
 

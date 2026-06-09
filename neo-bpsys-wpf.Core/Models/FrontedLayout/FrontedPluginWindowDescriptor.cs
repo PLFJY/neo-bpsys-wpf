@@ -49,6 +49,21 @@ public sealed class FrontedPluginWindowDescriptor : IFrontedWindowDescriptor
     /// <inheritdoc />
     public string? DescriptionKey { get; init; }
 
+    /// <inheritdoc />
+    public string? GroupKey { get; init; }
+
+    /// <inheritdoc />
+    public int? DisplayOrder { get; init; }
+
+    /// <inheritdoc />
+    public bool IsVisibleInFrontManage { get; init; } = true;
+
+    /// <inheritdoc />
+    public bool IsV3LayoutWindow => Kind == FrontedWindowKind.PluginLayout;
+
+    /// <inheritdoc />
+    public bool Customizable { get; init; } = true;
+
     /// <summary>
     /// Selects whether the plugin contributes a raw XAML window or a host-rendered Designer v3 layout window.
     /// </summary>
@@ -119,28 +134,16 @@ public sealed class FrontedPluginWindowDescriptor : IFrontedWindowDescriptor
                 $"Plugin XAML window {FullWindowType} requires WindowType assignable to Window.");
         }
 
-        if (Kind == FrontedWindowKind.PluginLayout && Canvases.Count == 0)
-        {
-            throw new FrontedLayoutConfigException($"Plugin layout window {FullWindowType} requires at least one canvas.");
-        }
-
         if (Kind == FrontedWindowKind.PluginLayout && !AllowBlankDefaultLayout)
         {
             var root = pluginFolder ?? PluginFolder;
             if (!string.IsNullOrWhiteSpace(root))
             {
-                foreach (var canvas in Canvases.Where(canvas => canvas.Customizable))
+                var defaultPath = Path.Combine(root, DefaultLayoutRoot, $"{WindowTypeName}.json");
+                if (!File.Exists(defaultPath))
                 {
-                    var defaultPath = Path.Combine(
-                        root,
-                        DefaultLayoutRoot,
-                        WindowTypeName,
-                        $"{canvas.CanvasName}.json");
-                    if (!File.Exists(defaultPath))
-                    {
-                        throw new FrontedLayoutConfigException(
-                            $"Plugin layout window {FullWindowType}/{canvas.CanvasName} default layout is missing: {defaultPath}");
-                    }
+                    throw new FrontedLayoutConfigException(
+                        $"Plugin layout window {FullWindowType} default layout is missing: {defaultPath}");
                 }
             }
         }

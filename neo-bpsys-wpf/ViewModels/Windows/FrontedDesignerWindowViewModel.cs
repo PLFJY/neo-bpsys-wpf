@@ -205,9 +205,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                                          : _localizationService.GetWindowDisplayName(entry.WindowTypeName),
                                      WindowId = entry.WindowId,
                                      CanvasName = entry.CanvasName,
-                                     CanvasDisplayName = !string.IsNullOrWhiteSpace(entry.CanvasDisplayName)
-                                         ? entry.CanvasDisplayName
-                                         : _localizationService.GetCanvasDisplayName(entry.CanvasName),
+                                    CanvasDisplayName = FrontedLayoutConstants.BaseCanvasName,
                                      CanvasWidth = entry.CanvasWidth,
                                      CanvasHeight = entry.CanvasHeight,
                                      IsMigrated = entry.IsMigrated,
@@ -859,21 +857,20 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             ClearLoadedLayout(CreateMessage(
                 FrontedLayoutValidationSeverity.Error,
                 "LayoutSelectionMissing",
-                "Window and Canvas selection are required."));
+                "Window selection is required."));
             return;
         }
 
         var entry = SelectedCanvas;
-        CurrentWindowCanvasDisplay = $"{entry.DisplayName} / {entry.CanvasDisplayName}";
+        CurrentWindowCanvasDisplay = entry.DisplayName;
         DirtyIndicatorText = string.Empty;
         var reloadVersion = StartReloadLayoutRequest();
         var cancellationToken = _reloadLayoutCancellation?.Token ?? CancellationToken.None;
 
         try
         {
-            var loadResult = await _layoutService.LoadCanvasConfigWithMetadataAsync(
+            var loadResult = await _layoutService.LoadWindowConfigWithMetadataAsync(
                 entry.WindowTypeName,
-                entry.CanvasName,
                 cancellationToken);
             if (cancellationToken.IsCancellationRequested || reloadVersion != _reloadLayoutVersion)
             {
@@ -882,20 +879,20 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
             ApplyLayoutSource(loadResult, entry);
 
-            var config = loadResult.Config;
-            if (config is null)
+            var windowConfig = loadResult.Config;
+            if (windowConfig is null)
             {
                 ClearLoadedLayout(CreateMessage(
                     FrontedLayoutValidationSeverity.Error,
                     "MissingLayout",
-                    loadResult.Error ?? $"Layout file was not found for {entry.WindowTypeName}/{entry.CanvasName}."));
+                    loadResult.Error ?? $"Layout file was not found for {entry.WindowTypeName}."));
                 return;
             }
 
             var document = _designConverter.FromConfig(
                 entry.WindowTypeName,
-                entry.CanvasName,
-                config,
+                FrontedLayoutConstants.BaseCanvasName,
+                windowConfig.ToCanvasConfig(),
                 _runtimeContracts);
 
             ControlFilterText = string.Empty;
@@ -903,7 +900,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             CurrentDocument.IsDirty = false;
             var behaviorDocument = await _behaviorService.LoadDocumentAsync(
                 entry.WindowTypeName,
-                entry.CanvasName,
                 cancellationToken);
             if (cancellationToken.IsCancellationRequested || reloadVersion != _reloadLayoutVersion)
             {
@@ -922,7 +918,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             }
 
             ApplyValidationMessages(validationMessages);
-            RequestPreviewRender(config, entry);
+            RequestPreviewRender(windowConfig.ToCanvasConfig(), entry);
             RefreshDirtyState();
         }
         catch (OperationCanceledException)
@@ -938,9 +934,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
             _logger.LogError(
                 ex,
-                "Failed to load fronted designer layout. Window: {WindowTypeName}, Canvas: {CanvasName}",
-                entry.WindowTypeName,
-                entry.CanvasName);
+                "Failed to load fronted designer layout. Window: {WindowTypeName}",
+                entry.WindowTypeName);
 
             ClearLoadedLayout(CreateMessage(
                 FrontedLayoutValidationSeverity.Error,
@@ -999,10 +994,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             {
                 var config = _designConverter.ToConfig(CurrentDocument);
                 config.Version = 3;
-                await _layoutService.SaveCanvasConfigAsync(
+                await _layoutService.SaveWindowConfigAsync(
                     CurrentDocument.WindowTypeName,
-                    CurrentDocument.CanvasName,
-                    config);
+                    FrontedWindowConfig.FromCanvasConfig(config));
 
                 CleanupPendingImportedResources(includeCurrentDocument: true);
                 CurrentDocument.IsDirty = false;
@@ -1011,16 +1005,15 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             if (shouldSaveBehaviors)
             {
                 BehaviorPanel.CurrentDocument.WindowType = CurrentDocument.WindowTypeName;
-                BehaviorPanel.CurrentDocument.CanvasName = CurrentDocument.CanvasName;
+                BehaviorPanel.CurrentDocument.CanvasName = FrontedLayoutConstants.BaseCanvasName;
                 await _behaviorService.SaveDocumentAsync(BehaviorPanel.CurrentDocument);
                 AreBehaviorsDirty = false;
             }
 
             if (shouldSaveLayout || wasBuiltInSource)
             {
-                var savedResult = await _layoutService.LoadCanvasConfigWithMetadataAsync(
-                    CurrentDocument.WindowTypeName,
-                    CurrentDocument.CanvasName);
+                var savedResult = await _layoutService.LoadWindowConfigWithMetadataAsync(
+                    CurrentDocument.WindowTypeName);
                 if (SelectedCanvas is not null)
                 {
                     ApplyLayoutSource(savedResult, SelectedCanvas);
@@ -1053,9 +1046,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         {
             _logger.LogError(
                 ex,
-                "Failed to save fronted designer user layout. Window: {WindowTypeName}, Canvas: {CanvasName}",
-                CurrentDocument.WindowTypeName,
-                CurrentDocument.CanvasName);
+                "Failed to save fronted designer user layout. Window: {WindowTypeName}",
+                CurrentDocument.WindowTypeName);
             StatusMessage = $"{I18nHelper.GetLocalizedString("LayoutSaveFailed")}: {ex.Message}";
             return false;
         }
@@ -1075,8 +1067,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         var windowTypeName = CurrentDocument.WindowTypeName;
-        var canvasName = CurrentDocument.CanvasName;
-        await _layoutService.DeleteUserLayoutAsync(windowTypeName, canvasName);
+        var canvasName = FrontedLayoutConstants.BaseCanvasName;
+        await _layoutService.DeleteUserWindowLayoutAsync(windowTypeName);
 
         var config = await LoadBuiltInLayoutForResetAsync(windowTypeName, canvasName);
         if (config is null)
@@ -1098,13 +1090,13 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         {
             Version = 1,
             WindowType = windowTypeName,
-            CanvasName = canvasName
+            CanvasName = FrontedLayoutConstants.BaseCanvasName
         });
         SelectDesignItem(null);
         ApplyValidationMessages(_validator.Validate(document));
         RequestPreviewRender(config, SelectedCanvas);
         LayoutSourceDisplay = I18nHelper.GetLocalizedString("LayoutSourceBuiltIn");
-        LayoutSourcePath = _layoutService.GetBuiltInDefaultLayoutPath(windowTypeName, canvasName);
+        LayoutSourcePath = _layoutService.GetBuiltInDefaultWindowLayoutPath(windowTypeName);
         StatusMessage = I18nHelper.GetLocalizedString("LayoutReset");
         ClearUndoRedo();
         CleanupPendingImportedResources(includeCurrentDocument: false);
@@ -2735,7 +2727,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             _ => I18nHelper.GetLocalizedString("LayoutSourceError")
         };
         LayoutSourcePath = loadResult.Path
-            ?? _layoutService.GetBuiltInDefaultLayoutPath(entry.WindowTypeName, entry.CanvasName);
+            ?? _layoutService.GetBuiltInDefaultWindowLayoutPath(entry.WindowTypeName);
 
         if (!string.IsNullOrWhiteSpace(loadResult.Error))
         {
@@ -2748,14 +2740,14 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         string canvasName)
     {
         // 直接读取内置布局，不走 fallback 链（避免被活动包/用户布局拦截）
-        var config = await _layoutService.LoadBuiltInDefaultLayoutAsync(windowTypeName, canvasName);
+        var config = await _layoutService.LoadBuiltInDefaultWindowLayoutAsync(windowTypeName);
         if (config is not null)
         {
-            return config;
+            return config.ToCanvasConfig();
         }
 
         // 内置布局不存在时回退到插件默认布局
-        var builtInPath = _layoutService.GetBuiltInDefaultLayoutPath(windowTypeName, canvasName);
+        var builtInPath = _layoutService.GetBuiltInDefaultWindowLayoutPath(windowTypeName);
         _logger.LogWarning(
             "Built-in layout not found for reset. Window: {WindowTypeName}, Canvas: {CanvasName}, Path: {Path}",
             windowTypeName,

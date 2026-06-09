@@ -21,6 +21,32 @@ public class FrontedRenderer(
     internal const string MissingPluginPlaceholderTitle = "Missing Plugin";
 
     /// <inheritdoc />
+    public void RenderToCanvas(Canvas canvas, FrontedWindowConfig config, FrontedRenderContext context)
+    {
+        RenderToCanvas(canvas, config.CanvasSettings, config.ControlLayout, context);
+    }
+
+    /// <inheritdoc />
+    public void RenderToCanvas(
+        Canvas canvas,
+        FrontedCanvasSettings canvasSettings,
+        FrontedControlLayout controlLayout,
+        FrontedRenderContext context)
+    {
+        RenderToCanvas(canvas, new FrontedCanvasConfig
+        {
+            Version = 3,
+            CanvasWidth = canvasSettings.CanvasWidth,
+            CanvasHeight = canvasSettings.CanvasHeight,
+            BackgroundImage = canvasSettings.BackgroundImage,
+            EnableBoModeStates = canvasSettings.EnableBoModeStates,
+            BoModeStates = canvasSettings.BoModeStates,
+            RequiredPlugins = controlLayout.RequiredPlugins,
+            Controls = controlLayout.Controls
+        }, context);
+    }
+
+    /// <inheritdoc />
     public void RenderToCanvas(Canvas canvas, FrontedCanvasConfig config, FrontedRenderContext context)
     {
         ClearGeneratedControls(canvas);

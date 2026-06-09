@@ -1,8 +1,8 @@
 # Fronted Designer v3 独立编辑器设计规格
 
-本文记录 Fronted Designer v3 独立编辑器的设计规格。独立编辑器面向 v3 JSON layout 文件。它是后台侧的独立编辑窗口，不直接在真实前台窗口上编辑；真实前台窗口仍用于 OBS 捕获和运行时输出。编辑器必须同时支持单 Canvas 窗口和多 Canvas 窗口，并保持与现有 v3 renderer、生成控件名、`AnimationService`、业务控件和 JSON 格式兼容。
+本文记录 Fronted Designer v3 独立编辑器的设计规格。独立编辑器面向 v3 JSON layout 文件。它是后台侧的独立编辑窗口，不直接在真实前台窗口上编辑；真实前台窗口仍用于 OBS 捕获和运行时输出。当前 v3 layout 已改为 Window-centric：编辑器只选择 Window，不再选择或管理 Canvas；每个 v3 layout window 内部固定使用 `BaseCanvas`，并保持与现有 v3 renderer、生成控件名、`AnimationService`、业务控件和 JSON 格式兼容。
 
-当前编辑器已实现：设计期基础模型、配置转换、校验器、引用扫描和运行时关键名称目录；独立 `FrontedDesignerWindow` shell、窗口/Canvas 选择器、只读预览渲染、缩放控制和校验面板；内存交互层、透明 hitbox、选择框、拖拽、缩放控制点和键盘微调；基础 Property Grid、Add Control 菜单、Binding Browser 和 Resource Browser；保存用户布局、重置为内置、脏状态提示、吸附网格、Undo/Redo。Designer v3 显示层 i18n 已完成，属性名、控件类型、ComboBox 选项等可本地化，但 layout schema 与保存值不变。详细阶段历史见 [fronted-designer-v3.md](fronted-designer-v3.md#10-分阶段实现历史)。
+当前编辑器已实现：设计期基础模型、配置转换、校验器、引用扫描和运行时关键名称目录；独立 `FrontedDesignerWindow` shell、窗口选择器、只读预览渲染、缩放控制和校验面板；内存交互层、透明 hitbox、选择框、拖拽、缩放控制点和键盘微调；基础 Property Grid、Add Control 菜单、Binding Browser 和 Resource Browser；保存用户布局、重置为内置、脏状态提示、吸附网格、Undo/Redo。Designer v3 显示层 i18n 已完成，属性名、控件类型、ComboBox 选项等可本地化，但 layout schema 与保存值不变。详细阶段历史见 [fronted-designer-v3.md](fronted-designer-v3.md#10-分阶段实现历史)。
 
 ## 1. 硬规则：JSON Key = Control Name
 
@@ -107,14 +107,14 @@ Canvas 级字段同样必须校验：
 
 这些名称被 `AnimationService` 通过 `window.FindName(...)` 查找，用于 pick 图淡入淡出和 picking border 呼吸动画。除非未来改为 metadata-based 动画目标查找，否则这些名称必须保持稳定。
 
-Phase 8B 起，这些运行时关键名称集中在 `FrontedLayoutRuntimeContractCatalog` 中。编辑器、校验器和后续删除/重命名保护都应通过该 catalog 查询，不应在 UI 层或多个服务中重复硬编码同一批名称。后续其他窗口如果出现类似运行时契约，也应扩展 catalog。
+这些运行时关键名称集中在 `FrontedLayoutRuntimeContractCatalog` 中。编辑器、校验器和后续删除/重命名保护都应通过该 catalog 查询，不应在 UI 层或多个服务中重复硬编码同一批名称。后续其他窗口如果出现类似运行时契约，也应扩展 catalog。
 
 编辑器行为：
 
 1. 对运行时关键控件显示徽标，例如“系统关键”。
 2. 默认禁止重命名和删除运行时关键控件。
 3. 如果未来允许重命名，必须同步更新全部引用和动画元数据。
-4. Phase 8 编辑器初始实现应优先采用禁止重命名和删除的策略。
+4. 编辑器应优先采用禁止重命名和删除的策略。
 
 其他重要语义名称也需要谨慎处理：
 
@@ -147,45 +147,43 @@ Phase 8B 起，这些运行时关键名称集中在 `FrontedLayoutRuntimeContrac
 
 如果引用更新尚未实现，编辑器必须阻止被引用控件重命名，或至少显示阻断级警告，避免保存出断裂引用。
 
-## 5. 多 Canvas 编辑模型
+## 5. Window-centric 编辑模型
 
-编辑器必须支持多 Canvas 前台窗口。当前示例：
+编辑器必须只暴露 Window。旧多 Canvas `WidgetsWindow` 已拆分为独立窗口：
 
-| 窗口 | Canvas |
+| 窗口 | 内部 Canvas |
 | --- | --- |
-| `WidgetsWindow` | `MapBpCanvas` |
-| `WidgetsWindow` | `BpOverViewCanvas` |
-| `WidgetsWindow` | `MapV2Canvas` |
+| `BpOverviewWindow` | 固定 `BaseCanvas` |
+| `MapV2Window` | 固定 `BaseCanvas` |
 
-单 Canvas 窗口示例：
+其他 v3 layout window 示例：
 
-1. `ScoreSurWindow` / `BaseCanvas`
-2. `ScoreHunWindow` / `BaseCanvas`
-3. `ScoreGlobalWindow` / `BaseCanvas`
-4. `CutSceneWindow` / `BaseCanvas`
-5. `GameDataWindow` / `BaseCanvas`
-6. `BpWindow` / `BaseCanvas`
+1. `ScoreSurWindow`
+2. `ScoreHunWindow`
+3. `ScoreGlobalWindow`
+4. `CutSceneWindow`
+5. `GameDataWindow`
+6. `BpWindow`
 
 编辑器 UI 应包含：
 
 1. Window selector。
-2. Canvas selector。
-3. 当前 layout path display。
-4. dirty state indicator。
+2. 当前 layout path display。
+3. dirty state indicator。
 
 路径约定：
 
 | 来源 | 路径 |
 | --- | --- |
-| 内置默认布局 | `Resources/FrontedLayouts/{WindowName}/{CanvasName}.json` |
-| 用户自定义布局 | `%APPDATA%/neo-bpsys-wpf/FrontedLayouts/{WindowName}/{CanvasName}.json` |
+| 内置默认布局 | `Resources/FrontedLayouts/{WindowName}.json` |
+| 用户自定义布局 | `%APPDATA%/neo-bpsys-wpf/FrontedLayouts/{WindowName}.json` |
 
 加载优先级：
 
 1. 用户自定义布局。
 2. 内置默认布局。
 
-Phase 8C 已实现基础加载 UI：编辑器使用固定目录列出已迁移的内置 v3 窗口和 Canvas，按选择项通过 `IFrontedLayoutService` 加载布局，转换为 `FrontedCanvasDesignDocument` 后执行校验，并把原始 config 渲染到编辑器自己的预览 Canvas。Phase 8D 在预览上方叠加 `InteractionLayer`，为每个设计项生成 editor-only 透明 hitbox，选中后显示名称、边框和 8 个缩放控制点。owner validation 后，主区域改为左侧控件列表、中间设计 surface、右侧选中/校验面板三列；左侧列表支持按控件名或 `ControlType` 筛选，窗口或 Canvas 切换、布局重载成功时会清空筛选文本。列表按视觉 picking 顺序优先显示高 `ZIndex` 控件，同时允许直接选中被遮挡或低 ZIndex 控件。它不创建或复用真实 `BpWindow`、`ScoreWindow`、`CutSceneWindow` 等前台输出窗口。入口在前台窗口管理页，符合“前台窗口/Canvas 管理能力集中在 FrontManagePage”的后台 UI 归属。
+当前加载 UI：编辑器按 Registry 列出可定制 v3 layout window，按选择项通过 `IFrontedLayoutService` 加载布局，转换为设计文档后执行校验，并把原始 config 渲染到编辑器自己的预览 Canvas。预览上方叠加 `InteractionLayer`，为每个设计项生成 editor-only 透明 hitbox，选中后显示名称、边框和 8 个缩放控制点。主区域为左侧控件列表、中间设计 surface、右侧选中/校验面板三列；左侧列表支持按控件名或 `ControlType` 筛选，窗口切换、布局重载成功时会清空筛选文本。列表按视觉 picking 顺序优先显示高 `ZIndex` 控件，同时允许直接选中被遮挡或低 ZIndex 控件。它不创建或复用真实 `BpWindow`、`ScoreWindow`、`CutSceneWindow` 等前台输出窗口。入口在前台窗口管理页，符合“前台窗口管理能力集中在 FrontManagePage”的后台 UI 归属。
 
 ## 6. 标题栏和窗口高度偏移
 
@@ -199,7 +197,7 @@ Phase 8C 已实现基础加载 UI：编辑器使用固定目录列出已迁移�
 4. 如果未来显示假窗口边框，它只能是视觉装饰。
 5. 所有位置都基于内容 Canvas 坐标系，不基于 `Window.ActualHeight` 或窗口外边界。
 
-Phase 8C 的只读预览已经按此规则设置 `PreviewCanvas.Width = config.CanvasWidth`、`PreviewCanvas.Height = config.CanvasHeight`，不读取真实前台窗口尺寸，因此不会把原生标题栏高度混入控件坐标。Phase 8D 的 `PreviewCanvas` 和 `InteractionLayer` 放在同一个 `DesignSurfaceGrid` 内，二者尺寸都等于 `FrontedCanvasConfig.CanvasWidth` / `CanvasHeight`；外层 `PreviewZoomHost` 使用 `LayoutTransform` 绑定 `ZoomScale`。鼠标拖拽和缩放仍通过 `e.GetPosition(InteractionLayer)` 得到逻辑 Canvas 坐标，不乘除缩放比例；Fit 模式只根据 viewport/canvas 计算 `ZoomScale`，手动缩放也只改变 `ZoomScale`，不会改变写回的 `Left` / `Top` / `Width` / `Height`。编辑器窗口本身使用 WPF-UI `FluentWindow` 和项目既有 `CustomTitleBar`，标题栏在独立 Grid 行中，主题切换按钮隐藏，最小化、最大化和关闭按钮仍由 `CustomTitleBar` 处理。编辑器是可长期打开的非模态工具窗口，启动时不设置主窗口 `Owner`，也不默认最大化，避免 owned maximized window 触发主窗口最小化或任务栏联动。
+只读预览按此规则设置 `PreviewCanvas.Width = config.CanvasWidth`、`PreviewCanvas.Height = config.CanvasHeight`，不读取真实前台窗口尺寸，因此不会把原生标题栏高度混入控件坐标。`PreviewCanvas` 和 `InteractionLayer` 放在同一个 `DesignSurfaceGrid` 内，二者尺寸都等于 `CanvasSettings.CanvasWidth` / `CanvasHeight`；外层 `PreviewZoomHost` 使用 `LayoutTransform` 绑定 `ZoomScale`。鼠标拖拽和缩放仍通过 `e.GetPosition(InteractionLayer)` 得到逻辑 Canvas 坐标，不乘除缩放比例；Fit 模式只根据 viewport/canvas 计算 `ZoomScale`，手动缩放也只改变 `ZoomScale`，不会改变写回的 `Left` / `Top` / `Width` / `Height`。编辑器窗口本身使用 WPF-UI `FluentWindow` 和项目既有 `CustomTitleBar`，标题栏在独立 Grid 行中，主题切换按钮隐藏，最小化、最大化和关闭按钮仍由 `CustomTitleBar` 处理。编辑器是可长期打开的非模态工具窗口，启动时不设置主窗口 `Owner`，也不默认最大化，避免 owned maximized window 触发主窗口最小化或任务栏联动。当前窗口宽高跟随 Canvas 设计尺寸，Designer 不单独暴露 WindowWidth / WindowHeight 编辑控件。
 
 ## 7. 设计 surface 架构
 
@@ -209,7 +207,6 @@ Phase 8C 的只读预览已经按此规则设置 `PreviewCanvas.Width = config.C
 FrontedDesignerWindow
 ├── Toolbar
 │   ├── Window selector
-│   ├── Canvas selector
 │   ├── Add Control FlyoutButton
 │   ├── Save
 │   ├── Reset to Built-in
@@ -248,7 +245,7 @@ WPF 中没有可见内容的元素可能很难点击，甚至无法点击。常�
 4. 当前没有业务数据的业务控件。
 5. 没有可见内容的 placeholder。
 
-编辑器不能依赖 renderer 生成的控件本身进行选择。Phase 8D 已为每个设计项在 `InteractionLayer` 创建透明 hitbox：
+编辑器不能依赖 renderer 生成的控件本身进行选择。每个设计项都应在 `InteractionLayer` 创建透明 hitbox：
 
 | 属性 | 规则 |
 | --- | --- |
@@ -267,9 +264,9 @@ WPF 中没有可见内容的元素可能很难点击，甚至无法点击。常�
 
 选中边框、控制点和标签应独立于实际控件内容显示。
 
-Phase 8D 的交互只修改当前 `FrontedCanvasDesignDocument` 中的内存配置：鼠标拖拽修改 `Left` / `Top`，缩放控制点修改 `Width` / `Height`，左/上方向缩放会同步调整 `Left` / `Top`；方向键移动选中控件，默认步长为 `0.5`，并支持 `Shift=10`、`Ctrl=1`、`Alt=0.1`。所有坐标写回前按 `0.5` 吸附，缩放最小尺寸为 `1x1`。如果控件原本没有 `Width` / `Height`，开始缩放时优先使用渲染后 root element 的 `ActualWidth` / `ActualHeight` 初始化，仍不可用时回退到 `40x24`。每次编辑会标记 `CurrentDocument.IsDirty = true`、刷新校验消息并更新右侧选中信息；鼠标拖拽/缩放中直接移动或调整生成的 preview element 和选中 hitbox/adorner，不等到 mouse-up 才更新真实预览。mouse-up 后再执行校验并从当前内存文档重渲染一次，保证最终一致。由于 Phase 8D 仍没有保存按钮，dirty 状态只作为未保存视觉提示。
+交互只修改当前 `FrontedCanvasDesignDocument` 中的内存配置：鼠标拖拽修改 `Left` / `Top`，缩放控制点修改 `Width` / `Height`，左/上方向缩放会同步调整 `Left` / `Top`；方向键移动选中控件，默认步长为 `0.5`，并支持 `Shift=10`、`Ctrl=1`、`Alt=0.1`。所有坐标写回前按 `0.5` 吸附，缩放最小尺寸为 `1x1`。如果控件原本没有 `Width` / `Height`，开始缩放时优先使用渲染后 root element 的 `ActualWidth` / `ActualHeight` 初始化，仍不可用时回退到 `40x24`。每次编辑会标记 `CurrentDocument.IsDirty = true`、刷新校验消息并更新右侧选中信息；鼠标拖拽/缩放中直接移动或调整生成的 preview element 和选中 hitbox/adorner，不等到 mouse-up 才更新真实预览。mouse-up 后再执行校验并从当前内存文档重渲染一次，保证最终一致。
 
-Phase 8D owner validation 后的选择规则：
+选择规则：
 
 1. 单击透明 hitbox 或左侧列表项才改变选中控件。
 2. 在未选中控件上按下后拖拽，不会切换焦点，也不会拖动该候选控件。
@@ -287,9 +284,9 @@ Phase 8D owner validation 后的选择规则：
 2. `BorderedImage` 是外层 `Border` + 内层 `Image`，Property Grid 把外框和内部图片属性分组显示；`Width` / `Height` 是外框尺寸，`ImageWidth` / `ImageHeight` 是内层图片尺寸。
 3. 选中 `BorderedImage` 时，Property Grid 顶部提供互斥的 resize target 切换。`Border` 模式下 thumbs 调整外层 `Border`，`Image` 模式下 thumbs 调整内层 `ImageWidth` / `ImageHeight`；`Stretch`、`HorizontalAlignment`、`VerticalAlignment` 仍作用于内层 `Image`。
 4. `BorderedImage` 的外层 `Border` 继续作为 resize target；内部图片层可以包含主图和 overlay。未配置 `ImageWidth` / `ImageHeight` 时，主图继续由 WPF 的 `Image` 测量和 `Stretch` 规则决定尺寸。
-5. MapV1 的 `PickedMap` / `BannedMap` 使用 direct `Image`，保持旧 XAML `ui:Image` 的填充与裁剪行为；CutScene 的 Map、SurPick0-3、HunPick 来自 `v2.1.1+af0a4be` 旧 XAML 的 `Border -> Image`，因此使用 `BorderedImage`。SurPick0-3 显式保留 `ImageWidth=556.5`、`ImageHeight=null`，不要把该内层宽度按无效属性清理。
+5. MapV1 已删除，不再为其保留 direct image 迁移规则。CutScene 的 Map、SurPick0-3、HunPick 来自旧 XAML 的 `Border -> Image`，因此使用 `BorderedImage`。SurPick0-3 显式保留 `ImageWidth=556.5`、`ImageHeight=null`，不要把该内层宽度按无效属性清理。
 
-Phase 8D 视口导航修正后：
+视口导航规则：
 
 1. 可编辑预览结构是 `ScrollViewer -> PreviewWorkspace -> PreviewZoomHost -> DesignSurfaceGrid`，不再在编辑 surface 上使用 `Viewbox`。
 2. `Fit` 模式根据 `ScrollViewer` viewport 和当前 Canvas 尺寸计算 `ZoomScale`，小 viewport 可低于 25%。
@@ -329,7 +326,7 @@ public sealed class DesignerPreviewSharedDataService : ISharedDataService
 | 无绑定和无静态文本的 `Text` | overlay 标签 `[Text]` |
 | 无图片源的 `Image` | overlay 标签 `[Image]` |
 
-Phase 8F foundation 修复后，`FrontedDesignerWindow` 渲染 preview 时通过 `FrontedRenderContext.SharedDataServiceOverride` 使用 `DesignerPreviewSharedDataService`，不会调用真实 `ISharedDataService.NewGame()`，也不会修改真实运行时 `CurrentGame`。真实前台窗口仍使用 DI 中的全局 `ISharedDataService`。当前 placeholder 值包括：`HomeTeam` / `AwayTeam`、应用 `Assets/icon.png` 队标、求生者 `幸运儿`、监管者 `厂长`、比分 0、选手 `Player 1` 到 `Player 5`、赛后数据 0、`GameProgress.Game1FirstHalf`、倒计时 `30`、禁用地图 `TheRedChurch`、选择地图 `EversleepingTown`、求生者天赋 `BorrowedTime` / `FlywheelEffect`、监管者天赋 `Detention` / `TrumpCard`、辅助特质 `Blink`，以及默认可见的当前/全局 Ban 位。
+`FrontedDesignerWindow` 渲染 preview 时通过 `FrontedRenderContext.SharedDataServiceOverride` 使用 `DesignerPreviewSharedDataService`，不会调用真实 `ISharedDataService.NewGame()`，也不会修改真实运行时 `CurrentGame`。真实前台窗口仍使用 DI 中的全局 `ISharedDataService`。当前 placeholder 值包括：`HomeTeam` / `AwayTeam`、应用 `Assets/icon.png` 队标、求生者 `幸运儿`、监管者 `厂长`、比分 0、选手 `Player 1` 到 `Player 5`、赛后数据 0、`GameProgress.Game1FirstHalf`、倒计时 `30`、禁用地图 `TheRedChurch`、选择地图 `EversleepingTown`、求生者天赋 `BorrowedTime` / `FlywheelEffect`、监管者天赋 `Detention` / `TrumpCard`、辅助特质 `Blink`，以及默认可见的当前/全局 Ban 位。
 
 `InteractionLayer` 可以显示 fallback overlay 标签，帮助用户定位空控件：
 
@@ -342,7 +339,7 @@ Phase 8F foundation 修复后，`FrontedDesignerWindow` 渲染 preview 时通过
 
 ## 10. Add Control FlyoutButton
 
-Phase 8F 起，工具栏提供 Add Control 按钮和菜单添加控件，并按类别展示内置控件类型。
+工具栏提供 Add Control 按钮和菜单添加控件，并按类别展示内置控件类型。
 
 | 分组 | 控件 |
 | --- | --- |
@@ -365,9 +362,9 @@ Phase 8F 起，工具栏提供 Add Control 按钮和菜单添加控件，并按�
 7. 标记布局 dirty。
 8. 重新渲染 preview。
 
-当前 Add Control 只修改 `CurrentDocument` 的内存设计项集合，不写入 AppData 或内置 `Resources/FrontedLayouts`。重新打开或 reload 布局仍按现有加载优先级恢复用户/内置布局，直到后续保存阶段实现。`Image` 生成通用图片默认配置；`BorderedImage` 生成带外层容器、默认裁剪的图片框。需要 Ban 锁或 pick 呼吸边框时，在同一个图片控件上启用 overlay 字段。
+Add Control 只修改 `CurrentDocument` 的内存设计项集合；保存成功后才写入当前用户布局或活动布局包，不会覆盖内置 `Resources/FrontedLayouts`。`Image` 生成通用图片默认配置；`BorderedImage` 生成带外层容器、默认裁剪的图片框。需要 Ban 锁或 pick 呼吸边框时，在同一个图片控件上启用 overlay 字段。
 
-Phase 8F owner validation 后，工具栏新增 Delete Control。删除只影响当前内存设计文档；重新加载布局仍会恢复内置或用户布局，直到保存阶段实现。删除规则保持保守：
+工具栏提供 Delete Control。删除只影响当前内存设计文档；保存成功后才持久化。删除规则保持保守：
 
 1. 未选中控件时不执行。
 2. 运行时关键控件、不可选中控件或不可编辑控件拒绝删除。
@@ -398,15 +395,15 @@ Phase 8F owner validation 后，工具栏新增 Delete Control。删除只影响
 
 ## 11. 插件控件编辑器策略
 
-Phase 13B 已实现插件控件 registry、descriptor API 和运行时创建管线，但 Designer Add Control 插件 UI、插件属性元数据渲染、MissingPlugin 占位符和安装引导仍属于 Phase 13C。插件控件的 `ControlType` 必须是：
+插件控件 registry、descriptor API、运行时创建管线、Designer Add Control 插件 UI、插件属性元数据渲染、MissingPlugin 占位符和安装引导均按插件 descriptor 接入。插件控件的 `ControlType` 必须是：
 
 ```text
 plugin:<PackageId>/<ControlTypeName>
 ```
 
-Designer 和运行时读取布局时应把它识别为插件控件，而不是未知内置控件。Phase 13B 中，layout JSON 的 `plugin:*` 控件会反序列化为 `PluginFrontedControlConfig` 并保留插件专属 JSON 属性；已安装插件注册 descriptor 后，runtime adapter 再转换为插件 typed config。内置控件仍使用 `Text`、`Image`、`BorderedImage` 等简单值；插件控件不能 shadow 内置 `ControlType`，也不能用本地化显示名作为保存值。
+Designer 和运行时读取布局时应把它识别为插件控件，而不是未知内置控件。layout JSON 的 `plugin:*` 控件会反序列化为 `PluginFrontedControlConfig` 并保留插件专属 JSON 属性；已安装插件注册 descriptor 后，runtime adapter 再转换为插件 typed config。内置控件仍使用 `Text`、`Image`、`BorderedImage` 等简单值；插件控件不能 shadow 内置 `ControlType`，也不能用本地化显示名作为保存值。
 
-后续 Phase 13C 的 Add Control UI 应从插件 control descriptor 生成菜单项，显示插件提供的本地化名称、图标和描述，但保存到 JSON 的仍是完整 `plugin:<PackageId>/<ControlTypeName>`。如果插件未安装或版本不满足，Add Control 不应展示可添加入口，已有布局则走 MissingPlugin 占位符。
+Add Control UI 应从插件 control descriptor 生成菜单项，显示插件提供的本地化名称、图标和描述，但保存到 JSON 的仍是完整 `plugin:<PackageId>/<ControlTypeName>`。如果插件未安装或版本不满足，Add Control 不应展示可添加入口，已有布局则走 MissingPlugin 占位符。
 
 已有用户布局中的缺失插件控件：
 
@@ -440,7 +437,7 @@ public sealed class FrontedPluginPropertyDescriptor
 
 ## 12. Property Grid
 
-Phase 8E 已实现基础 Property Grid。Property Grid 手写 WPF 实现，基于 `ItemsControl`，不使用 WinForms `PropertyGrid`。owner validation 后每行通过 `ContentControl` 和编辑器模板只创建当前需要的编辑器，避免切换选中控件时同时创建多套原生控件造成闪烁：
+Property Grid 手写 WPF 实现，基于 `ItemsControl`，不使用 WinForms `PropertyGrid`。每行通过 `ContentControl` 和编辑器模板只创建当前需要的编辑器，避免切换选中控件时同时创建多套原生控件造成闪烁：
 
 ```text
 PropertyGrid
@@ -470,11 +467,11 @@ PropertyGrid
 | color string | `PortableColorPicker` + 文本 fallback，保存为 `#AARRGGBB` |
 | `BindingPath` | 非 Text/LocalizedText 控件使用 `TextBox` + Binding Browser |
 | `TextBinding` | Text/LocalizedText 专用模态编辑器，可增删、排序来源并编辑格式与连接分隔符 |
-| image/resource path | Phase 8E 为普通 `TextBox`；Resource Browser 留到 Phase 8G |
+| image/resource path | `TextBox` + Resource Browser |
 | `ControlType` | read-only |
 | `Name` | 带校验的 `TextBox` |
 | `ZIndex` | `NumberBox` |
-| `FontFamily` | Phase 8F 起使用可编辑字体 ComboBox |
+| `FontFamily` | 可编辑字体 ComboBox |
 
 字符串选项处理：
 
@@ -485,7 +482,7 @@ PropertyGrid
 5. `Stretch` 使用 `None` / `Fill` / `Uniform` / `UniformToFill`。
 6. `FontWeight` 使用 `Normal` / `Bold` / `SemiBold` / `Light` / `Medium` / `ExtraBold`。
 
-Phase 12 起，字符串选项使用 `FrontedPropertyEditorOption` 分离显示名和保存值。ComboBox 显示 `Designer.Option.{Property}.{Value}` 的本地化文本，例如 `HorizontalAlignment.Center` 在中文界面显示“居中”，但提交到 config 的值仍是原始 `"Center"`。这条规则同样适用于 `VerticalAlignment`、`TextAlignment`、`TextWrapping`、`Stretch` 和 `FontWeight`。不要把本地化显示文本写入 v3 JSON。
+字符串选项使用 `FrontedPropertyEditorOption` 分离显示名和保存值。ComboBox 显示 `Designer.Option.{Property}.{Value}` 的本地化文本，例如 `HorizontalAlignment.Center` 在中文界面显示“居中”，但提交到 config 的值仍是原始 `"Center"`。这条规则同样适用于 `VerticalAlignment`、`TextAlignment`、`TextWrapping`、`Stretch` 和 `FontWeight`。不要把本地化显示文本写入 v3 JSON。
 
 颜色处理：
 
@@ -503,17 +500,17 @@ Phase 12 起，字符串选项使用 `FrontedPropertyEditorOption` 分离显示�
 5. 预览内置字体时按运行时同样的 split 逻辑构造 `FontFamily(new Uri(pathBeforeHash), "./" + hashAndName)`，不要把 pack URI 原样传给 `new FontFamily(string)`。
 6. 如果当前值不在选项中，ComboBox 允许手写并按原始字符串提交；无效字体字符串不能让属性网格崩溃。
 
-Phase 8F owner validation 后，文本类属性使用显式提交模型。`Name`、`BindingPath`、普通 `Text` 字符串、资源路径字符串和手写 `FontFamily` 都先写入 `FrontedPropertyEditorItem.EditText`，按 Enter 或右侧 Check/Apply 按钮才提交。颜色行同样遵守显式提交：ColorPicker 选择颜色只把 `EditText` 和可见 Hex 文本更新为 `#AARRGGBB`，Apply 或 Hex 文本框 Enter 才写回 config；手写 Hex 有效时同步 ColorPicker，提交失败时保留输入并显示红色错误。`Name` 和 `BindingPath` 不再在 LostFocus 时自动提交，避免焦点移动和 Property Grid 重建时把未确认输入写回布局。提交失败时保留用户输入，设置 `HasEditError` / `EditError`，文本框显示红色边框，并在属性行下方显示验证消息；用户继续编辑或提交成功后错误状态清除。`Name` 仍遵守运行时关键名称只读、合法 WPF 名称、同 Canvas 唯一和被引用控件阻止重命名规则；成功重命名后刷新左侧列表、选中摘要、preview、hitbox/selection label 和属性行。
+文本类属性使用显式提交模型。`Name`、`BindingPath`、普通 `Text` 字符串、资源路径字符串和手写 `FontFamily` 都先写入 `FrontedPropertyEditorItem.EditText`，按 Enter 或右侧 Check/Apply 按钮才提交。颜色行同样遵守显式提交：ColorPicker 选择颜色只把 `EditText` 和可见 Hex 文本更新为 `#AARRGGBB`，Apply 或 Hex 文本框 Enter 才写回 config；手写 Hex 有效时同步 ColorPicker，提交失败时保留输入并显示红色错误。`Name` 和 `BindingPath` 不再在 LostFocus 时自动提交，避免焦点移动和 Property Grid 重建时把未确认输入写回布局。提交失败时保留用户输入，设置 `HasEditError` / `EditError`，文本框显示红色边框，并在属性行下方显示验证消息；用户继续编辑或提交成功后错误状态清除。`Name` 仍遵守运行时关键名称只读、合法 WPF 名称、同 Canvas 唯一和被引用控件阻止重命名规则；成功重命名后刷新左侧列表、选中摘要、preview、hitbox/selection label 和属性行。
 
 Text 和 LocalizedText 不再把基类 `BindingPath` 作为内容来源。它们的 Property Grid 显示专用 `TextBinding` 编辑按钮：弹窗内可添加、删除、上移、下移 source，手写 Path 或通过 Binding Browser 选择，并编辑 `StringFormat`、`JoinSeparator`、`NullText`、`FallbackText`。source 顺序对应复合格式的 `{0}`、`{1}`、`{2}`；格式为空时按分隔符连接。确认弹窗作为一个 undo/redo 步骤提交；空 Path、格式语法错误或超出 source 数量的占位符会阻止确认且保留输入。
 
-Phase 8G 起，其他 `BindingPath` 仍是可手写文本框，但旁边新增 Browse button。Binding Browser 由显式 root + 反射 catalog 驱动：`IFrontedBindingRootProvider` 注册 `CurrentGame`、`HomeTeam`、`AwayTeam`、`RemainingSeconds` 和 Ban 可用状态列表等根；标注 `[FrontedBindingObject]` 的 DTO 自动扫描 public readable instance properties；`[FrontedBindingIgnore]` 像 `JsonIgnore` 一样隐藏不适合布局绑定的公开属性；`[FrontedBindingCollection(FixedCount = ...)]` 为固定列表生成 `[0]`、`[1]` 等索引路径。catalog 扫描只看类型和属性元数据，不读取 `ISharedDataService` 当前值，不调用 getter，不创建新对局，也不枚举运行时集合。Binding Browser 按当前属性行的目标类型过滤候选路径：TextBinding source 显示字符串、数字、bool、enum、`DateTime` 和 `TimeSpan`，`Image` / `BorderedImage` 只显示 `ImageSource` / `BitmapSource` / `BitmapImage` 兼容值，`LockVisibilityBindingPath` 只显示 bool，`GameProgressText.BindingPath` 只显示 `GameProgress`，`MapNameText.BindingPath` 只显示 `Map` / `Map?`。不匹配的叶子节点会从树和搜索结果中隐藏，父节点只在仍有可用子节点时保留。选择结果只更新该行 `EditText`，不会立即写入 config，不会推入 Undo；用户后续按 Apply 或 Enter 后才走 `ApplyPropertyEdit`、校验、预览刷新和 Undo snapshot。
+其他 `BindingPath` 仍是可手写文本框，但旁边提供 Browse button。Binding Browser 由显式 root + 反射 catalog 驱动：`IFrontedBindingRootProvider` 注册 `CurrentGame`、`HomeTeam`、`AwayTeam`、`RemainingSeconds` 和 Ban 可用状态列表等根；标注 `[FrontedBindingObject]` 的 DTO 自动扫描 public readable instance properties；`[FrontedBindingIgnore]` 像 `JsonIgnore` 一样隐藏不适合布局绑定的公开属性；`[FrontedBindingCollection(FixedCount = ...)]` 为固定列表生成 `[0]`、`[1]` 等索引路径。catalog 扫描只看类型和属性元数据，不读取 `ISharedDataService` 当前值，不调用 getter，不创建新对局，也不枚举运行时集合。Binding Browser 按当前属性行的目标类型过滤候选路径：TextBinding source 显示字符串、数字、bool、enum、`DateTime` 和 `TimeSpan`，`Image` / `BorderedImage` 只显示 `ImageSource` / `BitmapSource` / `BitmapImage` 兼容值，`LockVisibilityBindingPath` 只显示 bool，`GameProgressText.BindingPath` 只显示 `GameProgress`，`MapNameText.BindingPath` 只显示 `Map` / `Map?`。不匹配的叶子节点会从树和搜索结果中隐藏，父节点只在仍有可用子节点时保留。选择结果只更新该行 `EditText`，不会立即写入 config，不会推入 Undo；用户后续按 Apply 或 Enter 后才走 `ApplyPropertyEdit`、校验、预览刷新和 Undo snapshot。
 
-Phase 12/12B 起，Binding Browser 的标题、搜索、按钮、空状态、期望类型和节点显示名可以本地化，但完整 `BindingPath` 始终作为原始路径在树、搜索结果或选中路径区域可见。选择后写回的仍是 `CurrentGame.SurTeam.Name` 这类原始路径，绝不写入“主队名称”等显示文本。
+Binding Browser 的标题、搜索、按钮、空状态、期望类型和节点显示名可以本地化，但完整 `BindingPath` 始终作为原始路径在树、搜索结果或选中路径区域可见。选择后写回的仍是 `CurrentGame.SurTeam.Name` 这类原始路径，绝不写入“主队名称”等显示文本。
 
-Phase 8G 起，图片/资源路径字段旁新增 Resource Browser。当前资源来源包括内置运行时文件 `Resources/bpui`，返回值使用 resolver 约定的 `Resources/<fileName>`；也支持通过 “Browse file...” 选择 png/jpg/jpeg/webp/bmp 绝对路径。`Image` / `BorderedImage` 的静态图片选择写入 `ImagePath`，动态数据仍通过 `BindingPath` 和 Binding Browser 选择；两者同时存在时运行时以 `BindingPath` 为准。控件级 Resource Browser 选择外部文件仍只写入编辑缓冲。Phase 9B.0 已在 Canvas Properties 中提供 `CanvasWidth`、`CanvasHeight`、`BackgroundImage`、清除背景、浏览资源和选择本地图片；选择本地图片会复制到 editor-local resource store，layout JSON 写为 `bpui://local/...`。导出包时再复制进包资源并重写为 `bpui://{PackageId}/...`。
+图片/资源路径字段旁提供 Resource Browser。当前资源来源包括内置运行时文件 `Resources/bpui`，返回值使用 resolver 约定的 `Resources/<fileName>`；也支持通过 “Browse file...” 选择 png/jpg/jpeg/webp/bmp 绝对路径。`Image` / `BorderedImage` 的静态图片选择写入 `ImagePath`，动态数据仍通过 `BindingPath` 和 Binding Browser 选择；两者同时存在时运行时以 `BindingPath` 为准。控件级 Resource Browser 选择外部文件仍只写入编辑缓冲。Canvas Settings 中提供 `CanvasWidth`、`CanvasHeight`、`BackgroundImage`、清除背景、浏览资源和选择本地图片；选择本地图片会复制到 editor-local resource store，layout JSON 写为 `bpui://local/...`。导出包时再复制进包资源并重写为 `bpui://{PackageId}/...`。当前 `WindowSettings.WindowWidth` / `WindowHeight` 跟随 `CanvasWidth` / `CanvasHeight`，无需在 UI 中单独编辑。
 
-Phase 12B 起，Resource Browser 的标题、搜索、按钮、空状态和来源/类型显示可本地化，但选中区域必须保留原始资源 URI 或文件路径。写回配置的仍是 `Resources/foo.png`、`bpui://...` 或绝对路径原值，不写入本地化显示文本。
+Resource Browser 的标题、搜索、按钮、空状态和来源/类型显示可本地化，但选中区域必须保留原始资源 URI 或文件路径。写回配置的仍是 `Resources/foo.png`、`bpui://...` 或绝对路径原值，不写入本地化显示文本。
 
 `FontFamily` 行仍使用可编辑 ComboBox，但不再依赖 `SelectedValue` 双向绑定。下拉打开期间不会触发 LostFocus 提交或重建 Property Grid；用户从下拉中选择时写入对应 `FrontedFontFamilyOption.Value`，因此内置字体继续保存 `pack://application:,,,/Assets/Fonts/#...` 原值；用户手写自定义字体时按 Enter 或真正失焦提交 `ComboBox.Text`。下拉项继续使用各自的 `PreviewFontFamily` 显示，保持旧 `TextSettingsEditControl` 的字体预览语义。
 
@@ -687,13 +684,13 @@ Canvas 属性区可启用 BO3/BO5 状态。禁用时编辑 root/default state；
 内置布局是 source-controlled default layouts：
 
 ```text
-neo-bpsys-wpf/Resources/FrontedLayouts/{WindowName}/{CanvasName}.json
+neo-bpsys-wpf/Resources/FrontedLayouts/{WindowName}.json
 ```
 
 用户自定义布局保存到 AppData：
 
 ```text
-%APPDATA%/neo-bpsys-wpf/FrontedLayouts/{WindowName}/{CanvasName}.json
+%APPDATA%/neo-bpsys-wpf/FrontedLayouts/{WindowName}.json
 ```
 
 或使用项目现有 `AppConstants.FrontedLayoutsPath` 约定生成路径。
@@ -714,13 +711,13 @@ neo-bpsys-wpf/Resources/FrontedLayouts/{WindowName}/{CanvasName}.json
 2. 存在 Error 时保存失败。
 3. 只有 Warning 时可允许用户确认后保存。
 
-Phase 9B.1 起，设计器保存写入当前活动 layout package；当前活动项为内置方案时，保存会先复制出一个可写的用户布局方案并激活它。旧 `%APPDATA%/neo-bpsys-wpf/FrontedLayouts/{WindowName}/{CanvasName}.json` 目录仅作为兼容读取和迁移残留存在，不再通过设计器菜单暴露。Reset to Built-in 会删除旧用户布局文件并重新加载内置布局，清空 undo/redo、选择和筛选。打开布局包目录统一在 `FrontManagePage` 的 `Layout Packages` 管理区执行。
+设计器保存写入当前活动 layout package；当前活动项为内置方案时，保存会先复制出一个可写的用户布局方案并激活它。旧 `%APPDATA%/neo-bpsys-wpf/FrontedLayouts/{WindowName}/{CanvasName}.json` 目录仅作为 legacy 迁移残留存在，不再通过设计器菜单暴露。Reset to Built-in 会删除用户窗口布局文件并重新加载内置布局，清空 undo/redo、选择和筛选。打开布局包目录统一在 `FrontManagePage` 的 `Layout Packages` 管理区执行。
 
 `.bpui v3` package 导出/导入已放到 `FrontManagePage` 的 `Layout Packages` tab。导出会打开 manifest 对话框，并固定导出全部已迁移前台布局；导入会安装 v3 包并可立即激活。SettingPage 中现有 `.bpui` 导入导出是 legacy 流程，会覆盖全局 `Config.json`，不能作为 Designer v3 包管理入口。
 
-`AllowTransparency` 和 `BackgroundColor` 是窗口级选项，不是普通控件属性。单 Canvas 窗口可以在 Canvas Properties 附近显示该组设置，多 Canvas 窗口则对整个窗口生效。`BackgroundColor` 使用 `#AARRGGBB` 并通过 ColorPicker 编辑；为空或缺失时沿用窗口原有默认背景，应用后会立即刷新已注册前台窗口背景。由于 WPF 透明窗口行为可能需要重新创建窗口或重启应用，只有 `AllowTransparency` 变化后应提示需要重启；如果用户选择立即重启，必须先处理设计器未保存修改，提供 Save / Discard / Cancel。
+`AllowsTransparency` 和 `BackgroundColor` 是 `WindowSettings`，不是普通控件属性，也不属于 `CanvasSettings`。`BackgroundColor` 使用 `#AARRGGBB` 并通过 ColorPicker 编辑；为空或缺失时沿用窗口原有默认背景。由于 WPF 透明窗口行为必须在 source 初始化前应用，已显示窗口 reload 不直接修改 `AllowsTransparency`，只提示下次创建或重开窗口后生效。
 
-窗口/Canvas 切换、Reload、Reset to Built-in 和关闭编辑器时，如果当前文档 dirty，会通过 `MessageBoxHelper` 提示 Save / Discard / Cancel。Save 会先执行完整校验，存在 Error 时阻止保存并取消切换或关闭；Warning/Info 不阻止保存。关闭窗口的 dirty prompt 必须先在 `Closing` 中设置 `e.Cancel = true`，再通过 Dispatcher 异步显示本地化的宽版 helper 对话框；用户选择 Save 且保存成功或选择 Discard 后，设置强制关闭标记并再次调用 `Close()`。这样避免 WPF 在窗口已经进入 closing 状态时执行 `ShowDialog` / `Close` 触发异常。验证详情窗口是非模态子窗口，父编辑器关闭时只做受保护关闭，已关闭或正在关闭时不能让异常冒泡。
+窗口切换、Reload、Reset to Built-in 和关闭编辑器时，如果当前文档 dirty，会通过 `MessageBoxHelper` 提示 Save / Discard / Cancel。Save 会先执行完整校验，存在 Error 时阻止保存并取消切换或关闭；Warning/Info 不阻止保存。关闭窗口的 dirty prompt 必须先在 `Closing` 中设置 `e.Cancel = true`，再通过 Dispatcher 异步显示本地化的宽版 helper 对话框；用户选择 Save 且保存成功或选择 Discard 后，设置强制关闭标记并再次调用 `Close()`。这样避免 WPF 在窗口已经进入 closing 状态时执行 `ShowDialog` / `Close` 触发异常。验证详情窗口是非模态子窗口，父编辑器关闭时只做受保护关闭，已关闭或正在关闭时不能让异常冒泡。
 
 顶部工具栏从 Phase 8H owner validation 修正后使用 `ScrollViewer + WrapPanel`，窗口选择器、Canvas 选择器、Add/Delete、Undo/Redo、保存/重置、reload/validate、缩放、吸附和 dirty/path 状态都允许在窄窗口下自动换行。长 layout path 只显示省略文本并通过 tooltip 查看完整路径，不能把工具栏撑出窗口右侧。
 

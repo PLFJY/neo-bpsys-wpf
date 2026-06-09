@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using System.Text.Json;
 using System.Windows.Controls;
@@ -7,7 +8,7 @@ using System.Windows.Controls;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Holds the runtime state for a single Canvas: the behavior document,
+/// Holds the runtime state for a single fronted window: the behavior document,
 /// the event bus subscription, and all running behavior instances.
 /// Disposing the host cancels all running behaviors and releases resources.
 /// </summary>
@@ -65,14 +66,13 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
         _document = document;
         BuildSelfTagIndex();
 
-        // Subscribe to all events on the bus that are relevant to this window/canvas
+        // Subscribe to all events on the bus that are relevant to this window.
         _eventSubscription = _eventBus.Subscribe(null, OnEventAsync);
 
         _logger.LogInformation(
-            "Behavior host attached: Window={WindowType}({WindowId}), Canvas={CanvasName}, BehaviorSets={SetCount}",
+            "Behavior host attached: Window={WindowType}({WindowId}), BehaviorSets={SetCount}",
             _context.WindowType,
             _context.WindowId,
-            _context.CanvasName,
             _document.ControlBehaviorSets?.Count ?? 0);
     }
 
@@ -98,8 +98,8 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
         catch (Exception ex)
         {
             _logger.LogWarning(ex,
-                "Error processing event {EventType} on host {WindowId}/{CanvasName}.",
-                behaviorEvent.EventType, _context.WindowId, _context.CanvasName);
+                "Error processing event {EventType} on host {WindowId}.",
+                behaviorEvent.EventType, _context.WindowId);
         }
 
         return Task.CompletedTask;
@@ -120,7 +120,7 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
         }
 
         if (!string.IsNullOrEmpty(behaviorEvent.CanvasName) &&
-            !string.Equals(behaviorEvent.CanvasName, _context.CanvasName, StringComparison.Ordinal))
+            !string.Equals(behaviorEvent.CanvasName, FrontedLayoutConstants.BaseCanvasName, StringComparison.Ordinal))
         {
             return false;
         }
@@ -131,7 +131,7 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
     private void BuildSelfTagIndex()
     {
         _selfTagsByBehaviorGuid.Clear();
-        foreach (var control in _context.CanvasConfig.Controls.Values)
+        foreach (var control in _context.WindowConfig.ControlLayout.Controls.Values)
         {
             if (control.BehaviorGuid == Guid.Empty || control.BehaviorTags.Count == 0)
             {

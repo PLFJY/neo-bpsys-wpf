@@ -19,7 +19,7 @@
 | --- | --- |
 | `bpui` | 前台窗口 UI 背景、比分图、锁图、阵营图标 |
 | `data` | `CharacterList.json` 及多语言角色列表 |
-| `FrontedDefaultPositions` | 内置前台窗口默认布局 |
+| `FrontedLayouts` | v3 Window-centric 内置前台窗口默认布局 |
 | `SmartBpDefaultConfigs` | SmartBP 默认区域配置 |
 | `surBig/surHalf/surHeader/surHeader_singleColor` | 求生者不同展示尺寸/样式图片 |
 | `hunBig/hunHalf/hunHeader/hunHeader_singleColor` | 监管者不同展示尺寸/样式图片 |
@@ -28,7 +28,7 @@
 
 `ImageHelper` 使用 `AppConstants.ResourcesPath` 拼接这些目录，按文件路径加载。新增运行时图片时，应确认文件被放在 `Resources` 下并能复制到输出目录。
 
-CutScene v3 默认布局位于 `Resources/FrontedLayouts/CutSceneWindow/BaseCanvas.json`，背景使用 `Resources/cutScene.png`（解析到运行目录 `Resources/bpui/cutScene.png`）。GameData v3 默认布局位于 `Resources/FrontedLayouts/GameDataWindow/BaseCanvas.json`，背景使用 `Resources/gameData.png`（解析到运行目录 `Resources/bpui/gameData.png`）。WidgetsWindow v3 是多 Canvas 布局，默认文件为 `Resources/FrontedLayouts/WidgetsWindow/MapBpCanvas.json`、`Resources/FrontedLayouts/WidgetsWindow/BpOverViewCanvas.json`、`Resources/FrontedLayouts/WidgetsWindow/MapV2Canvas.json`，背景分别使用 `Resources/mapBp.png`、`Resources/bpOverview.png`、`Resources/mapBpV2.png`。BpWindow v3 默认布局位于 `Resources/FrontedLayouts/BpWindow/BaseCanvas.json`，背景使用 `Resources/bp.png`。内置业务控件复用这些资源目录：`TalentTraitDisplay` 通过 `ImageHelper.GetTalentImageSource` / `GetTraitImageSource` 读取 `Resources/talent` 和 `Resources/trait`；Ban 位默认布局使用通用 `Image` 绑定角色 `HeaderImageSingleColor`，锁定覆盖层优先使用 `LockImagePath`，为空时回退内置锁图；pick 呼吸边框优先使用 `PickingBorderImagePath`，为空时回退内置 BP 选择边框图；`CurrentBanDisplay`、`BanSlotDisplay` 和 `PickingBorderOverlay` 已移除；`MapV2Display` 复用现有 `MapV2Presenter` 并使用 v3 运行时默认样式。旧 Config.json 中可映射的图片会迁移到 v3 layout，旧前台设置不再作为 active Settings 运行时来源。
+v3 默认布局采用 Window-centric 一级路径，位于 `Resources/FrontedLayouts/{WindowTypeName}.json`。每个 v3 layout window 运行时固定生成 `ViewBox -> Canvas BaseCanvas`，Canvas 不再是资源路径或包管理单位。CutScene 背景使用 `Resources/cutScene.png`（解析到运行目录 `Resources/bpui/cutScene.png`），GameData 背景使用 `Resources/gameData.png`，BpWindow 背景使用 `Resources/bp.png`。`WidgetsWindow` 和 MapV1 已删除；旧 `BpOverViewCanvas` 迁移为 `BpOverviewWindow.json`，旧 `MapV2Canvas` 迁移为 `MapV2Window.json`，MapV2 背景继续使用 `Resources/mapBpV2.png`。内置业务控件复用这些资源目录：`TalentTraitDisplay` 通过 `ImageHelper.GetTalentImageSource` / `GetTraitImageSource` 读取 `Resources/talent` 和 `Resources/trait`；Ban 位默认布局使用通用 `Image` 绑定角色 `HeaderImageSingleColor`，锁定覆盖层优先使用 `LockImagePath`，为空时回退内置锁图；pick 呼吸边框优先使用 `PickingBorderImagePath`，为空时回退内置 BP 选择边框图；`CurrentBanDisplay`、`BanSlotDisplay` 和 `PickingBorderOverlay` 已移除；`MapV2Display` 复用现有 `MapV2Presenter` 并使用 v3 运行时默认样式。旧 Config.json 中可映射的图片会迁移到 v3 layout，旧前台设置不再作为 active Settings 运行时来源。
 
 普通图片展示有两个内置控件类型：`Image` 和 `BorderedImage`。`Image` 是通用图片控件，`Canvas.Left` / `Canvas.Top` / `Width` / `Height` / `ZIndex` 作用于承载主图和内部 overlay 的根元素。`BorderedImage` 是外层 `Border` + 内部图片层，适合需要外层容器裁剪、外框 resize 或内层对齐控制的图片区域，例如角色 pick 图。两者的图片路径解析规则相同：`BindingPath` 绑定到 `ISharedDataService` 上的动态 `ImageSource`，`ImagePath` 保存静态资源图片路径。`BindingPath` 非空时优先使用绑定并忽略 `ImagePath`；`BindingPath` 为空且 `ImagePath` 非空时，运行时按 v3 资源 resolver 加载静态图。两者也共享 `Lockable` 和 `PickingBorderAvailable` overlay 资源路径解析。
 
@@ -130,7 +130,7 @@ Phase 12B 后，常用命名还包括 `Designer.Value.*`、`Designer.Editor.*` �
 
 这些 key 只影响编辑器 UI 显示，不改变布局文件。`.bpui` / v3 JSON 中的 schema 字段名、控件 `Name`、`ControlType`、`BindingPath`、资源 URI 和 `FontFamily` 仍写入原始契约值；例如中文界面 ComboBox 显示“居中”，保存仍是 `"HorizontalAlignment": "Center"`。Binding Browser 可以显示本地化节点名，但界面必须保留原始路径，选择结果也必须写回原始 `BindingPath`。Resource Browser 可以显示本地化来源和类型，但选中区域必须保留原始资源 URI 或文件路径。
 
-`GameProgressText` 使用集中 helper 和资源 key 生成 `FREE GAME`、`GAME {n} FIRST HALF`、`GAME {n} OVERTIME SECOND HALF` 等文本，避免 BO3/BO5 进度文案散落在窗口 XAML 或 JSON 中。默认是单行文本（`DisplayMode = Inline`）；`DisplayMode = TwoLine` 时把 Game / Overtime 和 half 分为两行。`MapNameText` 默认把 `CurrentGame.PickedMap` 枚举名作为本地化 key 查询地图名，也可以通过 `BindingPath` 指向其他地图字段，例如 WidgetsWindow 的 picked / banned map 名称；新增地图时要同步补齐地图资源 key。`LocalizedText` 用 `LocalizationKey` 查询普通 resx 文案，适合 GameData 表头等静态标签；如果 key 缺失会显示 `FallbackText` 或 key 本身。普通 `Text.Text` 仍是原样静态文本，不会自动本地化。
+`GameProgressText` 使用集中 helper 和资源 key 生成 `FREE GAME`、`GAME {n} FIRST HALF`、`GAME {n} OVERTIME SECOND HALF` 等文本，避免 BO3/BO5 进度文案散落在窗口 XAML 或 JSON 中。默认是单行文本（`DisplayMode = Inline`）；`DisplayMode = TwoLine` 时把 Game / Overtime 和 half 分为两行。`MapNameText` 默认把 `CurrentGame.PickedMap` 枚举名作为本地化 key 查询地图名，也可以通过 `BindingPath` 指向其他地图字段，例如当前对局的 picked / banned map 数据；新增地图时要同步补齐地图资源 key。`LocalizedText` 用 `LocalizationKey` 查询普通 resx 文案，适合 GameData 表头等静态标签；如果 key 缺失会显示 `FallbackText` 或 key 本身。普通 `Text.Text` 仍是原样静态文本，不会自动本地化。
 
 ## 添加新素材
 
@@ -139,7 +139,7 @@ Phase 12B 后，常用命名还包括 `Designer.Value.*`、`Designer.Editor.*` �
 1. 确认素材属于嵌入 `Assets` 还是输出 `Resources`。
 2. 如果代码用 `ImageHelper.GetUiImageSource("bp")`，文件应在 `Resources/bpui/bp.png`。
 3. 如果代码用 `ImageSourceKey.surHalf`，文件应在 `Resources/surHalf/{name}.png`。
-4. 旧 XAML-first 默认位置文件命名必须匹配 `{WindowTypeName}Config-{CanvasName}.default.json`；v3 默认布局使用 `Resources/FrontedLayouts/{WindowTypeName}/{CanvasName}.json`。
+4. 旧 XAML-first 默认位置文件命名必须匹配 `{WindowTypeName}Config-{CanvasName}.default.json`；v3 默认布局使用 `Resources/FrontedLayouts/{WindowTypeName}.json`。
 5. v3 JSON 中 `Resources/xxx.png` 会解析到运行目录 `Resources/bpui/xxx.png`，新增默认背景时要确认对应文件存在于 `Resources/bpui` 并会复制到输出目录。
 6. SmartBP 默认配置文件名和 `SmartBpGameDataSceneDefinition` 中的相对路径一致。
 

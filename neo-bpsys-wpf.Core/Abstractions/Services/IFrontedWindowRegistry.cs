@@ -18,6 +18,12 @@ public interface IFrontedWindowRegistry
     IReadOnlyList<IFrontedWindowDescriptor> GetCustomizableLayoutWindows();
 
     /// <summary>
+    /// Gets windows visible in the frontend management page, with stable fallback grouping and ordering.
+    /// </summary>
+    /// <returns>The manageable window descriptors.</returns>
+    IReadOnlyList<IFrontedWindowDescriptor> GetManageableWindows();
+
+    /// <summary>
     /// Looks up a descriptor by stable runtime <see cref="IFrontedWindowDescriptor.WindowId"/>.
     /// </summary>
     bool TryGetByWindowId(string windowId, out IFrontedWindowDescriptor descriptor);

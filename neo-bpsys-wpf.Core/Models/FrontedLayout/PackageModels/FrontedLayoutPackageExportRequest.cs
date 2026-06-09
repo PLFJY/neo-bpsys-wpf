@@ -20,12 +20,10 @@ public sealed class FrontedLayoutPackageExportRequest
 
     public string? WindowTypeName { get; set; }
 
-    public string? CanvasName { get; set; }
 }
 
 public enum FrontedLayoutPackageExportScope
 {
-    CurrentCanvas,
     CurrentWindow,
     AllFrontendLayouts
 }

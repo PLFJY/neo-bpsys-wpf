@@ -83,7 +83,7 @@ public partial class BpWindow : FrontedWindowBase
         try
         {
             var windowId = FrontedWindowHelper.GetFrontedWindowGuid(FrontedWindowType.BpWindow);
-            var config = await _layoutService.LoadCanvasConfigAsync(nameof(BpWindow), BaseCanvasName);
+            var config = await _layoutService.LoadWindowConfigAsync(nameof(BpWindow));
             if (config is null)
             {
                 _logger?.LogWarning(
@@ -96,7 +96,7 @@ public partial class BpWindow : FrontedWindowBase
             // Detach existing behavior host before re-rendering
             if (_behaviorRuntime is not null)
             {
-                await _behaviorRuntime.DetachAsync(windowId, BaseCanvasName);
+                await _behaviorRuntime.DetachAsync(windowId);
             }
 
             _renderer.RenderToCanvas(BaseCanvas, config, new FrontedRenderContext
@@ -115,7 +115,7 @@ public partial class BpWindow : FrontedWindowBase
                     WindowType = nameof(BpWindow),
                     CanvasName = BaseCanvasName,
                     RootCanvas = BaseCanvas,
-                    CanvasConfig = config,
+                    WindowConfig = config,
                     SharedDataService = _sharedDataService!,
                     IsDesignerPreview = false,
                     Logger = _logger
@@ -137,7 +137,7 @@ public partial class BpWindow : FrontedWindowBase
         try
         {
             var windowId = FrontedWindowHelper.GetFrontedWindowGuid(FrontedWindowType.BpWindow);
-            _ = _behaviorRuntime?.DetachAsync(windowId, BaseCanvasName);
+            _ = _behaviorRuntime?.DetachAsync(windowId);
         }
         catch (Exception ex)
         {

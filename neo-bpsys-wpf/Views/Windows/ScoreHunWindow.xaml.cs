@@ -84,7 +84,7 @@ public partial class ScoreHunWindow : FrontedWindowBase
 
         try
         {
-            var config = await _layoutService.LoadCanvasConfigAsync(nameof(ScoreHunWindow), BaseCanvasName);
+            var config = await _layoutService.LoadWindowConfigAsync(nameof(ScoreHunWindow));
             if (config is null)
             {
                 _logger?.LogWarning(
@@ -96,7 +96,7 @@ public partial class ScoreHunWindow : FrontedWindowBase
 
             if (_behaviorRuntime is not null)
             {
-                await _behaviorRuntime.DetachAsync(windowId, BaseCanvasName);
+                await _behaviorRuntime.DetachAsync(windowId);
             }
 
             _renderer.RenderToCanvas(BaseCanvas, config, new FrontedRenderContext
@@ -114,7 +114,7 @@ public partial class ScoreHunWindow : FrontedWindowBase
                     WindowType = nameof(ScoreHunWindow),
                     CanvasName = BaseCanvasName,
                     RootCanvas = BaseCanvas,
-                    CanvasConfig = config,
+                    WindowConfig = config,
                     SharedDataService = _sharedDataService!,
                     IsDesignerPreview = false,
                     Logger = _logger
@@ -169,7 +169,7 @@ public partial class ScoreHunWindow : FrontedWindowBase
         try
         {
             var windowId = FrontedWindowHelper.GetFrontedWindowGuid(FrontedWindowType.ScoreHunWindow);
-            _ = _behaviorRuntime?.DetachAsync(windowId, BaseCanvasName);
+            _ = _behaviorRuntime?.DetachAsync(windowId);
         }
         catch (Exception ex)
         {

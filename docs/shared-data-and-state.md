@@ -12,7 +12,7 @@ public string RemainingSeconds => _sharedDataService.RemainingSeconds;
 public ObservableCollection<bool> CanCurrentSurBanned => _sharedDataService.CanCurrentSurBannedList;
 ```
 
-典型例子是 `BpWindowViewModel` 和 `WidgetsWindowViewModel`：它们订阅 `CurrentGameChanged`、`IsBo3ModeChanged`、`CountDownValueChanged` 等事件，然后触发自身属性更新，让 XAML 绑定刷新。
+典型例子是旧 XAML 前台窗口 ViewModel 和当前 v3 renderer 绑定链路：它们读取 `ISharedDataService` 的当前状态，并在 `CurrentGameChanged`、`IsBo3ModeChanged`、`CountDownValueChanged` 等事件后刷新绑定或重新渲染需要切换状态的布局。
 
 ## 稳定对象与可替换对象
 

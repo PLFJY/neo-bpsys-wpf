@@ -18,7 +18,7 @@ Phase 1 已完成行为系统的数据基础：
 
 Phase 2 已完成 Designer 侧行为面板和触发器编辑能力：
 
-- `IFrontedBehaviorService` 扩展为行为文档读写服务，`FrontedBehaviorService` 会按当前激活布局包读写 `behaviors/{WindowType}/{CanvasName}.behaviors.json`。行为数据仍独立于控件 config 和 `FrontedCanvasConfig`。
+- `IFrontedBehaviorService` 扩展为行为文档读写服务，`FrontedBehaviorService` 会按当前激活布局包读写 `behaviors/{WindowType}.behaviors.json`。行为数据仍独立于控件 config 和 `FrontedWindowConfig`。
 - Designer v3 右侧属性区新增可折叠的“动画 / 行为”面板。选中控件后可以添加 OneShot / Loop 行为，重命名、启用/禁用、复制和删除行为。
 - 当旧布局控件的 `BehaviorGuid == Guid.Empty` 且用户第一次添加行为时，编辑器会按需生成新的 `BehaviorGuid` 并标记 layout dirty；仅切换选中控件不会生成 Guid。
 - OneShot 行为可编辑 `Trigger`；Loop 行为可编辑 `StartTrigger`、`EndTrigger` 和 `LoopPolicy`。触发器编辑器使用事件 payload 参数、可读运算符和文本值组成规则；内部 `Source` 与兼容字段 `RightValueKind` 不在正常 UI 中显示。
@@ -146,7 +146,7 @@ Phase 5 已完成真实事件总线 + 前台运行时接入，把行为系统从
 | ScoreGlobalWindow | 单 Canvas，有 reload guard | 已集成 |
 | GameDataWindow | 单 Canvas | 已集成 |
 | CutSceneWindow | 单 Canvas | 已集成 |
-| WidgetsWindow | 多 Canvas（3 个） | 已集成 |
+| BpOverviewWindow / MapV2Window | Window-centric v3 layout host | 已集成 |
 
 集成模式：`ReloadFrontedLayoutAsync()` 中先等待 detach 旧 host，再 RenderToCanvas，渲染后 attach 新 host；窗口 Unloaded/Closed 时 fire-and-forget detach host。
 
@@ -160,7 +160,7 @@ Phase 5 已完成真实事件总线 + 前台运行时接入，把行为系统从
 ### bpui 包导出
 
 - `FrontedLayoutPackageExporter.ExportAsync()` 现在包含 behaviors 文件导出。
-- behavior 文件路径：`behaviors/{WindowType}/{CanvasName}.behaviors.json`。
+- behavior 文件路径：`behaviors/{WindowType}.behaviors.json`。
 
 ### 已注册的 DI 服务
 
@@ -389,15 +389,15 @@ Phase 1 中 `_behaviorService` 可以是空实现（NoopBehaviorService），清
 ### 4.1 建议文件路径
 
 ```
-behaviors/{WindowType}/{CanvasName}.behaviors.json
+behaviors/{WindowType}.behaviors.json
 ```
 
-镜像 `layouts/` 的目录结构，放在独立的 `behaviors/` 根目录下。在 bpui 包内的路径为 `behaviors/BpWindow/BaseCanvas.behaviors.json`。
+镜像 `FrontedLayouts/` 的窗口级文件结构，放在独立的 `behaviors/` 根目录下。在 bpui 包内的路径为 `behaviors/BpWindow.behaviors.json`。
 
 ### 4.2 保存位置
 
 ```
-%APPDATA%/neo-bpsys-wpf/FrontedLayoutPackages/{PackageId}/behaviors/{WindowType}/{CanvasName}.behaviors.json
+%APPDATA%/neo-bpsys-wpf/FrontedLayoutPackages/{PackageId}/behaviors/{WindowType}.behaviors.json
 ```
 
 ### 4.3 导入位置
@@ -621,7 +621,7 @@ Row 4:   Window Options（现有）
 | Q7 | 是否需要 behaviors 文件脏追踪单独保存？ | 建议新增 `AreBehaviorsDirty` 属性，与 `IsDirty` 分开跟踪。 |
 | Q8 | 测试是否应依赖具体文件系统？ | Phase 1 所有测试应是纯内存模型测试，不涉及文件 I/O。 |
 | Q9 | `DesignerPreviewSharedDataService` 是否需要触发行为事件？ | 当前是隔离的 preview 数据源，不触发真实事件。Phase 1 不需要改。 |
-| Q10 | 建议未来行为文件命名？ | `behaviors/{WindowType}/{CanvasName}.behaviors.json` |
+| Q10 | 建议行为文件命名？ | `behaviors/{WindowType}.behaviors.json` |
 
 ---
 

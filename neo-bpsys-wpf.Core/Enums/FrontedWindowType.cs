@@ -15,5 +15,6 @@ public enum FrontedWindowType
     ScoreHunWindow,
     ScoreGlobalWindow,
     GameDataWindow,
-    WidgetsWindow
+    BpOverviewWindow,
+    MapV2Window
 }

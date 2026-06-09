@@ -894,9 +894,9 @@ public class FrontedBehaviorRuntimeLoopTest
         {
             WindowId = "TestWindow",
             WindowType = "BpWindow",
-            CanvasName = "TestCanvas",
+            CanvasName = "BaseCanvas",
             RootCanvas = new Canvas(),
-            CanvasConfig = new FrontedCanvasConfig(),
+            WindowConfig = FrontedWindowConfig.FromCanvasConfig(new FrontedCanvasConfig()),
             SharedDataService = new MockSharedDataService(),
             Logger = NullLogger.Instance,
             IsDesignerPreview = true
@@ -924,9 +924,9 @@ public class FrontedBehaviorRuntimeLoopTest
         {
             WindowId = "TestWindow",
             WindowType = "BpWindow",
-            CanvasName = "TestCanvas",
+            CanvasName = "BaseCanvas",
             RootCanvas = new Canvas(),
-            CanvasConfig = new FrontedCanvasConfig(),
+            WindowConfig = FrontedWindowConfig.FromCanvasConfig(new FrontedCanvasConfig()),
             SharedDataService = new MockSharedDataService(),
             Logger = logger,
             IsDesignerPreview = true

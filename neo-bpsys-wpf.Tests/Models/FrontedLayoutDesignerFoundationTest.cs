@@ -619,20 +619,20 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
-    public void DesignerLayoutCatalogListsMigratedWindowsAndCanvases()
+    public void DesignerLayoutCatalogListsMigratedWindows()
     {
         var entries = new FrontedDesignerLayoutCatalog().GetEntries();
 
-        Assert.Equal(9, entries.Count);
+        Assert.Equal(8, entries.Count);
         Assert.Contains(entries, entry => entry.WindowTypeName == "ScoreSurWindow" && entry.CanvasName == "BaseCanvas");
         Assert.Contains(entries, entry => entry.WindowTypeName == "ScoreHunWindow" && entry.CanvasName == "BaseCanvas");
         Assert.Contains(entries, entry => entry.WindowTypeName == "ScoreGlobalWindow" && entry.CanvasName == "BaseCanvas");
         Assert.Contains(entries, entry => entry.WindowTypeName == "CutSceneWindow" && entry.CanvasName == "BaseCanvas");
         Assert.Contains(entries, entry => entry.WindowTypeName == "GameDataWindow" && entry.CanvasName == "BaseCanvas");
-        Assert.Contains(entries, entry => entry.WindowTypeName == "WidgetsWindow" && entry.CanvasName == "MapBpCanvas");
-        Assert.Contains(entries, entry => entry.WindowTypeName == "WidgetsWindow" && entry.CanvasName == "BpOverViewCanvas");
-        Assert.Contains(entries, entry => entry.WindowTypeName == "WidgetsWindow" && entry.CanvasName == "MapV2Canvas");
+        Assert.Contains(entries, entry => entry.WindowTypeName == "BpOverviewWindow" && entry.CanvasName == "BaseCanvas");
+        Assert.Contains(entries, entry => entry.WindowTypeName == "MapV2Window" && entry.CanvasName == "BaseCanvas");
         Assert.Contains(entries, entry => entry.WindowTypeName == "BpWindow" && entry.CanvasName == "BaseCanvas");
+        Assert.DoesNotContain(entries, entry => entry.WindowTypeName == "WidgetsWindow");
         Assert.All(entries, entry =>
         {
             Assert.True(entry.IsMigrated);
@@ -641,16 +641,12 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
-    public void DesignerLayoutCatalogListsExactlyThreeWidgetsWindowCanvases()
+    public void DesignerLayoutCatalogDoesNotExposeWidgetsWindowCanvases()
     {
-        var widgetsCanvases = new FrontedDesignerLayoutCatalog()
-            .GetEntries()
-            .Where(entry => entry.WindowTypeName == "WidgetsWindow")
-            .Select(entry => entry.CanvasName)
-            .OrderBy(name => name)
-            .ToArray();
+        var entries = new FrontedDesignerLayoutCatalog().GetEntries();
 
-        Assert.Equal(["BpOverViewCanvas", "MapBpCanvas", "MapV2Canvas"], widgetsCanvases);
+        Assert.DoesNotContain(entries, entry => entry.WindowTypeName == "WidgetsWindow");
+        Assert.All(entries, entry => Assert.Equal("BaseCanvas", entry.CanvasName));
     }
 
     [Fact]
@@ -689,8 +685,7 @@ public class FrontedLayoutDesignerFoundationTest
         var path = Path.Combine(
             AppConstants.ResourcesPath,
             "FrontedLayouts",
-            entry.WindowTypeName,
-            $"{entry.CanvasName}.json");
+            $"{entry.WindowTypeName}.json");
 
         Assert.True(File.Exists(path), path);
     }
@@ -3895,22 +3890,21 @@ public class FrontedLayoutDesignerFoundationTest
                 }
             };
 
-            await store.SaveAsync("BpWindow", "BaseCanvas", config, TestContext.Current.CancellationToken);
+            await store.SaveAsync("BpWindow", FrontedWindowConfig.FromCanvasConfig(config), TestContext.Current.CancellationToken);
 
-            var expectedPath = Path.Combine(root, "BpWindow", "BaseCanvas.json");
-            Assert.Equal(expectedPath, store.GetLayoutPath("BpWindow", "BaseCanvas"));
-            Assert.Equal(Path.Combine(root, "BpWindow"), store.GetLayoutFolder("BpWindow", "BaseCanvas"));
+            var expectedPath = Path.Combine(root, "BpWindow.json");
+            Assert.Equal(expectedPath, store.GetLayoutPath("BpWindow"));
             Assert.Equal(root, store.GetRootFolder());
-            Assert.True(store.Exists("BpWindow", "BaseCanvas"));
+            Assert.True(store.Exists("BpWindow"));
 
-            var loaded = await store.LoadAsync("BpWindow", "BaseCanvas", TestContext.Current.CancellationToken);
+            var loaded = await store.LoadAsync("BpWindow", TestContext.Current.CancellationToken);
             Assert.NotNull(loaded);
             Assert.Equal(3, loaded.Version);
-            Assert.True(loaded.Controls.ContainsKey("Title"));
+            Assert.True(loaded.ControlLayout.Controls.ContainsKey("Title"));
             Assert.Contains("\"Title\"", File.ReadAllText(expectedPath));
 
-            await store.DeleteAsync("BpWindow", "BaseCanvas", TestContext.Current.CancellationToken);
-            Assert.False(store.Exists("BpWindow", "BaseCanvas"));
+            await store.DeleteAsync("BpWindow", TestContext.Current.CancellationToken);
+            Assert.False(store.Exists("BpWindow"));
         }
         finally
         {
@@ -3935,7 +3929,7 @@ public class FrontedLayoutDesignerFoundationTest
                     ["BuiltInText"] = new TextFrontedControlConfig { Text = "Built-in" }
                 }
             });
-            await userStore.SaveAsync("BpWindow", "BaseCanvas", new FrontedCanvasConfig
+            await userStore.SaveAsync("BpWindow", FrontedWindowConfig.FromCanvasConfig(new FrontedCanvasConfig
             {
                 CanvasWidth = 200,
                 CanvasHeight = 100,
@@ -3943,17 +3937,16 @@ public class FrontedLayoutDesignerFoundationTest
                 {
                     ["UserText"] = new TextFrontedControlConfig { Text = "User" }
                 }
-            }, TestContext.Current.CancellationToken);
+            }), TestContext.Current.CancellationToken);
 
             var service = new FrontedLayoutService(userStore, builtInRoot, logger: null);
-            var result = await service.LoadCanvasConfigWithMetadataAsync(
+            var result = await service.LoadWindowConfigWithMetadataAsync(
                 "BpWindow",
-                "BaseCanvas",
                 TestContext.Current.CancellationToken);
 
             Assert.Equal(FrontedLayoutSource.User, result.Source);
-            Assert.Equal(200, result.Config?.CanvasWidth);
-            Assert.True(result.Config?.Controls.ContainsKey("UserText"));
+            Assert.Equal(200, result.Config?.CanvasSettings.CanvasWidth);
+            Assert.True(result.Config?.ControlLayout.Controls.ContainsKey("UserText"));
         }
         finally
         {
@@ -3980,21 +3973,19 @@ public class FrontedLayoutDesignerFoundationTest
             });
             var service = new FrontedLayoutService(userStore, builtInRoot, logger: null);
 
-            var missingUserResult = await service.LoadCanvasConfigWithMetadataAsync(
+            var missingUserResult = await service.LoadWindowConfigWithMetadataAsync(
                 "BpWindow",
-                "BaseCanvas",
                 TestContext.Current.CancellationToken);
             Assert.Equal(FrontedLayoutSource.BuiltIn, missingUserResult.Source);
 
-            Directory.CreateDirectory(userStore.GetLayoutFolder("BpWindow", "BaseCanvas"));
-            File.WriteAllText(userStore.GetLayoutPath("BpWindow", "BaseCanvas"), "{ invalid json");
-            var invalidUserResult = await service.LoadCanvasConfigWithMetadataAsync(
+            Directory.CreateDirectory(Path.GetDirectoryName(userStore.GetLayoutPath("BpWindow"))!);
+            File.WriteAllText(userStore.GetLayoutPath("BpWindow"), "{ invalid json");
+            var invalidUserResult = await service.LoadWindowConfigWithMetadataAsync(
                 "BpWindow",
-                "BaseCanvas",
                 TestContext.Current.CancellationToken);
 
             Assert.Equal(FrontedLayoutSource.BuiltIn, invalidUserResult.Source);
-            Assert.Equal(100, invalidUserResult.Config?.CanvasWidth);
+            Assert.Equal(100, invalidUserResult.Config?.CanvasSettings.CanvasWidth);
             Assert.NotNull(invalidUserResult.Error);
         }
         finally
@@ -5004,14 +4995,10 @@ public class FrontedLayoutDesignerFoundationTest
 
     private static FrontedCanvasConfig ReadBuiltInLayout(string windowTypeName, string canvasName = "BaseCanvas")
     {
-        var path = Path.Combine(
-            AppConstants.ResourcesPath,
-            "FrontedLayouts",
-            windowTypeName,
-            $"{canvasName}.json");
+        var path = Path.Combine(AppConstants.ResourcesPath, "FrontedLayouts", $"{windowTypeName}.json");
 
         Assert.True(File.Exists(path), path);
-        var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(File.ReadAllText(path));
+        var config = JsonSerializer.Deserialize<FrontedWindowConfig>(File.ReadAllText(path))?.ToCanvasConfig();
         Assert.NotNull(config);
         return config;
     }
@@ -5022,11 +5009,11 @@ public class FrontedLayoutDesignerFoundationTest
         string canvasName,
         FrontedCanvasConfig config)
     {
-        var folder = Path.Combine(builtInRoot, windowTypeName);
-        Directory.CreateDirectory(folder);
+        _ = canvasName;
+        Directory.CreateDirectory(builtInRoot);
         File.WriteAllText(
-            Path.Combine(folder, $"{canvasName}.json"),
-            JsonSerializer.Serialize(config));
+            Path.Combine(builtInRoot, $"{windowTypeName}.json"),
+            JsonSerializer.Serialize(FrontedWindowConfig.FromCanvasConfig(config)));
     }
 
     private static string CreateTempDirectory()
@@ -5248,14 +5235,13 @@ public class FrontedLayoutDesignerFoundationTest
 
         public Task<FrontedBehaviorDocument> LoadDocumentAsync(
             string windowType,
-            string canvasName,
             CancellationToken cancellationToken = default)
         {
             return Task.FromResult(new FrontedBehaviorDocument
             {
                 Version = 1,
                 WindowType = windowType,
-                CanvasName = canvasName
+                CanvasName = FrontedLayoutConstants.BaseCanvasName
             });
         }
 

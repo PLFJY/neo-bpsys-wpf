@@ -11,11 +11,6 @@ public interface IFrontedWindowService
     #region Properties
 
     /// <summary>
-    /// 前台画布列表
-    /// </summary>
-    List<(string, string)> FrontedCanvas { get; }
-
-    /// <summary>
     /// 前台窗口列表
     /// </summary>
     Dictionary<string, Window> FrontedWindows { get; }
@@ -79,12 +74,12 @@ public interface IFrontedWindowService
     #region Window Registration
 
     /// <summary>
-    /// 注册窗口和画布
+    /// 注册窗口
     /// </summary>
     /// <param name="windowId">窗口 GUID</param>
     /// <param name="window">窗口</param>
-    /// <param name="canvasNames">画布名称集合</param>
-    void RegisterFrontedWindowAndCanvas(string windowId, Window window, string[] canvasNames);
+    /// <param name="canvasNames">旧版调用保留参数，window-centric v3 不再使用。</param>
+    void RegisterFrontedWindowAndCanvas(string windowId, Window window, string[]? canvasNames = null);
 
     #endregion
 

@@ -71,16 +71,35 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
         _frontedWindowRegistry = frontedWindowRegistry;
         _serviceProvider = serviceProvider;
         _logger = logger;
-        var pluginWindows = frontedWindowRegistry.GetPluginWindows() ?? [];
-        foreach (var descriptor in pluginWindows)
+        var manageableWindows = frontedWindowRegistry.GetManageableWindows() ?? [];
+        foreach (var group in FrontedWindowManageGroup.FromDescriptors(manageableWindows))
         {
-            ExternalFrontedWindows.Add(FrontedWindowManageItem.FromDescriptor(descriptor));
+            ManageableWindowGroups.Add(group);
+            foreach (var item in group.Windows)
+            {
+                ManageableWindows.Add(item);
+            }
+        }
+
+        if (ManageableWindowGroups.Count == 0)
+        {
+            foreach (var descriptor in manageableWindows)
+            {
+                ManageableWindows.Add(FrontedWindowManageItem.FromDescriptor(descriptor));
+            }
         }
 
         _ = RefreshPackagesAsync();
     }
 
     public ObservableCollection<FrontedWindowManageItem> ExternalFrontedWindows { get; } = [];
+
+    public ObservableCollection<FrontedWindowManageItem> ManageableWindows { get; } = [];
+
+    /// <summary>
+    /// Manageable fronted windows grouped by descriptor group key.
+    /// </summary>
+    public ObservableCollection<FrontedWindowManageGroup> ManageableWindowGroups { get; } = [];
 
     public ObservableCollection<FrontedLayoutPackageInfo> LayoutPackages { get; } = [];
 
@@ -941,26 +960,120 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
     }
 }
 
-public sealed class FrontedWindowManageItem
+/// <summary>
+/// Fronted window group displayed by FrontManagePage.
+/// </summary>
+public sealed class FrontedWindowManageGroup
 {
-    public string WindowId { get; init; } = string.Empty;
+    /// <summary>
+    /// Stable group key provided by the window descriptor or fallback rules.
+    /// </summary>
+    public string GroupKey { get; init; } = string.Empty;
 
+    /// <summary>
+    /// User-facing group display name.
+    /// </summary>
     public string DisplayName { get; init; } = string.Empty;
 
+    /// <summary>
+    /// Window cards in this group.
+    /// </summary>
+    public ObservableCollection<FrontedWindowManageItem> Windows { get; } = [];
+
+    /// <summary>
+    /// Builds grouped FrontManagePage items from window descriptors.
+    /// </summary>
+    /// <param name="descriptors">Window descriptors to group.</param>
+    /// <returns>Grouped fronted window manage items.</returns>
+    public static IReadOnlyList<FrontedWindowManageGroup> FromDescriptors(IEnumerable<IFrontedWindowDescriptor> descriptors)
+    {
+        ArgumentNullException.ThrowIfNull(descriptors);
+
+        var groups = new List<FrontedWindowManageGroup>();
+        var byKey = new Dictionary<string, FrontedWindowManageGroup>(StringComparer.Ordinal);
+        foreach (var descriptor in descriptors)
+        {
+            var key = GetStableGroupKey(descriptor);
+            if (!byKey.TryGetValue(key, out var group))
+            {
+                group = new FrontedWindowManageGroup
+                {
+                    GroupKey = key,
+                    DisplayName = GetGroupDisplayName(key)
+                };
+
+                byKey.Add(key, group);
+                groups.Add(group);
+            }
+
+            group.Windows.Add(FrontedWindowManageItem.FromDescriptor(descriptor));
+        }
+
+        return groups;
+    }
+
+    private static string GetStableGroupKey(IFrontedWindowDescriptor descriptor)
+    {
+        if (!string.IsNullOrWhiteSpace(descriptor.GroupKey))
+        {
+            return descriptor.GroupKey;
+        }
+
+        return descriptor.IsPlugin ? "Plugin" : "BuiltIn";
+    }
+
+    private static string GetGroupDisplayName(string groupKey)
+    {
+        return groupKey switch
+        {
+            "BuiltIn" => I18nHelper.GetLocalizedString("SystemBuiltIn"),
+            "Plugin" => I18nHelper.GetLocalizedString("Plugins"),
+            _ => groupKey
+        };
+    }
+}
+
+/// <summary>
+/// Fronted window card displayed by FrontManagePage.
+/// </summary>
+public sealed class FrontedWindowManageItem
+{
+    /// <summary>
+    /// Stable runtime window id.
+    /// </summary>
+    public string WindowId { get; init; } = string.Empty;
+
+    /// <summary>
+    /// User-facing window display name.
+    /// </summary>
+    public string DisplayName { get; init; } = string.Empty;
+
+    /// <summary>
+    /// User-facing descriptor kind label.
+    /// </summary>
     public string KindDisplay { get; init; } = string.Empty;
 
+    /// <summary>
+    /// Full window type name used by layout paths.
+    /// </summary>
     public string FullWindowType { get; init; } = string.Empty;
 
+    /// <summary>
+    /// Whether this window can be customized by Designer v3.
+    /// </summary>
     public bool CanCustomize { get; init; }
 
+    /// <summary>
+    /// Creates a card item from a registry descriptor.
+    /// </summary>
+    /// <param name="descriptor">Window descriptor.</param>
+    /// <returns>A card item for FrontManagePage.</returns>
     public static FrontedWindowManageItem FromDescriptor(IFrontedWindowDescriptor descriptor)
     {
         return new FrontedWindowManageItem
         {
             WindowId = descriptor.WindowId,
-            DisplayName = string.IsNullOrWhiteSpace(descriptor.DisplayName)
-                ? descriptor.WindowTypeName
-                : descriptor.DisplayName,
+            DisplayName = GetDescriptorDisplayName(descriptor),
             FullWindowType = descriptor.FullWindowType,
             KindDisplay = descriptor.Kind switch
             {
@@ -968,8 +1081,23 @@ public sealed class FrontedWindowManageItem
                 FrontedWindowKind.PluginLayout => "Plugin Layout",
                 _ => "Built-in"
             },
-            CanCustomize = descriptor.Kind == FrontedWindowKind.PluginLayout
-                           && descriptor.Canvases.Any(canvas => canvas.Customizable)
+            CanCustomize = descriptor.IsV3LayoutWindow && descriptor.Customizable
         };
+    }
+
+    private static string GetDescriptorDisplayName(IFrontedWindowDescriptor descriptor)
+    {
+        if (!string.IsNullOrWhiteSpace(descriptor.DisplayNameKey))
+        {
+            var localized = I18nHelper.GetLocalizedString(descriptor.DisplayNameKey);
+            if (!string.Equals(localized, descriptor.DisplayNameKey, StringComparison.Ordinal))
+            {
+                return localized;
+            }
+        }
+
+        return string.IsNullOrWhiteSpace(descriptor.DisplayName)
+            ? descriptor.WindowTypeName
+            : descriptor.DisplayName;
     }
 }

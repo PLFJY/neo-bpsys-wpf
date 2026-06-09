@@ -13,8 +13,8 @@ public class ScoreWindowLayoutBindingTest
     [Fact]
     public void ScoreSurAndHunLayoutsBindScoreTextToMatchScoreState()
     {
-        var surLayout = ReadLayout("neo-bpsys-wpf/Resources/FrontedLayouts/ScoreSurWindow/BaseCanvas.json");
-        var hunLayout = ReadLayout("neo-bpsys-wpf/Resources/FrontedLayouts/ScoreHunWindow/BaseCanvas.json");
+        var surLayout = ReadLayout("neo-bpsys-wpf/Resources/FrontedLayouts/ScoreSurWindow.json");
+        var hunLayout = ReadLayout("neo-bpsys-wpf/Resources/FrontedLayouts/ScoreHunWindow.json");
 
         Assert.Equal(
             "CurrentGame.MatchScore.CurrentSurTeamMajorText",
@@ -33,8 +33,8 @@ public class ScoreWindowLayoutBindingTest
     [Fact]
     public void ScoreSurAndHunLayoutsDoNotReferenceTeamScoreForScoreBindings()
     {
-        var surLayoutText = ReadLayoutText("neo-bpsys-wpf/Resources/FrontedLayouts/ScoreSurWindow/BaseCanvas.json");
-        var hunLayoutText = ReadLayoutText("neo-bpsys-wpf/Resources/FrontedLayouts/ScoreHunWindow/BaseCanvas.json");
+        var surLayoutText = ReadLayoutText("neo-bpsys-wpf/Resources/FrontedLayouts/ScoreSurWindow.json");
+        var hunLayoutText = ReadLayoutText("neo-bpsys-wpf/Resources/FrontedLayouts/ScoreHunWindow.json");
 
         Assert.DoesNotContain("Team.Score", surLayoutText);
         Assert.DoesNotContain("Team.Score", hunLayoutText);
@@ -53,7 +53,7 @@ public class ScoreWindowLayoutBindingTest
 
         foreach (var path in Directory.EnumerateFiles(root, "*.json", SearchOption.AllDirectories))
         {
-            var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(File.ReadAllText(path));
+            var config = JsonSerializer.Deserialize<FrontedWindowConfig>(File.ReadAllText(path))?.ToCanvasConfig();
             Assert.NotNull(config);
 
             foreach (var control in config!.Controls.Values
@@ -66,7 +66,7 @@ public class ScoreWindowLayoutBindingTest
     }
 
     private static string GetBindingPath(JsonObject layout, string controlName) =>
-        layout[controlName]?["TextBinding"]?["Sources"]?[0]?["Path"]?.GetValue<string>()
+        layout["ControlLayout"]?["Controls"]?[controlName]?["TextBinding"]?["Sources"]?[0]?["Path"]?.GetValue<string>()
         ?? throw new InvalidDataException($"Layout control '{controlName}' has no TextBinding source.");
 
     private static JsonObject ReadLayout(string relativePath, [CallerFilePath] string sourceFilePath = "") =>

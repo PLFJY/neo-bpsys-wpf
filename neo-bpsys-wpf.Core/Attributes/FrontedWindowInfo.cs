@@ -1,7 +1,7 @@
 namespace neo_bpsys_wpf.Core.Attributes;
 
 /// <summary>
-/// 画布名称信息
+/// Legacy canvas metadata for older fronted window attributes.
 /// </summary>
 public class CanvasName
 {
@@ -75,11 +75,7 @@ public class FrontedWindowInfo : Attribute
     /// </summary>
     /// <param name="id">窗口唯一标识符</param>
     /// <param name="name">窗口名称</param>
-    /// <param name="canvas">画布集合(默认只包含 BaseCanvas)
-    ///     <para>格式说明:</para>
-    ///     <para>- 单纯画布名称: "CanvasName" (显示名称将与画布名称相同)</para>
-    ///     <para>- 包含显示名称: "CanvasName|显示名称" (用|分隔画布名称和显示名称)</para>
-    ///     <para>示例: ["MapBpCanvas", "BpOverViewCanvas|BP概览", "MapV2Canvas|地图V2"]</para>
+    /// <param name="canvas">Legacy canvas metadata. New v3 layout windows must use only <c>BaseCanvas</c>.</param>
     /// </param>
     /// <param name="isBuiltIn">是否是内置窗口</param>
     internal FrontedWindowInfo(string id, string name, string[]? canvas = null, bool isBuiltIn = false)
@@ -92,11 +88,7 @@ public class FrontedWindowInfo : Attribute
     /// </summary>
     /// <param name="id">窗口唯一标识符</param>
     /// <param name="name">窗口名称</param>
-    /// <param name="canvas">画布集合(默认只包含 BaseCanvas)
-    ///     <para>格式说明:</para>
-    ///     <para>- 单纯画布名称: "CanvasName" (显示名称将与画布名称相同)</para>
-    ///     <para>- 包含显示名称: "CanvasName|显示名称" (用|分隔画布名称和显示名称)</para>
-    ///     <para>示例: ["MapBpCanvas", "BpOverViewCanvas|BP概览", "MapV2Canvas|地图V2"]</para>
+    /// <param name="canvas">Legacy canvas metadata. New v3 layout windows must use only <c>BaseCanvas</c>.</param>
     /// </param>
     public FrontedWindowInfo(string id, string name, string[]? canvas = null)
     {

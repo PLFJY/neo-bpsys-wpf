@@ -1,24 +1,24 @@
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Phase 1 behavior service placeholder. Real persistence and runtime cleanup come later.
+/// No-op behavior service used when behavior persistence is unavailable.
 /// </summary>
 public sealed class NoopFrontedBehaviorService : IFrontedBehaviorService
 {
     /// <inheritdoc />
     public Task<FrontedBehaviorDocument> LoadDocumentAsync(
         string windowType,
-        string canvasName,
         CancellationToken cancellationToken = default)
     {
         return Task.FromResult(new FrontedBehaviorDocument
         {
             Version = 1,
             WindowType = windowType,
-            CanvasName = canvasName
+            CanvasName = FrontedLayoutConstants.BaseCanvasName
         });
     }
 

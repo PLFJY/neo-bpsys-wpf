@@ -17,13 +17,13 @@
 
 `.bpui v3` 必须服务于 Designer v3 的现有模型：
 
-1. 布局文件对应 `FrontedLayouts/{WindowTypeName}/{CanvasName}.json`。
+1. 布局文件对应 `FrontedLayouts/{WindowTypeName}.json`。
 2. 运行时继续遵守用户布局优先、内置布局兜底。
 3. 前台窗口由 v3 renderer 根据 JSON 创建控件。
-4. layout JSON root-level key 就是控件名。
+4. 每个 v3 layout window 运行时固定生成 `ViewBox -> Canvas BaseCanvas`，Canvas 不再是包路径、manifest 或管理单位。
 5. 包内资源通过 URI 解析，不依赖全局 `Config.json` 中的自定义 UI 设置。
 
-Canvas layout schema 使用 root-level state 表示默认/BO5；启用 `EnableBoModeStates` 后，`BoModeStates["Bo3"]` 可携带独立 BO3 `BackgroundImage`、`RequiredPlugins` 和 `Controls`。包导入、导出和资源重写必须保留完整 schema，包括 BO3 state、控件 `Visibility`、缺失插件控件和插件 `ExtensionData`。preview-only `BackgroundImageVariants` 已移除，v3 包不再生成或迁移该字段。
+Window-centric layout schema 使用 `WindowSettings`、`CanvasSettings` 和 `ControlLayout` 三段结构。默认/BO5 使用 root canvas settings；启用 `EnableBoModeStates` 后，`BoModeStates["Bo3"]` 可携带独立 BO3 `BackgroundImage`、`RequiredPlugins` 和 `Controls`。包导入、导出和资源重写必须保留完整 schema，包括 BO3 state、控件 `Visibility`、缺失插件控件和插件 `ExtensionData`。preview-only `BackgroundImageVariants` 已移除，v3 包不再生成或迁移该字段。
 
 ## 2. legacy `.bpui` 格式摘要
 
@@ -61,7 +61,7 @@ legacy.bpui
 3. 它没有 manifest，无法声明包身份、版本、作者、内容清单和校验信息。
 4. 它没有清晰的包身份，无法区分两个同名资源属于哪个布局包。
 5. 它不能干净隔离包内资源，资源可能互相覆盖或遗留。
-6. 它不能表达 v3 的 `FrontedLayouts/{Window}/{Canvas}.json` 文件结构。
+6. 它不能表达 v3 的 `FrontedLayouts/{Window}.json` Window-centric 文件结构。
 7. 它不适合热切换布局包。
 8. 它通常要求重启，即使布局重载已经足够。
 
@@ -91,23 +91,18 @@ legacy 包通过缺少有效 manifest 且存在历史结构识别：
 ```text
 package.bpui
 ├── manifest.json
-├── layouts/
-│   ├── BpWindow/
-│   │   └── BaseCanvas.json
-│   ├── CutSceneWindow/
-│   │   └── BaseCanvas.json
-│   ├── GameDataWindow/
-│   │   └── BaseCanvas.json
-│   ├── ScoreSurWindow/
-│   │   └── BaseCanvas.json
-│   ├── ScoreHunWindow/
-│   │   └── BaseCanvas.json
-│   ├── ScoreGlobalWindow/
-│   │   └── BaseCanvas.json
-│   └── WidgetsWindow/
-│       ├── MapBpCanvas.json
-│       ├── BpOverViewCanvas.json
-│       └── MapV2Canvas.json
+├── FrontedLayouts/
+│   ├── BpWindow.json
+│   ├── CutSceneWindow.json
+│   ├── GameDataWindow.json
+│   ├── ScoreSurWindow.json
+│   ├── ScoreHunWindow.json
+│   ├── ScoreGlobalWindow.json
+│   ├── BpOverviewWindow.json
+│   └── MapV2Window.json
+├── behaviors/
+│   ├── BpWindow.behaviors.json
+│   └── MapV2Window.behaviors.json
 ├── resources/
 │   ├── images/
 │   ├── fonts/
@@ -130,7 +125,7 @@ package.bpui
 2. `preview/`。
 3. `docs/`。
 
-当前实现导出始终包含全部已迁移前台布局。早期规格中的 Current Canvas / Current Window 导出范围暂不再暴露。Phase 9F legacy 转换输出的 v3 包只包含能够从旧 `FrontElementsConfig/` 明确映射到 v3 窗口和 Canvas 的布局。
+当前实现导出使用 Window-centric 格式，布局路径为 `FrontedLayouts/{WindowTypeName}.json`，behavior 路径为 `behaviors/{WindowTypeName}.behaviors.json`。早期规格中的 Current Canvas 导出范围不再暴露。Legacy 转换输出的 v3 包只包含能够从旧 `FrontElementsConfig/` 明确映射到新窗口的布局；旧 MapV1 会跳过并记录 Info。
 
 ## 5. `manifest.json` schema
 
@@ -148,6 +143,7 @@ manifest 不包含 `App` 对象，不包含 `App.Name`、`App.ExportedVersion` �
   "Author": "PLFJY",
   "CreatedAt": "2026-05-31T10:00:00Z",
   "MinVersion": "3.0.0",
+  "LayoutModel": "WindowCentric",
   "LayoutSchemaVersion": 3,
   "PluginDependencies": [
     {
@@ -156,7 +152,7 @@ manifest 不包含 `App` 对象，不包含 `App.Name`、`App.ExportedVersion` �
       "DisplayName": "Example Fronted Controls",
       "MarketplaceId": "top.plfjy.example.fronted",
       "RequiredBy": [
-        "CutSceneWindow/BaseCanvas"
+        "CutSceneWindow"
       ]
     }
   ],
@@ -164,13 +160,11 @@ manifest 不包含 `App` 对象，不包含 `App.Name`、`App.ExportedVersion` �
     "Layouts": [
       {
         "Window": "BpWindow",
-        "Canvas": "BaseCanvas",
-        "Path": "layouts/BpWindow/BaseCanvas.json"
+        "Path": "FrontedLayouts/BpWindow.json"
       },
       {
-        "Window": "WidgetsWindow",
-        "Canvas": "MapBpCanvas",
-        "Path": "layouts/WidgetsWindow/MapBpCanvas.json"
+        "Window": "MapV2Window",
+        "Path": "FrontedLayouts/MapV2Window.json"
       }
     ],
     "Resources": [
@@ -198,14 +192,15 @@ manifest 不包含 `App` 对象，不包含 `App.Name`、`App.ExportedVersion` �
 | 字段 | 要求 |
 | --- | --- |
 | `Format` | 必需，固定为 `neo-bpsys-bpui`。 |
-| `FormatVersion` | 必需，当前 v3 包为 `3`。它是包格式版本，不是 Canvas schema 版本。 |
+| `FormatVersion` | 必需，当前 v3 包为 `3`。它是包格式版本，不是 layout schema 版本。 |
+| `LayoutModel` | 必需，Window-centric 包固定为 `WindowCentric`。旧开发版 v3 包不兼容。 |
 | `PackageId` | 必需，包身份和资源命名空间。 |
 | `Name` | 必需，面向用户显示的包名称。 |
 | `Description` | 可选，包用途说明。 |
 | `Author` | 可选，布局作者。 |
 | `CreatedAt` | 推荐，UTC ISO 8601 时间。 |
 | `MinVersion` | 根级字段，表示能使用该包的最低应用版本。 |
-| `LayoutSchemaVersion` | 必需，当前 `FrontedCanvasConfig` layout schema 版本为 `3`。 |
+| `LayoutSchemaVersion` | 必需，当前 `FrontedWindowConfig` layout schema 版本为 `3`。 |
 | `PluginDependencies` | 可选，包级插件依赖摘要，用于导入预检 UI。完整规则见第 8 节。 |
 | `Content.Layouts` | 必需，列出包内布局。至少一项。 |
 | `Content.Resources` | 可选，列出包内资源、类型、URI 和可选 hash。 |
@@ -216,7 +211,7 @@ manifest 不包含 `App` 对象，不包含 `App.Name`、`App.ExportedVersion` �
 版本概念必须分离：
 
 1. `FormatVersion` 是 `.bpui` 包格式版本。
-2. `LayoutSchemaVersion` 是 `FrontedCanvasConfig` / layout JSON schema 版本。
+2. `LayoutSchemaVersion` 是 `FrontedWindowConfig` / layout JSON schema 版本。
 3. `MinVersion` 是能使用该包的最低应用版本。
 
 ## 6. `PackageId` 规则
@@ -250,20 +245,20 @@ manifest 不包含 `App` 对象，不包含 `App.Name`、`App.ExportedVersion` �
 
 ## 7. 布局文件规则
 
-布局文件就是当前 v3 `FrontedCanvasConfig` JSON。每个布局文件必须有 `Version = 3`。
+布局文件就是当前 v3 `FrontedWindowConfig` JSON。每个布局文件必须有 `Version = 3`。
 
 路径约定：
 
 ```text
-layouts/{WindowTypeName}/{CanvasName}.json
+FrontedLayouts/{WindowTypeName}.json
 ```
 
-JSON 结构保持当前 v3 root-level dictionary 模式：
+JSON 结构保持 Window-centric 三段模式：
 
-1. root object 中的控件 JSON key 就是控件名。
-2. 不把控件包进数组。
-3. 不增加新的外层 `Controls` 对象。
-4. 不在单个 config object 内存储重复的 `Name` 字段。
+1. `WindowSettings` 保存窗口尺寸、位置、透明、背景色、Topmost 和 `ViewboxStretch`。
+2. `CanvasSettings` 保存内部 `BaseCanvas` 尺寸、背景图和 BO state；不包含 `BackgroundColor`。
+3. `ControlLayout.RequiredPlugins` 保存控件依赖。
+4. `ControlLayout.Controls` 中的 JSON key 就是控件名，不把控件包进数组。
 5. 导入后 v3 renderer 必须能直接加载并渲染。
 
 示例：
@@ -271,23 +266,40 @@ JSON 结构保持当前 v3 root-level dictionary 模式：
 ```json
 {
   "Version": 3,
-  "CanvasWidth": 1440,
-  "CanvasHeight": 810,
-  "BackgroundImage": "bpui://plfjy.default-layout.2026/resources/images/bp.png",
-  "SurTeamName": {
-    "ControlType": "Text",
-    "Left": 580,
-    "Top": 720,
-    "Width": 120,
-    "TextBinding": {
-      "Sources": [
-        { "Path": "CurrentGame.SurTeam.Name" }
-      ]
-    },
-    "TextAlignment": "Center",
-    "FontSize": 28,
-    "Color": "#FFFFFFFF",
-    "ZIndex": 2
+  "WindowSettings": {
+    "WindowWidth": 1440,
+    "WindowHeight": 810,
+    "AllowsTransparency": true,
+    "BackgroundColor": "#00000000",
+    "Topmost": false,
+    "ViewboxStretch": "Fill"
+  },
+  "CanvasSettings": {
+    "CanvasWidth": 1440,
+    "CanvasHeight": 810,
+    "BackgroundImage": "bpui://plfjy.default-layout.2026/resources/images/bp.png",
+    "EnableBoModeStates": false,
+    "BoModeStates": {}
+  },
+  "ControlLayout": {
+    "RequiredPlugins": [],
+    "Controls": {
+      "SurTeamName": {
+        "ControlType": "Text",
+        "Left": 580,
+        "Top": 720,
+        "Width": 120,
+        "TextBinding": {
+          "Sources": [
+            { "Path": "CurrentGame.SurTeam.Name" }
+          ]
+        },
+        "TextAlignment": "Center",
+        "FontSize": 28,
+        "Color": "#FFFFFFFF",
+        "ZIndex": 2
+      }
+    }
   }
 }
 ```
@@ -296,7 +308,7 @@ JSON 结构保持当前 v3 root-level dictionary 模式：
 
 ## 8. 插件前台控件依赖
 
-Phase 15 起，`.bpui` 支持 Designer v3 插件控件和插件 Layout 窗口依赖。布局 JSON 可读取 `plugin:*` 控件并保留插件专属属性，已安装插件可通过 descriptor/contributor API 注册运行时控件；缺失插件控件在 Designer 显示占位符、在前台 runtime 中跳过并记录 warning。导入遇到缺失插件窗口或控件时保留 layout、资源和依赖元数据，不再删除缺失控件。插件市场安装 / 更新引导仍可用，但不会静默安装。
+`.bpui` 支持 Designer v3 插件控件和插件 Layout 窗口依赖。布局 JSON 可读取 `plugin:*` 控件并保留插件专属属性，已安装插件可通过 descriptor/contributor API 注册运行时控件；缺失插件控件在 Designer 显示占位符、在前台 runtime 中跳过并记录 warning。导入遇到缺失插件窗口或控件时保留 layout、资源和依赖元数据，不再删除缺失控件。插件市场安装 / 更新引导仍可用，但不会静默安装。
 
 ### 8.1 ControlType 命名标准
 
@@ -342,39 +354,46 @@ plugin:TeamCard
 top.plfjy.example.fronted.TeamCard
 ```
 
-### 8.2 Canvas `RequiredPlugins`
+### 8.2 `ControlLayout.RequiredPlugins`
 
-Canvas layout JSON 可以声明本 Canvas 中插件控件依赖：
+Window layout JSON 可以在 `ControlLayout.RequiredPlugins` 中声明本窗口的插件控件依赖：
 
 ```json
 {
   "Version": 3,
-  "CanvasWidth": 1440,
-  "CanvasHeight": 810,
-  "BackgroundImage": "Resources/cutScene.png",
-  "RequiredPlugins": [
-    {
-      "PackageId": "top.plfjy.example.fronted",
-      "MinVersion": "1.0.0",
-      "DisplayName": "Example Fronted Controls",
-      "Controls": [
-        "plugin:top.plfjy.example.fronted/TeamCard"
-      ]
+  "WindowSettings": {},
+  "CanvasSettings": {
+    "CanvasWidth": 1440,
+    "CanvasHeight": 810,
+    "BackgroundImage": "Resources/cutScene.png"
+  },
+  "ControlLayout": {
+    "RequiredPlugins": [
+      {
+        "PackageId": "top.plfjy.example.fronted",
+        "MinVersion": "1.0.0",
+        "DisplayName": "Example Fronted Controls",
+        "Controls": [
+          "plugin:top.plfjy.example.fronted/TeamCard"
+        ]
+      }
+    ],
+    "Controls": {
+      "TeamCard1": {
+        "ControlType": "plugin:top.plfjy.example.fronted/TeamCard",
+        "Left": 100,
+        "Top": 100,
+        "Width": 260,
+        "Height": 96,
+        "TeamNameBindingPath": "CurrentGame.SurTeam.Name",
+        "LogoBindingPath": "CurrentGame.SurTeam.Logo"
+      }
     }
-  ],
-  "TeamCard1": {
-    "ControlType": "plugin:top.plfjy.example.fronted/TeamCard",
-    "Left": 100,
-    "Top": 100,
-    "Width": 260,
-    "Height": 96,
-    "TeamNameBindingPath": "CurrentGame.SurTeam.Name",
-    "LogoBindingPath": "CurrentGame.SurTeam.Logo"
   }
 }
 ```
 
-`RequiredPlugins` 是保留元数据，不是控件 key。它只作用于单个 Canvas 文件，记录该 Canvas 中的控件依赖；导入器和导出器不能把它作为控件反序列化，也不能让用户创建同名控件。`Controls` 列出本 Canvas 使用的完整插件 `ControlType` 字符串。
+`RequiredPlugins` 是保留元数据，不是控件 key。它只作用于单个 Window layout 文件，记录该窗口中控件依赖；导入器和导出器不能把它作为控件反序列化，也不能让用户创建同名控件。`Controls` 列出本窗口使用的完整插件 `ControlType` 字符串。
 
 字段：
 
@@ -383,13 +402,13 @@ Canvas layout JSON 可以声明本 Canvas 中插件控件依赖：
 | `PackageId` | 必需，插件 ID / package ID。 |
 | `MinVersion` | 可选但推荐，最低插件版本。 |
 | `DisplayName` | 可选，面向用户显示的插件名称。 |
-| `Controls` | 推荐，本 Canvas 使用的完整插件控件类型列表。 |
+| `Controls` | 推荐，本窗口使用的完整插件控件类型列表。 |
 
 导入器必须额外扫描实际控件的 `ControlType`，把所有以 `plugin:` 开头的控件纳入依赖分析。手写布局或旧导出器可能遗漏 `RequiredPlugins`，因此不能只信任该字段。
 
 ### 8.3 manifest `PluginDependencies`
 
-`manifest.PluginDependencies` 是包级依赖摘要，由导出器扫描所有 Canvas 后生成，主要服务于导入预检 UI；精确到 Canvas 的声明仍在 `Canvas.RequiredPlugins`。
+`manifest.PluginDependencies` 是包级依赖摘要，由导出器扫描所有窗口 layout 后生成，主要服务于导入预检 UI；精确到窗口的声明仍在 `ControlLayout.RequiredPlugins`。
 
 示例：
 
@@ -408,7 +427,7 @@ Canvas layout JSON 可以声明本 Canvas 中插件控件依赖：
       "DisplayName": "Example Fronted Controls",
       "MarketplaceId": "top.plfjy.example.fronted",
       "RequiredBy": [
-        "CutSceneWindow/BaseCanvas"
+        "CutSceneWindow"
       ]
     }
   ],
@@ -426,16 +445,16 @@ Canvas layout JSON 可以声明本 Canvas 中插件控件依赖：
 | `MinVersion` | 可选但推荐，最低插件版本。 |
 | `DisplayName` | 可选，面向用户显示的插件名称。 |
 | `MarketplaceId` | 可选，用于在插件市场中定位插件；缺省等于 `PackageId`。 |
-| `RequiredBy` | 推荐，依赖来源列表，格式为 `WindowTypeName/CanvasName`。 |
+| `RequiredBy` | 推荐，依赖来源列表，格式为 `WindowTypeName`。 |
 
-导入器不应盲目信任 manifest 或 Canvas 元数据。正确流程是合并 `PluginDependencies`、每个 Canvas 的 `RequiredPlugins`，并扫描实际插件 `ControlType`，再得到最终依赖列表。
+导入器不应盲目信任 manifest 或 layout 元数据。正确流程是合并 `PluginDependencies`、每个窗口 `ControlLayout.RequiredPlugins`，并扫描实际插件 `ControlType`，再得到最终依赖列表。
 
 ### 8.4 缺失插件导入策略
 
 导入 `.bpui` 时应先做插件依赖预检：
 
 1. 读取 manifest `PluginDependencies`。
-2. 读取每个 Canvas `RequiredPlugins`。
+2. 读取每个窗口 `ControlLayout.RequiredPlugins`。
 3. 扫描实际控件中 `ControlType` 以 `plugin:` 开头的项。
 4. 合并依赖列表。
 5. 检查已安装插件及版本。
@@ -636,7 +655,7 @@ bpui://{PackageId}/resources/images/bg.png
 
 ## 13. Canvas Background GUI 标准
 
-当前 Canvas 背景编辑 GUI 尚未完成，后续应提供 Canvas 级属性编辑器。它应支持：
+当前 Designer 使用 Canvas Settings 编辑内部 `BaseCanvas` 设计尺寸和背景。它应支持：
 
 1. `CanvasWidth`。
 2. `CanvasHeight`。
@@ -649,42 +668,34 @@ bpui://{PackageId}/resources/images/bg.png
 规则：
 
 1. Canvas 背景不是普通控件。
-2. 它属于当前 `FrontedCanvasConfig`。
-3. UI 应放在 Canvas Properties 面板或等价的编辑器区域。
+2. 它属于当前 `FrontedWindowConfig.CanvasSettings`。
+3. UI 应放在 Canvas Settings 面板或等价的编辑器区域。
 4. 它参与 dirty state、undo/redo、validation、save 和 package export。
 5. 选择本地图片时，应复制到本地资源并写为 `bpui://local/...`。
 6. 导入包资源应写为 `bpui://{PackageId}/...`。
 7. 内置资源可以继续使用 `Resources/...`。
 8. `BackgroundImage` 应通过资源 resolver 校验。
 
+当前窗口宽高跟随 Canvas 设计尺寸。导入、导出和安装包时应把 `WindowSettings.WindowWidth` / `WindowHeight` 同步为 `CanvasSettings.CanvasWidth` / `CanvasHeight`，不在 manifest 或包管理 UI 中提供独立窗口宽高字段。
+
 ## 14. 窗口透明选项标准
 
-后续应增加“允许窗口透明”开关。透明设置是窗口级选项，不是控件级属性。
+“允许窗口透明”开关是窗口级选项，不是控件级属性。
 
 显示位置：
 
-1. 单 Canvas 窗口可在 Canvas Properties 附近显示。
-2. `WidgetsWindow` 等多 Canvas 窗口中，它作用于整个窗口，而不是某个 Canvas。
-
-推荐存储为窗口级 options 文件：
-
-```text
-layouts/{WindowTypeName}/window.json
-```
-
-用户存储路径：
-
-```text
-%APPDATA%/neo-bpsys-wpf/FrontedLayouts/{WindowTypeName}/window.json
-```
+1. Designer 的 `WindowSettings` 区域。
+2. 它作用于整个 Window，不属于内部 `BaseCanvas`。
 
 示例：
 
 ```json
 {
   "Version": 3,
-  "AllowTransparency": true,
-  "BackgroundColor": "#FF00FF00"
+  "WindowSettings": {
+    "AllowsTransparency": true,
+    "BackgroundColor": "#00000000"
+  }
 }
 ```
 
@@ -894,11 +905,11 @@ v3 `.bpui` 包不得包含：
 
 layout 层校验仍应遵守现有 Designer v3 规则：Canvas 尺寸必须有效，`Version` 必须为 3，root-level 控件 key 是控件名，运行时关键控件名不能静默丢失。
 
-Canvas root-level 保留字段包括 `Version`、`CanvasWidth`、`CanvasHeight`、`BackgroundImage` 和 `RequiredPlugins`。这些字段不能作为控件名处理；导入、导出、设计器和校验器都应把 `RequiredPlugins` 视为 Canvas 元数据。
+Window-centric root-level 保留字段包括 `Version`、`WindowSettings`、`CanvasSettings` 和 `ControlLayout`。旧 canvas helper 中的 `CanvasWidth`、`CanvasHeight`、`BackgroundImage` 和 `RequiredPlugins` 只作为 legacy/临时转换字段处理；导入、导出、设计器和校验器都应把 `RequiredPlugins` 视为布局元数据，不能作为控件名。
 
 Shape 控件使用 `ControlType: "Rectangle"` 或 `"Polygon"`。共享字段包括 `FillMode`、静态/绑定纯色配置、可分别绑定的渐变起始色与结束色、`GradientAngle`、`StrokeColor` 和 `StrokeThickness`。Polygon 的 `Points` 是 `{ "X": 0..1, "Y": 0..1 }` 数组，至少包含三个有效顶点；运行时将归一化坐标乘以控件宽高。
 
-Phase 10 起，导入器增加硬安全限制：`.bpui` 压缩包最大 50 MiB，解压后总大小最大 100 MiB，单 entry 最大 10 MiB，entry 数最多 1000；`manifest.json` 最大 256 KiB，layout JSON 最大 2 MiB，`window.json` 最大 64 KiB，JSON 最大深度为 32。外部导入的 manifest/layout/window 字符串超长或 Canvas 控件数超过 256 会拒绝导入，不会静默截断或丢弃控件。Canvas 控件数达到 160 开始给出 warning。Phase 13F 起，导入器还会在解压入口拒绝插件目录、插件二进制和可执行脚本，例如 `Plugins/`、`Plugin/`、`.dll`、`.exe`、`.msi`、`.ps1`、`.bat`、`.cmd`、`.sh`、`.vbs`、`.js` 和 `.jar`。布局包可以携带图片、字体、JSON、Markdown 等布局资源，但不能携带插件可执行内容。
+导入器执行硬安全限制：`.bpui` 压缩包最大 50 MiB，解压后总大小最大 100 MiB，单 entry 最大 10 MiB，entry 数最多 1000；`manifest.json` 最大 256 KiB，layout JSON 最大 2 MiB，`window.json` 最大 64 KiB，JSON 最大深度为 32。外部导入的 manifest/layout/window 字符串超长或 Canvas 控件数超过 256 会拒绝导入，不会静默截断或丢弃控件。Canvas 控件数达到 160 开始给出 warning。导入器还会在解压入口拒绝插件目录、插件二进制和可执行脚本，例如 `Plugins/`、`Plugin/`、`.dll`、`.exe`、`.msi`、`.ps1`、`.bat`、`.cmd`、`.sh`、`.vbs`、`.js` 和 `.jar`。布局包可以携带图片、字体、JSON、Markdown 等布局资源，但不能携带插件可执行内容。
 
 图片资源在复制或导入前会校验扩展名、文件大小和像素尺寸。Canvas 背景图限制为 1 MiB、长边 4096、像素 4096×4096；普通 UI 图片限制为 512 KiB、长边 2048、像素 2048×2048；包内未知用途图片按包资源入口限制处理并仍需能安全解码。超限图片会整体拒绝，不会复制进包或生成 `bpui://` URI。
 
