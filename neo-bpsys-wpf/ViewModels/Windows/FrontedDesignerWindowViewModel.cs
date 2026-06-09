@@ -581,6 +581,12 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private bool _windowOptionsRestartRequired;
 
     [ObservableProperty]
+    private string _windowWidthEditText = string.Empty;
+
+    [ObservableProperty]
+    private string _windowHeightEditText = string.Empty;
+
+    [ObservableProperty]
     private string _windowOptionsStatus = string.Empty;
 
     partial void OnSelectedWindowChanged(FrontedDesignerWindowOption? value)
@@ -1590,6 +1596,50 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         RefreshCanvasPropertyBuffers();
         FinishCanvasConfigEdit(I18nHelper.GetLocalizedString("CanvasPropertiesApplied"));
         return true;
+    }
+
+    [RelayCommand]
+    private void ApplyWindowSize()
+    {
+        ApplyWindowSizeEdit(WindowWidthEditText, WindowHeightEditText);
+    }
+
+    public bool ApplyWindowSizeEdit(string widthText, string heightText)
+    {
+        if (_windowLayoutOptionsService is null || SelectedWindow is null)
+        {
+            return false;
+        }
+
+        if (!TryParseOptionalPositiveDouble(widthText).HasValue
+            && !TryParseOptionalPositiveDouble(heightText).HasValue)
+        {
+            // Allow clearing both fields — save nulls.
+        }
+        else if (!TryParseOptionalPositiveDouble(widthText).HasValue
+                 || !TryParseOptionalPositiveDouble(heightText).HasValue)
+        {
+            WindowOptionsStatus = I18nHelper.GetLocalizedString("WindowSizeMustBePositive");
+            return false;
+        }
+
+        _ = SaveWindowOptionsAsync(restartRequired: false, applyBackgroundImmediately: false, applyWindowSizeImmediately: true);
+        return true;
+    }
+
+    /// <summary>
+    /// Parses a string as a positive double, or returns <c>null</c> when the string is empty or whitespace.
+    /// </summary>
+    /// <param name="text">The input text, or <c>null</c>.</param>
+    /// <returns>A positive double, or <c>null</c> when the input is empty or whitespace.</returns>
+    private static double? TryParseOptionalPositiveDouble(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return null;
+        }
+
+        return TryParsePositiveDouble(text!, out var value) ? value : null;
     }
 
     [RelayCommand]
@@ -3330,6 +3380,27 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         {
             var options = _windowLayoutOptionsService.LoadOptions(windowTypeName);
             WindowAllowTransparency = options.AllowTransparency;
+
+            if (options.WindowWidth.HasValue)
+            {
+                WindowWidthEditText = options.WindowWidth.Value.ToString("0.##", CultureInfo.InvariantCulture);
+            }
+            else
+            {
+                var currentSize = _frontedWindowService?.GetWindowSize(windowTypeName);
+                WindowWidthEditText = currentSize?.Width.ToString("0.##", CultureInfo.InvariantCulture) ?? string.Empty;
+            }
+
+            if (options.WindowHeight.HasValue)
+            {
+                WindowHeightEditText = options.WindowHeight.Value.ToString("0.##", CultureInfo.InvariantCulture);
+            }
+            else
+            {
+                var currentSize = _frontedWindowService?.GetWindowSize(windowTypeName);
+                WindowHeightEditText = currentSize?.Height.ToString("0.##", CultureInfo.InvariantCulture) ?? string.Empty;
+            }
+
             var configuredBackgroundColor = options.BackgroundColor;
             _windowBackgroundColorConfigured = !string.IsNullOrWhiteSpace(configuredBackgroundColor);
             var backgroundColor = configuredBackgroundColor ?? "#00000000";
@@ -3407,7 +3478,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         return true;
     }
 
-    private async Task SaveWindowOptionsAsync(bool restartRequired, bool applyBackgroundImmediately)
+    private async Task SaveWindowOptionsAsync(bool restartRequired, bool applyBackgroundImmediately, bool applyWindowSizeImmediately = false)
     {
         if (_windowLayoutOptionsService is null || SelectedWindow is null)
         {
@@ -3416,10 +3487,15 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         try
         {
+            var windowWidth = TryParseOptionalPositiveDouble(WindowWidthEditText);
+            var windowHeight = TryParseOptionalPositiveDouble(WindowHeightEditText);
+
             await _windowLayoutOptionsService.SaveOptionsAsync(
                 SelectedWindow.WindowTypeName,
                 new FrontedWindowLayoutOptions
                 {
+                    WindowWidth = windowWidth,
+                    WindowHeight = windowHeight,
                     AllowTransparency = WindowAllowTransparency,
                     BackgroundColor = _windowBackgroundColorConfigured
                         ? WindowBackgroundColorEditText
@@ -3428,6 +3504,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             if (applyBackgroundImmediately)
             {
                 _frontedWindowService?.ApplyWindowBackgroundColor(SelectedWindow.WindowTypeName);
+            }
+
+            if (applyWindowSizeImmediately)
+            {
+                _frontedWindowService?.ApplyWindowSize(SelectedWindow.WindowTypeName);
             }
 
             WindowOptionsRestartRequired = restartRequired;

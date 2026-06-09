@@ -1233,6 +1233,35 @@
                                     Margin="0,0,0,6"
                                     FontWeight="SemiBold"
                                     Text="{Binding WindowOptionsWindowTypeName}" />
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="112" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc WindowWidth}" />
+                                    <ui:TextBox
+                                        Grid.Column="1"
+                                        MinHeight="30"
+                                        MaxLength="32"
+                                        Text="{Binding WindowWidthEditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                </Grid>
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="112" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc WindowHeight}" />
+                                    <ui:TextBox
+                                        Grid.Column="1"
+                                        MinHeight="30"
+                                        MaxLength="32"
+                                        Text="{Binding WindowHeightEditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                </Grid>
+                                <ui:Button
+                                    Margin="112,0,0,8"
+                                    HorizontalAlignment="Stretch"
+                                    Command="{Binding ApplyWindowSizeCommand}"
+                                    Content="{lex:Loc Apply}" />
                                 <ui:ToggleSwitch Content="{lex:Loc AllowTransparency}" IsChecked="{Binding WindowAllowTransparency, Mode=TwoWay}" />
                                 <TextBlock
                                     Margin="0,10,0,4"

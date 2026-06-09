@@ -69,6 +69,19 @@ public interface IFrontedWindowService
     /// <param name="fullWindowType">Window layout identity, such as <c>BpWindow</c>.</param>
     bool ApplyWindowBackgroundColor(string fullWindowType);
 
+    /// <summary>
+    /// Applies the stored window width and height to a registered fronted window immediately.
+    /// </summary>
+    /// <param name="fullWindowType">Window layout identity, such as <c>BpWindow</c>.</param>
+    bool ApplyWindowSize(string fullWindowType);
+
+    /// <summary>
+    /// Gets the current width and height of a registered fronted window, or <c>null</c> if the window is not open.
+    /// </summary>
+    /// <param name="fullWindowType">Window layout identity, such as <c>BpWindow</c>.</param>
+    /// <returns>A tuple of (Width, Height), or <c>null</c> when the window is not found.</returns>
+    (double Width, double Height)? GetWindowSize(string fullWindowType);
+
     #endregion
 
     #region Window Registration

@@ -2368,6 +2368,12 @@
   <data name="WindowOptions" xml:space="preserve">
     <value>Window Options</value>
   </data>
+  <data name="WindowWidth" xml:space="preserve">
+    <value>Window Width</value>
+  </data>
+  <data name="WindowHeight" xml:space="preserve">
+    <value>Window Height</value>
+  </data>
   <data name="AllowTransparency" xml:space="preserve">
     <value>Allow Transparency</value>
   </data>
@@ -2394,6 +2400,9 @@
   </data>
   <data name="CanvasSizeMustBePositive" xml:space="preserve">
     <value>Canvas width and height must be greater than 0</value>
+  </data>
+  <data name="WindowSizeMustBePositive" xml:space="preserve">
+    <value>Window width and height must be greater than 0</value>
   </data>
   <data name="CanvasPropertiesApplied" xml:space="preserve">
     <value>Canvas properties applied</value>

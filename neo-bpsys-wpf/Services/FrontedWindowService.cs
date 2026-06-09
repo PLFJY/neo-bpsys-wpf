@@ -307,6 +307,7 @@ public class FrontedWindowService : IFrontedWindowService
         }
 
         void Apply() => window.SetCurrentValue(Window.BackgroundProperty, brush);
+
         if (window.Dispatcher.CheckAccess())
         {
             Apply();
@@ -317,6 +318,65 @@ public class FrontedWindowService : IFrontedWindowService
         }
 
         return true;
+    }
+
+    public bool ApplyWindowSize(string fullWindowType)
+    {
+        if (!_windowRegistry.TryGetByFullWindowType(fullWindowType, out var descriptor)
+            || !FrontedWindows.TryGetValue(descriptor.WindowId, out var window))
+        {
+            return false;
+        }
+
+        var options = _windowLayoutOptionsService.LoadOptions(descriptor.FullWindowType);
+        if (options.WindowWidth is null && options.WindowHeight is null)
+        {
+            return false;
+        }
+
+        void Apply()
+        {
+            if (options.WindowWidth is { } w && w > 0 && double.IsFinite(w))
+            {
+                window.Width = w;
+            }
+
+            if (options.WindowHeight is { } h && h > 0 && double.IsFinite(h))
+            {
+                window.Height = h;
+            }
+        }
+
+        if (window.Dispatcher.CheckAccess())
+        {
+            Apply();
+        }
+        else
+        {
+            window.Dispatcher.Invoke(Apply);
+        }
+
+        return true;
+    }
+
+    public (double Width, double Height)? GetWindowSize(string fullWindowType)
+    {
+        if (!_windowRegistry.TryGetByFullWindowType(fullWindowType, out var descriptor)
+            || !FrontedWindows.TryGetValue(descriptor.WindowId, out var window))
+        {
+            return null;
+        }
+
+        var width = window.Width;
+        var height = window.Height;
+
+        if (double.IsNaN(width) || double.IsNaN(height)
+            || width <= 0 || height <= 0)
+        {
+            return null;
+        }
+
+        return (width, height);
     }
 
     private static bool TryCreateBackgroundBrush(string? colorText, out Brush brush)

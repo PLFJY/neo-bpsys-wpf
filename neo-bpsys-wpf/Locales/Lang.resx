@@ -2386,6 +2386,12 @@
   <data name="WindowOptions" xml:space="preserve">
     <value>窗口选项</value>
   </data>
+  <data name="WindowWidth" xml:space="preserve">
+    <value>窗口宽度</value>
+  </data>
+  <data name="WindowHeight" xml:space="preserve">
+    <value>窗口高度</value>
+  </data>
   <data name="AllowTransparency" xml:space="preserve">
     <value>允许透明</value>
   </data>
@@ -2412,6 +2418,9 @@
   </data>
   <data name="CanvasSizeMustBePositive" xml:space="preserve">
     <value>Canvas 宽度和高度必须大于 0</value>
+  </data>
+  <data name="WindowSizeMustBePositive" xml:space="preserve">
+    <value>窗口宽度和高度必须大于 0</value>
   </data>
   <data name="CanvasPropertiesApplied" xml:space="preserve">
     <value>Canvas 属性已应用</value>

@@ -117,7 +117,7 @@ public partial class App : AppBase
             }
         };
         //主题初始化为深色
-        ApplicationThemeManager.Apply(ApplicationTheme.Dark);
+        ApplicationThemeManager.Apply(ApplicationTheme.Dark, Wpf.Ui.Controls.WindowBackdropType.Mica);
 
         //设置语言
         var settingService = IAppHost.Host.Services.GetRequiredService<ISettingsHostService>();
