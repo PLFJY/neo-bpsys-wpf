@@ -24,6 +24,7 @@ namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageLegacyConverter
 {
     private const string ManifestFileName = "manifest.json";
+    private const string DefaultOpaqueBackgroundColor = "#FF00FF00";
 
     private static readonly Regex SafeFileNameChars = new("[^A-Za-z0-9._-]+", RegexOptions.Compiled);
 
@@ -145,6 +146,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             manifest.Content.Resources = resourceState.Resources;
 
             var configValueMap = ReadFrontendConfigValueMap(extractionRoot, resourceState, diagnostics, warnings);
+            var legacyPropertySet = ReadLegacyPropertySet(extractionRoot, diagnostics, warnings);
             var legacySettings = ReadLegacySettings(extractionRoot, diagnostics, warnings);
             var layoutEntries = await ConvertFrontElementsConfigsAsync(
                 extractionRoot,
@@ -153,6 +155,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                 resourceState,
                 configValueMap,
                 legacySettings,
+                legacyPropertySet,
                 infos,
                 diagnostics,
                 warnings,
@@ -219,6 +222,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         ResourceConvertState resourceState,
         IReadOnlyDictionary<string, string> configValueMap,
         LegacySettings? legacySettings,
+        IReadOnlySet<string> legacyPropertySet,
         ICollection<string> infos,
         ICollection<string> diagnostics,
         ICollection<string> warnings,
@@ -286,7 +290,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             var targetPath = Path.Combine(stagingRoot, relativePath.Replace('/', Path.DirectorySeparatorChar));
             Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
             var windowConfig = FrontedWindowConfig.FromCanvasConfig(config);
-            windowConfig.SyncWindowSizeToCanvas();
+            ApplyLegacyWindowSettings(windowConfig.WindowSettings, outputWindow, legacySettings, legacyPropertySet);
             var json = JsonSerializer.Serialize(windowConfig, _jsonOptions);
             await File.WriteAllTextAsync(targetPath, json, cancellationToken);
 
@@ -852,6 +856,137 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             diagnostics.Add($"Legacy Config.json text settings could not be read: {ex.Message}");
             return null;
         }
+    }
+
+    private static IReadOnlySet<string> ReadLegacyPropertySet(
+        string extractionRoot,
+        ICollection<string> diagnostics,
+        ICollection<string> warnings)
+    {
+        var configPath = Path.Combine(extractionRoot, "Config.json");
+        if (!File.Exists(configPath))
+        {
+            return new HashSet<string>(StringComparer.Ordinal);
+        }
+
+        try
+        {
+            if (new FileInfo(configPath).Length > FrontedLayoutLimits.MaxLegacyConfigBytes)
+            {
+                warnings.Add("Legacy Config.json is too large; frontend window settings were ignored.");
+                return new HashSet<string>(StringComparer.Ordinal);
+            }
+
+            var root = JsonNode.Parse(File.ReadAllText(configPath)) as JsonObject;
+            var properties = new HashSet<string>(StringComparer.Ordinal);
+            if (root is null)
+            {
+                return properties;
+            }
+
+            foreach (var settings in root)
+            {
+                if (settings.Value is not JsonObject settingsObject)
+                {
+                    continue;
+                }
+
+                foreach (var property in settingsObject)
+                {
+                    properties.Add($"{settings.Key}.{property.Key}");
+                }
+            }
+
+            return properties;
+        }
+        catch (Exception ex)
+        {
+            diagnostics.Add($"Legacy Config.json window settings could not be inspected: {ex.Message}");
+            return new HashSet<string>(StringComparer.Ordinal);
+        }
+    }
+
+    private static void ApplyLegacyWindowSettings(
+        FrontedWindowSettings target,
+        string outputWindow,
+        LegacySettings? legacySettings,
+        IReadOnlySet<string> legacyPropertySet)
+    {
+        if (legacySettings is null)
+        {
+            return;
+        }
+
+        var (windowSize, backgroundColor, allowTransparency) = outputWindow switch
+        {
+            "BpWindow" => (
+                legacySettings.BpWindowSettings?.WindowSize,
+                legacySettings.BpWindowSettings?.BackgroundColor,
+                HasLegacyProperty(legacyPropertySet, "BpWindowSettings", "AllowsWindowTransparency")
+                    ? legacySettings.BpWindowSettings?.AllowsWindowTransparency
+                    : null),
+            "ScoreSurWindow" or "ScoreHunWindow" => (
+                legacySettings.ScoreWindowSettings?.ScoreInGameWindowSize,
+                null,
+                null),
+            "ScoreGlobalWindow" => (
+                legacySettings.ScoreWindowSettings?.ScoreGlobalWindowSize,
+                legacySettings.ScoreWindowSettings?.ScoreGlobalWindowBackgroundColor,
+                HasLegacyProperty(legacyPropertySet, "ScoreWindowSettings", "AllowsScoreGlobalWindowTransparency")
+                    ? legacySettings.ScoreWindowSettings?.AllowsScoreGlobalWindowTransparency
+                    : null),
+            "CutSceneWindow" => (
+                legacySettings.CutSceneWindowSettings?.WindowSize,
+                null,
+                null),
+            "GameDataWindow" => (
+                legacySettings.GameDataWindowSettings?.WindowSize,
+                null,
+                null),
+            "BpOverviewWindow" or "MapV2Window" => (
+                legacySettings.WidgetsWindowSettings?.WindowSize,
+                legacySettings.WidgetsWindowSettings?.BackgroundColor,
+                HasLegacyProperty(legacyPropertySet, "WidgetsWindowSettings", "AllowsWindowTransparency")
+                    ? legacySettings.WidgetsWindowSettings?.AllowsWindowTransparency
+                    : null),
+            _ => (null, null, null)
+        };
+
+        if (windowSize is not null)
+        {
+            if (double.IsFinite(windowSize.Width) && windowSize.Width > 0D)
+            {
+                target.WindowWidth = windowSize.Width;
+            }
+
+            if (double.IsFinite(windowSize.Height) && windowSize.Height > 0D)
+            {
+                target.WindowHeight = windowSize.Height;
+            }
+        }
+
+        if (allowTransparency.HasValue)
+        {
+            target.AllowsTransparency = allowTransparency.Value;
+        }
+
+        if (!string.IsNullOrWhiteSpace(backgroundColor))
+        {
+            target.BackgroundColor = backgroundColor;
+        }
+        else if (allowTransparency == true)
+        {
+            target.BackgroundColor = "#00000000";
+        }
+        else if (allowTransparency == false)
+        {
+            target.BackgroundColor = DefaultOpaqueBackgroundColor;
+        }
+    }
+
+    private static bool HasLegacyProperty(IReadOnlySet<string> legacyPropertySet, string settingsName, string propertyName)
+    {
+        return legacyPropertySet.Contains($"{settingsName}.{propertyName}");
     }
 
     private static void AddMappedImage(

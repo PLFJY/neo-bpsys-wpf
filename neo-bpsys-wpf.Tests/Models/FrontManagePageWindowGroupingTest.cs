@@ -1,7 +1,9 @@
 #nullable enable
 
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Services.Registry;
 using neo_bpsys_wpf.ViewModels.Pages;
 using System;
 using System.Linq;
@@ -11,6 +13,35 @@ namespace neo_bpsys_wpf.Tests.Models;
 
 public class FrontManagePageWindowGroupingTest
 {
+    [Fact]
+    public void BuiltInDesignerV3WindowsUseStableV3Descriptors()
+    {
+        var registry = new FrontedWindowRegistryService();
+        var expectedWindows = new[]
+        {
+            FrontedWindowType.BpWindow,
+            FrontedWindowType.CutSceneWindow,
+            FrontedWindowType.ScoreSurWindow,
+            FrontedWindowType.ScoreHunWindow,
+            FrontedWindowType.ScoreGlobalWindow,
+            FrontedWindowType.GameDataWindow,
+            FrontedWindowType.BpOverviewWindow,
+            FrontedWindowType.MapV2Window
+        };
+
+        foreach (var windowType in expectedWindows)
+        {
+            var windowTypeName = windowType.ToString();
+            Assert.True(registry.TryGetByFullWindowType(windowTypeName, out var descriptor));
+            Assert.Equal(FrontedWindowHelper.GetFrontedWindowGuid(windowType), descriptor.WindowId);
+            Assert.Equal(windowTypeName, descriptor.FullWindowType);
+            Assert.Equal(FrontedWindowKind.BuiltIn, descriptor.Kind);
+            Assert.True(descriptor.IsV3LayoutWindow);
+            Assert.True(descriptor.Customizable);
+            Assert.Equal("BuiltIn", descriptor.GroupKey);
+        }
+    }
+
     [Fact]
     public void GroupsFollowRegistryOrderAndDoNotExposeCanvas()
     {

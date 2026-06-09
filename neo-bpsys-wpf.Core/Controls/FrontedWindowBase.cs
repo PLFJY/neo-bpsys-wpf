@@ -136,8 +136,7 @@ public class FrontedWindowBase : Window
 
         _baseCanvas = new Canvas
         {
-            Name = FrontedLayoutConstants.BaseCanvasName,
-            Background = Brushes.Transparent
+            Name = FrontedLayoutConstants.BaseCanvasName
         };
 
         Content = new Viewbox
@@ -217,8 +216,16 @@ public class FrontedWindowBase : Window
 
     private void ApplyWindowSettings(FrontedWindowSettings settings)
     {
-        Width = settings.WindowWidth;
-        Height = settings.WindowHeight;
+        if (IsPositiveFinite(settings.WindowWidth))
+        {
+            Width = settings.WindowWidth;
+        }
+
+        if (IsPositiveFinite(settings.WindowHeight))
+        {
+            Height = settings.WindowHeight;
+        }
+
         Topmost = settings.Topmost;
 
         if (settings.WindowLeft.HasValue)
@@ -233,7 +240,7 @@ public class FrontedWindowBase : Window
             WindowStartupLocation = WindowStartupLocation.Manual;
         }
 
-        if (!IsLoaded && !IsVisible)
+        if (PresentationSource.FromVisual(this) is null)
         {
             AllowsTransparency = settings.AllowsTransparency;
         }
@@ -244,10 +251,15 @@ public class FrontedWindowBase : Window
                 _v3Descriptor?.FullWindowType);
         }
 
-        if (TryCreateBackgroundBrush(settings.BackgroundColor, out var brush))
+        if (!TryCreateBackgroundBrush(settings.BackgroundColor, out var brush))
         {
-            SetCurrentValue(BackgroundProperty, brush);
+            _logger?.LogWarning(
+                "Fronted window background color is empty or invalid; falling back to Transparent. Window: {WindowTypeName}, BackgroundColor: {BackgroundColor}",
+                _v3Descriptor?.FullWindowType,
+                settings.BackgroundColor);
         }
+
+        SetCurrentValue(BackgroundProperty, brush);
 
         if (Content is Viewbox viewbox)
         {
@@ -374,6 +386,11 @@ public class FrontedWindowBase : Window
         {
             return false;
         }
+    }
+
+    private static bool IsPositiveFinite(double value)
+    {
+        return double.IsFinite(value) && value > 0D;
     }
 
     private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)

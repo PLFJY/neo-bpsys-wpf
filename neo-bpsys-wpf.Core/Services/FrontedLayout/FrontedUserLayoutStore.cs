@@ -59,9 +59,7 @@ public class FrontedUserLayoutStore : IFrontedUserLayoutStore
         }
 
         var json = await File.ReadAllTextAsync(path, cancellationToken);
-        var config = JsonSerializer.Deserialize<FrontedWindowConfig>(json, _jsonSerializerOptions);
-        config?.SyncWindowSizeToCanvas();
-        return config;
+        return JsonSerializer.Deserialize<FrontedWindowConfig>(json, _jsonSerializerOptions);
     }
 
     /// <inheritdoc />
@@ -73,7 +71,6 @@ public class FrontedUserLayoutStore : IFrontedUserLayoutStore
         Directory.CreateDirectory(_rootFolder);
 
         config.Version = 3;
-        config.SyncWindowSizeToCanvas();
         var json = JsonSerializer.Serialize(config, _jsonSerializerOptions);
         await File.WriteAllTextAsync(GetLayoutPath(windowTypeName), json, cancellationToken);
     }

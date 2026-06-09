@@ -49,7 +49,7 @@ FrontedWindowBase
 
 `BackgroundColor` 属于 `WindowSettings`，不属于 `CanvasSettings`。Canvas 内纯色背景应通过 Rectangle/Shape 控件实现。`ViewboxStretch` 用字符串 enum 名称保存，不保存数字。窗口位置能力迁入 `WindowSettings.WindowLeft` / `WindowSettings.WindowTop`；旧窗口状态服务只作为适配层或 legacy 入口，不再另建 v3 Canvas options 文件。
 
-当前窗口宽高策略是“窗口跟随内部 BaseCanvas 设计尺寸”：读取、保存、包导入、包导出和 legacy 转换时都会把 `WindowSettings.WindowWidth` / `WindowHeight` 同步为 `CanvasSettings.CanvasWidth` / `CanvasHeight`。这样 ViewBox 缩放仍由窗口承载，但控件坐标始终以设计 Canvas 为准。后续如果要支持独立窗口尺寸 UI，需要先明确它和 Canvas 设计尺寸的比例语义。
+窗口宽高由 `WindowSettings.WindowWidth` / `WindowHeight` 独立保存，内部设计画布尺寸由 `CanvasSettings.CanvasWidth` / `CanvasHeight` 保存。普通读取、保存、包导入和包导出必须保留 WindowSettings；只有 legacy canvas-centric 转换缺少窗口尺寸时，才以 Canvas 设计尺寸初始化窗口尺寸。ViewBox 负责把固定设计坐标缩放到窗口内容区域，控件坐标不会随窗口 resize 被重写。
 
 `FrontedCanvasConfig` 只允许作为 legacy converter、旧测试断言或临时转换 helper 使用。新的 LayoutService、Designer、runtime 和 package 主路径应读写 `FrontedWindowConfig`。
 

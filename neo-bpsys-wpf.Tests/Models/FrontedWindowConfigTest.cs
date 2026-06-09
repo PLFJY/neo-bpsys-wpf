@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Threading.Tasks;
 using System.Windows.Media;
 using Xunit;
 
@@ -91,8 +92,9 @@ public class FrontedWindowConfigTest
     }
 
     [Fact]
-    public async Task UserStoreSaveAndLoadKeepWindowSizeFollowingCanvas()
+    public async Task UserStoreSaveAndLoadPreserveWindowSettingsSize()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var root = Path.Combine(Path.GetTempPath(), $"neo-bpsys-window-config-{Guid.NewGuid():N}");
         try
         {
@@ -111,17 +113,17 @@ public class FrontedWindowConfigTest
                 }
             };
 
-            await store.SaveAsync("BpWindow", config);
+            await store.SaveAsync("BpWindow", config, cancellationToken);
 
-            var json = await File.ReadAllTextAsync(store.GetLayoutPath("BpWindow"));
+            var json = await File.ReadAllTextAsync(store.GetLayoutPath("BpWindow"), cancellationToken);
             var saved = JsonSerializer.Deserialize<FrontedWindowConfig>(json)!;
-            Assert.Equal(1600, saved.WindowSettings.WindowWidth);
-            Assert.Equal(900, saved.WindowSettings.WindowHeight);
+            Assert.Equal(1, saved.WindowSettings.WindowWidth);
+            Assert.Equal(2, saved.WindowSettings.WindowHeight);
 
-            var loaded = await store.LoadAsync("BpWindow");
+            var loaded = await store.LoadAsync("BpWindow", cancellationToken);
             Assert.NotNull(loaded);
-            Assert.Equal(1600, loaded.WindowSettings.WindowWidth);
-            Assert.Equal(900, loaded.WindowSettings.WindowHeight);
+            Assert.Equal(1, loaded.WindowSettings.WindowWidth);
+            Assert.Equal(2, loaded.WindowSettings.WindowHeight);
         }
         finally
         {

@@ -67,13 +67,15 @@ public interface IFrontedWindowService
     /// Applies the stored window background color to a registered fronted window immediately.
     /// </summary>
     /// <param name="fullWindowType">Window layout identity, such as <c>BpWindow</c>.</param>
-    bool ApplyWindowBackgroundColor(string fullWindowType);
+    /// <returns><see langword="true"/> when a registered window was found and updated.</returns>
+    Task<bool> ApplyWindowBackgroundColorAsync(string fullWindowType);
 
     /// <summary>
     /// Applies the stored window width and height to a registered fronted window immediately.
     /// </summary>
     /// <param name="fullWindowType">Window layout identity, such as <c>BpWindow</c>.</param>
-    bool ApplyWindowSize(string fullWindowType);
+    /// <returns><see langword="true"/> when a registered window was found and updated.</returns>
+    Task<bool> ApplyWindowSizeAsync(string fullWindowType);
 
     /// <summary>
     /// Gets the current width and height of a registered fronted window, or <c>null</c> if the window is not open.

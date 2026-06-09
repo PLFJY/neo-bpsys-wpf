@@ -244,13 +244,13 @@ public class FrontedWindowService : IFrontedWindowService
             return;
         }
 
-        ApplyWindowLayoutOptions(windowId, window);
         await PrepareWindowForShowAsync(windowId, window);
         if (FrontedWindowStates[windowId])
         {
             return;
         }
 
+        ApplyWindowLayoutOptions(windowId, window);
         window.Show();
         FrontedWindowStates[windowId] = true;
         PublishWindowShown(windowId);
@@ -316,7 +316,7 @@ public class FrontedWindowService : IFrontedWindowService
         window.SetCurrentValue(Window.BackgroundProperty, brush);
     }
 
-    public bool ApplyWindowBackgroundColor(string fullWindowType)
+    public async Task<bool> ApplyWindowBackgroundColorAsync(string fullWindowType)
     {
         if (!_windowRegistry.TryGetByFullWindowType(fullWindowType, out var descriptor)
             || !FrontedWindows.TryGetValue(descriptor.WindowId, out var window))
@@ -324,10 +324,12 @@ public class FrontedWindowService : IFrontedWindowService
             return false;
         }
 
-        var options = _windowLayoutOptionsService.LoadOptions(descriptor.FullWindowType);
-        if (!TryCreateBackgroundBrush(options.BackgroundColor, out var brush))
+        var backgroundColor = descriptor.IsV3LayoutWindow
+            ? (await LoadV3WindowSettingsAsync(descriptor.FullWindowType))?.BackgroundColor
+            : _windowLayoutOptionsService.LoadOptions(descriptor.FullWindowType).BackgroundColor;
+        if (!TryCreateBackgroundBrush(backgroundColor, out var brush))
         {
-            return false;
+            brush = Brushes.Transparent;
         }
 
         void Apply() => window.SetCurrentValue(Window.BackgroundProperty, brush);
@@ -338,13 +340,13 @@ public class FrontedWindowService : IFrontedWindowService
         }
         else
         {
-            window.Dispatcher.Invoke(Apply);
+            await window.Dispatcher.InvokeAsync(Apply);
         }
 
         return true;
     }
 
-    public bool ApplyWindowSize(string fullWindowType)
+    public async Task<bool> ApplyWindowSizeAsync(string fullWindowType)
     {
         if (!_windowRegistry.TryGetByFullWindowType(fullWindowType, out var descriptor)
             || !FrontedWindows.TryGetValue(descriptor.WindowId, out var window))
@@ -352,20 +354,27 @@ public class FrontedWindowService : IFrontedWindowService
             return false;
         }
 
-        var options = _windowLayoutOptionsService.LoadOptions(descriptor.FullWindowType);
-        if (options.WindowWidth is null && options.WindowHeight is null)
+        var v3Settings = descriptor.IsV3LayoutWindow
+            ? await LoadV3WindowSettingsAsync(descriptor.FullWindowType)
+            : null;
+        var options = descriptor.IsV3LayoutWindow
+            ? null
+            : _windowLayoutOptionsService.LoadOptions(descriptor.FullWindowType);
+        var width = v3Settings?.WindowWidth ?? options?.WindowWidth;
+        var height = v3Settings?.WindowHeight ?? options?.WindowHeight;
+        if (width is null && height is null)
         {
             return false;
         }
 
         void Apply()
         {
-            if (options.WindowWidth is { } w && w > 0 && double.IsFinite(w))
+            if (width is { } w && w > 0 && double.IsFinite(w))
             {
                 window.Width = w;
             }
 
-            if (options.WindowHeight is { } h && h > 0 && double.IsFinite(h))
+            if (height is { } h && h > 0 && double.IsFinite(h))
             {
                 window.Height = h;
             }
@@ -377,10 +386,25 @@ public class FrontedWindowService : IFrontedWindowService
         }
         else
         {
-            window.Dispatcher.Invoke(Apply);
+            await window.Dispatcher.InvokeAsync(Apply);
         }
 
         return true;
+    }
+
+    private async Task<FrontedWindowSettings?> LoadV3WindowSettingsAsync(string fullWindowType)
+    {
+        try
+        {
+            var config = await _services.GetRequiredService<IFrontedLayoutService>()
+                .LoadWindowConfigAsync(fullWindowType);
+            return config?.WindowSettings;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to load v3 fronted window settings. Window: {FullWindowType}", fullWindowType);
+            return null;
+        }
     }
 
     public (double Width, double Height)? GetWindowSize(string fullWindowType)

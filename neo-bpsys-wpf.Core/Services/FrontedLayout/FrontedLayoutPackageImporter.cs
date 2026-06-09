@@ -204,7 +204,6 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
                 await File.ReadAllTextAsync(path, cancellationToken),
                 _jsonSerializerOptions)
                 ?? throw new FrontedLayoutConfigException($"Layout JSON is invalid: {layout.Path}");
-            config.SyncWindowSizeToCanvas();
             await File.WriteAllTextAsync(
                 path,
                 JsonSerializer.Serialize(config, _jsonSerializerOptions),

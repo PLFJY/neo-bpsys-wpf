@@ -168,12 +168,6 @@ public partial class App
 
         //Views and ViewModels
         //Windows
-        services.AddFrontedWindow<BpWindow, BpWindowViewModel>();
-        services.AddFrontedWindow<CutSceneWindow, CutSceneWindowViewModel>();
-        services.AddFrontedWindow<ScoreGlobalWindow, ScoreWindowViewModel>();
-        services.AddFrontedWindow<ScoreSurWindow, ScoreWindowViewModel>();
-        services.AddFrontedWindow<ScoreHunWindow, ScoreWindowViewModel>();
-        services.AddFrontedWindow<GameDataWindow, GameDataWindowViewModel>();
         services.AddTransient<FrontedDesignerWindowViewModel>();
         services.AddTransient<FrontedDesignerWindow>();
         services.AddTransient<FrontedBindingBrowserWindowViewModel>();

@@ -761,14 +761,15 @@ public partial class FrontedDesignerWindow : FluentWindow
         }
     }
 
-    private void WindowBackgroundColorTextBox_OnKeyDown(object sender, KeyEventArgs e)
+    private async void WindowBackgroundColorTextBox_OnKeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key != Key.Enter)
         {
             return;
         }
 
-        if (_viewModel?.ApplyWindowBackgroundColorEdit() == true)
+        if (_viewModel is not null
+            && await _viewModel.ApplyWindowBackgroundColorEditAsync())
         {
             FocusDesignSurface();
         }
@@ -776,9 +777,10 @@ public partial class FrontedDesignerWindow : FluentWindow
         e.Handled = true;
     }
 
-    private void WindowBackgroundColorApplyButton_OnClick(object sender, RoutedEventArgs e)
+    private async void WindowBackgroundColorApplyButton_OnClick(object sender, RoutedEventArgs e)
     {
-        if (_viewModel?.ApplyWindowBackgroundColorEdit() == true)
+        if (_viewModel is not null
+            && await _viewModel.ApplyWindowBackgroundColorEditAsync())
         {
             FocusDesignSurface();
         }

@@ -197,7 +197,7 @@ Canvas 级字段同样必须校验：
 4. 如果未来显示假窗口边框，它只能是视觉装饰。
 5. 所有位置都基于内容 Canvas 坐标系，不基于 `Window.ActualHeight` 或窗口外边界。
 
-只读预览按此规则设置 `PreviewCanvas.Width = config.CanvasWidth`、`PreviewCanvas.Height = config.CanvasHeight`，不读取真实前台窗口尺寸，因此不会把原生标题栏高度混入控件坐标。`PreviewCanvas` 和 `InteractionLayer` 放在同一个 `DesignSurfaceGrid` 内，二者尺寸都等于 `CanvasSettings.CanvasWidth` / `CanvasHeight`；外层 `PreviewZoomHost` 使用 `LayoutTransform` 绑定 `ZoomScale`。鼠标拖拽和缩放仍通过 `e.GetPosition(InteractionLayer)` 得到逻辑 Canvas 坐标，不乘除缩放比例；Fit 模式只根据 viewport/canvas 计算 `ZoomScale`，手动缩放也只改变 `ZoomScale`，不会改变写回的 `Left` / `Top` / `Width` / `Height`。编辑器窗口本身使用 WPF-UI `FluentWindow` 和项目既有 `CustomTitleBar`，标题栏在独立 Grid 行中，主题切换按钮隐藏，最小化、最大化和关闭按钮仍由 `CustomTitleBar` 处理。编辑器是可长期打开的非模态工具窗口，启动时不设置主窗口 `Owner`，也不默认最大化，避免 owned maximized window 触发主窗口最小化或任务栏联动。当前窗口宽高跟随 Canvas 设计尺寸，Designer 不单独暴露 WindowWidth / WindowHeight 编辑控件。
+只读预览按此规则设置 `PreviewCanvas.Width = config.CanvasWidth`、`PreviewCanvas.Height = config.CanvasHeight`，不读取真实前台窗口尺寸，因此不会把原生标题栏高度混入控件坐标。`PreviewCanvas` 和 `InteractionLayer` 放在同一个 `DesignSurfaceGrid` 内，二者尺寸都等于 `CanvasSettings.CanvasWidth` / `CanvasHeight`；外层 `PreviewZoomHost` 使用 `LayoutTransform` 绑定 `ZoomScale`。鼠标拖拽和缩放仍通过 `e.GetPosition(InteractionLayer)` 得到逻辑 Canvas 坐标，不乘除缩放比例；Fit 模式只根据 viewport/canvas 计算 `ZoomScale`，手动缩放也只改变 `ZoomScale`，不会改变写回的 `Left` / `Top` / `Width` / `Height`。编辑器窗口本身使用 WPF-UI `FluentWindow` 和项目既有 `CustomTitleBar`，标题栏在独立 Grid 行中，主题切换按钮隐藏，最小化、最大化和关闭按钮仍由 `CustomTitleBar` 处理。编辑器是可长期打开的非模态工具窗口，启动时不设置主窗口 `Owner`，也不默认最大化，避免 owned maximized window 触发主窗口最小化或任务栏联动。真实前台窗口宽高由 Window Settings 区域编辑并保存到 `WindowSettings`。
 
 ## 7. 设计 surface 架构
 
@@ -508,7 +508,7 @@ Text 和 LocalizedText 不再把基类 `BindingPath` 作为内容来源。它们
 
 Binding Browser 的标题、搜索、按钮、空状态、期望类型和节点显示名可以本地化，但完整 `BindingPath` 始终作为原始路径在树、搜索结果或选中路径区域可见。选择后写回的仍是 `CurrentGame.SurTeam.Name` 这类原始路径，绝不写入“主队名称”等显示文本。
 
-图片/资源路径字段旁提供 Resource Browser。当前资源来源包括内置运行时文件 `Resources/bpui`，返回值使用 resolver 约定的 `Resources/<fileName>`；也支持通过 “Browse file...” 选择 png/jpg/jpeg/webp/bmp 绝对路径。`Image` / `BorderedImage` 的静态图片选择写入 `ImagePath`，动态数据仍通过 `BindingPath` 和 Binding Browser 选择；两者同时存在时运行时以 `BindingPath` 为准。控件级 Resource Browser 选择外部文件仍只写入编辑缓冲。Canvas Settings 中提供 `CanvasWidth`、`CanvasHeight`、`BackgroundImage`、清除背景、浏览资源和选择本地图片；选择本地图片会复制到 editor-local resource store，layout JSON 写为 `bpui://local/...`。导出包时再复制进包资源并重写为 `bpui://{PackageId}/...`。当前 `WindowSettings.WindowWidth` / `WindowHeight` 跟随 `CanvasWidth` / `CanvasHeight`，无需在 UI 中单独编辑。
+图片/资源路径字段旁提供 Resource Browser。当前资源来源包括内置运行时文件 `Resources/bpui`，返回值使用 resolver 约定的 `Resources/<fileName>`；也支持通过 “Browse file...” 选择 png/jpg/jpeg/webp/bmp 绝对路径。`Image` / `BorderedImage` 的静态图片选择写入 `ImagePath`，动态数据仍通过 `BindingPath` 和 Binding Browser 选择；两者同时存在时运行时以 `BindingPath` 为准。控件级 Resource Browser 选择外部文件仍只写入编辑缓冲。Canvas Settings 中提供 `CanvasWidth`、`CanvasHeight`、`BackgroundImage`、清除背景、浏览资源和选择本地图片；选择本地图片会复制到 editor-local resource store，layout JSON 写为 `bpui://local/...`。导出包时再复制进包资源并重写为 `bpui://{PackageId}/...`。Window Settings 中提供 `WindowSettings.WindowWidth` / `WindowHeight`、透明和背景色编辑，保存到同一个 window-centric layout JSON。
 
 Resource Browser 的标题、搜索、按钮、空状态和来源/类型显示可本地化，但选中区域必须保留原始资源 URI 或文件路径。写回配置的仍是 `Resources/foo.png`、`bpui://...` 或绝对路径原值，不写入本地化显示文本。
 
@@ -715,7 +715,7 @@ neo-bpsys-wpf/Resources/FrontedLayouts/{WindowName}.json
 
 `.bpui v3` package 导出/导入已放到 `FrontManagePage` 的 `Layout Packages` tab。导出会打开 manifest 对话框，并固定导出全部已迁移前台布局；导入会安装 v3 包并可立即激活。SettingPage 中现有 `.bpui` 导入导出是 legacy 流程，会覆盖全局 `Config.json`，不能作为 Designer v3 包管理入口。
 
-`AllowsTransparency` 和 `BackgroundColor` 是 `WindowSettings`，不是普通控件属性，也不属于 `CanvasSettings`。`BackgroundColor` 使用 `#AARRGGBB` 并通过 ColorPicker 编辑；为空或缺失时沿用窗口原有默认背景。由于 WPF 透明窗口行为必须在 source 初始化前应用，已显示窗口 reload 不直接修改 `AllowsTransparency`，只提示下次创建或重开窗口后生效。
+`AllowsTransparency` 和 `BackgroundColor` 是 `WindowSettings`，不是普通控件属性，也不属于 `CanvasSettings`。`BackgroundColor` 使用 `#AARRGGBB` 并通过 ColorPicker 编辑；为空或非法时运行时回退为 Transparent 并记录 warning。由于 WPF 透明窗口行为必须在 source 初始化前应用，已显示窗口 reload 不直接修改 `AllowsTransparency`，只提示下次创建或重开窗口后生效。
 
 窗口切换、Reload、Reset to Built-in 和关闭编辑器时，如果当前文档 dirty，会通过 `MessageBoxHelper` 提示 Save / Discard / Cancel。Save 会先执行完整校验，存在 Error 时阻止保存并取消切换或关闭；Warning/Info 不阻止保存。关闭窗口的 dirty prompt 必须先在 `Closing` 中设置 `e.Cancel = true`，再通过 Dispatcher 异步显示本地化的宽版 helper 对话框；用户选择 Save 且保存成功或选择 Discard 后，设置强制关闭标记并再次调用 `Close()`。这样避免 WPF 在窗口已经进入 closing 状态时执行 `ShowDialog` / `Close` 触发异常。验证详情窗口是非模态子窗口，父编辑器关闭时只做受保护关闭，已关闭或正在关闭时不能让异常冒泡。
 

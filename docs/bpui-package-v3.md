@@ -676,7 +676,7 @@ bpui://{PackageId}/resources/images/bg.png
 7. 内置资源可以继续使用 `Resources/...`。
 8. `BackgroundImage` 应通过资源 resolver 校验。
 
-当前窗口宽高跟随 Canvas 设计尺寸。导入、导出和安装包时应把 `WindowSettings.WindowWidth` / `WindowHeight` 同步为 `CanvasSettings.CanvasWidth` / `CanvasHeight`，不在 manifest 或包管理 UI 中提供独立窗口宽高字段。
+窗口宽高由 `WindowSettings.WindowWidth` / `WindowHeight` 独立保存，Canvas 设计尺寸由 `CanvasSettings.CanvasWidth` / `CanvasHeight` 保存。导入、导出和安装包时必须保留包内 layout JSON 的 WindowSettings；只有 legacy canvas-centric 转换缺少窗口尺寸时，才用 Canvas 尺寸初始化 WindowSettings。
 
 ## 14. 窗口透明选项标准
 
@@ -701,7 +701,7 @@ bpui://{PackageId}/resources/images/bg.png
 
 `Text` 和 `LocalizedText` 的动态内容使用 `TextBinding`，不使用基类 `BindingPath`。`Sources` 是有序列表，顺序对应 `StringFormat` 的 `{0}`、`{1}` 等占位符；`StringFormat` 为空时按 `JoinSeparator` 连接。没有有效 source 时回退到静态 `Text` 或 `LocalizationKey`。该模型只适用于这两个文本控件，图片、可见性和业务控件仍使用各自现有的 `BindingPath`。
 
-`BackgroundColor` 使用 `#AARRGGBB`，表示窗口级背景色覆盖；为空或缺失时沿用窗口原有默认背景。背景色是普通 `Window.Background`，可在已注册前台窗口上立即应用。WPF 的 `AllowsTransparency` / 透明窗口行为可能需要重新创建窗口或重启应用，只有该设置变化时 UI 应提示“需要重启”。
+`BackgroundColor` 使用 `#AARRGGBB`，表示窗口级背景色覆盖；为空或非法时运行时回退为 Transparent 并记录 warning。背景色是普通 `Window.Background`，可在已注册前台窗口上立即应用。WPF 的 `AllowsTransparency` / 透明窗口行为可能需要重新创建窗口或重启应用，只有该设置变化时 UI 应提示“需要重启”。
 
 重启流程：
 

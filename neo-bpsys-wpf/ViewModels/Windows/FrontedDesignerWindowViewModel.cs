@@ -110,6 +110,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private int _reloadLayoutVersion;
     private double _lastPreviewViewportWidth;
     private double _lastPreviewViewportHeight;
+    private FrontedWindowSettings _currentWindowSettings = new();
 
 #pragma warning disable CS8618
     public FrontedDesignerWindowViewModel()
@@ -597,10 +598,12 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         if (value is null)
         {
+            _currentWindowSettings = new FrontedWindowSettings();
             SelectedCanvas = null;
             return;
         }
 
+        _currentWindowSettings = new FrontedWindowSettings();
         foreach (var canvas in value.Canvases)
         {
             CanvasOptions.Add(canvas);
@@ -783,7 +786,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     partial void OnWindowAllowTransparencyChanged(bool value)
     {
-        if (_isLoadingWindowOptions || _windowLayoutOptionsService is null || SelectedWindow is null)
+        if (_isLoadingWindowOptions || SelectedWindow is null)
         {
             return;
         }
@@ -901,9 +904,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 windowConfig.ToCanvasConfig(),
                 _runtimeContracts);
 
+            _currentWindowSettings = CloneWindowSettings(windowConfig.WindowSettings);
             ControlFilterText = string.Empty;
             CurrentDocument = document;
             CurrentDocument.IsDirty = false;
+            LoadWindowOptions(entry.WindowTypeName);
             var behaviorDocument = await _behaviorService.LoadDocumentAsync(
                 entry.WindowTypeName,
                 cancellationToken);
@@ -1000,9 +1005,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             {
                 var config = _designConverter.ToConfig(CurrentDocument);
                 config.Version = 3;
+                var windowConfig = FrontedWindowConfig.FromCanvasConfig(config);
+                windowConfig.WindowSettings = CloneWindowSettings(_currentWindowSettings);
                 await _layoutService.SaveWindowConfigAsync(
                     CurrentDocument.WindowTypeName,
-                    FrontedWindowConfig.FromCanvasConfig(config));
+                    windowConfig);
 
                 CleanupPendingImportedResources(includeCurrentDocument: true);
                 CurrentDocument.IsDirty = false;
@@ -1606,7 +1613,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     public bool ApplyWindowSizeEdit(string widthText, string heightText)
     {
-        if (_windowLayoutOptionsService is null || SelectedWindow is null)
+        if (SelectedWindow is null)
         {
             return false;
         }
@@ -1786,7 +1793,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     [RelayCommand]
     private void ResetWindowOptions()
     {
-        if (_windowLayoutOptionsService is null || SelectedWindow is null)
+        if (SelectedWindow is null)
         {
             return;
         }
@@ -3194,6 +3201,38 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         return result;
     }
 
+    private FrontedWindowConfig CreateConfigFromCurrentDocument()
+    {
+        if (CurrentDocument is null)
+        {
+            return new FrontedWindowConfig
+            {
+                WindowSettings = CloneWindowSettings(_currentWindowSettings)
+            };
+        }
+
+        var canvasConfig = _designConverter.ToConfig(CurrentDocument);
+        canvasConfig.Version = 3;
+        var windowConfig = FrontedWindowConfig.FromCanvasConfig(canvasConfig);
+        windowConfig.WindowSettings = CloneWindowSettings(_currentWindowSettings);
+        return windowConfig;
+    }
+
+    private static FrontedWindowSettings CloneWindowSettings(FrontedWindowSettings settings)
+    {
+        return new FrontedWindowSettings
+        {
+            WindowWidth = settings.WindowWidth,
+            WindowHeight = settings.WindowHeight,
+            WindowLeft = settings.WindowLeft,
+            WindowTop = settings.WindowTop,
+            AllowsTransparency = settings.AllowsTransparency,
+            BackgroundColor = settings.BackgroundColor,
+            Topmost = settings.Topmost,
+            ViewboxStretch = settings.ViewboxStretch
+        };
+    }
+
     private static Dictionary<string, FrontedControlConfigBase> CloneControls(
         IReadOnlyDictionary<string, FrontedControlConfigBase> controls)
     {
@@ -3366,42 +3405,15 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         WindowOptionsWindowTypeName = $"{_localizationService.GetWindowDisplayName(windowTypeName)} ({windowTypeName})";
         WindowOptionsRestartRequired = false;
 
-        if (_windowLayoutOptionsService is null)
-        {
-            WindowAllowTransparency = false;
-            WindowBackgroundColorEditText = "#00000000";
-            WindowBackgroundColorValue = Colors.Transparent;
-            _windowBackgroundColorConfigured = false;
-            return;
-        }
-
         _isLoadingWindowOptions = true;
         try
         {
-            var options = _windowLayoutOptionsService.LoadOptions(windowTypeName);
-            WindowAllowTransparency = options.AllowTransparency;
+            var settings = _currentWindowSettings;
+            WindowAllowTransparency = settings.AllowsTransparency;
+            WindowWidthEditText = settings.WindowWidth.ToString("0.##", CultureInfo.InvariantCulture);
+            WindowHeightEditText = settings.WindowHeight.ToString("0.##", CultureInfo.InvariantCulture);
 
-            if (options.WindowWidth.HasValue)
-            {
-                WindowWidthEditText = options.WindowWidth.Value.ToString("0.##", CultureInfo.InvariantCulture);
-            }
-            else
-            {
-                var currentSize = _frontedWindowService?.GetWindowSize(windowTypeName);
-                WindowWidthEditText = currentSize?.Width.ToString("0.##", CultureInfo.InvariantCulture) ?? string.Empty;
-            }
-
-            if (options.WindowHeight.HasValue)
-            {
-                WindowHeightEditText = options.WindowHeight.Value.ToString("0.##", CultureInfo.InvariantCulture);
-            }
-            else
-            {
-                var currentSize = _frontedWindowService?.GetWindowSize(windowTypeName);
-                WindowHeightEditText = currentSize?.Height.ToString("0.##", CultureInfo.InvariantCulture) ?? string.Empty;
-            }
-
-            var configuredBackgroundColor = options.BackgroundColor;
+            var configuredBackgroundColor = settings.BackgroundColor;
             _windowBackgroundColorConfigured = !string.IsNullOrWhiteSpace(configuredBackgroundColor);
             var backgroundColor = configuredBackgroundColor ?? "#00000000";
             if (!FrontedPropertyColorHelper.TryParseArgbColor(configuredBackgroundColor, out var color))
@@ -3425,7 +3437,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
     }
 
-    public bool ApplyWindowBackgroundColorEdit()
+    public async Task<bool> ApplyWindowBackgroundColorEditAsync()
     {
         if (!FrontedPropertyColorHelper.TryParseArgbColor(WindowBackgroundColorEditText, out var color))
         {
@@ -3436,7 +3448,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         WindowBackgroundColorEditText = FrontedPropertyColorHelper.ToArgbString(color);
         WindowBackgroundColorValue = color;
         _windowBackgroundColorConfigured = true;
-        _ = SaveWindowOptionsAsync(restartRequired: false, applyBackgroundImmediately: true);
+        await SaveWindowOptionsAsync(restartRequired: false, applyBackgroundImmediately: true);
         return true;
     }
 
@@ -3480,7 +3492,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     private async Task SaveWindowOptionsAsync(bool restartRequired, bool applyBackgroundImmediately, bool applyWindowSizeImmediately = false)
     {
-        if (_windowLayoutOptionsService is null || SelectedWindow is null)
+        if (SelectedWindow is null)
         {
             return;
         }
@@ -3489,26 +3501,36 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         {
             var windowWidth = TryParseOptionalPositiveDouble(WindowWidthEditText);
             var windowHeight = TryParseOptionalPositiveDouble(WindowHeightEditText);
+            var settings = CloneWindowSettings(_currentWindowSettings);
+            settings.WindowWidth = windowWidth ?? settings.WindowWidth;
+            settings.WindowHeight = windowHeight ?? settings.WindowHeight;
+            settings.AllowsTransparency = WindowAllowTransparency;
+            settings.BackgroundColor = _windowBackgroundColorConfigured
+                ? WindowBackgroundColorEditText
+                : null;
 
-            await _windowLayoutOptionsService.SaveOptionsAsync(
+            var config = await _layoutService.LoadWindowConfigAsync(SelectedWindow.WindowTypeName)
+                         ?? CreateConfigFromCurrentDocument();
+            config.WindowSettings = CloneWindowSettings(settings);
+
+            await _layoutService.SaveWindowConfigAsync(
                 SelectedWindow.WindowTypeName,
-                new FrontedWindowLayoutOptions
-                {
-                    WindowWidth = windowWidth,
-                    WindowHeight = windowHeight,
-                    AllowTransparency = WindowAllowTransparency,
-                    BackgroundColor = _windowBackgroundColorConfigured
-                        ? WindowBackgroundColorEditText
-                        : null
-                });
+                config);
+            _currentWindowSettings = CloneWindowSettings(settings);
+
             if (applyBackgroundImmediately)
             {
-                _frontedWindowService?.ApplyWindowBackgroundColor(SelectedWindow.WindowTypeName);
+                await (_frontedWindowService?.ApplyWindowBackgroundColorAsync(SelectedWindow.WindowTypeName) ?? Task.FromResult(false));
             }
 
             if (applyWindowSizeImmediately)
             {
-                _frontedWindowService?.ApplyWindowSize(SelectedWindow.WindowTypeName);
+                await (_frontedWindowService?.ApplyWindowSizeAsync(SelectedWindow.WindowTypeName) ?? Task.FromResult(false));
+            }
+
+            if (applyWindowSizeImmediately)
+            {
+                await (_frontedWindowService?.ReloadFrontedLayoutsAsync() ?? Task.CompletedTask);
             }
 
             WindowOptionsRestartRequired = restartRequired;
@@ -3525,14 +3547,19 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     private async Task ResetWindowOptionsAsync()
     {
-        if (_windowLayoutOptionsService is null || SelectedWindow is null)
+        if (SelectedWindow is null)
         {
             return;
         }
 
         try
         {
-            await _windowLayoutOptionsService.ResetOptionsAsync(SelectedWindow.WindowTypeName);
+            var builtInConfig = await _layoutService.LoadBuiltInDefaultWindowLayoutAsync(SelectedWindow.WindowTypeName);
+            _currentWindowSettings = CloneWindowSettings(builtInConfig?.WindowSettings ?? new FrontedWindowSettings());
+            var config = await _layoutService.LoadWindowConfigAsync(SelectedWindow.WindowTypeName)
+                         ?? CreateConfigFromCurrentDocument();
+            config.WindowSettings = CloneWindowSettings(_currentWindowSettings);
+            await _layoutService.SaveWindowConfigAsync(SelectedWindow.WindowTypeName, config);
             LoadWindowOptions(SelectedWindow.WindowTypeName);
             WindowOptionsRestartRequired = true;
             WindowOptionsStatus = I18nHelper.GetLocalizedString("RestartRequired");

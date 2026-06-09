@@ -209,7 +209,6 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
                 _controlRegistry,
                 _pluginMetadataProvider);
             config.ControlLayout.RequiredPlugins = canvasConfig.RequiredPlugins;
-            config.SyncWindowSizeToCanvas();
             exportedLayouts.Add((entry.WindowTypeName, FrontedLayoutConstants.BaseCanvasName, canvasConfig));
 
             var layoutJson = JsonSerializer.Serialize(config, _jsonSerializerOptions);

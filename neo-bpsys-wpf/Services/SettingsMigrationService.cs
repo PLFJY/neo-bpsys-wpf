@@ -18,6 +18,8 @@ namespace neo_bpsys_wpf.Services;
 /// </summary>
 public class SettingsMigrationService : ISettingsMigrationService
 {
+    private const string DefaultOpaqueBackgroundColor = "#FF00FF00";
+
     private readonly ILogger<SettingsMigrationService> _logger;
 
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
@@ -138,19 +140,92 @@ public class SettingsMigrationService : ISettingsMigrationService
 
         var layoutRoot = AppConstants.FrontedLayoutsPath;
         var builtInRoot = Path.Combine(AppConstants.ResourcesPath, "FrontedLayouts");
-        await MigrateWindowAsync("BpWindow", "BaseCanvas", "BpWindow", legacySettings.BpWindowSettings?.BgImageUri, legacySettings.BpWindowSettings?.AllowsWindowTransparency == true, cancellationToken);
-        await MigrateWindowAsync("CutSceneWindow", "BaseCanvas", "CutSceneWindow", legacySettings.CutSceneWindowSettings?.BgUri, false, cancellationToken);
-        await MigrateWindowAsync("ScoreSurWindow", "BaseCanvas", "ScoreSurWindow", legacySettings.ScoreWindowSettings?.SurScoreBgImageUri, false, cancellationToken);
-        await MigrateWindowAsync("ScoreHunWindow", "BaseCanvas", "ScoreHunWindow", legacySettings.ScoreWindowSettings?.HunScoreBgImageUri, false, cancellationToken);
-        await MigrateWindowAsync("ScoreGlobalWindow", "BaseCanvas", "ScoreGlobalWindow", legacySettings.ScoreWindowSettings?.GlobalScoreBgImageUri, legacySettings.ScoreWindowSettings?.AllowsScoreGlobalWindowTransparency == true, cancellationToken);
-        await MigrateWindowAsync("GameDataWindow", "BaseCanvas", "GameDataWindow", legacySettings.GameDataWindowSettings?.BgImageUri, false, cancellationToken);
+        var legacyRoot = JsonNode.Parse(json) as JsonObject;
+        await MigrateWindowAsync(
+            "BpWindow",
+            "BaseCanvas",
+            "BpWindow",
+            legacySettings.BpWindowSettings?.BgImageUri,
+            legacySettings.BpWindowSettings?.WindowSize,
+            legacySettings.BpWindowSettings?.BackgroundColor,
+            HasLegacyProperty(legacyRoot, "BpWindowSettings", "AllowsWindowTransparency")
+                ? legacySettings.BpWindowSettings?.AllowsWindowTransparency
+                : null,
+            cancellationToken);
+        await MigrateWindowAsync(
+            "CutSceneWindow",
+            "BaseCanvas",
+            "CutSceneWindow",
+            legacySettings.CutSceneWindowSettings?.BgUri,
+            legacySettings.CutSceneWindowSettings?.WindowSize,
+            null,
+            null,
+            cancellationToken);
+        await MigrateWindowAsync(
+            "ScoreSurWindow",
+            "BaseCanvas",
+            "ScoreSurWindow",
+            legacySettings.ScoreWindowSettings?.SurScoreBgImageUri,
+            legacySettings.ScoreWindowSettings?.ScoreInGameWindowSize,
+            null,
+            null,
+            cancellationToken);
+        await MigrateWindowAsync(
+            "ScoreHunWindow",
+            "BaseCanvas",
+            "ScoreHunWindow",
+            legacySettings.ScoreWindowSettings?.HunScoreBgImageUri,
+            legacySettings.ScoreWindowSettings?.ScoreInGameWindowSize,
+            null,
+            null,
+            cancellationToken);
+        await MigrateWindowAsync(
+            "ScoreGlobalWindow",
+            "BaseCanvas",
+            "ScoreGlobalWindow",
+            legacySettings.ScoreWindowSettings?.GlobalScoreBgImageUri,
+            legacySettings.ScoreWindowSettings?.ScoreGlobalWindowSize,
+            legacySettings.ScoreWindowSettings?.ScoreGlobalWindowBackgroundColor,
+            HasLegacyProperty(legacyRoot, "ScoreWindowSettings", "AllowsScoreGlobalWindowTransparency")
+                ? legacySettings.ScoreWindowSettings?.AllowsScoreGlobalWindowTransparency
+                : null,
+            cancellationToken);
+        await MigrateWindowAsync(
+            "GameDataWindow",
+            "BaseCanvas",
+            "GameDataWindow",
+            legacySettings.GameDataWindowSettings?.BgImageUri,
+            legacySettings.GameDataWindowSettings?.WindowSize,
+            null,
+            null,
+            cancellationToken);
         if (!string.IsNullOrWhiteSpace(legacySettings.WidgetsWindowSettings?.MapBpBgUri))
         {
             _logger.LogInformation("Legacy WidgetsWindow/MapBpCanvas was skipped because MapV1 is no longer supported.");
         }
 
-        await MigrateWindowAsync("WidgetsWindow", "BpOverViewCanvas", "BpOverviewWindow", legacySettings.WidgetsWindowSettings?.BpOverviewBgUri, legacySettings.WidgetsWindowSettings?.AllowsWindowTransparency == true, cancellationToken);
-        await MigrateWindowAsync("WidgetsWindow", "MapV2Canvas", "MapV2Window", legacySettings.WidgetsWindowSettings?.MapBpV2BgUri, legacySettings.WidgetsWindowSettings?.AllowsWindowTransparency == true, cancellationToken);
+        await MigrateWindowAsync(
+            "WidgetsWindow",
+            "BpOverViewCanvas",
+            "BpOverviewWindow",
+            legacySettings.WidgetsWindowSettings?.BpOverviewBgUri,
+            legacySettings.WidgetsWindowSettings?.WindowSize,
+            legacySettings.WidgetsWindowSettings?.BackgroundColor,
+            HasLegacyProperty(legacyRoot, "WidgetsWindowSettings", "AllowsWindowTransparency")
+                ? legacySettings.WidgetsWindowSettings?.AllowsWindowTransparency
+                : null,
+            cancellationToken);
+        await MigrateWindowAsync(
+            "WidgetsWindow",
+            "MapV2Canvas",
+            "MapV2Window",
+            legacySettings.WidgetsWindowSettings?.MapBpV2BgUri,
+            legacySettings.WidgetsWindowSettings?.WindowSize,
+            legacySettings.WidgetsWindowSettings?.BackgroundColor,
+            HasLegacyProperty(legacyRoot, "WidgetsWindowSettings", "AllowsWindowTransparency")
+                ? legacySettings.WidgetsWindowSettings?.AllowsWindowTransparency
+                : null,
+            cancellationToken);
 
         if (legacySettings.CutSceneWindowSettings?.IsBlackTalentAndTraitEnable == true)
         {
@@ -168,11 +243,15 @@ public class SettingsMigrationService : ISettingsMigrationService
             string legacyCanvas,
             string outputWindow,
             string? backgroundImage,
-            bool allowTransparency,
+            WindowSize? windowSize,
+            string? backgroundColor,
+            bool? allowTransparency,
             CancellationToken ct)
         {
             if (string.IsNullOrWhiteSpace(backgroundImage)
-                && !allowTransparency
+                && windowSize is null
+                && string.IsNullOrWhiteSpace(backgroundColor)
+                && allowTransparency is null
                 && !LegacyFrontedTextStyleMigrator.HasLegacyTextStyles(legacyWindow, legacySettings))
             {
                 return;
@@ -202,18 +281,59 @@ public class SettingsMigrationService : ISettingsMigrationService
 
             LegacyFrontedTextStyleMigrator.Apply(config, legacyWindow, legacyCanvas, legacySettings);
             var targetConfig = FrontedWindowConfig.FromCanvasConfig(config);
-            var migratedWidth = targetConfig.WindowSettings.WindowWidth;
-            var migratedHeight = targetConfig.WindowSettings.WindowHeight;
             targetConfig.WindowSettings = windowConfig.WindowSettings;
-            targetConfig.WindowSettings.WindowWidth = migratedWidth;
-            targetConfig.WindowSettings.WindowHeight = migratedHeight;
-            targetConfig.WindowSettings.AllowsTransparency = allowTransparency || windowConfig.WindowSettings.AllowsTransparency;
-            targetConfig.SyncWindowSizeToCanvas();
+            ApplyLegacyWindowSettings(targetConfig.WindowSettings, windowSize, backgroundColor, allowTransparency);
             var targetPath = Path.Combine(layoutRoot, $"{outputWindow}.json");
             Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
             await File.WriteAllTextAsync(targetPath, JsonSerializer.Serialize(targetConfig, _jsonSerializerOptions), ct);
             _logger.LogInformation("Migrated legacy frontend settings to Designer v3 window layout: {Window}", outputWindow);
         }
+    }
+
+    private static void ApplyLegacyWindowSettings(
+        FrontedWindowSettings target,
+        WindowSize? windowSize,
+        string? backgroundColor,
+        bool? allowTransparency)
+    {
+        if (windowSize is not null)
+        {
+            if (double.IsFinite(windowSize.Width) && windowSize.Width > 0D)
+            {
+                target.WindowWidth = windowSize.Width;
+            }
+
+            if (double.IsFinite(windowSize.Height) && windowSize.Height > 0D)
+            {
+                target.WindowHeight = windowSize.Height;
+            }
+        }
+
+        if (allowTransparency.HasValue)
+        {
+            target.AllowsTransparency = allowTransparency.Value;
+        }
+
+        if (!string.IsNullOrWhiteSpace(backgroundColor))
+        {
+            target.BackgroundColor = backgroundColor;
+            return;
+        }
+
+        if (allowTransparency == true)
+        {
+            target.BackgroundColor = "#00000000";
+        }
+        else if (allowTransparency == false)
+        {
+            target.BackgroundColor = DefaultOpaqueBackgroundColor;
+        }
+    }
+
+    private static bool HasLegacyProperty(JsonObject? root, string settingsName, string propertyName)
+    {
+        return root?[settingsName] is JsonObject settings
+               && settings.ContainsKey(propertyName);
     }
 
     private static bool HasLegacyFrontendSettings(LegacySettings settings)

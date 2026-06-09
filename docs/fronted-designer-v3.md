@@ -115,7 +115,7 @@ v3 渲染路径优先读取新目录。legacy 文件只应进入迁移流程，�
 
 `CanvasSettings.BackgroundImage` 与控件图片路径由 `IFrontedResourceResolver` 解析。默认语义是绝对路径直接读取，`Resources/xxx.png` 映射到运行目录 `Resources/bpui/xxx.png`，其他相对路径保守地按 `Resources/bpui` 下资源处理。
 
-当前实现暂时让窗口宽高跟随 Canvas 设计尺寸。`WindowSettings.WindowWidth` / `WindowHeight` 会在读取、保存、包导入导出和 legacy 转换时同步为 `CanvasSettings.CanvasWidth` / `CanvasHeight`；Designer 只需要编辑 Canvas 设计尺寸，不单独暴露窗口宽高控件。`ViewBox` 负责把固定设计坐标缩放到窗口内容区域，控件坐标不会随窗口 resize 被重写。
+窗口宽高由 `WindowSettings.WindowWidth` / `WindowHeight` 独立保存，Canvas 设计尺寸由 `CanvasSettings.CanvasWidth` / `CanvasHeight` 保存。Designer 的 Window Settings 区域直接写入 `FrontedLayouts/{WindowTypeName}.json -> WindowSettings`；普通读取、保存、包导入和包导出不得用 Canvas 尺寸覆盖窗口尺寸。`ViewBox` 负责把固定设计坐标缩放到窗口内容区域，控件坐标不会随窗口 resize 被重写。
 
 Canvas 可启用通用 BO3/BO5 状态：`CanvasSettings` root 表示默认/BO5 state，`EnableBoModeStates = true` 且 `BoModeStates["Bo3"]` 存在时，运行时会在 `ISharedDataService.IsBo3Mode == true` 时渲染 BO3 state。BO3 state 拥有独立 `BackgroundImage`、`RequiredPlugins` 和 `Controls`，因此控件位置、大小、ZIndex、绑定、静态文本和 `Visibility` 都可以与 BO5 不同。`BackgroundImageVariants` 已移除，不保留迁移兼容分支。
 

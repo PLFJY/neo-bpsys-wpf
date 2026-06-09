@@ -424,9 +424,7 @@ public class FrontedLayoutService : IFrontedLayoutService
         }
 
         var json = await File.ReadAllTextAsync(path, cancellationToken);
-        var config = JsonSerializer.Deserialize<FrontedWindowConfig>(json, _jsonSerializerOptions);
-        config?.SyncWindowSizeToCanvas();
-        return config;
+        return JsonSerializer.Deserialize<FrontedWindowConfig>(json, _jsonSerializerOptions);
     }
 
     private async Task WriteConfigAsync(
@@ -436,7 +434,6 @@ public class FrontedLayoutService : IFrontedLayoutService
     {
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         config.Version = 3;
-        config.SyncWindowSizeToCanvas();
         var json = JsonSerializer.Serialize(config, _jsonSerializerOptions);
         await File.WriteAllTextAsync(path, json, cancellationToken);
     }

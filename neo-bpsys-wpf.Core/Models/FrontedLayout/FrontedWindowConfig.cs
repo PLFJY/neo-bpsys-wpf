@@ -83,12 +83,11 @@ public sealed class FrontedWindowConfig
     }
 
     /// <summary>
-    /// Copies the internal canvas size to the WPF window size for the current window-centric sizing policy.
+    /// Copies the internal canvas size to the WPF window size for explicit legacy conversion paths.
     /// </summary>
     /// <remarks>
-    /// This keeps saved and imported v3 layouts in the temporary "window follows canvas" mode. Invalid canvas
-    /// sizes are ignored so callers can still surface normal layout validation errors without writing unusable
-    /// window dimensions.
+    /// Normal v3 layout reads, saves, imports, and exports must preserve <see cref="WindowSettings"/>. Use this
+    /// helper only when converting an older canvas-centric layout that has no independent window size.
     /// </remarks>
     public void SyncWindowSizeToCanvas()
     {

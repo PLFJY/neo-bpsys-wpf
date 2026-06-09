@@ -15,7 +15,7 @@
 | 窗口管理器 | `IFrontedWindowService` / `FrontedWindowService` | 窗口实例的创建、显示、隐藏、布局重载 |
 | 窗口基类 | `FrontedWindowBase` | v3 布局宿主的 WPF 基类，管理布局加载、BehaviorRuntime 附加/分离 |
 | 布局配置服务 | `IFrontedLayoutService` / `FrontedLayoutService` | 读取/保存窗口级 v3 布局 JSON 配置 |
-| 窗口选项服务 | `IFrontedWindowLayoutOptionsService` / `FrontedWindowLayoutOptionsService` | 读取/保存窗口级布局选项（尺寸、透明色） |
+| 窗口选项服务 | `IFrontedWindowLayoutOptionsService` / `FrontedWindowLayoutOptionsService` | 仅用于非 v3 / legacy XAML 窗口选项；v3 layout window 使用 `FrontedWindowConfig.WindowSettings` |
 | 管理页 ViewModel | `FrontManagePageViewModel` | 用户在后台管理前台窗口的入口 |
 
 ### 窗口类型枚举：FrontedWindowType
@@ -477,7 +477,7 @@ public async Task ReloadFrontedLayoutsAsync()
 
 | 方法 | 行为 |
 |---|---|
-| `ApplyWindowBackgroundColor(fullWindowType)` | 从选项读取背景色并应用到窗口 Background 属性 |
+| `ApplyWindowBackgroundColor(fullWindowType)` | v3 窗口从 `WindowSettings` 读取背景色，非 v3 窗口从旧 options 读取，并应用到窗口 Background 属性 |
 | `ApplyWindowSize(fullWindowType)` | 从选项读取宽高并应用到窗口 Width/Height 属性 |
 | `GetWindowSize(fullWindowType)` | 获取窗口当前宽高，不可见时返回 null |
 
@@ -489,7 +489,8 @@ public async Task ReloadFrontedLayoutsAsync()
 
 窗口配置分为两个层次：
 - **布局配置（Layout Config）**：窗口内容布局（控件、画布、行为等），由 `FrontedLayoutService` 管理
-- **布局选项（Layout Options）**：窗口级外观设置（尺寸、透明度、背景色），由 `FrontedWindowLayoutOptionsService` 管理
+- **WindowSettings**：v3 窗口级外观设置（尺寸、位置、透明度、背景色、Topmost、ViewboxStretch），保存在 `FrontedLayouts/{WindowTypeName}.json`
+- **布局选项（Layout Options）**：非 v3 / legacy XAML 窗口级外观设置，由 `FrontedWindowLayoutOptionsService` 管理
 
 ### 6.1 布局配置数据结构
 
@@ -657,7 +658,7 @@ public async Task ReloadFrontedLayoutAsync()
 
 **重要语义**：
 - `ApplyWindowSettings` 中如果窗口未加载，`AllowsTransparency` 可以设置；如果已加载，新值将在下次窗口重建时生效（通过日志提示）
-- `SyncWindowSizeToCanvas()` 在配置读取时自动调用，确保窗口尺寸跟随画布尺寸
+- v3 配置读取、保存、包导入和导出必须保留 `WindowSettings.WindowWidth` / `WindowHeight`；`SyncWindowSizeToCanvas()` 只用于显式 legacy canvas-centric 转换
 
 ### 7.2 非 v3 布局窗口的配置应用（`ApplyWindowLayoutOptions`）
 

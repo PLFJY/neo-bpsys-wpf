@@ -2,6 +2,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Attributes;
+using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 
 namespace neo_bpsys_wpf.Core.Services.Registry;
@@ -27,10 +29,11 @@ public sealed class FrontedWindowRegistryService : IFrontedWindowRegistry
         ILogger<FrontedWindowRegistryService>? logger = null)
     {
         logger ??= NullLogger<FrontedWindowRegistryService>.Instance;
-        _builtInWindows = RegisteredWindow
-            .Where(info => !string.Equals(info.Name, "WidgetsWindow", StringComparison.Ordinal))
-            .Select(FrontedBuiltInWindowDescriptor.FromInfo)
-            .Concat(GetAdditionalBuiltInV3Windows())
+        _builtInWindows = GetBuiltInV3Windows()
+            .Concat(RegisteredWindow
+                .Where(info => !IsBuiltInV3Window(info.Name)
+                               && !string.Equals(info.Name, "WidgetsWindow", StringComparison.Ordinal))
+                .Select(FrontedBuiltInWindowDescriptor.FromInfo))
             .ToArray();
 
         var acceptedPluginWindows = new List<FrontedPluginWindowDescriptor>();
@@ -125,51 +128,52 @@ public sealed class FrontedWindowRegistryService : IFrontedWindowRegistry
 
     public IReadOnlyList<FrontedBuiltInWindowDescriptor> GetBuiltInWindows() => _builtInWindows;
 
-    private static IReadOnlyList<FrontedBuiltInWindowDescriptor> GetAdditionalBuiltInV3Windows()
+    private static IReadOnlyList<FrontedBuiltInWindowDescriptor> GetBuiltInV3Windows()
     {
         return
         [
-            new FrontedBuiltInWindowDescriptor
-            {
-                WindowId = "3F6AD6CC-9271-4FFB-A98A-91771F86C27F",
-                WindowTypeName = "BpOverviewWindow",
-                DisplayName = "BpOverviewWindow",
-                DisplayNameKey = "Designer.Window.BpOverviewWindow",
-                GroupKey = "BuiltIn",
-                DisplayOrder = 700,
-                IsV3LayoutWindow = true,
-                Customizable = true,
-                Canvases =
-                [
-                    new FrontedCanvasDescriptor
-                    {
-                        CanvasName = FrontedLayoutConstants.BaseCanvasName,
-                        DisplayName = FrontedLayoutConstants.BaseCanvasName,
-                        Customizable = true
-                    }
-                ]
-            },
-            new FrontedBuiltInWindowDescriptor
-            {
-                WindowId = "9898D1EF-6E45-4968-8B18-2016389E4C3E",
-                WindowTypeName = "MapV2Window",
-                DisplayName = "MapV2Window",
-                DisplayNameKey = "Designer.Window.MapV2Window",
-                GroupKey = "BuiltIn",
-                DisplayOrder = 710,
-                IsV3LayoutWindow = true,
-                Customizable = true,
-                Canvases =
-                [
-                    new FrontedCanvasDescriptor
-                    {
-                        CanvasName = FrontedLayoutConstants.BaseCanvasName,
-                        DisplayName = FrontedLayoutConstants.BaseCanvasName,
-                        Customizable = true
-                    }
-                ]
-            }
+            CreateBuiltInV3Descriptor(FrontedWindowType.BpWindow, 0),
+            CreateBuiltInV3Descriptor(FrontedWindowType.CutSceneWindow, 100),
+            CreateBuiltInV3Descriptor(FrontedWindowType.ScoreSurWindow, 300),
+            CreateBuiltInV3Descriptor(FrontedWindowType.ScoreHunWindow, 400),
+            CreateBuiltInV3Descriptor(FrontedWindowType.ScoreGlobalWindow, 500),
+            CreateBuiltInV3Descriptor(FrontedWindowType.GameDataWindow, 600),
+            CreateBuiltInV3Descriptor(FrontedWindowType.BpOverviewWindow, 700),
+            CreateBuiltInV3Descriptor(FrontedWindowType.MapV2Window, 710)
         ];
+    }
+
+    private static FrontedBuiltInWindowDescriptor CreateBuiltInV3Descriptor(
+        FrontedWindowType windowType,
+        int displayOrder)
+    {
+        var windowTypeName = windowType.ToString();
+        return new FrontedBuiltInWindowDescriptor
+        {
+            WindowId = FrontedWindowHelper.GetFrontedWindowGuid(windowType),
+            WindowTypeName = windowTypeName,
+            DisplayName = windowTypeName,
+            DisplayNameKey = $"Designer.Window.{windowTypeName}",
+            GroupKey = "BuiltIn",
+            DisplayOrder = displayOrder,
+            IsV3LayoutWindow = true,
+            Customizable = true,
+            Canvases =
+            [
+                new FrontedCanvasDescriptor
+                {
+                    CanvasName = FrontedLayoutConstants.BaseCanvasName,
+                    DisplayName = FrontedLayoutConstants.BaseCanvasName,
+                    Customizable = true
+                }
+            ]
+        };
+    }
+
+    private static bool IsBuiltInV3Window(string windowTypeName)
+    {
+        return Enum.TryParse<FrontedWindowType>(windowTypeName, ignoreCase: false, out var windowType)
+               && windowType is not FrontedWindowType.ScoreWindow;
     }
 
     private static Dictionary<string, IFrontedWindowDescriptor> BuildIndex(

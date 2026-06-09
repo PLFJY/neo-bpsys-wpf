@@ -79,7 +79,7 @@ public sealed class FrontedBuiltInWindowDescriptor : IFrontedWindowDescriptor
             GroupKey = "BuiltIn",
             DisplayOrder = GetBuiltInDisplayOrder(info.Name),
             WindowType = info.WindowType,
-            IsV3LayoutWindow = true,
+            IsV3LayoutWindow = false,
             Canvases = [new FrontedCanvasDescriptor
             {
                 CanvasName = FrontedLayoutConstants.BaseCanvasName,
