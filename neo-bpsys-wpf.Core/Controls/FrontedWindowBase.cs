@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -25,9 +26,27 @@ public class FrontedWindowBase : Window
     private Canvas? _baseCanvas;
     private bool _isV3LayoutHost;
     private bool _isBoModeSubscribed;
-    private bool _hasLoadedV3Layout;
+    private bool _hasInitialWindowSettingsApplied;
+    private FrontedWindowConfig? _lastRenderedConfig;
+    private readonly SemaphoreSlim _layoutLoadGate = new(1, 1);
 
     private bool _isInternalContentChange = false;
+
+    /// <summary>
+    /// Gets whether the v3 content controls have been rendered at least once.
+    /// </summary>
+    public bool IsContentRendered { get; private set; }
+
+    /// <summary>
+    /// Gets whether the loaded v3 layout should be re-rendered before reuse.
+    /// </summary>
+    public bool IsLayoutDirty { get; private set; }
+
+    /// <summary>
+    /// Gets whether the behavior runtime is currently attached to this window.
+    /// </summary>
+    public bool IsBehaviorAttached { get; private set; }
+
     /// <summary>
     /// 前台窗口基类构造
     /// </summary>
@@ -158,12 +177,20 @@ public class FrontedWindowBase : Window
     /// <returns>A task that completes when the layout has reloaded.</returns>
     public async Task ReloadFrontedLayoutAsync()
     {
+        await EnsureInitialWindowSettingsAppliedAsync();
+        await LoadOrReloadContentAsync(force: true);
+    }
+
+    /// <summary>
+    /// Applies only the v3 window settings required before a WPF source is created.
+    /// </summary>
+    /// <returns>A task that completes when the initial window settings are applied.</returns>
+    public async Task EnsureInitialWindowSettingsAppliedAsync()
+    {
         if (!_isV3LayoutHost
             || _v3Descriptor is null
             || _layoutService is null
-            || _renderer is null
-            || _sharedDataService is null
-            || _baseCanvas is null)
+            || _hasInitialWindowSettingsApplied)
         {
             return;
         }
@@ -179,31 +206,77 @@ public class FrontedWindowBase : Window
                 return;
             }
 
-            ApplyWindowSettings(config.WindowSettings);
-            ApplyCanvasSettings(config.CanvasSettings);
-            await (_behaviorRuntime?.DetachAsync(_v3Descriptor.WindowId) ?? Task.CompletedTask);
-            _renderer.RenderToCanvas(_baseCanvas, config, new FrontedRenderContext
+            await RunOnDispatcherAsync(() =>
             {
-                WindowId = _v3Descriptor.WindowId,
-                WindowTypeName = _v3Descriptor.FullWindowType,
-                CanvasName = FrontedLayoutConstants.BaseCanvasName
+                ApplyWindowSettings(config.WindowSettings);
+                _hasInitialWindowSettingsApplied = true;
+                return Task.CompletedTask;
             });
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(
+                ex,
+                "Failed to apply initial fronted v3 window settings. Window: {WindowTypeName}",
+                _v3Descriptor.FullWindowType);
+        }
+    }
 
-            if (_behaviorRuntime is not null)
+    /// <summary>
+    /// Loads and renders the v3 layout content, or reuses rendered controls when they are still clean.
+    /// </summary>
+    /// <param name="force">Whether to force a full reload even when the rendered content is clean.</param>
+    /// <returns>A task that completes when content is rendered or reused.</returns>
+    public async Task LoadOrReloadContentAsync(bool force = false)
+    {
+        if (!_isV3LayoutHost
+            || _v3Descriptor is null
+            || _layoutService is null
+            || _renderer is null
+            || _sharedDataService is null
+            || _baseCanvas is null)
+        {
+            return;
+        }
+
+        await _layoutLoadGate.WaitAsync();
+        try
+        {
+            if (!force && IsContentRendered && !IsLayoutDirty)
             {
-                await _behaviorRuntime.AttachAsync(new FrontedBehaviorRuntimeContext
+                if (!IsBehaviorAttached)
                 {
-                    WindowId = _v3Descriptor.WindowId,
-                    WindowType = _v3Descriptor.FullWindowType,
-                    RootCanvas = _baseCanvas,
-                    WindowConfig = config,
-                    SharedDataService = _sharedDataService,
-                    IsDesignerPreview = false,
-                    Logger = _logger
-                });
+                    await AttachBehaviorRuntimeAsync();
+                }
+
+                return;
             }
 
-            _hasLoadedV3Layout = true;
+            var config = await _layoutService.LoadWindowConfigAsync(_v3Descriptor.FullWindowType);
+            if (config is null)
+            {
+                _logger?.LogWarning(
+                    "Fronted v3 window layout config not found. Window: {WindowTypeName}",
+                    _v3Descriptor.FullWindowType);
+                return;
+            }
+
+            await RunOnDispatcherAsync(async () =>
+            {
+                ApplyCanvasSettings(config.CanvasSettings);
+                await DetachBehaviorRuntimeAsync();
+                _renderer.RenderToCanvas(_baseCanvas, config, new FrontedRenderContext
+                {
+                    WindowId = _v3Descriptor.WindowId,
+                    WindowTypeName = _v3Descriptor.FullWindowType,
+                    CanvasName = FrontedLayoutConstants.BaseCanvasName
+                });
+
+                _lastRenderedConfig = config;
+                IsContentRendered = true;
+                IsLayoutDirty = false;
+                await AttachBehaviorRuntimeAsync();
+            });
         }
         catch (Exception ex)
         {
@@ -212,6 +285,52 @@ public class FrontedWindowBase : Window
                 "Failed to reload fronted v3 window layout. Window: {WindowTypeName}",
                 _v3Descriptor.FullWindowType);
         }
+        finally
+        {
+            _layoutLoadGate.Release();
+        }
+    }
+
+    /// <summary>
+    /// Marks the rendered v3 layout content dirty so the next load refreshes controls.
+    /// </summary>
+    public void MarkLayoutDirty()
+    {
+        IsLayoutDirty = true;
+    }
+
+    /// <summary>
+    /// Attaches the behavior runtime to already rendered v3 content.
+    /// </summary>
+    /// <returns>A task that completes when the behavior runtime is attached.</returns>
+    public async Task AttachBehaviorRuntimeAsync()
+    {
+        if (!_isV3LayoutHost
+            || _v3Descriptor is null
+            || _sharedDataService is null
+            || _baseCanvas is null
+            || _behaviorRuntime is null
+            || _lastRenderedConfig is null
+            || !IsVisible
+            || IsBehaviorAttached)
+        {
+            return;
+        }
+
+        await RunOnDispatcherAsync(async () =>
+        {
+            await _behaviorRuntime.AttachAsync(new FrontedBehaviorRuntimeContext
+            {
+                WindowId = _v3Descriptor.WindowId,
+                WindowType = _v3Descriptor.FullWindowType,
+                RootCanvas = _baseCanvas,
+                WindowConfig = _lastRenderedConfig,
+                SharedDataService = _sharedDataService,
+                IsDesignerPreview = false,
+                Logger = _logger
+            });
+            IsBehaviorAttached = true;
+        });
     }
 
     private void ApplyWindowSettings(FrontedWindowSettings settings)
@@ -281,10 +400,6 @@ public class FrontedWindowBase : Window
     private void OnV3HostLoaded(object sender, RoutedEventArgs e)
     {
         SubscribeBoModeChanged();
-        if (!_hasLoadedV3Layout)
-        {
-            _ = ReloadFrontedLayoutAsync();
-        }
     }
 
     private void OnV3HostUnloaded(object sender, RoutedEventArgs e)
@@ -341,23 +456,46 @@ public class FrontedWindowBase : Window
 
     private void OnBoModeChanged(object? sender, EventArgs args)
     {
-        if (Dispatcher.CheckAccess())
+        MarkLayoutDirty();
+
+        if (!IsVisible)
         {
-            _ = ReloadFrontedLayoutAsync();
             return;
         }
 
-        _ = Dispatcher.BeginInvoke(new Action(() => _ = ReloadFrontedLayoutAsync()));
+        if (Dispatcher.CheckAccess())
+        {
+            _ = LoadOrReloadContentAsync();
+            return;
+        }
+
+        _ = Dispatcher.BeginInvoke(new Action(() => _ = LoadOrReloadContentAsync()));
     }
 
     private void DetachBehaviorRuntime()
     {
-        if (_v3Descriptor is null || _behaviorRuntime is null)
+        _ = DetachBehaviorRuntimeAsync();
+    }
+
+    private async Task DetachBehaviorRuntimeAsync()
+    {
+        if (_v3Descriptor is null || _behaviorRuntime is null || !IsBehaviorAttached)
         {
             return;
         }
 
-        _ = _behaviorRuntime.DetachAsync(_v3Descriptor.WindowId);
+        await _behaviorRuntime.DetachAsync(_v3Descriptor.WindowId);
+        IsBehaviorAttached = false;
+    }
+
+    private Task RunOnDispatcherAsync(Func<Task> action)
+    {
+        if (Dispatcher.CheckAccess())
+        {
+            return action();
+        }
+
+        return Dispatcher.InvokeAsync(action).Task.Unwrap();
     }
 
     private static bool TryCreateBackgroundBrush(string? colorText, out Brush brush)

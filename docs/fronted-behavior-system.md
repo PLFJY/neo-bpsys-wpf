@@ -148,7 +148,7 @@ Phase 5 已完成真实事件总线 + 前台运行时接入，把行为系统从
 | CutSceneWindow | 单 Canvas | 已集成 |
 | BpOverviewWindow / MapV2Window | Window-centric v3 layout host | 已集成 |
 
-集成模式：`ReloadFrontedLayoutAsync()` 中先等待 detach 旧 host，再 RenderToCanvas，渲染后 attach 新 host；窗口 Unloaded/Closed 时 fire-and-forget detach host。
+集成模式：v3 host 首次 Show 后异步 `LoadOrReloadContentAsync(force:false)`，需要渲染时先 detach 旧 host，再 `RenderToCanvas`，渲染后 attach 新 host；如果内容已渲染且 layout 未标脏，下一次 Show 只重新 attach behavior runtime，不重新渲染控件。窗口 Hide/Unloaded/Closed 时可 detach behavior runtime，但不清空已渲染 content，也不把 layout 标脏。
 
 ### 窗口生命周期事件
 

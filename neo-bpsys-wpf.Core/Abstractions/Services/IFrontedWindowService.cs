@@ -64,6 +64,12 @@ public interface IFrontedWindowService
     Task ReloadFrontedLayoutsAsync();
 
     /// <summary>
+    /// Marks an existing v3 fronted window layout dirty without creating the window.
+    /// </summary>
+    /// <param name="windowIdOrFullWindowType">The runtime window id or full layout window type.</param>
+    void MarkWindowLayoutDirty(string windowIdOrFullWindowType);
+
+    /// <summary>
     /// Applies the stored window background color to a registered fronted window immediately.
     /// </summary>
     /// <param name="fullWindowType">Window layout identity, such as <c>BpWindow</c>.</param>
@@ -87,6 +93,13 @@ public interface IFrontedWindowService
     #endregion
 
     #region Window Registration
+
+    /// <summary>
+    /// Ensures one fronted window instance exists without creating any other fronted windows.
+    /// </summary>
+    /// <param name="windowId">窗口 GUID</param>
+    /// <returns>The existing or newly created window, or <see langword="null"/> when the id is not registered.</returns>
+    Window? EnsureWindowCreated(string windowId);
 
     /// <summary>
     /// 注册窗口

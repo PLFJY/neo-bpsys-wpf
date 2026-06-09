@@ -1,28 +1,45 @@
+using Microsoft.Extensions.DependencyInjection;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Events;
 using neo_bpsys_wpf.Core.Models;
+using System.Diagnostics;
 
 namespace neo_bpsys_wpf.Services;
 
 /// <summary>
-/// 角色选择服务的默认实现
+/// 角色选择服务的默认实现。
+/// 通过 <see cref="IServiceProvider"/> 延迟解析 <see cref="IAnimationService"/>，
+/// 避免在启动时触发 <see cref="IAnimationService"/> → <see cref="IFrontedWindowService"/> 的构造链。
 /// </summary>
 public class CharacterSelectionService(
     ISharedDataService sharedDataService,
-    IAnimationService animationService)
+    IServiceProvider serviceProvider)
     : ICharacterSelectionService
 {
+#if DEBUG
+    static CharacterSelectionService()
+    {
+        Debug.WriteLine($"[DIAG] CharacterSelectionService: static ctor at {DateTimeOffset.Now:HH:mm:ss.fff}");
+    }
+#endif
     private const int TransitionDelayMs = 250;
 
-    private readonly IAnimationService _animationService = animationService;
+    private IAnimationService? _animationService;
+
+    /// <summary>
+    /// 延迟解析 <see cref="IAnimationService"/>。
+    /// 仅在 <c>playAnimation == true</c> 时访问，避免启动时过早构造 <see cref="IFrontedWindowService"/>。
+    /// </summary>
+    private IAnimationService AnimationService =>
+        _animationService ??= serviceProvider.GetRequiredService<IAnimationService>();
 
     /// <inheritdoc/>
     public async Task SelectSurvivorAsync(int playerIndex, Character? character, bool playAnimation = true, bool isRecordGlobalBan = true)
     {
         if (playAnimation)
         {
-            _animationService.PlayPickFadeOut(Camp.Sur, playerIndex);
+            AnimationService.PlayPickFadeOut(Camp.Sur, playerIndex);
             await Task.Delay(TransitionDelayMs);
         }
 
@@ -37,7 +54,7 @@ public class CharacterSelectionService(
         
         if (playAnimation)
         {
-            _animationService.PlayPickFadeIn(Camp.Sur, playerIndex);
+            AnimationService.PlayPickFadeIn(Camp.Sur, playerIndex);
         }
     }
 
@@ -46,7 +63,7 @@ public class CharacterSelectionService(
     {
         if (playAnimation)
         {
-            _animationService.PlayPickFadeOut(Camp.Hun, -1);
+            AnimationService.PlayPickFadeOut(Camp.Hun, -1);
             await Task.Delay(TransitionDelayMs);
         }
 
@@ -61,7 +78,7 @@ public class CharacterSelectionService(
 
         if (playAnimation)
         {
-            _animationService.PlayPickFadeIn(Camp.Hun, -1);
+            AnimationService.PlayPickFadeIn(Camp.Hun, -1);
         }
     }
 
@@ -78,7 +95,7 @@ public class CharacterSelectionService(
 
         if (playAnimation)
         {
-            await _animationService.PlayBanAnimationAsync(camp, index);
+            await AnimationService.PlayBanAnimationAsync(camp, index);
         }
     }
 
@@ -87,7 +104,7 @@ public class CharacterSelectionService(
     {
         if (playAnimation)
         {
-            await _animationService.PlaySwapCharacterAnimationAsync(sourceIndex, targetIndex);
+            await AnimationService.PlaySwapCharacterAnimationAsync(sourceIndex, targetIndex);
         }
         
         // 在动画完成后（或不播放动画时）执行数据交换

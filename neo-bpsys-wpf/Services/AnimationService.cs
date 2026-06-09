@@ -3,6 +3,7 @@ using System.Windows.Media.Animation;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using static neo_bpsys_wpf.Core.Helpers.FrontedWindowHelper;
+using System.Diagnostics;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -12,6 +13,12 @@ namespace neo_bpsys_wpf.Services;
 /// </summary>
 public class AnimationService(IFrontedWindowService frontedWindowService) : IAnimationService
 {
+#if DEBUG
+    static AnimationService()
+    {
+        Debug.WriteLine($"[DIAG] AnimationService: static ctor at {DateTimeOffset.Now:HH:mm:ss.fff}");
+    }
+#endif
     private readonly IFrontedWindowService _frontedWindowService = frontedWindowService;
     private const int DefaultFadeDurationMs = 500;
     private const int TransitionDelayMs = 500;

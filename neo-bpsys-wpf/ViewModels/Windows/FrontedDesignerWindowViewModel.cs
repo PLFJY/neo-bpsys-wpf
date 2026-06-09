@@ -1048,8 +1048,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
             RefreshDirtyState();
 
-            if (shouldSaveLayout && _frontedWindowService is not null)
+            if ((shouldSaveLayout || shouldSaveBehaviors) && _frontedWindowService is not null)
             {
+                _frontedWindowService.MarkWindowLayoutDirty(CurrentDocument.WindowTypeName);
                 await _frontedWindowService.ReloadFrontedLayoutsAsync();
             }
 

@@ -32,12 +32,12 @@ descriptor 使用稳定 `WindowId`，并用 `FullWindowType = plugin:{PackageId}
 
 ## FrontedWindowService
 
-`FrontedWindowService` 在构造时接收内置窗口实例，然后：
+`FrontedWindowService` 构造时只保存服务依赖和 registry，不创建前台输出窗口。窗口实例通过 `EnsureWindowCreated(windowId)` 按需创建：
 
-1. 从 `IFrontedWindowRegistry` 读取内置窗口和插件窗口 descriptor。
-2. 注册内置窗口 singleton。
-3. 注册插件 XAML 窗口或创建插件 v3 Layout 承载窗口。
-4. 为所有可定制 v3 layout window 建立布局刷新入口。
+1. `ShowWindow(windowId)` 首次调用时只创建对应 descriptor 的窗口。
+2. `AllWindowShow()` 遍历 registry descriptor，再逐个按需创建并显示。
+3. `HideWindow()`、`GetWindowName()`、动画查找和布局 dirty 标记都不会创建窗口。
+4. 已创建窗口保留在 `FrontedWindows` 表中；关闭按钮触发 `OnClosing -> Hide()`，不会销毁窗口内容。
 
 核心状态：
 
@@ -51,6 +51,10 @@ descriptor 使用稳定 `WindowId`，并用 `FullWindowType = plugin:{PackageId}
 ## 显示与隐藏
 
 窗口由 `ShowWindow` / `HideWindow` / `AllWindowShow` / `AllWindowHide` 管理。关闭前台窗口时，`FrontedWindowBase.OnClosing` 会取消关闭并改为 `Hide()`，避免窗口实例被销毁后 DI singleton 状态和 OBS 捕获关系变得不可预期。
+
+v3 layout 窗口的显示流程分两段执行：Show 前调用 `EnsureInitialWindowSettingsAppliedAsync()`，只读取并应用 `WindowSettings` 中必须在 HWND/source 创建前确定的设置（尺寸、位置、Topmost、AllowsTransparency、BackgroundColor、ViewboxStretch）；随后立刻 `Show()`。完整 `CanvasSettings`、控件渲染、资源解析和 behavior runtime attach 由 `LoadOrReloadContentAsync(force: false)` 在 Show 后异步完成。
+
+已经创建且 `IsContentRendered == true`、`IsLayoutDirty == false` 的 v3 窗口再次显示时，不重新加载完整 layout，也不重新 `RenderToCanvas`。如果 Hide/Unloaded 时 behavior runtime 已 detach，下一次 Show 只重新 attach behavior runtime，不重建控件。Designer 保存布局、包激活/删除或 BO3/BO5 切换会标记或触发 reload；普通 Hide/Show 不会把内容标脏。
 
 `FrontedWindowBase` 还会：
 
@@ -70,7 +74,7 @@ v3 renderer 会为生成控件注册 namescope 名称，并在清理生成控件
 
 v3 layout 中 `ControlLayout.Controls` 的 JSON key 就是控件名。该名称同时作为控件 dictionary key、生成控件 `FrameworkElement.Name` 和 namescope 注册名。独立编辑器必须通过设计项 `Name` 编辑 dictionary key，不能给 config 类新增重复 `Name` 字段。详细编辑器规格见 [fronted-designer-editor.md](fronted-designer-editor.md)。
 
-v3 layout 支持通用 BO3/BO5 Canvas states。`CanvasSettings` root 是默认/BO5；`EnableBoModeStates = true` 时，`BoModeStates["Bo3"]` 可保存独立 BO3 背景、插件依赖和控件集合。所有内置 v3 前台窗口和插件 Layout 承载窗口都会在 `ISharedDataService.IsBo3ModeChanged` 后重载布局，renderer 根据当前 BO 模式选择 root/BO5 或 BO3 state；如果启用但缺少 BO3 state，则回退 root/BO5 并记录 warning。`ScoreGlobalWindow` 只是该通用机制的一个使用者，不再使用窗口专用背景切换逻辑。
+v3 layout 支持通用 BO3/BO5 Canvas states。`CanvasSettings` root 是默认/BO5；`EnableBoModeStates = true` 时，`BoModeStates["Bo3"]` 可保存独立 BO3 背景、插件依赖和控件集合。所有已创建的内置 v3 前台窗口和插件 Layout 承载窗口都会在 `ISharedDataService.IsBo3ModeChanged` 后标记 layout dirty；窗口可见时立即异步重载内容，窗口隐藏时等下次 Show 再刷新。renderer 根据当前 BO 模式选择 root/BO5 或 BO3 state；如果启用但缺少 BO3 state，则回退 root/BO5 并记录 warning。`ScoreGlobalWindow` 只是该通用机制的一个使用者，不再使用窗口专用背景切换逻辑。
 
 后台侧独立 `FrontedDesignerWindow` shell 已实现。它通过 `FrontedDesignerLayoutCatalog` 只列出可定制 v3 layout window，例如 `ScoreSurWindow`、`ScoreHunWindow`、`ScoreGlobalWindow`、`CutSceneWindow`、`GameDataWindow`、`BpWindow`、`BpOverviewWindow` 和 `MapV2Window`。选择窗口后，编辑器按 `IFrontedLayoutService` 的活动布局方案规则加载 `FrontedWindowConfig`，内部转换到设计文档，运行 `FrontedLayoutValidator`，再用现有 `IFrontedRenderer` 渲染到编辑器自己的只读 `PreviewCanvas`。如果当前活动方案是 `builtin`，保存时会自动复制出可编辑用户布局方案并激活，避免覆盖内置资源。
 
@@ -105,7 +109,7 @@ v3 独立编辑器保存用户布局时应写入 AppData 的 `FrontedLayouts` �
 
 `FrontManagePage` 使用顶层 tabs：`Frontend Windows` 提供前台窗口打开/关闭和独立编辑器入口，`Layout Packages` 提供 v3 布局包管理器。`Frontend Windows` tab 不再包含旧版设计模式 ToggleSwitch，Reset 按钮也已移除；布局重置通过激活/删除包实现。包列表使用紧凑两栏布局，右侧详情按 Basic、Contents、Location、Validation 分组。当前可列出系统内置包、已安装包和活动包状态，并可导入、导出、激活和删除 v3 `.bpui` 包。导出固定为全部前台布局；导入 legacy `.bpui` 会触发转换流程。
 
-激活普通包时，包内 `FrontedLayouts/{WindowTypeName}.json` 和 `behaviors/{WindowTypeName}.behaviors.json` 会作为活动包数据读取。激活内置布局或删除活动包会回退到内置 `Resources/FrontedLayouts`。已打开的前台窗口会尝试重新渲染 v3 布局。
+激活普通包时，包内 `FrontedLayouts/{WindowTypeName}.json` 和 `behaviors/{WindowTypeName}.behaviors.json` 会作为活动包数据读取。激活内置布局或删除活动包会回退到内置 `Resources/FrontedLayouts`。已创建的前台窗口会尝试重新渲染 v3 布局；未创建过的窗口不会因此被创建。
 
 注意：v3 布局读取用户布局优先。如果用户目录下已有旧开发版 v3 JSON，不保证兼容；需要重置为内置布局或通过 legacy `.bpui` 转换重新生成 Window-centric 布局。
 

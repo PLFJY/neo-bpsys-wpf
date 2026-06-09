@@ -425,15 +425,14 @@ RegisterFrontedWindowAndCanvas(windowId, window)       │
 
 `ShowWindow(string windowId)` 的完整流程：
 
-1. **查找窗口**：从 `FrontedWindows` 字典中获取 Window 实例
+1. **按需创建窗口**：调用 `EnsureWindowCreated(windowId)`；只创建指定窗口，不创建其他前台窗口
 2. **如果已显示**：调用 `window.Activate()` 激活窗口，不重复加载
-3. **应用布局选项**：调用 `ApplyWindowLayoutOptions(windowId, window)` — 只对非 v3 布局窗口生效
-4. **准备窗口**：调用 `PrepareWindowForShowAsync(windowId, window)`
-   - 仅对 v3 布局窗口（`IsV3LayoutWindow`）执行
-   - 调用 `frontedWindow.ReloadFrontedLayoutAsync()` — 加载配置并渲染
+3. **预应用 v3 WindowSettings**：v3 host 调用 `EnsureInitialWindowSettingsAppliedAsync()`，只应用尺寸、位置、Topmost、AllowsTransparency、BackgroundColor 和 ViewboxStretch
+4. **应用非 v3 布局选项**：调用 `ApplyWindowLayoutOptions(windowId, window)` — 只对非 v3 布局窗口生效
 5. **显示窗口**：`window.Show()`
 6. **更新状态**：`FrontedWindowStates[windowId] = true`
 7. **发布事件**：通过 `IFrontedEventBus` 发布 `WindowShown` 事件
+8. **异步加载内容**：v3 host fire-and-forget 调用 `LoadOrReloadContentAsync(force: false)`；异常 catch/log，不阻塞窗口 shell 显示
 
 ### 5.4 事件发布
 
@@ -453,7 +452,7 @@ RegisterFrontedWindowAndCanvas(windowId, window)       │
 
 ### 5.5 全局布局重载
 
-`ReloadFrontedLayoutsAsync()` 通过反射调用所有窗口的 `ReloadFrontedLayoutAsync()` 方法：
+`ReloadFrontedLayoutsAsync()` 只遍历已经创建的窗口，通过反射调用这些窗口的 `ReloadFrontedLayoutAsync()` 方法；它不会创建尚未显示过的前台窗口：
 
 ```csharp
 public async Task ReloadFrontedLayoutsAsync()
@@ -624,40 +623,50 @@ FrontedWindowService.ApplyWindowLayoutOptions()
 
 ### 7.1 v3 布局窗口的配置应用（`ReloadFrontedLayoutAsync`）
 
-在 `FrontedWindowBase.ReloadFrontedLayoutAsync()` 中（v3 布局宿主）或每个 XAML 窗口自己的 `ReloadFrontedLayoutAsync()` 中：
+v3 layout host 将配置应用拆成两个阶段。`ReloadFrontedLayoutAsync()` 保留为手动强制重载入口，内部先预应用窗口设置，再强制加载内容：
 
 ```csharp
 public async Task ReloadFrontedLayoutAsync()
 {
-    // 1. 加载配置
-    var config = await _layoutService.LoadWindowConfigAsync(_v3Descriptor.FullWindowType);
-    
-    // 2. 应用窗口设置
-    ApplyWindowSettings(config.WindowSettings);
-    //    - 窗口尺寸 (Width/Height)
-    //    - 窗口位置 (Left/Top)
-    //    - 置顶 (Topmost)
-    //    - 透明 (AllowsTransparency)
-    //    - 背景色 (Background)
-    //    - Viewbox 拉伸模式 (ViewboxStretch)
-    
-    // 3. 应用画布设置
-    ApplyCanvasSettings(config.CanvasSettings);
-    //    - Canvas 尺寸 (Width/Height)
-    
-    // 4. 分离旧行为运行时
-    await _behaviorRuntime?.DetachAsync(_v3Descriptor.WindowId);
-    
-    // 5. 渲染控件到画布
-    _renderer.RenderToCanvas(_baseCanvas, config, renderContext);
-    
-    // 6. 附加新行为运行时
-    await _behaviorRuntime?.AttachAsync(behaviorContext);
+    await EnsureInitialWindowSettingsAppliedAsync();
+    await LoadOrReloadContentAsync(force: true);
 }
+```
+
+`EnsureInitialWindowSettingsAppliedAsync()`：
+
+- 加载 `FrontedWindowConfig` 或其中的 `WindowSettings`
+- 只调用 `ApplyWindowSettings`
+- 必须在第一次 `Show()` 前执行，因为 `AllowsTransparency` 只能在 WPF source 创建前设置
+- 不渲染控件，不 attach behavior
+
+`LoadOrReloadContentAsync(force: false)`：
+
+```csharp
+if (!force && IsContentRendered && !IsLayoutDirty)
+{
+    if (!IsBehaviorAttached)
+        await AttachBehaviorRuntimeAsync();
+    return;
+}
+
+var config = await _layoutService.LoadWindowConfigAsync(_v3Descriptor.FullWindowType);
+
+await Dispatcher.InvokeAsync(async () =>
+{
+    ApplyCanvasSettings(config.CanvasSettings);
+    await DetachBehaviorRuntimeAsync();
+    _renderer.RenderToCanvas(_baseCanvas, config, renderContext);
+    IsContentRendered = true;
+    IsLayoutDirty = false;
+    await AttachBehaviorRuntimeAsync();
+});
 ```
 
 **重要语义**：
 - `ApplyWindowSettings` 中如果窗口未加载，`AllowsTransparency` 可以设置；如果已加载，新值将在下次窗口重建时生效（通过日志提示）
+- 普通 Hide/Show 不会清空已渲染控件，也不会把 `IsContentRendered` 置回 false
+- Hide/Unloaded 可以 detach behavior runtime；下次 Show 只重新 attach behavior，不重新 render
 - v3 配置读取、保存、包导入和导出必须保留 `WindowSettings.WindowWidth` / `WindowHeight`；`SyncWindowSizeToCanvas()` 只用于显式 legacy canvas-centric 转换
 
 ### 7.2 非 v3 布局窗口的配置应用（`ApplyWindowLayoutOptions`）
@@ -682,8 +691,8 @@ if (TryCreateBackgroundBrush(options.BackgroundColor, out var brush))
 | 方面 | v3 布局窗口 | 非 v3 布局窗口 |
 |---|---|---|
 | 配置来源 | `FrontedWindowConfig`（布局 JSON） | `FrontedWindowLayoutOptions`（选项 JSON） |
-| 应用时机 | 每次显示前（`PrepareWindowForShowAsync`）| 每次显示时（`ShowWindow`） |
-| 应用内容 | 尺寸、位置、透明、背景、画布、控件、行为 | 透明、背景色 |
+| 应用时机 | Show 前轻量应用 WindowSettings，Show 后异步加载内容 | 每次显示时（`ShowWindow`） |
+| 应用内容 | Show 前：尺寸、位置、透明、背景；Show 后：画布、控件、行为 | 透明、背景色 |
 | 尺寸同步 | 自动同步画布到窗口 | 通过独立的 `ApplyWindowSize()` 方法 |
 
 ### 7.3 主动配置应用
@@ -722,16 +731,14 @@ InitializeV3LayoutHost()  ← 由 FrontedWindowService 调用
       ├─ Closed     → OnV3HostClosed
       └─ IsVisibleChanged → OnV3HostIsVisibleChanged
 
+ShowWindow（FrontedWindowService）
+  ├─ EnsureWindowCreated(windowId) ← 首次显示才创建 shell
+  ├─ EnsureInitialWindowSettingsAppliedAsync()
+  ├─ Show()
+  └─ fire-and-forget LoadOrReloadContentAsync(force:false)
+
 Loaded（OnV3HostLoaded）
-  ├─ SubscribeBoModeChanged()     ← 订阅 ISharedDataService.IsBo3ModeChanged
-  └─ 如果未加载过布局 → ReloadFrontedLayoutAsync()
-       ├─ LoadWindowConfigAsync()  ← 加载配置
-       ├─ ApplyWindowSettings()    ← 应用窗口设置
-       ├─ ApplyCanvasSettings()    ← 应用画布设置
-       ├─ DetachAsync()           ← 分离旧行为运行时
-       ├─ RenderToCanvas()        ← 渲染控件
-       ├─ AttachAsync()           ← 附加新行为运行时
-       └─ _hasLoadedV3Layout = true
+  └─ SubscribeBoModeChanged()     ← 订阅 ISharedDataService.IsBo3ModeChanged
 
 VisibleChanged（OnV3HostIsVisibleChanged）
   ├─ 变为可见 → SubscribeBoModeChanged()
@@ -747,7 +754,8 @@ Closed（OnV3HostClosed）
   └─ 取消订阅 IsVisibleChanged
 
 BO 模式切换（OnBoModeChanged）
-  └─ Dispatcher 调度 → ReloadFrontedLayoutAsync()
+  ├─ MarkLayoutDirty()
+  └─ 窗口可见时 Dispatcher 调度 → LoadOrReloadContentAsync(force:false)
 
 OnClosing（OnClosing 重写）
   └─ e.Cancel = true  ← 阻止真正关闭

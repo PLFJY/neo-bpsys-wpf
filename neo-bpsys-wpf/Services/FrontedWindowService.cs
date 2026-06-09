@@ -10,6 +10,7 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Views.Windows;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -23,6 +24,12 @@ namespace neo_bpsys_wpf.Services;
 /// </summary>
 public class FrontedWindowService : IFrontedWindowService
 {
+#if DEBUG
+    static FrontedWindowService()
+    {
+        Debug.WriteLine($"[DIAG] FrontedWindowService: static ctor at {DateTimeOffset.Now:HH:mm:ss.fff}");
+    }
+#endif
     private readonly IServiceProvider _services;
     private readonly IFrontedWindowRegistry _windowRegistry;
     private readonly IFrontedWindowLayoutOptionsService _windowLayoutOptionsService;
@@ -50,7 +57,9 @@ public class FrontedWindowService : IFrontedWindowService
             Directory.CreateDirectory(AppConstants.AppDataPath);
         }
 
-        RegisterFrontedWindowAndCanvas();
+#if DEBUG
+        Debug.WriteLine($"[DIAG] FrontedWindowService: lazy fronted window creation enabled at {DateTimeOffset.Now:HH:mm:ss.fff}");
+#endif
     }
 
     public void RegisterFrontedWindowAndCanvas(string windowId, Window window, string[]? canvasNames = null)
@@ -61,28 +70,38 @@ public class FrontedWindowService : IFrontedWindowService
         }
     }
 
-    private void RegisterFrontedWindowAndCanvas()
+    /// <inheritdoc/>
+    public Window? EnsureWindowCreated(string windowId)
     {
-        foreach (var descriptor in _windowRegistry.GetWindows())
+        if (FrontedWindows.TryGetValue(windowId, out var existingWindow))
         {
-            try
-            {
-                var window = CreateWindow(descriptor);
-                if (window is null)
-                {
-                    continue;
-                }
+            return existingWindow;
+        }
 
-                RegisterFrontedWindowAndCanvas(descriptor.WindowId, window);
-            }
-            catch (Exception ex)
+        if (!_windowRegistry.TryGetByWindowId(windowId, out var descriptor))
+        {
+            return null;
+        }
+
+        try
+        {
+            var window = CreateWindow(descriptor);
+            if (window is null)
             {
-                _logger.LogWarning(
-                    ex,
-                    "Failed to register fronted window {FullWindowType} ({WindowId}).",
-                    descriptor.FullWindowType,
-                    descriptor.WindowId);
+                return null;
             }
+
+            RegisterFrontedWindowAndCanvas(descriptor.WindowId, window);
+            return window;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(
+                ex,
+                "Failed to create fronted window {FullWindowType} ({WindowId}).",
+                descriptor.FullWindowType,
+                descriptor.WindowId);
+            return null;
         }
     }
 
@@ -176,18 +195,9 @@ public class FrontedWindowService : IFrontedWindowService
 
     public async void AllWindowShow()
     {
-        foreach (var window in FrontedWindows.Where(pair => !FrontedWindowStates[pair.Key]).ToArray())
+        foreach (var descriptor in _windowRegistry.GetWindows())
         {
-            await PrepareWindowForShowAsync(window.Key, window.Value);
-            if (FrontedWindowStates[window.Key])
-            {
-                continue;
-            }
-
-            ApplyWindowLayoutOptions(window.Key, window.Value);
-            window.Value.Show();
-            FrontedWindowStates[window.Key] = true;
-            PublishWindowShown(window.Key);
+            await ShowWindowAsync(descriptor.WindowId);
         }
     }
 
@@ -210,11 +220,15 @@ public class FrontedWindowService : IFrontedWindowService
     {
         if (!FrontedWindows.TryGetValue(windowId, out var window))
         {
-            _ = MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString("UnregisteredWindowType")}: {windowId}", I18nHelper.GetLocalizedString("WindowCloseError"));
+            if (!_windowRegistry.TryGetByWindowId(windowId, out _))
+            {
+                _ = MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString("UnregisteredWindowType")}: {windowId}", I18nHelper.GetLocalizedString("WindowCloseError"));
+            }
+
             return;
         }
 
-        if (!FrontedWindowStates[windowId])
+        if (!FrontedWindowStates.GetValueOrDefault(windowId))
         {
             return;
         }
@@ -231,50 +245,53 @@ public class FrontedWindowService : IFrontedWindowService
 
     public async void ShowWindow(string windowId)
     {
-        if (!FrontedWindows.TryGetValue(windowId, out var window))
+        await ShowWindowAsync(windowId);
+    }
+
+    private async Task ShowWindowAsync(string windowId)
+    {
+        var window = EnsureWindowCreated(windowId);
+        if (window is null)
         {
             _ = MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString("UnregisteredWindowType")}: {windowId}", I18nHelper.GetLocalizedString("WindowLaunchError"));
             _logger.LogError("Unregistered window type {WindowId}", windowId);
             return;
         }
 
-        if (FrontedWindowStates[windowId])
+        if (FrontedWindowStates.GetValueOrDefault(windowId))
         {
             window.Activate();
             return;
         }
 
-        await PrepareWindowForShowAsync(windowId, window);
-        if (FrontedWindowStates[windowId])
+        if (window is FrontedWindowBase frontedWindow)
         {
-            return;
+            await frontedWindow.EnsureInitialWindowSettingsAppliedAsync();
         }
 
         ApplyWindowLayoutOptions(windowId, window);
         window.Show();
         FrontedWindowStates[windowId] = true;
         PublishWindowShown(windowId);
+
+        if (window is FrontedWindowBase shownFrontedWindow)
+        {
+            _ = LoadFrontedContentAfterShowAsync(windowId, shownFrontedWindow);
+        }
     }
 
-    private async Task PrepareWindowForShowAsync(string windowId, Window window)
+    private async Task LoadFrontedContentAfterShowAsync(string windowId, FrontedWindowBase frontedWindow)
     {
-        if (!_windowRegistry.TryGetByWindowId(windowId, out var descriptor)
-            || !descriptor.IsV3LayoutWindow
-            || window is not FrontedWindowBase frontedWindow)
-        {
-            return;
-        }
-
         try
         {
-            await frontedWindow.ReloadFrontedLayoutAsync();
+            await frontedWindow.LoadOrReloadContentAsync(force: false);
         }
         catch (Exception ex)
         {
             _logger.LogWarning(
                 ex,
-                "Failed to prepare v3 fronted window before show. Window: {FullWindowType}",
-                descriptor.FullWindowType);
+                "Failed to load v3 fronted window content after show. WindowId: {WindowId}",
+                windowId);
         }
     }
 
@@ -476,6 +493,27 @@ public class FrontedWindowService : IFrontedWindowService
             {
                 _logger.LogWarning(ex, "Failed to reload fronted v3 layout for {WindowType}.", window.GetType().Name);
             }
+        }
+    }
+
+    /// <inheritdoc/>
+    public void MarkWindowLayoutDirty(string windowIdOrFullWindowType)
+    {
+        if (string.IsNullOrWhiteSpace(windowIdOrFullWindowType))
+        {
+            return;
+        }
+
+        var windowId = windowIdOrFullWindowType;
+        if (_windowRegistry.TryGetByFullWindowType(windowIdOrFullWindowType, out var descriptor))
+        {
+            windowId = descriptor.WindowId;
+        }
+
+        if (FrontedWindows.TryGetValue(windowId, out var window)
+            && window is FrontedWindowBase frontedWindow)
+        {
+            frontedWindow.MarkLayoutDirty();
         }
     }
 
