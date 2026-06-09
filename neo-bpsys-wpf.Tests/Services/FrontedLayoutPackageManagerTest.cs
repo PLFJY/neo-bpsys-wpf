@@ -1406,12 +1406,6 @@ public class FrontedLayoutPackageManagerTest
                     "Height": 44,
                     "Left": 11,
                     "Top": 22
-                  },
-                  "LegacyOnly": {
-                    "Width": 1,
-                    "Height": 2,
-                    "Left": 3,
-                    "Top": 4
                   }
                 }
                 """);

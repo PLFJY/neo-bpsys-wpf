@@ -237,8 +237,8 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
 
             var gameData = ReadLayout(archive, "FrontedLayouts/GameDataWindow.json");
             AssertTextStyle(gameData.Controls["SurId0"], "#FF000000", "Bold", LegacyFont, 22);
-            AssertTextStyle(gameData.Controls["SurDataHeader0"], "#FFFFFFFF", "Normal", NotoSansFont, 16);
-            AssertTextStyle(gameData.Controls["SurData0"], "#FF000000", "Bold", LegacyFont, 22);
+            AssertTextStyle(gameData.Controls["Header_ID"], "#FFFFFFFF", "Normal", NotoSansFont, 16);
+            AssertTextStyle(gameData.Controls["Sur0MachineDecoded"], "#FF000000", "Bold", LegacyFont, 22);
 
             var overview = ReadLayout(archive, "FrontedLayouts/BpOverviewWindow.json");
             AssertTextStyle(overview.Controls["GameProgress"], "#FF000000", "Bold", LegacyFont, 22);
@@ -343,6 +343,44 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
     }
 
     [Fact]
+    public void LegacyBlueprintAuditDocumentListsEveryLegacyNamedElement()
+    {
+        var rows = ReadLegacyBlueprintAuditRows();
+        var validStatuses = new HashSet<string>(
+            ["Mapped", "Folded", "Aggregated", "Unsupported", "RemovedWithReason"],
+            StringComparer.Ordinal);
+
+        Assert.All(rows, row => Assert.Contains(row.Status, validStatuses));
+        foreach (var expected in EnumerateExpectedLegacyNamedElements())
+        {
+            var row = Assert.Single(rows, row =>
+                string.Equals(row.SourceWindow, expected.SourceWindow, StringComparison.Ordinal)
+                && string.Equals(row.SourceCanvas, expected.SourceCanvas, StringComparison.Ordinal)
+                && string.Equals(row.LegacyName, expected.LegacyName, StringComparison.Ordinal));
+
+            Assert.Contains(row.Status, validStatuses);
+        }
+
+        var mapBpRows = rows
+            .Where(row => row.SourceWindow == "WidgetsWindow" && row.SourceCanvas == "MapBpCanvas")
+            .ToArray();
+        Assert.NotEmpty(mapBpRows);
+        Assert.All(mapBpRows, row =>
+        {
+            Assert.Equal("Unsupported", row.Status);
+            Assert.Contains("Legacy MapBpCanvas / MapBpV1 is not supported", row.Notes, StringComparison.Ordinal);
+        });
+
+        var scoreCells = rows
+            .Where(row => row.SourceWindow == "ScoreGlobalWindow"
+                          && row.SourceCanvas == "BaseCanvas"
+                          && row.LegacyName.Contains("TeamGame", StringComparison.Ordinal))
+            .ToArray();
+        Assert.Equal(40, scoreCells.Length);
+        Assert.All(scoreCells, row => Assert.Equal("Aggregated", row.Status));
+    }
+
+    [Fact]
     public async Task ConverterConsumesScoreGlobalOvertimeCellsWithoutUnmatchedWarnings()
     {
         var root = CreateTempDirectory();
@@ -424,6 +462,38 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             Assert.Equal(20, sur.Top);
             Assert.Equal(30, sur.Width);
             Assert.Equal(40, sur.Height);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task ConverterFailsWhenLegacyControlIsMissingFromBlueprint()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var archivePath = Path.Combine(root, "legacy.bpui");
+            CreateLegacyArchive(
+                archivePath,
+                configJson: "{}",
+                customResources: [],
+                layouts: new Dictionary<string, string>
+                {
+                    ["FrontElementsConfig/CutSceneWindowConfig-BaseCanvas.json"] =
+                        """{ "LegacyOnly": { "Left": 1, "Top": 2, "Width": 3, "Height": 4 } }"""
+                });
+
+            var result = await ConvertAsync(
+                Path.Combine(root, "missing-built-in"),
+                root,
+                archivePath,
+                "converted.legacy.unmapped");
+
+            Assert.False(result.Success);
+            Assert.Contains("explicit legacy blueprint map", result.ErrorMessage);
         }
         finally
         {
@@ -587,6 +657,25 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             Assert.Equal(20, display.Top);
             Assert.StartsWith("bpui://converted.legacy.widgets/resources/images/border-", display.PickingBorderImagePath);
             Assert.Equal("#FF445566", display.PickingBorderFillColor);
+
+            var expectedMapKeys = new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["Arms_Factory"] = "ArmsFactory",
+                ["The_Red_Church"] = "TheRedChurch",
+                ["Sacred_Heart_Hospital"] = "SacredHeartHospital",
+                ["Leo_s_Memory"] = "LeosMemory",
+                ["Moonlit_River_Park"] = "MoonlitRiverPark",
+                ["Lakeside_Village"] = "LakesideVillage",
+                ["Eversleeping_Town"] = "EversleepingTown",
+                ["Chinatown"] = "ChinaTown",
+                ["Darkwoods"] = "Darkwoods"
+            };
+            Assert.Equal(expectedMapKeys.Count, mapV2.ControlLayout.Controls.Values.OfType<MapV2DisplayControlConfig>().Count());
+            foreach (var (controlName, mapKey) in expectedMapKeys)
+            {
+                var mapControl = Assert.IsType<MapV2DisplayControlConfig>(mapV2.ControlLayout.Controls[controlName]);
+                Assert.Equal(mapKey, mapControl.MapKey);
+            }
         }
         finally
         {
@@ -994,6 +1083,185 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
         Assert.Equal(fontFamily, text.FontFamily);
         Assert.Equal(fontSize, text.FontSize);
     }
+
+    private static IReadOnlyList<LegacyBlueprintAuditRow> ReadLegacyBlueprintAuditRows()
+    {
+        var docPath = Path.Combine(FindRepositoryRoot(), "docs", "legacy-v3-control-blueprint-map.md");
+        return File.ReadLines(docPath)
+            .Where(line => line.StartsWith("| ", StringComparison.Ordinal))
+            .Select(line => line.Trim().Trim('|').Split('|').Select(cell => cell.Trim()).ToArray())
+            .Where(cells => cells[0] != "SourceWindow" && !cells[0].StartsWith("---", StringComparison.Ordinal))
+            .Select(cells =>
+            {
+                Assert.Equal(11, cells.Length);
+                return new LegacyBlueprintAuditRow(
+                    cells[0],
+                    cells[1],
+                    cells[2],
+                    cells[3],
+                    cells[4],
+                    cells[5],
+                    cells[6],
+                    cells[7],
+                    cells[8],
+                    cells[9],
+                    cells[10]);
+            })
+            .ToArray();
+    }
+
+    private static string FindRepositoryRoot()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null)
+        {
+            if (File.Exists(Path.Combine(directory.FullName, "neo-bpsys-wpf.slnx")))
+            {
+                return directory.FullName;
+            }
+
+            directory = directory.Parent;
+        }
+
+        throw new InvalidOperationException("Repository root was not found.");
+    }
+
+    private static IEnumerable<LegacyBlueprintAuditKey> EnumerateExpectedLegacyNamedElements()
+    {
+        foreach (var key in Keys(
+                     "BpWindow",
+                     "BaseCanvas",
+                     "BaseCanvas",
+                     "SurTeamLogo", "SurTeamMajorPoint", "SurTeamName", "GameScoresSur", "Timer", "GameScoresHun",
+                     "HunTeamName", "HunTeamMajorPoint", "HunTeamLogo",
+                     "HunBanCurrent0", "HunBanCurrent1", "HunBanCurrentLock0", "HunBanCurrentLock1",
+                     "SurBanCurrent0", "SurBanCurrent1", "SurBanCurrent2", "SurBanCurrent3",
+                     "SurBanCurrentLock0", "SurBanCurrentLock1", "SurBanCurrentLock2", "SurBanCurrentLock3",
+                     "SurPick0", "SurPick1", "SurPick2", "SurPick3",
+                     "SurPickingBorder0", "SurPickingBorder1", "SurPickingBorder2", "SurPickingBorder3",
+                     "Map", "MapName", "GameProgress",
+                     "HunGlobalBan0", "HunGlobalBan1", "HunGlobalBan2",
+                     "HunGlobalBanLock0", "HunGlobalBanLock1", "HunGlobalBanLock2",
+                     "SurGlobalBan0", "SurGlobalBan1", "SurGlobalBan2", "SurGlobalBan3",
+                     "SurGlobalBan4", "SurGlobalBan5", "SurGlobalBan6", "SurGlobalBan7",
+                     "SurGlobalBan8", "SurGlobalBan9", "SurGlobalBan10", "SurGlobalBan11",
+                     "SurGlobalBanLock0", "SurGlobalBanLock1", "SurGlobalBanLock2", "SurGlobalBanLock3",
+                     "SurGlobalBanLock4", "SurGlobalBanLock5", "SurGlobalBanLock6", "SurGlobalBanLock7",
+                     "SurGlobalBanLock8", "SurGlobalBanLock9", "SurGlobalBanLock10", "SurGlobalBanLock11",
+                     "HunPick", "HunPickingBorder", "SurId0", "SurId1", "SurId2", "SurId3", "HunId"))
+        {
+            yield return key;
+        }
+
+        foreach (var key in Keys(
+                     "CutSceneWindow",
+                     "BaseCanvas",
+                     "BaseCanvas",
+                     "SurTeamLogo", "SurTeamMajorPoint", "SurTeamName", "HunTeamName", "HunTeamMajorPoint",
+                     "HunTeamLogo", "Map", "MapName", "GameProgress",
+                     "SurPick0", "SurPick1", "SurPick2", "SurPick3", "HunPick",
+                     "SurId0", "SurId1", "SurId2", "SurId3", "HunId",
+                     "SurTalent0", "SurTalent1", "SurTalent2", "SurTalent3", "HunTalent", "Trait"))
+        {
+            yield return key;
+        }
+
+        foreach (var key in Keys(
+                     "GameDataWindow",
+                     "BaseCanvas",
+                     "BaseCanvas",
+                     "SurTeamLogo", "SurTeamMajorPoint", "SurTeamName", "GameScoresSur",
+                     "Map", "MapName", "PickedMapName", "GameProgress", "GameScoresHun",
+                     "HunTeamName", "HunTeamMajorPoint", "HunTeamLogo",
+                     "Header_Character", "Header_ID", "Header_DecodingProgress", "Header_PalletStrikes",
+                     "Header_Rescues", "Header_Heals", "Header_ContainmentTime",
+                     "Player0Header", "Player1Header", "Player2Header", "Player3Header",
+                     "SurId0", "SurId1", "SurId2", "SurId3",
+                     "Sur0MachineDecoded", "Sur1MachineDecoded", "Sur2MachineDecoded", "Sur3MachineDecoded",
+                     "Sur0PalletStunTimes", "Sur1PalletStunTimes", "Sur2PalletStunTimes", "Sur3PalletStunTimes",
+                     "Sur0RescueTimes", "Sur1RescueTimes", "Sur2RescueTimes", "Sur3RescueTimes",
+                     "Sur0HealedTimes", "Sur1HealedTimes", "Sur2HealedTimes", "Sur3HealedTimes",
+                     "Sur0KiteTime", "Sur1KiteTime", "Sur2KiteTime", "Sur3KiteTime",
+                     "HunImage", "HunId",
+                     "Header_RemainingCiphers", "Header_PalletsDestroyed", "Header_SurvivorHits",
+                     "Header_TerrorShocks", "Header_Knockdowns",
+                     "HunMachineLeft", "HunPalletBroken", "HunHitTimes", "HunTerrorShockTimes", "HunDownTimes"))
+        {
+            yield return key;
+        }
+
+        foreach (var key in Keys("ScoreGlobalWindow", "BaseCanvas", "BaseCanvas", "MainTeamName", "AwayTeamName", "MainScoreTotal", "AwayScoreTotal"))
+        {
+            yield return key;
+        }
+
+        foreach (var key in Keys("ScoreHunWindow", "BaseCanvas", "BaseCanvas", "HunTeamLogo", "HunTeamName", "HunTeamMajorPoint", "GameScoresHun"))
+        {
+            yield return key;
+        }
+
+        foreach (var key in Keys("ScoreSurWindow", "BaseCanvas", "BaseCanvas", "SurTeamLogo", "SurTeamName", "SurTeamMajorPoint", "GameScoresSur"))
+        {
+            yield return key;
+        }
+
+        foreach (var key in Keys(
+                     "WidgetsWindow",
+                     "MapBpCanvas",
+                     "MapBpCanvas",
+                     "PickedMap", "PickedMapName", "PickWord", "SurTeamName", "VS_Word", "HunTeamName",
+                     "BannedMap", "BannedMapName", "BanWord"))
+        {
+            yield return key;
+        }
+
+        foreach (var key in Keys(
+                     "WidgetsWindow",
+                     "BpOverViewCanvas",
+                     "BpOverViewCanvas",
+                     "SurTeamLogo", "SurTeamNameInOverview", "HunTeamNameInOverview", "HunTeamLogo",
+                     "HunBanCurrent0", "HunBanCurrent1", "HunBanCurrentLock0", "HunBanCurrentLock1",
+                     "SurBanCurrent3", "SurBanCurrent2", "SurBanCurrent1", "SurBanCurrent0",
+                     "SurBanCurrentLock0", "SurBanCurrentLock1", "SurBanCurrentLock2", "SurBanCurrentLock3",
+                     "SurPick0", "SurPick1", "SurPick2", "SurPick3",
+                     "GameProgress", "GameScoresSur", "RatioChar", "GameScoresHun", "HunPick"))
+        {
+            yield return key;
+        }
+
+        foreach (var key in Keys(
+                     "WidgetsWindow",
+                     "MapV2Canvas",
+                     "MapV2Canvas",
+                     "Arms_Factory", "The_Red_Church", "Sacred_Heart_Hospital", "Leo_s_Memory",
+                     "Moonlit_River_Park", "Lakeside_Village", "Eversleeping_Town", "Chinatown", "Darkwoods"))
+        {
+            yield return key;
+        }
+    }
+
+    private static IEnumerable<LegacyBlueprintAuditKey> Keys(string sourceWindow, string sourceCanvas, params string[] legacyNames)
+    {
+        foreach (var legacyName in legacyNames)
+        {
+            yield return new LegacyBlueprintAuditKey(sourceWindow, sourceCanvas, legacyName);
+        }
+    }
+
+    private sealed record LegacyBlueprintAuditKey(string SourceWindow, string SourceCanvas, string LegacyName);
+
+    private sealed record LegacyBlueprintAuditRow(
+        string SourceWindow,
+        string SourceCanvas,
+        string LegacyName,
+        string TargetWindow,
+        string TargetName,
+        string TargetControlType,
+        string Binding,
+        string StyleSource,
+        string ResourceSource,
+        string Status,
+        string Notes);
 
     private const string LegacyTextSettingsConfigJson =
         """

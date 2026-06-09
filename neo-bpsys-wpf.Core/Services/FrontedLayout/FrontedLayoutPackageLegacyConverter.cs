@@ -31,18 +31,6 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
 
     private static readonly Regex SafeFileNameChars = new("[^A-Za-z0-9._-]+", RegexOptions.Compiled);
 
-    private static readonly Regex LegacyScoreGlobalCellName = new(
-        @"^(Home|Away)TeamGame(?<game>\d+)(?<overtime>Overtime)?(?<half>FirstHalf|SecondHalf)$",
-        RegexOptions.Compiled | RegexOptions.CultureInvariant);
-
-    private static readonly Regex LegacyCurrentBanLockOverlayName = new(
-        @"^(Hun|Sur)BanCurrentLock(?<index>\d+)$",
-        RegexOptions.Compiled | RegexOptions.CultureInvariant);
-
-    private static readonly Regex LegacyGlobalBanLockOverlayName = new(
-        @"^(Hun|Sur)GlobalBanLock(?<index>\d+)$",
-        RegexOptions.Compiled | RegexOptions.CultureInvariant);
-
     private static readonly HashSet<string> ImageExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
         ".png",
@@ -73,6 +61,9 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
 
     private static readonly IReadOnlyDictionary<LegacyLayoutKey, IReadOnlyList<LegacyControlBlueprint>> LegacyControlBlueprints =
         CreateLegacyControlBlueprints();
+
+    private static readonly IReadOnlyDictionary<string, LegacyScoreGlobalCellBlueprint> LegacyScoreGlobalCells =
+        CreateLegacyScoreGlobalCellBlueprints();
 
     private readonly string _tempRoot;
     private readonly IFrontedLayoutPackageImporter? _packageImporter;
@@ -276,15 +267,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                 diagnostics,
                 warnings);
             ApplyFrontendConfigValues(config, mapping, configValueMap, infos);
-            if (legacySettings is not null)
-            {
-                LegacyFrontedTextStyleMigrator.Apply(
-                    config,
-                    mapping.SourceWindow,
-                    mapping.SourceCanvas,
-                    legacySettings,
-                    diagnostics);
-            }
+            ApplyLegacyTextStyleOverrides(config, mapping, legacySettings, diagnostics);
 
             RewriteKnownResourceStrings(config, resourceState);
             config.Version = 3;
@@ -401,6 +384,12 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
 
         foreach (var blueprint in blueprints)
         {
+            if (blueprint.Status is not LegacyControlBlueprintStatus.Mapped
+                and not LegacyControlBlueprintStatus.Aggregated)
+            {
+                continue;
+            }
+
             if (!blueprint.Required && !legacyPositions.ContainsKey(blueprint.LegacyName))
             {
                 continue;
@@ -418,7 +407,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
 
         var consumedControls = new HashSet<string>(StringComparer.Ordinal);
         ApplyScoreGlobalAggregateGeometry(mapping.SourceWindow, mapping.SourceCanvas, config, legacyPositions, consumedControls, infos, diagnostics);
-        ConsumeLegacyLockOverlayGeometry(mapping.SourceWindow, mapping.SourceCanvas, config, legacyPositions, consumedControls, diagnostics);
+        ConsumeExplicitFoldedGeometry(mapping.SourceWindow, mapping.SourceCanvas, blueprints, config, legacyPositions, consumedControls, diagnostics);
         var blueprintsByLegacyName = blueprints
             .GroupBy(blueprint => blueprint.LegacyName, StringComparer.Ordinal)
             .ToDictionary(group => group.Key, group => group.ToArray(), StringComparer.Ordinal);
@@ -432,15 +421,20 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
 
             if (!blueprintsByLegacyName.TryGetValue(controlName, out var mappedBlueprints))
             {
-                var candidates = LegacyFrontedControlNameMapper.GetClosestCandidates(controlName, config.Controls.Keys);
-                warnings.Add(candidates.Count > 0
-                    ? $"Legacy control geometry ignored because no legacy blueprint maps it: {mapping.SourceWindow}/{mapping.SourceCanvas}/{controlName}. Closest candidates: {string.Join(", ", candidates)}"
-                    : $"Legacy control geometry ignored because no legacy blueprint maps it: {mapping.SourceWindow}/{mapping.SourceCanvas}/{controlName}");
-                continue;
+                throw new InvalidDataException(
+                    $"Legacy control geometry is not listed in the explicit legacy blueprint map: {mapping.SourceWindow}/{mapping.SourceCanvas}/{controlName}");
             }
 
             foreach (var blueprint in mappedBlueprints)
             {
+                if (blueprint.Status is LegacyControlBlueprintStatus.Folded
+                    or LegacyControlBlueprintStatus.Aggregated
+                    or LegacyControlBlueprintStatus.Unsupported
+                    or LegacyControlBlueprintStatus.RemovedWithReason)
+                {
+                    continue;
+                }
+
                 if (config.Controls.TryGetValue(blueprint.TargetName, out var control))
                 {
                     ApplyGeometry(control, legacy);
@@ -680,73 +674,55 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         out string half,
         out bool isOvertime)
     {
-        team = string.Empty;
-        game = 0;
-        half = string.Empty;
-        isOvertime = false;
-        var match = LegacyScoreGlobalCellName.Match(controlName);
-        if (!match.Success)
+        if (!LegacyScoreGlobalCells.TryGetValue(controlName, out var blueprint))
         {
+            team = string.Empty;
+            game = 0;
+            half = string.Empty;
+            isOvertime = false;
             return false;
         }
 
-        team = match.Groups[1].Value;
-        game = int.Parse(match.Groups["game"].Value);
-        half = match.Groups["half"].Value;
-        isOvertime = match.Groups["overtime"].Success;
+        team = blueprint.Team;
+        game = blueprint.Game;
+        half = blueprint.Half;
+        isOvertime = blueprint.IsOvertime;
         return true;
     }
 
-    private static void ConsumeLegacyLockOverlayGeometry(
+    private static void ConsumeExplicitFoldedGeometry(
         string window,
         string canvas,
+        IReadOnlyList<LegacyControlBlueprint> blueprints,
         FrontedCanvasConfig config,
         IReadOnlyDictionary<string, ElementInfo> legacyPositions,
         ISet<string> consumedControls,
         ICollection<string> diagnostics)
     {
-        foreach (var (legacyName, legacy) in legacyPositions)
+        foreach (var blueprint in blueprints.Where(blueprint => blueprint.Status == LegacyControlBlueprintStatus.Folded))
         {
-            if (!TryMapLegacyLockOverlayName(legacyName, out var targetName))
+            if (!legacyPositions.ContainsKey(blueprint.LegacyName))
             {
                 continue;
             }
 
-            consumedControls.Add(legacyName);
-            diagnostics.Add($"Legacy lock overlay geometry consumed: {legacyName} -> {targetName}");
-            if (!config.Controls.TryGetValue(targetName, out var target))
+            consumedControls.Add(blueprint.LegacyName);
+            diagnostics.Add($"Legacy folded control consumed: {window}/{canvas}/{blueprint.LegacyName} -> {blueprint.TargetName}");
+            diagnostics.Add($"Legacy lock overlay geometry consumed: {blueprint.LegacyName} -> {blueprint.TargetName}");
+            if (string.IsNullOrWhiteSpace(blueprint.TargetName)
+                || !config.Controls.TryGetValue(blueprint.TargetName, out var target))
             {
-                diagnostics.Add($"Legacy lock overlay geometry was folded into lockable control metadata, but target body control was not present: {window}/{canvas}/{legacyName} -> {targetName}");
+                diagnostics.Add($"Legacy folded control has no v3 body control target: {window}/{canvas}/{blueprint.LegacyName}");
                 continue;
             }
 
             if (target is ImageFrontedControlConfig image)
             {
-                image.Lockable = true;
+                ApplyImageSpecialProperties(image, blueprint);
             }
 
-            diagnostics.Add("Legacy lock overlay geometry was folded into lockable control and separate geometry is not representable.");
+            diagnostics.Add("Legacy folded control geometry is represented by v3 control metadata; separate geometry is not representable.");
         }
-    }
-
-    private static bool TryMapLegacyLockOverlayName(string legacyName, out string targetName)
-    {
-        targetName = string.Empty;
-        var match = LegacyCurrentBanLockOverlayName.Match(legacyName);
-        if (!match.Success)
-        {
-            match = LegacyGlobalBanLockOverlayName.Match(legacyName);
-            if (!match.Success)
-            {
-                return false;
-            }
-
-            targetName = $"{match.Groups[1].Value}GlobalBan{match.Groups["index"].Value}";
-            return true;
-        }
-
-        targetName = $"{match.Groups[1].Value}BanCurrent{match.Groups["index"].Value}";
-        return true;
     }
 
     private static void ApplyGeometry(FrontedControlConfigBase control, ElementInfo legacy)
@@ -1473,66 +1449,288 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
 
         AddBlueprints(result, "BpWindow", "BaseCanvas",
         [
-            .. TextNames("Timer", "SurTeamName", "HunTeamName", "GameScoresSur", "GameScoresHun", "SurTeamMajorPoint", "HunTeamMajorPoint", "SurId0", "SurId1", "SurId2", "SurId3", "HunId", "MapName", "GameProgress"),
-            .. ImageNames("SurTeamLogo", "HunTeamLogo", "Map", "SurPick0", "SurPick1", "SurPick2", "SurPick3", "HunPick", "SurBanCurrent0", "SurBanCurrent1", "SurBanCurrent2", "SurBanCurrent3", "HunBanCurrent0", "HunBanCurrent1", "SurGlobalBan0", "SurGlobalBan1", "SurGlobalBan2", "SurGlobalBan3", "SurGlobalBan4", "SurGlobalBan5", "SurGlobalBan6", "SurGlobalBan7", "SurGlobalBan8", "SurGlobalBan9", "SurGlobalBan10", "SurGlobalBan11", "HunGlobalBan0", "HunGlobalBan1", "HunGlobalBan2")
+            Removed("BaseCanvas", "The legacy Canvas is represented by FrontedWindowConfig.CanvasSettings and the fixed v3 BaseCanvas host."),
+            Image("SurTeamLogo", "Image", "CurrentGame.SurTeam.Logo", 615, 670, 50, 50, cornerRadius: 8, stretch: "Fill"),
+            Text("SurTeamMajorPoint", "Text", "CurrentGame.MatchScore.CurrentSurTeamMajorText", "BpWindow.MajorPoints", 607, 776),
+            Text("SurTeamName", "Text", "CurrentGame.SurTeam.Name", "BpWindow.TeamName", 580, 720, 120, null, textWrapping: "WrapWithOverflow"),
+            Text("GameScoresSur", "Text", "CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText", "BpWindow.GameScores", 622, 746, 36, 30),
+            Text("Timer", "Text", "RemainingSeconds", "BpWindow.Timer", 671, 672, 100, null, zIndex: 1),
+            Text("GameScoresHun", "Text", "CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText", "BpWindow.GameScores", 784, 746, 36, 30),
+            Text("HunTeamName", "Text", "CurrentGame.HunTeam.Name", "BpWindow.TeamName", 742, 720, 120, null, textWrapping: "WrapWithOverflow"),
+            Text("HunTeamMajorPoint", "Text", "CurrentGame.MatchScore.CurrentHunTeamMajorText", "BpWindow.MajorPoints", 770, 776),
+            Image("HunTeamLogo", "Image", "CurrentGame.HunTeam.Logo", 776, 670, 50, 50, cornerRadius: 8, stretch: "Fill"),
+            Image("HunBanCurrent0", "Image", "CurrentGame.CurrentHunBannedList[0].HeaderImageSingleColor", 11.5, 562.5, 44.5, 44.5, specialProperties: CurrentBanLock("Hun", 0)),
+            Image("HunBanCurrent1", "Image", "CurrentGame.CurrentHunBannedList[1].HeaderImageSingleColor", 64, 562.5, 44.5, 44.5, specialProperties: CurrentBanLock("Hun", 1)),
+            Folded("HunBanCurrentLock0", "HunBanCurrent0", "Folded into HunBanCurrent0 lock overlay metadata."),
+            Folded("HunBanCurrentLock1", "HunBanCurrent1", "Folded into HunBanCurrent1 lock overlay metadata."),
+            Image("SurBanCurrent0", "Image", "CurrentGame.CurrentSurBannedList[0].HeaderImageSingleColor", 1226.5, 563, 44.5, 44.5, specialProperties: CurrentBanLock("Sur", 0)),
+            Image("SurBanCurrent1", "Image", "CurrentGame.CurrentSurBannedList[1].HeaderImageSingleColor", 1279, 563, 44.5, 44.5, specialProperties: CurrentBanLock("Sur", 1)),
+            Image("SurBanCurrent2", "Image", "CurrentGame.CurrentSurBannedList[2].HeaderImageSingleColor", 1331.5, 563, 44.5, 44.5, specialProperties: CurrentBanLock("Sur", 2)),
+            Image("SurBanCurrent3", "Image", "CurrentGame.CurrentSurBannedList[3].HeaderImageSingleColor", 1384, 563, 44.5, 44.5, specialProperties: CurrentBanLock("Sur", 3)),
+            Folded("SurBanCurrentLock0", "SurBanCurrent0", "Folded into SurBanCurrent0 lock overlay metadata."),
+            Folded("SurBanCurrentLock1", "SurBanCurrent1", "Folded into SurBanCurrent1 lock overlay metadata."),
+            Folded("SurBanCurrentLock2", "SurBanCurrent2", "Folded into SurBanCurrent2 lock overlay metadata."),
+            Folded("SurBanCurrentLock3", "SurBanCurrent3", "Folded into SurBanCurrent3 lock overlay metadata."),
+            Image("SurPick0", "BorderedImage", "CurrentGame.SurPlayerList[0].PictureShown", 0, 620, 141, 160, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", clipToBounds: true, specialProperties: PickingBorder("SurPickingBorder0")),
+            Image("SurPick1", "BorderedImage", "CurrentGame.SurPlayerList[1].PictureShown", 143, 620, 141, 160, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", clipToBounds: true, specialProperties: PickingBorder("SurPickingBorder1")),
+            Image("SurPick2", "BorderedImage", "CurrentGame.SurPlayerList[2].PictureShown", 286, 620, 141, 160, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", clipToBounds: true, specialProperties: PickingBorder("SurPickingBorder2")),
+            Image("SurPick3", "BorderedImage", "CurrentGame.SurPlayerList[3].PictureShown", 428, 620, 140, 160, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", clipToBounds: true, specialProperties: PickingBorder("SurPickingBorder3")),
+            Folded("SurPickingBorder0", "SurPick0", "Folded into SurPick0 picking border metadata."),
+            Folded("SurPickingBorder1", "SurPick1", "Folded into SurPick1 picking border metadata."),
+            Folded("SurPickingBorder2", "SurPick2", "Folded into SurPick2 picking border metadata."),
+            Folded("SurPickingBorder3", "SurPick3", "Folded into SurPick3 picking border metadata."),
+            Image("Map", "BorderedImage", "CurrentGame.PickedMapImageLarge", 572, 616, 297, 194, zIndex: -1, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill"),
+            Text("MapName", "MapNameText", "CurrentGame.PickedMap", "BpWindow.MapName", 572, 616, 296, 30, zIndex: 1),
+            Text("GameProgress", "GameProgressText", null, "BpWindow.GameProgress", 572, 646, 296, 20, zIndex: 1),
+            Image("HunGlobalBan0", "Image", "CurrentGame.HunTeam.GlobalBannedHunList[0].HeaderImageSingleColor", 1380.5, 50.5, 45, 45, specialProperties: GlobalBanLock("Hun", 0)),
+            Image("HunGlobalBan1", "Image", "CurrentGame.HunTeam.GlobalBannedHunList[1].HeaderImageSingleColor", 1380.5, 151.5, 45, 45, specialProperties: GlobalBanLock("Hun", 1)),
+            Image("HunGlobalBan2", "Image", "CurrentGame.HunTeam.GlobalBannedHunList[2].HeaderImageSingleColor", 1380.5, 250, 45, 45, specialProperties: GlobalBanLock("Hun", 2)),
+            Folded("HunGlobalBanLock0", "HunGlobalBan0", "Folded into HunGlobalBan0 lock overlay metadata."),
+            Folded("HunGlobalBanLock1", "HunGlobalBan1", "Folded into HunGlobalBan1 lock overlay metadata."),
+            Folded("HunGlobalBanLock2", "HunGlobalBan2", "Folded into HunGlobalBan2 lock overlay metadata."),
+            Image("SurGlobalBan0", "Image", "CurrentGame.SurTeam.GlobalBannedSurList[0].HeaderImageSingleColor", 13, 50.5, 44.5, 44.5, specialProperties: GlobalBanLock("Sur", 0)),
+            Image("SurGlobalBan1", "Image", "CurrentGame.SurTeam.GlobalBannedSurList[1].HeaderImageSingleColor", 65.5, 50.5, 44.5, 44.5, specialProperties: GlobalBanLock("Sur", 1)),
+            Image("SurGlobalBan2", "Image", "CurrentGame.SurTeam.GlobalBannedSurList[2].HeaderImageSingleColor", 118, 50.5, 44.5, 44.5, specialProperties: GlobalBanLock("Sur", 2)),
+            Image("SurGlobalBan3", "Image", "CurrentGame.SurTeam.GlobalBannedSurList[3].HeaderImageSingleColor", 169, 50.5, 44.5, 44.5, specialProperties: GlobalBanLock("Sur", 3)),
+            Image("SurGlobalBan4", "Image", "CurrentGame.SurTeam.GlobalBannedSurList[4].HeaderImageSingleColor", 13, 150.5, 44.5, 44.5, specialProperties: GlobalBanLock("Sur", 4)),
+            Image("SurGlobalBan5", "Image", "CurrentGame.SurTeam.GlobalBannedSurList[5].HeaderImageSingleColor", 65.5, 150.5, 44.5, 44.5, specialProperties: GlobalBanLock("Sur", 5)),
+            Image("SurGlobalBan6", "Image", "CurrentGame.SurTeam.GlobalBannedSurList[6].HeaderImageSingleColor", 118, 150.5, 44.5, 44.5, specialProperties: GlobalBanLock("Sur", 6)),
+            Image("SurGlobalBan7", "Image", "CurrentGame.SurTeam.GlobalBannedSurList[7].HeaderImageSingleColor", 169, 150.5, 44.5, 44.5, specialProperties: GlobalBanLock("Sur", 7)),
+            Image("SurGlobalBan8", "Image", "CurrentGame.SurTeam.GlobalBannedSurList[8].HeaderImageSingleColor", 13, 250, 44.5, 44.5, specialProperties: GlobalBanLock("Sur", 8)),
+            Image("SurGlobalBan9", "Image", "CurrentGame.SurTeam.GlobalBannedSurList[9].HeaderImageSingleColor", 65.5, 250, 44.5, 44.5, specialProperties: GlobalBanLock("Sur", 9)),
+            Image("SurGlobalBan10", "Image", "CurrentGame.SurTeam.GlobalBannedSurList[10].HeaderImageSingleColor", 118, 250, 44.5, 44.5, specialProperties: GlobalBanLock("Sur", 10)),
+            Image("SurGlobalBan11", "Image", "CurrentGame.SurTeam.GlobalBannedSurList[11].HeaderImageSingleColor", 169, 250, 44.5, 44.5, specialProperties: GlobalBanLock("Sur", 11)),
+            Folded("SurGlobalBanLock0", "SurGlobalBan0", "Folded into SurGlobalBan0 lock overlay metadata."),
+            Folded("SurGlobalBanLock1", "SurGlobalBan1", "Folded into SurGlobalBan1 lock overlay metadata."),
+            Folded("SurGlobalBanLock2", "SurGlobalBan2", "Folded into SurGlobalBan2 lock overlay metadata."),
+            Folded("SurGlobalBanLock3", "SurGlobalBan3", "Folded into SurGlobalBan3 lock overlay metadata."),
+            Folded("SurGlobalBanLock4", "SurGlobalBan4", "Folded into SurGlobalBan4 lock overlay metadata."),
+            Folded("SurGlobalBanLock5", "SurGlobalBan5", "Folded into SurGlobalBan5 lock overlay metadata."),
+            Folded("SurGlobalBanLock6", "SurGlobalBan6", "Folded into SurGlobalBan6 lock overlay metadata."),
+            Folded("SurGlobalBanLock7", "SurGlobalBan7", "Folded into SurGlobalBan7 lock overlay metadata."),
+            Folded("SurGlobalBanLock8", "SurGlobalBan8", "Folded into SurGlobalBan8 lock overlay metadata."),
+            Folded("SurGlobalBanLock9", "SurGlobalBan9", "Folded into SurGlobalBan9 lock overlay metadata."),
+            Folded("SurGlobalBanLock10", "SurGlobalBan10", "Folded into SurGlobalBan10 lock overlay metadata."),
+            Folded("SurGlobalBanLock11", "SurGlobalBan11", "Folded into SurGlobalBan11 lock overlay metadata."),
+            Image("HunPick", "BorderedImage", "CurrentGame.HunPlayer.PictureShown", 872, 620, 568, 161, sizingMode: ImageSizingMode.OverflowCrop, stretch: "Uniform", clipToBounds: true, specialProperties: PickingBorder("HunPickingBorder")),
+            Folded("HunPickingBorder", "HunPick", "Folded into HunPick picking border metadata."),
+            Text("SurId0", "Text", "CurrentGame.SurPlayerList[0].Member.Name", "BpWindow.PlayerId", 1, 781, 139, 28),
+            Text("SurId1", "Text", "CurrentGame.SurPlayerList[1].Member.Name", "BpWindow.PlayerId", 145, 781, 139, 28),
+            Text("SurId2", "Text", "CurrentGame.SurPlayerList[2].Member.Name", "BpWindow.PlayerId", 287, 781, 139, 28),
+            Text("SurId3", "Text", "CurrentGame.SurPlayerList[3].Member.Name", "BpWindow.PlayerId", 430, 781, 139, 28),
+            Text("HunId", "Text", "CurrentGame.HunPlayer.Member.Name", "BpWindow.PlayerId", 871, 781, 569, 28)
         ]);
 
         AddBlueprints(result, "CutSceneWindow", "BaseCanvas",
         [
-            .. TextNames("SurTeamName", "HunTeamName", "SurTeamMajorPoint", "HunTeamMajorPoint", "SurId0", "SurId1", "SurId2", "SurId3", "HunId", "MapName", "GameProgress"),
-            .. ImageNames("SurTeamLogo", "HunTeamLogo", "Map", "SurPick0", "SurPick1", "SurPick2", "SurPick3", "HunPick", "SurTalent0", "SurTalent1", "SurTalent2", "SurTalent3", "HunTalent", "Trait")
+            Removed("BaseCanvas", "The legacy Canvas is represented by FrontedWindowConfig.CanvasSettings and the fixed v3 BaseCanvas host."),
+            Image("SurTeamLogo", "Image", "CurrentGame.SurTeam.Logo", 251, 14, 85, 85, cornerRadius: 8, stretch: "Fill"),
+            Text("SurTeamMajorPoint", "Text", "CurrentGame.MatchScore.CurrentSurTeamMajorText", "CutSceneWindow.MajorPoints", 380, 42),
+            Text("SurTeamName", "Text", "CurrentGame.SurTeam.Name", "CutSceneWindow.TeamName", 10, 38, 207, null, textWrapping: "WrapWithOverflow"),
+            Text("HunTeamName", "Text", "CurrentGame.HunTeam.Name", "CutSceneWindow.TeamName", 1223, 38, 207, null, textWrapping: "WrapWithOverflow"),
+            Text("HunTeamMajorPoint", "Text", "CurrentGame.MatchScore.CurrentHunTeamMajorText", "CutSceneWindow.MajorPoints", 971, 42),
+            Image("HunTeamLogo", "Image", "CurrentGame.HunTeam.Logo", 1104, 14, 84, 85, cornerRadius: 8, stretch: "Fill"),
+            Image("Map", "BorderedImage", "CurrentGame.PickedMapImage", 488, 0, 463, 112, zIndex: -1, sizingMode: ImageSizingMode.FillContainer, stretch: "Uniform"),
+            Text("MapName", "MapNameText", "CurrentGame.PickedMap", "CutSceneWindow.MapName", 488, 51, 463, null),
+            Text("GameProgress", "GameProgressText", null, "CutSceneWindow.GameProgress", 488, 82, 463, 30, zIndex: 1),
+            Image("SurPick0", "BorderedImage", "CurrentGame.SurPlayerList[0].Character.BigImage", 1, 115, 346, 308.5, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", specialProperties: Props(("ImageWidth", "556.5"))),
+            Image("SurPick1", "BorderedImage", "CurrentGame.SurPlayerList[1].Character.BigImage", 351, 115, 346, 308.5, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", specialProperties: Props(("ImageWidth", "556.5"))),
+            Image("SurPick2", "BorderedImage", "CurrentGame.SurPlayerList[2].Character.BigImage", 1, 465, 346, 306.5, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", specialProperties: Props(("ImageWidth", "556.5"))),
+            Image("SurPick3", "BorderedImage", "CurrentGame.SurPlayerList[3].Character.BigImage", 350, 465, 346, 306.5, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", specialProperties: Props(("ImageWidth", "556.5"))),
+            Image("HunPick", "BorderedImage", "CurrentGame.HunPlayer.Character.BigImage", 702, 114.5, 739, 635, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", clipToBounds: true),
+            Text("SurId0", "Text", "CurrentGame.SurPlayerList[0].Member.Name", "CutSceneWindow.SurPlayerId", 10, 422),
+            Text("SurId1", "Text", "CurrentGame.SurPlayerList[1].Member.Name", "CutSceneWindow.SurPlayerId", 353, 425, null, 32),
+            Text("SurId2", "Text", "CurrentGame.SurPlayerList[2].Member.Name", "CutSceneWindow.SurPlayerId", 1, 776, null, 31),
+            Text("SurId3", "Text", "CurrentGame.SurPlayerList[3].Member.Name", "CutSceneWindow.SurPlayerId", 364, 774, null, 32),
+            Text("HunId", "Text", "CurrentGame.HunPlayer.Member.Name", "CutSceneWindow.HunPlayerId", 720, 755, 382, 55),
+            Talent("SurTalent0", TalentTraitDisplayKind.SurvivorTalent, 0, 164, 424, 178, 36, "Right"),
+            Talent("SurTalent1", TalentTraitDisplayKind.SurvivorTalent, 1, 522, 424, 172, 37, "Right"),
+            Talent("SurTalent2", TalentTraitDisplayKind.SurvivorTalent, 2, 160, 774, 182, 37, "Right"),
+            Talent("SurTalent3", TalentTraitDisplayKind.SurvivorTalent, 3, 514, 771, null, 37, "Right"),
+            Talent("HunTalent", TalentTraitDisplayKind.HunterTalent, null, 1102, 762, 173, 43, "Left"),
+            Talent("Trait", TalentTraitDisplayKind.HunterTrait, null, 1290, 753, 56, 56, "Left")
         ]);
 
         AddBlueprints(result, "GameDataWindow", "BaseCanvas",
         [
-            .. TextNames("SurTeamName", "HunTeamName", "GameScoresSur", "GameScoresHun", "SurTeamMajorPoint", "HunTeamMajorPoint", "SurId0", "SurId1", "SurId2", "SurId3", "HunId", "MapName", "PickedMapName", "GameProgress", "Header_ID", "Header_Character", "Header_DecodingProgress", "Header_ContainmentTime", "Header_Rescues", "Header_Heals", "Header_PalletStrikes", "Header_RemainingCiphers", "Header_Knockdowns", "Header_PalletsDestroyed", "Header_SurvivorHits", "Header_TerrorShocks", "Sur0MachineDecoded", "Sur1MachineDecoded", "Sur2MachineDecoded", "Sur3MachineDecoded", "Sur0KiteTime", "Sur1KiteTime", "Sur2KiteTime", "Sur3KiteTime", "Sur0RescueTimes", "Sur1RescueTimes", "Sur2RescueTimes", "Sur3RescueTimes", "Sur0HealedTimes", "Sur1HealedTimes", "Sur2HealedTimes", "Sur3HealedTimes", "Sur0PalletStunTimes", "Sur1PalletStunTimes", "Sur2PalletStunTimes", "Sur3PalletStunTimes", "HunMachineLeft", "HunDownTimes", "HunPalletBroken", "HunHitTimes", "HunTerrorShockTimes"),
-            Blueprint("Header_ID", "SurDataHeader0", "Text"),
-            Blueprint("Sur0MachineDecoded", "SurData0", "Text"),
-            .. ImageNames("SurTeamLogo", "HunTeamLogo", "Map", "Player0Header", "Player1Header", "Player2Header", "Player3Header", "HunImage")
+            Removed("BaseCanvas", "The legacy Canvas is represented by FrontedWindowConfig.CanvasSettings and the fixed v3 BaseCanvas host."),
+            Image("SurTeamLogo", "Image", "CurrentGame.SurTeam.Logo", 96, 177, 85, 85, cornerRadius: 8, stretch: "Fill"),
+            Text("SurTeamMajorPoint", "Text", "CurrentGame.MatchScore.CurrentSurTeamMajorText", "GameDataWindow.MajorPoints", 285, 229),
+            Text("SurTeamName", "Text", "CurrentGame.SurTeam.Name", "GameDataWindow.TeamName", 186, 176, 290, null, textWrapping: "WrapWithOverflow"),
+            Text("GameScoresSur", "Text", "CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText", "GameDataWindow.GameScores", 476, 182, 52, 81),
+            Image("Map", "BorderedImage", "CurrentGame.PickedMapImage", 556, 151, 328, 132, zIndex: -1, sizingMode: ImageSizingMode.FillContainer, stretch: "Uniform"),
+            Text("MapName", "MapNameText", "CurrentGame.PickedMap", "GameDataWindow.MapName", 556, 220, 328, 30, zIndex: 1),
+            Folded("PickedMapName", "MapName", "Folded into the MapName business control, which renders the picked map name."),
+            Text("GameProgress", "GameProgressText", null, "GameDataWindow.GameProgress", 556, 253, 328, 30, zIndex: 1),
+            Text("GameScoresHun", "Text", "CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText", "GameDataWindow.GameScores", 919, 182, 52, 81),
+            Text("HunTeamName", "Text", "CurrentGame.HunTeam.Name", "GameDataWindow.TeamName", 976, 177, 302, null, textWrapping: "WrapWithOverflow"),
+            Text("HunTeamMajorPoint", "Text", "CurrentGame.MatchScore.CurrentHunTeamMajorText", "GameDataWindow.MajorPoints", 1081, 236),
+            Image("HunTeamLogo", "Image", "CurrentGame.HunTeam.Logo", 1278, 176, 85, 86, cornerRadius: 8, stretch: "Fill"),
+            Header("Header_Character", "Character", 47, 307, 80),
+            Header("Header_ID", "ID", 154, 307, 100),
+            Header("Header_DecodingProgress", "DecodingProgress", 331, 307, 150),
+            Header("Header_PalletStrikes", "PalletStrikes", 485, 307, 150),
+            Header("Header_Rescues", "Rescues", 634, 307, 120),
+            Header("Header_Heals", "Heals", 774, 307, 120),
+            Header("Header_ContainmentTime", "ContainmentTime", 894, 307, 176),
+            Image("Player0Header", "BorderedImage", "CurrentGame.SurPlayerList[0].PictureShownHeader", 47, 354, null, null, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", clipToBounds: true),
+            Image("Player1Header", "BorderedImage", "CurrentGame.SurPlayerList[1].PictureShownHeader", 47, 414, null, null, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", clipToBounds: true),
+            Image("Player2Header", "BorderedImage", "CurrentGame.SurPlayerList[2].PictureShownHeader", 47, 473, null, null, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", clipToBounds: true),
+            Image("Player3Header", "BorderedImage", "CurrentGame.SurPlayerList[3].PictureShownHeader", 47, 534, null, null, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", clipToBounds: true),
+            Text("SurId0", "Text", "CurrentGame.SurPlayerList[0].Member.Name", "GameDataWindow.PlayerId", 115, 354),
+            Text("SurId1", "Text", "CurrentGame.SurPlayerList[1].Member.Name", "GameDataWindow.PlayerId", 115, 414),
+            Text("SurId2", "Text", "CurrentGame.SurPlayerList[2].Member.Name", "GameDataWindow.PlayerId", 115, 474),
+            Text("SurId3", "Text", "CurrentGame.SurPlayerList[3].Member.Name", "GameDataWindow.PlayerId", 115, 534),
+            Data("Sur0MachineDecoded", "CurrentGame.SurPlayerList[0].Data.DecodingProgress", "GameDataWindow.SurData", 377, 354),
+            Data("Sur1MachineDecoded", "CurrentGame.SurPlayerList[1].Data.DecodingProgress", "GameDataWindow.SurData", 377, 414),
+            Data("Sur2MachineDecoded", "CurrentGame.SurPlayerList[2].Data.DecodingProgress", "GameDataWindow.SurData", 377, 474),
+            Data("Sur3MachineDecoded", "CurrentGame.SurPlayerList[3].Data.DecodingProgress", "GameDataWindow.SurData", 377, 534),
+            Data("Sur0PalletStunTimes", "CurrentGame.SurPlayerList[0].Data.PalletStrikes", "GameDataWindow.SurData", 531, 354),
+            Data("Sur1PalletStunTimes", "CurrentGame.SurPlayerList[1].Data.PalletStrikes", "GameDataWindow.SurData", 531, 413),
+            Data("Sur2PalletStunTimes", "CurrentGame.SurPlayerList[2].Data.PalletStrikes", "GameDataWindow.SurData", 531, 474),
+            Data("Sur3PalletStunTimes", "CurrentGame.SurPlayerList[3].Data.PalletStrikes", "GameDataWindow.SurData", 531, 534),
+            Data("Sur0RescueTimes", "CurrentGame.SurPlayerList[0].Data.Rescues", "GameDataWindow.SurData", 666, 354),
+            Data("Sur1RescueTimes", "CurrentGame.SurPlayerList[1].Data.Rescues", "GameDataWindow.SurData", 666, 414),
+            Data("Sur2RescueTimes", "CurrentGame.SurPlayerList[2].Data.Rescues", "GameDataWindow.SurData", 666, 474),
+            Data("Sur3RescueTimes", "CurrentGame.SurPlayerList[3].Data.Rescues", "GameDataWindow.SurData", 666, 534),
+            Data("Sur0HealedTimes", "CurrentGame.SurPlayerList[0].Data.Heals", "GameDataWindow.SurData", 809, 354),
+            Data("Sur1HealedTimes", "CurrentGame.SurPlayerList[1].Data.Heals", "GameDataWindow.SurData", 809, 414),
+            Data("Sur2HealedTimes", "CurrentGame.SurPlayerList[2].Data.Heals", "GameDataWindow.SurData", 809, 474),
+            Data("Sur3HealedTimes", "CurrentGame.SurPlayerList[3].Data.Heals", "GameDataWindow.SurData", 809, 534),
+            Data("Sur0KiteTime", "CurrentGame.SurPlayerList[0].Data.ContainmentTime", "GameDataWindow.SurData", 963, 354),
+            Data("Sur1KiteTime", "CurrentGame.SurPlayerList[1].Data.ContainmentTime", "GameDataWindow.SurData", 963, 413),
+            Data("Sur2KiteTime", "CurrentGame.SurPlayerList[2].Data.ContainmentTime", "GameDataWindow.SurData", 963, 474),
+            Data("Sur3KiteTime", "CurrentGame.SurPlayerList[3].Data.ContainmentTime", "GameDataWindow.SurData", 963, 534),
+            Image("HunImage", "BorderedImage", "CurrentGame.HunPlayer.PictureShownHeader", 1075, 295, 314, 96, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", clipToBounds: true),
+            Text("HunId", "Text", "CurrentGame.HunPlayer.Member.Name", "GameDataWindow.PlayerId", 1080, 357, null, 35),
+            Header("Header_RemainingCiphers", "RemainingCiphers", 1085, 404, 160, "GameDataWindow.HunDataHeader"),
+            Header("Header_PalletsDestroyed", "PalletsDestroyed", 1085, 440, 160, "GameDataWindow.HunDataHeader"),
+            Header("Header_SurvivorHits", "SurvivorHits", 1085, 475, 160, "GameDataWindow.HunDataHeader"),
+            Header("Header_TerrorShocks", "TerrorShocks", 1085, 511, 160, "GameDataWindow.HunDataHeader"),
+            Header("Header_Knockdowns", "Knockdowns", 1085, 548, 160, "GameDataWindow.HunDataHeader"),
+            Data("HunMachineLeft", "CurrentGame.HunPlayer.Data.RemainingCipher", "GameDataWindow.HunData", 1280, 405),
+            Data("HunPalletBroken", "CurrentGame.HunPlayer.Data.PalletsDestroyed", "GameDataWindow.HunData", 1280, 442),
+            Data("HunHitTimes", "CurrentGame.HunPlayer.Data.SurvivorHits", "GameDataWindow.HunData", 1280, 478),
+            Data("HunTerrorShockTimes", "CurrentGame.HunPlayer.Data.TerrorShocks", "GameDataWindow.HunData", 1280, 514),
+            Data("HunDownTimes", "CurrentGame.HunPlayer.Data.Knockdowns", "GameDataWindow.HunData", 1280, 547)
         ]);
 
         AddBlueprints(result, "ScoreSurWindow", "BaseCanvas",
         [
-            .. TextNames("SurTeamName", "GameScoresSur", "SurTeamMajorPoint"),
-            .. ImageNames("SurTeamLogo")
+            Removed("BaseCanvas", "The legacy Canvas is represented by FrontedWindowConfig.CanvasSettings and the fixed v3 BaseCanvas host."),
+            Image("SurTeamLogo", "Image", "CurrentGame.SurTeam.Logo", 22, 18, 115, 114, cornerRadius: 8, stretch: "Fill"),
+            Text("SurTeamName", "Text", "CurrentGame.SurTeam.Name", "ScoreWindow.TeamName", 153, 34, 231, null),
+            Text("SurTeamMajorPoint", "Text", "CurrentGame.MatchScore.CurrentSurTeamMajorText", "ScoreWindow.MajorPoints", 209, 86),
+            Text("GameScoresSur", "Text", "CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText", "ScoreWindow.GameScores", 389, 11, 64, 130)
         ]);
 
         AddBlueprints(result, "ScoreHunWindow", "BaseCanvas",
         [
-            .. TextNames("HunTeamName", "GameScoresHun", "HunTeamMajorPoint"),
-            .. ImageNames("HunTeamLogo")
+            Removed("BaseCanvas", "The legacy Canvas is represented by FrontedWindowConfig.CanvasSettings and the fixed v3 BaseCanvas host."),
+            Image("HunTeamLogo", "Image", "CurrentGame.HunTeam.Logo", 352, 18, 116, 114, cornerRadius: 8, stretch: "Fill"),
+            Text("HunTeamName", "Text", "CurrentGame.HunTeam.Name", "ScoreWindow.TeamName", 99, 33, 231, null),
+            Text("HunTeamMajorPoint", "Text", "CurrentGame.MatchScore.CurrentHunTeamMajorText", "ScoreWindow.MajorPoints", 167, 85),
+            Text("GameScoresHun", "Text", "CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText", "ScoreWindow.GameScores", 21, 10, 64, 130)
         ]);
 
         AddBlueprints(result, "ScoreGlobalWindow", "BaseCanvas",
         [
-            Blueprint("MainTeamName", "HomeTeamName", "Text"),
-            Blueprint("AwayTeamName", "AwayTeamName", "Text"),
-            Blueprint("MainScoreTotal", "HomeScoreTotal", "Text"),
-            Blueprint("AwayScoreTotal", "AwayScoreTotal", "Text"),
-            Blueprint("HomeGlobalScoreRow", "HomeGlobalScoreRow", "GlobalScoreRow"),
-            Blueprint("AwayGlobalScoreRow", "AwayGlobalScoreRow", "GlobalScoreRow")
+            Removed("BaseCanvas", "The legacy Canvas is represented by FrontedWindowConfig.CanvasSettings and the fixed v3 BaseCanvas host."),
+            Text("MainTeamName", "Text", "CurrentGame.HomeTeam.Name", "ScoreWindow.ScoreGlobal_TeamName", 13, 96, 144, 26, targetName: "HomeTeamName"),
+            Text("AwayTeamName", "Text", "CurrentGame.AwayTeam.Name", "ScoreWindow.ScoreGlobal_TeamName", 13, 155, 144, null),
+            Text("MainScoreTotal", "Text", "CurrentGame.MatchScore.HomeTotalScore", "ScoreWindow.ScoreGlobal_Total", 1303, 89, 86, null, targetName: "HomeScoreTotal"),
+            Text("AwayScoreTotal", "Text", "CurrentGame.MatchScore.AwayTotalScore", "ScoreWindow.ScoreGlobal_Total", 1302, 147, 87, null),
+            ScoreRow("HomeGlobalScoreRow", TeamType.HomeTeam, "ScoreWindow.ScoreGlobal_Data"),
+            ScoreRow("AwayGlobalScoreRow", TeamType.AwayTeam, "ScoreWindow.ScoreGlobal_Data")
         ]);
 
         AddBlueprints(result, "WidgetsWindow", "BpOverViewCanvas",
         [
-            .. TextNames("SurTeamNameInOverview", "HunTeamNameInOverview", "GameProgress", "GameScoresSur", "RatioChar", "GameScoresHun"),
-            .. ImageNames("SurTeamLogo", "HunTeamLogo", "SurBanCurrent0", "SurBanCurrent1", "SurBanCurrent2", "SurBanCurrent3", "HunBanCurrent0", "HunBanCurrent1", "SurPick0", "SurPick1", "SurPick2", "SurPick3", "HunPick")
+            Removed("BpOverViewCanvas", "The legacy overview Canvas is split into BpOverviewWindow/BaseCanvas."),
+            Image("SurTeamLogo", "Image", "CurrentGame.SurTeam.Logo", 42, 30, 85, 85, cornerRadius: 8, stretch: "Fill"),
+            Text("SurTeamNameInOverview", "Text", "CurrentGame.SurTeam.Name", "WidgetsWindow.BpOverview_TeamName", 0, 132, 166, null, textWrapping: "WrapWithOverflow"),
+            Text("HunTeamNameInOverview", "Text", "CurrentGame.HunTeam.Name", "WidgetsWindow.BpOverview_TeamName", 960, 132, 166, null, textWrapping: "WrapWithOverflow"),
+            Image("HunTeamLogo", "Image", "CurrentGame.HunTeam.Logo", 1000, 30, 86, 85, cornerRadius: 8, stretch: "Fill"),
+            Image("HunBanCurrent0", "Image", "CurrentGame.CurrentHunBannedList[0].HeaderImageSingleColor", 644, 5, 145, 35, specialProperties: CurrentBanLock("Hun", 0)),
+            Image("HunBanCurrent1", "Image", "CurrentGame.CurrentHunBannedList[1].HeaderImageSingleColor", 794, 5, 141, 35, specialProperties: CurrentBanLock("Hun", 1)),
+            Folded("HunBanCurrentLock0", "HunBanCurrent0", "Folded into HunBanCurrent0 lock overlay metadata."),
+            Folded("HunBanCurrentLock1", "HunBanCurrent1", "Folded into HunBanCurrent1 lock overlay metadata."),
+            Image("SurBanCurrent3", "Image", "CurrentGame.CurrentSurBannedList[3].HeaderImageSingleColor", 416, 5, 68, 35, specialProperties: CurrentBanLock("Sur", 3)),
+            Image("SurBanCurrent2", "Image", "CurrentGame.CurrentSurBannedList[2].HeaderImageSingleColor", 340, 5, 71, 35, specialProperties: CurrentBanLock("Sur", 2)),
+            Image("SurBanCurrent1", "Image", "CurrentGame.CurrentSurBannedList[1].HeaderImageSingleColor", 265, 5, 71, 35, specialProperties: CurrentBanLock("Sur", 1)),
+            Image("SurBanCurrent0", "Image", "CurrentGame.CurrentSurBannedList[0].HeaderImageSingleColor", 193, 5, 68, 35, specialProperties: CurrentBanLock("Sur", 0)),
+            Folded("SurBanCurrentLock0", "SurBanCurrent0", "Folded into SurBanCurrent0 lock overlay metadata."),
+            Folded("SurBanCurrentLock1", "SurBanCurrent1", "Folded into SurBanCurrent1 lock overlay metadata."),
+            Folded("SurBanCurrentLock2", "SurBanCurrent2", "Folded into SurBanCurrent2 lock overlay metadata."),
+            Folded("SurBanCurrentLock3", "SurBanCurrent3", "Folded into SurBanCurrent3 lock overlay metadata."),
+            Image("SurPick0", "BorderedImage", "CurrentGame.SurPlayerList[0].Character.HalfImage", 193, 65, 68, 110, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", clipToBounds: true),
+            Image("SurPick1", "BorderedImage", "CurrentGame.SurPlayerList[1].Character.HalfImage", 265, 65, 71, 110, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", clipToBounds: true),
+            Image("SurPick2", "BorderedImage", "CurrentGame.SurPlayerList[2].Character.HalfImage", 340, 65, 72, 110, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", clipToBounds: true),
+            Image("SurPick3", "BorderedImage", "CurrentGame.SurPlayerList[3].Character.HalfImage", 416, 65, 68, 110, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", clipToBounds: true),
+            Text("GameProgress", "GameProgressText", null, "WidgetsWindow.BpOverview_GameProgress", 471, 0, 178, 50, zIndex: 1),
+            Text("GameScoresSur", "Text", "CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText", "WidgetsWindow.BpOverview_GameScores", 495, 94, 52, 62),
+            Text("RatioChar", "Text", null, "WidgetsWindow.BpOverview_GameScores", 552, 89, 25, 62, staticText: ":"),
+            Text("GameScoresHun", "Text", "CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText", "WidgetsWindow.BpOverview_GameScores", 583, 94, 52, 62),
+            Image("HunPick", "BorderedImage", "CurrentGame.HunPlayer.Character.HalfImage", 644, 45, 291, 130, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", clipToBounds: true)
         ]);
 
         AddBlueprints(result, "WidgetsWindow", "MapV2Canvas",
         [
-            Blueprint("Arms_Factory", "Arms_Factory", "MapV2Display"),
-            Blueprint("The_Red_Church", "The_Red_Church", "MapV2Display"),
-            Blueprint("Sacred_Heart_Hospital", "Sacred_Heart_Hospital", "MapV2Display"),
-            Blueprint("Leo_s_Memory", "Leo_s_Memory", "MapV2Display"),
-            Blueprint("Moonlit_River_Park", "Moonlit_River_Park", "MapV2Display"),
-            Blueprint("Lakeside_Village", "Lakeside_Village", "MapV2Display"),
-            Blueprint("Eversleeping_Town", "Eversleeping_Town", "MapV2Display"),
-            Blueprint("Chinatown", "Chinatown", "MapV2Display"),
-            Blueprint("Darkwoods", "Darkwoods", "MapV2Display")
+            Removed("MapV2Canvas", "The legacy MapV2 Canvas is split into MapV2Window/BaseCanvas."),
+            MapV2("Arms_Factory", "ArmsFactory", 50.5),
+            MapV2("The_Red_Church", "TheRedChurch", 204),
+            MapV2("Sacred_Heart_Hospital", "SacredHeartHospital", 359),
+            MapV2("Leo_s_Memory", "LeosMemory", 514),
+            MapV2("Moonlit_River_Park", "MoonlitRiverPark", 669),
+            MapV2("Lakeside_Village", "LakesideVillage", 824),
+            MapV2("Eversleeping_Town", "EversleepingTown", 979),
+            MapV2("Chinatown", "ChinaTown", 1134),
+            MapV2("Darkwoods", "Darkwoods", 1289)
+        ]);
+
+        AddBlueprints(result, "WidgetsWindow", "MapBpCanvas",
+        [
+            Unsupported("MapBpCanvas", "Legacy MapBpV1 is not supported by Designer v3 converter and was skipped."),
+            Unsupported("PickedMap", "Legacy MapBpV1 is not supported by Designer v3 converter and was skipped."),
+            Unsupported("PickedMapName", "Legacy MapBpV1 is not supported by Designer v3 converter and was skipped."),
+            Unsupported("PickWord", "Legacy MapBpV1 is not supported by Designer v3 converter and was skipped."),
+            Unsupported("SurTeamName", "Legacy MapBpV1 is not supported by Designer v3 converter and was skipped."),
+            Unsupported("VS_Word", "Legacy MapBpV1 is not supported by Designer v3 converter and was skipped."),
+            Unsupported("HunTeamName", "Legacy MapBpV1 is not supported by Designer v3 converter and was skipped."),
+            Unsupported("BannedMap", "Legacy MapBpV1 is not supported by Designer v3 converter and was skipped."),
+            Unsupported("BannedMapName", "Legacy MapBpV1 is not supported by Designer v3 converter and was skipped."),
+            Unsupported("BanWord", "Legacy MapBpV1 is not supported by Designer v3 converter and was skipped.")
         ]);
 
         return result;
+    }
+
+    private static IReadOnlyDictionary<string, LegacyScoreGlobalCellBlueprint> CreateLegacyScoreGlobalCellBlueprints()
+    {
+        var result = new Dictionary<string, LegacyScoreGlobalCellBlueprint>(StringComparer.Ordinal);
+        foreach (var team in new[] { "Home", "Away" })
+        {
+            foreach (var game in Enumerable.Range(1, 5))
+            {
+                AddLegacyScoreGlobalCell(result, team, game, "FirstHalf", isOvertime: false);
+                AddLegacyScoreGlobalCell(result, team, game, "SecondHalf", isOvertime: false);
+                AddLegacyScoreGlobalCell(result, team, game, "FirstHalf", isOvertime: true);
+                AddLegacyScoreGlobalCell(result, team, game, "SecondHalf", isOvertime: true);
+            }
+        }
+
+        return result;
+    }
+
+    private static void AddLegacyScoreGlobalCell(
+        IDictionary<string, LegacyScoreGlobalCellBlueprint> result,
+        string team,
+        int game,
+        string half,
+        bool isOvertime)
+    {
+        var name = $"{team}TeamGame{game}{(isOvertime ? "Overtime" : string.Empty)}{half}";
+        result.Add(name, new LegacyScoreGlobalCellBlueprint(team, game, half, isOvertime));
     }
 
     private static void AddBlueprints(
@@ -1545,226 +1743,461 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             .Select(blueprint => blueprint with
             {
                 SourceWindow = window,
-                SourceCanvas = canvas
+                SourceCanvas = canvas,
+                TargetWindow = GetTargetWindowForBlueprint(window, canvas)
             })
             .ToArray();
     }
 
-    private static LegacyControlBlueprint[] TextNames(params string[] names) =>
-        names.Select(name => Blueprint(name, name, GetTextControlType(name))).ToArray();
+    private static string? GetTargetWindowForBlueprint(string window, string canvas) =>
+        (window, canvas) switch
+        {
+            ("WidgetsWindow", "BpOverViewCanvas") => "BpOverviewWindow",
+            ("WidgetsWindow", "MapV2Canvas") => "MapV2Window",
+            ("WidgetsWindow", "MapBpCanvas") => null,
+            (_, "BaseCanvas") => window,
+            _ => null
+        };
 
-    private static LegacyControlBlueprint[] ImageNames(params string[] names) =>
-        names.Select(name => Blueprint(name, name, GetImageControlType(name))).ToArray();
-
-    private static LegacyControlBlueprint Blueprint(
+    private static LegacyControlBlueprint Text(
         string legacyName,
-        string targetName,
         string controlType,
-        bool required = true) =>
+        string? textBinding,
+        string textStyleSourceKey,
+        double? left,
+        double? top,
+        double? width = null,
+        double? height = null,
+        string? targetName = null,
+        int zIndex = 0,
+        string? staticText = null,
+        string? textWrapping = null)
+    {
+        var style = GetTextStyleDefaults(textStyleSourceKey);
+        return new LegacyControlBlueprint
+        {
+            LegacyName = legacyName,
+            TargetName = targetName ?? legacyName,
+            TargetControlType = controlType,
+            TextBinding = textBinding,
+            StaticText = staticText,
+            FontFamily = style.FontFamily,
+            FontSize = style.FontSize,
+            FontWeight = style.FontWeight,
+            Color = style.Color,
+            HorizontalAlignment = "Center",
+            VerticalAlignment = "Center",
+            TextAlignment = "Center",
+            TextWrapping = textWrapping ?? style.TextWrapping,
+            ZIndex = zIndex,
+            DefaultLeft = left,
+            DefaultTop = top,
+            DefaultWidth = width,
+            DefaultHeight = height,
+            TextStyleSourceKey = textStyleSourceKey,
+            Status = LegacyControlBlueprintStatus.Mapped
+        };
+    }
+
+    private static LegacyControlBlueprint Header(
+        string legacyName,
+        string staticText,
+        double? left,
+        double? top,
+        double? width,
+        string textStyleSourceKey = "GameDataWindow.SurDataHeader") =>
+        Text(legacyName, "Text", null, textStyleSourceKey, left, top, width, null, staticText: staticText);
+
+    private static LegacyControlBlueprint Data(
+        string legacyName,
+        string textBinding,
+        string textStyleSourceKey,
+        double? left,
+        double? top) =>
+        Text(legacyName, "Text", textBinding, textStyleSourceKey, left, top);
+
+    private static LegacyControlBlueprint Image(
+        string legacyName,
+        string controlType,
+        string? bindingPath,
+        double? left,
+        double? top,
+        double? width,
+        double? height,
+        string? targetName = null,
+        int zIndex = 0,
+        ImageSizingMode? sizingMode = null,
+        string? stretch = "Uniform",
+        bool clipToBounds = false,
+        double? cornerRadius = null,
+        IReadOnlyDictionary<string, string>? specialProperties = null) =>
+        new()
+        {
+            LegacyName = legacyName,
+            TargetName = targetName ?? legacyName,
+            TargetControlType = controlType,
+            ImageBindingPath = bindingPath,
+            SizingMode = sizingMode,
+            Stretch = stretch,
+            HorizontalAlignment = "Center",
+            VerticalAlignment = "Center",
+            ClipToBounds = clipToBounds,
+            CornerRadius = cornerRadius,
+            ZIndex = zIndex,
+            DefaultLeft = left,
+            DefaultTop = top,
+            DefaultWidth = width,
+            DefaultHeight = height,
+            SpecialProperties = specialProperties?.ToDictionary(StringComparer.Ordinal) ?? [],
+            Status = LegacyControlBlueprintStatus.Mapped
+        };
+
+    private static LegacyControlBlueprint Talent(
+        string legacyName,
+        TalentTraitDisplayKind displayKind,
+        int? playerIndex,
+        double? left,
+        double? top,
+        double? width,
+        double? height,
+        string horizontalAlignment) =>
+        new()
+        {
+            LegacyName = legacyName,
+            TargetName = legacyName,
+            TargetControlType = "TalentTraitDisplay",
+            DefaultLeft = left,
+            DefaultTop = top,
+            DefaultWidth = width,
+            DefaultHeight = height,
+            HorizontalAlignment = horizontalAlignment,
+            VerticalAlignment = "Center",
+            SpecialProperties = playerIndex.HasValue
+                ? Props(("DisplayKind", displayKind.ToString()), ("PlayerIndex", playerIndex.Value.ToString()))
+                : Props(("DisplayKind", displayKind.ToString())),
+            Status = LegacyControlBlueprintStatus.Mapped
+        };
+
+    private static LegacyControlBlueprint ScoreRow(
+        string targetName,
+        TeamType teamType,
+        string textStyleSourceKey)
+    {
+        var style = GetTextStyleDefaults(textStyleSourceKey);
+        return new LegacyControlBlueprint
+        {
+            LegacyName = targetName,
+            TargetName = targetName,
+            TargetControlType = "GlobalScoreRow",
+            FontFamily = style.FontFamily,
+            FontWeight = style.FontWeight,
+            Color = style.Color,
+            FontSize = style.FontSize,
+            DefaultWidth = 1,
+            DefaultHeight = 1,
+            TextStyleSourceKey = textStyleSourceKey,
+            SpecialProperties = Props(("TeamType", teamType.ToString())),
+            Status = LegacyControlBlueprintStatus.Mapped
+        };
+    }
+
+    private static LegacyControlBlueprint MapV2(string legacyName, string mapKey, double left) =>
+        new()
+        {
+            LegacyName = legacyName,
+            TargetName = legacyName,
+            TargetControlType = "MapV2Display",
+            DefaultLeft = left,
+            DefaultTop = 0,
+            DefaultWidth = string.Equals(legacyName, "Arms_Factory", StringComparison.Ordinal) ? 149 : 151,
+            DefaultHeight = 160,
+            SpecialProperties = Props(
+                ("MapKey", mapKey),
+                ("MapNameFontFamily", "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简"),
+                ("MapNameFontWeight", "Normal"),
+                ("MapNameColor", "#FFFFFFFF"),
+                ("MapNameFontSize", "14"),
+                ("TeamNameFontFamily", "pack://application:,,,/Assets/Fonts/#Noto Sans"),
+                ("TeamNameFontWeight", "Normal"),
+                ("TeamNameColor", "#FFFFFFFF"),
+                ("TeamNameFontSize", "18"),
+                ("CampNameFontFamily", "pack://application:,,,/Assets/Fonts/#Noto Sans"),
+                ("CampNameFontWeight", "Normal"),
+                ("CampNameColor", "#FFFFFFFF"),
+                ("CampNameFontSize", "20"),
+                ("MapBorderNormalColor", "#FF2B483B"),
+                ("MapBorderBannedColor", "#FF9C3E2F")),
+            Status = LegacyControlBlueprintStatus.Mapped
+        };
+
+    private static LegacyControlBlueprint Folded(string legacyName, string targetName, string reason) =>
         new()
         {
             LegacyName = legacyName,
             TargetName = targetName,
-            ControlType = controlType,
-            Required = required
+            Status = LegacyControlBlueprintStatus.Folded,
+            UnsupportedReason = reason
         };
 
-    private static string GetTextControlType(string name)
+    private static LegacyControlBlueprint Removed(string legacyName, string reason) =>
+        new()
+        {
+            LegacyName = legacyName,
+            Status = LegacyControlBlueprintStatus.RemovedWithReason,
+            UnsupportedReason = reason
+        };
+
+    private static LegacyControlBlueprint Unsupported(string legacyName, string reason) =>
+        new()
+        {
+            LegacyName = legacyName,
+            Status = LegacyControlBlueprintStatus.Unsupported,
+            UnsupportedReason = reason
+        };
+
+    private static Dictionary<string, string> Props(params (string Key, string Value)[] values) =>
+        values.ToDictionary(item => item.Key, item => item.Value, StringComparer.Ordinal);
+
+    private static Dictionary<string, string> CurrentBanLock(string camp, int index) =>
+        Props(
+            ("Lockable", "true"),
+            ("LockVisibleWhen", FrontedOverlayVisibilityMode.VisibleWhenFalse.ToString()),
+            ("LockVisibilityBindingPath", $"CanCurrent{camp}BannedList[{index}]"),
+            ("LockImagePath", "Resources/CurrentBanLock.png"));
+
+    private static Dictionary<string, string> GlobalBanLock(string camp, int index) =>
+        Props(
+            ("Lockable", "true"),
+            ("LockVisibleWhen", FrontedOverlayVisibilityMode.VisibleWhenFalse.ToString()),
+            ("LockVisibilityBindingPath", $"CanGlobal{camp}BannedList[{index}]"),
+            ("LockImagePath", "Resources/GlobalBanLock.png"));
+
+    private static Dictionary<string, string> PickingBorder(string name) =>
+        Props(("PickingBorderAvailable", "true"), ("PickingBorderName", name));
+
+    private static LegacyTextStyleDefaults GetTextStyleDefaults(string sourceKey)
     {
-        if (string.Equals(name, "GameProgress", StringComparison.Ordinal))
+        const string white = "#FFFFFFFF";
+        const string notoSans = "Noto Sans";
+        const string pop = "pack://application:,,,/Assets/Fonts/#华康POP1体W5";
+        const string hanyi = "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简";
+
+        return sourceKey switch
         {
-            return "GameProgressText";
-        }
-
-        if (name.Contains("MapName", StringComparison.Ordinal)
-            || string.Equals(name, "PickedMapName", StringComparison.Ordinal)
-            || string.Equals(name, "BannedMapName", StringComparison.Ordinal))
-        {
-            return "MapNameText";
-        }
-
-        return "Text";
-    }
-
-    private static string GetImageControlType(string name)
-    {
-        if (name.Contains("Talent", StringComparison.Ordinal) || string.Equals(name, "Trait", StringComparison.Ordinal))
-        {
-            return "TalentTraitDisplay";
-        }
-
-        if (name.Contains("Pick", StringComparison.Ordinal) || string.Equals(name, "Map", StringComparison.Ordinal) || name.EndsWith("Image", StringComparison.Ordinal))
-        {
-            return "BorderedImage";
-        }
-
-        return "Image";
+            "BpWindow.Timer" => new(null, null, null, null, pop, "Bold", white, 58),
+            "BpWindow.TeamName" => new(null, null, null, null, notoSans, "Normal", white, 16),
+            "BpWindow.GameScores" => new(null, null, null, null, pop, "Bold", white, 26),
+            "BpWindow.MajorPoints" => new(null, null, null, null, "Arial", "Medium", white, 20),
+            "BpWindow.PlayerId" => new("Left", null, null, null, notoSans, "Normal", white, 16),
+            "BpWindow.MapName" => new(null, null, null, null, hanyi, "Normal", white, 20),
+            "BpWindow.GameProgress" => new(null, null, null, null, pop, "Normal", white, 16),
+            "CutSceneWindow.TeamName" => new(null, null, null, "WrapWithOverflow", notoSans, "Bold", white, 28),
+            "CutSceneWindow.MajorPoints" => new(null, null, null, null, "Arial", "Bold", white, 28),
+            "CutSceneWindow.SurPlayerId" => new("Left", null, null, null, notoSans, "Normal", white, 18),
+            "CutSceneWindow.HunPlayerId" => new(null, null, null, null, notoSans, "Normal", white, 30),
+            "CutSceneWindow.MapName" => new(null, null, null, null, hanyi, "Normal", white, 24),
+            "CutSceneWindow.GameProgress" => new(null, null, null, null, pop, "Normal", white, 22),
+            "ScoreWindow.GameScores" => new(null, null, null, null, pop, "Normal", white, 100),
+            "ScoreWindow.MajorPoints" => new(null, null, null, null, pop, "Normal", white, 38),
+            "ScoreWindow.TeamName" => new(null, null, null, null, pop, "Normal", white, 32),
+            "ScoreWindow.ScoreGlobal_TeamName" => new(null, null, null, null, pop, "Normal", white, 24),
+            "ScoreWindow.ScoreGlobal_Data" => new(null, null, null, null, "Arial", "Bold", white, 24),
+            "ScoreWindow.ScoreGlobal_Total" => new(null, null, null, null, pop, "Bold", white, 40),
+            "GameDataWindow.TeamName" => new(null, null, null, "WrapWithOverflow", notoSans, "Normal", white, 32),
+            "GameDataWindow.GameScores" => new(null, null, null, null, pop, "Bold", white, 80),
+            "GameDataWindow.MajorPoints" => new(null, null, null, null, "Arial", "Bold", white, 30),
+            "GameDataWindow.PlayerId" => new(null, null, null, null, notoSans, "Normal", white, 22),
+            "GameDataWindow.MapName" => new(null, null, null, null, hanyi, "Normal", white, 22),
+            "GameDataWindow.GameProgress" => new(null, null, null, null, pop, "Normal", white, 20),
+            "GameDataWindow.SurDataHeader" => new(null, null, null, null, notoSans, "Normal", white, 16),
+            "GameDataWindow.HunDataHeader" => new(null, null, null, null, notoSans, "Normal", white, 16),
+            "GameDataWindow.SurData" => new(null, null, null, null, pop, "Normal", white, 22),
+            "GameDataWindow.HunData" => new(null, null, null, null, pop, "Normal", white, 22),
+            "WidgetsWindow.BpOverview_TeamName" => new(null, null, null, "WrapWithOverflow", notoSans, "Normal", white, 22),
+            "WidgetsWindow.BpOverview_GameProgress" => new(null, null, null, null, pop, "Normal", white, 22),
+            "WidgetsWindow.BpOverview_GameScores" => new(null, null, null, null, pop, "Normal", white, 50),
+            _ => new(null, null, null, null, notoSans, "Normal", white, 16)
+        };
     }
 
     private static FrontedControlConfigBase CreateDefaultControl(LegacyControlBlueprint blueprint)
     {
-        return blueprint.ControlType switch
+        return blueprint.TargetControlType switch
         {
             "Text" => CreateDefaultText(blueprint),
-            "MapNameText" => CreateDefaultMapNameText(blueprint.TargetName),
-            "GameProgressText" => CreateDefaultGameProgressText(),
+            "MapNameText" => CreateDefaultMapNameText(blueprint),
+            "GameProgressText" => CreateDefaultGameProgressText(blueprint),
             "Image" => CreateDefaultImage(blueprint),
             "BorderedImage" => CreateDefaultBorderedImage(blueprint),
-            "TalentTraitDisplay" => CreateDefaultTalentTrait(blueprint.TargetName),
-            "GlobalScoreRow" => CreateDefaultGlobalScoreRow(blueprint.TargetName),
-            "MapV2Display" => CreateDefaultMapV2Display(blueprint.TargetName),
-            _ => new FrontedControlConfigBase { ControlType = blueprint.ControlType }
+            "TalentTraitDisplay" => CreateDefaultTalentTrait(blueprint),
+            "GlobalScoreRow" => CreateDefaultGlobalScoreRow(blueprint),
+            "MapV2Display" => CreateDefaultMapV2Display(blueprint),
+            _ => new FrontedControlConfigBase { ControlType = blueprint.TargetControlType }
         };
     }
 
     private static TextFrontedControlConfig CreateDefaultText(LegacyControlBlueprint blueprint)
     {
-        var name = blueprint.TargetName;
-        var style = GetLegacyTextDefaults(blueprint.SourceWindow, blueprint.SourceCanvas, name);
         return new TextFrontedControlConfig
         {
-            Text = GetStaticText(name),
-            TextBinding = CreateTextBinding(GetTextBindingPath(name)),
-            HorizontalAlignment = style.HorizontalAlignment,
-            VerticalAlignment = style.VerticalAlignment,
-            TextAlignment = style.TextAlignment,
-            TextWrapping = style.TextWrapping,
-            FontFamily = style.FontFamily,
-            FontWeight = style.FontWeight,
-            Color = style.Color,
-            FontSize = style.FontSize,
-            Width = 40,
-            Height = 24
+            Text = blueprint.StaticText,
+            TextBinding = CreateTextBinding(blueprint.TextBinding),
+            BindingPath = blueprint.BindingPath,
+            HorizontalAlignment = blueprint.HorizontalAlignment,
+            VerticalAlignment = blueprint.VerticalAlignment,
+            TextAlignment = blueprint.TextAlignment,
+            TextWrapping = blueprint.TextWrapping,
+            FontFamily = blueprint.FontFamily,
+            FontWeight = blueprint.FontWeight,
+            Color = blueprint.Color,
+            FontSize = blueprint.FontSize.GetValueOrDefault(),
+            Width = blueprint.DefaultWidth,
+            Height = blueprint.DefaultHeight
         };
     }
 
-    private static MapNameTextControlConfig CreateDefaultMapNameText(string name)
+    private static MapNameTextControlConfig CreateDefaultMapNameText(LegacyControlBlueprint blueprint)
     {
         return new MapNameTextControlConfig
         {
-            BindingPath = name.StartsWith("Banned", StringComparison.Ordinal)
-                ? "CurrentGame.BannedMap"
-                : "CurrentGame.PickedMap",
-            HorizontalAlignment = "Center",
-            VerticalAlignment = "Center",
-            TextAlignment = "Center",
-            FontFamily = "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简",
-            FontWeight = "Normal",
-            Color = "#FFFFFFFF",
-            FontSize = 22,
-            Width = 80,
-            Height = 24
+            BindingPath = blueprint.BindingPath,
+            HorizontalAlignment = blueprint.HorizontalAlignment,
+            VerticalAlignment = blueprint.VerticalAlignment,
+            TextAlignment = blueprint.TextAlignment,
+            FontFamily = blueprint.FontFamily,
+            FontWeight = blueprint.FontWeight,
+            Color = blueprint.Color,
+            FontSize = blueprint.FontSize.GetValueOrDefault(),
+            EmptyText = blueprint.StaticText,
+            Width = blueprint.DefaultWidth,
+            Height = blueprint.DefaultHeight
         };
     }
 
-    private static GameProgressTextControlConfig CreateDefaultGameProgressText()
+    private static GameProgressTextControlConfig CreateDefaultGameProgressText(LegacyControlBlueprint blueprint)
     {
         return new GameProgressTextControlConfig
         {
-            HorizontalAlignment = "Center",
-            VerticalAlignment = "Center",
-            TextAlignment = "Center",
-            FontFamily = "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
-            FontWeight = "Normal",
-            Color = "#FFFFFFFF",
-            FontSize = 22,
-            Width = 120,
-            Height = 36
+            BindingPath = blueprint.BindingPath,
+            HorizontalAlignment = blueprint.HorizontalAlignment,
+            VerticalAlignment = blueprint.VerticalAlignment,
+            TextAlignment = blueprint.TextAlignment,
+            FontFamily = blueprint.FontFamily,
+            FontWeight = blueprint.FontWeight,
+            Color = blueprint.Color,
+            FontSize = blueprint.FontSize.GetValueOrDefault(),
+            Width = blueprint.DefaultWidth,
+            Height = blueprint.DefaultHeight
         };
     }
 
     private static ImageFrontedControlConfig CreateDefaultImage(LegacyControlBlueprint blueprint)
     {
-        var name = blueprint.TargetName;
         var image = new ImageFrontedControlConfig
         {
-            BindingPath = GetImageBindingPath(blueprint.SourceWindow, blueprint.SourceCanvas, name),
-            SizingMode = ImageSizingMode.FillContainer,
-            Stretch = "Uniform",
-            Width = 40,
-            Height = 40
+            BindingPath = blueprint.ImageBindingPath ?? blueprint.BindingPath,
+            ImagePath = blueprint.ImagePath,
+            SizingMode = blueprint.SizingMode ?? ImageSizingMode.FillContainer,
+            Stretch = blueprint.Stretch,
+            HorizontalAlignment = blueprint.HorizontalAlignment,
+            VerticalAlignment = blueprint.VerticalAlignment,
+            ClipToBounds = blueprint.ClipToBounds,
+            CornerRadius = blueprint.CornerRadius,
+            Width = blueprint.DefaultWidth,
+            Height = blueprint.DefaultHeight
         };
-        ConfigureLockableImage(name, image);
+        ApplyImageSpecialProperties(image, blueprint);
         return image;
     }
 
     private static BorderedImageFrontedControlConfig CreateDefaultBorderedImage(LegacyControlBlueprint blueprint)
     {
-        var name = blueprint.TargetName;
         var image = new BorderedImageFrontedControlConfig
         {
-            BindingPath = GetImageBindingPath(blueprint.SourceWindow, blueprint.SourceCanvas, name),
-            SizingMode = ImageSizingMode.OverflowCrop,
-            Stretch = "UniformToFill",
-            HorizontalAlignment = "Center",
-            VerticalAlignment = "Center",
-            ClipToBounds = name.Contains("Pick", StringComparison.Ordinal) || name.EndsWith("Image", StringComparison.Ordinal),
-            Width = 40,
-            Height = 40
+            BindingPath = blueprint.ImageBindingPath ?? blueprint.BindingPath,
+            ImagePath = blueprint.ImagePath,
+            SizingMode = blueprint.SizingMode ?? ImageSizingMode.OverflowCrop,
+            Stretch = blueprint.Stretch,
+            HorizontalAlignment = blueprint.HorizontalAlignment,
+            VerticalAlignment = blueprint.VerticalAlignment,
+            ClipToBounds = blueprint.ClipToBounds,
+            CornerRadius = blueprint.CornerRadius,
+            Width = blueprint.DefaultWidth,
+            Height = blueprint.DefaultHeight
         };
-        ConfigureLockableImage(name, image);
-        ConfigurePickingBorderImage(blueprint, image);
-        if (string.Equals(blueprint.SourceWindow, "CutSceneWindow", StringComparison.Ordinal)
-            && name.StartsWith("SurPick", StringComparison.Ordinal))
-        {
-            image.ImageWidth = 556.5;
-            image.ImageHeight = null;
-        }
-
+        ApplyImageSpecialProperties(image, blueprint);
         return image;
     }
 
-    private static TalentTraitDisplayControlConfig CreateDefaultTalentTrait(string name)
+    private static TalentTraitDisplayControlConfig CreateDefaultTalentTrait(LegacyControlBlueprint blueprint)
     {
-        if (name.StartsWith("SurTalent", StringComparison.Ordinal)
-            && int.TryParse(name["SurTalent".Length..], out var index))
+        var control = new TalentTraitDisplayControlConfig
         {
-            return new TalentTraitDisplayControlConfig
-            {
-                DisplayKind = TalentTraitDisplayKind.SurvivorTalent,
-                PlayerIndex = index,
-                HorizontalAlignment = "Right",
-                VerticalAlignment = "Center",
-                Width = 180,
-                Height = 38
-            };
+            HorizontalAlignment = blueprint.HorizontalAlignment,
+            VerticalAlignment = blueprint.VerticalAlignment,
+            Width = blueprint.DefaultWidth,
+            Height = blueprint.DefaultHeight
+        };
+
+        if (blueprint.SpecialProperties.TryGetValue("DisplayKind", out var displayKind)
+            && Enum.TryParse<TalentTraitDisplayKind>(displayKind, out var parsedKind))
+        {
+            control.DisplayKind = parsedKind;
         }
 
-        return new TalentTraitDisplayControlConfig
+        if (blueprint.SpecialProperties.TryGetValue("PlayerIndex", out var indexText)
+            && int.TryParse(indexText, out var index))
         {
-            DisplayKind = string.Equals(name, "Trait", StringComparison.Ordinal)
-                ? TalentTraitDisplayKind.HunterTrait
-                : TalentTraitDisplayKind.HunterTalent,
-            HorizontalAlignment = "Left",
-            VerticalAlignment = "Center",
-            Width = 180,
-            Height = 38
-        };
+            control.PlayerIndex = index;
+        }
+
+        return control;
     }
 
-    private static GlobalScoreRowControlConfig CreateDefaultGlobalScoreRow(string name)
+    private static GlobalScoreRowControlConfig CreateDefaultGlobalScoreRow(LegacyControlBlueprint blueprint)
     {
+        var teamType = TeamType.HomeTeam;
+        if (blueprint.SpecialProperties.TryGetValue("TeamType", out var teamTypeText)
+            && Enum.TryParse<TeamType>(teamTypeText, out var parsedTeamType))
+        {
+            teamType = parsedTeamType;
+        }
+
         return new GlobalScoreRowControlConfig
         {
-            TeamType = name.StartsWith("Away", StringComparison.Ordinal) ? TeamType.AwayTeam : TeamType.HomeTeam,
-            FontFamily = "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
-            FontWeight = "Normal",
-            Color = "#FFFFFFFF",
-            FontSize = 24,
-            Width = 1,
-            Height = 1
+            TeamType = teamType,
+            FontFamily = blueprint.FontFamily,
+            FontWeight = blueprint.FontWeight,
+            Color = blueprint.Color,
+            FontSize = blueprint.FontSize.GetValueOrDefault(24D),
+            Width = blueprint.DefaultWidth,
+            Height = blueprint.DefaultHeight
         };
     }
 
-    private static MapV2DisplayControlConfig CreateDefaultMapV2Display(string name)
+    private static MapV2DisplayControlConfig CreateDefaultMapV2Display(LegacyControlBlueprint blueprint)
     {
         return new MapV2DisplayControlConfig
         {
-            MapKey = GetMapV2Key(name),
-            Width = 151,
-            Height = 160,
-            MapBorderNormalColor = "#FF2B483B",
-            MapBorderBannedColor = "#FF9C3E2F"
+            MapKey = blueprint.SpecialProperties.GetValueOrDefault("MapKey") ?? string.Empty,
+            Width = blueprint.DefaultWidth,
+            Height = blueprint.DefaultHeight,
+            MapNameFontFamily = blueprint.SpecialProperties.GetValueOrDefault("MapNameFontFamily"),
+            MapNameFontWeight = blueprint.SpecialProperties.GetValueOrDefault("MapNameFontWeight"),
+            MapNameColor = blueprint.SpecialProperties.GetValueOrDefault("MapNameColor"),
+            MapNameFontSize = ReadDoubleSpecialProperty(blueprint, "MapNameFontSize"),
+            TeamNameFontFamily = blueprint.SpecialProperties.GetValueOrDefault("TeamNameFontFamily"),
+            TeamNameFontWeight = blueprint.SpecialProperties.GetValueOrDefault("TeamNameFontWeight"),
+            TeamNameColor = blueprint.SpecialProperties.GetValueOrDefault("TeamNameColor"),
+            TeamNameFontSize = ReadDoubleSpecialProperty(blueprint, "TeamNameFontSize"),
+            CampNameFontFamily = blueprint.SpecialProperties.GetValueOrDefault("CampNameFontFamily"),
+            CampNameFontWeight = blueprint.SpecialProperties.GetValueOrDefault("CampNameFontWeight"),
+            CampNameColor = blueprint.SpecialProperties.GetValueOrDefault("CampNameColor"),
+            CampNameFontSize = ReadDoubleSpecialProperty(blueprint, "CampNameFontSize"),
+            MapBorderNormalColor = blueprint.SpecialProperties.GetValueOrDefault("MapBorderNormalColor"),
+            MapBorderBannedColor = blueprint.SpecialProperties.GetValueOrDefault("MapBorderBannedColor"),
+            PickingBorderImagePath = blueprint.SpecialProperties.GetValueOrDefault("PickingBorderImagePath"),
+            PickingBorderFillColor = blueprint.SpecialProperties.GetValueOrDefault("PickingBorderFillColor")
         };
     }
 
@@ -1774,45 +2207,254 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
     {
         if (string.IsNullOrWhiteSpace(control.ControlType))
         {
-            control.ControlType = blueprint.ControlType;
+            control.ControlType = blueprint.TargetControlType;
         }
 
-        switch (control)
+        if (blueprint.DefaultLeft.HasValue)
         {
-            case TextFrontedControlConfig text:
-                var textStyle = GetLegacyTextDefaults(blueprint.SourceWindow, blueprint.SourceCanvas, blueprint.TargetName);
-                text.TextBinding ??= CreateTextBinding(GetTextBindingPath(blueprint.TargetName));
-                text.Text ??= GetStaticText(blueprint.TargetName);
-                text.HorizontalAlignment ??= textStyle.HorizontalAlignment;
-                text.VerticalAlignment ??= textStyle.VerticalAlignment;
-                text.TextAlignment ??= textStyle.TextAlignment;
-                text.TextWrapping ??= textStyle.TextWrapping;
-                text.FontFamily ??= textStyle.FontFamily;
-                text.FontWeight ??= textStyle.FontWeight;
-                text.Color ??= textStyle.Color;
-                if (text.FontSize <= 0)
-                {
-                    text.FontSize = textStyle.FontSize;
-                }
+            control.Left = blueprint.DefaultLeft.Value;
+        }
 
-                break;
-            case MapNameTextControlConfig mapName when string.IsNullOrWhiteSpace(mapName.BindingPath):
-                mapName.BindingPath = blueprint.TargetName.StartsWith("Banned", StringComparison.Ordinal)
-                    ? "CurrentGame.BannedMap"
-                    : "CurrentGame.PickedMap";
-                break;
-            case ImageFrontedControlConfig image:
-                image.BindingPath ??= GetImageBindingPath(blueprint.SourceWindow, blueprint.SourceCanvas, blueprint.TargetName);
-                ConfigureLockableImage(blueprint.TargetName, image);
-                break;
-            case GlobalScoreRowControlConfig row:
-                row.TeamType = blueprint.TargetName.StartsWith("Away", StringComparison.Ordinal) ? TeamType.AwayTeam : TeamType.HomeTeam;
-                break;
-            case MapV2DisplayControlConfig map when string.IsNullOrWhiteSpace(map.MapKey):
-                map.MapKey = GetMapV2Key(blueprint.TargetName);
-                break;
+        if (blueprint.DefaultTop.HasValue)
+        {
+            control.Top = blueprint.DefaultTop.Value;
+        }
+
+        control.ZIndex = blueprint.ZIndex;
+    }
+
+    private static void ApplyImageSpecialProperties(ImageFrontedControlConfig image, LegacyControlBlueprint blueprint)
+    {
+        if (ReadBoolSpecialProperty(blueprint, "Lockable"))
+        {
+            image.Lockable = true;
+        }
+
+        if (blueprint.SpecialProperties.TryGetValue("LockImagePath", out var lockImagePath))
+        {
+            image.LockImagePath = lockImagePath;
+        }
+
+        if (blueprint.SpecialProperties.TryGetValue("LockVisibilityBindingPath", out var lockVisibilityBindingPath))
+        {
+            image.LockVisibilityBindingPath = lockVisibilityBindingPath;
+        }
+
+        if (blueprint.SpecialProperties.TryGetValue("LockVisibleWhen", out var lockVisibleWhen)
+            && Enum.TryParse<FrontedOverlayVisibilityMode>(lockVisibleWhen, out var parsedVisibleWhen))
+        {
+            image.LockVisibleWhen = parsedVisibleWhen;
+        }
+
+        if (blueprint.SpecialProperties.TryGetValue("PickingBorderAvailable", out var pickingBorderAvailable)
+            && bool.TryParse(pickingBorderAvailable, out var parsedPickingBorderAvailable))
+        {
+            image.PickingBorderAvailable = parsedPickingBorderAvailable;
+        }
+
+        if (blueprint.SpecialProperties.TryGetValue("PickingBorderName", out var pickingBorderName))
+        {
+            image.PickingBorderName = pickingBorderName;
+        }
+
+        if (blueprint.SpecialProperties.TryGetValue("PickingBorderImagePath", out var pickingBorderImagePath))
+        {
+            image.PickingBorderImagePath = pickingBorderImagePath;
+        }
+
+        if (image is BorderedImageFrontedControlConfig bordered)
+        {
+            bordered.ImageWidth = ReadNullableDoubleSpecialProperty(blueprint, "ImageWidth");
+            bordered.ImageHeight = ReadNullableDoubleSpecialProperty(blueprint, "ImageHeight");
         }
     }
+
+    private static void ApplyLegacyTextStyleOverrides(
+        FrontedCanvasConfig config,
+        LegacyLayoutMapping mapping,
+        LegacySettings? legacySettings,
+        ICollection<string> diagnostics)
+    {
+        if (legacySettings is null)
+        {
+            return;
+        }
+
+        var key = new LegacyLayoutKey(mapping.SourceWindow, mapping.SourceCanvas);
+        if (!LegacyControlBlueprints.TryGetValue(key, out var blueprints))
+        {
+            return;
+        }
+
+        foreach (var blueprint in blueprints)
+        {
+            if (blueprint.Status is not LegacyControlBlueprintStatus.Mapped
+                and not LegacyControlBlueprintStatus.Aggregated
+                || !config.Controls.TryGetValue(blueprint.TargetName, out var control))
+            {
+                continue;
+            }
+
+            if (!string.IsNullOrWhiteSpace(blueprint.TextStyleSourceKey)
+                && TryGetLegacyTextStyle(legacySettings, blueprint.TextStyleSourceKey, out var style)
+                && style?.IsActive == true
+                && control is IFrontedTextStyleConfig textControl)
+            {
+                ApplyLegacyTextStyle(textControl, style);
+                diagnostics.Add($"Legacy text style applied: {mapping.SourceWindow}/{mapping.SourceCanvas}/{blueprint.TargetName} <- {blueprint.TextStyleSourceKey}");
+            }
+
+            if (control is MapV2DisplayControlConfig map)
+            {
+                ApplyMapV2LegacyTextStyle(map, legacySettings, blueprint, diagnostics, mapping);
+            }
+        }
+    }
+
+    private static void ApplyMapV2LegacyTextStyle(
+        MapV2DisplayControlConfig map,
+        LegacySettings legacySettings,
+        LegacyControlBlueprint blueprint,
+        ICollection<string> diagnostics,
+        LegacyLayoutMapping mapping)
+    {
+        if (TryGetLegacyTextStyle(legacySettings, "WidgetsWindow.MapBpV2_MapName", out var mapNameStyle)
+            && mapNameStyle?.IsActive == true)
+        {
+            map.MapNameColor = FirstNonEmpty(mapNameStyle.Color, map.MapNameColor);
+            map.MapNameFontFamily = FirstNonEmpty(
+                LegacyFrontedTextStyleMigrator.NormalizeLegacyFontFamilySite(mapNameStyle.FontFamilySite),
+                map.MapNameFontFamily);
+            map.MapNameFontWeight = mapNameStyle.FontWeight.ToString();
+            if (mapNameStyle.FontSize > 0)
+            {
+                map.MapNameFontSize = mapNameStyle.FontSize;
+            }
+
+            diagnostics.Add($"Legacy text style applied: {mapping.SourceWindow}/{mapping.SourceCanvas}/{blueprint.TargetName} <- WidgetsWindow.MapBpV2_MapName");
+        }
+
+        if (TryGetLegacyTextStyle(legacySettings, "WidgetsWindow.MapBpV2_TeamName", out var teamNameStyle)
+            && teamNameStyle?.IsActive == true)
+        {
+            map.TeamNameColor = FirstNonEmpty(teamNameStyle.Color, map.TeamNameColor);
+            map.TeamNameFontFamily = FirstNonEmpty(
+                LegacyFrontedTextStyleMigrator.NormalizeLegacyFontFamilySite(teamNameStyle.FontFamilySite),
+                map.TeamNameFontFamily);
+            map.TeamNameFontWeight = teamNameStyle.FontWeight.ToString();
+            if (teamNameStyle.FontSize > 0)
+            {
+                map.TeamNameFontSize = teamNameStyle.FontSize;
+            }
+
+            diagnostics.Add($"Legacy text style applied: {mapping.SourceWindow}/{mapping.SourceCanvas}/{blueprint.TargetName} <- WidgetsWindow.MapBpV2_TeamName");
+        }
+
+        if (TryGetLegacyTextStyle(legacySettings, "WidgetsWindow.MapBpV2_CampWords", out var campStyle)
+            && campStyle?.IsActive == true)
+        {
+            map.CampNameColor = FirstNonEmpty(campStyle.Color, map.CampNameColor);
+            map.CampNameFontFamily = FirstNonEmpty(
+                LegacyFrontedTextStyleMigrator.NormalizeLegacyFontFamilySite(campStyle.FontFamilySite),
+                map.CampNameFontFamily);
+            map.CampNameFontWeight = campStyle.FontWeight.ToString();
+            if (campStyle.FontSize > 0)
+            {
+                map.CampNameFontSize = campStyle.FontSize;
+            }
+
+            diagnostics.Add($"Legacy text style applied: {mapping.SourceWindow}/{mapping.SourceCanvas}/{blueprint.TargetName} <- WidgetsWindow.MapBpV2_CampWords");
+        }
+    }
+
+    private static bool TryGetLegacyTextStyle(
+        LegacySettings legacySettings,
+        string sourceKey,
+        out LegacyTextSettings? style)
+    {
+        style = sourceKey switch
+        {
+            "BpWindow.Timer" => legacySettings.BpWindowSettings?.TextSettings?.Timer,
+            "BpWindow.TeamName" => legacySettings.BpWindowSettings?.TextSettings?.TeamName,
+            "BpWindow.GameScores" => legacySettings.BpWindowSettings?.TextSettings?.GameScores,
+            "BpWindow.MajorPoints" => legacySettings.BpWindowSettings?.TextSettings?.MajorPoints,
+            "BpWindow.PlayerId" => legacySettings.BpWindowSettings?.TextSettings?.PlayerId,
+            "BpWindow.MapName" => legacySettings.BpWindowSettings?.TextSettings?.MapName,
+            "BpWindow.GameProgress" => legacySettings.BpWindowSettings?.TextSettings?.GameProgress,
+            "CutSceneWindow.TeamName" => legacySettings.CutSceneWindowSettings?.TextSettings?.TeamName,
+            "CutSceneWindow.MajorPoints" => legacySettings.CutSceneWindowSettings?.TextSettings?.MajorPoints,
+            "CutSceneWindow.SurPlayerId" => legacySettings.CutSceneWindowSettings?.TextSettings?.SurPlayerId,
+            "CutSceneWindow.HunPlayerId" => legacySettings.CutSceneWindowSettings?.TextSettings?.HunPlayerId,
+            "CutSceneWindow.MapName" => legacySettings.CutSceneWindowSettings?.TextSettings?.MapName,
+            "CutSceneWindow.GameProgress" => legacySettings.CutSceneWindowSettings?.TextSettings?.GameProgress,
+            "ScoreWindow.GameScores" => legacySettings.ScoreWindowSettings?.TextSettings?.GameScores,
+            "ScoreWindow.MajorPoints" => legacySettings.ScoreWindowSettings?.TextSettings?.MajorPoints,
+            "ScoreWindow.TeamName" => legacySettings.ScoreWindowSettings?.TextSettings?.TeamName,
+            "ScoreWindow.ScoreGlobal_TeamName" => legacySettings.ScoreWindowSettings?.TextSettings?.ScoreGlobal_TeamName,
+            "ScoreWindow.ScoreGlobal_Data" => legacySettings.ScoreWindowSettings?.TextSettings?.ScoreGlobal_Data,
+            "ScoreWindow.ScoreGlobal_Total" => legacySettings.ScoreWindowSettings?.TextSettings?.ScoreGlobal_Total,
+            "GameDataWindow.TeamName" => legacySettings.GameDataWindowSettings?.TextSettings?.TeamName,
+            "GameDataWindow.GameScores" => legacySettings.GameDataWindowSettings?.TextSettings?.GameScores,
+            "GameDataWindow.MajorPoints" => legacySettings.GameDataWindowSettings?.TextSettings?.MajorPoints,
+            "GameDataWindow.PlayerId" => legacySettings.GameDataWindowSettings?.TextSettings?.PlayerId,
+            "GameDataWindow.MapName" => legacySettings.GameDataWindowSettings?.TextSettings?.MapName,
+            "GameDataWindow.GameProgress" => legacySettings.GameDataWindowSettings?.TextSettings?.GameProgress,
+            "GameDataWindow.SurDataHeader" => legacySettings.GameDataWindowSettings?.TextSettings?.SurDataHeader,
+            "GameDataWindow.HunDataHeader" => legacySettings.GameDataWindowSettings?.TextSettings?.HunDataHeader,
+            "GameDataWindow.SurData" => legacySettings.GameDataWindowSettings?.TextSettings?.SurData,
+            "GameDataWindow.HunData" => legacySettings.GameDataWindowSettings?.TextSettings?.HunData,
+            "WidgetsWindow.BpOverview_TeamName" => legacySettings.WidgetsWindowSettings?.TextSettings?.BpOverview_TeamName,
+            "WidgetsWindow.BpOverview_GameProgress" => legacySettings.WidgetsWindowSettings?.TextSettings?.BpOverview_GameProgress,
+            "WidgetsWindow.BpOverview_GameScores" => legacySettings.WidgetsWindowSettings?.TextSettings?.BpOverview_GameScores,
+            "WidgetsWindow.MapBpV2_MapName" => legacySettings.WidgetsWindowSettings?.TextSettings?.MapBpV2_MapName,
+            "WidgetsWindow.MapBpV2_TeamName" => legacySettings.WidgetsWindowSettings?.TextSettings?.MapBpV2_TeamName,
+            "WidgetsWindow.MapBpV2_CampWords" => legacySettings.WidgetsWindowSettings?.TextSettings?.MapBpV2_CampWords,
+            _ => null
+        };
+
+        return style is not null;
+    }
+
+    private static void ApplyLegacyTextStyle(IFrontedTextStyleConfig target, LegacyTextSettings style)
+    {
+        if (!string.IsNullOrWhiteSpace(style.Color))
+        {
+            target.Color = style.Color.Trim();
+        }
+
+        var fontFamily = LegacyFrontedTextStyleMigrator.NormalizeLegacyFontFamilySite(style.FontFamilySite);
+        if (!string.IsNullOrWhiteSpace(fontFamily))
+        {
+            target.FontFamily = fontFamily;
+        }
+
+        if (style.FontSize > 0)
+        {
+            target.FontSize = style.FontSize;
+        }
+
+        target.FontWeight = style.FontWeight.ToString();
+    }
+
+    private static string? FirstNonEmpty(string? value, string? fallback) =>
+        string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
+
+    private static bool ReadBoolSpecialProperty(LegacyControlBlueprint blueprint, string key) =>
+        blueprint.SpecialProperties.TryGetValue(key, out var value)
+        && bool.TryParse(value, out var result)
+        && result;
+
+    private static double ReadDoubleSpecialProperty(LegacyControlBlueprint blueprint, string key) =>
+        blueprint.SpecialProperties.TryGetValue(key, out var value)
+        && double.TryParse(value, out var result)
+            ? result
+            : 0D;
+
+    private static double? ReadNullableDoubleSpecialProperty(LegacyControlBlueprint blueprint, string key) =>
+        blueprint.SpecialProperties.TryGetValue(key, out var value)
+        && double.TryParse(value, out var result)
+            ? result
+            : null;
 
     private static FrontedTextBindingExpression? CreateTextBinding(string? path)
     {
@@ -1828,420 +2470,6 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                     }
                 ]
             };
-    }
-
-    private static string? GetStaticText(string name)
-    {
-        return name switch
-        {
-            "RatioChar" => ":",
-            "VS_Word" => "VS",
-            "PickWord" => "Pick",
-            "BanWord" => "Ban",
-            _ => null
-        };
-    }
-
-    private static string? GetTextBindingPath(string name)
-    {
-        if (string.Equals(name, "SurTeamName", StringComparison.Ordinal)
-            || string.Equals(name, "SurTeamNameInOverview", StringComparison.Ordinal))
-        {
-            return "CurrentGame.SurTeam.Name";
-        }
-
-        if (string.Equals(name, "HunTeamName", StringComparison.Ordinal)
-            || string.Equals(name, "HunTeamNameInOverview", StringComparison.Ordinal))
-        {
-            return "CurrentGame.HunTeam.Name";
-        }
-
-        if (string.Equals(name, "HomeTeamName", StringComparison.Ordinal))
-        {
-            return "CurrentGame.HomeTeam.Name";
-        }
-
-        if (string.Equals(name, "AwayTeamName", StringComparison.Ordinal))
-        {
-            return "CurrentGame.AwayTeam.Name";
-        }
-
-        if (string.Equals(name, "HomeScoreTotal", StringComparison.Ordinal))
-        {
-            return "CurrentGame.MatchScore.HomeTotalScore";
-        }
-
-        if (string.Equals(name, "AwayScoreTotal", StringComparison.Ordinal))
-        {
-            return "CurrentGame.MatchScore.AwayTotalScore";
-        }
-
-        if (string.Equals(name, "GameScoresSur", StringComparison.Ordinal))
-        {
-            return "CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText";
-        }
-
-        if (string.Equals(name, "GameScoresHun", StringComparison.Ordinal))
-        {
-            return "CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText";
-        }
-
-        if (string.Equals(name, "SurTeamMajorPoint", StringComparison.Ordinal))
-        {
-            return "CurrentGame.MatchScore.CurrentSurTeamMajorText";
-        }
-
-        if (string.Equals(name, "HunTeamMajorPoint", StringComparison.Ordinal))
-        {
-            return "CurrentGame.MatchScore.CurrentHunTeamMajorText";
-        }
-
-        if (name.StartsWith("SurId", StringComparison.Ordinal)
-            && int.TryParse(name["SurId".Length..], out var index))
-        {
-            return $"CurrentGame.SurPlayerList[{index}].Member.Name";
-        }
-
-        if (string.Equals(name, "HunId", StringComparison.Ordinal))
-        {
-            return "CurrentGame.HunPlayer.Member.Name";
-        }
-
-        return null;
-    }
-
-    private static string? GetImageBindingPath(string? window, string? canvas, string name)
-    {
-        if (string.Equals(name, "SurTeamLogo", StringComparison.Ordinal))
-        {
-            return "CurrentGame.SurTeam.Logo";
-        }
-
-        if (string.Equals(name, "HunTeamLogo", StringComparison.Ordinal))
-        {
-            return "CurrentGame.HunTeam.Logo";
-        }
-
-        if (string.Equals(name, "Map", StringComparison.Ordinal))
-        {
-            return "CurrentGame.PickedMapImage";
-        }
-
-        if (name.StartsWith("SurPick", StringComparison.Ordinal)
-            && int.TryParse(name["SurPick".Length..], out var surPickIndex))
-        {
-            if (string.Equals(window, "BpWindow", StringComparison.Ordinal))
-            {
-                return $"CurrentGame.SurPlayerList[{surPickIndex}].PictureShown";
-            }
-
-            if (string.Equals(window, "CutSceneWindow", StringComparison.Ordinal))
-            {
-                return $"CurrentGame.SurPlayerList[{surPickIndex}].Character.BigImage";
-            }
-
-            return $"CurrentGame.SurPlayerList[{surPickIndex}].Character.HalfImage";
-        }
-
-        if (string.Equals(name, "HunPick", StringComparison.Ordinal))
-        {
-            if (string.Equals(window, "BpWindow", StringComparison.Ordinal))
-            {
-                return "CurrentGame.HunPlayer.PictureShown";
-            }
-
-            if (string.Equals(window, "CutSceneWindow", StringComparison.Ordinal))
-            {
-                return "CurrentGame.HunPlayer.Character.BigImage";
-            }
-
-            return "CurrentGame.HunPlayer.Character.HalfImage";
-        }
-
-        if (name.StartsWith("Player", StringComparison.Ordinal)
-            && name.EndsWith("Header", StringComparison.Ordinal)
-            && int.TryParse(name["Player".Length..^"Header".Length], out var headerIndex))
-        {
-            return $"CurrentGame.SurPlayerList[{headerIndex}].PictureShownHeader";
-        }
-
-        if (string.Equals(name, "HunImage", StringComparison.Ordinal))
-        {
-            return "CurrentGame.HunPlayer.PictureShownHeader";
-        }
-
-        if (name.StartsWith("SurBanCurrent", StringComparison.Ordinal)
-            && int.TryParse(name["SurBanCurrent".Length..], out var surCurrentIndex))
-        {
-            return $"CurrentGame.CurrentSurBannedList[{surCurrentIndex}].HeaderImageSingleColor";
-        }
-
-        if (name.StartsWith("HunBanCurrent", StringComparison.Ordinal)
-            && int.TryParse(name["HunBanCurrent".Length..], out var hunCurrentIndex))
-        {
-            return $"CurrentGame.CurrentHunBannedList[{hunCurrentIndex}].HeaderImageSingleColor";
-        }
-
-        if (name.StartsWith("SurGlobalBan", StringComparison.Ordinal)
-            && int.TryParse(name["SurGlobalBan".Length..], out var surGlobalIndex))
-        {
-            return $"CurrentGame.SurTeam.GlobalBannedSurList[{surGlobalIndex}].HeaderImageSingleColor";
-        }
-
-        if (name.StartsWith("HunGlobalBan", StringComparison.Ordinal)
-            && int.TryParse(name["HunGlobalBan".Length..], out var hunGlobalIndex))
-        {
-            return $"CurrentGame.HunTeam.GlobalBannedHunList[{hunGlobalIndex}].HeaderImageSingleColor";
-        }
-
-        return null;
-    }
-
-    private static void ConfigureLockableImage(string name, ImageFrontedControlConfig image)
-    {
-        if (name.StartsWith("SurBanCurrent", StringComparison.Ordinal)
-            && int.TryParse(name["SurBanCurrent".Length..], out var surCurrentIndex))
-        {
-            image.Lockable = true;
-            image.LockVisibleWhen = FrontedOverlayVisibilityMode.VisibleWhenFalse;
-            image.LockVisibilityBindingPath = $"CanCurrentSurBannedList[{surCurrentIndex}]";
-            image.LockImagePath ??= "Resources/CurrentBanLock.png";
-        }
-        else if (name.StartsWith("HunBanCurrent", StringComparison.Ordinal)
-                 && int.TryParse(name["HunBanCurrent".Length..], out var hunCurrentIndex))
-        {
-            image.Lockable = true;
-            image.LockVisibleWhen = FrontedOverlayVisibilityMode.VisibleWhenFalse;
-            image.LockVisibilityBindingPath = $"CanCurrentHunBannedList[{hunCurrentIndex}]";
-            image.LockImagePath ??= "Resources/CurrentBanLock.png";
-        }
-        else if (name.StartsWith("SurGlobalBan", StringComparison.Ordinal)
-                 && int.TryParse(name["SurGlobalBan".Length..], out var surGlobalIndex))
-        {
-            image.Lockable = true;
-            image.LockVisibleWhen = FrontedOverlayVisibilityMode.VisibleWhenFalse;
-            image.LockVisibilityBindingPath = $"CanGlobalSurBannedList[{surGlobalIndex}]";
-            image.LockImagePath ??= "Resources/GlobalBanLock.png";
-        }
-        else if (name.StartsWith("HunGlobalBan", StringComparison.Ordinal)
-                 && int.TryParse(name["HunGlobalBan".Length..], out var hunGlobalIndex))
-        {
-            image.Lockable = true;
-            image.LockVisibleWhen = FrontedOverlayVisibilityMode.VisibleWhenFalse;
-            image.LockVisibilityBindingPath = $"CanGlobalHunBannedList[{hunGlobalIndex}]";
-            image.LockImagePath ??= "Resources/GlobalBanLock.png";
-        }
-    }
-
-    private static void ConfigurePickingBorderImage(LegacyControlBlueprint blueprint, ImageFrontedControlConfig image)
-    {
-        if (!string.Equals(blueprint.SourceWindow, "BpWindow", StringComparison.Ordinal)
-            || !blueprint.TargetName.Contains("Pick", StringComparison.Ordinal))
-        {
-            return;
-        }
-
-        image.PickingBorderAvailable = true;
-        image.PickingBorderName = blueprint.TargetName switch
-        {
-            "SurPick0" => "SurPickingBorder0",
-            "SurPick1" => "SurPickingBorder1",
-            "SurPick2" => "SurPickingBorder2",
-            "SurPick3" => "SurPickingBorder3",
-            "HunPick" => "HunPickingBorder",
-            _ => image.PickingBorderName
-        };
-    }
-
-    private static LegacyTextStyleDefaults GetLegacyTextDefaults(string? window, string? canvas, string name)
-    {
-        const string white = "#FFFFFFFF";
-        const string notoSans = "Noto Sans";
-        const string pop = "pack://application:,,,/Assets/Fonts/#华康POP1体W5";
-        const string hanyi = "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简";
-
-        var defaults = new LegacyTextStyleDefaults(
-            "Center",
-            "Center",
-            "Center",
-            null,
-            notoSans,
-            "Normal",
-            white,
-            16);
-
-        if (string.Equals(window, "CutSceneWindow", StringComparison.Ordinal))
-        {
-            if (IsMajorPointName(name))
-            {
-                return defaults with { FontFamily = "Arial", FontSize = 28, FontWeight = "Bold" };
-            }
-
-            if (IsTeamNameForLegacyDefaults(name))
-            {
-                return defaults with { FontSize = 30, FontWeight = "Bold", TextWrapping = "WrapWithOverflow" };
-            }
-
-            if (name.StartsWith("SurId", StringComparison.Ordinal))
-            {
-                return defaults with { HorizontalAlignment = "Left", FontSize = 18 };
-            }
-
-            if (string.Equals(name, "HunId", StringComparison.Ordinal))
-            {
-                return defaults with { FontSize = 30 };
-            }
-
-            if (IsMapNameForLegacyDefaults(name))
-            {
-                return defaults with { FontFamily = hanyi, FontSize = 24 };
-            }
-
-            if (IsGameProgressForLegacyDefaults(name))
-            {
-                return defaults with { FontFamily = pop, FontSize = 22 };
-            }
-        }
-
-        if (string.Equals(window, "BpWindow", StringComparison.Ordinal))
-        {
-            if (string.Equals(name, "Timer", StringComparison.Ordinal))
-            {
-                return defaults with { FontFamily = pop, FontSize = 46, FontWeight = "Bold" };
-            }
-
-            if (IsTeamNameForLegacyDefaults(name))
-            {
-                return defaults with { TextWrapping = "WrapWithOverflow" };
-            }
-
-            if (IsGameScoreName(name))
-            {
-                return defaults with { FontFamily = pop, FontSize = 26 };
-            }
-
-            if (IsMajorPointName(name))
-            {
-                return defaults with { FontSize = 20, FontWeight = "Medium" };
-            }
-
-            if (name.StartsWith("SurId", StringComparison.Ordinal) || string.Equals(name, "HunId", StringComparison.Ordinal))
-            {
-                return defaults with { HorizontalAlignment = "Left" };
-            }
-        }
-
-        if (string.Equals(window, "ScoreSurWindow", StringComparison.Ordinal)
-            || string.Equals(window, "ScoreHunWindow", StringComparison.Ordinal))
-        {
-            if (IsTeamNameForLegacyDefaults(name))
-            {
-                return defaults with { FontFamily = pop, FontSize = 32 };
-            }
-
-            if (IsGameScoreName(name))
-            {
-                return defaults with { FontFamily = pop, FontSize = 100 };
-            }
-
-            if (IsMajorPointName(name))
-            {
-                return defaults with { FontFamily = pop, FontSize = 38 };
-            }
-        }
-
-        if (string.Equals(window, "ScoreGlobalWindow", StringComparison.Ordinal))
-        {
-            if (name.EndsWith("ScoreTotal", StringComparison.Ordinal))
-            {
-                return defaults with { FontFamily = pop, FontSize = 40, FontWeight = "Bold" };
-            }
-
-            return defaults with { FontFamily = pop, FontSize = 24 };
-        }
-
-        if (string.Equals(window, "GameDataWindow", StringComparison.Ordinal))
-        {
-            if (IsMajorPointName(name))
-            {
-                return defaults with { FontFamily = "Arial", FontSize = 30, FontWeight = "Bold" };
-            }
-
-            if (IsTeamNameForLegacyDefaults(name))
-            {
-                return defaults with { FontSize = 32, TextWrapping = "WrapWithOverflow" };
-            }
-
-            if (IsGameScoreName(name))
-            {
-                return defaults with { FontFamily = pop, FontSize = 80, FontWeight = "Bold" };
-            }
-
-            if (name.StartsWith("Header_", StringComparison.Ordinal))
-            {
-                return defaults with { FontSize = 16 };
-            }
-
-            if (name.StartsWith("Sur", StringComparison.Ordinal) || name.StartsWith("Hun", StringComparison.Ordinal))
-            {
-                return defaults with { FontFamily = pop, FontSize = 22 };
-            }
-        }
-
-        if (string.Equals(window, "WidgetsWindow", StringComparison.Ordinal)
-            && string.Equals(canvas, "BpOverViewCanvas", StringComparison.Ordinal))
-        {
-            if (name.EndsWith("TeamNameInOverview", StringComparison.Ordinal))
-            {
-                return defaults with { FontSize = 22, TextWrapping = "WrapWithOverflow" };
-            }
-
-            if (IsGameScoreName(name) || string.Equals(name, "RatioChar", StringComparison.Ordinal))
-            {
-                return defaults with { FontFamily = pop, FontSize = 50, FontWeight = "Bold" };
-            }
-
-            if (IsGameProgressForLegacyDefaults(name))
-            {
-                return defaults with { FontFamily = pop, FontSize = 22 };
-            }
-        }
-
-        return defaults;
-    }
-
-    private static bool IsMajorPointName(string name) =>
-        string.Equals(name, "SurTeamMajorPoint", StringComparison.Ordinal)
-        || string.Equals(name, "HunTeamMajorPoint", StringComparison.Ordinal);
-
-    private static bool IsGameScoreName(string name) =>
-        string.Equals(name, "GameScoresSur", StringComparison.Ordinal)
-        || string.Equals(name, "GameScoresHun", StringComparison.Ordinal);
-
-    private static bool IsTeamNameForLegacyDefaults(string name) =>
-        name.Contains("TeamName", StringComparison.Ordinal);
-
-    private static bool IsMapNameForLegacyDefaults(string name) =>
-        name.Contains("MapName", StringComparison.Ordinal);
-
-    private static bool IsGameProgressForLegacyDefaults(string name) =>
-        string.Equals(name, "GameProgress", StringComparison.Ordinal);
-
-    private static string GetMapV2Key(string name)
-    {
-        return name switch
-        {
-            "Arms_Factory" => "ArmsFactory",
-            "The_Red_Church" => "TheRedChurch",
-            "Sacred_Heart_Hospital" => "SacredHeartHospital",
-            "Leo_s_Memory" => "LeosMemory",
-            "Moonlit_River_Park" => "MoonlitRiverPark",
-            "Lakeside_Village" => "LakesideVillage",
-            "Eversleeping_Town" => "EversleepingTown",
-            "Chinatown" => "ChinaTown",
-            "Darkwoods" => "Darkwoods",
-            _ => name.Replace("_", string.Empty, StringComparison.Ordinal)
-        };
     }
 
     private static bool TryMapLegacyLayoutFile(string fileName, out LegacyLayoutMapping mapping)
@@ -2471,7 +2699,22 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         bool IsOvertime,
         ElementInfo Info);
 
+    private sealed record LegacyScoreGlobalCellBlueprint(
+        string Team,
+        int Game,
+        string Half,
+        bool IsOvertime);
+
     private readonly record struct LegacyLayoutKey(string SourceWindow, string SourceCanvas);
+
+    private enum LegacyControlBlueprintStatus
+    {
+        Mapped,
+        Folded,
+        Aggregated,
+        Unsupported,
+        RemovedWithReason
+    }
 
     private sealed record LegacyControlBlueprint
     {
@@ -2481,11 +2724,68 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
 
         public string LegacyName { get; init; } = string.Empty;
 
+        public string? TargetWindow { get; init; }
+
         public string TargetName { get; init; } = string.Empty;
 
-        public string ControlType { get; init; } = string.Empty;
+        public string TargetControlType { get; init; } = string.Empty;
 
-        public bool Required { get; init; }
+        public string? BindingPath { get; init; }
+
+        public string? TextBinding { get; init; }
+
+        public string? StaticText { get; init; }
+
+        public string? FontFamily { get; init; }
+
+        public double? FontSize { get; init; }
+
+        public string? FontWeight { get; init; }
+
+        public string? Color { get; init; }
+
+        public string? HorizontalAlignment { get; init; }
+
+        public string? VerticalAlignment { get; init; }
+
+        public string? TextAlignment { get; init; }
+
+        public string? TextWrapping { get; init; }
+
+        public string? ImageBindingPath { get; init; }
+
+        public string? ImagePath { get; init; }
+
+        public ImageSizingMode? SizingMode { get; init; }
+
+        public string? Stretch { get; init; }
+
+        public bool ClipToBounds { get; init; }
+
+        public double? CornerRadius { get; init; }
+
+        public int ZIndex { get; init; }
+
+        public double? DefaultLeft { get; init; }
+
+        public double? DefaultTop { get; init; }
+
+        public double? DefaultWidth { get; init; }
+
+        public double? DefaultHeight { get; init; }
+
+        public IReadOnlyDictionary<string, string> SpecialProperties { get; init; } =
+            new Dictionary<string, string>(StringComparer.Ordinal);
+
+        public string? TextStyleSourceKey { get; init; }
+
+        public string? ResourceSourceKey { get; init; }
+
+        public LegacyControlBlueprintStatus Status { get; init; } = LegacyControlBlueprintStatus.Mapped;
+
+        public string? UnsupportedReason { get; init; }
+
+        public bool Required { get; init; } = true;
     }
 
     private sealed record LegacyWindowDefaults(
