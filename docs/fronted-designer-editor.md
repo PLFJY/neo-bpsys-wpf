@@ -711,7 +711,7 @@ neo-bpsys-wpf/Resources/FrontedLayouts/{WindowName}.json
 2. 存在 Error 时保存失败。
 3. 只有 Warning 时可允许用户确认后保存。
 
-设计器保存写入当前活动 layout package；当前活动项为内置方案时，保存会先复制出一个可写的用户布局方案并激活它。旧 `%APPDATA%/neo-bpsys-wpf/FrontedLayouts/{WindowName}/{CanvasName}.json` 目录仅作为 legacy 迁移残留存在，不再通过设计器菜单暴露。Reset to Built-in 会删除用户窗口布局文件并重新加载内置布局，清空 undo/redo、选择和筛选。打开布局包目录统一在 `FrontManagePage` 的 `Layout Packages` 管理区执行。
+设计器保存写入当前活动 layout package；当前活动项为内置方案时，保存会先复制出一个可写的用户布局方案并激活它。旧 `%APPDATA%/neo-bpsys-wpf/FrontedLayouts/{WindowName}/{CanvasName}.json` 目录（包含旧多 Canvas 层级）仅作为 legacy 迁移残留存在，不再通过设计器菜单暴露。Reset to Built-in 会删除用户窗口布局文件并重新加载内置布局，清空 undo/redo、选择和筛选。打开布局包目录统一在 `FrontManagePage` 的 `Layout Packages` 管理区执行。
 
 `.bpui v3` package 导出/导入已放到 `FrontManagePage` 的 `Layout Packages` tab。导出会打开 manifest 对话框，并固定导出全部已迁移前台布局；导入会安装 v3 包并可立即激活。SettingPage 中现有 `.bpui` 导入导出是 legacy 流程，会覆盖全局 `Config.json`，不能作为 Designer v3 包管理入口。
 

@@ -59,11 +59,9 @@ public sealed class FrontedBuiltInWindowDescriptor : IFrontedWindowDescriptor
 
     /// <summary>
     /// Concrete WPF window type registered by <see cref="Attributes.FrontedWindowInfo"/>.
+    /// Used only for future built-in XAML fronted windows (when <see cref="IsV3LayoutWindow"/> is <see langword="false"/>).
     /// </summary>
     public Type? WindowType { get; init; }
-
-    /// <inheritdoc />
-    public IReadOnlyList<FrontedCanvasDescriptor> Canvases { get; init; } = [];
 
     /// <summary>
     /// Creates a descriptor from the existing built-in window attribute metadata.
@@ -79,13 +77,7 @@ public sealed class FrontedBuiltInWindowDescriptor : IFrontedWindowDescriptor
             GroupKey = "BuiltIn",
             DisplayOrder = GetBuiltInDisplayOrder(info.Name),
             WindowType = info.WindowType,
-            IsV3LayoutWindow = false,
-            Canvases = [new FrontedCanvasDescriptor
-            {
-                CanvasName = FrontedLayoutConstants.BaseCanvasName,
-                DisplayName = FrontedLayoutConstants.BaseCanvasName,
-                Customizable = true
-            }]
+            IsV3LayoutWindow = false
         };
     }
 

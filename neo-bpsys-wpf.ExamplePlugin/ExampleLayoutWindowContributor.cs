@@ -17,17 +17,6 @@ public sealed class ExampleLayoutWindowContributor : IFrontedWindowPluginContrib
             DisplayName = "Example Layout Overlay",
             Description = "Designer v3 plugin layout window with Text and TeamCard controls.",
             Kind = FrontedWindowKind.PluginLayout,
-            Canvases =
-            [
-                new FrontedCanvasDescriptor
-                {
-                    CanvasName = "BaseCanvas",
-                    DisplayName = "BaseCanvas",
-                    Customizable = true,
-                    DefaultWidth = 1440D,
-                    DefaultHeight = 810D
-                }
-            ]
         };
     }
 }

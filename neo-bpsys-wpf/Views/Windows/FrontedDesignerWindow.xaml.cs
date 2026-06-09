@@ -77,7 +77,6 @@ public partial class FrontedDesignerWindow : FluentWindow
     private bool _forceCloseAfterDirtyPrompt;
     private bool _isDirtyClosePromptOpen;
     private FrontedDesignerWindowOption? _lastAcceptedWindow;
-    private FrontedDesignerLayoutCatalogEntry? _lastAcceptedCanvas;
     private Point _layerDragStartPoint;
     private DesignerLayerNode? _pendingLayerDragNode;
     private DesignerLayerNode? _activeLayerDragNode;
@@ -167,7 +166,6 @@ public partial class FrontedDesignerWindow : FluentWindow
 
         await _viewModel.ReloadLayoutCoreAsync();
         _lastAcceptedWindow = _viewModel.SelectedWindow;
-        _lastAcceptedCanvas = _viewModel.SelectedCanvas;
     }
 
     private void Selector_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -219,8 +217,7 @@ public partial class FrontedDesignerWindow : FluentWindow
             do
             {
                 _selectorReloadRequested = false;
-                if (ReferenceEquals(_lastAcceptedWindow, _viewModel.SelectedWindow)
-                    && ReferenceEquals(_lastAcceptedCanvas, _viewModel.SelectedCanvas))
+                if (ReferenceEquals(_lastAcceptedWindow, _viewModel.SelectedWindow))
                 {
                     continue;
                 }
@@ -232,10 +229,8 @@ public partial class FrontedDesignerWindow : FluentWindow
                 }
 
                 var loadingWindow = _viewModel.SelectedWindow;
-                var loadingCanvas = _viewModel.SelectedCanvas;
                 await _viewModel.ReloadLayoutCoreAsync();
                 _lastAcceptedWindow = loadingWindow;
-                _lastAcceptedCanvas = loadingCanvas;
             }
             while (_selectorReloadRequested);
         }
@@ -256,7 +251,6 @@ public partial class FrontedDesignerWindow : FluentWindow
         try
         {
             _viewModel.SelectedWindow = _lastAcceptedWindow;
-            _viewModel.SelectedCanvas = _lastAcceptedCanvas;
         }
         finally
         {
@@ -1311,7 +1305,6 @@ public partial class FrontedDesignerWindow : FluentWindow
 
         await _viewModel.ReloadLayoutCoreAsync();
         _lastAcceptedWindow = _viewModel.SelectedWindow;
-        _lastAcceptedCanvas = _viewModel.SelectedCanvas;
     }
 
     private async void SaveLayoutButton_OnClick(object sender, RoutedEventArgs e)
@@ -1342,7 +1335,6 @@ public partial class FrontedDesignerWindow : FluentWindow
 
         await _viewModel.ResetToBuiltInCoreAsync();
         _lastAcceptedWindow = _viewModel.SelectedWindow;
-        _lastAcceptedCanvas = _viewModel.SelectedCanvas;
     }
 
     private void OnClosing(object? sender, CancelEventArgs e)

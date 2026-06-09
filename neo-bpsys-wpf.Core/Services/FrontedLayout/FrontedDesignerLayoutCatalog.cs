@@ -55,8 +55,6 @@ public class FrontedDesignerLayoutCatalog
                 ? descriptor.WindowTypeName
                 : descriptor.DisplayName,
             WindowId = descriptor.WindowId,
-            CanvasName = FrontedLayoutConstants.BaseCanvasName,
-            CanvasDisplayName = FrontedLayoutConstants.BaseCanvasName,
             CanvasWidth = null,
             CanvasHeight = null,
             IsMigrated = true,
@@ -68,29 +66,26 @@ public class FrontedDesignerLayoutCatalog
     {
         return
         [
-            Create(FrontedWindowType.ScoreSurWindow, "ScoreSurWindow", "BaseCanvas"),
-            Create(FrontedWindowType.ScoreHunWindow, "ScoreHunWindow", "BaseCanvas"),
-            Create(FrontedWindowType.ScoreGlobalWindow, "ScoreGlobalWindow", "BaseCanvas"),
-            Create(FrontedWindowType.CutSceneWindow, "CutSceneWindow", "BaseCanvas"),
-            Create(FrontedWindowType.GameDataWindow, "GameDataWindow", "BaseCanvas"),
-            Create(FrontedWindowType.BpOverviewWindow, "BpOverviewWindow", "BaseCanvas"),
-            Create(FrontedWindowType.MapV2Window, "MapV2Window", "BaseCanvas"),
-            Create(FrontedWindowType.BpWindow, "BpWindow", "BaseCanvas")
+            Create(FrontedWindowType.ScoreSurWindow, "ScoreSurWindow"),
+            Create(FrontedWindowType.ScoreHunWindow, "ScoreHunWindow"),
+            Create(FrontedWindowType.ScoreGlobalWindow, "ScoreGlobalWindow"),
+            Create(FrontedWindowType.CutSceneWindow, "CutSceneWindow"),
+            Create(FrontedWindowType.GameDataWindow, "GameDataWindow"),
+            Create(FrontedWindowType.BpOverviewWindow, "BpOverviewWindow"),
+            Create(FrontedWindowType.MapV2Window, "MapV2Window"),
+            Create(FrontedWindowType.BpWindow, "BpWindow")
         ];
     }
 
     private static FrontedDesignerLayoutCatalogEntry Create(
         FrontedWindowType windowType,
-        string windowTypeName,
-        string canvasName)
+        string windowTypeName)
     {
         return new FrontedDesignerLayoutCatalogEntry
         {
             WindowTypeName = windowTypeName,
             DisplayName = windowTypeName,
             WindowId = FrontedWindowHelper.GetFrontedWindowGuid(windowType),
-            CanvasName = canvasName,
-            CanvasDisplayName = canvasName,
             IsMigrated = true,
             IsEditable = true
         };
@@ -98,7 +93,7 @@ public class FrontedDesignerLayoutCatalog
 }
 
 /// <summary>
-/// A single window-centric fronted layout entry.
+/// A single window-centric fronted layout entry managed by the Designer catalog.
 /// </summary>
 public sealed class FrontedDesignerLayoutCatalogEntry
 {
@@ -116,16 +111,6 @@ public sealed class FrontedDesignerLayoutCatalogEntry
     /// Stable runtime window id.
     /// </summary>
     public required string WindowId { get; init; }
-
-    /// <summary>
-    /// Internal canvas name retained for temporary helper compatibility. Always <c>BaseCanvas</c>.
-    /// </summary>
-    public required string CanvasName { get; init; }
-
-    /// <summary>
-    /// Internal canvas display name retained for temporary helper compatibility. Always <c>BaseCanvas</c>.
-    /// </summary>
-    public required string CanvasDisplayName { get; init; }
 
     /// <summary>
     /// Optional design canvas width hint.

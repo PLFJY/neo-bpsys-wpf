@@ -78,6 +78,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private readonly IFrontedWindowLayoutOptionsService? _windowLayoutOptionsService;
     private readonly IFrontedWindowService? _frontedWindowService;
     private readonly IFrontedBehaviorService _behaviorService;
+    private readonly FrontedDesignerLayoutCatalog _layoutCatalog;
     private readonly IFrontedAnimationRuntime? _animationRuntime;
     private readonly FrontedDesignerPreviewAnimationScope? _previewAnimationScope;
     private readonly ILogger<FrontedDesignerWindowViewModel> _logger;
@@ -111,6 +112,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private double _lastPreviewViewportWidth;
     private double _lastPreviewViewportHeight;
     private FrontedWindowSettings _currentWindowSettings = new();
+    private FrontedDesignerLayoutCatalogEntry? _selectedCatalogEntry;
 
 #pragma warning disable CS8618
     public FrontedDesignerWindowViewModel()
@@ -183,39 +185,17 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _animationRuntime = animationRuntime;
         _previewAnimationScope = previewAnimationScope;
         _logger = logger;
+        _layoutCatalog = layoutCatalog;
         BehaviorPanel = CreateBehaviorPanel();
 
-        foreach (var group in layoutCatalog.GetEntries()
-                     .Where(entry => entry.IsMigrated && entry.IsEditable)
-                     .GroupBy(entry => entry.WindowTypeName)
-                     .Select(group =>
-                     {
-                         var firstEntry = group.First();
-                         var groupDisplayName = !string.IsNullOrWhiteSpace(firstEntry.DisplayName)
-                             ? firstEntry.DisplayName
-                             : _localizationService.GetWindowDisplayName(group.Key);
-                         return new FrontedDesignerWindowOption(
-                             group.Key,
-                             groupDisplayName,
-                             group
-                                 .Select(entry => new FrontedDesignerLayoutCatalogEntry
-                                 {
-                                     WindowTypeName = entry.WindowTypeName,
-                                     DisplayName = !string.IsNullOrWhiteSpace(entry.DisplayName)
-                                         ? entry.DisplayName
-                                         : _localizationService.GetWindowDisplayName(entry.WindowTypeName),
-                                     WindowId = entry.WindowId,
-                                     CanvasName = entry.CanvasName,
-                                    CanvasDisplayName = FrontedLayoutConstants.BaseCanvasName,
-                                     CanvasWidth = entry.CanvasWidth,
-                                     CanvasHeight = entry.CanvasHeight,
-                                     IsMigrated = entry.IsMigrated,
-                                     IsEditable = entry.IsEditable
-                                 })
-                                 .ToArray());
-                     }))
+        foreach (var entry in _layoutCatalog.GetEntries()
+                     .Where(entry => entry.IsMigrated && entry.IsEditable))
         {
-            WindowOptions.Add(group);
+            WindowOptions.Add(new FrontedDesignerWindowOption(
+                entry.WindowTypeName,
+                !string.IsNullOrWhiteSpace(entry.DisplayName)
+                    ? entry.DisplayName
+                    : _localizationService.GetWindowDisplayName(entry.WindowTypeName)));
         }
 
         InitializeZoomPresets();
@@ -235,8 +215,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     public event EventHandler<FrontedDesignerGeometryPatchRequestedEventArgs>? DesignerGeometryPatchRequested;
 
     public ObservableCollection<FrontedDesignerWindowOption> WindowOptions { get; } = [];
-
-    public ObservableCollection<FrontedDesignerLayoutCatalogEntry> CanvasOptions { get; } = [];
 
     public ObservableCollection<FrontedLayoutValidationMessage> ValidationMessages { get; } = [];
 
@@ -276,9 +254,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     private FrontedDesignerWindowOption? _selectedWindow;
-
-    [ObservableProperty]
-    private FrontedDesignerLayoutCatalogEntry? _selectedCanvas;
 
     [ObservableProperty]
     private FrontedCanvasDesignDocument? _currentDocument;
@@ -594,29 +569,18 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     {
         ControlFilterText = string.Empty;
         SelectDesignItem(null);
-        CanvasOptions.Clear();
 
         if (value is null)
         {
+            _selectedCatalogEntry = null;
             _currentWindowSettings = new FrontedWindowSettings();
-            SelectedCanvas = null;
             return;
         }
 
+        _selectedCatalogEntry = _layoutCatalog?.GetEntries()
+            .FirstOrDefault(e => e.WindowTypeName == value.WindowTypeName);
         _currentWindowSettings = new FrontedWindowSettings();
-        foreach (var canvas in value.Canvases)
-        {
-            CanvasOptions.Add(canvas);
-        }
-
-        SelectedCanvas = CanvasOptions.FirstOrDefault();
         LoadWindowOptions(value.WindowTypeName);
-    }
-
-    partial void OnSelectedCanvasChanged(FrontedDesignerLayoutCatalogEntry? value)
-    {
-        ControlFilterText = string.Empty;
-        SelectDesignItem(null);
     }
 
     partial void OnCurrentDocumentChanged(FrontedCanvasDesignDocument? value)
@@ -861,7 +825,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     public async Task ReloadLayoutCoreAsync()
     {
-        if (SelectedWindow is null || SelectedCanvas is null)
+        if (SelectedWindow is null || _selectedCatalogEntry is null)
         {
             ClearLoadedLayout(CreateMessage(
                 FrontedLayoutValidationSeverity.Error,
@@ -870,7 +834,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return;
         }
 
-        var entry = SelectedCanvas;
+        var entry = _selectedCatalogEntry;
         CurrentWindowCanvasDisplay = entry.DisplayName;
         DirtyIndicatorText = string.Empty;
         var reloadVersion = StartReloadLayoutRequest();
@@ -1027,9 +991,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             {
                 var savedResult = await _layoutService.LoadWindowConfigWithMetadataAsync(
                     CurrentDocument.WindowTypeName);
-                if (SelectedCanvas is not null)
+                if (_selectedCatalogEntry is not null)
                 {
-                    ApplyLayoutSource(savedResult, SelectedCanvas);
+                    ApplyLayoutSource(savedResult, _selectedCatalogEntry);
                 }
                 else
                 {
@@ -1108,7 +1072,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         });
         SelectDesignItem(null);
         ApplyValidationMessages(_validator.Validate(document));
-        RequestPreviewRender(config, SelectedCanvas);
+        RequestPreviewRender(config, _selectedCatalogEntry);
         LayoutSourceDisplay = I18nHelper.GetLocalizedString("LayoutSourceBuiltIn");
         LayoutSourcePath = _layoutService.GetBuiltInDefaultWindowLayoutPath(windowTypeName);
         StatusMessage = I18nHelper.GetLocalizedString("LayoutReset");
@@ -2824,7 +2788,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         SelectDesignItem(null);
         ResetBehaviorDocument();
         ApplyValidationMessages([message]);
-        RequestPreviewRender(null, SelectedCanvas);
+        RequestPreviewRender(null, _selectedCatalogEntry);
     }
 
     private void ApplyValidationMessages(
@@ -3689,8 +3653,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _previewAnimationScope?.Update(
             previewRoot,
             SelectedDesignItem,
-            SelectedCanvas?.WindowId,
-            CurrentDocument?.CanvasName ?? SelectedCanvas?.CanvasName,
+            _selectedCatalogEntry?.WindowId,
+            FrontedLayoutConstants.BaseCanvasName,
             CurrentDocument?.Controls ?? []);
     }
 
@@ -3711,11 +3675,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     {
         if (CurrentDocument is null)
         {
-            RequestPreviewRender(null, SelectedCanvas);
+            RequestPreviewRender(null, _selectedCatalogEntry);
             return;
         }
 
-        RequestPreviewRender(_designConverter.ToConfig(CurrentDocument), SelectedCanvas);
+        RequestPreviewRender(_designConverter.ToConfig(CurrentDocument), _selectedCatalogEntry);
     }
 
     private int ResolveDropTargetZIndex(
@@ -4163,7 +4127,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                     {
                         WindowId = entry.WindowId,
                         WindowTypeName = entry.WindowTypeName,
-                        CanvasName = entry.CanvasName,
+                        CanvasName = FrontedLayoutConstants.BaseCanvasName,
                         SharedDataServiceOverride = _designerPreviewSharedDataService,
                         RenderMissingPluginPlaceholders = true,
                         IsDesignerPreview = true
@@ -4305,7 +4269,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                     break;
 
                 case FrontedDesignerSnapshotRestoreMode.ImmediatePreviewThenScheduledValidation:
-                    RequestPreviewRender(config, SelectedCanvas);
+                    RequestPreviewRender(config, _selectedCatalogEntry);
                     LogDesignerPerf(traceOperation, "preview render execution", Elapsed(total));
                     SetIsRestoringSnapshotVisuals(false);
                     ScheduleValidationOnly(traceOperation);
@@ -4323,7 +4287,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 case FrontedDesignerSnapshotRestoreMode.ImmediateValidationAndPreview:
                     ApplyValidationMessages(_validator.Validate(document));
                     LogDesignerPerf(traceOperation, "validation execution", Elapsed(total));
-                    RequestPreviewRender(config, SelectedCanvas);
+                    RequestPreviewRender(config, _selectedCatalogEntry);
                     LogDesignerPerf(traceOperation, "preview render execution", Elapsed(total));
                     SetIsRestoringSnapshotVisuals(false);
                     break;
@@ -5004,14 +4968,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
 public sealed class FrontedDesignerWindowOption(
     string windowTypeName,
-    string displayName,
-    IReadOnlyList<FrontedDesignerLayoutCatalogEntry> canvases)
+    string displayName)
 {
     public string WindowTypeName { get; } = windowTypeName;
 
     public string DisplayName { get; } = displayName;
-
-    public IReadOnlyList<FrontedDesignerLayoutCatalogEntry> Canvases { get; } = canvases;
 }
 
 public sealed class FrontedDesignerZoomPreset(string displayName, double scale, bool isFit = false)

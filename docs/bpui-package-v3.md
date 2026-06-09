@@ -42,7 +42,7 @@ legacy.bpui
 2. 把 `%APPDATA%/neo-bpsys-wpf/Config.json` 复制到临时包根目录。
 3. 从 `Settings` 对象中递归收集有效自定义 UI 图片路径。
 4. 把这些图片复制到 `CustomUi/`。
-5. 遍历旧前台 Canvas，把 `%APPDATA%/neo-bpsys-wpf/{WindowTypeName}Config-{CanvasName}.json` 复制到 `FrontElementsConfig/`。
+5. 遍历旧前台 Canvas（legacy 多 Canvas 概念），把 `%APPDATA%/neo-bpsys-wpf/{WindowTypeName}Config-{CanvasName}.json` 复制到 `FrontElementsConfig/`。v3 中每个窗口只有一个固定 BaseCanvas。
 6. 将临时目录压缩成 `.bpui`。
 
 旧导入行为：

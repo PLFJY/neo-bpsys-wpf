@@ -12,8 +12,7 @@ namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
 /// <c>FrontedLayouts/plugin/{PackageId}/{WindowTypeName}</c>.
 /// <see cref="FrontedWindowKind.PluginXaml"/> windows are normal plugin WPF windows and are not
 /// Designer-editable by default. <see cref="FrontedWindowKind.PluginLayout"/> windows use the host
-/// layout renderer and can be Designer-editable when their canvases have
-/// <see cref="FrontedCanvasDescriptor.Customizable"/> set to <see langword="true"/>.
+/// layout renderer. Each v3 layout window has exactly one internal BaseCanvas.
 /// </remarks>
 public sealed class FrontedPluginWindowDescriptor : IFrontedWindowDescriptor
 {
@@ -101,9 +100,6 @@ public sealed class FrontedPluginWindowDescriptor : IFrontedWindowDescriptor
     /// Default WPF window options for plugin layout windows.
     /// </summary>
     public FrontedWindowLayoutOptions DefaultOptions { get; init; } = new();
-
-    /// <inheritdoc />
-    public IReadOnlyList<FrontedCanvasDescriptor> Canvases { get; init; } = [];
 
     /// <summary>
     /// Validates the descriptor before it is accepted by the host registry.

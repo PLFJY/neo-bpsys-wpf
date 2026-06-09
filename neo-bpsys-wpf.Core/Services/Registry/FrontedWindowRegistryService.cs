@@ -157,16 +157,7 @@ public sealed class FrontedWindowRegistryService : IFrontedWindowRegistry
             GroupKey = "BuiltIn",
             DisplayOrder = displayOrder,
             IsV3LayoutWindow = true,
-            Customizable = true,
-            Canvases =
-            [
-                new FrontedCanvasDescriptor
-                {
-                    CanvasName = FrontedLayoutConstants.BaseCanvasName,
-                    DisplayName = FrontedLayoutConstants.BaseCanvasName,
-                    Customizable = true
-                }
-            ]
+            Customizable = true
         };
     }
 

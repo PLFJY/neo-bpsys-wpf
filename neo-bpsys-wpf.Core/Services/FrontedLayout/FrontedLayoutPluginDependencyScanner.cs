@@ -160,14 +160,12 @@ internal static class FrontedLayoutPluginDependencyScanner
                     return new FrontedLayoutPackagePluginControlIssue
                     {
                         Window = layout.Window,
-                        Canvas = layout.Canvas,
                         ControlName = control.Key,
                         ControlType = control.Value.ControlType,
                         PackageId = parsed.PackageId
                     };
                 }))
             .OrderBy(issue => issue.Window, StringComparer.Ordinal)
-            .ThenBy(issue => issue.Canvas, StringComparer.Ordinal)
             .ThenBy(issue => issue.ControlName, StringComparer.Ordinal)
             .ToList();
     }

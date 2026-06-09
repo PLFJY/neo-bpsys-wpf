@@ -86,8 +86,4 @@ public interface IFrontedWindowDescriptor
     /// </summary>
     string? PackageId { get; }
 
-    /// <summary>
-    /// Internal legacy canvas descriptors. Window-centric v3 descriptors only expose <c>BaseCanvas</c>.
-    /// </summary>
-    IReadOnlyList<FrontedCanvasDescriptor> Canvases { get; }
 }

@@ -62,14 +62,6 @@ public class FrontedWindowService : IFrontedWindowService
 #endif
     }
 
-    public void RegisterFrontedWindowAndCanvas(string windowId, Window window, string[]? canvasNames = null)
-    {
-        if (FrontedWindows.TryAdd(windowId, window))
-        {
-            FrontedWindowStates[windowId] = false;
-        }
-    }
-
     /// <inheritdoc/>
     public Window? EnsureWindowCreated(string windowId)
     {
@@ -91,7 +83,7 @@ public class FrontedWindowService : IFrontedWindowService
                 return null;
             }
 
-            RegisterFrontedWindowAndCanvas(descriptor.WindowId, window);
+            RegisterFrontedWindow(descriptor.WindowId, window);
             return window;
         }
         catch (Exception ex)
@@ -102,6 +94,14 @@ public class FrontedWindowService : IFrontedWindowService
                 descriptor.FullWindowType,
                 descriptor.WindowId);
             return null;
+        }
+    }
+
+    private void RegisterFrontedWindow(string windowId, Window window)
+    {
+        if (FrontedWindows.TryAdd(windowId, window))
+        {
+            FrontedWindowStates[windowId] = false;
         }
     }
 

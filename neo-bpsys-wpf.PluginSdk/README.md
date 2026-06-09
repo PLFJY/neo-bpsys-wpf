@@ -100,7 +100,7 @@ public sealed class ExampleFrontedWindowContributor : IFrontedWindowPluginContri
 
 ### Plugin v3 Layout Window
 
-插件声明一个 layout window，宿主使用标准 v3 layout host 渲染。它可出现在 FrontManage；有 `Customizable=true` Canvas 时会进入 Designer。
+插件声明一个 layout window，宿主使用标准 v3 layout host 渲染。它可出现在 FrontManage，进入 Designer 编辑。
 
 ```csharp
 yield return new FrontedPluginWindowDescriptor
@@ -110,24 +110,13 @@ yield return new FrontedPluginWindowDescriptor
     WindowTypeName = "ExampleLayoutOverlay",
     DisplayName = "Example Layout Overlay",
     Kind = FrontedWindowKind.PluginLayout,
-    Canvases =
-    [
-        new FrontedCanvasDescriptor
-        {
-            CanvasName = "BaseCanvas",
-            DisplayName = "BaseCanvas",
-            Customizable = true,
-            DefaultWidth = 1440,
-            DefaultHeight = 810
-        }
-    ]
 };
 ```
 
 默认布局文件放在插件安装目录：
 
 ```text
-FrontedLayouts/{WindowTypeName}/{CanvasName}.json
+FrontedLayouts/{WindowTypeName}.json
 ```
 
 ## 标识模型

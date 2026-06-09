@@ -101,14 +101,6 @@ public interface IFrontedWindowService
     /// <returns>The existing or newly created window, or <see langword="null"/> when the id is not registered.</returns>
     Window? EnsureWindowCreated(string windowId);
 
-    /// <summary>
-    /// 注册窗口
-    /// </summary>
-    /// <param name="windowId">窗口 GUID</param>
-    /// <param name="window">窗口</param>
-    /// <param name="canvasNames">旧版调用保留参数，window-centric v3 不再使用。</param>
-    void RegisterFrontedWindowAndCanvas(string windowId, Window window, string[]? canvasNames = null);
-
     #endregion
 
     #region Window Information

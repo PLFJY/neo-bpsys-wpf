@@ -17,7 +17,7 @@
 
 1. 改代码前先读现有实现，不要发明架构。
 1. 保持 WPF + Generic Host + DI 设计，页面、窗口、服务优先通过现有扩展注册。
-1. 后台页面使用 `AddBackendPage<TView,TViewModel>()`，前台窗口使用 `AddFrontedWindow<TView,TViewModel>()`。
+1. 后台页面使用 `AddBackendPage<TView,TViewModel>()`，XAML 前台窗口使用 `AddFrontedWindow<TView,TViewModel>()`。当前 built-in 前台窗口由 v3 descriptor (`GetBuiltInV3Windows()`) 注册，通过 `FrontedWindowBase` + v3 layout host 创建，不再保留旧 XAML 文件。每个 v3 layout window 内部固定一个 `BaseCanvas`，外部不再注册或选择 Canvas。
 1. 不要把 FrontedWindow 理解成 Web 前端，也不要引入 Web 前端假设。
 1. 不要随意大规模重构服务、ViewModel 或资源结构。
 1. 用户可见文本要考虑 `WPFLocalizeExtension` 和 `Locales/*.resx`，避免随手硬编码。

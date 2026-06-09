@@ -489,7 +489,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
 
             dependency.AffectedControls = dependency.AffectedControls
                 .Concat(group)
-                .GroupBy(control => $"{control.Window}/{control.Canvas}/{control.ControlName}", StringComparer.Ordinal)
+                .GroupBy(control => $"{control.Window}/{control.ControlName}", StringComparer.Ordinal)
                 .Select(grouped => grouped.First())
                 .ToList();
         }
@@ -547,7 +547,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
                             ? I18nHelper.GetLocalizedString("PluginDependencyUpdateRequired")
                             : I18nHelper.GetLocalizedString("PluginDependencyNotFoundInMarket");
                 var controls = dependency.AffectedControls.Count > 0
-                    ? string.Join(", ", dependency.AffectedControls.Take(3).Select(control => $"{control.Window}/{control.Canvas} {control.ControlName}"))
+                    ? string.Join(", ", dependency.AffectedControls.Take(3).Select(control => $"{control.Window} {control.ControlName}"))
                     : string.Join(", ", dependency.RequiredBy.Take(3));
                 return $"{dependency.DisplayName ?? dependency.PackageId} [{dependency.PackageId}] "
                        + $"{I18nHelper.GetLocalizedString("PluginDependencyMinVersion")}={dependency.MinVersion ?? "-"} "

@@ -123,7 +123,7 @@ services.AddSingleton<TView>(sp => {
 
 ### 2.4 `FrontedWindowService` 构造与窗口预创建
 
-`FrontedWindowService`（在 [FrontedWindowService.cs](../neo-bpsys-wpf/Services/FrontedWindowService.cs)）被注册为 `Singleton`，在其构造函数中立即调用 `RegisterFrontedWindowAndCanvas()` 私有方法：
+`FrontedWindowService`（在 [FrontedWindowService.cs](../neo-bpsys-wpf/Services/FrontedWindowService.cs)）被注册为 `Singleton`，在其构造函数中立即调用私有 `RegisterFrontedWindow()` 方法：
 
 ```csharp
 public FrontedWindowService(...)
@@ -132,29 +132,24 @@ public FrontedWindowService(...)
     if (!Directory.Exists(AppConstants.AppDataPath))
         Directory.CreateDirectory(AppConstants.AppDataPath);
     
-    RegisterFrontedWindowAndCanvas();  // ← 预创建所有窗口
+    RegisterFrontedWindow();  // ← 预创建所有窗口
 }
 
-private void RegisterFrontedWindowAndCanvas()
+private void RegisterFrontedWindow()
 {
     foreach (var descriptor in _windowRegistry.GetWindows())
     {
         var window = CreateWindow(descriptor);
         if (window is null) continue;
-        RegisterFrontedWindowAndCanvas(descriptor.WindowId, window);
-    }
-}
-
-public void RegisterFrontedWindowAndCanvas(string windowId, Window window, string[]? canvasNames = null)
-{
-    if (FrontedWindows.TryAdd(windowId, window))
-    {
-        FrontedWindowStates[windowId] = false;
+        FrontedWindows.TryAdd(descriptor.WindowId, window);
+        FrontedWindowStates[descriptor.WindowId] = false;
     }
 }
 ```
 
 **关键点**：所有前台窗口实例在 `FrontedWindowService` 构造时（即应用程序启动早期）就已全部创建完毕，但状态初始化为 `false`（隐藏）。窗口实例在 `FrontedWindows` 字典中以 `WindowId`（GUID）为 key 管理。
+
+v3 移除了旧 `RegisterFrontedWindowAndCanvas` 公开 API，外部注册必须通过 `FrontedWindowInfo` + `AddFrontedWindow<TView,TViewModel>()`、`IFrontedWindowPluginContributor` 或 registry descriptor，不允许通过 `IFrontedWindowService` 手动塞入 Window 实例。
 
 ### 2.5 启动链路总结
 
@@ -175,7 +170,7 @@ App.Services.xaml.cs
           │       ├─ 验证插件描述符
           │       └─ 构建 byWindowId / byFullWindowType 索引
           ├─ 注册目录存在性检查
-          └─ RegisterFrontedWindowAndCanvas()
+          └─ RegisterFrontedWindow()
               └─ 遍历 _windowRegistry.GetWindows()
                   └─ CreateWindow(descriptor)
                       ├─ IsV3LayoutWindow → new FrontedWindowBase().InitializeV3LayoutHost(...)
@@ -352,7 +347,7 @@ private Window? CreateXamlWindow(Type? windowType, Type? viewModelType)
 
 ### 4.4 窗口创建后处理
 
-创建完成后，`RegisterFrontedWindowAndCanvas(windowId, window)` 将窗口加入字典：
+创建完成后，将窗口加入字典：
 
 ```csharp
 if (FrontedWindows.TryAdd(windowId, window))

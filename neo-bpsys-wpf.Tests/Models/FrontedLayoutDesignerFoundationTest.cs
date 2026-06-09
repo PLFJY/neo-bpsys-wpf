@@ -624,14 +624,14 @@ public class FrontedLayoutDesignerFoundationTest
         var entries = new FrontedDesignerLayoutCatalog().GetEntries();
 
         Assert.Equal(8, entries.Count);
-        Assert.Contains(entries, entry => entry.WindowTypeName == "ScoreSurWindow" && entry.CanvasName == "BaseCanvas");
-        Assert.Contains(entries, entry => entry.WindowTypeName == "ScoreHunWindow" && entry.CanvasName == "BaseCanvas");
-        Assert.Contains(entries, entry => entry.WindowTypeName == "ScoreGlobalWindow" && entry.CanvasName == "BaseCanvas");
-        Assert.Contains(entries, entry => entry.WindowTypeName == "CutSceneWindow" && entry.CanvasName == "BaseCanvas");
-        Assert.Contains(entries, entry => entry.WindowTypeName == "GameDataWindow" && entry.CanvasName == "BaseCanvas");
-        Assert.Contains(entries, entry => entry.WindowTypeName == "BpOverviewWindow" && entry.CanvasName == "BaseCanvas");
-        Assert.Contains(entries, entry => entry.WindowTypeName == "MapV2Window" && entry.CanvasName == "BaseCanvas");
-        Assert.Contains(entries, entry => entry.WindowTypeName == "BpWindow" && entry.CanvasName == "BaseCanvas");
+        Assert.Contains(entries, entry => entry.WindowTypeName == "ScoreSurWindow");
+        Assert.Contains(entries, entry => entry.WindowTypeName == "ScoreHunWindow");
+        Assert.Contains(entries, entry => entry.WindowTypeName == "ScoreGlobalWindow");
+        Assert.Contains(entries, entry => entry.WindowTypeName == "CutSceneWindow");
+        Assert.Contains(entries, entry => entry.WindowTypeName == "GameDataWindow");
+        Assert.Contains(entries, entry => entry.WindowTypeName == "BpOverviewWindow");
+        Assert.Contains(entries, entry => entry.WindowTypeName == "MapV2Window");
+        Assert.Contains(entries, entry => entry.WindowTypeName == "BpWindow");
         Assert.DoesNotContain(entries, entry => entry.WindowTypeName == "WidgetsWindow");
         Assert.All(entries, entry =>
         {
@@ -646,7 +646,6 @@ public class FrontedLayoutDesignerFoundationTest
         var entries = new FrontedDesignerLayoutCatalog().GetEntries();
 
         Assert.DoesNotContain(entries, entry => entry.WindowTypeName == "WidgetsWindow");
-        Assert.All(entries, entry => Assert.Equal("BaseCanvas", entry.CanvasName));
     }
 
     [Fact]
@@ -695,8 +694,8 @@ public class FrontedLayoutDesignerFoundationTest
     public void DesignerLayoutCatalogLayoutLoadsAndValidatesWithoutErrors(
         FrontedDesignerLayoutCatalogEntry entry)
     {
-        var config = ReadBuiltInLayout(entry.WindowTypeName, entry.CanvasName);
-        var messages = CreateValidator().Validate(entry.WindowTypeName, entry.CanvasName, config);
+        var config = ReadBuiltInLayout(entry.WindowTypeName);
+        var messages = CreateValidator().Validate(entry.WindowTypeName, "BaseCanvas", config);
 
         Assert.DoesNotContain(messages, message => message.Severity == FrontedLayoutValidationSeverity.Error);
     }
@@ -706,10 +705,10 @@ public class FrontedLayoutDesignerFoundationTest
     public void DesignerDocumentUsesCanvasSizeFromLoadedConfig(
         FrontedDesignerLayoutCatalogEntry entry)
     {
-        var config = ReadBuiltInLayout(entry.WindowTypeName, entry.CanvasName);
+        var config = ReadBuiltInLayout(entry.WindowTypeName);
         var document = new FrontedLayoutDesignConverter().FromConfig(
             entry.WindowTypeName,
-            entry.CanvasName,
+            "BaseCanvas",
             config,
             new FrontedLayoutRuntimeContractCatalog());
 
@@ -2311,15 +2310,14 @@ public class FrontedLayoutDesignerFoundationTest
             windows: new Dictionary<string, string>(StringComparer.Ordinal) { ["BpWindow"] = "BP 主窗口" },
             canvases: new Dictionary<string, string>(StringComparer.Ordinal) { ["BaseCanvas"] = "主画布" });
         var catalogEntry = new FrontedDesignerLayoutCatalog().GetEntries()
-            .Single(entry => entry.WindowTypeName == "BpWindow" && entry.CanvasName == "BaseCanvas");
+            .Single(entry => entry.WindowTypeName == "BpWindow");
 
         Assert.Equal("Text", new TextFrontedControlConfig().ControlType);
         Assert.Equal("文本", localizer.GetControlTypeDisplayName("Text"));
         Assert.Equal("PluginFancyControl", localizer.GetControlTypeDisplayName("PluginFancyControl"));
         Assert.Equal("BpWindow", catalogEntry.WindowTypeName);
-        Assert.Equal("BaseCanvas", catalogEntry.CanvasName);
         Assert.Equal("BP 主窗口", localizer.GetWindowDisplayName(catalogEntry.WindowTypeName));
-        Assert.Equal("主画布", localizer.GetCanvasDisplayName(catalogEntry.CanvasName));
+        Assert.Equal("主画布", localizer.GetCanvasDisplayName("BaseCanvas"));
     }
 
     [Fact]

@@ -112,11 +112,6 @@ public class FrontedLayoutPackagePluginControlIssue
     public string Window { get; set; } = string.Empty;
 
     /// <summary>
-    /// Canvas containing the control.
-    /// </summary>
-    public string Canvas { get; set; } = string.Empty;
-
-    /// <summary>
     /// Control name in the v3 layout JSON.
     /// </summary>
     public string ControlName { get; set; } = string.Empty;

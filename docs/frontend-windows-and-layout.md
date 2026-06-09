@@ -93,7 +93,7 @@ legacy 内置默认布局位于：
 
 ```text
 neo-bpsys-wpf/Resources/FrontedDefaultPositions
-{pluginFolder}/FrontedDefaultPositions/{WindowTypeName}Config-{CanvasName}.default.json
+{pluginFolder}/FrontedDefaultPositions/{WindowTypeName}Config-{CanvasName}.default.json (legacy)
 ```
 
 > **注意**：这些 legacy 位置文件不再被运行时 `FrontedWindowService` 读取。它们只属于 legacy `.bpui` 转换流程。重置布局通过 Layout Packages 激活内置布局或删除用户布局实现。

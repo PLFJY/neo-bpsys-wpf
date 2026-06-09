@@ -139,7 +139,7 @@ Phase 12B 后，常用命名还包括 `Designer.Value.*`、`Designer.Editor.*` �
 1. 确认素材属于嵌入 `Assets` 还是输出 `Resources`。
 2. 如果代码用 `ImageHelper.GetUiImageSource("bp")`，文件应在 `Resources/bpui/bp.png`。
 3. 如果代码用 `ImageSourceKey.surHalf`，文件应在 `Resources/surHalf/{name}.png`。
-4. 旧 XAML-first 默认位置文件命名必须匹配 `{WindowTypeName}Config-{CanvasName}.default.json`；v3 默认布局使用 `Resources/FrontedLayouts/{WindowTypeName}.json`。
+4. 旧 XAML-first 默认位置文件命名必须匹配 `{WindowTypeName}Config-{CanvasName}.default.json`（`CanvasName` 是旧多 Canvas 概念）；v3 默认布局使用 `Resources/FrontedLayouts/{WindowTypeName}.json`。
 5. v3 JSON 中 `Resources/xxx.png` 会解析到运行目录 `Resources/bpui/xxx.png`，新增默认背景时要确认对应文件存在于 `Resources/bpui` 并会复制到输出目录。
 6. SmartBP 默认配置文件名和 `SmartBpGameDataSceneDefinition` 中的相对路径一致。
 
