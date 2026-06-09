@@ -86,14 +86,38 @@ public class FrontedWindowService : IFrontedWindowService
         }
     }
 
+    /// <summary>
+    /// 根据窗口描述符的分派策略创建对应的前台窗口实例。
+    /// </summary>
+    /// <param name="descriptor">窗口描述符，携带来源（内置/插件）和布局模式信息。</param>
+    /// <returns>创建的 <see cref="Window"/> 实例；无法识别时返回 <c>null</c>。</returns>
+    /// <remarks>
+    /// 分派优先级：
+    /// <list type="number">
+    ///   <item><description><see cref="IFrontedWindowDescriptor.IsV3LayoutWindow"/> 为 <c>true</c> —
+    /// 任何 descriptor（内置或插件）只要声明使用 v3 layout host 渲染，都走 <see cref="CreateV3LayoutHostWindow"/>。</description></item>
+    ///   <item><description><see cref="FrontedBuiltInWindowDescriptor"/> — 非 v3 的内置窗口，
+    /// 直接通过 DI 创建 XAML 窗口，不绑定 ViewModel。</description></item>
+    ///   <item><description><see cref="FrontedPluginWindowDescriptor"/> 且 <see cref="FrontedWindowKind.PluginXaml"/> —
+    /// 插件提供的纯 XAML 窗口，通过 DI 创建窗口并设置 ViewModel 为 DataContext。</description></item>
+    ///   <item><description>其他未知类型 — 返回 <c>null</c>，由调用方跳过注册。</description></item>
+    /// </list>
+    /// </remarks>
     private Window? CreateWindow(IFrontedWindowDescriptor descriptor)
     {
         return descriptor switch
         {
+            // 模式 1：v3 layout host 窗口（含内置 v3 窗口和插件 PluginLayout 窗口）
             { IsV3LayoutWindow: true } => CreateV3LayoutHostWindow(descriptor),
+
+            // 模式 2：非 v3 的内置窗口 — 创建 XAML 窗口，无 ViewModel
             FrontedBuiltInWindowDescriptor builtIn => CreateXamlWindow(builtIn.WindowType, null),
+
+            // 模式 3：插件提供的纯 XAML 窗口 — 创建窗口并设置 ViewModel 为 DataContext
             FrontedPluginWindowDescriptor { Kind: FrontedWindowKind.PluginXaml } pluginXaml =>
                 CreateXamlWindow(pluginXaml.WindowType, pluginXaml.ViewModelType),
+
+            // 模式 4：无法识别的描述符，跳过
             _ => null
         };
     }
@@ -107,7 +131,7 @@ public class FrontedWindowService : IFrontedWindowService
             _services.GetRequiredService<IFrontedRenderer>(),
             _services.GetRequiredService<ISharedDataService>(),
             _services.GetService<IFrontedBehaviorRuntime>(),
-            _logger);
+            _services.GetService<ILogger<FrontedWindowBase>>());
         return window;
     }
 
