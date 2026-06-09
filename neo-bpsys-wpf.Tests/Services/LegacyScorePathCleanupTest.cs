@@ -27,13 +27,16 @@ public class LegacyScorePathCleanupTest
     }
 
     [Fact]
-    public void ScoreWindowViewModelDoesNotUseLegacyTotalScoreMessengerPath()
+    public void LegacyScoreWindowViewModelWasRemovedWithLegacyMessengerPath()
     {
-        var source = ReadRepoFile("neo-bpsys-wpf", "ViewModels", "Windows", "ScoreWindowViewModel.cs");
+        var sourcePath = Path.Combine(
+            GetRepoRoot(),
+            "neo-bpsys-wpf",
+            "ViewModels",
+            "Windows",
+            "ScoreWindowViewModel.cs");
 
-        Assert.DoesNotContain("PropertyChangedMessage<int>", source, StringComparison.Ordinal);
-        Assert.DoesNotContain("TotalMainGameScore", source, StringComparison.Ordinal);
-        Assert.DoesNotContain("TotalAwayGameScore", source, StringComparison.Ordinal);
+        Assert.False(File.Exists(sourcePath));
     }
 
     [Fact]

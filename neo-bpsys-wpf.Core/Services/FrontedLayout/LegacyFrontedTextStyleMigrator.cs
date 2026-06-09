@@ -243,19 +243,19 @@ public static class LegacyFrontedTextStyleMigrator
                 continue;
             }
 
-            if (settings?.TextSettings?.MapBpV2_MapName is not null)
+            if (settings?.TextSettings?.MapBpV2_MapName?.IsActive == true)
             {
                 ApplyMapV2MapNameStyle(map, settings.TextSettings.MapBpV2_MapName);
                 diagnostics?.Add($"Legacy text style applied: {window}/{canvas}/{name} <- WidgetsWindowSettings.TextSettings.MapBpV2_MapName");
             }
 
-            if (settings?.TextSettings?.MapBpV2_TeamName is not null)
+            if (settings?.TextSettings?.MapBpV2_TeamName?.IsActive == true)
             {
                 ApplyMapV2TeamNameStyle(map, settings.TextSettings.MapBpV2_TeamName);
                 diagnostics?.Add($"Legacy text style applied: {window}/{canvas}/{name} <- WidgetsWindowSettings.TextSettings.MapBpV2_TeamName");
             }
 
-            if (settings?.TextSettings?.MapBpV2_CampWords is not null)
+            if (settings?.TextSettings?.MapBpV2_CampWords?.IsActive == true)
             {
                 ApplyMapV2CampNameStyle(map, settings.TextSettings.MapBpV2_CampWords);
                 diagnostics?.Add($"Legacy text style applied: {window}/{canvas}/{name} <- WidgetsWindowSettings.TextSettings.MapBpV2_CampWords");
@@ -272,7 +272,7 @@ public static class LegacyFrontedTextStyleMigrator
         Func<string, bool> predicate,
         ICollection<string>? diagnostics)
     {
-        if (style is null)
+        if (style is null || !style.IsActive)
         {
             return;
         }

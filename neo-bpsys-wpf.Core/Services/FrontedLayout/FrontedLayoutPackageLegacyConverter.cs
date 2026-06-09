@@ -50,18 +50,18 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         ".svg"
     };
 
-    private static readonly Dictionary<string, (string Window, string Canvas)> LegacyLayoutFileMap =
+    private static readonly Dictionary<string, LegacyLayoutMapping> LegacyLayoutFileMap =
         new(StringComparer.OrdinalIgnoreCase)
         {
-            ["BpWindowConfig-BaseCanvas.json"] = ("BpWindow", "BaseCanvas"),
-            ["CutSceneWindowConfig-BaseCanvas.json"] = ("CutSceneWindow", "BaseCanvas"),
-            ["GameDataWindowConfig-BaseCanvas.json"] = ("GameDataWindow", "BaseCanvas"),
-            ["ScoreSurWindowConfig-BaseCanvas.json"] = ("ScoreSurWindow", "BaseCanvas"),
-            ["ScoreHunWindowConfig-BaseCanvas.json"] = ("ScoreHunWindow", "BaseCanvas"),
-            ["ScoreGlobalWindowConfig-BaseCanvas.json"] = ("ScoreGlobalWindow", "BaseCanvas"),
-            ["WidgetsWindowConfig-MapBpCanvas.json"] = ("WidgetsWindow", "MapBpCanvas"),
-            ["WidgetsWindowConfig-BpOverViewCanvas.json"] = ("WidgetsWindow", "BpOverViewCanvas"),
-            ["WidgetsWindowConfig-MapV2Canvas.json"] = ("WidgetsWindow", "MapV2Canvas")
+            ["BpWindowConfig-BaseCanvas.json"] = new("BpWindow", "BaseCanvas", "BpWindow"),
+            ["CutSceneWindowConfig-BaseCanvas.json"] = new("CutSceneWindow", "BaseCanvas", "CutSceneWindow"),
+            ["GameDataWindowConfig-BaseCanvas.json"] = new("GameDataWindow", "BaseCanvas", "GameDataWindow"),
+            ["ScoreSurWindowConfig-BaseCanvas.json"] = new("ScoreSurWindow", "BaseCanvas", "ScoreSurWindow"),
+            ["ScoreHunWindowConfig-BaseCanvas.json"] = new("ScoreHunWindow", "BaseCanvas", "ScoreHunWindow"),
+            ["ScoreGlobalWindowConfig-BaseCanvas.json"] = new("ScoreGlobalWindow", "BaseCanvas", "ScoreGlobalWindow"),
+            ["WidgetsWindowConfig-MapBpCanvas.json"] = new("WidgetsWindow", "MapBpCanvas", null, 308D, 554D),
+            ["WidgetsWindowConfig-BpOverViewCanvas.json"] = new("WidgetsWindow", "BpOverViewCanvas", "BpOverviewWindow", 1132D, 182D),
+            ["WidgetsWindowConfig-MapV2Canvas.json"] = new("WidgetsWindow", "MapV2Canvas", "MapV2Window", 1440D, 160D)
         };
 
     private readonly string _builtInLayoutRoot;
@@ -240,63 +240,60 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         {
             cancellationToken.ThrowIfCancellationRequested();
             var fileName = Path.GetFileName(file);
-            if (!TryMapLegacyLayoutFile(fileName, out var window, out var canvas))
+            if (!TryMapLegacyLayoutFile(fileName, out var mapping))
             {
                 warnings.Add($"Unknown legacy layout file skipped: {fileName}");
                 continue;
             }
 
-            if (string.Equals(window, "WidgetsWindow", StringComparison.Ordinal)
-                && string.Equals(canvas, "MapBpCanvas", StringComparison.Ordinal))
+            if (!mapping.IsSupported)
             {
-                infos.Add("Legacy WidgetsWindow/MapBpCanvas was skipped because MapV1 is no longer supported.");
+                warnings.Add("Legacy MapBpCanvas / MapBpV1 is not supported by Designer v3 converter and was skipped.");
                 continue;
             }
 
-            var config = await LoadBuiltInConfigAsync(window, canvas, cancellationToken);
-            ApplyFrontendConfigValues(config, window, canvas, configValueMap, infos, diagnostics);
+            var windowConfig = await LoadBuiltInWindowConfigAsync(mapping.TargetWindow!, cancellationToken);
+            var config = windowConfig.ToCanvasConfig();
+            ApplyFixedSplitCanvasSize(mapping, config);
+            ApplyFrontendConfigValues(config, mapping, configValueMap, infos);
             if (legacySettings is not null)
             {
-                LegacyFrontedTextStyleMigrator.Apply(config, window, canvas, legacySettings, diagnostics);
+                LegacyFrontedTextStyleMigrator.Apply(
+                    config,
+                    mapping.SourceWindow,
+                    mapping.SourceCanvas,
+                    legacySettings,
+                    diagnostics);
             }
 
-            ApplyLegacyGeometry(file, window, canvas, config, infos, diagnostics, warnings);
+            ApplyLegacyGeometry(file, mapping, config, infos, diagnostics, warnings);
             RewriteKnownResourceStrings(config, resourceState);
             config.Version = 3;
+            ApplyCanvasConfig(windowConfig, config);
+            ApplyLegacyWindowSettings(windowConfig, mapping, legacySettings, legacyPropertySet, diagnostics);
 
-            var validationMessages = _validator.Validate(window, canvas, config);
+            var validationMessages = _validator.Validate(
+                mapping.TargetWindow!,
+                FrontedLayoutConstants.BaseCanvasName,
+                windowConfig.ToCanvasConfig());
             var validationErrors = validationMessages
                 .Where(message => message.Severity == Models.FrontedLayout.Designer.FrontedLayoutValidationSeverity.Error)
                 .ToArray();
             if (validationErrors.Length > 0)
             {
-                warnings.Add($"Converted layout {window}/{canvas} has validation errors: {string.Join("; ", validationErrors.Select(error => error.Message))}");
+                warnings.Add($"Converted layout {mapping.TargetWindow}/{FrontedLayoutConstants.BaseCanvasName} has validation errors: {string.Join("; ", validationErrors.Select(error => error.Message))}");
                 continue;
             }
 
-            var outputWindow = window;
-            if (string.Equals(window, "WidgetsWindow", StringComparison.Ordinal)
-                && string.Equals(canvas, "BpOverViewCanvas", StringComparison.Ordinal))
-            {
-                outputWindow = "BpOverviewWindow";
-            }
-            else if (string.Equals(window, "WidgetsWindow", StringComparison.Ordinal)
-                     && string.Equals(canvas, "MapV2Canvas", StringComparison.Ordinal))
-            {
-                outputWindow = "MapV2Window";
-            }
-
-            var relativePath = ToZipPath("FrontedLayouts", $"{outputWindow}.json");
+            var relativePath = mapping.TargetLayoutPath;
             var targetPath = Path.Combine(stagingRoot, relativePath.Replace('/', Path.DirectorySeparatorChar));
             Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
-            var windowConfig = FrontedWindowConfig.FromCanvasConfig(config);
-            ApplyLegacyWindowSettings(windowConfig.WindowSettings, outputWindow, legacySettings, legacyPropertySet);
             var json = JsonSerializer.Serialize(windowConfig, _jsonOptions);
             await File.WriteAllTextAsync(targetPath, json, cancellationToken);
 
             manifest.Content.Layouts.Add(new FrontedLayoutPackageLayoutEntry
             {
-                Window = outputWindow,
+                Window = mapping.TargetWindow!,
                 Path = relativePath
             });
             convertedCount++;
@@ -305,27 +302,14 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         return convertedCount;
     }
 
-    private async Task<FrontedCanvasConfig> LoadBuiltInConfigAsync(
+    private async Task<FrontedWindowConfig> LoadBuiltInWindowConfigAsync(
         string window,
-        string canvas,
         CancellationToken cancellationToken)
     {
-        var windowPathName = window;
-        if (string.Equals(window, "WidgetsWindow", StringComparison.Ordinal)
-            && string.Equals(canvas, "BpOverViewCanvas", StringComparison.Ordinal))
-        {
-            windowPathName = "BpOverviewWindow";
-        }
-        else if (string.Equals(window, "WidgetsWindow", StringComparison.Ordinal)
-                 && string.Equals(canvas, "MapV2Canvas", StringComparison.Ordinal))
-        {
-            windowPathName = "MapV2Window";
-        }
-
-        var path = Path.Combine(_builtInLayoutRoot, $"{windowPathName}.json");
+        var path = Path.Combine(_builtInLayoutRoot, $"{window}.json");
         if (!File.Exists(path))
         {
-            throw new FileNotFoundException($"Built-in v3 layout was not found: {windowPathName}", path);
+            throw new FileNotFoundException($"Built-in v3 layout was not found: {window}", path);
         }
 
         if (new FileInfo(path).Length > FrontedLayoutLimits.MaxLayoutJsonBytes)
@@ -334,15 +318,13 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         }
 
         var json = await File.ReadAllTextAsync(path, cancellationToken);
-        var windowConfig = JsonSerializer.Deserialize<FrontedWindowConfig>(json, _jsonOptions)
-                           ?? throw new InvalidOperationException($"Built-in v3 layout could not be read: {windowPathName}");
-        return windowConfig.ToCanvasConfig();
+        return JsonSerializer.Deserialize<FrontedWindowConfig>(json, _jsonOptions)
+               ?? throw new InvalidOperationException($"Built-in v3 layout could not be read: {window}");
     }
 
     private static void ApplyLegacyGeometry(
         string legacyFile,
-        string window,
-        string canvas,
+        LegacyLayoutMapping mapping,
         FrontedCanvasConfig config,
         ICollection<string> infos,
         ICollection<string> diagnostics,
@@ -377,8 +359,8 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         }
 
         var consumedControls = new HashSet<string>(StringComparer.Ordinal);
-        ApplyScoreGlobalAggregateGeometry(window, canvas, config, legacyPositions, consumedControls, infos, diagnostics);
-        ConsumeLegacyLockOverlayGeometry(window, canvas, config, legacyPositions, consumedControls, diagnostics);
+        ApplyScoreGlobalAggregateGeometry(mapping.SourceWindow, mapping.SourceCanvas, config, legacyPositions, consumedControls, infos, diagnostics);
+        ConsumeLegacyLockOverlayGeometry(mapping.SourceWindow, mapping.SourceCanvas, config, legacyPositions, consumedControls, diagnostics);
 
         foreach (var (controlName, legacy) in legacyPositions)
         {
@@ -388,8 +370,8 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             }
 
             if (!LegacyFrontedControlNameMapper.TryResolve(
-                    window,
-                    canvas,
+                    mapping.SourceWindow,
+                    mapping.SourceCanvas,
                     controlName,
                     config.Controls,
                     out var resolvedName,
@@ -398,18 +380,20 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             {
                 var candidates = LegacyFrontedControlNameMapper.GetClosestCandidates(controlName, config.Controls.Keys);
                 warnings.Add(candidates.Count > 0
-                    ? $"Legacy control geometry ignored because no v3 control matches: {window}/{canvas}/{controlName}. Closest candidates: {string.Join(", ", candidates)}"
-                    : $"Legacy control geometry ignored because no v3 control matches: {window}/{canvas}/{controlName}");
+                    ? $"Legacy control geometry ignored because no v3 control matches: {mapping.SourceWindow}/{mapping.SourceCanvas}/{controlName}. Closest candidates: {string.Join(", ", candidates)}"
+                    : $"Legacy control geometry ignored because no v3 control matches: {mapping.SourceWindow}/{mapping.SourceCanvas}/{controlName}");
                 continue;
             }
 
             if (usedFuzzyMatch)
             {
-                infos.Add($"Legacy control geometry fuzzy-matched: {window}/{canvas}/{controlName} -> {resolvedName}");
+                infos.Add($"Legacy control geometry fuzzy-matched: {mapping.SourceWindow}/{mapping.SourceCanvas}/{controlName} -> {resolvedName}");
             }
 
             ApplyGeometry(control, legacy);
         }
+
+        AddBoundsDiagnostics(mapping, legacyPositions.Values, warnings);
     }
 
     private static void ApplyScoreGlobalAggregateGeometry(
@@ -654,17 +638,22 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
     {
         foreach (var (legacyName, legacy) in legacyPositions)
         {
-            if (!TryMapLegacyLockOverlayName(legacyName, out var targetName)
-                || !config.Controls.TryGetValue(targetName, out var target))
+            if (!TryMapLegacyLockOverlayName(legacyName, out var targetName))
             {
                 continue;
             }
 
             consumedControls.Add(legacyName);
             diagnostics.Add($"Legacy lock overlay geometry consumed: {legacyName} -> {targetName}");
+            if (!config.Controls.TryGetValue(targetName, out var target))
+            {
+                diagnostics.Add($"Legacy lock overlay geometry was folded into lockable control metadata, but target body control was not present: {window}/{canvas}/{legacyName} -> {targetName}");
+                continue;
+            }
 
             if (legacyPositions.ContainsKey(targetName))
             {
+                diagnostics.Add("Legacy lock overlay geometry was folded into lockable control and separate geometry is not representable.");
                 continue;
             }
 
@@ -706,6 +695,35 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         if (legacy.Height.HasValue)
         {
             control.Height = FrontedLayoutNumberNormalizer.Normalize(legacy.Height.Value);
+        }
+    }
+
+    private static void AddBoundsDiagnostics(
+        LegacyLayoutMapping mapping,
+        IEnumerable<ElementInfo> legacyPositions,
+        ICollection<string> warnings)
+    {
+        if (!string.Equals(mapping.SourceWindow, "WidgetsWindow", StringComparison.Ordinal)
+            || !string.Equals(mapping.SourceCanvas, "BpOverViewCanvas", StringComparison.Ordinal)
+            || !mapping.FixedCanvasWidth.HasValue
+            || !mapping.FixedCanvasHeight.HasValue)
+        {
+            return;
+        }
+
+        var bounds = PaintedBounds.From(legacyPositions);
+        if (bounds is null)
+        {
+            return;
+        }
+
+        const double tolerance = 0.01D;
+        if (bounds.Value.MinX < -tolerance
+            || bounds.Value.MinY < -tolerance
+            || bounds.Value.MaxX > mapping.FixedCanvasWidth.Value + tolerance
+            || bounds.Value.MaxY > mapping.FixedCanvasHeight.Value + tolerance)
+        {
+            warnings.Add("Legacy BpOverViewCanvas content exceeds the fixed source canvas bounds and may be clipped after window-centric split.");
         }
     }
 
@@ -802,24 +820,24 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             return result;
         }
 
-        AddMappedImage(root, "BpWindowSettings", "BgImageUri", "BpWindow/BaseCanvas/BackgroundImage", resourceState, result, warnings);
-        AddMappedImage(root, "CutSceneWindowSettings", "BgUri", "CutSceneWindow/BaseCanvas/BackgroundImage", resourceState, result, warnings);
-        AddMappedImage(root, "ScoreWindowSettings", "SurScoreBgImageUri", "ScoreSurWindow/BaseCanvas/BackgroundImage", resourceState, result, warnings);
-        AddMappedImage(root, "ScoreWindowSettings", "HunScoreBgImageUri", "ScoreHunWindow/BaseCanvas/BackgroundImage", resourceState, result, warnings);
-        AddMappedImage(root, "ScoreWindowSettings", "GlobalScoreBgImageUri", "ScoreGlobalWindow/BaseCanvas/BackgroundImage", resourceState, result, warnings);
-        AddMappedImage(root, "ScoreWindowSettings", "GlobalScoreBgImageUriBo3", "ScoreGlobalWindow/BaseCanvas/BoModeStates/Bo3/BackgroundImage", resourceState, result, warnings);
-        AddMappedImage(root, "GameDataWindowSettings", "BgImageUri", "GameDataWindow/BaseCanvas/BackgroundImage", resourceState, result, warnings);
-        AddMappedImage(root, "WidgetsWindowSettings", "MapBpBgUri", "WidgetsWindow/MapBpCanvas/BackgroundImage", resourceState, result, warnings);
-        AddMappedImage(root, "WidgetsWindowSettings", "BpOverviewBgUri", "WidgetsWindow/BpOverViewCanvas/BackgroundImage", resourceState, result, warnings);
-        AddMappedImage(root, "WidgetsWindowSettings", "MapBpV2BgUri", "WidgetsWindow/MapV2Canvas/BackgroundImage", resourceState, result, warnings);
-        AddMappedImage(root, "BpWindowSettings", "CurrentBanLockImageUri", "BpWindow/BaseCanvas/CurrentBanLockImage", resourceState, result, warnings);
-        AddMappedImage(root, "BpWindowSettings", "GlobalBanLockImageUri", "BpWindow/BaseCanvas/GlobalBanLockImage", resourceState, result, warnings);
-        AddMappedImage(root, "BpWindowSettings", "PickingBorderImageUri", "BpWindow/BaseCanvas/PickingBorderImage", resourceState, result, warnings);
+        AddMappedImage(root, "BpWindowSettings", "BgImageUri", "BpWindow/BaseCanvas/BackgroundImage", resourceState, result, diagnostics);
+        AddMappedImage(root, "CutSceneWindowSettings", "BgUri", "CutSceneWindow/BaseCanvas/BackgroundImage", resourceState, result, diagnostics);
+        AddMappedImage(root, "ScoreWindowSettings", "SurScoreBgImageUri", "ScoreSurWindow/BaseCanvas/BackgroundImage", resourceState, result, diagnostics);
+        AddMappedImage(root, "ScoreWindowSettings", "HunScoreBgImageUri", "ScoreHunWindow/BaseCanvas/BackgroundImage", resourceState, result, diagnostics);
+        AddMappedImage(root, "ScoreWindowSettings", "GlobalScoreBgImageUri", "ScoreGlobalWindow/BaseCanvas/BackgroundImage", resourceState, result, diagnostics);
+        AddMappedImage(root, "ScoreWindowSettings", "GlobalScoreBgImageUriBo3", "ScoreGlobalWindow/BaseCanvas/BoModeStates/Bo3/BackgroundImage", resourceState, result, diagnostics);
+        AddMappedImage(root, "GameDataWindowSettings", "BgImageUri", "GameDataWindow/BaseCanvas/BackgroundImage", resourceState, result, diagnostics);
+        AddMappedImage(root, "WidgetsWindowSettings", "MapBpBgUri", "WidgetsWindow/MapBpCanvas/BackgroundImage", resourceState, result, diagnostics);
+        AddMappedImage(root, "WidgetsWindowSettings", "BpOverviewBgUri", "BpOverviewWindow/BaseCanvas/BackgroundImage", resourceState, result, diagnostics);
+        AddMappedImage(root, "WidgetsWindowSettings", "MapBpV2BgUri", "MapV2Window/BaseCanvas/BackgroundImage", resourceState, result, diagnostics);
+        AddMappedImage(root, "BpWindowSettings", "CurrentBanLockImageUri", "BpWindow/BaseCanvas/CurrentBanLockImage", resourceState, result, diagnostics);
+        AddMappedImage(root, "BpWindowSettings", "GlobalBanLockImageUri", "BpWindow/BaseCanvas/GlobalBanLockImage", resourceState, result, diagnostics);
+        AddMappedImage(root, "BpWindowSettings", "PickingBorderImageUri", "BpWindow/BaseCanvas/PickingBorderImage", resourceState, result, diagnostics);
         AddMappedValue(root, "BpWindowSettings", "PickingBorderColor", "BpWindow/BaseCanvas/PickingBorderColor", result);
-        AddMappedImage(root, "WidgetsWindowSettings", "CurrentBanLockImageUri", "WidgetsWindow/BpOverViewCanvas/CurrentBanLockImage", resourceState, result, warnings);
-        AddMappedImage(root, "WidgetsWindowSettings", "GlobalBanLockImageUri", "WidgetsWindow/BpOverViewCanvas/GlobalBanLockImage", resourceState, result, warnings);
-        AddMappedImage(root, "WidgetsWindowSettings", "MapBpV2PickingBorderImageUri", "WidgetsWindow/MapV2Canvas/MapBpV2PickingBorderImage", resourceState, result, warnings);
-        AddMappedValue(root, "WidgetsWindowSettings", "MapBpV2_PickingBorderColor", "WidgetsWindow/MapV2Canvas/MapBpV2PickingBorderColor", result);
+        AddMappedImage(root, "WidgetsWindowSettings", "CurrentBanLockImageUri", "BpOverviewWindow/BaseCanvas/CurrentBanLockImage", resourceState, result, diagnostics);
+        AddMappedImage(root, "WidgetsWindowSettings", "GlobalBanLockImageUri", "BpOverviewWindow/BaseCanvas/GlobalBanLockImage", resourceState, result, diagnostics);
+        AddMappedImage(root, "WidgetsWindowSettings", "MapBpV2PickingBorderImageUri", "MapV2Window/BaseCanvas/MapBpV2PickingBorderImage", resourceState, result, diagnostics);
+        AddMappedValue(root, "WidgetsWindowSettings", "MapBpV2_PickingBorderColor", "MapV2Window/BaseCanvas/MapBpV2PickingBorderColor", result);
 
         foreach (var ignored in EnumeratePotentialFrontendImageFields(root)
                      .Where(field => !KnownConfigImageFields.Contains(field, StringComparer.Ordinal)))
@@ -907,17 +925,26 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
     }
 
     private static void ApplyLegacyWindowSettings(
-        FrontedWindowSettings target,
-        string outputWindow,
+        FrontedWindowConfig target,
+        LegacyLayoutMapping mapping,
         LegacySettings? legacySettings,
-        IReadOnlySet<string> legacyPropertySet)
+        IReadOnlySet<string> legacyPropertySet,
+        ICollection<string> diagnostics)
     {
+        if (mapping.FixedCanvasWidth.HasValue && mapping.FixedCanvasHeight.HasValue)
+        {
+            target.WindowSettings.WindowWidth = mapping.FixedCanvasWidth.Value;
+            target.WindowSettings.WindowHeight = mapping.FixedCanvasHeight.Value;
+            target.CanvasSettings.CanvasWidth = mapping.FixedCanvasWidth.Value;
+            target.CanvasSettings.CanvasHeight = mapping.FixedCanvasHeight.Value;
+        }
+
         if (legacySettings is null)
         {
             return;
         }
 
-        var (windowSize, backgroundColor, allowTransparency) = outputWindow switch
+        var (windowSize, backgroundColor, allowTransparency) = mapping.TargetWindow switch
         {
             "BpWindow" => (
                 legacySettings.BpWindowSettings?.WindowSize,
@@ -944,7 +971,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                 null,
                 null),
             "BpOverviewWindow" or "MapV2Window" => (
-                legacySettings.WidgetsWindowSettings?.WindowSize,
+                null,
                 legacySettings.WidgetsWindowSettings?.BackgroundColor,
                 HasLegacyProperty(legacyPropertySet, "WidgetsWindowSettings", "AllowsWindowTransparency")
                     ? legacySettings.WidgetsWindowSettings?.AllowsWindowTransparency
@@ -952,41 +979,83 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             _ => (null, null, null)
         };
 
-        if (windowSize is not null)
+        if (windowSize is not null && !mapping.FixedCanvasWidth.HasValue)
         {
             if (double.IsFinite(windowSize.Width) && windowSize.Width > 0D)
             {
-                target.WindowWidth = windowSize.Width;
+                target.WindowSettings.WindowWidth = windowSize.Width;
             }
 
             if (double.IsFinite(windowSize.Height) && windowSize.Height > 0D)
             {
-                target.WindowHeight = windowSize.Height;
+                target.WindowSettings.WindowHeight = windowSize.Height;
+            }
+
+            if (IsPositiveFinite(windowSize.Width)
+                && IsPositiveFinite(windowSize.Height)
+                && (!AreClose(windowSize.Width, target.CanvasSettings.CanvasWidth)
+                    || !AreClose(windowSize.Height, target.CanvasSettings.CanvasHeight)))
+            {
+                diagnostics.Add(
+                    $"Legacy window size differs from built-in v3 canvas size: {mapping.TargetWindow} Window={windowSize.Width}x{windowSize.Height}, Canvas={target.CanvasSettings.CanvasWidth}x{target.CanvasSettings.CanvasHeight}.");
             }
         }
 
         if (allowTransparency.HasValue)
         {
-            target.AllowsTransparency = allowTransparency.Value;
+            target.WindowSettings.AllowsTransparency = allowTransparency.Value;
         }
 
         if (!string.IsNullOrWhiteSpace(backgroundColor))
         {
-            target.BackgroundColor = backgroundColor;
+            target.WindowSettings.BackgroundColor = backgroundColor;
         }
         else if (allowTransparency == true)
         {
-            target.BackgroundColor = "#00000000";
+            target.WindowSettings.BackgroundColor = "#00000000";
         }
         else if (allowTransparency == false)
         {
-            target.BackgroundColor = DefaultOpaqueBackgroundColor;
+            target.WindowSettings.BackgroundColor = DefaultOpaqueBackgroundColor;
         }
     }
 
     private static bool HasLegacyProperty(IReadOnlySet<string> legacyPropertySet, string settingsName, string propertyName)
     {
         return legacyPropertySet.Contains($"{settingsName}.{propertyName}");
+    }
+
+    private static bool IsPositiveFinite(double value)
+    {
+        return double.IsFinite(value) && value > 0D;
+    }
+
+    private static bool AreClose(double left, double right)
+    {
+        return Math.Abs(left - right) < 0.01D;
+    }
+
+    private static void ApplyFixedSplitCanvasSize(LegacyLayoutMapping mapping, FrontedCanvasConfig config)
+    {
+        if (!mapping.FixedCanvasWidth.HasValue || !mapping.FixedCanvasHeight.HasValue || !mapping.IsSupported)
+        {
+            return;
+        }
+
+        config.CanvasWidth = mapping.FixedCanvasWidth.Value;
+        config.CanvasHeight = mapping.FixedCanvasHeight.Value;
+    }
+
+    private static void ApplyCanvasConfig(FrontedWindowConfig target, FrontedCanvasConfig source)
+    {
+        target.Version = 3;
+        target.CanvasSettings.CanvasWidth = source.CanvasWidth;
+        target.CanvasSettings.CanvasHeight = source.CanvasHeight;
+        target.CanvasSettings.BackgroundImage = source.BackgroundImage;
+        target.CanvasSettings.EnableBoModeStates = source.EnableBoModeStates;
+        target.CanvasSettings.BoModeStates = source.BoModeStates;
+        target.ControlLayout.RequiredPlugins = source.RequiredPlugins;
+        target.ControlLayout.Controls = source.Controls;
     }
 
     private static void AddMappedImage(
@@ -996,7 +1065,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         string key,
         ResourceConvertState resourceState,
         IDictionary<string, string> result,
-        ICollection<string> warnings)
+        ICollection<string> diagnostics)
     {
         var field = $"{settingsObject}.{propertyName}";
         var value = root?[settingsObject]?[propertyName]?.GetValue<string>();
@@ -1011,7 +1080,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             return;
         }
 
-        warnings.Add($"Legacy resource missing or not packaged for field {field}: {value}");
+        diagnostics.Add($"Legacy resource missing or not packaged for field {field}: {value}");
     }
 
     private static void AddMappedValue(
@@ -1081,13 +1150,11 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
 
     private static void ApplyFrontendConfigValues(
         FrontedCanvasConfig config,
-        string window,
-        string canvas,
+        LegacyLayoutMapping mapping,
         IReadOnlyDictionary<string, string> valueMap,
-        ICollection<string> infos,
-        ICollection<string> diagnostics)
+        ICollection<string> infos)
     {
-        var prefix = $"{window}/{canvas}/";
+        var prefix = $"{mapping.TargetWindow}/{FrontedLayoutConstants.BaseCanvasName}/";
         if (valueMap.TryGetValue($"{prefix}BackgroundImage", out var background))
         {
             config.BackgroundImage = background;
@@ -1110,7 +1177,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             infos.Add("Legacy BO3 global score background mapped into ScoreGlobal BO3 canvas state.");
         }
 
-        if (window == "BpWindow" && canvas == "BaseCanvas")
+        if (mapping.TargetWindow == "BpWindow")
         {
             foreach (var control in config.Controls.Values.OfType<ImageFrontedControlConfig>())
             {
@@ -1135,7 +1202,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             }
         }
 
-        if (window == "WidgetsWindow" && canvas == "BpOverViewCanvas")
+        if (mapping.TargetWindow == "BpOverviewWindow")
         {
             foreach (var control in config.Controls.Values
                          .OfType<ImageFrontedControlConfig>()
@@ -1151,7 +1218,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             }
         }
 
-        if (window == "WidgetsWindow" && canvas == "MapV2Canvas")
+        if (mapping.TargetWindow == "MapV2Window")
         {
             foreach (var control in config.Controls.Values.OfType<MapV2DisplayControlConfig>())
             {
@@ -1303,17 +1370,14 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         };
     }
 
-    private static bool TryMapLegacyLayoutFile(string fileName, out string window, out string canvas)
+    private static bool TryMapLegacyLayoutFile(string fileName, out LegacyLayoutMapping mapping)
     {
-        if (LegacyLayoutFileMap.TryGetValue(fileName, out var mapped))
+        if (LegacyLayoutFileMap.TryGetValue(fileName, out mapping!))
         {
-            window = mapped.Window;
-            canvas = mapped.Canvas;
             return true;
         }
 
-        window = string.Empty;
-        canvas = string.Empty;
+        mapping = LegacyLayoutMapping.Unsupported("Unknown", "Unknown");
         return false;
     }
 
@@ -1532,6 +1596,60 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         string Half,
         bool IsOvertime,
         ElementInfo Info);
+
+    private sealed record LegacyLayoutMapping(
+        string SourceWindow,
+        string SourceCanvas,
+        string? TargetWindow,
+        double? FixedCanvasWidth = null,
+        double? FixedCanvasHeight = null)
+    {
+        public bool IsSupported => !string.IsNullOrWhiteSpace(TargetWindow);
+
+        public string TargetLayoutPath => ToZipPath("FrontedLayouts", $"{TargetWindow}.json");
+
+        public static LegacyLayoutMapping Unsupported(string sourceWindow, string sourceCanvas)
+        {
+            return new LegacyLayoutMapping(sourceWindow, sourceCanvas, null);
+        }
+    }
+
+    private readonly record struct PaintedBounds(double MinX, double MinY, double MaxX, double MaxY)
+    {
+        public static PaintedBounds? From(IEnumerable<ElementInfo> elements)
+        {
+            var hasAny = false;
+            var minX = double.PositiveInfinity;
+            var minY = double.PositiveInfinity;
+            var maxX = double.NegativeInfinity;
+            var maxY = double.NegativeInfinity;
+
+            foreach (var element in elements)
+            {
+                if (!element.Left.HasValue || !element.Top.HasValue)
+                {
+                    continue;
+                }
+
+                var width = element.Width.GetValueOrDefault();
+                var height = element.Height.GetValueOrDefault();
+                if (width < 0D || height < 0D)
+                {
+                    continue;
+                }
+
+                var left = element.Left.Value;
+                var top = element.Top.Value;
+                minX = Math.Min(minX, left);
+                minY = Math.Min(minY, top);
+                maxX = Math.Max(maxX, left + width);
+                maxY = Math.Max(maxY, top + height);
+                hasAny = true;
+            }
+
+            return hasAny ? new PaintedBounds(minX, minY, maxX, maxY) : null;
+        }
+    }
 }
 
 #pragma warning restore CS1591

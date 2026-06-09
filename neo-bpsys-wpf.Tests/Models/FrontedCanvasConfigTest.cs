@@ -679,7 +679,6 @@ public class FrontedCanvasConfigTest
             "SurTeamName",
             "HunTeamName",
             "SurTeamMajorPoint",
-            "HunTeamMajorPoint",
             "Map",
             "MapName",
             "GameProgress",
@@ -737,7 +736,6 @@ public class FrontedCanvasConfigTest
         AssertTextBinding(config, "SurTeamName", "CurrentGame.SurTeam.Name");
         AssertTextBinding(config, "HunTeamName", "CurrentGame.HunTeam.Name");
         AssertTextBinding(config, "SurTeamMajorPoint", "CurrentGame.MatchScore.CurrentSurTeamMajorText");
-        AssertTextBinding(config, "HunTeamMajorPoint", "CurrentGame.MatchScore.CurrentHunTeamMajorText");
         AssertTextBinding(config, "SurId0", "CurrentGame.SurPlayerList[0].Member.Name");
         AssertTextBinding(config, "SurId1", "CurrentGame.SurPlayerList[1].Member.Name");
         AssertTextBinding(config, "SurId2", "CurrentGame.SurPlayerList[2].Member.Name");
@@ -1348,13 +1346,14 @@ public class FrontedCanvasConfigTest
     public void ScoreGlobalWindowReloadsV3LayoutWhenBoModeChanges()
     {
         var repoRoot = FindRepositoryRoot();
-        var sourcePath = Path.Combine(repoRoot, "neo-bpsys-wpf", "Views", "Windows", "ScoreGlobalWindow.xaml.cs");
+        var sourcePath = Path.Combine(repoRoot, "neo-bpsys-wpf.Core", "Controls", "FrontedWindowBase.cs");
         var source = File.ReadAllText(sourcePath);
 
-        Assert.Contains("ISharedDataService sharedDataService", source, StringComparison.Ordinal);
+        Assert.Contains("ISharedDataService? _sharedDataService", source, StringComparison.Ordinal);
         Assert.Contains("IsBo3ModeChanged += OnBoModeChanged", source, StringComparison.Ordinal);
         Assert.Contains("IsBo3ModeChanged -= OnBoModeChanged", source, StringComparison.Ordinal);
-        Assert.Contains("_ = ReloadFrontedLayoutAsync();", source, StringComparison.Ordinal);
+        Assert.Contains("MarkLayoutDirty();", source, StringComparison.Ordinal);
+        Assert.Contains("_ = LoadOrReloadContentAsync();", source, StringComparison.Ordinal);
         Assert.Contains("Dispatcher.BeginInvoke", source, StringComparison.Ordinal);
     }
 

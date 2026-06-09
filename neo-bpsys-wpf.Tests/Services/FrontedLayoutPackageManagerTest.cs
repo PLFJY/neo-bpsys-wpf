@@ -86,7 +86,7 @@ public class FrontedLayoutPackageManagerTest
                 MinVersion = "3.0.0",
                 Content = new
                 {
-                    Layouts = new[] { new { Window = "BpWindow", Canvas = "BaseCanvas", Path = "layouts/BpWindow/BaseCanvas.json" } },
+                    Layouts = new[] { new { Window = "BpWindow", Path = "FrontedLayouts/BpWindow.json" } },
                     Resources = Array.Empty<object>()
                 },
                 App = new { MinVersion = "ignored" }
@@ -342,11 +342,11 @@ public class FrontedLayoutPackageManagerTest
             Assert.Equal(2, manifest.Content.Resources.Count);
             Assert.All(manifest.Content.Resources, resource => Assert.False(string.IsNullOrWhiteSpace(resource.Sha256)));
 
-            var builtInLayoutJson = ReadZipEntry(archive, "layouts/ScoreSurWindow/BaseCanvas.json");
+            var builtInLayoutJson = ReadZipEntry(archive, "FrontedLayouts/ScoreSurWindow.json");
             Assert.Contains("\"BackgroundImage\": \"Resources/foo.png\"", builtInLayoutJson);
-            var localLayoutJson = ReadZipEntry(archive, "layouts/ScoreHunWindow/BaseCanvas.json");
+            var localLayoutJson = ReadZipEntry(archive, "FrontedLayouts/ScoreHunWindow.json");
             Assert.Contains("bpui://plfjy.default-layout.2026/resources/images/local-", localLayoutJson);
-            var absoluteLayoutJson = ReadZipEntry(archive, "layouts/ScoreGlobalWindow/BaseCanvas.json");
+            var absoluteLayoutJson = ReadZipEntry(archive, "FrontedLayouts/ScoreGlobalWindow.json");
             Assert.Contains("bpui://plfjy.default-layout.2026/resources/images/absolute-", absoluteLayoutJson);
         }
         finally
@@ -537,12 +537,19 @@ public class FrontedLayoutPackageManagerTest
             Assert.False(manifestRoot.TryGetProperty("App", out _));
             Assert.False(string.IsNullOrWhiteSpace(
                 manifestRoot.GetProperty("Content").GetProperty("Resources")[0].GetProperty("Sha256").GetString()));
+            Assert.Equal("WindowCentric", manifestRoot.GetProperty("LayoutModel").GetString());
+            foreach (var layoutEntry in manifestRoot.GetProperty("Content").GetProperty("Layouts").EnumerateArray())
+            {
+                var window = layoutEntry.GetProperty("Window").GetString();
+                Assert.Equal($"FrontedLayouts/{window}.json", layoutEntry.GetProperty("Path").GetString());
+                Assert.False(layoutEntry.TryGetProperty("Canvas", out _));
+            }
 
-            var layoutJson = ReadZipEntry(archive, "layouts/ScoreSurWindow/BaseCanvas.json");
-            var layout = JsonSerializer.Deserialize<FrontedWindowConfig>(layoutJson)!.ToCanvasConfig();
+            var layoutJson = ReadZipEntry(archive, "FrontedLayouts/ScoreSurWindow.json");
+            var layout = JsonSerializer.Deserialize<FrontedWindowConfig>(layoutJson)!;
             Assert.Equal(3, layout.Version);
-            Assert.StartsWith("bpui://converted.legacy.test/resources/images/bg-", layout.BackgroundImage);
-            var control = layout.Controls["SurTeamName"];
+            Assert.StartsWith("bpui://converted.legacy.test/resources/images/bg-", layout.CanvasSettings.BackgroundImage);
+            var control = layout.ControlLayout.Controls["SurTeamName"];
             Assert.Equal(11, control.Left);
             Assert.Equal(22, control.Top);
             Assert.Equal(33, control.Width);
@@ -582,7 +589,7 @@ public class FrontedLayoutPackageManagerTest
             Assert.Contains(result.Infos, info => info.Contains("AwayTeamGame*", StringComparison.Ordinal));
 
             using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
-            var layoutJson = ReadZipEntry(archive, "layouts/ScoreGlobalWindow/BaseCanvas.json");
+            var layoutJson = ReadZipEntry(archive, "FrontedLayouts/ScoreGlobalWindow.json");
             var layout = JsonSerializer.Deserialize<FrontedWindowConfig>(layoutJson)!.ToCanvasConfig();
 
             Assert.StartsWith("bpui://converted.legacy.score-global/resources/images/global-", layout.BackgroundImage);
@@ -655,6 +662,22 @@ public class FrontedLayoutPackageManagerTest
             Assert.True(File.Exists(Path.Combine(packageRoot, "converted.legacy.test", "FrontedLayouts", "ScoreSurWindow.json")));
             var active = await manager.GetActivePackageStateAsync(TestContext.Current.CancellationToken);
             Assert.Equal("converted.legacy.test", active.PackageId);
+
+            var manifest = ReadManifestFromPath(Path.Combine(packageRoot, "converted.legacy.test", "manifest.json"));
+            var layoutService = new FrontedLayoutService(
+                new FrontedUserLayoutStore(userLayoutRoot),
+                builtInRoot,
+                manager,
+                null,
+                null);
+            foreach (var layout in manifest.Content.Layouts)
+            {
+                Assert.Equal($"FrontedLayouts/{layout.Window}.json", layout.Path);
+                var json = File.ReadAllText(Path.Combine(packageRoot, "converted.legacy.test", layout.Path.Replace('/', Path.DirectorySeparatorChar)));
+                Assert.NotNull(JsonSerializer.Deserialize<FrontedWindowConfig>(json));
+                var loaded = await layoutService.LoadWindowConfigAsync(layout.Window, TestContext.Current.CancellationToken);
+                Assert.NotNull(loaded);
+            }
         }
         finally
         {
@@ -1606,41 +1629,20 @@ public class FrontedLayoutPackageManagerTest
         })!;
     }
 
+    private static FrontedLayoutPackageManifest ReadManifestFromPath(string path)
+    {
+        return JsonSerializer.Deserialize<FrontedLayoutPackageManifest>(File.ReadAllText(path), new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        })!;
+    }
+
     private static string ReadZipEntry(ZipArchive archive, string entryName)
     {
-        entryName = MapLegacyPackageLayoutEntry(entryName);
         var entry = archive.GetEntry(entryName) ?? throw new InvalidOperationException($"Missing zip entry {entryName}.");
         using var stream = entry.Open();
         using var reader = new StreamReader(stream);
         return reader.ReadToEnd();
-    }
-
-    private static string MapLegacyPackageLayoutEntry(string entryName)
-    {
-        var normalized = entryName.Replace('\\', '/');
-        if (!normalized.StartsWith("layouts/", StringComparison.OrdinalIgnoreCase)
-            || !normalized.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
-        {
-            return entryName;
-        }
-
-        var parts = normalized.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length != 3)
-        {
-            return entryName;
-        }
-
-        var window = parts[1];
-        var canvas = Path.GetFileNameWithoutExtension(parts[2]);
-        var outputWindow = (window, canvas) switch
-        {
-            ("WidgetsWindow", "BpOverViewCanvas") => "BpOverviewWindow",
-            ("WidgetsWindow", "MapV2Canvas") => "MapV2Window",
-            (_, "BaseCanvas") => window,
-            _ => null
-        };
-
-        return outputWindow is null ? entryName : $"FrontedLayouts/{outputWindow}.json";
     }
 
     private static string CreateTempDirectory()

@@ -87,7 +87,7 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             Assert.Contains(result.Diagnostics, item => item.Contains("Legacy text style applied", StringComparison.Ordinal));
 
             using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
-            var bp = ReadLayout(archive, "layouts/BpWindow/BaseCanvas.json");
+            var bp = ReadLayout(archive, "FrontedLayouts/BpWindow.json");
             var surTeamName = Assert.IsType<TextFrontedControlConfig>(bp.Controls["SurTeamName"]);
             Assert.Equal("#FF000000", surTeamName.Color);
             Assert.Equal("Bold", surTeamName.FontWeight);
@@ -100,7 +100,7 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             Assert.Equal("#FF000000", timer.Color);
             Assert.Equal(30, timer.FontSize);
 
-            var cutScene = ReadLayout(archive, "layouts/CutSceneWindow/BaseCanvas.json");
+            var cutScene = ReadLayout(archive, "FrontedLayouts/CutSceneWindow.json");
             var cutSurTeamName = Assert.IsType<TextFrontedControlConfig>(cutScene.Controls["SurTeamName"]);
             Assert.Equal("#FF000000", cutSurTeamName.Color);
             Assert.Equal(LegacyFont, cutSurTeamName.FontFamily);
@@ -108,12 +108,12 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             Assert.Equal("#FF000000", cutHunTeamName.Color);
             Assert.Equal(LegacyFont, cutHunTeamName.FontFamily);
 
-            var scoreSur = ReadLayout(archive, "layouts/ScoreSurWindow/BaseCanvas.json");
+            var scoreSur = ReadLayout(archive, "FrontedLayouts/ScoreSurWindow.json");
             AssertTextStyle(scoreSur.Controls["GameScoresSur"], "#FF000000", "Bold", LegacyFont, 100);
-            var scoreHun = ReadLayout(archive, "layouts/ScoreHunWindow/BaseCanvas.json");
+            var scoreHun = ReadLayout(archive, "FrontedLayouts/ScoreHunWindow.json");
             AssertTextStyle(scoreHun.Controls["GameScoresHun"], "#FF000000", "Bold", LegacyFont, 100);
 
-            var scoreGlobal = ReadLayout(archive, "layouts/ScoreGlobalWindow/BaseCanvas.json");
+            var scoreGlobal = ReadLayout(archive, "FrontedLayouts/ScoreGlobalWindow.json");
             AssertTextStyle(scoreGlobal.Controls["HomeTeamName"], "#FF000000", "Bold", LegacyFont, 24);
             AssertTextStyle(scoreGlobal.Controls["AwayTeamName"], "#FF000000", "Bold", LegacyFont, 24);
             AssertTextStyle(scoreGlobal.Controls["HomeScoreTotal"], "#FF000000", "Bold", LegacyFont, 40);
@@ -121,17 +121,17 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             AssertTextStyle(scoreGlobal.Controls["HomeGlobalScoreRow"], "#FF000000", "Bold", LegacyFont, 24);
             AssertTextStyle(scoreGlobal.Controls["AwayGlobalScoreRow"], "#FF000000", "Bold", LegacyFont, 24);
 
-            var gameData = ReadLayout(archive, "layouts/GameDataWindow/BaseCanvas.json");
+            var gameData = ReadLayout(archive, "FrontedLayouts/GameDataWindow.json");
             AssertTextStyle(gameData.Controls["SurId0"], "#FF000000", "Bold", LegacyFont, 22);
             AssertTextStyle(gameData.Controls["SurDataHeader0"], "#FFFFFFFF", "Normal", NotoSansFont, 16);
             AssertTextStyle(gameData.Controls["SurData0"], "#FF000000", "Bold", LegacyFont, 22);
 
-            var overview = ReadLayout(archive, "layouts/WidgetsWindow/BpOverViewCanvas.json");
+            var overview = ReadLayout(archive, "FrontedLayouts/BpOverviewWindow.json");
             AssertTextStyle(overview.Controls["GameProgress"], "#FF000000", "Bold", LegacyFont, 22);
             AssertTextStyle(overview.Controls["GameScoresSur"], "#FF000000", "Bold", LegacyFont, 20);
             AssertTextStyle(overview.Controls["GameScoresHun"], "#FF000000", "Bold", LegacyFont, 20);
 
-            var mapV2 = ReadLayout(archive, "layouts/WidgetsWindow/MapV2Canvas.json");
+            var mapV2 = ReadLayout(archive, "FrontedLayouts/MapV2Window.json");
             var map = Assert.IsType<MapV2DisplayControlConfig>(mapV2.Controls["MapV2Display0"]);
             Assert.Equal("#FF060606", map.CampNameColor);
             Assert.Equal("Bold", map.CampNameFontWeight);
@@ -177,7 +177,7 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             Assert.DoesNotContain(result.Diagnostics, item => item.Contains("GlobalScoreBgImageUriBo3", StringComparison.Ordinal));
             Assert.DoesNotContain(result.Warnings, item => item.Contains("GlobalScoreBgImageUriBo3", StringComparison.Ordinal));
             using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
-            var layoutJson = ReadZipEntry(archive, "layouts/ScoreGlobalWindow/BaseCanvas.json");
+            var layoutJson = ReadZipEntry(archive, "FrontedLayouts/ScoreGlobalWindow.json");
             var layout = JsonSerializer.Deserialize<FrontedWindowConfig>(layoutJson)!.ToCanvasConfig();
 
             Assert.StartsWith("bpui://converted.legacy.bo3-bg/resources/images/scoreGlobal-", layout.BackgroundImage);
@@ -287,7 +287,7 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
                         """
                         {
                           "HunBanCurrentLock0": { "Left": 11, "Top": 22, "Width": 33, "Height": 44 },
-                          "SurBanCurrent0": { "Left": 100, "Top": 200, "Width": 300, "Height": 400 },
+                          "SurBanCurrent0": { "Left": 100, "Top": 20, "Width": 30, "Height": 40 },
                           "SurBanCurrentLock0": { "Left": 1, "Top": 2, "Width": 3, "Height": 4 }
                         }
                         """
@@ -301,7 +301,7 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             Assert.False(LegacyConversionMessageFormatter.HasUserFacingWarnings(result));
 
             using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
-            var layout = ReadLayout(archive, "layouts/WidgetsWindow/BpOverViewCanvas.json");
+            var layout = ReadLayout(archive, "FrontedLayouts/BpOverviewWindow.json");
             var hun = Assert.IsType<ImageFrontedControlConfig>(layout.Controls["HunBanCurrent0"]);
             Assert.Equal(11, hun.Left);
             Assert.Equal(22, hun.Top);
@@ -309,9 +309,9 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             Assert.Equal(44, hun.Height);
             var sur = Assert.IsType<ImageFrontedControlConfig>(layout.Controls["SurBanCurrent0"]);
             Assert.Equal(100, sur.Left);
-            Assert.Equal(200, sur.Top);
-            Assert.Equal(300, sur.Width);
-            Assert.Equal(400, sur.Height);
+            Assert.Equal(20, sur.Top);
+            Assert.Equal(30, sur.Width);
+            Assert.Equal(40, sur.Height);
         }
         finally
         {
@@ -366,7 +366,7 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             Assert.DoesNotContain(result.Warnings, warning => warning.Contains("CurrentBanLock", StringComparison.Ordinal));
 
             using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
-            var bpLayout = ReadLayout(archive, "layouts/BpWindow/BaseCanvas.json");
+            var bpLayout = ReadLayout(archive, "FrontedLayouts/BpWindow.json");
             var current = Assert.IsType<ImageFrontedControlConfig>(bpLayout.Controls["SurBanCurrent0"]);
             var global = Assert.IsType<ImageFrontedControlConfig>(bpLayout.Controls["SurBanGlobal0"]);
             var pick = Assert.IsType<ImageFrontedControlConfig>(bpLayout.Controls["SurPick0"]);
@@ -374,9 +374,142 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             Assert.StartsWith("bpui://converted.legacy.assets/resources/images/GlobalBanLock-", global.LockImagePath);
             Assert.StartsWith("bpui://converted.legacy.assets/resources/images/PickingBorder-", pick.PickingBorderImagePath);
 
-            var widgetsLayout = ReadLayout(archive, "layouts/WidgetsWindow/BpOverViewCanvas.json");
+            var widgetsLayout = ReadLayout(archive, "FrontedLayouts/BpOverviewWindow.json");
             var widgetsCurrent = Assert.IsType<ImageFrontedControlConfig>(widgetsLayout.Controls["HunBanCurrent0"]);
             Assert.StartsWith("bpui://converted.legacy.assets/resources/images/WidgetCurrentBanLock-", widgetsCurrent.LockImagePath);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task ConverterSplitsWidgetsWindowWithFixedSizesResourcesAndMapBpWarning()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var builtInRoot = Path.Combine(root, "builtIn");
+            WriteBuiltInWidgetsOverviewLayout(builtInRoot);
+            WriteBuiltInMapV2Layout(builtInRoot);
+            var archivePath = Path.Combine(root, "legacy.bpui");
+            CreateLegacyArchive(
+                archivePath,
+                configJson:
+                """
+                {
+                  "WidgetsWindowSettings": {
+                    "WindowSize": { "Width": 1440, "Height": 716, "IsActive": false },
+                    "BackgroundColor": "#00FF00",
+                    "AllowsWindowTransparency": false,
+                    "BpOverviewBgUri": "C:\\legacy\\overview.png",
+                    "MapBpV2BgUri": "C:\\legacy\\mapv2.png",
+                    "MapBpV2PickingBorderImageUri": "C:\\legacy\\border.png",
+                    "MapBpV2_PickingBorderColor": "#FF445566"
+                  }
+                }
+                """,
+                customResources: ["overview.png", "mapv2.png", "border.png"],
+                layouts: new Dictionary<string, string>
+                {
+                    ["FrontElementsConfig/WidgetsWindowConfig-BpOverViewCanvas.json"] =
+                        """
+                        {
+                          "HunBanCurrent0": { "Left": 11, "Top": 22, "Width": 33, "Height": 44 },
+                          "SurBanCurrent0": { "Left": 1120, "Top": 170, "Width": 40, "Height": 20 }
+                        }
+                        """,
+                    ["FrontElementsConfig/WidgetsWindowConfig-MapV2Canvas.json"] =
+                        """
+                        {
+                          "MapV2Display0": { "Left": 10, "Top": 20, "Width": 300, "Height": 90 }
+                        }
+                        """,
+                    ["FrontElementsConfig/WidgetsWindowConfig-MapBpCanvas.json"] = "{}"
+                });
+
+            var result = await ConvertAsync(builtInRoot, root, archivePath, "converted.legacy.widgets");
+
+            Assert.True(result.Success, result.ErrorMessage);
+            Assert.Equal(2, result.LayoutCount);
+            Assert.Contains(result.Warnings, warning => warning.Contains("MapBpV1", StringComparison.Ordinal));
+            Assert.Contains(result.Warnings, warning => warning.Contains("BpOverViewCanvas content exceeds", StringComparison.Ordinal));
+
+            using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
+            var entryNames = archive.Entries.Select(entry => entry.FullName.Replace('\\', '/')).ToArray();
+            Assert.Contains("FrontedLayouts/BpOverviewWindow.json", entryNames);
+            Assert.Contains("FrontedLayouts/MapV2Window.json", entryNames);
+            Assert.DoesNotContain("FrontedLayouts/MapBpWindow.json", entryNames);
+
+            var overview = ReadWindowConfig(archive, "FrontedLayouts/BpOverviewWindow.json");
+            Assert.Equal(1132, overview.WindowSettings.WindowWidth);
+            Assert.Equal(182, overview.WindowSettings.WindowHeight);
+            Assert.Equal(1132, overview.CanvasSettings.CanvasWidth);
+            Assert.Equal(182, overview.CanvasSettings.CanvasHeight);
+            Assert.Equal("#00FF00", overview.WindowSettings.BackgroundColor);
+            Assert.False(overview.WindowSettings.AllowsTransparency);
+            Assert.StartsWith("bpui://converted.legacy.widgets/resources/images/overview-", overview.CanvasSettings.BackgroundImage);
+            Assert.Equal(11, overview.ControlLayout.Controls["HunBanCurrent0"].Left);
+
+            var mapV2 = ReadWindowConfig(archive, "FrontedLayouts/MapV2Window.json");
+            Assert.Equal(1440, mapV2.WindowSettings.WindowWidth);
+            Assert.Equal(160, mapV2.WindowSettings.WindowHeight);
+            Assert.Equal(1440, mapV2.CanvasSettings.CanvasWidth);
+            Assert.Equal(160, mapV2.CanvasSettings.CanvasHeight);
+            Assert.StartsWith("bpui://converted.legacy.widgets/resources/images/mapv2-", mapV2.CanvasSettings.BackgroundImage);
+            var display = Assert.IsType<MapV2DisplayControlConfig>(mapV2.ControlLayout.Controls["MapV2Display0"]);
+            Assert.Equal(10, display.Left);
+            Assert.Equal(20, display.Top);
+            Assert.StartsWith("bpui://converted.legacy.widgets/resources/images/border-", display.PickingBorderImagePath);
+            Assert.Equal("#FF445566", display.PickingBorderFillColor);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task ConverterRespectsLegacyTextSettingsIsActive()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var builtInRoot = Path.Combine(root, "builtIn");
+            WriteBuiltInTextStyleLayouts(builtInRoot);
+            var archivePath = Path.Combine(root, "legacy.bpui");
+            CreateLegacyArchive(
+                archivePath,
+                configJson:
+                """
+                {
+                  "BpWindowSettings": {
+                    "TextSettings": {
+                      "TeamName": { "IsActive": false, "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 30 },
+                      "Timer": { "IsActive": true, "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 30 }
+                    }
+                  }
+                }
+                """,
+                customResources: [],
+                layouts: new Dictionary<string, string>
+                {
+                    ["FrontElementsConfig/BpWindowConfig-BaseCanvas.json"] = "{}"
+                });
+
+            var result = await ConvertAsync(builtInRoot, root, archivePath, "converted.legacy.text-active");
+
+            Assert.True(result.Success, result.ErrorMessage);
+            using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
+            var layout = ReadLayout(archive, "FrontedLayouts/BpWindow.json");
+            var teamName = Assert.IsType<TextFrontedControlConfig>(layout.Controls["SurTeamName"]);
+            Assert.Equal("#FFFFFFFF", teamName.Color);
+            Assert.Equal("Noto Sans", teamName.FontFamily);
+            var timer = Assert.IsType<TextFrontedControlConfig>(layout.Controls["Timer"]);
+            Assert.Equal("#FF000000", timer.Color);
+            Assert.Equal("Bold", timer.FontWeight);
+            Assert.Equal(30, timer.FontSize);
         }
         finally
         {
@@ -412,8 +545,8 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             var result = await ConvertAsync(builtInRoot, root, archivePath, "converted.legacy.missing-lock");
 
             Assert.True(result.Success, result.ErrorMessage);
-            Assert.Contains(result.Warnings, warning => warning.Contains("MissingLock.png", StringComparison.Ordinal));
-            Assert.True(LegacyConversionMessageFormatter.HasUserFacingWarnings(result));
+            Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Contains("MissingLock.png", StringComparison.Ordinal));
+            Assert.False(LegacyConversionMessageFormatter.HasUserFacingWarnings(result));
         }
         finally
         {
@@ -497,6 +630,28 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
                 "Top": 6,
                 "Width": 7,
                 "Height": 8
+              }
+            }
+            """);
+    }
+
+    private static void WriteBuiltInMapV2Layout(string builtInRoot)
+    {
+        WriteFile(
+            Path.Combine(builtInRoot, "WidgetsWindow", "MapV2Canvas.json"),
+            """
+            {
+              "Version": 3,
+              "CanvasWidth": 1440,
+              "CanvasHeight": 160,
+              "BackgroundImage": "Resources/mapBpV2.png",
+              "MapV2Display0": {
+                "ControlType": "MapV2Display",
+                "Left": 1,
+                "Top": 2,
+                "Width": 3,
+                "Height": 4,
+                "MapKey": "arms"
               }
             }
             """);
@@ -685,40 +840,40 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
         {
           "BpWindowSettings": {
             "TextSettings": {
-              "TeamName": { "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 16 },
-              "Timer": { "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 30 }
+              "TeamName": { "IsActive": true, "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 16 },
+              "Timer": { "IsActive": true, "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 30 }
             }
           },
           "CutSceneWindowSettings": {
             "TextSettings": {
-              "TeamName": { "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 28 },
-              "SurPlayerId": { "Color": "#FFFFFFFF", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 18 },
-              "HunPlayerId": { "Color": "#FFFFFFFF", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 30 }
+              "TeamName": { "IsActive": true, "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 28 },
+              "SurPlayerId": { "IsActive": true, "Color": "#FFFFFFFF", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 18 },
+              "HunPlayerId": { "IsActive": true, "Color": "#FFFFFFFF", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 30 }
             }
           },
           "ScoreWindowSettings": {
             "TextSettings": {
-              "GameScores": { "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 100 },
-              "MajorPoints": { "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 38 },
-              "TeamName": { "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 32 },
-              "ScoreGlobal_TeamName": { "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 24 },
-              "ScoreGlobal_Data": { "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 24 },
-              "ScoreGlobal_Total": { "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 40 }
+              "GameScores": { "IsActive": true, "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 100 },
+              "MajorPoints": { "IsActive": true, "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 38 },
+              "TeamName": { "IsActive": true, "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 32 },
+              "ScoreGlobal_TeamName": { "IsActive": true, "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 24 },
+              "ScoreGlobal_Data": { "IsActive": true, "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 24 },
+              "ScoreGlobal_Total": { "IsActive": true, "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 40 }
             }
           },
           "GameDataWindowSettings": {
             "TextSettings": {
-              "TeamName": { "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 32 },
-              "PlayerId": { "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 22 },
-              "SurDataHeader": { "Color": "#FFFFFFFF", "FontFamilySite": "Noto Sans", "FontWeight": "Normal", "FontSize": 16 },
-              "SurData": { "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 22 }
+              "TeamName": { "IsActive": true, "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 32 },
+              "PlayerId": { "IsActive": true, "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 22 },
+              "SurDataHeader": { "IsActive": true, "Color": "#FFFFFFFF", "FontFamilySite": "Noto Sans", "FontWeight": "Normal", "FontSize": 16 },
+              "SurData": { "IsActive": true, "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 22 }
             }
           },
           "WidgetsWindowSettings": {
             "TextSettings": {
-              "BpOverview_GameProgress": { "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 22 },
-              "BpOverview_GameScores": { "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 20 },
-              "MapBpV2_CampWords": { "Color": "#FF060606", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 20 }
+              "BpOverview_GameProgress": { "IsActive": true, "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 22 },
+              "BpOverview_GameScores": { "IsActive": true, "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 20 },
+              "MapBpV2_CampWords": { "IsActive": true, "Color": "#FF060606", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 20 }
             }
           }
         }
@@ -753,6 +908,14 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
         })!.ToCanvasConfig();
     }
 
+    private static FrontedWindowConfig ReadWindowConfig(ZipArchive archive, string entryName)
+    {
+        return JsonSerializer.Deserialize<FrontedWindowConfig>(ReadZipEntry(archive, entryName), new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        })!;
+    }
+
     private static void WriteFile(string path, string text)
     {
         if (TryMapLegacyBuiltInLayoutPath(path, out var mappedPath))
@@ -780,7 +943,6 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
 
     private static string ReadZipEntry(ZipArchive archive, string entryName)
     {
-        entryName = MapLegacyPackageLayoutEntry(entryName);
         var entry = archive.GetEntry(entryName) ?? throw new InvalidOperationException($"Missing zip entry {entryName}.");
         using var stream = entry.Open();
         using var reader = new StreamReader(stream);
@@ -812,34 +974,6 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
 
         mappedPath = Path.Combine(root, $"{outputWindow}.json");
         return true;
-    }
-
-    private static string MapLegacyPackageLayoutEntry(string entryName)
-    {
-        var normalized = entryName.Replace('\\', '/');
-        if (!normalized.StartsWith("layouts/", StringComparison.OrdinalIgnoreCase)
-            || !normalized.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
-        {
-            return entryName;
-        }
-
-        var parts = normalized.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length != 3)
-        {
-            return entryName;
-        }
-
-        var window = parts[1];
-        var canvas = Path.GetFileNameWithoutExtension(parts[2]);
-        var outputWindow = (window, canvas) switch
-        {
-            ("WidgetsWindow", "BpOverViewCanvas") => "BpOverviewWindow",
-            ("WidgetsWindow", "MapV2Canvas") => "MapV2Window",
-            (_, "BaseCanvas") => window,
-            _ => null
-        };
-
-        return outputWindow is null ? entryName : $"FrontedLayouts/{outputWindow}.json";
     }
 
     private static string CreateTempDirectory()
