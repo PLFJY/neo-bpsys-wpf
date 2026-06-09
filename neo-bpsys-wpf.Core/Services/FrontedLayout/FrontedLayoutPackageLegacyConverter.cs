@@ -20,6 +20,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
+using System.Windows.Media;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
@@ -73,7 +74,6 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
     private static readonly IReadOnlyDictionary<LegacyLayoutKey, IReadOnlyList<LegacyControlBlueprint>> LegacyControlBlueprints =
         CreateLegacyControlBlueprints();
 
-    private readonly string _builtInLayoutRoot;
     private readonly string _tempRoot;
     private readonly IFrontedLayoutPackageImporter? _packageImporter;
     private readonly FrontedLayoutValidator _validator;
@@ -107,7 +107,6 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         FrontedLayoutValidator? validator = null,
         ILogger<FrontedLayoutPackageLegacyConverter>? logger = null)
     {
-        _builtInLayoutRoot = builtInLayoutRoot;
         _tempRoot = tempRoot;
         _packageImporter = packageImporter;
         _validator = validator ?? new FrontedLayoutValidator();
@@ -267,14 +266,10 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                 continue;
             }
 
-            var builtInWindowConfig = await LoadBuiltInWindowConfigAsync(mapping.TargetWindow!, cancellationToken);
-            var builtInConfig = builtInWindowConfig.ToCanvasConfig();
-            var windowConfig = CreateWindowShell(builtInWindowConfig);
+            var windowConfig = CreateLegacyWindowConfig(mapping);
             var config = windowConfig.ToCanvasConfig();
-            ApplyFixedSplitCanvasSize(mapping, config);
             BuildLegacyBlueprintControls(
                 mapping,
-                builtInConfig,
                 config,
                 legacyPositions,
                 infos,
@@ -326,43 +321,32 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         return convertedCount;
     }
 
-    private async Task<FrontedWindowConfig> LoadBuiltInWindowConfigAsync(
-        string window,
-        CancellationToken cancellationToken)
+    private static FrontedWindowConfig CreateLegacyWindowConfig(LegacyLayoutMapping mapping)
     {
-        var path = Path.Combine(_builtInLayoutRoot, $"{window}.json");
-        if (!File.Exists(path))
-        {
-            throw new FileNotFoundException($"Built-in v3 layout was not found: {window}", path);
-        }
-
-        if (new FileInfo(path).Length > FrontedLayoutLimits.MaxLayoutJsonBytes)
-        {
-            throw new InvalidDataException("LayoutJsonTooLarge");
-        }
-
-        var json = await File.ReadAllTextAsync(path, cancellationToken);
-        return JsonSerializer.Deserialize<FrontedWindowConfig>(json, _jsonOptions)
-               ?? throw new InvalidOperationException($"Built-in v3 layout could not be read: {window}");
-    }
-
-    private static FrontedWindowConfig CreateWindowShell(FrontedWindowConfig builtIn)
-    {
+        var defaults = GetLegacyWindowDefaults(mapping);
         return new FrontedWindowConfig
         {
             Version = 3,
-            WindowSettings = builtIn.WindowSettings,
+            WindowSettings = new FrontedWindowSettings
+            {
+                WindowWidth = defaults.WindowWidth,
+                WindowHeight = defaults.WindowHeight,
+                AllowsTransparency = true,
+                BackgroundColor = "#00000000",
+                Topmost = false,
+                ViewboxStretch = Stretch.Fill
+            },
             CanvasSettings = new FrontedCanvasSettings
             {
-                CanvasWidth = builtIn.CanvasSettings.CanvasWidth,
-                CanvasHeight = builtIn.CanvasSettings.CanvasHeight,
-                BackgroundImage = builtIn.CanvasSettings.BackgroundImage,
-                EnableBoModeStates = builtIn.CanvasSettings.EnableBoModeStates,
-                BoModeStates = builtIn.CanvasSettings.BoModeStates
+                CanvasWidth = defaults.CanvasWidth,
+                CanvasHeight = defaults.CanvasHeight,
+                BackgroundImage = defaults.BackgroundImage,
+                EnableBoModeStates = false,
+                BoModeStates = []
             },
             ControlLayout = new FrontedControlLayout
             {
-                RequiredPlugins = builtIn.ControlLayout.RequiredPlugins,
+                RequiredPlugins = [],
                 Controls = []
             }
         };
@@ -397,7 +381,6 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
 
     private void BuildLegacyBlueprintControls(
         LegacyLayoutMapping mapping,
-        FrontedCanvasConfig builtInConfig,
         FrontedCanvasConfig config,
         IReadOnlyDictionary<string, ElementInfo> legacyPositions,
         ICollection<string> infos,
@@ -423,7 +406,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                 continue;
             }
 
-            var control = CreateBlueprintControl(blueprint, builtInConfig);
+            var control = CreateBlueprintControl(blueprint);
             if (control is null)
             {
                 warnings.Add($"Legacy control blueprint could not create target control: {mapping.SourceWindow}/{mapping.SourceCanvas}/{blueprint.LegacyName} -> {blueprint.TargetName}");
@@ -436,6 +419,9 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         var consumedControls = new HashSet<string>(StringComparer.Ordinal);
         ApplyScoreGlobalAggregateGeometry(mapping.SourceWindow, mapping.SourceCanvas, config, legacyPositions, consumedControls, infos, diagnostics);
         ConsumeLegacyLockOverlayGeometry(mapping.SourceWindow, mapping.SourceCanvas, config, legacyPositions, consumedControls, diagnostics);
+        var blueprintsByLegacyName = blueprints
+            .GroupBy(blueprint => blueprint.LegacyName, StringComparer.Ordinal)
+            .ToDictionary(group => group.Key, group => group.ToArray(), StringComparer.Ordinal);
 
         foreach (var (controlName, legacy) in legacyPositions)
         {
@@ -444,46 +430,30 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                 continue;
             }
 
-            if (!LegacyFrontedControlNameMapper.TryResolve(
-                    mapping.SourceWindow,
-                    mapping.SourceCanvas,
-                    controlName,
-                    config.Controls,
-                    out var resolvedName,
-                    out var usedFuzzyMatch)
-                || !config.Controls.TryGetValue(resolvedName, out var control))
+            if (!blueprintsByLegacyName.TryGetValue(controlName, out var mappedBlueprints))
             {
                 var candidates = LegacyFrontedControlNameMapper.GetClosestCandidates(controlName, config.Controls.Keys);
                 warnings.Add(candidates.Count > 0
-                    ? $"Legacy control geometry ignored because no v3 control matches: {mapping.SourceWindow}/{mapping.SourceCanvas}/{controlName}. Closest candidates: {string.Join(", ", candidates)}"
-                    : $"Legacy control geometry ignored because no v3 control matches: {mapping.SourceWindow}/{mapping.SourceCanvas}/{controlName}");
+                    ? $"Legacy control geometry ignored because no legacy blueprint maps it: {mapping.SourceWindow}/{mapping.SourceCanvas}/{controlName}. Closest candidates: {string.Join(", ", candidates)}"
+                    : $"Legacy control geometry ignored because no legacy blueprint maps it: {mapping.SourceWindow}/{mapping.SourceCanvas}/{controlName}");
                 continue;
             }
 
-            if (usedFuzzyMatch)
+            foreach (var blueprint in mappedBlueprints)
             {
-                infos.Add($"Legacy control geometry fuzzy-matched: {mapping.SourceWindow}/{mapping.SourceCanvas}/{controlName} -> {resolvedName}");
+                if (config.Controls.TryGetValue(blueprint.TargetName, out var control))
+                {
+                    ApplyGeometry(control, legacy);
+                }
             }
-
-            ApplyGeometry(control, legacy);
         }
 
         AddBoundsDiagnostics(mapping, legacyPositions.Values, warnings);
     }
 
     private FrontedControlConfigBase? CreateBlueprintControl(
-        LegacyControlBlueprint blueprint,
-        FrontedCanvasConfig builtInConfig)
+        LegacyControlBlueprint blueprint)
     {
-        if (builtInConfig.Controls.TryGetValue(blueprint.TargetName, out var builtInControl)
-            && IsBuiltInControlCompatibleWithBlueprint(builtInControl, blueprint))
-        {
-            var cloned = CloneControl(builtInControl);
-            ApplyBlueprintDefaults(blueprint, cloned);
-            cloned.Visibility = FrontedControlVisibility.Visible;
-            return cloned;
-        }
-
         var created = CreateDefaultControl(blueprint);
         if (created is null)
         {
@@ -493,26 +463,6 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         ApplyBlueprintDefaults(blueprint, created);
         created.Visibility = FrontedControlVisibility.Visible;
         return created;
-    }
-
-    private FrontedControlConfigBase CloneControl(FrontedControlConfigBase source)
-    {
-        var json = JsonSerializer.Serialize(source, source.GetType(), _jsonOptions);
-        return (FrontedControlConfigBase?)JsonSerializer.Deserialize(json, source.GetType(), _jsonOptions)
-               ?? throw new InvalidOperationException("Fronted control config could not be cloned.");
-    }
-
-    private static bool IsBuiltInControlCompatibleWithBlueprint(
-        FrontedControlConfigBase builtInControl,
-        LegacyControlBlueprint blueprint)
-    {
-        if (string.Equals(builtInControl.ControlType, blueprint.ControlType, StringComparison.Ordinal))
-        {
-            return true;
-        }
-
-        return string.Equals(blueprint.ControlType, "BorderedImage", StringComparison.Ordinal)
-               && builtInControl is ImageFrontedControlConfig;
     }
 
     private static void ApplyScoreGlobalAggregateGeometry(
@@ -1121,7 +1071,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                     || !AreClose(windowSize.Height, target.CanvasSettings.CanvasHeight)))
             {
                 diagnostics.Add(
-                    $"Legacy window size differs from built-in v3 canvas size: {mapping.TargetWindow} Window={windowSize.Width}x{windowSize.Height}, Canvas={target.CanvasSettings.CanvasWidth}x{target.CanvasSettings.CanvasHeight}.");
+                    $"Legacy window size differs from converter legacy canvas default: {mapping.TargetWindow} Window={windowSize.Width}x{windowSize.Height}, Canvas={target.CanvasSettings.CanvasWidth}x{target.CanvasSettings.CanvasHeight}.");
             }
         }
 
@@ -1159,15 +1109,38 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         return Math.Abs(left - right) < 0.01D;
     }
 
-    private static void ApplyFixedSplitCanvasSize(LegacyLayoutMapping mapping, FrontedCanvasConfig config)
+    private static LegacyWindowDefaults GetLegacyWindowDefaults(LegacyLayoutMapping mapping)
     {
-        if (!mapping.FixedCanvasWidth.HasValue || !mapping.FixedCanvasHeight.HasValue || !mapping.IsSupported)
+        if (mapping.FixedCanvasWidth.HasValue && mapping.FixedCanvasHeight.HasValue)
         {
-            return;
+            return new LegacyWindowDefaults(
+                mapping.FixedCanvasWidth.Value,
+                mapping.FixedCanvasHeight.Value,
+                mapping.FixedCanvasWidth.Value,
+                mapping.FixedCanvasHeight.Value,
+                GetLegacyBackgroundImage(mapping.TargetWindow));
         }
 
-        config.CanvasWidth = mapping.FixedCanvasWidth.Value;
-        config.CanvasHeight = mapping.FixedCanvasHeight.Value;
+        return mapping.TargetWindow switch
+        {
+            "ScoreSurWindow" => new LegacyWindowDefaults(480, 152, 480, 152, "Resources/scoreSur.png"),
+            "ScoreHunWindow" => new LegacyWindowDefaults(480, 152, 480, 152, "Resources/scoreHun.png"),
+            "ScoreGlobalWindow" => new LegacyWindowDefaults(1440, 195, 1440, 195, "Resources/scoreGlobal.png"),
+            "CutSceneWindow" => new LegacyWindowDefaults(1440, 810, 1440, 810, "Resources/cutScene.png"),
+            "GameDataWindow" => new LegacyWindowDefaults(1440, 810, 1440, 810, "Resources/gameData.png"),
+            "BpWindow" => new LegacyWindowDefaults(1440, 810, 1440, 810, "Resources/bp.png"),
+            _ => new LegacyWindowDefaults(1440, 810, 1440, 810, GetLegacyBackgroundImage(mapping.TargetWindow))
+        };
+    }
+
+    private static string? GetLegacyBackgroundImage(string? targetWindow)
+    {
+        return targetWindow switch
+        {
+            "BpOverviewWindow" => "Resources/bpOverview.png",
+            "MapV2Window" => "Resources/mapBpV2.png",
+            _ => null
+        };
     }
 
     private static void ApplyCanvasConfig(FrontedWindowConfig target, FrontedCanvasConfig source)
@@ -1568,7 +1541,13 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         string canvas,
         IReadOnlyList<LegacyControlBlueprint> blueprints)
     {
-        result[new LegacyLayoutKey(window, canvas)] = blueprints;
+        result[new LegacyLayoutKey(window, canvas)] = blueprints
+            .Select(blueprint => blueprint with
+            {
+                SourceWindow = window,
+                SourceCanvas = canvas
+            })
+            .ToArray();
     }
 
     private static LegacyControlBlueprint[] TextNames(params string[] names) =>
@@ -1582,7 +1561,13 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         string targetName,
         string controlType,
         bool required = true) =>
-        new(legacyName, targetName, controlType, required);
+        new()
+        {
+            LegacyName = legacyName,
+            TargetName = targetName,
+            ControlType = controlType,
+            Required = required
+        };
 
     private static string GetTextControlType(string name)
     {
@@ -1620,11 +1605,11 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
     {
         return blueprint.ControlType switch
         {
-            "Text" => CreateDefaultText(blueprint.TargetName),
+            "Text" => CreateDefaultText(blueprint),
             "MapNameText" => CreateDefaultMapNameText(blueprint.TargetName),
             "GameProgressText" => CreateDefaultGameProgressText(),
-            "Image" => CreateDefaultImage(blueprint.TargetName),
-            "BorderedImage" => CreateDefaultBorderedImage(blueprint.TargetName),
+            "Image" => CreateDefaultImage(blueprint),
+            "BorderedImage" => CreateDefaultBorderedImage(blueprint),
             "TalentTraitDisplay" => CreateDefaultTalentTrait(blueprint.TargetName),
             "GlobalScoreRow" => CreateDefaultGlobalScoreRow(blueprint.TargetName),
             "MapV2Display" => CreateDefaultMapV2Display(blueprint.TargetName),
@@ -1632,20 +1617,22 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         };
     }
 
-    private static TextFrontedControlConfig CreateDefaultText(string name)
+    private static TextFrontedControlConfig CreateDefaultText(LegacyControlBlueprint blueprint)
     {
+        var name = blueprint.TargetName;
+        var style = GetLegacyTextDefaults(blueprint.SourceWindow, blueprint.SourceCanvas, name);
         return new TextFrontedControlConfig
         {
             Text = GetStaticText(name),
             TextBinding = CreateTextBinding(GetTextBindingPath(name)),
-            HorizontalAlignment = "Center",
-            VerticalAlignment = "Center",
-            TextAlignment = "Center",
-            TextWrapping = name.Contains("TeamName", StringComparison.Ordinal) ? "WrapWithOverflow" : null,
-            FontFamily = "pack://application:,,,/Assets/Fonts/#Noto Sans",
-            FontWeight = "Normal",
-            Color = "#FFFFFFFF",
-            FontSize = name.Contains("Score", StringComparison.Ordinal) || name.Contains("MajorPoint", StringComparison.Ordinal) ? 40 : 16,
+            HorizontalAlignment = style.HorizontalAlignment,
+            VerticalAlignment = style.VerticalAlignment,
+            TextAlignment = style.TextAlignment,
+            TextWrapping = style.TextWrapping,
+            FontFamily = style.FontFamily,
+            FontWeight = style.FontWeight,
+            Color = style.Color,
+            FontSize = style.FontSize,
             Width = 40,
             Height = 24
         };
@@ -1686,11 +1673,12 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         };
     }
 
-    private static ImageFrontedControlConfig CreateDefaultImage(string name)
+    private static ImageFrontedControlConfig CreateDefaultImage(LegacyControlBlueprint blueprint)
     {
+        var name = blueprint.TargetName;
         var image = new ImageFrontedControlConfig
         {
-            BindingPath = GetImageBindingPath(name),
+            BindingPath = GetImageBindingPath(blueprint.SourceWindow, blueprint.SourceCanvas, name),
             SizingMode = ImageSizingMode.FillContainer,
             Stretch = "Uniform",
             Width = 40,
@@ -1700,11 +1688,12 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         return image;
     }
 
-    private static BorderedImageFrontedControlConfig CreateDefaultBorderedImage(string name)
+    private static BorderedImageFrontedControlConfig CreateDefaultBorderedImage(LegacyControlBlueprint blueprint)
     {
+        var name = blueprint.TargetName;
         var image = new BorderedImageFrontedControlConfig
         {
-            BindingPath = GetImageBindingPath(name),
+            BindingPath = GetImageBindingPath(blueprint.SourceWindow, blueprint.SourceCanvas, name),
             SizingMode = ImageSizingMode.OverflowCrop,
             Stretch = "UniformToFill",
             HorizontalAlignment = "Center",
@@ -1714,6 +1703,14 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             Height = 40
         };
         ConfigureLockableImage(name, image);
+        ConfigurePickingBorderImage(blueprint, image);
+        if (string.Equals(blueprint.SourceWindow, "CutSceneWindow", StringComparison.Ordinal)
+            && name.StartsWith("SurPick", StringComparison.Ordinal))
+        {
+            image.ImageWidth = 556.5;
+            image.ImageHeight = null;
+        }
+
         return image;
     }
 
@@ -1783,8 +1780,21 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         switch (control)
         {
             case TextFrontedControlConfig text:
+                var textStyle = GetLegacyTextDefaults(blueprint.SourceWindow, blueprint.SourceCanvas, blueprint.TargetName);
                 text.TextBinding ??= CreateTextBinding(GetTextBindingPath(blueprint.TargetName));
                 text.Text ??= GetStaticText(blueprint.TargetName);
+                text.HorizontalAlignment ??= textStyle.HorizontalAlignment;
+                text.VerticalAlignment ??= textStyle.VerticalAlignment;
+                text.TextAlignment ??= textStyle.TextAlignment;
+                text.TextWrapping ??= textStyle.TextWrapping;
+                text.FontFamily ??= textStyle.FontFamily;
+                text.FontWeight ??= textStyle.FontWeight;
+                text.Color ??= textStyle.Color;
+                if (text.FontSize <= 0)
+                {
+                    text.FontSize = textStyle.FontSize;
+                }
+
                 break;
             case MapNameTextControlConfig mapName when string.IsNullOrWhiteSpace(mapName.BindingPath):
                 mapName.BindingPath = blueprint.TargetName.StartsWith("Banned", StringComparison.Ordinal)
@@ -1792,7 +1802,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                     : "CurrentGame.PickedMap";
                 break;
             case ImageFrontedControlConfig image:
-                image.BindingPath ??= GetImageBindingPath(blueprint.TargetName);
+                image.BindingPath ??= GetImageBindingPath(blueprint.SourceWindow, blueprint.SourceCanvas, blueprint.TargetName);
                 ConfigureLockableImage(blueprint.TargetName, image);
                 break;
             case GlobalScoreRowControlConfig row:
@@ -1900,7 +1910,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         return null;
     }
 
-    private static string? GetImageBindingPath(string name)
+    private static string? GetImageBindingPath(string? window, string? canvas, string name)
     {
         if (string.Equals(name, "SurTeamLogo", StringComparison.Ordinal))
         {
@@ -1920,11 +1930,31 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         if (name.StartsWith("SurPick", StringComparison.Ordinal)
             && int.TryParse(name["SurPick".Length..], out var surPickIndex))
         {
+            if (string.Equals(window, "BpWindow", StringComparison.Ordinal))
+            {
+                return $"CurrentGame.SurPlayerList[{surPickIndex}].PictureShown";
+            }
+
+            if (string.Equals(window, "CutSceneWindow", StringComparison.Ordinal))
+            {
+                return $"CurrentGame.SurPlayerList[{surPickIndex}].Character.BigImage";
+            }
+
             return $"CurrentGame.SurPlayerList[{surPickIndex}].Character.HalfImage";
         }
 
         if (string.Equals(name, "HunPick", StringComparison.Ordinal))
         {
+            if (string.Equals(window, "BpWindow", StringComparison.Ordinal))
+            {
+                return "CurrentGame.HunPlayer.PictureShown";
+            }
+
+            if (string.Equals(window, "CutSceneWindow", StringComparison.Ordinal))
+            {
+                return "CurrentGame.HunPlayer.Character.BigImage";
+            }
+
             return "CurrentGame.HunPlayer.Character.HalfImage";
         }
 
@@ -2002,6 +2032,200 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             image.LockImagePath ??= "Resources/GlobalBanLock.png";
         }
     }
+
+    private static void ConfigurePickingBorderImage(LegacyControlBlueprint blueprint, ImageFrontedControlConfig image)
+    {
+        if (!string.Equals(blueprint.SourceWindow, "BpWindow", StringComparison.Ordinal)
+            || !blueprint.TargetName.Contains("Pick", StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        image.PickingBorderAvailable = true;
+        image.PickingBorderName = blueprint.TargetName switch
+        {
+            "SurPick0" => "SurPickingBorder0",
+            "SurPick1" => "SurPickingBorder1",
+            "SurPick2" => "SurPickingBorder2",
+            "SurPick3" => "SurPickingBorder3",
+            "HunPick" => "HunPickingBorder",
+            _ => image.PickingBorderName
+        };
+    }
+
+    private static LegacyTextStyleDefaults GetLegacyTextDefaults(string? window, string? canvas, string name)
+    {
+        const string white = "#FFFFFFFF";
+        const string notoSans = "Noto Sans";
+        const string pop = "pack://application:,,,/Assets/Fonts/#华康POP1体W5";
+        const string hanyi = "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简";
+
+        var defaults = new LegacyTextStyleDefaults(
+            "Center",
+            "Center",
+            "Center",
+            null,
+            notoSans,
+            "Normal",
+            white,
+            16);
+
+        if (string.Equals(window, "CutSceneWindow", StringComparison.Ordinal))
+        {
+            if (IsMajorPointName(name))
+            {
+                return defaults with { FontFamily = "Arial", FontSize = 28, FontWeight = "Bold" };
+            }
+
+            if (IsTeamNameForLegacyDefaults(name))
+            {
+                return defaults with { FontSize = 30, FontWeight = "Bold", TextWrapping = "WrapWithOverflow" };
+            }
+
+            if (name.StartsWith("SurId", StringComparison.Ordinal))
+            {
+                return defaults with { HorizontalAlignment = "Left", FontSize = 18 };
+            }
+
+            if (string.Equals(name, "HunId", StringComparison.Ordinal))
+            {
+                return defaults with { FontSize = 30 };
+            }
+
+            if (IsMapNameForLegacyDefaults(name))
+            {
+                return defaults with { FontFamily = hanyi, FontSize = 24 };
+            }
+
+            if (IsGameProgressForLegacyDefaults(name))
+            {
+                return defaults with { FontFamily = pop, FontSize = 22 };
+            }
+        }
+
+        if (string.Equals(window, "BpWindow", StringComparison.Ordinal))
+        {
+            if (string.Equals(name, "Timer", StringComparison.Ordinal))
+            {
+                return defaults with { FontFamily = pop, FontSize = 46, FontWeight = "Bold" };
+            }
+
+            if (IsTeamNameForLegacyDefaults(name))
+            {
+                return defaults with { TextWrapping = "WrapWithOverflow" };
+            }
+
+            if (IsGameScoreName(name))
+            {
+                return defaults with { FontFamily = pop, FontSize = 26 };
+            }
+
+            if (IsMajorPointName(name))
+            {
+                return defaults with { FontSize = 20, FontWeight = "Medium" };
+            }
+
+            if (name.StartsWith("SurId", StringComparison.Ordinal) || string.Equals(name, "HunId", StringComparison.Ordinal))
+            {
+                return defaults with { HorizontalAlignment = "Left" };
+            }
+        }
+
+        if (string.Equals(window, "ScoreSurWindow", StringComparison.Ordinal)
+            || string.Equals(window, "ScoreHunWindow", StringComparison.Ordinal))
+        {
+            if (IsTeamNameForLegacyDefaults(name))
+            {
+                return defaults with { FontFamily = pop, FontSize = 32 };
+            }
+
+            if (IsGameScoreName(name))
+            {
+                return defaults with { FontFamily = pop, FontSize = 100 };
+            }
+
+            if (IsMajorPointName(name))
+            {
+                return defaults with { FontFamily = pop, FontSize = 38 };
+            }
+        }
+
+        if (string.Equals(window, "ScoreGlobalWindow", StringComparison.Ordinal))
+        {
+            if (name.EndsWith("ScoreTotal", StringComparison.Ordinal))
+            {
+                return defaults with { FontFamily = pop, FontSize = 40, FontWeight = "Bold" };
+            }
+
+            return defaults with { FontFamily = pop, FontSize = 24 };
+        }
+
+        if (string.Equals(window, "GameDataWindow", StringComparison.Ordinal))
+        {
+            if (IsMajorPointName(name))
+            {
+                return defaults with { FontFamily = "Arial", FontSize = 30, FontWeight = "Bold" };
+            }
+
+            if (IsTeamNameForLegacyDefaults(name))
+            {
+                return defaults with { FontSize = 32, TextWrapping = "WrapWithOverflow" };
+            }
+
+            if (IsGameScoreName(name))
+            {
+                return defaults with { FontFamily = pop, FontSize = 80, FontWeight = "Bold" };
+            }
+
+            if (name.StartsWith("Header_", StringComparison.Ordinal))
+            {
+                return defaults with { FontSize = 16 };
+            }
+
+            if (name.StartsWith("Sur", StringComparison.Ordinal) || name.StartsWith("Hun", StringComparison.Ordinal))
+            {
+                return defaults with { FontFamily = pop, FontSize = 22 };
+            }
+        }
+
+        if (string.Equals(window, "WidgetsWindow", StringComparison.Ordinal)
+            && string.Equals(canvas, "BpOverViewCanvas", StringComparison.Ordinal))
+        {
+            if (name.EndsWith("TeamNameInOverview", StringComparison.Ordinal))
+            {
+                return defaults with { FontSize = 22, TextWrapping = "WrapWithOverflow" };
+            }
+
+            if (IsGameScoreName(name) || string.Equals(name, "RatioChar", StringComparison.Ordinal))
+            {
+                return defaults with { FontFamily = pop, FontSize = 50, FontWeight = "Bold" };
+            }
+
+            if (IsGameProgressForLegacyDefaults(name))
+            {
+                return defaults with { FontFamily = pop, FontSize = 22 };
+            }
+        }
+
+        return defaults;
+    }
+
+    private static bool IsMajorPointName(string name) =>
+        string.Equals(name, "SurTeamMajorPoint", StringComparison.Ordinal)
+        || string.Equals(name, "HunTeamMajorPoint", StringComparison.Ordinal);
+
+    private static bool IsGameScoreName(string name) =>
+        string.Equals(name, "GameScoresSur", StringComparison.Ordinal)
+        || string.Equals(name, "GameScoresHun", StringComparison.Ordinal);
+
+    private static bool IsTeamNameForLegacyDefaults(string name) =>
+        name.Contains("TeamName", StringComparison.Ordinal);
+
+    private static bool IsMapNameForLegacyDefaults(string name) =>
+        name.Contains("MapName", StringComparison.Ordinal);
+
+    private static bool IsGameProgressForLegacyDefaults(string name) =>
+        string.Equals(name, "GameProgress", StringComparison.Ordinal);
 
     private static string GetMapV2Key(string name)
     {
@@ -2249,11 +2473,37 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
 
     private readonly record struct LegacyLayoutKey(string SourceWindow, string SourceCanvas);
 
-    private sealed record LegacyControlBlueprint(
-        string LegacyName,
-        string TargetName,
-        string ControlType,
-        bool Required);
+    private sealed record LegacyControlBlueprint
+    {
+        public string SourceWindow { get; init; } = string.Empty;
+
+        public string SourceCanvas { get; init; } = string.Empty;
+
+        public string LegacyName { get; init; } = string.Empty;
+
+        public string TargetName { get; init; } = string.Empty;
+
+        public string ControlType { get; init; } = string.Empty;
+
+        public bool Required { get; init; }
+    }
+
+    private sealed record LegacyWindowDefaults(
+        double WindowWidth,
+        double WindowHeight,
+        double CanvasWidth,
+        double CanvasHeight,
+        string? BackgroundImage);
+
+    private sealed record LegacyTextStyleDefaults(
+        string? HorizontalAlignment,
+        string? VerticalAlignment,
+        string? TextAlignment,
+        string? TextWrapping,
+        string? FontFamily,
+        string? FontWeight,
+        string? Color,
+        double FontSize);
 
     private sealed record LegacyLayoutMapping(
         string SourceWindow,

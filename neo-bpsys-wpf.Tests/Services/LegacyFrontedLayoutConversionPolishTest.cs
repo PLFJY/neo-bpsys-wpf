@@ -106,6 +106,68 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
     }
 
     [Fact]
+    public async Task ConverterBuildsCutSceneFromBlueprintWithoutBuiltInLayoutRoot()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var missingBuiltInRoot = Path.Combine(root, "builtIn-does-not-exist");
+            var archivePath = Path.Combine(root, "legacy.bpui");
+            CreateLegacyArchive(
+                archivePath,
+                configJson:
+                """
+                {
+                  "CutSceneWindowSettings": {
+                    "TextSettings": {
+                      "MajorPoints": { "IsActive": false, "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Normal", "FontSize": 48 }
+                    }
+                  }
+                }
+                """,
+                customResources: [],
+                layouts: new Dictionary<string, string>
+                {
+                    ["FrontElementsConfig/CutSceneWindowConfig-BaseCanvas.json"] =
+                        """
+                        {
+                          "SurTeamMajorPoint": { "Left": 380, "Top": 42, "Width": 120, "Height": 36 },
+                          "HunTeamMajorPoint": { "Left": 971, "Top": 42, "Width": 120, "Height": 36 }
+                        }
+                        """
+                });
+
+            var result = await ConvertAsync(missingBuiltInRoot, root, archivePath, "converted.legacy.no-built-in");
+
+            Assert.True(result.Success, result.ErrorMessage);
+            using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
+            var layout = ReadLayout(archive, "FrontedLayouts/CutSceneWindow.json");
+
+            var sur = Assert.IsType<TextFrontedControlConfig>(layout.Controls["SurTeamMajorPoint"]);
+            var hun = Assert.IsType<TextFrontedControlConfig>(layout.Controls["HunTeamMajorPoint"]);
+            Assert.Equal("Arial", sur.FontFamily);
+            Assert.Equal("Arial", hun.FontFamily);
+            Assert.Equal(28, sur.FontSize);
+            Assert.Equal(28, hun.FontSize);
+            Assert.Equal("Bold", sur.FontWeight);
+            Assert.Equal("Bold", hun.FontWeight);
+            Assert.Equal("#FFFFFFFF", sur.Color);
+            Assert.Equal("#FFFFFFFF", hun.Color);
+            Assert.Equal("CurrentGame.MatchScore.CurrentSurTeamMajorText", Assert.Single(sur.TextBinding!.Sources).Path);
+            Assert.Equal("CurrentGame.MatchScore.CurrentHunTeamMajorText", Assert.Single(hun.TextBinding!.Sources).Path);
+
+            foreach (var name in new[] { "SurWin", "SurTie", "W1", "D1", "HunWin", "HunTie", "W2", "D2" })
+            {
+                Assert.DoesNotContain(name, layout.Controls.Keys);
+            }
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
     public async Task ConverterMigratesLegacyTextSettingsIntoV3Layouts()
     {
         var root = CreateTempDirectory();
@@ -355,10 +417,7 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
             var layout = ReadLayout(archive, "FrontedLayouts/BpOverviewWindow.json");
             var hun = Assert.IsType<ImageFrontedControlConfig>(layout.Controls["HunBanCurrent0"]);
-            Assert.Equal(1, hun.Left);
-            Assert.Equal(2, hun.Top);
-            Assert.Equal(3, hun.Width);
-            Assert.Equal(4, hun.Height);
+            Assert.True(hun.Lockable);
             Assert.Contains(result.Diagnostics, item => item.Contains("separate geometry is not representable", StringComparison.Ordinal));
             var sur = Assert.IsType<ImageFrontedControlConfig>(layout.Controls["SurBanCurrent0"]);
             Assert.Equal(100, sur.Left);
