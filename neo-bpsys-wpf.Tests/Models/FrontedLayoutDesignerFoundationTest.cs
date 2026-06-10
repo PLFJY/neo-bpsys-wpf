@@ -1,5 +1,6 @@
 #nullable enable
 
+using CommunityToolkit.Mvvm.ComponentModel;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
@@ -3107,6 +3108,7 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Contains("Root.Children[0].Name", paths);
         Assert.DoesNotContain("Root.Hidden", paths);
         Assert.DoesNotContain("Root.GetterThatThrows", paths);
+        Assert.DoesNotContain("Root.IsActive", paths);
     }
 
     [Fact]
@@ -5103,7 +5105,7 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [FrontedBindingObject]
-    private sealed class TestBindingRoot
+    private sealed class TestBindingRoot : ObservableRecipient
     {
         public string Name { get; } = string.Empty;
 

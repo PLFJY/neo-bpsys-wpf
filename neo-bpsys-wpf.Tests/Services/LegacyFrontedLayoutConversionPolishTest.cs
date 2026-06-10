@@ -145,14 +145,14 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
 
             var sur = Assert.IsType<TextFrontedControlConfig>(layout.Controls["SurTeamMajorPoint"]);
             var hun = Assert.IsType<TextFrontedControlConfig>(layout.Controls["HunTeamMajorPoint"]);
-            Assert.Equal("Arial", sur.FontFamily);
-            Assert.Equal("Arial", hun.FontFamily);
-            Assert.Equal(28, sur.FontSize);
-            Assert.Equal(28, hun.FontSize);
-            Assert.Equal("Bold", sur.FontWeight);
-            Assert.Equal("Bold", hun.FontWeight);
-            Assert.Equal("#FFFFFFFF", sur.Color);
-            Assert.Equal("#FFFFFFFF", hun.Color);
+            Assert.Equal(LegacyFont, sur.FontFamily);
+            Assert.Equal(LegacyFont, hun.FontFamily);
+            Assert.Equal(48, sur.FontSize);
+            Assert.Equal(48, hun.FontSize);
+            Assert.Equal("Normal", sur.FontWeight);
+            Assert.Equal("Normal", hun.FontWeight);
+            Assert.Equal("#FF000000", sur.Color);
+            Assert.Equal("#FF000000", hun.Color);
             Assert.Equal("CurrentGame.MatchScore.CurrentSurTeamMajorText", Assert.Single(sur.TextBinding!.Sources).Path);
             Assert.Equal("CurrentGame.MatchScore.CurrentHunTeamMajorText", Assert.Single(hun.TextBinding!.Sources).Path);
 
@@ -774,7 +774,7 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
     }
 
     [Fact]
-    public async Task ConverterRespectsLegacyTextSettingsIsActive()
+    public async Task ConverterIgnoresLeakedLegacyTextSettingsIsActive()
     {
         var root = CreateTempDirectory();
         try
@@ -807,8 +807,9 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
             var layout = ReadLayout(archive, "FrontedLayouts/BpWindow.json");
             var teamName = Assert.IsType<TextFrontedControlConfig>(layout.Controls["SurTeamName"]);
-            Assert.Equal("#FFFFFFFF", teamName.Color);
-            Assert.Equal("Noto Sans", teamName.FontFamily);
+            Assert.Equal("#FF000000", teamName.Color);
+            Assert.Equal("Bold", teamName.FontWeight);
+            Assert.Equal(30, teamName.FontSize);
             var timer = Assert.IsType<TextFrontedControlConfig>(layout.Controls["Timer"]);
             Assert.Equal("#FF000000", timer.Color);
             Assert.Equal("Bold", timer.FontWeight);

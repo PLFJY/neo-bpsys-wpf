@@ -2,6 +2,16 @@
 
 来源为只读 legacy worktree：`../neo-bpsys-wpf-legacy-2.1.1`，提交 `af0a4bef596ce3d6676971e098b028e07eca39ca`。本表列出旧 XAML 中的每个 `x:Name` / `Name`，以及 ScoreGlobal 旧 `FrontElementsConfig` 中可聚合的分数格子名称。`Status` 只使用 `Mapped`、`Folded`、`Aggregated`、`Unsupported`、`RemovedWithReason`；`PropertyParityStatus` 只使用 `Exact`、`Approximate`、`Folded`、`Aggregated`、`UnsupportedWithReason`。
 
+## Naming rule: do not use generic IsActive
+
+`IsActive` 只保留给内部框架/运行时激活语义，尤其是 CommunityToolkit.Mvvm `ObservableRecipient.IsActive`。不要把 `IsActive` 用作 layout、package、settings 或业务数据字段。
+
+使用明确名称，例如 `IsActivePackage`、`IsCurrentPackage`、`IsVisible`、`IsBadgeVisible`、`IsEnabled`、`IsSelected`、`IsExpanded`、`IsVisibleInFrontManage`。
+
+旧 `.bpui` 包可能在 `TextSettings` 中包含 `IsActive`，原因是旧设置类继承了 `ObservableRecipient` 并把框架激活状态泄漏进 `Config.json`。该字段不是文本样式启用标记，LegacyConverter 必须忽略它：只要 legacy `TextSettings` 对象存在，就应用其中非空的持久化文本样式值。
+
+`Visibility` 绑定必须使用 `IsVisible` 或具体的可见性语义属性，不得绑定泛名 `IsActive`。
+
 | SourceWindow | SourceCanvas | LegacyName | TargetWindow | TargetName | TargetControlType | Binding | StyleSource | ResourceSource | Status | PropertyParityStatus | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | BpWindow | BaseCanvas | BaseCanvas | BpWindow | BaseCanvas | CanvasSettings | - | - | BackgroundImage | RemovedWithReason | UnsupportedWithReason | Legacy Canvas is represented by window-centric BaseCanvas host. |

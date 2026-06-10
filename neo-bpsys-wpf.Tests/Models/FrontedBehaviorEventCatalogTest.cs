@@ -4,6 +4,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Attributes;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using System;
 using System.ComponentModel;
 using System.Linq;
 using Xunit;
@@ -66,6 +67,17 @@ public class FrontedBehaviorEventCatalogTest
 
         Assert.Contains(descriptor.PayloadFields, field => field.Path == "Event.ListName" && field.Source == FrontedBehaviorPayloadSource.EventArgsProperty);
         Assert.Contains(descriptor.PayloadFields, field => field.Path == "Event.Count" && field.Source == FrontedBehaviorPayloadSource.EventArgsProperty);
+    }
+
+    [Fact]
+    public void EventCatalog_DoesNotExposeGenericIsActivePayloadFields()
+    {
+        var fields = new FrontedBehaviorEventCatalog().Events.SelectMany(item => item.PayloadFields);
+
+        Assert.DoesNotContain(fields, field =>
+            string.Equals(field.Path, "IsActive", StringComparison.Ordinal)
+            || string.Equals(field.Path, "Event.IsActive", StringComparison.Ordinal)
+            || string.Equals(field.SourcePath, "IsActive", StringComparison.Ordinal));
     }
 
     [Fact]

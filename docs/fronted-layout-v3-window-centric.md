@@ -53,6 +53,25 @@ FrontedWindowBase
 
 `FrontedCanvasConfig` 只允许作为 legacy converter、旧测试断言或临时转换 helper 使用。新的 LayoutService、Designer、runtime 和 package 主路径应读写 `FrontedWindowConfig`。
 
+## Naming rule: do not use generic IsActive
+
+`IsActive` 只保留给内部框架/运行时激活语义，尤其是 CommunityToolkit.Mvvm `ObservableRecipient.IsActive`。
+
+不要把 `IsActive` 用作 layout、package、settings 或业务数据字段。请使用明确语义名称：
+
+- `IsActivePackage`
+- `IsCurrentPackage`
+- `IsVisible`
+- `IsBadgeVisible`
+- `IsEnabled`
+- `IsSelected`
+- `IsExpanded`
+- `IsVisibleInFrontManage`
+
+旧 `.bpui` 包可能在 `TextSettings` 中包含 `IsActive`，原因是旧设置类继承了 `ObservableRecipient` 并把框架激活状态泄漏进序列化。该字段不是文本样式启用标记，LegacyConverter 必须忽略它。
+
+`Visibility` 绑定必须使用 `IsVisible` 或具体的可见性语义属性，不得绑定泛名 `IsActive`。
+
 ## 路径
 
 用户、内置和包内布局都使用一级窗口路径：

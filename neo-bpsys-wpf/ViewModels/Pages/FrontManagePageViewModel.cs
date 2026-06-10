@@ -176,7 +176,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
                 LayoutPackages.Add(package);
             }
 
-            var active = packages.FirstOrDefault(package => package.IsActive)
+            var active = packages.FirstOrDefault(package => package.IsActivePackage)
                          ?? packages.FirstOrDefault(package => package.IsBuiltin);
             SelectedPackage = FindPackageById(preferredPackageId)
                               ?? FindPackageById(previousPackageId)
@@ -757,7 +757,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
         var selected = !string.IsNullOrWhiteSpace(activePackageId)
             ? LayoutPackages.FirstOrDefault(package =>
                 string.Equals(package.PackageId, activePackageId, StringComparison.OrdinalIgnoreCase))
-            : LayoutPackages.FirstOrDefault(package => package.IsActive);
+            : LayoutPackages.FirstOrDefault(package => package.IsActivePackage);
         if (selected is not null)
         {
             SelectedPackage = selected;
@@ -786,7 +786,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
         try
         {
             if (confirm
-                && !SelectedPackage.IsActive
+                && !SelectedPackage.IsActivePackage
                 && !await MessageBoxHelper.ShowConfirmAsync(
                     I18nHelper.GetLocalizedString("ConfirmActivatePackage"),
                     I18nHelper.GetLocalizedString("Tips"),
@@ -864,7 +864,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
         var packageId = SelectedPackage.PackageId;
         try
         {
-            var confirmMessage = SelectedPackage.IsActive
+            var confirmMessage = SelectedPackage.IsActivePackage
                 ? I18nHelper.GetLocalizedString("ConfirmDeleteActivePackage")
                 : I18nHelper.GetLocalizedString("ConfirmDeletePackage");
             if (!await MessageBoxHelper.ShowConfirmAsync(

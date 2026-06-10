@@ -26,6 +26,29 @@
 1. 大部分按钮都需要有 `WPF-UI` 的图标。
 1. 所有的公共属性和公共方法都需要写XML注释，包括参数、返回值、异常等。
 1. **禁止在面向用户的 UI 文本中使用开发阶段占位表达**（如 "Phase 3"、"Phase 13E"、"Phase 9D" 等）。已实现功能的描述必须写实际行为；未实现功能的占位文本应写「将在后续版本中提供」而非内部阶段代号。真实 Placeholder（如 overlay 标签 `[Text]`）不在此限制内。
+1. `IsActive` 只保留给框架/运行时激活语义，尤其是 CommunityToolkit.Mvvm `ObservableRecipient.IsActive`。布局、包、设置、业务状态、可见性、绑定 payload 和 behavior payload 不得使用泛名 `IsActive`，应使用 `IsActivePackage`、`IsVisible`、`IsEnabled`、`IsSelected` 等明确名称。`Visibility` 绑定不得直接绑定泛名 `IsActive`。
+
+## Naming rule: do not use generic IsActive
+
+`IsActive` is reserved for internal framework/runtime activation semantics, especially CommunityToolkit.Mvvm `ObservableRecipient.IsActive`.
+
+Do not use `IsActive` for layout/package/settings/business data.
+
+Use explicit names:
+- `IsActivePackage`
+- `IsCurrentPackage`
+- `IsVisible`
+- `IsBadgeVisible`
+- `IsEnabled`
+- `IsSelected`
+- `IsExpanded`
+- `IsVisibleInFrontManage`
+
+Legacy note:
+Old `.bpui` packages may contain `IsActive` inside `TextSettings` because old settings classes inherited `ObservableRecipient`.
+That field is serialization leakage and must be ignored by LegacyConverter.
+
+Visibility bindings must use `IsVisible` or a specific visibility-oriented property. Do not bind `Visibility` to generic `IsActive`.
 
 ## 改动前必读
 

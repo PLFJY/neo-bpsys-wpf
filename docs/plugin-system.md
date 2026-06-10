@@ -152,6 +152,29 @@ public sealed class FrontedPluginPropertyDescriptor
 4. 布局 JSON 不保存可执行状态。
 5. 避免保存绝对本地路径；图片等资源优先使用 `.bpui` 支持的资源 URI。
 6. `BindingPath` 保存原始不变量路径，不本地化。
+7. 不要使用泛名 `IsActive` 表示控件业务状态、可见性或启用状态；`IsActive` 只保留给内部框架/运行时激活语义，尤其是 CommunityToolkit.Mvvm `ObservableRecipient.IsActive`。请使用 `IsVisible`、`IsEnabled`、`IsSelected`、`IsExpanded` 或更具体的名称。
+
+## Naming rule: do not use generic IsActive
+
+`IsActive` is reserved for internal framework/runtime activation semantics, especially CommunityToolkit.Mvvm `ObservableRecipient.IsActive`.
+
+Do not use `IsActive` for layout/package/settings/business data.
+
+Use explicit names:
+- `IsActivePackage`
+- `IsCurrentPackage`
+- `IsVisible`
+- `IsBadgeVisible`
+- `IsEnabled`
+- `IsSelected`
+- `IsExpanded`
+- `IsVisibleInFrontManage`
+
+Legacy note:
+Old `.bpui` packages may contain `IsActive` inside `TextSettings` because old settings classes inherited `ObservableRecipient`.
+That field is serialization leakage and must be ignored by LegacyConverter.
+
+Visibility bindings must use `IsVisible` or a specific visibility-oriented property. Do not bind `Visibility` to generic `IsActive`.
 
 运行时读取布局时，`plugin:*` 控件即使插件未安装也会反序列化为 `PluginFrontedControlConfig`，并通过 `JsonExtensionData` 保留插件专属属性，确保可读取、保存和 roundtrip。插件 descriptor 可用时，宿主 adapter 会把通用 config 序列化后再反序列化为 descriptor 声明的 typed config，然后调用 `CreateControl`。如果插件缺失，Designer 显示 Missing Plugin placeholder，前台 renderer 跳过该控件并记录 warning；未知非插件 `ControlType` 仍按无效内置控件处理并报错。
 

@@ -258,6 +258,14 @@ catalog 构建是 lazy + cache，只做类型反射，不调用属性 getter，�
 
 当前 Player 图像绑定包括 `PictureShown`、`PictureShownWithFullCharacter` 和 `PictureShownHeader`。三者在没有 `Character` 时回退 `Member.Image`；有 `Character` 时分别使用 `HalfImage`、`BigImage` 和 `HeaderImage`。
 
+### Naming rule: do not use generic IsActive
+
+`IsActive` 只保留给内部框架/运行时激活语义，尤其是 CommunityToolkit.Mvvm `ObservableRecipient.IsActive`。不要把 `IsActive` 用作 layout、package、settings、业务数据、绑定目录或 payload 字段。
+
+应使用明确语义名称，例如 `IsActivePackage`、`IsCurrentPackage`、`IsVisible`、`IsBadgeVisible`、`IsEnabled`、`IsSelected`、`IsExpanded`、`IsVisibleInFrontManage`。
+
+旧 `.bpui` 包可能在 `TextSettings` 中包含 `IsActive`，这是旧设置类继承 `ObservableRecipient` 造成的序列化泄漏。该字段不是文本样式启用标记，LegacyConverter 必须忽略它。`Visibility` 绑定必须使用 `IsVisible` 或具体的可见性语义属性，不得绑定泛名 `IsActive`。
+
 ## 8. 插件扩展方向
 
 控件工厂抽象：

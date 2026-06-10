@@ -341,7 +341,7 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
             Description = LocalizedOrFallback("BuiltInLayoutSchemeDescription", "Built-in Designer v3 frontend layouts."),
             Source = FrontedLayoutPackageSource.BuiltIn,
             IsBuiltin = true,
-            IsActive = string.Equals(activePackageId, BuiltInPackageId, StringComparison.OrdinalIgnoreCase),
+            IsActivePackage = string.Equals(activePackageId, BuiltInPackageId, StringComparison.OrdinalIgnoreCase),
             InstallPath = _builtInLayoutRoot,
             LayoutCount = CountFiles(_builtInLayoutRoot, "*.json"),
             ResourceCount = 0,
@@ -361,7 +361,7 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
             Name = packageIdFromFolder,
             InstallPath = directory,
             Source = FrontedLayoutPackageSource.Installed,
-            IsActive = string.Equals(packageIdFromFolder, activePackageId, StringComparison.OrdinalIgnoreCase),
+            IsActivePackage = string.Equals(packageIdFromFolder, activePackageId, StringComparison.OrdinalIgnoreCase),
             ValidationStatus = FrontedLayoutPackageValidationStatus.Valid,
             LayoutCount = CountFiles(Path.Combine(directory, "FrontedLayouts"), "*.json"),
             ResourceCount = CountFiles(Path.Combine(directory, "resources"), "*")

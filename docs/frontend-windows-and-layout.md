@@ -76,6 +76,16 @@ v3 layout 中 `ControlLayout.Controls` 的 JSON key 就是控件名。该名称�
 
 v3 layout 支持通用 BO3/BO5 Canvas states。`CanvasSettings` root 是默认/BO5；`EnableBoModeStates = true` 时，`BoModeStates["Bo3"]` 可保存独立 BO3 背景、插件依赖和控件集合。所有已创建的内置 v3 前台窗口和插件 Layout 承载窗口都会在 `ISharedDataService.IsBo3ModeChanged` 后标记 layout dirty；窗口可见时立即异步重载内容，窗口隐藏时等下次 Show 再刷新。renderer 根据当前 BO 模式选择 root/BO5 或 BO3 state；如果启用但缺少 BO3 state，则回退 root/BO5 并记录 warning。`ScoreGlobalWindow` 只是该通用机制的一个使用者，不再使用窗口专用背景切换逻辑。
 
+## Naming rule: do not use generic IsActive
+
+`IsActive` 只保留给内部框架/运行时激活语义，尤其是 CommunityToolkit.Mvvm `ObservableRecipient.IsActive`。
+
+不要把 `IsActive` 用作布局、包、设置或业务状态字段。包激活状态使用 `IsActivePackage`；窗口列表或设计器可见性使用 `IsVisibleInFrontManage`、`IsVisible`、`IsBadgeVisible` 等明确名称；启用、选中、展开状态分别使用 `IsEnabled`、`IsSelected`、`IsExpanded`。
+
+旧 `.bpui` 包可能在 `TextSettings` 中包含 `IsActive`，这是旧设置类继承 `ObservableRecipient` 造成的序列化泄漏。该字段不是文本样式启用标记，LegacyConverter 必须忽略它。
+
+`Visibility` 绑定必须使用 `IsVisible` 或具体的可见性语义属性，不得绑定泛名 `IsActive`。
+
 后台侧独立 `FrontedDesignerWindow` shell 已实现。它通过 `FrontedDesignerLayoutCatalog` 只列出可定制 v3 layout window，例如 `ScoreSurWindow`、`ScoreHunWindow`、`ScoreGlobalWindow`、`CutSceneWindow`、`GameDataWindow`、`BpWindow`、`BpOverviewWindow` 和 `MapV2Window`。选择窗口后，编辑器按 `IFrontedLayoutService` 的活动布局方案规则加载 `FrontedWindowConfig`，内部转换到设计文档，运行 `FrontedLayoutValidator`，再用现有 `IFrontedRenderer` 渲染到编辑器自己的只读 `PreviewCanvas`。如果当前活动方案是 `builtin`，保存时会自动复制出可编辑用户布局方案并激活，避免覆盖内置资源。
 
 该预览 Canvas 的 `Width` 和 `Height` 直接来自 `CanvasSettings.CanvasWidth` / `CanvasHeight`，不使用真实前台窗口的 `ActualHeight`、外框或标题栏尺寸，因此不会引入标题栏高度偏移。v3 layout window 的真实窗口宽高来自 `WindowSettings.WindowWidth` / `WindowHeight`，不会在普通读取、保存、包导入或导出时被 Canvas 尺寸覆盖。独立编辑器已支持内存交互层、基础 Property Grid 和 Add Control：可选中普通设计项，编辑名称、布局、绑定文本和简单控件属性，把新控件添加到当前内存文档并即时重渲染预览。它不创建真实前台输出窗口作为设计 surface。

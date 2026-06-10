@@ -16,6 +16,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -39,7 +40,7 @@ public class FrontedLayoutPackageManagerTest
             var builtIn = Assert.Single(packages);
             Assert.Equal("builtin", builtIn.PackageId);
             Assert.True(builtIn.IsBuiltin);
-            Assert.True(builtIn.IsActive);
+            Assert.True(builtIn.IsActivePackage);
         }
         finally
         {
@@ -198,6 +199,57 @@ public class FrontedLayoutPackageManagerTest
         Assert.Equal(3, root.GetProperty("LayoutSchemaVersion").GetInt32());
         Assert.Equal("3.0.0", root.GetProperty("MinVersion").GetString());
         Assert.False(root.TryGetProperty("App", out _));
+    }
+
+    [Fact]
+    public void PackageInfoUsesExplicitActivePackagePropertyName()
+    {
+        var properties = typeof(FrontedLayoutPackageInfo)
+            .GetProperties()
+            .Select(property => property.Name)
+            .ToHashSet(StringComparer.Ordinal);
+
+        Assert.DoesNotContain("IsActive", properties);
+        Assert.Contains("IsActivePackage", properties);
+    }
+
+    [Fact]
+    public void FrontedLayoutPackagesViewBindsActiveBadgeToExplicitPackageProperty()
+    {
+        var xaml = File.ReadAllText(Path.Combine(GetRepositoryPath(
+            "neo-bpsys-wpf",
+            "Views",
+            "Pages"),
+            "FrontManage",
+            "FrontedLayoutPackagesView.xaml"));
+
+        Assert.DoesNotMatch("Visibility=\"\\{Binding\\s+IsActive\\b", xaml);
+        Assert.Contains("Visibility=\"{Binding IsActivePackage", xaml, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ForbiddenLayoutAndPackageSurfacesDoNotUseGenericIsActive()
+    {
+        var forbiddenRoots = new[]
+        {
+            GetRepositoryPath("neo-bpsys-wpf.Core", "Models", "FrontedLayout"),
+            GetRepositoryPath("neo-bpsys-wpf.Core", "Models", "Legacy"),
+            Path.Combine(GetRepositoryPath("neo-bpsys-wpf", "Views", "Pages"), "FrontManage")
+        };
+        var repositoryRoot = Path.GetFullPath(Path.Combine(forbiddenRoots[0], "..", "..", ".."));
+        var forbiddenToken = new Regex(@"(?<![A-Za-z0-9_])IsActive(?![A-Za-z0-9_])", RegexOptions.CultureInvariant);
+        var offenders = forbiddenRoots
+            .Where(Directory.Exists)
+            .SelectMany(root => Directory.EnumerateFiles(root, "*.*", SearchOption.AllDirectories))
+            .Where(path => path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)
+                           || path.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase))
+            .SelectMany(path => File.ReadLines(path)
+                .Select((line, index) => new { path, line, lineNumber = index + 1 }))
+            .Where(item => forbiddenToken.IsMatch(item.line))
+            .Select(item => $"{Path.GetRelativePath(repositoryRoot, item.path)}:{item.lineNumber}: {item.line.Trim()}")
+            .ToArray();
+
+        Assert.Empty(offenders);
     }
 
     [Fact]
@@ -1218,8 +1270,8 @@ public class FrontedLayoutPackageManagerTest
 
         Assert.Equal("package-b", activePackageId);
         Assert.Equal("package-b", viewModel.SelectedPackage?.PackageId);
-        Assert.True(viewModel.SelectedPackage?.IsActive);
-        Assert.Equal("package-b", viewModel.LayoutPackages.First(package => package.IsActive).PackageId);
+        Assert.True(viewModel.SelectedPackage?.IsActivePackage);
+        Assert.Equal("package-b", viewModel.LayoutPackages.First(package => package.IsActivePackage).PackageId);
     }
 
     private static FrontedLayoutPackageInfo CreatePackage(
@@ -1235,7 +1287,7 @@ public class FrontedLayoutPackageManagerTest
                 ? FrontedLayoutPackageSource.BuiltIn
                 : FrontedLayoutPackageSource.Installed,
             IsBuiltin = string.Equals(packageId, FrontedLayoutPackageManager.BuiltInPackageId, StringComparison.OrdinalIgnoreCase),
-            IsActive = isActive,
+            IsActivePackage = isActive,
             InstallPath = packageId
         };
     }

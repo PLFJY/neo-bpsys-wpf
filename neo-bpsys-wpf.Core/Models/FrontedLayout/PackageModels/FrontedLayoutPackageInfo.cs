@@ -24,7 +24,7 @@ public sealed class FrontedLayoutPackageInfo
 
     public bool IsLocal { get; set; }
 
-    public bool IsActive { get; set; }
+    public bool IsActivePackage { get; set; }
 
     public int LayoutCount { get; set; }
 

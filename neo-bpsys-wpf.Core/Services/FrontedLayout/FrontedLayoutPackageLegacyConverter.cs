@@ -2346,7 +2346,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
 
             if (!string.IsNullOrWhiteSpace(blueprint.TextStyleSourceKey)
                 && TryGetLegacyTextStyle(legacySettings, blueprint.TextStyleSourceKey, out var style)
-                && style?.IsActive == true
+                && style is not null
                 && control is IFrontedTextStyleConfig textControl)
             {
                 ApplyLegacyTextStyle(textControl, style);
@@ -2368,7 +2368,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         LegacyLayoutMapping mapping)
     {
         if (TryGetLegacyTextStyle(legacySettings, "WidgetsWindow.MapBpV2_MapName", out var mapNameStyle)
-            && mapNameStyle?.IsActive == true)
+            && mapNameStyle is not null)
         {
             map.MapNameColor = FirstNonEmpty(mapNameStyle.Color, map.MapNameColor);
             map.MapNameFontFamily = FirstNonEmpty(
@@ -2384,7 +2384,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         }
 
         if (TryGetLegacyTextStyle(legacySettings, "WidgetsWindow.MapBpV2_TeamName", out var teamNameStyle)
-            && teamNameStyle?.IsActive == true)
+            && teamNameStyle is not null)
         {
             map.TeamNameColor = FirstNonEmpty(teamNameStyle.Color, map.TeamNameColor);
             map.TeamNameFontFamily = FirstNonEmpty(
@@ -2400,7 +2400,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         }
 
         if (TryGetLegacyTextStyle(legacySettings, "WidgetsWindow.MapBpV2_CampWords", out var campStyle)
-            && campStyle?.IsActive == true)
+            && campStyle is not null)
         {
             map.CampNameColor = FirstNonEmpty(campStyle.Color, map.CampNameColor);
             map.CampNameFontFamily = FirstNonEmpty(

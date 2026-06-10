@@ -26,11 +26,6 @@ public sealed class LegacyTextSettings
 {
     private FontFamily? _fontFamily;
 
-    /// <summary>
-    /// Gets or sets whether this legacy text style was enabled by the user.
-    /// </summary>
-    public bool IsActive { get; set; }
-
     public string? Color { get; set; }
 
     public string? FontFamilySite { get; set; }
