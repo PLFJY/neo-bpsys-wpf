@@ -1252,55 +1252,50 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
 
         if (mapping.TargetWindow == "BpWindow")
         {
-            foreach (var control in config.Controls.Values.OfType<ImageFrontedControlConfig>())
+            foreach (var blueprint in GetMappedControlBlueprints(mapping))
             {
-                if (control.Lockable && IsBanImageBinding(control.BindingPath, out var isGlobalBan))
+                if (!config.Controls.TryGetValue(blueprint.TargetName ?? blueprint.LegacyName, out var rawControl)
+                    || rawControl is not ImageFrontedControlConfig control)
                 {
-                    var key = isGlobalBan
-                        ? $"{prefix}GlobalBanLockImage"
-                        : $"{prefix}CurrentBanLockImage";
-                    if (valueMap.TryGetValue(key, out var lockUri))
-                    {
-                        control.LockImagePath = lockUri;
-                        infos.Add($"Legacy lock image merged into v3 Image lock overlay: {key}");
-                    }
+                    continue;
                 }
 
-                if (control.PickingBorderAvailable
-                    && valueMap.TryGetValue($"{prefix}PickingBorderImage", out var borderUri))
-                {
-                    control.PickingBorderImagePath = borderUri;
-                    infos.Add($"Legacy picking border image merged into v3 Image picking overlay: {prefix}PickingBorderImage");
-                }
+                ApplyImageResourceOverride(control, blueprint, prefix, valueMap, infos);
             }
         }
 
         if (mapping.TargetWindow == "BpOverviewWindow")
         {
-            foreach (var control in config.Controls.Values
-                         .OfType<ImageFrontedControlConfig>()
-                         .Where(control => control.Lockable
-                                           && IsCurrentBanImageBinding(control.BindingPath)))
+            foreach (var blueprint in GetMappedControlBlueprints(mapping))
             {
-                var key = $"{prefix}CurrentBanLockImage";
-                if (valueMap.TryGetValue(key, out var lockUri))
+                if (!config.Controls.TryGetValue(blueprint.TargetName ?? blueprint.LegacyName, out var rawControl)
+                    || rawControl is not ImageFrontedControlConfig control)
                 {
-                    control.LockImagePath = lockUri;
-                    infos.Add($"Legacy lock image merged into v3 Image lock overlay: {key}");
+                    continue;
                 }
+
+                ApplyImageResourceOverride(control, blueprint, prefix, valueMap, infos);
             }
         }
 
         if (mapping.TargetWindow == "MapV2Window")
         {
-            foreach (var control in config.Controls.Values.OfType<MapV2DisplayControlConfig>())
+            foreach (var blueprint in GetMappedControlBlueprints(mapping))
             {
-                if (valueMap.TryGetValue($"{prefix}MapBpV2PickingBorderImage", out var borderUri))
+                if (!config.Controls.TryGetValue(blueprint.TargetName ?? blueprint.LegacyName, out var rawControl)
+                    || rawControl is not MapV2DisplayControlConfig control)
+                {
+                    continue;
+                }
+
+                if (blueprint.SpecialProperties.TryGetValue("PickingBorderImageResourceSourceKey", out var imageKey)
+                    && valueMap.TryGetValue($"{prefix}{imageKey}", out var borderUri))
                 {
                     control.PickingBorderImagePath = borderUri;
                 }
 
-                if (valueMap.TryGetValue($"{prefix}MapBpV2PickingBorderColor", out var borderColor))
+                if (blueprint.SpecialProperties.TryGetValue("PickingBorderColorResourceSourceKey", out var colorKey)
+                    && valueMap.TryGetValue($"{prefix}{colorKey}", out var borderColor))
                 {
                     control.PickingBorderFillColor = borderColor;
                 }
@@ -1308,17 +1303,56 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         }
     }
 
-    private static bool IsCurrentBanImageBinding(string? bindingPath)
+    private static IEnumerable<LegacyControlBlueprint> GetMappedControlBlueprints(LegacyLayoutMapping mapping)
     {
-        return bindingPath?.Contains("CurrentSurBannedList", StringComparison.Ordinal) == true
-               || bindingPath?.Contains("CurrentHunBannedList", StringComparison.Ordinal) == true;
+        if (!LegacyControlBlueprints.TryGetValue(
+                new LegacyLayoutKey(mapping.SourceWindow, mapping.SourceCanvas),
+                out var blueprints))
+        {
+            return [];
+        }
+
+        return blueprints.Where(blueprint => blueprint.Status == LegacyControlBlueprintStatus.Mapped);
     }
 
-    private static bool IsBanImageBinding(string? bindingPath, out bool isGlobalBan)
+    private static void ApplyImageResourceOverride(
+        ImageFrontedControlConfig control,
+        LegacyControlBlueprint blueprint,
+        string prefix,
+        IReadOnlyDictionary<string, string> valueMap,
+        ICollection<string> infos)
     {
-        isGlobalBan = bindingPath?.Contains("GlobalBanned", StringComparison.Ordinal) == true;
-        return IsCurrentBanImageBinding(bindingPath)
-               || isGlobalBan;
+        if (blueprint.ResourceSourceKey is null)
+        {
+            return;
+        }
+
+        var key = $"{prefix}{blueprint.ResourceSourceKey}";
+        if (!valueMap.TryGetValue(key, out var uri))
+        {
+            return;
+        }
+
+        switch (blueprint.ResourceSourceKey)
+        {
+            case "CurrentBanLockImage":
+            case "GlobalBanLockImage":
+                if (control.Lockable)
+                {
+                    control.LockImagePath = uri;
+                    infos.Add($"Legacy lock image merged into v3 Image lock overlay: {key}");
+                }
+
+                break;
+            case "PickingBorderImage":
+                if (control.PickingBorderAvailable)
+                {
+                    control.PickingBorderImagePath = uri;
+                    infos.Add($"Legacy picking border image merged into v3 Image picking overlay: {key}");
+                }
+
+                break;
+        }
     }
 
     private static void RewriteKnownResourceStrings(
@@ -1530,14 +1564,14 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             Text("HunTeamName", "Text", "CurrentGame.HunTeam.Name", "CutSceneWindow.TeamName", 1223, 38, 207, null, textWrapping: "WrapWithOverflow"),
             Text("HunTeamMajorPoint", "Text", "CurrentGame.MatchScore.CurrentHunTeamMajorText", "CutSceneWindow.MajorPoints", 971, 42),
             Image("HunTeamLogo", "Image", "CurrentGame.HunTeam.Logo", 1104, 14, 84, 85, cornerRadius: 8, stretch: "Fill"),
-            Image("Map", "BorderedImage", "CurrentGame.PickedMapImage", 488, 0, 463, 112, zIndex: -1, sizingMode: ImageSizingMode.FillContainer, stretch: "Uniform"),
+            Image("Map", "BorderedImage", "CurrentGame.PickedMapImage", 488, 0, 463, 112, zIndex: -1, sizingMode: ImageSizingMode.FillContainer, stretch: "UniformToFill"),
             Text("MapName", "MapNameText", "CurrentGame.PickedMap", "CutSceneWindow.MapName", 488, 51, 463, null),
             Text("GameProgress", "GameProgressText", null, "CutSceneWindow.GameProgress", 488, 82, 463, 30, zIndex: 1),
-            Image("SurPick0", "BorderedImage", "CurrentGame.SurPlayerList[0].Character.BigImage", 1, 115, 346, 308.5, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", specialProperties: Props(("ImageWidth", "556.5"))),
-            Image("SurPick1", "BorderedImage", "CurrentGame.SurPlayerList[1].Character.BigImage", 351, 115, 346, 308.5, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", specialProperties: Props(("ImageWidth", "556.5"))),
-            Image("SurPick2", "BorderedImage", "CurrentGame.SurPlayerList[2].Character.BigImage", 1, 465, 346, 306.5, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", specialProperties: Props(("ImageWidth", "556.5"))),
-            Image("SurPick3", "BorderedImage", "CurrentGame.SurPlayerList[3].Character.BigImage", 350, 465, 346, 306.5, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", specialProperties: Props(("ImageWidth", "556.5"))),
-            Image("HunPick", "BorderedImage", "CurrentGame.HunPlayer.Character.BigImage", 702, 114.5, 739, 635, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", clipToBounds: true),
+            Image("SurPick0", "BorderedImage", "CurrentGame.SurPlayerList[0].Character.BigImage", 1, 115, 346, 308.5, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", clipToBounds: true, verticalAlignment: "Top", specialProperties: Props(("ImageWidth", "556.5"))),
+            Image("SurPick1", "BorderedImage", "CurrentGame.SurPlayerList[1].Character.BigImage", 351, 115, 346, 308.5, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", clipToBounds: true, verticalAlignment: "Top", specialProperties: Props(("ImageWidth", "556.5"))),
+            Image("SurPick2", "BorderedImage", "CurrentGame.SurPlayerList[2].Character.BigImage", 1, 465, 346, 306.5, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", clipToBounds: true, verticalAlignment: "Top", specialProperties: Props(("ImageWidth", "556.5"))),
+            Image("SurPick3", "BorderedImage", "CurrentGame.SurPlayerList[3].Character.BigImage", 350, 465, 346, 306.5, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", clipToBounds: true, verticalAlignment: "Top", specialProperties: Props(("ImageWidth", "556.5"))),
+            Image("HunPick", "BorderedImage", "CurrentGame.HunPlayer.Character.BigImage", 702, 114.5, 739, 635, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", clipToBounds: true, verticalAlignment: "Top"),
             Text("SurId0", "Text", "CurrentGame.SurPlayerList[0].Member.Name", "CutSceneWindow.SurPlayerId", 10, 422),
             Text("SurId1", "Text", "CurrentGame.SurPlayerList[1].Member.Name", "CutSceneWindow.SurPlayerId", 353, 425, null, 32),
             Text("SurId2", "Text", "CurrentGame.SurPlayerList[2].Member.Name", "CutSceneWindow.SurPlayerId", 1, 776, null, 31),
@@ -1558,7 +1592,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             Text("SurTeamMajorPoint", "Text", "CurrentGame.MatchScore.CurrentSurTeamMajorText", "GameDataWindow.MajorPoints", 285, 229),
             Text("SurTeamName", "Text", "CurrentGame.SurTeam.Name", "GameDataWindow.TeamName", 186, 176, 290, null, textWrapping: "WrapWithOverflow"),
             Text("GameScoresSur", "Text", "CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText", "GameDataWindow.GameScores", 476, 182, 52, 81),
-            Image("Map", "BorderedImage", "CurrentGame.PickedMapImage", 556, 151, 328, 132, zIndex: -1, sizingMode: ImageSizingMode.FillContainer, stretch: "Uniform"),
+            Image("Map", "BorderedImage", "CurrentGame.PickedMapImage", 556, 151, 328, 132, zIndex: -1, sizingMode: ImageSizingMode.FillContainer, stretch: "UniformToFill"),
             Text("MapName", "MapNameText", "CurrentGame.PickedMap", "GameDataWindow.MapName", 556, 220, 328, 30, zIndex: 1),
             Folded("PickedMapName", "MapName", "Folded into the MapName business control, which renders the picked map name."),
             Text("GameProgress", "GameProgressText", null, "GameDataWindow.GameProgress", 556, 253, 328, 30, zIndex: 1),
@@ -1573,10 +1607,10 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             Header("Header_Rescues", "Rescues", 634, 307, 120),
             Header("Header_Heals", "Heals", 774, 307, 120),
             Header("Header_ContainmentTime", "ContainmentTime", 894, 307, 176),
-            Image("Player0Header", "BorderedImage", "CurrentGame.SurPlayerList[0].PictureShownHeader", 47, 354, null, null, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", clipToBounds: true),
-            Image("Player1Header", "BorderedImage", "CurrentGame.SurPlayerList[1].PictureShownHeader", 47, 414, null, null, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", clipToBounds: true),
-            Image("Player2Header", "BorderedImage", "CurrentGame.SurPlayerList[2].PictureShownHeader", 47, 473, null, null, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", clipToBounds: true),
-            Image("Player3Header", "BorderedImage", "CurrentGame.SurPlayerList[3].PictureShownHeader", 47, 534, null, null, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", clipToBounds: true),
+            Image("Player0Header", "BorderedImage", "CurrentGame.SurPlayerList[0].PictureShownHeader", 47, 354, 50, 50, sizingMode: ImageSizingMode.Auto, stretch: "Uniform"),
+            Image("Player1Header", "BorderedImage", "CurrentGame.SurPlayerList[1].PictureShownHeader", 47, 414, 50, 50, sizingMode: ImageSizingMode.Auto, stretch: "Uniform"),
+            Image("Player2Header", "BorderedImage", "CurrentGame.SurPlayerList[2].PictureShownHeader", 47, 473, 50, 50, sizingMode: ImageSizingMode.Auto, stretch: "Uniform"),
+            Image("Player3Header", "BorderedImage", "CurrentGame.SurPlayerList[3].PictureShownHeader", 47, 534, 50, 50, sizingMode: ImageSizingMode.Auto, stretch: "Uniform"),
             Text("SurId0", "Text", "CurrentGame.SurPlayerList[0].Member.Name", "GameDataWindow.PlayerId", 115, 354),
             Text("SurId1", "Text", "CurrentGame.SurPlayerList[1].Member.Name", "GameDataWindow.PlayerId", 115, 414),
             Text("SurId2", "Text", "CurrentGame.SurPlayerList[2].Member.Name", "GameDataWindow.PlayerId", 115, 474),
@@ -1601,7 +1635,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             Data("Sur1KiteTime", "CurrentGame.SurPlayerList[1].Data.ContainmentTime", "GameDataWindow.SurData", 963, 413),
             Data("Sur2KiteTime", "CurrentGame.SurPlayerList[2].Data.ContainmentTime", "GameDataWindow.SurData", 963, 474),
             Data("Sur3KiteTime", "CurrentGame.SurPlayerList[3].Data.ContainmentTime", "GameDataWindow.SurData", 963, 534),
-            Image("HunImage", "BorderedImage", "CurrentGame.HunPlayer.PictureShownHeader", 1075, 295, 314, 96, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", clipToBounds: true),
+            Image("HunImage", "BorderedImage", "CurrentGame.HunPlayer.PictureShownHeader", 1075, 295, 314, 96, sizingMode: ImageSizingMode.FillContainer, stretch: "UniformToFill"),
             Text("HunId", "Text", "CurrentGame.HunPlayer.Member.Name", "GameDataWindow.PlayerId", 1080, 357, null, 35),
             Header("Header_RemainingCiphers", "RemainingCiphers", 1085, 404, 160, "GameDataWindow.HunDataHeader"),
             Header("Header_PalletsDestroyed", "PalletsDestroyed", 1085, 440, 160, "GameDataWindow.HunDataHeader"),
@@ -1830,6 +1864,9 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         string? stretch = "Uniform",
         bool clipToBounds = false,
         double? cornerRadius = null,
+        string? horizontalAlignment = "Center",
+        string? verticalAlignment = "Center",
+        string? resourceSourceKey = null,
         IReadOnlyDictionary<string, string>? specialProperties = null) =>
         new()
         {
@@ -1839,8 +1876,8 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             ImageBindingPath = bindingPath,
             SizingMode = sizingMode,
             Stretch = stretch,
-            HorizontalAlignment = "Center",
-            VerticalAlignment = "Center",
+            HorizontalAlignment = horizontalAlignment,
+            VerticalAlignment = verticalAlignment,
             ClipToBounds = clipToBounds,
             CornerRadius = cornerRadius,
             ZIndex = zIndex,
@@ -1848,6 +1885,11 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             DefaultTop = top,
             DefaultWidth = width,
             DefaultHeight = height,
+            ResourceSourceKey = resourceSourceKey
+                                ?? (specialProperties is not null
+                                    && specialProperties.TryGetValue("ResourceSourceKey", out var value)
+                                        ? value
+                                        : null),
             SpecialProperties = specialProperties?.ToDictionary(StringComparer.Ordinal) ?? [],
             Status = LegacyControlBlueprintStatus.Mapped
         };
@@ -1926,7 +1968,9 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                 ("CampNameColor", "#FFFFFFFF"),
                 ("CampNameFontSize", "20"),
                 ("MapBorderNormalColor", "#FF2B483B"),
-                ("MapBorderBannedColor", "#FF9C3E2F")),
+                ("MapBorderBannedColor", "#FF9C3E2F"),
+                ("PickingBorderImageResourceSourceKey", "MapBpV2PickingBorderImage"),
+                ("PickingBorderColorResourceSourceKey", "MapBpV2PickingBorderColor")),
             Status = LegacyControlBlueprintStatus.Mapped
         };
 
@@ -1963,17 +2007,22 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             ("Lockable", "true"),
             ("LockVisibleWhen", FrontedOverlayVisibilityMode.VisibleWhenFalse.ToString()),
             ("LockVisibilityBindingPath", $"CanCurrent{camp}BannedList[{index}]"),
-            ("LockImagePath", "Resources/CurrentBanLock.png"));
+            ("LockImagePath", "Resources/CurrentBanLock.png"),
+            ("ResourceSourceKey", "CurrentBanLockImage"));
 
     private static Dictionary<string, string> GlobalBanLock(string camp, int index) =>
         Props(
             ("Lockable", "true"),
             ("LockVisibleWhen", FrontedOverlayVisibilityMode.VisibleWhenFalse.ToString()),
             ("LockVisibilityBindingPath", $"CanGlobal{camp}BannedList[{index}]"),
-            ("LockImagePath", "Resources/GlobalBanLock.png"));
+            ("LockImagePath", "Resources/GlobalBanLock.png"),
+            ("ResourceSourceKey", "GlobalBanLockImage"));
 
     private static Dictionary<string, string> PickingBorder(string name) =>
-        Props(("PickingBorderAvailable", "true"), ("PickingBorderName", name));
+        Props(
+            ("PickingBorderAvailable", "true"),
+            ("PickingBorderName", name),
+            ("ResourceSourceKey", "PickingBorderImage"));
 
     private static LegacyTextStyleDefaults GetTextStyleDefaults(string sourceKey)
     {

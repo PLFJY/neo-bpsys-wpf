@@ -168,6 +168,86 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
     }
 
     [Fact]
+    public async Task ConverterPreservesLegacyImageStyleBlueprintDefaults()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var archivePath = Path.Combine(root, "legacy.bpui");
+            CreateLegacyArchive(
+                archivePath,
+                configJson: "{}",
+                customResources: [],
+                layouts: new Dictionary<string, string>
+                {
+                    ["FrontElementsConfig/CutSceneWindowConfig-BaseCanvas.json"] = "{}",
+                    ["FrontElementsConfig/GameDataWindowConfig-BaseCanvas.json"] = "{}"
+                });
+
+            var result = await ConvertAsync(
+                Path.Combine(root, "missing-built-in"),
+                root,
+                archivePath,
+                "converted.legacy.image-style");
+
+            Assert.True(result.Success, result.ErrorMessage);
+            using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
+            var cutScene = ReadLayout(archive, "FrontedLayouts/CutSceneWindow.json");
+
+            var cutSceneMap = Assert.IsType<BorderedImageFrontedControlConfig>(cutScene.Controls["Map"]);
+            Assert.Equal("UniformToFill", cutSceneMap.Stretch);
+
+            foreach (var name in new[] { "SurPick0", "SurPick1", "SurPick2", "SurPick3" })
+            {
+                var pick = Assert.IsType<BorderedImageFrontedControlConfig>(cutScene.Controls[name]);
+                Assert.Equal(ImageSizingMode.OverflowCrop, pick.SizingMode);
+                Assert.Equal("UniformToFill", pick.Stretch);
+                Assert.True(pick.ClipToBounds);
+                Assert.Equal("Center", pick.HorizontalAlignment);
+                Assert.Equal("Top", pick.VerticalAlignment);
+                Assert.Equal(556.5, pick.ImageWidth);
+            }
+
+            var hunPick = Assert.IsType<BorderedImageFrontedControlConfig>(cutScene.Controls["HunPick"]);
+            Assert.Equal(ImageSizingMode.OverflowCrop, hunPick.SizingMode);
+            Assert.Equal("UniformToFill", hunPick.Stretch);
+            Assert.True(hunPick.ClipToBounds);
+            Assert.Equal("Center", hunPick.HorizontalAlignment);
+            Assert.Equal("Top", hunPick.VerticalAlignment);
+
+            foreach (var name in new[] { "SurTeamLogo", "HunTeamLogo" })
+            {
+                var logo = Assert.IsType<ImageFrontedControlConfig>(cutScene.Controls[name]);
+                Assert.Equal("Fill", logo.Stretch);
+                Assert.Equal(8, logo.CornerRadius);
+            }
+
+            var gameData = ReadLayout(archive, "FrontedLayouts/GameDataWindow.json");
+            var gameDataMap = Assert.IsType<BorderedImageFrontedControlConfig>(gameData.Controls["Map"]);
+            Assert.Equal("UniformToFill", gameDataMap.Stretch);
+
+            foreach (var name in new[] { "Player0Header", "Player1Header", "Player2Header", "Player3Header" })
+            {
+                var header = Assert.IsType<BorderedImageFrontedControlConfig>(gameData.Controls[name]);
+                Assert.Equal(50, header.Width);
+                Assert.Equal(50, header.Height);
+                Assert.Equal(ImageSizingMode.Auto, header.SizingMode);
+                Assert.Equal("Uniform", header.Stretch);
+                Assert.False(header.ClipToBounds);
+            }
+
+            var hunImage = Assert.IsType<BorderedImageFrontedControlConfig>(gameData.Controls["HunImage"]);
+            Assert.Equal(ImageSizingMode.FillContainer, hunImage.SizingMode);
+            Assert.Equal("UniformToFill", hunImage.Stretch);
+            Assert.False(hunImage.ClipToBounds);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
     public async Task ConverterMigratesLegacyTextSettingsIntoV3Layouts()
     {
         var root = CreateTempDirectory();
@@ -349,8 +429,17 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
         var validStatuses = new HashSet<string>(
             ["Mapped", "Folded", "Aggregated", "Unsupported", "RemovedWithReason"],
             StringComparer.Ordinal);
+        var validPropertyParityStatuses = new HashSet<string>(
+            ["Exact", "Approximate", "Folded", "Aggregated", "UnsupportedWithReason"],
+            StringComparer.Ordinal);
 
         Assert.All(rows, row => Assert.Contains(row.Status, validStatuses));
+        Assert.All(rows, row => Assert.Contains(row.PropertyParityStatus, validPropertyParityStatuses));
+        Assert.All(rows.Where(row => row.Status == "Mapped"), row =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(row.TargetControlType));
+            Assert.False(string.IsNullOrWhiteSpace(row.PropertyParityStatus));
+        });
         foreach (var expected in EnumerateExpectedLegacyNamedElements())
         {
             var row = Assert.Single(rows, row =>
@@ -378,6 +467,7 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             .ToArray();
         Assert.Equal(40, scoreCells.Length);
         Assert.All(scoreCells, row => Assert.Equal("Aggregated", row.Status));
+        Assert.All(scoreCells, row => Assert.Equal("Aggregated", row.PropertyParityStatus));
     }
 
     [Fact]
@@ -1093,7 +1183,7 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             .Where(cells => cells[0] != "SourceWindow" && !cells[0].StartsWith("---", StringComparison.Ordinal))
             .Select(cells =>
             {
-                Assert.Equal(11, cells.Length);
+                Assert.Equal(12, cells.Length);
                 return new LegacyBlueprintAuditRow(
                     cells[0],
                     cells[1],
@@ -1105,7 +1195,8 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
                     cells[7],
                     cells[8],
                     cells[9],
-                    cells[10]);
+                    cells[10],
+                    cells[11]);
             })
             .ToArray();
     }
@@ -1261,6 +1352,7 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
         string StyleSource,
         string ResourceSource,
         string Status,
+        string PropertyParityStatus,
         string Notes);
 
     private const string LegacyTextSettingsConfigJson =
