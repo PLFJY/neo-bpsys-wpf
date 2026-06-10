@@ -21,6 +21,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Windows.Media;
+using static neo_bpsys_wpf.Core.Services.FrontedLayout.LegacyConvertMessageHelper;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
@@ -108,9 +109,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         FrontedLayoutPackageLegacyConvertRequest request,
         CancellationToken cancellationToken = default)
     {
-        var infos = new List<string>();
-        var diagnostics = new List<string>();
-        var warnings = new List<string>();
+        var messages = new List<FrontedLayoutPackageLegacyConvertMessage>();
         var extractionRoot = Path.Combine(_tempRoot, "extract", Guid.NewGuid().ToString("N"));
         var stagingRoot = Path.Combine(_tempRoot, "staging", Guid.NewGuid().ToString("N"));
         var outputPath = Path.Combine(_tempRoot, "converted", $"{Guid.NewGuid():N}.bpui");
@@ -119,7 +118,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         {
             if (string.IsNullOrWhiteSpace(request.LegacyPackagePath) || !File.Exists(request.LegacyPackagePath))
             {
-                return Fail("Legacy package archive was not found.", infos, diagnostics, warnings);
+                return Fail("Legacy package archive was not found.", messages);
             }
 
             var packageId = string.IsNullOrWhiteSpace(request.PackageId)
@@ -129,7 +128,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                 || string.Equals(packageId, FrontedLayoutPackageManager.BuiltInPackageId, StringComparison.OrdinalIgnoreCase)
                 || string.Equals(packageId, FrontedLayoutPackageManager.LocalPackageId, StringComparison.OrdinalIgnoreCase))
             {
-                return Fail("PackageId is invalid.", infos, diagnostics, warnings);
+                return Fail("PackageId is invalid.", messages);
             }
 
             Directory.CreateDirectory(extractionRoot);
@@ -137,16 +136,16 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             ExtractZipSafely(request.LegacyPackagePath, extractionRoot);
             if (!DetectLegacyPackage(extractionRoot))
             {
-                return Fail("Archive is not a legacy .bpui package.", infos, diagnostics, warnings);
+                return Fail("Archive is not a legacy .bpui package.", messages);
             }
 
-            var resourceState = CopyCustomUiResources(extractionRoot, stagingRoot, packageId, infos);
+            var resourceState = CopyCustomUiResources(extractionRoot, stagingRoot, packageId, messages);
             var manifest = CreateManifest(request, packageId);
             manifest.Content.Resources = resourceState.Resources;
 
-            var configValueMap = ReadFrontendConfigValueMap(extractionRoot, resourceState, diagnostics, warnings);
-            var legacyPropertySet = ReadLegacyPropertySet(extractionRoot, diagnostics, warnings);
-            var legacySettings = ReadLegacySettings(extractionRoot, diagnostics, warnings);
+            var configValueMap = ReadFrontendConfigValueMap(extractionRoot, resourceState, messages);
+            var legacyPropertySet = ReadLegacyPropertySet(extractionRoot, messages);
+            var legacySettings = ReadLegacySettings(extractionRoot, messages);
             var layoutEntries = await ConvertFrontElementsConfigsAsync(
                 extractionRoot,
                 stagingRoot,
@@ -155,13 +154,11 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                 configValueMap,
                 legacySettings,
                 legacyPropertySet,
-                infos,
-                diagnostics,
-                warnings,
+                messages,
                 cancellationToken);
             if (layoutEntries == 0)
             {
-                return Fail("No mappable legacy FrontElementsConfig files were converted.", infos, diagnostics, warnings);
+                return Fail("No mappable legacy FrontElementsConfig files were converted.", messages);
             }
 
             var manifestJson = JsonSerializer.Serialize(manifest, _jsonOptions);
@@ -176,11 +173,9 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                 Success = true,
                 ConvertedPackagePath = outputPath,
                 LayoutCount = manifest.Content.Layouts.Count,
-                ResourceCount = manifest.Content.Resources.Count,
-                Infos = infos.ToArray(),
-                Diagnostics = diagnostics.ToArray(),
-                Warnings = warnings.ToArray()
+                ResourceCount = manifest.Content.Resources.Count
             };
+            FrontedLayoutPackageLegacyConvertResult.PopulateFromMessages(result, messages);
 
             if (request.InstallAfterConvert && _packageImporter is not null)
             {
@@ -200,12 +195,12 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         catch (InvalidDataException ex)
         {
             _logger.LogWarning(ex, "Invalid legacy bpui archive.");
-            return Fail($"Invalid legacy package archive: {ex.Message}", infos, diagnostics, warnings);
+            return Fail($"Invalid legacy package archive: {ex.Message}", messages);
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to convert legacy bpui package.");
-            return Fail(ex.Message, infos, diagnostics, warnings);
+            return Fail(ex.Message, messages);
         }
         finally
         {
@@ -222,16 +217,14 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         IReadOnlyDictionary<string, string> configValueMap,
         LegacySettings? legacySettings,
         IReadOnlySet<string> legacyPropertySet,
-        ICollection<string> infos,
-        ICollection<string> diagnostics,
-        ICollection<string> warnings,
+        ICollection<FrontedLayoutPackageLegacyConvertMessage> messages,
         CancellationToken cancellationToken)
     {
         var convertedCount = 0;
         var frontElementsRoot = Path.Combine(extractionRoot, "FrontElementsConfig");
         if (!Directory.Exists(frontElementsRoot))
         {
-            warnings.Add("FrontElementsConfig folder is missing.");
+            messages.Add(Error(CodeFrontElementsFolderMissing));
             return 0;
         }
 
@@ -241,17 +234,19 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             var fileName = Path.GetFileName(file);
             if (!TryMapLegacyLayoutFile(fileName, out var mapping))
             {
-                warnings.Add($"Unknown legacy layout file skipped: {fileName}");
+                messages.Add(Warning(CodeUnknownLayoutFileSkipped,
+                    Args(new { FileName = fileName })));
                 continue;
             }
 
             if (!mapping.IsSupported)
             {
-                warnings.Add("Legacy MapBpCanvas / MapBpV1 is not supported by Designer v3 converter and was skipped.");
+                messages.Add(Compat(CodeMapBpV1Skipped,
+                    Args(new { SourceWindow = "WidgetsWindow", SourceCanvas = "MapBpCanvas" })));
                 continue;
             }
 
-            var legacyPositions = ReadLegacyPositions(file, warnings);
+            var legacyPositions = ReadLegacyPositions(file, messages);
             if (legacyPositions is null)
             {
                 continue;
@@ -263,16 +258,14 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                 mapping,
                 config,
                 legacyPositions,
-                infos,
-                diagnostics,
-                warnings);
-            ApplyFrontendConfigValues(config, mapping, configValueMap, infos);
-            ApplyLegacyTextStyleOverrides(config, mapping, legacySettings, diagnostics);
+                messages);
+            ApplyFrontendConfigValues(config, mapping, configValueMap, messages);
+            ApplyLegacyTextStyleOverrides(config, mapping, legacySettings, messages);
 
             RewriteKnownResourceStrings(config, resourceState);
             config.Version = 3;
             ApplyCanvasConfig(windowConfig, config);
-            ApplyLegacyWindowSettings(windowConfig, mapping, legacySettings, legacyPropertySet, diagnostics);
+            ApplyLegacyWindowSettings(windowConfig, mapping, legacySettings, legacyPropertySet, messages);
 
             var validationMessages = _validator.Validate(
                 mapping.TargetWindow!,
@@ -283,7 +276,13 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                 .ToArray();
             if (validationErrors.Length > 0)
             {
-                warnings.Add($"Converted layout {mapping.TargetWindow}/{FrontedLayoutConstants.BaseCanvasName} has validation errors: {string.Join("; ", validationErrors.Select(error => error.Message))}");
+                messages.Add(Warning(CodeLayoutValidationError,
+                    Args(new
+                    {
+                        TargetWindow = mapping.TargetWindow,
+                        CanvasName = FrontedLayoutConstants.BaseCanvasName,
+                        Details = string.Join("; ", validationErrors.Select(error => error.Message))
+                    })));
                 continue;
             }
 
@@ -337,13 +336,14 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
 
     private static Dictionary<string, ElementInfo>? ReadLegacyPositions(
         string legacyFile,
-        ICollection<string> warnings)
+        ICollection<FrontedLayoutPackageLegacyConvertMessage> messages)
     {
         try
         {
             if (new FileInfo(legacyFile).Length > FrontedLayoutLimits.MaxLegacyConfigBytes)
             {
-                warnings.Add($"Legacy layout file is too large and was skipped: {Path.GetFileName(legacyFile)}");
+                messages.Add(Warning(CodeLayoutFileTooLargeSkipped,
+                    Args(new { FileName = Path.GetFileName(legacyFile) })));
                 return null;
             }
 
@@ -357,7 +357,8 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         }
         catch (Exception ex)
         {
-            warnings.Add($"Legacy layout file could not be read and was skipped: {Path.GetFileName(legacyFile)}; {ex.Message}");
+            messages.Add(Warning(CodeLayoutFileReadFailed,
+                Args(new { FileName = Path.GetFileName(legacyFile), Reason = ex.Message })));
             return null;
         }
     }
@@ -366,9 +367,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         LegacyLayoutMapping mapping,
         FrontedCanvasConfig config,
         IReadOnlyDictionary<string, ElementInfo> legacyPositions,
-        ICollection<string> infos,
-        ICollection<string> diagnostics,
-        ICollection<string> warnings)
+        ICollection<FrontedLayoutPackageLegacyConvertMessage> messages)
     {
         if (legacyPositions is null)
         {
@@ -378,7 +377,8 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         var key = new LegacyLayoutKey(mapping.SourceWindow, mapping.SourceCanvas);
         if (!LegacyControlBlueprints.TryGetValue(key, out var blueprints))
         {
-            warnings.Add($"No legacy control blueprint exists for {mapping.SourceWindow}/{mapping.SourceCanvas}; layout was skipped.");
+            messages.Add(Warning(CodeNoBlueprintForLayout,
+                Args(new { SourceWindow = mapping.SourceWindow, SourceCanvas = mapping.SourceCanvas })));
             return;
         }
 
@@ -398,7 +398,14 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             var control = CreateBlueprintControl(blueprint);
             if (control is null)
             {
-                warnings.Add($"Legacy control blueprint could not create target control: {mapping.SourceWindow}/{mapping.SourceCanvas}/{blueprint.LegacyName} -> {blueprint.TargetName}");
+                messages.Add(Warning(CodeControlCreateFailed,
+                    Args(new
+                    {
+                        SourceWindow = mapping.SourceWindow,
+                        SourceCanvas = mapping.SourceCanvas,
+                        LegacyName = blueprint.LegacyName,
+                        TargetName = blueprint.TargetName
+                    })));
                 continue;
             }
 
@@ -406,8 +413,8 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         }
 
         var consumedControls = new HashSet<string>(StringComparer.Ordinal);
-        ApplyScoreGlobalAggregateGeometry(mapping.SourceWindow, mapping.SourceCanvas, config, legacyPositions, consumedControls, infos, diagnostics);
-        ConsumeExplicitFoldedGeometry(mapping.SourceWindow, mapping.SourceCanvas, blueprints, config, legacyPositions, consumedControls, diagnostics);
+        ApplyScoreGlobalAggregateGeometry(mapping.SourceWindow, mapping.SourceCanvas, config, legacyPositions, consumedControls, messages);
+        ConsumeExplicitFoldedGeometry(mapping.SourceWindow, mapping.SourceCanvas, blueprints, config, legacyPositions, consumedControls, messages);
         var blueprintsByLegacyName = blueprints
             .GroupBy(blueprint => blueprint.LegacyName, StringComparer.Ordinal)
             .ToDictionary(group => group.Key, group => group.ToArray(), StringComparer.Ordinal);
@@ -442,7 +449,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             }
         }
 
-        AddBoundsDiagnostics(mapping, legacyPositions.Values, warnings);
+        AddBoundsDiagnostics(mapping, legacyPositions.Values, messages);
     }
 
     private FrontedControlConfigBase? CreateBlueprintControl(
@@ -465,8 +472,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         FrontedCanvasConfig config,
         IReadOnlyDictionary<string, ElementInfo> legacyPositions,
         ISet<string> consumedControls,
-        ICollection<string> infos,
-        ICollection<string> diagnostics)
+        ICollection<FrontedLayoutPackageLegacyConvertMessage> messages)
     {
         if (!string.Equals(window, "ScoreGlobalWindow", StringComparison.Ordinal)
             || !string.Equals(canvas, "BaseCanvas", StringComparison.Ordinal))
@@ -480,16 +486,14 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             config,
             legacyPositions,
             consumedControls,
-            infos,
-            diagnostics);
+            messages);
         ApplyScoreGlobalRowGeometry(
             "Away",
             "AwayGlobalScoreRow",
             config,
             legacyPositions,
             consumedControls,
-            infos,
-            diagnostics);
+            messages);
     }
 
     private static void ApplyScoreGlobalRowGeometry(
@@ -498,8 +502,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         FrontedCanvasConfig config,
         IReadOnlyDictionary<string, ElementInfo> legacyPositions,
         ISet<string> consumedControls,
-        ICollection<string> infos,
-        ICollection<string> diagnostics)
+        ICollection<FrontedLayoutPackageLegacyConvertMessage> messages)
     {
         if (!config.Controls.TryGetValue(targetControlName, out var control)
             || control is not GlobalScoreRowControlConfig row)
@@ -527,8 +530,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
 
         if (cells.Any(cell => cell.IsOvertime))
         {
-            diagnostics.Add(
-                "Legacy overtime score cells were migrated into GlobalScoreRow child cells.");
+            messages.Add(Info(CodeOvertimeScoreCellsAggregated));
         }
 
         var firstHalfByGame = cells
@@ -594,15 +596,12 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         MigrateLegacyScoreCellsToRowCells(row, cells);
 
         var approximate = IsIrregular(halfGaps) || IsIrregular(majorGaps);
-        var message =
-            $"Legacy global score cells aggregated: ScoreGlobalWindow/BaseCanvas/{teamPrefix}TeamGame* -> {targetControlName}.";
+        messages.Add(Info(CodeGlobalScoreCellsAggregated,
+            Args(new { Team = teamPrefix, TargetName = targetControlName })));
         if (approximate)
         {
-            diagnostics.Add(message + " Irregular cell spacing was approximated by median gaps.");
-        }
-        else
-        {
-            infos.Add(message);
+            messages.Add(Info(CodeIrregularCellSpacingApproximated,
+                Args(new { Team = teamPrefix, TargetName = targetControlName })));
         }
     }
 
@@ -697,7 +696,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         FrontedCanvasConfig config,
         IReadOnlyDictionary<string, ElementInfo> legacyPositions,
         ISet<string> consumedControls,
-        ICollection<string> diagnostics)
+        ICollection<FrontedLayoutPackageLegacyConvertMessage> messages)
     {
         foreach (var blueprint in blueprints.Where(blueprint => blueprint.Status == LegacyControlBlueprintStatus.Folded))
         {
@@ -707,12 +706,15 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             }
 
             consumedControls.Add(blueprint.LegacyName);
-            diagnostics.Add($"Legacy folded control consumed: {window}/{canvas}/{blueprint.LegacyName} -> {blueprint.TargetName}");
-            diagnostics.Add($"Legacy lock overlay geometry consumed: {blueprint.LegacyName} -> {blueprint.TargetName}");
+            messages.Add(Info(CodeFoldedControlConsumed,
+                Args(new { SourceWindow = window, SourceCanvas = canvas, LegacyName = blueprint.LegacyName, TargetName = blueprint.TargetName })));
+            messages.Add(Info(CodeLockOverlayGeometryConsumed,
+                Args(new { LegacyName = blueprint.LegacyName, TargetName = blueprint.TargetName })));
             if (string.IsNullOrWhiteSpace(blueprint.TargetName)
                 || !config.Controls.TryGetValue(blueprint.TargetName, out var target))
             {
-                diagnostics.Add($"Legacy folded control has no v3 body control target: {window}/{canvas}/{blueprint.LegacyName}");
+                messages.Add(Info(CodeFoldedControlNoTarget,
+                    Args(new { SourceWindow = window, SourceCanvas = canvas, LegacyName = blueprint.LegacyName })));
                 continue;
             }
 
@@ -721,7 +723,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                 ApplyImageSpecialProperties(image, blueprint);
             }
 
-            diagnostics.Add("Legacy folded control geometry is represented by v3 control metadata; separate geometry is not representable.");
+            messages.Add(Info(CodeFoldedGeometryNotRepresentable));
         }
     }
 
@@ -751,7 +753,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
     private static void AddBoundsDiagnostics(
         LegacyLayoutMapping mapping,
         IEnumerable<ElementInfo> legacyPositions,
-        ICollection<string> warnings)
+        ICollection<FrontedLayoutPackageLegacyConvertMessage> messages)
     {
         if (!string.Equals(mapping.SourceWindow, "WidgetsWindow", StringComparison.Ordinal)
             || !string.Equals(mapping.SourceCanvas, "BpOverViewCanvas", StringComparison.Ordinal)
@@ -773,7 +775,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             || bounds.Value.MaxX > mapping.FixedCanvasWidth.Value + tolerance
             || bounds.Value.MaxY > mapping.FixedCanvasHeight.Value + tolerance)
         {
-            warnings.Add("Legacy BpOverViewCanvas content exceeds the fixed source canvas bounds and may be clipped after window-centric split.");
+            messages.Add(Warning(CodeBpOverviewOutOfBounds));
         }
     }
 
@@ -801,7 +803,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         string extractionRoot,
         string stagingRoot,
         string packageId,
-        ICollection<string> infos)
+        ICollection<FrontedLayoutPackageLegacyConvertMessage> messages)
     {
         var state = new ResourceConvertState(packageId);
         var customUiRoot = Path.Combine(extractionRoot, "CustomUi");
@@ -831,7 +833,8 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             var uri = $"bpui://{packageId}/{relativePath}";
 
             state.Add(fullFile, uri, relativePath, kind, sha256, safeName);
-            infos.Add($"Legacy resource copied: {Path.GetFileName(fullFile)}");
+            messages.Add(Info(CodeResourceCopied,
+                Args(new { FileName = Path.GetFileName(fullFile) })));
         }
 
         return state;
@@ -840,8 +843,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
     private static IReadOnlyDictionary<string, string> ReadFrontendConfigValueMap(
         string extractionRoot,
         ResourceConvertState resourceState,
-        ICollection<string> diagnostics,
-        ICollection<string> warnings)
+        ICollection<FrontedLayoutPackageLegacyConvertMessage> messages)
     {
         var configPath = Path.Combine(extractionRoot, "Config.json");
         var result = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -855,7 +857,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         {
             if (new FileInfo(configPath).Length > FrontedLayoutLimits.MaxLegacyConfigBytes)
             {
-                warnings.Add("Legacy Config.json is too large; frontend image settings were ignored.");
+                messages.Add(Warning(CodeConfigJsonTooLarge));
                 return result;
             }
 
@@ -866,33 +868,35 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         }
         catch (Exception ex)
         {
-            warnings.Add($"Legacy Config.json could not be read; frontend image settings were ignored. {ex.Message}");
+            messages.Add(Warning(CodeConfigJsonReadFailed,
+                Args(new { Reason = ex.Message })));
             return result;
         }
 
-        AddMappedImage(root, "BpWindowSettings", "BgImageUri", "BpWindow/BaseCanvas/BackgroundImage", resourceState, result, diagnostics);
-        AddMappedImage(root, "CutSceneWindowSettings", "BgUri", "CutSceneWindow/BaseCanvas/BackgroundImage", resourceState, result, diagnostics);
-        AddMappedImage(root, "ScoreWindowSettings", "SurScoreBgImageUri", "ScoreSurWindow/BaseCanvas/BackgroundImage", resourceState, result, diagnostics);
-        AddMappedImage(root, "ScoreWindowSettings", "HunScoreBgImageUri", "ScoreHunWindow/BaseCanvas/BackgroundImage", resourceState, result, diagnostics);
-        AddMappedImage(root, "ScoreWindowSettings", "GlobalScoreBgImageUri", "ScoreGlobalWindow/BaseCanvas/BackgroundImage", resourceState, result, diagnostics);
-        AddMappedImage(root, "ScoreWindowSettings", "GlobalScoreBgImageUriBo3", "ScoreGlobalWindow/BaseCanvas/BoModeStates/Bo3/BackgroundImage", resourceState, result, diagnostics);
-        AddMappedImage(root, "GameDataWindowSettings", "BgImageUri", "GameDataWindow/BaseCanvas/BackgroundImage", resourceState, result, diagnostics);
-        AddMappedImage(root, "WidgetsWindowSettings", "MapBpBgUri", "WidgetsWindow/MapBpCanvas/BackgroundImage", resourceState, result, diagnostics);
-        AddMappedImage(root, "WidgetsWindowSettings", "BpOverviewBgUri", "BpOverviewWindow/BaseCanvas/BackgroundImage", resourceState, result, diagnostics);
-        AddMappedImage(root, "WidgetsWindowSettings", "MapBpV2BgUri", "MapV2Window/BaseCanvas/BackgroundImage", resourceState, result, diagnostics);
-        AddMappedImage(root, "BpWindowSettings", "CurrentBanLockImageUri", "BpWindow/BaseCanvas/CurrentBanLockImage", resourceState, result, diagnostics);
-        AddMappedImage(root, "BpWindowSettings", "GlobalBanLockImageUri", "BpWindow/BaseCanvas/GlobalBanLockImage", resourceState, result, diagnostics);
-        AddMappedImage(root, "BpWindowSettings", "PickingBorderImageUri", "BpWindow/BaseCanvas/PickingBorderImage", resourceState, result, diagnostics);
+        AddMappedImage(root, "BpWindowSettings", "BgImageUri", "BpWindow/BaseCanvas/BackgroundImage", resourceState, result, messages);
+        AddMappedImage(root, "CutSceneWindowSettings", "BgUri", "CutSceneWindow/BaseCanvas/BackgroundImage", resourceState, result, messages);
+        AddMappedImage(root, "ScoreWindowSettings", "SurScoreBgImageUri", "ScoreSurWindow/BaseCanvas/BackgroundImage", resourceState, result, messages);
+        AddMappedImage(root, "ScoreWindowSettings", "HunScoreBgImageUri", "ScoreHunWindow/BaseCanvas/BackgroundImage", resourceState, result, messages);
+        AddMappedImage(root, "ScoreWindowSettings", "GlobalScoreBgImageUri", "ScoreGlobalWindow/BaseCanvas/BackgroundImage", resourceState, result, messages);
+        AddMappedImage(root, "ScoreWindowSettings", "GlobalScoreBgImageUriBo3", "ScoreGlobalWindow/BaseCanvas/BoModeStates/Bo3/BackgroundImage", resourceState, result, messages);
+        AddMappedImage(root, "GameDataWindowSettings", "BgImageUri", "GameDataWindow/BaseCanvas/BackgroundImage", resourceState, result, messages);
+        AddMappedImage(root, "WidgetsWindowSettings", "MapBpBgUri", "WidgetsWindow/MapBpCanvas/BackgroundImage", resourceState, result, messages);
+        AddMappedImage(root, "WidgetsWindowSettings", "BpOverviewBgUri", "BpOverviewWindow/BaseCanvas/BackgroundImage", resourceState, result, messages);
+        AddMappedImage(root, "WidgetsWindowSettings", "MapBpV2BgUri", "MapV2Window/BaseCanvas/BackgroundImage", resourceState, result, messages);
+        AddMappedImage(root, "BpWindowSettings", "CurrentBanLockImageUri", "BpWindow/BaseCanvas/CurrentBanLockImage", resourceState, result, messages);
+        AddMappedImage(root, "BpWindowSettings", "GlobalBanLockImageUri", "BpWindow/BaseCanvas/GlobalBanLockImage", resourceState, result, messages);
+        AddMappedImage(root, "BpWindowSettings", "PickingBorderImageUri", "BpWindow/BaseCanvas/PickingBorderImage", resourceState, result, messages);
         AddMappedValue(root, "BpWindowSettings", "PickingBorderColor", "BpWindow/BaseCanvas/PickingBorderColor", result);
-        AddMappedImage(root, "WidgetsWindowSettings", "CurrentBanLockImageUri", "BpOverviewWindow/BaseCanvas/CurrentBanLockImage", resourceState, result, diagnostics);
-        AddMappedImage(root, "WidgetsWindowSettings", "GlobalBanLockImageUri", "BpOverviewWindow/BaseCanvas/GlobalBanLockImage", resourceState, result, diagnostics);
-        AddMappedImage(root, "WidgetsWindowSettings", "MapBpV2PickingBorderImageUri", "MapV2Window/BaseCanvas/MapBpV2PickingBorderImage", resourceState, result, diagnostics);
+        AddMappedImage(root, "WidgetsWindowSettings", "CurrentBanLockImageUri", "BpOverviewWindow/BaseCanvas/CurrentBanLockImage", resourceState, result, messages);
+        AddMappedImage(root, "WidgetsWindowSettings", "GlobalBanLockImageUri", "BpOverviewWindow/BaseCanvas/GlobalBanLockImage", resourceState, result, messages);
+        AddMappedImage(root, "WidgetsWindowSettings", "MapBpV2PickingBorderImageUri", "MapV2Window/BaseCanvas/MapBpV2PickingBorderImage", resourceState, result, messages);
         AddMappedValue(root, "WidgetsWindowSettings", "MapBpV2_PickingBorderColor", "MapV2Window/BaseCanvas/MapBpV2PickingBorderColor", result);
 
         foreach (var ignored in EnumeratePotentialFrontendImageFields(root)
                      .Where(field => !KnownConfigImageFields.Contains(field, StringComparer.Ordinal)))
         {
-            diagnostics.Add($"Legacy field ignored: {ignored}");
+            messages.Add(Info(CodeLegacyFieldIgnored,
+                Args(new { Field = ignored })));
         }
 
         return result;
@@ -900,8 +904,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
 
     private LegacySettings? ReadLegacySettings(
         string extractionRoot,
-        ICollection<string> diagnostics,
-        ICollection<string> warnings)
+        ICollection<FrontedLayoutPackageLegacyConvertMessage> messages)
     {
         var configPath = Path.Combine(extractionRoot, "Config.json");
         if (!File.Exists(configPath))
@@ -913,7 +916,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         {
             if (new FileInfo(configPath).Length > FrontedLayoutLimits.MaxLegacyConfigBytes)
             {
-                warnings.Add("Legacy Config.json is too large; frontend text settings were ignored.");
+                messages.Add(Warning(CodeConfigJsonTooLarge));
                 return null;
             }
 
@@ -921,15 +924,15 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         }
         catch (Exception ex)
         {
-            diagnostics.Add($"Legacy Config.json text settings could not be read: {ex.Message}");
+            messages.Add(Info(CodeTextSettingsReadFailed,
+                Args(new { Reason = ex.Message })));
             return null;
         }
     }
 
     private static IReadOnlySet<string> ReadLegacyPropertySet(
         string extractionRoot,
-        ICollection<string> diagnostics,
-        ICollection<string> warnings)
+        ICollection<FrontedLayoutPackageLegacyConvertMessage> messages)
     {
         var configPath = Path.Combine(extractionRoot, "Config.json");
         if (!File.Exists(configPath))
@@ -941,7 +944,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         {
             if (new FileInfo(configPath).Length > FrontedLayoutLimits.MaxLegacyConfigBytes)
             {
-                warnings.Add("Legacy Config.json is too large; frontend window settings were ignored.");
+                messages.Add(Warning(CodeConfigJsonTooLarge));
                 return new HashSet<string>(StringComparer.Ordinal);
             }
 
@@ -969,7 +972,8 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         }
         catch (Exception ex)
         {
-            diagnostics.Add($"Legacy Config.json window settings could not be inspected: {ex.Message}");
+            messages.Add(Info(CodeWindowSettingsInspectFailed,
+                Args(new { Reason = ex.Message })));
             return new HashSet<string>(StringComparer.Ordinal);
         }
     }
@@ -979,7 +983,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         LegacyLayoutMapping mapping,
         LegacySettings? legacySettings,
         IReadOnlySet<string> legacyPropertySet,
-        ICollection<string> diagnostics)
+        ICollection<FrontedLayoutPackageLegacyConvertMessage> messages)
     {
         if (mapping.FixedCanvasWidth.HasValue && mapping.FixedCanvasHeight.HasValue)
         {
@@ -1046,8 +1050,13 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                 && (!AreClose(windowSize.Width, target.CanvasSettings.CanvasWidth)
                     || !AreClose(windowSize.Height, target.CanvasSettings.CanvasHeight)))
             {
-                diagnostics.Add(
-                    $"Legacy window size differs from converter legacy canvas default: {mapping.TargetWindow} Window={windowSize.Width}x{windowSize.Height}, Canvas={target.CanvasSettings.CanvasWidth}x{target.CanvasSettings.CanvasHeight}.");
+                messages.Add(Info(CodeWindowSizeDiffersFromCanvas,
+                    Args(new
+                    {
+                        TargetWindow = mapping.TargetWindow,
+                        WindowSize = $"{windowSize.Width}x{windowSize.Height}",
+                        CanvasSize = $"{target.CanvasSettings.CanvasWidth}x{target.CanvasSettings.CanvasHeight}"
+                    })));
             }
         }
 
@@ -1138,7 +1147,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         string key,
         ResourceConvertState resourceState,
         IDictionary<string, string> result,
-        ICollection<string> diagnostics)
+        ICollection<FrontedLayoutPackageLegacyConvertMessage> messages)
     {
         var field = $"{settingsObject}.{propertyName}";
         var value = root?[settingsObject]?[propertyName]?.GetValue<string>();
@@ -1153,7 +1162,8 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             return;
         }
 
-        diagnostics.Add($"Legacy resource missing or not packaged for field {field}: {value}");
+        messages.Add(Info(CodeResourceMissing,
+            Args(new { Field = field, Value = value })));
     }
 
     private static void AddMappedValue(
@@ -1225,7 +1235,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         FrontedCanvasConfig config,
         LegacyLayoutMapping mapping,
         IReadOnlyDictionary<string, string> valueMap,
-        ICollection<string> infos)
+        ICollection<FrontedLayoutPackageLegacyConvertMessage> messages)
     {
         var prefix = $"{mapping.TargetWindow}/{FrontedLayoutConstants.BaseCanvasName}/";
         if (valueMap.TryGetValue($"{prefix}BackgroundImage", out var background))
@@ -1247,7 +1257,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             }
 
             bo3State.BackgroundImage = scoreGlobalBo3Background;
-            infos.Add("Legacy BO3 global score background mapped into ScoreGlobal BO3 canvas state.");
+            messages.Add(Info(CodeBo3GlobalScoreBackgroundMapped));
         }
 
         if (mapping.TargetWindow == "BpWindow")
@@ -1260,7 +1270,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                     continue;
                 }
 
-                ApplyImageResourceOverride(control, blueprint, prefix, valueMap, infos);
+                ApplyImageResourceOverride(control, blueprint, prefix, valueMap, messages);
             }
         }
 
@@ -1274,7 +1284,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                     continue;
                 }
 
-                ApplyImageResourceOverride(control, blueprint, prefix, valueMap, infos);
+                ApplyImageResourceOverride(control, blueprint, prefix, valueMap, messages);
             }
         }
 
@@ -1320,7 +1330,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         LegacyControlBlueprint blueprint,
         string prefix,
         IReadOnlyDictionary<string, string> valueMap,
-        ICollection<string> infos)
+        ICollection<FrontedLayoutPackageLegacyConvertMessage> messages)
     {
         if (blueprint.ResourceSourceKey is null)
         {
@@ -1340,7 +1350,8 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                 if (control.Lockable)
                 {
                     control.LockImagePath = uri;
-                    infos.Add($"Legacy lock image merged into v3 Image lock overlay: {key}");
+                    messages.Add(Info(CodeLockImageMapped,
+                        Args(new { Key = key })));
                 }
 
                 break;
@@ -1348,7 +1359,8 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                 if (control.PickingBorderAvailable)
                 {
                     control.PickingBorderImagePath = uri;
-                    infos.Add($"Legacy picking border image merged into v3 Image picking overlay: {key}");
+                    messages.Add(Info(CodePickingBorderImageMapped,
+                        Args(new { Key = key })));
                 }
 
                 break;
@@ -2322,7 +2334,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         FrontedCanvasConfig config,
         LegacyLayoutMapping mapping,
         LegacySettings? legacySettings,
-        ICollection<string> diagnostics)
+        ICollection<FrontedLayoutPackageLegacyConvertMessage> messages)
     {
         if (legacySettings is null)
         {
@@ -2350,12 +2362,19 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                 && control is IFrontedTextStyleConfig textControl)
             {
                 ApplyLegacyTextStyle(textControl, style);
-                diagnostics.Add($"Legacy text style applied: {mapping.SourceWindow}/{mapping.SourceCanvas}/{blueprint.TargetName} <- {blueprint.TextStyleSourceKey}");
+                messages.Add(Info(CodeTextSettingsApplied,
+                    Args(new
+                    {
+                        SourceWindow = mapping.SourceWindow,
+                        SourceCanvas = mapping.SourceCanvas,
+                        ControlName = blueprint.TargetName,
+                        TextStyleKey = blueprint.TextStyleSourceKey
+                    })));
             }
 
             if (control is MapV2DisplayControlConfig map)
             {
-                ApplyMapV2LegacyTextStyle(map, legacySettings, blueprint, diagnostics, mapping);
+                ApplyMapV2LegacyTextStyle(map, legacySettings, blueprint, messages, mapping);
             }
         }
     }
@@ -2364,7 +2383,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         MapV2DisplayControlConfig map,
         LegacySettings legacySettings,
         LegacyControlBlueprint blueprint,
-        ICollection<string> diagnostics,
+        ICollection<FrontedLayoutPackageLegacyConvertMessage> messages,
         LegacyLayoutMapping mapping)
     {
         if (TryGetLegacyTextStyle(legacySettings, "WidgetsWindow.MapBpV2_MapName", out var mapNameStyle)
@@ -2380,7 +2399,14 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                 map.MapNameFontSize = mapNameStyle.FontSize;
             }
 
-            diagnostics.Add($"Legacy text style applied: {mapping.SourceWindow}/{mapping.SourceCanvas}/{blueprint.TargetName} <- WidgetsWindow.MapBpV2_MapName");
+            messages.Add(Info(CodeTextSettingsApplied,
+                Args(new
+                {
+                    SourceWindow = mapping.SourceWindow,
+                    SourceCanvas = mapping.SourceCanvas,
+                    ControlName = blueprint.TargetName,
+                    TextStyleKey = "WidgetsWindow.MapBpV2_MapName"
+                })));
         }
 
         if (TryGetLegacyTextStyle(legacySettings, "WidgetsWindow.MapBpV2_TeamName", out var teamNameStyle)
@@ -2396,7 +2422,14 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                 map.TeamNameFontSize = teamNameStyle.FontSize;
             }
 
-            diagnostics.Add($"Legacy text style applied: {mapping.SourceWindow}/{mapping.SourceCanvas}/{blueprint.TargetName} <- WidgetsWindow.MapBpV2_TeamName");
+            messages.Add(Info(CodeTextSettingsApplied,
+                Args(new
+                {
+                    SourceWindow = mapping.SourceWindow,
+                    SourceCanvas = mapping.SourceCanvas,
+                    ControlName = blueprint.TargetName,
+                    TextStyleKey = "WidgetsWindow.MapBpV2_TeamName"
+                })));
         }
 
         if (TryGetLegacyTextStyle(legacySettings, "WidgetsWindow.MapBpV2_CampWords", out var campStyle)
@@ -2412,7 +2445,14 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                 map.CampNameFontSize = campStyle.FontSize;
             }
 
-            diagnostics.Add($"Legacy text style applied: {mapping.SourceWindow}/{mapping.SourceCanvas}/{blueprint.TargetName} <- WidgetsWindow.MapBpV2_CampWords");
+            messages.Add(Info(CodeTextSettingsApplied,
+                Args(new
+                {
+                    SourceWindow = mapping.SourceWindow,
+                    SourceCanvas = mapping.SourceCanvas,
+                    ControlName = blueprint.TargetName,
+                    TextStyleKey = "WidgetsWindow.MapBpV2_CampWords"
+                })));
         }
     }
 
@@ -2684,18 +2724,15 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
 
     private static FrontedLayoutPackageLegacyConvertResult Fail(
         string message,
-        IReadOnlyList<string> infos,
-        IReadOnlyList<string> diagnostics,
-        IReadOnlyList<string> warnings)
+        List<FrontedLayoutPackageLegacyConvertMessage> messages)
     {
-        return new FrontedLayoutPackageLegacyConvertResult
+        var result = new FrontedLayoutPackageLegacyConvertResult
         {
             Success = false,
-            ErrorMessage = message,
-            Infos = infos.ToArray(),
-            Diagnostics = diagnostics.ToArray(),
-            Warnings = warnings.ToArray()
+            ErrorMessage = message
         };
+        FrontedLayoutPackageLegacyConvertResult.PopulateFromMessages(result, messages);
+        return result;
     }
 
     private static void TryDeleteDirectory(string path)

@@ -2698,6 +2698,105 @@
   <data name="LegacyResourceMissing" xml:space="preserve">
     <value>Legacy resource missing</value>
   </data>
+  <data name="LegacyConvert.FrontElementsFolderMissing" xml:space="preserve">
+    <value>The legacy package does not contain the FrontElementsConfig folder, so front-end window layouts could not be read.</value>
+  </data>
+  <data name="LegacyConvert.UnknownLayoutFileSkipped" xml:space="preserve">
+    <value>An unknown legacy layout file was found and skipped: {FileName}</value>
+  </data>
+  <data name="LegacyConvert.MapBpV1Skipped" xml:space="preserve">
+    <value>The legacy "Map BP V1" window has been removed in Designer v3, so it will not be converted. Other supported windows will continue to be converted.</value>
+  </data>
+  <data name="LegacyConvert.LayoutFileTooLargeSkipped" xml:space="preserve">
+    <value>The legacy layout file is too large and was skipped: {FileName}</value>
+  </data>
+  <data name="LegacyConvert.LayoutFileReadFailed" xml:space="preserve">
+    <value>The legacy layout file could not be read and was skipped: {FileName}. Reason: {Reason}</value>
+  </data>
+  <data name="LegacyConvert.NoBlueprintForLayout" xml:space="preserve">
+    <value>No conversion map exists for this legacy window yet, so it was skipped: {SourceWindow}/{SourceCanvas}</value>
+  </data>
+  <data name="LegacyConvert.ControlCreateFailed" xml:space="preserve">
+    <value>A target v3 control could not be created for the legacy control: {SourceWindow}/{SourceCanvas}/{LegacyName} -&gt; {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.ControlNotInBlueprintMap" xml:space="preserve">
+    <value>A legacy control is not listed in the explicit conversion map: {SourceWindow}/{SourceCanvas}/{ControlName}</value>
+  </data>
+  <data name="LegacyConvert.LayoutValidationError" xml:space="preserve">
+    <value>The converted layout has validation errors: {TargetWindow}/{CanvasName}. Details: {Details}</value>
+  </data>
+  <data name="LegacyConvert.OvertimeScoreCellsAggregated" xml:space="preserve">
+    <value>Legacy overtime score cells were merged into the v3 global score row control.</value>
+  </data>
+  <data name="LegacyConvert.LockOverlayFolded" xml:space="preserve">
+    <value>The legacy lock overlay was merged into the v3 lockable image control: {LegacyName} -&gt; {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.LockOverlayTargetMissing" xml:space="preserve">
+    <value>The legacy lock overlay was recognized, but the target image control does not exist: {SourceWindow}/{SourceCanvas}/{LegacyName} -&gt; {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.BpOverviewOutOfBounds" xml:space="preserve">
+    <value>Some content in the legacy BP overview window exceeds the original bounds and may be clipped after conversion.</value>
+  </data>
+  <data name="LegacyConvert.ResourceMissing" xml:space="preserve">
+    <value>A legacy resource was not found, so the default resource was kept: {Field} = {Value}</value>
+  </data>
+  <data name="LegacyConvert.Bo3GlobalScoreBackgroundMapped" xml:space="preserve">
+    <value>The legacy BO3 global score background was converted into the v3 BO3 canvas-state background.</value>
+  </data>
+  <data name="LegacyConvert.LockImageMapped" xml:space="preserve">
+    <value>The legacy lock image was merged into the v3 image control lock overlay: {Key}</value>
+  </data>
+  <data name="LegacyConvert.PickingBorderImageMapped" xml:space="preserve">
+    <value>The legacy picking-border image was merged into the v3 image control picking border: {Key}</value>
+  </data>
+  <data name="LegacyConvert.TextSettingsApplied" xml:space="preserve">
+    <value>Legacy text settings were applied: {SourceWindow}/{SourceCanvas}/{ControlName} &lt;- {TextStyleKey}</value>
+  </data>
+  <data name="LegacyConvert.MapV2PickingBorderMapped" xml:space="preserve">
+    <value>Legacy MapV2 picking border was mapped to the v3 control.</value>
+  </data>
+  <data name="LegacyConvert.ResourceCopied" xml:space="preserve">
+    <value>Legacy resource copied: {FileName}</value>
+  </data>
+  <data name="LegacyConvert.GlobalScoreCellsAggregated" xml:space="preserve">
+    <value>Legacy global score cells aggregated: {Team} -&gt; {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.IrregularCellSpacingApproximated" xml:space="preserve">
+    <value>Legacy cell spacing was irregular and approximated by median gaps: {Team} -&gt; {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.ControlGeometryFuzzyMatched" xml:space="preserve">
+    <value>Legacy control geometry was fuzzy-matched to the v3 control.</value>
+  </data>
+  <data name="LegacyConvert.LockOverlayGeometryConsumed" xml:space="preserve">
+    <value>Legacy lock overlay geometry was merged: {LegacyName} -&gt; {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.FoldedControlConsumed" xml:space="preserve">
+    <value>Legacy folded control was merged: {SourceWindow}/{SourceCanvas}/{LegacyName} -&gt; {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.FoldedControlNoTarget" xml:space="preserve">
+    <value>Legacy folded control has no v3 body control target: {SourceWindow}/{SourceCanvas}/{LegacyName}</value>
+  </data>
+  <data name="LegacyConvert.LegacyFieldIgnored" xml:space="preserve">
+    <value>Legacy field ignored: {Field}</value>
+  </data>
+  <data name="LegacyConvert.WindowSizeDiffersFromCanvas" xml:space="preserve">
+    <value>Legacy window size differs from converter canvas default: {TargetWindow} Window={WindowSize}, Canvas={CanvasSize}</value>
+  </data>
+  <data name="LegacyConvert.ConfigJsonTooLarge" xml:space="preserve">
+    <value>Legacy Config.json is too large and was skipped.</value>
+  </data>
+  <data name="LegacyConvert.ConfigJsonReadFailed" xml:space="preserve">
+    <value>Legacy Config.json could not be read. Reason: {Reason}</value>
+  </data>
+  <data name="LegacyConvert.TextSettingsReadFailed" xml:space="preserve">
+    <value>Legacy Config.json text settings could not be read. Reason: {Reason}</value>
+  </data>
+  <data name="LegacyConvert.WindowSettingsInspectFailed" xml:space="preserve">
+    <value>Legacy Config.json window settings could not be inspected. Reason: {Reason}</value>
+  </data>
+  <data name="LegacyConvert.FoldedGeometryNotRepresentable" xml:space="preserve">
+    <value>Legacy folded control geometry is represented by v3 control metadata; separate geometry is not representable.</value>
+  </data>
   <data name="ActivateConvertedPackage" xml:space="preserve">
     <value>Activate the converted package now?</value>
   </data>

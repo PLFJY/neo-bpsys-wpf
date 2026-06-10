@@ -564,9 +564,9 @@ public class FrontedLayoutPackageManagerTest
             Assert.True(File.Exists(result.ConvertedPackagePath));
             Assert.Equal(1, result.LayoutCount);
             Assert.Equal(1, result.ResourceCount);
-            Assert.Contains(result.Infos, info => info.Contains("Legacy resource copied", StringComparison.Ordinal));
+            Assert.Contains(result.Infos, info => info.Contains("ResourceCopied", StringComparison.Ordinal));
             Assert.DoesNotContain(result.Warnings, warning => warning.Contains("Legacy resource copied", StringComparison.Ordinal));
-            Assert.Contains(result.Warnings, warning => warning.Contains("Unknown legacy layout file", StringComparison.OrdinalIgnoreCase));
+            Assert.Contains(result.Warnings, warning => warning.Contains("UnknownLayoutFileSkipped", StringComparison.Ordinal));
 
             using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
             var entryNames = archive.Entries.Select(entry => entry.FullName.Replace('\\', '/')).ToArray();
@@ -636,9 +636,11 @@ public class FrontedLayoutPackageManagerTest
 
             Assert.True(result.Success, result.ErrorMessage);
             Assert.Empty(result.Warnings);
-            Assert.Contains(result.Infos, info => info.Contains("Legacy resource copied", StringComparison.Ordinal));
-            Assert.Contains(result.Infos, info => info.Contains("HomeTeamGame*", StringComparison.Ordinal));
-            Assert.Contains(result.Infos, info => info.Contains("AwayTeamGame*", StringComparison.Ordinal));
+            Assert.Contains(result.Infos, info => info.Contains("ResourceCopied", StringComparison.Ordinal));
+            Assert.Contains(result.Infos, info => info.Contains("GlobalScoreCellsAggregated", StringComparison.Ordinal)
+                && info.Contains("Team=Home", StringComparison.Ordinal));
+            Assert.Contains(result.Infos, info => info.Contains("GlobalScoreCellsAggregated", StringComparison.Ordinal)
+                && info.Contains("Team=Away", StringComparison.Ordinal));
 
             using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
             var layoutJson = ReadZipEntry(archive, "FrontedLayouts/ScoreGlobalWindow.json");

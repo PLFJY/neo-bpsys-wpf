@@ -127,3 +127,11 @@ Legacy `WidgetsWindow` 映射规则：
 | `WidgetsWindow/MapV2Canvas` | `MapV2Window.json` |
 
 MapV1 跳过不能导致导入失败。资源复制、`bpui://` 路径改写、TextSettings 迁移、GlobalScoreRow 聚合、BO5 overtime 消费和缺失插件 placeholder 规则继续保留。
+
+## Legacy conversion messages
+
+Legacy conversion diagnostics use stable message codes and localized text.
+
+Map BP V1 note: Legacy Map BP V1 was removed in Designer v3 and is intentionally skipped during conversion. This is a compatibility note, not a conversion failure.
+
+Technical messages should preserve code and args for debugging, but the UI must show localized user-facing text.

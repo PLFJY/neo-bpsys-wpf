@@ -925,3 +925,11 @@ legacy 包检测：
 `FrontManagePage` 导入 legacy `.bpui` 时会先询问是否转换。转换器会安全解压旧 zip 到 staging，复制 `CustomUi/` 资源到 `resources/images/`，生成 `manifest.json`，并从当前内置 v3 布局起步应用旧 `ElementInfo` 几何覆盖。旧 `Config.json` 只读取明确可映射的前台图片字段，不会写入 `%APPDATA%/neo-bpsys-wpf/Config.json`，也不会复制到新包或 AppData。未知旧布局文件只产生 warning 并跳过；如果没有任何可映射布局，转换失败并显示错误。转换后的包再走现有 v3 importer，因此安装、重复 PackageId 替换、资源隔离和激活行为与普通 v3 包一致。
 
 当前 `.bpui v3` 包的完整功能已实现：导出（含 manifest 对话框、全部前台布局、资源收集/重写）、导入安装、激活复制、删除、legacy 转换，以及插件控件 `ControlType` 命名、Canvas `RequiredPlugins`、manifest `PluginDependencies`、缺失插件保留、插件市场安装引导等全流程支持。详细阶段历史见 [fronted-designer-v3.md#10-分阶段实现历史](fronted-designer-v3.md#10-分阶段实现历史)。
+
+## Legacy conversion messages
+
+Legacy conversion diagnostics use stable message codes and localized text.
+
+Map BP V1 note: Legacy Map BP V1 was removed in Designer v3 and is intentionally skipped during conversion. This is a compatibility note, not a conversion failure.
+
+Technical messages should preserve code and args for debugging, but the UI must show localized user-facing text.

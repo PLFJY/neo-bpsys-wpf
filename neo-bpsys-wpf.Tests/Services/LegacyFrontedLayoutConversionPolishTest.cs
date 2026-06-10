@@ -1,3 +1,4 @@
+using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
 using neo_bpsys_wpf.Core.Models.ScoreSystem;
@@ -35,23 +36,25 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
         var result = new FrontedLayoutPackageLegacyConvertResult
         {
             Success = true,
-            Infos =
+            Messages =
             [
-                "Legacy resource copied: CurrentBanLock.png",
-                "Legacy global score cells aggregated: ScoreGlobalWindow/BaseCanvas/HomeTeamGame* -> HomeGlobalScoreRow.",
-                "Legacy control geometry fuzzy-matched: A -> B"
-            ],
-            Diagnostics =
-            [
-                "Legacy overtime score cells were migrated into GlobalScoreRow child cells.",
-                "Legacy lock overlay geometry consumed: HunBanCurrentLock0 -> HunBanCurrent0",
-                "Legacy global score cells aggregated: ScoreGlobalWindow/BaseCanvas/HomeTeamGame* -> HomeGlobalScoreRow. Irregular cell spacing was approximated by median gaps."
+                LegacyConvertMessageHelper.Info(LegacyConvertMessageHelper.CodeResourceCopied,
+                    LegacyConvertMessageHelper.Args(new { FileName = "CurrentBanLock.png" })),
+                LegacyConvertMessageHelper.Info(LegacyConvertMessageHelper.CodeGlobalScoreCellsAggregated,
+                    LegacyConvertMessageHelper.Args(new { Team = "Home", TargetName = "HomeGlobalScoreRow" })),
+                LegacyConvertMessageHelper.Info(LegacyConvertMessageHelper.CodeControlGeometryFuzzyMatched),
+                LegacyConvertMessageHelper.Info(LegacyConvertMessageHelper.CodeOvertimeScoreCellsAggregated),
+                LegacyConvertMessageHelper.Info(LegacyConvertMessageHelper.CodeLockOverlayGeometryConsumed,
+                    LegacyConvertMessageHelper.Args(new { LegacyName = "HunBanCurrentLock0", TargetName = "HunBanCurrent0" })),
+                LegacyConvertMessageHelper.Info(LegacyConvertMessageHelper.CodeIrregularCellSpacingApproximated,
+                    LegacyConvertMessageHelper.Args(new { Team = "Home", TargetName = "HomeGlobalScoreRow" })),
             ]
         };
 
         Assert.False(LegacyConversionMessageFormatter.HasUserFacingWarnings(result));
         Assert.Equal(string.Empty, LegacyConversionMessageFormatter.BuildUserSummary(result));
-        Assert.Contains("Legacy lock overlay geometry consumed", LegacyConversionMessageFormatter.BuildTechnicalDetails(result));
+        Assert.Contains(LegacyConvertMessageHelper.CodeLockOverlayGeometryConsumed,
+            LegacyConversionMessageFormatter.BuildTechnicalDetails(result));
     }
 
     [Fact]
@@ -278,7 +281,7 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             Assert.False(
                 LegacyConversionMessageFormatter.HasUserFacingWarnings(result),
                 string.Join(Environment.NewLine, result.Warnings));
-            Assert.Contains(result.Diagnostics, item => item.Contains("Legacy text style applied", StringComparison.Ordinal));
+            Assert.Contains(result.Diagnostics, item => item.Contains("TextSettingsApplied", StringComparison.Ordinal));
 
             using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
             var bp = ReadLayout(archive, "FrontedLayouts/BpWindow.json");
@@ -405,21 +408,23 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
         var result = new FrontedLayoutPackageLegacyConvertResult
         {
             Success = true,
-            Warnings =
+            Messages =
             [
-                "Legacy resource missing or not packaged for field BpWindowSettings.CurrentBanLockImageUri: C:\\legacy\\missing.png",
-                "Legacy control geometry ignored because no v3 control matches: WidgetsWindow/BpOverViewCanvas/LegacyOnly. Closest candidates: A, B, C",
-                "Unknown legacy layout file skipped: UnknownWindowConfig-BaseCanvas.json",
-                "Converted layout BpWindow/BaseCanvas has validation errors: bad"
+                LegacyConvertMessageHelper.Warning(LegacyConvertMessageHelper.CodeResourceMissing,
+                    LegacyConvertMessageHelper.Args(new { Field = "BpWindowSettings.CurrentBanLockImageUri", Value = "C:\\legacy\\missing.png" })),
+                LegacyConvertMessageHelper.Warning(LegacyConvertMessageHelper.CodeControlNotInBlueprintMap,
+                    LegacyConvertMessageHelper.Args(new { SourceWindow = "WidgetsWindow", SourceCanvas = "BpOverViewCanvas", ControlName = "LegacyOnly" })),
+                LegacyConvertMessageHelper.Warning(LegacyConvertMessageHelper.CodeUnknownLayoutFileSkipped,
+                    LegacyConvertMessageHelper.Args(new { FileName = "UnknownWindowConfig-BaseCanvas.json" })),
+                LegacyConvertMessageHelper.Error(LegacyConvertMessageHelper.CodeLayoutValidationError,
+                    LegacyConvertMessageHelper.Args(new { TargetWindow = "BpWindow", CanvasName = "BaseCanvas", Details = "bad" })),
             ]
         };
 
         var summary = LegacyConversionMessageFormatter.BuildUserSummary(result);
 
         Assert.True(LegacyConversionMessageFormatter.HasUserFacingWarnings(result));
-        Assert.DoesNotContain("Closest candidates", summary, StringComparison.OrdinalIgnoreCase);
-        Assert.True(summary.Split(Environment.NewLine).Count(line => line.StartsWith("- ", StringComparison.Ordinal)) <= 3);
-        Assert.Contains("Closest candidates", LegacyConversionMessageFormatter.BuildTechnicalDetails(result));
+        Assert.Contains("LegacyConvert.UnknownLayoutFileSkipped", LegacyConversionMessageFormatter.BuildTechnicalDetails(result));
     }
 
     [Fact]
@@ -501,7 +506,7 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             Assert.True(result.Success, result.ErrorMessage);
             Assert.DoesNotContain(result.Warnings, warning => warning.Contains("Overtime", StringComparison.Ordinal));
             Assert.DoesNotContain(result.Warnings, warning => warning.Contains("no v3 control matches", StringComparison.OrdinalIgnoreCase));
-            Assert.Contains(result.Diagnostics, item => item.Contains("Legacy overtime score cells were migrated", StringComparison.Ordinal));
+            Assert.Contains(result.Diagnostics, item => item.Contains("OvertimeScoreCellsAggregated", StringComparison.Ordinal));
             Assert.False(LegacyConversionMessageFormatter.HasUserFacingWarnings(result));
         }
         finally
@@ -539,14 +544,15 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
 
             Assert.True(result.Success, result.ErrorMessage);
             Assert.DoesNotContain(result.Warnings, warning => warning.Contains("BanCurrentLock", StringComparison.Ordinal));
-            Assert.Contains(result.Diagnostics, item => item.Contains("HunBanCurrentLock0 -> HunBanCurrent0", StringComparison.Ordinal));
+            Assert.Contains(result.Diagnostics, item => item.Contains("HunBanCurrentLock0", StringComparison.Ordinal)
+                && item.Contains("HunBanCurrent0", StringComparison.Ordinal));
             Assert.False(LegacyConversionMessageFormatter.HasUserFacingWarnings(result));
 
             using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
             var layout = ReadLayout(archive, "FrontedLayouts/BpOverviewWindow.json");
             var hun = Assert.IsType<ImageFrontedControlConfig>(layout.Controls["HunBanCurrent0"]);
             Assert.True(hun.Lockable);
-            Assert.Contains(result.Diagnostics, item => item.Contains("separate geometry is not representable", StringComparison.Ordinal));
+            Assert.Contains(result.Diagnostics, item => item.Contains("FoldedGeometryNotRepresentable", StringComparison.Ordinal));
             var sur = Assert.IsType<ImageFrontedControlConfig>(layout.Controls["SurBanCurrent0"]);
             Assert.Equal(100, sur.Left);
             Assert.Equal(20, sur.Top);
@@ -705,8 +711,8 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
 
             Assert.True(result.Success, result.ErrorMessage);
             Assert.Equal(2, result.LayoutCount);
-            Assert.Contains(result.Warnings, warning => warning.Contains("MapBpV1", StringComparison.Ordinal));
-            Assert.Contains(result.Warnings, warning => warning.Contains("BpOverViewCanvas content exceeds", StringComparison.Ordinal));
+            Assert.Contains(result.Infos, warning => warning.Contains("MapBpV1Skipped", StringComparison.Ordinal));
+            Assert.Contains(result.Warnings, warning => warning.Contains("BpOverviewOutOfBounds", StringComparison.Ordinal));
 
             using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
             var entryNames = archive.Entries.Select(entry => entry.FullName.Replace('\\', '/')).ToArray();

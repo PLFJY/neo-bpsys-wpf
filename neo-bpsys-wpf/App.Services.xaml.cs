@@ -98,6 +98,7 @@ public partial class App
         services.AddSingleton<IFrontedLayoutPackageExporter, FrontedLayoutPackageExporter>();
         services.AddSingleton<IFrontedLayoutPackageImporter, FrontedLayoutPackageImporter>();
         services.AddSingleton<IFrontedLayoutPackageLegacyConverter, FrontedLayoutPackageLegacyConverter>();
+        LegacyConvertMessageHelper.LocalizeTemplate = Helpers.I18nHelper.GetLocalizedString;
         services.AddSingleton<IFrontedPluginMetadataProvider, FrontedPluginMetadataProvider>();
         services.AddSingleton<FrontedBehaviorEventCatalog>();
         services.AddSingleton<IFrontedBehaviorService, FrontedBehaviorService>();

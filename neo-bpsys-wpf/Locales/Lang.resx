@@ -2716,6 +2716,105 @@
   <data name="LegacyResourceMissing" xml:space="preserve">
     <value>旧版资源缺失</value>
   </data>
+  <data name="LegacyConvert.FrontElementsFolderMissing" xml:space="preserve">
+    <value>旧版包中缺少 FrontElementsConfig 文件夹，无法读取前台窗口布局。</value>
+  </data>
+  <data name="LegacyConvert.UnknownLayoutFileSkipped" xml:space="preserve">
+    <value>发现无法识别的旧版布局文件，已跳过：{FileName}</value>
+  </data>
+  <data name="LegacyConvert.MapBpV1Skipped" xml:space="preserve">
+    <value>旧版"地图 BP V1"窗口已在 Designer v3 中移除，因此不会转换。其他支持的窗口会继续转换。</value>
+  </data>
+  <data name="LegacyConvert.LayoutFileTooLargeSkipped" xml:space="preserve">
+    <value>旧版布局文件过大，已跳过：{FileName}</value>
+  </data>
+  <data name="LegacyConvert.LayoutFileReadFailed" xml:space="preserve">
+    <value>旧版布局文件读取失败，已跳过：{FileName}。原因：{Reason}</value>
+  </data>
+  <data name="LegacyConvert.NoBlueprintForLayout" xml:space="preserve">
+    <value>当前版本还没有该旧版窗口的转换映射，因此已跳过：{SourceWindow}/{SourceCanvas}</value>
+  </data>
+  <data name="LegacyConvert.ControlCreateFailed" xml:space="preserve">
+    <value>旧版控件无法创建对应的新控件：{SourceWindow}/{SourceCanvas}/{LegacyName} -> {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.ControlNotInBlueprintMap" xml:space="preserve">
+    <value>旧版控件没有出现在显式转换映射表中：{SourceWindow}/{SourceCanvas}/{ControlName}</value>
+  </data>
+  <data name="LegacyConvert.LayoutValidationError" xml:space="preserve">
+    <value>转换后的布局存在校验错误：{TargetWindow}/{CanvasName}。详情：{Details}</value>
+  </data>
+  <data name="LegacyConvert.OvertimeScoreCellsAggregated" xml:space="preserve">
+    <value>旧版加赛比分格已合并到新版总比分行控件中。</value>
+  </data>
+  <data name="LegacyConvert.LockOverlayFolded" xml:space="preserve">
+    <value>旧版锁定图层已合并到新版可锁定图片控件中：{LegacyName} -> {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.LockOverlayTargetMissing" xml:space="preserve">
+    <value>旧版锁定图层已识别，但目标图片控件不存在：{SourceWindow}/{SourceCanvas}/{LegacyName} -> {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.BpOverviewOutOfBounds" xml:space="preserve">
+    <value>旧版 BP 概览窗口中有内容超出原始区域，转换后可能被裁切。</value>
+  </data>
+  <data name="LegacyConvert.ResourceMissing" xml:space="preserve">
+    <value>旧版资源未找到，已保留默认资源：{Field} = {Value}</value>
+  </data>
+  <data name="LegacyConvert.Bo3GlobalScoreBackgroundMapped" xml:space="preserve">
+    <value>旧版 BO3 总比分背景已转换为新版 BO3 画布状态背景。</value>
+  </data>
+  <data name="LegacyConvert.LockImageMapped" xml:space="preserve">
+    <value>旧版锁定图片已合并到新版图片控件的锁定图层：{Key}</value>
+  </data>
+  <data name="LegacyConvert.PickingBorderImageMapped" xml:space="preserve">
+    <value>旧版选中边框图片已合并到新版图片控件的选中边框：{Key}</value>
+  </data>
+  <data name="LegacyConvert.TextSettingsApplied" xml:space="preserve">
+    <value>旧版文字设置已应用：{SourceWindow}/{SourceCanvas}/{ControlName} &lt;- {TextStyleKey}</value>
+  </data>
+  <data name="LegacyConvert.MapV2PickingBorderMapped" xml:space="preserve">
+    <value>旧版 MapV2 选中边框已映射到新版控件。</value>
+  </data>
+  <data name="LegacyConvert.ResourceCopied" xml:space="preserve">
+    <value>旧版资源已复制：{FileName}</value>
+  </data>
+  <data name="LegacyConvert.GlobalScoreCellsAggregated" xml:space="preserve">
+    <value>旧版全局比分格已聚合：{Team} -> {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.IrregularCellSpacingApproximated" xml:space="preserve">
+    <value>旧版单元格间距不规则，已使用中位数近似计算：{Team} -> {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.ControlGeometryFuzzyMatched" xml:space="preserve">
+    <value>旧版控件几何已模糊匹配到新版控件。</value>
+  </data>
+  <data name="LegacyConvert.LockOverlayGeometryConsumed" xml:space="preserve">
+    <value>旧版锁定图层几何已合并：{LegacyName} -> {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.FoldedControlConsumed" xml:space="preserve">
+    <value>旧版折叠控件已合并：{SourceWindow}/{SourceCanvas}/{LegacyName} -> {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.FoldedControlNoTarget" xml:space="preserve">
+    <value>旧版折叠控件没有对应的新版目标控件：{SourceWindow}/{SourceCanvas}/{LegacyName}</value>
+  </data>
+  <data name="LegacyConvert.LegacyFieldIgnored" xml:space="preserve">
+    <value>旧版字段已忽略：{Field}</value>
+  </data>
+  <data name="LegacyConvert.WindowSizeDiffersFromCanvas" xml:space="preserve">
+    <value>旧版窗口尺寸与转换器画布默认值不一致：{TargetWindow} 窗口={WindowSize}，画布={CanvasSize}</value>
+  </data>
+  <data name="LegacyConvert.ConfigJsonTooLarge" xml:space="preserve">
+    <value>旧版 Config.json 文件过大，已跳过。</value>
+  </data>
+  <data name="LegacyConvert.ConfigJsonReadFailed" xml:space="preserve">
+    <value>旧版 Config.json 文件读取失败。原因：{Reason}</value>
+  </data>
+  <data name="LegacyConvert.TextSettingsReadFailed" xml:space="preserve">
+    <value>旧版 Config.json 文字设置无法读取。原因：{Reason}</value>
+  </data>
+  <data name="LegacyConvert.WindowSettingsInspectFailed" xml:space="preserve">
+    <value>旧版 Config.json 窗口设置无法检查。原因：{Reason}</value>
+  </data>
+  <data name="LegacyConvert.FoldedGeometryNotRepresentable" xml:space="preserve">
+    <value>旧版折叠控件几何由新版控件元数据表示，无法独立表示。</value>
+  </data>
   <data name="ActivateConvertedPackage" xml:space="preserve">
     <value>是否立即激活转换后的布局包？</value>
   </data>
