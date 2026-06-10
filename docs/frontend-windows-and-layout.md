@@ -50,7 +50,7 @@ descriptor 使用稳定 `WindowId`，并用 `FullWindowType = plugin:{PackageId}
 
 ## 显示与隐藏
 
-窗口由 `ShowWindow` / `HideWindow` / `AllWindowShow` / `AllWindowHide` 管理。关闭前台窗口时，`FrontedWindowBase.OnClosing` 会取消关闭并改为 `Hide()`，避免窗口实例被销毁后 DI singleton 状态和 OBS 捕获关系变得不可预期。
+窗口由 `ShowWindow` / `HideWindow` / `AllWindowShow` / `AllWindowHide` 管理。关闭前台窗口时，`FrontedWindowBase.OnClosing` 会取消关闭并改为 `Hide()`，避免窗口实例被销毁后 OBS 捕获关系变得不可预期。`FrontedWindowService` 需要真正销毁实例时会走显式 service close 通道，绕过 close-to-hide。
 
 v3 layout 窗口的显示流程分两段执行：Show 前调用 `EnsureInitialWindowSettingsAppliedAsync()`，只读取并应用 `WindowSettings` 中必须在 HWND/source 创建前确定的设置（尺寸、位置、Topmost、AllowsTransparency、BackgroundColor、ViewboxStretch）；随后立刻 `Show()`。完整 `CanvasSettings`、控件渲染、资源解析和 behavior runtime attach 由 `LoadOrReloadContentAsync(force: false)` 在 Show 后异步完成。
 
@@ -131,4 +131,4 @@ v3 独立编辑器保存用户布局时应写入 AppData 的 `FrontedLayouts` �
 
 ## 透明背景
 
-v3 layout window 的 `AllowsTransparency` 和 `BackgroundColor` 位于 `WindowSettings`。`AllowsTransparency` 必须在 WPF window source 初始化前应用；已显示窗口 reload 时不会直接修改该值，变更会在下次重新创建窗口后生效。Canvas 纯色背景不属于 `CanvasSettings.BackgroundColor`，应使用 Rectangle / Shape 控件实现。
+v3 layout window 的 `AllowsTransparency` 和 `BackgroundColor` 位于 `WindowSettings`。`AllowsTransparency` 必须在 WPF window source 初始化前应用；切换这类会影响 source 的 WPF 属性时，`FrontedWindowService` 会在窗口已经创建的情况下静默重启对应前台窗口实例，不需要重启应用。若窗口当前可见，旧实例会先发布 hidden、真正关闭并移出字典，然后创建新实例、在 Show 前应用最新 `WindowSettings`、Show 后重新加载 layout 内容并发布 shown。若窗口已创建但隐藏，只关闭并移除旧实例，下一次 `ShowWindow` 会按最新设置重新创建。若窗口从未创建，则无需操作。Canvas 纯色背景不属于 `CanvasSettings.BackgroundColor`，应使用 Rectangle / Shape 控件实现。

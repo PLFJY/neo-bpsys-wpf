@@ -409,6 +409,93 @@ public class FrontedWindowService : IFrontedWindowService
         return true;
     }
 
+    /// <inheritdoc/>
+    public async Task<bool> RestartWindowForTransparencyChangeAsync(string fullWindowType)
+    {
+        if (!_windowRegistry.TryGetByFullWindowType(fullWindowType, out var descriptor)
+            || !FrontedWindows.TryGetValue(descriptor.WindowId, out var oldWindow))
+        {
+            return false;
+        }
+
+        if (oldWindow.Dispatcher.CheckAccess())
+        {
+            return await RestartWindowForTransparencyChangeOnDispatcherAsync(descriptor, oldWindow);
+        }
+
+        return await oldWindow.Dispatcher
+            .InvokeAsync(() => RestartWindowForTransparencyChangeOnDispatcherAsync(descriptor, oldWindow))
+            .Task
+            .Unwrap();
+    }
+
+    private async Task<bool> RestartWindowForTransparencyChangeOnDispatcherAsync(
+        IFrontedWindowDescriptor descriptor,
+        Window oldWindow)
+    {
+        var windowId = descriptor.WindowId;
+        if (!FrontedWindows.TryGetValue(windowId, out var currentWindow)
+            || !ReferenceEquals(currentWindow, oldWindow))
+        {
+            return false;
+        }
+
+        var wasShown = FrontedWindowStates.GetValueOrDefault(windowId);
+
+        FrontedWindows.Remove(windowId);
+        FrontedWindowStates.Remove(windowId);
+
+        if (wasShown)
+        {
+            PublishWindowHidden(windowId);
+        }
+
+        CloseFrontedWindowInstance(oldWindow);
+
+        if (!wasShown)
+        {
+            return true;
+        }
+
+        var newWindow = EnsureWindowCreated(windowId);
+        if (newWindow is null)
+        {
+            _logger.LogWarning(
+                "Failed to recreate fronted window after transparency change. Window: {FullWindowType}, WindowId: {WindowId}",
+                descriptor.FullWindowType,
+                windowId);
+            return true;
+        }
+
+        if (newWindow is FrontedWindowBase frontedWindow)
+        {
+            await frontedWindow.EnsureInitialWindowSettingsAppliedAsync();
+        }
+
+        ApplyWindowLayoutOptions(windowId, newWindow);
+        newWindow.Show();
+        FrontedWindowStates[windowId] = true;
+        PublishWindowShown(windowId);
+
+        if (newWindow is FrontedWindowBase shownFrontedWindow)
+        {
+            _ = LoadFrontedContentAfterShowAsync(windowId, shownFrontedWindow);
+        }
+
+        return true;
+    }
+
+    private static void CloseFrontedWindowInstance(Window window)
+    {
+        if (window is FrontedWindowBase frontedWindow)
+        {
+            frontedWindow.RequestServiceClose();
+            return;
+        }
+
+        window.Close();
+    }
+
     private async Task<FrontedWindowSettings?> LoadV3WindowSettingsAsync(string fullWindowType)
     {
         try

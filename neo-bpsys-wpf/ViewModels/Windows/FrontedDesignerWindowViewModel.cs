@@ -554,9 +554,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private Color _windowBackgroundColorValue = Colors.Transparent;
 
     [ObservableProperty]
-    private bool _windowOptionsRestartRequired;
-
-    [ObservableProperty]
     private string _windowWidthEditText = string.Empty;
 
     [ObservableProperty]
@@ -755,7 +752,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return;
         }
 
-        _ = SaveWindowOptionsAsync(restartRequired: true, applyBackgroundImmediately: false);
+        _ = SaveWindowOptionsAsync(restartWindowForTransparencyChange: true, applyBackgroundImmediately: false);
     }
 
     partial void OnWindowBackgroundColorEditTextChanged(string value)
@@ -1595,7 +1592,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return false;
         }
 
-        _ = SaveWindowOptionsAsync(restartRequired: false, applyBackgroundImmediately: false, applyWindowSizeImmediately: true);
+        _ = SaveWindowOptionsAsync(
+            restartWindowForTransparencyChange: false,
+            applyBackgroundImmediately: false,
+            applyWindowSizeImmediately: true);
         return true;
     }
 
@@ -3371,8 +3371,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private void LoadWindowOptions(string windowTypeName)
     {
         WindowOptionsWindowTypeName = $"{_localizationService.GetWindowDisplayName(windowTypeName)} ({windowTypeName})";
-        WindowOptionsRestartRequired = false;
-
         _isLoadingWindowOptions = true;
         try
         {
@@ -3416,7 +3414,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         WindowBackgroundColorEditText = FrontedPropertyColorHelper.ToArgbString(color);
         WindowBackgroundColorValue = color;
         _windowBackgroundColorConfigured = true;
-        await SaveWindowOptionsAsync(restartRequired: false, applyBackgroundImmediately: true);
+        await SaveWindowOptionsAsync(
+            restartWindowForTransparencyChange: false,
+            applyBackgroundImmediately: true);
         return true;
     }
 
@@ -3458,7 +3458,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         return true;
     }
 
-    private async Task SaveWindowOptionsAsync(bool restartRequired, bool applyBackgroundImmediately, bool applyWindowSizeImmediately = false)
+    private async Task SaveWindowOptionsAsync(
+        bool restartWindowForTransparencyChange,
+        bool applyBackgroundImmediately,
+        bool applyWindowSizeImmediately = false)
     {
         if (SelectedWindow is null)
         {
@@ -3501,10 +3504,13 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 await (_frontedWindowService?.ReloadFrontedLayoutsAsync() ?? Task.CompletedTask);
             }
 
-            WindowOptionsRestartRequired = restartRequired;
-            WindowOptionsStatus = restartRequired
-                ? I18nHelper.GetLocalizedString("RestartRequired")
-                : I18nHelper.GetLocalizedString("WindowOptionsApplied");
+            if (restartWindowForTransparencyChange)
+            {
+                await (_frontedWindowService?.RestartWindowForTransparencyChangeAsync(SelectedWindow.WindowTypeName)
+                       ?? Task.FromResult(false));
+            }
+
+            WindowOptionsStatus = I18nHelper.GetLocalizedString("WindowOptionsApplied");
         }
         catch (Exception ex)
         {
@@ -3529,8 +3535,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             config.WindowSettings = CloneWindowSettings(_currentWindowSettings);
             await _layoutService.SaveWindowConfigAsync(SelectedWindow.WindowTypeName, config);
             LoadWindowOptions(SelectedWindow.WindowTypeName);
-            WindowOptionsRestartRequired = true;
-            WindowOptionsStatus = I18nHelper.GetLocalizedString("RestartRequired");
+            await (_frontedWindowService?.RestartWindowForTransparencyChangeAsync(SelectedWindow.WindowTypeName)
+                   ?? Task.FromResult(false));
+            WindowOptionsStatus = I18nHelper.GetLocalizedString("WindowOptionsApplied");
         }
         catch (Exception ex)
         {

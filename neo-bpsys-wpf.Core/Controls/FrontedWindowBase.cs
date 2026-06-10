@@ -27,6 +27,7 @@ public class FrontedWindowBase : Window
     private bool _isV3LayoutHost;
     private bool _isBoModeSubscribed;
     private bool _hasInitialWindowSettingsApplied;
+    private bool _allowServiceClose;
     private FrontedWindowConfig? _lastRenderedConfig;
     private readonly SemaphoreSlim _layoutLoadGate = new(1, 1);
 
@@ -300,6 +301,15 @@ public class FrontedWindowBase : Window
     }
 
     /// <summary>
+    /// Requests a real close from the owning window service, bypassing the normal close-to-hide behavior.
+    /// </summary>
+    public void RequestServiceClose()
+    {
+        _allowServiceClose = true;
+        Close();
+    }
+
+    /// <summary>
     /// Attaches the behavior runtime to already rendered v3 content.
     /// </summary>
     /// <returns>A task that completes when the behavior runtime is attached.</returns>
@@ -539,6 +549,12 @@ public class FrontedWindowBase : Window
     /// <inheritdoc/>
     protected override void OnClosing(CancelEventArgs e)
     {
+        if (_allowServiceClose)
+        {
+            base.OnClosing(e);
+            return;
+        }
+
         e.Cancel = true;
         Hide();
         base.OnClosing(e);

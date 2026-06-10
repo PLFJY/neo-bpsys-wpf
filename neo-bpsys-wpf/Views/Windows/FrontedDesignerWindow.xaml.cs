@@ -1434,16 +1434,6 @@ public partial class FrontedDesignerWindow : FluentWindow
         return await messageBox.ShowDialogAsync() == MessageBoxResult.Primary;
     }
 
-    private async void RestartNowButton_OnClick(object sender, RoutedEventArgs e)
-    {
-        if (!await ConfirmDirtyDocumentCanContinueAsync("SaveBeforeRestart"))
-        {
-            return;
-        }
-
-        AppBase.Current.Restart();
-    }
-
     private void UpdateShiftSnapState()
     {
         _viewModel?.UpdateShiftSnapActive(Keyboard.Modifiers.HasFlag(ModifierKeys.Shift));

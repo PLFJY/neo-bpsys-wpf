@@ -1304,10 +1304,6 @@
                                 <WrapPanel Margin="0,8,0,0">
                                     <ui:Button
                                         Margin="0,0,6,6"
-                                        Click="RestartNowButton_OnClick"
-                                        Content="{lex:Loc RestartNow}" />
-                                    <ui:Button
-                                        Margin="0,0,6,6"
                                         Command="{Binding ResetWindowOptionsCommand}"
                                         Content="{lex:Loc Reset}" />
                                 </WrapPanel>

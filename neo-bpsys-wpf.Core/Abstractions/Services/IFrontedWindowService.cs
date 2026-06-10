@@ -84,6 +84,16 @@ public interface IFrontedWindowService
     Task<bool> ApplyWindowSizeAsync(string fullWindowType);
 
     /// <summary>
+    /// Restarts an already-created fronted window so source-affecting transparency settings can take effect.
+    /// </summary>
+    /// <param name="fullWindowType">Window layout identity, such as <c>BpWindow</c>.</param>
+    /// <returns>
+    /// <see langword="true"/> when an existing window instance was removed or restarted;
+    /// <see langword="false"/> when the window is not registered or has not been created.
+    /// </returns>
+    Task<bool> RestartWindowForTransparencyChangeAsync(string fullWindowType);
+
+    /// <summary>
     /// Gets the current width and height of a registered fronted window, or <c>null</c> if the window is not open.
     /// </summary>
     /// <param name="fullWindowType">Window layout identity, such as <c>BpWindow</c>.</param>

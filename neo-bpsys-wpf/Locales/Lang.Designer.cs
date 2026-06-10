@@ -4946,7 +4946,7 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
-        ///   查找类似 画布宽/高可编辑画布设计尺寸；\n背景图片支持 bpui 资源 URI；\nAllowTransparency 是窗口级选项，可能需要重启；\n重启提示应询问是否保存更改。 的本地化字符串。
+        ///   查找类似 画布宽/高可编辑画布设计尺寸；\n背景图片支持 bpui 资源 URI；\nAllowTransparency 是窗口级选项，已创建的前台窗口会静默重启实例；\n未创建的窗口会在下次显示时应用最新设置。 的本地化字符串。
         /// </summary>
         public static string Designer_Help_CanvasWindowSettings_Content {
             get {

@@ -1,0 +1,259 @@
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Controls;
+using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
+using neo_bpsys_wpf.Services;
+using System;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Threading;
+using Xunit;
+
+namespace neo_bpsys_wpf.Tests.Services;
+
+public class FrontedWindowServiceTransparencyRestartTest
+{
+    [Fact]
+    public async Task RestartWindowForTransparencyChangeAsync_NeverCreatedWindow_ReturnsFalseWithoutCreatingWindow()
+    {
+        await RunOnStaThreadAsync(async () =>
+        {
+            var descriptor = CreateDescriptor();
+            var eventBus = new Mock<IFrontedEventBus>();
+            var service = CreateService(descriptor, eventBus: eventBus);
+
+            var restarted = await service.RestartWindowForTransparencyChangeAsync(descriptor.FullWindowType);
+
+            Assert.False(restarted);
+            Assert.Empty(service.FrontedWindows);
+            Assert.Empty(service.FrontedWindowStates);
+            eventBus.Verify(x => x.Publish(It.IsAny<FrontedBehaviorEvent>()), Times.Never);
+        });
+    }
+
+    [Fact]
+    public async Task RestartWindowForTransparencyChangeAsync_CreatedHiddenWindow_RemovesOldInstanceWithoutShowingNewWindow()
+    {
+        await RunOnStaThreadAsync(async () =>
+        {
+            var descriptor = CreateDescriptor();
+            var eventBus = new Mock<IFrontedEventBus>();
+            var service = CreateService(descriptor, eventBus: eventBus);
+            var oldWindow = service.EnsureWindowCreated(descriptor.WindowId);
+            Assert.NotNull(oldWindow);
+            oldWindow.Show();
+            oldWindow.Hide();
+            service.FrontedWindowStates[descriptor.WindowId] = false;
+
+            var restarted = await service.RestartWindowForTransparencyChangeAsync(descriptor.FullWindowType);
+
+            Assert.True(restarted);
+            Assert.DoesNotContain(descriptor.WindowId, service.FrontedWindows.Keys);
+            Assert.DoesNotContain(descriptor.WindowId, service.FrontedWindowStates.Keys);
+            Assert.False(oldWindow.IsVisible);
+            eventBus.Verify(
+                x => x.Publish(It.Is<FrontedBehaviorEvent>(e => e.EventType == "WindowShown")),
+                Times.Never);
+            eventBus.Verify(
+                x => x.Publish(It.Is<FrontedBehaviorEvent>(e => e.EventType == "WindowHidden")),
+                Times.Never);
+        });
+    }
+
+    [Fact]
+    public async Task RestartWindowForTransparencyChangeAsync_VisibleWindow_RecreatesAndShowsWindow()
+    {
+        await RunOnStaThreadAsync(async () =>
+        {
+            var descriptor = CreateDescriptor();
+            var eventBus = new Mock<IFrontedEventBus>();
+            var service = CreateService(descriptor, allowsTransparency: true, eventBus: eventBus);
+            var oldWindow = service.EnsureWindowCreated(descriptor.WindowId);
+            Assert.NotNull(oldWindow);
+            service.FrontedWindowStates[descriptor.WindowId] = true;
+            oldWindow.Show();
+
+            var restarted = await service.RestartWindowForTransparencyChangeAsync(descriptor.FullWindowType);
+
+            Assert.True(restarted);
+            Assert.True(service.FrontedWindowStates[descriptor.WindowId]);
+            Assert.True(service.FrontedWindows.TryGetValue(descriptor.WindowId, out var newWindow));
+            Assert.NotSame(oldWindow, newWindow);
+            Assert.True(newWindow.IsVisible);
+            Assert.True(newWindow.AllowsTransparency);
+            eventBus.Verify(
+                x => x.Publish(It.Is<FrontedBehaviorEvent>(e => e.EventType == "WindowHidden")),
+                Times.Once);
+            eventBus.Verify(
+                x => x.Publish(It.Is<FrontedBehaviorEvent>(e => e.EventType == "WindowShown")),
+                Times.Once);
+
+            if (newWindow is FrontedWindowBase frontedWindow)
+            {
+                frontedWindow.RequestServiceClose();
+            }
+            else
+            {
+                newWindow.Close();
+            }
+        });
+    }
+
+    [Fact]
+    public void DesignerTransparencyOptionDoesNotExposeRestartPrompt()
+    {
+        var root = GetRepositoryRoot();
+        var designerXaml = File.ReadAllText(Path.Combine(
+            root,
+            "neo-bpsys-wpf",
+            "Views",
+            "Windows",
+            "FrontedDesignerWindow.xaml"));
+        var designerCode = File.ReadAllText(Path.Combine(
+            root,
+            "neo-bpsys-wpf",
+            "Views",
+            "Windows",
+            "FrontedDesignerWindow.xaml.cs"));
+        var designerViewModel = File.ReadAllText(Path.Combine(
+            root,
+            "neo-bpsys-wpf",
+            "ViewModels",
+            "Windows",
+            "FrontedDesignerWindowViewModel.cs"));
+
+        Assert.DoesNotContain("RestartNowButton_OnClick", designerXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("RestartNowButton_OnClick", designerCode, StringComparison.Ordinal);
+        Assert.Contains("RestartWindowForTransparencyChangeAsync", designerViewModel, StringComparison.Ordinal);
+    }
+
+    private static FrontedBuiltInWindowDescriptor CreateDescriptor()
+    {
+        return new FrontedBuiltInWindowDescriptor
+        {
+            WindowId = Guid.NewGuid().ToString("D"),
+            WindowTypeName = "TestWindow",
+            DisplayName = "Test Window",
+            IsV3LayoutWindow = true
+        };
+    }
+
+    private static FrontedWindowService CreateService(
+        IFrontedWindowDescriptor descriptor,
+        bool allowsTransparency = false,
+        Mock<IFrontedEventBus> eventBus = null)
+    {
+        var services = new ServiceCollection();
+        var layoutService = new Mock<IFrontedLayoutService>();
+        layoutService
+            .Setup(x => x.LoadWindowConfigAsync(descriptor.FullWindowType, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new FrontedWindowConfig
+            {
+                WindowSettings =
+                {
+                    WindowWidth = 320,
+                    WindowHeight = 180,
+                    AllowsTransparency = allowsTransparency,
+                    BackgroundColor = "#00000000"
+                },
+                CanvasSettings =
+                {
+                    CanvasWidth = 320,
+                    CanvasHeight = 180
+                }
+            });
+        services.AddSingleton(layoutService.Object);
+        services.AddSingleton(Mock.Of<IFrontedRenderer>());
+        services.AddSingleton(Mock.Of<ISharedDataService>());
+        services.AddSingleton(NullLogger<FrontedWindowBase>.Instance);
+
+        var registry = new Mock<IFrontedWindowRegistry>();
+        var descriptorByFullType = descriptor;
+        var descriptorByWindowId = descriptor;
+        registry
+            .Setup(x => x.TryGetByFullWindowType(descriptor.FullWindowType, out descriptorByFullType))
+            .Returns(true);
+        registry
+            .Setup(x => x.TryGetByWindowId(descriptor.WindowId, out descriptorByWindowId))
+            .Returns(true);
+
+        var options = new Mock<IFrontedWindowLayoutOptionsService>();
+        options
+            .Setup(x => x.GetUserOptionsPath(It.IsAny<string>()))
+            .Returns(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"), "window.json"));
+        options
+            .Setup(x => x.LoadOptions(It.IsAny<string>()))
+            .Returns(new FrontedWindowLayoutOptions());
+
+        return new FrontedWindowService(
+            services.BuildServiceProvider(),
+            registry.Object,
+            options.Object,
+            NullLogger<FrontedWindowService>.Instance,
+            eventBus == null ? null : eventBus.Object);
+    }
+
+    private static string GetRepositoryRoot()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "neo-bpsys-wpf.slnx")))
+        {
+            directory = directory.Parent;
+        }
+
+        return directory?.FullName
+               ?? throw new DirectoryNotFoundException("Could not find repository root.");
+    }
+
+    private static Task RunOnStaThreadAsync(Func<Task> action)
+    {
+        var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                SynchronizationContext.SetSynchronizationContext(
+                    new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher));
+                var frame = new DispatcherFrame();
+                _ = action()
+                    .ContinueWith(
+                        task =>
+                        {
+                            if (task.Exception is not null)
+                            {
+                                completion.SetException(task.Exception.InnerExceptions);
+                            }
+                            else if (task.IsCanceled)
+                            {
+                                completion.SetCanceled();
+                            }
+                            else
+                            {
+                                completion.SetResult();
+                            }
+
+                            frame.Continue = false;
+                        },
+                        TaskScheduler.FromCurrentSynchronizationContext());
+
+                Dispatcher.PushFrame(frame);
+            }
+            catch (Exception ex)
+            {
+                completion.SetException(ex);
+            }
+            finally
+            {
+                Dispatcher.CurrentDispatcher.InvokeShutdown();
+            }
+        });
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        return completion.Task;
+    }
+}

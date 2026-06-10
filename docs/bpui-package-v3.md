@@ -701,18 +701,16 @@ bpui://{PackageId}/resources/images/bg.png
 
 `Text` 和 `LocalizedText` 的动态内容使用 `TextBinding`，不使用基类 `BindingPath`。`Sources` 是有序列表，顺序对应 `StringFormat` 的 `{0}`、`{1}` 等占位符；`StringFormat` 为空时按 `JoinSeparator` 连接。没有有效 source 时回退到静态 `Text` 或 `LocalizationKey`。该模型只适用于这两个文本控件，图片、可见性和业务控件仍使用各自现有的 `BindingPath`。
 
-`BackgroundColor` 使用 `#AARRGGBB`，表示窗口级背景色覆盖；为空或非法时运行时回退为 Transparent 并记录 warning。背景色是普通 `Window.Background`，可在已注册前台窗口上立即应用。WPF 的 `AllowsTransparency` / 透明窗口行为可能需要重新创建窗口或重启应用，只有该设置变化时 UI 应提示“需要重启”。
+`BackgroundColor` 使用 `#AARRGGBB`，表示窗口级背景色覆盖；为空或非法时运行时回退为 Transparent 并记录 warning。背景色是普通 `Window.Background`，可在已创建前台窗口上立即应用。WPF 的 `AllowsTransparency` / 透明窗口行为必须在 window source 初始化前设置；该值变化时不提示重启应用，而是由 `FrontedWindowService` 对已经创建的目标前台窗口执行静默实例重启。
 
-重启流程：
+窗口级热重启流程：
 
 1. 用户切换 `AllowTransparency`。
-2. UI 显示“restart required”提示。
-3. 提供按钮：`Later`、`Restart Now`。
-4. 如果用户选择 `Restart Now` 且设计器有未保存修改，继续询问：`Save`、`Discard`、`Cancel`。
-5. `Save` 失败则取消重启。
-6. `Discard` 继续重启。
-7. `Cancel` 中止重启。
-8. 重启应复用现有机制，例如可用时调用 `AppBase.Current.Restart()`。
+2. 保存最新 `WindowSettings`。
+3. 若目标窗口从未创建，不创建窗口，也不显示提示；下一次 `ShowWindow` 会使用最新设置。
+4. 若目标窗口已创建但隐藏，关闭旧实例并从 `FrontedWindowService` 字典移除；下一次显示时重新创建。
+5. 若目标窗口可见，先发布 hidden，真正关闭旧实例并移除字典，再创建新实例，Show 前应用最新设置，Show 后重新加载 layout 内容并发布 shown。
+6. 不调用 `AppBase.Current.Restart()`，不显示应用重启提示。
 
 ## 15. FrontManagePage Tab 布局标准
 

@@ -3620,7 +3620,7 @@
     <value>"添加控件"插入内置/插件控件；\n复制的控件在粘贴时获得唯一编号名称；\n粘贴时会偏移新控件的位置；\n运行时关键/生成的覆盖层可能不可复制/删除；\n撤销/重做可恢复添加、删除、粘贴、重新排序操作。</value>
   </data>
   <data name="Designer.Help.CanvasWindowSettings.Content" xml:space="preserve">
-    <value>画布宽/高可编辑画布设计尺寸；\n背景图片支持 bpui 资源 URI；\nAllowTransparency 是窗口级选项，可能需要重启；\n重启提示应询问是否保存更改。</value>
+    <value>画布宽/高可编辑画布设计尺寸；\n背景图片支持 bpui 资源 URI；\nAllowTransparency 是窗口级选项，已创建的前台窗口会静默重启实例；\n未创建的窗口会在下次显示时应用最新设置。</value>
   </data>
   <data name="Designer.Help.Validation.Content" xml:space="preserve">
     <value>状态按钮打开验证详情；\n错误可能阻止保存/导入/导出；\n警告通常不阻止但应审查；\n缺失的插件控件在设计器中显示为警告。</value>

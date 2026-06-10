@@ -715,7 +715,7 @@ neo-bpsys-wpf/Resources/FrontedLayouts/{WindowName}.json
 
 `.bpui v3` package 导出/导入已放到 `FrontManagePage` 的 `Layout Packages` tab。导出会打开 manifest 对话框，并固定导出全部已迁移前台布局；导入会安装 v3 包并可立即激活。SettingPage 中现有 `.bpui` 导入导出是 legacy 流程，会覆盖全局 `Config.json`，不能作为 Designer v3 包管理入口。
 
-`AllowsTransparency` 和 `BackgroundColor` 是 `WindowSettings`，不是普通控件属性，也不属于 `CanvasSettings`。`BackgroundColor` 使用 `#AARRGGBB` 并通过 ColorPicker 编辑；为空或非法时运行时回退为 Transparent 并记录 warning。由于 WPF 透明窗口行为必须在 source 初始化前应用，已显示窗口 reload 不直接修改 `AllowsTransparency`，只提示下次创建或重开窗口后生效。
+`AllowsTransparency` 和 `BackgroundColor` 是 `WindowSettings`，不是普通控件属性，也不属于 `CanvasSettings`。`BackgroundColor` 使用 `#AARRGGBB` 并通过 ColorPicker 编辑；为空或非法时运行时回退为 Transparent 并记录 warning。由于 WPF 透明窗口行为必须在 source 初始化前应用，设计器保存 `AllowsTransparency` 后不弹出应用重启提示；如果目标前台窗口已经创建，`FrontedWindowService` 会静默重启该窗口实例。未创建过的窗口无需操作，下一次 `ShowWindow` 会按最新设置创建。
 
 窗口切换、Reload、Reset to Built-in 和关闭编辑器时，如果当前文档 dirty，会通过 `MessageBoxHelper` 提示 Save / Discard / Cancel。Save 会先执行完整校验，存在 Error 时阻止保存并取消切换或关闭；Warning/Info 不阻止保存。关闭窗口的 dirty prompt 必须先在 `Closing` 中设置 `e.Cancel = true`，再通过 Dispatcher 异步显示本地化的宽版 helper 对话框；用户选择 Save 且保存成功或选择 Discard 后，设置强制关闭标记并再次调用 `Close()`。这样避免 WPF 在窗口已经进入 closing 状态时执行 `ShowDialog` / `Close` 触发异常。验证详情窗口是非模态子窗口，父编辑器关闭时只做受保护关闭，已关闭或正在关闭时不能让异常冒泡。
 

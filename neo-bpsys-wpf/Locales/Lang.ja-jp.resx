@@ -3507,7 +3507,7 @@
     <value>Add Control inserts built-in/plugin controls;\nCopied control gets unique numbered name on paste;\nPaste offsets the new control;\nRuntime-critical/generated overlays may not be copyable/deletable;\nUndo/Redo can restore add, delete, paste, reorder operations.</value>
   </data>
   <data name="Designer.Help.CanvasWindowSettings.Content" xml:space="preserve">
-    <value>Canvas Width/Height edit canvas design size;\nBackground image supports bpui resource URI;\nAllowTransparency is a window-level option and may require restart;\nRestart prompt should ask to save changes.</value>
+    <value>Canvas Width/Height edit canvas design size;\nBackground image supports bpui resource URI;\nAllowTransparency is a window-level option; created fronted windows silently restart their instance;\nNever-created windows apply the latest setting on next show.</value>
   </data>
   <data name="Designer.Help.Validation.Content" xml:space="preserve">
     <value>Status button opens validation details;\nErrors may block saving/import/export where appropriate;\nWarnings do not always block but should be reviewed;\nMissing plugin controls are shown as warnings in Designer.</value>
