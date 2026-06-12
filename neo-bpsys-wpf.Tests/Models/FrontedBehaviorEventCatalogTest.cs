@@ -47,6 +47,29 @@ public class FrontedBehaviorEventCatalogTest
     }
 
     [Fact]
+    public void EventCatalog_GuidanceEventsIncludeStableAndPreviousStepPayloads()
+    {
+        var catalog = new FrontedBehaviorEventCatalog();
+        var stepChanged = Assert.IsType<FrontedBehaviorEventDescriptor>(catalog.Find("Guidance.StepChanged"));
+        var highlightChanged = Assert.IsType<FrontedBehaviorEventDescriptor>(catalog.Find("Guidance.HighlightChanged"));
+        var expectedStepPayloads = new[]
+        {
+            "Event.IndexesText",
+            "Event.PreviousStepIndex",
+            "Event.PreviousAction",
+            "Event.PreviousIndexes",
+            "Event.PreviousIndexesText",
+            "Event.PreviousIndex",
+            "Event.PreviousTime",
+            "Event.PreviousActionName"
+        };
+
+        Assert.All(expectedStepPayloads, path =>
+            Assert.Contains(stepChanged.PayloadFields, field => field.Path == path));
+        Assert.Contains(highlightChanged.PayloadFields, field => field.Path == "Event.IndexesText");
+    }
+
+    [Fact]
     public void EventCatalog_CountDownValueChanged_HasRemainingSecondsPayload()
     {
         var descriptor = new FrontedBehaviorEventCatalog().Find("SharedData.CountDownValueChanged");

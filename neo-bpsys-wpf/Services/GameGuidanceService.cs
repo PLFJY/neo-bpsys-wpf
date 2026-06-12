@@ -255,7 +255,14 @@ public class GameGuidanceService(
     private async Task<string> HandleStepChange(int newStepIndex)
     {
         if (_currentGameProperty == null) return "N/A";
+        var previousStepIndex = _currentStep;
+        var previousStep = previousStepIndex >= 0 && previousStepIndex < _currentGameProperty.WorkFlow.Count
+            ? _currentGameProperty.WorkFlow[previousStepIndex]
+            : null;
         var thisStep = _currentGameProperty.WorkFlow[newStepIndex];
+        var previousActionName = previousStep is null
+            ? null
+            : ActionName[previousStep.Action].Invoke();
         _currentStep = newStepIndex;
 
         //切换页面
@@ -273,7 +280,16 @@ public class GameGuidanceService(
 
         //触发步骤变化事件
         GuidanceStepChanged?.Invoke(this, new GameGuidanceStepChangedEventArgs(
-            _currentStep, thisStep.Action, thisStep.Index, thisStep.Time, actionName));
+            stepIndex: _currentStep,
+            action: thisStep.Action,
+            index: thisStep.Index,
+            time: thisStep.Time,
+            actionName: actionName,
+            previousStepIndex: previousStep is null ? null : previousStepIndex,
+            previousAction: previousStep?.Action,
+            previousIndex: previousStep?.Index,
+            previousTime: previousStep?.Time,
+            previousActionName: previousActionName));
 
         //触发高亮变化事件
         PublishHighlight(thisStep.Action, thisStep.Index);

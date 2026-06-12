@@ -3987,10 +3987,18 @@
   <data name="Designer.Behaviors.Payload.ActionName" xml:space="preserve"><value>アクション名</value></data>
   <data name="Designer.Behaviors.Payload.Index" xml:space="preserve"><value>インデックス</value></data>
   <data name="Designer.Behaviors.Payload.Indexes" xml:space="preserve"><value>インデックス一覧</value></data>
+  <data name="Designer.Behaviors.Payload.IndexesText" xml:space="preserve"><value>現在のインデックステキスト</value></data>
   <data name="Designer.Behaviors.Payload.Time" xml:space="preserve"><value>時間</value></data>
   <data name="Designer.Behaviors.Payload.GameAction" xml:space="preserve"><value>ハイライトアクション</value></data>
   <data name="Designer.Behaviors.Payload.IsStarted" xml:space="preserve"><value>開始済み</value></data>
   <data name="Designer.Behaviors.Payload.StepIndex" xml:space="preserve"><value>ステップインデックス</value></data>
+  <data name="Designer.Behaviors.Payload.PreviousStepIndex" xml:space="preserve"><value>前のステップインデックス</value></data>
+  <data name="Designer.Behaviors.Payload.PreviousAction" xml:space="preserve"><value>前のアクション</value></data>
+  <data name="Designer.Behaviors.Payload.PreviousIndexes" xml:space="preserve"><value>前のインデックス一覧</value></data>
+  <data name="Designer.Behaviors.Payload.PreviousIndexesText" xml:space="preserve"><value>前のインデックステキスト</value></data>
+  <data name="Designer.Behaviors.Payload.PreviousIndex" xml:space="preserve"><value>前の最初のインデックス</value></data>
+  <data name="Designer.Behaviors.Payload.PreviousTime" xml:space="preserve"><value>前のタイマー</value></data>
+  <data name="Designer.Behaviors.Payload.PreviousActionName" xml:space="preserve"><value>前のアクション名</value></data>
   <data name="Designer.Behaviors.Payload.Camp" xml:space="preserve"><value>陣営</value></data>
   <data name="Designer.Behaviors.Payload.PlayerIndex" xml:space="preserve"><value>プレイヤーインデックス</value></data>
   <data name="Designer.Behaviors.Operator.NotContains" xml:space="preserve"><value>含まない</value></data>

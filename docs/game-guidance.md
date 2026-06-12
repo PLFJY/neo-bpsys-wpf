@@ -52,12 +52,34 @@
 
 `HandleStepChange` 会：
 
-1. 更新 `_currentStep`。
-2. 如果步骤不是 `PickCamp`，按 `_actionToPage` 导航到对应后台页面。
-3. 调用 `_sharedDataService.TimerStart(thisStep.Time)`。
-4. 等待 250ms，让待选框动画/页面状态就位。
-5. 发送 `HighlightMessage(thisStep.Action, thisStep.Index)`。
-6. 返回本地化后的步骤名称。
+1. 在更新 `_currentStep` 前读取当前步骤，作为步骤变化事件的上一步信息。
+2. 更新 `_currentStep`。
+3. 如果步骤不是 `PickCamp`，按 `_actionToPage` 导航到对应后台页面。
+4. 调用 `_sharedDataService.TimerStart(thisStep.Time)`。
+5. 等待 250ms，让待选框动画/页面状态就位。
+6. 发送 `HighlightMessage(thisStep.Action, thisStep.Index)`。
+7. 触发包含当前步骤和上一步骤 payload 的 `GuidanceStepChanged`。
+8. 返回本地化后的步骤名称。
+
+## 行为事件 payload
+
+`Guidance.StepChanged` 同时暴露当前步骤和上一步骤 payload。当前步骤 payload 适合启动动画，上一步骤 payload 适合停止由切换前引导步骤启动的动画。首次进入步骤时，所有 `Previous*` 值为 `null`，`PreviousIndexesText` 为 `[]`。
+
+列表索引的字符串过滤应优先使用 `IndexesText` / `PreviousIndexesText`，其格式稳定为 `[1, 2]`。`Guidance.HighlightChanged` 也提供 `IndexesText`。
+
+例如，启动求生者 1 号位呼吸灯：
+
+```text
+Event.Action == PickSur
+Event.IndexesText contains "1"
+```
+
+停止由上一步启动的求生者 1 号位呼吸灯：
+
+```text
+Event.PreviousAction == PickSur
+Event.PreviousIndexesText contains "1"
+```
 
 ## Action 到页面映射
 

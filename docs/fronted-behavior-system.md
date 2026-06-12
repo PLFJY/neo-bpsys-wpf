@@ -191,8 +191,21 @@ Phase 5.5 完成行为系统可用性打磨、事件覆盖和节点属性编辑�
 - 行为事件目录现在来自 `ISharedDataService`、`ICharacterSelectionService`、`IGameGuidanceService` 三类显式标注接口。`Selection.CharacterSelected` / `Selection.CharacterBanned` 可作为 Trigger，并提供 `Event.Camp`、`Event.PlayerIndex` 过滤字段。
 - 事件 bridge 仍复用应用启动时的 Singleton bridge，但内部按服务源发布事件，`Source` 分别为 `SharedDataService`、`CharacterSelectionService`、`GameGuidanceService`；`Start()` 幂等，`Dispose()` 会解除订阅。
 - `GameGuidanceService` 暴露语义事件，行为编辑器不直接消费 Messenger。`HighlightMessage` 仍服务后台页面滚动和高亮，行为系统看到的是 `Guidance.Started`、`Guidance.Stopped`、`Guidance.StepChanged`、`Guidance.HighlightChanged`、`Guidance.HighlightCleared`。
-- `Guidance.StepChanged` 和 `Guidance.HighlightChanged` payload 提供 `Event.Action`、`Event.Indexes`、`Event.Index`；清除高亮时可用 `Guidance.HighlightCleared` 作为 Loop 的 EndTrigger。
-- 推荐用 Behavior Loop 实现引导高亮/呼吸灯：StartTrigger 使用 `Guidance.HighlightChanged`，按 `Event.Action`、`Event.Index` 或 `SelfTag.PlayerIndex` 过滤；EndTrigger 使用 `Guidance.HighlightCleared` 或切换到其他 index 的事件。旧 `PickPageViewModel` / `MapBpPageViewModel` 呼吸灯逻辑保留为 fallback，可通过设置关闭，避免和 Behavior Loop 同时控制同一视觉目标。
+- `Guidance.StepChanged` 同时提供当前步骤和上一步骤 payload；当前步骤可用于启动动画，`Event.PreviousAction`、`Event.PreviousIndexesText` 等上一步骤 payload 可用于停止由切换前步骤启动的动画。首次进入步骤时 `Previous*` 值为 `null`，`Event.PreviousIndexesText` 为 `[]`。
+- `Guidance.StepChanged` 和 `Guidance.HighlightChanged` 都提供稳定的 `Event.IndexesText`。列表字符串过滤应优先使用 `Event.IndexesText` / `Event.PreviousIndexesText`，格式为 `[1, 2]`，不要依赖集合默认 `ToString()`。
+- 推荐用 Behavior Loop 实现引导高亮/呼吸灯：StartTrigger 可使用 `Guidance.StepChanged` 并按 `Event.Action`、`Event.IndexesText` 或 `SelfTag.PlayerIndex` 过滤；EndTrigger 可使用同一事件并按 `Event.PreviousAction`、`Event.PreviousIndexesText` 过滤，也可使用 `Guidance.HighlightCleared`。旧 `PickPageViewModel` / `MapBpPageViewModel` 呼吸灯逻辑保留为 fallback，可通过设置关闭，避免和 Behavior Loop 同时控制同一视觉目标。
+
+示例：
+
+```text
+Start survivor breathing light:
+Event.Action == PickSur
+Event.IndexesText contains "1"
+
+Stop survivor breathing light:
+Event.PreviousAction == PickSur
+Event.PreviousIndexesText contains "1"
+```
 - `FrontedControlConfigBase.BehaviorTags` 现在在 Designer 行为面板中可编辑，用于 `SelfTag.*` 过滤。例如 `Camp=Sur`、`PlayerIndex=0`、`Role=PickSlot`。复制控件保留 BehaviorTags，BehaviorGuid 仍重新生成。
 - 节点属性编辑器增加类型化 editor：`Visibility` 使用枚举下拉，数值属性使用 numeric 输入和 validator，颜色属性使用 ColorPicker + 文本输入，`PropertyName` 使用可编辑属性选择器，`Target` 使用 `Self` / Canvas 控件目标选择器并保存 `guid:{BehaviorGuid}`。
 - 颜色输入统一支持 `#RRGGBB`、`#AARRGGBB` 和 WPF named colors（如 `White`、`Black`、`Transparent`、`DodgerBlue`），提交后统一存储为 `#AARRGGBB`。非法颜色只显示验证错误，不覆盖旧有效值。

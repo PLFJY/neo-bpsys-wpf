@@ -4083,10 +4083,18 @@
   <data name="Designer.Behaviors.Payload.ActionName" xml:space="preserve"><value>Action name</value></data>
   <data name="Designer.Behaviors.Payload.Index" xml:space="preserve"><value>Index</value></data>
   <data name="Designer.Behaviors.Payload.Indexes" xml:space="preserve"><value>Indexes</value></data>
+  <data name="Designer.Behaviors.Payload.IndexesText" xml:space="preserve"><value>Current indexes text</value></data>
   <data name="Designer.Behaviors.Payload.Time" xml:space="preserve"><value>Time</value></data>
   <data name="Designer.Behaviors.Payload.GameAction" xml:space="preserve"><value>Highlighted action</value></data>
   <data name="Designer.Behaviors.Payload.IsStarted" xml:space="preserve"><value>Is started</value></data>
   <data name="Designer.Behaviors.Payload.StepIndex" xml:space="preserve"><value>Step index</value></data>
+  <data name="Designer.Behaviors.Payload.PreviousStepIndex" xml:space="preserve"><value>Previous step index</value></data>
+  <data name="Designer.Behaviors.Payload.PreviousAction" xml:space="preserve"><value>Previous action</value></data>
+  <data name="Designer.Behaviors.Payload.PreviousIndexes" xml:space="preserve"><value>Previous indexes</value></data>
+  <data name="Designer.Behaviors.Payload.PreviousIndexesText" xml:space="preserve"><value>Previous indexes text</value></data>
+  <data name="Designer.Behaviors.Payload.PreviousIndex" xml:space="preserve"><value>Previous first index</value></data>
+  <data name="Designer.Behaviors.Payload.PreviousTime" xml:space="preserve"><value>Previous timer</value></data>
+  <data name="Designer.Behaviors.Payload.PreviousActionName" xml:space="preserve"><value>Previous action name</value></data>
   <data name="Designer.Behaviors.Payload.Camp" xml:space="preserve"><value>Camp</value></data>
   <data name="Designer.Behaviors.Payload.PlayerIndex" xml:space="preserve"><value>Player index</value></data>
   <data name="Designer.Behaviors.Operator.NotContains" xml:space="preserve"><value>does not contain</value></data>

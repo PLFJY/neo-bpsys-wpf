@@ -34,4 +34,8 @@ public class GameGuidanceHighlightChangedEventArgs(GameAction? gameAction, List<
     /// </summary>
     public int? FirstIndex => Index?.FirstOrDefault();
 
+    /// <summary>
+    /// 高亮控件索引列表的稳定文本表示。
+    /// </summary>
+    public string IndexesText => GameGuidanceIndexFormatter.FormatIndexes(Index);
 }

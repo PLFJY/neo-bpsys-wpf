@@ -4447,6 +4447,9 @@
   <data name="Designer.Behaviors.Payload.Indexes" xml:space="preserve">
     <value>索引列表</value>
   </data>
+  <data name="Designer.Behaviors.Payload.IndexesText" xml:space="preserve">
+    <value>当前索引文本</value>
+  </data>
   <data name="Designer.Behaviors.Payload.Time" xml:space="preserve">
     <value>时间</value>
   </data>
@@ -4458,6 +4461,27 @@
   </data>
   <data name="Designer.Behaviors.Payload.StepIndex" xml:space="preserve">
     <value>步骤索引</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.PreviousStepIndex" xml:space="preserve">
+    <value>上一步骤序号</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.PreviousAction" xml:space="preserve">
+    <value>上一步操作</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.PreviousIndexes" xml:space="preserve">
+    <value>上一步索引列表</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.PreviousIndexesText" xml:space="preserve">
+    <value>上一步索引文本</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.PreviousIndex" xml:space="preserve">
+    <value>上一步首个索引</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.PreviousTime" xml:space="preserve">
+    <value>上一步计时</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.PreviousActionName" xml:space="preserve">
+    <value>上一步操作名称</value>
   </data>
   <data name="Designer.Behaviors.Payload.Camp" xml:space="preserve">
     <value>阵营</value>

@@ -235,7 +235,53 @@ public class FrontedSharedDataBehaviorEventBridgeTest
         Assert.Equal("GameGuidanceService", received!.Source);
         Assert.Equal(GameAction.BanSur, received.Payload["Action"]);
         Assert.Equal(0, received.Payload["Index"]);
+        Assert.Equal("[0]", received.Payload["IndexesText"]);
         Assert.False(received.Payload.ContainsKey("IsActive"));
+    }
+
+    [Fact]
+    public async Task GameGuidanceBridge_PublishesPreviousStepPayloads()
+    {
+        using var semaphore = new SemaphoreSlim(0, 1);
+        FrontedBehaviorEvent? received = null;
+        var sharedData = new MockSharedDataService();
+        var guidance = new MockGameGuidanceService();
+        var bus = new MockEventBus();
+
+        using (bus.Subscribe("Guidance.StepChanged", ev =>
+        {
+            received = ev;
+            semaphore.Release();
+            return Task.CompletedTask;
+        }))
+        {
+            using var bridge = new FrontedSharedDataBehaviorEventBridge(
+                sharedData,
+                bus,
+                NullLogger<FrontedSharedDataBehaviorEventBridge>.Instance,
+                gameGuidanceService: guidance);
+            bridge.Start();
+
+            guidance.FireStepChanged(new GameGuidanceStepChangedEventArgs(
+                stepIndex: 1,
+                action: GameAction.PickHun,
+                index: [0],
+                time: 30,
+                actionName: "Pick hunter",
+                previousStepIndex: 0,
+                previousAction: GameAction.PickSur,
+                previousIndex: [1],
+                previousTime: 40,
+                previousActionName: "Pick survivor"));
+
+            Assert.True(await semaphore.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
+        }
+
+        Assert.NotNull(received);
+        Assert.Equal("[0]", received!.Payload["IndexesText"]);
+        Assert.Equal(GameAction.PickSur, received.Payload["PreviousAction"]);
+        Assert.Equal("[1]", received.Payload["PreviousIndexesText"]);
+        Assert.Equal(1, received.Payload["PreviousIndex"]);
     }
 
     /// <summary>
@@ -389,6 +435,7 @@ public class FrontedSharedDataBehaviorEventBridgeTest
         public Task<string?> PrevStepAsync() => Task.FromResult<string?>(null);
         public void StopGuidance() { }
         public void FireHighlightChanged(GameGuidanceHighlightChangedEventArgs args) => GuidanceHighlightChanged?.Invoke(this, args);
+        public void FireStepChanged(GameGuidanceStepChangedEventArgs args) => GuidanceStepChanged?.Invoke(this, args);
     }
 
     /// <summary>
