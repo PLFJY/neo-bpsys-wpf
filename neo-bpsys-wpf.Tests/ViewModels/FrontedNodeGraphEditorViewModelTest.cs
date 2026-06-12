@@ -1,4 +1,6 @@
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
+using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Services.FrontedDesigner;
@@ -414,6 +416,77 @@ public class FrontedNodeGraphEditorViewModelTest
             Assert.True(stage.GraphEditor.IsDirty);
         }
         Assert.True(editor.HasUnsavedChanges);
+    }
+
+    [Fact]
+    public async Task AnimationEditor_DiscardAll_ClearsDirtyAndResetsPreviewWithoutRunningStopGraph()
+    {
+        await RunOnStaThreadAsync(() =>
+        {
+            var graphRuntime = new RecordingGraphRuntime();
+            var animationRuntime = new RecordingAnimationRuntime();
+            var previewScope = new FrontedDesignerPreviewAnimationScope();
+            previewScope.Update(new Grid(), null, "Window", "Canvas", []);
+            var behavior = new FrontedBehavior
+            {
+                Kind = FrontedBehaviorKind.Loop,
+                StartGraph = new FrontedNodeGraph(),
+                LoopGraph = new FrontedNodeGraph(),
+                StopGraph = new FrontedNodeGraph(),
+                LoopPolicy = new FrontedLoopPolicy { StopMode = FrontedLoopStopMode.RunStopGraph }
+            };
+            var editor = new FrontedBehaviorAnimationEditorViewModel(
+                behavior,
+                (_, fallback) => fallback,
+                runtime: graphRuntime,
+                animationRuntime: animationRuntime,
+                previewAnimationScope: previewScope);
+            foreach (var stage in editor.Stages)
+            {
+                stage.GraphEditor.IsDirty = true;
+            }
+
+            editor.DiscardAll();
+
+            Assert.False(editor.HasUnsavedChanges);
+            Assert.Empty(graphRuntime.Graphs);
+            Assert.Equal(1, animationRuntime.ResetAllCount);
+            return Task.CompletedTask;
+        });
+    }
+
+    [Fact]
+    public async Task PreviewAnimationScope_IncludesOnlyExistingGeneratedParts()
+    {
+        await RunOnStaThreadAsync(() =>
+        {
+            var guid = Guid.NewGuid();
+            var root = new Grid();
+            var part = new Border();
+            FrontedRendererProperties.SetIsGeneratedControl(part, true);
+            FrontedRendererProperties.SetIsAnimationAuxiliaryElement(part, true);
+            FrontedRendererProperties.SetParentBehaviorGuid(part, guid);
+            FrontedRendererProperties.SetParentRegisteredName(part, "BanSlot");
+            FrontedRendererProperties.SetAnimationPartName(part, "LockOverlay");
+            root.Children.Add(part);
+            var scope = new FrontedDesignerPreviewAnimationScope();
+
+            scope.Update(
+                root,
+                null,
+                "Window",
+                "Canvas",
+                [new FrontedControlDesignItem
+                {
+                    Name = "BanSlot",
+                    Config = new ImageFrontedControlConfig { BehaviorGuid = guid }
+                }]);
+
+            Assert.Contains(scope.Targets, target => target.TargetReference == $"guid:{guid}");
+            Assert.Contains(scope.Targets, target => target.TargetReference == $"part:{guid}:LockOverlay");
+            Assert.DoesNotContain(scope.Targets, target => target.TargetReference == $"part:{guid}:PickingBorder");
+            return Task.CompletedTask;
+        });
     }
 
     [Fact]

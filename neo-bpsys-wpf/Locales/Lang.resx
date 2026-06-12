@@ -5114,4 +5114,25 @@
   <data name="FrontedWindowKind.PluginLayout" xml:space="preserve">
     <value>插件 v3 窗口</value>
   </data>
+  <data name="Designer.AnimationEditor.Title" xml:space="preserve">
+    <value>动画编辑器</value>
+  </data>
+  <data name="Designer.AnimationEditor.UnsavedChangesMessage" xml:space="preserve">
+    <value>有未保存的更改，是否保存？</value>
+  </data>
+  <data name="Designer.AnimationEditor.SaveFailedTitle" xml:space="preserve">
+    <value>保存失败</value>
+  </data>
+  <data name="Designer.AnimationEditor.SaveFailedMessage" xml:space="preserve">
+    <value>保存失败，请重试。</value>
+  </data>
+  <data name="Designer.Graph.Target.LockOverlay" xml:space="preserve">
+    <value>Ban 位锁图层</value>
+  </data>
+  <data name="Designer.Graph.Target.PickingBorder" xml:space="preserve">
+    <value>待选框 / 选中边框</value>
+  </data>
+  <data name="Designer.Graph.Target.FormatPart" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
 </root>

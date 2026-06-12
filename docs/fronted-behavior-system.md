@@ -75,6 +75,8 @@ Phase 4 已完成 Designer 预览侧的 WPF 动画与属性应用层：
 | TextBlock / Control | `TextColor`、`Foreground`、`FontSize` |
 | BackgroundTintControlHost | `TintColor` |
 
+`Image` / `BorderedImage` 运行时生成的锁图层和待选框也可作为稳定动画目标。renderer 会为实际存在的内部覆盖层写入父控件 `BehaviorGuid`、父控件名称和稳定 part 名；动画编辑器显示为“控件名 / 锁图层”或“控件名 / 待选框”，持久化引用分别使用 `part:{BehaviorGuid}:LockOverlay` 和 `part:{BehaviorGuid}:PickingBorder`。plain `guid:{BehaviorGuid}` 仍只解析到顶层生成控件，不会误命中内部覆盖层；该解析规则同时用于 Designer 预览和真实前台运行时。
+
 `AnimateProperty` 节点的 `WaitForCompletion` 属性默认为 `true`，执行将等待动画完成后才继续下一节点；设为 `false` 时动画启动后立即继续执行下一节点，不等待动画完成。
 
 `VisualOffsetX/Y`、`ScaleX/Y`、`Rotation` 使用 `RenderTransform`，不会修改 `Canvas.Left` / `Canvas.Top`，也不会污染布局配置。`FillColor`、`StrokeColor`、`TextColor` 使用 `SolidColorBrush`，颜色值支持 `#RRGGBB` / `#AARRGGBB`。不支持的 `TargetLayer + PropertyName` 组合会记录 warning 并跳过，不抛出异常。

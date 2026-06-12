@@ -780,6 +780,14 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         _saveAsync = saveAsync;
     }
 
+    /// <summary>
+    /// Clears editor-local dirty state without saving the graph.
+    /// </summary>
+    public void DiscardLocalDirtyState()
+    {
+        IsDirty = false;
+    }
+
     private bool CanSave() => IsDirty;
 
     private void RestoreGraph(FrontedNodeGraph? snapshot)

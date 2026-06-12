@@ -47,7 +47,6 @@ public sealed class FrontedAnimationTargetResolver : IFrontedAnimationTargetReso
         {
             var element = EnumerateFrameworkElements(context.Root)
                 .FirstOrDefault(item => FrontedRendererProperties.GetIsGeneratedControl(item)
-                                        && !FrontedRendererProperties.GetIsAnimationAuxiliaryElement(item)
                                         && string.Equals(
                                             FrontedRendererProperties.GetRegisteredName(item),
                                             effectiveReference.Name,
@@ -55,6 +54,30 @@ public sealed class FrontedAnimationTargetResolver : IFrontedAnimationTargetReso
             if (element is null)
             {
                 context.Logger?.LogWarning("Fronted animation target named {TargetName} was not found.", effectiveReference.Name);
+                return null;
+            }
+
+            return CreateTarget(element, effectiveReference.DisplayName);
+        }
+
+        if (effectiveReference.Kind == FrontedAnimationTargetReferenceKind.GeneratedPart
+            && effectiveReference.BehaviorGuid is { } parentGuid
+            && parentGuid != Guid.Empty
+            && !string.IsNullOrWhiteSpace(effectiveReference.PartName))
+        {
+            var element = EnumerateFrameworkElements(context.Root)
+                .FirstOrDefault(item => FrontedRendererProperties.GetIsAnimationAuxiliaryElement(item)
+                                        && FrontedRendererProperties.GetParentBehaviorGuid(item) == parentGuid
+                                        && string.Equals(
+                                            FrontedRendererProperties.GetAnimationPartName(item),
+                                            effectiveReference.PartName,
+                                            StringComparison.Ordinal));
+            if (element is null)
+            {
+                context.Logger?.LogWarning(
+                    "Fronted animation part {PartName} on target {BehaviorGuid} was not found.",
+                    effectiveReference.PartName,
+                    parentGuid);
                 return null;
             }
 
@@ -70,7 +93,9 @@ public sealed class FrontedAnimationTargetResolver : IFrontedAnimationTargetReso
         return new FrontedAnimationTarget
         {
             Element = element,
-            BehaviorGuid = FrontedRendererProperties.GetBehaviorGuid(element),
+            BehaviorGuid = FrontedRendererProperties.GetIsAnimationAuxiliaryElement(element)
+                ? FrontedRendererProperties.GetParentBehaviorGuid(element)
+                : FrontedRendererProperties.GetBehaviorGuid(element),
             Name = string.IsNullOrWhiteSpace(registeredName) ? element.Name : registeredName,
             DisplayName = displayName,
             TargetLayer = FrontedAnimationTargetLayer.Control,

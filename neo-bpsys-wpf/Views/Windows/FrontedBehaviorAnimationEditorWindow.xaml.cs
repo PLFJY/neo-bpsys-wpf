@@ -2,7 +2,10 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Threading;
 using neo_bpsys_wpf.Controls.Modern.Scrolling;
+using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.ViewModels.FrontedDesigner;
 using neo_bpsys_wpf.Views.FrontedDesigner.GraphEditor;
 using Wpf.Ui.Controls;
@@ -15,6 +18,7 @@ public partial class FrontedBehaviorAnimationEditorWindow : FluentWindow
     private FrontedBehaviorAnimationHelpWindow? _helpWindow;
     private bool _forceClose;
     private bool _isClosePromptOpen;
+    private bool _discardedBeforeClose;
 
     public FrontedBehaviorAnimationEditorWindow(FrontedBehaviorAnimationEditorViewModel viewModel)
     {
@@ -32,6 +36,7 @@ public partial class FrontedBehaviorAnimationEditorWindow : FluentWindow
         }
 
         Loaded += (_, _) => AnimationTabs.SelectFirstItemIfNoneSelected();
+        Closed += OnClosed;
     }
 
     protected override void OnClosing(CancelEventArgs e)
@@ -54,49 +59,86 @@ public partial class FrontedBehaviorAnimationEditorWindow : FluentWindow
     private async Task ConfirmCloseAsync(FrontedBehaviorAnimationEditorViewModel vm)
     {
         _isClosePromptOpen = true;
-        var messageBox = new Wpf.Ui.Controls.MessageBox
+        try
         {
-            Title = "动画编辑器",
-            Content = "有未保存的更改，是否保存？",
-            PrimaryButtonText = "保存",
-            SecondaryButtonText = "丢弃",
-            CloseButtonText = "取消",
-            PrimaryButtonIcon = new SymbolIcon { Symbol = SymbolRegular.Save24 },
-            SecondaryButtonIcon = new SymbolIcon { Symbol = SymbolRegular.Delete24 },
-            CloseButtonIcon = new SymbolIcon { Symbol = SymbolRegular.Dismiss24 },
-            Width = 500,
-            MinWidth = 460
-        };
-        var result = await messageBox.ShowDialogAsync();
-
-        switch (result)
-        {
-            case MessageBoxResult.Primary:
-                await vm.SaveAllAsync();
-                if (vm.HasUnsavedChanges)
-                {
-                    var errorBox = new Wpf.Ui.Controls.MessageBox
+            var result = await ShowUnsavedChangesPromptAsync();
+            switch (result)
+            {
+                case MessageBoxResult.Primary:
+                    if (await vm.SaveAllAsync())
                     {
-                        Title = "保存失败",
-                        Content = "保存失败，请重试。",
-                        PrimaryButtonText = "确定",
-                        CloseButtonText = "取消",
-                        Width = 400,
-                        MinWidth = 360
-                    };
-                    await errorBox.ShowDialogAsync();
-                    _isClosePromptOpen = false;
-                    return;
-                }
-                break;
-            case MessageBoxResult.None:
-                _isClosePromptOpen = false;
-                return;
+                        ForceCloseNow();
+                    }
+                    else
+                    {
+                        await ShowSaveFailedAsync();
+                    }
+                    break;
+                case MessageBoxResult.Secondary:
+                    vm.DiscardAll();
+                    _discardedBeforeClose = true;
+                    ForceCloseNow();
+                    break;
+                case MessageBoxResult.None:
+                default:
+                    break;
+            }
         }
+        finally
+        {
+            if (!_forceClose)
+            {
+                _isClosePromptOpen = false;
+            }
+        }
+    }
 
+    private Task<MessageBoxResult> ShowUnsavedChangesPromptAsync() =>
+        MessageBoxHelper.ShowThreeOptionAsync(
+            I18nHelper.GetLocalizedString("Designer.AnimationEditor.UnsavedChangesMessage"),
+            I18nHelper.GetLocalizedString("Designer.AnimationEditor.Title"),
+            I18nHelper.GetLocalizedString("Save"),
+            I18nHelper.GetLocalizedString("DiscardChanges"),
+            I18nHelper.GetLocalizedString("Cancel"),
+            width: 500,
+            minWidth: 460,
+            primaryButtonIcon: SymbolRegular.Save24,
+            secondaryButtonIcon: SymbolRegular.Delete24,
+            closeButtonIcon: SymbolRegular.Dismiss24);
+
+    private async Task ShowSaveFailedAsync()
+    {
+        var errorBox = new Wpf.Ui.Controls.MessageBox
+        {
+            Owner = this,
+            Title = I18nHelper.GetLocalizedString("Designer.AnimationEditor.SaveFailedTitle"),
+            Content = I18nHelper.GetLocalizedString("Designer.AnimationEditor.SaveFailedMessage"),
+            PrimaryButtonText = I18nHelper.GetLocalizedString("Confirm"),
+            PrimaryButtonIcon = new SymbolIcon { Symbol = SymbolRegular.Checkmark24 },
+            CloseButtonText = I18nHelper.GetLocalizedString("Cancel"),
+            CloseButtonIcon = new SymbolIcon { Symbol = SymbolRegular.Dismiss24 },
+            Width = 400,
+            MinWidth = 360
+        };
+        await errorBox.ShowDialogAsync();
+    }
+
+    private void ForceCloseNow()
+    {
         _forceClose = true;
         _isClosePromptOpen = false;
-        Close();
+        Dispatcher.BeginInvoke(new Action(Close), DispatcherPriority.Background);
+    }
+
+    private void OnClosed(object? sender, EventArgs e)
+    {
+        if (!_discardedBeforeClose && DataContext is FrontedBehaviorAnimationEditorViewModel vm)
+        {
+            vm.DiscardAll();
+        }
+
+        _helpWindow?.Close();
+        _helpWindow = null;
     }
 
     private void OpenHelp_OnClick(object sender, RoutedEventArgs e)

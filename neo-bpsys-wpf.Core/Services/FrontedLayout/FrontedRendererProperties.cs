@@ -110,4 +110,94 @@ public static class FrontedRendererProperties
     {
         element.SetValue(IsAnimationAuxiliaryElementProperty, value);
     }
+
+    /// <summary>
+    /// Identifies the behavior GUID of the generated control that owns an animation part.
+    /// </summary>
+    public static readonly DependencyProperty ParentBehaviorGuidProperty =
+        DependencyProperty.RegisterAttached(
+            "ParentBehaviorGuid",
+            typeof(Guid),
+            typeof(FrontedRendererProperties),
+            new PropertyMetadata(Guid.Empty));
+
+    /// <summary>
+    /// Gets the behavior GUID of the generated control that owns an animation part.
+    /// </summary>
+    /// <param name="element">The element to read.</param>
+    /// <returns>The owning control behavior GUID.</returns>
+    public static Guid GetParentBehaviorGuid(DependencyObject element)
+    {
+        return (Guid)element.GetValue(ParentBehaviorGuidProperty);
+    }
+
+    /// <summary>
+    /// Sets the behavior GUID of the generated control that owns an animation part.
+    /// </summary>
+    /// <param name="element">The element to update.</param>
+    /// <param name="value">The owning control behavior GUID.</param>
+    public static void SetParentBehaviorGuid(DependencyObject element, Guid value)
+    {
+        element.SetValue(ParentBehaviorGuidProperty, value);
+    }
+
+    /// <summary>
+    /// Identifies the registered name of the generated control that owns an animation part.
+    /// </summary>
+    public static readonly DependencyProperty ParentRegisteredNameProperty =
+        DependencyProperty.RegisterAttached(
+            "ParentRegisteredName",
+            typeof(string),
+            typeof(FrontedRendererProperties),
+            new PropertyMetadata(string.Empty));
+
+    /// <summary>
+    /// Gets the registered name of the generated control that owns an animation part.
+    /// </summary>
+    /// <param name="element">The element to read.</param>
+    /// <returns>The owning control registered name.</returns>
+    public static string GetParentRegisteredName(DependencyObject element)
+    {
+        return (string)element.GetValue(ParentRegisteredNameProperty);
+    }
+
+    /// <summary>
+    /// Sets the registered name of the generated control that owns an animation part.
+    /// </summary>
+    /// <param name="element">The element to update.</param>
+    /// <param name="value">The owning control registered name.</param>
+    public static void SetParentRegisteredName(DependencyObject element, string value)
+    {
+        element.SetValue(ParentRegisteredNameProperty, value);
+    }
+
+    /// <summary>
+    /// Identifies the stable animation part name of a generated auxiliary element.
+    /// </summary>
+    public static readonly DependencyProperty AnimationPartNameProperty =
+        DependencyProperty.RegisterAttached(
+            "AnimationPartName",
+            typeof(string),
+            typeof(FrontedRendererProperties),
+            new PropertyMetadata(string.Empty));
+
+    /// <summary>
+    /// Gets the stable animation part name of a generated auxiliary element.
+    /// </summary>
+    /// <param name="element">The element to read.</param>
+    /// <returns>The stable animation part name.</returns>
+    public static string GetAnimationPartName(DependencyObject element)
+    {
+        return (string)element.GetValue(AnimationPartNameProperty);
+    }
+
+    /// <summary>
+    /// Sets the stable animation part name of a generated auxiliary element.
+    /// </summary>
+    /// <param name="element">The element to update.</param>
+    /// <param name="value">The stable animation part name.</param>
+    public static void SetAnimationPartName(DependencyObject element, string value)
+    {
+        element.SetValue(AnimationPartNameProperty, value);
+    }
 }

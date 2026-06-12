@@ -344,11 +344,25 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
         {
             targets.AddRange(_previewAnimationScope.Targets.Select(target =>
                 new FrontedNodeTargetOptionViewModel(
-                    $"guid:{target.BehaviorGuid}",
-                    string.IsNullOrWhiteSpace(target.DisplayName) ? target.BehaviorGuid.ToString() : target.DisplayName)));
+                    target.TargetReference,
+                    CreateTargetDisplayName(target))));
         }
 
         return targets;
+    }
+
+    private string CreateTargetDisplayName(FrontedDesignerAnimationTargetOption target)
+    {
+        if (string.IsNullOrWhiteSpace(target.PartName))
+        {
+            return target.DisplayName;
+        }
+
+        var partDisplayName = Localize($"Designer.Graph.Target.{target.PartName}", target.PartName);
+        return string.Format(
+            Localize("Designer.Graph.Target.FormatPart", "{0} / {1}"),
+            target.DisplayName,
+            partDisplayName);
     }
 
     private BehaviorEventOptionViewModel CreateEventOption(FrontedBehaviorEventDescriptor descriptor)
@@ -1146,9 +1160,27 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
         {
             if (stage.GraphEditor.IsDirty)
             {
-                stage.GraphEditor.IsDirty = false;
+                stage.GraphEditor.DiscardLocalDirtyState();
             }
         }
+
+        OnPropertyChanged(nameof(HasUnsavedChanges));
+    }
+
+    /// <summary>
+    /// Stops preview activity, resets preview animation state, and discards editor-local dirty state.
+    /// </summary>
+    public void DiscardAll()
+    {
+        StopPreviewWithoutRunningStopGraph();
+        ResetPreviewIfSafe();
+
+        foreach (var stage in Stages)
+        {
+            stage.GraphEditor.DiscardLocalDirtyState();
+        }
+
+        OnPropertyChanged(nameof(HasUnsavedChanges));
     }
 
     [ObservableProperty]
@@ -1205,11 +1237,12 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
             }
         }
 
-        _loopPreviewCancellation = new CancellationTokenSource();
+        var loopPreviewCancellation = new CancellationTokenSource();
+        _loopPreviewCancellation = loopPreviewCancellation;
         IsLoopPreviewRunning = true;
         try
         {
-            var token = _loopPreviewCancellation.Token;
+            var token = loopPreviewCancellation.Token;
             await ExecuteGraphAsync(_behavior.StartGraph, token);
             var policy = _behavior.LoopPolicy ?? new FrontedLoopPolicy();
             if (policy.AutoReverse)
@@ -1238,9 +1271,13 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
         }
         finally
         {
-            IsLoopPreviewRunning = false;
-            _loopPreviewCancellation?.Dispose();
-            _loopPreviewCancellation = null;
+            if (ReferenceEquals(_loopPreviewCancellation, loopPreviewCancellation))
+            {
+                IsLoopPreviewRunning = false;
+                _loopPreviewCancellation = null;
+            }
+
+            loopPreviewCancellation.Dispose();
         }
     }
 
@@ -1270,6 +1307,27 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
         if (_animationRuntime is not null && context is not null)
         {
             _animationRuntime.ResetAll(context);
+        }
+    }
+
+    private void StopPreviewWithoutRunningStopGraph()
+    {
+        var cancellation = _loopPreviewCancellation;
+        _loopPreviewCancellation = null;
+        cancellation?.Cancel();
+        cancellation?.Dispose();
+        IsLoopPreviewRunning = false;
+    }
+
+    private void ResetPreviewIfSafe()
+    {
+        try
+        {
+            Reset();
+        }
+        catch (InvalidOperationException)
+        {
+            // The preview visual tree may already be unloading while the editor closes.
         }
     }
 

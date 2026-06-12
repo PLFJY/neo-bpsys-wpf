@@ -47,13 +47,59 @@ public class FrontedAnimationRuntimeTest
             var guid = Guid.NewGuid();
             var root = new Canvas();
             var target = Generated(new Border(), guid, "Target");
+            var part = GeneratedPart(new Border(), guid, "TargetPickingBorder", "PickingBorder");
             root.Children.Add(target);
+            root.Children.Add(part);
 
             var resolved = new FrontedAnimationTargetResolver().Resolve(
                 FrontedAnimationTargetReference.Parse($"guid:{guid}"),
                 Context(root, Guid.NewGuid()));
 
             Assert.Same(target, resolved!.Element);
+        });
+    }
+
+    [Fact]
+    public void TargetResolver_ResolvePartString_TargetsGeneratedPart()
+    {
+        RunOnStaThread(() =>
+        {
+            var guid = Guid.NewGuid();
+            var root = new Canvas();
+            var target = Generated(new Border(), guid, "Target");
+            var part = GeneratedPart(new Border(), guid, "TargetPickingBorder", "PickingBorder");
+            var lockPart = GeneratedPart(new Border(), guid, "TargetLockOverlay", "LockOverlay");
+            root.Children.Add(target);
+            root.Children.Add(part);
+            root.Children.Add(lockPart);
+
+            var resolved = new FrontedAnimationTargetResolver().Resolve(
+                FrontedAnimationTargetReference.Parse($"part:{guid}:PickingBorder"),
+                Context(root, Guid.NewGuid()));
+            var resolvedLock = new FrontedAnimationTargetResolver().Resolve(
+                FrontedAnimationTargetReference.Parse($"part:{guid}:LockOverlay"),
+                Context(root, Guid.NewGuid()));
+
+            Assert.Same(part, resolved!.Element);
+            Assert.Equal(guid, resolved.BehaviorGuid);
+            Assert.Same(lockPart, resolvedLock!.Element);
+        });
+    }
+
+    [Fact]
+    public void TargetResolver_MissingPart_ReturnsNull()
+    {
+        RunOnStaThread(() =>
+        {
+            var guid = Guid.NewGuid();
+            var root = new Canvas();
+            root.Children.Add(Generated(new Border(), guid, "Target"));
+
+            var resolved = new FrontedAnimationTargetResolver().Resolve(
+                FrontedAnimationTargetReference.Parse($"part:{guid}:PickingBorder"),
+                Context(root, Guid.NewGuid()));
+
+            Assert.Null(resolved);
         });
     }
 
@@ -183,6 +229,30 @@ public class FrontedAnimationRuntimeTest
             }, Context(root, guid));
 
             Assert.Equal(0.35, element.Opacity, 3);
+        });
+    }
+
+    [Fact]
+    public async Task AnimationRuntime_AnimateGeneratedPartOpacity_DurationZero_SetsImmediately()
+    {
+        await RunOnStaThreadAsync(async () =>
+        {
+            var guid = Guid.NewGuid();
+            var root = new Canvas();
+            var part = GeneratedPart(new Border { Opacity = 0 }, guid, "TargetPickingBorder", "PickingBorder");
+            root.Children.Add(Generated(new Border(), guid, "Target"));
+            root.Children.Add(part);
+
+            await new FrontedAnimationRuntime().ExecuteAsync(new FrontedGraphActionRequest
+            {
+                RequestType = FrontedGraphActionRequestType.AnimateProperty,
+                Target = $"part:{guid}:PickingBorder",
+                PropertyName = "Opacity",
+                Values = new Dictionary<string, string?> { ["To"] = "1" },
+                DurationMs = 0
+            }, Context(root, guid));
+
+            Assert.Equal(1, part.Opacity, 3);
         });
     }
 
@@ -607,6 +677,21 @@ public class FrontedAnimationRuntimeTest
     {
         FrontedRendererProperties.SetIsGeneratedControl(element, true);
         FrontedRendererProperties.SetBehaviorGuid(element, guid);
+        FrontedRendererProperties.SetRegisteredName(element, name);
+        return element;
+    }
+
+    private static FrameworkElement GeneratedPart(
+        FrameworkElement element,
+        Guid parentGuid,
+        string name,
+        string partName)
+    {
+        FrontedRendererProperties.SetIsGeneratedControl(element, true);
+        FrontedRendererProperties.SetIsAnimationAuxiliaryElement(element, true);
+        FrontedRendererProperties.SetParentBehaviorGuid(element, parentGuid);
+        FrontedRendererProperties.SetParentRegisteredName(element, "Target");
+        FrontedRendererProperties.SetAnimationPartName(element, partName);
         FrontedRendererProperties.SetRegisteredName(element, name);
         return element;
     }

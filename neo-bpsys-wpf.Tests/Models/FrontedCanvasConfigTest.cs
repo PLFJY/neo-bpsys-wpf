@@ -1996,6 +1996,35 @@ public class FrontedCanvasConfigTest
     }
 
     [Fact]
+    public void ImageFrontedControlMarksGeneratedAnimationParts()
+    {
+        RunOnStaThread(() =>
+        {
+            var guid = Guid.NewGuid();
+            var element = new ImageFrontedControl().Create(
+                "BanSlot",
+                new ImageFrontedControlConfig
+                {
+                    BehaviorGuid = guid,
+                    Lockable = true,
+                    PickingBorderAvailable = true
+                },
+                CreateBuildContext());
+
+            var root = Assert.IsType<Grid>(element);
+            var lockOverlay = Assert.Single(
+                root.Children.OfType<Image>(),
+                item => FrontedRendererProperties.GetAnimationPartName(item) == "LockOverlay");
+            var pickingBorder = Assert.Single(
+                root.Children.OfType<Border>(),
+                item => FrontedRendererProperties.GetAnimationPartName(item) == "PickingBorder");
+
+            AssertAnimationPart(lockOverlay, guid, "BanSlot", "LockOverlay");
+            AssertAnimationPart(pickingBorder, guid, "BanSlot", "PickingBorder");
+        });
+    }
+
+    [Fact]
     public void ImageFrontedControlBindsSourceToSharedDataService()
     {
         RunOnStaThread(() =>
@@ -2636,6 +2665,20 @@ public class FrontedCanvasConfigTest
         var control = Assert.IsAssignableFrom<ImageFrontedControlConfig>(config.Controls[controlName]);
         Assert.Equal(bindingPath, control.BindingPath);
         return control;
+    }
+
+    private static void AssertAnimationPart(
+        FrameworkElement element,
+        Guid parentGuid,
+        string parentName,
+        string partName)
+    {
+        Assert.True(FrontedRendererProperties.GetIsGeneratedControl(element));
+        Assert.True(FrontedRendererProperties.GetIsAnimationAuxiliaryElement(element));
+        Assert.Equal(parentGuid, FrontedRendererProperties.GetParentBehaviorGuid(element));
+        Assert.Equal(parentName, FrontedRendererProperties.GetParentRegisteredName(element));
+        Assert.Equal(partName, FrontedRendererProperties.GetAnimationPartName(element));
+        Assert.False(string.IsNullOrWhiteSpace(FrontedRendererProperties.GetRegisteredName(element)));
     }
 
     private sealed class TestPluginControlConfig : FrontedControlConfigBase

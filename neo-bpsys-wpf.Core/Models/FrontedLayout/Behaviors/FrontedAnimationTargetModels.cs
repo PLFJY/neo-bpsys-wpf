@@ -54,7 +54,12 @@ public enum FrontedAnimationTargetReferenceKind
     /// <summary>
     /// A generated control identified by its registered name.
     /// </summary>
-    RegisteredName
+    RegisteredName,
+
+    /// <summary>
+    /// A generated auxiliary part identified by its owning behavior GUID and stable part name.
+    /// </summary>
+    GeneratedPart
 }
 
 /// <summary>
@@ -78,6 +83,11 @@ public sealed class FrontedAnimationTargetReference
     public string? Name { get; init; }
 
     /// <summary>
+    /// Gets the stable generated part name when <see cref="Kind" /> is <see cref="FrontedAnimationTargetReferenceKind.GeneratedPart" />.
+    /// </summary>
+    public string? PartName { get; init; }
+
+    /// <summary>
     /// Gets the user-facing display name, when available.
     /// </summary>
     public string? DisplayName { get; init; }
@@ -96,6 +106,37 @@ public sealed class FrontedAnimationTargetReference
         }
 
         var text = value.Trim();
+        if (text.StartsWith("part:", StringComparison.OrdinalIgnoreCase))
+        {
+            var separatorIndex = text.IndexOf(':', "part:".Length);
+            if (separatorIndex > "part:".Length
+                && Guid.TryParse(text["part:".Length..separatorIndex].Trim('{', '}', ' '), out var partGuid))
+            {
+                var partName = text[(separatorIndex + 1)..].Trim();
+                if (!string.IsNullOrWhiteSpace(partName))
+                {
+                    return new FrontedAnimationTargetReference
+                    {
+                        Kind = FrontedAnimationTargetReferenceKind.GeneratedPart,
+                        BehaviorGuid = partGuid,
+                        PartName = partName,
+                        DisplayName = value
+                    };
+                }
+            }
+        }
+
+        if (text.StartsWith("name:", StringComparison.OrdinalIgnoreCase))
+        {
+            text = text["name:".Length..].Trim();
+            return new FrontedAnimationTargetReference
+            {
+                Kind = FrontedAnimationTargetReferenceKind.RegisteredName,
+                Name = text,
+                DisplayName = value
+            };
+        }
+
         if (text.StartsWith("guid:", StringComparison.OrdinalIgnoreCase))
         {
             text = text["guid:".Length..].Trim();

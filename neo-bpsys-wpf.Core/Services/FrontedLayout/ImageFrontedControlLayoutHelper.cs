@@ -13,6 +13,8 @@ internal static class ImageFrontedControlLayoutHelper
 {
     private const string DefaultLockImagePath = "Resources/CurrentBanLock.png";
     private const string DefaultPickingBorderImagePath = "Resources/pickingBorder.png";
+    internal const string LockOverlayAnimationPartName = "LockOverlay";
+    internal const string PickingBorderAnimationPartName = "PickingBorder";
 
     public static void ApplyImageLayout(
         Image image,
@@ -76,7 +78,7 @@ internal static class ImageFrontedControlLayoutHelper
         }
 
         root.Children.Add(image);
-        AddLockOverlay(root, config, context);
+        AddLockOverlay(root, name, config, context);
         AddPickingBorderOverlay(root, name, config, context);
         return root;
     }
@@ -89,7 +91,7 @@ internal static class ImageFrontedControlLayoutHelper
     {
         var root = new Grid();
         root.Children.Add(image);
-        AddLockOverlay(root, config, context);
+        AddLockOverlay(root, controlName, config, context);
         AddPickingBorderOverlay(root, controlName, config, context);
         return root;
     }
@@ -134,6 +136,7 @@ internal static class ImageFrontedControlLayoutHelper
 
     private static void AddLockOverlay(
         Grid root,
+        string controlName,
         ImageFrontedControlConfig config,
         FrontedControlBuildContext context)
     {
@@ -142,8 +145,10 @@ internal static class ImageFrontedControlLayoutHelper
             return;
         }
 
+        var overlayName = $"{controlName}{LockOverlayAnimationPartName}";
         var overlay = new Image
         {
+            Name = overlayName,
             Source = ResolveOverlayImage(config.LockImagePath, DefaultLockImagePath, context),
             Stretch = Stretch.Fill,
             HorizontalAlignment = HorizontalAlignment.Stretch,
@@ -152,6 +157,8 @@ internal static class ImageFrontedControlLayoutHelper
         };
 
         Panel.SetZIndex(overlay, config.LockZIndexOffset);
+        MarkAnimationPart(overlay, controlName, config.BehaviorGuid, LockOverlayAnimationPartName);
+        RegisterGeneratedChildName(root, overlayName, overlay);
         if (!string.IsNullOrWhiteSpace(config.LockVisibilityBindingPath))
         {
             BindingOperations.SetBinding(overlay, UIElement.VisibilityProperty, new Binding(config.LockVisibilityBindingPath)
@@ -199,8 +206,23 @@ internal static class ImageFrontedControlLayoutHelper
         };
 
         Panel.SetZIndex(overlay, config.PickingBorderZIndexOffset);
+        MarkAnimationPart(overlay, controlName, config.BehaviorGuid, PickingBorderAnimationPartName);
         RegisterGeneratedChildName(root, overlayName, overlay);
         root.Children.Add(overlay);
+    }
+
+    private static void MarkAnimationPart(
+        FrameworkElement element,
+        string parentRegisteredName,
+        Guid parentBehaviorGuid,
+        string partName)
+    {
+        FrontedRendererProperties.SetIsGeneratedControl(element, true);
+        FrontedRendererProperties.SetIsAnimationAuxiliaryElement(element, true);
+        FrontedRendererProperties.SetParentBehaviorGuid(element, parentBehaviorGuid);
+        FrontedRendererProperties.SetParentRegisteredName(element, parentRegisteredName);
+        FrontedRendererProperties.SetAnimationPartName(element, partName);
+        FrontedRendererProperties.SetRegisteredName(element, element.Name);
     }
 
     private static ImageSource? ResolveOverlayImage(
