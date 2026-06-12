@@ -40,6 +40,8 @@ Designer v3、`PluginPage`、`FrontedDesignerWindow` 等 UI 会随交互体验�
 
 WPF 控件测试应放入非并行 collection，避免多个 STA 窗口和 dispatcher pump 同时争用进程级 WPF 状态。测试里能关闭动画时应关闭，例如 `TransitionDuration=0`、滚动行为 `Duration=0`；窗口、事件订阅和附加行为必须在 `finally` 中关闭或解绑。
 
+WPF/Dispatcher 测试必须使用 `neo_bpsys_wpf.Tests.Infrastructure.WpfTestThread` 运行 STA 代码，不要在测试文件里复制 `new Thread(...)`、`thread.Join()`、`new Thread(async () => ...)` 或裸 `TaskCompletionSource` 等待。已确认的超时规律是：手写 STA helper 若没有硬超时、没有 `Dispatcher.InvokeShutdown()`、或用 `async void` 形式的线程入口，测试失败时容易变成整套 `dotnet test` 挂起，而不是报告具体失败项。同步测试用 `WpfTestThread.Run(...)`，异步测试用 `WpfTestThread.RunAsync(...)`；如果测试动作超过默认 15 秒，应先检查消息泵、窗口关闭、事件解绑和后台任务收口，而不是简单增加超时时间。
+
 滚轮测试优先构造轻量控件，不要为了验证滚动归属启动完整页面。`ModernScrollViewer` 的测试应覆盖普通内容、非约束 `ListView` / `ListBox` 内容、显式 `ModernScroll.Ownership="Self"` 区域和打开的 `ComboBox` / `Popup` 保护。不要写“所有 `ListView` / `ListBox` 都 self-scroll”的断言。
 
 显式 self-scroll 控件应测试 `NestedSmoothScrollBehavior` 是否滚动自己的内部 `ScrollViewer`，以及到顶/到底时是否不强行吞事件。`ComboBoxDropdownSmoothScrollBehavior` 应测试下拉打开后能找到 dropdown `ScrollViewer`、滚轮只移动下拉、不移动外层页面，并在关闭/卸载时解绑。不要通过增加超时时间掩盖 dispatcher 或事件泄漏问题。

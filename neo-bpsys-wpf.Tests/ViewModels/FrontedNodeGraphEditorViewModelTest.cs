@@ -4,14 +4,15 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Services.FrontedDesigner;
+using neo_bpsys_wpf.Tests.Infrastructure;
 using neo_bpsys_wpf.ViewModels.FrontedDesigner;
 using neo_bpsys_wpf.ViewModels.FrontedDesigner.GraphEditor;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
-using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -725,21 +726,6 @@ public class FrontedNodeGraphEditorViewModelTest
 
     private static Task RunOnStaThreadAsync(Func<Task> action)
     {
-        var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var thread = new Thread(() =>
-        {
-            try
-            {
-                action().GetAwaiter().GetResult();
-                tcs.SetResult();
-            }
-            catch (Exception ex)
-            {
-                tcs.SetException(ex);
-            }
-        });
-        thread.SetApartmentState(ApartmentState.STA);
-        thread.Start();
-        return tcs.Task;
+        return WpfTestThread.RunAsync(action);
     }
 }

@@ -7,13 +7,13 @@ using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using neo_bpsys_wpf.Tests.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -859,24 +859,7 @@ public class FrontedBehaviorRuntimeLoopTest
     /// </summary>
     private static async Task RunOnStaThreadAsync(Func<Task> action)
     {
-        ExceptionDispatchInfo? exception = null;
-        var tcs = new TaskCompletionSource();
-        var thread = new Thread(async () =>
-        {
-            try
-            {
-                await action();
-                tcs.TrySetResult();
-            }
-            catch (Exception ex)
-            {
-                tcs.TrySetException(ex);
-            }
-        });
-        thread.SetApartmentState(ApartmentState.STA);
-        thread.Start();
-        await tcs.Task;
-        exception?.Throw();
+        await WpfTestThread.RunAsync(action);
     }
 
     // ---------------------------------------------------------------

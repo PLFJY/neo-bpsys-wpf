@@ -3,11 +3,10 @@
 using neo_bpsys_wpf.Controls;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models;
+using neo_bpsys_wpf.Tests.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Runtime.ExceptionServices;
-using System.Threading;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Xunit;
@@ -72,22 +71,6 @@ public class MapV2PresenterTest
 
     private static void RunOnStaThread(Action action)
     {
-        ExceptionDispatchInfo? exception = null;
-        var thread = new Thread(() =>
-        {
-            try
-            {
-                action();
-            }
-            catch (Exception ex)
-            {
-                exception = ExceptionDispatchInfo.Capture(ex);
-            }
-        });
-
-        thread.SetApartmentState(ApartmentState.STA);
-        thread.Start();
-        thread.Join();
-        exception?.Throw();
+        WpfTestThread.Run(action);
     }
 }

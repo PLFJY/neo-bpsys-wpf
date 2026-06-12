@@ -4,9 +4,8 @@ using Moq;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using neo_bpsys_wpf.Tests.Infrastructure;
 using System;
-using System.Runtime.ExceptionServices;
-using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using Xunit;
@@ -57,22 +56,7 @@ public class FrontedRendererBehaviorGuidTest
 
     private static void RunOnStaThread(Action action)
     {
-        ExceptionDispatchInfo? exception = null;
-        var thread = new Thread(() =>
-        {
-            try
-            {
-                action();
-            }
-            catch (Exception ex)
-            {
-                exception = ExceptionDispatchInfo.Capture(ex);
-            }
-        });
-        thread.SetApartmentState(ApartmentState.STA);
-        thread.Start();
-        thread.Join();
-        exception?.Throw();
+        WpfTestThread.Run(action);
     }
 
     private sealed class RecordingConfig : FrontedControlConfigBase

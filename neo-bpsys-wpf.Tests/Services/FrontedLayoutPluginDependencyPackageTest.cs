@@ -11,6 +11,7 @@ using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.ExamplePlugin;
 using neo_bpsys_wpf.Models.Plugins;
 using neo_bpsys_wpf.Services.Abstractions;
+using neo_bpsys_wpf.Tests.Infrastructure;
 using neo_bpsys_wpf.ViewModels.Pages;
 using System;
 using System.Collections.Generic;
@@ -19,7 +20,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.ExceptionServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -814,23 +814,7 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
 
     private static void RunOnStaThread(Action action)
     {
-        ExceptionDispatchInfo? exception = null;
-        var thread = new Thread(() =>
-        {
-            try
-            {
-                action();
-            }
-            catch (Exception ex)
-            {
-                exception = ExceptionDispatchInfo.Capture(ex);
-            }
-        });
-
-        thread.SetApartmentState(ApartmentState.STA);
-        thread.Start();
-        thread.Join();
-        exception?.Throw();
+        WpfTestThread.Run(action);
     }
 
     private static string GetRepositoryPath(params string[] parts)

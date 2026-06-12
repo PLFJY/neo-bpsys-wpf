@@ -6,12 +6,12 @@ using neo_bpsys_wpf.Core.Controls;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Services;
+using neo_bpsys_wpf.Tests.Infrastructure;
 using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Threading;
 using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Services;
@@ -251,48 +251,6 @@ public class FrontedWindowServiceTransparencyRestartTest
 
     private static Task RunOnStaThreadAsync(Func<Task> action)
     {
-        var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var thread = new Thread(() =>
-        {
-            try
-            {
-                SynchronizationContext.SetSynchronizationContext(
-                    new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher));
-                var frame = new DispatcherFrame();
-                _ = action()
-                    .ContinueWith(
-                        task =>
-                        {
-                            if (task.Exception is not null)
-                            {
-                                completion.SetException(task.Exception.InnerExceptions);
-                            }
-                            else if (task.IsCanceled)
-                            {
-                                completion.SetCanceled();
-                            }
-                            else
-                            {
-                                completion.SetResult();
-                            }
-
-                            frame.Continue = false;
-                        },
-                        TaskScheduler.FromCurrentSynchronizationContext());
-
-                Dispatcher.PushFrame(frame);
-            }
-            catch (Exception ex)
-            {
-                completion.SetException(ex);
-            }
-            finally
-            {
-                Dispatcher.CurrentDispatcher.InvokeShutdown();
-            }
-        });
-        thread.SetApartmentState(ApartmentState.STA);
-        thread.Start();
-        return completion.Task;
+        return WpfTestThread.RunAsync(action);
     }
 }

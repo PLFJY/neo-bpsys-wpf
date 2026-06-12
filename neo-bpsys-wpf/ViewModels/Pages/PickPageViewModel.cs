@@ -132,36 +132,36 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
             return;
         }
 
-        if (message.GameAction == GameAction.PickSur)
-        {
-            if (message.Index == null) return;
-            foreach (var i in message.Index)
-            {
-                SurPickingBorderList[i] = true;
-                _ = PickingBorderSwitchAsync(i.ToString());
-            }
-        }
-        else
-        {
-            for (var i = 0; i < SurPickingBorderList.Count; i++)
-            {
-                if (!SurPickingBorderList[i]) continue;
-                SurPickingBorderList[i] = false;
-                _ = PickingBorderSwitchAsync(i.ToString());
-            }
-        }
+        //if (message.GameAction == GameAction.PickSur)
+        //{
+        //    if (message.Index == null) return;
+        //    foreach (var i in message.Index)
+        //    {
+        //        SurPickingBorderList[i] = true;
+        //        _ = PickingBorderSwitchAsync(i.ToString());
+        //    }
+        //}
+        //else
+        //{
+        //    for (var i = 0; i < SurPickingBorderList.Count; i++)
+        //    {
+        //        if (!SurPickingBorderList[i]) continue;
+        //        SurPickingBorderList[i] = false;
+        //        _ = PickingBorderSwitchAsync(i.ToString());
+        //    }
+        //}
 
-        if (message.GameAction == GameAction.PickHun)
-        {
-            HunPickingBorder = true;
-            _ = PickingBorderSwitchAsync("Hun");
-        }
-        else
-        {
-            if (!HunPickingBorder) return;
-            HunPickingBorder = false;
-            _ = PickingBorderSwitchAsync("Hun");
-        }
+        //if (message.GameAction == GameAction.PickHun)
+        //{
+        //    HunPickingBorder = true;
+        //    _ = PickingBorderSwitchAsync("Hun");
+        //}
+        //else
+        //{
+        //    if (!HunPickingBorder) return;
+        //    HunPickingBorder = false;
+        //    _ = PickingBorderSwitchAsync("Hun");
+        //}
     }
 
     public Team HomeTeam => _sharedDataService.HomeTeam;

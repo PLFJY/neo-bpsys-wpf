@@ -3,10 +3,10 @@ using Microsoft.Extensions.Logging.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using neo_bpsys_wpf.Tests.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -14,7 +14,6 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
-using System.Windows.Threading;
 using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Services;
@@ -705,53 +704,12 @@ public class FrontedAnimationRuntimeTest
 
     private static void RunOnStaThread(Action action)
     {
-        ExceptionDispatchInfo? exception = null;
-        var thread = new Thread(() =>
-        {
-            try
-            {
-                action();
-            }
-            catch (Exception ex)
-            {
-                exception = ExceptionDispatchInfo.Capture(ex);
-            }
-        });
-        thread.SetApartmentState(ApartmentState.STA);
-        thread.Start();
-        thread.Join();
-        exception?.Throw();
+        WpfTestThread.Run(action);
     }
 
     private static Task RunOnStaThreadAsync(Func<Task> action)
     {
-        var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var thread = new Thread(() =>
-        {
-            try
-            {
-                var task = action();
-                // Pump the Dispatcher so that async continuations (posted via
-                // DispatcherSynchronizationContext) and WPF internal operations
-                // can progress.  Without this, await Task.Yield() and other
-                // continuations queued on the Dispatcher would never run.
-                var frame = new DispatcherFrame();
-                _ = task.ContinueWith(_ =>
-                {
-                    try { frame.Continue = false; } catch { }
-                }, TaskScheduler.Default);
-                Dispatcher.PushFrame(frame);
-                task.GetAwaiter().GetResult();
-                tcs.TrySetResult();
-            }
-            catch (Exception ex)
-            {
-                tcs.TrySetException(ex);
-            }
-        });
-        thread.SetApartmentState(ApartmentState.STA);
-        thread.Start();
-        return tcs.Task;
+        return WpfTestThread.RunAsync(action);
     }
 
     private sealed class RecordingLogger : ILogger

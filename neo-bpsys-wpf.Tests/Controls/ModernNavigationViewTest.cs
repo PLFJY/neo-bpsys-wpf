@@ -5,8 +5,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Runtime.ExceptionServices;
-using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -20,6 +18,7 @@ using neo_bpsys_wpf.Core.Attributes;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Services;
+using neo_bpsys_wpf.Tests.Infrastructure;
 using neo_bpsys_wpf.Views.Pages;
 using neo_bpsys_wpf.Views.Pages.FrontManage;
 using neo_bpsys_wpf.Views.Pages.Plugin;
@@ -1222,27 +1221,6 @@ public class ModernNavigationViewTest
 
     private static void RunSta(Action action)
     {
-        ExceptionDispatchInfo? exception = null;
-        var thread = new Thread(() =>
-        {
-            try
-            {
-                action();
-            }
-            catch (Exception ex)
-            {
-                exception = ExceptionDispatchInfo.Capture(ex);
-            }
-        });
-
-        thread.IsBackground = true;
-        thread.SetApartmentState(ApartmentState.STA);
-        thread.Start();
-        if (!thread.Join(TimeSpan.FromSeconds(30)))
-        {
-            throw new TimeoutException("STA test thread did not finish within 30 seconds.");
-        }
-
-        exception?.Throw();
+        WpfTestThread.Run(action);
     }
 }

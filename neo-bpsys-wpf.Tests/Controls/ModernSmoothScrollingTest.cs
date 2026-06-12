@@ -3,13 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.ExceptionServices;
-using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
 using neo_bpsys_wpf.Controls.Modern.Scrolling;
+using neo_bpsys_wpf.Tests.Infrastructure;
 using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Controls;
@@ -832,27 +831,6 @@ public class ModernSmoothScrollingTest
 
     private static void RunSta(Action action)
     {
-        ExceptionDispatchInfo? exception = null;
-        var thread = new Thread(() =>
-        {
-            try
-            {
-                action();
-            }
-            catch (Exception ex)
-            {
-                exception = ExceptionDispatchInfo.Capture(ex);
-            }
-        });
-
-        thread.IsBackground = true;
-        thread.SetApartmentState(ApartmentState.STA);
-        thread.Start();
-        if (!thread.Join(TimeSpan.FromSeconds(30)))
-        {
-            throw new TimeoutException("STA test thread did not finish within 30 seconds.");
-        }
-
-        exception?.Throw();
+        WpfTestThread.Run(action);
     }
 }
