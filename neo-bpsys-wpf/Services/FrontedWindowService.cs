@@ -561,24 +561,32 @@ public class FrontedWindowService : IFrontedWindowService
 
     public async Task ReloadFrontedLayoutsAsync()
     {
-        foreach (var window in FrontedWindows.Values)
+        _services.GetService<IFrontedResourceResolver>()?.ClearCache();
+
+        foreach (var pair in FrontedWindows.ToArray())
         {
-            var method = window.GetType().GetMethod("ReloadFrontedLayoutAsync");
-            if (method is null)
+            if (pair.Value is not FrontedWindowBase frontedWindow
+                || !_windowRegistry.TryGetByWindowId(pair.Key, out var descriptor)
+                || !descriptor.IsV3LayoutWindow)
             {
                 continue;
             }
 
             try
             {
-                if (method.Invoke(window, null) is Task task)
+                var requestedTransparency = await frontedWindow.GetRequestedAllowsTransparencyAsync();
+                if (requestedTransparency.HasValue
+                    && requestedTransparency.Value != frontedWindow.AllowsTransparency)
                 {
-                    await task;
+                    await RestartWindowForTransparencyChangeAsync(descriptor.FullWindowType);
+                    continue;
                 }
+
+                await frontedWindow.ReloadFrontedLayoutAsync();
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to reload fronted v3 layout for {WindowType}.", window.GetType().Name);
+                _logger.LogWarning(ex, "Failed to reload fronted v3 layout for {WindowType}.", descriptor.FullWindowType);
             }
         }
     }

@@ -209,6 +209,16 @@ public class FrontedResourceResolver : IFrontedResourceResolver
         }
     }
 
+    /// <inheritdoc />
+    public void ClearCache()
+    {
+        lock (_imageCacheLock)
+        {
+            _imageCache.Clear();
+            _imageCacheOrder.Clear();
+        }
+    }
+
     private static bool TryCreateImageCacheKey(
         string resolvedPath,
         FrontedImagePurpose purpose,

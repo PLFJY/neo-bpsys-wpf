@@ -1,5 +1,9 @@
 # Fronted Layout v3 Window-centric
 
+内置布局方案是 `PackageId = builtin` 的普通活动包，布局根目录是应用运行时 `Resources/FrontedLayouts`。启用 package manager 后，活动包是权威来源，活动包为 `builtin` 时也不得回退旧用户布局存储。
+
+激活任意包都会完整重载已创建 v3 窗口的 WindowSettings、CanvasSettings、控件、资源和 behavior runtime。`AllowsTransparency` 变化时只静默重启对应已创建窗口，未创建窗口不会因此被创建。
+
 Fronted Layout v3 现在只以前台窗口为布局管理单位，不再把 Canvas 暴露为用户、Designer、FrontManagePage 或 `.bpui` package 的管理单位。
 
 ## 运行时结构

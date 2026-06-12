@@ -1681,15 +1681,6 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
-        ///   查找类似 添加标签 的本地化字符串。
-        /// </summary>
-        public static string Designer_Behaviors_AddBehaviorTag {
-            get {
-                return ResourceManager.GetString("Designer.Behaviors.AddBehaviorTag", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   查找类似 添加过滤器 的本地化字符串。
         /// </summary>
         public static string Designer_Behaviors_AddFilter {
@@ -1740,15 +1731,6 @@ namespace neo_bpsys_wpf.Locales {
         public static string Designer_Behaviors_AutoReverse {
             get {
                 return ResourceManager.GetString("Designer.Behaviors.AutoReverse", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 行为标签 的本地化字符串。
-        /// </summary>
-        public static string Designer_Behaviors_BehaviorTags {
-            get {
-                return ResourceManager.GetString("Designer.Behaviors.BehaviorTags", resourceCulture);
             }
         }
         
@@ -2910,15 +2892,6 @@ namespace neo_bpsys_wpf.Locales {
         public static string Designer_Behaviors_RightValueKind_Literal {
             get {
                 return ResourceManager.GetString("Designer.Behaviors.RightValueKind.Literal", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 自身标签 的本地化字符串。
-        /// </summary>
-        public static string Designer_Behaviors_RightValueKind_SelfTag {
-            get {
-                return ResourceManager.GetString("Designer.Behaviors.RightValueKind.SelfTag", resourceCulture);
             }
         }
         
@@ -4221,24 +4194,6 @@ namespace neo_bpsys_wpf.Locales {
         public static string Designer_Graph_Node_ValueNumber_Description {
             get {
                 return ResourceManager.GetString("Designer.Graph.Node.ValueNumber.Description", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 SelfTag 的本地化字符串。
-        /// </summary>
-        public static string Designer_Graph_Node_ValueSelfTag {
-            get {
-                return ResourceManager.GetString("Designer.Graph.Node.ValueSelfTag", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 当前控件标签值。 的本地化字符串。
-        /// </summary>
-        public static string Designer_Graph_Node_ValueSelfTag_Description {
-            get {
-                return ResourceManager.GetString("Designer.Graph.Node.ValueSelfTag.Description", resourceCulture);
             }
         }
         

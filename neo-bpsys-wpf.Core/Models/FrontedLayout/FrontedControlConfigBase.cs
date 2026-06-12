@@ -55,11 +55,4 @@ public class FrontedControlConfigBase
     /// </summary>
     public string? BindingPath { get; set; }
 
-    /// <summary>
-    /// 行为系统用于触发器过滤的自定义标签字典。
-    /// 键为标签名称，值为标签值。在 TriggerFilter 中可通过 SelfTag.X 引用。
-    /// Designer UI 编辑入口将在后续版本中提供。
-    /// </summary>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public Dictionary<string, string> BehaviorTags { get; set; } = [];
 }

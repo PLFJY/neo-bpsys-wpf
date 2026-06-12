@@ -178,8 +178,47 @@ public class FrontedWindowBase : Window
     /// <returns>A task that completes when the layout has reloaded.</returns>
     public async Task ReloadFrontedLayoutAsync()
     {
-        await EnsureInitialWindowSettingsAppliedAsync();
+        await ReloadWindowSettingsAsync();
         await LoadOrReloadContentAsync(force: true);
+    }
+
+    /// <summary>
+    /// Gets the transparency value requested by the currently active v3 layout.
+    /// </summary>
+    /// <returns>The requested transparency value, or <c>null</c> when no v3 layout is available.</returns>
+    public async Task<bool?> GetRequestedAllowsTransparencyAsync()
+    {
+        if (!_isV3LayoutHost || _v3Descriptor is null || _layoutService is null)
+        {
+            return null;
+        }
+
+        var config = await _layoutService.LoadWindowConfigAsync(_v3Descriptor.FullWindowType);
+        return config?.WindowSettings.AllowsTransparency;
+    }
+
+    /// <summary>
+    /// Reloads window settings that can safely change after WPF source creation.
+    /// </summary>
+    /// <returns>A task that completes when the settings have been applied.</returns>
+    public async Task ReloadWindowSettingsAsync()
+    {
+        if (!_isV3LayoutHost || _v3Descriptor is null || _layoutService is null)
+        {
+            return;
+        }
+
+        var config = await _layoutService.LoadWindowConfigAsync(_v3Descriptor.FullWindowType);
+        if (config is null)
+        {
+            return;
+        }
+
+        await RunOnDispatcherAsync(() =>
+        {
+            ApplyWindowSettings(config.WindowSettings, includeSourceAffectingSettings: false);
+            return Task.CompletedTask;
+        });
     }
 
     /// <summary>
@@ -209,7 +248,7 @@ public class FrontedWindowBase : Window
 
             await RunOnDispatcherAsync(() =>
             {
-                ApplyWindowSettings(config.WindowSettings);
+                ApplyWindowSettings(config.WindowSettings, includeSourceAffectingSettings: true);
                 _hasInitialWindowSettingsApplied = true;
                 return Task.CompletedTask;
             });
@@ -343,7 +382,7 @@ public class FrontedWindowBase : Window
         });
     }
 
-    private void ApplyWindowSettings(FrontedWindowSettings settings)
+    private void ApplyWindowSettings(FrontedWindowSettings settings, bool includeSourceAffectingSettings)
     {
         if (IsPositiveFinite(settings.WindowWidth))
         {
@@ -369,15 +408,9 @@ public class FrontedWindowBase : Window
             WindowStartupLocation = WindowStartupLocation.Manual;
         }
 
-        if (PresentationSource.FromVisual(this) is null)
+        if (includeSourceAffectingSettings && PresentationSource.FromVisual(this) is null)
         {
             AllowsTransparency = settings.AllowsTransparency;
-        }
-        else if (AllowsTransparency != settings.AllowsTransparency)
-        {
-            _logger?.LogInformation(
-                "Fronted window transparency change will apply the next time the window is recreated. Window: {WindowTypeName}",
-                _v3Descriptor?.FullWindowType);
         }
 
         if (!TryCreateBackgroundBrush(settings.BackgroundColor, out var brush))

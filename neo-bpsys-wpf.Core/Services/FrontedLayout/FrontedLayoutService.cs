@@ -162,41 +162,51 @@ public class FrontedLayoutService : IFrontedLayoutService
         string windowTypeName,
         CancellationToken cancellationToken = default)
     {
-        var userPath = _userLayoutStore.GetLayoutPath(windowTypeName);
-        var builtInPath = GetBuiltInDefaultWindowLayoutPath(windowTypeName);
-        string? userLoadError = null;
-
         if (_packageManager is not null)
         {
             var activeState = await _packageManager.GetActivePackageStateAsync(cancellationToken);
-            if (!string.Equals(activeState.PackageId, FrontedLayoutPackageManager.BuiltInPackageId, StringComparison.OrdinalIgnoreCase))
+            var packagePath = _packageManager.GetPackageLayoutPath(activeState.PackageId, windowTypeName);
+            if (File.Exists(packagePath))
             {
-                var packagePath = _packageManager.GetPackageLayoutPath(activeState.PackageId, windowTypeName);
-                if (File.Exists(packagePath))
+                try
                 {
-                    try
+                    return new FrontedLayoutLoadResult
                     {
-                        return new FrontedLayoutLoadResult
-                        {
-                            Config = await ReadConfigAsync(packagePath, cancellationToken),
-                            Source = FrontedLayoutSource.User,
-                            Path = packagePath
-                        };
-                    }
-                    catch (Exception ex)
+                        Config = await ReadConfigAsync(packagePath, cancellationToken),
+                        Source = string.Equals(activeState.PackageId, FrontedLayoutPackageManager.BuiltInPackageId, StringComparison.OrdinalIgnoreCase)
+                            ? FrontedLayoutSource.BuiltIn
+                            : FrontedLayoutSource.User,
+                        Path = packagePath
+                    };
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(
+                        ex,
+                        "Failed to load active package fronted layout. PackageId: {PackageId}, Window: {WindowTypeName}, Path: {Path}",
+                        activeState.PackageId,
+                        windowTypeName,
+                        packagePath);
+                    return new FrontedLayoutLoadResult
                     {
-                        userLoadError = ex.Message;
-                        _logger.LogWarning(
-                            ex,
-                            "Failed to load active package fronted layout. Falling back to defaults. PackageId: {PackageId}, Window: {WindowTypeName}, Canvas: {CanvasName}, Path: {Path}",
-                            activeState.PackageId,
-                            windowTypeName,
-                            FrontedLayoutConstants.BaseCanvasName,
-                            packagePath);
-                    }
+                        Source = FrontedLayoutSource.MissingOrError,
+                        Path = packagePath,
+                        Error = ex.Message
+                    };
                 }
             }
+
+            return new FrontedLayoutLoadResult
+            {
+                Source = FrontedLayoutSource.MissingOrError,
+                Path = packagePath,
+                Error = $"Active package layout is missing: {activeState.PackageId}"
+            };
         }
+
+        var userPath = _userLayoutStore.GetLayoutPath(windowTypeName);
+        var builtInPath = GetBuiltInDefaultWindowLayoutPath(windowTypeName);
+        string? userLoadError = null;
 
         if (_userLayoutStore.Exists(windowTypeName))
         {

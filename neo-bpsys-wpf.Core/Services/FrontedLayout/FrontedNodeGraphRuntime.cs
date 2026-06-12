@@ -175,11 +175,6 @@ public sealed class FrontedNodeGraphRuntime(
             return context.EventPayload.GetValueOrDefault(value["Event.".Length..]);
         }
 
-        if (value.StartsWith("SelfTag.", StringComparison.Ordinal))
-        {
-            return context.SelfTags.GetValueOrDefault(value["SelfTag.".Length..]);
-        }
-
         return value;
     }
 

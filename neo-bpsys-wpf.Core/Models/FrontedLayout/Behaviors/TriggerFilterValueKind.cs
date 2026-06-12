@@ -7,6 +7,5 @@ public enum TriggerFilterValueKind
 {
     Literal,
     EventPath,
-    SelfTag,
     BindingPath
 }

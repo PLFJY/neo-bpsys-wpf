@@ -199,47 +199,6 @@ public class FrontedSharedDataBehaviorEventBridgeTest
     }
 
     [Fact]
-    public async Task GameGuidanceBridge_PublishesHighlightChanged()
-    {
-        using var semaphore = new SemaphoreSlim(0, 1);
-        FrontedBehaviorEvent? received = null;
-        var sharedData = new MockSharedDataService();
-        var guidance = new MockGameGuidanceService();
-        var bus = new MockEventBus();
-
-        using (bus.Subscribe(null, ev =>
-        {
-            if (ev.EventType != "Guidance.HighlightChanged")
-            {
-                return Task.CompletedTask;
-            }
-
-            received = ev;
-            semaphore.Release();
-            return Task.CompletedTask;
-        }))
-        {
-            using var bridge = new FrontedSharedDataBehaviorEventBridge(
-                sharedData,
-                bus,
-                NullLogger<FrontedSharedDataBehaviorEventBridge>.Instance,
-                gameGuidanceService: guidance);
-            bridge.Start();
-
-            guidance.FireHighlightChanged(new GameGuidanceHighlightChangedEventArgs(GameAction.BanSur, [0]));
-
-            Assert.True(await semaphore.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
-        }
-
-        Assert.NotNull(received);
-        Assert.Equal("GameGuidanceService", received!.Source);
-        Assert.Equal(GameAction.BanSur, received.Payload["Action"]);
-        Assert.Equal(0, received.Payload["Index"]);
-        Assert.Equal("[0]", received.Payload["IndexesText"]);
-        Assert.False(received.Payload.ContainsKey("IsActive"));
-    }
-
-    [Fact]
     public async Task GameGuidanceBridge_PublishesPreviousStepPayloads()
     {
         using var semaphore = new SemaphoreSlim(0, 1);

@@ -58,18 +58,11 @@ public interface IGameGuidanceService
     /// <summary>
     /// 引导高亮变化事件
     /// </summary>
-    [FrontedBehaviorEvent("Guidance.HighlightChanged", DisplayNameKey = "Designer.Behaviors.Event.GuidanceHighlightChanged", DescriptionKey = "Designer.Behaviors.Event.GuidanceHighlightChanged.Description", Category = "Guidance", CategoryKey = "Designer.Behaviors.Category.Guidance")]
-    [FrontedBehaviorEventPayload("Event.GameAction", DisplayNameKey = "Designer.Behaviors.Payload.GameAction", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(GameGuidanceHighlightChangedEventArgs.GameAction), TypeName = "GameAction")]
-    [FrontedBehaviorEventPayload("Event.Action", DisplayNameKey = "Designer.Behaviors.Payload.Action", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(GameGuidanceHighlightChangedEventArgs.Action), TypeName = "GameAction")]
-    [FrontedBehaviorEventPayload("Event.Indexes", DisplayNameKey = "Designer.Behaviors.Payload.Indexes", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(GameGuidanceHighlightChangedEventArgs.Indexes), TypeName = "int[]")]
-    [FrontedBehaviorEventPayload("Event.IndexesText", DisplayNameKey = "Designer.Behaviors.Payload.IndexesText", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(GameGuidanceHighlightChangedEventArgs.IndexesText), TypeName = "string")]
-    [FrontedBehaviorEventPayload("Event.Index", DisplayNameKey = "Designer.Behaviors.Payload.Index", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(GameGuidanceHighlightChangedEventArgs.FirstIndex), TypeName = "int")]
     event EventHandler<GameGuidanceHighlightChangedEventArgs>? GuidanceHighlightChanged;
 
     /// <summary>
     /// 引导高亮清除事件。
     /// </summary>
-    [FrontedBehaviorEvent("Guidance.HighlightCleared", DisplayNameKey = "Designer.Behaviors.Event.GuidanceHighlightCleared", DescriptionKey = "Designer.Behaviors.Event.GuidanceHighlightCleared.Description", Category = "Guidance", CategoryKey = "Designer.Behaviors.Category.Guidance")]
     event EventHandler<GameGuidanceHighlightChangedEventArgs>? GuidanceHighlightCleared;
 
     /// <summary>

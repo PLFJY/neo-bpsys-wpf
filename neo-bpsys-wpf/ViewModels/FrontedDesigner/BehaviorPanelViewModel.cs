@@ -68,7 +68,6 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
         OperatorOptions = CreateOperatorOptions();
         StopModeOptions = CreateEnumOptions<FrontedLoopStopMode>("Designer.Behaviors.StopMode");
         ReentryPolicyOptions = CreateEnumOptions<FrontedReentryPolicy>("Designer.Behaviors.ReentryPolicy");
-        TagsEditor = new BehaviorTagsEditorViewModel(markLayoutDirty);
     }
 
     public ObservableCollection<BehaviorEditorViewModel> Behaviors { get; } = [];
@@ -80,11 +79,6 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
     public IReadOnlyList<BehaviorOptionViewModel> StopModeOptions { get; }
 
     public IReadOnlyList<BehaviorOptionViewModel> ReentryPolicyOptions { get; }
-
-    /// <summary>
-    /// Gets the selected control behavior tags editor.
-    /// </summary>
-    public BehaviorTagsEditorViewModel TagsEditor { get; }
 
     public FrontedBehaviorDocument CurrentDocument { get; private set; } = new();
 
@@ -122,7 +116,6 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
     public void SetSelectedControl(FrontedControlDesignItem? selectedControl)
     {
         SelectedControl = selectedControl;
-        TagsEditor.SetConfig(selectedControl?.Config);
         RefreshForSelectedControl();
     }
 

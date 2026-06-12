@@ -4019,7 +4019,6 @@
   <data name="Designer.Behaviors.Operator.Exists" xml:space="preserve"><value>Exists</value></data>
   <data name="Designer.Behaviors.RightValueKind.Literal" xml:space="preserve"><value>Literal</value></data>
   <data name="Designer.Behaviors.RightValueKind.EventPath" xml:space="preserve"><value>Event path</value></data>
-  <data name="Designer.Behaviors.RightValueKind.SelfTag" xml:space="preserve"><value>Self tag</value></data>
   <data name="Designer.Behaviors.RightValueKind.BindingPath" xml:space="preserve"><value>Binding path</value></data>
   <data name="Designer.Behaviors.StopMode.StopImmediately" xml:space="preserve"><value>Stop immediately</value></data>
   <data name="Designer.Behaviors.StopMode.CompleteCurrentIteration" xml:space="preserve"><value>Complete current iteration</value></data>
@@ -4125,8 +4124,6 @@
   <data name="Designer.Behaviors.Event.GuidanceStateChanged.Description" xml:space="preserve"><value>Fires when guidance starts or stops.</value></data>
   <data name="Designer.Behaviors.Event.GuidanceStopped.Description" xml:space="preserve"><value>Fires when guidance stops.</value></data>
   <data name="Designer.Behaviors.Event.GuidanceStepChanged.Description" xml:space="preserve"><value>Fires when the guidance step changes.</value></data>
-  <data name="Designer.Behaviors.BehaviorTags" xml:space="preserve"><value>Behavior Tags</value></data>
-  <data name="Designer.Behaviors.AddBehaviorTag" xml:space="preserve"><value>Add tag</value></data>
   <data name="Designer.Graph.Target.Self" xml:space="preserve"><value>Self</value></data>
   <data name="Designer.Option.TargetLayer.Auto" xml:space="preserve"><value>Auto</value></data>
   <data name="Designer.Option.TargetLayer.Control" xml:space="preserve"><value>Control Root</value></data>

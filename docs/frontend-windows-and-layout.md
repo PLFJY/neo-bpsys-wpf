@@ -1,5 +1,7 @@
 # 前台窗口与布局
 
+`builtin` 与已安装方案一样是普通活动布局包，只是物理根目录指向应用运行时 `Resources/FrontedLayouts`。package manager 模式不读取旧用户布局存储。包切换会完整刷新已创建 v3 窗口；透明度变化通过单窗口静默重启生效。
+
 ## 前台窗口是什么
 
 “前台窗口”对应代码中的 `FrontedWindow`，是独立 WPF 窗口，用于直播软件捕获。它不是 Web frontend。

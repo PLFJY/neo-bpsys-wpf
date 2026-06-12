@@ -102,54 +102,6 @@
             </StackPanel>
         </Border>
 
-        <Expander
-            Margin="0,10,0,0"
-            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
-            BorderThickness="1"
-            Header="{lex:Loc Designer.Behaviors.BehaviorTags}">
-            <StackPanel Margin="8" DataContext="{Binding TagsEditor}">
-                <ItemsControl ItemsSource="{Binding Tags}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate DataType="{x:Type vm:BehaviorTagRowViewModel}">
-                            <Grid Margin="0,0,0,6">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <ui:TextBox
-                                    MinWidth="80"
-                                    Margin="0,0,4,0"
-                                    PlaceholderText="Camp"
-                                    Text="{Binding Key, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
-                                <ui:TextBox
-                                    Grid.Column="1"
-                                    MinWidth="80"
-                                    Margin="4,0,4,0"
-                                    PlaceholderText="Sur"
-                                    Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=LostFocus, TargetNullValue=''}" />
-                                <ui:Button
-                                    Grid.Column="2"
-                                    MinWidth="30"
-                                    Command="{Binding DataContext.RemoveTagCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                    CommandParameter="{Binding}"
-                                    Content="-" />
-                            </Grid>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-                <TextBlock
-                    Margin="0,0,0,6"
-                    Opacity="0.72"
-                    Text="Camp = Sur, PlayerIndex = 0, Role = PickSlot"
-                    TextWrapping="Wrap" />
-                <ui:Button
-                    HorizontalAlignment="Stretch"
-                    Command="{Binding AddTagCommand}"
-                    Content="{lex:Loc Designer.Behaviors.AddBehaviorTag}" />
-            </StackPanel>
-        </Expander>
-
         <UniformGrid Margin="0,10,0,0" Columns="2">
             <ui:Button
                 Margin="0,0,4,0"

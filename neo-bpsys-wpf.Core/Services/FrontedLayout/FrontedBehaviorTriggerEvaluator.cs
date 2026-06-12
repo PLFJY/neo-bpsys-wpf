@@ -6,7 +6,7 @@ namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
 /// Evaluates whether a <see cref="FrontedBehaviorEvent" /> matches a <see cref="TriggerDescriptor" />,
-/// including all filter conditions against event payload and self-tags.
+/// including all filter conditions against event payload.
 /// </summary>
 public sealed class FrontedBehaviorTriggerEvaluator
 {
@@ -25,12 +25,10 @@ public sealed class FrontedBehaviorTriggerEvaluator
     /// </summary>
     /// <param name="trigger">The trigger descriptor with event type and optional filters.</param>
     /// <param name="behaviorEvent">The published behavior event.</param>
-    /// <param name="selfTags">Self-tags from the control configuration. Can be null or empty.</param>
     /// <returns>True if the event type matches and all filters pass; otherwise false.</returns>
     public bool Evaluate(
         TriggerDescriptor trigger,
-        FrontedBehaviorEvent behaviorEvent,
-        IReadOnlyDictionary<string, string>? selfTags)
+        FrontedBehaviorEvent behaviorEvent)
     {
         if (trigger is null)
         {
@@ -53,7 +51,7 @@ public sealed class FrontedBehaviorTriggerEvaluator
         // 3. All filters must pass
         foreach (var filter in trigger.Filters)
         {
-            if (!EvaluateFilter(filter, behaviorEvent, selfTags))
+            if (!EvaluateFilter(filter, behaviorEvent))
             {
                 return false;
             }
@@ -64,13 +62,12 @@ public sealed class FrontedBehaviorTriggerEvaluator
 
     private bool EvaluateFilter(
         TriggerFilter filter,
-        FrontedBehaviorEvent behaviorEvent,
-        IReadOnlyDictionary<string, string>? selfTags)
+        FrontedBehaviorEvent behaviorEvent)
     {
         try
         {
-            var leftValue = ResolveLeftValue(filter.Left, behaviorEvent, selfTags);
-            var rightValue = ResolveOperandValue(filter.Right, behaviorEvent, selfTags);
+            var leftValue = ResolveLeftValue(filter.Left, behaviorEvent);
+            var rightValue = ResolveOperandValue(filter.Right, behaviorEvent);
             return FrontedTriggerFilterTextComparer.Evaluate(leftValue, filter.Operator, rightValue?.ToString());
         }
         catch (Exception ex)
@@ -84,14 +81,12 @@ public sealed class FrontedBehaviorTriggerEvaluator
 
     private static object? ResolveLeftValue(
         string left,
-        FrontedBehaviorEvent behaviorEvent,
-        IReadOnlyDictionary<string, string>? selfTags) =>
-        ResolveOperandValue(left, behaviorEvent, selfTags);
+        FrontedBehaviorEvent behaviorEvent) =>
+        ResolveOperandValue(left, behaviorEvent);
 
     private static object? ResolveOperandValue(
         string? text,
-        FrontedBehaviorEvent behaviorEvent,
-        IReadOnlyDictionary<string, string>? selfTags)
+        FrontedBehaviorEvent behaviorEvent)
     {
         if (string.IsNullOrEmpty(text))
         {
@@ -102,17 +97,6 @@ public sealed class FrontedBehaviorTriggerEvaluator
         {
             var key = text["Event.".Length..];
             return behaviorEvent.Payload.TryGetValue(key, out var value) ? value : null;
-        }
-
-        if (text.StartsWith("SelfTag.", StringComparison.Ordinal))
-        {
-            var key = text["SelfTag.".Length..];
-            if (selfTags is not null && selfTags.TryGetValue(key, out var tagValue))
-            {
-                return tagValue;
-            }
-
-            return null;
         }
 
         // Literal text

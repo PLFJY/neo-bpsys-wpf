@@ -4017,6 +4017,35 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
+    public async Task FrontedLayoutService_PackageManagerMode_LoadsActiveBuiltinAndIgnoresLegacyUserLayout()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var userStore = new FrontedUserLayoutStore(Path.Combine(root, "user"));
+            var builtInRoot = Path.Combine(root, "builtIn");
+            var packageManager = new FrontedLayoutPackageManager(Path.Combine(root, "packages"), builtInRoot);
+            var builtIn = new FrontedWindowConfig();
+            builtIn.WindowSettings.BackgroundColor = "#FF00FF00";
+            Directory.CreateDirectory(builtInRoot);
+            File.WriteAllText(Path.Combine(builtInRoot, "BpWindow.json"), JsonSerializer.Serialize(builtIn));
+            var user = new FrontedWindowConfig();
+            user.WindowSettings.BackgroundColor = "#FFFF0000";
+            await userStore.SaveAsync("BpWindow", user, TestContext.Current.CancellationToken);
+
+            var service = new FrontedLayoutService(userStore, builtInRoot, packageManager, null, null);
+            var result = await service.LoadWindowConfigWithMetadataAsync("BpWindow", TestContext.Current.CancellationToken);
+
+            Assert.Equal(FrontedLayoutSource.BuiltIn, result.Source);
+            Assert.Equal("#FF00FF00", result.Config?.WindowSettings.BackgroundColor);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
     public async Task SaveCurrentLayoutRefusesValidationErrors()
     {
         var viewModel = new FrontedDesignerWindowViewModel

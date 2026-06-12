@@ -19,4 +19,11 @@ public interface IFrontedResourceResolver
     ImageSource? ResolveImage(
         string? path,
         FrontedImagePurpose purpose = FrontedImagePurpose.PackageResource);
+
+    /// <summary>
+    /// Clears cached resolved resources after the active layout package changes.
+    /// </summary>
+    void ClearCache()
+    {
+    }
 }

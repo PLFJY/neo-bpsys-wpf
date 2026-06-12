@@ -3923,7 +3923,6 @@
   <data name="Designer.Behaviors.Operator.Exists" xml:space="preserve"><value>存在する</value></data>
   <data name="Designer.Behaviors.RightValueKind.Literal" xml:space="preserve"><value>リテラル</value></data>
   <data name="Designer.Behaviors.RightValueKind.EventPath" xml:space="preserve"><value>イベントパス</value></data>
-  <data name="Designer.Behaviors.RightValueKind.SelfTag" xml:space="preserve"><value>自身タグ</value></data>
   <data name="Designer.Behaviors.RightValueKind.BindingPath" xml:space="preserve"><value>バインドパス</value></data>
   <data name="Designer.Behaviors.StopMode.StopImmediately" xml:space="preserve"><value>すぐ停止</value></data>
   <data name="Designer.Behaviors.StopMode.CompleteCurrentIteration" xml:space="preserve"><value>現在の反復を完了</value></data>
@@ -4029,8 +4028,6 @@
   <data name="Designer.Behaviors.Event.GuidanceStateChanged.Description" xml:space="preserve"><value>ガイダンスの開始または停止時に発生します。</value></data>
   <data name="Designer.Behaviors.Event.GuidanceStopped.Description" xml:space="preserve"><value>ガイダンスが停止された時に発生します。</value></data>
   <data name="Designer.Behaviors.Event.GuidanceStepChanged.Description" xml:space="preserve"><value>ガイダンスステップが切り替わった時に発生します。</value></data>
-  <data name="Designer.Behaviors.BehaviorTags" xml:space="preserve"><value>ビヘイビアタグ</value></data>
-  <data name="Designer.Behaviors.AddBehaviorTag" xml:space="preserve"><value>タグを追加</value></data>
   <data name="Designer.Graph.Target.Self" xml:space="preserve"><value>自身</value></data>
   <data name="Designer.Option.TargetLayer.Auto" xml:space="preserve"><value>自動</value></data>
   <data name="Designer.Option.TargetLayer.Control" xml:space="preserve"><value>コントロール本体</value></data>

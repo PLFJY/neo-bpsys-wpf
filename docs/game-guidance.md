@@ -65,7 +65,7 @@
 
 `Guidance.StepChanged` 同时暴露当前步骤和上一步骤 payload。当前步骤 payload 适合启动动画，上一步骤 payload 适合停止由切换前引导步骤启动的动画。首次进入步骤时，所有 `Previous*` 值为 `null`，`PreviousIndexesText` 为 `[]`。
 
-列表索引的字符串过滤应优先使用 `IndexesText` / `PreviousIndexesText`，其格式稳定为 `[1, 2]`。`Guidance.HighlightChanged` 也提供 `IndexesText`。
+列表索引的字符串过滤应优先使用 `IndexesText` / `PreviousIndexesText`，其格式稳定为 `[1, 2]`。高亮变化与清除事件只用于后台引导 UI，不暴露给前台行为触发器。
 
 例如，启动求生者 1 号位呼吸灯：
 

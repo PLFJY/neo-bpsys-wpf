@@ -4252,9 +4252,6 @@
   <data name="Designer.Behaviors.RightValueKind.EventPath" xml:space="preserve">
     <value>事件路径</value>
   </data>
-  <data name="Designer.Behaviors.RightValueKind.SelfTag" xml:space="preserve">
-    <value>自身标签</value>
-  </data>
   <data name="Designer.Behaviors.RightValueKind.BindingPath" xml:space="preserve">
     <value>绑定路径</value>
   </data>
@@ -4572,12 +4569,6 @@
   </data>
   <data name="Designer.Behaviors.Event.GuidanceStepChanged.Description" xml:space="preserve">
     <value>对局引导步骤切换时触发。</value>
-  </data>
-  <data name="Designer.Behaviors.BehaviorTags" xml:space="preserve">
-    <value>行为标签</value>
-  </data>
-  <data name="Designer.Behaviors.AddBehaviorTag" xml:space="preserve">
-    <value>添加标签</value>
   </data>
   <data name="Designer.Graph.Target.Self" xml:space="preserve">
     <value>自身</value>

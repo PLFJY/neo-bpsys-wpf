@@ -67,7 +67,6 @@ public sealed class FrontedGraphExecutionContext
     public string CurrentControlDisplayName { get; init; } = string.Empty;
     public string TriggerEventType { get; init; } = string.Empty;
     public IReadOnlyDictionary<string, object?> EventPayload { get; init; } = new Dictionary<string, object?>();
-    public IReadOnlyDictionary<string, object?> SelfTags { get; init; } = new Dictionary<string, object?>();
     public IFrontedGraphActionExecutor? ActionExecutor { get; init; }
 }
 

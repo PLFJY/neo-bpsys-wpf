@@ -41,9 +41,9 @@ public class FrontedBehaviorEventCatalogTest
     {
         var catalog = new FrontedBehaviorEventCatalog();
 
-        Assert.NotNull(catalog.Find("Guidance.HighlightChanged"));
         Assert.NotNull(catalog.Find("Guidance.StepChanged"));
-        Assert.NotNull(catalog.Find("Guidance.HighlightCleared"));
+        Assert.Null(catalog.Find("Guidance.HighlightChanged"));
+        Assert.Null(catalog.Find("Guidance.HighlightCleared"));
     }
 
     [Fact]
@@ -51,7 +51,6 @@ public class FrontedBehaviorEventCatalogTest
     {
         var catalog = new FrontedBehaviorEventCatalog();
         var stepChanged = Assert.IsType<FrontedBehaviorEventDescriptor>(catalog.Find("Guidance.StepChanged"));
-        var highlightChanged = Assert.IsType<FrontedBehaviorEventDescriptor>(catalog.Find("Guidance.HighlightChanged"));
         var expectedStepPayloads = new[]
         {
             "Event.IndexesText",
@@ -66,7 +65,6 @@ public class FrontedBehaviorEventCatalogTest
 
         Assert.All(expectedStepPayloads, path =>
             Assert.Contains(stepChanged.PayloadFields, field => field.Path == path));
-        Assert.Contains(highlightChanged.PayloadFields, field => field.Path == "Event.IndexesText");
     }
 
     [Fact]

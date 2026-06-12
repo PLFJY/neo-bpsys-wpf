@@ -105,6 +105,38 @@ public class FrontedWindowServiceTransparencyRestartTest
     }
 
     [Fact]
+    public async Task ReloadFrontedLayoutsAsync_ReappliesBackgroundAndRendersCurrentControls()
+    {
+        await RunOnStaThreadAsync(async () =>
+        {
+            var descriptor = CreateDescriptor();
+            var currentConfig = CreateConfig("#FFFF0000", allowsTransparency: false);
+            var renderer = new Mock<IFrontedRenderer>();
+            var service = CreateService(
+                descriptor,
+                configFactory: () => currentConfig,
+                renderer: renderer);
+            var window = Assert.IsType<FrontedWindowBase>(service.EnsureWindowCreated(descriptor.WindowId));
+            await window.EnsureInitialWindowSettingsAppliedAsync();
+            window.Show();
+            service.FrontedWindowStates[descriptor.WindowId] = true;
+
+            currentConfig = CreateConfig("#FF00FF00", allowsTransparency: false);
+            await service.ReloadFrontedLayoutsAsync();
+
+            var brush = Assert.IsType<System.Windows.Media.SolidColorBrush>(window.Background);
+            Assert.Equal(System.Windows.Media.Color.FromRgb(0, 255, 0), brush.Color);
+            renderer.Verify(
+                x => x.RenderToCanvas(
+                    It.IsAny<System.Windows.Controls.Canvas>(),
+                    currentConfig,
+                    It.IsAny<FrontedRenderContext>()),
+                Times.Once);
+            window.RequestServiceClose();
+        });
+    }
+
+    [Fact]
     public void DesignerTransparencyOptionDoesNotExposeRestartPrompt()
     {
         var root = GetRepositoryRoot();
@@ -146,29 +178,17 @@ public class FrontedWindowServiceTransparencyRestartTest
     private static FrontedWindowService CreateService(
         IFrontedWindowDescriptor descriptor,
         bool allowsTransparency = false,
-        Mock<IFrontedEventBus> eventBus = null)
+        Mock<IFrontedEventBus> eventBus = null,
+        Func<FrontedWindowConfig> configFactory = null,
+        Mock<IFrontedRenderer> renderer = null)
     {
         var services = new ServiceCollection();
         var layoutService = new Mock<IFrontedLayoutService>();
         layoutService
             .Setup(x => x.LoadWindowConfigAsync(descriptor.FullWindowType, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new FrontedWindowConfig
-            {
-                WindowSettings =
-                {
-                    WindowWidth = 320,
-                    WindowHeight = 180,
-                    AllowsTransparency = allowsTransparency,
-                    BackgroundColor = "#00000000"
-                },
-                CanvasSettings =
-                {
-                    CanvasWidth = 320,
-                    CanvasHeight = 180
-                }
-            });
+            .ReturnsAsync(() => configFactory?.Invoke() ?? CreateConfig("#00000000", allowsTransparency));
         services.AddSingleton(layoutService.Object);
-        services.AddSingleton(Mock.Of<IFrontedRenderer>());
+        services.AddSingleton((renderer ?? new Mock<IFrontedRenderer>()).Object);
         services.AddSingleton(Mock.Of<ISharedDataService>());
         services.AddSingleton(NullLogger<FrontedWindowBase>.Instance);
 
@@ -196,6 +216,25 @@ public class FrontedWindowServiceTransparencyRestartTest
             options.Object,
             NullLogger<FrontedWindowService>.Instance,
             eventBus == null ? null : eventBus.Object);
+    }
+
+    private static FrontedWindowConfig CreateConfig(string backgroundColor, bool allowsTransparency)
+    {
+        return new FrontedWindowConfig
+        {
+            WindowSettings =
+            {
+                WindowWidth = 320,
+                WindowHeight = 180,
+                AllowsTransparency = allowsTransparency,
+                BackgroundColor = backgroundColor
+            },
+            CanvasSettings =
+            {
+                CanvasWidth = 320,
+                CanvasHeight = 180
+            }
+        };
     }
 
     private static string GetRepositoryRoot()

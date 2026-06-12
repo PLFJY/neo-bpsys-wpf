@@ -85,3 +85,5 @@ git diff --stat
 解决方案文件是 `neo-bpsys-wpf.slnx`
 
 更多内部说明见 `/docs/README.md`，尤其是 `/docs/known-limitations-and-roadmap.md`。
+
+补充规则：前台行为过滤使用显式事件 payload 和稳定控件身份，不提供临时行为标签；后台引导高亮变化与清除事件不暴露给前台行为触发器，使用 `Guidance.StepChanged`。内置布局是 `PackageId = builtin` 的普通活动包，package manager 模式不得回退旧用户布局存储；切换包需完整重载已创建 v3 窗口，`AllowsTransparency` 变化时仅静默重启受影响窗口。

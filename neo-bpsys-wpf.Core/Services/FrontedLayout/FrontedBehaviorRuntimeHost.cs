@@ -22,7 +22,6 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
     private readonly FrontedNodeGraphValidator _graphValidator;
     private readonly ILogger _logger;
     private readonly Dictionary<Guid, RunningBehaviorState> _runningBehaviors = [];
-    private readonly Dictionary<Guid, IReadOnlyDictionary<string, string>> _selfTagsByBehaviorGuid = [];
     private readonly object _gate = new();
 
     private IDisposable? _eventSubscription;
@@ -64,8 +63,6 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
     public async Task AttachAsync(FrontedBehaviorDocument document)
     {
         _document = document;
-        BuildSelfTagIndex();
-
         // Subscribe to all events on the bus that are relevant to this window.
         _eventSubscription = _eventBus.Subscribe(null, OnEventAsync);
 
@@ -128,20 +125,6 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
         return true;
     }
 
-    private void BuildSelfTagIndex()
-    {
-        _selfTagsByBehaviorGuid.Clear();
-        foreach (var control in _context.WindowConfig.ControlLayout.Controls.Values)
-        {
-            if (control.BehaviorGuid == Guid.Empty || control.BehaviorTags.Count == 0)
-            {
-                continue;
-            }
-
-            _selfTagsByBehaviorGuid[control.BehaviorGuid] = control.BehaviorTags;
-        }
-    }
-
     private void ProcessEvent(FrontedBehaviorEvent behaviorEvent)
     {
         foreach (var set in _document!.ControlBehaviorSets)
@@ -189,8 +172,7 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
             return;
         }
 
-        var selfTags = GetSelfTags(set);
-        if (!_triggerEvaluator.Evaluate(trigger, behaviorEvent, selfTags))
+        if (!_triggerEvaluator.Evaluate(trigger, behaviorEvent))
         {
             _logger.LogDebug(
                 "OneShot {BehaviorId} trigger {EventType} did not match.",
@@ -256,7 +238,6 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
                 CurrentControlDisplayName = set.DisplayName ?? string.Empty,
                 TriggerEventType = behaviorEvent.EventType,
                 EventPayload = behaviorEvent.Payload,
-                SelfTags = GetSelfTagsAsObjects(set),
                 ActionExecutor = actionExecutor
             };
 
@@ -316,7 +297,7 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
         {
             var startTrigger = behavior.StartTrigger;
             var startMatches = startTrigger is not null &&
-                _triggerEvaluator.Evaluate(startTrigger, behaviorEvent, GetSelfTags(set));
+                _triggerEvaluator.Evaluate(startTrigger, behaviorEvent);
 
             if (!_runningBehaviors.TryGetValue(behavior.BehaviorId, out var state))
             {
@@ -372,7 +353,7 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
                     return;
                 }
 
-                if (!_triggerEvaluator.Evaluate(endTrigger, behaviorEvent, GetSelfTags(set)))
+                if (!_triggerEvaluator.Evaluate(endTrigger, behaviorEvent))
                 {
                     return;
                 }
@@ -439,7 +420,6 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
                 {
                     BehaviorGuid = behavior.BehaviorId,
                     CurrentControlDisplayName = set.DisplayName ?? string.Empty,
-                    SelfTags = GetSelfTagsAsObjects(set),
                     ActionExecutor = startExecutor
                 };
 
@@ -478,7 +458,6 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
                         {
                             BehaviorGuid = behavior.BehaviorId,
                             CurrentControlDisplayName = set.DisplayName ?? string.Empty,
-                            SelfTags = GetSelfTagsAsObjects(set),
                             ActionExecutor = loopExecutor
                         };
 
@@ -571,7 +550,6 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
                         {
                             BehaviorGuid = behavior.BehaviorId,
                             CurrentControlDisplayName = set.DisplayName ?? string.Empty,
-                            SelfTags = GetSelfTagsAsObjects(set),
                             ActionExecutor = stopExecutor
                         };
 
@@ -713,12 +691,6 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
             _context.CanvasName,
             _logger);
     }
-
-    private IReadOnlyDictionary<string, string> GetSelfTags(ControlBehaviorSet set) =>
-        _selfTagsByBehaviorGuid.GetValueOrDefault(set.BehaviorGuid) ?? new Dictionary<string, string>();
-
-    private IReadOnlyDictionary<string, object?> GetSelfTagsAsObjects(ControlBehaviorSet set) =>
-        GetSelfTags(set).ToDictionary(pair => pair.Key, pair => (object?)pair.Value, StringComparer.Ordinal);
 
     /// <summary>
     /// Reads a boolean property from a <see cref="FrontedNode"/>'s properties dict,

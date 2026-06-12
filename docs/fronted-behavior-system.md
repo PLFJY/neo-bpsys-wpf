@@ -35,12 +35,12 @@ Phase 3 已完成 Designer 预览侧的可视化节点图编辑 MVP 和图执行
 
 - 动画编辑器不再显示占位文本。OneShot 行为打开 `behavior.Graph` 的节点图编辑器；Loop 行为继续使用 Top `LocalTabs`，分别编辑 `StartGraph`、`LoopGraph` 和 `StopGraph`。
 - 节点图编辑器提供左侧节点目录、中间 Canvas、右侧属性编辑器、底部验证与执行日志。支持添加、选择、拖动、复制、删除节点，点击输出端口后点击兼容输入端口创建连接，并可删除连接。
-- 当前内置节点目录包含 Flow、Action、Value 三类节点。Flow 节点包括 Start、End、Delay、Parallel、If；Action 节点包括 Log、SetProperty、ResetProperty、AnimateProperty；Value 节点包括 Number、String、Boolean、Color、EventValue、SelfTag、ControlReference。
+- 当前内置节点目录包含 Flow、Action、Value 三类节点。Flow 节点包括 Start、End、Delay、Parallel、If；Action 节点包括 Log、SetProperty、ResetProperty、AnimateProperty；Value 节点包括 Number、String、Boolean、Color、EventValue、ControlReference。
 - 图数据仍使用 Phase 1/2 的 `FrontedNodeGraph` / `FrontedNode` / `FrontedNodeConnection` JSON 模型，节点位置、属性和连接可以 roundtrip 保存。模型新增的查询/删除 helper 只提供纯模型逻辑，不改变持久化结构。
 - 图验证会报告缺失 Start、多个 Start、连接引用缺失节点、端口不存在、端口类型不兼容、重复或超过端口基数的连接、必填属性缺失，以及 Delay / AnimateProperty 的非法时长。验证消息会显示在编辑器中，但本阶段不阻止保存，以便用户保留并修复异常图。
 - Designer preview 通过 `FrontedNodeGraphRuntime` 执行当前选中图。支持 Start、End、Delay、Parallel、If、Log，以及 SetProperty / ResetProperty / AnimateProperty 的 action request 生成。
 - 普通连线就是顺序执行。Flow 输入/输出端口各最多一条连接；需要分支时应使用 Parallel 或 If。Parallel 节点提供 In、Branch1/2/3 和 Out 端口：所有分支并发执行，Out 在所有分支完成后执行，分支末端无需连接 End 节点。多个 Start 会被视为错误并阻止 preview。
-- If 节点复用 Phase 2 的 `FrontedTriggerFilterTextComparer` 文本比较语义；`Event.*` 从预览上下文 payload 取值，`SelfTag.*` 从当前控件标签取值，其他左值按文本处理。
+- If 节点复用 `FrontedTriggerFilterTextComparer` 文本比较语义；`Event.*` 从预览上下文 payload 取值，其他左值按文本处理。
 - SetProperty、ResetProperty 和 AnimateProperty 在 Phase 3 只写入执行日志并生成 `FrontedGraphActionRequest`，不会修改 WPF 控件，也不会创建 Storyboard。真实 WPF 动画 runtime 属于 Phase 4。
 
 Phase 3 仍不实现：真实前台窗口 runtime 播放、真实 `IFrontedEventBus`、插件节点、Timeline 编辑器、断点调试器、Canvas/window 行为列表、Web/Blazor runtime。
@@ -105,7 +105,7 @@ Phase 5 已完成真实事件总线 + 前台运行时接入，把行为系统从
 
 - `FrontedBehaviorTriggerEvaluator` 判断 `TriggerDescriptor` 是否匹配 `FrontedBehaviorEvent`。
 - EventType 必须一致，所有 Filter 全部通过才匹配。
-- `Event.X` 从 Payload 取值，`SelfTag.X` 从控件 BehaviorTags 取值，支持数值比较和文本比较。
+- `Event.X` 从显式 Payload 取值，支持数值比较和文本比较。
 - 复用 Phase 2 的 `FrontedTriggerFilterTextComparer`。
 
 ### Behavior Runtime
@@ -190,10 +190,10 @@ Phase 5.5 完成行为系统可用性打磨、事件覆盖和节点属性编辑�
 
 - 行为事件目录现在来自 `ISharedDataService`、`ICharacterSelectionService`、`IGameGuidanceService` 三类显式标注接口。`Selection.CharacterSelected` / `Selection.CharacterBanned` 可作为 Trigger，并提供 `Event.Camp`、`Event.PlayerIndex` 过滤字段。
 - 事件 bridge 仍复用应用启动时的 Singleton bridge，但内部按服务源发布事件，`Source` 分别为 `SharedDataService`、`CharacterSelectionService`、`GameGuidanceService`；`Start()` 幂等，`Dispose()` 会解除订阅。
-- `GameGuidanceService` 暴露语义事件，行为编辑器不直接消费 Messenger。`HighlightMessage` 仍服务后台页面滚动和高亮，行为系统看到的是 `Guidance.Started`、`Guidance.Stopped`、`Guidance.StepChanged`、`Guidance.HighlightChanged`、`Guidance.HighlightCleared`。
+- `GameGuidanceService` 暴露语义事件，行为编辑器不直接消费 Messenger。高亮变化和清除事件只服务后台页面滚动和高亮；前台行为系统使用 `Guidance.Started`、`Guidance.Stopped` 和 `Guidance.StepChanged`。
 - `Guidance.StepChanged` 同时提供当前步骤和上一步骤 payload；当前步骤可用于启动动画，`Event.PreviousAction`、`Event.PreviousIndexesText` 等上一步骤 payload 可用于停止由切换前步骤启动的动画。首次进入步骤时 `Previous*` 值为 `null`，`Event.PreviousIndexesText` 为 `[]`。
-- `Guidance.StepChanged` 和 `Guidance.HighlightChanged` 都提供稳定的 `Event.IndexesText`。列表字符串过滤应优先使用 `Event.IndexesText` / `Event.PreviousIndexesText`，格式为 `[1, 2]`，不要依赖集合默认 `ToString()`。
-- 推荐用 Behavior Loop 实现引导高亮/呼吸灯：StartTrigger 可使用 `Guidance.StepChanged` 并按 `Event.Action`、`Event.IndexesText` 或 `SelfTag.PlayerIndex` 过滤；EndTrigger 可使用同一事件并按 `Event.PreviousAction`、`Event.PreviousIndexesText` 过滤，也可使用 `Guidance.HighlightCleared`。旧 `PickPageViewModel` / `MapBpPageViewModel` 呼吸灯逻辑保留为 fallback，可通过设置关闭，避免和 Behavior Loop 同时控制同一视觉目标。
+- `Guidance.StepChanged` 提供稳定的 `Event.IndexesText`。列表字符串过滤应优先使用 `Event.IndexesText` / `Event.PreviousIndexesText`，格式为 `[1, 2]`，不要依赖集合默认 `ToString()`。
+- 推荐用 Behavior Loop 实现引导高亮/呼吸灯：StartTrigger 使用 `Guidance.StepChanged` 并按显式事件 payload 过滤；EndTrigger 使用同一事件并按 `Event.PreviousAction`、`Event.PreviousIndexesText` 过滤。
 
 示例：
 
@@ -206,7 +206,7 @@ Stop survivor breathing light:
 Event.PreviousAction == PickSur
 Event.PreviousIndexesText contains "1"
 ```
-- `FrontedControlConfigBase.BehaviorTags` 现在在 Designer 行为面板中可编辑，用于 `SelfTag.*` 过滤。例如 `Camp=Sur`、`PlayerIndex=0`、`Role=PickSlot`。复制控件保留 BehaviorTags，BehaviorGuid 仍重新生成。
+- 临时行为标签已移除。行为过滤使用显式事件 payload 和稳定的 `BehaviorGuid` 控件身份。
 - 节点属性编辑器增加类型化 editor：`Visibility` 使用枚举下拉，数值属性使用 numeric 输入和 validator，颜色属性使用 ColorPicker + 文本输入，`PropertyName` 使用可编辑属性选择器，`Target` 使用 `Self` / Canvas 控件目标选择器并保存 `guid:{BehaviorGuid}`。
 - 颜色输入统一支持 `#RRGGBB`、`#AARRGGBB` 和 WPF named colors（如 `White`、`Black`、`Transparent`、`DodgerBlue`），提交后统一存储为 `#AARRGGBB`。非法颜色只显示验证错误，不覆盖旧有效值。
 - Graph Validator 会按 `PropertyName` 验证 `AnimateProperty` / `SetProperty` / `ResetProperty`：数值必须有限，`Opacity` / `TintStrength` / `TextureStrength` 为 `0..1`，颜色可解析，`Visibility` 必须是 `Visible` / `Hidden` / `Collapsed`。验证消息显示在编辑器中，不阻止保存。

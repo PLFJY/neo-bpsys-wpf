@@ -6,6 +6,10 @@
 
 Behavior Graph 相关设计见 [fronted-behavior-system.md](fronted-behavior-system.md)。该文档记录 BehaviorGuid、behaviors 文件结构、运行时触发和编辑器接入点。
 
+行为过滤使用显式事件 payload 和稳定控件身份，不再提供临时行为标签。引导高亮变化与清除是后台 UI 内部事件，前台动画使用 `Guidance.StepChanged`。
+
+内置布局方案是 `PackageId = builtin` 的普通活动包，其布局根目录为应用运行时 `Resources/FrontedLayouts`。package manager 存在时活动包是唯一布局来源，不回退旧用户布局存储。激活任意包会完整重载已创建的 v3 窗口；`AllowsTransparency` 变化时只静默重启受影响窗口。
+
 ## 1. 背景与目标
 
 当前设计者模式历史上是 XAML-first：前台窗口的具体控件直接写在各窗口 XAML 中，运行时再由 `FrontedWindowService` 扫描 Canvas 子元素并保存/恢复每个 Canvas 的 `ElementInfo`。这些旧版文件和 `Config.json` 前台自定义字段现在只作为 legacy 转换、迁移对照存在；当前运行时和编辑器路径是 Designer v3 + `FrontedLayouts`。SettingPage 旧前台自定义入口已移除，旧版真实窗口设计器也已移除。旧 `.bpui` 包与 `Config.json`、`CustomUi/`、`FrontElementsConfig/` 等历史结构的耦合只由 legacy 转换流程处理。

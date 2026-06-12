@@ -30,6 +30,20 @@ namespace neo_bpsys_wpf.Tests.Models;
 public class FrontedCanvasConfigTest
 {
     [Fact]
+    public void FrontedControlConfigBase_DoesNotExposeOrSerializeBehaviorTags_AndIgnoresLegacyField()
+    {
+        Assert.Null(typeof(FrontedControlConfigBase).GetProperty("BehaviorTags"));
+
+        var json = JsonSerializer.Serialize(new FrontedControlConfigBase { ControlType = "Text" });
+        Assert.DoesNotContain("BehaviorTags", json, StringComparison.Ordinal);
+
+        var legacy = JsonSerializer.Deserialize<FrontedControlConfigBase>(
+            """{"ControlType":"Text","BehaviorTags":{"Camp":"Sur"}}""");
+        Assert.NotNull(legacy);
+        Assert.Equal("Text", legacy.ControlType);
+    }
+
+    [Fact]
     public void BehaviorGuid_JsonRoundTrip_PreservesGuid()
     {
         var behaviorGuid = Guid.NewGuid();

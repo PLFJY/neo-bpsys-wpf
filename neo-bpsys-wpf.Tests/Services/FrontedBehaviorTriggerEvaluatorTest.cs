@@ -17,8 +17,8 @@ public sealed class FrontedBehaviorTriggerEvaluatorTest
         var matchingEvent = new FrontedBehaviorEvent { EventType = "ScoreChanged" };
         var nonMatchingEvent = new FrontedBehaviorEvent { EventType = "TimerElapsed" };
 
-        Assert.True(_evaluator.Evaluate(trigger, matchingEvent, null));
-        Assert.False(_evaluator.Evaluate(trigger, nonMatchingEvent, null));
+        Assert.True(_evaluator.Evaluate(trigger, matchingEvent));
+        Assert.False(_evaluator.Evaluate(trigger, nonMatchingEvent));
     }
 
     [Fact]
@@ -52,8 +52,8 @@ public sealed class FrontedBehaviorTriggerEvaluatorTest
             }
         };
 
-        Assert.True(_evaluator.Evaluate(trigger, allPassEvent, null));
-        Assert.False(_evaluator.Evaluate(trigger, oneFailsEvent, null));
+        Assert.True(_evaluator.Evaluate(trigger, allPassEvent));
+        Assert.False(_evaluator.Evaluate(trigger, oneFailsEvent));
     }
 
     [Fact]
@@ -78,8 +78,8 @@ public sealed class FrontedBehaviorTriggerEvaluatorTest
             Payload = new Dictionary<string, object?> { ["X"] = "other" }
         };
 
-        Assert.True(_evaluator.Evaluate(trigger, matchingEvent, null));
-        Assert.False(_evaluator.Evaluate(trigger, nonMatchingEvent, null));
+        Assert.True(_evaluator.Evaluate(trigger, matchingEvent));
+        Assert.False(_evaluator.Evaluate(trigger, nonMatchingEvent));
     }
 
     [Fact]
@@ -104,8 +104,8 @@ public sealed class FrontedBehaviorTriggerEvaluatorTest
             Payload = new Dictionary<string, object?> { ["Score"] = 50 }
         };
 
-        Assert.True(_evaluator.Evaluate(trigger, highScoreEvent, null));
-        Assert.False(_evaluator.Evaluate(trigger, lowScoreEvent, null));
+        Assert.True(_evaluator.Evaluate(trigger, highScoreEvent));
+        Assert.False(_evaluator.Evaluate(trigger, lowScoreEvent));
     }
 
     [Fact]
@@ -130,8 +130,8 @@ public sealed class FrontedBehaviorTriggerEvaluatorTest
             Payload = new Dictionary<string, object?> { ["Text"] = "Hello There" }
         };
 
-        Assert.True(_evaluator.Evaluate(trigger, containsEvent, null));
-        Assert.False(_evaluator.Evaluate(trigger, notContainsEvent, null));
+        Assert.True(_evaluator.Evaluate(trigger, containsEvent));
+        Assert.False(_evaluator.Evaluate(trigger, notContainsEvent));
 
         // NotContains
         var notContainsTrigger = new TriggerDescriptor
@@ -143,48 +143,8 @@ public sealed class FrontedBehaviorTriggerEvaluatorTest
             ]
         };
 
-        Assert.False(_evaluator.Evaluate(notContainsTrigger, containsEvent, null));
-        Assert.True(_evaluator.Evaluate(notContainsTrigger, notContainsEvent, null));
-    }
-
-    [Fact]
-    public void TriggerEvaluator_SelfTagCompare()
-    {
-        var trigger = new TriggerDescriptor
-        {
-            EventType = "ButtonClicked",
-            Filters =
-            [
-                new TriggerFilter { Left = "SelfTag.Role", Operator = TriggerFilterOperator.Equals, Right = "admin" }
-            ]
-        };
-        var selfTags = new Dictionary<string, string> { ["Role"] = "admin" };
-        var otherTags = new Dictionary<string, string> { ["Role"] = "user" };
-        var clickEvent = new FrontedBehaviorEvent { EventType = "ButtonClicked" };
-
-        Assert.True(_evaluator.Evaluate(trigger, clickEvent, selfTags));
-        Assert.False(_evaluator.Evaluate(trigger, clickEvent, otherTags));
-    }
-
-    [Fact]
-    public void TriggerEvaluator_SelfTagCompare_Works()
-    {
-        var trigger = new TriggerDescriptor
-        {
-            EventType = "Selection.CharacterSelected",
-            Filters =
-            [
-                new TriggerFilter { Left = "Event.PlayerIndex", Operator = TriggerFilterOperator.Equals, Right = "SelfTag.PlayerIndex" }
-            ]
-        };
-        var behaviorEvent = new FrontedBehaviorEvent
-        {
-            EventType = "Selection.CharacterSelected",
-            Payload = new Dictionary<string, object?> { ["PlayerIndex"] = 0 }
-        };
-        var selfTags = new Dictionary<string, string> { ["PlayerIndex"] = "0" };
-
-        Assert.True(_evaluator.Evaluate(trigger, behaviorEvent, selfTags));
+        Assert.False(_evaluator.Evaluate(notContainsTrigger, containsEvent));
+        Assert.True(_evaluator.Evaluate(notContainsTrigger, notContainsEvent));
     }
 
     [Fact]
@@ -205,7 +165,7 @@ public sealed class FrontedBehaviorTriggerEvaluatorTest
         };
 
         // Should return false without throwing
-        var result = _evaluator.Evaluate(trigger, emptyPayloadEvent, null);
+        var result = _evaluator.Evaluate(trigger, emptyPayloadEvent);
         Assert.False(result);
     }
 }

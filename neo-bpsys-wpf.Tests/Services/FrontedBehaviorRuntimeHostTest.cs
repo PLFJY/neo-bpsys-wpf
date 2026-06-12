@@ -241,62 +241,6 @@ public class FrontedBehaviorRuntimeHostTest
         });
     }
 
-    [Fact]
-    public async Task RuntimeHost_PassesBehaviorTagsToTriggerEvaluatorAndGraphContext()
-    {
-        await RunOnStaThreadAsync(async () =>
-        {
-            var canvas = new Canvas();
-            var setGuid = Guid.NewGuid();
-            var behaviorId = Guid.NewGuid();
-            var context = CreateContext(canvas, new FrontedCanvasConfig
-            {
-                Controls =
-                {
-                    ["Control0"] = new FrontedControlConfigBase
-                    {
-                        BehaviorGuid = setGuid,
-                        BehaviorTags = new Dictionary<string, string> { ["SlotIndex"] = "0" }
-                    }
-                }
-            });
-            var document = CreateDocumentWithOneShot(behaviorId, setGuid, "TaggedEvent");
-            document.ControlBehaviorSets[0].Behaviors[0].Trigger!.Filters.Add(new TriggerFilter
-            {
-                Left = "SelfTag.SlotIndex",
-                Operator = TriggerFilterOperator.Equals,
-                Right = "0"
-            });
-
-            var behaviorService = new Mock<IFrontedBehaviorService>();
-            behaviorService
-                .Setup(s => s.LoadDocumentAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(document);
-
-            FrontedGraphExecutionContext? capturedContext = null;
-            var graphRuntime = new Mock<IFrontedNodeGraphRuntime>();
-            graphRuntime
-                .Setup(r => r.ExecuteAsync(
-                    It.IsAny<FrontedNodeGraph>(),
-                    It.IsAny<FrontedGraphExecutionContext>(),
-                    It.IsAny<CancellationToken>()))
-                .Callback<FrontedNodeGraph, FrontedGraphExecutionContext, CancellationToken>((_, ctx, _) =>
-                {
-                    capturedContext = ctx;
-                })
-                .ReturnsAsync(new FrontedGraphExecutionResult { Status = FrontedGraphExecutionStatus.Success });
-
-            var eventBus = new FrontedEventBus();
-            var manager = CreateManager(behaviorService.Object, eventBus, graphRuntime: graphRuntime.Object);
-            await manager.AttachHostAsync(context);
-
-            eventBus.Publish(new FrontedBehaviorEvent { EventType = "TaggedEvent" });
-
-            Assert.NotNull(capturedContext);
-            Assert.Equal("0", capturedContext!.SelfTags["SlotIndex"]);
-        });
-    }
-
     private static FrontedBehaviorRuntimeContext CreateContext(Canvas canvas, FrontedCanvasConfig? config = null) => new()
     {
         WindowId = "TestWindow",
