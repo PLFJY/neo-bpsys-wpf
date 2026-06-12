@@ -1,4 +1,5 @@
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using System.Windows;
 using System.Windows.Controls;
@@ -13,8 +14,6 @@ internal static class ImageFrontedControlLayoutHelper
 {
     private const string DefaultLockImagePath = "Resources/CurrentBanLock.png";
     private const string DefaultPickingBorderImagePath = "Resources/pickingBorder.png";
-    internal const string LockOverlayAnimationPartName = "LockOverlay";
-    internal const string PickingBorderAnimationPartName = "PickingBorder";
 
     public static void ApplyImageLayout(
         Image image,
@@ -145,7 +144,7 @@ internal static class ImageFrontedControlLayoutHelper
             return;
         }
 
-        var overlayName = $"{controlName}{LockOverlayAnimationPartName}";
+        var overlayName = $"{controlName}{FrontedAnimationPartNames.LockOverlay}";
         var overlay = new Image
         {
             Name = overlayName,
@@ -157,7 +156,7 @@ internal static class ImageFrontedControlLayoutHelper
         };
 
         Panel.SetZIndex(overlay, config.LockZIndexOffset);
-        MarkAnimationPart(overlay, controlName, config.BehaviorGuid, LockOverlayAnimationPartName);
+        MarkAnimationPart(overlay, controlName, config.BehaviorGuid, FrontedAnimationPartNames.LockOverlay);
         RegisterGeneratedChildName(root, overlayName, overlay);
         if (!string.IsNullOrWhiteSpace(config.LockVisibilityBindingPath))
         {
@@ -206,7 +205,7 @@ internal static class ImageFrontedControlLayoutHelper
         };
 
         Panel.SetZIndex(overlay, config.PickingBorderZIndexOffset);
-        MarkAnimationPart(overlay, controlName, config.BehaviorGuid, PickingBorderAnimationPartName);
+        MarkAnimationPart(overlay, controlName, config.BehaviorGuid, FrontedAnimationPartNames.PickingBorder);
         RegisterGeneratedChildName(root, overlayName, overlay);
         root.Children.Add(overlay);
     }

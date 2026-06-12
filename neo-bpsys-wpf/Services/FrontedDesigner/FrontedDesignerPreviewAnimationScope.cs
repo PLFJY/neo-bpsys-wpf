@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
@@ -15,6 +16,7 @@ public sealed class FrontedDesignerPreviewAnimationScope
     private string? _selfDisplayName;
     private string _windowId = string.Empty;
     private string _canvasName = string.Empty;
+    private IReadOnlyList<FrontedControlDesignItem> _controls = [];
     private IReadOnlyList<FrontedDesignerAnimationTargetOption> _targets = [];
 
     public FrontedDesignerPreviewAnimationScope()
@@ -61,12 +63,35 @@ public sealed class FrontedDesignerPreviewAnimationScope
         _selfDisplayName = selectedControl?.Name;
         _windowId = windowId ?? string.Empty;
         _canvasName = canvasName ?? string.Empty;
-        var controlTargets = controls
-            .Where(control => control.Config.BehaviorGuid != Guid.Empty)
-            .Select(control => new FrontedDesignerAnimationTargetOption(
+        _controls = controls.ToArray();
+        RefreshTargets();
+    }
+
+    /// <summary>
+    /// Rebuilds animation target options from the current control configurations and preview visual tree.
+    /// </summary>
+    public void RefreshTargets()
+    {
+        var targets = new List<FrontedDesignerAnimationTargetOption>();
+        foreach (var control in _controls)
+        {
+            if (control.Config.BehaviorGuid == Guid.Empty)
+            {
+                continue;
+            }
+
+            targets.Add(new FrontedDesignerAnimationTargetOption(
                 control.Name,
                 $"guid:{control.Config.BehaviorGuid}"));
-        var partTargets = EnumerateFrameworkElements(root)
+            AddConfigDrivenPartTargets(targets, control);
+        }
+
+        var targetReferences = targets
+            .Select(target => target.TargetReference)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var auxiliaryTargets = _root is null
+            ? Enumerable.Empty<FrontedDesignerAnimationTargetOption>()
+            : EnumerateFrameworkElements(_root)
             .Where(FrontedRendererProperties.GetIsAnimationAuxiliaryElement)
             .Select(element => new
             {
@@ -81,7 +106,15 @@ public sealed class FrontedDesignerPreviewAnimationScope
                 part.ParentName,
                 $"part:{part.ParentGuid}:{part.PartName}",
                 part.PartName));
-        _targets = controlTargets.Concat(partTargets).ToArray();
+        foreach (var target in auxiliaryTargets)
+        {
+            if (targetReferences.Add(target.TargetReference))
+            {
+                targets.Add(target);
+            }
+        }
+
+        _targets = targets.ToArray();
     }
 
     public void Clear()
@@ -91,6 +124,7 @@ public sealed class FrontedDesignerPreviewAnimationScope
         _selfDisplayName = null;
         _windowId = string.Empty;
         _canvasName = string.Empty;
+        _controls = [];
         _targets = [];
     }
 
@@ -109,6 +143,39 @@ public sealed class FrontedDesignerPreviewAnimationScope
                 yield return child;
             }
         }
+    }
+
+    private static void AddConfigDrivenPartTargets(
+        ICollection<FrontedDesignerAnimationTargetOption> targets,
+        FrontedControlDesignItem control)
+    {
+        if (control.Config is not ImageFrontedControlConfig image)
+        {
+            return;
+        }
+
+        var guid = image.BehaviorGuid;
+        if (image.Lockable)
+        {
+            AddPartTarget(targets, control.Name, guid, FrontedAnimationPartNames.LockOverlay);
+        }
+
+        if (image.PickingBorderAvailable)
+        {
+            AddPartTarget(targets, control.Name, guid, FrontedAnimationPartNames.PickingBorder);
+        }
+    }
+
+    private static void AddPartTarget(
+        ICollection<FrontedDesignerAnimationTargetOption> targets,
+        string controlName,
+        Guid behaviorGuid,
+        string partName)
+    {
+        targets.Add(new FrontedDesignerAnimationTargetOption(
+            controlName,
+            $"part:{behaviorGuid}:{partName}",
+            partName));
     }
 }
 

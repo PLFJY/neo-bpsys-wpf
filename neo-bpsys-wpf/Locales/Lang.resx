@@ -5127,12 +5127,12 @@
     <value>保存失败，请重试。</value>
   </data>
   <data name="Designer.Graph.Target.LockOverlay" xml:space="preserve">
-    <value>Ban 位锁图层</value>
+    <value>LockOverlay</value>
   </data>
   <data name="Designer.Graph.Target.PickingBorder" xml:space="preserve">
-    <value>待选框 / 选中边框</value>
+    <value>PickingBorder</value>
   </data>
   <data name="Designer.Graph.Target.FormatPart" xml:space="preserve">
-    <value>{0} / {1}</value>
+    <value>{0}.{1}</value>
   </data>
 </root>

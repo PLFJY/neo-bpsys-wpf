@@ -2025,6 +2025,28 @@ public class FrontedCanvasConfigTest
     }
 
     [Fact]
+    public void ImageFrontedControlDoesNotCreateDisabledAnimationParts()
+    {
+        RunOnStaThread(() =>
+        {
+            var element = new ImageFrontedControl().Create(
+                "BanSlot",
+                new ImageFrontedControlConfig
+                {
+                    BehaviorGuid = Guid.NewGuid(),
+                    Lockable = false,
+                    PickingBorderAvailable = false
+                },
+                CreateBuildContext());
+
+            var root = Assert.IsType<Grid>(element);
+            Assert.DoesNotContain(
+                root.Children.OfType<FrameworkElement>(),
+                FrontedRendererProperties.GetIsAnimationAuxiliaryElement);
+        });
+    }
+
+    [Fact]
     public void ImageFrontedControlBindsSourceToSharedDataService()
     {
         RunOnStaThread(() =>

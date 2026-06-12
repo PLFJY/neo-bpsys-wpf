@@ -329,7 +329,7 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
             _animationRuntime,
             _previewAnimationScope,
             editor => AnimationEditorRequested?.Invoke(editor),
-            CreateTargetOptions(),
+            CreateTargetOptions,
             saveBehaviorAsync: _saveBehaviorAsync);
     }
 
@@ -342,6 +342,7 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
 
         if (_previewAnimationScope is not null)
         {
+            _previewAnimationScope.RefreshTargets();
             targets.AddRange(_previewAnimationScope.Targets.Select(target =>
                 new FrontedNodeTargetOptionViewModel(
                     target.TargetReference,
@@ -360,7 +361,7 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
 
         var partDisplayName = Localize($"Designer.Graph.Target.{target.PartName}", target.PartName);
         return string.Format(
-            Localize("Designer.Graph.Target.FormatPart", "{0} / {1}"),
+            Localize("Designer.Graph.Target.FormatPart", "{0}.{1}"),
             target.DisplayName,
             partDisplayName);
     }
@@ -701,7 +702,7 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
         IFrontedAnimationRuntime? animationRuntime,
         FrontedDesignerPreviewAnimationScope? previewAnimationScope,
         Action<FrontedBehaviorAnimationEditorViewModel> openAnimationEditor,
-        IReadOnlyList<FrontedNodeTargetOptionViewModel>? targetOptions = null,
+        Func<IReadOnlyList<FrontedNodeTargetOptionViewModel>>? createTargetOptions = null,
         Func<Task<bool>>? saveBehaviorAsync = null)
     {
         Model = model;
@@ -734,7 +735,7 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
                 animationRuntime,
                 previewAnimationScope,
                 markDirty,
-                targetOptions,
+                createTargetOptions?.Invoke(),
                 saveAsync: saveBehaviorAsync)));
     }
 

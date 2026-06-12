@@ -1188,6 +1188,11 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
 
     private void Write(JsonElement value)
     {
+        if (JsonElement.DeepEquals(Read(), value))
+        {
+            return;
+        }
+
         _node.Properties[Descriptor.Name] = value;
         _markDirty();
         _validate();

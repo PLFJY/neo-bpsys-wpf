@@ -4232,7 +4232,7 @@
   <data name="Designer.AnimationEditor.UnsavedChangesMessage" xml:space="preserve"><value>未保存の変更があります。閉じる前に保存しますか？</value></data>
   <data name="Designer.AnimationEditor.SaveFailedTitle" xml:space="preserve"><value>保存に失敗しました</value></data>
   <data name="Designer.AnimationEditor.SaveFailedMessage" xml:space="preserve"><value>保存に失敗しました。もう一度お試しください。</value></data>
-  <data name="Designer.Graph.Target.LockOverlay" xml:space="preserve"><value>ロックオーバーレイ</value></data>
-  <data name="Designer.Graph.Target.PickingBorder" xml:space="preserve"><value>選択待ち枠</value></data>
-  <data name="Designer.Graph.Target.FormatPart" xml:space="preserve"><value>{0} / {1}</value></data>
+  <data name="Designer.Graph.Target.LockOverlay" xml:space="preserve"><value>LockOverlay</value></data>
+  <data name="Designer.Graph.Target.PickingBorder" xml:space="preserve"><value>PickingBorder</value></data>
+  <data name="Designer.Graph.Target.FormatPart" xml:space="preserve"><value>{0}.{1}</value></data>
 </root>

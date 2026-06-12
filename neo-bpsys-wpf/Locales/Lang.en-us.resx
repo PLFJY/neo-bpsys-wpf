@@ -4328,7 +4328,7 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="Designer.AnimationEditor.UnsavedChangesMessage" xml:space="preserve"><value>There are unsaved changes. Save them before closing?</value></data>
   <data name="Designer.AnimationEditor.SaveFailedTitle" xml:space="preserve"><value>Save failed</value></data>
   <data name="Designer.AnimationEditor.SaveFailedMessage" xml:space="preserve"><value>Saving failed. Please try again.</value></data>
-  <data name="Designer.Graph.Target.LockOverlay" xml:space="preserve"><value>Lock overlay</value></data>
-  <data name="Designer.Graph.Target.PickingBorder" xml:space="preserve"><value>Picking border</value></data>
-  <data name="Designer.Graph.Target.FormatPart" xml:space="preserve"><value>{0} / {1}</value></data>
+  <data name="Designer.Graph.Target.LockOverlay" xml:space="preserve"><value>LockOverlay</value></data>
+  <data name="Designer.Graph.Target.PickingBorder" xml:space="preserve"><value>PickingBorder</value></data>
+  <data name="Designer.Graph.Target.FormatPart" xml:space="preserve"><value>{0}.{1}</value></data>
 </root>

@@ -75,7 +75,7 @@ Phase 4 已完成 Designer 预览侧的 WPF 动画与属性应用层：
 | TextBlock / Control | `TextColor`、`Foreground`、`FontSize` |
 | BackgroundTintControlHost | `TintColor` |
 
-`Image` / `BorderedImage` 运行时生成的锁图层和待选框也可作为稳定动画目标。renderer 会为实际存在的内部覆盖层写入父控件 `BehaviorGuid`、父控件名称和稳定 part 名；动画编辑器显示为“控件名 / 锁图层”或“控件名 / 待选框”，持久化引用分别使用 `part:{BehaviorGuid}:LockOverlay` 和 `part:{BehaviorGuid}:PickingBorder`。plain `guid:{BehaviorGuid}` 仍只解析到顶层生成控件，不会误命中内部覆盖层；该解析规则同时用于 Designer 预览和真实前台运行时。
+`Image` / `BorderedImage` 运行时生成的锁图层和 PickingBorder 也可作为稳定动画目标。动画编辑器根据控件配置生成内置 part 目标：仅当 `Lockable = true` 时提供 `ControlName.LockOverlay`，仅当 `PickingBorderAvailable = true` 时提供 `ControlName.PickingBorder`，因此目标列表不依赖预览视觉树加载时机；视觉树辅助元素扫描只补充插件或自定义 part，并按目标引用去重。renderer 会为实际存在的内部覆盖层写入父控件 `BehaviorGuid`、父控件名称和稳定 part 名，持久化引用分别使用 `part:{BehaviorGuid}:LockOverlay` 和 `part:{BehaviorGuid}:PickingBorder`。plain `guid:{BehaviorGuid}` 仍只解析到顶层生成控件，不会误命中内部覆盖层；该解析规则同时用于 Designer 预览和真实前台运行时。
 
 `AnimateProperty` 节点的 `WaitForCompletion` 属性默认为 `true`，执行将等待动画完成后才继续下一节点；设为 `false` 时动画启动后立即继续执行下一节点，不等待动画完成。
 

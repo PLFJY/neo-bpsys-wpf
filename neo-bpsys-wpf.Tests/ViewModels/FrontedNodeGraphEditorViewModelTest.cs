@@ -161,6 +161,38 @@ public class FrontedNodeGraphEditorViewModelTest
     }
 
     [Fact]
+    public void PropertyNameBindingFeedback_DoesNotRewriteSameValue()
+    {
+        var dirty = 0;
+        var editor = new FrontedNodeGraphEditorViewModel(
+            new FrontedNodeGraph(),
+            markDirty: () => dirty++,
+            localize: (key, fallback) => key == "Designer.Property.Opacity" ? "Opacity Localized" : fallback);
+        editor.AddNode("action.animateProperty");
+        var propertyName = editor.SelectedNode!.Properties.Single(property => property.Descriptor.Name == "PropertyName");
+        dirty = 0;
+        var propertyChangedCount = 0;
+        propertyName.PropertyChanged += (_, args) =>
+        {
+            propertyChangedCount++;
+            if (args.PropertyName == nameof(propertyName.PropertyNameValue))
+            {
+                propertyName.PropertyNameText = propertyName.PropertyNameText;
+            }
+            else if (args.PropertyName == nameof(propertyName.PropertyNameText))
+            {
+                propertyName.PropertyNameValue = propertyName.PropertyNameValue;
+            }
+        };
+
+        propertyName.PropertyNameValue = "Opacity";
+
+        Assert.Equal("Opacity", editor.SelectedNode.Model.Properties["PropertyName"].GetString());
+        Assert.Equal(1, dirty);
+        Assert.InRange(propertyChangedCount, 1, 20);
+    }
+
+    [Fact]
     public void PropertyAndEasingOptions_ExposeLocalizedDisplayNames()
     {
         var editor = new FrontedNodeGraphEditorViewModel(
@@ -456,18 +488,89 @@ public class FrontedNodeGraphEditorViewModelTest
     }
 
     [Fact]
-    public async Task PreviewAnimationScope_IncludesOnlyExistingGeneratedParts()
+    public async Task PreviewAnimationScope_UsesConfigDrivenPartsWithoutRenderedChildren()
+    {
+        await RunOnStaThreadAsync(() =>
+        {
+            var guid = Guid.NewGuid();
+            var root = new Grid();
+            var scope = new FrontedDesignerPreviewAnimationScope();
+
+            scope.Update(
+                root,
+                null,
+                "Window",
+                "Canvas",
+                [new FrontedControlDesignItem
+                {
+                    Name = "BanSlot",
+                    Config = new ImageFrontedControlConfig
+                    {
+                        BehaviorGuid = guid,
+                        Lockable = true
+                    }
+                }]);
+
+            Assert.Contains(scope.Targets, target => target.TargetReference == $"guid:{guid}");
+            Assert.Contains(scope.Targets, target => target.TargetReference == $"part:{guid}:{FrontedAnimationPartNames.LockOverlay}");
+            Assert.DoesNotContain(scope.Targets, target => target.TargetReference == $"part:{guid}:{FrontedAnimationPartNames.PickingBorder}");
+            return Task.CompletedTask;
+        });
+    }
+
+    [Theory]
+    [InlineData(false, false, false, false)]
+    [InlineData(true, false, true, false)]
+    [InlineData(false, true, false, true)]
+    [InlineData(true, true, true, true)]
+    public async Task PreviewAnimationScope_ConfigFlagsControlBuiltInPartTargets(
+        bool lockable,
+        bool pickingBorderAvailable,
+        bool expectsLockOverlay,
+        bool expectsPickingBorder)
+    {
+        await RunOnStaThreadAsync(() =>
+        {
+            var guid = Guid.NewGuid();
+            var scope = new FrontedDesignerPreviewAnimationScope();
+            scope.Update(
+                new Grid(),
+                null,
+                "Window",
+                "Canvas",
+                [new FrontedControlDesignItem
+                {
+                    Name = "Image",
+                    Config = new ImageFrontedControlConfig
+                    {
+                        BehaviorGuid = guid,
+                        Lockable = lockable,
+                        PickingBorderAvailable = pickingBorderAvailable
+                    }
+                }]);
+
+            Assert.Equal(
+                expectsLockOverlay,
+                scope.Targets.Any(target => target.TargetReference == $"part:{guid}:{FrontedAnimationPartNames.LockOverlay}"));
+            Assert.Equal(
+                expectsPickingBorder,
+                scope.Targets.Any(target => target.TargetReference == $"part:{guid}:{FrontedAnimationPartNames.PickingBorder}"));
+            return Task.CompletedTask;
+        });
+    }
+
+    [Fact]
+    public async Task PreviewAnimationScope_DeduplicatesConfigAndVisualTreePartTargets()
     {
         await RunOnStaThreadAsync(() =>
         {
             var guid = Guid.NewGuid();
             var root = new Grid();
             var part = new Border();
-            FrontedRendererProperties.SetIsGeneratedControl(part, true);
             FrontedRendererProperties.SetIsAnimationAuxiliaryElement(part, true);
             FrontedRendererProperties.SetParentBehaviorGuid(part, guid);
             FrontedRendererProperties.SetParentRegisteredName(part, "BanSlot");
-            FrontedRendererProperties.SetAnimationPartName(part, "LockOverlay");
+            FrontedRendererProperties.SetAnimationPartName(part, FrontedAnimationPartNames.LockOverlay);
             root.Children.Add(part);
             var scope = new FrontedDesignerPreviewAnimationScope();
 
@@ -479,12 +582,55 @@ public class FrontedNodeGraphEditorViewModelTest
                 [new FrontedControlDesignItem
                 {
                     Name = "BanSlot",
-                    Config = new ImageFrontedControlConfig { BehaviorGuid = guid }
+                    Config = new ImageFrontedControlConfig { BehaviorGuid = guid, Lockable = true }
                 }]);
 
-            Assert.Contains(scope.Targets, target => target.TargetReference == $"guid:{guid}");
-            Assert.Contains(scope.Targets, target => target.TargetReference == $"part:{guid}:LockOverlay");
-            Assert.DoesNotContain(scope.Targets, target => target.TargetReference == $"part:{guid}:PickingBorder");
+            Assert.Single(
+                scope.Targets,
+                target => target.TargetReference == $"part:{guid}:{FrontedAnimationPartNames.LockOverlay}");
+            return Task.CompletedTask;
+        });
+    }
+
+    [Fact]
+    public async Task AnimationEditorOpenedAfterConfigChange_UsesLatestPreviewTargetOptions()
+    {
+        await RunOnStaThreadAsync(() =>
+        {
+            var guid = Guid.NewGuid();
+            var scope = new FrontedDesignerPreviewAnimationScope();
+            var panel = new BehaviorPanelViewModel(
+                new FrontedDesignerLocalizationService(),
+                new FrontedBehaviorEventCatalog(),
+                static () => { },
+                static () => { },
+                previewAnimationScope: scope);
+            var item = new FrontedControlDesignItem
+            {
+                Name = "Pick",
+                Config = new ImageFrontedControlConfig { BehaviorGuid = guid }
+            };
+            panel.SetSelectedControl(item);
+            panel.AddOneShotBehavior();
+
+            scope.Update(new Grid(), item, "Window", "Canvas", [item]);
+            var image = Assert.IsType<ImageFrontedControlConfig>(item.Config);
+            image.PickingBorderAvailable = true;
+            FrontedBehaviorAnimationEditorViewModel? editor = null;
+            panel.AnimationEditorRequested += value => editor = value;
+
+            panel.SelectedBehavior!.OpenAnimationEditorCommand.Execute(null);
+
+            var graphEditor = Assert.Single(editor!.Stages).GraphEditor;
+            graphEditor.AddNode("action.setProperty");
+            var targets = graphEditor.SelectedNode!.Properties
+                .Single(property => property.Descriptor.Name == "Target")
+                .TargetOptions;
+            Assert.Contains(
+                targets,
+                target => target.Value == $"part:{guid}:{FrontedAnimationPartNames.PickingBorder}"
+                          && target.DisplayName == "Pick.PickingBorder");
+            Assert.DoesNotContain(targets, target => target.Value == $"part:{guid}:{FrontedAnimationPartNames.LockOverlay}");
             return Task.CompletedTask;
         });
     }
