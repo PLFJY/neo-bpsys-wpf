@@ -4331,4 +4331,33 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="Designer.Graph.Target.LockOverlay" xml:space="preserve"><value>LockOverlay</value></data>
   <data name="Designer.Graph.Target.PickingBorder" xml:space="preserve"><value>PickingBorder</value></data>
   <data name="Designer.Graph.Target.FormatPart" xml:space="preserve"><value>{0}.{1}</value></data>
+  <data name="BehaviorEventDebugger" xml:space="preserve"><value>Behavior Event Debugger</value></data>
+  <data name="OpenBehaviorEventDebugger" xml:space="preserve"><value>Open Behavior Event Debugger</value></data>
+  <data name="EnableListening" xml:space="preserve"><value>Enable Listening</value></data>
+  <data name="Pause" xml:space="preserve"><value>Pause</value></data>
+  <data name="CopyEventJson" xml:space="preserve"><value>Copy Event JSON</value></data>
+  <data name="ExportJson" xml:space="preserve"><value>Export JSON</value></data>
+  <data name="MaxRecords" xml:space="preserve"><value>Max Records</value></data>
+  <data name="Filter" xml:space="preserve"><value>Filter</value></data>
+  <data name="EventType" xml:space="preserve"><value>EventType</value></data>
+  <data name="WindowType" xml:space="preserve"><value>WindowType</value></data>
+  <data name="WindowId" xml:space="preserve"><value>WindowId</value></data>
+  <data name="CanvasName" xml:space="preserve"><value>CanvasName</value></data>
+  <data name="PayloadSummary" xml:space="preserve"><value>Payload Summary</value></data>
+  <data name="Source" xml:space="preserve"><value>Source</value></data>
+  <data name="Time" xml:space="preserve"><value>Time</value></data>
+  <data name="Clear" xml:space="preserve"><value>Clear</value></data>
+  <data name="Key" xml:space="preserve"><value>Key</value></data>
+  <data name="Path" xml:space="preserve"><value>Path</value></data>
+  <data name="Type" xml:space="preserve"><value>Type</value></data>
+  <data name="RawValue" xml:space="preserve"><value>Raw Value</value></data>
+  <data name="DisplayValue" xml:space="preserve"><value>Display Value</value></data>
+  <data name="FilterText" xml:space="preserve"><value>Filter Text</value></data>
+  <data name="CopyPath" xml:space="preserve"><value>Copy Path</value></data>
+  <data name="CopyEqualsFilter" xml:space="preserve"><value>Copy Equals Filter</value></data>
+  <data name="CopyContainsFilter" xml:space="preserve"><value>Copy Contains Filter</value></data>
+  <data name="CopyValue" xml:space="preserve"><value>Copy Value</value></data>
+  <data name="Designer.Behaviors.FilterHint.Action" xml:space="preserve"><value>Use enum values such as PickSur, PickHun, BanSur.</value></data>
+  <data name="Designer.Behaviors.FilterHint.Indexes" xml:space="preserve"><value>For string contains filters, prefer IndexesText / PreviousIndexesText.</value></data>
+  <data name="Designer.Behaviors.FilterHint.IndexesText" xml:space="preserve"><value>Formatted as [0] or [1, 2]. Use Contains 0 to match index 0.</value></data>
 </root>

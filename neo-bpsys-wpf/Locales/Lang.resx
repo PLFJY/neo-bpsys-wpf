@@ -5135,4 +5135,91 @@
   <data name="Designer.Graph.Target.FormatPart" xml:space="preserve">
     <value>{0}.{1}</value>
   </data>
+  <data name="BehaviorEventDebugger" xml:space="preserve">
+    <value>行为事件调试器</value>
+  </data>
+  <data name="OpenBehaviorEventDebugger" xml:space="preserve">
+    <value>打开行为事件调试器</value>
+  </data>
+  <data name="EnableListening" xml:space="preserve">
+    <value>启用监听</value>
+  </data>
+  <data name="Pause" xml:space="preserve">
+    <value>暂停</value>
+  </data>
+  <data name="CopyEventJson" xml:space="preserve">
+    <value>复制事件 JSON</value>
+  </data>
+  <data name="ExportJson" xml:space="preserve">
+    <value>导出 JSON</value>
+  </data>
+  <data name="MaxRecords" xml:space="preserve">
+    <value>最大记录数</value>
+  </data>
+  <data name="Filter" xml:space="preserve">
+    <value>筛选</value>
+  </data>
+  <data name="EventType" xml:space="preserve">
+    <value>事件类型</value>
+  </data>
+  <data name="WindowType" xml:space="preserve">
+    <value>窗口类型</value>
+  </data>
+  <data name="WindowId" xml:space="preserve">
+    <value>窗口 ID</value>
+  </data>
+  <data name="CanvasName" xml:space="preserve">
+    <value>画布名称</value>
+  </data>
+  <data name="PayloadSummary" xml:space="preserve">
+    <value>Payload 摘要</value>
+  </data>
+  <data name="Source" xml:space="preserve">
+    <value>来源</value>
+  </data>
+  <data name="Time" xml:space="preserve">
+    <value>时间</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>清空</value>
+  </data>
+  <data name="Key" xml:space="preserve">
+    <value>键</value>
+  </data>
+  <data name="Path" xml:space="preserve">
+    <value>路径</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>类型</value>
+  </data>
+  <data name="RawValue" xml:space="preserve">
+    <value>原始值</value>
+  </data>
+  <data name="DisplayValue" xml:space="preserve">
+    <value>显示值</value>
+  </data>
+  <data name="FilterText" xml:space="preserve">
+    <value>过滤值</value>
+  </data>
+  <data name="CopyPath" xml:space="preserve">
+    <value>复制路径</value>
+  </data>
+  <data name="CopyEqualsFilter" xml:space="preserve">
+    <value>复制 Equals 过滤器</value>
+  </data>
+  <data name="CopyContainsFilter" xml:space="preserve">
+    <value>复制 Contains 过滤器</value>
+  </data>
+  <data name="CopyValue" xml:space="preserve">
+    <value>复制值</value>
+  </data>
+  <data name="Designer.Behaviors.FilterHint.Action" xml:space="preserve">
+    <value>使用 PickSur、PickHun、BanSur 等枚举值。</value>
+  </data>
+  <data name="Designer.Behaviors.FilterHint.Indexes" xml:space="preserve">
+    <value>字符串 contains 过滤建议使用 IndexesText / PreviousIndexesText。</value>
+  </data>
+  <data name="Designer.Behaviors.FilterHint.IndexesText" xml:space="preserve">
+    <value>格式为 [0] 或 [1, 2]。使用 Contains 0 匹配索引 0。</value>
+  </data>
 </root>

@@ -103,6 +103,7 @@ public partial class App
         services.AddSingleton<FrontedBehaviorEventCatalog>();
         services.AddSingleton<IFrontedBehaviorService, FrontedBehaviorService>();
         services.AddSingleton<IFrontedEventBus, FrontedEventBus>();
+        services.AddSingleton<IFrontedBehaviorEventDebugService, FrontedBehaviorEventDebugService>();
         services.AddSingleton<FrontedBehaviorTriggerEvaluator>();
         services.AddSingleton<FrontedBehaviorRuntimeHostManager>();
         services.AddSingleton<IFrontedBehaviorRuntime, FrontedBehaviorRuntime>();
@@ -177,6 +178,8 @@ public partial class App
         services.AddTransient<FrontedResourceBrowserWindow>();
         services.AddTransient<FrontedLayoutPackageExportWindowViewModel>();
         services.AddTransient<FrontedLayoutPackageExportWindow>();
+        services.AddTransient<FrontedBehaviorEventDebuggerViewModel>();
+        services.AddTransient<FrontedBehaviorEventDebuggerWindow>();
 
         //Pages
         //Internal

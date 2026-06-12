@@ -444,6 +444,11 @@
                         Command="{Binding HopToLogDirCommand}"
                         Content="{lex:Loc OpenLogDirectory}"
                         Icon="{ui:SymbolIcon Symbol=DocumentText24}" />
+                    <ui:Button
+                        Margin="0,0,10,10"
+                        Command="{Binding OpenBehaviorEventDebuggerCommand}"
+                        Content="{lex:Loc OpenBehaviorEventDebugger}"
+                        Icon="{ui:SymbolIcon Symbol=Bug24}" />
                 </WrapPanel>
             </StackPanel>
         </Border>

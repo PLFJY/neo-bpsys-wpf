@@ -226,21 +226,22 @@ public class FrontedSharedDataBehaviorEventBridgeTest
                 action: GameAction.PickHun,
                 index: [0],
                 time: 30,
-                actionName: "Pick hunter",
                 previousStepIndex: 0,
                 previousAction: GameAction.PickSur,
                 previousIndex: [1],
-                previousTime: 40,
-                previousActionName: "Pick survivor"));
+                previousTime: 40));
 
             Assert.True(await semaphore.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
         }
 
         Assert.NotNull(received);
         Assert.Equal("[0]", received!.Payload["IndexesText"]);
+        Assert.Equal(GameAction.PickHun, received.Payload["Action"]);
         Assert.Equal(GameAction.PickSur, received.Payload["PreviousAction"]);
         Assert.Equal("[1]", received.Payload["PreviousIndexesText"]);
         Assert.Equal(1, received.Payload["PreviousIndex"]);
+        Assert.False(received.Payload.ContainsKey("ActionName"));
+        Assert.False(received.Payload.ContainsKey("PreviousActionName"));
     }
 
     /// <summary>

@@ -14,14 +14,12 @@ public class GameGuidanceStepChangedEventArgs : EventArgs
     /// <param name="action">当前步骤操作。</param>
     /// <param name="index">当前操作的控件索引列表。</param>
     /// <param name="time">当前步骤计时（秒），可能为 null。</param>
-    /// <param name="actionName">当前步骤的本地化名称。</param>
     public GameGuidanceStepChangedEventArgs(
         int stepIndex,
         GameAction action,
         List<int>? index,
-        int? time,
-        string actionName)
-        : this(stepIndex, action, index, time, actionName, null, null, null, null, null)
+        int? time)
+        : this(stepIndex, action, index, time, null, null, null, null)
     {
     }
 
@@ -32,34 +30,28 @@ public class GameGuidanceStepChangedEventArgs : EventArgs
     /// <param name="action">当前步骤操作。</param>
     /// <param name="index">当前操作的控件索引列表。</param>
     /// <param name="time">当前步骤计时（秒），可能为 null。</param>
-    /// <param name="actionName">当前步骤的本地化名称。</param>
     /// <param name="previousStepIndex">上一步骤索引，没有上一步时为 null。</param>
     /// <param name="previousAction">上一步骤操作，没有上一步时为 null。</param>
     /// <param name="previousIndex">上一步骤的控件索引列表，没有上一步时为 null。</param>
     /// <param name="previousTime">上一步骤计时（秒），没有上一步时为 null。</param>
-    /// <param name="previousActionName">上一步骤的本地化名称，没有上一步时为 null。</param>
     public GameGuidanceStepChangedEventArgs(
         int stepIndex,
         GameAction action,
         List<int>? index,
         int? time,
-        string actionName,
         int? previousStepIndex,
         GameAction? previousAction,
         List<int>? previousIndex,
-        int? previousTime,
-        string? previousActionName)
+        int? previousTime)
     {
         StepIndex = stepIndex;
         Action = action;
         Index = index;
         Time = time;
-        ActionName = actionName;
         PreviousStepIndex = previousStepIndex;
         PreviousAction = previousAction;
         PreviousIndex = previousIndex;
         PreviousTime = previousTime;
-        PreviousActionName = previousActionName;
         IndexesText = GameGuidanceIndexFormatter.FormatIndexes(index);
         PreviousIndexesText = GameGuidanceIndexFormatter.FormatIndexes(previousIndex);
     }
@@ -95,11 +87,6 @@ public class GameGuidanceStepChangedEventArgs : EventArgs
     public int? Time { get; }
 
     /// <summary>
-    /// 当前步骤的本地化名称
-    /// </summary>
-    public string ActionName { get; }
-
-    /// <summary>
     /// 上一步骤索引，没有上一步时为 null。
     /// </summary>
     public int? PreviousStepIndex { get; }
@@ -128,11 +115,6 @@ public class GameGuidanceStepChangedEventArgs : EventArgs
     /// 上一步骤计时（秒），没有上一步时为 null。
     /// </summary>
     public int? PreviousTime { get; }
-
-    /// <summary>
-    /// 上一步骤的本地化名称，没有上一步时为 null。
-    /// </summary>
-    public string? PreviousActionName { get; }
 
     /// <summary>
     /// 当前操作索引列表的稳定文本表示。

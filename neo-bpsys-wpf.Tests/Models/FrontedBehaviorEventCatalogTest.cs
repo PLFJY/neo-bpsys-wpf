@@ -53,18 +53,20 @@ public class FrontedBehaviorEventCatalogTest
         var stepChanged = Assert.IsType<FrontedBehaviorEventDescriptor>(catalog.Find("Guidance.StepChanged"));
         var expectedStepPayloads = new[]
         {
+            "Event.Action",
             "Event.IndexesText",
             "Event.PreviousStepIndex",
             "Event.PreviousAction",
             "Event.PreviousIndexes",
             "Event.PreviousIndexesText",
             "Event.PreviousIndex",
-            "Event.PreviousTime",
-            "Event.PreviousActionName"
+            "Event.PreviousTime"
         };
 
         Assert.All(expectedStepPayloads, path =>
             Assert.Contains(stepChanged.PayloadFields, field => field.Path == path));
+        Assert.DoesNotContain(stepChanged.PayloadFields, field => field.Path == "Event.ActionName");
+        Assert.DoesNotContain(stepChanged.PayloadFields, field => field.Path == "Event.PreviousActionName");
     }
 
     [Fact]

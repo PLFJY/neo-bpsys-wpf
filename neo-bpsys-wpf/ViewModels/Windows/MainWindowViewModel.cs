@@ -116,7 +116,7 @@ public partial class MainWindowViewModel :
 
         _gameGuidanceService.GuidanceStepChanged += (_, args) =>
         {
-            ActionName = args.ActionName;
+            ActionName = GetGuidanceActionDisplayName(args.Action);
         };
 
         _gameGuidanceService.GuidanceHighlightChanged += (_, args) =>
@@ -247,6 +247,21 @@ public partial class MainWindowViewModel :
 
     private bool CanNextGameExecute() => GameList.IndexOf(SelectedGameProgress) < 8 && IsBo3Mode ||
                                          GameList.IndexOf(SelectedGameProgress) < 12 && !IsBo3Mode;
+
+    private static string GetGuidanceActionDisplayName(GameAction action) => action switch
+    {
+        GameAction.BanMap => I18nHelper.GetLocalizedString("BanMap"),
+        GameAction.PickMap => I18nHelper.GetLocalizedString("PickMap"),
+        GameAction.PickCamp => I18nHelper.GetLocalizedString("PickCamp"),
+        GameAction.BanSur => I18nHelper.GetLocalizedString("BanSurvivor"),
+        GameAction.BanHun => I18nHelper.GetLocalizedString("BanHunter"),
+        GameAction.PickSur => I18nHelper.GetLocalizedString("PickSurvivor"),
+        GameAction.DistributeChara => I18nHelper.GetLocalizedString("DistributeCharacters"),
+        GameAction.PickHun => I18nHelper.GetLocalizedString("PickHunter"),
+        GameAction.PickSurTalent => I18nHelper.GetLocalizedString("PickSurTalent"),
+        GameAction.PickHunTalent => I18nHelper.GetLocalizedString("PickHunTalent"),
+        _ => action.ToString()
+    };
 
     [RelayCommand]
     private async Task StartNavigationAsync()

@@ -260,9 +260,6 @@ public class GameGuidanceService(
             ? _currentGameProperty.WorkFlow[previousStepIndex]
             : null;
         var thisStep = _currentGameProperty.WorkFlow[newStepIndex];
-        var previousActionName = previousStep is null
-            ? null
-            : ActionName[previousStep.Action].Invoke();
         _currentStep = newStepIndex;
 
         //切换页面
@@ -284,12 +281,10 @@ public class GameGuidanceService(
             action: thisStep.Action,
             index: thisStep.Index,
             time: thisStep.Time,
-            actionName: actionName,
             previousStepIndex: previousStep is null ? null : previousStepIndex,
             previousAction: previousStep?.Action,
             previousIndex: previousStep?.Index,
-            previousTime: previousStep?.Time,
-            previousActionName: previousActionName));
+            previousTime: previousStep?.Time));
 
         //触发高亮变化事件
         PublishHighlight(thisStep.Action, thisStep.Index);

@@ -1,0 +1,181 @@
+<ui:FluentWindow
+    x:Class="neo_bpsys_wpf.Views.Windows.FrontedBehaviorEventDebuggerWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    Title="{lex:Loc BehaviorEventDebugger}"
+    Width="1180"
+    Height="760"
+    MinWidth="900"
+    MinHeight="560"
+    lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Lang"
+    Background="{DynamicResource ApplicationBackgroundBrush}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    WindowStartupLocation="CenterOwner">
+    <WindowChrome.WindowChrome>
+        <WindowChrome
+            CaptionHeight="35"
+            CornerRadius="8"
+            GlassFrameThickness="0"
+            ResizeBorderThickness="5"
+            UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <controls:CustomTitleBar
+            Grid.Row="0"
+            Icon="/Assets/icon.png"
+            IsMaximizeVisible="True"
+            IsMinimizeVisible="True"
+            IsThemeChangeVisible="False"
+            IsTopMostVisible="False" />
+
+        <Border
+            Grid.Row="1"
+            Padding="12"
+            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+            BorderThickness="0,0,0,1">
+            <WrapPanel Orientation="Horizontal">
+                <CheckBox
+                    Margin="0,0,12,8"
+                    VerticalAlignment="Center"
+                    Content="{lex:Loc EnableListening}"
+                    IsChecked="{Binding IsEnabled, Mode=TwoWay}" />
+                <CheckBox
+                    Margin="0,0,12,8"
+                    VerticalAlignment="Center"
+                    Content="{lex:Loc Pause}"
+                    IsChecked="{Binding IsPaused, Mode=TwoWay}" />
+                <ui:Button
+                    Margin="0,0,8,8"
+                    Command="{Binding ClearCommand}"
+                    Content="{lex:Loc Clear}"
+                    Icon="{ui:SymbolIcon Symbol=Delete24}" />
+                <ui:Button
+                    Margin="0,0,8,8"
+                    Command="{Binding CopyEventJsonCommand}"
+                    Content="{lex:Loc CopyEventJson}"
+                    Icon="{ui:SymbolIcon Symbol=Copy24}" />
+                <ui:Button
+                    Margin="0,0,16,8"
+                    Command="{Binding ExportJsonCommand}"
+                    Content="{lex:Loc ExportJson}"
+                    Icon="{ui:SymbolIcon Symbol=ArrowDownload24}" />
+                <TextBlock
+                    Margin="0,0,6,8"
+                    VerticalAlignment="Center"
+                    Text="{lex:Loc MaxRecords}" />
+                <ui:TextBox
+                    Width="72"
+                    Margin="0,0,16,8"
+                    Text="{Binding MaxRecords, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                <ui:TextBox
+                    Width="190"
+                    Margin="0,0,8,8"
+                    PlaceholderText="{lex:Loc Filter}"
+                    Text="{Binding FilterText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <ui:TextBox
+                    Width="190"
+                    Margin="0,0,8,8"
+                    PlaceholderText="{lex:Loc EventType}"
+                    Text="{Binding EventTypeFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <ui:TextBox
+                    Width="170"
+                    Margin="0,0,8,8"
+                    PlaceholderText="{lex:Loc WindowType}"
+                    Text="{Binding WindowTypeFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            </WrapPanel>
+        </Border>
+
+        <Grid Grid.Row="2" Margin="12">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="2*" />
+                <RowDefinition Height="8" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <DataGrid
+                Grid.Row="0"
+                AutoGenerateColumns="False"
+                CanUserAddRows="False"
+                IsReadOnly="True"
+                ItemsSource="{Binding RecordsView}"
+                SelectedItem="{Binding SelectedRecord, Mode=TwoWay}"
+                SelectionMode="Single">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Width="60" Binding="{Binding Sequence}" Header="#" />
+                    <DataGridTextColumn Width="110" Binding="{Binding TimeText}" Header="{lex:Loc Time}" />
+                    <DataGridTextColumn Width="180" Binding="{Binding EventType}" Header="{lex:Loc EventType}" />
+                    <DataGridTextColumn Width="130" Binding="{Binding WindowType}" Header="{lex:Loc WindowType}" />
+                    <DataGridTextColumn Width="150" Binding="{Binding WindowId}" Header="{lex:Loc WindowId}" />
+                    <DataGridTextColumn Width="120" Binding="{Binding CanvasName}" Header="{lex:Loc CanvasName}" />
+                    <DataGridTextColumn Width="130" Binding="{Binding Source}" Header="{lex:Loc Source}" />
+                    <DataGridTextColumn Width="*" Binding="{Binding PayloadSummary}" Header="{lex:Loc PayloadSummary}" />
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <GridSplitter
+                Grid.Row="1"
+                Height="8"
+                HorizontalAlignment="Stretch"
+                ResizeDirection="Rows" />
+
+            <DataGrid
+                Grid.Row="2"
+                AutoGenerateColumns="False"
+                CanUserAddRows="False"
+                IsReadOnly="True"
+                ItemsSource="{Binding SelectedRecord.Payload}"
+                SelectedItem="{Binding SelectedPayloadEntry, Mode=TwoWay}"
+                SelectionMode="Single">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Width="120" Binding="{Binding Key}" Header="{lex:Loc Key}" />
+                    <DataGridTextColumn Width="160" Binding="{Binding Path}" Header="{lex:Loc Path}" />
+                    <DataGridTextColumn Width="110" Binding="{Binding TypeName}" Header="{lex:Loc Type}" />
+                    <DataGridTextColumn Width="*" Binding="{Binding RawValue}" Header="{lex:Loc RawValue}" />
+                    <DataGridTextColumn Width="*" Binding="{Binding DisplayValue}" Header="{lex:Loc DisplayValue}" />
+                    <DataGridTextColumn Width="*" Binding="{Binding FilterText}" Header="{lex:Loc FilterText}" />
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <StackPanel
+                Grid.Row="3"
+                Margin="0,10,0,0"
+                HorizontalAlignment="Right"
+                Orientation="Horizontal">
+                <ui:Button
+                    Margin="0,0,8,0"
+                    Command="{Binding CopyPathCommand}"
+                    CommandParameter="{Binding SelectedPayloadEntry}"
+                    Content="{lex:Loc CopyPath}"
+                    Icon="{ui:SymbolIcon Symbol=Copy24}" />
+                <ui:Button
+                    Margin="0,0,8,0"
+                    Command="{Binding CopyEqualsFilterCommand}"
+                    CommandParameter="{Binding SelectedPayloadEntry}"
+                    Content="{lex:Loc CopyEqualsFilter}"
+                    Icon="{ui:SymbolIcon Symbol=Copy24}" />
+                <ui:Button
+                    Margin="0,0,8,0"
+                    Command="{Binding CopyContainsFilterCommand}"
+                    CommandParameter="{Binding SelectedPayloadEntry}"
+                    Content="{lex:Loc CopyContainsFilter}"
+                    Icon="{ui:SymbolIcon Symbol=Copy24}" />
+                <ui:Button
+                    Command="{Binding CopyValueCommand}"
+                    CommandParameter="{Binding SelectedPayloadEntry}"
+                    Content="{lex:Loc CopyValue}"
+                    Icon="{ui:SymbolIcon Symbol=Copy24}" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</ui:FluentWindow>

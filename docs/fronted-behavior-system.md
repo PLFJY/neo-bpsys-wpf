@@ -227,6 +227,10 @@ Event.PreviousIndexesText contains "1"
 `EventType` 与 `Event.*` 路径。新增共享数据事件时，应先判断它是否具有前台动画语义，再决定是否标注，
 不要盲目把所有服务事件加入目录。
 
+行为事件 payload 只允许携带稳定、机器可读的值，例如 enum 值、稳定 ID、数字、bool、不可变协议字符串和技术格式字符串。payload 不得携带本地化 UI 显示文本，因为语言包和 UI culture 变化会让过滤逻辑失效。`Guidance.StepChanged` 使用 `Event.Action` / `Event.PreviousAction` 表示 `GameAction` enum，过滤器应写 `Event.Action Equals PickSur` 或 `Event.PreviousAction Equals PickSur`。索引列表的字符串过滤应使用 `Event.IndexesText` / `Event.PreviousIndexesText`，例如 `Event.IndexesText Contains 0`。不要使用 `ActionName` / `PreviousActionName` 作为行为过滤字段；需要显示本地化操作名称时，由后台 UI 或调试器根据 `GameAction` 在显示时计算，不写入 `FrontedBehaviorEvent.Payload`。
+
+`FrontManagePage` 提供独立的“行为事件调试器”窗口。该窗口直接订阅全局 `IFrontedEventBus`，不依赖动画编辑器、特定 behavior、`FrontedBehaviorRuntimeHost` 或已打开的前台窗口。调试器用于确认事件是否到达、收到的 `EventType`、payload key、原始值、显示值和可复制到过滤器中的稳定文本；它支持启用/暂停监听、清空记录、最大记录数限制、复制单个事件 JSON、导出 JSON，并提供复制路径、Equals 过滤器、Contains 过滤器和值的辅助操作。
+
 ### Filter rule builder
 
 过滤器 UI 使用面向用户的规则行：`当 [参数] [运算符] [文本值]`。左侧参数来自当前事件的 payload

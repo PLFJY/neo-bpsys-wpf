@@ -30,6 +30,30 @@ public class GameGuidanceEventPayloadTest
     }
 
     /// <summary>
+    /// Verifies step changed args can be constructed without localized action display names.
+    /// </summary>
+    [Fact]
+    public void StepChangedArgs_DoNotExposeLocalizedActionNames()
+    {
+        var args = new GameGuidanceStepChangedEventArgs(
+            stepIndex: 1,
+            action: GameAction.PickSur,
+            index: [0],
+            time: 30,
+            previousStepIndex: 0,
+            previousAction: GameAction.BanSur,
+            previousIndex: [1, 2],
+            previousTime: 40);
+
+        Assert.Equal(GameAction.PickSur, args.Action);
+        Assert.Equal("[0]", args.IndexesText);
+        Assert.Equal(GameAction.BanSur, args.PreviousAction);
+        Assert.Equal("[1, 2]", args.PreviousIndexesText);
+        Assert.Null(typeof(GameGuidanceStepChangedEventArgs).GetProperty("ActionName"));
+        Assert.Null(typeof(GameGuidanceStepChangedEventArgs).GetProperty("PreviousActionName"));
+    }
+
+    /// <summary>
     /// Verifies the first guidance step does not report a previous step.
     /// </summary>
     [Fact]
@@ -106,7 +130,7 @@ public class GameGuidanceEventPayloadTest
     }
 
     private static GameGuidanceStepChangedEventArgs CreateStepArgs(List<int>? indexes) =>
-        new(0, GameAction.PickSur, indexes, null, "Pick survivor");
+        new(0, GameAction.PickSur, indexes, null);
 
     private static GameGuidanceService CreateService(List<GameGuidanceService.Step> workflow)
     {

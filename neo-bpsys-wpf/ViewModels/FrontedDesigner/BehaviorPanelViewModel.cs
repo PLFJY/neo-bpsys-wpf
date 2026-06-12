@@ -841,7 +841,7 @@ public sealed partial class TriggerDescriptorEditorViewModel : ObservableObject
         _localize = localize;
         foreach (var filter in Model.Filters)
         {
-            Filters.Add(new TriggerFilterEditorViewModel(filter, operatorOptions, markDirty));
+            Filters.Add(new TriggerFilterEditorViewModel(filter, operatorOptions, markDirty, localize));
         }
         UpdateSelectedEvent(localize);
     }
@@ -885,7 +885,7 @@ public sealed partial class TriggerDescriptorEditorViewModel : ObservableObject
             Operator = TriggerFilterOperator.Equals
         };
         Model.Filters.Add(filter);
-        var filterVm = new TriggerFilterEditorViewModel(filter, OperatorOptions, _markDirty);
+        var filterVm = new TriggerFilterEditorViewModel(filter, OperatorOptions, _markDirty, _localize);
         filterVm.SetPayloadFieldOptions(PayloadFieldOptions);
         Filters.Add(filterVm);
         _markDirty();
@@ -966,15 +966,18 @@ public sealed partial class TriggerDescriptorEditorViewModel : ObservableObject
 public sealed partial class TriggerFilterEditorViewModel : ObservableObject
 {
     private readonly Action _markDirty;
+    private readonly Func<string, string, string> _localize;
 
     public TriggerFilterEditorViewModel(
         TriggerFilter model,
         IReadOnlyList<BehaviorOptionViewModel> operatorOptions,
-        Action markDirty)
+        Action markDirty,
+        Func<string, string, string> localize)
     {
         Model = model;
         OperatorOptions = operatorOptions;
         _markDirty = markDirty;
+        _localize = localize;
     }
 
     public TriggerFilter Model { get; }
@@ -995,6 +998,8 @@ public sealed partial class TriggerFilterEditorViewModel : ObservableObject
             {
                 _markDirty();
                 OnPropertyChanged(nameof(IsUnknownParameter));
+                OnPropertyChanged(nameof(HintText));
+                OnPropertyChanged(nameof(HasHintText));
             }
         }
     }
@@ -1023,11 +1028,32 @@ public sealed partial class TriggerFilterEditorViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Gets contextual guidance for filter values.
+    /// </summary>
+    public string HintText => Left switch
+    {
+        "Event.Action" or "Event.PreviousAction" =>
+            _localize("Designer.Behaviors.FilterHint.Action", "Use enum values such as PickSur, PickHun, BanSur."),
+        "Event.Indexes" or "Event.PreviousIndexes" =>
+            _localize("Designer.Behaviors.FilterHint.Indexes", "For string contains filters, prefer IndexesText / PreviousIndexesText."),
+        "Event.IndexesText" or "Event.PreviousIndexesText" =>
+            _localize("Designer.Behaviors.FilterHint.IndexesText", "Formatted as [0] or [1, 2]. Use Contains 0 to match index 0."),
+        _ => string.Empty
+    };
+
+    /// <summary>
+    /// Gets whether <see cref="HintText" /> has content.
+    /// </summary>
+    public bool HasHintText => !string.IsNullOrWhiteSpace(HintText);
+
     public void SetPayloadFieldOptions(IReadOnlyList<BehaviorPayloadFieldOptionViewModel> options)
     {
         PayloadFieldOptions = options;
         OnPropertyChanged(nameof(PayloadFieldOptions));
         OnPropertyChanged(nameof(IsUnknownParameter));
+        OnPropertyChanged(nameof(HintText));
+        OnPropertyChanged(nameof(HasHintText));
     }
 
     /// <summary>
@@ -1040,6 +1066,8 @@ public sealed partial class TriggerFilterEditorViewModel : ObservableObject
             option.Refresh();
         }
         OnPropertyChanged(nameof(IsUnknownParameter));
+        OnPropertyChanged(nameof(HintText));
+        OnPropertyChanged(nameof(HasHintText));
     }
 }
 

@@ -99,6 +99,7 @@ public partial class App : AppBase
         await settingsHostService.LoadConfig();
         ApplyLogLevel(settingsHostService.Settings.LogLevel);
         IAppHost.Host.Services.GetRequiredService<FrontedSharedDataBehaviorEventBridge>().Start();
+        _ = IAppHost.Host.Services.GetRequiredService<IFrontedBehaviorEventDebugService>();
 
         CurrentLifetime = ApplicationLifetime.StartingOnline;
         //添加不同颜色的icon到resources里面

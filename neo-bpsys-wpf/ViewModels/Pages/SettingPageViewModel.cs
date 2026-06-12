@@ -1,5 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions;
@@ -9,6 +11,7 @@ using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Models;
 using neo_bpsys_wpf.Services.Abstractions;
+using neo_bpsys_wpf.Views.Windows;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
@@ -28,19 +31,28 @@ public partial class SettingPageViewModel : ViewModelBase
 
     private readonly ISettingsHostService _settingsHostService;
     private readonly IPluginMarketService _pluginMarketService;
+    private readonly IServiceProvider _serviceProvider;
+    private readonly ILogger<SettingPageViewModel> _logger;
+    private FrontedBehaviorEventDebuggerWindow? _behaviorEventDebuggerWindow;
     public IUpdaterService UpdaterService { get; }
 
     public List<OpenSourceRepo> OpenSourceRepoColumn1 { get; }
     public List<OpenSourceRepo> OpenSourceRepoColumn2 { get; }
     public List<OpenSourceRepo> OpenSourceRepoColumn3 { get; }
 
-    public SettingPageViewModel(IUpdaterService updaterService, ISettingsHostService settingsHostService,
-        IPluginMarketService pluginMarketService)
+    public SettingPageViewModel(
+        IUpdaterService updaterService,
+        ISettingsHostService settingsHostService,
+        IPluginMarketService pluginMarketService,
+        IServiceProvider serviceProvider,
+        ILogger<SettingPageViewModel> logger)
     {
         AppVersion = AppConstants.AppVersion;
         UpdaterService = updaterService;
         _settingsHostService = settingsHostService;
         _pluginMarketService = pluginMarketService;
+        _serviceProvider = serviceProvider;
+        _logger = logger;
 
         UpdaterService.DownloadStateChanged += UpdaterService_DownloadStateChanged;
         RefreshUpdateDownloadState();
@@ -163,6 +175,33 @@ public partial class SettingPageViewModel : ViewModelBase
         _settingsHostService.Settings.ShowAfterUpdateTip = true;
         _ = _settingsHostService.SaveConfigAsync();
         _ = MessageBoxHelper.ShowInfoAsync("Settings.ShowTip has been set to true");
+    }
+
+    /// <summary>
+    /// Opens the global behavior event debugger window.
+    /// </summary>
+    [RelayCommand]
+    private void OpenBehaviorEventDebugger()
+    {
+        if (_behaviorEventDebuggerWindow is { IsLoaded: true })
+        {
+            _behaviorEventDebuggerWindow.Activate();
+            return;
+        }
+
+        try
+        {
+            var window = ActivatorUtilities.CreateInstance<FrontedBehaviorEventDebuggerWindow>(_serviceProvider);
+            window.Closed += (_, _) => _behaviorEventDebuggerWindow = null;
+            _behaviorEventDebuggerWindow = window;
+            window.Show();
+            window.Activate();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to open behavior event debugger window.");
+            _ = MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString("WindowLaunchError")}\n{ex.Message}");
+        }
     }
 
     #endregion

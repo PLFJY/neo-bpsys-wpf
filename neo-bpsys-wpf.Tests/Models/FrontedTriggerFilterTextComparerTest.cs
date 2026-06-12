@@ -1,5 +1,7 @@
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
+using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using System.Collections.Generic;
 using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Models;
@@ -25,4 +27,14 @@ public class FrontedTriggerFilterTextComparerTest
     [Fact]
     public void FallbackStringCompare_WhenNotNumeric() =>
         Assert.True(FrontedTriggerFilterTextComparer.Evaluate("beta", TriggerFilterOperator.GreaterThan, "alpha"));
+
+    [Fact]
+    public void PayloadFormatter_UsesStableInvariantValues()
+    {
+        Assert.Equal("PickSur", FrontedBehaviorPayloadValueFormatter.Format(GameAction.PickSur));
+        Assert.Equal("[0]", FrontedBehaviorPayloadValueFormatter.Format(new List<int> { 0 }));
+        Assert.Equal("[1, 2]", FrontedBehaviorPayloadValueFormatter.Format(new List<int> { 1, 2 }));
+        Assert.Equal(string.Empty, FrontedBehaviorPayloadValueFormatter.Format(null));
+        Assert.Equal("true", FrontedBehaviorPayloadValueFormatter.Format(true));
+    }
 }
