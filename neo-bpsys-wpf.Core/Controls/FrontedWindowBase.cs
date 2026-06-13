@@ -304,7 +304,7 @@ public class FrontedWindowBase : Window
             await RunOnDispatcherAsync(async () =>
             {
                 ApplyCanvasSettings(config.CanvasSettings);
-                await DetachBehaviorRuntimeAsync();
+                await DetachBehaviorRuntimeAsync(FrontedBehaviorStopReason.LayoutReloaded);
                 _renderer.RenderToCanvas(_baseCanvas, config, new FrontedRenderContext
                 {
                     WindowId = _v3Descriptor.WindowId,
@@ -448,13 +448,13 @@ public class FrontedWindowBase : Window
     private void OnV3HostUnloaded(object sender, RoutedEventArgs e)
     {
         UnsubscribeBoModeChanged();
-        DetachBehaviorRuntime();
+        DetachBehaviorRuntime(FrontedBehaviorStopReason.WindowHidden);
     }
 
     private void OnV3HostClosed(object? sender, EventArgs e)
     {
         UnsubscribeBoModeChanged();
-        DetachBehaviorRuntime();
+        DetachBehaviorRuntime(FrontedBehaviorStopReason.WindowHidden);
         IsVisibleChanged -= OnV3HostIsVisibleChanged;
     }
 
@@ -472,7 +472,7 @@ public class FrontedWindowBase : Window
         }
 
         UnsubscribeBoModeChanged();
-        DetachBehaviorRuntime();
+        DetachBehaviorRuntime(FrontedBehaviorStopReason.WindowHidden);
     }
 
     private void SubscribeBoModeChanged()
@@ -515,18 +515,19 @@ public class FrontedWindowBase : Window
         _ = Dispatcher.BeginInvoke(new Action(() => _ = LoadOrReloadContentAsync()));
     }
 
-    private void DetachBehaviorRuntime()
+    private void DetachBehaviorRuntime(FrontedBehaviorStopReason reason = FrontedBehaviorStopReason.WindowHidden)
     {
-        _ = DetachBehaviorRuntimeAsync();
+        _ = DetachBehaviorRuntimeAsync(reason);
     }
 
-    private async Task DetachBehaviorRuntimeAsync()
+    private async Task DetachBehaviorRuntimeAsync(FrontedBehaviorStopReason reason = FrontedBehaviorStopReason.WindowHidden)
     {
         if (_v3Descriptor is null || _behaviorRuntime is null || !IsBehaviorAttached)
         {
             return;
         }
 
+        await _behaviorRuntime.StopLoopBehaviorsAsync(_v3Descriptor.WindowId, reason);
         await _behaviorRuntime.DetachAsync(_v3Descriptor.WindowId);
         IsBehaviorAttached = false;
     }

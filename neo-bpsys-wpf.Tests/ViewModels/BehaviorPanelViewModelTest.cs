@@ -61,8 +61,28 @@ public class BehaviorPanelViewModelTest
         Assert.NotNull(behavior.LoopGraph);
         Assert.NotNull(behavior.StopGraph);
         Assert.NotNull(behavior.StartTrigger);
-        Assert.NotNull(behavior.EndTrigger);
+        Assert.NotEmpty(behavior.StopTriggers);
         Assert.NotNull(behavior.LoopPolicy);
+    }
+
+    [Fact]
+    public void BehaviorPanel_AddTransition_CreatesTransitionTriggerAndExitEnterGraphs()
+    {
+        var panel = CreatePanel();
+        var item = CreateItem(Guid.NewGuid());
+
+        panel.SetSelectedControl(item);
+        panel.AddTransitionBehavior();
+
+        var behavior = Assert.Single(panel.CurrentDocument.FindSet(item.Config.BehaviorGuid)!.Behaviors);
+        Assert.Equal(FrontedBehaviorKind.Transition, behavior.Kind);
+        Assert.NotNull(behavior.TransitionTrigger);
+        Assert.NotNull(behavior.ExitGraph);
+        Assert.NotNull(behavior.EnterGraph);
+        Assert.NotNull(panel.SelectedBehavior!.TransitionTrigger);
+        Assert.True(panel.SelectedBehavior.IsTransition);
+        Assert.False(panel.SelectedBehavior.IsLoop);
+        Assert.False(panel.SelectedBehavior.IsOneShot);
     }
 
     [Fact]
@@ -302,6 +322,35 @@ public class BehaviorPanelViewModelTest
         panel.SelectedBehavior.OpenAnimationEditorCommand.Execute(null);
 
         Assert.Equal([behavior.StartGraph, behavior.LoopGraph, behavior.StopGraph], editor!.Stages.Select(stage => stage.Graph).ToArray());
+    }
+
+    [Fact]
+    public void TransitionAnimationEditor_HasExitEnterGraphStages()
+    {
+        var panel = CreatePanel();
+        panel.SetSelectedControl(CreateItem(Guid.NewGuid()));
+        panel.AddTransitionBehavior();
+        var behavior = panel.SelectedBehavior!.Model;
+        FrontedBehaviorAnimationEditorViewModel? editor = null;
+        panel.AnimationEditorRequested += value => editor = value;
+
+        panel.SelectedBehavior.OpenAnimationEditorCommand.Execute(null);
+
+        Assert.Equal([behavior.ExitGraph, behavior.EnterGraph], editor!.Stages.Select(stage => stage.Graph).ToArray());
+    }
+
+    [Fact]
+    public void BehaviorPanel_DoesNotExposeTransitionPresetCommands()
+    {
+        var methodNames = typeof(BehaviorPanelViewModel)
+            .GetMethods()
+            .Select(method => method.Name)
+            .ToArray();
+
+        Assert.DoesNotContain(methodNames, name => name.Contains("Preset", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(methodNames, name => name.Contains("Template", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(methodNames, name => name.Contains("FadeSwitch", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(methodNames, name => name.Contains("Wipe", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]

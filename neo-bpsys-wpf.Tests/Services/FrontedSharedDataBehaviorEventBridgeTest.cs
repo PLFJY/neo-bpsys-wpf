@@ -244,6 +244,46 @@ public class FrontedSharedDataBehaviorEventBridgeTest
         Assert.False(received.Payload.ContainsKey("PreviousActionName"));
     }
 
+    [Fact]
+    public async Task GameGuidanceBridge_PublishesCancelledPayloads()
+    {
+        using var semaphore = new SemaphoreSlim(0, 1);
+        FrontedBehaviorEvent? received = null;
+        var sharedData = new MockSharedDataService();
+        var guidance = new MockGameGuidanceService();
+        var bus = new MockEventBus();
+
+        using (bus.Subscribe("Guidance.Cancelled", ev =>
+        {
+            received = ev;
+            semaphore.Release();
+            return Task.CompletedTask;
+        }))
+        {
+            using var bridge = new FrontedSharedDataBehaviorEventBridge(
+                sharedData,
+                bus,
+                NullLogger<FrontedSharedDataBehaviorEventBridge>.Instance,
+                gameGuidanceService: guidance);
+            bridge.Start();
+
+            guidance.FireCancelled(new GameGuidanceStateChangedEventArgs(
+                false,
+                "Cancelled",
+                30,
+                2,
+                GameAction.PickHun,
+                [0]));
+
+            Assert.True(await semaphore.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
+        }
+
+        Assert.NotNull(received);
+        Assert.Equal("Cancelled", received!.Payload["Reason"]);
+        Assert.Equal(GameAction.PickHun, received.Payload["PreviousAction"]);
+        Assert.Equal("[0]", received.Payload["PreviousIndexesText"]);
+    }
+
     /// <summary>
     /// Test event args for the CharacterPicked event on <see cref="MockSharedDataService"/>.
     /// </summary>
@@ -386,6 +426,7 @@ public class FrontedSharedDataBehaviorEventBridgeTest
         public event EventHandler<GameGuidanceStateChangedEventArgs>? GuidanceStateChanged;
         public event EventHandler<GameGuidanceStateChangedEventArgs>? GuidanceStarted;
         public event EventHandler<GameGuidanceStateChangedEventArgs>? GuidanceStopped;
+        public event EventHandler<GameGuidanceStateChangedEventArgs>? GuidanceCancelled;
         public event EventHandler<GameGuidanceStepChangedEventArgs>? GuidanceStepChanged;
         public event EventHandler<GameGuidanceHighlightChangedEventArgs>? GuidanceHighlightChanged;
         public event EventHandler<GameGuidanceHighlightChangedEventArgs>? GuidanceHighlightCleared;
@@ -396,6 +437,7 @@ public class FrontedSharedDataBehaviorEventBridgeTest
         public void StopGuidance() { }
         public void FireHighlightChanged(GameGuidanceHighlightChangedEventArgs args) => GuidanceHighlightChanged?.Invoke(this, args);
         public void FireStepChanged(GameGuidanceStepChangedEventArgs args) => GuidanceStepChanged?.Invoke(this, args);
+        public void FireCancelled(GameGuidanceStateChangedEventArgs args) => GuidanceCancelled?.Invoke(this, args);
     }
 
     /// <summary>

@@ -210,11 +210,40 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
             Name = Localize("Designer.Behaviors.NewLoop", "New Loop Behavior"),
             Enabled = true,
             StartTrigger = new TriggerDescriptor { EventType = EventOptions.FirstOrDefault()?.EventType ?? string.Empty },
-            EndTrigger = new TriggerDescriptor { EventType = EventOptions.FirstOrDefault()?.EventType ?? string.Empty },
+            StopTriggers = [new TriggerDescriptor { EventType = EventOptions.FirstOrDefault()?.EventType ?? string.Empty }],
             StartGraph = new FrontedNodeGraph(),
             LoopGraph = new FrontedNodeGraph(),
             StopGraph = new FrontedNodeGraph(),
             LoopPolicy = new FrontedLoopPolicy()
+        };
+        set.Behaviors.Add(behavior);
+        RefreshFromSet(set, behavior);
+        MarkBehaviorsDirty();
+    }
+
+    [RelayCommand]
+    public void AddTransitionBehavior()
+    {
+        var set = GetOrCreateSelectedSet();
+        if (set is null)
+        {
+            return;
+        }
+
+        var behavior = new FrontedBehavior
+        {
+            Kind = FrontedBehaviorKind.Transition,
+            Name = Localize("Designer.Behaviors.NewTransition", "New Transition Behavior"),
+            Enabled = true,
+            TransitionTrigger = new TriggerDescriptor
+            {
+                EventType = EventOptions.FirstOrDefault(option => option.EventType == "Selection.CharacterPick")?.EventType
+                            ?? EventOptions.FirstOrDefault()?.EventType
+                            ?? string.Empty
+            },
+            ExitGraph = new FrontedNodeGraph(),
+            EnterGraph = new FrontedNodeGraph(),
+            ReentryPolicy = FrontedReentryPolicy.InterruptPrevious
         };
         set.Behaviors.Add(behavior);
         RefreshFromSet(set, behavior);
@@ -278,6 +307,8 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
         RegenerateGraphIds(clone.StartGraph);
         RegenerateGraphIds(clone.LoopGraph);
         RegenerateGraphIds(clone.StopGraph);
+        RegenerateGraphIds(clone.ExitGraph);
+        RegenerateGraphIds(clone.EnterGraph);
 
         var index = _currentSet.Behaviors.IndexOf(behavior.Model);
         _currentSet.Behaviors.Insert(index + 1, clone);
@@ -865,17 +896,35 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
         {
             Model.Trigger ??= new TriggerDescriptor { EventType = eventOptions.FirstOrDefault()?.EventType ?? string.Empty };
         }
-        else
+        else if (Model.Kind == FrontedBehaviorKind.Loop)
         {
             Model.StartTrigger ??= new TriggerDescriptor { EventType = eventOptions.FirstOrDefault()?.EventType ?? string.Empty };
-            Model.EndTrigger ??= new TriggerDescriptor { EventType = eventOptions.FirstOrDefault()?.EventType ?? string.Empty };
+            if (Model.StopTriggers.Count == 0)
+            {
+                Model.StopTriggers.Add(new TriggerDescriptor { EventType = eventOptions.FirstOrDefault()?.EventType ?? string.Empty });
+            }
             Model.LoopPolicy ??= new FrontedLoopPolicy();
+        }
+        else if (Model.Kind == FrontedBehaviorKind.Transition)
+        {
+            Model.TransitionTrigger ??= new TriggerDescriptor
+            {
+                EventType = eventOptions.FirstOrDefault(option => option.EventType == "Selection.CharacterPick")?.EventType
+                            ?? eventOptions.FirstOrDefault()?.EventType
+                            ?? string.Empty
+            };
         }
 
         Trigger = new TriggerDescriptorEditorViewModel(Model.Trigger, eventOptions, operatorOptions, markDirty, localize);
         StartTrigger = new TriggerDescriptorEditorViewModel(Model.StartTrigger, eventOptions, operatorOptions, markDirty, localize);
-        EndTrigger = new TriggerDescriptorEditorViewModel(Model.EndTrigger, eventOptions, operatorOptions, markDirty, localize);
+        foreach (var trigger in Model.StopTriggers)
+        {
+            StopTriggers.Add(new TriggerDescriptorEditorViewModel(trigger, eventOptions, operatorOptions, markDirty, localize));
+        }
+
+        TransitionTrigger = new TriggerDescriptorEditorViewModel(Model.TransitionTrigger, eventOptions, operatorOptions, markDirty, localize);
         LoopPolicy = new LoopPolicyEditorViewModel(Model.LoopPolicy, stopModeOptions, reentryPolicyOptions, markDirty);
+        ReentryPolicyOptions = reentryPolicyOptions;
         OpenAnimationEditorCommand = new RelayCommand(() => openAnimationEditor(
             new FrontedBehaviorAnimationEditorViewModel(
                 Model,
@@ -896,9 +945,13 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
 
     public TriggerDescriptorEditorViewModel StartTrigger { get; }
 
-    public TriggerDescriptorEditorViewModel EndTrigger { get; }
+    public ObservableCollection<TriggerDescriptorEditorViewModel> StopTriggers { get; } = [];
+
+    public TriggerDescriptorEditorViewModel TransitionTrigger { get; }
 
     public LoopPolicyEditorViewModel LoopPolicy { get; }
+
+    public IReadOnlyList<BehaviorOptionViewModel> ReentryPolicyOptions { get; }
 
     public IRelayCommand OpenAnimationEditorCommand { get; }
 
@@ -932,23 +985,52 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
 
     public bool IsLoop => Model.Kind == FrontedBehaviorKind.Loop;
 
-    public string KindDisplay => Model.Kind == FrontedBehaviorKind.Loop
-        ? _localize("Designer.Behaviors.Loop", "Loop")
-        : _localize("Designer.Behaviors.OneShot", "OneShot");
+    public bool IsTransition => Model.Kind == FrontedBehaviorKind.Transition;
 
-    public string TriggerSummary => IsLoop
-        ? $"{StartTrigger.EventType} / {EndTrigger.EventType}"
-        : Trigger.EventType;
+    public string KindDisplay => Model.Kind switch
+    {
+        FrontedBehaviorKind.Loop => _localize("Designer.Behaviors.Loop", "Loop"),
+        FrontedBehaviorKind.Transition => _localize("Designer.Behaviors.Transition", "Transition"),
+        _ => _localize("Designer.Behaviors.OneShot", "OneShot")
+    };
 
-    public int FilterCount => IsLoop
-        ? StartTrigger.Filters.Count + EndTrigger.Filters.Count
-        : Trigger.Filters.Count;
+    public string TriggerSummary => Model.Kind switch
+    {
+        FrontedBehaviorKind.Loop => $"{StartTrigger.EventType} / {string.Join(" OR ", StopTriggers.Select(trigger => trigger.EventType))}",
+        FrontedBehaviorKind.Transition => TransitionTrigger.EventType,
+        _ => Trigger.EventType
+    };
 
-    public string GraphSummary => IsLoop
-        ? $"{_localize("Designer.Behaviors.StartGraph", "StartGraph")}: {GraphStats(Model.StartGraph)}; "
-          + $"{_localize("Designer.Behaviors.LoopGraph", "LoopGraph")}: {GraphStats(Model.LoopGraph)}; "
-          + $"{_localize("Designer.Behaviors.StopGraph", "StopGraph")}: {GraphStats(Model.StopGraph)}"
-        : GraphStats(Model.Graph);
+    public int FilterCount => Model.Kind switch
+    {
+        FrontedBehaviorKind.Loop => StartTrigger.Filters.Count + StopTriggers.Sum(trigger => trigger.Filters.Count),
+        FrontedBehaviorKind.Transition => TransitionTrigger.Filters.Count,
+        _ => Trigger.Filters.Count
+    };
+
+    public string GraphSummary => Model.Kind switch
+    {
+        FrontedBehaviorKind.Loop =>
+            $"{_localize("Designer.Behaviors.StartGraph", "StartGraph")}: {GraphStats(Model.StartGraph)}; "
+            + $"{_localize("Designer.Behaviors.LoopGraph", "LoopGraph")}: {GraphStats(Model.LoopGraph)}; "
+            + $"{_localize("Designer.Behaviors.StopGraph", "StopGraph")}: {GraphStats(Model.StopGraph)}",
+        FrontedBehaviorKind.Transition =>
+            $"{_localize("Designer.Behaviors.ExitGraph", "ExitGraph")}: {GraphStats(Model.ExitGraph)}; "
+            + $"{_localize("Designer.Behaviors.EnterGraph", "EnterGraph")}: {GraphStats(Model.EnterGraph)}",
+        _ => GraphStats(Model.Graph)
+    };
+
+    public FrontedReentryPolicy ReentryPolicy
+    {
+        get => Model.ReentryPolicy;
+        set
+        {
+            if (SetProperty(Model.ReentryPolicy, value, Model, static (model, next) => model.ReentryPolicy = next))
+            {
+                _markDirty();
+            }
+        }
+    }
 
     public string GraphPlaceholder => _graphPlaceholder;
 
@@ -959,7 +1041,12 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
     {
         Trigger.RefreshLocalization();
         StartTrigger.RefreshLocalization();
-        EndTrigger.RefreshLocalization();
+        foreach (var trigger in StopTriggers)
+        {
+            trigger.RefreshLocalization();
+        }
+
+        TransitionTrigger.RefreshLocalization();
         OnPropertyChanged(nameof(KindDisplay));
         OnPropertyChanged(nameof(GraphSummary));
         OnPropertyChanged(nameof(GraphPlaceholder));
@@ -970,6 +1057,81 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
         return graph is null
             ? "0 nodes / 0 links"
             : $"{graph.Nodes.Count} nodes / {graph.Connections.Count} links";
+    }
+
+    [RelayCommand]
+    private void AddStopTrigger()
+    {
+        var trigger = new TriggerDescriptor { EventType = StartTrigger.EventOptions.FirstOrDefault()?.EventType ?? string.Empty };
+        Model.StopTriggers.Add(trigger);
+        StopTriggers.Add(new TriggerDescriptorEditorViewModel(
+            trigger,
+            StartTrigger.EventOptions,
+            StartTrigger.OperatorOptions,
+            _markDirty,
+            _localize));
+        _markDirty();
+        OnPropertyChanged(nameof(TriggerSummary));
+    }
+
+    [RelayCommand]
+    private void RemoveStopTrigger(TriggerDescriptorEditorViewModel? trigger)
+    {
+        if (trigger is null || StopTriggers.Count <= 1)
+        {
+            return;
+        }
+
+        var index = StopTriggers.IndexOf(trigger);
+        if (index < 0)
+        {
+            return;
+        }
+
+        StopTriggers.RemoveAt(index);
+        Model.StopTriggers.RemoveAt(index);
+        _markDirty();
+        OnPropertyChanged(nameof(TriggerSummary));
+        OnPropertyChanged(nameof(FilterCount));
+    }
+
+    [RelayCommand]
+    private void DuplicateStopTrigger(TriggerDescriptorEditorViewModel? trigger)
+    {
+        if (trigger is null)
+        {
+            return;
+        }
+
+        var index = StopTriggers.IndexOf(trigger);
+        if (index < 0)
+        {
+            return;
+        }
+
+        var clone = new TriggerDescriptor
+        {
+            EventType = trigger.Model.EventType,
+            Filters = trigger.Model.Filters
+                .Select(filter => new TriggerFilter
+                {
+                    Left = filter.Left,
+                    Operator = filter.Operator,
+                    Right = filter.Right,
+                    RightValueKind = filter.RightValueKind
+                })
+                .ToList()
+        };
+        Model.StopTriggers.Insert(index + 1, clone);
+        StopTriggers.Insert(index + 1, new TriggerDescriptorEditorViewModel(
+            clone,
+            StartTrigger.EventOptions,
+            StartTrigger.OperatorOptions,
+            _markDirty,
+            _localize));
+        _markDirty();
+        OnPropertyChanged(nameof(TriggerSummary));
+        OnPropertyChanged(nameof(FilterCount));
     }
 }
 
@@ -1320,14 +1482,22 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
         _saveAsync = saveAsync;
         Title = behavior.Name;
         IsLoop = behavior.Kind == FrontedBehaviorKind.Loop;
-        Stages = IsLoop
-            ?
+        IsTransition = behavior.Kind == FrontedBehaviorKind.Transition;
+        Stages = behavior.Kind switch
+        {
+            FrontedBehaviorKind.Loop =>
             [
                 Stage(localize("Designer.Behaviors.StartAnimation", "Start animation"), behavior.StartGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions),
                 Stage(localize("Designer.Behaviors.LoopAnimation", "Loop animation"), behavior.LoopGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions),
-                Stage(localize("Designer.Behaviors.EndAnimation", "End animation"), behavior.StopGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions)
-            ]
-            : [Stage(localize("Designer.Behaviors.Animation", "Animation"), behavior.Graph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions)];
+                Stage(localize("Designer.Behaviors.StopAnimation", "Stop animation"), behavior.StopGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions)
+            ],
+            FrontedBehaviorKind.Transition =>
+            [
+                Stage(localize("Designer.Behaviors.ExitGraph", "ExitGraph"), behavior.ExitGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions),
+                Stage(localize("Designer.Behaviors.EnterGraph", "EnterGraph"), behavior.EnterGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions)
+            ],
+            _ => [Stage(localize("Designer.Behaviors.Animation", "Animation"), behavior.Graph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions)]
+        };
 
         // Wire each stage's graph editor save action to trigger SaveAllAsync on this animation editor.
         foreach (var stage in Stages)
@@ -1346,6 +1516,7 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
 
     public string Title { get; }
     public bool IsLoop { get; }
+    public bool IsTransition { get; }
     public IReadOnlyList<FrontedBehaviorAnimationStageViewModel> Stages { get; }
 
     /// <summary>是否有任何 stage 包含未保存的更改</summary>

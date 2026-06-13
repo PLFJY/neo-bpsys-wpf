@@ -30,4 +30,26 @@ public interface IFrontedBehaviorRuntime
     /// <param name="triggerName">The trigger name.</param>
     /// <param name="windowId">Optional window filter.</param>
     void PublishManualTrigger(string triggerName, string? windowId = null);
+
+    /// <summary>
+    /// Stops all active loop behaviors across attached fronted behavior hosts.
+    /// </summary>
+    /// <param name="reason">The reason for stopping the loops.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The number of active loop behaviors that were requested to stop.</returns>
+    Task<int> StopAllLoopBehaviorsAsync(
+        FrontedBehaviorStopReason reason = FrontedBehaviorStopReason.ManualClear,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Stops active loop behaviors for one attached fronted window.
+    /// </summary>
+    /// <param name="windowId">The fronted window identifier.</param>
+    /// <param name="reason">The reason for stopping the loops.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The number of active loop behaviors that were requested to stop.</returns>
+    Task<int> StopLoopBehaviorsAsync(
+        string windowId,
+        FrontedBehaviorStopReason reason,
+        CancellationToken cancellationToken = default);
 }

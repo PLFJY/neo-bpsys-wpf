@@ -73,6 +73,7 @@ public class GameGuidanceService(
     private int _currentStep = -1;
 
     private bool _isGuidanceStarted;
+    private string? _pendingGuidanceStopReason;
 
     /// <inheritdoc/>
     public event EventHandler<GameGuidanceStateChangedEventArgs>? GuidanceStateChanged;
@@ -82,6 +83,9 @@ public class GameGuidanceService(
 
     /// <inheritdoc/>
     public event EventHandler<GameGuidanceStateChangedEventArgs>? GuidanceStopped;
+
+    /// <inheritdoc/>
+    public event EventHandler<GameGuidanceStateChangedEventArgs>? GuidanceCancelled;
 
     /// <inheritdoc/>
     public event EventHandler<GameGuidanceStepChangedEventArgs>? GuidanceStepChanged;
@@ -102,11 +106,16 @@ public class GameGuidanceService(
             _isGuidanceStarted = value;
             WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this, nameof(IsGuidanceStarted),
                 oldValue, value));
-            var args = new GameGuidanceStateChangedEventArgs(value);
+            var args = CreateStateChangedArgs(value, _pendingGuidanceStopReason);
+            _pendingGuidanceStopReason = null;
             GuidanceStateChanged?.Invoke(this, args);
             if (value)
             {
                 GuidanceStarted?.Invoke(this, args);
+            }
+            else if (string.Equals(args.Reason, "Cancelled", StringComparison.Ordinal))
+            {
+                GuidanceCancelled?.Invoke(this, args);
             }
             else
             {
@@ -193,11 +202,29 @@ public class GameGuidanceService(
             return;
         }
 
-        _currentStep = 0;
+        _pendingGuidanceStopReason = "Cancelled";
         _infoBarService.CloseInfoBar();
         WeakReferenceMessenger.Default.Send(new HighlightMessage(null, null));
         PublishHighlight(null, null);
         IsGuidanceStarted = false;
+    }
+
+    private GameGuidanceStateChangedEventArgs CreateStateChangedArgs(bool isStarted, string? reason)
+    {
+        var currentStepIndex = _currentStep;
+        var currentStep = _currentGameProperty is not null
+                          && currentStepIndex >= 0
+                          && currentStepIndex < _currentGameProperty.WorkFlow.Count
+            ? _currentGameProperty.WorkFlow[currentStepIndex]
+            : null;
+
+        return new GameGuidanceStateChangedEventArgs(
+            isStarted,
+            reason ?? (isStarted ? "Started" : "Stopped"),
+            currentStep?.Time,
+            currentStep is null ? null : currentStepIndex,
+            currentStep?.Action,
+            currentStep?.Index);
     }
 
     public async Task<string?> NextStepAsync()

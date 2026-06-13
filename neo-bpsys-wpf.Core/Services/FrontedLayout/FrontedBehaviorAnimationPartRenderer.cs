@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Markup;
 using System.Windows.Media;
+using System.Windows.Media.Effects;
 using System.Windows.Shapes;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
@@ -67,6 +68,7 @@ public sealed class FrontedBehaviorAnimationPartRenderer(
 
             var element = CreateElement(part);
             ApplyLayout(element, part, host);
+            ApplyEffect(element, part.Effect);
             MarkPart(element, host, set.DisplayName, set.BehaviorGuid, part.Name);
             RegisterGeneratedName(root, $"{set.DisplayName}__{part.Name}", element);
             (part.Layer == FrontedAnimationPartLayer.BelowContent ? below : above).Children.Add(element);
@@ -165,6 +167,39 @@ public sealed class FrontedBehaviorAnimationPartRenderer(
         {
             return null;
         }
+    }
+
+    private static void ApplyEffect(FrameworkElement element, FrontedVisualEffectConfig? config)
+    {
+        if (config is null || config.Kind == FrontedVisualEffectKind.None)
+        {
+            element.Effect = null;
+            return;
+        }
+
+        var color = Colors.Transparent;
+        if (!string.IsNullOrWhiteSpace(config.Color))
+        {
+            try
+            {
+                color = (Color)ColorConverter.ConvertFromString(config.Color)!;
+            }
+            catch (FormatException)
+            {
+            }
+            catch (NotSupportedException)
+            {
+            }
+        }
+
+        element.Effect = new DropShadowEffect
+        {
+            Color = color,
+            Opacity = Math.Clamp(config.Opacity, 0D, 1D),
+            BlurRadius = Math.Max(0D, config.BlurRadius),
+            ShadowDepth = config.Kind == FrontedVisualEffectKind.Glow ? 0D : Math.Max(0D, config.ShadowDepth),
+            Direction = config.Direction
+        };
     }
 
     private static void MarkPart(

@@ -22,9 +22,27 @@ public sealed class FrontedBehavior
 
     public FrontedNodeGraph LoopGraph { get; set; } = new();
 
-    public TriggerDescriptor? EndTrigger { get; set; }
+    /// <summary>
+    /// Gets or sets the stop triggers for loop behaviors. Any matching trigger stops the loop.
+    /// </summary>
+    public List<TriggerDescriptor> StopTriggers { get; set; } = [];
 
     public FrontedNodeGraph StopGraph { get; set; } = new();
+
+    /// <summary>
+    /// Gets or sets the trigger descriptor used by transition behavior matching.
+    /// </summary>
+    public TriggerDescriptor? TransitionTrigger { get; set; }
+
+    /// <summary>
+    /// Gets or sets the graph that runs before the business state change is committed.
+    /// </summary>
+    public FrontedNodeGraph ExitGraph { get; set; } = new();
+
+    /// <summary>
+    /// Gets or sets the graph that runs after the business state change is committed.
+    /// </summary>
+    public FrontedNodeGraph EnterGraph { get; set; } = new();
 
     /// <summary>
     /// OneShot 行为的重入策略。Loop 行为的重入策略在 <see cref="LoopPolicy"/> 中配置。

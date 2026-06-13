@@ -111,6 +111,7 @@ public partial class App
         services.AddSingleton<FrontedBehaviorTriggerEvaluator>();
         services.AddSingleton<FrontedBehaviorRuntimeHostManager>();
         services.AddSingleton<IFrontedBehaviorRuntime, FrontedBehaviorRuntime>();
+        services.AddSingleton<IFrontedTransitionOrchestrator, FrontedTransitionOrchestrator>();
         // SharedData bridge: creates once, subscribes to attributed events on startup
         services.AddSingleton<FrontedSharedDataBehaviorEventBridge>(sp =>
         {

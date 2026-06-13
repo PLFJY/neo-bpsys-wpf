@@ -151,6 +151,84 @@ public sealed class FrontedBehaviorRuntimeHostManager : IDisposable
     }
 
     /// <summary>
+    /// Stops all active loop behaviors across all attached hosts.
+    /// </summary>
+    /// <param name="reason">The reason for stopping active loops.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The number of loops that were requested to stop.</returns>
+    public async Task<int> StopAllLoopBehaviorsAsync(
+        FrontedBehaviorStopReason reason,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        List<FrontedBehaviorRuntimeHost> hosts;
+        lock (_gate)
+        {
+            hosts = [.. _hosts.Values];
+        }
+
+        _logger.LogInformation("Stop all loops requested. Reason={Reason}, HostCount={HostCount}", reason, hosts.Count);
+        var count = 0;
+        foreach (var host in hosts)
+        {
+            count += await host.StopAllLoopBehaviorsAsync(reason, TimeSpan.FromMilliseconds(1500), cancellationToken);
+        }
+
+        _logger.LogInformation("Stop all loops completed. Reason={Reason}, Count={Count}", reason, count);
+        return count;
+    }
+
+    /// <summary>
+    /// Stops active loop behaviors for one attached fronted window host.
+    /// </summary>
+    /// <param name="windowId">The fronted window identifier.</param>
+    /// <param name="reason">The reason for stopping active loops.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The number of loops that were requested to stop.</returns>
+    public async Task<int> StopLoopBehaviorsAsync(
+        string windowId,
+        FrontedBehaviorStopReason reason,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        FrontedBehaviorRuntimeHost? host;
+        lock (_gate)
+        {
+            host = _hosts.GetValueOrDefault(BuildKey(windowId));
+        }
+
+        return host is null
+            ? 0
+            : await host.StopAllLoopBehaviorsAsync(reason, TimeSpan.FromMilliseconds(1500), cancellationToken);
+    }
+
+    /// <summary>
+    /// Creates transition execution matches for a transition request.
+    /// </summary>
+    /// <param name="request">Transition request to match against attached hosts.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Matched transition executions.</returns>
+    internal IReadOnlyList<FrontedTransitionExecution> CreateTransitionExecutions(
+        FrontedTransitionRequest request,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        List<FrontedBehaviorRuntimeHost> hosts;
+        lock (_gate)
+        {
+            hosts = [.. _hosts.Values];
+        }
+
+        return hosts
+            .Where(host => string.IsNullOrWhiteSpace(request.WindowType) ||
+                           string.Equals(host.Context.WindowType, request.WindowType, StringComparison.Ordinal))
+            .SelectMany(host => host.CreateTransitionExecutions(request, cancellationToken))
+            .ToArray();
+    }
+
+    /// <summary>
     /// Detaches all hosts and releases all resources.
     /// </summary>
     public void Dispose()

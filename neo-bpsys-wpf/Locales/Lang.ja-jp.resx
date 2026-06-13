@@ -3899,7 +3899,6 @@
   <data name="Designer.Behaviors.Loop" xml:space="preserve"><value>Loop</value></data>
   <data name="Designer.Behaviors.Trigger" xml:space="preserve"><value>トリガー</value></data>
   <data name="Designer.Behaviors.StartTrigger" xml:space="preserve"><value>開始トリガー</value></data>
-  <data name="Designer.Behaviors.EndTrigger" xml:space="preserve"><value>終了トリガー</value></data>
   <data name="Designer.Behaviors.Filters" xml:space="preserve"><value>フィルター</value></data>
   <data name="Designer.Behaviors.AddFilter" xml:space="preserve"><value>フィルターを追加</value></data>
   <data name="Designer.Behaviors.RemoveFilter" xml:space="preserve"><value>フィルターを削除</value></data>
@@ -4332,4 +4331,44 @@
   <data name="Designer.AnimationParts.Validation.Integer" xml:space="preserve"><value>有効な整数を入力してください。</value></data>
   <data name="Designer.AnimationParts.Validation.Color" xml:space="preserve"><value>#FFFFFFFF または White のような有効な色を入力してください。</value></data>
   <data name="Designer.Behaviors.MissingAnimationPart" xml:space="preserve"><value>コントロール {1} にアニメーション部品「{0}」がありません。</value></data>
+  <data name="Designer.Behaviors.AddTransition" xml:space="preserve"><value>トランジションを追加</value></data>
+  <data name="Designer.Behaviors.Transition" xml:space="preserve"><value>トランジション</value></data>
+  <data name="Designer.Behaviors.NewTransition" xml:space="preserve"><value>新しいトランジション動作</value></data>
+  <data name="Designer.Behaviors.TransitionTrigger" xml:space="preserve"><value>トランジショントリガー</value></data>
+  <data name="Designer.Behaviors.TransitionHelp" xml:space="preserve"><value>ExitGraph はデータ変更前に実行されます。EnterGraph はデータ変更後に実行されます。</value></data>
+  <data name="Designer.Behaviors.ExitGraph" xml:space="preserve"><value>ExitGraph</value></data>
+  <data name="Designer.Behaviors.EnterGraph" xml:space="preserve"><value>EnterGraph</value></data>
+  <data name="Designer.Behaviors.Event.CharacterPick" xml:space="preserve"><value>キャラクター選択トランジション</value></data>
+  <data name="Designer.Behaviors.Event.CharacterPick.Description" xml:space="preserve"><value>キャラクター選択の確定前後にトランジショングラフを実行します。</value></data>
+  <data name="Designer.Behaviors.Event.CharacterSwap" xml:space="preserve"><value>サバイバー交換トランジション</value></data>
+  <data name="Designer.Behaviors.Event.CharacterSwap.Description" xml:space="preserve"><value>サバイバーのキャラクター交換確定前後にトランジショングラフを実行します。</value></data>
+  <data name="Designer.Behaviors.Payload.TargetBehaviorGuid" xml:space="preserve"><value>対象動作 ID</value></data>
+  <data name="Designer.Behaviors.Payload.OldCharacterId" xml:space="preserve"><value>旧キャラクター ID</value></data>
+  <data name="Designer.Behaviors.Payload.NewCharacterId" xml:space="preserve"><value>新キャラクター ID</value></data>
+  <data name="Designer.Behaviors.Payload.HasOldCharacter" xml:space="preserve"><value>旧キャラクターあり</value></data>
+  <data name="Designer.Behaviors.Payload.HasNewCharacter" xml:space="preserve"><value>新キャラクターあり</value></data>
+  <data name="Designer.Behaviors.Payload.SourceIndex" xml:space="preserve"><value>交換元インデックス</value></data>
+  <data name="Designer.Behaviors.Payload.TargetIndex" xml:space="preserve"><value>交換先インデックス</value></data>
+  <data name="Designer.Behaviors.Payload.SourceBehaviorGuid" xml:space="preserve"><value>交換元動作 ID</value></data>
+  <data name="Designer.Behaviors.StopTriggers" xml:space="preserve"><value>停止トリガー</value></data>
+  <data name="Designer.Behaviors.StopTrigger" xml:space="preserve"><value>停止トリガー</value></data>
+  <data name="Designer.Behaviors.AddStopTrigger" xml:space="preserve"><value>停止トリガーを追加</value></data>
+  <data name="Designer.Behaviors.StopTriggersHelp" xml:space="preserve"><value>いずれかの停止トリガーが一致するとループが停止し、StopGraph が実行されます。</value></data>
+  <data name="Designer.Behaviors.StopAnimation" xml:space="preserve"><value>停止アニメーション</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceCancelled" xml:space="preserve"><value>ガイダンス取消</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceCancelled.Description" xml:space="preserve"><value>ガイダンスがユーザーにより取り消された時に発生します。</value></data>
+  <data name="Designer.Behaviors.Payload.Reason" xml:space="preserve"><value>理由</value></data>
+  <data name="Designer.AnimationParts.EffectSection" xml:space="preserve"><value>視覚効果</value></data>
+  <data name="Designer.AnimationParts.EffectKind" xml:space="preserve"><value>効果タイプ</value></data>
+  <data name="Designer.AnimationParts.EffectKind.None" xml:space="preserve"><value>なし</value></data>
+  <data name="Designer.AnimationParts.EffectKind.Glow" xml:space="preserve"><value>グロー</value></data>
+  <data name="Designer.AnimationParts.EffectKind.DropShadow" xml:space="preserve"><value>ドロップシャドウ</value></data>
+  <data name="Designer.AnimationParts.EffectColor" xml:space="preserve"><value>効果色</value></data>
+  <data name="Designer.AnimationParts.EffectOpacity" xml:space="preserve"><value>効果の不透明度</value></data>
+  <data name="Designer.AnimationParts.EffectBlurRadius" xml:space="preserve"><value>ぼかし半径</value></data>
+  <data name="Designer.AnimationParts.EffectShadowDepth" xml:space="preserve"><value>影の距離</value></data>
+  <data name="Designer.AnimationParts.EffectDirection" xml:space="preserve"><value>方向</value></data>
+  <data name="StopAllLoopAnimations" xml:space="preserve"><value>すべてのループアニメーションを停止</value></data>
+  <data name="StoppedLoopAnimationsFormat" xml:space="preserve"><value>{0} 個のループアニメーションを停止しました。</value></data>
+  <data name="NoActiveLoopAnimations" xml:space="preserve"><value>再生中のループアニメーションはありません。</value></data>
 </root>

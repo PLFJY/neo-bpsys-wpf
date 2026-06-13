@@ -23,8 +23,10 @@ public class FrontedBehaviorEventCatalogTest
             .Select(info => info.Name)
             .ToArray();
 
-        Assert.Equal(attributedNames.Length, catalog.Events.Count);
+        Assert.Equal(attributedNames.Length + 2, catalog.Events.Count);
         Assert.DoesNotContain(catalog.Events, descriptor => descriptor.EventType == nameof(INotifyPropertyChanged.PropertyChanged));
+        Assert.Contains(catalog.Events, descriptor => descriptor.EventType == "Selection.CharacterPick");
+        Assert.Contains(catalog.Events, descriptor => descriptor.EventType == "Selection.CharacterSwap");
     }
 
     [Fact]

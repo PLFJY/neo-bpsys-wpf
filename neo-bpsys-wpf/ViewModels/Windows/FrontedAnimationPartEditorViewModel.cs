@@ -32,6 +32,13 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     private string _visibility = "Hidden";
     private string _zIndexText = "0";
     private bool _isHitTestVisible;
+    private FrontedVisualEffectKind _effectKind;
+    private string _effectColor = string.Empty;
+    private Color _effectPickerColor = FrontedPropertyColorHelper.FallbackColor;
+    private string _effectOpacityText = "1";
+    private string _effectBlurRadiusText = "0";
+    private string _effectShadowDepthText = "0";
+    private string _effectDirectionText = "0";
     private bool _isSynchronizingColor;
 
     /// <summary>
@@ -264,6 +271,84 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     }
 
     /// <summary>
+    /// Gets or sets the visual effect kind.
+    /// </summary>
+    public FrontedVisualEffectKind EffectKind
+    {
+        get => _effectKind;
+        set => SetProperty(ref _effectKind, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the visual effect color text.
+    /// </summary>
+    [CustomValidation(typeof(FrontedAnimationPartEditorViewModel), nameof(ValidateColorValue))]
+    public string EffectColor
+    {
+        get => _effectColor;
+        set
+        {
+            if (!SetValidatedProperty(ref _effectColor, value ?? string.Empty)
+                || _isSynchronizingColor
+                || !FrontedPropertyColorHelper.TryParseArgbColor(_effectColor, out var color))
+            {
+                return;
+            }
+
+            SetProperty(ref _effectPickerColor, color, nameof(EffectPickerColor));
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the color-picker value for the visual effect.
+    /// </summary>
+    public Color EffectPickerColor
+    {
+        get => _effectPickerColor;
+        set => SetColorFromPicker(ref _effectPickerColor, value, nameof(EffectPickerColor), colorText => EffectColor = colorText);
+    }
+
+    /// <summary>
+    /// Gets or sets the visual effect opacity text.
+    /// </summary>
+    [CustomValidation(typeof(FrontedAnimationPartEditorViewModel), nameof(ValidateOpacityValue))]
+    public string EffectOpacityText
+    {
+        get => _effectOpacityText;
+        set => SetValidatedProperty(ref _effectOpacityText, value ?? string.Empty);
+    }
+
+    /// <summary>
+    /// Gets or sets the visual effect blur radius text.
+    /// </summary>
+    [CustomValidation(typeof(FrontedAnimationPartEditorViewModel), nameof(ValidateNonNegativeNumberValue))]
+    public string EffectBlurRadiusText
+    {
+        get => _effectBlurRadiusText;
+        set => SetValidatedProperty(ref _effectBlurRadiusText, value ?? string.Empty);
+    }
+
+    /// <summary>
+    /// Gets or sets the visual effect shadow depth text.
+    /// </summary>
+    [CustomValidation(typeof(FrontedAnimationPartEditorViewModel), nameof(ValidateNonNegativeNumberValue))]
+    public string EffectShadowDepthText
+    {
+        get => _effectShadowDepthText;
+        set => SetValidatedProperty(ref _effectShadowDepthText, value ?? string.Empty);
+    }
+
+    /// <summary>
+    /// Gets or sets the visual effect direction text.
+    /// </summary>
+    [CustomValidation(typeof(FrontedAnimationPartEditorViewModel), nameof(ValidateNumberValue))]
+    public string EffectDirectionText
+    {
+        get => _effectDirectionText;
+        set => SetValidatedProperty(ref _effectDirectionText, value ?? string.Empty);
+    }
+
+    /// <summary>
     /// Validates every editable text field.
     /// </summary>
     public void ValidateAll()
@@ -303,6 +388,15 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
         target.Visibility = Visibility;
         target.ZIndex = int.Parse(ZIndexText, NumberStyles.Integer, CultureInfo.InvariantCulture);
         target.IsHitTestVisible = IsHitTestVisible;
+        target.Effect = new FrontedVisualEffectConfig
+        {
+            Kind = EffectKind,
+            Color = NullIfWhiteSpace(EffectColor),
+            Opacity = ParseDouble(EffectOpacityText),
+            BlurRadius = ParseDouble(EffectBlurRadiusText),
+            ShadowDepth = ParseDouble(EffectShadowDepthText),
+            Direction = ParseDouble(EffectDirectionText)
+        };
     }
 
     private void Load(FrontedAnimationPartConfig source)
@@ -328,6 +422,15 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
         _visibility = source.Visibility;
         _zIndexText = source.ZIndex.ToString(CultureInfo.InvariantCulture);
         _isHitTestVisible = source.IsHitTestVisible;
+        _effectKind = source.Effect.Kind;
+        _effectColor = source.Effect.Color ?? string.Empty;
+        _effectPickerColor = FrontedPropertyColorHelper.TryParseArgbColor(_effectColor, out var effectColor)
+            ? effectColor
+            : FrontedPropertyColorHelper.FallbackColor;
+        _effectOpacityText = source.Effect.Opacity.ToString(CultureInfo.InvariantCulture);
+        _effectBlurRadiusText = source.Effect.BlurRadius.ToString(CultureInfo.InvariantCulture);
+        _effectShadowDepthText = source.Effect.ShadowDepth.ToString(CultureInfo.InvariantCulture);
+        _effectDirectionText = source.Effect.Direction.ToString(CultureInfo.InvariantCulture);
     }
 
     private bool SetValidatedProperty(

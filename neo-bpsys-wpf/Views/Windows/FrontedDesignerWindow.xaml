@@ -1511,9 +1511,71 @@
                                                 Text="{Binding OpacityText, UpdateSourceTrigger=PropertyChanged}" />
                                         </StackPanel>
                                         <CheckBox
-                                            Margin="0,2,0,0"
+                                            Margin="0,2,0,8"
                                             Content="{lex:Loc Designer.AnimationParts.IsHitTestVisible}"
                                             IsChecked="{Binding IsHitTestVisible, Mode=TwoWay}" />
+                                        <TextBlock
+                                            Margin="0,4,0,6"
+                                            FontWeight="SemiBold"
+                                            Opacity="0.78"
+                                            Text="{lex:Loc Designer.AnimationParts.EffectSection}" />
+                                        <StackPanel Margin="0,0,0,8">
+                                            <TextBlock Text="{lex:Loc Designer.AnimationParts.EffectKind}" />
+                                            <ComboBox Margin="0,3,0,8" SelectedValue="{Binding EffectKind, Mode=TwoWay}" SelectedValuePath="Tag">
+                                                <ComboBoxItem Content="{lex:Loc Designer.AnimationParts.EffectKind.None}" Tag="{x:Static frontedLayout:FrontedVisualEffectKind.None}" />
+                                                <ComboBoxItem Content="{lex:Loc Designer.AnimationParts.EffectKind.Glow}" Tag="{x:Static frontedLayout:FrontedVisualEffectKind.Glow}" />
+                                                <ComboBoxItem Content="{lex:Loc Designer.AnimationParts.EffectKind.DropShadow}" Tag="{x:Static frontedLayout:FrontedVisualEffectKind.DropShadow}" />
+                                            </ComboBox>
+                                            <TextBlock Text="{lex:Loc Designer.AnimationParts.EffectColor}" />
+                                            <Grid Margin="0,3,0,8">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <colorpicker:PortableColorPicker
+                                                    Width="52"
+                                                    Height="30"
+                                                    Margin="0,0,6,0"
+                                                    HexRepresentation="ARGB"
+                                                    SelectedColor="{Binding EffectPickerColor, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                    ShowAlpha="True"
+                                                    Style="{StaticResource DefaultColorPickerStyle}" />
+                                                <ui:TextBox
+                                                    Grid.Column="1"
+                                                    Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
+                                                    Text="{Binding EffectColor, UpdateSourceTrigger=PropertyChanged}" />
+                                            </Grid>
+                                            <UniformGrid Columns="2">
+                                                <StackPanel Margin="0,0,4,0">
+                                                    <TextBlock Text="{lex:Loc Designer.AnimationParts.EffectOpacity}" />
+                                                    <ui:TextBox
+                                                        Margin="0,3,0,8"
+                                                        Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
+                                                        Text="{Binding EffectOpacityText, UpdateSourceTrigger=PropertyChanged}" />
+                                                </StackPanel>
+                                                <StackPanel Margin="4,0,0,0">
+                                                    <TextBlock Text="{lex:Loc Designer.AnimationParts.EffectBlurRadius}" />
+                                                    <ui:TextBox
+                                                        Margin="0,3,0,8"
+                                                        Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
+                                                        Text="{Binding EffectBlurRadiusText, UpdateSourceTrigger=PropertyChanged}" />
+                                                </StackPanel>
+                                                <StackPanel Margin="0,0,4,0">
+                                                    <TextBlock Text="{lex:Loc Designer.AnimationParts.EffectShadowDepth}" />
+                                                    <ui:TextBox
+                                                        Margin="0,3,0,8"
+                                                        Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
+                                                        Text="{Binding EffectShadowDepthText, UpdateSourceTrigger=PropertyChanged}" />
+                                                </StackPanel>
+                                                <StackPanel Margin="4,0,0,0">
+                                                    <TextBlock Text="{lex:Loc Designer.AnimationParts.EffectDirection}" />
+                                                    <ui:TextBox
+                                                        Margin="0,3,0,8"
+                                                        Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
+                                                        Text="{Binding EffectDirectionText, UpdateSourceTrigger=PropertyChanged}" />
+                                                </StackPanel>
+                                            </UniformGrid>
+                                        </StackPanel>
                                     </StackPanel>
                                 </Border>
                                 <ui:Button

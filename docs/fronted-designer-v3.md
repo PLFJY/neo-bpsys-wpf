@@ -278,6 +278,7 @@ catalog 构建是 lazy + cache，只做类型反射，不调用属性 getter，�
 
 动画部件可通过 `part:{BehaviorGuid}:{AnimationPartName}` 选为动画目标。宽高支持像素文本和百分比；
 动画部件的 `VisualOffsetX/Y` 百分比相对父控件宽高计算，适合构建扫描线、闪光、边缘高亮等通用效果。
+动画部件可配置通用视觉效果 `Effect`，支持 `None`、`Glow` 和 `DropShadow`。`Glow`/`DropShadow` 使用 WPF `DropShadowEffect`，可配置颜色、不透明度、模糊半径、投影距离和方向；默认 `None` 不创建 effect，避免不必要的渲染成本。
 
 ## 8. 插件扩展方向
 

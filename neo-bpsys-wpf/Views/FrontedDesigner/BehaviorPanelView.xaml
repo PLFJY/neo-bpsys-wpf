@@ -155,20 +155,24 @@
             </StackPanel>
         </Border>
 
-        <UniformGrid Margin="0,10,0,0" Columns="3">
+        <WrapPanel Margin="0,10,0,0" Orientation="Horizontal">
             <ui:Button
-                Margin="0,0,4,0"
+                Margin="0,0,4,4"
                 Command="{Binding AddOneShotBehaviorCommand}"
                 Content="{lex:Loc Designer.Behaviors.AddOneShot}" />
             <ui:Button
-                Margin="4,0"
+                Margin="0,0,4,4"
                 Command="{Binding AddLoopBehaviorCommand}"
                 Content="{lex:Loc Designer.Behaviors.AddLoop}" />
             <ui:Button
-                Margin="4,0,0,0"
+                Margin="0,0,4,4"
+                Command="{Binding AddTransitionBehaviorCommand}"
+                Content="{lex:Loc Designer.Behaviors.AddTransition}" />
+            <ui:Button
+                Margin="0,0,4,4"
                 Command="{Binding PasteBehaviorCommand}"
                 Content="{lex:Loc Designer.Behaviors.Paste}" />
-        </UniformGrid>
+        </WrapPanel>
         <TextBlock
             Margin="0,6,0,0"
             Opacity="0.72"
@@ -306,8 +310,80 @@
                                 </StackPanel.Style>
                                 <TextBlock Style="{StaticResource SectionTitle}" Text="{lex:Loc Designer.Behaviors.StartTrigger}" />
                                 <ContentControl Content="{Binding StartTrigger}" ContentTemplate="{StaticResource TriggerEditorTemplate}" />
-                                <TextBlock Style="{StaticResource SectionTitle}" Text="{lex:Loc Designer.Behaviors.EndTrigger}" />
-                                <ContentControl Content="{Binding EndTrigger}" ContentTemplate="{StaticResource TriggerEditorTemplate}" />
+                                <TextBlock Style="{StaticResource SectionTitle}" Text="{lex:Loc Designer.Behaviors.StopTriggers}" />
+                                <TextBlock
+                                    Margin="0,0,0,8"
+                                    Opacity="0.72"
+                                    Text="{lex:Loc Designer.Behaviors.StopTriggersHelp}"
+                                    TextWrapping="Wrap" />
+                                <ItemsControl ItemsSource="{Binding StopTriggers}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="{x:Type vm:TriggerDescriptorEditorViewModel}">
+                                            <Border
+                                                Margin="0,0,0,8"
+                                                Padding="8"
+                                                BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="4">
+                                                <StackPanel>
+                                                    <DockPanel Margin="0,0,0,8">
+                                                        <TextBlock
+                                                            VerticalAlignment="Center"
+                                                            FontWeight="SemiBold"
+                                                            Text="{lex:Loc Designer.Behaviors.StopTrigger}" />
+                                                        <StackPanel
+                                                            HorizontalAlignment="Right"
+                                                            DockPanel.Dock="Right"
+                                                            Orientation="Horizontal">
+                                                            <ui:Button
+                                                                MinWidth="30"
+                                                                Command="{Binding DataContext.DuplicateStopTriggerCommand, RelativeSource={RelativeSource AncestorType=Expander}}"
+                                                                CommandParameter="{Binding}"
+                                                                Icon="{ui:SymbolIcon Symbol=Copy24}" />
+                                                            <ui:Button
+                                                                MinWidth="30"
+                                                                Margin="6,0,0,0"
+                                                                Command="{Binding DataContext.RemoveStopTriggerCommand, RelativeSource={RelativeSource AncestorType=Expander}}"
+                                                                CommandParameter="{Binding}"
+                                                                Icon="{ui:SymbolIcon Symbol=Delete24}" />
+                                                        </StackPanel>
+                                                    </DockPanel>
+                                                    <ContentControl Content="{Binding}" ContentTemplate="{StaticResource TriggerEditorTemplate}" />
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <ui:Button
+                                    HorizontalAlignment="Stretch"
+                                    Command="{Binding AddStopTriggerCommand}"
+                                    Content="{lex:Loc Designer.Behaviors.AddStopTrigger}" />
+                            </StackPanel>
+
+                            <StackPanel>
+                                <StackPanel.Style>
+                                    <Style TargetType="StackPanel">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsTransition}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Style>
+                                <TextBlock Style="{StaticResource SectionTitle}" Text="{lex:Loc Designer.Behaviors.TransitionTrigger}" />
+                                <ContentControl Content="{Binding TransitionTrigger}" ContentTemplate="{StaticResource TriggerEditorTemplate}" />
+                                <TextBlock Style="{StaticResource SectionTitle}" Text="{lex:Loc Designer.Behaviors.ReentryPolicy}" />
+                                <ComboBox
+                                    DisplayMemberPath="DisplayName"
+                                    ItemsSource="{Binding ReentryPolicyOptions}"
+                                    SelectedValue="{Binding ReentryPolicy, Mode=TwoWay}"
+                                    SelectedValuePath="Value" />
+                                <TextBlock
+                                    Margin="0,8,0,0"
+                                    Opacity="0.72"
+                                    Text="{lex:Loc Designer.Behaviors.TransitionHelp}"
+                                    TextWrapping="Wrap" />
                             </StackPanel>
 
                             <TextBlock

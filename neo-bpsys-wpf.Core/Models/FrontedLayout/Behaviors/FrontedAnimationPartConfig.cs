@@ -91,6 +91,11 @@ public sealed class FrontedAnimationPartConfig
     /// Gets or sets whether the generated part participates in hit testing.
     /// </summary>
     public bool IsHitTestVisible { get; set; }
+
+    /// <summary>
+    /// Gets or sets the optional visual effect applied to the generated part.
+    /// </summary>
+    public FrontedVisualEffectConfig Effect { get; set; } = new();
 }
 
 /// <summary>

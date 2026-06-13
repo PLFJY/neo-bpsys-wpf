@@ -1843,15 +1843,6 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
-        ///   查找类似 结束触发器 的本地化字符串。
-        /// </summary>
-        public static string Designer_Behaviors_EndTrigger {
-            get {
-                return ResourceManager.GetString("Designer.Behaviors.EndTrigger", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   查找类似 Ban 位数量改变 的本地化字符串。
         /// </summary>
         public static string Designer_Behaviors_Event_BanCountChanged {

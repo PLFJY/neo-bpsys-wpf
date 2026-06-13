@@ -3995,7 +3995,6 @@
   <data name="Designer.Behaviors.Loop" xml:space="preserve"><value>Loop</value></data>
   <data name="Designer.Behaviors.Trigger" xml:space="preserve"><value>Trigger</value></data>
   <data name="Designer.Behaviors.StartTrigger" xml:space="preserve"><value>Start trigger</value></data>
-  <data name="Designer.Behaviors.EndTrigger" xml:space="preserve"><value>End trigger</value></data>
   <data name="Designer.Behaviors.Filters" xml:space="preserve"><value>Filters</value></data>
   <data name="Designer.Behaviors.AddFilter" xml:space="preserve"><value>Add filter</value></data>
   <data name="Designer.Behaviors.RemoveFilter" xml:space="preserve"><value>Remove filter</value></data>
@@ -4428,4 +4427,44 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="Designer.AnimationParts.Validation.Integer" xml:space="preserve"><value>Enter a valid integer.</value></data>
   <data name="Designer.AnimationParts.Validation.Color" xml:space="preserve"><value>Enter a valid color, such as #FFFFFFFF or White.</value></data>
   <data name="Designer.Behaviors.MissingAnimationPart" xml:space="preserve"><value>Animation part '{0}' is missing for control {1}.</value></data>
+  <data name="Designer.Behaviors.AddTransition" xml:space="preserve"><value>Add transition</value></data>
+  <data name="Designer.Behaviors.Transition" xml:space="preserve"><value>Transition</value></data>
+  <data name="Designer.Behaviors.NewTransition" xml:space="preserve"><value>New Transition Behavior</value></data>
+  <data name="Designer.Behaviors.TransitionTrigger" xml:space="preserve"><value>Transition trigger</value></data>
+  <data name="Designer.Behaviors.TransitionHelp" xml:space="preserve"><value>ExitGraph runs before data changes. EnterGraph runs after data changes.</value></data>
+  <data name="Designer.Behaviors.ExitGraph" xml:space="preserve"><value>ExitGraph</value></data>
+  <data name="Designer.Behaviors.EnterGraph" xml:space="preserve"><value>EnterGraph</value></data>
+  <data name="Designer.Behaviors.Event.CharacterPick" xml:space="preserve"><value>Character pick transition</value></data>
+  <data name="Designer.Behaviors.Event.CharacterPick.Description" xml:space="preserve"><value>Runs transition graphs before and after a character pick commit.</value></data>
+  <data name="Designer.Behaviors.Event.CharacterSwap" xml:space="preserve"><value>Survivor swap transition</value></data>
+  <data name="Designer.Behaviors.Event.CharacterSwap.Description" xml:space="preserve"><value>Runs transition graphs before and after a survivor character swap commit.</value></data>
+  <data name="Designer.Behaviors.Payload.TargetBehaviorGuid" xml:space="preserve"><value>Target behavior ID</value></data>
+  <data name="Designer.Behaviors.Payload.OldCharacterId" xml:space="preserve"><value>Old character ID</value></data>
+  <data name="Designer.Behaviors.Payload.NewCharacterId" xml:space="preserve"><value>New character ID</value></data>
+  <data name="Designer.Behaviors.Payload.HasOldCharacter" xml:space="preserve"><value>Has old character</value></data>
+  <data name="Designer.Behaviors.Payload.HasNewCharacter" xml:space="preserve"><value>Has new character</value></data>
+  <data name="Designer.Behaviors.Payload.SourceIndex" xml:space="preserve"><value>Source index</value></data>
+  <data name="Designer.Behaviors.Payload.TargetIndex" xml:space="preserve"><value>Target index</value></data>
+  <data name="Designer.Behaviors.Payload.SourceBehaviorGuid" xml:space="preserve"><value>Source behavior ID</value></data>
+  <data name="Designer.Behaviors.StopTriggers" xml:space="preserve"><value>Stop triggers</value></data>
+  <data name="Designer.Behaviors.StopTrigger" xml:space="preserve"><value>Stop trigger</value></data>
+  <data name="Designer.Behaviors.AddStopTrigger" xml:space="preserve"><value>Add stop trigger</value></data>
+  <data name="Designer.Behaviors.StopTriggersHelp" xml:space="preserve"><value>The loop stops when any stop trigger matches, then StopGraph runs.</value></data>
+  <data name="Designer.Behaviors.StopAnimation" xml:space="preserve"><value>Stop animation</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceCancelled" xml:space="preserve"><value>Guidance cancelled</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceCancelled.Description" xml:space="preserve"><value>Fires when guidance is cancelled by the user.</value></data>
+  <data name="Designer.Behaviors.Payload.Reason" xml:space="preserve"><value>Reason</value></data>
+  <data name="Designer.AnimationParts.EffectSection" xml:space="preserve"><value>Visual effect</value></data>
+  <data name="Designer.AnimationParts.EffectKind" xml:space="preserve"><value>Effect kind</value></data>
+  <data name="Designer.AnimationParts.EffectKind.None" xml:space="preserve"><value>None</value></data>
+  <data name="Designer.AnimationParts.EffectKind.Glow" xml:space="preserve"><value>Glow</value></data>
+  <data name="Designer.AnimationParts.EffectKind.DropShadow" xml:space="preserve"><value>Drop shadow</value></data>
+  <data name="Designer.AnimationParts.EffectColor" xml:space="preserve"><value>Effect color</value></data>
+  <data name="Designer.AnimationParts.EffectOpacity" xml:space="preserve"><value>Effect opacity</value></data>
+  <data name="Designer.AnimationParts.EffectBlurRadius" xml:space="preserve"><value>Blur radius</value></data>
+  <data name="Designer.AnimationParts.EffectShadowDepth" xml:space="preserve"><value>Shadow depth</value></data>
+  <data name="Designer.AnimationParts.EffectDirection" xml:space="preserve"><value>Direction</value></data>
+  <data name="StopAllLoopAnimations" xml:space="preserve"><value>Stop all loop animations</value></data>
+  <data name="StoppedLoopAnimationsFormat" xml:space="preserve"><value>Stopped {0} loop animations.</value></data>
+  <data name="NoActiveLoopAnimations" xml:space="preserve"><value>No loop animations are currently playing.</value></data>
 </root>

@@ -23,6 +23,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
+using System.Windows.Media.Effects;
 using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Models;
@@ -2124,6 +2125,72 @@ public class FrontedCanvasConfigTest
     }
 
     [Fact]
+    public void AnimationPartRenderer_AppliesGlowEffect()
+    {
+        RunOnStaThread(() =>
+        {
+            var guid = Guid.NewGuid();
+            var canvas = RenderTextControlWithBehaviorGuid(guid);
+
+            new FrontedBehaviorAnimationPartRenderer(NullFrontedResourceResolver.Instance).ApplyAnimationParts(
+                canvas,
+                CreateAnimationPartDocument(
+                    guid,
+                    new FrontedAnimationPartConfig
+                    {
+                        Name = "Swipe",
+                        Kind = FrontedAnimationPartKind.Rectangle,
+                        Fill = "#FFFFFFFF",
+                        Effect = new FrontedVisualEffectConfig
+                        {
+                            Kind = FrontedVisualEffectKind.Glow,
+                            Color = "#67E8F9",
+                            Opacity = 1,
+                            BlurRadius = 18,
+                            ShadowDepth = 12
+                        }
+                    }));
+
+            var parent = Assert.IsType<Grid>(Assert.Single(canvas.Children));
+            var part = FindDescendants<FrameworkElement>(parent)
+                .Single(item => FrontedRendererProperties.GetAnimationPartName(item) == "Swipe");
+            var effect = Assert.IsType<DropShadowEffect>(part.Effect);
+            Assert.Equal(Color.FromRgb(0x67, 0xE8, 0xF9), effect.Color);
+            Assert.Equal(18, effect.BlurRadius);
+            Assert.Equal(0, effect.ShadowDepth);
+        });
+    }
+
+    [Fact]
+    public void AnimationPartRenderer_NoneEffectClearsEffect()
+    {
+        RunOnStaThread(() =>
+        {
+            var guid = Guid.NewGuid();
+            var canvas = RenderTextControlWithBehaviorGuid(guid);
+
+            new FrontedBehaviorAnimationPartRenderer(NullFrontedResourceResolver.Instance).ApplyAnimationParts(
+                canvas,
+                CreateAnimationPartDocument(
+                    guid,
+                    new FrontedAnimationPartConfig
+                    {
+                        Name = "Swipe",
+                        Kind = FrontedAnimationPartKind.Rectangle,
+                        Effect = new FrontedVisualEffectConfig
+                        {
+                            Kind = FrontedVisualEffectKind.None
+                        }
+                    }));
+
+            var parent = Assert.IsType<Grid>(Assert.Single(canvas.Children));
+            var part = FindDescendants<FrameworkElement>(parent)
+                .Single(item => FrontedRendererProperties.GetAnimationPartName(item) == "Swipe");
+            Assert.Null(part.Effect);
+        });
+    }
+
+    [Fact]
     public void ImageFrontedControlMarksGeneratedAnimationParts()
     {
         RunOnStaThread(() =>
@@ -2610,6 +2677,54 @@ public class FrontedCanvasConfigTest
 
         return value[index..];
     }
+
+    private static Canvas RenderTextControlWithBehaviorGuid(Guid guid)
+    {
+        var renderer = new FrontedRenderer(
+            EmptyServiceProvider.Instance,
+            new Mock<ISharedDataService>().Object,
+            NullFrontedResourceResolver.Instance,
+            new FrontedControlRegistry([new TextFrontedControl()]),
+            NullLogger<FrontedRenderer>.Instance);
+        var canvas = new Canvas();
+
+        renderer.RenderToCanvas(
+            canvas,
+            new FrontedCanvasConfig
+            {
+                CanvasWidth = 1440,
+                CanvasHeight = 810,
+                Controls =
+                {
+                    ["SurPick0"] = new TextFrontedControlConfig
+                    {
+                        BehaviorGuid = guid,
+                        Text = "Pick",
+                        Width = 200,
+                        Height = 80
+                    }
+                }
+            },
+            new FrontedRenderContext { WindowId = "BpWindow", CanvasName = "BaseCanvas" });
+
+        return canvas;
+    }
+
+    private static FrontedBehaviorDocument CreateAnimationPartDocument(
+        Guid guid,
+        FrontedAnimationPartConfig part) =>
+        new()
+        {
+            ControlBehaviorSets =
+            [
+                new ControlBehaviorSet
+                {
+                    BehaviorGuid = guid,
+                    DisplayName = "SurPick0",
+                    AnimationParts = [part]
+                }
+            ]
+        };
 
     private static FrontedControlBuildContext CreateBuildContext(
         ISharedDataService sharedDataService = null,

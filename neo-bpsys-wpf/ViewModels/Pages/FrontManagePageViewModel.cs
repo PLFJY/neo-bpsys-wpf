@@ -10,6 +10,7 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Messages;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Helpers;
@@ -42,6 +43,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
     private readonly IPluginMarketService? _pluginMarketService;
     private readonly IPluginInstallService? _pluginInstallService;
     private readonly IFrontedWindowRegistry? _frontedWindowRegistry;
+    private readonly IFrontedBehaviorRuntime? _behaviorRuntime;
     private readonly ILogger<FrontManagePageViewModel>? _logger;
     private FrontedDesignerWindow? _frontedDesignerWindow;
 
@@ -56,6 +58,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
         IPluginMarketService pluginMarketService,
         IPluginInstallService pluginInstallService,
         IFrontedWindowRegistry frontedWindowRegistry,
+        IFrontedBehaviorRuntime behaviorRuntime,
         IServiceProvider serviceProvider,
         ILogger<FrontManagePageViewModel> logger)
     {
@@ -69,6 +72,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
         _pluginMarketService = pluginMarketService;
         _pluginInstallService = pluginInstallService;
         _frontedWindowRegistry = frontedWindowRegistry;
+        _behaviorRuntime = behaviorRuntime;
         _serviceProvider = serviceProvider;
         _logger = logger;
         var manageableWindows = frontedWindowRegistry.GetManageableWindows() ?? [];
@@ -90,6 +94,51 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
         }
 
         _ = RefreshPackagesAsync();
+    }
+
+    /// <summary>
+    /// Initializes a fronted management page view model without a behavior runtime.
+    /// </summary>
+    /// <param name="frontedWindowService">Fronted window service.</param>
+    /// <param name="sharedDataService">Shared data service.</param>
+    /// <param name="filePickerService">File picker service.</param>
+    /// <param name="packageManager">Layout package manager.</param>
+    /// <param name="packageExporter">Layout package exporter.</param>
+    /// <param name="packageImporter">Layout package importer.</param>
+    /// <param name="legacyPackageConverter">Legacy package converter.</param>
+    /// <param name="pluginMarketService">Plugin market service.</param>
+    /// <param name="pluginInstallService">Plugin install service.</param>
+    /// <param name="frontedWindowRegistry">Fronted window registry.</param>
+    /// <param name="serviceProvider">Application service provider.</param>
+    /// <param name="logger">Logger.</param>
+    public FrontManagePageViewModel(
+        IFrontedWindowService frontedWindowService,
+        ISharedDataService sharedDataService,
+        IFilePickerService filePickerService,
+        IFrontedLayoutPackageManager packageManager,
+        IFrontedLayoutPackageExporter packageExporter,
+        IFrontedLayoutPackageImporter packageImporter,
+        IFrontedLayoutPackageLegacyConverter legacyPackageConverter,
+        IPluginMarketService pluginMarketService,
+        IPluginInstallService pluginInstallService,
+        IFrontedWindowRegistry frontedWindowRegistry,
+        IServiceProvider serviceProvider,
+        ILogger<FrontManagePageViewModel> logger)
+        : this(
+            frontedWindowService,
+            sharedDataService,
+            filePickerService,
+            packageManager,
+            packageExporter,
+            packageImporter,
+            legacyPackageConverter,
+            pluginMarketService,
+            pluginInstallService,
+            frontedWindowRegistry,
+            behaviorRuntime: null!,
+            serviceProvider,
+            logger)
+    {
     }
 
     public ObservableCollection<FrontedWindowManageItem> ExternalFrontedWindows { get; } = [];
@@ -122,6 +171,28 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
     private void HideAllWindows()
     {
         _frontedWindowService.AllWindowHide();
+    }
+
+    [RelayCommand]
+    private async Task StopAllLoopAnimationsAsync()
+    {
+        if (_behaviorRuntime is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var count = await _behaviorRuntime.StopAllLoopBehaviorsAsync(FrontedBehaviorStopReason.ManualClear);
+            PackageManagerStatus = count > 0
+                ? string.Format(I18nHelper.GetLocalizedString("StoppedLoopAnimationsFormat"), count)
+                : I18nHelper.GetLocalizedString("NoActiveLoopAnimations");
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to stop all active loop animations.");
+            PackageManagerStatus = ex.Message;
+        }
     }
 
     [RelayCommand]
@@ -377,6 +448,11 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
                     I18nHelper.GetLocalizedString("Cancel"))
                 && !string.IsNullOrWhiteSpace(result.PackageId))
             {
+                if (_behaviorRuntime is not null)
+                {
+                    await _behaviorRuntime.StopAllLoopBehaviorsAsync(FrontedBehaviorStopReason.PackageSwitched);
+                }
+
                 await _packageManager.ActivatePackageAsync(result.PackageId);
                 await _frontedWindowService.ReloadFrontedLayoutsAsync();
                 await RefreshPackagesCoreAsync(result.PackageId);
@@ -798,6 +874,11 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
 
             var activatedPackageId = SelectedPackage.PackageId;
             var activatedIsBuiltin = SelectedPackage.IsBuiltin;
+            if (_behaviorRuntime is not null)
+            {
+                await _behaviorRuntime.StopAllLoopBehaviorsAsync(FrontedBehaviorStopReason.PackageSwitched);
+            }
+
             await _packageManager.ActivatePackageAsync(activatedPackageId);
             await _frontedWindowService.ReloadFrontedLayoutsAsync();
             await RefreshPackagesCoreAsync(activatedPackageId);
@@ -877,6 +958,11 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
             }
 
             await _packageManager.DeletePackageAsync(packageId);
+            if (_behaviorRuntime is not null)
+            {
+                await _behaviorRuntime.StopAllLoopBehaviorsAsync(FrontedBehaviorStopReason.PackageSwitched);
+            }
+
             await _frontedWindowService.ReloadFrontedLayoutsAsync();
             PackageManagerStatus = I18nHelper.GetLocalizedString("PackageDeleted");
             SelectedPackage = null;

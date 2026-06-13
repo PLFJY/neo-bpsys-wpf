@@ -259,6 +259,8 @@ public sealed class FrontedBehaviorCopyPasteService
         RegenerateGraphIds(clone.StartGraph);
         RegenerateGraphIds(clone.LoopGraph);
         RegenerateGraphIds(clone.StopGraph);
+        RegenerateGraphIds(clone.ExitGraph);
+        RegenerateGraphIds(clone.EnterGraph);
 
         if (options.RewriteAnimationTargets)
         {
@@ -371,6 +373,8 @@ public sealed class FrontedBehaviorCopyPasteService
         yield return behavior.StartGraph;
         yield return behavior.LoopGraph;
         yield return behavior.StopGraph;
+        yield return behavior.ExitGraph;
+        yield return behavior.EnterGraph;
     }
 
     private static IEnumerable<string> EnumerateTargetReferences(FrontedBehavior behavior) =>
@@ -384,7 +388,8 @@ public sealed class FrontedBehaviorCopyPasteService
             .Cast<string>();
 
     private static IEnumerable<TriggerFilter> EnumerateFilters(FrontedBehavior behavior) =>
-        new[] { behavior.Trigger, behavior.StartTrigger, behavior.EndTrigger }
+        new[] { behavior.Trigger, behavior.StartTrigger }
+            .Concat(behavior.StopTriggers)
             .Where(trigger => trigger is not null)
             .SelectMany(trigger => trigger!.Filters);
 

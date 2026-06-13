@@ -34,7 +34,7 @@ Phase 2 已完成 Designer 侧行为面板和触发器编辑能力：
 - `IFrontedBehaviorService` 扩展为行为文档读写服务，`FrontedBehaviorService` 会按当前激活布局包读写 `behaviors/{WindowType}.behaviors.json`。行为数据仍独立于控件 config 和 `FrontedWindowConfig`。
 - Designer v3 右侧属性区新增可折叠的“动画 / 行为”面板。选中控件后可以添加 OneShot / Loop 行为，重命名、启用/禁用、复制和删除行为。
 - 当旧布局控件的 `BehaviorGuid == Guid.Empty` 且用户第一次添加行为时，编辑器会按需生成新的 `BehaviorGuid` 并标记 layout dirty；仅切换选中控件不会生成 Guid。
-- OneShot 行为可编辑 `Trigger`；Loop 行为可编辑 `StartTrigger`、`EndTrigger` 和 `LoopPolicy`。触发器编辑器使用事件 payload 参数、可读运算符和文本值组成规则；内部 `Source` 与兼容字段 `RightValueKind` 不在正常 UI 中显示。
+- OneShot 行为可编辑 `Trigger`；Loop 行为可编辑 `StartTrigger`、`StopTriggers` 和 `LoopPolicy`。触发器编辑器使用事件 payload 参数、可读运算符和文本值组成规则；内部 `Source` 与兼容字段 `RightValueKind` 不在正常 UI 中显示。`StopTriggers` 是简单 OR 列表，任意一个停止条件满足时循环动画会停止并执行 `StopGraph`。
 - UI 提供动画编辑器入口；OneShot 显示单图占位，Loop 通过 Top LocalTabs 切换 `StartGraph` / `LoopGraph` / `StopGraph` 占位摘要，并明确提示节点图编辑器将在 Phase 3 提供。
 - Designer VM 单独跟踪 `AreBehaviorsDirty`；保存操作会同时处理 layout dirty 和 behaviors dirty。删除控件时会删除该控件自身的 `ControlBehaviorSet`。
 - `FrontedBehaviorEventCatalog` 从显式标注的 `ISharedDataService` 语义事件反射并缓存事件元数据与常用 payload 过滤字段。
@@ -109,6 +109,7 @@ Phase 4 已完成 Designer 预览侧的 WPF 动画与属性应用层：
 `ClipInsetLeft`、`ClipInsetTop`、`ClipInsetRight`、`ClipInsetBottom` 只改变裁剪区域，不改变
 控件布局尺寸。动画部件的 `VisualOffsetX/Y` 百分比相对父控件宽高计算；普通控件的百分比相对
 自身宽高计算。动画部件名称完全由用户定义，`shine`、`edge`、`wipeBar` 等名称使用同一管线。
+动画部件支持可选通用 `Effect` 配置：`Kind=None` 不应用 WPF effect；`Glow` 和 `DropShadow` 通过 `DropShadowEffect` 实现，可配置 `Color`、`Opacity`、`BlurRadius`、`ShadowDepth` 和 `Direction`。辉光使用 `ShadowDepth=0`。效果有性能成本，默认不启用。
 
 Loop 行为编辑器现在提供 Designer-only 生命周期预览：Preview Start、Preview Loop Once、Start Loop Preview、Stop Loop Preview、Preview Stop、Reset。Start Loop Preview 会先执行 `StartGraph`，再按 `LoopPolicy.RepeatCount` 与 `IntervalMs` 重复执行 `LoopGraph`；重复启动默认按 `ReentryPolicy.IgnoreIfRunning` 忽略，`InterruptPrevious` 会取消旧循环。Stop Loop Preview 会根据 `StopMode` 停止当前循环：`StopImmediately` 立即取消，`RunStopGraph` 取消后执行 `StopGraph`，`CompleteCurrentIteration` 请求当前轮完成后退出，并按 `ResetOnStop` 调用 reset。`AutoReverse` 当前只是配置占位符，尚未实现任意图的反向执行，该功能将在后续版本中提供。
 
@@ -152,10 +153,59 @@ Phase 5 已完成真实事件总线 + 前台运行时接入，把行为系统从
 - Trigger 匹配后执行 behavior.Graph。
 - 并发策略按 `ReentryPolicy` 处理：InterruptPrevious 取消旧执行，IgnoreIfRunning 跳过。Queue / AllowParallel 的完整实现将在后续版本中提供，当前真实 runtime 按跳过处理并记录 warning。
 
+### Transition 生命周期
+
+Transition 行为用于需要在业务数据变化前后分别执行动画的场景，例如角色 Pick 从旧角色视觉过渡到新角色视觉。它不是 Loop，也不是事件发生后的 OneShot。
+
+执行顺序固定为：
+
+```text
+TransitionTrigger 匹配
+  -> ExitGraph
+  -> commitAsync（业务状态更新）
+  -> EnterGraph
+```
+
+Transition 行为使用独立字段：
+
+| 字段 | 含义 |
+| --- | --- |
+| `TransitionTrigger` | 过渡触发条件 |
+| `ExitGraph` | 数据变化前运行，此时绑定仍能看到旧状态 |
+| `EnterGraph` | 数据变化后运行，此时绑定能看到新状态 |
+| `ReentryPolicy` | 过渡重入策略，真实 runtime 支持 `InterruptPrevious` / `IgnoreIfRunning` |
+
+运行时通过 `IFrontedTransitionOrchestrator` 承接业务层提交：
+
+```csharp
+Task RunTransitionAsync(
+    FrontedTransitionRequest request,
+    Func<Task> commitAsync,
+    CancellationToken cancellationToken = default);
+
+Task RunMultiTargetTransitionAsync(
+    IReadOnlyList<FrontedTransitionRequest> requests,
+    Func<Task> commitAsync,
+    CancellationToken cancellationToken = default);
+```
+
+如果没有匹配的 Transition 行为，`commitAsync` 会立即执行，不弹出提示，也不视为错误。`ExitGraph` 或 `EnterGraph` 执行失败只记录 warning；`ExitGraph` 失败后仍继续提交并尝试 `EnterGraph`。如果 `commitAsync` 失败，则不运行 `EnterGraph`，错误向调用方暴露。
+
+当前接入的过渡类型：
+
+| 过渡类型 | 用途 | 主要 payload |
+| --- | --- | --- |
+| `Selection.CharacterPick` | 求生者/监管者角色选择 | `Event.Camp`、`Event.PlayerIndex`、`Event.TargetBehaviorGuid`、`Event.OldCharacterId`、`Event.NewCharacterId`、`Event.HasOldCharacter`、`Event.HasNewCharacter` |
+| `Selection.CharacterSwap` | 求生者角色交换 | `Event.SourceIndex`、`Event.TargetIndex`、`Event.SourceBehaviorGuid`、`Event.TargetBehaviorGuid` |
+
+payload 使用稳定机器值，不使用本地化显示文本。图执行上下文会携带 transition payload，因此 `flow.if`、`value.eventValue` 等节点可以读取 `Event.Camp`、`Event.PlayerIndex`、`Event.HasOldCharacter` 等字段。
+
+默认动画是行为包数据，不是编辑器模板。内置布局包可以在 `behaviors/{WindowType}.behaviors.json` 中直接提供默认 Transition 行为；编辑器不提供内置动画模板、预设按钮或一键生成 fade/wipe 图。普通用户不需要打开动画编辑器，进阶用户可手动编辑图。
+
 ### Loop 生命周期
 
 - 状态机：Stopped → Starting（StartGraph 执行） → Looping（LoopGraph 重复） → Stopping（StopGraph 执行） → Stopped。
-- StartTrigger 匹配启动，EndTrigger 匹配停止。
+- `StartTrigger` 匹配启动，`StopTriggers` 中任意一个 trigger 匹配即停止。单个 trigger 内 filters 仍为 AND；多个 `StopTriggers` 之间为 OR。
 - 支持 `StopMode`（StopImmediately / RunStopGraph / CompleteCurrentIteration / HoldCurrentState）、`RepeatCount`、`IntervalMs`、`ResetOnStop`。`CompleteCurrentIteration` 不取消当前 `LoopGraph`，当前轮执行完成后执行 `StopGraph`，然后 reset/cleanup。
 - `LoopPhase` 状态机追踪生命周期阶段：`Starting`（StartGraph 执行中）→ `Looping`（LoopGraph 循环中）→ `Stopping`（StopGraph 执行中）→ `Stopped`（已清理）。
 - 同一 key（WindowId + CanvasName + BehaviorGuid + BehaviorId）不会启动多个 loop 实例。
@@ -221,10 +271,10 @@ Phase 5.5 完成行为系统可用性打磨、事件覆盖和节点属性编辑�
 
 - 行为事件目录现在来自 `ISharedDataService`、`ICharacterSelectionService`、`IGameGuidanceService` 三类显式标注接口。`Selection.CharacterSelected` / `Selection.CharacterBanned` 可作为 Trigger，并提供 `Event.Camp`、`Event.PlayerIndex` 过滤字段。
 - 事件 bridge 仍复用应用启动时的 Singleton bridge，但内部按服务源发布事件，`Source` 分别为 `SharedDataService`、`CharacterSelectionService`、`GameGuidanceService`；`Start()` 幂等，`Dispose()` 会解除订阅。
-- `GameGuidanceService` 暴露语义事件，行为编辑器不直接消费 Messenger。高亮变化和清除事件只服务后台页面滚动和高亮；前台行为系统使用 `Guidance.Started`、`Guidance.Stopped` 和 `Guidance.StepChanged`。
+- `GameGuidanceService` 暴露语义事件，行为编辑器不直接消费 Messenger。高亮变化和清除事件只服务后台页面滚动和高亮；前台行为系统使用 `Guidance.Started`、`Guidance.Stopped`、`Guidance.Cancelled` 和 `Guidance.StepChanged`。
 - `Guidance.StepChanged` 同时提供当前步骤和上一步骤 payload；当前步骤可用于启动动画，`Event.PreviousAction`、`Event.PreviousIndexesText` 等上一步骤 payload 可用于停止由切换前步骤启动的动画。首次进入步骤时 `Previous*` 值为 `null`，`Event.PreviousIndexesText` 为 `[]`。
 - `Guidance.StepChanged` 提供稳定的 `Event.IndexesText`。列表字符串过滤应优先使用 `Event.IndexesText` / `Event.PreviousIndexesText`，格式为 `[1, 2]`，不要依赖集合默认 `ToString()`。
-- 推荐用 Behavior Loop 实现引导高亮/呼吸灯：StartTrigger 使用 `Guidance.StepChanged` 并按显式事件 payload 过滤；EndTrigger 使用同一事件并按 `Event.PreviousAction`、`Event.PreviousIndexesText` 过滤。
+- 推荐用 Behavior Loop 实现引导高亮/呼吸灯：`StartTrigger` 使用 `Guidance.StepChanged` 并按显式事件 payload 过滤；`StopTriggers` 可同时包含 `Guidance.StepChanged` 上一步 payload 过滤、`Guidance.Cancelled` 和 `Guidance.Stopped`。这样引导切步、取消和停止都能结束循环动画。
 
 示例：
 
@@ -259,6 +309,8 @@ Event.PreviousIndexesText contains "1"
 行为事件 payload 只允许携带稳定、机器可读的值，例如 enum 值、稳定 ID、数字、bool、不可变协议字符串和技术格式字符串。payload 不得携带本地化 UI 显示文本，因为语言包和 UI culture 变化会让过滤逻辑失效。`Guidance.StepChanged` 使用 `Event.Action` / `Event.PreviousAction` 表示 `GameAction` enum，过滤器应写 `Event.Action Equals PickSur` 或 `Event.PreviousAction Equals PickSur`。索引列表的字符串过滤应使用 `Event.IndexesText` / `Event.PreviousIndexesText`，例如 `Event.IndexesText Contains 0`。不要使用 `ActionName` / `PreviousActionName` 作为行为过滤字段；需要显示本地化操作名称时，由后台 UI 或调试器根据 `GameAction` 在显示时计算，不写入 `FrontedBehaviorEvent.Payload`。
 
 `FrontManagePage` 提供独立的“行为事件调试器”窗口。该窗口直接订阅全局 `IFrontedEventBus`，不依赖动画编辑器、特定 behavior、`FrontedBehaviorRuntimeHost` 或已打开的前台窗口。调试器用于确认事件是否到达、收到的 `EventType`、payload key、原始值、显示值和可复制到过滤器中的稳定文本；它支持启用/暂停监听、清空记录、最大记录数限制、复制单个事件 JSON、导出 JSON，并提供复制路径、Equals 过滤器、Contains 过滤器和值的辅助操作。
+
+`FrontManagePage` 还提供“停止所有循环动画”安全按钮。它调用行为运行时的 stop-all API，按 `ManualClear` 原因停止当前活动 loop，优先执行每个行为配置的 `StopGraph` 做清理，并在超时后强制清除活动状态。普通用户通常不需要编辑行为数据；内置 behavior package 应包含正确的 `StopTriggers`，该按钮只作为漏配或事件丢失时的兜底。
 
 ### Filter rule builder
 
@@ -684,7 +736,7 @@ NodeId / ConnectionId，因此可以在 StartGraph、LoopGraph、StopGraph 之�
 
 `FrontedBehaviorPropertyMetadata` 是 setProperty 与 animateProperty 共用的动画属性输入元数据源，
 负责数值范围、占位提示、枚举值与颜色类型。StopGraph 仍严格按图连接顺序执行；
-`WaitForCompletion=true` 的动画完成后才会进入后续节点。LoopGraph 被 EndTrigger 取消后，运行时
+`WaitForCompletion=true` 的动画完成后才会进入后续节点。LoopGraph 被 StopTriggers 取消后，运行时
 先收口旧图和同属性动画，再启动 StopGraph；StopGraph 成功完成后跳过 ResetTarget，并记录取消、
 节点顺序、动画状态和 reset 决策日志。
 
@@ -705,9 +757,8 @@ FrontedBehaviorDocument
                  ├─ StartFilter: TriggerFilter
                  ├─ StartGraph: FrontedNodeGraph
                  ├─ LoopGraph: FrontedNodeGraph
-                 ├─ EndTrigger: TriggerDescriptor
-                 ├─ EndFilter: TriggerFilter
-                 ├─ EndGraph: FrontedNodeGraph
+                 ├─ StopTriggers: List<TriggerDescriptor>
+                 ├─ StopGraph: FrontedNodeGraph
                  └─ LoopPolicy: LoopPolicy
 
 TriggerDescriptor

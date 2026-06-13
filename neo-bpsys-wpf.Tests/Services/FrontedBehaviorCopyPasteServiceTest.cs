@@ -140,9 +140,12 @@ public class FrontedBehaviorCopyPasteServiceTest
             StartTrigger = Trigger(
                 ("Event.IndexesText", TriggerFilterOperator.Contains, "0"),
                 ("Event.Index", TriggerFilterOperator.Equals, "10")),
-            EndTrigger = Trigger(
+            StopTriggers =
+            [
+                Trigger(
                 ("Event.PreviousIndexesText", TriggerFilterOperator.Contains, "0"),
                 ("Event.PreviousIndexesText", TriggerFilterOperator.Equals, "[0]"))
+            ]
         };
         var payload = _service.Copy("BpWindow", source, behavior);
 
@@ -151,8 +154,8 @@ public class FrontedBehaviorCopyPasteServiceTest
         Assert.True(result.Succeeded);
         Assert.Equal("1", result.Behavior!.StartTrigger!.Filters[0].Right);
         Assert.Equal("10", result.Behavior.StartTrigger.Filters[1].Right);
-        Assert.Equal("1", result.Behavior.EndTrigger!.Filters[0].Right);
-        Assert.Equal("[1]", result.Behavior.EndTrigger.Filters[1].Right);
+        Assert.Equal("1", result.Behavior.StopTriggers[0].Filters[0].Right);
+        Assert.Equal("[1]", result.Behavior.StopTriggers[0].Filters[1].Right);
     }
 
     [Fact]

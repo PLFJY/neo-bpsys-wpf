@@ -33,7 +33,25 @@ public interface IGameGuidanceService
     /// </summary>
     [FrontedBehaviorEvent("Guidance.Stopped", DisplayNameKey = "Designer.Behaviors.Event.GuidanceStopped", DescriptionKey = "Designer.Behaviors.Event.GuidanceStopped.Description", Category = "Guidance", CategoryKey = "Designer.Behaviors.Category.Guidance")]
     [FrontedBehaviorEventPayload("Event.IsStarted", DisplayNameKey = "Designer.Behaviors.Payload.IsStarted", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(GameGuidanceStateChangedEventArgs.IsStarted), TypeName = "bool")]
+    [FrontedBehaviorEventPayload("Event.Reason", DisplayNameKey = "Designer.Behaviors.Payload.Reason", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(GameGuidanceStateChangedEventArgs.Reason), TypeName = "string")]
+    [FrontedBehaviorEventPayload("Event.Time", DisplayNameKey = "Designer.Behaviors.Payload.Time", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(GameGuidanceStateChangedEventArgs.Time), TypeName = "int?")]
+    [FrontedBehaviorEventPayload("Event.PreviousStepIndex", DisplayNameKey = "Designer.Behaviors.Payload.PreviousStepIndex", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(GameGuidanceStateChangedEventArgs.PreviousStepIndex), TypeName = "int?")]
+    [FrontedBehaviorEventPayload("Event.PreviousAction", DisplayNameKey = "Designer.Behaviors.Payload.PreviousAction", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(GameGuidanceStateChangedEventArgs.PreviousAction), TypeName = "GameAction?")]
+    [FrontedBehaviorEventPayload("Event.PreviousIndexes", DisplayNameKey = "Designer.Behaviors.Payload.PreviousIndexes", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(GameGuidanceStateChangedEventArgs.PreviousIndexes), TypeName = "int[]")]
+    [FrontedBehaviorEventPayload("Event.PreviousIndexesText", DisplayNameKey = "Designer.Behaviors.Payload.PreviousIndexesText", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(GameGuidanceStateChangedEventArgs.PreviousIndexesText), TypeName = "string")]
     event EventHandler<GameGuidanceStateChangedEventArgs>? GuidanceStopped;
+
+    /// <summary>
+    /// 引导取消事件。
+    /// </summary>
+    [FrontedBehaviorEvent("Guidance.Cancelled", DisplayNameKey = "Designer.Behaviors.Event.GuidanceCancelled", DescriptionKey = "Designer.Behaviors.Event.GuidanceCancelled.Description", Category = "Guidance", CategoryKey = "Designer.Behaviors.Category.Guidance")]
+    [FrontedBehaviorEventPayload("Event.Reason", DisplayNameKey = "Designer.Behaviors.Payload.Reason", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(GameGuidanceStateChangedEventArgs.Reason), TypeName = "string")]
+    [FrontedBehaviorEventPayload("Event.Time", DisplayNameKey = "Designer.Behaviors.Payload.Time", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(GameGuidanceStateChangedEventArgs.Time), TypeName = "int?")]
+    [FrontedBehaviorEventPayload("Event.PreviousStepIndex", DisplayNameKey = "Designer.Behaviors.Payload.PreviousStepIndex", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(GameGuidanceStateChangedEventArgs.PreviousStepIndex), TypeName = "int?")]
+    [FrontedBehaviorEventPayload("Event.PreviousAction", DisplayNameKey = "Designer.Behaviors.Payload.PreviousAction", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(GameGuidanceStateChangedEventArgs.PreviousAction), TypeName = "GameAction?")]
+    [FrontedBehaviorEventPayload("Event.PreviousIndexes", DisplayNameKey = "Designer.Behaviors.Payload.PreviousIndexes", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(GameGuidanceStateChangedEventArgs.PreviousIndexes), TypeName = "int[]")]
+    [FrontedBehaviorEventPayload("Event.PreviousIndexesText", DisplayNameKey = "Designer.Behaviors.Payload.PreviousIndexesText", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(GameGuidanceStateChangedEventArgs.PreviousIndexesText), TypeName = "string")]
+    event EventHandler<GameGuidanceStateChangedEventArgs>? GuidanceCancelled;
 
     /// <summary>
     /// 引导步骤变化事件

@@ -4158,9 +4158,6 @@
   <data name="Designer.Behaviors.StartTrigger" xml:space="preserve">
     <value>开始触发器</value>
   </data>
-  <data name="Designer.Behaviors.EndTrigger" xml:space="preserve">
-    <value>结束触发器</value>
-  </data>
   <data name="Designer.Behaviors.Filters" xml:space="preserve">
     <value>过滤器</value>
   </data>
@@ -5324,4 +5321,44 @@
   <data name="Designer.AnimationParts.Validation.Integer" xml:space="preserve"><value>请输入有效整数。</value></data>
   <data name="Designer.AnimationParts.Validation.Color" xml:space="preserve"><value>请输入有效颜色，例如 #FFFFFFFF 或 White。</value></data>
   <data name="Designer.Behaviors.MissingAnimationPart" xml:space="preserve"><value>控件 {1} 缺少动画部件“{0}”。</value></data>
+  <data name="Designer.Behaviors.AddTransition" xml:space="preserve"><value>添加过渡行为</value></data>
+  <data name="Designer.Behaviors.Transition" xml:space="preserve"><value>过渡</value></data>
+  <data name="Designer.Behaviors.NewTransition" xml:space="preserve"><value>新过渡行为</value></data>
+  <data name="Designer.Behaviors.TransitionTrigger" xml:space="preserve"><value>过渡触发器</value></data>
+  <data name="Designer.Behaviors.TransitionHelp" xml:space="preserve"><value>ExitGraph 在数据变化前运行。EnterGraph 在数据变化后运行。</value></data>
+  <data name="Designer.Behaviors.ExitGraph" xml:space="preserve"><value>ExitGraph</value></data>
+  <data name="Designer.Behaviors.EnterGraph" xml:space="preserve"><value>EnterGraph</value></data>
+  <data name="Designer.Behaviors.Event.CharacterPick" xml:space="preserve"><value>角色选择过渡</value></data>
+  <data name="Designer.Behaviors.Event.CharacterPick.Description" xml:space="preserve"><value>角色选择提交前后运行过渡图。</value></data>
+  <data name="Designer.Behaviors.Event.CharacterSwap" xml:space="preserve"><value>求生者交换过渡</value></data>
+  <data name="Designer.Behaviors.Event.CharacterSwap.Description" xml:space="preserve"><value>求生者角色交换提交前后运行过渡图。</value></data>
+  <data name="Designer.Behaviors.Payload.TargetBehaviorGuid" xml:space="preserve"><value>目标行为标识</value></data>
+  <data name="Designer.Behaviors.Payload.OldCharacterId" xml:space="preserve"><value>旧角色标识</value></data>
+  <data name="Designer.Behaviors.Payload.NewCharacterId" xml:space="preserve"><value>新角色标识</value></data>
+  <data name="Designer.Behaviors.Payload.HasOldCharacter" xml:space="preserve"><value>有旧角色</value></data>
+  <data name="Designer.Behaviors.Payload.HasNewCharacter" xml:space="preserve"><value>有新角色</value></data>
+  <data name="Designer.Behaviors.Payload.SourceIndex" xml:space="preserve"><value>来源索引</value></data>
+  <data name="Designer.Behaviors.Payload.TargetIndex" xml:space="preserve"><value>目标索引</value></data>
+  <data name="Designer.Behaviors.Payload.SourceBehaviorGuid" xml:space="preserve"><value>来源行为标识</value></data>
+  <data name="Designer.Behaviors.StopTriggers" xml:space="preserve"><value>停止条件</value></data>
+  <data name="Designer.Behaviors.StopTrigger" xml:space="preserve"><value>停止条件</value></data>
+  <data name="Designer.Behaviors.AddStopTrigger" xml:space="preserve"><value>添加停止条件</value></data>
+  <data name="Designer.Behaviors.StopTriggersHelp" xml:space="preserve"><value>任意一个停止条件满足时，循环动画会停止并执行 StopGraph。</value></data>
+  <data name="Designer.Behaviors.StopAnimation" xml:space="preserve"><value>停止动画</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceCancelled" xml:space="preserve"><value>引导已取消</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceCancelled.Description" xml:space="preserve"><value>引导被用户取消时触发。</value></data>
+  <data name="Designer.Behaviors.Payload.Reason" xml:space="preserve"><value>原因</value></data>
+  <data name="Designer.AnimationParts.EffectSection" xml:space="preserve"><value>视觉效果</value></data>
+  <data name="Designer.AnimationParts.EffectKind" xml:space="preserve"><value>效果类型</value></data>
+  <data name="Designer.AnimationParts.EffectKind.None" xml:space="preserve"><value>无</value></data>
+  <data name="Designer.AnimationParts.EffectKind.Glow" xml:space="preserve"><value>辉光</value></data>
+  <data name="Designer.AnimationParts.EffectKind.DropShadow" xml:space="preserve"><value>投影</value></data>
+  <data name="Designer.AnimationParts.EffectColor" xml:space="preserve"><value>效果颜色</value></data>
+  <data name="Designer.AnimationParts.EffectOpacity" xml:space="preserve"><value>效果不透明度</value></data>
+  <data name="Designer.AnimationParts.EffectBlurRadius" xml:space="preserve"><value>模糊半径</value></data>
+  <data name="Designer.AnimationParts.EffectShadowDepth" xml:space="preserve"><value>投影距离</value></data>
+  <data name="Designer.AnimationParts.EffectDirection" xml:space="preserve"><value>投影方向</value></data>
+  <data name="StopAllLoopAnimations" xml:space="preserve"><value>停止所有循环动画</value></data>
+  <data name="StoppedLoopAnimationsFormat" xml:space="preserve"><value>已停止 {0} 个循环动画。</value></data>
+  <data name="NoActiveLoopAnimations" xml:space="preserve"><value>当前没有正在播放的循环动画。</value></data>
 </root>

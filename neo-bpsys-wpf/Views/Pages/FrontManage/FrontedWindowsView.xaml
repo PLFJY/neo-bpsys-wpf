@@ -51,12 +51,20 @@
                             Height="50"
                             Margin="10,0,0,0"
                             Command="{Binding ShowAllWindowsCommand}"
-                            Content="{lex:Loc OpenAll}" />
+                            Content="{lex:Loc OpenAll}"
+                            Icon="{ui:SymbolIcon Symbol=Eye24}" />
                         <ui:Button
                             Height="50"
                             Margin="10,0,0,0"
                             Command="{Binding HideAllWindowsCommand}"
-                            Content="{lex:Loc CloseAll}" />
+                            Content="{lex:Loc CloseAll}"
+                            Icon="{ui:SymbolIcon Symbol=EyeOff24}" />
+                        <ui:Button
+                            Height="50"
+                            Margin="10,0,0,0"
+                            Command="{Binding StopAllLoopAnimationsCommand}"
+                            Content="{lex:Loc StopAllLoopAnimations}"
+                            Icon="{ui:SymbolIcon Symbol=DismissCircle24}" />
                     </StackPanel>
                     <TextBlock
                         Grid.Row="2"

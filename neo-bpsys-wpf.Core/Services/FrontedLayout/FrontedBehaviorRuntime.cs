@@ -38,4 +38,21 @@ public sealed class FrontedBehaviorRuntime : IFrontedBehaviorRuntime
     {
         _hostManager.PublishManualTrigger(triggerName, windowId);
     }
+
+    /// <inheritdoc />
+    public Task<int> StopAllLoopBehaviorsAsync(
+        FrontedBehaviorStopReason reason = FrontedBehaviorStopReason.ManualClear,
+        CancellationToken cancellationToken = default)
+    {
+        return _hostManager.StopAllLoopBehaviorsAsync(reason, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task<int> StopLoopBehaviorsAsync(
+        string windowId,
+        FrontedBehaviorStopReason reason,
+        CancellationToken cancellationToken = default)
+    {
+        return _hostManager.StopLoopBehaviorsAsync(windowId, reason, cancellationToken);
+    }
 }
