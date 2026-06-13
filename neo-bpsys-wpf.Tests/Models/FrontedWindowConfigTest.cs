@@ -4,6 +4,7 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using System;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
@@ -69,26 +70,16 @@ public class FrontedWindowConfigTest
     }
 
     [Fact]
-    public void SyncWindowSizeToCanvasCopiesPositiveFiniteCanvasSize()
+    public void CanvasCompatibilityHelpersAreNotPublicModelMethods()
     {
-        var config = new FrontedWindowConfig
-        {
-            WindowSettings =
-            {
-                WindowWidth = 1,
-                WindowHeight = 2
-            },
-            CanvasSettings =
-            {
-                CanvasWidth = 1536,
-                CanvasHeight = 864
-            }
-        };
+        var publicMethodNames = typeof(FrontedWindowConfig)
+            .GetMethods()
+            .Select(method => method.Name)
+            .ToHashSet(StringComparer.Ordinal);
 
-        config.SyncWindowSizeToCanvas();
-
-        Assert.Equal(1536, config.WindowSettings.WindowWidth);
-        Assert.Equal(864, config.WindowSettings.WindowHeight);
+        Assert.DoesNotContain("FromCanvasConfig", publicMethodNames);
+        Assert.DoesNotContain("ToCanvasConfig", publicMethodNames);
+        Assert.DoesNotContain("SyncWindowSizeToCanvas", publicMethodNames);
     }
 
     [Fact]

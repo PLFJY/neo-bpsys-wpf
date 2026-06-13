@@ -100,7 +100,7 @@ package.bpui
 │   ├── ScoreGlobalWindow.json
 │   ├── BpOverviewWindow.json
 │   └── MapV2Window.json
-├── behaviors/
+├── FrontedBehaviors/
 │   ├── BpWindow.behaviors.json
 │   └── MapV2Window.behaviors.json
 ├── resources/
@@ -125,7 +125,7 @@ package.bpui
 2. `preview/`。
 3. `docs/`。
 
-当前实现导出使用 Window-centric 格式，布局路径为 `FrontedLayouts/{WindowTypeName}.json`，behavior 路径为 `behaviors/{WindowTypeName}.behaviors.json`。早期规格中的 Current Canvas 导出范围不再暴露。Legacy 转换输出的 v3 包只包含能够从旧 `FrontElementsConfig/` 明确映射到新窗口的布局；旧 MapV1 会跳过并记录 Info。
+当前实现导出使用 Window-centric 格式，布局路径为 `FrontedLayouts/{WindowTypeName}.json`，behavior 路径为 `FrontedBehaviors/{WindowTypeName}.behaviors.json`。早期规格中的 Current Canvas 导出范围不再暴露。Legacy 转换输出的 v3 包只包含能够从旧 `FrontElementsConfig/` 明确映射到新窗口的布局；旧 MapV1 会跳过并记录 Info。
 
 ## 5. `manifest.json` schema
 
@@ -458,7 +458,7 @@ Window layout JSON 可以在 `ControlLayout.RequiredPlugins` 中声明本窗口�
 3. 扫描实际控件中 `ControlType` 以 `plugin:` 开头的项。
 4. 合并依赖列表。
 5. 检查已安装插件及版本。
-6. Phase 13E 分类为：已满足、缺失插件、已安装但版本过低、市场可安装 / 可更新、市场未找到、市场不可用。
+6. 历史迭代 13E 分类为：已满足、缺失插件、已安装但版本过低、市场可安装 / 可更新、市场未找到、市场不可用。
 
 用户选择：
 
@@ -472,7 +472,7 @@ Window layout JSON 可以在 `ControlLayout.RequiredPlugins` 中声明本窗口�
 2. `.bpui` 不能携带插件 DLL。
 3. 安装或更新插件可能要求重启，因为当前插件系统在启动期间、Host build 前加载插件。
 4. 如果重启后插件才能生效，导入流程应说明：插件安装后通常需要重启；用户也可以继续导入并保留缺失插件布局 / 控件配置。
-5. Phase 13E 会查询插件市场，但只做引导，不会静默安装、更新或热加载插件。
+5. 历史迭代 13E 会查询插件市场，但只做引导，不会静默安装、更新或热加载插件。
 
 继续导入并保留缺失插件行为：
 

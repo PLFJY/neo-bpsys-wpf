@@ -100,39 +100,4 @@ public class FrontedUserLayoutStore : IFrontedUserLayoutStore
     {
         return _rootFolder;
     }
-
-    /// <inheritdoc />
-    public bool LegacyCanvasExists(string windowTypeName, string canvasName)
-    {
-        return File.Exists(GetLegacyCanvasLayoutPath(windowTypeName, canvasName));
-    }
-
-    /// <inheritdoc />
-    public async Task<FrontedCanvasConfig?> LoadLegacyCanvasAsync(
-        string windowTypeName,
-        string canvasName,
-        CancellationToken cancellationToken = default)
-    {
-        var path = GetLegacyCanvasLayoutPath(windowTypeName, canvasName);
-        if (!File.Exists(path))
-        {
-            return null;
-        }
-
-        if (new FileInfo(path).Length > FrontedLayoutLimits.MaxLayoutJsonBytes)
-        {
-            throw new InvalidDataException("LayoutJsonTooLarge");
-        }
-
-        var json = await File.ReadAllTextAsync(path, cancellationToken);
-        return JsonSerializer.Deserialize<FrontedCanvasConfig>(json, _jsonSerializerOptions);
-    }
-
-    /// <inheritdoc />
-    public string GetLegacyCanvasLayoutPath(string windowTypeName, string canvasName)
-    {
-        return Path.Combine(
-            _rootFolder,
-            FrontedLayoutWindowPathHelper.GetLegacyCanvasLayoutRelativePath(windowTypeName, canvasName));
-    }
 }

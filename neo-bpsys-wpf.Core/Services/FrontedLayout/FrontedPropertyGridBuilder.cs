@@ -608,6 +608,15 @@ public class FrontedPropertyGridBuilder
             return _fontFamilyOptionProvider.GetFontFamilyOptions().Cast<object>().ToArray();
         }
 
+        if (kind == FrontedPropertyEditorKind.Boolean)
+        {
+            return
+            [
+                CreateBooleanOption(true),
+                CreateBooleanOption(false)
+            ];
+        }
+
         if (kind != FrontedPropertyEditorKind.Enum)
         {
             return null;
@@ -1013,6 +1022,15 @@ public class FrontedPropertyGridBuilder
         {
             Value = value,
             DisplayName = _localizationService.GetOptionDisplayName(propertyName, value)
+        };
+
+    private FrontedPropertyEditorOption CreateBooleanOption(bool value) =>
+        new()
+        {
+            Value = value,
+            DisplayName = _localizationService.GetDesignerText(
+                value ? "Designer.Value.True" : "Designer.Value.False",
+                value ? "true" : "false")
         };
 
     private string GetDisplayValue(object? value, bool isReadOnly)

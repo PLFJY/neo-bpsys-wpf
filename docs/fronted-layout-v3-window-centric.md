@@ -82,7 +82,7 @@ FrontedWindowBase
 
 ```text
 FrontedLayouts/{WindowTypeName}.json
-behaviors/{WindowTypeName}.behaviors.json
+FrontedBehaviors/{WindowTypeName}.behaviors.json
 ```
 
 插件窗口的插件内默认布局为：
@@ -95,8 +95,8 @@ Plugins/{PackageId}/FrontedLayouts/{WindowTypeName}.json
 
 ```text
 FrontedLayouts/{WindowTypeName}.json
-behaviors/{WindowTypeName}.behaviors.json
-resources/...
+FrontedBehaviors/{WindowTypeName}.behaviors.json
+Resources/...
 manifest.json
 ```
 
@@ -113,10 +113,16 @@ Registry descriptor 提供 `WindowId`、`WindowTypeName`、`FullWindowType`、`D
 Behavior 文件是 window-level：
 
 ```text
-behaviors/{WindowTypeName}.behaviors.json
+FrontedBehaviors/{WindowTypeName}.behaviors.json
 ```
 
 runtime host key 使用 Window scope。`FrontedBehaviorDocument.CanvasName` 如果暂时保留，固定写 `BaseCanvas`；UI、路径、runtime key 和 manifest 不使用 CanvasName。TargetResolver 仍从内部 BaseCanvas root 搜索 `BehaviorGuid`。
+
+## 活动包读取规则
+
+`IFrontedLayoutService.LoadWindowConfigWithMetadataAsync` 只通过 `IFrontedLayoutPackageManager` 解析当前活动包。活动包缺布局、JSON 无效或 schema 无法通过验证时，返回 Missing/Error 结果和诊断；不继续读取旧用户布局、插件默认布局或内置资源 fallback。`builtin` 是 package id，不是兜底路径。
+
+legacy canvas 与 `FrontedCanvasConfig` 只能在启动迁移、旧 `.bpui` 转换和测试辅助中出现。主路径模型是 `FrontedWindowConfig`，public model 不再暴露 `FromCanvasConfig`、`ToCanvasConfig` 或 `SyncWindowSizeToCanvas`。
 
 ## Legacy 转换
 

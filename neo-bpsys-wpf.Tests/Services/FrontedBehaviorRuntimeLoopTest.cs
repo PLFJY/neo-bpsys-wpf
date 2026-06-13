@@ -1061,7 +1061,7 @@ public class FrontedBehaviorRuntimeLoopTest
             WindowType = "BpWindow",
             CanvasName = "BaseCanvas",
             RootCanvas = new Canvas(),
-            WindowConfig = FrontedWindowConfig.FromCanvasConfig(new FrontedCanvasConfig()),
+            WindowConfig = neo_bpsys_wpf.Core.Services.FrontedLayout.FrontedWindowConfigCanvasAdapter.FromCanvasConfig(new FrontedCanvasConfig()),
             SharedDataService = new MockSharedDataService(),
             Logger = NullLogger.Instance,
             IsDesignerPreview = true
@@ -1091,7 +1091,7 @@ public class FrontedBehaviorRuntimeLoopTest
             WindowType = "BpWindow",
             CanvasName = "BaseCanvas",
             RootCanvas = new Canvas(),
-            WindowConfig = FrontedWindowConfig.FromCanvasConfig(new FrontedCanvasConfig()),
+            WindowConfig = neo_bpsys_wpf.Core.Services.FrontedLayout.FrontedWindowConfigCanvasAdapter.FromCanvasConfig(new FrontedCanvasConfig()),
             SharedDataService = new MockSharedDataService(),
             Logger = logger,
             IsDesignerPreview = true

@@ -77,6 +77,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private readonly ISharedDataService _designerPreviewSharedDataService;
     private readonly IFrontedLocalResourceStore? _localResourceStore;
     private readonly IFrontedWindowLayoutOptionsService? _windowLayoutOptionsService;
+    private readonly IFrontedLayoutPackageManager? _packageManager;
     private readonly IFrontedWindowService? _frontedWindowService;
     private readonly IFrontedBehaviorService _behaviorService;
     private readonly FrontedDesignerLayoutCatalog _layoutCatalog;
@@ -136,6 +137,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _designerPreviewSharedDataService = new DesignerPreviewSharedDataService();
         _localResourceStore = null;
         _windowLayoutOptionsService = null;
+        _packageManager = null;
         _frontedWindowService = null;
         _behaviorService = new NoopFrontedBehaviorService();
         _animationRuntime = null;
@@ -169,6 +171,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         DesignerPreviewSharedDataService designerPreviewSharedDataService,
         IFrontedLocalResourceStore localResourceStore,
         IFrontedWindowLayoutOptionsService windowLayoutOptionsService,
+        IFrontedLayoutPackageManager packageManager,
         IFrontedWindowService frontedWindowService,
         IFrontedBehaviorService behaviorService,
         IFrontedBehaviorClipboard behaviorClipboard,
@@ -189,6 +192,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _designerPreviewSharedDataService = designerPreviewSharedDataService;
         _localResourceStore = localResourceStore;
         _windowLayoutOptionsService = windowLayoutOptionsService;
+        _packageManager = packageManager;
         _frontedWindowService = frontedWindowService;
         _behaviorService = behaviorService;
         _behaviorClipboard = behaviorClipboard;
@@ -1109,7 +1113,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             var document = _designConverter.FromConfig(
                 entry.WindowTypeName,
                 FrontedLayoutConstants.BaseCanvasName,
-                windowConfig.ToCanvasConfig(),
+                FrontedWindowConfigCanvasAdapter.ToCanvasConfig(windowConfig),
                 _runtimeContracts);
 
             _currentWindowSettings = CloneWindowSettings(windowConfig.WindowSettings);
@@ -1137,7 +1141,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             }
 
             ApplyValidationMessages(validationMessages);
-            RequestPreviewRender(windowConfig.ToCanvasConfig(), entry);
+            RequestPreviewRender(FrontedWindowConfigCanvasAdapter.ToCanvasConfig(windowConfig), entry);
             RefreshDirtyState();
         }
         catch (OperationCanceledException)
@@ -1213,7 +1217,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             {
                 var config = _designConverter.ToConfig(CurrentDocument);
                 config.Version = 3;
-                var windowConfig = FrontedWindowConfig.FromCanvasConfig(config);
+                var windowConfig = FrontedWindowConfigCanvasAdapter.FromCanvasConfig(config);
                 windowConfig.WindowSettings = CloneWindowSettings(_currentWindowSettings);
                 await _layoutService.SaveWindowConfigAsync(
                     CurrentDocument.WindowTypeName,
@@ -1290,8 +1294,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         var windowTypeName = CurrentDocument.WindowTypeName;
         var canvasName = FrontedLayoutConstants.BaseCanvasName;
-        await _layoutService.DeleteUserWindowLayoutAsync(windowTypeName);
-
         var config = await LoadBuiltInLayoutForResetAsync(windowTypeName, canvasName);
         if (config is null)
         {
@@ -1318,7 +1320,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         ApplyValidationMessages(_validator.Validate(document));
         RequestPreviewRender(config, _selectedCatalogEntry);
         LayoutSourceDisplay = I18nHelper.GetLocalizedString("LayoutSourceBuiltIn");
-        LayoutSourcePath = _layoutService.GetBuiltInDefaultWindowLayoutPath(windowTypeName);
+        LayoutSourcePath = GetBuiltInPackageLayoutPath(windowTypeName);
         StatusMessage = I18nHelper.GetLocalizedString("LayoutReset");
         ClearUndoRedo();
         CleanupPendingImportedResources(includeCurrentDocument: false);
@@ -2999,7 +3001,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             _ => I18nHelper.GetLocalizedString("LayoutSourceError")
         };
         LayoutSourcePath = loadResult.Path
-            ?? _layoutService.GetBuiltInDefaultWindowLayoutPath(entry.WindowTypeName);
+            ?? GetBuiltInPackageLayoutPath(entry.WindowTypeName);
 
         if (!string.IsNullOrWhiteSpace(loadResult.Error))
         {
@@ -3011,21 +3013,35 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         string windowTypeName,
         string canvasName)
     {
-        // 直接读取内置布局，不走 fallback 链（避免被活动包/用户布局拦截）
-        var config = await _layoutService.LoadBuiltInDefaultWindowLayoutAsync(windowTypeName);
-        if (config is not null)
+        var builtInPath = GetBuiltInPackageLayoutPath(windowTypeName);
+        if (File.Exists(builtInPath))
         {
-            return config.ToCanvasConfig();
+            var json = await File.ReadAllTextAsync(builtInPath);
+            var config = JsonSerializer.Deserialize<FrontedWindowConfig>(json);
+            if (config is not null)
+            {
+                return FrontedWindowConfigCanvasAdapter.ToCanvasConfig(config);
+            }
         }
 
-        // 内置布局不存在时回退到插件默认布局
-        var builtInPath = _layoutService.GetBuiltInDefaultWindowLayoutPath(windowTypeName);
         _logger.LogWarning(
             "Built-in layout not found for reset. Window: {WindowTypeName}, Canvas: {CanvasName}, Path: {Path}",
             windowTypeName,
             canvasName,
             builtInPath);
         return null;
+    }
+
+    private string GetBuiltInPackageLayoutPath(string windowTypeName)
+    {
+        if (_packageManager is null)
+        {
+            return string.Empty;
+        }
+
+        return _packageManager.GetPackageLayoutPath(
+            FrontedLayoutPackageManager.BuiltInPackageId,
+            windowTypeName);
     }
 
     private void ClearLoadedLayout(FrontedLayoutValidationMessage message)
@@ -3428,7 +3444,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         var canvasConfig = _designConverter.ToConfig(CurrentDocument);
         canvasConfig.Version = 3;
-        var windowConfig = FrontedWindowConfig.FromCanvasConfig(canvasConfig);
+        var windowConfig = FrontedWindowConfigCanvasAdapter.FromCanvasConfig(canvasConfig);
         windowConfig.WindowSettings = CloneWindowSettings(_currentWindowSettings);
         return windowConfig;
     }
@@ -3543,7 +3559,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private HashSet<string> CollectSavedLocalResourceReferences()
     {
         var references = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var root = _layoutService.GetUserLayoutRootFolder();
+        var root = _packageManager?.GetPackageRootFolder() ?? AppConstants.FrontedLayoutPackagesPath;
         if (string.IsNullOrWhiteSpace(root) || !Directory.Exists(root))
         {
             return references;
@@ -3775,7 +3791,13 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         try
         {
-            var builtInConfig = await _layoutService.LoadBuiltInDefaultWindowLayoutAsync(SelectedWindow.WindowTypeName);
+            FrontedWindowConfig? builtInConfig = null;
+            var builtInPath = GetBuiltInPackageLayoutPath(SelectedWindow.WindowTypeName);
+            if (File.Exists(builtInPath))
+            {
+                builtInConfig = JsonSerializer.Deserialize<FrontedWindowConfig>(
+                    await File.ReadAllTextAsync(builtInPath));
+            }
             _currentWindowSettings = CloneWindowSettings(builtInConfig?.WindowSettings ?? new FrontedWindowSettings());
             var config = await _layoutService.LoadWindowConfigAsync(SelectedWindow.WindowTypeName)
                          ?? CreateConfigFromCurrentDocument();

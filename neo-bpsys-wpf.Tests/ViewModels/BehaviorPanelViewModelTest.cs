@@ -461,6 +461,50 @@ public class BehaviorPanelViewModelTest
         Assert.True(filter.IsTextValue);
     }
 
+    [Fact]
+    public void TriggerFilter_BooleanPayload_UsesStableBooleanOptions()
+    {
+        var panel = CreatePanel();
+        var trigger = new TriggerDescriptor
+        {
+            EventType = "Selection.CharacterPick",
+            Filters =
+            [
+                new TriggerFilter
+                {
+                    Left = "Event.HasOldCharacter",
+                    Operator = TriggerFilterOperator.Contains,
+                    Right = "true"
+                }
+            ]
+        };
+        var editor = new TriggerDescriptorEditorViewModel(
+            trigger,
+            panel.EventOptions,
+            panel.OperatorOptions,
+            static () => { },
+            static (_, fallback) => fallback);
+        var filter = Assert.Single(editor.Filters);
+
+        Assert.True(filter.IsBooleanField);
+        Assert.False(filter.IsTextValue);
+        Assert.Equal(["true", "false"], filter.BooleanValueOptions.Select(option => option.Value).ToArray());
+        Assert.Equal(
+            [
+                TriggerFilterOperator.Equals,
+                TriggerFilterOperator.NotEquals,
+                TriggerFilterOperator.Exists
+            ],
+            filter.DisplayedOperatorOptions.Select(option => option.Value).Cast<TriggerFilterOperator>().ToArray());
+
+        filter.Left = "Event.HasNewCharacter";
+
+        Assert.True(filter.IsBooleanField);
+        Assert.Equal(TriggerFilterOperator.Equals, filter.Operator);
+        filter.Right = "false";
+        Assert.Equal("false", trigger.Filters[0].Right);
+    }
+
     private static BehaviorPanelViewModel CreatePanel(
         Action? markLayoutDirty = null,
         Action? markBehaviorsDirty = null,

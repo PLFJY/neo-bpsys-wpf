@@ -743,9 +743,11 @@
                                             SelectedValuePath="Value"
                                             Text="{Binding SuggestionText, UpdateSourceTrigger=PropertyChanged}"
                                             Visibility="{Binding HasTextSuggestions, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                                        <CheckBox
-                                            Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                                            IsChecked="{Binding BooleanValue}"
+                                        <ComboBox
+                                            DisplayMemberPath="DisplayName"
+                                            ItemsSource="{Binding BooleanOptions}"
+                                            SelectedValue="{Binding BooleanTextValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            SelectedValuePath="Value"
                                             Visibility="{Binding IsBoolean, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                         <ComboBox
                                             DisplayMemberPath="DisplayName"

@@ -101,6 +101,24 @@
                                             </Style>
                                         </ComboBox.Style>
                                     </ComboBox>
+                                    <ComboBox
+                                        Grid.Column="3"
+                                        MinWidth="100"
+                                        DisplayMemberPath="DisplayName"
+                                        ItemsSource="{Binding BooleanValueOptions}"
+                                        SelectedValue="{Binding Right, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        SelectedValuePath="Value">
+                                        <ComboBox.Style>
+                                            <Style BasedOn="{StaticResource {x:Type ComboBox}}" TargetType="ComboBox">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsBooleanField}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </ComboBox.Style>
+                                    </ComboBox>
                                     <ui:Button
                                         Grid.Column="4"
                                         MinWidth="30"

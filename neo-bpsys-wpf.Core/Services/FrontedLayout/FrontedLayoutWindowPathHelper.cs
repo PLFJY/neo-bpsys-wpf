@@ -57,19 +57,6 @@ public static partial class FrontedLayoutWindowPathHelper
     }
 
     /// <summary>
-    /// Gets the safe legacy canvas layout JSON path relative to the fronted layout root.
-    /// </summary>
-    /// <param name="fullWindowType">Built-in window type name or plugin full window type.</param>
-    /// <param name="canvasName">Legacy canvas name.</param>
-    /// <returns>Safe relative legacy canvas layout JSON path.</returns>
-    /// <exception cref="ArgumentException">Thrown when the window type or canvas name is not path-safe.</exception>
-    public static string GetLegacyCanvasLayoutRelativePath(string fullWindowType, string canvasName)
-    {
-        EnsureSafePathSegment(canvasName, nameof(canvasName));
-        return Path.Combine(GetLayoutFolderRelativePath(fullWindowType), $"{canvasName}.json");
-    }
-
-    /// <summary>
     /// Gets the safe window options JSON path relative to the fronted layout root.
     /// </summary>
     /// <param name="fullWindowType">Built-in window type name or plugin full window type.</param>

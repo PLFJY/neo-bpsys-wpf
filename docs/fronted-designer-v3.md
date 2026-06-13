@@ -10,13 +10,43 @@ Behavior Graph 相关设计见 [fronted-behavior-system.md](fronted-behavior-sys
 
 内置布局方案是 `PackageId = builtin` 的普通活动包，其布局根目录为应用运行时 `Resources/FrontedLayouts`。package manager 存在时活动包是唯一布局来源，不回退旧用户布局存储。激活任意包会完整重载已创建的 v3 窗口；`AllowsTransparency` 变化时只静默重启受影响窗口。
 
+## 维护者速览
+
+Designer v3 的正常运行时只读取当前活动包：
+
+```text
+FrontedLayoutPackages/{PackageId}/
+  manifest.json
+  FrontedLayouts/{WindowTypeName}.json
+  FrontedBehaviors/{WindowTypeName}.behaviors.json
+  Resources/...
+```
+
+`PackageId = builtin` 是特殊的包身份，但不是 fallback 链。活动包为 `builtin` 时，layout service 读取运行目录 `Resources/FrontedLayouts`；活动包为用户包时，读取 `FrontedLayoutPackages/{PackageId}/FrontedLayouts`。缺失或损坏的布局应返回 Missing/Error 诊断，不应继续读取旧 loose user layout、插件默认布局或 `Resources/FrontedLayouts`。
+
+启动时如果发现 legacy v2 `Config.json`（`Version` 缺失或为 `null`），只允许 `ILegacyV2StartupMigrationService` 处理兼容逻辑。它会备份原始 `Config.json`，按原文件 SHA-256 创建确定性的 `converted-v2-{hash}` 普通包，写入 `FrontedLayouts`、需要的 `FrontedBehaviors` 和迁移元数据，然后通过 `IFrontedLayoutPackageManager.ActivatePackageAsync` 激活该包，最后保存干净的 v3 Settings。正常 v3 runtime 不读取 legacy canvas 文件。
+
+维护普通 v3 功能时优先查看：
+
+| 主题 | 主要文件 |
+| --- | --- |
+| 活动包和包路径 | `FrontedLayoutPackageManager` |
+| 布局读取/保存 | `FrontedLayoutService` |
+| 行为文档读取/保存 | `FrontedBehaviorService` |
+| 设计器编辑 | `FrontedDesignerWindowViewModel`、`FrontedDesignerWindow.xaml` |
+| 行为面板和过滤器 | `BehaviorPanelViewModel`、`BehaviorPanelView.xaml` |
+| 节点图和动画 runtime | `FrontedNodeGraphRuntime`、`FrontedAnimationRuntime`、property adapters |
+| 启动 legacy v2 迁移 | `ILegacyV2StartupMigrationService`、`LegacyV2StartupMigrationService` |
+
+不要在普通运行时重新添加这些读取路径：`AppConstants.FrontedLayoutsPath` loose 布局、legacy canvas layout、插件默认布局 fallback、直接读取 built-in JSON 作为用户包默认值。重置到内置布局也应通过 package manager / `builtin` 包身份获取快照，而不是绕过 package manager。
+
 ## 1. 背景与目标
 
 当前设计者模式历史上是 XAML-first：前台窗口的具体控件直接写在各窗口 XAML 中，运行时再由 `FrontedWindowService` 扫描 Canvas 子元素并保存/恢复每个 Canvas 的 `ElementInfo`。这些旧版文件和 `Config.json` 前台自定义字段现在只作为 legacy 转换、迁移对照存在；当前运行时和编辑器路径是 Designer v3 + `FrontedLayouts`。SettingPage 旧前台自定义入口已移除，旧版真实窗口设计器也已移除。旧 `.bpui` 包与 `Config.json`、`CustomUi/`、`FrontElementsConfig/` 等历史结构的耦合只由 legacy 转换流程处理。
 
 v3 目标是转向 JSON/config-driven UI：v3 layout window 不需要独立 XAML，`FrontedWindowBase` 提供配置驱动 host；传统固定 XAML window 保持原行为。`WindowSettings` 应用于窗口，`CanvasSettings` 应用于内部 `BaseCanvas`，`ControlLayout` 交给 renderer 渲染。
 
-这项重构必须分阶段推进，不能在一个巨大提交中同时改设置版本、迁移、渲染器、窗口 XAML、编辑器和 `.bpui`。前台窗口会被 OBS 捕获，导播现场对稳定性要求高；每个阶段都应保持旧路径可回退，并优先迁移低风险窗口验证模型。
+当前维护应保持小步、可验证的改动。前台窗口会被 OBS 捕获，导播现场对稳定性要求高；修改设置加载、包激活、渲染器、行为 runtime 或 `.bpui` 导入导出时，都应同步更新测试和文档，并避免把 legacy 兼容重新放回普通运行时。
 
 ## 2. 版本体系
 
@@ -28,9 +58,9 @@ v3 目标是转向 JSON/config-driven UI：v3 layout window 不需要独立 XAML
 
 这些版本号刻意对齐为 3，方便维护者和用户理解当前代际，但它们仍属于不同文件类型：`config.json` 版本不等于 Canvas 布局 schema 版本，也不等于 `.bpui` 包版本。后续代码实现时不要把三者混成一个枚举或一个迁移入口。
 
-`.bpui v3` 包必须只携带 Designer v3 前台布局、布局资源、manifest 和可选预览/说明，不得包含或覆盖全局 `Config.json`。manifest 使用根级 `MinVersion`，不包含 `App` 对象或 `App.MinVersion`，并标记 Window-centric layout model。v3 包可以从 `FrontManagePage` 导入安装，包内路径为 `FrontedLayouts/{WindowTypeName}.json` 和 `behaviors/{WindowTypeName}.behaviors.json`。legacy `.bpui` 会在导入前转换为干净 v3 包，运行时 renderer 仍只读取 v3 layout，不增加 legacy 兼容分支。
+`.bpui v3` 包必须只携带 Designer v3 前台布局、布局资源、manifest 和可选预览/说明，不得包含或覆盖全局 `Config.json`。manifest 使用根级 `MinVersion`，不包含 `App` 对象或 `App.MinVersion`，并标记 Window-centric layout model。v3 包可以从 `FrontManagePage` 导入安装，包内路径为 `FrontedLayouts/{WindowTypeName}.json` 和 `FrontedBehaviors/{WindowTypeName}.behaviors.json`。legacy `.bpui` 会在导入前转换为干净 v3 包，运行时 renderer 仍只读取 v3 layout，不增加 legacy 兼容分支。
 
-`config.json` 中缺失或 `null` 的 `Version` 表示 legacy 配置。当前加载配置前会检测 raw JSON root，备份 legacy `Config.json` 后写回 `Version = 3`；该迁移只更新主设置版本，不迁移前台窗口布局、不生成 v3 Canvas 配置，也不移除旧前台设置。
+`Config.json` 中缺失或 `null` 的 `Version` 表示 legacy 配置。当前启动迁移会把旧前台设置转换成普通 Designer v3 layout package 并激活，不再把转换结果写到 loose `FrontedLayouts`。迁移成功后，active `Config.json` 只保留 Settings v3 字段，不再写出旧前台窗口设置。
 
 ## 3. 新版 Window 配置文件结构
 
@@ -38,10 +68,10 @@ v3 目标是转向 JSON/config-driven UI：v3 layout window 不需要独立 XAML
 
 | 来源 | 路径 |
 | --- | --- |
-| 用户布局 | `%APPDATA%\neo-bpsys-wpf\FrontedLayouts\{WindowTypeName}.json` |
-| 内置默认布局 | `Resources\FrontedLayouts\{WindowTypeName}.json` |
-| 插件默认布局 | `{PluginFolder}\FrontedLayouts\{WindowTypeName}.json` |
-| behavior | `behaviors\{WindowTypeName}.behaviors.json` |
+| 活动用户包布局 | `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\{PackageId}\FrontedLayouts\{WindowTypeName}.json` |
+| 活动用户包行为 | `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\{PackageId}\FrontedBehaviors\{WindowTypeName}.behaviors.json` |
+| 内置包布局 | `Resources\FrontedLayouts\{WindowTypeName}.json` |
+| 内置包行为 | `Resources\FrontedBehaviors\{WindowTypeName}.behaviors.json` |
 
 每个 v3 layout window 使用独立布局配置文件。内置窗口的 `{WindowTypeName}` 使用窗口类型名，例如 `BpWindow`；插件窗口使用 `plugin:{PackageId}/{WindowTypeName}`，保存到用户目录时会映射为安全子路径。内部如必须保留 CanvasName，唯一值为常量 `BaseCanvas`。
 

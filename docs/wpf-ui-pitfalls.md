@@ -100,13 +100,13 @@ BpWindow 已由 v3 renderer 生成控件。默认动画通过行为文档中的�
 
 1. 编辑器窗口应使用 WPF-UI `FluentWindow` 和项目既有 `CustomTitleBar`，标题栏必须单独占一行。不要把 toolbar、preview 或验证面板放到标题栏同一行；否则关闭按钮会被内容覆盖。编辑器默认隐藏 `CustomTitleBar` 的主题切换按钮，保留最小化、最大化和关闭。
 2. 不要把真实前台窗口当作设计 surface。原生标题栏、窗口 chrome 和 `FrontedWindowBase` 的 `Viewbox` 包裹会让坐标混入内容区以外的高度，造成纵向偏移。编辑器应使用纯 `Canvas`，尺寸精确等于 `FrontedCanvasConfig.CanvasWidth` / `CanvasHeight`。
-3. Phase 8D zoom/pan 修正后，编辑器预览不再用 `ViewBox` 控制 Fit 或手动缩放。结构应为 `ScrollViewer -> PreviewWorkspace -> PreviewZoomHost -> DesignSurfaceGrid`，`PreviewZoomHost.LayoutTransform` 绑定唯一缩放来源 `ZoomScale`，这样放大后 `ScrollViewer` 才能获得真实可滚动 extent。
+3. 历史迭代 8D zoom/pan 修正后，编辑器预览不再用 `ViewBox` 控制 Fit 或手动缩放。结构应为 `ScrollViewer -> PreviewWorkspace -> PreviewZoomHost -> DesignSurfaceGrid`，`PreviewZoomHost.LayoutTransform` 绑定唯一缩放来源 `ZoomScale`，这样放大后 `ScrollViewer` 才能获得真实可滚动 extent。
 4. `PreviewCanvas` 负责真实渲染，`InteractionLayer` 负责 hitbox、选择框、拖拽、缩放和键盘微调。两层尺寸都必须等于 `FrontedCanvasConfig.CanvasWidth` / `CanvasHeight`，鼠标位置使用 `e.GetPosition(InteractionLayer)` 得到逻辑 Canvas 坐标，不要乘除 zoom，也不要把窗口标题栏或真实前台窗口尺寸纳入坐标计算。
 5. 透明或空内容控件不可靠。空 `Text`、`Source = null` 的 `Image`、透明 `Border` 和没有当前业务数据的控件都可能难以命中。编辑器应在独立 `InteractionLayer` 为每个设计项创建透明 hitbox；hitbox 是 editor-only，不写入 layout JSON。
 6. v3 JSON 的 root-level 控件 key 就是控件名。该名称同时参与 `FrameworkElement.Name` 和 WPF namescope 注册。不要在 config 类里再加 `Name` 字段，也不要让编辑器只改生成控件的 `Name` 而忘记 dictionary key。
 7. 空图片和空文本在 preview 中应通过编辑器 overlay 或设计时 placeholder 辅助识别。placeholder 只属于编辑器预览，不应写入 layout JSON 或运行时设置。
-8. Phase 8D 的方向键移动步长默认是 `0.5`。键盘事件应避开 `TextBox`、`ComboBox`、`DataGrid` 等编辑控件，避免后续 Property Grid 实现后抢输入焦点。
-9. Phase 8D owner validation 后，编辑器主区域是左侧控件列表、中间设计 surface、右侧选中/校验面板。左侧列表用于选中被遮挡或低 ZIndex 控件；筛选文本在切换窗口、切换 Canvas 或成功重载布局时清空。
+8. 历史迭代 8D 的方向键移动步长默认是 `0.5`。键盘事件应避开 `TextBox`、`ComboBox`、`DataGrid` 等编辑控件，避免后续 Property Grid 实现后抢输入焦点。
+9. 历史迭代 8D owner validation 后，编辑器主区域是左侧控件列表、中间设计 surface、右侧选中/校验面板。左侧列表用于选中被遮挡或低 ZIndex 控件；筛选文本在切换窗口、切换 Canvas 或成功重载布局时清空。
 10. 鼠标选择语义是“单击选择，拖拽不切换选择”。`MouseLeftButtonDown` 只记录候选控件和起点；超过 3-5 logical px 阈值后，只有候选项本来就是当前选中项才开始拖拽。拖到未选中控件上不应改变焦点。
 11. 被选中控件的 hitbox、outline 和 handles 会使用 editor-only 高 ZIndex 放在其他 hitbox 上方，以便拖动重叠下层控件。该值不能写入 v3 JSON，也不能改变 preview/runtime `ZIndex`。
 12. 拖拽和缩放过程中要同步更新生成 preview root element 的 `Canvas.Left` / `Canvas.Top` / `Width` / `Height`，不要等 mouse-up 重渲染后才看到真实预览移动。mouse-up 可再重渲染一次保证一致。
@@ -114,25 +114,25 @@ BpWindow 已由 v3 renderer 生成控件。默认动画通过行为文档中的�
 14. `Image` / `BorderedImage` 的 picking border 和 lock 是内部视觉层：编辑器中不生成普通 hitbox、不进入普通控件列表、不允许直接拖拽或缩放。移动/缩放图片控件时 overlay 自动跟随；`PickingBorderName` 保持运行时 namescope 目标不变。
 15. `CurrentBanDisplay`、`BanSlotDisplay` 和 `PickingBorderOverlay` 已移除。新 Ban 位和 pick 图不要再新增专用业务控件，优先使用通用 `Image` binding + overlay。
 16. 视口导航优先于选择：Fit 模式根据 `ScrollViewer` viewport 和 Canvas 尺寸计算 `ZoomScale`；`Ctrl + mouse wheel` 进入手动缩放并保持 25% 到 200%；右键拖拽或 `Space + left mouse drag` 只平移 `ScrollViewer` offset。这些操作不能写回 layout 坐标，也不能改变当前选中控件。
-17. Phase 8E 的 Property Grid 基于 `ItemsControl`，编辑的是 `FrontedControlDesignItem` 和其 `Config`。`Name` 仍是设计项/JSON key，不能加到 config 类；运行时关键 `Name` 只读，被其他控件引用的普通控件在 8E 也阻止改名。
-18. Phase 8E owner validation 后，Property Grid 行编辑器通过模板按需实例化，不要恢复成“TextBox、CheckBox、ComboBox 全部创建再用 Visibility 隐藏”的结构；否则切换选中控件时会出现未套样式的原生控件闪烁。
+17. 历史迭代 8E 的 Property Grid 基于 `ItemsControl`，编辑的是 `FrontedControlDesignItem` 和其 `Config`。`Name` 仍是设计项/JSON key，不能加到 config 类；运行时关键 `Name` 只读，被其他控件引用的普通控件在 8E 也阻止改名。
+18. 历史迭代 8E owner validation 后，Property Grid 行编辑器通过模板按需实例化，不要恢复成“TextBox、CheckBox、ComboBox 全部创建再用 Visibility 隐藏”的结构；否则切换选中控件时会出现未套样式的原生控件闪烁。
 19. 属性编辑事件必须避开绑定初始化：ComboBox 用 `DropDownClosed` 提交，TextBox 用 `LostFocus` 或 Enter 提交，CheckBox 用 Click 提交，ColorPicker 只在用户更改颜色后提交。属性网格重建和 layout pass 期间应抑制提交，避免 BpWindow / CutSceneWindow 选中控件时递归触发 `ApplyPropertyEdit`。
-20. Phase 8F 的 `FontFamily` 行使用可编辑 ComboBox，初始化、选中项同步和手写提交都必须尊重同一套提交抑制逻辑。内置字体选项保存 pack URI 原值，预览字体时沿用运行时的 `Uri + "./#FontName"` 构造方式，不要把显示名写回布局。
-21. Phase 8G 中 `BindingPath` 和图片/资源路径仍是显式提交文本框，但旁边会显示 Binding Browser 或 Resource Browser 的 `...` 按钮。浏览器选择只能写入 `FrontedPropertyEditorItem.EditText`，不能直接调用 `ApplyPropertyEdit`，也不能写入 config、推 Undo snapshot 或刷新真实前台窗口；用户按 Apply 或 Enter 后才提交。颜色字符串使用项目已有 `PortableColorPicker`，仍按 `#AARRGGBB` 存储，并保留文本 fallback；ColorPicker 选色只同步 Hex 编辑缓冲，必须由 Apply 或 Enter 显式提交，避免初始化/选色时绕过显式提交模型。
+20. 历史迭代 8F 的 `FontFamily` 行使用可编辑 ComboBox，初始化、选中项同步和手写提交都必须尊重同一套提交抑制逻辑。内置字体选项保存 pack URI 原值，预览字体时沿用运行时的 `Uri + "./#FontName"` 构造方式，不要把显示名写回布局。
+21. 历史迭代 8G 中 `BindingPath` 和图片/资源路径仍是显式提交文本框，但旁边会显示 Binding Browser 或 Resource Browser 的 `...` 按钮。浏览器选择只能写入 `FrontedPropertyEditorItem.EditText`，不能直接调用 `ApplyPropertyEdit`，也不能写入 config、推 Undo snapshot 或刷新真实前台窗口；用户按 Apply 或 Enter 后才提交。颜色字符串使用项目已有 `PortableColorPicker`，仍按 `#AARRGGBB` 存储，并保留文本 fallback；ColorPicker 选色只同步 Hex 编辑缓冲，必须由 Apply 或 Enter 显式提交，避免初始化/选色时绕过显式提交模型。
 22. 验证详情表不在右侧属性面板常驻显示；右侧应主要保留选中控件摘要和 Property Grid。底部左侧验证摘要可点击打开非模态验证详情窗口。
 23. 拖拽和缩放 live edit 中不要运行完整校验、不要重建 Property Grid、不要强制完整重渲染。只更新几何、linked overlay、preview element、hitbox/adorner、选中几何摘要和 dirty 状态；mouse-up/commit 后再统一校验和刷新。
 24. Property Grid 输入控件获得键盘焦点时，方向键不应触发设计 surface 微调。新增编辑器控件后要继续更新 `ShouldIgnoreKeyboardInput()` 的排除列表。
-25. Phase 8F 的 Add Control 只添加内存设计项并重渲染编辑器 preview，不保存用户布局。新控件应放在当前滚动视口中心附近，并且不应暴露已移除的 `CurrentBanDisplay`、`BanSlotDisplay` 和 `PickingBorderOverlay`。
-26. Phase 8F owner validation 后，Delete Control 只在设计 surface 焦点下响应 Delete 键；焦点位于 `TextBox`、`ComboBox`、`DataGrid`、ColorPicker 或属性编辑器内部时必须忽略，避免编辑文本时误删控件。左侧控件列表右键菜单和 Property Grid 底部删除按钮都应调用同一个删除命令，继续复用运行时关键控件和 incoming reference 的删除保护。
+25. 历史迭代 8F 的 Add Control 只添加内存设计项并重渲染编辑器 preview，不保存用户布局。新控件应放在当前滚动视口中心附近，并且不应暴露已移除的 `CurrentBanDisplay`、`BanSlotDisplay` 和 `PickingBorderOverlay`。
+26. 历史迭代 8F owner validation 后，Delete Control 只在设计 surface 焦点下响应 Delete 键；焦点位于 `TextBox`、`ComboBox`、`DataGrid`、ColorPicker 或属性编辑器内部时必须忽略，避免编辑文本时误删控件。左侧控件列表右键菜单和 Property Grid 底部删除按钮都应调用同一个删除命令，继续复用运行时关键控件和 incoming reference 的删除保护。
 27. `Name`、`BindingPath` 和普通文本/资源路径属性使用显式提交：文本框绑定 `EditText`，按 Enter 或 Check/Apply 按钮提交。Enter 处理必须直接读取 `TextBox.Text`，不能依赖 `UpdateSourceTrigger=LostFocus` 后的 `Value`，否则会提交旧值或空值。
 28. 属性编辑失败时不要重建到丢失输入。应保留 `EditText`、设置 `HasEditError` / `EditError`、显示红色边框和行内错误消息；失败提交不应触发 preview render。
 29. `FontFamily` 的可编辑 ComboBox 不应在下拉打开时由 LostFocus 触发提交。下拉选择保存 `FrontedFontFamilyOption.Value`，手写字体按 Enter 或真正失焦保存 `ComboBox.Text`，内置字体 pack URI 不能被显示名替换。
-30. 右侧 Property Grid 面板通过中间 `GridSplitter` 调整宽度。拖动 splitter 只改变编辑器窗口布局，不写回 v3 layout JSON，也不需要在 Phase 8F 持久化。
+30. 右侧 Property Grid 面板通过中间 `GridSplitter` 调整宽度。拖动 splitter 只改变编辑器窗口布局，不写回 v3 layout JSON，也不需要在 历史迭代 8F 持久化。
 31. 设计器 preview 使用独立 `DesignerPreviewSharedDataService`，只通过 `FrontedRenderContext.SharedDataServiceOverride` 传给 renderer。不要为了预览调用真实共享数据服务的 `NewGame()` 或修改真实 `CurrentGame`，否则会污染导播运行时状态。
 32. Undo/Redo 快捷键只在设计 surface、列表或编辑器背景获得焦点时执行布局撤销/重做；焦点在 `TextBox`、`ComboBox`、ColorPicker 等属性编辑器内时必须让控件自身处理文本撤销。切换窗口/Canvas 或 reload 必须清空 undo/redo 栈。
-33. Binding Browser 使用显式 root + attribute 反射 catalog，不应全局扫描任意服务或调用 getter，也不应恢复逐属性手写整树。绑定树节点必须保留真实 `ValueType`，树过滤和搜索都要使用同一 `FrontedBindingTypeFilter`：文本控件只允许字符串/数字，图片控件只允许 `ImageSource` 兼容值，bool overlay 绑定只允许 bool，`GameProgressText` 只允许 `GameProgress`，`MapNameText` 只允许 `Map` / `Map?`。浏览器选择仍只能写入属性行 `EditText`，不能绕过 Apply/Enter 直接提交 config。Resource Browser 读取 `Resources/bpui` 时缩略图必须用 `BitmapImage.CacheOption=OnLoad` 等方式避免锁文件；外部绝对路径只引用原文件，Phase 8G 不复制到用户布局目录或 `.bpui` 包。
-34. Phase 8H 的吸附开关分为持久 `SnapEnabled` 和临时 `IsShiftSnapActive`。ToggleSwitch 只能绑定 `SnapEnabled`；Shift KeyDown/KeyUp 只更新临时状态和状态文字，不能反向修改 ToggleSwitch，否则拖拽时会造成开关频繁刷新和输入延迟。
-35. Phase 8H 的保存只写用户 AppData 布局，不能覆盖 `Resources/FrontedLayouts`。切换窗口/Canvas、reload、reset 和关闭窗口前都要处理 dirty prompt；Save 因校验 Error 失败时必须取消原动作。
+33. Binding Browser 使用显式 root + attribute 反射 catalog，不应全局扫描任意服务或调用 getter，也不应恢复逐属性手写整树。绑定树节点必须保留真实 `ValueType`，树过滤和搜索都要使用同一 `FrontedBindingTypeFilter`：文本控件只允许字符串/数字，图片控件只允许 `ImageSource` 兼容值，bool overlay 绑定只允许 bool，`GameProgressText` 只允许 `GameProgress`，`MapNameText` 只允许 `Map` / `Map?`。浏览器选择仍只能写入属性行 `EditText`，不能绕过 Apply/Enter 直接提交 config。Resource Browser 读取 `Resources/bpui` 时缩略图必须用 `BitmapImage.CacheOption=OnLoad` 等方式避免锁文件；外部绝对路径只引用原文件，历史迭代 8G 不复制到用户布局目录或 `.bpui` 包。
+34. 历史迭代 8H 的吸附开关分为持久 `SnapEnabled` 和临时 `IsShiftSnapActive`。ToggleSwitch 只能绑定 `SnapEnabled`；Shift KeyDown/KeyUp 只更新临时状态和状态文字，不能反向修改 ToggleSwitch，否则拖拽时会造成开关频繁刷新和输入延迟。
+35. 历史迭代 8H 的保存只写用户 AppData 布局，不能覆盖 `Resources/FrontedLayouts`。切换窗口/Canvas、reload、reset 和关闭窗口前都要处理 dirty prompt；Save 因校验 Error 失败时必须取消原动作。
 36. WPF 不允许在窗口已经继续 closing 的过程中调用 `Show`、`ShowDialog`、`Close` 或 `EnsureHandle`。编辑器关闭时如果要询问未保存修改，必须先取消 `Closing`，再用 Dispatcher 异步显示提示；确认 Save/Discard 后用强制关闭标记再次关闭。非模态验证详情窗口随父窗口关闭时也要 try/catch `InvalidOperationException`。
 37. 编辑器顶部工具栏不能使用单行固定列布局承载全部命令。窗口/Canvas 选择器、缩放、吸附状态和 layout path 应放在可换行容器中；长路径必须限制宽度并省略显示，完整路径放到 tooltip。
 

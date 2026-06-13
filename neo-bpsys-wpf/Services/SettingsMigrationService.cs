@@ -75,8 +75,6 @@ public class SettingsMigrationService : ISettingsMigrationService
 
             var backupPath = CreateBackupPath(configFilePath);
             File.Copy(configFilePath, backupPath);
-            await MigrateLegacyFrontendSettingsAsync(json, cancellationToken);
-
             var settings = JsonSerializer.Deserialize<Settings>(json, _jsonSerializerOptions);
             if (settings == null)
             {
@@ -273,14 +271,14 @@ public class SettingsMigrationService : ISettingsMigrationService
                 return;
             }
 
-            var config = windowConfig.ToCanvasConfig();
+            var config = FrontedWindowConfigCanvasAdapter.ToCanvasConfig(windowConfig);
             if (!string.IsNullOrWhiteSpace(backgroundImage))
             {
                 config.BackgroundImage = backgroundImage;
             }
 
             LegacyFrontedTextStyleMigrator.Apply(config, legacyWindow, legacyCanvas, legacySettings);
-            var targetConfig = FrontedWindowConfig.FromCanvasConfig(config);
+            var targetConfig = FrontedWindowConfigCanvasAdapter.FromCanvasConfig(config);
             targetConfig.WindowSettings = windowConfig.WindowSettings;
             ApplyLegacyWindowSettings(targetConfig.WindowSettings, windowSize, backgroundColor, allowTransparency);
             var targetPath = Path.Combine(layoutRoot, $"{outputWindow}.json");

@@ -1148,7 +1148,7 @@ public class FrontedLayoutPackageManagerTest
 
             await service.SaveWindowConfigAsync(
                 "BpWindow",
-                FrontedWindowConfig.FromCanvasConfig(new FrontedCanvasConfig { Version = 3, CanvasWidth = 200, CanvasHeight = 120 }),
+                neo_bpsys_wpf.Core.Services.FrontedLayout.FrontedWindowConfigCanvasAdapter.FromCanvasConfig(new FrontedCanvasConfig { Version = 3, CanvasWidth = 200, CanvasHeight = 120 }),
                 TestContext.Current.CancellationToken);
 
             var active = await manager.GetActivePackageStateAsync(TestContext.Current.CancellationToken);
@@ -1579,7 +1579,7 @@ public class FrontedLayoutPackageManagerTest
               }
             }
             """)!;
-        File.WriteAllText(layoutPath, JsonSerializer.Serialize(FrontedWindowConfig.FromCanvasConfig(canvasConfig)));
+        File.WriteAllText(layoutPath, JsonSerializer.Serialize(neo_bpsys_wpf.Core.Services.FrontedLayout.FrontedWindowConfigCanvasAdapter.FromCanvasConfig(canvasConfig)));
     }
 
     private static void WriteBuiltInScoreGlobalLayoutForLegacyConversion(string builtInRoot)
@@ -1643,7 +1643,7 @@ public class FrontedLayoutPackageManagerTest
               }
             }
             """)!;
-        File.WriteAllText(layoutPath, JsonSerializer.Serialize(FrontedWindowConfig.FromCanvasConfig(canvasConfig)));
+        File.WriteAllText(layoutPath, JsonSerializer.Serialize(neo_bpsys_wpf.Core.Services.FrontedLayout.FrontedWindowConfigCanvasAdapter.FromCanvasConfig(canvasConfig)));
     }
 
     private static void WriteZipEntry(ZipArchive archive, string entryName, string text)

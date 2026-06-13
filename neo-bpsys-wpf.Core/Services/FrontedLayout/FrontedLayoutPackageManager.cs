@@ -274,7 +274,7 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
             {
                 await CopyDirectoryContentsAsync(
                     Path.Combine(builtInResourcesRoot, "FrontedBehaviors"),
-                    Path.Combine(targetPath, "behaviors"),
+                    Path.Combine(targetPath, "FrontedBehaviors"),
                     cancellationToken);
             }
         }
@@ -372,7 +372,8 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
             IsActivePackage = string.Equals(packageIdFromFolder, activePackageId, StringComparison.OrdinalIgnoreCase),
             ValidationStatus = FrontedLayoutPackageValidationStatus.Valid,
             LayoutCount = CountFiles(Path.Combine(directory, "FrontedLayouts"), "*.json"),
-            ResourceCount = CountFiles(Path.Combine(directory, "resources"), "*")
+            ResourceCount = CountFiles(Path.Combine(directory, "Resources"), "*")
+                + CountFiles(Path.Combine(directory, "resources"), "*")
         };
 
         if (!IsSafePackageId(packageIdFromFolder))
@@ -609,7 +610,9 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
 
     private static IEnumerable<FrontedLayoutPackageResourceEntry> EnumerateResourceEntries(string packagePath)
     {
-        var resourcesRoot = Path.Combine(packagePath, "resources");
+        var resourcesRoot = Directory.Exists(Path.Combine(packagePath, "Resources"))
+            ? Path.Combine(packagePath, "Resources")
+            : Path.Combine(packagePath, "resources");
         if (!Directory.Exists(resourcesRoot))
         {
             yield break;

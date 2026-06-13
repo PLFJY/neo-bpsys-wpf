@@ -35,6 +35,33 @@ public class FrontedNodeGraphEditorViewModelTest
     }
 
     [Fact]
+    public void BooleanNodeProperty_ExposesComboBoxChoices()
+    {
+        var catalog = new FrontedNodeCatalog();
+        var descriptor = catalog.Find("action.animateProperty")!
+            .Properties.Single(property => property.Name == "WaitForCompletion");
+        var node = new FrontedNode
+        {
+            NodeType = "action.animateProperty"
+        };
+        var property = new FrontedNodePropertyEditorViewModel(
+            node,
+            descriptor,
+            static () => { },
+            static () => { },
+            static (_, fallback) => fallback,
+            []);
+
+        Assert.True(property.IsBoolean);
+        Assert.Equal(["true", "false"], property.BooleanOptions.Select(option => option.Value).ToArray());
+
+        property.BooleanTextValue = "false";
+
+        Assert.Equal("false", property.BooleanTextValue);
+        Assert.False(node.Properties["WaitForCompletion"].GetBoolean());
+    }
+
+    [Fact]
     public void GraphEditor_MoveNode_UpdatesModelXY()
     {
         var editor = CreateEditorWithNodes("flow.start");
@@ -261,7 +288,7 @@ public class FrontedNodeGraphEditorViewModelTest
 
         Assert.Equal("Opacity", editor.SelectedNode.Model.Properties["PropertyName"].GetString());
         Assert.Equal(1, dirty);
-        Assert.InRange(propertyChangedCount, 1, 20);
+        Assert.InRange(propertyChangedCount, 1, 25);
     }
 
     [Fact]

@@ -78,7 +78,7 @@
 
 ## Designer v3 插件前台控件规划
 
-Phase 15 起，插件前台系统围绕 Designer v3 / FrontedLayout v3 工作。旧的前台控件注入 API 已移除；插件前台能力分为 Designer v3 插件控件、Plugin XAML Window 和 Plugin v3 Layout Window。`.bpui` 导入遇到缺失插件窗口或插件控件时会保留 layout、资源和依赖元数据，不再物理删除缺失插件控件。
+历史迭代 15 起，插件前台系统围绕 Designer v3 / FrontedLayout v3 工作。旧的前台控件注入 API 已移除；插件前台能力分为 Designer v3 插件控件、Plugin XAML Window 和 Plugin v3 Layout Window。`.bpui` 导入遇到缺失插件窗口或插件控件时会保留 layout、资源和依赖元数据，不再物理删除缺失插件控件。
 
 插件控件的 `ControlType` 必须使用命名空间：
 
@@ -94,7 +94,7 @@ plugin:plfjy.ExamplePlugin/TeamCard
 
 `PackageId` 必须匹配插件 `manifest.yml` 的 `id`，`ControlTypeName` 在插件内唯一。完整 `ControlType` 是稳定序列化 schema，不本地化，不使用显示名，也不能 shadow 内置控件类型。`.bpui v3` 中的 Canvas `RequiredPlugins` 和 manifest `PluginDependencies` 规则见 [bpui-package-v3.md](bpui-package-v3.md)。
 
-Phase 13B API 入口如下：
+历史迭代 13B API 入口如下：
 
 ```csharp
 public interface IFrontedControlPluginContributor

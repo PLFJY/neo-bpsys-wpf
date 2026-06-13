@@ -68,7 +68,7 @@ v3 layout 窗口的显示流程分两段执行：Show 前调用 `EnsureInitialWi
 
 > **注意**：旧版"真实前台窗口内编辑"设计器模式已废弃移除。Designer v3 独立编辑器（`FrontedDesignerWindow`）是当前唯一支持的设计编辑器。
 
-Fronted Designer v3 的基础设施已经存在：`FrontedWindowConfig` 是新主路径模型，包含 `WindowSettings`、`CanvasSettings` 和 `ControlLayout`。`IFrontedLayoutService` 会按活动布局方案读取 `FrontedLayouts/{WindowTypeName}.json`；内置默认布局位于 `Resources\FrontedLayouts\{WindowTypeName}.json`，包内布局位于 `FrontedLayouts/{WindowTypeName}.json`，behavior 位于 `behaviors/{WindowTypeName}.behaviors.json`。`IFrontedRenderer` 可用注册的控件工厂生成 Text/Image/GlobalScoreRow 等控件。`Text` 和 `LocalizedText` 的动态内容使用 `TextBinding`：有序 `Sources` 绑定 `ISharedDataService`，`StringFormat` 非空时使用复合格式，否则按 `JoinSeparator` 连接；没有有效 source 时分别回退到静态 `Text` 或 `LocalizationKey`。需要业务规则文本时，应使用 `GameProgressText` / `MapNameText` 等业务控件，而不是普通静态 `Text`。`WidgetsWindow` 和 MapV1 已删除；旧 `BpOverViewCanvas` 迁移为 `BpOverviewWindow`，旧 `MapV2Canvas` 迁移为 `MapV2Window`。`MapV2Display` 继续复用 `MapV2Presenter`，不要把地图 BP v2 拆成普通图片和文字控件。`FrontedWindowService` 不会读取旧 `FrontedDefaultPositions` 作为 v3 输入。
+Fronted Designer v3 的基础设施已经存在：`FrontedWindowConfig` 是新主路径模型，包含 `WindowSettings`、`CanvasSettings` 和 `ControlLayout`。`IFrontedLayoutService` 会按活动布局方案读取 `FrontedLayouts/{WindowTypeName}.json`；内置默认布局位于 `Resources\FrontedLayouts\{WindowTypeName}.json`，包内布局位于 `FrontedLayouts/{WindowTypeName}.json`，behavior 位于 `FrontedBehaviors/{WindowTypeName}.behaviors.json`。`IFrontedRenderer` 可用注册的控件工厂生成 Text/Image/GlobalScoreRow 等控件。`Text` 和 `LocalizedText` 的动态内容使用 `TextBinding`：有序 `Sources` 绑定 `ISharedDataService`，`StringFormat` 非空时使用复合格式，否则按 `JoinSeparator` 连接；没有有效 source 时分别回退到静态 `Text` 或 `LocalizationKey`。需要业务规则文本时，应使用 `GameProgressText` / `MapNameText` 等业务控件，而不是普通静态 `Text`。`WidgetsWindow` 和 MapV1 已删除；旧 `BpOverViewCanvas` 迁移为 `BpOverviewWindow`，旧 `MapV2Canvas` 迁移为 `MapV2Window`。`MapV2Display` 继续复用 `MapV2Presenter`，不要把地图 BP v2 拆成普通图片和文字控件。`FrontedWindowService` 不会读取旧 `FrontedDefaultPositions` 作为 v3 输入。
 
 当前已迁移的内置前台窗口全部使用 v3 layout 作为默认渲染来源。v3 layout 管理单位只剩 Window；Canvas/BaseCanvas 只是运行时实现细节，不再按 Canvas 维度读取、编辑、保存或恢复布局。
 
@@ -121,7 +121,7 @@ v3 独立编辑器保存用户布局时应写入 AppData 的 `FrontedLayouts` �
 
 `FrontManagePage` 使用顶层 tabs：`Frontend Windows` 提供前台窗口打开/关闭和独立编辑器入口，`Layout Packages` 提供 v3 布局包管理器。`Frontend Windows` tab 不再包含旧版设计模式 ToggleSwitch，Reset 按钮也已移除；布局重置通过激活/删除包实现。包列表使用紧凑两栏布局，右侧详情按 Basic、Contents、Location、Validation 分组。当前可列出系统内置包、已安装包和活动包状态，并可导入、导出、激活和删除 v3 `.bpui` 包。导出固定为全部前台布局；导入 legacy `.bpui` 会触发转换流程。
 
-激活普通包时，包内 `FrontedLayouts/{WindowTypeName}.json` 和 `behaviors/{WindowTypeName}.behaviors.json` 会作为活动包数据读取。激活内置布局或删除活动包会回退到内置 `Resources/FrontedLayouts`。已创建的前台窗口会尝试重新渲染 v3 布局；未创建过的窗口不会因此被创建。
+激活普通包时，包内 `FrontedLayouts/{WindowTypeName}.json` 和 `FrontedBehaviors/{WindowTypeName}.behaviors.json` 会作为活动包数据读取。激活内置布局或删除活动包会回退到内置 `Resources/FrontedLayouts`。已创建的前台窗口会尝试重新渲染 v3 布局；未创建过的窗口不会因此被创建。
 
 注意：v3 布局读取用户布局优先。如果用户目录下已有旧开发版 v3 JSON，不保证兼容；需要重置为内置布局或通过 legacy `.bpui` 转换重新生成 Window-centric 布局。
 

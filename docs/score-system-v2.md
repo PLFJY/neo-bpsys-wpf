@@ -367,7 +367,7 @@ ScorePage button
 
 ## 11. 已实现功能总览
 
-Score System v2 的所有阶段（Score Phase 0-5）已全部完成。核心进展：
+Score System v2 的所有阶段（Score 历史迭代 0-5）已全部完成。核心进展：
 
 | 层次 | 实现内容 |
 | --- | --- |

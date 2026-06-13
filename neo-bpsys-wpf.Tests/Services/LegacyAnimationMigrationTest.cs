@@ -183,7 +183,7 @@ public sealed class LegacyAnimationMigrationTest
                 FrontedLayoutPackageManager.BuiltInPackageId,
                 cancellationToken: TestContext.Current.CancellationToken);
 
-            Assert.True(File.Exists(Path.Combine(package.InstallPath, "behaviors", "BpWindow.behaviors.json")));
+            Assert.True(File.Exists(Path.Combine(package.InstallPath, "FrontedBehaviors", "BpWindow.behaviors.json")));
         }
         finally
         {

@@ -40,7 +40,7 @@
 
 active `Settings.cs` 不再包含旧前台窗口设置。旧 `BpWindowSettings`、`CutSceneWindowSettings`、`ScoreWindowSettings`、`GameDataWindowSettings`、`WidgetsWindowSettings` 只由 legacy DTO 在迁移 / `.bpui` 转换流程读取。
 
-启动加载 `Config.json` 时会先检查 raw JSON root：`Version` 缺失或为 `null` 时按 legacy 配置处理，先备份为 `Config.json.v2.backup` 或带时间戳的同类文件，再写回 `Version = 3`。这个 Phase 1 迁移只更新主设置版本并保留现有字段，不迁移前台布局文件，也不删除旧前台窗口设置。
+启动加载 `Config.json` 时会先检查 raw JSON root：`Version` 缺失或为 `null` 时按 legacy 配置处理，先备份为 `Config.json.v2.backup` 或带时间戳的同类文件。启动迁移会把旧前台窗口设置转换为 `FrontedLayoutPackages/converted-v2-{hash}/` 普通 Designer v3 包，激活该包，然后写回干净的 `Version = 3` Settings。迁移后的主设置不再包含旧前台窗口字段。
 
 ## 前台窗口设置
 
@@ -95,7 +95,7 @@ Designer v3 `.bpui` 包路径标准见 [bpui-package-v3.md](bpui-package-v3.md)�
 
 `IFrontedLayoutPackageManager` 会读取 `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages`，始终列出虚拟 `builtin` 包，跳过保留的 `local` 目录，并读取普通已安装包目录下的 `manifest.json`。缺少或损坏 manifest 的包会以校验错误显示，不会让管理器崩溃。`active-package.json` 缺失时默认视为 `builtin` 活动；激活普通包只写入 active state，不会复制布局到全局 `FrontedLayouts`，激活 `builtin` 只切换活动状态，不删除任意可编辑包或 legacy 用户布局。删除活动包会先切回 `builtin` 再删除包目录。
 
-`FrontManagePage` 的 Layout Packages 页支持导出和导入 v3 `.bpui` 包。导出会从 `IFrontedLayoutService` 按“用户布局优先、内置兜底”加载全部可管理前台布局，生成 `manifest.json`、`FrontedLayouts/`、`behaviors/` 和 `resources/`，但不会包含全局 `%APPDATA%\neo-bpsys-wpf\Config.json`，也不会包含 legacy `CustomUi/` 或 `FrontElementsConfig/`。导入会先解压到 staging 目录并完成校验，再安装到 `FrontedLayoutPackages/{PackageId}`；替换已有包时，旧包只会在新包校验成功后删除。
+`FrontManagePage` 的 Layout Packages 页支持导出和导入 v3 `.bpui` 包。导出会从 `IFrontedLayoutService` 按“用户布局优先、内置兜底”加载全部可管理前台布局，生成 `manifest.json`、`FrontedLayouts/`、`FrontedBehaviors/` 和 `resources/`，但不会包含全局 `%APPDATA%\neo-bpsys-wpf\Config.json`，也不会包含 legacy `CustomUi/` 或 `FrontElementsConfig/`。导入会先解压到 staging 目录并完成校验，再安装到 `FrontedLayoutPackages/{PackageId}`；替换已有包时，旧包只会在新包校验成功后删除。
 
 legacy `.bpui` 导入不会再调用 SettingPage 的旧导入覆盖流程。`Config.json` 只作为转换输入读取明确前台图片字段，不会复制到 AppData，不会覆盖当前设置，也不会要求为了 layout-only 转换重启。转换输出的 v3 包仍安装到 `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\{PackageId}`，激活后按包内 `FrontedLayouts/` 作为读写方案，不再复制到全局 `FrontedLayouts`。
 

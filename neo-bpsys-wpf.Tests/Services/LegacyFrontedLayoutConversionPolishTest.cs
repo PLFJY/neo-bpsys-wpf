@@ -1452,7 +1452,7 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
                 PropertyNameCaseInsensitive = true
             })!;
             Directory.CreateDirectory(Path.GetDirectoryName(mappedPath)!);
-            File.WriteAllText(mappedPath, JsonSerializer.Serialize(FrontedWindowConfig.FromCanvasConfig(canvasConfig)));
+            File.WriteAllText(mappedPath, JsonSerializer.Serialize(neo_bpsys_wpf.Core.Services.FrontedLayout.FrontedWindowConfigCanvasAdapter.FromCanvasConfig(canvasConfig)));
             return;
         }
 

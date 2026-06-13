@@ -127,10 +127,13 @@
         </DataTemplate>
 
         <DataTemplate x:Key="PropertyBooleanEditorTemplate" DataType="{x:Type designer:FrontedPropertyEditorItem}">
-            <CheckBox
-                VerticalAlignment="Center"
-                Click="PropertyCheckBox_OnClick"
-                IsChecked="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            <ComboBox
+                MinHeight="30"
+                DisplayMemberPath="DisplayName"
+                DropDownClosed="PropertyComboBox_OnDropDownClosed"
+                ItemsSource="{Binding Options}"
+                SelectedValue="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                SelectedValuePath="Value" />
         </DataTemplate>
 
         <DataTemplate x:Key="PropertyEnumEditorTemplate" DataType="{x:Type designer:FrontedPropertyEditorItem}">

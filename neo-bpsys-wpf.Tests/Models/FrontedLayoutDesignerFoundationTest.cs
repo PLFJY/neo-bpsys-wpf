@@ -2471,6 +2471,12 @@ public class FrontedLayoutDesignerFoundationTest
                     if (row.PropertyName == "DisplayLanguage")
                         continue;
 
+                    if (option.Value is bool boolValue)
+                    {
+                        requiredKeys.Add(boolValue ? "Designer.Value.True" : "Designer.Value.False");
+                        continue;
+                    }
+
                     requiredKeys.Add($"Designer.Option.{row.PropertyName}.{option.Value}");
                 }
             }
@@ -3912,7 +3918,7 @@ public class FrontedLayoutDesignerFoundationTest
                 }
             };
 
-            await store.SaveAsync("BpWindow", FrontedWindowConfig.FromCanvasConfig(config), TestContext.Current.CancellationToken);
+            await store.SaveAsync("BpWindow", neo_bpsys_wpf.Core.Services.FrontedLayout.FrontedWindowConfigCanvasAdapter.FromCanvasConfig(config), TestContext.Current.CancellationToken);
 
             var expectedPath = Path.Combine(root, "BpWindow.json");
             Assert.Equal(expectedPath, store.GetLayoutPath("BpWindow"));
@@ -3935,13 +3941,14 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
-    public async Task FrontedLayoutServicePrefersUserLayoutOverBuiltIn()
+    public async Task FrontedLayoutServiceLoadsOnlyActivePackageLayout()
     {
         var root = CreateTempDirectory();
         try
         {
             var userStore = new FrontedUserLayoutStore(Path.Combine(root, "user"));
             var builtInRoot = Path.Combine(root, "builtIn");
+            var packageRoot = Path.Combine(root, "packages");
             WriteBuiltInLayout(builtInRoot, "BpWindow", "BaseCanvas", new FrontedCanvasConfig
             {
                 CanvasWidth = 100,
@@ -3951,7 +3958,11 @@ public class FrontedLayoutDesignerFoundationTest
                     ["BuiltInText"] = new TextFrontedControlConfig { Text = "Built-in" }
                 }
             });
-            await userStore.SaveAsync("BpWindow", FrontedWindowConfig.FromCanvasConfig(new FrontedCanvasConfig
+            var packageId = "active-package";
+            var layoutPath = Path.Combine(packageRoot, packageId, "FrontedLayouts", "BpWindow.json");
+            Directory.CreateDirectory(Path.GetDirectoryName(layoutPath)!);
+            File.WriteAllText(Path.Combine(packageRoot, packageId, "manifest.json"), "{\"PackageId\":\"active-package\",\"FormatVersion\":3}");
+            File.WriteAllText(layoutPath, JsonSerializer.Serialize(neo_bpsys_wpf.Core.Services.FrontedLayout.FrontedWindowConfigCanvasAdapter.FromCanvasConfig(new FrontedCanvasConfig
             {
                 CanvasWidth = 200,
                 CanvasHeight = 100,
@@ -3959,9 +3970,11 @@ public class FrontedLayoutDesignerFoundationTest
                 {
                     ["UserText"] = new TextFrontedControlConfig { Text = "User" }
                 }
-            }), TestContext.Current.CancellationToken);
+            })));
 
-            var service = new FrontedLayoutService(userStore, builtInRoot, logger: null);
+            var packageManager = new FrontedLayoutPackageManager(packageRoot, builtInRoot);
+            await packageManager.ActivatePackageAsync(packageId, TestContext.Current.CancellationToken);
+            var service = new FrontedLayoutService(userStore, packageManager, logger: null);
             var result = await service.LoadWindowConfigWithMetadataAsync(
                 "BpWindow",
                 TestContext.Current.CancellationToken);
@@ -3977,13 +3990,14 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
-    public async Task FrontedLayoutServiceFallsBackToBuiltInWhenUserMissingOrInvalid()
+    public async Task FrontedLayoutServiceReturnsErrorWhenActivePackageLayoutMissingOrInvalid()
     {
         var root = CreateTempDirectory();
         try
         {
             var userStore = new FrontedUserLayoutStore(Path.Combine(root, "user"));
             var builtInRoot = Path.Combine(root, "builtIn");
+            var packageRoot = Path.Combine(root, "packages");
             WriteBuiltInLayout(builtInRoot, "BpWindow", "BaseCanvas", new FrontedCanvasConfig
             {
                 CanvasWidth = 100,
@@ -3993,21 +4007,28 @@ public class FrontedLayoutDesignerFoundationTest
                     ["BuiltInText"] = new TextFrontedControlConfig { Text = "Built-in" }
                 }
             });
-            var service = new FrontedLayoutService(userStore, builtInRoot, logger: null);
+            var packageId = "broken-package";
+            Directory.CreateDirectory(Path.Combine(packageRoot, packageId));
+            File.WriteAllText(Path.Combine(packageRoot, packageId, "manifest.json"), "{\"PackageId\":\"broken-package\",\"FormatVersion\":3}");
+            var packageManager = new FrontedLayoutPackageManager(packageRoot, builtInRoot);
+            await packageManager.ActivatePackageAsync(packageId, TestContext.Current.CancellationToken);
+            var service = new FrontedLayoutService(userStore, packageManager, logger: null);
 
             var missingUserResult = await service.LoadWindowConfigWithMetadataAsync(
                 "BpWindow",
                 TestContext.Current.CancellationToken);
-            Assert.Equal(FrontedLayoutSource.BuiltIn, missingUserResult.Source);
+            Assert.Equal(FrontedLayoutSource.MissingOrError, missingUserResult.Source);
+            Assert.Null(missingUserResult.Config);
 
-            Directory.CreateDirectory(Path.GetDirectoryName(userStore.GetLayoutPath("BpWindow"))!);
-            File.WriteAllText(userStore.GetLayoutPath("BpWindow"), "{ invalid json");
+            var layoutPath = Path.Combine(packageRoot, packageId, "FrontedLayouts", "BpWindow.json");
+            Directory.CreateDirectory(Path.GetDirectoryName(layoutPath)!);
+            File.WriteAllText(layoutPath, "{ invalid json");
             var invalidUserResult = await service.LoadWindowConfigWithMetadataAsync(
                 "BpWindow",
                 TestContext.Current.CancellationToken);
 
-            Assert.Equal(FrontedLayoutSource.BuiltIn, invalidUserResult.Source);
-            Assert.Equal(100, invalidUserResult.Config?.CanvasSettings.CanvasWidth);
+            Assert.Equal(FrontedLayoutSource.MissingOrError, invalidUserResult.Source);
+            Assert.Null(invalidUserResult.Config);
             Assert.NotNull(invalidUserResult.Error);
         }
         finally
@@ -5064,7 +5085,7 @@ public class FrontedLayoutDesignerFoundationTest
         Directory.CreateDirectory(builtInRoot);
         File.WriteAllText(
             Path.Combine(builtInRoot, $"{windowTypeName}.json"),
-            JsonSerializer.Serialize(FrontedWindowConfig.FromCanvasConfig(config)));
+            JsonSerializer.Serialize(neo_bpsys_wpf.Core.Services.FrontedLayout.FrontedWindowConfigCanvasAdapter.FromCanvasConfig(config)));
     }
 
     private static string CreateTempDirectory()

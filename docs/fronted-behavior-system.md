@@ -1,4 +1,46 @@
-# Fronted Behavior Graph System — Phase 0 源码勘察报告
+# Fronted Behavior Graph System
+
+本文是 Designer v3 行为系统维护说明。旧动画服务已经移除，前台动画路径统一为：
+
+```text
+事件/Transition 请求
+  -> FrontedBehaviors/{Window}.behaviors.json
+  -> 节点图 runtime
+  -> animation runtime
+  -> property adapter / animation part
+```
+
+正常运行时不直接调用旧 `AnimationService`，ViewModel / Service 也不应直接用 WPF `BeginAnimation` 复刻旧行为。WPF 动画只应在 animation runtime、property adapter 或无关通用 UI 控件内部出现。
+
+## 行为类型
+
+| 类型 | 用途 | 运行规则 |
+| --- | --- | --- |
+| `OneShot` | 单次事件动画 | 触发后执行一个 `Graph`。 |
+| `Loop` | 呼吸、循环提示、持续高亮 | `StartGraph` 启动，`LoopGraph` 按策略循环，任意 `StopTriggers` 命中后执行 `StopGraph`。 |
+| `Transition` | Pick / Ban / Swap 等状态切换 | 由业务服务发出 transition request，runtime 根据行为文档和稳定目标执行。 |
+
+Loop 支持多个 StopTrigger，语义是 OR。Designer 提供停止全部 loop 动画的安全按钮，用于预览或现场状态异常时清理仍在运行的 loop。PickingBorder 呼吸与后台引导高亮相关动画都由 behavior document 定义，不再有 legacy guidance breathing 设置。
+
+## 动画目标和部件
+
+行为图通过 `BehaviorGuid` 定位控件，通过 `part:{BehaviorGuid}:{PartName}` 定位运行时生成的动画部件。`LockOverlay` 和 `PickingBorder` 是常用内置 part；自定义动画部件记录在 `ControlBehaviorSet.AnimationParts`，不写入 `FrontedLayouts` 主控件列表。
+
+动画效果由 `AnimateProperty`、`SetProperty`、`ResetProperty` 等节点请求 runtime 执行。常用属性包括 `Opacity`、`Visibility`、`VisualOffsetX/Y`、`ScaleX/Y`、`Rotation`、`FillColor`、`StrokeColor`、`TextColor`、`ClipInset*`。`WaitForCompletion` 是布尔属性，编辑器使用 `true/false` ComboBox。
+
+## 业务事件接入
+
+`CharacterSelectionService` 使用 Transition 表达角色选择、替换等前台动画。PickPage / 手动选角产生的 picking border 事件通过明确 payload 和稳定控件身份进入行为系统；过滤器只使用事件 payload 字段，不使用临时行为标签。布尔 payload（例如 `Event.HasOldCharacter`、`Event.HasNewCharacter`）在过滤器中使用 `true/false` ComboBox，并限制为 `Equals`、`NotEquals`、`Exists`。
+
+新增内置 behavior 时：
+
+1. 先确认目标 layout 控件有稳定 `BehaviorGuid`。
+2. 在 `Resources/FrontedBehaviors/{Window}.behaviors.json` 添加或更新行为。
+3. 只引用稳定控件身份和稳定 part 名称。
+4. 用节点图 runtime 和动画 runtime 测试验证 OneShot / Loop / Transition 行为。
+5. 不在 ViewModel 中直接创建 WPF Storyboard，也不恢复旧 `AnimationService`。
+
+## 历史说明
 
 ## 默认前台动画
 
@@ -25,13 +67,13 @@ Designer v3 的行为面板支持把单个行为复制到其他控件，也支�
 
 触发器索引可以在源控件和目标控件索引均可明确推断时自动改写。语义索引优先使用明确控件配置，其次使用绑定路径中的唯一索引，最后使用控件名尾部数字。改写只处理受支持的 `Event.Index*` / `Event.PreviousIndex*` 字段，并要求右值精确匹配源索引，不执行任意字符串子串替换。
 
-> **状态**: Phase 0 完成，待 Phase 1 实施
+> **状态**: 历史迭代 0 完成，待 历史迭代 1 实施
 > **功能主线**: 把 Designer v3 从静态前台布局编辑器升级成"事件驱动的控件动画/行为编排系统"
 > **本报告仅做源码勘察，不包含实现代码**
 
-## Phase 1 implemented
+## 历史迭代 1 implemented
 
-Phase 1 已完成行为系统的数据基础：
+历史迭代 1 已完成行为系统的数据基础：
 
 - `FrontedControlConfigBase` 增加 `BehaviorGuid`，作为行为系统内部控件标识；普通 PropertyGrid 不显示该字段。
 - Add Control 创建内置控件和插件控件时都会生成新的 `BehaviorGuid`；复制/粘贴控件会重新生成，重命名控件不影响该值。
@@ -39,45 +81,45 @@ Phase 1 已完成行为系统的数据基础：
 - Core 新增 `Models/FrontedLayout/Behaviors/` 纯数据模型，覆盖行为文档、控件行为集合、触发器、过滤器、节点图、连接和循环策略。
 - 已添加 BehaviorGuid JSON/PropertyGrid/复制/删除测试，以及行为模型默认值和 JSON roundtrip 测试。
 
-## Phase 2 implemented
+## 历史迭代 2 implemented
 
-Phase 2 已完成 Designer 侧行为面板和触发器编辑能力：
+历史迭代 2 已完成 Designer 侧行为面板和触发器编辑能力：
 
-- `IFrontedBehaviorService` 扩展为行为文档读写服务，`FrontedBehaviorService` 会按当前激活布局包读写 `behaviors/{WindowType}.behaviors.json`。行为数据仍独立于控件 config 和 `FrontedWindowConfig`。
+- `IFrontedBehaviorService` 扩展为行为文档读写服务，`FrontedBehaviorService` 会按当前激活布局包读写 `FrontedBehaviors/{WindowType}.behaviors.json`。行为数据仍独立于控件 config 和 `FrontedWindowConfig`。
 - Designer v3 右侧属性区新增可折叠的“动画 / 行为”面板。选中控件后可以添加 OneShot / Loop 行为，重命名、启用/禁用、复制和删除行为。
 - 当旧布局控件的 `BehaviorGuid == Guid.Empty` 且用户第一次添加行为时，编辑器会按需生成新的 `BehaviorGuid` 并标记 layout dirty；仅切换选中控件不会生成 Guid。
 - OneShot 行为可编辑 `Trigger`；Loop 行为可编辑 `StartTrigger`、`StopTriggers` 和 `LoopPolicy`。触发器编辑器使用事件 payload 参数、可读运算符和文本值组成规则；内部 `Source` 与兼容字段 `RightValueKind` 不在正常 UI 中显示。`StopTriggers` 是简单 OR 列表，任意一个停止条件满足时循环动画会停止并执行 `StopGraph`。
-- UI 提供动画编辑器入口；OneShot 显示单图占位，Loop 通过 Top LocalTabs 切换 `StartGraph` / `LoopGraph` / `StopGraph` 占位摘要，并明确提示节点图编辑器将在 Phase 3 提供。
+- UI 提供动画编辑器入口；OneShot 显示单图占位，Loop 通过 Top LocalTabs 切换 `StartGraph` / `LoopGraph` / `StopGraph` 占位摘要，并明确提示节点图编辑器将在 历史迭代 3 提供。
 - Designer VM 单独跟踪 `AreBehaviorsDirty`；保存操作会同时处理 layout dirty 和 behaviors dirty。删除控件时会删除该控件自身的 `ControlBehaviorSet`。
 - `FrontedBehaviorEventCatalog` 从显式标注的 `ISharedDataService` 语义事件反射并缓存事件元数据与常用 payload 过滤字段。
 - 已添加行为面板 ViewModel、行为文档持久化、事件目录和轻量 Designer 集成测试。
 
-Phase 2 仍不实现：可视化节点图编辑器、真实事件总线、动画 runtime、WPF 动画执行、插件节点执行、Timeline 编辑器或前台窗口行为播放。这些仍属于 Phase 3+。
+历史迭代 2 仍不实现：可视化节点图编辑器、真实事件总线、动画 runtime、WPF 动画执行、插件节点执行、Timeline 编辑器或前台窗口行为播放。这些仍属于 历史迭代 3+。
 
-## Phase 3 implemented
+## 历史迭代 3 implemented
 
-Phase 3 已完成 Designer 预览侧的可视化节点图编辑 MVP 和图执行核心：
+历史迭代 3 已完成 Designer 预览侧的可视化节点图编辑 MVP 和图执行核心：
 
 - 动画编辑器不再显示占位文本。OneShot 行为打开 `behavior.Graph` 的节点图编辑器；Loop 行为继续使用 Top `LocalTabs`，分别编辑 `StartGraph`、`LoopGraph` 和 `StopGraph`。
 - 节点图编辑器提供左侧节点目录、中间 Canvas、右侧属性编辑器、底部验证与执行日志。支持添加、选择、拖动、复制、删除节点，点击输出端口后点击兼容输入端口创建连接，并可删除连接。
 - 当前内置节点目录包含 Flow、Action、Value 三类节点。Flow 节点包括 Start、End、Delay、Parallel、If；Action 节点包括 Log、SetProperty、ResetProperty、AnimateProperty；Value 节点包括 Number、String、Boolean、Color、EventValue、ControlReference。
-- 图数据仍使用 Phase 1/2 的 `FrontedNodeGraph` / `FrontedNode` / `FrontedNodeConnection` JSON 模型，节点位置、属性和连接可以 roundtrip 保存。模型新增的查询/删除 helper 只提供纯模型逻辑，不改变持久化结构。
+- 图数据仍使用 历史迭代 1/2 的 `FrontedNodeGraph` / `FrontedNode` / `FrontedNodeConnection` JSON 模型，节点位置、属性和连接可以 roundtrip 保存。模型新增的查询/删除 helper 只提供纯模型逻辑，不改变持久化结构。
 - 图验证会报告缺失 Start、多个 Start、连接引用缺失节点、端口不存在、端口类型不兼容、重复或超过端口基数的连接、必填属性缺失，以及 Delay / AnimateProperty 的非法时长。验证消息会显示在编辑器中，但本阶段不阻止保存，以便用户保留并修复异常图。
 - Designer preview 通过 `FrontedNodeGraphRuntime` 执行当前选中图。支持 Start、End、Delay、Parallel、If、Log，以及 SetProperty / ResetProperty / AnimateProperty 的 action request 生成。
 - 普通连线就是顺序执行。Flow 输入/输出端口各最多一条连接；需要分支时应使用 Parallel 或 If。Parallel 节点提供 In、Branch1/2/3 和 Out 端口：所有分支并发执行，Out 在所有分支完成后执行，分支末端无需连接 End 节点。多个 Start 会被视为错误并阻止 preview。
 - If 节点复用 `FrontedTriggerFilterTextComparer` 文本比较语义；`Event.*` 从预览上下文 payload 取值，其他左值按文本处理。
-- SetProperty、ResetProperty 和 AnimateProperty 在 Phase 3 只写入执行日志并生成 `FrontedGraphActionRequest`，不会修改 WPF 控件，也不会创建 Storyboard。真实 WPF 动画 runtime 属于 Phase 4。
+- SetProperty、ResetProperty 和 AnimateProperty 在 历史迭代 3 只写入执行日志并生成 `FrontedGraphActionRequest`，不会修改 WPF 控件，也不会创建 Storyboard。真实 WPF 动画 runtime 属于 历史迭代 4。
 
-Phase 3 仍不实现：真实前台窗口 runtime 播放、真实 `IFrontedEventBus`、插件节点、Timeline 编辑器、断点调试器、Canvas/window 行为列表、Web/Blazor runtime。
+历史迭代 3 仍不实现：真实前台窗口 runtime 播放、真实 `IFrontedEventBus`、插件节点、Timeline 编辑器、断点调试器、Canvas/window 行为列表、Web/Blazor runtime。
 
-## Phase 4 implemented
+## 历史迭代 4 implemented
 
-Phase 4 已完成 Designer 预览侧的 WPF 动画与属性应用层：
+历史迭代 4 已完成 Designer 预览侧的 WPF 动画与属性应用层：
 
 - `FrontedRenderer` 现在会把 `FrontedControlConfigBase.BehaviorGuid` 写入生成控件的 `FrontedRendererProperties.BehaviorGuid` 附加属性。缺失插件占位控件在 Designer 预览中也会携带该 Guid；`Guid.Empty` 会原样保留，渲染时不会自动生成新 Guid。
 - 新增 WPF 动画目标解析器。当前 action `Target` 字符串兼容 `Self`、原始 Guid、`guid:{...}`，并保留 registered name 作为显式 fallback。解析器只在当前预览 root/scope 内查找由 renderer 生成且 `BehaviorGuid` 匹配的控件；找不到目标时记录 warning 并跳过 action。
-- 新增 `IFrontedAnimationRuntime`、动画执行上下文、属性 adapter registry 与内置 adapters。GraphRuntime 仍返回 Phase 3 的 `FrontedGraphActionRequest` 列表，同时 `FrontedGraphExecutionContext.ActionExecutor` 可在 action 节点执行点立即消费请求，因此 Delay 预览顺序不再被推迟到图执行结束后。
-- Designer 动画编辑器的 Run Preview 会在可用时使用当前预览 Canvas、选中控件 `BehaviorGuid` 和选中控件名称创建 WPF 执行上下文。没有预览 scope 时会回退为 Phase 3 日志预览，并提示 “No preview target scope available.”。
+- 新增 `IFrontedAnimationRuntime`、动画执行上下文、属性 adapter registry 与内置 adapters。GraphRuntime 仍返回 历史迭代 3 的 `FrontedGraphActionRequest` 列表，同时 `FrontedGraphExecutionContext.ActionExecutor` 可在 action 节点执行点立即消费请求，因此 Delay 预览顺序不再被推迟到图执行结束后。
+- Designer 动画编辑器的 Run Preview 会在可用时使用当前预览 Canvas、选中控件 `BehaviorGuid` 和选中控件名称创建 WPF 执行上下文。没有预览 scope 时会回退为 历史迭代 3 日志预览，并提示 “No preview target scope available.”。
 - Reset 当前目标 / Reset all preview 会把本次预览 session 捕获到的基础视觉值恢复到 WPF 控件上。基础值只存在于 runtime 内存中，不写回 layout JSON 或 behaviors JSON。
 
 动画动作现在包含 `Target`、`TargetLayer` 和 `PropertyName`。`Target` 先定位控件，`TargetLayer`
@@ -125,11 +167,11 @@ Phase 4 已完成 Designer 预览侧的 WPF 动画与属性应用层：
 
 Loop 行为编辑器现在提供 Designer-only 生命周期预览：Preview Start、Preview Loop Once、Start Loop Preview、Stop Loop Preview、Preview Stop、Reset。Start Loop Preview 会先执行 `StartGraph`，再按 `LoopPolicy.RepeatCount` 与 `IntervalMs` 重复执行 `LoopGraph`；重复启动默认按 `ReentryPolicy.IgnoreIfRunning` 忽略，`InterruptPrevious` 会取消旧循环。Stop Loop Preview 会根据 `StopMode` 停止当前循环：`StopImmediately` 立即取消，`RunStopGraph` 取消后执行 `StopGraph`，`CompleteCurrentIteration` 请求当前轮完成后退出，并按 `ResetOnStop` 调用 reset。`AutoReverse` 当前只是配置占位符，尚未实现任意图的反向执行，该功能将在后续版本中提供。
 
-Phase 4 仍不实现：真实 `IFrontedEventBus`、从 `SharedDataService` 事件自动触发、真实前台窗口赛事事件播放、插件自定义 animatable property、Timeline 编辑器、断点调试器、Canvas/window 级行为列表。
+历史迭代 4 仍不实现：真实 `IFrontedEventBus`、从 `SharedDataService` 事件自动触发、真实前台窗口赛事事件播放、插件自定义 animatable property、Timeline 编辑器、断点调试器、Canvas/window 级行为列表。
 
-## Phase 5 implemented
+## 历史迭代 5 implemented
 
-Phase 5 已完成真实事件总线 + 前台运行时接入，把行为系统从 Designer 预览扩展到真实前台窗口运行时：
+历史迭代 5 已完成真实事件总线 + 前台运行时接入，把行为系统从 Designer 预览扩展到真实前台窗口运行时：
 
 ### 事件总线
 
@@ -150,7 +192,7 @@ Phase 5 已完成真实事件总线 + 前台运行时接入，把行为系统从
 - `FrontedBehaviorTriggerEvaluator` 判断 `TriggerDescriptor` 是否匹配 `FrontedBehaviorEvent`。
 - EventType 必须一致，所有 Filter 全部通过才匹配。
 - `Event.X` 从显式 Payload 取值，支持数值比较和文本比较。
-- 复用 Phase 2 的 `FrontedTriggerFilterTextComparer`。
+- 复用 历史迭代 2 的 `FrontedTriggerFilterTextComparer`。
 
 ### Behavior Runtime
 
@@ -212,7 +254,7 @@ Task RunMultiTargetTransitionAsync(
 
 payload 使用稳定机器值，不使用本地化显示文本。图执行上下文会携带 transition payload，因此 `flow.if`、`value.eventValue` 等节点可以读取 `Event.Camp`、`Event.PlayerIndex`、`Event.HasOldCharacter` 等字段。
 
-默认动画是行为包数据，不是编辑器模板。内置布局包可以在 `behaviors/{WindowType}.behaviors.json` 中直接提供默认 Transition 行为；编辑器不提供内置动画模板、预设按钮或一键生成 fade/wipe 图。普通用户不需要打开动画编辑器，进阶用户可手动编辑图。
+默认动画是行为包数据，不是编辑器模板。内置布局包可以在 `FrontedBehaviors/{WindowType}.behaviors.json` 中直接提供默认 Transition 行为；编辑器不提供内置动画模板、预设按钮或一键生成 fade/wipe 图。普通用户不需要打开动画编辑器，进阶用户可手动编辑图。
 
 ### Loop 生命周期
 
@@ -253,7 +295,7 @@ payload 使用稳定机器值，不使用本地化显示文本。图执行上下
 ### bpui 包导出
 
 - `FrontedLayoutPackageExporter.ExportAsync()` 现在包含 behaviors 文件导出。
-- behavior 文件路径：`behaviors/{WindowType}.behaviors.json`。
+- behavior 文件路径：`FrontedBehaviors/{WindowType}.behaviors.json`。
 
 ### 已注册的 DI 服务
 
@@ -265,7 +307,7 @@ payload 使用稳定机器值，不使用本地化显示文本。图执行上下
 | `IFrontedBehaviorRuntime` / `FrontedBehaviorRuntime` | Singleton | Core |
 | `FrontedSharedDataBehaviorEventBridge` | Singleton（应用启动时显式 Start，Start 幂等） | Core |
 
-### Phase 5 仍不实现
+### 历史迭代 5 仍不实现
 
 - Timeline 编辑器
 - 插件自定义节点
@@ -277,9 +319,9 @@ payload 使用稳定机器值，不使用本地化显示文本。图执行上下
 - Loop AutoReverse 图反向执行
 - 内置包 behaviors 支持
 
-## Phase 5.5 implemented
+## 历史迭代 5.5 implemented
 
-Phase 5.5 完成行为系统可用性打磨、事件覆盖和节点属性编辑器增强：
+历史迭代 5.5 完成行为系统可用性打磨、事件覆盖和节点属性编辑器增强：
 
 - 行为事件目录现在来自 `ISharedDataService`、`ICharacterSelectionService`、`IGameGuidanceService` 三类显式标注接口。`Selection.CharacterSelected` / `Selection.CharacterBanned` 可作为 Trigger，并提供 `Event.Camp`、`Event.PlayerIndex` 过滤字段。
 - 事件 bridge 仍复用应用启动时的 Singleton bridge，但内部按服务源发布事件，`Source` 分别为 `SharedDataService`、`CharacterSelectionService`、`GameGuidanceService`；`Start()` 幂等，`Dispose()` 会解除订阅。
@@ -305,7 +347,7 @@ Event.PreviousIndexesText contains "1"
 - Graph Validator 会按 `PropertyName` 验证 `AnimateProperty` / `SetProperty` / `ResetProperty`：数值必须有限，`Opacity` / `TintStrength` / `TextureStrength` 为 `0..1`，颜色可解析，`Visibility` 必须是 `Visible` / `Hidden` / `Collapsed`。验证消息显示在编辑器中，不阻止保存。
 - 行为卡片提供轻量“测试触发”入口，当前发布 `ManualTrigger` 用于验证行为连通性，不修改真实比赛状态。
 
-## Phase 2 UX / event catalog update
+## 历史迭代 2 UX / event catalog update
 
 ### Attribute-driven event catalog
 
@@ -328,7 +370,7 @@ Event.PreviousIndexesText contains "1"
 
 过滤器 UI 使用面向用户的规则行：`当 [参数] [运算符] [文本值]`。左侧参数来自当前事件的 payload
 下拉框，运算符显示为 `=`、`>`、`<`、`≥`、`≤`、`包含`、`不包含` 等可读符号/文本，右侧始终是普通文本。
-`Source` 和兼容旧 Phase 2 JSON 的 `RightValueKind` 不在正常 UI 中显示。
+`Source` 和兼容旧 历史迭代 2 JSON 的 `RightValueKind` 不在正常 UI 中显示。
 
 未来 runtime 会将左值通过 `ToString()` 转为文本。等于和包含比较忽略大小写；大小比较在两侧都能按
 Invariant Culture 解析为 decimal 时使用数值比较，否则回退为 ordinal 文本比较。一个 Trigger 的所有
@@ -346,7 +388,7 @@ Invariant Culture 解析为 decimal 时使用数值比较，否则回退为 ordi
 
 行为卡片提供“打开动画编辑器”入口。OneShot 显示单个图占位；Loop 使用 Top NavigationView /
 `LocalTabs` 在开始动画、循环动画、结束动画之间切换，并显示当前节点/连线数量。真实节点图编辑和动画
-runtime 仍属于 Phase 3。
+runtime 仍属于 历史迭代 3。
 
 BehaviorPanel 必须让 Designer 右侧的外层 ScrollViewer 负责滚动。行为列表和过滤器列表使用
 `ItemsControl` + `Expander`/卡片，不在面板内部使用 `ListBox`、`ListView` 或额外 ScrollViewer，避免嵌套滚动。
@@ -361,9 +403,9 @@ BehaviorPanel 必须让 Designer 右侧的外层 ScrollViewer 负责滚动。行
 - [4. behaviors 文件接入点](#4-behaviors-文件接入点)
 - [5. 行为列表 UI 接入点](#5-行为列表-ui-接入点)
 - [6. 事件总线候选来源](#6-事件总线候选来源)
-- [7. Phase 1 建议实施步骤](#7-phase-1-建议实施步骤)
-- [8. Phase 1 建议测试清单](#8-phase-1-建议测试清单)
-- [9. 不建议 Phase 1 做的事情](#9-不建议-phase-1-做的事情)
+- [7. 历史迭代 1 建议实施步骤](#7-phase-1-建议实施步骤)
+- [8. 历史迭代 1 建议测试清单](#8-phase-1-建议测试清单)
+- [9. 不建议 历史迭代 1 做的事情](#9-不建议-phase-1-做的事情)
 - [10. 开放问题](#10-开放问题)
 
 ---
@@ -372,31 +414,31 @@ BehaviorPanel 必须让 Designer 右侧的外层 ScrollViewer 负责滚动。行
 
 | 文件路径 | 作用 | 和 Behavior 系统的关系 | 建议改动阶段 |
 | --- | --- | --- | --- |
-| `Core/Models/FrontedLayout/FrontedControlConfigBase.cs` | 所有控件配置基类 | **加 `BehaviorGuid` 的目标基类** | Phase 1 |
-| `Core/Models/FrontedLayout/Designer/FrontedControlDesignItem.cs` | 设计时控件项包装 | 持有 Config 引用；编辑器选中状态在此 | Phase 1 |
-| `Core/Models/FrontedLayout/Designer/FrontedCanvasDesignDocument.cs` | 单 Canvas 设计文档 | IsDirty、Controls 集合 | Phase 1 |
-| `ViewModels/Windows/FrontedDesignerWindowViewModel.cs` | Designer 主 VM（4945 行） | **AddControl/Paste/Delete 入口都在这里** | Phase 1 |
-| `Views/Windows/FrontedDesignerWindow.xaml` | Designer 窗口布局 | 右侧属性面板结构（Row 2 = PropertyGrid） | Phase 2 |
-| `Views/Windows/FrontedDesignerWindow.xaml.cs` | Designer code-behind（3081 行） | 预览元素注册、对话框、交互辅助 | Phase 1-2 |
-| `Core/Services/FrontedLayout/FrontedControlDefaultConfigFactory.cs` | 默认控件工厂 | 新建控件时确定 BehaviorGuid | Phase 1 |
+| `Core/Models/FrontedLayout/FrontedControlConfigBase.cs` | 所有控件配置基类 | **加 `BehaviorGuid` 的目标基类** | 历史迭代 1 |
+| `Core/Models/FrontedLayout/Designer/FrontedControlDesignItem.cs` | 设计时控件项包装 | 持有 Config 引用；编辑器选中状态在此 | 历史迭代 1 |
+| `Core/Models/FrontedLayout/Designer/FrontedCanvasDesignDocument.cs` | 单 Canvas 设计文档 | IsDirty、Controls 集合 | 历史迭代 1 |
+| `ViewModels/Windows/FrontedDesignerWindowViewModel.cs` | Designer 主 VM（4945 行） | **AddControl/Paste/Delete 入口都在这里** | 历史迭代 1 |
+| `Views/Windows/FrontedDesignerWindow.xaml` | Designer 窗口布局 | 右侧属性面板结构（Row 2 = PropertyGrid） | 历史迭代 2 |
+| `Views/Windows/FrontedDesignerWindow.xaml.cs` | Designer code-behind（3081 行） | 预览元素注册、对话框、交互辅助 | 历史迭代 1-2 |
+| `Core/Services/FrontedLayout/FrontedControlDefaultConfigFactory.cs` | 默认控件工厂 | 新建控件时确定 BehaviorGuid | 历史迭代 1 |
 | `Core/Services/FrontedLayout/FrontedControlNameGenerator.cs` | 控件名称生成器 | 不相关（Guid ≠ Name） | 无关 |
-| `Core/Services/FrontedLayout/FrontedLayoutDesignConverter.cs` | Config ↔ DesignDocument 转换 | 转换时需保留 BehaviorGuid | Phase 1 |
-| `Core/Models/FrontedLayout/Json/FrontedCanvasConfigJsonConverter.cs` | JSON 反/序列化转换器 | 读/写时需透传 BehaviorGuid | Phase 1 |
-| `Core/Services/FrontedLayout/FrontedRenderer.cs` | 前台运行时渲染 | **AnimationTargetResolver 应接在这里** | Phase 3+ |
-| `Core/Services/FrontedLayout/FrontedRendererProperties.cs` | 附加属性（IsGeneratedControl/RegisteredName） | RegisteredName → FrameworkElement 映射 | Phase 3+ |
-| `Core/Abstractions/Services/IFrontedControl.cs` | 控件工厂接口 | Create() 返回 FrameworkElement | Phase 3+ |
-| `Core/Services/FrontedLayout/FrontedControlRegistry.cs` | 控件注册表 | 运行时按 ControlType 查找工厂 | Phase 3+ |
-| `Core/Services/FrontedLayout/FrontedPropertyGridBuilder.cs` | PropertyGrid 构造器 | **需跳过 BehaviorGuid**（不显示给用户） | Phase 1 |
-| `Services/SharedDataService.cs` | 共享数据服务（事件核心） | 事件总线候选来源 | Phase 3+ |
-| `Core/Abstractions/Services/ISharedDataService.cs` | 共享数据接口 | 事件声明（12 个事件） | Phase 3+ |
-| `Services/CharacterSelectionService.cs` | 角色选择服务 | CharacterSelected/CharacterBanned 事件 | Phase 3+ |
-| `Core/Services/FrontedLayout/FrontedLayoutPackageExporter.cs` | bpui 导出器 | behaviors 文件导出点 | Phase 3 |
-| `Core/Services/FrontedLayout/FrontedLayoutPackageImporter.cs` | bpui 导入器 | behaviors 文件导入点 | Phase 3 |
-| `Core/Services/FrontedLayout/FrontedLayoutPackageManager.cs` | 包管理器 | 删除/复制包的 behaviors 联动 | Phase 3 |
-| `Core/Models/FrontedLayout/PackageModels/FrontedLayoutPackageManifest.cs` | manifest 模型 | 可能需要 HasBehaviors/RequiredNodePlugins 字段 | Phase 3 |
-| `Tests/Models/FrontedLayoutDesignerFoundationTest.cs` | Designer 核心测试（5103 行） | 新增测试加在此处 | Phase 1 |
-| `Tests/Models/FrontedCanvasConfigTest.cs` | Canvas JSON 往返测试（2728 行） | 新增 BehaviorGuid JSON 透传测试 | Phase 1 |
-| `Tests/Services/FrontedLayoutPackageManagerTest.cs` | bpui 导入导出测试（1660 行） | 新增 behaviors 文件导入导出测试 | Phase 3 |
+| `Core/Services/FrontedLayout/FrontedLayoutDesignConverter.cs` | Config ↔ DesignDocument 转换 | 转换时需保留 BehaviorGuid | 历史迭代 1 |
+| `Core/Models/FrontedLayout/Json/FrontedCanvasConfigJsonConverter.cs` | JSON 反/序列化转换器 | 读/写时需透传 BehaviorGuid | 历史迭代 1 |
+| `Core/Services/FrontedLayout/FrontedRenderer.cs` | 前台运行时渲染 | **AnimationTargetResolver 应接在这里** | 历史迭代 3+ |
+| `Core/Services/FrontedLayout/FrontedRendererProperties.cs` | 附加属性（IsGeneratedControl/RegisteredName） | RegisteredName → FrameworkElement 映射 | 历史迭代 3+ |
+| `Core/Abstractions/Services/IFrontedControl.cs` | 控件工厂接口 | Create() 返回 FrameworkElement | 历史迭代 3+ |
+| `Core/Services/FrontedLayout/FrontedControlRegistry.cs` | 控件注册表 | 运行时按 ControlType 查找工厂 | 历史迭代 3+ |
+| `Core/Services/FrontedLayout/FrontedPropertyGridBuilder.cs` | PropertyGrid 构造器 | **需跳过 BehaviorGuid**（不显示给用户） | 历史迭代 1 |
+| `Services/SharedDataService.cs` | 共享数据服务（事件核心） | 事件总线候选来源 | 历史迭代 3+ |
+| `Core/Abstractions/Services/ISharedDataService.cs` | 共享数据接口 | 事件声明（12 个事件） | 历史迭代 3+ |
+| `Services/CharacterSelectionService.cs` | 角色选择服务 | CharacterSelected/CharacterBanned 事件 | 历史迭代 3+ |
+| `Core/Services/FrontedLayout/FrontedLayoutPackageExporter.cs` | bpui 导出器 | behaviors 文件导出点 | 历史迭代 3 |
+| `Core/Services/FrontedLayout/FrontedLayoutPackageImporter.cs` | bpui 导入器 | behaviors 文件导入点 | 历史迭代 3 |
+| `Core/Services/FrontedLayout/FrontedLayoutPackageManager.cs` | 包管理器 | 删除/复制包的 behaviors 联动 | 历史迭代 3 |
+| `Core/Models/FrontedLayout/PackageModels/FrontedLayoutPackageManifest.cs` | manifest 模型 | 可能需要 HasBehaviors/RequiredNodePlugins 字段 | 历史迭代 3 |
+| `Tests/Models/FrontedLayoutDesignerFoundationTest.cs` | Designer 核心测试（5103 行） | 新增测试加在此处 | 历史迭代 1 |
+| `Tests/Models/FrontedCanvasConfigTest.cs` | Canvas JSON 往返测试（2728 行） | 新增 BehaviorGuid JSON 透传测试 | 历史迭代 1 |
+| `Tests/Services/FrontedLayoutPackageManagerTest.cs` | bpui 导入导出测试（1660 行） | 新增 behaviors 文件导入导出测试 | 历史迭代 3 |
 
 ---
 
@@ -488,7 +530,7 @@ if (selectedItem.Config.BehaviorGuid != Guid.Empty)
     _behaviorService.RemoveBehaviors(selectedItem.Config.BehaviorGuid);
 ```
 
-Phase 1 中 `_behaviorService` 可以是空实现（NoopBehaviorService），清理入口只做预留调用。
+历史迭代 1 中 `_behaviorService` 可以是空实现（NoopBehaviorService），清理入口只做预留调用。
 
 ### 3.5 重命名为什么不影响 BehaviorGuid
 
@@ -501,24 +543,24 @@ Phase 1 中 `_behaviorService` 可以是空实现（NoopBehaviorService），清
 ### 4.1 建议文件路径
 
 ```
-behaviors/{WindowType}.behaviors.json
+FrontedBehaviors/{WindowType}.behaviors.json
 ```
 
-镜像 `FrontedLayouts/` 的窗口级文件结构，放在独立的 `behaviors/` 根目录下。在 bpui 包内的路径为 `behaviors/BpWindow.behaviors.json`。
+镜像 `FrontedLayouts/` 的窗口级文件结构，放在独立的 `FrontedBehaviors/` 根目录下。在 bpui 包内的路径为 `FrontedBehaviors/BpWindow.behaviors.json`。
 
 ### 4.2 保存位置
 
 ```
-%APPDATA%/neo-bpsys-wpf/FrontedLayoutPackages/{PackageId}/behaviors/{WindowType}.behaviors.json
+%APPDATA%/neo-bpsys-wpf/FrontedLayoutPackages/{PackageId}/FrontedBehaviors/{WindowType}.behaviors.json
 ```
 
 ### 4.3 导入位置
 
-在 [`FrontedLayoutPackageImporter.ImportAsync()`](file:///e:/_PersonalStuff/ASG/bpsys/neo-bpsys-wpf/neo-bpsys-wpf.Core/Services/FrontedLayout/FrontedLayoutPackageImporter.cs) 中，解压 staging 目录后检查 `behaviors/` 目录是否存在，若存在则将整个目录复制到安装路径。
+在 [`FrontedLayoutPackageImporter.ImportAsync()`](file:///e:/_PersonalStuff/ASG/bpsys/neo-bpsys-wpf/neo-bpsys-wpf.Core/Services/FrontedLayout/FrontedLayoutPackageImporter.cs) 中，解压 staging 目录后检查 `FrontedBehaviors/` 目录是否存在，若存在则将整个目录复制到安装路径。
 
 ### 4.4 导出位置
 
-在 [`FrontedLayoutPackageExporter.ExportLayoutsAsync()`](file:///e:/_PersonalStuff/ASG/bpsys/neo-bpsys-wpf/neo-bpsys-wpf.Core/Services/FrontedLayout/FrontedLayoutPackageExporter.cs) 之后追加：读取当前包下的 behaviors 文件，若存在则复制到 staging 的 `behaviors/` 目录。
+在 [`FrontedLayoutPackageExporter.ExportLayoutsAsync()`](file:///e:/_PersonalStuff/ASG/bpsys/neo-bpsys-wpf/neo-bpsys-wpf.Core/Services/FrontedLayout/FrontedLayoutPackageExporter.cs) 之后追加：读取当前包下的 behaviors 文件，若存在则复制到 staging 的 `FrontedBehaviors/` 目录。
 
 ### 4.5 和 manifest 的关系
 
@@ -577,13 +619,13 @@ Row 4:   Window Options（现有）
 
 | 阶段 | Command | 说明 |
 | --- | --- | --- |
-| Phase 1 | `AddOneShotCommand` | 为选中控件添加空 OneShot 行为 |
-| Phase 1 | `AddLoopCommand` | 为选中控件添加空 Loop 行为 |
-| Phase 1 | `DeleteBehaviorCommand` | 删除选中的行为 |
-| Phase 1 | `SelectBehaviorCommand` | 选中某项行为以显示编辑区域 |
-| Phase 2 | `EditTriggerCommand` | 打开事件选择器 |
-| Phase 2 | `EditFilterCommand` | 打开事件过滤器编辑 |
-| Phase 3+ | `OpenNodeGraphCommand` | 打开节点图编辑器 |
+| 历史迭代 1 | `AddOneShotCommand` | 为选中控件添加空 OneShot 行为 |
+| 历史迭代 1 | `AddLoopCommand` | 为选中控件添加空 Loop 行为 |
+| 历史迭代 1 | `DeleteBehaviorCommand` | 删除选中的行为 |
+| 历史迭代 1 | `SelectBehaviorCommand` | 选中某项行为以显示编辑区域 |
+| 历史迭代 2 | `EditTriggerCommand` | 打开事件选择器 |
+| 历史迭代 2 | `EditFilterCommand` | 打开事件过滤器编辑 |
+| 历史迭代 3+ | `OpenNodeGraphCommand` | 打开节点图编辑器 |
 
 ### 5.4 Dirty tracking 如何接
 
@@ -622,11 +664,11 @@ Row 4:   Window Options（现有）
 | `MatchScoreChanged` | `Game.MatchScore` | 比分变化，当前通过 `INotifyPropertyChanged` 级联传播 |
 | 布局重新渲染完成 | `FrontedWindowService.ReloadFrontedLayoutsAsync()` | 渲染完成通知 |
 
-**关于 IFrontedEventBus**: Phase 1 不需要真正的 EventBus 实现。Phase 3+ 时建议用适配器模式包装现有 `ISharedDataService` 和 `CharacterSelectionService` 的事件，统一转换为强类型 `FrontedEvent`。
+**关于 IFrontedEventBus**: 历史迭代 1 不需要真正的 EventBus 实现。历史迭代 3+ 时建议用适配器模式包装现有 `ISharedDataService` 和 `CharacterSelectionService` 的事件，统一转换为强类型 `FrontedEvent`。
 
 ---
 
-## 7. Phase 1 建议实施步骤
+## 7. 历史迭代 1 建议实施步骤
 
 ### 步骤 1: `FrontedControlConfigBase` 加 `BehaviorGuid`
 
@@ -646,7 +688,7 @@ Row 4:   Window Options（现有）
 
 ### 步骤 5: 删除控件时清理入口
 
-在 [`DeleteSelectedControl`](file:///e:/_PersonalStuff/ASG/bpsys/neo-bpsys-wpf/neo-bpsys-wpf/ViewModels/Windows/FrontedDesignerWindowViewModel.cs#L1251) 中添加 `_behaviorService.RemoveBehaviors(guid)` 的预留调用。Phase 1 中 `_behaviorService` 可以是 NoopBehaviorService。
+在 [`DeleteSelectedControl`](file:///e:/_PersonalStuff/ASG/bpsys/neo-bpsys-wpf/neo-bpsys-wpf/ViewModels/Windows/FrontedDesignerWindowViewModel.cs#L1251) 中添加 `_behaviorService.RemoveBehaviors(guid)` 的预留调用。历史迭代 1 中 `_behaviorService` 可以是 NoopBehaviorService。
 
 ### 步骤 6: BehaviorGuid JSON 往返验证
 
@@ -679,11 +721,11 @@ Row 4:   Window Options（现有）
 ### 步骤 9: 更新 Designer 设计文档
 
 - 更新 [`docs/fronted-designer-v3.md`](file:///e:/_PersonalStuff/ASG/bpsys/neo-bpsys-wpf/docs/fronted-designer-v3.md) 增加 BehaviorGuid 和行为系统章节
-- 本报告即 Phase 0 勘察记录，作为交接参考
+- 本报告即 历史迭代 0 勘察记录，作为交接参考
 
 ---
 
-## 8. Phase 1 建议测试清单
+## 8. 历史迭代 1 建议测试清单
 
 | # | 测试名称 | 目的 | 测试文件 |
 | --- | --- | --- | --- |
@@ -701,18 +743,18 @@ Row 4:   Window Options（现有）
 
 ---
 
-## 9. 不建议 Phase 1 做的事情
+## 9. 不建议 历史迭代 1 做的事情
 
 | 事项 | 原因 |
 | --- | --- |
-| **节点图 UI 编辑器** | 需要完整 Graph Canvas + 节点拖放 + 连线，至少 Phase 2 |
+| **节点图 UI 编辑器** | 需要完整 Graph Canvas + 节点拖放 + 连线，至少 历史迭代 2 |
 | **真实动画 runtime** | 需要集成 WPF 动画引擎，涉及性能调试 |  |
 | **真实事件总线** | 强行抽象 EventBus 可能过度设计；用现有事件机制即可 |  |
 | **插件节点系统** | 节点图引擎未成型时抽象插件接口会反复修改 |  |
 | **Timeline 编辑器** | Timeline 是 Loop 行为的可视化增强，非 MVP 必需品 |  |
 | **复杂 debugger/可视化** | 运行时的调试工具代价高，初期用日志 + 诊断即可 |  |
-| **behaviors 文件导入导出** | 依赖 Phase 1 的模型定义和 Phase 2 的 UI 编辑能力 |  |
-| **behaviors 文件实际持久化** | Phase 1 只定义模型和 BehaviorGuid 基础设施，不写入磁盘 |  |
+| **behaviors 文件导入导出** | 依赖 历史迭代 1 的模型定义和 历史迭代 2 的 UI 编辑能力 |  |
+| **behaviors 文件实际持久化** | 历史迭代 1 只定义模型和 BehaviorGuid 基础设施，不写入磁盘 |  |
 | **manifest 扩展** | 等 behaviors 文件导入导出再一起改 manifest 格式 |  |
 | **旧系统兼容迁移** | Designer v3 没有旧兼容需求，不要设计迁移方案 |  |
 | **把行为数据塞进控件 config** | 已定版，行为数据独立为 behaviors 文件 |  |
@@ -728,12 +770,12 @@ Row 4:   Window Options（现有）
 | Q2 | 序列化策略用 `[JsonInclude]` 还是 `[JsonIgnore(Condition)]`？ | 推荐 `[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]`。 |
 | Q3 | 内置默认布局 JSON 是否需要补充 BehaviorGuid？ | **不需要**。默认 JSON 反序列化后 Guid 为空，不影响运行时渲染。用户通过 Designer 添加时才生成。 |
 | Q4 | BehaviorGuid 是否要暴露给插件？ | 建议插件开发者能读取但不能修改。在 `IFrontedControl.Create()` 的参数中传递 Guid。 |
-| Q5 | `NoopBehaviorService` 是否在 Phase 1 实现？ | 建议实现 `IFrontedBehaviorService` + `NoopFrontedBehaviorService`，DI 注册为 Singleton。 |
+| Q5 | `NoopBehaviorService` 是否在 历史迭代 1 实现？ | 建议实现 `IFrontedBehaviorService` + `NoopFrontedBehaviorService`，DI 注册为 Singleton。 |
 | Q6 | BO3/BO5 状态的 behavior 数据是否需要独立？ | 建议和 layout 保持一致：如果 BO3 状态有独立控件副本，behavior 也应独立。 |
 | Q7 | 是否需要 behaviors 文件脏追踪单独保存？ | 建议新增 `AreBehaviorsDirty` 属性，与 `IsDirty` 分开跟踪。 |
-| Q8 | 测试是否应依赖具体文件系统？ | Phase 1 所有测试应是纯内存模型测试，不涉及文件 I/O。 |
-| Q9 | `DesignerPreviewSharedDataService` 是否需要触发行为事件？ | 当前是隔离的 preview 数据源，不触发真实事件。Phase 1 不需要改。 |
-| Q10 | 建议行为文件命名？ | `behaviors/{WindowType}.behaviors.json` |
+| Q8 | 测试是否应依赖具体文件系统？ | 历史迭代 1 所有测试应是纯内存模型测试，不涉及文件 I/O。 |
+| Q9 | `DesignerPreviewSharedDataService` 是否需要触发行为事件？ | 当前是隔离的 preview 数据源，不触发真实事件。历史迭代 1 不需要改。 |
+| Q10 | 建议行为文件命名？ | `FrontedBehaviors/{WindowType}.behaviors.json` |
 
 ---
 

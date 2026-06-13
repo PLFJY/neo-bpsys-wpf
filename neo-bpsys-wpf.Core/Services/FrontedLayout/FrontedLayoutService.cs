@@ -16,9 +16,7 @@ public class FrontedLayoutService : IFrontedLayoutService
 {
     private readonly IFrontedUserLayoutStore _userLayoutStore;
     private readonly ILogger<FrontedLayoutService> _logger;
-    private readonly string _builtInLayoutRoot;
-    private readonly IFrontedWindowRegistry? _windowRegistry;
-    private readonly IFrontedLayoutPackageManager? _packageManager;
+    private readonly IFrontedLayoutPackageManager _packageManager;
 
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -33,9 +31,7 @@ public class FrontedLayoutService : IFrontedLayoutService
     public FrontedLayoutService()
         : this(
             new FrontedUserLayoutStore(),
-            Path.Combine(AppConstants.ResourcesPath, "FrontedLayouts"),
-            null,
-            null,
+            new FrontedLayoutPackageManager(),
             NullLogger<FrontedLayoutService>.Instance)
     {
     }
@@ -50,9 +46,7 @@ public class FrontedLayoutService : IFrontedLayoutService
         ILogger<FrontedLayoutService> logger)
         : this(
             userLayoutStore,
-            Path.Combine(AppConstants.ResourcesPath, "FrontedLayouts"),
-            null,
-            null,
+            new FrontedLayoutPackageManager(),
             logger)
     {
     }
@@ -69,9 +63,7 @@ public class FrontedLayoutService : IFrontedLayoutService
         ILogger<FrontedLayoutService> logger)
         : this(
             userLayoutStore,
-            Path.Combine(AppConstants.ResourcesPath, "FrontedLayouts"),
-            null,
-            windowRegistry,
+            new FrontedLayoutPackageManager(),
             logger)
     {
     }
@@ -86,7 +78,12 @@ public class FrontedLayoutService : IFrontedLayoutService
         IFrontedUserLayoutStore userLayoutStore,
         string builtInLayoutRoot,
         ILogger<FrontedLayoutService>? logger)
-        : this(userLayoutStore, builtInLayoutRoot, null, null, logger)
+        : this(
+            userLayoutStore,
+            new FrontedLayoutPackageManager(
+                GetIsolatedPackageRoot(builtInLayoutRoot),
+                builtInLayoutRoot),
+            logger)
     {
     }
 
@@ -102,7 +99,12 @@ public class FrontedLayoutService : IFrontedLayoutService
         string builtInLayoutRoot,
         IFrontedWindowRegistry? windowRegistry,
         ILogger<FrontedLayoutService>? logger)
-        : this(userLayoutStore, builtInLayoutRoot, null, windowRegistry, logger)
+        : this(
+            userLayoutStore,
+            new FrontedLayoutPackageManager(
+                GetIsolatedPackageRoot(builtInLayoutRoot),
+                builtInLayoutRoot),
+            logger)
     {
     }
 
@@ -118,12 +120,7 @@ public class FrontedLayoutService : IFrontedLayoutService
         IFrontedLayoutPackageManager packageManager,
         IFrontedWindowRegistry? windowRegistry,
         ILogger<FrontedLayoutService>? logger)
-        : this(
-            userLayoutStore,
-            Path.Combine(AppConstants.ResourcesPath, "FrontedLayouts"),
-            packageManager,
-            windowRegistry,
-            logger)
+        : this(userLayoutStore, packageManager, logger)
     {
     }
 
@@ -143,10 +140,33 @@ public class FrontedLayoutService : IFrontedLayoutService
         ILogger<FrontedLayoutService>? logger)
     {
         _userLayoutStore = userLayoutStore;
-        _builtInLayoutRoot = builtInLayoutRoot;
-        _packageManager = packageManager;
-        _windowRegistry = windowRegistry;
+        _packageManager = packageManager
+            ?? new FrontedLayoutPackageManager(
+                GetIsolatedPackageRoot(builtInLayoutRoot),
+                builtInLayoutRoot);
         _logger = logger ?? NullLogger<FrontedLayoutService>.Instance;
+    }
+
+    /// <summary>
+    /// Initializes the layout service with a package manager.
+    /// </summary>
+    /// <param name="userLayoutStore">User layout store retained for editable package creation compatibility.</param>
+    /// <param name="packageManager">Package manager used for active layout package reads and writes.</param>
+    /// <param name="logger">Logger for layout load and save diagnostics.</param>
+    public FrontedLayoutService(
+        IFrontedUserLayoutStore userLayoutStore,
+        IFrontedLayoutPackageManager packageManager,
+        ILogger<FrontedLayoutService>? logger)
+    {
+        _userLayoutStore = userLayoutStore;
+        _packageManager = packageManager;
+        _logger = logger ?? NullLogger<FrontedLayoutService>.Instance;
+    }
+
+    private static string GetIsolatedPackageRoot(string builtInLayoutRoot)
+    {
+        var parent = Path.GetDirectoryName(Path.GetFullPath(builtInLayoutRoot));
+        return Path.Combine(parent ?? AppConstants.FrontedLayoutPackagesPath, "FrontedLayoutPackages");
     }
 
     /// <inheritdoc />
@@ -162,139 +182,34 @@ public class FrontedLayoutService : IFrontedLayoutService
         string windowTypeName,
         CancellationToken cancellationToken = default)
     {
-        if (_packageManager is not null)
-        {
-            var activeState = await _packageManager.GetActivePackageStateAsync(cancellationToken);
-            var packagePath = _packageManager.GetPackageLayoutPath(activeState.PackageId, windowTypeName);
-            if (File.Exists(packagePath))
-            {
-                try
-                {
-                    return new FrontedLayoutLoadResult
-                    {
-                        Config = await ReadConfigAsync(packagePath, cancellationToken),
-                        Source = string.Equals(activeState.PackageId, FrontedLayoutPackageManager.BuiltInPackageId, StringComparison.OrdinalIgnoreCase)
-                            ? FrontedLayoutSource.BuiltIn
-                            : FrontedLayoutSource.User,
-                        Path = packagePath
-                    };
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(
-                        ex,
-                        "Failed to load active package fronted layout. PackageId: {PackageId}, Window: {WindowTypeName}, Path: {Path}",
-                        activeState.PackageId,
-                        windowTypeName,
-                        packagePath);
-                    return new FrontedLayoutLoadResult
-                    {
-                        Source = FrontedLayoutSource.MissingOrError,
-                        Path = packagePath,
-                        Error = ex.Message
-                    };
-                }
-            }
-
-            return new FrontedLayoutLoadResult
-            {
-                Source = FrontedLayoutSource.MissingOrError,
-                Path = packagePath,
-                Error = $"Active package layout is missing: {activeState.PackageId}"
-            };
-        }
-
-        var userPath = _userLayoutStore.GetLayoutPath(windowTypeName);
-        var builtInPath = GetBuiltInDefaultWindowLayoutPath(windowTypeName);
-        string? userLoadError = null;
-
-        if (_userLayoutStore.Exists(windowTypeName))
-        {
-            try
-            {
-                var config = await _userLayoutStore.LoadAsync(windowTypeName, cancellationToken);
-                if (config is not null)
-                {
-                    return new FrontedLayoutLoadResult
-                    {
-                        Config = config,
-                        Source = FrontedLayoutSource.User,
-                        Path = userPath
-                    };
-                }
-
-                userLoadError = "User layout file exists but produced no config.";
-                _logger.LogWarning(
-                    "User fronted layout loaded as null. Window: {WindowTypeName}, Path: {Path}",
-                    windowTypeName,
-                    userPath);
-            }
-            catch (Exception ex)
-            {
-                userLoadError = ex.Message;
-                _logger.LogWarning(
-                    ex,
-                    "Failed to load user fronted layout. Falling back to built-in layout. Window: {WindowTypeName}, Canvas: {CanvasName}, Path: {Path}",
-                    windowTypeName,
-                    FrontedLayoutConstants.BaseCanvasName,
-                    userPath);
-            }
-        }
-
-        if (TryGetPluginDefaultLayout(windowTypeName, out var pluginDefaultPath))
+        var activeState = await _packageManager.GetActivePackageStateAsync(cancellationToken);
+        var packagePath = _packageManager.GetPackageLayoutPath(activeState.PackageId, windowTypeName);
+        if (File.Exists(packagePath))
         {
             try
             {
                 return new FrontedLayoutLoadResult
                 {
-                    Config = await ReadConfigAsync(pluginDefaultPath, cancellationToken),
-                    Source = FrontedLayoutSource.PluginDefault,
-                    Path = pluginDefaultPath,
-                    Error = userLoadError
+                    Config = await ReadConfigAsync(packagePath, cancellationToken),
+                    Source = string.Equals(activeState.PackageId, FrontedLayoutPackageManager.BuiltInPackageId, StringComparison.OrdinalIgnoreCase)
+                        ? FrontedLayoutSource.BuiltIn
+                        : FrontedLayoutSource.User,
+                    Path = packagePath
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(
                     ex,
-                    "Failed to load plugin default fronted layout. Window: {WindowTypeName}, Canvas: {CanvasName}, Path: {Path}",
+                    "Failed to load active package fronted layout. PackageId: {PackageId}, Window: {WindowTypeName}, Path: {Path}",
+                    activeState.PackageId,
                     windowTypeName,
-                    FrontedLayoutConstants.BaseCanvasName,
-                    pluginDefaultPath);
+                    packagePath);
                 return new FrontedLayoutLoadResult
                 {
                     Source = FrontedLayoutSource.MissingOrError,
-                    Path = pluginDefaultPath,
-                    Error = CombineErrors(userLoadError, ex.Message)
-                };
-            }
-        }
-
-        if (File.Exists(builtInPath))
-        {
-            try
-            {
-                return new FrontedLayoutLoadResult
-                {
-                    Config = await ReadConfigAsync(builtInPath, cancellationToken),
-                    Source = FrontedLayoutSource.BuiltIn,
-                    Path = builtInPath,
-                    Error = userLoadError
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(
-                    ex,
-                    "Failed to load built-in fronted layout. Window: {WindowTypeName}, Canvas: {CanvasName}, Path: {Path}",
-                    windowTypeName,
-                    FrontedLayoutConstants.BaseCanvasName,
-                    builtInPath);
-                return new FrontedLayoutLoadResult
-                {
-                    Source = FrontedLayoutSource.MissingOrError,
-                    Path = builtInPath,
-                    Error = CombineErrors(userLoadError, ex.Message)
+                    Path = packagePath,
+                    Error = ex.Message
                 };
             }
         }
@@ -302,42 +217,9 @@ public class FrontedLayoutService : IFrontedLayoutService
         return new FrontedLayoutLoadResult
         {
             Source = FrontedLayoutSource.MissingOrError,
-            Path = builtInPath,
-            Error = userLoadError
+            Path = packagePath,
+            Error = $"Active package layout is missing: {activeState.PackageId}"
         };
-    }
-
-    private bool TryGetPluginDefaultLayout(string windowTypeName, out string pluginDefaultPath)
-    {
-        pluginDefaultPath = string.Empty;
-        if (_windowRegistry is null)
-        {
-            return false;
-        }
-
-        if (!_windowRegistry.TryGetByFullWindowType(windowTypeName, out var descriptor))
-        {
-            return false;
-        }
-
-        if (descriptor is not FrontedPluginWindowDescriptor pluginDescriptor
-            || pluginDescriptor.Kind != FrontedWindowKind.PluginLayout)
-        {
-            return false;
-        }
-
-        var folder = pluginDescriptor.PluginFolder;
-        if (string.IsNullOrWhiteSpace(folder))
-        {
-            return false;
-        }
-
-        pluginDefaultPath = Path.Combine(
-            folder,
-            pluginDescriptor.DefaultLayoutRoot,
-            $"{pluginDescriptor.WindowTypeName}.json");
-
-        return File.Exists(pluginDefaultPath);
     }
 
     /// <inheritdoc />
@@ -346,82 +228,9 @@ public class FrontedLayoutService : IFrontedLayoutService
         FrontedWindowConfig config,
         CancellationToken cancellationToken = default)
     {
-        if (_packageManager is not null)
-        {
-            var package = await _packageManager.EnsureWritableActivePackageAsync(cancellationToken);
-            var path = _packageManager.GetPackageLayoutPath(package.PackageId, windowTypeName);
-            await WriteConfigAsync(path, config, cancellationToken);
-            return;
-        }
-
-        await _userLayoutStore.SaveAsync(windowTypeName, config, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public Task DeleteUserWindowLayoutAsync(
-        string windowTypeName,
-        CancellationToken cancellationToken = default)
-    {
-        return _userLayoutStore.DeleteAsync(windowTypeName, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public bool UserWindowLayoutExists(string windowTypeName)
-    {
-        return _userLayoutStore.Exists(windowTypeName);
-    }
-
-    /// <inheritdoc />
-    public string GetUserWindowLayoutPath(string windowTypeName)
-    {
-        return _userLayoutStore.GetLayoutPath(windowTypeName);
-    }
-
-    /// <inheritdoc />
-    public string GetUserLayoutRootFolder()
-    {
-        return _userLayoutStore.GetRootFolder();
-    }
-
-    /// <inheritdoc />
-    public async Task<FrontedWindowConfig?> LoadBuiltInDefaultWindowLayoutAsync(
-        string windowTypeName,
-        CancellationToken cancellationToken = default)
-    {
-        var builtInPath = GetBuiltInDefaultWindowLayoutPath(windowTypeName);
-        if (!File.Exists(builtInPath))
-        {
-            return null;
-        }
-
-        try
-        {
-            return await ReadConfigAsync(builtInPath, cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(
-                ex,
-                "Failed to load built-in default fronted layout. Window: {WindowTypeName}, Canvas: {CanvasName}, Path: {Path}",
-                windowTypeName,
-                FrontedLayoutConstants.BaseCanvasName,
-                builtInPath);
-            return null;
-        }
-    }
-
-    /// <inheritdoc />
-    public string GetBuiltInDefaultWindowLayoutPath(string windowTypeName)
-    {
-        return Path.Combine(
-            _builtInLayoutRoot,
-            FrontedLayoutWindowPathHelper.GetLayoutRelativePath(windowTypeName));
-    }
-
-    /// <inheritdoc />
-    public string GetPluginDefaultWindowLayoutPath(string pluginFolder, string windowTypeName)
-    {
-        return Path.Combine(pluginFolder, "FrontedLayouts", $"{windowTypeName}.json");
+        var package = await _packageManager.EnsureWritableActivePackageAsync(cancellationToken);
+        var path = _packageManager.GetPackageLayoutPath(package.PackageId, windowTypeName);
+        await WriteConfigAsync(path, config, cancellationToken);
     }
 
     private async Task<FrontedWindowConfig?> ReadConfigAsync(
@@ -448,8 +257,4 @@ public class FrontedLayoutService : IFrontedLayoutService
         await File.WriteAllTextAsync(path, json, cancellationToken);
     }
 
-    private static string? CombineErrors(string? first, string second)
-    {
-        return string.IsNullOrWhiteSpace(first) ? second : $"{first}; {second}";
-    }
 }

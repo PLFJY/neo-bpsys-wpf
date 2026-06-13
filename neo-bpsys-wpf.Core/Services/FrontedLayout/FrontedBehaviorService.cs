@@ -15,7 +15,7 @@ namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 public sealed class FrontedBehaviorService : IFrontedBehaviorService
 {
     private readonly IFrontedUserLayoutStore _userLayoutStore;
-    private readonly IFrontedLayoutPackageManager? _packageManager;
+    private readonly IFrontedLayoutPackageManager _packageManager;
     private readonly ILogger<FrontedBehaviorService> _logger;
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -27,14 +27,14 @@ public sealed class FrontedBehaviorService : IFrontedBehaviorService
     private FrontedBehaviorDocument? _currentDocument;
 
     public FrontedBehaviorService()
-        : this(new FrontedUserLayoutStore(), null, NullLogger<FrontedBehaviorService>.Instance)
+        : this(new FrontedUserLayoutStore(), new FrontedLayoutPackageManager(), NullLogger<FrontedBehaviorService>.Instance)
     {
     }
 
     public FrontedBehaviorService(
         IFrontedUserLayoutStore userLayoutStore,
         ILogger<FrontedBehaviorService> logger)
-        : this(userLayoutStore, null, logger)
+        : this(userLayoutStore, new FrontedLayoutPackageManager(), logger)
     {
     }
 
@@ -44,7 +44,7 @@ public sealed class FrontedBehaviorService : IFrontedBehaviorService
         ILogger<FrontedBehaviorService>? logger)
     {
         _userLayoutStore = userLayoutStore;
-        _packageManager = packageManager;
+        _packageManager = packageManager ?? new FrontedLayoutPackageManager();
         _logger = logger ?? NullLogger<FrontedBehaviorService>.Instance;
     }
 
@@ -115,11 +115,6 @@ public sealed class FrontedBehaviorService : IFrontedBehaviorService
         string windowType,
         CancellationToken cancellationToken)
     {
-        if (_packageManager is null)
-        {
-            return GetFallbackBehaviorPath(windowType);
-        }
-
         var active = await _packageManager.GetActivePackageStateAsync(cancellationToken);
         if (string.Equals(active.PackageId, FrontedLayoutPackageManager.BuiltInPackageId, StringComparison.OrdinalIgnoreCase))
         {
@@ -133,18 +128,13 @@ public sealed class FrontedBehaviorService : IFrontedBehaviorService
         string windowType,
         CancellationToken cancellationToken)
     {
-        if (_packageManager is null)
-        {
-            return GetFallbackBehaviorPath(windowType);
-        }
-
         var package = await _packageManager.EnsureWritableActivePackageAsync(cancellationToken);
         return GetPackageBehaviorPath(package.PackageId, windowType);
     }
 
     private string GetPackageBehaviorPath(string packageId, string windowType)
     {
-        var layoutsRoot = _packageManager!.GetPackageLayoutsRootFolder(packageId);
+        var layoutsRoot = _packageManager.GetPackageLayoutsRootFolder(packageId);
         var packageRoot = Path.GetDirectoryName(Path.GetFullPath(layoutsRoot))
                           ?? throw new InvalidOperationException("Package layouts root has no parent.");
         return Path.Combine(packageRoot, GetBehaviorRelativePath(windowType));
@@ -152,7 +142,7 @@ public sealed class FrontedBehaviorService : IFrontedBehaviorService
 
     private string GetBuiltInBehaviorPath(string windowType)
     {
-        var layoutsRoot = _packageManager!.GetPackageLayoutsRootFolder(FrontedLayoutPackageManager.BuiltInPackageId);
+        var layoutsRoot = _packageManager.GetPackageLayoutsRootFolder(FrontedLayoutPackageManager.BuiltInPackageId);
         var resourcesRoot = Path.GetDirectoryName(Path.GetFullPath(layoutsRoot))
                             ?? throw new InvalidOperationException("Built-in layouts root has no parent.");
         var layoutRelativePath = FrontedLayoutWindowPathHelper.GetLayoutRelativePath(windowType);
@@ -163,11 +153,6 @@ public sealed class FrontedBehaviorService : IFrontedBehaviorService
             : Path.Combine(resourcesRoot, "FrontedBehaviors", folder, fileName);
     }
 
-    private string GetFallbackBehaviorPath(string windowType)
-    {
-        return Path.Combine(_userLayoutStore.GetRootFolder(), GetBehaviorRelativePath(windowType));
-    }
-
     private static string GetBehaviorRelativePath(string windowType)
     {
         var layoutRelativePath = FrontedLayoutWindowPathHelper.GetLayoutRelativePath(windowType);
@@ -175,10 +160,10 @@ public sealed class FrontedBehaviorService : IFrontedBehaviorService
         var fileName = $"{Path.GetFileNameWithoutExtension(layoutRelativePath)}.behaviors.json";
         if (string.IsNullOrWhiteSpace(folder))
         {
-            return Path.Combine("behaviors", fileName);
+            return Path.Combine("FrontedBehaviors", fileName);
         }
 
-        return Path.Combine("behaviors", folder, fileName);
+        return Path.Combine("FrontedBehaviors", folder, fileName);
     }
 
     private static FrontedBehaviorDocument CreateEmptyDocument(string windowType)

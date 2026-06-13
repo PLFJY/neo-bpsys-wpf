@@ -573,7 +573,8 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
         new(TriggerFilterOperator.GreaterThanOrEqual, "≥"),
         new(TriggerFilterOperator.LessThanOrEqual, "≤"),
         new(TriggerFilterOperator.Contains, "Designer.Behaviors.Operator.Contains", "contains", Localize),
-        new(TriggerFilterOperator.NotContains, "Designer.Behaviors.Operator.NotContains", "does not contain", Localize)
+        new(TriggerFilterOperator.NotContains, "Designer.Behaviors.Operator.NotContains", "does not contain", Localize),
+        new(TriggerFilterOperator.Exists, "Designer.Behaviors.Operator.Exists", "exists", Localize)
     ];
 
     private IReadOnlyList<BehaviorOptionViewModel> CreateEnumOptions<TEnum>(string prefix)
@@ -1300,7 +1301,7 @@ public sealed partial class TriggerFilterEditorViewModel : ObservableObject
 
     /// <summary>Gets operators recommended for the selected payload field type.</summary>
     public IReadOnlyList<BehaviorOptionViewModel> DisplayedOperatorOptions =>
-        IsEnumField
+        IsEnumField || IsBooleanField
             ? OperatorOptions.Where(option => option.Value is TriggerFilterOperator.Equals
                 or TriggerFilterOperator.NotEquals
                 or TriggerFilterOperator.Exists).ToArray()
@@ -1316,8 +1317,12 @@ public sealed partial class TriggerFilterEditorViewModel : ObservableObject
         && (field.EnumValues.Count > 0
             || string.Equals(field.TypeName.TrimEnd('?'), "Enum", StringComparison.OrdinalIgnoreCase));
 
+    /// <summary>Gets whether the selected payload field is boolean-like.</summary>
+    public bool IsBooleanField => SelectedPayloadField is { } field
+        && IsBooleanTypeName(field.TypeName);
+
     /// <summary>Gets whether the right value should use a text editor.</summary>
-    public bool IsTextValue => !IsEnumField;
+    public bool IsTextValue => !IsEnumField && !IsBooleanField;
 
     /// <summary>Gets stable enum choices for the right value editor.</summary>
     public IReadOnlyList<BehaviorOptionViewModel> EnumValueOptions =>
@@ -1327,6 +1332,13 @@ public sealed partial class TriggerFilterEditorViewModel : ObservableObject
                 FormatEnumDisplay(value)))
             .ToArray()
         ?? [];
+
+    /// <summary>Gets stable boolean choices for the right value editor.</summary>
+    public IReadOnlyList<BehaviorOptionViewModel> BooleanValueOptions { get; } =
+    [
+        new("true", "true"),
+        new("false", "false")
+    ];
 
     public string Left
     {
@@ -1340,10 +1352,12 @@ public sealed partial class TriggerFilterEditorViewModel : ObservableObject
                 OnPropertyChanged(nameof(HintText));
                 OnPropertyChanged(nameof(HasHintText));
                 OnPropertyChanged(nameof(IsEnumField));
+                OnPropertyChanged(nameof(IsBooleanField));
                 OnPropertyChanged(nameof(IsTextValue));
                 OnPropertyChanged(nameof(EnumValueOptions));
+                OnPropertyChanged(nameof(BooleanValueOptions));
                 OnPropertyChanged(nameof(DisplayedOperatorOptions));
-                if (IsEnumField && Operator is not (TriggerFilterOperator.Equals or TriggerFilterOperator.NotEquals or TriggerFilterOperator.Exists))
+                if ((IsEnumField || IsBooleanField) && Operator is not (TriggerFilterOperator.Equals or TriggerFilterOperator.NotEquals or TriggerFilterOperator.Exists))
                 {
                     Operator = TriggerFilterOperator.Equals;
                 }
@@ -1402,8 +1416,10 @@ public sealed partial class TriggerFilterEditorViewModel : ObservableObject
         OnPropertyChanged(nameof(HintText));
         OnPropertyChanged(nameof(HasHintText));
         OnPropertyChanged(nameof(IsEnumField));
+        OnPropertyChanged(nameof(IsBooleanField));
         OnPropertyChanged(nameof(IsTextValue));
         OnPropertyChanged(nameof(EnumValueOptions));
+        OnPropertyChanged(nameof(BooleanValueOptions));
         OnPropertyChanged(nameof(DisplayedOperatorOptions));
     }
 
@@ -1423,6 +1439,13 @@ public sealed partial class TriggerFilterEditorViewModel : ObservableObject
 
     private BehaviorPayloadFieldOptionViewModel? SelectedPayloadField =>
         PayloadFieldOptions.FirstOrDefault(option => string.Equals(option.Path, Left, StringComparison.Ordinal));
+
+    private static bool IsBooleanTypeName(string? typeName)
+    {
+        var normalized = typeName?.TrimEnd('?');
+        return string.Equals(normalized, "bool", StringComparison.OrdinalIgnoreCase)
+               || string.Equals(normalized, "Boolean", StringComparison.OrdinalIgnoreCase);
+    }
 
     private string FormatEnumDisplay(string value)
     {

@@ -83,6 +83,9 @@ public partial class App
         services.AddSingleton<ISmartBpService, SmartBpService>();
         services.AddSingleton<IOcrService, OcrService>();
         services.AddSingleton<ISettingsMigrationService, SettingsMigrationService>();
+        services.AddSingleton<ILegacyV2ConfigDetector, LegacyV2ConfigDetector>();
+        services.AddSingleton<FrontedLayoutPackageLegacyConverter>();
+        services.AddSingleton<ILegacyV2StartupMigrationService, LegacyV2StartupMigrationService>();
         services.AddSingleton<ISettingsHostService, SettingsHostService>();
         services.AddSingleton<IFrontedImageSafetyService, FrontedImageSafetyService>();
         services.AddSingleton<IFrontedResourceResolver, FrontedResourceResolver>();
@@ -95,7 +98,8 @@ public partial class App
             Helpers.I18nHelper.GetLocalizedString));
         services.AddSingleton<IFrontedLayoutPackageExporter, FrontedLayoutPackageExporter>();
         services.AddSingleton<IFrontedLayoutPackageImporter, FrontedLayoutPackageImporter>();
-        services.AddSingleton<IFrontedLayoutPackageLegacyConverter, FrontedLayoutPackageLegacyConverter>();
+        services.AddSingleton<IFrontedLayoutPackageLegacyConverter>(sp =>
+            sp.GetRequiredService<FrontedLayoutPackageLegacyConverter>());
         LegacyConvertMessageHelper.LocalizeTemplate = Helpers.I18nHelper.GetLocalizedString;
         services.AddSingleton<IFrontedPluginMetadataProvider, FrontedPluginMetadataProvider>();
         services.AddSingleton<FrontedBehaviorEventCatalog>();

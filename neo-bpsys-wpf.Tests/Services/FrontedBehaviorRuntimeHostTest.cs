@@ -247,7 +247,7 @@ public class FrontedBehaviorRuntimeHostTest
         WindowType = "BpWindow",
         CanvasName = "BaseCanvas",
         RootCanvas = canvas,
-        WindowConfig = FrontedWindowConfig.FromCanvasConfig(config ?? new FrontedCanvasConfig()),
+        WindowConfig = neo_bpsys_wpf.Core.Services.FrontedLayout.FrontedWindowConfigCanvasAdapter.FromCanvasConfig(config ?? new FrontedCanvasConfig()),
         SharedDataService = Mock.Of<ISharedDataService>(),
         IsDesignerPreview = false
     };

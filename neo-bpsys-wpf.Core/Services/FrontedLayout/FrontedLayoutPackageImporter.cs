@@ -123,10 +123,10 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
 
             var packageLayouts = await LoadPackageLayoutsAsync(stagingRoot, manifest!, cancellationToken);
             var missingPluginControls = FrontedLayoutPluginDependencyScanner.FindMissingPluginControls(
-                packageLayouts.Select(layout => (layout.Window, FrontedLayoutConstants.BaseCanvasName, layout.Config.ToCanvasConfig())),
+                packageLayouts.Select(layout => (layout.Window, FrontedLayoutConstants.BaseCanvasName, FrontedWindowConfigCanvasAdapter.ToCanvasConfig(layout.Config))),
                 _controlRegistry);
             var unsatisfiedPluginDependencies = FrontedLayoutPluginDependencyScanner.FindUnsatisfiedPluginDependencies(
-                packageLayouts.Select(layout => (layout.Window, FrontedLayoutConstants.BaseCanvasName, layout.Config.ToCanvasConfig())),
+                packageLayouts.Select(layout => (layout.Window, FrontedLayoutConstants.BaseCanvasName, FrontedWindowConfigCanvasAdapter.ToCanvasConfig(layout.Config))),
                 manifest!.PluginDependencies,
                 _controlRegistry,
                 _pluginMetadataProvider);
@@ -212,7 +212,7 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
         }
 
         manifest.PluginDependencies = FrontedLayoutPluginDependencyScanner.MergePackageDependencies(
-            layouts.Select(layout => (layout.Window, FrontedLayoutConstants.BaseCanvasName, layout.Config.ToCanvasConfig())),
+            layouts.Select(layout => (layout.Window, FrontedLayoutConstants.BaseCanvasName, FrontedWindowConfigCanvasAdapter.ToCanvasConfig(layout.Config))),
             manifest.PluginDependencies,
             _controlRegistry);
         return layouts;
@@ -354,7 +354,7 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
                 var validationMessages = _validator.Validate(
                     layout.Window,
                     FrontedLayoutConstants.BaseCanvasName,
-                    config.ToCanvasConfig());
+                    FrontedWindowConfigCanvasAdapter.ToCanvasConfig(config));
                 var error = validationMessages.FirstOrDefault(message =>
                     message.Severity == global::neo_bpsys_wpf.Core.Models.FrontedLayout.Designer.FrontedLayoutValidationSeverity.Error
                     && !string.Equals(message.Code, "RuntimeCriticalRenameOrDelete", StringComparison.Ordinal));

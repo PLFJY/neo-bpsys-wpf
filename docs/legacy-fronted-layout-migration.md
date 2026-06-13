@@ -1,10 +1,24 @@
 # 旧前台布局迁移
 
-Designer v3 / `FrontedLayouts` 是当前前台窗口自定义的唯一运行时来源。旧 `Config.json` 中的前台窗口字段已经从 active `Settings.cs` 移除，只保留为 legacy DTO，用于启动迁移和旧 `.bpui` 转换。
+Designer v3 layout package 是当前前台窗口自定义的唯一运行时来源。旧 `Config.json` 中的前台窗口字段已经从 active `Settings.cs` 移除，只保留为 legacy DTO，用于启动迁移和旧 `.bpui` 转换。
 
 ## 迁移入口
 
-启动加载 `%APPDATA%\neo-bpsys-wpf\Config.json` 时，如果 `Version` 缺失或为 `null`，会先备份原文件，再读取旧前台字段：
+启动加载 `%APPDATA%\neo-bpsys-wpf\Config.json` 时，如果 `Version` 缺失或为 `null`，`ILegacyV2StartupMigrationService` 会先备份原文件，再把旧前台字段转换成普通 v3 package：
+
+```text
+FrontedLayoutPackages/
+  converted-v2-{config-sha256-prefix}/
+    manifest.json
+    migration-state.json
+    FrontedLayouts/{Window}.json
+    FrontedBehaviors/{Window}.behaviors.json
+    Resources/...
+```
+
+包 id 使用原始 legacy `Config.json` 的 SHA-256 前缀，迁移状态记录 schema version、源 hash、备份路径、包 id 和迁移时间。同一份 legacy 配置重复启动时会复用已有 converted package，不会重复创建。只有 staging package 写入和校验成功后才会激活包并保存干净 Settings v3；失败时保留原始 `Config.json`，恢复原活动包，必要时回到 `builtin`。
+
+旧字段映射到 converted package 内的 `FrontedLayouts`：
 
 | 旧字段 | v3 目标 |
 | --- | --- |
@@ -20,6 +34,34 @@ Designer v3 / `FrontedLayouts` 是当前前台窗口自定义的唯一运行时�
 | `AllowsWindowTransparency` / `AllowsScoreGlobalWindowTransparency` | `FrontedWindowConfig.WindowSettings.AllowsTransparency` |
 
 无法明确迁移的旧行为字段会写入日志 warning，不会静默伪造 v3 行为。迁移后的 active `Config.json` 只保留应用级设置，不再写出旧前台窗口字段。
+
+## 显式窗口映射
+
+| legacy 来源 | v3 目标 |
+| --- | --- |
+| `BpWindow/BaseCanvas` | `BpWindow/BaseCanvas` |
+| `CutSceneWindow/BaseCanvas` | `CutSceneWindow/BaseCanvas` |
+| `GameDataWindow/BaseCanvas` | `GameDataWindow/BaseCanvas` |
+| `ScoreGlobalWindow/BaseCanvas` | `ScoreGlobalWindow/BaseCanvas` |
+| `ScoreHunWindow/BaseCanvas` | `ScoreHunWindow/BaseCanvas` |
+| `ScoreSurWindow/BaseCanvas` | `ScoreSurWindow/BaseCanvas` |
+| `WidgetsWindow/BpOverViewCanvas` | `BpOverviewWindow/BaseCanvas` |
+| `WidgetsWindow/MapV2Canvas` | `MapV2Window/BaseCanvas` |
+| `WidgetsWindow/MapBpCanvas` | MapV1 已删除，跳过并记录兼容说明 |
+
+`BpOverviewWindow` 固定使用窗口和画布尺寸 `1132x182`；`MapV2Window` 固定使用 `1440x160`。不要用旧 `WidgetsWindowSettings.WindowSize = 1440x716` 初始化这两个拆分窗口。
+
+启动迁移不能把当前内置 v3 layout JSON 当作 v2 默认值来源。迁移来源只允许是旧设置默认、旧 XAML 样式默认、显式 `LegacyControlBlueprint`、legacy config 值和需要复制/改写的 package resources。旧 `TextSettings.IsActive` 是 CommunityToolkit `ObservableRecipient` 序列化泄漏，迁移文本样式时必须忽略它。
+
+## 兼容边界
+
+legacy 兼容只允许存在于启动迁移服务和显式 legacy `.bpui` 转换器。正常 v3 runtime 禁止读取：
+
+- `%APPDATA%\neo-bpsys-wpf\FrontedLayouts` loose 用户布局；
+- legacy canvas layout path；
+- `Resources/FrontedLayouts` 作为非 `builtin` 包 fallback；
+- 插件默认布局 fallback；
+- `FrontedWindowConfig` 上的 canvas-centric public helper。
 
 ## 旧 `.bpui`
 

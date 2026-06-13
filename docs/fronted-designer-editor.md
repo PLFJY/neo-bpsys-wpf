@@ -527,7 +527,7 @@ Resource Browser 的标题、搜索、按钮、空状态和来源/类型显示�
 
 拖拽和缩放过程中的 live geometry edit 只更新内存 config、linked overlay、preview element、hitbox/adorner、选中控件几何摘要和 dirty 状态，不运行完整校验、不重建 Property Grid、不强制重渲染。鼠标释放或键盘微调等 commit 操作再执行一次校验、属性行刷新和最终 preview render。
 
-Phase 8E 的名称编辑采用保守策略：
+历史迭代 8E 的名称编辑采用保守策略：
 
 1. `Name` 属于设计项和 JSON key，不属于 config object；不要给 `FrontedControlConfigBase` 或派生 config 添加重复 `Name`。
 2. 运行时关键控件的 `Name` 只读。
@@ -538,7 +538,7 @@ Phase 8E 的名称编辑采用保守策略：
 
 ## 13. Binding Browser
 
-Phase 8G 已实现。任何可浏览的 `BindingPath` 属性都会显示：
+历史迭代 8G 已实现。任何可浏览的 `BindingPath` 属性都会显示：
 
 1. `TextBox`
 2. Browse button
@@ -607,7 +607,7 @@ CanCurrentSurBannedList[0]
 
 ## 14. Resource Browser
 
-Phase 8G 已实现控件级资源路径浏览。Resource Browser 面向图片和资源路径字段：
+历史迭代 8G 已实现控件级资源路径浏览。Resource Browser 面向图片和资源路径字段：
 
 1. `BackgroundImage`
 2. `ImagePath`
@@ -665,13 +665,13 @@ Phase 8G 已实现控件级资源路径浏览。Resource Browser 面向图片和
 
 ### Copy/Paste
 
-Phase 10 已实现内部控件复制/粘贴。`Ctrl+C` 复制当前选中的普通可编辑控件，`Ctrl+V` 粘贴单个控件。该剪贴板只存在于编辑器 ViewModel 内，不使用系统剪贴板。运行时关键控件和不可选/不可编辑控件不能复制。粘贴时深拷贝 config，名称按尾部数字递增并避开冲突，`Left` / `Top` 偏移 `+10`。Phase 13C 起，已安装插件控件的 typed config 和缺失插件控件的 `PluginFrontedControlConfig.ExtensionData` 都按同一 JSON 深拷贝路径保留；插件控件新增或粘贴后的默认名称使用 `ControlTypeName`，例如 `TeamCard1`，而不是完整 `plugin:...` 字符串。焦点位于 `TextBox`、可编辑 `ComboBox`、ColorPicker 文本区域等文本输入时，窗口不会拦截 `Ctrl+C` / `Ctrl+V`，保留普通文本复制粘贴。
+历史迭代 10 已实现内部控件复制/粘贴。`Ctrl+C` 复制当前选中的普通可编辑控件，`Ctrl+V` 粘贴单个控件。该剪贴板只存在于编辑器 ViewModel 内，不使用系统剪贴板。运行时关键控件和不可选/不可编辑控件不能复制。粘贴时深拷贝 config，名称按尾部数字递增并避开冲突，`Left` / `Top` 偏移 `+10`。历史迭代 13C 起，已安装插件控件的 typed config 和缺失插件控件的 `PluginFrontedControlConfig.ExtensionData` 都按同一 JSON 深拷贝路径保留；插件控件新增或粘贴后的默认名称使用 `ControlTypeName`，例如 `TeamCard1`，而不是完整 `plugin:...` 字符串。焦点位于 `TextBox`、可编辑 `ComboBox`、ColorPicker 文本区域等文本输入时，窗口不会拦截 `Ctrl+C` / `Ctrl+V`，保留普通文本复制粘贴。
 
 行为面板另有独立的应用级行为剪贴板。用户可复制一个行为、快速粘贴到当前选中控件，或通过“复制行为到...”选择多个目标控件。粘贴会生成新的 `BehaviorId`，把指向源控件的动画目标改写为目标控件，并在源/目标语义索引都可推断时改写引导索引过滤器。`PickingBorder` 和 `LockOverlay` 等生成部件只有在目标控件启用了对应能力时才兼容；指向其他控件的外部引用不会被静默改写。
 
 ### Undo/Redo
 
-Phase 8F foundation 修复后已提供基础内存 Undo/Redo。工具栏有 Undo / Redo 按钮，快捷键为 `Ctrl+Z`、`Ctrl+Y` 和 `Ctrl+Shift+Z`；焦点位于 `TextBox`、`ComboBox`、ColorPicker 等属性编辑器内时不抢编辑控件自身的撤销/重做。Undo/Redo 以完整 Canvas config JSON 快照实现，包含 root/BO5 与 `BoModeStates["Bo3"]`。新增控件、删除控件、成功属性提交、重命名、颜色/字体提交、键盘移动、鼠标拖拽/缩放提交、粘贴和“复制 BO5 布局到 BO3”都会进入 undo；切换窗口/Canvas 或 reload 会清空栈。历史上限仍是 50 步。
+历史迭代 8F foundation 修复后已提供基础内存 Undo/Redo。工具栏有 Undo / Redo 按钮，快捷键为 `Ctrl+Z`、`Ctrl+Y` 和 `Ctrl+Shift+Z`；焦点位于 `TextBox`、`ComboBox`、ColorPicker 等属性编辑器内时不抢编辑控件自身的撤销/重做。Undo/Redo 以完整 Canvas config JSON 快照实现，包含 root/BO5 与 `BoModeStates["Bo3"]`。新增控件、删除控件、成功属性提交、重命名、颜色/字体提交、键盘移动、鼠标拖拽/缩放提交、粘贴和“复制 BO5 布局到 BO3”都会进入 undo；切换窗口/Canvas 或 reload 会清空栈。历史上限仍是 50 步。
 
 ### BO3/BO5 Canvas States
 
@@ -721,11 +721,11 @@ neo-bpsys-wpf/Resources/FrontedLayouts/{WindowName}.json
 
 窗口切换、Reload、Reset to Built-in 和关闭编辑器时，如果当前文档 dirty，会通过 `MessageBoxHelper` 提示 Save / Discard / Cancel。Save 会先执行完整校验，存在 Error 时阻止保存并取消切换或关闭；Warning/Info 不阻止保存。关闭窗口的 dirty prompt 必须先在 `Closing` 中设置 `e.Cancel = true`，再通过 Dispatcher 异步显示本地化的宽版 helper 对话框；用户选择 Save 且保存成功或选择 Discard 后，设置强制关闭标记并再次调用 `Close()`。这样避免 WPF 在窗口已经进入 closing 状态时执行 `ShowDialog` / `Close` 触发异常。验证详情窗口是非模态子窗口，父编辑器关闭时只做受保护关闭，已关闭或正在关闭时不能让异常冒泡。
 
-顶部工具栏从 Phase 8H owner validation 修正后使用 `ScrollViewer + WrapPanel`，窗口选择器、Canvas 选择器、Add/Delete、Undo/Redo、保存/重置、reload/validate、缩放、吸附和 dirty/path 状态都允许在窄窗口下自动换行。长 layout path 只显示省略文本并通过 tooltip 查看完整路径，不能把工具栏撑出窗口右侧。
+顶部工具栏从 历史迭代 8H owner validation 修正后使用 `ScrollViewer + WrapPanel`，窗口选择器、Canvas 选择器、Add/Delete、Undo/Redo、保存/重置、reload/validate、缩放、吸附和 dirty/path 状态都允许在窄窗口下自动换行。长 layout path 只显示省略文本并通过 tooltip 查看完整路径，不能把工具栏撑出窗口右侧。
 
-吸附行为从 Phase 8H 开始改为默认关闭：`SnapEnabled` 是工具栏 ToggleSwitch 的持久开关，`IsShiftSnapActive` 只表示编辑 surface 中 Shift 当前按下，`EffectiveSnapEnabled = SnapEnabled || IsShiftSnapActive`。Shift 临时吸附只更新状态文字，例如“临时吸附”，不会修改 ToggleSwitch 的 `IsChecked`，避免 KeyDown/KeyUp 时反复刷新开关。鼠标拖拽和缩放在 `EffectiveSnapEnabled` 为 true 时优先尝试智能对齐：活动控件的 left/center/right 或 top/center/bottom 可吸附到画布边缘、画布中心线以及其他可选择、可编辑、非 linked overlay 控件的边缘/中心；未命中智能候选的轴继续按默认 10 px 网格吸附。关闭时仍按 0.5 坐标精度归一化。方向键在吸附开启时使用网格步长，普通模式保留 0.5/修饰键微调语义。智能吸附产生的辅助线只作为 `InteractionLayer` 上的临时 `Line` 元素显示，不写入 `PreviewCanvas`，也不会序列化到 v3 layout 或 `.bpui`。
+吸附行为从 历史迭代 8H 开始改为默认关闭：`SnapEnabled` 是工具栏 ToggleSwitch 的持久开关，`IsShiftSnapActive` 只表示编辑 surface 中 Shift 当前按下，`EffectiveSnapEnabled = SnapEnabled || IsShiftSnapActive`。Shift 临时吸附只更新状态文字，例如“临时吸附”，不会修改 ToggleSwitch 的 `IsChecked`，避免 KeyDown/KeyUp 时反复刷新开关。鼠标拖拽和缩放在 `EffectiveSnapEnabled` 为 true 时优先尝试智能对齐：活动控件的 left/center/right 或 top/center/bottom 可吸附到画布边缘、画布中心线以及其他可选择、可编辑、非 linked overlay 控件的边缘/中心；未命中智能候选的轴继续按默认 10 px 网格吸附。关闭时仍按 0.5 坐标精度归一化。方向键在吸附开启时使用网格步长，普通模式保留 0.5/修饰键微调语义。智能吸附产生的辅助线只作为 `InteractionLayer` 上的临时 `Line` 元素显示，不写入 `PreviewCanvas`，也不会序列化到 v3 layout 或 `.bpui`。
 
-Phase 10 起，编辑器 typed/pasted input 会按集中限制截断：搜索 128 字符，控件名 64，`BindingPath` 256，资源路径和 Canvas `BackgroundImage` 1024，`FontFamily` 256，静态 `Text` 512。发生截断时显示 `InputTruncated`。这些限制只适用于编辑器输入；外部导入 `.bpui`、layout JSON 或 manifest 时，超长字段会被拒绝，不会截断。Add Control 在当前 Canvas 已有 256 个控件时拒绝新增并显示 `ControlCountLimitReached`；保存仍由 validator 阻止硬限制错误。
+历史迭代 10 起，编辑器 typed/pasted input 会按集中限制截断：搜索 128 字符，控件名 64，`BindingPath` 256，资源路径和 Canvas `BackgroundImage` 1024，`FontFamily` 256，静态 `Text` 512。发生截断时显示 `InputTruncated`。这些限制只适用于编辑器输入；外部导入 `.bpui`、layout JSON 或 manifest 时，超长字段会被拒绝，不会截断。Add Control 在当前 Canvas 已有 256 个控件时拒绝新增并显示 `ControlCountLimitReached`；保存仍由 validator 阻止硬限制错误。
 
 ## 17. 已实现功能总览
 

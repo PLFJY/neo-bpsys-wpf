@@ -133,7 +133,18 @@ public class FrontedBehaviorServiceTest
 
     private static FrontedBehaviorService CreateService(string root)
     {
-        return new FrontedBehaviorService(new FrontedUserLayoutStore(root), NullLogger<FrontedBehaviorService>.Instance);
+        var resourcesRoot = Path.Combine(root, "Resources");
+        var builtInLayoutsRoot = Path.Combine(resourcesRoot, "FrontedLayouts");
+        Directory.CreateDirectory(builtInLayoutsRoot);
+        var packageManager = new FrontedLayoutPackageManager(
+            Path.Combine(root, "packages"),
+            builtInLayoutsRoot,
+            root,
+            NullLogger<FrontedLayoutPackageManager>.Instance);
+        return new FrontedBehaviorService(
+            new FrontedUserLayoutStore(root),
+            packageManager,
+            NullLogger<FrontedBehaviorService>.Instance);
     }
 
     private static string CreateTempRoot()

@@ -1298,6 +1298,7 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
     private readonly IReadOnlyList<FrontedNodeTargetOptionViewModel> _targetOptions;
     private readonly Func<string, string, string> _localize;
     private readonly IReadOnlyList<FrontedNodePropertyOptionViewModel> _localizedOptions;
+    private readonly IReadOnlyList<FrontedNodePropertyOptionViewModel> _booleanOptions;
     private readonly IReadOnlyList<FrontedNodePropertyOptionViewModel> _visibilityOptions;
     private Action? _refreshRelatedProperties;
     private string? _validationError;
@@ -1322,6 +1323,11 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
         _localizedOptions = descriptor.Options
             .Select(option => new FrontedNodePropertyOptionViewModel(option, LocalizeOption(option)))
             .ToArray();
+        _booleanOptions =
+        [
+            new FrontedNodePropertyOptionViewModel("true", "true"),
+            new FrontedNodePropertyOptionViewModel("false", "false")
+        ];
         _visibilityOptions = FrontedBehaviorPropertyMetadata.VisibilityOptions
             .Select(option => new FrontedNodePropertyOptionViewModel(option, localize($"Designer.Option.Visibility.{option}", option)))
             .ToArray();
@@ -1351,6 +1357,8 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
     public bool IsText => !IsBoolean && !IsEnum && !IsNumber && !IsColor && !IsControlReference && !IsPropertyName && !HasTextSuggestions && !IsVisibilityValue;
     public IReadOnlyList<string> Options => Descriptor.Options;
     public IReadOnlyList<FrontedNodePropertyOptionViewModel> LocalizedOptions => _localizedOptions;
+    /// <summary>Gets the stable boolean choices for boolean property editors.</summary>
+    public IReadOnlyList<FrontedNodePropertyOptionViewModel> BooleanOptions => _booleanOptions;
     public IReadOnlyList<FrontedNodePropertyOptionViewModel> DisplayedOptions => ResolveDisplayedOptions();
     public IReadOnlyList<FrontedNodePropertyOptionViewModel> VisibilityOptions => _visibilityOptions;
     public IReadOnlyList<FrontedNodeTargetOptionViewModel> TargetOptions => EnsureCurrentTargetOption();
@@ -1403,6 +1411,13 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
     {
         get => Read().ValueKind == JsonValueKind.True;
         set => Write(JsonSerializer.SerializeToElement(value));
+    }
+
+    /// <summary>Gets or sets the boolean value as a stable lowercase string for ComboBox editing.</summary>
+    public string BooleanTextValue
+    {
+        get => BooleanValue ? "true" : "false";
+        set => BooleanValue = string.Equals(value, "true", StringComparison.OrdinalIgnoreCase);
     }
 
     public string EnumValue
@@ -1480,6 +1495,7 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
         }
         OnPropertyChanged(nameof(TextValue));
         OnPropertyChanged(nameof(BooleanValue));
+        OnPropertyChanged(nameof(BooleanTextValue));
         OnPropertyChanged(nameof(EnumValue));
         OnPropertyChanged(nameof(TargetValue));
         OnPropertyChanged(nameof(PropertyNameValue));

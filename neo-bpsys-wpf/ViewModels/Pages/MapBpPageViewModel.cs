@@ -162,36 +162,15 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
     {
         IsPickHighlighted = message.GameAction == GameAction.PickMap;
         IsBanHighlighted = message.GameAction == GameAction.BanMap;
-        var useLegacyBreathing = _settingsHostService?.Settings.UseLegacyGuidanceBreathing != false;
         switch (message.GameAction)
         {
             case GameAction.PickMap:
                 PickMapTeam = MapSelectTeamsList.First(x =>
                     x.TeamType == (message.Index?[0] == 0 ? TeamType.HomeTeam : TeamType.AwayTeam));
-                if (useLegacyBreathing)
-                {
-                    IsBreathing = true;
-                    IsCampVisible = false;
-                }
                 break;
             case GameAction.BanMap:
                 BanMapTeam = MapSelectTeamsList.First(x =>
                     x.TeamType == (message.Index?[0] == 0 ? TeamType.HomeTeam : TeamType.AwayTeam));
-                if (useLegacyBreathing)
-                {
-                    IsBreathing = true;
-                    IsCampVisible = false;
-                }
-                break;
-            case GameAction.PickCamp:
-                if (useLegacyBreathing)
-                {
-                    IsCampVisible = true;
-                    IsBreathing = true;
-                }
-                break;
-            default:
-                if (useLegacyBreathing && IsBreathing) IsBreathing = false;
                 break;
         }
     }

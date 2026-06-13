@@ -201,7 +201,7 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
                     $"Layout {entry.WindowTypeName} has unsupported Version {config.Version}.");
             }
 
-            var canvasConfig = config.ToCanvasConfig();
+            var canvasConfig = FrontedWindowConfigCanvasAdapter.ToCanvasConfig(config);
             FrontedLayoutPluginDependencyScanner.SyncCanvasRequiredPlugins(
                 canvasConfig,
                 entry.WindowTypeName,
@@ -265,7 +265,7 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
                 }
 
                 var relativePath = ToZipPath(
-                    "behaviors",
+                    "FrontedBehaviors",
                     Path.ChangeExtension(
                         FrontedLayoutWindowPathHelper.GetLayoutRelativePath(entry.WindowTypeName),
                         ".behaviors.json").Replace('\\', '/'));

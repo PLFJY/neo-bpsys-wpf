@@ -209,6 +209,50 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         }
     }
 
+    /// <summary>
+    /// Converts legacy startup <c>Config.json</c> frontend settings into window-centric v3 configs.
+    /// </summary>
+    /// <param name="legacyConfigJson">Legacy config JSON.</param>
+    /// <returns>Converted configs keyed by target window type.</returns>
+    /// <exception cref="JsonException">Thrown when <paramref name="legacyConfigJson"/> is invalid.</exception>
+    public IReadOnlyDictionary<string, FrontedWindowConfig> ConvertLegacyStartupConfigJson(
+        string legacyConfigJson)
+    {
+        var messages = new List<FrontedLayoutPackageLegacyConvertMessage>();
+        var root = JsonNode.Parse(legacyConfigJson);
+        var legacySettings = JsonSerializer.Deserialize<LegacySettings>(legacyConfigJson, _jsonOptions);
+        var legacyPropertySet = ReadLegacyPropertySet(root);
+        var valueMap = ReadFrontendConfigValueMapDirect(root);
+        var result = new Dictionary<string, FrontedWindowConfig>(StringComparer.Ordinal);
+
+        foreach (var mapping in LegacyLayoutFileMap.Values)
+        {
+            if (!mapping.IsSupported)
+            {
+                messages.Add(Compat(CodeMapBpV1Skipped,
+                    Args(new { SourceWindow = mapping.SourceWindow, SourceCanvas = mapping.SourceCanvas })));
+                continue;
+            }
+
+            var windowConfig = CreateLegacyWindowConfig(mapping);
+            var config = FrontedWindowConfigCanvasAdapter.ToCanvasConfig(windowConfig);
+            BuildLegacyBlueprintControls(
+                mapping,
+                config,
+                CreateRequiredLegacyPositions(mapping),
+                messages);
+            ApplyFrontendConfigValues(config, mapping, valueMap, messages);
+            ApplyLegacyTextStyleOverrides(config, mapping, legacySettings, messages);
+            config.Version = 3;
+            ApplyCanvasConfig(windowConfig, config);
+            ApplyLegacyWindowSettings(windowConfig, mapping, legacySettings, legacyPropertySet, messages);
+
+            result[mapping.TargetWindow!] = windowConfig;
+        }
+
+        return result;
+    }
+
     private async Task<int> ConvertFrontElementsConfigsAsync(
         string extractionRoot,
         string stagingRoot,
@@ -253,7 +297,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             }
 
             var windowConfig = CreateLegacyWindowConfig(mapping);
-            var config = windowConfig.ToCanvasConfig();
+            var config = FrontedWindowConfigCanvasAdapter.ToCanvasConfig(windowConfig);
             BuildLegacyBlueprintControls(
                 mapping,
                 config,
@@ -270,7 +314,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             var validationMessages = _validator.Validate(
                 mapping.TargetWindow!,
                 FrontedLayoutConstants.BaseCanvasName,
-                windowConfig.ToCanvasConfig());
+                FrontedWindowConfigCanvasAdapter.ToCanvasConfig(windowConfig));
             var validationErrors = validationMessages
                 .Where(message => message.Severity == Models.FrontedLayout.Designer.FrontedLayoutValidationSeverity.Error)
                 .ToArray();
@@ -976,6 +1020,82 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                 Args(new { Reason = ex.Message })));
             return new HashSet<string>(StringComparer.Ordinal);
         }
+    }
+
+    private static IReadOnlySet<string> ReadLegacyPropertySet(JsonNode? root)
+    {
+        var result = new HashSet<string>(StringComparer.Ordinal);
+        if (root is not JsonObject obj)
+        {
+            return result;
+        }
+
+        foreach (var settings in obj)
+        {
+            if (settings.Value is not JsonObject settingsObject)
+            {
+                continue;
+            }
+
+            foreach (var property in settingsObject)
+            {
+                result.Add($"{settings.Key}.{property.Key}");
+            }
+        }
+
+        return result;
+    }
+
+    private static IReadOnlyDictionary<string, string> ReadFrontendConfigValueMapDirect(JsonNode? root)
+    {
+        var result = new Dictionary<string, string>(StringComparer.Ordinal);
+        AddMappedValue(root, "BpWindowSettings", "BgImageUri", "BpWindow/BaseCanvas/BackgroundImage", result);
+        AddMappedValue(root, "BpWindowSettings", "CurrentBanLockImageUri", "BpWindow/BaseCanvas/CurrentBanLockImage", result);
+        AddMappedValue(root, "BpWindowSettings", "GlobalBanLockImageUri", "BpWindow/BaseCanvas/GlobalBanLockImage", result);
+        AddMappedValue(root, "BpWindowSettings", "PickingBorderImageUri", "BpWindow/BaseCanvas/PickingBorderImage", result);
+        AddMappedValue(root, "BpWindowSettings", "PickingBorderColor", "BpWindow/BaseCanvas/PickingBorderColor", result);
+        AddMappedValue(root, "CutSceneWindowSettings", "BgUri", "CutSceneWindow/BaseCanvas/BackgroundImage", result);
+        AddMappedValue(root, "ScoreWindowSettings", "SurScoreBgImageUri", "ScoreSurWindow/BaseCanvas/BackgroundImage", result);
+        AddMappedValue(root, "ScoreWindowSettings", "HunScoreBgImageUri", "ScoreHunWindow/BaseCanvas/BackgroundImage", result);
+        AddMappedValue(root, "ScoreWindowSettings", "GlobalScoreBgImageUri", "ScoreGlobalWindow/BaseCanvas/BackgroundImage", result);
+        AddMappedValue(root, "ScoreWindowSettings", "GlobalScoreBgImageUriBo3", "ScoreGlobalWindow/BaseCanvas/BoModeStates/Bo3/BackgroundImage", result);
+        AddMappedValue(root, "GameDataWindowSettings", "BgImageUri", "GameDataWindow/BaseCanvas/BackgroundImage", result);
+        AddMappedValue(root, "WidgetsWindowSettings", "BpOverviewBgUri", "BpOverviewWindow/BaseCanvas/BackgroundImage", result);
+        AddMappedValue(root, "WidgetsWindowSettings", "CurrentBanLockImageUri", "BpOverviewWindow/BaseCanvas/CurrentBanLockImage", result);
+        AddMappedValue(root, "WidgetsWindowSettings", "GlobalBanLockImageUri", "BpOverviewWindow/BaseCanvas/GlobalBanLockImage", result);
+        AddMappedValue(root, "WidgetsWindowSettings", "MapBpV2BgUri", "MapV2Window/BaseCanvas/BackgroundImage", result);
+        AddMappedValue(root, "WidgetsWindowSettings", "MapBpV2PickingBorderImageUri", "MapV2Window/BaseCanvas/MapBpV2PickingBorderImage", result);
+        AddMappedValue(root, "WidgetsWindowSettings", "MapBpV2_PickingBorderColor", "MapV2Window/BaseCanvas/MapBpV2PickingBorderColor", result);
+        return result;
+    }
+
+    private static IReadOnlyDictionary<string, ElementInfo> CreateRequiredLegacyPositions(
+        LegacyLayoutMapping mapping)
+    {
+        if (!LegacyControlBlueprints.TryGetValue(
+                new LegacyLayoutKey(mapping.SourceWindow, mapping.SourceCanvas),
+                out var blueprints))
+        {
+            return new Dictionary<string, ElementInfo>(StringComparer.Ordinal);
+        }
+
+        return blueprints
+            .Where(blueprint => blueprint.Required
+                && (blueprint.Status is LegacyControlBlueprintStatus.Mapped
+                    or LegacyControlBlueprintStatus.Aggregated))
+            .GroupBy(blueprint => blueprint.LegacyName, StringComparer.Ordinal)
+            .ToDictionary(
+                group => group.Key,
+                group =>
+                {
+                    var blueprint = group.First();
+                    return new ElementInfo(
+                        blueprint.DefaultLeft,
+                        blueprint.DefaultTop,
+                        blueprint.DefaultWidth,
+                        blueprint.DefaultHeight);
+                },
+                StringComparer.Ordinal);
     }
 
     private static void ApplyLegacyWindowSettings(

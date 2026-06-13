@@ -21,6 +21,7 @@ public class SettingsHostService : ISettingsHostService
 {
     private readonly ILogger<SettingsHostService> _logger;
     private readonly ISettingsMigrationService _settingsMigrationService;
+    private readonly ILegacyV2StartupMigrationService _legacyV2StartupMigrationService;
     private Settings _settings = new();
     private bool _isBulk;
 
@@ -52,10 +53,12 @@ public class SettingsHostService : ISettingsHostService
 
     public SettingsHostService(
         ILogger<SettingsHostService> logger,
-        ISettingsMigrationService settingsMigrationService)
+        ISettingsMigrationService settingsMigrationService,
+        ILegacyV2StartupMigrationService legacyV2StartupMigrationService)
     {
         _logger = logger;
         _settingsMigrationService = settingsMigrationService;
+        _legacyV2StartupMigrationService = legacyV2StartupMigrationService;
         // Config loading is intentionally triggered and awaited from App.OnStartup.
     }
 
@@ -100,10 +103,10 @@ public class SettingsHostService : ISettingsHostService
             var versionInfo = SettingsConfigVersionHelper.InspectJson(json);
             if (versionInfo.IsLegacy)
             {
-                var result = await _settingsMigrationService.MigrateLegacyConfigToV3Async(AppConstants.ConfigFilePath);
+                var result = await _legacyV2StartupMigrationService.MigrateIfNeededAsync();
                 if (!result.Success)
                 {
-                    throw new InvalidOperationException(result.ErrorMessage ?? "Legacy settings migration failed.");
+                    throw new InvalidOperationException(result.ErrorMessage ?? "Legacy v2 startup migration failed.");
                 }
 
                 if (result.Migrated)
