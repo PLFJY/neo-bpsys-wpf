@@ -29,7 +29,6 @@
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
         <cv:ApplicationThemeToBooleanConverter x:Key="ApplicationThemeToBooleanConverter" />
         <cv:BooleanToReverseVisibilityConverter x:Key="BooleanToReverseVisibilityConverter" />
-        <cv:BooleanMultiConverter x:Key="BooleanMultiConverter" />
         <cv:BooleanToEnumConverter x:Key="BooleanToEnumConverter" />
         <cv:IntPlusOneConverter x:Key="IntPlusOneConverter" />
         <cv:IndexFormatConverter x:Key="IndexFormatConverter" />
@@ -653,82 +652,6 @@
                                     IsHighlighted="{Binding HunPickVm.IsHighlighted}"
                                     ItemsSource="{Binding HunPickVm.CharaDict}"
                                     SelectedValue="{Binding HunPickVm.SelectedChara}" />
-                                <StackPanel Margin="0,12,0,0" Orientation="Horizontal">
-                                    <TextBlock
-                                        VerticalAlignment="Center"
-                                        Style="{StaticResource Title}"
-                                        Text="{lex:Loc OpenPickingBorder}" />
-                                    <StackPanel
-                                        Margin="10,0,0,0"
-                                        VerticalAlignment="Center"
-                                        Orientation="Horizontal">
-                                        <ui:ToggleSwitch
-                                            x:Name="IsSingleControlEnabled"
-                                            Margin="0,3,0,0"
-                                            VerticalAlignment="Center" />
-                                        <TextBlock
-                                            Margin="10,0,0,0"
-                                            VerticalAlignment="Center"
-                                            Text="{lex:Loc ControlFirst2PickingBorderSeparately}" />
-                                    </StackPanel>
-                                </StackPanel>
-                                <WrapPanel Margin="0,10,0,0">
-                                    <StackPanel
-                                        Margin="0,0,20,8"
-                                        Orientation="Horizontal"
-                                        Visibility="{Binding ElementName=IsSingleControlEnabled, Path=IsChecked, Converter={StaticResource BoolToVisibilityConverter}}">
-                                        <ui:ToggleSwitch
-                                            Command="{Binding PickingBorderSwitchCommand}"
-                                            CommandParameter="0"
-                                            IsChecked="{Binding SurPickingBorderList[0]}" />
-                                        <TextBlock Margin="8,0,0,0" Text="{lex:Loc SurvivorPickingBorder1}" />
-                                    </StackPanel>
-                                    <StackPanel
-                                        Margin="0,0,20,8"
-                                        Orientation="Horizontal"
-                                        Visibility="{Binding ElementName=IsSingleControlEnabled, Path=IsChecked, Converter={StaticResource BoolToVisibilityConverter}}">
-                                        <ui:ToggleSwitch
-                                            Command="{Binding PickingBorderSwitchCommand}"
-                                            CommandParameter="1"
-                                            IsChecked="{Binding SurPickingBorderList[1]}" />
-                                        <TextBlock Margin="8,0,0,0" Text="{lex:Loc SurvivorPickingBorder2}" />
-                                    </StackPanel>
-                                    <StackPanel
-                                        Margin="0,0,20,8"
-                                        Orientation="Horizontal"
-                                        Visibility="{Binding ElementName=IsSingleControlEnabled, Path=IsChecked, Converter={StaticResource BooleanToReverseVisibilityConverter}}">
-                                        <ui:ToggleSwitch Command="{Binding PickingBorderSwitchCommand}" CommandParameter="0and1">
-                                            <ui:ToggleSwitch.IsChecked>
-                                                <MultiBinding Converter="{StaticResource BooleanMultiConverter}" Mode="TwoWay">
-                                                    <Binding Path="SurPickingBorderList[0]" />
-                                                    <Binding Path="SurPickingBorderList[1]" />
-                                                </MultiBinding>
-                                            </ui:ToggleSwitch.IsChecked>
-                                        </ui:ToggleSwitch>
-                                        <TextBlock Margin="8,0,0,0" Text="{lex:Loc SurvivorPickingBorder1and2}" />
-                                    </StackPanel>
-                                    <StackPanel Margin="0,0,20,8" Orientation="Horizontal">
-                                        <ui:ToggleSwitch
-                                            Command="{Binding PickingBorderSwitchCommand}"
-                                            CommandParameter="2"
-                                            IsChecked="{Binding SurPickingBorderList[2]}" />
-                                        <TextBlock Margin="8,0,0,0" Text="{lex:Loc SurvivorPickingBorder3}" />
-                                    </StackPanel>
-                                    <StackPanel Margin="0,0,20,8" Orientation="Horizontal">
-                                        <ui:ToggleSwitch
-                                            Command="{Binding PickingBorderSwitchCommand}"
-                                            CommandParameter="3"
-                                            IsChecked="{Binding SurPickingBorderList[3]}" />
-                                        <TextBlock Margin="8,0,0,0" Text="{lex:Loc SurvivorPickingBorder4}" />
-                                    </StackPanel>
-                                    <StackPanel Margin="0,0,20,8" Orientation="Horizontal">
-                                        <ui:ToggleSwitch
-                                            Command="{Binding PickingBorderSwitchCommand}"
-                                            CommandParameter="Hun"
-                                            IsChecked="{Binding HunPickingBorder}" />
-                                        <TextBlock Margin="8,0,0,0" Text="{lex:Loc HunterPickingBorder}" />
-                                    </StackPanel>
-                                </WrapPanel>
                             </StackPanel>
                         </Border>
                     </StackPanel>

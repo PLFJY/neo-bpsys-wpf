@@ -56,11 +56,11 @@ public sealed class FrontedBehaviorEventCatalog
             .ThenBy(descriptor => descriptor.Order)
             .ThenBy(descriptor => descriptor.DisplayNameKey, StringComparer.Ordinal)
             .ThenBy(descriptor => descriptor.EventType, StringComparer.Ordinal),
-            ..BuildTransitionEvents()
+            ..BuildExplicitEvents()
         ];
     }
 
-    private static IReadOnlyList<FrontedBehaviorEventDescriptor> BuildTransitionEvents() =>
+    private static IReadOnlyList<FrontedBehaviorEventDescriptor> BuildExplicitEvents() =>
     [
         new()
         {

@@ -11,7 +11,7 @@ public class FrontedLayoutRuntimeContractCatalog
             {
                 [("BpWindow", "BaseCanvas")] = new HashSet<string>(StringComparer.Ordinal)
                 {
-                    // These names are required by AnimationService until animation lookup becomes metadata-based.
+                    // These names remain stable layout contracts for bindings, migration, and diagnostics.
                     "SurPick0",
                     "SurPick1",
                     "SurPick2",

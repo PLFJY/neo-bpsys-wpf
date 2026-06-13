@@ -123,7 +123,7 @@ public sealed class FrontedBehaviorService : IFrontedBehaviorService
         var active = await _packageManager.GetActivePackageStateAsync(cancellationToken);
         if (string.Equals(active.PackageId, FrontedLayoutPackageManager.BuiltInPackageId, StringComparison.OrdinalIgnoreCase))
         {
-            return null;
+            return GetBuiltInBehaviorPath(windowType);
         }
 
         return GetPackageBehaviorPath(active.PackageId, windowType);
@@ -148,6 +148,19 @@ public sealed class FrontedBehaviorService : IFrontedBehaviorService
         var packageRoot = Path.GetDirectoryName(Path.GetFullPath(layoutsRoot))
                           ?? throw new InvalidOperationException("Package layouts root has no parent.");
         return Path.Combine(packageRoot, GetBehaviorRelativePath(windowType));
+    }
+
+    private string GetBuiltInBehaviorPath(string windowType)
+    {
+        var layoutsRoot = _packageManager!.GetPackageLayoutsRootFolder(FrontedLayoutPackageManager.BuiltInPackageId);
+        var resourcesRoot = Path.GetDirectoryName(Path.GetFullPath(layoutsRoot))
+                            ?? throw new InvalidOperationException("Built-in layouts root has no parent.");
+        var layoutRelativePath = FrontedLayoutWindowPathHelper.GetLayoutRelativePath(windowType);
+        var folder = Path.GetDirectoryName(layoutRelativePath);
+        var fileName = $"{Path.GetFileNameWithoutExtension(layoutRelativePath)}.behaviors.json";
+        return string.IsNullOrWhiteSpace(folder)
+            ? Path.Combine(resourcesRoot, "FrontedBehaviors", fileName)
+            : Path.Combine(resourcesRoot, "FrontedBehaviors", folder, fileName);
     }
 
     private string GetFallbackBehaviorPath(string windowType)

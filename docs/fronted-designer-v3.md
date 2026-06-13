@@ -232,7 +232,7 @@ Ban 位不再需要专用业务控件即可表达：当前局 Ban 绑定 `Curren
 
 ## 6. Image overlay 与旧字段兼容策略
 
-当前 `BpWindow` 的 pick 图和 Ban 位优先由通用 `Image` 配置表达。`AnimationService` 与 BP pick 页面逻辑仍依赖稳定元素名，因此 renderer 会把主图片控件名和 `PickingBorderName` 对应的内部 overlay 名都注册到窗口 namescope。
+当前 `BpWindow` 的 pick 图和 Ban 位优先由通用 `Image` 配置表达。内置行为文档通过稳定 `BehaviorGuid` 与 PickingBorder part 引用定位动画目标。
 
 | 兼容点 | 策略 |
 | --- | --- |
@@ -240,11 +240,11 @@ Ban 位不再需要专用业务控件即可表达：当前局 Ban 绑定 `Curren
 | 对齐 | overlay 是 `Image` / `BorderedImage` 内部视觉层，跟随主图片控件位置和尺寸。 |
 | 层级 | overlay 使用 `LockZIndexOffset` / `PickingBorderZIndexOffset` 位于主图上方。 |
 | Ban 锁 | 新字段为 `Lockable`、`LockImagePath`、`LockVisibilityBindingPath`、`LockVisibleWhen`。 |
-| 动画 | 不重设计 `AnimationService`，除非收到明确需求。 |
+| 动画 | 默认动画由内置行为文档提供，不在运行时硬编码。 |
 
 旧 JSON 字段继续兼容读取：`BanLockAvailable` 映射到 `Lockable`，`BanLockImagePath` 映射到 `LockImagePath`，`PickingBorder` 映射到 `PickingBorderAvailable`，`PickingBorderImagePath` 保持原名。Property Grid 和新默认布局优先显示新字段名。
 
-`BpWindow` 已迁移到 `Resources/FrontedLayouts/BpWindow.json`。v3 layout window 由 `FrontedWindowBase` host 创建 `ViewBox -> BaseCanvas`；默认布局中的 `SurPick0..3`、`HunPick`、`SurPickingBorder0..3` 和 `HunPickingBorder` 由 v3 renderer 生成或注册。renderer 会把控件名注册到窗口 namescope，因此 `AnimationService` 继续可以通过 `window.FindName(...)` 找到 pick 图和呼吸边框。
+`BpWindow` 已迁移到 `Resources/FrontedLayouts/BpWindow.json`，默认动画位于 `Resources/FrontedBehaviors/BpWindow.behaviors.json`。v3 layout window 由 `FrontedWindowBase` host 创建 `ViewBox -> BaseCanvas`；Pick 与 PickingBorder 动画由行为图运行时执行。
 
 这些运行时关键名称集中在 `FrontedLayoutRuntimeContractCatalog` 中。校验器会检查 `BpWindow/BaseCanvas` 是否仍包含这些名称；缺失会报告错误。
 
@@ -440,7 +440,7 @@ legacy 转换会把 `ScoreWindowSettings.GlobalScoreBgImageUri` 写入 `ScoreGlo
 | 修改无关运行时行为 | 不改 ViewModel、插件加载逻辑或未迁移窗口的运行逻辑。 |
 | 继续批量迁移 XAML | 当前 v3 layout window 通过 `FrontedWindowBase` host 渲染；`WidgetsWindow` 已删除，后续不应顺手改无关窗口。 |
 | 实现完整编辑器 UI | 当前编辑器已有交互层、Property Grid、Add Control、Binding/Resource Browser、保存/重置。仍不实现 Save As。 |
-| 修改 `AnimationService` 查找逻辑 | 当前 `AnimationService` 仍通过 `FindName` 查找动画目标。 |
+| 修改 Pick 控件 `BehaviorGuid` | 必须同步更新内置 `BpWindow.behaviors.json` 的目标引用。 |
 | 迁移 `.bpui` | 旧 `.bpui` 已有转换器。 |
 | 改变现有 v3 layout JSON schema | v3 schema 已稳定。 |
 | 把 `AllowTransparency` 当成控件属性 | 它是窗口级选项。 |

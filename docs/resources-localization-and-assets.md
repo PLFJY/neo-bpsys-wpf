@@ -20,6 +20,7 @@
 | `bpui` | 前台窗口 UI 背景、比分图、锁图、阵营图标 |
 | `data` | `CharacterList.json` 及多语言角色列表 |
 | `FrontedLayouts` | v3 Window-centric 内置前台窗口默认布局 |
+| `FrontedBehaviors` | 内置前台窗口默认行为与动画图 |
 | `SmartBpDefaultConfigs` | SmartBP 默认区域配置 |
 | `surBig/surHalf/surHeader/surHeader_singleColor` | 求生者不同展示尺寸/样式图片 |
 | `hunBig/hunHalf/hunHeader/hunHeader_singleColor` | 监管者不同展示尺寸/样式图片 |

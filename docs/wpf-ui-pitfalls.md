@@ -92,7 +92,7 @@ snackbarService.SetSnackbarPresenter(SnbPre);
 
 Designer v3 的 `Image` 控件有 `Auto`、`FillContainer`、`OverflowCrop` 三种 `SizingMode`。旧 XAML 同时存在 direct fixed-size `ui:Image`、`Border + Image + ClipToBounds`、默认 `Border` 内图片和自定义 `MapV2Presenter`，迁移时必须逐个按旧结构选择模式。队标和 MapBp v1 地图通常用 `FillContainer`；角色裁剪图通常用 `OverflowCrop`；GameData 求生者表头头像这类旧默认 `Image` 应保留 `Auto`。BpWindow 的求生者 pick 使用 `OverflowCrop + UniformToFill`，监管者 pick 保留旧 XAML 中本地 `Stretch="Uniform"` 的效果。`CornerRadius` 只负责圆角裁剪，不应顺手把所有图片改成填满容器。
 
-BpWindow 已由 v3 renderer 生成控件。`AnimationService` 仍依赖 `window.FindName(...)` 查找 `SurPick0..3`、`HunPick`、`SurPickingBorder0..3` 和 `HunPickingBorder`，因此修改 renderer 名称注册或 BpWindow 默认布局时必须保留这些 namescope 名称。新默认布局把 picking border 作为 `Image` / `BorderedImage` 内部 overlay 渲染，`PickingBorderName` 必须注册为可查找的动画目标；旧 `PickingBorderOverlay` 控件已移除。
+BpWindow 已由 v3 renderer 生成控件。默认动画通过行为文档中的稳定 `BehaviorGuid` 查找 `SurPick0..3`、`HunPick`，并通过 `part:{BehaviorGuid}:PickingBorder` 查找内部呼吸边框。修改内置布局时必须同步维护 `Resources/FrontedBehaviors/BpWindow.behaviors.json`；旧 `PickingBorderOverlay` 控件已移除。
 
 ## Fronted Designer 编辑器
 

@@ -265,10 +265,18 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
 
         if (string.Equals(sourcePackageId, BuiltInPackageId, StringComparison.OrdinalIgnoreCase))
         {
+            await CopyDirectoryContentsAsync(
+                _builtInLayoutRoot,
+                Path.Combine(targetPath, "FrontedLayouts"),
+                cancellationToken);
+            var builtInResourcesRoot = Path.GetDirectoryName(Path.GetFullPath(_builtInLayoutRoot));
+            if (builtInResourcesRoot is not null)
+            {
                 await CopyDirectoryContentsAsync(
-                    _builtInLayoutRoot,
-                    Path.Combine(targetPath, "FrontedLayouts"),
+                    Path.Combine(builtInResourcesRoot, "FrontedBehaviors"),
+                    Path.Combine(targetPath, "behaviors"),
                     cancellationToken);
+            }
         }
         else
         {

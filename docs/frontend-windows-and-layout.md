@@ -72,7 +72,7 @@ Fronted Designer v3 的基础设施已经存在：`FrontedWindowConfig` 是新�
 
 当前已迁移的内置前台窗口全部使用 v3 layout 作为默认渲染来源。v3 layout 管理单位只剩 Window；Canvas/BaseCanvas 只是运行时实现细节，不再按 Canvas 维度读取、编辑、保存或恢复布局。
 
-v3 renderer 会为生成控件注册 namescope 名称，并在清理生成控件前注销这些名称。这样 `BpWindow` 迁移后，`AnimationService` 仍可通过 `window.FindName("SurPick0")`、`window.FindName("HunPick")`、`window.FindName("SurPickingBorder0")`、`window.FindName("HunPickingBorder")` 找到动画目标。
+v3 renderer 会为生成控件注册 namescope 名称，并在清理生成控件前注销这些名称。行为动画通过稳定 `BehaviorGuid` 和 `part:{BehaviorGuid}:PickingBorder` 定位目标；注册名称继续用于布局契约、迁移和诊断。
 
 v3 layout 中 `ControlLayout.Controls` 的 JSON key 就是控件名。该名称同时作为控件 dictionary key、生成控件 `FrameworkElement.Name` 和 namescope 注册名。独立编辑器必须通过设计项 `Name` 编辑 dictionary key，不能给 config 类新增重复 `Name` 字段。详细编辑器规格见 [fronted-designer-editor.md](fronted-designer-editor.md)。
 

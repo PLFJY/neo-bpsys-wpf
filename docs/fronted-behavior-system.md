@@ -1,5 +1,17 @@
 # Fronted Behavior Graph System — Phase 0 源码勘察报告
 
+## 默认前台动画
+
+旧 `AnimationService` 已移除。默认前台动画由 `Resources/FrontedBehaviors/{WindowType}.behaviors.json`
+提供，并与 `Resources/FrontedLayouts` 中的稳定 `BehaviorGuid` 对应。
+
+角色 Pick 与求生者交换使用 Transition 行为；PickingBorder 呼吸效果使用 Loop 行为，并由稳定的
+Guidance 行为事件驱动。后台 Pick 页面不再提供待选框闪烁开关。
+
+普通用户不需要编辑这些行为图。内置包提供默认动画，进阶用户可在自定义布局包中修改行为文档。
+内置图节点在动画编辑器画布中部按执行顺序横向排列。动画节点会等待播放完成后继续执行，因此默认
+Transition 图不额外插入 `flow.delay`。
+
 ## 跨控件复制与粘贴
 
 Designer v3 的行为面板支持把单个行为复制到其他控件，也支持在目标选择窗口中一次粘贴到多个兼容控件。行为剪贴板是应用级内存剪贴板，不改变 behaviors JSON 格式，也不引入动画库或动画片段文件。

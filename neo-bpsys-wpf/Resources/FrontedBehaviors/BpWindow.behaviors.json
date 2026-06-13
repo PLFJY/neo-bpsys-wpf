@@ -1,0 +1,3836 @@
+{
+  "Version": 1,
+  "WindowType": "BpWindow",
+  "CanvasName": "BaseCanvas",
+  "ControlBehaviorSets": [
+    {
+      "BehaviorGuid": "401bd114-82fe-4997-aa2f-61d95bb2ba16",
+      "DisplayName": "SurPick0",
+      "AnimationParts": [],
+      "Behaviors": [
+        {
+          "BehaviorId": "4a506953-f5d3-4776-aacf-14c42d6946c4",
+          "Name": "CharacterPickTransition",
+          "Enabled": true,
+          "Kind": "Transition",
+          "Trigger": null,
+          "Graph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StartTrigger": null,
+          "StartGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "LoopGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StopTriggers": [],
+          "StopGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "TransitionTrigger": {
+            "EventType": "Selection.CharacterPick",
+            "Source": null,
+            "Filters": [
+              {
+                "Left": "Event.Camp",
+                "Operator": "Equals",
+                "Right": "Sur",
+                "RightValueKind": "Literal"
+              },
+              {
+                "Left": "Event.PlayerIndex",
+                "Operator": "Equals",
+                "Right": "0",
+                "RightValueKind": "Literal"
+              }
+            ]
+          },
+          "ExitGraph": {
+            "Nodes": [
+              {
+                "NodeId": "acaae18d-5063-400a-a0d1-1d6091a8ad79",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "cc8070dd-e5d0-4d79-8da7-497404ef2484",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "Self",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "1",
+                  "To": "0",
+                  "DurationMs": 500,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "4fbb0f51-0bff-4310-ac16-94629fb26509",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "9ddd8e00-8dcb-469c-9063-7b3fdeb924d2",
+                "SourceNodeId": "acaae18d-5063-400a-a0d1-1d6091a8ad79",
+                "SourcePort": "Out",
+                "TargetNodeId": "cc8070dd-e5d0-4d79-8da7-497404ef2484",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "f3477b49-cc6a-4b88-8eda-3a496fc2a9ba",
+                "SourceNodeId": "cc8070dd-e5d0-4d79-8da7-497404ef2484",
+                "SourcePort": "Out",
+                "TargetNodeId": "4fbb0f51-0bff-4310-ac16-94629fb26509",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "EnterGraph": {
+            "Nodes": [
+              {
+                "NodeId": "7fd660ad-4bce-495f-9ab6-effca7f95552",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "8a62586f-2869-491d-b755-aeb60eab2f10",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "Self",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Visibility",
+                  "Value": "Visible"
+                }
+              },
+              {
+                "NodeId": "230f559d-d482-4602-a681-11cbb8575b94",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "Self",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "0",
+                  "To": "1",
+                  "DurationMs": 500,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "1b4ddbb2-b6e2-4c6b-ba47-78faaff90cf9",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1480,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "f9d69baf-0545-47a7-9005-1db2fa214977",
+                "SourceNodeId": "7fd660ad-4bce-495f-9ab6-effca7f95552",
+                "SourcePort": "Out",
+                "TargetNodeId": "8a62586f-2869-491d-b755-aeb60eab2f10",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "07928b1f-8196-437c-8c71-9e42c6dee03b",
+                "SourceNodeId": "8a62586f-2869-491d-b755-aeb60eab2f10",
+                "SourcePort": "Out",
+                "TargetNodeId": "230f559d-d482-4602-a681-11cbb8575b94",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "3d42f763-5bbe-485f-b2f7-cd72665ec0fe",
+                "SourceNodeId": "230f559d-d482-4602-a681-11cbb8575b94",
+                "SourcePort": "Out",
+                "TargetNodeId": "1b4ddbb2-b6e2-4c6b-ba47-78faaff90cf9",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "ReentryPolicy": "InterruptPrevious",
+          "LoopPolicy": {
+            "RepeatCount": -1,
+            "AutoReverse": false,
+            "IntervalMs": 0,
+            "StopMode": "RunStopGraph",
+            "ResetOnStop": true,
+            "ReentryPolicy": "IgnoreIfRunning"
+          }
+        },
+        {
+          "BehaviorId": "80b8b961-727e-41da-938b-6630aade66aa",
+          "Name": "CharacterSwapAsSource",
+          "Enabled": true,
+          "Kind": "Transition",
+          "Trigger": null,
+          "Graph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StartTrigger": null,
+          "StartGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "LoopGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StopTriggers": [],
+          "StopGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "TransitionTrigger": {
+            "EventType": "Selection.CharacterSwap",
+            "Source": null,
+            "Filters": [
+              {
+                "Left": "Event.SourceIndex",
+                "Operator": "Equals",
+                "Right": "0",
+                "RightValueKind": "Literal"
+              }
+            ]
+          },
+          "ExitGraph": {
+            "Nodes": [
+              {
+                "NodeId": "373cbc46-8f67-49ed-a087-24f8b05d0d83",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "10e8b8fb-2cb5-40f6-bc86-50a875cf9cd8",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "Self",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "1",
+                  "To": "0",
+                  "DurationMs": 250,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "5b869a9b-12d0-4804-b48c-ae62cfa8b365",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "33a91770-19af-4a71-939f-26b8ccb52658",
+                "SourceNodeId": "373cbc46-8f67-49ed-a087-24f8b05d0d83",
+                "SourcePort": "Out",
+                "TargetNodeId": "10e8b8fb-2cb5-40f6-bc86-50a875cf9cd8",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "af50762e-61e3-4b1f-a471-a6f5fc66d067",
+                "SourceNodeId": "10e8b8fb-2cb5-40f6-bc86-50a875cf9cd8",
+                "SourcePort": "Out",
+                "TargetNodeId": "5b869a9b-12d0-4804-b48c-ae62cfa8b365",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "EnterGraph": {
+            "Nodes": [
+              {
+                "NodeId": "db105c04-c55e-4a04-b700-f47e69983ebd",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "217043b4-7237-44c9-9663-7847ff037aea",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "Self",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "0",
+                  "To": "1",
+                  "DurationMs": 250,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "9a5ba832-5b2c-4053-b328-6eea24074e0a",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "edab6722-e4a0-46d4-ab73-49d3a62d9353",
+                "SourceNodeId": "db105c04-c55e-4a04-b700-f47e69983ebd",
+                "SourcePort": "Out",
+                "TargetNodeId": "217043b4-7237-44c9-9663-7847ff037aea",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "1507ef53-32fc-4a2b-a75a-fc2b28b48865",
+                "SourceNodeId": "217043b4-7237-44c9-9663-7847ff037aea",
+                "SourcePort": "Out",
+                "TargetNodeId": "9a5ba832-5b2c-4053-b328-6eea24074e0a",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "ReentryPolicy": "InterruptPrevious",
+          "LoopPolicy": {
+            "RepeatCount": -1,
+            "AutoReverse": false,
+            "IntervalMs": 0,
+            "StopMode": "RunStopGraph",
+            "ResetOnStop": true,
+            "ReentryPolicy": "IgnoreIfRunning"
+          }
+        },
+        {
+          "BehaviorId": "2d1de6e7-6ff9-4022-ad1a-252c01f5dd11",
+          "Name": "CharacterSwapAsTarget",
+          "Enabled": true,
+          "Kind": "Transition",
+          "Trigger": null,
+          "Graph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StartTrigger": null,
+          "StartGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "LoopGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StopTriggers": [],
+          "StopGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "TransitionTrigger": {
+            "EventType": "Selection.CharacterSwap",
+            "Source": null,
+            "Filters": [
+              {
+                "Left": "Event.TargetIndex",
+                "Operator": "Equals",
+                "Right": "0",
+                "RightValueKind": "Literal"
+              }
+            ]
+          },
+          "ExitGraph": {
+            "Nodes": [
+              {
+                "NodeId": "9b08f9af-927f-4ad9-affc-9426d3d22343",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "ec55d201-3a8a-4c1b-b534-9c0d64392053",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "Self",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "1",
+                  "To": "0",
+                  "DurationMs": 250,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "75603717-aae4-4011-baa2-8c23423d627f",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "612e14b2-eef5-4961-a01c-78a1d717409a",
+                "SourceNodeId": "9b08f9af-927f-4ad9-affc-9426d3d22343",
+                "SourcePort": "Out",
+                "TargetNodeId": "ec55d201-3a8a-4c1b-b534-9c0d64392053",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "f6fd9dc4-1754-4764-aa49-8f4c657da65d",
+                "SourceNodeId": "ec55d201-3a8a-4c1b-b534-9c0d64392053",
+                "SourcePort": "Out",
+                "TargetNodeId": "75603717-aae4-4011-baa2-8c23423d627f",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "EnterGraph": {
+            "Nodes": [
+              {
+                "NodeId": "e41c624d-7fa2-4847-bda6-a334338b56d8",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "4a22af7f-ba83-422a-9ba3-d8e042e7af53",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "Self",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "0",
+                  "To": "1",
+                  "DurationMs": 250,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "584ba46e-5a59-439c-bcca-efa0685cdc13",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "592b07fd-76a5-420f-9ef9-cc7723754511",
+                "SourceNodeId": "e41c624d-7fa2-4847-bda6-a334338b56d8",
+                "SourcePort": "Out",
+                "TargetNodeId": "4a22af7f-ba83-422a-9ba3-d8e042e7af53",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "21fe1fe8-2832-47d0-be13-d140486adfb1",
+                "SourceNodeId": "4a22af7f-ba83-422a-9ba3-d8e042e7af53",
+                "SourcePort": "Out",
+                "TargetNodeId": "584ba46e-5a59-439c-bcca-efa0685cdc13",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "ReentryPolicy": "InterruptPrevious",
+          "LoopPolicy": {
+            "RepeatCount": -1,
+            "AutoReverse": false,
+            "IntervalMs": 0,
+            "StopMode": "RunStopGraph",
+            "ResetOnStop": true,
+            "ReentryPolicy": "IgnoreIfRunning"
+          }
+        },
+        {
+          "BehaviorId": "9a7601ee-b089-4871-8b5a-3d03f7f3f861",
+          "Name": "PickingBorderGuidanceBreathing",
+          "Enabled": true,
+          "Kind": "Loop",
+          "Trigger": null,
+          "Graph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StartTrigger": {
+            "EventType": "Guidance.StepChanged",
+            "Source": null,
+            "Filters": [
+              {
+                "Left": "Event.Action",
+                "Operator": "Equals",
+                "Right": "PickSur",
+                "RightValueKind": "Literal"
+              },
+              {
+                "Left": "Event.Indexes",
+                "Operator": "Contains",
+                "Right": "0",
+                "RightValueKind": "Literal"
+              }
+            ]
+          },
+          "StartGraph": {
+            "Nodes": [
+              {
+                "NodeId": "367854ed-574a-421b-8890-ddb77a28b7db",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "dc4411da-5490-4f38-8157-1233c84c3da7",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:401bd114-82fe-4997-aa2f-61d95bb2ba16:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Visibility",
+                  "Value": "Visible"
+                }
+              },
+              {
+                "NodeId": "789a4264-6b1e-45fe-97b1-35ed0428f7d0",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:401bd114-82fe-4997-aa2f-61d95bb2ba16:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "Value": "0"
+                }
+              },
+              {
+                "NodeId": "532c237a-ce47-42b4-91a6-bbd8e8a02b3c",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 1480,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:401bd114-82fe-4997-aa2f-61d95bb2ba16:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "0",
+                  "To": "1",
+                  "DurationMs": 250,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "a3f455fc-ad7e-458e-9bf6-015fb00da457",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1800,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "6148646b-88ed-4064-891e-d0463e189616",
+                "SourceNodeId": "367854ed-574a-421b-8890-ddb77a28b7db",
+                "SourcePort": "Out",
+                "TargetNodeId": "dc4411da-5490-4f38-8157-1233c84c3da7",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "3c15c35c-0487-40bd-ba96-0e483a859064",
+                "SourceNodeId": "dc4411da-5490-4f38-8157-1233c84c3da7",
+                "SourcePort": "Out",
+                "TargetNodeId": "789a4264-6b1e-45fe-97b1-35ed0428f7d0",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "082c2e08-26ec-4bb5-8c3c-56da34f1933f",
+                "SourceNodeId": "789a4264-6b1e-45fe-97b1-35ed0428f7d0",
+                "SourcePort": "Out",
+                "TargetNodeId": "532c237a-ce47-42b4-91a6-bbd8e8a02b3c",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "6dbd406c-7b68-4514-905b-a35158907d98",
+                "SourceNodeId": "532c237a-ce47-42b4-91a6-bbd8e8a02b3c",
+                "SourcePort": "Out",
+                "TargetNodeId": "a3f455fc-ad7e-458e-9bf6-015fb00da457",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "LoopGraph": {
+            "Nodes": [
+              {
+                "NodeId": "c3718e27-64a7-4638-9002-c4ace438d85b",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "a55c3114-21c1-49dd-b0b0-90e98e2dd4e8",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:401bd114-82fe-4997-aa2f-61d95bb2ba16:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "1",
+                  "To": "0.25",
+                  "DurationMs": 1000,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "b81a12f6-7047-41f9-8ddc-ad50fb0b46c4",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:401bd114-82fe-4997-aa2f-61d95bb2ba16:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "0.25",
+                  "To": "1",
+                  "DurationMs": 1000,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "126334a5-d1b9-40cf-a12a-4b5acc129abb",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1480,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "b1213cbd-967b-4fe4-ab72-7101e27948eb",
+                "SourceNodeId": "c3718e27-64a7-4638-9002-c4ace438d85b",
+                "SourcePort": "Out",
+                "TargetNodeId": "a55c3114-21c1-49dd-b0b0-90e98e2dd4e8",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "8357160a-e3ad-4602-b7cf-1ae55529996a",
+                "SourceNodeId": "a55c3114-21c1-49dd-b0b0-90e98e2dd4e8",
+                "SourcePort": "Out",
+                "TargetNodeId": "b81a12f6-7047-41f9-8ddc-ad50fb0b46c4",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "3958a8e7-7c29-4e85-85d6-bb5a6cb48b37",
+                "SourceNodeId": "b81a12f6-7047-41f9-8ddc-ad50fb0b46c4",
+                "SourcePort": "Out",
+                "TargetNodeId": "126334a5-d1b9-40cf-a12a-4b5acc129abb",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "StopTriggers": [
+            {
+              "EventType": "Guidance.StepChanged",
+              "Source": null,
+              "Filters": [
+                {
+                  "Left": "Event.PreviousAction",
+                  "Operator": "Equals",
+                  "Right": "PickSur",
+                  "RightValueKind": "Literal"
+                },
+                {
+                  "Left": "Event.PreviousIndexes",
+                  "Operator": "Contains",
+                  "Right": "0",
+                  "RightValueKind": "Literal"
+                }
+              ]
+            },
+            {
+              "EventType": "Guidance.Cancelled",
+              "Source": null,
+              "Filters": []
+            },
+            {
+              "EventType": "Guidance.Stopped",
+              "Source": null,
+              "Filters": []
+            }
+          ],
+          "StopGraph": {
+            "Nodes": [
+              {
+                "NodeId": "b619f886-aeeb-4cd0-afb9-e425fe04385c",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "470927fa-3159-46b5-9ef0-04741188ccca",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:401bd114-82fe-4997-aa2f-61d95bb2ba16:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "1",
+                  "To": "0",
+                  "DurationMs": 250,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "ab316258-35c1-4229-863f-63128c8cd954",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:401bd114-82fe-4997-aa2f-61d95bb2ba16:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "Value": "0"
+                }
+              },
+              {
+                "NodeId": "c5d5802b-07dd-462b-a9a2-11954f272a35",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 1480,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:401bd114-82fe-4997-aa2f-61d95bb2ba16:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Visibility",
+                  "Value": "Hidden"
+                }
+              },
+              {
+                "NodeId": "51f1f2b0-b43d-4b93-af28-8be0267e692c",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1800,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "1ce842ae-47f5-4cd8-b2f7-a1f309ed4223",
+                "SourceNodeId": "b619f886-aeeb-4cd0-afb9-e425fe04385c",
+                "SourcePort": "Out",
+                "TargetNodeId": "470927fa-3159-46b5-9ef0-04741188ccca",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "38c6a17f-450d-44e0-8273-13c625bd59a1",
+                "SourceNodeId": "470927fa-3159-46b5-9ef0-04741188ccca",
+                "SourcePort": "Out",
+                "TargetNodeId": "ab316258-35c1-4229-863f-63128c8cd954",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "a60aa78d-230f-4cc7-adbc-8f0ac6808e60",
+                "SourceNodeId": "ab316258-35c1-4229-863f-63128c8cd954",
+                "SourcePort": "Out",
+                "TargetNodeId": "c5d5802b-07dd-462b-a9a2-11954f272a35",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "d9cdb08b-ae1f-4bca-8da1-b21a2df44174",
+                "SourceNodeId": "c5d5802b-07dd-462b-a9a2-11954f272a35",
+                "SourcePort": "Out",
+                "TargetNodeId": "51f1f2b0-b43d-4b93-af28-8be0267e692c",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "TransitionTrigger": null,
+          "ExitGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "EnterGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "ReentryPolicy": "InterruptPrevious",
+          "LoopPolicy": {
+            "RepeatCount": -1,
+            "AutoReverse": false,
+            "IntervalMs": 0,
+            "StopMode": "RunStopGraph",
+            "ResetOnStop": true,
+            "ReentryPolicy": "IgnoreIfRunning"
+          }
+        }
+      ]
+    },
+    {
+      "BehaviorGuid": "a6b2ddab-a795-4d22-93fd-ba695d856159",
+      "DisplayName": "SurPick1",
+      "AnimationParts": [],
+      "Behaviors": [
+        {
+          "BehaviorId": "d71c0bef-4b82-4a54-993d-5986ad0c37f3",
+          "Name": "CharacterPickTransition",
+          "Enabled": true,
+          "Kind": "Transition",
+          "Trigger": null,
+          "Graph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StartTrigger": null,
+          "StartGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "LoopGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StopTriggers": [],
+          "StopGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "TransitionTrigger": {
+            "EventType": "Selection.CharacterPick",
+            "Source": null,
+            "Filters": [
+              {
+                "Left": "Event.Camp",
+                "Operator": "Equals",
+                "Right": "Sur",
+                "RightValueKind": "Literal"
+              },
+              {
+                "Left": "Event.PlayerIndex",
+                "Operator": "Equals",
+                "Right": "1",
+                "RightValueKind": "Literal"
+              }
+            ]
+          },
+          "ExitGraph": {
+            "Nodes": [
+              {
+                "NodeId": "82cfa317-687f-49a6-8442-53fe8fcebb6a",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "6c5b5b38-dd78-46d9-ab9c-07655642c10d",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "Self",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "1",
+                  "To": "0",
+                  "DurationMs": 500,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "5c775cad-4401-450d-b059-f42eb2f0cb59",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "fab09704-f46d-4530-8e56-79d8f762e461",
+                "SourceNodeId": "82cfa317-687f-49a6-8442-53fe8fcebb6a",
+                "SourcePort": "Out",
+                "TargetNodeId": "6c5b5b38-dd78-46d9-ab9c-07655642c10d",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "fb32f344-7711-4917-9931-5ce84c638124",
+                "SourceNodeId": "6c5b5b38-dd78-46d9-ab9c-07655642c10d",
+                "SourcePort": "Out",
+                "TargetNodeId": "5c775cad-4401-450d-b059-f42eb2f0cb59",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "EnterGraph": {
+            "Nodes": [
+              {
+                "NodeId": "360f8cb1-d78a-48da-b739-22ea2c54fed2",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "f2dd143f-3cc8-4f27-a268-830f44df6273",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "Self",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Visibility",
+                  "Value": "Visible"
+                }
+              },
+              {
+                "NodeId": "a09a220a-f5be-4169-9366-23da75f54048",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "Self",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "0",
+                  "To": "1",
+                  "DurationMs": 500,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "c8e0e8aa-44a9-4cf2-ba41-fb34853fea02",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1480,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "41e40950-8f83-4139-a333-f69df728c93e",
+                "SourceNodeId": "360f8cb1-d78a-48da-b739-22ea2c54fed2",
+                "SourcePort": "Out",
+                "TargetNodeId": "f2dd143f-3cc8-4f27-a268-830f44df6273",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "6edf81db-722d-4227-b63e-dce3528f0f04",
+                "SourceNodeId": "f2dd143f-3cc8-4f27-a268-830f44df6273",
+                "SourcePort": "Out",
+                "TargetNodeId": "a09a220a-f5be-4169-9366-23da75f54048",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "1e1b2afb-aae1-4544-9ef9-329fb3ea333b",
+                "SourceNodeId": "a09a220a-f5be-4169-9366-23da75f54048",
+                "SourcePort": "Out",
+                "TargetNodeId": "c8e0e8aa-44a9-4cf2-ba41-fb34853fea02",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "ReentryPolicy": "InterruptPrevious",
+          "LoopPolicy": {
+            "RepeatCount": -1,
+            "AutoReverse": false,
+            "IntervalMs": 0,
+            "StopMode": "RunStopGraph",
+            "ResetOnStop": true,
+            "ReentryPolicy": "IgnoreIfRunning"
+          }
+        },
+        {
+          "BehaviorId": "5f4cbc63-62fe-4bbf-b516-2b98af6dd1f9",
+          "Name": "CharacterSwapAsSource",
+          "Enabled": true,
+          "Kind": "Transition",
+          "Trigger": null,
+          "Graph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StartTrigger": null,
+          "StartGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "LoopGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StopTriggers": [],
+          "StopGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "TransitionTrigger": {
+            "EventType": "Selection.CharacterSwap",
+            "Source": null,
+            "Filters": [
+              {
+                "Left": "Event.SourceIndex",
+                "Operator": "Equals",
+                "Right": "1",
+                "RightValueKind": "Literal"
+              }
+            ]
+          },
+          "ExitGraph": {
+            "Nodes": [
+              {
+                "NodeId": "04507326-3503-4ac0-896f-5f42878257d1",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "17cfe302-7c5d-4384-acbf-bd02b2475d7f",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "Self",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "1",
+                  "To": "0",
+                  "DurationMs": 250,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "a7aefa68-df9f-4dba-892b-a4a3e083898f",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "b439a668-ea4c-4db9-ad6c-71b80ab96590",
+                "SourceNodeId": "04507326-3503-4ac0-896f-5f42878257d1",
+                "SourcePort": "Out",
+                "TargetNodeId": "17cfe302-7c5d-4384-acbf-bd02b2475d7f",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "aeed5454-ee01-4041-934b-92dce675decb",
+                "SourceNodeId": "17cfe302-7c5d-4384-acbf-bd02b2475d7f",
+                "SourcePort": "Out",
+                "TargetNodeId": "a7aefa68-df9f-4dba-892b-a4a3e083898f",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "EnterGraph": {
+            "Nodes": [
+              {
+                "NodeId": "341c97c9-0e27-45f3-a9c3-8b1a9a0e0bf1",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "3d9a26ef-f007-4203-9d53-ad3d61a65f7f",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "Self",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "0",
+                  "To": "1",
+                  "DurationMs": 250,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "adabf788-dd0b-42b3-9024-e5d9153ec95b",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "e7b91bb1-2223-4617-90f7-83af6a5fab35",
+                "SourceNodeId": "341c97c9-0e27-45f3-a9c3-8b1a9a0e0bf1",
+                "SourcePort": "Out",
+                "TargetNodeId": "3d9a26ef-f007-4203-9d53-ad3d61a65f7f",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "c2a7815e-e412-4219-b0f8-017c307fa914",
+                "SourceNodeId": "3d9a26ef-f007-4203-9d53-ad3d61a65f7f",
+                "SourcePort": "Out",
+                "TargetNodeId": "adabf788-dd0b-42b3-9024-e5d9153ec95b",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "ReentryPolicy": "InterruptPrevious",
+          "LoopPolicy": {
+            "RepeatCount": -1,
+            "AutoReverse": false,
+            "IntervalMs": 0,
+            "StopMode": "RunStopGraph",
+            "ResetOnStop": true,
+            "ReentryPolicy": "IgnoreIfRunning"
+          }
+        },
+        {
+          "BehaviorId": "05ab9446-85b2-46ae-a5f4-041f0392f8a5",
+          "Name": "CharacterSwapAsTarget",
+          "Enabled": true,
+          "Kind": "Transition",
+          "Trigger": null,
+          "Graph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StartTrigger": null,
+          "StartGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "LoopGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StopTriggers": [],
+          "StopGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "TransitionTrigger": {
+            "EventType": "Selection.CharacterSwap",
+            "Source": null,
+            "Filters": [
+              {
+                "Left": "Event.TargetIndex",
+                "Operator": "Equals",
+                "Right": "1",
+                "RightValueKind": "Literal"
+              }
+            ]
+          },
+          "ExitGraph": {
+            "Nodes": [
+              {
+                "NodeId": "31c63f6e-3f4f-45c8-97f4-b73b00e00bb2",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "3056a909-e982-4f54-86f5-542dd0e5ce59",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "Self",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "1",
+                  "To": "0",
+                  "DurationMs": 250,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "e322da7e-7dad-472c-a834-73a99360b0f5",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "801b838f-2a3b-4230-ac30-eb2b71db4e55",
+                "SourceNodeId": "31c63f6e-3f4f-45c8-97f4-b73b00e00bb2",
+                "SourcePort": "Out",
+                "TargetNodeId": "3056a909-e982-4f54-86f5-542dd0e5ce59",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "44c02e55-f5e3-4ccb-9b8e-300fe73cecf9",
+                "SourceNodeId": "3056a909-e982-4f54-86f5-542dd0e5ce59",
+                "SourcePort": "Out",
+                "TargetNodeId": "e322da7e-7dad-472c-a834-73a99360b0f5",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "EnterGraph": {
+            "Nodes": [
+              {
+                "NodeId": "5a2be413-6d37-4f50-a3d3-c73c4d90ea8e",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "363334b0-5ec9-46d9-ada2-f73cb1df428c",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "Self",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "0",
+                  "To": "1",
+                  "DurationMs": 250,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "1f4d2075-3782-472e-842a-1612d353ab3c",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "8ea7e2eb-35df-4560-8724-50456a1836f1",
+                "SourceNodeId": "5a2be413-6d37-4f50-a3d3-c73c4d90ea8e",
+                "SourcePort": "Out",
+                "TargetNodeId": "363334b0-5ec9-46d9-ada2-f73cb1df428c",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "42ae9746-e79d-478b-82aa-e2068087ef17",
+                "SourceNodeId": "363334b0-5ec9-46d9-ada2-f73cb1df428c",
+                "SourcePort": "Out",
+                "TargetNodeId": "1f4d2075-3782-472e-842a-1612d353ab3c",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "ReentryPolicy": "InterruptPrevious",
+          "LoopPolicy": {
+            "RepeatCount": -1,
+            "AutoReverse": false,
+            "IntervalMs": 0,
+            "StopMode": "RunStopGraph",
+            "ResetOnStop": true,
+            "ReentryPolicy": "IgnoreIfRunning"
+          }
+        },
+        {
+          "BehaviorId": "276ca955-97a7-4a52-bc96-bb5b130051c1",
+          "Name": "PickingBorderGuidanceBreathing",
+          "Enabled": true,
+          "Kind": "Loop",
+          "Trigger": null,
+          "Graph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StartTrigger": {
+            "EventType": "Guidance.StepChanged",
+            "Source": null,
+            "Filters": [
+              {
+                "Left": "Event.Action",
+                "Operator": "Equals",
+                "Right": "PickSur",
+                "RightValueKind": "Literal"
+              },
+              {
+                "Left": "Event.Indexes",
+                "Operator": "Contains",
+                "Right": "1",
+                "RightValueKind": "Literal"
+              }
+            ]
+          },
+          "StartGraph": {
+            "Nodes": [
+              {
+                "NodeId": "b83746fc-9e8b-4d3e-b4d1-70e443ac6020",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "277605c1-4262-4b77-9cd0-9bf9051e18b4",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:a6b2ddab-a795-4d22-93fd-ba695d856159:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Visibility",
+                  "Value": "Visible"
+                }
+              },
+              {
+                "NodeId": "ef734f45-4539-4a2c-b409-34e80c2fc112",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:a6b2ddab-a795-4d22-93fd-ba695d856159:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "Value": "0"
+                }
+              },
+              {
+                "NodeId": "cdcf47f7-4614-4de8-9d6d-f1f77fac6482",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 1480,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:a6b2ddab-a795-4d22-93fd-ba695d856159:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "0",
+                  "To": "1",
+                  "DurationMs": 250,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "43f619f4-4fab-4a53-9cd5-361ece30bd6a",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1800,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "0113b004-df18-45ff-a9b1-1a39d7531543",
+                "SourceNodeId": "b83746fc-9e8b-4d3e-b4d1-70e443ac6020",
+                "SourcePort": "Out",
+                "TargetNodeId": "277605c1-4262-4b77-9cd0-9bf9051e18b4",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "8109375c-e2cd-4f1e-b9a6-4bf3d0523575",
+                "SourceNodeId": "277605c1-4262-4b77-9cd0-9bf9051e18b4",
+                "SourcePort": "Out",
+                "TargetNodeId": "ef734f45-4539-4a2c-b409-34e80c2fc112",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "eda9440c-8640-4258-959d-0f05f78a3d65",
+                "SourceNodeId": "ef734f45-4539-4a2c-b409-34e80c2fc112",
+                "SourcePort": "Out",
+                "TargetNodeId": "cdcf47f7-4614-4de8-9d6d-f1f77fac6482",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "e6f41264-2934-4679-9830-361861ece667",
+                "SourceNodeId": "cdcf47f7-4614-4de8-9d6d-f1f77fac6482",
+                "SourcePort": "Out",
+                "TargetNodeId": "43f619f4-4fab-4a53-9cd5-361ece30bd6a",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "LoopGraph": {
+            "Nodes": [
+              {
+                "NodeId": "8d5c380a-bc69-48f0-8345-a82304c5da48",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "27bf4ff7-ed5b-42d4-a234-f39b85e323c3",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:a6b2ddab-a795-4d22-93fd-ba695d856159:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "1",
+                  "To": "0.25",
+                  "DurationMs": 1000,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "6c9f51d5-7ae7-48c9-8112-7d051049a50c",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:a6b2ddab-a795-4d22-93fd-ba695d856159:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "0.25",
+                  "To": "1",
+                  "DurationMs": 1000,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "bb63a042-cdef-4e16-81c1-a31a3179d995",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1480,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "1adb28a9-ddba-4aae-b669-2736d5e80327",
+                "SourceNodeId": "8d5c380a-bc69-48f0-8345-a82304c5da48",
+                "SourcePort": "Out",
+                "TargetNodeId": "27bf4ff7-ed5b-42d4-a234-f39b85e323c3",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "c11082de-2a41-47f2-9099-b7a8d8d638fc",
+                "SourceNodeId": "27bf4ff7-ed5b-42d4-a234-f39b85e323c3",
+                "SourcePort": "Out",
+                "TargetNodeId": "6c9f51d5-7ae7-48c9-8112-7d051049a50c",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "514dfb8b-9d6a-40e1-88c2-86b3d5b0e5a5",
+                "SourceNodeId": "6c9f51d5-7ae7-48c9-8112-7d051049a50c",
+                "SourcePort": "Out",
+                "TargetNodeId": "bb63a042-cdef-4e16-81c1-a31a3179d995",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "StopTriggers": [
+            {
+              "EventType": "Guidance.StepChanged",
+              "Source": null,
+              "Filters": [
+                {
+                  "Left": "Event.PreviousAction",
+                  "Operator": "Equals",
+                  "Right": "PickSur",
+                  "RightValueKind": "Literal"
+                },
+                {
+                  "Left": "Event.PreviousIndexes",
+                  "Operator": "Contains",
+                  "Right": "1",
+                  "RightValueKind": "Literal"
+                }
+              ]
+            },
+            {
+              "EventType": "Guidance.Cancelled",
+              "Source": null,
+              "Filters": []
+            },
+            {
+              "EventType": "Guidance.Stopped",
+              "Source": null,
+              "Filters": []
+            }
+          ],
+          "StopGraph": {
+            "Nodes": [
+              {
+                "NodeId": "a189975b-6398-4c8e-9daf-dfdb9b638a2c",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "f5b51ae9-8b37-4e51-94f1-ef60db11fe48",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:a6b2ddab-a795-4d22-93fd-ba695d856159:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "1",
+                  "To": "0",
+                  "DurationMs": 250,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "7e03e721-8fd3-41ad-bad5-bacc82d9b9a7",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:a6b2ddab-a795-4d22-93fd-ba695d856159:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "Value": "0"
+                }
+              },
+              {
+                "NodeId": "8b36adce-6bea-4b72-add6-4ad6c5d3b836",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 1480,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:a6b2ddab-a795-4d22-93fd-ba695d856159:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Visibility",
+                  "Value": "Hidden"
+                }
+              },
+              {
+                "NodeId": "f70b6acf-dc3b-4025-834e-44a486073df2",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1800,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "98ac0458-f768-4343-a404-e79a83fbfc02",
+                "SourceNodeId": "a189975b-6398-4c8e-9daf-dfdb9b638a2c",
+                "SourcePort": "Out",
+                "TargetNodeId": "f5b51ae9-8b37-4e51-94f1-ef60db11fe48",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "deccce1e-dede-4a56-8ac2-6d52b61581ff",
+                "SourceNodeId": "f5b51ae9-8b37-4e51-94f1-ef60db11fe48",
+                "SourcePort": "Out",
+                "TargetNodeId": "7e03e721-8fd3-41ad-bad5-bacc82d9b9a7",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "0ab5c7cd-d4df-40d8-af38-d35962a71d51",
+                "SourceNodeId": "7e03e721-8fd3-41ad-bad5-bacc82d9b9a7",
+                "SourcePort": "Out",
+                "TargetNodeId": "8b36adce-6bea-4b72-add6-4ad6c5d3b836",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "8881a0fe-4cf9-4951-a661-091c191971a1",
+                "SourceNodeId": "8b36adce-6bea-4b72-add6-4ad6c5d3b836",
+                "SourcePort": "Out",
+                "TargetNodeId": "f70b6acf-dc3b-4025-834e-44a486073df2",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "TransitionTrigger": null,
+          "ExitGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "EnterGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "ReentryPolicy": "InterruptPrevious",
+          "LoopPolicy": {
+            "RepeatCount": -1,
+            "AutoReverse": false,
+            "IntervalMs": 0,
+            "StopMode": "RunStopGraph",
+            "ResetOnStop": true,
+            "ReentryPolicy": "IgnoreIfRunning"
+          }
+        }
+      ]
+    },
+    {
+      "BehaviorGuid": "6a9ff519-af7e-4259-894f-f3cbe58e8201",
+      "DisplayName": "SurPick2",
+      "AnimationParts": [],
+      "Behaviors": [
+        {
+          "BehaviorId": "099626f6-7ac6-4b56-8c55-bf540d9411d6",
+          "Name": "CharacterPickTransition",
+          "Enabled": true,
+          "Kind": "Transition",
+          "Trigger": null,
+          "Graph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StartTrigger": null,
+          "StartGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "LoopGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StopTriggers": [],
+          "StopGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "TransitionTrigger": {
+            "EventType": "Selection.CharacterPick",
+            "Source": null,
+            "Filters": [
+              {
+                "Left": "Event.Camp",
+                "Operator": "Equals",
+                "Right": "Sur",
+                "RightValueKind": "Literal"
+              },
+              {
+                "Left": "Event.PlayerIndex",
+                "Operator": "Equals",
+                "Right": "2",
+                "RightValueKind": "Literal"
+              }
+            ]
+          },
+          "ExitGraph": {
+            "Nodes": [
+              {
+                "NodeId": "efb1c703-c749-41c8-9fbd-1733ee8d0a55",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "7d2ac275-4cfb-4923-b39a-8c86797ab2ca",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "Self",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "1",
+                  "To": "0",
+                  "DurationMs": 500,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "401da2fb-ed3e-4149-8d53-808fefc6d6f8",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "9fce342c-df48-4a29-a30f-bb6d916143d4",
+                "SourceNodeId": "efb1c703-c749-41c8-9fbd-1733ee8d0a55",
+                "SourcePort": "Out",
+                "TargetNodeId": "7d2ac275-4cfb-4923-b39a-8c86797ab2ca",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "9e9781b3-7f06-470a-be5d-bc731d3963b9",
+                "SourceNodeId": "7d2ac275-4cfb-4923-b39a-8c86797ab2ca",
+                "SourcePort": "Out",
+                "TargetNodeId": "401da2fb-ed3e-4149-8d53-808fefc6d6f8",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "EnterGraph": {
+            "Nodes": [
+              {
+                "NodeId": "dadce750-3e6c-4e64-8455-962b510140d8",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "2838384f-6a7b-42ca-b752-e1fa4b8f5215",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "Self",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Visibility",
+                  "Value": "Visible"
+                }
+              },
+              {
+                "NodeId": "43e6549d-4243-40ce-baa8-e4f66a6e3036",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "Self",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "0",
+                  "To": "1",
+                  "DurationMs": 500,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "387fa7c4-0eb4-47af-b1ee-e5c5202ef3d4",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1480,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "7404f574-559a-4c73-8fa8-771afa819562",
+                "SourceNodeId": "dadce750-3e6c-4e64-8455-962b510140d8",
+                "SourcePort": "Out",
+                "TargetNodeId": "2838384f-6a7b-42ca-b752-e1fa4b8f5215",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "06cc752d-f44a-42dd-b62d-9d24870970c0",
+                "SourceNodeId": "2838384f-6a7b-42ca-b752-e1fa4b8f5215",
+                "SourcePort": "Out",
+                "TargetNodeId": "43e6549d-4243-40ce-baa8-e4f66a6e3036",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "6e6bc609-ec8a-4158-b445-fc7397e51acd",
+                "SourceNodeId": "43e6549d-4243-40ce-baa8-e4f66a6e3036",
+                "SourcePort": "Out",
+                "TargetNodeId": "387fa7c4-0eb4-47af-b1ee-e5c5202ef3d4",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "ReentryPolicy": "InterruptPrevious",
+          "LoopPolicy": {
+            "RepeatCount": -1,
+            "AutoReverse": false,
+            "IntervalMs": 0,
+            "StopMode": "RunStopGraph",
+            "ResetOnStop": true,
+            "ReentryPolicy": "IgnoreIfRunning"
+          }
+        },
+        {
+          "BehaviorId": "c4a1953b-7705-47e6-a6dd-b056b9a9df00",
+          "Name": "CharacterSwapAsSource",
+          "Enabled": true,
+          "Kind": "Transition",
+          "Trigger": null,
+          "Graph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StartTrigger": null,
+          "StartGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "LoopGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StopTriggers": [],
+          "StopGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "TransitionTrigger": {
+            "EventType": "Selection.CharacterSwap",
+            "Source": null,
+            "Filters": [
+              {
+                "Left": "Event.SourceIndex",
+                "Operator": "Equals",
+                "Right": "2",
+                "RightValueKind": "Literal"
+              }
+            ]
+          },
+          "ExitGraph": {
+            "Nodes": [
+              {
+                "NodeId": "764dd67f-e1c7-462d-84b2-bcc85c903282",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "93678dac-8a56-4411-8afa-d40d6732718a",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "Self",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "1",
+                  "To": "0",
+                  "DurationMs": 250,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "fd8b2715-6319-4db6-99b2-42c8c2b11227",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "bf0f0563-c58e-4514-b43c-ed3631b9ebe3",
+                "SourceNodeId": "764dd67f-e1c7-462d-84b2-bcc85c903282",
+                "SourcePort": "Out",
+                "TargetNodeId": "93678dac-8a56-4411-8afa-d40d6732718a",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "9659900f-8eee-45b9-9cf2-fa9dfdd640d4",
+                "SourceNodeId": "93678dac-8a56-4411-8afa-d40d6732718a",
+                "SourcePort": "Out",
+                "TargetNodeId": "fd8b2715-6319-4db6-99b2-42c8c2b11227",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "EnterGraph": {
+            "Nodes": [
+              {
+                "NodeId": "ce67c250-c24b-4d30-a92e-c8864eef5850",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "16f3fb1f-71d0-4871-9d8f-dcad293aa67a",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "Self",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "0",
+                  "To": "1",
+                  "DurationMs": 250,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "602c34fc-9698-461c-98da-e50813481479",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "2e2410f3-07fb-4872-ab65-5e142bb13827",
+                "SourceNodeId": "ce67c250-c24b-4d30-a92e-c8864eef5850",
+                "SourcePort": "Out",
+                "TargetNodeId": "16f3fb1f-71d0-4871-9d8f-dcad293aa67a",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "5a2754d8-f29a-427d-b475-aa2664197c09",
+                "SourceNodeId": "16f3fb1f-71d0-4871-9d8f-dcad293aa67a",
+                "SourcePort": "Out",
+                "TargetNodeId": "602c34fc-9698-461c-98da-e50813481479",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "ReentryPolicy": "InterruptPrevious",
+          "LoopPolicy": {
+            "RepeatCount": -1,
+            "AutoReverse": false,
+            "IntervalMs": 0,
+            "StopMode": "RunStopGraph",
+            "ResetOnStop": true,
+            "ReentryPolicy": "IgnoreIfRunning"
+          }
+        },
+        {
+          "BehaviorId": "33c13256-ef34-45b3-b1fa-eb178e33003f",
+          "Name": "CharacterSwapAsTarget",
+          "Enabled": true,
+          "Kind": "Transition",
+          "Trigger": null,
+          "Graph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StartTrigger": null,
+          "StartGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "LoopGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StopTriggers": [],
+          "StopGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "TransitionTrigger": {
+            "EventType": "Selection.CharacterSwap",
+            "Source": null,
+            "Filters": [
+              {
+                "Left": "Event.TargetIndex",
+                "Operator": "Equals",
+                "Right": "2",
+                "RightValueKind": "Literal"
+              }
+            ]
+          },
+          "ExitGraph": {
+            "Nodes": [
+              {
+                "NodeId": "32cfb228-00aa-4f86-ab6c-1a82ac737327",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "be92bf2b-15bc-4ab8-bcab-37c75b9d7998",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "Self",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "1",
+                  "To": "0",
+                  "DurationMs": 250,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "80b02475-5ddf-4fb2-b67e-4430eae65f04",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "dcc93189-ccf7-4ba2-8be8-37514ba5814e",
+                "SourceNodeId": "32cfb228-00aa-4f86-ab6c-1a82ac737327",
+                "SourcePort": "Out",
+                "TargetNodeId": "be92bf2b-15bc-4ab8-bcab-37c75b9d7998",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "dfb358da-6f27-4835-9eac-5d24bd9d4a0c",
+                "SourceNodeId": "be92bf2b-15bc-4ab8-bcab-37c75b9d7998",
+                "SourcePort": "Out",
+                "TargetNodeId": "80b02475-5ddf-4fb2-b67e-4430eae65f04",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "EnterGraph": {
+            "Nodes": [
+              {
+                "NodeId": "82ce01c0-ae65-4d6d-895e-9b0140b8e652",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "673da79b-e278-4752-8254-cdb30401fe30",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "Self",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "0",
+                  "To": "1",
+                  "DurationMs": 250,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "015f74a8-763e-41a1-9f49-fdb39d4018b1",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "70e469a2-8643-44dc-8724-23c056f95455",
+                "SourceNodeId": "82ce01c0-ae65-4d6d-895e-9b0140b8e652",
+                "SourcePort": "Out",
+                "TargetNodeId": "673da79b-e278-4752-8254-cdb30401fe30",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "a56674fe-db8d-498c-9eee-bd729bb4a799",
+                "SourceNodeId": "673da79b-e278-4752-8254-cdb30401fe30",
+                "SourcePort": "Out",
+                "TargetNodeId": "015f74a8-763e-41a1-9f49-fdb39d4018b1",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "ReentryPolicy": "InterruptPrevious",
+          "LoopPolicy": {
+            "RepeatCount": -1,
+            "AutoReverse": false,
+            "IntervalMs": 0,
+            "StopMode": "RunStopGraph",
+            "ResetOnStop": true,
+            "ReentryPolicy": "IgnoreIfRunning"
+          }
+        },
+        {
+          "BehaviorId": "91d21627-9560-48c7-8321-bd81f376b49a",
+          "Name": "PickingBorderGuidanceBreathing",
+          "Enabled": true,
+          "Kind": "Loop",
+          "Trigger": null,
+          "Graph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StartTrigger": {
+            "EventType": "Guidance.StepChanged",
+            "Source": null,
+            "Filters": [
+              {
+                "Left": "Event.Action",
+                "Operator": "Equals",
+                "Right": "PickSur",
+                "RightValueKind": "Literal"
+              },
+              {
+                "Left": "Event.Indexes",
+                "Operator": "Contains",
+                "Right": "2",
+                "RightValueKind": "Literal"
+              }
+            ]
+          },
+          "StartGraph": {
+            "Nodes": [
+              {
+                "NodeId": "fa579da0-b1e6-4648-ac77-0c05fc856225",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "3c05bd58-071f-4863-85a6-0db9c4141027",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:6a9ff519-af7e-4259-894f-f3cbe58e8201:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Visibility",
+                  "Value": "Visible"
+                }
+              },
+              {
+                "NodeId": "972a1fd6-8f81-4144-912c-aa482d322fc7",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:6a9ff519-af7e-4259-894f-f3cbe58e8201:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "Value": "0"
+                }
+              },
+              {
+                "NodeId": "5f9a7b84-d0b1-43e5-ab8c-656ea2bedb06",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 1480,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:6a9ff519-af7e-4259-894f-f3cbe58e8201:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "0",
+                  "To": "1",
+                  "DurationMs": 250,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "d9f882eb-f640-458b-8076-bf464674b3e5",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1800,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "a5c2b4e7-2b13-4b19-9464-91d51abaa9ff",
+                "SourceNodeId": "fa579da0-b1e6-4648-ac77-0c05fc856225",
+                "SourcePort": "Out",
+                "TargetNodeId": "3c05bd58-071f-4863-85a6-0db9c4141027",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "0757f54f-b8a1-4496-95c1-7ab84a82c4af",
+                "SourceNodeId": "3c05bd58-071f-4863-85a6-0db9c4141027",
+                "SourcePort": "Out",
+                "TargetNodeId": "972a1fd6-8f81-4144-912c-aa482d322fc7",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "40cca28e-4634-4560-83be-9a0560d10833",
+                "SourceNodeId": "972a1fd6-8f81-4144-912c-aa482d322fc7",
+                "SourcePort": "Out",
+                "TargetNodeId": "5f9a7b84-d0b1-43e5-ab8c-656ea2bedb06",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "9e6bac1e-70a4-48bb-bb08-d8db46b6358b",
+                "SourceNodeId": "5f9a7b84-d0b1-43e5-ab8c-656ea2bedb06",
+                "SourcePort": "Out",
+                "TargetNodeId": "d9f882eb-f640-458b-8076-bf464674b3e5",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "LoopGraph": {
+            "Nodes": [
+              {
+                "NodeId": "1e471200-3c57-423b-a688-e17c5e637c5a",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "fc8eaabf-82f3-440d-b994-4087177260d2",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:6a9ff519-af7e-4259-894f-f3cbe58e8201:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "1",
+                  "To": "0.25",
+                  "DurationMs": 1000,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "dcee5847-d988-4004-bbec-1ba0bb8c9a53",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:6a9ff519-af7e-4259-894f-f3cbe58e8201:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "0.25",
+                  "To": "1",
+                  "DurationMs": 1000,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "a3f3470e-9dc0-4b1b-834b-edc040c94ed6",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1480,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "1c21a297-3cf3-4184-b602-7db91ed955b5",
+                "SourceNodeId": "1e471200-3c57-423b-a688-e17c5e637c5a",
+                "SourcePort": "Out",
+                "TargetNodeId": "fc8eaabf-82f3-440d-b994-4087177260d2",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "a8e65cb4-6fc9-4253-8834-13b0eb9fad26",
+                "SourceNodeId": "fc8eaabf-82f3-440d-b994-4087177260d2",
+                "SourcePort": "Out",
+                "TargetNodeId": "dcee5847-d988-4004-bbec-1ba0bb8c9a53",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "919431de-3aaf-4ceb-89c5-f14d652f23bb",
+                "SourceNodeId": "dcee5847-d988-4004-bbec-1ba0bb8c9a53",
+                "SourcePort": "Out",
+                "TargetNodeId": "a3f3470e-9dc0-4b1b-834b-edc040c94ed6",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "StopTriggers": [
+            {
+              "EventType": "Guidance.StepChanged",
+              "Source": null,
+              "Filters": [
+                {
+                  "Left": "Event.PreviousAction",
+                  "Operator": "Equals",
+                  "Right": "PickSur",
+                  "RightValueKind": "Literal"
+                },
+                {
+                  "Left": "Event.PreviousIndexes",
+                  "Operator": "Contains",
+                  "Right": "2",
+                  "RightValueKind": "Literal"
+                }
+              ]
+            },
+            {
+              "EventType": "Guidance.Cancelled",
+              "Source": null,
+              "Filters": []
+            },
+            {
+              "EventType": "Guidance.Stopped",
+              "Source": null,
+              "Filters": []
+            }
+          ],
+          "StopGraph": {
+            "Nodes": [
+              {
+                "NodeId": "20e14a4d-2a48-4c91-8409-694ccd6400a5",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "043bcefa-fd55-4c94-8f57-824f453881f7",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:6a9ff519-af7e-4259-894f-f3cbe58e8201:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "1",
+                  "To": "0",
+                  "DurationMs": 250,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "43229be2-c93b-4856-a9be-68e6c8b63f76",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:6a9ff519-af7e-4259-894f-f3cbe58e8201:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "Value": "0"
+                }
+              },
+              {
+                "NodeId": "3e94fd44-1833-43b1-9222-536edc0db932",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 1480,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:6a9ff519-af7e-4259-894f-f3cbe58e8201:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Visibility",
+                  "Value": "Hidden"
+                }
+              },
+              {
+                "NodeId": "4e556a7b-19bf-4439-a3a1-44cf4707758a",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1800,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "f4c0ecc6-c210-406a-895d-e75127554439",
+                "SourceNodeId": "20e14a4d-2a48-4c91-8409-694ccd6400a5",
+                "SourcePort": "Out",
+                "TargetNodeId": "043bcefa-fd55-4c94-8f57-824f453881f7",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "d6886f50-f95b-498b-8754-b36344294d04",
+                "SourceNodeId": "043bcefa-fd55-4c94-8f57-824f453881f7",
+                "SourcePort": "Out",
+                "TargetNodeId": "43229be2-c93b-4856-a9be-68e6c8b63f76",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "73f41e35-7084-4806-9672-fa05a7afce5d",
+                "SourceNodeId": "43229be2-c93b-4856-a9be-68e6c8b63f76",
+                "SourcePort": "Out",
+                "TargetNodeId": "3e94fd44-1833-43b1-9222-536edc0db932",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "3561f3ad-39b9-4d33-b78d-316282432424",
+                "SourceNodeId": "3e94fd44-1833-43b1-9222-536edc0db932",
+                "SourcePort": "Out",
+                "TargetNodeId": "4e556a7b-19bf-4439-a3a1-44cf4707758a",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "TransitionTrigger": null,
+          "ExitGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "EnterGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "ReentryPolicy": "InterruptPrevious",
+          "LoopPolicy": {
+            "RepeatCount": -1,
+            "AutoReverse": false,
+            "IntervalMs": 0,
+            "StopMode": "RunStopGraph",
+            "ResetOnStop": true,
+            "ReentryPolicy": "IgnoreIfRunning"
+          }
+        }
+      ]
+    },
+    {
+      "BehaviorGuid": "303e717c-1a0f-4c31-b001-4077c2590536",
+      "DisplayName": "SurPick3",
+      "AnimationParts": [],
+      "Behaviors": [
+        {
+          "BehaviorId": "0cd2b172-f038-4cfa-a1c3-7b731b57a0b9",
+          "Name": "CharacterPickTransition",
+          "Enabled": true,
+          "Kind": "Transition",
+          "Trigger": null,
+          "Graph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StartTrigger": null,
+          "StartGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "LoopGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StopTriggers": [],
+          "StopGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "TransitionTrigger": {
+            "EventType": "Selection.CharacterPick",
+            "Source": null,
+            "Filters": [
+              {
+                "Left": "Event.Camp",
+                "Operator": "Equals",
+                "Right": "Sur",
+                "RightValueKind": "Literal"
+              },
+              {
+                "Left": "Event.PlayerIndex",
+                "Operator": "Equals",
+                "Right": "3",
+                "RightValueKind": "Literal"
+              }
+            ]
+          },
+          "ExitGraph": {
+            "Nodes": [
+              {
+                "NodeId": "e3c98053-9b84-4ccd-9f78-3d688e7375cd",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "a4364b5e-b9cf-408d-8362-178d92077194",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "Self",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "1",
+                  "To": "0",
+                  "DurationMs": 500,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "5886481e-00db-460c-9f07-a0f121518808",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "1e6b67d9-7dd7-4d97-9c02-e3792587a250",
+                "SourceNodeId": "e3c98053-9b84-4ccd-9f78-3d688e7375cd",
+                "SourcePort": "Out",
+                "TargetNodeId": "a4364b5e-b9cf-408d-8362-178d92077194",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "e7af40d8-6595-4f96-9458-157d4cd3610f",
+                "SourceNodeId": "a4364b5e-b9cf-408d-8362-178d92077194",
+                "SourcePort": "Out",
+                "TargetNodeId": "5886481e-00db-460c-9f07-a0f121518808",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "EnterGraph": {
+            "Nodes": [
+              {
+                "NodeId": "4ebe859d-2dee-469c-811a-b2d02187441f",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "a6baaf8a-0294-4d71-b4c2-dc7a45781725",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "Self",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Visibility",
+                  "Value": "Visible"
+                }
+              },
+              {
+                "NodeId": "53ab99ff-564e-4ee5-ad4a-754ee6756286",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "Self",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "0",
+                  "To": "1",
+                  "DurationMs": 500,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "9e8381ee-2bee-4633-a34d-9f25e0499f4b",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1480,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "91218f8d-545a-400c-b263-28ce9eca7b2d",
+                "SourceNodeId": "4ebe859d-2dee-469c-811a-b2d02187441f",
+                "SourcePort": "Out",
+                "TargetNodeId": "a6baaf8a-0294-4d71-b4c2-dc7a45781725",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "a730a7f1-c1e0-4b47-879a-6ba5fcb91ba2",
+                "SourceNodeId": "a6baaf8a-0294-4d71-b4c2-dc7a45781725",
+                "SourcePort": "Out",
+                "TargetNodeId": "53ab99ff-564e-4ee5-ad4a-754ee6756286",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "d3a56fe8-8680-4013-9a75-9c4406e86e57",
+                "SourceNodeId": "53ab99ff-564e-4ee5-ad4a-754ee6756286",
+                "SourcePort": "Out",
+                "TargetNodeId": "9e8381ee-2bee-4633-a34d-9f25e0499f4b",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "ReentryPolicy": "InterruptPrevious",
+          "LoopPolicy": {
+            "RepeatCount": -1,
+            "AutoReverse": false,
+            "IntervalMs": 0,
+            "StopMode": "RunStopGraph",
+            "ResetOnStop": true,
+            "ReentryPolicy": "IgnoreIfRunning"
+          }
+        },
+        {
+          "BehaviorId": "9d53b6a7-4753-4c75-a5d1-b0c91f072e71",
+          "Name": "CharacterSwapAsSource",
+          "Enabled": true,
+          "Kind": "Transition",
+          "Trigger": null,
+          "Graph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StartTrigger": null,
+          "StartGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "LoopGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StopTriggers": [],
+          "StopGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "TransitionTrigger": {
+            "EventType": "Selection.CharacterSwap",
+            "Source": null,
+            "Filters": [
+              {
+                "Left": "Event.SourceIndex",
+                "Operator": "Equals",
+                "Right": "3",
+                "RightValueKind": "Literal"
+              }
+            ]
+          },
+          "ExitGraph": {
+            "Nodes": [
+              {
+                "NodeId": "846282ef-247d-41c9-aa5b-a1ba29649557",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "d20df74a-a80b-4219-8dea-c8ca4288e79f",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "Self",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "1",
+                  "To": "0",
+                  "DurationMs": 250,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "29e3db6b-2ef4-4f34-b8d8-fb66445440ee",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "f255dd93-9590-4ae3-90fd-f4cc6274e5a1",
+                "SourceNodeId": "846282ef-247d-41c9-aa5b-a1ba29649557",
+                "SourcePort": "Out",
+                "TargetNodeId": "d20df74a-a80b-4219-8dea-c8ca4288e79f",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "9bf498eb-3ec3-4a51-9c29-a5d7d187c634",
+                "SourceNodeId": "d20df74a-a80b-4219-8dea-c8ca4288e79f",
+                "SourcePort": "Out",
+                "TargetNodeId": "29e3db6b-2ef4-4f34-b8d8-fb66445440ee",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "EnterGraph": {
+            "Nodes": [
+              {
+                "NodeId": "50ddca87-f9bf-41ca-b249-a28dd1c9857a",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "6da89368-faaa-437e-b240-4cbf5af48768",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "Self",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "0",
+                  "To": "1",
+                  "DurationMs": 250,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "a620abd7-41ce-4de9-9e51-94c7d0d1d5d4",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "3efe4618-9522-4430-9e7d-9c71c34961e9",
+                "SourceNodeId": "50ddca87-f9bf-41ca-b249-a28dd1c9857a",
+                "SourcePort": "Out",
+                "TargetNodeId": "6da89368-faaa-437e-b240-4cbf5af48768",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "89fad9b6-3fcf-47e2-a6da-8fc1d21587c9",
+                "SourceNodeId": "6da89368-faaa-437e-b240-4cbf5af48768",
+                "SourcePort": "Out",
+                "TargetNodeId": "a620abd7-41ce-4de9-9e51-94c7d0d1d5d4",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "ReentryPolicy": "InterruptPrevious",
+          "LoopPolicy": {
+            "RepeatCount": -1,
+            "AutoReverse": false,
+            "IntervalMs": 0,
+            "StopMode": "RunStopGraph",
+            "ResetOnStop": true,
+            "ReentryPolicy": "IgnoreIfRunning"
+          }
+        },
+        {
+          "BehaviorId": "3884ade6-378b-4138-bf97-11e83eccd265",
+          "Name": "CharacterSwapAsTarget",
+          "Enabled": true,
+          "Kind": "Transition",
+          "Trigger": null,
+          "Graph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StartTrigger": null,
+          "StartGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "LoopGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StopTriggers": [],
+          "StopGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "TransitionTrigger": {
+            "EventType": "Selection.CharacterSwap",
+            "Source": null,
+            "Filters": [
+              {
+                "Left": "Event.TargetIndex",
+                "Operator": "Equals",
+                "Right": "3",
+                "RightValueKind": "Literal"
+              }
+            ]
+          },
+          "ExitGraph": {
+            "Nodes": [
+              {
+                "NodeId": "88031bdc-2a02-4e8e-90dd-7df03a1b5fff",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "ae580b4e-2c6f-43b1-8d5a-89f023faa1d9",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "Self",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "1",
+                  "To": "0",
+                  "DurationMs": 250,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "58fcdb91-e33e-4c13-b1ba-58379fc12b19",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "0976437e-eaf6-466d-bc8e-9b286122dd69",
+                "SourceNodeId": "88031bdc-2a02-4e8e-90dd-7df03a1b5fff",
+                "SourcePort": "Out",
+                "TargetNodeId": "ae580b4e-2c6f-43b1-8d5a-89f023faa1d9",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "a59ef3d1-1cc6-4ad6-8e6d-b79f52e9b900",
+                "SourceNodeId": "ae580b4e-2c6f-43b1-8d5a-89f023faa1d9",
+                "SourcePort": "Out",
+                "TargetNodeId": "58fcdb91-e33e-4c13-b1ba-58379fc12b19",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "EnterGraph": {
+            "Nodes": [
+              {
+                "NodeId": "c32b3eb5-6344-4fd2-8f94-63330fb21444",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "42042839-c52b-4497-80be-da749fa318e4",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "Self",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "0",
+                  "To": "1",
+                  "DurationMs": 250,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "77f5e18a-b431-42f8-a62c-32404959fcc7",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "1286b2ab-6331-499a-a26e-0f1495d04aea",
+                "SourceNodeId": "c32b3eb5-6344-4fd2-8f94-63330fb21444",
+                "SourcePort": "Out",
+                "TargetNodeId": "42042839-c52b-4497-80be-da749fa318e4",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "4c5e4264-73e1-4be1-a388-51ed9dad810f",
+                "SourceNodeId": "42042839-c52b-4497-80be-da749fa318e4",
+                "SourcePort": "Out",
+                "TargetNodeId": "77f5e18a-b431-42f8-a62c-32404959fcc7",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "ReentryPolicy": "InterruptPrevious",
+          "LoopPolicy": {
+            "RepeatCount": -1,
+            "AutoReverse": false,
+            "IntervalMs": 0,
+            "StopMode": "RunStopGraph",
+            "ResetOnStop": true,
+            "ReentryPolicy": "IgnoreIfRunning"
+          }
+        },
+        {
+          "BehaviorId": "0cdc885a-909d-4024-9dd6-8eea926bfbe3",
+          "Name": "PickingBorderGuidanceBreathing",
+          "Enabled": true,
+          "Kind": "Loop",
+          "Trigger": null,
+          "Graph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StartTrigger": {
+            "EventType": "Guidance.StepChanged",
+            "Source": null,
+            "Filters": [
+              {
+                "Left": "Event.Action",
+                "Operator": "Equals",
+                "Right": "PickSur",
+                "RightValueKind": "Literal"
+              },
+              {
+                "Left": "Event.Indexes",
+                "Operator": "Contains",
+                "Right": "3",
+                "RightValueKind": "Literal"
+              }
+            ]
+          },
+          "StartGraph": {
+            "Nodes": [
+              {
+                "NodeId": "735b99bd-f4ad-4f73-a525-a4e39b6c5511",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "1295adc6-a949-4ef6-baf1-e2be47806600",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:303e717c-1a0f-4c31-b001-4077c2590536:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Visibility",
+                  "Value": "Visible"
+                }
+              },
+              {
+                "NodeId": "d1aa7a38-7693-43b6-ae32-88c3d8c3eff5",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:303e717c-1a0f-4c31-b001-4077c2590536:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "Value": "0"
+                }
+              },
+              {
+                "NodeId": "490c08b4-357e-4385-9841-9a4d3880cf64",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 1480,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:303e717c-1a0f-4c31-b001-4077c2590536:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "0",
+                  "To": "1",
+                  "DurationMs": 250,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "02fc7bf4-6f36-42c0-94be-8c4ab55dd8e1",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1800,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "44b27d35-0a9e-4d74-96ea-73168c55a934",
+                "SourceNodeId": "735b99bd-f4ad-4f73-a525-a4e39b6c5511",
+                "SourcePort": "Out",
+                "TargetNodeId": "1295adc6-a949-4ef6-baf1-e2be47806600",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "e373bfd5-4e85-43af-b205-51246f97be9f",
+                "SourceNodeId": "1295adc6-a949-4ef6-baf1-e2be47806600",
+                "SourcePort": "Out",
+                "TargetNodeId": "d1aa7a38-7693-43b6-ae32-88c3d8c3eff5",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "fe98d7dd-a911-4b6a-9657-c5ad46d0015a",
+                "SourceNodeId": "d1aa7a38-7693-43b6-ae32-88c3d8c3eff5",
+                "SourcePort": "Out",
+                "TargetNodeId": "490c08b4-357e-4385-9841-9a4d3880cf64",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "769c90df-9fc1-469e-b40d-8d48747af2fb",
+                "SourceNodeId": "490c08b4-357e-4385-9841-9a4d3880cf64",
+                "SourcePort": "Out",
+                "TargetNodeId": "02fc7bf4-6f36-42c0-94be-8c4ab55dd8e1",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "LoopGraph": {
+            "Nodes": [
+              {
+                "NodeId": "01ec16b7-0f2f-45b1-9c14-dd0c4a3b9e7c",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "490f0d3e-0d5a-4b3f-84d7-bfea8a63bd35",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:303e717c-1a0f-4c31-b001-4077c2590536:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "1",
+                  "To": "0.25",
+                  "DurationMs": 1000,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "24c44b9d-9044-405f-a5b0-bb621990201b",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:303e717c-1a0f-4c31-b001-4077c2590536:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "0.25",
+                  "To": "1",
+                  "DurationMs": 1000,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "b979dbe7-fe55-43a7-9c42-0e3660f4612e",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1480,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "d2e94568-2dec-4343-82be-5ea557c378fe",
+                "SourceNodeId": "01ec16b7-0f2f-45b1-9c14-dd0c4a3b9e7c",
+                "SourcePort": "Out",
+                "TargetNodeId": "490f0d3e-0d5a-4b3f-84d7-bfea8a63bd35",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "6f1a3223-5472-471f-b03d-d228aa83c856",
+                "SourceNodeId": "490f0d3e-0d5a-4b3f-84d7-bfea8a63bd35",
+                "SourcePort": "Out",
+                "TargetNodeId": "24c44b9d-9044-405f-a5b0-bb621990201b",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "e4f2b74d-32e3-42eb-9800-0bfc5a484d7c",
+                "SourceNodeId": "24c44b9d-9044-405f-a5b0-bb621990201b",
+                "SourcePort": "Out",
+                "TargetNodeId": "b979dbe7-fe55-43a7-9c42-0e3660f4612e",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "StopTriggers": [
+            {
+              "EventType": "Guidance.StepChanged",
+              "Source": null,
+              "Filters": [
+                {
+                  "Left": "Event.PreviousAction",
+                  "Operator": "Equals",
+                  "Right": "PickSur",
+                  "RightValueKind": "Literal"
+                },
+                {
+                  "Left": "Event.PreviousIndexes",
+                  "Operator": "Contains",
+                  "Right": "3",
+                  "RightValueKind": "Literal"
+                }
+              ]
+            },
+            {
+              "EventType": "Guidance.Cancelled",
+              "Source": null,
+              "Filters": []
+            },
+            {
+              "EventType": "Guidance.Stopped",
+              "Source": null,
+              "Filters": []
+            }
+          ],
+          "StopGraph": {
+            "Nodes": [
+              {
+                "NodeId": "7e24f586-92b5-4c9a-9174-d96215abd03d",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "bbd1dd09-5f6b-47d7-9556-05f6b083c015",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:303e717c-1a0f-4c31-b001-4077c2590536:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "1",
+                  "To": "0",
+                  "DurationMs": 250,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "45da0a3a-9a8e-4100-8ac7-f2df64bef3a9",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:303e717c-1a0f-4c31-b001-4077c2590536:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "Value": "0"
+                }
+              },
+              {
+                "NodeId": "0e9ac455-750c-4674-aec8-76f74eb0c212",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 1480,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:303e717c-1a0f-4c31-b001-4077c2590536:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Visibility",
+                  "Value": "Hidden"
+                }
+              },
+              {
+                "NodeId": "68ef5be9-b36a-47e4-976a-2c948c51507f",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1800,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "3e81a96c-313f-4956-93ff-0d9795c62c2e",
+                "SourceNodeId": "7e24f586-92b5-4c9a-9174-d96215abd03d",
+                "SourcePort": "Out",
+                "TargetNodeId": "bbd1dd09-5f6b-47d7-9556-05f6b083c015",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "398c9361-fa0b-4719-a105-c907dc9cac60",
+                "SourceNodeId": "bbd1dd09-5f6b-47d7-9556-05f6b083c015",
+                "SourcePort": "Out",
+                "TargetNodeId": "45da0a3a-9a8e-4100-8ac7-f2df64bef3a9",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "6bb14c36-d7da-4325-9f40-0b5e98bdf649",
+                "SourceNodeId": "45da0a3a-9a8e-4100-8ac7-f2df64bef3a9",
+                "SourcePort": "Out",
+                "TargetNodeId": "0e9ac455-750c-4674-aec8-76f74eb0c212",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "dd8440bc-e631-42a2-9118-1200cb3faed9",
+                "SourceNodeId": "0e9ac455-750c-4674-aec8-76f74eb0c212",
+                "SourcePort": "Out",
+                "TargetNodeId": "68ef5be9-b36a-47e4-976a-2c948c51507f",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "TransitionTrigger": null,
+          "ExitGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "EnterGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "ReentryPolicy": "InterruptPrevious",
+          "LoopPolicy": {
+            "RepeatCount": -1,
+            "AutoReverse": false,
+            "IntervalMs": 0,
+            "StopMode": "RunStopGraph",
+            "ResetOnStop": true,
+            "ReentryPolicy": "IgnoreIfRunning"
+          }
+        }
+      ]
+    },
+    {
+      "BehaviorGuid": "dc0b9afb-938a-4b59-84e1-50a2302310d9",
+      "DisplayName": "HunPick",
+      "AnimationParts": [],
+      "Behaviors": [
+        {
+          "BehaviorId": "1edfb62f-174a-4ac4-8c8f-794c3cae4568",
+          "Name": "CharacterPickTransition",
+          "Enabled": true,
+          "Kind": "Transition",
+          "Trigger": null,
+          "Graph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StartTrigger": null,
+          "StartGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "LoopGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StopTriggers": [],
+          "StopGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "TransitionTrigger": {
+            "EventType": "Selection.CharacterPick",
+            "Source": null,
+            "Filters": [
+              {
+                "Left": "Event.Camp",
+                "Operator": "Equals",
+                "Right": "Hun",
+                "RightValueKind": "Literal"
+              },
+              {
+                "Left": "Event.PlayerIndex",
+                "Operator": "Equals",
+                "Right": "-1",
+                "RightValueKind": "Literal"
+              }
+            ]
+          },
+          "ExitGraph": {
+            "Nodes": [
+              {
+                "NodeId": "5e1386c6-18bc-4ef2-994e-bae6777e887f",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "7d1b3b2f-5f0e-4e6c-8b42-252fc0a04ff2",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "Self",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "1",
+                  "To": "0",
+                  "DurationMs": 500,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "872bda2d-c263-49a4-9ca7-fe6e123ba29e",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "33804b49-a7e8-4b65-9277-7b469da4bd80",
+                "SourceNodeId": "5e1386c6-18bc-4ef2-994e-bae6777e887f",
+                "SourcePort": "Out",
+                "TargetNodeId": "7d1b3b2f-5f0e-4e6c-8b42-252fc0a04ff2",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "a7ffcbbb-e93a-433f-ad80-23ce5b5a050f",
+                "SourceNodeId": "7d1b3b2f-5f0e-4e6c-8b42-252fc0a04ff2",
+                "SourcePort": "Out",
+                "TargetNodeId": "872bda2d-c263-49a4-9ca7-fe6e123ba29e",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "EnterGraph": {
+            "Nodes": [
+              {
+                "NodeId": "b9835f9d-205a-4d33-b13a-b6840dbd2cd3",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "9825b8cf-fd94-4d9d-93aa-13a9a233ac32",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "Self",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Visibility",
+                  "Value": "Visible"
+                }
+              },
+              {
+                "NodeId": "fe27483c-b266-43c0-b48d-9ca05cbd2979",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "Self",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "0",
+                  "To": "1",
+                  "DurationMs": 500,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "6e5d701f-a846-4202-8966-e09a95a91119",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1480,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "21bb115e-1622-43f0-bd8a-18bc24d781d2",
+                "SourceNodeId": "b9835f9d-205a-4d33-b13a-b6840dbd2cd3",
+                "SourcePort": "Out",
+                "TargetNodeId": "9825b8cf-fd94-4d9d-93aa-13a9a233ac32",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "51208919-f8b4-4f76-9b9c-d2cb23468217",
+                "SourceNodeId": "9825b8cf-fd94-4d9d-93aa-13a9a233ac32",
+                "SourcePort": "Out",
+                "TargetNodeId": "fe27483c-b266-43c0-b48d-9ca05cbd2979",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "9e2bcc15-22ed-4205-a0d6-5055b13b0796",
+                "SourceNodeId": "fe27483c-b266-43c0-b48d-9ca05cbd2979",
+                "SourcePort": "Out",
+                "TargetNodeId": "6e5d701f-a846-4202-8966-e09a95a91119",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "ReentryPolicy": "InterruptPrevious",
+          "LoopPolicy": {
+            "RepeatCount": -1,
+            "AutoReverse": false,
+            "IntervalMs": 0,
+            "StopMode": "RunStopGraph",
+            "ResetOnStop": true,
+            "ReentryPolicy": "IgnoreIfRunning"
+          }
+        },
+        {
+          "BehaviorId": "d4275743-4242-421d-963f-255c71a232f3",
+          "Name": "PickingBorderGuidanceBreathing",
+          "Enabled": true,
+          "Kind": "Loop",
+          "Trigger": null,
+          "Graph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StartTrigger": {
+            "EventType": "Guidance.StepChanged",
+            "Source": null,
+            "Filters": [
+              {
+                "Left": "Event.Action",
+                "Operator": "Equals",
+                "Right": "PickHun",
+                "RightValueKind": "Literal"
+              }
+            ]
+          },
+          "StartGraph": {
+            "Nodes": [
+              {
+                "NodeId": "b037f828-cb55-44ed-9968-bc25d158ed41",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "cb19a0f1-17d6-47c2-ad2b-3314f05b15d7",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:dc0b9afb-938a-4b59-84e1-50a2302310d9:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Visibility",
+                  "Value": "Visible"
+                }
+              },
+              {
+                "NodeId": "218eb045-f2d6-4651-a347-246a7d2105dc",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:dc0b9afb-938a-4b59-84e1-50a2302310d9:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "Value": "0"
+                }
+              },
+              {
+                "NodeId": "440b5eb6-9378-462b-b5e1-de0eba6ae3ee",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 1480,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:dc0b9afb-938a-4b59-84e1-50a2302310d9:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "0",
+                  "To": "1",
+                  "DurationMs": 250,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "72b76e2c-13e7-44e1-b7c8-d4d0fe391167",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1800,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "456aae35-58b3-4bc4-924c-319368a44c84",
+                "SourceNodeId": "b037f828-cb55-44ed-9968-bc25d158ed41",
+                "SourcePort": "Out",
+                "TargetNodeId": "cb19a0f1-17d6-47c2-ad2b-3314f05b15d7",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "8fd75b5a-f6b2-4660-8e95-09c499b6097f",
+                "SourceNodeId": "cb19a0f1-17d6-47c2-ad2b-3314f05b15d7",
+                "SourcePort": "Out",
+                "TargetNodeId": "218eb045-f2d6-4651-a347-246a7d2105dc",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "f1dabd4b-b53e-4af2-83ed-e762ee21d0fb",
+                "SourceNodeId": "218eb045-f2d6-4651-a347-246a7d2105dc",
+                "SourcePort": "Out",
+                "TargetNodeId": "440b5eb6-9378-462b-b5e1-de0eba6ae3ee",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "d9e74e39-4a6a-467c-955b-785bbb47326e",
+                "SourceNodeId": "440b5eb6-9378-462b-b5e1-de0eba6ae3ee",
+                "SourcePort": "Out",
+                "TargetNodeId": "72b76e2c-13e7-44e1-b7c8-d4d0fe391167",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "LoopGraph": {
+            "Nodes": [
+              {
+                "NodeId": "7d16d911-d39a-41a5-9dff-229b91c65c02",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "19a63ccd-8df2-48d3-87ac-6563d6718ba9",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:dc0b9afb-938a-4b59-84e1-50a2302310d9:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "1",
+                  "To": "0.25",
+                  "DurationMs": 1000,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "fe2f75e0-332e-4302-888f-68cf7f24630d",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:dc0b9afb-938a-4b59-84e1-50a2302310d9:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "0.25",
+                  "To": "1",
+                  "DurationMs": 1000,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "70ca76c6-6400-428d-91ad-bf67dc8b3b67",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1480,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "1b3f0f75-c59f-4698-898b-eaf83f3aed8e",
+                "SourceNodeId": "7d16d911-d39a-41a5-9dff-229b91c65c02",
+                "SourcePort": "Out",
+                "TargetNodeId": "19a63ccd-8df2-48d3-87ac-6563d6718ba9",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "932f45b1-f5a6-43ef-ae99-a2b4dd19213a",
+                "SourceNodeId": "19a63ccd-8df2-48d3-87ac-6563d6718ba9",
+                "SourcePort": "Out",
+                "TargetNodeId": "fe2f75e0-332e-4302-888f-68cf7f24630d",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "a6cc842b-9721-4520-a8f3-4179e237c9de",
+                "SourceNodeId": "fe2f75e0-332e-4302-888f-68cf7f24630d",
+                "SourcePort": "Out",
+                "TargetNodeId": "70ca76c6-6400-428d-91ad-bf67dc8b3b67",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "StopTriggers": [
+            {
+              "EventType": "Guidance.StepChanged",
+              "Source": null,
+              "Filters": [
+                {
+                  "Left": "Event.PreviousAction",
+                  "Operator": "Equals",
+                  "Right": "PickHun",
+                  "RightValueKind": "Literal"
+                }
+              ]
+            },
+            {
+              "EventType": "Guidance.Cancelled",
+              "Source": null,
+              "Filters": []
+            },
+            {
+              "EventType": "Guidance.Stopped",
+              "Source": null,
+              "Filters": []
+            }
+          ],
+          "StopGraph": {
+            "Nodes": [
+              {
+                "NodeId": "d1d70017-5c33-4220-99df-a86ec67d4b87",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520,
+                "Y": 620.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "a194f2dd-f1df-4fbd-8cbd-096d908ca437",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 840,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:dc0b9afb-938a-4b59-84e1-50a2302310d9:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "From": "1",
+                  "To": "0",
+                  "DurationMs": 250,
+                  "Easing": "Linear",
+                  "WaitForCompletion": true
+                }
+              },
+              {
+                "NodeId": "804e969d-6e3d-4575-aba9-57b21c39b2ef",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 1160,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:dc0b9afb-938a-4b59-84e1-50a2302310d9:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Opacity",
+                  "Value": "0"
+                }
+              },
+              {
+                "NodeId": "c13138a8-0fed-46df-b61b-dec0e05d907e",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 1480,
+                "Y": 620.0,
+                "Properties": {
+                  "Target": "part:dc0b9afb-938a-4b59-84e1-50a2302310d9:PickingBorder",
+                  "TargetLayer": "Control",
+                  "PropertyName": "Visibility",
+                  "Value": "Hidden"
+                }
+              },
+              {
+                "NodeId": "471aa192-2dda-455d-b168-cc78c080c6b3",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1800,
+                "Y": 620.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "bc9e2bea-8749-4633-8289-f47602c67ad3",
+                "SourceNodeId": "d1d70017-5c33-4220-99df-a86ec67d4b87",
+                "SourcePort": "Out",
+                "TargetNodeId": "a194f2dd-f1df-4fbd-8cbd-096d908ca437",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "cfc5d11e-1d06-43bb-9b97-6a7ec4a25a97",
+                "SourceNodeId": "a194f2dd-f1df-4fbd-8cbd-096d908ca437",
+                "SourcePort": "Out",
+                "TargetNodeId": "804e969d-6e3d-4575-aba9-57b21c39b2ef",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "131baf1f-8366-4b04-9250-d7cc1bdce33a",
+                "SourceNodeId": "804e969d-6e3d-4575-aba9-57b21c39b2ef",
+                "SourcePort": "Out",
+                "TargetNodeId": "c13138a8-0fed-46df-b61b-dec0e05d907e",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "86484e74-5b0e-4333-b210-d35df4728346",
+                "SourceNodeId": "c13138a8-0fed-46df-b61b-dec0e05d907e",
+                "SourcePort": "Out",
+                "TargetNodeId": "471aa192-2dda-455d-b168-cc78c080c6b3",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "TransitionTrigger": null,
+          "ExitGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "EnterGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "ReentryPolicy": "InterruptPrevious",
+          "LoopPolicy": {
+            "RepeatCount": -1,
+            "AutoReverse": false,
+            "IntervalMs": 0,
+            "StopMode": "RunStopGraph",
+            "ResetOnStop": true,
+            "ReentryPolicy": "IgnoreIfRunning"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # Fronted Designer v3 独立编辑器设计规格
 
-本文记录 Fronted Designer v3 独立编辑器的设计规格。独立编辑器面向 v3 JSON layout 文件。它是后台侧的独立编辑窗口，不直接在真实前台窗口上编辑；真实前台窗口仍用于 OBS 捕获和运行时输出。当前 v3 layout 已改为 Window-centric：编辑器只选择 Window，不再选择或管理 Canvas；每个 v3 layout window 内部固定使用 `BaseCanvas`，并保持与现有 v3 renderer、生成控件名、`AnimationService`、业务控件和 JSON 格式兼容。
+本文记录 Fronted Designer v3 独立编辑器的设计规格。独立编辑器面向 v3 JSON layout 文件。它是后台侧的独立编辑窗口，不直接在真实前台窗口上编辑；真实前台窗口仍用于 OBS 捕获和运行时输出。当前 v3 layout 已改为 Window-centric：编辑器只选择 Window，不再选择或管理 Canvas；每个 v3 layout window 内部固定使用 `BaseCanvas`，并保持与现有 v3 renderer、行为引擎、业务控件和 JSON 格式兼容。
 
 当前编辑器已实现：设计期基础模型、配置转换、校验器、引用扫描和运行时关键名称目录；独立 `FrontedDesignerWindow` shell、窗口选择器、只读预览渲染、缩放控制和校验面板；内存交互层、透明 hitbox、选择框、拖拽、缩放控制点和键盘微调；基础 Property Grid、Add Control 菜单、Binding Browser 和 Resource Browser；保存用户布局、重置为内置、脏状态提示、吸附网格、Undo/Redo。Designer v3 显示层 i18n 已完成，属性名、控件类型、ComboBox 选项等可本地化，但 layout schema 与保存值不变。详细阶段历史见 [fronted-designer-v3.md](fronted-designer-v3.md#10-分阶段实现历史)。
 
@@ -105,7 +105,7 @@ Canvas 级字段同样必须校验：
 | `SurPickingBorder3` | 求生者 3 号 picking border 呼吸动画目标 |
 | `HunPickingBorder` | 监管者 picking border 呼吸动画目标 |
 
-这些名称被 `AnimationService` 通过 `window.FindName(...)` 查找，用于 pick 图淡入淡出和 picking border 呼吸动画。除非未来改为 metadata-based 动画目标查找，否则这些名称必须保持稳定。
+这些名称仍是布局迁移和诊断契约；动画目标使用稳定 `BehaviorGuid` 和生成 part 引用。
 
 这些运行时关键名称集中在 `FrontedLayoutRuntimeContractCatalog` 中。编辑器、校验器和后续删除/重命名保护都应通过该 catalog 查询，不应在 UI 层或多个服务中重复硬编码同一批名称。后续其他窗口如果出现类似运行时契约，也应扩展 catalog。
 
@@ -273,7 +273,7 @@ WPF 中没有可见内容的元素可能很难点击，甚至无法点击。常�
 3. 拖拽只作用于当前已选中控件；选中控件的 editor hitbox、outline 和 handles 会提升到其他 hitbox 之上，方便拖动被高 ZIndex 控件覆盖的低 ZIndex 控件。
 4. 该提升仅存在于 `InteractionLayer`，不会写回 JSON，也不会改变运行时 `ZIndex` 或 preview 渲染顺序。
 5. 空白区域单击清除选择；空白区域拖拽不改变选择。
-6. `Image` / `BorderedImage` 的 lock 和 picking border 是内部视觉层，不在普通控件列表显示，不生成普通 hitbox，也不能直接选中、拖拽或缩放；`PickingBorderName` 会作为运行时 namescope 名称注册，供 `AnimationService` 查找。
+6. `Image` / `BorderedImage` 的 lock 和 picking border 是内部视觉层，不在普通控件列表显示，不生成普通 hitbox，也不能直接选中、拖拽或缩放；行为图通过稳定 part 引用定位这些内部视觉层。
 7. `CurrentBanDisplay`、`BanSlotDisplay` 和 `PickingBorderOverlay` 已从 Designer v3 控件模型中移除；Ban 位必须使用 `Image` + `Lockable` overlay，pick 呼吸边框必须使用 `Image` / `BorderedImage` + `PickingBorderAvailable`。
 8. overlay 不反向驱动目标图片。移动或缩放图片控件时，内部 overlay 自动跟随图片根元素位置和尺寸。
 9. 交互优先级为：resize handle、视口平移、拖动已选控件、单击选择、空白点击清除。按住 Space 时左键拖拽用于平移，不会选择或移动控件；右键拖拽同样只平移视口。
@@ -752,7 +752,7 @@ Phase 10 起，编辑器 typed/pasted input 会按集中限制截断：搜索 12
 当前编辑器仍不做：
 
 1. 不实现 Save As。
-2. 不修改 `AnimationService` 查找逻辑。
+2. 不在运行时硬编码内置 Pick 或 PickingBorder 动画。
 3. 不迁移 `.bpui`。
 4. 不移除旧 `config.json` 前台设置。
 5. 不改变现有 v3 layout JSON schema。

@@ -1,4 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Events;
@@ -10,12 +9,11 @@ namespace neo_bpsys_wpf.Services;
 
 /// <summary>
 /// 角色选择服务的默认实现。
-/// 通过 <see cref="IServiceProvider"/> 延迟解析 <see cref="IAnimationService"/>，
-/// 避免在启动时触发 <see cref="IAnimationService"/> → <see cref="IFrontedWindowService"/> 的构造链。
 /// </summary>
 public class CharacterSelectionService(
     ISharedDataService sharedDataService,
-    IServiceProvider serviceProvider)
+    IFrontedTransitionOrchestrator transitionOrchestrator,
+    IFrontedLayoutService layoutService)
     : ICharacterSelectionService
 {
 #if DEBUG
@@ -24,23 +22,6 @@ public class CharacterSelectionService(
         Debug.WriteLine($"[DIAG] CharacterSelectionService: static ctor at {DateTimeOffset.Now:HH:mm:ss.fff}");
     }
 #endif
-    private IAnimationService? _animationService;
-    private IFrontedTransitionOrchestrator? _transitionOrchestrator;
-    private IFrontedLayoutService? _layoutService;
-
-    /// <summary>
-    /// 延迟解析 <see cref="IAnimationService"/>。
-    /// 仅在 <c>playAnimation == true</c> 时访问，避免启动时过早构造 <see cref="IFrontedWindowService"/>。
-    /// </summary>
-    private IAnimationService AnimationService =>
-        _animationService ??= serviceProvider.GetRequiredService<IAnimationService>();
-
-    private IFrontedTransitionOrchestrator TransitionOrchestrator =>
-        _transitionOrchestrator ??= serviceProvider.GetRequiredService<IFrontedTransitionOrchestrator>();
-
-    private IFrontedLayoutService LayoutService =>
-        _layoutService ??= serviceProvider.GetRequiredService<IFrontedLayoutService>();
-
     /// <inheritdoc/>
     public async Task SelectSurvivorAsync(int playerIndex, Character? character, bool playAnimation = true, bool isRecordGlobalBan = true)
     {
@@ -51,7 +32,7 @@ public class CharacterSelectionService(
         }
 
         var oldCharacter = sharedDataService.CurrentGame.SurPlayerList[playerIndex].Character;
-        await TransitionOrchestrator.RunTransitionAsync(
+        await transitionOrchestrator.RunTransitionAsync(
             await CreateCharacterPickRequestAsync(Camp.Sur, playerIndex, oldCharacter, character),
             () =>
             {
@@ -70,7 +51,7 @@ public class CharacterSelectionService(
         }
 
         var oldCharacter = sharedDataService.CurrentGame.HunPlayer.Character;
-        await TransitionOrchestrator.RunTransitionAsync(
+        await transitionOrchestrator.RunTransitionAsync(
             await CreateCharacterPickRequestAsync(Camp.Hun, -1, oldCharacter, character),
             () =>
             {
@@ -80,7 +61,7 @@ public class CharacterSelectionService(
     }
 
     /// <inheritdoc/>
-    public async Task BanCharacterAsync(Camp camp, int index, Character? character, bool playAnimation = true)
+    public Task BanCharacterAsync(Camp camp, int index, Character? character, bool playAnimation = true)
     {
         // 更新数据
         if (camp == Camp.Sur)
@@ -90,10 +71,7 @@ public class CharacterSelectionService(
         
         CharacterBanned?.Invoke(this, new CharacterBannedEventArgs(camp, index));
 
-        if (playAnimation)
-        {
-            await AnimationService.PlayBanAnimationAsync(camp, index);
-        }
+        return Task.CompletedTask;
     }
 
     /// <inheritdoc/>
@@ -115,7 +93,7 @@ public class CharacterSelectionService(
             ["Event.TargetBehaviorGuid"] = targetGuid
         };
 
-        await TransitionOrchestrator.RunMultiTargetTransitionAsync(
+        await transitionOrchestrator.RunMultiTargetTransitionAsync(
             [
                 CreateSwapRequest(sourceIndex, sourceGuid, payload),
                 CreateSwapRequest(targetIndex, targetGuid, payload)
@@ -202,7 +180,7 @@ public class CharacterSelectionService(
 
     private async Task<Guid> ResolveBpPickBehaviorGuidAsync(Camp camp, int playerIndex)
     {
-        var config = await LayoutService.LoadWindowConfigAsync(nameof(FrontedWindowType.BpWindow));
+        var config = await layoutService.LoadWindowConfigAsync(nameof(FrontedWindowType.BpWindow));
         if (config?.ControlLayout.Controls.TryGetValue(GetBpPickControlName(camp, playerIndex), out var control) == true)
         {
             return control.BehaviorGuid;

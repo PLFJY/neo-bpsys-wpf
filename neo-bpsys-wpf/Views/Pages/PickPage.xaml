@@ -3,7 +3,6 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:cc="clr-namespace:neo_bpsys_wpf.Controls"
-    xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
@@ -20,8 +19,6 @@
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
     <Page.Resources>
-        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-        <cv:BooleanToReverseVisibilityConverter x:Key="BooleanToReverseVisibilityConverter" />
         <Style BasedOn="{StaticResource {x:Type cc:CharacterChanger}}" TargetType="cc:CharacterChanger">
             <Setter Property="Spacing" Value="20" />
             <Setter Property="Margin" Value="5,10,0,0" />
@@ -99,87 +96,6 @@
                     ItemsSource="{Binding HunPickVm.CharaDict}"
                     modernScroll:GuidanceScrollTarget.Action="PickHun"
                     SelectedValue="{Binding HunPickVm.SelectedChara}" />
-            </Grid>
-        </Border>
-        <Border Margin="0,0,10,10" Style="{StaticResource Card}">
-            <Border.Resources>
-                <cv:BooleanMultiConverter x:Key="BooleanMultiConverter" />
-            </Border.Resources>
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-                <StackPanel Grid.Row="0" Orientation="Horizontal">
-                    <TextBlock
-                        VerticalAlignment="Center"
-                        Style="{StaticResource Title}"
-                        Text="{lex:Loc OpenPickingBorder}" />
-                    <ui:ToggleSwitch x:Name="IsSingleControlEnabled" Margin="10,0,0,0" />
-                    <TextBlock
-                        Margin="10,0,0,0"
-                        VerticalAlignment="Center"
-                        Text="{lex:Loc ControlFirst2PickingBorderSeparately}" />
-                </StackPanel>
-                <StackPanel Grid.Row="1">
-                    <StackPanel
-                        Margin="0,10,0,0"
-                        d:Visibility="Visible"
-                        Orientation="Horizontal"
-                        Visibility="{Binding ElementName=IsSingleControlEnabled, Path=IsChecked, Converter={StaticResource BoolToVisibilityConverter}}">
-                        <ui:ToggleSwitch
-                            Command="{Binding PickingBorderSwitchCommand}"
-                            CommandParameter="0"
-                            IsChecked="{Binding SurPickingBorderList[0]}" />
-                        <TextBlock Margin="10,0,0,0" Text="{lex:Loc SurvivorPickingBorder1}" />
-                    </StackPanel>
-                    <StackPanel
-                        Margin="0,10,0,0"
-                        d:Visibility="Visible"
-                        Orientation="Horizontal"
-                        Visibility="{Binding ElementName=IsSingleControlEnabled, Path=IsChecked, Converter={StaticResource BoolToVisibilityConverter}}">
-                        <ui:ToggleSwitch
-                            Command="{Binding PickingBorderSwitchCommand}"
-                            CommandParameter="1"
-                            IsChecked="{Binding SurPickingBorderList[1]}" />
-                        <TextBlock Margin="10,0,0,0" Text="{lex:Loc SurvivorPickingBorder2}" />
-                    </StackPanel>
-                    <StackPanel
-                        Margin="0,10,0,0"
-                        Orientation="Horizontal"
-                        Visibility="{Binding ElementName=IsSingleControlEnabled, Path=IsChecked, Converter={StaticResource BooleanToReverseVisibilityConverter}}">
-                        <ui:ToggleSwitch Command="{Binding PickingBorderSwitchCommand}" CommandParameter="0and1">
-                            <ui:ToggleSwitch.IsChecked>
-                                <MultiBinding Converter="{StaticResource BooleanMultiConverter}" Mode="TwoWay">
-                                    <Binding Path="SurPickingBorderList[0]" />
-                                    <Binding Path="SurPickingBorderList[1]" />
-                                </MultiBinding>
-                            </ui:ToggleSwitch.IsChecked>
-                        </ui:ToggleSwitch>
-                        <TextBlock Margin="10,0,0,0" Text="{lex:Loc SurvivorPickingBorder1and2}" />
-                    </StackPanel>
-                    <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                        <ui:ToggleSwitch
-                            Command="{Binding PickingBorderSwitchCommand}"
-                            CommandParameter="2"
-                            IsChecked="{Binding SurPickingBorderList[2]}" />
-                        <TextBlock Margin="10,0,0,0" Text="{lex:Loc SurvivorPickingBorder3}" />
-                    </StackPanel>
-                    <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                        <ui:ToggleSwitch
-                            Command="{Binding PickingBorderSwitchCommand}"
-                            CommandParameter="3"
-                            IsChecked="{Binding SurPickingBorderList[3]}" />
-                        <TextBlock Margin="10,0,0,0" Text="{lex:Loc SurvivorPickingBorder4}" />
-                    </StackPanel>
-                    <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                        <ui:ToggleSwitch
-                            Command="{Binding PickingBorderSwitchCommand}"
-                            CommandParameter="Hun"
-                            IsChecked="{Binding HunPickingBorder}" />
-                        <TextBlock Margin="10,0,0,0" Text="{lex:Loc HunterPickingBorder}" />
-                    </StackPanel>
-                </StackPanel>
             </Grid>
         </Border>
         <Border Margin="0,0,10,10" Style="{StaticResource Card}">

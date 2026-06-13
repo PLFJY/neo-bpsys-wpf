@@ -42,7 +42,7 @@ Fronted Designer v3 已完成基础设施阶段，所有内置前台窗口均已
 | `GameDataWindow` | `FrontedWindowBase -> ViewBox -> BaseCanvas` | v3 renderer，表头 `LocalizedText` |
 | `BpOverviewWindow` | `FrontedWindowBase -> ViewBox -> BaseCanvas` | v3 renderer，原 Widgets overview 独立窗口 |
 | `MapV2Window` | `FrontedWindowBase -> ViewBox -> BaseCanvas` | v3 renderer，保留 MapV2 |
-| `BpWindow` | `FrontedWindowBase -> ViewBox -> BaseCanvas` | v3 renderer，保留 AnimationService 兼容 |
+| `BpWindow` | `FrontedWindowBase -> ViewBox -> BaseCanvas` | v3 renderer + 内置 Transition / Loop 行为 |
 
 Designer v3 独立编辑器（`FrontedDesignerWindow`）已实现并作为设计编辑器唯一入口。旧版真实窗口设计器模式、SettingPage 旧前台自定义入口和旧位置保存/恢复 API 已移除。
 

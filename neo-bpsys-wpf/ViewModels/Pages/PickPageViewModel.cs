@@ -1,12 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging;
 using neo_bpsys_wpf.Controls;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
-using neo_bpsys_wpf.Core.Messages;
 using neo_bpsys_wpf.Core.Models;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -14,7 +12,7 @@ using Team = neo_bpsys_wpf.Core.Models.Team;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
-public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMessage>
+public partial class PickPageViewModel : ViewModelBase
 {
 #pragma warning disable CS8618
     public PickPageViewModel()
@@ -24,16 +22,13 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
     }
 
     private readonly ISharedDataService _sharedDataService;
-    private readonly IAnimationService _animationService;
     private readonly ISettingsHostService _settingsHostService;
 
     public PickPageViewModel(ISharedDataService sharedDataService,
         ICharacterSelectionService characterSelectionService,
-        IAnimationService animationService,
         ISettingsHostService settingsHostService)
     {
         _sharedDataService = sharedDataService;
-        _animationService = animationService;
         _settingsHostService = settingsHostService;
         SurPickViewModelList =
         [
@@ -64,55 +59,6 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         ];
     }
 
-    [RelayCommand]
-    private async Task PickingBorderSwitchAsync(string arg)
-    {
-        if (arg == "Hun")
-        {
-            if (HunPickingBorder)
-                await _animationService.StartPickingBorderBreathingAsync(Camp.Hun, -1);
-            else
-                await _animationService.StopPickingBorderBreathingAsync(Camp.Hun, -1);
-            return;
-        }
-
-        var argsMapSur = new Dictionary<string, int[]>
-        {
-            { "0", [0] },
-            { "1", [1] },
-            { "2", [2] },
-            { "3", [3] },
-            { "0and1", [0, 1] }
-        };
-
-        for (var i = 0; i < argsMapSur[arg].Length; i++)
-        {
-            var index = argsMapSur[arg][i];
-            if (SurPickingBorderList[index])
-            {
-                if (i == argsMapSur[arg].Length - 1)
-                {
-                    await _animationService.StartPickingBorderBreathingAsync(Camp.Sur, index);
-                }
-                else
-                {
-                    _ = _animationService.StartPickingBorderBreathingAsync(Camp.Sur, index);
-                }
-            }
-            else
-            {
-                if (i == argsMapSur[arg].Length - 1)
-                {
-                    await _animationService.StopPickingBorderBreathingAsync(Camp.Sur, index);
-                }
-                else
-                {
-                    _ = _animationService.StopPickingBorderBreathingAsync(Camp.Sur, index);
-                }
-            }
-        }
-    }
-
     public bool IsGlobalBanAutoRecord
     {
         get => _settingsHostService.Settings.IsRecordGlobalBan;
@@ -125,52 +71,8 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         }
     }
 
-    public void Receive(HighlightMessage message)
-    {
-        if (!_settingsHostService.Settings.UseLegacyGuidanceBreathing)
-        {
-            return;
-        }
-
-        //if (message.GameAction == GameAction.PickSur)
-        //{
-        //    if (message.Index == null) return;
-        //    foreach (var i in message.Index)
-        //    {
-        //        SurPickingBorderList[i] = true;
-        //        _ = PickingBorderSwitchAsync(i.ToString());
-        //    }
-        //}
-        //else
-        //{
-        //    for (var i = 0; i < SurPickingBorderList.Count; i++)
-        //    {
-        //        if (!SurPickingBorderList[i]) continue;
-        //        SurPickingBorderList[i] = false;
-        //        _ = PickingBorderSwitchAsync(i.ToString());
-        //    }
-        //}
-
-        //if (message.GameAction == GameAction.PickHun)
-        //{
-        //    HunPickingBorder = true;
-        //    _ = PickingBorderSwitchAsync("Hun");
-        //}
-        //else
-        //{
-        //    if (!HunPickingBorder) return;
-        //    HunPickingBorder = false;
-        //    _ = PickingBorderSwitchAsync("Hun");
-        //}
-    }
-
     public Team HomeTeam => _sharedDataService.HomeTeam;
     public Team AwayTeam => _sharedDataService.AwayTeam;
-
-    public ObservableCollection<bool> SurPickingBorderList { get; set; } =
-        [.. Enumerable.Range(0, 4).Select(_ => false)];
-
-    [ObservableProperty] private bool _hunPickingBorder;
 
     public ObservableCollection<SurPickViewModel> SurPickViewModelList { get; set; }
     public HunPickViewModel HunPickVm { get; set; }

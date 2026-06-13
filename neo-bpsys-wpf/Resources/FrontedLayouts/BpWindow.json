@@ -276,6 +276,7 @@
       },
       "SurPick0": {
         "ControlType": "BorderedImage",
+        "BehaviorGuid": "401bd114-82fe-4997-aa2f-61d95bb2ba16",
         "Left": 0,
         "Top": 620,
         "Width": 141,
@@ -292,6 +293,7 @@
       },
       "SurPick1": {
         "ControlType": "BorderedImage",
+        "BehaviorGuid": "a6b2ddab-a795-4d22-93fd-ba695d856159",
         "Left": 143,
         "Top": 620,
         "Width": 141,
@@ -308,6 +310,7 @@
       },
       "SurPick2": {
         "ControlType": "BorderedImage",
+        "BehaviorGuid": "6a9ff519-af7e-4259-894f-f3cbe58e8201",
         "Left": 286,
         "Top": 620,
         "Width": 141,
@@ -324,6 +327,7 @@
       },
       "SurPick3": {
         "ControlType": "BorderedImage",
+        "BehaviorGuid": "303e717c-1a0f-4c31-b001-4077c2590536",
         "Left": 428,
         "Top": 620,
         "Width": 140,
@@ -594,6 +598,7 @@
       },
       "HunPick": {
         "ControlType": "Image",
+        "BehaviorGuid": "dc0b9afb-938a-4b59-84e1-50a2302310d9",
         "Left": 872,
         "Top": 620,
         "Width": 568,
