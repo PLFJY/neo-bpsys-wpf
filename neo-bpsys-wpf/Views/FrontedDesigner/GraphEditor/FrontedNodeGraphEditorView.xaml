@@ -230,14 +230,15 @@
                                                     MouseLeave="ConnectionPath_OnMouseLeave"
                                                     Stroke="Transparent"
                                                     StrokeLineJoin="Round"
-                                                    StrokeThickness="14" />
+                                                    StrokeThickness="14"
+                                                    ToolTip="{Binding InspectionText}" />
                                                 <!--  可视连线  -->
                                                 <Path
                                                     Data="{Binding PathData}"
                                                     IsHitTestVisible="False"
-                                                    Stroke="{DynamicResource SystemAccentColorPrimaryBrush}"
+                                                    Stroke="{Binding StrokeColorHex, Converter={StaticResource HexToBrushConverter}}"
                                                     StrokeLineJoin="Round"
-                                                    StrokeThickness="3" />
+                                                    StrokeThickness="{Binding StrokeThickness}" />
                                                 <ui:Button
                                                     Canvas.Left="{Binding MidX}"
                                                     Canvas.Top="{Binding MidY}"
@@ -249,7 +250,7 @@
                                                     Content="×"
                                                     MouseEnter="ConnectionDeleteBtn_OnMouseEnter"
                                                     MouseLeave="ConnectionDeleteBtn_OnMouseLeave"
-                                                    ToolTip="{lex:Loc Designer.Graph.DeleteConnection}"
+                                                    ToolTip="{Binding InspectionText}"
                                                     Visibility="Collapsed" />
                                             </Canvas>
                                         </DataTemplate>
@@ -286,7 +287,7 @@
                                         <DataTemplate>
                                             <Border
                                                 x:Name="NodeBorder"
-                                                Width="190"
+                                                Width="{Binding CardWidth}"
                                                 Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
                                                 BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
                                                 BorderThickness="1"
@@ -368,10 +369,11 @@
                                                             <ItemsControl ItemsSource="{Binding InputPorts}">
                                                                 <ItemsControl.ItemTemplate>
                                                                     <DataTemplate>
-                                                                        <Border
-                                                                            Margin="0,1,0,1"
-                                                                            Background="Transparent"
-                                                                            Cursor="Hand"
+                                                                            <Border
+                                                                                Height="24"
+                                                                                Margin="{Binding RowMargin}"
+                                                                                Background="Transparent"
+                                                                                Cursor="Hand"
                                                                             MouseEnter="Port_OnMouseEnter"
                                                                             MouseLeave="Port_OnMouseLeave"
                                                                             MouseLeftButtonDown="InputPort_OnMouseLeftButtonDown"
@@ -389,15 +391,34 @@
                                                                                     </Style.Triggers>
                                                                                 </Style>
                                                                             </Border.Style>
-                                                                            <Ellipse
-                                                                                Width="10"
-                                                                                Height="10"
-                                                                                HorizontalAlignment="Left"
-                                                                                Fill="{Binding PortColorHex, Converter={StaticResource HexToBrushConverter}}" />
+                                                                            <DockPanel LastChildFill="True">
+                                                                                <Grid
+                                                                                    Width="14"
+                                                                                    Height="14"
+                                                                                    Margin="0,0,5,0"
+                                                                                    VerticalAlignment="Center">
+                                                                                    <Ellipse
+                                                                                        Width="10"
+                                                                                        Height="10"
+                                                                                        HorizontalAlignment="Left"
+                                                                                        VerticalAlignment="Center"
+                                                                                        Fill="{Binding PortColorHex, Converter={StaticResource HexToBrushConverter}}" />
+                                                                                </Grid>
+                                                                                <TextBlock
+                                                                                    VerticalAlignment="Center"
+                                                                                    FontSize="11"
+                                                                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                                                    Text="{Binding DisplayName}"
+                                                                                    TextTrimming="CharacterEllipsis" />
+                                                                            </DockPanel>
                                                                             <Border.ToolTip>
                                                                                 <ToolTip>
                                                                                     <StackPanel MaxWidth="240">
-                                                                                        <TextBlock FontWeight="SemiBold" Text="{Binding Name}" />
+                                                                                        <TextBlock FontWeight="SemiBold" Text="{Binding DisplayName}" />
+                                                                                        <TextBlock
+                                                                                            Margin="0,0,0,4"
+                                                                                            Text="{Binding TooltipText}"
+                                                                                            TextWrapping="Wrap" />
                                                                                         <TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}">
                                                                                             <Run Text="{lex:Loc Designer.Graph.Tooltip.PortKind}" /><Run Text=": " />
                                                                                             <Run Text="{Binding PortKindName}" />
@@ -409,7 +430,7 @@
                                                                                         <TextBlock
                                                                                             Margin="0,4,0,0"
                                                                                             Foreground="{DynamicResource TextFillColorTertiaryBrush}"
-                                                                                            Text="{lex:Loc Designer.Graph.Tooltip.CompatibleHint}" />
+                                                                                            Text="{Binding Name}" />
                                                                                     </StackPanel>
                                                                                 </ToolTip>
                                                                             </Border.ToolTip>
@@ -422,10 +443,11 @@
                                                             <ItemsControl Grid.Column="1" ItemsSource="{Binding OutputPorts}">
                                                                 <ItemsControl.ItemTemplate>
                                                                     <DataTemplate>
-                                                                        <Border
-                                                                            Margin="0,1,0,1"
-                                                                            Background="Transparent"
-                                                                            Cursor="Hand"
+                                                                            <Border
+                                                                                Height="24"
+                                                                                Margin="{Binding RowMargin}"
+                                                                                Background="Transparent"
+                                                                                Cursor="Hand"
                                                                             MouseEnter="Port_OnMouseEnter"
                                                                             MouseLeave="Port_OnMouseLeave"
                                                                             MouseLeftButtonDown="OutputPort_OnMouseLeftButtonDown">
@@ -442,15 +464,66 @@
                                                                                     </Style.Triggers>
                                                                                 </Style>
                                                                             </Border.Style>
-                                                                            <Ellipse
-                                                                                Width="10"
-                                                                                Height="10"
-                                                                                HorizontalAlignment="Right"
-                                                                                Fill="{Binding PortColorHex, Converter={StaticResource HexToBrushConverter}}" />
+                                                                            <DockPanel LastChildFill="True">
+                                                                                <Grid DockPanel.Dock="Right"
+                                                                                    Width="16"
+                                                                                    Height="16"
+                                                                                    Margin="5,0,0,0"
+                                                                                    VerticalAlignment="Center">
+                                                                                    <Ellipse
+                                                                                        x:Name="OutputCircle"
+                                                                                        Width="10"
+                                                                                        Height="10"
+                                                                                        HorizontalAlignment="Right"
+                                                                                        VerticalAlignment="Center"
+                                                                                        Fill="{Binding PortColorHex, Converter={StaticResource HexToBrushConverter}}">
+                                                                                        <Ellipse.Style>
+                                                                                            <Style TargetType="Ellipse">
+                                                                                                <Style.Triggers>
+                                                                                                    <DataTrigger Binding="{Binding IsParallelContinuation}" Value="True">
+                                                                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                                                                    </DataTrigger>
+                                                                                                </Style.Triggers>
+                                                                                            </Style>
+                                                                                        </Ellipse.Style>
+                                                                                    </Ellipse>
+                                                                                    <Polygon
+                                                                                        x:Name="OutputDiamond"
+                                                                                        Width="14"
+                                                                                        Height="14"
+                                                                                        HorizontalAlignment="Right"
+                                                                                        VerticalAlignment="Center"
+                                                                                        Fill="{Binding PortColorHex, Converter={StaticResource HexToBrushConverter}}"
+                                                                                        Points="7,0 14,7 7,14 0,7"
+                                                                                        Stretch="Fill">
+                                                                                        <Polygon.Style>
+                                                                                            <Style TargetType="Polygon">
+                                                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                                                                <Style.Triggers>
+                                                                                                    <DataTrigger Binding="{Binding IsParallelContinuation}" Value="True">
+                                                                                                        <Setter Property="Visibility" Value="Visible" />
+                                                                                                    </DataTrigger>
+                                                                                                </Style.Triggers>
+                                                                                            </Style>
+                                                                                        </Polygon.Style>
+                                                                                    </Polygon>
+                                                                                </Grid>
+                                                                                <TextBlock
+                                                                                    VerticalAlignment="Center"
+                                                                                    FontSize="11"
+                                                                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                                                    Text="{Binding DisplayName}"
+                                                                                    TextAlignment="Right"
+                                                                                    TextTrimming="CharacterEllipsis" />
+                                                                            </DockPanel>
                                                                             <Border.ToolTip>
                                                                                 <ToolTip>
                                                                                     <StackPanel MaxWidth="240">
-                                                                                        <TextBlock FontWeight="SemiBold" Text="{Binding Name}" />
+                                                                                        <TextBlock FontWeight="SemiBold" Text="{Binding DisplayName}" />
+                                                                                        <TextBlock
+                                                                                            Margin="0,0,0,4"
+                                                                                            Text="{Binding TooltipText}"
+                                                                                            TextWrapping="Wrap" />
                                                                                         <TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}">
                                                                                             <Run Text="{lex:Loc Designer.Graph.Tooltip.PortKind}" /><Run Text=": " />
                                                                                             <Run Text="{Binding PortKindName}" />
@@ -462,7 +535,7 @@
                                                                                         <TextBlock
                                                                                             Margin="0,4,0,0"
                                                                                             Foreground="{DynamicResource TextFillColorTertiaryBrush}"
-                                                                                            Text="{lex:Loc Designer.Graph.Tooltip.CompatibleHint}" />
+                                                                                            Text="{Binding Name}" />
                                                                                     </StackPanel>
                                                                                 </ToolTip>
                                                                             </Border.ToolTip>

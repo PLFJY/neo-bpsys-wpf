@@ -119,6 +119,51 @@ public class FrontedNodeGraphEditorViewModelTest
     }
 
     [Fact]
+    public void ParallelNode_OutputPorts_ExposeLocalizedLabelsAndRoles()
+    {
+        var editor = new FrontedNodeGraphEditorViewModel(
+            new FrontedNodeGraph(),
+            localize: (key, fallback) => key switch
+            {
+                "Designer.Graph.Port.Branch1" => "分支 1",
+                "Designer.Graph.Port.Branch2" => "分支 2",
+                "Designer.Graph.Port.Branch3" => "分支 3",
+                "Designer.Graph.Port.ParallelOut" => "全部完成后",
+                "Designer.Graph.Port.ParallelOut.Tooltip" => "所有已连接的并行分支执行完成后，从这里继续。",
+                _ => fallback
+            });
+
+        editor.AddNode("flow.parallel");
+
+        var ports = editor.SelectedNode!.OutputPorts;
+        Assert.Equal(["分支 1", "分支 2", "分支 3", "全部完成后"], ports.Select(port => port.DisplayName).ToArray());
+        Assert.All(ports.Take(3), port => Assert.Equal(FrontedNodePortRole.ParallelBranch, port.Role));
+        var continuation = ports.Single(port => port.Name == "Out");
+        Assert.Equal(FrontedNodePortRole.ParallelContinuation, continuation.Role);
+        Assert.True(continuation.CenterOffsetY > ports.Single(port => port.Name == "Branch3").CenterOffsetY + 24);
+        Assert.Contains("所有已连接的并行分支执行完成后", continuation.TooltipText);
+    }
+
+    [Fact]
+    public void ParallelConnections_UseSourcePortRoleStyleAndMeaning()
+    {
+        var editor = CreateEditorWithNodes("flow.parallel", "action.log", "flow.end");
+        var parallel = editor.Nodes[0];
+        var log = editor.Nodes[1];
+        var end = editor.Nodes[2];
+        editor.AddConnection(parallel.OutputPorts.Single(port => port.Name == "Branch1"), log.InputPorts[0]);
+        editor.AddConnection(parallel.OutputPorts.Single(port => port.Name == "Out"), end.InputPorts[0]);
+
+        var branchConnection = editor.Connections.Single(connection => connection.Model.SourcePort == "Branch1");
+        var continuationConnection = editor.Connections.Single(connection => connection.Model.SourcePort == "Out");
+
+        Assert.Equal("#1976D2", branchConnection.StrokeColorHex);
+        Assert.Equal("#8BC34A", continuationConnection.StrokeColorHex);
+        Assert.True(continuationConnection.StrokeThickness > branchConnection.StrokeThickness);
+        Assert.Contains("所有并行分支完成后继续", continuationConnection.Meaning);
+    }
+
+    [Fact]
     public void GraphEditor_EditNodeProperty_UpdatesJsonPropertyAndMarksDirty()
     {
         var dirty = 0;

@@ -4094,15 +4094,25 @@
   <data name="Designer.Graph.Node.ActionResetProperty.Description" xml:space="preserve"><value>プロパティリセット要求を出します。PropertyName は具体的なプロパティ、または All を指定できます。</value></data>
   <data name="Designer.Graph.Node.ActionAnimateProperty.Description" xml:space="preserve"><value>プロパティアニメーション要求を出します。対象、プロパティ名、開始/終了値、時間、イージングを設定します。</value></data>
   <data name="Designer.Graph.Port.In" xml:space="preserve"><value>In</value></data>
-  <data name="Designer.Graph.Port.Out" xml:space="preserve"><value>Out</value></data>
+  <data name="Designer.Graph.Port.Out" xml:space="preserve"><value>次へ</value></data>
   <data name="Designer.Graph.Port.True" xml:space="preserve"><value>True</value></data>
   <data name="Designer.Graph.Port.False" xml:space="preserve"><value>False</value></data>
   <data name="Designer.Graph.Port.Step1" xml:space="preserve"><value>Step1</value></data>
   <data name="Designer.Graph.Port.Step2" xml:space="preserve"><value>Step2</value></data>
   <data name="Designer.Graph.Port.Step3" xml:space="preserve"><value>Step3</value></data>
-  <data name="Designer.Graph.Port.Branch1" xml:space="preserve"><value>Branch1</value></data>
-  <data name="Designer.Graph.Port.Branch2" xml:space="preserve"><value>Branch2</value></data>
-  <data name="Designer.Graph.Port.Branch3" xml:space="preserve"><value>Branch3</value></data>
+  <data name="Designer.Graph.Port.Branch1" xml:space="preserve"><value>分岐 1</value></data>
+  <data name="Designer.Graph.Port.Branch2" xml:space="preserve"><value>分岐 2</value></data>
+  <data name="Designer.Graph.Port.Branch3" xml:space="preserve"><value>分岐 3</value></data>
+  <data name="Designer.Graph.Port.ParallelOut" xml:space="preserve"><value>すべて完了後</value></data>
+  <data name="Designer.Graph.Port.Branch1.Tooltip" xml:space="preserve"><value>並列分岐 1。他の接続済み分岐と同時に実行されます。</value></data>
+  <data name="Designer.Graph.Port.Branch2.Tooltip" xml:space="preserve"><value>並列分岐 2。他の接続済み分岐と同時に実行されます。</value></data>
+  <data name="Designer.Graph.Port.Branch3.Tooltip" xml:space="preserve"><value>並列分岐 3。他の接続済み分岐と同時に実行されます。</value></data>
+  <data name="Designer.Graph.Port.ParallelOut.Tooltip" xml:space="preserve"><value>接続済みのすべての並列分岐が完了した後、ここから続行します。</value></data>
+  <data name="Designer.Graph.Connection.Meaning.ParallelBranch1" xml:space="preserve"><value>並列分岐 1</value></data>
+  <data name="Designer.Graph.Connection.Meaning.ParallelBranch2" xml:space="preserve"><value>並列分岐 2</value></data>
+  <data name="Designer.Graph.Connection.Meaning.ParallelBranch3" xml:space="preserve"><value>並列分岐 3</value></data>
+  <data name="Designer.Graph.Connection.Meaning.ParallelOut" xml:space="preserve"><value>すべての並列分岐完了後に続行</value></data>
+  <data name="Designer.Graph.Connection.MeaningLabel" xml:space="preserve"><value>意味</value></data>
   <data name="Designer.Graph.Port.Completed" xml:space="preserve"><value>完了</value></data>
   <data name="Designer.Graph.Port.Value" xml:space="preserve"><value>Value</value></data>
   <data name="Designer.Graph.Property.DurationMs" xml:space="preserve"><value>時間</value></data>

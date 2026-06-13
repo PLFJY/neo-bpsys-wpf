@@ -70,6 +70,16 @@ public sealed class FrontedNodeGraphValidator(FrontedNodeCatalog? catalog = null
                     "Parallel node has no connected branches; Out will execute immediately.",
                     node.NodeId));
             }
+
+            var hasOut = graph.GetOutgoing(node.NodeId, "Out").Any();
+            if (hasAnyBranch && !hasOut)
+            {
+                messages.Add(Message(
+                    FrontedNodeGraphValidationSeverity.Warning,
+                    "ParallelBranchesNoOut",
+                    "Parallel branches will run, but there is no next node after all branches complete.",
+                    node.NodeId));
+            }
         }
     }
 

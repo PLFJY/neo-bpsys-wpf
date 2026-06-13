@@ -4190,15 +4190,25 @@ Select a control in the designer to preview animation here</value></data>
   <data name="Designer.Graph.Node.ActionResetProperty.Description" xml:space="preserve"><value>Emits a reset-property request. PropertyName can be a specific property or All.</value></data>
   <data name="Designer.Graph.Node.ActionAnimateProperty.Description" xml:space="preserve"><value>Emits an animate-property request. Fill target, property, from/to values, duration, and easing.</value></data>
   <data name="Designer.Graph.Port.In" xml:space="preserve"><value>In</value></data>
-  <data name="Designer.Graph.Port.Out" xml:space="preserve"><value>Out</value></data>
+  <data name="Designer.Graph.Port.Out" xml:space="preserve"><value>Next</value></data>
   <data name="Designer.Graph.Port.True" xml:space="preserve"><value>True</value></data>
   <data name="Designer.Graph.Port.False" xml:space="preserve"><value>False</value></data>
   <data name="Designer.Graph.Port.Step1" xml:space="preserve"><value>Step1</value></data>
   <data name="Designer.Graph.Port.Step2" xml:space="preserve"><value>Step2</value></data>
   <data name="Designer.Graph.Port.Step3" xml:space="preserve"><value>Step3</value></data>
-  <data name="Designer.Graph.Port.Branch1" xml:space="preserve"><value>Branch1</value></data>
-  <data name="Designer.Graph.Port.Branch2" xml:space="preserve"><value>Branch2</value></data>
-  <data name="Designer.Graph.Port.Branch3" xml:space="preserve"><value>Branch3</value></data>
+  <data name="Designer.Graph.Port.Branch1" xml:space="preserve"><value>Branch 1</value></data>
+  <data name="Designer.Graph.Port.Branch2" xml:space="preserve"><value>Branch 2</value></data>
+  <data name="Designer.Graph.Port.Branch3" xml:space="preserve"><value>Branch 3</value></data>
+  <data name="Designer.Graph.Port.ParallelOut" xml:space="preserve"><value>After all complete</value></data>
+  <data name="Designer.Graph.Port.Branch1.Tooltip" xml:space="preserve"><value>Parallel branch 1. Runs concurrently with other connected branches.</value></data>
+  <data name="Designer.Graph.Port.Branch2.Tooltip" xml:space="preserve"><value>Parallel branch 2. Runs concurrently with other connected branches.</value></data>
+  <data name="Designer.Graph.Port.Branch3.Tooltip" xml:space="preserve"><value>Parallel branch 3. Runs concurrently with other connected branches.</value></data>
+  <data name="Designer.Graph.Port.ParallelOut.Tooltip" xml:space="preserve"><value>Continues after all connected parallel branches have completed.</value></data>
+  <data name="Designer.Graph.Connection.Meaning.ParallelBranch1" xml:space="preserve"><value>Parallel branch 1</value></data>
+  <data name="Designer.Graph.Connection.Meaning.ParallelBranch2" xml:space="preserve"><value>Parallel branch 2</value></data>
+  <data name="Designer.Graph.Connection.Meaning.ParallelBranch3" xml:space="preserve"><value>Parallel branch 3</value></data>
+  <data name="Designer.Graph.Connection.Meaning.ParallelOut" xml:space="preserve"><value>Continue after all parallel branches complete</value></data>
+  <data name="Designer.Graph.Connection.MeaningLabel" xml:space="preserve"><value>Meaning</value></data>
   <data name="Designer.Graph.Port.Completed" xml:space="preserve"><value>Completed</value></data>
   <data name="Designer.Graph.Port.Value" xml:space="preserve"><value>Value</value></data>
   <data name="Designer.Graph.Property.DurationMs" xml:space="preserve"><value>Duration</value></data>

@@ -134,4 +134,40 @@ public class FrontedNodeGraphValidatorTest
 
         Assert.Contains(messages, message => message.Code == "InvalidNumericValue");
     }
+
+    [Fact]
+    public void Validate_ParallelBranchesWithoutOut_WarnsButAllowsEndAsOut()
+    {
+        var start = _catalog.CreateNode("flow.start");
+        var parallel = _catalog.CreateNode("flow.parallel");
+        var branch = _catalog.CreateNode("action.log");
+        var end = _catalog.CreateNode("flow.end");
+        var graph = new FrontedNodeGraph
+        {
+            Nodes = [start, parallel, branch, end],
+            Connections =
+            [
+                Link(start, "Out", parallel, "In"),
+                Link(parallel, "Branch1", branch, "In")
+            ]
+        };
+
+        var messages = new FrontedNodeGraphValidator(_catalog).Validate(graph);
+
+        Assert.Contains(messages, message => message.Code == "ParallelBranchesNoOut" && message.Severity == FrontedNodeGraphValidationSeverity.Warning);
+
+        graph.Connections.Add(Link(parallel, "Out", end, "In"));
+        messages = new FrontedNodeGraphValidator(_catalog).Validate(graph);
+
+        Assert.DoesNotContain(messages, message => message.Code == "ParallelBranchesNoOut");
+    }
+
+    private static FrontedNodeConnection Link(FrontedNode source, string sourcePort, FrontedNode target, string targetPort) =>
+        new()
+        {
+            SourceNodeId = source.NodeId,
+            SourcePort = sourcePort,
+            TargetNodeId = target.NodeId,
+            TargetPort = targetPort
+        };
 }

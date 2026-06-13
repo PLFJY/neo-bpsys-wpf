@@ -743,7 +743,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
             var target = Nodes.FirstOrDefault(node => node.Model.NodeId == model.TargetNodeId);
             if (source is not null && target is not null)
             {
-                Connections.Add(new FrontedNodeConnectionViewModel(model, source, target));
+                Connections.Add(new FrontedNodeConnectionViewModel(model, source, target, _localize));
             }
         }
         RefreshPortConnectionStates();
@@ -914,6 +914,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
 public sealed partial class FrontedNodeEditorViewModel : ObservableObject
 {
     public const double Width = 190;
+    private const double ParallelWidth = 230;
     private readonly Action _markDirty;
     private readonly Action _validate;
 
@@ -931,8 +932,9 @@ public sealed partial class FrontedNodeEditorViewModel : ObservableObject
         _validate = validate;
         DisplayName = descriptor is null ? model.NodeType : localize(descriptor.DisplayNameKey, NodeFallback(model.NodeType));
         Description = descriptor is null ? model.NodeType : localize(descriptor.DescriptionKey, model.NodeType);
-        InputPorts = descriptor?.InputPorts.Select((port, index) => new FrontedNodePortViewModel(this, port, index, localize)).ToArray() ?? [];
-        OutputPorts = descriptor?.OutputPorts.Select((port, index) => new FrontedNodePortViewModel(this, port, index, localize)).ToArray() ?? [];
+        CardWidth = model.NodeType == "flow.parallel" ? ParallelWidth : Width;
+        InputPorts = CreatePorts(descriptor?.InputPorts, localize);
+        OutputPorts = CreatePorts(descriptor?.OutputPorts, localize);
         var properties = descriptor?.Properties
             .Select(property => new FrontedNodePropertyEditorViewModel(model, property, markDirty, validate, localize, targetOptions))
             .ToArray() ?? [];
@@ -953,6 +955,8 @@ public sealed partial class FrontedNodeEditorViewModel : ObservableObject
     public FrontedNodeTypeDescriptor? Descriptor { get; }
     public string DisplayName { get; }
     public string Description { get; }
+    /// <summary>Gets the rendered node card width.</summary>
+    public double CardWidth { get; }
     public IReadOnlyList<FrontedNodePortViewModel> InputPorts { get; }
     public IReadOnlyList<FrontedNodePortViewModel> OutputPorts { get; }
     public IReadOnlyList<FrontedNodePropertyEditorViewModel> Properties { get; }
@@ -972,12 +976,56 @@ public sealed partial class FrontedNodeEditorViewModel : ObservableObject
     [ObservableProperty]
     private bool _isSelected;
 
+    private IReadOnlyList<FrontedNodePortViewModel> CreatePorts(
+        IReadOnlyList<FrontedNodePortDescriptor>? descriptors,
+        Func<string, string, string> localize)
+    {
+        if (descriptors is null || descriptors.Count == 0)
+        {
+            return [];
+        }
+
+        var ports = new List<FrontedNodePortViewModel>(descriptors.Count);
+        var accumulatedExtraSpacing = 0D;
+        for (var i = 0; i < descriptors.Count; i++)
+        {
+            var descriptor = descriptors[i];
+            var beforeSpacing = IsParallelContinuationPort(descriptor) ? 14D : 0D;
+            accumulatedExtraSpacing += beforeSpacing;
+            ports.Add(new FrontedNodePortViewModel(this, descriptor, i, accumulatedExtraSpacing, beforeSpacing, localize));
+        }
+
+        return ports;
+    }
+
+    private bool IsParallelContinuationPort(FrontedNodePortDescriptor descriptor) =>
+        Model.NodeType == "flow.parallel"
+        && string.Equals(descriptor.Name, "Out", StringComparison.Ordinal);
+
     private static string NodeFallback(string nodeType) => nodeType.Split('.').LastOrDefault() ?? nodeType;
+}
+
+/// <summary>
+/// Describes the editor-only semantic role of a node port.
+/// </summary>
+public enum FrontedNodePortRole
+{
+    /// <summary>A regular port without specialized graph meaning.</summary>
+    Default,
+
+    /// <summary>A branch output on a flow.parallel node.</summary>
+    ParallelBranch,
+
+    /// <summary>The continuation output that runs after all connected flow.parallel branches finish.</summary>
+    ParallelContinuation
 }
 
 public sealed partial class FrontedNodePortViewModel : ObservableObject
 {
     private readonly Func<string, string, string>? _localize;
+    private const double HeaderHeight = 36D;
+    private const double PortAreaTopMargin = 8D;
+    private const double PortRowHeight = 24D;
 
     public FrontedNodeEditorViewModel Node { get; }
     public FrontedNodePortDescriptor Descriptor { get; }
@@ -992,6 +1040,30 @@ public sealed partial class FrontedNodePortViewModel : ObservableObject
 
     /// <summary>基于端口类型的颜色十六进制值</summary>
     public string PortColorHex { get; }
+
+    /// <summary>Gets the visible port label.</summary>
+    public string DisplayName { get; }
+
+    /// <summary>Gets the semantic role used for editor styling and help text.</summary>
+    public FrontedNodePortRole Role { get; }
+
+    /// <summary>Gets a value indicating whether this port is a parallel continuation port.</summary>
+    public bool IsParallelContinuation => Role == FrontedNodePortRole.ParallelContinuation;
+
+    /// <summary>Gets a value indicating whether this port is a parallel branch port.</summary>
+    public bool IsParallelBranch => Role == FrontedNodePortRole.ParallelBranch;
+
+    /// <summary>Gets the margin applied before this port row.</summary>
+    public Thickness RowMargin { get; }
+
+    /// <summary>Gets the port center offset from the node card top.</summary>
+    public double CenterOffsetY { get; }
+
+    /// <summary>Gets tooltip text that explains the port semantics.</summary>
+    public string TooltipText { get; }
+
+    /// <summary>Gets a short meaning description for connection inspection.</summary>
+    public string Meaning { get; }
 
     /// <summary>是否为 Flow 端口（FlowIn 或 FlowOut）</summary>
     public bool IsFlowPort { get; }
@@ -1008,21 +1080,33 @@ public sealed partial class FrontedNodePortViewModel : ObservableObject
     [ObservableProperty]
     private bool _isConnected;
 
-    public FrontedNodePortViewModel(FrontedNodeEditorViewModel node, FrontedNodePortDescriptor descriptor, int index, Func<string, string, string>? localize = null)
+    public FrontedNodePortViewModel(
+        FrontedNodeEditorViewModel node,
+        FrontedNodePortDescriptor descriptor,
+        int index,
+        double accumulatedExtraSpacing,
+        double beforeSpacing,
+        Func<string, string, string>? localize = null)
     {
         Node = node;
         Descriptor = descriptor;
         Index = index;
         _localize = localize;
+        RowMargin = new Thickness(0, beforeSpacing, 0, 0);
+        CenterOffsetY = HeaderHeight + PortAreaTopMargin + index * PortRowHeight + accumulatedExtraSpacing + PortRowHeight / 2D;
 
         IsFlowPort = descriptor.PortKind is FrontedNodePortKind.FlowIn or FrontedNodePortKind.FlowOut;
+        Role = GetRole(node.Model.NodeType, descriptor.Name);
+        DisplayName = GetDisplayName(descriptor);
 
         PortKindName = IsFlowPort
             ? Localize("Designer.Graph.PortKind.Flow", "Flow")
             : Localize("Designer.Graph.PortKind.Value", "Value");
 
         ValueTypeName = GetValueTypeDisplayName(descriptor.ValueType);
-        PortColorHex = GetPortColor(descriptor);
+        PortColorHex = GetPortColor(descriptor, Role);
+        TooltipText = GetTooltipText();
+        Meaning = GetMeaning();
     }
 
     /// <summary>
@@ -1032,8 +1116,13 @@ public sealed partial class FrontedNodePortViewModel : ObservableObject
         FrontedNodePortDescriptor.AreCompatible(source, target);
 
     /// <summary>获取端口在端口类型维度上的颜色映射</summary>
-    public static string GetPortColor(FrontedNodePortDescriptor descriptor)
+    public static string GetPortColor(FrontedNodePortDescriptor descriptor, FrontedNodePortRole role = FrontedNodePortRole.Default)
     {
+        if (role == FrontedNodePortRole.ParallelContinuation)
+        {
+            return "#8BC34A";
+        }
+
         if (descriptor.PortKind is FrontedNodePortKind.FlowIn or FrontedNodePortKind.FlowOut)
             return "#1976D2"; // Blue（更饱和，与 Control 明显区分）
 
@@ -1046,6 +1135,65 @@ public sealed partial class FrontedNodePortViewModel : ObservableObject
             FrontedNodePortValueType.Control => "#00897B", // Teal（从青色改为青绿，与 Flow 明显区分）
             FrontedNodePortValueType.Object => "#757575",  // Gray
             _ => "#757575"                                  // Gray (unknown)
+        };
+    }
+
+    private string GetDisplayName(FrontedNodePortDescriptor descriptor)
+    {
+        if (Role == FrontedNodePortRole.ParallelContinuation)
+        {
+            return Localize("Designer.Graph.Port.ParallelOut", "全部完成后");
+        }
+
+        return Localize(descriptor.DisplayNameKey, descriptor.Name);
+    }
+
+    private string GetTooltipText()
+    {
+        if (Node.Model.NodeType != "flow.parallel")
+        {
+            return Localize("Designer.Graph.Tooltip.CompatibleHint", "Drag to a compatible port to connect.");
+        }
+
+        return Name switch
+        {
+            "Branch1" => Localize("Designer.Graph.Port.Branch1.Tooltip", "并行分支 1。此分支会和其他分支同时执行。"),
+            "Branch2" => Localize("Designer.Graph.Port.Branch2.Tooltip", "并行分支 2。此分支会和其他分支同时执行。"),
+            "Branch3" => Localize("Designer.Graph.Port.Branch3.Tooltip", "并行分支 3。此分支会和其他分支同时执行。"),
+            "Out" => Localize("Designer.Graph.Port.ParallelOut.Tooltip", "所有已连接的并行分支执行完成后，从这里继续。"),
+            _ => Localize("Designer.Graph.Tooltip.CompatibleHint", "Drag to a compatible port to connect.")
+        };
+    }
+
+    private string GetMeaning()
+    {
+        if (Node.Model.NodeType == "flow.parallel")
+        {
+            return Name switch
+            {
+                "Branch1" => Localize("Designer.Graph.Connection.Meaning.ParallelBranch1", "并行分支 1"),
+                "Branch2" => Localize("Designer.Graph.Connection.Meaning.ParallelBranch2", "并行分支 2"),
+                "Branch3" => Localize("Designer.Graph.Connection.Meaning.ParallelBranch3", "并行分支 3"),
+                "Out" => Localize("Designer.Graph.Connection.Meaning.ParallelOut", "所有并行分支完成后继续"),
+                _ => DisplayName
+            };
+        }
+
+        return DisplayName;
+    }
+
+    private static FrontedNodePortRole GetRole(string nodeType, string portName)
+    {
+        if (nodeType != "flow.parallel")
+        {
+            return FrontedNodePortRole.Default;
+        }
+
+        return portName switch
+        {
+            "Branch1" or "Branch2" or "Branch3" => FrontedNodePortRole.ParallelBranch,
+            "Out" => FrontedNodePortRole.ParallelContinuation,
+            _ => FrontedNodePortRole.Default
         };
     }
 
@@ -1072,16 +1220,38 @@ public sealed partial class FrontedNodePortViewModel : ObservableObject
 public sealed partial class FrontedNodeConnectionViewModel(
     FrontedNodeConnection model,
     FrontedNodeEditorViewModel source,
-    FrontedNodeEditorViewModel target) : ObservableObject
+    FrontedNodeEditorViewModel target,
+    Func<string, string, string>? localize = null) : ObservableObject
 {
+    private readonly Func<string, string, string>? _localize = localize;
+
     public FrontedNodeConnection Model { get; } = model;
     public FrontedNodeEditorViewModel Source { get; } = source;
     public FrontedNodeEditorViewModel Target { get; } = target;
     public string Summary => $"{Source.DisplayName}.{Model.SourcePort} -> {Target.DisplayName}.{Model.TargetPort}";
-    public double X1 => Source.X + FrontedNodeEditorViewModel.Width;
-    public double Y1 => Source.Y + 54 + Math.Max(0, Source.OutputPorts.ToList().FindIndex(port => port.Name == Model.SourcePort)) * 24;
+    /// <summary>Gets the source port view model for this connection.</summary>
+    public FrontedNodePortViewModel? SourcePort => Source.OutputPorts.FirstOrDefault(port => port.Name == Model.SourcePort);
+    /// <summary>Gets the target port view model for this connection.</summary>
+    public FrontedNodePortViewModel? TargetPort => Target.InputPorts.FirstOrDefault(port => port.Name == Model.TargetPort);
+    /// <summary>Gets the visible source port name.</summary>
+    public string SourcePortDisplayName => SourcePort?.DisplayName ?? Model.SourcePort;
+    /// <summary>Gets the visible target port name.</summary>
+    public string TargetPortDisplayName => TargetPort?.DisplayName ?? Model.TargetPort;
+    /// <summary>Gets the semantic meaning of the source side of the connection.</summary>
+    public string Meaning => SourcePort?.Meaning ?? SourcePortDisplayName;
+    /// <summary>Gets the connection stroke color derived from the source port role.</summary>
+    public string StrokeColorHex => SourcePort?.PortColorHex ?? "#1976D2";
+    /// <summary>Gets the connection stroke thickness derived from the source port role.</summary>
+    public double StrokeThickness => SourcePort?.IsParallelContinuation == true ? 4D : 3D;
+    /// <summary>Gets the connection inspection text shown while hovering the connection.</summary>
+    public string InspectionText => $"{Source.DisplayName}.{Model.SourcePort} -> {Target.DisplayName}.{Model.TargetPort}{Environment.NewLine}"
+                                    + $"{Source.DisplayName}: {SourcePortDisplayName}{Environment.NewLine}"
+                                    + $"{Target.DisplayName}: {TargetPortDisplayName}{Environment.NewLine}"
+                                    + $"{Localize("Designer.Graph.Connection.MeaningLabel", "Meaning")}: {Meaning}";
+    public double X1 => Source.X + Source.CardWidth;
+    public double Y1 => Source.Y + (SourcePort?.CenterOffsetY ?? 56D);
     public double X2 => Target.X;
-    public double Y2 => Target.Y + 54 + Math.Max(0, Target.InputPorts.ToList().FindIndex(port => port.Name == Model.TargetPort)) * 24;
+    public double Y2 => Target.Y + (TargetPort?.CenterOffsetY ?? 56D);
 
     /// <summary>贝塞尔曲线控制点 1 X（从起点水平向右延伸）</summary>
     public double CP1X => X1 + CurveOffset;
@@ -1113,7 +1283,11 @@ public sealed partial class FrontedNodeConnectionViewModel(
         OnPropertyChanged(nameof(PathData));
         OnPropertyChanged(nameof(MidX));
         OnPropertyChanged(nameof(MidY));
+        OnPropertyChanged(nameof(InspectionText));
     }
+
+    private string Localize(string key, string fallback) =>
+        _localize?.Invoke(key, fallback) ?? fallback;
 }
 
 public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObject

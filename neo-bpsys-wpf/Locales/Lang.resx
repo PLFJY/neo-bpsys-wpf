@@ -4735,7 +4735,7 @@
     <value>In</value>
   </data>
   <data name="Designer.Graph.Port.Out" xml:space="preserve">
-    <value>Out</value>
+    <value>下一步</value>
   </data>
   <data name="Designer.Graph.Port.True" xml:space="preserve">
     <value>True</value>
@@ -4753,13 +4753,43 @@
     <value>Step3</value>
   </data>
   <data name="Designer.Graph.Port.Branch1" xml:space="preserve">
-    <value>Branch1</value>
+    <value>分支 1</value>
   </data>
   <data name="Designer.Graph.Port.Branch2" xml:space="preserve">
-    <value>Branch2</value>
+    <value>分支 2</value>
   </data>
   <data name="Designer.Graph.Port.Branch3" xml:space="preserve">
-    <value>Branch3</value>
+    <value>分支 3</value>
+  </data>
+  <data name="Designer.Graph.Port.ParallelOut" xml:space="preserve">
+    <value>全部完成后</value>
+  </data>
+  <data name="Designer.Graph.Port.Branch1.Tooltip" xml:space="preserve">
+    <value>并行分支 1。此分支会和其他分支同时执行。</value>
+  </data>
+  <data name="Designer.Graph.Port.Branch2.Tooltip" xml:space="preserve">
+    <value>并行分支 2。此分支会和其他分支同时执行。</value>
+  </data>
+  <data name="Designer.Graph.Port.Branch3.Tooltip" xml:space="preserve">
+    <value>并行分支 3。此分支会和其他分支同时执行。</value>
+  </data>
+  <data name="Designer.Graph.Port.ParallelOut.Tooltip" xml:space="preserve">
+    <value>所有已连接的并行分支执行完成后，从这里继续。</value>
+  </data>
+  <data name="Designer.Graph.Connection.Meaning.ParallelBranch1" xml:space="preserve">
+    <value>并行分支 1</value>
+  </data>
+  <data name="Designer.Graph.Connection.Meaning.ParallelBranch2" xml:space="preserve">
+    <value>并行分支 2</value>
+  </data>
+  <data name="Designer.Graph.Connection.Meaning.ParallelBranch3" xml:space="preserve">
+    <value>并行分支 3</value>
+  </data>
+  <data name="Designer.Graph.Connection.Meaning.ParallelOut" xml:space="preserve">
+    <value>所有并行分支完成后继续</value>
+  </data>
+  <data name="Designer.Graph.Connection.MeaningLabel" xml:space="preserve">
+    <value>含义</value>
   </data>
   <data name="Designer.Graph.Port.Completed" xml:space="preserve">
     <value>完成</value>
