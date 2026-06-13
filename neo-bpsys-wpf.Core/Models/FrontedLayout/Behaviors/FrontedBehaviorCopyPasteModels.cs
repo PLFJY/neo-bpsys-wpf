@@ -1,3 +1,4 @@
+using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
@@ -41,6 +42,11 @@ public sealed class FrontedBehaviorClipboardPayload
     /// Gets or sets generated-part and control-kind requirements.
     /// </summary>
     public List<FrontedBehaviorCopyRequirement> Requirements { get; set; } = [];
+
+    /// <summary>
+    /// Gets or sets source animation part definitions required by the copied behavior.
+    /// </summary>
+    public List<FrontedAnimationPartConfig> AnimationParts { get; set; } = [];
 }
 
 /// <summary>

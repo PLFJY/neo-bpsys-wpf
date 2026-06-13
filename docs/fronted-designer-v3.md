@@ -270,14 +270,14 @@ catalog 构建是 lazy + cache，只做类型反射，不调用属性 getter，�
 
 旧 `.bpui` 包可能在 `TextSettings` 中包含 `IsActive`，这是旧设置类继承 `ObservableRecipient` 造成的序列化泄漏。该字段不是文本样式启用标记，LegacyConverter 必须忽略它。`Visibility` 绑定必须使用 `IsVisible` 或具体的可见性语义属性，不得绑定泛名 `IsActive`。
 
-### 通用动画部件 / 伪元素
+### 通用动画部件
 
-每个 v3 控件都可以配置通用 `PseudoElements`。Designer 在选中控件的属性区提供伪元素列表和
-新增、删除、重命名、类型、层级、尺寸、颜色、图片、初始可见性与透明度编辑。伪元素始终是
-父控件内部的生成视觉部件，不会成为主 Canvas 中的独立设计项，也不会出现在左侧控件列表。
+每个控件的行为集合都可以配置 `AnimationParts`。Designer 在选中控件的行为区域提供动画部件列表和
+新增、删除、重命名、类型、层级、尺寸、颜色、图片、初始可见性与透明度编辑。动画部件始终是
+父控件内部的生成视觉部件，不会成为主 Canvas 中的独立设计项，也不会出现在左侧控件列表或布局 JSON 中。
 
-伪元素可通过 `part:{BehaviorGuid}:{PseudoElementName}` 选为动画目标。宽高支持像素文本和百分比；
-伪元素的 `VisualOffsetX/Y` 百分比相对父控件宽高计算，适合构建扫描线、闪光、边缘高亮等通用效果。
+动画部件可通过 `part:{BehaviorGuid}:{AnimationPartName}` 选为动画目标。宽高支持像素文本和百分比；
+动画部件的 `VisualOffsetX/Y` 百分比相对父控件宽高计算，适合构建扫描线、闪光、边缘高亮等通用效果。
 
 ## 8. 插件扩展方向
 

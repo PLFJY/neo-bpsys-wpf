@@ -604,7 +604,7 @@ public class FrontedNodeGraphEditorViewModelTest
     }
 
     [Fact]
-    public async Task PreviewAnimationScope_UsesConfiguredGenericPseudoElementTargets()
+    public async Task PreviewAnimationScope_UsesConfiguredGenericAnimationPartTargets()
     {
         await RunOnStaThreadAsync(() =>
         {
@@ -620,10 +620,21 @@ public class FrontedNodeGraphEditorViewModelTest
                     Name = "SurPick0",
                     Config = new FrontedControlConfigBase
                     {
-                        BehaviorGuid = guid,
-                        PseudoElements = [new FrontedPseudoElementConfig { Name = "wipeBar" }]
+                        BehaviorGuid = guid
                     }
-                }]);
+                }],
+                new FrontedBehaviorDocument
+                {
+                    ControlBehaviorSets =
+                    [
+                        new ControlBehaviorSet
+                        {
+                            BehaviorGuid = guid,
+                            DisplayName = "SurPick0",
+                            AnimationParts = [new FrontedAnimationPartConfig { Name = "wipeBar" }]
+                        }
+                    ]
+                });
 
             Assert.Contains(
                 scope.Targets,

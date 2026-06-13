@@ -153,6 +153,7 @@ public partial class App
         services.AddSingleton<IFrontedControlRegistry, FrontedControlRegistry>();
         services.AddSingleton<IFrontedLayoutService, FrontedLayoutService>();
         services.AddSingleton<IFrontedRenderer, FrontedRenderer>();
+        services.AddSingleton<IFrontedBehaviorAnimationPartRenderer, FrontedBehaviorAnimationPartRenderer>();
         services.AddSingleton<FrontedLayoutRuntimeContractCatalog>();
         services.AddSingleton<FrontedLayoutReferenceScanner>();
         services.AddSingleton<FrontedLayoutDesignConverter>();

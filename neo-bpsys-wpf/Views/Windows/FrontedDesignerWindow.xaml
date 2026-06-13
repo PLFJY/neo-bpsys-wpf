@@ -36,7 +36,7 @@
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <converters:DesignerControlTypeDisplayConverter x:Key="DesignerControlTypeDisplayConverter" />
         <Style
-            x:Key="PseudoElementValidatedTextBoxStyle"
+            x:Key="AnimationPartValidatedTextBoxStyle"
             BasedOn="{StaticResource {x:Type ui:TextBox}}"
             TargetType="{x:Type ui:TextBox}">
             <Style.Triggers>
@@ -1150,13 +1150,13 @@
                         <Expander
                             Grid.Row="4"
                             Margin="0,4,0,8"
-                            Header="{lex:Loc Designer.PseudoElements.Title}"
+                            Header="{lex:Loc Designer.AnimationParts.Title}"
                             IsExpanded="False">
                             <Expander.Style>
                                 <Style BasedOn="{StaticResource {x:Type Expander}}" TargetType="Expander">
                                     <Setter Property="Visibility" Value="Collapsed" />
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding HasPseudoElementEditor}" Value="True">
+                                        <DataTrigger Binding="{Binding HasAnimationPartEditor}" Value="True">
                                             <Setter Property="Visibility" Value="Visible" />
                                         </DataTrigger>
                                     </Style.Triggers>
@@ -1170,7 +1170,7 @@
                                     <TextBlock
                                         FontSize="12"
                                         Opacity="0.78"
-                                        Text="{lex:Loc Designer.PseudoElements.Description}"
+                                        Text="{lex:Loc Designer.AnimationParts.Description}"
                                         TextWrapping="Wrap" />
                                 </Border>
                                 <Grid Margin="0,10,0,0">
@@ -1181,10 +1181,10 @@
                                     <ListBox
                                         MinHeight="54"
                                         MaxHeight="150"
-                                        ItemsSource="{Binding PseudoElementEditorItems}"
-                                        SelectedItem="{Binding SelectedPseudoElement, Mode=TwoWay}">
+                                        ItemsSource="{Binding AnimationPartEditorItems}"
+                                        SelectedItem="{Binding SelectedAnimationPart, Mode=TwoWay}">
                                         <ListBox.ItemTemplate>
-                                            <DataTemplate DataType="{x:Type frontedLayout:FrontedPseudoElementConfig}">
+                                            <DataTemplate DataType="{x:Type frontedLayout:FrontedAnimationPartConfig}">
                                                 <Grid Margin="2">
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*" />
@@ -1198,13 +1198,13 @@
                                                         Opacity="0.72">
                                                         <TextBlock.Style>
                                                             <Style TargetType="TextBlock">
-                                                                <Setter Property="Text" Value="{lex:Loc Designer.PseudoElements.Kind.Rectangle}" />
+                                                                <Setter Property="Text" Value="{lex:Loc Designer.AnimationParts.Kind.Rectangle}" />
                                                                 <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding Kind}" Value="{x:Static frontedLayout:FrontedPseudoElementKind.Border}">
-                                                                        <Setter Property="Text" Value="{lex:Loc Designer.PseudoElements.Kind.Border}" />
+                                                                    <DataTrigger Binding="{Binding Kind}" Value="{x:Static frontedLayout:FrontedAnimationPartKind.Border}">
+                                                                        <Setter Property="Text" Value="{lex:Loc Designer.AnimationParts.Kind.Border}" />
                                                                     </DataTrigger>
-                                                                    <DataTrigger Binding="{Binding Kind}" Value="{x:Static frontedLayout:FrontedPseudoElementKind.Image}">
-                                                                        <Setter Property="Text" Value="{lex:Loc Designer.PseudoElements.Kind.Image}" />
+                                                                    <DataTrigger Binding="{Binding Kind}" Value="{x:Static frontedLayout:FrontedAnimationPartKind.Image}">
+                                                                        <Setter Property="Text" Value="{lex:Loc Designer.AnimationParts.Kind.Image}" />
                                                                     </DataTrigger>
                                                                 </Style.Triggers>
                                                             </Style>
@@ -1218,12 +1218,12 @@
                                         HorizontalAlignment="Center"
                                         VerticalAlignment="Center"
                                         Opacity="0.65"
-                                        Text="{lex:Loc Designer.PseudoElements.Empty}">
+                                        Text="{lex:Loc Designer.AnimationParts.Empty}">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="Visibility" Value="Collapsed" />
                                                 <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding PseudoElementEditorItems.Count}" Value="0">
+                                                    <DataTrigger Binding="{Binding AnimationPartEditorItems.Count}" Value="0">
                                                         <Setter Property="Visibility" Value="Visible" />
                                                     </DataTrigger>
                                                 </Style.Triggers>
@@ -1233,13 +1233,13 @@
                                     <UniformGrid Grid.Row="1" Margin="0,8,0,0" Columns="2">
                                         <ui:Button
                                             Margin="0,0,4,0"
-                                            Command="{Binding AddPseudoElementCommand}"
-                                            Content="{lex:Loc Designer.PseudoElements.Add}"
+                                            Command="{Binding AddAnimationPartCommand}"
+                                            Content="{lex:Loc Designer.AnimationParts.Add}"
                                             Icon="{ui:SymbolIcon Symbol=Add24}" />
                                         <ui:Button
                                             Margin="4,0,0,0"
-                                            Command="{Binding RemovePseudoElementCommand}"
-                                            Content="{lex:Loc Designer.PseudoElements.Remove}"
+                                            Command="{Binding RemoveAnimationPartCommand}"
+                                            Content="{lex:Loc Designer.AnimationParts.Remove}"
                                             Icon="{ui:SymbolIcon Symbol=Delete24}" />
                                     </UniformGrid>
                                 </Grid>
@@ -1253,37 +1253,37 @@
                                         <Style TargetType="Border">
                                             <Setter Property="Visibility" Value="Collapsed" />
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding HasSelectedPseudoElement}" Value="True">
+                                                <DataTrigger Binding="{Binding HasSelectedAnimationPart}" Value="True">
                                                     <Setter Property="Visibility" Value="Visible" />
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
                                     </Border.Style>
-                                    <StackPanel DataContext="{Binding PseudoElementEditBuffer}">
+                                    <StackPanel DataContext="{Binding AnimationPartEditBuffer}">
                                         <TextBlock
                                             Margin="0,0,0,8"
                                             FontWeight="SemiBold"
-                                            Text="{lex:Loc Designer.PseudoElements.EditorTitle}" />
+                                            Text="{lex:Loc Designer.AnimationParts.EditorTitle}" />
                                         <TextBlock Text="{lex:Loc Designer.Property.Name}" />
                                         <ui:TextBox
                                             Margin="0,3,0,8"
-                                            PlaceholderText="{lex:Loc Designer.PseudoElements.NamePlaceholder}"
-                                            Style="{StaticResource PseudoElementValidatedTextBoxStyle}"
+                                            PlaceholderText="{lex:Loc Designer.AnimationParts.NamePlaceholder}"
+                                            Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
                                             Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
                                         <UniformGrid Columns="2">
                                             <StackPanel Margin="0,0,4,0">
-                                                <TextBlock Text="{lex:Loc Designer.PseudoElements.Kind}" />
+                                                <TextBlock Text="{lex:Loc Designer.AnimationParts.Kind}" />
                                                 <ComboBox Margin="0,3,0,8" SelectedValue="{Binding Kind}" SelectedValuePath="Tag">
-                                                    <ComboBoxItem Content="{lex:Loc Designer.PseudoElements.Kind.Rectangle}" Tag="{x:Static frontedLayout:FrontedPseudoElementKind.Rectangle}" />
-                                                    <ComboBoxItem Content="{lex:Loc Designer.PseudoElements.Kind.Border}" Tag="{x:Static frontedLayout:FrontedPseudoElementKind.Border}" />
-                                                    <ComboBoxItem Content="{lex:Loc Designer.PseudoElements.Kind.Image}" Tag="{x:Static frontedLayout:FrontedPseudoElementKind.Image}" />
+                                                    <ComboBoxItem Content="{lex:Loc Designer.AnimationParts.Kind.Rectangle}" Tag="{x:Static frontedLayout:FrontedAnimationPartKind.Rectangle}" />
+                                                    <ComboBoxItem Content="{lex:Loc Designer.AnimationParts.Kind.Border}" Tag="{x:Static frontedLayout:FrontedAnimationPartKind.Border}" />
+                                                    <ComboBoxItem Content="{lex:Loc Designer.AnimationParts.Kind.Image}" Tag="{x:Static frontedLayout:FrontedAnimationPartKind.Image}" />
                                                 </ComboBox>
                                             </StackPanel>
                                             <StackPanel Margin="4,0,0,0">
-                                                <TextBlock Text="{lex:Loc Designer.PseudoElements.Layer}" />
+                                                <TextBlock Text="{lex:Loc Designer.AnimationParts.Layer}" />
                                                 <ComboBox Margin="0,3,0,8" SelectedValue="{Binding Layer}" SelectedValuePath="Tag">
-                                                    <ComboBoxItem Content="{lex:Loc Designer.PseudoElements.Layer.AboveContent}" Tag="{x:Static frontedLayout:FrontedPseudoElementLayer.AboveContent}" />
-                                                    <ComboBoxItem Content="{lex:Loc Designer.PseudoElements.Layer.BelowContent}" Tag="{x:Static frontedLayout:FrontedPseudoElementLayer.BelowContent}" />
+                                                    <ComboBoxItem Content="{lex:Loc Designer.AnimationParts.Layer.AboveContent}" Tag="{x:Static frontedLayout:FrontedAnimationPartLayer.AboveContent}" />
+                                                    <ComboBoxItem Content="{lex:Loc Designer.AnimationParts.Layer.BelowContent}" Tag="{x:Static frontedLayout:FrontedAnimationPartLayer.BelowContent}" />
                                                 </ComboBox>
                                             </StackPanel>
                                         </UniformGrid>
@@ -1291,22 +1291,22 @@
                                             Margin="0,4,0,6"
                                             FontWeight="SemiBold"
                                             Opacity="0.78"
-                                            Text="{lex:Loc Designer.PseudoElements.LayoutSection}" />
+                                            Text="{lex:Loc Designer.AnimationParts.LayoutSection}" />
                                         <UniformGrid Columns="2">
                                             <StackPanel Margin="0,0,4,0">
                                                 <TextBlock Text="{lex:Loc Designer.Property.Width}" />
                                                 <ui:TextBox
                                                     Margin="0,3,0,8"
-                                                    PlaceholderText="{lex:Loc Designer.PseudoElements.SizePlaceholder}"
-                                                    Style="{StaticResource PseudoElementValidatedTextBoxStyle}"
+                                                    PlaceholderText="{lex:Loc Designer.AnimationParts.SizePlaceholder}"
+                                                    Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
                                                     Text="{Binding WidthText, UpdateSourceTrigger=PropertyChanged}" />
                                             </StackPanel>
                                             <StackPanel Margin="4,0,0,0">
                                                 <TextBlock Text="{lex:Loc Designer.Property.Height}" />
                                                 <ui:TextBox
                                                     Margin="0,3,0,8"
-                                                    PlaceholderText="{lex:Loc Designer.PseudoElements.SizePlaceholder}"
-                                                    Style="{StaticResource PseudoElementValidatedTextBoxStyle}"
+                                                    PlaceholderText="{lex:Loc Designer.AnimationParts.SizePlaceholder}"
+                                                    Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
                                                     Text="{Binding HeightText, UpdateSourceTrigger=PropertyChanged}" />
                                             </StackPanel>
                                         </UniformGrid>
@@ -1315,14 +1315,14 @@
                                                 <TextBlock Text="{lex:Loc Designer.Property.Left}" />
                                                 <ui:TextBox
                                                     Margin="0,3,0,8"
-                                                    Style="{StaticResource PseudoElementValidatedTextBoxStyle}"
+                                                    Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
                                                     Text="{Binding LeftText, UpdateSourceTrigger=PropertyChanged}" />
                                             </StackPanel>
                                             <StackPanel Margin="4,0,0,0">
                                                 <TextBlock Text="{lex:Loc Designer.Property.Top}" />
                                                 <ui:TextBox
                                                     Margin="0,3,0,8"
-                                                    Style="{StaticResource PseudoElementValidatedTextBoxStyle}"
+                                                    Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
                                                     Text="{Binding TopText, UpdateSourceTrigger=PropertyChanged}" />
                                             </StackPanel>
                                         </UniformGrid>
@@ -1331,7 +1331,7 @@
                                                 <TextBlock Text="{lex:Loc Designer.Property.ZIndex}" />
                                                 <ui:TextBox
                                                     Margin="0,3,0,8"
-                                                    Style="{StaticResource PseudoElementValidatedTextBoxStyle}"
+                                                    Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
                                                     Text="{Binding ZIndexText, UpdateSourceTrigger=PropertyChanged}" />
                                             </StackPanel>
                                             <StackPanel Margin="4,0,0,0">
@@ -1347,7 +1347,7 @@
                                             Margin="0,4,0,6"
                                             FontWeight="SemiBold"
                                             Opacity="0.78"
-                                            Text="{lex:Loc Designer.PseudoElements.AppearanceSection}" />
+                                            Text="{lex:Loc Designer.AnimationParts.AppearanceSection}" />
                                         <UniformGrid Columns="2">
                                             <UniformGrid.Style>
                                                 <Style TargetType="UniformGrid">
@@ -1363,10 +1363,10 @@
                                                 <TextBlock>
                                                     <TextBlock.Style>
                                                         <Style TargetType="TextBlock">
-                                                            <Setter Property="Text" Value="{lex:Loc Designer.PseudoElements.Fill}" />
+                                                            <Setter Property="Text" Value="{lex:Loc Designer.AnimationParts.Fill}" />
                                                             <Style.Triggers>
                                                                 <DataTrigger Binding="{Binding IsBorder}" Value="True">
-                                                                    <Setter Property="Text" Value="{lex:Loc Designer.PseudoElements.Background}" />
+                                                                    <Setter Property="Text" Value="{lex:Loc Designer.AnimationParts.Background}" />
                                                                 </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>
@@ -1387,7 +1387,7 @@
                                                         Style="{StaticResource DefaultColorPickerStyle}" />
                                                     <ui:TextBox
                                                         Grid.Column="1"
-                                                        Style="{StaticResource PseudoElementValidatedTextBoxStyle}"
+                                                        Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
                                                         Text="{Binding Fill, UpdateSourceTrigger=PropertyChanged}" />
                                                 </Grid>
                                             </StackPanel>
@@ -1395,10 +1395,10 @@
                                                 <TextBlock>
                                                     <TextBlock.Style>
                                                         <Style TargetType="TextBlock">
-                                                            <Setter Property="Text" Value="{lex:Loc Designer.PseudoElements.Stroke}" />
+                                                            <Setter Property="Text" Value="{lex:Loc Designer.AnimationParts.Stroke}" />
                                                             <Style.Triggers>
                                                                 <DataTrigger Binding="{Binding IsBorder}" Value="True">
-                                                                    <Setter Property="Text" Value="{lex:Loc Designer.PseudoElements.BorderBrush}" />
+                                                                    <Setter Property="Text" Value="{lex:Loc Designer.AnimationParts.BorderBrush}" />
                                                                 </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>
@@ -1419,7 +1419,7 @@
                                                         Style="{StaticResource DefaultColorPickerStyle}" />
                                                     <ui:TextBox
                                                         Grid.Column="1"
-                                                        Style="{StaticResource PseudoElementValidatedTextBoxStyle}"
+                                                        Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
                                                         Text="{Binding Stroke, UpdateSourceTrigger=PropertyChanged}" />
                                                 </Grid>
                                             </StackPanel>
@@ -1442,7 +1442,7 @@
                                                             <Setter Property="Text" Value="{lex:Loc Designer.Property.StrokeThickness}" />
                                                             <Style.Triggers>
                                                                 <DataTrigger Binding="{Binding IsBorder}" Value="True">
-                                                                    <Setter Property="Text" Value="{lex:Loc Designer.PseudoElements.BorderThickness}" />
+                                                                    <Setter Property="Text" Value="{lex:Loc Designer.AnimationParts.BorderThickness}" />
                                                                 </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>
@@ -1450,14 +1450,14 @@
                                                 </TextBlock>
                                                 <ui:TextBox
                                                     Margin="0,3,0,8"
-                                                    Style="{StaticResource PseudoElementValidatedTextBoxStyle}"
+                                                    Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
                                                     Text="{Binding StrokeThicknessText, UpdateSourceTrigger=PropertyChanged}" />
                                             </StackPanel>
                                             <StackPanel Margin="4,0,0,0">
                                                 <TextBlock Text="{lex:Loc Designer.Property.Opacity}" />
                                                 <ui:TextBox
                                                     Margin="0,3,0,8"
-                                                    Style="{StaticResource PseudoElementValidatedTextBoxStyle}"
+                                                    Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
                                                     Text="{Binding OpacityText, UpdateSourceTrigger=PropertyChanged}" />
                                             </StackPanel>
                                         </UniformGrid>
@@ -1472,23 +1472,23 @@
                                                     </Style.Triggers>
                                                 </Style>
                                             </StackPanel.Style>
-                                            <TextBlock Text="{lex:Loc Designer.PseudoElements.StaticImage}" />
+                                            <TextBlock Text="{lex:Loc Designer.AnimationParts.StaticImage}" />
                                             <ui:TextBox
                                                 Margin="0,3,0,8"
                                                 IsReadOnly="True"
-                                                PlaceholderText="{lex:Loc Designer.PseudoElements.NoImageSelected}"
-                                                Style="{StaticResource PseudoElementValidatedTextBoxStyle}"
+                                                PlaceholderText="{lex:Loc Designer.AnimationParts.NoImageSelected}"
+                                                Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
                                                 Text="{Binding ImagePath, UpdateSourceTrigger=PropertyChanged}"
                                                 ToolTip="{Binding ImagePath}" />
                                             <UniformGrid Margin="0,0,0,8" Columns="2">
                                                 <ui:Button
                                                     Margin="0,0,4,0"
-                                                    Click="BrowsePseudoElementImageResourceButton_OnClick"
+                                                    Click="BrowseAnimationPartImageResourceButton_OnClick"
                                                     Content="{lex:Loc BrowseResource}"
                                                     Icon="{ui:SymbolIcon Symbol=ImageSearch24}" />
                                                 <ui:Button
                                                     Margin="4,0,0,0"
-                                                    Click="ChooseLocalPseudoElementImageButton_OnClick"
+                                                    Click="ChooseLocalAnimationPartImageButton_OnClick"
                                                     Content="{lex:Loc ChooseLocalImage}"
                                                     Icon="{ui:SymbolIcon Symbol=ImageAdd24}" />
                                             </UniformGrid>
@@ -1507,26 +1507,26 @@
                                             <TextBlock Text="{lex:Loc Designer.Property.Opacity}" />
                                             <ui:TextBox
                                                 Margin="0,3,0,8"
-                                                Style="{StaticResource PseudoElementValidatedTextBoxStyle}"
+                                                Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
                                                 Text="{Binding OpacityText, UpdateSourceTrigger=PropertyChanged}" />
                                         </StackPanel>
                                         <CheckBox
                                             Margin="0,2,0,0"
-                                            Content="{lex:Loc Designer.PseudoElements.IsHitTestVisible}"
+                                            Content="{lex:Loc Designer.AnimationParts.IsHitTestVisible}"
                                             IsChecked="{Binding IsHitTestVisible, Mode=TwoWay}" />
                                     </StackPanel>
                                 </Border>
                                 <ui:Button
                                     Margin="0,10,0,0"
                                     HorizontalAlignment="Stretch"
-                                    Command="{Binding DataContext.ApplyPseudoElementEditCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                    Content="{lex:Loc Designer.PseudoElements.Apply}"
+                                    Command="{Binding DataContext.ApplyAnimationPartEditCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                    Content="{lex:Loc Designer.AnimationParts.Apply}"
                                     Icon="{ui:SymbolIcon Symbol=Checkmark24}">
                                     <ui:Button.Style>
                                         <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="ui:Button">
                                             <Setter Property="Visibility" Value="Collapsed" />
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding HasSelectedPseudoElement}" Value="True">
+                                                <DataTrigger Binding="{Binding HasSelectedAnimationPart}" Value="True">
                                                     <Setter Property="Visibility" Value="Visible" />
                                                 </DataTrigger>
                                             </Style.Triggers>

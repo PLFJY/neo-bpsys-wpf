@@ -30,7 +30,7 @@ namespace neo_bpsys_wpf.Tests.Models;
 public class FrontedCanvasConfigTest
 {
     [Fact]
-    public void PseudoElements_JsonRoundTrip_PreservesGenericConfiguration()
+    public void FrontedControlConfigBase_DoesNotExposeOrSerializeAnimationParts()
     {
         var config = new FrontedCanvasConfig
         {
@@ -38,13 +38,33 @@ public class FrontedCanvasConfigTest
             {
                 ["SurPick0"] = new ImageFrontedControlConfig
                 {
-                    PseudoElements =
+                    BehaviorGuid = Guid.NewGuid()
+                }
+            }
+        };
+
+        Assert.Null(typeof(FrontedControlConfigBase).GetProperty("AnimationParts"));
+        Assert.DoesNotContain("AnimationParts", JsonSerializer.Serialize(config), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void BehaviorDocument_AnimationPartsJsonRoundTrip_PreservesGenericConfiguration()
+    {
+        var document = new FrontedBehaviorDocument
+        {
+            ControlBehaviorSets =
+            [
+                new ControlBehaviorSet
+                {
+                    BehaviorGuid = Guid.NewGuid(),
+                    DisplayName = "SurPick0",
+                    AnimationParts =
                     [
-                        new FrontedPseudoElementConfig
+                        new FrontedAnimationPartConfig
                         {
                             Name = "wipeBar",
-                            Kind = FrontedPseudoElementKind.Border,
-                            Layer = FrontedPseudoElementLayer.BelowContent,
+                            Kind = FrontedAnimationPartKind.Border,
+                            Layer = FrontedAnimationPartLayer.BelowContent,
                             WidthText = "100%",
                             Height = 4,
                             Fill = "#FFFFFFFF",
@@ -52,16 +72,16 @@ public class FrontedCanvasConfigTest
                         }
                     ]
                 }
-            }
+            ]
         };
 
-        var roundTrip = JsonSerializer.Deserialize<FrontedCanvasConfig>(JsonSerializer.Serialize(config));
-        var pseudoElement = Assert.Single(roundTrip!.Controls["SurPick0"].PseudoElements);
-        Assert.Equal("wipeBar", pseudoElement.Name);
-        Assert.Equal(FrontedPseudoElementKind.Border, pseudoElement.Kind);
-        Assert.Equal(FrontedPseudoElementLayer.BelowContent, pseudoElement.Layer);
-        Assert.Equal("100%", pseudoElement.WidthText);
-        Assert.Equal(4, pseudoElement.Height);
+        var roundTrip = JsonSerializer.Deserialize<FrontedBehaviorDocument>(JsonSerializer.Serialize(document));
+        var AnimationPart = Assert.Single(roundTrip!.ControlBehaviorSets.Single().AnimationParts);
+        Assert.Equal("wipeBar", AnimationPart.Name);
+        Assert.Equal(FrontedAnimationPartKind.Border, AnimationPart.Kind);
+        Assert.Equal(FrontedAnimationPartLayer.BelowContent, AnimationPart.Layer);
+        Assert.Equal("100%", AnimationPart.WidthText);
+        Assert.Equal(4, AnimationPart.Height);
     }
 
     [Fact]
@@ -2031,7 +2051,7 @@ public class FrontedCanvasConfigTest
     }
 
     [Fact]
-    public void FrontedRendererRendersPseudoElementInsideParentControl()
+    public void FrontedRendererRendersAnimationPartInsideParentControl()
     {
         RunOnStaThread(() =>
         {
@@ -2058,22 +2078,36 @@ public class FrontedCanvasConfigTest
                             Text = "Pick",
                             Width = 200,
                             Height = 80,
-                            PseudoElements =
+                        }
+                    }
+                },
+                new FrontedRenderContext { WindowId = "BpWindow", CanvasName = "BaseCanvas" });
+
+            new FrontedBehaviorAnimationPartRenderer(NullFrontedResourceResolver.Instance).ApplyAnimationParts(
+                canvas,
+                new FrontedBehaviorDocument
+                {
+                    ControlBehaviorSets =
+                    [
+                        new ControlBehaviorSet
+                        {
+                            BehaviorGuid = guid,
+                            DisplayName = "SurPick0",
+                            AnimationParts =
                             [
-                                new FrontedPseudoElementConfig
+                                new FrontedAnimationPartConfig
                                 {
                                     Name = "wipeBar",
-                                    Kind = FrontedPseudoElementKind.Rectangle,
-                                    Layer = FrontedPseudoElementLayer.AboveContent,
+                                    Kind = FrontedAnimationPartKind.Rectangle,
+                                    Layer = FrontedAnimationPartLayer.AboveContent,
                                     Width = 4,
                                     HeightText = "100%",
                                     Fill = "#FFFFFFFF"
                                 }
                             ]
                         }
-                    }
-                },
-                new FrontedRenderContext { WindowId = "BpWindow", CanvasName = "BaseCanvas" });
+                    ]
+                });
 
             var parent = Assert.IsType<Grid>(Assert.Single(canvas.Children));
             var part = FindDescendants<FrameworkElement>(parent)

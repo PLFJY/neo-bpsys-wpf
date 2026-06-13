@@ -55,9 +55,4 @@ public class FrontedControlConfigBase
     /// </summary>
     public string? BindingPath { get; set; }
 
-    /// <summary>
-    /// Gets or sets generated visual parts rendered inside this control.
-    /// </summary>
-    public List<FrontedPseudoElementConfig> PseudoElements { get; set; } = [];
-
 }

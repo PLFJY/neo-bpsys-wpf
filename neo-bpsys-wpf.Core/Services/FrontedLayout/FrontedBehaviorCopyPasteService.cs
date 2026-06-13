@@ -117,12 +117,18 @@ public sealed class FrontedBehaviorCopyPasteService
     /// <param name="source">The source control.</param>
     /// <param name="behavior">The source behavior.</param>
     /// <returns>The clipboard payload.</returns>
-    public FrontedBehaviorClipboardPayload Copy(string windowType, FrontedControlDesignItem source, FrontedBehavior behavior)
+    public FrontedBehaviorClipboardPayload Copy(
+        string windowType,
+        FrontedControlDesignItem source,
+        FrontedBehavior behavior,
+        FrontedBehaviorDocument? sourceDocument = null)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(behavior);
 
         var clone = Clone(behavior);
+        var requirements = CollectRequirements(clone, source.Config.BehaviorGuid);
+        var sourceSet = sourceDocument?.FindSet(source.Config.BehaviorGuid);
         return new FrontedBehaviorClipboardPayload
         {
             SourceWindowType = windowType ?? string.Empty,
@@ -130,7 +136,14 @@ public sealed class FrontedBehaviorCopyPasteService
             SourceControlBehaviorGuid = source.Config.BehaviorGuid,
             SourceSemanticIndex = _semanticResolver.Resolve(source).Index,
             Behavior = clone,
-            Requirements = CollectRequirements(clone, source.Config.BehaviorGuid)
+            Requirements = requirements,
+            AnimationParts = requirements
+                .Where(requirement => !IsBuiltInPartRequirement(requirement.Kind))
+                .Select(requirement => sourceSet?.AnimationParts.FirstOrDefault(part =>
+                    string.Equals(part.Name, requirement.Kind, StringComparison.Ordinal)))
+                .Where(part => part is not null)
+                .Select(part => Clone(part!))
+                .ToList()
         };
     }
 
@@ -260,6 +273,7 @@ public sealed class FrontedBehaviorCopyPasteService
 
         var set = document.GetOrCreateSet(target.Config.BehaviorGuid, target.Name);
         set.DisplayName = target.Name;
+        EnsureRequiredAnimationParts(payload, set);
         clone.Name = CreateUniqueName(
             options.KeepBehaviorName ? clone.Name : string.Empty,
             set.Behaviors.Select(item => item.Name));
@@ -295,23 +309,48 @@ public sealed class FrontedBehaviorCopyPasteService
                         "Target control does not have Ban Lock / Lock Overlay enabled."));
                     break;
                 default:
-                    if (!string.Equals(requirement.Kind, FrontedAnimationPartNames.PickingBorder, StringComparison.Ordinal)
-                        && !string.Equals(requirement.Kind, FrontedAnimationPartNames.LockOverlay, StringComparison.Ordinal)
-                        && !target.Config.PseudoElements.Any(item =>
+                    if (!IsBuiltInPartRequirement(requirement.Kind)
+                        && !payload.AnimationParts.Any(item =>
                             string.Equals(item.Name, requirement.Kind, StringComparison.Ordinal)))
                     {
                         errors.Add(string.Format(
                             System.Globalization.CultureInfo.CurrentCulture,
                             Localize(
-                                "Designer.Behaviors.TargetMissingPseudoElement",
-                                "Target control does not have pseudo-element '{0}'."),
-                            requirement.Kind));
+                                "Designer.Behaviors.MissingAnimationPart",
+                                "Animation part '{0}' is missing for control {1}."),
+                            requirement.Kind,
+                            payload.SourceControlName));
                     }
 
                     break;
             }
         }
     }
+
+    private static void EnsureRequiredAnimationParts(
+        FrontedBehaviorClipboardPayload payload,
+        ControlBehaviorSet targetSet)
+    {
+        foreach (var requirement in payload.Requirements.Where(requirement => !IsBuiltInPartRequirement(requirement.Kind)))
+        {
+            if (targetSet.AnimationParts.Any(part =>
+                    string.Equals(part.Name, requirement.Kind, StringComparison.Ordinal)))
+            {
+                continue;
+            }
+
+            var sourcePart = payload.AnimationParts.FirstOrDefault(part =>
+                string.Equals(part.Name, requirement.Kind, StringComparison.Ordinal));
+            if (sourcePart is not null)
+            {
+                targetSet.AnimationParts.Add(Clone(sourcePart));
+            }
+        }
+    }
+
+    private static bool IsBuiltInPartRequirement(string kind) =>
+        string.Equals(kind, FrontedAnimationPartNames.PickingBorder, StringComparison.Ordinal)
+        || string.Equals(kind, FrontedAnimationPartNames.LockOverlay, StringComparison.Ordinal);
 
     private static List<FrontedBehaviorCopyRequirement> CollectRequirements(FrontedBehavior behavior, Guid sourceGuid) =>
         EnumerateTargetReferences(behavior)
@@ -447,6 +486,13 @@ public sealed class FrontedBehaviorCopyPasteService
         var json = JsonSerializer.Serialize(behavior, _jsonOptions);
         return JsonSerializer.Deserialize<FrontedBehavior>(json, _jsonOptions)
                ?? throw new InvalidOperationException("Unable to clone fronted behavior.");
+    }
+
+    private static FrontedAnimationPartConfig Clone(FrontedAnimationPartConfig part)
+    {
+        var json = JsonSerializer.Serialize(part);
+        return JsonSerializer.Deserialize<FrontedAnimationPartConfig>(json)
+               ?? throw new InvalidOperationException("Unable to clone fronted animation part.");
     }
 
     private string Localize(string key, string fallback) =>

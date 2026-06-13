@@ -293,7 +293,7 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
             return;
         }
 
-        _behaviorClipboard.Set(_copyPasteService.Copy(CurrentWindowType, SelectedControl, behavior.Model));
+        _behaviorClipboard.Set(_copyPasteService.Copy(CurrentWindowType, SelectedControl, behavior.Model, CurrentDocument));
         OnPropertyChanged(nameof(CanPasteBehavior));
         PasteBehaviorCommand.NotifyCanExecuteChanged();
     }

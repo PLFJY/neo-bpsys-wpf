@@ -74,10 +74,17 @@ public sealed class FrontedAnimationTargetResolver : IFrontedAnimationTargetReso
                                             StringComparison.Ordinal));
             if (element is null)
             {
+                var parentName = EnumerateFrameworkElements(context.Root)
+                    .Where(item => FrontedRendererProperties.GetIsGeneratedControl(item)
+                                   && !FrontedRendererProperties.GetIsAnimationAuxiliaryElement(item)
+                                   && FrontedRendererProperties.GetBehaviorGuid(item) == parentGuid)
+                    .Select(item => FrontedRendererProperties.GetRegisteredName(item))
+                    .FirstOrDefault(name => !string.IsNullOrWhiteSpace(name))
+                    ?? parentGuid.ToString();
                 context.Logger?.LogWarning(
-                    "Fronted animation part {PartName} on target {BehaviorGuid} was not found.",
+                    "Animation part '{PartName}' is missing for control {ControlName}.",
                     effectiveReference.PartName,
-                    parentGuid);
+                    parentName);
                 return null;
             }
 

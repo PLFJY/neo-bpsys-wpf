@@ -5,7 +5,7 @@ namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
 /// <summary>
 /// Describes a generated visual part rendered inside a fronted control.
 /// </summary>
-public sealed class FrontedPseudoElementConfig
+public sealed class FrontedAnimationPartConfig
 {
     /// <summary>
     /// Gets or sets the stable user-defined animation part name.
@@ -15,12 +15,12 @@ public sealed class FrontedPseudoElementConfig
     /// <summary>
     /// Gets or sets the generated element kind.
     /// </summary>
-    public FrontedPseudoElementKind Kind { get; set; } = FrontedPseudoElementKind.Rectangle;
+    public FrontedAnimationPartKind Kind { get; set; } = FrontedAnimationPartKind.Rectangle;
 
     /// <summary>
     /// Gets or sets whether the part is rendered below or above the main content.
     /// </summary>
-    public FrontedPseudoElementLayer Layer { get; set; } = FrontedPseudoElementLayer.AboveContent;
+    public FrontedAnimationPartLayer Layer { get; set; } = FrontedAnimationPartLayer.AboveContent;
 
     /// <summary>
     /// Gets or sets the fixed width in pixels.
@@ -94,10 +94,10 @@ public sealed class FrontedPseudoElementConfig
 }
 
 /// <summary>
-/// Supported generated pseudo-element kinds.
+/// Supported generated animation part kinds.
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter))]
-public enum FrontedPseudoElementKind
+public enum FrontedAnimationPartKind
 {
     /// <summary>
     /// A filled and optionally stroked rectangle.
@@ -116,10 +116,10 @@ public enum FrontedPseudoElementKind
 }
 
 /// <summary>
-/// Visual layer used by a generated pseudo-element.
+/// Visual layer used by a generated animation part.
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter))]
-public enum FrontedPseudoElementLayer
+public enum FrontedAnimationPartLayer
 {
     /// <summary>
     /// Renders behind the main control content.

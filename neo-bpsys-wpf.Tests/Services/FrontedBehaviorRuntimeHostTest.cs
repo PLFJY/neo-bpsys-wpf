@@ -300,6 +300,7 @@ public class FrontedBehaviorRuntimeHostTest
             eventBus ?? Mock.Of<IFrontedEventBus>(),
             graphRuntime ?? Mock.Of<IFrontedNodeGraphRuntime>(),
             animationRuntime ?? Mock.Of<IFrontedAnimationRuntime>(),
+            Mock.Of<IFrontedBehaviorAnimationPartRenderer>(),
             new FrontedBehaviorTriggerEvaluator(),
             Mock.Of<ILogger<FrontedBehaviorRuntimeHostManager>>());
     }

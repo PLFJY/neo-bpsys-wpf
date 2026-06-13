@@ -6,13 +6,13 @@ using Xunit;
 
 namespace neo_bpsys_wpf.Tests.ViewModels;
 
-public sealed class FrontedPseudoElementEditorViewModelTest
+public sealed class FrontedAnimationPartEditorViewModelTest
 {
     [Fact]
     public void Editor_ValidatesInvalidTextInputsAndDuplicateName()
     {
-        var editor = new FrontedPseudoElementEditorViewModel(
-            new FrontedPseudoElementConfig { Name = "shine" },
+        var editor = new FrontedAnimationPartEditorViewModel(
+            new FrontedAnimationPartConfig { Name = "shine" },
             name => !string.Equals(name, "existing", StringComparison.OrdinalIgnoreCase));
 
         editor.Name = "existing";
@@ -34,8 +34,8 @@ public sealed class FrontedPseudoElementEditorViewModelTest
     [Fact]
     public void Editor_ColorPickerAndTextStaySynchronized()
     {
-        var editor = new FrontedPseudoElementEditorViewModel(
-            new FrontedPseudoElementConfig { Name = "shine" },
+        var editor = new FrontedAnimationPartEditorViewModel(
+            new FrontedAnimationPartConfig { Name = "shine" },
             _ => true);
 
         editor.FillColor = Color.FromArgb(0x80, 0x11, 0x22, 0x33);
@@ -49,8 +49,8 @@ public sealed class FrontedPseudoElementEditorViewModelTest
     [Fact]
     public void Editor_AppliesValidatedTextValuesToConfig()
     {
-        var editor = new FrontedPseudoElementEditorViewModel(
-            new FrontedPseudoElementConfig { Name = "shine" },
+        var editor = new FrontedAnimationPartEditorViewModel(
+            new FrontedAnimationPartConfig { Name = "shine" },
             _ => true)
         {
             WidthText = "4",
@@ -62,7 +62,7 @@ public sealed class FrontedPseudoElementEditorViewModelTest
             OpacityText = "0.5",
             ZIndexText = "10"
         };
-        var target = new FrontedPseudoElementConfig();
+        var target = new FrontedAnimationPartConfig();
 
         editor.ApplyTo(target);
 
@@ -81,20 +81,20 @@ public sealed class FrontedPseudoElementEditorViewModelTest
     [Fact]
     public void Editor_ExposesTypeSpecificEditorState()
     {
-        var editor = new FrontedPseudoElementEditorViewModel(
-            new FrontedPseudoElementConfig { Name = "part", Kind = FrontedPseudoElementKind.Rectangle },
+        var editor = new FrontedAnimationPartEditorViewModel(
+            new FrontedAnimationPartConfig { Name = "part", Kind = FrontedAnimationPartKind.Rectangle },
             _ => true);
 
         Assert.True(editor.IsRectangle);
         Assert.True(editor.IsShape);
         Assert.False(editor.IsImage);
 
-        editor.Kind = FrontedPseudoElementKind.Border;
+        editor.Kind = FrontedAnimationPartKind.Border;
         Assert.True(editor.IsBorder);
         Assert.True(editor.IsShape);
         Assert.False(editor.IsRectangle);
 
-        editor.Kind = FrontedPseudoElementKind.Image;
+        editor.Kind = FrontedAnimationPartKind.Image;
         Assert.True(editor.IsImage);
         Assert.False(editor.IsShape);
         Assert.False(editor.IsBorder);

@@ -15,6 +15,7 @@ public sealed class FrontedBehaviorRuntimeHostManager : IDisposable
     private readonly IFrontedEventBus _eventBus;
     private readonly IFrontedNodeGraphRuntime _graphRuntime;
     private readonly IFrontedAnimationRuntime _animationRuntime;
+    private readonly IFrontedBehaviorAnimationPartRenderer _animationPartRenderer;
     private readonly FrontedBehaviorTriggerEvaluator _triggerEvaluator;
     private readonly ILogger<FrontedBehaviorRuntimeHostManager> _logger;
     private readonly Dictionary<string, FrontedBehaviorRuntimeHost> _hosts = new(StringComparer.Ordinal);
@@ -29,6 +30,7 @@ public sealed class FrontedBehaviorRuntimeHostManager : IDisposable
         IFrontedEventBus eventBus,
         IFrontedNodeGraphRuntime graphRuntime,
         IFrontedAnimationRuntime animationRuntime,
+        IFrontedBehaviorAnimationPartRenderer animationPartRenderer,
         FrontedBehaviorTriggerEvaluator triggerEvaluator,
         ILogger<FrontedBehaviorRuntimeHostManager> logger)
     {
@@ -36,6 +38,7 @@ public sealed class FrontedBehaviorRuntimeHostManager : IDisposable
         _eventBus = eventBus;
         _graphRuntime = graphRuntime;
         _animationRuntime = animationRuntime;
+        _animationPartRenderer = animationPartRenderer;
         _triggerEvaluator = triggerEvaluator;
         _logger = logger;
     }
@@ -68,6 +71,8 @@ public sealed class FrontedBehaviorRuntimeHostManager : IDisposable
                 "No behaviors found for Window={WindowType}. Host will still be created.",
                 context.WindowType);
         }
+
+        _animationPartRenderer.ApplyAnimationParts(context.RootCanvas, document);
 
         // Create and attach the host
         var host = new FrontedBehaviorRuntimeHost(

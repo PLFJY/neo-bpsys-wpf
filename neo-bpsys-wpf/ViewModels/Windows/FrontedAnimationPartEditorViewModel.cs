@@ -10,14 +10,14 @@ using System.Windows.Media;
 namespace neo_bpsys_wpf.ViewModels.Windows;
 
 /// <summary>
-/// Provides validated edit buffers for one generated pseudo-element.
+/// Provides validated edit buffers for one generated animation part.
 /// </summary>
-public sealed class FrontedPseudoElementEditorViewModel : ObservableValidator
+public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
 {
     private readonly Func<string, bool> _isNameAvailable;
     private string _name = string.Empty;
-    private FrontedPseudoElementKind _kind;
-    private FrontedPseudoElementLayer _layer;
+    private FrontedAnimationPartKind _kind;
+    private FrontedAnimationPartLayer _layer;
     private string _widthText = string.Empty;
     private string _heightText = string.Empty;
     private string _leftText = "0";
@@ -35,12 +35,12 @@ public sealed class FrontedPseudoElementEditorViewModel : ObservableValidator
     private bool _isSynchronizingColor;
 
     /// <summary>
-    /// Initializes a validated pseudo-element editor.
+    /// Initializes a validated animation part editor.
     /// </summary>
-    /// <param name="source">Source pseudo-element configuration.</param>
+    /// <param name="source">Source animation part configuration.</param>
     /// <param name="isNameAvailable">Checks whether an edited name is unique within its parent control.</param>
-    public FrontedPseudoElementEditorViewModel(
-        FrontedPseudoElementConfig source,
+    public FrontedAnimationPartEditorViewModel(
+        FrontedAnimationPartConfig source,
         Func<string, bool> isNameAvailable)
     {
         _isNameAvailable = isNameAvailable;
@@ -51,7 +51,7 @@ public sealed class FrontedPseudoElementEditorViewModel : ObservableValidator
     /// <summary>
     /// Gets or sets the user-defined animation part name.
     /// </summary>
-    [CustomValidation(typeof(FrontedPseudoElementEditorViewModel), nameof(ValidateNameValue))]
+    [CustomValidation(typeof(FrontedAnimationPartEditorViewModel), nameof(ValidateNameValue))]
     public string Name
     {
         get => _name;
@@ -61,7 +61,7 @@ public sealed class FrontedPseudoElementEditorViewModel : ObservableValidator
     /// <summary>
     /// Gets or sets the generated element kind.
     /// </summary>
-    public FrontedPseudoElementKind Kind
+    public FrontedAnimationPartKind Kind
     {
         get => _kind;
         set
@@ -81,27 +81,27 @@ public sealed class FrontedPseudoElementEditorViewModel : ObservableValidator
     /// <summary>
     /// Gets a value indicating whether the edited part is a rectangle.
     /// </summary>
-    public bool IsRectangle => Kind == FrontedPseudoElementKind.Rectangle;
+    public bool IsRectangle => Kind == FrontedAnimationPartKind.Rectangle;
 
     /// <summary>
     /// Gets a value indicating whether the edited part is a border.
     /// </summary>
-    public bool IsBorder => Kind == FrontedPseudoElementKind.Border;
+    public bool IsBorder => Kind == FrontedAnimationPartKind.Border;
 
     /// <summary>
     /// Gets a value indicating whether the edited part is an image.
     /// </summary>
-    public bool IsImage => Kind == FrontedPseudoElementKind.Image;
+    public bool IsImage => Kind == FrontedAnimationPartKind.Image;
 
     /// <summary>
     /// Gets a value indicating whether the edited part supports fill and stroke brushes.
     /// </summary>
-    public bool IsShape => Kind is FrontedPseudoElementKind.Rectangle or FrontedPseudoElementKind.Border;
+    public bool IsShape => Kind is FrontedAnimationPartKind.Rectangle or FrontedAnimationPartKind.Border;
 
     /// <summary>
     /// Gets or sets the generated element layer.
     /// </summary>
-    public FrontedPseudoElementLayer Layer
+    public FrontedAnimationPartLayer Layer
     {
         get => _layer;
         set => SetProperty(ref _layer, value);
@@ -110,7 +110,7 @@ public sealed class FrontedPseudoElementEditorViewModel : ObservableValidator
     /// <summary>
     /// Gets or sets the width expression.
     /// </summary>
-    [CustomValidation(typeof(FrontedPseudoElementEditorViewModel), nameof(ValidateSizeValue))]
+    [CustomValidation(typeof(FrontedAnimationPartEditorViewModel), nameof(ValidateSizeValue))]
     public string WidthText
     {
         get => _widthText;
@@ -120,7 +120,7 @@ public sealed class FrontedPseudoElementEditorViewModel : ObservableValidator
     /// <summary>
     /// Gets or sets the height expression.
     /// </summary>
-    [CustomValidation(typeof(FrontedPseudoElementEditorViewModel), nameof(ValidateSizeValue))]
+    [CustomValidation(typeof(FrontedAnimationPartEditorViewModel), nameof(ValidateSizeValue))]
     public string HeightText
     {
         get => _heightText;
@@ -130,7 +130,7 @@ public sealed class FrontedPseudoElementEditorViewModel : ObservableValidator
     /// <summary>
     /// Gets or sets the left offset text.
     /// </summary>
-    [CustomValidation(typeof(FrontedPseudoElementEditorViewModel), nameof(ValidateNumberValue))]
+    [CustomValidation(typeof(FrontedAnimationPartEditorViewModel), nameof(ValidateNumberValue))]
     public string LeftText
     {
         get => _leftText;
@@ -140,7 +140,7 @@ public sealed class FrontedPseudoElementEditorViewModel : ObservableValidator
     /// <summary>
     /// Gets or sets the top offset text.
     /// </summary>
-    [CustomValidation(typeof(FrontedPseudoElementEditorViewModel), nameof(ValidateNumberValue))]
+    [CustomValidation(typeof(FrontedAnimationPartEditorViewModel), nameof(ValidateNumberValue))]
     public string TopText
     {
         get => _topText;
@@ -150,7 +150,7 @@ public sealed class FrontedPseudoElementEditorViewModel : ObservableValidator
     /// <summary>
     /// Gets or sets the fill color text.
     /// </summary>
-    [CustomValidation(typeof(FrontedPseudoElementEditorViewModel), nameof(ValidateColorValue))]
+    [CustomValidation(typeof(FrontedAnimationPartEditorViewModel), nameof(ValidateColorValue))]
     public string Fill
     {
         get => _fill;
@@ -179,7 +179,7 @@ public sealed class FrontedPseudoElementEditorViewModel : ObservableValidator
     /// <summary>
     /// Gets or sets the stroke color text.
     /// </summary>
-    [CustomValidation(typeof(FrontedPseudoElementEditorViewModel), nameof(ValidateColorValue))]
+    [CustomValidation(typeof(FrontedAnimationPartEditorViewModel), nameof(ValidateColorValue))]
     public string Stroke
     {
         get => _stroke;
@@ -208,7 +208,7 @@ public sealed class FrontedPseudoElementEditorViewModel : ObservableValidator
     /// <summary>
     /// Gets or sets the stroke thickness text.
     /// </summary>
-    [CustomValidation(typeof(FrontedPseudoElementEditorViewModel), nameof(ValidateNonNegativeNumberValue))]
+    [CustomValidation(typeof(FrontedAnimationPartEditorViewModel), nameof(ValidateNonNegativeNumberValue))]
     public string StrokeThicknessText
     {
         get => _strokeThicknessText;
@@ -218,7 +218,7 @@ public sealed class FrontedPseudoElementEditorViewModel : ObservableValidator
     /// <summary>
     /// Gets or sets the image resource path.
     /// </summary>
-    [CustomValidation(typeof(FrontedPseudoElementEditorViewModel), nameof(ValidateResourcePathValue))]
+    [CustomValidation(typeof(FrontedAnimationPartEditorViewModel), nameof(ValidateResourcePathValue))]
     public string ImagePath
     {
         get => _imagePath;
@@ -228,7 +228,7 @@ public sealed class FrontedPseudoElementEditorViewModel : ObservableValidator
     /// <summary>
     /// Gets or sets the opacity text.
     /// </summary>
-    [CustomValidation(typeof(FrontedPseudoElementEditorViewModel), nameof(ValidateOpacityValue))]
+    [CustomValidation(typeof(FrontedAnimationPartEditorViewModel), nameof(ValidateOpacityValue))]
     public string OpacityText
     {
         get => _opacityText;
@@ -247,7 +247,7 @@ public sealed class FrontedPseudoElementEditorViewModel : ObservableValidator
     /// <summary>
     /// Gets or sets the layer-local z-index text.
     /// </summary>
-    [CustomValidation(typeof(FrontedPseudoElementEditorViewModel), nameof(ValidateIntegerValue))]
+    [CustomValidation(typeof(FrontedAnimationPartEditorViewModel), nameof(ValidateIntegerValue))]
     public string ZIndexText
     {
         get => _zIndexText;
@@ -272,16 +272,16 @@ public sealed class FrontedPseudoElementEditorViewModel : ObservableValidator
     }
 
     /// <summary>
-    /// Copies the validated editor values to a pseudo-element configuration.
+    /// Copies the validated editor values to a animation part configuration.
     /// </summary>
-    /// <param name="target">Target pseudo-element configuration.</param>
+    /// <param name="target">Target animation part configuration.</param>
     /// <exception cref="InvalidOperationException">Thrown when the editor contains validation errors.</exception>
-    public void ApplyTo(FrontedPseudoElementConfig target)
+    public void ApplyTo(FrontedAnimationPartConfig target)
     {
         ValidateAll();
         if (HasErrors)
         {
-            throw new InvalidOperationException("Cannot apply an invalid pseudo-element editor.");
+            throw new InvalidOperationException("Cannot apply an invalid animation part editor.");
         }
 
         target.Name = Name.Trim();
@@ -305,7 +305,7 @@ public sealed class FrontedPseudoElementEditorViewModel : ObservableValidator
         target.IsHitTestVisible = IsHitTestVisible;
     }
 
-    private void Load(FrontedPseudoElementConfig source)
+    private void Load(FrontedAnimationPartConfig source)
     {
         _name = source.Name;
         _kind = source.Kind;
@@ -339,16 +339,16 @@ public sealed class FrontedPseudoElementEditorViewModel : ObservableValidator
     }
 
     /// <summary>
-    /// Validates a pseudo-element name.
+    /// Validates a animation part name.
     /// </summary>
     /// <param name="value">Candidate name.</param>
     /// <param name="context">Validation context.</param>
     /// <returns>The validation result.</returns>
     public static ValidationResult? ValidateNameValue(string value, ValidationContext context)
     {
-        var editor = (FrontedPseudoElementEditorViewModel)context.ObjectInstance;
+        var editor = (FrontedAnimationPartEditorViewModel)context.ObjectInstance;
         return string.IsNullOrWhiteSpace(value) || !editor._isNameAvailable(value.Trim())
-            ? new ValidationResult(I18nHelper.GetLocalizedString("Designer.PseudoElements.InvalidName"))
+            ? new ValidationResult(I18nHelper.GetLocalizedString("Designer.AnimationParts.InvalidName"))
             : ValidationResult.Success;
     }
 
@@ -373,7 +373,7 @@ public sealed class FrontedPseudoElementEditorViewModel : ObservableValidator
 
         return TryParseFiniteDouble(numericText, out var number) && number >= 0D
             ? ValidationResult.Success
-            : new ValidationResult(I18nHelper.GetLocalizedString("Designer.PseudoElements.Validation.Size"));
+            : new ValidationResult(I18nHelper.GetLocalizedString("Designer.AnimationParts.Validation.Size"));
     }
 
     /// <summary>
@@ -385,7 +385,7 @@ public sealed class FrontedPseudoElementEditorViewModel : ObservableValidator
     public static ValidationResult? ValidateNumberValue(string value, ValidationContext context) =>
         TryParseFiniteDouble(value, out _)
             ? ValidationResult.Success
-            : new ValidationResult(I18nHelper.GetLocalizedString("Designer.PseudoElements.Validation.Number"));
+            : new ValidationResult(I18nHelper.GetLocalizedString("Designer.AnimationParts.Validation.Number"));
 
     /// <summary>
     /// Validates a non-negative finite number.
@@ -396,7 +396,7 @@ public sealed class FrontedPseudoElementEditorViewModel : ObservableValidator
     public static ValidationResult? ValidateNonNegativeNumberValue(string value, ValidationContext context) =>
         TryParseFiniteDouble(value, out var number) && number >= 0D
             ? ValidationResult.Success
-            : new ValidationResult(I18nHelper.GetLocalizedString("Designer.PseudoElements.Validation.NonNegativeNumber"));
+            : new ValidationResult(I18nHelper.GetLocalizedString("Designer.AnimationParts.Validation.NonNegativeNumber"));
 
     /// <summary>
     /// Validates an opacity value.
@@ -407,7 +407,7 @@ public sealed class FrontedPseudoElementEditorViewModel : ObservableValidator
     public static ValidationResult? ValidateOpacityValue(string value, ValidationContext context) =>
         TryParseFiniteDouble(value, out var number) && number is >= 0D and <= 1D
             ? ValidationResult.Success
-            : new ValidationResult(I18nHelper.GetLocalizedString("Designer.PseudoElements.Validation.Opacity"));
+            : new ValidationResult(I18nHelper.GetLocalizedString("Designer.AnimationParts.Validation.Opacity"));
 
     /// <summary>
     /// Validates an integer value.
@@ -418,7 +418,7 @@ public sealed class FrontedPseudoElementEditorViewModel : ObservableValidator
     public static ValidationResult? ValidateIntegerValue(string value, ValidationContext context) =>
         int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out _)
             ? ValidationResult.Success
-            : new ValidationResult(I18nHelper.GetLocalizedString("Designer.PseudoElements.Validation.Integer"));
+            : new ValidationResult(I18nHelper.GetLocalizedString("Designer.AnimationParts.Validation.Integer"));
 
     /// <summary>
     /// Validates an optional WPF color.
@@ -429,7 +429,7 @@ public sealed class FrontedPseudoElementEditorViewModel : ObservableValidator
     public static ValidationResult? ValidateColorValue(string value, ValidationContext context) =>
         string.IsNullOrWhiteSpace(value) || FrontedPropertyColorHelper.TryParseArgbColor(value, out _)
             ? ValidationResult.Success
-            : new ValidationResult(I18nHelper.GetLocalizedString("Designer.PseudoElements.Validation.Color"));
+            : new ValidationResult(I18nHelper.GetLocalizedString("Designer.AnimationParts.Validation.Color"));
 
     /// <summary>
     /// Validates a layout-package resource path.

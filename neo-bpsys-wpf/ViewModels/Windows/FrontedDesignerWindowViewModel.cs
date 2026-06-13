@@ -252,9 +252,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     public ObservableCollection<FrontedPropertyEditorItem> PropertyEditorItems { get; } = [];
 
     /// <summary>
-    /// Gets pseudo-elements configured on the selected control.
+    /// Gets animation parts configured on the selected control.
     /// </summary>
-    public ObservableCollection<FrontedPseudoElementConfig> PseudoElementEditorItems { get; } = [];
+    public ObservableCollection<FrontedAnimationPartConfig> AnimationPartEditorItems { get; } = [];
 
     public ObservableCollection<FrontedAddControlCatalogGroup> AddControlCatalogGroups { get; } = [];
 
@@ -367,21 +367,21 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     public bool IsPolygonSelected => SelectedDesignItem?.Config is IPolygonFrontedControlConfig;
 
     /// <summary>
-    /// Gets a value indicating whether a control is selected for pseudo-element editing.
+    /// Gets a value indicating whether a control is selected for animation part editing.
     /// </summary>
-    public bool HasPseudoElementEditor => SelectedDesignItem is not null;
+    public bool HasAnimationPartEditor => SelectedDesignItem is not null;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasSelectedPseudoElement))]
-    private FrontedPseudoElementConfig? _selectedPseudoElement;
+    [NotifyPropertyChangedFor(nameof(HasSelectedAnimationPart))]
+    private FrontedAnimationPartConfig? _selectedAnimationPart;
 
     [ObservableProperty]
-    private FrontedPseudoElementEditorViewModel? _pseudoElementEditBuffer;
+    private FrontedAnimationPartEditorViewModel? _AnimationPartEditBuffer;
 
     /// <summary>
-    /// Gets a value indicating whether a pseudo-element is selected.
+    /// Gets a value indicating whether a animation part is selected.
     /// </summary>
-    public bool HasSelectedPseudoElement => SelectedPseudoElement is not null;
+    public bool HasSelectedAnimationPart => SelectedAnimationPart is not null;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SelectedPolygonVertexDisplay))]
@@ -702,7 +702,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         BehaviorPanel.SetSelectedControl(value);
         RefreshSelectedControlDisplay();
         RebuildGlobalScoreCellEditorItems();
-        RebuildPseudoElementEditorItems();
+        RebuildAnimationPartEditorItems();
         RebuildPropertyEditorItems();
         RefreshLayerNodeSelection();
         DeleteSelectedControlCommand.NotifyCanExecuteChanged();
@@ -713,7 +713,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(HasGlobalScoreCellEditor));
         OnPropertyChanged(nameof(IsMapV2DisplaySelected));
         OnPropertyChanged(nameof(IsPolygonSelected));
-        OnPropertyChanged(nameof(HasPseudoElementEditor));
+        OnPropertyChanged(nameof(HasAnimationPartEditor));
         OnPropertyChanged(nameof(SelectedPolygonVertexDisplay));
         OnPropertyChanged(nameof(CanRemovePolygonVertex));
         RemovePolygonVertexCommand.NotifyCanExecuteChanged();
@@ -724,124 +724,178 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         RemovePolygonVertexCommand.NotifyCanExecuteChanged();
     }
 
-    partial void OnSelectedPseudoElementChanged(FrontedPseudoElementConfig? value)
+    partial void OnSelectedAnimationPartChanged(FrontedAnimationPartConfig? value)
     {
-        if (PseudoElementEditBuffer is not null)
+        if (AnimationPartEditBuffer is not null)
         {
-            PseudoElementEditBuffer.ErrorsChanged -= PseudoElementEditBuffer_OnErrorsChanged;
+            AnimationPartEditBuffer.ErrorsChanged -= AnimationPartEditBuffer_OnErrorsChanged;
         }
 
-        PseudoElementEditBuffer = value is null
+        AnimationPartEditBuffer = value is null
             ? null
-            : new FrontedPseudoElementEditorViewModel(value, candidate =>
-                SelectedDesignItem?.Config.PseudoElements.All(item =>
+            : new FrontedAnimationPartEditorViewModel(value, candidate =>
+                GetSelectedBehaviorSet(create: false)?.AnimationParts.All(item =>
                     ReferenceEquals(item, value)
                     || !string.Equals(item.Name, candidate, StringComparison.OrdinalIgnoreCase)) == true);
-        if (PseudoElementEditBuffer is not null)
+        if (AnimationPartEditBuffer is not null)
         {
-            PseudoElementEditBuffer.ErrorsChanged += PseudoElementEditBuffer_OnErrorsChanged;
+            AnimationPartEditBuffer.ErrorsChanged += AnimationPartEditBuffer_OnErrorsChanged;
         }
 
-        RemovePseudoElementCommand.NotifyCanExecuteChanged();
-        ApplyPseudoElementEditCommand.NotifyCanExecuteChanged();
+        RemoveAnimationPartCommand.NotifyCanExecuteChanged();
+        ApplyAnimationPartEditCommand.NotifyCanExecuteChanged();
     }
 
-    private void PseudoElementEditBuffer_OnErrorsChanged(object? sender, DataErrorsChangedEventArgs e)
+    private void AnimationPartEditBuffer_OnErrorsChanged(object? sender, DataErrorsChangedEventArgs e)
     {
-        ApplyPseudoElementEditCommand.NotifyCanExecuteChanged();
+        ApplyAnimationPartEditCommand.NotifyCanExecuteChanged();
     }
 
     [RelayCommand]
-    private void AddPseudoElement()
+    private void AddAnimationPart()
     {
         if (CurrentDocument is null || SelectedDesignItem is null)
         {
             return;
         }
 
+        var set = GetSelectedBehaviorSet(create: true);
+        if (set is null)
+        {
+            return;
+        }
+
         CaptureUndoSnapshot();
-        var names = SelectedDesignItem.Config.PseudoElements
+        var names = set.AnimationParts
             .Select(item => item.Name)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
         var index = 1;
-        var name = "part";
+        var name = "Swipe";
         while (names.Contains(name))
         {
-            name = $"part{index++}";
+            name = $"Swipe{index++}";
         }
 
-        var created = new FrontedPseudoElementConfig { Name = name };
-        SelectedDesignItem.Config.PseudoElements.Add(created);
-        CurrentDocument.IsDirty = true;
-        RebuildPseudoElementEditorItems(created);
-        FinishPropertyEdit(nameof(FrontedControlConfigBase.PseudoElements));
+        var created = new FrontedAnimationPartConfig
+        {
+            Name = name,
+            Kind = FrontedAnimationPartKind.Rectangle,
+            Layer = FrontedAnimationPartLayer.AboveContent,
+            Width = 4,
+            HeightText = "100%",
+            Fill = "#FFFFFFFF",
+            Opacity = 1D,
+            Visibility = "Hidden",
+            ZIndex = 10,
+            IsHitTestVisible = false
+        };
+        set.AnimationParts.Add(created);
+        MarkBehaviorsDirty();
+        RebuildAnimationPartEditorItems(created);
+        FinishBehaviorPartEdit();
     }
 
-    private bool CanRemovePseudoElement() => SelectedPseudoElement is not null;
+    private bool CanRemoveAnimationPart() => SelectedAnimationPart is not null;
 
-    [RelayCommand(CanExecute = nameof(CanRemovePseudoElement))]
-    private void RemovePseudoElement()
+    [RelayCommand(CanExecute = nameof(CanRemoveAnimationPart))]
+    private void RemoveAnimationPart()
     {
-        if (CurrentDocument is null || SelectedDesignItem is null || SelectedPseudoElement is null)
+        if (CurrentDocument is null || SelectedDesignItem is null || SelectedAnimationPart is null)
+        {
+            return;
+        }
+
+        var set = GetSelectedBehaviorSet(create: false);
+        if (set is null)
         {
             return;
         }
 
         CaptureUndoSnapshot();
-        SelectedDesignItem.Config.PseudoElements.Remove(SelectedPseudoElement);
-        CurrentDocument.IsDirty = true;
-        RebuildPseudoElementEditorItems();
-        FinishPropertyEdit(nameof(FrontedControlConfigBase.PseudoElements));
+        set.AnimationParts.Remove(SelectedAnimationPart);
+        MarkBehaviorsDirty();
+        RebuildAnimationPartEditorItems();
+        FinishBehaviorPartEdit();
     }
 
-    private bool CanApplyPseudoElementEdit() =>
-        SelectedPseudoElement is not null
-        && PseudoElementEditBuffer is { HasErrors: false };
+    private bool CanApplyAnimationPartEdit() =>
+        SelectedAnimationPart is not null
+        && AnimationPartEditBuffer is { HasErrors: false };
 
-    [RelayCommand(CanExecute = nameof(CanApplyPseudoElementEdit))]
-    private void ApplyPseudoElementEdit()
+    [RelayCommand(CanExecute = nameof(CanApplyAnimationPartEdit))]
+    private void ApplyAnimationPartEdit()
     {
         if (CurrentDocument is null
             || SelectedDesignItem is null
-            || SelectedPseudoElement is null
-            || PseudoElementEditBuffer is null)
+            || SelectedAnimationPart is null
+            || AnimationPartEditBuffer is null)
         {
             return;
         }
 
-        PseudoElementEditBuffer.ValidateAll();
-        if (PseudoElementEditBuffer.HasErrors)
+        AnimationPartEditBuffer.ValidateAll();
+        if (AnimationPartEditBuffer.HasErrors)
         {
-            StatusMessage = I18nHelper.GetLocalizedString("Designer.PseudoElements.Validation.FixErrors");
+            StatusMessage = I18nHelper.GetLocalizedString("Designer.AnimationParts.Validation.FixErrors");
             return;
         }
 
         CaptureUndoSnapshot();
-        PseudoElementEditBuffer.ApplyTo(SelectedPseudoElement);
-        CurrentDocument.IsDirty = true;
-        RebuildPseudoElementEditorItems(SelectedPseudoElement);
-        FinishPropertyEdit(nameof(FrontedControlConfigBase.PseudoElements));
+        AnimationPartEditBuffer.ApplyTo(SelectedAnimationPart);
+        MarkBehaviorsDirty();
+        RebuildAnimationPartEditorItems(SelectedAnimationPart);
+        FinishBehaviorPartEdit();
     }
 
-    private void RebuildPseudoElementEditorItems(FrontedPseudoElementConfig? selected = null)
+    private void RebuildAnimationPartEditorItems(FrontedAnimationPartConfig? selected = null)
     {
-        PseudoElementEditorItems.Clear();
-        foreach (var item in SelectedDesignItem?.Config.PseudoElements ?? [])
+        AnimationPartEditorItems.Clear();
+        foreach (var item in GetSelectedBehaviorSet(create: false)?.AnimationParts ?? [])
         {
-            PseudoElementEditorItems.Add(item);
+            AnimationPartEditorItems.Add(item);
         }
 
-        SelectedPseudoElement = selected ?? PseudoElementEditorItems.FirstOrDefault();
+        SelectedAnimationPart = selected ?? AnimationPartEditorItems.FirstOrDefault();
+    }
+
+    private ControlBehaviorSet? GetSelectedBehaviorSet(bool create)
+    {
+        if (SelectedDesignItem is null)
+        {
+            return null;
+        }
+
+        if (SelectedDesignItem.Config.BehaviorGuid == Guid.Empty)
+        {
+            if (!create)
+            {
+                return null;
+            }
+
+            SelectedDesignItem.Config.BehaviorGuid = FrontedBehaviorGuidHelper.NewGuid();
+            CurrentDocument!.IsDirty = true;
+        }
+
+        return create
+            ? BehaviorPanel.CurrentDocument.GetOrCreateSet(SelectedDesignItem.Config.BehaviorGuid, SelectedDesignItem.Name)
+            : BehaviorPanel.CurrentDocument.FindSet(SelectedDesignItem.Config.BehaviorGuid);
+    }
+
+    private void FinishBehaviorPartEdit()
+    {
+        RefreshDirtyState();
+        RequestPreviewRenderCurrentDocument();
+        _previewAnimationScope?.RefreshTargets();
     }
 
     /// <summary>
-    /// Updates the selected pseudo-element image edit buffer from a resource-browser selection.
+    /// Updates the selected animation part image edit buffer from a resource-browser selection.
     /// </summary>
     /// <param name="selectedResourcePath">Selected built-in, package, or absolute image path.</param>
     /// <returns><see langword="true"/> when the edit buffer was updated.</returns>
-    public bool ApplyPseudoElementImageResourceSelection(string selectedResourcePath)
+    public bool ApplyAnimationPartImageResourceSelection(string selectedResourcePath)
     {
-        if (PseudoElementEditBuffer is not { IsImage: true } editor)
+        if (AnimationPartEditBuffer is not { IsImage: true } editor)
         {
             return false;
         }
@@ -852,17 +906,17 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return true;
         }
 
-        return StoreLocalPseudoElementImage(selectedResourcePath);
+        return StoreLocalAnimationPartImage(selectedResourcePath);
     }
 
     /// <summary>
-    /// Imports a local image and updates the selected image pseudo-element edit buffer.
+    /// Imports a local image and updates the selected image animation part edit buffer.
     /// </summary>
     /// <param name="sourcePath">Absolute local image path.</param>
     /// <returns><see langword="true"/> when the image was imported and selected.</returns>
-    public bool StoreLocalPseudoElementImage(string sourcePath)
+    public bool StoreLocalAnimationPartImage(string sourcePath)
     {
-        if (_localResourceStore is null || PseudoElementEditBuffer is not { IsImage: true } editor)
+        if (_localResourceStore is null || AnimationPartEditBuffer is not { IsImage: true } editor)
         {
             return false;
         }
@@ -871,12 +925,12 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         {
             var result = _localResourceStore.StoreImageWithResult(sourcePath);
             editor.ImagePath = result.ResourceUri;
-            RecordPendingImportedResource(result, "PseudoElement ImagePath", wasApplied: true);
+            RecordPendingImportedResource(result, "AnimationPart ImagePath", wasApplied: true);
             return true;
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to store local pseudo-element image.");
+            _logger.LogWarning(ex, "Failed to store local animation part image.");
             StatusMessage = $"{I18nHelper.GetLocalizedString("FailedToApplyPicture")}: {ex.Message}";
             return false;
         }
@@ -3858,7 +3912,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             SelectedDesignItem,
             _selectedCatalogEntry?.WindowId,
             FrontedLayoutConstants.BaseCanvasName,
-            CurrentDocument?.Controls ?? []);
+            CurrentDocument?.Controls ?? [],
+            BehaviorPanel.CurrentDocument);
     }
 
     public void ClearBehaviorPreviewAnimationScope()
@@ -4324,6 +4379,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             this,
             new FrontedDesignerPreviewRenderRequestedEventArgs(
                 config,
+                BehaviorPanel.CurrentDocument,
                 entry is null
                     ? null
                     : new FrontedRenderContext
@@ -5235,9 +5291,12 @@ public sealed class FrontedCanvasBoModeStateOption(
 
 public sealed class FrontedDesignerPreviewRenderRequestedEventArgs(
     FrontedCanvasConfig? config,
+    FrontedBehaviorDocument? behaviorDocument,
     FrontedRenderContext? context) : EventArgs
 {
     public FrontedCanvasConfig? Config { get; } = config;
+
+    public FrontedBehaviorDocument? BehaviorDocument { get; } = behaviorDocument;
 
     public FrontedRenderContext? Context { get; } = context;
 }

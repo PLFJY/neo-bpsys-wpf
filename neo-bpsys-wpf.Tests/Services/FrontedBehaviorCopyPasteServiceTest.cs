@@ -101,26 +101,32 @@ public class FrontedBehaviorCopyPasteServiceTest
     }
 
     [Fact]
-    public void Paste_RewritesGenericPseudoElementWhenCompatibleAndBlocksWhenMissing()
+    public void Paste_RewritesGenericAnimationPartAndCopiesMissingPartDefinition()
     {
         var sourceGuid = Guid.NewGuid();
         var source = ImageItem("Source", sourceGuid);
-        source.Config.PseudoElements.Add(new FrontedPseudoElementConfig { Name = "wipeBar" });
+        var sourceDocument = new FrontedBehaviorDocument();
+        sourceDocument.GetOrCreateSet(sourceGuid, source.Name).AnimationParts.Add(new FrontedAnimationPartConfig
+        {
+            Name = "wipeBar",
+            Width = 4,
+            Fill = "#FFFFFFFF"
+        });
         var payload = _service.Copy(
             "BpWindow",
             source,
-            BehaviorWithTargets($"part:{sourceGuid}:wipeBar"));
+            BehaviorWithTargets($"part:{sourceGuid}:wipeBar"),
+            sourceDocument);
         var compatible = ImageItem("Compatible", Guid.NewGuid());
-        compatible.Config.PseudoElements.Add(new FrontedPseudoElementConfig { Name = "wipeBar" });
-        var incompatible = ImageItem("Incompatible", Guid.NewGuid());
+        var document = new FrontedBehaviorDocument();
 
-        var pasted = _service.Paste(payload, compatible, new FrontedBehaviorDocument());
-        var blocked = _service.Paste(payload, incompatible, new FrontedBehaviorDocument());
+        var pasted = _service.Paste(payload, compatible, document);
 
         Assert.True(pasted.Succeeded);
         Assert.Equal($"part:{compatible.Config.BehaviorGuid}:wipeBar", Assert.Single(Targets(pasted.Behavior!)));
-        Assert.False(blocked.Succeeded);
-        Assert.Contains(blocked.Preview.CompatibilityErrors, message => message.Contains("wipeBar"));
+        var copiedPart = Assert.Single(document.FindSet(compatible.Config.BehaviorGuid)!.AnimationParts);
+        Assert.Equal("wipeBar", copiedPart.Name);
+        Assert.Equal(4, copiedPart.Width);
     }
 
     [Fact]

@@ -17,6 +17,7 @@ public sealed class FrontedDesignerPreviewAnimationScope
     private string _windowId = string.Empty;
     private string _canvasName = string.Empty;
     private IReadOnlyList<FrontedControlDesignItem> _controls = [];
+    private FrontedBehaviorDocument? _behaviorDocument;
     private IReadOnlyList<FrontedDesignerAnimationTargetOption> _targets = [];
 
     public FrontedDesignerPreviewAnimationScope()
@@ -56,7 +57,8 @@ public sealed class FrontedDesignerPreviewAnimationScope
         FrontedControlDesignItem? selectedControl,
         string? windowId,
         string? canvasName,
-        IEnumerable<FrontedControlDesignItem> controls)
+        IEnumerable<FrontedControlDesignItem> controls,
+        FrontedBehaviorDocument? behaviorDocument = null)
     {
         _root = root;
         _selfBehaviorGuid = selectedControl?.Config.BehaviorGuid ?? Guid.Empty;
@@ -64,6 +66,7 @@ public sealed class FrontedDesignerPreviewAnimationScope
         _windowId = windowId ?? string.Empty;
         _canvasName = canvasName ?? string.Empty;
         _controls = controls.ToArray();
+        _behaviorDocument = behaviorDocument;
         RefreshTargets();
     }
 
@@ -125,6 +128,7 @@ public sealed class FrontedDesignerPreviewAnimationScope
         _windowId = string.Empty;
         _canvasName = string.Empty;
         _controls = [];
+        _behaviorDocument = null;
         _targets = [];
     }
 
@@ -145,14 +149,15 @@ public sealed class FrontedDesignerPreviewAnimationScope
         }
     }
 
-    private static void AddConfigDrivenPartTargets(
+    private void AddConfigDrivenPartTargets(
         ICollection<FrontedDesignerAnimationTargetOption> targets,
         FrontedControlDesignItem control)
     {
         var guid = control.Config.BehaviorGuid;
-        foreach (var pseudoElement in control.Config.PseudoElements.Where(item => !string.IsNullOrWhiteSpace(item.Name)))
+        var set = _behaviorDocument?.FindSet(guid);
+        foreach (var AnimationPart in set?.AnimationParts.Where(item => !string.IsNullOrWhiteSpace(item.Name)) ?? [])
         {
-            AddPartTarget(targets, control.Name, guid, pseudoElement.Name);
+            AddPartTarget(targets, control.Name, guid, AnimationPart.Name);
         }
 
         if (control.Config is not ImageFrontedControlConfig image)

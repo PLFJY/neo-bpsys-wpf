@@ -32,6 +32,7 @@ public partial class FrontedDesignerWindow : FluentWindow
     private const double LayerDropZoneStripHeight = 44D;
     private const double LayerAutoScrollMaxVelocity = 18D;
     private readonly IFrontedRenderer? _renderer;
+    private readonly IFrontedBehaviorAnimationPartRenderer? _animationPartRenderer;
     private readonly IFilePickerService? _filePickerService;
     private readonly FrontedBindingBrowserProvider? _bindingBrowserProvider;
     private readonly FrontedResourceBrowserProvider? _resourceBrowserProvider;
@@ -94,6 +95,7 @@ public partial class FrontedDesignerWindow : FluentWindow
     public FrontedDesignerWindow(
         FrontedDesignerWindowViewModel viewModel,
         IFrontedRenderer renderer,
+        IFrontedBehaviorAnimationPartRenderer animationPartRenderer,
         IFilePickerService filePickerService,
         FrontedBindingBrowserProvider bindingBrowserProvider,
         FrontedResourceBrowserProvider resourceBrowserProvider,
@@ -101,6 +103,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         ISettingsHostService settingsHostService)
     {
         _renderer = renderer;
+        _animationPartRenderer = animationPartRenderer;
         _filePickerService = filePickerService;
         _bindingBrowserProvider = bindingBrowserProvider;
         _resourceBrowserProvider = resourceBrowserProvider;
@@ -862,10 +865,10 @@ public partial class FrontedDesignerWindow : FluentWindow
         }
     }
 
-    private void BrowsePseudoElementImageResourceButton_OnClick(object sender, RoutedEventArgs e)
+    private void BrowseAnimationPartImageResourceButton_OnClick(object sender, RoutedEventArgs e)
     {
         if (_resourceBrowserProvider is null
-            || _viewModel?.PseudoElementEditBuffer is not { IsImage: true } editor)
+            || _viewModel?.AnimationPartEditBuffer is not { IsImage: true } editor)
         {
             return;
         }
@@ -880,13 +883,13 @@ public partial class FrontedDesignerWindow : FluentWindow
 
         if (window.ShowDialog() == true && !string.IsNullOrWhiteSpace(window.SelectedResourcePath))
         {
-            _viewModel.ApplyPseudoElementImageResourceSelection(window.SelectedResourcePath);
+            _viewModel.ApplyAnimationPartImageResourceSelection(window.SelectedResourcePath);
         }
     }
 
-    private void ChooseLocalPseudoElementImageButton_OnClick(object sender, RoutedEventArgs e)
+    private void ChooseLocalAnimationPartImageButton_OnClick(object sender, RoutedEventArgs e)
     {
-        if (_filePickerService is null || _viewModel?.PseudoElementEditBuffer is not { IsImage: true })
+        if (_filePickerService is null || _viewModel?.AnimationPartEditBuffer is not { IsImage: true })
         {
             return;
         }
@@ -894,7 +897,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         var file = _filePickerService.PickImage();
         if (!string.IsNullOrWhiteSpace(file))
         {
-            _viewModel.StoreLocalPseudoElementImage(file);
+            _viewModel.StoreLocalAnimationPartImage(file);
         }
     }
 
@@ -1519,6 +1522,10 @@ public partial class FrontedDesignerWindow : FluentWindow
             ConfigureDesignSurface(e.Config.CanvasWidth, e.Config.CanvasHeight);
             LogDesignerPerf("PreviewRender", "configure surface", Elapsed(total));
             _renderer.RenderToCanvas(PreviewCanvas, e.Config, e.Context);
+            if (e.BehaviorDocument is not null)
+            {
+                _animationPartRenderer?.ApplyAnimationParts(PreviewCanvas, e.BehaviorDocument);
+            }
             LogDesignerPerf("PreviewRender", "render canvas", Elapsed(total));
             PopulatePreviewElementRegistry();
             LogDesignerPerf("PreviewRender", "populate element registry", Elapsed(total));
