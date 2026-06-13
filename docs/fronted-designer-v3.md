@@ -24,7 +24,7 @@ FrontedLayoutPackages/{PackageId}/
 
 `PackageId = builtin` 是特殊的包身份，但不是 fallback 链。活动包为 `builtin` 时，layout service 读取运行目录 `Resources/FrontedLayouts`；活动包为用户包时，读取 `FrontedLayoutPackages/{PackageId}/FrontedLayouts`。缺失或损坏的布局应返回 Missing/Error 诊断，不应继续读取旧 loose user layout、插件默认布局或 `Resources/FrontedLayouts`。
 
-启动时如果发现 legacy v2 `Config.json`（`Version` 缺失或为 `null`），只允许 `ILegacyV2StartupMigrationService` 处理兼容逻辑。它会备份原始 `Config.json`，按原文件 SHA-256 创建确定性的 `converted-v2-{hash}` 普通包，写入 `FrontedLayouts`、需要的 `FrontedBehaviors` 和迁移元数据，然后通过 `IFrontedLayoutPackageManager.ActivatePackageAsync` 激活该包，最后保存干净的 v3 Settings。正常 v3 runtime 不读取 legacy canvas 文件。
+启动时如果发现 legacy v2 `Config.json`（`Version` 缺失或为 `null`），只允许 `ILegacyV2StartupMigrationService` 处理兼容逻辑。它会先备份原始 `Config.json`，再从 AppData 根目录读取实际存在的 `*Config-*.json` loose 布局和 `CustomUi/`。启动迁移与 legacy `.bpui` 导入通过同一 legacy frontend input source abstraction 进入同一转换核心；区别仅是 `.bpui` 从 `FrontElementsConfig/` 读取布局，本地迁移从 AppData 根目录读取布局。转换结果通过 package importer 安装并激活为普通 v3 包，最后保存干净的 v3 Settings。正常 v3 runtime 不读取 legacy canvas 文件。
 
 维护普通 v3 功能时优先查看：
 
@@ -79,7 +79,7 @@ v3 目标是转向 JSON/config-driven UI：v3 layout window 不需要独立 XAML
 
 | legacy 路径 | 说明 |
 | --- | --- |
-| `%APPDATA%\neo-bpsys-wpf\{WindowTypeName}Config-{CanvasName}.json` | 旧 `FrontedWindowService` 保存的 `ElementInfo` 用户布局。仅用于 legacy 转换。 |
+| `%APPDATA%\neo-bpsys-wpf\{WindowTypeName}Config-{CanvasName}.json` | 旧 `FrontedWindowService` 保存的 `ElementInfo` 用户布局。启动迁移从 AppData 根目录读取这些 loose 文件。 |
 | `Resources\FrontedDefaultPositions` | 旧内置默认位置文件目录。仅用于 legacy 转换。 |
 
 v3 渲染路径优先读取新目录。legacy 文件只应进入迁移流程，不应让新运行时渲染代码长期保留旧格式分支。
@@ -153,7 +153,7 @@ v3 渲染路径优先读取新目录。legacy 文件只应进入迁移流程，�
 
 Canvas 可启用通用 BO3/BO5 状态：`CanvasSettings` root 表示默认/BO5 state，`EnableBoModeStates = true` 且 `BoModeStates["Bo3"]` 存在时，运行时会在 `ISharedDataService.IsBo3Mode == true` 时渲染 BO3 state。BO3 state 拥有独立 `BackgroundImage`、`RequiredPlugins` 和 `Controls`，因此控件位置、大小、ZIndex、绑定、静态文本和 `Visibility` 都可以与 BO5 不同。`BackgroundImageVariants` 已移除，不保留迁移兼容分支。
 
-layout validator 会校验 Window-centric 字段：`Version` 必须为 3，`WindowSettings.WindowWidth` / `WindowHeight`、`CanvasSettings.CanvasWidth` / `CanvasHeight` 必须大于 0，`CanvasSettings.BackgroundImage` 非空且 resolver 可用时应能解析到文件。控件 JSON key 的重复检测必须发生在 raw JSON / converter 阶段；如果先反序列化成 `Dictionary<string, FrontedControlConfigBase>`，重复 key 可能已经丢失。
+layout validator 会校验 Window-centric 字段：`Version` 必须为 3，`WindowSettings.WindowWidth` / `WindowHeight`、`CanvasSettings.CanvasWidth` / `CanvasHeight` 必须大于 0，`CanvasSettings.BackgroundImage` 非空且 resolver 可用时应能解析到文件。控件 JSON key 的重复检测必须发生在 raw JSON / converter 环节；如果先反序列化成 `Dictionary<string, FrontedControlConfigBase>`，重复 key 可能已经丢失。
 
 ## 5. 内置控件模型
 
@@ -442,24 +442,6 @@ CurrentGame.SurPlayerList[0].PictureShown
 当前转换策略是 legacy-first：目标 window 由 converter 内的旧 XAML 尺寸、背景和控件 blueprint 默认表从零创建，不读取当前 `Resources/FrontedLayouts/{Window}.json`，也不 clone 当前内置 v3 控件。实际输出控件只来自 legacy source window/canvas mapping 与旧 release XAML 对照出的 Legacy Control Blueprint；fuzzy matching 只用于诊断候选提示，不参与正式转换结果。`WidgetsWindow/BpOverViewCanvas` 会拆分到 `BpOverviewWindow`，`WidgetsWindow/MapV2Canvas` 会拆分到 `MapV2Window`，`WidgetsWindow/MapBpCanvas` 仍因 MapBpV1 未接入 Designer v3 而跳过并告警。`ScoreGlobalWindow/BaseCanvas` 兼容旧 `MainTeamName` / `MainScoreTotal` 到 v3 `HomeTeamName` / `HomeScoreTotal`，并把旧半场格子聚合到 `GlobalScoreRow.Cells`。旧 Ban 锁 overlay 会折叠进 `Image` / `BorderedImage` 的 lockable metadata；overlay 的独立几何不再覆盖主图几何。旧 `CustomUi/` 图片复制到包内 `resources/images/` 并生成 `bpui://{PackageId}/...` URI。旧 `Config.json` 只读取明确的前台图片/颜色字段用于安全映射，不覆盖全局设置。
 
 legacy 转换会把 `ScoreWindowSettings.GlobalScoreBgImageUri` 写入 `ScoreGlobalWindow/BaseCanvas/BackgroundImage`，把 `ScoreWindowSettings.GlobalScoreBgImageUriBo3` 写入 `BoModeStates["Bo3"].BackgroundImage` 并启用 BO mode states。
-
-## 10. 分阶段实现历史
-
-> 以下记录已经落地的能力范围，供追溯参考。
-
-| 能力 | 当前状态 |
-| --- | --- |
-| `Settings.Version = 3`、legacy config 迁移骨架 | 已完成 |
-| v3 layout models、资源 resolver、Text/Image factory、renderer skeleton | 已完成 |
-| `ScoreSurWindow` / `ScoreHunWindow` / `ScoreGlobalWindow` 迁移到 v3 renderer 并绑定 `MatchScore` | 已完成 |
-| `CutSceneWindow`、`GameDataWindow` 和 `BpWindow` 迁移到 v3 renderer | 已完成 |
-| `WidgetsWindow` 删除，`BpOverviewWindow` / `MapV2Window` 改为配置驱动窗口 | 已完成 |
-| 独立 Designer：Window 选择、只读预览、interaction layer、透明 hitbox、拖拽/缩放、键盘微调 | 已完成 |
-| Property Grid、Add Control、字体选择、Undo/Redo、Binding Browser、Resource Browser | 已完成 |
-| 用户 layout save/reset、脏状态提示、吸附网格 | 已完成 |
-| `.bpui v3` 导出、导入、安装、激活、删除和 legacy `.bpui` 转换 | 已完成 |
-| 插件前台控件、插件 Layout 窗口、依赖扫描、缺失插件占位符和市场引导 | 已完成 |
-| 安全限制、版本兼容、i18n、左侧图层面板和智能对齐 | 已完成 |
 
 ## 11. 明确非目标
 

@@ -4,13 +4,13 @@ using Microsoft.Extensions.Logging.Abstractions;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
+using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Services;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
@@ -42,6 +42,10 @@ public sealed class LegacyV2StartupMigrationServiceTest
             Assert.True(File.Exists(Path.Combine(packageRoot, "migration-state.json")));
             Assert.True(File.Exists(Path.Combine(packageRoot, "FrontedLayouts", "BpWindow.json")));
             Assert.True(Directory.Exists(Path.Combine(packageRoot, "FrontedLayouts")));
+            var bpWindow = JsonSerializer.Deserialize<FrontedWindowConfig>(
+                await File.ReadAllTextAsync(Path.Combine(packageRoot, "FrontedLayouts", "BpWindow.json")))!;
+            Assert.Equal(321, bpWindow.ControlLayout.Controls["SurTeamName"].Left);
+            Assert.Equal(654, bpWindow.ControlLayout.Controls["SurTeamName"].Top);
 
             var activeState = await fixture.PackageManager.GetActivePackageStateAsync(TestContext.Current.CancellationToken);
             Assert.Equal(result.PackageId, activeState.PackageId);
@@ -106,17 +110,16 @@ public sealed class LegacyV2StartupMigrationServiceTest
         try
         {
             var legacyJson = await fixture.WriteLegacyConfigAsync();
-            var packageId = "converted-v2-" + ComputeHash(legacyJson)[..16].ToLowerInvariant();
-            Directory.CreateDirectory(fixture.PackageRoot);
-            await File.WriteAllTextAsync(Path.Combine(fixture.PackageRoot, packageId), "blocking-file");
-
-            var result = await fixture.CreateService().MigrateIfNeededAsync(TestContext.Current.CancellationToken);
+            var result = await fixture.CreateService(withImporter: false)
+                .MigrateIfNeededAsync(TestContext.Current.CancellationToken);
 
             Assert.False(result.Success);
             Assert.Equal(legacyJson, await File.ReadAllTextAsync(AppConstants.ConfigFilePath));
             var activeState = await fixture.PackageManager.GetActivePackageStateAsync(TestContext.Current.CancellationToken);
             Assert.Equal(FrontedLayoutPackageManager.BuiltInPackageId, activeState.PackageId);
-            Assert.False(Directory.Exists(Path.Combine(fixture.PackageRoot, packageId, "FrontedLayouts")));
+            Assert.Empty(Directory.Exists(fixture.PackageRoot)
+                ? Directory.EnumerateDirectories(fixture.PackageRoot, "converted-v2-*")
+                : []);
         }
         finally
         {
@@ -124,14 +127,12 @@ public sealed class LegacyV2StartupMigrationServiceTest
         }
     }
 
-    private static string ComputeHash(string text) =>
-        Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text)));
-
     private sealed class LegacyMigrationFixture : IDisposable
     {
         private readonly string? _originalConfig;
         private readonly bool _hadOriginalConfig;
         private readonly string[] _originalLooseLayoutFiles;
+        private readonly Dictionary<string, string> _originalLegacyLayoutFiles;
         private readonly string[] _originalBackupFiles;
 
         private LegacyMigrationFixture(
@@ -140,6 +141,7 @@ public sealed class LegacyV2StartupMigrationServiceTest
             string? originalConfig,
             bool hadOriginalConfig,
             string[] originalLooseLayoutFiles,
+            Dictionary<string, string> originalLegacyLayoutFiles,
             string[] originalBackupFiles)
         {
             PackageRoot = packageRoot;
@@ -147,6 +149,7 @@ public sealed class LegacyV2StartupMigrationServiceTest
             _originalConfig = originalConfig;
             _hadOriginalConfig = hadOriginalConfig;
             _originalLooseLayoutFiles = originalLooseLayoutFiles;
+            _originalLegacyLayoutFiles = originalLegacyLayoutFiles;
             _originalBackupFiles = originalBackupFiles;
         }
 
@@ -170,6 +173,11 @@ public sealed class LegacyV2StartupMigrationServiceTest
                     "Config.json.v2*.backup")
                 .Select(Path.GetFullPath)
                 .ToArray();
+            var originalLegacyLayoutFiles = Directory.EnumerateFiles(
+                    Path.GetDirectoryName(configPath)!,
+                    "*Config-*.json",
+                    SearchOption.TopDirectoryOnly)
+                .ToDictionary(Path.GetFullPath, File.ReadAllText, StringComparer.OrdinalIgnoreCase);
 
             var packageRoot = Path.Combine(Path.GetTempPath(), "neo-bpsys-v2-migration-test-" + Guid.NewGuid().ToString("N"));
             var repositoryRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
@@ -186,14 +194,22 @@ public sealed class LegacyV2StartupMigrationServiceTest
                 originalConfig,
                 hadOriginalConfig,
                 originalLooseLayoutFiles,
+                originalLegacyLayoutFiles,
                 originalBackupFiles);
         }
 
-        internal LegacyV2StartupMigrationService CreateService()
+        internal LegacyV2StartupMigrationService CreateService(bool withImporter = true)
         {
+            var importer = withImporter
+                ? new FrontedLayoutPackageImporter(
+                    PackageRoot,
+                    Path.Combine(Path.GetTempPath(), "neo-bpsys-v2-importer-test-" + Guid.NewGuid().ToString("N")),
+                    PackageManager)
+                : null;
             var converter = new FrontedLayoutPackageLegacyConverter(
                 Path.Combine(AppContext.BaseDirectory, "Resources", "FrontedLayouts"),
-                Path.Combine(Path.GetTempPath(), "neo-bpsys-v2-converter-test-" + Guid.NewGuid().ToString("N")));
+                Path.Combine(Path.GetTempPath(), "neo-bpsys-v2-converter-test-" + Guid.NewGuid().ToString("N")),
+                importer);
 
             return new LegacyV2StartupMigrationService(
                 new LegacyV2ConfigDetector(),
@@ -222,6 +238,13 @@ public sealed class LegacyV2StartupMigrationServiceTest
                 }
             });
             await WriteConfigAsync(legacyJson);
+            await File.WriteAllTextAsync(
+                Path.Combine(AppConstants.AppDataPath, "BpWindowConfig-BaseCanvas.json"),
+                """
+                {
+                  "SurTeamName": { "Left": 321, "Top": 654, "Width": 222, "Height": 44 }
+                }
+                """);
             return legacyJson;
         }
 
@@ -264,6 +287,22 @@ public sealed class LegacyV2StartupMigrationServiceTest
                          .Where(path => !originalBackups.Contains(path)))
             {
                 File.Delete(backup);
+            }
+
+            var originalLegacyPaths = _originalLegacyLayoutFiles.Keys.ToHashSet(StringComparer.OrdinalIgnoreCase);
+            foreach (var file in Directory.EnumerateFiles(
+                             AppConstants.AppDataPath,
+                             "*Config-*.json",
+                             SearchOption.TopDirectoryOnly)
+                         .Select(Path.GetFullPath)
+                         .Where(path => !originalLegacyPaths.Contains(path)))
+            {
+                File.Delete(file);
+            }
+
+            foreach (var (path, contents) in _originalLegacyLayoutFiles)
+            {
+                File.WriteAllText(path, contents);
             }
 
             if (Directory.Exists(PackageRoot))

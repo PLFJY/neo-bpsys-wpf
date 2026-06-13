@@ -19,8 +19,7 @@ namespace neo_bpsys_wpf.Services;
 /// </summary>
 public sealed class LegacyV2StartupMigrationService : ILegacyV2StartupMigrationService
 {
-    private const int MigrationSchemaVersion = 1;
-    private const string ManifestFileName = "manifest.json";
+    private const int MigrationSchemaVersion = 2;
     private const string MigrationStateFileName = "migration-state.json";
 
     private static readonly string[] LegacyFrontendKeys =
@@ -81,7 +80,8 @@ public sealed class LegacyV2StartupMigrationService : ILegacyV2StartupMigrationS
         }
 
         var originalActiveState = await _packageManager.GetActivePackageStateAsync(cancellationToken);
-        var hash = ComputeSha256(originalJson);
+        var layoutHashes = ComputeLegacyLayoutHashes(AppConstants.AppDataPath);
+        var hash = ComputeSourceHash(originalJson, layoutHashes);
         var packageId = $"converted-v2-{hash[..16].ToLowerInvariant()}";
         var packageRoot = Path.Combine(_packageManager.GetPackageRootFolder(), packageId);
         string? backupPath = null;
@@ -92,7 +92,7 @@ public sealed class LegacyV2StartupMigrationService : ILegacyV2StartupMigrationS
             Directory.CreateDirectory(Path.GetDirectoryName(backupPath)!);
             File.Copy(configFilePath, backupPath, overwrite: false);
 
-            if (HasMatchingMigrationState(packageRoot, hash))
+            if (HasMatchingMigrationState(packageRoot, ComputeSha256(originalJson), layoutHashes))
             {
                 await _packageManager.ActivatePackageAsync(packageId, cancellationToken);
                 await WriteMigratedSettingsAsync(configFilePath, originalJson, cancellationToken);
@@ -106,30 +106,36 @@ public sealed class LegacyV2StartupMigrationService : ILegacyV2StartupMigrationS
                 };
             }
 
-            var stagingRoot = Path.Combine(
-                AppConstants.AppTempPath,
-                "legacy-v2-startup-migration",
-                $"{packageId}-{Guid.NewGuid():N}");
-            Directory.CreateDirectory(stagingRoot);
-            try
-            {
-                await WritePackageAsync(stagingRoot, packageId, hash, backupPath, originalJson, cancellationToken);
-                ValidatePackage(stagingRoot);
-
-                Directory.CreateDirectory(_packageManager.GetPackageRootFolder());
-                if (Directory.Exists(packageRoot))
+            var convertResult = await _legacyConverter.ConvertLocalAppDataAsync(
+                AppConstants.AppDataPath,
+                new FrontedLayoutPackageLegacyConvertRequest
                 {
-                    Directory.Delete(packageRoot, recursive: true);
-                }
-
-                Directory.Move(stagingRoot, packageRoot);
-            }
-            finally
+                    PackageId = packageId,
+                    Name = "Converted v2 layout",
+                    Description = "Converted from legacy local frontend layout files during startup migration.",
+                    Author = Environment.UserName ?? string.Empty,
+                    InstallAfterConvert = true,
+                    ActivateAfterInstall = true
+                },
+                cancellationToken);
+            if (!convertResult.Success)
             {
-                TryDeleteDirectory(stagingRoot);
+                throw new InvalidOperationException(convertResult.ErrorMessage ?? "Legacy frontend conversion failed.");
             }
 
-            await _packageManager.ActivatePackageAsync(packageId, cancellationToken);
+            var state = new LegacyV2StartupMigrationState
+            {
+                SchemaVersion = MigrationSchemaVersion,
+                SourceConfigSha256 = ComputeSha256(originalJson),
+                LegacyLayoutSha256 = layoutHashes,
+                PackageId = packageId,
+                BackupPath = backupPath,
+                MigratedAt = DateTimeOffset.UtcNow
+            };
+            await File.WriteAllTextAsync(
+                Path.Combine(packageRoot, MigrationStateFileName),
+                JsonSerializer.Serialize(state, _jsonOptions),
+                cancellationToken);
             await WriteMigratedSettingsAsync(configFilePath, originalJson, cancellationToken);
 
             _logger.LogInformation(
@@ -165,88 +171,6 @@ public sealed class LegacyV2StartupMigrationService : ILegacyV2StartupMigrationS
         }
     }
 
-    private async Task WritePackageAsync(
-        string packageRoot,
-        string packageId,
-        string hash,
-        string backupPath,
-        string originalJson,
-        CancellationToken cancellationToken)
-    {
-        var configs = _legacyConverter.ConvertLegacyStartupConfigJson(originalJson);
-        var manifest = new FrontedLayoutPackageManifest
-        {
-            PackageId = packageId,
-            Name = "Converted v2 layout",
-            Description = "Converted from legacy Config.json during startup migration.",
-            Author = Environment.UserName ?? string.Empty,
-            CreatedAt = DateTimeOffset.UtcNow,
-            Format = "neo-bpsys-bpui",
-            FormatVersion = 3,
-            LayoutSchemaVersion = 3
-        };
-
-        foreach (var (window, config) in configs.OrderBy(item => item.Key, StringComparer.Ordinal))
-        {
-            var relativePath = Path.Combine("FrontedLayouts", $"{window}.json");
-            var path = Path.Combine(packageRoot, relativePath);
-            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-            await File.WriteAllTextAsync(path, JsonSerializer.Serialize(config, _jsonOptions), cancellationToken);
-            manifest.Content.Layouts.Add(new FrontedLayoutPackageLayoutEntry
-            {
-                Window = window,
-                Path = relativePath.Replace('\\', '/')
-            });
-        }
-
-        await CopyBuiltInBehaviorDocumentsAsync(packageRoot, configs.Keys, cancellationToken);
-        var state = new LegacyV2StartupMigrationState
-        {
-            SchemaVersion = MigrationSchemaVersion,
-            SourceConfigSha256 = hash,
-            PackageId = packageId,
-            BackupPath = backupPath,
-            MigratedAt = DateTimeOffset.UtcNow
-        };
-
-        await File.WriteAllTextAsync(
-            Path.Combine(packageRoot, MigrationStateFileName),
-            JsonSerializer.Serialize(state, _jsonOptions),
-            cancellationToken);
-        await File.WriteAllTextAsync(
-            Path.Combine(packageRoot, ManifestFileName),
-            JsonSerializer.Serialize(manifest, _jsonOptions),
-            cancellationToken);
-    }
-
-    private async Task CopyBuiltInBehaviorDocumentsAsync(
-        string packageRoot,
-        IEnumerable<string> windows,
-        CancellationToken cancellationToken)
-    {
-        var builtInLayoutsRoot = _packageManager.GetPackageLayoutsRootFolder(FrontedLayoutPackageManager.BuiltInPackageId);
-        var resourcesRoot = Path.GetDirectoryName(Path.GetFullPath(builtInLayoutsRoot));
-        if (resourcesRoot is null)
-        {
-            return;
-        }
-
-        foreach (var window in windows)
-        {
-            var source = Path.Combine(resourcesRoot, "FrontedBehaviors", $"{window}.behaviors.json");
-            if (!File.Exists(source))
-            {
-                continue;
-            }
-
-            var target = Path.Combine(packageRoot, "FrontedBehaviors", $"{window}.behaviors.json");
-            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
-            await using var sourceStream = File.OpenRead(source);
-            await using var targetStream = File.Create(target);
-            await sourceStream.CopyToAsync(targetStream, cancellationToken);
-        }
-    }
-
     private async Task WriteMigratedSettingsAsync(
         string configFilePath,
         string originalJson,
@@ -269,21 +193,10 @@ public sealed class LegacyV2StartupMigrationService : ILegacyV2StartupMigrationS
         await File.WriteAllTextAsync(configFilePath, migratedJson, cancellationToken);
     }
 
-    private static void ValidatePackage(string packageRoot)
-    {
-        if (!File.Exists(Path.Combine(packageRoot, ManifestFileName)))
-        {
-            throw new FileNotFoundException("Converted package manifest is missing.");
-        }
-
-        if (!Directory.Exists(Path.Combine(packageRoot, "FrontedLayouts"))
-            || !Directory.EnumerateFiles(Path.Combine(packageRoot, "FrontedLayouts"), "*.json").Any())
-        {
-            throw new InvalidDataException("Converted package contains no layouts.");
-        }
-    }
-
-    private static bool HasMatchingMigrationState(string packageRoot, string hash)
+    private static bool HasMatchingMigrationState(
+        string packageRoot,
+        string configHash,
+        IReadOnlyDictionary<string, string> layoutHashes)
     {
         var statePath = Path.Combine(packageRoot, MigrationStateFileName);
         if (!File.Exists(statePath))
@@ -299,7 +212,8 @@ public sealed class LegacyV2StartupMigrationService : ILegacyV2StartupMigrationS
             return state is
             {
                 SchemaVersion: MigrationSchemaVersion
-            } && string.Equals(state.SourceConfigSha256, hash, StringComparison.OrdinalIgnoreCase);
+            } && string.Equals(state.SourceConfigSha256, configHash, StringComparison.OrdinalIgnoreCase)
+              && DictionariesEqual(state.LegacyLayoutSha256, layoutHashes);
         }
         catch
         {
@@ -332,6 +246,44 @@ public sealed class LegacyV2StartupMigrationService : ILegacyV2StartupMigrationS
         return Convert.ToHexString(SHA256.HashData(bytes));
     }
 
+    private static Dictionary<string, string> ComputeLegacyLayoutHashes(string appDataRoot)
+    {
+        if (!Directory.Exists(appDataRoot))
+        {
+            return [];
+        }
+
+        return Directory.EnumerateFiles(appDataRoot, "*Config-*.json", SearchOption.TopDirectoryOnly)
+            .OrderBy(Path.GetFileName, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(
+                path => Path.GetFileName(path)
+                        ?? throw new InvalidDataException($"Legacy layout path has no file name: {path}"),
+                path => Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path))),
+                StringComparer.OrdinalIgnoreCase);
+    }
+
+    private static string ComputeSourceHash(string configJson, IReadOnlyDictionary<string, string> layoutHashes)
+    {
+        var builder = new System.Text.StringBuilder(configJson);
+        foreach (var item in layoutHashes.OrderBy(item => item.Key, StringComparer.OrdinalIgnoreCase))
+        {
+            builder.Append('\n').Append(item.Key).Append('=').Append(item.Value);
+        }
+
+        builder.Append('\n').Append(MigrationSchemaVersion);
+        return ComputeSha256(builder.ToString());
+    }
+
+    private static bool DictionariesEqual(
+        IReadOnlyDictionary<string, string>? left,
+        IReadOnlyDictionary<string, string> right)
+    {
+        return left is not null
+               && left.Count == right.Count
+               && right.All(item => left.TryGetValue(item.Key, out var value)
+                                    && string.Equals(value, item.Value, StringComparison.OrdinalIgnoreCase));
+    }
+
     private static string CreateBackupPath(string configFilePath)
     {
         var backupPath = configFilePath + ".v2.backup";
@@ -357,26 +309,13 @@ public sealed class LegacyV2StartupMigrationService : ILegacyV2StartupMigrationS
         }
     }
 
-    private static void TryDeleteDirectory(string path)
-    {
-        try
-        {
-            if (Directory.Exists(path))
-            {
-                Directory.Delete(path, recursive: true);
-            }
-        }
-        catch
-        {
-            // Best effort cleanup.
-        }
-    }
-
     private sealed class LegacyV2StartupMigrationState
     {
         public int SchemaVersion { get; set; }
 
         public string SourceConfigSha256 { get; set; } = string.Empty;
+
+        public Dictionary<string, string> LegacyLayoutSha256 { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
         public string PackageId { get; set; } = string.Empty;
 

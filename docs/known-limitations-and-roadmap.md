@@ -32,7 +32,7 @@
 
 ## Designer v3 当前状态
 
-Fronted Designer v3 已完成基础设施阶段，所有内置前台窗口均已接入 v3 renderer：
+Fronted Designer v3 已完成基础设施环节，所有内置前台窗口均已接入 v3 renderer：
 
 | 窗口 | v3 layout host | 状态 |
 | --- | --- | --- |

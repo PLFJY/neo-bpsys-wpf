@@ -51,7 +51,7 @@ GUID 映射见 [FrontedWindowHelper.cs](../neo-bpsys-wpf.Core/Helpers/FrontedWin
 
 启动链路描述从应用程序启动到前台窗口可用（窗口实例已创建并注册到字典）的完整过程。
 
-### 2.1 DI 注册阶段（`App.Services.xaml.cs` → `ConfigureServices`）
+### 2.1 DI 注册环节（`App.Services.xaml.cs` → `ConfigureServices`）
 
 [App.Services.xaml.cs](../neo-bpsys-wpf/App.Services.xaml.cs) 中：
 
@@ -228,7 +228,7 @@ public interface IFrontedWindowPluginContributor
 }
 ```
 
-插件在 DI 注册阶段通过扩展方法注册：
+插件在 DI 注册环节通过扩展方法注册：
 
 ```csharp
 services.AddFrontedWindowPluginContributor<TContributor>();
@@ -618,7 +618,7 @@ FrontedWindowService.ApplyWindowLayoutOptions()
 
 ### 7.1 v3 布局窗口的配置应用（`ReloadFrontedLayoutAsync`）
 
-v3 layout host 将配置应用拆成两个阶段。`ReloadFrontedLayoutAsync()` 保留为手动强制重载入口，内部先预应用窗口设置，再强制加载内容：
+v3 layout host 将配置应用拆成两个环节。`ReloadFrontedLayoutAsync()` 保留为手动强制重载入口，内部先预应用窗口设置，再强制加载内容：
 
 ```csharp
 public async Task ReloadFrontedLayoutAsync()

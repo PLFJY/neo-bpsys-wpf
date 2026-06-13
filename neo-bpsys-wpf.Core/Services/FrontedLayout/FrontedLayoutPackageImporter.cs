@@ -88,92 +88,17 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
 
             Directory.CreateDirectory(stagingRoot);
             ExtractZipSafely(request.PackagePath, stagingRoot);
-
-            var manifestPath = Path.Combine(stagingRoot, ManifestFileName);
-            if (!File.Exists(manifestPath))
+            var result = await ImportStagedDirectoryAsync(
+                stagingRoot,
+                request.ReplaceExisting,
+                request.ActivateAfterImport,
+                cancellationToken);
+            if (result.Success)
             {
-                return DetectLegacyPackage(stagingRoot)
-                    ? Legacy()
-                    : Fail("manifest.json is missing.");
+                stagingRoot = string.Empty;
             }
 
-            FrontedLayoutPackageManifest? manifest;
-            try
-            {
-                if (new FileInfo(manifestPath).Length > FrontedLayoutLimits.MaxManifestBytes)
-                {
-                    return Fail("ManifestTooLarge");
-                }
-
-                var json = await File.ReadAllTextAsync(manifestPath, cancellationToken);
-                manifest = JsonSerializer.Deserialize<FrontedLayoutPackageManifest>(json, _jsonSerializerOptions);
-            }
-            catch (Exception ex)
-            {
-                return DetectLegacyPackage(stagingRoot)
-                    ? Legacy()
-                    : Fail($"Invalid package manifest: {ex.Message}");
-            }
-
-            var validation = await ValidatePackageAsync(stagingRoot, manifest, cancellationToken);
-            if (!validation.Success)
-            {
-                return validation;
-            }
-
-            var packageLayouts = await LoadPackageLayoutsAsync(stagingRoot, manifest!, cancellationToken);
-            var missingPluginControls = FrontedLayoutPluginDependencyScanner.FindMissingPluginControls(
-                packageLayouts.Select(layout => (layout.Window, FrontedLayoutConstants.BaseCanvasName, FrontedWindowConfigCanvasAdapter.ToCanvasConfig(layout.Config))),
-                _controlRegistry);
-            var unsatisfiedPluginDependencies = FrontedLayoutPluginDependencyScanner.FindUnsatisfiedPluginDependencies(
-                packageLayouts.Select(layout => (layout.Window, FrontedLayoutConstants.BaseCanvasName, FrontedWindowConfigCanvasAdapter.ToCanvasConfig(layout.Config))),
-                manifest!.PluginDependencies,
-                _controlRegistry,
-                _pluginMetadataProvider);
-            var packageId = manifest!.PackageId;
-            var installPath = GetInstalledPackagePath(packageId);
-            if (Directory.Exists(installPath) && !request.ReplaceExisting)
-            {
-                return new FrontedLayoutPackageImportResult
-                {
-                    Success = false,
-                    PackageId = packageId,
-                    PackageAlreadyExists = true,
-                    ErrorMessage = "Package already exists."
-                };
-            }
-
-            Directory.CreateDirectory(_packageRoot);
-            var packageRoot = EnsureTrailingSeparator(Path.GetFullPath(_packageRoot));
-            var fullInstallPath = Path.GetFullPath(installPath);
-            if (!fullInstallPath.StartsWith(packageRoot, StringComparison.OrdinalIgnoreCase))
-            {
-                return Fail("Package install path escaped the package root.");
-            }
-
-            if (Directory.Exists(installPath))
-            {
-                Directory.Delete(installPath, recursive: true);
-            }
-
-            Directory.Move(stagingRoot, installPath);
-            stagingRoot = string.Empty;
-
-            if (request.ActivateAfterImport && _packageManager is not null)
-            {
-                await _packageManager.ActivatePackageAsync(packageId, cancellationToken);
-            }
-
-            return new FrontedLayoutPackageImportResult
-            {
-                Success = true,
-                PackageId = packageId,
-                InstalledPath = installPath,
-                LayoutCount = manifest.Content.Layouts.Count,
-                ResourceCount = manifest.Content.Resources.Count,
-                MissingPluginControls = missingPluginControls,
-                UnsatisfiedPluginDependencies = unsatisfiedPluginDependencies
-            };
+            return result;
         }
         catch (InvalidDataException ex)
         {
@@ -189,6 +114,135 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
         {
             TryDeleteDirectory(stagingRoot);
         }
+    }
+
+    public async Task<FrontedLayoutPackageImportResult> ImportDirectoryAsync(
+        string packageDirectory,
+        bool replaceExisting,
+        bool activateAfterImport,
+        CancellationToken cancellationToken = default)
+    {
+        var stagingRoot = Path.Combine(_tempRoot, Guid.NewGuid().ToString("N"));
+        try
+        {
+            if (string.IsNullOrWhiteSpace(packageDirectory) || !Directory.Exists(packageDirectory))
+            {
+                return Fail("Package directory was not found.");
+            }
+
+            CopyDirectory(packageDirectory, stagingRoot);
+            var result = await ImportStagedDirectoryAsync(
+                stagingRoot,
+                replaceExisting,
+                activateAfterImport,
+                cancellationToken);
+            if (result.Success)
+            {
+                stagingRoot = string.Empty;
+            }
+
+            return result;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogWarning(ex, "Failed to import fronted layout package directory.");
+            return Fail(ex.Message);
+        }
+        finally
+        {
+            TryDeleteDirectory(stagingRoot);
+        }
+    }
+
+    private async Task<FrontedLayoutPackageImportResult> ImportStagedDirectoryAsync(
+        string stagingRoot,
+        bool replaceExisting,
+        bool activateAfterImport,
+        CancellationToken cancellationToken)
+    {
+        var manifestPath = Path.Combine(stagingRoot, ManifestFileName);
+        if (!File.Exists(manifestPath))
+        {
+            return DetectLegacyPackage(stagingRoot)
+                ? Legacy()
+                : Fail("manifest.json is missing.");
+        }
+
+        FrontedLayoutPackageManifest? manifest;
+        try
+        {
+            if (new FileInfo(manifestPath).Length > FrontedLayoutLimits.MaxManifestBytes)
+            {
+                return Fail("ManifestTooLarge");
+            }
+
+            var json = await File.ReadAllTextAsync(manifestPath, cancellationToken);
+            manifest = JsonSerializer.Deserialize<FrontedLayoutPackageManifest>(json, _jsonSerializerOptions);
+        }
+        catch (Exception ex)
+        {
+            return DetectLegacyPackage(stagingRoot)
+                ? Legacy()
+                : Fail($"Invalid package manifest: {ex.Message}");
+        }
+
+        var validation = await ValidatePackageAsync(stagingRoot, manifest, cancellationToken);
+        if (!validation.Success)
+        {
+            return validation;
+        }
+
+        var packageLayouts = await LoadPackageLayoutsAsync(stagingRoot, manifest!, cancellationToken);
+        var missingPluginControls = FrontedLayoutPluginDependencyScanner.FindMissingPluginControls(
+            packageLayouts.Select(layout => (layout.Window, FrontedLayoutConstants.BaseCanvasName, FrontedWindowConfigCanvasAdapter.ToCanvasConfig(layout.Config))),
+            _controlRegistry);
+        var unsatisfiedPluginDependencies = FrontedLayoutPluginDependencyScanner.FindUnsatisfiedPluginDependencies(
+            packageLayouts.Select(layout => (layout.Window, FrontedLayoutConstants.BaseCanvasName, FrontedWindowConfigCanvasAdapter.ToCanvasConfig(layout.Config))),
+            manifest!.PluginDependencies,
+            _controlRegistry,
+            _pluginMetadataProvider);
+        var packageId = manifest.PackageId;
+        var installPath = GetInstalledPackagePath(packageId);
+        if (Directory.Exists(installPath) && !replaceExisting)
+        {
+            return new FrontedLayoutPackageImportResult
+            {
+                Success = false,
+                PackageId = packageId,
+                PackageAlreadyExists = true,
+                ErrorMessage = "Package already exists."
+            };
+        }
+
+        Directory.CreateDirectory(_packageRoot);
+        var packageRoot = EnsureTrailingSeparator(Path.GetFullPath(_packageRoot));
+        var fullInstallPath = Path.GetFullPath(installPath);
+        if (!fullInstallPath.StartsWith(packageRoot, StringComparison.OrdinalIgnoreCase))
+        {
+            return Fail("Package install path escaped the package root.");
+        }
+
+        if (Directory.Exists(installPath))
+        {
+            Directory.Delete(installPath, recursive: true);
+        }
+
+        Directory.Move(stagingRoot, installPath);
+        if (activateAfterImport && _packageManager is not null)
+        {
+            await _packageManager.ActivatePackageAsync(packageId, cancellationToken);
+        }
+
+        return new FrontedLayoutPackageImportResult
+        {
+            Success = true,
+            PackageId = packageId,
+            InstalledPath = installPath,
+            LayoutCount = manifest.Content.Layouts.Count,
+            ResourceCount = manifest.Content.Resources.Count,
+            MissingPluginControls = missingPluginControls,
+            UnsatisfiedPluginDependencies = unsatisfiedPluginDependencies
+        };
     }
 
     private async Task<List<PackageLayoutState>> LoadPackageLayoutsAsync(
@@ -767,6 +821,24 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
         return path.EndsWith(Path.DirectorySeparatorChar)
             ? path
             : path + Path.DirectorySeparatorChar;
+    }
+
+    private static void CopyDirectory(string sourceRoot, string targetRoot)
+    {
+        var fullSourceRoot = EnsureTrailingSeparator(Path.GetFullPath(sourceRoot));
+        foreach (var sourceFile in Directory.EnumerateFiles(sourceRoot, "*", SearchOption.AllDirectories))
+        {
+            var fullSourceFile = Path.GetFullPath(sourceFile);
+            if (!fullSourceFile.StartsWith(fullSourceRoot, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidDataException($"Package file escaped source directory: {sourceFile}");
+            }
+
+            var relativePath = Path.GetRelativePath(sourceRoot, sourceFile);
+            var targetFile = Path.Combine(targetRoot, relativePath);
+            Directory.CreateDirectory(Path.GetDirectoryName(targetFile)!);
+            File.Copy(sourceFile, targetFile, overwrite: false);
+        }
     }
 
     private static void TryDeleteDirectory(string path)

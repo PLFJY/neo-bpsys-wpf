@@ -458,7 +458,7 @@ Window layout JSON 可以在 `ControlLayout.RequiredPlugins` 中声明本窗口�
 3. 扫描实际控件中 `ControlType` 以 `plugin:` 开头的项。
 4. 合并依赖列表。
 5. 检查已安装插件及版本。
-6. 历史迭代 13E 分类为：已满足、缺失插件、已安装但版本过低、市场可安装 / 可更新、市场未找到、市场不可用。
+6. 分类为：已满足、缺失插件、已安装但版本过低、市场可安装 / 可更新、市场未找到、市场不可用。
 
 用户选择：
 
@@ -472,7 +472,7 @@ Window layout JSON 可以在 `ControlLayout.RequiredPlugins` 中声明本窗口�
 2. `.bpui` 不能携带插件 DLL。
 3. 安装或更新插件可能要求重启，因为当前插件系统在启动期间、Host build 前加载插件。
 4. 如果重启后插件才能生效，导入流程应说明：插件安装后通常需要重启；用户也可以继续导入并保留缺失插件布局 / 控件配置。
-5. 历史迭代 13E 会查询插件市场，但只做引导，不会静默安装、更新或热加载插件。
+5. 会查询插件市场，但只做引导，不会静默安装、更新或热加载插件。
 
 继续导入并保留缺失插件行为：
 
@@ -913,6 +913,8 @@ Shape 控件使用 `ControlType: "Rectangle"` 或 `"Polygon"`。共享字段包�
 
 ## 22. legacy 关系和当前实现
 
+legacy `.bpui` 导入和 legacy 本地启动迁移共享同一转换核心。`.bpui` 输入源从解压目录的 `Config.json`、`FrontElementsConfig/*.json` 和 `CustomUi/` 读取；本地启动输入源从 AppData 根目录的 `Config.json`、`*Config-*.json` 和 `CustomUi/` 读取。两者使用同一布局映射、控件 blueprint、文本样式、资源复制/重写、窗口设置和 validator。启动迁移不会创建临时 `.bpui`，生成的 v3 package directory 直接通过 package importer 安装并激活。
+
 旧 SettingPage `.bpui` 导入导出是 legacy。新的 v3 package manager 已替代它用于 Designer v3 布局。
 
 legacy 包检测：
@@ -922,7 +924,7 @@ legacy 包检测：
 
 `FrontManagePage` 导入 legacy `.bpui` 时会先询问是否转换。转换器会安全解压旧 zip 到 staging，复制 `CustomUi/` 资源到 `resources/images/`，生成 `manifest.json`，并从当前内置 v3 布局起步应用旧 `ElementInfo` 几何覆盖。旧 `Config.json` 只读取明确可映射的前台图片字段，不会写入 `%APPDATA%/neo-bpsys-wpf/Config.json`，也不会复制到新包或 AppData。未知旧布局文件只产生 warning 并跳过；如果没有任何可映射布局，转换失败并显示错误。转换后的包再走现有 v3 importer，因此安装、重复 PackageId 替换、资源隔离和激活行为与普通 v3 包一致。
 
-当前 `.bpui v3` 包的完整功能已实现：导出（含 manifest 对话框、全部前台布局、资源收集/重写）、导入安装、激活复制、删除、legacy 转换，以及插件控件 `ControlType` 命名、Canvas `RequiredPlugins`、manifest `PluginDependencies`、缺失插件保留、插件市场安装引导等全流程支持。详细阶段历史见 [fronted-designer-v3.md#10-分阶段实现历史](fronted-designer-v3.md#10-分阶段实现历史)。
+当前 `.bpui v3` 包的完整功能已实现：导出（含 manifest 对话框、全部前台布局、资源收集/重写）、导入安装、激活复制、删除、legacy 转换，以及插件控件 `ControlType` 命名、Canvas `RequiredPlugins`、manifest `PluginDependencies`、缺失插件保留、插件市场安装引导等全流程支持。
 
 ## Legacy conversion messages
 

@@ -1,6 +1,6 @@
 # Modern smooth scrolling
 
-本阶段只提供项目本地的平滑滚动基础设施，不全局替换现有 `ScrollViewer`，也不引入 iNKORE NuGet 依赖。
+本环节只提供项目本地的平滑滚动基础设施，不全局替换现有 `ScrollViewer`，也不引入 iNKORE NuGet 依赖。
 
 ## 组件
 

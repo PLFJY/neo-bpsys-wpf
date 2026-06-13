@@ -106,14 +106,14 @@ pane toggle 使用项目本地 `ModernPaneToggleButtonStyle`，参考 iNKORE/Win
 
 当前 Top 模式只实现本项目需要的本地标签形态，参考 iNKORE `nvSample7` 的选择和推荐转场模型，但适配到本项目已有的内部 frame 导航模型。未复制 iNKORE 完整 `NavigationView` 的 overflow、层级、测量和 flyout 实现。
 
-本阶段不实现：
+本环节不实现：
 
 - Top overflow
 - 层级 flyout
 - settings item
 - autosuggest
 - breadcrumb
-- `FrontManagePage` 标签页迁移，留到后续 历史迭代 6
+- `FrontManagePage` 标签页迁移，将在后续版本中提供当前实现
 - `MessageBox` / `ContentDialog` 迁移
 
 ## 导航行为
@@ -136,7 +136,7 @@ public enum ModernNavigationBehavior
 }
 ```
 
-`PageNavigation` 是默认值，用于 `MainWindow.RootNavigation`。它保持 历史迭代 4 行为：通过 `INavigationViewPageProvider`、`IServiceProvider` 或 `Activator` 创建后台 Page，保留 `ModernFrame` journal/back 行为，并继续兼容 `NavigationService` 和 `GameGuidanceService`。
+`PageNavigation` 是默认值，用于 `MainWindow.RootNavigation`。它保持 行为：通过 `INavigationViewPageProvider`、`IServiceProvider` 或 `Activator` 创建后台 Page，保留 `ModernFrame` journal/back 行为，并继续兼容 `NavigationService` 和 `GameGuidanceService`。
 
 `LocalTabs` 用于局部标签页。它直接创建本地 `FrameworkElement`，当前约定子视图使用 `UserControl`；如果子视图没有自己的 `DataContext`，会继承 `ModernNavigationView.DataContext`。每次本地标签切换成功后都会清空 `PART_Frame` journal，避免标签切换进入全局返回栈。切换方向根据旧/新 tab 在 `MenuEntries` 中的索引选择横向 slide 转场。局部标签页不要全局关闭 `ModernFrame` 滚动宿主，应依赖 `ContentScrollHostMode.Auto` 保留默认 frame 级滚动，只对明确需要独立 viewport 的区域声明 self ownership。
 

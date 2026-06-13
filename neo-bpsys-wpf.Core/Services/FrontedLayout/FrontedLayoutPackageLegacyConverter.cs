@@ -60,6 +60,11 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             ["WidgetsWindowConfig-MapV2Canvas.json"] = new("WidgetsWindow", "MapV2Canvas", "MapV2Window", 1440D, 160D)
         };
 
+    internal static IReadOnlyCollection<string> LegacyLayoutFileNames => LegacyLayoutFileMap.Keys;
+
+    internal static bool IsKnownLegacyLayoutFileName(string fileName) =>
+        LegacyLayoutFileMap.ContainsKey(fileName);
+
     private static readonly IReadOnlyDictionary<LegacyLayoutKey, IReadOnlyList<LegacyControlBlueprint>> LegacyControlBlueprints =
         CreateLegacyControlBlueprints();
 
@@ -111,8 +116,6 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
     {
         var messages = new List<FrontedLayoutPackageLegacyConvertMessage>();
         var extractionRoot = Path.Combine(_tempRoot, "extract", Guid.NewGuid().ToString("N"));
-        var stagingRoot = Path.Combine(_tempRoot, "staging", Guid.NewGuid().ToString("N"));
-        var outputPath = Path.Combine(_tempRoot, "converted", $"{Guid.NewGuid():N}.bpui");
 
         try
         {
@@ -132,65 +135,18 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             }
 
             Directory.CreateDirectory(extractionRoot);
-            Directory.CreateDirectory(stagingRoot);
             ExtractZipSafely(request.LegacyPackagePath, extractionRoot);
             if (!DetectLegacyPackage(extractionRoot))
             {
                 return Fail("Archive is not a legacy .bpui package.", messages);
             }
 
-            var resourceState = CopyCustomUiResources(extractionRoot, stagingRoot, packageId, messages);
-            var manifest = CreateManifest(request, packageId);
-            manifest.Content.Resources = resourceState.Resources;
-
-            var configValueMap = ReadFrontendConfigValueMap(extractionRoot, resourceState, messages);
-            var legacyPropertySet = ReadLegacyPropertySet(extractionRoot, messages);
-            var legacySettings = ReadLegacySettings(extractionRoot, messages);
-            var layoutEntries = await ConvertFrontElementsConfigsAsync(
-                extractionRoot,
-                stagingRoot,
-                manifest,
-                resourceState,
-                configValueMap,
-                legacySettings,
-                legacyPropertySet,
-                messages,
+            return await ConvertLegacyInputAsync(
+                new LegacyBpuiDirectoryInputSource(extractionRoot),
+                request,
+                createArchive: true,
+                replaceExisting: false,
                 cancellationToken);
-            if (layoutEntries == 0)
-            {
-                return Fail("No mappable legacy FrontElementsConfig files were converted.", messages);
-            }
-
-            var manifestJson = JsonSerializer.Serialize(manifest, _jsonOptions);
-            await File.WriteAllTextAsync(Path.Combine(stagingRoot, ManifestFileName), manifestJson, cancellationToken);
-
-            Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
-            ZipFile.CreateFromDirectory(stagingRoot, outputPath, CompressionLevel.Optimal, includeBaseDirectory: false);
-            EnsureZipEntriesAreSafe(outputPath);
-
-            var result = new FrontedLayoutPackageLegacyConvertResult
-            {
-                Success = true,
-                ConvertedPackagePath = outputPath,
-                LayoutCount = manifest.Content.Layouts.Count,
-                ResourceCount = manifest.Content.Resources.Count
-            };
-            FrontedLayoutPackageLegacyConvertResult.PopulateFromMessages(result, messages);
-
-            if (request.InstallAfterConvert && _packageImporter is not null)
-            {
-                var importResult = await _packageImporter.ImportAsync(new FrontedLayoutPackageImportRequest
-                {
-                    PackagePath = outputPath,
-                    ActivateAfterImport = request.ActivateAfterInstall
-                }, cancellationToken);
-
-                result.Success = importResult.Success;
-                result.InstalledPackageId = importResult.Success ? importResult.PackageId : null;
-                result.ErrorMessage = importResult.ErrorMessage;
-            }
-
-            return result;
         }
         catch (InvalidDataException ex)
         {
@@ -205,56 +161,127 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         finally
         {
             TryDeleteDirectory(extractionRoot);
+        }
+    }
+
+    internal Task<FrontedLayoutPackageLegacyConvertResult> ConvertLocalAppDataAsync(
+        string appDataRoot,
+        FrontedLayoutPackageLegacyConvertRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        return ConvertLegacyInputAsync(
+            new LegacyLocalAppDataInputSource(appDataRoot),
+            request,
+            createArchive: false,
+            replaceExisting: true,
+            cancellationToken);
+    }
+
+    private async Task<FrontedLayoutPackageLegacyConvertResult> ConvertLegacyInputAsync(
+        ILegacyFrontendInputSource source,
+        FrontedLayoutPackageLegacyConvertRequest request,
+        bool createArchive,
+        bool replaceExisting,
+        CancellationToken cancellationToken)
+    {
+        var messages = new List<FrontedLayoutPackageLegacyConvertMessage>();
+        var stagingRoot = Path.Combine(_tempRoot, "staging", Guid.NewGuid().ToString("N"));
+        var outputPath = Path.Combine(_tempRoot, "converted", $"{Guid.NewGuid():N}.bpui");
+        try
+        {
+            var packageId = string.IsNullOrWhiteSpace(request.PackageId)
+                ? $"converted.legacy.{DateTime.UtcNow:yyyyMMddHHmm}"
+                : request.PackageId.Trim();
+            if (!FrontedLayoutPackageManager.IsSafePackageId(packageId)
+                || string.Equals(packageId, FrontedLayoutPackageManager.BuiltInPackageId, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(packageId, FrontedLayoutPackageManager.LocalPackageId, StringComparison.OrdinalIgnoreCase))
+            {
+                return Fail("PackageId is invalid.", messages);
+            }
+
+            Directory.CreateDirectory(stagingRoot);
+            var resourceState = CopyCustomUiResources(source.CustomUiRoot, stagingRoot, packageId, messages);
+            var manifest = CreateManifest(request, packageId);
+            manifest.Content.Resources = resourceState.Resources;
+
+            var configValueMap = ReadFrontendConfigValueMap(source, resourceState, messages);
+            var legacyPropertySet = ReadLegacyPropertySet(source, messages);
+            var legacySettings = ReadLegacySettings(source, messages);
+            var layoutEntries = await ConvertFrontElementsConfigsAsync(
+                source,
+                stagingRoot,
+                manifest,
+                resourceState,
+                configValueMap,
+                legacySettings,
+                legacyPropertySet,
+                messages,
+                cancellationToken);
+            if (layoutEntries == 0)
+            {
+                return Fail("No mappable legacy layout files were converted.", messages);
+            }
+
+            await File.WriteAllTextAsync(
+                Path.Combine(stagingRoot, ManifestFileName),
+                JsonSerializer.Serialize(manifest, _jsonOptions),
+                cancellationToken);
+
+            var result = new FrontedLayoutPackageLegacyConvertResult
+            {
+                Success = true,
+                LayoutCount = manifest.Content.Layouts.Count,
+                ResourceCount = manifest.Content.Resources.Count
+            };
+
+            if (createArchive)
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
+                ZipFile.CreateFromDirectory(stagingRoot, outputPath, CompressionLevel.Optimal, includeBaseDirectory: false);
+                EnsureZipEntriesAreSafe(outputPath);
+                result.ConvertedPackagePath = outputPath;
+            }
+
+            FrontedLayoutPackageLegacyConvertResult.PopulateFromMessages(result, messages);
+            if (request.InstallAfterConvert)
+            {
+                if (_packageImporter is null)
+                {
+                    return Fail("Package importer is unavailable.", messages);
+                }
+
+                var importResult = createArchive
+                    ? await _packageImporter.ImportAsync(new FrontedLayoutPackageImportRequest
+                    {
+                        PackagePath = outputPath,
+                        ReplaceExisting = replaceExisting,
+                        ActivateAfterImport = request.ActivateAfterInstall
+                    }, cancellationToken)
+                    : await _packageImporter.ImportDirectoryAsync(
+                        stagingRoot,
+                        replaceExisting,
+                        request.ActivateAfterInstall,
+                        cancellationToken);
+                result.Success = importResult.Success;
+                result.InstalledPackageId = importResult.Success ? importResult.PackageId : null;
+                result.ErrorMessage = importResult.ErrorMessage;
+            }
+
+            return result;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogWarning(ex, "Failed to convert legacy frontend input.");
+            return Fail(ex.Message, messages);
+        }
+        finally
+        {
             TryDeleteDirectory(stagingRoot);
         }
     }
 
-    /// <summary>
-    /// Converts legacy startup <c>Config.json</c> frontend settings into window-centric v3 configs.
-    /// </summary>
-    /// <param name="legacyConfigJson">Legacy config JSON.</param>
-    /// <returns>Converted configs keyed by target window type.</returns>
-    /// <exception cref="JsonException">Thrown when <paramref name="legacyConfigJson"/> is invalid.</exception>
-    public IReadOnlyDictionary<string, FrontedWindowConfig> ConvertLegacyStartupConfigJson(
-        string legacyConfigJson)
-    {
-        var messages = new List<FrontedLayoutPackageLegacyConvertMessage>();
-        var root = JsonNode.Parse(legacyConfigJson);
-        var legacySettings = JsonSerializer.Deserialize<LegacySettings>(legacyConfigJson, _jsonOptions);
-        var legacyPropertySet = ReadLegacyPropertySet(root);
-        var valueMap = ReadFrontendConfigValueMapDirect(root);
-        var result = new Dictionary<string, FrontedWindowConfig>(StringComparer.Ordinal);
-
-        foreach (var mapping in LegacyLayoutFileMap.Values)
-        {
-            if (!mapping.IsSupported)
-            {
-                messages.Add(Compat(CodeMapBpV1Skipped,
-                    Args(new { SourceWindow = mapping.SourceWindow, SourceCanvas = mapping.SourceCanvas })));
-                continue;
-            }
-
-            var windowConfig = CreateLegacyWindowConfig(mapping);
-            var config = FrontedWindowConfigCanvasAdapter.ToCanvasConfig(windowConfig);
-            BuildLegacyBlueprintControls(
-                mapping,
-                config,
-                CreateRequiredLegacyPositions(mapping),
-                messages);
-            ApplyFrontendConfigValues(config, mapping, valueMap, messages);
-            ApplyLegacyTextStyleOverrides(config, mapping, legacySettings, messages);
-            config.Version = 3;
-            ApplyCanvasConfig(windowConfig, config);
-            ApplyLegacyWindowSettings(windowConfig, mapping, legacySettings, legacyPropertySet, messages);
-
-            result[mapping.TargetWindow!] = windowConfig;
-        }
-
-        return result;
-    }
-
     private async Task<int> ConvertFrontElementsConfigsAsync(
-        string extractionRoot,
+        ILegacyFrontendInputSource source,
         string stagingRoot,
         FrontedLayoutPackageManifest manifest,
         ResourceConvertState resourceState,
@@ -265,14 +292,24 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         CancellationToken cancellationToken)
     {
         var convertedCount = 0;
-        var frontElementsRoot = Path.Combine(extractionRoot, "FrontElementsConfig");
-        if (!Directory.Exists(frontElementsRoot))
+        var files = source.EnumerateLegacyLayoutFiles().ToArray();
+        if (files.Length == 0 && source is LegacyBpuiDirectoryInputSource)
         {
             messages.Add(Error(CodeFrontElementsFolderMissing));
             return 0;
         }
 
-        foreach (var file in Directory.EnumerateFiles(frontElementsRoot, "*.json", SearchOption.TopDirectoryOnly))
+        if (source is LegacyLocalAppDataInputSource)
+        {
+            var existing = files.Select(Path.GetFileName).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            foreach (var expected in LegacyLayoutFileMap.Keys.Where(file => !existing.Contains(file)))
+            {
+                messages.Add(Warning(CodeLayoutFileReadFailed,
+                    Args(new { FileName = expected, Reason = "File is missing." })));
+            }
+        }
+
+        foreach (var file in files)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var fileName = Path.GetFileName(file);
@@ -290,7 +327,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                 continue;
             }
 
-            var legacyPositions = ReadLegacyPositions(file, messages);
+            var legacyPositions = ReadLegacyPositions(source, file, messages);
             if (legacyPositions is null)
             {
                 continue;
@@ -379,12 +416,14 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
     }
 
     private static Dictionary<string, ElementInfo>? ReadLegacyPositions(
+        ILegacyFrontendInputSource source,
         string legacyFile,
         ICollection<FrontedLayoutPackageLegacyConvertMessage> messages)
     {
         try
         {
-            if (new FileInfo(legacyFile).Length > FrontedLayoutLimits.MaxLegacyConfigBytes)
+            using var stream = source.OpenLegacyLayoutFile(legacyFile);
+            if (stream.Length > FrontedLayoutLimits.MaxLegacyConfigBytes)
             {
                 messages.Add(Warning(CodeLayoutFileTooLargeSkipped,
                     Args(new { FileName = Path.GetFileName(legacyFile) })));
@@ -392,7 +431,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             }
 
             return JsonSerializer.Deserialize<Dictionary<string, ElementInfo>>(
-                File.ReadAllText(legacyFile),
+                stream,
                 new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true,
@@ -844,14 +883,13 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
     }
 
     private static ResourceConvertState CopyCustomUiResources(
-        string extractionRoot,
+        string? customUiRoot,
         string stagingRoot,
         string packageId,
         ICollection<FrontedLayoutPackageLegacyConvertMessage> messages)
     {
         var state = new ResourceConvertState(packageId);
-        var customUiRoot = Path.Combine(extractionRoot, "CustomUi");
-        if (!Directory.Exists(customUiRoot))
+        if (string.IsNullOrWhiteSpace(customUiRoot) || !Directory.Exists(customUiRoot))
         {
             return state;
         }
@@ -885,13 +923,12 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
     }
 
     private static IReadOnlyDictionary<string, string> ReadFrontendConfigValueMap(
-        string extractionRoot,
+        ILegacyFrontendInputSource source,
         ResourceConvertState resourceState,
         ICollection<FrontedLayoutPackageLegacyConvertMessage> messages)
     {
-        var configPath = Path.Combine(extractionRoot, "Config.json");
         var result = new Dictionary<string, string>(StringComparer.Ordinal);
-        if (!File.Exists(configPath))
+        if (!File.Exists(source.ConfigPath))
         {
             return result;
         }
@@ -899,14 +936,15 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         JsonNode? root;
         try
         {
-            if (new FileInfo(configPath).Length > FrontedLayoutLimits.MaxLegacyConfigBytes)
+            using var stream = source.OpenConfig();
+            if (stream.Length > FrontedLayoutLimits.MaxLegacyConfigBytes)
             {
                 messages.Add(Warning(CodeConfigJsonTooLarge));
                 return result;
             }
 
             root = JsonNode.Parse(
-                File.ReadAllText(configPath),
+                stream,
                 nodeOptions: null,
                 documentOptions: new JsonDocumentOptions { MaxDepth = FrontedLayoutLimits.MaxJsonDepth });
         }
@@ -947,24 +985,24 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
     }
 
     private LegacySettings? ReadLegacySettings(
-        string extractionRoot,
+        ILegacyFrontendInputSource source,
         ICollection<FrontedLayoutPackageLegacyConvertMessage> messages)
     {
-        var configPath = Path.Combine(extractionRoot, "Config.json");
-        if (!File.Exists(configPath))
+        if (!File.Exists(source.ConfigPath))
         {
             return null;
         }
 
         try
         {
-            if (new FileInfo(configPath).Length > FrontedLayoutLimits.MaxLegacyConfigBytes)
+            using var stream = source.OpenConfig();
+            if (stream.Length > FrontedLayoutLimits.MaxLegacyConfigBytes)
             {
                 messages.Add(Warning(CodeConfigJsonTooLarge));
                 return null;
             }
 
-            return JsonSerializer.Deserialize<LegacySettings>(File.ReadAllText(configPath), _jsonOptions);
+            return JsonSerializer.Deserialize<LegacySettings>(stream, _jsonOptions);
         }
         catch (Exception ex)
         {
@@ -975,24 +1013,24 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
     }
 
     private static IReadOnlySet<string> ReadLegacyPropertySet(
-        string extractionRoot,
+        ILegacyFrontendInputSource source,
         ICollection<FrontedLayoutPackageLegacyConvertMessage> messages)
     {
-        var configPath = Path.Combine(extractionRoot, "Config.json");
-        if (!File.Exists(configPath))
+        if (!File.Exists(source.ConfigPath))
         {
             return new HashSet<string>(StringComparer.Ordinal);
         }
 
         try
         {
-            if (new FileInfo(configPath).Length > FrontedLayoutLimits.MaxLegacyConfigBytes)
+            using var stream = source.OpenConfig();
+            if (stream.Length > FrontedLayoutLimits.MaxLegacyConfigBytes)
             {
                 messages.Add(Warning(CodeConfigJsonTooLarge));
                 return new HashSet<string>(StringComparer.Ordinal);
             }
 
-            var root = JsonNode.Parse(File.ReadAllText(configPath)) as JsonObject;
+            var root = JsonNode.Parse(stream) as JsonObject;
             var properties = new HashSet<string>(StringComparer.Ordinal);
             if (root is null)
             {
@@ -1020,82 +1058,6 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                 Args(new { Reason = ex.Message })));
             return new HashSet<string>(StringComparer.Ordinal);
         }
-    }
-
-    private static IReadOnlySet<string> ReadLegacyPropertySet(JsonNode? root)
-    {
-        var result = new HashSet<string>(StringComparer.Ordinal);
-        if (root is not JsonObject obj)
-        {
-            return result;
-        }
-
-        foreach (var settings in obj)
-        {
-            if (settings.Value is not JsonObject settingsObject)
-            {
-                continue;
-            }
-
-            foreach (var property in settingsObject)
-            {
-                result.Add($"{settings.Key}.{property.Key}");
-            }
-        }
-
-        return result;
-    }
-
-    private static IReadOnlyDictionary<string, string> ReadFrontendConfigValueMapDirect(JsonNode? root)
-    {
-        var result = new Dictionary<string, string>(StringComparer.Ordinal);
-        AddMappedValue(root, "BpWindowSettings", "BgImageUri", "BpWindow/BaseCanvas/BackgroundImage", result);
-        AddMappedValue(root, "BpWindowSettings", "CurrentBanLockImageUri", "BpWindow/BaseCanvas/CurrentBanLockImage", result);
-        AddMappedValue(root, "BpWindowSettings", "GlobalBanLockImageUri", "BpWindow/BaseCanvas/GlobalBanLockImage", result);
-        AddMappedValue(root, "BpWindowSettings", "PickingBorderImageUri", "BpWindow/BaseCanvas/PickingBorderImage", result);
-        AddMappedValue(root, "BpWindowSettings", "PickingBorderColor", "BpWindow/BaseCanvas/PickingBorderColor", result);
-        AddMappedValue(root, "CutSceneWindowSettings", "BgUri", "CutSceneWindow/BaseCanvas/BackgroundImage", result);
-        AddMappedValue(root, "ScoreWindowSettings", "SurScoreBgImageUri", "ScoreSurWindow/BaseCanvas/BackgroundImage", result);
-        AddMappedValue(root, "ScoreWindowSettings", "HunScoreBgImageUri", "ScoreHunWindow/BaseCanvas/BackgroundImage", result);
-        AddMappedValue(root, "ScoreWindowSettings", "GlobalScoreBgImageUri", "ScoreGlobalWindow/BaseCanvas/BackgroundImage", result);
-        AddMappedValue(root, "ScoreWindowSettings", "GlobalScoreBgImageUriBo3", "ScoreGlobalWindow/BaseCanvas/BoModeStates/Bo3/BackgroundImage", result);
-        AddMappedValue(root, "GameDataWindowSettings", "BgImageUri", "GameDataWindow/BaseCanvas/BackgroundImage", result);
-        AddMappedValue(root, "WidgetsWindowSettings", "BpOverviewBgUri", "BpOverviewWindow/BaseCanvas/BackgroundImage", result);
-        AddMappedValue(root, "WidgetsWindowSettings", "CurrentBanLockImageUri", "BpOverviewWindow/BaseCanvas/CurrentBanLockImage", result);
-        AddMappedValue(root, "WidgetsWindowSettings", "GlobalBanLockImageUri", "BpOverviewWindow/BaseCanvas/GlobalBanLockImage", result);
-        AddMappedValue(root, "WidgetsWindowSettings", "MapBpV2BgUri", "MapV2Window/BaseCanvas/BackgroundImage", result);
-        AddMappedValue(root, "WidgetsWindowSettings", "MapBpV2PickingBorderImageUri", "MapV2Window/BaseCanvas/MapBpV2PickingBorderImage", result);
-        AddMappedValue(root, "WidgetsWindowSettings", "MapBpV2_PickingBorderColor", "MapV2Window/BaseCanvas/MapBpV2PickingBorderColor", result);
-        return result;
-    }
-
-    private static IReadOnlyDictionary<string, ElementInfo> CreateRequiredLegacyPositions(
-        LegacyLayoutMapping mapping)
-    {
-        if (!LegacyControlBlueprints.TryGetValue(
-                new LegacyLayoutKey(mapping.SourceWindow, mapping.SourceCanvas),
-                out var blueprints))
-        {
-            return new Dictionary<string, ElementInfo>(StringComparer.Ordinal);
-        }
-
-        return blueprints
-            .Where(blueprint => blueprint.Required
-                && (blueprint.Status is LegacyControlBlueprintStatus.Mapped
-                    or LegacyControlBlueprintStatus.Aggregated))
-            .GroupBy(blueprint => blueprint.LegacyName, StringComparer.Ordinal)
-            .ToDictionary(
-                group => group.Key,
-                group =>
-                {
-                    var blueprint = group.First();
-                    return new ElementInfo(
-                        blueprint.DefaultLeft,
-                        blueprint.DefaultTop,
-                        blueprint.DefaultWidth,
-                        blueprint.DefaultHeight);
-                },
-                StringComparer.Ordinal);
     }
 
     private static void ApplyLegacyWindowSettings(
