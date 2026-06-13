@@ -288,7 +288,12 @@ public static class FrontedBehaviorPropertyMetadata
     private static FrontedAnimatablePropertyMetadata Color(string name) =>
         new(name, "color", "#AARRGGBB or #RRGGBB", "#FFFFFFFF", $"Designer.Graph.PropertyHint.{name}");
 
-    private static bool SupportsPercentage(string? propertyName) =>
+    /// <summary>
+    /// Determines whether the named property accepts percentage values such as <c>100%</c>.
+    /// </summary>
+    /// <param name="propertyName">The property name to inspect.</param>
+    /// <returns><c>true</c> when percentage values are supported; otherwise <c>false</c>.</returns>
+    public static bool SupportsPercentage(string? propertyName) =>
         Is(
             propertyName,
             "VisualOffsetX",

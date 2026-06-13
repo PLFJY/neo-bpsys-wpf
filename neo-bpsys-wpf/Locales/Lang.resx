@@ -4816,6 +4816,10 @@
   <data name="Designer.Property.Opacity" xml:space="preserve"><value>不透明度</value></data>
   <data name="Designer.Property.VisualOffsetX" xml:space="preserve"><value>视觉偏移 X</value></data>
   <data name="Designer.Property.VisualOffsetY" xml:space="preserve"><value>视觉偏移 Y</value></data>
+  <data name="Designer.Property.ClipInsetLeft" xml:space="preserve"><value>左侧裁剪内缩</value></data>
+  <data name="Designer.Property.ClipInsetTop" xml:space="preserve"><value>顶部裁剪内缩</value></data>
+  <data name="Designer.Property.ClipInsetRight" xml:space="preserve"><value>右侧裁剪内缩</value></data>
+  <data name="Designer.Property.ClipInsetBottom" xml:space="preserve"><value>底部裁剪内缩</value></data>
   <data name="Designer.Property.ScaleX" xml:space="preserve"><value>水平缩放</value></data>
   <data name="Designer.Property.ScaleY" xml:space="preserve"><value>垂直缩放</value></data>
   <data name="Designer.Property.Rotation" xml:space="preserve"><value>旋转角度</value></data>

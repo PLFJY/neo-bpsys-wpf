@@ -4128,6 +4128,10 @@
   <data name="Designer.Property.Opacity" xml:space="preserve"><value>不透明度</value></data>
   <data name="Designer.Property.VisualOffsetX" xml:space="preserve"><value>表示オフセット X</value></data>
   <data name="Designer.Property.VisualOffsetY" xml:space="preserve"><value>表示オフセット Y</value></data>
+  <data name="Designer.Property.ClipInsetLeft" xml:space="preserve"><value>左クリップインセット</value></data>
+  <data name="Designer.Property.ClipInsetTop" xml:space="preserve"><value>上クリップインセット</value></data>
+  <data name="Designer.Property.ClipInsetRight" xml:space="preserve"><value>右クリップインセット</value></data>
+  <data name="Designer.Property.ClipInsetBottom" xml:space="preserve"><value>下クリップインセット</value></data>
   <data name="Designer.Property.ScaleX" xml:space="preserve"><value>横スケール</value></data>
   <data name="Designer.Property.ScaleY" xml:space="preserve"><value>縦スケール</value></data>
   <data name="Designer.Property.Rotation" xml:space="preserve"><value>回転</value></data>

@@ -227,6 +227,7 @@ public class FrontedNodeGraphEditorViewModelTest
             localize: (key, fallback) => key switch
             {
                 "Designer.Property.Opacity" => "Opacity Localized",
+                "Designer.Property.ClipInsetRight" => "Clip Inset Right Localized",
                 "Designer.Option.Easing.SineInOut" => "Sine In Out Localized",
                 _ => fallback
             });
@@ -235,6 +236,7 @@ public class FrontedNodeGraphEditorViewModelTest
         var easing = editor.SelectedNode.Properties.Single(property => property.Descriptor.Name == "Easing");
 
         Assert.Contains(propertyName.LocalizedOptions, option => option.Value == "Opacity" && option.DisplayName == "Opacity Localized");
+        Assert.Contains(propertyName.LocalizedOptions, option => option.Value == "ClipInsetRight" && option.DisplayName == "Clip Inset Right Localized");
         Assert.Contains(easing.LocalizedOptions, option => option.Value == "SineInOut" && option.DisplayName == "Sine In Out Localized");
 
         easing.SuggestionText = "Sine In Out Localized";
@@ -343,6 +345,20 @@ public class FrontedNodeGraphEditorViewModelTest
 
         propertyName.TextValue = "ScaleX";
         Assert.Contains("normal size", to.Placeholder);
+    }
+
+    [Fact]
+    public void DynamicNumericEditor_AcceptsPercentageForClipInset()
+    {
+        var editor = CreateEditorWithNodes("action.animateProperty");
+        var propertyName = editor.SelectedNode!.Properties.Single(property => property.Descriptor.Name == "PropertyName");
+        var to = editor.SelectedNode.Properties.Single(property => property.Descriptor.Name == "To");
+
+        propertyName.TextValue = "ClipInsetRight";
+        to.TextValue = "100%";
+
+        Assert.False(to.HasValidationError);
+        Assert.Equal("100%", editor.SelectedNode.Model.Properties["To"].GetString());
     }
 
     [Fact]

@@ -1332,16 +1332,27 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
 
         if (IsNumber)
         {
-            if (!double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var number) || !double.IsFinite(number))
+            var propertyName = EffectivePropertyNameForValidation();
+            if (!FrontedBehaviorPropertyMetadata.TryValidateValue(propertyName, value, out var message))
+            {
+                ValidationError = message;
+                return false;
+            }
+
+            var trimmed = value?.Trim() ?? string.Empty;
+            var isPercentage = FrontedBehaviorPropertyMetadata.SupportsPercentage(propertyName)
+                               && trimmed.EndsWith('%');
+            var numericText = isPercentage ? trimmed[..^1] : trimmed;
+            if (!double.TryParse(numericText, NumberStyles.Float, CultureInfo.InvariantCulture, out var number) || !double.IsFinite(number))
             {
                 ValidationError = "Value must be a finite number.";
                 return false;
             }
 
-            if (!FrontedBehaviorPropertyMetadata.TryValidateValue(EffectivePropertyNameForValidation(), value, out var message))
+            if (isPercentage)
             {
-                ValidationError = message;
-                return false;
+                normalized = $"{number.ToString(CultureInfo.InvariantCulture)}%";
+                return true;
             }
 
             normalized = number.ToString(CultureInfo.InvariantCulture);

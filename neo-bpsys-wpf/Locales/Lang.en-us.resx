@@ -4224,6 +4224,10 @@ Select a control in the designer to preview animation here</value></data>
   <data name="Designer.Property.Opacity" xml:space="preserve"><value>Opacity</value></data>
   <data name="Designer.Property.VisualOffsetX" xml:space="preserve"><value>Visual Offset X</value></data>
   <data name="Designer.Property.VisualOffsetY" xml:space="preserve"><value>Visual Offset Y</value></data>
+  <data name="Designer.Property.ClipInsetLeft" xml:space="preserve"><value>Clip Inset Left</value></data>
+  <data name="Designer.Property.ClipInsetTop" xml:space="preserve"><value>Clip Inset Top</value></data>
+  <data name="Designer.Property.ClipInsetRight" xml:space="preserve"><value>Clip Inset Right</value></data>
+  <data name="Designer.Property.ClipInsetBottom" xml:space="preserve"><value>Clip Inset Bottom</value></data>
   <data name="Designer.Property.ScaleX" xml:space="preserve"><value>Scale X</value></data>
   <data name="Designer.Property.ScaleY" xml:space="preserve"><value>Scale Y</value></data>
   <data name="Designer.Property.Rotation" xml:space="preserve"><value>Rotation</value></data>
