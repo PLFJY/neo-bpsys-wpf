@@ -81,6 +81,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private readonly FrontedDesignerLayoutCatalog _layoutCatalog;
     private readonly IFrontedAnimationRuntime? _animationRuntime;
     private readonly FrontedDesignerPreviewAnimationScope? _previewAnimationScope;
+    private readonly IFrontedBehaviorClipboard _behaviorClipboard;
+    private readonly FrontedBehaviorCopyPasteService _behaviorCopyPasteService;
     private readonly ILogger<FrontedDesignerWindowViewModel> _logger;
 
     private static ILogger<FrontedDesignerWindowViewModel>? StaticLogger =>
@@ -137,6 +139,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _behaviorService = new NoopFrontedBehaviorService();
         _animationRuntime = null;
         _previewAnimationScope = null;
+        _behaviorClipboard = new FrontedBehaviorClipboard();
+        _behaviorCopyPasteService = new FrontedBehaviorCopyPasteService(
+            new FrontedBehaviorControlSemanticResolver(),
+            _localizationService);
         _logger = NullLogger<FrontedDesignerWindowViewModel>.Instance;
         BehaviorPanel = CreateBehaviorPanel();
         InitializeZoomPresets();
@@ -164,6 +170,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         IFrontedWindowLayoutOptionsService windowLayoutOptionsService,
         IFrontedWindowService frontedWindowService,
         IFrontedBehaviorService behaviorService,
+        IFrontedBehaviorClipboard behaviorClipboard,
+        FrontedBehaviorCopyPasteService behaviorCopyPasteService,
         IFrontedAnimationRuntime animationRuntime,
         FrontedDesignerPreviewAnimationScope previewAnimationScope,
         ILogger<FrontedDesignerWindowViewModel> logger)
@@ -182,6 +190,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _windowLayoutOptionsService = windowLayoutOptionsService;
         _frontedWindowService = frontedWindowService;
         _behaviorService = behaviorService;
+        _behaviorClipboard = behaviorClipboard;
+        _behaviorCopyPasteService = behaviorCopyPasteService;
         _animationRuntime = animationRuntime;
         _previewAnimationScope = previewAnimationScope;
         _logger = logger;
@@ -3600,7 +3610,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             MarkBehaviorsDirty,
             animationRuntime: _animationRuntime,
             previewAnimationScope: _previewAnimationScope,
-            saveBehaviorAsync: SaveBehaviorDocumentAsync);
+            saveBehaviorAsync: SaveBehaviorDocumentAsync,
+            behaviorClipboard: _behaviorClipboard,
+            copyPasteService: _behaviorCopyPasteService);
     }
 
     /// <summary>
@@ -3652,6 +3664,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             CanvasName = CurrentDocument?.CanvasName
         });
         AreBehaviorsDirty = false;
+        BehaviorPanel.SetCopyContext(CurrentDocument?.WindowTypeName, CurrentDocument?.Controls);
         BehaviorPanel.SetSelectedControl(SelectedDesignItem);
     }
 

@@ -126,16 +126,25 @@
             </StackPanel>
         </Border>
 
-        <UniformGrid Margin="0,10,0,0" Columns="2">
+        <UniformGrid Margin="0,10,0,0" Columns="3">
             <ui:Button
                 Margin="0,0,4,0"
                 Command="{Binding AddOneShotBehaviorCommand}"
                 Content="{lex:Loc Designer.Behaviors.AddOneShot}" />
             <ui:Button
-                Margin="4,0,0,0"
+                Margin="4,0"
                 Command="{Binding AddLoopBehaviorCommand}"
                 Content="{lex:Loc Designer.Behaviors.AddLoop}" />
+            <ui:Button
+                Margin="4,0,0,0"
+                Command="{Binding PasteBehaviorCommand}"
+                Content="{lex:Loc Designer.Behaviors.Paste}" />
         </UniformGrid>
+        <TextBlock
+            Margin="0,6,0,0"
+            Opacity="0.72"
+            Text="{Binding PasteStatus}"
+            TextWrapping="Wrap" />
 
         <TextBlock
             Margin="0,12,0,6"
@@ -164,13 +173,37 @@
                     <Expander
                         Margin="0,0,0,8"
                         BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
-                        BorderThickness="1">
+                        BorderThickness="1"
+                        Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                        <Expander.ContextMenu>
+                            <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                                <MenuItem
+                                    Command="{Binding PlacementTarget.Tag.CopyBehaviorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                    CommandParameter="{Binding}"
+                                    Header="{lex:Loc Designer.Behaviors.Copy}" />
+                                <MenuItem
+                                    Command="{Binding PlacementTarget.Tag.CopyBehaviorToCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                    CommandParameter="{Binding}"
+                                    Header="{lex:Loc Designer.Behaviors.CopyTo}" />
+                                <MenuItem
+                                    Command="{Binding PlacementTarget.Tag.DuplicateBehaviorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                    CommandParameter="{Binding}"
+                                    Header="{lex:Loc Designer.Behaviors.Duplicate}" />
+                                <Separator />
+                                <MenuItem
+                                    Command="{Binding PlacementTarget.Tag.PasteBehaviorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                    Header="{lex:Loc Designer.Behaviors.Paste}" />
+                                <MenuItem
+                                    Command="{Binding PlacementTarget.Tag.DeleteBehaviorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                    CommandParameter="{Binding}"
+                                    Header="{lex:Loc Designer.Behaviors.Delete}" />
+                            </ContextMenu>
+                        </Expander.ContextMenu>
                         <Expander.Header>
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
                                 <CheckBox
@@ -186,16 +219,33 @@
                                 </StackPanel>
                                 <ui:Button
                                     Grid.Column="2"
-                                    Margin="6,0,0,0"
-                                    Command="{Binding DataContext.DuplicateBehaviorCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                    CommandParameter="{Binding}"
-                                    Content="{lex:Loc Designer.Behaviors.Duplicate}" />
-                                <ui:Button
-                                    Grid.Column="3"
                                     Margin="6,0,6,0"
-                                    Command="{Binding DataContext.DeleteBehaviorCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                    CommandParameter="{Binding}"
-                                    Content="{lex:Loc Designer.Behaviors.Delete}" />
+                                    Click="BehaviorMoreButton_OnClick"
+                                    Icon="{ui:SymbolIcon Symbol=MoreHorizontal24}"
+                                    Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    ToolTip="{lex:Loc Designer.Behaviors.MoreOptions}">
+                                    <ui:Button.ContextMenu>
+                                        <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                                            <MenuItem
+                                                Command="{Binding PlacementTarget.Tag.CopyBehaviorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                CommandParameter="{Binding}"
+                                                Header="{lex:Loc Designer.Behaviors.Copy}" />
+                                            <MenuItem
+                                                Command="{Binding PlacementTarget.Tag.CopyBehaviorToCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                CommandParameter="{Binding}"
+                                                Header="{lex:Loc Designer.Behaviors.CopyTo}" />
+                                            <MenuItem
+                                                Command="{Binding PlacementTarget.Tag.DuplicateBehaviorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                CommandParameter="{Binding}"
+                                                Header="{lex:Loc Designer.Behaviors.Duplicate}" />
+                                            <Separator />
+                                            <MenuItem
+                                                Command="{Binding PlacementTarget.Tag.DeleteBehaviorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                CommandParameter="{Binding}"
+                                                Header="{lex:Loc Designer.Behaviors.Delete}" />
+                                        </ContextMenu>
+                                    </ui:Button.ContextMenu>
+                                </ui:Button>
                             </Grid>
                         </Expander.Header>
                         <StackPanel Margin="10">

@@ -3,6 +3,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Extensions.Registry;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Controls.FrontedLayout;
 using neo_bpsys_wpf.Services.Abstractions;
@@ -102,6 +103,9 @@ public partial class App
         services.AddSingleton<IFrontedPluginMetadataProvider, FrontedPluginMetadataProvider>();
         services.AddSingleton<FrontedBehaviorEventCatalog>();
         services.AddSingleton<IFrontedBehaviorService, FrontedBehaviorService>();
+        services.AddSingleton<IFrontedBehaviorClipboard, FrontedBehaviorClipboard>();
+        services.AddSingleton<IFrontedBehaviorControlSemanticResolver, FrontedBehaviorControlSemanticResolver>();
+        services.AddSingleton<FrontedBehaviorCopyPasteService>();
         services.AddSingleton<IFrontedEventBus, FrontedEventBus>();
         services.AddSingleton<IFrontedBehaviorEventDebugService, FrontedBehaviorEventDebugService>();
         services.AddSingleton<FrontedBehaviorTriggerEvaluator>();

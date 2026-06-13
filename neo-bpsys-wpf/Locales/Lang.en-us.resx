@@ -3976,7 +3976,18 @@
   <data name="Designer.Behaviors.AddOneShot" xml:space="preserve"><value>Add OneShot</value></data>
   <data name="Designer.Behaviors.AddLoop" xml:space="preserve"><value>Add Loop</value></data>
   <data name="Designer.Behaviors.Delete" xml:space="preserve"><value>Delete</value></data>
-  <data name="Designer.Behaviors.Duplicate" xml:space="preserve"><value>Duplicate</value></data>
+  <data name="Designer.Behaviors.Duplicate" xml:space="preserve"><value>Create copy</value></data>
+  <data name="Designer.Behaviors.Copy" xml:space="preserve"><value>Copy behavior</value></data>
+  <data name="Designer.Behaviors.CopyTo" xml:space="preserve"><value>Copy behavior to...</value></data>
+  <data name="Designer.Behaviors.Paste" xml:space="preserve"><value>Paste behavior</value></data>
+  <data name="Designer.Behaviors.CopyToTargets" xml:space="preserve"><value>Select target controls (multi-select)</value></data>
+  <data name="Designer.Behaviors.RewriteTargets" xml:space="preserve"><value>Rewrite animation targets</value></data>
+  <data name="Designer.Behaviors.RewriteTriggerIndexes" xml:space="preserve"><value>Rewrite trigger indexes</value></data>
+  <data name="Designer.Behaviors.SelectTargetForPreview" xml:space="preserve"><value>Select a control to preview compatibility and rewrites.</value></data>
+  <data name="Designer.Behaviors.Target" xml:space="preserve"><value>Target control</value></data>
+  <data name="Designer.Behaviors.Compatible" xml:space="preserve"><value>Compatible</value></data>
+  <data name="Designer.Behaviors.ExternalReference" xml:space="preserve"><value>Preserved external control reference</value></data>
+  <data name="Designer.Behaviors.PasteSummary" xml:space="preserve"><value>Copied to {0} controls. Skipped {1} incompatible controls.</value></data>
   <data name="Designer.Behaviors.Enabled" xml:space="preserve"><value>Enabled</value></data>
   <data name="Designer.Behaviors.Name" xml:space="preserve"><value>Name</value></data>
   <data name="Designer.Behaviors.Kind" xml:space="preserve"><value>Kind</value></data>
@@ -4360,4 +4371,11 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="Designer.Behaviors.FilterHint.Action" xml:space="preserve"><value>Use enum values such as PickSur, PickHun, BanSur.</value></data>
   <data name="Designer.Behaviors.FilterHint.Indexes" xml:space="preserve"><value>For string contains filters, prefer IndexesText / PreviousIndexesText.</value></data>
   <data name="Designer.Behaviors.FilterHint.IndexesText" xml:space="preserve"><value>Formatted as [0] or [1, 2]. Use Contains 0 to match index 0.</value></data>
+  <data name="Designer.Behaviors.MoreOptions" xml:space="preserve"><value>More behavior actions</value></data>
+  <data name="Designer.Behaviors.TargetMissingPickingBorder" xml:space="preserve"><value>Target control does not have Picking Border enabled.</value></data>
+  <data name="Designer.Behaviors.TargetMissingLockOverlay" xml:space="preserve"><value>Target control does not have Ban Lock / Lock Overlay enabled.</value></data>
+  <data name="Designer.Behaviors.TargetIndexUnavailable" xml:space="preserve"><value>Target control index cannot be inferred.</value></data>
+  <data name="Designer.Behaviors.SourceIndexUnavailable" xml:space="preserve"><value>Source control index cannot be inferred.</value></data>
+  <data name="Designer.Behaviors.DefaultName" xml:space="preserve"><value>Behavior</value></data>
+  <data name="Designer.Behaviors.CopyNameFormat" xml:space="preserve"><value>{0} Copy</value></data>
 </root>

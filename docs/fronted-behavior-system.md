@@ -1,5 +1,18 @@
 # Fronted Behavior Graph System — Phase 0 源码勘察报告
 
+## 跨控件复制与粘贴
+
+Designer v3 的行为面板支持把单个行为复制到其他控件，也支持在目标选择窗口中一次粘贴到多个兼容控件。行为剪贴板是应用级内存剪贴板，不改变 behaviors JSON 格式，也不引入动画库或动画片段文件。
+
+粘贴时会深拷贝行为并生成新的 `BehaviorId`。`Graph`、`StartGraph`、`LoopGraph`、`StopGraph` 中指向源控件的 `guid:{BehaviorGuid}` 和 `part:{BehaviorGuid}:{PartName}` 会改写为目标控件的 `BehaviorGuid`；`Self` 和指向其他控件的外部引用保持不变。外部引用会显示在多目标粘贴预览中。
+
+生成部件目标会在粘贴前验证：
+
+- `PickingBorder` 要求目标是启用了 `PickingBorderAvailable` 的图片控件。
+- `LockOverlay` 要求目标是启用了 `Lockable` 的图片控件。
+
+触发器索引可以在源控件和目标控件索引均可明确推断时自动改写。语义索引优先使用明确控件配置，其次使用绑定路径中的唯一索引，最后使用控件名尾部数字。改写只处理受支持的 `Event.Index*` / `Event.PreviousIndex*` 字段，并要求右值精确匹配源索引，不执行任意字符串子串替换。
+
 > **状态**: Phase 0 完成，待 Phase 1 实施
 > **功能主线**: 把 Designer v3 从静态前台布局编辑器升级成"事件驱动的控件动画/行为编排系统"
 > **本报告仅做源码勘察，不包含实现代码**

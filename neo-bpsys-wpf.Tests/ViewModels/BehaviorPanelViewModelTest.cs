@@ -3,6 +3,7 @@
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
+using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.ViewModels.FrontedDesigner;
 using System;
 using System.Linq;
@@ -95,6 +96,88 @@ public class BehaviorPanelViewModelTest
         var behaviors = panel.CurrentDocument.FindSet(item.Config.BehaviorGuid)!.Behaviors;
         Assert.Equal(2, behaviors.Count);
         Assert.NotEqual(originalId, behaviors[1].BehaviorId);
+    }
+
+    [Fact]
+    public void BehaviorPanel_CopyPasteBehavior_RewritesToSelectedTargetAndMarksDirty()
+    {
+        var clipboard = new FrontedBehaviorClipboard();
+        var dirtyCount = 0;
+        var panel = CreatePanel(
+            markBehaviorsDirty: () => dirtyCount++,
+            clipboard: clipboard);
+        var source = CreateItem(Guid.NewGuid(), "SurPick0");
+        var target = CreateItem(Guid.NewGuid(), "SurPick1");
+        panel.SetCopyContext("BpWindow", [source, target]);
+        panel.SetSelectedControl(source);
+        panel.AddOneShotBehavior();
+        var sourceBehavior = panel.SelectedBehavior!;
+        sourceBehavior.Model.Graph.Nodes.Add(new FrontedNode
+        {
+            Properties =
+            {
+                ["Target"] = System.Text.Json.JsonSerializer.SerializeToElement($"guid:{source.Config.BehaviorGuid}")
+            }
+        });
+        panel.CopyBehavior(sourceBehavior);
+        dirtyCount = 0;
+
+        panel.SetSelectedControl(target);
+        panel.PasteBehavior();
+
+        var pasted = Assert.Single(panel.CurrentDocument.FindSet(target.Config.BehaviorGuid)!.Behaviors);
+        Assert.NotEqual(sourceBehavior.Model.BehaviorId, pasted.BehaviorId);
+        Assert.Equal(
+            $"guid:{target.Config.BehaviorGuid}",
+            Assert.Single(pasted.Graph.Nodes).Properties["Target"].GetString());
+        Assert.Equal(1, dirtyCount);
+    }
+
+    [Fact]
+    public void BehaviorPanel_CopyBehaviorTo_PastesOnlyCompatibleSelectedTargets()
+    {
+        var clipboard = new FrontedBehaviorClipboard();
+        var panel = CreatePanel(clipboard: clipboard);
+        var source = new FrontedControlDesignItem
+        {
+            Name = "SurPick0",
+            Config = new ImageFrontedControlConfig
+            {
+                BehaviorGuid = Guid.NewGuid(),
+                PickingBorderAvailable = true
+            }
+        };
+        var compatible = new FrontedControlDesignItem
+        {
+            Name = "SurPick1",
+            Config = new ImageFrontedControlConfig
+            {
+                BehaviorGuid = Guid.NewGuid(),
+                PickingBorderAvailable = true
+            }
+        };
+        var incompatible = CreateItem(Guid.NewGuid(), "Title");
+        panel.SetCopyContext("BpWindow", [source, compatible, incompatible]);
+        panel.SetSelectedControl(source);
+        panel.AddOneShotBehavior();
+        panel.SelectedBehavior!.Model.Graph.Nodes.Add(new FrontedNode
+        {
+            Properties =
+            {
+                ["Target"] = System.Text.Json.JsonSerializer.SerializeToElement(
+                    $"part:{source.Config.BehaviorGuid}:PickingBorder")
+            }
+        });
+        panel.CopyBehavior(panel.SelectedBehavior);
+
+        var results = panel.PasteBehaviorToTargets(
+            [compatible, incompatible],
+            new FrontedBehaviorPasteOptions());
+
+        Assert.True(results[0].Succeeded);
+        Assert.False(results[1].Succeeded);
+        Assert.NotNull(panel.CurrentDocument.FindSet(compatible.Config.BehaviorGuid));
+        Assert.Null(panel.CurrentDocument.FindSet(incompatible.Config.BehaviorGuid));
     }
 
     [Fact]
@@ -301,20 +384,22 @@ public class BehaviorPanelViewModelTest
 
     private static BehaviorPanelViewModel CreatePanel(
         Action? markLayoutDirty = null,
-        Action? markBehaviorsDirty = null)
+        Action? markBehaviorsDirty = null,
+        IFrontedBehaviorClipboard? clipboard = null)
     {
         return new BehaviorPanelViewModel(
             new neo_bpsys_wpf.Core.Services.FrontedLayout.FrontedDesignerLocalizationService(),
             new neo_bpsys_wpf.Core.Services.FrontedLayout.FrontedBehaviorEventCatalog(),
             markLayoutDirty ?? (() => { }),
-            markBehaviorsDirty ?? (() => { }));
+            markBehaviorsDirty ?? (() => { }),
+            behaviorClipboard: clipboard);
     }
 
-    private static FrontedControlDesignItem CreateItem(Guid behaviorGuid)
+    private static FrontedControlDesignItem CreateItem(Guid behaviorGuid, string name = "Title")
     {
         return new FrontedControlDesignItem
         {
-            Name = "Title",
+            Name = name,
             Config = new TextFrontedControlConfig
             {
                 BehaviorGuid = behaviorGuid

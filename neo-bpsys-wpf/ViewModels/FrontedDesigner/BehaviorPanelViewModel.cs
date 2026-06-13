@@ -24,6 +24,8 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
     private readonly IFrontedNodeGraphRuntime _graphRuntime;
     private readonly IFrontedAnimationRuntime? _animationRuntime;
     private readonly FrontedDesignerPreviewAnimationScope? _previewAnimationScope;
+    private readonly IFrontedBehaviorClipboard _behaviorClipboard;
+    private readonly FrontedBehaviorCopyPasteService _copyPasteService;
     private readonly JsonSerializerOptions _cloneJsonOptions = new()
     {
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
@@ -53,7 +55,9 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
         IFrontedNodeGraphRuntime? graphRuntime = null,
         IFrontedAnimationRuntime? animationRuntime = null,
         FrontedDesignerPreviewAnimationScope? previewAnimationScope = null,
-        Func<Task<bool>>? saveBehaviorAsync = null)
+        Func<Task<bool>>? saveBehaviorAsync = null,
+        IFrontedBehaviorClipboard? behaviorClipboard = null,
+        FrontedBehaviorCopyPasteService? copyPasteService = null)
     {
         _localizationService = localizationService;
         _markLayoutDirty = markLayoutDirty;
@@ -64,6 +68,9 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
         _graphRuntime = graphRuntime ?? new FrontedNodeGraphRuntime(_nodeCatalog, _graphValidator);
         _animationRuntime = animationRuntime;
         _previewAnimationScope = previewAnimationScope;
+        _behaviorClipboard = behaviorClipboard ?? new FrontedBehaviorClipboard();
+        _copyPasteService = copyPasteService
+            ?? new FrontedBehaviorCopyPasteService(new FrontedBehaviorControlSemanticResolver(), localizationService);
         EventOptions = [.. eventCatalog.Events.Select(CreateEventOption)];
         OperatorOptions = CreateOperatorOptions();
         StopModeOptions = CreateEnumOptions<FrontedLoopStopMode>("Designer.Behaviors.StopMode");
@@ -84,6 +91,8 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
 
     public event Action<FrontedBehaviorAnimationEditorViewModel>? AnimationEditorRequested;
 
+    public event Action<FrontedBehaviorCopyToRequest>? CopyBehaviorToRequested;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedControl))]
     [NotifyPropertyChangedFor(nameof(EmptyText))]
@@ -93,9 +102,14 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(HasSelectedBehavior))]
     private BehaviorEditorViewModel? _selectedBehavior;
 
+    [ObservableProperty]
+    private string _pasteStatus = string.Empty;
+
     public bool HasSelectedControl => SelectedControl is not null;
 
     public bool HasSelectedBehavior => SelectedBehavior is not null;
+
+    public bool CanPasteBehavior => SelectedControl is not null && _behaviorClipboard.Payload is not null;
 
     public bool HasBehaviors => Behaviors.Count > 0;
 
@@ -118,6 +132,29 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
         SelectedControl = selectedControl;
         RefreshForSelectedControl();
     }
+
+    /// <summary>
+    /// Sets the current window and available behavior paste targets.
+    /// </summary>
+    /// <param name="windowType">The current window type.</param>
+    /// <param name="controls">The controls available in the current design document.</param>
+    public void SetCopyContext(string? windowType, IEnumerable<FrontedControlDesignItem>? controls)
+    {
+        CurrentWindowType = windowType ?? string.Empty;
+        AvailableControls = controls as IReadOnlyList<FrontedControlDesignItem>
+            ?? controls?.ToArray()
+            ?? [];
+    }
+
+    /// <summary>
+    /// Gets the current window type used by behavior clipboard payloads.
+    /// </summary>
+    public string CurrentWindowType { get; private set; } = string.Empty;
+
+    /// <summary>
+    /// Gets the controls available for multi-target behavior paste.
+    /// </summary>
+    public IReadOnlyList<FrontedControlDesignItem> AvailableControls { get; private set; } = [];
 
     public bool RemoveBehaviors(Guid behaviorGuid)
     {
@@ -248,10 +285,119 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
         MarkBehaviorsDirty();
     }
 
+    [RelayCommand]
+    public void CopyBehavior(BehaviorEditorViewModel? behavior)
+    {
+        if (behavior is null || SelectedControl is null || SelectedControl.Config.BehaviorGuid == Guid.Empty)
+        {
+            return;
+        }
+
+        _behaviorClipboard.Set(_copyPasteService.Copy(CurrentWindowType, SelectedControl, behavior.Model));
+        OnPropertyChanged(nameof(CanPasteBehavior));
+        PasteBehaviorCommand.NotifyCanExecuteChanged();
+    }
+
+    [RelayCommand(CanExecute = nameof(CanPasteBehavior))]
+    public void PasteBehavior()
+    {
+        if (SelectedControl is null || _behaviorClipboard.Payload is null)
+        {
+            return;
+        }
+
+        PasteBehaviorToTargets([SelectedControl], new FrontedBehaviorPasteOptions());
+    }
+
+    [RelayCommand]
+    public void CopyBehaviorTo(BehaviorEditorViewModel? behavior)
+    {
+        CopyBehavior(behavior);
+        if (_behaviorClipboard.Payload is null)
+        {
+            return;
+        }
+
+        var previews = AvailableControls
+            .Where(control => !ReferenceEquals(control, SelectedControl))
+            .Select(control => _copyPasteService.Preview(
+                _behaviorClipboard.Payload,
+                control,
+                new FrontedBehaviorPasteOptions()))
+            .ToArray();
+        CopyBehaviorToRequested?.Invoke(new FrontedBehaviorCopyToRequest(this, previews));
+    }
+
+    /// <summary>
+    /// Pastes the current behavior clipboard payload into multiple controls.
+    /// </summary>
+    /// <param name="targets">The selected target controls.</param>
+    /// <param name="options">The paste options.</param>
+    /// <returns>The paste results, including incompatible skipped targets.</returns>
+    public IReadOnlyList<FrontedBehaviorPasteResult> PasteBehaviorToTargets(
+        IEnumerable<FrontedControlDesignItem> targets,
+        FrontedBehaviorPasteOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(targets);
+        ArgumentNullException.ThrowIfNull(options);
+        if (_behaviorClipboard.Payload is null)
+        {
+            return [];
+        }
+
+        var results = new List<FrontedBehaviorPasteResult>();
+        foreach (var target in targets.Distinct())
+        {
+            var oldGuid = target.Config.BehaviorGuid;
+            var result = _copyPasteService.Paste(_behaviorClipboard.Payload, target, CurrentDocument, options);
+            results.Add(result);
+            if (result.Succeeded && oldGuid == Guid.Empty && target.Config.BehaviorGuid != Guid.Empty)
+            {
+                _markLayoutDirty();
+            }
+        }
+
+        if (results.Any(result => result.Succeeded))
+        {
+            RefreshForSelectedControl();
+            MarkBehaviorsDirty();
+        }
+
+        PasteStatus = string.Format(
+            Localize("Designer.Behaviors.PasteSummary", "Copied to {0} controls. Skipped {1} incompatible controls."),
+            results.Count(result => result.Succeeded),
+            results.Count(result => !result.Succeeded));
+        return results;
+    }
+
+    /// <summary>
+    /// Creates paste previews for the supplied target controls using the current behavior clipboard.
+    /// </summary>
+    /// <param name="targets">The controls to preview.</param>
+    /// <param name="options">The paste options.</param>
+    /// <returns>Compatibility and rewrite previews.</returns>
+    public IReadOnlyList<FrontedBehaviorPastePreview> PreviewBehaviorTargets(
+        IEnumerable<FrontedControlDesignItem> targets,
+        FrontedBehaviorPasteOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(targets);
+        ArgumentNullException.ThrowIfNull(options);
+        if (_behaviorClipboard.Payload is null)
+        {
+            return [];
+        }
+
+        return targets
+            .Select(target => _copyPasteService.Preview(_behaviorClipboard.Payload, target, options))
+            .ToArray();
+    }
+
     partial void OnSelectedControlChanged(FrontedControlDesignItem? value)
     {
         OnPropertyChanged(nameof(HasSelectedControl));
         OnPropertyChanged(nameof(EmptyText));
+        OnPropertyChanged(nameof(CanPasteBehavior));
+        PasteBehaviorCommand.NotifyCanExecuteChanged();
     }
 
     private ControlBehaviorSet? GetOrCreateSelectedSet()
@@ -1425,6 +1571,15 @@ public sealed record FrontedBehaviorAnimationStageViewModel(
     string DisplayName,
     FrontedNodeGraph Graph,
     FrontedNodeGraphEditorViewModel GraphEditor);
+
+/// <summary>
+/// Requests the behavior panel view to show the multi-target behavior paste picker.
+/// </summary>
+/// <param name="Panel">The behavior panel that owns the paste operation.</param>
+/// <param name="Previews">Compatibility and rewrite previews for available targets.</param>
+public sealed record FrontedBehaviorCopyToRequest(
+    BehaviorPanelViewModel Panel,
+    IReadOnlyList<FrontedBehaviorPastePreview> Previews);
 
 public sealed partial class LoopPolicyEditorViewModel : ObservableObject
 {

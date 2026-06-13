@@ -3880,7 +3880,18 @@
   <data name="Designer.Behaviors.AddOneShot" xml:space="preserve"><value>OneShot を追加</value></data>
   <data name="Designer.Behaviors.AddLoop" xml:space="preserve"><value>Loop を追加</value></data>
   <data name="Designer.Behaviors.Delete" xml:space="preserve"><value>削除</value></data>
-  <data name="Designer.Behaviors.Duplicate" xml:space="preserve"><value>複製</value></data>
+  <data name="Designer.Behaviors.Duplicate" xml:space="preserve"><value>コピーを作成</value></data>
+  <data name="Designer.Behaviors.Copy" xml:space="preserve"><value>ビヘイビアをコピー</value></data>
+  <data name="Designer.Behaviors.CopyTo" xml:space="preserve"><value>ビヘイビアをコピー先...</value></data>
+  <data name="Designer.Behaviors.Paste" xml:space="preserve"><value>ビヘイビアを貼り付け</value></data>
+  <data name="Designer.Behaviors.CopyToTargets" xml:space="preserve"><value>コピー先のコントロールを選択（複数選択可）</value></data>
+  <data name="Designer.Behaviors.RewriteTargets" xml:space="preserve"><value>アニメーション対象を書き換える</value></data>
+  <data name="Designer.Behaviors.RewriteTriggerIndexes" xml:space="preserve"><value>トリガーインデックスを書き換える</value></data>
+  <data name="Designer.Behaviors.SelectTargetForPreview" xml:space="preserve"><value>互換性と書き換え内容を確認するコントロールを選択してください。</value></data>
+  <data name="Designer.Behaviors.Target" xml:space="preserve"><value>対象コントロール</value></data>
+  <data name="Designer.Behaviors.Compatible" xml:space="preserve"><value>互換</value></data>
+  <data name="Designer.Behaviors.ExternalReference" xml:space="preserve"><value>保持される外部コントロール参照</value></data>
+  <data name="Designer.Behaviors.PasteSummary" xml:space="preserve"><value>{0} 個のコントロールにコピーし、互換性のない {1} 個をスキップしました。</value></data>
   <data name="Designer.Behaviors.Enabled" xml:space="preserve"><value>有効</value></data>
   <data name="Designer.Behaviors.Name" xml:space="preserve"><value>名前</value></data>
   <data name="Designer.Behaviors.Kind" xml:space="preserve"><value>種類</value></data>
@@ -4264,4 +4275,11 @@
   <data name="Designer.Behaviors.FilterHint.Action" xml:space="preserve"><value>PickSur、PickHun、BanSur などの enum 値を使用してください。</value></data>
   <data name="Designer.Behaviors.FilterHint.Indexes" xml:space="preserve"><value>文字列 Contains フィルターには IndexesText / PreviousIndexesText を推奨します。</value></data>
   <data name="Designer.Behaviors.FilterHint.IndexesText" xml:space="preserve"><value>[0] または [1, 2] 形式です。索引 0 の一致には Contains 0 を使います。</value></data>
+  <data name="Designer.Behaviors.MoreOptions" xml:space="preserve"><value>その他の動作操作</value></data>
+  <data name="Designer.Behaviors.TargetMissingPickingBorder" xml:space="preserve"><value>対象コントロールで選択枠が有効になっていません。</value></data>
+  <data name="Designer.Behaviors.TargetMissingLockOverlay" xml:space="preserve"><value>対象コントロールで禁止ロック / ロックオーバーレイが有効になっていません。</value></data>
+  <data name="Designer.Behaviors.TargetIndexUnavailable" xml:space="preserve"><value>対象コントロールのインデックスを推測できません。</value></data>
+  <data name="Designer.Behaviors.SourceIndexUnavailable" xml:space="preserve"><value>コピー元コントロールのインデックスを推測できません。</value></data>
+  <data name="Designer.Behaviors.DefaultName" xml:space="preserve"><value>動作</value></data>
+  <data name="Designer.Behaviors.CopyNameFormat" xml:space="preserve"><value>{0} のコピー</value></data>
 </root>

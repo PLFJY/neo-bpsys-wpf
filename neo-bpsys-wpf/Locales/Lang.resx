@@ -4124,8 +4124,19 @@
     <value>删除</value>
   </data>
   <data name="Designer.Behaviors.Duplicate" xml:space="preserve">
-    <value>复制</value>
+    <value>创建副本</value>
   </data>
+  <data name="Designer.Behaviors.Copy" xml:space="preserve"><value>复制行为</value></data>
+  <data name="Designer.Behaviors.CopyTo" xml:space="preserve"><value>复制行为到...</value></data>
+  <data name="Designer.Behaviors.Paste" xml:space="preserve"><value>粘贴行为</value></data>
+  <data name="Designer.Behaviors.CopyToTargets" xml:space="preserve"><value>选择要复制到的控件（可多选）</value></data>
+  <data name="Designer.Behaviors.RewriteTargets" xml:space="preserve"><value>重写动画目标</value></data>
+  <data name="Designer.Behaviors.RewriteTriggerIndexes" xml:space="preserve"><value>重写触发器索引</value></data>
+  <data name="Designer.Behaviors.SelectTargetForPreview" xml:space="preserve"><value>选择控件以查看兼容性和改写预览。</value></data>
+  <data name="Designer.Behaviors.Target" xml:space="preserve"><value>目标控件</value></data>
+  <data name="Designer.Behaviors.Compatible" xml:space="preserve"><value>兼容</value></data>
+  <data name="Designer.Behaviors.ExternalReference" xml:space="preserve"><value>保留的外部控件引用</value></data>
+  <data name="Designer.Behaviors.PasteSummary" xml:space="preserve"><value>已复制到 {0} 个控件，跳过 {1} 个不兼容控件。</value></data>
   <data name="Designer.Behaviors.Enabled" xml:space="preserve">
     <value>启用</value>
   </data>
@@ -5221,5 +5232,26 @@
   </data>
   <data name="Designer.Behaviors.FilterHint.IndexesText" xml:space="preserve">
     <value>格式为 [0] 或 [1, 2]。使用 Contains 0 匹配索引 0。</value>
+  </data>
+  <data name="Designer.Behaviors.MoreOptions" xml:space="preserve">
+    <value>更多行为操作</value>
+  </data>
+  <data name="Designer.Behaviors.TargetMissingPickingBorder" xml:space="preserve">
+    <value>目标控件未启用选中边框。</value>
+  </data>
+  <data name="Designer.Behaviors.TargetMissingLockOverlay" xml:space="preserve">
+    <value>目标控件未启用禁用锁定 / 锁定遮罩。</value>
+  </data>
+  <data name="Designer.Behaviors.TargetIndexUnavailable" xml:space="preserve">
+    <value>无法推断目标控件索引。</value>
+  </data>
+  <data name="Designer.Behaviors.SourceIndexUnavailable" xml:space="preserve">
+    <value>无法推断源控件索引。</value>
+  </data>
+  <data name="Designer.Behaviors.DefaultName" xml:space="preserve">
+    <value>行为</value>
+  </data>
+  <data name="Designer.Behaviors.CopyNameFormat" xml:space="preserve">
+    <value>{0} 副本</value>
   </data>
 </root>

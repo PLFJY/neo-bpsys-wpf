@@ -667,6 +667,8 @@ Phase 8G 已实现控件级资源路径浏览。Resource Browser 面向图片和
 
 Phase 10 已实现内部控件复制/粘贴。`Ctrl+C` 复制当前选中的普通可编辑控件，`Ctrl+V` 粘贴单个控件。该剪贴板只存在于编辑器 ViewModel 内，不使用系统剪贴板。运行时关键控件和不可选/不可编辑控件不能复制。粘贴时深拷贝 config，名称按尾部数字递增并避开冲突，`Left` / `Top` 偏移 `+10`。Phase 13C 起，已安装插件控件的 typed config 和缺失插件控件的 `PluginFrontedControlConfig.ExtensionData` 都按同一 JSON 深拷贝路径保留；插件控件新增或粘贴后的默认名称使用 `ControlTypeName`，例如 `TeamCard1`，而不是完整 `plugin:...` 字符串。焦点位于 `TextBox`、可编辑 `ComboBox`、ColorPicker 文本区域等文本输入时，窗口不会拦截 `Ctrl+C` / `Ctrl+V`，保留普通文本复制粘贴。
 
+行为面板另有独立的应用级行为剪贴板。用户可复制一个行为、快速粘贴到当前选中控件，或通过“复制行为到...”选择多个目标控件。粘贴会生成新的 `BehaviorId`，把指向源控件的动画目标改写为目标控件，并在源/目标语义索引都可推断时改写引导索引过滤器。`PickingBorder` 和 `LockOverlay` 等生成部件只有在目标控件启用了对应能力时才兼容；指向其他控件的外部引用不会被静默改写。
+
 ### Undo/Redo
 
 Phase 8F foundation 修复后已提供基础内存 Undo/Redo。工具栏有 Undo / Redo 按钮，快捷键为 `Ctrl+Z`、`Ctrl+Y` 和 `Ctrl+Shift+Z`；焦点位于 `TextBox`、`ComboBox`、ColorPicker 等属性编辑器内时不抢编辑控件自身的撤销/重做。Undo/Redo 以完整 Canvas config JSON 快照实现，包含 root/BO5 与 `BoModeStates["Bo3"]`。新增控件、删除控件、成功属性提交、重命名、颜色/字体提交、键盘移动、鼠标拖拽/缩放提交、粘贴和“复制 BO5 布局到 BO3”都会进入 undo；切换窗口/Canvas 或 reload 会清空栈。历史上限仍是 50 步。
