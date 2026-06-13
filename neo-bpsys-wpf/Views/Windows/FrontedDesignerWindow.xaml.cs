@@ -862,6 +862,42 @@ public partial class FrontedDesignerWindow : FluentWindow
         }
     }
 
+    private void BrowsePseudoElementImageResourceButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (_resourceBrowserProvider is null
+            || _viewModel?.PseudoElementEditBuffer is not { IsImage: true } editor)
+        {
+            return;
+        }
+
+        var viewModel = new FrontedResourceBrowserWindowViewModel(_resourceBrowserProvider);
+        var window = new FrontedResourceBrowserWindow
+        {
+            Owner = this,
+            DataContext = viewModel
+        };
+        window.InitializeSelection(editor.ImagePath);
+
+        if (window.ShowDialog() == true && !string.IsNullOrWhiteSpace(window.SelectedResourcePath))
+        {
+            _viewModel.ApplyPseudoElementImageResourceSelection(window.SelectedResourcePath);
+        }
+    }
+
+    private void ChooseLocalPseudoElementImageButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (_filePickerService is null || _viewModel?.PseudoElementEditBuffer is not { IsImage: true })
+        {
+            return;
+        }
+
+        var file = _filePickerService.PickImage();
+        if (!string.IsNullOrWhiteSpace(file))
+        {
+            _viewModel.StoreLocalPseudoElementImage(file);
+        }
+    }
+
     private void ChooseLocalCanvasBackgroundButton_OnClick(object sender, RoutedEventArgs e)
     {
         if (_filePickerService is null || _viewModel is null)

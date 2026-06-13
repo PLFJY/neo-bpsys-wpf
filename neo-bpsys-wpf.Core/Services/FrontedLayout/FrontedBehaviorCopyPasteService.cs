@@ -294,6 +294,21 @@ public sealed class FrontedBehaviorCopyPasteService
                         "Designer.Behaviors.TargetMissingLockOverlay",
                         "Target control does not have Ban Lock / Lock Overlay enabled."));
                     break;
+                default:
+                    if (!string.Equals(requirement.Kind, FrontedAnimationPartNames.PickingBorder, StringComparison.Ordinal)
+                        && !string.Equals(requirement.Kind, FrontedAnimationPartNames.LockOverlay, StringComparison.Ordinal)
+                        && !target.Config.PseudoElements.Any(item =>
+                            string.Equals(item.Name, requirement.Kind, StringComparison.Ordinal)))
+                    {
+                        errors.Add(string.Format(
+                            System.Globalization.CultureInfo.CurrentCulture,
+                            Localize(
+                                "Designer.Behaviors.TargetMissingPseudoElement",
+                                "Target control does not have pseudo-element '{0}'."),
+                            requirement.Kind));
+                    }
+
+                    break;
             }
         }
     }

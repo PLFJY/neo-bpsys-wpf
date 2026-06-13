@@ -94,6 +94,22 @@ Phase 4 已完成 Designer 预览侧的 WPF 动画与属性应用层：
 
 `VisualOffsetX/Y`、`ScaleX/Y`、`Rotation` 使用 `RenderTransform`，不会修改 `Canvas.Left` / `Canvas.Top`，也不会污染布局配置。`FillColor`、`StrokeColor`、`TextColor` 使用 `SolidColorBrush`，颜色值支持 `#RRGGBB` / `#AARRGGBB`。不支持的 `TargetLayer + PropertyName` 组合会记录 warning 并跳过，不抛出异常。
 
+### 通用伪元素与 ClipInset
+
+控件配置可以通过 `PseudoElements` 声明内部生成视觉部件。伪元素不是独立前台控件，不进入主
+Canvas 控件列表；renderer 会把它们放在父控件视觉树的内容上方或下方，并通过
+`part:{BehaviorGuid}:{PseudoElementName}` 作为稳定动画目标。
+
+当效果需要附着在控件内部的辅助视觉时使用伪元素。例如在 `SurPick0` 添加名为 `scanLine`
+的矩形伪元素后，可以同时执行：
+
+- `SurPick0.ClipInsetRight`：从 `100%` 动画到 `0%`，从左向右显示父控件内容。
+- `SurPick0 / scanLine.VisualOffsetX`：从 `0%` 动画到 `100%`，让扫描线穿过父控件。
+
+`ClipInsetLeft`、`ClipInsetTop`、`ClipInsetRight`、`ClipInsetBottom` 只改变裁剪区域，不改变
+控件布局尺寸。伪元素的 `VisualOffsetX/Y` 百分比相对父控件宽高计算；普通控件的百分比相对
+自身宽高计算。伪元素名称完全由用户定义，`shine`、`edge`、`wipeBar` 等名称使用同一管线。
+
 Loop 行为编辑器现在提供 Designer-only 生命周期预览：Preview Start、Preview Loop Once、Start Loop Preview、Stop Loop Preview、Preview Stop、Reset。Start Loop Preview 会先执行 `StartGraph`，再按 `LoopPolicy.RepeatCount` 与 `IntervalMs` 重复执行 `LoopGraph`；重复启动默认按 `ReentryPolicy.IgnoreIfRunning` 忽略，`InterruptPrevious` 会取消旧循环。Stop Loop Preview 会根据 `StopMode` 停止当前循环：`StopImmediately` 立即取消，`RunStopGraph` 取消后执行 `StopGraph`，`CompleteCurrentIteration` 请求当前轮完成后退出，并按 `ResetOnStop` 调用 reset。`AutoReverse` 当前只是配置占位符，尚未实现任意图的反向执行，该功能将在后续版本中提供。
 
 Phase 4 仍不实现：真实 `IFrontedEventBus`、从 `SharedDataService` 事件自动触发、真实前台窗口赛事事件播放、插件自定义 animatable property、Timeline 编辑器、断点调试器、Canvas/window 级行为列表。

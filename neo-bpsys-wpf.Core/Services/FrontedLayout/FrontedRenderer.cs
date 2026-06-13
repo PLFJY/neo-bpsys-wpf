@@ -107,6 +107,7 @@ public class FrontedRenderer(
             }
 
             var element = factory.Create(name, controlConfig, buildContext);
+            element = FrontedPseudoElementRenderer.Wrap(name, controlConfig, element, buildContext);
             element.Visibility = MapVisibility(controlConfig.Visibility);
             FrontedRendererProperties.SetIsGeneratedControl(element, true);
             FrontedRendererProperties.SetBehaviorGuid(element, controlConfig.BehaviorGuid);

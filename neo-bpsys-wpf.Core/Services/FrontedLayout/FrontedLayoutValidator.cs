@@ -210,6 +210,7 @@ public class FrontedLayoutValidator
                 item.Name);
 
             ValidateCommonControlFields(item, messages);
+            ValidatePseudoElements(item, messages);
             ValidateKnownControlConfig(item, messages);
             ValidatePluginControlConfig(item, messages);
             if (item.Config is BackgroundTintFrontedControlConfigBase
@@ -220,6 +221,58 @@ public class FrontedLayoutValidator
                     $"Background tint control '{item.Name}' has no Canvas background image to tint.",
                     item.Name,
                     nameof(FrontedCanvasConfig.BackgroundImage)));
+            }
+        }
+    }
+
+    private void ValidatePseudoElements(
+        FrontedControlDesignItem item,
+        ICollection<FrontedLayoutValidationMessage> messages)
+    {
+        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var pseudoElement in item.Config.PseudoElements)
+        {
+            if (string.IsNullOrWhiteSpace(pseudoElement.Name))
+            {
+                messages.Add(Error(
+                    "PseudoElementNameEmpty",
+                    $"Control '{item.Name}' has a pseudo-element with no name.",
+                    item.Name,
+                    nameof(FrontedControlConfigBase.PseudoElements)));
+            }
+            else if (!names.Add(pseudoElement.Name))
+            {
+                messages.Add(Error(
+                    "PseudoElementNameDuplicate",
+                    $"Control '{item.Name}' has duplicate pseudo-element name '{pseudoElement.Name}'.",
+                    item.Name,
+                    nameof(FrontedControlConfigBase.PseudoElements)));
+            }
+
+            if (!double.IsFinite(pseudoElement.Left)
+                || !double.IsFinite(pseudoElement.Top)
+                || !double.IsFinite(pseudoElement.Opacity)
+                || pseudoElement.Opacity is < 0D or > 1D
+                || !double.IsFinite(pseudoElement.StrokeThickness)
+                || pseudoElement.StrokeThickness < 0D)
+            {
+                messages.Add(Error(
+                    "PseudoElementValueInvalid",
+                    $"Control '{item.Name}' pseudo-element '{pseudoElement.Name}' has an invalid numeric value.",
+                    item.Name,
+                    nameof(FrontedControlConfigBase.PseudoElements)));
+            }
+
+            if (pseudoElement.Kind == FrontedPseudoElementKind.Image
+                && !string.IsNullOrWhiteSpace(pseudoElement.ImagePath)
+                && _resourceResolver is not null
+                && _resourceResolver.ResolveImagePath(pseudoElement.ImagePath) is null)
+            {
+                messages.Add(Warning(
+                    "PseudoElementImageUnresolved",
+                    $"Pseudo-element image '{pseudoElement.ImagePath}' could not be resolved.",
+                    item.Name,
+                    nameof(FrontedControlConfigBase.PseudoElements)));
             }
         }
     }

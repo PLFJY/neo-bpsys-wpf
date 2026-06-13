@@ -101,6 +101,29 @@ public class FrontedBehaviorCopyPasteServiceTest
     }
 
     [Fact]
+    public void Paste_RewritesGenericPseudoElementWhenCompatibleAndBlocksWhenMissing()
+    {
+        var sourceGuid = Guid.NewGuid();
+        var source = ImageItem("Source", sourceGuid);
+        source.Config.PseudoElements.Add(new FrontedPseudoElementConfig { Name = "wipeBar" });
+        var payload = _service.Copy(
+            "BpWindow",
+            source,
+            BehaviorWithTargets($"part:{sourceGuid}:wipeBar"));
+        var compatible = ImageItem("Compatible", Guid.NewGuid());
+        compatible.Config.PseudoElements.Add(new FrontedPseudoElementConfig { Name = "wipeBar" });
+        var incompatible = ImageItem("Incompatible", Guid.NewGuid());
+
+        var pasted = _service.Paste(payload, compatible, new FrontedBehaviorDocument());
+        var blocked = _service.Paste(payload, incompatible, new FrontedBehaviorDocument());
+
+        Assert.True(pasted.Succeeded);
+        Assert.Equal($"part:{compatible.Config.BehaviorGuid}:wipeBar", Assert.Single(Targets(pasted.Behavior!)));
+        Assert.False(blocked.Succeeded);
+        Assert.Contains(blocked.Preview.CompatibilityErrors, message => message.Contains("wipeBar"));
+    }
+
+    [Fact]
     public void Paste_RewritesCurrentAndPreviousTriggerIndexesExactly()
     {
         var source = ImageItem("SurPick0", Guid.NewGuid());

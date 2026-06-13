@@ -149,12 +149,17 @@ public sealed class FrontedDesignerPreviewAnimationScope
         ICollection<FrontedDesignerAnimationTargetOption> targets,
         FrontedControlDesignItem control)
     {
+        var guid = control.Config.BehaviorGuid;
+        foreach (var pseudoElement in control.Config.PseudoElements.Where(item => !string.IsNullOrWhiteSpace(item.Name)))
+        {
+            AddPartTarget(targets, control.Name, guid, pseudoElement.Name);
+        }
+
         if (control.Config is not ImageFrontedControlConfig image)
         {
             return;
         }
 
-        var guid = image.BehaviorGuid;
         if (image.Lockable)
         {
             AddPartTarget(targets, control.Name, guid, FrontedAnimationPartNames.LockOverlay);

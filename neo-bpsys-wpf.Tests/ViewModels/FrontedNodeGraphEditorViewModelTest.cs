@@ -587,6 +587,37 @@ public class FrontedNodeGraphEditorViewModelTest
         });
     }
 
+    [Fact]
+    public async Task PreviewAnimationScope_UsesConfiguredGenericPseudoElementTargets()
+    {
+        await RunOnStaThreadAsync(() =>
+        {
+            var guid = Guid.NewGuid();
+            var scope = new FrontedDesignerPreviewAnimationScope();
+            scope.Update(
+                new Grid(),
+                null,
+                "Window",
+                "Canvas",
+                [new FrontedControlDesignItem
+                {
+                    Name = "SurPick0",
+                    Config = new FrontedControlConfigBase
+                    {
+                        BehaviorGuid = guid,
+                        PseudoElements = [new FrontedPseudoElementConfig { Name = "wipeBar" }]
+                    }
+                }]);
+
+            Assert.Contains(
+                scope.Targets,
+                target => target.TargetReference == $"part:{guid}:wipeBar"
+                          && target.DisplayName == "SurPick0"
+                          && target.PartName == "wipeBar");
+            return Task.CompletedTask;
+        });
+    }
+
     [Theory]
     [InlineData(false, false, false, false)]
     [InlineData(true, false, true, false)]

@@ -200,4 +200,34 @@ public static class FrontedRendererProperties
     {
         element.SetValue(AnimationPartNameProperty, value);
     }
+
+    /// <summary>
+    /// Identifies the parent control used to resolve percentage sizes and offsets for a generated part.
+    /// </summary>
+    public static readonly DependencyProperty AnimationPartParentProperty =
+        DependencyProperty.RegisterAttached(
+            "AnimationPartParent",
+            typeof(FrameworkElement),
+            typeof(FrontedRendererProperties),
+            new PropertyMetadata(null));
+
+    /// <summary>
+    /// Gets the parent control used by a generated animation part.
+    /// </summary>
+    /// <param name="element">The element to read.</param>
+    /// <returns>The owning control root, or <c>null</c>.</returns>
+    public static FrameworkElement? GetAnimationPartParent(DependencyObject element)
+    {
+        return (FrameworkElement?)element.GetValue(AnimationPartParentProperty);
+    }
+
+    /// <summary>
+    /// Sets the parent control used by a generated animation part.
+    /// </summary>
+    /// <param name="element">The element to update.</param>
+    /// <param name="value">The owning control root.</param>
+    public static void SetAnimationPartParent(DependencyObject element, FrameworkElement? value)
+    {
+        element.SetValue(AnimationPartParentProperty, value);
+    }
 }

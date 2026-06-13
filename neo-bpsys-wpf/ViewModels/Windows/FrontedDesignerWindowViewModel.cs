@@ -15,6 +15,7 @@ using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Services.FrontedDesigner;
 using neo_bpsys_wpf.ViewModels.FrontedDesigner;
+using System.ComponentModel;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
@@ -250,6 +251,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     public ObservableCollection<FrontedPropertyEditorItem> PropertyEditorItems { get; } = [];
 
+    /// <summary>
+    /// Gets pseudo-elements configured on the selected control.
+    /// </summary>
+    public ObservableCollection<FrontedPseudoElementConfig> PseudoElementEditorItems { get; } = [];
+
     public ObservableCollection<FrontedAddControlCatalogGroup> AddControlCatalogGroups { get; } = [];
 
     public BehaviorPanelViewModel BehaviorPanel { get; private set; }
@@ -359,6 +365,23 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     public bool IsMapV2DisplaySelected => SelectedDesignItem?.Config is MapV2DisplayControlConfig;
 
     public bool IsPolygonSelected => SelectedDesignItem?.Config is IPolygonFrontedControlConfig;
+
+    /// <summary>
+    /// Gets a value indicating whether a control is selected for pseudo-element editing.
+    /// </summary>
+    public bool HasPseudoElementEditor => SelectedDesignItem is not null;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasSelectedPseudoElement))]
+    private FrontedPseudoElementConfig? _selectedPseudoElement;
+
+    [ObservableProperty]
+    private FrontedPseudoElementEditorViewModel? _pseudoElementEditBuffer;
+
+    /// <summary>
+    /// Gets a value indicating whether a pseudo-element is selected.
+    /// </summary>
+    public bool HasSelectedPseudoElement => SelectedPseudoElement is not null;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SelectedPolygonVertexDisplay))]
@@ -679,6 +702,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         BehaviorPanel.SetSelectedControl(value);
         RefreshSelectedControlDisplay();
         RebuildGlobalScoreCellEditorItems();
+        RebuildPseudoElementEditorItems();
         RebuildPropertyEditorItems();
         RefreshLayerNodeSelection();
         DeleteSelectedControlCommand.NotifyCanExecuteChanged();
@@ -689,6 +713,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(HasGlobalScoreCellEditor));
         OnPropertyChanged(nameof(IsMapV2DisplaySelected));
         OnPropertyChanged(nameof(IsPolygonSelected));
+        OnPropertyChanged(nameof(HasPseudoElementEditor));
         OnPropertyChanged(nameof(SelectedPolygonVertexDisplay));
         OnPropertyChanged(nameof(CanRemovePolygonVertex));
         RemovePolygonVertexCommand.NotifyCanExecuteChanged();
@@ -697,6 +722,164 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     partial void OnSelectedPolygonVertexIndexChanged(int value)
     {
         RemovePolygonVertexCommand.NotifyCanExecuteChanged();
+    }
+
+    partial void OnSelectedPseudoElementChanged(FrontedPseudoElementConfig? value)
+    {
+        if (PseudoElementEditBuffer is not null)
+        {
+            PseudoElementEditBuffer.ErrorsChanged -= PseudoElementEditBuffer_OnErrorsChanged;
+        }
+
+        PseudoElementEditBuffer = value is null
+            ? null
+            : new FrontedPseudoElementEditorViewModel(value, candidate =>
+                SelectedDesignItem?.Config.PseudoElements.All(item =>
+                    ReferenceEquals(item, value)
+                    || !string.Equals(item.Name, candidate, StringComparison.OrdinalIgnoreCase)) == true);
+        if (PseudoElementEditBuffer is not null)
+        {
+            PseudoElementEditBuffer.ErrorsChanged += PseudoElementEditBuffer_OnErrorsChanged;
+        }
+
+        RemovePseudoElementCommand.NotifyCanExecuteChanged();
+        ApplyPseudoElementEditCommand.NotifyCanExecuteChanged();
+    }
+
+    private void PseudoElementEditBuffer_OnErrorsChanged(object? sender, DataErrorsChangedEventArgs e)
+    {
+        ApplyPseudoElementEditCommand.NotifyCanExecuteChanged();
+    }
+
+    [RelayCommand]
+    private void AddPseudoElement()
+    {
+        if (CurrentDocument is null || SelectedDesignItem is null)
+        {
+            return;
+        }
+
+        CaptureUndoSnapshot();
+        var names = SelectedDesignItem.Config.PseudoElements
+            .Select(item => item.Name)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var index = 1;
+        var name = "part";
+        while (names.Contains(name))
+        {
+            name = $"part{index++}";
+        }
+
+        var created = new FrontedPseudoElementConfig { Name = name };
+        SelectedDesignItem.Config.PseudoElements.Add(created);
+        CurrentDocument.IsDirty = true;
+        RebuildPseudoElementEditorItems(created);
+        FinishPropertyEdit(nameof(FrontedControlConfigBase.PseudoElements));
+    }
+
+    private bool CanRemovePseudoElement() => SelectedPseudoElement is not null;
+
+    [RelayCommand(CanExecute = nameof(CanRemovePseudoElement))]
+    private void RemovePseudoElement()
+    {
+        if (CurrentDocument is null || SelectedDesignItem is null || SelectedPseudoElement is null)
+        {
+            return;
+        }
+
+        CaptureUndoSnapshot();
+        SelectedDesignItem.Config.PseudoElements.Remove(SelectedPseudoElement);
+        CurrentDocument.IsDirty = true;
+        RebuildPseudoElementEditorItems();
+        FinishPropertyEdit(nameof(FrontedControlConfigBase.PseudoElements));
+    }
+
+    private bool CanApplyPseudoElementEdit() =>
+        SelectedPseudoElement is not null
+        && PseudoElementEditBuffer is { HasErrors: false };
+
+    [RelayCommand(CanExecute = nameof(CanApplyPseudoElementEdit))]
+    private void ApplyPseudoElementEdit()
+    {
+        if (CurrentDocument is null
+            || SelectedDesignItem is null
+            || SelectedPseudoElement is null
+            || PseudoElementEditBuffer is null)
+        {
+            return;
+        }
+
+        PseudoElementEditBuffer.ValidateAll();
+        if (PseudoElementEditBuffer.HasErrors)
+        {
+            StatusMessage = I18nHelper.GetLocalizedString("Designer.PseudoElements.Validation.FixErrors");
+            return;
+        }
+
+        CaptureUndoSnapshot();
+        PseudoElementEditBuffer.ApplyTo(SelectedPseudoElement);
+        CurrentDocument.IsDirty = true;
+        RebuildPseudoElementEditorItems(SelectedPseudoElement);
+        FinishPropertyEdit(nameof(FrontedControlConfigBase.PseudoElements));
+    }
+
+    private void RebuildPseudoElementEditorItems(FrontedPseudoElementConfig? selected = null)
+    {
+        PseudoElementEditorItems.Clear();
+        foreach (var item in SelectedDesignItem?.Config.PseudoElements ?? [])
+        {
+            PseudoElementEditorItems.Add(item);
+        }
+
+        SelectedPseudoElement = selected ?? PseudoElementEditorItems.FirstOrDefault();
+    }
+
+    /// <summary>
+    /// Updates the selected pseudo-element image edit buffer from a resource-browser selection.
+    /// </summary>
+    /// <param name="selectedResourcePath">Selected built-in, package, or absolute image path.</param>
+    /// <returns><see langword="true"/> when the edit buffer was updated.</returns>
+    public bool ApplyPseudoElementImageResourceSelection(string selectedResourcePath)
+    {
+        if (PseudoElementEditBuffer is not { IsImage: true } editor)
+        {
+            return false;
+        }
+
+        if (!IsAbsoluteFilePath(selectedResourcePath))
+        {
+            editor.ImagePath = selectedResourcePath;
+            return true;
+        }
+
+        return StoreLocalPseudoElementImage(selectedResourcePath);
+    }
+
+    /// <summary>
+    /// Imports a local image and updates the selected image pseudo-element edit buffer.
+    /// </summary>
+    /// <param name="sourcePath">Absolute local image path.</param>
+    /// <returns><see langword="true"/> when the image was imported and selected.</returns>
+    public bool StoreLocalPseudoElementImage(string sourcePath)
+    {
+        if (_localResourceStore is null || PseudoElementEditBuffer is not { IsImage: true } editor)
+        {
+            return false;
+        }
+
+        try
+        {
+            var result = _localResourceStore.StoreImageWithResult(sourcePath);
+            editor.ImagePath = result.ResourceUri;
+            RecordPendingImportedResource(result, "PseudoElement ImagePath", wasApplied: true);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to store local pseudo-element image.");
+            StatusMessage = $"{I18nHelper.GetLocalizedString("FailedToApplyPicture")}: {ex.Message}";
+            return false;
+        }
     }
 
     private void OnGlobalScoreCellSelectionChanged()

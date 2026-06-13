@@ -4378,4 +4378,40 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="Designer.Behaviors.SourceIndexUnavailable" xml:space="preserve"><value>Source control index cannot be inferred.</value></data>
   <data name="Designer.Behaviors.DefaultName" xml:space="preserve"><value>Behavior</value></data>
   <data name="Designer.Behaviors.CopyNameFormat" xml:space="preserve"><value>{0} Copy</value></data>
+  <data name="Designer.PseudoElements.Title" xml:space="preserve"><value>Animation Parts</value></data>
+  <data name="Designer.PseudoElements.Add" xml:space="preserve"><value>Add pseudo element</value></data>
+  <data name="Designer.PseudoElements.Remove" xml:space="preserve"><value>Remove pseudo element</value></data>
+  <data name="Designer.PseudoElements.Apply" xml:space="preserve"><value>Apply pseudo element changes</value></data>
+  <data name="Designer.PseudoElements.InvalidName" xml:space="preserve"><value>Pseudo element name is required and must be unique within the control.</value></data>
+  <data name="Designer.PseudoElements.Description" xml:space="preserve"><value>Pseudo elements are animation helper parts attached inside the selected control. They do not appear as independent canvas controls.</value></data>
+  <data name="Designer.PseudoElements.Empty" xml:space="preserve"><value>This control has no animation parts yet</value></data>
+  <data name="Designer.PseudoElements.EditorTitle" xml:space="preserve"><value>Part settings</value></data>
+  <data name="Designer.PseudoElements.NamePlaceholder" xml:space="preserve"><value>For example: scanLine, shine, or wipeBar</value></data>
+  <data name="Designer.PseudoElements.Kind" xml:space="preserve"><value>Type</value></data>
+  <data name="Designer.PseudoElements.Kind.Rectangle" xml:space="preserve"><value>Rectangle</value></data>
+  <data name="Designer.PseudoElements.Kind.Border" xml:space="preserve"><value>Border</value></data>
+  <data name="Designer.PseudoElements.Kind.Image" xml:space="preserve"><value>Image</value></data>
+  <data name="Designer.PseudoElements.Layer" xml:space="preserve"><value>Render layer</value></data>
+  <data name="Designer.PseudoElements.Layer.AboveContent" xml:space="preserve"><value>Above content</value></data>
+  <data name="Designer.PseudoElements.Layer.BelowContent" xml:space="preserve"><value>Below content</value></data>
+  <data name="Designer.PseudoElements.LayoutSection" xml:space="preserve"><value>Layout and initial state</value></data>
+  <data name="Designer.PseudoElements.AppearanceSection" xml:space="preserve"><value>Appearance</value></data>
+  <data name="Designer.PseudoElements.SizePlaceholder" xml:space="preserve"><value>Pixels or percentage, such as 100%</value></data>
+  <data name="Designer.PseudoElements.Fill" xml:space="preserve"><value>Fill color</value></data>
+  <data name="Designer.PseudoElements.Stroke" xml:space="preserve"><value>Stroke color</value></data>
+  <data name="Designer.PseudoElements.Background" xml:space="preserve"><value>Background color</value></data>
+  <data name="Designer.PseudoElements.BorderBrush" xml:space="preserve"><value>Border color</value></data>
+  <data name="Designer.PseudoElements.BorderThickness" xml:space="preserve"><value>Border thickness</value></data>
+  <data name="Designer.PseudoElements.StaticImage" xml:space="preserve"><value>Static image</value></data>
+  <data name="Designer.PseudoElements.NoImageSelected" xml:space="preserve"><value>No image selected</value></data>
+  <data name="Designer.PseudoElements.ImagePathPlaceholder" xml:space="preserve"><value>Image resource path inside the layout package</value></data>
+  <data name="Designer.PseudoElements.IsHitTestVisible" xml:space="preserve"><value>Allow the part to participate in mouse hit testing</value></data>
+  <data name="Designer.PseudoElements.Validation.FixErrors" xml:space="preserve"><value>Fix the input errors in the animation part settings before applying.</value></data>
+  <data name="Designer.PseudoElements.Validation.Size" xml:space="preserve"><value>Enter a non-negative pixel value or percentage, such as 4 or 100%.</value></data>
+  <data name="Designer.PseudoElements.Validation.Number" xml:space="preserve"><value>Enter a valid number.</value></data>
+  <data name="Designer.PseudoElements.Validation.NonNegativeNumber" xml:space="preserve"><value>Enter a number greater than or equal to 0.</value></data>
+  <data name="Designer.PseudoElements.Validation.Opacity" xml:space="preserve"><value>Opacity must be a number from 0 to 1.</value></data>
+  <data name="Designer.PseudoElements.Validation.Integer" xml:space="preserve"><value>Enter a valid integer.</value></data>
+  <data name="Designer.PseudoElements.Validation.Color" xml:space="preserve"><value>Enter a valid color, such as #FFFFFFFF or White.</value></data>
+  <data name="Designer.Behaviors.TargetMissingPseudoElement" xml:space="preserve"><value>Target control does not have pseudo-element '{0}'.</value></data>
 </root>

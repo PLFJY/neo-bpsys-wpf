@@ -232,6 +232,45 @@ public class FrontedAnimationRuntimeTest
     }
 
     [Fact]
+    public void FrameworkElementAdapter_PseudoPartPercentageOffset_UsesParentWidth()
+    {
+        RunOnStaThread(() =>
+        {
+            var parent = new Grid { Width = 320, Height = 100 };
+            var part = new Rectangle { Width = 4 };
+            FrontedRendererProperties.SetAnimationPartParent(part, parent);
+            var target = Target(part);
+            var adapter = new FrameworkElementCommonAdapter();
+
+            adapter.SetValue(target, "VisualOffsetX", "100%", Context(new Canvas(), target.BehaviorGuid));
+
+            var group = Assert.IsType<TransformGroup>(part.RenderTransform);
+            Assert.Equal(320, Assert.IsType<TranslateTransform>(group.Children[^1]).X);
+        });
+    }
+
+    [Fact]
+    public void FrameworkElementAdapter_ClipInsetRightPercentage_ClipsWithoutResizing()
+    {
+        RunOnStaThread(() =>
+        {
+            var element = new Border { Width = 200, Height = 80 };
+            var target = Target(element);
+
+            new FrameworkElementCommonAdapter().SetValue(
+                target,
+                "ClipInsetRight",
+                "50%",
+                Context(new Canvas(), target.BehaviorGuid));
+
+            var clip = Assert.IsType<RectangleGeometry>(element.Clip);
+            Assert.Equal(new Rect(0, 0, 100, 80), clip.Rect);
+            Assert.Equal(200, element.Width);
+            Assert.Equal(80, element.Height);
+        });
+    }
+
+    [Fact]
     public async Task AnimationRuntime_AnimateGeneratedPartOpacity_DurationZero_SetsImmediately()
     {
         await RunOnStaThreadAsync(async () =>

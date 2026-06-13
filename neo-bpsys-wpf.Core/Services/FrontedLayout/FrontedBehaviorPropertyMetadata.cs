@@ -20,6 +20,10 @@ public static class FrontedBehaviorPropertyMetadata
         "Visibility",
         "VisualOffsetX",
         "VisualOffsetY",
+        "ClipInsetLeft",
+        "ClipInsetTop",
+        "ClipInsetRight",
+        "ClipInsetBottom",
         "ScaleX",
         "ScaleY",
         "Rotation",
@@ -45,6 +49,10 @@ public static class FrontedBehaviorPropertyMetadata
         "Visibility",
         "VisualOffsetX",
         "VisualOffsetY",
+        "ClipInsetLeft",
+        "ClipInsetTop",
+        "ClipInsetRight",
+        "ClipInsetBottom",
         "ScaleX",
         "ScaleY",
         "Rotation",
@@ -138,6 +146,10 @@ public static class FrontedBehaviorPropertyMetadata
             "Opacity",
             "VisualOffsetX",
             "VisualOffsetY",
+            "ClipInsetLeft",
+            "ClipInsetTop",
+            "ClipInsetRight",
+            "ClipInsetBottom",
             "ScaleX",
             "ScaleY",
             "Rotation",
@@ -204,7 +216,10 @@ public static class FrontedBehaviorPropertyMetadata
 
         if (IsNumericProperty(propertyName))
         {
-            if (!double.TryParse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var number)
+            var numericText = SupportsPercentage(propertyName) && value?.Trim().EndsWith('%') == true
+                ? value.Trim()[..^1]
+                : value;
+            if (!double.TryParse(numericText, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var number)
                 || !double.IsFinite(number))
             {
                 message = $"{propertyName} must be a finite number.";
@@ -242,6 +257,10 @@ public static class FrontedBehaviorPropertyMetadata
         new("Visibility", "enum", "Visible / Hidden / Collapsed", "Visible", "Designer.Graph.PropertyHint.Visibility", allowedValues: VisibilityOptions),
         Numeric("VisualOffsetX", "pixels, e.g. 20 or -20", "20"),
         Numeric("VisualOffsetY", "pixels, e.g. 20 or -20", "-20"),
+        Numeric("ClipInsetLeft", "pixels or %, e.g. 20 or 100%", "100%"),
+        Numeric("ClipInsetTop", "pixels or %, e.g. 20 or 100%", "100%"),
+        Numeric("ClipInsetRight", "pixels or %, e.g. 20 or 100%", "100%"),
+        Numeric("ClipInsetBottom", "pixels or %, e.g. 20 or 100%", "100%"),
         Numeric("ScaleX", "1 = normal size, 1.1 = 110%", "1.1", double.Epsilon),
         Numeric("ScaleY", "1 = normal size, 1.1 = 110%", "1.1", double.Epsilon),
         Numeric("Rotation", "degrees, e.g. 15 or -15", "15"),
@@ -268,6 +287,16 @@ public static class FrontedBehaviorPropertyMetadata
 
     private static FrontedAnimatablePropertyMetadata Color(string name) =>
         new(name, "color", "#AARRGGBB or #RRGGBB", "#FFFFFFFF", $"Designer.Graph.PropertyHint.{name}");
+
+    private static bool SupportsPercentage(string? propertyName) =>
+        Is(
+            propertyName,
+            "VisualOffsetX",
+            "VisualOffsetY",
+            "ClipInsetLeft",
+            "ClipInsetTop",
+            "ClipInsetRight",
+            "ClipInsetBottom");
 }
 
 /// <summary>

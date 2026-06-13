@@ -17,6 +17,10 @@ public sealed class FrameworkElementCommonAdapter : IAnimatablePropertyAdapter
             "Height",
             "VisualOffsetX",
             "VisualOffsetY",
+            "ClipInsetLeft",
+            "ClipInsetTop",
+            "ClipInsetRight",
+            "ClipInsetBottom",
             "ScaleX",
             "ScaleY",
             "Rotation");
@@ -42,6 +46,11 @@ public sealed class FrameworkElementCommonAdapter : IAnimatablePropertyAdapter
         if (AnimationAdapterHelpers.Is(propertyName, "Height"))
         {
             return element.Height;
+        }
+
+        if (TryGetClipInsetProperty(propertyName, out var clipProperty))
+        {
+            return (double)element.GetValue(clipProperty);
         }
 
         var transforms = EnsureTransforms(element);
@@ -103,14 +112,22 @@ public sealed class FrameworkElementCommonAdapter : IAnimatablePropertyAdapter
             return;
         }
 
+        if (TryGetClipInsetProperty(propertyName, out var clipProperty))
+        {
+            target.Element.SetValue(
+                clipProperty,
+                ParseRelativeLength(value, ResolveReferenceSize(target, propertyName), (double)target.Element.GetValue(clipProperty)));
+            return;
+        }
+
         var transforms = EnsureTransforms(target.Element);
         if (AnimationAdapterHelpers.Is(propertyName, "VisualOffsetX"))
         {
-            transforms.Translate.X = AnimationAdapterHelpers.ParseDoubleOrDefault(value, transforms.Translate.X);
+            transforms.Translate.X = ParseRelativeLength(value, ResolveReferenceSize(target, propertyName), transforms.Translate.X);
         }
         else if (AnimationAdapterHelpers.Is(propertyName, "VisualOffsetY"))
         {
-            transforms.Translate.Y = AnimationAdapterHelpers.ParseDoubleOrDefault(value, transforms.Translate.Y);
+            transforms.Translate.Y = ParseRelativeLength(value, ResolveReferenceSize(target, propertyName), transforms.Translate.Y);
         }
         else if (AnimationAdapterHelpers.Is(propertyName, "ScaleX"))
         {
@@ -178,14 +195,26 @@ public sealed class FrameworkElementCommonAdapter : IAnimatablePropertyAdapter
                 context.CancellationToken);
         }
 
+        if (TryGetClipInsetProperty(propertyName, out var clipProperty))
+        {
+            return AnimationAdapterHelpers.AnimateDoubleAsync(
+                element,
+                clipProperty,
+                ParseNullableRelativeLength(from, ResolveReferenceSize(target, propertyName)),
+                ParseRelativeLength(to, ResolveReferenceSize(target, propertyName), (double)element.GetValue(clipProperty)),
+                durationMs,
+                easing,
+                context.CancellationToken);
+        }
+
         var transforms = EnsureTransforms(element);
         if (AnimationAdapterHelpers.Is(propertyName, "VisualOffsetX"))
         {
             return AnimationAdapterHelpers.AnimateDoubleAsync(
                 transforms.Translate,
                 TranslateTransform.XProperty,
-                ParseNullableDouble(from),
-                AnimationAdapterHelpers.ParseDoubleOrDefault(to, transforms.Translate.X),
+                ParseNullableRelativeLength(from, ResolveReferenceSize(target, propertyName)),
+                ParseRelativeLength(to, ResolveReferenceSize(target, propertyName), transforms.Translate.X),
                 durationMs,
                 easing,
                 context.CancellationToken);
@@ -196,8 +225,8 @@ public sealed class FrameworkElementCommonAdapter : IAnimatablePropertyAdapter
             return AnimationAdapterHelpers.AnimateDoubleAsync(
                 transforms.Translate,
                 TranslateTransform.YProperty,
-                ParseNullableDouble(from),
-                AnimationAdapterHelpers.ParseDoubleOrDefault(to, transforms.Translate.Y),
+                ParseNullableRelativeLength(from, ResolveReferenceSize(target, propertyName)),
+                ParseRelativeLength(to, ResolveReferenceSize(target, propertyName), transforms.Translate.Y),
                 durationMs,
                 easing,
                 context.CancellationToken);
@@ -267,6 +296,13 @@ public sealed class FrameworkElementCommonAdapter : IAnimatablePropertyAdapter
         {
             target.Element.BeginAnimation(FrameworkElement.HeightProperty, null);
             target.Element.Height = height;
+            return;
+        }
+
+        if (TryGetClipInsetProperty(propertyName, out var clipProperty) && baseValue is double inset)
+        {
+            target.Element.BeginAnimation(clipProperty, null);
+            target.Element.SetValue(clipProperty, inset);
             return;
         }
 
@@ -358,6 +394,53 @@ public sealed class FrameworkElementCommonAdapter : IAnimatablePropertyAdapter
 
     private static double? ParseNullableDouble(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : AnimationAdapterHelpers.ParseDoubleOrDefault(value);
+
+    private static double ParseRelativeLength(string? value, double referenceSize, double fallback)
+    {
+        if (!string.IsNullOrWhiteSpace(value)
+            && value.Trim().EndsWith('%')
+            && double.TryParse(
+                value.Trim()[..^1],
+                NumberStyles.Float,
+                CultureInfo.InvariantCulture,
+                out var percentage))
+        {
+            return referenceSize * percentage / 100D;
+        }
+
+        return AnimationAdapterHelpers.ParseDoubleOrDefault(value, fallback);
+    }
+
+    private static double? ParseNullableRelativeLength(string? value, double referenceSize) =>
+        string.IsNullOrWhiteSpace(value) ? null : ParseRelativeLength(value, referenceSize, 0D);
+
+    private static double ResolveReferenceSize(FrontedAnimationTarget target, string propertyName)
+    {
+        var reference = FrontedRendererProperties.GetAnimationPartParent(target.Element) ?? target.Element;
+        var horizontal = AnimationAdapterHelpers.Is(
+            propertyName,
+            "VisualOffsetX",
+            "ClipInsetLeft",
+            "ClipInsetRight");
+        var configured = horizontal ? reference.Width : reference.Height;
+        var actual = horizontal ? reference.ActualWidth : reference.ActualHeight;
+        return configured > 0D && double.IsFinite(configured)
+            ? configured
+            : actual > 0D && double.IsFinite(actual) ? actual : 0D;
+    }
+
+    private static bool TryGetClipInsetProperty(string propertyName, out DependencyProperty property)
+    {
+        property = propertyName.ToUpperInvariant() switch
+        {
+            "CLIPINSETLEFT" => FrontedClipInsetProperties.LeftProperty,
+            "CLIPINSETTOP" => FrontedClipInsetProperties.TopProperty,
+            "CLIPINSETRIGHT" => FrontedClipInsetProperties.RightProperty,
+            "CLIPINSETBOTTOM" => FrontedClipInsetProperties.BottomProperty,
+            _ => null!
+        };
+        return property is not null;
+    }
 }
 
 internal sealed record FrontedPreviewTransformSet(
