@@ -4,6 +4,7 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using System.Text.Json;
 using System.Windows.Controls;
+using System.Windows.Threading;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
@@ -361,6 +362,7 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
                 _logger.LogInformation(
                     "Loop {BehaviorId} stopping via EndTrigger {EventType}.",
                     behavior.BehaviorId, endTrigger.EventType);
+                _logger.LogDebug("Loop {BehaviorId} EndTrigger matched.", behavior.BehaviorId);
 
                 state.StopRequested = true;
                 var stopMode = behavior.LoopPolicy?.StopMode ?? FrontedLoopStopMode.StopImmediately;
@@ -374,6 +376,7 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
                         case FrontedLoopStopMode.RunStopGraph:
                         case FrontedLoopStopMode.StopImmediately:
                             state.StartCts.Cancel();
+                            _logger.LogDebug("Loop {BehaviorId} StartGraph cancellation requested.", behavior.BehaviorId);
                             break;
                         case FrontedLoopStopMode.CompleteCurrentIteration:
                             // Don't cancel — let StartGraph complete, then StopGraph
@@ -388,6 +391,7 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
                         case FrontedLoopStopMode.RunStopGraph:
                         case FrontedLoopStopMode.StopImmediately:
                             state.LoopCts.Cancel();
+                            _logger.LogDebug("Loop {BehaviorId} LoopGraph cancellation requested.", behavior.BehaviorId);
                             break;
                         case FrontedLoopStopMode.CompleteCurrentIteration:
                         case FrontedLoopStopMode.HoldCurrentState:
@@ -493,6 +497,7 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
 
             if (state.StopRequested)
             {
+                await Dispatcher.Yield(DispatcherPriority.Render);
                 switch (state.RequestedStopMode)
                 {
                     case FrontedLoopStopMode.RunStopGraph:
@@ -553,8 +558,18 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
                             ActionExecutor = stopExecutor
                         };
 
+                        _logger.LogInformation("Loop {BehaviorId} StopGraph started.", behavior.BehaviorId);
                         var stopResult = await _graphRuntime.ExecuteAsync(
                             behavior.StopGraph, stopContext, CancellationToken.None);
+                        foreach (var item in stopResult.LogItems)
+                        {
+                            _logger.LogDebug(
+                                "Loop {BehaviorId} StopGraph trace: Node={NodeId}, Level={Level}, Message={Message}",
+                                behavior.BehaviorId,
+                                item.NodeId,
+                                item.Level,
+                                item.Message);
+                        }
 
                         if (stopResult.Status != FrontedGraphExecutionStatus.Success)
                         {
@@ -596,7 +611,16 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
             if (state.RequestedStopMode != FrontedLoopStopMode.HoldCurrentState
                 && !state.SuppressReset)
             {
+                _logger.LogDebug("Loop {BehaviorId} ResetIfNeeded executing.", behavior.BehaviorId);
                 ResetIfNeeded(behavior, set);
+            }
+            else
+            {
+                _logger.LogDebug(
+                    "Loop {BehaviorId} ResetIfNeeded skipped. StopMode={StopMode}, SuppressReset={SuppressReset}.",
+                    behavior.BehaviorId,
+                    state.RequestedStopMode,
+                    state.SuppressReset);
             }
 
             // ═══════════════════════════════════════════════

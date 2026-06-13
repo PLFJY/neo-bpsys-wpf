@@ -64,14 +64,43 @@
                                         MinWidth="58"
                                         Margin="6,0"
                                         DisplayMemberPath="DisplayName"
-                                        ItemsSource="{Binding OperatorOptions}"
+                                        ItemsSource="{Binding DisplayedOperatorOptions}"
                                         SelectedValue="{Binding Operator, Mode=TwoWay}"
                                         SelectedValuePath="Value" />
                                     <ui:TextBox
                                         Grid.Column="3"
                                         MinWidth="80"
                                         PlaceholderText="{lex:Loc Designer.Behaviors.Value}"
-                                        Text="{Binding Right, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" />
+                                        Text="{Binding Right, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}">
+                                        <ui:TextBox.Style>
+                                            <Style BasedOn="{StaticResource {x:Type ui:TextBox}}" TargetType="ui:TextBox">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsTextValue}" Value="False">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </ui:TextBox.Style>
+                                    </ui:TextBox>
+                                    <ComboBox
+                                        Grid.Column="3"
+                                        MinWidth="100"
+                                        DisplayMemberPath="DisplayName"
+                                        ItemsSource="{Binding EnumValueOptions}"
+                                        SelectedValue="{Binding Right, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        SelectedValuePath="Value">
+                                        <ComboBox.Style>
+                                            <Style BasedOn="{StaticResource {x:Type ComboBox}}" TargetType="ComboBox">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsEnumField}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </ComboBox.Style>
+                                    </ComboBox>
                                     <ui:Button
                                         Grid.Column="4"
                                         MinWidth="30"
@@ -190,9 +219,7 @@
                                     CommandParameter="{Binding}"
                                     Header="{lex:Loc Designer.Behaviors.Duplicate}" />
                                 <Separator />
-                                <MenuItem
-                                    Command="{Binding PlacementTarget.Tag.PasteBehaviorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                                    Header="{lex:Loc Designer.Behaviors.Paste}" />
+                                <MenuItem Command="{Binding PlacementTarget.Tag.PasteBehaviorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" Header="{lex:Loc Designer.Behaviors.Paste}" />
                                 <MenuItem
                                     Command="{Binding PlacementTarget.Tag.DeleteBehaviorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                     CommandParameter="{Binding}"

@@ -4,10 +4,10 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:colorpicker="clr-namespace:ColorPicker;assembly=ColorPicker"
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
+    xmlns:local="clr-namespace:neo_bpsys_wpf.Views.FrontedDesigner.GraphEditor"
     xmlns:primitives="clr-namespace:System.Windows.Controls.Primitives;assembly=PresentationFramework"
     xmlns:scrolling="clr-namespace:neo_bpsys_wpf.Controls.Modern.Scrolling"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-    xmlns:local="clr-namespace:neo_bpsys_wpf.Views.FrontedDesigner.GraphEditor"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
     lex:ResxLocalizationProvider.DefaultDictionary="Locales.Lang"
     scrolling:ModernScroll.Ownership="Self"
@@ -67,20 +67,20 @@
             <ui:Button
                 Margin="6,0,0,0"
                 Command="{Binding UndoCommand}"
-                Icon="{ui:SymbolIcon Symbol=ArrowUndo24}"
                 Content="{lex:Loc Designer.Graph.Undo}"
+                Icon="{ui:SymbolIcon Symbol=ArrowUndo24}"
                 ToolTip="{lex:Loc Designer.Graph.ToolTipUndo}" />
             <ui:Button
                 Margin="4,0,0,0"
                 Command="{Binding RedoCommand}"
-                Icon="{ui:SymbolIcon Symbol=ArrowRedo24}"
                 Content="{lex:Loc Designer.Graph.Redo}"
+                Icon="{ui:SymbolIcon Symbol=ArrowRedo24}"
                 ToolTip="{lex:Loc Designer.Graph.ToolTipRedo}" />
             <ui:Button
                 Margin="8,0,0,0"
                 Command="{Binding SaveCommand}"
-                Icon="{ui:SymbolIcon Symbol=Save24}"
                 Content="{lex:Loc Designer.Graph.Save}"
+                Icon="{ui:SymbolIcon Symbol=Save24}"
                 ToolTip="{lex:Loc Designer.Graph.ToolTipSave}" />
         </StackPanel>
 
@@ -305,8 +305,8 @@
                                                 </Border.Style>
                                                 <Border.ContextMenu>
                                                     <ContextMenu>
-                                                        <MenuItem Click="DeleteNodeMenuItem_OnClick" Header="{lex:Loc Designer.Graph.DeleteNode}" />
                                                         <MenuItem Click="DuplicateNodeMenuItem_OnClick" Header="{lex:Loc Designer.Graph.DuplicateNode}" />
+                                                        <MenuItem Click="DeleteNodeMenuItem_OnClick" Header="{lex:Loc Designer.Graph.DeleteNode}" />
                                                     </ContextMenu>
                                                 </Border.ContextMenu>
                                                 <Border.ToolTip>
@@ -364,7 +364,7 @@
                                                                 <ColumnDefinition />
                                                             </Grid.ColumnDefinitions>
 
-                                                            <!-- 输入端口：彩色圆点 -->
+                                                            <!--  输入端口：彩色圆点  -->
                                                             <ItemsControl ItemsSource="{Binding InputPorts}">
                                                                 <ItemsControl.ItemTemplate>
                                                                     <DataTemplate>
@@ -372,9 +372,10 @@
                                                                             Margin="0,1,0,1"
                                                                             Background="Transparent"
                                                                             Cursor="Hand"
-                                                                            MouseLeftButtonUp="InputPort_OnMouseLeftButtonUp"
                                                                             MouseEnter="Port_OnMouseEnter"
-                                                                            MouseLeave="Port_OnMouseLeave">
+                                                                            MouseLeave="Port_OnMouseLeave"
+                                                                            MouseLeftButtonDown="InputPort_OnMouseLeftButtonDown"
+                                                                            MouseLeftButtonUp="InputPort_OnMouseLeftButtonUp">
                                                                             <Border.Style>
                                                                                 <Style TargetType="Border">
                                                                                     <Style.Triggers>
@@ -417,7 +418,7 @@
                                                                 </ItemsControl.ItemTemplate>
                                                             </ItemsControl>
 
-                                                            <!-- 输出端口：彩色圆点 -->
+                                                            <!--  输出端口：彩色圆点  -->
                                                             <ItemsControl Grid.Column="1" ItemsSource="{Binding OutputPorts}">
                                                                 <ItemsControl.ItemTemplate>
                                                                     <DataTemplate>
@@ -425,9 +426,9 @@
                                                                             Margin="0,1,0,1"
                                                                             Background="Transparent"
                                                                             Cursor="Hand"
-                                                                            MouseLeftButtonDown="OutputPort_OnMouseLeftButtonDown"
                                                                             MouseEnter="Port_OnMouseEnter"
-                                                                            MouseLeave="Port_OnMouseLeave">
+                                                                            MouseLeave="Port_OnMouseLeave"
+                                                                            MouseLeftButtonDown="OutputPort_OnMouseLeftButtonDown">
                                                                             <Border.Style>
                                                                                 <Style TargetType="Border">
                                                                                     <Style.Triggers>
@@ -608,15 +609,18 @@
                                             Margin="0,0,0,4"
                                             FontSize="11"
                                             Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                            Text="{Binding Description}"
+                                            Text="{Binding HelpText}"
                                             TextWrapping="Wrap" />
-                                        <ui:TextBox Text="{Binding TextValue, UpdateSourceTrigger=LostFocus}" Visibility="{Binding IsText, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                        <ui:TextBox
+                                            PlaceholderText="{Binding Placeholder}"
+                                            Text="{Binding TextValue, UpdateSourceTrigger=LostFocus}"
+                                            Visibility="{Binding IsText, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                         <Grid Visibility="{Binding IsNumber, Converter={StaticResource BooleanToVisibilityConverter}}">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
-                                            <ui:TextBox Text="{Binding TextValue, UpdateSourceTrigger=LostFocus}" />
+                                            <ui:TextBox PlaceholderText="{Binding Placeholder}" Text="{Binding TextValue, UpdateSourceTrigger=LostFocus}" />
                                             <TextBlock
                                                 Grid.Column="1"
                                                 Margin="6,0,0,0"
@@ -625,15 +629,17 @@
                                                 Text="{Binding Unit}"
                                                 Visibility="{Binding HasUnit, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                         </Grid>
-                                        <StackPanel Visibility="{Binding IsColor, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                        <StackPanel Orientation="Horizontal" Visibility="{Binding IsColor, Converter={StaticResource BooleanToVisibilityConverter}}">
                                             <colorpicker:PortableColorPicker
-                                                Width="220"
-                                                Height="34"
+                                                Width="44"
+                                                Height="22"
                                                 HorizontalAlignment="Left"
                                                 SelectedColor="{Binding ColorValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                 Style="{StaticResource DefaultColorPickerStyle}" />
                                             <ui:TextBox
-                                                Margin="0,4,0,0"
+                                                Width="150"
+                                                Margin="6,0,0,0"
+                                                PlaceholderText="{Binding Placeholder}"
                                                 Text="{Binding TextValue, UpdateSourceTrigger=LostFocus}" />
                                         </StackPanel>
                                         <ComboBox

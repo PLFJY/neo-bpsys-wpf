@@ -657,6 +657,21 @@ Row 4:   Window Options（现有）
 
 ---
 
+## 当前编辑器与停止动画约定
+
+行为过滤编辑器读取事件 payload descriptor 的 `TypeName` 与 `EnumValues`。枚举字段使用
+ComboBox 显示可选值，保存时仍写稳定 enum 名称；字符串字段继续使用文本输入。
+
+动画节点图的复制剪贴板是应用级内存剪贴板，复制节点及其内部连线，粘贴时重建全部
+NodeId / ConnectionId，因此可以在 StartGraph、LoopGraph、StopGraph 之间复制。连线交互允许
+从 Out 或 In 开始，最终始终规范化保存为 Out -> In；单输出端口创建新连线时会替换旧连线。
+
+`FrontedBehaviorPropertyMetadata` 是 setProperty 与 animateProperty 共用的动画属性输入元数据源，
+负责数值范围、占位提示、枚举值与颜色类型。StopGraph 仍严格按图连接顺序执行；
+`WaitForCompletion=true` 的动画完成后才会进入后续节点。LoopGraph 被 EndTrigger 取消后，运行时
+先收口旧图和同属性动画，再启动 StopGraph；StopGraph 成功完成后跳过 ResetTarget，并记录取消、
+节点顺序、动画状态和 reset 决策日志。
+
 ## 附录：建议核心模型一览
 
 ```

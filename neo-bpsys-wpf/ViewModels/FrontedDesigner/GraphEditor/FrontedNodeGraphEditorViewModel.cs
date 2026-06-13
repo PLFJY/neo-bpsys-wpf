@@ -269,6 +269,71 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         Changed();
     }
 
+    /// <summary>Copies selected nodes and their internal connections to the app-level graph clipboard.</summary>
+    [RelayCommand]
+    public void CopySelectedNodes()
+    {
+        var selected = SelectedNodes.Count > 0
+            ? SelectedNodes.Select(item => item.Model).ToArray()
+            : SelectedNode is null ? [] : [SelectedNode.Model];
+        if (selected.Length == 0)
+        {
+            return;
+        }
+
+        var selectedIds = selected.Select(node => node.NodeId).ToHashSet();
+        FrontedNodeGraphClipboard.Payload = new FrontedNodeGraphClipboardPayload
+        {
+            Nodes = DeepClone(selected),
+            Connections = DeepClone(Graph.Connections
+                .Where(connection => selectedIds.Contains(connection.SourceNodeId)
+                                     && selectedIds.Contains(connection.TargetNodeId))
+                .ToArray())
+        };
+    }
+
+    /// <summary>Pastes nodes from the app-level graph clipboard and remaps all copied identifiers.</summary>
+    [RelayCommand]
+    public void PasteNodes()
+    {
+        var payload = FrontedNodeGraphClipboard.Payload;
+        if (payload is null || payload.Version != 1 || payload.Nodes.Count == 0)
+        {
+            return;
+        }
+
+        CreateSnapshot();
+        var nodes = DeepClone(payload.Nodes);
+        var connections = DeepClone(payload.Connections);
+        var idMap = nodes.ToDictionary(node => node.NodeId, _ => FrontedBehaviorGuidHelper.NewGuid());
+        foreach (var node in nodes)
+        {
+            node.NodeId = idMap[node.NodeId];
+            node.X += 32;
+            node.Y += 32;
+        }
+
+        foreach (var connection in connections)
+        {
+            connection.ConnectionId = FrontedBehaviorGuidHelper.NewGuid();
+            connection.SourceNodeId = idMap[connection.SourceNodeId];
+            connection.TargetNodeId = idMap[connection.TargetNodeId];
+        }
+
+        Graph.Nodes.AddRange(nodes);
+        Graph.Connections.AddRange(connections);
+        Reload();
+        ClearIsSelected();
+        SelectedNodes.Clear();
+        foreach (var node in Nodes.Where(item => nodes.Any(pasted => pasted.NodeId == item.Model.NodeId)))
+        {
+            node.IsSelected = true;
+            SelectedNodes.Add(node);
+        }
+        SelectedNode = SelectedNodes.FirstOrDefault();
+        Changed();
+    }
+
     [RelayCommand]
     public void SelectNode(FrontedNodeEditorViewModel? node)
     {
@@ -379,7 +444,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     [RelayCommand]
     public void StartConnection(FrontedNodePortViewModel? port)
     {
-        if (port?.Descriptor.PortKind is not (FrontedNodePortKind.FlowOut or FrontedNodePortKind.ValueOut))
+        if (port is null)
         {
             return;
         }
@@ -397,11 +462,10 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
             return;
         }
 
-        var compatible = FrontedNodePortViewModel.ArePortsCompatible(_pendingPort.Descriptor, port.Descriptor)
-                         && Graph.GetIncoming(port.Node.Model.NodeId, port.Descriptor.Name).Count == 0;
-        if (compatible)
+        if (TryNormalizeConnection(_pendingPort, port, out var source, out var target)
+            && IsTargetAvailable(source, target))
         {
-            AddConnection(_pendingPort, port);
+            AddConnection(source, target);
         }
         else
         {
@@ -420,14 +484,18 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
 
     public bool AddConnection(FrontedNodePortViewModel source, FrontedNodePortViewModel target)
     {
-        if (!FrontedNodePortViewModel.ArePortsCompatible(source.Descriptor, target.Descriptor)
-            || Graph.GetOutgoing(source.Node.Model.NodeId, source.Descriptor.Name).Count > 0
-            || Graph.GetIncoming(target.Node.Model.NodeId, target.Descriptor.Name).Count > 0)
+        if (!TryNormalizeConnection(source, target, out source, out target)
+            || !IsTargetAvailable(source, target))
         {
             return false;
         }
 
         CreateSnapshot();
+        var replaced = Graph.GetOutgoing(source.Node.Model.NodeId, source.Descriptor.Name).ToArray();
+        foreach (var connection in replaced)
+        {
+            Graph.Connections.Remove(connection);
+        }
         var model = new FrontedNodeConnection
         {
             SourceNodeId = source.Node.Model.NodeId,
@@ -436,7 +504,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
             TargetPort = target.Descriptor.Name
         };
         Graph.Connections.Add(model);
-        Connections.Add(new FrontedNodeConnectionViewModel(model, source.Node, target.Node));
+        ReloadConnections();
         RefreshPortConnectionStates();
         Changed();
         return true;
@@ -486,8 +554,8 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
             foreach (var port in node.InputPorts)
             {
                 var compatible = pendingPort is not null
-                    && FrontedNodePortViewModel.ArePortsCompatible(pendingPort.Descriptor, port.Descriptor)
-                    && Graph.GetIncoming(node.Model.NodeId, port.Descriptor.Name).Count == 0;
+                    && TryNormalizeConnection(pendingPort, port, out var source, out var target)
+                    && IsTargetAvailable(source, target);
                 port.IsHighlighted = compatible;
                 port.IsDimmed = pendingPort is not null && !compatible;
             }
@@ -495,8 +563,8 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
             foreach (var port in node.OutputPorts)
             {
                 var compatible = pendingPort is not null
-                    && FrontedNodePortViewModel.ArePortsCompatible(pendingPort.Descriptor, port.Descriptor)
-                    && Graph.GetOutgoing(node.Model.NodeId, port.Descriptor.Name).Count == 0;
+                    && TryNormalizeConnection(pendingPort, port, out var source, out var target)
+                    && IsTargetAvailable(source, target);
                 port.IsHighlighted = compatible;
                 port.IsDimmed = pendingPort is not null && !compatible;
             }
@@ -807,6 +875,33 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         Changed();
     }
 
+    private static bool TryNormalizeConnection(
+        FrontedNodePortViewModel first,
+        FrontedNodePortViewModel second,
+        out FrontedNodePortViewModel source,
+        out FrontedNodePortViewModel target)
+    {
+        source = first;
+        target = second;
+        if (FrontedNodePortViewModel.ArePortsCompatible(first.Descriptor, second.Descriptor))
+        {
+            return first.Node != second.Node;
+        }
+
+        source = second;
+        target = first;
+        return first.Node != second.Node
+               && FrontedNodePortViewModel.ArePortsCompatible(second.Descriptor, first.Descriptor);
+    }
+
+    private bool IsTargetAvailable(FrontedNodePortViewModel source, FrontedNodePortViewModel target) =>
+        Graph.GetIncoming(target.Node.Model.NodeId, target.Descriptor.Name)
+            .All(connection => connection.SourceNodeId == source.Node.Model.NodeId
+                               && string.Equals(connection.SourcePort, source.Descriptor.Name, StringComparison.Ordinal));
+
+    private static List<T> DeepClone<T>(IReadOnlyCollection<T> values) =>
+        JsonSerializer.Deserialize<List<T>>(JsonSerializer.Serialize(values)) ?? [];
+
     private sealed class AnimationRuntimeGraphActionExecutor(
         IFrontedAnimationRuntime animationRuntime,
         FrontedAnimationExecutionContext animationContext) : IFrontedGraphActionExecutor
@@ -1065,6 +1160,12 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
     public FrontedNodePropertyDescriptor Descriptor { get; }
     public string DisplayName { get; }
     public string Description { get; }
+    /// <summary>Gets contextual input guidance for the current property.</summary>
+    public string Placeholder => DynamicMetadata?.Placeholder ?? string.Empty;
+    /// <summary>Gets contextual help for the current property.</summary>
+    public string HelpText => DynamicMetadata is null
+        ? Description
+        : _localize(DynamicMetadata.DescriptionKey, $"{DynamicMetadata.Placeholder}; example: {DynamicMetadata.Example}");
     public bool IsBoolean => Descriptor.EditorKind == FrontedNodePropertyEditorKind.Boolean;
     public bool IsEnum => Descriptor.EditorKind == FrontedNodePropertyEditorKind.Enum;
     public bool IsNumber => Descriptor.EditorKind == FrontedNodePropertyEditorKind.Number || IsNumericDynamicValue;
@@ -1182,6 +1283,8 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
         OnPropertyChanged(nameof(HasUnit));
         OnPropertyChanged(nameof(DisplayedOptions));
         OnPropertyChanged(nameof(PropertyNameText));
+        OnPropertyChanged(nameof(Placeholder));
+        OnPropertyChanged(nameof(HelpText));
     }
 
     private JsonElement Read() => _node.Properties.TryGetValue(Descriptor.Name, out var value) ? value : Descriptor.DefaultValue;
@@ -1328,6 +1431,8 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
     private bool IsNumericDynamicValue => IsDynamicValue && FrontedBehaviorPropertyMetadata.IsNumericProperty(CurrentBehaviorPropertyName);
     private bool IsRotation => string.Equals(Descriptor.Name, "Rotation", StringComparison.OrdinalIgnoreCase)
         || string.Equals(CurrentBehaviorPropertyName, "Rotation", StringComparison.OrdinalIgnoreCase);
+    private FrontedAnimatablePropertyMetadata? DynamicMetadata =>
+        IsDynamicValue ? FrontedBehaviorPropertyMetadata.Find(CurrentBehaviorPropertyName) : FrontedBehaviorPropertyMetadata.Find(Descriptor.Name);
     private string? EffectivePropertyNameForValidation() =>
         IsDynamicValue ? CurrentBehaviorPropertyName : Descriptor.Name;
 }

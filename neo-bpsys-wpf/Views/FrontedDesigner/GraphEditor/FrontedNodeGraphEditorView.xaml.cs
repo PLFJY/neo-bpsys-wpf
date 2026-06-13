@@ -235,6 +235,16 @@ public partial class FrontedNodeGraphEditorView : UserControl
 
     private void OutputPort_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
+        BeginConnectionDrag(sender, e);
+    }
+
+    private void InputPort_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        BeginConnectionDrag(sender, e);
+    }
+
+    private void BeginConnectionDrag(object sender, MouseButtonEventArgs e)
+    {
         if (sender is not FrameworkElement { DataContext: FrontedNodePortViewModel port })
         {
             return;
@@ -246,7 +256,7 @@ public partial class FrontedNodeGraphEditorView : UserControl
             editor.StartConnection(port);
         }
 
-        _dragStartPoint = GetPortPoint(sender, isOutput: true);
+        _dragStartPoint = GetPortPoint(sender, IsOutput(port));
         ConnectionPreviewPath.Data = Geometry.Parse(CreateBezierPathData(_dragStartPoint, _dragStartPoint));
         ConnectionPreviewPath.Visibility = Visibility.Visible;
         ConnectionPreviewPath.Stroke = new SolidColorBrush((Color)ColorConverter.ConvertFromString(port.PortColorHex));
@@ -397,7 +407,15 @@ public partial class FrontedNodeGraphEditorView : UserControl
         if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
         {
             e.Handled = true;
+            var cursor = e.GetPosition(GraphScrollViewer);
+            var oldScale = _zoomLevel;
+            var oldHorizontalOffset = GraphScrollViewer.HorizontalOffset;
+            var oldVerticalOffset = GraphScrollViewer.VerticalOffset;
             ApplyEditorZoom(_zoomLevel + (e.Delta > 0 ? ZoomStep : -ZoomStep));
+            GraphScrollViewer.UpdateLayout();
+            var ratio = _zoomLevel / oldScale;
+            GraphScrollViewer.ScrollToHorizontalOffset((oldHorizontalOffset + cursor.X) * ratio - cursor.X);
+            GraphScrollViewer.ScrollToVerticalOffset((oldVerticalOffset + cursor.Y) * ratio - cursor.Y);
         }
     }
 
@@ -466,6 +484,25 @@ public partial class FrontedNodeGraphEditorView : UserControl
     {
         if (DataContext is not FrontedNodeGraphEditorViewModel editor)
         {
+            return;
+        }
+
+        if (IsTextEditingFocus())
+        {
+            return;
+        }
+
+        if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.C)
+        {
+            editor.CopySelectedNodesCommand.Execute(null);
+            e.Handled = true;
+            return;
+        }
+
+        if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.V)
+        {
+            editor.PasteNodesCommand.Execute(null);
+            e.Handled = true;
             return;
         }
 
@@ -634,7 +671,15 @@ public partial class FrontedNodeGraphEditorView : UserControl
         }
 
         e.Handled = true;
+        var cursor = e.GetPosition(PreviewBorder);
+        var oldScale = _previewZoomLevel;
+        var graphPoint = new Point(
+            (cursor.X - PreviewTranslateTransform.X) / oldScale,
+            (cursor.Y - PreviewTranslateTransform.Y) / oldScale);
         ApplyPreviewZoom(_previewZoomLevel + (e.Delta > 0 ? 0.1 : -0.1));
+        PreviewTranslateTransform.X = cursor.X - graphPoint.X * _previewZoomLevel;
+        PreviewTranslateTransform.Y = cursor.Y - graphPoint.Y * _previewZoomLevel;
+        ClampPreviewPan();
     }
 
     private void PreviewContent_OnMouseDown(object sender, MouseButtonEventArgs e)
@@ -913,9 +958,7 @@ public partial class FrontedNodeGraphEditorView : UserControl
         var hit = VisualTreeHelper.HitTest(GraphCanvas, point)?.VisualHit as DependencyObject;
         while (hit is not null)
         {
-            if (hit is FrameworkElement { DataContext: FrontedNodePortViewModel port }
-                && port.Descriptor.PortKind is Core.Models.FrontedLayout.Behaviors.FrontedNodePortKind.FlowIn
-                    or Core.Models.FrontedLayout.Behaviors.FrontedNodePortKind.ValueIn)
+            if (hit is FrameworkElement { DataContext: FrontedNodePortViewModel port })
             {
                 return port;
             }
@@ -924,6 +967,26 @@ public partial class FrontedNodeGraphEditorView : UserControl
         }
 
         return null;
+    }
+
+    private static bool IsOutput(FrontedNodePortViewModel port) =>
+        port.Descriptor.PortKind is Core.Models.FrontedLayout.Behaviors.FrontedNodePortKind.FlowOut
+            or Core.Models.FrontedLayout.Behaviors.FrontedNodePortKind.ValueOut;
+
+    private static bool IsTextEditingFocus()
+    {
+        var current = Keyboard.FocusedElement as DependencyObject;
+        while (current is not null)
+        {
+            if (current is TextBoxBase || current is ComboBox { IsEditable: true })
+            {
+                return true;
+            }
+
+            current = VisualTreeHelper.GetParent(current);
+        }
+
+        return false;
     }
 
     private static bool CanStartPan(object originalSource)

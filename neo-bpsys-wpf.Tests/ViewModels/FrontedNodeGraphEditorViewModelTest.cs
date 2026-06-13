@@ -93,6 +93,32 @@ public class FrontedNodeGraphEditorViewModelTest
     }
 
     [Fact]
+    public void GraphEditor_ReverseConnection_NormalizesToOutputAndInput()
+    {
+        var editor = CreateEditorWithNodes("flow.start", "flow.end");
+
+        var added = editor.AddConnection(editor.Nodes[1].InputPorts[0], editor.Nodes[0].OutputPorts[0]);
+
+        Assert.True(added);
+        var connection = Assert.Single(editor.Graph.Connections);
+        Assert.Equal(editor.Nodes[0].Model.NodeId, connection.SourceNodeId);
+        Assert.Equal(editor.Nodes[1].Model.NodeId, connection.TargetNodeId);
+    }
+
+    [Fact]
+    public void GraphEditor_NewOutgoingConnection_ReplacesExistingConnection()
+    {
+        var editor = CreateEditorWithNodes("flow.start", "action.log", "flow.end");
+        var source = editor.Nodes[0].OutputPorts[0];
+        editor.AddConnection(source, editor.Nodes[1].InputPorts[0]);
+
+        editor.AddConnection(source, editor.Nodes[2].InputPorts[0]);
+
+        var connection = Assert.Single(editor.Graph.Connections);
+        Assert.Equal(editor.Nodes[2].Model.NodeId, connection.TargetNodeId);
+    }
+
+    [Fact]
     public void GraphEditor_EditNodeProperty_UpdatesJsonPropertyAndMarksDirty()
     {
         var dirty = 0;
@@ -275,6 +301,48 @@ public class FrontedNodeGraphEditorViewModelTest
 
         Assert.Equal(2, editor.Graph.Nodes.Count);
         Assert.NotEqual(originalId, editor.SelectedNode!.Model.NodeId);
+    }
+
+    [Fact]
+    public void GraphEditor_CopyPaste_PreservesInternalConnectionsAndRemapsIdsAcrossEditors()
+    {
+        FrontedNodeGraphClipboard.Payload = null;
+        var source = CreateEditorWithNodes("flow.start", "flow.end");
+        source.AddConnection(source.Nodes[0].OutputPorts[0], source.Nodes[1].InputPorts[0]);
+        source.SelectNodes(new Rect(0, 0, 1000, 1000));
+        source.CopySelectedNodes();
+        var target = new FrontedNodeGraphEditorViewModel(new FrontedNodeGraph());
+
+        target.PasteNodes();
+
+        Assert.Equal(2, target.Graph.Nodes.Count);
+        var connection = Assert.Single(target.Graph.Connections);
+        Assert.Contains(target.Graph.Nodes, node => node.NodeId == connection.SourceNodeId);
+        Assert.Contains(target.Graph.Nodes, node => node.NodeId == connection.TargetNodeId);
+        Assert.DoesNotContain(target.Graph.Nodes, node => source.Graph.Nodes.Any(original => original.NodeId == node.NodeId));
+        Assert.All(target.Graph.Nodes, node => Assert.True(node.X >= 32 && node.Y >= 32));
+    }
+
+    [Fact]
+    public void DynamicPropertyMetadata_ProvidesHintsAndEditors()
+    {
+        var editor = CreateEditorWithNodes("action.animateProperty");
+        var propertyName = editor.SelectedNode!.Properties.Single(property => property.Descriptor.Name == "PropertyName");
+        var to = editor.SelectedNode.Properties.Single(property => property.Descriptor.Name == "To");
+
+        propertyName.TextValue = "Opacity";
+        Assert.Equal("0.0 - 1.0", to.Placeholder);
+
+        propertyName.TextValue = "Visibility";
+        Assert.True(to.IsVisibilityValue);
+        Assert.Contains(to.VisibilityOptions, option => option.Value == "Collapsed");
+
+        propertyName.TextValue = "FillColor";
+        Assert.True(to.IsColor);
+        Assert.Equal("#AARRGGBB or #RRGGBB", to.Placeholder);
+
+        propertyName.TextValue = "ScaleX";
+        Assert.Contains("normal size", to.Placeholder);
     }
 
     [Fact]

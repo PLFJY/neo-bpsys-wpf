@@ -168,6 +168,10 @@ public sealed class FrontedAnimationRuntime(
         session.Conflicts[conflictKey] = conflictCts;
         try
         {
+            effectiveContext.Logger?.LogDebug(
+                "Fronted animation {Target}.{PropertyName} started.",
+                target.Name ?? target.BehaviorGuid.ToString(),
+                action.PropertyName);
             await adapter.AnimateAsync(
                 target,
                 action.PropertyName,
@@ -176,6 +180,10 @@ public sealed class FrontedAnimationRuntime(
                 Math.Max(0, action.DurationMs ?? 0),
                 action.Values.GetValueOrDefault("Easing"),
                 effectiveContext.WithCancellationToken(conflictCts.Token));
+            effectiveContext.Logger?.LogDebug(
+                "Fronted animation {Target}.{PropertyName} completed.",
+                target.Name ?? target.BehaviorGuid.ToString(),
+                action.PropertyName);
         }
         catch (OperationCanceledException)
         {

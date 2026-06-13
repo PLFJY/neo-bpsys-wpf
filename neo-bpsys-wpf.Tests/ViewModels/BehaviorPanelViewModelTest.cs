@@ -382,6 +382,36 @@ public class BehaviorPanelViewModelTest
         Assert.Equal(TriggerFilterValueKind.Literal, filter.RightValueKind);
     }
 
+    [Fact]
+    public void TriggerFilter_EnumPayload_UsesStableEnumOptionsAndRestoresTextEditor()
+    {
+        var panel = CreatePanel();
+        var trigger = new TriggerDescriptor
+        {
+            EventType = "Guidance.StepChanged",
+            Filters = [new TriggerFilter { Left = "Event.Action", Right = "PickSur" }]
+        };
+        var editor = new TriggerDescriptorEditorViewModel(
+            trigger,
+            panel.EventOptions,
+            panel.OperatorOptions,
+            static () => { },
+            static (_, fallback) => fallback);
+        var filter = Assert.Single(editor.Filters);
+
+        Assert.True(filter.IsEnumField);
+        Assert.False(filter.IsTextValue);
+        Assert.Contains(filter.EnumValueOptions, option => Equals(option.Value, "PickSur"));
+        Assert.Equal("PickSur", filter.Right);
+
+        filter.Right = "BanHun";
+        Assert.Equal("BanHun", trigger.Filters[0].Right);
+
+        filter.Left = "Event.IndexesText";
+        Assert.False(filter.IsEnumField);
+        Assert.True(filter.IsTextValue);
+    }
+
     private static BehaviorPanelViewModel CreatePanel(
         Action? markLayoutDirty = null,
         Action? markBehaviorsDirty = null,

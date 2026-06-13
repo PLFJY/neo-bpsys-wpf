@@ -526,6 +526,7 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
                 field.DisplayNameKey,
                 field.DescriptionKey,
                 field.TypeName,
+                field.EnumValues,
                 false,
                 field.IsCommonFilterTarget,
                 Localize)).ToArray(),
@@ -766,6 +767,7 @@ public sealed class BehaviorPayloadFieldOptionViewModel : ObservableObject
         string displayNameKey,
         string descriptionKey,
         string typeName,
+        IReadOnlyList<string>? enumValues,
         bool isUnknown,
         bool isCommonFilterTarget,
         Func<string, string, string> localize)
@@ -776,6 +778,7 @@ public sealed class BehaviorPayloadFieldOptionViewModel : ObservableObject
         _pathOrTypeFallback = typeName;
         _localize = localize;
         TypeName = typeName;
+        EnumValues = enumValues ?? [];
         IsUnknown = isUnknown;
         IsCommonFilterTarget = isCommonFilterTarget;
         if (isUnknown)
@@ -793,6 +796,8 @@ public sealed class BehaviorPayloadFieldOptionViewModel : ObservableObject
 
     public string Path { get; }
     public string TypeName { get; }
+    /// <summary>Gets stable enum names available for this payload field.</summary>
+    public IReadOnlyList<string> EnumValues { get; }
     public bool IsUnknown { get; }
     public bool IsCommonFilterTarget { get; }
 
@@ -1074,6 +1079,7 @@ public sealed partial class TriggerDescriptorEditorViewModel : ObservableObject
                     "Designer.Behaviors.UnknownParameterFormat",
                     string.Empty,
                     path,
+                    [],
                     true,
                     false,
                     localize));
@@ -1130,10 +1136,35 @@ public sealed partial class TriggerFilterEditorViewModel : ObservableObject
 
     public IReadOnlyList<BehaviorOptionViewModel> OperatorOptions { get; }
 
+    /// <summary>Gets operators recommended for the selected payload field type.</summary>
+    public IReadOnlyList<BehaviorOptionViewModel> DisplayedOperatorOptions =>
+        IsEnumField
+            ? OperatorOptions.Where(option => option.Value is TriggerFilterOperator.Equals
+                or TriggerFilterOperator.NotEquals
+                or TriggerFilterOperator.Exists).ToArray()
+            : OperatorOptions;
+
     public IReadOnlyList<BehaviorPayloadFieldOptionViewModel> PayloadFieldOptions { get; private set; } = [];
 
     public bool IsUnknownParameter => PayloadFieldOptions.FirstOrDefault(option =>
         string.Equals(option.Path, Left, StringComparison.Ordinal))?.IsUnknown == true;
+
+    /// <summary>Gets whether the selected payload field is enum-like.</summary>
+    public bool IsEnumField => SelectedPayloadField is { } field
+        && (field.EnumValues.Count > 0
+            || string.Equals(field.TypeName.TrimEnd('?'), "Enum", StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>Gets whether the right value should use a text editor.</summary>
+    public bool IsTextValue => !IsEnumField;
+
+    /// <summary>Gets stable enum choices for the right value editor.</summary>
+    public IReadOnlyList<BehaviorOptionViewModel> EnumValueOptions =>
+        SelectedPayloadField?.EnumValues
+            .Select(value => new BehaviorOptionViewModel(
+                value,
+                FormatEnumDisplay(value)))
+            .ToArray()
+        ?? [];
 
     public string Left
     {
@@ -1146,6 +1177,14 @@ public sealed partial class TriggerFilterEditorViewModel : ObservableObject
                 OnPropertyChanged(nameof(IsUnknownParameter));
                 OnPropertyChanged(nameof(HintText));
                 OnPropertyChanged(nameof(HasHintText));
+                OnPropertyChanged(nameof(IsEnumField));
+                OnPropertyChanged(nameof(IsTextValue));
+                OnPropertyChanged(nameof(EnumValueOptions));
+                OnPropertyChanged(nameof(DisplayedOperatorOptions));
+                if (IsEnumField && Operator is not (TriggerFilterOperator.Equals or TriggerFilterOperator.NotEquals or TriggerFilterOperator.Exists))
+                {
+                    Operator = TriggerFilterOperator.Equals;
+                }
             }
         }
     }
@@ -1200,6 +1239,10 @@ public sealed partial class TriggerFilterEditorViewModel : ObservableObject
         OnPropertyChanged(nameof(IsUnknownParameter));
         OnPropertyChanged(nameof(HintText));
         OnPropertyChanged(nameof(HasHintText));
+        OnPropertyChanged(nameof(IsEnumField));
+        OnPropertyChanged(nameof(IsTextValue));
+        OnPropertyChanged(nameof(EnumValueOptions));
+        OnPropertyChanged(nameof(DisplayedOperatorOptions));
     }
 
     /// <summary>
@@ -1215,6 +1258,33 @@ public sealed partial class TriggerFilterEditorViewModel : ObservableObject
         OnPropertyChanged(nameof(HintText));
         OnPropertyChanged(nameof(HasHintText));
     }
+
+    private BehaviorPayloadFieldOptionViewModel? SelectedPayloadField =>
+        PayloadFieldOptions.FirstOrDefault(option => string.Equals(option.Path, Left, StringComparison.Ordinal));
+
+    private string FormatEnumDisplay(string value)
+    {
+        var enumType = SelectedPayloadField?.TypeName.TrimEnd('?');
+        var localized = _localize(
+            string.Equals(enumType, "GameAction", StringComparison.Ordinal) ? GameActionLocalizationKey(value) : $"Designer.Enum.{enumType}.{value}",
+            value);
+        return string.Equals(localized, value, StringComparison.Ordinal) ? value : $"{value} — {localized}";
+    }
+
+    private static string GameActionLocalizationKey(string value) => value switch
+    {
+        "BanMap" => "BanMap",
+        "PickMap" => "PickMap",
+        "PickCamp" => "PickCamp",
+        "BanSur" => "BanSurvivor",
+        "BanHun" => "BanHunter",
+        "PickSur" => "PickSurvivor",
+        "PickHun" => "PickHunter",
+        "PickSurTalent" => "PickSurTalent",
+        "PickHunTalent" => "PickHunTalent",
+        "DistributeChara" => "DistributeCharacters",
+        _ => $"Designer.Enum.GameAction.{value}"
+    };
 }
 
 public sealed partial class FrontedBehaviorAnimationEditorViewModel : ObservableObject
@@ -1228,6 +1298,7 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
     private readonly Func<string, string, string> _localize;
     private readonly Func<Task<bool>>? _saveAsync;
     private CancellationTokenSource? _loopPreviewCancellation;
+    private TaskCompletionSource? _loopPreviewStopped;
 
     public FrontedBehaviorAnimationEditorViewModel(
         FrontedBehavior behavior,
@@ -1413,7 +1484,9 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
         }
 
         var loopPreviewCancellation = new CancellationTokenSource();
+        var loopPreviewStopped = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         _loopPreviewCancellation = loopPreviewCancellation;
+        _loopPreviewStopped = loopPreviewStopped;
         IsLoopPreviewRunning = true;
         try
         {
@@ -1453,12 +1526,21 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
             }
 
             loopPreviewCancellation.Dispose();
+            loopPreviewStopped.TrySetResult();
+            if (ReferenceEquals(_loopPreviewStopped, loopPreviewStopped))
+            {
+                _loopPreviewStopped = null;
+            }
         }
     }
 
     private async Task StopLoopPreviewAsync()
     {
         _loopPreviewCancellation?.Cancel();
+        if (_loopPreviewStopped is not null)
+        {
+            await _loopPreviewStopped.Task;
+        }
         var policy = _behavior.LoopPolicy ?? new FrontedLoopPolicy();
         var suppressReset = policy.StopMode == FrontedLoopStopMode.HoldCurrentState;
         if (policy.StopMode == FrontedLoopStopMode.RunStopGraph)

@@ -68,6 +68,7 @@ public sealed class FrontedNodeGraphRuntime(
             return;
         }
 
+        Log(state.Logs, FrontedGraphExecutionLogLevel.Debug, $"Node started: {node.NodeType}.", node.NodeId);
         switch (node.NodeType)
         {
             case "flow.start":
@@ -122,6 +123,7 @@ public sealed class FrontedNodeGraphRuntime(
                 Log(state.Logs, FrontedGraphExecutionLogLevel.Debug, $"Node '{node.NodeType}' has no flow execution behavior.", node.NodeId);
                 break;
         }
+        Log(state.Logs, FrontedGraphExecutionLogLevel.Debug, $"Node completed: {node.NodeType}.", node.NodeId);
     }
 
     private async Task ExecuteOutputAsync(FrontedNode node, string port, ExecutionState state)
@@ -153,7 +155,12 @@ public sealed class FrontedNodeGraphRuntime(
             WaitForCompletion = waitForCompletion
         };
         state.Actions.Enqueue(request);
-        Log(state.Logs, FrontedGraphExecutionLogLevel.Information, $"{requestType}: {request.Target}[{request.TargetLayer}].{request.PropertyName}", node.NodeId);
+        var values = string.Join(", ", request.Values.Select(pair => $"{pair.Key}={pair.Value}"));
+        Log(
+            state.Logs,
+            FrontedGraphExecutionLogLevel.Information,
+            $"{requestType}: {request.Target}[{request.TargetLayer}].{request.PropertyName}; {values}",
+            node.NodeId);
         if (state.Context.ActionExecutor is not null)
         {
             await state.Context.ActionExecutor.ExecuteAsync(request, state.CancellationToken);

@@ -67,6 +67,10 @@ public class FrontedBehaviorEventCatalogTest
             Assert.Contains(stepChanged.PayloadFields, field => field.Path == path));
         Assert.DoesNotContain(stepChanged.PayloadFields, field => field.Path == "Event.ActionName");
         Assert.DoesNotContain(stepChanged.PayloadFields, field => field.Path == "Event.PreviousActionName");
+        Assert.Contains(stepChanged.PayloadFields, field =>
+            field.Path == "Event.Action"
+            && field.EnumValues.Contains("PickSur")
+            && field.EnumValues.Contains("BanHun"));
     }
 
     [Fact]
