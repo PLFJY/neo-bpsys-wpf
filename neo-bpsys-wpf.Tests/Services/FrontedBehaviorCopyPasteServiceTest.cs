@@ -159,6 +159,46 @@ public class FrontedBehaviorCopyPasteServiceTest
     }
 
     [Fact]
+    public void Paste_RewritesPlayerSwapTransitionAndBracketedIndexFilters()
+    {
+        var source = ImageItem("SurPick0", Guid.NewGuid());
+        var target = ImageItem("SurPick2", Guid.NewGuid());
+        var behavior = new FrontedBehavior
+        {
+            Kind = FrontedBehaviorKind.Transition,
+            Trigger = Trigger(
+                ("Event.PlayerIndex", TriggerFilterOperator.Equals, "0"),
+                ("Event.SourceIndex", TriggerFilterOperator.Equals, "0"),
+                ("Event.TargetIndex", TriggerFilterOperator.Equals, "0")),
+            TransitionTrigger = Trigger(
+                ("Event.Indexes", TriggerFilterOperator.Equals, "[0, 1]"),
+                ("StartEvent.PreviousIndexesText", TriggerFilterOperator.Equals, "[0]"),
+                ("StopEvent.PreviousIndex", TriggerFilterOperator.Equals, "0")),
+            Graph = new FrontedNodeGraph
+            {
+                Nodes =
+                [
+                    IfNode("Event.PlayerIndex", TriggerFilterOperator.Equals, "0"),
+                    IfNode("StartEvent.PreviousIndexesText", TriggerFilterOperator.Equals, "[0]")
+                ]
+            }
+        };
+        var payload = _service.Copy("BpWindow", source, behavior);
+
+        var result = _service.Paste(payload, target, new FrontedBehaviorDocument());
+
+        Assert.True(result.Succeeded);
+        Assert.Equal("2", result.Behavior!.Trigger!.Filters[0].Right);
+        Assert.Equal("2", result.Behavior.Trigger.Filters[1].Right);
+        Assert.Equal("2", result.Behavior.Trigger.Filters[2].Right);
+        Assert.Equal("[2, 1]", result.Behavior.TransitionTrigger!.Filters[0].Right);
+        Assert.Equal("[2]", result.Behavior.TransitionTrigger.Filters[1].Right);
+        Assert.Equal("2", result.Behavior.TransitionTrigger.Filters[2].Right);
+        Assert.Equal("2", result.Behavior.Graph.Nodes[0].Properties["Right"].GetString());
+        Assert.Equal("[2]", result.Behavior.Graph.Nodes[1].Properties["Right"].GetString());
+    }
+
+    [Fact]
     public void Paste_GeneratesBehaviorGuidAndUniqueBehaviorIdsForMultipleTargets()
     {
         var source = ImageItem("SurPick0", Guid.NewGuid());
@@ -266,6 +306,18 @@ public class FrontedBehaviorCopyPasteServiceTest
                 Operator = filter.Operator,
                 Right = filter.Right
             }).ToList()
+        };
+
+    private static FrontedNode IfNode(string left, TriggerFilterOperator @operator, string right) =>
+        new()
+        {
+            NodeType = "flow.if",
+            Properties = new Dictionary<string, JsonElement>
+            {
+                ["Left"] = JsonSerializer.SerializeToElement(left),
+                ["Operator"] = JsonSerializer.SerializeToElement(@operator.ToString()),
+                ["Right"] = JsonSerializer.SerializeToElement(right)
+            }
         };
 
     private sealed class TestLocalizationService : FrontedDesignerLocalizationService

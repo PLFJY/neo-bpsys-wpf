@@ -79,12 +79,19 @@ public sealed partial class FrontedBehaviorControlSemanticResolver : IFrontedBeh
 /// </summary>
 public sealed class FrontedBehaviorCopyPasteService
 {
-    private static readonly HashSet<string> IndexFilterFields =
+    private static readonly HashSet<string> ScalarIndexFilterFields =
     [
         "Event.Index",
+        "Event.PlayerIndex",
+        "Event.SourceIndex",
+        "Event.TargetIndex",
+        "Event.PreviousIndex"
+    ];
+
+    private static readonly HashSet<string> CollectionIndexFilterFields =
+    [
         "Event.Indexes",
         "Event.IndexesText",
-        "Event.PreviousIndex",
         "Event.PreviousIndexes",
         "Event.PreviousIndexesText"
     ];
@@ -205,6 +212,18 @@ public sealed class FrontedBehaviorCopyPasteService
         else if (options.RewriteTriggerIndexes)
         {
             foreach (var filter in EnumerateFilters(payload.Behavior))
+            {
+                if (TryRewriteFilter(filter, payload.SourceSemanticIndex!.Value, targetIndex!.Value, out var rewritten))
+                {
+                    preview.TriggerRewrites.Add(new FrontedBehaviorPasteRewrite
+                    {
+                        Before = FormatFilter(filter.Left, filter.Operator, filter.Right),
+                        After = FormatFilter(filter.Left, filter.Operator, rewritten)
+                    });
+                }
+            }
+
+            foreach (var filter in EnumerateGraphConditionFilters(payload.Behavior))
             {
                 if (TryRewriteFilter(filter, payload.SourceSemanticIndex!.Value, targetIndex!.Value, out var rewritten))
                 {
@@ -388,7 +407,7 @@ public sealed class FrontedBehaviorCopyPasteService
             .Cast<string>();
 
     private static IEnumerable<TriggerFilter> EnumerateFilters(FrontedBehavior behavior) =>
-        new[] { behavior.Trigger, behavior.StartTrigger }
+        new[] { behavior.Trigger, behavior.StartTrigger, behavior.TransitionTrigger }
             .Concat(behavior.StopTriggers)
             .Where(trigger => trigger is not null)
             .SelectMany(trigger => trigger!.Filters);
@@ -424,34 +443,167 @@ public sealed class FrontedBehaviorCopyPasteService
                 filter.Right = rewritten;
             }
         }
+
+        foreach (var node in EnumerateGraphs(behavior).SelectMany(graph => graph.Nodes))
+        {
+            if (!TryCreateGraphConditionFilter(node, out var filter))
+            {
+                continue;
+            }
+
+            if (TryRewriteFilter(filter, sourceIndex, targetIndex, out var rewritten))
+            {
+                node.Properties["Right"] = JsonSerializer.SerializeToElement(rewritten);
+            }
+        }
     }
 
     private static bool TryRewriteFilter(TriggerFilter filter, int sourceIndex, int targetIndex, out string rewritten)
     {
         rewritten = filter.Right ?? string.Empty;
-        if (!IndexFilterFields.Contains(filter.Left) || filter.Right is null)
+        if (filter.Right is null)
         {
             return false;
         }
 
-        var source = sourceIndex.ToString();
-        if (string.Equals(filter.Right.Trim(), source, StringComparison.Ordinal))
+        var normalizedLeft = NormalizeEventIndexField(filter.Left);
+        if (ScalarIndexFilterFields.Contains(normalizedLeft))
+        {
+            return TryRewriteScalarIndex(filter.Right, sourceIndex, targetIndex, out rewritten);
+        }
+
+        if (CollectionIndexFilterFields.Contains(normalizedLeft))
+        {
+            return TryRewriteCollectionIndex(filter.Right, sourceIndex, targetIndex, out rewritten);
+        }
+
+        return false;
+    }
+
+    private static bool TryRewriteScalarIndex(string right, int sourceIndex, int targetIndex, out string rewritten)
+    {
+        rewritten = right;
+        if (string.Equals(right.Trim(), sourceIndex.ToString(), StringComparison.Ordinal))
         {
             rewritten = targetIndex.ToString();
             return true;
         }
 
-        var supportsBracketedEquals =
-            filter.Operator == TriggerFilterOperator.Equals
-            && filter.Left is "Event.IndexesText" or "Event.PreviousIndexesText";
-        if (supportsBracketedEquals
-            && string.Equals(filter.Right.Trim(), $"[{source}]", StringComparison.Ordinal))
+        return false;
+    }
+
+    private static bool TryRewriteCollectionIndex(string right, int sourceIndex, int targetIndex, out string rewritten)
+    {
+        if (TryRewriteScalarIndex(right, sourceIndex, targetIndex, out rewritten))
         {
-            rewritten = $"[{targetIndex}]";
+            return true;
+        }
+
+        if (TryRewriteBracketedIndexList(right, sourceIndex, targetIndex, out rewritten))
+        {
             return true;
         }
 
         return false;
+    }
+
+    private static bool TryRewriteBracketedIndexList(string right, int sourceIndex, int targetIndex, out string rewritten)
+    {
+        rewritten = right;
+        var trimmed = right.Trim();
+        if (trimmed.Length < 2 || trimmed[0] != '[' || trimmed[^1] != ']')
+        {
+            return false;
+        }
+
+        var parts = trimmed[1..^1]
+            .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0)
+        {
+            return false;
+        }
+
+        var indexes = new List<int>(parts.Length);
+        var changed = false;
+        foreach (var part in parts)
+        {
+            if (!int.TryParse(part, out var index))
+            {
+                return false;
+            }
+
+            if (index == sourceIndex)
+            {
+                indexes.Add(targetIndex);
+                changed = true;
+            }
+            else
+            {
+                indexes.Add(index);
+            }
+        }
+
+        if (!changed)
+        {
+            return false;
+        }
+
+        rewritten = $"[{string.Join(", ", indexes)}]";
+        return true;
+    }
+
+    private static string NormalizeEventIndexField(string left)
+    {
+        if (left.StartsWith("StartEvent.", StringComparison.Ordinal))
+        {
+            return $"Event.{left["StartEvent.".Length..]}";
+        }
+
+        if (left.StartsWith("StopEvent.", StringComparison.Ordinal))
+        {
+            return $"Event.{left["StopEvent.".Length..]}";
+        }
+
+        return left;
+    }
+
+    private static IEnumerable<TriggerFilter> EnumerateGraphConditionFilters(FrontedBehavior behavior) =>
+        EnumerateGraphs(behavior)
+            .SelectMany(graph => graph.Nodes)
+            .Select(node => TryCreateGraphConditionFilter(node, out var filter) ? filter : null)
+            .Where(filter => filter is not null)
+            .Cast<TriggerFilter>();
+
+    private static bool TryCreateGraphConditionFilter(FrontedNode node, out TriggerFilter filter)
+    {
+        filter = new TriggerFilter();
+        if (!string.Equals(node.NodeType, "flow.if", StringComparison.Ordinal)
+            || !TryGetStringProperty(node, "Left", out var left)
+            || !TryGetStringProperty(node, "Right", out var right))
+        {
+            return false;
+        }
+
+        filter.Left = left;
+        filter.Right = right;
+        filter.Operator = TryGetStringProperty(node, "Operator", out var operatorText)
+            && Enum.TryParse<TriggerFilterOperator>(operatorText, out var parsed)
+                ? parsed
+                : TriggerFilterOperator.Equals;
+        return true;
+    }
+
+    private static bool TryGetStringProperty(FrontedNode node, string name, out string value)
+    {
+        value = string.Empty;
+        if (!node.Properties.TryGetValue(name, out var element)
+            || element.ValueKind != JsonValueKind.String)
+        {
+            return false;
+        }
+
+        value = element.GetString() ?? string.Empty;
+        return true;
     }
 
     private static string FormatFilter(string left, TriggerFilterOperator @operator, string? right) =>
