@@ -66,6 +66,34 @@ public class FrontedNodeGraphRuntimeTest
     }
 
     [Fact]
+    public async Task Runtime_IfBoolEventPath_TakesTrueBranch()
+    {
+        var graph = IfGraph("true", "Event.HasOldCharacter");
+
+        var result = await CreateRuntime().ExecuteAsync(graph, new FrontedGraphExecutionContext
+        {
+            EventPayload = new Dictionary<string, object?> { ["HasOldCharacter"] = true }
+        }, TestContext.Current.CancellationToken);
+
+        Assert.Contains(result.LogItems, item => item.Message == "true");
+        Assert.DoesNotContain(result.LogItems, item => item.Message == "false");
+    }
+
+    [Fact]
+    public async Task Runtime_IfStartEventPath_TakesTrueBranch()
+    {
+        var graph = IfGraph("PickHun", "StartEvent.Action");
+
+        var result = await CreateRuntime().ExecuteAsync(graph, new FrontedGraphExecutionContext
+        {
+            EventPayload = new Dictionary<string, object?> { ["Reason"] = "cancelled" },
+            StartEventPayload = new Dictionary<string, object?> { ["Action"] = "PickHun" }
+        }, TestContext.Current.CancellationToken);
+
+        Assert.Contains(result.LogItems, item => item.Message == "true");
+    }
+
+    [Fact]
     public async Task Runtime_Parallel_ExecutesBothBranches()
     {
         var start = _catalog.CreateNode("flow.start");

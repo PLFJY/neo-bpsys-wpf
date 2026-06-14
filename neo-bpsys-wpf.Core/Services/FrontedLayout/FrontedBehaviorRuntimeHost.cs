@@ -520,7 +520,7 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
                     behavior.BehaviorId, startTrigger.EventType);
 
                 var cts = new CancellationTokenSource();
-                state = new RunningBehaviorState(cts, LoopPhase.Starting, behavior, set);
+                state = new RunningBehaviorState(cts, LoopPhase.Starting, behavior, set, behaviorEvent);
                 _runningBehaviors[behavior.BehaviorId] = state;
 
                 state.RunningTask = ExecuteLoopLifecycleAsync(behavior, set, state, cts.Token);
@@ -544,7 +544,7 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
                         state.LifecycleCts.Cancel();
                         _runningBehaviors.Remove(behavior.BehaviorId);
                         var cts = new CancellationTokenSource();
-                        var nextState = new RunningBehaviorState(cts, LoopPhase.Starting, behavior, set);
+                        var nextState = new RunningBehaviorState(cts, LoopPhase.Starting, behavior, set, behaviorEvent);
                         _runningBehaviors[behavior.BehaviorId] = nextState;
                         nextState.RunningTask = ExecuteLoopLifecycleAsync(behavior, set, nextState, cts.Token);
                         return;
@@ -572,7 +572,12 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
                 _logger.LogInformation(
                     "Loop stop trigger matched. BehaviorId={BehaviorId}, EventType={EventType}.",
                     behavior.BehaviorId, stopTrigger.EventType);
-                RequestLoopStop(behavior, state, GetStopReason(behaviorEvent), forceRunStopGraph: false);
+                RequestLoopStop(
+                    behavior,
+                    state,
+                    GetStopReason(behaviorEvent),
+                    forceRunStopGraph: false,
+                    stopEvent: behaviorEvent);
             }
         }
     }
@@ -590,10 +595,12 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
         FrontedBehavior behavior,
         RunningBehaviorState state,
         FrontedBehaviorStopReason reason,
-        bool forceRunStopGraph)
+        bool forceRunStopGraph,
+        FrontedBehaviorEvent? stopEvent = null)
     {
         state.StopRequested = true;
         state.StopReason = reason;
+        state.StopEvent = stopEvent;
         var stopMode = forceRunStopGraph
             ? FrontedLoopStopMode.RunStopGraph
             : behavior.LoopPolicy?.StopMode ?? FrontedLoopStopMode.StopImmediately;
@@ -655,6 +662,9 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
                 {
                     BehaviorGuid = behavior.BehaviorId,
                     CurrentControlDisplayName = set.DisplayName ?? string.Empty,
+                    TriggerEventType = state.StartEvent?.EventType ?? string.Empty,
+                    EventPayload = state.StartEvent?.Payload ?? new Dictionary<string, object?>(),
+                    StartEventPayload = state.StartEvent?.Payload ?? new Dictionary<string, object?>(),
                     ActionExecutor = startExecutor
                 };
 
@@ -693,6 +703,9 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
                         {
                             BehaviorGuid = behavior.BehaviorId,
                             CurrentControlDisplayName = set.DisplayName ?? string.Empty,
+                            TriggerEventType = state.StartEvent?.EventType ?? string.Empty,
+                            EventPayload = state.StartEvent?.Payload ?? new Dictionary<string, object?>(),
+                            StartEventPayload = state.StartEvent?.Payload ?? new Dictionary<string, object?>(),
                             ActionExecutor = loopExecutor
                         };
 
@@ -786,6 +799,10 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
                         {
                             BehaviorGuid = behavior.BehaviorId,
                             CurrentControlDisplayName = set.DisplayName ?? string.Empty,
+                            TriggerEventType = state.StopEvent?.EventType ?? string.Empty,
+                            EventPayload = state.StopEvent?.Payload ?? new Dictionary<string, object?>(),
+                            StartEventPayload = state.StartEvent?.Payload ?? new Dictionary<string, object?>(),
+                            StopEventPayload = state.StopEvent?.Payload ?? new Dictionary<string, object?>(),
                             ActionExecutor = stopExecutor
                         };
 
@@ -1115,6 +1132,16 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
         public ControlBehaviorSet? Set { get; }
 
         /// <summary>
+        /// Gets the event that matched the loop start trigger.
+        /// </summary>
+        public FrontedBehaviorEvent? StartEvent { get; }
+
+        /// <summary>
+        /// Gets or sets the event that matched a loop stop trigger.
+        /// </summary>
+        public FrontedBehaviorEvent? StopEvent { get; set; }
+
+        /// <summary>
         /// When true, Phase 4 Reset is skipped. Set when StopGraph executed successfully
         /// or failed validation, to prevent Reset from overriding the StopGraph visual result.
         /// </summary>
@@ -1124,12 +1151,14 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
             CancellationTokenSource lifecycleCts,
             LoopPhase loopPhase = LoopPhase.Stopped,
             FrontedBehavior? behavior = null,
-            ControlBehaviorSet? set = null)
+            ControlBehaviorSet? set = null,
+            FrontedBehaviorEvent? startEvent = null)
         {
             LifecycleCts = lifecycleCts;
             LoopPhase = loopPhase;
             Behavior = behavior;
             Set = set;
+            StartEvent = startEvent;
         }
     }
 }

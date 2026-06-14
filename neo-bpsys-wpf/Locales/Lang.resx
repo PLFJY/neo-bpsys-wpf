@@ -5246,8 +5246,14 @@
   <data name="CopyPath" xml:space="preserve">
     <value>复制路径</value>
   </data>
+  <data name="CopyConditionPath" xml:space="preserve">
+    <value>复制条件路径</value>
+  </data>
   <data name="CopyEqualsFilter" xml:space="preserve">
     <value>复制 Equals 过滤器</value>
+  </data>
+  <data name="CopyIfCondition" xml:space="preserve">
+    <value>复制 IF 条件</value>
   </data>
   <data name="CopyContainsFilter" xml:space="preserve">
     <value>复制 Contains 过滤器</value>
@@ -5286,6 +5292,7 @@
     <value>{0} 副本</value>
   </data>
   <data name="Designer.AnimationParts.Title" xml:space="preserve"><value>动画部件</value></data>
+  <data name="Designer.AnimationParts.DefaultName" xml:space="preserve"><value>动画部件</value></data>
   <data name="Designer.AnimationParts.Add" xml:space="preserve"><value>添加动画部件</value></data>
   <data name="Designer.AnimationParts.Remove" xml:space="preserve"><value>移除动画部件</value></data>
   <data name="Designer.AnimationParts.Apply" xml:space="preserve"><value>应用动画部件修改</value></data>
@@ -5326,8 +5333,8 @@
   <data name="Designer.Behaviors.NewTransition" xml:space="preserve"><value>新过渡行为</value></data>
   <data name="Designer.Behaviors.TransitionTrigger" xml:space="preserve"><value>过渡触发器</value></data>
   <data name="Designer.Behaviors.TransitionHelp" xml:space="preserve"><value>ExitGraph 在数据变化前运行。EnterGraph 在数据变化后运行。</value></data>
-  <data name="Designer.Behaviors.ExitGraph" xml:space="preserve"><value>ExitGraph</value></data>
-  <data name="Designer.Behaviors.EnterGraph" xml:space="preserve"><value>EnterGraph</value></data>
+  <data name="Designer.Behaviors.ExitGraph" xml:space="preserve"><value>退出动画</value></data>
+  <data name="Designer.Behaviors.EnterGraph" xml:space="preserve"><value>进入动画</value></data>
   <data name="Designer.Behaviors.Event.CharacterPick" xml:space="preserve"><value>角色选择过渡</value></data>
   <data name="Designer.Behaviors.Event.CharacterPick.Description" xml:space="preserve"><value>角色选择提交前后运行过渡图。</value></data>
   <data name="Designer.Behaviors.Event.CharacterSwap" xml:space="preserve"><value>求生者交换过渡</value></data>

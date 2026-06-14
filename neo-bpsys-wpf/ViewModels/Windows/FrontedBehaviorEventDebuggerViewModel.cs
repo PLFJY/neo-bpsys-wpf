@@ -140,6 +140,16 @@ public sealed partial class FrontedBehaviorEventDebuggerViewModel : ViewModelBas
     }
 
     /// <summary>
+    /// Copies a payload path compatible with graph condition nodes.
+    /// </summary>
+    /// <param name="entry">Payload entry to copy.</param>
+    [RelayCommand]
+    public void CopyConditionPath(FrontedBehaviorPayloadDebugEntry? entry)
+    {
+        CopyText(entry?.Path);
+    }
+
+    /// <summary>
     /// Copies an Equals filter expression for a payload entry.
     /// </summary>
     /// <param name="entry">Payload entry to copy.</param>
@@ -147,6 +157,16 @@ public sealed partial class FrontedBehaviorEventDebuggerViewModel : ViewModelBas
     public void CopyEqualsFilter(FrontedBehaviorPayloadDebugEntry? entry)
     {
         CopyText(CreateEqualsFilter(entry));
+    }
+
+    /// <summary>
+    /// Copies an IF condition expression for a payload entry.
+    /// </summary>
+    /// <param name="entry">Payload entry to copy.</param>
+    [RelayCommand]
+    public void CopyIfCondition(FrontedBehaviorPayloadDebugEntry? entry)
+    {
+        CopyText(CreateIfCondition(entry));
     }
 
     /// <summary>
@@ -219,6 +239,14 @@ public sealed partial class FrontedBehaviorEventDebuggerViewModel : ViewModelBas
     /// <returns>Filter expression, or an empty string when no entry is supplied.</returns>
     public static string CreateEqualsFilter(FrontedBehaviorPayloadDebugEntry? entry) =>
         entry is null ? string.Empty : $"{entry.Path} Equals {entry.FilterText}";
+
+    /// <summary>
+    /// Creates a condition-node-compatible IF expression for a payload entry.
+    /// </summary>
+    /// <param name="entry">Payload entry.</param>
+    /// <returns>IF condition expression, or an empty string when no entry is supplied.</returns>
+    public static string CreateIfCondition(FrontedBehaviorPayloadDebugEntry? entry) =>
+        CreateEqualsFilter(entry);
 
     /// <summary>
     /// Creates a Contains filter expression for a payload entry.

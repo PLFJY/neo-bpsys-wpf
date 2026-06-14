@@ -169,6 +169,60 @@ public class FrontedBehaviorRuntimeLoopTest
     }
 
     [Fact]
+    public async Task BehaviorRuntime_Loop_PropagatesStartAndStopEventContexts()
+    {
+        await RunOnStaThreadAsync(async () =>
+        {
+            var runtime = new ControlledGraphRuntime
+            {
+                LoopGate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously)
+            };
+            var behavior = new FrontedBehavior
+            {
+                Kind = FrontedBehaviorKind.Loop,
+                StartTrigger = new TriggerDescriptor { EventType = "Guidance.StepChanged" },
+                StopTriggers = [new TriggerDescriptor { EventType = "Guidance.Cancelled" }],
+                StartGraph = new FrontedNodeGraph(),
+                LoopGraph = new FrontedNodeGraph(),
+                StopGraph = new FrontedNodeGraph(),
+                LoopPolicy = new FrontedLoopPolicy
+                {
+                    RepeatCount = -1,
+                    StopMode = FrontedLoopStopMode.RunStopGraph,
+                    ResetOnStop = false
+                }
+            };
+
+            using var host = CreateHost(runtime);
+            await AttachHost(host, CreateDocument(behavior));
+
+            RunEvent(host, new FrontedBehaviorEvent
+            {
+                EventType = "Guidance.StepChanged",
+                Payload = new Dictionary<string, object?> { ["Action"] = "PickHun" }
+            });
+            await runtime.WaitForStartGraphAsync(TimeSpan.FromSeconds(5));
+            RunEvent(host, new FrontedBehaviorEvent
+            {
+                EventType = "Guidance.Cancelled",
+                Payload = new Dictionary<string, object?> { ["Reason"] = "operator" }
+            });
+            await WaitForGraphAsync(runtime, behavior.StopGraph, TimeSpan.FromSeconds(5));
+
+            var startContext = runtime.Executions.Single(item => ReferenceEquals(item.Graph, behavior.StartGraph)).Context;
+            var loopContext = runtime.Executions.Single(item => ReferenceEquals(item.Graph, behavior.LoopGraph)).Context;
+            var stopContext = runtime.Executions.Single(item => ReferenceEquals(item.Graph, behavior.StopGraph)).Context;
+            Assert.Equal("Guidance.StepChanged", startContext.TriggerEventType);
+            Assert.Equal("PickHun", startContext.EventPayload["Action"]);
+            Assert.Equal("PickHun", loopContext.EventPayload["Action"]);
+            Assert.Equal("Guidance.Cancelled", stopContext.TriggerEventType);
+            Assert.Equal("operator", stopContext.EventPayload["Reason"]);
+            Assert.Equal("PickHun", stopContext.StartEventPayload["Action"]);
+            Assert.Equal("operator", stopContext.StopEventPayload["Reason"]);
+        });
+    }
+
+    [Fact]
     public async Task BehaviorRuntime_Loop_StopTriggerFiltersRemainAnd()
     {
         await RunOnStaThreadAsync(async () =>
@@ -1276,6 +1330,9 @@ public class FrontedBehaviorRuntimeLoopTest
         /// <summary>Graphs that have been executed, in order.</summary>
         public List<FrontedNodeGraph> ExecutedGraphs { get; } = [];
 
+        /// <summary>Graph executions and the contexts supplied to them.</summary>
+        public List<(FrontedNodeGraph Graph, FrontedGraphExecutionContext Context)> Executions { get; } = [];
+
         /// <summary>
         /// When non-null, execution of any graph will block on this gate.
         /// Used by <see cref="FrontedBehaviorRuntimeHost.ExecuteLoopLifecycleAsync" /> to keep
@@ -1306,6 +1363,7 @@ public class FrontedBehaviorRuntimeLoopTest
             CancellationToken cancellationToken)
         {
             ExecutedGraphs.Add(graph);
+            Executions.Add((graph, context));
 
             // Signal StartGraph execution
             if (StartGraphExecuted is not null)

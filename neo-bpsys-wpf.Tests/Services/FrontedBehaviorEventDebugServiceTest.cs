@@ -78,6 +78,7 @@ public class FrontedBehaviorEventDebugServiceTest
         };
 
         Assert.Equal("Event.Action Equals PickSur", FrontedBehaviorEventDebuggerViewModel.CreateEqualsFilter(actionEntry));
+        Assert.Equal("Event.Action Equals PickSur", FrontedBehaviorEventDebuggerViewModel.CreateIfCondition(actionEntry));
         Assert.Equal("Event.IndexesText Contains 0", FrontedBehaviorEventDebuggerViewModel.CreateContainsFilter(indexesEntry));
     }
 }

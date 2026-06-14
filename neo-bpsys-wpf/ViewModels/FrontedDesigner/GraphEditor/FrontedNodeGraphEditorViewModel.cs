@@ -22,6 +22,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     private readonly Action _markDirty;
     private readonly Func<string, string, string> _localize;
     private readonly IReadOnlyList<FrontedNodeTargetOptionViewModel> _targetOptions;
+    private readonly IReadOnlyList<FrontedGraphConditionFieldOptionViewModel> _conditionFieldOptions;
     private CancellationTokenSource? _previewCancellation;
     private FrontedNodePortViewModel? _pendingPort;
     private readonly Stack<string> _undoStack = new();
@@ -42,7 +43,8 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         Func<string, string, string>? localize = null,
         Action? save = null,
         Func<Task<bool>>? saveAsync = null,
-        IReadOnlyList<FrontedNodeTargetOptionViewModel>? targetOptions = null)
+        IReadOnlyList<FrontedNodeTargetOptionViewModel>? targetOptions = null,
+        IReadOnlyList<FrontedGraphConditionFieldOptionViewModel>? conditionFieldOptions = null)
     {
         Graph = graph;
         _catalog = catalog ?? new FrontedNodeCatalog();
@@ -60,6 +62,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
                 return Task.FromResult(true);
             }));
         _targetOptions = targetOptions ?? [new FrontedNodeTargetOptionViewModel("Self", _localize("Designer.Graph.Target.Self", "Self"))];
+        _conditionFieldOptions = conditionFieldOptions ?? [];
         Catalog = _catalog.Nodes
             .Select(descriptor => new FrontedNodeCatalogItemViewModel(descriptor, _localize))
             .ToArray();
@@ -726,7 +729,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     }
 
     private FrontedNodeEditorViewModel CreateNode(FrontedNode node) =>
-        new(node, _catalog.Find(node.NodeType), MarkDirtyAndSetIsDirty, ValidateGraph, _localize, _targetOptions);
+        new(node, _catalog.Find(node.NodeType), MarkDirtyAndSetIsDirty, ValidateGraph, _localize, _targetOptions, _conditionFieldOptions);
 
     private void MarkDirtyAndSetIsDirty()
     {
@@ -924,7 +927,8 @@ public sealed partial class FrontedNodeEditorViewModel : ObservableObject
         Action markDirty,
         Action validate,
         Func<string, string, string> localize,
-        IReadOnlyList<FrontedNodeTargetOptionViewModel> targetOptions)
+        IReadOnlyList<FrontedNodeTargetOptionViewModel> targetOptions,
+        IReadOnlyList<FrontedGraphConditionFieldOptionViewModel> conditionFieldOptions)
     {
         Model = model;
         Descriptor = descriptor;
@@ -936,7 +940,7 @@ public sealed partial class FrontedNodeEditorViewModel : ObservableObject
         InputPorts = CreatePorts(descriptor?.InputPorts, localize);
         OutputPorts = CreatePorts(descriptor?.OutputPorts, localize);
         var properties = descriptor?.Properties
-            .Select(property => new FrontedNodePropertyEditorViewModel(model, property, markDirty, validate, localize, targetOptions))
+            .Select(property => new FrontedNodePropertyEditorViewModel(model, property, markDirty, validate, localize, targetOptions, conditionFieldOptions))
             .ToArray() ?? [];
         Properties = properties;
         foreach (var property in properties)
@@ -947,6 +951,8 @@ public sealed partial class FrontedNodeEditorViewModel : ObservableObject
                 {
                     item.RefreshEditorState();
                 }
+                OnPropertyChanged(nameof(Summary));
+                OnPropertyChanged(nameof(HeaderText));
             });
         }
     }
@@ -955,6 +961,14 @@ public sealed partial class FrontedNodeEditorViewModel : ObservableObject
     public FrontedNodeTypeDescriptor? Descriptor { get; }
     public string DisplayName { get; }
     public string Description { get; }
+    /// <summary>Gets a readable summary for nodes with user-editable expressions.</summary>
+    public string Summary => Model.NodeType == "flow.if"
+        ? $"IF {ReadProperty("Left")} {OperatorSymbol(ReadProperty("Operator"))} {ReadProperty("Right")}".TrimEnd()
+        : string.Empty;
+    /// <summary>Gets whether the node has a readable expression summary.</summary>
+    public bool HasSummary => !string.IsNullOrWhiteSpace(Summary);
+    /// <summary>Gets the node card header text.</summary>
+    public string HeaderText => HasSummary ? Summary : DisplayName;
     /// <summary>Gets the rendered node card width.</summary>
     public double CardWidth { get; }
     public IReadOnlyList<FrontedNodePortViewModel> InputPorts { get; }
@@ -1003,6 +1017,28 @@ public sealed partial class FrontedNodeEditorViewModel : ObservableObject
         && string.Equals(descriptor.Name, "Out", StringComparison.Ordinal);
 
     private static string NodeFallback(string nodeType) => nodeType.Split('.').LastOrDefault() ?? nodeType;
+
+    private string ReadProperty(string name) =>
+        Model.Properties.TryGetValue(name, out var value)
+            ? value.ValueKind == JsonValueKind.String ? value.GetString() ?? string.Empty : value.ToString()
+            : string.Empty;
+
+    private static string OperatorSymbol(string value) =>
+        Enum.TryParse<TriggerFilterOperator>(value, out var op)
+            ? op switch
+            {
+                TriggerFilterOperator.Equals => "==",
+                TriggerFilterOperator.NotEquals => "!=",
+                TriggerFilterOperator.GreaterThan => ">",
+                TriggerFilterOperator.GreaterThanOrEqual => ">=",
+                TriggerFilterOperator.LessThan => "<",
+                TriggerFilterOperator.LessThanOrEqual => "<=",
+                TriggerFilterOperator.Contains => "contains",
+                TriggerFilterOperator.NotContains => "not contains",
+                TriggerFilterOperator.Exists => "exists",
+                _ => value
+            }
+            : value;
 }
 
 /// <summary>
@@ -1296,6 +1332,7 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
     private readonly Action _markDirty;
     private readonly Action _validate;
     private readonly IReadOnlyList<FrontedNodeTargetOptionViewModel> _targetOptions;
+    private readonly IReadOnlyList<FrontedGraphConditionFieldOptionViewModel> _conditionFieldOptions;
     private readonly Func<string, string, string> _localize;
     private readonly IReadOnlyList<FrontedNodePropertyOptionViewModel> _localizedOptions;
     private readonly IReadOnlyList<FrontedNodePropertyOptionViewModel> _booleanOptions;
@@ -1310,13 +1347,15 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
         Action markDirty,
         Action validate,
         Func<string, string, string> localize,
-        IReadOnlyList<FrontedNodeTargetOptionViewModel> targetOptions)
+        IReadOnlyList<FrontedNodeTargetOptionViewModel> targetOptions,
+        IReadOnlyList<FrontedGraphConditionFieldOptionViewModel>? conditionFieldOptions = null)
     {
         _node = node;
         Descriptor = descriptor;
         _markDirty = markDirty;
         _validate = validate;
         _targetOptions = targetOptions;
+        _conditionFieldOptions = conditionFieldOptions ?? [];
         _localize = localize;
         DisplayName = localize(descriptor.DisplayNameKey, descriptor.Name);
         Description = localize($"{descriptor.DisplayNameKey}.Description", descriptor.Name);
@@ -1347,14 +1386,34 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
         ? Description
         : _localize(DynamicMetadata.DescriptionKey, $"{DynamicMetadata.Placeholder}; example: {DynamicMetadata.Example}");
     public bool IsBoolean => Descriptor.EditorKind == FrontedNodePropertyEditorKind.Boolean;
-    public bool IsEnum => Descriptor.EditorKind == FrontedNodePropertyEditorKind.Enum;
-    public bool IsNumber => Descriptor.EditorKind == FrontedNodePropertyEditorKind.Number || IsNumericDynamicValue;
+    public bool IsEnum => Descriptor.EditorKind == FrontedNodePropertyEditorKind.Enum && !IsConditionOperator;
+    public bool IsNumber => Descriptor.EditorKind == FrontedNodePropertyEditorKind.Number || IsNumericDynamicValue || IsNumericConditionValue;
     public bool IsColor => Descriptor.EditorKind == FrontedNodePropertyEditorKind.Color || IsColorDynamicValue;
     public bool IsControlReference => Descriptor.EditorKind == FrontedNodePropertyEditorKind.ControlReference;
     public bool IsPropertyName => Descriptor.EditorKind == FrontedNodePropertyEditorKind.PropertyName;
     public bool IsVisibilityValue => IsDynamicValue && FrontedBehaviorPropertyMetadata.IsVisibilityProperty(CurrentBehaviorPropertyName);
-    public bool HasTextSuggestions => !IsBoolean && !IsEnum && !IsNumber && !IsColor && !IsControlReference && !IsPropertyName && Descriptor.Options.Count > 0;
-    public bool IsText => !IsBoolean && !IsEnum && !IsNumber && !IsColor && !IsControlReference && !IsPropertyName && !HasTextSuggestions && !IsVisibilityValue;
+    public bool HasTextSuggestions => !IsConditionProperty && !IsBoolean && !IsEnum && !IsNumber && !IsColor && !IsControlReference && !IsPropertyName && Descriptor.Options.Count > 0;
+    public bool IsText => !IsConditionProperty && !IsBoolean && !IsEnum && !IsNumber && !IsColor && !IsControlReference && !IsPropertyName && !HasTextSuggestions && !IsVisibilityValue;
+    /// <summary>Gets whether this property selects the left-side condition field.</summary>
+    public bool IsConditionField => _node.NodeType == "flow.if" && Descriptor.Name == "Left";
+    /// <summary>Gets whether this property selects the condition operator.</summary>
+    public bool IsConditionOperator => _node.NodeType == "flow.if" && Descriptor.Name == "Operator";
+    /// <summary>Gets whether this property edits the right-side condition value.</summary>
+    public bool IsConditionValue => _node.NodeType == "flow.if" && Descriptor.Name == "Right";
+    /// <summary>Gets whether the selected condition value is boolean-like.</summary>
+    public bool IsBooleanConditionValue => IsConditionValue && IsBooleanType(SelectedConditionField?.TypeName);
+    /// <summary>Gets whether the selected condition value is enum-like.</summary>
+    public bool IsEnumConditionValue => IsConditionValue && SelectedConditionField?.EnumValues.Count > 0;
+    /// <summary>Gets whether the selected condition value is numeric.</summary>
+    public bool IsNumericConditionValue => IsConditionValue && IsNumericType(SelectedConditionField?.TypeName);
+    /// <summary>Gets whether the condition value should use free text.</summary>
+    public bool IsTextConditionValue => IsConditionValue && !IsBooleanConditionValue && !IsEnumConditionValue && !IsNumericConditionValue;
+    /// <summary>Gets context-aware event fields available to this condition.</summary>
+    public IReadOnlyList<FrontedGraphConditionFieldOptionViewModel> ConditionFieldOptions => EnsureCurrentConditionFieldOption();
+    /// <summary>Gets context-aware operators available for the selected field type.</summary>
+    public IReadOnlyList<FrontedNodePropertyOptionViewModel> ConditionOperatorOptions => ResolveConditionOperatorOptions();
+    /// <summary>Gets stable bool or enum values available for the selected field.</summary>
+    public IReadOnlyList<FrontedNodePropertyOptionViewModel> ConditionValueOptions => ResolveConditionValueOptions();
     public IReadOnlyList<string> Options => Descriptor.Options;
     public IReadOnlyList<FrontedNodePropertyOptionViewModel> LocalizedOptions => _localizedOptions;
     /// <summary>Gets the stable boolean choices for boolean property editors.</summary>
@@ -1426,6 +1485,39 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
         set => Write(JsonSerializer.SerializeToElement(value));
     }
 
+    /// <summary>Gets or sets a stable condition field path.</summary>
+    public string ConditionFieldValue
+    {
+        get => TextValue;
+        set
+        {
+            TextValue = value;
+            var allowed = ResolveConditionOperatorOptions().Select(option => option.Value).ToHashSet(StringComparer.Ordinal);
+            var currentOperator = ReadNodeString("Operator");
+            if (!allowed.Contains(currentOperator))
+            {
+                _node.Properties["Operator"] = JsonSerializer.SerializeToElement(TriggerFilterOperator.Equals.ToString());
+                _markDirty();
+                _validate();
+                _refreshRelatedProperties?.Invoke();
+            }
+        }
+    }
+
+    /// <summary>Gets or sets a stable condition operator name.</summary>
+    public string ConditionOperatorValue
+    {
+        get => TextValue;
+        set => TextValue = value;
+    }
+
+    /// <summary>Gets or sets a stable typed condition choice.</summary>
+    public string ConditionChoiceValue
+    {
+        get => TextValue;
+        set => TextValue = value;
+    }
+
     public string TargetValue
     {
         get => TextValue;
@@ -1471,6 +1563,22 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
         OnPropertyChanged(nameof(Unit));
         OnPropertyChanged(nameof(HasUnit));
         OnPropertyChanged(nameof(DisplayedOptions));
+        if (_node.NodeType == "flow.if")
+        {
+            OnPropertyChanged(nameof(IsConditionField));
+            OnPropertyChanged(nameof(IsConditionOperator));
+            OnPropertyChanged(nameof(IsConditionValue));
+            OnPropertyChanged(nameof(IsBooleanConditionValue));
+            OnPropertyChanged(nameof(IsEnumConditionValue));
+            OnPropertyChanged(nameof(IsNumericConditionValue));
+            OnPropertyChanged(nameof(IsTextConditionValue));
+            OnPropertyChanged(nameof(ConditionFieldOptions));
+            OnPropertyChanged(nameof(ConditionOperatorOptions));
+            OnPropertyChanged(nameof(ConditionValueOptions));
+            OnPropertyChanged(nameof(ConditionFieldValue));
+            OnPropertyChanged(nameof(ConditionOperatorValue));
+            OnPropertyChanged(nameof(ConditionChoiceValue));
+        }
         OnPropertyChanged(nameof(PropertyNameText));
         OnPropertyChanged(nameof(Placeholder));
         OnPropertyChanged(nameof(HelpText));
@@ -1503,6 +1611,12 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
         OnPropertyChanged(nameof(SuggestionText));
         OnPropertyChanged(nameof(VisibilityValue));
         OnPropertyChanged(nameof(DisplayedOptions));
+        if (_node.NodeType == "flow.if")
+        {
+            OnPropertyChanged(nameof(ConditionFieldValue));
+            OnPropertyChanged(nameof(ConditionOperatorValue));
+            OnPropertyChanged(nameof(ConditionChoiceValue));
+        }
         _refreshRelatedProperties?.Invoke();
     }
 
@@ -1571,6 +1685,45 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
         return [.. _targetOptions, new FrontedNodeTargetOptionViewModel(TextValue, $"Unknown target ({TextValue})")];
     }
 
+    private IReadOnlyList<FrontedGraphConditionFieldOptionViewModel> EnsureCurrentConditionFieldOption()
+    {
+        var current = IsConditionField ? TextValue : ReadNodeString("Left");
+        if (string.IsNullOrWhiteSpace(current)
+            || _conditionFieldOptions.Any(option => string.Equals(option.Path, current, StringComparison.Ordinal)))
+        {
+            return _conditionFieldOptions;
+        }
+
+        return [.. _conditionFieldOptions, new FrontedGraphConditionFieldOptionViewModel(current, current, "string", [], null)];
+    }
+
+    private IReadOnlyList<FrontedNodePropertyOptionViewModel> ResolveConditionOperatorOptions()
+    {
+        var allowed = IsBooleanType(SelectedConditionField?.TypeName) || SelectedConditionField?.EnumValues.Count > 0
+            ? new[] { TriggerFilterOperator.Equals, TriggerFilterOperator.NotEquals, TriggerFilterOperator.Exists }
+            : IsNumericType(SelectedConditionField?.TypeName)
+                ? new[]
+                {
+                    TriggerFilterOperator.Equals, TriggerFilterOperator.NotEquals, TriggerFilterOperator.GreaterThan,
+                    TriggerFilterOperator.GreaterThanOrEqual, TriggerFilterOperator.LessThan,
+                    TriggerFilterOperator.LessThanOrEqual, TriggerFilterOperator.Exists
+                }
+                : Enum.GetValues<TriggerFilterOperator>();
+        return allowed.Select(value => new FrontedNodePropertyOptionViewModel(value.ToString(), LocalizeOption(value.ToString()))).ToArray();
+    }
+
+    private IReadOnlyList<FrontedNodePropertyOptionViewModel> ResolveConditionValueOptions()
+    {
+        if (IsBooleanType(SelectedConditionField?.TypeName))
+        {
+            return _booleanOptions;
+        }
+
+        return SelectedConditionField?.EnumValues
+            .Select(value => new FrontedNodePropertyOptionViewModel(value, value))
+            .ToArray() ?? [];
+    }
+
     private string LocalizeOption(string value)
     {
         if (IsPropertyName)
@@ -1618,6 +1771,24 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
             ? property.ValueKind == JsonValueKind.String ? property.GetString() : property.ToString()
             : null;
 
+    private FrontedGraphConditionFieldOptionViewModel? SelectedConditionField =>
+        EnsureCurrentConditionFieldOption().FirstOrDefault(option =>
+            string.Equals(option.Path, ReadNodeString("Left"), StringComparison.Ordinal));
+
+    private bool IsConditionProperty => IsConditionField || IsConditionOperator || IsConditionValue;
+
+    private string ReadNodeString(string name) =>
+        _node.Properties.TryGetValue(name, out var value)
+            ? value.ValueKind == JsonValueKind.String ? value.GetString() ?? string.Empty : value.ToString()
+            : string.Empty;
+
+    private static bool IsBooleanType(string? typeName) =>
+        string.Equals(typeName?.TrimEnd('?'), "bool", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(typeName?.TrimEnd('?'), "Boolean", StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsNumericType(string? typeName) =>
+        typeName?.TrimEnd('?').ToLowerInvariant() is "byte" or "short" or "int" or "long" or "float" or "double" or "decimal";
+
     private FrontedAnimationTargetLayer CurrentTargetLayer =>
         _node.Properties.TryGetValue("TargetLayer", out var value)
         && Enum.TryParse<FrontedAnimationTargetLayer>(
@@ -1644,6 +1815,21 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
 /// <param name="Value">The persisted target reference value.</param>
 /// <param name="DisplayName">The user-facing target display name.</param>
 public sealed record FrontedNodeTargetOptionViewModel(string Value, string DisplayName);
+
+/// <summary>
+/// Event payload field available to a context-aware graph condition editor.
+/// </summary>
+/// <param name="Path">Stable condition path persisted in the graph.</param>
+/// <param name="DisplayName">User-facing field label.</param>
+/// <param name="TypeName">Payload value type name.</param>
+/// <param name="EnumValues">Stable enum names accepted by the field.</param>
+/// <param name="EventType">Event type that contributes the field, when useful for disambiguation.</param>
+public sealed record FrontedGraphConditionFieldOptionViewModel(
+    string Path,
+    string DisplayName,
+    string TypeName,
+    IReadOnlyList<string> EnumValues,
+    string? EventType);
 
 /// <summary>
 /// Option displayed by node property editors while preserving a stable stored value.

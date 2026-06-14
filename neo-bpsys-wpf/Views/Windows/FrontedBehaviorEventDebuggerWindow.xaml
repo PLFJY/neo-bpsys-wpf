@@ -160,9 +160,21 @@
                     Icon="{ui:SymbolIcon Symbol=Copy24}" />
                 <ui:Button
                     Margin="0,0,8,0"
+                    Command="{Binding CopyConditionPathCommand}"
+                    CommandParameter="{Binding SelectedPayloadEntry}"
+                    Content="{lex:Loc CopyConditionPath}"
+                    Icon="{ui:SymbolIcon Symbol=Copy24}" />
+                <ui:Button
+                    Margin="0,0,8,0"
                     Command="{Binding CopyEqualsFilterCommand}"
                     CommandParameter="{Binding SelectedPayloadEntry}"
                     Content="{lex:Loc CopyEqualsFilter}"
+                    Icon="{ui:SymbolIcon Symbol=Copy24}" />
+                <ui:Button
+                    Margin="0,0,8,0"
+                    Command="{Binding CopyIfConditionCommand}"
+                    CommandParameter="{Binding SelectedPayloadEntry}"
+                    Content="{lex:Loc CopyIfCondition}"
                     Icon="{ui:SymbolIcon Symbol=Copy24}" />
                 <ui:Button
                     Margin="0,0,8,0"

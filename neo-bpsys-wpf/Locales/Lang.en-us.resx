@@ -4378,7 +4378,9 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="DisplayValue" xml:space="preserve"><value>Display Value</value></data>
   <data name="FilterText" xml:space="preserve"><value>Filter Text</value></data>
   <data name="CopyPath" xml:space="preserve"><value>Copy Path</value></data>
+  <data name="CopyConditionPath" xml:space="preserve"><value>Copy Condition Path</value></data>
   <data name="CopyEqualsFilter" xml:space="preserve"><value>Copy Equals Filter</value></data>
+  <data name="CopyIfCondition" xml:space="preserve"><value>Copy IF Condition</value></data>
   <data name="CopyContainsFilter" xml:space="preserve"><value>Copy Contains Filter</value></data>
   <data name="CopyValue" xml:space="preserve"><value>Copy Value</value></data>
   <data name="Designer.Behaviors.FilterHint.Action" xml:space="preserve"><value>Use enum values such as PickSur, PickHun, BanSur.</value></data>
@@ -4392,6 +4394,7 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="Designer.Behaviors.DefaultName" xml:space="preserve"><value>Behavior</value></data>
   <data name="Designer.Behaviors.CopyNameFormat" xml:space="preserve"><value>{0} Copy</value></data>
   <data name="Designer.AnimationParts.Title" xml:space="preserve"><value>Animation Parts</value></data>
+  <data name="Designer.AnimationParts.DefaultName" xml:space="preserve"><value>AnimationPart</value></data>
   <data name="Designer.AnimationParts.Add" xml:space="preserve"><value>Add part</value></data>
   <data name="Designer.AnimationParts.Remove" xml:space="preserve"><value>Remove part</value></data>
   <data name="Designer.AnimationParts.Apply" xml:space="preserve"><value>Apply animation part changes</value></data>
@@ -4432,8 +4435,8 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="Designer.Behaviors.NewTransition" xml:space="preserve"><value>New Transition Behavior</value></data>
   <data name="Designer.Behaviors.TransitionTrigger" xml:space="preserve"><value>Transition trigger</value></data>
   <data name="Designer.Behaviors.TransitionHelp" xml:space="preserve"><value>ExitGraph runs before data changes. EnterGraph runs after data changes.</value></data>
-  <data name="Designer.Behaviors.ExitGraph" xml:space="preserve"><value>ExitGraph</value></data>
-  <data name="Designer.Behaviors.EnterGraph" xml:space="preserve"><value>EnterGraph</value></data>
+  <data name="Designer.Behaviors.ExitGraph" xml:space="preserve"><value>Exit animation</value></data>
+  <data name="Designer.Behaviors.EnterGraph" xml:space="preserve"><value>Enter animation</value></data>
   <data name="Designer.Behaviors.Event.CharacterPick" xml:space="preserve"><value>Character pick transition</value></data>
   <data name="Designer.Behaviors.Event.CharacterPick.Description" xml:space="preserve"><value>Runs transition graphs before and after a character pick commit.</value></data>
   <data name="Designer.Behaviors.Event.CharacterSwap" xml:space="preserve"><value>Survivor swap transition</value></data>

@@ -4282,7 +4282,9 @@
   <data name="DisplayValue" xml:space="preserve"><value>表示値</value></data>
   <data name="FilterText" xml:space="preserve"><value>フィルター値</value></data>
   <data name="CopyPath" xml:space="preserve"><value>パスをコピー</value></data>
+  <data name="CopyConditionPath" xml:space="preserve"><value>条件パスをコピー</value></data>
   <data name="CopyEqualsFilter" xml:space="preserve"><value>Equals フィルターをコピー</value></data>
+  <data name="CopyIfCondition" xml:space="preserve"><value>IF 条件をコピー</value></data>
   <data name="CopyContainsFilter" xml:space="preserve"><value>Contains フィルターをコピー</value></data>
   <data name="CopyValue" xml:space="preserve"><value>値をコピー</value></data>
   <data name="Designer.Behaviors.FilterHint.Action" xml:space="preserve"><value>PickSur、PickHun、BanSur などの enum 値を使用してください。</value></data>
@@ -4296,6 +4298,7 @@
   <data name="Designer.Behaviors.DefaultName" xml:space="preserve"><value>動作</value></data>
   <data name="Designer.Behaviors.CopyNameFormat" xml:space="preserve"><value>{0} のコピー</value></data>
   <data name="Designer.AnimationParts.Title" xml:space="preserve"><value>アニメーション部品</value></data>
+  <data name="Designer.AnimationParts.DefaultName" xml:space="preserve"><value>アニメーション部品</value></data>
   <data name="Designer.AnimationParts.Add" xml:space="preserve"><value>アニメーション部品を追加</value></data>
   <data name="Designer.AnimationParts.Remove" xml:space="preserve"><value>アニメーション部品を削除</value></data>
   <data name="Designer.AnimationParts.Apply" xml:space="preserve"><value>アニメーション部品の変更を適用</value></data>
@@ -4336,8 +4339,8 @@
   <data name="Designer.Behaviors.NewTransition" xml:space="preserve"><value>新しいトランジション動作</value></data>
   <data name="Designer.Behaviors.TransitionTrigger" xml:space="preserve"><value>トランジショントリガー</value></data>
   <data name="Designer.Behaviors.TransitionHelp" xml:space="preserve"><value>ExitGraph はデータ変更前に実行されます。EnterGraph はデータ変更後に実行されます。</value></data>
-  <data name="Designer.Behaviors.ExitGraph" xml:space="preserve"><value>ExitGraph</value></data>
-  <data name="Designer.Behaviors.EnterGraph" xml:space="preserve"><value>EnterGraph</value></data>
+  <data name="Designer.Behaviors.ExitGraph" xml:space="preserve"><value>退場アニメーション</value></data>
+  <data name="Designer.Behaviors.EnterGraph" xml:space="preserve"><value>登場アニメーション</value></data>
   <data name="Designer.Behaviors.Event.CharacterPick" xml:space="preserve"><value>キャラクター選択トランジション</value></data>
   <data name="Designer.Behaviors.Event.CharacterPick.Description" xml:space="preserve"><value>キャラクター選択の確定前後にトランジショングラフを実行します。</value></data>
   <data name="Designer.Behaviors.Event.CharacterSwap" xml:space="preserve"><value>サバイバー交換トランジション</value></data>

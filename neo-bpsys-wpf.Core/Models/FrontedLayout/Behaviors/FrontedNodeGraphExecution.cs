@@ -63,10 +63,39 @@ public enum FrontedGraphActionRequestType
 
 public sealed class FrontedGraphExecutionContext
 {
+    /// <summary>
+    /// Gets the behavior identifier associated with this graph execution.
+    /// </summary>
     public Guid BehaviorGuid { get; init; }
+
+    /// <summary>
+    /// Gets the display name of the control currently executing the graph.
+    /// </summary>
     public string CurrentControlDisplayName { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Gets the event type that provides <see cref="EventPayload"/>.
+    /// </summary>
     public string TriggerEventType { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Gets the current graph event payload resolved through <c>Event.*</c>.
+    /// </summary>
     public IReadOnlyDictionary<string, object?> EventPayload { get; init; } = new Dictionary<string, object?>();
+
+    /// <summary>
+    /// Gets the loop start event payload resolved through <c>StartEvent.*</c>.
+    /// </summary>
+    public IReadOnlyDictionary<string, object?> StartEventPayload { get; init; } = new Dictionary<string, object?>();
+
+    /// <summary>
+    /// Gets the loop stop event payload resolved through <c>StopEvent.*</c>.
+    /// </summary>
+    public IReadOnlyDictionary<string, object?> StopEventPayload { get; init; } = new Dictionary<string, object?>();
+
+    /// <summary>
+    /// Gets the action executor used by action nodes.
+    /// </summary>
     public IFrontedGraphActionExecutor? ActionExecutor { get; init; }
 }
 

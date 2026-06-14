@@ -62,6 +62,71 @@ public class FrontedNodeGraphEditorViewModelTest
     }
 
     [Fact]
+    public void TransitionCharacterPickCondition_UsesCatalogFieldsAndTypedValues()
+    {
+        var catalog = new FrontedNodeCatalog();
+        var ifNode = catalog.CreateNode("flow.if");
+        var behavior = new FrontedBehavior
+        {
+            Kind = FrontedBehaviorKind.Transition,
+            TransitionTrigger = new TriggerDescriptor { EventType = "Selection.CharacterPick" },
+            ExitGraph = new FrontedNodeGraph { Nodes = [ifNode] }
+        };
+        var editor = new FrontedBehaviorAnimationEditorViewModel(
+            behavior,
+            static (_, fallback) => fallback,
+            catalog: catalog);
+        var graphEditor = editor.Stages[0].GraphEditor;
+        var node = Assert.Single(graphEditor.Nodes);
+        var field = node.Properties.Single(property => property.Descriptor.Name == "Left");
+        var value = node.Properties.Single(property => property.Descriptor.Name == "Right");
+
+        Assert.Contains(field.ConditionFieldOptions, option => option.Path == "Event.HasOldCharacter");
+        Assert.Contains(field.ConditionFieldOptions, option => option.Path == "Event.HasNewCharacter");
+        Assert.Contains(field.ConditionFieldOptions, option => option.Path == "Event.Camp");
+        Assert.Contains(field.ConditionFieldOptions, option => option.Path == "Event.PlayerIndex");
+        Assert.Contains(field.ConditionFieldOptions, option => option.Path == "Event.OldCharacterId");
+        Assert.Contains(field.ConditionFieldOptions, option => option.Path == "Event.NewCharacterId");
+
+        field.ConditionFieldValue = "Event.HasOldCharacter";
+        Assert.True(value.IsBooleanConditionValue);
+        Assert.Equal(["true", "false"], value.ConditionValueOptions.Select(option => option.Value).ToArray());
+
+        field.ConditionFieldValue = "Event.Camp";
+        Assert.True(value.IsEnumConditionValue);
+        Assert.Equal(["Sur", "Hun"], value.ConditionValueOptions.Select(option => option.Value).ToArray());
+        value.ConditionChoiceValue = "Sur";
+        Assert.Equal("Sur", ifNode.Properties["Right"].GetString());
+    }
+
+    [Fact]
+    public void LoopStopCondition_OffersStopEventUnionAndStartEventFields()
+    {
+        var catalog = new FrontedNodeCatalog();
+        var behavior = new FrontedBehavior
+        {
+            Kind = FrontedBehaviorKind.Loop,
+            StartTrigger = new TriggerDescriptor { EventType = "Guidance.StepChanged" },
+            StopTriggers =
+            [
+                new TriggerDescriptor { EventType = "Guidance.Cancelled" },
+                new TriggerDescriptor { EventType = "Guidance.Stopped" }
+            ],
+            StopGraph = new FrontedNodeGraph { Nodes = [catalog.CreateNode("flow.if")] }
+        };
+        var editor = new FrontedBehaviorAnimationEditorViewModel(
+            behavior,
+            static (_, fallback) => fallback,
+            catalog: catalog);
+        var field = editor.Stages[2].GraphEditor.Nodes.Single().Properties
+            .Single(property => property.Descriptor.Name == "Left");
+
+        Assert.Contains(field.ConditionFieldOptions, option => option.Path == "StartEvent.Action");
+        Assert.Contains(field.ConditionFieldOptions, option => option.Path == "Event.Reason"
+            && option.DisplayName.Contains("Guidance.Cancelled", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void GraphEditor_MoveNode_UpdatesModelXY()
     {
         var editor = CreateEditorWithNodes("flow.start");

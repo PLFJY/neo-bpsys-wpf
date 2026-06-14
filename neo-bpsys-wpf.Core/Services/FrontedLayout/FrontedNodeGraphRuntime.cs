@@ -177,12 +177,49 @@ public sealed class FrontedNodeGraphRuntime(
 
     private static object? ResolveText(string value, FrontedGraphExecutionContext context)
     {
-        if (value.StartsWith("Event.", StringComparison.Ordinal))
+        if (TryResolvePayloadPath(value, "Event.", context.EventPayload, out var eventValue))
         {
-            return context.EventPayload.GetValueOrDefault(value["Event.".Length..]);
+            return eventValue;
+        }
+
+        if (TryResolvePayloadPath(value, "StartEvent.", context.StartEventPayload, out var startEventValue))
+        {
+            return startEventValue;
+        }
+
+        if (TryResolvePayloadPath(value, "StopEvent.", context.StopEventPayload, out var stopEventValue))
+        {
+            return stopEventValue;
+        }
+
+        if (value.StartsWith("Context.", StringComparison.Ordinal))
+        {
+            return value["Context.".Length..] switch
+            {
+                nameof(FrontedGraphExecutionContext.TriggerEventType) => context.TriggerEventType,
+                nameof(FrontedGraphExecutionContext.CurrentControlDisplayName) => context.CurrentControlDisplayName,
+                nameof(FrontedGraphExecutionContext.BehaviorGuid) => context.BehaviorGuid,
+                _ => null
+            };
         }
 
         return value;
+    }
+
+    private static bool TryResolvePayloadPath(
+        string value,
+        string prefix,
+        IReadOnlyDictionary<string, object?> payload,
+        out object? resolved)
+    {
+        if (!value.StartsWith(prefix, StringComparison.Ordinal))
+        {
+            resolved = null;
+            return false;
+        }
+
+        resolved = payload.GetValueOrDefault(value[prefix.Length..]);
+        return true;
     }
 
     private static string GetString(FrontedNode node, string name, string fallback = "")

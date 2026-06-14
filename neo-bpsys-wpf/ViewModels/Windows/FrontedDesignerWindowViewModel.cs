@@ -774,10 +774,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             .Select(item => item.Name)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
         var index = 1;
-        var name = "Swipe";
+        var defaultName = I18nHelper.GetLocalizedString("Designer.AnimationParts.DefaultName");
+        var name = defaultName;
         while (names.Contains(name))
         {
-            name = $"Swipe{index++}";
+            name = $"{defaultName}{index++}";
         }
 
         var created = new FrontedAnimationPartConfig

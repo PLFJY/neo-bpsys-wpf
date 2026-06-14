@@ -1495,7 +1495,8 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
         FrontedDesignerPreviewAnimationScope? previewAnimationScope = null,
         Action? markDirty = null,
         IReadOnlyList<FrontedNodeTargetOptionViewModel>? targetOptions = null,
-        Func<Task<bool>>? saveAsync = null)
+        Func<Task<bool>>? saveAsync = null,
+        FrontedBehaviorEventCatalog? eventCatalog = null)
     {
         _behavior = behavior;
         _runtime = runtime ?? new FrontedNodeGraphRuntime(catalog, validator);
@@ -1503,6 +1504,7 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
         _previewAnimationScope = previewAnimationScope;
         _localize = localize;
         _saveAsync = saveAsync;
+        eventCatalog ??= new FrontedBehaviorEventCatalog();
         Title = behavior.Name;
         IsLoop = behavior.Kind == FrontedBehaviorKind.Loop;
         IsTransition = behavior.Kind == FrontedBehaviorKind.Transition;
@@ -1510,16 +1512,16 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
         {
             FrontedBehaviorKind.Loop =>
             [
-                Stage(localize("Designer.Behaviors.StartAnimation", "Start animation"), behavior.StartGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions),
-                Stage(localize("Designer.Behaviors.LoopAnimation", "Loop animation"), behavior.LoopGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions),
-                Stage(localize("Designer.Behaviors.StopAnimation", "Stop animation"), behavior.StopGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions)
+                Stage(localize("Designer.Behaviors.StartAnimation", "Start animation"), behavior.StartGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions, BuildEventFields(eventCatalog, behavior.StartTrigger?.EventType, "Event.")),
+                Stage(localize("Designer.Behaviors.LoopAnimation", "Loop animation"), behavior.LoopGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions, BuildEventFields(eventCatalog, behavior.StartTrigger?.EventType, "Event.")),
+                Stage(localize("Designer.Behaviors.StopAnimation", "Stop animation"), behavior.StopGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions, BuildLoopStopFields(eventCatalog, behavior))
             ],
             FrontedBehaviorKind.Transition =>
             [
-                Stage(localize("Designer.Behaviors.ExitGraph", "ExitGraph"), behavior.ExitGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions),
-                Stage(localize("Designer.Behaviors.EnterGraph", "EnterGraph"), behavior.EnterGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions)
+                Stage(localize("Designer.Behaviors.ExitGraph", "Exit animation"), behavior.ExitGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions, BuildEventFields(eventCatalog, behavior.TransitionTrigger?.EventType, "Event.")),
+                Stage(localize("Designer.Behaviors.EnterGraph", "Enter animation"), behavior.EnterGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions, BuildEventFields(eventCatalog, behavior.TransitionTrigger?.EventType, "Event."))
             ],
-            _ => [Stage(localize("Designer.Behaviors.Animation", "Animation"), behavior.Graph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions)]
+            _ => [Stage(localize("Designer.Behaviors.Animation", "Animation"), behavior.Graph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions, BuildEventFields(eventCatalog, behavior.Trigger?.EventType, "Event."))]
         };
 
         // Wire each stage's graph editor save action to trigger SaveAllAsync on this animation editor.
@@ -1639,7 +1641,8 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
         FrontedDesignerPreviewAnimationScope? previewAnimationScope,
         Action? markDirty,
         Func<string, string, string> localize,
-        IReadOnlyList<FrontedNodeTargetOptionViewModel>? targetOptions)
+        IReadOnlyList<FrontedNodeTargetOptionViewModel>? targetOptions,
+        IReadOnlyList<FrontedGraphConditionFieldOptionViewModel> conditionFieldOptions)
     {
         var editorVm = new FrontedNodeGraphEditorViewModel(
             graph,
@@ -1650,11 +1653,59 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
             previewAnimationScope is null ? null : () => previewAnimationScope.CreateContext(),
             markDirty,
             localize,
-            targetOptions: targetOptions)
+            targetOptions: targetOptions,
+            conditionFieldOptions: conditionFieldOptions)
         {
             PreviewRoot = previewAnimationScope?.Root
         };
         return new(name, graph, editorVm);
+    }
+
+    private static IReadOnlyList<FrontedGraphConditionFieldOptionViewModel> BuildEventFields(
+        FrontedBehaviorEventCatalog eventCatalog,
+        string? eventType,
+        string prefix)
+    {
+        var descriptor = string.IsNullOrWhiteSpace(eventType) ? null : eventCatalog.Find(eventType);
+        return descriptor?.PayloadFields
+            .Select(field => CreateConditionField(field, prefix, eventType))
+            .ToArray() ?? [];
+    }
+
+    private static IReadOnlyList<FrontedGraphConditionFieldOptionViewModel> BuildLoopStopFields(
+        FrontedBehaviorEventCatalog eventCatalog,
+        FrontedBehavior behavior)
+    {
+        var fields = behavior.StopTriggers
+            .SelectMany(trigger => BuildEventFields(eventCatalog, trigger.EventType, "Event.")
+                .Select(field => field with { DisplayName = $"{field.Path} ({trigger.EventType})", EventType = trigger.EventType }))
+            .GroupBy(field => field.Path, StringComparer.Ordinal)
+            .Select(group =>
+            {
+                var first = group.First();
+                var eventTypes = group.Select(field => field.EventType).Where(value => !string.IsNullOrWhiteSpace(value)).Distinct(StringComparer.Ordinal);
+                return first with { DisplayName = $"{first.Path} ({string.Join(", ", eventTypes)})" };
+            })
+            .ToList();
+        fields.AddRange(BuildEventFields(eventCatalog, behavior.StartTrigger?.EventType, "StartEvent."));
+        return fields;
+    }
+
+    private static FrontedGraphConditionFieldOptionViewModel CreateConditionField(
+        FrontedBehaviorEventPayloadField field,
+        string prefix,
+        string? eventType)
+    {
+        var suffix = field.Path.StartsWith("Event.", StringComparison.Ordinal)
+            ? field.Path["Event.".Length..]
+            : field.Path;
+        var path = prefix + suffix;
+        return new FrontedGraphConditionFieldOptionViewModel(
+            path,
+            path,
+            field.TypeName,
+            field.EnumValues,
+            eventType);
     }
 
     private Task PreviewStartAsync() =>

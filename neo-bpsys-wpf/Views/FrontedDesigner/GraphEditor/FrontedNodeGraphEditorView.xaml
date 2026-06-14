@@ -353,7 +353,9 @@
                                                                                 VerticalAlignment="Center"
                                                                                 FontWeight="SemiBold"
                                                                                 Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                                                                                Text="{Binding DisplayName}" />
+                                                                                Text="{Binding HeaderText}"
+                                                                                TextTrimming="CharacterEllipsis"
+                                                                                ToolTip="{Binding HeaderText}" />
                                                                         </Grid>
                                                                     </Border>
                                                                 </ControlTemplate>
@@ -688,6 +690,41 @@
                                             PlaceholderText="{Binding Placeholder}"
                                             Text="{Binding TextValue, UpdateSourceTrigger=LostFocus}"
                                             Visibility="{Binding IsText, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                        <ComboBox
+                                            DisplayMemberPath="DisplayName"
+                                            ItemsSource="{Binding ConditionFieldOptions}"
+                                            SelectedValue="{Binding ConditionFieldValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            SelectedValuePath="Path"
+                                            Visibility="{Binding IsConditionField, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                        <ComboBox
+                                            DisplayMemberPath="DisplayName"
+                                            ItemsSource="{Binding ConditionOperatorOptions}"
+                                            SelectedValue="{Binding ConditionOperatorValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            SelectedValuePath="Value"
+                                            Visibility="{Binding IsConditionOperator, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                        <ui:TextBox
+                                            PlaceholderText="{Binding Placeholder}"
+                                            Text="{Binding TextValue, UpdateSourceTrigger=LostFocus}"
+                                            Visibility="{Binding IsTextConditionValue, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                        <ComboBox
+                                            DisplayMemberPath="DisplayName"
+                                            ItemsSource="{Binding ConditionValueOptions}"
+                                            SelectedValue="{Binding ConditionChoiceValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            SelectedValuePath="Value">
+                                            <ComboBox.Style>
+                                                <Style BasedOn="{StaticResource {x:Type ComboBox}}" TargetType="ComboBox">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsBooleanConditionValue}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding IsEnumConditionValue}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </ComboBox.Style>
+                                        </ComboBox>
                                         <Grid Visibility="{Binding IsNumber, Converter={StaticResource BooleanToVisibilityConverter}}">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*" />

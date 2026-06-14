@@ -59,6 +59,22 @@ package/
 
 Designer 的行为面板编辑当前选中控件的行为列表、触发器、过滤器和节点图。编辑结果进入同一 dirty tracking、Undo/Redo、保存、导入和导出流程。
 
+`flow.if` 保持兼容的 `Left / Operator / Right` 存储结构，但 Designer 会按当前行为和图阶段从
+`FrontedBehaviorEventCatalog` 构造条件字段。布尔字段使用 `true / false` 选择器，枚举字段保存稳定枚举名，
+数字字段使用数字编辑器；可选操作符也会按字段类型收窄。OneShot 使用 `Trigger.EventType`，Transition 的
+ExitGraph / EnterGraph 使用 `TransitionTrigger.EventType`，Loop 的 StartGraph / LoopGraph 使用
+`StartTrigger.EventType`。Loop StopGraph 合并所有 StopTrigger 的 `Event.*` 字段，并额外提供
+`StartEvent.*` 以读取启动循环时捕获的事件负载。
+
+运行时条件路径含义：
+
+| 路径 | 含义 |
+| --- | --- |
+| `Event.*` | 当前图阶段的事件负载；Loop StopGraph 中是实际匹配的停止事件 |
+| `StartEvent.*` | Loop 启动事件负载 |
+| `StopEvent.*` | Loop 停止事件负载 |
+| `Context.TriggerEventType` / `Context.CurrentControlDisplayName` | 图执行上下文元数据 |
+
 属性动画必须通过已注册 adapter。新增可动画属性时，应实现或扩展 `IAnimatablePropertyAdapter`，并保证捕获基础值、设置值、动画和 reset 的语义一致。
 
 ## Runtime services
