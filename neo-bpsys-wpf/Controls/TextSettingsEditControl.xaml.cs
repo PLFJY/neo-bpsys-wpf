@@ -91,6 +91,9 @@ public partial class TextSettingsEditControl : UserControl
         _closeAction?.Invoke();
     }
 
+    /// <summary>
+    /// 获取字体粗细列表。
+    /// </summary>
     public List<FontWeight> FontWeightList { get; } =
     [
         FontWeights.Thin,

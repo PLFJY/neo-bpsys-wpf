@@ -17,6 +17,9 @@ using neo_bpsys_wpf.Core;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
+/// <summary>
+/// SmartBP 页面视图模型，管理窗口捕获、OCR 模型下载/切换/删除、识别区域配置等 SmartBP 核心功能。
+/// </summary>
 public partial class SmartBpPageViewModel : ViewModelBase
 {
     // WGC API 可用最低版本：Windows 10 1803。
@@ -33,6 +36,9 @@ public partial class SmartBpPageViewModel : ViewModelBase
     private readonly DispatcherTimer _captureAspectRefreshTimer;
     private readonly ILogger<SmartBpPageViewModel> _logger;
 
+    /// <summary>
+    /// 用于设计时预览的无参构造函数。
+    /// </summary>
 #pragma warning disable CS8618
     public SmartBpPageViewModel()
 #pragma warning restore CS8618
@@ -94,50 +100,104 @@ public partial class SmartBpPageViewModel : ViewModelBase
         RefreshRegionAspectInfo();
     }
 
+    /// <summary>
+    /// 当前活动窗口列表。
+    /// </summary>
     [ObservableProperty] private List<WindowInfo> _activeWindows = [];
 
+    /// <summary>
+    /// 可选 OCR 模型列表。
+    /// </summary>
     [ObservableProperty] private List<OcrModelSelection> _ocrModelList = [];
 
+    /// <summary>
+    /// 当前选中的 OCR 模型。
+    /// </summary>
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(DownloadSelectedOcrModelCommand))]
     [NotifyCanExecuteChangedFor(nameof(DeleteSelectedOcrModelCommand))]
     [NotifyCanExecuteChangedFor(nameof(SwitchSelectedOcrModelCommand))]
     private OcrModelSelection? _selectedOcrModel;
 
+    /// <summary>
+    /// 是否正在下载 OCR 模型。
+    /// </summary>
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(DownloadSelectedOcrModelCommand))]
     [NotifyCanExecuteChangedFor(nameof(DeleteSelectedOcrModelCommand))]
     [NotifyCanExecuteChangedFor(nameof(SwitchSelectedOcrModelCommand))]
     private bool _isModelDownloading;
 
+    /// <summary>
+    /// 是否有精确下载进度（区别于不确定进度条）。
+    /// </summary>
     [ObservableProperty] private bool _hasPreciseDownloadProgress;
 
+    /// <summary>
+    /// OCR 模型下载进度值（0-100）。
+    /// </summary>
     [ObservableProperty] private double _modelDownloadProgress;
 
+    /// <summary>
+    /// OCR 模型下载进度文本（百分比）。
+    /// </summary>
     [ObservableProperty] private string _modelDownloadProgressText = string.Empty;
 
+    /// <summary>
+    /// OCR 模型下载阶段描述文本。
+    /// </summary>
     [ObservableProperty] private string _modelDownloadStageText = string.Empty;
 
+    /// <summary>
+    /// 当前 OCR 模型显示名称。
+    /// </summary>
     [ObservableProperty] private string _currentOcrModelDisplayName = "SmartBpCurrentOcrModelNotEnabled";
 
+    /// <summary>
+    /// 当前识别区域配置文件路径。
+    /// </summary>
     [ObservableProperty] private string _regionConfigPath = "-";
 
+    /// <summary>
+    /// 识别区域配置的比例文本（如 16:9）。
+    /// </summary>
     [ObservableProperty] private string _regionConfigAspectRatioText = "-";
 
+    /// <summary>
+    /// 当前捕获画面比例文本（如 16:9）。
+    /// </summary>
     [ObservableProperty] private string _captureAspectRatioText = "-";
 
+    /// <summary>
+    /// 区域比例状态文本。
+    /// </summary>
     [ObservableProperty] private string _regionAspectStatusText = "-";
 
+    /// <summary>
+    /// 区域比例提示文本。
+    /// </summary>
     [ObservableProperty] private string _regionAspectHintText = "-";
 
+    /// <summary>
+    /// 区域比例是否不匹配。
+    /// </summary>
     [ObservableProperty] private bool _regionAspectIsMismatch;
 
+    /// <summary>
+    /// 是否显示下载模型按钮。
+    /// </summary>
     public bool ShowDownloadModelButton => SelectedOcrModel is not { IsInstalled: true };
 
+    /// <summary>
+    /// 是否显示删除模型按钮。
+    /// </summary>
     public bool ShowDeleteModelButton => SelectedOcrModel is { IsInstalled: true };
 
     private WindowInfo? _selectedWindow;
 
+    /// <summary>
+    /// 当前选中的捕获窗口。
+    /// </summary>
     public WindowInfo? SelectedWindow
     {
         get => _selectedWindow;

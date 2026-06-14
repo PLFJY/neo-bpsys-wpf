@@ -1,12 +1,12 @@
-﻿using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Enums;
 
 namespace neo_bpsys_wpf.Core.Events;
 
 /// <summary>
 /// Ban位数量改变事件参数
 /// </summary>
-/// <param name="banListName"></param>
-/// <param name="index"></param>
+/// <param name="banListName">Ban位列表名称</param>
+/// <param name="index">Ban位索引</param>
 public class BanCountChangedEventArgs(BanListName banListName, int index) : EventArgs
 {
     /// <summary>

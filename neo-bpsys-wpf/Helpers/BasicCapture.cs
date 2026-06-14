@@ -43,6 +43,11 @@ namespace CaptureSampleCore
         private SharpDX.Direct3D11.Device d3dDevice;
         private SharpDX.DXGI.SwapChain1 swapChain;
 
+        /// <summary>
+        /// 初始化 BasicCapture 实例。
+        /// </summary>
+        /// <param name="d">WinRT Direct3D 设备。</param>
+        /// <param name="i">要捕获的 GraphicsCaptureItem。</param>
         public BasicCapture(IDirect3DDevice d, GraphicsCaptureItem i)
         {
             item = i;
@@ -81,6 +86,9 @@ namespace CaptureSampleCore
             framePool.FrameArrived += OnFrameArrived;
         }
 
+        /// <summary>
+        /// 释放所有捕获资源。
+        /// </summary>
         public void Dispose()
         {
             session?.Dispose();
@@ -89,6 +97,9 @@ namespace CaptureSampleCore
             d3dDevice?.Dispose();
         }
 
+        /// <summary>
+        /// 开始屏幕捕获。
+        /// </summary>
         public void StartCapture()
         {
             session.StartCapture();

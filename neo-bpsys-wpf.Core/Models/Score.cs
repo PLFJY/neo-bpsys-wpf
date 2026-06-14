@@ -39,6 +39,9 @@ public partial class Score : ObservableObjectBase
     /// </summary>
     [JsonIgnore] public string MajorPointsOnFront => $"W{Win}  D{Tie}";
 
+    /// <summary>
+    /// 重置所有比分数据为零。
+    /// </summary>
     public void Reset()
     {
         Win = 0;

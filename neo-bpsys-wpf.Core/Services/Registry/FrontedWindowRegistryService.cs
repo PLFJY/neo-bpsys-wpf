@@ -93,8 +93,16 @@ public sealed class FrontedWindowRegistryService : IFrontedWindowRegistry
         _pluginWindows = _windows.OfType<FrontedPluginWindowDescriptor>().ToArray();
     }
 
+    /// <summary>
+    /// 获取所有已注册的前台窗口描述符。
+    /// </summary>
+    /// <returns>前台窗口描述符列表。</returns>
     public IReadOnlyList<IFrontedWindowDescriptor> GetWindows() => _windows;
 
+    /// <summary>
+    /// 获取所有支持自定义布局的前台窗口描述符。
+    /// </summary>
+    /// <returns>可自定义布局的前台窗口描述符列表。</returns>
     public IReadOnlyList<IFrontedWindowDescriptor> GetCustomizableLayoutWindows()
     {
         return _windows
@@ -118,14 +126,34 @@ public sealed class FrontedWindowRegistryService : IFrontedWindowRegistry
             .ToArray();
     }
 
+    /// <summary>
+    /// 通过窗口 ID 查找前台窗口描述符。
+    /// </summary>
+    /// <param name="windowId">窗口 ID。</param>
+    /// <param name="descriptor">匹配的描述符（若找到）。</param>
+    /// <returns>是否找到匹配的描述符。</returns>
     public bool TryGetByWindowId(string windowId, out IFrontedWindowDescriptor descriptor) =>
         _byWindowId.TryGetValue(windowId, out descriptor!);
 
+    /// <summary>
+    /// 通过完整窗口类型名查找前台窗口描述符。
+    /// </summary>
+    /// <param name="fullWindowType">完整窗口类型名。</param>
+    /// <param name="descriptor">匹配的描述符（若找到）。</param>
+    /// <returns>是否找到匹配的描述符。</returns>
     public bool TryGetByFullWindowType(string fullWindowType, out IFrontedWindowDescriptor descriptor) =>
         _byFullWindowType.TryGetValue(fullWindowType, out descriptor!);
 
+    /// <summary>
+    /// 获取所有插件提供的前台窗口描述符。
+    /// </summary>
+    /// <returns>插件窗口描述符列表。</returns>
     public IReadOnlyList<FrontedPluginWindowDescriptor> GetPluginWindows() => _pluginWindows;
 
+    /// <summary>
+    /// 获取所有内置前台窗口描述符。
+    /// </summary>
+    /// <returns>内置窗口描述符列表。</returns>
     public IReadOnlyList<FrontedBuiltInWindowDescriptor> GetBuiltInWindows() => _builtInWindows;
 
     private static IReadOnlyList<FrontedBuiltInWindowDescriptor> GetBuiltInV3Windows()

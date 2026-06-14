@@ -19,10 +19,16 @@ using System.Windows;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
+/// <summary>
+/// 设置页面视图模型，管理应用版本、自动更新、语言、调试选项、开源依赖和经典模式等设置。
+/// </summary>
 public partial class SettingPageViewModel : ViewModelBase
 {
     private bool _isSyncingLogLevel;
 
+    /// <summary>
+    /// 用于设计时预览的无参构造函数。
+    /// </summary>
 #pragma warning disable CS8618
     public SettingPageViewModel()
 #pragma warning restore CS8618
@@ -34,12 +40,33 @@ public partial class SettingPageViewModel : ViewModelBase
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<SettingPageViewModel> _logger;
     private FrontedBehaviorEventDebuggerWindow? _behaviorEventDebuggerWindow;
+
+    /// <summary>
+    /// 获取更新服务。
+    /// </summary>
     public IUpdaterService UpdaterService { get; }
 
+    /// <summary>
+    /// 开源依赖列表第一列。
+    /// </summary>
     public List<OpenSourceRepo> OpenSourceRepoColumn1 { get; }
+    /// <summary>
+    /// 开源依赖列表第二列。
+    /// </summary>
     public List<OpenSourceRepo> OpenSourceRepoColumn2 { get; }
+    /// <summary>
+    /// 开源依赖列表第三列。
+    /// </summary>
     public List<OpenSourceRepo> OpenSourceRepoColumn3 { get; }
 
+    /// <summary>
+    /// 初始化设置页面视图模型。
+    /// </summary>
+    /// <param name="updaterService">更新服务</param>
+    /// <param name="settingsHostService">设置宿主服务</param>
+    /// <param name="pluginMarketService">插件市场服务</param>
+    /// <param name="serviceProvider">服务提供程序</param>
+    /// <param name="logger">日志记录器</param>
     public SettingPageViewModel(
         IUpdaterService updaterService,
         ISettingsHostService settingsHostService,
@@ -70,6 +97,9 @@ public partial class SettingPageViewModel : ViewModelBase
         OpenSourceRepoColumn3 = columns[2];
     }
 
+    /// <summary>
+    /// 获取或设置是否使用经典模式。切换后需要重启生效。
+    /// </summary>
     public bool IsClassicMode
     {
         get => _settingsHostService.Settings.IsClassicMode;
@@ -123,9 +153,15 @@ public partial class SettingPageViewModel : ViewModelBase
 
     #region 调试选项
 
+    /// <summary>
+    /// 当前选择的日志级别。
+    /// </summary>
     [ObservableProperty]
     private AppLogLevel _selectedLogLevel;
 
+    /// <summary>
+    /// 可选日志级别字典，键为本地化 Key，值为对应级别。
+    /// </summary>
     public Dictionary<string, AppLogLevel> LogLevelOptions { get; } = new()
     {
         { "LogLevelVerbose", AppLogLevel.Verbose },

@@ -17,6 +17,9 @@ namespace neo_bpsys_wpf.Controls.Modern.Frame;
 [TemplatePart(Name = NewContentPresenterPartName, Type = typeof(ContentPresenter))]
 [TemplatePart(Name = DirectContentPresenterPartName, Type = typeof(ContentPresenter))]
 [TemplatePart(Name = ContentScrollHostPartName, Type = typeof(ModernScrollViewer))]
+/// <summary>
+/// 现代帧控件，提供带过渡动画的页面导航功能，支持导航历史堆栈和返回操作。
+/// </summary>
 public class ModernFrame : Control
 {
     private const string RootPartName = "PART_Root";
@@ -25,6 +28,9 @@ public class ModernFrame : Control
     private const string DirectContentPresenterPartName = "PART_DirectContentPresenter";
     private const string ContentScrollHostPartName = "PART_ContentScrollHost";
 
+    /// <summary>
+    /// <see cref="DefaultTransitionInfo"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty DefaultTransitionInfoProperty =
         DependencyProperty.Register(
             nameof(DefaultTransitionInfo),
@@ -32,6 +38,9 @@ public class ModernFrame : Control
             typeof(ModernFrame),
             new PropertyMetadata(null));
 
+    /// <summary>
+    /// <see cref="TransitionDuration"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty TransitionDurationProperty =
         DependencyProperty.Register(
             nameof(TransitionDuration),
@@ -39,6 +48,9 @@ public class ModernFrame : Control
             typeof(ModernFrame),
             new PropertyMetadata(TimeSpan.FromMilliseconds(240)));
 
+    /// <summary>
+    /// <see cref="IsAnimationEnabled"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty IsAnimationEnabledProperty =
         DependencyProperty.Register(
             nameof(IsAnimationEnabled),
@@ -46,6 +58,9 @@ public class ModernFrame : Control
             typeof(ModernFrame),
             new PropertyMetadata(true));
 
+    /// <summary>
+    /// <see cref="IsContentScrollHostEnabled"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty IsContentScrollHostEnabledProperty =
         DependencyProperty.Register(
             nameof(IsContentScrollHostEnabled),
@@ -53,6 +68,9 @@ public class ModernFrame : Control
             typeof(ModernFrame),
             new PropertyMetadata(true, OnIsContentScrollHostEnabledChanged));
 
+    /// <summary>
+    /// <see cref="ContentScrollHostMode"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty ContentScrollHostModeProperty =
         DependencyProperty.Register(
             nameof(ContentScrollHostMode),
@@ -60,6 +78,9 @@ public class ModernFrame : Control
             typeof(ModernFrame),
             new PropertyMetadata(ModernFrameContentScrollHostMode.Enabled, OnContentScrollHostModeChanged));
 
+    /// <summary>
+    /// <see cref="ResetScrollOnNavigation"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty ResetScrollOnNavigationProperty =
         DependencyProperty.Register(
             nameof(ResetScrollOnNavigation),
@@ -67,6 +88,9 @@ public class ModernFrame : Control
             typeof(ModernFrame),
             new PropertyMetadata(true));
 
+    /// <summary>
+    /// <see cref="CurrentContent"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty CurrentContentProperty =
         DependencyProperty.Register(
             nameof(CurrentContent),
@@ -74,6 +98,9 @@ public class ModernFrame : Control
             typeof(ModernFrame),
             new PropertyMetadata(null));
 
+    /// <summary>
+    /// <see cref="CanGoBack"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty CanGoBackProperty =
         DependencyProperty.Register(
             nameof(CanGoBack),
@@ -94,6 +121,9 @@ public class ModernFrame : Control
     private FrameworkElement? _activeHostedContent;
     private bool _isUsingContentScrollHostForActiveContent = true;
 
+    /// <summary>
+    /// 初始化 <see cref="ModernFrame"/> 的新实例。
+    /// </summary>
     public ModernFrame()
     {
         Focusable = false;
@@ -103,56 +133,86 @@ public class ModernFrame : Control
         Template = CreateDefaultTemplate();
     }
 
+    /// <summary>
+    /// 获取或设置默认的导航过渡信息。
+    /// </summary>
     public ModernNavigationTransitionInfo DefaultTransitionInfo
     {
         get => (ModernNavigationTransitionInfo)GetValue(DefaultTransitionInfoProperty);
         set => SetValue(DefaultTransitionInfoProperty, value);
     }
 
+    /// <summary>
+    /// 获取或设置导航过渡动画的持续时间。
+    /// </summary>
     public TimeSpan TransitionDuration
     {
         get => (TimeSpan)GetValue(TransitionDurationProperty);
         set => SetValue(TransitionDurationProperty, value);
     }
 
+    /// <summary>
+    /// 获取或设置一个值，指示是否启用导航过渡动画。
+    /// </summary>
     public bool IsAnimationEnabled
     {
         get => (bool)GetValue(IsAnimationEnabledProperty);
         set => SetValue(IsAnimationEnabledProperty, value);
     }
 
+    /// <summary>
+    /// 获取或设置一个值，指示是否启用内容滚动宿主。
+    /// </summary>
     public bool IsContentScrollHostEnabled
     {
         get => (bool)GetValue(IsContentScrollHostEnabledProperty);
         set => SetValue(IsContentScrollHostEnabledProperty, value);
     }
 
+    /// <summary>
+    /// 获取或设置内容滚动宿主的行为模式。
+    /// </summary>
     public ModernFrameContentScrollHostMode ContentScrollHostMode
     {
         get => (ModernFrameContentScrollHostMode)GetValue(ContentScrollHostModeProperty);
         set => SetValue(ContentScrollHostModeProperty, value);
     }
 
+    /// <summary>
+    /// 获取或设置一个值，指示导航时是否重置滚动位置。
+    /// </summary>
     public bool ResetScrollOnNavigation
     {
         get => (bool)GetValue(ResetScrollOnNavigationProperty);
         set => SetValue(ResetScrollOnNavigationProperty, value);
     }
 
+    /// <summary>
+    /// 获取当前显示的内容元素。
+    /// </summary>
     public FrameworkElement? CurrentContent
     {
         get => (FrameworkElement?)GetValue(CurrentContentProperty);
         private set => SetValue(CurrentContentProperty, value);
     }
 
+    /// <summary>
+    /// 获取一个值，指示是否可以执行后退导航。
+    /// </summary>
     public bool CanGoBack
     {
         get => (bool)GetValue(CanGoBackProperty);
         private set => SetValue(CanGoBackProperty, value);
     }
 
+    /// <summary>
+    /// 获取或设置用于依赖注入的服务提供程序。
+    /// </summary>
     public IServiceProvider? ServiceProvider { get; set; }
 
+    /// <summary>
+    /// 获取内部的内容滚动宿主控件。
+    /// </summary>
     public ModernScrollViewer ContentScrollHost
     {
         get
@@ -162,20 +222,44 @@ public class ModernFrame : Control
         }
     }
 
+    /// <summary>
+    /// 在导航即将发生时引发，允许取消导航。
+    /// </summary>
     public event EventHandler<ModernFrameNavigatingEventArgs>? Navigating;
 
+    /// <summary>
+    /// 在导航完成后引发。
+    /// </summary>
     public event EventHandler<ModernFrameNavigationEventArgs>? Navigated;
 
+    /// <summary>
+    /// 导航到指定页面类型。
+    /// </summary>
+    /// <param name="pageType">目标页面类型，必须可创建 <see cref="FrameworkElement"/>。</param>
+    /// <returns>如果导航成功则为 <c>true</c>。</returns>
     public bool Navigate(Type pageType)
     {
         return Navigate(pageType, null, null);
     }
 
+    /// <summary>
+    /// 导航到指定页面类型并传递参数。
+    /// </summary>
+    /// <param name="pageType">目标页面类型。</param>
+    /// <param name="parameter">导航参数。</param>
+    /// <returns>如果导航成功则为 <c>true</c>。</returns>
     public bool Navigate(Type pageType, object? parameter)
     {
         return Navigate(pageType, parameter, null);
     }
 
+    /// <summary>
+    /// 导航到指定页面类型，使用指定的过渡信息并传递参数。
+    /// </summary>
+    /// <param name="pageType">目标页面类型。</param>
+    /// <param name="parameter">导航参数。</param>
+    /// <param name="transitionInfo">过渡信息，为 <c>null</c> 时使用 <see cref="DefaultTransitionInfo"/>。</param>
+    /// <returns>如果导航成功则为 <c>true</c>。</returns>
     public bool Navigate(Type pageType, object? parameter, ModernNavigationTransitionInfo? transitionInfo)
     {
         ArgumentNullException.ThrowIfNull(pageType);
@@ -183,11 +267,22 @@ public class ModernFrame : Control
         return NavigateCore(() => CreateContentFromType(pageType), parameter, transitionInfo, addCurrentToBackStack: true, ModernFrameNavigationMode.New);
     }
 
+    /// <summary>
+    /// 导航到指定的 <see cref="FrameworkElement"/> 内容。
+    /// </summary>
+    /// <param name="content">要导航到的内容元素。</param>
+    /// <returns>如果导航成功则为 <c>true</c>。</returns>
     public bool Navigate(FrameworkElement content)
     {
         return Navigate(content, null);
     }
 
+    /// <summary>
+    /// 导航到指定的 <see cref="FrameworkElement"/> 内容，使用指定的过渡信息。
+    /// </summary>
+    /// <param name="content">要导航到的内容元素。</param>
+    /// <param name="transitionInfo">过渡信息。</param>
+    /// <returns>如果导航成功则为 <c>true</c>。</returns>
     public bool Navigate(FrameworkElement content, ModernNavigationTransitionInfo? transitionInfo)
     {
         ArgumentNullException.ThrowIfNull(content);
@@ -195,11 +290,22 @@ public class ModernFrame : Control
         return NavigateCore(content, null, transitionInfo, addCurrentToBackStack: true, ModernFrameNavigationMode.New);
     }
 
+    /// <summary>
+    /// 使用内容工厂方法进行导航，支持延迟创建内容元素。
+    /// </summary>
+    /// <param name="contentFactory">创建内容元素的工厂方法。</param>
+    /// <returns>如果导航成功则为 <c>true</c>。</returns>
     public bool Navigate(Func<FrameworkElement> contentFactory)
     {
         return Navigate(contentFactory, null);
     }
 
+    /// <summary>
+    /// 使用内容工厂方法进行导航，使用指定的过渡信息。
+    /// </summary>
+    /// <param name="contentFactory">创建内容元素的工厂方法。</param>
+    /// <param name="transitionInfo">过渡信息。</param>
+    /// <returns>如果导航成功则为 <c>true</c>。</returns>
     public bool Navigate(Func<FrameworkElement> contentFactory, ModernNavigationTransitionInfo? transitionInfo)
     {
         ArgumentNullException.ThrowIfNull(contentFactory);
@@ -207,11 +313,25 @@ public class ModernFrame : Control
         return NavigateCore(contentFactory, null, transitionInfo, addCurrentToBackStack: true, ModernFrameNavigationMode.New);
     }
 
+    /// <summary>
+    /// 导航到指定内容。内容可以是 <see cref="Type"/>、<see cref="FrameworkElement"/> 或 <see cref="Func{FrameworkElement}"/>。
+    /// </summary>
+    /// <param name="content">要导航到的内容。</param>
+    /// <returns>如果导航成功则为 <c>true</c>。</returns>
     public bool Navigate(object content)
     {
         return Navigate(content, null, null);
     }
 
+    /// <summary>
+    /// 导航到指定内容，传递参数并使用指定的过渡信息。
+    /// 内容可以是 <see cref="Type"/>、<see cref="FrameworkElement"/> 或 <see cref="Func{FrameworkElement}"/>。
+    /// </summary>
+    /// <param name="content">要导航到的内容。</param>
+    /// <param name="parameter">导航参数。</param>
+    /// <param name="transitionInfo">过渡信息。</param>
+    /// <returns>如果导航成功则为 <c>true</c>。</returns>
+    /// <exception cref="ArgumentException">当 <paramref name="content"/> 不是有效的导航内容类型时抛出。</exception>
     public bool Navigate(object content, object? parameter, ModernNavigationTransitionInfo? transitionInfo = null)
     {
         ArgumentNullException.ThrowIfNull(content);
@@ -226,6 +346,10 @@ public class ModernFrame : Control
         };
     }
 
+    /// <summary>
+    /// 返回到上一个页面。
+    /// </summary>
+    /// <returns>如果成功返回则为 <c>true</c>，如果导航堆栈为空则为 <c>false</c>。</returns>
     public bool GoBack()
     {
         EnsureTemplateParts();
@@ -243,12 +367,18 @@ public class ModernFrame : Control
         return NavigateCore(entry.CreateContent(), entry.Parameter, entry.TransitionInfo, addCurrentToBackStack: false, ModernFrameNavigationMode.Back);
     }
 
+    /// <summary>
+    /// 清除导航历史记录。
+    /// </summary>
     public void ClearJournal()
     {
         _backStack.Clear();
         UpdateCanGoBack();
     }
 
+    /// <summary>
+    /// 当控件模板应用时，初始化模板部件并恢复活动内容。
+    /// </summary>
     public override void OnApplyTemplate()
     {
         var oldHostedContent = _activeHostedContent;

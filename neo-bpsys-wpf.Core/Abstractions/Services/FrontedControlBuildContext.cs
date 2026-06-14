@@ -37,8 +37,14 @@ public class FrontedControlBuildContext
     /// </summary>
     public string? CanvasBackgroundImage { get; init; }
 
+    /// <summary>
+    /// Canvas 宽度。
+    /// </summary>
     public double CanvasWidth { get; init; }
 
+    /// <summary>
+    /// Canvas 高度。
+    /// </summary>
     public double CanvasHeight { get; init; }
 
     /// <summary>

@@ -7,9 +7,15 @@ using System.Collections.ObjectModel;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
+/// <summary>
+/// 求生者禁用页面视图模型，管理当前局和全局求生者禁用列表。
+/// </summary>
 public partial class BanSurPageViewModel : ViewModelBase
 {
 #pragma warning disable CS8618
+    /// <summary>
+    /// 用于设计时预览的无参构造函数。
+    /// </summary>
     public BanSurPageViewModel()
 #pragma warning restore CS8618
     {
@@ -18,8 +24,16 @@ public partial class BanSurPageViewModel : ViewModelBase
 
     private readonly ISharedDataService _sharedDataService;
 
+    /// <summary>
+    /// 获取当前局求生者禁用位是否启用的列表。
+    /// </summary>
     public ObservableCollection<bool> CanCurrentHunBanned => _sharedDataService.CanCurrentSurBannedList;
 
+    /// <summary>
+    /// 初始化求生者禁用页面视图模型。
+    /// </summary>
+    /// <param name="sharedDataService">共享数据服务</param>
+    /// <param name="characterSelectionService">角色选择服务</param>
     public BanSurPageViewModel(ISharedDataService sharedDataService,
         ICharacterSelectionService characterSelectionService)
     {
@@ -36,14 +50,30 @@ public partial class BanSurPageViewModel : ViewModelBase
         ];
     }
 
+    /// <summary>
+    /// 当前局求生者禁用视图模型列表。
+    /// </summary>
     public ObservableCollection<BanSurCurrentViewModel> BanSurCurrentViewModelList { get; set; }
+
+    /// <summary>
+    /// 全局求生者禁用视图模型列表。
+    /// </summary>
     public ObservableCollection<BanSurGlobalViewModel> BanSurGlobalViewModelList { get; set; }
 
     //基于模板基类的VM实现
+    /// <summary>
+    /// 当前局求生者禁用视图模型。
+    /// </summary>
     public class BanSurCurrentViewModel : CharaSelectViewModelBase
     {
         private readonly ICharacterSelectionService _characterSelectionService;
 
+        /// <summary>
+        /// 初始化当前局求生者禁用视图模型。
+        /// </summary>
+        /// <param name="sharedDataService">共享数据服务</param>
+        /// <param name="characterSelectionService">角色选择服务</param>
+        /// <param name="index">序号</param>
         public BanSurCurrentViewModel(ISharedDataService sharedDataService,
             ICharacterSelectionService characterSelectionService,
             int index = 0) : base(sharedDataService, Camp.Sur, index)
@@ -81,8 +111,16 @@ public partial class BanSurPageViewModel : ViewModelBase
         protected override bool IsActionNameCorrect(GameAction? action) => action == GameAction.BanSur;
     }
 
+    /// <summary>
+    /// 全局求生者禁用视图模型。
+    /// </summary>
     public class BanSurGlobalViewModel : CharaSelectViewModelBase
     {
+        /// <summary>
+        /// 初始化全局求生者禁用视图模型。
+        /// </summary>
+        /// <param name="sharedDataService">共享数据服务</param>
+        /// <param name="index">序号</param>
         public BanSurGlobalViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService,
             Camp.Sur,
             index)

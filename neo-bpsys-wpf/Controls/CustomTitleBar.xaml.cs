@@ -79,74 +79,109 @@ public partial class CustomTitleBar : UserControl
         window.Close();
     }
 
+    /// <summary>
+    /// 获取或设置一个值，指示主题切换按钮是否已选中。
+    /// </summary>
     public bool IsThemeChangeChecked
     {
         get => (bool)GetValue(IsThemeChangeCheckedProperty);
         set => SetValue(IsThemeChangeCheckedProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for IsThemeChangeChecked.  This enables animation, styling, binding, etc...
+    /// <summary>
+    /// <see cref="IsThemeChangeChecked"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty IsThemeChangeCheckedProperty =
         DependencyProperty.Register(nameof(IsThemeChangeChecked), typeof(bool), typeof(CustomTitleBar), new PropertyMetadata(true));
 
+    /// <summary>
+    /// 获取或设置一个值，指示主题切换按钮是否可见。
+    /// </summary>
     public bool IsThemeChangeVisible
     {
         get => (bool)GetValue(IsThemeChangeButtonVisibleProperty);
         set => SetValue(IsThemeChangeButtonVisibleProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for IsThemeChangeVisible.  This enables animation, styling, binding, etc...
+    /// <summary>
+    /// <see cref="IsThemeChangeVisible"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty IsThemeChangeButtonVisibleProperty =
         DependencyProperty.Register(nameof(IsThemeChangeVisible), typeof(bool), typeof(CustomTitleBar), new PropertyMetadata(true));
 
+    /// <summary>
+    /// 获取或设置主题切换按钮点击时执行的命令。
+    /// </summary>
     public ICommand ThemeChangeCommand
     {
         get => (ICommand)GetValue(ThemeChangeCommandProperty);
         set => SetValue(ThemeChangeCommandProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for ThemeChangeCommand.  This enables animation, styling, binding, etc...
+    /// <summary>
+    /// <see cref="ThemeChangeCommand"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty ThemeChangeCommandProperty =
         DependencyProperty.Register(nameof(ThemeChangeCommand), typeof(ICommand), typeof(CustomTitleBar), new PropertyMetadata(null));
 
+    /// <summary>
+    /// 获取或设置一个值，指示最大化按钮是否可见。
+    /// </summary>
     public bool IsMaximizeVisible
     {
         get => (bool)GetValue(IsMaximizeVisibleProperty);
         set => SetValue(IsMaximizeVisibleProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for IsMaximizeVisible.  This enables animation, styling, binding, etc...
+    /// <summary>
+    /// <see cref="IsMaximizeVisible"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty IsMaximizeVisibleProperty =
         DependencyProperty.Register(nameof(IsMaximizeVisible), typeof(bool), typeof(CustomTitleBar), new PropertyMetadata(true));
 
+    /// <summary>
+    /// 获取或设置一个值，指示最小化按钮是否可见。
+    /// </summary>
     public bool IsMinimizeVisible
     {
         get => (bool)GetValue(IsMinimizeVisibleProperty);
         set => SetValue(IsMinimizeVisibleProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for IsMinimizeVisible.  This enables animation, styling, binding, etc...
+    /// <summary>
+    /// <see cref="IsMinimizeVisible"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty IsMinimizeVisibleProperty =
         DependencyProperty.Register(nameof(IsMinimizeVisible), typeof(bool), typeof(CustomTitleBar), new PropertyMetadata(true));
 
+    /// <summary>
+    /// 获取或设置一个值，指示置顶按钮是否可见。
+    /// </summary>
     public bool IsTopMostVisible
     {
         get => (bool)GetValue(IsTopMostVisibleProperty);
         set => SetValue(IsTopMostVisibleProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for IsTopMostVisible.  This enables animation, styling, binding, etc...
+    /// <summary>
+    /// <see cref="IsTopMostVisible"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty IsTopMostVisibleProperty =
         DependencyProperty.Register(nameof(IsTopMostVisible), typeof(bool), typeof(CustomTitleBar), new PropertyMetadata(true));
 
 
+    /// <summary>
+    /// 获取或设置标题栏的图标。
+    /// </summary>
     public ImageSource Icon
     {
         get => (ImageSource)GetValue(IconProperty);
         set => SetValue(IconProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for Icon.  This enables animation, styling, binding, etc...
+    /// <summary>
+    /// <see cref="Icon"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty IconProperty =
         DependencyProperty.Register(nameof(Icon), typeof(ImageSource), typeof(CustomTitleBar), new PropertyMetadata(null));
 }

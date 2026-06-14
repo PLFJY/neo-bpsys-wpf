@@ -8,7 +8,7 @@ public interface IFilePickerService
     /// <summary>
     /// 选择 bpui 文件
     /// </summary>
-    /// <returns></returns>
+    /// <returns>文件路径，未选择时返回 null</returns>
     string? PickBpuiFile();
 
     /// <summary>

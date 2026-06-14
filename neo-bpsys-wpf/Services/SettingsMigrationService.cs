@@ -46,6 +46,12 @@ public class SettingsMigrationService : ISettingsMigrationService
         return SettingsConfigVersionHelper.InspectJson(json).IsLegacy;
     }
 
+    /// <summary>
+    /// 将旧版配置迁移到 v3 格式。
+    /// </summary>
+    /// <param name="configFilePath">配置文件路径。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>迁移结果。</returns>
     public async Task<SettingsMigrationResult> MigrateLegacyConfigToV3Async(
         string configFilePath,
         CancellationToken cancellationToken = default)

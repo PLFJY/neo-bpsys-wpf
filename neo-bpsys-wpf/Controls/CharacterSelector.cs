@@ -8,106 +8,159 @@ using System.Windows.Media;
 
 namespace neo_bpsys_wpf.Controls;
 
+/// <summary>
+/// 角色选择器控件，提供下拉列表选择角色并支持搜索功能。
+/// </summary>
 public class CharacterSelector : Control
 {
+    /// <summary>
+    /// 获取或设置一个值，指示是否启用简单模式。
+    /// </summary>
     public bool IsSimpleModeEnabled
     {
         get => (bool)GetValue(IsSimpleModeEnabledProperty);
         set => SetValue(IsSimpleModeEnabledProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for IsSimpleModeEnabled.  This enables animation, styling, binding, etc...
+    /// <summary>
+    /// <see cref="IsSimpleModeEnabled"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty IsSimpleModeEnabledProperty =
         DependencyProperty.Register(nameof(IsSimpleModeEnabled), typeof(bool), typeof(CharacterSelector), new PropertyMetadata(false));
 
+    /// <summary>
+    /// 获取或设置在确认选择时执行的命令。
+    /// </summary>
     public ICommand Command
     {
         get => (ICommand)GetValue(CommandProperty);
         set => SetValue(CommandProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for Command.  This enables animation, styling, binding, etc...
+    /// <summary>
+    /// <see cref="Command"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty CommandProperty =
         DependencyProperty.Register(nameof(Command), typeof(ICommand), typeof(CharacterSelector), new PropertyMetadata(null));
 
+    /// <summary>
+    /// 获取或设置角色图片源。
+    /// </summary>
     public ImageSource ImageSource
     {
         get => (ImageSource)GetValue(ImageSourceProperty);
         set => SetValue(ImageSourceProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for ImageSource.  This enables animation, styling, binding, etc...
+    /// <summary>
+    /// <see cref="ImageSource"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty ImageSourceProperty =
         DependencyProperty.Register(nameof(ImageSource), typeof(ImageSource), typeof(CharacterSelector), new PropertyMetadata(null));
 
+    /// <summary>
+    /// 获取或设置显示的文本。
+    /// </summary>
     public string Text
     {
         get => (string)GetValue(TextProperty);
         set => SetValue(TextProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for Text.  This enables animation, styling, binding, etc...
+    /// <summary>
+    /// <see cref="Text"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty TextProperty =
         DependencyProperty.Register(nameof(Text), typeof(string), typeof(CharacterSelector), new PropertyMetadata(string.Empty));
 
 
+    /// <summary>
+    /// 获取或设置下拉列表的项源。
+    /// </summary>
     public IEnumerable ItemsSource
     {
         get => (IEnumerable)GetValue(ItemsSourceProperty);
         set => SetValue(ItemsSourceProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for ItemsSource.  This enables animation, styling, binding, etc...
+    /// <summary>
+    /// <see cref="ItemsSource"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty ItemsSourceProperty =
         DependencyProperty.Register(nameof(ItemsSource), typeof(IEnumerable), typeof(CharacterSelector), new PropertyMetadata(null));
 
+    /// <summary>
+    /// 获取或设置一个值，指示下拉列表是否已打开。
+    /// </summary>
     public bool IsDropDownOpen
     {
         get => (bool)GetValue(IsDropDownOpenProperty);
         set => SetValue(IsDropDownOpenProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for IsDropDownOpen.  This enables animation, styling, binding, etc...
+    /// <summary>
+    /// <see cref="IsDropDownOpen"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty IsDropDownOpenProperty =
         DependencyProperty.Register(nameof(IsDropDownOpen), typeof(bool), typeof(CharacterSelector), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
 
+    /// <summary>
+    /// 获取或设置当前选中项的索引。
+    /// </summary>
     public int SelectedIndex
     {
         get => (int)GetValue(SelectedIndexProperty);
         set => SetValue(SelectedIndexProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for PickedMapIndex.  This enables animation, styling, binding, etc...
+    /// <summary>
+    /// <see cref="SelectedIndex"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty SelectedIndexProperty =
         DependencyProperty.Register(nameof(SelectedIndex), typeof(int), typeof(CharacterSelector), new FrameworkPropertyMetadata(-1, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
 
+    /// <summary>
+    /// 获取或设置当前选中的项。
+    /// </summary>
     public object SelectedItem
     {
         get => (object)GetValue(SelectedItemProperty);
         set => SetValue(SelectedItemProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for SelectedItem.  This enables animation, styling, binding, etc...
+    /// <summary>
+    /// <see cref="SelectedItem"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty SelectedItemProperty =
         DependencyProperty.Register(nameof(SelectedItem), typeof(object), typeof(CharacterSelector), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
 
+    /// <summary>
+    /// 获取或设置当前选中的值。
+    /// </summary>
     public object SelectedValue
     {
         get => (object)GetValue(SelectedValueProperty);
         set => SetValue(SelectedValueProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for SelectedValue.  This enables animation, styling, binding, etc...
+    /// <summary>
+    /// <see cref="SelectedValue"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty SelectedValueProperty =
         DependencyProperty.Register(nameof(SelectedValue), typeof(object), typeof(CharacterSelector), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
 
+    /// <summary>
+    /// 获取或设置一个值，指示控件是否应高亮显示。
+    /// </summary>
     public bool IsHighlighted
     {
         get => (bool)GetValue(IsHighlightedProperty);
         set => SetValue(IsHighlightedProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for IsHighlighted.  This enables animation, styling, binding, etc...
+    /// <summary>
+    /// <see cref="IsHighlighted"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty IsHighlightedProperty =
         DependencyProperty.Register(nameof(IsHighlighted), typeof(bool), typeof(CharacterSelector), new PropertyMetadata(false));
 
@@ -120,7 +173,9 @@ public class CharacterSelector : Control
         set => SetValue(DisabledKeysProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for DisabledKeys.
+    /// <summary>
+    /// <see cref="DisabledKeys"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty DisabledKeysProperty =
         DependencyProperty.Register(nameof(DisabledKeys), typeof(ISet<string>), typeof(CharacterSelector),
             new PropertyMetadata(null));

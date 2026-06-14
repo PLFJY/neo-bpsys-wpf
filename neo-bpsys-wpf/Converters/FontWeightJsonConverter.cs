@@ -58,6 +58,13 @@ public class FontWeightJsonConverter : JsonConverter<FontWeight>
         }
     }
 
+    /// <summary>
+    /// 将 FontWeight 值写入 JSON，以字符串名称形式输出。
+    /// </summary>
+    /// <param name="writer">UTF-8 JSON 写入器</param>
+    /// <param name="value">要序列化的 FontWeight 值</param>
+    /// <param name="options">序列化选项</param>
+    /// <exception cref="JsonException">不支持的 FontWeight 值时抛出</exception>
     public override void Write(Utf8JsonWriter writer, FontWeight value, JsonSerializerOptions options)
     {
         var name = StringMap.FirstOrDefault(kvp => kvp.Value == value).Key

@@ -16,12 +16,18 @@ using Team = neo_bpsys_wpf.Core.Models.Team;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
+/// <summary>
+/// 地图 BP 页面视图模型，管理地图选择和禁用流程。
+/// </summary>
 public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMessage>
 {
     private readonly ISharedDataService _sharedDataService;
     private readonly ISettingsHostService? _settingsHostService;
 
 
+    /// <summary>
+    /// 用于设计时预览的无参构造函数。
+    /// </summary>
 #pragma warning disable CS8618 
     public MapBpPageViewModel()
 #pragma warning restore CS8618 
@@ -30,11 +36,20 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
         // Decorative constructor for design-time only.
     }
 
+    /// <summary>
+    /// 初始化地图 BP 页面视图模型。
+    /// </summary>
+    /// <param name="sharedDataService">共享数据服务</param>
     public MapBpPageViewModel(ISharedDataService sharedDataService)
         : this(sharedDataService, null)
     {
     }
 
+    /// <summary>
+    /// 初始化地图 BP 页面视图模型。
+    /// </summary>
+    /// <param name="sharedDataService">共享数据服务</param>
+    /// <param name="settingsHostService">设置宿主服务</param>
     public MapBpPageViewModel(ISharedDataService sharedDataService, ISettingsHostService? settingsHostService)
     {
         _sharedDataService = sharedDataService;
@@ -74,10 +89,16 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
         }
     }
 
+    /// <summary>
+    /// 获取当前比赛数据。
+    /// </summary>
     public Game CurrentGame => _sharedDataService.CurrentGame;
 
     private bool _breathing;
 
+    /// <summary>
+    /// 获取或设置地图是否处于呼吸灯闪烁状态。
+    /// </summary>
     public bool IsBreathing
     {
         get => _breathing;
@@ -87,6 +108,9 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
 
     private bool _isCampVisible;
 
+    /// <summary>
+    /// 获取或设置地图阵营是否可见。
+    /// </summary>
     public bool IsCampVisible
     {
         get => _isCampVisible;
@@ -96,6 +120,9 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
 
     private Map? _pickedMap;
 
+    /// <summary>
+    /// 获取或设置当前选中的地图。
+    /// </summary>
     public Map? PickedMap
     {
         get => _pickedMap;
@@ -111,6 +138,9 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
         _sharedDataService.CurrentGame.PickMap(map, PickMapTeam.Team);
     }
 
+    /// <summary>
+    /// 当前选图队伍。
+    /// </summary>
     [ObservableProperty] private MapSelectTeam _pickMapTeam;
 
     partial void OnPickMapTeamChanged(MapSelectTeam value)
@@ -119,8 +149,14 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
         PickMap(_pickedMap);
     }
 
+    /// <summary>
+    /// 已禁用的地图列表。
+    /// </summary>
     public List<BanMapInfo> BannedMap { get; }
 
+    /// <summary>
+    /// 当前禁用地图队伍。
+    /// </summary>
     [ObservableProperty] private MapSelectTeam _banMapTeam;
 
     [RelayCommand]
@@ -179,26 +215,45 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
 
     public List<MapSelectTeam> MapSelectTeamsList { get; }
 
+    /// <summary>
+    /// 地图选择队伍项。
+    /// </summary>
+    /// <param name="team">队伍数据。</param>
+    /// <param name="teamType">队伍类型（主/客队）。</param>
     public class MapSelectTeam(Team team, TeamType teamType)
     {
+        /// <summary>队伍数据。</summary>
         public Team Team { get; } = team;
+        /// <summary>队伍类型。</summary>
         public TeamType TeamType { get; } = teamType;
     }
 
+    /// <summary>
+    /// 地图选择项，包含地图数据和对应图片。
+    /// </summary>
+    /// <param name="map">地图数据。</param>
     public class MapSelection(MapV2? map = null)
     {
+        /// <summary>地图数据。</summary>
         public MapV2 Map { get; } = map ?? new MapV2(null);
 
+        /// <summary>地图图片源。</summary>
         public ImageSource? ImageSource { get; } =
             ImageHelper.GetImageSourceFromName(ImageSourceKey.map, map?.MapName.ToString());
     }
 
+    /// <summary>
+    /// 禁用地图信息，包含地图数据和禁用状态图片。
+    /// </summary>
+    /// <param name="map">地图数据。</param>
     public class BanMapInfo(MapV2 map)
     {
         private ImageSource? _imageSource;
 
+        /// <summary>地图数据。</summary>
         public MapV2 Map { get; } = map;
 
+        /// <summary>禁用状态下的地图图片源。</summary>
         public ImageSource? ImageSource
         {
             get

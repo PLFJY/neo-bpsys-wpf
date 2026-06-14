@@ -16,6 +16,9 @@ using System.IO.Compression;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
+/// <summary>
+/// 插件页面视图模型，管理插件列表的显示、启用/禁用、卸载以及从文件安装插件。
+/// </summary>
 public partial class PluginPageViewModel : ViewModelBase
 {
     private readonly IPluginService _pluginService;
@@ -27,6 +30,9 @@ public partial class PluginPageViewModel : ViewModelBase
     private readonly IPluginInstallService _pluginInstallService;
 
 #pragma warning disable CS8618 
+    /// <summary>
+    /// 用于设计时预览的无参构造函数。
+    /// </summary>
     public PluginPageViewModel()
 #pragma warning restore CS8618 
     {
@@ -34,6 +40,16 @@ public partial class PluginPageViewModel : ViewModelBase
         MarketPluginsCollection = [];
     }
 
+    /// <summary>
+    /// 初始化插件页面视图模型。
+    /// </summary>
+    /// <param name="pluginService">插件服务</param>
+    /// <param name="filePickerService">文件选择服务</param>
+    /// <param name="logger">日志记录器</param>
+    /// <param name="settingsHostService">设置宿主服务</param>
+    /// <param name="pluginMarketService">插件市场服务</param>
+    /// <param name="infoBarService">信息栏服务</param>
+    /// <param name="pluginInstallService">插件安装服务</param>
     public PluginPageViewModel(IPluginService pluginService, IFilePickerService filePickerService,
         ILogger<PluginPageViewModel> logger, ISettingsHostService settingsHostService, IPluginMarketService pluginMarketService,
         IInfoBarService infoBarService,
@@ -51,8 +67,14 @@ public partial class PluginPageViewModel : ViewModelBase
         InitializePluginMarket();
     }
 
+    /// <summary>
+    /// 获取或设置是否需要重启以生效插件更改。
+    /// </summary>
     [ObservableProperty] private bool _isRestartNeeded;
 
+    /// <summary>
+    /// 获取或设置已加载插件列表。
+    /// </summary>
     [ObservableProperty] private ObservableCollection<PluginInfo> _pluginsCollection;
 
     [RelayCommand]

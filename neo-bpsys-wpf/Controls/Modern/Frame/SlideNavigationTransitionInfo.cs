@@ -8,8 +8,14 @@ using System.Windows.Media.Animation;
 namespace neo_bpsys_wpf.Controls.Modern.Frame;
 
 // Inspired by iNKORE.UI.WPF.Modern SlideNavigationTransitionInfo.
+/// <summary>
+/// 滑动导航过渡信息。内容从左、右或底部滑入/滑出。
+/// </summary>
 public sealed class SlideNavigationTransitionInfo : ModernNavigationTransitionInfo
 {
+    /// <summary>
+    /// <see cref="Effect"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty EffectProperty =
         DependencyProperty.Register(
             nameof(Effect),
@@ -17,6 +23,9 @@ public sealed class SlideNavigationTransitionInfo : ModernNavigationTransitionIn
             typeof(SlideNavigationTransitionInfo),
             new PropertyMetadata(SlideNavigationTransitionEffect.FromBottom));
 
+    /// <summary>
+    /// 获取或设置滑动过渡的方向效果。
+    /// </summary>
     public SlideNavigationTransitionEffect Effect
     {
         get => (SlideNavigationTransitionEffect)GetValue(EffectProperty);

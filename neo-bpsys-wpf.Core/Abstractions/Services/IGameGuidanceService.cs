@@ -84,19 +84,19 @@ public interface IGameGuidanceService
     /// <summary>
     /// 启动对局引导
     /// </summary>
-    /// <returns></returns>
+    /// <returns>错误信息，如果启动成功则返回 <c>null</c></returns>
     Task<string?> StartGuidance();
 
     /// <summary>
-    /// 下一步·
+    /// 下一步
     /// </summary>
-    /// <returns></returns>
+    /// <returns>错误信息，如果执行成功则返回 <c>null</c></returns>
     Task<string?> NextStepAsync();
 
     /// <summary>
     /// 上一步
     /// </summary>
-    /// <returns></returns>
+    /// <returns>错误信息，如果执行成功则返回 <c>null</c></returns>
     Task<string?> PrevStepAsync();
 
     /// <summary>

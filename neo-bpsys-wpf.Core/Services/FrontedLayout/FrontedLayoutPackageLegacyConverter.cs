@@ -25,6 +25,10 @@ using static neo_bpsys_wpf.Core.Services.FrontedLayout.LegacyConvertMessageHelpe
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
+/// <summary>
+/// 旧版前台布局包转换器，负责将旧版 .bpui 格式的布局包迁移为 v3 窗口化布局格式。
+/// 支持从 .bpui 压缩包、本地 AppData 目录或指定目录的旧版布局进行转换。
+/// </summary>
 public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageLegacyConverter
 {
     private const string ManifestFileName = "manifest.json";
@@ -84,6 +88,12 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         Converters = { new FontWeightJsonConverter() }
     };
 
+    /// <summary>
+    /// 使用默认内置布局根路径初始化转换器。
+    /// </summary>
+    /// <param name="packageImporter">包导入器。</param>
+    /// <param name="validator">布局校验器。</param>
+    /// <param name="logger">日志记录器。</param>
     public FrontedLayoutPackageLegacyConverter(
         IFrontedLayoutPackageImporter packageImporter,
         FrontedLayoutValidator validator,
@@ -97,6 +107,14 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
     {
     }
 
+    /// <summary>
+    /// 使用自定义内置布局根路径和临时路径初始化转换器。
+    /// </summary>
+    /// <param name="builtInLayoutRoot">内置布局根目录。</param>
+    /// <param name="tempRoot">临时文件根目录。</param>
+    /// <param name="packageImporter">包导入器（可选）。</param>
+    /// <param name="validator">布局校验器（可选）。</param>
+    /// <param name="logger">日志记录器（可选）。</param>
     public FrontedLayoutPackageLegacyConverter(
         string builtInLayoutRoot,
         string tempRoot,
@@ -110,6 +128,12 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         _logger = logger ?? NullLogger<FrontedLayoutPackageLegacyConverter>.Instance;
     }
 
+    /// <summary>
+    /// 执行旧版布局包到 v3 格式的转换。
+    /// </summary>
+    /// <param name="request">转换请求参数。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>转换结果，包含转换后的布局、消息和资源信息。</returns>
     public async Task<FrontedLayoutPackageLegacyConvertResult> ConvertAsync(
         FrontedLayoutPackageLegacyConvertRequest request,
         CancellationToken cancellationToken = default)

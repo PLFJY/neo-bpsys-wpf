@@ -12,6 +12,14 @@ namespace neo_bpsys_wpf.Converters;
 /// </summary>
 public class ComboBoxItemIsEnabledConverter : IMultiValueConverter
 {
+    /// <summary>
+    /// 判断 ComboBoxItem 是否可启用。
+    /// </summary>
+    /// <param name="values">values[0] 为 KeyValuePair{string, Character}（当前项），values[1] 为 ISet{string}（应禁用的角色名称集合）</param>
+    /// <param name="targetType">目标类型</param>
+    /// <param name="parameter">转换器参数</param>
+    /// <param name="culture">区域性信息</param>
+    /// <returns>当前项不在禁用集合中时返回 true，否则返回 false</returns>
     public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
     {
         if (values is [KeyValuePair<string, Character> kvp, ISet<string> disabled])
@@ -19,6 +27,15 @@ public class ComboBoxItemIsEnabledConverter : IMultiValueConverter
         return true;
     }
 
+    /// <summary>
+    /// 不支持反向转换。
+    /// </summary>
+    /// <param name="value">值</param>
+    /// <param name="targetTypes">目标类型数组</param>
+    /// <param name="parameter">转换器参数</param>
+    /// <param name="culture">区域性信息</param>
+    /// <returns>不支持</returns>
+    /// <exception cref="NotSupportedException">始终抛出</exception>
     public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
         => throw new NotSupportedException();
 }

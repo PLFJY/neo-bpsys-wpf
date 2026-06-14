@@ -13,8 +13,14 @@ using Team = neo_bpsys_wpf.Core.Models.Team;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
+/// <summary>
+/// 比分预览行数据，用于在比分页面表格中展示单场/半场信息。
+/// </summary>
 public sealed class ScorePreviewRow
 {
+    /// <summary>
+    /// 构造比分预览行数据。
+    /// </summary>
     public ScorePreviewRow(
         string gameLabel,
         string halfLabel,
@@ -47,25 +53,58 @@ public sealed class ScorePreviewRow
         AwayTeamName = awayTeamName;
     }
 
+    /// <summary>比赛标签（如"第 1 局"）。</summary>
     public string GameLabel { get; }
+
+    /// <summary>半场标签（"上半场" / "下半场"）。</summary>
     public string HalfLabel { get; }
+
+    /// <summary>比赛进度。</summary>
     public GameProgress Progress { get; }
+
+    /// <summary>进度文本。</summary>
     public string ProgressText { get; }
+
+    /// <summary>结果文本。</summary>
     public string ResultText { get; }
+
+    /// <summary>主队阵营文本。</summary>
     public string HomeCampText { get; }
+
+    /// <summary>客队阵营文本。</summary>
     public string AwayCampText { get; }
+
+    /// <summary>主队小分文本。</summary>
     public string HomeMinorScoreText { get; }
+
+    /// <summary>客队小分文本。</summary>
     public string AwayMinorScoreText { get; }
+
+    /// <summary>是否有结果。</summary>
     public bool HasResult { get; }
+
+    /// <summary>是否为当前进度。</summary>
     public bool IsCurrentProgress { get; }
+
+    /// <summary>行状态文本。</summary>
     public string RowStatusText { get; }
+
+    /// <summary>主队名称。</summary>
     public string HomeTeamName { get; }
+
+    /// <summary>客队名称。</summary>
     public string AwayTeamName { get; }
 }
 
+/// <summary>
+/// 比分页面视图模型，管理比赛比分控制、比分预览行展示和比分操作。
+/// </summary>
 public partial class ScorePageViewModel : ViewModelBase
 {
 #pragma warning disable CS8618
+    /// <summary>
+    /// 用于设计时预览的无参构造函数。
+    /// </summary>
     public ScorePageViewModel()
 #pragma warning restore CS8618
     {
@@ -77,6 +116,11 @@ public partial class ScorePageViewModel : ViewModelBase
     private Game? _subscribedGame;
     private MatchScoreState? _subscribedMatchScore;
 
+    /// <summary>
+    /// 初始化比分页面视图模型。
+    /// </summary>
+    /// <param name="sharedDataService">共享数据服务</param>
+    /// <param name="matchScoreService">比赛比分服务</param>
     public ScorePageViewModel(
         ISharedDataService sharedDataService,
         IMatchScoreService matchScoreService)
@@ -89,11 +133,21 @@ public partial class ScorePageViewModel : ViewModelBase
         RefreshScorePageState();
     }
 
+    /// <summary>获取当前比赛数据。</summary>
     public Game CurrentGame => _sharedDataService.CurrentGame;
+
+    /// <summary>获取主队数据。</summary>
     public Team HomeTeam => _sharedDataService.HomeTeam;
+
+    /// <summary>获取客队数据。</summary>
     public Team AwayTeam => _sharedDataService.AwayTeam;
+
+    /// <summary>获取比分控件是否可用。</summary>
     public bool IsScoreControlEnabled => _sharedDataService.CurrentGame.GameProgress > GameProgress.Free;
 
+    /// <summary>
+    /// 获取或设置当前半场的比赛结果。
+    /// </summary>
     public GameResult? SelectedCurrentHalfResult
     {
         get => _matchScoreService.CurrentHalf?.Result;
@@ -107,6 +161,7 @@ public partial class ScorePageViewModel : ViewModelBase
         }
     }
 
+    /// <summary>比分预览行列表。</summary>
     public ObservableCollection<ScorePreviewRow> ScorePreviewRows { get; } = [];
 
     #region 比分控制

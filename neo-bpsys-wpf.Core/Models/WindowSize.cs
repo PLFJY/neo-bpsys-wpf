@@ -19,11 +19,10 @@ public partial class WindowSize: ObservableObjectBase
     [ObservableProperty] private double _height;
 
     /// <summary>
-    /// 构造
+    /// 使用指定的宽度和高度构造窗体大小实例。
     /// </summary>
     /// <param name="width">宽度</param>
     /// <param name="height">高度</param>
-    /// <returns>新的窗体大小实例</returns>
     public WindowSize(double width, double height)
     {
         Width = width;

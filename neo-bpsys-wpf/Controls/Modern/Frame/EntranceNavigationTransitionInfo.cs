@@ -8,6 +8,9 @@ using System.Windows.Media.Animation;
 namespace neo_bpsys_wpf.Controls.Modern.Frame;
 
 // Inspired by iNKORE.UI.WPF.Modern EntranceNavigationTransitionInfo.
+/// <summary>
+/// 进入式导航过渡信息。新内容从底部滑入，后退时使用淡入过渡。
+/// </summary>
 public sealed class EntranceNavigationTransitionInfo : ModernNavigationTransitionInfo
 {
     internal override Storyboard CreateEnterStoryboard(FrameworkElement element, bool movingBackwards, TimeSpan duration)

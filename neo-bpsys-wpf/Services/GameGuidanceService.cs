@@ -329,19 +329,49 @@ public class GameGuidanceService(
         }
     }
 
+    /// <summary>
+    /// 对局属性（包含各阶段禁选数量与工作流）。
+    /// </summary>
     public class GameProperty
     {
+        /// <summary>
+        /// 求生者当局禁用数量。
+        /// </summary>
         public int SurCurrentBan { get; set; } = 4;
+        /// <summary>
+        /// 监管者当局禁用数量。
+        /// </summary>
         public int HunCurrentBan { get; set; } = 2;
+        /// <summary>
+        /// 求生者全局禁用数量。
+        /// </summary>
         public int SurGlobalBan { get; set; } = 9;
+        /// <summary>
+        /// 监管者全局禁用数量。
+        /// </summary>
         public int HunGlobalBan { get; set; } = 3;
+        /// <summary>
+        /// 对局工作流步骤列表。
+        /// </summary>
         public List<Step> WorkFlow { get; set; } = [];
     }
 
+    /// <summary>
+    /// 对局引导工作流步骤。
+    /// </summary>
     public class Step
     {
+        /// <summary>
+        /// 步骤对应的游戏动作。
+        /// </summary>
         public GameAction Action { get; set; }
+        /// <summary>
+        /// 步骤关联的索引列表。
+        /// </summary>
         public List<int> Index { get; set; } = [];
+        /// <summary>
+        /// 步骤时限（秒），可为 <see langword="null"/>。
+        /// </summary>
         public int? Time { get; set; }
     }
 }

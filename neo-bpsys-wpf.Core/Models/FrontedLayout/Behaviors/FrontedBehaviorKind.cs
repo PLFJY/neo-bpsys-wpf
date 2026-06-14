@@ -2,6 +2,9 @@ using System.Text.Json.Serialization;
 
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 
+/// <summary>
+/// 前台行为类型。
+/// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum FrontedBehaviorKind
 {

@@ -6,8 +6,17 @@ using neo_bpsys_wpf.Core.Messages;
 
 namespace neo_bpsys_wpf.Controls.Modern.Scrolling;
 
+/// <summary>
+/// 提供引导系统的滚动辅助方法，包括目标匹配、查找和滚动到视图。
+/// </summary>
 public static class GuidanceScrollHelper
 {
+    /// <summary>
+    /// 检查指定的目标元素是否与引导高亮消息匹配。
+    /// </summary>
+    /// <param name="target">要检查的目标元素。</param>
+    /// <param name="message">引导高亮消息。</param>
+    /// <returns>如果匹配则为 <c>true</c>。</returns>
     public static bool IsTargetMatch(FrameworkElement target, HighlightMessage message)
     {
         ArgumentNullException.ThrowIfNull(target);
@@ -33,6 +42,12 @@ public static class GuidanceScrollHelper
         return message.Index?.Contains(targetIndex.Value) == true;
     }
 
+    /// <summary>
+    /// 在指定范围内查找与引导高亮消息最匹配的目标元素。
+    /// </summary>
+    /// <param name="scope">搜索范围的根元素。</param>
+    /// <param name="message">引导高亮消息。</param>
+    /// <returns>最匹配的 <see cref="FrameworkElement"/>，如果未找到则为 <c>null</c>。</returns>
     public static FrameworkElement? FindBestTarget(DependencyObject scope, HighlightMessage message)
     {
         ArgumentNullException.ThrowIfNull(scope);
@@ -57,6 +72,12 @@ public static class GuidanceScrollHelper
         return candidates.FirstOrDefault()?.Target;
     }
 
+    /// <summary>
+    /// 将指定的目标元素滚动到视图中。
+    /// </summary>
+    /// <param name="target">要滚动到视图中的目标元素。</param>
+    /// <param name="topMargin">顶部边距，默认为 80。</param>
+    /// <param name="animated">是否使用动画，默认为 <c>true</c>。</param>
     public static void ScrollElementIntoView(FrameworkElement target, double topMargin = 80, bool animated = true)
     {
         ArgumentNullException.ThrowIfNull(target);

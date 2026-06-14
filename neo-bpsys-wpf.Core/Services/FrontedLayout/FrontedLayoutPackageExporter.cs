@@ -16,6 +16,10 @@ using System.Text.RegularExpressions;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
+/// <summary>
+/// 前台布局包导出器，负责将当前的 v3 布局导出为 .bpui 格式的压缩包。
+/// 导出时会收集布局文件中引用的外部资源（图片、字体等）并一同打包。
+/// </summary>
 public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
 {
     private static readonly Regex SafePackageIdRegex = new(
@@ -78,6 +82,18 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
     {
     }
 
+    /// <summary>
+    /// 使用自定义包根路径和临时路径初始化导出器。
+    /// </summary>
+    /// <param name="layoutCatalog">布局目录。</param>
+    /// <param name="layoutService">布局服务。</param>
+    /// <param name="windowLayoutOptionsService">窗口布局选项服务。</param>
+    /// <param name="packageRoot">包存储根目录。</param>
+    /// <param name="tempRoot">临时文件根目录。</param>
+    /// <param name="logger">日志记录器。</param>
+    /// <param name="controlRegistry">控件注册表（可选）。</param>
+    /// <param name="pluginMetadataProvider">插件元数据提供者（可选）。</param>
+    /// <param name="behaviorService">行为服务（可选）。</param>
     public FrontedLayoutPackageExporter(
         FrontedDesignerLayoutCatalog layoutCatalog,
         IFrontedLayoutService layoutService,
@@ -101,6 +117,12 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
         _behaviorService = behaviorService;
     }
 
+    /// <summary>
+    /// 执行布局包导出，将选定的 v3 布局及其引用的资源打包为 .bpui 文件。
+    /// </summary>
+    /// <param name="request">导出请求参数。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>导出结果。</returns>
     public async Task<FrontedLayoutPackageExportResult> ExportAsync(
         FrontedLayoutPackageExportRequest request,
         CancellationToken cancellationToken = default)
@@ -166,6 +188,11 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
         }
     }
 
+    /// <summary>
+    /// 验证 PackageId 是否安全（仅包含小写字母数字和 <c>._-</c> 字符，不含空白、<c>..</c> 或 <c>%</c>）。
+    /// </summary>
+    /// <param name="packageId">待验证的包 ID。</param>
+    /// <returns>是否安全。</returns>
     public static bool IsSafePackageId(string packageId)
     {
         return !string.IsNullOrWhiteSpace(packageId)

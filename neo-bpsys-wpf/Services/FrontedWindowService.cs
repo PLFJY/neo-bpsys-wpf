@@ -36,10 +36,24 @@ public class FrontedWindowService : IFrontedWindowService
     private readonly ILogger<FrontedWindowService> _logger;
     private readonly IFrontedEventBus? _eventBus;
 
+    /// <summary>
+    /// 前台窗口字典，键为窗口 ID。
+    /// </summary>
     public Dictionary<string, Window> FrontedWindows { get; private set; } = [];
 
+    /// <summary>
+    /// 前台窗口状态字典，键为窗口 ID，值为窗口是否可见。
+    /// </summary>
     public Dictionary<string, bool> FrontedWindowStates { get; private set; } = [];
 
+    /// <summary>
+    /// 初始化前台窗口服务。
+    /// </summary>
+    /// <param name="services">服务提供者。</param>
+    /// <param name="windowRegistry">窗口注册表。</param>
+    /// <param name="windowLayoutOptionsService">窗口布局选项服务。</param>
+    /// <param name="logger">日志记录器。</param>
+    /// <param name="eventBus">前台事件总线（可选）。</param>
     public FrontedWindowService(
         IServiceProvider services,
         IFrontedWindowRegistry windowRegistry,
@@ -163,6 +177,16 @@ public class FrontedWindowService : IFrontedWindowService
 
         var window = (_services.GetService(windowType)
                       ?? ActivatorUtilities.CreateInstance(_services, windowType)) as Window;
+    /// <summary>
+    /// 获取指定前台窗口类型的显示名称。
+    /// </summary>
+    /// <param name="windowType">窗口类型。</param>
+    /// <returns>显示名称；未找到时返回 <see langword="null"/>。</returns>
+    /// <summary>
+    /// 获取指定窗口 ID 的显示名称。
+    /// </summary>
+    /// <param name="windowId">窗口 ID。</param>
+    /// <returns>显示名称；未找到时返回 <see langword="null"/>。</returns>
         if (window is null)
         {
             return null;
@@ -174,11 +198,17 @@ public class FrontedWindowService : IFrontedWindowService
                                  ?? ActivatorUtilities.CreateInstance(_services, viewModelType);
         }
 
+    /// <summary>
+    /// 显示所有前台窗口。
+    /// </summary>
         return window;
     }
 
     public string? GetWindowName(FrontedWindowType windowType)
     {
+    /// <summary>
+    /// 隐藏所有前台窗口。
+    /// </summary>
         return GetWindowName(FrontedWindowHelper.GetFrontedWindowGuid(windowType));
     }
 
@@ -211,6 +241,10 @@ public class FrontedWindowService : IFrontedWindowService
         }
     }
 
+    /// <summary>
+    /// 隐藏指定类型的前台窗口。
+    /// </summary>
+    /// <param name="windowType">窗口类型。</param>
     public void HideWindow(FrontedWindowType windowType)
     {
         HideWindow(FrontedWindowHelper.GetFrontedWindowGuid(windowType));
@@ -243,6 +277,10 @@ public class FrontedWindowService : IFrontedWindowService
         ShowWindow(FrontedWindowHelper.GetFrontedWindowGuid(windowType));
     }
 
+    /// <summary>
+    /// 显示指定 ID 的前台窗口。
+    /// </summary>
+    /// <param name="windowId">窗口 ID。</param>
     public async void ShowWindow(string windowId)
     {
         await ShowWindowAsync(windowId);
@@ -333,6 +371,11 @@ public class FrontedWindowService : IFrontedWindowService
         window.SetCurrentValue(Window.BackgroundProperty, brush);
     }
 
+    /// <summary>
+    /// 应用指定窗口的背景色。
+    /// </summary>
+    /// <param name="fullWindowType">完整窗口类型名。</param>
+    /// <returns>成功返回 <see langword="true"/>，否则返回 <see langword="false"/>。</returns>
     public async Task<bool> ApplyWindowBackgroundColorAsync(string fullWindowType)
     {
         if (!_windowRegistry.TryGetByFullWindowType(fullWindowType, out var descriptor)
@@ -363,6 +406,11 @@ public class FrontedWindowService : IFrontedWindowService
         return true;
     }
 
+    /// <summary>
+    /// 应用指定窗口的尺寸。
+    /// </summary>
+    /// <param name="fullWindowType">完整窗口类型名。</param>
+    /// <returns>成功返回 <see langword="true"/>，否则返回 <see langword="false"/>。</returns>
     public async Task<bool> ApplyWindowSizeAsync(string fullWindowType)
     {
         if (!_windowRegistry.TryGetByFullWindowType(fullWindowType, out var descriptor)

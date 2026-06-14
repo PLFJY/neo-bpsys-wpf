@@ -6,6 +6,10 @@ using System.Text;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
+/// <summary>
+/// 旧版布局包转换消息格式化器，用于生成面向用户和技术人员的转换结果摘要文本。
+/// 按严重级别（错误、警告、兼容性提示）分组输出消息。
+/// </summary>
 public static class LegacyConversionMessageFormatter
 {
     private const int MaxUserSummaryItems = 3;

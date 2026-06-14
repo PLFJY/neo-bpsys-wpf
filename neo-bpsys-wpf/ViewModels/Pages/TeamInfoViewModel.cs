@@ -20,18 +20,32 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 
 public partial class TeamInfoPageViewModel
 {
+    /// <summary>
+    /// 队伍信息视图模型，管理单个队伍的名称、颜色、Logo 和成员信息。
+    /// </summary>
     public partial class TeamInfoViewModel : ViewModelBase
     {
 #pragma warning disable CS8618 
+        /// <summary>
+        /// 用于设计时预览的无参构造函数。
+        /// </summary>
         public TeamInfoViewModel()
 #pragma warning restore CS8618 
         {
             // Decorative constructor for design-time only.
         }
 
+        /// <summary>
+        /// 获取当前管理的队伍数据。
+        /// </summary>
         public Team CurrentTeam { get; private set; }
         private readonly IFilePickerService _filePickerService;
 
+        /// <summary>
+        /// 初始化队伍信息视图模型。
+        /// </summary>
+        /// <param name="team">队伍数据</param>
+        /// <param name="filePickerService">文件选择服务</param>
         public TeamInfoViewModel(Team team, IFilePickerService filePickerService)
         {
             CurrentTeam = team;
@@ -53,6 +67,9 @@ public partial class TeamInfoPageViewModel
         private Color _teamColorPickerValue = Colors.White;
         private bool _syncingTeamColorEditor;
 
+        /// <summary>
+        /// 获取或设置队伍颜色选择器的当前颜色值。
+        /// </summary>
         public Color TeamColorPickerValue
         {
             get => _teamColorPickerValue;

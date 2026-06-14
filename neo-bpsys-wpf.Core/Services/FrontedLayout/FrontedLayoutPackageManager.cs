@@ -11,9 +11,20 @@ using System.Text.RegularExpressions;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
+/// <summary>
+/// 前台布局包管理器，负责布局包的安装、激活、删除、复制以及包列表查询等功能。
+/// 内置包（PackageId = "builtin"）为只读的默认布局方案，本地包（PackageId = "local"）为不可激活的资源包。
+/// </summary>
 public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
 {
+    /// <summary>
+    /// 内置布局包的 PackageId。
+    /// </summary>
     public const string BuiltInPackageId = "builtin";
+
+    /// <summary>
+    /// 本地资源包的 PackageId，不可激活为布局方案。
+    /// </summary>
     public const string LocalPackageId = "local";
     private const string ActivePackageFileName = "active-package.json";
     private const string ManifestFileName = "manifest.json";
@@ -44,11 +55,20 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
     {
     }
 
+    /// <summary>
+    /// 使用默认路径和指定的日志记录器初始化布局包管理器。
+    /// </summary>
+    /// <param name="logger">日志记录器。</param>
     public FrontedLayoutPackageManager(ILogger<FrontedLayoutPackageManager> logger)
         : this(logger, null)
     {
     }
 
+    /// <summary>
+    /// 使用默认路径、日志记录器和本地化委托初始化布局包管理器。
+    /// </summary>
+    /// <param name="logger">日志记录器。</param>
+    /// <param name="localize">本地化委托，用于翻译包名称和描述。</param>
     public FrontedLayoutPackageManager(
         ILogger<FrontedLayoutPackageManager> logger,
         Func<string, string>? localize)
@@ -61,6 +81,14 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
     {
     }
 
+    /// <summary>
+    /// 使用自定义根路径初始化布局包管理器。
+    /// </summary>
+    /// <param name="packageRoot">包存储根目录。</param>
+    /// <param name="builtInLayoutRoot">内置布局根目录。</param>
+    /// <param name="userLayoutRoot">用户布局根目录，默认使用 <see cref="AppConstants.FrontedLayoutsPath"/>。</param>
+    /// <param name="logger">日志记录器。</param>
+    /// <param name="localize">本地化委托。</param>
     public FrontedLayoutPackageManager(
         string packageRoot,
         string builtInLayoutRoot,
@@ -75,6 +103,11 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
         _logger = logger ?? NullLogger<FrontedLayoutPackageManager>.Instance;
     }
 
+    /// <summary>
+    /// 列出所有可用的布局包（包括内置包和已安装包）。
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>布局包信息列表。</returns>
     public async Task<IReadOnlyList<FrontedLayoutPackageInfo>> ListPackagesAsync(
         CancellationToken cancellationToken = default)
     {
@@ -108,6 +141,11 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
             .ToArray();
     }
 
+    /// <summary>
+    /// 获取当前激活的布局包状态。
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>激活包状态。</returns>
     public async Task<FrontedLayoutActivePackageState> GetActivePackageStateAsync(
         CancellationToken cancellationToken = default)
     {
@@ -139,6 +177,14 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
         }
     }
 
+    /// <summary>
+    /// 激活指定的布局包。激活内置包时删除激活状态文件恢复默认；本地包不可激活。
+    /// </summary>
+    /// <param name="packageId">要激活的包 ID。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <exception cref="InvalidOperationException">本地包不可激活。</exception>
+    /// <exception cref="DirectoryNotFoundException">包目录不存在。</exception>
+    /// <exception cref="FileNotFoundException">包清单文件缺失。</exception>
     public async Task ActivatePackageAsync(string packageId, CancellationToken cancellationToken = default)
     {
         if (string.Equals(packageId, BuiltInPackageId, StringComparison.OrdinalIgnoreCase))
@@ -249,6 +295,14 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
             cancellationToken);
     }
 
+    /// <summary>
+    /// 复制指定包为新的布局方案。内置包会从内置资源复制，已安装包从源目录复制。
+    /// 复制完成后自动激活新包。
+    /// </summary>
+    /// <param name="sourcePackageId">源包 ID。</param>
+    /// <param name="requestedName">请求的新方案名称，为 null 时自动生成。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>复制后的新包信息。</returns>
     public async Task<FrontedLayoutPackageInfo> DuplicatePackageAsync(
         string sourcePackageId,
         string? requestedName = null,
@@ -328,6 +382,12 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
             return Path.Combine(GetInstalledPackagePath(packageId), "FrontedLayouts");
     }
 
+    /// <summary>
+    /// 获取指定包中特定窗口的布局文件完整路径。
+    /// </summary>
+    /// <param name="packageId">包 ID。</param>
+    /// <param name="fullWindowType">完整窗口类型名。</param>
+    /// <returns>布局文件的完整路径。</returns>
     public string GetPackageLayoutPath(string packageId, string fullWindowType)
     {
         return Path.Combine(
@@ -714,6 +774,11 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
         };
     }
 
+    /// <summary>
+    /// 验证 PackageId 是否安全（仅包含字母数字和 <c>._-</c> 字符，不含 <c>..</c> 或 <c>%</c>）。
+    /// </summary>
+    /// <param name="packageId">待验证的包 ID。</param>
+    /// <returns>是否安全。</returns>
     public static bool IsSafePackageId(string packageId)
     {
         return !string.IsNullOrWhiteSpace(packageId)

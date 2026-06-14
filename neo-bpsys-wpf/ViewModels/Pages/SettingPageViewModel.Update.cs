@@ -32,24 +32,51 @@ public partial class SettingPageViewModel : ViewModelBase
     private bool _isSyncingMirror;
     private bool _isSyncingPreRelease;
 
+    /// <summary>
+    /// 应用版本号。
+    /// </summary>
     [ObservableProperty] private string _appVersion = string.Empty;
 
+    /// <summary>
+    /// 是否正在下载更新。
+    /// </summary>
     [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(UpdateCheckCommand))]
     private bool _isDownloading;
 
+    /// <summary>
+    /// 更新是否已下载完成。
+    /// </summary>
     [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(InstallUpdateCommand))]
     private bool _isDownloadFinished;
 
+    /// <summary>
+    /// 下载进度文本（百分比）。
+    /// </summary>
     [ObservableProperty] private string _downloadProgressText = string.Empty;
 
+    /// <summary>
+    /// 下载进度值（0-100）。
+    /// </summary>
     [ObservableProperty] private double _downloadProgress;
 
+    /// <summary>
+    /// 下载速度文本（MB/s）。
+    /// </summary>
     [ObservableProperty] private string _mbPerSecondSpeed = string.Empty;
 
+    /// <summary>
+    /// GitHub 代理镜像地址。
+    /// </summary>
     [ObservableProperty] private string _mirror = DownloadMirrorPresets.DefaultMirror;
-    
+
+    /// <summary>
+    /// 是否查找预发布版本。
+    /// </summary>
     [ObservableProperty] private bool _isFindPreRelease;
 
+    /// <summary>
+    /// 代理镜像选项列表。
+    /// </summary>
     public ObservableCollection<PluginMarketMirrorOption> MirrorList { get; } =
         new(DownloadMirrorPresets.GhProxyMirrorList.Select(
             mirror => new PluginMarketMirrorOption

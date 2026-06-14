@@ -35,6 +35,14 @@ public sealed class FontWeightJsonConverter : JsonConverter<FontWeight>
         ["Black"] = FontWeights.Black
     };
 
+    /// <summary>
+    /// 从 JSON 读取 <see cref="FontWeight"/> 值，支持数字和字符串两种格式。
+    /// </summary>
+    /// <param name="reader">JSON 读取器</param>
+    /// <param name="typeToConvert">目标类型</param>
+    /// <param name="options">序列化选项</param>
+    /// <returns>解析后的 <see cref="FontWeight"/> 值</returns>
+    /// <exception cref="JsonException">JSON 令牌格式不支持</exception>
     public override FontWeight Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         return reader.TokenType switch

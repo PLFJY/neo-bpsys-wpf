@@ -29,6 +29,9 @@ using Windows.Graphics.DirectX.Direct3D11;
 
 namespace Composition.WindowsRuntimeHelpers
 {
+    /// <summary>
+    /// 提供 Direct3D11 设备与 WinRT 之间的互操作辅助方法。
+    /// </summary>
     public static class Direct3D11Helper
     {
         static Guid IInspectable = new Guid("AF86E2E0-B12D-4c6a-9C5A-D7AA65101E90");
@@ -63,6 +66,10 @@ namespace Composition.WindowsRuntimeHelpers
             CharSet = CharSet.Unicode,
             ExactSpelling = true,
             CallingConvention = CallingConvention.StdCall
+        /// <summary>
+        /// 使用默认硬件驱动创建 Direct3D 设备。
+        /// </summary>
+        /// <returns>创建的 Direct3D 设备。</returns>
             )]
         static extern UInt32 CreateDirect3D11SurfaceFromDXGISurface(IntPtr dxgiSurface, out IntPtr graphicsSurface);
 
@@ -109,6 +116,11 @@ namespace Composition.WindowsRuntimeHelpers
             }
         }
 
+        /// <summary>
+        /// 从 SharpDX 纹理创建 WinRT Direct3D 表面。
+        /// </summary>
+        /// <param name="texture">SharpDX Direct3D11 纹理。</param>
+        /// <returns>WinRT Direct3D 表面。</returns>
         public static IDirect3DSurface CreateDirect3DSurfaceFromSharpDXTexture(SharpDX.Direct3D11.Texture2D texture)
         {
             // Acquire the DXGI interface for the Direct3D surface.
@@ -138,6 +150,11 @@ namespace Composition.WindowsRuntimeHelpers
             }
         }
 
+        /// <summary>
+        /// 从 WinRT Direct3D 设备获取对应的 SharpDX 设备。
+        /// </summary>
+        /// <param name="device">WinRT Direct3D 设备。</param>
+        /// <returns>SharpDX Direct3D11 设备。</returns>
         public static SharpDX.Direct3D11.Device CreateSharpDXDevice(IDirect3DDevice device)
         {
             var access = device.As<IDirect3DDxgiInterfaceAccess>();
@@ -146,6 +163,11 @@ namespace Composition.WindowsRuntimeHelpers
             return d3dDevice;
         }
 
+        /// <summary>
+        /// 从 WinRT Direct3D 表面获取对应的 SharpDX 纹理。
+        /// </summary>
+        /// <param name="surface">WinRT Direct3D 表面。</param>
+        /// <returns>SharpDX Direct3D11 纹理。</returns>
         public static SharpDX.Direct3D11.Texture2D CreateSharpDXTexture2D(IDirect3DSurface surface)
         {
             var access = surface.As<IDirect3DDxgiInterfaceAccess>();

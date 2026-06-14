@@ -1,4 +1,4 @@
-﻿//  ---------------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // 
 //  The MIT License (MIT)
@@ -60,6 +60,10 @@ namespace Composition.WindowsRuntimeHelpers
             )]
         static extern UInt32 CreateDispatcherQueueController(DispatcherQueueOptions options, out IntPtr dispatcherQueueController);
 
+        /// <summary>
+        /// 为当前线程创建 DispatcherQueueController。
+        /// </summary>
+        /// <returns>创建的 DispatcherQueueController，失败时返回 null。</returns>
         public static DispatcherQueueController CreateDispatcherQueueControllerForCurrentThread()
         {
             var options = new DispatcherQueueOptions

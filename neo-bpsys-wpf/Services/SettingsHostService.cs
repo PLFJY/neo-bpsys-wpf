@@ -25,6 +25,9 @@ public class SettingsHostService : ISettingsHostService
     private Settings _settings = new();
     private bool _isBulk;
 
+    /// <summary>
+    /// 当前应用设置。
+    /// </summary>
     public Settings Settings
     {
         get => _settings;
@@ -48,6 +51,12 @@ public class SettingsHostService : ISettingsHostService
         PropertyNameCaseInsensitive = true,
         WriteIndented = true,
         Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+    /// <summary>
+    /// 初始化设置服务。
+    /// </summary>
+    /// <param name="logger">日志记录器。</param>
+    /// <param name="settingsMigrationService">设置迁移服务。</param>
+    /// <param name="legacyV2StartupMigrationService">旧版 v2 启动迁移服务。</param>
         Converters = { new FontWeightJsonConverter() }
     };
 
@@ -243,6 +252,9 @@ public class SettingsHostService : ISettingsHostService
 
     /// <summary>
     /// 配置文件改变事件
+    /// <summary>
+    /// 语言设置变更事件。
+    /// </summary>
     /// </summary>
     public event EventHandler<Settings>? SettingsChanged;
 

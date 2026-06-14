@@ -18,6 +18,16 @@ public static class LegacyFrontedControlNameMapper
 
     private static readonly Regex NonNameChars = new("[^A-Za-z0-9]+", RegexOptions.Compiled);
 
+    /// <summary>
+    /// 尝试将旧版控件名称解析为 v3 布局中的控件名称。
+    /// </summary>
+    /// <param name="window">窗口类型名。</param>
+    /// <param name="canvas">画布名称。</param>
+    /// <param name="legacyName">旧版控件名称。</param>
+    /// <param name="controls">v3 布局中的控件字典。</param>
+    /// <param name="controlName">解析后的控件名称。</param>
+    /// <param name="usedFuzzyMatch">是否使用了模糊匹配。</param>
+    /// <returns>是否成功解析。</returns>
     public static bool TryResolve(
         string window,
         string canvas,
@@ -70,6 +80,13 @@ public static class LegacyFrontedControlNameMapper
             .ThenBy(item => item.Name, StringComparer.Ordinal)
             .Take(maxCount)
             .Select(item => item.Name)
+    /// <summary>
+    /// 判断指定的旧版控件名称是否为 ScoreGlobal 窗口 BaseCanvas 中的聚合比分单元格。
+    /// </summary>
+    /// <param name="window">窗口类型名。</param>
+    /// <param name="canvas">画布名称。</param>
+    /// <param name="legacyName">旧版控件名称。</param>
+    /// <returns>是否为全局比分聚合单元格。</returns>
             .ToArray();
     }
 

@@ -28,14 +28,38 @@ public class UpdaterService : IUpdaterService
         Sha256
     }
 
+    /// <summary>
+    /// 新版本号。
+    /// </summary>
     public string NewVersion { get; set; } = string.Empty;
+    /// <summary>
+    /// 新版本发布信息。
+    /// </summary>
     public ReleaseInfo NewVersionInfo { get; set; } = new();
+    /// <summary>
+    /// 是否搜索预发布版本。
+    /// </summary>
     public bool IsFindPreRelease { get; set; }
     private readonly DownloadService _downloader;
+    /// <summary>
+    /// 获取下载器实例。
+    /// </summary>
     public object Downloader => _downloader;
+    /// <summary>
+    /// 当前是否正在下载。
+    /// </summary>
     public bool IsDownloading { get; private set; }
+    /// <summary>
+    /// 当前下载进度，范围 0-100。
+    /// </summary>
     public double DownloadProgress { get; private set; }
+    /// <summary>
+    /// 当前下载速度，单位为字节/秒。
+    /// </summary>
     public double DownloadBytesPerSecond { get; private set; }
+    /// <summary>
+    /// 当前是否已下载完毕。
+    /// </summary>
     public bool IsDownloadFinished { get; private set; }
 
     private const string ApiUrl = "https://gh-releases.plfjy.top/?repo=PLFJY/neo-bpsys-wpf&ua=neo-bpsys-wpf";
@@ -52,6 +76,12 @@ public class UpdaterService : IUpdaterService
     private static ILogger<UpdaterService>? StaticLogger => IAppHost.TryGetService<ILogger<UpdaterService>>();
     private UpdateDownloadStage _downloadStage = UpdateDownloadStage.None;
 
+    /// <summary>
+    /// 初始化更新服务。
+    /// </summary>
+    /// <param name="infoBarService">信息栏服务。</param>
+    /// <param name="logger">日志记录器。</param>
+    /// <param name="settingsHostService">设置服务。</param>
     public UpdaterService(IInfoBarService infoBarService, ILogger<UpdaterService> logger,
         ISettingsHostService settingsHostService)
     {
@@ -78,8 +108,10 @@ public class UpdaterService : IUpdaterService
     }
 
     /// <summary>
-    /// 下载更新
+    /// 下载更新。
     /// </summary>
+    /// <param name="mirror">下载镜像地址。</param>
+    /// <returns>异步任务。</returns>
     public Task DownloadUpdate(string mirror = "")
     {
         mirror = string.IsNullOrWhiteSpace(mirror) ? _settingsHostService.Settings.GhProxyMirror : mirror;
@@ -234,9 +266,11 @@ public class UpdaterService : IUpdaterService
     }
 
     /// <summary>
-    /// 检查更新
+    /// 检查更新。
     /// </summary>
-    /// <returns>如果有新版本则返回true，反之为false</returns>
+    /// <param name="isInitial">是否为启动时的初始检查。</param>
+    /// <param name="mirror">下载镜像地址。</param>
+    /// <returns>如果有新版本则返回 <see langword="true"/>，反之为 <see langword="false"/>。</returns>
     public async Task<bool> UpdateCheck(bool isInitial = false, string mirror = "")
     {
         mirror = string.IsNullOrWhiteSpace(mirror) ? _settingsHostService.Settings.GhProxyMirror : mirror;
@@ -365,8 +399,9 @@ public class UpdaterService : IUpdaterService
     }
 
     /// <summary>
-    /// 安装更新
+    /// 安装更新。
     /// </summary>
+    /// <returns>异步任务。</returns>
     public async Task InstallUpdate()
     {
         _settingsHostService.Settings.ShowAfterUpdateTip = true;

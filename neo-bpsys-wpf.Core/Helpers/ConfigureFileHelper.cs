@@ -3,6 +3,9 @@ using System.Text.Json;
 
 namespace neo_bpsys_wpf.Core.Helpers;
 
+/// <summary>
+/// 配置文件读写工具类。
+/// </summary>
 public static class ConfigureFileHelper
 {
 

@@ -18,12 +18,24 @@ public partial class Settings : ObservableObjectBase
     /// </summary>
     public int? Version { get; set; } = 3;
 
+    /// <summary>
+    /// 是否在更新后显示提示信息。
+    /// </summary>
     public bool ShowAfterUpdateTip { get; set; } = true;
 
+    /// <summary>
+    /// 是否记录全局禁用角色。
+    /// </summary>
     public bool IsRecordGlobalBan { get; set; } = true;
 
+    /// <summary>
+    /// 是否启用经典模式（旧版 BP 流程）。
+    /// </summary>
     public bool IsClassicMode { get; set; } = false;
 
+    /// <summary>
+    /// 当前选择的 OCR 模型标识键。
+    /// </summary>
     public string? OcrModelKey { get; set; }
 
     [ObservableProperty]
@@ -47,6 +59,9 @@ public partial class Settings : ObservableObjectBase
 
     private CultureInfo _cultureInfo = SystemCulture;
 
+    /// <summary>
+    /// 应用程序界面语言。
+    /// </summary>
     public LanguageKey Language
     {
         get => _language;

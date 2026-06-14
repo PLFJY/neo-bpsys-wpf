@@ -3,16 +3,29 @@ using System.Windows.Controls.Primitives;
 
 namespace neo_bpsys_wpf.AttachedBehaviors;
 
+/// <summary>
+/// 为 <see cref="ToggleButton"/> 提供自动折叠行为的附加属性。
+/// </summary>
 public static class ToggleButtonAttach
 {
     #region IsAutoFold
 
+    /// <summary>
+    /// 获取指定 <see cref="ToggleButton"/> 的 <see cref="IsAutoFoldProperty"/> 附加属性值。
+    /// </summary>
+    /// <param name="control">要获取属性值的 <see cref="ToggleButton"/>。</param>
+    /// <returns>如果启用了自动折叠则为 <c>true</c>，否则为 <c>false</c>。</returns>
     [AttachedPropertyBrowsableForType(typeof(ToggleButton))]
     public static bool GetIsAutoFold(ToggleButton control)
     {
         return (bool)control.GetValue(IsAutoFoldProperty);
     }
 
+    /// <summary>
+    /// 设置指定 <see cref="ToggleButton"/> 的 <see cref="IsAutoFoldProperty"/> 附加属性值。
+    /// </summary>
+    /// <param name="control">要设置属性值的 <see cref="ToggleButton"/>。</param>
+    /// <param name="value">是否启用自动折叠。</param>
     public static void SetIsAutoFold(ToggleButton control, bool value)
     {
         control.SetValue(IsAutoFoldProperty, value);

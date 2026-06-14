@@ -32,6 +32,9 @@ public partial class SettingPageViewModel : ViewModelBase
 
     private LanguageKey _selectedLanguage = LanguageKey.System;
 
+    /// <summary>
+    /// 获取或设置当前选择的语言。更改后立即生效并保存。
+    /// </summary>
     public LanguageKey SelectedLanguage
     {
         get => _selectedLanguage;
@@ -45,6 +48,9 @@ public partial class SettingPageViewModel : ViewModelBase
         });
     }
 
+    /// <summary>
+    /// 可选语言列表字典，键为本地化 Key，值为对应语言。
+    /// </summary>
     public Dictionary<string, LanguageKey> LanguageList { get; } = new()
     {
         { "FollowSystem", LanguageKey.System },

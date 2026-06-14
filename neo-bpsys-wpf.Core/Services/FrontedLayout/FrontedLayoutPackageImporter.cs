@@ -13,6 +13,10 @@ using System.Text.Json.Nodes;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
+/// <summary>
+/// 前台布局包导入器，负责将 .bpui 格式的压缩包或目录导入为可用的布局包。
+/// 导入时会验证包格式、布局版本、资源完整性和安全性。
+/// </summary>
 public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
 {
     private const string ManifestFileName = "manifest.json";
@@ -36,6 +40,13 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
         MaxDepth = FrontedLayoutLimits.MaxJsonDepth
     };
 
+    /// <summary>
+    /// 使用默认路径初始化导入器。
+    /// </summary>
+    /// <param name="packageManager">包管理器。</param>
+    /// <param name="logger">日志记录器。</param>
+    /// <param name="controlRegistry">控件注册表（可选）。</param>
+    /// <param name="pluginMetadataProvider">插件元数据提供者（可选）。</param>
     public FrontedLayoutPackageImporter(
         IFrontedLayoutPackageManager packageManager,
         ILogger<FrontedLayoutPackageImporter> logger,
@@ -51,6 +62,15 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
     {
     }
 
+    /// <summary>
+    /// 使用自定义根路径初始化导入器。
+    /// </summary>
+    /// <param name="packageRoot">包存储根目录。</param>
+    /// <param name="tempRoot">临时文件根目录。</param>
+    /// <param name="packageManager">包管理器（可选）。</param>
+    /// <param name="logger">日志记录器。</param>
+    /// <param name="controlRegistry">控件注册表（可选）。</param>
+    /// <param name="pluginMetadataProvider">插件元数据提供者（可选）。</param>
     public FrontedLayoutPackageImporter(
         string packageRoot,
         string tempRoot,
@@ -69,6 +89,12 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
         _imageSafetyService = new FrontedImageSafetyService();
     }
 
+    /// <summary>
+    /// 从 .bpui 压缩包文件导入布局包。
+    /// </summary>
+    /// <param name="request">导入请求参数。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>导入结果。</returns>
     public async Task<FrontedLayoutPackageImportResult> ImportAsync(
         FrontedLayoutPackageImportRequest request,
         CancellationToken cancellationToken = default)
@@ -116,6 +142,14 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
         }
     }
 
+    /// <summary>
+    /// 从本地目录导入布局包。
+    /// </summary>
+    /// <param name="packageDirectory">包目录路径。</param>
+    /// <param name="replaceExisting">是否替换已存在的同名包。</param>
+    /// <param name="activateAfterImport">导入后是否立即激活。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>导入结果。</returns>
     public async Task<FrontedLayoutPackageImportResult> ImportDirectoryAsync(
         string packageDirectory,
         bool replaceExisting,

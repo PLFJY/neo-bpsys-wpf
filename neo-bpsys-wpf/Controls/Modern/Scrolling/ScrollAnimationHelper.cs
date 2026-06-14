@@ -7,12 +7,24 @@ using System.Windows.Threading;
 
 namespace neo_bpsys_wpf.Controls.Modern.Scrolling;
 
+/// <summary>
+/// 提供 <see cref="ScrollViewer"/> 垂直滚动动画的辅助方法。
+/// </summary>
 public static class ScrollAnimationHelper
 {
+    /// <summary>
+    /// 默认动画持续时间（220 毫秒）。
+    /// </summary>
     public static readonly TimeSpan DefaultDuration = TimeSpan.FromMilliseconds(220);
 
     private static readonly ConditionalWeakTable<ScrollViewer, VerticalScrollAnimation> VerticalAnimations = new();
 
+    /// <summary>
+    /// 将垂直偏移量限制在 <see cref="ScrollViewer"/> 的有效范围内。
+    /// </summary>
+    /// <param name="scrollViewer">要限制偏移量的 <see cref="ScrollViewer"/>。</param>
+    /// <param name="targetOffset">目标偏移量。</param>
+    /// <returns>限制后的有效偏移量。</returns>
     public static double ClampVerticalOffset(ScrollViewer scrollViewer, double targetOffset)
     {
         ArgumentNullException.ThrowIfNull(scrollViewer);
@@ -25,6 +37,11 @@ public static class ScrollAnimationHelper
         return Math.Clamp(targetOffset, 0, Math.Max(0, scrollViewer.ScrollableHeight));
     }
 
+    /// <summary>
+    /// 检查指定 <see cref="ScrollViewer"/> 的垂直滚动动画是否正在进行中。
+    /// </summary>
+    /// <param name="scrollViewer">要检查的 <see cref="ScrollViewer"/>。</param>
+    /// <returns>如果动画正在进行中则为 <c>true</c>。</returns>
     public static bool IsVerticalAnimationActive(ScrollViewer scrollViewer)
     {
         ArgumentNullException.ThrowIfNull(scrollViewer);
@@ -32,6 +49,11 @@ public static class ScrollAnimationHelper
         return VerticalAnimations.TryGetValue(scrollViewer, out var animation) && animation.IsActive;
     }
 
+    /// <summary>
+    /// 获取当前垂直滚动动画的目标偏移量。
+    /// </summary>
+    /// <param name="scrollViewer">要查询的 <see cref="ScrollViewer"/>。</param>
+    /// <returns>目标偏移量，如果没有动画则为 <c>null</c>。</returns>
     public static double? GetCurrentVerticalAnimationTarget(ScrollViewer scrollViewer)
     {
         ArgumentNullException.ThrowIfNull(scrollViewer);
@@ -41,6 +63,10 @@ public static class ScrollAnimationHelper
             : null;
     }
 
+    /// <summary>
+    /// 取消指定 <see cref="ScrollViewer"/> 的垂直滚动动画。
+    /// </summary>
+    /// <param name="scrollViewer">要取消动画的 <see cref="ScrollViewer"/>。</param>
     public static void CancelVerticalAnimation(ScrollViewer scrollViewer)
     {
         ArgumentNullException.ThrowIfNull(scrollViewer);
@@ -58,6 +84,14 @@ public static class ScrollAnimationHelper
         }
     }
 
+    /// <summary>
+    /// 平滑滚动 <see cref="ScrollViewer"/> 到指定的垂直偏移量。
+    /// </summary>
+    /// <param name="scrollViewer">要滚动的 <see cref="ScrollViewer"/>。</param>
+    /// <param name="targetOffset">目标垂直偏移量。</param>
+    /// <param name="duration">动画持续时间，如果为 <c>null</c> 则使用默认值。</param>
+    /// <param name="animated">是否使用动画，默认为 <c>true</c>。</param>
+    /// <param name="easingFunction">缓动函数，如果为 <c>null</c> 则使用默认缓动函数。</param>
     public static void SmoothScrollToVerticalOffset(
         ScrollViewer scrollViewer,
         double targetOffset,

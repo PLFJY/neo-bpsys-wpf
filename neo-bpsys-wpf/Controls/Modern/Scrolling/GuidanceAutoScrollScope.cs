@@ -5,6 +5,9 @@ using neo_bpsys_wpf.Core.Messages;
 
 namespace neo_bpsys_wpf.Controls.Modern.Scrolling;
 
+/// <summary>
+/// 提供引导自动滚动的附加属性，监听引导高亮消息并自动滚动到目标元素。
+/// </summary>
 public static class GuidanceAutoScrollScope
 {
     private static readonly DependencyProperty StateProperty =
@@ -14,6 +17,9 @@ public static class GuidanceAutoScrollScope
             typeof(GuidanceAutoScrollScope),
             new PropertyMetadata(null));
 
+    /// <summary>
+    /// <see cref="IsEnabledProperty"/> 附加属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty IsEnabledProperty =
         DependencyProperty.RegisterAttached(
             "IsEnabled",
@@ -21,8 +27,18 @@ public static class GuidanceAutoScrollScope
             typeof(GuidanceAutoScrollScope),
             new PropertyMetadata(false, OnIsEnabledChanged));
 
+    /// <summary>
+    /// 获取指定元素的 <see cref="IsEnabledProperty"/> 附加属性值。
+    /// </summary>
+    /// <param name="obj">要获取属性值的元素。</param>
+    /// <returns>如果启用了引导自动滚动则为 <c>true</c>。</returns>
     public static bool GetIsEnabled(DependencyObject obj) => (bool)obj.GetValue(IsEnabledProperty);
 
+    /// <summary>
+    /// 设置指定元素的 <see cref="IsEnabledProperty"/> 附加属性值。
+    /// </summary>
+    /// <param name="obj">要设置属性值的元素。</param>
+    /// <param name="value">是否启用引导自动滚动。</param>
     public static void SetIsEnabled(DependencyObject obj, bool value) => obj.SetValue(IsEnabledProperty, value);
 
     private static GuidanceAutoScrollState? GetState(DependencyObject obj) =>

@@ -118,15 +118,15 @@ public interface IFrontedWindowService
     /// <summary>
     /// 获取窗口名称
     /// </summary>
-    /// <param name="windowType"></param>
-    /// <returns></returns>
+    /// <param name="windowType">窗口类型</param>
+    /// <returns>窗口名称，如果未找到则返回 <c>null</c></returns>
     string? GetWindowName(FrontedWindowType windowType);
 
     /// <summary>
     /// 获取窗口名称
     /// </summary>
     /// <param name="windowId">窗口 GUID</param>
-    /// <returns></returns>
+    /// <returns>窗口名称，如果未找到则返回 <c>null</c></returns>
     string? GetWindowName(string windowId);
 
     #endregion

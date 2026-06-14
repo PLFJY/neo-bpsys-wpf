@@ -12,8 +12,14 @@ using Team = neo_bpsys_wpf.Core.Models.Team;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
+/// <summary>
+/// 角色选择页面视图模型，管理求生者/监管者选择、全局禁用记录等角色选取流程。
+/// </summary>
 public partial class PickPageViewModel : ViewModelBase
 {
+    /// <summary>
+    /// 用于设计时预览的无参构造函数。
+    /// </summary>
 #pragma warning disable CS8618
     public PickPageViewModel()
 #pragma warning restore CS8618
@@ -24,6 +30,12 @@ public partial class PickPageViewModel : ViewModelBase
     private readonly ISharedDataService _sharedDataService;
     private readonly ISettingsHostService _settingsHostService;
 
+    /// <summary>
+    /// 初始化角色选择页面视图模型。
+    /// </summary>
+    /// <param name="sharedDataService">共享数据服务</param>
+    /// <param name="characterSelectionService">角色选择服务</param>
+    /// <param name="settingsHostService">设置宿主服务</param>
     public PickPageViewModel(ISharedDataService sharedDataService,
         ICharacterSelectionService characterSelectionService,
         ISettingsHostService settingsHostService)
@@ -59,6 +71,9 @@ public partial class PickPageViewModel : ViewModelBase
         ];
     }
 
+    /// <summary>
+    /// 获取或设置是否自动记录全局禁用。
+    /// </summary>
     public bool IsGlobalBanAutoRecord
     {
         get => _settingsHostService.Settings.IsRecordGlobalBan;
@@ -71,21 +86,33 @@ public partial class PickPageViewModel : ViewModelBase
         }
     }
 
+    /// <summary>主队数据。</summary>
     public Team HomeTeam => _sharedDataService.HomeTeam;
+    /// <summary>客队数据。</summary>
     public Team AwayTeam => _sharedDataService.AwayTeam;
 
+    /// <summary>求生者选择视图模型列表。</summary>
     public ObservableCollection<SurPickViewModel> SurPickViewModelList { get; set; }
+    /// <summary>监管者选择视图模型。</summary>
     public HunPickViewModel HunPickVm { get; set; }
+    /// <summary>主队求生者全局禁用记录视图模型列表。</summary>
     public ObservableCollection<HomeSurGlobalBanRecordViewModel> HomeSurGlobalBanRecordViewModelList { get; set; }
+    /// <summary>主队监管者全局禁用记录视图模型列表。</summary>
     public ObservableCollection<HomeHunGlobalBanRecordViewModel> HomeHunGlobalBanRecordViewModelList { get; set; }
+    /// <summary>客队求生者全局禁用记录视图模型列表。</summary>
     public ObservableCollection<AwaySurGlobalBanRecordViewModel> AwaySurGlobalBanRecordViewModelList { get; set; }
+    /// <summary>客队监管者全局禁用记录视图模型列表。</summary>
     public ObservableCollection<AwayHunGlobalBanRecordViewModel> AwayHunGlobalBanRecordViewModelList { get; set; }
 
     //基于模板基类的VM实现
+    /// <summary>
+    /// 求生者选择视图模型，管理单个求生者位置的角色选择。
+    /// </summary>
     public partial class SurPickViewModel : CharaSelectViewModelBase
     {
         private readonly ICharacterSelectionService _characterSelectionService;
         private readonly ISettingsHostService _settingsHostService;
+        /// <summary>获取当前求生者玩家数据。</summary>
         public Player ThisPlayer => SharedDataService.CurrentGame.SurPlayerList[Index];
 
         public SurPickViewModel(ISharedDataService sharedDataService,
@@ -136,6 +163,9 @@ public partial class PickPageViewModel : ViewModelBase
         protected override bool IsActionNameCorrect(GameAction? action) => action == GameAction.PickSur;
     }
 
+    /// <summary>
+    /// 监管者选择视图模型。
+    /// </summary>
     public class HunPickViewModel(
         ISharedDataService sharedDataService,
         ICharacterSelectionService characterSelectionService,
@@ -165,10 +195,18 @@ public partial class PickPageViewModel : ViewModelBase
         protected override bool IsActionNameCorrect(GameAction? action) => action == GameAction.PickHun;
     }
 
+    /// <summary>
+    /// 主队求生者全局禁用记录视图模型。
+    /// </summary>
     public class HomeSurGlobalBanRecordViewModel : CharaSelectViewModelBase
     {
         private Character? _recordedChara;
 
+        /// <summary>
+        /// 初始化主队求生者全局禁用记录视图模型。
+        /// </summary>
+        /// <param name="sharedDataService">共享数据服务</param>
+        /// <param name="index">序号</param>
         public HomeSurGlobalBanRecordViewModel(ISharedDataService sharedDataService, int index = 0) : base(
             sharedDataService, Camp.Sur, index)
         {
@@ -200,6 +238,9 @@ public partial class PickPageViewModel : ViewModelBase
         protected override bool IsActionNameCorrect(GameAction? action) => false;
     }
 
+    /// <summary>
+    /// 主队监管者全局禁用记录视图模型。
+    /// </summary>
     public class HomeHunGlobalBanRecordViewModel : CharaSelectViewModelBase
     {
         private Character? _recordedChara;
@@ -232,6 +273,9 @@ public partial class PickPageViewModel : ViewModelBase
         protected override bool IsActionNameCorrect(GameAction? action) => false;
     }
 
+    /// <summary>
+    /// 客队求生者全局禁用记录视图模型。
+    /// </summary>
     public class AwaySurGlobalBanRecordViewModel : CharaSelectViewModelBase
     {
         private Character? _recordedChara;
@@ -264,6 +308,9 @@ public partial class PickPageViewModel : ViewModelBase
         protected override bool IsActionNameCorrect(GameAction? action) => false;
     }
 
+    /// <summary>
+    /// 客队监管者全局禁用记录视图模型。
+    /// </summary>
     public class AwayHunGlobalBanRecordViewModel : CharaSelectViewModelBase
     {
         private Character? _recordedChara;

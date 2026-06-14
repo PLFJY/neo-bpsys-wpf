@@ -106,7 +106,7 @@ public interface ISharedDataService : INotifyPropertyChanged
     /// <summary>
     /// 开始倒计时
     /// </summary>
-    /// <param name="seconds"></param>
+    /// <param name="seconds">倒计时秒数，传入 <c>null</c> 则使用默认值</param>
     void TimerStart(int? seconds);
 
     /// <summary>

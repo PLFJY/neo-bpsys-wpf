@@ -10,9 +10,15 @@ using Trait = neo_bpsys_wpf.Core.Models.Trait;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
+/// <summary>
+/// 天赋页面视图模型，管理监管者天赋选择和天赋可见性。
+/// </summary>
 public partial class TalentPageViewModel : ViewModelBase, IRecipient<HighlightMessage>
 {
 #pragma warning disable CS8618 
+    /// <summary>
+    /// 用于设计时预览的无参构造函数。
+    /// </summary>
     public TalentPageViewModel()
 #pragma warning restore CS8618 
     {
@@ -21,6 +27,11 @@ public partial class TalentPageViewModel : ViewModelBase, IRecipient<HighlightMe
 
     private readonly ISharedDataService _sharedDataService;
 
+    /// <summary>
+    /// 初始化天赋页面视图模型。
+    /// </summary>
+    /// <param name="sharedDataService">共享数据服务</param>
+    /// <param name="settingsHostService">设置宿主服务</param>
     public TalentPageViewModel(ISharedDataService sharedDataService, ISettingsHostService settingsHostService)
     {
         _sharedDataService = sharedDataService;
@@ -34,6 +45,9 @@ public partial class TalentPageViewModel : ViewModelBase, IRecipient<HighlightMe
 
     private TraitType? _selectedTrait;
 
+    /// <summary>
+    /// 获取或设置当前选中的天赋类型。
+    /// </summary>
     public TraitType? SelectedTrait
     {
         get => _selectedTrait;
@@ -44,10 +58,16 @@ public partial class TalentPageViewModel : ViewModelBase, IRecipient<HighlightMe
             });
     }
 
+    /// <summary>
+    /// 获取当前比赛数据。
+    /// </summary>
     public Game CurrentGame => _sharedDataService.CurrentGame;
 
     private bool _isTraitVisible = true;
 
+    /// <summary>
+    /// 获取或设置天赋是否可见。
+    /// </summary>
     public bool IsTraitVisible
     {
         get => _isTraitVisible;

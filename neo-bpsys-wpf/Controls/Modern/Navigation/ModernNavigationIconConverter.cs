@@ -8,16 +8,26 @@ using Wpf.Ui.Controls;
 
 namespace neo_bpsys_wpf.Controls.Modern.Navigation;
 
+/// <summary>
+/// 将导航项图标转换为 <see cref="FrameworkElement"/> 的值转换器。
+/// </summary>
 public sealed class ModernNavigationIconConverter : IValueConverter
 {
+    /// <inheritdoc />
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         return CreateIcon(value);
     }
 
+    /// <inheritdoc />
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         Binding.DoNothing;
 
+    /// <summary>
+    /// 根据图标对象创建对应的 <see cref="FrameworkElement"/>。
+    /// </summary>
+    /// <param name="icon">图标对象，可以是 <see cref="SymbolRegular"/>、<see cref="SymbolIcon"/>、<see cref="IconElement"/> 或 <see cref="FrameworkElement"/>。</param>
+    /// <returns>创建的图标元素。</returns>
     public static FrameworkElement CreateIcon(object? icon)
     {
         switch (icon)

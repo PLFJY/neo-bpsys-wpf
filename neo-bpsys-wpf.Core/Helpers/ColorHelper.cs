@@ -22,6 +22,12 @@ public static class ColorHelper
         return true;
     }
 
+    /// <summary>
+    /// 标准化颜色值，失败时返回默认值。
+    /// </summary>
+    /// <param name="value">输入的颜色字符串</param>
+    /// <param name="defaultValue">默认颜色值</param>
+    /// <returns>标准化后的颜色字符串</returns>
     public static string NormalizeHexOrDefault(
         string? value,
         string defaultValue = DefaultColorHex)
@@ -101,9 +107,21 @@ public static class ColorHelper
         return true;
     }
 
+    /// <summary>
+    /// 解析颜色字符串，失败时返回指定的回退值。
+    /// </summary>
+    /// <param name="value">输入的颜色字符串</param>
+    /// <param name="fallback">解析失败时的回退颜色</param>
+    /// <returns>解析到的颜色或回退值</returns>
     public static Color ParseColorOrDefault(string? value, Color fallback) =>
         TryParseColor(value, out var color) ? color : fallback;
 
+    /// <summary>
+    /// 解析颜色字符串并创建 <see cref="SolidColorBrush"/>，失败时使用指定的回退颜色。
+    /// </summary>
+    /// <param name="value">输入的颜色字符串</param>
+    /// <param name="fallback">解析失败时的回退颜色</param>
+    /// <returns>创建的画刷</returns>
     public static SolidColorBrush CreateBrushOrDefault(string? value, Color fallback) =>
         new(ParseColorOrDefault(value, fallback));
 
@@ -120,9 +138,19 @@ public static class ColorHelper
         return new SolidColorBrush(color);
     }
 
+    /// <summary>
+    /// 将 <see cref="Color"/> 转换为 #AARRGGBB 十六进制字符串。
+    /// </summary>
+    /// <param name="color">颜色值</param>
+    /// <returns>十六进制颜色字符串</returns>
     public static string ToArgbHexString(this Color color) =>
         $"#{color.A:X2}{color.R:X2}{color.G:X2}{color.B:X2}";
 
+    /// <summary>
+    /// 将颜色字符串转换为 <see cref="Color"/>，无法解析时返回白色。
+    /// </summary>
+    /// <param name="argb">颜色字符串</param>
+    /// <returns>解析到的颜色或白色</returns>
     public static Color ToColor(this string? argb) =>
         ParseColorOrDefault(argb, Colors.White);
 }

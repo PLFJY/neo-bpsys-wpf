@@ -2,8 +2,16 @@ using System.Windows;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
+/// <summary>
+/// 形状渐变角度辅助类，提供角度归一化和将角度转换为相对坐标点的方法。
+/// </summary>
 public static class ShapeGradientAngleHelper
 {
+    /// <summary>
+    /// 将任意角度归一化到 [0, 360) 范围内。非有限值返回 0。
+    /// </summary>
+    /// <param name="angle">待归一化的角度。</param>
+    /// <returns>归一化后的角度。</returns>
     public static double Normalize(double angle)
     {
         if (!double.IsFinite(angle))

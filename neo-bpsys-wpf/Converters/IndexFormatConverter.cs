@@ -13,6 +13,14 @@ namespace neo_bpsys_wpf.Converters;
 /// </summary>
 public class IndexFormatConverter : IMultiValueConverter
 {
+    /// <summary>
+    /// 使用格式化字符串和索引值生成带序数后缀的文本，支持中英文环境。
+    /// </summary>
+    /// <param name="values">values[0] 为格式化字符串（如"第{0}名"或"{0}{1}"），values[1] 为索引值</param>
+    /// <param name="targetType">目标类型</param>
+    /// <param name="parameter">转换器参数</param>
+    /// <param name="culture">区域性信息</param>
+    /// <returns>格式化后的排名文本</returns>
     public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
     {
         // 验证输入
@@ -33,6 +41,15 @@ public class IndexFormatConverter : IMultiValueConverter
         return string.Format(format, index, suffix);
     }
 
+    /// <summary>
+    /// 不支持反向转换。
+    /// </summary>
+    /// <param name="value">值</param>
+    /// <param name="targetTypes">目标类型数组</param>
+    /// <param name="parameter">转换器参数</param>
+    /// <param name="culture">区域性信息</param>
+    /// <returns>不支持</returns>
+    /// <exception cref="NotImplementedException">始终抛出</exception>
     public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
     {
         throw new NotImplementedException();

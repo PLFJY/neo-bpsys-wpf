@@ -4,8 +4,16 @@ using neo_bpsys_wpf.Models.Plugins;
 
 namespace neo_bpsys_wpf.Helpers;
 
+/// <summary>
+/// 提供插件 API 版本兼容性评估的辅助方法。
+/// </summary>
 public static class PluginApiVersionHelper
 {
+    /// <summary>
+    /// 评估指定的插件 API 版本是否与当前宿主兼容。
+    /// </summary>
+    /// <param name="apiVersion">插件声明的 API 版本字符串。</param>
+    /// <returns>兼容性检查结果。</returns>
     public static PluginApiCompatibilityResult Evaluate(string apiVersion)
     {
         var minApiVersion = IAppHost.CoreVersion;

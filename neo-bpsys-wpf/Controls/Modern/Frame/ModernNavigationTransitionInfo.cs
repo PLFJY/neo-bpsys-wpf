@@ -8,6 +8,9 @@ namespace neo_bpsys_wpf.Controls.Modern.Frame;
 
 // Inspired by iNKORE.UI.WPF.Modern NavigationTransitionInfo.
 // This local version keeps only the transition primitives needed by ModernFrame.
+/// <summary>
+/// 导航过渡信息的抽象基类，为 <see cref="ModernFrame"/> 提供进入和退出动画的 Storyboard。
+/// </summary>
 public abstract class ModernNavigationTransitionInfo : DependencyObject
 {
     static ModernNavigationTransitionInfo()

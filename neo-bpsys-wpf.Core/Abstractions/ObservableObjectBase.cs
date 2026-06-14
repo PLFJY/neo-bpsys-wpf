@@ -18,7 +18,7 @@ public abstract class ObservableObjectBase : ObservableRecipient
     /// <param name="onChanged">属性改变回调</param>
     /// <param name="propertyName">属性名</param>
     /// <typeparam name="T">属性类型</typeparam>
-    /// <returns></returns>
+    /// <returns>当属性值发生改变时返回 true，否则返回 false</returns>
     protected bool SetPropertyWithAction<T>(ref T field, T value, Action<T>? onChanged = null,
         [CallerMemberName] string? propertyName = null)
     {

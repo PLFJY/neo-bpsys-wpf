@@ -16,6 +16,9 @@ public static class GameProgressDisplayHelper
     /// <summary>
     /// 格式化对局进度为完整的单行文本（向后兼容）。
     /// </summary>
+    /// <param name="progress">对局进度枚举值。</param>
+    /// <param name="isBo3Mode">是否为 BO3 模式。</param>
+    /// <returns>格式化后的对局进度文本。</returns>
     public static string Format(GameProgress progress, bool isBo3Mode)
     {
         return (int)progress switch
@@ -41,6 +44,8 @@ public static class GameProgressDisplayHelper
         };
     }
 
+    /// <param name="language">语言键。</param>
+    /// <returns>对应的文化信息。</returns>
     /// <summary>
     /// 根据 <see cref="LanguageKey"/> 解析为目标 <see cref="CultureInfo"/>。
     /// </summary>
@@ -135,6 +140,8 @@ public static class GameProgressDisplayHelper
     /// <summary>
     /// 将数字转换为 CJK 数字（一、二、三、四、五）。
     /// </summary>
+    /// <param name="number">要转换的数字。</param>
+    /// <returns>CJK 数字字符串，超过范围则返回阿拉伯数字字符串。</returns>
     public static string GetCjkNumber(int number)
     {
         if (number >= 1 && number <= 5)

@@ -7,8 +7,14 @@ namespace neo_bpsys_wpf.Controls.Modern.Scrolling;
 
 // Inspired by iNKORE.UI.WPF.Modern ScrollViewerEx smooth wheel scrolling.
 // This local control keeps only the project-needed behavior and avoids iNKORE theme/control dependencies.
+/// <summary>
+/// 现代滚动查看器控件，提供平滑滚轮滚动动画支持。
+/// </summary>
 public class ModernScrollViewer : ScrollViewer
 {
+    /// <summary>
+    /// <see cref="IsSmoothScrollingEnabled"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty IsSmoothScrollingEnabledProperty =
         DependencyProperty.Register(
             nameof(IsSmoothScrollingEnabled),
@@ -16,6 +22,9 @@ public class ModernScrollViewer : ScrollViewer
             typeof(ModernScrollViewer),
             new PropertyMetadata(true));
 
+    /// <summary>
+    /// <see cref="WheelScrollMultiplier"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty WheelScrollMultiplierProperty =
         DependencyProperty.Register(
             nameof(WheelScrollMultiplier),
@@ -23,6 +32,9 @@ public class ModernScrollViewer : ScrollViewer
             typeof(ModernScrollViewer),
             new PropertyMetadata(1.0));
 
+    /// <summary>
+    /// <see cref="ScrollAnimationDuration"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty ScrollAnimationDurationProperty =
         DependencyProperty.Register(
             nameof(ScrollAnimationDuration),
@@ -30,6 +42,9 @@ public class ModernScrollViewer : ScrollViewer
             typeof(ModernScrollViewer),
             new PropertyMetadata((int)ScrollAnimationHelper.DefaultDuration.TotalMilliseconds));
 
+    /// <summary>
+    /// <see cref="ScrollEasingFunction"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty ScrollEasingFunctionProperty =
         DependencyProperty.Register(
             nameof(ScrollEasingFunction),
@@ -37,30 +52,45 @@ public class ModernScrollViewer : ScrollViewer
             typeof(ModernScrollViewer),
             new PropertyMetadata(null));
 
+    /// <summary>
+    /// 初始化 <see cref="ModernScrollViewer"/> 的新实例。
+    /// </summary>
     public ModernScrollViewer()
     {
         PreviewMouseWheel += OnPreviewMouseWheel;
         Unloaded += OnUnloaded;
     }
 
+    /// <summary>
+    /// 获取或设置一个值，指示是否启用平滑滚动。
+    /// </summary>
     public bool IsSmoothScrollingEnabled
     {
         get => (bool)GetValue(IsSmoothScrollingEnabledProperty);
         set => SetValue(IsSmoothScrollingEnabledProperty, value);
     }
 
+    /// <summary>
+    /// 获取或设置滚轮滚动倍率。
+    /// </summary>
     public double WheelScrollMultiplier
     {
         get => (double)GetValue(WheelScrollMultiplierProperty);
         set => SetValue(WheelScrollMultiplierProperty, value);
     }
 
+    /// <summary>
+    /// 获取或设置滚动动画持续时间（毫秒）。
+    /// </summary>
     public int ScrollAnimationDuration
     {
         get => (int)GetValue(ScrollAnimationDurationProperty);
         set => SetValue(ScrollAnimationDurationProperty, value);
     }
 
+    /// <summary>
+    /// 获取或设置滚动动画的缓动函数。
+    /// </summary>
     public IEasingFunction? ScrollEasingFunction
     {
         get => (IEasingFunction?)GetValue(ScrollEasingFunctionProperty);
