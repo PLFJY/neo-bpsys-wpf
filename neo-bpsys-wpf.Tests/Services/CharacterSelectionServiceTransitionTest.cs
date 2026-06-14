@@ -64,6 +64,10 @@ public sealed class CharacterSelectionServiceTransitionTest
             .Returns<FrontedTransitionRequest, Func<Task>, CancellationToken>(async (request, commitAsync, _) =>
             {
                 Assert.Equal(targetGuid, request.TargetBehaviorGuid);
+                Assert.False((bool)request.Payload["HasOldCharacter"]!);
+                Assert.False((bool)request.Payload["Event.HasOldCharacter"]!);
+                Assert.True((bool)request.Payload["HasNewCharacter"]!);
+                Assert.True((bool)request.Payload["Event.HasNewCharacter"]!);
                 Assert.Null(game.SurPlayerList[0].Character);
                 await commitAsync();
                 Assert.NotNull(game.SurPlayerList[0].Character);

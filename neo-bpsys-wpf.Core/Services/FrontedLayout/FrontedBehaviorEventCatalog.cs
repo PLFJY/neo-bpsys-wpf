@@ -108,6 +108,7 @@ public sealed class FrontedBehaviorEventCatalog
         {
             Path = path,
             DisplayNameKey = displayNameKey,
+            DescriptionKey = $"{displayNameKey}.Description",
             TypeName = typeName,
             EnumValues = ResolveEnumValues(valueType, typeName),
             Source = FrontedBehaviorPayloadSource.EventArgsProperty,

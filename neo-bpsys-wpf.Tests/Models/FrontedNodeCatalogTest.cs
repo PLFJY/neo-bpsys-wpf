@@ -42,6 +42,16 @@ public class FrontedNodeCatalogTest
     }
 
     [Fact]
+    public void NodeCatalog_ParallelNode_SupportsTwentyStableBranchPorts()
+    {
+        var node = new FrontedNodeCatalog().Find("flow.parallel")!;
+
+        Assert.Contains(node.Properties, property => property.Name == "BranchCount");
+        Assert.Equal(20, node.OutputPorts.Count(port => FrontedParallelNodePorts.TryGetBranchIndex(port.Name, out _)));
+        Assert.Contains(node.OutputPorts, port => port.Name == "Branch20");
+    }
+
+    [Fact]
     public void NodeCatalog_AnimateProperty_HasRequiredProperties()
     {
         var node = new FrontedNodeCatalog().Find("action.animateProperty")!;

@@ -305,6 +305,11 @@ public sealed class FrontedAnimationRuntime(
 
     private static FrameworkElement? ResolveContentElement(FrameworkElement controlElement)
     {
+        if (FindPrimaryContentElement(controlElement) is { } primaryContent)
+        {
+            return primaryContent;
+        }
+
         if (controlElement is Shape or BackgroundTintControlHost)
         {
             return controlElement;
@@ -323,12 +328,35 @@ public sealed class FrontedAnimationRuntime(
         if (controlElement is Grid grid)
         {
             return (FrameworkElement?)grid.Children.OfType<Image>().FirstOrDefault()
+                   ?? (FrameworkElement?)FindFirstDescendant<Image>(grid)
                    ?? FindFirstDescendant<TextBlock>(grid);
         }
 
         return (FrameworkElement?)FindFirstDescendant<TextBlock>(controlElement)
                ?? FindFirstDescendant<Image>(controlElement)
                ?? (controlElement is Control ? controlElement : null);
+    }
+
+    private static FrameworkElement? FindPrimaryContentElement(DependencyObject root)
+    {
+        var children = VisualTreeHelper.GetChildrenCount(root);
+        for (var i = 0; i < children; i++)
+        {
+            var child = VisualTreeHelper.GetChild(root, i);
+            if (child is FrameworkElement element
+                && FrontedRendererProperties.GetIsPrimaryContentElement(element))
+            {
+                return element;
+            }
+
+            var descendant = FindPrimaryContentElement(child);
+            if (descendant is not null)
+            {
+                return descendant;
+            }
+        }
+
+        return null;
     }
 
     private Rectangle? EnsureOverlay(

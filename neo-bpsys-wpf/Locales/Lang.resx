@@ -4705,7 +4705,7 @@
     <value>动画流程入口。每张图通常只放一个 Start，然后从 Out 连到第一个动作或流程节点。</value>
   </data>
   <data name="Designer.Graph.Node.FlowEnd.Description" xml:space="preserve">
-    <value>结束当前流程分支。可以把最后一个动作的 Out 连到 End，让图看起来更完整。</value>
+    <value>结束当前流程分支。每张图只能有一个 End；多个分支可以同时连到 End 的 In。</value>
   </data>
   <data name="Designer.Graph.Node.FlowDelay.Description" xml:space="preserve">
     <value>等待一段时间后继续执行。用于让两个属性请求之间错开，比如先淡出再淡入。</value>
@@ -4761,6 +4761,15 @@
   <data name="Designer.Graph.Port.ParallelOut" xml:space="preserve">
     <value>全部完成后</value>
   </data>
+  <data name="Designer.Graph.Port.ParallelBranch" xml:space="preserve">
+    <value>分支 {0}</value>
+  </data>
+  <data name="Designer.Graph.Port.ParallelBranch.Tooltip" xml:space="preserve">
+    <value>并行分支 {0}。此分支会和其他已连接分支同时执行。</value>
+  </data>
+  <data name="Designer.Graph.Connection.Meaning.ParallelBranch" xml:space="preserve">
+    <value>并行分支 {0}</value>
+  </data>
   <data name="Designer.Graph.Port.Branch1.Tooltip" xml:space="preserve">
     <value>并行分支 1。此分支会和其他分支同时执行。</value>
   </data>
@@ -4796,6 +4805,9 @@
   </data>
   <data name="Designer.Graph.Property.DurationMs" xml:space="preserve">
     <value>持续时间</value>
+  </data>
+  <data name="Designer.Graph.Property.BranchCount" xml:space="preserve">
+    <value>并行任务数</value>
   </data>
   <data name="Designer.Graph.Property.Message" xml:space="preserve">
     <value>Message</value>
@@ -4859,14 +4871,29 @@
   <data name="Designer.Graph.Validation.GraphNoEnd" xml:space="preserve">
     <value>图没有 End 节点；当没有出边时执行停止。</value>
   </data>
+  <data name="Designer.Graph.Validation.MultipleEnds" xml:space="preserve">
+    <value>图存在多个 End 节点；每张图只能有一个 End。</value>
+  </data>
   <data name="Designer.Graph.Validation.ParallelNoBranches" xml:space="preserve">
     <value>Parallel 没有已连接的分支；Out 将立即执行。</value>
+  </data>
+  <data name="Designer.Graph.Validation.NumberFinite" xml:space="preserve">
+    <value>请输入有限数值。</value>
+  </data>
+  <data name="Designer.Graph.Validation.NumberInteger" xml:space="preserve">
+    <value>请输入整数。</value>
+  </data>
+  <data name="Designer.Graph.Validation.NumberRange" xml:space="preserve">
+    <value>数值必须介于 {0} 和 {1} 之间。</value>
   </data>
   <data name="Designer.Graph.DeleteConnection" xml:space="preserve">
     <value>断开连接</value>
   </data>
   <data name="Designer.Graph.Property.DurationMs.Description" xml:space="preserve">
     <value>等待或动画持续时间，单位为毫秒。</value>
+  </data>
+  <data name="Designer.Graph.Property.BranchCount.Description" xml:space="preserve">
+    <value>并行执行端口的数量，可设置为 1 到 20。</value>
   </data>
   <data name="Designer.Graph.Property.Message.Description" xml:space="preserve">
     <value>写入预览执行日志的文本。</value>
@@ -4929,13 +4956,13 @@
     <value>节点类型参考</value>
   </data>
   <data name="Designer.Graph.Help.NodeTypes.Content" xml:space="preserve">
-    <value>流程控制节点：\nStart — 图的入口，每个图只能有一个。\nEnd — 结束当前分支执行。\nDelay — 等待指定毫秒数后继续。\nSequence — 按 Step1 → Step2 → Step3 顺序依次执行。\nParallel — 同时执行 Branch1、Branch2、Branch3，全部完成后继续。\nIf — 文本比较分支节点，比较 Left 和 Right，相等走 True，不等走 False。\n\n动作节点：\nLog — 向执行日志输出一行文字，用于调试追踪。\nSetProperty — 设置目标控件属性值。例如 Target=Self、PropertyName=Opacity、Value=0.5。\nResetProperty — 重置目标控件属性。PropertyName 可写具体属性或 All。\nAnimateProperty — 向目标控件发送属性动画。填写 PropertyName、From、To、DurationMs 和 Easing（缓动函数）。\n\n值节点：\nNumber / String / Boolean / Color — 常量值节点，可在属性面板编辑值。\nControlReference — 目标控件引用，常用 Self 表示行为绑定的控件本身。</value>
+    <value>流程控制节点：\nStart — 图的入口，每个图只能有一个。\nEnd — 图的结束点，每个图只能有一个；多个分支可以连到同一个 End 的 In。\nDelay — 等待指定毫秒数后继续。\nSequence — 按 Step1 → Step2 → Step3 顺序依次执行。\nParallel — 同时执行 Branch1、Branch2、Branch3，全部完成后继续。\nIf — 文本比较分支节点，比较 Left 和 Right，相等走 True，不等走 False。\n\n动作节点：\nLog — 向执行日志输出一行文字，用于调试追踪。\nSetProperty — 设置目标控件属性值。例如 Target=Self、PropertyName=Opacity、Value=0.5。\nResetProperty — 重置目标控件属性。PropertyName 可写具体属性或 All。\nAnimateProperty — 向目标控件发送属性动画。填写 PropertyName、From、To、DurationMs 和 Easing（缓动函数）。\n\n值节点：\nNumber / String / Boolean / Color — 常量值节点，可在属性面板编辑值。\nControlReference — 目标控件引用，常用 Self 表示行为绑定的控件本身。</value>
   </data>
   <data name="Designer.Graph.Help.Preview.Title" xml:space="preserve">
     <value>预览动画</value>
   </data>
   <data name="Designer.Graph.Help.Preview.Content" xml:space="preserve">
-    <value>确保图中至少有一个 Start 节点和 End 节点。\n点击工具栏"运行预览"执行当前图。动画会作用于设计器中的真实控件，并在底部左侧预览视口中同步显示。\n底部右侧执行日志显示每一步的执行结果，方便排查问题。\n点击"停止预览"中断执行。使用"重置当前目标"或"重置所有预览"恢复被动画修改过的控件属性。\n预览视口使用实时渲染，可直观看到控件的动画效果。</value>
+    <value>确保图中有一个 Start 节点和一个 End 节点。\n点击工具栏"运行预览"执行当前图。动画会作用于设计器中的真实控件，并在底部左侧预览视口中同步显示。\n底部右侧执行日志显示每一步的执行结果，方便排查问题。\n点击"停止预览"中断执行。使用"重置当前目标"或"重置所有预览"恢复被动画修改过的控件属性。\n预览视口使用实时渲染，可直观看到控件的动画效果。</value>
   </data>
   <data name="Designer.Graph.Help.LoopPreview.Title" xml:space="preserve">
     <value>循环预览</value>
@@ -5106,7 +5133,7 @@
 
 基础操作：从目录中将节点拖拽至画布；拖动节点标题可移动节点；从输出端口拖拽至输入端口进行连接；点击连接上的 × 按钮断开连接；用鼠标左键或右键拖动画布空白区域进行平移；选中节点并在右侧编辑其属性；右键点击节点或按 Delete 键将其删除。
 
-流程节点：Start 是入口点，通常每个流程图应包含一个。End 结束当前分支。Delay 等待指定毫秒数。Sequence 按顺序执行 Step1、Step2、Step3。Parallel 同时执行 Branch1、Branch2、Branch3，并等待所有分支完成。If 是一个高级文本分支，对于简单的属性动画通常不需要使用。
+流程节点：Start 是入口点，通常每个流程图应包含一个。End 是唯一结束点，多个分支可以连到它的 In。Delay 等待指定毫秒数。Sequence 按顺序执行 Step1、Step2、Step3。Parallel 同时执行 Branch1、Branch2、Branch3，并等待所有分支完成。If 是一个高级文本分支，对于简单的属性动画通常不需要使用。
 
 操作节点：Log 写入预览日志。SetProperty 设置属性值，例如 Target=Self, PropertyName=Opacity, Value=0.5。ResetProperty 重置属性；PropertyName 可以是特定属性或 All。AnimateProperty 播放属性动画，例如 Target=Self, PropertyName=Opacity, From=0, To=1, DurationMs=300, Easing=Linear。预览存在目标范围时，这些动作会施加到设计器中的预览控件。
 
@@ -5342,8 +5369,8 @@
   <data name="Designer.Behaviors.Payload.TargetBehaviorGuid" xml:space="preserve"><value>目标行为标识</value></data>
   <data name="Designer.Behaviors.Payload.OldCharacterId" xml:space="preserve"><value>旧角色标识</value></data>
   <data name="Designer.Behaviors.Payload.NewCharacterId" xml:space="preserve"><value>新角色标识</value></data>
-  <data name="Designer.Behaviors.Payload.HasOldCharacter" xml:space="preserve"><value>有旧角色</value></data>
-  <data name="Designer.Behaviors.Payload.HasNewCharacter" xml:space="preserve"><value>有新角色</value></data>
+  <data name="Designer.Behaviors.Payload.HasOldCharacter" xml:space="preserve"><value>是否存在上一个角色</value></data>
+  <data name="Designer.Behaviors.Payload.HasNewCharacter" xml:space="preserve"><value>是否存在新角色</value></data>
   <data name="Designer.Behaviors.Payload.SourceIndex" xml:space="preserve"><value>来源索引</value></data>
   <data name="Designer.Behaviors.Payload.TargetIndex" xml:space="preserve"><value>目标索引</value></data>
   <data name="Designer.Behaviors.Payload.SourceBehaviorGuid" xml:space="preserve"><value>来源行为标识</value></data>
@@ -5368,4 +5395,16 @@
   <data name="StopAllLoopAnimations" xml:space="preserve"><value>停止所有循环动画</value></data>
   <data name="StoppedLoopAnimationsFormat" xml:space="preserve"><value>已停止 {0} 个循环动画。</value></data>
   <data name="NoActiveLoopAnimations" xml:space="preserve"><value>当前没有正在播放的循环动画。</value></data>
+  <data name="Designer.Behaviors.Payload.Camp.Description" xml:space="preserve"><value>角色所属阵营。</value></data>
+  <data name="Designer.Behaviors.Payload.PlayerIndex.Description" xml:space="preserve"><value>角色选择对应的选手序号。</value></data>
+  <data name="Designer.Behaviors.Payload.TargetBehaviorGuid.Description" xml:space="preserve"><value>目标控件的稳定行为标识。</value></data>
+  <data name="Designer.Behaviors.Payload.OldCharacterId.Description" xml:space="preserve"><value>更改前的角色标识。</value></data>
+  <data name="Designer.Behaviors.Payload.NewCharacterId.Description" xml:space="preserve"><value>更改后的角色标识。</value></data>
+  <data name="Designer.Behaviors.Payload.HasOldCharacter.Description" xml:space="preserve"><value>更改前是否存在角色。</value></data>
+  <data name="Designer.Behaviors.Payload.HasNewCharacter.Description" xml:space="preserve"><value>更改后是否存在角色。</value></data>
+  <data name="Designer.Behaviors.Payload.SourceIndex.Description" xml:space="preserve"><value>交换来源选手的序号。</value></data>
+  <data name="Designer.Behaviors.Payload.TargetIndex.Description" xml:space="preserve"><value>交换目标选手的序号。</value></data>
+  <data name="Designer.Behaviors.Payload.SourceBehaviorGuid.Description" xml:space="preserve"><value>交换来源控件的稳定行为标识。</value></data>
+  <data name="Designer.Graph.Condition.If" xml:space="preserve"><value>如果</value></data>
+  <data name="Designer.Graph.Preview.MissingEventContext" xml:space="preserve"><value>当前预览没有事件上下文，{0} 将无法解析。</value></data>
 </root>

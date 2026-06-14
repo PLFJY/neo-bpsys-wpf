@@ -85,13 +85,11 @@ public class CharacterSelectionService(
 
         var sourceGuid = await ResolveBpPickBehaviorGuidAsync(Camp.Sur, sourceIndex);
         var targetGuid = await ResolveBpPickBehaviorGuidAsync(Camp.Sur, targetIndex);
-        var payload = new Dictionary<string, object?>
-        {
-            ["Event.SourceIndex"] = sourceIndex,
-            ["Event.TargetIndex"] = targetIndex,
-            ["Event.SourceBehaviorGuid"] = sourceGuid,
-            ["Event.TargetBehaviorGuid"] = targetGuid
-        };
+        var payload = new Dictionary<string, object?>();
+        AddEventPayload(payload, "SourceIndex", sourceIndex);
+        AddEventPayload(payload, "TargetIndex", targetIndex);
+        AddEventPayload(payload, "SourceBehaviorGuid", sourceGuid);
+        AddEventPayload(payload, "TargetBehaviorGuid", targetGuid);
 
         await transitionOrchestrator.RunMultiTargetTransitionAsync(
             [
@@ -144,23 +142,27 @@ public class CharacterSelectionService(
     {
         var targetGuid = await ResolveBpPickBehaviorGuidAsync(camp, playerIndex);
         var targetDisplayName = GetBpPickControlName(camp, playerIndex);
-        return new FrontedTransitionRequest
+        var request = new FrontedTransitionRequest
         {
             WindowType = nameof(FrontedWindowType.BpWindow),
             TransitionType = "Selection.CharacterPick",
             TargetBehaviorGuid = targetGuid,
-            TargetDisplayName = targetDisplayName,
-            Payload =
-            {
-                ["Event.Camp"] = camp.ToString(),
-                ["Event.PlayerIndex"] = playerIndex,
-                ["Event.TargetBehaviorGuid"] = targetGuid,
-                ["Event.OldCharacterId"] = GetCharacterId(oldCharacter),
-                ["Event.NewCharacterId"] = GetCharacterId(newCharacter),
-                ["Event.HasOldCharacter"] = HasCharacter(oldCharacter),
-                ["Event.HasNewCharacter"] = HasCharacter(newCharacter)
-            }
+            TargetDisplayName = targetDisplayName
         };
+        AddEventPayload(request.Payload, "Camp", camp.ToString());
+        AddEventPayload(request.Payload, "PlayerIndex", playerIndex);
+        AddEventPayload(request.Payload, "TargetBehaviorGuid", targetGuid);
+        AddEventPayload(request.Payload, "OldCharacterId", GetCharacterId(oldCharacter));
+        AddEventPayload(request.Payload, "NewCharacterId", GetCharacterId(newCharacter));
+        AddEventPayload(request.Payload, "HasOldCharacter", HasCharacter(oldCharacter));
+        AddEventPayload(request.Payload, "HasNewCharacter", HasCharacter(newCharacter));
+        return request;
+    }
+
+    private static void AddEventPayload(IDictionary<string, object?> payload, string key, object? value)
+    {
+        payload[key] = value;
+        payload[$"Event.{key}"] = value;
     }
 
     private static FrontedTransitionRequest CreateSwapRequest(

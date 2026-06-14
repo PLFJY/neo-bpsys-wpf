@@ -355,7 +355,7 @@
                                                                                 Foreground="{DynamicResource TextFillColorPrimaryBrush}"
                                                                                 Text="{Binding HeaderText}"
                                                                                 TextTrimming="CharacterEllipsis"
-                                                                                ToolTip="{Binding HeaderText}" />
+                                                                                ToolTip="{Binding RawSummary}" />
                                                                         </Grid>
                                                                     </Border>
                                                                 </ControlTemplate>
@@ -371,11 +371,11 @@
                                                             <ItemsControl ItemsSource="{Binding InputPorts}">
                                                                 <ItemsControl.ItemTemplate>
                                                                     <DataTemplate>
-                                                                            <Border
-                                                                                Height="24"
-                                                                                Margin="{Binding RowMargin}"
-                                                                                Background="Transparent"
-                                                                                Cursor="Hand"
+                                                                        <Border
+                                                                            Height="24"
+                                                                            Margin="{Binding RowMargin}"
+                                                                            Background="Transparent"
+                                                                            Cursor="Hand"
                                                                             MouseEnter="Port_OnMouseEnter"
                                                                             MouseLeave="Port_OnMouseLeave"
                                                                             MouseLeftButtonDown="InputPort_OnMouseLeftButtonDown"
@@ -423,7 +423,7 @@
                                                                                             TextWrapping="Wrap" />
                                                                                         <TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}">
                                                                                             <Run Text="{lex:Loc Designer.Graph.Tooltip.PortKind}" /><Run Text=": " />
-                                                                                            <Run Text="{Binding PortKindName}" />
+                                                                                            <Run Text="{Binding PortKindName, Mode=OneWay}" />
                                                                                         </TextBlock>
                                                                                         <TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}">
                                                                                             <Run Text="{lex:Loc Designer.Graph.Tooltip.PortType}" /><Run Text=": " />
@@ -445,11 +445,11 @@
                                                             <ItemsControl Grid.Column="1" ItemsSource="{Binding OutputPorts}">
                                                                 <ItemsControl.ItemTemplate>
                                                                     <DataTemplate>
-                                                                            <Border
-                                                                                Height="24"
-                                                                                Margin="{Binding RowMargin}"
-                                                                                Background="Transparent"
-                                                                                Cursor="Hand"
+                                                                        <Border
+                                                                            Height="24"
+                                                                            Margin="{Binding RowMargin}"
+                                                                            Background="Transparent"
+                                                                            Cursor="Hand"
                                                                             MouseEnter="Port_OnMouseEnter"
                                                                             MouseLeave="Port_OnMouseLeave"
                                                                             MouseLeftButtonDown="OutputPort_OnMouseLeftButtonDown">
@@ -467,11 +467,12 @@
                                                                                 </Style>
                                                                             </Border.Style>
                                                                             <DockPanel LastChildFill="True">
-                                                                                <Grid DockPanel.Dock="Right"
+                                                                                <Grid
                                                                                     Width="16"
                                                                                     Height="16"
                                                                                     Margin="5,0,0,0"
-                                                                                    VerticalAlignment="Center">
+                                                                                    VerticalAlignment="Center"
+                                                                                    DockPanel.Dock="Right">
                                                                                     <Ellipse
                                                                                         x:Name="OutputCircle"
                                                                                         Width="10"
@@ -528,7 +529,7 @@
                                                                                             TextWrapping="Wrap" />
                                                                                         <TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}">
                                                                                             <Run Text="{lex:Loc Designer.Graph.Tooltip.PortKind}" /><Run Text=": " />
-                                                                                            <Run Text="{Binding PortKindName}" />
+                                                                                            <Run Text="{Binding PortKindName, Mode=OneWay}" />
                                                                                         </TextBlock>
                                                                                         <TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}">
                                                                                             <Run Text="{lex:Loc Designer.Graph.Tooltip.PortType}" /><Run Text=": " />
@@ -691,10 +692,11 @@
                                             Text="{Binding TextValue, UpdateSourceTrigger=LostFocus}"
                                             Visibility="{Binding IsText, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                         <ComboBox
-                                            DisplayMemberPath="DisplayName"
+                                            DisplayMemberPath="DisplayText"
                                             ItemsSource="{Binding ConditionFieldOptions}"
                                             SelectedValue="{Binding ConditionFieldValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                            SelectedValuePath="Path"
+                                            SelectedValuePath="ValuePath"
+                                            ToolTip="{Binding SelectedItem.Description, RelativeSource={RelativeSource Self}}"
                                             Visibility="{Binding IsConditionField, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                         <ComboBox
                                             DisplayMemberPath="DisplayName"
@@ -725,7 +727,30 @@
                                                 </Style>
                                             </ComboBox.Style>
                                         </ComboBox>
-                                        <Grid Visibility="{Binding IsNumber, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                        <Grid Visibility="{Binding IsNumberBox, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <ui:NumberBox
+                                                AcceptsExpression="False"
+                                                LargeChange="10"
+                                                MaxDecimalPlaces="{Binding NumberMaxDecimalPlaces}"
+                                                Maximum="{Binding NumberMaximum}"
+                                                Minimum="{Binding NumberMinimum}"
+                                                PlaceholderText="{Binding Placeholder}"
+                                                SmallChange="1"
+                                                SpinButtonPlacementMode="Compact"
+                                                Value="{Binding NumberValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}" />
+                                            <TextBlock
+                                                Grid.Column="1"
+                                                Margin="6,0,0,0"
+                                                VerticalAlignment="Center"
+                                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                Text="{Binding Unit}"
+                                                Visibility="{Binding HasUnit, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                        </Grid>
+                                        <Grid Visibility="{Binding IsPercentageNumberText, Converter={StaticResource BooleanToVisibilityConverter}}">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="Auto" />

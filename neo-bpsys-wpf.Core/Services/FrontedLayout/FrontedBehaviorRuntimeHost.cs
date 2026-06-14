@@ -280,6 +280,10 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
             {
                 payload[item.Key["Event.".Length..]] = item.Value;
             }
+            else
+            {
+                payload[$"Event.{item.Key}"] = item.Value;
+            }
         }
 
         return payload;

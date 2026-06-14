@@ -14,6 +14,12 @@ FrontedBehaviors/{WindowTypeName}.behaviors.json
 
 行为分为 `OneShot`、`Loop` 和 `Transition`。节点图由 `FrontedNodeGraphRuntime` 执行，属性写入和动画由 `IFrontedAnimationRuntime` 及 `IAnimatablePropertyAdapterRegistry` 完成。动画目标通过稳定控件身份和显式 `TargetLayer` 解析，不使用临时行为标签。
 
+`flow.if` 的事件字段选择器显示本地化字段名和稳定路径，例如“是否存在上一个角色
+(`Event.HasOldCharacter`)”，但节点 JSON 只保存稳定路径。运行时解析 `Event.*`、
+`StartEvent.*` 和 `StopEvent.*` 时兼容 payload 中的无前缀键及对应带前缀键；
+Transition payload 会同时提供两种形式。条件无法解析时，图执行日志会记录路径和
+可用 payload 键；设计器预览缺少事件上下文时也会明确提示。
+
 | TargetLayer | 目标 |
 | --- | --- |
 | `Control` | 控件根元素 |
@@ -76,6 +82,10 @@ ExitGraph / EnterGraph 使用 `TransitionTrigger.EventType`，Loop 的 StartGrap
 | `Context.TriggerEventType` / `Context.CurrentControlDisplayName` | 图执行上下文元数据 |
 
 属性动画必须通过已注册 adapter。新增可动画属性时，应实现或扩展 `IAnimatablePropertyAdapter`，并保证捕获基础值、设置值、动画和 reset 的语义一致。
+
+`flow.parallel` 使用 `BranchCount` 保存并行任务数，默认值为 `3`，允许范围为 `1` 到 `20`。分支输出使用稳定端口名 `Branch1` 到 `Branch20`；运行时仅执行当前数量范围内已连接的分支，并在全部完成后从 `Out` 继续。旧图未保存 `BranchCount` 时继续按 3 个分支处理。设计器减小任务数时会移除超出新范围的分支连接，避免保存不可见连线。
+
+节点图属性面板中的普通数字字段使用 WPF-UI `NumberBox`。数值范围、整数要求和动画属性元数据约束由基于 CommunityToolkit.Mvvm `ObservableValidator` 的属性编辑 ViewModel 校验，验证通过后才写回节点 JSON。允许百分比表达式的动画字段继续使用文本输入。
 
 ## Runtime services
 

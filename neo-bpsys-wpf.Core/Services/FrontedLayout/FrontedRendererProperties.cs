@@ -112,6 +112,36 @@ public static class FrontedRendererProperties
     }
 
     /// <summary>
+    /// Marks the element that represents the primary visual content of a generated control.
+    /// </summary>
+    public static readonly DependencyProperty IsPrimaryContentElementProperty =
+        DependencyProperty.RegisterAttached(
+            "IsPrimaryContentElement",
+            typeof(bool),
+            typeof(FrontedRendererProperties),
+            new PropertyMetadata(false));
+
+    /// <summary>
+    /// Gets whether the element represents the primary visual content of a generated control.
+    /// </summary>
+    /// <param name="element">The element to read.</param>
+    /// <returns><c>true</c> when the element is the primary content element; otherwise <c>false</c>.</returns>
+    public static bool GetIsPrimaryContentElement(DependencyObject element)
+    {
+        return (bool)element.GetValue(IsPrimaryContentElementProperty);
+    }
+
+    /// <summary>
+    /// Sets whether the element represents the primary visual content of a generated control.
+    /// </summary>
+    /// <param name="element">The element to update.</param>
+    /// <param name="value">Whether the element is the primary content element.</param>
+    public static void SetIsPrimaryContentElement(DependencyObject element, bool value)
+    {
+        element.SetValue(IsPrimaryContentElementProperty, value);
+    }
+
+    /// <summary>
     /// Identifies the behavior GUID of the generated control that owns an animation part.
     /// </summary>
     public static readonly DependencyProperty ParentBehaviorGuidProperty =

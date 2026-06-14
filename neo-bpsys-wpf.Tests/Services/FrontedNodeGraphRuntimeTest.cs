@@ -77,6 +77,54 @@ public class FrontedNodeGraphRuntimeTest
 
         Assert.Contains(result.LogItems, item => item.Message == "true");
         Assert.DoesNotContain(result.LogItems, item => item.Message == "false");
+        Assert.Contains(result.LogItems, item =>
+            item.Message.Contains("LeftPath=Event.HasOldCharacter", StringComparison.Ordinal)
+            && item.Message.Contains("LeftValue=true", StringComparison.Ordinal)
+            && item.Message.Contains("Result=True", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Runtime_IfBoolEventPath_SupportsPrefixedPayloadKey()
+    {
+        var graph = IfGraph("true", "Event.HasOldCharacter");
+
+        var result = await CreateRuntime().ExecuteAsync(graph, new FrontedGraphExecutionContext
+        {
+            EventPayload = new Dictionary<string, object?> { ["Event.HasOldCharacter"] = true }
+        }, TestContext.Current.CancellationToken);
+
+        Assert.Contains(result.LogItems, item => item.Message == "true");
+    }
+
+    [Fact]
+    public async Task Runtime_IfBoolEventPath_SupportsJsonBooleanRight()
+    {
+        var graph = IfGraph("placeholder", "Event.HasOldCharacter");
+        graph.Nodes.Single(node => node.NodeType == "flow.if").Properties["Right"] = JsonSerializer.SerializeToElement(true);
+
+        var result = await CreateRuntime().ExecuteAsync(graph, new FrontedGraphExecutionContext
+        {
+            EventPayload = new Dictionary<string, object?> { ["HasOldCharacter"] = true }
+        }, TestContext.Current.CancellationToken);
+
+        Assert.Contains(result.LogItems, item => item.Message == "true");
+    }
+
+    [Fact]
+    public async Task Runtime_IfMissingEventPath_LogsAvailableKeysAndTakesFalseBranch()
+    {
+        var graph = IfGraph("true", "Event.HasOldCharacter");
+
+        var result = await CreateRuntime().ExecuteAsync(graph, new FrontedGraphExecutionContext
+        {
+            EventPayload = new Dictionary<string, object?> { ["HasNewCharacter"] = true }
+        }, TestContext.Current.CancellationToken);
+
+        Assert.Contains(result.LogItems, item =>
+            item.Level == FrontedGraphExecutionLogLevel.Warning
+            && item.Message.Contains("Event.HasOldCharacter", StringComparison.Ordinal)
+            && item.Message.Contains("HasNewCharacter", StringComparison.Ordinal));
+        Assert.Contains(result.LogItems, item => item.Message == "false");
     }
 
     [Fact]
@@ -109,6 +157,22 @@ public class FrontedNodeGraphRuntimeTest
 
         Assert.Contains(result.LogItems, item => item.Message == "one");
         Assert.Contains(result.LogItems, item => item.Message == "two");
+    }
+
+    [Fact]
+    public async Task Runtime_Parallel_ExecutesConfiguredAdditionalBranch()
+    {
+        var start = _catalog.CreateNode("flow.start");
+        var parallel = _catalog.CreateNode("flow.parallel");
+        parallel.Properties["BranchCount"] = JsonSerializer.SerializeToElement(4);
+        var fourth = LogNode("four");
+        var graph = new FrontedNodeGraph { Nodes = [start, parallel, fourth] };
+        graph.Connections.Add(Link(start, "Out", parallel, "In"));
+        graph.Connections.Add(Link(parallel, "Branch4", fourth, "In"));
+
+        var result = await CreateRuntime().ExecuteAsync(graph, new FrontedGraphExecutionContext(), TestContext.Current.CancellationToken);
+
+        Assert.Contains(result.LogItems, item => item.Message == "four");
     }
 
     [Fact]

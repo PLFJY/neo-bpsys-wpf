@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Text.Json;
 using System.Windows;
@@ -20,6 +21,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     private readonly IFrontedAnimationRuntime? _animationRuntime;
     private readonly Func<FrontedAnimationExecutionContext?>? _createAnimationContext;
     private readonly Action _markDirty;
+    private readonly Action _captureUndoSnapshot;
     private readonly Func<string, string, string> _localize;
     private readonly IReadOnlyList<FrontedNodeTargetOptionViewModel> _targetOptions;
     private readonly IReadOnlyList<FrontedGraphConditionFieldOptionViewModel> _conditionFieldOptions;
@@ -43,6 +45,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         Func<string, string, string>? localize = null,
         Action? save = null,
         Func<Task<bool>>? saveAsync = null,
+        Action? captureUndoSnapshot = null,
         IReadOnlyList<FrontedNodeTargetOptionViewModel>? targetOptions = null,
         IReadOnlyList<FrontedGraphConditionFieldOptionViewModel>? conditionFieldOptions = null)
     {
@@ -53,6 +56,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         _animationRuntime = animationRuntime;
         _createAnimationContext = createAnimationContext;
         _markDirty = markDirty ?? (() => { });
+        _captureUndoSnapshot = captureUndoSnapshot ?? (() => { });
         _localize = localize ?? ((_, fallback) => fallback);
         _saveAsync = saveAsync ?? (save is null
             ? (() => Task.FromResult(true))
@@ -66,6 +70,11 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         Catalog = _catalog.Nodes
             .Select(descriptor => new FrontedNodeCatalogItemViewModel(descriptor, _localize))
             .ToArray();
+        if (RemoveDuplicateSingletonFlowNodes(Graph))
+        {
+            _markDirty();
+            IsDirty = true;
+        }
         Reload();
         ValidateGraph();
     }
@@ -128,7 +137,13 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     [RelayCommand]
     public void AddNode(string? nodeType)
     {
+        var nodeCount = Nodes.Count;
         AddNodeAt(nodeType, 40 + Nodes.Count * 20, 40 + Nodes.Count * 20);
+        if (Nodes.Count == nodeCount)
+        {
+            return;
+        }
+
         SelectedNodes.Clear();
         if (Nodes.Count > 0)
         {
@@ -138,7 +153,9 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
 
     public void AddNodeAt(string? nodeType, double x, double y)
     {
-        if (string.IsNullOrWhiteSpace(nodeType) || _catalog.Find(nodeType) is null)
+        if (string.IsNullOrWhiteSpace(nodeType)
+            || _catalog.Find(nodeType) is null
+            || !CanAddNodeType(nodeType))
         {
             return;
         }
@@ -241,19 +258,34 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
             return;
         }
 
-        CreateSnapshot();
-        var clones = new List<FrontedNodeEditorViewModel>();
+        var models = new List<FrontedNode>();
         foreach (var node in nodesToClone)
         {
+            if (!CanAddNodeType(node.Model.NodeType))
+            {
+                continue;
+            }
+
             var source = node.Model;
-            var clone = new FrontedNode
+            models.Add(new FrontedNode
             {
                 NodeType = source.NodeType,
                 DisplayName = source.DisplayName,
                 X = source.X + 30,
                 Y = source.Y + 30,
                 Properties = source.Properties.ToDictionary(pair => pair.Key, pair => pair.Value.Clone(), StringComparer.Ordinal)
-            };
+            });
+        }
+
+        if (models.Count == 0)
+        {
+            return;
+        }
+
+        CreateSnapshot();
+        var clones = new List<FrontedNodeEditorViewModel>();
+        foreach (var clone in models)
+        {
             Graph.Nodes.Add(clone);
             var viewModel = CreateNode(clone);
             Nodes.Add(viewModel);
@@ -305,9 +337,20 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
             return;
         }
 
-        CreateSnapshot();
         var nodes = DeepClone(payload.Nodes);
-        var connections = DeepClone(payload.Connections);
+        RemovePastedDuplicateSingletonFlowNodes(nodes);
+
+        if (nodes.Count == 0)
+        {
+            return;
+        }
+
+        CreateSnapshot();
+        var copiedIds = nodes.Select(node => node.NodeId).ToHashSet();
+        var connections = DeepClone(payload.Connections)
+            .Where(connection => copiedIds.Contains(connection.SourceNodeId)
+                                 && copiedIds.Contains(connection.TargetNodeId))
+            .ToList();
         var idMap = nodes.ToDictionary(node => node.NodeId, _ => FrontedBehaviorGuidHelper.NewGuid());
         foreach (var node in nodes)
         {
@@ -361,10 +404,9 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     public void UpdateSelectionPreview(Rect selectionRect)
     {
         ClearIsSelected();
-        const double nodeHeight = 80;
         foreach (var node in Nodes)
         {
-            var nodeRect = new Rect(node.X, node.Y, FrontedNodeEditorViewModel.Width, nodeHeight);
+            var nodeRect = new Rect(node.X, node.Y, node.CardWidth, node.CardHeight);
             if (selectionRect.IntersectsWith(nodeRect))
             {
                 node.IsSelected = true;
@@ -378,10 +420,9 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     {
         ClearIsSelected();
         SelectedNodes.Clear();
-        const double nodeHeight = 80;
         foreach (var node in Nodes)
         {
-            var nodeRect = new Rect(node.X, node.Y, FrontedNodeEditorViewModel.Width, nodeHeight);
+            var nodeRect = new Rect(node.X, node.Y, node.CardWidth, node.CardHeight);
             if (selectionRect.IntersectsWith(nodeRect))
             {
                 SelectedNodes.Add(node);
@@ -653,6 +694,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
                     ? null
                     : new AnimationRuntimeGraphActionExecutor(_animationRuntime, animationContext)
             };
+            AddMissingEventContextWarning(Graph, graphContext);
             var result = await _runtime.ExecuteAsync(Graph, graphContext, _previewCancellation.Token);
             foreach (var item in result.LogItems)
             {
@@ -717,6 +759,30 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     [RelayCommand]
     public void ClearExecutionLog() => ExecutionLog.Clear();
 
+    private void AddMissingEventContextWarning(FrontedNodeGraph graph, FrontedGraphExecutionContext context)
+    {
+        var missingPath = graph.Nodes
+            .Where(node => node.NodeType == "flow.if")
+            .Select(node => node.Properties.TryGetValue("Left", out var value)
+                ? value.ValueKind == JsonValueKind.String ? value.GetString() : value.ToString()
+                : null)
+            .FirstOrDefault(path => path?.StartsWith("Event.", StringComparison.Ordinal) == true);
+        if (missingPath is null || context.EventPayload.Count > 0)
+        {
+            return;
+        }
+
+        ExecutionLog.Add(new FrontedGraphExecutionLogItem
+        {
+            Level = FrontedGraphExecutionLogLevel.Warning,
+            Message = string.Format(
+                _localize(
+                    "Designer.Graph.Preview.MissingEventContext",
+                    "The current preview has no event context, so {0} cannot be resolved."),
+                missingPath)
+        });
+    }
+
     private void Reload()
     {
         Nodes.Clear();
@@ -729,7 +795,31 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     }
 
     private FrontedNodeEditorViewModel CreateNode(FrontedNode node) =>
-        new(node, _catalog.Find(node.NodeType), MarkDirtyAndSetIsDirty, ValidateGraph, _localize, _targetOptions, _conditionFieldOptions);
+        new(node, _catalog.Find(node.NodeType), MarkDirtyAndSetIsDirty, ValidateGraph, RefreshParallelNode, _localize, _targetOptions, _conditionFieldOptions);
+
+    private void RefreshParallelNode(FrontedNode node)
+    {
+        var branchCount = FrontedParallelNodePorts.GetBranchCount(node);
+        Graph.Connections.RemoveAll(connection =>
+            connection.SourceNodeId == node.NodeId
+            && FrontedParallelNodePorts.TryGetBranchIndex(connection.SourcePort, out var branchIndex)
+            && branchIndex > branchCount);
+
+        var wasSelected = SelectedNode?.Model.NodeId == node.NodeId;
+        Reload();
+        if (wasSelected)
+        {
+            ClearIsSelected();
+            SelectedNodes.Clear();
+            SelectedNode = Nodes.FirstOrDefault(item => item.Model.NodeId == node.NodeId);
+            if (SelectedNode is not null)
+            {
+                SelectedNode.IsSelected = true;
+                SelectedNodes.Add(SelectedNode);
+            }
+        }
+        ValidateGraph();
+    }
 
     private void MarkDirtyAndSetIsDirty()
     {
@@ -763,7 +853,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     private void UpdateCanvasSize()
     {
         CanvasWidth = Math.Max(2200, Nodes.Select(node => node.X).DefaultIfEmpty(0).Max() + 520);
-        CanvasHeight = Math.Max(1400, Nodes.Select(node => node.Y).DefaultIfEmpty(0).Max() + 360);
+        CanvasHeight = Math.Max(1400, Nodes.Select(node => node.Y + node.CardHeight).DefaultIfEmpty(0).Max() + 160);
     }
 
     /// <summary>创建当前图快照（用于撤销）</summary>
@@ -773,6 +863,8 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         {
             return;
         }
+
+        _captureUndoSnapshot();
 
         if (_undoStack.Count >= UndoStackLimit)
         {
@@ -871,6 +963,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         Graph.Nodes.AddRange(snapshot.Nodes);
         Graph.Connections.Clear();
         Graph.Connections.AddRange(snapshot.Connections);
+        RemoveDuplicateSingletonFlowNodes(Graph);
         Reload();
         ClearIsSelected();
         SelectedNodes.Clear();
@@ -898,9 +991,78 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     }
 
     private bool IsTargetAvailable(FrontedNodePortViewModel source, FrontedNodePortViewModel target) =>
-        Graph.GetIncoming(target.Node.Model.NodeId, target.Descriptor.Name)
+        IsEndInputPort(target)
+        || Graph.GetIncoming(target.Node.Model.NodeId, target.Descriptor.Name)
             .All(connection => connection.SourceNodeId == source.Node.Model.NodeId
                                && string.Equals(connection.SourcePort, source.Descriptor.Name, StringComparison.Ordinal));
+
+    private bool CanAddNodeType(string nodeType) =>
+        !IsSingletonFlowNodeType(nodeType) || !HasNodeType(nodeType);
+
+    private bool HasNodeType(string nodeType) =>
+        Graph.Nodes.Any(node => node.NodeType == nodeType);
+
+    private static bool IsEndInputPort(FrontedNodePortViewModel port) =>
+        port.Node.Model.NodeType == "flow.end"
+        && string.Equals(port.Descriptor.Name, "In", StringComparison.Ordinal);
+
+    private void RemovePastedDuplicateSingletonFlowNodes(List<FrontedNode> nodes)
+    {
+        foreach (var nodeType in SingletonFlowNodeTypes)
+        {
+            var hasNode = HasNodeType(nodeType);
+            nodes.RemoveAll(node =>
+            {
+                if (node.NodeType != nodeType)
+                {
+                    return false;
+                }
+
+                if (hasNode)
+                {
+                    return true;
+                }
+
+                hasNode = true;
+                return false;
+            });
+        }
+    }
+
+    private static bool RemoveDuplicateSingletonFlowNodes(FrontedNodeGraph graph)
+    {
+        var removedNodeIds = new HashSet<Guid>();
+        foreach (var nodeType in SingletonFlowNodeTypes)
+        {
+            var first = true;
+            foreach (var node in graph.Nodes.Where(node => node.NodeType == nodeType).ToArray())
+            {
+                if (first)
+                {
+                    first = false;
+                    continue;
+                }
+
+                removedNodeIds.Add(node.NodeId);
+                graph.Nodes.Remove(node);
+            }
+        }
+
+        if (removedNodeIds.Count == 0)
+        {
+            return false;
+        }
+
+        graph.Connections.RemoveAll(connection =>
+            removedNodeIds.Contains(connection.SourceNodeId)
+            || removedNodeIds.Contains(connection.TargetNodeId));
+        return true;
+    }
+
+    private static bool IsSingletonFlowNodeType(string nodeType) =>
+        SingletonFlowNodeTypes.Contains(nodeType, StringComparer.Ordinal);
+
+    private static readonly string[] SingletonFlowNodeTypes = ["flow.start", "flow.end"];
 
     private static List<T> DeepClone<T>(IReadOnlyCollection<T> values) =>
         JsonSerializer.Deserialize<List<T>>(JsonSerializer.Serialize(values)) ?? [];
@@ -926,6 +1088,7 @@ public sealed partial class FrontedNodeEditorViewModel : ObservableObject
         FrontedNodeTypeDescriptor? descriptor,
         Action markDirty,
         Action validate,
+        Action<FrontedNode> refreshParallelNode,
         Func<string, string, string> localize,
         IReadOnlyList<FrontedNodeTargetOptionViewModel> targetOptions,
         IReadOnlyList<FrontedGraphConditionFieldOptionViewModel> conditionFieldOptions)
@@ -938,11 +1101,21 @@ public sealed partial class FrontedNodeEditorViewModel : ObservableObject
         Description = descriptor is null ? model.NodeType : localize(descriptor.DescriptionKey, model.NodeType);
         CardWidth = model.NodeType == "flow.parallel" ? ParallelWidth : Width;
         InputPorts = CreatePorts(descriptor?.InputPorts, localize);
-        OutputPorts = CreatePorts(descriptor?.OutputPorts, localize);
+        var outputDescriptors = descriptor?.OutputPorts;
+        if (model.NodeType == "flow.parallel" && outputDescriptors is not null)
+        {
+            var branchCount = FrontedParallelNodePorts.GetBranchCount(model);
+            outputDescriptors = outputDescriptors
+                .Where(port => !FrontedParallelNodePorts.TryGetBranchIndex(port.Name, out var branchIndex) || branchIndex <= branchCount)
+                .ToArray();
+        }
+        OutputPorts = CreatePorts(outputDescriptors, localize);
         var properties = descriptor?.Properties
             .Select(property => new FrontedNodePropertyEditorViewModel(model, property, markDirty, validate, localize, targetOptions, conditionFieldOptions))
             .ToArray() ?? [];
         Properties = properties;
+        ConditionFieldOptions = conditionFieldOptions;
+        _localize = localize;
         foreach (var property in properties)
         {
             property.SetRefreshRelatedProperties(() =>
@@ -952,7 +1125,12 @@ public sealed partial class FrontedNodeEditorViewModel : ObservableObject
                     item.RefreshEditorState();
                 }
                 OnPropertyChanged(nameof(Summary));
+                OnPropertyChanged(nameof(RawSummary));
                 OnPropertyChanged(nameof(HeaderText));
+                if (property.Descriptor.Name == "BranchCount" && Model.NodeType == "flow.parallel")
+                {
+                    refreshParallelNode(Model);
+                }
             });
         }
     }
@@ -962,15 +1140,25 @@ public sealed partial class FrontedNodeEditorViewModel : ObservableObject
     public string DisplayName { get; }
     public string Description { get; }
     /// <summary>Gets a readable summary for nodes with user-editable expressions.</summary>
+    private readonly IReadOnlyList<FrontedGraphConditionFieldOptionViewModel> ConditionFieldOptions;
+    private readonly Func<string, string, string> _localize;
     public string Summary => Model.NodeType == "flow.if"
-        ? $"IF {ReadProperty("Left")} {OperatorSymbol(ReadProperty("Operator"))} {ReadProperty("Right")}".TrimEnd()
+        ? $"{_localize("Designer.Graph.Condition.If", "IF")} {ConditionFieldDisplayName(ReadProperty("Left"))} {OperatorSymbol(ReadProperty("Operator"))} {ReadProperty("Right")}".TrimEnd()
         : string.Empty;
+    /// <summary>Gets the stable raw expression shown in the node tooltip.</summary>
+    public string RawSummary => Model.NodeType == "flow.if"
+        ? $"{ReadProperty("Left")} {ReadProperty("Operator")} {ReadProperty("Right")}".TrimEnd()
+        : Description;
     /// <summary>Gets whether the node has a readable expression summary.</summary>
     public bool HasSummary => !string.IsNullOrWhiteSpace(Summary);
     /// <summary>Gets the node card header text.</summary>
     public string HeaderText => HasSummary ? Summary : DisplayName;
     /// <summary>Gets the rendered node card width.</summary>
     public double CardWidth { get; }
+    /// <summary>Gets the approximate rendered node card height used for canvas bounds and selection.</summary>
+    public double CardHeight => Math.Max(
+        80D,
+        InputPorts.Concat(OutputPorts).Select(port => port.CenterOffsetY).DefaultIfEmpty(56D).Max() + 24D);
     public IReadOnlyList<FrontedNodePortViewModel> InputPorts { get; }
     public IReadOnlyList<FrontedNodePortViewModel> OutputPorts { get; }
     public IReadOnlyList<FrontedNodePropertyEditorViewModel> Properties { get; }
@@ -1022,6 +1210,10 @@ public sealed partial class FrontedNodeEditorViewModel : ObservableObject
         Model.Properties.TryGetValue(name, out var value)
             ? value.ValueKind == JsonValueKind.String ? value.GetString() ?? string.Empty : value.ToString()
             : string.Empty;
+
+    private string ConditionFieldDisplayName(string path) =>
+        ConditionFieldOptions.FirstOrDefault(option => string.Equals(option.ValuePath, path, StringComparison.Ordinal))?.LocalizedDisplayName
+        ?? path;
 
     private static string OperatorSymbol(string value) =>
         Enum.TryParse<TriggerFilterOperator>(value, out var op)
@@ -1181,6 +1373,12 @@ public sealed partial class FrontedNodePortViewModel : ObservableObject
             return Localize("Designer.Graph.Port.ParallelOut", "全部完成后");
         }
 
+        if (Role == FrontedNodePortRole.ParallelBranch
+            && FrontedParallelNodePorts.TryGetBranchIndex(descriptor.Name, out var branchIndex))
+        {
+            return string.Format(Localize("Designer.Graph.Port.ParallelBranch", "分支 {0}"), branchIndex);
+        }
+
         return Localize(descriptor.DisplayNameKey, descriptor.Name);
     }
 
@@ -1191,28 +1389,29 @@ public sealed partial class FrontedNodePortViewModel : ObservableObject
             return Localize("Designer.Graph.Tooltip.CompatibleHint", "Drag to a compatible port to connect.");
         }
 
-        return Name switch
+        if (Name == "Out")
         {
-            "Branch1" => Localize("Designer.Graph.Port.Branch1.Tooltip", "并行分支 1。此分支会和其他分支同时执行。"),
-            "Branch2" => Localize("Designer.Graph.Port.Branch2.Tooltip", "并行分支 2。此分支会和其他分支同时执行。"),
-            "Branch3" => Localize("Designer.Graph.Port.Branch3.Tooltip", "并行分支 3。此分支会和其他分支同时执行。"),
-            "Out" => Localize("Designer.Graph.Port.ParallelOut.Tooltip", "所有已连接的并行分支执行完成后，从这里继续。"),
-            _ => Localize("Designer.Graph.Tooltip.CompatibleHint", "Drag to a compatible port to connect.")
-        };
+            return Localize("Designer.Graph.Port.ParallelOut.Tooltip", "所有已连接的并行分支执行完成后，从这里继续。");
+        }
+
+        return FrontedParallelNodePorts.TryGetBranchIndex(Name, out var branchIndex)
+            ? string.Format(Localize("Designer.Graph.Port.ParallelBranch.Tooltip", "并行分支 {0}。此分支会和其他分支同时执行。"), branchIndex)
+            : Localize("Designer.Graph.Tooltip.CompatibleHint", "Drag to a compatible port to connect.");
     }
 
     private string GetMeaning()
     {
         if (Node.Model.NodeType == "flow.parallel")
         {
-            return Name switch
+            if (Name == "Out")
             {
-                "Branch1" => Localize("Designer.Graph.Connection.Meaning.ParallelBranch1", "并行分支 1"),
-                "Branch2" => Localize("Designer.Graph.Connection.Meaning.ParallelBranch2", "并行分支 2"),
-                "Branch3" => Localize("Designer.Graph.Connection.Meaning.ParallelBranch3", "并行分支 3"),
-                "Out" => Localize("Designer.Graph.Connection.Meaning.ParallelOut", "所有并行分支完成后继续"),
-                _ => DisplayName
-            };
+                return Localize("Designer.Graph.Connection.Meaning.ParallelOut", "所有并行分支完成后继续");
+            }
+
+            if (FrontedParallelNodePorts.TryGetBranchIndex(Name, out var branchIndex))
+            {
+                return string.Format(Localize("Designer.Graph.Connection.Meaning.ParallelBranch", "并行分支 {0}"), branchIndex);
+            }
         }
 
         return DisplayName;
@@ -1225,12 +1424,14 @@ public sealed partial class FrontedNodePortViewModel : ObservableObject
             return FrontedNodePortRole.Default;
         }
 
-        return portName switch
+        if (portName == "Out")
         {
-            "Branch1" or "Branch2" or "Branch3" => FrontedNodePortRole.ParallelBranch,
-            "Out" => FrontedNodePortRole.ParallelContinuation,
-            _ => FrontedNodePortRole.Default
-        };
+            return FrontedNodePortRole.ParallelContinuation;
+        }
+
+        return FrontedParallelNodePorts.TryGetBranchIndex(portName, out _)
+            ? FrontedNodePortRole.ParallelBranch
+            : FrontedNodePortRole.Default;
     }
 
     private string? GetValueTypeDisplayName(string? valueType)
@@ -1326,7 +1527,7 @@ public sealed partial class FrontedNodeConnectionViewModel(
         _localize?.Invoke(key, fallback) ?? fallback;
 }
 
-public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObject
+public sealed partial class FrontedNodePropertyEditorViewModel : ObservableValidator
 {
     private readonly FrontedNode _node;
     private readonly Action _markDirty;
@@ -1340,6 +1541,7 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
     private Action? _refreshRelatedProperties;
     private string? _validationError;
     private Color _colorValue = Colors.White;
+    private double? _numberValue;
 
     public FrontedNodePropertyEditorViewModel(
         FrontedNode node,
@@ -1374,6 +1576,16 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
         {
             _colorValue = color;
         }
+        _numberValue = ParseNumberValue();
+        ErrorsChanged += (_, args) =>
+        {
+            if (args.PropertyName == nameof(NumberValue))
+            {
+                OnPropertyChanged(nameof(ValidationError));
+                OnPropertyChanged(nameof(HasValidationError));
+            }
+        };
+        ValidateProperty(NumberValue, nameof(NumberValue));
     }
 
     public FrontedNodePropertyDescriptor Descriptor { get; }
@@ -1388,6 +1600,10 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
     public bool IsBoolean => Descriptor.EditorKind == FrontedNodePropertyEditorKind.Boolean;
     public bool IsEnum => Descriptor.EditorKind == FrontedNodePropertyEditorKind.Enum && !IsConditionOperator;
     public bool IsNumber => Descriptor.EditorKind == FrontedNodePropertyEditorKind.Number || IsNumericDynamicValue || IsNumericConditionValue;
+    /// <summary>Gets whether this numeric property can use a NumberBox without losing percentage expressions.</summary>
+    public bool IsNumberBox => IsNumber && !FrontedBehaviorPropertyMetadata.SupportsPercentage(EffectivePropertyNameForValidation());
+    /// <summary>Gets whether this numeric property must retain text editing for percentage expressions.</summary>
+    public bool IsPercentageNumberText => IsNumber && !IsNumberBox;
     public bool IsColor => Descriptor.EditorKind == FrontedNodePropertyEditorKind.Color || IsColorDynamicValue;
     public bool IsControlReference => Descriptor.EditorKind == FrontedNodePropertyEditorKind.ControlReference;
     public bool IsPropertyName => Descriptor.EditorKind == FrontedNodePropertyEditorKind.PropertyName;
@@ -1426,7 +1642,7 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
     public bool HasValidationError => !string.IsNullOrWhiteSpace(ValidationError);
     public string? ValidationError
     {
-        get => _validationError;
+        get => _validationError ?? GetErrors(nameof(NumberValue)).Cast<object>().FirstOrDefault()?.ToString();
         private set
         {
             if (SetProperty(ref _validationError, value))
@@ -1454,14 +1670,23 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
         get => Read().ValueKind == JsonValueKind.String ? Read().GetString() ?? string.Empty : Read().ToString();
         set
         {
+            if (IsNumberBox)
+            {
+                NumberValue = double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var number)
+                    && double.IsFinite(number)
+                    ? number
+                    : null;
+                return;
+            }
+
             if (!ValidateTextValue(value, out var normalized))
             {
                 OnPropertyChanged(nameof(TextValue));
                 return;
             }
 
-            Write(Descriptor.PropertyType == FrontedNodePropertyType.Number && double.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out var number)
-                ? JsonSerializer.SerializeToElement(number)
+            Write(Descriptor.PropertyType == FrontedNodePropertyType.Number && double.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsedNumber)
+                ? JsonSerializer.SerializeToElement(parsedNumber)
                 : JsonSerializer.SerializeToElement(normalized));
         }
     }
@@ -1471,6 +1696,40 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
         get => Read().ValueKind == JsonValueKind.True;
         set => Write(JsonSerializer.SerializeToElement(value));
     }
+
+    /// <summary>Gets or sets the numeric value edited by WPF-UI NumberBox.</summary>
+    [CustomValidation(typeof(FrontedNodePropertyEditorViewModel), nameof(ValidateNumberBoxValue))]
+    public double? NumberValue
+    {
+        get => _numberValue;
+        set
+        {
+            if (!SetProperty(ref _numberValue, value, true))
+            {
+                return;
+            }
+
+            if (!GetErrors(nameof(NumberValue)).Cast<object>().Any() && value is { } number)
+            {
+                Write(JsonSerializer.SerializeToElement(number));
+            }
+        }
+    }
+
+    /// <summary>Gets the minimum value displayed by NumberBox.</summary>
+    public double NumberMinimum => _node.NodeType == "flow.parallel" && Descriptor.Name == "BranchCount"
+        ? FrontedParallelNodePorts.MinBranchCount
+        : Descriptor.Name == "DurationMs"
+            ? 0D
+            : DynamicMetadata?.Min ?? double.MinValue;
+
+    /// <summary>Gets the maximum value displayed by NumberBox.</summary>
+    public double NumberMaximum => _node.NodeType == "flow.parallel" && Descriptor.Name == "BranchCount"
+        ? FrontedParallelNodePorts.MaxBranchCount
+        : DynamicMetadata?.Max ?? double.MaxValue;
+
+    /// <summary>Gets the NumberBox decimal-place limit.</summary>
+    public int NumberMaxDecimalPlaces => RequiresIntegerNumber ? 0 : 6;
 
     /// <summary>Gets or sets the boolean value as a stable lowercase string for ComboBox editing.</summary>
     public string BooleanTextValue
@@ -1556,6 +1815,8 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
     public void RefreshEditorState()
     {
         OnPropertyChanged(nameof(IsNumber));
+        OnPropertyChanged(nameof(IsNumberBox));
+        OnPropertyChanged(nameof(IsPercentageNumberText));
         OnPropertyChanged(nameof(IsColor));
         OnPropertyChanged(nameof(IsVisibilityValue));
         OnPropertyChanged(nameof(IsText));
@@ -1582,6 +1843,15 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
         OnPropertyChanged(nameof(PropertyNameText));
         OnPropertyChanged(nameof(Placeholder));
         OnPropertyChanged(nameof(HelpText));
+        if (IsNumber)
+        {
+            OnPropertyChanged(nameof(NumberMinimum));
+            OnPropertyChanged(nameof(NumberMaximum));
+            OnPropertyChanged(nameof(NumberMaxDecimalPlaces));
+        }
+        _numberValue = ParseNumberValue();
+        OnPropertyChanged(nameof(NumberValue));
+        ValidateProperty(NumberValue, nameof(NumberValue));
     }
 
     private JsonElement Read() => _node.Properties.TryGetValue(Descriptor.Name, out var value) ? value : Descriptor.DefaultValue;
@@ -1602,6 +1872,8 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
             SetProperty(ref _colorValue, color, nameof(ColorValue));
         }
         OnPropertyChanged(nameof(TextValue));
+        _numberValue = ParseNumberValue();
+        OnPropertyChanged(nameof(NumberValue));
         OnPropertyChanged(nameof(BooleanValue));
         OnPropertyChanged(nameof(BooleanTextValue));
         OnPropertyChanged(nameof(EnumValue));
@@ -1689,12 +1961,12 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
     {
         var current = IsConditionField ? TextValue : ReadNodeString("Left");
         if (string.IsNullOrWhiteSpace(current)
-            || _conditionFieldOptions.Any(option => string.Equals(option.Path, current, StringComparison.Ordinal)))
+            || _conditionFieldOptions.Any(option => string.Equals(option.ValuePath, current, StringComparison.Ordinal)))
         {
             return _conditionFieldOptions;
         }
 
-        return [.. _conditionFieldOptions, new FrontedGraphConditionFieldOptionViewModel(current, current, "string", [], null)];
+        return [.. _conditionFieldOptions, new FrontedGraphConditionFieldOptionViewModel(current, current, current, "string", [], null, current)];
     }
 
     private IReadOnlyList<FrontedNodePropertyOptionViewModel> ResolveConditionOperatorOptions()
@@ -1773,7 +2045,7 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
 
     private FrontedGraphConditionFieldOptionViewModel? SelectedConditionField =>
         EnsureCurrentConditionFieldOption().FirstOrDefault(option =>
-            string.Equals(option.Path, ReadNodeString("Left"), StringComparison.Ordinal));
+            string.Equals(option.ValuePath, ReadNodeString("Left"), StringComparison.Ordinal));
 
     private bool IsConditionProperty => IsConditionField || IsConditionOperator || IsConditionValue;
 
@@ -1807,6 +2079,56 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
         IsDynamicValue ? FrontedBehaviorPropertyMetadata.Find(CurrentBehaviorPropertyName) : FrontedBehaviorPropertyMetadata.Find(Descriptor.Name);
     private string? EffectivePropertyNameForValidation() =>
         IsDynamicValue ? CurrentBehaviorPropertyName : Descriptor.Name;
+
+    private bool RequiresIntegerNumber =>
+        _node.NodeType == "flow.parallel" && Descriptor.Name == "BranchCount"
+        || Descriptor.Name == "DurationMs";
+
+    private double? ParseNumberValue()
+    {
+        var value = TextValue;
+        return double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var number) && double.IsFinite(number)
+            ? number
+            : null;
+    }
+
+    /// <summary>
+    /// Validates a NumberBox value against graph property metadata.
+    /// </summary>
+    /// <param name="value">Candidate numeric value.</param>
+    /// <param name="context">Validation context containing the property editor.</param>
+    /// <returns>The validation result.</returns>
+    public static ValidationResult? ValidateNumberBoxValue(double? value, ValidationContext context)
+    {
+        var editor = (FrontedNodePropertyEditorViewModel)context.ObjectInstance;
+        if (!editor.IsNumberBox)
+        {
+            return ValidationResult.Success;
+        }
+
+        if (value is null || !double.IsFinite(value.Value))
+        {
+            return new ValidationResult(editor._localize("Designer.Graph.Validation.NumberFinite", "Value must be a finite number."));
+        }
+
+        if (editor.RequiresIntegerNumber && value.Value != Math.Truncate(value.Value))
+        {
+            return new ValidationResult(editor._localize("Designer.Graph.Validation.NumberInteger", "Value must be an integer."));
+        }
+
+        if (value.Value < editor.NumberMinimum || value.Value > editor.NumberMaximum)
+        {
+            return new ValidationResult(string.Format(
+                editor._localize("Designer.Graph.Validation.NumberRange", "Value must be between {0} and {1}."),
+                editor.NumberMinimum,
+                editor.NumberMaximum));
+        }
+
+        var text = value.Value.ToString(CultureInfo.InvariantCulture);
+        return FrontedBehaviorPropertyMetadata.TryValidateValue(editor.EffectivePropertyNameForValidation(), text, out var message)
+            ? ValidationResult.Success
+            : new ValidationResult(message);
+    }
 }
 
 /// <summary>
@@ -1819,17 +2141,21 @@ public sealed record FrontedNodeTargetOptionViewModel(string Value, string Displ
 /// <summary>
 /// Event payload field available to a context-aware graph condition editor.
 /// </summary>
-/// <param name="Path">Stable condition path persisted in the graph.</param>
-/// <param name="DisplayName">User-facing field label.</param>
+/// <param name="ValuePath">Stable condition path persisted in the graph.</param>
+/// <param name="DisplayText">User-facing localized field label plus stable path.</param>
+/// <param name="Description">Localized field description.</param>
 /// <param name="TypeName">Payload value type name.</param>
 /// <param name="EnumValues">Stable enum names accepted by the field.</param>
 /// <param name="EventType">Event type that contributes the field, when useful for disambiguation.</param>
+/// <param name="LocalizedDisplayName">Localized field label without the stable path.</param>
 public sealed record FrontedGraphConditionFieldOptionViewModel(
-    string Path,
-    string DisplayName,
+    string ValuePath,
+    string DisplayText,
+    string Description,
     string TypeName,
     IReadOnlyList<string> EnumValues,
-    string? EventType);
+    string? EventType,
+    string LocalizedDisplayName);
 
 /// <summary>
 /// Option displayed by node property editors while preserving a stable stored value.

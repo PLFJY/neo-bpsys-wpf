@@ -10,6 +10,7 @@ using neo_bpsys_wpf.ViewModels.FrontedDesigner.GraphEditor;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -32,6 +33,21 @@ public class FrontedNodeGraphEditorViewModelTest
         Assert.Equal("flow.start", node.NodeType);
         Assert.Equal(40, node.X);
         Assert.Equal(40, node.Y);
+    }
+
+    [Fact]
+    public void GraphEditor_AddNode_CapturesOuterUndoBeforeMutation()
+    {
+        var graph = new FrontedNodeGraph();
+        var capturedNodeCount = -1;
+        var editor = new FrontedNodeGraphEditorViewModel(
+            graph,
+            captureUndoSnapshot: () => capturedNodeCount = graph.Nodes.Count);
+
+        editor.AddNode("flow.start");
+
+        Assert.Equal(0, capturedNodeCount);
+        Assert.Single(graph.Nodes);
     }
 
     [Fact]
@@ -81,14 +97,15 @@ public class FrontedNodeGraphEditorViewModelTest
         var field = node.Properties.Single(property => property.Descriptor.Name == "Left");
         var value = node.Properties.Single(property => property.Descriptor.Name == "Right");
 
-        Assert.Contains(field.ConditionFieldOptions, option => option.Path == "Event.HasOldCharacter");
-        Assert.Contains(field.ConditionFieldOptions, option => option.Path == "Event.HasNewCharacter");
-        Assert.Contains(field.ConditionFieldOptions, option => option.Path == "Event.Camp");
-        Assert.Contains(field.ConditionFieldOptions, option => option.Path == "Event.PlayerIndex");
-        Assert.Contains(field.ConditionFieldOptions, option => option.Path == "Event.OldCharacterId");
-        Assert.Contains(field.ConditionFieldOptions, option => option.Path == "Event.NewCharacterId");
+        Assert.Contains(field.ConditionFieldOptions, option => option.ValuePath == "Event.HasOldCharacter");
+        Assert.Contains(field.ConditionFieldOptions, option => option.ValuePath == "Event.HasNewCharacter");
+        Assert.Contains(field.ConditionFieldOptions, option => option.ValuePath == "Event.Camp");
+        Assert.Contains(field.ConditionFieldOptions, option => option.ValuePath == "Event.PlayerIndex");
+        Assert.Contains(field.ConditionFieldOptions, option => option.ValuePath == "Event.OldCharacterId");
+        Assert.Contains(field.ConditionFieldOptions, option => option.ValuePath == "Event.NewCharacterId");
 
         field.ConditionFieldValue = "Event.HasOldCharacter";
+        Assert.Equal("Event.HasOldCharacter", ifNode.Properties["Left"].GetString());
         Assert.True(value.IsBooleanConditionValue);
         Assert.Equal(["true", "false"], value.ConditionValueOptions.Select(option => option.Value).ToArray());
 
@@ -97,6 +114,38 @@ public class FrontedNodeGraphEditorViewModelTest
         Assert.Equal(["Sur", "Hun"], value.ConditionValueOptions.Select(option => option.Value).ToArray());
         value.ConditionChoiceValue = "Sur";
         Assert.Equal("Sur", ifNode.Properties["Right"].GetString());
+    }
+
+    [Fact]
+    public void TransitionCharacterPickCondition_LocalizesDisplayButPersistsStablePath()
+    {
+        var catalog = new FrontedNodeCatalog();
+        var ifNode = catalog.CreateNode("flow.if");
+        var behavior = new FrontedBehavior
+        {
+            Kind = FrontedBehaviorKind.Transition,
+            TransitionTrigger = new TriggerDescriptor { EventType = "Selection.CharacterPick" },
+            ExitGraph = new FrontedNodeGraph { Nodes = [ifNode] }
+        };
+        var editor = new FrontedBehaviorAnimationEditorViewModel(
+            behavior,
+            static (key, fallback) => key == "Designer.Behaviors.Payload.HasOldCharacter"
+                ? "是否存在上一个角色"
+                : fallback,
+            catalog: catalog);
+        var node = Assert.Single(editor.Stages[0].GraphEditor.Nodes);
+        var field = node.Properties.Single(property => property.Descriptor.Name == "Left");
+        var option = Assert.Single(field.ConditionFieldOptions, item => item.ValuePath == "Event.HasOldCharacter");
+
+        Assert.Equal("是否存在上一个角色 (Event.HasOldCharacter)", option.DisplayText);
+        Assert.DoesNotContain("Designer.Behaviors.Payload", option.DisplayText, StringComparison.Ordinal);
+
+        field.ConditionFieldValue = option.ValuePath;
+        node.Properties.Single(property => property.Descriptor.Name == "Right").ConditionChoiceValue = "true";
+
+        Assert.Equal("Event.HasOldCharacter", ifNode.Properties["Left"].GetString());
+        Assert.Contains("是否存在上一个角色", node.Summary, StringComparison.Ordinal);
+        Assert.Equal("Event.HasOldCharacter Equals true", node.RawSummary);
     }
 
     [Fact]
@@ -121,9 +170,9 @@ public class FrontedNodeGraphEditorViewModelTest
         var field = editor.Stages[2].GraphEditor.Nodes.Single().Properties
             .Single(property => property.Descriptor.Name == "Left");
 
-        Assert.Contains(field.ConditionFieldOptions, option => option.Path == "StartEvent.Action");
-        Assert.Contains(field.ConditionFieldOptions, option => option.Path == "Event.Reason"
-            && option.DisplayName.Contains("Guidance.Cancelled", StringComparison.Ordinal));
+        Assert.Contains(field.ConditionFieldOptions, option => option.ValuePath == "StartEvent.Action");
+        Assert.Contains(field.ConditionFieldOptions, option => option.ValuePath == "Event.Reason"
+            && option.DisplayText.Contains("Guidance.Cancelled", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -159,6 +208,28 @@ public class FrontedNodeGraphEditorViewModelTest
 
         Assert.True(added);
         Assert.Single(editor.Graph.Connections);
+    }
+
+    [Fact]
+    public void GraphEditor_AddNode_SkipsSecondEndNode()
+    {
+        var editor = CreateEditorWithNodes("flow.end");
+
+        editor.AddNode("flow.end");
+
+        Assert.Single(editor.Graph.Nodes);
+        Assert.Single(editor.Graph.Nodes, node => node.NodeType == "flow.end");
+    }
+
+    [Fact]
+    public void GraphEditor_AddNode_SkipsSecondStartNode()
+    {
+        var editor = CreateEditorWithNodes("flow.start");
+
+        editor.AddNode("flow.start");
+
+        Assert.Single(editor.Graph.Nodes);
+        Assert.Single(editor.Graph.Nodes, node => node.NodeType == "flow.start");
     }
 
     [Fact]
@@ -211,6 +282,22 @@ public class FrontedNodeGraphEditorViewModelTest
     }
 
     [Fact]
+    public void GraphEditor_EndInput_AllowsMultipleIncomingConnections()
+    {
+        var editor = CreateEditorWithNodes("flow.if", "flow.end");
+        var condition = editor.Nodes[0];
+        var endInput = editor.Nodes[1].InputPorts[0];
+
+        var trueAdded = editor.AddConnection(condition.OutputPorts.Single(port => port.Name == "True"), endInput);
+        var falseAdded = editor.AddConnection(condition.OutputPorts.Single(port => port.Name == "False"), endInput);
+
+        Assert.True(trueAdded);
+        Assert.True(falseAdded);
+        Assert.Equal(2, editor.Graph.Connections.Count);
+        Assert.All(editor.Graph.Connections, connection => Assert.Equal(editor.Nodes[1].Model.NodeId, connection.TargetNodeId));
+    }
+
+    [Fact]
     public void ParallelNode_OutputPorts_ExposeLocalizedLabelsAndRoles()
     {
         var editor = new FrontedNodeGraphEditorViewModel(
@@ -253,6 +340,70 @@ public class FrontedNodeGraphEditorViewModelTest
         Assert.Equal("#8BC34A", continuationConnection.StrokeColorHex);
         Assert.True(continuationConnection.StrokeThickness > branchConnection.StrokeThickness);
         Assert.Contains("所有并行分支完成后继续", continuationConnection.Meaning);
+    }
+
+    [Fact]
+    public void ParallelNode_BranchCountProperty_RebuildsVisiblePorts()
+    {
+        var editor = CreateEditorWithNodes("flow.parallel");
+        var branchCount = editor.Nodes[0].Properties.Single(property => property.Descriptor.Name == "BranchCount");
+
+        branchCount.TextValue = "20";
+
+        var parallel = Assert.Single(editor.Nodes);
+        Assert.Equal(21, parallel.OutputPorts.Count);
+        Assert.Contains(parallel.OutputPorts, port => port.Name == "Branch20");
+        Assert.Equal("20", parallel.Model.Properties["BranchCount"].ToString());
+    }
+
+    [Fact]
+    public void ParallelNode_BranchCountUsesObservableValidator()
+    {
+        var editor = CreateEditorWithNodes("flow.parallel");
+        var branchCount = editor.Nodes[0].Properties.Single(property => property.Descriptor.Name == "BranchCount");
+
+        branchCount.NumberValue = 21;
+
+        Assert.True(branchCount.HasErrors);
+        Assert.True(branchCount.HasValidationError);
+        Assert.NotEmpty(branchCount.GetErrors(nameof(branchCount.NumberValue)));
+        Assert.Equal("3", branchCount.TextValue);
+
+        branchCount.NumberValue = 4;
+
+        Assert.False(branchCount.HasErrors);
+        Assert.Equal("4", branchCount.TextValue);
+    }
+
+    [Fact]
+    public void ParallelNode_ReducingBranchCount_RemovesHiddenConnections()
+    {
+        var catalog = new FrontedNodeCatalog();
+        var parallel = catalog.CreateNode("flow.parallel");
+        parallel.Properties["BranchCount"] = JsonSerializer.SerializeToElement(5);
+        var log = catalog.CreateNode("action.log");
+        var graph = new FrontedNodeGraph
+        {
+            Nodes = [parallel, log],
+            Connections =
+            [
+                new FrontedNodeConnection
+                {
+                    SourceNodeId = parallel.NodeId,
+                    SourcePort = "Branch5",
+                    TargetNodeId = log.NodeId,
+                    TargetPort = "In"
+                }
+            ]
+        };
+        var editor = new FrontedNodeGraphEditorViewModel(graph, catalog);
+
+        editor.Nodes.Single(node => node.Model.NodeId == parallel.NodeId)
+            .Properties.Single(property => property.Descriptor.Name == "BranchCount")
+            .TextValue = "3";
+
+        Assert.DoesNotContain(graph.Connections, connection => connection.SourcePort == "Branch5");
+        Assert.DoesNotContain(editor.Nodes.Single(node => node.Model.NodeId == parallel.NodeId).OutputPorts, port => port.Name == "Branch5");
     }
 
     [Fact]
@@ -409,6 +560,7 @@ public class FrontedNodeGraphEditorViewModelTest
 
         layer.EnumValue = FrontedAnimationTargetLayer.Content.ToString();
         Assert.Contains(propertyName.DisplayedOptions, option => option.Value == "TextColor");
+        Assert.Contains(propertyName.DisplayedOptions, option => option.Value == "ClipInsetRight");
     }
 
     [Fact]
@@ -433,13 +585,35 @@ public class FrontedNodeGraphEditorViewModelTest
     [Fact]
     public void GraphEditor_DuplicateNode_GeneratesNewNodeId()
     {
-        var editor = CreateEditorWithNodes("flow.start");
+        var editor = CreateEditorWithNodes("action.log");
         var originalId = editor.SelectedNode!.Model.NodeId;
 
         editor.DuplicateSelectedNode();
 
         Assert.Equal(2, editor.Graph.Nodes.Count);
         Assert.NotEqual(originalId, editor.SelectedNode!.Model.NodeId);
+    }
+
+    [Fact]
+    public void GraphEditor_DuplicateEndNode_SkipsSecondEnd()
+    {
+        var editor = CreateEditorWithNodes("flow.end");
+
+        editor.DuplicateSelectedNode();
+
+        Assert.Single(editor.Graph.Nodes);
+        Assert.Single(editor.Graph.Nodes, node => node.NodeType == "flow.end");
+    }
+
+    [Fact]
+    public void GraphEditor_DuplicateStartNode_SkipsSecondStart()
+    {
+        var editor = CreateEditorWithNodes("flow.start");
+
+        editor.DuplicateSelectedNode();
+
+        Assert.Single(editor.Graph.Nodes);
+        Assert.Single(editor.Graph.Nodes, node => node.NodeType == "flow.start");
     }
 
     [Fact]
@@ -460,6 +634,72 @@ public class FrontedNodeGraphEditorViewModelTest
         Assert.Contains(target.Graph.Nodes, node => node.NodeId == connection.TargetNodeId);
         Assert.DoesNotContain(target.Graph.Nodes, node => source.Graph.Nodes.Any(original => original.NodeId == node.NodeId));
         Assert.All(target.Graph.Nodes, node => Assert.True(node.X >= 32 && node.Y >= 32));
+    }
+
+    [Fact]
+    public void GraphEditor_PasteEndIntoGraphWithEnd_SkipsEndAndItsConnections()
+    {
+        FrontedNodeGraphClipboard.Payload = null;
+        var source = CreateEditorWithNodes("flow.start", "flow.end");
+        source.AddConnection(source.Nodes[0].OutputPorts[0], source.Nodes[1].InputPorts[0]);
+        source.SelectNodes(new Rect(0, 0, 1000, 1000));
+        source.CopySelectedNodes();
+        var target = CreateEditorWithNodes("flow.end");
+
+        target.PasteNodes();
+
+        Assert.Equal(2, target.Graph.Nodes.Count);
+        Assert.Single(target.Graph.Nodes, node => node.NodeType == "flow.end");
+        Assert.Single(target.Graph.Nodes, node => node.NodeType == "flow.start");
+        Assert.Empty(target.Graph.Connections);
+    }
+
+    [Fact]
+    public void GraphEditor_PasteStartIntoGraphWithStart_SkipsStartAndItsConnections()
+    {
+        FrontedNodeGraphClipboard.Payload = null;
+        var source = CreateEditorWithNodes("flow.start", "flow.end");
+        source.AddConnection(source.Nodes[0].OutputPorts[0], source.Nodes[1].InputPorts[0]);
+        source.SelectNodes(new Rect(0, 0, 1000, 1000));
+        source.CopySelectedNodes();
+        var target = CreateEditorWithNodes("flow.start");
+
+        target.PasteNodes();
+
+        Assert.Equal(2, target.Graph.Nodes.Count);
+        Assert.Single(target.Graph.Nodes, node => node.NodeType == "flow.start");
+        Assert.Single(target.Graph.Nodes, node => node.NodeType == "flow.end");
+        Assert.Empty(target.Graph.Connections);
+    }
+
+    [Fact]
+    public void GraphEditor_Constructor_RemovesDuplicateStartAndEndNodesWithConnections()
+    {
+        var catalog = new FrontedNodeCatalog();
+        var start = catalog.CreateNode("flow.start");
+        var extraStart = catalog.CreateNode("flow.start");
+        var end = catalog.CreateNode("flow.end");
+        var extraEnd = catalog.CreateNode("flow.end");
+        var log = catalog.CreateNode("action.log");
+        var graph = new FrontedNodeGraph
+        {
+            Nodes = [start, extraStart, end, extraEnd, log],
+            Connections =
+            [
+                new FrontedNodeConnection { SourceNodeId = start.NodeId, SourcePort = "Out", TargetNodeId = end.NodeId, TargetPort = "In" },
+                new FrontedNodeConnection { SourceNodeId = extraStart.NodeId, SourcePort = "Out", TargetNodeId = log.NodeId, TargetPort = "In" },
+                new FrontedNodeConnection { SourceNodeId = log.NodeId, SourcePort = "Out", TargetNodeId = extraEnd.NodeId, TargetPort = "In" }
+            ]
+        };
+
+        var editor = new FrontedNodeGraphEditorViewModel(graph, catalog);
+
+        Assert.Single(editor.Graph.Nodes, node => node.NodeType == "flow.start");
+        Assert.Single(editor.Graph.Nodes, node => node.NodeType == "flow.end");
+        Assert.Equal(3, editor.Graph.Nodes.Count);
+        var connection = Assert.Single(editor.Graph.Connections);
+        Assert.Equal(start.NodeId, connection.SourceNodeId);
+        Assert.Equal(end.NodeId, connection.TargetNodeId);
     }
 
     [Fact]
@@ -517,6 +757,24 @@ public class FrontedNodeGraphEditorViewModelTest
         await editor.RunGraphPreviewAsync();
 
         Assert.Contains(editor.ExecutionLog, item => item.Message == "No preview target scope available.");
+    }
+
+    [Fact]
+    public async Task GraphPreview_MissingEventContext_LogsLocalizedWarning()
+    {
+        var catalog = new FrontedNodeCatalog();
+        var graph = IfGraph(catalog, "Event.HasOldCharacter");
+        var editor = new FrontedNodeGraphEditorViewModel(
+            graph,
+            catalog,
+            localize: static (key, fallback) => key == "Designer.Graph.Preview.MissingEventContext"
+                ? "当前预览没有事件上下文，{0} 将无法解析。"
+                : fallback);
+
+        await editor.RunGraphPreviewAsync();
+
+        Assert.Contains(editor.ExecutionLog, item =>
+            item.Message == "当前预览没有事件上下文，Event.HasOldCharacter 将无法解析。");
     }
 
     [Fact]
@@ -941,6 +1199,24 @@ public class FrontedNodeGraphEditorViewModelTest
         var editor = new FrontedNodeGraphEditorViewModel(graph, catalog);
         editor.SelectedNode = editor.Nodes.FirstOrDefault();
         return editor;
+    }
+
+    private static FrontedNodeGraph IfGraph(FrontedNodeCatalog catalog, string left)
+    {
+        var start = catalog.CreateNode("flow.start");
+        var condition = catalog.CreateNode("flow.if");
+        condition.Properties["Left"] = System.Text.Json.JsonSerializer.SerializeToElement(left);
+        condition.Properties["Right"] = System.Text.Json.JsonSerializer.SerializeToElement("true");
+        var end = catalog.CreateNode("flow.end");
+        return new FrontedNodeGraph
+        {
+            Nodes = [start, condition, end],
+            Connections =
+            [
+                new FrontedNodeConnection { SourceNodeId = start.NodeId, SourcePort = "Out", TargetNodeId = condition.NodeId, TargetPort = "In" },
+                new FrontedNodeConnection { SourceNodeId = condition.NodeId, SourcePort = "False", TargetNodeId = end.NodeId, TargetPort = "In" }
+            ]
+        };
     }
 
     private sealed class RecordingGraphRuntime : IFrontedNodeGraphRuntime

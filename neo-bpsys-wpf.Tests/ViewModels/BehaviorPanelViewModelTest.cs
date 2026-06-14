@@ -31,6 +31,28 @@ public class BehaviorPanelViewModelTest
     }
 
     [Fact]
+    public void BehaviorPanel_AddOneShot_CapturesUndoBeforeMutation()
+    {
+        var item = CreateItem(Guid.Empty);
+        var capturedBehaviorSetCount = -1;
+        var capturedBehaviorGuid = Guid.NewGuid();
+        BehaviorPanelViewModel? panel = null;
+        panel = CreatePanel(captureUndoSnapshot: () =>
+        {
+            capturedBehaviorSetCount = panel!.CurrentDocument.ControlBehaviorSets.Count;
+            capturedBehaviorGuid = item.Config.BehaviorGuid;
+        });
+
+        panel.SetSelectedControl(item);
+        panel.AddOneShotBehavior();
+
+        Assert.Equal(0, capturedBehaviorSetCount);
+        Assert.Equal(Guid.Empty, capturedBehaviorGuid);
+        Assert.NotEqual(Guid.Empty, item.Config.BehaviorGuid);
+        Assert.Single(panel.CurrentDocument.ControlBehaviorSets);
+    }
+
+    [Fact]
     public void BehaviorPanel_AddOneShot_UsesExistingBehaviorGuid()
     {
         var existingGuid = Guid.NewGuid();
@@ -508,14 +530,16 @@ public class BehaviorPanelViewModelTest
     private static BehaviorPanelViewModel CreatePanel(
         Action? markLayoutDirty = null,
         Action? markBehaviorsDirty = null,
-        IFrontedBehaviorClipboard? clipboard = null)
+        IFrontedBehaviorClipboard? clipboard = null,
+        Action? captureUndoSnapshot = null)
     {
         return new BehaviorPanelViewModel(
             new neo_bpsys_wpf.Core.Services.FrontedLayout.FrontedDesignerLocalizationService(),
             new neo_bpsys_wpf.Core.Services.FrontedLayout.FrontedBehaviorEventCatalog(),
             markLayoutDirty ?? (() => { }),
             markBehaviorsDirty ?? (() => { }),
-            behaviorClipboard: clipboard);
+            behaviorClipboard: clipboard,
+            captureUndoSnapshot: captureUndoSnapshot);
     }
 
     private static FrontedControlDesignItem CreateItem(Guid behaviorGuid, string name = "Title")

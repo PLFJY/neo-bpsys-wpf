@@ -84,7 +84,7 @@ public sealed class FrontedNodeGraphRuntime(
                 await ExecuteOutputAsync(node, "Out", state);
                 break;
             case "flow.parallel":
-                var branchPorts = new[] { "Branch1", "Branch2", "Branch3" };
+                var branchPorts = FrontedParallelNodePorts.GetBranchPortNames(FrontedParallelNodePorts.GetBranchCount(node));
                 var branchTasks = branchPorts
                     .Where(port => state.Graph.GetOutgoing(node.NodeId, port).Any())
                     .Select(port => ExecuteOutputAsync(node, port, state))
@@ -96,11 +96,24 @@ public sealed class FrontedNodeGraphRuntime(
                 await ExecuteOutputAsync(node, "Out", state);
                 break;
             case "flow.if":
-                var left = ResolveText(GetString(node, "Left"), state.Context);
+                var leftPath = GetString(node, "Left");
+                var left = ResolveText(leftPath, state.Context, out var resolved);
                 var right = GetString(node, "Right");
                 var op = Enum.TryParse<TriggerFilterOperator>(GetString(node, "Operator"), out var parsed) ? parsed : TriggerFilterOperator.Equals;
                 var result = FrontedTriggerFilterTextComparer.Evaluate(left, op, right);
-                Log(state.Logs, FrontedGraphExecutionLogLevel.Debug, $"If evaluated to {result}.", node.NodeId);
+                if (!resolved && IsPayloadPath(leftPath))
+                {
+                    Log(
+                        state.Logs,
+                        FrontedGraphExecutionLogLevel.Warning,
+                        $"If condition unresolved: LeftPath={leftPath}; AvailableEventKeys={FormatAvailableKeys(state.Context)}",
+                        node.NodeId);
+                }
+                Log(
+                    state.Logs,
+                    FrontedGraphExecutionLogLevel.Debug,
+                    $"If condition: LeftPath={leftPath}; LeftValue={FrontedBehaviorPayloadValueFormatter.Format(left)}; Operator={op}; RightValue={right}; Result={result}",
+                    node.NodeId);
                 await ExecuteOutputAsync(node, result ? "True" : "False", state);
                 break;
             case "action.log":
@@ -175,34 +188,46 @@ public sealed class FrontedNodeGraphRuntime(
             ? layer
             : FrontedAnimationTargetLayer.Auto;
 
-    private static object? ResolveText(string value, FrontedGraphExecutionContext context)
+    private static object? ResolveText(string value, FrontedGraphExecutionContext context, out bool resolved)
     {
-        if (TryResolvePayloadPath(value, "Event.", context.EventPayload, out var eventValue))
+        if (TryResolvePayloadPath(value, "Event.", context.EventPayload, ["Event."], out var eventValue))
         {
+            resolved = true;
             return eventValue;
         }
 
-        if (TryResolvePayloadPath(value, "StartEvent.", context.StartEventPayload, out var startEventValue))
+        if (TryResolvePayloadPath(value, "StartEvent.", context.StartEventPayload, ["StartEvent.", "Event."], out var startEventValue))
         {
+            resolved = true;
             return startEventValue;
         }
 
-        if (TryResolvePayloadPath(value, "StopEvent.", context.StopEventPayload, out var stopEventValue))
+        if (TryResolvePayloadPath(value, "StopEvent.", context.StopEventPayload, ["StopEvent.", "Event."], out var stopEventValue))
         {
+            resolved = true;
             return stopEventValue;
+        }
+
+        if (IsPayloadPath(value))
+        {
+            resolved = false;
+            return null;
         }
 
         if (value.StartsWith("Context.", StringComparison.Ordinal))
         {
-            return value["Context.".Length..] switch
+            var contextValue = value["Context.".Length..] switch
             {
-                nameof(FrontedGraphExecutionContext.TriggerEventType) => context.TriggerEventType,
+                nameof(FrontedGraphExecutionContext.TriggerEventType) => (object?)context.TriggerEventType,
                 nameof(FrontedGraphExecutionContext.CurrentControlDisplayName) => context.CurrentControlDisplayName,
                 nameof(FrontedGraphExecutionContext.BehaviorGuid) => context.BehaviorGuid,
                 _ => null
             };
+            resolved = contextValue is not null;
+            return contextValue;
         }
 
+        resolved = true;
         return value;
     }
 
@@ -210,6 +235,7 @@ public sealed class FrontedNodeGraphRuntime(
         string value,
         string prefix,
         IReadOnlyDictionary<string, object?> payload,
+        IReadOnlyList<string> acceptedPrefixes,
         out object? resolved)
     {
         if (!value.StartsWith(prefix, StringComparison.Ordinal))
@@ -218,8 +244,33 @@ public sealed class FrontedNodeGraphRuntime(
             return false;
         }
 
-        resolved = payload.GetValueOrDefault(value[prefix.Length..]);
-        return true;
+        var suffix = value[prefix.Length..];
+        foreach (var key in new[] { suffix }.Concat(acceptedPrefixes.Select(candidate => candidate + suffix)))
+        {
+            if (payload.TryGetValue(key, out resolved))
+            {
+                return true;
+            }
+        }
+
+        resolved = null;
+        return false;
+    }
+
+    private static bool IsPayloadPath(string value) =>
+        value.StartsWith("Event.", StringComparison.Ordinal)
+        || value.StartsWith("StartEvent.", StringComparison.Ordinal)
+        || value.StartsWith("StopEvent.", StringComparison.Ordinal);
+
+    private static string FormatAvailableKeys(FrontedGraphExecutionContext context)
+    {
+        var keys = context.EventPayload.Keys
+            .Concat(context.StartEventPayload.Keys)
+            .Concat(context.StopEventPayload.Keys)
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(key => key, StringComparer.Ordinal)
+            .ToArray();
+        return keys.Length == 0 ? "(none)" : string.Join(", ", keys);
     }
 
     private static string GetString(FrontedNode node, string name, string fallback = "")

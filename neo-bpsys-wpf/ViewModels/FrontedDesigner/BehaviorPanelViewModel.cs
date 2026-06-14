@@ -19,6 +19,7 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
     private readonly IFrontedDesignerLocalizationService _localizationService;
     private readonly Action _markLayoutDirty;
     private readonly Action _markBehaviorsDirty;
+    private readonly Action _captureUndoSnapshot;
     private readonly FrontedNodeCatalog _nodeCatalog;
     private readonly FrontedNodeGraphValidator _graphValidator;
     private readonly IFrontedNodeGraphRuntime _graphRuntime;
@@ -57,11 +58,13 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
         FrontedDesignerPreviewAnimationScope? previewAnimationScope = null,
         Func<Task<bool>>? saveBehaviorAsync = null,
         IFrontedBehaviorClipboard? behaviorClipboard = null,
-        FrontedBehaviorCopyPasteService? copyPasteService = null)
+        FrontedBehaviorCopyPasteService? copyPasteService = null,
+        Action? captureUndoSnapshot = null)
     {
         _localizationService = localizationService;
         _markLayoutDirty = markLayoutDirty;
         _markBehaviorsDirty = markBehaviorsDirty;
+        _captureUndoSnapshot = captureUndoSnapshot ?? (() => { });
         _saveBehaviorAsync = saveBehaviorAsync;
         _nodeCatalog = nodeCatalog ?? new FrontedNodeCatalog();
         _graphValidator = graphValidator ?? new FrontedNodeGraphValidator(_nodeCatalog);
@@ -158,6 +161,13 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
 
     public bool RemoveBehaviors(Guid behaviorGuid)
     {
+        var existing = CurrentDocument.FindSet(behaviorGuid);
+        if (existing is null)
+        {
+            return false;
+        }
+
+        CaptureUndoSnapshot();
         var removed = CurrentDocument.RemoveSet(behaviorGuid);
         if (!removed)
         {
@@ -176,6 +186,12 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
     [RelayCommand]
     public void AddOneShotBehavior()
     {
+        if (SelectedControl is null)
+        {
+            return;
+        }
+
+        CaptureUndoSnapshot();
         var set = GetOrCreateSelectedSet();
         if (set is null)
         {
@@ -198,6 +214,12 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
     [RelayCommand]
     public void AddLoopBehavior()
     {
+        if (SelectedControl is null)
+        {
+            return;
+        }
+
+        CaptureUndoSnapshot();
         var set = GetOrCreateSelectedSet();
         if (set is null)
         {
@@ -224,6 +246,12 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
     [RelayCommand]
     public void AddTransitionBehavior()
     {
+        if (SelectedControl is null)
+        {
+            return;
+        }
+
+        CaptureUndoSnapshot();
         var set = GetOrCreateSelectedSet();
         if (set is null)
         {
@@ -264,6 +292,7 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
             return;
         }
 
+        CaptureUndoSnapshot();
         if (!_currentSet.Behaviors.Remove(behavior.Model))
         {
             return;
@@ -292,6 +321,7 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
             return;
         }
 
+        CaptureUndoSnapshot();
         var json = JsonSerializer.Serialize(behavior.Model, _cloneJsonOptions);
         var clone = JsonSerializer.Deserialize<FrontedBehavior>(json, _cloneJsonOptions);
         if (clone is null)
@@ -376,8 +406,15 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
             return [];
         }
 
+        var targetList = targets.Distinct().ToArray();
+        if (targetList.Length == 0)
+        {
+            return [];
+        }
+
+        CaptureUndoSnapshot();
         var results = new List<FrontedBehaviorPasteResult>();
-        foreach (var target in targets.Distinct())
+        foreach (var target in targetList)
         {
             var oldGuid = target.Config.BehaviorGuid;
             var result = _copyPasteService.Paste(_behaviorClipboard.Payload, target, CurrentDocument, options);
@@ -499,6 +536,7 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
             ReentryPolicyOptions,
             GraphPlaceholder,
             MarkBehaviorsDirty,
+            CaptureUndoSnapshot,
             Localize,
             _nodeCatalog,
             _graphValidator,
@@ -593,6 +631,11 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
     {
         _markBehaviorsDirty();
         OnPropertyChanged(nameof(HasBehaviors));
+    }
+
+    private void CaptureUndoSnapshot()
+    {
+        _captureUndoSnapshot();
     }
 
     private string Localize(string key, string fallback) =>
@@ -867,6 +910,7 @@ public sealed class BehaviorPayloadFieldOptionViewModel : ObservableObject
 public sealed partial class BehaviorEditorViewModel : ObservableObject
 {
     private readonly Action _markDirty;
+    private readonly Action _captureUndoSnapshot;
     private readonly Func<string, string, string> _localize;
     private readonly string _graphPlaceholder;
 
@@ -878,6 +922,7 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
         IReadOnlyList<BehaviorOptionViewModel> reentryPolicyOptions,
         string graphPlaceholder,
         Action markDirty,
+        Action captureUndoSnapshot,
         Func<string, string, string> localize,
         FrontedNodeCatalog nodeCatalog,
         FrontedNodeGraphValidator graphValidator,
@@ -890,6 +935,7 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
     {
         Model = model;
         _markDirty = markDirty;
+        _captureUndoSnapshot = captureUndoSnapshot;
         _localize = localize;
         _graphPlaceholder = graphPlaceholder;
 
@@ -916,15 +962,15 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
             };
         }
 
-        Trigger = new TriggerDescriptorEditorViewModel(Model.Trigger, eventOptions, operatorOptions, markDirty, localize);
-        StartTrigger = new TriggerDescriptorEditorViewModel(Model.StartTrigger, eventOptions, operatorOptions, markDirty, localize);
+        Trigger = new TriggerDescriptorEditorViewModel(Model.Trigger, eventOptions, operatorOptions, markDirty, localize, captureUndoSnapshot);
+        StartTrigger = new TriggerDescriptorEditorViewModel(Model.StartTrigger, eventOptions, operatorOptions, markDirty, localize, captureUndoSnapshot);
         foreach (var trigger in Model.StopTriggers)
         {
-            StopTriggers.Add(new TriggerDescriptorEditorViewModel(trigger, eventOptions, operatorOptions, markDirty, localize));
+            StopTriggers.Add(new TriggerDescriptorEditorViewModel(trigger, eventOptions, operatorOptions, markDirty, localize, captureUndoSnapshot));
         }
 
-        TransitionTrigger = new TriggerDescriptorEditorViewModel(Model.TransitionTrigger, eventOptions, operatorOptions, markDirty, localize);
-        LoopPolicy = new LoopPolicyEditorViewModel(Model.LoopPolicy, stopModeOptions, reentryPolicyOptions, markDirty);
+        TransitionTrigger = new TriggerDescriptorEditorViewModel(Model.TransitionTrigger, eventOptions, operatorOptions, markDirty, localize, captureUndoSnapshot);
+        LoopPolicy = new LoopPolicyEditorViewModel(Model.LoopPolicy, stopModeOptions, reentryPolicyOptions, markDirty, captureUndoSnapshot);
         ReentryPolicyOptions = reentryPolicyOptions;
         OpenAnimationEditorCommand = new RelayCommand(() => openAnimationEditor(
             new FrontedBehaviorAnimationEditorViewModel(
@@ -937,7 +983,8 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
                 previewAnimationScope,
                 markDirty,
                 createTargetOptions?.Invoke(),
-                saveAsync: saveBehaviorAsync)));
+                saveAsync: saveBehaviorAsync,
+                captureUndoSnapshot: captureUndoSnapshot)));
     }
 
     public FrontedBehavior Model { get; }
@@ -961,6 +1008,12 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
         get => Model.Name;
         set
         {
+            if (string.Equals(Model.Name, value, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _captureUndoSnapshot();
             if (SetProperty(Model.Name, value, Model, static (model, next) => model.Name = next))
             {
                 _markDirty();
@@ -973,6 +1026,12 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
         get => Model.Enabled;
         set
         {
+            if (Model.Enabled == value)
+            {
+                return;
+            }
+
+            _captureUndoSnapshot();
             if (SetProperty(Model.Enabled, value, Model, static (model, next) => model.Enabled = next))
             {
                 _markDirty();
@@ -1026,6 +1085,12 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
         get => Model.ReentryPolicy;
         set
         {
+            if (Model.ReentryPolicy == value)
+            {
+                return;
+            }
+
+            _captureUndoSnapshot();
             if (SetProperty(Model.ReentryPolicy, value, Model, static (model, next) => model.ReentryPolicy = next))
             {
                 _markDirty();
@@ -1063,6 +1128,7 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
     [RelayCommand]
     private void AddStopTrigger()
     {
+        _captureUndoSnapshot();
         var trigger = new TriggerDescriptor { EventType = StartTrigger.EventOptions.FirstOrDefault()?.EventType ?? string.Empty };
         Model.StopTriggers.Add(trigger);
         StopTriggers.Add(new TriggerDescriptorEditorViewModel(
@@ -1070,7 +1136,8 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
             StartTrigger.EventOptions,
             StartTrigger.OperatorOptions,
             _markDirty,
-            _localize));
+            _localize,
+            _captureUndoSnapshot));
         _markDirty();
         OnPropertyChanged(nameof(TriggerSummary));
     }
@@ -1089,6 +1156,7 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
             return;
         }
 
+        _captureUndoSnapshot();
         StopTriggers.RemoveAt(index);
         Model.StopTriggers.RemoveAt(index);
         _markDirty();
@@ -1110,6 +1178,7 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
             return;
         }
 
+        _captureUndoSnapshot();
         var clone = new TriggerDescriptor
         {
             EventType = trigger.Model.EventType,
@@ -1129,7 +1198,8 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
             StartTrigger.EventOptions,
             StartTrigger.OperatorOptions,
             _markDirty,
-            _localize));
+            _localize,
+            _captureUndoSnapshot));
         _markDirty();
         OnPropertyChanged(nameof(TriggerSummary));
         OnPropertyChanged(nameof(FilterCount));
@@ -1139,6 +1209,7 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
 public sealed partial class TriggerDescriptorEditorViewModel : ObservableObject
 {
     private readonly Action _markDirty;
+    private readonly Action _captureUndoSnapshot;
     private readonly Func<string, string, string> _localize;
 
     public TriggerDescriptorEditorViewModel(
@@ -1146,16 +1217,18 @@ public sealed partial class TriggerDescriptorEditorViewModel : ObservableObject
         IReadOnlyList<BehaviorEventOptionViewModel> eventOptions,
         IReadOnlyList<BehaviorOptionViewModel> operatorOptions,
         Action markDirty,
-        Func<string, string, string> localize)
+        Func<string, string, string> localize,
+        Action? captureUndoSnapshot = null)
     {
         Model = model ?? new TriggerDescriptor { EventType = eventOptions.FirstOrDefault()?.EventType ?? string.Empty };
         EventOptions = eventOptions;
         OperatorOptions = operatorOptions;
         _markDirty = markDirty;
+        _captureUndoSnapshot = captureUndoSnapshot ?? (() => { });
         _localize = localize;
         foreach (var filter in Model.Filters)
         {
-            Filters.Add(new TriggerFilterEditorViewModel(filter, operatorOptions, markDirty, localize));
+            Filters.Add(new TriggerFilterEditorViewModel(filter, operatorOptions, markDirty, localize, captureUndoSnapshot));
         }
         UpdateSelectedEvent(localize);
     }
@@ -1179,6 +1252,12 @@ public sealed partial class TriggerDescriptorEditorViewModel : ObservableObject
         get => Model.EventType;
         set
         {
+            if (string.Equals(Model.EventType, value, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _captureUndoSnapshot();
             if (SetProperty(Model.EventType, value, Model, static (model, next) => model.EventType = next))
             {
                 ClearFilters();
@@ -1191,6 +1270,7 @@ public sealed partial class TriggerDescriptorEditorViewModel : ObservableObject
     [RelayCommand]
     public void AddFilter()
     {
+        _captureUndoSnapshot();
         var filter = new TriggerFilter
         {
             Left = PayloadFieldOptions.FirstOrDefault(field => field.IsCommonFilterTarget)?.Path
@@ -1199,7 +1279,7 @@ public sealed partial class TriggerDescriptorEditorViewModel : ObservableObject
             Operator = TriggerFilterOperator.Equals
         };
         Model.Filters.Add(filter);
-        var filterVm = new TriggerFilterEditorViewModel(filter, OperatorOptions, _markDirty, _localize);
+        var filterVm = new TriggerFilterEditorViewModel(filter, OperatorOptions, _markDirty, _localize, _captureUndoSnapshot);
         filterVm.SetPayloadFieldOptions(PayloadFieldOptions);
         Filters.Add(filterVm);
         _markDirty();
@@ -1213,6 +1293,12 @@ public sealed partial class TriggerDescriptorEditorViewModel : ObservableObject
             return;
         }
 
+        if (!Model.Filters.Contains(filter.Model))
+        {
+            return;
+        }
+
+        _captureUndoSnapshot();
         if (!Model.Filters.Remove(filter.Model))
         {
             return;
@@ -1281,17 +1367,20 @@ public sealed partial class TriggerDescriptorEditorViewModel : ObservableObject
 public sealed partial class TriggerFilterEditorViewModel : ObservableObject
 {
     private readonly Action _markDirty;
+    private readonly Action _captureUndoSnapshot;
     private readonly Func<string, string, string> _localize;
 
     public TriggerFilterEditorViewModel(
         TriggerFilter model,
         IReadOnlyList<BehaviorOptionViewModel> operatorOptions,
         Action markDirty,
-        Func<string, string, string> localize)
+        Func<string, string, string> localize,
+        Action? captureUndoSnapshot = null)
     {
         Model = model;
         OperatorOptions = operatorOptions;
         _markDirty = markDirty;
+        _captureUndoSnapshot = captureUndoSnapshot ?? (() => { });
         _localize = localize;
     }
 
@@ -1345,6 +1434,12 @@ public sealed partial class TriggerFilterEditorViewModel : ObservableObject
         get => Model.Left;
         set
         {
+            if (string.Equals(Model.Left, value, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _captureUndoSnapshot();
             if (SetProperty(Model.Left, value, Model, static (model, next) => model.Left = next))
             {
                 _markDirty();
@@ -1370,6 +1465,12 @@ public sealed partial class TriggerFilterEditorViewModel : ObservableObject
         get => Model.Operator;
         set
         {
+            if (Model.Operator == value)
+            {
+                return;
+            }
+
+            _captureUndoSnapshot();
             if (SetProperty(Model.Operator, value, Model, static (model, next) => model.Operator = next))
             {
                 _markDirty();
@@ -1382,6 +1483,12 @@ public sealed partial class TriggerFilterEditorViewModel : ObservableObject
         get => Model.Right;
         set
         {
+            if (string.Equals(Model.Right, value, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _captureUndoSnapshot();
             if (SetProperty(Model.Right, value, Model, static (model, next) => model.Right = next))
             {
                 _markDirty();
@@ -1496,7 +1603,8 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
         Action? markDirty = null,
         IReadOnlyList<FrontedNodeTargetOptionViewModel>? targetOptions = null,
         Func<Task<bool>>? saveAsync = null,
-        FrontedBehaviorEventCatalog? eventCatalog = null)
+        FrontedBehaviorEventCatalog? eventCatalog = null,
+        Action? captureUndoSnapshot = null)
     {
         _behavior = behavior;
         _runtime = runtime ?? new FrontedNodeGraphRuntime(catalog, validator);
@@ -1512,16 +1620,16 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
         {
             FrontedBehaviorKind.Loop =>
             [
-                Stage(localize("Designer.Behaviors.StartAnimation", "Start animation"), behavior.StartGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions, BuildEventFields(eventCatalog, behavior.StartTrigger?.EventType, "Event.")),
-                Stage(localize("Designer.Behaviors.LoopAnimation", "Loop animation"), behavior.LoopGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions, BuildEventFields(eventCatalog, behavior.StartTrigger?.EventType, "Event.")),
-                Stage(localize("Designer.Behaviors.StopAnimation", "Stop animation"), behavior.StopGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions, BuildLoopStopFields(eventCatalog, behavior))
+                Stage(localize("Designer.Behaviors.StartAnimation", "Start animation"), behavior.StartGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions, BuildEventFields(eventCatalog, behavior.StartTrigger?.EventType, "Event.", localize), captureUndoSnapshot),
+                Stage(localize("Designer.Behaviors.LoopAnimation", "Loop animation"), behavior.LoopGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions, BuildEventFields(eventCatalog, behavior.StartTrigger?.EventType, "Event.", localize), captureUndoSnapshot),
+                Stage(localize("Designer.Behaviors.StopAnimation", "Stop animation"), behavior.StopGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions, BuildLoopStopFields(eventCatalog, behavior, localize), captureUndoSnapshot)
             ],
             FrontedBehaviorKind.Transition =>
             [
-                Stage(localize("Designer.Behaviors.ExitGraph", "Exit animation"), behavior.ExitGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions, BuildEventFields(eventCatalog, behavior.TransitionTrigger?.EventType, "Event.")),
-                Stage(localize("Designer.Behaviors.EnterGraph", "Enter animation"), behavior.EnterGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions, BuildEventFields(eventCatalog, behavior.TransitionTrigger?.EventType, "Event."))
+                Stage(localize("Designer.Behaviors.ExitGraph", "Exit animation"), behavior.ExitGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions, BuildEventFields(eventCatalog, behavior.TransitionTrigger?.EventType, "Event.", localize), captureUndoSnapshot),
+                Stage(localize("Designer.Behaviors.EnterGraph", "Enter animation"), behavior.EnterGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions, BuildEventFields(eventCatalog, behavior.TransitionTrigger?.EventType, "Event.", localize), captureUndoSnapshot)
             ],
-            _ => [Stage(localize("Designer.Behaviors.Animation", "Animation"), behavior.Graph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions, BuildEventFields(eventCatalog, behavior.Trigger?.EventType, "Event."))]
+            _ => [Stage(localize("Designer.Behaviors.Animation", "Animation"), behavior.Graph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions, BuildEventFields(eventCatalog, behavior.Trigger?.EventType, "Event.", localize), captureUndoSnapshot)]
         };
 
         // Wire each stage's graph editor save action to trigger SaveAllAsync on this animation editor.
@@ -1642,7 +1750,8 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
         Action? markDirty,
         Func<string, string, string> localize,
         IReadOnlyList<FrontedNodeTargetOptionViewModel>? targetOptions,
-        IReadOnlyList<FrontedGraphConditionFieldOptionViewModel> conditionFieldOptions)
+        IReadOnlyList<FrontedGraphConditionFieldOptionViewModel> conditionFieldOptions,
+        Action? captureUndoSnapshot)
     {
         var editorVm = new FrontedNodeGraphEditorViewModel(
             graph,
@@ -1653,6 +1762,7 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
             previewAnimationScope is null ? null : () => previewAnimationScope.CreateContext(),
             markDirty,
             localize,
+            captureUndoSnapshot: captureUndoSnapshot,
             targetOptions: targetOptions,
             conditionFieldOptions: conditionFieldOptions)
         {
@@ -1664,48 +1774,54 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
     private static IReadOnlyList<FrontedGraphConditionFieldOptionViewModel> BuildEventFields(
         FrontedBehaviorEventCatalog eventCatalog,
         string? eventType,
-        string prefix)
+        string prefix,
+        Func<string, string, string> localize)
     {
         var descriptor = string.IsNullOrWhiteSpace(eventType) ? null : eventCatalog.Find(eventType);
         return descriptor?.PayloadFields
-            .Select(field => CreateConditionField(field, prefix, eventType))
+            .Select(field => CreateConditionField(field, prefix, eventType, localize))
             .ToArray() ?? [];
     }
 
     private static IReadOnlyList<FrontedGraphConditionFieldOptionViewModel> BuildLoopStopFields(
         FrontedBehaviorEventCatalog eventCatalog,
-        FrontedBehavior behavior)
+        FrontedBehavior behavior,
+        Func<string, string, string> localize)
     {
         var fields = behavior.StopTriggers
-            .SelectMany(trigger => BuildEventFields(eventCatalog, trigger.EventType, "Event.")
-                .Select(field => field with { DisplayName = $"{field.Path} ({trigger.EventType})", EventType = trigger.EventType }))
-            .GroupBy(field => field.Path, StringComparer.Ordinal)
+            .SelectMany(trigger => BuildEventFields(eventCatalog, trigger.EventType, "Event.", localize)
+                .Select(field => field with { DisplayText = $"{field.DisplayText} [{trigger.EventType}]", EventType = trigger.EventType }))
+            .GroupBy(field => field.ValuePath, StringComparer.Ordinal)
             .Select(group =>
             {
                 var first = group.First();
                 var eventTypes = group.Select(field => field.EventType).Where(value => !string.IsNullOrWhiteSpace(value)).Distinct(StringComparer.Ordinal);
-                return first with { DisplayName = $"{first.Path} ({string.Join(", ", eventTypes)})" };
+                return first with { DisplayText = $"{first.LocalizedDisplayName} ({first.ValuePath}) [{string.Join(", ", eventTypes)}]" };
             })
             .ToList();
-        fields.AddRange(BuildEventFields(eventCatalog, behavior.StartTrigger?.EventType, "StartEvent."));
+        fields.AddRange(BuildEventFields(eventCatalog, behavior.StartTrigger?.EventType, "StartEvent.", localize));
         return fields;
     }
 
     private static FrontedGraphConditionFieldOptionViewModel CreateConditionField(
         FrontedBehaviorEventPayloadField field,
         string prefix,
-        string? eventType)
+        string? eventType,
+        Func<string, string, string> localize)
     {
         var suffix = field.Path.StartsWith("Event.", StringComparison.Ordinal)
             ? field.Path["Event.".Length..]
             : field.Path;
         var path = prefix + suffix;
+        var localizedDisplayName = localize(field.DisplayNameKey, suffix);
         return new FrontedGraphConditionFieldOptionViewModel(
             path,
-            path,
+            $"{localizedDisplayName} ({path})",
+            localize(field.DescriptionKey, path),
             field.TypeName,
             field.EnumValues,
-            eventType);
+            eventType,
+            localizedDisplayName);
     }
 
     private Task PreviewStartAsync() =>
@@ -1844,8 +1960,26 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
                 ? null
                 : new AnimationRuntimeGraphActionExecutor(_animationRuntime, animationContext)
         };
-        var result = await _runtime.ExecuteAsync(graph, graphContext, cancellationToken);
+        var missingPath = graph.Nodes
+            .Where(node => node.NodeType == "flow.if")
+            .Select(node => node.Properties.TryGetValue("Left", out var value)
+                ? value.ValueKind == JsonValueKind.String ? value.GetString() : value.ToString()
+                : null)
+            .FirstOrDefault(path => path?.StartsWith("Event.", StringComparison.Ordinal) == true);
         var stage = Stages.FirstOrDefault(item => ReferenceEquals(item.Graph, graph));
+        if (missingPath is not null && graphContext.EventPayload.Count == 0)
+        {
+            AddExecutionLog(stage?.GraphEditor, new FrontedGraphExecutionLogItem
+            {
+                Level = FrontedGraphExecutionLogLevel.Warning,
+                Message = string.Format(
+                    _localize(
+                        "Designer.Graph.Preview.MissingEventContext",
+                        "The current preview has no event context, so {0} cannot be resolved."),
+                    missingPath)
+            });
+        }
+        var result = await _runtime.ExecuteAsync(graph, graphContext, cancellationToken);
         if (stage is null)
         {
             return result;
@@ -1911,17 +2045,20 @@ public sealed record FrontedBehaviorCopyToRequest(
 public sealed partial class LoopPolicyEditorViewModel : ObservableObject
 {
     private readonly Action _markDirty;
+    private readonly Action _captureUndoSnapshot;
 
     public LoopPolicyEditorViewModel(
         FrontedLoopPolicy model,
         IReadOnlyList<BehaviorOptionViewModel> stopModeOptions,
         IReadOnlyList<BehaviorOptionViewModel> reentryPolicyOptions,
-        Action markDirty)
+        Action markDirty,
+        Action captureUndoSnapshot)
     {
         Model = model;
         StopModeOptions = stopModeOptions;
         ReentryPolicyOptions = reentryPolicyOptions;
         _markDirty = markDirty;
+        _captureUndoSnapshot = captureUndoSnapshot;
     }
 
     public FrontedLoopPolicy Model { get; }
@@ -1935,6 +2072,12 @@ public sealed partial class LoopPolicyEditorViewModel : ObservableObject
         get => Model.RepeatCount;
         set
         {
+            if (Model.RepeatCount == value)
+            {
+                return;
+            }
+
+            _captureUndoSnapshot();
             if (SetProperty(Model.RepeatCount, value, Model, static (model, next) => model.RepeatCount = next))
             {
                 _markDirty();
@@ -1947,6 +2090,12 @@ public sealed partial class LoopPolicyEditorViewModel : ObservableObject
         get => Model.AutoReverse;
         set
         {
+            if (Model.AutoReverse == value)
+            {
+                return;
+            }
+
+            _captureUndoSnapshot();
             if (SetProperty(Model.AutoReverse, value, Model, static (model, next) => model.AutoReverse = next))
             {
                 _markDirty();
@@ -1959,6 +2108,12 @@ public sealed partial class LoopPolicyEditorViewModel : ObservableObject
         get => Model.IntervalMs;
         set
         {
+            if (Model.IntervalMs == value)
+            {
+                return;
+            }
+
+            _captureUndoSnapshot();
             if (SetProperty(Model.IntervalMs, value, Model, static (model, next) => model.IntervalMs = next))
             {
                 _markDirty();
@@ -1971,6 +2126,12 @@ public sealed partial class LoopPolicyEditorViewModel : ObservableObject
         get => Model.StopMode;
         set
         {
+            if (Model.StopMode == value)
+            {
+                return;
+            }
+
+            _captureUndoSnapshot();
             if (SetProperty(Model.StopMode, value, Model, static (model, next) => model.StopMode = next))
             {
                 _markDirty();
@@ -1983,6 +2144,12 @@ public sealed partial class LoopPolicyEditorViewModel : ObservableObject
         get => Model.ResetOnStop;
         set
         {
+            if (Model.ResetOnStop == value)
+            {
+                return;
+            }
+
+            _captureUndoSnapshot();
             if (SetProperty(Model.ResetOnStop, value, Model, static (model, next) => model.ResetOnStop = next))
             {
                 _markDirty();
@@ -1995,6 +2162,12 @@ public sealed partial class LoopPolicyEditorViewModel : ObservableObject
         get => Model.ReentryPolicy;
         set
         {
+            if (Model.ReentryPolicy == value)
+            {
+                return;
+            }
+
+            _captureUndoSnapshot();
             if (SetProperty(Model.ReentryPolicy, value, Model, static (model, next) => model.ReentryPolicy = next))
             {
                 _markDirty();

@@ -20,6 +20,12 @@ public sealed class FrontedNodeGraphValidator(FrontedNodeCatalog? catalog = null
             messages.Add(Message(FrontedNodeGraphValidationSeverity.Error, "MultipleStarts", "Graph has multiple Start nodes."));
         }
 
+        var ends = graph.Nodes.Count(node => node.NodeType == "flow.end");
+        if (ends > 1)
+        {
+            messages.Add(Message(FrontedNodeGraphValidationSeverity.Error, "MultipleEnds", "Graph has multiple End nodes."));
+        }
+
         foreach (var node in graph.Nodes)
         {
             ValidateNode(node, messages);
@@ -45,7 +51,10 @@ public sealed class FrontedNodeGraphValidator(FrontedNodeCatalog? catalog = null
             messages.Add(Message(FrontedNodeGraphValidationSeverity.Error, "FlowOutputMultipleConnections", "A flow output port can only have one connection.", nodeId: port.Key.SourceNodeId));
         }
 
-        foreach (var port in graph.Connections.GroupBy(connection => (connection.TargetNodeId, connection.TargetPort)).Where(group => group.Count() > 1))
+        foreach (var port in graph.Connections
+                     .GroupBy(connection => (connection.TargetNodeId, connection.TargetPort))
+                     .Where(group => group.Count() > 1
+                                     && !IsEndInputPort(graph, group.Key.TargetNodeId, group.Key.TargetPort)))
         {
             messages.Add(Message(FrontedNodeGraphValidationSeverity.Error, "InputMultipleConnections", "An input port can only have one connection.", nodeId: port.Key.TargetNodeId));
         }
@@ -60,7 +69,7 @@ public sealed class FrontedNodeGraphValidator(FrontedNodeCatalog? catalog = null
     {
         foreach (var node in graph.Nodes.Where(node => node.NodeType == "flow.parallel"))
         {
-            var hasAnyBranch = new[] { "Branch1", "Branch2", "Branch3" }
+            var hasAnyBranch = FrontedParallelNodePorts.GetBranchPortNames(FrontedParallelNodePorts.GetBranchCount(node))
                 .Any(port => graph.GetOutgoing(node.NodeId, port).Any());
             if (!hasAnyBranch)
             {
@@ -128,6 +137,19 @@ public sealed class FrontedNodeGraphValidator(FrontedNodeCatalog? catalog = null
             && (!TryGetInt(node, "DurationMs", out var duration) || duration < 0))
         {
             messages.Add(Message(FrontedNodeGraphValidationSeverity.Error, "InvalidDuration", "DurationMs must be a non-negative number.", node.NodeId, propertyName: "DurationMs"));
+        }
+
+        if (node.NodeType == "flow.parallel"
+            && node.Properties.ContainsKey("BranchCount")
+            && (!TryGetInt(node, "BranchCount", out var branchCount)
+                || branchCount is < FrontedParallelNodePorts.MinBranchCount or > FrontedParallelNodePorts.MaxBranchCount))
+        {
+            messages.Add(Message(
+                FrontedNodeGraphValidationSeverity.Error,
+                "InvalidParallelBranchCount",
+                $"BranchCount must be between {FrontedParallelNodePorts.MinBranchCount} and {FrontedParallelNodePorts.MaxBranchCount}.",
+                node.NodeId,
+                propertyName: "BranchCount"));
         }
 
         if (node.NodeType == "flow.if"
@@ -255,6 +277,12 @@ public sealed class FrontedNodeGraphValidator(FrontedNodeCatalog? catalog = null
 
         var sourcePort = sourceDescriptor.OutputPorts.FirstOrDefault(port => port.Name == connection.SourcePort);
         var targetPort = targetDescriptor.InputPorts.FirstOrDefault(port => port.Name == connection.TargetPort);
+        if (source.NodeType == "flow.parallel"
+            && FrontedParallelNodePorts.TryGetBranchIndex(connection.SourcePort, out var branchIndex)
+            && branchIndex > FrontedParallelNodePorts.GetBranchCount(source))
+        {
+            sourcePort = null;
+        }
         if (sourcePort is null)
         {
             messages.Add(Message(FrontedNodeGraphValidationSeverity.Error, "InvalidSourcePort", "Connection source port is invalid.", source.NodeId, connection.ConnectionId));
@@ -296,6 +324,10 @@ public sealed class FrontedNodeGraphValidator(FrontedNodeCatalog? catalog = null
             ? element.GetString()
             : element.ToString();
     }
+
+    private static bool IsEndInputPort(FrontedNodeGraph graph, Guid nodeId, string port) =>
+        string.Equals(port, "In", StringComparison.Ordinal)
+        && graph.FindNode(nodeId)?.NodeType == "flow.end";
 
     private static FrontedNodeGraphValidationMessage Message(
         FrontedNodeGraphValidationSeverity severity,

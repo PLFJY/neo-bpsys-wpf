@@ -489,6 +489,122 @@ public class FrontedAnimationRuntimeTest
     }
 
     [Fact]
+    public async Task AnimationRuntime_ImageContentLayer_ResolvesMainImageInsideAnimationHost()
+    {
+        await RunOnStaThreadAsync(async () =>
+        {
+            var guid = Guid.NewGuid();
+            var root = new Canvas();
+            var mainImage = new Image { Opacity = 1 };
+            var pickingBorder = new Border { Opacity = 1 };
+            var imageContent = new Grid();
+            imageContent.Children.Add(mainImage);
+            imageContent.Children.Add(pickingBorder);
+            var borderedImage = (Border)Generated(new Border { Child = imageContent, Opacity = 1 }, guid, "SurPick0Content");
+            var host = (Grid)Generated(new Grid { Opacity = 1 }, guid, "SurPick0");
+            host.Children.Add(new Canvas());
+            host.Children.Add(borderedImage);
+            host.Children.Add(new Canvas());
+            root.Children.Add(host);
+
+            await new FrontedAnimationRuntime().ExecuteAsync(new FrontedGraphActionRequest
+            {
+                RequestType = FrontedGraphActionRequestType.SetProperty,
+                Target = "Self",
+                TargetLayer = FrontedAnimationTargetLayer.Content,
+                PropertyName = "Opacity",
+                Values = new Dictionary<string, string?> { ["Value"] = "0.25" }
+            }, Context(root, guid));
+
+            Assert.Equal(0.25, mainImage.Opacity, 3);
+            Assert.Equal(1, host.Opacity);
+            Assert.Equal(1, borderedImage.Opacity);
+            Assert.Equal(1, pickingBorder.Opacity);
+        });
+    }
+
+    [Fact]
+    public async Task AnimationRuntime_ImageContentLayer_ClipsMainImageInsideAnimationHost()
+    {
+        await RunOnStaThreadAsync(async () =>
+        {
+            var guid = Guid.NewGuid();
+            var root = new Canvas();
+            var mainImage = new Image { Width = 141, Height = 160 };
+            var pickingBorder = new Border { Width = 141, Height = 160 };
+            var primaryContent = new Grid { Width = 141, Height = 160 };
+            FrontedRendererProperties.SetIsPrimaryContentElement(primaryContent, true);
+            primaryContent.Children.Add(mainImage);
+            var imageContent = new Grid { Width = 141, Height = 160 };
+            imageContent.Children.Add(primaryContent);
+            imageContent.Children.Add(pickingBorder);
+            var borderedImage = (Border)Generated(
+                new Border { Width = 141, Height = 160, Child = imageContent },
+                guid,
+                "SurPick0Content");
+            var host = (Grid)Generated(new Grid { Width = 141, Height = 160 }, guid, "SurPick0");
+            host.Children.Add(new Canvas());
+            host.Children.Add(borderedImage);
+            host.Children.Add(new Canvas());
+            root.Children.Add(host);
+
+            await new FrontedAnimationRuntime().ExecuteAsync(new FrontedGraphActionRequest
+            {
+                RequestType = FrontedGraphActionRequestType.SetProperty,
+                Target = "Self",
+                TargetLayer = FrontedAnimationTargetLayer.Content,
+                PropertyName = "ClipInsetRight",
+                Values = new Dictionary<string, string?> { ["Value"] = "100%" }
+            }, Context(root, guid));
+
+            var clip = Assert.IsType<RectangleGeometry>(primaryContent.Clip);
+            Assert.Equal(new Rect(0, 0, 0, 160), clip.Rect);
+            Assert.Null(imageContent.Clip);
+            Assert.Null(mainImage.Clip);
+            Assert.Null(pickingBorder.Clip);
+        });
+    }
+
+    [Fact]
+    public async Task AnimationRuntime_ImageContentLayer_ChangesPrimaryContentHostOnly()
+    {
+        await RunOnStaThreadAsync(async () =>
+        {
+            var guid = Guid.NewGuid();
+            var root = new Canvas();
+            var mainImage = new Image { Opacity = 1 };
+            var primaryContent = new Grid { Opacity = 1 };
+            FrontedRendererProperties.SetIsPrimaryContentElement(primaryContent, true);
+            primaryContent.Children.Add(mainImage);
+            var pickingBorder = new Border { Opacity = 1 };
+            var imageContent = new Grid();
+            imageContent.Children.Add(primaryContent);
+            imageContent.Children.Add(pickingBorder);
+            var borderedImage = (Border)Generated(new Border { Child = imageContent, Opacity = 1 }, guid, "SurPick0Content");
+            var host = (Grid)Generated(new Grid { Opacity = 1 }, guid, "SurPick0");
+            host.Children.Add(new Canvas());
+            host.Children.Add(borderedImage);
+            host.Children.Add(new Canvas());
+            root.Children.Add(host);
+
+            await new FrontedAnimationRuntime().ExecuteAsync(new FrontedGraphActionRequest
+            {
+                RequestType = FrontedGraphActionRequestType.SetProperty,
+                Target = "Self",
+                TargetLayer = FrontedAnimationTargetLayer.Content,
+                PropertyName = "Opacity",
+                Values = new Dictionary<string, string?> { ["Value"] = "0.25" }
+            }, Context(root, guid));
+
+            Assert.Equal(0.25, primaryContent.Opacity, 3);
+            Assert.Equal(1, mainImage.Opacity);
+            Assert.Equal(1, pickingBorder.Opacity);
+            Assert.Equal(1, host.Opacity);
+            Assert.Equal(1, borderedImage.Opacity);
+        });
+    }
+
+    [Fact]
     public async Task AnimationRuntime_ResetAll_RestoresContentAndOverlayValues()
     {
         await RunOnStaThreadAsync(async () =>

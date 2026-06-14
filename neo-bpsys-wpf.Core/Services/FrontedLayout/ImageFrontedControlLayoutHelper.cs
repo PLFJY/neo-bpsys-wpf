@@ -76,7 +76,7 @@ internal static class ImageFrontedControlLayoutHelper
             ApplyCornerRadiusClip(root, config.CornerRadius);
         }
 
-        root.Children.Add(image);
+        root.Children.Add(CreatePrimaryContentHost(config, image));
         AddLockOverlay(root, name, config, context);
         AddPickingBorderOverlay(root, name, config, context);
         return root;
@@ -89,10 +89,27 @@ internal static class ImageFrontedControlLayoutHelper
         Image image)
     {
         var root = new Grid();
-        root.Children.Add(image);
+        root.Children.Add(CreatePrimaryContentHost(config, image));
         AddLockOverlay(root, controlName, config, context);
         AddPickingBorderOverlay(root, controlName, config, context);
         return root;
+    }
+
+    private static Grid CreatePrimaryContentHost(
+        ImageFrontedControlConfig config,
+        Image image)
+    {
+        var host = new Grid
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Stretch,
+            ClipToBounds = false,
+            IsHitTestVisible = false
+        };
+        FrontedRendererProperties.SetIsPrimaryContentElement(host, true);
+        FrontedRendererProperties.SetParentBehaviorGuid(host, config.BehaviorGuid);
+        host.Children.Add(image);
+        return host;
     }
 
     public static void ApplyCornerRadiusClip(FrameworkElement element, double? cornerRadius)

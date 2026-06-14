@@ -3872,7 +3872,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             previewAnimationScope: _previewAnimationScope,
             saveBehaviorAsync: SaveBehaviorDocumentAsync,
             behaviorClipboard: _behaviorClipboard,
-            copyPasteService: _behaviorCopyPasteService);
+            copyPasteService: _behaviorCopyPasteService,
+            captureUndoSnapshot: CaptureUndoSnapshot);
     }
 
     /// <summary>
@@ -4432,7 +4433,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return null;
         }
 
-        return JsonSerializer.Serialize(_designConverter.ToConfig(CurrentDocument));
+        return JsonSerializer.Serialize(new FrontedDesignerUndoSnapshot
+        {
+            CanvasConfig = _designConverter.ToConfig(CurrentDocument),
+            BehaviorDocument = BehaviorPanel.CurrentDocument
+        });
     }
 
     private static bool CanCopyControl(FrontedControlDesignItem? item)
@@ -4510,14 +4515,19 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         var selectedCellId = SelectedGlobalScoreCellId;
         var windowTypeName = CurrentDocument.WindowTypeName;
         var canvasName = CurrentDocument.CanvasName;
-        var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(snapshot);
+        var restoreSnapshot = DeserializeUndoSnapshot(snapshot);
+        var config = restoreSnapshot?.CanvasConfig;
+        var behaviorDocument = restoreSnapshot?.BehaviorDocument;
         LogDesignerPerf(traceOperation, "restore snapshot deserialize", Elapsed(total));
         if (config is null)
         {
             return;
         }
 
+        var behaviorDocumentChanged = behaviorDocument is not null
+            && !BehaviorDocumentsEqual(BehaviorPanel.CurrentDocument, behaviorDocument);
         if (mode == FrontedDesignerSnapshotRestoreMode.PreferGeometryFastPathThenScheduledAtomicPreview
+            && !behaviorDocumentChanged
             && TryRestoreGeometryOnlySnapshot(config, traceOperation, total))
         {
             LogDesignerPerf(traceOperation, "total", Elapsed(total));
@@ -4540,6 +4550,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 string.Equals(control.Name, selectedName, StringComparison.Ordinal)));
             RestoreGlobalScoreCellSelectionKeys(selectedCellParentName, selectedCellId);
             NormalizeSelectionState();
+            RestoreBehaviorDocumentSnapshot(behaviorDocument, windowTypeName, canvasName);
 
             switch (mode)
             {
@@ -4589,6 +4600,54 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 NotifyUndoRedoCommands();
             }
         }
+    }
+
+    private static FrontedDesignerUndoSnapshot? DeserializeUndoSnapshot(string snapshot)
+    {
+        try
+        {
+            var undoSnapshot = JsonSerializer.Deserialize<FrontedDesignerUndoSnapshot>(snapshot);
+            if (undoSnapshot?.CanvasConfig is not null)
+            {
+                return undoSnapshot;
+            }
+        }
+        catch (JsonException)
+        {
+            // Older in-memory snapshots stored only the canvas config JSON.
+        }
+
+        var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(snapshot);
+        return config is null
+            ? null
+            : new FrontedDesignerUndoSnapshot { CanvasConfig = config };
+    }
+
+    private static bool BehaviorDocumentsEqual(
+        FrontedBehaviorDocument current,
+        FrontedBehaviorDocument snapshot) =>
+        string.Equals(
+            JsonSerializer.Serialize(current),
+            JsonSerializer.Serialize(snapshot),
+            StringComparison.Ordinal);
+
+    private void RestoreBehaviorDocumentSnapshot(
+        FrontedBehaviorDocument? behaviorDocument,
+        string windowTypeName,
+        string canvasName)
+    {
+        if (behaviorDocument is null)
+        {
+            return;
+        }
+
+        behaviorDocument.WindowType = windowTypeName;
+        behaviorDocument.CanvasName = canvasName;
+        BehaviorPanel.SetDocument(behaviorDocument);
+        BehaviorPanel.SetCopyContext(windowTypeName, CurrentDocument?.Controls);
+        BehaviorPanel.SetSelectedControl(SelectedDesignItem);
+        RebuildAnimationPartEditorItems();
+        AreBehaviorsDirty = true;
     }
 
     private bool TryRestoreGeometryOnlySnapshot(
@@ -5322,6 +5381,19 @@ public sealed class FrontedDesignerPreviewRenderRequestedEventArgs(
     public FrontedBehaviorDocument? BehaviorDocument { get; } = behaviorDocument;
 
     public FrontedRenderContext? Context { get; } = context;
+}
+
+internal sealed class FrontedDesignerUndoSnapshot
+{
+    /// <summary>
+    /// Gets or sets the canvas layout config captured for undo/redo.
+    /// </summary>
+    public FrontedCanvasConfig? CanvasConfig { get; set; }
+
+    /// <summary>
+    /// Gets or sets the behavior document captured with the layout config.
+    /// </summary>
+    public FrontedBehaviorDocument? BehaviorDocument { get; set; }
 }
 
 public sealed class FrontedDesignerGeometryPatchRequestedEventArgs(

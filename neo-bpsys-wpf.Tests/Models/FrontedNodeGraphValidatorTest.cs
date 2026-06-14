@@ -29,6 +29,16 @@ public class FrontedNodeGraphValidatorTest
     }
 
     [Fact]
+    public void Validator_MultipleEnds_Error()
+    {
+        var graph = new FrontedNodeGraph { Nodes = [_catalog.CreateNode("flow.end"), _catalog.CreateNode("flow.end")] };
+
+        var messages = new FrontedNodeGraphValidator(_catalog).Validate(graph);
+
+        Assert.Contains(messages, message => message.Code == "MultipleEnds" && message.Severity == FrontedNodeGraphValidationSeverity.Error);
+    }
+
+    [Fact]
     public void Validator_MissingTargetNode_Error()
     {
         var start = _catalog.CreateNode("flow.start");
@@ -160,6 +170,61 @@ public class FrontedNodeGraphValidatorTest
         messages = new FrontedNodeGraphValidator(_catalog).Validate(graph);
 
         Assert.DoesNotContain(messages, message => message.Code == "ParallelBranchesNoOut");
+    }
+
+    [Fact]
+    public void Validate_ParallelBranchCountAboveTwenty_IsInvalid()
+    {
+        var parallel = _catalog.CreateNode("flow.parallel");
+        parallel.Properties["BranchCount"] = JsonSerializer.SerializeToElement(21);
+
+        var messages = new FrontedNodeGraphValidator(_catalog).Validate(new FrontedNodeGraph { Nodes = [parallel] });
+
+        Assert.Contains(messages, message => message.Code == "InvalidParallelBranchCount");
+    }
+
+    [Fact]
+    public void Validate_EndInput_AllowsMultipleIncomingConnections()
+    {
+        var start = _catalog.CreateNode("flow.start");
+        var condition = _catalog.CreateNode("flow.if");
+        var end = _catalog.CreateNode("flow.end");
+        var graph = new FrontedNodeGraph
+        {
+            Nodes = [start, condition, end],
+            Connections =
+            [
+                Link(start, "Out", condition, "In"),
+                Link(condition, "True", end, "In"),
+                Link(condition, "False", end, "In")
+            ]
+        };
+
+        var messages = new FrontedNodeGraphValidator(_catalog).Validate(graph);
+
+        Assert.DoesNotContain(messages, message => message.Code == "InputMultipleConnections");
+    }
+
+    [Fact]
+    public void Validate_NonEndInput_RejectsMultipleIncomingConnections()
+    {
+        var start = _catalog.CreateNode("flow.start");
+        var condition = _catalog.CreateNode("flow.if");
+        var log = _catalog.CreateNode("action.log");
+        var graph = new FrontedNodeGraph
+        {
+            Nodes = [start, condition, log],
+            Connections =
+            [
+                Link(start, "Out", condition, "In"),
+                Link(condition, "True", log, "In"),
+                Link(condition, "False", log, "In")
+            ]
+        };
+
+        var messages = new FrontedNodeGraphValidator(_catalog).Validate(graph);
+
+        Assert.Contains(messages, message => message.Code == "InputMultipleConnections");
     }
 
     private static FrontedNodeConnection Link(FrontedNode source, string sourcePort, FrontedNode target, string targetPort) =>

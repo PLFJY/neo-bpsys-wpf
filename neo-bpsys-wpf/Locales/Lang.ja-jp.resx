@@ -4084,7 +4084,7 @@
   <data name="Designer.Graph.Node.ActionResetProperty" xml:space="preserve"><value>ResetProperty</value></data>
   <data name="Designer.Graph.Node.ActionAnimateProperty" xml:space="preserve"><value>AnimateProperty</value></data>
   <data name="Designer.Graph.Node.FlowStart.Description" xml:space="preserve"><value>アニメーションフローの入口です。通常は 1 つだけ置き、Out から最初のノードへ接続します。</value></data>
-  <data name="Designer.Graph.Node.FlowEnd.Description" xml:space="preserve"><value>現在の分岐を終了します。最後のアクションの Out を End へ接続すると流れが明確になります。</value></data>
+  <data name="Designer.Graph.Node.FlowEnd.Description" xml:space="preserve"><value>現在の分岐を終了します。各グラフに置ける End は 1 つだけで、複数の分岐を End.In に接続できます。</value></data>
   <data name="Designer.Graph.Node.FlowDelay.Description" xml:space="preserve"><value>続行前に待機します。フェードアウト後にフェードインするような間隔づけに使います。</value></data>
   <data name="Designer.Graph.Node.FlowParallel.Description" xml:space="preserve"><value>接続されたすべてのブランチを同時に実行し、すべての完了後に Out に進みます。\nブランチは次の接続がない時点で完了とみなされます。</value></data>
   <data name="Designer.Graph.Node.FlowIf.Description" xml:space="preserve"><value>テキスト比較を使う高度な分岐です。単純なプロパティアニメーションでは通常不要です。</value></data>
@@ -4103,6 +4103,9 @@
   <data name="Designer.Graph.Port.Branch2" xml:space="preserve"><value>分岐 2</value></data>
   <data name="Designer.Graph.Port.Branch3" xml:space="preserve"><value>分岐 3</value></data>
   <data name="Designer.Graph.Port.ParallelOut" xml:space="preserve"><value>すべて完了後</value></data>
+  <data name="Designer.Graph.Port.ParallelBranch" xml:space="preserve"><value>分岐 {0}</value></data>
+  <data name="Designer.Graph.Port.ParallelBranch.Tooltip" xml:space="preserve"><value>並列分岐 {0}。他の接続済み分岐と同時に実行されます。</value></data>
+  <data name="Designer.Graph.Connection.Meaning.ParallelBranch" xml:space="preserve"><value>並列分岐 {0}</value></data>
   <data name="Designer.Graph.Port.Branch1.Tooltip" xml:space="preserve"><value>並列分岐 1。他の接続済み分岐と同時に実行されます。</value></data>
   <data name="Designer.Graph.Port.Branch2.Tooltip" xml:space="preserve"><value>並列分岐 2。他の接続済み分岐と同時に実行されます。</value></data>
   <data name="Designer.Graph.Port.Branch3.Tooltip" xml:space="preserve"><value>並列分岐 3。他の接続済み分岐と同時に実行されます。</value></data>
@@ -4115,6 +4118,7 @@
   <data name="Designer.Graph.Port.Completed" xml:space="preserve"><value>完了</value></data>
   <data name="Designer.Graph.Port.Value" xml:space="preserve"><value>Value</value></data>
   <data name="Designer.Graph.Property.DurationMs" xml:space="preserve"><value>時間</value></data>
+  <data name="Designer.Graph.Property.BranchCount" xml:space="preserve"><value>並列タスク数</value></data>
   <data name="Designer.Graph.Property.Message" xml:space="preserve"><value>Message</value></data>
   <data name="Designer.Graph.Property.Target" xml:space="preserve"><value>対象</value></data>
   <data name="Designer.Graph.Property.PropertyName" xml:space="preserve"><value>プロパティ名</value></data>
@@ -4149,9 +4153,14 @@
   <data name="Designer.Property.Background" xml:space="preserve"><value>背景色</value></data>
   <data name="Designer.Graph.Validation.Description" xml:space="preserve"><value>開始ノード、接続、必須プロパティを確認します。グラフデータは削除せず、プレビューや保存前の修正を助けるための表示です。</value></data>
   <data name="Designer.Graph.Validation.GraphNoEnd" xml:space="preserve"><value>グラフに End ノードがありません。出力接続がない場合に実行が停止します。</value></data>
+  <data name="Designer.Graph.Validation.MultipleEnds" xml:space="preserve"><value>グラフに複数の End ノードがあります。各グラフに置ける End は 1 つだけです。</value></data>
   <data name="Designer.Graph.Validation.ParallelNoBranches" xml:space="preserve"><value>Parallel に接続されたブランチがありません。Out が直ちに実行されます。</value></data>
+  <data name="Designer.Graph.Validation.NumberFinite" xml:space="preserve"><value>有限の数値を入力してください。</value></data>
+  <data name="Designer.Graph.Validation.NumberInteger" xml:space="preserve"><value>整数を入力してください。</value></data>
+  <data name="Designer.Graph.Validation.NumberRange" xml:space="preserve"><value>値は {0} から {1} の範囲で指定してください。</value></data>
   <data name="Designer.Graph.DeleteConnection" xml:space="preserve"><value>接続を解除</value></data>
   <data name="Designer.Graph.Property.DurationMs.Description" xml:space="preserve"><value>待機またはアニメーションの時間です。単位はミリ秒です。</value></data>
+  <data name="Designer.Graph.Property.BranchCount.Description" xml:space="preserve"><value>並列分岐ポートの数です。1 から 20 まで設定できます。</value></data>
   <data name="Designer.Graph.Property.Message.Description" xml:space="preserve"><value>プレビュー実行ログに出力するテキストです。</value></data>
   <data name="Designer.Graph.Property.Target.Description" xml:space="preserve"><value>アクションの対象です。Self はこのビヘイビアがバインドされているコントロール自身です。</value></data>
   <data name="Designer.Graph.Property.TargetLayer" xml:space="preserve"><value>対象レイヤー</value></data>
@@ -4172,9 +4181,9 @@
   <data name="Designer.Graph.Help.Workflow.Title" xml:space="preserve"><value>操作方法</value></data>
   <data name="Designer.Graph.Help.Workflow.Content" xml:space="preserve"><value>左側のノードカタログからキャンバスにノードをドラッグするか、カタログ項目をダブルクリックして素早く追加します。\nノードの出力ポート（右側の青いマーク）から別のノードの入力ポート（左側のマーク）にドラッグして接続を作成します。\nノードカードをクリックして選択すると、右側のプロパティパネルに編集可能なプロパティが表示されます。\nDelete キーで選択中のノードや接続を削除します。ツールバーボタンでノードの複製や Start/End ノードの自動作成が可能です。\nカタログの検索ボックスにキーワードを入力してノードタイプを素早く見つけます。</value></data>
   <data name="Designer.Graph.Help.NodeTypes.Title" xml:space="preserve"><value>ノードタイプリファレンス</value></data>
-  <data name="Designer.Graph.Help.NodeTypes.Content" xml:space="preserve"><value>フロー制御ノード：\nStart — グラフのエントリポイント。各グラフに 1 つだけ必要です。\nEnd — 現在のブランチを終了します。\nDelay — 指定ミリ秒数待機します。\nSequence — Step1 → Step2 → Step3 の順に実行します。\nParallel — Branch1、Branch2、Branch3 を同時に実行し、すべて完了すると続行します。\nIf — テキスト比較分岐ノード。Left と Right を比較し、一致する場合は True、そうでない場合は False に進みます。\n\nアクションノード：\nLog — 実行ログに 1 行出力します（デバッグ用）。\nSetProperty — コントロールのプロパティ値を設定します。例：Target=Self、PropertyName=Opacity、Value=0.5。\nResetProperty — コントロールのプロパティをリセットします。PropertyName には特定のプロパティ名または All を指定します。\nAnimateProperty — 対象コントロールにプロパティアニメーションを送信します。PropertyName、From、To、DurationMs、Easing を入力します。\n\n値ノード：\nNumber / String / Boolean / Color — 定数値ノード。プロパティパネルで編集可能です。\nControlReference — 対象コントロールの参照。Self はこのビヘイビアがバインドされているコントロール自身です。</value></data>
+  <data name="Designer.Graph.Help.NodeTypes.Content" xml:space="preserve"><value>フロー制御ノード：\nStart — グラフのエントリポイント。各グラフに 1 つだけ必要です。\nEnd — グラフ唯一の終了点です。複数の分岐を同じ End.In に接続できます。\nDelay — 指定ミリ秒数待機します。\nSequence — Step1 → Step2 → Step3 の順に実行します。\nParallel — Branch1、Branch2、Branch3 を同時に実行し、すべて完了すると続行します。\nIf — テキスト比較分岐ノード。Left と Right を比較し、一致する場合は True、そうでない場合は False に進みます。\n\nアクションノード：\nLog — 実行ログに 1 行出力します（デバッグ用）。\nSetProperty — コントロールのプロパティ値を設定します。例：Target=Self、PropertyName=Opacity、Value=0.5。\nResetProperty — コントロールのプロパティをリセットします。PropertyName には特定のプロパティ名または All を指定します。\nAnimateProperty — 対象コントロールにプロパティアニメーションを送信します。PropertyName、From、To、DurationMs、Easing を入力します。\n\n値ノード：\nNumber / String / Boolean / Color — 定数値ノード。プロパティパネルで編集可能です。\nControlReference — 対象コントロールの参照。Self はこのビヘイビアがバインドされているコントロール自身です。</value></data>
   <data name="Designer.Graph.Help.Preview.Title" xml:space="preserve"><value>アニメーションのプレビュー</value></data>
-  <data name="Designer.Graph.Help.Preview.Content" xml:space="preserve"><value>グラフに少なくとも 1 つの Start ノードと End ノードがあることを確認します。\nツールバーの「プレビュー実行」をクリックして現在のグラフを実行します。アニメーションはデザイナー内の実際のコントロールに適用され、左下のプレビュービューポートにリアルタイム表示されます。\n右下の実行ログには各ステップの結果が表示され、問題の特定に役立ちます。\n「プレビュー停止」で実行を中断します。「現在のターゲットをリセット」または「すべてのプレビューをリセット」で変更されたコントロールプロパティを復元します。\nプレビュービューポートはリアルタイムレンダリングを使用するため、アニメーション効果を直接確認できます。</value></data>
+  <data name="Designer.Graph.Help.Preview.Content" xml:space="preserve"><value>グラフに 1 つの Start ノードと 1 つの End ノードがあることを確認します。\nツールバーの「プレビュー実行」をクリックして現在のグラフを実行します。アニメーションはデザイナー内の実際のコントロールに適用され、左下のプレビュービューポートにリアルタイム表示されます。\n右下の実行ログには各ステップの結果が表示され、問題の特定に役立ちます。\n「プレビュー停止」で実行を中断します。「現在のターゲットをリセット」または「すべてのプレビューをリセット」で変更されたコントロールプロパティを復元します。\nプレビュービューポートはリアルタイムレンダリングを使用するため、アニメーション効果を直接確認できます。</value></data>
   <data name="Designer.Graph.Help.LoopPreview.Title" xml:space="preserve"><value>ループプレビュー</value></data>
   <data name="Designer.Graph.Help.LoopPreview.Content" xml:space="preserve"><value>ループビヘイビアには 3 つのステージグラフがあります：開始グラフ、ループグラフ、終了グラフ。\n\nループアニメーションを1回プレビュー：開始グラフを実行 → ループグラフを1回実行 → 終了グラフを実行します。\nループアニメーションプレビュー開始：「ループアニメーションプレビュー停止」をクリックするまでループグラフを繰り返し実行します（RepeatCount と IntervalMs で制御）。\n停止アニメーションをプレビュー：終了グラフだけを実行し、停止段階の効果を確認します。\nプレビューをリセット：プレビューで変更されたすべてのコントロールプロパティを復元します。\n\nRepeatCount はループ回数を制御します。負の値にすると手動で停止するまで無限ループします。IntervalMs はループ間の待機時間を制御します。0 の場合でも、エディターが固まらないよう短い間隔を保ちます。</value></data>
   <data name="Designer.Graph.Help.Troubleshooting.Title" xml:space="preserve"><value>よくある問題</value></data>
@@ -4189,7 +4198,7 @@
 
 基本操作：左のノード一覧からキャンバスへドラッグして追加します。ノードのヘッダーをドラッグして移動します。出力ポートから入力ポートへドラッグして接続します。接続中央の × で解除します。空白キャンバスを左ボタンまたは右ボタンでドラッグすると表示位置を移動できます。ノードを選択すると右側でプロパティを編集できます。右クリックまたは Delete でノードを削除します。
 
-フロー：Start は入口で、通常 1 つだけ置きます。End は現在の分岐を終了します。Delay は指定ミリ秒待機します。Sequence は Step1、Step2、Step3 を順番に実行します。Parallel は Branch1、Branch2、Branch3 を同時に実行し、すべての完了を待ちます。If はテキスト比較の高度な分岐で、単純なプロパティアニメーションでは通常不要です。
+フロー：Start は入口で、通常 1 つだけ置きます。End は唯一の終了点で、複数の分岐を End.In に接続できます。Delay は指定ミリ秒待機します。Sequence は Step1、Step2、Step3 を順番に実行します。Parallel は Branch1、Branch2、Branch3 を同時に実行し、すべての完了を待ちます。If はテキスト比較の高度な分岐で、単純なプロパティアニメーションでは通常不要です。
 
 アクション：Log はプレビューログに出力します。SetProperty はプロパティ値を設定します。例：Target=Self、PropertyName=Opacity、Value=0.5。ResetProperty はプロパティをリセットします。PropertyName は具体的なプロパティまたは All です。AnimateProperty はプロパティアニメーションを再生します。例：Target=Self、PropertyName=Opacity、From=0、To=1、DurationMs=300、Easing=Linear。プレビューでは対象スコープがある場合、これらのアクションがデザイナー上のプレビューコントロールへ適用されます。
 
@@ -4374,4 +4383,16 @@
   <data name="StopAllLoopAnimations" xml:space="preserve"><value>すべてのループアニメーションを停止</value></data>
   <data name="StoppedLoopAnimationsFormat" xml:space="preserve"><value>{0} 個のループアニメーションを停止しました。</value></data>
   <data name="NoActiveLoopAnimations" xml:space="preserve"><value>再生中のループアニメーションはありません。</value></data>
+  <data name="Designer.Behaviors.Payload.Camp.Description" xml:space="preserve"><value>キャラクターの陣営です。</value></data>
+  <data name="Designer.Behaviors.Payload.PlayerIndex.Description" xml:space="preserve"><value>選択に対応するプレイヤーインデックスです。</value></data>
+  <data name="Designer.Behaviors.Payload.TargetBehaviorGuid.Description" xml:space="preserve"><value>対象コントロールの安定した動作 ID です。</value></data>
+  <data name="Designer.Behaviors.Payload.OldCharacterId.Description" xml:space="preserve"><value>変更前のキャラクター ID です。</value></data>
+  <data name="Designer.Behaviors.Payload.NewCharacterId.Description" xml:space="preserve"><value>変更後のキャラクター ID です。</value></data>
+  <data name="Designer.Behaviors.Payload.HasOldCharacter.Description" xml:space="preserve"><value>変更前にキャラクターが存在したかどうかです。</value></data>
+  <data name="Designer.Behaviors.Payload.HasNewCharacter.Description" xml:space="preserve"><value>変更後にキャラクターが存在するかどうかです。</value></data>
+  <data name="Designer.Behaviors.Payload.SourceIndex.Description" xml:space="preserve"><value>交換元プレイヤーのインデックスです。</value></data>
+  <data name="Designer.Behaviors.Payload.TargetIndex.Description" xml:space="preserve"><value>交換先プレイヤーのインデックスです。</value></data>
+  <data name="Designer.Behaviors.Payload.SourceBehaviorGuid.Description" xml:space="preserve"><value>交換元コントロールの安定した動作 ID です。</value></data>
+  <data name="Designer.Graph.Condition.If" xml:space="preserve"><value>もし</value></data>
+  <data name="Designer.Graph.Preview.MissingEventContext" xml:space="preserve"><value>現在のプレビューにはイベントコンテキストがないため、{0} を解決できません。</value></data>
 </root>

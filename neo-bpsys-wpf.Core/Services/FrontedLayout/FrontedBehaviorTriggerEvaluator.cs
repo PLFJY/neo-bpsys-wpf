@@ -96,7 +96,13 @@ public sealed class FrontedBehaviorTriggerEvaluator
         if (text.StartsWith("Event.", StringComparison.Ordinal))
         {
             var key = text["Event.".Length..];
-            return behaviorEvent.Payload.TryGetValue(key, out var value) ? value : null;
+            if (behaviorEvent.Payload.TryGetValue(key, out var value)
+                || behaviorEvent.Payload.TryGetValue(text, out value))
+            {
+                return value;
+            }
+
+            return null;
         }
 
         // Literal text

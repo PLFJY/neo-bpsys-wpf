@@ -4180,7 +4180,7 @@ Select a control in the designer to preview animation here</value></data>
   <data name="Designer.Graph.Node.ActionResetProperty" xml:space="preserve"><value>ResetProperty</value></data>
   <data name="Designer.Graph.Node.ActionAnimateProperty" xml:space="preserve"><value>AnimateProperty</value></data>
   <data name="Designer.Graph.Node.FlowStart.Description" xml:space="preserve"><value>Animation flow entry. A graph normally has one Start, connected from Out to the first flow or action node.</value></data>
-  <data name="Designer.Graph.Node.FlowEnd.Description" xml:space="preserve"><value>Finishes the current branch. Connect the final action Out to End to make the graph explicit.</value></data>
+  <data name="Designer.Graph.Node.FlowEnd.Description" xml:space="preserve"><value>Finishes the current branch. Each graph can have only one End; multiple branches can connect to End.In.</value></data>
   <data name="Designer.Graph.Node.FlowDelay.Description" xml:space="preserve"><value>Waits before continuing. Use it to space out property requests, such as fade out and then fade in.</value></data>
   <data name="Designer.Graph.Node.FlowParallel.Description" xml:space="preserve"><value>Executes all connected branches concurrently, then continues via Out.\nBranches are considered complete when they have no further outgoing connection.</value></data>
   <data name="Designer.Graph.Node.FlowIf.Description" xml:space="preserve"><value>Advanced branch node using text comparison. Simple property animations usually do not need it.</value></data>
@@ -4199,6 +4199,9 @@ Select a control in the designer to preview animation here</value></data>
   <data name="Designer.Graph.Port.Branch2" xml:space="preserve"><value>Branch 2</value></data>
   <data name="Designer.Graph.Port.Branch3" xml:space="preserve"><value>Branch 3</value></data>
   <data name="Designer.Graph.Port.ParallelOut" xml:space="preserve"><value>After all complete</value></data>
+  <data name="Designer.Graph.Port.ParallelBranch" xml:space="preserve"><value>Branch {0}</value></data>
+  <data name="Designer.Graph.Port.ParallelBranch.Tooltip" xml:space="preserve"><value>Parallel branch {0}. Runs concurrently with other connected branches.</value></data>
+  <data name="Designer.Graph.Connection.Meaning.ParallelBranch" xml:space="preserve"><value>Parallel branch {0}</value></data>
   <data name="Designer.Graph.Port.Branch1.Tooltip" xml:space="preserve"><value>Parallel branch 1. Runs concurrently with other connected branches.</value></data>
   <data name="Designer.Graph.Port.Branch2.Tooltip" xml:space="preserve"><value>Parallel branch 2. Runs concurrently with other connected branches.</value></data>
   <data name="Designer.Graph.Port.Branch3.Tooltip" xml:space="preserve"><value>Parallel branch 3. Runs concurrently with other connected branches.</value></data>
@@ -4211,6 +4214,7 @@ Select a control in the designer to preview animation here</value></data>
   <data name="Designer.Graph.Port.Completed" xml:space="preserve"><value>Completed</value></data>
   <data name="Designer.Graph.Port.Value" xml:space="preserve"><value>Value</value></data>
   <data name="Designer.Graph.Property.DurationMs" xml:space="preserve"><value>Duration</value></data>
+  <data name="Designer.Graph.Property.BranchCount" xml:space="preserve"><value>Parallel task count</value></data>
   <data name="Designer.Graph.Property.Message" xml:space="preserve"><value>Message</value></data>
   <data name="Designer.Graph.Property.Target" xml:space="preserve"><value>Target Control</value></data>
   <data name="Designer.Graph.Property.PropertyName" xml:space="preserve"><value>Property Name</value></data>
@@ -4245,9 +4249,14 @@ Select a control in the designer to preview animation here</value></data>
   <data name="Designer.Property.Background" xml:space="preserve"><value>Background</value></data>
   <data name="Designer.Graph.Validation.Description" xml:space="preserve"><value>Checks whether the graph has an entry node, valid connections, and required properties. It never deletes graph data; it only helps you fix preview and save-time issues.</value></data>
   <data name="Designer.Graph.Validation.GraphNoEnd" xml:space="preserve"><value>Graph has no End node; execution will stop when no outgoing connection exists.</value></data>
+  <data name="Designer.Graph.Validation.MultipleEnds" xml:space="preserve"><value>Graph has multiple End nodes; each graph can have only one End.</value></data>
   <data name="Designer.Graph.Validation.ParallelNoBranches" xml:space="preserve"><value>Parallel node has no connected branches; Out will execute immediately.</value></data>
+  <data name="Designer.Graph.Validation.NumberFinite" xml:space="preserve"><value>Enter a finite number.</value></data>
+  <data name="Designer.Graph.Validation.NumberInteger" xml:space="preserve"><value>Enter an integer.</value></data>
+  <data name="Designer.Graph.Validation.NumberRange" xml:space="preserve"><value>Value must be between {0} and {1}.</value></data>
   <data name="Designer.Graph.DeleteConnection" xml:space="preserve"><value>Disconnect</value></data>
   <data name="Designer.Graph.Property.DurationMs.Description" xml:space="preserve"><value>Delay or animation duration in milliseconds.</value></data>
+  <data name="Designer.Graph.Property.BranchCount.Description" xml:space="preserve"><value>Number of parallel branch ports, from 1 to 20.</value></data>
   <data name="Designer.Graph.Property.Message.Description" xml:space="preserve"><value>Text written to the preview execution log.</value></data>
   <data name="Designer.Graph.Property.Target.Description" xml:space="preserve"><value>Target control for the action. Self means the control this behavior is bound to.</value></data>
   <data name="Designer.Graph.Property.TargetLayer" xml:space="preserve"><value>Target Layer</value></data>
@@ -4268,9 +4277,9 @@ Select a control in the designer to preview animation here</value></data>
   <data name="Designer.Graph.Help.Workflow.Title" xml:space="preserve"><value>Workflow</value></data>
   <data name="Designer.Graph.Help.Workflow.Content" xml:space="preserve"><value>Drag nodes from the catalog on the left onto the canvas, or double-click a catalog item to quickly add it.\nDrag from a node's output port (blue marker on the right) to another node's input port (marker on the left) to create a connection.\nClick a node card to select it; the property panel on the right shows editable properties.\nPress Delete to remove the selected node or connection. Use the toolbar buttons to duplicate a node or auto-create Start/End nodes.\nType keywords in the catalog search box to quickly find node types.</value></data>
   <data name="Designer.Graph.Help.NodeTypes.Title" xml:space="preserve"><value>Node Type Reference</value></data>
-  <data name="Designer.Graph.Help.NodeTypes.Content" xml:space="preserve"><value>Flow Control Nodes:\nStart — Entry point; each graph must have exactly one.\nEnd — Ends the current branch.\nDelay — Waits for the specified number of milliseconds.\nSequence — Runs Step1 → Step2 → Step3 in order.\nParallel — Runs Branch1, Branch2, Branch3 simultaneously; continues when all complete.\nIf — Text comparison branch. Compares Left and Right, goes to True on match, False otherwise.\n\nAction Nodes:\nLog — Writes a line to the execution log for debugging.\nSetProperty — Sets a control property value, e.g. Target=Self, PropertyName=Opacity, Value=0.5.\nResetProperty — Resets a control property. Use a specific property name or All.\nAnimateProperty — Sends a property animation to the target control. Fill in PropertyName, From, To, DurationMs and Easing.\n\nValue Nodes:\nNumber / String / Boolean / Color — Constant value nodes, editable in the property panel.\nControlReference — Target control reference; Self means the control this behavior is bound to.</value></data>
+  <data name="Designer.Graph.Help.NodeTypes.Content" xml:space="preserve"><value>Flow Control Nodes:\nStart — Entry point; each graph must have exactly one.\nEnd — The single graph ending point; multiple branches can connect to the same End.In.\nDelay — Waits for the specified number of milliseconds.\nSequence — Runs Step1 → Step2 → Step3 in order.\nParallel — Runs Branch1, Branch2, Branch3 simultaneously; continues when all complete.\nIf — Text comparison branch. Compares Left and Right, goes to True on match, False otherwise.\n\nAction Nodes:\nLog — Writes a line to the execution log for debugging.\nSetProperty — Sets a control property value, e.g. Target=Self, PropertyName=Opacity, Value=0.5.\nResetProperty — Resets a control property. Use a specific property name or All.\nAnimateProperty — Sends a property animation to the target control. Fill in PropertyName, From, To, DurationMs and Easing.\n\nValue Nodes:\nNumber / String / Boolean / Color — Constant value nodes, editable in the property panel.\nControlReference — Target control reference; Self means the control this behavior is bound to.</value></data>
   <data name="Designer.Graph.Help.Preview.Title" xml:space="preserve"><value>Previewing Animation</value></data>
-  <data name="Designer.Graph.Help.Preview.Content" xml:space="preserve"><value>Make sure the graph has at least one Start node and one End node.\nClick Run Preview in the toolbar to execute the current graph. The animation runs on the real controls in the designer and is shown live in the preview viewport (bottom-left).\nThe execution log (bottom-right) shows the result of each step, helping you troubleshoot.\nClick Stop Preview to interrupt execution. Use Reset Current Target or Reset All Preview to restore modified control properties.\nThe preview viewport uses real-time rendering so you can see animation effects directly.</value></data>
+  <data name="Designer.Graph.Help.Preview.Content" xml:space="preserve"><value>Make sure the graph has one Start node and one End node.\nClick Run Preview in the toolbar to execute the current graph. The animation runs on the real controls in the designer and is shown live in the preview viewport (bottom-left).\nThe execution log (bottom-right) shows the result of each step, helping you troubleshoot.\nClick Stop Preview to interrupt execution. Use Reset Current Target or Reset All Preview to restore modified control properties.\nThe preview viewport uses real-time rendering so you can see animation effects directly.</value></data>
   <data name="Designer.Graph.Help.LoopPreview.Title" xml:space="preserve"><value>Loop Preview</value></data>
   <data name="Designer.Graph.Help.LoopPreview.Content" xml:space="preserve"><value>Loop behaviors have three stage graphs: Start Graph, Loop Graph, and End Graph.\n\nPreview one loop animation: runs Start Graph → runs Loop Graph once → runs End Graph.\nStart loop animation preview: runs the Loop Graph repeatedly (controlled by RepeatCount and IntervalMs) until you click Stop loop animation preview.\nPreview stop animation: runs only the End Graph so you can check the stop-stage effect.\nReset preview: restores all control properties modified by preview.\n\nRepeatCount controls the number of loops; use a negative value for infinite looping until manually stopped. IntervalMs controls the wait time between loops; when it is 0, preview still keeps a short UI-friendly tick to avoid freezing the editor.</value></data>
   <data name="Designer.Graph.Help.Troubleshooting.Title" xml:space="preserve"><value>Troubleshooting</value></data>
@@ -4285,7 +4294,7 @@ Select a control in the designer to preview animation here</value></data>
 
 Basics: drag nodes from the catalog onto the canvas; drag a node header to move it; drag from an output port to an input port to connect; use the × button on a connection to disconnect; drag empty canvas space with the left or right mouse button to pan; select a node and edit its properties on the right; right-click a node or press Delete to remove it.
 
-Flow nodes: Start is the entry point and a graph should normally have one. End finishes the current branch. Delay waits for a number of milliseconds. Sequence runs Step1, Step2, Step3 in order. Parallel runs Branch1, Branch2, Branch3 together and waits for all of them. If is an advanced text branch and is usually not needed for simple property animation.
+Flow nodes: Start is the entry point and a graph should normally have one. End is the single ending point, and multiple branches can connect to End.In. Delay waits for a number of milliseconds. Sequence runs Step1, Step2, Step3 in order. Parallel runs Branch1, Branch2, Branch3 together and waits for all of them. If is an advanced text branch and is usually not needed for simple property animation.
 
 Action nodes: Log writes preview text. SetProperty writes a property value, for example Target=Self, PropertyName=Opacity, Value=0.5. ResetProperty resets a property; PropertyName can be a specific property or All. AnimateProperty plays a property animation, for example Target=Self, PropertyName=Opacity, From=0, To=1, DurationMs=300, Easing=Linear. In preview, these actions are applied to the designer preview controls when a target scope is available.
 
@@ -4470,4 +4479,16 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="StopAllLoopAnimations" xml:space="preserve"><value>Stop all loop animations</value></data>
   <data name="StoppedLoopAnimationsFormat" xml:space="preserve"><value>Stopped {0} loop animations.</value></data>
   <data name="NoActiveLoopAnimations" xml:space="preserve"><value>No loop animations are currently playing.</value></data>
+  <data name="Designer.Behaviors.Payload.Camp.Description" xml:space="preserve"><value>The character's camp.</value></data>
+  <data name="Designer.Behaviors.Payload.PlayerIndex.Description" xml:space="preserve"><value>The player index associated with the selection.</value></data>
+  <data name="Designer.Behaviors.Payload.TargetBehaviorGuid.Description" xml:space="preserve"><value>The stable behavior ID of the target control.</value></data>
+  <data name="Designer.Behaviors.Payload.OldCharacterId.Description" xml:space="preserve"><value>The character ID before the change.</value></data>
+  <data name="Designer.Behaviors.Payload.NewCharacterId.Description" xml:space="preserve"><value>The character ID after the change.</value></data>
+  <data name="Designer.Behaviors.Payload.HasOldCharacter.Description" xml:space="preserve"><value>Whether a character existed before the change.</value></data>
+  <data name="Designer.Behaviors.Payload.HasNewCharacter.Description" xml:space="preserve"><value>Whether a character exists after the change.</value></data>
+  <data name="Designer.Behaviors.Payload.SourceIndex.Description" xml:space="preserve"><value>The source player index of the swap.</value></data>
+  <data name="Designer.Behaviors.Payload.TargetIndex.Description" xml:space="preserve"><value>The target player index of the swap.</value></data>
+  <data name="Designer.Behaviors.Payload.SourceBehaviorGuid.Description" xml:space="preserve"><value>The stable behavior ID of the source control.</value></data>
+  <data name="Designer.Graph.Condition.If" xml:space="preserve"><value>IF</value></data>
+  <data name="Designer.Graph.Preview.MissingEventContext" xml:space="preserve"><value>The current preview has no event context, so {0} cannot be resolved.</value></data>
 </root>

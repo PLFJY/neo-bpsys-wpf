@@ -2039,7 +2039,7 @@ public class FrontedCanvasConfigTest
                 CreateBuildContext());
 
             var root = Assert.IsType<Grid>(element);
-            var image = Assert.IsType<Image>(Assert.Single(root.Children.OfType<Image>()));
+            var image = FindPrimaryImage(root);
             Assert.Equal(10, Canvas.GetLeft(root));
             Assert.Equal(20, Canvas.GetTop(root));
             Assert.Equal(85, root.Width);
@@ -2260,7 +2260,7 @@ public class FrontedCanvasConfigTest
                 CreateBuildContext(sharedDataService, resourceResolver: resolver));
 
             var root = Assert.IsType<Grid>(element);
-            var image = Assert.IsType<Image>(Assert.Single(root.Children.OfType<Image>()));
+            var image = FindPrimaryImage(root);
             Assert.Equal(Stretch.UniformToFill, image.Stretch);
             var binding = BindingOperations.GetBinding(image, Image.SourceProperty);
             Assert.NotNull(binding);
@@ -2290,7 +2290,7 @@ public class FrontedCanvasConfigTest
                 CreateBuildContext(resourceResolver: resolver));
 
             var root = Assert.IsType<Grid>(element);
-            var image = Assert.IsType<Image>(Assert.Single(root.Children.OfType<Image>()));
+            var image = FindPrimaryImage(root);
             Assert.Same(source, image.Source);
             Assert.Null(BindingOperations.GetBinding(image, Image.SourceProperty));
             Assert.Equal("Resources/logo.png", resolver.LastResolvedImagePath);
@@ -2328,7 +2328,7 @@ public class FrontedCanvasConfigTest
             Assert.Equal(5, Panel.GetZIndex(border));
 
             var grid = Assert.IsType<Grid>(border.Child);
-            var image = Assert.IsType<Image>(Assert.Single(grid.Children.OfType<Image>()));
+            var image = FindPrimaryImage(grid);
             Assert.Equal(64, image.Width);
             Assert.Equal(48, image.Height);
             Assert.Equal(Stretch.UniformToFill, image.Stretch);
@@ -2359,7 +2359,7 @@ public class FrontedCanvasConfigTest
 
             var border = Assert.IsType<Border>(element);
             var grid = Assert.IsType<Grid>(border.Child);
-            var image = Assert.IsType<Image>(Assert.Single(grid.Children.OfType<Image>()));
+            var image = FindPrimaryImage(grid);
             Assert.Same(source, image.Source);
             Assert.Null(BindingOperations.GetBinding(image, Image.SourceProperty));
             Assert.Equal("Resources/pick.png", resolver.LastResolvedImagePath);
@@ -2406,7 +2406,7 @@ public class FrontedCanvasConfigTest
             Assert.Equal(new CornerRadius(8), border.CornerRadius);
 
             var grid = Assert.IsType<Grid>(border.Child);
-            var image = Assert.IsType<Image>(Assert.Single(grid.Children.OfType<Image>()));
+            var image = FindPrimaryImage(grid);
             Assert.True(double.IsNaN(image.Width));
             Assert.True(double.IsNaN(image.Height));
             Assert.Equal(Stretch.UniformToFill, image.Stretch);
@@ -2437,7 +2437,7 @@ public class FrontedCanvasConfigTest
                 CreateBuildContext(resourceResolver: new RecordingFrontedResourceResolver()));
 
             var root = Assert.IsType<Grid>(element);
-            var image = Assert.IsType<Image>(Assert.Single(root.Children.OfType<Image>()));
+            var image = FindPrimaryImage(root);
             Assert.Null(image.Source);
         });
     }
@@ -2946,6 +2946,14 @@ public class FrontedCanvasConfigTest
                 yield return descendant;
             }
         }
+    }
+
+    private static Image FindPrimaryImage(DependencyObject root)
+    {
+        var primaryContent = Assert.Single(
+            FindDescendants<FrameworkElement>(root),
+            FrontedRendererProperties.GetIsPrimaryContentElement);
+        return Assert.IsType<Image>(Assert.Single(FindDescendants<Image>(primaryContent)));
     }
 
     private sealed class TestPluginControlConfig : FrontedControlConfigBase

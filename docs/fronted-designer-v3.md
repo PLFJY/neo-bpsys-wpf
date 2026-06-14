@@ -212,12 +212,13 @@ source 顺序对应 `{0}`、`{1}`、`{2}`。`StringFormat` 非空时使用当前
 
 | 层级 | 接收属性 |
 | --- | --- |
-| `Image` 根 `Grid` | `Canvas.Left`、`Canvas.Top`、`Width`、`Height`、`Panel.ZIndex` 和控件 `Name`。内部第一层是主 `Image`，后续子元素是 lock / picking border overlay。 |
+| `Image` 根 `Grid` | `Canvas.Left`、`Canvas.Top`、`Width`、`Height`、`Panel.ZIndex` 和控件 `Name`。内部第一层是主内容容器，容器内只有主 `Image`，后续子元素是 lock / picking border overlay。 |
 | `BorderedImage` 外层 `Border` | `Canvas.Left`、`Canvas.Top`、`Width`、`Height`、`Panel.ZIndex`，设计器默认 resize handles 作用于这一层。 |
-| `BorderedImage` 内层 `Image` | `Source` 绑定、`ImageWidth`、`ImageHeight`、`Stretch`、`HorizontalAlignment`、`VerticalAlignment` 等图片展示属性。 |
+| `BorderedImage` 内层主内容容器 | 作为主图视口承接 `TargetLayer=Content` 的通用视觉动画；容器内的 `Image` 接收 `Source` 绑定、`ImageWidth`、`ImageHeight`、`Stretch`、`HorizontalAlignment`、`VerticalAlignment` 等图片展示属性。 |
 
 行为动画中的 `TargetLayer=Control` 指向 `Image` 的根 `Grid` 或 `BorderedImage` 的外层
-`Border`；`TargetLayer=Content` 指向主 `Image`，不会影响 lock / picking border overlay；
+`Border`；`TargetLayer=Content` 指向只包含主图的主内容容器，`Opacity`、`ClipInset*`、位移、
+缩放、旋转等通用视觉属性只作用于主图视口，不会影响 lock / picking border overlay；
 `TargetLayer=OverlayAbove/OverlayBelow` 会在图片控件上方或下方生成运行时 `Rectangle` 承接层。
 
 `BindingPath` 同样应以 `ISharedDataService` 为 binding `Source`。图片控件还支持 `ImagePath` 作为静态图片资源路径。`BindingPath` 与 `ImagePath` 同时存在时，`BindingPath` 优先。`ImagePath` 应使用 `Resources/foo.png`、`bpui://...` 等 v3 资源路径，不应长期保存任意绝对本地路径。
