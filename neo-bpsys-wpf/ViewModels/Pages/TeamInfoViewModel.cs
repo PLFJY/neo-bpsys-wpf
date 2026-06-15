@@ -4,6 +4,7 @@ using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Helpers;
 using System.ComponentModel;
 using System.IO;
@@ -40,16 +41,22 @@ public partial class TeamInfoPageViewModel
         /// </summary>
         public Team CurrentTeam { get; private set; }
         private readonly IFilePickerService _filePickerService;
+        private readonly IFrontedImageSafetyService _imageSafetyService;
 
         /// <summary>
         /// 初始化队伍信息视图模型。
         /// </summary>
         /// <param name="team">队伍数据</param>
         /// <param name="filePickerService">文件选择服务</param>
-        public TeamInfoViewModel(Team team, IFilePickerService filePickerService)
+        /// <param name="imageSafetyService">前台图片安全校验服务</param>
+        public TeamInfoViewModel(
+            Team team,
+            IFilePickerService filePickerService,
+            IFrontedImageSafetyService imageSafetyService)
         {
             CurrentTeam = team;
             _filePickerService = filePickerService;
+            _imageSafetyService = imageSafetyService;
             TeamName = team.Name;
             SyncTeamColorEditor();
             CurrentTeam.PropertyChanged += CurrentTeamOnPropertyChanged;
@@ -137,6 +144,13 @@ public partial class TeamInfoPageViewModel
                 return;
             try
             {
+                var validation = _imageSafetyService.ValidateFile(fileName, FrontedImagePurpose.UiElement);
+                if (!validation.IsValid)
+                {
+                    _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("LogoFileIsNotValid"));
+                    return;
+                }
+
                 CurrentTeam.Logo = new BitmapImage(new Uri(fileName));
             }
             catch

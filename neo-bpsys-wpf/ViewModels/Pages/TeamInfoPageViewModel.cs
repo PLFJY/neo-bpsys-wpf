@@ -2,6 +2,7 @@
 using neo_bpsys_wpf.Controls;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using System.Collections.ObjectModel;
 using Player = neo_bpsys_wpf.Core.Models.Player;
 
@@ -27,13 +28,17 @@ public partial class TeamInfoPageViewModel : ViewModelBase
     /// </summary>
     /// <param name="sharedDataService">共享数据服务</param>
     /// <param name="filePickerService">文件选择服务</param>
-    public TeamInfoPageViewModel(ISharedDataService sharedDataService, IFilePickerService filePickerService)
+    /// <param name="imageSafetyService">前台图片安全校验服务</param>
+    public TeamInfoPageViewModel(
+        ISharedDataService sharedDataService,
+        IFilePickerService filePickerService,
+        IFrontedImageSafetyService imageSafetyService)
     {
         var sharedDataService1 = sharedDataService;
         HomeTeamInfoViewModel =
-            new TeamInfoViewModel(sharedDataService1.HomeTeam, filePickerService);
+            new TeamInfoViewModel(sharedDataService1.HomeTeam, filePickerService, imageSafetyService);
         AwayTeamInfoViewModel =
-            new TeamInfoViewModel(sharedDataService1.AwayTeam, filePickerService);
+            new TeamInfoViewModel(sharedDataService1.AwayTeam, filePickerService, imageSafetyService);
         OnFieldSurPlayerViewModels =
             [.. Enumerable.Range(0, 4).Select(i => new OnFieldSurPlayerViewModel(sharedDataService1, i))];
         OnFieldHunPlayerVm = new OnFieldHunPlayerViewModel(sharedDataService1);

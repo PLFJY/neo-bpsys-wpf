@@ -32,11 +32,11 @@ public static class FrontedLayoutLimits
     public const int MaxValidationMessageLength = 512;
     public const int MaxValidationMessagesShown = 200;
 
-    public const long MaxBackgroundImageBytes = 1 * 1024 * 1024;
+    public const long MaxBackgroundImageBytes = 2560 * 1024;
     public const int MaxBackgroundImageLongSide = 4096;
     public const long MaxBackgroundImagePixels = 4096L * 4096L;
 
-    public const long MaxUiImageBytes = 512 * 1024;
+    public const long MaxUiImageBytes = 1 * 1024 * 1024;
     public const int MaxUiImageLongSide = 2048;
     public const long MaxUiImagePixels = 2048L * 2048L;
 
