@@ -1,101 +1,171 @@
 {
   "Version": 3,
   "WindowSettings": {
-    "WindowWidth": 480.0,
-    "WindowHeight": 152.0,
+    "WindowWidth": 480,
+    "WindowHeight": 152,
+    "WindowLeft": null,
+    "WindowTop": null,
     "AllowsTransparency": true,
     "BackgroundColor": "#00000000",
     "Topmost": false,
     "ViewboxStretch": "Fill"
   },
   "CanvasSettings": {
-    "CanvasWidth": 480.0,
-    "CanvasHeight": 152.0,
+    "CanvasWidth": 480,
+    "CanvasHeight": 152,
     "BackgroundImage": "Resources/scoreSur.png",
     "EnableBoModeStates": false,
     "BoModeStates": {}
   },
   "ControlLayout": {
-    "RequiredPlugins": null,
+    "RequiredPlugins": [],
     "Controls": {
       "SurTeamLogo": {
+        "SizingMode": "FillContainer",
+        "ImagePath": null,
+        "Stretch": "Fill",
+        "HorizontalAlignment": null,
+        "VerticalAlignment": null,
+        "ClipToBounds": false,
+        "CornerRadius": 8,
+        "Lockable": false,
+        "LockImagePath": null,
+        "LockVisibilityBindingPath": null,
+        "LockVisibleWhen": "Always",
+        "LockZIndexOffset": 1,
+        "PickingBorderAvailable": false,
+        "PickingBorderImagePath": null,
+        "PickingBorderName": null,
+        "PickingBorderZIndexOffset": 2,
+        "PickingBorder": false,
+        "BanLockAvailable": false,
+        "BanLockImagePath": null,
         "ControlType": "Image",
         "Left": 22,
         "Top": 18,
         "Width": 115,
         "Height": 114,
-        "BindingPath": "CurrentGame.SurTeam.Logo",
-        "SizingMode": "FillContainer",
-        "Stretch": "Fill",
-        "CornerRadius": 8,
-        "ZIndex": 1
+        "ZIndex": 1,
+        "Visibility": "Visible",
+        "BindingPath": "CurrentGame.SurTeam.Logo"
       },
       "SurTeamName": {
-        "ControlType": "Text",
-        "Left": 153,
-        "Top": 34,
-        "Width": 231,
-        "Height": null,
+        "Text": null,
+        "TextBinding": {
+          "Sources": [
+            {
+              "Path": "CurrentGame.SurTeam.Name",
+              "DisplayName": null,
+              "Format": null
+            }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
         "HorizontalAlignment": "Center",
         "VerticalAlignment": "Center",
         "TextAlignment": "Center",
         "TextWrapping": "WrapWithOverflow",
         "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
         "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
+        "Color": "#FF000000",
+        "ColorBindingPath": null,
         "FontSize": 32,
+        "ControlType": "Text",
+        "Left": 178.5,
+        "Top": 34,
+        "Width": 205.5,
+        "Height": 32,
         "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
+      },
+      "SurTeamMajorPoint": {
+        "Text": null,
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.SurTeam.Name"
+              "Path": "CurrentGame.MatchScore.CurrentSurTeamMajorText",
+              "DisplayName": null,
+              "Format": null
             }
-          ]
-        }
-      },
-      "SurTeamMajorPoint": {
-        "ControlType": "Text",
-        "Left": 209,
-        "Top": 86,
-        "Width": null,
-        "Height": null,
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
         "HorizontalAlignment": "Center",
         "VerticalAlignment": "Top",
         "TextAlignment": "Center",
+        "TextWrapping": null,
         "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
         "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
+        "Color": "#FF000000",
+        "ColorBindingPath": null,
         "FontSize": 38,
+        "ControlType": "Text",
+        "Left": 225.5,
+        "Top": 86,
+        "Width": null,
+        "Height": null,
         "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
+      },
+      "GameScoresSur": {
+        "Text": null,
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.MatchScore.CurrentSurTeamMajorText"
+              "Path": "CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText",
+              "DisplayName": null,
+              "Format": null
             }
-          ]
-        }
-      },
-      "GameScoresSur": {
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Center",
+        "TextWrapping": null,
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Normal",
+        "Color": "#FF000000",
+        "ColorBindingPath": null,
+        "FontSize": 100,
         "ControlType": "Text",
         "Left": 389,
         "Top": 11,
         "Width": 64,
         "Height": 130,
-        "HorizontalAlignment": "Center",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Center",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
-        "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
-        "FontSize": 100,
         "ZIndex": 2,
-        "TextBinding": {
-          "Sources": [
-            {
-              "Path": "CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText"
-            }
-          ]
-        }
+        "Visibility": "Visible",
+        "BindingPath": null
+      },
+      "BackgroundTintSur": {
+        "RadiusX": 0,
+        "RadiusY": 0,
+        "TintColor": "#FFFFFFFF",
+        "TintBindingPath": "CurrentGame.SurTeam.ColorHex",
+        "TintMode": 2,
+        "TintStrength": 1,
+        "TextureStrength": 0.45,
+        "ShowMissingBackgroundPlaceholder": true,
+        "BehaviorGuid": "019ecc1c-988d-7051-81f7-5a29cf85a784",
+        "ControlType": "BackgroundTintRectangle",
+        "Left": -0.5,
+        "Top": -0.5,
+        "Width": 176,
+        "Height": 154.5,
+        "ZIndex": -1,
+        "Visibility": "Visible",
+        "BindingPath": null
       }
     }
   }

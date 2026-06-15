@@ -1,1142 +1,1907 @@
 {
   "Version": 3,
   "WindowSettings": {
-    "WindowWidth": 1440.0,
-    "WindowHeight": 810.0,
+    "WindowWidth": 1440,
+    "WindowHeight": 810,
+    "WindowLeft": null,
+    "WindowTop": null,
     "AllowsTransparency": true,
     "BackgroundColor": "#00000000",
     "Topmost": false,
     "ViewboxStretch": "Fill"
   },
   "CanvasSettings": {
-    "CanvasWidth": 1440.0,
-    "CanvasHeight": 810.0,
+    "CanvasWidth": 1440,
+    "CanvasHeight": 810,
     "BackgroundImage": "Resources/gameData.png",
     "EnableBoModeStates": false,
     "BoModeStates": {}
   },
   "ControlLayout": {
-    "RequiredPlugins": null,
+    "RequiredPlugins": [],
     "Controls": {
       "SurTeamLogo": {
+        "SizingMode": "FillContainer",
+        "ImagePath": null,
+        "Stretch": "Fill",
+        "HorizontalAlignment": null,
+        "VerticalAlignment": null,
+        "ClipToBounds": false,
+        "CornerRadius": 8,
+        "Lockable": false,
+        "LockImagePath": null,
+        "LockVisibilityBindingPath": null,
+        "LockVisibleWhen": "Always",
+        "LockZIndexOffset": 1,
+        "PickingBorderAvailable": false,
+        "PickingBorderImagePath": null,
+        "PickingBorderName": null,
+        "PickingBorderZIndexOffset": 2,
+        "PickingBorder": false,
+        "BanLockAvailable": false,
+        "BanLockImagePath": null,
         "ControlType": "Image",
-        "Left": 96,
+        "Left": 80,
         "Top": 177,
         "Width": 85,
         "Height": 85,
-        "BindingPath": "CurrentGame.SurTeam.Logo",
-        "SizingMode": "FillContainer",
-        "Stretch": "Fill",
-        "CornerRadius": 8,
-        "ZIndex": 1
+        "ZIndex": 1,
+        "Visibility": "Visible",
+        "BindingPath": "CurrentGame.SurTeam.Logo"
       },
       "SurTeamMajorPoint": {
-        "ControlType": "Text",
-        "Left": 285,
-        "Top": 229,
-        "Width": null,
-        "Height": null,
-        "HorizontalAlignment": "Center",
-        "VerticalAlignment": "Top",
-        "TextAlignment": "Center",
-        "FontFamily": "Arial",
-        "FontWeight": "Bold",
-        "Color": "#FFFFFFFF",
-        "FontSize": 30,
-        "ZIndex": 2,
+        "Text": null,
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.MatchScore.CurrentSurTeamMajorText"
+              "Path": "CurrentGame.MatchScore.CurrentSurTeamMajorText",
+              "DisplayName": null,
+              "Format": null
             }
-          ]
-        }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Top",
+        "TextAlignment": "Center",
+        "TextWrapping": null,
+        "FontFamily": "Arial",
+        "FontWeight": "Bold",
+        "Color": "#FF000000",
+        "ColorBindingPath": null,
+        "FontSize": 30,
+        "ControlType": "Text",
+        "Left": 285,
+        "Top": 228,
+        "Width": null,
+        "Height": null,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "SurTeamName": {
-        "ControlType": "Text",
-        "Left": 186,
-        "Top": 176,
-        "Width": 290,
-        "Height": null,
+        "Text": null,
+        "TextBinding": {
+          "Sources": [
+            {
+              "Path": "CurrentGame.SurTeam.Name",
+              "DisplayName": null,
+              "Format": null
+            }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
         "HorizontalAlignment": "Center",
         "VerticalAlignment": "Center",
         "TextAlignment": "Center",
         "TextWrapping": "WrapWithOverflow",
         "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
-        "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
+        "FontWeight": "SemiBold",
+        "Color": "#FF000000",
+        "ColorBindingPath": null,
         "FontSize": 32,
+        "ControlType": "Text",
+        "Left": 186,
+        "Top": 174.5,
+        "Width": 290,
+        "Height": null,
         "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
+      },
+      "GameScoresSur": {
+        "Text": null,
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.SurTeam.Name"
+              "Path": "CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText",
+              "DisplayName": null,
+              "Format": null
             }
-          ]
-        }
-      },
-      "GameScoresSur": {
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Center",
+        "TextWrapping": null,
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Bold",
+        "Color": "#FF000000",
+        "ColorBindingPath": null,
+        "FontSize": 80,
         "ControlType": "Text",
         "Left": 476,
         "Top": 182,
         "Width": 52,
         "Height": 81,
-        "HorizontalAlignment": "Center",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Center",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
-        "FontWeight": "Bold",
-        "Color": "#FFFFFFFF",
-        "FontSize": 80,
         "ZIndex": 2,
-        "TextBinding": {
-          "Sources": [
-            {
-              "Path": "CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText"
-            }
-          ]
-        }
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "Map": {
+        "ImageWidth": null,
+        "ImageHeight": null,
+        "SizingMode": "OverflowCrop",
+        "ImagePath": null,
+        "Stretch": "UniformToFill",
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "ClipToBounds": false,
+        "CornerRadius": null,
+        "Lockable": false,
+        "LockImagePath": null,
+        "LockVisibilityBindingPath": null,
+        "LockVisibleWhen": "Always",
+        "LockZIndexOffset": 1,
+        "PickingBorderAvailable": false,
+        "PickingBorderImagePath": null,
+        "PickingBorderName": null,
+        "PickingBorderZIndexOffset": 2,
+        "PickingBorder": false,
+        "BanLockAvailable": false,
+        "BanLockImagePath": null,
         "ControlType": "BorderedImage",
         "Left": 556,
         "Top": 151,
         "Width": 328,
         "Height": 132,
-        "BindingPath": "CurrentGame.PickedMapImage",
-        "SizingMode": "OverflowCrop",
-        "Stretch": "UniformToFill",
-        "HorizontalAlignment": "Center",
-        "VerticalAlignment": "Center",
-        "ZIndex": -1
+        "ZIndex": -1,
+        "Visibility": "Visible",
+        "BindingPath": "CurrentGame.PickedMapImage"
       },
       "MapName": {
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
+        "FontSize": 22,
+        "TextAlignment": "Center",
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "EmptyText": null,
         "ControlType": "MapNameText",
         "Left": 556,
         "Top": 220,
         "Width": 328,
         "Height": 30,
-        "HorizontalAlignment": "Center",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Center",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简",
-        "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
-        "FontSize": 22,
-        "ZIndex": 1
+        "ZIndex": 1,
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "GameProgress": {
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
+        "FontSize": 20,
+        "TextAlignment": "Center",
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "DisplayMode": 0,
+        "VerticalLanguageMode": 0,
+        "LatinVerticalMode": 0,
+        "VerticalDirection": 0,
+        "DisplayLanguage": "FollowApp",
+        "NumberStyle": 0,
+        "VerticalTextSpacing": 0,
+        "GroupSpacing": 8,
+        "ShowSeparator": false,
+        "SeparatorThickness": 1,
+        "SeparatorColor": null,
+        "BackgroundColor": null,
+        "PaddingLeft": 0,
+        "PaddingTop": 0,
+        "PaddingRight": 0,
+        "PaddingBottom": 0,
         "ControlType": "GameProgressText",
         "Left": 556,
         "Top": 253,
         "Width": 328,
         "Height": 30,
+        "ZIndex": 1,
+        "Visibility": "Visible",
+        "BindingPath": null
+      },
+      "GameScoresHun": {
+        "Text": null,
+        "TextBinding": {
+          "Sources": [
+            {
+              "Path": "CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText",
+              "DisplayName": null,
+              "Format": null
+            }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
         "HorizontalAlignment": "Center",
         "VerticalAlignment": "Center",
         "TextAlignment": "Center",
+        "TextWrapping": null,
         "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
-        "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
-        "FontSize": 20,
-        "ZIndex": 1
-      },
-      "GameScoresHun": {
+        "FontWeight": "Bold",
+        "Color": "#FF000000",
+        "ColorBindingPath": null,
+        "FontSize": 80,
         "ControlType": "Text",
         "Left": 919,
         "Top": 182,
         "Width": 52,
         "Height": 81,
-        "HorizontalAlignment": "Center",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Center",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
-        "FontWeight": "Bold",
-        "Color": "#FFFFFFFF",
-        "FontSize": 80,
         "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
+      },
+      "HunTeamName": {
+        "Text": null,
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText"
+              "Path": "CurrentGame.HunTeam.Name",
+              "DisplayName": null,
+              "Format": null
             }
-          ]
-        }
-      },
-      "HunTeamName": {
-        "ControlType": "Text",
-        "Left": 976,
-        "Top": 177,
-        "Width": 302,
-        "Height": null,
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
         "HorizontalAlignment": "Center",
         "VerticalAlignment": "Top",
         "TextAlignment": "Center",
         "TextWrapping": "WrapWithOverflow",
         "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
-        "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
+        "FontWeight": "SemiBold",
+        "Color": "#FF000000",
+        "ColorBindingPath": null,
         "FontSize": 32,
+        "ControlType": "Text",
+        "Left": 976,
+        "Top": 174,
+        "Width": 279.5,
+        "Height": 44,
         "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
+      },
+      "HunTeamMajorPoint": {
+        "Text": null,
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.HunTeam.Name"
+              "Path": "CurrentGame.MatchScore.CurrentHunTeamMajorText",
+              "DisplayName": null,
+              "Format": null
             }
-          ]
-        }
-      },
-      "HunTeamMajorPoint": {
-        "ControlType": "Text",
-        "Left": 1081,
-        "Top": 236,
-        "Width": null,
-        "Height": null,
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
         "HorizontalAlignment": "Center",
         "VerticalAlignment": "Top",
         "TextAlignment": "Center",
+        "TextWrapping": null,
         "FontFamily": "Arial",
         "FontWeight": "Bold",
-        "Color": "#FFFFFFFF",
+        "Color": "#FF000000",
+        "ColorBindingPath": null,
         "FontSize": 30,
+        "ControlType": "Text",
+        "Left": 1062,
+        "Top": 233.5,
+        "Width": null,
+        "Height": null,
         "ZIndex": 2,
-        "TextBinding": {
-          "Sources": [
-            {
-              "Path": "CurrentGame.MatchScore.CurrentHunTeamMajorText"
-            }
-          ]
-        }
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "HunTeamLogo": {
+        "SizingMode": "FillContainer",
+        "ImagePath": null,
+        "Stretch": "Fill",
+        "HorizontalAlignment": null,
+        "VerticalAlignment": null,
+        "ClipToBounds": false,
+        "CornerRadius": 8,
+        "Lockable": false,
+        "LockImagePath": null,
+        "LockVisibilityBindingPath": null,
+        "LockVisibleWhen": "Always",
+        "LockZIndexOffset": 1,
+        "PickingBorderAvailable": false,
+        "PickingBorderImagePath": null,
+        "PickingBorderName": null,
+        "PickingBorderZIndexOffset": 2,
+        "PickingBorder": false,
+        "BanLockAvailable": false,
+        "BanLockImagePath": null,
         "ControlType": "Image",
         "Left": 1278,
         "Top": 176,
         "Width": 85,
         "Height": 86,
-        "BindingPath": "CurrentGame.HunTeam.Logo",
-        "SizingMode": "FillContainer",
-        "Stretch": "Fill",
-        "CornerRadius": 8,
-        "ZIndex": 1
+        "ZIndex": 1,
+        "Visibility": "Visible",
+        "BindingPath": "CurrentGame.HunTeam.Logo"
       },
       "Header_Character": {
+        "LocalizationKey": "Character",
+        "FallbackText": "Character",
+        "TextBinding": null,
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
+        "FontSize": 16,
+        "TextAlignment": "Center",
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextWrapping": null,
         "ControlType": "LocalizedText",
         "Left": 47,
         "Top": 307,
         "Width": 80,
         "Height": null,
-        "LocalizationKey": "Character",
-        "FallbackText": "Character",
-        "HorizontalAlignment": "Center",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Center",
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
+      },
+      "Header_ID": {
+        "LocalizationKey": "PlayerID",
+        "FallbackText": "Player ID",
+        "TextBinding": null,
         "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
         "FontWeight": "Normal",
         "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
         "FontSize": 16,
-        "ZIndex": 2
-      },
-      "Header_ID": {
+        "TextAlignment": "Center",
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextWrapping": null,
         "ControlType": "LocalizedText",
         "Left": 154,
         "Top": 307,
         "Width": 100,
         "Height": null,
-        "LocalizationKey": "PlayerID",
-        "FallbackText": "Player ID",
-        "HorizontalAlignment": "Center",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Center",
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
+      },
+      "Header_DecodingProgress": {
+        "LocalizationKey": "DecodingProgress",
+        "FallbackText": "Decoding progress",
+        "TextBinding": null,
         "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
         "FontWeight": "Normal",
         "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
         "FontSize": 16,
-        "ZIndex": 2
-      },
-      "Header_DecodingProgress": {
+        "TextAlignment": "Center",
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextWrapping": null,
         "ControlType": "LocalizedText",
         "Left": 331,
         "Top": 307,
         "Width": 150,
         "Height": null,
-        "LocalizationKey": "DecodingProgress",
-        "FallbackText": "Decoding progress",
-        "HorizontalAlignment": "Center",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Center",
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
+      },
+      "Header_PalletStrikes": {
+        "LocalizationKey": "PalletStrikes",
+        "FallbackText": "Pallet strikes",
+        "TextBinding": null,
         "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
         "FontWeight": "Normal",
         "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
         "FontSize": 16,
-        "ZIndex": 2
-      },
-      "Header_PalletStrikes": {
+        "TextAlignment": "Center",
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextWrapping": null,
         "ControlType": "LocalizedText",
         "Left": 485,
         "Top": 307,
         "Width": 150,
         "Height": null,
-        "LocalizationKey": "PalletStrikes",
-        "FallbackText": "Pallet strikes",
-        "HorizontalAlignment": "Center",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Center",
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
+      },
+      "Header_Rescues": {
+        "LocalizationKey": "Rescues",
+        "FallbackText": "Rescues",
+        "TextBinding": null,
         "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
         "FontWeight": "Normal",
         "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
         "FontSize": 16,
-        "ZIndex": 2
-      },
-      "Header_Rescues": {
+        "TextAlignment": "Center",
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextWrapping": null,
         "ControlType": "LocalizedText",
         "Left": 634,
         "Top": 307,
         "Width": 120,
         "Height": null,
-        "LocalizationKey": "Rescues",
-        "FallbackText": "Rescues",
-        "HorizontalAlignment": "Center",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Center",
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
+      },
+      "Header_Heals": {
+        "LocalizationKey": "Heals",
+        "FallbackText": "Heals",
+        "TextBinding": null,
         "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
         "FontWeight": "Normal",
         "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
         "FontSize": 16,
-        "ZIndex": 2
-      },
-      "Header_Heals": {
+        "TextAlignment": "Center",
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextWrapping": null,
         "ControlType": "LocalizedText",
         "Left": 774,
         "Top": 307,
         "Width": 120,
         "Height": null,
-        "LocalizationKey": "Heals",
-        "FallbackText": "Heals",
-        "HorizontalAlignment": "Center",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Center",
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
+      },
+      "Header_ContainmentTime": {
+        "LocalizationKey": "ContainmentTime",
+        "FallbackText": "Containment time (s)",
+        "TextBinding": null,
         "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
         "FontWeight": "Normal",
         "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
         "FontSize": 16,
-        "ZIndex": 2
-      },
-      "Header_ContainmentTime": {
+        "TextAlignment": "Center",
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextWrapping": null,
         "ControlType": "LocalizedText",
         "Left": 894,
         "Top": 307,
         "Width": 176,
         "Height": null,
-        "LocalizationKey": "ContainmentTime",
-        "FallbackText": "Containment time (s)",
-        "HorizontalAlignment": "Center",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Center",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
-        "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
-        "FontSize": 16,
-        "ZIndex": 2
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "Player0Header": {
+        "SizingMode": "Auto",
+        "ImagePath": null,
+        "Stretch": null,
+        "HorizontalAlignment": null,
+        "VerticalAlignment": null,
+        "ClipToBounds": false,
+        "CornerRadius": null,
+        "Lockable": false,
+        "LockImagePath": null,
+        "LockVisibilityBindingPath": null,
+        "LockVisibleWhen": "Always",
+        "LockZIndexOffset": 1,
+        "PickingBorderAvailable": false,
+        "PickingBorderImagePath": null,
+        "PickingBorderName": null,
+        "PickingBorderZIndexOffset": 2,
+        "PickingBorder": false,
+        "BanLockAvailable": false,
+        "BanLockImagePath": null,
         "ControlType": "Image",
-        "Left": 47,
-        "Top": 354,
+        "Left": 51,
+        "Top": 348,
         "Width": 50,
         "Height": 50,
-        "BindingPath": "CurrentGame.SurPlayerList[0].Character.HeaderImage",
-        "SizingMode": "Auto",
-        "ZIndex": 1
+        "ZIndex": 1,
+        "Visibility": "Visible",
+        "BindingPath": "CurrentGame.SurPlayerList[0].Character.HeaderImage"
       },
       "Player1Header": {
+        "SizingMode": "Auto",
+        "ImagePath": null,
+        "Stretch": null,
+        "HorizontalAlignment": null,
+        "VerticalAlignment": null,
+        "ClipToBounds": false,
+        "CornerRadius": null,
+        "Lockable": false,
+        "LockImagePath": null,
+        "LockVisibilityBindingPath": null,
+        "LockVisibleWhen": "Always",
+        "LockZIndexOffset": 1,
+        "PickingBorderAvailable": false,
+        "PickingBorderImagePath": null,
+        "PickingBorderName": null,
+        "PickingBorderZIndexOffset": 2,
+        "PickingBorder": false,
+        "BanLockAvailable": false,
+        "BanLockImagePath": null,
         "ControlType": "Image",
-        "Left": 47,
-        "Top": 414,
+        "Left": 51,
+        "Top": 405,
         "Width": 50,
         "Height": 50,
-        "BindingPath": "CurrentGame.SurPlayerList[1].Character.HeaderImage",
-        "SizingMode": "Auto",
-        "ZIndex": 1
+        "ZIndex": 1,
+        "Visibility": "Visible",
+        "BindingPath": "CurrentGame.SurPlayerList[1].Character.HeaderImage"
       },
       "Player2Header": {
+        "SizingMode": "Auto",
+        "ImagePath": null,
+        "Stretch": null,
+        "HorizontalAlignment": null,
+        "VerticalAlignment": null,
+        "ClipToBounds": false,
+        "CornerRadius": null,
+        "Lockable": false,
+        "LockImagePath": null,
+        "LockVisibilityBindingPath": null,
+        "LockVisibleWhen": "Always",
+        "LockZIndexOffset": 1,
+        "PickingBorderAvailable": false,
+        "PickingBorderImagePath": null,
+        "PickingBorderName": null,
+        "PickingBorderZIndexOffset": 2,
+        "PickingBorder": false,
+        "BanLockAvailable": false,
+        "BanLockImagePath": null,
         "ControlType": "Image",
-        "Left": 47,
-        "Top": 473,
+        "Left": 51,
+        "Top": 460.5,
         "Width": 50,
         "Height": 50,
-        "BindingPath": "CurrentGame.SurPlayerList[2].Character.HeaderImage",
-        "SizingMode": "Auto",
-        "ZIndex": 1
+        "ZIndex": 1,
+        "Visibility": "Visible",
+        "BindingPath": "CurrentGame.SurPlayerList[2].Character.HeaderImage"
       },
       "Player3Header": {
+        "SizingMode": "Auto",
+        "ImagePath": null,
+        "Stretch": null,
+        "HorizontalAlignment": null,
+        "VerticalAlignment": null,
+        "ClipToBounds": false,
+        "CornerRadius": null,
+        "Lockable": false,
+        "LockImagePath": null,
+        "LockVisibilityBindingPath": null,
+        "LockVisibleWhen": "Always",
+        "LockZIndexOffset": 1,
+        "PickingBorderAvailable": false,
+        "PickingBorderImagePath": null,
+        "PickingBorderName": null,
+        "PickingBorderZIndexOffset": 2,
+        "PickingBorder": false,
+        "BanLockAvailable": false,
+        "BanLockImagePath": null,
         "ControlType": "Image",
-        "Left": 47,
-        "Top": 534,
+        "Left": 51,
+        "Top": 515,
         "Width": 50,
         "Height": 50,
-        "BindingPath": "CurrentGame.SurPlayerList[3].Character.HeaderImage",
-        "SizingMode": "Auto",
-        "ZIndex": 1
+        "ZIndex": 1,
+        "Visibility": "Visible",
+        "BindingPath": "CurrentGame.SurPlayerList[3].Character.HeaderImage"
       },
       "SurId0": {
-        "ControlType": "Text",
-        "Left": 115,
-        "Top": 354,
-        "Width": 200,
-        "Height": 49,
-        "HorizontalAlignment": "Left",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Left",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
-        "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
-        "FontSize": 22,
-        "ZIndex": 2,
+        "Text": null,
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.SurPlayerList[0].Member.Name"
+              "Path": "CurrentGame.SurPlayerList[0].Member.Name",
+              "DisplayName": null,
+              "Format": null
             }
-          ]
-        }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Left",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Left",
+        "TextWrapping": null,
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
+        "FontSize": 22,
+        "ControlType": "Text",
+        "Left": 114.5,
+        "Top": 348.5,
+        "Width": 200,
+        "Height": 49,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "SurId1": {
-        "ControlType": "Text",
-        "Left": 115,
-        "Top": 414,
-        "Width": 200,
-        "Height": 49,
-        "HorizontalAlignment": "Left",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Left",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
-        "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
-        "FontSize": 22,
-        "ZIndex": 2,
+        "Text": null,
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.SurPlayerList[1].Member.Name"
+              "Path": "CurrentGame.SurPlayerList[1].Member.Name",
+              "DisplayName": null,
+              "Format": null
             }
-          ]
-        }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Left",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Left",
+        "TextWrapping": null,
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
+        "FontSize": 22,
+        "ControlType": "Text",
+        "Left": 116,
+        "Top": 403,
+        "Width": 200,
+        "Height": 49,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "SurId2": {
-        "ControlType": "Text",
-        "Left": 115,
-        "Top": 474,
-        "Width": 200,
-        "Height": 49,
-        "HorizontalAlignment": "Left",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Left",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
-        "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
-        "FontSize": 22,
-        "ZIndex": 2,
+        "Text": null,
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.SurPlayerList[2].Member.Name"
+              "Path": "CurrentGame.SurPlayerList[2].Member.Name",
+              "DisplayName": null,
+              "Format": null
             }
-          ]
-        }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Left",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Left",
+        "TextWrapping": null,
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
+        "FontSize": 22,
+        "ControlType": "Text",
+        "Left": 116,
+        "Top": 461,
+        "Width": 200,
+        "Height": 49,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "SurId3": {
-        "ControlType": "Text",
-        "Left": 115,
-        "Top": 534,
-        "Width": 200,
-        "Height": 49,
+        "Text": null,
+        "TextBinding": {
+          "Sources": [
+            {
+              "Path": "CurrentGame.SurPlayerList[3].Member.Name",
+              "DisplayName": null,
+              "Format": null
+            }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
         "HorizontalAlignment": "Left",
         "VerticalAlignment": "Center",
         "TextAlignment": "Left",
+        "TextWrapping": null,
         "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
         "FontWeight": "Normal",
         "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
         "FontSize": 22,
+        "ControlType": "Text",
+        "Left": 116,
+        "Top": 516,
+        "Width": 200,
+        "Height": 49,
         "ZIndex": 2,
-        "TextBinding": {
-          "Sources": [
-            {
-              "Path": "CurrentGame.SurPlayerList[3].Member.Name"
-            }
-          ]
-        }
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "Sur0MachineDecoded": {
-        "ControlType": "Text",
-        "Left": 377,
-        "Top": 354,
-        "Width": 55,
-        "Height": 49,
-        "HorizontalAlignment": "Center",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Center",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
-        "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
-        "FontSize": 22,
-        "ZIndex": 2,
+        "Text": null,
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.SurPlayerList[0].Data.DecodingProgress"
+              "Path": "CurrentGame.SurPlayerList[0].Data.DecodingProgress",
+              "DisplayName": null,
+              "Format": null
             }
           ],
-          "StringFormat": "{0}%"
-        }
+          "StringFormat": "{0}%",
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Center",
+        "TextWrapping": null,
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
+        "FontSize": 22,
+        "ControlType": "Text",
+        "Left": 377,
+        "Top": 348,
+        "Width": 55,
+        "Height": 49,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "Sur1MachineDecoded": {
-        "ControlType": "Text",
-        "Left": 377,
-        "Top": 414,
-        "Width": 55,
-        "Height": 49,
-        "HorizontalAlignment": "Center",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Center",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
-        "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
-        "FontSize": 22,
-        "ZIndex": 2,
+        "Text": null,
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.SurPlayerList[1].Data.DecodingProgress"
+              "Path": "CurrentGame.SurPlayerList[1].Data.DecodingProgress",
+              "DisplayName": null,
+              "Format": null
             }
           ],
-          "StringFormat": "{0}%"
-        }
+          "StringFormat": "{0}%",
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Center",
+        "TextWrapping": null,
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
+        "FontSize": 22,
+        "ControlType": "Text",
+        "Left": 377,
+        "Top": 405,
+        "Width": 55,
+        "Height": 49,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "Sur2MachineDecoded": {
-        "ControlType": "Text",
-        "Left": 377,
-        "Top": 474,
-        "Width": 55,
-        "Height": 49,
-        "HorizontalAlignment": "Center",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Center",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
-        "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
-        "FontSize": 22,
-        "ZIndex": 2,
+        "Text": null,
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.SurPlayerList[2].Data.DecodingProgress"
+              "Path": "CurrentGame.SurPlayerList[2].Data.DecodingProgress",
+              "DisplayName": null,
+              "Format": null
             }
           ],
-          "StringFormat": "{0}%"
-        }
+          "StringFormat": "{0}%",
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Center",
+        "TextWrapping": null,
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
+        "FontSize": 22,
+        "ControlType": "Text",
+        "Left": 377,
+        "Top": 460,
+        "Width": 55,
+        "Height": 49,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "Sur3MachineDecoded": {
-        "ControlType": "Text",
-        "Left": 377,
-        "Top": 534,
-        "Width": 55,
-        "Height": 49,
-        "HorizontalAlignment": "Center",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Center",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
-        "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
-        "FontSize": 22,
-        "ZIndex": 2,
+        "Text": null,
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.SurPlayerList[3].Data.DecodingProgress"
+              "Path": "CurrentGame.SurPlayerList[3].Data.DecodingProgress",
+              "DisplayName": null,
+              "Format": null
             }
           ],
-          "StringFormat": "{0}%"
-        }
+          "StringFormat": "{0}%",
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Center",
+        "TextWrapping": null,
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
+        "FontSize": 22,
+        "ControlType": "Text",
+        "Left": 377,
+        "Top": 516,
+        "Width": 55,
+        "Height": 49,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "Sur0PalletStunTimes": {
-        "ControlType": "Text",
-        "Left": 531,
-        "Top": 354,
-        "Width": 55,
-        "Height": 49,
-        "HorizontalAlignment": "Center",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Center",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
-        "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
-        "FontSize": 22,
-        "ZIndex": 2,
+        "Text": null,
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.SurPlayerList[0].Data.PalletStrikes"
+              "Path": "CurrentGame.SurPlayerList[0].Data.PalletStrikes",
+              "DisplayName": null,
+              "Format": null
             }
-          ]
-        }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Center",
+        "TextWrapping": null,
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
+        "FontSize": 22,
+        "ControlType": "Text",
+        "Left": 530,
+        "Top": 348,
+        "Width": 55,
+        "Height": 49,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "Sur1PalletStunTimes": {
-        "ControlType": "Text",
-        "Left": 531,
-        "Top": 413,
-        "Width": 55,
-        "Height": 49,
-        "HorizontalAlignment": "Center",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Center",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
-        "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
-        "FontSize": 22,
-        "ZIndex": 2,
+        "Text": null,
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.SurPlayerList[1].Data.PalletStrikes"
+              "Path": "CurrentGame.SurPlayerList[1].Data.PalletStrikes",
+              "DisplayName": null,
+              "Format": null
             }
-          ]
-        }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Center",
+        "TextWrapping": null,
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
+        "FontSize": 22,
+        "ControlType": "Text",
+        "Left": 530,
+        "Top": 405,
+        "Width": 55,
+        "Height": 49,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "Sur2PalletStunTimes": {
-        "ControlType": "Text",
-        "Left": 531,
-        "Top": 474,
-        "Width": 55,
-        "Height": 49,
-        "HorizontalAlignment": "Center",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Center",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
-        "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
-        "FontSize": 22,
-        "ZIndex": 2,
+        "Text": null,
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.SurPlayerList[2].Data.PalletStrikes"
+              "Path": "CurrentGame.SurPlayerList[2].Data.PalletStrikes",
+              "DisplayName": null,
+              "Format": null
             }
-          ]
-        }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Center",
+        "TextWrapping": null,
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
+        "FontSize": 22,
+        "ControlType": "Text",
+        "Left": 530,
+        "Top": 460,
+        "Width": 55,
+        "Height": 49,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "Sur3PalletStunTimes": {
-        "ControlType": "Text",
-        "Left": 531,
-        "Top": 534,
-        "Width": 55,
-        "Height": 49,
-        "HorizontalAlignment": "Center",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Center",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
-        "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
-        "FontSize": 22,
-        "ZIndex": 2,
+        "Text": null,
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.SurPlayerList[3].Data.PalletStrikes"
+              "Path": "CurrentGame.SurPlayerList[3].Data.PalletStrikes",
+              "DisplayName": null,
+              "Format": null
             }
-          ]
-        }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Center",
+        "TextWrapping": null,
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
+        "FontSize": 22,
+        "ControlType": "Text",
+        "Left": 530,
+        "Top": 516,
+        "Width": 55,
+        "Height": 49,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "Sur0RescueTimes": {
-        "ControlType": "Text",
-        "Left": 666,
-        "Top": 354,
-        "Width": 55,
-        "Height": 49,
-        "HorizontalAlignment": "Center",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Center",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
-        "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
-        "FontSize": 22,
-        "ZIndex": 2,
+        "Text": null,
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.SurPlayerList[0].Data.Rescues"
+              "Path": "CurrentGame.SurPlayerList[0].Data.Rescues",
+              "DisplayName": null,
+              "Format": null
             }
-          ]
-        }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Center",
+        "TextWrapping": null,
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
+        "FontSize": 22,
+        "ControlType": "Text",
+        "Left": 666,
+        "Top": 348.5,
+        "Width": 55,
+        "Height": 49,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "Sur1RescueTimes": {
-        "ControlType": "Text",
-        "Left": 666,
-        "Top": 414,
-        "Width": 55,
-        "Height": 49,
-        "HorizontalAlignment": "Center",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Center",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
-        "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
-        "FontSize": 22,
-        "ZIndex": 2,
+        "Text": null,
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.SurPlayerList[1].Data.Rescues"
+              "Path": "CurrentGame.SurPlayerList[1].Data.Rescues",
+              "DisplayName": null,
+              "Format": null
             }
-          ]
-        }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Center",
+        "TextWrapping": null,
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
+        "FontSize": 22,
+        "ControlType": "Text",
+        "Left": 666,
+        "Top": 406,
+        "Width": 55,
+        "Height": 49,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "Sur2RescueTimes": {
-        "ControlType": "Text",
-        "Left": 666,
-        "Top": 474,
-        "Width": 55,
-        "Height": 49,
-        "HorizontalAlignment": "Center",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Center",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
-        "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
-        "FontSize": 22,
-        "ZIndex": 2,
+        "Text": null,
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.SurPlayerList[2].Data.Rescues"
+              "Path": "CurrentGame.SurPlayerList[2].Data.Rescues",
+              "DisplayName": null,
+              "Format": null
             }
-          ]
-        }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Center",
+        "TextWrapping": null,
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
+        "FontSize": 22,
+        "ControlType": "Text",
+        "Left": 666,
+        "Top": 459.5,
+        "Width": 55,
+        "Height": 49,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "Sur3RescueTimes": {
+        "Text": null,
+        "TextBinding": {
+          "Sources": [
+            {
+              "Path": "CurrentGame.SurPlayerList[3].Data.Rescues",
+              "DisplayName": null,
+              "Format": null
+            }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Center",
+        "TextWrapping": null,
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
+        "FontSize": 22,
         "ControlType": "Text",
         "Left": 666,
-        "Top": 534,
+        "Top": 515.5,
         "Width": 55,
         "Height": 49,
-        "HorizontalAlignment": "Center",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Center",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
-        "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
-        "FontSize": 22,
         "ZIndex": 2,
-        "TextBinding": {
-          "Sources": [
-            {
-              "Path": "CurrentGame.SurPlayerList[3].Data.Rescues"
-            }
-          ]
-        }
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "Sur0HealedTimes": {
-        "ControlType": "Text",
-        "Left": 809,
-        "Top": 354,
-        "Width": 55,
-        "Height": 49,
-        "HorizontalAlignment": "Center",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Center",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
-        "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
-        "FontSize": 22,
-        "ZIndex": 2,
+        "Text": null,
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.SurPlayerList[0].Data.Heals"
+              "Path": "CurrentGame.SurPlayerList[0].Data.Heals",
+              "DisplayName": null,
+              "Format": null
             }
-          ]
-        }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Center",
+        "TextWrapping": null,
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
+        "FontSize": 22,
+        "ControlType": "Text",
+        "Left": 803,
+        "Top": 348,
+        "Width": 55,
+        "Height": 49,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "Sur1HealedTimes": {
-        "ControlType": "Text",
-        "Left": 809,
-        "Top": 414,
-        "Width": 55,
-        "Height": 49,
-        "HorizontalAlignment": "Center",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Center",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
-        "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
-        "FontSize": 22,
-        "ZIndex": 2,
+        "Text": null,
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.SurPlayerList[1].Data.Heals"
+              "Path": "CurrentGame.SurPlayerList[1].Data.Heals",
+              "DisplayName": null,
+              "Format": null
             }
-          ]
-        }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Center",
+        "TextWrapping": null,
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
+        "FontSize": 22,
+        "ControlType": "Text",
+        "Left": 803,
+        "Top": 405,
+        "Width": 55,
+        "Height": 49,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "Sur2HealedTimes": {
-        "ControlType": "Text",
-        "Left": 809,
-        "Top": 474,
-        "Width": 55,
-        "Height": 49,
-        "HorizontalAlignment": "Center",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Center",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
-        "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
-        "FontSize": 22,
-        "ZIndex": 2,
+        "Text": null,
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.SurPlayerList[2].Data.Heals"
+              "Path": "CurrentGame.SurPlayerList[2].Data.Heals",
+              "DisplayName": null,
+              "Format": null
             }
-          ]
-        }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Center",
+        "TextWrapping": null,
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
+        "FontSize": 22,
+        "ControlType": "Text",
+        "Left": 803,
+        "Top": 459,
+        "Width": 55,
+        "Height": 49,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "Sur3HealedTimes": {
-        "ControlType": "Text",
-        "Left": 809,
-        "Top": 534,
-        "Width": 55,
-        "Height": 49,
-        "HorizontalAlignment": "Center",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Center",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
-        "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
-        "FontSize": 22,
-        "ZIndex": 2,
+        "Text": null,
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.SurPlayerList[3].Data.Heals"
+              "Path": "CurrentGame.SurPlayerList[3].Data.Heals",
+              "DisplayName": null,
+              "Format": null
             }
-          ]
-        }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Center",
+        "TextWrapping": null,
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
+        "FontSize": 22,
+        "ControlType": "Text",
+        "Left": 803,
+        "Top": 516,
+        "Width": 55,
+        "Height": 49,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "Sur0KiteTime": {
-        "ControlType": "Text",
-        "Left": 963,
-        "Top": 354,
-        "Width": 55,
-        "Height": 49,
-        "HorizontalAlignment": "Center",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Center",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
-        "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
-        "FontSize": 22,
-        "ZIndex": 2,
+        "Text": null,
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.SurPlayerList[0].Data.ContainmentTime"
+              "Path": "CurrentGame.SurPlayerList[0].Data.ContainmentTime",
+              "DisplayName": null,
+              "Format": null
             }
-          ]
-        }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Center",
+        "TextWrapping": null,
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
+        "FontSize": 22,
+        "ControlType": "Text",
+        "Left": 947,
+        "Top": 348,
+        "Width": 55,
+        "Height": 49,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "Sur1KiteTime": {
-        "ControlType": "Text",
-        "Left": 963,
-        "Top": 413,
-        "Width": 55,
-        "Height": 49,
-        "HorizontalAlignment": "Center",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Center",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
-        "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
-        "FontSize": 22,
-        "ZIndex": 2,
+        "Text": null,
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.SurPlayerList[1].Data.ContainmentTime"
+              "Path": "CurrentGame.SurPlayerList[1].Data.ContainmentTime",
+              "DisplayName": null,
+              "Format": null
             }
-          ]
-        }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Center",
+        "TextWrapping": null,
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
+        "FontSize": 22,
+        "ControlType": "Text",
+        "Left": 947,
+        "Top": 405,
+        "Width": 55,
+        "Height": 49,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "Sur2KiteTime": {
-        "ControlType": "Text",
-        "Left": 963,
-        "Top": 474,
-        "Width": 55,
-        "Height": 49,
-        "HorizontalAlignment": "Center",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Center",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
-        "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
-        "FontSize": 22,
-        "ZIndex": 2,
+        "Text": null,
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.SurPlayerList[2].Data.ContainmentTime"
+              "Path": "CurrentGame.SurPlayerList[2].Data.ContainmentTime",
+              "DisplayName": null,
+              "Format": null
             }
-          ]
-        }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Center",
+        "TextWrapping": null,
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
+        "FontSize": 22,
+        "ControlType": "Text",
+        "Left": 947,
+        "Top": 459.5,
+        "Width": 55,
+        "Height": 49,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "Sur3KiteTime": {
-        "ControlType": "Text",
-        "Left": 963,
-        "Top": 534,
-        "Width": 55,
-        "Height": 49,
-        "HorizontalAlignment": "Center",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Center",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
-        "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
-        "FontSize": 22,
-        "ZIndex": 2,
+        "Text": null,
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.SurPlayerList[3].Data.ContainmentTime"
+              "Path": "CurrentGame.SurPlayerList[3].Data.ContainmentTime",
+              "DisplayName": null,
+              "Format": null
             }
-          ]
-        }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Center",
+        "TextWrapping": null,
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
+        "FontSize": 22,
+        "ControlType": "Text",
+        "Left": 947,
+        "Top": 515.5,
+        "Width": 55,
+        "Height": 49,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "HunImage": {
+        "ImageWidth": null,
+        "ImageHeight": null,
+        "SizingMode": "OverflowCrop",
+        "ImagePath": null,
+        "Stretch": "UniformToFill",
+        "HorizontalAlignment": null,
+        "VerticalAlignment": null,
+        "ClipToBounds": false,
+        "CornerRadius": null,
+        "Lockable": false,
+        "LockImagePath": null,
+        "LockVisibilityBindingPath": null,
+        "LockVisibleWhen": "Always",
+        "LockZIndexOffset": 1,
+        "PickingBorderAvailable": false,
+        "PickingBorderImagePath": null,
+        "PickingBorderName": null,
+        "PickingBorderZIndexOffset": 2,
+        "PickingBorder": false,
+        "BanLockAvailable": false,
+        "BanLockImagePath": null,
         "ControlType": "BorderedImage",
         "Left": 1075,
         "Top": 295,
         "Width": 314,
         "Height": 96,
-        "BindingPath": "CurrentGame.HunPlayer.Character.HalfImage",
-        "SizingMode": "OverflowCrop",
-        "Stretch": "UniformToFill",
-        "ZIndex": 1
+        "ZIndex": 1,
+        "Visibility": "Visible",
+        "BindingPath": "CurrentGame.HunPlayer.Character.HalfImage"
       },
       "HunId": {
+        "Text": null,
+        "TextBinding": {
+          "Sources": [
+            {
+              "Path": "CurrentGame.HunPlayer.Member.Name",
+              "DisplayName": null,
+              "Format": null
+            }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Left",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Left",
+        "TextWrapping": null,
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
+        "FontSize": 22,
         "ControlType": "Text",
         "Left": 1080,
         "Top": 357,
         "Width": 200,
         "Height": 35,
-        "HorizontalAlignment": "Left",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Left",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
-        "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
-        "FontSize": 22,
         "ZIndex": 2,
-        "TextBinding": {
-          "Sources": [
-            {
-              "Path": "CurrentGame.HunPlayer.Member.Name"
-            }
-          ]
-        }
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "Header_RemainingCiphers": {
-        "ControlType": "LocalizedText",
-        "Left": 1085,
-        "Top": 404,
-        "Width": 160,
-        "Height": null,
         "LocalizationKey": "RemainingCiphers",
         "FallbackText": "Remaining ciphers",
-        "HorizontalAlignment": "Left",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Left",
+        "TextBinding": null,
         "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
         "FontWeight": "Normal",
         "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
         "FontSize": 16,
-        "ZIndex": 2
+        "TextAlignment": "Left",
+        "HorizontalAlignment": "Left",
+        "VerticalAlignment": "Center",
+        "TextWrapping": null,
+        "ControlType": "LocalizedText",
+        "Left": 1085,
+        "Top": 397,
+        "Width": 160,
+        "Height": null,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "Header_PalletsDestroyed": {
-        "ControlType": "LocalizedText",
-        "Left": 1085,
-        "Top": 440,
-        "Width": 160,
-        "Height": null,
         "LocalizationKey": "PalletsDestroyed",
         "FallbackText": "Pallets destroyed",
-        "HorizontalAlignment": "Left",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Left",
+        "TextBinding": null,
         "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
         "FontWeight": "Normal",
         "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
         "FontSize": 16,
-        "ZIndex": 2
+        "TextAlignment": "Left",
+        "HorizontalAlignment": "Left",
+        "VerticalAlignment": "Center",
+        "TextWrapping": null,
+        "ControlType": "LocalizedText",
+        "Left": 1085,
+        "Top": 433,
+        "Width": 160,
+        "Height": null,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "Header_SurvivorHits": {
-        "ControlType": "LocalizedText",
-        "Left": 1085,
-        "Top": 475,
-        "Width": 160,
-        "Height": null,
         "LocalizationKey": "SurvivorHits",
         "FallbackText": "Survivor hits",
-        "HorizontalAlignment": "Left",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Left",
+        "TextBinding": null,
         "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
         "FontWeight": "Normal",
         "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
         "FontSize": 16,
-        "ZIndex": 2
+        "TextAlignment": "Left",
+        "HorizontalAlignment": "Left",
+        "VerticalAlignment": "Center",
+        "TextWrapping": null,
+        "ControlType": "LocalizedText",
+        "Left": 1085,
+        "Top": 468,
+        "Width": 160,
+        "Height": null,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "Header_TerrorShocks": {
-        "ControlType": "LocalizedText",
-        "Left": 1085,
-        "Top": 511,
-        "Width": 160,
-        "Height": null,
         "LocalizationKey": "TerrorShocks",
         "FallbackText": "Terror shocks",
-        "HorizontalAlignment": "Left",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Left",
+        "TextBinding": null,
         "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
         "FontWeight": "Normal",
         "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
         "FontSize": 16,
-        "ZIndex": 2
-      },
-      "Header_Knockdowns": {
+        "TextAlignment": "Left",
+        "HorizontalAlignment": "Left",
+        "VerticalAlignment": "Center",
+        "TextWrapping": null,
         "ControlType": "LocalizedText",
         "Left": 1085,
-        "Top": 548,
+        "Top": 504,
         "Width": 160,
         "Height": null,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
+      },
+      "Header_Knockdowns": {
         "LocalizationKey": "Knockdowns",
         "FallbackText": "Knockdowns",
-        "HorizontalAlignment": "Left",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Left",
+        "TextBinding": null,
         "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
         "FontWeight": "Normal",
         "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
         "FontSize": 16,
-        "ZIndex": 2
+        "TextAlignment": "Left",
+        "HorizontalAlignment": "Left",
+        "VerticalAlignment": "Center",
+        "TextWrapping": null,
+        "ControlType": "LocalizedText",
+        "Left": 1085,
+        "Top": 541,
+        "Width": 160,
+        "Height": null,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "HunMachineLeft": {
-        "ControlType": "Text",
-        "Left": 1280,
-        "Top": 405,
-        "Width": 100,
-        "Height": 25,
-        "HorizontalAlignment": "Right",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Right",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
-        "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
-        "FontSize": 22,
-        "ZIndex": 2,
+        "Text": null,
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.HunPlayer.Data.RemainingCipher"
+              "Path": "CurrentGame.HunPlayer.Data.RemainingCipher",
+              "DisplayName": null,
+              "Format": null
             }
-          ]
-        }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Right",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Right",
+        "TextWrapping": null,
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
+        "FontSize": 22,
+        "ControlType": "Text",
+        "Left": 1280,
+        "Top": 398,
+        "Width": 100,
+        "Height": 25,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "HunPalletBroken": {
-        "ControlType": "Text",
-        "Left": 1280,
-        "Top": 442,
-        "Width": 100,
-        "Height": 25,
-        "HorizontalAlignment": "Right",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Right",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
-        "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
-        "FontSize": 22,
-        "ZIndex": 2,
+        "Text": null,
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.HunPlayer.Data.PalletsDestroyed"
+              "Path": "CurrentGame.HunPlayer.Data.PalletsDestroyed",
+              "DisplayName": null,
+              "Format": null
             }
-          ]
-        }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Right",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Right",
+        "TextWrapping": null,
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
+        "FontSize": 22,
+        "ControlType": "Text",
+        "Left": 1280,
+        "Top": 435,
+        "Width": 100,
+        "Height": 25,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "HunHitTimes": {
-        "ControlType": "Text",
-        "Left": 1280,
-        "Top": 478,
-        "Width": 100,
-        "Height": 25,
-        "HorizontalAlignment": "Right",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Right",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
-        "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
-        "FontSize": 22,
-        "ZIndex": 2,
+        "Text": null,
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.HunPlayer.Data.SurvivorHits"
+              "Path": "CurrentGame.HunPlayer.Data.SurvivorHits",
+              "DisplayName": null,
+              "Format": null
             }
-          ]
-        }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Right",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Right",
+        "TextWrapping": null,
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
+        "FontSize": 22,
+        "ControlType": "Text",
+        "Left": 1280,
+        "Top": 471,
+        "Width": 100,
+        "Height": 25,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "HunTerrorShockTimes": {
-        "ControlType": "Text",
-        "Left": 1280,
-        "Top": 514,
-        "Width": 100,
-        "Height": 25,
-        "HorizontalAlignment": "Right",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Right",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
-        "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
-        "FontSize": 22,
-        "ZIndex": 2,
+        "Text": null,
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.HunPlayer.Data.TerrorShocks"
+              "Path": "CurrentGame.HunPlayer.Data.TerrorShocks",
+              "DisplayName": null,
+              "Format": null
             }
-          ]
-        }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Right",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Right",
+        "TextWrapping": null,
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
+        "FontSize": 22,
+        "ControlType": "Text",
+        "Left": 1280,
+        "Top": 507,
+        "Width": 100,
+        "Height": 25,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
       },
       "HunDownTimes": {
-        "ControlType": "Text",
-        "Left": 1280,
-        "Top": 547,
-        "Width": 100,
-        "Height": 25,
-        "HorizontalAlignment": "Right",
-        "VerticalAlignment": "Center",
-        "TextAlignment": "Right",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
-        "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
-        "FontSize": 22,
-        "ZIndex": 2,
+        "Text": null,
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.HunPlayer.Data.Knockdowns"
+              "Path": "CurrentGame.HunPlayer.Data.Knockdowns",
+              "DisplayName": null,
+              "Format": null
             }
-          ]
-        }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Right",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Right",
+        "TextWrapping": null,
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
+        "FontSize": 22,
+        "ControlType": "Text",
+        "Left": 1280,
+        "Top": 540,
+        "Width": 100,
+        "Height": 25,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
+      },
+      "BackgroundTintSur": {
+        "Points": [
+          {
+            "X": 0,
+            "Y": 0.8846153846153846
+          },
+          {
+            "X": 0.057692307692307696,
+            "Y": 0.7718631178707225
+          },
+          {
+            "X": 0,
+            "Y": 0.5923076923076923
+          },
+          {
+            "X": 0,
+            "Y": 0.467680608365019
+          },
+          {
+            "X": 0.14396887159533073,
+            "Y": 0.33076923076923076
+          },
+          {
+            "X": 0,
+            "Y": 0.2509505703422053
+          },
+          {
+            "X": 0.06923076923076923,
+            "Y": 0.13688212927756654
+          },
+          {
+            "X": 0,
+            "Y": 0.10646387832699619
+          },
+          {
+            "X": 0.007782101167315175,
+            "Y": 0
+          },
+          {
+            "X": 1,
+            "Y": 0
+          },
+          {
+            "X": 1,
+            "Y": 1
+          },
+          {
+            "X": 0,
+            "Y": 1
+          }
+        ],
+        "TintColor": "#FFFFFFFF",
+        "TintBindingPath": "CurrentGame.SurTeam.ColorHex",
+        "TintMode": 2,
+        "TintStrength": 1,
+        "TextureStrength": 0.45,
+        "ShowMissingBackgroundPlaceholder": true,
+        "BehaviorGuid": "019ecc3d-c45a-7e25-932e-e1799ef72e79",
+        "ControlType": "BackgroundTintPolygon",
+        "Left": 51,
+        "Top": 152.5,
+        "Width": 130,
+        "Height": 131.5,
+        "ZIndex": -1,
+        "Visibility": "Visible",
+        "BindingPath": null
+      },
+      "BackgroundTintHun": {
+        "Points": [
+          {
+            "X": 0,
+            "Y": 0
+          },
+          {
+            "X": 1,
+            "Y": 0.011363636363636364
+          },
+          {
+            "X": 1,
+            "Y": 0.125
+          },
+          {
+            "X": 0.9418604651162791,
+            "Y": 0.1893939393939394
+          },
+          {
+            "X": 1,
+            "Y": 0.39015151515151514
+          },
+          {
+            "X": 0.9108527131782945,
+            "Y": 0.4659090909090909
+          },
+          {
+            "X": 1,
+            "Y": 0.4621212121212121
+          },
+          {
+            "X": 0.9922480620155039,
+            "Y": 0.5946969696969697
+          },
+          {
+            "X": 0.9612403100775194,
+            "Y": 0.6666666666666666
+          },
+          {
+            "X": 1,
+            "Y": 0.7689393939393939
+          },
+          {
+            "X": 0.9418604651162791,
+            "Y": 0.8446969696969697
+          },
+          {
+            "X": 1,
+            "Y": 0.9128787878787878
+          },
+          {
+            "X": 1,
+            "Y": 1
+          },
+          {
+            "X": 0,
+            "Y": 1
+          }
+        ],
+        "TintColor": "#FFFFFFFF",
+        "TintBindingPath": "CurrentGame.HunTeam.ColorHex",
+        "TintMode": 2,
+        "TintStrength": 1,
+        "TextureStrength": 0.45,
+        "ShowMissingBackgroundPlaceholder": true,
+        "BehaviorGuid": "019ecc43-7438-71b6-a2c6-63f62b5e85a3",
+        "ControlType": "BackgroundTintPolygon",
+        "Left": 1259,
+        "Top": 151.5,
+        "Width": 129.5,
+        "Height": 132,
+        "ZIndex": -1,
+        "Visibility": "Visible",
+        "BindingPath": null
       }
     }
   }

@@ -1,24 +1,40 @@
 {
   "Version": 3,
   "WindowSettings": {
-    "WindowWidth": 1440.0,
-    "WindowHeight": 195.0,
+    "WindowWidth": 1440,
+    "WindowHeight": 195,
+    "WindowLeft": null,
+    "WindowTop": null,
     "AllowsTransparency": true,
     "BackgroundColor": "#00000000",
     "Topmost": false,
     "ViewboxStretch": "Fill"
   },
   "CanvasSettings": {
-    "CanvasWidth": 1440.0,
-    "CanvasHeight": 195.0,
+    "CanvasWidth": 1440,
+    "CanvasHeight": 195,
     "BackgroundImage": "Resources/scoreGlobal.png",
     "EnableBoModeStates": true,
     "BoModeStates": {
       "Bo3": {
         "BackgroundImage": "Resources/scoreGlobal_Bo3.png",
+        "RequiredPlugins": [],
         "Controls": {
           "HomeTeamName": {
             "Text": null,
+            "TextBinding": {
+              "Sources": [
+                {
+                  "Path": "HomeTeam.Name",
+                  "DisplayName": null,
+                  "Format": null
+                }
+              ],
+              "StringFormat": null,
+              "JoinSeparator": "",
+              "NullText": "",
+              "FallbackText": ""
+            },
             "HorizontalAlignment": "Center",
             "VerticalAlignment": "Center",
             "TextAlignment": "Center",
@@ -26,6 +42,7 @@
             "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
             "FontWeight": "Normal",
             "Color": "#FFFFFFFF",
+            "ColorBindingPath": null,
             "FontSize": 24,
             "ControlType": "Text",
             "Left": 13,
@@ -34,16 +51,23 @@
             "Height": 26,
             "ZIndex": 2,
             "Visibility": "Visible",
-            "TextBinding": {
-              "Sources": [
-                {
-                  "Path": "HomeTeam.Name"
-                }
-              ]
-            }
+            "BindingPath": null
           },
           "AwayTeamName": {
             "Text": null,
+            "TextBinding": {
+              "Sources": [
+                {
+                  "Path": "AwayTeam.Name",
+                  "DisplayName": null,
+                  "Format": null
+                }
+              ],
+              "StringFormat": null,
+              "JoinSeparator": "",
+              "NullText": "",
+              "FallbackText": ""
+            },
             "HorizontalAlignment": "Center",
             "VerticalAlignment": "Center",
             "TextAlignment": "Center",
@@ -51,6 +75,7 @@
             "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
             "FontWeight": "Normal",
             "Color": "#FFFFFFFF",
+            "ColorBindingPath": null,
             "FontSize": 24,
             "ControlType": "Text",
             "Left": 13,
@@ -59,16 +84,23 @@
             "Height": null,
             "ZIndex": 2,
             "Visibility": "Visible",
-            "TextBinding": {
-              "Sources": [
-                {
-                  "Path": "AwayTeam.Name"
-                }
-              ]
-            }
+            "BindingPath": null
           },
           "HomeScoreTotal": {
             "Text": null,
+            "TextBinding": {
+              "Sources": [
+                {
+                  "Path": "CurrentGame.MatchScore.HomeTotalMinorScore",
+                  "DisplayName": null,
+                  "Format": null
+                }
+              ],
+              "StringFormat": null,
+              "JoinSeparator": "",
+              "NullText": "",
+              "FallbackText": ""
+            },
             "HorizontalAlignment": "Center",
             "VerticalAlignment": "Center",
             "TextAlignment": "Center",
@@ -76,6 +108,7 @@
             "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
             "FontWeight": "Bold",
             "Color": "#FFFFFFFF",
+            "ColorBindingPath": null,
             "FontSize": 40,
             "ControlType": "Text",
             "Left": 940,
@@ -84,16 +117,23 @@
             "Height": null,
             "ZIndex": 2,
             "Visibility": "Visible",
-            "TextBinding": {
-              "Sources": [
-                {
-                  "Path": "CurrentGame.MatchScore.HomeTotalMinorScore"
-                }
-              ]
-            }
+            "BindingPath": null
           },
           "AwayScoreTotal": {
             "Text": null,
+            "TextBinding": {
+              "Sources": [
+                {
+                  "Path": "CurrentGame.MatchScore.AwayTotalMinorScore",
+                  "DisplayName": null,
+                  "Format": null
+                }
+              ],
+              "StringFormat": null,
+              "JoinSeparator": "",
+              "NullText": "",
+              "FallbackText": ""
+            },
             "HorizontalAlignment": "Center",
             "VerticalAlignment": "Center",
             "TextAlignment": "Center",
@@ -101,6 +141,7 @@
             "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
             "FontWeight": "Bold",
             "Color": "#FFFFFFFF",
+            "ColorBindingPath": null,
             "FontSize": 40,
             "ControlType": "Text",
             "Left": 940,
@@ -109,13 +150,7 @@
             "Height": null,
             "ZIndex": 2,
             "Visibility": "Visible",
-            "TextBinding": {
-              "Sources": [
-                {
-                  "Path": "CurrentGame.MatchScore.AwayTotalMinorScore"
-                }
-              ]
-            }
+            "BindingPath": null
           },
           "HomeGlobalScoreRow": {
             "TeamType": "HomeTeam",
@@ -610,111 +645,203 @@
     }
   },
   "ControlLayout": {
-    "RequiredPlugins": null,
+    "RequiredPlugins": [],
     "Controls": {
       "HomeTeamName": {
         "Text": null,
+        "TextBinding": {
+          "Sources": [
+            {
+              "Path": "HomeTeam.Name",
+              "DisplayName": null,
+              "Format": null
+            }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
         "HorizontalAlignment": "Center",
         "VerticalAlignment": "Center",
         "TextAlignment": "Center",
         "TextWrapping": "WrapWithOverflow",
         "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
         "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
-        "FontSize": 24,
+        "Color": "#FF000000",
+        "ColorBindingPath": null,
+        "FontSize": 18,
         "ControlType": "Text",
-        "Left": 13,
-        "Top": 96,
-        "Width": 144,
+        "Left": 50,
+        "Top": 89,
+        "Width": 106,
         "Height": 26,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "TextBinding": {
-          "Sources": [
-            {
-              "Path": "HomeTeam.Name"
-            }
-          ]
-        }
+        "BindingPath": null
       },
       "AwayTeamName": {
         "Text": null,
+        "TextBinding": {
+          "Sources": [
+            {
+              "Path": "AwayTeam.Name",
+              "DisplayName": null,
+              "Format": null
+            }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
         "HorizontalAlignment": "Center",
         "VerticalAlignment": "Center",
         "TextAlignment": "Center",
         "TextWrapping": "WrapWithOverflow",
         "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
         "FontWeight": "Normal",
-        "Color": "#FFFFFFFF",
-        "FontSize": 24,
+        "Color": "#FF000000",
+        "ColorBindingPath": null,
+        "FontSize": 18,
         "ControlType": "Text",
-        "Left": 13,
-        "Top": 155,
-        "Width": 144,
-        "Height": null,
+        "Left": 50,
+        "Top": 150,
+        "Width": 105,
+        "Height": 29,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "TextBinding": {
-          "Sources": [
-            {
-              "Path": "AwayTeam.Name"
-            }
-          ]
-        }
+        "BindingPath": null
+      },
+      "SurTeamLogo": {
+        "SizingMode": "FillContainer",
+        "ImagePath": null,
+        "Stretch": "Fill",
+        "HorizontalAlignment": null,
+        "VerticalAlignment": null,
+        "ClipToBounds": false,
+        "CornerRadius": 8,
+        "Lockable": false,
+        "LockImagePath": null,
+        "LockVisibilityBindingPath": null,
+        "LockVisibleWhen": "Always",
+        "LockZIndexOffset": 1,
+        "PickingBorderAvailable": false,
+        "PickingBorderImagePath": null,
+        "PickingBorderName": null,
+        "PickingBorderZIndexOffset": 2,
+        "PickingBorder": false,
+        "BanLockAvailable": false,
+        "BanLockImagePath": null,
+        "BehaviorGuid": "019ecc20-bb65-7ea5-ad08-78e0e903f1fc",
+        "ControlType": "Image",
+        "Left": 10,
+        "Top": 80,
+        "Width": 40,
+        "Height": 40,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": "CurrentGame.SurTeam.Logo"
       },
       "HomeScoreTotal": {
         "Text": null,
+        "TextBinding": {
+          "Sources": [
+            {
+              "Path": "CurrentGame.MatchScore.HomeTotalMinorScore",
+              "DisplayName": null,
+              "Format": null
+            }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
         "HorizontalAlignment": "Center",
         "VerticalAlignment": "Center",
         "TextAlignment": "Center",
         "TextWrapping": null,
         "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
         "FontWeight": "Bold",
-        "Color": "#FFFFFFFF",
+        "Color": "#FF000000",
+        "ColorBindingPath": null,
         "FontSize": 40,
         "ControlType": "Text",
-        "Left": 1303,
-        "Top": 89,
+        "Left": 1327.5,
+        "Top": 89.5,
         "Width": 86,
         "Height": null,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "TextBinding": {
-          "Sources": [
-            {
-              "Path": "CurrentGame.MatchScore.HomeTotalMinorScore"
-            }
-          ]
-        }
+        "BindingPath": null
+      },
+      "HunTeamLogo": {
+        "SizingMode": "FillContainer",
+        "ImagePath": null,
+        "Stretch": "Fill",
+        "HorizontalAlignment": null,
+        "VerticalAlignment": null,
+        "ClipToBounds": false,
+        "CornerRadius": 8,
+        "Lockable": false,
+        "LockImagePath": null,
+        "LockVisibilityBindingPath": null,
+        "LockVisibleWhen": "Always",
+        "LockZIndexOffset": 1,
+        "PickingBorderAvailable": false,
+        "PickingBorderImagePath": null,
+        "PickingBorderName": null,
+        "PickingBorderZIndexOffset": 2,
+        "PickingBorder": false,
+        "BanLockAvailable": false,
+        "BanLockImagePath": null,
+        "BehaviorGuid": "019ecc27-41de-7479-8f2d-d80ada156214",
+        "ControlType": "Image",
+        "Left": 10,
+        "Top": 143,
+        "Width": 40,
+        "Height": 40,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": "CurrentGame.HunTeam.Logo"
       },
       "AwayScoreTotal": {
         "Text": null,
+        "TextBinding": {
+          "Sources": [
+            {
+              "Path": "CurrentGame.MatchScore.AwayTotalMinorScore",
+              "DisplayName": null,
+              "Format": null
+            }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
         "HorizontalAlignment": "Center",
         "VerticalAlignment": "Center",
         "TextAlignment": "Center",
         "TextWrapping": null,
         "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
         "FontWeight": "Bold",
-        "Color": "#FFFFFFFF",
+        "Color": "#FF000000",
+        "ColorBindingPath": null,
         "FontSize": 40,
         "ControlType": "Text",
-        "Left": 1302,
-        "Top": 147,
+        "Left": 1327.5,
+        "Top": 145,
         "Width": 87,
         "Height": null,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "TextBinding": {
-          "Sources": [
-            {
-              "Path": "CurrentGame.MatchScore.AwayTotalMinorScore"
-            }
-          ]
-        }
+        "BindingPath": null
       },
       "HomeGlobalScoreRow": {
         "TeamType": "HomeTeam",
-        "MajorGameGap": 180,
+        "MajorGameGap": 197,
         "HalfGameGap": 90,
         "Cells": [
           {
@@ -754,7 +881,7 @@
             "GameNumber": 2,
             "GameKind": "Normal",
             "HalfKind": "FirstHalf",
-            "X": 180,
+            "X": 197,
             "Y": 0,
             "Width": 75,
             "Height": 32,
@@ -770,7 +897,7 @@
             "GameNumber": 2,
             "GameKind": "Normal",
             "HalfKind": "SecondHalf",
-            "X": 270,
+            "X": 287,
             "Y": 0,
             "Width": 75,
             "Height": 32,
@@ -786,7 +913,7 @@
             "GameNumber": 3,
             "GameKind": "Normal",
             "HalfKind": "FirstHalf",
-            "X": 360,
+            "X": 394,
             "Y": 0,
             "Width": 75,
             "Height": 32,
@@ -802,7 +929,7 @@
             "GameNumber": 3,
             "GameKind": "Normal",
             "HalfKind": "SecondHalf",
-            "X": 450,
+            "X": 484,
             "Y": 0,
             "Width": 75,
             "Height": 32,
@@ -818,7 +945,7 @@
             "GameNumber": 4,
             "GameKind": "Normal",
             "HalfKind": "FirstHalf",
-            "X": 540,
+            "X": 591,
             "Y": 0,
             "Width": 75,
             "Height": 32,
@@ -834,7 +961,7 @@
             "GameNumber": 4,
             "GameKind": "Normal",
             "HalfKind": "SecondHalf",
-            "X": 630,
+            "X": 681,
             "Y": 0,
             "Width": 75,
             "Height": 32,
@@ -850,7 +977,7 @@
             "GameNumber": 5,
             "GameKind": "Normal",
             "HalfKind": "FirstHalf",
-            "X": 720,
+            "X": 788,
             "Y": 0,
             "Width": 75,
             "Height": 32,
@@ -866,7 +993,7 @@
             "GameNumber": 5,
             "GameKind": "Normal",
             "HalfKind": "SecondHalf",
-            "X": 810,
+            "X": 878,
             "Y": 0,
             "Width": 75,
             "Height": 32,
@@ -914,7 +1041,7 @@
             "GameNumber": 5,
             "GameKind": "Overtime",
             "HalfKind": "FirstHalf",
-            "X": 900,
+            "X": 985,
             "Y": 0,
             "Width": 75,
             "Height": 32,
@@ -930,7 +1057,7 @@
             "GameNumber": 5,
             "GameKind": "Overtime",
             "HalfKind": "SecondHalf",
-            "X": 990,
+            "X": 1075,
             "Y": 0,
             "Width": 75,
             "Height": 32,
@@ -944,13 +1071,13 @@
         ],
         "FontFamily": "Arial",
         "FontWeight": "Bold",
-        "Color": "#FFFFFFFF",
+        "Color": "#FF000000",
         "FontSize": 24,
         "ShowCampIcon": true,
         "ControlType": "GlobalScoreRow",
-        "Left": 175,
-        "Top": 93,
-        "Width": 1110,
+        "Left": 166.5,
+        "Top": 86,
+        "Width": 1156.5,
         "Height": 36,
         "ZIndex": 2,
         "Visibility": "Visible",
@@ -958,7 +1085,7 @@
       },
       "AwayGlobalScoreRow": {
         "TeamType": "AwayTeam",
-        "MajorGameGap": 180,
+        "MajorGameGap": 197,
         "HalfGameGap": 90,
         "Cells": [
           {
@@ -998,7 +1125,7 @@
             "GameNumber": 2,
             "GameKind": "Normal",
             "HalfKind": "FirstHalf",
-            "X": 180,
+            "X": 197,
             "Y": 0,
             "Width": 75,
             "Height": 32,
@@ -1014,7 +1141,7 @@
             "GameNumber": 2,
             "GameKind": "Normal",
             "HalfKind": "SecondHalf",
-            "X": 270,
+            "X": 287,
             "Y": 0,
             "Width": 75,
             "Height": 32,
@@ -1030,7 +1157,7 @@
             "GameNumber": 3,
             "GameKind": "Normal",
             "HalfKind": "FirstHalf",
-            "X": 360,
+            "X": 394,
             "Y": 0,
             "Width": 75,
             "Height": 32,
@@ -1046,7 +1173,7 @@
             "GameNumber": 3,
             "GameKind": "Normal",
             "HalfKind": "SecondHalf",
-            "X": 450,
+            "X": 484,
             "Y": 0,
             "Width": 75,
             "Height": 32,
@@ -1062,7 +1189,7 @@
             "GameNumber": 4,
             "GameKind": "Normal",
             "HalfKind": "FirstHalf",
-            "X": 540,
+            "X": 591,
             "Y": 0,
             "Width": 75,
             "Height": 32,
@@ -1078,7 +1205,7 @@
             "GameNumber": 4,
             "GameKind": "Normal",
             "HalfKind": "SecondHalf",
-            "X": 630,
+            "X": 681,
             "Y": 0,
             "Width": 75,
             "Height": 32,
@@ -1094,7 +1221,7 @@
             "GameNumber": 5,
             "GameKind": "Normal",
             "HalfKind": "FirstHalf",
-            "X": 720,
+            "X": 788,
             "Y": 0,
             "Width": 75,
             "Height": 32,
@@ -1110,7 +1237,7 @@
             "GameNumber": 5,
             "GameKind": "Normal",
             "HalfKind": "SecondHalf",
-            "X": 810,
+            "X": 878,
             "Y": 0,
             "Width": 75,
             "Height": 32,
@@ -1158,7 +1285,7 @@
             "GameNumber": 5,
             "GameKind": "Overtime",
             "HalfKind": "FirstHalf",
-            "X": 900,
+            "X": 985,
             "Y": 0,
             "Width": 75,
             "Height": 32,
@@ -1174,7 +1301,7 @@
             "GameNumber": 5,
             "GameKind": "Overtime",
             "HalfKind": "SecondHalf",
-            "X": 990,
+            "X": 1075,
             "Y": 0,
             "Width": 75,
             "Height": 32,
@@ -1188,15 +1315,53 @@
         ],
         "FontFamily": "Arial",
         "FontWeight": "Bold",
-        "Color": "#FFFFFFFF",
+        "Color": "#FF000000",
         "FontSize": 24,
         "ShowCampIcon": true,
         "ControlType": "GlobalScoreRow",
-        "Left": 175,
-        "Top": 150,
-        "Width": 1110,
-        "Height": 36,
+        "Left": 166.5,
+        "Top": 149,
+        "Width": 1125,
+        "Height": 40,
         "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
+      },
+      "BackgroundTintSur": {
+        "RadiusX": 0,
+        "RadiusY": 0,
+        "TintColor": "#FFFFFFFF",
+        "TintBindingPath": "CurrentGame.SurTeam.ColorHex",
+        "TintMode": 2,
+        "TintStrength": 1,
+        "TextureStrength": 0.45,
+        "ShowMissingBackgroundPlaceholder": true,
+        "BehaviorGuid": "019ecc1f-b796-799b-a620-14b73f1609de",
+        "ControlType": "BackgroundTintRectangle",
+        "Left": 0.5,
+        "Top": 73,
+        "Width": 157,
+        "Height": 60,
+        "ZIndex": -1,
+        "Visibility": "Visible",
+        "BindingPath": null
+      },
+      "BackgroundTintHun": {
+        "RadiusX": 0,
+        "RadiusY": 0,
+        "TintColor": "#FFFFFFFF",
+        "TintBindingPath": "CurrentGame.HunTeam.ColorHex",
+        "TintMode": 2,
+        "TintStrength": 1,
+        "TextureStrength": 0.45,
+        "ShowMissingBackgroundPlaceholder": true,
+        "BehaviorGuid": "019ecc26-1b8e-7d32-9067-9350583c010f",
+        "ControlType": "BackgroundTintRectangle",
+        "Left": -0.5,
+        "Top": 133,
+        "Width": 157.5,
+        "Height": 61.5,
+        "ZIndex": -1,
         "Visibility": "Visible",
         "BindingPath": null
       }
