@@ -4226,6 +4226,10 @@
   <data name="Designer.Property.PaddingBottom" xml:space="preserve"><value>下パディング</value></data>
   <data name="Designer.Option.DisplayMode.Inline" xml:space="preserve"><value>一行</value></data>
   <data name="Designer.Option.DisplayMode.TwoLine" xml:space="preserve"><value>二行</value></data>
+  <data name="Designer.Option.DisplayMode.HorizontalGameOnly" xml:space="preserve"><value>横組みゲーム数</value></data>
+  <data name="Designer.Option.DisplayMode.HorizontalHalfOnly" xml:space="preserve"><value>横組みハーフ</value></data>
+  <data name="Designer.Option.DisplayMode.Vertical" xml:space="preserve"><value>縦書き</value></data>
+  <data name="Designer.Option.DisplayMode.VerticalTwoLine" xml:space="preserve"><value>縦書き二行</value></data>
   <data name="Designer.Option.DisplayMode.VerticalHalfOnly" xml:space="preserve"><value>縦書き前半/後半のみ</value></data>
   <data name="Designer.Option.DisplayMode.VerticalGameOnly" xml:space="preserve"><value>縦書きゲームのみ</value></data>
   <data name="Designer.Option.DisplayMode.VerticalGameAndHalf" xml:space="preserve"><value>縦書きゲーム+前半/後半</value></data>

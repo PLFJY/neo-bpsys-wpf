@@ -4322,6 +4322,10 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="Designer.Property.PaddingBottom" xml:space="preserve"><value>Padding Bottom</value></data>
   <data name="Designer.Option.DisplayMode.Inline" xml:space="preserve"><value>Inline</value></data>
   <data name="Designer.Option.DisplayMode.TwoLine" xml:space="preserve"><value>Two Line</value></data>
+  <data name="Designer.Option.DisplayMode.HorizontalGameOnly" xml:space="preserve"><value>Horizontal Game</value></data>
+  <data name="Designer.Option.DisplayMode.HorizontalHalfOnly" xml:space="preserve"><value>Horizontal Half</value></data>
+  <data name="Designer.Option.DisplayMode.Vertical" xml:space="preserve"><value>Vertical</value></data>
+  <data name="Designer.Option.DisplayMode.VerticalTwoLine" xml:space="preserve"><value>Vertical Two Line</value></data>
   <data name="Designer.Option.DisplayMode.VerticalHalfOnly" xml:space="preserve"><value>Vertical Half Only</value></data>
   <data name="Designer.Option.DisplayMode.VerticalGameOnly" xml:space="preserve"><value>Vertical Game Only</value></data>
   <data name="Designer.Option.DisplayMode.VerticalGameAndHalf" xml:space="preserve"><value>Vertical Game + Half</value></data>

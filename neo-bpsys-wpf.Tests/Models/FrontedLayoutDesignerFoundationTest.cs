@@ -2663,6 +2663,40 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
+    public void GameProgressDisplayModePropertyOffersEightOfficialPresets()
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = "GameProgress",
+            Config = new GameProgressTextControlConfig()
+        };
+
+        var rows = BuildPropertyRows(CreateDocument([item]), item);
+        var displayModeRow = rows.Single(row => row.PropertyName == nameof(GameProgressTextControlConfig.DisplayMode));
+        var values = displayModeRow.Options!
+            .OfType<FrontedPropertyEditorOption>()
+            .Select(option => Assert.IsType<GameProgressTextDisplayMode>(option.Value))
+            .ToArray();
+
+        Assert.Equal(
+            [
+                GameProgressTextDisplayMode.Inline,
+                GameProgressTextDisplayMode.TwoLine,
+                GameProgressTextDisplayMode.HorizontalGameOnly,
+                GameProgressTextDisplayMode.HorizontalHalfOnly,
+                GameProgressTextDisplayMode.Vertical,
+                GameProgressTextDisplayMode.VerticalTwoLine,
+                GameProgressTextDisplayMode.VerticalGameOnly,
+                GameProgressTextDisplayMode.VerticalHalfOnly
+            ],
+            values);
+
+        Assert.DoesNotContain(GameProgressTextDisplayMode.VerticalGameAndHalf, values);
+        Assert.DoesNotContain(GameProgressTextDisplayMode.VerticalSeparatedGameAndHalf, values);
+        Assert.DoesNotContain(GameProgressTextDisplayMode.RibbonGameOnly, values);
+    }
+
+    [Fact]
     public void PropertyColorHelperParsesFormatsAndFallsBackSafely()
     {
         Assert.True(FrontedPropertyColorHelper.TryParseArgbColor("#FFFFFFFF", out var color));

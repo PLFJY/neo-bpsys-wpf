@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Events;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
@@ -56,6 +57,7 @@ public class GameProgressTextFrontedControl(ILogger<GameProgressTextFrontedContr
         private readonly ISettingsHostService _settingsHostService;
         private readonly ILogger? _logger;
         private Game? _subscribedGame;
+        private CultureInfo _currentAppCulture;
         private bool _isSubscribed;
 
         public GameProgressTextElement(
@@ -69,6 +71,7 @@ public class GameProgressTextFrontedControl(ILogger<GameProgressTextFrontedContr
             _sharedDataService = sharedDataService;
             _settingsHostService = settingsHostService;
             _logger = logger;
+            _currentAppCulture = settingsHostService.Settings.CultureInfo;
 
             var outer = CutSceneFrontedControlHelper.CreateOuterBorder(name, config);
             Name = outer.Name;
@@ -119,7 +122,11 @@ public class GameProgressTextFrontedControl(ILogger<GameProgressTextFrontedContr
 
         private void OnIsBo3ModeChanged(object? sender, EventArgs args) => UpdateVisual();
 
-        private void OnLanguageSettingChanged(object? sender, EventArgs args) => UpdateVisual();
+        private void OnLanguageSettingChanged(object? sender, LanguageChangedEventArgs args)
+        {
+            _currentAppCulture = args.CultureInfo;
+            UpdateVisual();
+        }
 
         private void OnCurrentGamePropertyChanged(object? sender, PropertyChangedEventArgs args)
         {
@@ -153,7 +160,7 @@ public class GameProgressTextFrontedControl(ILogger<GameProgressTextFrontedContr
         {
             var progress = _sharedDataService.CurrentGame.GameProgress;
             var isBo3Mode = _sharedDataService.IsBo3Mode;
-            var effectiveCulture = GameProgressDisplayHelper.ResolveCulture(_config.DisplayLanguage);
+            var effectiveCulture = GameProgressDisplayHelper.ResolveCulture(_config.DisplayLanguage, _currentAppCulture);
 
             var parts = GameProgressDisplayHelper.GetParts(
                 progress,
@@ -171,6 +178,18 @@ public class GameProgressTextFrontedControl(ILogger<GameProgressTextFrontedContr
                 case GameProgressTextDisplayMode.TwoLine:
                     BuildTwoLine(parts);
                     break;
+                case GameProgressTextDisplayMode.HorizontalGameOnly:
+                    BuildHorizontalGameOnly(parts);
+                    break;
+                case GameProgressTextDisplayMode.HorizontalHalfOnly:
+                    BuildHorizontalHalfOnly(parts);
+                    break;
+                case GameProgressTextDisplayMode.Vertical:
+                    BuildVertical(parts);
+                    break;
+                case GameProgressTextDisplayMode.VerticalTwoLine:
+                    BuildVerticalTwoLine(parts);
+                    break;
                 case GameProgressTextDisplayMode.VerticalHalfOnly:
                     BuildVerticalHalfOnly(parts);
                     break;
@@ -178,13 +197,13 @@ public class GameProgressTextFrontedControl(ILogger<GameProgressTextFrontedContr
                     BuildVerticalGameOnly(parts);
                     break;
                 case GameProgressTextDisplayMode.VerticalGameAndHalf:
-                    BuildVerticalGameAndHalf(parts);
+                    BuildVerticalTwoLine(parts);
                     break;
                 case GameProgressTextDisplayMode.VerticalSeparatedGameAndHalf:
                     BuildVerticalSeparatedGameAndHalf(parts);
                     break;
                 case GameProgressTextDisplayMode.RibbonGameOnly:
-                    BuildRibbonGameOnly(parts);
+                    BuildVerticalGameOnly(parts);
                     break;
                 default:
                     BuildInline(parts);
@@ -203,6 +222,42 @@ public class GameProgressTextFrontedControl(ILogger<GameProgressTextFrontedContr
             textBlock.Text = parts.FullText;
             textBlock.TextWrapping = TextWrapping.NoWrap;
             Child = textBlock;
+        }
+
+        // ============================================================
+        // HorizontalGameOnly 模式
+        // ============================================================
+        private void BuildHorizontalGameOnly(GameProgressDisplayParts parts)
+        {
+            if (parts.IsFree)
+            {
+                BuildInline(parts);
+                return;
+            }
+
+            BuildSingleLineText(parts.GameText);
+        }
+
+        // ============================================================
+        // HorizontalHalfOnly 模式
+        // ============================================================
+        private void BuildHorizontalHalfOnly(GameProgressDisplayParts parts)
+        {
+            if (parts.IsFree)
+            {
+                BuildInline(parts);
+                return;
+            }
+
+            BuildSingleLineText(parts.HalfText);
+        }
+
+        // ============================================================
+        // Vertical 模式
+        // ============================================================
+        private void BuildVertical(GameProgressDisplayParts parts)
+        {
+            BuildVerticalText(parts.FullText);
         }
 
         // ============================================================
@@ -229,7 +284,7 @@ public class GameProgressTextFrontedControl(ILogger<GameProgressTextFrontedContr
         {
             if (parts.IsFree)
             {
-                BuildInline(parts);
+                BuildVertical(parts);
                 return;
             }
 
@@ -257,7 +312,7 @@ public class GameProgressTextFrontedControl(ILogger<GameProgressTextFrontedContr
         {
             if (parts.IsFree)
             {
-                BuildInline(parts);
+                BuildVertical(parts);
                 return;
             }
 
@@ -279,13 +334,27 @@ public class GameProgressTextFrontedControl(ILogger<GameProgressTextFrontedContr
         }
 
         // ============================================================
+        // VerticalTwoLine 模式
+        // ============================================================
+        private void BuildVerticalTwoLine(GameProgressDisplayParts parts)
+        {
+            if (parts.IsFree)
+            {
+                BuildVertical(parts);
+                return;
+            }
+
+            BuildVerticalGameAndHalf(parts);
+        }
+
+        // ============================================================
         // VerticalGameAndHalf 模式
         // ============================================================
         private void BuildVerticalGameAndHalf(GameProgressDisplayParts parts)
         {
             if (parts.IsFree)
             {
-                BuildInline(parts);
+                BuildVertical(parts);
                 return;
             }
 
@@ -293,7 +362,7 @@ public class GameProgressTextFrontedControl(ILogger<GameProgressTextFrontedContr
             var stackPanel = new StackPanel
             {
                 Orientation = Orientation.Vertical,
-                HorizontalAlignment = ResolveContentHorizontalAlignment(),
+                HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = ResolveVerticalAlignment()
             };
 
@@ -341,7 +410,7 @@ public class GameProgressTextFrontedControl(ILogger<GameProgressTextFrontedContr
         {
             if (parts.IsFree)
             {
-                BuildInline(parts);
+                BuildVertical(parts);
                 return;
             }
 
@@ -406,7 +475,7 @@ public class GameProgressTextFrontedControl(ILogger<GameProgressTextFrontedContr
             Grid.SetRow((UIElement)halfElement, 2);
             grid.Children.Add(halfElement);
 
-            grid.HorizontalAlignment = ResolveContentHorizontalAlignment();
+            grid.HorizontalAlignment = HorizontalAlignment.Center;
             grid.VerticalAlignment = ResolveVerticalAlignment();
 
             Child = grid;
@@ -443,6 +512,32 @@ public class GameProgressTextFrontedControl(ILogger<GameProgressTextFrontedContr
         // 竖向构建辅助方法
         // ============================================================
 
+        private void BuildSingleLineText(string text)
+        {
+            var textBlock = CreateStyledTextBlock();
+            textBlock.Text = text;
+            textBlock.TextWrapping = TextWrapping.NoWrap;
+            Child = textBlock;
+        }
+
+        private void BuildVerticalText(string text)
+        {
+            var verticalMode = ResolveVerticalLanguageMode();
+
+            if (verticalMode == GameProgressVerticalLanguageMode.RotateBlock)
+            {
+                Child = BuildRotatedTextBlock(text);
+            }
+            else if (verticalMode == GameProgressVerticalLanguageMode.StackCharacters)
+            {
+                Child = BuildStackedCharacters(text);
+            }
+            else
+            {
+                Child = BuildUprightVertical(text);
+            }
+        }
+
         /// <summary>
         /// 构建逐字竖向排列（CJK upright）。
         /// 使用 StringInfo.GetTextElementEnumerator 按 text element 切分，
@@ -450,15 +545,10 @@ public class GameProgressTextFrontedControl(ILogger<GameProgressTextFrontedContr
         /// </summary>
         private StackPanel BuildUprightVertical(string text)
         {
-            var direction = ResolveVerticalDirection();
-            var hAlign = direction == GameProgressVerticalDirection.FacingRight
-                ? HorizontalAlignment.Left
-                : HorizontalAlignment.Right;
-
             var stackPanel = new StackPanel
             {
                 Orientation = Orientation.Vertical,
-                HorizontalAlignment = hAlign,
+                HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center
             };
 
@@ -474,7 +564,7 @@ public class GameProgressTextFrontedControl(ILogger<GameProgressTextFrontedContr
                 var tb = CreateStyledTextBlock();
                 tb.Text = elements[i];
                 tb.TextWrapping = TextWrapping.NoWrap;
-                tb.HorizontalAlignment = hAlign;
+                tb.HorizontalAlignment = HorizontalAlignment.Center;
 
                 if (_config.VerticalTextSpacing > 0 && i < elements.Count - 1)
                 {
@@ -492,15 +582,10 @@ public class GameProgressTextFrontedControl(ILogger<GameProgressTextFrontedContr
         /// </summary>
         private StackPanel BuildStackedCharacters(string text)
         {
-            var direction = ResolveVerticalDirection();
-            var hAlign = direction == GameProgressVerticalDirection.FacingRight
-                ? HorizontalAlignment.Left
-                : HorizontalAlignment.Right;
-
             var stackPanel = new StackPanel
             {
                 Orientation = Orientation.Vertical,
-                HorizontalAlignment = hAlign,
+                HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center
             };
 
@@ -509,7 +594,7 @@ public class GameProgressTextFrontedControl(ILogger<GameProgressTextFrontedContr
                 var tb = CreateStyledTextBlock();
                 tb.Text = text[i].ToString();
                 tb.TextWrapping = TextWrapping.NoWrap;
-                tb.HorizontalAlignment = hAlign;
+                tb.HorizontalAlignment = HorizontalAlignment.Center;
 
                 if (_config.VerticalTextSpacing > 0 && i < text.Length - 1)
                 {
@@ -600,7 +685,7 @@ public class GameProgressTextFrontedControl(ILogger<GameProgressTextFrontedContr
                 return _config.VerticalLanguageMode;
             }
 
-            var culture = GameProgressDisplayHelper.ResolveCulture(_config.DisplayLanguage);
+            var culture = GameProgressDisplayHelper.ResolveCulture(_config.DisplayLanguage, _currentAppCulture);
             var isCjk = GameProgressDisplayHelper.IsCjkCulture(culture);
 
             return isCjk
@@ -621,14 +706,6 @@ public class GameProgressTextFrontedControl(ILogger<GameProgressTextFrontedContr
 
             // Auto: both CJK and non-CJK default to FacingLeft (current behavior)
             return GameProgressVerticalDirection.FacingLeft;
-        }
-
-        private HorizontalAlignment ResolveContentHorizontalAlignment()
-        {
-            var direction = ResolveVerticalDirection();
-            return direction == GameProgressVerticalDirection.FacingRight
-                ? HorizontalAlignment.Left
-                : HorizontalAlignment.Right;
         }
 
         private static VerticalAlignment ResolveVerticalAlignment()

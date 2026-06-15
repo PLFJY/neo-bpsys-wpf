@@ -1,5 +1,6 @@
 using neo_bpsys_wpf.Core.Enums;
 using System.Globalization;
+using WPFLocalizeExtension.Engine;
 
 namespace neo_bpsys_wpf.Helpers;
 
@@ -8,6 +9,9 @@ namespace neo_bpsys_wpf.Helpers;
 /// </summary>
 public static class GameProgressDisplayHelper
 {
+    internal static Func<CultureInfo?> CurrentAppCultureProvider { get; set; } =
+        () => LocalizeDictionary.CurrentCulture;
+
     /// <summary>
     /// CJK 数字映射表。
     /// </summary>
@@ -21,27 +25,17 @@ public static class GameProgressDisplayHelper
     /// <returns>格式化后的对局进度文本。</returns>
     public static string Format(GameProgress progress, bool isBo3Mode)
     {
-        return (int)progress switch
+        if ((int)progress < -1 || (int)progress > 11)
         {
-            -1 => I18nHelper.GetLocalizedString("GameProgressFree"),
-            0 => FormatHalf(1, isOvertime: false, "FirstHalf"),
-            1 => FormatHalf(1, isOvertime: false, "SecondHalf"),
-            2 => FormatHalf(2, isOvertime: false, "FirstHalf"),
-            3 => FormatHalf(2, isOvertime: false, "SecondHalf"),
-            4 => FormatHalf(3, isOvertime: false, "FirstHalf"),
-            5 => FormatHalf(3, isOvertime: false, "SecondHalf"),
-            6 => isBo3Mode
-                ? FormatHalf(3, isOvertime: true, "FirstHalf")
-                : FormatHalf(4, isOvertime: false, "FirstHalf"),
-            7 => isBo3Mode
-                ? FormatHalf(3, isOvertime: true, "SecondHalf")
-                : FormatHalf(4, isOvertime: false, "SecondHalf"),
-            8 => FormatHalf(5, isOvertime: false, "FirstHalf"),
-            9 => FormatHalf(5, isOvertime: false, "SecondHalf"),
-            10 => FormatHalf(5, isOvertime: true, "FirstHalf"),
-            11 => FormatHalf(5, isOvertime: true, "SecondHalf"),
-            _ => string.Empty
-        };
+            return string.Empty;
+        }
+
+        return GetParts(
+                progress,
+                isBo3Mode,
+                ResolveCulture(LanguageKey.FollowApp),
+                GameProgressNumberStyle.Arabic)
+            .FullText;
     }
 
     /// <param name="language">语言键。</param>
@@ -51,12 +45,23 @@ public static class GameProgressDisplayHelper
     /// </summary>
     public static CultureInfo ResolveCulture(LanguageKey language)
     {
+        return ResolveCulture(language, CurrentAppCultureProvider());
+    }
+
+    /// <summary>
+    /// 根据 <see cref="LanguageKey"/> 和当前应用文化解析为目标 <see cref="CultureInfo"/>。
+    /// </summary>
+    /// <param name="language">语言键。</param>
+    /// <param name="appCulture">当前应用文化；<see cref="LanguageKey.FollowApp"/> 时优先使用。</param>
+    /// <returns>对应的文化信息。</returns>
+    public static CultureInfo ResolveCulture(LanguageKey language, CultureInfo? appCulture)
+    {
         return language switch
         {
             LanguageKey.zh_Hans => CultureInfo.GetCultureInfo("zh-CN"),
             LanguageKey.en_US => CultureInfo.GetCultureInfo("en-US"),
             LanguageKey.ja_JP => CultureInfo.GetCultureInfo("ja-JP"),
-            _ => CultureInfo.CurrentUICulture
+            _ => appCulture ?? CultureInfo.CurrentUICulture
         };
     }
 
@@ -150,37 +155,6 @@ public static class GameProgressDisplayHelper
         }
 
         return number.ToString(CultureInfo.InvariantCulture);
-    }
-
-    private static string FormatHalf(int gameNumber, bool isOvertime, string halfKey)
-    {
-        var halfText = GetHalfText(halfKey);
-
-        var formatKey = isOvertime
-            ? "GameProgressGameOvertimeHalfFormat"
-            : "GameProgressGameHalfFormat";
-
-        return string.Format(
-            CultureInfo.CurrentUICulture,
-            I18nHelper.GetLocalizedString(formatKey),
-            gameNumber,
-            halfText);
-    }
-
-    private static string GetHalfText(string halfKey)
-    {
-        var halfText = I18nHelper.GetLocalizedString(halfKey);
-        if (halfText != halfKey)
-        {
-            return halfText;
-        }
-
-        return halfKey switch
-        {
-            "FirstHalf" => "FIRST HALF",
-            "SecondHalf" => "SECOND HALF",
-            _ => halfText
-        };
     }
 
     private static string GetHalfText(string halfKey, CultureInfo culture)

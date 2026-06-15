@@ -5069,6 +5069,18 @@
   <data name="Designer.Option.DisplayMode.TwoLine" xml:space="preserve">
     <value>双行</value>
   </data>
+  <data name="Designer.Option.DisplayMode.HorizontalGameOnly" xml:space="preserve">
+    <value>横排局数</value>
+  </data>
+  <data name="Designer.Option.DisplayMode.HorizontalHalfOnly" xml:space="preserve">
+    <value>横排半场</value>
+  </data>
+  <data name="Designer.Option.DisplayMode.Vertical" xml:space="preserve">
+    <value>竖排</value>
+  </data>
+  <data name="Designer.Option.DisplayMode.VerticalTwoLine" xml:space="preserve">
+    <value>竖排双行</value>
+  </data>
   <data name="Designer.Option.DisplayMode.VerticalHalfOnly" xml:space="preserve">
     <value>竖排半场</value>
   </data>

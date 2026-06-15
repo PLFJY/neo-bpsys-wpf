@@ -8,37 +8,57 @@ public enum GameProgressTextDisplayMode
     /// <summary>
     /// 单行显示，例如 "GAME 1 FIRST HALF"。
     /// </summary>
-    Inline,
+    Inline = 0,
 
     /// <summary>
     /// 双行显示：GAME 1 和 FIRST HALF 分两行。
     /// </summary>
-    TwoLine,
+    TwoLine = 1,
 
     /// <summary>
     /// 只显示半场信息的竖向模式。
     /// </summary>
-    VerticalHalfOnly,
+    VerticalHalfOnly = 2,
 
     /// <summary>
     /// 只显示局数的竖向模式。
     /// </summary>
-    VerticalGameOnly,
+    VerticalGameOnly = 3,
 
     /// <summary>
-    /// 局数和半场同时竖向显示，两组文本上下排列。
+    /// 旧版局数和半场同时竖向显示，两组文本上下排列。
     /// </summary>
-    VerticalGameAndHalf,
+    VerticalGameAndHalf = 4,
 
     /// <summary>
-    /// 局数和半场竖向分离显示，中间可选分隔线。
+    /// 旧版局数和半场竖向分离显示，中间可选分隔线。
     /// </summary>
-    VerticalSeparatedGameAndHalf,
+    VerticalSeparatedGameAndHalf = 5,
 
     /// <summary>
-    /// 类似黑色 ribbon 竖条，只显示 Game 信息。
+    /// 旧版类似黑色 ribbon 竖条，只显示 Game 信息。
     /// </summary>
-    RibbonGameOnly
+    RibbonGameOnly = 6,
+
+    /// <summary>
+    /// 横排只显示局数信息，例如 "GAME 1"。
+    /// </summary>
+    HorizontalGameOnly = 7,
+
+    /// <summary>
+    /// 横排只显示半场信息，例如 "FIRST HALF"。
+    /// </summary>
+    HorizontalHalfOnly = 8,
+
+    /// <summary>
+    /// 完整文本竖排显示，例如把 "GAME 1 FIRST HALF" 整体按竖向规则显示。
+    /// </summary>
+    Vertical = 9,
+
+    /// <summary>
+    /// 竖排双行显示：局数和半场分别作为两组竖排文本。
+    /// </summary>
+    VerticalTwoLine = 10
 }
 
 /// <summary>

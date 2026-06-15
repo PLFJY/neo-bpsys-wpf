@@ -6,6 +6,7 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Helpers;
 using System.ComponentModel;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -51,12 +52,26 @@ public class LocalizedTextFrontedControl(ILogger<LocalizedTextFrontedControl>? l
     /// </summary>
     public static string ResolveText(string localizationKey, string? fallbackText)
     {
+        return ResolveText(localizationKey, fallbackText, null);
+    }
+
+    /// <summary>
+    /// 解析本地化文本，资源缺失时使用 fallback 或 key。
+    /// </summary>
+    /// <param name="localizationKey">本地化资源 key。</param>
+    /// <param name="fallbackText">资源缺失时使用的 fallback 文本。</param>
+    /// <param name="culture">目标文化。为 null 时使用当前应用文化。</param>
+    /// <returns>解析后的文本。</returns>
+    public static string ResolveText(string localizationKey, string? fallbackText, CultureInfo? culture)
+    {
         if (string.IsNullOrWhiteSpace(localizationKey))
         {
             return fallbackText ?? string.Empty;
         }
 
-        var localizedText = I18nHelper.GetLocalizedString(localizationKey);
+        var localizedText = culture is null
+            ? I18nHelper.GetLocalizedString(localizationKey)
+            : I18nHelper.GetLocalizedString(localizationKey, culture);
         return localizedText == localizationKey && fallbackText is not null
             ? fallbackText
             : localizedText;
@@ -73,6 +88,7 @@ public class LocalizedTextFrontedControl(ILogger<LocalizedTextFrontedControl>? l
         private readonly LocalizedTextControlConfig _config;
         private readonly ISettingsHostService _settingsHostService;
         private readonly TextBlock _textBlock = new();
+        private CultureInfo _currentAppCulture;
         private bool _isSubscribed;
 
         public LocalizedTextElement(
@@ -84,6 +100,7 @@ public class LocalizedTextFrontedControl(ILogger<LocalizedTextFrontedControl>? l
         {
             _config = config;
             _settingsHostService = settingsHostService;
+            _currentAppCulture = settingsHostService.Settings.CultureInfo;
 
             Name = name;
             Canvas.SetLeft(this, config.Left);
@@ -144,13 +161,17 @@ public class LocalizedTextFrontedControl(ILogger<LocalizedTextFrontedControl>? l
             _settingsHostService.LanguageSettingChanged -= OnLanguageSettingChanged;
         }
 
-        private void OnLanguageSettingChanged(object? sender, LanguageChangedEventArgs args) => UpdateText();
+        private void OnLanguageSettingChanged(object? sender, LanguageChangedEventArgs args)
+        {
+            _currentAppCulture = args.CultureInfo;
+            UpdateText();
+        }
 
         private void UpdateText()
         {
             _textBlock.Text = _config.TextBinding?.GetActiveSources().Count > 0
-                ? ResolveText(RawText, RawText)
-                : ResolveText(_config.LocalizationKey, _config.FallbackText);
+                ? ResolveText(RawText, RawText, _currentAppCulture)
+                : ResolveText(_config.LocalizationKey, _config.FallbackText, _currentAppCulture);
         }
 
         private static void OnRawTextChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs args)

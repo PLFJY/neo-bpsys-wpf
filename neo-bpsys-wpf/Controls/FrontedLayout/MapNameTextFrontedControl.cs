@@ -2,8 +2,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Events;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Helpers;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -55,6 +57,7 @@ public class MapNameTextFrontedControl(ILogger<MapNameTextFrontedControl>? logge
         private readonly MapNameTextControlConfig _config;
         private readonly ISettingsHostService _settingsHostService;
         private readonly TextBlock _textBlock = new();
+        private CultureInfo _currentAppCulture;
         private bool _isSubscribed;
 
         public object? MapValue
@@ -72,6 +75,7 @@ public class MapNameTextFrontedControl(ILogger<MapNameTextFrontedControl>? logge
         {
             _config = config;
             _settingsHostService = settingsHostService;
+            _currentAppCulture = settingsHostService.Settings.CultureInfo;
 
             var outer = CutSceneFrontedControlHelper.CreateOuterBorder(name, config);
             Name = outer.Name;
@@ -126,7 +130,11 @@ public class MapNameTextFrontedControl(ILogger<MapNameTextFrontedControl>? logge
             _settingsHostService.LanguageSettingChanged -= OnLanguageSettingChanged;
         }
 
-        private void OnLanguageSettingChanged(object? sender, EventArgs args) => UpdateText();
+        private void OnLanguageSettingChanged(object? sender, LanguageChangedEventArgs args)
+        {
+            _currentAppCulture = args.CultureInfo;
+            UpdateText();
+        }
 
         private static string GetBindingPath(MapNameTextControlConfig config)
         {
@@ -147,7 +155,8 @@ public class MapNameTextFrontedControl(ILogger<MapNameTextFrontedControl>? logge
         {
             _textBlock.Text = MapNameDisplayHelper.Format(
                 CoerceMap(MapValue),
-                _config.EmptyText);
+                _config.EmptyText,
+                _currentAppCulture);
         }
 
         private static Map? CoerceMap(object? value)

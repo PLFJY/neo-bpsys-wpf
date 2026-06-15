@@ -112,6 +112,18 @@ public class FrontedPropertyGridBuilder
             ["FontWeight"] = ["Normal", "Bold", "SemiBold", "Light", "Medium", "ExtraBold"]
         };
 
+    private static readonly IReadOnlyList<GameProgressTextDisplayMode> GameProgressDisplayModeOptions =
+    [
+        GameProgressTextDisplayMode.Inline,
+        GameProgressTextDisplayMode.TwoLine,
+        GameProgressTextDisplayMode.HorizontalGameOnly,
+        GameProgressTextDisplayMode.HorizontalHalfOnly,
+        GameProgressTextDisplayMode.Vertical,
+        GameProgressTextDisplayMode.VerticalTwoLine,
+        GameProgressTextDisplayMode.VerticalGameOnly,
+        GameProgressTextDisplayMode.VerticalHalfOnly
+    ];
+
     /// <summary>
     /// Builds property editor rows for the selected design item.
     /// </summary>
@@ -621,6 +633,11 @@ public class FrontedPropertyGridBuilder
 
         var values = Enum.GetValues(GetCoreType(property.PropertyType))
             .Cast<object>();
+
+        if (property.PropertyType == typeof(GameProgressTextDisplayMode))
+        {
+            values = GameProgressDisplayModeOptions.Cast<object>();
+        }
 
         // DisplayLanguage 使用共用的 LanguageKey 枚举，但排除全局的 System 值
         if (property.Name == nameof(GameProgressTextControlConfig.DisplayLanguage))

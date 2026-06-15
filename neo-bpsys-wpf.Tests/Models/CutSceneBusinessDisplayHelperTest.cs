@@ -1,9 +1,9 @@
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Controls.FrontedLayout;
 using neo_bpsys_wpf.Helpers;
 using System.Globalization;
 using System.Text.Json;
-using WPFLocalizeExtension.Engine;
 using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Models;
@@ -38,6 +38,40 @@ public class CutSceneBusinessDisplayHelperTest
     public void MapNameDisplayHelperUsesEmptyTextWhenMapIsNull()
     {
         Assert.Equal("-", MapNameDisplayHelper.Format(null, "-"));
+    }
+
+    [Fact]
+    public void MapNameDisplayHelper_UsesExplicitCulture()
+    {
+        Assert.Equal(
+            "唐人街",
+            MapNameDisplayHelper.Format(
+                Map.ChinaTown,
+                emptyText: null,
+                CultureInfo.GetCultureInfo("zh-CN")));
+        Assert.Equal(
+            "中華街",
+            MapNameDisplayHelper.Format(
+                Map.ChinaTown,
+                emptyText: null,
+                CultureInfo.GetCultureInfo("ja-JP")));
+    }
+
+    [Fact]
+    public void LocalizedTextFrontedControl_UsesExplicitCulture()
+    {
+        Assert.Equal(
+            "自由对局",
+            LocalizedTextFrontedControl.ResolveText(
+                "GameProgressFree",
+                fallbackText: null,
+                CultureInfo.GetCultureInfo("zh-CN")));
+        Assert.Equal(
+            "FREE GAME",
+            LocalizedTextFrontedControl.ResolveText(
+                "GameProgressFree",
+                fallbackText: null,
+                CultureInfo.GetCultureInfo("en-US")));
     }
 
     [Fact]
@@ -122,6 +156,42 @@ public class CutSceneBusinessDisplayHelperTest
             numberStyle: GameProgressNumberStyle.Arabic);
 
         Assert.Equal("GAME 1", parts.GameText);
+    }
+
+    [Fact]
+    public void FollowAppCulture_UsesLocalizeDictionaryCulture()
+    {
+        var originalProvider = GameProgressDisplayHelper.CurrentAppCultureProvider;
+        try
+        {
+            GameProgressDisplayHelper.CurrentAppCultureProvider = () => CultureInfo.GetCultureInfo("zh-CN");
+
+            var culture = GameProgressDisplayHelper.ResolveCulture(LanguageKey.FollowApp);
+            var parts = GameProgressDisplayHelper.GetParts(
+                GameProgress.Game1FirstHalf,
+                isBo3Mode: false,
+                culture,
+                GameProgressNumberStyle.Auto);
+
+            Assert.Equal("zh-CN", culture.Name);
+            Assert.Equal("第一局 上半场", parts.FullText);
+        }
+        finally
+        {
+            GameProgressDisplayHelper.CurrentAppCultureProvider = originalProvider;
+        }
+    }
+
+    [Fact]
+    public void GameProgressTextDisplayMode_PreservesLegacyNumericValues()
+    {
+        Assert.Equal(0, (int)GameProgressTextDisplayMode.Inline);
+        Assert.Equal(1, (int)GameProgressTextDisplayMode.TwoLine);
+        Assert.Equal(2, (int)GameProgressTextDisplayMode.VerticalHalfOnly);
+        Assert.Equal(3, (int)GameProgressTextDisplayMode.VerticalGameOnly);
+        Assert.Equal(4, (int)GameProgressTextDisplayMode.VerticalGameAndHalf);
+        Assert.Equal(5, (int)GameProgressTextDisplayMode.VerticalSeparatedGameAndHalf);
+        Assert.Equal(6, (int)GameProgressTextDisplayMode.RibbonGameOnly);
     }
 
     [Theory]
@@ -225,25 +295,25 @@ public class CutSceneBusinessDisplayHelperTest
     [InlineData(LanguageKey.zh_Hans, "zh-CN")]
     [InlineData(LanguageKey.en_US, "en-US")]
     [InlineData(LanguageKey.ja_JP, "ja-JP")]
-    [InlineData(LanguageKey.FollowApp, null)]
+    [InlineData(LanguageKey.FollowApp, "ja-JP")]
     public void ResolveCulture_MapsToCorrectCulture(
         LanguageKey language, string expectedName)
     {
-        if (expectedName is null)
+        var originalProvider = GameProgressDisplayHelper.CurrentAppCultureProvider;
+        try
         {
-            // FollowApp should return CurrentUICulture
-            var culture = GameProgressDisplayHelper.ResolveCulture(language);
-            Assert.Equal(CultureInfo.CurrentUICulture.Name, culture.Name);
-        }
-        else
-        {
+            GameProgressDisplayHelper.CurrentAppCultureProvider = () => CultureInfo.GetCultureInfo("ja-JP");
             var culture = GameProgressDisplayHelper.ResolveCulture(language);
             Assert.Equal(expectedName, culture.Name);
+        }
+        finally
+        {
+            GameProgressDisplayHelper.CurrentAppCultureProvider = originalProvider;
         }
     }
 
     private static void UseEnglishCulture()
     {
-        LocalizeDictionary.Instance.Culture = CultureInfo.GetCultureInfo("en-US");
+        GameProgressDisplayHelper.CurrentAppCultureProvider = () => CultureInfo.GetCultureInfo("en-US");
     }
 }
