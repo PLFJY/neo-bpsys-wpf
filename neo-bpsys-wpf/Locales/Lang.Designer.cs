@@ -916,15 +916,6 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
-        ///   查找类似 运行时关键控件不能删除。 的本地化字符串。
-        /// </summary>
-        public static string CannotDeleteRuntimeCriticalControl {
-            get {
-                return ResourceManager.GetString("CannotDeleteRuntimeCriticalControl", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   查找类似 不能复制本地资源包。 的本地化字符串。
         /// </summary>
         public static string CannotDuplicateLocalPackage {
@@ -4757,7 +4748,7 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
-        ///   查找类似 &quot;添加控件&quot;插入内置/插件控件；\n复制的控件在粘贴时获得唯一编号名称；\n粘贴时会偏移新控件的位置；\n运行时关键/生成的覆盖层可能不可复制/删除；\n撤销/重做可恢复添加、删除、粘贴、重新排序操作。 的本地化字符串。
+        ///   查找类似 &quot;添加控件&quot;插入内置/插件控件；\n复制的控件在粘贴时获得唯一编号名称；\n粘贴时会偏移新控件的位置；\n生成的覆盖层或不可编辑控件可能不可复制/删除；\n撤销/重做可恢复添加、删除、粘贴、重新排序操作。 的本地化字符串。
         /// </summary>
         public static string Designer_Help_AddDeleteCopyPaste_Content {
             get {
@@ -6895,15 +6886,6 @@ namespace neo_bpsys_wpf.Locales {
         public static string Designer_Property_RespectTraitVisibility {
             get {
                 return ResourceManager.GetString("Designer.Property.RespectTraitVisibility", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 运行时关键控件 的本地化字符串。
-        /// </summary>
-        public static string Designer_Property_RuntimeCritical {
-            get {
-                return ResourceManager.GetString("Designer.Property.RuntimeCritical", resourceCulture);
             }
         }
         
@@ -11683,24 +11665,6 @@ namespace neo_bpsys_wpf.Locales {
         public static string RestoreDefaultSort {
             get {
                 return ResourceManager.GetString("RestoreDefaultSort", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 运行时关键 的本地化字符串。
-        /// </summary>
-        public static string RuntimeCritical {
-            get {
-                return ResourceManager.GetString("RuntimeCritical", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 系统关键控件 的本地化字符串。
-        /// </summary>
-        public static string RuntimeCriticalControl {
-            get {
-                return ResourceManager.GetString("RuntimeCriticalControl", resourceCulture);
             }
         }
         

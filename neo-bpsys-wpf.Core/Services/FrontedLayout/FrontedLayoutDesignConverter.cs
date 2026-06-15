@@ -37,7 +37,6 @@ public class FrontedLayoutDesignConverter
         string windowTypeName,
         string canvasName,
         FrontedCanvasConfig config,
-        FrontedLayoutRuntimeContractCatalog runtimeContracts,
         FrontedCanvasBoModeState editingState = FrontedCanvasBoModeState.Bo5)
     {
         var state = GetEditableState(config, editingState);
@@ -55,8 +54,7 @@ public class FrontedLayoutDesignConverter
                     MaterializeControlConfig(
                         control.Key,
                         FrontedPluginControlConfigMaterializer.Materialize(control.Key, control.Value, _controlRegistry),
-                        editingState),
-                    runtimeContracts)))
+                        editingState))))
         };
     }
 
@@ -264,14 +262,12 @@ public class FrontedLayoutDesignConverter
         string windowTypeName,
         string canvasName,
         string name,
-        FrontedControlConfigBase config,
-        FrontedLayoutRuntimeContractCatalog runtimeContracts)
+        FrontedControlConfigBase config)
     {
         var item = new FrontedControlDesignItem
         {
             Name = name,
-            Config = config,
-            IsRuntimeCritical = runtimeContracts.IsRuntimeCritical(windowTypeName, canvasName, name)
+            Config = config
         };
 
         return item;

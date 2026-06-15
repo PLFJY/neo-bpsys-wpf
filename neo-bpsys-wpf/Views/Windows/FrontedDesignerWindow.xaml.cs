@@ -48,9 +48,12 @@ public partial class FrontedDesignerWindow : FluentWindow
     private readonly Dictionary<FrontedDesignerResizeHandleKind, Border> _resizeHandles = new();
     private readonly Dictionary<int, FrameworkElement> _polygonVertexHandles = new();
     private readonly List<Line> _snapGuideLines = [];
+    private readonly List<Border> _multiSelectionOutlines = [];
+    private readonly Dictionary<FrontedControlDesignItem, FrontedDesignerResolvedBounds> _originalSelectedBounds = new();
     private Border? _selectionOutline;
     private Border? _parentSelectionOutline;
     private Border? _selectionLabel;
+    private Border? _marqueeSelectionOutline;
     private FrameworkElement? _capturedElement;
     private InteractionMode _interactionMode = InteractionMode.None;
     private FrontedDesignerResizeHandleKind? _activeResizeHandle;
@@ -1108,6 +1111,17 @@ public partial class FrontedDesignerWindow : FluentWindow
             FocusDesignSurface();
         }
 
+        if (e.PropertyName == nameof(FrontedDesignerWindowViewModel.SelectedDesignItems))
+        {
+            if (_viewModel?.IsRestoringSnapshotVisuals == true)
+            {
+                return;
+            }
+
+            RebuildInteractionLayer();
+            FocusDesignSurface();
+        }
+
         if (e.PropertyName == nameof(FrontedDesignerWindowViewModel.SelectedGlobalScoreCell))
         {
             SuppressPropertyEditorCommitForLayoutPass();
@@ -1696,6 +1710,32 @@ public partial class FrontedDesignerWindow : FluentWindow
         {
             UpdateBorderedImageInnerPreviewElement(element, imageConfig);
         }
+
+        if (element is BackgroundTintControlHost tintHost
+            && item.Config is BackgroundTintFrontedControlConfigBase)
+        {
+            tintHost.TintedImage.Margin = new Thickness(-item.Config.Left, -item.Config.Top, 0, 0);
+        }
+
+        if (item.Config is BackgroundTintRectangleFrontedControlConfig tintRectangleConfig)
+        {
+            element.Clip = new RectangleGeometry(
+                new Rect(0, 0, tintRectangleConfig.Width ?? 1D, tintRectangleConfig.Height ?? 1D),
+                Math.Max(0, tintRectangleConfig.RadiusX),
+                Math.Max(0, tintRectangleConfig.RadiusY));
+        }
+        else if (item.Config is PolygonFrontedControlConfig polygonConfig)
+        {
+            var polygon = element as Polygon ?? FindDescendant<Polygon>(element);
+            if (polygon is not null)
+            {
+                polygon.Points = PolygonFrontedControl.CreatePointCollection(polygonConfig);
+            }
+        }
+        else if (item.Config is BackgroundTintPolygonFrontedControlConfig tintPolygonConfig)
+        {
+            element.Clip = BackgroundTintPolygonFrontedControl.CreateGeometry(tintPolygonConfig, element);
+        }
     }
 
     private void UpdatePatchedHitboxes(IReadOnlyList<FrontedControlDesignItem> changedItems)
@@ -1783,9 +1823,11 @@ public partial class FrontedDesignerWindow : FluentWindow
         _hitboxes.Clear();
         _globalScoreCellHitboxes.Clear();
         _resizeHandles.Clear();
+        _multiSelectionOutlines.Clear();
         _selectionOutline = null;
         _parentSelectionOutline = null;
         _selectionLabel = null;
+        _marqueeSelectionOutline = null;
 
         if (_viewModel?.CurrentDocument is null)
         {
@@ -1816,10 +1858,52 @@ public partial class FrontedDesignerWindow : FluentWindow
             }
         }
 
+        if (_viewModel.SelectedDesignItems.Count > 0)
+        {
+            AddSelectionAdorners();
+        }
+    }
+
+    private void AddSelectionAdorners()
+    {
+        if (_viewModel is null)
+        {
+            return;
+        }
+
+        foreach (var item in _viewModel.SelectedDesignItems)
+        {
+            if (ReferenceEquals(item, _viewModel.SelectedDesignItem))
+            {
+                continue;
+            }
+
+            AddMultiSelectionOutline(item);
+        }
+
         if (_viewModel.SelectedDesignItem is not null)
         {
             AddSelectionAdorner(_viewModel.SelectedDesignItem);
         }
+    }
+
+    private void AddMultiSelectionOutline(FrontedControlDesignItem item)
+    {
+        var bounds = ResolveItemBounds(item);
+        var outline = new Border
+        {
+            Width = bounds.Width,
+            Height = bounds.Height,
+            BorderBrush = TryFindResource("AccentFillColorDefaultBrush") as Brush ?? Brushes.DeepSkyBlue,
+            BorderThickness = new Thickness(FrontedDesignerEditorVisualHelper.SelectionBorderThickness),
+            Opacity = 0.65D,
+            IsHitTestVisible = false
+        };
+        Canvas.SetLeft(outline, bounds.Left);
+        Canvas.SetTop(outline, bounds.Top);
+        Panel.SetZIndex(outline, FrontedDesignerEditorVisualHelper.SelectedOutlineZIndex - 1);
+        _multiSelectionOutlines.Add(outline);
+        InteractionLayer.Children.Add(outline);
     }
 
     private Border CreateGlobalScoreCellHitbox(GlobalScoreCellHitTarget target, int layoutOrder)
@@ -2006,6 +2090,7 @@ public partial class FrontedDesignerWindow : FluentWindow
             return;
         }
 
+        UpdateMultiSelectionOutlines();
         var bounds = _viewModel?.SelectedGlobalScoreCell is { } cell
                      && item.Config is GlobalScoreRowControlConfig
             ? ResolveGlobalScoreCellBounds(item, cell)
@@ -2062,6 +2147,45 @@ public partial class FrontedDesignerWindow : FluentWindow
                 Canvas.SetLeft(handle, point.X - handle.Width / 2D);
                 Canvas.SetTop(handle, point.Y - handle.Height / 2D);
             }
+        }
+    }
+
+    private void UpdateMultiSelectionOutlines()
+    {
+        if (_viewModel is null)
+        {
+            return;
+        }
+
+        var outlineIndex = 0;
+        foreach (var selectedItem in _viewModel.SelectedDesignItems)
+        {
+            if (ReferenceEquals(selectedItem, _viewModel.SelectedDesignItem))
+            {
+                continue;
+            }
+
+            if (outlineIndex >= _multiSelectionOutlines.Count)
+            {
+                break;
+            }
+
+            var bounds = ResolveItemBounds(selectedItem);
+            var outline = _multiSelectionOutlines[outlineIndex];
+            outline.Width = bounds.Width;
+            outline.Height = bounds.Height;
+            Canvas.SetLeft(outline, bounds.Left);
+            Canvas.SetTop(outline, bounds.Top);
+
+            if (_hitboxes.TryGetValue(selectedItem, out var hitbox))
+            {
+                hitbox.Width = bounds.Width;
+                hitbox.Height = bounds.Height;
+                Canvas.SetLeft(hitbox, bounds.Left);
+                Canvas.SetTop(hitbox, bounds.Top);
+            }
+
+            outlineIndex++;
         }
     }
 
@@ -2171,13 +2295,6 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private void Hitbox_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
-        if (IsSpacePressed())
-        {
-            BeginViewportPan(e);
-            e.Handled = true;
-            return;
-        }
-
         if (sender is not FrameworkElement { Tag: FrontedControlDesignItem item } hitbox
             || _viewModel is null)
         {
@@ -2185,19 +2302,19 @@ public partial class FrontedDesignerWindow : FluentWindow
         }
 
         FocusDesignSurface();
+        if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
+        {
+            _viewModel.ToggleDesignItemSelection(item);
+            e.Handled = true;
+            return;
+        }
+
         BeginPendingHitboxClick(item, e.GetPosition(InteractionLayer), hitbox);
         e.Handled = true;
     }
 
     private void GlobalScoreCellHitbox_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
-        if (IsSpacePressed())
-        {
-            BeginViewportPan(e);
-            e.Handled = true;
-            return;
-        }
-
         if (sender is not FrameworkElement { Tag: GlobalScoreCellHitTarget target } hitbox
             || _viewModel is null)
         {
@@ -2241,17 +2358,10 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private void InteractionLayer_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
-        if (IsSpacePressed())
-        {
-            BeginViewportPan(e);
-            e.Handled = true;
-            return;
-        }
-
         if (ReferenceEquals(e.OriginalSource, InteractionLayer))
         {
             FocusDesignSurface();
-            BeginPendingEmptyClick(e.GetPosition(InteractionLayer));
+            BeginMarqueeSelection(e.GetPosition(InteractionLayer));
             e.Handled = true;
         }
     }
@@ -2297,17 +2407,30 @@ public partial class FrontedDesignerWindow : FluentWindow
         {
             _hasExceededClickThreshold |= FrontedDesignerInteractionHelper.ExceedsClickThreshold(deltaX, deltaY);
         }
+        else if (_interactionMode == InteractionMode.Marquee)
+        {
+            _hasExceededClickThreshold |= FrontedDesignerInteractionHelper.ExceedsClickThreshold(deltaX, deltaY);
+            UpdateMarqueeSelection(currentPosition);
+        }
         else if (_interactionMode == InteractionMode.Resize && _activeResizeHandle is { } handle)
         {
-            _viewModel?.ResizeSelectedDesignItem(
-                handle,
-                _originalLeft,
-                _originalTop,
-                _originalWidth,
-                _originalHeight,
-                deltaX,
-                deltaY,
-                renderPreview: false);
+            if (_originalSelectedBounds.Count > 1)
+            {
+                _viewModel?.ResizeSelectedDesignItems(handle, _originalSelectedBounds, deltaX, deltaY, renderPreview: false);
+            }
+            else
+            {
+                _viewModel?.ResizeSelectedDesignItem(
+                    handle,
+                    _originalLeft,
+                    _originalTop,
+                    _originalWidth,
+                    _originalHeight,
+                    deltaX,
+                    deltaY,
+                    renderPreview: false);
+            }
+
             UpdateSelectedInteractionVisuals();
             UpdateSelectedPreviewElement();
         }
@@ -2343,12 +2466,20 @@ public partial class FrontedDesignerWindow : FluentWindow
 
         if (action is FrontedDesignerPointerAction.BeginDragSelected or FrontedDesignerPointerAction.DragSelected)
         {
-            _viewModel.MoveSelectedDesignItem(
-                _originalLeft,
-                _originalTop,
-                deltaX,
-                deltaY,
-                renderPreview: false);
+            if (_originalSelectedBounds.Count > 1)
+            {
+                _viewModel.MoveSelectedDesignItems(_originalSelectedBounds, deltaX, deltaY, renderPreview: false);
+            }
+            else
+            {
+                _viewModel.MoveSelectedDesignItem(
+                    _originalLeft,
+                    _originalTop,
+                    deltaX,
+                    deltaY,
+                    renderPreview: false);
+            }
+
             UpdateSelectedInteractionVisuals();
             UpdateSelectedPreviewElement();
         }
@@ -2433,6 +2564,10 @@ public partial class FrontedDesignerWindow : FluentWindow
                 _viewModel?.ClearSelection();
             }
         }
+        else if (_interactionMode == InteractionMode.Marquee)
+        {
+            CommitMarqueeSelection();
+        }
         else if (_interactionMode == InteractionMode.Resize)
         {
             _viewModel?.CommitDesignItemGeometryEdit();
@@ -2469,17 +2604,6 @@ public partial class FrontedDesignerWindow : FluentWindow
             EndViewportPan();
             e.Handled = true;
         }
-    }
-
-    private void PreviewScrollViewer_OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-    {
-        if (!IsSpacePressed())
-        {
-            return;
-        }
-
-        BeginViewportPan(e);
-        e.Handled = true;
     }
 
     private void PreviewScrollViewer_OnPreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
@@ -2640,6 +2764,7 @@ public partial class FrontedDesignerWindow : FluentWindow
 
         _originalWidth = bounds.Width;
         _originalHeight = bounds.Height;
+        CaptureOriginalSelectedBounds();
         _capturedElement = element;
         element.CaptureMouse();
     }
@@ -2696,6 +2821,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         var bounds = ResolveItemBounds(item);
         _originalWidth = bounds.Width;
         _originalHeight = bounds.Height;
+        CaptureOriginalSelectedBounds();
         _capturedElement = element;
         element.CaptureMouse();
     }
@@ -2725,6 +2851,90 @@ public partial class FrontedDesignerWindow : FluentWindow
         InteractionLayer.CaptureMouse();
     }
 
+    private void BeginMarqueeSelection(Point startMousePosition)
+    {
+        ResetPointerInteraction();
+        _interactionMode = InteractionMode.Marquee;
+        _startMousePosition = startMousePosition;
+        _marqueeSelectionOutline = new Border
+        {
+            BorderBrush = TryFindResource("AccentFillColorDefaultBrush") as Brush ?? Brushes.DeepSkyBlue,
+            BorderThickness = new Thickness(1D),
+            Background = new SolidColorBrush(Color.FromArgb(32, 64, 200, 255)),
+            IsHitTestVisible = false
+        };
+        Panel.SetZIndex(_marqueeSelectionOutline, FrontedDesignerEditorVisualHelper.SelectedOutlineZIndex + 2);
+        InteractionLayer.Children.Add(_marqueeSelectionOutline);
+        UpdateMarqueeSelection(startMousePosition);
+        _capturedElement = InteractionLayer;
+        InteractionLayer.CaptureMouse();
+    }
+
+    private void UpdateMarqueeSelection(Point currentPosition)
+    {
+        if (_marqueeSelectionOutline is null)
+        {
+            return;
+        }
+
+        var left = Math.Min(_startMousePosition.X, currentPosition.X);
+        var top = Math.Min(_startMousePosition.Y, currentPosition.Y);
+        var width = Math.Abs(currentPosition.X - _startMousePosition.X);
+        var height = Math.Abs(currentPosition.Y - _startMousePosition.Y);
+        _marqueeSelectionOutline.Width = width;
+        _marqueeSelectionOutline.Height = height;
+        Canvas.SetLeft(_marqueeSelectionOutline, left);
+        Canvas.SetTop(_marqueeSelectionOutline, top);
+    }
+
+    private void CommitMarqueeSelection()
+    {
+        if (_viewModel is null)
+        {
+            return;
+        }
+
+        if (!_hasExceededClickThreshold)
+        {
+            _viewModel.ClearSelection();
+            return;
+        }
+
+        if (_marqueeSelectionOutline is null)
+        {
+            return;
+        }
+
+        var marqueeBounds = new Rect(
+            Canvas.GetLeft(_marqueeSelectionOutline),
+            Canvas.GetTop(_marqueeSelectionOutline),
+            _marqueeSelectionOutline.Width,
+            _marqueeSelectionOutline.Height);
+        var selectedItems = _hitboxes
+            .Where(pair => marqueeBounds.IntersectsWith(new Rect(
+                Canvas.GetLeft(pair.Value),
+                Canvas.GetTop(pair.Value),
+                pair.Value.Width,
+                pair.Value.Height)))
+            .Select(pair => pair.Key)
+            .ToList();
+        _viewModel.SelectDesignItems(selectedItems, selectedItems.LastOrDefault());
+    }
+
+    private void CaptureOriginalSelectedBounds()
+    {
+        _originalSelectedBounds.Clear();
+        if (_viewModel is null)
+        {
+            return;
+        }
+
+        foreach (var item in _viewModel.SelectedDesignItems)
+        {
+            _originalSelectedBounds[item] = ResolveItemBounds(item);
+        }
+    }
+
     private void ResetPointerInteraction()
     {
         _viewModel?.ClearActiveSnapGuides();
@@ -2739,6 +2949,12 @@ public partial class FrontedDesignerWindow : FluentWindow
         _hasStartedDrag = false;
         _isPanningViewport = false;
         _cursorBeforePan = null;
+        _originalSelectedBounds.Clear();
+        if (_marqueeSelectionOutline is not null)
+        {
+            InteractionLayer.Children.Remove(_marqueeSelectionOutline);
+            _marqueeSelectionOutline = null;
+        }
     }
 
     private void ScheduleSelectedInteractionVisualRefresh()
@@ -2833,68 +3049,19 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private void UpdateSelectedPreviewElement()
     {
-        var item = _viewModel?.SelectedDesignItem;
-        if (item is null)
+        if (_viewModel is null)
         {
             return;
         }
 
-        var element = FindPreviewElement(item.Name);
-        if (element is null)
+        var selectedItems = _viewModel.SelectedDesignItems.Count > 0
+            ? _viewModel.SelectedDesignItems
+            : _viewModel.SelectedDesignItem is null
+                ? []
+                : [_viewModel.SelectedDesignItem];
+        foreach (var item in selectedItems)
         {
-            return;
-        }
-
-        Canvas.SetLeft(element, item.Config.Left);
-        Canvas.SetTop(element, item.Config.Top);
-
-        if (item.Config.Width.HasValue)
-        {
-            element.Width = item.Config.Width.Value;
-        }
-
-        if (item.Config.Height.HasValue)
-        {
-            element.Height = item.Config.Height.Value;
-        }
-
-        if (item.Config is BorderedImageFrontedControlConfig imageConfig
-            && _viewModel?.BorderedImageResizeTarget == FrontedDesignerResizeTarget.Image)
-        {
-            UpdateBorderedImageInnerPreviewElement(element, imageConfig);
-        }
-
-        if (element is BackgroundTintControlHost tintHost
-            && item.Config is BackgroundTintFrontedControlConfigBase)
-        {
-            tintHost.TintedImage.Margin = new Thickness(-item.Config.Left, -item.Config.Top, 0, 0);
-        }
-
-        if (item.Config is BackgroundTintRectangleFrontedControlConfig tintRectangleConfig)
-        {
-            element.Clip = new RectangleGeometry(
-                new Rect(0, 0, tintRectangleConfig.Width ?? 1D, tintRectangleConfig.Height ?? 1D),
-                Math.Max(0, tintRectangleConfig.RadiusX),
-                Math.Max(0, tintRectangleConfig.RadiusY));
-        }
-        else if (item.Config is PolygonFrontedControlConfig polygonConfig)
-        {
-            var polygon = element as Polygon ?? FindDescendant<Polygon>(element);
-            if (polygon is not null)
-            {
-                polygon.Points = PolygonFrontedControl.CreatePointCollection(polygonConfig);
-            }
-        }
-        else if (item.Config is BackgroundTintPolygonFrontedControlConfig tintPolygonConfig)
-        {
-            element.Clip = BackgroundTintPolygonFrontedControl.CreateGeometry(tintPolygonConfig, element);
-        }
-
-        var bounds = ResolveItemBounds(item);
-        var linkedOverlays = _viewModel?.SyncLinkedOverlays(item, bounds) ?? [];
-        foreach (var linkedOverlay in linkedOverlays)
-        {
-            UpdatePreviewElement(linkedOverlay);
+            UpdatePreviewElement(item);
         }
     }
 
@@ -2919,7 +3086,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         }
     }
 
-    private void UpdatePreviewElement(FrontedControlDesignItem item)
+    private void UpdatePreviewElement(FrontedControlDesignItem item, bool syncLinkedOverlays = true)
     {
         var element = FindPreviewElement(item.Name);
         if (element is null)
@@ -2928,6 +3095,17 @@ public partial class FrontedDesignerWindow : FluentWindow
         }
 
         ApplyPreviewElementGeometry(element, item);
+        if (!syncLinkedOverlays)
+        {
+            return;
+        }
+
+        var bounds = ResolveItemBounds(item);
+        var linkedOverlays = _viewModel?.SyncLinkedOverlays(item, bounds) ?? [];
+        foreach (var linkedOverlay in linkedOverlays)
+        {
+            UpdatePreviewElement(linkedOverlay, syncLinkedOverlays: false);
+        }
     }
 
     private FrameworkElement? FindPreviewElement(string name)
@@ -3110,7 +3288,8 @@ public partial class FrontedDesignerWindow : FluentWindow
         None,
         Drag,
         Resize,
-        PolygonVertex
+        PolygonVertex,
+        Marquee
     }
 
     private sealed record GlobalScoreCellHitTarget(

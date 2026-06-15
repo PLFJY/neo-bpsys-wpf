@@ -643,26 +643,6 @@
                                                                                         Text="{Binding ZIndex}" />
                                                                                 </StackPanel>
                                                                             </Grid>
-                                                                            <Border
-                                                                                Grid.Row="2"
-                                                                                Grid.Column="0"
-                                                                                Margin="0,4,0,0"
-                                                                                Padding="4,0"
-                                                                                HorizontalAlignment="Left"
-                                                                                Background="{DynamicResource ControlFillColorSecondaryBrush}"
-                                                                                CornerRadius="2">
-                                                                                <Border.Style>
-                                                                                    <Style TargetType="Border">
-                                                                                        <Setter Property="Visibility" Value="Collapsed" />
-                                                                                        <Style.Triggers>
-                                                                                            <DataTrigger Binding="{Binding ControlItem.IsRuntimeCritical}" Value="True">
-                                                                                                <Setter Property="Visibility" Value="Visible" />
-                                                                                            </DataTrigger>
-                                                                                        </Style.Triggers>
-                                                                                    </Style>
-                                                                                </Border.Style>
-                                                                                <TextBlock FontSize="11" Text="{lex:Loc RuntimeCriticalControl}" />
-                                                                            </Border>
                                                                         </Grid>
                                                                     </Border>
                                                                 </DataTemplate>
@@ -765,7 +745,6 @@
                 <ScrollViewer
                     x:Name="PreviewScrollViewer"
                     HorizontalScrollBarVisibility="Auto"
-                    PreviewMouseLeftButtonDown="PreviewScrollViewer_OnPreviewMouseLeftButtonDown"
                     PreviewMouseLeftButtonUp="PreviewScrollViewer_OnPreviewMouseLeftButtonUp"
                     PreviewMouseMove="PreviewScrollViewer_OnPreviewMouseMove"
                     PreviewMouseRightButtonDown="PreviewScrollViewer_OnPreviewMouseRightButtonDown"
@@ -863,27 +842,6 @@
                                 Text="{Binding SelectedControlDisplay}" />
                             <TextBlock Margin="0,4,0,0" Text="{Binding SelectedControlTypeDisplay}" />
                             <TextBlock Margin="0,4,0,0" Text="{Binding SelectedControlGeometryDisplay}" />
-                            <Border
-                                Margin="0,6,0,0"
-                                Padding="6,2"
-                                HorizontalAlignment="Left"
-                                Background="{DynamicResource ControlFillColorSecondaryBrush}"
-                                CornerRadius="2">
-                                <Border.Style>
-                                    <Style TargetType="Border">
-                                        <Setter Property="Visibility" Value="Collapsed" />
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding SelectedDesignItem.IsRuntimeCritical}" Value="True">
-                                                <Setter Property="Visibility" Value="Visible" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Border.Style>
-                                <TextBlock
-                                    FontSize="12"
-                                    FontWeight="SemiBold"
-                                    Text="{lex:Loc RuntimeCriticalControl}" />
-                            </Border>
                             <TextBlock Margin="0,4,0,0">
                                 <Run Text="{lex:Loc ValidationMessages}" />
                                 <Run Text=": " />

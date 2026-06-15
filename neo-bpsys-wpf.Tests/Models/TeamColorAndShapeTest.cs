@@ -186,8 +186,7 @@ public class TeamColorAndShapeTest
             document,
             item,
             new FrontedLayoutValidator(),
-            new FrontedLayoutReferenceScanner(),
-            new FrontedLayoutRuntimeContractCatalog());
+            new FrontedLayoutReferenceScanner());
 
         Assert.DoesNotContain(rows, row => row.PropertyName == nameof(FrontedControlConfigBase.BindingPath));
         Assert.DoesNotContain(rows, row => row.PropertyName == nameof(ShapeFrontedControlConfigBase.FillMode));

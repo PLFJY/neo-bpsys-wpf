@@ -56,8 +56,7 @@ public class BackgroundTintFrontedControlTest
             document,
             item,
             new FrontedLayoutValidator(),
-            new FrontedLayoutReferenceScanner(),
-            new FrontedLayoutRuntimeContractCatalog());
+            new FrontedLayoutReferenceScanner());
         Assert.Equal(
             FrontedPropertyEditorKind.Color,
             rows.Single(row => row.PropertyName == nameof(polygon.TintColor)).EditorKind);

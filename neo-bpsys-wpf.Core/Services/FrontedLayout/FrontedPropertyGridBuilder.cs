@@ -119,15 +119,10 @@ public class FrontedPropertyGridBuilder
         FrontedCanvasDesignDocument document,
         FrontedControlDesignItem selectedItem,
         FrontedLayoutValidator validator,
-        FrontedLayoutReferenceScanner referenceScanner,
-        FrontedLayoutRuntimeContractCatalog runtimeContractCatalog)
+        FrontedLayoutReferenceScanner referenceScanner)
     {
         var messages = validator.Validate(document);
         referenceScanner.SetControls(document.Controls);
-        selectedItem.IsRuntimeCritical = runtimeContractCatalog.IsRuntimeCritical(
-            document.WindowTypeName,
-            document.CanvasName,
-            selectedItem.Name);
 
         var rows = new List<FrontedPropertyEditorItem>();
         AddIdentityRows(rows, selectedItem, messages);
@@ -141,8 +136,7 @@ public class FrontedPropertyGridBuilder
         FrontedControlDesignItem selectedItem,
         IReadOnlyList<FrontedLayoutValidationMessage> messages)
     {
-        var nameReadOnly = selectedItem.IsRuntimeCritical
-                           || !selectedItem.IsSelectableInEditor
+        var nameReadOnly = !selectedItem.IsSelectableInEditor
                            || !selectedItem.IsEditableInEditor;
 
         rows.Add(new FrontedPropertyEditorItem
@@ -175,18 +169,6 @@ public class FrontedPropertyGridBuilder
             GroupName = "Identity",
             ValidationErrors = GetPropertyMessages(messages, selectedItem.Name, nameof(FrontedControlConfigBase.ControlType)),
             ValidationMessages = GetPropertyValidationMessages(messages, selectedItem.Name, nameof(FrontedControlConfigBase.ControlType))
-        });
-
-        rows.Add(new FrontedPropertyEditorItem
-        {
-            DisplayName = _localizationService.GetPropertyDisplayName("RuntimeCritical"),
-            PropertyName = "RuntimeCritical",
-            PropertyType = typeof(bool),
-            EditorKind = FrontedPropertyEditorKind.ReadOnly,
-            Value = selectedItem.IsRuntimeCritical,
-            DisplayValue = GetDisplayValue(selectedItem.IsRuntimeCritical, isReadOnly: true),
-            IsReadOnly = true,
-            GroupName = "Identity"
         });
 
     }

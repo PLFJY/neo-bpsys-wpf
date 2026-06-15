@@ -19,7 +19,6 @@ public class FrontedLayoutValidator
     private readonly IFrontedControlRegistry? _controlRegistry;
     private readonly IFrontedResourceResolver? _resourceResolver;
     private readonly IFrontedImageSafetyService _imageSafetyService;
-    private readonly FrontedLayoutRuntimeContractCatalog _runtimeContracts;
     private readonly FrontedLayoutReferenceScanner _referenceScanner;
 
     /// <summary>
@@ -29,13 +28,11 @@ public class FrontedLayoutValidator
         IFrontedControlRegistry? controlRegistry = null,
         IFrontedResourceResolver? resourceResolver = null,
         IFrontedImageSafetyService? imageSafetyService = null,
-        FrontedLayoutRuntimeContractCatalog? runtimeContracts = null,
         FrontedLayoutReferenceScanner? referenceScanner = null)
     {
         _controlRegistry = controlRegistry;
         _resourceResolver = resourceResolver;
         _imageSafetyService = imageSafetyService ?? new FrontedImageSafetyService();
-        _runtimeContracts = runtimeContracts ?? new FrontedLayoutRuntimeContractCatalog();
         _referenceScanner = referenceScanner ?? new FrontedLayoutReferenceScanner();
     }
 
@@ -51,7 +48,7 @@ public class FrontedLayoutValidator
             ? new FrontedLayoutDesignConverter()
             : new FrontedLayoutDesignConverter(_controlRegistry);
         var document = converter
-            .FromConfig(windowTypeName, canvasName, config, _runtimeContracts);
+            .FromConfig(windowTypeName, canvasName, config);
 
         return Validate(document);
     }
@@ -66,7 +63,6 @@ public class FrontedLayoutValidator
         ValidateControlNames(document, messages);
         ValidateControls(document, messages);
         ValidateReferences(document, messages);
-        ValidateRuntimeCriticalNames(document, messages);
         UpdateDesignItemValidationState(document, messages);
         return messages;
     }
@@ -204,11 +200,6 @@ public class FrontedLayoutValidator
     {
         foreach (var item in document.Controls)
         {
-            item.IsRuntimeCritical = _runtimeContracts.IsRuntimeCritical(
-                document.WindowTypeName,
-                document.CanvasName,
-                item.Name);
-
             ValidateCommonControlFields(item, messages);
             ValidateKnownControlConfig(item, messages);
             ValidatePluginControlConfig(item, messages);
@@ -871,38 +862,6 @@ public class FrontedLayoutValidator
                     reference.SourceControlName,
                     reference.PropertyName));
             }
-        }
-    }
-
-    private void ValidateRuntimeCriticalNames(
-        FrontedCanvasDesignDocument document,
-        ICollection<FrontedLayoutValidationMessage> messages)
-    {
-        var expectedNames = _runtimeContracts.GetRuntimeCriticalNames(
-            document.WindowTypeName,
-            document.CanvasName);
-
-        if (expectedNames.Count == 0)
-        {
-            return;
-        }
-
-        var actualNames = document.Controls
-            .Select(control => control.Name)
-            .Concat(document.Controls
-                .Select(control => control.Config)
-                .OfType<ImageFrontedControlConfig>()
-                .Where(config => config.PickingBorderAvailable && !string.IsNullOrWhiteSpace(config.PickingBorderName))
-                .Select(config => config.PickingBorderName!))
-            .ToHashSet(StringComparer.Ordinal);
-
-        foreach (var expectedName in expectedNames.Where(expectedName => !actualNames.Contains(expectedName)))
-        {
-            messages.Add(Error(
-                "RuntimeCriticalRenameOrDelete",
-                $"Runtime-critical control '{expectedName}' is missing.",
-                expectedName,
-                nameof(FrontedControlDesignItem.Name)));
         }
     }
 

@@ -67,7 +67,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     private readonly IFrontedLayoutService _layoutService;
     private readonly FrontedLayoutDesignConverter _designConverter;
-    private readonly FrontedLayoutRuntimeContractCatalog _runtimeContracts;
     private readonly FrontedLayoutValidator _validator;
     private readonly FrontedLayoutReferenceScanner _referenceScanner;
     private readonly FrontedPropertyGridBuilder _propertyGridBuilder;
@@ -109,6 +108,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private bool _scheduledValidationRequested;
     private bool _scheduledPreviewRequested;
     private bool _clearRestoreVisualsAfterScheduledPreview;
+    private bool _isApplyingDesignSelection;
     private FrontedControlDesignItem? _lastSelectedDesignItem;
     private DesignerLayerNode? _selectedLayerNode;
     private CancellationTokenSource? _reloadLayoutCancellation;
@@ -125,10 +125,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         // Decorative constructor for design-time only.
         _layoutService = null!;
         _designConverter = new FrontedLayoutDesignConverter();
-        _runtimeContracts = new FrontedLayoutRuntimeContractCatalog();
         _referenceScanner = new FrontedLayoutReferenceScanner();
         _validator = new FrontedLayoutValidator(
-            runtimeContracts: _runtimeContracts,
             referenceScanner: _referenceScanner);
         _propertyGridBuilder = new FrontedPropertyGridBuilder();
         _defaultConfigFactory = new FrontedControlDefaultConfigFactory();
@@ -161,7 +159,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         FrontedDesignerLayoutCatalog layoutCatalog,
         IFrontedLayoutService layoutService,
         FrontedLayoutDesignConverter designConverter,
-        FrontedLayoutRuntimeContractCatalog runtimeContracts,
         FrontedLayoutValidator validator,
         FrontedLayoutReferenceScanner referenceScanner,
         FrontedPropertyGridBuilder propertyGridBuilder,
@@ -182,7 +179,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     {
         _layoutService = layoutService;
         _designConverter = designConverter;
-        _runtimeContracts = runtimeContracts;
         _validator = validator;
         _referenceScanner = referenceScanner;
         _propertyGridBuilder = propertyGridBuilder;
@@ -254,6 +250,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     }
 
     public ObservableCollection<FrontedPropertyEditorItem> PropertyEditorItems { get; } = [];
+
+    /// <summary>
+    /// Gets the currently selected design controls. The primary selection remains <see cref="SelectedDesignItem"/>.
+    /// </summary>
+    public ObservableCollection<FrontedControlDesignItem> SelectedDesignItems { get; } = [];
 
     /// <summary>
     /// Gets animation parts configured on the selected control.
@@ -542,9 +543,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private string _selectedControlGeometryDisplay = string.Empty;
 
     [ObservableProperty]
-    private string _selectedControlRuntimeCriticalDisplay = string.Empty;
-
-    [ObservableProperty]
     private int _selectedControlValidationMessageCount;
 
     [ObservableProperty]
@@ -684,6 +682,12 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     partial void OnSelectedDesignItemChanged(FrontedControlDesignItem? value)
     {
+        if (!_isApplyingDesignSelection)
+        {
+            SetSelectedDesignItems(value is null ? [] : [value], value);
+            return;
+        }
+
         ClearActiveSnapGuides();
         _propertyEditErrors.Clear();
         _propertyEditBuffers.Clear();
@@ -691,17 +695,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         SelectedPolygonVertexIndex = value?.Config is IPolygonFrontedControlConfig polygon && polygon.Points.Count > 0
             ? 0
             : -1;
-        if (_lastSelectedDesignItem is not null && !ReferenceEquals(_lastSelectedDesignItem, value))
-        {
-            _lastSelectedDesignItem.IsSelected = false;
-        }
-
-        if (value is not null)
-        {
-            value.IsSelected = true;
-        }
-
-        _lastSelectedDesignItem = value;
+        ApplyDesignSelectionFlags();
 
         BehaviorPanel.SetSelectedControl(value);
         RefreshSelectedControlDisplay();
@@ -1114,8 +1108,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             var document = _designConverter.FromConfig(
                 entry.WindowTypeName,
                 FrontedLayoutConstants.BaseCanvasName,
-                FrontedWindowConfigCanvasAdapter.ToCanvasConfig(windowConfig),
-                _runtimeContracts);
+                FrontedWindowConfigCanvasAdapter.ToCanvasConfig(windowConfig));
 
             _currentWindowSettings = CloneWindowSettings(windowConfig.WindowSettings);
             ControlFilterText = string.Empty;
@@ -1305,8 +1298,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         var document = _designConverter.FromConfig(
             windowTypeName,
             canvasName,
-            config,
-            _runtimeContracts);
+            config);
         document.IsDirty = false;
 
         ControlFilterText = string.Empty;
@@ -1469,11 +1461,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             IsEditableInEditor = true
         };
 
-        item.IsRuntimeCritical = _runtimeContracts.IsRuntimeCritical(
-            CurrentDocument.WindowTypeName,
-            CurrentDocument.CanvasName,
-            item.Name);
-
         CurrentDocument.Controls.Add(item);
         CurrentDocument.IsDirty = true;
         RefreshDirtyState();
@@ -1567,15 +1554,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return;
         }
 
-        if (SelectedDesignItem.IsRuntimeCritical)
-        {
-            StatusMessage = I18nHelper.GetLocalizedString("CannotDeleteRuntimeCriticalControl");
-            return;
-        }
-
         if (!SelectedDesignItem.IsEditableInEditor || !SelectedDesignItem.IsSelectableInEditor)
         {
-            StatusMessage = I18nHelper.GetLocalizedString("CannotDeleteRuntimeCriticalControl");
+            StatusMessage = I18nHelper.GetLocalizedString("CannotDeleteReferencedControl");
             return;
         }
 
@@ -2044,7 +2025,60 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             item = null;
         }
 
-        SelectedDesignItem = item;
+        SetSelectedDesignItems(item is null ? [] : [item], item);
+        ClearSelectedGlobalScoreCell();
+    }
+
+    /// <summary>
+    /// Selects multiple design controls and makes one of them the primary property-grid target.
+    /// </summary>
+    /// <param name="items">The controls to select.</param>
+    /// <param name="primaryItem">The primary selected control. When omitted, the first selected control is used.</param>
+    public void SelectDesignItems(
+        IEnumerable<FrontedControlDesignItem> items,
+        FrontedControlDesignItem? primaryItem = null)
+    {
+        if (CurrentDocument is null)
+        {
+            SelectDesignItem(null);
+            return;
+        }
+
+        var selected = items
+            .Where(item => item.IsSelectableInEditor && CurrentDocument.Controls.Contains(item))
+            .Distinct()
+            .ToList();
+        var primary = primaryItem is not null && selected.Contains(primaryItem)
+            ? primaryItem
+            : selected.FirstOrDefault();
+
+        SetSelectedDesignItems(selected, primary);
+        ClearSelectedGlobalScoreCell();
+    }
+
+    /// <summary>
+    /// Adds or removes a control from the current multi-selection.
+    /// </summary>
+    /// <param name="item">The control to toggle.</param>
+    public void ToggleDesignItemSelection(FrontedControlDesignItem item)
+    {
+        if (CurrentDocument is null || !item.IsSelectableInEditor || !CurrentDocument.Controls.Contains(item))
+        {
+            return;
+        }
+
+        var selected = SelectedDesignItems.ToList();
+        if (selected.Contains(item))
+        {
+            selected.Remove(item);
+            SetSelectedDesignItems(selected, ReferenceEquals(SelectedDesignItem, item) ? selected.LastOrDefault() : SelectedDesignItem);
+        }
+        else
+        {
+            selected.Add(item);
+            SetSelectedDesignItems(selected, item);
+        }
+
         ClearSelectedGlobalScoreCell();
     }
 
@@ -2089,6 +2123,57 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     {
         ClearSelectedGlobalScoreCell();
         SelectDesignItem(null);
+    }
+
+    private void SetSelectedDesignItems(
+        IReadOnlyCollection<FrontedControlDesignItem> items,
+        FrontedControlDesignItem? primaryItem)
+    {
+        var selected = items
+            .Where(item => item.IsSelectableInEditor)
+            .Distinct()
+            .ToList();
+        var primary = primaryItem is not null && selected.Contains(primaryItem)
+            ? primaryItem
+            : selected.FirstOrDefault();
+
+        _isApplyingDesignSelection = true;
+        try
+        {
+            SelectedDesignItems.Clear();
+            foreach (var item in selected)
+            {
+                SelectedDesignItems.Add(item);
+            }
+
+            SelectedDesignItem = primary;
+            if (ReferenceEquals(SelectedDesignItem, primary))
+            {
+                ApplyDesignSelectionFlags();
+            }
+
+            OnPropertyChanged(nameof(SelectedDesignItems));
+        }
+        finally
+        {
+            _isApplyingDesignSelection = false;
+        }
+
+        RefreshLayerNodeSelection();
+    }
+
+    private IReadOnlyList<FrontedControlDesignItem> GetMovableSelectedDesignItems()
+    {
+        if (SelectedDesignItems.Count == 0)
+        {
+            return SelectedDesignItem is { IsSelectableInEditor: true, IsEditableInEditor: true } item
+                ? [item]
+                : [];
+        }
+
+        return SelectedDesignItems
+            .Where(item => item.IsSelectableInEditor && item.IsEditableInEditor)
+            .ToList();
     }
 
     public bool TryGetSelectedGlobalScoreCell(
@@ -2216,6 +2301,37 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return;
         }
 
+        var selectedItems = GetMovableSelectedDesignItems();
+        if (selectedItems.Count > 1)
+        {
+            var changedItems = new List<FrontedControlDesignItem>();
+            foreach (var selectedItem in selectedItems)
+            {
+                FrontedDesignerGeometryHelper.Move(
+                    selectedItem,
+                    selectedItem.Config.Left,
+                    selectedItem.Config.Top,
+                    deltaX,
+                    deltaY,
+                    CurrentDocument,
+                    EffectiveSnapEnabled,
+                    SnapGridSize);
+                changedItems.Add(selectedItem);
+                foreach (var linkedOverlay in SyncLinkedOverlays(selectedItem))
+                {
+                    if (!changedItems.Contains(linkedOverlay))
+                    {
+                        changedItems.Add(linkedOverlay);
+                    }
+                }
+            }
+
+            CurrentDocument.IsDirty = true;
+            ClearActiveSnapGuides();
+            OnDesignItemGeometryChanged(renderPreview);
+            return;
+        }
+
         var bounds = FrontedDesignerBoundsResolver.Resolve(SelectedDesignItem.Config);
         var result = FrontedDesignerSmartSnapHelper.Move(
             SelectedDesignItem,
@@ -2238,6 +2354,61 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         OnDesignItemGeometryChanged(renderPreview);
     }
 
+    /// <summary>
+    /// Moves selected controls from their original drag-start bounds by a logical delta.
+    /// </summary>
+    /// <param name="originalBounds">Original bounds captured when the drag started.</param>
+    /// <param name="deltaX">Horizontal pointer delta.</param>
+    /// <param name="deltaY">Vertical pointer delta.</param>
+    /// <param name="renderPreview">Whether to render the full preview immediately.</param>
+    public void MoveSelectedDesignItems(
+        IReadOnlyDictionary<FrontedControlDesignItem, FrontedDesignerResolvedBounds> originalBounds,
+        double deltaX,
+        double deltaY,
+        bool renderPreview)
+    {
+        if (CurrentDocument is null || originalBounds.Count == 0)
+        {
+            return;
+        }
+
+        var selectedItems = GetMovableSelectedDesignItems();
+        if (selectedItems.Count <= 1)
+        {
+            var bounds = originalBounds.Values.FirstOrDefault();
+            MoveSelectedDesignItem(
+                originalBounds.Count > 0 ? bounds.Left : SelectedDesignItem?.Config.Left ?? 0D,
+                originalBounds.Count > 0 ? bounds.Top : SelectedDesignItem?.Config.Top ?? 0D,
+                deltaX,
+                deltaY,
+                renderPreview);
+            return;
+        }
+
+        foreach (var selectedItem in selectedItems)
+        {
+            if (!originalBounds.TryGetValue(selectedItem, out var bounds))
+            {
+                continue;
+            }
+
+            FrontedDesignerGeometryHelper.Move(
+                selectedItem,
+                bounds.Left,
+                bounds.Top,
+                deltaX,
+                deltaY,
+                CurrentDocument,
+                EffectiveSnapEnabled,
+                SnapGridSize);
+            SyncLinkedOverlays(selectedItem);
+        }
+
+        CurrentDocument.IsDirty = true;
+        ClearActiveSnapGuides();
+        OnDesignItemGeometryChanged(renderPreview);
+    }
+
     public void MoveSelectedDesignItemBy(double deltaX, double deltaY)
     {
         if (CurrentDocument is null || SelectedDesignItem is null)
@@ -2255,6 +2426,34 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 deltaX,
                 deltaY,
                 renderPreview: true);
+            return;
+        }
+
+        var selectedItems = GetMovableSelectedDesignItems();
+        if (selectedItems.Count > 1)
+        {
+            var batchChangedItems = new List<FrontedControlDesignItem>();
+            foreach (var selectedItem in selectedItems)
+            {
+                FrontedDesignerGeometryHelper.MoveBy(
+                    selectedItem,
+                    deltaX,
+                    deltaY,
+                    CurrentDocument,
+                    EffectiveSnapEnabled,
+                    SnapGridSize);
+                batchChangedItems.Add(selectedItem);
+                foreach (var linkedOverlay in SyncLinkedOverlays(selectedItem))
+                {
+                    if (!batchChangedItems.Contains(linkedOverlay))
+                    {
+                        batchChangedItems.Add(linkedOverlay);
+                    }
+                }
+            }
+
+            OnDesignItemGeometryChanged(renderPreview: false);
+            RequestDesignerGeometryPatch(batchChangedItems, updateSelection: true);
             return;
         }
 
@@ -2307,6 +2506,41 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return;
         }
 
+        var selectedItems = GetMovableSelectedDesignItems();
+        if (selectedItems.Count > 1)
+        {
+            var changedItems = new List<FrontedControlDesignItem>();
+            foreach (var selectedItem in selectedItems)
+            {
+                var bounds = FrontedDesignerBoundsResolver.Resolve(selectedItem.Config);
+                FrontedDesignerGeometryHelper.Resize(
+                    selectedItem,
+                    handle,
+                    selectedItem.Config.Left,
+                    selectedItem.Config.Top,
+                    bounds.Width,
+                    bounds.Height,
+                    deltaX,
+                    deltaY,
+                    CurrentDocument,
+                    EffectiveSnapEnabled,
+                    SnapGridSize);
+                changedItems.Add(selectedItem);
+                foreach (var linkedOverlay in SyncLinkedOverlays(selectedItem))
+                {
+                    if (!changedItems.Contains(linkedOverlay))
+                    {
+                        changedItems.Add(linkedOverlay);
+                    }
+                }
+            }
+
+            CurrentDocument.IsDirty = true;
+            ClearActiveSnapGuides();
+            OnDesignItemGeometryChanged(renderPreview);
+            return;
+        }
+
         if (SelectedDesignItem.Config is BorderedImageFrontedControlConfig imageConfig
             && BorderedImageResizeTarget == FrontedDesignerResizeTarget.Image)
         {
@@ -2344,6 +2578,69 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         CurrentDocument.IsDirty = true;
         ActiveSnapGuides = EffectiveSnapEnabled ? result.Guides : [];
         SyncLinkedOverlays(SelectedDesignItem);
+        OnDesignItemGeometryChanged(renderPreview);
+    }
+
+    /// <summary>
+    /// Resizes selected controls from their original drag-start bounds by a logical delta.
+    /// </summary>
+    /// <param name="handle">The resize handle being dragged.</param>
+    /// <param name="originalBounds">Original bounds captured when the resize started.</param>
+    /// <param name="deltaX">Horizontal pointer delta.</param>
+    /// <param name="deltaY">Vertical pointer delta.</param>
+    /// <param name="renderPreview">Whether to render the full preview immediately.</param>
+    public void ResizeSelectedDesignItems(
+        FrontedDesignerResizeHandleKind handle,
+        IReadOnlyDictionary<FrontedControlDesignItem, FrontedDesignerResolvedBounds> originalBounds,
+        double deltaX,
+        double deltaY,
+        bool renderPreview)
+    {
+        if (CurrentDocument is null || originalBounds.Count == 0)
+        {
+            return;
+        }
+
+        var selectedItems = GetMovableSelectedDesignItems();
+        if (selectedItems.Count <= 1)
+        {
+            var bounds = originalBounds.Values.FirstOrDefault();
+            ResizeSelectedDesignItem(
+                handle,
+                originalBounds.Count > 0 ? bounds.Left : SelectedDesignItem?.Config.Left ?? 0D,
+                originalBounds.Count > 0 ? bounds.Top : SelectedDesignItem?.Config.Top ?? 0D,
+                originalBounds.Count > 0 ? bounds.Width : SelectedDesignItem?.Config.Width ?? FrontedDesignerGeometryHelper.MinHitWidth,
+                originalBounds.Count > 0 ? bounds.Height : SelectedDesignItem?.Config.Height ?? FrontedDesignerGeometryHelper.MinHitHeight,
+                deltaX,
+                deltaY,
+                renderPreview);
+            return;
+        }
+
+        foreach (var selectedItem in selectedItems)
+        {
+            if (!originalBounds.TryGetValue(selectedItem, out var bounds))
+            {
+                continue;
+            }
+
+            FrontedDesignerGeometryHelper.Resize(
+                selectedItem,
+                handle,
+                bounds.Left,
+                bounds.Top,
+                bounds.Width,
+                bounds.Height,
+                deltaX,
+                deltaY,
+                CurrentDocument,
+                EffectiveSnapEnabled,
+                SnapGridSize);
+            SyncLinkedOverlays(selectedItem);
+        }
+
+        CurrentDocument.IsDirty = true;
+        ClearActiveSnapGuides();
         OnDesignItemGeometryChanged(renderPreview);
     }
 
@@ -2838,8 +3135,20 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return false;
         }
 
-        var oldValue = property.GetValue(SelectedDesignItem.Config);
-        if (ValuesEqual(oldValue, convertedValue))
+        var editTargets = GetPropertyEditTargets(item.PropertyName);
+        var changedTargets = editTargets
+            .Where(target =>
+            {
+                var targetProperty = target.Config.GetType().GetProperty(
+                    item.PropertyName,
+                    BindingFlags.Instance | BindingFlags.Public);
+                return targetProperty is not null
+                       && targetProperty.CanWrite
+                       && !ValuesEqual(targetProperty.GetValue(target.Config), convertedValue);
+            })
+            .ToList();
+
+        if (changedTargets.Count == 0)
         {
             ClearPropertyEditError(item.PropertyName);
             item.Value = convertedValue;
@@ -2848,14 +3157,24 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         CaptureUndoSnapshot();
-        property.SetValue(SelectedDesignItem.Config, convertedValue);
+        foreach (var target in changedTargets)
+        {
+            var targetProperty = target.Config.GetType().GetProperty(
+                item.PropertyName,
+                BindingFlags.Instance | BindingFlags.Public);
+            targetProperty?.SetValue(target.Config, convertedValue);
+        }
+
         item.Value = convertedValue;
         item.EditText = Convert.ToString(convertedValue, CultureInfo.InvariantCulture) ?? string.Empty;
         CurrentDocument.IsDirty = true;
 
         if (IsGeometryProperty(item.PropertyName))
         {
-            SyncLinkedOverlays(SelectedDesignItem);
+            foreach (var target in changedTargets)
+            {
+                SyncLinkedOverlays(target);
+            }
         }
 
         FinishPropertyEdit(item.PropertyName);
@@ -2865,6 +3184,27 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         return true;
+    }
+
+    private IReadOnlyList<FrontedControlDesignItem> GetPropertyEditTargets(string propertyName)
+    {
+        if (propertyName == nameof(FrontedControlDesignItem.Name)
+            || SelectedDesignItem is null
+            || SelectedDesignItems.Count <= 1)
+        {
+            return SelectedDesignItem is null ? [] : [SelectedDesignItem];
+        }
+
+        var selectedType = SelectedDesignItem.Config.ControlType;
+        var sameTypeTargets = SelectedDesignItems
+            .Where(target => target.IsEditableInEditor
+                             && target.IsSelectableInEditor
+                             && string.Equals(target.Config.ControlType, selectedType, StringComparison.Ordinal))
+            .ToList();
+
+        return sameTypeTargets.Count == SelectedDesignItems.Count
+            ? sameTypeTargets
+            : [SelectedDesignItem];
     }
 
     private bool ApplyGlobalScoreCellPropertyEdit(FrontedPropertyEditorItem item, object? newValue)
@@ -2920,13 +3260,12 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return false;
         }
 
-        if (SelectedDesignItem.IsRuntimeCritical
-            || !SelectedDesignItem.IsSelectableInEditor
+        if (!SelectedDesignItem.IsSelectableInEditor
             || !SelectedDesignItem.IsEditableInEditor)
         {
             SetPropertyEditError(
                 item,
-                I18nHelper.GetLocalizedString("RuntimeCriticalControl"),
+                I18nHelper.GetLocalizedString("InvalidControlName"),
                 newValue);
             return false;
         }
@@ -3227,8 +3566,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                     CurrentDocument,
                     SelectedDesignItem,
                     _validator,
-                    _referenceScanner,
-                    _runtimeContracts);
+                    _referenceScanner);
 
             foreach (var row in rows)
             {
@@ -3398,7 +3736,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             CurrentDocument.WindowTypeName,
             CurrentDocument.CanvasName,
             config,
-            _runtimeContracts,
             editingState);
         document.IsDirty = preserveDirty || CurrentDocument.IsDirty;
 
@@ -4148,7 +4485,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     {
         return node.Kind switch
         {
-            DesignerLayerNodeKind.Control => ReferenceEquals(node.ControlItem, SelectedDesignItem),
+            DesignerLayerNodeKind.Control => node.ControlItem is not null && SelectedDesignItems.Contains(node.ControlItem),
             _ => false
         };
     }
@@ -4194,6 +4531,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _lastSelectedDesignItem = null;
         if (CurrentDocument is null)
         {
+            SelectedDesignItems.Clear();
             SelectedDesignItem = null;
             return;
         }
@@ -4203,9 +4541,24 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             SelectedDesignItem = null;
         }
 
+        var retainedSelection = SelectedDesignItems
+            .Where(item => CurrentDocument.Controls.Contains(item))
+            .Distinct()
+            .ToList();
+        if (SelectedDesignItem is not null && !retainedSelection.Contains(SelectedDesignItem))
+        {
+            retainedSelection.Add(SelectedDesignItem);
+        }
+
+        SelectedDesignItems.Clear();
+        foreach (var item in retainedSelection)
+        {
+            SelectedDesignItems.Add(item);
+        }
+
         foreach (var control in CurrentDocument.Controls)
         {
-            control.IsSelected = ReferenceEquals(control, SelectedDesignItem);
+            control.IsSelected = SelectedDesignItems.Contains(control);
             if (control.IsSelected)
             {
                 _lastSelectedDesignItem = control;
@@ -4214,6 +4567,20 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         RebuildGlobalScoreCellEditorItems();
         RefreshGlobalScoreCellSelection();
+    }
+
+    private void ApplyDesignSelectionFlags()
+    {
+        var selected = SelectedDesignItems.ToHashSet();
+        if (CurrentDocument is not null)
+        {
+            foreach (var control in CurrentDocument.Controls)
+            {
+                control.IsSelected = selected.Contains(control);
+            }
+        }
+
+        _lastSelectedDesignItem = SelectedDesignItem;
     }
 
     private ObservableCollection<FrontedPropertyEditorItem> BuildGlobalScoreCellPropertyRows(GlobalScoreCellConfig cell)
@@ -4367,7 +4734,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             SelectedControlDisplay = I18nHelper.GetLocalizedString("NoControlSelected");
             SelectedControlTypeDisplay = string.Empty;
             SelectedControlGeometryDisplay = string.Empty;
-            SelectedControlRuntimeCriticalDisplay = string.Empty;
             SelectedControlValidationMessageCount = 0;
             return;
         }
@@ -4380,7 +4746,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             SelectedControlGeometryDisplay =
                 $"X {cell.X:0.##}  Y {cell.Y:0.##}  "
                 + $"W {cell.Width:0.##}  H {cell.Height:0.##}";
-            SelectedControlRuntimeCriticalDisplay = string.Empty;
             SelectedControlValidationMessageCount = SelectedDesignItem.ValidationMessages.Count;
             return;
         }
@@ -4391,9 +4756,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             $"L {config.Left:0.##}  T {config.Top:0.##}  "
             + $"W {(config.Width?.ToString("0.##") ?? "-")}  "
             + $"H {(config.Height?.ToString("0.##") ?? "-")}";
-        SelectedControlRuntimeCriticalDisplay = SelectedDesignItem.IsRuntimeCritical
-            ? I18nHelper.GetLocalizedString("RuntimeCriticalControl")
-            : string.Empty;
         SelectedControlValidationMessageCount = SelectedDesignItem.ValidationMessages.Count;
     }
 
@@ -4446,20 +4808,29 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         {
             IsSelectableInEditor: true,
             IsEditableInEditor: true,
-            IsRuntimeCritical: false
         };
     }
 
     private static string GeneratePasteName(string sourceName, string controlType, FrontedCanvasDesignDocument document)
     {
         var match = Regex.Match(sourceName, "^(.*?)(\\d+)$", RegexOptions.CultureInvariant);
-        var baseName = match.Success ? match.Groups[1].Value : GetNameSeed(controlType);
+        var baseName = match.Success ? match.Groups[1].Value : sourceName;
+        if (string.IsNullOrWhiteSpace(baseName))
+        {
+            baseName = GetNameSeed(controlType);
+        }
+
         var index = match.Success && int.TryParse(match.Groups[2].Value, out var parsed) ? parsed + 1 : 1;
+        var separator = match.Success ? string.Empty : "_";
         var existingNames = document.Controls.Select(control => control.Name).ToHashSet(StringComparer.Ordinal);
 
         while (true)
         {
-            var candidate = FrontedTextLimitHelper.Clamp($"{baseName}{index}", FrontedLayoutLimits.MaxControlNameLength);
+            var suffix = $"{separator}{index}";
+            var truncatedBaseName = FrontedTextLimitHelper.Clamp(
+                baseName,
+                Math.Max(1, FrontedLayoutLimits.MaxControlNameLength - suffix.Length));
+            var candidate = $"{truncatedBaseName}{suffix}";
             if (!existingNames.Contains(candidate) && ValidControlNameRegex.IsMatch(candidate))
             {
                 return candidate;
@@ -4541,8 +4912,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             var document = _designConverter.FromConfig(
                 windowTypeName,
                 canvasName,
-                config,
-                _runtimeContracts);
+                config);
             LogDesignerPerf(traceOperation, "design document rebuild", Elapsed(total));
             document.IsDirty = true;
             CurrentDocument = document;

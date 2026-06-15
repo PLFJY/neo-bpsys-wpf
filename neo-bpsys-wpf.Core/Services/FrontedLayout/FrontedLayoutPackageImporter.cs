@@ -444,8 +444,7 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
                     FrontedLayoutConstants.BaseCanvasName,
                     FrontedWindowConfigCanvasAdapter.ToCanvasConfig(config));
                 var error = validationMessages.FirstOrDefault(message =>
-                    message.Severity == global::neo_bpsys_wpf.Core.Models.FrontedLayout.Designer.FrontedLayoutValidationSeverity.Error
-                    && !string.Equals(message.Code, "RuntimeCriticalRenameOrDelete", StringComparison.Ordinal));
+                    message.Severity == global::neo_bpsys_wpf.Core.Models.FrontedLayout.Designer.FrontedLayoutValidationSeverity.Error);
                 if (error is not null)
                 {
                     return Fail($"Layout validation failed: {layout.Path}; {error.Message}");

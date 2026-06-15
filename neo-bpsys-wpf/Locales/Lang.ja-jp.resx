@@ -2014,9 +2014,6 @@
   <data name="NoControlSelected" xml:space="preserve">
     <value>コントロール未選択</value>
   </data>
-  <data name="RuntimeCriticalControl" xml:space="preserve">
-    <value>実行時重要コントロール</value>
-  </data>
   <data name="ValidationMessages" xml:space="preserve">
     <value>検証メッセージ</value>
   </data>
@@ -2086,9 +2083,6 @@
   <data name="ReadOnly" xml:space="preserve">
     <value>読み取り専用</value>
   </data>
-  <data name="RuntimeCritical" xml:space="preserve">
-    <value>実行時重要</value>
-  </data>
   <data name="InvalidControlName" xml:space="preserve">
     <value>コントロール名は空にできず、^[A-Za-z_][A-Za-z0-9_]*$ に一致する必要があります。</value>
   </data>
@@ -2157,9 +2151,6 @@
   </data>
   <data name="DeleteSelectedControl" xml:space="preserve">
     <value>コントロールを削除しました</value>
-  </data>
-  <data name="CannotDeleteRuntimeCriticalControl" xml:space="preserve">
-    <value>実行時に重要なコントロールは削除できません。</value>
   </data>
   <data name="CannotDeleteReferencedControl" xml:space="preserve">
     <value>このコントロールは他のコントロールから参照されているため削除できません。</value>
@@ -2781,9 +2772,6 @@
   </data>
   <data name="Designer.Property.ControlType" xml:space="preserve">
     <value>コントロールタイプ</value>
-  </data>
-  <data name="Designer.Property.RuntimeCritical" xml:space="preserve">
-    <value>ランタイム重要コントロール</value>
   </data>
   <data name="Designer.Property.Left" xml:space="preserve">
     <value>X 座標</value>
@@ -3504,7 +3492,7 @@
     <value>Text|通常のテキストコントロール。TextBinding は順序付きの複数ソースを結合し、ソースがない場合は静的 Text を表示します。|ソース順は {0}/{1} に対応し、StringFormat が空なら JoinSeparator で結合します。\nLocalizedText|ローカライズテキストコントロール。静的モードは LocalizationKey、TextBinding モードは動的テキストを結合してからローカライズを試みます。|動的結果がリソース key でない場合は元のテキストを表示します。\nImage|ルート要素が Image の直接画像コントロール。チームロゴ、マップ、単純な画像、旧 direct Image の意味を保つ場合に使います。|BindingPath は ImageSource をバインドします。ImagePath は BindingPath が空の時だけ使われます。バインドが優先され、ImagePath は自動削除されません。\nBorderedImage|外側 Border + 内側 Image。枠、クリップ、角丸、内部画像サイズ、リサイズ対象の切り替えが必要な画像領域に使います。|BindingPath と ImagePath の優先順位は Image と同じです。Width/Height は外枠、ImageWidth/ImageHeight は内部画像に作用します。\nGameProgressText|現在のゲーム、ハーフ、BO3/BO5、延長ルールから対局進行テキストを生成します。|2 行表示が必要な場合は DisplayMode を TwoLine に設定します。この種の業務文言を通常の Text に直接書かないでください。\nMapNameText|マップ enum/key をローカライズ済みマップ名に変換します。既定では選択マップを読み、BindingPath で picked/banned map フィールドを指定できます。|EmptyText はマップが空の時の表示です。BindingPath は Map/Map? フィールドを指すべきです。\nGlobalScoreRow|全体スコア行の複合コントロール。親フレーム内の Cells が各ハーフスコアセルを定義し、MatchScore からテキストと陣営アイコンを表示します。|通常は ScoreGlobalWindow で使います。親は行全体、子セルは個別スコア位置の編集に使います。\nTalentTraitDisplay|CutScene の天賦/補助特質表示。DisplayKind と PlayerIndex に応じて固定の業務データを読みます。|補助特質の表示設定にも従えます。JSON に個別の天賦アイコンを直接書かないでください。\nMapV2Display|Map BP v2 表示。MapKey を使い、MapV2Presenter を再利用します。|MapV2Window のレイアウト向けです。内部の Map BP v2 表示要素を手作りしないでください。\n共通注意|動的データの BindingPath は Binding Browser で選びます。ImagePath、BackgroundImage、LockImageSource などのリソースパスは Resource Browser で選びます。|静的リソースは Resources/xxx.png または bpui://... を優先し、任意の絶対パスへ長期依存しないでください。画像が欠落または上限超過しても警告または空表示に留め、前台ウィンドウをクラッシュさせない設計です。</value>
   </data>
   <data name="Designer.Help.AddDeleteCopyPaste.Content" xml:space="preserve">
-    <value>Add Control inserts built-in/plugin controls;\nCopied control gets unique numbered name on paste;\nPaste offsets the new control;\nRuntime-critical/generated overlays may not be copyable/deletable;\nUndo/Redo can restore add, delete, paste, reorder operations.</value>
+    <value>Add Control inserts built-in/plugin controls;\nCopied control gets unique numbered name on paste;\nPaste offsets the new control;\nGenerated overlays or non-editable controls may not be copyable/deletable;\nUndo/Redo can restore add, delete, paste, reorder operations.</value>
   </data>
   <data name="Designer.Help.CanvasWindowSettings.Content" xml:space="preserve">
     <value>Canvas Width/Height edit canvas design size;\nBackground image supports bpui resource URI;\nAllowTransparency is a window-level option; created fronted windows silently restart their instance;\nNever-created windows apply the latest setting on next show.</value>

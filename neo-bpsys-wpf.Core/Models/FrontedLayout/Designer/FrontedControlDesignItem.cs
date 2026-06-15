@@ -10,7 +10,6 @@ public class FrontedControlDesignItem : ObservableObject
     private string _name = string.Empty;
     private FrontedControlConfigBase _config = new();
     private bool _isSelected;
-    private bool _isRuntimeCritical;
     private bool _isSelectableInEditor = true;
     private bool _isEditableInEditor = true;
     private bool _isLinkedOverlay;
@@ -41,15 +40,6 @@ public class FrontedControlDesignItem : ObservableObject
     {
         get => _isSelected;
         set => SetProperty(ref _isSelected, value);
-    }
-
-    /// <summary>
-    /// 是否属于运行时关键名称。
-    /// </summary>
-    public bool IsRuntimeCritical
-    {
-        get => _isRuntimeCritical;
-        set => SetProperty(ref _isRuntimeCritical, value);
     }
 
     /// <summary>

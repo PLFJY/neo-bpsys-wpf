@@ -57,12 +57,9 @@ public class FrontedLayoutDesignerFoundationTest
         var document = new FrontedLayoutDesignConverter().FromConfig(
             "BpWindow",
             "BaseCanvas",
-            config,
-            new FrontedLayoutRuntimeContractCatalog());
+            config);
 
         Assert.Equal(["Title", "SurPick0"], document.Controls.Select(item => item.Name));
-        Assert.False(document.Controls.Single(item => item.Name == "Title").IsRuntimeCritical);
-        Assert.True(document.Controls.Single(item => item.Name == "SurPick0").IsRuntimeCritical);
     }
 
     [Fact]
@@ -94,7 +91,7 @@ public class FrontedLayoutDesignerFoundationTest
         };
 
         var converter = new FrontedLayoutDesignConverter(registry);
-        var document = converter.FromConfig("TestWindow", "BaseCanvas", config, new FrontedLayoutRuntimeContractCatalog());
+        var document = converter.FromConfig("TestWindow", "BaseCanvas", config);
         var roundTrip = converter.ToConfig(document);
 
         var dependency = Assert.Single(roundTrip.RequiredPlugins);
@@ -203,8 +200,7 @@ public class FrontedLayoutDesignerFoundationTest
             document,
             document.Controls[0],
             new FrontedLayoutValidator(new PluginFrontedControlRegistryForTests()),
-            new FrontedLayoutReferenceScanner(),
-            new FrontedLayoutRuntimeContractCatalog());
+            new FrontedLayoutReferenceScanner());
 
         var mode = rows.Single(row => row.PropertyName == nameof(TestPluginDesignerConfig.Mode));
         Assert.Equal(FrontedPropertyEditorKind.Enum, mode.EditorKind);
@@ -311,16 +307,6 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.True(config.Controls.ContainsKey("StaticTitle"));
         Assert.False(jsonDocument.RootElement.GetProperty("StaticTitle").TryGetProperty("Name", out _));
         Assert.False(jsonDocument.RootElement.TryGetProperty("Controls", out _));
-    }
-
-    [Fact]
-    public void RuntimeContractCatalogMarksBpWindowBaseCanvasCriticalNames()
-    {
-        var catalog = new FrontedLayoutRuntimeContractCatalog();
-
-        Assert.True(catalog.IsRuntimeCritical("BpWindow", "BaseCanvas", "SurPick0"));
-        Assert.True(catalog.IsRuntimeCritical("BpWindow", "BaseCanvas", "HunPickingBorder"));
-        Assert.False(catalog.IsRuntimeCritical("ScoreSurWindow", "BaseCanvas", "SurPick0"));
     }
 
     [Fact]
@@ -549,23 +535,6 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
-    public void ValidatorErrorsIfBpWindowBaseCanvasIsMissingRuntimeCriticalNames()
-    {
-        var config = ReadBuiltInLayout("BpWindow");
-        config.Controls.Remove("SurPick0");
-        Assert.IsType<ImageFrontedControlConfig>(config.Controls["HunPick"]).PickingBorderName = null;
-
-        var messages = CreateValidator().Validate("BpWindow", "BaseCanvas", config);
-
-        Assert.Contains(
-            messages,
-            message => message.Code == "RuntimeCriticalRenameOrDelete" && message.ControlName == "SurPick0");
-        Assert.Contains(
-            messages,
-            message => message.Code == "RuntimeCriticalRenameOrDelete" && message.ControlName == "HunPickingBorder");
-    }
-
-    [Fact]
     public void CanvasValidationErrorsWhenVersionIsNotThree()
     {
         var document = CreateDocument([]);
@@ -710,8 +679,7 @@ public class FrontedLayoutDesignerFoundationTest
         var document = new FrontedLayoutDesignConverter().FromConfig(
             entry.WindowTypeName,
             "BaseCanvas",
-            config,
-            new FrontedLayoutRuntimeContractCatalog());
+            config);
 
         Assert.Equal(config.CanvasWidth, document.CanvasConfig.CanvasWidth);
         Assert.Equal(config.CanvasHeight, document.CanvasConfig.CanvasHeight);
@@ -825,21 +793,6 @@ public class FrontedLayoutDesignerFoundationTest
 
         Assert.Equal(52, item.Config.Width);
         Assert.Equal(24, item.Config.Height);
-    }
-
-    [Fact]
-    public void DesignerGeometryHelperKeepsRuntimeCriticalFlagAfterMove()
-    {
-        var item = new FrontedControlDesignItem
-        {
-            Name = "SurPick0",
-            IsRuntimeCritical = true,
-            Config = new ImageFrontedControlConfig { Left = 10, Top = 20 }
-        };
-
-        FrontedDesignerGeometryHelper.MoveBy(item, 1, 1);
-
-        Assert.True(item.IsRuntimeCritical);
     }
 
     [Theory]
@@ -1052,6 +1005,53 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
+    public void PasteControlUsesSourceNameWithUnderscoreSuffixWhenSourceNameDoesNotEndWithNumber()
+    {
+        var title = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            IsSelectableInEditor = true,
+            IsEditableInEditor = true,
+            Config = new TextFrontedControlConfig { Text = "A" }
+        };
+        var document = CreateDocument([title]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        viewModel.SelectDesignItem(title);
+
+        viewModel.CopySelectedControlCommand.Execute(null);
+        viewModel.PasteControlCommand.Execute(null);
+
+        Assert.Contains(document.Controls, control => control.Name == "Title_1");
+    }
+
+    [Fact]
+    public void PasteControlIncrementsSourceNameTrailingNumberAndSkipsExistingNames()
+    {
+        var title = new FrontedControlDesignItem
+        {
+            Name = "Title1",
+            IsSelectableInEditor = true,
+            IsEditableInEditor = true,
+            Config = new TextFrontedControlConfig { Text = "A" }
+        };
+        var existing = new FrontedControlDesignItem
+        {
+            Name = "Title2",
+            IsSelectableInEditor = true,
+            IsEditableInEditor = true,
+            Config = new TextFrontedControlConfig { Text = "B" }
+        };
+        var document = CreateDocument([title, existing]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        viewModel.SelectDesignItem(title);
+
+        viewModel.CopySelectedControlCommand.Execute(null);
+        viewModel.PasteControlCommand.Execute(null);
+
+        Assert.Contains(document.Controls, control => control.Name == "Title3");
+    }
+
+    [Fact]
     public void PasteSchedulesValidationAndPreviewAndCoalescesRapidPastes()
     {
         var title = new FrontedControlDesignItem
@@ -1194,28 +1194,6 @@ public class FrontedLayoutDesignerFoundationTest
 
         var removedGuid = Assert.Single(behaviorService.RemovedBehaviorGuids);
         Assert.Equal(behaviorGuid, removedGuid);
-    }
-
-    [Fact]
-    public void DeleteSelectedControlRefusesRuntimeCriticalControls()
-    {
-        var runtimeCritical = new FrontedControlDesignItem
-        {
-            Name = "SurPick0",
-            IsRuntimeCritical = true,
-            IsSelectableInEditor = true,
-            IsEditableInEditor = true,
-            Config = new ImageFrontedControlConfig()
-        };
-        var document = CreateDocument([runtimeCritical], "BpWindow");
-        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
-
-        viewModel.SelectDesignItem(runtimeCritical);
-        viewModel.DeleteSelectedControlCommand.Execute(null);
-        Assert.Contains(runtimeCritical, document.Controls);
-
-        Assert.False(string.IsNullOrWhiteSpace(viewModel.StatusMessage));
-        Assert.False(document.IsDirty);
     }
 
     [Fact]
@@ -1856,6 +1834,127 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
+    public void DesignerViewModelSelectDesignItemsKeepsMultipleItemsSelected()
+    {
+        var first = new FrontedControlDesignItem { Name = "First", Config = new TextFrontedControlConfig() };
+        var second = new FrontedControlDesignItem { Name = "Second", Config = new TextFrontedControlConfig() };
+        var viewModel = new FrontedDesignerWindowViewModel
+        {
+            CurrentDocument = CreateDocument([first, second])
+        };
+
+        viewModel.SelectDesignItems([first, second], second);
+
+        Assert.Same(second, viewModel.SelectedDesignItem);
+        Assert.Equal([first, second], viewModel.SelectedDesignItems);
+        Assert.True(first.IsSelected);
+        Assert.True(second.IsSelected);
+    }
+
+    [Fact]
+    public void DesignerViewModelToggleDesignItemSelectionAddsAndRemovesItems()
+    {
+        var first = new FrontedControlDesignItem { Name = "First", Config = new TextFrontedControlConfig() };
+        var second = new FrontedControlDesignItem { Name = "Second", Config = new TextFrontedControlConfig() };
+        var viewModel = new FrontedDesignerWindowViewModel
+        {
+            CurrentDocument = CreateDocument([first, second])
+        };
+
+        viewModel.SelectDesignItem(first);
+        viewModel.ToggleDesignItemSelection(second);
+        viewModel.ToggleDesignItemSelection(first);
+
+        Assert.Same(second, viewModel.SelectedDesignItem);
+        Assert.Equal([second], viewModel.SelectedDesignItems);
+        Assert.False(first.IsSelected);
+        Assert.True(second.IsSelected);
+    }
+
+    [Fact]
+    public void DesignerViewModelMoveSelectedDesignItemByMovesAllSelectedItems()
+    {
+        var first = new FrontedControlDesignItem
+        {
+            Name = "First",
+            Config = new TextFrontedControlConfig { Left = 10, Top = 20 }
+        };
+        var second = new FrontedControlDesignItem
+        {
+            Name = "Second",
+            Config = new TextFrontedControlConfig { Left = 30, Top = 40 }
+        };
+        var viewModel = new FrontedDesignerWindowViewModel
+        {
+            CurrentDocument = CreateDocument([first, second])
+        };
+
+        viewModel.SelectDesignItems([first, second], second);
+        viewModel.MoveSelectedDesignItemBy(5, -10);
+
+        Assert.Equal(15, first.Config.Left);
+        Assert.Equal(10, first.Config.Top);
+        Assert.Equal(35, second.Config.Left);
+        Assert.Equal(30, second.Config.Top);
+    }
+
+    [Fact]
+    public void DesignerViewModelApplyPropertyEditUpdatesAllSameTypeSelectedItemsExceptName()
+    {
+        var first = new FrontedControlDesignItem
+        {
+            Name = "First",
+            Config = new TextFrontedControlConfig { Text = "A" }
+        };
+        var second = new FrontedControlDesignItem
+        {
+            Name = "Second",
+            Config = new TextFrontedControlConfig { Text = "B" }
+        };
+        var viewModel = new FrontedDesignerWindowViewModel
+        {
+            CurrentDocument = CreateDocument([first, second])
+        };
+
+        viewModel.SelectDesignItems([first, second], first);
+        var applied = viewModel.ApplyPropertyEdit(TextEditorRow(nameof(TextFrontedControlConfig.Text)), "Shared");
+        var renamed = viewModel.ApplyPropertyEdit(NameEditorRow(), "Renamed");
+
+        Assert.True(applied);
+        Assert.True(renamed);
+        Assert.Equal("Shared", Assert.IsType<TextFrontedControlConfig>(first.Config).Text);
+        Assert.Equal("Shared", Assert.IsType<TextFrontedControlConfig>(second.Config).Text);
+        Assert.Equal("Renamed", first.Name);
+        Assert.Equal("Second", second.Name);
+    }
+
+    [Fact]
+    public void DesignerViewModelApplyPropertyEditDoesNotBatchMixedControlTypes()
+    {
+        var text = new FrontedControlDesignItem
+        {
+            Name = "Text",
+            Config = new TextFrontedControlConfig { Text = "A" }
+        };
+        var image = new FrontedControlDesignItem
+        {
+            Name = "Image",
+            Config = new ImageFrontedControlConfig()
+        };
+        var viewModel = new FrontedDesignerWindowViewModel
+        {
+            CurrentDocument = CreateDocument([text, image])
+        };
+
+        viewModel.SelectDesignItems([text, image], text);
+        var applied = viewModel.ApplyPropertyEdit(TextEditorRow(nameof(TextFrontedControlConfig.Text)), "OnlyText");
+
+        Assert.True(applied);
+        Assert.Equal("OnlyText", Assert.IsType<TextFrontedControlConfig>(text.Config).Text);
+        Assert.IsType<ImageFrontedControlConfig>(image.Config);
+    }
+
+    [Fact]
     public void DesignerViewModelSelectDesignItemSetsSelectedItemAndKeepsItAfterMove()
     {
         var item = new FrontedControlDesignItem
@@ -2017,9 +2116,10 @@ public class FrontedLayoutDesignerFoundationTest
     [Fact]
     public void PropertyGridBuilderAppliesNameReadOnlyRules()
     {
-        var runtimeCritical = new FrontedControlDesignItem
+        var nonEditable = new FrontedControlDesignItem
         {
-            Name = "SurPick0",
+            Name = "Overlay",
+            IsEditableInEditor = false,
             Config = new ImageFrontedControlConfig()
         };
         var normal = new FrontedControlDesignItem
@@ -2028,12 +2128,12 @@ public class FrontedLayoutDesignerFoundationTest
             Config = new TextFrontedControlConfig()
         };
 
-        var criticalRows = BuildPropertyRows(
-            CreateDocument([runtimeCritical], "BpWindow"),
-            runtimeCritical);
+        var nonEditableRows = BuildPropertyRows(
+            CreateDocument([nonEditable], "BpWindow"),
+            nonEditable);
         var normalRows = BuildPropertyRows(CreateDocument([normal]), normal);
 
-        Assert.True(criticalRows.Single(row => row.PropertyName == nameof(FrontedControlDesignItem.Name)).IsReadOnly);
+        Assert.True(nonEditableRows.Single(row => row.PropertyName == nameof(FrontedControlDesignItem.Name)).IsReadOnly);
         Assert.False(normalRows.Single(row => row.PropertyName == nameof(FrontedControlDesignItem.Name)).IsReadOnly);
     }
 
@@ -2360,29 +2460,6 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
-    public void PropertyGridReadOnlyBoolDisplayUsesDesignerLocalization()
-    {
-        var localizer = new TestDesignerLocalizationService(
-            designerTexts: new Dictionary<string, string>(StringComparer.Ordinal)
-            {
-                ["Designer.Value.True"] = "是",
-                ["Designer.Value.False"] = "否"
-            });
-        var item = new FrontedControlDesignItem
-        {
-            Name = "SurPick0",
-            Config = new ImageFrontedControlConfig()
-        };
-        var document = CreateDocument([item], "BpWindow");
-
-        var rows = BuildPropertyRows(document, item, localizer);
-        var runtimeCritical = rows.Single(row => row.PropertyName == "RuntimeCritical");
-
-        Assert.Equal(true, runtimeCritical.Value);
-        Assert.Equal("是", runtimeCritical.DisplayValue);
-    }
-
-    [Fact]
     public void ResourceBrowserLocalizationKeepsRawResourceUriVisible()
     {
         var localizer = new TestDesignerLocalizationService(
@@ -2421,7 +2498,6 @@ public class FrontedLayoutDesignerFoundationTest
         var requiredKeys = new HashSet<string>(StringComparer.Ordinal)
         {
             "Designer.Property.Name",
-            "Designer.Property.RuntimeCritical",
             "Designer.Value.True",
             "Designer.Value.False",
             "Designer.Editor.Search",
@@ -2893,19 +2969,13 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
-    public void ApplyPropertyEditRefusesInvalidDuplicateAndRuntimeCriticalNames()
+    public void ApplyPropertyEditRefusesInvalidAndDuplicateNames()
     {
         var title = new FrontedControlDesignItem { Name = "Title", Config = new TextFrontedControlConfig() };
         var logo = new FrontedControlDesignItem { Name = "Logo", Config = new ImageFrontedControlConfig() };
-        var runtimeCritical = new FrontedControlDesignItem
-        {
-            Name = "SurPick0",
-            IsRuntimeCritical = true,
-            Config = new ImageFrontedControlConfig()
-        };
         var viewModel = new FrontedDesignerWindowViewModel
         {
-            CurrentDocument = CreateDocument([title, logo, runtimeCritical], "BpWindow")
+            CurrentDocument = CreateDocument([title, logo], "BpWindow")
         };
 
         viewModel.SelectDesignItem(title);
@@ -2922,11 +2992,6 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Equal("Title", title.Name);
         Assert.Equal("Logo", duplicateNameRow.EditText);
         Assert.True(duplicateNameRow.HasEditError);
-
-        viewModel.SelectDesignItem(runtimeCritical);
-        var runtimeResult = viewModel.ApplyPropertyEdit(NameEditorRow(), "SurPickA");
-        Assert.False(runtimeResult);
-        Assert.Equal("SurPick0", runtimeCritical.Name);
     }
 
     [Fact]
@@ -3652,7 +3717,6 @@ public class FrontedLayoutDesignerFoundationTest
             "Preview",
             "SelectedControl",
             "NoControlSelected",
-            "RuntimeCriticalControl",
             "ValidationMessages",
             "ControlsList",
             "FilterControls",
@@ -3668,7 +3732,6 @@ public class FrontedLayoutDesignerFoundationTest
             "Appearance",
             "ControlSpecific",
             "ReadOnly",
-            "RuntimeCritical",
             "InvalidControlName",
             "DuplicateControlName",
             "ReferencedControlRenameBlocked",
@@ -3691,7 +3754,6 @@ public class FrontedLayoutDesignerFoundationTest
             "UnsupportedControlType",
             "DeleteControl",
             "DeleteSelectedControl",
-            "CannotDeleteRuntimeCriticalControl",
             "CannotDeleteReferencedControl",
             "ConfirmDeleteControl",
             "Undo",
@@ -4897,8 +4959,7 @@ public class FrontedLayoutDesignerFoundationTest
             document,
             item,
             CreateValidator(),
-            new FrontedLayoutReferenceScanner(),
-            new FrontedLayoutRuntimeContractCatalog());
+            new FrontedLayoutReferenceScanner());
     }
 
     private static IReadOnlyList<Type> BuiltInConfigTypes() =>
@@ -5057,11 +5118,19 @@ public class FrontedLayoutDesignerFoundationTest
         };
     }
 
+    private static FrontedPropertyEditorItem TextEditorRow(string propertyName)
+    {
+        return new FrontedPropertyEditorItem
+        {
+            PropertyName = propertyName,
+            EditorKind = FrontedPropertyEditorKind.Text
+        };
+    }
+
     private static FrontedLayoutValidator CreateValidator()
     {
         return new FrontedLayoutValidator(
             new KnownFrontedControlRegistry(),
-            runtimeContracts: new FrontedLayoutRuntimeContractCatalog(),
             referenceScanner: new FrontedLayoutReferenceScanner());
     }
 
