@@ -30,6 +30,8 @@ public class FrontedPropertyEditorItem : ObservableObject
     private bool _isGroupHeaderVisible;
     private bool _canBrowseBinding;
     private bool _canBrowseResource;
+    private bool _isMultiSelectionMixedValue;
+    private bool _isMultiSelectionBatchEditable = true;
     private string? _browseButtonText;
     private string? _browseDialogTitle;
     private FrontedBindingTargetKind _bindingTargetKind = FrontedBindingTargetKind.Any;
@@ -262,6 +264,24 @@ public class FrontedPropertyEditorItem : ObservableObject
     {
         get => _canBrowseResource;
         set => SetProperty(ref _canBrowseResource, value);
+    }
+
+    /// <summary>
+    /// Gets or sets whether the row represents selected controls with different current values.
+    /// </summary>
+    public bool IsMultiSelectionMixedValue
+    {
+        get => _isMultiSelectionMixedValue;
+        set => SetProperty(ref _isMultiSelectionMixedValue, value);
+    }
+
+    /// <summary>
+    /// Gets or sets whether this row can be batch-edited for the current multi-selection.
+    /// </summary>
+    public bool IsMultiSelectionBatchEditable
+    {
+        get => _isMultiSelectionBatchEditable;
+        set => SetProperty(ref _isMultiSelectionBatchEditable, value);
     }
 
     /// <summary>

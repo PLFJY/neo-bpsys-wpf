@@ -27,7 +27,7 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <Grid Margin="10,0,10,10">
+    <Grid Margin="10,10,10,10">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="2*" MinWidth="340" />
             <ColumnDefinition Width="*" MinWidth="360" />

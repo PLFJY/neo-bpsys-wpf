@@ -697,7 +697,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             : -1;
         ApplyDesignSelectionFlags();
 
-        BehaviorPanel.SetSelectedControl(value);
+        BehaviorPanel.SetSelectedControl(SelectedDesignItems.Count > 1 ? null : value);
         RefreshSelectedControlDisplay();
         RebuildGlobalScoreCellEditorItems();
         RebuildAnimationPartEditorItems();
@@ -3100,6 +3100,16 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return false;
         }
 
+        if (!item.IsMultiSelectionBatchEditable)
+        {
+            return false;
+        }
+
+        if (item.IsMultiSelectionMixedValue && IsEmptyMultiSelectionPlaceholderValue(newValue))
+        {
+            return true;
+        }
+
         if (item.CanBrowseResource
             && newValue is string text
             && IsAbsoluteFilePath(text))
@@ -3570,6 +3580,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
             foreach (var row in rows)
             {
+                ApplyMultiSelectionPropertyRowState(row);
                 if (_propertyEditErrors.TryGetValue(row.PropertyName, out var editError))
                 {
                     if (_propertyEditBuffers.TryGetValue(row.PropertyName, out var editBuffer))
@@ -3596,6 +3607,154 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             OnPropertyChanged(nameof(IsRebuildingPropertyGrid));
         }
     }
+
+    private void ApplyMultiSelectionPropertyRowState(FrontedPropertyEditorItem row)
+    {
+        if (CurrentDocument is null
+            || SelectedDesignItem is null
+            || SelectedDesignItems.Count <= 1
+            || HasSelectedGlobalScoreCell)
+        {
+            return;
+        }
+
+        if (!CanBatchEditSelectedProperty(row))
+        {
+            row.IsMultiSelectionBatchEditable = false;
+            ClearMultiSelectionPropertyRow(row, makeReadOnly: true);
+            return;
+        }
+
+        row.IsMultiSelectionBatchEditable = true;
+        if (!TryGetCommonSelectedPropertyValue(row.PropertyName, out var commonValue))
+        {
+            row.IsMultiSelectionMixedValue = true;
+            ClearMultiSelectionPropertyRow(row, makeReadOnly: false);
+            return;
+        }
+
+        row.IsMultiSelectionMixedValue = false;
+        row.Value = commonValue;
+        row.DisplayValue = GetPropertyEditorDisplayValue(commonValue);
+        row.EditText = Convert.ToString(commonValue, CultureInfo.InvariantCulture) ?? string.Empty;
+    }
+
+    private bool CanBatchEditSelectedProperty(FrontedPropertyEditorItem row)
+    {
+        if (SelectedDesignItem is null || SelectedDesignItems.Count <= 1)
+        {
+            return true;
+        }
+
+        if (row.IsReadOnly
+            || row.EditorKind == FrontedPropertyEditorKind.ReadOnly
+            || row.PropertyName == nameof(FrontedControlDesignItem.Name)
+            || row.CanBrowseBinding
+            || row.CanBrowseResource
+            || row.EditorKind == FrontedPropertyEditorKind.TextBinding
+            || IsMultiSelectionIsolatedProperty(row.PropertyName))
+        {
+            return false;
+        }
+
+        var controlType = SelectedDesignItem.Config.ControlType;
+        return SelectedDesignItems.All(item =>
+        {
+            if (!item.IsEditableInEditor
+                || !item.IsSelectableInEditor
+                || !string.Equals(item.Config.ControlType, controlType, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            var property = item.Config.GetType().GetProperty(
+                row.PropertyName,
+                BindingFlags.Instance | BindingFlags.Public);
+            return property is not null
+                   && property.CanRead
+                   && property.CanWrite
+                   && IsBatchEditablePropertyType(property.PropertyType);
+        });
+    }
+
+    private bool TryGetCommonSelectedPropertyValue(string propertyName, out object? commonValue)
+    {
+        commonValue = null;
+        var hasValue = false;
+        foreach (var item in SelectedDesignItems)
+        {
+            var property = item.Config.GetType().GetProperty(
+                propertyName,
+                BindingFlags.Instance | BindingFlags.Public);
+            if (property is null || !property.CanRead)
+            {
+                return false;
+            }
+
+            var value = property.GetValue(item.Config);
+            if (!hasValue)
+            {
+                commonValue = value;
+                hasValue = true;
+                continue;
+            }
+
+            if (!ValuesEqual(commonValue, value))
+            {
+                commonValue = null;
+                return false;
+            }
+        }
+
+        return hasValue;
+    }
+
+    private static void ClearMultiSelectionPropertyRow(FrontedPropertyEditorItem row, bool makeReadOnly)
+    {
+        row.Value = null;
+        row.DisplayValue = string.Empty;
+        row.EditText = string.Empty;
+        if (makeReadOnly)
+        {
+            row.EditorKind = FrontedPropertyEditorKind.ReadOnly;
+            row.IsReadOnly = true;
+            row.CanBrowseBinding = false;
+            row.CanBrowseResource = false;
+        }
+    }
+
+    private static bool IsMultiSelectionIsolatedProperty(string propertyName)
+    {
+        return propertyName.Contains("Binding", StringComparison.OrdinalIgnoreCase)
+               || propertyName.Contains("Behavior", StringComparison.OrdinalIgnoreCase)
+               || propertyName.Contains("Trigger", StringComparison.OrdinalIgnoreCase)
+               || propertyName.Contains("Filter", StringComparison.OrdinalIgnoreCase)
+               || propertyName.Contains("Guid", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsBatchEditablePropertyType(Type propertyType)
+    {
+        var type = Nullable.GetUnderlyingType(propertyType) ?? propertyType;
+        return type.IsPrimitive
+               || type.IsEnum
+               || type == typeof(string)
+               || type == typeof(decimal)
+               || type == typeof(DateTime)
+               || type == typeof(TimeSpan);
+    }
+
+    private static bool IsEmptyMultiSelectionPlaceholderValue(object? value)
+    {
+        if (value is null)
+        {
+            return true;
+        }
+
+        return value is string text && string.IsNullOrEmpty(text);
+    }
+
+    private static string GetPropertyEditorDisplayValue(object? value) =>
+        Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty;
 
     private void SetPropertyEditError(FrontedPropertyEditorItem item, string message, object? attemptedValue)
     {
@@ -4026,6 +4185,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         Core.Models.FrontedLayout.Binding.FrontedTextBindingExpression expression)
     {
         if (CurrentDocument is null || SelectedDesignItem is null || item.IsReadOnly)
+        {
+            return false;
+        }
+
+        if (!item.IsMultiSelectionBatchEditable || item.IsMultiSelectionMixedValue)
         {
             return false;
         }

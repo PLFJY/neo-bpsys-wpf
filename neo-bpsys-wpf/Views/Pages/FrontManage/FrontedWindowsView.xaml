@@ -24,7 +24,7 @@
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Margin="10,0,10,0">
+        <StackPanel Margin="10,10,10,0">
             <Border Margin="0,0,0,10" Style="{StaticResource Card}">
                 <Grid>
                     <Grid.RowDefinitions>
