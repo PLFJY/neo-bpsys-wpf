@@ -219,6 +219,7 @@ public class FrontedPropertyGridBuilder
             if (kind == FrontedPropertyEditorKind.Color
                 && value is string color
                 && !string.IsNullOrWhiteSpace(color)
+                && !IsColorOverriddenByBinding(selectedItem.Config, property.Name)
                 && !FrontedPropertyColorHelper.TryParseArgbColor(color, out _))
             {
                 var message = _localizationService.GetDesignerText(
@@ -448,6 +449,11 @@ public class FrontedPropertyGridBuilder
         if (property.Name == nameof(ImageFrontedControlConfig.LockVisibilityBindingPath))
         {
             return FrontedBindingTargetKind.Boolean;
+        }
+
+        if (property.Name.EndsWith("ColorBindingPath", StringComparison.Ordinal))
+        {
+            return FrontedBindingTargetKind.String;
         }
 
         if (config is ShapeFrontedControlConfigBase)
@@ -699,6 +705,11 @@ public class FrontedPropertyGridBuilder
             return "Binding";
         }
 
+        if (propertyName.EndsWith("ColorBindingPath", StringComparison.Ordinal))
+        {
+            return "Binding";
+        }
+
         if (config is ShapeFrontedControlConfigBase)
         {
             // UseGradient is a toggle in the Appearance group, not a binding switch
@@ -857,6 +868,17 @@ public class FrontedPropertyGridBuilder
     private static bool IsColorProperty(string propertyName) =>
         ColorPropertyNames.Contains(propertyName) || propertyName.EndsWith("Color", StringComparison.OrdinalIgnoreCase);
 
+    private static bool IsColorOverriddenByBinding(FrontedControlConfigBase config, string propertyName) =>
+        propertyName == nameof(TextFrontedControlConfig.Color)
+        && config switch
+        {
+            TextFrontedControlConfig text => !string.IsNullOrWhiteSpace(text.ColorBindingPath),
+            LocalizedTextControlConfig localizedText => !string.IsNullOrWhiteSpace(localizedText.ColorBindingPath),
+            GameProgressTextControlConfig gameProgressText => !string.IsNullOrWhiteSpace(gameProgressText.ColorBindingPath),
+            MapNameTextControlConfig mapNameText => !string.IsNullOrWhiteSpace(mapNameText.ColorBindingPath),
+            _ => false
+        };
+
     private static bool IsFontFamilyProperty(string propertyName) =>
         propertyName.EndsWith("FontFamily", StringComparison.OrdinalIgnoreCase);
 
@@ -960,6 +982,13 @@ public class FrontedPropertyGridBuilder
                 _localizationService.GetDesignerText(
                     "Designer.Validation.GradientEndColorIgnored",
                     "Static gradient end color is ignored while binding is active. The bound color value is used instead."),
+            ("TextColorIgnored", nameof(TextFrontedControlConfig.Color))
+                or ("TextColorIgnored", nameof(LocalizedTextControlConfig.Color))
+                or ("TextColorIgnored", nameof(GameProgressTextControlConfig.Color))
+                or ("TextColorIgnored", nameof(MapNameTextControlConfig.Color)) =>
+                _localizationService.GetDesignerText(
+                    "Designer.Validation.TextColorIgnored",
+                    "Static text color is ignored while binding is active. The bound color value is used instead."),
             _ => message.Message
         };
 

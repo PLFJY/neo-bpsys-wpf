@@ -31,6 +31,11 @@ public class GameProgressTextControlConfig : FrontedControlConfigBase, IFrontedT
     public string? Color { get; set; }
 
     /// <summary>
+    /// 文本颜色绑定路径；有值时优先使用绑定颜色，静态 <see cref="Color"/> 仅作为回退。
+    /// </summary>
+    public string? ColorBindingPath { get; set; }
+
+    /// <summary>
     /// 字号。
     /// </summary>
     public double FontSize { get; set; }

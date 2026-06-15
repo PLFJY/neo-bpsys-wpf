@@ -2941,6 +2941,9 @@
   <data name="Designer.Property.Color" xml:space="preserve">
     <value>颜色</value>
   </data>
+  <data name="Designer.Property.ColorBindingPath" xml:space="preserve">
+    <value>颜色绑定路径</value>
+  </data>
   <data name="Designer.Property.BackgroundImage" xml:space="preserve">
     <value>背景图片</value>
   </data>
@@ -3969,6 +3972,9 @@
   </data>
   <data name="Designer.Validation.GradientEndColorIgnored" xml:space="preserve">
     <value>静态渐变结束色在绑定激活时不会生效，将使用绑定的颜色值。</value>
+  </data>
+  <data name="Designer.Validation.TextColorIgnored" xml:space="preserve">
+    <value>静态文本颜色在绑定激活时不会生效，将使用绑定的颜色值。</value>
   </data>
   <data name="Designer.Property.UseGradient" xml:space="preserve">
     <value>启用渐变</value>

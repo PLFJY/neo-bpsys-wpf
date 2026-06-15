@@ -89,7 +89,7 @@ public partial class TeamJsonMakerViewModel : ViewModelBase
             AddExtension = true,
             DefaultDirectory = AppConstants.AppOutputPath,
             Title = "保存为",
-            FileName = CurrentTeam.TeamName,
+            FileName = CurrentTeam.Name,
             OverwritePrompt = false
         };
 

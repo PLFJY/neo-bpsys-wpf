@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 using ShapePolygon = System.Windows.Shapes.Polygon;
@@ -132,6 +133,34 @@ public class TeamColorAndShapeTest
     }
 
     [Fact]
+    public void TextForegroundBindingUsesSharedDataColorAndOverridesStaticColor()
+    {
+        RunOnStaThread(() =>
+        {
+            var home = new Team(Camp.Sur, TeamType.HomeTeam) { ColorHex = "#FF123456" };
+            var shared = new Mock<ISharedDataService>();
+            shared.SetupGet(service => service.HomeTeam).Returns(home);
+
+            var element = new TextFrontedControl().Create(
+                "Title",
+                new TextFrontedControlConfig
+                {
+                    Text = "Title",
+                    Color = "#FFFFFFFF",
+                    ColorBindingPath = "HomeTeam.ColorHex"
+                },
+                CreateContext(shared.Object));
+
+            var border = Assert.IsType<Border>(element);
+            var textBlock = Assert.IsType<TextBlock>(border.Child);
+            var binding = BindingOperations.GetBinding(textBlock, TextBlock.ForegroundProperty);
+            Assert.NotNull(binding);
+            Assert.Equal("HomeTeam.ColorHex", binding.Path.Path);
+            Assert.Equal(Color.FromRgb(0x12, 0x34, 0x56), Assert.IsType<SolidColorBrush>(textBlock.Foreground).Color);
+        });
+    }
+
+    [Fact]
     public void PolygonGeometryAndVertexCommandsClampAndKeepThreePoints()
     {
         var config = new PolygonFrontedControlConfig
@@ -205,6 +234,34 @@ public class TeamColorAndShapeTest
         Assert.All(
             new[] { "FillBindingPath", "GradientEndBindingPath" },
             propertyName => Assert.True(rows.Single(row => row.PropertyName == propertyName).CanBrowseBinding));
+    }
+
+    [Fact]
+    public void PropertyGridExposesTextColorBindingAndMarksStaticColorIgnored()
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            Config = new TextFrontedControlConfig
+            {
+                Color = "not-a-static-color",
+                ColorBindingPath = "HomeTeam.ColorHex"
+            }
+        };
+        var document = new FrontedCanvasDesignDocument { Controls = { item } };
+        var rows = new FrontedPropertyGridBuilder().Build(
+            document,
+            item,
+            new FrontedLayoutValidator(),
+            new FrontedLayoutReferenceScanner());
+
+        var bindingRow = rows.Single(row => row.PropertyName == nameof(TextFrontedControlConfig.ColorBindingPath));
+        Assert.True(bindingRow.CanBrowseBinding);
+        Assert.Equal(FrontedBindingTargetKind.String, bindingRow.BindingTargetKind);
+
+        var colorRow = rows.Single(row => row.PropertyName == nameof(TextFrontedControlConfig.Color));
+        Assert.Contains(colorRow.ValidationMessages, message => message.Code == "TextColorIgnored");
+        Assert.DoesNotContain(colorRow.ValidationErrors, message => message.Contains("Invalid color", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]

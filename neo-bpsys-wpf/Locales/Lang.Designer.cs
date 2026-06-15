@@ -6305,6 +6305,15 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 颜色绑定路径 的本地化字符串。
+        /// </summary>
+        public static string Designer_Property_ColorBindingPath {
+            get {
+                return ResourceManager.GetString("Designer.Property.ColorBindingPath", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   查找类似 控件类型 的本地化字符串。
         /// </summary>
         public static string Designer_Property_ControlType {
@@ -7528,6 +7537,15 @@ namespace neo_bpsys_wpf.Locales {
             }
         }
         
+        /// <summary>
+        ///   查找类似 静态文本颜色在绑定激活时不会生效，将使用绑定的颜色值。 的本地化字符串。
+        /// </summary>
+        public static string Designer_Validation_TextColorIgnored {
+            get {
+                return ResourceManager.GetString("Designer.Validation.TextColorIgnored", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   查找类似 设置绑定路径后，静态图片路径不会生效。 的本地化字符串。
         /// </summary>

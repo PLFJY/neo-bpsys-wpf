@@ -336,6 +336,7 @@ public class FrontedLayoutValidator
             case TextFrontedControlConfig text:
                 ValidateTextLength(item.Name, nameof(TextFrontedControlConfig.Text), text.Text, FrontedLayoutLimits.MaxStaticTextLength, "TextTooLong", messages);
                 ValidateTextLength(item.Name, nameof(TextFrontedControlConfig.FontFamily), text.FontFamily, FrontedLayoutLimits.MaxFontFamilyLength, "InputTooLong", messages);
+                ValidateTextColorBinding(item.Name, text.Color, text.ColorBindingPath, messages);
                 ValidateTextBinding(item.Name, text.TextBinding, messages);
                 var hasTextBinding = text.TextBinding?.GetActiveSources().Count > 0;
                 if (!hasTextBinding && string.IsNullOrWhiteSpace(text.Text))
@@ -359,6 +360,7 @@ public class FrontedLayoutValidator
 
             case LocalizedTextControlConfig localizedText:
                 ValidateTextLength(item.Name, nameof(LocalizedTextControlConfig.FontFamily), localizedText.FontFamily, FrontedLayoutLimits.MaxFontFamilyLength, "InputTooLong", messages);
+                ValidateTextColorBinding(item.Name, localizedText.Color, localizedText.ColorBindingPath, messages);
                 ValidateTextBinding(item.Name, localizedText.TextBinding, messages);
                 var hasLocalizedTextBinding = localizedText.TextBinding?.GetActiveSources().Count > 0;
                 if (!hasLocalizedTextBinding && string.IsNullOrWhiteSpace(localizedText.LocalizationKey))
@@ -378,6 +380,11 @@ public class FrontedLayoutValidator
                         nameof(LocalizedTextControlConfig.LocalizationKey)));
                 }
 
+                break;
+
+            case MapNameTextControlConfig mapNameText:
+                ValidateTextLength(item.Name, nameof(MapNameTextControlConfig.FontFamily), mapNameText.FontFamily, FrontedLayoutLimits.MaxFontFamilyLength, "InputTooLong", messages);
+                ValidateTextColorBinding(item.Name, mapNameText.Color, mapNameText.ColorBindingPath, messages);
                 break;
 
             case ImageFrontedControlConfig image:
@@ -704,6 +711,8 @@ public class FrontedLayoutValidator
         GameProgressTextControlConfig config,
         ICollection<FrontedLayoutValidationMessage> messages)
     {
+        ValidateTextColorBinding(controlName, config.Color, config.ColorBindingPath, messages);
+
         if (config.FontSize <= 0)
         {
             messages.Add(Error(
@@ -794,6 +803,31 @@ public class FrontedLayoutValidator
                 $"Control '{controlName}' has invalid LatinVerticalMode.",
                 controlName,
                 nameof(config.LatinVerticalMode)));
+        }
+    }
+
+    private static void ValidateTextColorBinding(
+        string controlName,
+        string? color,
+        string? colorBindingPath,
+        ICollection<FrontedLayoutValidationMessage> messages)
+    {
+        ValidateTextLength(
+            controlName,
+            nameof(TextFrontedControlConfig.ColorBindingPath),
+            colorBindingPath,
+            FrontedLayoutLimits.MaxBindingPathLength,
+            "BindingPathTooLong",
+            messages);
+
+        if (!string.IsNullOrWhiteSpace(colorBindingPath)
+            && !string.IsNullOrWhiteSpace(color))
+        {
+            messages.Add(Warning(
+                "TextColorIgnored",
+                $"Text control '{controlName}' Color is ignored while binding is active.",
+                controlName,
+                nameof(TextFrontedControlConfig.Color)));
         }
     }
 

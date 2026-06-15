@@ -69,9 +69,10 @@ public class TextFrontedControl : IFrontedControl
             value => textBlock.FontWeight = value,
             context,
             nameof(textConfig.FontWeight));
-        FrontedControlFactoryHelper.TryApplyTypeConverter<Brush>(
+        FrontedTextForegroundBindingHelper.ApplyForeground(
+            textBlock,
             textConfig.Color,
-            value => textBlock.Foreground = value,
+            textConfig.ColorBindingPath,
             context,
             nameof(textConfig.Color));
 

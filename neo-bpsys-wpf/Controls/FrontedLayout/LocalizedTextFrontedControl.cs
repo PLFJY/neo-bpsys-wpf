@@ -100,7 +100,7 @@ public class LocalizedTextFrontedControl(ILogger<LocalizedTextFrontedControl>? l
                 Height = config.Height.Value;
             }
 
-            ApplyTextStyle(_textBlock, config, logger);
+            ApplyTextStyle(_textBlock, config, sharedDataService, logger);
             Child = _textBlock;
 
             if (config.TextBinding?.GetActiveSources().Count > 0)
@@ -161,7 +161,11 @@ public class LocalizedTextFrontedControl(ILogger<LocalizedTextFrontedControl>? l
             }
         }
 
-        private static void ApplyTextStyle(TextBlock textBlock, LocalizedTextControlConfig config, ILogger? logger)
+        private static void ApplyTextStyle(
+            TextBlock textBlock,
+            LocalizedTextControlConfig config,
+            ISharedDataService sharedDataService,
+            ILogger? logger)
         {
             TryApplyEnum<HorizontalAlignment>(
                 config.HorizontalAlignment,
@@ -188,9 +192,11 @@ public class LocalizedTextFrontedControl(ILogger<LocalizedTextFrontedControl>? l
                 value => textBlock.FontWeight = value,
                 logger,
                 nameof(config.FontWeight));
-            TryApplyTypeConverter<Brush>(
+            FrontedTextForegroundBindingHelper.ApplyForeground(
+                textBlock,
                 config.Color,
-                value => textBlock.Foreground = value,
+                config.ColorBindingPath,
+                sharedDataService,
                 logger,
                 nameof(config.Color));
 

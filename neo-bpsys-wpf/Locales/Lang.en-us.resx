@@ -2923,6 +2923,9 @@
   <data name="Designer.Property.Color" xml:space="preserve">
     <value>Color</value>
   </data>
+  <data name="Designer.Property.ColorBindingPath" xml:space="preserve">
+    <value>Color Binding Path</value>
+  </data>
   <data name="Designer.Property.BackgroundImage" xml:space="preserve">
     <value>Background Image</value>
   </data>
@@ -3921,6 +3924,7 @@
   <data name="Designer.Validation.ImagePathIgnored" xml:space="preserve"><value>ImagePath is ignored while BindingPath is set.</value></data>
   <data name="Designer.Validation.FillColorIgnored" xml:space="preserve"><value>Static fill color is ignored while binding is active. The bound color value is used instead.</value></data>
   <data name="Designer.Validation.GradientEndColorIgnored" xml:space="preserve"><value>Static gradient end color is ignored while binding is active. The bound color value is used instead.</value></data>
+  <data name="Designer.Validation.TextColorIgnored" xml:space="preserve"><value>Static text color is ignored while binding is active. The bound color value is used instead.</value></data>
   <data name="Designer.Property.UseGradient" xml:space="preserve"><value>Enable Gradient</value></data>
   <data name="TeamColor" xml:space="preserve"><value>Team Color</value></data>
   <data name="InvalidTeamColorHex" xml:space="preserve"><value>Invalid color. Use #RRGGBB or #AARRGGBB.</value></data>

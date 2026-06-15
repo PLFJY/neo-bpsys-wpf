@@ -557,7 +557,9 @@ public class GameProgressTextFrontedControl(ILogger<GameProgressTextFrontedContr
                 _config.FontFamily,
                 _config.FontWeight,
                 _config.Color,
+                _config.ColorBindingPath,
                 _config.FontSize,
+                _sharedDataService,
                 _logger);
 
             return textBlock;

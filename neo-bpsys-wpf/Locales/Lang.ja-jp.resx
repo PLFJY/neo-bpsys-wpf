@@ -2827,6 +2827,9 @@
   <data name="Designer.Property.Color" xml:space="preserve">
     <value>色</value>
   </data>
+  <data name="Designer.Property.ColorBindingPath" xml:space="preserve">
+    <value>色バインディング パス</value>
+  </data>
   <data name="Designer.Property.BackgroundImage" xml:space="preserve">
     <value>背景画像</value>
   </data>
@@ -3825,6 +3828,7 @@
   <data name="Designer.Validation.ImagePathIgnored" xml:space="preserve"><value>BindingPath が設定されている間、ImagePath は使用されません。</value></data>
   <data name="Designer.Validation.FillColorIgnored" xml:space="preserve"><value>静的塗りつぶし色はバインディングが有効な間は無視され、バインドされた色の値が使用されます。</value></data>
   <data name="Designer.Validation.GradientEndColorIgnored" xml:space="preserve"><value>静的グラデーション終了色はバインディングが有効な間は無視され、バインドされた色の値が使用されます。</value></data>
+  <data name="Designer.Validation.TextColorIgnored" xml:space="preserve"><value>静的テキスト色はバインディングが有効な間は無視され、バインドされた色の値が使用されます。</value></data>
   <data name="Designer.Property.UseGradient" xml:space="preserve"><value>グラデーションを有効にする</value></data>
   <data name="TeamColor" xml:space="preserve"><value>チームカラー</value></data>
   <data name="InvalidTeamColorHex" xml:space="preserve"><value>色の形式が無効です。#RRGGBB または #AARRGGBB を入力してください。</value></data>

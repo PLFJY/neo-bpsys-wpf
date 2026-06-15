@@ -22,7 +22,8 @@ public static class FrontedTextLimitHelper
 
     public static int GetMaxLengthForProperty(string propertyName, string? controlType = null)
     {
-        if (string.Equals(propertyName, nameof(FrontedControlConfigBase.BindingPath), StringComparison.Ordinal))
+        if (string.Equals(propertyName, nameof(FrontedControlConfigBase.BindingPath), StringComparison.Ordinal)
+            || propertyName.EndsWith(nameof(FrontedControlConfigBase.BindingPath), StringComparison.Ordinal))
         {
             return FrontedLayoutLimits.MaxBindingPathLength;
         }

@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Logging;
+using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
@@ -37,7 +39,9 @@ internal static class CutSceneFrontedControlHelper
         string? fontFamily,
         string? fontWeight,
         string? color,
+        string? colorBindingPath,
         double fontSize,
+        ISharedDataService sharedDataService,
         ILogger? logger)
     {
         TryApplyEnum<HorizontalAlignment>(
@@ -60,9 +64,11 @@ internal static class CutSceneFrontedControlHelper
             value => textBlock.FontWeight = value,
             logger,
             nameof(fontWeight));
-        TryApplyTypeConverter<Brush>(
+        FrontedTextForegroundBindingHelper.ApplyForeground(
+            textBlock,
             color,
-            value => textBlock.Foreground = value,
+            colorBindingPath,
+            sharedDataService,
             logger,
             nameof(color));
 

@@ -89,7 +89,9 @@ public class MapNameTextFrontedControl(ILogger<MapNameTextFrontedControl>? logge
                 config.FontFamily,
                 config.FontWeight,
                 config.Color,
+                config.ColorBindingPath,
                 config.FontSize,
+                sharedDataService,
                 logger);
 
             Child = _textBlock;
