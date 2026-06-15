@@ -17,7 +17,7 @@ public partial class Team : ObservableObjectBase
         HunMemberList.Add(new Member(Camp.Hun));
     }
 
-    public string TeamName { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
 
     private string _colorHex = "#FF337FB9";
 
