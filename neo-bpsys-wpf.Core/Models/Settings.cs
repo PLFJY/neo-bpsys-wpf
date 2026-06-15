@@ -34,6 +34,11 @@ public partial class Settings : ObservableObjectBase
     public bool IsClassicMode { get; set; } = false;
 
     /// <summary>
+    /// 是否将 <c>.bpui</c> 布局包文件关联到本应用。
+    /// </summary>
+    public bool AssociateBpuiFiles { get; set; } = true;
+
+    /// <summary>
     /// 当前选择的 OCR 模型标识键。
     /// </summary>
     public string? OcrModelKey { get; set; }

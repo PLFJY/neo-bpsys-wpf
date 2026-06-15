@@ -88,6 +88,11 @@ end;
 Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
+[Registry]
+Root: HKCU; Subkey: "Software\Classes\.bpui"; ValueType: string; ValueName: ""; ValueData: "{#MyAppName}.bpui"; Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Classes\{#MyAppName}.bpui"; ValueType: string; ValueName: ""; ValueData: "BP UI Layout Package"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\{#MyAppName}.bpui\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\{#MyAppExeName},0"
+Root: HKCU; Subkey: "Software\Classes\{#MyAppName}.bpui\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""
+
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: postinstall shellexec skipifdoesntexist
-

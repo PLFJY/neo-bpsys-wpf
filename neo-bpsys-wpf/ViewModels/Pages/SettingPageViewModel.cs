@@ -37,6 +37,7 @@ public partial class SettingPageViewModel : ViewModelBase
 
     private readonly ISettingsHostService _settingsHostService;
     private readonly IPluginMarketService _pluginMarketService;
+    private readonly IBpuiFileAssociationService _bpuiFileAssociationService;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<SettingPageViewModel> _logger;
     private FrontedBehaviorEventDebuggerWindow? _behaviorEventDebuggerWindow;
@@ -65,12 +66,14 @@ public partial class SettingPageViewModel : ViewModelBase
     /// <param name="updaterService">更新服务</param>
     /// <param name="settingsHostService">设置宿主服务</param>
     /// <param name="pluginMarketService">插件市场服务</param>
+    /// <param name="bpuiFileAssociationService">bpui 文件关联服务</param>
     /// <param name="serviceProvider">服务提供程序</param>
     /// <param name="logger">日志记录器</param>
     public SettingPageViewModel(
         IUpdaterService updaterService,
         ISettingsHostService settingsHostService,
         IPluginMarketService pluginMarketService,
+        IBpuiFileAssociationService bpuiFileAssociationService,
         IServiceProvider serviceProvider,
         ILogger<SettingPageViewModel> logger)
     {
@@ -78,6 +81,7 @@ public partial class SettingPageViewModel : ViewModelBase
         UpdaterService = updaterService;
         _settingsHostService = settingsHostService;
         _pluginMarketService = pluginMarketService;
+        _bpuiFileAssociationService = bpuiFileAssociationService;
         _serviceProvider = serviceProvider;
         _logger = logger;
 
@@ -95,6 +99,26 @@ public partial class SettingPageViewModel : ViewModelBase
         OpenSourceRepoColumn1 = columns[0];
         OpenSourceRepoColumn2 = columns[1];
         OpenSourceRepoColumn3 = columns[2];
+    }
+
+    /// <summary>
+    /// 获取或设置是否将 .bpui 布局包文件关联到本应用。
+    /// </summary>
+    public bool AssociateBpuiFiles
+    {
+        get => _settingsHostService.Settings.AssociateBpuiFiles;
+        set
+        {
+            if (_settingsHostService.Settings.AssociateBpuiFiles == value)
+            {
+                return;
+            }
+
+            _settingsHostService.Settings.AssociateBpuiFiles = value;
+            OnPropertyChanged();
+            _bpuiFileAssociationService.EnsureAssociationState(value);
+            _ = _settingsHostService.SaveConfigAsync();
+        }
     }
 
     /// <summary>

@@ -3632,6 +3632,12 @@
   <data name="ClassicModeDescription" xml:space="preserve">
     <value>バックエンド画面モードの変更を反映するにはアプリの再起動が必要です。</value>
   </data>
+  <data name="BpuiFileAssociation" xml:space="preserve">
+    <value>.bpui ファイルを関連付ける</value>
+  </data>
+  <data name="BpuiFileAssociationDescription" xml:space="preserve">
+    <value>有効にすると、.bpui レイアウトパッケージをダブルクリックして本ツールで開き、現在の有効なレイアウト方案としてインストールします。</value>
+  </data>
   <data name="ClassicModeRestartRequired" xml:space="preserve">
     <value>バックエンド画面モードの変更を反映するにはアプリの再起動が必要です。今すぐ再起動しますか？</value>
   </data>

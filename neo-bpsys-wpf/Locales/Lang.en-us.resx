@@ -3728,6 +3728,12 @@
   <data name="ClassicModeDescription" xml:space="preserve">
     <value>Restart the app for backend shell mode changes to take effect.</value>
   </data>
+  <data name="BpuiFileAssociation" xml:space="preserve">
+    <value>Associate .bpui files</value>
+  </data>
+  <data name="BpuiFileAssociationDescription" xml:space="preserve">
+    <value>When enabled, double-clicking a .bpui layout package opens this tool and installs it as the active layout scheme.</value>
+  </data>
   <data name="ClassicModeRestartRequired" xml:space="preserve">
     <value>Restart the app for backend shell mode changes to take effect. Restart now?</value>
   </data>

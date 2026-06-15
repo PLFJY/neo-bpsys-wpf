@@ -7,6 +7,7 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.Services.Abstractions;
 using neo_bpsys_wpf.Themes;
 using Serilog.Core;
 using Serilog.Events;
@@ -49,9 +50,18 @@ public partial class App : AppBase
         _mutex = new Mutex(true, AppConstants.AppName, out _createdNew);
         if (!_createdNew)
         {
+            var startupPackagePath = FindStartupBpuiPackagePath(e.Args);
+            if (!string.IsNullOrWhiteSpace(startupPackagePath)
+                && await TryForwardStartupBpuiPathAsync(startupPackagePath))
+            {
+                Current.Shutdown();
+                return;
+            }
+
             _ = MessageBoxHelper.ShowInfoAsync("程序已在运行\nThe program is already running",
                 "Warning");
             Current.Shutdown();
+            return;
         }
 
         IAppHost.Host = Host
@@ -97,6 +107,9 @@ public partial class App : AppBase
         //读取设置
         var settingsHostService = IAppHost.Host.Services.GetRequiredService<ISettingsHostService>();
         await settingsHostService.LoadConfig();
+        IAppHost.Host.Services
+            .GetRequiredService<IBpuiFileAssociationService>()
+            .EnsureAssociationState(settingsHostService.Settings.AssociateBpuiFiles);
         ApplyLogLevel(settingsHostService.Settings.LogLevel);
         IAppHost.Host.Services.GetRequiredService<FrontedSharedDataBehaviorEventBridge>().Start();
         _ = IAppHost.Host.Services.GetRequiredService<IFrontedBehaviorEventDebugService>();
@@ -127,6 +140,14 @@ public partial class App : AppBase
 
         //启动host
         await IAppHost.Host.StartAsync();
+        var bpuiFileActivationService = IAppHost.Host.Services.GetRequiredService<IBpuiFileActivationService>();
+        bpuiFileActivationService.StartListening();
+        var initialPackagePath = FindStartupBpuiPackagePath(e.Args);
+        if (!string.IsNullOrWhiteSpace(initialPackagePath))
+        {
+            _ = bpuiFileActivationService.OpenPackageAsync(initialPackagePath);
+        }
+
         AppStarted?.Invoke(this, EventArgs.Empty);
 
         CurrentLifetime = ApplicationLifetime.Running;
@@ -146,6 +167,7 @@ public partial class App : AppBase
         base.OnExit(e);
         var logger = IAppHost.Host!.Services.GetRequiredService<ILogger<App>>();
         logger.LogInformation("Application Closed");
+        IAppHost.Host.Services.GetRequiredService<IBpuiFileActivationService>().StopListening();
         await IAppHost.Host.StopAsync();
         IAppHost.Host.Dispose();
     }
@@ -240,6 +262,33 @@ public partial class App : AppBase
         catch
         {
             return LogEventLevel.Information;
+        }
+    }
+
+    private static string? FindStartupBpuiPackagePath(IEnumerable<string> args)
+    {
+        return args
+            .Select(arg => arg.Trim().Trim('"'))
+            .FirstOrDefault(arg => string.Equals(Path.GetExtension(arg), ".bpui", StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static async Task<bool> TryForwardStartupBpuiPathAsync(string packagePath)
+    {
+        try
+        {
+            await using var pipe = new System.IO.Pipes.NamedPipeClientStream(
+                ".",
+                AppConstants.AppName + ".bpui-open",
+                System.IO.Pipes.PipeDirection.Out,
+                System.IO.Pipes.PipeOptions.Asynchronous);
+            await pipe.ConnectAsync(1500);
+            await using var writer = new StreamWriter(pipe) { AutoFlush = true };
+            await writer.WriteLineAsync(packagePath);
+            return true;
+        }
+        catch (Exception ex) when (ex is IOException or TimeoutException)
+        {
+            return false;
         }
     }
 }

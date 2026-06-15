@@ -174,6 +174,8 @@ public partial class App
         services.AddSingleton<IPluginService, PluginService>();
         services.AddSingleton<IPluginMarketService, PluginMarketService>();
         services.AddSingleton<IPluginInstallService, PluginInstallService>();
+        services.AddSingleton<IBpuiFileAssociationService, BpuiFileAssociationService>();
+        services.AddSingleton<IBpuiFileActivationService, BpuiFileActivationService>();
 
         //Views and ViewModels
         //Windows
