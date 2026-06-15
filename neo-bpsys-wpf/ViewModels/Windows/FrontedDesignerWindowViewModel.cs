@@ -4977,6 +4977,12 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     private static string GeneratePasteName(string sourceName, string controlType, FrontedCanvasDesignDocument document)
     {
+        var existingNames = document.Controls.Select(control => control.Name).ToHashSet(StringComparer.Ordinal);
+        if (!existingNames.Contains(sourceName) && ValidControlNameRegex.IsMatch(sourceName))
+        {
+            return sourceName;
+        }
+
         var match = Regex.Match(sourceName, "^(.*?)(\\d+)$", RegexOptions.CultureInvariant);
         var baseName = match.Success ? match.Groups[1].Value : sourceName;
         if (string.IsNullOrWhiteSpace(baseName))
@@ -4986,7 +4992,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         var index = match.Success && int.TryParse(match.Groups[2].Value, out var parsed) ? parsed + 1 : 1;
         var separator = match.Success ? string.Empty : "_";
-        var existingNames = document.Controls.Select(control => control.Name).ToHashSet(StringComparer.Ordinal);
 
         while (true)
         {

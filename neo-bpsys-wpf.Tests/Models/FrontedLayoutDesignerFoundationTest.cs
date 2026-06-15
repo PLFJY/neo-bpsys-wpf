@@ -1025,6 +1025,29 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
+    public void PasteControlUsesSourceNameWhenItIsAvailable()
+    {
+        var title = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            IsSelectableInEditor = true,
+            IsEditableInEditor = true,
+            Config = new TextFrontedControlConfig { Text = "A" }
+        };
+        var document = CreateDocument([title]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        viewModel.SelectDesignItem(title);
+
+        viewModel.CopySelectedControlCommand.Execute(null);
+        document.Controls.Remove(title);
+        viewModel.ClearSelection();
+        viewModel.PasteControlCommand.Execute(null);
+
+        Assert.Contains(document.Controls, control => control.Name == "Title");
+        Assert.DoesNotContain(document.Controls, control => control.Name == "Title_1");
+    }
+
+    [Fact]
     public void PasteControlIncrementsSourceNameTrailingNumberAndSkipsExistingNames()
     {
         var title = new FrontedControlDesignItem
