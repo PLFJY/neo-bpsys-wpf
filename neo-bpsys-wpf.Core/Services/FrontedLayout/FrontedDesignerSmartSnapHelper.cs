@@ -149,16 +149,7 @@ public static class FrontedDesignerSmartSnapHelper
         }
         else
         {
-            rect.Left = FrontedDesignerGeometryHelper.NormalizeCoordinate(
-                rect.Left,
-                effectiveSnapEnabled: true,
-                snapGridSize);
-            rect.Width = Math.Max(
-                FrontedDesignerGeometryHelper.MinResizeWidth,
-                FrontedDesignerGeometryHelper.NormalizeCoordinate(
-                    rect.Width,
-                    effectiveSnapEnabled: true,
-                    snapGridSize));
+            NormalizeResizeXAxisFallback(ref rect, handle, snapGridSize);
         }
 
         if (TryFindResizeYAxisSnap(rect, handle, candidates, logicalTolerance, out var ySnap))
@@ -173,16 +164,7 @@ public static class FrontedDesignerSmartSnapHelper
         }
         else
         {
-            rect.Top = FrontedDesignerGeometryHelper.NormalizeCoordinate(
-                rect.Top,
-                effectiveSnapEnabled: true,
-                snapGridSize);
-            rect.Height = Math.Max(
-                FrontedDesignerGeometryHelper.MinResizeHeight,
-                FrontedDesignerGeometryHelper.NormalizeCoordinate(
-                    rect.Height,
-                    effectiveSnapEnabled: true,
-                    snapGridSize));
+            NormalizeResizeYAxisFallback(ref rect, handle, snapGridSize);
         }
 
         return new FrontedDesignerSnapResult
@@ -412,6 +394,34 @@ public static class FrontedDesignerSmartSnapHelper
         }
     }
 
+    private static void NormalizeResizeXAxisFallback(
+        ref ResizeRect rect,
+        FrontedDesignerResizeHandleKind handle,
+        double snapGridSize)
+    {
+        if (AffectsLeft(handle))
+        {
+            var right = rect.Left + rect.Width;
+            rect.Left = Math.Min(
+                FrontedDesignerGeometryHelper.NormalizeCoordinate(
+                    rect.Left,
+                    effectiveSnapEnabled: true,
+                    snapGridSize),
+                right - FrontedDesignerGeometryHelper.MinResizeWidth);
+            rect.Width = Math.Max(FrontedDesignerGeometryHelper.MinResizeWidth, right - rect.Left);
+            return;
+        }
+
+        if (AffectsRight(handle))
+        {
+            var right = FrontedDesignerGeometryHelper.NormalizeCoordinate(
+                rect.Left + rect.Width,
+                effectiveSnapEnabled: true,
+                snapGridSize);
+            rect.Width = Math.Max(FrontedDesignerGeometryHelper.MinResizeWidth, right - rect.Left);
+        }
+    }
+
     private static void ApplyResizeYAxisSnap(
         ref ResizeRect rect,
         FrontedDesignerResizeHandleKind handle,
@@ -426,6 +436,34 @@ public static class FrontedDesignerSmartSnapHelper
         else if (AffectsBottom(handle))
         {
             rect.Height = Math.Max(FrontedDesignerGeometryHelper.MinResizeHeight, position - rect.Top);
+        }
+    }
+
+    private static void NormalizeResizeYAxisFallback(
+        ref ResizeRect rect,
+        FrontedDesignerResizeHandleKind handle,
+        double snapGridSize)
+    {
+        if (AffectsTop(handle))
+        {
+            var bottom = rect.Top + rect.Height;
+            rect.Top = Math.Min(
+                FrontedDesignerGeometryHelper.NormalizeCoordinate(
+                    rect.Top,
+                    effectiveSnapEnabled: true,
+                    snapGridSize),
+                bottom - FrontedDesignerGeometryHelper.MinResizeHeight);
+            rect.Height = Math.Max(FrontedDesignerGeometryHelper.MinResizeHeight, bottom - rect.Top);
+            return;
+        }
+
+        if (AffectsBottom(handle))
+        {
+            var bottom = FrontedDesignerGeometryHelper.NormalizeCoordinate(
+                rect.Top + rect.Height,
+                effectiveSnapEnabled: true,
+                snapGridSize);
+            rect.Height = Math.Max(FrontedDesignerGeometryHelper.MinResizeHeight, bottom - rect.Top);
         }
     }
 

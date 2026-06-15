@@ -4557,8 +4557,92 @@ public class FrontedLayoutDesignerFoundationTest
             snapGridSize: 10,
             logicalTolerance: 6);
 
-        Assert.Equal(200, left.Left);
+        Assert.Equal(199, left.Left);
         Assert.Equal(1, left.Width);
+        Assert.Equal(200, left.Left + left.Width);
+    }
+
+    [Fact]
+    public void SmartSnapResizeFallbackKeepsOppositeEdgeFixed()
+    {
+        var active = CreateSnapItem("Active", 103, 107, 50, 40);
+        var document = CreateDocument([active]);
+
+        var right = FrontedDesignerSmartSnapHelper.Resize(
+            active,
+            document,
+            FrontedDesignerResizeHandleKind.Right,
+            103,
+            107,
+            50,
+            40,
+            6,
+            0,
+            effectiveSnapEnabled: true,
+            snapGridSize: 10,
+            logicalTolerance: 2);
+
+        Assert.Equal(103, right.Left);
+        Assert.Equal(57, right.Width);
+        Assert.Equal(160, right.Left + right.Width);
+        Assert.Equal(107, right.Top);
+        Assert.Equal(40, right.Height);
+
+        var left = FrontedDesignerSmartSnapHelper.Resize(
+            active,
+            document,
+            FrontedDesignerResizeHandleKind.Left,
+            103,
+            107,
+            50,
+            40,
+            -6,
+            0,
+            effectiveSnapEnabled: true,
+            snapGridSize: 10,
+            logicalTolerance: 2);
+
+        Assert.Equal(100, left.Left);
+        Assert.Equal(53, left.Width);
+        Assert.Equal(153, left.Left + left.Width);
+
+        var bottom = FrontedDesignerSmartSnapHelper.Resize(
+            active,
+            document,
+            FrontedDesignerResizeHandleKind.Bottom,
+            103,
+            107,
+            50,
+            40,
+            0,
+            6,
+            effectiveSnapEnabled: true,
+            snapGridSize: 10,
+            logicalTolerance: 2);
+
+        Assert.Equal(107, bottom.Top);
+        Assert.Equal(43, bottom.Height);
+        Assert.Equal(150, bottom.Top + bottom.Height);
+        Assert.Equal(103, bottom.Left);
+        Assert.Equal(50, bottom.Width);
+
+        var top = FrontedDesignerSmartSnapHelper.Resize(
+            active,
+            document,
+            FrontedDesignerResizeHandleKind.Top,
+            103,
+            107,
+            50,
+            40,
+            0,
+            -6,
+            effectiveSnapEnabled: true,
+            snapGridSize: 10,
+            logicalTolerance: 2);
+
+        Assert.Equal(100, top.Top);
+        Assert.Equal(47, top.Height);
+        Assert.Equal(147, top.Top + top.Height);
     }
 
     [Fact]
