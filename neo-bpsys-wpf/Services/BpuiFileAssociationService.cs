@@ -15,6 +15,7 @@ public sealed class BpuiFileAssociationService : IBpuiFileAssociationService
     private const string Extension = ".bpui";
     private const string ProgId = AppConstants.AppName + ".bpui";
     private const string Description = "BP UI Layout Package";
+    private const string IconFileName = "bpui_icon.ico";
 
     private readonly ILogger<BpuiFileAssociationService> _logger;
 
@@ -40,7 +41,14 @@ public sealed class BpuiFileAssociationService : IBpuiFileAssociationService
 
             using var commandKey = Registry.ClassesRoot.OpenSubKey($@"{ProgId}\shell\open\command", writable: false);
             var command = commandKey?.GetValue(null) as string;
-            return string.Equals(command, GetOpenCommand(), StringComparison.OrdinalIgnoreCase);
+            if (!string.Equals(command, GetOpenCommand(), StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            using var iconKey = Registry.ClassesRoot.OpenSubKey($@"{ProgId}\DefaultIcon", writable: false);
+            var iconPath = iconKey?.GetValue(null) as string;
+            return string.Equals(iconPath, GetIconPath(), StringComparison.OrdinalIgnoreCase);
         }
         catch (Exception ex)
         {
@@ -61,7 +69,7 @@ public sealed class BpuiFileAssociationService : IBpuiFileAssociationService
             progIdKey?.SetValue(null, Description, RegistryValueKind.String);
 
             using var iconKey = Registry.CurrentUser.CreateSubKey($@"Software\Classes\{ProgId}\DefaultIcon");
-            iconKey?.SetValue(null, $"{GetExecutablePath()},0", RegistryValueKind.String);
+            iconKey?.SetValue(null, GetIconPath(), RegistryValueKind.String);
 
             using var commandKey = Registry.CurrentUser.CreateSubKey($@"Software\Classes\{ProgId}\shell\open\command");
             commandKey?.SetValue(null, GetOpenCommand(), RegistryValueKind.String);
@@ -118,5 +126,10 @@ public sealed class BpuiFileAssociationService : IBpuiFileAssociationService
         return Environment.ProcessPath
                ?? Process.GetCurrentProcess().MainModule?.FileName
                ?? Path.ChangeExtension(typeof(App).Assembly.Location, ".exe");
+    }
+
+    private static string GetIconPath()
+    {
+        return Path.Combine(AppContext.BaseDirectory, IconFileName);
     }
 }

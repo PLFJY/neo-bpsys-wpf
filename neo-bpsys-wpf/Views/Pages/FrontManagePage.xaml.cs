@@ -1,7 +1,9 @@
+using CommunityToolkit.Mvvm.Messaging;
 using System.Windows;
 using System.Windows.Controls;
 using neo_bpsys_wpf.Core.Attributes;
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Views.Pages.FrontManage;
 using Wpf.Ui.Controls;
 
@@ -14,7 +16,7 @@ namespace neo_bpsys_wpf.Views.Pages;
     "FrontendManagement",
     SymbolRegular.ShareScreenStart24,
     BackendPageCategory.External)]
-public partial class FrontManagePage : Page
+public partial class FrontManagePage : Page, IRecipient<FrontManageTabNavigationMessage>
 {
     public FrontManagePage()
     {
@@ -30,10 +32,20 @@ public partial class FrontManagePage : Page
             typeof(FrontedLayoutPackagesView)));
 
         Loaded += OnLoaded;
+        WeakReferenceMessenger.Default.Register(this);
     }
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         FrontManageTabs.SelectFirstItemIfNoneSelected();
+    }
+
+    /// <inheritdoc/>
+    public void Receive(FrontManageTabNavigationMessage message)
+    {
+        if (message.TabKey == FrontManageTabNavigationMessage.LayoutPackagesTabKey)
+        {
+            FrontManageTabs.Navigate(typeof(FrontedLayoutPackagesView));
+        }
     }
 }

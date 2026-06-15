@@ -253,6 +253,9 @@
 
     <ItemGroup>
         <Content Include="favicon.ico" />
+        <Content Include="bpui_icon.ico">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
     </ItemGroup>
 
     <ItemGroup>
