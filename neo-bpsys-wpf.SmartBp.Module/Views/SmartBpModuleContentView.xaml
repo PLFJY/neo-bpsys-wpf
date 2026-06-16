@@ -22,7 +22,14 @@
         <cv:LocalizationKeyToTextConverter x:Key="LocalizationKeyToTextConverter" />
     </UserControl.Resources>
 
-    <StackPanel Margin="10,0,10,0">
+    <StackPanel>
+        <TextBlock
+            Margin="0,0,0,10"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Center"
+            FontSize="28"
+            FontWeight="SemiBold"
+            Text="{lex:Loc SmartBp}" />
         <Border Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>

@@ -23,7 +23,6 @@
 
     <Grid Margin="10,0,10,0">
         <ContentControl x:Name="SmartBpModuleContentHost" Content="{Binding ModuleContent}" />
-
         <Border
             Padding="40"
             Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
