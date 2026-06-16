@@ -77,9 +77,16 @@ active `Settings.cs` 不再包含旧前台窗口设置。旧 `BpWindowSettings`�
 | v3 已安装布局包 | `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\{PackageId}\` |
 | v3 活动包状态 | `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\active-package.json` |
 | SmartBP 区域 | `%APPDATA%\neo-bpsys-wpf\SmartBp\GameDataRegions.json` |
-| OCR 模型 | `Documents\neo-bpsys-wpf\OCRModels` |
+| SmartBP 模块状态 | `%APPDATA%\neo-bpsys-wpf\SmartBpModuleState.json` |
+| SmartBP 模块目录迁移标记 | `%APPDATA%\neo-bpsys-wpf\SmartBpModuleMovePending.json` |
+| SmartBP 模块默认安装目录 | `%LOCALAPPDATA%\neo-bpsys-wpf\Components\SmartBpModule` |
+| OCR 模型 | `{SmartBpModuleRoot}\OCRModels` |
 | 插件配置 | `%APPDATA%\neo-bpsys-wpf\PluginConfigs\{pluginId}` |
 | 插件市场临时下载 | `%TEMP%\neo-bpsys-wpf\PluginMarket\...` |
+
+SmartBP 模块加载/安装目录可在设置页修改。若当前已有可用模块目录，保存时会先复制旧目录到新目录的 staging，验证复制结果后移动到目标目录，再写入 `SmartBpModuleMovePending.json` 标记和 `SmartBpModuleState.json` 的目标 `ModuleRoot`。下一次从目标目录成功加载模块并写回状态后，会尝试删除旧目录；如果删除失败，迁移标记保留并记录 cleanup 错误，后续成功加载目标目录时继续清理。路径校验沿用模块安装安全规则，拒绝系统目录、驱动器根目录、不可写目录、源目录父子路径，以及包含非 SmartBP 内容的目标目录。
+
+旧版本 OCR 模型目录 `Documents\neo-bpsys-wpf\OCRModels` 只作为迁移来源。SmartBP 模块首次安装或首次成功加载后会把已就绪模型复制到模块根下的 `OCRModels`，验证成功后再删除对应旧模型目录。
 
 > **注意**：旧的 `{WindowName}Config-{CanvasName}.json` 位置保存/恢复功能已删除。这些 legacy 文件不再被运行时读取，只用于 legacy `.bpui` 转换流程。
 

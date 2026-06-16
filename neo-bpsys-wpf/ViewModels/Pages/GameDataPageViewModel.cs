@@ -21,17 +21,22 @@ public partial class GameDataPageViewModel : ViewModelBase
     }
 
     private readonly ISharedDataService _sharedDataService;
-    private readonly ISmartBpService _smartBpService;
+    private readonly ISmartBpFeatureService _smartBpFeatureService;
 
     /// <summary>
     /// 初始化比赛数据页面视图模型。
     /// </summary>
     /// <param name="sharedDataService">共享数据服务</param>
-    /// <param name="smartBpService">SmartBP 服务</param>
-    public GameDataPageViewModel(ISharedDataService sharedDataService, ISmartBpService smartBpService)
+    /// <param name="smartBpFeatureService">SmartBP 功能服务</param>
+    public GameDataPageViewModel(ISharedDataService sharedDataService, ISmartBpFeatureService smartBpFeatureService)
     {
         _sharedDataService = sharedDataService;
-        _smartBpService = smartBpService;
+        _smartBpFeatureService = smartBpFeatureService;
+        _smartBpFeatureService.ModuleStateChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(IsSmartBpAutoFillVisible));
+            AutoFillGameDataCommand.NotifyCanExecuteChanged();
+        };
         sharedDataService.CurrentGameChanged += (_, _) =>
         {
             OnPropertyChanged(nameof(SurPlayerList));
@@ -49,9 +54,16 @@ public partial class GameDataPageViewModel : ViewModelBase
     /// </summary>
     public Player HunPlayer => _sharedDataService.CurrentGame.HunPlayer;
 
-    [RelayCommand(AllowConcurrentExecutions = false)]
+    /// <summary>
+    /// 是否显示 SmartBP 自动回填入口。
+    /// </summary>
+    public bool IsSmartBpAutoFillVisible => _smartBpFeatureService.IsModuleLoaded;
+
+    [RelayCommand(AllowConcurrentExecutions = false, CanExecute = nameof(CanAutoFillGameData))]
     private async Task AutoFillGameDataAsync()
     {
-        await _smartBpService.AutoFillGameDataAsync();
+        await _smartBpFeatureService.AutoFillGameDataAsync();
     }
+
+    private bool CanAutoFillGameData() => IsSmartBpAutoFillVisible;
 }

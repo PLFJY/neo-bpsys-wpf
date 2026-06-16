@@ -1440,6 +1440,33 @@
   <data name="SmartBp" xml:space="preserve">
     <value>スマート BP</value>
   </data>
+  <data name="SmartBpModuleSettingsTitle" xml:space="preserve">
+    <value>SmartBP モジュール設定</value>
+  </data>
+  <data name="SmartBpModulePath" xml:space="preserve">
+    <value>モジュールの読み込み/インストール先</value>
+  </data>
+  <data name="SmartBpModulePathDescription" xml:space="preserve">
+    <value>SmartBP 独立モジュールのインストール、インポート、読み込みに使用します。変更は SmartBP ページへ同期され、次回のインストールまたはローカル読み込みで使用されます。</value>
+  </data>
+  <data name="SmartBpModuleBrowseFolder" xml:space="preserve">
+    <value>フォルダーを参照</value>
+  </data>
+  <data name="SmartBpModulePathSaved" xml:space="preserve">
+    <value>SmartBP モジュールのパスを保存しました。</value>
+  </data>
+  <data name="SmartBpModulePathMigrating" xml:space="preserve">
+    <value>SmartBP モジュールディレクトリを移行しています...</value>
+  </data>
+  <data name="SmartBpModulePathMigrationPrepared" xml:space="preserve">
+    <value>SmartBP モジュールを新しいディレクトリへコピーしました。次回新しいディレクトリから正常に読み込まれた後、古いディレクトリを削除します。</value>
+  </data>
+  <data name="SmartBpModulePathMigrationFailed" xml:space="preserve">
+    <value>SmartBP モジュールディレクトリの移行に失敗しました: </value>
+  </data>
+  <data name="SmartBpModulePathInvalid" xml:space="preserve">
+    <value>このパスは SmartBP モジュールに使用できません。書き込み可能なユーザーディレクトリを選択してください。</value>
+  </data>
   <data name="PleaseStartWindowCaptureFirst" xml:space="preserve">
     <value>先にウィンドウキャプチャを開始してください。</value>
   </data>

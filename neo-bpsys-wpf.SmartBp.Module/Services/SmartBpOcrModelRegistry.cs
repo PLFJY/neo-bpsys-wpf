@@ -1,4 +1,5 @@
 using System.IO;
+using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core;
 using Sdcb.PaddleOCR.Models.Online;
 
@@ -27,6 +28,8 @@ public sealed record SmartBpOcrModelDefinition(
 /// </summary>
 public static class SmartBpOcrModelRegistry
 {
+    private static ISmartBpOcrModelPathProvider? _pathProvider;
+
     /// <summary>
     /// 已注册的 OCR 模型列表。
     /// </summary>
@@ -76,7 +79,17 @@ public static class SmartBpOcrModelRegistry
     /// <summary>
     /// OCR 模型根目录。
     /// </summary>
-    public static string RootDirectory => Path.Combine(AppConstants.AppOutputPath, "OCRModels");
+    public static string RootDirectory => _pathProvider?.RootDirectory
+                                          ?? Path.Combine(AppConstants.AppOutputPath, "OCRModels");
+
+    /// <summary>
+    /// 配置 OCR 模型路径提供器。
+    /// </summary>
+    /// <param name="pathProvider">路径提供器。</param>
+    public static void ConfigurePathProvider(ISmartBpOcrModelPathProvider pathProvider)
+    {
+        _pathProvider = pathProvider;
+    }
 
     /// <summary>
     /// 按模型键获取模型定义。

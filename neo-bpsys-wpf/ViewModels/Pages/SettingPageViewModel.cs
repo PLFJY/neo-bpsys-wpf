@@ -10,6 +10,7 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Models;
+using neo_bpsys_wpf.Services.SmartBpModule;
 using neo_bpsys_wpf.Services.Abstractions;
 using neo_bpsys_wpf.Views.Windows;
 using System.Collections.ObjectModel;
@@ -38,6 +39,8 @@ public partial class SettingPageViewModel : ViewModelBase
     private readonly ISettingsHostService _settingsHostService;
     private readonly IPluginMarketService _pluginMarketService;
     private readonly IBpuiFileAssociationService _bpuiFileAssociationService;
+    private readonly IFilePickerService _filePickerService;
+    private readonly SmartBpModuleManager _smartBpModuleManager;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<SettingPageViewModel> _logger;
     private FrontedBehaviorEventDebuggerWindow? _behaviorEventDebuggerWindow;
@@ -67,6 +70,8 @@ public partial class SettingPageViewModel : ViewModelBase
     /// <param name="settingsHostService">设置宿主服务</param>
     /// <param name="pluginMarketService">插件市场服务</param>
     /// <param name="bpuiFileAssociationService">bpui 文件关联服务</param>
+    /// <param name="filePickerService">文件选择服务</param>
+    /// <param name="smartBpModuleManager">SmartBP 模块管理器</param>
     /// <param name="serviceProvider">服务提供程序</param>
     /// <param name="logger">日志记录器</param>
     public SettingPageViewModel(
@@ -74,6 +79,8 @@ public partial class SettingPageViewModel : ViewModelBase
         ISettingsHostService settingsHostService,
         IPluginMarketService pluginMarketService,
         IBpuiFileAssociationService bpuiFileAssociationService,
+        IFilePickerService filePickerService,
+        SmartBpModuleManager smartBpModuleManager,
         IServiceProvider serviceProvider,
         ILogger<SettingPageViewModel> logger)
     {
@@ -82,6 +89,8 @@ public partial class SettingPageViewModel : ViewModelBase
         _settingsHostService = settingsHostService;
         _pluginMarketService = pluginMarketService;
         _bpuiFileAssociationService = bpuiFileAssociationService;
+        _filePickerService = filePickerService;
+        _smartBpModuleManager = smartBpModuleManager;
         _serviceProvider = serviceProvider;
         _logger = logger;
 
@@ -91,6 +100,7 @@ public partial class SettingPageViewModel : ViewModelBase
         SyncMirrorFromSettings();
 
         SelectedLanguage = _settingsHostService.Settings.Language;
+        SmartBpModuleRoot = _smartBpModuleManager.ReadState()?.ModuleRoot ?? SmartBpModuleManager.GetDefaultModuleRoot();
         _isSyncingLogLevel = true;
         SelectedLogLevel = _settingsHostService.Settings.LogLevel;
         _isSyncingLogLevel = false;

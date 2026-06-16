@@ -64,10 +64,15 @@ public class OcrService : IOcrService
     /// </summary>
     /// <param name="settingsHostService">设置服务。</param>
     /// <param name="logger">日志记录器。</param>
-    public OcrService(ISettingsHostService settingsHostService, ILogger<OcrService> logger)
+    /// <param name="modelPathProvider">OCR 模型路径提供器。</param>
+    public OcrService(
+        ISettingsHostService settingsHostService,
+        ILogger<OcrService> logger,
+        ISmartBpOcrModelPathProvider modelPathProvider)
     {
         _settingsHostService = settingsHostService;
         _logger = logger;
+        SmartBpOcrModelRegistry.ConfigurePathProvider(modelPathProvider);
 
         var downloadOpt = new DownloadConfiguration
         {

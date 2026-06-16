@@ -310,6 +310,57 @@
         <TextBlock
             Margin="0,10,0,0"
             Style="{StaticResource Title}"
+            Text="{lex:Loc SmartBpModuleSettingsTitle}" />
+        <Border Margin="0,10,0,0" Style="{StaticResource Card}">
+            <StackPanel>
+                <TextBlock
+                    FontSize="16"
+                    FontWeight="DemiBold"
+                    Text="{lex:Loc SmartBpModulePath}" />
+                <TextBlock
+                    Margin="0,6,0,0"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    Text="{lex:Loc SmartBpModulePathDescription}"
+                    TextWrapping="Wrap" />
+                <Grid Margin="0,12,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBox
+                        Grid.Column="0"
+                        MinWidth="320"
+                        VerticalAlignment="Center"
+                        Text="{Binding SmartBpModuleRoot, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <ui:Button
+                        Grid.Column="1"
+                        Margin="10,0,0,0"
+                        Command="{Binding BrowseSmartBpModuleRootCommand}"
+                        Content="{lex:Loc SmartBpModuleBrowseFolder}"
+                        Icon="{ui:SymbolIcon Symbol=FolderOpen24}" />
+                </Grid>
+                <WrapPanel Margin="0,10,0,0">
+                    <ui:Button
+                        Margin="0,0,10,0"
+                        Command="{Binding SaveSmartBpModuleRootCommand}"
+                        Content="{lex:Loc Save}"
+                        Icon="{ui:SymbolIcon Symbol=Save24}" />
+                    <ui:Button
+                        Margin="0,0,10,0"
+                        Command="{Binding ResetSmartBpModuleRootCommand}"
+                        Content="{lex:Loc ResetToBuiltIn}"
+                        Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        Text="{Binding SmartBpModulePathStatus}" />
+                </WrapPanel>
+            </StackPanel>
+        </Border>
+
+        <TextBlock
+            Margin="0,10,0,0"
+            Style="{StaticResource Title}"
             Text="{lex:Loc QuickAccess}" />
         <Border
             Margin="0,10,0,0"

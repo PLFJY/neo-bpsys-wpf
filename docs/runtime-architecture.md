@@ -2,7 +2,7 @@
 
 ## 技术栈
 
-主应用是 .NET 9 WPF 应用，目标框架为 `net9.0-windows10.0.20348`。当前代码使用 WPF-UI、Generic Host、Microsoft DI、Serilog、WPFLocalizeExtension、OpenCvSharp、PaddleOCR、YamlDotNet 和自定义插件 SDK。
+主应用是 .NET 9 WPF 应用，目标框架为 `net9.0-windows10.0.20348`。当前代码使用 WPF-UI、Generic Host、Microsoft DI、Serilog、WPFLocalizeExtension、YamlDotNet 和自定义插件 SDK。OpenCvSharp、PaddleOCR、PaddleInference 等 SmartBP 重型依赖位于 `neo-bpsys-wpf.SmartBp.Module`，不由 lite 主应用直接引用。
 
 ## 启动流程
 
@@ -54,6 +54,8 @@ flowchart TD
 `App.Services.xaml.cs` 是服务注册中心。这里将 WPF 页面、窗口和业务服务都放入 Microsoft DI 容器。主窗口通过 `INavigationWindow` 注册为单例，构造时注入导航、InfoBar、Snackbar、设置服务和 logger。
 
 当前大多数 View、ViewModel、Service 是 singleton。维护时不要随意改生命周期，因为 WPF 绑定、导航页面缓存、前台窗口状态和共享数据都依赖这种长期实例模型。
+
+SmartBP 是特殊边界：宿主 DI 只注册页面壳、`SmartBpModuleManager`、`ISmartBpFeatureService` 和 OCR 模型路径提供器。真实 SmartBP 页面内容由模块程序集在成功加载后通过 `ISmartBpModuleEntryPoint` 创建，宿主不直接引用模块实现类型。
 
 ## Serilog
 

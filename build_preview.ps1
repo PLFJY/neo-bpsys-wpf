@@ -52,6 +52,7 @@ Invoke-External -FilePath "dotnet" -Arguments @(
     "publish", $ProjPath,
     "-c", "Preview",
     "-o", $BuildPath,
+    "--no-restore",
     "/p:BuildMeta=$GitHash"
 ) -ErrorMessage "dotnet publish failed"
 
@@ -76,3 +77,9 @@ if (-not (Test-Path -LiteralPath $InstallerIss)) {
 }
 
 Invoke-External -FilePath $IsccPath -Arguments @($InstallerIss) -ErrorMessage "Inno Setup packaging failed"
+
+$Installer = Join-Path $RepoRoot "build\neo-bpsys-wpf_Installer.exe"
+$HashPath = Join-Path $RepoRoot "build\neo-bpsys-wpf_Installer.exe.sha256"
+if (Test-Path -LiteralPath $Installer) {
+    (Get-FileHash -LiteralPath $Installer -Algorithm SHA256).Hash.ToLowerInvariant() | Set-Content -LiteralPath $HashPath -NoNewline
+}

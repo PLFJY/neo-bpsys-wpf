@@ -1,10 +1,7 @@
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
 /// <summary>
-/// 智能 BP 服务
+/// 智能 BP 服务。
 /// </summary>
 public interface ISmartBpService
 {
@@ -15,7 +12,6 @@ public interface ISmartBpService
 
     /// <summary>
     /// 启动智能 BP。
-    /// 启动时会检查 OCR 模型可用性，不满足条件时不会进入运行状态。
     /// </summary>
     void StartSmartBp();
 

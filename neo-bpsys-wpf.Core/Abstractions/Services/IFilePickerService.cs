@@ -29,6 +29,12 @@ public interface IFilePickerService
     public string? PickZipFile();
 
     /// <summary>
+    /// 选择文件夹。
+    /// </summary>
+    /// <returns>文件夹路径。</returns>
+    public string? PickFolder();
+
+    /// <summary>
     /// 选择 JSON 导出保存路径。
     /// </summary>
     /// <param name="defaultFileName">默认文件名。</param>

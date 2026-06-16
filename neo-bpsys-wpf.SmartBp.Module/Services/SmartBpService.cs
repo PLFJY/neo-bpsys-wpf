@@ -4,7 +4,6 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Helpers;
-using neo_bpsys_wpf.Views.Pages;
 using OpenCvSharp;
 using System.IO;
 using System.Text;
@@ -194,13 +193,13 @@ public class SmartBpService : ISmartBpService
         if (!TryResolveGameDataRows(profile, out var hunterRowProfile, out var survivorRowProfiles))
             return null;
 
-        using var hunterRow = new Mat(full, hunterRowProfile.Rect.ToPixelRect(full.Width, full.Height));
+        using var hunterRow = new Mat(full, ToOpenCvRect(hunterRowProfile.Rect.ToPixelRect(full.Width, full.Height)));
         var hunterData = GetHunInfo(hunterRow, hunterRowProfile).PlayerData;
 
         var survivorInfos = new List<PlayerInfo>();
         foreach (var rowProfile in survivorRowProfiles)
         {
-            using var survivorRow = new Mat(full, rowProfile.Rect.ToPixelRect(full.Width, full.Height));
+            using var survivorRow = new Mat(full, ToOpenCvRect(rowProfile.Rect.ToPixelRect(full.Width, full.Height)));
             var rowInfo = GetSurInfo(survivorRow, rowProfile);
             survivorInfos.Add(rowInfo);
         }
@@ -376,7 +375,7 @@ public class SmartBpService : ISmartBpService
         if (nameCell == null)
             return (string.Empty, string.Empty);
 
-        var nameRect = nameCell.Rect.ToPixelRect(surRow.Width, surRow.Height);
+        var nameRect = ToOpenCvRect(nameCell.Rect.ToPixelRect(surRow.Width, surRow.Height));
         using var name = new Mat(surRow, nameRect);
         using var bin = PreprocessForText(name);
         var text = _ocrService.RecognizeText(bin) ?? string.Empty;
@@ -417,7 +416,7 @@ public class SmartBpService : ISmartBpService
         if (nameCell == null)
             return (string.Empty, string.Empty);
 
-        var nameRect = nameCell.Rect.ToPixelRect(hunter.Width, hunter.Height);
+        var nameRect = ToOpenCvRect(nameCell.Rect.ToPixelRect(hunter.Width, hunter.Height));
         using var name = new Mat(hunter, nameRect);
         using var bin = PreprocessForText(name);
         var hunterText = _ocrService.RecognizeText(bin) ?? string.Empty;
@@ -595,7 +594,7 @@ public class SmartBpService : ISmartBpService
     private static Mat BuildDataStrip(Mat row, IReadOnlyList<RelativeRect> rects)
     {
         // 先裁掉列边缘无效区域，再按固定间隔拼接成一张新图。
-        var columnRects = rects.Select(r => TrimDataRect(r.ToPixelRect(row.Width, row.Height))).ToArray();
+        var columnRects = rects.Select(r => TrimDataRect(ToOpenCvRect(r.ToPixelRect(row.Width, row.Height)))).ToArray();
 
         var gap = Math.Max(20, row.Width / 55);
         var totalWidth = columnRects.Sum(r => r.Width) + gap * Math.Max(0, columnRects.Length - 1);
@@ -641,7 +640,7 @@ public class SmartBpService : ISmartBpService
     /// <returns>识别到的数字字符串。</returns>
     private string GetData(Mat row, RelativeRect rect, string? rawDebugFileName = null, string? binDebugFileName = null)
     {
-        var rawRect = rect.ToPixelRect(row.Width, row.Height);
+        var rawRect = ToOpenCvRect(rect.ToPixelRect(row.Width, row.Height));
         var trimmedRect = TrimDataRect(rawRect);
 
         // 先识别裁边区域，不行再回退到原始区域。
@@ -790,6 +789,8 @@ public class SmartBpService : ISmartBpService
         Cv2.BitwiseNot(bin, bin);
         return bin;
     }
+
+    private static Rect ToOpenCvRect(System.Windows.Int32Rect rect) => new(rect.X, rect.Y, rect.Width, rect.Height);
 
     /// <summary>
     /// 表示识别后的单个玩家信息。

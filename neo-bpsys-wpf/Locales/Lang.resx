@@ -1455,6 +1455,33 @@
   <data name="SmartBp" xml:space="preserve">
     <value>智慧 BP</value>
   </data>
+  <data name="SmartBpModuleSettingsTitle" xml:space="preserve">
+    <value>智慧 BP 模块设置</value>
+  </data>
+  <data name="SmartBpModulePath" xml:space="preserve">
+    <value>模块加载/安装路径</value>
+  </data>
+  <data name="SmartBpModulePathDescription" xml:space="preserve">
+    <value>用于安装、导入和加载智慧 BP 独立模块。修改后会同步到智慧 BP 页面，下次安装或本地加载会使用该目录。</value>
+  </data>
+  <data name="SmartBpModuleBrowseFolder" xml:space="preserve">
+    <value>浏览文件夹</value>
+  </data>
+  <data name="SmartBpModulePathSaved" xml:space="preserve">
+    <value>智慧 BP 模块路径已保存。</value>
+  </data>
+  <data name="SmartBpModulePathMigrating" xml:space="preserve">
+    <value>正在迁移智慧 BP 模块目录...</value>
+  </data>
+  <data name="SmartBpModulePathMigrationPrepared" xml:space="preserve">
+    <value>智慧 BP 模块已复制到新目录。下次从新目录成功加载后会清理旧目录。</value>
+  </data>
+  <data name="SmartBpModulePathMigrationFailed" xml:space="preserve">
+    <value>智慧 BP 模块目录迁移失败：</value>
+  </data>
+  <data name="SmartBpModulePathInvalid" xml:space="preserve">
+    <value>该路径不可用于安装智慧 BP 模块，请选择可写的用户目录。</value>
+  </data>
   <data name="PleaseStartWindowCaptureFirst" xml:space="preserve">
     <value>请先启动窗口捕获</value>
   </data>

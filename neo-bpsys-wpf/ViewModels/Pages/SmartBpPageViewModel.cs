@@ -1,679 +1,310 @@
-using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Core.Enums;
-using neo_bpsys_wpf.Core.Helpers;
-using neo_bpsys_wpf.Core.Models;
-using neo_bpsys_wpf.Helpers;
-using neo_bpsys_wpf.Services;
-using neo_bpsys_wpf.Views.Windows;
-using Windows.Graphics.Capture;
-using WPFLocalizeExtension.Engine;
-using System.Windows.Threading;
-using neo_bpsys_wpf.Core;
+using neo_bpsys_wpf.Core.Models.SmartBpModule;
+using neo_bpsys_wpf.Services.SmartBpModule;
+using System.IO;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
 /// <summary>
-/// SmartBP 页面视图模型，管理窗口捕获、OCR 模型下载/切换/删除、识别区域配置等 SmartBP 核心功能。
+/// SmartBP shell page view model. It hosts module content when loaded and shows the install overlay otherwise.
 /// </summary>
 public partial class SmartBpPageViewModel : ViewModelBase
 {
-    // WGC API 可用最低版本：Windows 10 1803。
-    private const int WgcMinimumBuild = 17134; // Windows 10 1803
-
-    // HWND 直捕（CreateForWindow）可用最低版本：Windows 10 1903。
-    private const int WgcHwndInteropMinimumBuild = 18362; // Windows 10 1903
-
-    private readonly IWindowCaptureService _windowCaptureService = null!;
-    private readonly IOcrService _ocrService = null!;
-    private readonly ISmartBpRegionConfigService _regionConfigService = null!;
-    private readonly ISmartBpSceneDefinition _gameDataSceneDefinition = null!;
+    private readonly SmartBpModuleManager _moduleManager = null!;
     private readonly IFilePickerService _filePickerService = null!;
-    private readonly DispatcherTimer _captureAspectRefreshTimer;
-    private readonly ILogger<SmartBpPageViewModel> _logger;
 
     /// <summary>
-    /// 用于设计时预览的无参构造函数。
+    /// Initializes a design-time instance of the <see cref="SmartBpPageViewModel"/> class.
     /// </summary>
-#pragma warning disable CS8618
     public SmartBpPageViewModel()
-#pragma warning restore CS8618
     {
-        // Decorative constructor for design-time only.
+        SelectedModulePath = SmartBpModuleManager.GetDefaultModuleRoot();
+        ConfigureLocalOnlyOverlayForDebugOrPreview();
     }
 
     /// <summary>
-    /// SmartBp 页面视图模型构造函数。
+    /// Initializes a new instance of the <see cref="SmartBpPageViewModel"/> class.
     /// </summary>
-    public SmartBpPageViewModel(
-        IWindowCaptureService windowCaptureService,
-        IOcrService ocrService,
-        ISmartBpRegionConfigService regionConfigService,
-        IEnumerable<ISmartBpSceneDefinition> sceneDefinitions,
-        IFilePickerService filePickerService,
-        ILogger<SmartBpPageViewModel> logger)
+    /// <param name="moduleManager">SmartBP module manager.</param>
+    /// <param name="filePickerService">File picker service.</param>
+    public SmartBpPageViewModel(SmartBpModuleManager moduleManager, IFilePickerService filePickerService)
     {
-        _logger = logger;
-        _windowCaptureService = windowCaptureService;
-        _ocrService = ocrService;
-        _regionConfigService = regionConfigService;
-        _gameDataSceneDefinition = sceneDefinitions.FirstOrDefault(s =>
-                string.Equals(s.SceneKey, SmartBpSceneKeys.GameData, StringComparison.OrdinalIgnoreCase));
-        if (_gameDataSceneDefinition == null)
-        {
-            _logger.LogError("Missing SmartBp scene definition: GameData");
-            throw new InvalidOperationException("Missing SmartBp scene definition: GameData");
-        }
+        _moduleManager = moduleManager;
         _filePickerService = filePickerService;
-        _ocrService.DownloadStateChanged += OcrService_DownloadStateChanged;
-        // 配置被保存/导入/重置时同步刷新比例状态展示。
-        _regionConfigService.GameDataProfileChanged += (_, _) => RunOnUiThread(RefreshRegionAspectInfo);
-        _captureAspectRefreshTimer = new DispatcherTimer
+        SelectedModulePath = _moduleManager.ReadState()?.ModuleRoot ?? SmartBpModuleManager.GetDefaultModuleRoot();
+        ConfigureLocalOnlyOverlayForDebugOrPreview();
+        _moduleManager.ModuleStateChanged += (_, _) => SyncModuleState();
+        _ = InitializeAsync();
+        _ = InspectSelectedPathAsync();
+    }
+
+    /// <summary>
+    /// Whether the SmartBP module is loaded.
+    /// </summary>
+    [ObservableProperty] private bool _isModuleLoaded;
+
+    /// <summary>
+    /// Loaded module content.
+    /// </summary>
+    [ObservableProperty] private object? _moduleContent;
+
+    /// <summary>
+    /// Selected module path.
+    /// </summary>
+    [ObservableProperty] private string _selectedModulePath = string.Empty;
+
+    /// <summary>
+    /// Overlay message.
+    /// </summary>
+    [ObservableProperty] private string _overlayMessage = "SmartBP 需要安装独立模块后使用。";
+
+    /// <summary>
+    /// Primary button text.
+    /// </summary>
+    [ObservableProperty] private string _primaryActionText = "下载并安装";
+
+    /// <summary>
+    /// Whether the installed-module-folder button is visible.
+    /// </summary>
+    [ObservableProperty] private bool _isSelectInstalledModuleButtonVisible = true;
+
+    /// <summary>
+    /// Whether operation progress is visible.
+    /// </summary>
+    [ObservableProperty] private bool _isProgressVisible;
+
+    /// <summary>
+    /// Operation progress value.
+    /// </summary>
+    [ObservableProperty] private double _progressValue;
+
+    /// <summary>
+    /// Whether preview-local mode is active.
+    /// </summary>
+    public bool IsPreviewMode
+    {
+        get
         {
-            Interval = TimeSpan.FromMilliseconds(300)
-        };
-        _captureAspectRefreshTimer.Tick += (_, _) =>
+#if PREVIEW
+            return true;
+#else
+            return false;
+#endif
+        }
+    }
+
+    /// <summary>
+    /// Whether debug mode is active.
+    /// </summary>
+    public bool IsDebugMode
+    {
+        get
         {
-            if (!_windowCaptureService.IsCapturing)
+#if DEBUG
+            return true;
+#else
+            return false;
+#endif
+        }
+    }
+
+    /// <summary>
+    /// Whether the select zip button is visible.
+    /// </summary>
+    public bool IsZipImportVisible => IsPreviewMode;
+
+    private async Task InitializeAsync()
+    {
+        if (IsDebugMode)
+        {
+            var debugPath = Path.GetFullPath(Path.Combine(
+                AppContext.BaseDirectory,
+                "..", "..", "..", "..",
+                "neo-bpsys-wpf.SmartBp.Module",
+                "bin",
+                "Debug",
+                "net9.0-windows10.0.20348"));
+            if (Directory.Exists(debugPath) && await _moduleManager.LoadModuleFromDirectoryAsync(debugPath, "DevelopmentDirectory"))
+                return;
+        }
+
+        await _moduleManager.TryLoadPersistedModuleAsync();
+    }
+
+    [RelayCommand]
+    private void BrowseModulePath()
+    {
+        var folder = _filePickerService.PickFolder();
+        if (!string.IsNullOrWhiteSpace(folder))
+            SelectedModulePath = folder;
+    }
+
+    [RelayCommand]
+    private async Task PrimaryActionAsync()
+    {
+        IsProgressVisible = true;
+        ProgressValue = 0;
+        if (await _moduleManager.LoadModuleFromDirectoryAsync(SelectedModulePath))
+        {
+            IsProgressVisible = false;
+            return;
+        }
+
+        if (IsDebugMode)
+        {
+            IsProgressVisible = false;
+            OverlayMessage = BuildLocalLoadFailureMessage(
+                "Debug 版本仅加载本地 SmartBP 模块目录。当前目录加载失败，请确认模块 Debug 输出目录存在且入口程序集可加载。");
+            return;
+        }
+
+        if (!IsPreviewMode)
+        {
+            var installed = await _moduleManager.DownloadAndInstallCurrentModuleAsync(
+                SelectedModulePath,
+                new Progress<double>(value => ProgressValue = value));
+            IsProgressVisible = false;
+            if (installed)
+                return;
+        }
+
+        IsProgressVisible = false;
+        OverlayMessage = IsPreviewMode
+            ? "Preview 版本请加载本地模块目录或导入 SmartBpModule.zip。"
+            : "无法下载或安装 SmartBP 模块。请检查网络后重试，或手动选择已安装模块路径。";
+    }
+
+    [RelayCommand]
+    private async Task SelectInstalledModuleFolderAsync()
+    {
+        var folder = _filePickerService.PickFolder();
+        if (string.IsNullOrWhiteSpace(folder))
+            return;
+
+        SelectedModulePath = folder;
+        if (!await _moduleManager.LoadModuleFromDirectoryAsync(folder))
+        {
+            OverlayMessage = IsDebugMode
+                ? BuildLocalLoadFailureMessage("Debug 版本加载本地模块目录失败，请确认入口程序集存在且可以被当前主程序加载。")
+                : BuildLocalLoadFailureMessage("选择的 SmartBP 模块目录不可用，请检查 component.json、RID、ABI 和入口程序集。");
+        }
+    }
+
+    [RelayCommand]
+    private async Task ImportModuleZipAsync()
+    {
+        var zip = _filePickerService.PickZipFile();
+        if (string.IsNullOrWhiteSpace(zip))
+            return;
+
+        IsProgressVisible = true;
+        ProgressValue = 20;
+        await _moduleManager.ImportZipAsync(zip, SelectedModulePath);
+        ProgressValue = 100;
+        IsProgressVisible = false;
+    }
+
+    partial void OnSelectedModulePathChanged(string value)
+    {
+        TryPersistSelectedModulePathPreference(value);
+        _ = InspectSelectedPathAsync();
+    }
+
+    private async Task InspectSelectedPathAsync()
+    {
+        if (_moduleManager == null)
+            return;
+
+        if (SmartBpModuleManager.IsUnsafeInstallPath(SelectedModulePath))
+        {
+            PrimaryActionText = "重新安装";
+            OverlayMessage = "当前路径不适合安装 SmartBP 模块，请选择可写的用户目录。";
+            IsSelectInstalledModuleButtonVisible = true;
+            return;
+        }
+
+        if (_moduleManager.ValidateModuleDirectory(
+                SelectedModulePath,
+                allowDevelopmentDirectory: IsDebugMode,
+                out var manifest,
+                out var error))
+        {
+            var requiredManifest = await _moduleManager.TryFetchRequiredModuleManifestAsync();
+            if (manifest != null &&
+                requiredManifest != null &&
+                !SmartBpModuleManager.IsModuleVersionAllowed(manifest.ModuleVersion, requiredManifest.ModuleVersion))
             {
-                _captureAspectRefreshTimer.Stop();
+                PrimaryActionText = "更新并安装";
+                OverlayMessage = $"当前 SmartBP 模块版本过旧，需要更新到 {requiredManifest.ModuleVersion}。";
+                IsSelectInstalledModuleButtonVisible = true;
                 return;
             }
 
-            RefreshRegionAspectInfo();
-        };
-
-        ActiveWindows = _windowCaptureService.ListActiveWindows();
-
-        if (!IsWgcHwndCaptureSupported())
-        {
-            SelectedCaptureMethod = CaptureMethod.Bitblt;
-            SelectedCaptureMethodIndex = 1;
-        }
-
-        RefreshOcrModelStatus();
-        SyncDownloadStateFromService();
-        RefreshRegionAspectInfo();
-    }
-
-    /// <summary>
-    /// 当前活动窗口列表。
-    /// </summary>
-    [ObservableProperty] private List<WindowInfo> _activeWindows = [];
-
-    /// <summary>
-    /// 可选 OCR 模型列表。
-    /// </summary>
-    [ObservableProperty] private List<OcrModelSelection> _ocrModelList = [];
-
-    /// <summary>
-    /// 当前选中的 OCR 模型。
-    /// </summary>
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(DownloadSelectedOcrModelCommand))]
-    [NotifyCanExecuteChangedFor(nameof(DeleteSelectedOcrModelCommand))]
-    [NotifyCanExecuteChangedFor(nameof(SwitchSelectedOcrModelCommand))]
-    private OcrModelSelection? _selectedOcrModel;
-
-    /// <summary>
-    /// 是否正在下载 OCR 模型。
-    /// </summary>
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(DownloadSelectedOcrModelCommand))]
-    [NotifyCanExecuteChangedFor(nameof(DeleteSelectedOcrModelCommand))]
-    [NotifyCanExecuteChangedFor(nameof(SwitchSelectedOcrModelCommand))]
-    private bool _isModelDownloading;
-
-    /// <summary>
-    /// 是否有精确下载进度（区别于不确定进度条）。
-    /// </summary>
-    [ObservableProperty] private bool _hasPreciseDownloadProgress;
-
-    /// <summary>
-    /// OCR 模型下载进度值（0-100）。
-    /// </summary>
-    [ObservableProperty] private double _modelDownloadProgress;
-
-    /// <summary>
-    /// OCR 模型下载进度文本（百分比）。
-    /// </summary>
-    [ObservableProperty] private string _modelDownloadProgressText = string.Empty;
-
-    /// <summary>
-    /// OCR 模型下载阶段描述文本。
-    /// </summary>
-    [ObservableProperty] private string _modelDownloadStageText = string.Empty;
-
-    /// <summary>
-    /// 当前 OCR 模型显示名称。
-    /// </summary>
-    [ObservableProperty] private string _currentOcrModelDisplayName = "SmartBpCurrentOcrModelNotEnabled";
-
-    /// <summary>
-    /// 当前识别区域配置文件路径。
-    /// </summary>
-    [ObservableProperty] private string _regionConfigPath = "-";
-
-    /// <summary>
-    /// 识别区域配置的比例文本（如 16:9）。
-    /// </summary>
-    [ObservableProperty] private string _regionConfigAspectRatioText = "-";
-
-    /// <summary>
-    /// 当前捕获画面比例文本（如 16:9）。
-    /// </summary>
-    [ObservableProperty] private string _captureAspectRatioText = "-";
-
-    /// <summary>
-    /// 区域比例状态文本。
-    /// </summary>
-    [ObservableProperty] private string _regionAspectStatusText = "-";
-
-    /// <summary>
-    /// 区域比例提示文本。
-    /// </summary>
-    [ObservableProperty] private string _regionAspectHintText = "-";
-
-    /// <summary>
-    /// 区域比例是否不匹配。
-    /// </summary>
-    [ObservableProperty] private bool _regionAspectIsMismatch;
-
-    /// <summary>
-    /// 是否显示下载模型按钮。
-    /// </summary>
-    public bool ShowDownloadModelButton => SelectedOcrModel is not { IsInstalled: true };
-
-    /// <summary>
-    /// 是否显示删除模型按钮。
-    /// </summary>
-    public bool ShowDeleteModelButton => SelectedOcrModel is { IsInstalled: true };
-
-    private WindowInfo? _selectedWindow;
-
-    /// <summary>
-    /// 当前选中的捕获窗口。
-    /// </summary>
-    public WindowInfo? SelectedWindow
-    {
-        get => _selectedWindow;
-        set => SetPropertyWithAction(ref _selectedWindow, value, _ =>
-        {
-            StartCaptureCommand.NotifyCanExecuteChanged();
-            if (_windowCaptureService.IsCapturing)
-                StartCapture();
-        });
-    }
-
-    [RelayCommand]
-    private void RefreshActiveWindows() => ActiveWindows = _windowCaptureService.ListActiveWindows();
-
-    [RelayCommand(CanExecute = nameof(CanCaptureStarted))]
-    private void StartCapture()
-    {
-        _ = _windowCaptureService.StartCapture(SelectedWindow, SelectedCaptureMethod);
-        if (_windowCaptureService.IsCapturing)
-            _captureAspectRefreshTimer.Start();
-        // 捕获状态变化会影响多个按钮的可用性和比例提示。
-        RefreshCommandStates();
-        RefreshRegionAspectInfo();
-    }
-
-    [RelayCommand(CanExecute = nameof(CanCaptureStopped))]
-    private void StopCapture()
-    {
-        _windowCaptureService.StopCapture();
-        _captureAspectRefreshTimer.Stop();
-        RefreshCommandStates();
-        RefreshRegionAspectInfo();
-    }
-
-    [RelayCommand(CanExecute = nameof(CanOpenPreviewWindow))]
-    private void OpenPreviewWindow() => _windowCaptureService.OpenPreviewWindow();
-
-    [RelayCommand(CanExecute = nameof(CanOpenWindowPicker))]
-    private async Task OpenWindowPickerAsync()
-    {
-        if (await _windowCaptureService.StartCaptureWithPickerAsync())
-        {
-            SelectedCaptureMethod = CaptureMethod.WGC;
-            if (_windowCaptureService.IsCapturing)
-                _captureAspectRefreshTimer.Start();
-        }
-
-        RefreshCommandStates();
-        RefreshRegionAspectInfo();
-    }
-
-    [RelayCommand(CanExecute = nameof(CanOpenRegionEditor))]
-    private async Task OpenGameDataRegionEditorAsync()
-    {
-        // 识别区域编辑依赖当前帧快照，因此必须先启动捕获。
-        if (!_windowCaptureService.IsCapturing)
-        {
-            await MessageBoxHelper.ShowInfoAsync(ResolveLocalizedOrRaw("SmartBpRegionEditorRequireCaptureFirst"));
+            PrimaryActionText = "加载本地模块";
+            OverlayMessage = "检测到兼容的 SmartBP 模块，可以直接加载。";
+            IsSelectInstalledModuleButtonVisible = false;
             return;
         }
 
-        // 编辑器仅使用单帧冻结图像，不做实时刷新。
-        var frame = _windowCaptureService.GetCurrentFrame();
-        if (frame == null)
-            return;
-
-        var profile = _regionConfigService.GetCurrentGameDataProfile();
-        // 保存编辑基准尺寸/比例，便于后续页面匹配展示与诊断。
-        profile.BaseAspectRatio = SmartBpRegionConfigService.ToAspectRatioText(frame.PixelWidth, frame.PixelHeight);
-        profile.BaseSize = SmartBpRegionConfigService.ToAspectBaseSize(frame.PixelWidth, frame.PixelHeight);
-
-        // 配置已是通用布局结构；这里仅注入编辑展示元数据（标签/模板组）。
-        var layout = _gameDataSceneDefinition.BuildEditorLayout(profile.Layout);
-        var editor = new RegionEditorWindow(frame, layout)
-        {
-            Owner = Application.Current?.Windows.OfType<Window>().FirstOrDefault(w => w.IsActive)
-                    ?? Application.Current?.MainWindow
-        };
-
-        if (editor.ShowDialog() != true || editor.ResultLayout == null)
-            return;
-
-        // 保存前做结构校验，避免非法布局污染识别流程。
-        if (!_gameDataSceneDefinition.TryValidateEditedLayout(editor.ResultLayout, out var applyError))
-        {
-            await MessageBoxHelper.ShowErrorAsync(applyError);
-            return;
-        }
-
-        profile.Layout = _gameDataSceneDefinition.NormalizeEditedLayoutForPersistence(editor.ResultLayout);
-
-        if (!_regionConfigService.TrySaveGameDataProfile(profile, out var error))
-        {
-            await MessageBoxHelper.ShowErrorAsync(error);
-            return;
-        }
-
-        RefreshRegionAspectInfo();
-        await MessageBoxHelper.ShowInfoAsync(ResolveLocalizedOrRaw("SmartBpRegionConfigSaved"));
+        PrimaryActionText = error.Contains("ABI", StringComparison.OrdinalIgnoreCase) ||
+                            error.Contains("RID", StringComparison.OrdinalIgnoreCase)
+            ? "重新安装"
+            : IsDebugMode || IsPreviewMode ? "加载本地模块" : "下载并安装";
+        OverlayMessage = string.IsNullOrWhiteSpace(error)
+            ? "SmartBP 需要安装独立模块后使用。"
+            : $"当前路径模块不可用：{error}";
+        IsSelectInstalledModuleButtonVisible = true;
     }
 
-    [RelayCommand]
-    private async Task ImportGameDataRegionConfigAsync()
+    private void SyncModuleState()
     {
-        // 允许导入外部 JSON，校验由配置服务统一处理。
-        var file = _filePickerService.PickJsonFile();
-        if (string.IsNullOrWhiteSpace(file))
-            return;
-
-        if (!_regionConfigService.TryImportGameDataProfile(file, out var error))
+        IsModuleLoaded = _moduleManager.IsModuleLoaded;
+        ModuleContent = _moduleManager.ModuleContent;
+        var persistedRoot = _moduleManager.ReadState()?.ModuleRoot;
+        if (!IsModuleLoaded &&
+            !string.IsNullOrWhiteSpace(persistedRoot) &&
+            !string.Equals(SelectedModulePath, persistedRoot, StringComparison.OrdinalIgnoreCase))
         {
-            await MessageBoxHelper.ShowErrorAsync(error);
-            return;
+            SelectedModulePath = persistedRoot;
         }
-
-        RefreshRegionAspectInfo();
-        await MessageBoxHelper.ShowInfoAsync(ResolveLocalizedOrRaw("SmartBpRegionConfigImported"));
     }
 
-    [RelayCommand]
-    private async Task ExportGameDataRegionConfigAsync()
+    private string BuildLocalLoadFailureMessage(string fallback)
     {
-        var file = _filePickerService.SaveJsonFile("GameDataRegions.json");
-        if (string.IsNullOrWhiteSpace(file))
-            return;
-
-        if (!_regionConfigService.TryExportGameDataProfile(file, out var error))
-        {
-            await MessageBoxHelper.ShowErrorAsync(error);
-            return;
-        }
-
-        await MessageBoxHelper.ShowInfoAsync(
-            string.Format(I18nHelper.GetLocalizedString("SaveSuccessfullyTo"), file));
+        return string.IsNullOrWhiteSpace(_moduleManager.LastFailureMessage)
+            ? fallback
+            : $"{fallback}错误：{_moduleManager.LastFailureMessage}";
     }
 
-    [RelayCommand]
-    private async Task ResetGameDataRegionConfigAsync()
+    private void ConfigureLocalOnlyOverlayForDebugOrPreview()
     {
-        // 重置来自内置 16:9 默认模板，会覆盖用户当前配置。
-        var confirmed = await MessageBoxHelper.ShowConfirmAsync(
-            ResolveLocalizedOrRaw("SmartBpRegionConfigResetConfirm"),
-            ResolveLocalizedOrRaw("SmartBpRegionConfigResetTitle"),
-            ResolveLocalizedOrRaw("Confirm"),
-            ResolveLocalizedOrRaw("Cancel"));
-        if (!confirmed)
+        if (!IsDebugMode && !IsPreviewMode)
             return;
 
-        if (!_regionConfigService.TryResetGameDataToBuiltinDefault(out var error))
-        {
-            await MessageBoxHelper.ShowErrorAsync(error);
-            return;
-        }
-
-        RefreshRegionAspectInfo();
-        await MessageBoxHelper.ShowInfoAsync(ResolveLocalizedOrRaw("SmartBpRegionConfigResetDone"));
+        PrimaryActionText = "加载本地模块";
+        OverlayMessage = IsDebugMode
+            ? "Debug 版本请加载 SmartBP 模块 Debug 输出目录。"
+            : "Preview 版本请加载本地模块目录或导入 SmartBpModule.zip。";
     }
 
-    [RelayCommand]
-    private void RefreshOcrModelStatus()
+    private void TryPersistSelectedModulePathPreference(string value)
     {
-        var preferredSelectedKey = SelectedOcrModel?.Key;
-        var currentModelKey = _ocrService.CurrentOcrModelKey;
-        var recommendedModelKey = GetRecommendedModelKeyForCurrentLanguage();
-        OcrModelList =
-        [
-            .. _ocrService.GetAvailableModels()
-                .OrderByDescending(m => m.Key == recommendedModelKey)
-                .Select(m => new OcrModelSelection(
-                    m.Key,
-                    m.DisplayName,
-                    m.Description,
-                    _ocrService.IsModelInstalled(m.Key),
-                    m.Key == currentModelKey))
-        ];
-
-        SelectedOcrModel = OcrModelList.FirstOrDefault(m => m.Key == preferredSelectedKey)
-                           ?? OcrModelList.FirstOrDefault(m => m.Key == currentModelKey)
-                           ?? OcrModelList.FirstOrDefault(m => m.Key == recommendedModelKey)
-                           ?? OcrModelList.FirstOrDefault();
-
-        CurrentOcrModelDisplayName = currentModelKey is null
-            ? "SmartBpCurrentOcrModelNotEnabled"
-            : OcrModelList.FirstOrDefault(m => m.Key == currentModelKey)?.DisplayName ?? currentModelKey;
-    }
-
-    [RelayCommand(CanExecute = nameof(CanDownloadSelectedOcrModel))]
-    private async Task DownloadSelectedOcrModelAsync()
-    {
-        if (SelectedOcrModel == null)
+        if (_moduleManager == null || string.IsNullOrWhiteSpace(value))
             return;
 
         try
         {
-            await _ocrService.DownloadModelAsync(SelectedOcrModel.Key);
-            RefreshOcrModelStatus();
+            if (!Path.IsPathFullyQualified(value) || SmartBpModuleManager.IsUnsafeInstallPath(value))
+                return;
+
+            _moduleManager.PersistModuleRootPreference(value);
         }
-        catch (OperationCanceledException)
+        catch
         {
-        }
-        catch (Exception ex)
-        {
-            await MessageBoxHelper.ShowErrorAsync(
-                string.Format(
-                    I18nHelper.GetLocalizedString("SmartBpOcrModelDownloadFailed"),
-                    ex.Message));
+            // Ignore partial or invalid path input while the user is typing.
         }
     }
-
-    [RelayCommand(CanExecute = nameof(CanDeleteSelectedOcrModel))]
-    private async Task DeleteSelectedOcrModelAsync()
-    {
-        if (SelectedOcrModel == null)
-            return;
-
-        var confirmed = await MessageBoxHelper.ShowConfirmAsync(
-            string.Format(I18nHelper.GetLocalizedString("SmartBpDeleteOcrModelConfirmFormat"),
-                ResolveLocalizedOrRaw(SelectedOcrModel.DisplayName)),
-            I18nHelper.GetLocalizedString("SmartBpDeleteOcrModelTitle"),
-            I18nHelper.GetLocalizedString("Delete"),
-            I18nHelper.GetLocalizedString("Cancel"));
-        if (!confirmed)
-            return;
-
-        if (!_ocrService.TryDeleteModel(SelectedOcrModel.Key, out var errorMessage))
-        {
-            await MessageBoxHelper.ShowErrorAsync(errorMessage);
-            return;
-        }
-
-        RefreshOcrModelStatus();
-    }
-
-    [RelayCommand]
-    private void CancelOcrModelDownload()
-    {
-        _ocrService.CancelDownload();
-    }
-
-    [RelayCommand(CanExecute = nameof(CanSwitchSelectedOcrModel))]
-    private void SwitchSelectedOcrModel()
-    {
-        if (SelectedOcrModel == null)
-            return;
-
-        if (!_ocrService.TrySwitchOcrModel(SelectedOcrModel.Key, out var errorMessage))
-        {
-            _ = MessageBoxHelper.ShowErrorAsync(errorMessage);
-            return;
-        }
-
-        RefreshOcrModelStatus();
-    }
-
-    private bool CanCaptureStarted() =>
-        SelectedCaptureMethod == CaptureMethod.WGC
-            ? SelectedWindow is not null && IsWgcHwndCaptureSupported()
-            : SelectedWindow is not null;
-
-    private bool CanCaptureStopped() => _windowCaptureService.IsCapturing;
-
-    private bool CanOpenPreviewWindow() => _windowCaptureService.IsCapturing;
-
-    private static bool CanOpenWindowPicker() => IsWgcSupported();
-    private bool CanOpenRegionEditor() => _windowCaptureService.IsCapturing;
-
-    private bool CanDownloadSelectedOcrModel() =>
-        !IsModelDownloading && SelectedOcrModel is { IsInstalled: false };
-
-    private bool CanDeleteSelectedOcrModel() =>
-        !IsModelDownloading && SelectedOcrModel is { IsInstalled: true };
-
-    private bool CanSwitchSelectedOcrModel() =>
-        !IsModelDownloading && SelectedOcrModel is { IsInstalled: true };
-
-    private void RefreshCommandStates()
-    {
-        // 捕获状态变化后，统一刷新和捕获相关的命令可用性。
-        StopCaptureCommand.NotifyCanExecuteChanged();
-        OpenPreviewWindowCommand.NotifyCanExecuteChanged();
-        StartCaptureCommand.NotifyCanExecuteChanged();
-        OpenWindowPickerCommand.NotifyCanExecuteChanged();
-        OpenGameDataRegionEditorCommand.NotifyCanExecuteChanged();
-    }
-
-    private void RefreshRegionAspectInfo()
-    {
-        // 页面显示的比例信息全部来自配置服务，避免 UI 层重复计算逻辑。
-        var captureAspect = GetCurrentCaptureAspectRatio();
-        var aspect = _regionConfigService.GetAspectInfo(captureAspect);
-        RegionConfigPath = aspect.ConfigPath;
-        RegionConfigAspectRatioText = aspect.ConfigAspectRatio;
-        CaptureAspectRatioText = aspect.CurrentCaptureAspectRatio;
-
-        if (!_windowCaptureService.IsCapturing)
-        {
-            RegionAspectStatusText = ResolveLocalizedOrRaw("SmartBpRegionAspectStatusNotStarted");
-            RegionAspectHintText = ResolveLocalizedOrRaw("SmartBpRegionAspectHintNotStarted");
-            RegionAspectIsMismatch = false;
-            return;
-        }
-
-        // 刚启动捕获时首帧可能尚未到达，此时不应误判为“不匹配”。
-        if (string.IsNullOrWhiteSpace(captureAspect) || captureAspect == "-")
-        {
-            RegionAspectStatusText = ResolveLocalizedOrRaw("SmartBpRegionAspectStatusWaitingFirstFrame");
-            RegionAspectHintText = ResolveLocalizedOrRaw("SmartBpRegionAspectHintWaitingFirstFrame");
-            RegionAspectIsMismatch = false;
-            return;
-        }
-
-        if (aspect.IsMatched)
-        {
-            RegionAspectStatusText = ResolveLocalizedOrRaw("SmartBpRegionAspectStatusMatched");
-            RegionAspectHintText = ResolveLocalizedOrRaw("SmartBpRegionAspectHintMatched");
-            RegionAspectIsMismatch = false;
-            return;
-        }
-
-        RegionAspectStatusText = ResolveLocalizedOrRaw("SmartBpRegionAspectStatusMismatched");
-        RegionAspectHintText = ResolveLocalizedOrRaw("SmartBpRegionAspectHintMismatched");
-        RegionAspectIsMismatch = true;
-    }
-
-    /// <summary>
-    /// 获取当前捕获帧比例文本（如 16:9）。
-    /// 若未捕获或帧不可用，返回 "-" 供界面展示。
-    /// </summary>
-    private string? GetCurrentCaptureAspectRatio()
-    {
-        if (!_windowCaptureService.IsCapturing)
-            return "-";
-
-        var frame = _windowCaptureService.GetCurrentFrame();
-        if (frame == null || frame.PixelWidth <= 0 || frame.PixelHeight <= 0)
-            return "-";
-
-        return SmartBpRegionConfigService.ToAspectRatioText(frame.PixelWidth, frame.PixelHeight);
-    }
-
-    private void OcrService_DownloadStateChanged(object? sender, EventArgs e)
-    {
-        RunOnUiThread(SyncDownloadStateFromService);
-    }
-
-    private void SyncDownloadStateFromService()
-    {
-        IsModelDownloading = _ocrService.IsDownloading;
-        ModelDownloadStageText = _ocrService.DownloadStatusText;
-
-        if (_ocrService.DownloadProgress is double progress)
-        {
-            HasPreciseDownloadProgress = true;
-            ModelDownloadProgress = progress;
-            ModelDownloadProgressText = $"{progress:0.00}%";
-        }
-        else
-        {
-            HasPreciseDownloadProgress = false;
-            ModelDownloadProgress = 0;
-            ModelDownloadProgressText = string.Empty;
-        }
-    }
-
-    private static void RunOnUiThread(Action action)
-    {
-        if (Application.Current?.Dispatcher == null || Application.Current.Dispatcher.CheckAccess())
-        {
-            action();
-            return;
-        }
-
-        Application.Current.Dispatcher.Invoke(action);
-    }
-
-    partial void OnSelectedOcrModelChanged(OcrModelSelection? value)
-    {
-        OnPropertyChanged(nameof(ShowDownloadModelButton));
-        OnPropertyChanged(nameof(ShowDeleteModelButton));
-    }
-
-    private static bool IsWgcApiAvailable() => OperatingSystem.IsWindowsVersionAtLeast(10, 0, WgcMinimumBuild);
-
-    private static bool IsWgcHwndInteropAvailable() =>
-        OperatingSystem.IsWindowsVersionAtLeast(10, 0, WgcHwndInteropMinimumBuild);
-
-    private static bool IsWgcSupported()
-    {
-        if (!IsWgcApiAvailable())
-            return false;
-
-        return GraphicsCaptureSession.IsSupported();
-    }
-
-    private static bool IsWgcHwndCaptureSupported() => IsWgcHwndInteropAvailable() && IsWgcSupported();
-
-    private static string GetRecommendedModelKeyForCurrentLanguage()
-    {
-        var language = LocalizeDictionary.CurrentCulture.Name;
-        if (language.StartsWith("en", StringComparison.OrdinalIgnoreCase))
-            return "en-v4-mobile";
-
-        if (language.StartsWith("ja", StringComparison.OrdinalIgnoreCase))
-            return "ja-v4-mobile";
-
-        return "zh-cn-v5-mobile";
-    }
-
-    private static string ResolveLocalizedOrRaw(string keyOrRawText)
-    {
-        var localized = I18nHelper.GetLocalizedString(keyOrRawText);
-        return string.IsNullOrWhiteSpace(localized) ? keyOrRawText : localized;
-    }
-
-
-    /// <summary>
-    /// 当前选中的捕获方式。
-    /// </summary>
-    public CaptureMethod SelectedCaptureMethod { get; set; } = CaptureMethod.WGC;
-
-    /// <summary>
-    /// 捕获方式下拉框选中索引。
-    /// </summary>
-    public int SelectedCaptureMethodIndex { get; set; }
-
-    /// <summary>
-    /// 可选捕获方式列表。
-    /// </summary>
-    public List<CaptureMethodSelection> CaptureMethodList { get; } =
-    [
-        new(CaptureMethod.WGC, "SmartBpCaptureMethodWgc"),
-        new(CaptureMethod.Bitblt, "SmartBpCaptureMethodBitblt")
-    ];
-
-    /// <summary>
-    /// 捕获方式下拉项模型。
-    /// </summary>
-    public class CaptureMethodSelection
-    {
-        /// <summary>
-        /// 构造一个捕获方式展示项。
-        /// </summary>
-        public CaptureMethodSelection(CaptureMethod method, string displayNameKey)
-        {
-            Method = method;
-            DisplayNameKey = displayNameKey;
-
-            if (method == CaptureMethod.WGC && !IsWgcHwndCaptureSupported())
-            {
-                IsAvaliable = false;
-            }
-        }
-
-        /// <summary>
-        /// 捕获方式值。
-        /// </summary>
-        public CaptureMethod Method { get; init; }
-
-        /// <summary>
-        /// 展示文案的本地化 Key。
-        /// </summary>
-        public string DisplayNameKey { get; init; }
-
-        /// <summary>
-        /// 该选项是否可用。
-        /// </summary>
-        public bool IsAvaliable { get; init; } = true;
-    }
-
-    /// <summary>
-    /// OCR 模型下拉项展示模型。
-    /// </summary>
-    public sealed record OcrModelSelection(
-        string Key,
-        string DisplayName,
-        string Description,
-        bool IsInstalled,
-        bool IsCurrent);
 }

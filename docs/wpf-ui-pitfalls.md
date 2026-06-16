@@ -13,6 +13,12 @@ services.AddFrontedWindow<MyWindow, MyWindowViewModel>();
 
 手动 `new Page()` 或 `new Window()` 会丢失 DataContext、服务注入、注册表信息和 WPF-UI page provider 集成。插件 v3 前台窗口应通过 `IFrontedWindowPluginContributor` 和 `FrontedPluginWindowDescriptor` 声明，再用 `AddFrontedWindowPluginContributor<T>()` 注册 contributor。
 
+## Page 宿主限制
+
+WPF 的 `Page` 只能由 `Window`、`Frame` 或导航宿主承载，不能直接放进 `ContentControl`、`Border`、`Grid`、`TabItem`、插件内容 host 或模块内容 host。否则运行时会抛出 `InvalidOperationException: Page can have only Window or Frame as parent.`
+
+需要嵌入到页面内部、插件 host、模块 host、overlay 或 `ContentControl` 的内容必须实现为 `UserControl` 或普通 `Control`。只有真正参与 WPF-UI 导航或 Frame 导航的后台页面才使用 `Page`，并通过 `AddBackendPage<TView,TViewModel>()` 注册。
+
 ## 生命周期
 
 当前注册模式中：

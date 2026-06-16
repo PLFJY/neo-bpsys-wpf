@@ -60,8 +60,16 @@ dotnet test .\neo-bpsys-wpf.Tests\neo-bpsys-wpf.Tests.csproj
 OCR 模型路径：
 
 ```text
-Documents\neo-bpsys-wpf\OCRModels
+{SmartBpModuleRoot}\OCRModels
 ```
+
+旧版本模型如果仍在 `Documents\neo-bpsys-wpf\OCRModels`，会在 SmartBP 模块首次安装或首次成功加载后迁移。Debug 构建会尝试直接加载模块项目输出目录：
+
+```text
+neo-bpsys-wpf.SmartBp.Module\bin\Debug\net9.0-windows10.0.20348
+```
+
+Debug 加载不进行远端 manifest 检查，也不强制比较模块版本。
 
 ## 插件加载调试
 

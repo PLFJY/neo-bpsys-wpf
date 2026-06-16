@@ -75,9 +75,17 @@
         </BuiltinPlugin>
     </ItemGroup>
 
-    <!-- 1) Restore and build plugins before main Build -->
+    <!-- 1) Build plugins before main Build. Do not restore here; callers control restore explicitly. -->
     <Target Name="BuildBuiltinPlugins" BeforeTargets="Build" Condition="@(BuiltinPlugin) != ''">
-        <MSBuild Projects="@(BuiltinPlugin)" Targets="Restore;Build" BuildInParallel="true" Properties="Configuration=$(Configuration)" />
+        <MSBuild Projects="@(BuiltinPlugin)" Targets="Build" BuildInParallel="true" Properties="Configuration=$(Configuration)" />
+    </Target>
+
+    <Target Name="BuildSmartBpModuleForDebug"
+            BeforeTargets="Build"
+            Condition="'$(Configuration)'=='Debug'">
+        <MSBuild Projects="..\neo-bpsys-wpf.SmartBp.Module\neo-bpsys-wpf.SmartBp.Module.csproj"
+                 Targets="Build"
+                 Properties="Configuration=Debug" />
     </Target>
 
     <!-- Build: copy plugins into bin\<cfg>\<tfm>\Plugins\... -->
@@ -179,12 +187,7 @@
         <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.9" />
         <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.9" />
         <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.142" />
-        <PackageReference Include="OpenCvSharp4.Windows.Slim" Version="4.13.0.20260602" />
-        <PackageReference Include="OpenCvSharp4.WpfExtensions" Version="4.13.0.20260602" />
         <PackageReference Include="PixiEditor.ColorPicker" Version="3.4.2.3" />
-        <PackageReference Include="Sdcb.PaddleInference.runtime.win64.mkl" Version="3.3.1.70" />
-        <PackageReference Include="Sdcb.PaddleOCR" Version="3.3.1" />
-        <PackageReference Include="Sdcb.PaddleOCR.Models.Online" Version="3.3.1" />
         <PackageReference Include="Serilog" Version="4.3.1" />
         <PackageReference Include="Serilog.Extensions.Hosting" Version="10.0.0" />
         <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0" />
@@ -266,6 +269,11 @@
 
     <ItemGroup>
         <ProjectReference Include="..\neo-bpsys-wpf.Core\neo-bpsys-wpf.Core.csproj" />
+        <ProjectReference Include="..\neo-bpsys-wpf.SmartBp.Module\neo-bpsys-wpf.SmartBp.Module.csproj"
+                          ReferenceOutputAssembly="false"
+                          OutputItemType="SmartBpModuleBuildOnly"
+                          PrivateAssets="all"
+                          Condition="'$(Configuration)'=='Debug'" />
     </ItemGroup>
 
     <ItemGroup>

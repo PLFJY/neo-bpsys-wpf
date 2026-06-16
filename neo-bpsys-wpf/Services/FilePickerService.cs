@@ -56,6 +56,13 @@ public class FilePickerService : IFilePickerService
         return openFileDialog.ShowDialog() != true ? null : openFileDialog.FileName;
     }
 
+    /// <inheritdoc />
+    public string? PickFolder()
+    {
+        var dialog = new OpenFolderDialog();
+        return dialog.ShowDialog() == true ? dialog.FolderName : null;
+    }
+
     /// <summary>
     /// 选择 BPUI 文件。
     /// </summary>

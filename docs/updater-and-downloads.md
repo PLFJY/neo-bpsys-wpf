@@ -36,8 +36,21 @@ await UpdaterService.UpdateCheck(false, Mirror);
 
 | 文件 | 用途 |
 | --- | --- |
-| `neo-bpsys-wpf_Installer.exe` | 安装包 |
-| `neo-bpsys-wpf_Installer.exe.sha256` | 安装包哈希 |
+| `neo-bpsys-wpf_Installer.exe` | lite 默认安装包，也是旧 updater 固定目标 |
+| `neo-bpsys-wpf_Installer.exe.sha256` | lite 默认安装包哈希，只对应 `neo-bpsys-wpf_Installer.exe` |
+
+为保持旧 updater 兼容，不得重命名这两个 asset，也不得让 `neo-bpsys-wpf_Installer.exe.sha256` 指向 full 安装包或 SmartBP 模块。
+
+Release 中还会发布：
+
+| 文件 | 用途 |
+| --- | --- |
+| `neo-bpsys-wpf_Installer_full.exe` | 首次安装便利包，包含 lite 应用和 SmartBP 模块 staging 文件 |
+| `neo-bpsys-wpf_Installer_full.exe.sha256` | full 安装包哈希，只对应 `neo-bpsys-wpf_Installer_full.exe` |
+| `SmartBpModule.zip` | SmartBP 重型运行时模块 |
+| `SmartBpModuleManifest.json` | SmartBP 模块兼容性、版本、大小和 SHA-256 信息 |
+
+`SmartBpModuleManifest.json` 只用于 SmartBP 模块安装/加载，不参与主 installer 的 SHA-256 校验。
 
 下载位置在系统临时目录：
 
@@ -69,9 +82,10 @@ await UpdaterService.UpdateCheck(false, Mirror);
 | --- | --- | --- | --- |
 | 应用更新 | `UpdaterService` | 安装包和 `.sha256` | 必须校验 installer SHA-256 |
 | 插件市场 | `PluginMarketService` + `PluginPageViewModel` | 插件 zip | 市场条目有 `Sha256` 时校验 |
-| OCR 模型 | `OcrService` | PaddleOCR det/cls/rec 模型归档 | 依赖下载/解压和模型文件完整性检查 |
+| SmartBP 模块 | `SmartBpModuleManager` | `SmartBpModuleManifest.json` 和 `SmartBpModule.zip` | manifest asset 有 `Sha256` 时校验 zip |
+| OCR 模型 | 模块内 `OcrService` | PaddleOCR det/cls/rec 模型归档 | 依赖下载/解压和模型文件完整性检查 |
 
-不要把三者的临时目录、状态字段或重启语义混在一起。插件安装/更新需要重启进入 DI；应用更新会运行安装包并关闭当前应用；OCR 模型切换不需要重启。
+不要把这些下载的临时目录、状态字段或重启语义混在一起。插件安装/更新需要重启进入 DI；应用更新会运行安装包并关闭当前应用；SmartBP 模块在页面内动态加载；OCR 模型切换不需要重启。
 
 ## 常见失败点
 

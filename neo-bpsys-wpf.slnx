@@ -29,6 +29,9 @@
     <BuildType Solution="Beta|*" Project="Debug" />
     <Platform Solution="*|x64" Project="x64" />
   </Project>
+  <Project Path="neo-bpsys-wpf.SmartBp.Module/neo-bpsys-wpf.SmartBp.Module.csproj">
+    <Platform Solution="*|x64" Project="x64" />
+  </Project>
   <Project Path="neo-bpsys-wpf.Tests/neo-bpsys-wpf.Tests.csproj">
     <BuildType Solution="Beta|*" Project="Debug" />
     <Platform Solution="*|x64" Project="x64" />

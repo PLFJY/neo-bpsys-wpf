@@ -7,7 +7,6 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Windows.Media.Imaging;
-using OpenCvSharp;
 using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Services;

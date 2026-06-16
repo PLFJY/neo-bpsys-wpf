@@ -32,16 +32,40 @@ dotnet publish ".\neo-bpsys-wpf\neo-bpsys-wpf.csproj" -c Release -o ".\build\neo
 | `build_beta.ps1` / `build_beta.bat` | Beta |
 | `build_preview.ps1` / `build_preview.bat` | Preview |
 
-PowerShell 脚本会：
+Release `build.ps1` 会：
 
 1. 切到仓库根目录。
 2. 创建 `build\neo-bpsys-wpf`。
 3. 用 `git rev-parse --short=7 HEAD` 获取 `BuildMeta`。
-4. 执行 `dotnet publish`。
+4. 执行主应用 `dotnet publish --no-restore`。
 5. 检查 `neo-bpsys-wpf.exe` 是否存在。
-6. 调用 `Installer\Inno Setup 6\ISCC.exe` 打包。
+6. 从 `neo-bpsys-wpf.exe` 的 `ProductVersion` 读取本次 release tag。
+7. 调用 `Installer\Inno Setup 6\ISCC.exe` 构建 lite 安装包。
+8. 计算 `neo-bpsys-wpf_Installer.exe.sha256`。
+9. 执行 SmartBP 模块项目 `dotnet publish --no-restore` 到 `build\SmartBpModule`。
+10. 用本次 release tag 写入模块 staging 的 `component.json`。
+11. 从同一 staging 目录生成 `SmartBpModule.zip` 和 `SmartBpModuleManifest.json`。
+12. 调用 `Installer/build_Installer_full.iss` 构建 full 安装包。
+13. 计算 `neo-bpsys-wpf_Installer_full.exe.sha256`。
 
-三份 PowerShell 脚本的主要差异是传给 `dotnet publish` 的配置名：`Release`、`Beta`、`Preview`。其余路径、git hash 注入、产物检查和 Inno Setup 打包流程基本一致。
+`build_beta.ps1` 和 `build_preview.ps1` 仍只构建对应配置的默认 installer 和 lite SHA-256；正式 Release 脚本额外构建 SmartBP 模块 zip、manifest 和 full installer。
+
+Release 预期产物：
+
+```text
+neo-bpsys-wpf_Installer.exe
+neo-bpsys-wpf_Installer.exe.sha256
+neo-bpsys-wpf_Installer_full.exe
+neo-bpsys-wpf_Installer_full.exe.sha256
+SmartBpModule.zip
+SmartBpModuleManifest.json
+```
+
+`neo-bpsys-wpf_Installer.exe` 是 lite 默认安装包，也是旧 updater 固定目标。它不包含 SmartBP 的 OpenCvSharp、PaddleOCR、PaddleInference 和具体实现 DLL。`neo-bpsys-wpf_Installer_full.exe` 是首次安装便利包，包含 lite 应用和 SmartBP 模块 staging 文件，并在安装时写入 `%APPDATA%\neo-bpsys-wpf\SmartBpModuleState.json`。
+
+`SmartBpModule.zip` 和 full 安装包必须来自同一个 `build\SmartBpModule` staging 目录，避免 release zip 与 full installer 内置模块不一致。
+
+`SmartBpModuleManifest.json` 中的 `ModuleVersion` 和下载 URL 使用本次构建确定的 release tag，也就是主程序 `ProductVersion`。正式 GitHub Actions 发布时同样读取安装包 `ProductVersion` 并作为 `tag_name`，因此 manifest 内不再保留 `{tag}` 占位。full 安装器写入的 `SmartBpModuleState.ModuleVersion` 也使用同一个 `ProductVersion`。
 
 ## Inno Setup
 
@@ -51,13 +75,25 @@ PowerShell 脚本会：
 Installer/build_Installer.iss
 ```
 
-它从发布产物 exe 提取版本号，输出：
+lite 安装脚本从发布产物 exe 提取版本号，输出：
 
 ```text
 build/neo-bpsys-wpf_Installer.exe
 ```
 
-安装包允许 x64 compatible 架构，复制 publish 目录全部内容和 LICENSE。`InitializeSetup` 调用 `Dependency_AddDotNet90Desktop`，依赖脚本检查 `Microsoft.WindowsDesktop.App` 9.0.3 或更高修订。卸载时询问是否删除 `%APPDATA%\neo-bpsys-wpf`。
+full 安装脚本：
+
+```text
+Installer/build_Installer_full.iss
+```
+
+输出：
+
+```text
+build/neo-bpsys-wpf_Installer_full.exe
+```
+
+安装包允许 x64 compatible 架构，lite 安装包复制 publish 目录全部内容和 LICENSE。full 安装包额外复制 SmartBP 模块 staging 目录，并提供模块安装路径页面。模块路径会阻止 Program Files、Program Files (x86)、Windows、System32、驱动器根目录等不适合写入或维护的位置。`InitializeSetup` 调用 `Dependency_AddDotNet90Desktop`，依赖脚本检查 `Microsoft.WindowsDesktop.App` 9.0.3 或更高修订。卸载时询问是否删除 `%APPDATA%\neo-bpsys-wpf`。
 
 ## 构建配置
 

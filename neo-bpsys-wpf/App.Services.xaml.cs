@@ -9,6 +9,7 @@ using neo_bpsys_wpf.Controls.FrontedLayout;
 using neo_bpsys_wpf.Services.Abstractions;
 using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.Services.FrontedDesigner;
+using neo_bpsys_wpf.Services.SmartBpModule;
 using neo_bpsys_wpf.ViewModels.Pages;
 using neo_bpsys_wpf.ViewModels.Windows;
 using neo_bpsys_wpf.Views.Pages;
@@ -74,14 +75,12 @@ public partial class App
         services.AddSingleton<IInfoBarService, InfoBarService>();
         services.AddSingleton<ISnackbarService, SnackbarService>();
         services.AddSingleton<IWindowCaptureService, WindowCaptureService>();
-        // 场景定义先注册，配置服务会在构造时按 SceneKey 解析规则。
-        services.AddSingleton<ISmartBpSceneDefinition, SmartBpGameDataSceneDefinition>();
-        services.AddSingleton<ISmartBpRegionConfigService, SmartBpRegionConfigService>();
+        services.AddSingleton<SmartBpModuleManager>();
+        services.AddSingleton<ISmartBpFeatureService, SmartBpFeatureService>();
+        services.AddSingleton<ISmartBpOcrModelPathProvider, SmartBpOcrModelPathProvider>();
 
         //Additional Feature Services
         services.AddSingleton<IGameGuidanceService, GameGuidanceService>();
-        services.AddSingleton<ISmartBpService, SmartBpService>();
-        services.AddSingleton<IOcrService, OcrService>();
         services.AddSingleton<ISettingsMigrationService, SettingsMigrationService>();
         services.AddSingleton<ILegacyV2ConfigDetector, LegacyV2ConfigDetector>();
         services.AddSingleton<FrontedLayoutPackageLegacyConverter>();

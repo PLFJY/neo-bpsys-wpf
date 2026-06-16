@@ -17,9 +17,14 @@
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
+    <Page.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </Page.Resources>
     <StackPanel>
         <StackPanel>
-            <Border Style="{StaticResource Card}">
+            <Border
+                Style="{StaticResource Card}"
+                Visibility="{Binding IsSmartBpAutoFillVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />

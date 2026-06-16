@@ -1437,6 +1437,33 @@
   <data name="SmartBp" xml:space="preserve">
     <value>Smart BP</value>
   </data>
+  <data name="SmartBpModuleSettingsTitle" xml:space="preserve">
+    <value>SmartBP Module Settings</value>
+  </data>
+  <data name="SmartBpModulePath" xml:space="preserve">
+    <value>Module load/install path</value>
+  </data>
+  <data name="SmartBpModulePathDescription" xml:space="preserve">
+    <value>Used to install, import, and load the standalone SmartBP module. Changes are synced to the SmartBP page and used by the next install or local load.</value>
+  </data>
+  <data name="SmartBpModuleBrowseFolder" xml:space="preserve">
+    <value>Browse folder</value>
+  </data>
+  <data name="SmartBpModulePathSaved" xml:space="preserve">
+    <value>SmartBP module path saved.</value>
+  </data>
+  <data name="SmartBpModulePathMigrating" xml:space="preserve">
+    <value>Migrating SmartBP module directory...</value>
+  </data>
+  <data name="SmartBpModulePathMigrationPrepared" xml:space="preserve">
+    <value>SmartBP module copied to the new directory. The old directory will be cleaned up after the next successful load from the new directory.</value>
+  </data>
+  <data name="SmartBpModulePathMigrationFailed" xml:space="preserve">
+    <value>Failed to migrate SmartBP module directory: </value>
+  </data>
+  <data name="SmartBpModulePathInvalid" xml:space="preserve">
+    <value>This path cannot be used for the SmartBP module. Choose a writable user directory.</value>
+  </data>
   <data name="PleaseStartWindowCaptureFirst" xml:space="preserve">
     <value>Please start window capture first.</value>
   </data>

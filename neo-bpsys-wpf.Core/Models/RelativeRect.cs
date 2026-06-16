@@ -1,4 +1,4 @@
-using OpenCvSharp;
+using System.Windows;
 
 namespace neo_bpsys_wpf.Core.Models;
 
@@ -17,8 +17,8 @@ public readonly record struct RelativeRect(double X, double Y, double W, double 
     /// </summary>
     /// <param name="imageWidth">目标图像宽度（像素）</param>
     /// <param name="imageHeight">目标图像高度（像素）</param>
-    /// <returns>可直接用于 OpenCV 裁剪的像素矩形</returns>
-    public Rect ToPixelRect(int imageWidth, int imageHeight)
+    /// <returns>像素矩形</returns>
+    public Int32Rect ToPixelRect(int imageWidth, int imageHeight)
     {
         var x = Math.Clamp((int)Math.Round((X / PercentBase) * imageWidth), 0, Math.Max(imageWidth - 1, 0));
         var y = Math.Clamp((int)Math.Round((Y / PercentBase) * imageHeight), 0, Math.Max(imageHeight - 1, 0));
@@ -28,7 +28,7 @@ public readonly record struct RelativeRect(double X, double Y, double W, double 
 
         var w = Math.Clamp((int)Math.Round((W / PercentBase) * imageWidth), 1, maxW);
         var h = Math.Clamp((int)Math.Round((H / PercentBase) * imageHeight), 1, maxH);
-        return new Rect(x, y, w, h);
+        return new Int32Rect(x, y, w, h);
     }
 
     /// <summary>

@@ -5,6 +5,7 @@
 | 项目 | 职责 |
 | --- | --- |
 | `neo-bpsys-wpf` | 主 WPF 宿主。包含后台页面、前台窗口、业务服务、资源、主题、本地化和启动逻辑 |
+| `neo-bpsys-wpf.SmartBp.Module` | SmartBP 运行时模块。包含真实 SmartBP 页面内容、ViewModel、OCR/SmartBP 服务、OpenCvSharp/PaddleOCR/PaddleInference 使用和 OCR 模型下载逻辑 |
 | `neo-bpsys-wpf.Core` | 核心抽象、模型、枚举、特性、注册扩展、控件基类和辅助类。插件也依赖这里的公共 API |
 | `neo-bpsys-wpf.PluginSdk` | 插件开发 SDK 和 MSBuild 打包目标。项目引用它后可使用 Core API 并创建插件 zip |
 | `neo-bpsys-wpf.ExamplePlugin` | 示例插件，展示后台页面、插件 XAML 前台窗口、自定义服务和插件配置 |
@@ -20,7 +21,7 @@
 | `Views/Pages` | 后台页面，通常配套 `ViewModels/Pages` |
 | `Views/Windows` | 主窗口和前台窗口，前台窗口一般继承 Core 中的 `FrontedWindowBase` |
 | `ViewModels` | 页面/窗口 ViewModel，集中处理命令、绑定状态和服务调用 |
-| `Services` | 宿主业务服务，例如插件、前台窗口、OCR、SmartBP、设置、共享数据 |
+| `Services` | 宿主业务服务，例如插件、前台窗口、SmartBP 模块加载、设置、共享数据 |
 | `Controls` | 宿主专用 WPF 控件与样式 |
 | `Resources` | 输出资源，包含角色/地图图片、默认前台布局、SmartBP 默认配置、`GameRule.json` 等 |
 | `Locales` | `WPFLocalizeExtension` 使用的 resx 本地化资源 |
@@ -48,7 +49,8 @@
 | 新增插件前台窗口 | `IFrontedWindowPluginContributor`、`FrontedPluginWindowDescriptor`、`AddFrontedWindowPluginContributor<T>()` |
 | 改前台布局保存/恢复 | `FrontedLayoutService`、`FrontedUserLayoutStore`、`FrontedWindowLayoutOptionsService`、`Resources/FrontedLayouts` |
 | 改引导式 BP 流程 | `GameGuidanceService` 和 `GameRule.json` |
-| 改 SmartBP/OCR | `SmartBpService`、`OcrService`、`SmartBpRegionConfigService`、`SmartBpGameDataSceneDefinition` |
+| 改 SmartBP/OCR 运行时 | `neo-bpsys-wpf.SmartBp.Module` 中的 `SmartBpService`、`OcrService`、`SmartBpRegionConfigService`、`SmartBpGameDataSceneDefinition` |
+| 改 SmartBP 宿主安装/加载 | `neo-bpsys-wpf/Services/SmartBpModule`、`SmartBpPageViewModel`、`SmartBpPage.xaml` |
 | 改插件加载 | `PluginService`、`PluginPageViewModel`、`PluginMarketService`、Core 插件模型 |
 | 改构建/发布 | `neo-bpsys-wpf.csproj`、`build*.ps1`、`Installer/build_Installer.iss`、`PluginSdk.targets` |
 
@@ -62,8 +64,9 @@
 | `SettingsHostService` | `Config.json` 读写、窗口设置重置、语言设置事件 | 保存时会处理 `%APPDATA%` 路径替换 |
 | `FrontedWindowService` | 前台窗口注册、显示隐藏、v3 布局重载、插件窗口管理、全局比分兼容适配 | 前台窗口不要绕开它直接生命周期管理 |
 | `GameGuidanceService` | 根据 `GameRule.json` 推进引导式 BP、导航页面、启动计时器和发送高亮消息 | 自由赛当前不支持引导 |
-| `SmartBpService` | 窗口捕获帧裁切、OCR 识别赛后数据、写回 `CurrentGame` | 全流程自动 BP 仍是 TODO |
-| `OcrService` | PaddleOCR 模型下载、删除、切换、推理和失败重建 | 受 `_ocrLock` 和 `_downloadLock` 保护 |
+| `SmartBpModuleManager` | SmartBP 模块目录校验、zip 导入、Release manifest 检查、动态加载、状态写入和旧 OCR 模型迁移 | Release 使用当前 app tag 的 manifest，不查询 latest release |
+| `SmartBpService` | 模块内服务，窗口捕获帧裁切、OCR 识别赛后数据、写回 `CurrentGame` | 全流程自动 BP 仍是 TODO |
+| `OcrService` | 模块内服务，PaddleOCR 模型下载、删除、切换、推理和失败重建 | 受 `_ocrLock` 和 `_downloadLock` 保护，模型根目录来自模块根 |
 | `PluginService` | 启动时扫描、校验、加载插件并调用 `Initialize` | 不支持运行时热加载假设 |
 | `PluginMarketService` | 市场索引、README、镜像、下载队列、SHA-256 校验 | UI 集合更新必须回到 Dispatcher |
 | `WindowCaptureService` | WGC/BitBlt 窗口捕获、帧缓存、预览窗口 | 帧对象跨线程读取依赖锁和 `Freeze()` |

@@ -1738,6 +1738,8 @@ public class FrontedLayoutPackageManagerTest
 
         public string? PickZipFile() => null;
 
+        public string? PickFolder() => null;
+
         public string? SaveJsonFile(string defaultFileName) => null;
 
         public string? SaveBpuiFile(string defaultFileName)
