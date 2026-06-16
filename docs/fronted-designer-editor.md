@@ -500,7 +500,7 @@ PropertyGrid
 5. 预览内置字体时按运行时同样的 split 逻辑构造 `FontFamily(new Uri(pathBeforeHash), "./" + hashAndName)`，不要把 pack URI 原样传给 `new FontFamily(string)`。
 6. 如果当前值不在选项中，ComboBox 允许手写并按原始字符串提交；无效字体字符串不能让属性网格崩溃。
 
-文本类属性使用显式提交模型。`Name`、`BindingPath`、普通 `Text` 字符串、资源路径字符串和手写 `FontFamily` 都先写入 `FrontedPropertyEditorItem.EditText`，按 Enter 或右侧 Check/Apply 按钮才提交。颜色行同样遵守显式提交：ColorPicker 选择颜色只把 `EditText` 和可见 Hex 文本更新为 `#AARRGGBB`，Apply 或 Hex 文本框 Enter 才写回 config；手写 Hex 有效时同步 ColorPicker，提交失败时保留输入并显示红色错误。`Name` 和 `BindingPath` 不再在 LostFocus 时自动提交，避免焦点移动和 Property Grid 重建时把未确认输入写回布局。提交失败时保留用户输入，设置 `HasEditError` / `EditError`，文本框显示红色边框，并在属性行下方显示验证消息；用户继续编辑或提交成功后错误状态清除。`Name` 仍遵守运行时关键名称只读、合法 WPF 名称、同 Canvas 唯一和被引用控件阻止重命名规则；成功重命名后刷新左侧列表、选中摘要、preview、hitbox/selection label 和属性行。
+属性行使用混合提交模型。普通 `Text` 字符串、数字和颜色会在输入变更后短延迟自动提交，ColorPicker 选色会立即写回 config；这些行不显示右侧确认按钮。`Name`、`BindingPath`、资源路径字符串、手写 `FontFamily`、`TextBinding`、以及 `Id` / `Key` / `Filter` / `Guid` / 内部目标名称这类容易影响引用或解析的字段仍使用显式提交：先写入 `FrontedPropertyEditorItem.EditText`，按 Enter、右侧 Check/Apply 按钮或浏览器选择后才提交。`Name` 和 `BindingPath` 不在 LostFocus 时自动提交，避免焦点移动和 Property Grid 重建时把未确认输入写回布局。提交失败时保留用户输入，设置 `HasEditError` / `EditError`，文本框显示红色边框，并在属性行下方显示验证消息；用户继续编辑或提交成功后错误状态清除。`Name` 仍遵守运行时关键名称只读、合法 WPF 名称、同 Canvas 唯一和被引用控件阻止重命名规则；成功重命名后刷新左侧列表、选中摘要、preview、hitbox/selection label 和属性行。
 
 Text 和 LocalizedText 不再把基类 `BindingPath` 作为内容来源。它们的 Property Grid 显示专用 `TextBinding` 编辑按钮：弹窗内可添加、删除、上移、下移 source，手写 Path 或通过 Binding Browser 选择，并编辑 `StringFormat`、`JoinSeparator`、`NullText`、`FallbackText`。source 顺序对应复合格式的 `{0}`、`{1}`、`{2}`；格式为空时按分隔符连接。确认弹窗作为一个 undo/redo 步骤提交；空 Path、格式语法错误或超出 source 数量的占位符会阻止确认且保留输入。
 
@@ -523,7 +523,7 @@ Resource Browser 的标题、搜索、按钮、空状态和来源/类型显示�
 
 选中 `MapV2Display` 后，属性摘要区提供“将样式应用到所有地图卡片”按钮。该操作把控件大小、地图名/队名/阵营文字样式、地图卡片边框和选图边框样式复制到当前 Canvas 中其他 `MapV2Display`，并作为单个 Undo 步骤立即刷新预览；每张卡片自己的位置、`MapKey`、`ZIndex`、`Visibility` 和 `BindingPath` 保持不变，不会复制文字内容或绑定源。
 
-属性编辑提交必须只由用户交互触发。普通 ComboBox 在 `DropDownClosed` 后提交，文本类属性在 Enter 或 Apply 按钮后提交，CheckBox 在 Click 后提交，ColorPicker 只同步 Hex 编辑缓冲，颜色写回也由 Apply 或 Enter 提交，FontFamily ComboBox 按上述下拉/手写规则提交。属性网格重建、切换选中控件、绑定初始化和 layout pass 期间应抑制提交事件，避免 BpWindow / CutSceneWindow 中大量枚举或字符串选项行触发递归重建。失败的属性提交不应请求 preview render，也不应重建到丢失用户输入。
+属性编辑提交必须只由用户交互触发。普通 ComboBox 在 `DropDownClosed` 后提交，CheckBox 在 Click 后提交，非显式提交文本/数字行在用户输入后短延迟提交，非显式提交颜色行在 ColorPicker 或 Hex 输入变化后提交，显式提交文本行仍在 Enter、Apply 或浏览器选择后提交，FontFamily ComboBox 按上述下拉/手写规则提交。属性网格重建、切换选中控件、绑定初始化和 layout pass 期间应抑制提交事件，避免 BpWindow / CutSceneWindow 中大量枚举或字符串选项行触发递归重建。失败的属性提交不应请求 preview render，也不应重建到丢失用户输入。
 
 拖拽和缩放过程中的 live geometry edit 只更新内存 config、linked overlay、preview element、hitbox/adorner、选中控件几何摘要和 dirty 状态，不运行完整校验、不重建 Property Grid、不强制重渲染。鼠标释放或键盘微调等 commit 操作再执行一次校验、属性行刷新和最终 preview render。
 

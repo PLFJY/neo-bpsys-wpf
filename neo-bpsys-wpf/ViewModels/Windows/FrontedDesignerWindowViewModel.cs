@@ -4808,7 +4808,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 or nameof(GlobalScoreCellConfig.X)
                 or nameof(GlobalScoreCellConfig.Y)
                 or nameof(GlobalScoreCellConfig.Width)
-                or nameof(GlobalScoreCellConfig.Height)
+                or nameof(GlobalScoreCellConfig.Height),
+            RequiresExplicitCommit = propertyName == nameof(GlobalScoreCellConfig.Id)
+                                     || editorKind is FrontedPropertyEditorKind.FontFamily
         };
 
         if (editorKind == FrontedPropertyEditorKind.Enum)

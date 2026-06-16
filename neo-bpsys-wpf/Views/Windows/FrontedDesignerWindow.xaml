@@ -68,7 +68,8 @@
                     MinHeight="30"
                     KeyDown="PropertyTextBox_OnKeyDown"
                     MaxLength="{x:Static limits:FrontedLayoutLimits.MaxResourcePathLength}"
-                    Text="{Binding EditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}">
+                    Text="{Binding EditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}"
+                    TextChanged="PropertyTextBox_OnTextChanged">
                     <ui:TextBox.Style>
                         <Style BasedOn="{StaticResource {x:Type ui:TextBox}}" TargetType="{x:Type ui:TextBox}">
                             <Style.Triggers>
@@ -122,7 +123,17 @@
                     Margin="6,0,0,0"
                     Click="PropertyTextApplyButton_OnClick"
                     Icon="{ui:SymbolIcon Symbol=Checkmark24}"
-                    ToolTip="{lex:Loc EditProperty}" />
+                    ToolTip="{lex:Loc EditProperty}">
+                    <ui:Button.Style>
+                        <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding RequiresExplicitCommit}" Value="False">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ui:Button.Style>
+                </ui:Button>
             </Grid>
         </DataTemplate>
 
@@ -169,7 +180,8 @@
                     MinHeight="30"
                     KeyDown="PropertyTextBox_OnKeyDown"
                     MaxLength="{x:Static limits:FrontedLayoutLimits.MaxResourcePathLength}"
-                    Text="{Binding EditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}">
+                    Text="{Binding EditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}"
+                    TextChanged="PropertyTextBox_OnTextChanged">
                     <ui:TextBox.Style>
                         <Style BasedOn="{StaticResource {x:Type ui:TextBox}}" TargetType="{x:Type ui:TextBox}">
                             <Style.Triggers>
@@ -195,6 +207,9 @@
                     <ui:Button.Style>
                         <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
                             <Style.Triggers>
+                                <DataTrigger Binding="{Binding RequiresExplicitCommit}" Value="False">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
                                 <DataTrigger Binding="{Binding IsReadOnly}" Value="True">
                                     <Setter Property="Visibility" Value="Collapsed" />
                                 </DataTrigger>

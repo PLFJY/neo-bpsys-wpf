@@ -32,6 +32,7 @@ public class FrontedPropertyEditorItem : ObservableObject
     private bool _canBrowseResource;
     private bool _isMultiSelectionMixedValue;
     private bool _isMultiSelectionBatchEditable = true;
+    private bool _requiresExplicitCommit;
     private string? _browseButtonText;
     private string? _browseDialogTitle;
     private FrontedBindingTargetKind _bindingTargetKind = FrontedBindingTargetKind.Any;
@@ -282,6 +283,15 @@ public class FrontedPropertyEditorItem : ObservableObject
     {
         get => _isMultiSelectionBatchEditable;
         set => SetProperty(ref _isMultiSelectionBatchEditable, value);
+    }
+
+    /// <summary>
+    /// Gets or sets whether the row should wait for Enter, Apply, or a browser selection before writing to config.
+    /// </summary>
+    public bool RequiresExplicitCommit
+    {
+        get => _requiresExplicitCommit;
+        set => SetProperty(ref _requiresExplicitCommit, value);
     }
 
     /// <summary>

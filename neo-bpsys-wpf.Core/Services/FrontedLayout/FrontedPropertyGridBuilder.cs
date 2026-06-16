@@ -163,6 +163,7 @@ public class FrontedPropertyGridBuilder
             EditText = selectedItem.Name,
             IsReadOnly = nameReadOnly,
             IsRequired = true,
+            RequiresExplicitCommit = true,
             GroupName = "Identity",
             ValidationErrors = GetPropertyMessages(messages, selectedItem.Name, nameof(FrontedControlDesignItem.Name)),
             ValidationMessages = GetPropertyValidationMessages(messages, selectedItem.Name, nameof(FrontedControlDesignItem.Name))
@@ -248,6 +249,7 @@ public class FrontedPropertyGridBuilder
             var bindingTargetKind = canBrowseBinding
                 ? ResolveBindingTargetKind(selectedItem.Config, property)
                 : FrontedBindingTargetKind.Any;
+            var requiresExplicitCommit = RequiresExplicitCommit(property.Name, kind, canBrowseBinding, canBrowseResource);
 
             rows.Add(new FrontedPropertyEditorItem
             {
@@ -268,6 +270,7 @@ public class FrontedPropertyGridBuilder
                 ValidationMessages = validationMessages,
                 CanBrowseBinding = canBrowseBinding,
                 CanBrowseResource = canBrowseResource,
+                RequiresExplicitCommit = requiresExplicitCommit,
                 BrowseButtonText = "...",
                 BrowseDialogTitle = canBrowseBinding
                     ? _localizationService.GetDesignerText("Designer.Editor.BindingBrowser", "Binding Browser")
@@ -414,6 +417,7 @@ public class FrontedPropertyGridBuilder
         var bindingTargetKind = canBrowseBinding
             ? metadata?.BindingTargetKind ?? ResolveBindingTargetKind(selectedItem.Config, property)
             : FrontedBindingTargetKind.Any;
+        var requiresExplicitCommit = RequiresExplicitCommit(property.Name, kind, canBrowseBinding, canBrowseResource);
 
         rows.Add(new FrontedPropertyEditorItem
         {
@@ -434,6 +438,7 @@ public class FrontedPropertyGridBuilder
             ValidationMessages = validationMessages,
             CanBrowseBinding = canBrowseBinding,
             CanBrowseResource = canBrowseResource,
+            RequiresExplicitCommit = requiresExplicitCommit,
             BrowseButtonText = "...",
             BrowseDialogTitle = canBrowseBinding
                 ? _localizationService.GetDesignerText("Designer.Editor.BindingBrowser", "Binding Browser")
@@ -444,6 +449,28 @@ public class FrontedPropertyGridBuilder
             ExpectedBindingTypeName = _localizationService.GetBindingTypeDisplayName(ResolveBindingTargetTypeName(bindingTargetKind)),
             AllowedBindingTypeNames = ResolveAllowedBindingTypeNames(bindingTargetKind)
         });
+    }
+
+    private static bool RequiresExplicitCommit(
+        string propertyName,
+        FrontedPropertyEditorKind editorKind,
+        bool canBrowseBinding,
+        bool canBrowseResource)
+    {
+        if (canBrowseBinding
+            || canBrowseResource
+            || editorKind is FrontedPropertyEditorKind.FontFamily
+                or FrontedPropertyEditorKind.TextBinding
+                or FrontedPropertyEditorKind.ReadOnly)
+        {
+            return true;
+        }
+
+        return propertyName.EndsWith("Name", StringComparison.Ordinal)
+               || propertyName.EndsWith("Id", StringComparison.Ordinal)
+               || propertyName.EndsWith("Key", StringComparison.Ordinal)
+               || propertyName.Contains("Filter", StringComparison.OrdinalIgnoreCase)
+               || propertyName.Contains("Guid", StringComparison.OrdinalIgnoreCase);
     }
 
     private string ResolveMetadataText(string? key, string fallback) =>

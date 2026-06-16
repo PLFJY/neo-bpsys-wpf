@@ -2208,6 +2208,45 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
+    public void PropertyGridBuilderMarksOnlySensitiveTextRowsAsExplicitCommit()
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = "Image",
+            Config = new ImageFrontedControlConfig
+            {
+                Left = 10,
+                BindingPath = "CurrentGame.SurTeam.Logo",
+                ImagePath = "Resources/logo.png",
+                PickingBorderAvailable = true,
+                PickingBorderName = "PickingBorder"
+            }
+        };
+        var text = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            Config = new TextFrontedControlConfig
+            {
+                Text = "Title",
+                FontFamily = "Arial",
+                Color = "#FFFFFFFF"
+            }
+        };
+
+        var imageRows = BuildPropertyRows(CreateDocument([item]), item);
+        var textRows = BuildPropertyRows(CreateDocument([text]), text);
+
+        Assert.True(imageRows.Single(row => row.PropertyName == nameof(FrontedControlDesignItem.Name)).RequiresExplicitCommit);
+        Assert.True(imageRows.Single(row => row.PropertyName == nameof(FrontedControlConfigBase.BindingPath)).RequiresExplicitCommit);
+        Assert.True(imageRows.Single(row => row.PropertyName == nameof(ImageFrontedControlConfig.ImagePath)).RequiresExplicitCommit);
+        Assert.True(imageRows.Single(row => row.PropertyName == nameof(ImageFrontedControlConfig.PickingBorderName)).RequiresExplicitCommit);
+        Assert.False(imageRows.Single(row => row.PropertyName == nameof(FrontedControlConfigBase.Left)).RequiresExplicitCommit);
+        Assert.False(textRows.Single(row => row.PropertyName == nameof(TextFrontedControlConfig.Text)).RequiresExplicitCommit);
+        Assert.False(textRows.Single(row => row.PropertyName == nameof(TextFrontedControlConfig.Color)).RequiresExplicitCommit);
+        Assert.True(textRows.Single(row => row.PropertyName == nameof(TextFrontedControlConfig.FontFamily)).RequiresExplicitCommit);
+    }
+
+    [Fact]
     public void PropertyGridBuilderAppliesNameReadOnlyRules()
     {
         var nonEditable = new FrontedControlDesignItem

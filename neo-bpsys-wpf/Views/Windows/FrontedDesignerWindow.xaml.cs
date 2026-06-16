@@ -37,6 +37,8 @@ public partial class FrontedDesignerWindow : FluentWindow
     private readonly FrontedBindingBrowserProvider? _bindingBrowserProvider;
     private readonly FrontedResourceBrowserProvider? _resourceBrowserProvider;
     private readonly ILogger<FrontedDesignerWindow>? _logger;
+    private DispatcherTimer? _propertyAutoCommitTimer;
+    private FrameworkElement? _pendingAutoCommitEditor;
     private bool _isLoaded;
     private bool _suppressPropertyEditorCommit;
     private FrontedDesignerWindowViewModel? _viewModel;
@@ -93,6 +95,7 @@ public partial class FrontedDesignerWindow : FluentWindow
     {
         InitializeComponent();
         _layerAutoScrollTimer = CreateLayerAutoScrollTimer();
+        InitializePropertyAutoCommitTimer();
     }
 
     public FrontedDesignerWindow(
@@ -114,6 +117,7 @@ public partial class FrontedDesignerWindow : FluentWindow
 
         InitializeComponent();
         _layerAutoScrollTimer = CreateLayerAutoScrollTimer();
+        InitializePropertyAutoCommitTimer();
         DataContext = viewModel;
         Loaded += OnLoaded;
         Closed += OnClosed;
@@ -147,6 +151,8 @@ public partial class FrontedDesignerWindow : FluentWindow
         _isLoaded = false;
         _pendingPreviewRenderArgs = null;
         _previewRenderScheduled = false;
+        _propertyAutoCommitTimer?.Stop();
+        _pendingAutoCommitEditor = null;
         HideLayerDragGhost();
         StopLayerAutoScroll();
         if (_viewModel is not null)
@@ -761,6 +767,16 @@ public partial class FrontedDesignerWindow : FluentWindow
         }
     }
 
+    private void PropertyTextBox_OnTextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (sender is not FrameworkElement editor || !ShouldAutoCommitPropertyEditor(editor))
+        {
+            return;
+        }
+
+        SchedulePropertyAutoCommit(editor);
+    }
+
     private async void WindowBackgroundColorTextBox_OnKeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key != Key.Enter)
@@ -1035,7 +1051,16 @@ public partial class FrontedDesignerWindow : FluentWindow
 
         if (picker.DataContext is FrontedPropertyEditorItem item)
         {
+            if (picker.GetType().GetProperty("SelectedColor")?.GetValue(picker) is Color selectedColor)
+            {
+                item.ColorValue = selectedColor;
+            }
+
             item.EditText = FrontedPropertyColorHelper.ToArgbString(item.ColorValue);
+            if (!item.RequiresExplicitCommit)
+            {
+                ApplyPropertyEditorValue(picker);
+            }
         }
     }
 
@@ -1061,6 +1086,52 @@ public partial class FrontedDesignerWindow : FluentWindow
     private bool IsPropertyEditorCommitSuppressed()
     {
         return !_isLoaded || _suppressPropertyEditorCommit || _viewModel?.IsRebuildingPropertyGrid == true;
+    }
+
+    private void InitializePropertyAutoCommitTimer()
+    {
+        _propertyAutoCommitTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(300)
+        };
+        _propertyAutoCommitTimer.Tick += PropertyAutoCommitTimer_OnTick;
+    }
+
+    private void SchedulePropertyAutoCommit(FrameworkElement editor)
+    {
+        if (_propertyAutoCommitTimer is null)
+        {
+            return;
+        }
+
+        _pendingAutoCommitEditor = editor;
+        _propertyAutoCommitTimer.Stop();
+        _propertyAutoCommitTimer.Start();
+    }
+
+    private void PropertyAutoCommitTimer_OnTick(object? sender, EventArgs e)
+    {
+        _propertyAutoCommitTimer?.Stop();
+        var editor = _pendingAutoCommitEditor;
+        _pendingAutoCommitEditor = null;
+        if (editor is not null && ShouldAutoCommitPropertyEditor(editor))
+        {
+            ApplyPropertyEditorValue(editor);
+        }
+    }
+
+    private bool ShouldAutoCommitPropertyEditor(FrameworkElement editor)
+    {
+        return !IsPropertyEditorCommitSuppressed()
+               && editor.IsKeyboardFocusWithin
+               && editor.DataContext is FrontedPropertyEditorItem
+               {
+                   IsReadOnly: false,
+                   RequiresExplicitCommit: false,
+                   EditorKind: FrontedPropertyEditorKind.Text
+                       or FrontedPropertyEditorKind.Number
+                       or FrontedPropertyEditorKind.Color
+               };
     }
 
     private void SuppressPropertyEditorCommitForLayoutPass()
