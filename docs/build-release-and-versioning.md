@@ -28,29 +28,28 @@ dotnet publish ".\neo-bpsys-wpf\neo-bpsys-wpf.csproj" -c Release -o ".\build\neo
 
 | 脚本 | 配置 |
 | --- | --- |
-| `build.ps1` / `build.bat` | Release |
-| `build_beta.ps1` / `build_beta.bat` | Beta |
-| `build_preview.ps1` / `build_preview.bat` | Preview |
+| `build.ps1` / `build.bat` | Release，默认配置 |
+| `build.ps1 -Configuration Beta` / `build_beta.bat` | Beta |
+| `build.ps1 -Configuration Preview` / `build_preview.bat` | Preview |
+| `build_beta.ps1` / `build_preview.ps1` | 兼容 wrapper，只转调 `build.ps1 -Configuration ...` |
 
-Release `build.ps1` 会：
+`build.ps1` 是唯一真实构建实现，`-Configuration` 可选 `Release`、`Beta`、`Preview`，默认 `Release`。三种配置都会执行完整产物流程：
 
 1. 切到仓库根目录。
 2. 创建 `build\neo-bpsys-wpf`。
 3. 用 `git rev-parse --short=7 HEAD` 获取 `BuildMeta`。
-4. 执行主应用 `dotnet publish --no-restore`。
+4. 按指定配置执行主应用 `dotnet publish --no-restore`。
 5. 检查 `neo-bpsys-wpf.exe` 是否存在。
-6. 从 `neo-bpsys-wpf.exe` 的 `ProductVersion` 读取本次 release tag。
+6. 从 `neo-bpsys-wpf.exe` 的 `ProductVersion` 读取本次 tag。
 7. 调用 `Installer\Inno Setup 6\ISCC.exe` 构建 lite 安装包。
 8. 计算 `neo-bpsys-wpf_Installer.exe.sha256`。
-9. 执行 SmartBP 模块项目 `dotnet publish --no-restore` 到 `build\SmartBpModule`。
-10. 用本次 release tag 写入模块 staging 的 `component.json`。
+9. 按同一配置执行 SmartBP 模块项目 `dotnet publish --no-restore` 到 `build\SmartBpModule`。
+10. 用本次 tag 写入模块 staging 的 `component.json`。
 11. 从同一 staging 目录生成 `SmartBpModule.zip` 和 `SmartBpModuleManifest.json`。
 12. 调用 `Installer/build_Installer_full.iss` 构建 full 安装包。
 13. 计算 `neo-bpsys-wpf_Installer_full.exe.sha256`。
 
-`build_beta.ps1` 和 `build_preview.ps1` 仍只构建对应配置的默认 installer 和 lite SHA-256；正式 Release 脚本额外构建 SmartBP 模块 zip、manifest 和 full installer。
-
-Release 预期产物：
+所有配置预期产物：
 
 ```text
 neo-bpsys-wpf_Installer.exe

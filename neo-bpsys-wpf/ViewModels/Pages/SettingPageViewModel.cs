@@ -100,7 +100,7 @@ public partial class SettingPageViewModel : ViewModelBase
         SyncMirrorFromSettings();
 
         SelectedLanguage = _settingsHostService.Settings.Language;
-        SmartBpModuleRoot = _smartBpModuleManager.ReadState()?.ModuleRoot ?? SmartBpModuleManager.GetDefaultModuleRoot();
+        SmartBpModuleRoot = _smartBpModuleManager.GetPreferredModuleRoot();
         _isSyncingLogLevel = true;
         SelectedLogLevel = _settingsHostService.Settings.LogLevel;
         _isSyncingLogLevel = false;

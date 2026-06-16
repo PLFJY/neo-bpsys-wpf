@@ -57,7 +57,7 @@
                             Grid.Column="1"
                             Margin="10,0,0,0"
                             Command="{Binding BrowseModulePathCommand}"
-                            Content="{lex:Loc Browse}"
+                            Content="{lex:Loc SmartBpModuleBrowseFolder}"
                             Icon="{ui:SymbolIcon Symbol=Folder24}" />
                     </Grid>
                     <ui:Button

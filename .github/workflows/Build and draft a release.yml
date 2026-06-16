@@ -28,7 +28,7 @@ jobs:
 
     - name: Build And Pack Installer
       shell: pwsh
-      run: .\build.ps1
+      run: .\build.ps1 -Configuration Release
 
     - name: Get Version
       shell: pwsh

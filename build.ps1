@@ -1,4 +1,10 @@
 #Requires -Version 5.1
+param(
+    [Parameter()]
+    [ValidateSet("Release", "Beta", "Preview")]
+    [string] $Configuration = "Release"
+)
+
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
@@ -24,6 +30,47 @@ function Invoke-External {
     if ($LASTEXITCODE -ne 0) {
         throw "$ErrorMessage (ExitCode=$LASTEXITCODE): $FilePath $($Arguments -join ' ')"
     }
+}
+
+function Get-Sha256Hash {
+    param(
+        [Parameter(Mandatory)] [string] $LiteralPath
+    )
+
+    $stream = [System.IO.File]::OpenRead($LiteralPath)
+    try {
+        $sha256 = [System.Security.Cryptography.SHA256]::Create()
+        try {
+            $hashBytes = $sha256.ComputeHash($stream)
+            return ([System.BitConverter]::ToString($hashBytes) -replace '-', '').ToLowerInvariant()
+        }
+        finally {
+            $sha256.Dispose()
+        }
+    }
+    finally {
+        $stream.Dispose()
+    }
+}
+
+function Get-RelativePathCompat {
+    param(
+        [Parameter(Mandatory)] [string] $BasePath,
+        [Parameter(Mandatory)] [string] $TargetPath
+    )
+
+    $baseFullPath = [System.IO.Path]::GetFullPath($BasePath)
+    if (-not $baseFullPath.EndsWith([System.IO.Path]::DirectorySeparatorChar.ToString()) -and
+        -not $baseFullPath.EndsWith([System.IO.Path]::AltDirectorySeparatorChar.ToString())) {
+        $baseFullPath += [System.IO.Path]::DirectorySeparatorChar
+    }
+
+    $targetFullPath = [System.IO.Path]::GetFullPath($TargetPath)
+    $baseUri = New-Object System.Uri($baseFullPath)
+    $targetUri = New-Object System.Uri($targetFullPath)
+    $relativeUri = $baseUri.MakeRelativeUri($targetUri)
+    $relativePath = [System.Uri]::UnescapeDataString($relativeUri.ToString())
+    return $relativePath -replace '/', [System.IO.Path]::DirectorySeparatorChar
 }
 
 # Switch to the script's directory
@@ -52,7 +99,7 @@ $GitHash = $gitHashRaw.Trim()
 # Build (dotnet publish)
 Invoke-External -FilePath "dotnet" -Arguments @(
     "publish", $ProjPath,
-    "-c", "Release",
+    "-c", $Configuration,
     "-o", $BuildPath,
     "--no-restore",
     "/p:BuildMeta=$GitHash"
@@ -90,7 +137,7 @@ $LiteHash = Join-Path $RepoRoot "build\neo-bpsys-wpf_Installer.exe.sha256"
 if (-not (Test-Path -LiteralPath $LiteInstaller)) {
     throw "Lite installer missing: $LiteInstaller"
 }
-(Get-FileHash -LiteralPath $LiteInstaller -Algorithm SHA256).Hash.ToLowerInvariant() | Set-Content -LiteralPath $LiteHash -NoNewline
+Get-Sha256Hash -LiteralPath $LiteInstaller | Set-Content -LiteralPath $LiteHash -NoNewline
 
 if (Test-Path -LiteralPath $ModuleBuildPath) {
     Remove-Item -LiteralPath $ModuleBuildPath -Recurse -Force
@@ -99,19 +146,19 @@ New-Item -ItemType Directory -Path $ModuleBuildPath | Out-Null
 
 Invoke-External -FilePath "dotnet" -Arguments @(
     "publish", $ModuleProjPath,
-    "-c", "Release",
+    "-c", $Configuration,
     "-o", $ModuleBuildPath,
     "--no-restore"
 ) -ErrorMessage "SmartBP module publish failed"
 
 $HostProvidedFiles = @{}
 Get-ChildItem -LiteralPath $BuildPath -Recurse -File | ForEach-Object {
-    $relativePath = [System.IO.Path]::GetRelativePath($BuildPath, $_.FullName)
+    $relativePath = Get-RelativePathCompat -BasePath $BuildPath -TargetPath $_.FullName
     $HostProvidedFiles[$relativePath.ToLowerInvariant()] = $true
 }
 
 Get-ChildItem -LiteralPath $ModuleBuildPath -Recurse -File | ForEach-Object {
-    $relativePath = [System.IO.Path]::GetRelativePath($ModuleBuildPath, $_.FullName)
+    $relativePath = Get-RelativePathCompat -BasePath $ModuleBuildPath -TargetPath $_.FullName
     if ($HostProvidedFiles.ContainsKey($relativePath.ToLowerInvariant())) {
         Remove-Item -LiteralPath $_.FullName -Force
     }
@@ -130,7 +177,7 @@ if (Test-Path -LiteralPath $ModuleZip) {
     Remove-Item -LiteralPath $ModuleZip -Force
 }
 Compress-Archive -Path (Join-Path $ModuleBuildPath "*") -DestinationPath $ModuleZip -Force
-$ModuleZipHash = (Get-FileHash -LiteralPath $ModuleZip -Algorithm SHA256).Hash.ToLowerInvariant()
+$ModuleZipHash = Get-Sha256Hash -LiteralPath $ModuleZip
 $ModuleZipSize = (Get-Item -LiteralPath $ModuleZip).Length
 $ModuleManifestPath = Join-Path $RepoRoot "build\SmartBpModuleManifest.json"
 $ModuleManifest = [ordered]@{
@@ -162,4 +209,4 @@ $FullHash = Join-Path $RepoRoot "build\neo-bpsys-wpf_Installer_full.exe.sha256"
 if (-not (Test-Path -LiteralPath $FullInstaller)) {
     throw "Full installer missing: $FullInstaller"
 }
-(Get-FileHash -LiteralPath $FullInstaller -Algorithm SHA256).Hash.ToLowerInvariant() | Set-Content -LiteralPath $FullHash -NoNewline
+Get-Sha256Hash -LiteralPath $FullInstaller | Set-Content -LiteralPath $FullHash -NoNewline

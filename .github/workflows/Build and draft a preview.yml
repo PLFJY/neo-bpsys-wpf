@@ -8,6 +8,10 @@ jobs:
       PROJ_PATH: ./neo-bpsys-wpf/neo-bpsys-wpf.csproj
       INSTALLER_OUTPUT: ./build/neo-bpsys-wpf_Installer.exe
       INSTALLER_SHA256_OUTPUT: ./build/neo-bpsys-wpf_Installer.exe.sha256
+      FULL_INSTALLER_OUTPUT: ./build/neo-bpsys-wpf_Installer_full.exe
+      FULL_INSTALLER_SHA256_OUTPUT: ./build/neo-bpsys-wpf_Installer_full.exe.sha256
+      SMARTBP_MODULE_OUTPUT: ./build/SmartBpModule.zip
+      SMARTBP_MODULE_MANIFEST_OUTPUT: ./build/SmartBpModuleManifest.json
 
     runs-on: windows-latest
 
@@ -24,7 +28,7 @@ jobs:
 
     - name: Build And Pack Installer
       shell: pwsh
-      run: .\build_preview.ps1
+      run: .\build.ps1 -Configuration Preview
 
     - name: Get Version
       shell: pwsh
@@ -33,13 +37,16 @@ jobs:
         $version = (Get-Item $file).VersionInfo.ProductVersion.Trim()
         echo "VERSION=$version" >> $env:GITHUB_ENV
 
-    - name: Compute installer SHA256
+    - name: Read artifact SHA256
       shell: pwsh
       run: |
         $file = "${{ env.INSTALLER_OUTPUT }}"
-        $hash = (Get-FileHash -Path $file -Algorithm SHA256).Hash.ToLower()
+        $hash = (Get-Content "${{ env.INSTALLER_SHA256_OUTPUT }}").Split()[0]
+        $fullHash = (Get-Content "${{ env.FULL_INSTALLER_SHA256_OUTPUT }}").Split()[0]
+        $moduleManifest = Get-Content "${{ env.SMARTBP_MODULE_MANIFEST_OUTPUT }}" -Raw | ConvertFrom-Json
         echo "INSTALLER_SHA256=$hash" >> $env:GITHUB_ENV
-        Set-Content -Path "${{ env.INSTALLER_SHA256_OUTPUT }}" -Value "$hash  $(Split-Path -Leaf $file)" -Encoding ascii
+        echo "FULL_INSTALLER_SHA256=$fullHash" >> $env:GITHUB_ENV
+        echo "SMARTBP_MODULE_SHA256=$($moduleManifest.Asset.Sha256)" >> $env:GITHUB_ENV
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
@@ -48,6 +55,10 @@ jobs:
         path: |
           ${{ env.INSTALLER_OUTPUT }}
           ${{ env.INSTALLER_SHA256_OUTPUT }}
+          ${{ env.FULL_INSTALLER_OUTPUT }}
+          ${{ env.FULL_INSTALLER_SHA256_OUTPUT }}
+          ${{ env.SMARTBP_MODULE_OUTPUT }}
+          ${{ env.SMARTBP_MODULE_MANIFEST_OUTPUT }}
 
     - name: Generate release body
       shell: pwsh
@@ -67,7 +78,9 @@ jobs:
           "",
           "| Artifact | SHA-256 |",
           "|----------|---------|",
-          "| neo-bpsys-wpf_Installer.exe | `${{ env.INSTALLER_SHA256 }}` |"
+          "| neo-bpsys-wpf_Installer.exe | `${{ env.INSTALLER_SHA256 }}` |",
+          "| neo-bpsys-wpf_Installer_full.exe | `${{ env.FULL_INSTALLER_SHA256 }}` |",
+          "| SmartBpModule.zip | `${{ env.SMARTBP_MODULE_SHA256 }}` |"
         )
         $lines | Out-File -FilePath $out -Encoding utf8 -Force
 
@@ -81,6 +94,10 @@ jobs:
         files: |
           ${{ env.INSTALLER_OUTPUT }}
           ${{ env.INSTALLER_SHA256_OUTPUT }}
-        name: Beta-${{ env.VERSION }}
+          ${{ env.FULL_INSTALLER_OUTPUT }}
+          ${{ env.FULL_INSTALLER_SHA256_OUTPUT }}
+          ${{ env.SMARTBP_MODULE_OUTPUT }}
+          ${{ env.SMARTBP_MODULE_MANIFEST_OUTPUT }}
+        name: Preview-${{ env.VERSION }}
         body_path: release_body.md
         prerelease: true

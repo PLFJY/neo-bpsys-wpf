@@ -140,6 +140,124 @@ begin
   Result := True;
 end;
 
+function IsUnsafeSmartBpModuleDeletePath(Value: string): Boolean;
+var
+  Full, Root, Drive, ProgramFiles, ProgramFilesX86, WindowsDir, SystemDir, AppDir, UserAppData: string;
+begin
+  Full := RemoveBackslash(ExpandConstant(Value));
+  Drive := ExtractFileDrive(Full);
+  if (Full = '') or (Drive = '') then
+  begin
+    Result := True;
+    exit;
+  end;
+
+  Root := RemoveBackslash(Drive + '\');
+  ProgramFiles := RemoveBackslash(ExpandConstant('{autopf}'));
+  ProgramFilesX86 := RemoveBackslash(ExpandConstant('{commonpf32}'));
+  WindowsDir := RemoveBackslash(ExpandConstant('{win}'));
+  SystemDir := RemoveBackslash(ExpandConstant('{sys}'));
+  AppDir := RemoveBackslash(ExpandConstant('{app}'));
+  UserAppData := RemoveBackslash(ExpandConstant('{userappdata}\neo-bpsys-wpf'));
+
+  Result :=
+    (CompareText(Full, Root) = 0) or
+    (CompareText(Full, AppDir) = 0) or
+    (CompareText(Full, UserAppData) = 0) or
+    IsSameOrChildPath(Full, ProgramFiles) or
+    IsSameOrChildPath(Full, ProgramFilesX86) or
+    IsSameOrChildPath(Full, WindowsDir) or
+    IsSameOrChildPath(Full, SystemDir);
+end;
+
+function ExtractJsonStringValue(Json: string; Name: string): string;
+var
+  Key, Tail, Ch: string;
+  KeyPos, ColonPos, QuoteStart, I: Integer;
+  Escaped: Boolean;
+begin
+  Result := '';
+  Key := '"' + Name + '"';
+  KeyPos := Pos(Key, Json);
+  if KeyPos = 0 then
+    exit;
+
+  Tail := Copy(Json, KeyPos + Length(Key), Length(Json));
+  ColonPos := Pos(':', Tail);
+  if ColonPos = 0 then
+    exit;
+
+  Tail := Copy(Tail, ColonPos + 1, Length(Tail));
+  QuoteStart := Pos('"', Tail);
+  if QuoteStart = 0 then
+    exit;
+
+  Tail := Copy(Tail, QuoteStart + 1, Length(Tail));
+  Escaped := False;
+  for I := 1 to Length(Tail) do
+  begin
+    Ch := Copy(Tail, I, 1);
+    if (Ch = '"') and (not Escaped) then
+    begin
+      Result := Copy(Tail, 1, I - 1);
+      StringChangeEx(Result, '\\', '\', True);
+      StringChangeEx(Result, '\/', '/', True);
+      exit;
+    end;
+
+    if (Ch = '\') and (not Escaped) then
+      Escaped := True
+    else
+      Escaped := False;
+  end;
+end;
+
+function TryReadSmartBpModuleRootFromState(var ModuleRoot: string): Boolean;
+var
+  StatePath: string;
+  StateJson: AnsiString;
+begin
+  Result := False;
+  StatePath := ExpandConstant('{userappdata}\neo-bpsys-wpf\SmartBpModuleState.json');
+  if not LoadStringFromFile(StatePath, StateJson) then
+    exit;
+
+  ModuleRoot := ExtractJsonStringValue(StateJson, 'ModuleRoot');
+  Result := ModuleRoot <> '';
+end;
+
+procedure DeleteSmartBpModuleDirectory(ModuleRoot: string);
+begin
+  if ModuleRoot = '' then
+    exit;
+
+  if IsUnsafeSmartBpModuleDeletePath(ModuleRoot) then
+  begin
+    Log('Skipped unsafe SmartBP module directory during uninstall: ' + ModuleRoot);
+    exit;
+  end;
+
+  if DirExists(ModuleRoot) then
+  begin
+    Log('Deleting SmartBP module directory during uninstall: ' + ModuleRoot);
+    DelTree(ModuleRoot, True, True, True);
+  end;
+end;
+
+procedure DeleteSmartBpModuleOnUninstall();
+var
+  ModuleRoot: string;
+begin
+  if RegQueryStringValue(HKCU, 'Software\neo-bpsys-wpf\SmartBpModule', 'ModuleRoot', ModuleRoot) then
+    DeleteSmartBpModuleDirectory(ModuleRoot);
+
+  if TryReadSmartBpModuleRootFromState(ModuleRoot) then
+    DeleteSmartBpModuleDirectory(ModuleRoot);
+
+  DeleteSmartBpModuleDirectory(ExpandConstant('{localappdata}\neo-bpsys-wpf\Components\SmartBpModule'));
+  RegDeleteValue(HKCU, 'Software\neo-bpsys-wpf\SmartBpModule', 'ModuleRoot');
+end;
+
 procedure CurStepChanged(CurStep: TSetupStep);
 var
   StatePath, StateJson, ModuleRootEscaped: string;
@@ -161,6 +279,7 @@ begin
       '  "LegacyOcrModelMigration": { "Completed": false }' + #13#10 +
       '}';
     SaveStringToFile(StatePath, StateJson, False);
+    RegWriteStringValue(HKCU, 'Software\neo-bpsys-wpf\SmartBpModule', 'ModuleRoot', GetSmartBpModuleDir(''));
   end;
 end;
 
@@ -171,7 +290,8 @@ begin
   case CurUninstallStep of
     usUninstall:
       begin
-        mres := MsgBox('是否删除用户数据？(包括日志、自定义UI、自定义设置)', mbConfirmation, MB_YESNO or MB_DEFBUTTON2)
+        DeleteSmartBpModuleOnUninstall();
+        mres := MsgBox('是否删除用户数据？(包括日志、自定义UI、自定义设置)', mbConfirmation, MB_YESNO or MB_DEFBUTTON2);
         if mres = IDYES then
           DelTree(ExpandConstant('{userappdata}\neo-bpsys-wpf'), True, True, True);
       end;
@@ -183,6 +303,7 @@ Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Registry]
+Root: HKCU; Subkey: "Software\neo-bpsys-wpf\SmartBpModule"; Flags: uninsdeletekeyifempty
 Root: HKCU; Subkey: "Software\Classes\.bpui"; ValueType: string; ValueName: ""; ValueData: "{#MyAppName}.bpui"; Flags: uninsdeletevalue
 Root: HKCU; Subkey: "Software\Classes\{#MyAppName}.bpui"; ValueType: string; ValueName: ""; ValueData: "BP UI Layout Package"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\Classes\{#MyAppName}.bpui\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\{#BpuiIconName}"

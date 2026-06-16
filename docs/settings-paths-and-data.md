@@ -79,12 +79,13 @@ active `Settings.cs` 不再包含旧前台窗口设置。旧 `BpWindowSettings`�
 | SmartBP 区域 | `%APPDATA%\neo-bpsys-wpf\SmartBp\GameDataRegions.json` |
 | SmartBP 模块状态 | `%APPDATA%\neo-bpsys-wpf\SmartBpModuleState.json` |
 | SmartBP 模块目录迁移标记 | `%APPDATA%\neo-bpsys-wpf\SmartBpModuleMovePending.json` |
+| SmartBP 模块卸载路径记录 | `HKCU\Software\neo-bpsys-wpf\SmartBpModule\ModuleRoot` |
 | SmartBP 模块默认安装目录 | `%LOCALAPPDATA%\neo-bpsys-wpf\Components\SmartBpModule` |
 | OCR 模型 | `{SmartBpModuleRoot}\OCRModels` |
 | 插件配置 | `%APPDATA%\neo-bpsys-wpf\PluginConfigs\{pluginId}` |
 | 插件市场临时下载 | `%TEMP%\neo-bpsys-wpf\PluginMarket\...` |
 
-SmartBP 模块加载/安装目录可在设置页修改。若当前已有可用模块目录，保存时会先复制旧目录到新目录的 staging，验证复制结果后移动到目标目录，再写入 `SmartBpModuleMovePending.json` 标记和 `SmartBpModuleState.json` 的目标 `ModuleRoot`。下一次从目标目录成功加载模块并写回状态后，会尝试删除旧目录；如果删除失败，迁移标记保留并记录 cleanup 错误，后续成功加载目标目录时继续清理。路径校验沿用模块安装安全规则，拒绝系统目录、驱动器根目录、不可写目录、源目录父子路径，以及包含非 SmartBP 内容的目标目录。
+SmartBP 模块加载/安装目录可在设置页修改。若当前已有可用模块目录，保存时会先复制旧目录到新目录的 staging，验证复制结果后移动到目标目录，再写入 `SmartBpModuleMovePending.json` 标记和 `SmartBpModuleState.json` 的目标 `ModuleRoot`，同时把目标路径写入 `HKCU\Software\neo-bpsys-wpf\SmartBpModule\ModuleRoot` 供卸载器清理。下一次从目标目录成功加载模块并写回状态后，会尝试删除旧目录；如果删除失败，迁移标记保留并记录 cleanup 错误，后续成功加载目标目录时继续清理。路径校验沿用模块安装安全规则，拒绝系统目录、驱动器根目录、不可写目录、源目录父子路径，以及包含非 SmartBP 内容的目标目录。
 
 旧版本 OCR 模型目录 `Documents\neo-bpsys-wpf\OCRModels` 只作为迁移来源。SmartBP 模块首次安装或首次成功加载后会把已就绪模型复制到模块根下的 `OCRModels`，验证成功后再删除对应旧模型目录。
 
@@ -108,4 +109,4 @@ legacy `.bpui` 导入不会再调用 SettingPage 的旧导入覆盖流程。`Con
 
 用户布局、窗口选项和布局包读取会在反序列化前检查文件大小，并使用 JSON 最大深度 32：layout JSON 最大 2 MiB，`window.json` 最大 64 KiB，manifest 最大 256 KiB，legacy `Config.json` 读取路径最大 2 MiB。布局包 zip 还限制压缩包 50 MiB、解压总量 100 MiB、单 entry 10 MiB、最多 1000 entries，并继续保留 zip-slip 检查。超过限制的外部文件会拒绝读取或导入，不会截断。
 
-卸载脚本会询问是否删除 `%APPDATA%\neo-bpsys-wpf`，包括日志、自定义 UI 和设置。
+卸载脚本总是尝试删除 SmartBP 模块目录，路径来源依次为注册表 `ModuleRoot`、`SmartBpModuleState.json` 和默认模块目录；随后再询问是否删除 `%APPDATA%\neo-bpsys-wpf`，包括日志、自定义 UI 和设置。卸载器会拒绝删除磁盘根、系统目录、安装目录和整个 AppData 配置目录。

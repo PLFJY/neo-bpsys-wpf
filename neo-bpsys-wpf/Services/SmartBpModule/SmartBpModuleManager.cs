@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 using System.Net.Http;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using Microsoft.Win32;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models;
@@ -21,6 +22,8 @@ public sealed class SmartBpModuleManager
     private const string ReleaseApiUrl = "https://gh-releases.plfjy.top/?repo=PLFJY/neo-bpsys-wpf&ua=neo-bpsys-wpf";
     private const string ModuleManifestDownloadMirror = "https://gh.plfjy.top/";
     private const string ModuleManifestAssetName = "SmartBpModuleManifest.json";
+    private const string ModuleRegistrySubKey = @"Software\neo-bpsys-wpf\SmartBpModule";
+    private const string ModuleRegistryRootValueName = "ModuleRoot";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -123,6 +126,36 @@ public sealed class SmartBpModuleManager
             _logger.LogWarning(ex, "Failed to read SmartBP module state.");
             return null;
         }
+    }
+
+    /// <summary>
+    /// Gets the preferred module root for UI display and startup loading.
+    /// </summary>
+    /// <returns>Preferred module root.</returns>
+    public string GetPreferredModuleRoot()
+    {
+        var pending = ReadMovePendingState();
+        if (!string.IsNullOrWhiteSpace(pending?.TargetRoot))
+        {
+            return pending.TargetRoot;
+        }
+
+        return ReadState()?.ModuleRoot ?? GetDefaultModuleRoot();
+    }
+
+    /// <summary>
+    /// Determines whether a saved module root or pending migration target exists.
+    /// </summary>
+    /// <returns>True when a persisted module root preference exists.</returns>
+    public bool HasPersistedModuleRoot()
+    {
+        var pending = ReadMovePendingState();
+        if (!string.IsNullOrWhiteSpace(pending?.TargetRoot))
+        {
+            return true;
+        }
+
+        return !string.IsNullOrWhiteSpace(ReadState()?.ModuleRoot);
     }
 
     /// <summary>
@@ -282,7 +315,15 @@ public sealed class SmartBpModuleManager
     public async Task<bool> TryLoadPersistedModuleAsync()
     {
         var state = ReadState();
-        if (state == null || string.IsNullOrWhiteSpace(state.ModuleRoot))
+        var pending = ReadMovePendingState();
+        var moduleRoot = !string.IsNullOrWhiteSpace(pending?.TargetRoot)
+            ? pending.TargetRoot
+            : state?.ModuleRoot;
+        var installKind = !string.IsNullOrWhiteSpace(pending?.TargetRoot)
+            ? "PathMigrationPending"
+            : state?.InstallKind ?? "LocalDirectory";
+
+        if (string.IsNullOrWhiteSpace(moduleRoot))
         {
             _logger.LogDebug("No persisted SmartBP module root to load.");
             return false;
@@ -290,9 +331,9 @@ public sealed class SmartBpModuleManager
 
         _logger.LogInformation(
             "Loading persisted SmartBP module. ModuleRoot={ModuleRoot}, InstallKind={InstallKind}",
-            state.ModuleRoot,
-            state.InstallKind);
-        return await LoadModuleFromDirectoryAsync(state.ModuleRoot, state.InstallKind);
+            moduleRoot,
+            installKind);
+        return await LoadModuleFromDirectoryAsync(moduleRoot, installKind);
     }
 
     /// <summary>
@@ -706,12 +747,38 @@ public sealed class SmartBpModuleManager
     {
         Directory.CreateDirectory(AppConstants.AppDataPath);
         File.WriteAllText(StateFilePath, JsonSerializer.Serialize(state, JsonOptions));
+        WriteModuleRootRegistryValue(state.ModuleRoot);
         _logger.LogDebug(
             "SmartBP module state written. StateFilePath={StateFilePath}, ModuleRoot={ModuleRoot}, InstallKind={InstallKind}, LastLoadedSuccessfully={LastLoadedSuccessfully}",
             StateFilePath,
             state.ModuleRoot,
             state.InstallKind,
             state.LastLoadedSuccessfully);
+    }
+
+    private void WriteModuleRootRegistryValue(string? moduleRoot)
+    {
+        if (string.IsNullOrWhiteSpace(moduleRoot))
+        {
+            _logger.LogDebug("Skipped SmartBP module registry update because ModuleRoot is empty.");
+            return;
+        }
+
+        try
+        {
+            var normalizedRoot = Path.GetFullPath(moduleRoot);
+            using var key = Registry.CurrentUser.CreateSubKey(ModuleRegistrySubKey);
+            key?.SetValue(ModuleRegistryRootValueName, normalizedRoot, RegistryValueKind.String);
+            _logger.LogDebug(
+                "SmartBP module registry path written. SubKey={SubKey}, ValueName={ValueName}, ModuleRoot={ModuleRoot}",
+                ModuleRegistrySubKey,
+                ModuleRegistryRootValueName,
+                normalizedRoot);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to write SmartBP module registry path for uninstall cleanup. ModuleRoot={ModuleRoot}", moduleRoot);
+        }
     }
 
     private async Task CopyModuleRootForMigrationAsync(string sourceRoot, string targetRoot)

@@ -34,7 +34,7 @@ public partial class SmartBpPageViewModel : ViewModelBase
     {
         _moduleManager = moduleManager;
         _filePickerService = filePickerService;
-        SelectedModulePath = _moduleManager.ReadState()?.ModuleRoot ?? SmartBpModuleManager.GetDefaultModuleRoot();
+        SelectedModulePath = _moduleManager.GetPreferredModuleRoot();
         ConfigureLocalOnlyOverlayForDebugOrPreview();
         _moduleManager.ModuleStateChanged += (_, _) => SyncModuleState();
         _ = InitializeAsync();
@@ -118,7 +118,12 @@ public partial class SmartBpPageViewModel : ViewModelBase
 
     private async Task InitializeAsync()
     {
-        if (IsDebugMode)
+        if (await _moduleManager.TryLoadPersistedModuleAsync())
+        {
+            return;
+        }
+
+        if (IsDebugMode && !_moduleManager.HasPersistedModuleRoot())
         {
             var debugPath = Path.GetFullPath(Path.Combine(
                 AppContext.BaseDirectory,
@@ -130,8 +135,6 @@ public partial class SmartBpPageViewModel : ViewModelBase
             if (Directory.Exists(debugPath) && await _moduleManager.LoadModuleFromDirectoryAsync(debugPath, "DevelopmentDirectory"))
                 return;
         }
-
-        await _moduleManager.TryLoadPersistedModuleAsync();
     }
 
     [RelayCommand]
@@ -263,7 +266,7 @@ public partial class SmartBpPageViewModel : ViewModelBase
     {
         IsModuleLoaded = _moduleManager.IsModuleLoaded;
         ModuleContent = _moduleManager.ModuleContent;
-        var persistedRoot = _moduleManager.ReadState()?.ModuleRoot;
+        var persistedRoot = _moduleManager.GetPreferredModuleRoot();
         if (!IsModuleLoaded &&
             !string.IsNullOrWhiteSpace(persistedRoot) &&
             !string.Equals(SelectedModulePath, persistedRoot, StringComparison.OrdinalIgnoreCase))
