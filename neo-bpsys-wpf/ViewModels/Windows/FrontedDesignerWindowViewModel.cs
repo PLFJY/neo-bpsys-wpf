@@ -3405,7 +3405,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         {
             ClearPropertyEditError(item.PropertyName);
             item.Value = convertedValue;
-            item.EditText = Convert.ToString(convertedValue, CultureInfo.InvariantCulture) ?? string.Empty;
+            item.EditText = GetCommittedEditText(item, convertedValue);
             return true;
         }
 
@@ -3419,7 +3419,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         item.Value = convertedValue;
-        item.EditText = Convert.ToString(convertedValue, CultureInfo.InvariantCulture) ?? string.Empty;
+        item.EditText = GetCommittedEditText(item, convertedValue);
         CurrentDocument.IsDirty = true;
 
         if (IsGeometryProperty(item.PropertyName))
@@ -3485,7 +3485,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         if (ValuesEqual(oldValue, convertedValue))
         {
             item.Value = convertedValue;
-            item.EditText = Convert.ToString(convertedValue, CultureInfo.InvariantCulture) ?? string.Empty;
+            item.EditText = GetCommittedEditText(item, convertedValue);
             return true;
         }
 
@@ -3500,7 +3500,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
         ClampSelectedGlobalScoreCell();
         item.Value = convertedValue;
-        item.EditText = Convert.ToString(convertedValue, CultureInfo.InvariantCulture) ?? string.Empty;
+        item.EditText = GetCommittedEditText(item, convertedValue);
         CurrentDocument.IsDirty = true;
         FinishPropertyEdit(item.PropertyName);
         return true;
@@ -3879,7 +3879,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         row.IsMultiSelectionMixedValue = false;
         row.Value = commonValue;
         row.DisplayValue = GetPropertyEditorDisplayValue(commonValue);
-        row.EditText = Convert.ToString(commonValue, CultureInfo.InvariantCulture) ?? string.Empty;
+        row.EditText = GetCommittedEditText(row, commonValue);
     }
 
     private bool CanBatchEditSelectedProperty(FrontedPropertyEditorItem row)
@@ -5044,7 +5044,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             EditorKind = editorKind,
             Value = value,
             DisplayValue = Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty,
-            EditText = Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty,
+            EditText = GetCommittedEditText(editorKind, value, null),
             GroupName = groupName,
             IsRequired = propertyName is nameof(GlobalScoreCellConfig.Id)
                 or nameof(GlobalScoreCellConfig.GameNumber)
@@ -5074,8 +5074,32 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                     .Cast<object>()
                     .ToArray();
         }
+        else if (editorKind == FrontedPropertyEditorKind.FontFamily)
+        {
+            row.Options = _propertyGridBuilder.GetFontFamilyOptions();
+            row.EditText = GetCommittedEditText(row, value);
+        }
 
         return row;
+    }
+
+    private static string GetCommittedEditText(FrontedPropertyEditorItem item, object? value) =>
+        GetCommittedEditText(item.EditorKind, value, item.Options);
+
+    private static string GetCommittedEditText(
+        FrontedPropertyEditorKind editorKind,
+        object? value,
+        IReadOnlyList<object>? options)
+    {
+        if (editorKind == FrontedPropertyEditorKind.FontFamily)
+        {
+            var storedValue = Convert.ToString(value, CultureInfo.InvariantCulture);
+            return options?.OfType<FrontedFontFamilyOption>()
+                       .FirstOrDefault(option => string.Equals(option.Value, storedValue, StringComparison.Ordinal))?.DisplayName
+                   ?? FrontedFontResourceHelper.ExtractFontName(storedValue);
+        }
+
+        return Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty;
     }
 
     private static string GetGlobalScoreCellPropertyDisplayKey(string propertyName) =>

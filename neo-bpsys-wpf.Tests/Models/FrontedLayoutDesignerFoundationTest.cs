@@ -3150,14 +3150,24 @@ public class FrontedLayoutDesignerFoundationTest
         viewModel.SelectDesignItem(item);
         const string builtInFont = "pack://application:,,,/Assets/Fonts/#Noto Sans";
 
-        viewModel.ApplyPropertyEdit(
-            new FrontedPropertyEditorItem
+        var builtInRow = new FrontedPropertyEditorItem
             {
                 PropertyName = nameof(TextFrontedControlConfig.FontFamily),
                 EditorKind = FrontedPropertyEditorKind.FontFamily
-            },
-            builtInFont);
+            };
+        viewModel.ApplyPropertyEdit(builtInRow, builtInFont);
         Assert.Equal(builtInFont, ((TextFrontedControlConfig)item.Config).FontFamily);
+        Assert.Equal("Noto Sans", builtInRow.EditText);
+
+        const string packageFont = "bpui://user-layout-scheme-2/resources/fonts/SmileySans-Oblique-b447d7e781f0.ttf#得意黑";
+        var packageRow = new FrontedPropertyEditorItem
+        {
+            PropertyName = nameof(TextFrontedControlConfig.FontFamily),
+            EditorKind = FrontedPropertyEditorKind.FontFamily
+        };
+        viewModel.ApplyPropertyEdit(packageRow, packageFont);
+        Assert.Equal(packageFont, ((TextFrontedControlConfig)item.Config).FontFamily);
+        Assert.Equal("得意黑", packageRow.EditText);
 
         viewModel.ApplyPropertyEdit(
             new FrontedPropertyEditorItem
@@ -3190,18 +3200,19 @@ public class FrontedLayoutDesignerFoundationTest
             IsBuiltIn = true
         };
 
-        viewModel.ApplyPropertyEdit(
-            new FrontedPropertyEditorItem
+        var row = new FrontedPropertyEditorItem
             {
                 PropertyName = nameof(TextFrontedControlConfig.FontFamily),
                 EditorKind = FrontedPropertyEditorKind.FontFamily,
                 Value = option.DisplayName,
-                EditText = option.DisplayName
-            },
-            option.Value);
+                EditText = option.DisplayName,
+                Options = [option]
+            };
+        viewModel.ApplyPropertyEdit(row, option.Value);
 
         Assert.Equal(option.Value, ((TextFrontedControlConfig)item.Config).FontFamily);
         Assert.NotEqual(option.DisplayName, ((TextFrontedControlConfig)item.Config).FontFamily);
+        Assert.Equal(option.DisplayName, row.EditText);
     }
 
     [Fact]

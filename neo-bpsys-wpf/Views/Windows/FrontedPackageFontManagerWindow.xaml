@@ -41,11 +41,9 @@
             IsThemeChangeVisible="False"
             IsTopMostVisible="False" />
         <Grid Grid.Row="1" Margin="12">
-            <ListView
-                ItemsSource="{Binding Fonts}"
-                SelectedItem="{Binding SelectedFont, Mode=TwoWay}">
-                <ListView.View>
-                    <GridView>
+            <ui:ListView ItemsSource="{Binding Fonts}" SelectedItem="{Binding SelectedFont, Mode=TwoWay}">
+                <ui:ListView.View>
+                    <ui:GridView>
                         <GridViewColumn Width="260" Header="{lex:Loc Designer.Editor.PackageFontFamilies}">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate DataType="{x:Type designer:FrontedPackageFontItem}">
@@ -77,9 +75,9 @@
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
-                    </GridView>
-                </ListView.View>
-            </ListView>
+                    </ui:GridView>
+                </ui:ListView.View>
+            </ui:ListView>
             <TextBlock
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
