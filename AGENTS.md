@@ -29,6 +29,7 @@
 1. **禁止在面向用户的 UI 文本中使用开发阶段占位表达**（如 "Phase 3"、"Phase 13E"、"Phase 9D" 等）。已实现功能的描述必须写实际行为；未实现功能的占位文本应写「将在后续版本中提供」而非内部阶段代号。真实 Placeholder（如 overlay 标签 `[Text]`）不在此限制内。
 1. `IsActive` 只保留给框架/运行时激活语义，尤其是 CommunityToolkit.Mvvm `ObservableRecipient.IsActive`。布局、包、设置、业务状态、可见性、绑定 payload 和 behavior payload 不得使用泛名 `IsActive`，应使用 `IsActivePackage`、`IsVisible`、`IsEnabled`、`IsSelected` 等明确名称。`Visibility` 绑定不得直接绑定泛名 `IsActive`。
 1. WPF/Dispatcher 测试必须使用 `neo_bpsys_wpf.Tests.Infrastructure.WpfTestThread`，不要复制手写 `new Thread(...)`、裸 `thread.Join()` 或 `new Thread(async () => ...)`；相关超时规律见 `docs/testing-guidelines.md`。
+1. **禁止新增样式/布局宽高类测试**：不要断言视觉样式、坐标、窗口宽高、Canvas 宽高、控件位置、Margin/Padding、精确行列结构等展示细节。唯一例外是为了验证 WPF/XAML 语法或运行时必需命名部件是否正确。已有此类测试失败时，应删除或改成行为/契约测试，不得为了测试回滚布局。
 
 ## Naming rule: do not use generic IsActive
 

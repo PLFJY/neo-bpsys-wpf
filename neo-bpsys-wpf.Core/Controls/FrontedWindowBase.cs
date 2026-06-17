@@ -7,6 +7,9 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Events;
+using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 
@@ -21,6 +24,7 @@ public class FrontedWindowBase : Window
     private IFrontedLayoutService? _layoutService;
     private IFrontedRenderer? _renderer;
     private ISharedDataService? _sharedDataService;
+    private ISettingsHostService? _settingsHostService;
     private IFrontedBehaviorRuntime? _behaviorRuntime;
     private ILogger? _logger;
     private Canvas? _baseCanvas;
@@ -128,6 +132,7 @@ public class FrontedWindowBase : Window
     /// <param name="sharedDataService">The shared data service.</param>
     /// <param name="behaviorRuntime">The optional behavior runtime.</param>
     /// <param name="logger">The optional logger.</param>
+    /// <param name="settingsHostService">The optional settings host service used to refresh localized window titles.</param>
     /// <exception cref="ArgumentNullException">Thrown when a required argument is null.</exception>
     public void InitializeV3LayoutHost(
         IFrontedWindowDescriptor descriptor,
@@ -135,7 +140,8 @@ public class FrontedWindowBase : Window
         IFrontedRenderer renderer,
         ISharedDataService sharedDataService,
         IFrontedBehaviorRuntime? behaviorRuntime,
-        ILogger? logger)
+        ILogger? logger,
+        ISettingsHostService? settingsHostService = null)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
         ArgumentNullException.ThrowIfNull(layoutService);
@@ -146,13 +152,12 @@ public class FrontedWindowBase : Window
         _layoutService = layoutService;
         _renderer = renderer;
         _sharedDataService = sharedDataService;
+        _settingsHostService = settingsHostService;
         _behaviorRuntime = behaviorRuntime;
         _logger = logger;
         _isV3LayoutHost = true;
 
-        Title = string.IsNullOrWhiteSpace(descriptor.DisplayName)
-            ? descriptor.WindowTypeName
-            : descriptor.DisplayName;
+        RefreshV3WindowTitle();
 
         _baseCanvas = new Canvas
         {
@@ -170,6 +175,10 @@ public class FrontedWindowBase : Window
         Unloaded += OnV3HostUnloaded;
         Closed += OnV3HostClosed;
         IsVisibleChanged += OnV3HostIsVisibleChanged;
+        if (_settingsHostService is not null)
+        {
+            _settingsHostService.LanguageSettingChanged += OnLanguageSettingChanged;
+        }
     }
 
     /// <summary>
@@ -454,8 +463,38 @@ public class FrontedWindowBase : Window
     private void OnV3HostClosed(object? sender, EventArgs e)
     {
         UnsubscribeBoModeChanged();
+        if (_settingsHostService is not null)
+        {
+            _settingsHostService.LanguageSettingChanged -= OnLanguageSettingChanged;
+        }
+
         DetachBehaviorRuntime(FrontedBehaviorStopReason.WindowHidden);
         IsVisibleChanged -= OnV3HostIsVisibleChanged;
+    }
+
+    private void OnLanguageSettingChanged(object? sender, LanguageChangedEventArgs e)
+    {
+        if (Dispatcher.CheckAccess())
+        {
+            RefreshV3WindowTitle(e.CultureInfo);
+            return;
+        }
+
+        _ = Dispatcher.BeginInvoke(new Action(() => RefreshV3WindowTitle(e.CultureInfo)));
+    }
+
+    private void RefreshV3WindowTitle(System.Globalization.CultureInfo? cultureInfo = null)
+    {
+        if (_v3Descriptor is null)
+        {
+            return;
+        }
+
+        var settings = _settingsHostService?.Settings;
+        Title = FrontedWindowDisplayNameResolver.ResolveDisplayName(
+            _v3Descriptor,
+            settings?.Language ?? LanguageKey.System,
+            cultureInfo ?? settings?.CultureInfo);
     }
 
     private void OnV3HostIsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)

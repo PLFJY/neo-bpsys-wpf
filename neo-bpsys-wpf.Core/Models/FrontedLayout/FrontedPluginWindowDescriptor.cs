@@ -1,5 +1,6 @@
 using System.Windows;
 using System.IO;
+using neo_bpsys_wpf.Core.Enums;
 
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
 
@@ -38,6 +39,9 @@ public sealed class FrontedPluginWindowDescriptor : IFrontedWindowDescriptor
 
     /// <inheritdoc />
     public string DisplayName { get; init; } = string.Empty;
+
+    /// <inheritdoc />
+    public IReadOnlyDictionary<LanguageKey, string>? I18nDisplayNames { get; init; }
 
     /// <inheritdoc />
     public string? DisplayNameKey { get; init; }

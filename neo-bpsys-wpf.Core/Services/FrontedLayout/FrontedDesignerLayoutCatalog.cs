@@ -54,6 +54,7 @@ public class FrontedDesignerLayoutCatalog
             DisplayName = string.IsNullOrWhiteSpace(descriptor.DisplayName)
                 ? descriptor.WindowTypeName
                 : descriptor.DisplayName,
+            I18nDisplayNames = descriptor.I18nDisplayNames,
             WindowId = descriptor.WindowId,
             CanvasWidth = null,
             CanvasHeight = null,
@@ -106,6 +107,11 @@ public sealed class FrontedDesignerLayoutCatalogEntry
     /// Display name shown in the Designer window selector.
     /// </summary>
     public required string DisplayName { get; init; }
+
+    /// <summary>
+    /// Optional localized display names keyed by concrete application language.
+    /// </summary>
+    public IReadOnlyDictionary<LanguageKey, string>? I18nDisplayNames { get; init; }
 
     /// <summary>
     /// Stable runtime window id.

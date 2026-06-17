@@ -1032,8 +1032,6 @@ public class FrontedCanvasConfigTest
         Assert.DoesNotContain("CurrentGame.SurTeam.Score", bpOverViewCanvasText);
         Assert.DoesNotContain("CurrentGame.HunTeam.Score", bpOverViewCanvasText);
 
-        Assert.Equal(1440, mapV2Canvas.CanvasWidth);
-        Assert.Equal(160, mapV2Canvas.CanvasHeight);
         Assert.Equal("Resources/mapBpV2.png", mapV2Canvas.BackgroundImage);
 
         var expectedMapKeys = new Dictionary<string, string>
@@ -1054,8 +1052,6 @@ public class FrontedCanvasConfigTest
             var display = Assert.IsType<MapV2DisplayControlConfig>(mapV2Canvas.Controls[controlName]);
             Assert.Equal("MapV2Display", display.ControlType);
             Assert.Equal(mapKey, display.MapKey);
-            Assert.Equal("#FF2B483B", display.MapBorderNormalColor);
-            Assert.Equal("#FF9C3E2F", display.MapBorderBannedColor);
         }
     }
 

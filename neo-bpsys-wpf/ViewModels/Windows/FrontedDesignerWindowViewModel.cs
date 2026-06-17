@@ -6,6 +6,8 @@ using Microsoft.Extensions.Logging.Abstractions;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Messages;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
@@ -89,6 +91,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private readonly IFrontedBehaviorClipboard _behaviorClipboard;
     private readonly FrontedBehaviorCopyPasteService _behaviorCopyPasteService;
     private readonly ILogger<FrontedDesignerWindowViewModel> _logger;
+    private readonly ISettingsHostService? _settingsHostService;
 
     private static ILogger<FrontedDesignerWindowViewModel>? StaticLogger =>
         IAppHost.TryGetService<ILogger<FrontedDesignerWindowViewModel>>();
@@ -113,6 +116,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private bool _scheduledPreviewRequested;
     private bool _clearRestoreVisualsAfterScheduledPreview;
     private bool _isApplyingDesignSelection;
+    private bool _isRefreshingWindowOptions;
     private FrontedControlDesignItem? _lastSelectedDesignItem;
     private DesignerLayerNode? _selectedLayerNode;
     private CancellationTokenSource? _reloadLayoutCancellation;
@@ -149,6 +153,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             new FrontedBehaviorControlSemanticResolver(),
             _localizationService);
         _logger = NullLogger<FrontedDesignerWindowViewModel>.Instance;
+        _settingsHostService = null;
         BehaviorPanel = CreateBehaviorPanel();
         InitializeZoomPresets();
     }
@@ -179,7 +184,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         FrontedBehaviorCopyPasteService behaviorCopyPasteService,
         IFrontedAnimationRuntime animationRuntime,
         FrontedDesignerPreviewAnimationScope previewAnimationScope,
-        ILogger<FrontedDesignerWindowViewModel> logger)
+        ILogger<FrontedDesignerWindowViewModel> logger,
+        ISettingsHostService? settingsHostService = null)
     {
         _layoutService = layoutService;
         _designConverter = designConverter;
@@ -200,23 +206,15 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _animationRuntime = animationRuntime;
         _previewAnimationScope = previewAnimationScope;
         _logger = logger;
+        _settingsHostService = settingsHostService;
         _layoutCatalog = layoutCatalog;
         BehaviorPanel = CreateBehaviorPanel();
 
-        foreach (var entry in _layoutCatalog.GetEntries()
-                     .Where(entry => entry.IsMigrated && entry.IsEditable))
-        {
-            WindowOptions.Add(new FrontedDesignerWindowOption(
-                entry.WindowTypeName,
-                !string.IsNullOrWhiteSpace(entry.DisplayName)
-                    ? entry.DisplayName
-                    : _localizationService.GetWindowDisplayName(entry.WindowTypeName)));
-        }
+        RebuildWindowOptions(preserveSelectedWindowTypeName: null);
 
         InitializeZoomPresets();
         RebuildAddControlCatalog();
         SelectedZoomPreset = ZoomPresets.FirstOrDefault();
-        SelectedWindow = WindowOptions.FirstOrDefault();
     }
 
     /// <summary>
@@ -230,6 +228,21 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     public event EventHandler<FrontedDesignerGeometryPatchRequestedEventArgs>? DesignerGeometryPatchRequested;
 
     public ObservableCollection<FrontedDesignerWindowOption> WindowOptions { get; } = [];
+
+    /// <summary>
+    /// Refreshes localized window names without reloading the current layout.
+    /// </summary>
+    public void RefreshWindowDisplayNames()
+    {
+        RebuildWindowOptions(SelectedWindow?.WindowTypeName);
+        if (_selectedCatalogEntry is null)
+        {
+            return;
+        }
+
+        CurrentWindowCanvasDisplay = ResolveEntryDisplayName(_selectedCatalogEntry);
+        LoadWindowOptions(_selectedCatalogEntry.WindowTypeName);
+    }
 
     public ObservableCollection<FrontedLayoutValidationMessage> ValidationMessages { get; } = [];
 
@@ -603,6 +616,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     partial void OnSelectedWindowChanged(FrontedDesignerWindowOption? value)
     {
+        if (_isRefreshingWindowOptions)
+        {
+            return;
+        }
+
         ControlFilterText = string.Empty;
         SelectDesignItem(null);
 
@@ -1082,7 +1100,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         var entry = _selectedCatalogEntry;
-        CurrentWindowCanvasDisplay = entry.DisplayName;
+        CurrentWindowCanvasDisplay = ResolveEntryDisplayName(entry);
         DirtyIndicatorText = string.Empty;
         var reloadVersion = StartReloadLayoutRequest();
         var cancellationToken = _reloadLayoutCancellation?.Token ?? CancellationToken.None;
@@ -4298,7 +4316,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     private void LoadWindowOptions(string windowTypeName)
     {
-        WindowOptionsWindowTypeName = $"{_localizationService.GetWindowDisplayName(windowTypeName)} ({windowTypeName})";
+        WindowOptionsWindowTypeName = $"{ResolveWindowOptionDisplayName(windowTypeName)} ({windowTypeName})";
         _isLoadingWindowOptions = true;
         try
         {
@@ -6014,6 +6032,106 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         return Path.IsPathRooted(Environment.ExpandEnvironmentVariables(value));
     }
+
+    private void RebuildWindowOptions(string? preserveSelectedWindowTypeName)
+    {
+        WindowOptions.Clear();
+        foreach (var entry in _layoutCatalog.GetEntries()
+                     .Where(entry => entry.IsMigrated && entry.IsEditable))
+        {
+            WindowOptions.Add(new FrontedDesignerWindowOption(
+                entry.WindowTypeName,
+                ResolveEntryDisplayName(entry)));
+        }
+
+        var nextSelection = string.IsNullOrWhiteSpace(preserveSelectedWindowTypeName)
+            ? WindowOptions.FirstOrDefault()
+            : WindowOptions.FirstOrDefault(option => string.Equals(
+                  option.WindowTypeName,
+                  preserveSelectedWindowTypeName,
+                  StringComparison.Ordinal))
+              ?? WindowOptions.FirstOrDefault();
+
+        _isRefreshingWindowOptions = !string.IsNullOrWhiteSpace(preserveSelectedWindowTypeName);
+        try
+        {
+            SelectedWindow = nextSelection;
+        }
+        finally
+        {
+            _isRefreshingWindowOptions = false;
+        }
+    }
+
+    private string ResolveWindowOptionDisplayName(string windowTypeName)
+    {
+        var entry = _layoutCatalog.GetEntries()
+            .FirstOrDefault(item => string.Equals(item.WindowTypeName, windowTypeName, StringComparison.Ordinal));
+        return entry is null
+            ? _localizationService.GetWindowDisplayName(windowTypeName)
+            : ResolveEntryDisplayName(entry);
+    }
+
+    private string ResolveEntryDisplayName(FrontedDesignerLayoutCatalogEntry entry)
+    {
+        var settings = _settingsHostService?.Settings;
+        return FrontedWindowDisplayNameResolver.ResolveDisplayName(
+            new FrontedDesignerLayoutCatalogEntryWindowDescriptor(entry),
+            settings?.Language ?? LanguageKey.System,
+            settings?.CultureInfo);
+    }
+
+    private sealed class FrontedDesignerLayoutCatalogEntryWindowDescriptor(
+        FrontedDesignerLayoutCatalogEntry entry) : IFrontedWindowDescriptor
+    {
+        /// <inheritdoc />
+        public string WindowId => entry.WindowId;
+
+        /// <inheritdoc />
+        public string WindowTypeName => entry.WindowTypeName;
+
+        /// <inheritdoc />
+        public string FullWindowType => entry.WindowTypeName;
+
+        /// <inheritdoc />
+        public string DisplayName => entry.DisplayName;
+
+        /// <inheritdoc />
+        public IReadOnlyDictionary<LanguageKey, string>? I18nDisplayNames => entry.I18nDisplayNames;
+
+        /// <inheritdoc />
+        public string? DisplayNameKey => null;
+
+        /// <inheritdoc />
+        public string? Description => null;
+
+        /// <inheritdoc />
+        public string? DescriptionKey => null;
+
+        /// <inheritdoc />
+        public string? GroupKey => null;
+
+        /// <inheritdoc />
+        public int? DisplayOrder => null;
+
+        /// <inheritdoc />
+        public bool IsVisibleInFrontManage => true;
+
+        /// <inheritdoc />
+        public bool IsV3LayoutWindow => true;
+
+        /// <inheritdoc />
+        public bool Customizable => true;
+
+        /// <inheritdoc />
+        public FrontedWindowKind Kind => FrontedWindowKind.BuiltIn;
+
+        /// <inheritdoc />
+        public bool IsPlugin => false;
+
+        /// <inheritdoc />
+        public string? PackageId => null;
+    }
 }
 
 public sealed class FrontedDesignerWindowOption(
@@ -6255,4 +6373,5 @@ internal static class FrontedDesignerSnapshotRestorePlanner
             JsonSerializer.Serialize(target),
             StringComparison.Ordinal);
     }
+
 }

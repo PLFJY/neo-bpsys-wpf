@@ -25,6 +25,9 @@ public sealed class FrontedBuiltInWindowDescriptor : IFrontedWindowDescriptor
     public string DisplayName { get; init; } = string.Empty;
 
     /// <inheritdoc />
+    public IReadOnlyDictionary<LanguageKey, string>? I18nDisplayNames { get; init; }
+
+    /// <inheritdoc />
     public string? DisplayNameKey { get; init; }
 
     /// <inheritdoc />

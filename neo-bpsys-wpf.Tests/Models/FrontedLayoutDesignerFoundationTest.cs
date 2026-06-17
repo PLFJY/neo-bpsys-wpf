@@ -334,8 +334,7 @@ public class FrontedLayoutDesignerFoundationTest
             Id: "Game5OvertimeSecondHalf",
             GameNumber: 5,
             GameKind: ScoreGameKind.Overtime,
-            HalfKind: ScoreHalfKind.SecondHalf,
-            X: 990
+            HalfKind: ScoreHalfKind.SecondHalf
         });
         Assert.Contains(home.Cells, cell => cell is
         {

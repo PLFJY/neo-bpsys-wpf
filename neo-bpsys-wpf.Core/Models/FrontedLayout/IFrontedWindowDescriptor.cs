@@ -1,3 +1,5 @@
+using neo_bpsys_wpf.Core.Enums;
+
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
 
 /// <summary>
@@ -30,6 +32,11 @@ public interface IFrontedWindowDescriptor
     /// Fallback display name used when <see cref="DisplayNameKey"/> is not localized by the host.
     /// </summary>
     string DisplayName { get; }
+
+    /// <summary>
+    /// Optional localized display names keyed by concrete application language.
+    /// </summary>
+    IReadOnlyDictionary<LanguageKey, string>? I18nDisplayNames { get; }
 
     /// <summary>
     /// Optional localization key for the window display name.

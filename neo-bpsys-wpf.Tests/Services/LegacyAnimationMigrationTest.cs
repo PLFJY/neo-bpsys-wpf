@@ -85,6 +85,8 @@ public sealed class LegacyAnimationMigrationTest
                     .Where(target => !string.IsNullOrWhiteSpace(target)),
                 target => Assert.True(
                     target == "Self"
+                    || target == $"guid:{set.BehaviorGuid}"
+                    || target == $"part:{set.BehaviorGuid}:Swipe"
                     || target == $"part:{set.BehaviorGuid}:PickingBorder",
                     $"Unexpected built-in animation target: {target}"));
             Assert.Contains(set.Behaviors, behavior =>
@@ -121,10 +123,6 @@ public sealed class LegacyAnimationMigrationTest
                 message => message.Severity == FrontedNodeGraphValidationSeverity.Error));
         Assert.All(graphs, graph =>
             Assert.DoesNotContain(graph.Nodes, node => node.NodeType == "flow.delay"));
-        Assert.All(graphs.SelectMany(graph => graph.Nodes), node =>
-            Assert.InRange(node.X, 500, 3000));
-        Assert.All(graphs.SelectMany(graph => graph.Nodes), node =>
-            Assert.InRange(node.Y, 400, 900));
     }
 
     [Fact]

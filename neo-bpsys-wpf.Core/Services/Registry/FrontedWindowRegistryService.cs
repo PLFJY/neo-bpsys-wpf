@@ -160,20 +160,45 @@ public sealed class FrontedWindowRegistryService : IFrontedWindowRegistry
     {
         return
         [
-            CreateBuiltInV3Descriptor(FrontedWindowType.BpWindow, 0),
-            CreateBuiltInV3Descriptor(FrontedWindowType.CutSceneWindow, 100),
-            CreateBuiltInV3Descriptor(FrontedWindowType.ScoreSurWindow, 300),
-            CreateBuiltInV3Descriptor(FrontedWindowType.ScoreHunWindow, 400),
-            CreateBuiltInV3Descriptor(FrontedWindowType.ScoreGlobalWindow, 500),
-            CreateBuiltInV3Descriptor(FrontedWindowType.GameDataWindow, 600),
-            CreateBuiltInV3Descriptor(FrontedWindowType.BpOverviewWindow, 700),
-            CreateBuiltInV3Descriptor(FrontedWindowType.MapV2Window, 710)
+            CreateBuiltInV3Descriptor(
+                FrontedWindowType.BpWindow,
+                0,
+                CreateWindowNameI18n("BP 主窗口", "BP Main Window", "BP メインウィンドウ")),
+            CreateBuiltInV3Descriptor(
+                FrontedWindowType.CutSceneWindow,
+                100,
+                CreateWindowNameI18n("过场窗口", "Cut Scene Window", "カットシーンウィンドウ")),
+            CreateBuiltInV3Descriptor(
+                FrontedWindowType.ScoreSurWindow,
+                300,
+                CreateWindowNameI18n("求生者游戏内比分窗口", "Survivor Score in Gane Window", "サバイバー小スコアウィンドウ")),
+            CreateBuiltInV3Descriptor(
+                FrontedWindowType.ScoreHunWindow,
+                400,
+                CreateWindowNameI18n("监管者游戏内比分窗口", "Hunter Score in Gane Window", "ハンター小スコアウィンドウ")),
+            CreateBuiltInV3Descriptor(
+                FrontedWindowType.ScoreGlobalWindow,
+                500,
+                CreateWindowNameI18n("全局比分窗口", "Global Score Window", "全体スコアウィンドウ")),
+            CreateBuiltInV3Descriptor(
+                FrontedWindowType.GameDataWindow,
+                600,
+                CreateWindowNameI18n("赛后数据窗口", "Post-match Data Window", "試合後データウィンドウ")),
+            CreateBuiltInV3Descriptor(
+                FrontedWindowType.BpOverviewWindow,
+                700,
+                CreateWindowNameI18n("BP 总览窗口", "BP Overview Window", "BP 概要ウィンドウ")),
+            CreateBuiltInV3Descriptor(
+                FrontedWindowType.MapV2Window,
+                710,
+                CreateWindowNameI18n("地图 BP v2 窗口", "Map BP v2 Window", "マップ BP v2 ウィンドウ"))
         ];
     }
 
     private static FrontedBuiltInWindowDescriptor CreateBuiltInV3Descriptor(
         FrontedWindowType windowType,
-        int displayOrder)
+        int displayOrder,
+        IReadOnlyDictionary<LanguageKey, string>? i18nDisplayNames = null)
     {
         var windowTypeName = windowType.ToString();
         return new FrontedBuiltInWindowDescriptor
@@ -181,11 +206,25 @@ public sealed class FrontedWindowRegistryService : IFrontedWindowRegistry
             WindowId = FrontedWindowHelper.GetFrontedWindowGuid(windowType),
             WindowTypeName = windowTypeName,
             DisplayName = windowTypeName,
+            I18nDisplayNames = i18nDisplayNames,
             DisplayNameKey = $"Designer.Window.{windowTypeName}",
             GroupKey = "BuiltIn",
             DisplayOrder = displayOrder,
             IsV3LayoutWindow = true,
             Customizable = true
+        };
+    }
+
+    private static IReadOnlyDictionary<LanguageKey, string> CreateWindowNameI18n(
+        string zhHans,
+        string enUs,
+        string jaJp)
+    {
+        return new Dictionary<LanguageKey, string>
+        {
+            [LanguageKey.zh_Hans] = zhHans,
+            [LanguageKey.en_US] = enUs,
+            [LanguageKey.ja_JP] = jaJp
         };
     }
 

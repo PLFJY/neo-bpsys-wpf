@@ -164,7 +164,8 @@ public class FrontedWindowService : IFrontedWindowService
             _services.GetRequiredService<IFrontedRenderer>(),
             _services.GetRequiredService<ISharedDataService>(),
             _services.GetService<IFrontedBehaviorRuntime>(),
-            _services.GetService<ILogger<FrontedWindowBase>>());
+            _services.GetService<ILogger<FrontedWindowBase>>(),
+            _services.GetService<ISettingsHostService>());
         return window;
     }
 
@@ -216,7 +217,11 @@ public class FrontedWindowService : IFrontedWindowService
     {
         if (_windowRegistry.TryGetByWindowId(windowId, out var descriptor))
         {
-            return descriptor.DisplayName;
+            var settings = _services.GetService<ISettingsHostService>()?.Settings;
+            return FrontedWindowDisplayNameResolver.ResolveDisplayName(
+                descriptor,
+                settings?.Language ?? LanguageKey.System,
+                settings?.CultureInfo);
         }
 
         FrontedWindows.TryGetValue(windowId, out var window);

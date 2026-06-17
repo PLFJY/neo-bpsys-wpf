@@ -129,13 +129,17 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private void OnLanguageSettingChanged(object? sender, LanguageChangedEventArgs e)
     {
-        if (_viewModel?.BehaviorPanel is { } behaviorPanel)
+        if (_viewModel is { } viewModel)
         {
             // Refresh behavior panel localization on a layout-managed dispatcher
             // to avoid re-entrancy with the language-setting change propagation.
             _ = Dispatcher.BeginInvoke(
                 DispatcherPriority.Background,
-                new Action(() => behaviorPanel.RefreshLocalization()));
+                new Action(() =>
+                {
+                    viewModel.RefreshWindowDisplayNames();
+                    viewModel.BehaviorPanel.RefreshLocalization();
+                }));
         }
     }
 

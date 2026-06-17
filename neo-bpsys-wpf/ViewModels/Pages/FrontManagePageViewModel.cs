@@ -44,6 +44,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
     private readonly IPluginInstallService? _pluginInstallService;
     private readonly IFrontedWindowRegistry? _frontedWindowRegistry;
     private readonly IFrontedBehaviorRuntime? _behaviorRuntime;
+    private readonly ISettingsHostService? _settingsHostService;
     private readonly ILogger<FrontManagePageViewModel>? _logger;
     private FrontedDesignerWindow? _frontedDesignerWindow;
 
@@ -74,23 +75,12 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
         _frontedWindowRegistry = frontedWindowRegistry;
         _behaviorRuntime = behaviorRuntime;
         _serviceProvider = serviceProvider;
+        _settingsHostService = serviceProvider.GetService<ISettingsHostService>();
         _logger = logger;
-        var manageableWindows = frontedWindowRegistry.GetManageableWindows() ?? [];
-        foreach (var group in FrontedWindowManageGroup.FromDescriptors(manageableWindows))
+        RebuildManageableWindows();
+        if (_settingsHostService is not null)
         {
-            ManageableWindowGroups.Add(group);
-            foreach (var item in group.Windows)
-            {
-                ManageableWindows.Add(item);
-            }
-        }
-
-        if (ManageableWindowGroups.Count == 0)
-        {
-            foreach (var descriptor in manageableWindows)
-            {
-                ManageableWindows.Add(FrontedWindowManageItem.FromDescriptor(descriptor));
-            }
+            _settingsHostService.LanguageSettingChanged += OnLanguageSettingChanged;
         }
 
         _ = RefreshPackagesAsync();
@@ -151,6 +141,39 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
     public ObservableCollection<FrontedWindowManageGroup> ManageableWindowGroups { get; } = [];
 
     public ObservableCollection<FrontedLayoutPackageInfo> LayoutPackages { get; } = [];
+
+    private void OnLanguageSettingChanged(object? sender, Core.Events.LanguageChangedEventArgs e)
+    {
+        Application.Current?.Dispatcher.BeginInvoke(new Action(RebuildManageableWindows));
+    }
+
+    private void RebuildManageableWindows()
+    {
+        if (_frontedWindowRegistry is null)
+        {
+            return;
+        }
+
+        ManageableWindows.Clear();
+        ManageableWindowGroups.Clear();
+        var manageableWindows = _frontedWindowRegistry.GetManageableWindows() ?? [];
+        foreach (var group in FrontedWindowManageGroup.FromDescriptors(manageableWindows, _settingsHostService))
+        {
+            ManageableWindowGroups.Add(group);
+            foreach (var item in group.Windows)
+            {
+                ManageableWindows.Add(item);
+            }
+        }
+
+        if (ManageableWindowGroups.Count == 0)
+        {
+            foreach (var descriptor in manageableWindows)
+            {
+                ManageableWindows.Add(FrontedWindowManageItem.FromDescriptor(descriptor, _settingsHostService));
+            }
+        }
+    }
 
     [ObservableProperty]
     private FrontedLayoutPackageInfo? _selectedPackage;
@@ -1070,8 +1093,11 @@ public sealed class FrontedWindowManageGroup
     /// Builds grouped FrontManagePage items from window descriptors.
     /// </summary>
     /// <param name="descriptors">Window descriptors to group.</param>
+    /// <param name="settingsHostService">Optional settings service used to resolve localized window display names.</param>
     /// <returns>Grouped fronted window manage items.</returns>
-    public static IReadOnlyList<FrontedWindowManageGroup> FromDescriptors(IEnumerable<IFrontedWindowDescriptor> descriptors)
+    public static IReadOnlyList<FrontedWindowManageGroup> FromDescriptors(
+        IEnumerable<IFrontedWindowDescriptor> descriptors,
+        ISettingsHostService? settingsHostService = null)
     {
         ArgumentNullException.ThrowIfNull(descriptors);
 
@@ -1092,7 +1118,7 @@ public sealed class FrontedWindowManageGroup
                 groups.Add(group);
             }
 
-            group.Windows.Add(FrontedWindowManageItem.FromDescriptor(descriptor));
+            group.Windows.Add(FrontedWindowManageItem.FromDescriptor(descriptor, settingsHostService));
         }
 
         return groups;
@@ -1153,13 +1179,16 @@ public sealed class FrontedWindowManageItem
     /// Creates a card item from a registry descriptor.
     /// </summary>
     /// <param name="descriptor">Window descriptor.</param>
+    /// <param name="settingsHostService">Optional settings service used to resolve localized window display names.</param>
     /// <returns>A card item for FrontManagePage.</returns>
-    public static FrontedWindowManageItem FromDescriptor(IFrontedWindowDescriptor descriptor)
+    public static FrontedWindowManageItem FromDescriptor(
+        IFrontedWindowDescriptor descriptor,
+        ISettingsHostService? settingsHostService = null)
     {
         return new FrontedWindowManageItem
         {
             WindowId = descriptor.WindowId,
-            DisplayName = GetDescriptorDisplayName(descriptor),
+            DisplayName = GetDescriptorDisplayName(descriptor, settingsHostService),
             FullWindowType = descriptor.FullWindowType,
             KindDisplay = descriptor.Kind switch
             {
@@ -1171,19 +1200,14 @@ public sealed class FrontedWindowManageItem
         };
     }
 
-    private static string GetDescriptorDisplayName(IFrontedWindowDescriptor descriptor)
+    private static string GetDescriptorDisplayName(
+        IFrontedWindowDescriptor descriptor,
+        ISettingsHostService? settingsHostService)
     {
-        if (!string.IsNullOrWhiteSpace(descriptor.DisplayNameKey))
-        {
-            var localized = I18nHelper.GetLocalizedString(descriptor.DisplayNameKey);
-            if (!string.Equals(localized, descriptor.DisplayNameKey, StringComparison.Ordinal))
-            {
-                return localized;
-            }
-        }
-
-        return string.IsNullOrWhiteSpace(descriptor.DisplayName)
-            ? descriptor.WindowTypeName
-            : descriptor.DisplayName;
+        var settings = settingsHostService?.Settings;
+        return FrontedWindowDisplayNameResolver.ResolveDisplayName(
+            descriptor,
+            settings?.Language ?? LanguageKey.System,
+            settings?.CultureInfo);
     }
 }
