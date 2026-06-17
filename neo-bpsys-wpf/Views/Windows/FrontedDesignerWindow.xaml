@@ -7,13 +7,13 @@
     xmlns:converters="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:designer="clr-namespace:neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;assembly=neo-bpsys-wpf.Core"
+    xmlns:frontedDesignerViews="clr-namespace:neo_bpsys_wpf.Views.FrontedDesigner"
     xmlns:frontedLayout="clr-namespace:neo_bpsys_wpf.Core.Models.FrontedLayout;assembly=neo-bpsys-wpf.Core"
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:limits="clr-namespace:neo_bpsys_wpf.Core.Services.FrontedLayout;assembly=neo-bpsys-wpf.Core"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
-    xmlns:frontedDesignerViews="clr-namespace:neo_bpsys_wpf.Views.FrontedDesigner"
     Title="{lex:Loc FrontedDesigner}"
     Width="1280"
     Height="720"
@@ -169,10 +169,10 @@
                     Width="60"
                     Height="30"
                     Margin="0,0,8,0"
+                    HexRepresentation="ARGB"
                     Loaded="PropertyColorPicker_OnLoaded"
                     SelectedColor="{Binding ColorValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                     ShowAlpha="True"
-                    HexRepresentation="ARGB"
                     Style="{StaticResource DefaultColorPickerStyle}"
                     Unloaded="PropertyColorPicker_OnUnloaded" />
                 <ui:TextBox
@@ -221,23 +221,71 @@
         </DataTemplate>
 
         <DataTemplate x:Key="PropertyFontFamilyEditorTemplate" DataType="{x:Type designer:FrontedPropertyEditorItem}">
-            <ComboBox
-                MinHeight="30"
-                DropDownClosed="PropertyFontComboBox_OnDropDownClosed"
-                IsEditable="True"
-                IsTextSearchEnabled="True"
-                ItemsSource="{Binding Options}"
-                KeyDown="PropertyFontComboBox_OnKeyDown"
-                LostKeyboardFocus="PropertyFontComboBox_OnLostKeyboardFocus"
-                SelectionChanged="PropertyFontComboBox_OnSelectionChanged"
-                Text="{Binding EditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}"
-                TextSearch.TextPath="DisplayName">
-                <ComboBox.ItemTemplate>
-                    <DataTemplate DataType="{x:Type designer:FrontedFontFamilyOption}">
-                        <TextBlock FontFamily="{Binding PreviewFontFamily}" Text="{Binding DisplayName}" />
-                    </DataTemplate>
-                </ComboBox.ItemTemplate>
-            </ComboBox>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ComboBox
+                    MinHeight="30"
+                    DropDownClosed="PropertyFontComboBox_OnDropDownClosed"
+                    IsEditable="True"
+                    IsTextSearchEnabled="True"
+                    ItemsSource="{Binding Options}"
+                    KeyDown="PropertyFontComboBox_OnKeyDown"
+                    LostKeyboardFocus="PropertyFontComboBox_OnLostKeyboardFocus"
+                    SelectionChanged="PropertyFontComboBox_OnSelectionChanged"
+                    Text="{Binding EditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}"
+                    TextSearch.TextPath="DisplayName">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate DataType="{x:Type designer:FrontedFontFamilyOption}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock FontFamily="{Binding PreviewFontFamily}" Text="{Binding DisplayName}" />
+                                <Border
+                                    Margin="8,0,0,0"
+                                    Padding="5,1"
+                                    VerticalAlignment="Center"
+                                    Background="#1F3B82F6"
+                                    BorderBrush="#FF2563EB"
+                                    BorderThickness="1"
+                                    CornerRadius="3">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsPackageFont}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <TextBlock
+                                        FontSize="10"
+                                        Foreground="#FF1D4ED8"
+                                        Text="{Binding BadgeText}" />
+                                </Border>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                <ui:Button
+                    Grid.Column="1"
+                    Width="34"
+                    MinWidth="34"
+                    Margin="6,0,0,0"
+                    Click="ImportFontButton_OnClick"
+                    Icon="{ui:SymbolIcon Symbol=Add24}"
+                    ToolTip="{lex:Loc Designer.Editor.ImportFont}" />
+                <ui:Button
+                    Grid.Column="2"
+                    Width="34"
+                    MinWidth="34"
+                    Margin="6,0,0,0"
+                    Click="ManagePackageFontsButton_OnClick"
+                    Icon="{ui:SymbolIcon Symbol=Settings24}"
+                    ToolTip="{lex:Loc Designer.Editor.ManagePackageFonts}" />
+            </Grid>
         </DataTemplate>
 
         <DataTemplate x:Key="PropertyTextBindingEditorTemplate" DataType="{x:Type designer:FrontedPropertyEditorItem}">
@@ -451,9 +499,9 @@
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="280" />
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="3*" />
                 <ColumnDefinition Width="5" />
-                <ColumnDefinition Width="360" MinWidth="300" />
+                <ColumnDefinition Width="2*" MinWidth="300" />
             </Grid.ColumnDefinitions>
             <Border
                 Grid.Column="0"
@@ -769,8 +817,6 @@
                     VerticalScrollBarVisibility="Auto">
                     <Grid
                         x:Name="PreviewWorkspace"
-                        MinWidth="640"
-                        MinHeight="420"
                         HorizontalAlignment="Stretch"
                         VerticalAlignment="Stretch"
                         Background="Transparent">
@@ -785,8 +831,8 @@
                             </Border.LayoutTransform>
                             <Grid
                                 x:Name="DesignSurfaceGrid"
-                                Width="{Binding CurrentDocument.CanvasConfig.CanvasWidth, FallbackValue=640}"
-                                Height="{Binding CurrentDocument.CanvasConfig.CanvasHeight, FallbackValue=360}"
+                                Width="{Binding CurrentDocument.CanvasConfig.CanvasWidth, FallbackValue=1440}"
+                                Height="{Binding CurrentDocument.CanvasConfig.CanvasHeight, FallbackValue=810}"
                                 ClipToBounds="True"
                                 Focusable="True"
                                 KeyDown="DesignSurface_OnKeyDown"
@@ -794,14 +840,14 @@
                                 SnapsToDevicePixels="True">
                                 <Canvas
                                     x:Name="PreviewCanvas"
-                                    Width="{Binding CurrentDocument.CanvasConfig.CanvasWidth, FallbackValue=640}"
-                                    Height="{Binding CurrentDocument.CanvasConfig.CanvasHeight, FallbackValue=360}"
+                                    Width="{Binding CurrentDocument.CanvasConfig.CanvasWidth, FallbackValue=1440}"
+                                    Height="{Binding CurrentDocument.CanvasConfig.CanvasHeight, FallbackValue=810}"
                                     ClipToBounds="True"
                                     SnapsToDevicePixels="True" />
                                 <Canvas
                                     x:Name="InteractionLayer"
-                                    Width="{Binding CurrentDocument.CanvasConfig.CanvasWidth, FallbackValue=640}"
-                                    Height="{Binding CurrentDocument.CanvasConfig.CanvasHeight, FallbackValue=360}"
+                                    Width="{Binding CurrentDocument.CanvasConfig.CanvasWidth, FallbackValue=1440}"
+                                    Height="{Binding CurrentDocument.CanvasConfig.CanvasHeight, FallbackValue=810}"
                                     Background="Transparent"
                                     Focusable="True"
                                     IsHitTestVisible="True"
@@ -1119,9 +1165,7 @@
                                     </Style.Triggers>
                                 </Style>
                             </Expander.Style>
-                            <frontedDesignerViews:BehaviorPanelView
-                                Margin="0,8,0,0"
-                                DataContext="{Binding BehaviorPanel}" />
+                            <frontedDesignerViews:BehaviorPanelView Margin="0,8,0,0" DataContext="{Binding BehaviorPanel}" />
                         </Expander>
                         <Expander
                             Grid.Row="4"
@@ -1206,7 +1250,10 @@
                                             </Style>
                                         </TextBlock.Style>
                                     </TextBlock>
-                                    <UniformGrid Grid.Row="1" Margin="0,8,0,0" Columns="2">
+                                    <UniformGrid
+                                        Grid.Row="1"
+                                        Margin="0,8,0,0"
+                                        Columns="2">
                                         <ui:Button
                                             Margin="0,0,4,0"
                                             Command="{Binding AddAnimationPartCommand}"
@@ -1249,7 +1296,10 @@
                                         <UniformGrid Columns="2">
                                             <StackPanel Margin="0,0,4,0">
                                                 <TextBlock Text="{lex:Loc Designer.AnimationParts.Kind}" />
-                                                <ComboBox Margin="0,3,0,8" SelectedValue="{Binding Kind}" SelectedValuePath="Tag">
+                                                <ComboBox
+                                                    Margin="0,3,0,8"
+                                                    SelectedValue="{Binding Kind}"
+                                                    SelectedValuePath="Tag">
                                                     <ComboBoxItem Content="{lex:Loc Designer.AnimationParts.Kind.Rectangle}" Tag="{x:Static frontedLayout:FrontedAnimationPartKind.Rectangle}" />
                                                     <ComboBoxItem Content="{lex:Loc Designer.AnimationParts.Kind.Border}" Tag="{x:Static frontedLayout:FrontedAnimationPartKind.Border}" />
                                                     <ComboBoxItem Content="{lex:Loc Designer.AnimationParts.Kind.Image}" Tag="{x:Static frontedLayout:FrontedAnimationPartKind.Image}" />
@@ -1257,7 +1307,10 @@
                                             </StackPanel>
                                             <StackPanel Margin="4,0,0,0">
                                                 <TextBlock Text="{lex:Loc Designer.AnimationParts.Layer}" />
-                                                <ComboBox Margin="0,3,0,8" SelectedValue="{Binding Layer}" SelectedValuePath="Tag">
+                                                <ComboBox
+                                                    Margin="0,3,0,8"
+                                                    SelectedValue="{Binding Layer}"
+                                                    SelectedValuePath="Tag">
                                                     <ComboBoxItem Content="{lex:Loc Designer.AnimationParts.Layer.AboveContent}" Tag="{x:Static frontedLayout:FrontedAnimationPartLayer.AboveContent}" />
                                                     <ComboBoxItem Content="{lex:Loc Designer.AnimationParts.Layer.BelowContent}" Tag="{x:Static frontedLayout:FrontedAnimationPartLayer.BelowContent}" />
                                                 </ComboBox>
@@ -1312,7 +1365,10 @@
                                             </StackPanel>
                                             <StackPanel Margin="4,0,0,0">
                                                 <TextBlock Text="{lex:Loc Designer.Property.Visibility}" />
-                                                <ComboBox Margin="0,3,0,8" SelectedValue="{Binding Visibility}" SelectedValuePath="Tag">
+                                                <ComboBox
+                                                    Margin="0,3,0,8"
+                                                    SelectedValue="{Binding Visibility}"
+                                                    SelectedValuePath="Tag">
                                                     <ComboBoxItem Content="{lex:Loc Designer.Visibility.Visible}" Tag="Visible" />
                                                     <ComboBoxItem Content="{lex:Loc Designer.Visibility.Hidden}" Tag="Hidden" />
                                                     <ComboBoxItem Content="{lex:Loc Designer.Visibility.Collapsed}" Tag="Collapsed" />
@@ -1497,7 +1553,10 @@
                                             Text="{lex:Loc Designer.AnimationParts.EffectSection}" />
                                         <StackPanel Margin="0,0,0,8">
                                             <TextBlock Text="{lex:Loc Designer.AnimationParts.EffectKind}" />
-                                            <ComboBox Margin="0,3,0,8" SelectedValue="{Binding EffectKind, Mode=TwoWay}" SelectedValuePath="Tag">
+                                            <ComboBox
+                                                Margin="0,3,0,8"
+                                                SelectedValue="{Binding EffectKind, Mode=TwoWay}"
+                                                SelectedValuePath="Tag">
                                                 <ComboBoxItem Content="{lex:Loc Designer.AnimationParts.EffectKind.None}" Tag="{x:Static frontedLayout:FrontedVisualEffectKind.None}" />
                                                 <ComboBoxItem Content="{lex:Loc Designer.AnimationParts.EffectKind.Glow}" Tag="{x:Static frontedLayout:FrontedVisualEffectKind.Glow}" />
                                                 <ComboBoxItem Content="{lex:Loc Designer.AnimationParts.EffectKind.DropShadow}" Tag="{x:Static frontedLayout:FrontedVisualEffectKind.DropShadow}" />
@@ -1702,9 +1761,7 @@
                                     Command="{Binding ApplyWindowSizeCommand}"
                                     Content="{lex:Loc Apply}" />
                                 <ui:ToggleSwitch Content="{lex:Loc AllowTransparency}" IsChecked="{Binding WindowAllowTransparency, Mode=TwoWay}" />
-                                <TextBlock
-                                    Margin="0,10,0,4"
-                                    Text="{lex:Loc BackgroundColor}" />
+                                <TextBlock Margin="0,10,0,4" Text="{lex:Loc BackgroundColor}" />
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
@@ -1716,9 +1773,9 @@
                                         Width="60"
                                         Height="30"
                                         Margin="0,0,8,0"
+                                        HexRepresentation="ARGB"
                                         SelectedColor="{Binding WindowBackgroundColorValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                         ShowAlpha="True"
-                                        HexRepresentation="ARGB"
                                         Style="{StaticResource DefaultColorPickerStyle}" />
                                     <ui:TextBox
                                         Grid.Column="1"

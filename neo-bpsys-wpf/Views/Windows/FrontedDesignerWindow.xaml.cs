@@ -36,6 +36,7 @@ public partial class FrontedDesignerWindow : FluentWindow
     private readonly IFilePickerService? _filePickerService;
     private readonly FrontedBindingBrowserProvider? _bindingBrowserProvider;
     private readonly FrontedResourceBrowserProvider? _resourceBrowserProvider;
+    private readonly FrontedPackageFontManagerWindowViewModel? _packageFontManagerViewModel;
     private readonly ILogger<FrontedDesignerWindow>? _logger;
     private DispatcherTimer? _propertyAutoCommitTimer;
     private FrameworkElement? _pendingAutoCommitEditor;
@@ -105,6 +106,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         IFilePickerService filePickerService,
         FrontedBindingBrowserProvider bindingBrowserProvider,
         FrontedResourceBrowserProvider resourceBrowserProvider,
+        FrontedPackageFontManagerWindowViewModel packageFontManagerViewModel,
         ILogger<FrontedDesignerWindow> logger,
         ISettingsHostService settingsHostService)
     {
@@ -113,6 +115,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         _filePickerService = filePickerService;
         _bindingBrowserProvider = bindingBrowserProvider;
         _resourceBrowserProvider = resourceBrowserProvider;
+        _packageFontManagerViewModel = packageFontManagerViewModel;
         _logger = logger;
 
         InitializeComponent();
@@ -1009,12 +1012,57 @@ public partial class FrontedDesignerWindow : FluentWindow
             return false;
         }
 
-        var value = useSelectedOption && comboBox.SelectedItem is FrontedFontFamilyOption option
-            ? option.Value
-            : comboBox.Text;
+        var value = ResolveFontComboBoxValue(comboBox, useSelectedOption);
         item.Value = value;
         item.EditText = comboBox.Text;
         return _viewModel.ApplyPropertyEdit(item, value);
+    }
+
+    private static string ResolveFontComboBoxValue(ComboBox comboBox, bool useSelectedOption)
+    {
+        if (useSelectedOption && comboBox.SelectedItem is FrontedFontFamilyOption selectedOption)
+        {
+            return selectedOption.Value;
+        }
+
+        var text = comboBox.Text;
+        var matchingOption = comboBox.Items
+            .OfType<FrontedFontFamilyOption>()
+            .FirstOrDefault(option => string.Equals(option.DisplayName, text, StringComparison.CurrentCultureIgnoreCase));
+        return matchingOption?.Value ?? text;
+    }
+
+    private async void ImportFontButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (_filePickerService is null
+            || _viewModel is null
+            || sender is not FrameworkElement { DataContext: FrontedPropertyEditorItem item })
+        {
+            return;
+        }
+
+        var path = _filePickerService.PickFontFile();
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return;
+        }
+
+        await _viewModel.ImportAndApplyPackageFontAsync(item, path);
+    }
+
+    private void ManagePackageFontsButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (_packageFontManagerViewModel is null || _viewModel is null)
+        {
+            return;
+        }
+
+        var window = new FrontedPackageFontManagerWindow(_packageFontManagerViewModel)
+        {
+            Owner = this
+        };
+        window.ShowDialog();
+        _viewModel.RefreshFontFamilyEditorOptions();
     }
 
     private void PropertyColorPicker_OnLoaded(object sender, RoutedEventArgs e)
@@ -1214,6 +1262,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         {
             UpdateSelectedInteractionVisuals();
             RenderSnapGuides();
+            ResetPreviewScrollOffsetForFitMode();
         }
 
         if (e.PropertyName == nameof(FrontedDesignerWindowViewModel.ActiveSnapGuides))
@@ -2730,6 +2779,7 @@ public partial class FrontedDesignerWindow : FluentWindow
     {
         UpdatePreviewWorkspaceSize();
         _viewModel?.UpdateFitZoom(PreviewScrollViewer.ViewportWidth, PreviewScrollViewer.ViewportHeight);
+        ResetPreviewScrollOffsetForFitMode();
     }
 
     /// <summary>
@@ -2743,9 +2793,13 @@ public partial class FrontedDesignerWindow : FluentWindow
         {
             Dispatcher.BeginInvoke(
                 System.Windows.Threading.DispatcherPriority.Background,
-                () => _viewModel?.UpdateFitZoom(
-                    PreviewScrollViewer.ViewportWidth,
-                    PreviewScrollViewer.ViewportHeight));
+                () =>
+                {
+                    _viewModel?.UpdateFitZoom(
+                        PreviewScrollViewer.ViewportWidth,
+                        PreviewScrollViewer.ViewportHeight);
+                    ResetPreviewScrollOffsetForFitMode();
+                });
         }
     }
 
@@ -3056,8 +3110,24 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private void UpdatePreviewWorkspaceSize()
     {
-        PreviewWorkspace.MinWidth = Math.Max(640D, PreviewScrollViewer.ViewportWidth);
-        PreviewWorkspace.MinHeight = Math.Max(420D, PreviewScrollViewer.ViewportHeight);
+        PreviewWorkspace.MinWidth = Math.Max(1D, PreviewScrollViewer.ViewportWidth);
+        PreviewWorkspace.MinHeight = Math.Max(1D, PreviewScrollViewer.ViewportHeight);
+    }
+
+    private void ResetPreviewScrollOffsetForFitMode()
+    {
+        if (_viewModel?.IsFitMode != true)
+        {
+            return;
+        }
+
+        Dispatcher.BeginInvoke(
+            DispatcherPriority.Loaded,
+            new Action(() =>
+            {
+                PreviewScrollViewer.ScrollToHorizontalOffset(0D);
+                PreviewScrollViewer.ScrollToVerticalOffset(0D);
+            }));
     }
 
     private FrontedDesignerResolvedBounds ResolveItemBounds(FrontedControlDesignItem item)

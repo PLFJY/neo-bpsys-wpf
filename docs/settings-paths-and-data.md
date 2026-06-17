@@ -15,6 +15,7 @@
 | `FrontedLayoutPackagesPath` | `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages` |
 | `FrontedLayoutLocalPackagePath` | `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\local` |
 | `FrontedLayoutLocalImagesPath` | `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\local\resources\images` |
+| `FrontedLayoutLocalFontsPath` | `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\local\resources\fonts` |
 | `LogPath` | `%APPDATA%\neo-bpsys-wpf\Log` |
 | `ResourcesPath` | `{AppBaseDirectory}\Resources` |
 | `PluginPath` | `%APPDATA%\neo-bpsys-wpf\Plugins` |
@@ -102,6 +103,8 @@ v3 前台布局当前以 Window-centric “布局方案”读写。`builtin` 是
 Designer v3 `.bpui` 包路径标准见 [bpui-package-v3.md](bpui-package-v3.md)。已安装包资源应放在各自包目录内，例如 `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\{PackageId}\resources\`，不要合并到共享资源目录。若旧讨论或临时代码提到 `%APPDATA%\neo-bpsys-wpf\FrontedLayoutResources\`，应视为已被包隔离方案取代，不作为新实现的首选路径。
 
 `builtin` 是虚拟包 ID，映射到应用内置 `Resources\FrontedLayouts`，不在 `FrontedLayoutPackages` 下作为普通包安装，也不能删除。`local` 是编辑器本地资源命名空间，推荐路径为 `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\local\resources\`，用于保存用户选择本地图片后的副本；普通包删除不能删除 `local`。
+
+Designer v3 字体属性支持把 `.ttf`、`.otf`、`.ttc` 导入当前活动布局包。导入时若当前活动包是 `builtin`，会先复制为可编辑用户布局方案，再把字体文件写入该包的 `resources/fonts/`。布局 JSON 保存 `bpui://{PackageId}/resources/fonts/{file}#FontFamilyName`，因此包内字体只随该布局包生效；切换到其他布局包后不会出现在字体列表中，需要在目标包重新导入。字体属性旁的管理入口可以删除当前包中未被布局 JSON 引用的字体文件；仍被引用的字体不能直接删除。
 
 `IFrontedLayoutPackageManager` 会读取 `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages`，始终列出虚拟 `builtin` 包，跳过保留的 `local` 目录，并读取普通已安装包目录下的 `manifest.json`。缺少或损坏 manifest 的包会以校验错误显示，不会让管理器崩溃。`active-package.json` 缺失时默认视为 `builtin` 活动；激活普通包只写入 active state，不会复制布局到全局 `FrontedLayouts`，激活 `builtin` 只切换活动状态，不删除任意可编辑包或 legacy 用户布局。删除活动包会先切回 `builtin` 再删除包目录。
 

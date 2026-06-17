@@ -340,9 +340,12 @@ public class FrontedLayoutPackageManagerTest
             var tempRoot = Path.Combine(root, "temp");
             var outputPath = Path.Combine(root, "export.bpui");
             var localImagePath = Path.Combine(packageRoot, "local", "resources", "images", "local.png");
+            var localFontPath = Path.Combine(packageRoot, "local", "resources", "fonts", "NotoSans-Regular.ttf");
             var absoluteImagePath = Path.Combine(root, "absolute.png");
             Directory.CreateDirectory(Path.GetDirectoryName(localImagePath)!);
+            Directory.CreateDirectory(Path.GetDirectoryName(localFontPath)!);
             WriteTinyPng(localImagePath);
+            File.Copy(GetRepositoryPath("neo-bpsys-wpf", "Assets", "Fonts", "NotoSans-Regular.ttf"), localFontPath);
             WriteTinyPng(absoluteImagePath);
             File.AppendAllBytes(absoluteImagePath, [0]);
 
@@ -352,7 +355,8 @@ public class FrontedLayoutPackageManagerTest
                 builtInRoot,
                 "Resources/foo.png",
                 "bpui://local/resources/images/local.png",
-                absoluteImagePath);
+                absoluteImagePath,
+                "bpui://local/resources/fonts/NotoSans-Regular.ttf#Noto Sans");
             var layoutService = new FrontedLayoutService(
                 new FrontedUserLayoutStore(userRoot),
                 builtInRoot,
@@ -391,15 +395,18 @@ public class FrontedLayoutPackageManagerTest
             var manifest = ReadManifest(archive);
             Assert.Equal(result.LayoutCount, manifest.Content.Layouts.Count);
             Assert.Equal(result.ResourceCount, manifest.Content.Resources.Count);
-            Assert.Equal(2, manifest.Content.Resources.Count);
+            Assert.Equal(3, manifest.Content.Resources.Count);
             Assert.All(manifest.Content.Resources, resource => Assert.False(string.IsNullOrWhiteSpace(resource.Sha256)));
 
             var builtInLayoutJson = ReadZipEntry(archive, "FrontedLayouts/ScoreSurWindow.json");
             Assert.Contains("\"BackgroundImage\": \"Resources/foo.png\"", builtInLayoutJson);
             var localLayoutJson = ReadZipEntry(archive, "FrontedLayouts/ScoreHunWindow.json");
             Assert.Contains("bpui://plfjy.default-layout.2026/resources/images/local-", localLayoutJson);
+            Assert.Contains("bpui://plfjy.default-layout.2026/resources/fonts/NotoSans-Regular-", localLayoutJson);
+            Assert.Contains("#Noto Sans", localLayoutJson);
             var absoluteLayoutJson = ReadZipEntry(archive, "FrontedLayouts/ScoreGlobalWindow.json");
             Assert.Contains("bpui://plfjy.default-layout.2026/resources/images/absolute-", absoluteLayoutJson);
+            Assert.Contains(entryNames, name => name.StartsWith("resources/fonts/NotoSans-Regular-", StringComparison.Ordinal));
         }
         finally
         {
@@ -1307,7 +1314,8 @@ public class FrontedLayoutPackageManagerTest
         string builtInRoot,
         string firstBackgroundImage,
         string secondBackgroundImage,
-        string thirdBackgroundImage)
+        string thirdBackgroundImage,
+        string fontFamily = "Arial")
     {
         var index = 0;
         foreach (var entry in catalog.GetEntries())
@@ -1339,6 +1347,14 @@ public class FrontedLayoutPackageManagerTest
                                               "Width": 10,
                                               "Height": 10,
                                               "BanLockImagePath": "Resources/lock.png"
+                                            },
+                                            "Text1": {
+                                              "ControlType": "Text",
+                                              "Left": 0,
+                                              "Top": 20,
+                                              "Text": "Text",
+                                              "FontFamily": "{{JsonEncodedText(fontFamily)}}",
+                                              "FontSize": 12
                                             }
                                           }
                                         }
@@ -1733,6 +1749,8 @@ public class FrontedLayoutPackageManagerTest
         public string? PickBpuiFile() => null;
 
         public string? PickImage() => null;
+
+        public string? PickFontFile() => null;
 
         public string? PickJsonFile() => null;
 

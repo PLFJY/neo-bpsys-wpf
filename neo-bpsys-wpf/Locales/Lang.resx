@@ -1272,6 +1272,9 @@
   <data name="ImageFiles" xml:space="preserve">
     <value>图片文件</value>
   </data>
+  <data name="FontFiles" xml:space="preserve">
+    <value>字体文件</value>
+  </data>
   <data name="JSONFiles" xml:space="preserve">
     <value>JSON 文件</value>
   </data>
@@ -3420,6 +3423,45 @@
   </data>
   <data name="Designer.Editor.ResourceBrowser" xml:space="preserve">
     <value>资源浏览器</value>
+  </data>
+  <data name="Designer.Editor.ImportFont" xml:space="preserve">
+    <value>导入字体</value>
+  </data>
+  <data name="Designer.Editor.ImportFontFailed" xml:space="preserve">
+    <value>导入字体失败</value>
+  </data>
+  <data name="Designer.Editor.ManagePackageFonts" xml:space="preserve">
+    <value>管理本包字体</value>
+  </data>
+  <data name="Designer.Editor.PackageFontsUnavailable" xml:space="preserve">
+    <value>当前布局包不可管理字体。</value>
+  </data>
+  <data name="Designer.Editor.PackageFontsEmpty" xml:space="preserve">
+    <value>当前布局包还没有导入字体。</value>
+  </data>
+  <data name="Designer.Editor.PackageFontFamilies" xml:space="preserve">
+    <value>字体族</value>
+  </data>
+  <data name="Designer.Editor.PackageFontFile" xml:space="preserve">
+    <value>文件</value>
+  </data>
+  <data name="Designer.Editor.PackageFontStatus" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="Designer.Editor.PackageFontAvailable" xml:space="preserve">
+    <value>可删除</value>
+  </data>
+  <data name="Designer.Editor.PackageFontInUse" xml:space="preserve">
+    <value>已被当前布局引用</value>
+  </data>
+  <data name="Designer.Editor.PackageFontDelete" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="Designer.Editor.PackageFontDeleteSucceeded" xml:space="preserve">
+    <value>字体文件已删除。</value>
+  </data>
+  <data name="Designer.Editor.PackageFontDeleteFailed" xml:space="preserve">
+    <value>删除字体失败</value>
   </data>
   <data name="Designer.Editor.Source.BuiltInResources" xml:space="preserve">
     <value>内置资源</value>

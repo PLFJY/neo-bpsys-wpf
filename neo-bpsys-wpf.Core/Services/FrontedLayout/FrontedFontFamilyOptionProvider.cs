@@ -1,6 +1,9 @@
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using Microsoft.Extensions.Logging.Abstractions;
 using System.IO;
 using System.Windows.Media;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
@@ -11,6 +14,7 @@ public class FrontedFontFamilyOptionProvider
 {
     private const string BuiltInFontPackUriPrefix = "pack://application:,,,/Assets/Fonts/#";
     private readonly string? _fontDirectory;
+    private readonly IFrontedLayoutPackageManager? _packageManager;
     private IReadOnlyList<FrontedFontFamilyOption>? _cachedOptions;
 
     /// <summary>
@@ -29,11 +33,28 @@ public class FrontedFontFamilyOptionProvider
     }
 
     /// <summary>
+    /// Initializes a provider with an active package manager.
+    /// </summary>
+    /// <param name="packageManager">Layout package manager.</param>
+    public FrontedFontFamilyOptionProvider(IFrontedLayoutPackageManager packageManager)
+    {
+        _packageManager = packageManager;
+    }
+
+    /// <summary>
     /// Gets built-in and system font options.
     /// </summary>
     public IReadOnlyList<FrontedFontFamilyOption> GetFontFamilyOptions()
     {
         return _cachedOptions ??= BuildOptions();
+    }
+
+    /// <summary>
+    /// Clears cached options so package font changes are visible.
+    /// </summary>
+    public void ClearCache()
+    {
+        _cachedOptions = null;
     }
 
     /// <summary>
@@ -48,14 +69,7 @@ public class FrontedFontFamilyOptionProvider
 
         try
         {
-            var hashIndex = storedValue.IndexOf('#');
-            if (storedValue.Contains("pack://application:,,,", StringComparison.Ordinal)
-                && hashIndex >= 0)
-            {
-                return new FontFamily(new Uri(storedValue[..hashIndex]), "./" + storedValue[hashIndex..]);
-            }
-
-            return new FontFamily(storedValue);
+            return FrontedFontResourceHelper.CreateFontFamily(storedValue, CreateResolver());
         }
         catch
         {
@@ -75,13 +89,18 @@ public class FrontedFontFamilyOptionProvider
 
         return GetFontFamilyOptions().FirstOrDefault(
                    option => string.Equals(option.Value, storedValue, StringComparison.Ordinal))?.DisplayName
-               ?? ExtractFontName(storedValue);
+               ?? FrontedFontResourceHelper.ExtractFontName(storedValue);
     }
 
     private IReadOnlyList<FrontedFontFamilyOption> BuildOptions()
     {
         var options = new List<FrontedFontFamilyOption>();
         var seenValues = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var option in DiscoverActivePackageFontOptions())
+        {
+            AddOption(options, seenValues, option);
+        }
 
         foreach (var name in GetBuiltInFontNames())
         {
@@ -137,10 +156,61 @@ public class FrontedFontFamilyOptionProvider
 
         return Directory.EnumerateFiles(directory, "*.*", SearchOption.TopDirectoryOnly)
             .Where(path => string.Equals(Path.GetExtension(path), ".ttf", StringComparison.OrdinalIgnoreCase)
-                           || string.Equals(Path.GetExtension(path), ".otf", StringComparison.OrdinalIgnoreCase))
-            .SelectMany(TryReadFontNamesFromFile)
+                           || string.Equals(Path.GetExtension(path), ".otf", StringComparison.OrdinalIgnoreCase)
+                           || string.Equals(Path.GetExtension(path), ".ttc", StringComparison.OrdinalIgnoreCase))
+            .SelectMany(path => FrontedFontResourceHelper.ReadFontFamilyNames(path))
             .Where(name => !string.IsNullOrWhiteSpace(name))
             .Distinct(StringComparer.Ordinal);
+    }
+
+    private IEnumerable<FrontedFontFamilyOption> DiscoverActivePackageFontOptions()
+    {
+        if (_packageManager is null)
+        {
+            yield break;
+        }
+
+        FrontedLayoutActivePackageState state;
+        try
+        {
+            state = _packageManager.GetActivePackageStateAsync().GetAwaiter().GetResult();
+        }
+        catch
+        {
+            yield break;
+        }
+
+        if (string.Equals(state.PackageId, FrontedLayoutPackageManager.BuiltInPackageId, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(state.PackageId, FrontedLayoutPackageManager.LocalPackageId, StringComparison.OrdinalIgnoreCase)
+            || !FrontedLayoutPackageManager.IsSafePackageId(state.PackageId))
+        {
+            yield break;
+        }
+
+        var fontsRoot = Path.Combine(_packageManager.GetPackageRootFolder(), state.PackageId, "resources", "fonts");
+        if (!Directory.Exists(fontsRoot))
+        {
+            yield break;
+        }
+
+        foreach (var path in Directory.EnumerateFiles(fontsRoot, "*.*", SearchOption.TopDirectoryOnly)
+                     .Where(path => FrontedFontResourceHelper.IsSupportedFontExtension(Path.GetExtension(path)))
+                     .OrderBy(path => Path.GetFileName(path), StringComparer.CurrentCultureIgnoreCase))
+        {
+            foreach (var name in FrontedFontResourceHelper.ReadFontFamilyNames(path)
+                         .OrderBy(name => name, StringComparer.CurrentCultureIgnoreCase))
+            {
+                var value = $"bpui://{state.PackageId}/resources/fonts/{Path.GetFileName(path)}#{name}";
+                yield return new FrontedFontFamilyOption
+                {
+                    DisplayName = name,
+                    Value = value,
+                    PreviewFontFamily = CreateDirectoryFontFamily(path, name),
+                    IsPackageFont = true,
+                    BadgeText = "BPUI"
+                };
+            }
+        }
     }
 
     private string? ResolveFontDirectory()
@@ -160,33 +230,21 @@ public class FrontedFontFamilyOptionProvider
         return candidates.FirstOrDefault(Directory.Exists);
     }
 
-    private static IEnumerable<string> TryReadFontNamesFromFile(string path)
+    private static FrontedResourceResolver CreateResolver()
     {
-        GlyphTypeface glyphTypeface;
+        return new FrontedResourceResolver(NullLogger<FrontedResourceResolver>.Instance);
+    }
+
+    private static FontFamily CreateDirectoryFontFamily(string path, string name)
+    {
         try
         {
-            glyphTypeface = new GlyphTypeface(new Uri(path, UriKind.Absolute));
+            return new FontFamily(new Uri(Path.GetDirectoryName(path)! + Path.DirectorySeparatorChar), "./#" + name);
         }
         catch
         {
-            yield break;
+            return new FontFamily("Arial");
         }
-
-        foreach (var name in glyphTypeface.FamilyNames.Values)
-        {
-            if (!string.IsNullOrWhiteSpace(name))
-            {
-                yield return name;
-            }
-        }
-    }
-
-    private static string ExtractFontName(string storedValue)
-    {
-        var hashIndex = storedValue.IndexOf('#');
-        return hashIndex >= 0 && hashIndex < storedValue.Length - 1
-            ? storedValue[(hashIndex + 1)..]
-            : storedValue;
     }
 
     private static void AddOption(

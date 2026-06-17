@@ -45,7 +45,7 @@ Designer v3 layout 和 `.bpui v3` 包标准允许以下资源 URI 形式，完�
 | `pack://application:,,,/Assets/Fonts/#Noto Sans` | WPF app pack resource，主要用于内置字体或 app-bundled asset。 |
 | `bpui://local/resources/images/foo.png` | 编辑器本地资源命名空间，用于用户选择本地图片后的持久副本。 |
 | `bpui://{PackageId}/resources/images/foo.png` | 已安装布局包资源，按包目录隔离。 |
-| `bpui://{PackageId}/resources/fonts/font.ttf#FontFamilyName` | 预留的包内字体 URI 形式，`#` 后为字体族名。 |
+| `bpui://{PackageId}/resources/fonts/font.ttf#FontFamilyName` | 包内字体 URI，`#` 后为字体族名。 |
 
 绝对路径只应作为编辑时临时输入。的 Canvas Properties GUI 在用户选择本地背景图片后，会复制文件到本地资源目录，并在 layout JSON 中写入 `bpui://local/...`。的 `.bpui v3` 导出会把引用到的 `bpui://local/...`、其他已安装包资源和绝对路径资源复制进导出包，并重写为 `bpui://{PackageId}/...`；缺失的绝对路径资源会让导出失败并显示错误。`Resources/...` 和 `pack://application:,,,/...` 属于应用内置资源，导出时保持原样，不复制进包内。
 
@@ -61,6 +61,7 @@ Designer v3 中通过 Resource Browser 选择 Canvas 背景、`ScoreGlobalWindow
 
 ```text
 %APPDATA%/neo-bpsys-wpf/FrontedLayoutPackages/local/resources/images/
+%APPDATA%/neo-bpsys-wpf/FrontedLayoutPackages/local/resources/fonts/
 ```
 
 已安装包资源必须按包隔离，不能合并进共享全局目录：
@@ -97,6 +98,8 @@ legacy `LegacyTextSettings.FontFamily` 会根据 `FontFamilySite` 创建 `FontFa
 2. pack URI 路径正确。
 3. `#` 后的字体族名称和字体文件内部名称一致。
 4. 设置页 `_systemFonts` 如需固定展示该字体，也要加入对应 `FontFamily`。
+
+Designer v3 的字体属性下拉会把当前活动布局包 `resources/fonts/` 中的字体列在最上方，并用蓝色 BPUI 标记区分。用户从字体属性导入 `.ttf`、`.otf` 或 `.ttc` 时，字体会复制到当前可写布局包，布局字段保存为 `bpui://{PackageId}/resources/fonts/...#FontFamilyName`。这些字体不会进入系统字体或全局资源库，切换布局包后需要在新包重新导入；导出 `.bpui` 时会把被布局引用的包内字体一起打包。字体属性旁的“管理本包字体”入口只列出当前活动布局包的 `resources/fonts/`，未被当前包布局引用的字体文件可以删除；仍被引用的字体会禁用删除，需要先把对应布局属性改成其他字体。
 
 ## 本地化资源
 

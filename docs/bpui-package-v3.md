@@ -569,6 +569,7 @@ D:\design\foo.png
 
 ```text
 %APPDATA%/neo-bpsys-wpf/FrontedLayoutPackages/local/resources/images/
+%APPDATA%/neo-bpsys-wpf/FrontedLayoutPackages/local/resources/fonts/
 ```
 
 规则：
@@ -580,7 +581,10 @@ D:\design\foo.png
 
 ```text
 bpui://{ExportedPackageId}/resources/images/...
+bpui://{ExportedPackageId}/resources/fonts/...#FontFamilyName
 ```
+
+Designer v3 字体属性导入 `.ttf`、`.otf`、`.ttc` 时直接写入当前可写布局包的 `resources/fonts/`，并在布局中保存 `bpui://{PackageId}/resources/fonts/...#FontFamilyName`。如果当前活动包是 `builtin`，会先复制为用户布局方案再写入字体。包内字体只在该活动包的字体列表顶部显示，带蓝色 BPUI 标记；切换布局包后不共享该字体列表。
 
 ## 11. 包资源隔离和删除
 
@@ -923,6 +927,8 @@ Shape 控件使用 `ControlType: "Rectangle"` 或 `"Polygon"`。共享字段包�
 导入器执行硬安全限制：`.bpui` 压缩包最大 50 MiB，解压后总大小最大 100 MiB，单 entry 最大 10 MiB，entry 数最多 1000；`manifest.json` 最大 256 KiB，layout JSON 最大 2 MiB，`window.json` 最大 64 KiB，JSON 最大深度为 32。外部导入的 manifest/layout/window 字符串超长或 Canvas 控件数超过 256 会拒绝导入，不会静默截断或丢弃控件。Canvas 控件数达到 160 开始给出 warning。导入器还会在解压入口拒绝插件目录、插件二进制和可执行脚本，例如 `Plugins/`、`Plugin/`、`.dll`、`.exe`、`.msi`、`.ps1`、`.bat`、`.cmd`、`.sh`、`.vbs`、`.js` 和 `.jar`。布局包可以携带图片、字体、JSON、Markdown 等布局资源，但不能携带插件可执行内容。
 
 图片资源在复制或导入前会校验扩展名、文件大小和像素尺寸。Canvas 背景图限制为 1 MiB、长边 4096、像素 4096×4096；普通 UI 图片限制为 512 KiB、长边 2048、像素 2048×2048；包内未知用途图片按包资源入口限制处理并仍需能安全解码。超限图片会整体拒绝，不会复制进包或生成 `bpui://` URI。
+
+字体资源允许 `.ttf`、`.otf` 和 `.ttc`。导出时 manifest `Content.Resources` 中写 `Kind = "Font"`，导入校验按字体扩展名和包内路径安全处理，不走图片解码限制。
 
 ## 22. legacy 关系和当前实现
 

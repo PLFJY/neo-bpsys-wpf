@@ -481,6 +481,11 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
                     return Fail(validation.ErrorCode ?? "InvalidImageResource");
                 }
             }
+            else if (IsFontResource(resource.Path)
+                     && !FrontedFontResourceHelper.IsSupportedFontExtension(Path.GetExtension(resource.Path)))
+            {
+                return Fail("InvalidFontResource");
+            }
         }
 
         return new FrontedLayoutPackageImportResult { Success = true };
@@ -745,6 +750,14 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
                || path.EndsWith(".ico", StringComparison.OrdinalIgnoreCase)
                || path.EndsWith(".tif", StringComparison.OrdinalIgnoreCase)
                || path.EndsWith(".tiff", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsFontResource(string path)
+    {
+        return path.StartsWith("resources/fonts/", StringComparison.OrdinalIgnoreCase)
+               || path.EndsWith(".ttf", StringComparison.OrdinalIgnoreCase)
+               || path.EndsWith(".otf", StringComparison.OrdinalIgnoreCase)
+               || path.EndsWith(".ttc", StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool DetectLegacyPackage(string root)

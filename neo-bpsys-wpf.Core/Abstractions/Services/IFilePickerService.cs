@@ -16,6 +16,13 @@ public interface IFilePickerService
     /// </summary>
     /// <returns>文件路径</returns>
     public string? PickImage();
+
+    /// <summary>
+    /// 选择字体文件。
+    /// </summary>
+    /// <returns>文件路径。</returns>
+    public string? PickFontFile();
+
     /// <summary>
     /// 选择Json文件
     /// </summary>

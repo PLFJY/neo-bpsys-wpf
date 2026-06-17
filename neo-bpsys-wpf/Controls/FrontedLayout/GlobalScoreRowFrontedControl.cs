@@ -228,11 +228,7 @@ public class GlobalScoreRowFrontedControl : IFrontedControl
                 return;
             }
 
-            presenter.FontFamily = fontFamilyText.Contains("pack://application:,,,")
-                ? new FontFamily(
-                    new Uri(fontFamilyText[..fontFamilyText.IndexOf('#')]),
-                    "./" + fontFamilyText[fontFamilyText.IndexOf('#')..])
-                : new FontFamily(fontFamilyText);
+            presenter.FontFamily = FrontedFontResourceHelper.CreateFontFamily(fontFamilyText);
         }
 
         private static Visibility MapVisibility(FrontedControlVisibility visibility) =>

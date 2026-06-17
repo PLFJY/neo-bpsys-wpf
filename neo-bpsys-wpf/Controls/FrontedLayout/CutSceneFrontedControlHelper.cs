@@ -74,9 +74,7 @@ internal static class CutSceneFrontedControlHelper
 
         if (!string.IsNullOrWhiteSpace(fontFamily))
         {
-            textBlock.FontFamily = fontFamily.Contains("pack://application:,,,")
-                ? new FontFamily(new Uri(fontFamily[..fontFamily.IndexOf('#')]), "./" + fontFamily[fontFamily.IndexOf('#')..])
-                : new FontFamily(fontFamily);
+            textBlock.FontFamily = FrontedFontResourceHelper.CreateFontFamily(fontFamily, logger: logger);
         }
 
         if (fontSize > 0)

@@ -189,9 +189,7 @@ public class MapV2DisplayFrontedControl(ILogger<MapV2DisplayFrontedControl>? log
 
             try
             {
-                return value.Contains("pack://application:,,,", StringComparison.Ordinal)
-                    ? new FontFamily(new Uri(value[..value.IndexOf('#', StringComparison.Ordinal)]), "./" + value[value.IndexOf('#', StringComparison.Ordinal)..])
-                    : new FontFamily(value);
+                return FrontedFontResourceHelper.CreateFontFamily(value, logger: logger);
             }
             catch (Exception ex)
             {

@@ -2172,6 +2172,63 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         return ApplyPropertyEdit(item, selectedResourcePath);
     }
 
+    /// <summary>
+    /// Imports a font file into the active layout package and applies the first discovered font family.
+    /// </summary>
+    /// <param name="item">Font family property row.</param>
+    /// <param name="sourcePath">Source font file path.</param>
+    /// <returns>Whether a font was imported and applied.</returns>
+    public async Task<bool> ImportAndApplyPackageFontAsync(FrontedPropertyEditorItem item, string sourcePath)
+    {
+        if (_localResourceStore is null || _packageManager is null)
+        {
+            return false;
+        }
+
+        if (item.EditorKind != FrontedPropertyEditorKind.FontFamily)
+        {
+            return false;
+        }
+
+        try
+        {
+            var package = await _packageManager.EnsureWritableActivePackageAsync();
+            var packageRoot = Path.Combine(_packageManager.GetPackageRootFolder(), package.PackageId);
+            var results = _localResourceStore.StorePackageFontWithResult(sourcePath, package.PackageId, packageRoot);
+            var first = results.FirstOrDefault();
+            if (first is null)
+            {
+                SetPropertyEditError(item, "UnsupportedFontFormat", sourcePath);
+                return false;
+            }
+
+            _propertyGridBuilder.ClearFontFamilyOptionCache();
+            item.Options = _propertyGridBuilder.GetFontFamilyOptions();
+            item.Value = first.ResourceUri;
+            item.EditText = first.FontFamilyName;
+            return ApplyPropertyEdit(item, first.ResourceUri);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to import package font.");
+            SetPropertyEditError(item, $"{I18nHelper.GetLocalizedString("Designer.Editor.ImportFontFailed")}: {ex.Message}", sourcePath);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Refreshes font options for currently visible font family editor rows.
+    /// </summary>
+    public void RefreshFontFamilyEditorOptions()
+    {
+        _propertyGridBuilder.ClearFontFamilyOptionCache();
+        var options = _propertyGridBuilder.GetFontFamilyOptions();
+        foreach (var item in PropertyEditorItems.Where(item => item.EditorKind == FrontedPropertyEditorKind.FontFamily))
+        {
+            item.Options = options;
+        }
+    }
+
     [RelayCommand]
     private void ResetWindowOptions()
     {

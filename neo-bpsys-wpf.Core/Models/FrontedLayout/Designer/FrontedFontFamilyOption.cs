@@ -26,4 +26,14 @@ public sealed class FrontedFontFamilyOption
     /// Whether this option comes from the bundled Assets/Fonts resources.
     /// </summary>
     public bool IsBuiltIn { get; init; }
+
+    /// <summary>
+    /// Whether this option comes from the active layout package.
+    /// </summary>
+    public bool IsPackageFont { get; init; }
+
+    /// <summary>
+    /// Optional short badge shown next to the font name.
+    /// </summary>
+    public string BadgeText { get; init; } = string.Empty;
 }

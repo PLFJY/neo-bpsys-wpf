@@ -1257,6 +1257,9 @@
   <data name="ImageFiles" xml:space="preserve">
     <value>画像ファイル</value>
   </data>
+  <data name="FontFiles" xml:space="preserve">
+    <value>フォントファイル</value>
+  </data>
   <data name="JSONFiles" xml:space="preserve">
     <value>JSONファイル</value>
   </data>
@@ -3307,6 +3310,45 @@
   </data>
   <data name="Designer.Editor.ResourceBrowser" xml:space="preserve">
     <value>リソースブラウザー</value>
+  </data>
+  <data name="Designer.Editor.ImportFont" xml:space="preserve">
+    <value>フォントをインポート</value>
+  </data>
+  <data name="Designer.Editor.ImportFontFailed" xml:space="preserve">
+    <value>フォントのインポートに失敗しました</value>
+  </data>
+  <data name="Designer.Editor.ManagePackageFonts" xml:space="preserve">
+    <value>パッケージ内フォントを管理</value>
+  </data>
+  <data name="Designer.Editor.PackageFontsUnavailable" xml:space="preserve">
+    <value>現在のレイアウトパッケージではフォントを管理できません。</value>
+  </data>
+  <data name="Designer.Editor.PackageFontsEmpty" xml:space="preserve">
+    <value>現在のレイアウトパッケージにはインポート済みフォントがありません。</value>
+  </data>
+  <data name="Designer.Editor.PackageFontFamilies" xml:space="preserve">
+    <value>フォントファミリー</value>
+  </data>
+  <data name="Designer.Editor.PackageFontFile" xml:space="preserve">
+    <value>ファイル</value>
+  </data>
+  <data name="Designer.Editor.PackageFontStatus" xml:space="preserve">
+    <value>状態</value>
+  </data>
+  <data name="Designer.Editor.PackageFontAvailable" xml:space="preserve">
+    <value>削除可能</value>
+  </data>
+  <data name="Designer.Editor.PackageFontInUse" xml:space="preserve">
+    <value>現在のレイアウトで使用中</value>
+  </data>
+  <data name="Designer.Editor.PackageFontDelete" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="Designer.Editor.PackageFontDeleteSucceeded" xml:space="preserve">
+    <value>フォントファイルを削除しました。</value>
+  </data>
+  <data name="Designer.Editor.PackageFontDeleteFailed" xml:space="preserve">
+    <value>フォントの削除に失敗しました</value>
   </data>
   <data name="Designer.Editor.Source.BuiltInResources" xml:space="preserve">
     <value>組み込みリソース</value>

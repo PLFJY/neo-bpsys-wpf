@@ -14,6 +14,16 @@ public interface IFrontedResourceResolver
     string? ResolveImagePath(string? path);
 
     /// <summary>
+    /// 解析通用布局资源文件路径。
+    /// </summary>
+    /// <param name="path">资源路径。</param>
+    /// <returns>物理文件路径；无法解析时返回 <see langword="null"/>。</returns>
+    string? ResolveFilePath(string? path)
+    {
+        return ResolveImagePath(path);
+    }
+
+    /// <summary>
     /// 解析图片资源。
     /// </summary>
     ImageSource? ResolveImage(

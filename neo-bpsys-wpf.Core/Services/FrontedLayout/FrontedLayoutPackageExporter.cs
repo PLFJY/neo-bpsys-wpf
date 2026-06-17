@@ -44,6 +44,13 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
         ".svg"
     };
 
+    private static readonly HashSet<string> FontExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".ttf",
+        ".otf",
+        ".ttc"
+    };
+
     private readonly FrontedDesignerLayoutCatalog _layoutCatalog;
     private readonly IFrontedLayoutService _layoutService;
     private readonly IFrontedWindowLayoutOptionsService _windowLayoutOptionsService;
@@ -365,7 +372,8 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
 
         if (TryResolveBpuiResource(value, out var bpuiPath, out var bpuiRelativePath))
         {
-            return ExportResource(bpuiPath, bpuiRelativePath, staging, resourceState);
+            var fragment = GetUriFragment(value);
+            return ExportResource(bpuiPath, bpuiRelativePath, staging, resourceState) + fragment;
         }
 
         var expandedPath = Environment.ExpandEnvironmentVariables(value);
@@ -535,6 +543,8 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
     private static bool ShouldInspectResourceProperty(string propertyName)
     {
         return string.Equals(propertyName, nameof(FrontedCanvasConfig.BackgroundImage), StringComparison.Ordinal)
+               || string.Equals(propertyName, "FontFamily", StringComparison.Ordinal)
+               || propertyName.EndsWith("FontFamily", StringComparison.Ordinal)
                || propertyName.EndsWith("ImagePath", StringComparison.Ordinal)
                || propertyName.EndsWith("ImageSource", StringComparison.Ordinal)
                || propertyName.EndsWith("ResourcePath", StringComparison.Ordinal)
@@ -551,7 +561,18 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
             return "Font";
         }
 
+        if (FontExtensions.Contains(extension))
+        {
+            return "Font";
+        }
+
         return ImageExtensions.Contains(extension) ? "Image" : "Other";
+    }
+
+    private static string GetUriFragment(string value)
+    {
+        var index = value.IndexOf('#');
+        return index >= 0 ? value[index..] : string.Empty;
     }
 
     private static string CreateResourceFileName(string originalName, string hash, string extension)

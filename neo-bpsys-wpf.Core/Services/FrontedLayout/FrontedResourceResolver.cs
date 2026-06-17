@@ -40,6 +40,12 @@ public class FrontedResourceResolver : IFrontedResourceResolver
     /// <inheritdoc />
     public string? ResolveImagePath(string? path)
     {
+        return ResolveFilePath(path);
+    }
+
+    /// <inheritdoc />
+    public string? ResolveFilePath(string? path)
+    {
         if (string.IsNullOrWhiteSpace(path))
         {
             return null;

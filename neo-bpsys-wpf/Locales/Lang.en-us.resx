@@ -1254,6 +1254,9 @@
   <data name="ImageFiles" xml:space="preserve">
     <value>Image files</value>
   </data>
+  <data name="FontFiles" xml:space="preserve">
+    <value>Font files</value>
+  </data>
   <data name="JSONFiles" xml:space="preserve">
     <value>JSON Files</value>
   </data>
@@ -3403,6 +3406,45 @@
   </data>
   <data name="Designer.Editor.ResourceBrowser" xml:space="preserve">
     <value>Resource Browser</value>
+  </data>
+  <data name="Designer.Editor.ImportFont" xml:space="preserve">
+    <value>Import font</value>
+  </data>
+  <data name="Designer.Editor.ImportFontFailed" xml:space="preserve">
+    <value>Failed to import font</value>
+  </data>
+  <data name="Designer.Editor.ManagePackageFonts" xml:space="preserve">
+    <value>Manage package fonts</value>
+  </data>
+  <data name="Designer.Editor.PackageFontsUnavailable" xml:space="preserve">
+    <value>The current layout package cannot manage fonts.</value>
+  </data>
+  <data name="Designer.Editor.PackageFontsEmpty" xml:space="preserve">
+    <value>The current layout package has no imported fonts.</value>
+  </data>
+  <data name="Designer.Editor.PackageFontFamilies" xml:space="preserve">
+    <value>Font families</value>
+  </data>
+  <data name="Designer.Editor.PackageFontFile" xml:space="preserve">
+    <value>File</value>
+  </data>
+  <data name="Designer.Editor.PackageFontStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Designer.Editor.PackageFontAvailable" xml:space="preserve">
+    <value>Can delete</value>
+  </data>
+  <data name="Designer.Editor.PackageFontInUse" xml:space="preserve">
+    <value>Used by current layout</value>
+  </data>
+  <data name="Designer.Editor.PackageFontDelete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Designer.Editor.PackageFontDeleteSucceeded" xml:space="preserve">
+    <value>Font file deleted.</value>
+  </data>
+  <data name="Designer.Editor.PackageFontDeleteFailed" xml:space="preserve">
+    <value>Failed to delete font</value>
   </data>
   <data name="Designer.Editor.Source.BuiltInResources" xml:space="preserve">
     <value>Built-in resources</value>

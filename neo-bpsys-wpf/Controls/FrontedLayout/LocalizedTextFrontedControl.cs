@@ -223,11 +223,7 @@ public class LocalizedTextFrontedControl(ILogger<LocalizedTextFrontedControl>? l
 
             if (!string.IsNullOrWhiteSpace(config.FontFamily))
             {
-                textBlock.FontFamily = config.FontFamily.Contains("pack://application:,,,")
-                    ? new FontFamily(
-                        new Uri(config.FontFamily[..config.FontFamily.IndexOf('#')]),
-                        "./" + config.FontFamily[config.FontFamily.IndexOf('#')..])
-                    : new FontFamily(config.FontFamily);
+                textBlock.FontFamily = FrontedFontResourceHelper.CreateFontFamily(config.FontFamily, logger: logger);
             }
 
             if (config.FontSize > 0)

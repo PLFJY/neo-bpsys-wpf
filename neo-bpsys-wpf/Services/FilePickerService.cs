@@ -27,6 +27,17 @@ public class FilePickerService : IFilePickerService
         return openFileDialog.ShowDialog() != true ? null : openFileDialog.FileName;
     }
 
+    /// <inheritdoc />
+    public string? PickFontFile()
+    {
+        OpenFileDialog openFileDialog = new()
+        {
+            Filter = $"{I18nHelper.GetLocalizedString("FontFiles")} (*.ttf;*.otf;*.ttc)|*.ttf;*.otf;*.ttc",
+        };
+
+        return openFileDialog.ShowDialog() != true ? null : openFileDialog.FileName;
+    }
+
     /// <summary>
     /// 选择JSON文件
     /// </summary>

@@ -3005,6 +3005,137 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
+    public async Task FontFamilyOptionProviderPlacesActivePackageFontsFirst()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var packageRoot = Path.Combine(root, "packages");
+            var builtInRoot = Path.Combine(root, "builtIn");
+            var packageId = "package-fonts";
+            var packagePath = Path.Combine(packageRoot, packageId);
+            var fontsPath = Path.Combine(packagePath, "resources", "fonts");
+            Directory.CreateDirectory(fontsPath);
+            Directory.CreateDirectory(Path.Combine(packagePath, "FrontedLayouts"));
+            File.Copy(
+                GetRepositoryPath("neo-bpsys-wpf", "Assets", "Fonts", "NotoSans-Regular.ttf"),
+                Path.Combine(fontsPath, "NotoSans-Regular.ttf"));
+            File.WriteAllText(
+                Path.Combine(packagePath, "manifest.json"),
+                JsonSerializer.Serialize(new neo_bpsys_wpf.Core.Models.FrontedLayout.Packages.FrontedLayoutPackageManifest
+                {
+                    PackageId = packageId,
+                    Name = packageId
+                }));
+
+            var manager = new FrontedLayoutPackageManager(packageRoot, builtInRoot);
+            await manager.ActivatePackageAsync(packageId, TestContext.Current.CancellationToken);
+            var provider = new FrontedFontFamilyOptionProvider(manager);
+
+            var options = provider.GetFontFamilyOptions();
+
+            Assert.NotEmpty(options);
+            Assert.True(options[0].IsPackageFont);
+            Assert.Equal("BPUI", options[0].BadgeText);
+            Assert.StartsWith($"bpui://{packageId}/resources/fonts/NotoSans-Regular.ttf#", options[0].Value);
+            Assert.Contains(options, option => option.IsBuiltIn);
+            Assert.Contains(options, option => !option.IsBuiltIn && !option.IsPackageFont);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public void LocalResourceStoreCopiesPackageFontAndRejectsUnsupportedExtension()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var packageRoot = Path.Combine(root, "package");
+            var store = new FrontedLocalResourceStore();
+            var results = store.StorePackageFontWithResult(
+                GetRepositoryPath("neo-bpsys-wpf", "Assets", "Fonts", "NotoSans-Regular.ttf"),
+                "package-fonts",
+                packageRoot);
+
+            var result = Assert.Single(results);
+            Assert.Equal("Noto Sans", result.FontFamilyName);
+            Assert.StartsWith("bpui://package-fonts/resources/fonts/NotoSans-Regular-", result.ResourceUri);
+            Assert.EndsWith("#Noto Sans", result.ResourceUri);
+            Assert.True(File.Exists(result.PhysicalPath));
+
+            var unsupported = Path.Combine(root, "font.txt");
+            File.WriteAllText(unsupported, "not a font");
+            Assert.Throws<NotSupportedException>(() => store.StorePackageFontWithResult(
+                unsupported,
+                "package-fonts",
+                packageRoot));
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task PackageFontManagerBlocksReferencedFontAndDeletesUnreferencedFont()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var packageRoot = Path.Combine(root, "packages");
+            var builtInRoot = Path.Combine(root, "builtIn");
+            var packageId = "package-font-manager";
+            var packagePath = Path.Combine(packageRoot, packageId);
+            var layoutsPath = Path.Combine(packagePath, "FrontedLayouts");
+            var fontsPath = Path.Combine(packagePath, "resources", "fonts");
+            var fontFileName = "NotoSans-Regular.ttf";
+            var fontPath = Path.Combine(fontsPath, fontFileName);
+            var fontUri = $"bpui://{packageId}/resources/fonts/{fontFileName}#Noto Sans";
+            Directory.CreateDirectory(layoutsPath);
+            Directory.CreateDirectory(fontsPath);
+            File.Copy(
+                GetRepositoryPath("neo-bpsys-wpf", "Assets", "Fonts", fontFileName),
+                fontPath);
+            File.WriteAllText(
+                Path.Combine(packagePath, "manifest.json"),
+                JsonSerializer.Serialize(new neo_bpsys_wpf.Core.Models.FrontedLayout.Packages.FrontedLayoutPackageManifest
+                {
+                    PackageId = packageId,
+                    Name = packageId
+                }));
+            var layoutPath = Path.Combine(layoutsPath, "BpWindow.json");
+            File.WriteAllText(layoutPath, JsonSerializer.Serialize(new { FontFamily = fontUri }));
+
+            var packageManager = new FrontedLayoutPackageManager(packageRoot, builtInRoot);
+            await packageManager.ActivatePackageAsync(packageId, TestContext.Current.CancellationToken);
+            var fontManager = new FrontedPackageFontManager(packageManager);
+
+            var referenced = Assert.Single(await fontManager.ListActivePackageFontsAsync(TestContext.Current.CancellationToken));
+            Assert.True(referenced.IsReferenced);
+            Assert.False(referenced.CanDelete);
+            Assert.Contains("Noto Sans", referenced.FontFamilyNames);
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                fontManager.DeleteActivePackageFontAsync(fontFileName, TestContext.Current.CancellationToken));
+
+            File.WriteAllText(layoutPath, JsonSerializer.Serialize(new { FontFamily = "Arial" }));
+            var unreferenced = Assert.Single(await fontManager.ListActivePackageFontsAsync(TestContext.Current.CancellationToken));
+            Assert.False(unreferenced.IsReferenced);
+            Assert.True(unreferenced.CanDelete);
+
+            await fontManager.DeleteActivePackageFontAsync(fontFileName, TestContext.Current.CancellationToken);
+
+            Assert.False(File.Exists(fontPath));
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
     public void ApplyPropertyEditStoresBuiltInFontPackUriAndCustomFontRawValue()
     {
         var item = new FrontedControlDesignItem
@@ -3071,6 +3202,28 @@ public class FrontedLayoutDesignerFoundationTest
 
         Assert.Equal(option.Value, ((TextFrontedControlConfig)item.Config).FontFamily);
         Assert.NotEqual(option.DisplayName, ((TextFrontedControlConfig)item.Config).FontFamily);
+    }
+
+    [Fact]
+    public void FontFamilyPropertyRowDisplaysFontNameInsteadOfStoredUri()
+    {
+        const string builtInFont = "pack://application:,,,/Assets/Fonts/#Noto Sans";
+        var item = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            Config = new TextFrontedControlConfig
+            {
+                FontFamily = builtInFont
+            }
+        };
+        var document = CreateDocument([item]);
+
+        var rows = BuildPropertyRows(document, item);
+
+        var row = rows.Single(row => row.PropertyName == nameof(TextFrontedControlConfig.FontFamily));
+        Assert.Equal(builtInFont, row.Value);
+        Assert.Equal("Noto Sans", row.EditText);
+        Assert.DoesNotContain("pack://", row.EditText, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -4143,6 +4296,9 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Contains("LayerItem_OnPreviewMouseRightButtonDown", text);
         Assert.Contains("PropertyFontComboBox_OnSelectionChanged", text);
         Assert.Contains("DropDownClosed=\"PropertyFontComboBox_OnDropDownClosed\"", text);
+        Assert.Contains("ImportFontButton_OnClick", text);
+        Assert.Contains("ManagePackageFontsButton_OnClick", text);
+        Assert.Contains("IsPackageFont", text);
         Assert.Contains("ItemsSource=\"{Binding LayerGroups}\"", text);
         Assert.Contains("x:Name=\"LayerPanelScrollViewer\"", text);
         Assert.Contains("x:Name=\"LayerTopDropZone\"", text);

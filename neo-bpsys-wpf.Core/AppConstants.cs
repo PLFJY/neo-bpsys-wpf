@@ -66,6 +66,12 @@ public static class AppConstants
         Path.Combine(FrontedLayoutLocalPackagePath, "resources", "images");
 
     /// <summary>
+    /// v3 本地布局字体资源路径。
+    /// </summary>
+    public static readonly string FrontedLayoutLocalFontsPath =
+        Path.Combine(FrontedLayoutLocalPackagePath, "resources", "fonts");
+
+    /// <summary>
     /// 日志路径
     /// </summary>
     public static readonly string LogPath = Path.Combine(AppDataPath, "Log");

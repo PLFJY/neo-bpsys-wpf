@@ -143,6 +143,23 @@ public class FrontedPropertyGridBuilder
         return new ObservableCollection<FrontedPropertyEditorItem>(rows);
     }
 
+    /// <summary>
+    /// Gets current font family options for font editors.
+    /// </summary>
+    /// <returns>Font family options.</returns>
+    public IReadOnlyList<object> GetFontFamilyOptions()
+    {
+        return _fontFamilyOptionProvider.GetFontFamilyOptions().Cast<object>().ToArray();
+    }
+
+    /// <summary>
+    /// Clears cached font family options.
+    /// </summary>
+    public void ClearFontFamilyOptionCache()
+    {
+        _fontFamilyOptionProvider.ClearCache();
+    }
+
     private void AddIdentityRows(
         ICollection<FrontedPropertyEditorItem> rows,
         FrontedControlDesignItem selectedItem,
@@ -260,7 +277,7 @@ public class FrontedPropertyGridBuilder
                 EditorKind = isReadOnly ? FrontedPropertyEditorKind.ReadOnly : kind,
                 Value = value,
                 DisplayValue = GetDisplayValue(value, isReadOnly),
-                EditText = Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty,
+                EditText = GetEditTextValue(value, kind),
                 IsReadOnly = isReadOnly,
                 IsRequired = property.Name is nameof(FrontedControlConfigBase.Left)
                     or nameof(FrontedControlConfigBase.Top),
@@ -428,7 +445,7 @@ public class FrontedPropertyGridBuilder
             EditorKind = isReadOnly ? FrontedPropertyEditorKind.ReadOnly : kind,
             Value = value,
             DisplayValue = GetDisplayValue(value, isReadOnly),
-            EditText = Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty,
+            EditText = GetEditTextValue(value, kind),
             IsReadOnly = isReadOnly,
             IsRequired = property.Name is nameof(FrontedControlConfigBase.Left)
                 or nameof(FrontedControlConfigBase.Top),
@@ -632,7 +649,7 @@ public class FrontedPropertyGridBuilder
     {
         if (kind == FrontedPropertyEditorKind.FontFamily)
         {
-            return _fontFamilyOptionProvider.GetFontFamilyOptions().Cast<object>().ToArray();
+            return GetFontFamilyOptions();
         }
 
         if (kind == FrontedPropertyEditorKind.Boolean)
@@ -1109,6 +1126,16 @@ public class FrontedPropertyGridBuilder
             return _localizationService.GetDesignerText(
                 boolValue ? "Designer.Value.True" : "Designer.Value.False",
                 boolValue ? "True" : "False");
+        }
+
+        return Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty;
+    }
+
+    private string GetEditTextValue(object? value, FrontedPropertyEditorKind kind)
+    {
+        if (kind == FrontedPropertyEditorKind.FontFamily)
+        {
+            return _fontFamilyOptionProvider.GetDisplayName(value as string);
         }
 
         return Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty;

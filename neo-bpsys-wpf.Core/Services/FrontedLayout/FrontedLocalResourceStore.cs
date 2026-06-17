@@ -113,6 +113,69 @@ public class FrontedLocalResourceStore : IFrontedLocalResourceStore
             wasNewlyCreated);
     }
 
+    public IReadOnlyList<FrontedLocalFontResourceStoreResult> StorePackageFontWithResult(
+        string sourcePath,
+        string packageId,
+        string packageRoot)
+    {
+        if (string.IsNullOrWhiteSpace(sourcePath))
+        {
+            throw new ArgumentException("Source font path is required.", nameof(sourcePath));
+        }
+
+        if (!FrontedLayoutPackageManager.IsSafePackageId(packageId)
+            || string.Equals(packageId, FrontedLayoutPackageManager.BuiltInPackageId, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(packageId, FrontedLayoutPackageManager.LocalPackageId, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException("PackageId is invalid.", nameof(packageId));
+        }
+
+        var fullSourcePath = Path.GetFullPath(sourcePath);
+        if (!File.Exists(fullSourcePath))
+        {
+            throw new FileNotFoundException("Source font file was not found.", fullSourcePath);
+        }
+
+        var extension = Path.GetExtension(fullSourcePath);
+        if (!FrontedFontResourceHelper.IsSupportedFontExtension(extension))
+        {
+            throw new NotSupportedException($"Unsupported font extension: {extension}");
+        }
+
+        var fontFamilyNames = FrontedFontResourceHelper.ReadFontFamilyNames(fullSourcePath);
+        if (fontFamilyNames.Count == 0)
+        {
+            throw new InvalidDataException("UnsupportedFontFormat");
+        }
+
+        var packageFullRoot = Path.GetFullPath(packageRoot);
+        var packageFullRootWithSeparator = EnsureTrailingSeparator(packageFullRoot);
+        var fontsFolder = Path.GetFullPath(Path.Combine(packageFullRoot, "resources", "fonts"));
+        if (!fontsFolder.StartsWith(packageFullRootWithSeparator, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("Font resource target escaped the package root.");
+        }
+
+        Directory.CreateDirectory(fontsFolder);
+
+        var hash = FrontedFontResourceHelper.ComputeSha256(fullSourcePath);
+        var fileName = FrontedFontResourceHelper.CreateFontFileName(fullSourcePath, hash);
+        var targetPath = Path.Combine(fontsFolder, fileName);
+        var wasNewlyCreated = !File.Exists(targetPath);
+        if (wasNewlyCreated)
+        {
+            File.Copy(fullSourcePath, targetPath, overwrite: false);
+        }
+
+        return fontFamilyNames
+            .Select(name => new FrontedLocalFontResourceStoreResult(
+                $"bpui://{packageId}/resources/fonts/{fileName}#{name}",
+                targetPath,
+                wasNewlyCreated,
+                name))
+            .ToArray();
+    }
+
     public bool TryGetPhysicalPath(string resourceUri, out string physicalPath)
     {
         physicalPath = string.Empty;
