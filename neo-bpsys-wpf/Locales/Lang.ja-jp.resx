@@ -1455,6 +1455,12 @@
   <data name="SmartBpModulePathSaved" xml:space="preserve">
     <value>SmartBP モジュールのパスを保存しました。</value>
   </data>
+  <data name="SmartBpModuleDevelopmentPathSaving" xml:space="preserve">
+    <value>SmartBP 開発モジュールのパスを保存しています...</value>
+  </data>
+  <data name="SmartBpModuleDevelopmentPathSaved" xml:space="preserve">
+    <value>SmartBP 開発モジュールのパスを保存しました。モジュールファイルはコピーしていません。</value>
+  </data>
   <data name="SmartBpModulePathMigrating" xml:space="preserve">
     <value>SmartBP モジュールディレクトリを移行しています...</value>
   </data>

@@ -200,7 +200,7 @@ public sealed class SmartBpModuleManager
     }
 
     /// <summary>
-    /// Copies the current SmartBP module directory to a new root and records a pending migration marker.
+    /// Updates the preferred SmartBP module directory. Release-like builds copy the current module through staging; Debug persists a development directory directly.
     /// </summary>
     /// <param name="targetRoot">Target module root.</param>
     /// <returns>True when the target was prepared and persisted.</returns>
@@ -221,6 +221,11 @@ public sealed class SmartBpModuleManager
         }
 
         var state = ReadState();
+        if (IsDebugBuild())
+        {
+            return PersistDevelopmentModuleRootPreference(normalizedTarget, state);
+        }
+
         var sourceRoot = state?.ModuleRoot;
         if (string.IsNullOrWhiteSpace(sourceRoot) || !Directory.Exists(sourceRoot))
         {
@@ -306,6 +311,44 @@ public sealed class SmartBpModuleManager
                 normalizedTarget);
             return false;
         }
+    }
+
+    private bool PersistDevelopmentModuleRootPreference(string normalizedTarget, SmartBpModuleState? currentState)
+    {
+        if (!ValidateModuleDirectory(
+                normalizedTarget,
+                allowDevelopmentDirectory: true,
+                out var manifest,
+                out var validationError))
+        {
+            LastFailureMessage = validationError;
+            _logger.LogWarning(
+                "Rejected invalid SmartBP development module directory from settings. ModuleRoot={ModuleRoot}, Error={Error}",
+                normalizedTarget,
+                validationError);
+            return false;
+        }
+
+        DeleteMovePendingStateIfExists();
+        WriteState(new SmartBpModuleState
+        {
+            ModuleRoot = normalizedTarget,
+            ModuleVersion = manifest?.ModuleVersion ?? currentState?.ModuleVersion,
+            RuntimeAbiVersion = manifest?.RuntimeAbiVersion ?? currentState?.RuntimeAbiVersion,
+            Rid = manifest?.Rid ?? currentState?.Rid,
+            InstallKind = "DevelopmentDirectory",
+            LastLoadedSuccessfully = false,
+            LastLoadedAt = null,
+            LegacyOcrModelMigration = currentState?.LegacyOcrModelMigration ?? new SmartBpLegacyOcrModelMigrationState()
+        });
+
+        ModuleRoot = normalizedTarget;
+        LastFailureMessage = string.Empty;
+        _logger.LogInformation(
+            "Persisted SmartBP development module directory without copying files. ModuleRoot={ModuleRoot}",
+            normalizedTarget);
+        ModuleStateChanged?.Invoke(this, EventArgs.Empty);
+        return true;
     }
 
     /// <summary>
@@ -859,6 +902,24 @@ public sealed class SmartBpModuleManager
             state.SourceRoot,
             state.TargetRoot,
             MovePendingFilePath);
+    }
+
+    private void DeleteMovePendingStateIfExists()
+    {
+        try
+        {
+            if (!File.Exists(MovePendingFilePath))
+            {
+                return;
+            }
+
+            File.Delete(MovePendingFilePath);
+            _logger.LogInformation("Deleted SmartBP module move marker while switching to development directory: {Marker}", MovePendingFilePath);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to delete SmartBP module move marker while switching to development directory: {Marker}", MovePendingFilePath);
+        }
     }
 
     private void CompletePendingModuleRootMigration(string loadedModuleRoot)

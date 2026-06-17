@@ -1452,6 +1452,12 @@
   <data name="SmartBpModulePathSaved" xml:space="preserve">
     <value>SmartBP module path saved.</value>
   </data>
+  <data name="SmartBpModuleDevelopmentPathSaving" xml:space="preserve">
+    <value>Saving SmartBP development module path...</value>
+  </data>
+  <data name="SmartBpModuleDevelopmentPathSaved" xml:space="preserve">
+    <value>SmartBP development module path saved. Module files were not copied.</value>
+  </data>
   <data name="SmartBpModulePathMigrating" xml:space="preserve">
     <value>Migrating SmartBP module directory...</value>
   </data>

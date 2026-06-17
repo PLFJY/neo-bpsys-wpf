@@ -1470,6 +1470,12 @@
   <data name="SmartBpModulePathSaved" xml:space="preserve">
     <value>智慧 BP 模块路径已保存。</value>
   </data>
+  <data name="SmartBpModuleDevelopmentPathSaving" xml:space="preserve">
+    <value>正在保存智慧 BP 开发模块路径...</value>
+  </data>
+  <data name="SmartBpModuleDevelopmentPathSaved" xml:space="preserve">
+    <value>智慧 BP 开发模块路径已保存，未复制模块文件。</value>
+  </data>
   <data name="SmartBpModulePathMigrating" xml:space="preserve">
     <value>正在迁移智慧 BP 模块目录...</value>
   </data>

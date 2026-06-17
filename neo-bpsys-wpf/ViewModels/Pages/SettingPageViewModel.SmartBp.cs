@@ -53,11 +53,21 @@ public partial class SettingPageViewModel
 
         var normalizedRoot = Path.GetFullPath(SmartBpModuleRoot);
         SmartBpModuleRoot = normalizedRoot;
-        SmartBpModulePathStatus = I18nHelper.GetLocalizedString("SmartBpModulePathMigrating");
+        SmartBpModulePathStatus = I18nHelper.GetLocalizedString(
+            IsDebugBuild()
+                ? "SmartBpModuleDevelopmentPathSaving"
+                : "SmartBpModulePathMigrating");
         if (await _smartBpModuleManager.MigrateModuleRootPreferenceAsync(normalizedRoot))
         {
-            SmartBpModulePathStatus = I18nHelper.GetLocalizedString("SmartBpModulePathMigrationPrepared");
-            _logger.LogInformation("SmartBP module root migration requested from settings: {ModuleRoot}", normalizedRoot);
+            SmartBpModulePathStatus = I18nHelper.GetLocalizedString(
+                IsDebugBuild()
+                    ? "SmartBpModuleDevelopmentPathSaved"
+                    : "SmartBpModulePathMigrationPrepared");
+            _logger.LogInformation(
+                IsDebugBuild()
+                    ? "SmartBP development module root saved from settings without copying files: {ModuleRoot}"
+                    : "SmartBP module root migration requested from settings: {ModuleRoot}",
+                normalizedRoot);
             return;
         }
 
@@ -68,6 +78,15 @@ public partial class SettingPageViewModel
             "SmartBP module root migration request failed from settings. ModuleRoot={ModuleRoot}, Error={Error}",
             normalizedRoot,
             _smartBpModuleManager.LastFailureMessage);
+    }
+
+    private static bool IsDebugBuild()
+    {
+#if DEBUG
+        return true;
+#else
+        return false;
+#endif
     }
 
     /// <summary>
