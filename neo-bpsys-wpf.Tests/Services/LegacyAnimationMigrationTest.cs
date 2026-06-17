@@ -128,6 +128,93 @@ public sealed class LegacyAnimationMigrationTest
     }
 
     [Fact]
+    public void BuiltInMapV2BehaviorDocumentCoversMapDisplayPickingBorders()
+    {
+        var repositoryRoot = GetRepositoryRoot();
+        var mapV2DisplaySource = File.ReadAllText(Path.Combine(
+            repositoryRoot,
+            "neo-bpsys-wpf",
+            "Controls",
+            "FrontedLayout",
+            "MapV2DisplayFrontedControl.cs"));
+        Assert.Contains("PickingBorderAnimationTarget", mapV2DisplaySource, StringComparison.Ordinal);
+        Assert.Contains("FrontedAnimationPartNames.PickingBorder", mapV2DisplaySource, StringComparison.Ordinal);
+
+        var layout = JsonSerializer.Deserialize<FrontedWindowConfig>(
+            File.ReadAllText(Path.Combine(repositoryRoot, "neo-bpsys-wpf", "Resources", "FrontedLayouts", "MapV2Window.json")))!;
+        var behaviors = JsonSerializer.Deserialize<FrontedBehaviorDocument>(
+            File.ReadAllText(Path.Combine(repositoryRoot, "neo-bpsys-wpf", "Resources", "FrontedBehaviors", "MapV2Window.behaviors.json")))!;
+
+        var mapControls = layout.ControlLayout.Controls
+            .Where(pair => pair.Value is MapV2DisplayControlConfig)
+            .ToArray();
+
+        Assert.NotEmpty(mapControls);
+        Assert.Equal(mapControls.Length, behaviors.ControlBehaviorSets.Count);
+
+        var validator = new FrontedNodeGraphValidator();
+        foreach (var (name, config) in mapControls)
+        {
+            var mapConfig = Assert.IsType<MapV2DisplayControlConfig>(config);
+            var set = Assert.Single(behaviors.ControlBehaviorSets, item => item.DisplayName == name);
+            Assert.NotEqual(Guid.Empty, mapConfig.BehaviorGuid);
+            Assert.Equal(mapConfig.BehaviorGuid, set.BehaviorGuid);
+
+            var behavior = Assert.Single(set.Behaviors);
+            Assert.Equal(FrontedBehaviorKind.Loop, behavior.Kind);
+            Assert.Equal("MapV2.PickingBorderStateChanged", behavior.StartTrigger?.EventType);
+            Assert.Contains(behavior.StartTrigger!.Filters, filter =>
+                filter.Left == "Event.MapKey"
+                && filter.Right == mapConfig.MapKey);
+            Assert.Contains(behavior.StartTrigger.Filters, filter =>
+                filter.Left == "Event.IsPickingBorderVisible"
+                && filter.Right == "true");
+            Assert.Contains(behavior.StopTriggers.Single().Filters, filter =>
+                filter.Left == "Event.IsPickingBorderVisible"
+                && filter.Right == "false");
+            AssertOpacityAnimationSequence(behavior.StartGraph, (0D, 1D));
+            AssertOpacityAnimationSequence(behavior.LoopGraph, (1D, 0.25D), (0.25D, 1D));
+            AssertOpacityAnimationSequence(behavior.StopGraph, (1D, 0D));
+
+            var expectedTarget = $"part:{set.BehaviorGuid}:PickingBorder";
+            Assert.All(
+                new[] { behavior.StartGraph, behavior.LoopGraph, behavior.StopGraph }
+                    .SelectMany(graph => graph.Nodes)
+                    .Select(node => node.Properties.TryGetValue("Target", out var target)
+                        ? target.ToString()
+                        : null)
+                    .Where(target => !string.IsNullOrWhiteSpace(target)),
+                target => Assert.Equal(expectedTarget, target));
+
+            foreach (var graph in new[] { behavior.StartGraph, behavior.LoopGraph, behavior.StopGraph })
+            {
+                Assert.DoesNotContain(
+                    validator.Validate(graph),
+                    message => message.Severity == FrontedNodeGraphValidationSeverity.Error);
+            }
+        }
+    }
+
+    private static void AssertOpacityAnimationSequence(
+        FrontedNodeGraph graph,
+        params (double FromValue, double ToValue)[] expected)
+    {
+        var opacityNodes = graph.Nodes
+            .Where(node => string.Equals(node.NodeType, "action.animateProperty", StringComparison.Ordinal)
+                           && node.Properties.TryGetValue("PropertyName", out var propertyName)
+                           && propertyName.ValueKind == JsonValueKind.String
+                           && string.Equals(propertyName.GetString(), "Opacity", StringComparison.Ordinal))
+            .ToArray();
+
+        Assert.Equal(expected.Length, opacityNodes.Length);
+        for (var index = 0; index < expected.Length; index++)
+        {
+            Assert.Equal(expected[index].FromValue, double.Parse(opacityNodes[index].Properties["From"].GetString()!, System.Globalization.CultureInfo.InvariantCulture));
+            Assert.Equal(expected[index].ToValue, double.Parse(opacityNodes[index].Properties["To"].GetString()!, System.Globalization.CultureInfo.InvariantCulture));
+        }
+    }
+
+    [Fact]
     public async Task BehaviorServiceLoadsBuiltInBehaviorDocument()
     {
         var root = Path.Combine(Path.GetTempPath(), "neo-bpsys-built-in-behavior-tests", Guid.NewGuid().ToString("N"));

@@ -3807,10 +3807,10 @@
     <value>スタイルをすべてのマップカードに適用</value>
   </data>
   <data name="Designer.MapV2Display.ApplyStyleToAllDescription" xml:space="preserve">
-    <value>サイズ、テキストスタイル、マップ枠、選択枠のスタイルをコピーし、各カードの位置、テキスト内容、マップ割り当て、レイアウト属性は保持します。</value>
+    <value>サイズ、テキストスタイル、マップ枠、選択枠のスタイル、動作をコピーし、各カードの位置、テキスト内容、マップ割り当て、レイアウト属性は保持します。</value>
   </data>
   <data name="Designer.MapV2Display.StyleAppliedToAll" xml:space="preserve">
-    <value>現在のキャンバス内のすべてのマップカードにスタイルを適用しました。</value>
+    <value>現在のキャンバス内のすべてのマップカードにスタイルと動作を適用しました。</value>
   </data>
   <data name="Designer.GlobalScoreRow.ClearCellStyleOverrides" xml:space="preserve">
     <value>セルのスタイル上書きをクリア</value>
@@ -4010,6 +4010,7 @@
   <data name="Designer.Behaviors.Event.IsBo3ModeChanged" xml:space="preserve"><value>BO3 モード変更</value></data>
   <data name="Designer.Behaviors.Event.CountDownValueChanged" xml:space="preserve"><value>カウントダウン値変更</value></data>
   <data name="Designer.Behaviors.Event.IsMapV2BreathingChanged" xml:space="preserve"><value>マップ呼吸表示変更</value></data>
+  <data name="Designer.Behaviors.Event.MapV2PickingBorderStateChanged" xml:space="preserve"><value>マップ選択枠状態変更</value></data>
   <data name="Designer.Behaviors.Event.IsMapV2CampVisibleChanged" xml:space="preserve"><value>マップ陣営表示変更</value></data>
   <data name="Designer.Behaviors.Event.PickedMapChanged" xml:space="preserve"><value>選択マップ変更</value></data>
   <data name="Designer.Behaviors.Event.MapV2BannedChanged" xml:space="preserve"><value>マップ Ban 状態変更</value></data>
@@ -4021,6 +4022,9 @@
   <data name="Designer.Behaviors.Payload.IsBo3Mode" xml:space="preserve"><value>BO3 モード</value></data>
   <data name="Designer.Behaviors.Payload.RemainingSeconds" xml:space="preserve"><value>残り秒数</value></data>
   <data name="Designer.Behaviors.Payload.IsMapV2Breathing" xml:space="preserve"><value>マップ呼吸表示</value></data>
+  <data name="Designer.Behaviors.Payload.MapKey" xml:space="preserve"><value>マップキー</value></data>
+  <data name="Designer.Behaviors.Payload.IsMapBanned" xml:space="preserve"><value>マップ禁止済み</value></data>
+  <data name="Designer.Behaviors.Payload.IsPickingBorderVisible" xml:space="preserve"><value>選択枠表示</value></data>
   <data name="Designer.Behaviors.Payload.IsMapV2CampVisible" xml:space="preserve"><value>マップ陣営表示</value></data>
   <data name="Designer.Behaviors.Payload.PickedMap" xml:space="preserve"><value>選択マップ</value></data>
   <data name="Designer.Behaviors.Payload.Action" xml:space="preserve"><value>アクション</value></data>
@@ -4060,6 +4064,7 @@
   <data name="Designer.Behaviors.Event.CountDownValueChanged.Description" xml:space="preserve"><value>カウントダウン値が変更された時に発生します。</value></data>
   <data name="Designer.Behaviors.Event.TeamSwapped.Description" xml:space="preserve"><value>チームが交代した時に発生します。</value></data>
   <data name="Designer.Behaviors.Event.IsMapV2BreathingChanged.Description" xml:space="preserve"><value>マップ呼吸表示が変更された時に発生します。</value></data>
+  <data name="Designer.Behaviors.Event.MapV2PickingBorderStateChanged.Description" xml:space="preserve"><value>マップ選択枠を表示または非表示にする時に発生します。</value></data>
   <data name="Designer.Behaviors.Event.IsMapV2CampVisibleChanged.Description" xml:space="preserve"><value>マップ陣営表示が変更された時に発生します。</value></data>
   <data name="Designer.Behaviors.Event.PickedMapChanged.Description" xml:space="preserve"><value>選択マップが変更された時に発生します。</value></data>
   <data name="Designer.Behaviors.Event.MapV2BannedChanged.Description" xml:space="preserve"><value>マップ Ban 状態が変更された時に発生します。</value></data>

@@ -1286,6 +1286,7 @@ public class FrontedBehaviorRuntimeLoopTest
         public event EventHandler? CountDownValueChanged;
         public event EventHandler? TeamSwapped;
         public event EventHandler? IsMapV2BreathingChanged;
+        public event EventHandler<MapV2PickingBorderStateChangedEventArgs>? MapV2PickingBorderStateChanged;
         public event EventHandler? IsMapV2CampVisibleChanged;
         public event EventHandler? PickedMapChanged;
         public event EventHandler? MapV2BannedChanged;

@@ -112,6 +112,37 @@ public class FrontedSharedDataBehaviorEventBridgeTest
     }
 
     [Fact]
+    public async Task SharedDataBridge_MapV2PickingBorderStatePayload_ReadsValues()
+    {
+        using var semaphore = new SemaphoreSlim(0, 1);
+        FrontedBehaviorEvent? received = null;
+        var service = new MockSharedDataService();
+        var bus = new MockEventBus();
+
+        using (bus.Subscribe("MapV2.PickingBorderStateChanged", ev =>
+        {
+            received = ev;
+            semaphore.Release();
+            return Task.CompletedTask;
+        }))
+        {
+            using var bridge = new FrontedSharedDataBehaviorEventBridge(service, bus, NullLogger<FrontedSharedDataBehaviorEventBridge>.Instance);
+            bridge.Start();
+
+            service.FireMapV2PickingBorderStateChanged(new MapV2PickingBorderStateChangedEventArgs("ArmsFactory", true, false));
+
+            Assert.True(await semaphore.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
+        }
+
+        Assert.NotNull(received);
+        Assert.Equal("MapV2.PickingBorderStateChanged", received!.EventType);
+        Assert.Equal("ArmsFactory", received.Payload["MapKey"]);
+        Assert.Equal(true, received.Payload["IsMapV2Breathing"]);
+        Assert.Equal(false, received.Payload["IsMapBanned"]);
+        Assert.Equal(true, received.Payload["IsPickingBorderVisible"]);
+    }
+
+    [Fact]
     public async Task SharedDataBridge_UnmarkedEvents_NotPublished()
     {
         var service = new MockSharedDataService();
@@ -323,6 +354,7 @@ public class FrontedSharedDataBehaviorEventBridgeTest
         public event EventHandler? CountDownValueChanged;
         public event EventHandler? TeamSwapped;
         public event EventHandler? IsMapV2BreathingChanged;
+        public event EventHandler<MapV2PickingBorderStateChangedEventArgs>? MapV2PickingBorderStateChanged;
         public event EventHandler? IsMapV2CampVisibleChanged;
         public event EventHandler? PickedMapChanged;
         public event EventHandler? MapV2BannedChanged;
@@ -406,6 +438,9 @@ public class FrontedSharedDataBehaviorEventBridgeTest
         public void FireCharacterPicked(CharacterPickedEventArgs args) => CharacterPicked?.Invoke(this, args);
 
         public void FireUnmarkedEvent() => UnmarkedEvent?.Invoke(this, System.EventArgs.Empty);
+
+        public void FireMapV2PickingBorderStateChanged(MapV2PickingBorderStateChangedEventArgs args) =>
+            MapV2PickingBorderStateChanged?.Invoke(this, args);
     }
 
     private sealed class MockCharacterSelectionService : ICharacterSelectionService

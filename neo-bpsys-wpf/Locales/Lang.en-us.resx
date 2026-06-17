@@ -3903,10 +3903,10 @@
     <value>Apply Style to All Map Cards</value>
   </data>
   <data name="Designer.MapV2Display.ApplyStyleToAllDescription" xml:space="preserve">
-    <value>Copies size, text styles, map border, and picking border styles while preserving each card's position, text content, map binding, and layout properties.</value>
+    <value>Copies size, text styles, map border, picking border styles, and behaviors while preserving each card's position, text content, map binding, and layout properties.</value>
   </data>
   <data name="Designer.MapV2Display.StyleAppliedToAll" xml:space="preserve">
-    <value>Applied the style to all map cards on the current canvas.</value>
+    <value>Applied the style and behaviors to all map cards on the current canvas.</value>
   </data>
   <data name="Designer.GlobalScoreRow.ClearCellStyleOverrides" xml:space="preserve">
     <value>Clear Cell Style Overrides</value>
@@ -4106,6 +4106,7 @@
   <data name="Designer.Behaviors.Event.IsBo3ModeChanged" xml:space="preserve"><value>BO3 mode changed</value></data>
   <data name="Designer.Behaviors.Event.CountDownValueChanged" xml:space="preserve"><value>Countdown value changed</value></data>
   <data name="Designer.Behaviors.Event.IsMapV2BreathingChanged" xml:space="preserve"><value>Map breathing changed</value></data>
+  <data name="Designer.Behaviors.Event.MapV2PickingBorderStateChanged" xml:space="preserve"><value>Map picking border state changed</value></data>
   <data name="Designer.Behaviors.Event.IsMapV2CampVisibleChanged" xml:space="preserve"><value>Map camp visibility changed</value></data>
   <data name="Designer.Behaviors.Event.PickedMapChanged" xml:space="preserve"><value>Picked map changed</value></data>
   <data name="Designer.Behaviors.Event.MapV2BannedChanged" xml:space="preserve"><value>Map ban state changed</value></data>
@@ -4117,6 +4118,9 @@
   <data name="Designer.Behaviors.Payload.IsBo3Mode" xml:space="preserve"><value>BO3 mode</value></data>
   <data name="Designer.Behaviors.Payload.RemainingSeconds" xml:space="preserve"><value>Remaining seconds</value></data>
   <data name="Designer.Behaviors.Payload.IsMapV2Breathing" xml:space="preserve"><value>Map breathing enabled</value></data>
+  <data name="Designer.Behaviors.Payload.MapKey" xml:space="preserve"><value>Map key</value></data>
+  <data name="Designer.Behaviors.Payload.IsMapBanned" xml:space="preserve"><value>Map banned</value></data>
+  <data name="Designer.Behaviors.Payload.IsPickingBorderVisible" xml:space="preserve"><value>Picking border visible</value></data>
   <data name="Designer.Behaviors.Payload.IsMapV2CampVisible" xml:space="preserve"><value>Map camp visible</value></data>
   <data name="Designer.Behaviors.Payload.PickedMap" xml:space="preserve"><value>Picked map</value></data>
   <data name="Designer.Behaviors.Payload.Action" xml:space="preserve"><value>Action</value></data>
@@ -4156,6 +4160,7 @@
   <data name="Designer.Behaviors.Event.CountDownValueChanged.Description" xml:space="preserve"><value>Fires when the countdown display value changes.</value></data>
   <data name="Designer.Behaviors.Event.TeamSwapped.Description" xml:space="preserve"><value>Fires when home and away teams swap.</value></data>
   <data name="Designer.Behaviors.Event.IsMapV2BreathingChanged.Description" xml:space="preserve"><value>Fires when map breathing changes.</value></data>
+  <data name="Designer.Behaviors.Event.MapV2PickingBorderStateChanged.Description" xml:space="preserve"><value>Fires when a map picking border should show or hide.</value></data>
   <data name="Designer.Behaviors.Event.IsMapV2CampVisibleChanged.Description" xml:space="preserve"><value>Fires when map camp visibility changes.</value></data>
   <data name="Designer.Behaviors.Event.PickedMapChanged.Description" xml:space="preserve"><value>Fires when the picked map changes.</value></data>
   <data name="Designer.Behaviors.Event.MapV2BannedChanged.Description" xml:space="preserve"><value>Fires when map ban state changes.</value></data>

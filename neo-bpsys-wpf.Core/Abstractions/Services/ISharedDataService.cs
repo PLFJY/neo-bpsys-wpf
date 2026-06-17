@@ -164,6 +164,16 @@ public interface ISharedDataService : INotifyPropertyChanged
     event EventHandler? IsMapV2BreathingChanged;
 
     /// <summary>
+    /// 地图 BP v2 选图边框状态改变事件。
+    /// </summary>
+    [FrontedBehaviorEvent("MapV2.PickingBorderStateChanged", DisplayNameKey = "Designer.Behaviors.Event.MapV2PickingBorderStateChanged", DescriptionKey = "Designer.Behaviors.Event.MapV2PickingBorderStateChanged.Description", Category = "Display", CategoryKey = "Designer.Behaviors.Category.Display")]
+    [FrontedBehaviorEventPayload("Event.MapKey", DisplayNameKey = "Designer.Behaviors.Payload.MapKey", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(MapV2PickingBorderStateChangedEventArgs.MapKey), TypeName = "string")]
+    [FrontedBehaviorEventPayload("Event.IsMapV2Breathing", DisplayNameKey = "Designer.Behaviors.Payload.IsMapV2Breathing", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(MapV2PickingBorderStateChangedEventArgs.IsMapV2Breathing), TypeName = "bool")]
+    [FrontedBehaviorEventPayload("Event.IsMapBanned", DisplayNameKey = "Designer.Behaviors.Payload.IsMapBanned", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(MapV2PickingBorderStateChangedEventArgs.IsMapBanned), TypeName = "bool")]
+    [FrontedBehaviorEventPayload("Event.IsPickingBorderVisible", DisplayNameKey = "Designer.Behaviors.Payload.IsPickingBorderVisible", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(MapV2PickingBorderStateChangedEventArgs.IsPickingBorderVisible), TypeName = "bool")]
+    event EventHandler<MapV2PickingBorderStateChangedEventArgs>? MapV2PickingBorderStateChanged;
+
+    /// <summary>
     /// 地图V2阵营是否可见改变事件
     /// </summary>
     [FrontedBehaviorEvent("SharedData.IsMapV2CampVisibleChanged", DisplayNameKey = "Designer.Behaviors.Event.IsMapV2CampVisibleChanged", DescriptionKey = "Designer.Behaviors.Event.IsMapV2CampVisibleChanged.Description", Category = "Display", CategoryKey = "Designer.Behaviors.Category.Display")]

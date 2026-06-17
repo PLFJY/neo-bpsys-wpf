@@ -64,6 +64,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private static readonly Regex ValidControlNameRegex = new(
         "^[A-Za-z_][A-Za-z0-9_]*$",
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
+    private static readonly JsonSerializerOptions BehaviorCloneJsonOptions = new()
+    {
+        MaxDepth = FrontedLayoutLimits.MaxJsonDepth
+    };
 
     private readonly IFrontedLayoutService _layoutService;
     private readonly FrontedLayoutDesignConverter _designConverter;
@@ -1718,8 +1722,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         var targets = CurrentDocument.Controls
             .Where(item => !ReferenceEquals(item, SelectedDesignItem))
-            .Select(item => item.Config)
-            .OfType<MapV2DisplayControlConfig>()
+            .Where(item => item.Config is MapV2DisplayControlConfig)
             .ToArray();
         if (targets.Length == 0)
         {
@@ -1727,11 +1730,12 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         CaptureUndoSnapshot();
-        foreach (var target in targets)
+        foreach (var target in targets.Select(item => (MapV2DisplayControlConfig)item.Config))
         {
             CopyMapV2DisplayStyle(source, target);
         }
 
+        ApplyMapV2DisplayBehaviorSetToTargets(SelectedDesignItem, source, targets);
         CurrentDocument.IsDirty = true;
         RebuildPropertyEditorItems();
         RefreshDirtyState();
@@ -1760,6 +1764,170 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         target.MapBorderBannedColor = source.MapBorderBannedColor;
         target.PickingBorderImagePath = source.PickingBorderImagePath;
         target.PickingBorderFillColor = source.PickingBorderFillColor;
+    }
+
+    private void ApplyMapV2DisplayBehaviorSetToTargets(
+        FrontedControlDesignItem sourceItem,
+        MapV2DisplayControlConfig source,
+        IReadOnlyList<FrontedControlDesignItem> targetItems)
+    {
+        var sourceSet = source.BehaviorGuid == Guid.Empty
+            ? null
+            : BehaviorPanel.CurrentDocument.FindSet(source.BehaviorGuid);
+        foreach (var targetItem in targetItems)
+        {
+            if (targetItem.Config is not MapV2DisplayControlConfig target)
+            {
+                continue;
+            }
+
+            if (target.BehaviorGuid != Guid.Empty)
+            {
+                BehaviorPanel.CurrentDocument.RemoveSet(target.BehaviorGuid);
+            }
+
+            if (sourceSet is null)
+            {
+                continue;
+            }
+
+            if (target.BehaviorGuid == Guid.Empty)
+            {
+                target.BehaviorGuid = FrontedBehaviorGuidHelper.NewGuid();
+            }
+
+            var clonedSet = CloneBehaviorSet(sourceSet);
+            clonedSet.BehaviorGuid = target.BehaviorGuid;
+            clonedSet.DisplayName = targetItem.Name;
+            foreach (var behavior in clonedSet.Behaviors)
+            {
+                behavior.BehaviorId = FrontedBehaviorGuidHelper.NewGuid();
+                RegenerateMapV2BehaviorGraphIds(behavior);
+                RewriteMapV2BehaviorTargetsAndFilters(
+                    behavior,
+                    source.BehaviorGuid,
+                    target.BehaviorGuid,
+                    source.MapKey,
+                    target.MapKey);
+            }
+
+            BehaviorPanel.CurrentDocument.ControlBehaviorSets.Add(clonedSet);
+        }
+
+        MarkBehaviorsDirty();
+        BehaviorPanel.SetCopyContext(CurrentDocument?.WindowTypeName, CurrentDocument?.Controls);
+        BehaviorPanel.SetSelectedControl(sourceItem);
+    }
+
+    private static ControlBehaviorSet CloneBehaviorSet(ControlBehaviorSet source)
+    {
+        var json = JsonSerializer.Serialize(source, BehaviorCloneJsonOptions);
+        return JsonSerializer.Deserialize<ControlBehaviorSet>(json, BehaviorCloneJsonOptions)
+               ?? throw new InvalidOperationException("Unable to clone fronted behavior set.");
+    }
+
+    private static void RewriteMapV2BehaviorTargetsAndFilters(
+        FrontedBehavior behavior,
+        Guid sourceGuid,
+        Guid targetGuid,
+        string sourceMapKey,
+        string targetMapKey)
+    {
+        foreach (var node in EnumerateBehaviorGraphs(behavior).SelectMany(graph => graph.Nodes))
+        {
+            if (node.Properties.TryGetValue("Target", out var targetValue)
+                && targetValue.ValueKind == JsonValueKind.String)
+            {
+                var parsed = FrontedAnimationTargetReference.Parse(targetValue.GetString());
+                if (parsed.BehaviorGuid == sourceGuid)
+                {
+                    node.Properties["Target"] = JsonSerializer.SerializeToElement(
+                        parsed.Kind == FrontedAnimationTargetReferenceKind.GeneratedPart
+                            ? $"part:{targetGuid}:{parsed.PartName}"
+                            : $"guid:{targetGuid}");
+                }
+            }
+
+            if (string.Equals(node.NodeType, "flow.if", StringComparison.Ordinal)
+                && TryGetStringNodeProperty(node, "Left", out var left)
+                && IsMapV2MapKeyFilterLeft(left)
+                && TryGetStringNodeProperty(node, "Right", out var right)
+                && string.Equals(right, sourceMapKey, StringComparison.Ordinal))
+            {
+                node.Properties["Right"] = JsonSerializer.SerializeToElement(targetMapKey);
+            }
+        }
+
+        foreach (var filter in EnumerateBehaviorTriggerFilters(behavior))
+        {
+            if (IsMapV2MapKeyFilterLeft(filter.Left)
+                && string.Equals(filter.Right, sourceMapKey, StringComparison.Ordinal))
+            {
+                filter.Right = targetMapKey;
+            }
+        }
+    }
+
+    private static bool IsMapV2MapKeyFilterLeft(string left) =>
+        string.Equals(left, "Event.MapKey", StringComparison.Ordinal)
+        || string.Equals(left, "StartEvent.MapKey", StringComparison.Ordinal)
+        || string.Equals(left, "StopEvent.MapKey", StringComparison.Ordinal);
+
+    private static IEnumerable<FrontedNodeGraph> EnumerateBehaviorGraphs(FrontedBehavior behavior)
+    {
+        yield return behavior.Graph;
+        yield return behavior.StartGraph;
+        yield return behavior.LoopGraph;
+        yield return behavior.StopGraph;
+        yield return behavior.ExitGraph;
+        yield return behavior.EnterGraph;
+    }
+
+    private static IEnumerable<TriggerFilter> EnumerateBehaviorTriggerFilters(FrontedBehavior behavior) =>
+        new[] { behavior.Trigger, behavior.StartTrigger, behavior.TransitionTrigger }
+            .Concat(behavior.StopTriggers)
+            .Where(trigger => trigger is not null)
+            .SelectMany(trigger => trigger!.Filters);
+
+    private static bool TryGetStringNodeProperty(FrontedNode node, string propertyName, out string value)
+    {
+        value = string.Empty;
+        if (!node.Properties.TryGetValue(propertyName, out var element)
+            || element.ValueKind != JsonValueKind.String)
+        {
+            return false;
+        }
+
+        value = element.GetString() ?? string.Empty;
+        return true;
+    }
+
+    private static void RegenerateMapV2BehaviorGraphIds(FrontedBehavior behavior)
+    {
+        foreach (var graph in EnumerateBehaviorGraphs(behavior))
+        {
+            var nodeIds = new Dictionary<Guid, Guid>();
+            foreach (var node in graph.Nodes)
+            {
+                var oldId = node.NodeId;
+                node.NodeId = FrontedBehaviorGuidHelper.NewGuid();
+                nodeIds[oldId] = node.NodeId;
+            }
+
+            foreach (var connection in graph.Connections)
+            {
+                connection.ConnectionId = FrontedBehaviorGuidHelper.NewGuid();
+                if (nodeIds.TryGetValue(connection.SourceNodeId, out var sourceNodeId))
+                {
+                    connection.SourceNodeId = sourceNodeId;
+                }
+
+                if (nodeIds.TryGetValue(connection.TargetNodeId, out var targetNodeId))
+                {
+                    connection.TargetNodeId = targetNodeId;
+                }
+            }
+        }
     }
 
     [RelayCommand]

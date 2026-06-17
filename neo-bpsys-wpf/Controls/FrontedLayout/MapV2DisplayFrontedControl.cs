@@ -4,6 +4,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using System.Windows;
 using System.Windows.Controls;
@@ -37,13 +38,13 @@ public class MapV2DisplayFrontedControl(ILogger<MapV2DisplayFrontedControl>? log
         }
 
         var settingsHostService = context.Services.GetRequiredService<ISettingsHostService>();
-            return new MapV2DisplayElement(
-                name,
-                mapConfig,
-                context.SharedDataService,
-                settingsHostService,
-                context.ResourceResolver,
-                _logger ?? context.Logger);
+        return new MapV2DisplayElement(
+            name,
+            mapConfig,
+            context.SharedDataService,
+            settingsHostService,
+            context.ResourceResolver,
+            _logger ?? context.Logger);
     }
 
     private sealed class MapV2DisplayElement : Border
@@ -93,7 +94,25 @@ public class MapV2DisplayFrontedControl(ILogger<MapV2DisplayFrontedControl>? log
             });
 
             ApplyPresenterStyle(config, resourceResolver, logger);
+            MarkPickingBorderPart(name, config);
             Child = _presenter;
+        }
+
+        private void MarkPickingBorderPart(string controlName, MapV2DisplayControlConfig config)
+        {
+            if (config.BehaviorGuid == Guid.Empty)
+            {
+                return;
+            }
+
+            var pickingBorder = _presenter.PickingBorderAnimationTarget;
+            FrontedRendererProperties.SetIsGeneratedControl(pickingBorder, true);
+            FrontedRendererProperties.SetIsAnimationAuxiliaryElement(pickingBorder, true);
+            FrontedRendererProperties.SetParentBehaviorGuid(pickingBorder, config.BehaviorGuid);
+            FrontedRendererProperties.SetParentRegisteredName(pickingBorder, controlName);
+            FrontedRendererProperties.SetAnimationPartName(pickingBorder, FrontedAnimationPartNames.PickingBorder);
+            FrontedRendererProperties.SetAnimationPartParent(pickingBorder, _presenter);
+            FrontedRendererProperties.SetRegisteredName(pickingBorder, $"{controlName}__{FrontedAnimationPartNames.PickingBorder}");
         }
 
         private void ApplyPresenterStyle(

@@ -3932,10 +3932,10 @@
     <value>将样式应用到所有地图卡片</value>
   </data>
   <data name="Designer.MapV2Display.ApplyStyleToAllDescription" xml:space="preserve">
-    <value>复制当前地图卡片的大小、文字样式、地图外框和选图边框样式；保留其他卡片的位置、文字内容、地图绑定和布局属性。</value>
+    <value>复制当前地图卡片的大小、文字样式、地图外框、选图边框样式和行为；保留其他卡片的位置、文字内容、地图绑定和布局属性。</value>
   </data>
   <data name="Designer.MapV2Display.StyleAppliedToAll" xml:space="preserve">
-    <value>已将样式应用到当前画布中的所有地图卡片。</value>
+    <value>已将样式和行为应用到当前画布中的所有地图卡片。</value>
   </data>
   <data name="Designer.Property.CellId" xml:space="preserve">
     <value>单元 ID</value>
@@ -4434,6 +4434,9 @@
   <data name="Designer.Behaviors.Event.IsMapV2BreathingChanged" xml:space="preserve">
     <value>地图呼吸灯改变</value>
   </data>
+  <data name="Designer.Behaviors.Event.MapV2PickingBorderStateChanged" xml:space="preserve">
+    <value>地图选图边框状态改变</value>
+  </data>
   <data name="Designer.Behaviors.Event.IsMapV2CampVisibleChanged" xml:space="preserve">
     <value>地图阵营可见性改变</value>
   </data>
@@ -4466,6 +4469,15 @@
   </data>
   <data name="Designer.Behaviors.Payload.IsMapV2Breathing" xml:space="preserve">
     <value>地图呼吸灯开启</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.MapKey" xml:space="preserve">
+    <value>地图 key</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.IsMapBanned" xml:space="preserve">
+    <value>地图已禁用</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.IsPickingBorderVisible" xml:space="preserve">
+    <value>选图边框可见</value>
   </data>
   <data name="Designer.Behaviors.Payload.IsMapV2CampVisible" xml:space="preserve">
     <value>地图阵营可见</value>
@@ -4583,6 +4595,9 @@
   </data>
   <data name="Designer.Behaviors.Event.IsMapV2BreathingChanged.Description" xml:space="preserve">
     <value>地图呼吸灯状态改变时触发。</value>
+  </data>
+  <data name="Designer.Behaviors.Event.MapV2PickingBorderStateChanged.Description" xml:space="preserve">
+    <value>地图选图边框应显示或隐藏时触发。</value>
   </data>
   <data name="Designer.Behaviors.Event.IsMapV2CampVisibleChanged.Description" xml:space="preserve">
     <value>地图阵营可见性改变时触发。</value>

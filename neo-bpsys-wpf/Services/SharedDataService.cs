@@ -160,6 +160,8 @@ public partial class SharedDataService : ISharedDataService
             {
                 MapV2BannedChanged?.Invoke(this, EventArgs.Empty);
             }
+
+            PublishMapV2PickingBorderStateForAllMaps();
         }
     }
 
@@ -322,7 +324,37 @@ public partial class SharedDataService : ISharedDataService
         if (args.PropertyName == nameof(MapV2.IsBanned))
         {
             MapV2BannedChanged?.Invoke(this, EventArgs.Empty);
+            if (sender is MapV2 mapV2)
+            {
+                PublishMapV2PickingBorderState(mapV2);
+            }
         }
+    }
+
+    private void PublishMapV2PickingBorderStateForAllMaps()
+    {
+        foreach (var mapV2 in CurrentGame.MapV2Dictionary.Values)
+        {
+            PublishMapV2PickingBorderState(mapV2);
+        }
+    }
+
+    private void PublishMapV2PickingBorderState(MapV2 mapV2)
+    {
+        var mapKey = CurrentGame.MapV2Dictionary
+            .FirstOrDefault(pair => ReferenceEquals(pair.Value, mapV2))
+            .Key;
+        if (string.IsNullOrWhiteSpace(mapKey))
+        {
+            return;
+        }
+
+        MapV2PickingBorderStateChanged?.Invoke(
+            this,
+            new MapV2PickingBorderStateChangedEventArgs(
+                mapKey,
+                IsMapV2Breathing,
+                mapV2.IsBanned));
     }
 
     private static bool IsMapV2BannedChanged(Game oldGame, Game newGame)
@@ -613,11 +645,13 @@ public partial class SharedDataService : ISharedDataService
         {
             if (_isMapV2Breathing == value) return;
             _isMapV2Breathing = value;
-            IsMapV2BreathingChanged?.Invoke(this, EventArgs.Empty);
             foreach (var mapValue in CurrentGame.MapV2Dictionary.Values)
             {
                 mapValue.IsBreathing = value;
             }
+
+            IsMapV2BreathingChanged?.Invoke(this, EventArgs.Empty);
+            PublishMapV2PickingBorderStateForAllMaps();
         }
     }
 
@@ -680,6 +714,11 @@ public partial class SharedDataService : ISharedDataService
     /// 地图V2呼吸灯改变事件
     /// </summary>
     public event EventHandler? IsMapV2BreathingChanged;
+
+    /// <summary>
+    /// 地图 BP v2 选图边框状态改变事件
+    /// </summary>
+    public event EventHandler<MapV2PickingBorderStateChangedEventArgs>? MapV2PickingBorderStateChanged;
 
     /// <summary>
     /// 地图V2阵营是否可见改变事件

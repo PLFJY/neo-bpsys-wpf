@@ -2439,6 +2439,135 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.False(viewModel.IsMapV2DisplaySelected);
     }
 
+    [Fact]
+    public void MapV2DisplayStyleApplyToAllAlsoReplacesBehaviorsAndRewritesMapKeyFilters()
+    {
+        var sourceGuid = Guid.NewGuid();
+        var targetGuid = Guid.NewGuid();
+        var source = new FrontedControlDesignItem
+        {
+            Name = "Map0",
+            Config = new MapV2DisplayControlConfig
+            {
+                BehaviorGuid = sourceGuid,
+                MapKey = "ArmsFactory",
+                Width = 300,
+                Height = 180
+            }
+        };
+        var target = new FrontedControlDesignItem
+        {
+            Name = "Map1",
+            Config = new MapV2DisplayControlConfig
+            {
+                BehaviorGuid = targetGuid,
+                MapKey = "TheRedChurch",
+                Width = 100,
+                Height = 80
+            }
+        };
+        var document = CreateDocument([source, target]);
+        var behavior = new FrontedBehavior
+        {
+            Name = "PickingBorderBreathing",
+            Kind = FrontedBehaviorKind.Loop,
+            StartTrigger = new TriggerDescriptor
+            {
+                EventType = "MapV2.PickingBorderStateChanged",
+                Filters =
+                [
+                    new TriggerFilter { Left = "Event.MapKey", Right = "ArmsFactory" },
+                    new TriggerFilter { Left = "Event.IsPickingBorderVisible", Right = "true" }
+                ]
+            },
+            StopTriggers =
+            [
+                new TriggerDescriptor
+                {
+                    EventType = "MapV2.PickingBorderStateChanged",
+                    Filters =
+                    [
+                        new TriggerFilter { Left = "StopEvent.MapKey", Right = "ArmsFactory" },
+                        new TriggerFilter { Left = "StopEvent.IsPickingBorderVisible", Right = "false" }
+                    ]
+                }
+            ],
+            StartGraph = new FrontedNodeGraph
+            {
+                Nodes =
+                [
+                    new FrontedNode
+                    {
+                        NodeType = "action.animate",
+                        Properties =
+                        {
+                            ["Target"] = JsonSerializer.SerializeToElement($"part:{sourceGuid}:PickingBorder")
+                        }
+                    },
+                    new FrontedNode
+                    {
+                        NodeType = "flow.if",
+                        Properties =
+                        {
+                            ["Left"] = JsonSerializer.SerializeToElement("Event.MapKey"),
+                            ["Operator"] = JsonSerializer.SerializeToElement("Equals"),
+                            ["Right"] = JsonSerializer.SerializeToElement("ArmsFactory")
+                        }
+                    }
+                ]
+            }
+        };
+        var oldTargetBehavior = new FrontedBehavior { Name = "OldTargetBehavior" };
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        viewModel.BehaviorPanel.SetDocument(new FrontedBehaviorDocument
+        {
+            Version = 1,
+            WindowType = "TestWindow",
+            CanvasName = "BaseCanvas",
+            ControlBehaviorSets =
+            [
+                new ControlBehaviorSet
+                {
+                    BehaviorGuid = sourceGuid,
+                    DisplayName = "Map0",
+                    Behaviors = [behavior]
+                },
+                new ControlBehaviorSet
+                {
+                    BehaviorGuid = targetGuid,
+                    DisplayName = "Map1",
+                    Behaviors = [oldTargetBehavior]
+                }
+            ]
+        });
+        viewModel.SelectDesignItem(source);
+
+        viewModel.ApplyMapV2DisplayStyleToAllCommand.Execute(null);
+
+        var targetSet = Assert.Single(
+            viewModel.BehaviorPanel.CurrentDocument.ControlBehaviorSets,
+            set => set.BehaviorGuid == targetGuid);
+        Assert.Equal("Map1", targetSet.DisplayName);
+        var copied = Assert.Single(targetSet.Behaviors);
+        Assert.NotEqual(behavior.BehaviorId, copied.BehaviorId);
+        Assert.Equal("PickingBorderBreathing", copied.Name);
+        Assert.DoesNotContain(targetSet.Behaviors, item => item.Name == "OldTargetBehavior");
+        Assert.Equal(
+            $"part:{targetGuid}:PickingBorder",
+            copied.StartGraph.Nodes[0].Properties["Target"].GetString());
+        Assert.Equal("TheRedChurch", copied.StartTrigger!.Filters.Single(filter => filter.Left == "Event.MapKey").Right);
+        Assert.Equal("TheRedChurch", copied.StopTriggers[0].Filters.Single(filter => filter.Left == "StopEvent.MapKey").Right);
+        Assert.Equal("TheRedChurch", copied.StartGraph.Nodes[1].Properties["Right"].GetString());
+        Assert.True(viewModel.AreBehaviorsDirty);
+
+        viewModel.UndoCommand.Execute(null);
+
+        var restoredTargetSet = Assert.Single(
+            viewModel.BehaviorPanel.CurrentDocument.ControlBehaviorSets,
+            set => set.BehaviorGuid == targetGuid);
+        Assert.Equal("OldTargetBehavior", Assert.Single(restoredTargetSet.Behaviors).Name);
+    }
+
     [Theory]
     [InlineData("HorizontalAlignment", "Left", "Center", "Right", "Stretch")]
     [InlineData("VerticalAlignment", "Top", "Center", "Bottom", "Stretch")]

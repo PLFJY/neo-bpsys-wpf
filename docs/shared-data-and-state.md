@@ -184,6 +184,7 @@ Score System v2 的设计方向见 [score-system-v2.md](score-system-v2.md)。�
 | `PickedMapChanged` | 地图显示刷新 |
 | `MapV2BannedChanged` | 地图 V2 禁用状态刷新 |
 | `IsMapV2BreathingChanged` / `IsMapV2CampVisibleChanged` | 地图 V2 前台表现刷新 |
+| `MapV2PickingBorderStateChanged` | 按地图发布 MapBpV2 选图边框状态，payload 包含 `MapKey`、`IsMapV2Breathing`、`IsMapBanned`、`IsPickingBorderVisible`；`IsPickingBorderVisible` 保持旧语义 `IsMapV2Breathing && !IsMapBanned`，由 v3 行为负责具体动画。 |
 
 因为页面和 ViewModel 多为 singleton，订阅事件时要避免重复订阅，也要注意长期订阅导致对象被持有。构造函数中订阅 singleton 服务事件通常可接受；动态创建对象订阅时需要考虑解绑。
 

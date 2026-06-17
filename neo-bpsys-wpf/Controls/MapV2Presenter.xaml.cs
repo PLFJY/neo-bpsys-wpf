@@ -17,6 +17,11 @@ public partial class MapV2Presenter : UserControl
     }
 
     /// <summary>
+    /// 获取地图 BP v2 选图边框动画目标元素。
+    /// </summary>
+    public FrameworkElement PickingBorderAnimationTarget => PickingBorder;
+
+    /// <summary>
     /// 获取或设置要展示的地图数据。
     /// </summary>
     public MapV2? Map

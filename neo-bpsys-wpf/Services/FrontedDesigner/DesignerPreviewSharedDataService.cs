@@ -185,6 +185,7 @@ public sealed class DesignerPreviewSharedDataService : ISharedDataService
             _isMapV2Breathing = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsMapV2Breathing)));
             IsMapV2BreathingChanged?.Invoke(this, EventArgs.Empty);
+            PublishMapV2PickingBorderStateForAllMaps();
         }
     }
 
@@ -286,11 +287,29 @@ public sealed class DesignerPreviewSharedDataService : ISharedDataService
 
     public event EventHandler? IsMapV2BreathingChanged;
 
+    /// <summary>
+    /// Raised when a Map BP v2 picking border display state changes.
+    /// </summary>
+    public event EventHandler<MapV2PickingBorderStateChangedEventArgs>? MapV2PickingBorderStateChanged;
+
     public event EventHandler? IsMapV2CampVisibleChanged;
 
     public event EventHandler? PickedMapChanged;
 
     public event EventHandler? MapV2BannedChanged;
+
+    private void PublishMapV2PickingBorderStateForAllMaps()
+    {
+        foreach (var map in CurrentGame.MapV2Dictionary)
+        {
+            MapV2PickingBorderStateChanged?.Invoke(
+                this,
+                new MapV2PickingBorderStateChangedEventArgs(
+                    map.Key,
+                    IsMapV2Breathing,
+                    map.Value.IsBanned));
+        }
+    }
 
     private static Team CreateTeam(Camp camp, TeamType teamType, string name, ImageSource? logo, int firstPlayerNumber)
     {

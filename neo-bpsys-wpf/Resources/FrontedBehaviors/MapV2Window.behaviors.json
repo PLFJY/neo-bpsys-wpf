@@ -2,5 +2,2859 @@
   "Version": 1,
   "WindowType": "MapV2Window",
   "CanvasName": "BaseCanvas",
-  "ControlBehaviorSets": []
+  "ControlBehaviorSets": [
+    {
+      "BehaviorGuid": "07f7186f-30cb-9563-eb07-1164219dc777",
+      "DisplayName": "Arms_Factory",
+      "AnimationParts": [],
+      "Behaviors": [
+        {
+          "BehaviorId": "cbb5304a-09ff-3158-f704-a3bd8c59772e",
+          "Name": "PickingBorderBreathing",
+          "Enabled": true,
+          "Kind": "Loop",
+          "Trigger": null,
+          "Graph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StartTrigger": {
+            "EventType": "MapV2.PickingBorderStateChanged",
+            "Source": null,
+            "Filters": [
+              {
+                "Left": "Event.MapKey",
+                "Operator": "Equals",
+                "Right": "ArmsFactory",
+                "RightValueKind": "Literal"
+              },
+              {
+                "Left": "Event.IsPickingBorderVisible",
+                "Operator": "Equals",
+                "Right": "true",
+                "RightValueKind": "Literal"
+              }
+            ]
+          },
+          "StartGraph": {
+            "Nodes": [
+              {
+                "NodeId": "7226818b-83a7-3e5e-713f-ef26877c9e79",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520.0,
+                "Y": 520.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "a6fdda23-2b58-c953-409d-4c93853c6ee8",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 820.0,
+                "Y": 520.0,
+                "Properties": {
+                  "TargetLayer": "Auto",
+                  "Target": "part:07f7186f-30cb-9563-eb07-1164219dc777:PickingBorder",
+                  "Value": "0",
+                  "PropertyName": "Opacity"
+                }
+              },
+              {
+                "NodeId": "3c135280-62ac-eff9-5fcd-b0e30abd6870",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 1140.0,
+                "Y": 520.0,
+                "Properties": {
+                  "TargetLayer": "Auto",
+                  "Target": "part:07f7186f-30cb-9563-eb07-1164219dc777:PickingBorder",
+                  "Value": "Visible",
+                  "PropertyName": "Visibility"
+                }
+              },
+              {
+                "NodeId": "12fab863-010c-c918-60ef-af305987d59b",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 1460.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:07f7186f-30cb-9563-eb07-1164219dc777:PickingBorder",
+                  "To": "1",
+                  "Easing": "Linear",
+                  "From": "0",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "8d561fd5-37fb-a4ea-d92d-0ddd0396b3c0",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1780.0,
+                "Y": 520.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "94293216-6fd2-03f9-3e89-7b497c981844",
+                "SourceNodeId": "7226818b-83a7-3e5e-713f-ef26877c9e79",
+                "SourcePort": "Out",
+                "TargetNodeId": "a6fdda23-2b58-c953-409d-4c93853c6ee8",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "5dfaa9b0-2129-3e67-13d1-fd8c2f7fa9bd",
+                "SourceNodeId": "a6fdda23-2b58-c953-409d-4c93853c6ee8",
+                "SourcePort": "Out",
+                "TargetNodeId": "3c135280-62ac-eff9-5fcd-b0e30abd6870",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "cc895a45-5c17-378e-dbc8-a6d350c3a435",
+                "SourceNodeId": "3c135280-62ac-eff9-5fcd-b0e30abd6870",
+                "SourcePort": "Out",
+                "TargetNodeId": "12fab863-010c-c918-60ef-af305987d59b",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "0f77fb06-3507-6beb-0d0d-74579a4d70a4",
+                "SourceNodeId": "12fab863-010c-c918-60ef-af305987d59b",
+                "SourcePort": "Out",
+                "TargetNodeId": "8d561fd5-37fb-a4ea-d92d-0ddd0396b3c0",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "LoopGraph": {
+            "Nodes": [
+              {
+                "NodeId": "51f569b8-f4db-35d3-26bc-a5f5fa7f0250",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520.0,
+                "Y": 520.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "67922d3f-02f6-6d1b-1786-646c1fa37296",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 820.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:07f7186f-30cb-9563-eb07-1164219dc777:PickingBorder",
+                  "To": "0.25",
+                  "Easing": "Linear",
+                  "From": "1",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "2ba514bb-3814-956b-4006-7a2a4017698e",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 1140.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:07f7186f-30cb-9563-eb07-1164219dc777:PickingBorder",
+                  "To": "1",
+                  "Easing": "Linear",
+                  "From": "0.25",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "5a51667e-7b74-b78d-9b68-130ef5011946",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1460.0,
+                "Y": 520.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "42e150ab-777c-1d10-fc0c-4411f04fad2b",
+                "SourceNodeId": "51f569b8-f4db-35d3-26bc-a5f5fa7f0250",
+                "SourcePort": "Out",
+                "TargetNodeId": "67922d3f-02f6-6d1b-1786-646c1fa37296",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "99fe0ed4-7ac7-2853-da5f-800fa6188d0e",
+                "SourceNodeId": "67922d3f-02f6-6d1b-1786-646c1fa37296",
+                "SourcePort": "Out",
+                "TargetNodeId": "2ba514bb-3814-956b-4006-7a2a4017698e",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "ec4bf1c8-f879-4cdd-7ebb-7705ee787d4e",
+                "SourceNodeId": "2ba514bb-3814-956b-4006-7a2a4017698e",
+                "SourcePort": "Out",
+                "TargetNodeId": "5a51667e-7b74-b78d-9b68-130ef5011946",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "StopTriggers": [
+            {
+              "EventType": "MapV2.PickingBorderStateChanged",
+              "Source": null,
+              "Filters": [
+                {
+                  "Left": "Event.MapKey",
+                  "Operator": "Equals",
+                  "Right": "ArmsFactory",
+                  "RightValueKind": "Literal"
+                },
+                {
+                  "Left": "Event.IsPickingBorderVisible",
+                  "Operator": "Equals",
+                  "Right": "false",
+                  "RightValueKind": "Literal"
+                }
+              ]
+            }
+          ],
+          "StopGraph": {
+            "Nodes": [
+              {
+                "NodeId": "202b126d-aaaa-4265-b030-5e011f4e7a0a",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520.0,
+                "Y": 520.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "b2647c48-354f-275a-798c-2287a272e5fa",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 820.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:07f7186f-30cb-9563-eb07-1164219dc777:PickingBorder",
+                  "To": "0",
+                  "Easing": "Linear",
+                  "From": "1",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "87eb191c-9f14-62d5-c6fb-d24c4d5ae9bd",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 1140.0,
+                "Y": 520.0,
+                "Properties": {
+                  "TargetLayer": "Auto",
+                  "Target": "part:07f7186f-30cb-9563-eb07-1164219dc777:PickingBorder",
+                  "Value": "Collapsed",
+                  "PropertyName": "Visibility"
+                }
+              },
+              {
+                "NodeId": "46396553-7eb9-b33c-5de6-cc9829d06416",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1460.0,
+                "Y": 520.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "77f84a29-621b-aede-9123-cf94810b4693",
+                "SourceNodeId": "202b126d-aaaa-4265-b030-5e011f4e7a0a",
+                "SourcePort": "Out",
+                "TargetNodeId": "b2647c48-354f-275a-798c-2287a272e5fa",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "3cb88fb8-82f8-b9d8-77ae-b95205090e46",
+                "SourceNodeId": "b2647c48-354f-275a-798c-2287a272e5fa",
+                "SourcePort": "Out",
+                "TargetNodeId": "87eb191c-9f14-62d5-c6fb-d24c4d5ae9bd",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "fecc0583-8551-f1ce-600d-3bdfbdbcb697",
+                "SourceNodeId": "87eb191c-9f14-62d5-c6fb-d24c4d5ae9bd",
+                "SourcePort": "Out",
+                "TargetNodeId": "46396553-7eb9-b33c-5de6-cc9829d06416",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "TransitionTrigger": null,
+          "ExitGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "EnterGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "ReentryPolicy": "InterruptPrevious",
+          "LoopPolicy": {
+            "RepeatCount": -1,
+            "AutoReverse": false,
+            "IntervalMs": 0,
+            "StopMode": "RunStopGraph",
+            "ResetOnStop": true,
+            "ReentryPolicy": "IgnoreIfRunning"
+          }
+        }
+      ]
+    },
+    {
+      "BehaviorGuid": "588763e1-a1c8-bea8-b73f-69c1afa41ea9",
+      "DisplayName": "The_Red_Church",
+      "AnimationParts": [],
+      "Behaviors": [
+        {
+          "BehaviorId": "a6fdc4bc-b3dd-ed7c-e8db-0727a1f00433",
+          "Name": "PickingBorderBreathing",
+          "Enabled": true,
+          "Kind": "Loop",
+          "Trigger": null,
+          "Graph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StartTrigger": {
+            "EventType": "MapV2.PickingBorderStateChanged",
+            "Source": null,
+            "Filters": [
+              {
+                "Left": "Event.MapKey",
+                "Operator": "Equals",
+                "Right": "TheRedChurch",
+                "RightValueKind": "Literal"
+              },
+              {
+                "Left": "Event.IsPickingBorderVisible",
+                "Operator": "Equals",
+                "Right": "true",
+                "RightValueKind": "Literal"
+              }
+            ]
+          },
+          "StartGraph": {
+            "Nodes": [
+              {
+                "NodeId": "28444f28-2dfd-1db2-e8c8-07cb138f12e9",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520.0,
+                "Y": 520.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "e577eb46-a9aa-690d-ff15-7932f360cd14",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 820.0,
+                "Y": 520.0,
+                "Properties": {
+                  "TargetLayer": "Auto",
+                  "Target": "part:588763e1-a1c8-bea8-b73f-69c1afa41ea9:PickingBorder",
+                  "Value": "0",
+                  "PropertyName": "Opacity"
+                }
+              },
+              {
+                "NodeId": "2704d41a-a1dc-fa7d-9640-0c66798b0676",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 1140.0,
+                "Y": 520.0,
+                "Properties": {
+                  "TargetLayer": "Auto",
+                  "Target": "part:588763e1-a1c8-bea8-b73f-69c1afa41ea9:PickingBorder",
+                  "Value": "Visible",
+                  "PropertyName": "Visibility"
+                }
+              },
+              {
+                "NodeId": "216f692a-2cdb-ca83-af08-dde0d86ec7dd",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 1460.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:588763e1-a1c8-bea8-b73f-69c1afa41ea9:PickingBorder",
+                  "To": "1",
+                  "Easing": "Linear",
+                  "From": "0",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "26557a84-8796-3439-5d1a-3233fc9bb5b9",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1780.0,
+                "Y": 520.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "94490cea-77cb-f578-f2d8-4782756de733",
+                "SourceNodeId": "28444f28-2dfd-1db2-e8c8-07cb138f12e9",
+                "SourcePort": "Out",
+                "TargetNodeId": "e577eb46-a9aa-690d-ff15-7932f360cd14",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "3838d5a5-653a-755b-d836-b28ad976c1a0",
+                "SourceNodeId": "e577eb46-a9aa-690d-ff15-7932f360cd14",
+                "SourcePort": "Out",
+                "TargetNodeId": "2704d41a-a1dc-fa7d-9640-0c66798b0676",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "943f23b7-d776-a7ad-5a1c-411122084420",
+                "SourceNodeId": "2704d41a-a1dc-fa7d-9640-0c66798b0676",
+                "SourcePort": "Out",
+                "TargetNodeId": "216f692a-2cdb-ca83-af08-dde0d86ec7dd",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "c8b2d271-e03d-04b9-c617-ca0c5e2082e0",
+                "SourceNodeId": "216f692a-2cdb-ca83-af08-dde0d86ec7dd",
+                "SourcePort": "Out",
+                "TargetNodeId": "26557a84-8796-3439-5d1a-3233fc9bb5b9",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "LoopGraph": {
+            "Nodes": [
+              {
+                "NodeId": "fff2c480-673c-82dc-27b0-3a807d64d587",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520.0,
+                "Y": 520.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "60e9b238-1a87-be06-5ee7-79c7903d0308",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 820.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:588763e1-a1c8-bea8-b73f-69c1afa41ea9:PickingBorder",
+                  "To": "0.25",
+                  "Easing": "Linear",
+                  "From": "1",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "f9c58c62-e05a-880e-9605-0f15dbf42886",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 1140.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:588763e1-a1c8-bea8-b73f-69c1afa41ea9:PickingBorder",
+                  "To": "1",
+                  "Easing": "Linear",
+                  "From": "0.25",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "66df0155-7d88-f829-252b-b582f909f73a",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1460.0,
+                "Y": 520.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "206b6b5f-b1a5-79cf-0420-1b4ca6ba0c05",
+                "SourceNodeId": "fff2c480-673c-82dc-27b0-3a807d64d587",
+                "SourcePort": "Out",
+                "TargetNodeId": "60e9b238-1a87-be06-5ee7-79c7903d0308",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "b63b8ca3-61b6-d6c6-3d4a-3f53deb08dcc",
+                "SourceNodeId": "60e9b238-1a87-be06-5ee7-79c7903d0308",
+                "SourcePort": "Out",
+                "TargetNodeId": "f9c58c62-e05a-880e-9605-0f15dbf42886",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "295a3549-3367-d659-933a-1a34911f7357",
+                "SourceNodeId": "f9c58c62-e05a-880e-9605-0f15dbf42886",
+                "SourcePort": "Out",
+                "TargetNodeId": "66df0155-7d88-f829-252b-b582f909f73a",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "StopTriggers": [
+            {
+              "EventType": "MapV2.PickingBorderStateChanged",
+              "Source": null,
+              "Filters": [
+                {
+                  "Left": "Event.MapKey",
+                  "Operator": "Equals",
+                  "Right": "TheRedChurch",
+                  "RightValueKind": "Literal"
+                },
+                {
+                  "Left": "Event.IsPickingBorderVisible",
+                  "Operator": "Equals",
+                  "Right": "false",
+                  "RightValueKind": "Literal"
+                }
+              ]
+            }
+          ],
+          "StopGraph": {
+            "Nodes": [
+              {
+                "NodeId": "6ce476e8-3599-ffa1-1fe9-596a036fdf27",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520.0,
+                "Y": 520.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "fba581b1-9b42-45e9-78cc-56ad154240fb",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 820.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:588763e1-a1c8-bea8-b73f-69c1afa41ea9:PickingBorder",
+                  "To": "0",
+                  "Easing": "Linear",
+                  "From": "1",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "0252d2dc-9977-cc3f-bd11-734746f95659",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 1140.0,
+                "Y": 520.0,
+                "Properties": {
+                  "TargetLayer": "Auto",
+                  "Target": "part:588763e1-a1c8-bea8-b73f-69c1afa41ea9:PickingBorder",
+                  "Value": "Collapsed",
+                  "PropertyName": "Visibility"
+                }
+              },
+              {
+                "NodeId": "8a2d5aa7-1d08-29d2-ecb9-c10af3357f38",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1460.0,
+                "Y": 520.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "6a5ead3f-d638-004b-4c43-62aca1cea1b4",
+                "SourceNodeId": "6ce476e8-3599-ffa1-1fe9-596a036fdf27",
+                "SourcePort": "Out",
+                "TargetNodeId": "fba581b1-9b42-45e9-78cc-56ad154240fb",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "26c255d6-158d-3d90-b585-f64be463ffc7",
+                "SourceNodeId": "fba581b1-9b42-45e9-78cc-56ad154240fb",
+                "SourcePort": "Out",
+                "TargetNodeId": "0252d2dc-9977-cc3f-bd11-734746f95659",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "e9951192-84c1-a5ab-cdf0-51ec48385322",
+                "SourceNodeId": "0252d2dc-9977-cc3f-bd11-734746f95659",
+                "SourcePort": "Out",
+                "TargetNodeId": "8a2d5aa7-1d08-29d2-ecb9-c10af3357f38",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "TransitionTrigger": null,
+          "ExitGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "EnterGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "ReentryPolicy": "InterruptPrevious",
+          "LoopPolicy": {
+            "RepeatCount": -1,
+            "AutoReverse": false,
+            "IntervalMs": 0,
+            "StopMode": "RunStopGraph",
+            "ResetOnStop": true,
+            "ReentryPolicy": "IgnoreIfRunning"
+          }
+        }
+      ]
+    },
+    {
+      "BehaviorGuid": "827a592b-7095-2d19-ff70-c6e7edf2d8fc",
+      "DisplayName": "Sacred_Heart_Hospital",
+      "AnimationParts": [],
+      "Behaviors": [
+        {
+          "BehaviorId": "7325d60b-d96c-4042-9cd2-e3314f48cb7d",
+          "Name": "PickingBorderBreathing",
+          "Enabled": true,
+          "Kind": "Loop",
+          "Trigger": null,
+          "Graph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StartTrigger": {
+            "EventType": "MapV2.PickingBorderStateChanged",
+            "Source": null,
+            "Filters": [
+              {
+                "Left": "Event.MapKey",
+                "Operator": "Equals",
+                "Right": "SacredHeartHospital",
+                "RightValueKind": "Literal"
+              },
+              {
+                "Left": "Event.IsPickingBorderVisible",
+                "Operator": "Equals",
+                "Right": "true",
+                "RightValueKind": "Literal"
+              }
+            ]
+          },
+          "StartGraph": {
+            "Nodes": [
+              {
+                "NodeId": "2a84d604-9cee-16da-da86-99a64ac8425c",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520.0,
+                "Y": 520.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "ba984f9f-05ef-a3b1-d06f-f73a9b95e56d",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 820.0,
+                "Y": 520.0,
+                "Properties": {
+                  "TargetLayer": "Auto",
+                  "Target": "part:827a592b-7095-2d19-ff70-c6e7edf2d8fc:PickingBorder",
+                  "Value": "0",
+                  "PropertyName": "Opacity"
+                }
+              },
+              {
+                "NodeId": "f4dbca02-3cda-e37d-d388-dfcc51f088d4",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 1140.0,
+                "Y": 520.0,
+                "Properties": {
+                  "TargetLayer": "Auto",
+                  "Target": "part:827a592b-7095-2d19-ff70-c6e7edf2d8fc:PickingBorder",
+                  "Value": "Visible",
+                  "PropertyName": "Visibility"
+                }
+              },
+              {
+                "NodeId": "8b4c6581-ce70-4e5f-7c07-23ddec19896f",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 1460.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:827a592b-7095-2d19-ff70-c6e7edf2d8fc:PickingBorder",
+                  "To": "1",
+                  "Easing": "Linear",
+                  "From": "0",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "c9bd37b1-7979-c3af-8c03-26e6b88b9442",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1780.0,
+                "Y": 520.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "1a0a296c-2395-43b1-dbcf-b4a0616ae53b",
+                "SourceNodeId": "2a84d604-9cee-16da-da86-99a64ac8425c",
+                "SourcePort": "Out",
+                "TargetNodeId": "ba984f9f-05ef-a3b1-d06f-f73a9b95e56d",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "e23f67e6-2569-5835-2bbd-a0fa04be6b71",
+                "SourceNodeId": "ba984f9f-05ef-a3b1-d06f-f73a9b95e56d",
+                "SourcePort": "Out",
+                "TargetNodeId": "f4dbca02-3cda-e37d-d388-dfcc51f088d4",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "10cbb57c-03ae-a5c3-ed39-b4a7a038e369",
+                "SourceNodeId": "f4dbca02-3cda-e37d-d388-dfcc51f088d4",
+                "SourcePort": "Out",
+                "TargetNodeId": "8b4c6581-ce70-4e5f-7c07-23ddec19896f",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "2bd00a35-ffc6-c868-161d-0358bb9fd246",
+                "SourceNodeId": "8b4c6581-ce70-4e5f-7c07-23ddec19896f",
+                "SourcePort": "Out",
+                "TargetNodeId": "c9bd37b1-7979-c3af-8c03-26e6b88b9442",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "LoopGraph": {
+            "Nodes": [
+              {
+                "NodeId": "56c88c70-592c-f5bf-d4b3-eb2c8e7f83df",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520.0,
+                "Y": 520.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "a9eef7b6-ee3f-ce30-eb65-05949a45575f",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 820.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:827a592b-7095-2d19-ff70-c6e7edf2d8fc:PickingBorder",
+                  "To": "0.25",
+                  "Easing": "Linear",
+                  "From": "1",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "4fee5edf-06a3-8598-8a1f-55a67f15738d",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 1140.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:827a592b-7095-2d19-ff70-c6e7edf2d8fc:PickingBorder",
+                  "To": "1",
+                  "Easing": "Linear",
+                  "From": "0.25",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "1ed02177-5d1a-84a8-b1c9-de64d0eafe70",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1460.0,
+                "Y": 520.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "a883c088-8cbd-7cfb-b55f-20e5c155307c",
+                "SourceNodeId": "56c88c70-592c-f5bf-d4b3-eb2c8e7f83df",
+                "SourcePort": "Out",
+                "TargetNodeId": "a9eef7b6-ee3f-ce30-eb65-05949a45575f",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "ae0fff8b-e7c8-28b5-147b-9bc8ee143329",
+                "SourceNodeId": "a9eef7b6-ee3f-ce30-eb65-05949a45575f",
+                "SourcePort": "Out",
+                "TargetNodeId": "4fee5edf-06a3-8598-8a1f-55a67f15738d",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "86075507-e705-e522-a076-96dc9d7132d6",
+                "SourceNodeId": "4fee5edf-06a3-8598-8a1f-55a67f15738d",
+                "SourcePort": "Out",
+                "TargetNodeId": "1ed02177-5d1a-84a8-b1c9-de64d0eafe70",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "StopTriggers": [
+            {
+              "EventType": "MapV2.PickingBorderStateChanged",
+              "Source": null,
+              "Filters": [
+                {
+                  "Left": "Event.MapKey",
+                  "Operator": "Equals",
+                  "Right": "SacredHeartHospital",
+                  "RightValueKind": "Literal"
+                },
+                {
+                  "Left": "Event.IsPickingBorderVisible",
+                  "Operator": "Equals",
+                  "Right": "false",
+                  "RightValueKind": "Literal"
+                }
+              ]
+            }
+          ],
+          "StopGraph": {
+            "Nodes": [
+              {
+                "NodeId": "01f28a98-0759-637d-9ddb-b9dbdaf1c94b",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520.0,
+                "Y": 520.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "30816637-7e0a-5f9e-9226-17a9d7b04a12",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 820.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:827a592b-7095-2d19-ff70-c6e7edf2d8fc:PickingBorder",
+                  "To": "0",
+                  "Easing": "Linear",
+                  "From": "1",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "551909cd-d1fd-7fbe-2864-8e95d67c9ca7",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 1140.0,
+                "Y": 520.0,
+                "Properties": {
+                  "TargetLayer": "Auto",
+                  "Target": "part:827a592b-7095-2d19-ff70-c6e7edf2d8fc:PickingBorder",
+                  "Value": "Collapsed",
+                  "PropertyName": "Visibility"
+                }
+              },
+              {
+                "NodeId": "43d48bd9-8e47-a899-fa30-0f313f17204b",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1460.0,
+                "Y": 520.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "d5b8b20f-d0fd-7ebc-8776-8bed68ade700",
+                "SourceNodeId": "01f28a98-0759-637d-9ddb-b9dbdaf1c94b",
+                "SourcePort": "Out",
+                "TargetNodeId": "30816637-7e0a-5f9e-9226-17a9d7b04a12",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "800e7b0e-b062-6a9c-ce00-cbab65a1d2c1",
+                "SourceNodeId": "30816637-7e0a-5f9e-9226-17a9d7b04a12",
+                "SourcePort": "Out",
+                "TargetNodeId": "551909cd-d1fd-7fbe-2864-8e95d67c9ca7",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "ae25f9b8-e6fc-2b20-da20-9d01d2205b9c",
+                "SourceNodeId": "551909cd-d1fd-7fbe-2864-8e95d67c9ca7",
+                "SourcePort": "Out",
+                "TargetNodeId": "43d48bd9-8e47-a899-fa30-0f313f17204b",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "TransitionTrigger": null,
+          "ExitGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "EnterGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "ReentryPolicy": "InterruptPrevious",
+          "LoopPolicy": {
+            "RepeatCount": -1,
+            "AutoReverse": false,
+            "IntervalMs": 0,
+            "StopMode": "RunStopGraph",
+            "ResetOnStop": true,
+            "ReentryPolicy": "IgnoreIfRunning"
+          }
+        }
+      ]
+    },
+    {
+      "BehaviorGuid": "84bbddef-0d27-01e1-0ca1-37a163f3e478",
+      "DisplayName": "Leo_s_Memory",
+      "AnimationParts": [],
+      "Behaviors": [
+        {
+          "BehaviorId": "0057d902-4ba5-b15f-fd03-608f58635aa0",
+          "Name": "PickingBorderBreathing",
+          "Enabled": true,
+          "Kind": "Loop",
+          "Trigger": null,
+          "Graph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StartTrigger": {
+            "EventType": "MapV2.PickingBorderStateChanged",
+            "Source": null,
+            "Filters": [
+              {
+                "Left": "Event.MapKey",
+                "Operator": "Equals",
+                "Right": "LeosMemory",
+                "RightValueKind": "Literal"
+              },
+              {
+                "Left": "Event.IsPickingBorderVisible",
+                "Operator": "Equals",
+                "Right": "true",
+                "RightValueKind": "Literal"
+              }
+            ]
+          },
+          "StartGraph": {
+            "Nodes": [
+              {
+                "NodeId": "ef283bc8-55de-8472-5af3-7f68d7dec42d",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520.0,
+                "Y": 520.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "b0e17c8a-321a-4722-c78e-f7bb3314939b",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 820.0,
+                "Y": 520.0,
+                "Properties": {
+                  "TargetLayer": "Auto",
+                  "Target": "part:84bbddef-0d27-01e1-0ca1-37a163f3e478:PickingBorder",
+                  "Value": "0",
+                  "PropertyName": "Opacity"
+                }
+              },
+              {
+                "NodeId": "f6477f17-4f47-2d7a-8790-4ccc6c6379e7",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 1140.0,
+                "Y": 520.0,
+                "Properties": {
+                  "TargetLayer": "Auto",
+                  "Target": "part:84bbddef-0d27-01e1-0ca1-37a163f3e478:PickingBorder",
+                  "Value": "Visible",
+                  "PropertyName": "Visibility"
+                }
+              },
+              {
+                "NodeId": "ee033d67-1cc6-3e2f-7547-94d5dc906e3a",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 1460.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:84bbddef-0d27-01e1-0ca1-37a163f3e478:PickingBorder",
+                  "To": "1",
+                  "Easing": "Linear",
+                  "From": "0",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "b70c3aad-a01b-a6c2-d8cf-27f945ceacdc",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1780.0,
+                "Y": 520.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "b94d3ccd-9b8c-1d7b-c772-a7c07b6e0d48",
+                "SourceNodeId": "ef283bc8-55de-8472-5af3-7f68d7dec42d",
+                "SourcePort": "Out",
+                "TargetNodeId": "b0e17c8a-321a-4722-c78e-f7bb3314939b",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "5a638e7a-7c5f-0691-2827-d57d042025c5",
+                "SourceNodeId": "b0e17c8a-321a-4722-c78e-f7bb3314939b",
+                "SourcePort": "Out",
+                "TargetNodeId": "f6477f17-4f47-2d7a-8790-4ccc6c6379e7",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "3f94325a-d505-a5c7-dd48-51ed62c4a96e",
+                "SourceNodeId": "f6477f17-4f47-2d7a-8790-4ccc6c6379e7",
+                "SourcePort": "Out",
+                "TargetNodeId": "ee033d67-1cc6-3e2f-7547-94d5dc906e3a",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "22cd585b-1619-afc0-1436-56694cd7f735",
+                "SourceNodeId": "ee033d67-1cc6-3e2f-7547-94d5dc906e3a",
+                "SourcePort": "Out",
+                "TargetNodeId": "b70c3aad-a01b-a6c2-d8cf-27f945ceacdc",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "LoopGraph": {
+            "Nodes": [
+              {
+                "NodeId": "6a7a29e6-b973-4318-3b6d-7738845a13db",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520.0,
+                "Y": 520.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "1a53877d-aef0-0338-ba87-2a2bb7439c46",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 820.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:84bbddef-0d27-01e1-0ca1-37a163f3e478:PickingBorder",
+                  "To": "0.25",
+                  "Easing": "Linear",
+                  "From": "1",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "c00a5a82-2374-9154-e585-6fd848f940c9",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 1140.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:84bbddef-0d27-01e1-0ca1-37a163f3e478:PickingBorder",
+                  "To": "1",
+                  "Easing": "Linear",
+                  "From": "0.25",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "717c895c-763b-f77a-a872-33452e0b3a9e",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1460.0,
+                "Y": 520.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "580bb9df-77a0-8a5d-76af-269c348b5749",
+                "SourceNodeId": "6a7a29e6-b973-4318-3b6d-7738845a13db",
+                "SourcePort": "Out",
+                "TargetNodeId": "1a53877d-aef0-0338-ba87-2a2bb7439c46",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "8a8d9573-cfd7-4a4d-e69f-ecd621973a7c",
+                "SourceNodeId": "1a53877d-aef0-0338-ba87-2a2bb7439c46",
+                "SourcePort": "Out",
+                "TargetNodeId": "c00a5a82-2374-9154-e585-6fd848f940c9",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "f63cf7d4-4fff-35dd-e44e-633bc9763f36",
+                "SourceNodeId": "c00a5a82-2374-9154-e585-6fd848f940c9",
+                "SourcePort": "Out",
+                "TargetNodeId": "717c895c-763b-f77a-a872-33452e0b3a9e",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "StopTriggers": [
+            {
+              "EventType": "MapV2.PickingBorderStateChanged",
+              "Source": null,
+              "Filters": [
+                {
+                  "Left": "Event.MapKey",
+                  "Operator": "Equals",
+                  "Right": "LeosMemory",
+                  "RightValueKind": "Literal"
+                },
+                {
+                  "Left": "Event.IsPickingBorderVisible",
+                  "Operator": "Equals",
+                  "Right": "false",
+                  "RightValueKind": "Literal"
+                }
+              ]
+            }
+          ],
+          "StopGraph": {
+            "Nodes": [
+              {
+                "NodeId": "11a9b2bd-7719-4fca-b202-e5c90316a549",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520.0,
+                "Y": 520.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "db1adabd-7a3a-f22f-2d99-5b357cf18a3d",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 820.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:84bbddef-0d27-01e1-0ca1-37a163f3e478:PickingBorder",
+                  "To": "0",
+                  "Easing": "Linear",
+                  "From": "1",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "fccfeb67-ff12-dbd8-00f9-fa6d29b83a52",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 1140.0,
+                "Y": 520.0,
+                "Properties": {
+                  "TargetLayer": "Auto",
+                  "Target": "part:84bbddef-0d27-01e1-0ca1-37a163f3e478:PickingBorder",
+                  "Value": "Collapsed",
+                  "PropertyName": "Visibility"
+                }
+              },
+              {
+                "NodeId": "16d0b1f4-b55f-984a-6f58-519bba4b2c10",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1460.0,
+                "Y": 520.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "07ac1d51-192d-b360-71c0-8c17087aa5ec",
+                "SourceNodeId": "11a9b2bd-7719-4fca-b202-e5c90316a549",
+                "SourcePort": "Out",
+                "TargetNodeId": "db1adabd-7a3a-f22f-2d99-5b357cf18a3d",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "257b286d-1d1e-d339-59c9-3ec7121a7d68",
+                "SourceNodeId": "db1adabd-7a3a-f22f-2d99-5b357cf18a3d",
+                "SourcePort": "Out",
+                "TargetNodeId": "fccfeb67-ff12-dbd8-00f9-fa6d29b83a52",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "9e45e3fb-863f-e479-3148-9a0f5dc7aef5",
+                "SourceNodeId": "fccfeb67-ff12-dbd8-00f9-fa6d29b83a52",
+                "SourcePort": "Out",
+                "TargetNodeId": "16d0b1f4-b55f-984a-6f58-519bba4b2c10",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "TransitionTrigger": null,
+          "ExitGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "EnterGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "ReentryPolicy": "InterruptPrevious",
+          "LoopPolicy": {
+            "RepeatCount": -1,
+            "AutoReverse": false,
+            "IntervalMs": 0,
+            "StopMode": "RunStopGraph",
+            "ResetOnStop": true,
+            "ReentryPolicy": "IgnoreIfRunning"
+          }
+        }
+      ]
+    },
+    {
+      "BehaviorGuid": "232433e6-8136-b8ca-2fb8-13dc0d4fb16b",
+      "DisplayName": "Moonlit_River_Park",
+      "AnimationParts": [],
+      "Behaviors": [
+        {
+          "BehaviorId": "96514f02-aaf2-6bfe-3e63-6efa90b4afd8",
+          "Name": "PickingBorderBreathing",
+          "Enabled": true,
+          "Kind": "Loop",
+          "Trigger": null,
+          "Graph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StartTrigger": {
+            "EventType": "MapV2.PickingBorderStateChanged",
+            "Source": null,
+            "Filters": [
+              {
+                "Left": "Event.MapKey",
+                "Operator": "Equals",
+                "Right": "MoonlitRiverPark",
+                "RightValueKind": "Literal"
+              },
+              {
+                "Left": "Event.IsPickingBorderVisible",
+                "Operator": "Equals",
+                "Right": "true",
+                "RightValueKind": "Literal"
+              }
+            ]
+          },
+          "StartGraph": {
+            "Nodes": [
+              {
+                "NodeId": "4f88465d-1cd0-8bc3-4258-cb48a561f5a6",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520.0,
+                "Y": 520.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "d6ce071d-69e7-dd69-33e9-fc66e7198f22",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 820.0,
+                "Y": 520.0,
+                "Properties": {
+                  "TargetLayer": "Auto",
+                  "Target": "part:232433e6-8136-b8ca-2fb8-13dc0d4fb16b:PickingBorder",
+                  "Value": "0",
+                  "PropertyName": "Opacity"
+                }
+              },
+              {
+                "NodeId": "4223b2f6-7453-7286-b4c9-c4b4e37a2484",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 1140.0,
+                "Y": 520.0,
+                "Properties": {
+                  "TargetLayer": "Auto",
+                  "Target": "part:232433e6-8136-b8ca-2fb8-13dc0d4fb16b:PickingBorder",
+                  "Value": "Visible",
+                  "PropertyName": "Visibility"
+                }
+              },
+              {
+                "NodeId": "6d373375-43e0-e4e8-0530-49a2fe529bae",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 1460.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:232433e6-8136-b8ca-2fb8-13dc0d4fb16b:PickingBorder",
+                  "To": "1",
+                  "Easing": "Linear",
+                  "From": "0",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "96385611-1855-089a-f5e0-38e22104f1c4",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1780.0,
+                "Y": 520.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "32b22456-8554-58c3-8428-bf45987b7f19",
+                "SourceNodeId": "4f88465d-1cd0-8bc3-4258-cb48a561f5a6",
+                "SourcePort": "Out",
+                "TargetNodeId": "d6ce071d-69e7-dd69-33e9-fc66e7198f22",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "a16015d9-9b61-1d79-9a83-0e597f563d4c",
+                "SourceNodeId": "d6ce071d-69e7-dd69-33e9-fc66e7198f22",
+                "SourcePort": "Out",
+                "TargetNodeId": "4223b2f6-7453-7286-b4c9-c4b4e37a2484",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "0066b5b5-c1bc-34ba-c7bb-cadc13fa2b7f",
+                "SourceNodeId": "4223b2f6-7453-7286-b4c9-c4b4e37a2484",
+                "SourcePort": "Out",
+                "TargetNodeId": "6d373375-43e0-e4e8-0530-49a2fe529bae",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "72c7036f-e3bb-68dd-d7d0-d5858e4deab3",
+                "SourceNodeId": "6d373375-43e0-e4e8-0530-49a2fe529bae",
+                "SourcePort": "Out",
+                "TargetNodeId": "96385611-1855-089a-f5e0-38e22104f1c4",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "LoopGraph": {
+            "Nodes": [
+              {
+                "NodeId": "50143633-b80e-9dca-5aaa-d654d6c9f04f",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520.0,
+                "Y": 520.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "d55ce774-eaa6-1336-25b9-47d4b3d57ccb",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 820.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:232433e6-8136-b8ca-2fb8-13dc0d4fb16b:PickingBorder",
+                  "To": "0.25",
+                  "Easing": "Linear",
+                  "From": "1",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "1e0a2032-b6bb-1204-738b-68f5e992a9f9",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 1140.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:232433e6-8136-b8ca-2fb8-13dc0d4fb16b:PickingBorder",
+                  "To": "1",
+                  "Easing": "Linear",
+                  "From": "0.25",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "37d80f87-00ce-02ae-43c7-f1a807aa9e5e",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1460.0,
+                "Y": 520.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "6855c848-9d42-1031-a27f-49f27d2bc979",
+                "SourceNodeId": "50143633-b80e-9dca-5aaa-d654d6c9f04f",
+                "SourcePort": "Out",
+                "TargetNodeId": "d55ce774-eaa6-1336-25b9-47d4b3d57ccb",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "f2d4bd6a-0bd8-45d5-9ed8-7815664c8716",
+                "SourceNodeId": "d55ce774-eaa6-1336-25b9-47d4b3d57ccb",
+                "SourcePort": "Out",
+                "TargetNodeId": "1e0a2032-b6bb-1204-738b-68f5e992a9f9",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "47dd4dbd-1044-9dba-458a-81c06b4dc97f",
+                "SourceNodeId": "1e0a2032-b6bb-1204-738b-68f5e992a9f9",
+                "SourcePort": "Out",
+                "TargetNodeId": "37d80f87-00ce-02ae-43c7-f1a807aa9e5e",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "StopTriggers": [
+            {
+              "EventType": "MapV2.PickingBorderStateChanged",
+              "Source": null,
+              "Filters": [
+                {
+                  "Left": "Event.MapKey",
+                  "Operator": "Equals",
+                  "Right": "MoonlitRiverPark",
+                  "RightValueKind": "Literal"
+                },
+                {
+                  "Left": "Event.IsPickingBorderVisible",
+                  "Operator": "Equals",
+                  "Right": "false",
+                  "RightValueKind": "Literal"
+                }
+              ]
+            }
+          ],
+          "StopGraph": {
+            "Nodes": [
+              {
+                "NodeId": "664c2927-91fc-40e7-0e9b-c7c4204f6b57",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520.0,
+                "Y": 520.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "96c04d61-47b5-a840-1a2f-d65121f0edad",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 820.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:232433e6-8136-b8ca-2fb8-13dc0d4fb16b:PickingBorder",
+                  "To": "0",
+                  "Easing": "Linear",
+                  "From": "1",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "b82de1ad-1f2d-0ef0-b096-fd637b8c78d3",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 1140.0,
+                "Y": 520.0,
+                "Properties": {
+                  "TargetLayer": "Auto",
+                  "Target": "part:232433e6-8136-b8ca-2fb8-13dc0d4fb16b:PickingBorder",
+                  "Value": "Collapsed",
+                  "PropertyName": "Visibility"
+                }
+              },
+              {
+                "NodeId": "7f6f303b-4fbd-a5d1-2b57-1cf3532c35d6",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1460.0,
+                "Y": 520.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "9e79593e-4d95-0f9d-c9f6-c879bf54af7a",
+                "SourceNodeId": "664c2927-91fc-40e7-0e9b-c7c4204f6b57",
+                "SourcePort": "Out",
+                "TargetNodeId": "96c04d61-47b5-a840-1a2f-d65121f0edad",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "2e4378fa-e554-f656-4169-c9f9abdfd3e3",
+                "SourceNodeId": "96c04d61-47b5-a840-1a2f-d65121f0edad",
+                "SourcePort": "Out",
+                "TargetNodeId": "b82de1ad-1f2d-0ef0-b096-fd637b8c78d3",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "a2465298-6b47-ba69-dc47-91fa0fee5e6d",
+                "SourceNodeId": "b82de1ad-1f2d-0ef0-b096-fd637b8c78d3",
+                "SourcePort": "Out",
+                "TargetNodeId": "7f6f303b-4fbd-a5d1-2b57-1cf3532c35d6",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "TransitionTrigger": null,
+          "ExitGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "EnterGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "ReentryPolicy": "InterruptPrevious",
+          "LoopPolicy": {
+            "RepeatCount": -1,
+            "AutoReverse": false,
+            "IntervalMs": 0,
+            "StopMode": "RunStopGraph",
+            "ResetOnStop": true,
+            "ReentryPolicy": "IgnoreIfRunning"
+          }
+        }
+      ]
+    },
+    {
+      "BehaviorGuid": "c3b02424-de72-515c-24fa-14dc4341698c",
+      "DisplayName": "Lakeside_Village",
+      "AnimationParts": [],
+      "Behaviors": [
+        {
+          "BehaviorId": "cee1cf19-04ee-0258-2c45-9b21eb1303c2",
+          "Name": "PickingBorderBreathing",
+          "Enabled": true,
+          "Kind": "Loop",
+          "Trigger": null,
+          "Graph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StartTrigger": {
+            "EventType": "MapV2.PickingBorderStateChanged",
+            "Source": null,
+            "Filters": [
+              {
+                "Left": "Event.MapKey",
+                "Operator": "Equals",
+                "Right": "LakesideVillage",
+                "RightValueKind": "Literal"
+              },
+              {
+                "Left": "Event.IsPickingBorderVisible",
+                "Operator": "Equals",
+                "Right": "true",
+                "RightValueKind": "Literal"
+              }
+            ]
+          },
+          "StartGraph": {
+            "Nodes": [
+              {
+                "NodeId": "37e0f7b4-faaa-24f3-0603-98c8b674c540",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520.0,
+                "Y": 520.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "b66a10b8-51b9-adba-2f31-95b56f11213f",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 820.0,
+                "Y": 520.0,
+                "Properties": {
+                  "TargetLayer": "Auto",
+                  "Target": "part:c3b02424-de72-515c-24fa-14dc4341698c:PickingBorder",
+                  "Value": "0",
+                  "PropertyName": "Opacity"
+                }
+              },
+              {
+                "NodeId": "d96abed4-2b6b-12d2-6e5f-3d78d9c24bdf",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 1140.0,
+                "Y": 520.0,
+                "Properties": {
+                  "TargetLayer": "Auto",
+                  "Target": "part:c3b02424-de72-515c-24fa-14dc4341698c:PickingBorder",
+                  "Value": "Visible",
+                  "PropertyName": "Visibility"
+                }
+              },
+              {
+                "NodeId": "100d1d49-be23-d5b5-b9ed-84cfe5db1ea7",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 1460.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:c3b02424-de72-515c-24fa-14dc4341698c:PickingBorder",
+                  "To": "1",
+                  "Easing": "Linear",
+                  "From": "0",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "946b3c93-d8ab-5509-7776-7726544f69aa",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1780.0,
+                "Y": 520.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "1d8fa448-cd26-e4d1-e8f3-b0ca7aa8007e",
+                "SourceNodeId": "37e0f7b4-faaa-24f3-0603-98c8b674c540",
+                "SourcePort": "Out",
+                "TargetNodeId": "b66a10b8-51b9-adba-2f31-95b56f11213f",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "0e27566a-012d-7146-fc71-f04415290789",
+                "SourceNodeId": "b66a10b8-51b9-adba-2f31-95b56f11213f",
+                "SourcePort": "Out",
+                "TargetNodeId": "d96abed4-2b6b-12d2-6e5f-3d78d9c24bdf",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "2ee6bb39-4d49-21fc-ee4a-79e8a4902299",
+                "SourceNodeId": "d96abed4-2b6b-12d2-6e5f-3d78d9c24bdf",
+                "SourcePort": "Out",
+                "TargetNodeId": "100d1d49-be23-d5b5-b9ed-84cfe5db1ea7",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "87195aee-add8-fcd5-1482-aa2470c73ba7",
+                "SourceNodeId": "100d1d49-be23-d5b5-b9ed-84cfe5db1ea7",
+                "SourcePort": "Out",
+                "TargetNodeId": "946b3c93-d8ab-5509-7776-7726544f69aa",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "LoopGraph": {
+            "Nodes": [
+              {
+                "NodeId": "2a83927b-0c1b-4d20-be83-4d8c184186d3",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520.0,
+                "Y": 520.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "6ecbba7c-5cc1-deab-52f2-a91327b2c820",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 820.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:c3b02424-de72-515c-24fa-14dc4341698c:PickingBorder",
+                  "To": "0.25",
+                  "Easing": "Linear",
+                  "From": "1",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "718a29af-1bbc-8516-7ca6-c509500e5ffc",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 1140.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:c3b02424-de72-515c-24fa-14dc4341698c:PickingBorder",
+                  "To": "1",
+                  "Easing": "Linear",
+                  "From": "0.25",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "8e19afc1-0e0d-0125-267f-f3b472433ac0",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1460.0,
+                "Y": 520.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "d569e22b-0e64-8ed6-b615-869f5cdebf7d",
+                "SourceNodeId": "2a83927b-0c1b-4d20-be83-4d8c184186d3",
+                "SourcePort": "Out",
+                "TargetNodeId": "6ecbba7c-5cc1-deab-52f2-a91327b2c820",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "8cb0c0cb-90d5-5829-b8af-9483d0e6f6c7",
+                "SourceNodeId": "6ecbba7c-5cc1-deab-52f2-a91327b2c820",
+                "SourcePort": "Out",
+                "TargetNodeId": "718a29af-1bbc-8516-7ca6-c509500e5ffc",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "0ffb8256-be8c-9d8f-d8df-0823b8a23833",
+                "SourceNodeId": "718a29af-1bbc-8516-7ca6-c509500e5ffc",
+                "SourcePort": "Out",
+                "TargetNodeId": "8e19afc1-0e0d-0125-267f-f3b472433ac0",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "StopTriggers": [
+            {
+              "EventType": "MapV2.PickingBorderStateChanged",
+              "Source": null,
+              "Filters": [
+                {
+                  "Left": "Event.MapKey",
+                  "Operator": "Equals",
+                  "Right": "LakesideVillage",
+                  "RightValueKind": "Literal"
+                },
+                {
+                  "Left": "Event.IsPickingBorderVisible",
+                  "Operator": "Equals",
+                  "Right": "false",
+                  "RightValueKind": "Literal"
+                }
+              ]
+            }
+          ],
+          "StopGraph": {
+            "Nodes": [
+              {
+                "NodeId": "1808e92d-445e-1e0c-176d-0935cd9c68d7",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520.0,
+                "Y": 520.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "cc3f42d5-6c8a-1489-3f9f-2ad578b9974b",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 820.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:c3b02424-de72-515c-24fa-14dc4341698c:PickingBorder",
+                  "To": "0",
+                  "Easing": "Linear",
+                  "From": "1",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "eb3d6eee-9e1e-96b5-6ea5-844a583f92f4",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 1140.0,
+                "Y": 520.0,
+                "Properties": {
+                  "TargetLayer": "Auto",
+                  "Target": "part:c3b02424-de72-515c-24fa-14dc4341698c:PickingBorder",
+                  "Value": "Collapsed",
+                  "PropertyName": "Visibility"
+                }
+              },
+              {
+                "NodeId": "0cecc781-da7f-7894-052b-b4c3e6304539",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1460.0,
+                "Y": 520.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "e4882e68-ac83-5a92-45b4-be24d0613df6",
+                "SourceNodeId": "1808e92d-445e-1e0c-176d-0935cd9c68d7",
+                "SourcePort": "Out",
+                "TargetNodeId": "cc3f42d5-6c8a-1489-3f9f-2ad578b9974b",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "7fc92b08-7844-fc60-3bbf-3a2393ab214e",
+                "SourceNodeId": "cc3f42d5-6c8a-1489-3f9f-2ad578b9974b",
+                "SourcePort": "Out",
+                "TargetNodeId": "eb3d6eee-9e1e-96b5-6ea5-844a583f92f4",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "52e184e1-a3b2-4232-d122-f8a84d951419",
+                "SourceNodeId": "eb3d6eee-9e1e-96b5-6ea5-844a583f92f4",
+                "SourcePort": "Out",
+                "TargetNodeId": "0cecc781-da7f-7894-052b-b4c3e6304539",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "TransitionTrigger": null,
+          "ExitGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "EnterGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "ReentryPolicy": "InterruptPrevious",
+          "LoopPolicy": {
+            "RepeatCount": -1,
+            "AutoReverse": false,
+            "IntervalMs": 0,
+            "StopMode": "RunStopGraph",
+            "ResetOnStop": true,
+            "ReentryPolicy": "IgnoreIfRunning"
+          }
+        }
+      ]
+    },
+    {
+      "BehaviorGuid": "cb8d0d2b-a0bc-5127-8aee-a3954fcbc0b0",
+      "DisplayName": "Eversleeping_Town",
+      "AnimationParts": [],
+      "Behaviors": [
+        {
+          "BehaviorId": "abc4100e-ff1c-8ff9-73c9-63b07dc89754",
+          "Name": "PickingBorderBreathing",
+          "Enabled": true,
+          "Kind": "Loop",
+          "Trigger": null,
+          "Graph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StartTrigger": {
+            "EventType": "MapV2.PickingBorderStateChanged",
+            "Source": null,
+            "Filters": [
+              {
+                "Left": "Event.MapKey",
+                "Operator": "Equals",
+                "Right": "EversleepingTown",
+                "RightValueKind": "Literal"
+              },
+              {
+                "Left": "Event.IsPickingBorderVisible",
+                "Operator": "Equals",
+                "Right": "true",
+                "RightValueKind": "Literal"
+              }
+            ]
+          },
+          "StartGraph": {
+            "Nodes": [
+              {
+                "NodeId": "62e470af-2972-2fb2-e365-ee40fb062aba",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520.0,
+                "Y": 520.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "aca58be7-94a9-55fe-d9dd-73e9cbfa123d",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 820.0,
+                "Y": 520.0,
+                "Properties": {
+                  "TargetLayer": "Auto",
+                  "Target": "part:cb8d0d2b-a0bc-5127-8aee-a3954fcbc0b0:PickingBorder",
+                  "Value": "0",
+                  "PropertyName": "Opacity"
+                }
+              },
+              {
+                "NodeId": "604dbca6-05bc-c09e-b64d-d287283f666c",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 1140.0,
+                "Y": 520.0,
+                "Properties": {
+                  "TargetLayer": "Auto",
+                  "Target": "part:cb8d0d2b-a0bc-5127-8aee-a3954fcbc0b0:PickingBorder",
+                  "Value": "Visible",
+                  "PropertyName": "Visibility"
+                }
+              },
+              {
+                "NodeId": "6a829974-2bb7-efe4-bb8d-9620e5302934",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 1460.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:cb8d0d2b-a0bc-5127-8aee-a3954fcbc0b0:PickingBorder",
+                  "To": "1",
+                  "Easing": "Linear",
+                  "From": "0",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "689c3fea-70c0-0e83-14ac-92d84e77630b",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1780.0,
+                "Y": 520.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "8695c8d4-b54a-dfb4-a9fd-254a4d6e5ec8",
+                "SourceNodeId": "62e470af-2972-2fb2-e365-ee40fb062aba",
+                "SourcePort": "Out",
+                "TargetNodeId": "aca58be7-94a9-55fe-d9dd-73e9cbfa123d",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "806fcc68-94f2-1d94-2c85-d4905bda57cc",
+                "SourceNodeId": "aca58be7-94a9-55fe-d9dd-73e9cbfa123d",
+                "SourcePort": "Out",
+                "TargetNodeId": "604dbca6-05bc-c09e-b64d-d287283f666c",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "5376ce5c-950d-9539-e046-a1fb9c7877f7",
+                "SourceNodeId": "604dbca6-05bc-c09e-b64d-d287283f666c",
+                "SourcePort": "Out",
+                "TargetNodeId": "6a829974-2bb7-efe4-bb8d-9620e5302934",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "590f4b80-504a-cf05-df0c-44823712940e",
+                "SourceNodeId": "6a829974-2bb7-efe4-bb8d-9620e5302934",
+                "SourcePort": "Out",
+                "TargetNodeId": "689c3fea-70c0-0e83-14ac-92d84e77630b",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "LoopGraph": {
+            "Nodes": [
+              {
+                "NodeId": "c9522aad-a449-040f-e603-7748486335c4",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520.0,
+                "Y": 520.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "261ce36f-5e50-6a48-4f2b-7de07c99c554",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 820.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:cb8d0d2b-a0bc-5127-8aee-a3954fcbc0b0:PickingBorder",
+                  "To": "0.25",
+                  "Easing": "Linear",
+                  "From": "1",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "169738a4-19e0-6281-10a9-154eb8b111a7",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 1140.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:cb8d0d2b-a0bc-5127-8aee-a3954fcbc0b0:PickingBorder",
+                  "To": "1",
+                  "Easing": "Linear",
+                  "From": "0.25",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "5f6eaf29-9734-6690-139a-cf1b0e5da6d6",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1460.0,
+                "Y": 520.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "0d24f519-6209-28e0-2466-9ddec150f086",
+                "SourceNodeId": "c9522aad-a449-040f-e603-7748486335c4",
+                "SourcePort": "Out",
+                "TargetNodeId": "261ce36f-5e50-6a48-4f2b-7de07c99c554",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "89ed81a3-9e8a-e75a-c5c8-0c57677d52e0",
+                "SourceNodeId": "261ce36f-5e50-6a48-4f2b-7de07c99c554",
+                "SourcePort": "Out",
+                "TargetNodeId": "169738a4-19e0-6281-10a9-154eb8b111a7",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "83369722-a128-2430-ce60-e9d0821c83bd",
+                "SourceNodeId": "169738a4-19e0-6281-10a9-154eb8b111a7",
+                "SourcePort": "Out",
+                "TargetNodeId": "5f6eaf29-9734-6690-139a-cf1b0e5da6d6",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "StopTriggers": [
+            {
+              "EventType": "MapV2.PickingBorderStateChanged",
+              "Source": null,
+              "Filters": [
+                {
+                  "Left": "Event.MapKey",
+                  "Operator": "Equals",
+                  "Right": "EversleepingTown",
+                  "RightValueKind": "Literal"
+                },
+                {
+                  "Left": "Event.IsPickingBorderVisible",
+                  "Operator": "Equals",
+                  "Right": "false",
+                  "RightValueKind": "Literal"
+                }
+              ]
+            }
+          ],
+          "StopGraph": {
+            "Nodes": [
+              {
+                "NodeId": "c904aa22-12af-68cc-7196-3d9951465c29",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520.0,
+                "Y": 520.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "83e6482f-3b0a-c1c2-3700-db82cd5b8b8d",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 820.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:cb8d0d2b-a0bc-5127-8aee-a3954fcbc0b0:PickingBorder",
+                  "To": "0",
+                  "Easing": "Linear",
+                  "From": "1",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "c49a5187-4743-5227-793d-7619eb8c7888",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 1140.0,
+                "Y": 520.0,
+                "Properties": {
+                  "TargetLayer": "Auto",
+                  "Target": "part:cb8d0d2b-a0bc-5127-8aee-a3954fcbc0b0:PickingBorder",
+                  "Value": "Collapsed",
+                  "PropertyName": "Visibility"
+                }
+              },
+              {
+                "NodeId": "8b232309-2d78-59b1-9f94-76705d0328b1",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1460.0,
+                "Y": 520.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "124e8723-a23e-d539-72e1-a77d6653942a",
+                "SourceNodeId": "c904aa22-12af-68cc-7196-3d9951465c29",
+                "SourcePort": "Out",
+                "TargetNodeId": "83e6482f-3b0a-c1c2-3700-db82cd5b8b8d",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "52279977-d96a-42f9-b0a9-10136fce2d87",
+                "SourceNodeId": "83e6482f-3b0a-c1c2-3700-db82cd5b8b8d",
+                "SourcePort": "Out",
+                "TargetNodeId": "c49a5187-4743-5227-793d-7619eb8c7888",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "a0680b56-6bab-35f2-2276-f993b08e9c0a",
+                "SourceNodeId": "c49a5187-4743-5227-793d-7619eb8c7888",
+                "SourcePort": "Out",
+                "TargetNodeId": "8b232309-2d78-59b1-9f94-76705d0328b1",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "TransitionTrigger": null,
+          "ExitGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "EnterGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "ReentryPolicy": "InterruptPrevious",
+          "LoopPolicy": {
+            "RepeatCount": -1,
+            "AutoReverse": false,
+            "IntervalMs": 0,
+            "StopMode": "RunStopGraph",
+            "ResetOnStop": true,
+            "ReentryPolicy": "IgnoreIfRunning"
+          }
+        }
+      ]
+    },
+    {
+      "BehaviorGuid": "a4dbedb2-fb7f-27dd-bff5-ccf2cb3c726e",
+      "DisplayName": "Chinatown",
+      "AnimationParts": [],
+      "Behaviors": [
+        {
+          "BehaviorId": "af65e3c0-f833-e38f-d9ab-1aec007497d1",
+          "Name": "PickingBorderBreathing",
+          "Enabled": true,
+          "Kind": "Loop",
+          "Trigger": null,
+          "Graph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StartTrigger": {
+            "EventType": "MapV2.PickingBorderStateChanged",
+            "Source": null,
+            "Filters": [
+              {
+                "Left": "Event.MapKey",
+                "Operator": "Equals",
+                "Right": "ChinaTown",
+                "RightValueKind": "Literal"
+              },
+              {
+                "Left": "Event.IsPickingBorderVisible",
+                "Operator": "Equals",
+                "Right": "true",
+                "RightValueKind": "Literal"
+              }
+            ]
+          },
+          "StartGraph": {
+            "Nodes": [
+              {
+                "NodeId": "cf033e75-2ff8-b37c-07de-b64e320ebb68",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520.0,
+                "Y": 520.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "1f1339f8-1e34-f439-36bf-6e377774da27",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 820.0,
+                "Y": 520.0,
+                "Properties": {
+                  "TargetLayer": "Auto",
+                  "Target": "part:a4dbedb2-fb7f-27dd-bff5-ccf2cb3c726e:PickingBorder",
+                  "Value": "0",
+                  "PropertyName": "Opacity"
+                }
+              },
+              {
+                "NodeId": "8c4aea1f-dbbc-369e-6e25-c6d486fafa91",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 1140.0,
+                "Y": 520.0,
+                "Properties": {
+                  "TargetLayer": "Auto",
+                  "Target": "part:a4dbedb2-fb7f-27dd-bff5-ccf2cb3c726e:PickingBorder",
+                  "Value": "Visible",
+                  "PropertyName": "Visibility"
+                }
+              },
+              {
+                "NodeId": "ad5780c5-8d7b-0f08-dc56-47a7c2cafc7f",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 1460.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:a4dbedb2-fb7f-27dd-bff5-ccf2cb3c726e:PickingBorder",
+                  "To": "1",
+                  "Easing": "Linear",
+                  "From": "0",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "dccad689-8a0e-d689-1a05-35741993de6e",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1780.0,
+                "Y": 520.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "26a5e396-4d77-9560-7097-797aac7dea97",
+                "SourceNodeId": "cf033e75-2ff8-b37c-07de-b64e320ebb68",
+                "SourcePort": "Out",
+                "TargetNodeId": "1f1339f8-1e34-f439-36bf-6e377774da27",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "f20711b7-d8b6-7551-dced-c2f9a745c23e",
+                "SourceNodeId": "1f1339f8-1e34-f439-36bf-6e377774da27",
+                "SourcePort": "Out",
+                "TargetNodeId": "8c4aea1f-dbbc-369e-6e25-c6d486fafa91",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "07f08c7f-9348-1f06-1ed6-4402b87d58b4",
+                "SourceNodeId": "8c4aea1f-dbbc-369e-6e25-c6d486fafa91",
+                "SourcePort": "Out",
+                "TargetNodeId": "ad5780c5-8d7b-0f08-dc56-47a7c2cafc7f",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "37ef59c8-e023-5663-ba42-b585d30440b6",
+                "SourceNodeId": "ad5780c5-8d7b-0f08-dc56-47a7c2cafc7f",
+                "SourcePort": "Out",
+                "TargetNodeId": "dccad689-8a0e-d689-1a05-35741993de6e",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "LoopGraph": {
+            "Nodes": [
+              {
+                "NodeId": "0589dbd3-f396-8cca-59e2-4e2a21b35fe7",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520.0,
+                "Y": 520.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "74d0bc84-9b11-400a-1652-bb21ac5d8e77",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 820.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:a4dbedb2-fb7f-27dd-bff5-ccf2cb3c726e:PickingBorder",
+                  "To": "0.25",
+                  "Easing": "Linear",
+                  "From": "1",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "52617cf6-9b95-1894-6b5a-30c685c6deba",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 1140.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:a4dbedb2-fb7f-27dd-bff5-ccf2cb3c726e:PickingBorder",
+                  "To": "1",
+                  "Easing": "Linear",
+                  "From": "0.25",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "c56a7a26-96b8-1336-26ed-cc39ee84c74f",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1460.0,
+                "Y": 520.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "f905f882-53e8-46e4-3521-226389631993",
+                "SourceNodeId": "0589dbd3-f396-8cca-59e2-4e2a21b35fe7",
+                "SourcePort": "Out",
+                "TargetNodeId": "74d0bc84-9b11-400a-1652-bb21ac5d8e77",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "f6efda41-ce35-08e8-b28a-6b3594e43f49",
+                "SourceNodeId": "74d0bc84-9b11-400a-1652-bb21ac5d8e77",
+                "SourcePort": "Out",
+                "TargetNodeId": "52617cf6-9b95-1894-6b5a-30c685c6deba",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "b9e1588e-5c7c-57af-8535-282de0218ad1",
+                "SourceNodeId": "52617cf6-9b95-1894-6b5a-30c685c6deba",
+                "SourcePort": "Out",
+                "TargetNodeId": "c56a7a26-96b8-1336-26ed-cc39ee84c74f",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "StopTriggers": [
+            {
+              "EventType": "MapV2.PickingBorderStateChanged",
+              "Source": null,
+              "Filters": [
+                {
+                  "Left": "Event.MapKey",
+                  "Operator": "Equals",
+                  "Right": "ChinaTown",
+                  "RightValueKind": "Literal"
+                },
+                {
+                  "Left": "Event.IsPickingBorderVisible",
+                  "Operator": "Equals",
+                  "Right": "false",
+                  "RightValueKind": "Literal"
+                }
+              ]
+            }
+          ],
+          "StopGraph": {
+            "Nodes": [
+              {
+                "NodeId": "e1d859e4-f858-9459-3e1e-db8841922eca",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520.0,
+                "Y": 520.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "8d94dc2e-bed1-94b1-72ff-1179f7cd79ef",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 820.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:a4dbedb2-fb7f-27dd-bff5-ccf2cb3c726e:PickingBorder",
+                  "To": "0",
+                  "Easing": "Linear",
+                  "From": "1",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "5bc4c959-336e-e5cf-9a45-4f961bf20129",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 1140.0,
+                "Y": 520.0,
+                "Properties": {
+                  "TargetLayer": "Auto",
+                  "Target": "part:a4dbedb2-fb7f-27dd-bff5-ccf2cb3c726e:PickingBorder",
+                  "Value": "Collapsed",
+                  "PropertyName": "Visibility"
+                }
+              },
+              {
+                "NodeId": "f5fada6d-ec89-6b43-933c-bd0ddf2df070",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1460.0,
+                "Y": 520.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "bae2a84a-593b-9a0f-eb04-71232fede4b2",
+                "SourceNodeId": "e1d859e4-f858-9459-3e1e-db8841922eca",
+                "SourcePort": "Out",
+                "TargetNodeId": "8d94dc2e-bed1-94b1-72ff-1179f7cd79ef",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "258eb55a-0a97-2c7b-5387-37cccd26892a",
+                "SourceNodeId": "8d94dc2e-bed1-94b1-72ff-1179f7cd79ef",
+                "SourcePort": "Out",
+                "TargetNodeId": "5bc4c959-336e-e5cf-9a45-4f961bf20129",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "449b5801-0ae7-5f9e-17b1-ee81ebfe3db9",
+                "SourceNodeId": "5bc4c959-336e-e5cf-9a45-4f961bf20129",
+                "SourcePort": "Out",
+                "TargetNodeId": "f5fada6d-ec89-6b43-933c-bd0ddf2df070",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "TransitionTrigger": null,
+          "ExitGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "EnterGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "ReentryPolicy": "InterruptPrevious",
+          "LoopPolicy": {
+            "RepeatCount": -1,
+            "AutoReverse": false,
+            "IntervalMs": 0,
+            "StopMode": "RunStopGraph",
+            "ResetOnStop": true,
+            "ReentryPolicy": "IgnoreIfRunning"
+          }
+        }
+      ]
+    },
+    {
+      "BehaviorGuid": "5ec9d72c-fecd-e4ed-227c-3209bbb717b4",
+      "DisplayName": "Darkwoods",
+      "AnimationParts": [],
+      "Behaviors": [
+        {
+          "BehaviorId": "8f4b0762-b37b-4538-62ca-1faf71c9ae11",
+          "Name": "PickingBorderBreathing",
+          "Enabled": true,
+          "Kind": "Loop",
+          "Trigger": null,
+          "Graph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "StartTrigger": {
+            "EventType": "MapV2.PickingBorderStateChanged",
+            "Source": null,
+            "Filters": [
+              {
+                "Left": "Event.MapKey",
+                "Operator": "Equals",
+                "Right": "Darkwoods",
+                "RightValueKind": "Literal"
+              },
+              {
+                "Left": "Event.IsPickingBorderVisible",
+                "Operator": "Equals",
+                "Right": "true",
+                "RightValueKind": "Literal"
+              }
+            ]
+          },
+          "StartGraph": {
+            "Nodes": [
+              {
+                "NodeId": "938780f2-cc81-8006-af23-5d2b7048516e",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520.0,
+                "Y": 520.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "dd287e61-f08a-2d0e-e1ab-5198f5db4d70",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 820.0,
+                "Y": 520.0,
+                "Properties": {
+                  "TargetLayer": "Auto",
+                  "Target": "part:5ec9d72c-fecd-e4ed-227c-3209bbb717b4:PickingBorder",
+                  "Value": "0",
+                  "PropertyName": "Opacity"
+                }
+              },
+              {
+                "NodeId": "35dd49d6-d5c2-2b24-a233-013a4bcba451",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 1140.0,
+                "Y": 520.0,
+                "Properties": {
+                  "TargetLayer": "Auto",
+                  "Target": "part:5ec9d72c-fecd-e4ed-227c-3209bbb717b4:PickingBorder",
+                  "Value": "Visible",
+                  "PropertyName": "Visibility"
+                }
+              },
+              {
+                "NodeId": "27309712-92e8-995d-494f-40d91b23390d",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 1460.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:5ec9d72c-fecd-e4ed-227c-3209bbb717b4:PickingBorder",
+                  "To": "1",
+                  "Easing": "Linear",
+                  "From": "0",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "4e4289ba-f92b-ea69-0217-e174ed6b4edb",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1780.0,
+                "Y": 520.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "b284b83f-c719-6f98-df9f-989080121cf1",
+                "SourceNodeId": "938780f2-cc81-8006-af23-5d2b7048516e",
+                "SourcePort": "Out",
+                "TargetNodeId": "dd287e61-f08a-2d0e-e1ab-5198f5db4d70",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "a86b4bdf-6898-f95e-48f6-6da34ce91fc3",
+                "SourceNodeId": "dd287e61-f08a-2d0e-e1ab-5198f5db4d70",
+                "SourcePort": "Out",
+                "TargetNodeId": "35dd49d6-d5c2-2b24-a233-013a4bcba451",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "25de99ed-bc04-2d89-e348-0c4f119308c2",
+                "SourceNodeId": "35dd49d6-d5c2-2b24-a233-013a4bcba451",
+                "SourcePort": "Out",
+                "TargetNodeId": "27309712-92e8-995d-494f-40d91b23390d",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "e1979d93-5599-4d8c-95ed-eeee93ccee2b",
+                "SourceNodeId": "27309712-92e8-995d-494f-40d91b23390d",
+                "SourcePort": "Out",
+                "TargetNodeId": "4e4289ba-f92b-ea69-0217-e174ed6b4edb",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "LoopGraph": {
+            "Nodes": [
+              {
+                "NodeId": "3175c64a-bf38-78df-f3b4-7ab330cb864f",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520.0,
+                "Y": 520.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "84dea951-3bf4-7e35-0581-bc4e854543d1",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 820.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:5ec9d72c-fecd-e4ed-227c-3209bbb717b4:PickingBorder",
+                  "To": "0.25",
+                  "Easing": "Linear",
+                  "From": "1",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "c31a4163-6152-b89e-f6cc-14fd7fda6d90",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 1140.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:5ec9d72c-fecd-e4ed-227c-3209bbb717b4:PickingBorder",
+                  "To": "1",
+                  "Easing": "Linear",
+                  "From": "0.25",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "925e990b-1cd8-27ad-ce60-4c72f48d0235",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1460.0,
+                "Y": 520.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "2efcd1a8-2039-2c5a-d233-0deb742dfb03",
+                "SourceNodeId": "3175c64a-bf38-78df-f3b4-7ab330cb864f",
+                "SourcePort": "Out",
+                "TargetNodeId": "84dea951-3bf4-7e35-0581-bc4e854543d1",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "ae40ed2b-9313-0f02-373b-541446dbd588",
+                "SourceNodeId": "84dea951-3bf4-7e35-0581-bc4e854543d1",
+                "SourcePort": "Out",
+                "TargetNodeId": "c31a4163-6152-b89e-f6cc-14fd7fda6d90",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "3419b5b3-0efa-6c9e-cef5-1d563e79264e",
+                "SourceNodeId": "c31a4163-6152-b89e-f6cc-14fd7fda6d90",
+                "SourcePort": "Out",
+                "TargetNodeId": "925e990b-1cd8-27ad-ce60-4c72f48d0235",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "StopTriggers": [
+            {
+              "EventType": "MapV2.PickingBorderStateChanged",
+              "Source": null,
+              "Filters": [
+                {
+                  "Left": "Event.MapKey",
+                  "Operator": "Equals",
+                  "Right": "Darkwoods",
+                  "RightValueKind": "Literal"
+                },
+                {
+                  "Left": "Event.IsPickingBorderVisible",
+                  "Operator": "Equals",
+                  "Right": "false",
+                  "RightValueKind": "Literal"
+                }
+              ]
+            }
+          ],
+          "StopGraph": {
+            "Nodes": [
+              {
+                "NodeId": "91c1c7b7-88b3-f0b0-4722-944098e9f00e",
+                "NodeType": "flow.start",
+                "DisplayName": "",
+                "X": 520.0,
+                "Y": 520.0,
+                "Properties": {}
+              },
+              {
+                "NodeId": "64044671-79c5-781c-8e02-d45f6e1a1895",
+                "NodeType": "action.animateProperty",
+                "DisplayName": "",
+                "X": 820.0,
+                "Y": 520.0,
+                "Properties": {
+                  "DurationMs": 1000,
+                  "WaitForCompletion": true,
+                  "PropertyName": "Opacity",
+                  "Target": "part:5ec9d72c-fecd-e4ed-227c-3209bbb717b4:PickingBorder",
+                  "To": "0",
+                  "Easing": "Linear",
+                  "From": "1",
+                  "TargetLayer": "Auto"
+                }
+              },
+              {
+                "NodeId": "8dcae8b6-6bb7-e398-2137-e6d22da06c8c",
+                "NodeType": "action.setProperty",
+                "DisplayName": "",
+                "X": 1140.0,
+                "Y": 520.0,
+                "Properties": {
+                  "TargetLayer": "Auto",
+                  "Target": "part:5ec9d72c-fecd-e4ed-227c-3209bbb717b4:PickingBorder",
+                  "Value": "Collapsed",
+                  "PropertyName": "Visibility"
+                }
+              },
+              {
+                "NodeId": "a23d73ce-4730-bdef-6a02-358e8b797775",
+                "NodeType": "flow.end",
+                "DisplayName": "",
+                "X": 1460.0,
+                "Y": 520.0,
+                "Properties": {}
+              }
+            ],
+            "Connections": [
+              {
+                "ConnectionId": "bf3e4e71-d5f1-a0b0-5e95-3c11f21ff5b0",
+                "SourceNodeId": "91c1c7b7-88b3-f0b0-4722-944098e9f00e",
+                "SourcePort": "Out",
+                "TargetNodeId": "64044671-79c5-781c-8e02-d45f6e1a1895",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "722b0938-ac0e-61fa-46b1-42302053b2c2",
+                "SourceNodeId": "64044671-79c5-781c-8e02-d45f6e1a1895",
+                "SourcePort": "Out",
+                "TargetNodeId": "8dcae8b6-6bb7-e398-2137-e6d22da06c8c",
+                "TargetPort": "In"
+              },
+              {
+                "ConnectionId": "14b3185d-10bb-9513-4dad-0208724376e3",
+                "SourceNodeId": "8dcae8b6-6bb7-e398-2137-e6d22da06c8c",
+                "SourcePort": "Out",
+                "TargetNodeId": "a23d73ce-4730-bdef-6a02-358e8b797775",
+                "TargetPort": "In"
+              }
+            ]
+          },
+          "TransitionTrigger": null,
+          "ExitGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "EnterGraph": {
+            "Nodes": [],
+            "Connections": []
+          },
+          "ReentryPolicy": "InterruptPrevious",
+          "LoopPolicy": {
+            "RepeatCount": -1,
+            "AutoReverse": false,
+            "IntervalMs": 0,
+            "StopMode": "RunStopGraph",
+            "ResetOnStop": true,
+            "ReentryPolicy": "IgnoreIfRunning"
+          }
+        }
+      ]
+    }
+  ]
 }

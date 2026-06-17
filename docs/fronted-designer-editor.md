@@ -521,7 +521,9 @@ Resource Browser 的标题、搜索、按钮、空状态和来源/类型显示�
 3. 更新 hitbox 和 adorner。
 4. 标记布局 dirty。
 
-选中 `MapV2Display` 后，属性摘要区提供“将样式应用到所有地图卡片”按钮。该操作把控件大小、地图名/队名/阵营文字样式、地图卡片边框和选图边框样式复制到当前 Canvas 中其他 `MapV2Display`，并作为单个 Undo 步骤立即刷新预览；每张卡片自己的位置、`MapKey`、`ZIndex`、`Visibility` 和 `BindingPath` 保持不变，不会复制文字内容或绑定源。
+选中 `MapV2Display` 后，属性摘要区提供“将样式应用到所有地图卡片”按钮。该操作把控件大小、地图名/队名/阵营文字样式、地图卡片边框、选图边框样式和行为集复制到当前 Canvas 中其他 `MapV2Display`，并作为单个 Undo 步骤立即刷新预览；每张卡片自己的位置、`MapKey`、`ZIndex`、`Visibility` 和 `BindingPath` 保持不变，不会复制文字内容或绑定源。复制行为时会替换目标地图卡片原行为集，并把动画目标 GUID 与 `Event.MapKey` / `StartEvent.MapKey` / `StopEvent.MapKey` 过滤改写为目标卡片。
+
+`MapV2Display` 的选图边框不是独立可编辑控件。内置 `MapV2Window.behaviors.json` 通过 `MapV2.PickingBorderStateChanged` 事件和 `part:{BehaviorGuid}:PickingBorder` 目标实现 MapBpV2 的旧呼吸灯语义；后台开关只发布业务状态，淡入、呼吸、淡出和隐藏由 v3 行为定义。
 
 属性编辑提交必须只由用户交互触发。普通 ComboBox 在 `DropDownClosed` 后提交，CheckBox 在 Click 后提交，非显式提交文本/数字行在用户输入后短延迟提交，非显式提交颜色行在 ColorPicker 或 Hex 输入变化后提交，显式提交文本行仍在 Enter、Apply 或浏览器选择后提交，FontFamily ComboBox 按上述下拉/手写规则提交。属性网格重建、切换选中控件、绑定初始化和 layout pass 期间应抑制提交事件，避免 BpWindow / CutSceneWindow 中大量枚举或字符串选项行触发递归重建。失败的属性提交不应请求 preview render，也不应重建到丢失用户输入。
 

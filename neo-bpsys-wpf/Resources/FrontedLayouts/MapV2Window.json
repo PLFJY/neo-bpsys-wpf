@@ -45,7 +45,8 @@
         "Height": 208,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorGuid": "07f7186f-30cb-9563-eb07-1164219dc777"
       },
       "The_Red_Church": {
         "MapKey": "TheRedChurch",
@@ -72,7 +73,8 @@
         "Height": 208,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorGuid": "588763e1-a1c8-bea8-b73f-69c1afa41ea9"
       },
       "Sacred_Heart_Hospital": {
         "MapKey": "SacredHeartHospital",
@@ -99,7 +101,8 @@
         "Height": 208,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorGuid": "827a592b-7095-2d19-ff70-c6e7edf2d8fc"
       },
       "Leo_s_Memory": {
         "MapKey": "LeosMemory",
@@ -126,7 +129,8 @@
         "Height": 208,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorGuid": "84bbddef-0d27-01e1-0ca1-37a163f3e478"
       },
       "Moonlit_River_Park": {
         "MapKey": "MoonlitRiverPark",
@@ -153,7 +157,8 @@
         "Height": 208,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorGuid": "232433e6-8136-b8ca-2fb8-13dc0d4fb16b"
       },
       "Lakeside_Village": {
         "MapKey": "LakesideVillage",
@@ -180,7 +185,8 @@
         "Height": 208,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorGuid": "c3b02424-de72-515c-24fa-14dc4341698c"
       },
       "Eversleeping_Town": {
         "MapKey": "EversleepingTown",
@@ -207,7 +213,8 @@
         "Height": 208,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorGuid": "cb8d0d2b-a0bc-5127-8aee-a3954fcbc0b0"
       },
       "Chinatown": {
         "MapKey": "ChinaTown",
@@ -234,7 +241,8 @@
         "Height": 208,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorGuid": "a4dbedb2-fb7f-27dd-bff5-ccf2cb3c726e"
       },
       "Darkwoods": {
         "MapKey": "Darkwoods",
@@ -261,7 +269,8 @@
         "Height": 208,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "BehaviorGuid": "5ec9d72c-fecd-e4ed-227c-3209bbb717b4"
       },
       "GameProgressText1": {
         "FontFamily": null,
