@@ -1,6 +1,5 @@
 ; SmartBP full installer.
 
-#include "InnoDependencyInstaller\CodeDependencies.iss"
 #define MyAppName "neo-bpsys-wpf"
 #define AppExePath "..\build\neo-bpsys-wpf\neo-bpsys-wpf.exe"
 #define MyAppVersion GetVersionNumbersString(AppExePath)
@@ -50,7 +49,8 @@ Source: "..\build\neo-bpsys-wpf\*"; DestDir: "{app}"; Flags: ignoreversion recur
 Source: "..\build\SmartBpModule\*"; DestDir: "{code:GetSmartBpModuleDir}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 
-[Code]
+#include "InnoDependencyInstaller\CodeDependencies.iss"
+
 var
   SmartBpDirPage: TInputDirWizardPage;
 

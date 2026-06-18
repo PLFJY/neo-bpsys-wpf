@@ -1,7 +1,6 @@
 ;汉化:MonKeyDu 
 ;由 Inno Setup 脚本向导 生成的脚本,有关创建 INNO SETUP 脚本文件的详细信息，请参阅文档！!
 
-#include "InnoDependencyInstaller\CodeDependencies.iss"
 #define MyAppName "neo-bpsys-wpf"
 ; Extract File Version from EXE
 #define AppExePath "..\build\neo-bpsys-wpf\neo-bpsys-wpf.exe"
@@ -60,7 +59,8 @@ Source: "..\build\neo-bpsys-wpf\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignor
 Source: "..\build\neo-bpsys-wpf\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 
-[code]
+#include "InnoDependencyInstaller\CodeDependencies.iss"
+
 procedure InitializeWizard();
 begin
 WizardForm.LICENSEACCEPTEDRADIO.checked:= true;
