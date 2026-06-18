@@ -90,6 +90,7 @@ public class FrontedWindowBase : Window
                 Name = "InternalAutoViewbox",
                 Stretch = Stretch.Fill
             };
+            ApplyFrontedRenderQualityOptions(viewbox);
 
             // 2. 创建 Binding (等价于你 XAML 里的 RelativeSource Binding)
             Binding widthBinding = new("Width")
@@ -163,13 +164,17 @@ public class FrontedWindowBase : Window
         {
             Name = FrontedLayoutConstants.BaseCanvasName
         };
+        ApplyFrontedRenderQualityOptions(_baseCanvas);
 
-        Content = new Viewbox
+        var viewbox = new Viewbox
         {
             Name = "InternalAutoViewbox",
             Stretch = Stretch.Fill,
             Child = _baseCanvas
         };
+        ApplyFrontedRenderQualityOptions(viewbox);
+
+        Content = viewbox;
 
         Loaded += OnV3HostLoaded;
         Unloaded += OnV3HostUnloaded;
@@ -447,6 +452,16 @@ public class FrontedWindowBase : Window
 
         _baseCanvas.Width = settings.CanvasWidth;
         _baseCanvas.Height = settings.CanvasHeight;
+        ApplyFrontedRenderQualityOptions(_baseCanvas);
+    }
+
+    private static void ApplyFrontedRenderQualityOptions(FrameworkElement element)
+    {
+        element.UseLayoutRounding = true;
+        element.SnapsToDevicePixels = true;
+        TextOptions.SetTextFormattingMode(element, TextFormattingMode.Display);
+        TextOptions.SetTextRenderingMode(element, TextRenderingMode.ClearType);
+        RenderOptions.SetClearTypeHint(element, ClearTypeHint.Enabled);
     }
 
     private void OnV3HostLoaded(object sender, RoutedEventArgs e)
