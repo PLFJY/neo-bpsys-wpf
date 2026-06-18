@@ -79,15 +79,23 @@ Set-Location -Path $ScriptDir
 
 # Paths
 $RepoRoot = $ScriptDir
+$BuildRoot = Join-Path $RepoRoot "build"
 $BuildPath = Join-Path $RepoRoot "build\neo-bpsys-wpf"
 $ModuleBuildPath = Join-Path $RepoRoot "build\SmartBpModule"
 $ProjPath  = Join-Path $RepoRoot "neo-bpsys-wpf\neo-bpsys-wpf.csproj"
 $ModuleProjPath = Join-Path $RepoRoot "neo-bpsys-wpf.SmartBp.Module\neo-bpsys-wpf.SmartBp.Module.csproj"
 
-# Ensure output directory exists
-if (-not (Test-Path -LiteralPath $BuildPath)) {
-    New-Item -ItemType Directory -Path $BuildPath | Out-Null
+# Clean build output before packaging.
+$repoFullPath = [System.IO.Path]::GetFullPath($RepoRoot)
+$buildRootFullPath = [System.IO.Path]::GetFullPath($BuildRoot)
+$expectedBuildRoot = [System.IO.Path]::GetFullPath((Join-Path $repoFullPath "build"))
+if (-not [string]::Equals($buildRootFullPath, $expectedBuildRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
+    throw "Refusing to clean unexpected build directory: $buildRootFullPath"
 }
+if (Test-Path -LiteralPath $buildRootFullPath) {
+    Remove-Item -LiteralPath $buildRootFullPath -Recurse -Force
+}
+New-Item -ItemType Directory -Path $BuildPath | Out-Null
 
 # Get git hash (fail fast if git not available / not a repo)
 $gitHashRaw = & git rev-parse --short=7 HEAD
