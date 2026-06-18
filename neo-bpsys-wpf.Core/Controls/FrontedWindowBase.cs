@@ -462,6 +462,7 @@ public class FrontedWindowBase : Window
         TextOptions.SetTextFormattingMode(element, TextFormattingMode.Display);
         TextOptions.SetTextRenderingMode(element, TextRenderingMode.ClearType);
         RenderOptions.SetClearTypeHint(element, ClearTypeHint.Enabled);
+        RenderOptions.SetBitmapScalingMode(element, BitmapScalingMode.HighQuality);
     }
 
     private void OnV3HostLoaded(object sender, RoutedEventArgs e)

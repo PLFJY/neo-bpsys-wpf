@@ -20,6 +20,7 @@ internal static class ImageFrontedControlLayoutHelper
         ImageFrontedControlConfig config,
         FrontedControlBuildContext context)
     {
+        RenderOptions.SetBitmapScalingMode(image, BitmapScalingMode.HighQuality);
         ApplyStretch(image, config, context);
 
         switch (config.SizingMode)
@@ -253,8 +254,17 @@ internal static class ImageFrontedControlLayoutHelper
         return source ?? context.ResourceResolver.ResolveImage(fallbackPath, FrontedImagePurpose.UiElement);
     }
 
-    private static ImageBrush? CreateImageBrush(ImageSource? imageSource) =>
-        imageSource is null ? null : new ImageBrush(imageSource) { Stretch = Stretch.Fill };
+    private static ImageBrush? CreateImageBrush(ImageSource? imageSource)
+    {
+        if (imageSource is null)
+        {
+            return null;
+        }
+
+        var brush = new ImageBrush(imageSource) { Stretch = Stretch.Fill };
+        RenderOptions.SetBitmapScalingMode(brush, BitmapScalingMode.HighQuality);
+        return brush;
+    }
 
     private static void RegisterGeneratedChildName(FrameworkElement root, string name, FrameworkElement child)
     {
