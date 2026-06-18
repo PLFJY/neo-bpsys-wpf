@@ -325,19 +325,20 @@ public partial class SettingPageViewModel : ViewModelBase
     {
         var repos = new List<OpenSourceRepo>
         {
-            new() { Name = ".Net Runtime", Url = "https://github.com/dotnet/runtime/" },
-            new() { Name = "CommunityToolkit.Mvvm", Url = "https://github.com/CommunityToolkit/dotnet/" },
-            new() { Name = "Downloader", Url = "https://github.com/bezzad/Downloader/" },
-            new() { Name = "hyjiacan.pinyin4net", Url = "https://gitee.com/hyjiacan/Pinyin4Net/" },
-            new() { Name = "OpenCvSharp", Url = "https://github.com/shimat/opencvsharp/" },
-            new() { Name = "PixiEditor.ColorPicker", Url = "https://github.com/PixiEditor/ColorPicker/" },
-            new() { Name = "Sdcb.PaddleOCR", Url = "https://github.com/sdcb/PaddleSharp/" },
+            new() { Name = ".Net Runtime", Url = "https://github.com/dotnet/runtime" },
+            new() { Name = "CommunityToolkit.Mvvm", Url = "https://github.com/CommunityToolkit/dotnet" },
+            new() { Name = "Downloader", Url = "https://github.com/bezzad/Downloader" },
+            new() { Name = "hyjiacan.pinyin4net", Url = "https://gitee.com/hyjiacan/Pinyin4Net" },
+            new() { Name = "OpenCvSharp", Url = "https://github.com/shimat/opencvsharp" },
+            new() { Name = "PixiEditor.ColorPicker", Url = "https://github.com/PixiEditor/ColorPicker" },
+            new() { Name = "Sdcb.PaddleOCR", Url = "https://github.com/sdcb/PaddleSharp" },
             new() { Name = "UI.WPF.Modern", Url = "https://github.com/iNKORE-NET/UI.WPF.Modern" },
-            new() { Name = "Windows Presentation Foundation (WPF)", Url = "https://github.com/dotnet/wpf/" },
-            new() { Name = "WPF UI", Url = "https://github.com/lepoco/wpfui/" },
-            new() { Name = "WpfGorgeousThemeSwitch", Url = "https://github.com/SunnyDesignor/WpfGorgeousThemeSwitch/" },
+            new() { Name = "Windows Presentation Foundation (WPF)", Url = "https://github.com/dotnet/wpf" },
+            new() { Name = "WPF UI", Url = "https://github.com/lepoco/wpfui" },
+            new() { Name = "WpfGorgeousThemeSwitch", Url = "https://github.com/SunnyDesignor/WpfGorgeousThemeSwitch" },
             new() { Name = "WPFLocalizeExtension", Url = "https://github.com/XAMLMarkupExtensions/WPFLocalizeExtension" },
-            new() { Name = "XamlBehaviors for WPF", Url = "https://github.com/microsoft/XamlBehaviorsWpf/" },
+            new() { Name = "XamlBehaviors for WPF", Url = "https://github.com/microsoft/XamlBehaviorsWpf" },
+            new() { Name = "SharpCompress", Url = "https://github.com/adamhathcock/sharpcompress" },
         };
         repos.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
         return repos;
