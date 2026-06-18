@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net9.0-windows10.0.20348</TargetFramework>
+    <TargetFramework>net10.0-windows10.0.20348</TargetFramework>
     <RootNamespace>neo_bpsys_wpf</RootNamespace>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -16,7 +16,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Downloader" Version="5.8.0" ExcludeAssets="runtime" />
+    <PackageReference Include="Downloader" Version="5.8.1" ExcludeAssets="runtime" />
     <PackageReference Include="F23.StringSimilarity" Version="7.0.1" ExcludeAssets="runtime" />
     <PackageReference Include="OpenCvSharp4.Windows.Slim" Version="4.13.0.20260602" />
     <PackageReference Include="OpenCvSharp4.WpfExtensions" Version="4.13.0.20260602" />

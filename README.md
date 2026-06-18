@@ -1,6 +1,6 @@
 # neo-bpsys-wpf
 
-powered by <img src="https://raw.githubusercontent.com/PLFJY/neo-bpsys-wpf/refs/heads/main/neo-bpsys-wpf/Assets/logo_net.jpg" width="25px" height="25px"> 9.0 & <img src="https://raw.githubusercontent.com/PLFJY/neo-bpsys-wpf/refs/heads/main/neo-bpsys-wpf/Assets/wpfui.png" width="25px" height="25px">
+powered by <img src="https://raw.githubusercontent.com/PLFJY/neo-bpsys-wpf/refs/heads/main/neo-bpsys-wpf/Assets/logo_net.jpg" width="25px" height="25px"> 10.0 & <img src="https://raw.githubusercontent.com/PLFJY/neo-bpsys-wpf/refs/heads/main/neo-bpsys-wpf/Assets/wpfui.png" width="25px" height="25px"> 4.3.0
 
 ![GitHub License](https://img.shields.io/github/license/plfjy/neo-bpsys-wpf) ![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/plfjy/neo-bpsys-wpf) ![GitHub Issues or Pull Requests](https://img.shields.io/github/issues-pr/plfjy/neo-bpsys-wpf) ![GitHub forks](https://img.shields.io/github/forks/plfjy/neo-bpsys-wpf?style=flat) ![GitHub Repo stars](https://img.shields.io/github/stars/plfjy/neo-bpsys-wpf?style=flat)
 
@@ -55,7 +55,7 @@ neo-bpsys-wpf 是一个基于 .NET WPF 的**专为第五人格民间赛**开发�
 
 **Release有提前编译好的安装包可以直接下载并安装**
 
-手动构建前需要安装好[.NET 9 SDK](https://dotnet.microsoft.com/zh-cn/download/dotnet/9.0)。
+手动构建前需要安装好[.Net 10 SDK](https://dotnet.microsoft.com/zh-cn/download/dotnet/10.0)。
 
 ```cmd
 git clone https://github.com/PLFJY/neo-bpsys-wpf.git

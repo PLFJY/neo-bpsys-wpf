@@ -1,6 +1,6 @@
 ; SmartBP full installer.
 
-#include "CodeDependencies.iss"
+#include "InnoDependencyInstaller\CodeDependencies.iss"
 #define MyAppName "neo-bpsys-wpf"
 #define AppExePath "..\build\neo-bpsys-wpf\neo-bpsys-wpf.exe"
 #define MyAppVersion GetVersionNumbersString(AppExePath)
@@ -136,7 +136,7 @@ end;
 
 function InitializeSetup: Boolean;
 begin
-  Dependency_AddDotNet90Desktop;
+  Dependency_AddDotNet100Desktop;
   Result := True;
 end;
 

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net9.0-windows</TargetFramework>
+        <TargetFramework>net10.0-windows</TargetFramework>
         <RootNamespace>neo_bpsys_wpf.Core</RootNamespace>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
@@ -30,23 +30,4 @@
         <PackageReference Include="WPF-UI" Version="4.3.0" />
     </ItemGroup>
 
-	<PropertyGroup>
-		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<Title>neo-bpsys-wpf.Core_new</Title>
-		<PackageIcon>icon.png</PackageIcon>
-		<PackageProjectUrl>https://bpsys.plfjy.top/</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/PLFJY/neo-bpsys-wpf/</RepositoryUrl>
-		<PackageId>neo-bpsys-wpf.Core</PackageId>
-		<Authors>Zero PLFJY</Authors>
-		<PackageTags>neo-bpsys-wpf;plugin;addin;wpf;identityv</PackageTags>
-		<Description>新的 neo-bpsys-wpf 的核心依赖库</Description>
-		<PackageLicenseFile>LICENSE</PackageLicenseFile>
-		<PackageReadmeFile>README.md</PackageReadmeFile>
-	</PropertyGroup>
-	
-	<ItemGroup>
-		<None Include="README.md" Pack="true" PackagePath="" />
-		<None Include="..\LICENSE" Pack="true" PackagePath="" />
-		<None Include="..\icon.png" Pack="true" PackagePath="" />
-	</ItemGroup>
 </Project>

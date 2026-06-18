@@ -131,7 +131,7 @@ public partial class SmartBpPageViewModel : ViewModelBase
                 "neo-bpsys-wpf.SmartBp.Module",
                 "bin",
                 "Debug",
-                "net9.0-windows10.0.20348"));
+                "net10.0-windows10.0.20348"));
             if (Directory.Exists(debugPath) && await _moduleManager.LoadModuleFromDirectoryAsync(debugPath, "DevelopmentDirectory"))
                 return;
         }

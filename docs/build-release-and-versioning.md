@@ -7,10 +7,10 @@
 主应用目标框架：
 
 ```xml
-<TargetFramework>net9.0-windows10.0.20348</TargetFramework>
+<TargetFramework>net10.0-windows10.0.20348</TargetFramework>
 ```
 
-构建前需要 .NET 9 SDK。安装包脚本中会检查并安装 .NET 9 Desktop Runtime，当前依赖脚本阈值是 9.0.3。
+构建前需要 .NET 10 SDK。安装包脚本中会检查并安装 .NET 10 Desktop Runtime，当前依赖脚本阈值是 10.0.9。
 
 ## 手动 publish
 
@@ -92,7 +92,7 @@ Installer/build_Installer_full.iss
 build/neo-bpsys-wpf_Installer_full.exe
 ```
 
-安装包允许 x64 compatible 架构，lite 安装包复制 publish 目录全部内容和 LICENSE。full 安装包额外复制 SmartBP 模块 staging 目录，并提供模块安装路径页面。模块路径会阻止 Program Files、Program Files (x86)、Windows、System32、驱动器根目录等不适合写入或维护的位置。`InitializeSetup` 调用 `Dependency_AddDotNet90Desktop`，依赖脚本检查 `Microsoft.WindowsDesktop.App` 9.0.3 或更高修订。卸载时询问是否删除 `%APPDATA%\neo-bpsys-wpf`。
+安装包允许 x64 compatible 架构，lite 安装包复制 publish 目录全部内容和 LICENSE。full 安装包额外复制 SmartBP 模块 staging 目录，并提供模块安装路径页面。模块路径会阻止 Program Files、Program Files (x86)、Windows、System32、驱动器根目录等不适合写入或维护的位置。`InitializeSetup` 调用 `Dependency_AddDotNet100Desktop`，依赖脚本检查 `Microsoft.WindowsDesktop.App` 10.0.9 或更高修订。卸载时询问是否删除 `%APPDATA%\neo-bpsys-wpf`。
 
 ## 构建配置
 

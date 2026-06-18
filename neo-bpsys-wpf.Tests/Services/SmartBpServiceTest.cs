@@ -56,7 +56,7 @@ public class SmartBpServiceTest
     [Fact]
     public void GetHunPlayerData()
     {
-        //const string path = @"E:\_PersonalStuff\ASG\bpsys\neo-bpsys-wpf\neo-bpsys-wpf.Tests\bin\Debug\net9.0-windows10.0.20348\debug\03_hunter_row.png";
+        //const string path = @"E:\_PersonalStuff\ASG\bpsys\neo-bpsys-wpf\neo-bpsys-wpf.Tests\bin\Debug\net10.0-windows10.0.20348\debug\03_hunter_row.png";
         //if (!File.Exists(path)) throw new InvalidOperationException();
 
         //var img = Cv2.ImRead(path);
@@ -83,7 +83,7 @@ public class SmartBpServiceTest
     [Fact]
     public void GetSurPlayerData()
     {
-        //const string path = @"E:\_PersonalStuff\ASG\bpsys\neo-bpsys-wpf\neo-bpsys-wpf.Tests\bin\Debug\net9.0-windows10.0.20348\debug\02_table.png";
+        //const string path = @"E:\_PersonalStuff\ASG\bpsys\neo-bpsys-wpf\neo-bpsys-wpf.Tests\bin\Debug\net10.0-windows10.0.20348\debug\02_table.png";
         //if (!File.Exists(path)) throw new InvalidOperationException();
 
         //var img = Cv2.ImRead(path);
@@ -109,7 +109,7 @@ public class SmartBpServiceTest
     [Fact]
     public void GetFistSurRow()
     {
-        //const string path = @"E:\_PersonalStuff\ASG\bpsys\neo-bpsys-wpf\neo-bpsys-wpf.Tests\bin\Debug\net9.0-windows10.0.20348\debug\03_sur_first_data_row.png";
+        //const string path = @"E:\_PersonalStuff\ASG\bpsys\neo-bpsys-wpf\neo-bpsys-wpf.Tests\bin\Debug\net10.0-windows10.0.20348\debug\03_sur_first_data_row.png";
         //if (!File.Exists(path)) throw new InvalidOperationException();
 
         //var img = Cv2.ImRead(path);

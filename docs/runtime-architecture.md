@@ -2,7 +2,7 @@
 
 ## 技术栈
 
-主应用是 .NET 9 WPF 应用，目标框架为 `net9.0-windows10.0.20348`。当前代码使用 WPF-UI、Generic Host、Microsoft DI、Serilog、WPFLocalizeExtension、YamlDotNet 和自定义插件 SDK。OpenCvSharp、PaddleOCR、PaddleInference 等 SmartBP 重型依赖位于 `neo-bpsys-wpf.SmartBp.Module`，不由 lite 主应用直接引用。
+主应用是 .NET 10 WPF 应用，目标框架为 `net10.0-windows10.0.20348`。当前代码使用 WPF-UI、Generic Host、Microsoft DI、Serilog、WPFLocalizeExtension、YamlDotNet 和自定义插件 SDK。OpenCvSharp、PaddleOCR、PaddleInference 等 SmartBP 重型依赖位于 `neo-bpsys-wpf.SmartBp.Module`，不由 lite 主应用直接引用。
 
 ## 启动流程
 

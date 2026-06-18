@@ -23,7 +23,7 @@ SmartBP 重型运行时不再随默认安装包进入主应用发布目录。主
 %APPDATA%\neo-bpsys-wpf\SmartBpModuleState.json
 ```
 
-状态中的 `ModuleRoot` 指向 SmartBP 模块目录。Debug 构建可以直接加载 `neo-bpsys-wpf.SmartBp.Module\bin\Debug\net9.0-windows10.0.20348\`，并以 `DevelopmentDirectory` 记录，不要求 `component.json` 或版本比较。
+状态中的 `ModuleRoot` 指向 SmartBP 模块目录。Debug 构建可以直接加载 `neo-bpsys-wpf.SmartBp.Module\bin\Debug\net10.0-windows10.0.20348\`，并以 `DevelopmentDirectory` 记录，不要求 `component.json` 或版本比较。
 
 `OcrService` 负责 PaddleOCR 模型和推理实例：
 

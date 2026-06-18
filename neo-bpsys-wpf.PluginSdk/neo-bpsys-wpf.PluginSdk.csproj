@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net9.0-windows</TargetFramework>
+        <TargetFramework>net10.0-windows</TargetFramework>
         <RootNamespace>neo_bpsys_wpf.PluginSdk</RootNamespace>
         <Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>

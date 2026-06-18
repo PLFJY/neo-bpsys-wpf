@@ -1402,13 +1402,13 @@ public sealed partial class TriggerFilterEditorViewModel : ObservableObject
         string.Equals(option.Path, Left, StringComparison.Ordinal))?.IsUnknown == true;
 
     /// <summary>Gets whether the selected payload field is enum-like.</summary>
-    public bool IsEnumField => SelectedPayloadField is { } field
-        && (field.EnumValues.Count > 0
-            || string.Equals(field.TypeName.TrimEnd('?'), "Enum", StringComparison.OrdinalIgnoreCase));
+    public bool IsEnumField => SelectedPayloadField is { } selectedField
+        && (selectedField.EnumValues.Count > 0
+            || string.Equals(selectedField.TypeName.TrimEnd('?'), "Enum", StringComparison.OrdinalIgnoreCase));
 
     /// <summary>Gets whether the selected payload field is boolean-like.</summary>
-    public bool IsBooleanField => SelectedPayloadField is { } field
-        && IsBooleanTypeName(field.TypeName);
+    public bool IsBooleanField => SelectedPayloadField is { } selectedField
+        && IsBooleanTypeName(selectedField.TypeName);
 
     /// <summary>Gets whether the right value should use a text editor.</summary>
     public bool IsTextValue => !IsEnumField && !IsBooleanField;

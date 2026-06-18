@@ -1,6 +1,19 @@
-name: Build and draft a release
+name: Build and draft
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      release_channel:
+        description: Build channel
+        required: true
+        default: release
+        type: choice
+        options:
+        - release
+        - beta
+        - preview
+
+run-name: Build and draft ${{ inputs.release_channel }}
 
 jobs:
   build_and_draft_release:
@@ -20,15 +33,48 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 1
-      
-    - name: Install .NET Core
+
+    - name: Install .NET 10
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 9.0.x
+        dotnet-version: 10.0.x
+
+    - name: Resolve build options
+      id: build_options
+      shell: pwsh
+      run: |
+        $channel = "${{ inputs.release_channel }}"
+
+        $options = @{
+          release = @{
+            Configuration = "Release"
+            ReleaseNamePrefix = "Release"
+            Prerelease = "false"
+          }
+          beta = @{
+            Configuration = "Beta"
+            ReleaseNamePrefix = "Beta"
+            Prerelease = "true"
+          }
+          preview = @{
+            Configuration = "Preview"
+            ReleaseNamePrefix = "Preview"
+            Prerelease = "true"
+          }
+        }
+
+        if (-not $options.ContainsKey($channel)) {
+          throw "Unsupported release channel: $channel"
+        }
+
+        $selected = $options[$channel]
+        echo "configuration=$($selected.Configuration)" >> $env:GITHUB_OUTPUT
+        echo "release_name_prefix=$($selected.ReleaseNamePrefix)" >> $env:GITHUB_OUTPUT
+        echo "is_prerelease=$($selected.Prerelease)" >> $env:GITHUB_OUTPUT
 
     - name: Build And Pack Installer
       shell: pwsh
-      run: .\build.ps1 -Configuration Release
+      run: .\build.ps1 -Configuration ${{ steps.build_options.outputs.configuration }}
 
     - name: Get Version
       shell: pwsh
@@ -51,7 +97,7 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: neo-bpsys-wpf-release-assets
+        name: neo-bpsys-wpf-${{ inputs.release_channel }}-assets
         path: |
           ${{ env.INSTALLER_OUTPUT }}
           ${{ env.INSTALLER_SHA256_OUTPUT }}
@@ -98,5 +144,6 @@ jobs:
           ${{ env.FULL_INSTALLER_SHA256_OUTPUT }}
           ${{ env.SMARTBP_MODULE_OUTPUT }}
           ${{ env.SMARTBP_MODULE_MANIFEST_OUTPUT }}
-        name: Release-${{ env.VERSION }}
+        name: ${{ steps.build_options.outputs.release_name_prefix }}-${{ env.VERSION }}
         body_path: release_body.md
+        prerelease: ${{ steps.build_options.outputs.is_prerelease }}
