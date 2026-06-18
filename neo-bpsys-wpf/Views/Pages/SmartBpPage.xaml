@@ -95,24 +95,14 @@
                         HorizontalAlignment="Center"
                         Command="{Binding ImportModuleZipCommand}"
                         Content="{lex:Loc SmartBpModuleSelectArchive}"
-                        Icon="{ui:SymbolIcon Symbol=Archive24}"
-                        Visibility="{Binding IsZipImportVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        Icon="{ui:SymbolIcon Symbol=Archive24}" />
                     <ui:ProgressRing
                         Width="28"
                         Height="28"
                         Margin="0,18,0,0"
                         HorizontalAlignment="Center"
-                        IsIndeterminate="True">
-                        <ui:ProgressRing.Style>
-                            <Style BasedOn="{StaticResource {x:Type ui:ProgressRing}}" TargetType="{x:Type ui:ProgressRing}">
-                                <Setter Property="Visibility" Value="Hidden" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsProgressVisible}" Value="True">
-                                        <Setter Property="Visibility" Value="Visible" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </ui:ProgressRing.Style>
+                        IsIndeterminate="True"
+                        Visibility="{Binding IsProgressVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
                     </ui:ProgressRing>
                 </StackPanel>
             </Grid>

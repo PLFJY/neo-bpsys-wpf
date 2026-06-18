@@ -95,21 +95,6 @@ public partial class SmartBpPageViewModel : ViewModelBase
     [ObservableProperty] private double _progressValue;
 
     /// <summary>
-    /// Whether preview-local mode is active.
-    /// </summary>
-    public bool IsPreviewMode
-    {
-        get
-        {
-#if PREVIEW
-            return true;
-#else
-            return false;
-#endif
-        }
-    }
-
-    /// <summary>
     /// Whether debug mode is active.
     /// </summary>
     public bool IsDebugMode
@@ -123,11 +108,6 @@ public partial class SmartBpPageViewModel : ViewModelBase
 #endif
         }
     }
-
-    /// <summary>
-    /// Whether the module archive import button is visible.
-    /// </summary>
-    public bool IsZipImportVisible => IsPreviewMode;
 
     private async Task InitializeAsync()
     {

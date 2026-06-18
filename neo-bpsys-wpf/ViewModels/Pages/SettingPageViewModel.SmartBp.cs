@@ -24,6 +24,9 @@ public partial class SettingPageViewModel
     [ObservableProperty]
     private string _smartBpModulePathStatus = string.Empty;
 
+    [ObservableProperty]
+    private bool _isModuleExtracting = false;
+
     /// <summary>
     /// 选择 SmartBP 模块目录。
     /// </summary>
@@ -158,6 +161,7 @@ public partial class SettingPageViewModel
         var normalizedRoot = Path.GetFullPath(SmartBpModuleRoot);
         SmartBpModuleRoot = normalizedRoot;
         SmartBpModulePathStatus = I18nHelper.GetLocalizedString("SmartBpModuleArchiveImporting");
+        IsModuleExtracting = true;
         try
         {
             if (await _smartBpModuleManager.ImportArchiveAsync(archivePath, normalizedRoot, "SettingsArchiveImport"))
@@ -194,6 +198,10 @@ public partial class SettingPageViewModel
                 "SmartBP module archive import threw from settings. ArchivePath={ArchivePath}, ModuleRoot={ModuleRoot}",
                 archivePath,
                 normalizedRoot);
+        }
+        finally
+        {
+            IsModuleExtracting = false;
         }
     }
 

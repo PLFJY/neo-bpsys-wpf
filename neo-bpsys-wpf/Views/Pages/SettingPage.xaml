@@ -359,6 +359,12 @@
                         VerticalAlignment="Center"
                         Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                         Text="{Binding SmartBpModulePathStatus}" />
+                    <ui:ProgressRing
+                        Width="20"
+                        Height="20"
+                        Margin="10,0,0,0"
+                        IsIndeterminate="True"
+                        Visibility="{Binding IsModuleExtracting, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 </WrapPanel>
             </StackPanel>
         </Border>
