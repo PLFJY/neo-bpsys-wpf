@@ -140,7 +140,17 @@ public partial class FrontedDesignerWindow : FluentWindow
                 DispatcherPriority.Background,
                 new Action(() =>
                 {
-                    viewModel.RefreshWindowDisplayNames();
+                    _suppressSelectorReload = true;
+                    try
+                    {
+                        viewModel.RefreshWindowDisplayNames();
+                        _lastAcceptedWindow = viewModel.SelectedWindow;
+                    }
+                    finally
+                    {
+                        _suppressSelectorReload = false;
+                    }
+
                     viewModel.BehaviorPanel.RefreshLocalization();
                 }));
         }

@@ -6116,26 +6116,26 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     private void RebuildWindowOptions(string? preserveSelectedWindowTypeName)
     {
-        WindowOptions.Clear();
-        foreach (var entry in _layoutCatalog.GetEntries()
-                     .Where(entry => entry.IsMigrated && entry.IsEditable))
-        {
-            WindowOptions.Add(new FrontedDesignerWindowOption(
-                entry.WindowTypeName,
-                ResolveEntryDisplayName(entry)));
-        }
-
-        var nextSelection = string.IsNullOrWhiteSpace(preserveSelectedWindowTypeName)
-            ? WindowOptions.FirstOrDefault()
-            : WindowOptions.FirstOrDefault(option => string.Equals(
-                  option.WindowTypeName,
-                  preserveSelectedWindowTypeName,
-                  StringComparison.Ordinal))
-              ?? WindowOptions.FirstOrDefault();
-
         _isRefreshingWindowOptions = !string.IsNullOrWhiteSpace(preserveSelectedWindowTypeName);
         try
         {
+            WindowOptions.Clear();
+            foreach (var entry in _layoutCatalog.GetEntries()
+                         .Where(entry => entry.IsMigrated && entry.IsEditable))
+            {
+                WindowOptions.Add(new FrontedDesignerWindowOption(
+                    entry.WindowTypeName,
+                    ResolveEntryDisplayName(entry)));
+            }
+
+            var nextSelection = string.IsNullOrWhiteSpace(preserveSelectedWindowTypeName)
+                ? WindowOptions.FirstOrDefault()
+                : WindowOptions.FirstOrDefault(option => string.Equals(
+                      option.WindowTypeName,
+                      preserveSelectedWindowTypeName,
+                      StringComparison.Ordinal))
+                  ?? WindowOptions.FirstOrDefault();
+
             SelectedWindow = nextSelection;
         }
         finally

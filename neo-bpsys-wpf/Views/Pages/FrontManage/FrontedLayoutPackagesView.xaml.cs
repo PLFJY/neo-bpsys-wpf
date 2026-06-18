@@ -1,3 +1,4 @@
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using neo_bpsys_wpf.ViewModels.Pages;
@@ -20,6 +21,14 @@ public partial class FrontedLayoutPackagesView : UserControl
             && viewModel.ActivateSelectedPackageByDoubleClickCommand.CanExecute(null))
         {
             viewModel.ActivateSelectedPackageByDoubleClickCommand.Execute(null);
+        }
+    }
+
+    private void PackageListBox_OnRequestBringIntoView(object sender, RequestBringIntoViewEventArgs e)
+    {
+        if (sender == PackageListBox && e.OriginalSource is ListBoxItem)
+        {
+            e.Handled = true;
         }
     }
 }

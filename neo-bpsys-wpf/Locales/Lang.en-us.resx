@@ -2621,7 +2621,7 @@
     <value>Exported resources</value>
   </data>
   <data name="CompactPackageList" xml:space="preserve">
-    <value>Compact Package List</value>
+    <value>Layout Packages</value>
   </data>
   <data name="PackageBasicInfo" xml:space="preserve">
     <value>Basic</value>

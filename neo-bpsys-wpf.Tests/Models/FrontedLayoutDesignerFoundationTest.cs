@@ -4431,6 +4431,44 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
+    public void FrontedDesignerLanguageRefreshDoesNotReloadCurrentLayout()
+    {
+        var viewModelText = File.ReadAllText(GetRepositoryPath(
+            "neo-bpsys-wpf",
+            "ViewModels",
+            "Windows",
+            "FrontedDesignerWindowViewModel.cs"));
+        var windowCode = File.ReadAllText(GetRepositoryPath(
+            "neo-bpsys-wpf",
+            "Views",
+            "Windows",
+            "FrontedDesignerWindow.xaml.cs"));
+
+        var refreshBody = ReadMethodBody(
+            viewModelText,
+            "public void RefreshWindowDisplayNames()",
+            "public ObservableCollection<FrontedLayoutValidationMessage>");
+        Assert.DoesNotContain("ReloadLayoutCoreAsync", refreshBody);
+        Assert.Contains("RebuildWindowOptions(SelectedWindow?.WindowTypeName)", refreshBody);
+
+        var rebuildBody = ReadMethodBody(
+            viewModelText,
+            "private void RebuildWindowOptions(string? preserveSelectedWindowTypeName)",
+            "private string ResolveWindowOptionDisplayName");
+        Assert.True(
+            rebuildBody.IndexOf("_isRefreshingWindowOptions", StringComparison.Ordinal)
+            < rebuildBody.IndexOf("WindowOptions.Clear()", StringComparison.Ordinal));
+
+        var languageBody = ReadMethodBody(
+            windowCode,
+            "private void OnLanguageSettingChanged",
+            "private void OnLoaded");
+        Assert.Contains("_suppressSelectorReload = true", languageBody);
+        Assert.Contains("_lastAcceptedWindow = viewModel.SelectedWindow", languageBody);
+        Assert.DoesNotContain("ReloadLayoutCoreAsync", languageBody);
+    }
+
+    [Fact]
     public async Task FrontedUserLayoutStoreSavesLoadsAndDeletesExpectedPath()
     {
         var root = CreateTempDirectory();

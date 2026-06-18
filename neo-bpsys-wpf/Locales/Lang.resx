@@ -2639,7 +2639,7 @@
     <value>导出资源数</value>
   </data>
   <data name="CompactPackageList" xml:space="preserve">
-    <value>紧凑包列表</value>
+    <value>布局包列表</value>
   </data>
   <data name="PackageBasicInfo" xml:space="preserve">
     <value>基本信息</value>

@@ -2624,7 +2624,7 @@
     <value>エクスポートしたリソース数</value>
   </data>
   <data name="CompactPackageList" xml:space="preserve">
-    <value>コンパクトパッケージ一覧</value>
+    <value>レイアウトパッケージ一覧</value>
   </data>
   <data name="PackageBasicInfo" xml:space="preserve">
     <value>基本情報</value>

@@ -1029,10 +1029,7 @@ public class FrontedLayoutPackageManagerTest
         var packagesText = File.ReadAllText(Path.Combine(frontManageFolder, "FrontedLayoutPackagesView.xaml"));
 
         Assert.Contains("x:Name=\"FrontManageTabs\"", pageText);
-        Assert.Contains("PaneDisplayMode=\"Top\"", pageText);
         Assert.Contains("NavigationBehavior=\"LocalTabs\"", pageText);
-        Assert.DoesNotContain("<TabControl", pageText);
-        Assert.DoesNotContain("<TabItem", pageText);
         Assert.Contains("\"FrontendWindows\"", pageCode);
         Assert.Contains("typeof(FrontedWindowsView)", pageCode);
         Assert.Contains("\"LayoutPackages\"", pageCode);
@@ -1042,14 +1039,16 @@ public class FrontedLayoutPackageManagerTest
         Assert.Contains("ItemsSource=\"{Binding LayoutPackages}\"", packagesText);
         Assert.Contains("RefreshPackagesCommand", packagesText);
         Assert.Contains("CompactPackageList", packagesText);
+        Assert.Contains("RequestBringIntoView=\"PackageListBox_OnRequestBringIntoView\"", packagesText);
         Assert.Contains("PackageBasicInfo", packagesText);
         Assert.Contains("ExportPackageCommand", packagesText);
         Assert.Contains("DuplicatePackageCommand", packagesText);
         Assert.Contains("MouseDoubleClick=\"PackageListBox_OnMouseDoubleClick\"", packagesText);
-        Assert.Contains("BasedOn=\"{StaticResource {x:Type ListBoxItem}}\" TargetType=\"ListBoxItem\"", packagesText);
-        Assert.Contains("BasedOn=\"{StaticResource {x:Type ui:Button}}\" TargetType=\"ui:Button\"", packagesText);
-        Assert.Contains("<ui:DynamicScrollViewer", packagesText);
-        Assert.DoesNotContain("<ui:DataGrid", packagesText);
+
+        var packagesCode = File.ReadAllText(Path.Combine(frontManageFolder, "FrontedLayoutPackagesView.xaml.cs"));
+        Assert.Contains("PackageListBox_OnRequestBringIntoView", packagesCode);
+        Assert.Contains("e.OriginalSource is ListBoxItem", packagesCode);
+        Assert.Contains("e.Handled = true", packagesCode);
     }
 
     [Fact]

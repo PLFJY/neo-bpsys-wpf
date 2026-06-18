@@ -101,6 +101,7 @@
                     BorderThickness="0"
                     ItemsSource="{Binding LayoutPackages}"
                     MouseDoubleClick="PackageListBox_OnMouseDoubleClick"
+                    RequestBringIntoView="PackageListBox_OnRequestBringIntoView"
                     scrolling:ModernScroll.Ownership="Self"
                     scrolling:NestedSmoothScrollBehavior.IsEnabled="True"
                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
