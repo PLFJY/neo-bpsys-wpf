@@ -11,7 +11,19 @@ public static class GlobalScoreRowCellLayoutHelper
     public const double DefaultCellWidth = 75D;
     public const double DefaultCellHeight = 32D;
 
-    private static readonly IReadOnlyList<CellDefinition> CompleteTemplate =
+    private static readonly IReadOnlyList<CellDefinition> Bo3Template =
+    [
+        new("Game1FirstHalf", 1, ScoreGameKind.Normal, ScoreHalfKind.FirstHalf),
+        new("Game1SecondHalf", 1, ScoreGameKind.Normal, ScoreHalfKind.SecondHalf),
+        new("Game2FirstHalf", 2, ScoreGameKind.Normal, ScoreHalfKind.FirstHalf),
+        new("Game2SecondHalf", 2, ScoreGameKind.Normal, ScoreHalfKind.SecondHalf),
+        new("Game3FirstHalf", 3, ScoreGameKind.Normal, ScoreHalfKind.FirstHalf),
+        new("Game3SecondHalf", 3, ScoreGameKind.Normal, ScoreHalfKind.SecondHalf),
+        new("Game3OvertimeFirstHalf", 3, ScoreGameKind.Overtime, ScoreHalfKind.FirstHalf),
+        new("Game3OvertimeSecondHalf", 3, ScoreGameKind.Overtime, ScoreHalfKind.SecondHalf)
+    ];
+
+    private static readonly IReadOnlyList<CellDefinition> Bo5Template =
     [
         new("Game1FirstHalf", 1, ScoreGameKind.Normal, ScoreHalfKind.FirstHalf),
         new("Game1SecondHalf", 1, ScoreGameKind.Normal, ScoreHalfKind.SecondHalf),
@@ -23,14 +35,22 @@ public static class GlobalScoreRowCellLayoutHelper
         new("Game4SecondHalf", 4, ScoreGameKind.Normal, ScoreHalfKind.SecondHalf),
         new("Game5FirstHalf", 5, ScoreGameKind.Normal, ScoreHalfKind.FirstHalf),
         new("Game5SecondHalf", 5, ScoreGameKind.Normal, ScoreHalfKind.SecondHalf),
-        new("Game3OvertimeFirstHalf", 3, ScoreGameKind.Overtime, ScoreHalfKind.FirstHalf),
-        new("Game3OvertimeSecondHalf", 3, ScoreGameKind.Overtime, ScoreHalfKind.SecondHalf),
         new("Game5OvertimeFirstHalf", 5, ScoreGameKind.Overtime, ScoreHalfKind.FirstHalf),
         new("Game5OvertimeSecondHalf", 5, ScoreGameKind.Overtime, ScoreHalfKind.SecondHalf)
     ];
 
-    public static IReadOnlyList<string> CompleteCellIds => CompleteTemplate.Select(cell => cell.Id).ToArray();
+    /// <summary>
+    /// Gets all built-in cell IDs across BO3 and BO5 templates.
+    /// </summary>
+    public static IReadOnlyList<string> CompleteCellIds =>
+        Bo3Template.Concat(Bo5Template)
+            .Select(cell => cell.Id)
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
 
+    /// <summary>
+    /// Creates the built-in cell template for the selected BO mode.
+    /// </summary>
     public static List<GlobalScoreCellConfig> CreateCompleteCellTemplate(
         double majorGameGap = 180D,
         double halfGameGap = 90D,
@@ -42,7 +62,7 @@ public static class GlobalScoreRowCellLayoutHelper
             HalfGameGap = halfGameGap
         };
 
-        foreach (var definition in CompleteTemplate)
+        foreach (var definition in GetTemplate(isBo3Mode))
         {
             row.Cells.Add(CreateCell(definition, majorGameGap, halfGameGap, isBo3Mode));
         }
@@ -61,15 +81,19 @@ public static class GlobalScoreRowCellLayoutHelper
         return row.Cells;
     }
 
+    /// <summary>
+    /// Ensures the row contains every cell required by the selected BO mode.
+    /// </summary>
     public static bool EnsureCompleteCells(GlobalScoreRowControlConfig row, bool isBo3Mode = false)
     {
         var changed = false;
+        var template = GetTemplate(isBo3Mode);
         var byId = row.Cells
             .Where(cell => !string.IsNullOrWhiteSpace(cell.Id))
             .GroupBy(cell => cell.Id, StringComparer.Ordinal)
             .ToDictionary(group => group.Key, group => group.First(), StringComparer.Ordinal);
 
-        foreach (var definition in CompleteTemplate)
+        foreach (var definition in template)
         {
             if (byId.ContainsKey(definition.Id))
             {
@@ -219,9 +243,10 @@ public static class GlobalScoreRowCellLayoutHelper
 
     private static int GetTemplateIndex(string id)
     {
-        for (var index = 0; index < CompleteTemplate.Count; index++)
+        var completeTemplate = Bo3Template.Concat(Bo5Template).ToArray();
+        for (var index = 0; index < completeTemplate.Length; index++)
         {
-            if (string.Equals(CompleteTemplate[index].Id, id, StringComparison.Ordinal))
+            if (string.Equals(completeTemplate[index].Id, id, StringComparison.Ordinal))
             {
                 return index;
             }
@@ -229,6 +254,9 @@ public static class GlobalScoreRowCellLayoutHelper
 
         return int.MaxValue;
     }
+
+    private static IReadOnlyList<CellDefinition> GetTemplate(bool isBo3Mode) =>
+        isBo3Mode ? Bo3Template : Bo5Template;
 
     private readonly record struct CellDefinition(
         string Id,

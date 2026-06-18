@@ -327,8 +327,8 @@ public class FrontedLayoutDesignerFoundationTest
 
         var home = Assert.IsType<GlobalScoreRowControlConfig>(config.Controls["HomeGlobalScoreRow"]);
         var away = Assert.IsType<GlobalScoreRowControlConfig>(config.Controls["AwayGlobalScoreRow"]);
-        Assert.Equal(14, home.Cells.Count);
-        Assert.Equal(14, away.Cells.Count);
+        Assert.Equal(12, home.Cells.Count);
+        Assert.Equal(12, away.Cells.Count);
         Assert.Contains(home.Cells, cell => cell is
         {
             Id: "Game5OvertimeSecondHalf",
@@ -338,9 +338,14 @@ public class FrontedLayoutDesignerFoundationTest
         });
         Assert.Contains(home.Cells, cell => cell is
         {
-            Id: "Game3OvertimeSecondHalf",
-            Visibility: FrontedControlVisibility.Collapsed
+            Id: "Game4SecondHalf",
+            GameNumber: 4,
+            GameKind: ScoreGameKind.Normal,
+            HalfKind: ScoreHalfKind.SecondHalf,
+            Visibility: FrontedControlVisibility.Visible
         });
+        Assert.DoesNotContain(home.Cells, cell => cell.Id == "Game3OvertimeFirstHalf");
+        Assert.DoesNotContain(home.Cells, cell => cell.Id == "Game3OvertimeSecondHalf");
         Assert.True(home.MajorGameGap > 0);
         Assert.True(home.HalfGameGap > 0);
     }
@@ -352,20 +357,20 @@ public class FrontedLayoutDesignerFoundationTest
         var bo3 = config.BoModeStates["Bo3"];
         var home = Assert.IsType<GlobalScoreRowControlConfig>(bo3.Controls["HomeGlobalScoreRow"]);
 
-        Assert.Equal(14, home.Cells.Count);
+        Assert.Equal(8, home.Cells.Count);
         Assert.Contains(home.Cells, cell => cell is
         {
             Id: "Game3OvertimeSecondHalf",
             GameNumber: 3,
             GameKind: ScoreGameKind.Overtime,
             HalfKind: ScoreHalfKind.SecondHalf,
-            X: 630
+            Visibility: FrontedControlVisibility.Visible,
+            X: 681
         });
-        Assert.Contains(home.Cells, cell => cell is
-        {
-            Id: "Game5OvertimeSecondHalf",
-            Visibility: FrontedControlVisibility.Collapsed
-        });
+        Assert.DoesNotContain(home.Cells, cell => cell.Id == "Game4FirstHalf");
+        Assert.DoesNotContain(home.Cells, cell => cell.Id == "Game4SecondHalf");
+        Assert.DoesNotContain(home.Cells, cell => cell.Id == "Game5OvertimeFirstHalf");
+        Assert.DoesNotContain(home.Cells, cell => cell.Id == "Game5OvertimeSecondHalf");
         Assert.DoesNotContain(config.Controls["HomeGlobalScoreRow"].ToString() ?? string.Empty, home.Cells.Select(cell => cell.Id));
     }
 
@@ -881,7 +886,7 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Equal("#FFFFFFFF", globalScore.Color);
         Assert.Equal(24, globalScore.FontSize);
         Assert.True(globalScore.ShowCampIcon);
-        Assert.Equal(14, globalScore.Cells.Count);
+        Assert.Equal(12, globalScore.Cells.Count);
         Assert.All(globalScore.Cells, cell =>
         {
             Assert.Equal(75, cell.Width);

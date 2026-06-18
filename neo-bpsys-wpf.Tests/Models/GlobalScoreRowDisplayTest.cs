@@ -1,6 +1,7 @@
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.ScoreSystem;
+using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using System.Linq;
 using Xunit;
 
@@ -171,6 +172,59 @@ public class GlobalScoreRowDisplayTest
         Assert.DoesNotContain(new ScoreGameKey(3, ScoreGameKind.Overtime), bo5Keys);
         Assert.Contains(new ScoreGameKey(4, ScoreGameKind.Normal), bo5Keys);
         Assert.Contains(new ScoreGameKey(5, ScoreGameKind.Overtime), bo5Keys);
+    }
+
+    [Fact]
+    public void CompleteCellTemplateUsesBoSpecificScoreGameKeys()
+    {
+        var bo3Cells = GlobalScoreRowCellLayoutHelper.CreateCompleteCellTemplate(
+            majorGameGap: 197,
+            halfGameGap: 90,
+            isBo3Mode: true);
+        var bo5Cells = GlobalScoreRowCellLayoutHelper.CreateCompleteCellTemplate(
+            majorGameGap: 197,
+            halfGameGap: 90,
+            isBo3Mode: false);
+
+        Assert.Equal(8, bo3Cells.Count);
+        Assert.Contains(bo3Cells, cell => cell is
+        {
+            Id: "Game3OvertimeFirstHalf",
+            GameNumber: 3,
+            GameKind: ScoreGameKind.Overtime,
+            HalfKind: ScoreHalfKind.FirstHalf,
+            Visibility: FrontedControlVisibility.Visible,
+            X: 591
+        });
+        Assert.DoesNotContain(bo3Cells, cell => cell.Id == "Game4FirstHalf");
+
+        Assert.Equal(12, bo5Cells.Count);
+        Assert.Contains(bo5Cells, cell => cell is
+        {
+            Id: "Game4FirstHalf",
+            GameNumber: 4,
+            GameKind: ScoreGameKind.Normal,
+            HalfKind: ScoreHalfKind.FirstHalf,
+            Visibility: FrontedControlVisibility.Visible,
+            X: 591
+        });
+        Assert.DoesNotContain(bo5Cells, cell => cell.Id == "Game3OvertimeFirstHalf");
+    }
+
+    [Fact]
+    public void AutoArrangeBo3PlacesGame3OvertimeAsFourthGroup()
+    {
+        var row = new GlobalScoreRowControlConfig
+        {
+            MajorGameGap = 200,
+            HalfGameGap = 50,
+            Cells = GlobalScoreRowCellLayoutHelper.CreateCompleteCellTemplate(isBo3Mode: true)
+        };
+
+        GlobalScoreRowCellLayoutHelper.AutoArrangeBySpacing(row, isBo3Mode: true);
+
+        Assert.Contains(row.Cells, cell => cell is { Id: "Game3OvertimeFirstHalf", X: 600 });
+        Assert.Contains(row.Cells, cell => cell is { Id: "Game3OvertimeSecondHalf", X: 650 });
     }
 
     private static GlobalScoreCellConfig Cell(
