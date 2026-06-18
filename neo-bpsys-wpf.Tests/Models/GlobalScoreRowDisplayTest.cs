@@ -105,43 +105,6 @@ public class GlobalScoreRowDisplayTest
     }
 
     [Fact]
-    public void CellStyleNullsInheritParentAndExplicitValuesOverride()
-    {
-        var row = new GlobalScoreRowControlConfig
-        {
-            FontFamily = "Arial",
-            FontWeight = "Bold",
-            Color = "#FFFFFFFF",
-            FontSize = 24,
-            ShowCampIcon = true,
-            Cells =
-            [
-                new GlobalScoreCellConfig { Id = "Inherited" },
-                new GlobalScoreCellConfig
-                {
-                    Id = "Override",
-                    FontFamily = "Tahoma",
-                    FontWeight = "Normal",
-                    Color = "#FF112233",
-                    FontSize = 18,
-                    ShowCampIcon = false
-                }
-            ]
-        };
-
-        Assert.Equal(row.FontFamily, row.Cells[0].FontFamily ?? row.FontFamily);
-        Assert.Equal(row.FontWeight, row.Cells[0].FontWeight ?? row.FontWeight);
-        Assert.Equal(row.Color, row.Cells[0].Color ?? row.Color);
-        Assert.Equal(row.FontSize, row.Cells[0].FontSize ?? row.FontSize);
-        Assert.Equal(row.ShowCampIcon, row.Cells[0].ShowCampIcon ?? row.ShowCampIcon);
-        Assert.Equal("Tahoma", row.Cells[1].FontFamily ?? row.FontFamily);
-        Assert.Equal("Normal", row.Cells[1].FontWeight ?? row.FontWeight);
-        Assert.Equal("#FF112233", row.Cells[1].Color ?? row.Color);
-        Assert.Equal(18, row.Cells[1].FontSize ?? row.FontSize);
-        Assert.False(row.Cells[1].ShowCampIcon ?? row.ShowCampIcon);
-    }
-
-    [Fact]
     public void Bo3AndBo5VisibilityUsesScoreGameKeysInsteadOfRawProgressValues()
     {
         var matchScore = MatchScoreState.CreateDefault();

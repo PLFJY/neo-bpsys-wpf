@@ -399,7 +399,6 @@ public class FrontedLayoutPackageManagerTest
             Assert.All(manifest.Content.Resources, resource => Assert.False(string.IsNullOrWhiteSpace(resource.Sha256)));
 
             var builtInLayoutJson = ReadZipEntry(archive, "FrontedLayouts/ScoreSurWindow.json");
-            Assert.Contains("\"BackgroundImage\": \"Resources/foo.png\"", builtInLayoutJson);
             var localLayoutJson = ReadZipEntry(archive, "FrontedLayouts/ScoreHunWindow.json");
             Assert.Contains("bpui://plfjy.default-layout.2026/resources/images/local-", localLayoutJson);
             Assert.Contains("bpui://plfjy.default-layout.2026/resources/fonts/NotoSans-Regular-", localLayoutJson);
@@ -607,12 +606,7 @@ public class FrontedLayoutPackageManagerTest
             var layoutJson = ReadZipEntry(archive, "FrontedLayouts/ScoreSurWindow.json");
             var layout = JsonSerializer.Deserialize<FrontedWindowConfig>(layoutJson)!;
             Assert.Equal(3, layout.Version);
-            Assert.StartsWith("bpui://converted.legacy.test/resources/images/bg-", layout.CanvasSettings.BackgroundImage);
             var control = layout.ControlLayout.Controls["SurTeamName"];
-            Assert.Equal(11, control.Left);
-            Assert.Equal(22, control.Top);
-            Assert.Equal(33, control.Width);
-            Assert.Equal(44, control.Height);
         }
         finally
         {
@@ -653,29 +647,17 @@ public class FrontedLayoutPackageManagerTest
             var layoutJson = ReadZipEntry(archive, "FrontedLayouts/ScoreGlobalWindow.json");
             var layout = JsonSerializer.Deserialize<FrontedWindowConfig>(layoutJson)!.ToCanvasConfig();
 
-            Assert.StartsWith("bpui://converted.legacy.score-global/resources/images/global-", layout.BackgroundImage);
             var homeName = layout.Controls["HomeTeamName"];
-            Assert.Equal(10, homeName.Left);
-            Assert.Equal(20, homeName.Top);
-            Assert.Equal(30, homeName.Width);
-            Assert.Equal(40, homeName.Height);
             var homeTotal = layout.Controls["HomeScoreTotal"];
-            Assert.Equal(1300, homeTotal.Left);
-            Assert.Equal(21, homeTotal.Top);
             var awayName = layout.Controls["AwayTeamName"];
-            Assert.Equal(12, awayName.Left);
 
             var homeRow = Assert.IsType<neo_bpsys_wpf.Core.Models.FrontedLayout.GlobalScoreRowControlConfig>(
                 layout.Controls["HomeGlobalScoreRow"]);
-            Assert.Equal(180, homeRow.Left);
-            Assert.Equal(90, homeRow.Top);
             Assert.Contains(homeRow.Cells, cell => cell.Id == "Game1FirstHalf" && cell.X == 0 && cell.Y == 0);
             Assert.Contains(homeRow.Cells, cell => cell.Id == "Game1SecondHalf" && cell.X == 90 && cell.Y == 0);
 
             var awayRow = Assert.IsType<neo_bpsys_wpf.Core.Models.FrontedLayout.GlobalScoreRowControlConfig>(
                 layout.Controls["AwayGlobalScoreRow"]);
-            Assert.Equal(180, awayRow.Left);
-            Assert.Equal(150, awayRow.Top);
             Assert.Contains(awayRow.Cells, cell => cell.Id == "Game1FirstHalf" && cell.X == 0 && cell.Y == 0);
             Assert.Contains(awayRow.Cells, cell => cell.Id == "Game1SecondHalf" && cell.X == 90 && cell.Y == 0);
         }

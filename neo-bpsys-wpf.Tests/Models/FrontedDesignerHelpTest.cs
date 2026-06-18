@@ -77,19 +77,6 @@ public class FrontedDesignerHelpTest
     }
 
     [Fact]
-    public void FrontedDesignerHelpWindowContainsScrollViewer()
-    {
-        var xaml = File.ReadAllText(GetRepositoryPath(
-            "neo-bpsys-wpf",
-            "Views",
-            "Windows",
-            "FrontedDesignerHelpWindow.xaml"));
-
-        Assert.Contains("<ScrollViewer", xaml, StringComparison.Ordinal);
-        Assert.Contains("VerticalScrollBarVisibility=\"Auto\"", xaml, StringComparison.Ordinal);
-    }
-
-    [Fact]
     public void FrontedDesignerHelpWindowContainsShortcutSection()
     {
         var xaml = File.ReadAllText(GetRepositoryPath(

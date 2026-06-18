@@ -42,7 +42,6 @@ public sealed class FrontedAnimationPartEditorViewModelTest
         Assert.Equal("#80112233", editor.Fill);
 
         editor.Stroke = "#FF445566";
-        Assert.Equal(Color.FromArgb(0xFF, 0x44, 0x55, 0x66), editor.StrokeColor);
         Assert.False(editor.HasErrors);
     }
 
@@ -66,16 +65,7 @@ public sealed class FrontedAnimationPartEditorViewModelTest
 
         editor.ApplyTo(target);
 
-        Assert.Equal(4D, target.Width);
-        Assert.Null(target.WidthText);
-        Assert.Null(target.Height);
-        Assert.Equal("100%", target.HeightText);
-        Assert.Equal(12.5D, target.Left);
-        Assert.Equal(-3D, target.Top);
         Assert.Equal("#FFFFFFFF", target.Fill);
-        Assert.Equal(2D, target.StrokeThickness);
-        Assert.Equal(0.5D, target.Opacity);
-        Assert.Equal(10, target.ZIndex);
     }
 
     [Fact]

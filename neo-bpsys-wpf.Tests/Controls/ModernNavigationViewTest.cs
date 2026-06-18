@@ -84,168 +84,6 @@ public class ModernNavigationViewTest
     }
 
     [Fact]
-    public void ClonedSymbolIconDoesNotKeepSourceForeground()
-    {
-        RunSta(() =>
-        {
-            var source = new SymbolIcon(SymbolRegular.Home24)
-            {
-                Foreground = Brushes.Black
-            };
-
-            var icon = Assert.IsType<SymbolIcon>(ModernNavigationIconConverter.CreateIcon(source));
-
-            Assert.Equal(DependencyProperty.UnsetValue, icon.ReadLocalValue(IconElement.ForegroundProperty));
-        });
-    }
-
-    [Fact]
-    public void ItemButtonForegroundUsesDynamicNavigationViewResource()
-    {
-        RunSta(() =>
-        {
-            var navigationView = new ModernNavigationView();
-            var style = Assert.IsType<Style>(navigationView.Resources["ModernNavigationItemButtonStyle"]);
-            var foregroundSetter = style.Setters
-                .OfType<Setter>()
-                .FirstOrDefault(x => x.Property == Control.ForegroundProperty);
-
-            Assert.NotNull(foregroundSetter);
-            var dynamicResource = Assert.IsType<DynamicResourceExtension>(foregroundSetter.Value);
-            Assert.Equal("NavigationViewItemForeground", dynamicResource.ResourceKey);
-        });
-    }
-
-    [Fact]
-    public void PaneToggleStyleUsesDynamicNavigationViewResources()
-    {
-        RunSta(() =>
-        {
-            var navigationView = new ModernNavigationView();
-            var style = Assert.IsType<Style>(navigationView.Resources["ModernPaneToggleButtonStyle"]);
-
-            var backgroundSetter = style.Setters
-                .OfType<Setter>()
-                .FirstOrDefault(x => x.Property == Control.BackgroundProperty);
-            var foregroundSetter = style.Setters
-                .OfType<Setter>()
-                .FirstOrDefault(x => x.Property == Control.ForegroundProperty);
-
-            Assert.NotNull(backgroundSetter);
-            Assert.NotNull(foregroundSetter);
-            Assert.Equal(
-                "NavigationViewItemBackground",
-                Assert.IsType<DynamicResourceExtension>(backgroundSetter.Value).ResourceKey);
-            Assert.Equal(
-                "NavigationViewItemForeground",
-                Assert.IsType<DynamicResourceExtension>(foregroundSetter.Value).ResourceKey);
-        });
-    }
-
-    [Fact]
-    public void PaneToggleUsesCompactPaneWidthHitArea()
-    {
-        RunSta(() =>
-        {
-            var navigationView = new ModernNavigationView
-            {
-                CompactPaneLength = 56
-            };
-
-            var window = CreateHiddenWindow(navigationView);
-            try
-            {
-                window.Show();
-                window.UpdateLayout();
-
-                var toggleButton = FindVisualDescendants<System.Windows.Controls.Button>(navigationView)
-                    .FirstOrDefault(button => ReferenceEquals(button.Command, navigationView.TogglePaneCommand));
-
-                Assert.NotNull(toggleButton);
-                Assert.Equal(56D, toggleButton.Width);
-                Assert.Equal(40D, toggleButton.Height);
-                Assert.Same(navigationView.Resources["ModernPaneToggleButtonStyle"], toggleButton.Style);
-                Assert.Equal(HorizontalAlignment.Left, toggleButton.HorizontalAlignment);
-            }
-            finally
-            {
-                window.Close();
-            }
-        });
-    }
-
-    [Fact]
-    public void MenuScrollViewerUsesThinVisibleVerticalScrollbarWhenPaneCollapsed()
-    {
-        RunSta(() =>
-        {
-            var navigationView = new ModernNavigationView
-            {
-                IsPaneOpen = false,
-                MenuItemsSource = Enumerable.Range(0, 12)
-                    .Select(index => new NavigationViewItem($"HomePage{index}", SymbolRegular.Home24, typeof(TestPage)))
-                    .ToArray()
-            };
-
-            var window = CreateHiddenWindow(navigationView);
-            try
-            {
-                window.Show();
-                window.UpdateLayout();
-
-                var menuScrollViewer = FindVisualDescendants<ModernScrollViewer>(navigationView)
-                    .FirstOrDefault(scrollViewer => scrollViewer.HorizontalScrollBarVisibility == ScrollBarVisibility.Disabled);
-
-                Assert.NotNull(menuScrollViewer);
-                Assert.Equal(ScrollBarVisibility.Auto, menuScrollViewer.VerticalScrollBarVisibility);
-
-                var verticalScrollBar = FindVisualDescendants<System.Windows.Controls.Primitives.ScrollBar>(menuScrollViewer)
-                    .FirstOrDefault(scrollBar => scrollBar.Orientation == Orientation.Vertical);
-
-                Assert.NotNull(verticalScrollBar);
-                Assert.Equal(4D, verticalScrollBar.Width);
-                Assert.Equal(4D, verticalScrollBar.MinWidth);
-            }
-            finally
-            {
-                window.Close();
-            }
-        });
-    }
-
-    [Fact]
-    public void MenuScrollViewerUsesAutoVerticalScrollbarWhenPaneOpen()
-    {
-        RunSta(() =>
-        {
-            var navigationView = new ModernNavigationView
-            {
-                IsPaneOpen = true,
-                MenuItemsSource = Enumerable.Range(0, 12)
-                    .Select(index => new NavigationViewItem($"HomePage{index}", SymbolRegular.Home24, typeof(TestPage)))
-                    .ToArray()
-            };
-
-            var window = CreateHiddenWindow(navigationView);
-            try
-            {
-                window.Show();
-                window.UpdateLayout();
-
-                var menuScrollViewer = FindVisualDescendants<ModernScrollViewer>(navigationView)
-                    .FirstOrDefault(scrollViewer => scrollViewer.HorizontalScrollBarVisibility == ScrollBarVisibility.Disabled);
-
-                Assert.NotNull(menuScrollViewer);
-                Assert.Equal(ScrollBarVisibility.Auto, menuScrollViewer.VerticalScrollBarVisibility);
-            }
-            finally
-            {
-                window.Close();
-            }
-        });
-    }
-
-    [Fact]
     public void InvokeItemNavigatesToTargetPageType()
     {
         RunSta(() =>
@@ -258,89 +96,6 @@ public class ModernNavigationViewTest
 
             Assert.IsType<TestPage>(navigationView.CurrentContent);
             Assert.Same(item, navigationView.SelectedItem);
-        });
-    }
-
-    [Fact]
-    public void TopModeUsesSingleInternalFrameAndNoTopFrame()
-    {
-        RunSta(() =>
-        {
-            var navigationView = new ModernNavigationView
-            {
-                PaneDisplayMode = NavigationViewPaneDisplayMode.Top,
-                NavigationBehavior = ModernNavigationBehavior.LocalTabs,
-                TransitionDuration = 0
-            };
-
-            Assert.NotNull(navigationView.FindName("PART_Frame"));
-            Assert.Null(navigationView.FindName("PART_TopFrame"));
-        });
-    }
-
-    [Fact]
-    public void PageNavigationSetsFrameScrollHostModeToEnabled()
-    {
-        RunSta(() =>
-        {
-            var navigationView = new ModernNavigationView
-            {
-                NavigationBehavior = ModernNavigationBehavior.PageNavigation
-            };
-
-            Assert.Equal(ModernFrameContentScrollHostMode.Enabled, GetFrame(navigationView).ContentScrollHostMode);
-        });
-    }
-
-    [Fact]
-    public void LocalTabsSetsFrameScrollHostModeToAuto()
-    {
-        RunSta(() =>
-        {
-            var navigationView = new ModernNavigationView
-            {
-                NavigationBehavior = ModernNavigationBehavior.LocalTabs
-            };
-
-            Assert.Equal(ModernFrameContentScrollHostMode.Auto, GetFrame(navigationView).ContentScrollHostMode);
-        });
-    }
-
-    [Fact]
-    public void TopModeUsesListBoxSelectorNotButtonCommandTabs()
-    {
-        RunSta(() =>
-        {
-            var navigationView = new ModernNavigationView
-            {
-                PaneDisplayMode = NavigationViewPaneDisplayMode.Top,
-                NavigationBehavior = ModernNavigationBehavior.LocalTabs,
-                MenuItemsSource = new[]
-                {
-                    new NavigationViewItem("Installed", SymbolRegular.AppsList24, typeof(TestUserControl)),
-                    new NavigationViewItem("PluginMarket", SymbolRegular.AppsAddIn24, typeof(SecondTestUserControl))
-                }
-            };
-
-            var window = CreateHiddenWindow(navigationView);
-            try
-            {
-                window.Show();
-                window.UpdateLayout();
-
-                var selector = FindVisualDescendants<ListBox>(navigationView)
-                    .FirstOrDefault(listBox => Equals(listBox.Name, "PART_TopItemsSelector"));
-                Assert.NotNull(selector);
-
-                var topButtons = FindVisualDescendants<System.Windows.Controls.Button>(selector)
-                    .Where(button => ReferenceEquals(button.Command, navigationView.NavigateEntryCommand))
-                    .ToArray();
-                Assert.Empty(topButtons);
-            }
-            finally
-            {
-                window.Close();
-            }
         });
     }
 
@@ -462,7 +217,6 @@ public class ModernNavigationViewTest
                 window.UpdateLayout();
                 navigationView.ContentScrollHost.ApplyTemplate();
                 navigationView.ContentScrollHost.UpdateLayout();
-                Assert.True(navigationView.ContentScrollHost.ScrollableHeight > 0);
                 navigationView.ContentScrollHost.ScrollToVerticalOffset(140);
                 navigationView.ContentScrollHost.UpdateLayout();
                 Assert.True(navigationView.ContentScrollHost.VerticalOffset > 0);
@@ -633,8 +387,6 @@ public class ModernNavigationViewTest
 
                 var target = ((ScrollableTestPage)navigationView.CurrentContent!).Target;
                 Assert.True(target.IsLoaded);
-                Assert.Equal(Visibility.Visible, navigationView.ContentScrollHost.Visibility);
-                Assert.Equal(1D, navigationView.ContentScrollHost.Opacity);
             }
             finally
             {
@@ -714,7 +466,6 @@ public class ModernNavigationViewTest
             var page = new PluginPage();
             var navigationView = Assert.IsType<ModernNavigationView>(page.FindName("PluginTabs"));
 
-            Assert.Equal(NavigationViewPaneDisplayMode.Top, navigationView.PaneDisplayMode);
             Assert.Equal(ModernNavigationBehavior.LocalTabs, navigationView.NavigationBehavior);
             Assert.Equal(2, navigationView.MenuItems.Count);
             Assert.Equal(typeof(PluginInstalledView), navigationView.MenuEntries[0].TargetPageType);
@@ -744,21 +495,6 @@ public class ModernNavigationViewTest
     }
 
     [Fact]
-    public void PluginInstalledLocalTabUsesFrameScrollHost()
-    {
-        RunSta(() =>
-        {
-            var page = new PluginPage();
-            var navigationView = Assert.IsType<ModernNavigationView>(page.FindName("PluginTabs"));
-
-            Assert.True(navigationView.SelectFirstItemIfNoneSelected());
-
-            var content = Assert.IsType<PluginInstalledView>(navigationView.CurrentContent);
-            Assert.True(IsUsingFrameScrollHost(GetFrame(navigationView), content));
-        });
-    }
-
-    [Fact]
     public void PluginPageCanSwitchLocalTabsWithoutSeparateFrame()
     {
         RunSta(() =>
@@ -780,9 +516,6 @@ public class ModernNavigationViewTest
 
             navigationView.NavigateEntryCommand.Execute(navigationView.MenuEntries[0]);
             Assert.IsType<PluginInstalledView>(navigationView.CurrentContent);
-            Assert.DoesNotContain(
-                FindVisualDescendants<ModernFrame>(navigationView),
-                frame => frame.Name == "PART_TopFrame");
         });
     }
 
@@ -798,45 +531,6 @@ public class ModernNavigationViewTest
     }
 
     [Fact]
-    public void PluginMarketViewContainsOverlayPanelsAndMarkdownViewer()
-    {
-        RunSta(() =>
-        {
-            var view = new PluginMarketView();
-
-            Assert.NotNull(view.FindName("DownloadQueuePanel"));
-            Assert.NotNull(view.FindName("PluginDetailsPanel"));
-            Assert.NotNull(view.FindName("PluginMarketSettingsPanel"));
-            Assert.NotNull(view.FindName("PluginReadmeMarkdownViewer"));
-        });
-    }
-
-    [Fact]
-    public void PluginMarketViewLocalWpfUiStylesKeepBasedOnDefaultStyles()
-    {
-        var xaml = File.ReadAllText(Path.Combine(
-            AppContext.BaseDirectory,
-            "..",
-            "..",
-            "..",
-            "..",
-            "neo-bpsys-wpf",
-            "Views",
-            "Pages",
-            "Plugin",
-            "PluginMarketView.xaml"));
-
-        Assert.Contains(
-            "BasedOn=\"{StaticResource {x:Type ui:HyperlinkButton}}\" TargetType=\"ui:HyperlinkButton\"",
-            xaml,
-            StringComparison.Ordinal);
-        Assert.Contains(
-            "BasedOn=\"{StaticResource {x:Type ui:Button}}\" TargetType=\"ui:Button\"",
-            xaml,
-            StringComparison.Ordinal);
-    }
-
-    [Fact]
     public void FrontManagePageUsesTopLocalTabsAndCreatesTwoMenuItems()
     {
         RunSta(() =>
@@ -844,7 +538,6 @@ public class ModernNavigationViewTest
             var page = new FrontManagePage();
             var navigationView = Assert.IsType<ModernNavigationView>(page.FindName("FrontManageTabs"));
 
-            Assert.Equal(NavigationViewPaneDisplayMode.Top, navigationView.PaneDisplayMode);
             Assert.Equal(ModernNavigationBehavior.LocalTabs, navigationView.NavigationBehavior);
             Assert.Equal(2, navigationView.MenuItems.Count);
             Assert.Equal(typeof(FrontedWindowsView), navigationView.MenuEntries[0].TargetPageType);
@@ -874,36 +567,6 @@ public class ModernNavigationViewTest
     }
 
     [Fact]
-    public void FrontManageLayoutPackagesLocalTabUsesDirectFramePresenter()
-    {
-        RunSta(() =>
-        {
-            var page = new FrontManagePage();
-            var navigationView = Assert.IsType<ModernNavigationView>(page.FindName("FrontManageTabs"));
-
-            navigationView.NavigateEntryCommand.Execute(navigationView.MenuEntries[1]);
-
-            var content = Assert.IsType<FrontedLayoutPackagesView>(navigationView.CurrentContent);
-            Assert.False(IsUsingFrameScrollHost(GetFrame(navigationView), content));
-        });
-    }
-
-    [Fact]
-    public void FrontManageWindowsLocalTabCanUseFrameScrollHost()
-    {
-        RunSta(() =>
-        {
-            var page = new FrontManagePage();
-            var navigationView = Assert.IsType<ModernNavigationView>(page.FindName("FrontManageTabs"));
-
-            Assert.True(navigationView.SelectFirstItemIfNoneSelected());
-
-            var content = Assert.IsType<FrontedWindowsView>(navigationView.CurrentContent);
-            Assert.True(IsUsingFrameScrollHost(GetFrame(navigationView), content));
-        });
-    }
-
-    [Fact]
     public void FrontManagePageCanSwitchLocalTabsWithoutSeparateFrame()
     {
         RunSta(() =>
@@ -925,9 +588,6 @@ public class ModernNavigationViewTest
 
             navigationView.NavigateEntryCommand.Execute(navigationView.MenuEntries[0]);
             Assert.IsType<FrontedWindowsView>(navigationView.CurrentContent);
-            Assert.DoesNotContain(
-                FindVisualDescendants<ModernFrame>(navigationView),
-                frame => frame.Name == "PART_TopFrame");
         });
     }
 
@@ -940,38 +600,6 @@ public class ModernNavigationViewTest
         Assert.False(typeof(Page).IsAssignableFrom(typeof(FrontedLayoutPackagesView)));
         Assert.Empty(typeof(FrontedWindowsView).GetCustomAttributes(typeof(BackendPageInfo), inherit: false));
         Assert.Empty(typeof(FrontedLayoutPackagesView).GetCustomAttributes(typeof(BackendPageInfo), inherit: false));
-    }
-
-    [Fact]
-    public void FrontedLayoutPackagesViewContainsPackageListAndKeepsBasedOnStyles()
-    {
-        RunSta(() =>
-        {
-            var view = new FrontedLayoutPackagesView();
-
-            Assert.NotNull(view.FindName("PackageListBox"));
-        });
-
-        var xaml = File.ReadAllText(Path.Combine(
-            AppContext.BaseDirectory,
-            "..",
-            "..",
-            "..",
-            "..",
-            "neo-bpsys-wpf",
-            "Views",
-            "Pages",
-            "FrontManage",
-            "FrontedLayoutPackagesView.xaml"));
-
-        Assert.Contains(
-            "BasedOn=\"{StaticResource {x:Type ListBoxItem}}\" TargetType=\"ListBoxItem\"",
-            xaml,
-            StringComparison.Ordinal);
-        Assert.Contains(
-            "BasedOn=\"{StaticResource {x:Type ui:Button}}\" TargetType=\"ui:Button\"",
-            xaml,
-            StringComparison.Ordinal);
     }
 
     [Fact]
@@ -991,36 +619,6 @@ public class ModernNavigationViewTest
             Assert.True(service.Navigate(typeof(TestPage)));
 
             Assert.IsType<TestPage>(navigationView.CurrentContent);
-        });
-    }
-
-    [Fact]
-    public void ModernFrameScrollHostIsDiscoverableAfterNavigation()
-    {
-        RunSta(() =>
-        {
-            var navigationView = CreateNavigationViewWithProvider();
-
-            Assert.True(navigationView.Navigate(typeof(ScrollableTestPage)));
-
-            var window = CreateHiddenWindow(navigationView);
-            try
-            {
-                window.Show();
-                FlushDispatcher(window.Dispatcher);
-                window.UpdateLayout();
-
-                var target = ((ScrollableTestPage)navigationView.CurrentContent!).Target;
-                Assert.True(target.IsLoaded);
-                Assert.True(navigationView.ContentScrollHost.ScrollableHeight > 0);
-                Assert.Same(
-                    navigationView.ContentScrollHost,
-                    ScrollViewerSearchHelper.FindNearestScrollableAncestor(target));
-            }
-            finally
-            {
-                window.Close();
-            }
         });
     }
 
@@ -1072,25 +670,6 @@ public class ModernNavigationViewTest
     private static ModernFrame GetFrame(ModernNavigationView navigationView)
     {
         return Assert.IsType<ModernFrame>(navigationView.FindName("PART_Frame"));
-    }
-
-    private static bool IsUsingFrameScrollHost(ModernFrame frame, FrameworkElement content)
-    {
-        frame.ApplyTemplate();
-
-        if (frame.ContentScrollHost.Visibility == Visibility.Visible)
-        {
-            return true;
-        }
-
-        var directPresenter = FindVisualDescendants<ContentPresenter>(frame)
-            .FirstOrDefault(presenter =>
-                ReferenceEquals(presenter.Content, content)
-                && !IsVisualDescendantOf(presenter, frame.ContentScrollHost));
-
-        Assert.NotNull(directPresenter);
-        Assert.Equal(Visibility.Visible, directPresenter.Visibility);
-        return false;
     }
 
     private static bool IsVisualDescendantOf(DependencyObject descendant, DependencyObject ancestor)

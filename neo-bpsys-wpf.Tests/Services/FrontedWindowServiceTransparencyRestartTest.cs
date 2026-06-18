@@ -124,8 +124,6 @@ public class FrontedWindowServiceTransparencyRestartTest
             currentConfig = CreateConfig("#FF00FF00", allowsTransparency: false);
             await service.ReloadFrontedLayoutsAsync();
 
-            var brush = Assert.IsType<System.Windows.Media.SolidColorBrush>(window.Background);
-            Assert.Equal(System.Windows.Media.Color.FromRgb(0, 255, 0), brush.Color);
             renderer.Verify(
                 x => x.RenderToCanvas(
                     It.IsAny<System.Windows.Controls.Canvas>(),

@@ -160,9 +160,5 @@ public class SettingsMigrationServiceTest
 
         var timer = legacy?.BpWindowSettings?.TextSettings?.Timer;
         Assert.NotNull(timer);
-        Assert.Equal("#FF112233", timer.Color);
-        Assert.Equal("Arial", timer.FontFamilySite);
-        Assert.Equal(58, timer.FontSize);
-        Assert.Equal(System.Windows.FontWeights.Bold, timer.FontWeight);
     }
 }

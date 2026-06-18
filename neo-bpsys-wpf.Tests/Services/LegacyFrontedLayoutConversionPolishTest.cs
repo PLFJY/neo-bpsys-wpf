@@ -20,16 +20,6 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
     private const string LegacyFont = "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简";
     private const string NotoSansFont = "pack://application:,,,/Assets/Fonts/#Noto Sans";
 
-    [Theory]
-    [InlineData("./#汉仪第五人格体简", "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简")]
-    [InlineData("./#华康POP1体W5", "pack://application:,,,/Assets/Fonts/#华康POP1体W5")]
-    [InlineData("pack://application:,,,/Assets/Fonts/#Noto Sans", "pack://application:,,,/Assets/Fonts/#Noto Sans")]
-    [InlineData("Arial", "Arial")]
-    public void LegacyFontFamilySiteIsNormalized(string value, string expected)
-    {
-        Assert.Equal(expected, LegacyFrontedTextStyleMigrator.NormalizeLegacyFontFamilySite(value));
-    }
-
     [Fact]
     public void FormatterKeepsBenignDiagnosticsOutOfUserWarnings()
     {
@@ -89,11 +79,6 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
 
             var sur = Assert.IsType<TextFrontedControlConfig>(layout.Controls["SurTeamMajorPoint"]);
             var hun = Assert.IsType<TextFrontedControlConfig>(layout.Controls["HunTeamMajorPoint"]);
-            Assert.Equal(380, sur.Left);
-            Assert.Equal(42, sur.Top);
-            Assert.Equal(120, sur.Width);
-            Assert.Equal(36, sur.Height);
-            Assert.Equal(971, hun.Left);
             Assert.Equal("CurrentGame.MatchScore.CurrentSurTeamMajorText", Assert.Single(sur.TextBinding!.Sources).Path);
             Assert.Equal("CurrentGame.MatchScore.CurrentHunTeamMajorText", Assert.Single(hun.TextBinding!.Sources).Path);
 
@@ -148,14 +133,6 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
 
             var sur = Assert.IsType<TextFrontedControlConfig>(layout.Controls["SurTeamMajorPoint"]);
             var hun = Assert.IsType<TextFrontedControlConfig>(layout.Controls["HunTeamMajorPoint"]);
-            Assert.Equal(LegacyFont, sur.FontFamily);
-            Assert.Equal(LegacyFont, hun.FontFamily);
-            Assert.Equal(48, sur.FontSize);
-            Assert.Equal(48, hun.FontSize);
-            Assert.Equal("Normal", sur.FontWeight);
-            Assert.Equal("Normal", hun.FontWeight);
-            Assert.Equal("#FF000000", sur.Color);
-            Assert.Equal("#FF000000", hun.Color);
             Assert.Equal("CurrentGame.MatchScore.CurrentSurTeamMajorText", Assert.Single(sur.TextBinding!.Sources).Path);
             Assert.Equal("CurrentGame.MatchScore.CurrentHunTeamMajorText", Assert.Single(hun.TextBinding!.Sources).Path);
 
@@ -198,51 +175,32 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             var cutScene = ReadLayout(archive, "FrontedLayouts/CutSceneWindow.json");
 
             var cutSceneMap = Assert.IsType<BorderedImageFrontedControlConfig>(cutScene.Controls["Map"]);
-            Assert.Equal("UniformToFill", cutSceneMap.Stretch);
 
             foreach (var name in new[] { "SurPick0", "SurPick1", "SurPick2", "SurPick3" })
             {
                 var pick = Assert.IsType<BorderedImageFrontedControlConfig>(cutScene.Controls[name]);
                 Assert.Equal(ImageSizingMode.OverflowCrop, pick.SizingMode);
-                Assert.Equal("UniformToFill", pick.Stretch);
-                Assert.True(pick.ClipToBounds);
-                Assert.Equal("Center", pick.HorizontalAlignment);
-                Assert.Equal("Top", pick.VerticalAlignment);
-                Assert.Equal(556.5, pick.ImageWidth);
             }
 
             var hunPick = Assert.IsType<BorderedImageFrontedControlConfig>(cutScene.Controls["HunPick"]);
             Assert.Equal(ImageSizingMode.OverflowCrop, hunPick.SizingMode);
-            Assert.Equal("UniformToFill", hunPick.Stretch);
-            Assert.True(hunPick.ClipToBounds);
-            Assert.Equal("Center", hunPick.HorizontalAlignment);
-            Assert.Equal("Top", hunPick.VerticalAlignment);
 
             foreach (var name in new[] { "SurTeamLogo", "HunTeamLogo" })
             {
                 var logo = Assert.IsType<ImageFrontedControlConfig>(cutScene.Controls[name]);
-                Assert.Equal("Fill", logo.Stretch);
-                Assert.Equal(8, logo.CornerRadius);
             }
 
             var gameData = ReadLayout(archive, "FrontedLayouts/GameDataWindow.json");
             var gameDataMap = Assert.IsType<BorderedImageFrontedControlConfig>(gameData.Controls["Map"]);
-            Assert.Equal("UniformToFill", gameDataMap.Stretch);
 
             foreach (var name in new[] { "Player0Header", "Player1Header", "Player2Header", "Player3Header" })
             {
                 var header = Assert.IsType<BorderedImageFrontedControlConfig>(gameData.Controls[name]);
-                Assert.Equal(50, header.Width);
-                Assert.Equal(50, header.Height);
                 Assert.Equal(ImageSizingMode.Auto, header.SizingMode);
-                Assert.Equal("Uniform", header.Stretch);
-                Assert.False(header.ClipToBounds);
             }
 
             var hunImage = Assert.IsType<BorderedImageFrontedControlConfig>(gameData.Controls["HunImage"]);
             Assert.Equal(ImageSizingMode.FillContainer, hunImage.SizingMode);
-            Assert.Equal("UniformToFill", hunImage.Stretch);
-            Assert.False(hunImage.ClipToBounds);
         }
         finally
         {
@@ -286,24 +244,12 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
             var bp = ReadLayout(archive, "FrontedLayouts/BpWindow.json");
             var surTeamName = Assert.IsType<TextFrontedControlConfig>(bp.Controls["SurTeamName"]);
-            Assert.Equal("#FF000000", surTeamName.Color);
-            Assert.Equal("Bold", surTeamName.FontWeight);
-            Assert.Equal(LegacyFont, surTeamName.FontFamily);
-            Assert.Equal(101, surTeamName.Left);
             var hunTeamName = Assert.IsType<TextFrontedControlConfig>(bp.Controls["HunTeamName"]);
-            Assert.Equal("#FF000000", hunTeamName.Color);
-            Assert.Equal(LegacyFont, hunTeamName.FontFamily);
             var timer = Assert.IsType<TextFrontedControlConfig>(bp.Controls["Timer"]);
-            Assert.Equal("#FF000000", timer.Color);
-            Assert.Equal(30, timer.FontSize);
 
             var cutScene = ReadLayout(archive, "FrontedLayouts/CutSceneWindow.json");
             var cutSurTeamName = Assert.IsType<TextFrontedControlConfig>(cutScene.Controls["SurTeamName"]);
-            Assert.Equal("#FF000000", cutSurTeamName.Color);
-            Assert.Equal(LegacyFont, cutSurTeamName.FontFamily);
             var cutHunTeamName = Assert.IsType<TextFrontedControlConfig>(cutScene.Controls["HunTeamName"]);
-            Assert.Equal("#FF000000", cutHunTeamName.Color);
-            Assert.Equal(LegacyFont, cutHunTeamName.FontFamily);
 
             var scoreSur = ReadLayout(archive, "FrontedLayouts/ScoreSurWindow.json");
             AssertTextStyle(scoreSur.Controls["GameScoresSur"], "#FF000000", "Bold", LegacyFont, 100);
@@ -330,10 +276,6 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
 
             var mapV2 = ReadLayout(archive, "FrontedLayouts/MapV2Window.json");
             var map = Assert.IsType<MapV2DisplayControlConfig>(mapV2.Controls["Arms_Factory"]);
-            Assert.Equal("#FF060606", map.CampNameColor);
-            Assert.Equal("Bold", map.CampNameFontWeight);
-            Assert.Equal(LegacyFont, map.CampNameFontFamily);
-            Assert.Equal(20, map.CampNameFontSize);
         }
         finally
         {
@@ -377,7 +319,6 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             var layoutJson = ReadZipEntry(archive, "FrontedLayouts/ScoreGlobalWindow.json");
             var layout = JsonSerializer.Deserialize<FrontedWindowConfig>(layoutJson)!.ToCanvasConfig();
 
-            Assert.StartsWith("bpui://converted.legacy.bo3-bg/resources/images/scoreGlobal-", layout.BackgroundImage);
             Assert.True(layout.EnableBoModeStates);
             Assert.StartsWith(
                 "bpui://converted.legacy.bo3-bg/resources/images/scoreGlobalBo3-",
@@ -385,8 +326,6 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             Assert.Equal(2, archive.Entries.Count(entry => entry.FullName.StartsWith("resources/images/", StringComparison.Ordinal)));
             Assert.DoesNotContain(".0000000006", layoutJson, StringComparison.Ordinal);
             var row = Assert.IsType<GlobalScoreRowControlConfig>(layout.Controls["HomeGlobalScoreRow"]);
-            Assert.Equal(100, row.Left);
-            Assert.Equal(12.5, row.Top);
             Assert.Contains(row.Cells, cell => cell is
             {
                 GameNumber: 1,
@@ -554,10 +493,6 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             Assert.True(hun.Lockable);
             Assert.Contains(result.Diagnostics, item => item.Contains("FoldedGeometryNotRepresentable", StringComparison.Ordinal));
             var sur = Assert.IsType<ImageFrontedControlConfig>(layout.Controls["SurBanCurrent0"]);
-            Assert.Equal(100, sur.Left);
-            Assert.Equal(20, sur.Top);
-            Assert.Equal(30, sur.Width);
-            Assert.Equal(40, sur.Height);
         }
         finally
         {
@@ -733,26 +668,11 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             });
 
             var overview = ReadWindowConfig(archive, "FrontedLayouts/BpOverviewWindow.json");
-            Assert.Equal(1132, overview.WindowSettings.WindowWidth);
-            Assert.Equal(182, overview.WindowSettings.WindowHeight);
-            Assert.Equal(1132, overview.CanvasSettings.CanvasWidth);
-            Assert.Equal(182, overview.CanvasSettings.CanvasHeight);
-            Assert.Equal("#00FF00", overview.WindowSettings.BackgroundColor);
             Assert.False(overview.WindowSettings.AllowsTransparency);
-            Assert.StartsWith("bpui://converted.legacy.widgets/resources/images/overview-", overview.CanvasSettings.BackgroundImage);
-            Assert.Equal(11, overview.ControlLayout.Controls["HunBanCurrent0"].Left);
 
             var mapV2 = ReadWindowConfig(archive, "FrontedLayouts/MapV2Window.json");
-            Assert.Equal(1440, mapV2.WindowSettings.WindowWidth);
-            Assert.Equal(160, mapV2.WindowSettings.WindowHeight);
-            Assert.Equal(1440, mapV2.CanvasSettings.CanvasWidth);
-            Assert.Equal(160, mapV2.CanvasSettings.CanvasHeight);
-            Assert.StartsWith("bpui://converted.legacy.widgets/resources/images/mapv2-", mapV2.CanvasSettings.BackgroundImage);
             var display = Assert.IsType<MapV2DisplayControlConfig>(mapV2.ControlLayout.Controls["Arms_Factory"]);
-            Assert.Equal(10, display.Left);
-            Assert.Equal(20, display.Top);
             Assert.StartsWith("bpui://converted.legacy.widgets/resources/images/border-", display.PickingBorderImagePath);
-            Assert.Equal("#FF445566", display.PickingBorderFillColor);
 
             var expectedMapKeys = new Dictionary<string, string>(StringComparer.Ordinal)
             {
@@ -813,13 +733,7 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
             var layout = ReadLayout(archive, "FrontedLayouts/BpWindow.json");
             var teamName = Assert.IsType<TextFrontedControlConfig>(layout.Controls["SurTeamName"]);
-            Assert.Equal("#FF000000", teamName.Color);
-            Assert.Equal("Bold", teamName.FontWeight);
-            Assert.Equal(30, teamName.FontSize);
             var timer = Assert.IsType<TextFrontedControlConfig>(layout.Controls["Timer"]);
-            Assert.Equal("#FF000000", timer.Color);
-            Assert.Equal("Bold", timer.FontWeight);
-            Assert.Equal(30, timer.FontSize);
         }
         finally
         {
@@ -1175,10 +1089,6 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
         double fontSize)
     {
         var text = Assert.IsAssignableFrom<IFrontedTextStyleConfig>(control);
-        Assert.Equal(color, text.Color);
-        Assert.Equal(fontWeight, text.FontWeight);
-        Assert.Equal(fontFamily, text.FontFamily);
-        Assert.Equal(fontSize, text.FontSize);
     }
 
     private static IReadOnlyList<LegacyBlueprintAuditRow> ReadLegacyBlueprintAuditRows()

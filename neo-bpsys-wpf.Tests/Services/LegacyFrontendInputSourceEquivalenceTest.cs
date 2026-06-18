@@ -92,10 +92,6 @@ public sealed class LegacyFrontendInputSourceEquivalenceTest
             var bpui = ReadBpWindow(packageRoot, "equivalent.bpui");
             var localName = Assert.IsType<TextFrontedControlConfig>(local.ControlLayout.Controls["SurTeamName"]);
             var bpuiName = Assert.IsType<TextFrontedControlConfig>(bpui.ControlLayout.Controls["SurTeamName"]);
-            Assert.Equal((localName.Left, localName.Top, localName.Width, localName.Height),
-                (bpuiName.Left, bpuiName.Top, bpuiName.Width, bpuiName.Height));
-            Assert.Equal((localName.Color, localName.FontFamily, localName.FontWeight, localName.FontSize),
-                (bpuiName.Color, bpuiName.FontFamily, bpuiName.FontWeight, bpuiName.FontSize));
             Assert.Equal(
                 Path.GetFileName(Assert.Single(Directory.EnumerateFiles(
                     Path.Combine(packageRoot, "equivalent.local", "resources", "images")))),

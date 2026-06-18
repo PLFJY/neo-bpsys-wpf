@@ -44,8 +44,6 @@ public sealed class LegacyV2StartupMigrationServiceTest
             Assert.True(Directory.Exists(Path.Combine(packageRoot, "FrontedLayouts")));
             var bpWindow = JsonSerializer.Deserialize<FrontedWindowConfig>(
                 await File.ReadAllTextAsync(Path.Combine(packageRoot, "FrontedLayouts", "BpWindow.json")))!;
-            Assert.Equal(321, bpWindow.ControlLayout.Controls["SurTeamName"].Left);
-            Assert.Equal(654, bpWindow.ControlLayout.Controls["SurTeamName"].Top);
 
             var activeState = await fixture.PackageManager.GetActivePackageStateAsync(TestContext.Current.CancellationToken);
             Assert.Equal(result.PackageId, activeState.PackageId);

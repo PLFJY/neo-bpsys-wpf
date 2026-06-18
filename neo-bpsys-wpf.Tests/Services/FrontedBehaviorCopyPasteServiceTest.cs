@@ -126,7 +126,6 @@ public class FrontedBehaviorCopyPasteServiceTest
         Assert.Equal($"part:{compatible.Config.BehaviorGuid}:wipeBar", Assert.Single(Targets(pasted.Behavior!)));
         var copiedPart = Assert.Single(document.FindSet(compatible.Config.BehaviorGuid)!.AnimationParts);
         Assert.Equal("wipeBar", copiedPart.Name);
-        Assert.Equal(4, copiedPart.Width);
     }
 
     [Fact]

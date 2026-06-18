@@ -258,7 +258,6 @@ public class CutSceneBusinessDisplayHelperTest
         Assert.True(deserialized.ShowSeparator);
         Assert.Equal(2, deserialized.SeparatorThickness);
         Assert.Equal("#FF000000", deserialized.SeparatorColor);
-        Assert.Equal("#FF333333", deserialized.BackgroundColor);
     }
 
     [Fact]

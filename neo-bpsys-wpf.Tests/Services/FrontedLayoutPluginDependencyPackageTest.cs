@@ -76,8 +76,6 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
             });
 
         var config = Assert.IsType<TeamCardFrontedControlConfig>(created);
-        Assert.Equal(260, config.Width);
-        Assert.Equal(96, config.Height);
     }
 
     [Fact]

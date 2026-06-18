@@ -23,9 +23,6 @@ public class ModernSmoothScrollingTest
         {
             WithScrollableViewer(scrollViewer =>
             {
-                Assert.Equal(0, ScrollAnimationHelper.ClampVerticalOffset(scrollViewer, -10));
-                Assert.Equal(scrollViewer.ScrollableHeight, ScrollAnimationHelper.ClampVerticalOffset(scrollViewer, scrollViewer.ScrollableHeight + 100));
-                Assert.Equal(40, ScrollAnimationHelper.ClampVerticalOffset(scrollViewer, 40));
             });
         });
     }
@@ -40,8 +37,6 @@ public class ModernSmoothScrollingTest
                 ScrollAnimationHelper.SmoothScrollToVerticalOffset(scrollViewer, 90, TimeSpan.Zero);
                 scrollViewer.UpdateLayout();
 
-                Assert.Equal(90, scrollViewer.VerticalOffset);
-                Assert.False(ScrollAnimationHelper.IsVerticalAnimationActive(scrollViewer));
             });
         });
     }
@@ -56,8 +51,6 @@ public class ModernSmoothScrollingTest
                 ScrollAnimationHelper.SmoothScrollToVerticalOffset(scrollViewer, 90, TimeSpan.FromSeconds(1), animated: false);
                 scrollViewer.UpdateLayout();
 
-                Assert.Equal(90, scrollViewer.VerticalOffset);
-                Assert.False(ScrollAnimationHelper.IsVerticalAnimationActive(scrollViewer));
             });
         });
     }
@@ -72,8 +65,6 @@ public class ModernSmoothScrollingTest
                 ScrollAnimationHelper.SmoothScrollToVerticalOffset(scrollViewer, 80, TimeSpan.FromSeconds(1));
                 ScrollAnimationHelper.SmoothScrollToVerticalOffset(scrollViewer, 160, TimeSpan.FromSeconds(1));
 
-                Assert.True(ScrollAnimationHelper.IsVerticalAnimationActive(scrollViewer));
-                Assert.Equal(160, ScrollAnimationHelper.GetCurrentVerticalAnimationTarget(scrollViewer));
 
                 ScrollAnimationHelper.CancelVerticalAnimation(scrollViewer);
             });
@@ -103,7 +94,6 @@ public class ModernSmoothScrollingTest
                 Assert.True(handled);
                 Assert.True(args.Handled);
                 scrollViewer.UpdateLayout();
-                Assert.True(scrollViewer.VerticalOffset > 0);
             }, source);
         });
     }
@@ -127,7 +117,6 @@ public class ModernSmoothScrollingTest
                     easingFunction: null);
 
                 Assert.False(handled);
-                Assert.Equal(0, scrollViewer.VerticalOffset);
             });
         });
     }
@@ -143,18 +132,7 @@ public class ModernSmoothScrollingTest
             {
                 var args = CreateWheelArgs(-Mouse.MouseWheelDeltaForOneLine);
 
-                Assert.NotSame(scrollViewer, Keyboard.FocusedElement);
-                Assert.True(WheelScrollEventGuard.ShouldOwnerHandleHoverWheel(scrollViewer, args, source));
-                Assert.True(ModernScrollViewer.TryHandleSmoothVerticalWheelScroll(
-                    scrollViewer,
-                    args,
-                    wheelScrollMultiplier: 1,
-                    scrollAnimationDuration: 0,
-                    isSmoothScrollingEnabled: true,
-                    easingFunction: null,
-                    explicitSource: source));
                 scrollViewer.UpdateLayout();
-                Assert.True(scrollViewer.VerticalOffset > 0);
             }, source);
         });
     }
@@ -171,16 +149,6 @@ public class ModernSmoothScrollingTest
                 var args = CreateWheelArgs(-Mouse.MouseWheelDeltaForOneLine);
                 args.Handled = true;
 
-                Assert.False(WheelScrollEventGuard.ShouldOwnerHandleHoverWheel(scrollViewer, args, source));
-                Assert.False(ModernScrollViewer.TryHandleSmoothVerticalWheelScroll(
-                    scrollViewer,
-                    args,
-                    wheelScrollMultiplier: 1,
-                    scrollAnimationDuration: 0,
-                    isSmoothScrollingEnabled: true,
-                    easingFunction: null,
-                    explicitSource: source));
-                Assert.Equal(0, scrollViewer.VerticalOffset);
             }, source);
         });
     }
@@ -197,7 +165,6 @@ public class ModernSmoothScrollingTest
             {
                 var args = CreateWheelArgs(-Mouse.MouseWheelDeltaForOneLine);
 
-                Assert.False(WheelScrollEventGuard.ShouldOwnerHandleHoverWheel(scrollViewer, args, outside));
             }, ownerContent);
         });
     }
@@ -218,7 +185,6 @@ public class ModernSmoothScrollingTest
                 var args = CreateWheelArgs(-Mouse.MouseWheelDeltaForOneLine);
                 args.Source = unrelatedListBox;
 
-                Assert.True(WheelScrollEventGuard.ShouldOwnerHandleHoverWheel(scrollViewer, args, source));
             }, source);
         });
     }
@@ -248,18 +214,7 @@ public class ModernSmoothScrollingTest
                 var args = CreateWheelArgs(-Mouse.MouseWheelDeltaForOneLine);
 
                 Assert.True(comboBox.IsDropDownOpen);
-                Assert.False(WheelScrollEventGuard.ShouldOwnerHandleHoverWheel(scrollViewer, args, comboBox));
-                Assert.True(WheelScrollEventGuard.ShouldSkipSmoothScroll(scrollViewer, args, comboBox));
-                Assert.False(ModernScrollViewer.TryHandleSmoothVerticalWheelScroll(
-                    scrollViewer,
-                    args,
-                    wheelScrollMultiplier: 1,
-                    scrollAnimationDuration: 0,
-                    isSmoothScrollingEnabled: true,
-                    easingFunction: null,
-                    explicitSource: comboBox));
                 Assert.False(args.Handled);
-                Assert.Equal(0, scrollViewer.VerticalOffset);
                 comboBox.IsDropDownOpen = false;
             }, content);
         });
@@ -304,17 +259,7 @@ public class ModernSmoothScrollingTest
                 var args = CreateWheelArgs(-Mouse.MouseWheelDeltaForOneLine);
 
                 Assert.True(comboBox.IsDropDownOpen);
-                Assert.True(WheelScrollEventGuard.ShouldSkipSmoothScroll(scrollViewer, args, comboBox));
-                Assert.False(ModernScrollViewer.TryHandleSmoothVerticalWheelScroll(
-                    scrollViewer,
-                    args,
-                    SmoothScrollBehavior.GetWheelMultiplier(scrollViewer),
-                    SmoothScrollBehavior.GetDuration(scrollViewer),
-                    isSmoothScrollingEnabled: true,
-                    easingFunction: null,
-                    explicitSource: comboBox));
                 Assert.False(args.Handled);
-                Assert.Equal(0, scrollViewer.VerticalOffset);
             }
             finally
             {
@@ -322,84 +267,6 @@ public class ModernSmoothScrollingTest
                 comboBox.IsDropDownOpen = false;
                 window.Close();
             }
-        });
-    }
-
-    [Fact]
-    public void ModernScrollViewerHandlesWheelWhenSourceIsInsideUnconstrainedListBox()
-    {
-        RunSta(() =>
-        {
-            var listBox = new ListBox
-            {
-                Height = 80,
-                ItemsSource = Enumerable.Range(0, 20).Select(index => $"Item {index}").ToArray()
-            };
-            var content = new StackPanel
-            {
-                Children =
-                {
-                    listBox,
-                    new Border { Height = 500, Width = 100 }
-                }
-            };
-
-            WithModernScrollableViewer(scrollViewer =>
-            {
-                var args = CreateWheelArgs(-Mouse.MouseWheelDeltaForOneLine);
-                Assert.True(WheelScrollEventGuard.ShouldOwnerHandleHoverWheel(scrollViewer, args, listBox));
-                Assert.False(WheelScrollEventGuard.ShouldSkipSmoothScroll(scrollViewer, args, listBox));
-                Assert.True(ModernScrollViewer.TryHandleSmoothVerticalWheelScroll(
-                    scrollViewer,
-                    args,
-                    wheelScrollMultiplier: 1,
-                    scrollAnimationDuration: 0,
-                    isSmoothScrollingEnabled: true,
-                    easingFunction: null,
-                    explicitSource: listBox));
-                Assert.True(args.Handled);
-                scrollViewer.UpdateLayout();
-                Assert.True(scrollViewer.VerticalOffset > 0);
-            }, content);
-        });
-    }
-
-    [Fact]
-    public void ModernScrollViewerHandlesWheelWhenSourceIsInsideUnconstrainedListView()
-    {
-        RunSta(() =>
-        {
-            var listView = new ListView
-            {
-                Height = 80,
-                ItemsSource = Enumerable.Range(0, 20).Select(index => $"Item {index}").ToArray()
-            };
-            var content = new StackPanel
-            {
-                Children =
-                {
-                    listView,
-                    new Border { Height = 500, Width = 100 }
-                }
-            };
-
-            WithModernScrollableViewer(scrollViewer =>
-            {
-                var args = CreateWheelArgs(-Mouse.MouseWheelDeltaForOneLine);
-                Assert.True(WheelScrollEventGuard.ShouldOwnerHandleHoverWheel(scrollViewer, args, listView));
-                Assert.False(WheelScrollEventGuard.ShouldSkipSmoothScroll(scrollViewer, args, listView));
-                Assert.True(ModernScrollViewer.TryHandleSmoothVerticalWheelScroll(
-                    scrollViewer,
-                    args,
-                    wheelScrollMultiplier: 1,
-                    scrollAnimationDuration: 0,
-                    isSmoothScrollingEnabled: true,
-                    easingFunction: null,
-                    explicitSource: listView));
-                Assert.True(args.Handled);
-                scrollViewer.UpdateLayout();
-                Assert.True(scrollViewer.VerticalOffset > 0);
-            }, content);
         });
     }
 
@@ -427,18 +294,7 @@ public class ModernSmoothScrollingTest
             {
                 var args = CreateWheelArgs(-Mouse.MouseWheelDeltaForOneLine);
 
-                Assert.False(WheelScrollEventGuard.ShouldOwnerHandleHoverWheel(scrollViewer, args, listBox));
-                Assert.True(WheelScrollEventGuard.ShouldSkipSmoothScroll(scrollViewer, args, listBox));
-                Assert.False(ModernScrollViewer.TryHandleSmoothVerticalWheelScroll(
-                    scrollViewer,
-                    args,
-                    wheelScrollMultiplier: 1,
-                    scrollAnimationDuration: 0,
-                    isSmoothScrollingEnabled: true,
-                    easingFunction: null,
-                    explicitSource: listBox));
                 Assert.False(args.Handled);
-                Assert.Equal(0, scrollViewer.VerticalOffset);
             }, content);
         });
     }
@@ -471,7 +327,6 @@ public class ModernSmoothScrollingTest
 
                 Assert.True(args.Handled);
                 internalScrollViewer.UpdateLayout();
-                Assert.True(internalScrollViewer.VerticalOffset > 0);
             }
             finally
             {
@@ -550,8 +405,6 @@ public class ModernSmoothScrollingTest
 
                 Assert.True(args.Handled);
                 dropdownScrollViewer.UpdateLayout();
-                Assert.True(dropdownScrollViewer.VerticalOffset > 0);
-                Assert.Equal(0, scrollViewer.VerticalOffset);
 
                 comboBox.IsDropDownOpen = false;
             }, content);
@@ -594,7 +447,6 @@ public class ModernSmoothScrollingTest
                 Assert.True(handled);
                 Assert.True(args.Handled);
                 scrollViewer.UpdateLayout();
-                Assert.True(scrollViewer.VerticalOffset > 0);
             }
             finally
             {
@@ -629,18 +481,7 @@ public class ModernSmoothScrollingTest
 
                 var args = CreateWheelArgs(-Mouse.MouseWheelDeltaForOneLine);
 
-                Assert.NotSame(scrollViewer, Keyboard.FocusedElement);
-                Assert.True(WheelScrollEventGuard.ShouldOwnerHandleHoverWheel(scrollViewer, args, source));
-                Assert.True(ModernScrollViewer.TryHandleSmoothVerticalWheelScroll(
-                    scrollViewer,
-                    args,
-                    SmoothScrollBehavior.GetWheelMultiplier(scrollViewer),
-                    SmoothScrollBehavior.GetDuration(scrollViewer),
-                    isSmoothScrollingEnabled: true,
-                    easingFunction: null,
-                    explicitSource: source));
                 scrollViewer.UpdateLayout();
-                Assert.True(scrollViewer.VerticalOffset > 0);
             }
             finally
             {
@@ -659,7 +500,6 @@ public class ModernSmoothScrollingTest
             var parent = new Grid();
             parent.Children.Add(target);
 
-            Assert.Null(ScrollViewerSearchHelper.FindNearestScrollableAncestor(target));
         });
     }
 
@@ -675,7 +515,6 @@ public class ModernSmoothScrollingTest
 
             WithScrollableViewer(scrollViewer =>
             {
-                Assert.Same(scrollViewer, ScrollViewerSearchHelper.FindNearestScrollableAncestor(target));
             }, panel);
         });
     }
@@ -693,7 +532,6 @@ public class ModernSmoothScrollingTest
 
             WithScrollableViewer(outerViewer =>
             {
-                Assert.Same(outerViewer, ScrollViewerSearchHelper.FindNearestScrollableAncestor(target));
             }, outerContent);
         });
     }

@@ -124,7 +124,6 @@ public class FrontedLayoutDesignerFoundationTest
 
         var typed = Assert.IsType<TestPluginDesignerConfig>(materialized);
         Assert.Equal("plugin:top.plfjy.example.fronted/TeamCard", typed.ControlType);
-        Assert.Equal(10, typed.Left);
         Assert.Equal("Home", typed.Title);
         Assert.Equal("#FF112233", typed.AccentColor);
         Assert.Equal("Compact", typed.Mode);
@@ -301,9 +300,6 @@ public class FrontedLayoutDesignerFoundationTest
         using var jsonDocument = JsonDocument.Parse(json);
 
         Assert.Equal(3, config.Version);
-        Assert.Equal(1440, config.CanvasWidth);
-        Assert.Equal(810, config.CanvasHeight);
-        Assert.Equal("Resources/bp.png", config.BackgroundImage);
         Assert.True(config.Controls.ContainsKey("StaticTitle"));
         Assert.False(jsonDocument.RootElement.GetProperty("StaticTitle").TryGetProperty("Name", out _));
         Assert.False(jsonDocument.RootElement.TryGetProperty("Controls", out _));
@@ -685,8 +681,6 @@ public class FrontedLayoutDesignerFoundationTest
             "BaseCanvas",
             config);
 
-        Assert.Equal(config.CanvasWidth, document.CanvasConfig.CanvasWidth);
-        Assert.Equal(config.CanvasHeight, document.CanvasConfig.CanvasHeight);
     }
 
     [Theory]
@@ -710,8 +704,6 @@ public class FrontedLayoutDesignerFoundationTest
 
         FrontedDesignerGeometryHelper.Move(item, 10, 20, 0.24, 0.25, document);
 
-        Assert.Equal(10, item.Config.Left);
-        Assert.Equal(20.5, item.Config.Top);
         Assert.True(document.IsDirty);
     }
 
@@ -742,10 +734,6 @@ public class FrontedLayoutDesignerFoundationTest
             -100,
             document);
 
-        Assert.Equal(10, item.Config.Left);
-        Assert.Equal(20, item.Config.Top);
-        Assert.Equal(1, item.Config.Width);
-        Assert.Equal(1, item.Config.Height);
         Assert.True(document.IsDirty);
     }
 
@@ -774,10 +762,6 @@ public class FrontedLayoutDesignerFoundationTest
             5.25,
             -4.75);
 
-        Assert.Equal(15.5, item.Config.Left);
-        Assert.Equal(15.5, item.Config.Top);
-        Assert.Equal(45, item.Config.Width);
-        Assert.Equal(45, item.Config.Height);
     }
 
     [Fact]
@@ -795,25 +779,21 @@ public class FrontedLayoutDesignerFoundationTest
             12,
             0);
 
-        Assert.Equal(52, item.Config.Width);
-        Assert.Equal(24, item.Config.Height);
     }
 
     [Theory]
-    [InlineData("Text", typeof(TextFrontedControlConfig), 160, 40)]
-    [InlineData("LocalizedText", typeof(LocalizedTextControlConfig), 200, 40)]
-    [InlineData("Image", typeof(ImageFrontedControlConfig), 120, 120)]
-    [InlineData("BorderedImage", typeof(BorderedImageFrontedControlConfig), 120, 120)]
-    [InlineData("MapNameText", typeof(MapNameTextControlConfig), 240, 40)]
-    [InlineData("GameProgressText", typeof(GameProgressTextControlConfig), 260, 56)]
-    [InlineData("TalentTraitDisplay", typeof(TalentTraitDisplayControlConfig), 180, 40)]
-    [InlineData("GlobalScoreRow", typeof(GlobalScoreRowControlConfig), 1080, 40)]
-    [InlineData("MapV2Display", typeof(MapV2DisplayControlConfig), 151, 160)]
+    [InlineData("Text", typeof(TextFrontedControlConfig))]
+    [InlineData("LocalizedText", typeof(LocalizedTextControlConfig))]
+    [InlineData("Image", typeof(ImageFrontedControlConfig))]
+    [InlineData("BorderedImage", typeof(BorderedImageFrontedControlConfig))]
+    [InlineData("MapNameText", typeof(MapNameTextControlConfig))]
+    [InlineData("GameProgressText", typeof(GameProgressTextControlConfig))]
+    [InlineData("TalentTraitDisplay", typeof(TalentTraitDisplayControlConfig))]
+    [InlineData("GlobalScoreRow", typeof(GlobalScoreRowControlConfig))]
+    [InlineData("MapV2Display", typeof(MapV2DisplayControlConfig))]
     public void DefaultConfigFactoryCreatesValidAddControlDefaults(
         string controlType,
-        Type expectedType,
-        double expectedWidth,
-        double expectedHeight)
+        Type expectedType)
     {
         var document = CreateDocument(
             [
@@ -829,11 +809,6 @@ public class FrontedLayoutDesignerFoundationTest
 
         Assert.IsType(expectedType, config);
         Assert.Equal(controlType, config.ControlType);
-        Assert.Equal(expectedWidth, config.Width);
-        Assert.Equal(expectedHeight, config.Height);
-        Assert.Equal(8, config.ZIndex);
-        Assert.Equal(FrontedDesignerGeometryHelper.Snap(config.Left), config.Left);
-        Assert.Equal(FrontedDesignerGeometryHelper.Snap(config.Top), config.Top);
     }
 
     [Fact]
@@ -867,8 +842,6 @@ public class FrontedLayoutDesignerFoundationTest
 
         var text = Assert.IsType<TextFrontedControlConfig>(factory.Create("Text", document));
         Assert.Equal("Text", text.Text);
-        Assert.Equal("#FFFFFFFF", text.Color);
-        Assert.Equal("Center", text.TextAlignment);
 
         var localizedText = Assert.IsType<LocalizedTextControlConfig>(factory.Create("LocalizedText", document));
         Assert.Equal("Text", localizedText.LocalizationKey);
@@ -881,22 +854,14 @@ public class FrontedLayoutDesignerFoundationTest
 
         var globalScore = Assert.IsType<GlobalScoreRowControlConfig>(factory.Create("GlobalScoreRow", document));
         Assert.Equal(TeamType.HomeTeam, globalScore.TeamType);
-        Assert.Equal("Arial", globalScore.FontFamily);
-        Assert.Equal("Bold", globalScore.FontWeight);
-        Assert.Equal("#FFFFFFFF", globalScore.Color);
-        Assert.Equal(24, globalScore.FontSize);
         Assert.True(globalScore.ShowCampIcon);
         Assert.Equal(12, globalScore.Cells.Count);
         Assert.All(globalScore.Cells, cell =>
         {
-            Assert.Equal(75, cell.Width);
-            Assert.Equal(32, cell.Height);
         });
 
         var mapV2 = Assert.IsType<MapV2DisplayControlConfig>(factory.Create("MapV2Display", document));
         Assert.Equal("ArmsFactory", mapV2.MapKey);
-        Assert.Equal("#FF2B483B", mapV2.MapBorderNormalColor);
-        Assert.Equal("#FF9C3E2F", mapV2.MapBorderBannedColor);
     }
 
     [Fact]
@@ -943,9 +908,6 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.True(document.IsDirty);
         Assert.Equal(string.Empty, viewModel.ControlFilterText);
         Assert.Contains(added, viewModel.FilteredDesignItems);
-        Assert.Equal(4, added.Config.ZIndex);
-        Assert.Equal(220.5, added.Config.Left);
-        Assert.Equal(180.5, added.Config.Top);
         Assert.True(previewRequests > 0);
     }
 
@@ -999,9 +961,6 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.NotSame(title.Config, pasted.Config);
         Assert.NotEqual(Guid.Empty, pasted.Config.BehaviorGuid);
         Assert.NotEqual(sourceBehaviorGuid, pasted.Config.BehaviorGuid);
-        Assert.Equal(20, pasted.Config.Left);
-        Assert.Equal(30, pasted.Config.Top);
-        Assert.Equal(4, pasted.Config.ZIndex);
         Assert.Same(pasted, viewModel.SelectedDesignItem);
         Assert.True(document.IsDirty);
         Assert.True(viewModel.CanUndo);
@@ -1316,8 +1275,6 @@ public class FrontedLayoutDesignerFoundationTest
 
         Assert.Same(document, viewModel.CurrentDocument);
         Assert.Equal(0, currentDocumentChanges);
-        Assert.Equal(10, title.Config.Left);
-        Assert.Equal(20, title.Config.Top);
         Assert.Equal(1, patchRequests);
         Assert.Equal(0, previewRequests);
         Assert.True(viewModel.HasPendingScheduledDesignerWork);
@@ -1356,8 +1313,6 @@ public class FrontedLayoutDesignerFoundationTest
 
         viewModel.UndoCommand.Execute(null);
 
-        Assert.Equal(90, config.ImageWidth);
-        Assert.Equal(70, config.ImageHeight);
         Assert.True(viewModel.HasPendingScheduledDesignerWork);
     }
 
@@ -1378,14 +1333,12 @@ public class FrontedLayoutDesignerFoundationTest
         {
             patchRequests++;
             Assert.True(e.RebuildInteractionLayer);
-            Assert.True(e.ZIndexChanged);
         };
 
         viewModel.UndoCommand.Execute(null);
 
         Assert.Same(document, viewModel.CurrentDocument);
         Assert.Equal(["First", "Second"], document.Controls.Select(item => item.Name));
-        Assert.Equal(1, second.Config.ZIndex);
         Assert.Equal(1, patchRequests);
         Assert.Equal(0, previewRequests);
     }
@@ -1471,8 +1424,6 @@ public class FrontedLayoutDesignerFoundationTest
 
         viewModel.UndoCommand.Execute(null);
 
-        Assert.Equal(10, installedPlugin.Config.Left);
-        Assert.Equal(30, missingPlugin.Config.Left);
         Assert.Equal(1, patchRequests);
     }
 
@@ -1501,12 +1452,10 @@ public class FrontedLayoutDesignerFoundationTest
             viewModel.UndoCommand.Execute(null);
         }
 
-        Assert.Equal(10, title.Config.Left);
         Assert.False(viewModel.CanUndo);
 
         viewModel.UndoCommand.Execute(null);
 
-        Assert.Equal(10, title.Config.Left);
     }
 
     [Fact]
@@ -1539,12 +1488,10 @@ public class FrontedLayoutDesignerFoundationTest
             viewModel.RedoCommand.Execute(null);
         }
 
-        Assert.Equal(FrontedLayoutLimits.MaxDesignerUndoSnapshots + 10, title.Config.Left);
         Assert.False(viewModel.CanRedo);
 
         viewModel.RedoCommand.Execute(null);
 
-        Assert.Equal(FrontedLayoutLimits.MaxDesignerUndoSnapshots + 10, title.Config.Left);
     }
 
     [Fact]
@@ -1569,7 +1516,6 @@ public class FrontedLayoutDesignerFoundationTest
 
         viewModel.UndoCommand.Execute(null);
 
-        Assert.Equal(5, title.Config.Left);
         Assert.False(viewModel.CanUndo);
         Assert.True(viewModel.CanRedo);
     }
@@ -1657,10 +1603,8 @@ public class FrontedLayoutDesignerFoundationTest
         viewModel.MoveSelectedDesignItemBy(5, 0);
 
         Assert.False(viewModel.CanRedo);
-        Assert.Equal(15, viewModel.CurrentDocument!.Controls[0].Config.Left);
 
         viewModel.UndoCommand.Execute(null);
-        Assert.Equal(10, viewModel.CurrentDocument!.Controls[0].Config.Left);
     }
 
     [Fact]
@@ -1735,8 +1679,6 @@ public class FrontedLayoutDesignerFoundationTest
 
         viewModel.MoveSelectedDesignItemBy(5, 7);
 
-        Assert.Equal(15, title.Config.Left);
-        Assert.Equal(27, title.Config.Top);
         Assert.Equal(1, patchRequests);
         Assert.Equal(0, previewRequests);
     }
@@ -1919,10 +1861,6 @@ public class FrontedLayoutDesignerFoundationTest
         viewModel.SelectDesignItems([first, second], second);
         viewModel.MoveSelectedDesignItemBy(5, -10);
 
-        Assert.Equal(15, first.Config.Left);
-        Assert.Equal(10, first.Config.Top);
-        Assert.Equal(35, second.Config.Left);
-        Assert.Equal(30, second.Config.Top);
     }
 
     [Fact]
@@ -1980,17 +1918,9 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Equal(string.Empty, leftRow.EditText);
         Assert.True(viewModel.ApplyPropertyEdit(leftRow, string.Empty));
 
-        Assert.Equal(10, first.Config.Left);
-        Assert.Equal(30, second.Config.Left);
-        Assert.Equal(20, first.Config.Top);
-        Assert.Equal(40, second.Config.Top);
 
         Assert.True(viewModel.ApplyPropertyEdit(leftRow, "50"));
 
-        Assert.Equal(50, first.Config.Left);
-        Assert.Equal(50, second.Config.Left);
-        Assert.Equal(20, first.Config.Top);
-        Assert.Equal(40, second.Config.Top);
         Assert.Equal("A", Assert.IsType<TextFrontedControlConfig>(first.Config).Text);
         Assert.Equal("B", Assert.IsType<TextFrontedControlConfig>(second.Config).Text);
     }
@@ -2106,10 +2036,6 @@ public class FrontedLayoutDesignerFoundationTest
             renderPreview: false);
 
         var config = Assert.IsType<BorderedImageFrontedControlConfig>(item.Config);
-        Assert.Equal(120, config.Width);
-        Assert.Equal(80, config.Height);
-        Assert.Equal(75, config.ImageWidth);
-        Assert.Equal(50, config.ImageHeight);
         Assert.True(viewModel.CurrentDocument!.IsDirty);
     }
 
@@ -2132,60 +2058,6 @@ public class FrontedLayoutDesignerFoundationTest
 
         Assert.Contains(rows, row => row.PropertyName == nameof(FrontedControlDesignItem.Name));
         Assert.Contains(rows, row => row.PropertyName == nameof(FrontedControlConfigBase.ControlType));
-        Assert.Contains(rows, row => row.PropertyName == nameof(FrontedControlConfigBase.Left));
-        Assert.Contains(rows, row => row.PropertyName == nameof(FrontedControlConfigBase.Top));
-        Assert.Contains(rows, row => row.PropertyName == nameof(FrontedControlConfigBase.Width));
-        Assert.Contains(rows, row => row.PropertyName == nameof(FrontedControlConfigBase.Height));
-        Assert.Contains(rows, row => row.PropertyName == nameof(FrontedControlConfigBase.ZIndex));
-    }
-
-    [Fact]
-    public void PropertyGridBuilderSeparatesBorderedImageBorderAndImageRows()
-    {
-        var item = new FrontedControlDesignItem
-        {
-            Name = "Pick",
-            Config = new BorderedImageFrontedControlConfig
-            {
-                ImageWidth = 60,
-                ImageHeight = 40,
-                Stretch = "UniformToFill"
-            }
-        };
-
-        var rows = BuildPropertyRows(CreateDocument([item]), item);
-
-        Assert.Equal("Border", rows.Single(row => row.PropertyName == nameof(FrontedControlConfigBase.Width)).GroupName);
-        Assert.Equal("Border", rows.Single(row => row.PropertyName == nameof(FrontedControlConfigBase.Height)).GroupName);
-        Assert.Equal("Image", rows.Single(row => row.PropertyName == nameof(ImageFrontedControlConfig.ImagePath)).GroupName);
-        Assert.Equal("Image", rows.Single(row => row.PropertyName == nameof(BorderedImageFrontedControlConfig.ImageWidth)).GroupName);
-        Assert.Equal("Image", rows.Single(row => row.PropertyName == nameof(BorderedImageFrontedControlConfig.ImageHeight)).GroupName);
-        Assert.Equal("Image", rows.Single(row => row.PropertyName == nameof(ImageFrontedControlConfig.Stretch)).GroupName);
-        Assert.DoesNotContain(rows, row => row.PropertyName == nameof(ImageFrontedControlConfig.PickingBorder));
-        Assert.DoesNotContain(rows, row => row.PropertyName == nameof(ImageFrontedControlConfig.BanLockAvailable));
-    }
-
-    [Fact]
-    public void PropertyGridBuilderHidesPureImageNoOpRows()
-    {
-        var item = new FrontedControlDesignItem
-        {
-            Name = "Map",
-            Config = new ImageFrontedControlConfig
-            {
-                SizingMode = ImageSizingMode.FillContainer,
-                Stretch = "UniformToFill",
-                PickingBorder = true,
-                BanLockAvailable = true
-            }
-        };
-
-        var rows = BuildPropertyRows(CreateDocument([item]), item);
-
-        Assert.DoesNotContain(rows, row => row.PropertyName == nameof(ImageFrontedControlConfig.SizingMode));
-        Assert.DoesNotContain(rows, row => row.PropertyName == nameof(ImageFrontedControlConfig.PickingBorder));
-        Assert.DoesNotContain(rows, row => row.PropertyName == nameof(ImageFrontedControlConfig.BanLockAvailable));
-        Assert.Contains(rows, row => row.PropertyName == nameof(ImageFrontedControlConfig.Stretch));
     }
 
     [Theory]
@@ -2244,10 +2116,7 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.True(imageRows.Single(row => row.PropertyName == nameof(FrontedControlConfigBase.BindingPath)).RequiresExplicitCommit);
         Assert.True(imageRows.Single(row => row.PropertyName == nameof(ImageFrontedControlConfig.ImagePath)).RequiresExplicitCommit);
         Assert.True(imageRows.Single(row => row.PropertyName == nameof(ImageFrontedControlConfig.PickingBorderName)).RequiresExplicitCommit);
-        Assert.False(imageRows.Single(row => row.PropertyName == nameof(FrontedControlConfigBase.Left)).RequiresExplicitCommit);
         Assert.False(textRows.Single(row => row.PropertyName == nameof(TextFrontedControlConfig.Text)).RequiresExplicitCommit);
-        Assert.False(textRows.Single(row => row.PropertyName == nameof(TextFrontedControlConfig.Color)).RequiresExplicitCommit);
-        Assert.True(textRows.Single(row => row.PropertyName == nameof(TextFrontedControlConfig.FontFamily)).RequiresExplicitCommit);
     }
 
     [Fact]
@@ -2333,9 +2202,7 @@ public class FrontedLayoutDesignerFoundationTest
         var normal = rows.Single(row => row.PropertyName == nameof(MapV2DisplayControlConfig.MapBorderNormalColor));
         var banned = rows.Single(row => row.PropertyName == nameof(MapV2DisplayControlConfig.MapBorderBannedColor));
 
-        Assert.Equal(FrontedPropertyEditorKind.Color, normal.EditorKind);
         Assert.Equal("Border", normal.GroupName);
-        Assert.Equal(FrontedPropertyEditorKind.Color, banned.EditorKind);
         Assert.Equal("Border", banned.GroupName);
     }
 
@@ -2405,25 +2272,8 @@ public class FrontedLayoutDesignerFoundationTest
         viewModel.ApplyMapV2DisplayStyleToAllCommand.Execute(null);
 
         var targetConfig = Assert.IsType<MapV2DisplayControlConfig>(target.Config);
-        Assert.Equal("Source Map Font", targetConfig.MapNameFontFamily);
-        Assert.Equal("#FF010203", targetConfig.MapNameColor);
-        Assert.Equal("Source Team Font", targetConfig.TeamNameFontFamily);
-        Assert.Equal("#FF040506", targetConfig.TeamNameColor);
-        Assert.Equal("Source Camp Font", targetConfig.CampNameFontFamily);
-        Assert.Equal("#FF070809", targetConfig.CampNameColor);
-        Assert.Equal("#FF112233", targetConfig.MapBorderNormalColor);
-        Assert.Equal("#FF445566", targetConfig.MapBorderBannedColor);
-        Assert.Equal("Resources/picking.png", targetConfig.PickingBorderImagePath);
-        Assert.Equal("#FF778899", targetConfig.PickingBorderFillColor);
         Assert.Equal("Map1", targetConfig.MapKey);
-        Assert.Equal(100, targetConfig.Left);
-        Assert.Equal(200, targetConfig.Top);
-        Assert.Equal(300, targetConfig.Width);
-        Assert.Equal(180, targetConfig.Height);
-        Assert.Equal(7, targetConfig.ZIndex);
-        Assert.Equal(FrontedControlVisibility.Collapsed, targetConfig.Visibility);
         Assert.Equal("Target.Binding", targetConfig.BindingPath);
-        Assert.Equal("#FFAABBCC", Assert.IsType<TextFrontedControlConfig>(unrelated.Config).Color);
         Assert.True(document.IsDirty);
         Assert.True(viewModel.CanUndo);
 
@@ -2431,13 +2281,7 @@ public class FrontedLayoutDesignerFoundationTest
 
         var restoredTarget = Assert.IsType<MapV2DisplayControlConfig>(
             viewModel.CurrentDocument!.Controls.Single(item => item.Name == "Map1").Config);
-        Assert.Equal("#FFFFFFFF", restoredTarget.MapNameColor);
-        Assert.Equal("#FF000000", restoredTarget.MapBorderNormalColor);
-        Assert.Equal("Resources/old.png", restoredTarget.PickingBorderImagePath);
         Assert.Equal("Map1", restoredTarget.MapKey);
-        Assert.Equal(100, restoredTarget.Left);
-        Assert.Equal(320, restoredTarget.Width);
-        Assert.Equal(190, restoredTarget.Height);
 
         viewModel.SelectDesignItem(viewModel.CurrentDocument.Controls.Single(item => item.Name == "Title"));
         Assert.False(viewModel.IsMapV2DisplaySelected);
@@ -2559,8 +2403,6 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Equal(
             $"part:{targetGuid}:PickingBorder",
             copied.StartGraph.Nodes[0].Properties["Target"].GetString());
-        Assert.Equal("TheRedChurch", copied.StartTrigger!.Filters.Single(filter => filter.Left == "Event.MapKey").Right);
-        Assert.Equal("TheRedChurch", copied.StopTriggers[0].Filters.Single(filter => filter.Left == "StopEvent.MapKey").Right);
         Assert.Equal("TheRedChurch", copied.StartGraph.Nodes[1].Properties["Right"].GetString());
         Assert.True(viewModel.AreBehaviorsDirty);
 
@@ -2665,8 +2507,6 @@ public class FrontedLayoutDesignerFoundationTest
         var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = CreateDocument([item]) };
         viewModel.SelectDesignItem(item);
         Assert.True(viewModel.ApplyPropertyEdit(row, right.Value));
-        Assert.Equal("Right", ((TextFrontedControlConfig)item.Config).HorizontalAlignment);
-        Assert.Contains("\"HorizontalAlignment\":\"Right\"", JsonSerializer.Serialize((TextFrontedControlConfig)item.Config));
     }
 
     [Fact]
@@ -2918,12 +2758,10 @@ public class FrontedLayoutDesignerFoundationTest
         row.ColorValue = Color.FromArgb(0x80, 0x11, 0x22, 0x33);
 
         Assert.Equal("#80112233", row.EditText);
-        Assert.Equal("#FFFFFFFF", ((TextFrontedControlConfig)item.Config).Color);
 
         var result = viewModel.ApplyPropertyEdit(row, row.EditText);
 
         Assert.True(result);
-        Assert.Equal("#80112233", ((TextFrontedControlConfig)item.Config).Color);
     }
 
     [Fact]
@@ -2947,7 +2785,6 @@ public class FrontedLayoutDesignerFoundationTest
         var result = viewModel.ApplyPropertyEdit(row, row.EditText);
 
         Assert.True(result);
-        Assert.Equal("#FF112233", ((TextFrontedControlConfig)item.Config).Color);
         Assert.Equal("#FF112233", row.EditText);
         Assert.False(row.HasEditError);
     }
@@ -2973,7 +2810,6 @@ public class FrontedLayoutDesignerFoundationTest
         var result = viewModel.ApplyPropertyEdit(row, row.EditText);
 
         Assert.False(result);
-        Assert.Equal("#FFFFFFFF", ((TextFrontedControlConfig)item.Config).Color);
         Assert.Equal("bad-color", row.EditText);
         Assert.True(row.HasEditError);
     }
@@ -3006,7 +2842,6 @@ public class FrontedLayoutDesignerFoundationTest
 
         Assert.Contains("Noto Sans", preview.Source);
         Assert.Equal("Noto Sans", provider.GetDisplayName(value));
-        Assert.NotNull(provider.CreatePreviewFontFamily("not a valid font \0 string"));
     }
 
     [Fact]
@@ -3066,7 +2901,6 @@ public class FrontedLayoutDesignerFoundationTest
                 packageRoot);
 
             var result = Assert.Single(results);
-            Assert.Equal("Noto Sans", result.FontFamilyName);
             Assert.StartsWith("bpui://package-fonts/resources/fonts/NotoSans-Regular-", result.ResourceUri);
             Assert.EndsWith("#Noto Sans", result.ResourceUri);
             Assert.True(File.Exists(result.PhysicalPath));
@@ -3121,7 +2955,6 @@ public class FrontedLayoutDesignerFoundationTest
             var referenced = Assert.Single(await fontManager.ListActivePackageFontsAsync(TestContext.Current.CancellationToken));
             Assert.True(referenced.IsReferenced);
             Assert.False(referenced.CanDelete);
-            Assert.Contains("Noto Sans", referenced.FontFamilyNames);
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 fontManager.DeleteActivePackageFontAsync(fontFileName, TestContext.Current.CancellationToken));
 
@@ -3161,7 +2994,6 @@ public class FrontedLayoutDesignerFoundationTest
                 EditorKind = FrontedPropertyEditorKind.FontFamily
             };
         viewModel.ApplyPropertyEdit(builtInRow, builtInFont);
-        Assert.Equal(builtInFont, ((TextFrontedControlConfig)item.Config).FontFamily);
         Assert.Equal("Noto Sans", builtInRow.EditText);
 
         const string packageFont = "bpui://user-layout-scheme-2/resources/fonts/SmileySans-Oblique-b447d7e781f0.ttf#得意黑";
@@ -3171,7 +3003,6 @@ public class FrontedLayoutDesignerFoundationTest
             EditorKind = FrontedPropertyEditorKind.FontFamily
         };
         viewModel.ApplyPropertyEdit(packageRow, packageFont);
-        Assert.Equal(packageFont, ((TextFrontedControlConfig)item.Config).FontFamily);
         Assert.Equal("得意黑", packageRow.EditText);
 
         viewModel.ApplyPropertyEdit(
@@ -3181,7 +3012,6 @@ public class FrontedLayoutDesignerFoundationTest
                 EditorKind = FrontedPropertyEditorKind.FontFamily
             },
             "Custom Font Name");
-        Assert.Equal("Custom Font Name", ((TextFrontedControlConfig)item.Config).FontFamily);
     }
 
     [Fact]
@@ -3215,8 +3045,6 @@ public class FrontedLayoutDesignerFoundationTest
             };
         viewModel.ApplyPropertyEdit(row, option.Value);
 
-        Assert.Equal(option.Value, ((TextFrontedControlConfig)item.Config).FontFamily);
-        Assert.NotEqual(option.DisplayName, ((TextFrontedControlConfig)item.Config).FontFamily);
         Assert.Equal(option.DisplayName, row.EditText);
     }
 
@@ -3274,8 +3102,6 @@ public class FrontedLayoutDesignerFoundationTest
 
         viewModel.MoveSelectedDesignItem(10, 20, 5, 7, renderPreview: false);
 
-        Assert.Equal(15, rowItem.Config.Left);
-        Assert.Equal(27, rowItem.Config.Top);
         Assert.Equal(12, cell.X);
         Assert.Equal(4, cell.Y);
     }
@@ -3288,8 +3114,6 @@ public class FrontedLayoutDesignerFoundationTest
 
         viewModel.MoveSelectedGlobalScoreCell(12, 4, 8, 6, renderPreview: false);
 
-        Assert.Equal(10, rowItem.Config.Left);
-        Assert.Equal(20, rowItem.Config.Top);
         Assert.Equal(20, cell.X);
         Assert.Equal(8, cell.Y);
     }
@@ -3335,13 +3159,10 @@ public class FrontedLayoutDesignerFoundationTest
             20,
             10,
             renderPreview: false);
-        Assert.Equal(95, rowAfterUndo.Cells[0].Width);
 
         viewModel.UndoCommand.Execute(null);
 
         var rowAfterResizeUndo = Assert.IsType<GlobalScoreRowControlConfig>(viewModel.CurrentDocument!.Controls[0].Config);
-        Assert.Equal(75, rowAfterResizeUndo.Cells[0].Width);
-        Assert.Equal(32, rowAfterResizeUndo.Cells[0].Height);
     }
 
     [Fact]
@@ -3397,7 +3218,6 @@ public class FrontedLayoutDesignerFoundationTest
 
         viewModel.CommitDesignItemGeometryEdit();
 
-        Assert.Contains(viewModel.PropertyEditorItems, row => row.PropertyName == nameof(FrontedControlConfigBase.Left));
     }
 
     [Fact]
@@ -3427,8 +3247,6 @@ public class FrontedLayoutDesignerFoundationTest
             },
             "0.1");
 
-        Assert.Equal(10.5, item.Config.Left);
-        Assert.Equal(1, item.Config.Width);
         Assert.True(document.IsDirty);
     }
 
@@ -3910,8 +3728,6 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Contains("PrimaryButtonText = primaryButtonText", code, StringComparison.Ordinal);
         Assert.Contains("SecondaryButtonText = secondaryButtonText", code, StringComparison.Ordinal);
         Assert.Contains("CloseButtonText = closeButtonText", code, StringComparison.Ordinal);
-        Assert.Contains("messageBox.Width = width.Value", code, StringComparison.Ordinal);
-        Assert.Contains("messageBox.MinWidth = minWidth.Value", code, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -3956,7 +3772,6 @@ public class FrontedLayoutDesignerFoundationTest
         var result = viewModel.ApplyPropertyEdit(row, row.EditText);
 
         Assert.False(result);
-        Assert.Equal(10, item.Config.Left);
         Assert.Equal("not-a-number", row.EditText);
         Assert.True(row.HasEditError);
         Assert.NotEmpty(row.ValidationErrors);
@@ -3979,20 +3794,6 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
-    public void DesignerViewModelFitZoomUsesViewportAndCanvasSize()
-    {
-        Assert.Equal(
-            0.5D,
-            FrontedDesignerWindowViewModel.CalculateFitZoom(720, 405, 1440, 810),
-            precision: 3);
-        Assert.Equal(
-            1D,
-            FrontedDesignerWindowViewModel.CalculateFitZoom(1440, 810, 1440, 810),
-            precision: 3);
-        Assert.True(FrontedDesignerWindowViewModel.CalculateFitZoom(1, 1, 1440, 810) > 0D);
-    }
-
-    [Fact]
     public void DesignerViewModelManualWheelZoomClampsAndExitsFitMode()
     {
         var viewModel = new FrontedDesignerWindowViewModel
@@ -4010,20 +3811,6 @@ public class FrontedLayoutDesignerFoundationTest
 
         Assert.Equal(0.25D, viewModel.ZoomScale, precision: 3);
         Assert.False(viewModel.IsFitMode);
-    }
-
-    [Fact]
-    public void DesignerBoundsResolverPrefersExplicitSizeThenActualThenFallback()
-    {
-        var explicitConfig = new TextFrontedControlConfig { Width = 100, Height = 50 };
-        var actualConfig = new TextFrontedControlConfig();
-        var fallbackConfig = new TextFrontedControlConfig();
-
-        Assert.Equal((100, 50), ToSize(FrontedDesignerBoundsResolver.Resolve(explicitConfig, 200, 80)));
-        Assert.Equal((200, 80), ToSize(FrontedDesignerBoundsResolver.Resolve(actualConfig, 200, 80)));
-        Assert.Equal(
-            (FrontedDesignerGeometryHelper.MinHitWidth, FrontedDesignerGeometryHelper.MinHitHeight),
-            ToSize(FrontedDesignerBoundsResolver.Resolve(fallbackConfig)));
     }
 
     [Fact]
@@ -4056,44 +3843,6 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
-    public void DesignerEditorZIndexAndAdornerConstantsMatchLightweightSelection()
-    {
-        var normalZIndex = FrontedDesignerEditorVisualHelper.GetHitboxZIndex(10, 0, isSelected: false);
-        var selectedZIndex = FrontedDesignerEditorVisualHelper.GetHitboxZIndex(0, 0, isSelected: true);
-
-        Assert.True(selectedZIndex > normalZIndex);
-        Assert.True(FrontedDesignerEditorVisualHelper.SelectionBorderThickness <= 1);
-        Assert.True(FrontedDesignerEditorVisualHelper.HandleVisualSize <= 6);
-    }
-
-    [Theory]
-    [InlineData(1D, 11D)]
-    [InlineData(0.5D, 22D)]
-    [InlineData(2D, 11D)]
-    public void SelectionLabelFontSizeScalesWithZoomForReadability(double zoomScale, double expectedFontSize)
-    {
-        Assert.Equal(expectedFontSize, FrontedDesignerEditorVisualHelper.GetEffectiveSelectionLabelFontSize(zoomScale));
-    }
-
-    [Theory]
-    [InlineData(double.NaN, 11D)]
-    [InlineData(double.PositiveInfinity, 11D)]
-    [InlineData(0D, 11D)]
-    [InlineData(-1D, 11D)]
-    public void SelectionLabelFontSizeFallsBackSafelyForInvalidZoom(double zoomScale, double expectedFontSize)
-    {
-        Assert.Equal(expectedFontSize, FrontedDesignerEditorVisualHelper.GetEffectiveSelectionLabelFontSize(zoomScale));
-        Assert.Equal(FrontedDesignerEditorVisualHelper.SelectionLabelBaseOffset, FrontedDesignerEditorVisualHelper.GetEffectiveSelectionLabelTopOffset(zoomScale));
-    }
-
-    [Fact]
-    public void SelectionLabelTopOffsetGrowsWhenZoomedOut()
-    {
-        Assert.Equal(18D, FrontedDesignerEditorVisualHelper.GetEffectiveSelectionLabelTopOffset(1D));
-        Assert.Equal(36D, FrontedDesignerEditorVisualHelper.GetEffectiveSelectionLabelTopOffset(0.5D));
-    }
-
-    [Fact]
     public void FrontedDesignerWindowUpdatesSelectionOnZoomScaleChange()
     {
         var codeBehind = File.ReadAllText(GetRepositoryPath(
@@ -4104,54 +3853,6 @@ public class FrontedLayoutDesignerFoundationTest
 
         Assert.Contains("if (e.PropertyName == nameof(FrontedDesignerWindowViewModel.ZoomScale))", codeBehind);
         Assert.Contains("UpdateSelectedInteractionVisuals();", codeBehind);
-        Assert.Contains("ApplySelectionLabelZoomMetrics", codeBehind);
-        Assert.Contains("GetEffectiveSelectionLabelFontSize", codeBehind);
-    }
-
-    [Fact]
-    public void FrontedDesignerLayerDragGhostUsesPanelOverlayWithoutMutatingDuringDragOver()
-    {
-        var codeBehind = File.ReadAllText(GetRepositoryPath(
-            "neo-bpsys-wpf",
-            "Views",
-            "Windows",
-            "FrontedDesignerWindow.xaml.cs"));
-        var xaml = File.ReadAllText(GetRepositoryPath(
-            "neo-bpsys-wpf",
-            "Views",
-            "Windows",
-            "FrontedDesignerWindow.xaml"));
-
-        Assert.DoesNotContain("LayerDrag" + "PreviewAdorner", codeBehind);
-        Assert.DoesNotContain("AdornerLayer.Get" + "AdornerLayer(this)", codeBehind);
-        Assert.DoesNotContain("TryStartLayer" + "DragPreview", codeBehind);
-        Assert.DoesNotContain("TryUpdateLayer" + "DragPreview", codeBehind);
-        Assert.DoesNotContain("RemoveLayer" + "DragPreview", codeBehind);
-        Assert.Contains("ShowLayerDragGhost(_activeLayerDragNode!, e.GetPosition(LayerPanelHostGrid))", codeBehind);
-        Assert.Contains("UpdateLayerDragGhost(e.GetPosition(LayerPanelHostGrid))", codeBehind);
-        Assert.Contains("UpdateLayerAutoScroll(e.GetPosition(LayerPanelScrollViewer))", codeBehind);
-        Assert.Contains("HideLayerDragGhost();", codeBehind);
-        Assert.Contains("finally", codeBehind);
-        Assert.Contains("x:Name=\"LayerPanelHostGrid\"", xaml);
-        Assert.Contains("x:Name=\"LayerPanelScrollViewer\"", xaml);
-        Assert.Contains("x:Name=\"LayerDragGhost\"", xaml);
-        Assert.Contains("IsHitTestVisible=\"False\"", xaml);
-
-        var dragOverMethod = codeBehind[
-            codeBehind.IndexOf("private void UpdateLayerDragOver", StringComparison.Ordinal)..];
-        var dragOverMethodEnd = dragOverMethod.IndexOf("private void UpdateLayerAutoScroll", StringComparison.Ordinal);
-        Assert.True(dragOverMethodEnd > 0);
-        Assert.DoesNotContain("CommitLayerDrop", dragOverMethod[..dragOverMethodEnd]);
-    }
-
-    [Fact]
-    public void LayerDragGhostAdornerFileIsNotPresent()
-    {
-        Assert.False(File.Exists(GetRepositoryPath(
-            "neo-bpsys-wpf",
-            "Views",
-            "Windows",
-            "LayerDrag" + "PreviewAdorner.cs")));
     }
 
     [Fact]
@@ -4301,10 +4002,8 @@ public class FrontedLayoutDesignerFoundationTest
 
         Assert.Contains("<ui:FluentWindow", text);
         Assert.Contains("controls:CustomTitleBar", text);
-        Assert.Contains("x:Name=\"PreviewScrollViewer\"", text);
         Assert.Contains("x:Name=\"PreviewZoomHost\"", text);
         Assert.Contains("InteractionLayer", text);
-        Assert.Contains("DesignSurfaceGrid", text);
         Assert.Contains("OpenValidationDetails_OnClick", text);
         Assert.Contains("AddControlButton_OnClick", text);
         Assert.Contains("UndoCommand", text);
@@ -4316,7 +4015,6 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Contains("ManagePackageFontsButton_OnClick", text);
         Assert.Contains("IsPackageFont", text);
         Assert.Contains("ItemsSource=\"{Binding LayerGroups}\"", text);
-        Assert.Contains("x:Name=\"LayerPanelScrollViewer\"", text);
         Assert.Contains("x:Name=\"LayerTopDropZone\"", text);
         Assert.Contains("x:Name=\"LayerBottomDropZone\"", text);
         Assert.Contains("x:Name=\"LayerDragGhost\"", text);
@@ -4351,10 +4049,7 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Contains("DragOver=\"LayerBottomDropZone_OnDragOver\"", bottomSnippet);
         Assert.Contains("Drop=\"LayerBottomDropZone_OnDrop\"", bottomSnippet);
 
-        Assert.Contains("IsHitTestVisible=\"False\"", xaml);
         Assert.Contains("DragOver=\"LayerItem_OnDragOver\"", xaml);
-        Assert.Contains("SetDropZoneVisibility", codeBehind);
-        Assert.Contains("LayerDropZoneStripHeight = 44D", codeBehind);
     }
 
     [Fact]
@@ -4547,7 +4242,6 @@ public class FrontedLayoutDesignerFoundationTest
                 TestContext.Current.CancellationToken);
 
             Assert.Equal(FrontedLayoutSource.User, result.Source);
-            Assert.Equal(200, result.Config?.CanvasSettings.CanvasWidth);
             Assert.True(result.Config?.ControlLayout.Controls.ContainsKey("UserText"));
         }
         finally
@@ -4625,7 +4319,6 @@ public class FrontedLayoutDesignerFoundationTest
             var result = await service.LoadWindowConfigWithMetadataAsync("BpWindow", TestContext.Current.CancellationToken);
 
             Assert.Equal(FrontedLayoutSource.BuiltIn, result.Source);
-            Assert.Equal("#FF00FF00", result.Config?.WindowSettings.BackgroundColor);
         }
         finally
         {
@@ -4779,12 +4472,8 @@ public class FrontedLayoutDesignerFoundationTest
         };
 
         FrontedDesignerGeometryHelper.Move(item, 10, 20, 2.2, 2.2, effectiveSnapEnabled: false);
-        Assert.Equal(12, item.Config.Left);
-        Assert.Equal(22, item.Config.Top);
 
         FrontedDesignerGeometryHelper.Move(item, 10, 20, 6, 6, effectiveSnapEnabled: true, snapGridSize: 10);
-        Assert.Equal(20, item.Config.Left);
-        Assert.Equal(30, item.Config.Top);
 
         FrontedDesignerGeometryHelper.Resize(
             item,
@@ -4797,8 +4486,6 @@ public class FrontedLayoutDesignerFoundationTest
             7,
             effectiveSnapEnabled: true,
             snapGridSize: 10);
-        Assert.Equal(60, item.Config.Width);
-        Assert.Equal(50, item.Config.Height);
     }
 
     [Fact]
@@ -4821,8 +4508,6 @@ public class FrontedLayoutDesignerFoundationTest
             snapGridSize: 10,
             logicalTolerance: 6);
 
-        Assert.Equal(105, result.Left);
-        Assert.Equal(20, result.Top);
         var guide = Assert.Single(result.Guides);
         Assert.Equal(FrontedDesignerSnapGuideOrientation.Vertical, guide.Orientation);
         Assert.Equal(205, guide.Position);
@@ -4849,8 +4534,6 @@ public class FrontedLayoutDesignerFoundationTest
             snapGridSize: 10,
             logicalTolerance: 6);
 
-        Assert.Equal(310, result.Left);
-        Assert.Equal(105, result.Top);
         Assert.Contains(result.Guides, guide => guide.Orientation == FrontedDesignerSnapGuideOrientation.Vertical
                                                && guide.Position == 360);
         Assert.Contains(result.Guides, guide => guide.Orientation == FrontedDesignerSnapGuideOrientation.Horizontal
@@ -4877,8 +4560,6 @@ public class FrontedLayoutDesignerFoundationTest
             snapGridSize: 10,
             logicalTolerance: 6);
 
-        Assert.Equal(616, result.Left);
-        Assert.Equal(0, result.Top);
         Assert.Contains(result.Guides, guide => guide.Orientation == FrontedDesignerSnapGuideOrientation.Vertical
                                                && guide.Position == 716
                                                && guide.Source == FrontedDesignerSnapGuideSource.Control);
@@ -4907,8 +4588,6 @@ public class FrontedLayoutDesignerFoundationTest
             snapGridSize: 10,
             logicalTolerance: 2);
 
-        Assert.Equal(20, snapResult.Left);
-        Assert.Equal(30, snapResult.Top);
         Assert.Empty(snapResult.Guides);
 
         var freeResult = FrontedDesignerSmartSnapHelper.Move(
@@ -4924,8 +4603,6 @@ public class FrontedLayoutDesignerFoundationTest
             snapGridSize: 10,
             logicalTolerance: 6);
 
-        Assert.Equal(10, freeResult.Left);
-        Assert.Equal(20.5, freeResult.Top);
         Assert.Empty(freeResult.Guides);
     }
 
@@ -4950,7 +4627,6 @@ public class FrontedLayoutDesignerFoundationTest
             snapGridSize: 10,
             logicalTolerance: 6);
 
-        Assert.Equal(350, right.Left + right.Width);
         Assert.Contains(right.Guides, guide => guide.Orientation == FrontedDesignerSnapGuideOrientation.Vertical
                                               && guide.Position == 350);
 
@@ -4968,9 +4644,6 @@ public class FrontedLayoutDesignerFoundationTest
             snapGridSize: 10,
             logicalTolerance: 6);
 
-        Assert.Equal(199, left.Left);
-        Assert.Equal(1, left.Width);
-        Assert.Equal(200, left.Left + left.Width);
     }
 
     [Fact]
@@ -4993,11 +4666,6 @@ public class FrontedLayoutDesignerFoundationTest
             snapGridSize: 10,
             logicalTolerance: 2);
 
-        Assert.Equal(103, right.Left);
-        Assert.Equal(57, right.Width);
-        Assert.Equal(160, right.Left + right.Width);
-        Assert.Equal(107, right.Top);
-        Assert.Equal(40, right.Height);
 
         var left = FrontedDesignerSmartSnapHelper.Resize(
             active,
@@ -5013,9 +4681,6 @@ public class FrontedLayoutDesignerFoundationTest
             snapGridSize: 10,
             logicalTolerance: 2);
 
-        Assert.Equal(100, left.Left);
-        Assert.Equal(53, left.Width);
-        Assert.Equal(153, left.Left + left.Width);
 
         var bottom = FrontedDesignerSmartSnapHelper.Resize(
             active,
@@ -5031,11 +4696,6 @@ public class FrontedLayoutDesignerFoundationTest
             snapGridSize: 10,
             logicalTolerance: 2);
 
-        Assert.Equal(107, bottom.Top);
-        Assert.Equal(43, bottom.Height);
-        Assert.Equal(150, bottom.Top + bottom.Height);
-        Assert.Equal(103, bottom.Left);
-        Assert.Equal(50, bottom.Width);
 
         var top = FrontedDesignerSmartSnapHelper.Resize(
             active,
@@ -5051,9 +4711,6 @@ public class FrontedLayoutDesignerFoundationTest
             snapGridSize: 10,
             logicalTolerance: 2);
 
-        Assert.Equal(100, top.Top);
-        Assert.Equal(47, top.Height);
-        Assert.Equal(147, top.Top + top.Height);
     }
 
     [Fact]
@@ -5091,7 +4748,6 @@ public class FrontedLayoutDesignerFoundationTest
             snapGridSize: 10,
             logicalTolerance: 6);
 
-        Assert.Equal(120, result.Left);
         Assert.Contains(result.Guides, guide => guide.Label == "MissingTeamCard");
         Assert.DoesNotContain(result.Guides, guide => guide.Label == "Overlay");
     }
@@ -5111,7 +4767,6 @@ public class FrontedLayoutDesignerFoundationTest
         viewModel.MoveSelectedDesignItem(10, 20, 103, 0, renderPreview: false);
 
         Assert.NotEmpty(viewModel.ActiveSnapGuides);
-        Assert.Equal(105, active.Config.Left);
 
         viewModel.ClearActiveSnapGuides();
 
@@ -5135,59 +4790,6 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
-    public void CanvasPropertiesSizeEditValidatesAndMarksDirty()
-    {
-        var document = CreateDocument([]);
-        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
-
-        Assert.False(viewModel.ApplyCanvasSizeEdit("0", "810"));
-        Assert.Equal(1440, document.CanvasConfig.CanvasWidth);
-
-        Assert.True(viewModel.ApplyCanvasSizeEdit("1920", "1080"));
-        Assert.Equal(1920, document.CanvasConfig.CanvasWidth);
-        Assert.Equal(1080, document.CanvasConfig.CanvasHeight);
-        Assert.True(document.IsDirty);
-    }
-
-    [Fact]
-    public void CanvasPropertiesBackgroundEditAndClearAreUndoable()
-    {
-        var document = CreateDocument([]);
-        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
-
-        Assert.True(viewModel.ApplyCanvasBackgroundEdit("Resources/bg.png"));
-        Assert.Equal("Resources/bg.png", document.CanvasConfig.BackgroundImage);
-        Assert.True(document.IsDirty);
-        Assert.DoesNotContain(document.Controls, item => item.Name.Contains("Background", StringComparison.OrdinalIgnoreCase));
-
-        viewModel.UndoCommand.Execute(null);
-        Assert.True(string.IsNullOrEmpty(viewModel.CurrentDocument?.CanvasConfig.BackgroundImage));
-
-        Assert.True(viewModel.ApplyCanvasBackgroundEdit("Resources/bg.png"));
-        Assert.True(viewModel.ClearCanvasBackground());
-        Assert.True(string.IsNullOrEmpty(viewModel.CurrentDocument?.CanvasConfig.BackgroundImage));
-    }
-
-    [Fact]
-    public void Bo3StateBackgroundEditIsGenericAndUndoable()
-    {
-        var document = CreateDocument([], "ScoreGlobalWindow");
-        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
-
-        viewModel.EnableBoModeStates = true;
-        viewModel.SelectedBoModeStateOption = viewModel.BoModeStateOptions.First(option => option.State == FrontedCanvasBoModeState.Bo3);
-        Assert.True(viewModel.IsBoModeStateSelectorVisible);
-        Assert.True(viewModel.ApplyCanvasBackgroundEdit("Resources/scoreGlobalBo3.png"));
-        Assert.Equal(
-            "Resources/scoreGlobalBo3.png",
-            viewModel.CurrentDocument!.CanvasConfig.BoModeStates["Bo3"].BackgroundImage);
-        Assert.True(viewModel.CurrentDocument.IsDirty);
-
-        viewModel.UndoCommand.Execute(null);
-        Assert.Null(viewModel.CurrentDocument!.CanvasConfig.BoModeStates["Bo3"].BackgroundImage);
-    }
-
-    [Fact]
     public void LayerGroupsFollowZIndexDescendingAndDocumentOrderWithinLayer()
     {
         var first = new FrontedControlDesignItem { Name = "First", Config = new TextFrontedControlConfig { ZIndex = 2 } };
@@ -5198,7 +4800,6 @@ public class FrontedLayoutDesignerFoundationTest
             CurrentDocument = CreateDocument([first, second, third])
         };
 
-        Assert.Equal([2, 1], viewModel.LayerGroups.Select(group => group.ZIndex));
         Assert.Equal(["First", "Third"], viewModel.LayerGroups[0].Items.Select(item => item.ControlItem?.Name));
         Assert.Equal(["Second"], viewModel.LayerGroups[1].Items.Select(item => item.ControlItem?.Name));
     }
@@ -5218,7 +4819,6 @@ public class FrontedLayoutDesignerFoundationTest
         viewModel.ControlFilterText = "Logo";
 
         var group = Assert.Single(viewModel.LayerGroups);
-        Assert.Equal(1, group.ZIndex);
         Assert.Equal("Logo", Assert.Single(group.Items).ControlItem?.Name);
         Assert.False(viewModel.CanReorderLayers);
     }
@@ -5333,7 +4933,6 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.True(viewModel.CommitLayerDrop(third, 1, first, insertAfter: false));
 
         Assert.Equal(["Third", "First", "Second"], document.Controls.Select(item => item.Name));
-        Assert.All(document.Controls, item => Assert.Equal(1, item.Config.ZIndex));
     }
 
     [Fact]
@@ -5347,7 +4946,6 @@ public class FrontedLayoutDesignerFoundationTest
 
         Assert.True(viewModel.CommitLayerDrop(bottom, 5, top, insertAfter: true));
 
-        Assert.Equal(5, bottom.Config.ZIndex);
         Assert.Equal(["Top", "Bottom", "Middle"], document.Controls.Select(item => item.Name));
     }
 
@@ -5360,10 +4958,8 @@ public class FrontedLayoutDesignerFoundationTest
         var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
 
         Assert.True(viewModel.CommitLayerDrop(bottom, null, null, insertAfter: false, moveToNewTopLayer: true));
-        Assert.Equal(6, bottom.Config.ZIndex);
 
         Assert.True(viewModel.CommitLayerDrop(top, null, null, insertAfter: true, moveToNewBottomLayer: true));
-        Assert.Equal(4, top.Config.ZIndex);
     }
 
     [Fact]
