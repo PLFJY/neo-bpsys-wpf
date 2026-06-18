@@ -152,7 +152,7 @@ public partial class App : AppBase
 
         CurrentLifetime = ApplicationLifetime.Running;
 
-#if !DEBUG && !Preview
+#if !DEBUG && !PREVIEW
         logger.LogInformation("Update checking on start up");
         await IAppHost.Host.Services.GetRequiredService<IUpdaterService>().UpdateCheck(true);
 #endif

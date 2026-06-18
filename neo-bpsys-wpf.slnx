@@ -2,6 +2,7 @@
   <Configurations>
     <BuildType Name="Beta" />
     <BuildType Name="Debug" />
+    <BuildType Name="Preview" />
     <BuildType Name="Release" />
     <Platform Name="Any CPU" />
     <Platform Name="x64" />
@@ -20,6 +21,7 @@
   </Project>
   <Project Path="neo-bpsys-wpf.DocsGenerator/neo-bpsys-wpf.DocsGenerator.csproj" Id="7d16ca2d-ce87-4c36-a468-c1899fc52afc">
     <BuildType Solution="Beta|*" Project="Debug" />
+    <BuildType Solution="Preview|*" Project="Debug" />
     <Platform Solution="*|x64" Project="x64" />
   </Project>
   <Project Path="neo-bpsys-wpf.ExamplePlugin/neo-bpsys-wpf.ExamplePlugin.csproj">
@@ -27,6 +29,7 @@
   </Project>
   <Project Path="neo-bpsys-wpf.PluginSdk/neo-bpsys-wpf.PluginSdk.csproj">
     <BuildType Solution="Beta|*" Project="Debug" />
+    <BuildType Solution="Preview|*" Project="Debug" />
     <Platform Solution="*|x64" Project="x64" />
   </Project>
   <Project Path="neo-bpsys-wpf.SmartBp.Module/neo-bpsys-wpf.SmartBp.Module.csproj">
@@ -34,10 +37,11 @@
   </Project>
   <Project Path="neo-bpsys-wpf.Tests/neo-bpsys-wpf.Tests.csproj">
     <BuildType Solution="Beta|*" Project="Debug" />
+    <BuildType Solution="Preview|*" Project="Debug" />
     <Platform Solution="*|x64" Project="x64" />
   </Project>
   <Project Path="neo-bpsys-wpf/neo-bpsys-wpf.csproj">
-    <BuildType Solution="Beta|x64" Project="Preview" />
+    <BuildType Solution="Preview|*" Project="Preview" />
     <Platform Solution="*|x64" Project="x64" />
   </Project>
 </Solution>

@@ -6,7 +6,7 @@
 		<Nullable>enable</Nullable>
 		<UseWPF>true</UseWPF>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<Configurations>Debug;Release;Beta</Configurations>
+		<Configurations>Debug;Release;Beta;Preview</Configurations>
 		<Platforms>AnyCPU;x64</Platforms>
 	</PropertyGroup>
 

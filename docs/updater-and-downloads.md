@@ -17,10 +17,10 @@ https://gh-releases.plfjy.top/?repo=PLFJY/neo-bpsys-wpf&ua=neo-bpsys-wpf
 `App.OnStartup` 中的启动更新检查受条件编译控制。当前源码条件写作：
 
 ```csharp
-#if !DEBUG && !Preview
+#if !DEBUG && !PREVIEW
 ```
 
-csproj 中 Preview 配置定义的是 `PREVIEW`。由于 `Preview` / `PREVIEW` 命名不一致，本文不声称 Preview 构建一定被排除；本任务只记录这个代码观察到的 caveat，不修改代码。
+csproj 中 Preview 配置定义 `PREVIEW` 编译常量，因此 Debug 和 Preview 构建都会跳过启动自动检查；Release 和 Beta 构建会在启动后自动检查更新。
 
 手动检查由设置页触发：
 
