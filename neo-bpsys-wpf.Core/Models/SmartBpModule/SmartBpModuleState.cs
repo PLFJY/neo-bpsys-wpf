@@ -83,6 +83,16 @@ public sealed class SmartBpModuleMovePendingState
     public string TargetRoot { get; set; } = string.Empty;
 
     /// <summary>
+    /// Prepared module directory that should replace <see cref="TargetRoot"/> during next startup.
+    /// </summary>
+    public string? PreparedRoot { get; set; }
+
+    /// <summary>
+    /// Installation kind to persist after the pending operation is applied.
+    /// </summary>
+    public string? InstallKind { get; set; }
+
+    /// <summary>
     /// UTC time when the migration marker was created.
     /// </summary>
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;

@@ -1473,6 +1473,24 @@
   <data name="SmartBpModulePathInvalid" xml:space="preserve">
     <value>This path cannot be used for the SmartBP module. Choose a writable user directory.</value>
   </data>
+  <data name="SmartBpModulePathMigrationChoiceTitle" xml:space="preserve">
+    <value>Migrate SmartBP module files?</value>
+  </data>
+  <data name="SmartBpModulePathMigrationChoiceMessage" xml:space="preserve">
+    <value>Existing SmartBP module files were detected. Do you want to migrate the current module files to the new module path?</value>
+  </data>
+  <data name="SmartBpModulePathMigrateFiles" xml:space="preserve">
+    <value>Migrate existing files</value>
+  </data>
+  <data name="SmartBpModulePathSaveOnly" xml:space="preserve">
+    <value>Save path only</value>
+  </data>
+  <data name="SmartBpModulePathSavedWithoutMigration" xml:space="preserve">
+    <value>SmartBP module path saved. Existing files were not migrated.</value>
+  </data>
+  <data name="SmartBpModulePathSaveCanceled" xml:space="preserve">
+    <value>SmartBP module path save was canceled.</value>
+  </data>
   <data name="SmartBpModuleImportArchive" xml:space="preserve">
     <value>Import module package</value>
   </data>
@@ -1481,6 +1499,12 @@
   </data>
   <data name="SmartBpModuleArchiveImportSucceeded" xml:space="preserve">
     <value>SmartBP module package imported and loaded.</value>
+  </data>
+  <data name="SmartBpModuleArchiveImportRestartPrepared" xml:space="preserve">
+    <value>SmartBP module package is ready. The update will finish after the application restarts.</value>
+  </data>
+  <data name="SmartBpModuleArchiveImportRestartPrompt" xml:space="preserve">
+    <value>SmartBP module package is ready. Because the current module may be loaded, the update needs an application restart to finish. Restart now?</value>
   </data>
   <data name="SmartBpModuleArchiveImportFailed" xml:space="preserve">
     <value>Failed to import SmartBP module package: </value>

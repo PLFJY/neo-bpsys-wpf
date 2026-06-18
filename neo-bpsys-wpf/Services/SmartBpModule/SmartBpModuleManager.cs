@@ -23,6 +23,7 @@ public sealed class SmartBpModuleManager
     private const string ModuleManifestAssetName = "SmartBpModuleManifest.json";
     private const string ModuleRegistrySubKey = @"Software\neo-bpsys-wpf\SmartBpModule";
     private const string ModuleRegistryRootValueName = "ModuleRoot";
+    private const string PendingArchiveImportDirectoryName = "SmartBpModulePending";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -90,6 +91,11 @@ public sealed class SmartBpModuleManager
     /// Last module load or validation failure message.
     /// </summary>
     public string LastFailureMessage { get; private set; } = string.Empty;
+
+    /// <summary>
+    /// Whether the last module archive import was staged and requires an application restart to finish.
+    /// </summary>
+    public bool IsRestartRequiredForPendingModuleImport { get; private set; }
 
     /// <summary>
     /// State file path.
@@ -203,7 +209,7 @@ public sealed class SmartBpModuleManager
     }
 
     /// <summary>
-    /// Updates the preferred SmartBP module directory. Release-like builds copy the current module through staging; Debug persists a development directory directly.
+    /// Updates the preferred SmartBP module directory by copying the current module through staging when an existing module is available.
     /// </summary>
     /// <param name="targetRoot">Target module root.</param>
     /// <returns>True when the target was prepared and persisted.</returns>
@@ -224,11 +230,6 @@ public sealed class SmartBpModuleManager
         }
 
         var state = ReadState();
-        if (IsDebugBuild())
-        {
-            return PersistDevelopmentModuleRootPreference(normalizedTarget, state);
-        }
-
         var sourceRoot = state?.ModuleRoot;
         if (string.IsNullOrWhiteSpace(sourceRoot) || !Directory.Exists(sourceRoot))
         {
@@ -260,7 +261,7 @@ public sealed class SmartBpModuleManager
 
         if (!ValidateModuleDirectory(
                 normalizedSource,
-                allowDevelopmentDirectory: IsDebugBuild(),
+                allowDevelopmentDirectory: false,
                 out var sourceManifest,
                 out var sourceValidationError))
         {
@@ -316,44 +317,6 @@ public sealed class SmartBpModuleManager
         }
     }
 
-    private bool PersistDevelopmentModuleRootPreference(string normalizedTarget, SmartBpModuleState? currentState)
-    {
-        if (!ValidateModuleDirectory(
-                normalizedTarget,
-                allowDevelopmentDirectory: true,
-                out var manifest,
-                out var validationError))
-        {
-            LastFailureMessage = validationError;
-            _logger.LogWarning(
-                "Rejected invalid SmartBP development module directory from settings. ModuleRoot={ModuleRoot}, Error={Error}",
-                normalizedTarget,
-                validationError);
-            return false;
-        }
-
-        DeleteMovePendingStateIfExists();
-        WriteState(new SmartBpModuleState
-        {
-            ModuleRoot = normalizedTarget,
-            ModuleVersion = manifest?.ModuleVersion ?? currentState?.ModuleVersion,
-            RuntimeAbiVersion = manifest?.RuntimeAbiVersion ?? currentState?.RuntimeAbiVersion,
-            Rid = manifest?.Rid ?? currentState?.Rid,
-            InstallKind = "DevelopmentDirectory",
-            LastLoadedSuccessfully = false,
-            LastLoadedAt = null,
-            LegacyOcrModelMigration = currentState?.LegacyOcrModelMigration ?? new SmartBpLegacyOcrModelMigrationState()
-        });
-
-        ModuleRoot = normalizedTarget;
-        LastFailureMessage = string.Empty;
-        _logger.LogInformation(
-            "Persisted SmartBP development module directory without copying files. ModuleRoot={ModuleRoot}",
-            normalizedTarget);
-        ModuleStateChanged?.Invoke(this, EventArgs.Empty);
-        return true;
-    }
-
     /// <summary>
     /// Loads the persisted module if available.
     /// </summary>
@@ -362,11 +325,18 @@ public sealed class SmartBpModuleManager
     {
         var state = ReadState();
         var pending = ReadMovePendingState();
+        if (!string.IsNullOrWhiteSpace(pending?.PreparedRoot))
+        {
+            TryCompletePendingArchiveImport(pending);
+            state = ReadState();
+            pending = ReadMovePendingState();
+        }
+
         var moduleRoot = !string.IsNullOrWhiteSpace(pending?.TargetRoot)
             ? pending.TargetRoot
             : state?.ModuleRoot;
         var installKind = !string.IsNullOrWhiteSpace(pending?.TargetRoot)
-            ? "PathMigrationPending"
+            ? pending.InstallKind ?? "PathMigrationPending"
             : state?.InstallKind ?? "LocalDirectory";
 
         if (string.IsNullOrWhiteSpace(moduleRoot))
@@ -502,7 +472,7 @@ public sealed class SmartBpModuleManager
     /// <param name="targetRoot">Final target root.</param>
     /// <param name="progress">Optional progress reporter from 0 to 100.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>True when downloaded, installed, and loaded.</returns>
+    /// <returns>True when downloaded and installed or staged for restart.</returns>
     public async Task<bool> DownloadAndInstallCurrentModuleAsync(
         string targetRoot,
         IProgress<double>? progress,
@@ -581,7 +551,7 @@ public sealed class SmartBpModuleManager
     /// </summary>
     /// <param name="archivePath">Archive path.</param>
     /// <param name="targetRoot">Final target root.</param>
-    /// <returns>True when imported and loaded.</returns>
+    /// <returns>True when imported and loaded or staged for restart.</returns>
     public async Task<bool> ImportArchiveAsync(string archivePath, string targetRoot)
     {
         return await ImportArchiveAsync(archivePath, targetRoot, "PreviewArchiveImport");
@@ -593,17 +563,25 @@ public sealed class SmartBpModuleManager
     /// <param name="archivePath">Archive path.</param>
     /// <param name="targetRoot">Final target root.</param>
     /// <param name="installKind">Install kind persisted in module state.</param>
-    /// <returns>True when imported and loaded.</returns>
+    /// <returns>True when imported and loaded or staged for restart.</returns>
     public async Task<bool> ImportArchiveAsync(string archivePath, string targetRoot, string installKind)
     {
+        IsRestartRequiredForPendingModuleImport = false;
+        if (string.IsNullOrWhiteSpace(targetRoot))
+        {
+            LastFailureMessage = "Target module path is empty.";
+            return false;
+        }
+
+        var normalizedTargetRoot = Path.GetFullPath(targetRoot);
         _logger.LogInformation(
             "Importing SmartBP module archive. ArchivePath={ArchivePath}, TargetRoot={TargetRoot}, InstallKind={InstallKind}",
             archivePath,
-            targetRoot,
+            normalizedTargetRoot,
             installKind);
-        if (IsUnsafeInstallPath(targetRoot))
+        if (IsUnsafeInstallPath(normalizedTargetRoot))
         {
-            _logger.LogWarning("SmartBP module import target is unsafe or not writable: {TargetRoot}", targetRoot);
+            _logger.LogWarning("SmartBP module import target is unsafe or not writable: {TargetRoot}", normalizedTargetRoot);
             return false;
         }
 
@@ -615,21 +593,40 @@ public sealed class SmartBpModuleManager
             var candidateRoot = File.Exists(Path.Combine(staging, "component.json"))
                 ? staging
                 : Directory.EnumerateDirectories(staging).FirstOrDefault() ?? staging;
-            if (!ValidateModuleDirectory(candidateRoot, allowDevelopmentDirectory: false, out _, out var validationError))
+            if (!ValidateModuleDirectory(candidateRoot, allowDevelopmentDirectory: false, out var manifest, out var validationError))
             {
                 LastFailureMessage = validationError;
                 _logger.LogWarning("Imported SmartBP module archive failed validation: {ValidationError}", validationError);
                 return false;
             }
 
-            if (Directory.Exists(targetRoot))
+            if (IsModuleLoaded &&
+                string.Equals(Path.GetFullPath(ModuleRoot), normalizedTargetRoot, StringComparison.OrdinalIgnoreCase))
             {
-                _logger.LogInformation("Replacing existing SmartBP module target root: {TargetRoot}", targetRoot);
-                Directory.Delete(targetRoot, recursive: true);
+                PrepareArchiveImportForRestart(candidateRoot, normalizedTargetRoot, installKind, manifest);
+                return true;
             }
-            Directory.CreateDirectory(Path.GetDirectoryName(targetRoot)!);
-            Directory.Move(candidateRoot, targetRoot);
-            return await LoadModuleFromDirectoryAsync(targetRoot, installKind);
+
+            try
+            {
+                if (Directory.Exists(normalizedTargetRoot))
+                {
+                    _logger.LogInformation("Replacing existing SmartBP module target root: {TargetRoot}", normalizedTargetRoot);
+                    Directory.Delete(normalizedTargetRoot, recursive: true);
+                }
+                Directory.CreateDirectory(Path.GetDirectoryName(normalizedTargetRoot)!);
+                Directory.Move(candidateRoot, normalizedTargetRoot);
+                return await LoadModuleFromDirectoryAsync(normalizedTargetRoot, installKind);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                _logger.LogInformation(
+                    ex,
+                    "SmartBP module target could not be replaced immediately. Staging import for next restart. TargetRoot={TargetRoot}",
+                    normalizedTargetRoot);
+                PrepareArchiveImportForRestart(candidateRoot, normalizedTargetRoot, installKind, manifest);
+                return true;
+            }
         }
         finally
         {
@@ -830,6 +827,155 @@ public sealed class SmartBpModuleManager
         }
     }
 
+    private void PrepareArchiveImportForRestart(
+        string candidateRoot,
+        string targetRoot,
+        string installKind,
+        SmartBpModuleManifest? manifest)
+    {
+        var normalizedCandidateRoot = Path.GetFullPath(candidateRoot);
+        var normalizedTargetRoot = Path.GetFullPath(targetRoot);
+        var pendingParent = Path.Combine(AppConstants.AppDataPath, PendingArchiveImportDirectoryName);
+        var preparedRoot = Path.Combine(pendingParent, Guid.NewGuid().ToString("N"));
+        var state = ReadState();
+
+        if (IsSameOrChildPath(preparedRoot, normalizedTargetRoot) ||
+            IsSameOrChildPath(normalizedTargetRoot, preparedRoot))
+        {
+            throw new InvalidOperationException("Pending SmartBP module path overlaps the target module path.");
+        }
+
+        CleanupExistingPendingArchiveImport();
+        Directory.CreateDirectory(pendingParent);
+        Directory.Move(normalizedCandidateRoot, preparedRoot);
+
+        WriteMovePendingState(new SmartBpModuleMovePendingState
+        {
+            SourceRoot = normalizedTargetRoot,
+            TargetRoot = normalizedTargetRoot,
+            PreparedRoot = preparedRoot,
+            InstallKind = installKind,
+            CreatedAt = DateTimeOffset.UtcNow
+        });
+
+        WriteState(new SmartBpModuleState
+        {
+            ModuleRoot = normalizedTargetRoot,
+            ModuleVersion = manifest?.ModuleVersion ?? state?.ModuleVersion,
+            RuntimeAbiVersion = manifest?.RuntimeAbiVersion ?? state?.RuntimeAbiVersion,
+            Rid = manifest?.Rid ?? state?.Rid,
+            InstallKind = installKind,
+            LastLoadedSuccessfully = false,
+            LastLoadedAt = null,
+            LegacyOcrModelMigration = state?.LegacyOcrModelMigration ?? new SmartBpLegacyOcrModelMigrationState()
+        });
+
+        ModuleRoot = normalizedTargetRoot;
+        LastFailureMessage = string.Empty;
+        IsRestartRequiredForPendingModuleImport = true;
+        _logger.LogInformation(
+            "SmartBP module archive import staged for next restart. PreparedRoot={PreparedRoot}, TargetRoot={TargetRoot}, InstallKind={InstallKind}",
+            preparedRoot,
+            normalizedTargetRoot,
+            installKind);
+        ModuleStateChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void CleanupExistingPendingArchiveImport()
+    {
+        var pending = ReadMovePendingState();
+        if (string.IsNullOrWhiteSpace(pending?.PreparedRoot))
+        {
+            return;
+        }
+
+        try
+        {
+            if (Directory.Exists(pending.PreparedRoot))
+            {
+                Directory.Delete(pending.PreparedRoot, recursive: true);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to clean previous pending SmartBP module archive import: {PreparedRoot}", pending.PreparedRoot);
+        }
+    }
+
+    private bool TryCompletePendingArchiveImport(SmartBpModuleMovePendingState pending)
+    {
+        if (string.IsNullOrWhiteSpace(pending.PreparedRoot) ||
+            string.IsNullOrWhiteSpace(pending.TargetRoot))
+        {
+            return true;
+        }
+
+        try
+        {
+            var preparedRoot = Path.GetFullPath(pending.PreparedRoot);
+            var targetRoot = Path.GetFullPath(pending.TargetRoot);
+            if (!Directory.Exists(preparedRoot))
+            {
+                pending.LastCleanupError = "Prepared SmartBP module directory is missing.";
+                WriteMovePendingState(pending);
+                _logger.LogWarning(
+                    "Pending SmartBP module archive import cannot continue because prepared directory is missing: {PreparedRoot}",
+                    preparedRoot);
+                return false;
+            }
+
+            if (IsUnsafeInstallPath(targetRoot) ||
+                IsSameOrChildPath(preparedRoot, targetRoot) ||
+                IsSameOrChildPath(targetRoot, preparedRoot))
+            {
+                pending.LastCleanupError = "Pending SmartBP module replacement path is unsafe.";
+                WriteMovePendingState(pending);
+                _logger.LogWarning(
+                    "Pending SmartBP module archive import rejected unsafe paths. PreparedRoot={PreparedRoot}, TargetRoot={TargetRoot}",
+                    preparedRoot,
+                    targetRoot);
+                return false;
+            }
+
+            if (!ValidateModuleDirectory(
+                    preparedRoot,
+                    allowDevelopmentDirectory: false,
+                    out _,
+                    out var validationError))
+            {
+                pending.LastCleanupError = validationError;
+                WriteMovePendingState(pending);
+                _logger.LogWarning(
+                    "Pending SmartBP module archive import failed validation. PreparedRoot={PreparedRoot}, Error={Error}",
+                    preparedRoot,
+                    validationError);
+                return false;
+            }
+
+            if (Directory.Exists(targetRoot))
+            {
+                _logger.LogInformation(
+                    "Replacing SmartBP module target from pending archive import. TargetRoot={TargetRoot}, PreparedRoot={PreparedRoot}",
+                    targetRoot,
+                    preparedRoot);
+                Directory.Delete(targetRoot, recursive: true);
+            }
+
+            Directory.CreateDirectory(Path.GetDirectoryName(targetRoot)!);
+            Directory.Move(preparedRoot, targetRoot);
+            File.Delete(MovePendingFilePath);
+            _logger.LogInformation("Completed pending SmartBP module archive import: {TargetRoot}", targetRoot);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            pending.LastCleanupError = FormatExceptionForUser(ex);
+            WriteMovePendingState(pending);
+            _logger.LogWarning(ex, "Failed to complete pending SmartBP module archive import.");
+            return false;
+        }
+    }
+
     private async Task CopyModuleRootForMigrationAsync(string sourceRoot, string targetRoot)
     {
         var targetExists = Directory.Exists(targetRoot);
@@ -944,6 +1090,15 @@ public sealed class SmartBpModuleManager
             _logger.LogDebug(
                 "Skipping SmartBP module move cleanup because loaded root is not pending target. LoadedRoot={LoadedRoot}, TargetRoot={TargetRoot}",
                 normalizedLoadedRoot,
+                normalizedTargetRoot);
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(pending.PreparedRoot))
+        {
+            _logger.LogDebug(
+                "Skipping SmartBP module move cleanup because an archive import is still pending. PreparedRoot={PreparedRoot}, TargetRoot={TargetRoot}",
+                pending.PreparedRoot,
                 normalizedTargetRoot);
             return;
         }

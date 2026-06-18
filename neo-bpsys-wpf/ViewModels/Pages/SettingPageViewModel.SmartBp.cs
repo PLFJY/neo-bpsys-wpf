@@ -1,9 +1,12 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using neo_bpsys_wpf.Core;
+using neo_bpsys_wpf.Core.Helpers;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Services.SmartBpModule;
 using System.IO;
+using Wpf.Ui.Controls;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -53,20 +56,30 @@ public partial class SettingPageViewModel
 
         var normalizedRoot = Path.GetFullPath(SmartBpModuleRoot);
         SmartBpModuleRoot = normalizedRoot;
-        SmartBpModulePathStatus = I18nHelper.GetLocalizedString(
-            IsDebugBuild()
-                ? "SmartBpModuleDevelopmentPathSaving"
-                : "SmartBpModulePathMigrating");
+
+        var migrationChoice = await ConfirmSmartBpModuleMigrationAsync(normalizedRoot);
+        if (migrationChoice == null)
+        {
+            SmartBpModulePathStatus = I18nHelper.GetLocalizedString("SmartBpModulePathSaveCanceled");
+            return;
+        }
+
+        if (migrationChoice == false)
+        {
+            _smartBpModuleManager.PersistModuleRootPreference(normalizedRoot);
+            SmartBpModulePathStatus = I18nHelper.GetLocalizedString("SmartBpModulePathSavedWithoutMigration");
+            _logger.LogInformation(
+                "SmartBP module root saved from settings without migrating files: {ModuleRoot}",
+                normalizedRoot);
+            return;
+        }
+
+        SmartBpModulePathStatus = I18nHelper.GetLocalizedString("SmartBpModulePathMigrating");
         if (await _smartBpModuleManager.MigrateModuleRootPreferenceAsync(normalizedRoot))
         {
-            SmartBpModulePathStatus = I18nHelper.GetLocalizedString(
-                IsDebugBuild()
-                    ? "SmartBpModuleDevelopmentPathSaved"
-                    : "SmartBpModulePathMigrationPrepared");
+            SmartBpModulePathStatus = I18nHelper.GetLocalizedString("SmartBpModulePathMigrationPrepared");
             _logger.LogInformation(
-                IsDebugBuild()
-                    ? "SmartBP development module root saved from settings without copying files: {ModuleRoot}"
-                    : "SmartBP module root migration requested from settings: {ModuleRoot}",
+                "SmartBP module root migration requested from settings: {ModuleRoot}",
                 normalizedRoot);
             return;
         }
@@ -80,13 +93,35 @@ public partial class SettingPageViewModel
             _smartBpModuleManager.LastFailureMessage);
     }
 
-    private static bool IsDebugBuild()
+    private async Task<bool?> ConfirmSmartBpModuleMigrationAsync(string normalizedTarget)
     {
-#if DEBUG
-        return true;
-#else
-        return false;
-#endif
+        var sourceRoot = _smartBpModuleManager.ReadState()?.ModuleRoot;
+        if (string.IsNullOrWhiteSpace(sourceRoot) || !Directory.Exists(sourceRoot))
+        {
+            return true;
+        }
+
+        var normalizedSource = Path.GetFullPath(sourceRoot);
+        if (string.Equals(normalizedSource, normalizedTarget, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        var result = await MessageBoxHelper.ShowThreeOptionAsync(
+            I18nHelper.GetLocalizedString("SmartBpModulePathMigrationChoiceMessage"),
+            I18nHelper.GetLocalizedString("SmartBpModulePathMigrationChoiceTitle"),
+            I18nHelper.GetLocalizedString("SmartBpModulePathMigrateFiles"),
+            I18nHelper.GetLocalizedString("SmartBpModulePathSaveOnly"),
+            I18nHelper.GetLocalizedString("Cancel"),
+            primaryButtonIcon: SymbolRegular.ArrowSync24,
+            secondaryButtonIcon: SymbolRegular.Save24);
+
+        return result switch
+        {
+            MessageBoxResult.Primary => true,
+            MessageBoxResult.Secondary => false,
+            _ => null
+        };
     }
 
     /// <summary>
@@ -127,6 +162,13 @@ public partial class SettingPageViewModel
         {
             if (await _smartBpModuleManager.ImportArchiveAsync(archivePath, normalizedRoot, "SettingsArchiveImport"))
             {
+                if (_smartBpModuleManager.IsRestartRequiredForPendingModuleImport)
+                {
+                    SmartBpModulePathStatus = I18nHelper.GetLocalizedString("SmartBpModuleArchiveImportRestartPrepared");
+                    await OfferSmartBpModuleArchiveImportRestartAsync();
+                    return;
+                }
+
                 SmartBpModulePathStatus = I18nHelper.GetLocalizedString("SmartBpModuleArchiveImportSucceeded");
                 _logger.LogInformation(
                     "SmartBP module archive imported from settings. ArchivePath={ArchivePath}, ModuleRoot={ModuleRoot}",
@@ -152,6 +194,18 @@ public partial class SettingPageViewModel
                 "SmartBP module archive import threw from settings. ArchivePath={ArchivePath}, ModuleRoot={ModuleRoot}",
                 archivePath,
                 normalizedRoot);
+        }
+    }
+
+    private static async Task OfferSmartBpModuleArchiveImportRestartAsync()
+    {
+        if (await MessageBoxHelper.ShowConfirmAsync(
+                I18nHelper.GetLocalizedString("SmartBpModuleArchiveImportRestartPrompt"),
+                I18nHelper.GetLocalizedString("RestartNeeded"),
+                I18nHelper.GetLocalizedString("RestartNow"),
+                I18nHelper.GetLocalizedString("Cancel")))
+        {
+            AppBase.Current.Restart();
         }
     }
 }

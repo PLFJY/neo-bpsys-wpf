@@ -177,8 +177,11 @@ if (-not (Test-Path -LiteralPath $ComponentManifestPath)) {
     throw "SmartBP module component manifest missing: $ComponentManifestPath"
 }
 $ComponentManifest = Get-Content -LiteralPath $ComponentManifestPath -Raw | ConvertFrom-Json
-$ComponentManifest.ModuleVersion = $ReleaseTag
-$ComponentManifest | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $ComponentManifestPath -Encoding UTF8
+$ModuleVersion = [string]$ComponentManifest.ModuleVersion
+if ([string]::IsNullOrWhiteSpace($ModuleVersion)) {
+    throw "SmartBP module component manifest has empty ModuleVersion: $ComponentManifestPath"
+}
+Write-Host "SmartBP module version: $ModuleVersion" -ForegroundColor Cyan
 
 $ModuleArchive = Join-Path $RepoRoot "build\SmartBpModule.7z"
 if (Test-Path -LiteralPath $ModuleArchive) {
@@ -196,7 +199,7 @@ $ModuleArchiveSize = (Get-Item -LiteralPath $ModuleArchive).Length
 $ModuleManifestPath = Join-Path $RepoRoot "build\SmartBpModuleManifest.json"
 $ModuleManifest = [ordered]@{
     ComponentId = "SmartBpModule"
-    ModuleVersion = $ReleaseTag
+    ModuleVersion = $ModuleVersion
     RuntimeAbiVersion = 1
     Rid = "win-x64"
     RequiredAppVersion = ">=3.0.0"

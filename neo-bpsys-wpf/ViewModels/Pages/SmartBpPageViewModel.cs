@@ -1,7 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models.SmartBpModule;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Services.SmartBpModule;
@@ -182,7 +184,15 @@ public partial class SmartBpPageViewModel : ViewModelBase
                 new Progress<double>(value => ProgressValue = value));
             IsProgressVisible = false;
             if (installed)
+            {
+                if (_moduleManager.IsRestartRequiredForPendingModuleImport)
+                {
+                    OverlayMessage = L("SmartBpModuleArchiveImportRestartPrepared");
+                    await OfferSmartBpModuleArchiveImportRestartAsync();
+                }
+
                 return;
+            }
         }
 
         IsProgressVisible = false;
@@ -216,7 +226,26 @@ public partial class SmartBpPageViewModel : ViewModelBase
 
         IsProgressVisible = true;
         ProgressValue = 20;
-        await _moduleManager.ImportArchiveAsync(archivePath, SelectedModulePath);
+        if (await _moduleManager.ImportArchiveAsync(archivePath, SelectedModulePath))
+        {
+            if (_moduleManager.IsRestartRequiredForPendingModuleImport)
+            {
+                OverlayMessage = L("SmartBpModuleArchiveImportRestartPrepared");
+                ProgressValue = 100;
+                IsProgressVisible = false;
+                await OfferSmartBpModuleArchiveImportRestartAsync();
+                return;
+            }
+
+            OverlayMessage = L("SmartBpModuleArchiveImportSucceeded");
+        }
+        else
+        {
+            OverlayMessage = string.IsNullOrWhiteSpace(_moduleManager.LastFailureMessage)
+                ? L("SmartBpModuleArchiveImportFailed")
+                : $"{L("SmartBpModuleArchiveImportFailed")}{_moduleManager.LastFailureMessage}";
+        }
+
         ProgressValue = 100;
         IsProgressVisible = false;
     }
@@ -345,6 +374,18 @@ public partial class SmartBpPageViewModel : ViewModelBase
     }
 
     private static string L(string key) => I18nHelper.GetLocalizedString(key);
+
+    private static async Task OfferSmartBpModuleArchiveImportRestartAsync()
+    {
+        if (await MessageBoxHelper.ShowConfirmAsync(
+                L("SmartBpModuleArchiveImportRestartPrompt"),
+                L("RestartNeeded"),
+                L("RestartNow"),
+                L("Cancel")))
+        {
+            AppBase.Current.Restart();
+        }
+    }
 
     private void TryPersistSelectedModulePathPreference(string value)
     {

@@ -1476,6 +1476,24 @@
   <data name="SmartBpModulePathInvalid" xml:space="preserve">
     <value>このパスは SmartBP モジュールに使用できません。書き込み可能なユーザーディレクトリを選択してください。</value>
   </data>
+  <data name="SmartBpModulePathMigrationChoiceTitle" xml:space="preserve">
+    <value>SmartBP モジュールファイルを移行しますか？</value>
+  </data>
+  <data name="SmartBpModulePathMigrationChoiceMessage" xml:space="preserve">
+    <value>既存の SmartBP モジュールファイルが検出されました。現在のモジュールファイルを新しいモジュールパスへ移行しますか？</value>
+  </data>
+  <data name="SmartBpModulePathMigrateFiles" xml:space="preserve">
+    <value>既存ファイルを移行</value>
+  </data>
+  <data name="SmartBpModulePathSaveOnly" xml:space="preserve">
+    <value>パスのみ保存</value>
+  </data>
+  <data name="SmartBpModulePathSavedWithoutMigration" xml:space="preserve">
+    <value>SmartBP モジュールのパスを保存しました。既存ファイルは移行していません。</value>
+  </data>
+  <data name="SmartBpModulePathSaveCanceled" xml:space="preserve">
+    <value>SmartBP モジュールのパス保存をキャンセルしました。</value>
+  </data>
   <data name="SmartBpModuleImportArchive" xml:space="preserve">
     <value>モジュールパッケージをインポート</value>
   </data>
@@ -1484,6 +1502,12 @@
   </data>
   <data name="SmartBpModuleArchiveImportSucceeded" xml:space="preserve">
     <value>SmartBP モジュールパッケージをインポートして読み込みました。</value>
+  </data>
+  <data name="SmartBpModuleArchiveImportRestartPrepared" xml:space="preserve">
+    <value>SmartBP モジュールパッケージの準備ができました。アプリの再起動後に更新が完了します。</value>
+  </data>
+  <data name="SmartBpModuleArchiveImportRestartPrompt" xml:space="preserve">
+    <value>SmartBP モジュールパッケージの準備ができました。現在のモジュールが読み込まれている可能性があるため、更新を完了するにはアプリの再起動が必要です。今すぐ再起動しますか？</value>
   </data>
   <data name="SmartBpModuleArchiveImportFailed" xml:space="preserve">
     <value>SmartBP モジュールパッケージのインポートに失敗しました: </value>

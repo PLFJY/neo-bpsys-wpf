@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -25,7 +26,9 @@ public sealed class SmartBpModuleArchiveImportTest : IDisposable
 {
     private readonly string _root = Path.Combine(Path.GetTempPath(), "neo-bpsys-wpf-tests", Guid.NewGuid().ToString("N"));
     private readonly string? _stateBackup;
+    private readonly string? _movePendingBackup;
     private readonly bool _hadState;
+    private readonly bool _hadMovePending;
 
     public SmartBpModuleArchiveImportTest()
     {
@@ -34,6 +37,12 @@ public sealed class SmartBpModuleArchiveImportTest : IDisposable
         if (_hadState)
         {
             _stateBackup = File.ReadAllText(SmartBpModuleManager.StateFilePath);
+        }
+
+        _hadMovePending = File.Exists(SmartBpModuleManager.MovePendingFilePath);
+        if (_hadMovePending)
+        {
+            _movePendingBackup = File.ReadAllText(SmartBpModuleManager.MovePendingFilePath);
         }
     }
 
@@ -69,6 +78,32 @@ public sealed class SmartBpModuleArchiveImportTest : IDisposable
         }, TimeSpan.FromSeconds(30));
     }
 
+    [Fact]
+    public async Task ImportArchiveAsync_WhenCurrentTargetIsLoaded_StagesImportForRestart()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var targetRoot = Path.Combine(_root, "loaded-target");
+            var initialArchivePath = Path.Combine(_root, "SmartBpModule-initial.zip");
+            var updateArchivePath = Path.Combine(_root, "SmartBpModule-update.7z");
+            CreateModuleArchive(initialArchivePath, ArchiveFormat.Zip);
+            CreateModuleArchive(updateArchivePath, ArchiveFormat.SevenZip);
+            var manager = CreateManager();
+            Assert.True(await manager.ImportArchiveAsync(initialArchivePath, targetRoot));
+
+            var imported = await manager.ImportArchiveAsync(updateArchivePath, targetRoot, "SettingsArchiveImport");
+
+            Assert.True(imported);
+            Assert.True(manager.IsRestartRequiredForPendingModuleImport);
+            var pending = JsonSerializer.Deserialize<SmartBpModuleMovePendingState>(
+                File.ReadAllText(SmartBpModuleManager.MovePendingFilePath));
+            Assert.NotNull(pending);
+            Assert.Equal(Path.GetFullPath(targetRoot), Path.GetFullPath(pending!.TargetRoot));
+            Assert.True(Directory.Exists(pending.PreparedRoot));
+            Assert.True(File.Exists(Path.Combine(targetRoot, "component.json")));
+        }, TimeSpan.FromSeconds(30));
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(_root))
@@ -93,6 +128,38 @@ public sealed class SmartBpModuleArchiveImportTest : IDisposable
         else if (File.Exists(SmartBpModuleManager.StateFilePath))
         {
             File.Delete(SmartBpModuleManager.StateFilePath);
+        }
+
+        DeleteCurrentPreparedRoot();
+        if (_hadMovePending && _movePendingBackup != null)
+        {
+            File.WriteAllText(SmartBpModuleManager.MovePendingFilePath, _movePendingBackup);
+        }
+        else if (File.Exists(SmartBpModuleManager.MovePendingFilePath))
+        {
+            File.Delete(SmartBpModuleManager.MovePendingFilePath);
+        }
+    }
+
+    private static void DeleteCurrentPreparedRoot()
+    {
+        if (!File.Exists(SmartBpModuleManager.MovePendingFilePath))
+        {
+            return;
+        }
+
+        try
+        {
+            var pending = JsonSerializer.Deserialize<SmartBpModuleMovePendingState>(
+                File.ReadAllText(SmartBpModuleManager.MovePendingFilePath));
+            if (!string.IsNullOrWhiteSpace(pending?.PreparedRoot) &&
+                Directory.Exists(pending.PreparedRoot))
+            {
+                Directory.Delete(pending.PreparedRoot, recursive: true);
+            }
+        }
+        catch (Exception)
+        {
         }
     }
 
