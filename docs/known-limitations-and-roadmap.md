@@ -21,14 +21,14 @@
 
 ## 版本概念
 
-插件 API 版本和 PluginSdk NuGet 包版本是故意分离的：
+插件 API 版本和 PluginSdk 源码引用版本是故意分离的：
 
 | 概念 | 用途 |
 | --- | --- |
 | 插件 API 版本 | `manifest.yml` 的 `apiVersion`，宿主加载兼容性 |
-| PluginSdk NuGet 包版本 | 插件项目编译和打包用的 SDK 包版本 |
+| PluginSdk 源码引用版本 | 插件项目编译和打包用的 SDK 源码提交 |
 
-不要把二者不同步当作错误。
+v3 起不再发布 PluginSdk NuGet 包；插件项目应 clone 本仓库并通过 `ProjectReference` 包含 `neo-bpsys-wpf.PluginSdk`。不要把 `apiVersion` 和 SDK 源码提交不同步当作错误。
 
 ## Designer v3 当前状态
 

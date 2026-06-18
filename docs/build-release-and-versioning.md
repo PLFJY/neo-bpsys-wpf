@@ -118,7 +118,9 @@ build/neo-bpsys-wpf_Installer_full.exe
 | 应用版本 | `neo-bpsys-wpf.csproj` 的 `VersionPrefix/VersionSuffix` | 应用发布版本 |
 | BuildMeta | 构建脚本传入 `/p:BuildMeta=$GitHash` | 写入 `InformationalVersion` |
 | 插件 API 版本 | 插件 `manifest.yml` 的 `apiVersion` | 宿主加载兼容性判断 |
-| PluginSdk NuGet 包版本 | 插件项目引用的包版本 | 编译和打包 SDK 版本 |
+| PluginSdk 源码引用版本 | 插件项目引用的 `neo-bpsys-wpf.PluginSdk` 仓库提交 | 编译和打包 SDK 来源 |
 | 插件自身版本 | 插件 `manifest.yml` 的 `version` | 市场更新比较 |
 
 主项目注释中给出应用版本迭代原则：首位用于大型重构或重大更改，第二位用于重大模块更新或第三位满十跟进，第三位用于新 Feature，构建元数据为 git 短 hash 或 local。
+
+v3 起不再发布 PluginSdk NuGet 包，也不再通过 GitHub Actions 推送 PluginSdk nupkg。插件开发应 clone 本仓库并用 `ProjectReference` 引用 `neo-bpsys-wpf.PluginSdk`，必要时固定到具体 git 提交。

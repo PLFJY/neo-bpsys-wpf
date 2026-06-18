@@ -1,6 +1,6 @@
 # neo-bpsys-wpf Plugin SDK
 
-本包用于开发 `neo-bpsys-wpf` 插件。3.0 版本起，插件 API 版本为 `3.0.0.0`，旧前台注入 API 已移除；旧插件需要迁移到 v3 descriptor / Designer v3 布局模型。
+本项目用于开发 `neo-bpsys-wpf` 插件。v3 起 PluginSdk 不再作为 NuGet 包发布；插件作者应 clone `neo-bpsys-wpf` 仓库，并在插件项目中通过 `ProjectReference` 引用本项目源码。3.0 版本起，插件 API 版本为 `3.0.0.0`，旧前台注入 API 已移除；旧插件需要迁移到 v3 descriptor / Designer v3 布局模型。
 
 完整参考示例请查看 `neo-bpsys-wpf.ExamplePlugin` 项目（插件 ID `plfjy.ExamplePlugin`），它是一个综合示例，演示了所有当前插件能力。
 
@@ -18,7 +18,21 @@ author: Zero PLFJY
 icon: icon.png
 ```
 
-`apiVersion` 是宿主插件 API 兼容性版本，不等同于本 NuGet 包版本。
+`apiVersion` 是宿主插件 API 兼容性版本，不等同于 PluginSdk 源码所在仓库提交。
+
+## SDK 引用方式
+
+插件项目应包含 SDK 项目引用，并显式导入打包 target：
+
+```xml
+<ItemGroup>
+  <ProjectReference Include="..\neo-bpsys-wpf.PluginSdk\neo-bpsys-wpf.PluginSdk.csproj" Private="false" />
+</ItemGroup>
+
+<Import Project="..\neo-bpsys-wpf.PluginSdk\neo-bpsys-wpf.PluginSdk.targets" />
+```
+
+`ProjectReference` 提供编译期 API，`Import` 提供 `CreateZip` target。独立插件仓库可以把 `neo-bpsys-wpf` 作为 submodule、sparse checkout 或固定提交的源码目录引入。
 
 ## 后台页面
 

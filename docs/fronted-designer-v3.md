@@ -313,6 +313,8 @@ catalog 构建是 lazy + cache，只做类型反射，不调用属性 getter，�
 
 ## 8. 插件扩展方向
 
+v3 之后 PluginSdk 不再作为 NuGet 包发布。插件作者应 clone 本仓库，并在插件项目中通过 `ProjectReference` 引用 `neo-bpsys-wpf.PluginSdk\neo-bpsys-wpf.PluginSdk.csproj`，再手动 `Import` 同目录下的 `neo-bpsys-wpf.PluginSdk.targets` 获取 `CreateZip` 打包 target。插件 API 兼容性仍看 `manifest.yml` 的 `apiVersion`；SDK 源码所在提交只表示编译期 API 和打包目标来源，不等同于插件 API 版本。
+
 控件工厂抽象：
 
 ```csharp

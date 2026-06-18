@@ -35,14 +35,28 @@
 | `author` | 作者 |
 | `icon` | 图标路径，默认 `icon.png` |
 
-插件 API 版本和 PluginSdk NuGet 包版本是两个概念：
+插件 API 版本和 PluginSdk 源码引用版本是两个概念：
 
 | 名称 | 用途 |
 | --- | --- |
 | 插件 API 版本 | `manifest.yml` 的 `apiVersion`，用于宿主兼容性检查 |
-| PluginSdk NuGet 包版本 | 插件项目引用的 SDK 包版本，用于编译期 API 和打包目标 |
+| PluginSdk 源码引用版本 | 插件项目通过 `ProjectReference` 引用的 `neo-bpsys-wpf.PluginSdk` 所在仓库提交，用于编译期 API 和打包目标 |
 
-不要把二者不一致当成版本错误。
+v3 起不再发布或推荐使用 PluginSdk NuGet 包。插件作者应 clone 本仓库，在插件解决方案中包含 `neo-bpsys-wpf.PluginSdk` 项目，并显式引用同一份源码。不要把 `apiVersion` 和 SDK 源码提交不一致当成版本错误；真正的宿主兼容性仍由 `manifest.yml` 的 `apiVersion` 判断。
+
+## 插件开发引用方式
+
+v3 插件项目应手动包含 SDK 源码，而不是引用 NuGet 包。参考 `neo-bpsys-wpf.ExamplePlugin`：
+
+```xml
+<ItemGroup>
+  <ProjectReference Include="..\neo-bpsys-wpf.PluginSdk\neo-bpsys-wpf.PluginSdk.csproj" Private="false" />
+</ItemGroup>
+
+<Import Project="..\neo-bpsys-wpf.PluginSdk\neo-bpsys-wpf.PluginSdk.targets" />
+```
+
+`ProjectReference` 提供插件 API 编译引用，`Import` 提供 `CreateZip` 打包 target。插件仓库若独立维护，建议把本仓库作为 submodule、sparse checkout 或固定提交的源码目录引入，并在升级 SDK 时同步验证宿主版本、`apiVersion` 和插件 zip 输出。
 
 ## 加载流程
 
@@ -239,6 +253,8 @@ neo-bpsys-wpf.PluginSdk;neo-bpsys-wpf.Core
 ```
 
 这意味着由 SDK/Core 带入的宿主已有依赖会被排除，但插件自己直接引用的第三方包会被保留，避免误删插件真正需要的运行时文件。
+
+`neo-bpsys-wpf.PluginSdk.targets` 随 SDK 源码一起引用，不再通过 NuGet `buildTransitive` 自动导入。插件项目必须显式写 `<Import ... />`，路径按实际仓库布局调整。
 
 `.bpui v3` 布局包不得包含插件 DLL 或插件 zip。布局包只声明插件依赖；插件安装、更新、校验和重启提示必须走插件系统 / 插件市场流程。
 
