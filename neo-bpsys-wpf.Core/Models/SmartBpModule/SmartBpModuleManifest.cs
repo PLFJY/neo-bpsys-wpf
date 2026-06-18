@@ -49,7 +49,7 @@ public sealed class SmartBpModuleAsset
     /// <summary>
     /// Asset file name.
     /// </summary>
-    public string Name { get; set; } = "SmartBpModule.zip";
+    public string Name { get; set; } = "SmartBpModule.7z";
 
     /// <summary>
     /// Asset download URL.

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Extensions.Registry;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
+using neo_bpsys_wpf.Core.Services.Archives;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Controls.FrontedLayout;
 using neo_bpsys_wpf.Services.Abstractions;
@@ -72,6 +73,7 @@ public partial class App
 
         //Tool Services
         services.AddSingleton<IFilePickerService, FilePickerService>();
+        services.AddSingleton<IArchiveService, SharpCompressArchiveService>();
         services.AddSingleton<IInfoBarService, InfoBarService>();
         services.AddSingleton<ISnackbarService, SnackbarService>();
         services.AddSingleton<IWindowCaptureService, WindowCaptureService>();

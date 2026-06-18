@@ -47,10 +47,11 @@ Release 中还会发布：
 | --- | --- |
 | `neo-bpsys-wpf_Installer_full.exe` | 首次安装便利包，包含 lite 应用和 SmartBP 模块 staging 文件 |
 | `neo-bpsys-wpf_Installer_full.exe.sha256` | full 安装包哈希，只对应 `neo-bpsys-wpf_Installer_full.exe` |
-| `SmartBpModule.zip` | SmartBP 重型运行时模块 |
+| `SmartBpModule.7z` | SmartBP 重型运行时模块官方 release artifact |
 | `SmartBpModuleManifest.json` | SmartBP 模块兼容性、版本、大小和 SHA-256 信息 |
 
 `SmartBpModuleManifest.json` 只用于 SmartBP 模块安装/加载，不参与主 installer 的 SHA-256 校验。
+manifest 中的 `Asset.Name`、`Asset.Url`、`Asset.Size` 和 `Asset.Sha256` 指向同次构建生成的 `SmartBpModule.7z`。运行时仍接受旧 `SmartBpModule.zip` 包，用户不需要安装 7-Zip，也不需要 `7z.exe` 或 `7z.dll`。
 
 下载位置在系统临时目录：
 
@@ -81,11 +82,13 @@ Release 中还会发布：
 | 类型 | 服务 | 下载内容 | 校验 |
 | --- | --- | --- | --- |
 | 应用更新 | `UpdaterService` | 安装包和 `.sha256` | 必须校验 installer SHA-256 |
-| 插件市场 | `PluginMarketService` + `PluginPageViewModel` | 插件 zip | 市场条目有 `Sha256` 时校验 |
-| SmartBP 模块 | `SmartBpModuleManager` | `SmartBpModuleManifest.json` 和 `SmartBpModule.zip` | manifest asset 有 `Sha256` 时校验 zip |
+| 插件市场 | `PluginMarketService` + `PluginPageViewModel` | 插件 `.zip` 或 `.7z` | 市场条目有 `Sha256` 时校验归档文件 |
+| SmartBP 模块 | `SmartBpModuleManager` | `SmartBpModuleManifest.json` 和 `SmartBpModule.7z`，兼容旧 `.zip` | manifest asset 有 `Sha256` 时校验归档文件 |
 | OCR 模型 | 模块内 `OcrService` | PaddleOCR det/cls/rec 模型归档 | 依赖下载/解压和模型文件完整性检查 |
 
 不要把这些下载的临时目录、状态字段或重启语义混在一起。插件安装/更新需要重启进入 DI；应用更新会运行安装包并关闭当前应用；SmartBP 模块在页面内动态加载；OCR 模型切换不需要重启。
+
+SmartBP 模块和插件包的 `.zip` / `.7z` 解压由运行时共享归档服务完成，会拒绝绝对路径、`..` 遍历和规范化后逃逸目标目录的条目。`.bpui` / Designer v3 布局包行为不在这里改变，仍使用 BPUI 专用导入导出链路。
 
 ## 常见失败点
 

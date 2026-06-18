@@ -350,6 +350,11 @@
                         Command="{Binding ResetSmartBpModuleRootCommand}"
                         Content="{lex:Loc ResetToBuiltIn}"
                         Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
+                    <ui:Button
+                        Margin="0,0,10,0"
+                        Command="{Binding ImportSmartBpModuleArchiveCommand}"
+                        Content="{lex:Loc SmartBpModuleImportArchive}"
+                        Icon="{ui:SymbolIcon Symbol=Archive24}" />
                     <TextBlock
                         VerticalAlignment="Center"
                         Foreground="{DynamicResource TextFillColorSecondaryBrush}"

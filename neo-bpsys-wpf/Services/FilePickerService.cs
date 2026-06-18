@@ -68,6 +68,30 @@ public class FilePickerService : IFilePickerService
     }
 
     /// <inheritdoc />
+    public string? PickSmartBpModuleArchiveFile()
+    {
+        OpenFileDialog openFileDialog = new()
+        {
+            Filter =
+                $"{I18nHelper.GetLocalizedString("SmartBpModuleArchiveFiles")} (*.7z;*.zip)|*.7z;*.zip|{I18nHelper.GetLocalizedString("SevenZipArchiveFiles")} (*.7z)|*.7z|{I18nHelper.GetLocalizedString("ZipFiles")} (*.zip)|*.zip|{I18nHelper.GetLocalizedString("AllFiles")} (*.*)|*.*",
+        };
+
+        return openFileDialog.ShowDialog() != true ? null : openFileDialog.FileName;
+    }
+
+    /// <inheritdoc />
+    public string? PickPluginPackageFile()
+    {
+        OpenFileDialog openFileDialog = new()
+        {
+            Filter =
+                $"{I18nHelper.GetLocalizedString("PluginPackageFiles")} (*.7z;*.zip)|*.7z;*.zip|{I18nHelper.GetLocalizedString("SevenZipArchiveFiles")} (*.7z)|*.7z|{I18nHelper.GetLocalizedString("ZipFiles")} (*.zip)|*.zip|{I18nHelper.GetLocalizedString("AllFiles")} (*.*)|*.*",
+        };
+
+        return openFileDialog.ShowDialog() != true ? null : openFileDialog.FileName;
+    }
+
+    /// <inheritdoc />
     public string? PickFolder()
     {
         var dialog = new OpenFolderDialog();

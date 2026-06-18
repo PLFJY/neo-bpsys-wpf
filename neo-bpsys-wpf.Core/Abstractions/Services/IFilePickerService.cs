@@ -36,6 +36,18 @@ public interface IFilePickerService
     public string? PickZipFile();
 
     /// <summary>
+    /// 选择 SmartBP 模块归档文件。
+    /// </summary>
+    /// <returns>文件路径。</returns>
+    public string? PickSmartBpModuleArchiveFile();
+
+    /// <summary>
+    /// 选择插件包归档文件。
+    /// </summary>
+    /// <returns>文件路径。</returns>
+    public string? PickPluginPackageFile();
+
+    /// <summary>
     /// 选择文件夹。
     /// </summary>
     /// <returns>文件夹路径。</returns>

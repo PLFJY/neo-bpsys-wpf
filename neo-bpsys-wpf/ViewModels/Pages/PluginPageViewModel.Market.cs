@@ -6,6 +6,7 @@ using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Models.Plugins;
+using neo_bpsys_wpf.Services.Abstractions;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.IO;
@@ -595,6 +596,14 @@ public partial class PluginPageViewModel
     private void InstallPluginAndUpdateLocalState(string tempFolderPath)
     {
         var result = _pluginInstallService.InstallFromExtractedDirectory(tempFolderPath);
+        UpdateLocalPluginState(result);
+    }
+
+    /// <summary>
+    /// 根据插件安装结果更新当前页面的本地插件状态。
+    /// </summary>
+    private void UpdateLocalPluginState(PluginInstallResult result)
+    {
         var manifest = result.Manifest;
         var local = PluginsCollection.FirstOrDefault(x => x.Manifest.Id == manifest.Id);
         if (result.IsUpdate)

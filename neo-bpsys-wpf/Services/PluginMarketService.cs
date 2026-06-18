@@ -8,7 +8,6 @@ using neo_bpsys_wpf.Models.Plugins;
 using neo_bpsys_wpf.Services.Abstractions;
 using System.ComponentModel;
 using System.IO;
-using System.IO.Compression;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -16,6 +15,7 @@ using System.Text.RegularExpressions;
 using System.Diagnostics;
 using System.Collections.ObjectModel;
 using System.Windows;
+using SharpCompress.Common;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -31,6 +31,7 @@ public class PluginMarketService : IPluginMarketService
     private readonly ILogger<PluginMarketService> _logger;
     private static ILogger<PluginMarketService>? StaticLogger => IAppHost.TryGetService<ILogger<PluginMarketService>>();
     private readonly ISettingsHostService _settingsHostService;
+    private readonly IArchiveService _archiveService;
     private readonly Lock _downloadLock = new();
     private CancellationTokenSource? _downloadCts;
     private DownloadService? _currentDownloader;
@@ -45,10 +46,14 @@ public class PluginMarketService : IPluginMarketService
     /// <summary>
     /// 初始化插件市场服务。
     /// </summary>
-    public PluginMarketService(ILogger<PluginMarketService> logger, ISettingsHostService settingsHostService)
+    public PluginMarketService(
+        ILogger<PluginMarketService> logger,
+        ISettingsHostService settingsHostService,
+        IArchiveService archiveService)
     {
         _logger = logger;
         _settingsHostService = settingsHostService;
+        _archiveService = archiveService;
         _httpClient = new HttpClient();
         _httpClient.DefaultRequestHeaders.Add("User-Agent", AppConstants.AppName);
         DownloadQueue = new ReadOnlyObservableCollection<PluginDownloadQueueItem>(_downloadQueueInternal);
@@ -512,7 +517,7 @@ public class PluginMarketService : IPluginMarketService
             "PluginMarket",
             request.QueueItem.PluginId,
             request.QueueItem.QueueId);
-        var tempZipPath = Path.Combine(downloadSessionPath, "package.zip");
+        var tempArchivePath = Path.Combine(downloadSessionPath, "package.archive");
         var extractPath = Path.Combine(downloadSessionPath, "extract");
         var downloadService = CreateDownloadService();
 
@@ -526,7 +531,7 @@ public class PluginMarketService : IPluginMarketService
         var executionContext = new PluginDownloadExecutionContext(
             request,
             downloadSessionPath,
-            tempZipPath,
+            tempArchivePath,
             extractPath,
             downloadService,
             completionSource);
@@ -557,7 +562,7 @@ public class PluginMarketService : IPluginMarketService
 
         try
         {
-            _ = downloadService.DownloadFileTaskAsync(request.Item.ResolvedDownloadUrl, tempZipPath);
+            _ = downloadService.DownloadFileTaskAsync(request.Item.ResolvedDownloadUrl, tempArchivePath);
             await completionSource.Task;
         }
         finally
@@ -575,9 +580,9 @@ public class PluginMarketService : IPluginMarketService
                 _downloadCts = null;
             }
 
-            if (File.Exists(tempZipPath))
+            if (File.Exists(tempArchivePath))
             {
-                File.Delete(tempZipPath);
+                File.Delete(tempArchivePath);
             }
 
             RaiseDownloadStateChanged();
@@ -639,11 +644,11 @@ public class PluginMarketService : IPluginMarketService
         {
             var cancellationToken = _downloadCts?.Token ?? context.Request.CancellationToken;
             cancellationToken.ThrowIfCancellationRequested();
-            await EnsureDownloadedZipReadyAsync(context.TempZipPath, cancellationToken);
-            ValidateDownloadedPackageHash(context.Request.Item, context.TempZipPath);
+            await EnsureDownloadedArchiveReadyAsync(context.TempArchivePath, cancellationToken);
+            ValidateDownloadedPackageHash(context.Request.Item, context.TempArchivePath);
 
             Directory.CreateDirectory(context.ExtractPath);
-            ZipFile.ExtractToDirectory(context.TempZipPath, context.ExtractPath, true);
+            await _archiveService.ExtractToDirectoryAsync(context.TempArchivePath, context.ExtractPath, cancellationToken);
 
             var result = new PluginPackageDownloadResult
             {
@@ -740,7 +745,7 @@ public class PluginMarketService : IPluginMarketService
     private sealed record PluginDownloadExecutionContext(
         QueuedPluginDownloadRequest Request,
         string DownloadSessionPath,
-        string TempZipPath,
+        string TempArchivePath,
         string ExtractPath,
         DownloadService DownloadService,
         TaskCompletionSource CompletionSource);
@@ -748,7 +753,7 @@ public class PluginMarketService : IPluginMarketService
     /// <summary>
     /// 等待下载的压缩包可以被正常读取。
     /// </summary>
-    private static async Task EnsureDownloadedZipReadyAsync(string zipPath, CancellationToken cancellationToken)
+    private async Task EnsureDownloadedArchiveReadyAsync(string archivePath, CancellationToken cancellationToken)
     {
         var timeout = TimeSpan.FromSeconds(5);
         var stopwatch = Stopwatch.StartNew();
@@ -757,16 +762,14 @@ public class PluginMarketService : IPluginMarketService
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (File.Exists(zipPath))
+            if (File.Exists(archivePath))
             {
                 try
                 {
-                    var fileInfo = new FileInfo(zipPath);
+                    var fileInfo = new FileInfo(archivePath);
                     if (fileInfo.Length > 0)
                     {
-                        using var stream = new FileStream(zipPath, FileMode.Open, FileAccess.Read, FileShare.Read);
-                        using var archive = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: false);
-                        _ = archive.Entries.Count;
+                        await _archiveService.DetectFormatAsync(archivePath, cancellationToken);
                         return;
                     }
                 }
@@ -776,12 +779,15 @@ public class PluginMarketService : IPluginMarketService
                 catch (InvalidDataException)
                 {
                 }
+                catch (SharpCompressException)
+                {
+                }
             }
 
             await Task.Delay(150, cancellationToken);
         }
 
-        throw new IOException($"Downloaded plugin package is missing or incomplete: {zipPath}");
+        throw new IOException($"Downloaded plugin package is missing or incomplete: {archivePath}");
     }
 
     /// <summary>
@@ -790,11 +796,11 @@ public class PluginMarketService : IPluginMarketService
     /// 避免任何不可信内容进入后续安装步骤。
     /// </summary>
     /// <param name="item">当前下载的插件市场条目。</param>
-    /// <param name="zipPath">已经下载完成的插件压缩包路径。</param>
+    /// <param name="archivePath">已经下载完成的插件压缩包路径。</param>
     /// <exception cref="InvalidOperationException">
     /// 当压缩包的 SHA-256 与插件市场声明值不一致时抛出。
     /// </exception>
-    private static void ValidateDownloadedPackageHash(PluginMarketItem item, string zipPath)
+    private static void ValidateDownloadedPackageHash(PluginMarketItem item, string archivePath)
     {
         if (string.IsNullOrWhiteSpace(item.Sha256))
         {
@@ -802,7 +808,7 @@ public class PluginMarketService : IPluginMarketService
         }
 
         var expectedHash = NormalizeSha256(item.Sha256);
-        var actualHash = ComputeFileSha256(zipPath);
+        var actualHash = ComputeFileSha256(archivePath);
         if (!string.Equals(expectedHash, actualHash, StringComparison.OrdinalIgnoreCase))
         {
             StaticLogger?.LogError("SHA-256 mismatch for plugin {PluginName}", FormatPluginDisplayName(item));
@@ -815,7 +821,7 @@ public class PluginMarketService : IPluginMarketService
 
     /// <summary>
     /// 计算指定文件的 SHA-256，并返回连续的小写十六进制字符串。
-    /// 这里直接读取已经落盘的 zip 文件，确保比较的是最终下载结果，而不是下载器过程中的中间数据。
+    /// 这里直接读取已经落盘的归档文件，确保比较的是最终下载结果，而不是下载器过程中的中间数据。
     /// </summary>
     /// <param name="filePath">待计算哈希的文件路径。</param>
     /// <returns>文件内容对应的 SHA-256。</returns>

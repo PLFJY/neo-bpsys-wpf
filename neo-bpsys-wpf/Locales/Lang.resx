@@ -1491,6 +1491,87 @@
   <data name="SmartBpModulePathInvalid" xml:space="preserve">
     <value>该路径不可用于安装智慧 BP 模块，请选择可写的用户目录。</value>
   </data>
+  <data name="SmartBpModuleImportArchive" xml:space="preserve">
+    <value>导入模块包</value>
+  </data>
+  <data name="SmartBpModuleArchiveImporting" xml:space="preserve">
+    <value>正在导入 SmartBP 模块包...</value>
+  </data>
+  <data name="SmartBpModuleArchiveImportSucceeded" xml:space="preserve">
+    <value>SmartBP 模块包已导入并加载。</value>
+  </data>
+  <data name="SmartBpModuleArchiveImportFailed" xml:space="preserve">
+    <value>SmartBP 模块包导入失败：</value>
+  </data>
+  <data name="SmartBpModuleVersionFormat" xml:space="preserve">
+    <value>SmartBP 模块版本：{0}</value>
+  </data>
+  <data name="SmartBpModuleRequired" xml:space="preserve">
+    <value>SmartBP 需要安装独立模块后使用。</value>
+  </data>
+  <data name="SmartBpModuleDownloadAndInstall" xml:space="preserve">
+    <value>下载并安装</value>
+  </data>
+  <data name="SmartBpModuleReinstall" xml:space="preserve">
+    <value>重新安装</value>
+  </data>
+  <data name="SmartBpModuleUpdateAndInstall" xml:space="preserve">
+    <value>更新并安装</value>
+  </data>
+  <data name="SmartBpModuleLoadLocal" xml:space="preserve">
+    <value>加载本地模块</value>
+  </data>
+  <data name="SmartBpModuleSelectInstalledPath" xml:space="preserve">
+    <value>选择已安装的模块路径</value>
+  </data>
+  <data name="SmartBpModuleSelectArchive" xml:space="preserve">
+    <value>选择 SmartBpModule.7z / .zip</value>
+  </data>
+  <data name="SmartBpModulePreviewLoadOrImportArchive" xml:space="preserve">
+    <value>Preview 版本请加载本地模块目录或导入 SmartBpModule.7z / .zip。</value>
+  </data>
+  <data name="SmartBpModuleDebugLoadDirectory" xml:space="preserve">
+    <value>Debug 版本请加载 SmartBP 模块 Debug 输出目录。</value>
+  </data>
+  <data name="SmartBpModuleDebugLocalLoadFailed" xml:space="preserve">
+    <value>Debug 版本仅加载本地 SmartBP 模块目录。当前目录加载失败，请确认模块 Debug 输出目录存在且入口程序集可加载。</value>
+  </data>
+  <data name="SmartBpModuleDownloadInstallFailed" xml:space="preserve">
+    <value>无法下载或安装 SmartBP 模块。请检查网络后重试，或手动选择已安装模块路径。</value>
+  </data>
+  <data name="SmartBpModuleDebugFolderLoadFailed" xml:space="preserve">
+    <value>Debug 版本加载本地模块目录失败，请确认入口程序集存在且可以被当前主程序加载。</value>
+  </data>
+  <data name="SmartBpModuleSelectedDirectoryInvalid" xml:space="preserve">
+    <value>选择的 SmartBP 模块目录不可用，请检查 component.json、RID、ABI 和入口程序集。</value>
+  </data>
+  <data name="SmartBpModulePathUnsafe" xml:space="preserve">
+    <value>当前路径不适合安装 SmartBP 模块，请选择可写的用户目录。</value>
+  </data>
+  <data name="SmartBpModuleOutdatedFormat" xml:space="preserve">
+    <value>当前 SmartBP 模块版本过旧，需要更新到 {0}。</value>
+  </data>
+  <data name="SmartBpModuleCompatibleFound" xml:space="preserve">
+    <value>检测到兼容的 SmartBP 模块，可以直接加载。</value>
+  </data>
+  <data name="SmartBpModulePathModuleInvalidFormat" xml:space="preserve">
+    <value>当前路径模块不可用：{0}</value>
+  </data>
+  <data name="SmartBpModuleLocalFailureErrorFormat" xml:space="preserve">
+    <value>{0}错误：{1}</value>
+  </data>
+  <data name="SmartBpModuleArchiveFiles" xml:space="preserve">
+    <value>SmartBP 模块归档</value>
+  </data>
+  <data name="PluginPackageFiles" xml:space="preserve">
+    <value>插件包</value>
+  </data>
+  <data name="SevenZipArchiveFiles" xml:space="preserve">
+    <value>7z 归档</value>
+  </data>
+  <data name="AllFiles" xml:space="preserve">
+    <value>所有文件</value>
+  </data>
   <data name="PleaseStartWindowCaptureFirst" xml:space="preserve">
     <value>请先启动窗口捕获</value>
   </data>

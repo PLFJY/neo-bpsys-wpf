@@ -98,4 +98,60 @@ public partial class SettingPageViewModel
         SmartBpModuleRoot = SmartBpModuleManager.GetDefaultModuleRoot();
         await SaveSmartBpModuleRootAsync();
     }
+
+    /// <summary>
+    /// 导入 SmartBP 模块归档并安装到当前模块目录。
+    /// </summary>
+    [RelayCommand]
+    private async Task ImportSmartBpModuleArchiveAsync()
+    {
+        var archivePath = _filePickerService.PickSmartBpModuleArchiveFile();
+        if (string.IsNullOrWhiteSpace(archivePath))
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(SmartBpModuleRoot) ||
+            !Path.IsPathFullyQualified(SmartBpModuleRoot) ||
+            SmartBpModuleManager.IsUnsafeInstallPath(SmartBpModuleRoot))
+        {
+            SmartBpModulePathStatus = I18nHelper.GetLocalizedString("SmartBpModulePathInvalid");
+            _logger.LogWarning("Rejected invalid SmartBP module import target from settings: {ModuleRoot}", SmartBpModuleRoot);
+            return;
+        }
+
+        var normalizedRoot = Path.GetFullPath(SmartBpModuleRoot);
+        SmartBpModuleRoot = normalizedRoot;
+        SmartBpModulePathStatus = I18nHelper.GetLocalizedString("SmartBpModuleArchiveImporting");
+        try
+        {
+            if (await _smartBpModuleManager.ImportArchiveAsync(archivePath, normalizedRoot, "SettingsArchiveImport"))
+            {
+                SmartBpModulePathStatus = I18nHelper.GetLocalizedString("SmartBpModuleArchiveImportSucceeded");
+                _logger.LogInformation(
+                    "SmartBP module archive imported from settings. ArchivePath={ArchivePath}, ModuleRoot={ModuleRoot}",
+                    archivePath,
+                    normalizedRoot);
+                return;
+            }
+
+            SmartBpModulePathStatus = string.IsNullOrWhiteSpace(_smartBpModuleManager.LastFailureMessage)
+                ? I18nHelper.GetLocalizedString("SmartBpModuleArchiveImportFailed")
+                : $"{I18nHelper.GetLocalizedString("SmartBpModuleArchiveImportFailed")}{_smartBpModuleManager.LastFailureMessage}";
+            _logger.LogWarning(
+                "SmartBP module archive import failed from settings. ArchivePath={ArchivePath}, ModuleRoot={ModuleRoot}, Error={Error}",
+                archivePath,
+                normalizedRoot,
+                _smartBpModuleManager.LastFailureMessage);
+        }
+        catch (Exception ex)
+        {
+            SmartBpModulePathStatus = $"{I18nHelper.GetLocalizedString("SmartBpModuleArchiveImportFailed")}{ex.Message}";
+            _logger.LogWarning(
+                ex,
+                "SmartBP module archive import threw from settings. ArchivePath={ArchivePath}, ModuleRoot={ModuleRoot}",
+                archivePath,
+                normalizedRoot);
+        }
+    }
 }

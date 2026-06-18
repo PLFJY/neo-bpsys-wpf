@@ -11,8 +11,18 @@ using YamlDotNet.Serialization.NamingConventions;
 
 namespace neo_bpsys_wpf.Services;
 
-public sealed class PluginInstallService(ILogger<PluginInstallService> logger) : IPluginInstallService
+public sealed class PluginInstallService(
+    ILogger<PluginInstallService> logger,
+    IArchiveService archiveService) : IPluginInstallService
 {
+    /// <inheritdoc />
+    public PluginInstallResult InstallFromArchive(string archivePath, string extractedDirectoryPath)
+    {
+        archiveService.ExtractToDirectoryAsync(archivePath, extractedDirectoryPath).GetAwaiter().GetResult();
+        return InstallFromExtractedDirectory(extractedDirectoryPath);
+    }
+
+    /// <inheritdoc />
     public PluginInstallResult InstallFromExtractedDirectory(string extractedDirectoryPath)
     {
         var manifestPath = Path.Combine(extractedDirectoryPath, "manifest.yml");

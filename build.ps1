@@ -172,13 +172,19 @@ $ComponentManifest = Get-Content -LiteralPath $ComponentManifestPath -Raw | Conv
 $ComponentManifest.ModuleVersion = $ReleaseTag
 $ComponentManifest | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $ComponentManifestPath -Encoding UTF8
 
-$ModuleZip = Join-Path $RepoRoot "build\SmartBpModule.zip"
-if (Test-Path -LiteralPath $ModuleZip) {
-    Remove-Item -LiteralPath $ModuleZip -Force
+$ModuleArchive = Join-Path $RepoRoot "build\SmartBpModule.7z"
+if (Test-Path -LiteralPath $ModuleArchive) {
+    Remove-Item -LiteralPath $ModuleArchive -Force
 }
-Compress-Archive -Path (Join-Path $ModuleBuildPath "*") -DestinationPath $ModuleZip -Force
-$ModuleZipHash = Get-Sha256Hash -LiteralPath $ModuleZip
-$ModuleZipSize = (Get-Item -LiteralPath $ModuleZip).Length
+$ModulePackTool = Join-Path $RepoRoot "tools\PackSmartBpModule.cs"
+Invoke-External -FilePath "dotnet" -Arguments @(
+    "run", $ModulePackTool,
+    "--",
+    $ModuleBuildPath,
+    $ModuleArchive
+) -ErrorMessage "SmartBP module 7z packaging failed"
+$ModuleArchiveHash = Get-Sha256Hash -LiteralPath $ModuleArchive
+$ModuleArchiveSize = (Get-Item -LiteralPath $ModuleArchive).Length
 $ModuleManifestPath = Join-Path $RepoRoot "build\SmartBpModuleManifest.json"
 $ModuleManifest = [ordered]@{
     ComponentId = "SmartBpModule"
@@ -194,10 +200,10 @@ $ModuleManifest = [ordered]@{
         "Sdcb.PaddleOCR.Models.Online" = "3.3.1"
     }
     Asset = [ordered]@{
-        Name = "SmartBpModule.zip"
-        Url = "https://github.com/PLFJY/neo-bpsys-wpf/releases/download/$ReleaseTag/SmartBpModule.zip"
-        Size = $ModuleZipSize
-        Sha256 = $ModuleZipHash
+        Name = "SmartBpModule.7z"
+        Url = "https://github.com/PLFJY/neo-bpsys-wpf/releases/download/$ReleaseTag/SmartBpModule.7z"
+        Size = $ModuleArchiveSize
+        Sha256 = $ModuleArchiveHash
     }
 }
 $ModuleManifest | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $ModuleManifestPath -Encoding UTF8

@@ -12,7 +12,6 @@ using neo_bpsys_wpf.Services.Abstractions;
 using neo_bpsys_wpf.Services;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.IO.Compression;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -125,7 +124,7 @@ public partial class PluginPageViewModel : ViewModelBase
     private void InstallPluginFromFile()
     {
         //准备插件压缩包路径
-        var pluginFile = _filePickerService.PickZipFile();
+        var pluginFile = _filePickerService.PickPluginPackageFile();
         if (pluginFile == null) return;
 
         var tempFolderPath = Path.Combine(TempPath, Path.GetFileNameWithoutExtension(pluginFile));
@@ -136,9 +135,8 @@ public partial class PluginPageViewModel : ViewModelBase
 
         try
         {
-            //解压压缩包
-            ZipFile.ExtractToDirectory(pluginFile, tempFolderPath);
-            InstallPluginAndUpdateLocalState(tempFolderPath);
+            var result = _pluginInstallService.InstallFromArchive(pluginFile, tempFolderPath);
+            UpdateLocalPluginState(result);
         }
         catch (Exception e)
         {

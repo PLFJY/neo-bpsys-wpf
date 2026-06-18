@@ -22,8 +22,24 @@
     </Page.Resources>
 
     <Grid Margin="10,0,10,0">
-        <ContentControl x:Name="SmartBpModuleContentHost" Content="{Binding ModuleContent}" />
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <ContentControl
+            x:Name="SmartBpModuleContentHost"
+            Grid.Row="0"
+            Content="{Binding ModuleContent}" />
+        <TextBlock
+            Grid.Row="1"
+            Margin="0,10,0,10"
+            HorizontalAlignment="Center"
+            FontSize="12"
+            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+            Text="{Binding ModuleVersionText}"
+            Visibility="{Binding IsModuleVersionVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
         <Border
+            Grid.RowSpan="2"
             Padding="40"
             Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
             Visibility="{Binding IsModuleLoaded, Converter={StaticResource BooleanToReverseVisibilityConverter}}">
@@ -71,22 +87,24 @@
                         Margin="0,10,0,0"
                         HorizontalAlignment="Center"
                         Command="{Binding SelectInstalledModuleFolderCommand}"
-                        Content="选择已安装的模块路径"
+                        Content="{lex:Loc SmartBpModuleSelectInstalledPath}"
                         Icon="{ui:SymbolIcon Symbol=FolderOpen24}"
                         Visibility="{Binding IsSelectInstalledModuleButtonVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
                     <ui:Button
                         Margin="0,10,0,0"
                         HorizontalAlignment="Center"
                         Command="{Binding ImportModuleZipCommand}"
-                        Content="选择 SmartBpModule.zip"
+                        Content="{lex:Loc SmartBpModuleSelectArchive}"
                         Icon="{ui:SymbolIcon Symbol=Archive24}"
                         Visibility="{Binding IsZipImportVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                    <ProgressBar
-                        Height="8"
+                    <ui:ProgressRing
+                        Width="28"
+                        Height="28"
                         Margin="0,18,0,0"
-                        Value="{Binding ProgressValue}">
-                        <ProgressBar.Style>
-                            <Style TargetType="ProgressBar">
+                        HorizontalAlignment="Center"
+                        IsIndeterminate="True">
+                        <ui:ProgressRing.Style>
+                            <Style BasedOn="{StaticResource {x:Type ui:ProgressRing}}" TargetType="{x:Type ui:ProgressRing}">
                                 <Setter Property="Visibility" Value="Hidden" />
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding IsProgressVisible}" Value="True">
@@ -94,8 +112,8 @@
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
-                        </ProgressBar.Style>
-                    </ProgressBar>
+                        </ui:ProgressRing.Style>
+                    </ui:ProgressRing>
                 </StackPanel>
             </Grid>
         </Border>

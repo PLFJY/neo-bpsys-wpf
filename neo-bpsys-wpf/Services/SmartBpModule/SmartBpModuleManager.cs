@@ -1,4 +1,3 @@
-using System.IO.Compression;
 using System.IO;
 using System.Reflection;
 using System.Runtime.Loader;
@@ -43,6 +42,7 @@ public sealed class SmartBpModuleManager
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<SmartBpModuleManager> _logger;
     private readonly ISettingsHostService _settingsHostService;
+    private readonly IArchiveService _archiveService;
     private ISmartBpModuleEntryPoint? _entryPoint;
     private IReadOnlyList<SmartBpFeatureCommand> _featureCommands = [];
 
@@ -52,14 +52,17 @@ public sealed class SmartBpModuleManager
     /// <param name="serviceProvider">Host service provider.</param>
     /// <param name="logger">Logger.</param>
     /// <param name="settingsHostService">Settings host service.</param>
+    /// <param name="archiveService">Archive extraction service.</param>
     public SmartBpModuleManager(
         IServiceProvider serviceProvider,
         ILogger<SmartBpModuleManager> logger,
-        ISettingsHostService settingsHostService)
+        ISettingsHostService settingsHostService,
+        IArchiveService archiveService)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
         _settingsHostService = settingsHostService;
+        _archiveService = archiveService;
         ModuleRoot = GetDefaultModuleRoot();
     }
 
@@ -527,16 +530,19 @@ public sealed class SmartBpModuleManager
 
         var url = GetMirroredDownloadUrl(manifest.Asset.Url.Replace("{tag}", AppConstants.AppVersion, StringComparison.OrdinalIgnoreCase));
         var tempRoot = Path.Combine(AppConstants.AppTempPath, "SmartBpModule", Guid.NewGuid().ToString("N"));
-        var zipPath = Path.Combine(tempRoot, manifest.Asset.Name);
+        var archivePath = Path.Combine(tempRoot, manifest.Asset.Name);
         Directory.CreateDirectory(tempRoot);
         try
         {
             progress?.Report(5);
             using var httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(AppConstants.AppName);
-            _logger.LogInformation("Downloading SmartBP module package. Url={Url}, ZipPath={ZipPath}", url, zipPath);
+            _logger.LogInformation(
+                "Downloading SmartBP module package. Url={Url}, ArchivePath={ArchivePath}",
+                url,
+                archivePath);
             await using (var input = await httpClient.GetStreamAsync(url, cancellationToken))
-            await using (var output = File.Create(zipPath))
+            await using (var output = File.Create(archivePath))
             {
                 await input.CopyToAsync(output, cancellationToken);
             }
@@ -544,7 +550,7 @@ public sealed class SmartBpModuleManager
             progress?.Report(70);
             if (!string.IsNullOrWhiteSpace(manifest.Asset.Sha256))
             {
-                var actual = ComputeSha256(zipPath);
+                var actual = ComputeSha256(archivePath);
                 if (!string.Equals(actual, manifest.Asset.Sha256, StringComparison.OrdinalIgnoreCase))
                 {
                     _logger.LogWarning("SmartBP module hash mismatch. Expected={Expected}, Actual={Actual}", manifest.Asset.Sha256, actual);
@@ -553,7 +559,7 @@ public sealed class SmartBpModuleManager
             }
 
             progress?.Report(80);
-            var installed = await ImportZipAsync(zipPath, targetRoot, "LiteDownload");
+            var installed = await ImportArchiveAsync(archivePath, targetRoot, "LiteDownload");
             _logger.LogInformation("SmartBP module download install completed. Installed={Installed}", installed);
             progress?.Report(installed ? 100 : 80);
             return installed;
@@ -571,28 +577,28 @@ public sealed class SmartBpModuleManager
     }
 
     /// <summary>
-    /// Imports a module zip through a staging directory.
+    /// Imports a module archive through a staging directory.
     /// </summary>
-    /// <param name="zipPath">Zip path.</param>
+    /// <param name="archivePath">Archive path.</param>
     /// <param name="targetRoot">Final target root.</param>
     /// <returns>True when imported and loaded.</returns>
-    public async Task<bool> ImportZipAsync(string zipPath, string targetRoot)
+    public async Task<bool> ImportArchiveAsync(string archivePath, string targetRoot)
     {
-        return await ImportZipAsync(zipPath, targetRoot, "PreviewZipImport");
+        return await ImportArchiveAsync(archivePath, targetRoot, "PreviewArchiveImport");
     }
 
     /// <summary>
-    /// Imports a module zip through a staging directory.
+    /// Imports a module archive through a staging directory.
     /// </summary>
-    /// <param name="zipPath">Zip path.</param>
+    /// <param name="archivePath">Archive path.</param>
     /// <param name="targetRoot">Final target root.</param>
     /// <param name="installKind">Install kind persisted in module state.</param>
     /// <returns>True when imported and loaded.</returns>
-    public async Task<bool> ImportZipAsync(string zipPath, string targetRoot, string installKind)
+    public async Task<bool> ImportArchiveAsync(string archivePath, string targetRoot, string installKind)
     {
         _logger.LogInformation(
-            "Importing SmartBP module zip. ZipPath={ZipPath}, TargetRoot={TargetRoot}, InstallKind={InstallKind}",
-            zipPath,
+            "Importing SmartBP module archive. ArchivePath={ArchivePath}, TargetRoot={TargetRoot}, InstallKind={InstallKind}",
+            archivePath,
             targetRoot,
             installKind);
         if (IsUnsafeInstallPath(targetRoot))
@@ -605,14 +611,14 @@ public sealed class SmartBpModuleManager
         Directory.CreateDirectory(staging);
         try
         {
-            ZipFile.ExtractToDirectory(zipPath, staging);
+            await _archiveService.ExtractToDirectoryAsync(archivePath, staging);
             var candidateRoot = File.Exists(Path.Combine(staging, "component.json"))
                 ? staging
                 : Directory.EnumerateDirectories(staging).FirstOrDefault() ?? staging;
             if (!ValidateModuleDirectory(candidateRoot, allowDevelopmentDirectory: false, out _, out var validationError))
             {
                 LastFailureMessage = validationError;
-                _logger.LogWarning("Imported SmartBP module zip failed validation: {ValidationError}", validationError);
+                _logger.LogWarning("Imported SmartBP module archive failed validation: {ValidationError}", validationError);
                 return false;
             }
 

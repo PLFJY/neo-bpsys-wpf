@@ -10,7 +10,7 @@
 <TargetFramework>net10.0-windows10.0.20348</TargetFramework>
 ```
 
-构建前需要 .NET 10 SDK。安装包脚本中会检查并安装 .NET 10 Desktop Runtime，当前依赖脚本阈值是 10.0.9。
+构建前需要 .NET 10 SDK。安装包脚本中会检查并安装 .NET 10 Desktop Runtime，当前依赖脚本阈值是 10.0.9。SmartBP 模块打包工具同样运行在 .NET 10 下。
 
 ## 手动 publish
 
@@ -45,7 +45,7 @@ dotnet publish ".\neo-bpsys-wpf\neo-bpsys-wpf.csproj" -c Release -o ".\build\neo
 8. 计算 `neo-bpsys-wpf_Installer.exe.sha256`。
 9. 按同一配置执行 SmartBP 模块项目 `dotnet publish --no-restore` 到 `build\SmartBpModule`。
 10. 用本次 tag 写入模块 staging 的 `component.json`。
-11. 从同一 staging 目录生成 `SmartBpModule.zip` 和 `SmartBpModuleManifest.json`。
+11. 用 .NET 10 + SharpCompress 从同一 staging 目录生成 `SmartBpModule.7z` 和 `SmartBpModuleManifest.json`。
 12. 调用 `Installer/build_Installer_full.iss` 构建 full 安装包。
 13. 计算 `neo-bpsys-wpf_Installer_full.exe.sha256`。
 
@@ -56,15 +56,19 @@ neo-bpsys-wpf_Installer.exe
 neo-bpsys-wpf_Installer.exe.sha256
 neo-bpsys-wpf_Installer_full.exe
 neo-bpsys-wpf_Installer_full.exe.sha256
-SmartBpModule.zip
+SmartBpModule.7z
 SmartBpModuleManifest.json
 ```
 
 `neo-bpsys-wpf_Installer.exe` 是 lite 默认安装包，也是旧 updater 固定目标。它不包含 SmartBP 的 OpenCvSharp、PaddleOCR、PaddleInference 和具体实现 DLL。`neo-bpsys-wpf_Installer_full.exe` 是首次安装便利包，包含 lite 应用和 SmartBP 模块 staging 文件，并在安装时写入 `%APPDATA%\neo-bpsys-wpf\SmartBpModuleState.json`。
 
-`SmartBpModule.zip` 和 full 安装包必须来自同一个 `build\SmartBpModule` staging 目录，避免 release zip 与 full installer 内置模块不一致。
+`SmartBpModule.7z` 和 full 安装包必须来自同一个 `build\SmartBpModule` staging 目录，避免 release 模块包与 full installer 内置模块不一致。官方 SmartBP 模块 release artifact 是 `SmartBpModule.7z`；运行时仍兼容旧 `SmartBpModule.zip` 包。
 
 `SmartBpModuleManifest.json` 中的 `ModuleVersion` 和下载 URL 使用本次构建确定的 release tag，也就是主程序 `ProductVersion`。正式 GitHub Actions 发布时同样读取安装包 `ProductVersion` 并作为 `tag_name`，因此 manifest 内不再保留 `{tag}` 占位。full 安装器写入的 `SmartBpModuleState.ModuleVersion` 也使用同一个 `ProductVersion`。
+
+SmartBP 模块打包不得使用 PowerShell `Compress-Archive`、外部 `7z.exe` 或 `7z.dll`，构建机器也不需要安装 7-Zip。运行时解压由 SharpCompress 完成，用户不需要 7-Zip、`7z.exe` 或 `7z.dll`。
+
+插件包可以是 `.zip` 或 `.7z`，安装时同样由运行时归档服务探测并解压。`.bpui` / Designer v3 布局包导入导出行为不随 SmartBP/插件归档支持变化，仍按 BPUI 文档描述处理。
 
 ## Inno Setup
 

@@ -13,6 +13,14 @@ public interface IPluginInstallService
     /// <param name="extractedDirectoryPath">已解压的插件目录路径。</param>
     /// <returns>安装结果。</returns>
     PluginInstallResult InstallFromExtractedDirectory(string extractedDirectoryPath);
+
+    /// <summary>
+    /// 从插件归档文件安装插件。
+    /// </summary>
+    /// <param name="archivePath">插件归档文件路径。</param>
+    /// <param name="extractedDirectoryPath">临时解压目录路径。</param>
+    /// <returns>安装结果。</returns>
+    PluginInstallResult InstallFromArchive(string archivePath, string extractedDirectoryPath);
 }
 
 /// <summary>

@@ -935,6 +935,11 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
     {
         public List<string> InstalledPluginIds { get; } = [];
 
+        public PluginInstallResult InstallFromArchive(string archivePath, string extractedDirectoryPath)
+        {
+            return InstallFromExtractedDirectory(extractedDirectoryPath);
+        }
+
         public PluginInstallResult InstallFromExtractedDirectory(string extractedDirectoryPath)
         {
             if (exception is not null)

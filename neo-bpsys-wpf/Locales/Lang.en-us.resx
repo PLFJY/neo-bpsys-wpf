@@ -1473,6 +1473,87 @@
   <data name="SmartBpModulePathInvalid" xml:space="preserve">
     <value>This path cannot be used for the SmartBP module. Choose a writable user directory.</value>
   </data>
+  <data name="SmartBpModuleImportArchive" xml:space="preserve">
+    <value>Import module package</value>
+  </data>
+  <data name="SmartBpModuleArchiveImporting" xml:space="preserve">
+    <value>Importing SmartBP module package...</value>
+  </data>
+  <data name="SmartBpModuleArchiveImportSucceeded" xml:space="preserve">
+    <value>SmartBP module package imported and loaded.</value>
+  </data>
+  <data name="SmartBpModuleArchiveImportFailed" xml:space="preserve">
+    <value>Failed to import SmartBP module package: </value>
+  </data>
+  <data name="SmartBpModuleVersionFormat" xml:space="preserve">
+    <value>SmartBP module version: {0}</value>
+  </data>
+  <data name="SmartBpModuleRequired" xml:space="preserve">
+    <value>SmartBP requires the standalone module to be installed.</value>
+  </data>
+  <data name="SmartBpModuleDownloadAndInstall" xml:space="preserve">
+    <value>Download and install</value>
+  </data>
+  <data name="SmartBpModuleReinstall" xml:space="preserve">
+    <value>Reinstall</value>
+  </data>
+  <data name="SmartBpModuleUpdateAndInstall" xml:space="preserve">
+    <value>Update and install</value>
+  </data>
+  <data name="SmartBpModuleLoadLocal" xml:space="preserve">
+    <value>Load local module</value>
+  </data>
+  <data name="SmartBpModuleSelectInstalledPath" xml:space="preserve">
+    <value>Select installed module path</value>
+  </data>
+  <data name="SmartBpModuleSelectArchive" xml:space="preserve">
+    <value>Select SmartBpModule.7z / .zip</value>
+  </data>
+  <data name="SmartBpModulePreviewLoadOrImportArchive" xml:space="preserve">
+    <value>Preview builds should load a local module directory or import SmartBpModule.7z / .zip.</value>
+  </data>
+  <data name="SmartBpModuleDebugLoadDirectory" xml:space="preserve">
+    <value>Debug builds should load the SmartBP module Debug output directory.</value>
+  </data>
+  <data name="SmartBpModuleDebugLocalLoadFailed" xml:space="preserve">
+    <value>Debug builds only load a local SmartBP module directory. The current directory failed to load. Check that the module Debug output directory exists and the entry assembly can be loaded.</value>
+  </data>
+  <data name="SmartBpModuleDownloadInstallFailed" xml:space="preserve">
+    <value>Could not download or install the SmartBP module. Check the network and try again, or manually select an installed module path.</value>
+  </data>
+  <data name="SmartBpModuleDebugFolderLoadFailed" xml:space="preserve">
+    <value>Failed to load the local module directory in Debug build. Check that the entry assembly exists and can be loaded by the current app.</value>
+  </data>
+  <data name="SmartBpModuleSelectedDirectoryInvalid" xml:space="preserve">
+    <value>The selected SmartBP module directory is unavailable. Check component.json, RID, ABI, and the entry assembly.</value>
+  </data>
+  <data name="SmartBpModulePathUnsafe" xml:space="preserve">
+    <value>The current path is not suitable for installing the SmartBP module. Choose a writable user directory.</value>
+  </data>
+  <data name="SmartBpModuleOutdatedFormat" xml:space="preserve">
+    <value>The current SmartBP module is outdated and must be updated to {0}.</value>
+  </data>
+  <data name="SmartBpModuleCompatibleFound" xml:space="preserve">
+    <value>A compatible SmartBP module was detected and can be loaded directly.</value>
+  </data>
+  <data name="SmartBpModulePathModuleInvalidFormat" xml:space="preserve">
+    <value>The module at the current path is unavailable: {0}</value>
+  </data>
+  <data name="SmartBpModuleLocalFailureErrorFormat" xml:space="preserve">
+    <value>{0} Error: {1}</value>
+  </data>
+  <data name="SmartBpModuleArchiveFiles" xml:space="preserve">
+    <value>SmartBP module archives</value>
+  </data>
+  <data name="PluginPackageFiles" xml:space="preserve">
+    <value>Plugin packages</value>
+  </data>
+  <data name="SevenZipArchiveFiles" xml:space="preserve">
+    <value>7z archives</value>
+  </data>
+  <data name="AllFiles" xml:space="preserve">
+    <value>All files</value>
+  </data>
   <data name="PleaseStartWindowCaptureFirst" xml:space="preserve">
     <value>Please start window capture first.</value>
   </data>

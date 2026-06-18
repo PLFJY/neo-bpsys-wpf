@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.SmartBpModule;
+using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Services.SmartBpModule;
 using System.IO;
 
@@ -59,12 +60,12 @@ public partial class SmartBpPageViewModel : ViewModelBase
     /// <summary>
     /// Overlay message.
     /// </summary>
-    [ObservableProperty] private string _overlayMessage = "SmartBP 需要安装独立模块后使用。";
+    [ObservableProperty] private string _overlayMessage = L("SmartBpModuleRequired");
 
     /// <summary>
     /// Primary button text.
     /// </summary>
-    [ObservableProperty] private string _primaryActionText = "下载并安装";
+    [ObservableProperty] private string _primaryActionText = L("SmartBpModuleDownloadAndInstall");
 
     /// <summary>
     /// Whether the installed-module-folder button is visible.
@@ -75,6 +76,16 @@ public partial class SmartBpPageViewModel : ViewModelBase
     /// Whether operation progress is visible.
     /// </summary>
     [ObservableProperty] private bool _isProgressVisible;
+
+    /// <summary>
+    /// SmartBP module version display text.
+    /// </summary>
+    [ObservableProperty] private string _moduleVersionText = string.Empty;
+
+    /// <summary>
+    /// Whether the SmartBP module version text is visible.
+    /// </summary>
+    [ObservableProperty] private bool _isModuleVersionVisible;
 
     /// <summary>
     /// Operation progress value.
@@ -112,7 +123,7 @@ public partial class SmartBpPageViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Whether the select zip button is visible.
+    /// Whether the module archive import button is visible.
     /// </summary>
     public bool IsZipImportVisible => IsPreviewMode;
 
@@ -160,7 +171,7 @@ public partial class SmartBpPageViewModel : ViewModelBase
         {
             IsProgressVisible = false;
             OverlayMessage = BuildLocalLoadFailureMessage(
-                "Debug 版本仅加载本地 SmartBP 模块目录。当前目录加载失败，请确认模块 Debug 输出目录存在且入口程序集可加载。");
+                L("SmartBpModuleDebugLocalLoadFailed"));
             return;
         }
 
@@ -176,8 +187,8 @@ public partial class SmartBpPageViewModel : ViewModelBase
 
         IsProgressVisible = false;
         OverlayMessage = IsPreviewMode
-            ? "Preview 版本请加载本地模块目录或导入 SmartBpModule.zip。"
-            : "无法下载或安装 SmartBP 模块。请检查网络后重试，或手动选择已安装模块路径。";
+            ? L("SmartBpModulePreviewLoadOrImportArchive")
+            : L("SmartBpModuleDownloadInstallFailed");
     }
 
     [RelayCommand]
@@ -191,21 +202,21 @@ public partial class SmartBpPageViewModel : ViewModelBase
         if (!await _moduleManager.LoadModuleFromDirectoryAsync(folder))
         {
             OverlayMessage = IsDebugMode
-                ? BuildLocalLoadFailureMessage("Debug 版本加载本地模块目录失败，请确认入口程序集存在且可以被当前主程序加载。")
-                : BuildLocalLoadFailureMessage("选择的 SmartBP 模块目录不可用，请检查 component.json、RID、ABI 和入口程序集。");
+                ? BuildLocalLoadFailureMessage(L("SmartBpModuleDebugFolderLoadFailed"))
+                : BuildLocalLoadFailureMessage(L("SmartBpModuleSelectedDirectoryInvalid"));
         }
     }
 
     [RelayCommand]
     private async Task ImportModuleZipAsync()
     {
-        var zip = _filePickerService.PickZipFile();
-        if (string.IsNullOrWhiteSpace(zip))
+        var archivePath = _filePickerService.PickSmartBpModuleArchiveFile();
+        if (string.IsNullOrWhiteSpace(archivePath))
             return;
 
         IsProgressVisible = true;
         ProgressValue = 20;
-        await _moduleManager.ImportZipAsync(zip, SelectedModulePath);
+        await _moduleManager.ImportArchiveAsync(archivePath, SelectedModulePath);
         ProgressValue = 100;
         IsProgressVisible = false;
     }
@@ -223,8 +234,8 @@ public partial class SmartBpPageViewModel : ViewModelBase
 
         if (SmartBpModuleManager.IsUnsafeInstallPath(SelectedModulePath))
         {
-            PrimaryActionText = "重新安装";
-            OverlayMessage = "当前路径不适合安装 SmartBP 模块，请选择可写的用户目录。";
+            PrimaryActionText = L("SmartBpModuleReinstall");
+            OverlayMessage = L("SmartBpModulePathUnsafe");
             IsSelectInstalledModuleButtonVisible = true;
             return;
         }
@@ -240,25 +251,27 @@ public partial class SmartBpPageViewModel : ViewModelBase
                 requiredManifest != null &&
                 !SmartBpModuleManager.IsModuleVersionAllowed(manifest.ModuleVersion, requiredManifest.ModuleVersion))
             {
-                PrimaryActionText = "更新并安装";
-                OverlayMessage = $"当前 SmartBP 模块版本过旧，需要更新到 {requiredManifest.ModuleVersion}。";
+                PrimaryActionText = L("SmartBpModuleUpdateAndInstall");
+                OverlayMessage = string.Format(
+                    L("SmartBpModuleOutdatedFormat"),
+                    requiredManifest.ModuleVersion);
                 IsSelectInstalledModuleButtonVisible = true;
                 return;
             }
 
-            PrimaryActionText = "加载本地模块";
-            OverlayMessage = "检测到兼容的 SmartBP 模块，可以直接加载。";
+            PrimaryActionText = L("SmartBpModuleLoadLocal");
+            OverlayMessage = L("SmartBpModuleCompatibleFound");
             IsSelectInstalledModuleButtonVisible = false;
             return;
         }
 
         PrimaryActionText = error.Contains("ABI", StringComparison.OrdinalIgnoreCase) ||
                             error.Contains("RID", StringComparison.OrdinalIgnoreCase)
-            ? "重新安装"
-            : IsDebugMode || IsPreviewMode ? "加载本地模块" : "下载并安装";
+            ? L("SmartBpModuleReinstall")
+            : IsDebugMode || IsPreviewMode ? L("SmartBpModuleLoadLocal") : L("SmartBpModuleDownloadAndInstall");
         OverlayMessage = string.IsNullOrWhiteSpace(error)
-            ? "SmartBP 需要安装独立模块后使用。"
-            : $"当前路径模块不可用：{error}";
+            ? L("SmartBpModuleRequired")
+            : string.Format(L("SmartBpModulePathModuleInvalidFormat"), error);
         IsSelectInstalledModuleButtonVisible = true;
     }
 
@@ -266,6 +279,7 @@ public partial class SmartBpPageViewModel : ViewModelBase
     {
         IsModuleLoaded = _moduleManager.IsModuleLoaded;
         ModuleContent = _moduleManager.ModuleContent;
+        SyncModuleVersionText();
         var persistedRoot = _moduleManager.GetPreferredModuleRoot();
         if (!IsModuleLoaded &&
             !string.IsNullOrWhiteSpace(persistedRoot) &&
@@ -275,11 +289,48 @@ public partial class SmartBpPageViewModel : ViewModelBase
         }
     }
 
+    private void SyncModuleVersionText()
+    {
+        if (!IsModuleLoaded)
+        {
+            ModuleVersionText = string.Empty;
+            IsModuleVersionVisible = false;
+            return;
+        }
+
+        var version = TryReadLoadedModuleVersion() ?? _moduleManager.ReadState()?.ModuleVersion;
+        if (string.IsNullOrWhiteSpace(version))
+        {
+            ModuleVersionText = string.Empty;
+            IsModuleVersionVisible = false;
+            return;
+        }
+
+        ModuleVersionText = string.Format(L("SmartBpModuleVersionFormat"), version);
+        IsModuleVersionVisible = true;
+    }
+
+    private string? TryReadLoadedModuleVersion()
+    {
+        if (string.IsNullOrWhiteSpace(_moduleManager.ModuleRoot))
+        {
+            return null;
+        }
+
+        return _moduleManager.ValidateModuleDirectory(
+            _moduleManager.ModuleRoot,
+            allowDevelopmentDirectory: IsDebugMode,
+            out var manifest,
+            out _)
+            ? manifest?.ModuleVersion
+            : null;
+    }
+
     private string BuildLocalLoadFailureMessage(string fallback)
     {
         return string.IsNullOrWhiteSpace(_moduleManager.LastFailureMessage)
             ? fallback
-            : $"{fallback}错误：{_moduleManager.LastFailureMessage}";
+            : string.Format(L("SmartBpModuleLocalFailureErrorFormat"), fallback, _moduleManager.LastFailureMessage);
     }
 
     private void ConfigureLocalOnlyOverlayForDebugOrPreview()
@@ -287,11 +338,13 @@ public partial class SmartBpPageViewModel : ViewModelBase
         if (!IsDebugMode && !IsPreviewMode)
             return;
 
-        PrimaryActionText = "加载本地模块";
+        PrimaryActionText = L("SmartBpModuleLoadLocal");
         OverlayMessage = IsDebugMode
-            ? "Debug 版本请加载 SmartBP 模块 Debug 输出目录。"
-            : "Preview 版本请加载本地模块目录或导入 SmartBpModule.zip。";
+            ? L("SmartBpModuleDebugLoadDirectory")
+            : L("SmartBpModulePreviewLoadOrImportArchive");
     }
+
+    private static string L(string key) => I18nHelper.GetLocalizedString(key);
 
     private void TryPersistSelectedModulePathPreference(string value)
     {
