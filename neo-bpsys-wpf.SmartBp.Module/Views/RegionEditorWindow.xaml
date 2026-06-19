@@ -25,81 +25,83 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <ui:TitleBar Grid.Row="0" Grid.ColumnSpan="2" />
-        <StackPanel
-            Grid.Row="1"
-            Grid.Column="0"
-            Margin="10,0,10,10">
-            <TextBlock
-                x:Name="HeaderText"
-                FontSize="18"
-                FontWeight="Bold"
-                Text="{lex:Loc SmartBpRegionEditorWindowTitle}" />
-            <TextBlock
-                x:Name="RuleText"
-                Margin="0,8,0,0"
-                Text="{lex:Loc SmartBpRegionEditorRuleDefault}"
-                TextWrapping="Wrap" />
+        <ui:DynamicScrollViewer Grid.Row="1" Grid.Column="0">
 
-            <TextBlock
-                Margin="0,16,0,0"
-                FontWeight="SemiBold"
-                Text="{lex:Loc SmartBpRegionEditorNodeSelection}" />
-            <TreeView
-                x:Name="NodeSelector"
-                Height="260"
-                Margin="0,6,0,0"
-                SelectedItemChanged="NodeSelector_OnSelectedItemChanged">
-                <TreeView.ItemTemplate>
-                    <HierarchicalDataTemplate ItemsSource="{Binding Children}">
-                        <TextBlock Text="{Binding Display}" />
-                    </HierarchicalDataTemplate>
-                </TreeView.ItemTemplate>
-            </TreeView>
-            <Button
-                x:Name="ApplyTemplateButton"
-                Margin="0,8,0,0"
-                Click="ApplyTemplateButton_OnClick"
-                Content="{lex:Loc SmartBpRegionEditorApplyTemplate}" />
-            <TextBlock
-                x:Name="TemplateHintText"
-                Margin="0,4,0,0"
-                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                Text="{lex:Loc SmartBpRegionEditorTemplateNotInGroup}"
-                TextWrapping="Wrap" />
 
-            <TextBlock
-                Margin="0,16,0,0"
-                FontWeight="SemiBold"
-                Text="{lex:Loc SmartBpRegionEditorCurrentRect}" />
-            <TextBlock
-                x:Name="RectText"
-                Margin="0,6,0,0"
-                FontFamily="Consolas"
-                TextWrapping="Wrap" />
+            <StackPanel Margin="10,0,10,10">
+                <TextBlock
+                    x:Name="HeaderText"
+                    FontSize="18"
+                    FontWeight="Bold"
+                    Text="{lex:Loc SmartBpRegionEditorWindowTitle}"
+                    TextWrapping="Wrap" />
+                <TextBlock
+                    x:Name="RuleText"
+                    Margin="0,8,0,0"
+                    Text="{lex:Loc SmartBpRegionEditorRuleDefault}"
+                    TextWrapping="Wrap" />
 
-            <Border
-                Margin="0,16,0,0"
-                Padding="8"
-                BorderBrush="#3F3F46"
-                BorderThickness="1"
-                CornerRadius="6">
-                <TextBlock Text="{lex:Loc SmartBpRegionEditorOperationHelp}" TextWrapping="Wrap" />
-            </Border>
-
-            <StackPanel Margin="0,20,0,0" Orientation="Horizontal">
+                <TextBlock
+                    Margin="0,16,0,0"
+                    FontWeight="SemiBold"
+                    Text="{lex:Loc SmartBpRegionEditorNodeSelection}" />
+                <TreeView
+                    x:Name="NodeSelector"
+                    Height="260"
+                    Margin="0,6,0,0"
+                    SelectedItemChanged="NodeSelector_OnSelectedItemChanged">
+                    <TreeView.ItemTemplate>
+                        <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                            <TextBlock Text="{Binding Display}" />
+                        </HierarchicalDataTemplate>
+                    </TreeView.ItemTemplate>
+                </TreeView>
                 <Button
-                    Width="100"
-                    Height="32"
-                    Click="SaveButton_OnClick"
-                    Content="{lex:Loc Save}" />
-                <Button
-                    Width="100"
-                    Height="32"
-                    Margin="10,0,0,0"
-                    Click="CancelButton_OnClick"
-                    Content="{lex:Loc Cancel}" />
+                    x:Name="ApplyTemplateButton"
+                    Margin="0,8,0,0"
+                    Click="ApplyTemplateButton_OnClick"
+                    Content="{lex:Loc SmartBpRegionEditorApplyTemplate}" />
+                <TextBlock
+                    x:Name="TemplateHintText"
+                    Margin="0,4,0,0"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    Text="{lex:Loc SmartBpRegionEditorTemplateNotInGroup}"
+                    TextWrapping="Wrap" />
+
+                <TextBlock
+                    Margin="0,16,0,0"
+                    FontWeight="SemiBold"
+                    Text="{lex:Loc SmartBpRegionEditorCurrentRect}" />
+                <TextBlock
+                    x:Name="RectText"
+                    Margin="0,6,0,0"
+                    FontFamily="Consolas"
+                    TextWrapping="Wrap" />
+
+                <Border
+                    Margin="0,16,0,0"
+                    Padding="8"
+                    BorderBrush="#3F3F46"
+                    BorderThickness="1"
+                    CornerRadius="6">
+                    <TextBlock Text="{lex:Loc SmartBpRegionEditorOperationHelp}" TextWrapping="Wrap" />
+                </Border>
+
+                <StackPanel Margin="0,20,0,0" Orientation="Horizontal">
+                    <Button
+                        Width="100"
+                        Height="32"
+                        Click="SaveButton_OnClick"
+                        Content="{lex:Loc Save}" />
+                    <Button
+                        Width="100"
+                        Height="32"
+                        Margin="10,0,0,0"
+                        Click="CancelButton_OnClick"
+                        Content="{lex:Loc Cancel}" />
+                </StackPanel>
             </StackPanel>
-        </StackPanel>
+        </ui:DynamicScrollViewer>
 
         <Border
             Grid.Row="1"
