@@ -105,7 +105,8 @@ public partial class BanSurPageViewModel : ViewModelBase
 
         protected override void SyncIsEnabled()
         {
-            SharedDataService.CanCurrentSurBannedList[Index] = IsEnabled;
+            if (SharedDataService.CanCurrentSurBannedList[Index] != IsEnabled)
+                SharedDataService.CanCurrentSurBannedList[Index] = IsEnabled;
         }
 
         protected override bool IsActionNameCorrect(GameAction? action) => action == GameAction.BanSur;
@@ -154,7 +155,8 @@ public partial class BanSurPageViewModel : ViewModelBase
 
         protected override void SyncIsEnabled()
         {
-            SharedDataService.CanGlobalSurBannedList[Index] = IsEnabled;
+            if (SharedDataService.CanGlobalSurBannedList[Index] != IsEnabled)
+                SharedDataService.CanGlobalSurBannedList[Index] = IsEnabled;
         }
 
         protected override bool IsActionNameCorrect(GameAction? action) => false;

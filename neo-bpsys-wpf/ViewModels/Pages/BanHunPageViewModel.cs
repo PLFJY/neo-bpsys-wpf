@@ -108,7 +108,8 @@ public partial class BanHunPageViewModel : ViewModelBase
 
         protected override void SyncIsEnabled()
         {
-            SharedDataService.CanCurrentHunBannedList[Index] = IsEnabled;
+            if (SharedDataService.CanCurrentHunBannedList[Index] != IsEnabled)
+                SharedDataService.CanCurrentHunBannedList[Index] = IsEnabled;
         }
 
         protected override bool IsActionNameCorrect(GameAction? action) => action == GameAction.BanHun;
@@ -156,7 +157,8 @@ public partial class BanHunPageViewModel : ViewModelBase
         }
 
         protected override void SyncIsEnabled()
-        {
+        {if (SharedDataService.CanGlobalHunBannedList[Index] != IsEnabled)
+                
             SharedDataService.CanGlobalHunBannedList[Index] = IsEnabled;
         }
 
