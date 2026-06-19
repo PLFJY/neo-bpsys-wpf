@@ -54,69 +54,110 @@ internal sealed partial class SmartBpCharacterResolver(ISharedDataService shared
 
 internal static class SmartBpRecognitionPromptBuilder
 {
-    public const string SystemPrompt = "You are an IDV/Identity V BP screen recognition engine. Return JSON only. Do not return Markdown. Do not explain. Only use character names from the provided candidate lists. If unsure, return characterName null and confidence below 0.5. Do not invent map data. Do not output MapBP fields.";
-    public static string Build(SmartBpRecognitionTask task, IEnumerable<string> survivors, IEnumerable<string> hunters) =>
-        $"/no_think\nTask: {task}. Analyze only the supplied BP image. Survivor candidates: {JsonSerializer.Serialize(survivors)}. Hunter candidates: {JsonSerializer.Serialize(hunters)}.";
+    public static string Build(SmartBpRecognitionTask task, IEnumerable<string> survivors, IEnumerable<string> hunters)
+    {
+        var description = task switch
+        {
+            SmartBpRecognitionTask.BanSur => "当前任务是识别求生者禁用 / 不可选相关区域。优先识别被禁用或不可选的求生者角色，以及可见玩家 ID。",
+            SmartBpRecognitionTask.BanHun => "当前任务是识别监管者禁用 / 不可选相关区域。优先识别被禁用或不可选的监管者角色，以及可见玩家 ID。",
+            SmartBpRecognitionTask.PickSur => "当前任务是识别求生者选择区域。优先识别已选择、等待中、未选择的求生者槽位，以及玩家 ID。",
+            SmartBpRecognitionTask.PickHun => "当前任务是识别监管者选择区域。优先识别监管者槽位、玩家 ID、选择状态。",
+            SmartBpRecognitionTask.CharacterDistribution => "当前任务是识别赛前阵容 / 角色分布界面。识别所有可见角色名、玩家 ID、阵营、左右区域与选择状态。",
+            _ => "当前任务是完整识别 BP / 阵容选择画面中的所有可见槽位、角色、玩家 ID、区域与状态。"
+        };
+        return $"""
+/no_think
+recognition_task: {task}
+task_description: {description}
+survivor_candidates: {JsonSerializer.Serialize(survivors)}
+hunter_candidates: {JsonSerializer.Serialize(hunters)}
+必须输出 schema_version、scene、teams、all_characters、all_player_ids、warnings。scene 必须包含 game、interface_type、task、main_status、pause_status、pause_remaining_seconds。每个槽位必须保留 slot_index、slot_state、character_name、player_id、is_banned_or_unavailable、raw_visible_text、confidence。
+character_name 与 player_id 必须分开，角色名只能取候选列表原文。不要输出地图 BP，不要输出 MapBP 字段。
+""";
+    }
 }
 
 internal static class SmartBpRecognitionJsonSchemaProvider
 {
     public static JsonObject Get(SmartBpRecognitionTask task)
     {
-        var focused = task is SmartBpRecognitionTask.BanSur or SmartBpRecognitionTask.BanHun or SmartBpRecognitionTask.PickSur or SmartBpRecognitionTask.PickHun;
-        var slot = new JsonObject { ["type"] = "object", ["additionalProperties"] = false,
-            ["properties"] = new JsonObject { ["slotIndex"] = new JsonObject { ["type"] = "integer" }, ["state"] = new JsonObject { ["type"] = "string", ["enum"] = new JsonArray("Picked", "Banned", "Empty", "Unknown") }, ["characterName"] = new JsonObject { ["type"] = new JsonArray("string", "null") }, ["confidence"] = new JsonObject { ["type"] = "number" } },
-            ["required"] = new JsonArray("slotIndex", "state", "characterName", "confidence") };
-        JsonObject properties = focused
-            ? new() { ["schemaVersion"] = Const(1), ["scene"] = Const("Bp"), ["task"] = Const(task.ToString()), ["camp"] = new JsonObject { ["type"] = "string", ["enum"] = new JsonArray("Sur", "Hun") }, ["slotIndex"] = new JsonObject { ["type"] = "integer" }, ["characterName"] = new JsonObject { ["type"] = new JsonArray("string", "null") }, ["confidence"] = new JsonObject { ["type"] = "number" }, ["visible"] = new JsonObject { ["type"] = "boolean" }, ["warnings"] = StringArray() }
-            : new() { ["schemaVersion"] = Const(1), ["scene"] = Const("Bp"), ["task"] = Const(task.ToString()), ["survivorSlots"] = Array(slot.DeepClone()), ["hunterSlot"] = new JsonObject { ["anyOf"] = new JsonArray(slot.DeepClone(), new JsonObject { ["type"] = "null" }) }, ["survivorBans"] = Array(slot.DeepClone()), ["hunterBans"] = Array(slot.DeepClone()), ["warnings"] = StringArray() };
-        var required = focused ? new JsonArray("schemaVersion", "scene", "task", "camp", "slotIndex", "characterName", "confidence", "visible", "warnings") : new JsonArray("schemaVersion", "scene", "task", "warnings");
-        return new JsonObject { ["type"] = "object", ["additionalProperties"] = false, ["properties"] = properties, ["required"] = required };
+        var slot = Object(new JsonObject { ["slot_index"] = Integer(), ["slot_state"] = SlotState(), ["character_name"] = NullableString(), ["player_id"] = NullableString(), ["is_banned_or_unavailable"] = new JsonObject { ["type"] = "boolean" }, ["raw_visible_text"] = NullableString(), ["confidence"] = Confidence() }, "slot_index", "slot_state", "character_name", "player_id", "is_banned_or_unavailable", "raw_visible_text", "confidence");
+        var team = Object(new JsonObject { ["side"] = Side(), ["faction"] = Faction(), ["title_text"] = NullableString(), ["subtitle_text"] = NullableString(), ["slots"] = Array(slot) }, "side", "faction", "title_text", "subtitle_text", "slots");
+        var character = Object(new JsonObject { ["character_name"] = NullableString(), ["faction"] = Faction(), ["player_id"] = NullableString(), ["side"] = Side(), ["slot_index"] = Integer(), ["slot_state"] = SlotState(), ["confidence"] = Confidence() }, "character_name", "faction", "player_id", "side", "slot_index", "slot_state", "confidence");
+        var player = Object(new JsonObject { ["player_id"] = NullableString(), ["character_name"] = NullableString(), ["side"] = Side(), ["slot_index"] = Integer(), ["confidence"] = Confidence() }, "player_id", "character_name", "side", "slot_index", "confidence");
+        var scene = Object(new JsonObject { ["game"] = Const("Identity V"), ["interface_type"] = Const("ban_pick_or_lineup_selection"), ["task"] = new JsonObject { ["type"] = "string", ["enum"] = new JsonArray(Enum.GetNames<SmartBpRecognitionTask>().Select(x => (JsonNode?)JsonValue.Create(x)).ToArray()) }, ["main_status"] = NullableString(), ["pause_status"] = NullableString(), ["pause_remaining_seconds"] = new JsonObject { ["type"] = new JsonArray("number", "null") } }, "game", "interface_type", "task", "main_status", "pause_status", "pause_remaining_seconds");
+        return Object(new JsonObject { ["schema_version"] = Const(1), ["scene"] = scene, ["teams"] = Array(team), ["all_characters"] = Array(character), ["all_player_ids"] = Array(player), ["warnings"] = StringArray() }, "schema_version", "scene", "teams", "all_characters", "all_player_ids", "warnings");
     }
+    private static JsonObject Object(JsonObject properties, params string[] required) => new() { ["type"] = "object", ["additionalProperties"] = false, ["properties"] = properties, ["required"] = new JsonArray(required.Select(x => (JsonNode?)JsonValue.Create(x)).ToArray()) };
     private static JsonObject Const(object value) => new() { ["const"] = JsonValue.Create(value) };
+    private static JsonObject NullableString() => new() { ["type"] = new JsonArray("string", "null") };
+    private static JsonObject Integer() => new() { ["type"] = "integer", ["minimum"] = 0 };
+    private static JsonObject Confidence() => new() { ["type"] = "number", ["minimum"] = 0, ["maximum"] = 1 };
+    private static JsonObject Side() => new() { ["type"] = "string", ["enum"] = new JsonArray("left", "right", "top", "bottom", "unknown") };
+    private static JsonObject Faction() => new() { ["type"] = "string", ["enum"] = new JsonArray("survivor", "hunter", "unknown") };
+    private static JsonObject SlotState() => new() { ["type"] = "string", ["enum"] = new JsonArray("selected", "waiting", "unselected", "banned", "unknown") };
     private static JsonObject StringArray() => new() { ["type"] = "array", ["items"] = new JsonObject { ["type"] = "string" } };
     private static JsonObject Array(JsonNode? item) => new() { ["type"] = "array", ["items"] = item };
 }
 
-internal sealed class LlamaCppOpenAiClient(ISmartBpRecognitionSettingsService settings, ISharedDataService shared, ILogger<LlamaCppOpenAiClient> logger, ISmartBpDebugLog debugLog) : ILlamaCppOpenAiClient
+internal sealed class LlamaCppOpenAiClient(ISmartBpRecognitionSettingsService settings, ISharedDataService shared, ISmartBpPromptProfileProvider promptProfiles, ILogger<LlamaCppOpenAiClient> logger, ISmartBpDebugLog debugLog) : ILlamaCppOpenAiClient
 {
     public async Task<string> RecognizeAsync(string imageDataUrl, SmartBpRecognitionTask task, CancellationToken cancellationToken = default)
     {
+        var profile = await promptProfiles.LoadAsync(settings.Settings.PromptProfileId, cancellationToken);
+        var initialMaxTokens = task is SmartBpRecognitionTask.BanSur or SmartBpRecognitionTask.BanHun or SmartBpRecognitionTask.PickSur or SmartBpRecognitionTask.PickHun ? settings.Settings.FocusedMaxTokens : settings.Settings.FullScanMaxTokens;
         var body = new JsonObject { ["model"] = "local", ["temperature"] = 0,
-            ["max_tokens"] = task is SmartBpRecognitionTask.BanSur or SmartBpRecognitionTask.BanHun or SmartBpRecognitionTask.PickSur or SmartBpRecognitionTask.PickHun ? settings.Settings.FocusedMaxTokens : settings.Settings.FullScanMaxTokens,
+            ["max_tokens"] = initialMaxTokens,
             ["chat_template_kwargs"] = new JsonObject { ["enable_thinking"] = false },
-            ["messages"] = new JsonArray(new JsonObject { ["role"] = "system", ["content"] = SmartBpRecognitionPromptBuilder.SystemPrompt }, new JsonObject { ["role"] = "user", ["content"] = new JsonArray(new JsonObject { ["type"] = "text", ["text"] = SmartBpRecognitionPromptBuilder.Build(task, shared.SurCharaDict.Keys, shared.HunCharaDict.Keys) }, new JsonObject { ["type"] = "image_url", ["image_url"] = new JsonObject { ["url"] = imageDataUrl } }) }),
+            ["messages"] = new JsonArray(new JsonObject { ["role"] = "system", ["content"] = profile.SystemPrompt }, new JsonObject { ["role"] = "user", ["content"] = new JsonArray(new JsonObject { ["type"] = "text", ["text"] = SmartBpRecognitionPromptBuilder.Build(task, shared.SurCharaDict.Keys, shared.HunCharaDict.Keys) }, new JsonObject { ["type"] = "image_url", ["image_url"] = new JsonObject { ["url"] = imageDataUrl } }) }),
             ["response_format"] = new JsonObject { ["type"] = "json_schema", ["json_schema"] = new JsonObject { ["name"] = "smartbp_result", ["strict"] = true, ["schema"] = SmartBpRecognitionJsonSchemaProvider.Get(task) } } };
         using var http = new HttpClient { Timeout = TimeSpan.FromMinutes(5) }; var url = $"http://127.0.0.1:{settings.Settings.LlamaServerPort}/v1/chat/completions";
         logger.LogInformation("Recognition request started. Task={Task}", task);
-        debugLog.Write("recognition", $"POST {url}; task={task}; max_tokens={body["max_tokens"]}");
-        using var response = await http.PostAsync(url, new StringContent(body.ToJsonString(), Encoding.UTF8, "application/json"), cancellationToken);
-        var raw = await response.Content.ReadAsStringAsync(cancellationToken);
-        debugLog.Write("recognition", $"HTTP {(int)response.StatusCode} {response.ReasonPhrase}; response length={raw.Length}");
-        if (!response.IsSuccessStatusCode) throw new LlamaCppRequestException($"llama.cpp returned {(int)response.StatusCode}: {raw}", raw);
-        try
+        for (var attempt = 1; attempt <= 2; attempt++)
         {
-            using var document = JsonDocument.Parse(raw);
-            var message = document.RootElement.GetProperty("choices")[0].GetProperty("message");
-            var content = message.TryGetProperty("content", out var contentElement)
-                ? contentElement.ValueKind == JsonValueKind.String ? contentElement.GetString() : contentElement.GetRawText()
-                : null;
-            if (string.IsNullOrWhiteSpace(content) || content == "null")
+            debugLog.Write("recognition", $"POST {url}; task={task}; max_tokens={body["max_tokens"]}; attempt={attempt}/2");
+            using var response = await http.PostAsync(url, new StringContent(body.ToJsonString(), Encoding.UTF8, "application/json"), cancellationToken).ConfigureAwait(false);
+            var raw = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            debugLog.Write("recognition", $"HTTP {(int)response.StatusCode} {response.ReasonPhrase}; response length={raw.Length}");
+            if (!response.IsSuccessStatusCode) throw new LlamaCppRequestException($"llama.cpp returned {(int)response.StatusCode}: {raw}", raw);
+            try
             {
-                var reasoningLength = message.TryGetProperty("reasoning_content", out var reasoning) && reasoning.ValueKind == JsonValueKind.String
-                    ? reasoning.GetString()?.Length ?? 0
-                    : 0;
-                debugLog.Write("recognition", $"message.content is empty; reasoning_content length={reasoningLength}. Full envelope copied to Raw JSON.");
-                throw new LlamaCppRequestException("llama.cpp returned an empty message.content. Check the Raw JSON response and debug console; the model may have consumed the token budget without producing JSON.", raw);
+                using var document = JsonDocument.Parse(raw);
+                var choice = document.RootElement.GetProperty("choices")[0];
+                var finishReason = choice.TryGetProperty("finish_reason", out var finish) ? finish.GetString() : null;
+                if (string.Equals(finishReason, "length", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (attempt == 1)
+                    {
+                        var retryTokens = Math.Min((body["max_tokens"]?.GetValue<int>() ?? initialMaxTokens) * 2, 8192);
+                        body["max_tokens"] = retryTokens;
+                        debugLog.Write("recognition", $"Generation hit the token limit; retrying independently with max_tokens={retryTokens}.");
+                        continue;
+                    }
+                    throw new LlamaCppRequestException("llama.cpp exhausted the output token budget twice and returned truncated JSON. Increase the recognition max token setting or reduce the extraction scope.", raw);
+                }
+                var message = choice.GetProperty("message");
+                var content = message.TryGetProperty("content", out var contentElement)
+                    ? contentElement.ValueKind == JsonValueKind.String ? contentElement.GetString() : contentElement.GetRawText()
+                    : null;
+                if (string.IsNullOrWhiteSpace(content) || content == "null")
+                {
+                    var reasoningLength = message.TryGetProperty("reasoning_content", out var reasoning) && reasoning.ValueKind == JsonValueKind.String
+                        ? reasoning.GetString()?.Length ?? 0
+                        : 0;
+                    debugLog.Write("recognition", $"message.content is empty; reasoning_content length={reasoningLength}. Full envelope copied to Raw JSON.");
+                    throw new LlamaCppRequestException("llama.cpp returned an empty message.content. Check the Raw JSON response and debug console; the model may have consumed the token budget without producing JSON.", raw);
+                }
+                debugLog.Write("recognition", $"Model JSON content length={content.Length}; finish_reason={finishReason ?? "unknown"}");
+                return content;
             }
-            debugLog.Write("recognition", $"Model JSON content length={content.Length}");
-            return content;
+            catch (LlamaCppRequestException) { throw; }
+            catch (Exception ex) when (ex is JsonException or KeyNotFoundException or InvalidOperationException or IndexOutOfRangeException)
+            {
+                throw new LlamaCppRequestException($"Invalid OpenAI-compatible response envelope: {ex.Message}", raw);
+            }
         }
-        catch (LlamaCppRequestException) { throw; }
-        catch (Exception ex) when (ex is JsonException or KeyNotFoundException or InvalidOperationException or IndexOutOfRangeException)
-        {
-            throw new LlamaCppRequestException($"Invalid OpenAI-compatible response envelope: {ex.Message}", raw);
-        }
+        throw new InvalidOperationException("Recognition retry loop ended unexpectedly.");
     }
 }
 
@@ -128,38 +169,64 @@ internal sealed class SmartBpAiRecognitionService(ISmartBpImageEncoder encoder, 
         var watch = Stopwatch.StartNew(); string raw = "";
         try
         {
-            raw = await client.RecognizeAsync(encoder.EncodeDataUrl(frame, settings.Settings.MaxImageWidth), task, cancellationToken);
-            var normalized = Parse(raw, task); watch.Stop(); var recommended = Math.Clamp((int)Math.Ceiling(watch.ElapsedMilliseconds * 1.5), settings.Settings.MinRecognitionIntervalMs, settings.Settings.MaxRecognitionIntervalMs);
+            var imageDataUrl = await Task.Run(() => encoder.EncodeDataUrl(frame, settings.Settings.MaxImageWidth), cancellationToken).ConfigureAwait(false);
+            raw = await client.RecognizeAsync(imageDataUrl, task, cancellationToken).ConfigureAwait(false);
+            var (visual, resolved) = await Task.Run(() => Parse(raw, task), cancellationToken).ConfigureAwait(false);
+            watch.Stop(); var recommended = Math.Clamp((int)Math.Ceiling(watch.ElapsedMilliseconds * 1.5), settings.Settings.MinRecognitionIntervalMs, settings.Settings.MaxRecognitionIntervalMs);
             logger.LogInformation("Recognition parsed successfully. Task={Task}, ElapsedMs={Elapsed}", task, watch.ElapsedMilliseconds);
-            return new(raw, normalized, watch.ElapsedMilliseconds, recommended, null);
+            return new(raw, visual, resolved, watch.ElapsedMilliseconds, recommended, null);
         }
-        catch (Exception ex) when (ex is not OperationCanceledException) { watch.Stop(); if (ex is LlamaCppRequestException request) raw = request.RawResponse; logger.LogWarning(ex, "Recognition parse/request failed"); return new(raw, "", watch.ElapsedMilliseconds, 0, ex.Message); }
+        catch (Exception ex) when (ex is not OperationCanceledException) { watch.Stop(); if (ex is LlamaCppRequestException request) raw = request.RawResponse; logger.LogWarning(ex, "Recognition parse/request failed"); return new(raw, "", "", watch.ElapsedMilliseconds, 0, ex.Message); }
     }
 
-    private string Parse(string raw, SmartBpRecognitionTask expected)
+    internal (string VisualSummary, string ResolvedSummary) Parse(string raw, SmartBpRecognitionTask expected)
     {
-        using var doc = JsonDocument.Parse(raw); var root = doc.RootElement;
-        if (root.GetProperty("schemaVersion").GetInt32() != 1) throw new InvalidDataException("Unsupported schemaVersion.");
-        if (root.GetProperty("scene").GetString() != "Bp") throw new InvalidDataException("Unknown scene.");
-        if (root.GetProperty("task").GetString() != expected.ToString()) throw new InvalidDataException("Unexpected task.");
-        var entries = new List<SmartBpNormalizedCharacter>();
-        if (expected is SmartBpRecognitionTask.BanSur or SmartBpRecognitionTask.BanHun or SmartBpRecognitionTask.PickSur or SmartBpRecognitionTask.PickHun)
+        var result = JsonSerializer.Deserialize<SmartBpVisionExtractionResult>(raw, new JsonSerializerOptions { PropertyNameCaseInsensitive = false })
+            ?? throw new InvalidDataException("Recognition JSON is empty.");
+        result.Teams ??= []; result.AllCharacters ??= []; result.AllPlayerIds ??= []; result.Warnings ??= [];
+        if (result.SchemaVersion != 1) throw new InvalidDataException("Unsupported schema_version.");
+        if (result.Scene.Game != "Identity V" || result.Scene.InterfaceType != "ban_pick_or_lineup_selection") throw new InvalidDataException("Unknown visual extraction scene.");
+        if (result.Scene.Task != expected.ToString()) throw new InvalidDataException("Unexpected recognition task.");
+
+        var visual = new StringBuilder();
+        var resolved = new StringBuilder();
+        visual.AppendLine($"Task: {result.Scene.Task}");
+        visual.AppendLine($"Scene status: main={result.Scene.MainStatus ?? "null"} pause={result.Scene.PauseStatus ?? "null"} remaining={result.Scene.PauseRemainingSeconds?.ToString(CultureInfo.InvariantCulture) ?? "null"}");
+        visual.AppendLine("Teams:");
+        foreach (var team in result.Teams)
         {
-            var campText = root.GetProperty("camp").GetString(); var camp = campText == "Sur" ? Camp.Sur : campText == "Hun" ? Camp.Hun : throw new InvalidDataException("Invalid camp.");
-            var expectedCamp = expected is SmartBpRecognitionTask.BanSur or SmartBpRecognitionTask.PickSur ? Camp.Sur : Camp.Hun;
-            if (camp != expectedCamp) throw new InvalidDataException("Camp does not match the task.");
-            if (root.GetProperty("visible").ValueKind is not (JsonValueKind.True or JsonValueKind.False)) throw new InvalidDataException("visible must be a JSON boolean.");
-            Add(root, camp, entries);
+            ValidateSide(team.Side); var camp = ParseFaction(team.Faction);
+            visual.AppendLine($"- side={team.Side} faction={team.Faction} title={team.TitleText ?? "null"} subtitle={team.SubtitleText ?? "null"}");
+            team.Slots ??= [];
+            foreach (var slot in team.Slots)
+            {
+                Validate(slot.SlotIndex, slot.Confidence); ValidateState(slot.SlotState);
+                var match = camp == null ? null : resolver.Resolve(slot.CharacterName, camp.Value, slot.SlotIndex, slot.Confidence);
+                visual.AppendLine($"  slot[{slot.SlotIndex}] state={slot.SlotState} charRaw={slot.CharacterName ?? "null"} playerId={slot.PlayerId ?? "null"} banned={slot.IsBannedOrUnavailable.ToString().ToLowerInvariant()} conf={slot.Confidence:0.00} rawText={slot.RawVisibleText ?? "null"}");
+                resolved.AppendLine($"{team.Faction}[{slot.SlotIndex}] raw={slot.CharacterName ?? "null"}; resolved={match?.ResolvedCharacterName ?? "unresolved"}; playerId={slot.PlayerId ?? "null"}; rawText={slot.RawVisibleText ?? "null"}; confidence={slot.Confidence:0.00}{(match?.Warnings.Count > 0 ? "; " + string.Join("; ", match.Warnings) : "")}");
+            }
         }
-        else
+        visual.AppendLine("All characters:");
+        foreach (var character in result.AllCharacters)
         {
-            AddArray(root, "survivorSlots", Camp.Sur, entries); AddArray(root, "survivorBans", Camp.Sur, entries); AddArray(root, "hunterBans", Camp.Hun, entries);
-            if (root.TryGetProperty("hunterSlot", out var hunter) && hunter.ValueKind == JsonValueKind.Object) Add(hunter, Camp.Hun, entries);
+            Validate(character.SlotIndex, character.Confidence); ValidateSide(character.Side); ValidateState(character.SlotState);
+            var camp = ParseFaction(character.Faction); var match = camp == null ? null : resolver.Resolve(character.CharacterName, camp.Value, character.SlotIndex, character.Confidence);
+            visual.AppendLine($"- {character.Faction} slot[{character.SlotIndex}] side={character.Side} raw={character.CharacterName ?? "null"} resolved={match?.ResolvedCharacterName ?? "unresolved"} playerId={character.PlayerId ?? "null"} state={character.SlotState} conf={character.Confidence:0.00}");
         }
-        return string.Join(Environment.NewLine, entries.Select(x => $"{x.Camp}[{x.SlotIndex}] raw={x.RawCharacterName ?? "null"}; resolved={x.ResolvedCharacterName ?? "unresolved"}; confidence={x.Confidence:0.00}{(x.Warnings.Count > 0 ? "; " + string.Join("; ", x.Warnings) : "")}"));
+        visual.AppendLine("All player IDs:");
+        foreach (var player in result.AllPlayerIds)
+        {
+            Validate(player.SlotIndex, player.Confidence); ValidateSide(player.Side);
+            visual.AppendLine($"- slot[{player.SlotIndex}] side={player.Side} playerId={player.PlayerId ?? "null"} character={player.CharacterName ?? "null"} conf={player.Confidence:0.00}");
+        }
+        visual.AppendLine("Warnings:");
+        foreach (var warning in result.Warnings) visual.AppendLine($"- {warning}");
+        return (visual.ToString().TrimEnd(), resolved.ToString().TrimEnd());
     }
-    private void AddArray(JsonElement root, string name, Camp camp, List<SmartBpNormalizedCharacter> output) { if (!root.TryGetProperty(name, out var array)) return; if (array.ValueKind != JsonValueKind.Array) throw new InvalidDataException($"{name} must be an array."); foreach (var item in array.EnumerateArray()) Add(item, camp, output); }
-    private void Add(JsonElement item, Camp camp, List<SmartBpNormalizedCharacter> output) { var slot = item.GetProperty("slotIndex").GetInt32(); if (slot is < 0 or > 15) throw new InvalidDataException("Invalid slot index."); var confidence = item.GetProperty("confidence").GetDouble(); if (confidence is < 0 or > 1) throw new InvalidDataException("Invalid confidence."); string? name = item.TryGetProperty("characterName", out var n) && n.ValueKind != JsonValueKind.Null ? n.GetString() : null; output.Add(resolver.Resolve(name, camp, slot, confidence)); }
+    private static void Validate(int slot, double confidence) { if (slot is < 0 or > 15) throw new InvalidDataException("Invalid slot index."); if (confidence is < 0 or > 1) throw new InvalidDataException("Invalid confidence."); }
+    private static void ValidateSide(string value) { if (value is not ("left" or "right" or "top" or "bottom" or "unknown")) throw new InvalidDataException("Invalid side."); }
+    private static void ValidateState(string value) { if (value is not ("selected" or "waiting" or "unselected" or "banned" or "unknown")) throw new InvalidDataException("Invalid slot_state."); }
+    private static Camp? ParseFaction(string value) => value switch { "survivor" => Camp.Sur, "hunter" => Camp.Hun, "unknown" => null, _ => throw new InvalidDataException("Invalid faction.") };
 }
 
 internal sealed class LlamaCppRequestException(string message, string rawResponse) : Exception(message)

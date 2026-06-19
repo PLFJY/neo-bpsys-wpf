@@ -1,0 +1,33 @@
+using neo_bpsys_wpf.Core;
+using System.IO;
+using neo_bpsys_wpf.SmartBp.Module.Abstractions;
+using neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
+
+namespace neo_bpsys_wpf.SmartBp.Module.Services.Recognition;
+
+internal sealed class SmartBpPromptProfileProvider : ISmartBpPromptProfileProvider
+{
+    private static readonly (string Id, string DisplayName)[] Profiles =
+    [
+        ("zh-CN", "简体中文 (zh-CN)"),
+        ("en-US", "English (en-US)"),
+        ("ja-JP", "日本語 (ja-JP)")
+    ];
+
+    public async Task<IReadOnlyList<SmartBpPromptProfile>> GetAvailableProfilesAsync(CancellationToken cancellationToken = default)
+    {
+        var results = new List<SmartBpPromptProfile>();
+        foreach (var profile in Profiles) results.Add(await LoadAsync(profile.Id, cancellationToken));
+        return results;
+    }
+
+    public async Task<SmartBpPromptProfile> LoadAsync(string profileId, CancellationToken cancellationToken = default)
+    {
+        var profile = Profiles.SingleOrDefault(x => x.Id.Equals(profileId, StringComparison.OrdinalIgnoreCase));
+        if (string.IsNullOrWhiteSpace(profile.Id)) throw new InvalidDataException($"Unknown prompt profile '{profileId}'.");
+        var path = Path.Combine(AppConstants.ResourcesPath, "SmartBp", "Prompts", $"{profile.Id}.system.md");
+        var prompt = await File.ReadAllTextAsync(path, cancellationToken);
+        if (string.IsNullOrWhiteSpace(prompt)) throw new InvalidDataException($"Prompt profile '{profile.Id}' is empty.");
+        return new(profile.Id, profile.DisplayName, prompt.Trim());
+    }
+}

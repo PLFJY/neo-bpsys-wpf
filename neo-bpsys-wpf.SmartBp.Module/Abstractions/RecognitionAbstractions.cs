@@ -21,8 +21,8 @@ public interface IQwenModelAssetManager
     Task InstallAsync(CancellationToken cancellationToken = default);
     /// <summary>Cancels an active download.</summary>
     void Cancel();
-    /// <summary>Deletes installed assets.</summary>
-    void Delete();
+    /// <summary>Deletes installed assets without blocking the caller thread.</summary>
+    Task DeleteAsync(CancellationToken cancellationToken = default);
     /// <summary>Gets installed model and projector paths.</summary>
     Task<(string ModelPath, string MmprojPath)> GetInstalledPathsAsync(CancellationToken cancellationToken = default);
 }
@@ -33,6 +33,42 @@ public interface ISmartBpRecognitionSettingsService
     SmartBpRecognitionSettings Settings { get; }
     /// <summary>Saves current settings.</summary>
     Task SaveAsync(CancellationToken cancellationToken = default);
+}
+/// <summary>Loads bundled SmartBP recognition prompt profiles.</summary>
+public interface ISmartBpPromptProfileProvider
+{
+    /// <summary>Gets available bundled profiles.</summary>
+    Task<IReadOnlyList<SmartBpPromptProfile>> GetAvailableProfilesAsync(CancellationToken cancellationToken = default);
+    /// <summary>Loads one profile by id.</summary>
+    Task<SmartBpPromptProfile> LoadAsync(string profileId, CancellationToken cancellationToken = default);
+}
+/// <summary>Loads llama.cpp runtime metadata.</summary>
+public interface ILlamaCppRuntimeManifestProvider
+{
+    /// <summary>Loads and validates the bundled runtime manifest.</summary>
+    Task<LlamaCppRuntimeManifest> LoadAsync(CancellationToken cancellationToken = default);
+}
+/// <summary>Installs and manages a selected llama.cpp runtime.</summary>
+public interface ILlamaCppRuntimeAssetManager
+{
+    /// <summary>Raised when installation state changes.</summary>
+    event EventHandler<LlamaCppRuntimeInstallState>? StateChanged;
+    /// <summary>Gets current installation state.</summary>
+    LlamaCppRuntimeInstallState State { get; }
+    /// <summary>Gets selectable runtime assets.</summary>
+    Task<IReadOnlyList<LlamaCppRuntimeAsset>> GetAvailableAssetsAsync(CancellationToken cancellationToken = default);
+    /// <summary>Gets the selected runtime asset.</summary>
+    Task<LlamaCppRuntimeAsset> GetSelectedAssetAsync(CancellationToken cancellationToken = default);
+    /// <summary>Checks whether the selected runtime is installed.</summary>
+    Task<bool> IsInstalledAsync(CancellationToken cancellationToken = default);
+    /// <summary>Installs the selected runtime.</summary>
+    Task InstallAsync(CancellationToken cancellationToken = default);
+    /// <summary>Cancels an active installation.</summary>
+    void Cancel();
+    /// <summary>Deletes the selected installed runtime without blocking the caller thread.</summary>
+    Task DeleteAsync(CancellationToken cancellationToken = default);
+    /// <summary>Gets the selected installed server executable.</summary>
+    Task<string> GetInstalledExecutablePathAsync(CancellationToken cancellationToken = default);
 }
 /// <summary>Controls the local llama.cpp server.</summary>
 public interface ILlamaCppServerManager

@@ -41,6 +41,8 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     private readonly ISmartBpAiRecognitionService _aiRecognitionService = null!;
     private readonly ISmartBpRecognitionSettingsService _recognitionSettingsService = null!;
     private readonly ISmartBpDebugLog _aiDebugLog = null!;
+    private readonly ISmartBpPromptProfileProvider _promptProfileProvider = null!;
+    private readonly ILlamaCppRuntimeAssetManager _llamaRuntimeAssetManager = null!;
 
     /// <summary>
     /// 用于设计时预览的无参构造函数。
@@ -66,6 +68,8 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         ISmartBpAiRecognitionService aiRecognitionService,
         ISmartBpRecognitionSettingsService recognitionSettingsService,
         ISmartBpDebugLog aiDebugLog,
+        ISmartBpPromptProfileProvider promptProfileProvider,
+        ILlamaCppRuntimeAssetManager llamaRuntimeAssetManager,
         ILogger<SmartBpModuleContentViewModel> logger)
     {
         _logger = logger;
@@ -85,6 +89,8 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         _aiRecognitionService = aiRecognitionService;
         _recognitionSettingsService = recognitionSettingsService;
         _aiDebugLog = aiDebugLog;
+        _promptProfileProvider = promptProfileProvider;
+        _llamaRuntimeAssetManager = llamaRuntimeAssetManager;
         InitializeAiRecognition();
         _ocrService.DownloadStateChanged += OcrService_DownloadStateChanged;
         // 配置被保存/导入/重置时同步刷新比例状态展示。

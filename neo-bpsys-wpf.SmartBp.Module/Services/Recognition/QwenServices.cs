@@ -37,9 +37,14 @@ internal sealed class SmartBpRecognitionSettingsService : ISmartBpRecognitionSet
         try { Settings = File.Exists(_path) ? JsonSerializer.Deserialize<SmartBpRecognitionSettings>(File.ReadAllText(_path), Options) ?? new() : new(); }
         catch { Settings = new(); }
         Settings.LlamaServerPort = Math.Clamp(Settings.LlamaServerPort, 1024, 65535);
+        Settings.LlamaContextSize = Math.Clamp(Settings.LlamaContextSize, 8192, 32768);
         Settings.MaxImageWidth = Math.Clamp(Settings.MaxImageWidth, 320, 4096);
         Settings.RecognitionIntervalMs = Math.Clamp(Settings.RecognitionIntervalMs, 500, 5000);
         Settings.CpuThreads = Math.Clamp(Settings.CpuThreads, 1, 64);
+        Settings.FocusedMaxTokens = Math.Clamp(Settings.FocusedMaxTokens, 1024, 4096);
+        Settings.FullScanMaxTokens = Math.Clamp(Settings.FullScanMaxTokens, 2048, 8192);
+        if (string.IsNullOrWhiteSpace(Settings.PromptProfileId)) Settings.PromptProfileId = "zh-CN";
+        if (Settings.SelectedQwenModelId == "qwen3.5-2b-q4ks") Settings.SelectedQwenModelId = "qwen3.5-2b-q4km";
     }
 
     public async Task SaveAsync(CancellationToken cancellationToken = default)
@@ -47,7 +52,7 @@ internal sealed class SmartBpRecognitionSettingsService : ISmartBpRecognitionSet
         Directory.CreateDirectory(Path.GetDirectoryName(_path)!);
         var temporary = _path + ".tmp";
         await File.WriteAllTextAsync(temporary, JsonSerializer.Serialize(Settings, Options), cancellationToken);
-        File.Move(temporary, _path, true);
+        await Task.Run(() => File.Move(temporary, _path, true), cancellationToken).ConfigureAwait(false);
     }
 }
 
@@ -95,11 +100,11 @@ internal sealed class QwenModelAssetManager(
     }
 
     public void Cancel() => _downloadCts?.Cancel();
-    public void Delete()
+    public async Task DeleteAsync(CancellationToken cancellationToken = default)
     {
         if (_downloadCts != null) throw new InvalidOperationException("Cannot delete while downloading.");
-        var p = GetProfileAsync().GetAwaiter().GetResult(); var root = GetPaths(p).Root;
-        if (Directory.Exists(root)) Directory.Delete(root, true);
+        var p = await GetProfileAsync(cancellationToken).ConfigureAwait(false); var root = GetPaths(p).Root;
+        await Task.Run(() => { if (Directory.Exists(root)) Directory.Delete(root, true); }, cancellationToken).ConfigureAwait(false);
         Set(new(false, null, "SmartBpAiStatusNotInstalled"));
     }
 
@@ -133,7 +138,7 @@ internal sealed class QwenModelAssetManager(
                 await output.FlushAsync(token);
             }
             if (!await MatchesAsync(temp, hash, token)) throw new InvalidDataException($"SHA256 validation failed for {Path.GetFileName(finalPath)}.");
-            File.Move(temp, finalPath, true);
+            await Task.Run(() => File.Move(temp, finalPath, true), token).ConfigureAwait(false);
         }
         finally { if (File.Exists(temp)) File.Delete(temp); }
     }

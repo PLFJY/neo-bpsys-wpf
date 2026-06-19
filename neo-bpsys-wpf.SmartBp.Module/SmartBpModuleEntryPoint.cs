@@ -55,6 +55,7 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint
         services.AddSingleton(hostServices.GetRequiredService<ISettingsHostService>());
         services.AddSingleton(hostServices.GetRequiredService<ISmartBpOcrModelPathProvider>());
         services.AddSingleton(hostServices.GetRequiredService<ISmartBpModuleStorageProvider>());
+        services.AddSingleton(hostServices.GetRequiredService<IGitHubDownloadUrlResolver>());
         services.AddSingleton(loggerFactory);
         services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
         services.AddSingleton<ISmartBpSceneDefinition, SmartBpGameDataSceneDefinition>();
@@ -64,6 +65,9 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint
         services.AddSingleton<IQwenModelManifestProvider, QwenModelManifestProvider>();
         services.AddSingleton<ISmartBpRecognitionSettingsService, SmartBpRecognitionSettingsService>();
         services.AddSingleton<IQwenModelAssetManager, QwenModelAssetManager>();
+        services.AddSingleton<ISmartBpPromptProfileProvider, SmartBpPromptProfileProvider>();
+        services.AddSingleton<ILlamaCppRuntimeManifestProvider, LlamaCppRuntimeManifestProvider>();
+        services.AddSingleton<ILlamaCppRuntimeAssetManager, LlamaCppRuntimeAssetManager>();
         services.AddSingleton<ISmartBpImageEncoder, SmartBpImageEncoder>();
         services.AddSingleton<ISmartBpCharacterResolver, SmartBpCharacterResolver>();
         services.AddSingleton<ILlamaCppOpenAiClient, LlamaCppOpenAiClient>();

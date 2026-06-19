@@ -39,7 +39,7 @@ public class PluginMarketService : IPluginMarketService
     private PluginDownloadExecutionContext? _currentDownloadContext;
     private readonly ObservableCollection<PluginDownloadQueueItem> _downloadQueueInternal = [];
     private readonly Queue<QueuedPluginDownloadRequest> _pendingDownloads = new();
-    private readonly Dictionary<string, string> _resolvedMirrorCache = new(StringComparer.Ordinal);
+    private readonly IGitHubDownloadUrlResolver _githubDownloadUrlResolver;
     private readonly Queue<PluginPackageDownloadResult> _completedDownloadResults = new();
     private bool _isProcessingQueue;
 
@@ -49,11 +49,13 @@ public class PluginMarketService : IPluginMarketService
     public PluginMarketService(
         ILogger<PluginMarketService> logger,
         ISettingsHostService settingsHostService,
-        IArchiveService archiveService)
+        IArchiveService archiveService,
+        IGitHubDownloadUrlResolver githubDownloadUrlResolver)
     {
         _logger = logger;
         _settingsHostService = settingsHostService;
         _archiveService = archiveService;
+        _githubDownloadUrlResolver = githubDownloadUrlResolver;
         _httpClient = new HttpClient();
         _httpClient.DefaultRequestHeaders.Add("User-Agent", AppConstants.AppName);
         DownloadQueue = new ReadOnlyObservableCollection<PluginDownloadQueueItem>(_downloadQueueInternal);
@@ -271,10 +273,7 @@ public class PluginMarketService : IPluginMarketService
     /// </summary>
     public void ResetMirrorCache()
     {
-        lock (_resolvedMirrorCache)
-        {
-            _resolvedMirrorCache.Clear();
-        }
+        _githubDownloadUrlResolver.ResetCache();
     }
 
     /// <summary>
@@ -282,56 +281,7 @@ public class PluginMarketService : IPluginMarketService
     /// </summary>
     private async Task<string> ResolveGitHubUrlAsync(string url, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(url))
-        {
-            return string.Empty;
-        }
-
-        if (!ShouldApplyGhProxy(url))
-        {
-            return url;
-        }
-
-        var preferredMirror = _settingsHostService.Settings.GhProxyMirror;
-        if (string.IsNullOrWhiteSpace(preferredMirror))
-        {
-            return url;
-        }
-
-        string? resolvedMirror;
-        lock (_resolvedMirrorCache)
-        {
-            _resolvedMirrorCache.TryGetValue(preferredMirror, out resolvedMirror);
-        }
-
-        if (!string.IsNullOrWhiteSpace(resolvedMirror))
-        {
-            return resolvedMirror + url;
-        }
-
-        var candidates = new List<string> { preferredMirror };
-        candidates.AddRange(DownloadMirrorPresets.GhProxyMirrorList.Where(x =>
-            !string.IsNullOrWhiteSpace(x) && !string.Equals(x, preferredMirror, StringComparison.OrdinalIgnoreCase)));
-
-        foreach (var mirror in candidates)
-        {
-            if (await IsMirrorAvailableAsync(mirror, url, cancellationToken))
-            {
-                lock (_resolvedMirrorCache)
-                {
-                    _resolvedMirrorCache[preferredMirror] = mirror;
-                }
-
-                return mirror + url;
-            }
-        }
-
-        lock (_resolvedMirrorCache)
-        {
-            _resolvedMirrorCache[preferredMirror] = string.Empty;
-        }
-
-        return url;
+        return await _githubDownloadUrlResolver.ResolveAsync(url, cancellationToken);
     }
 
     /// <summary>
@@ -344,58 +294,6 @@ public class PluginMarketService : IPluginMarketService
         return string.IsNullOrWhiteSpace(_settingsHostService.Settings.PluginMarketSource)
             ? DefaultMarketIndexUrl
             : _settingsHostService.Settings.PluginMarketSource;
-    }
-
-    /// <summary>
-    /// 判断指定地址是否需要使用镜像。
-    /// </summary>
-    private bool ShouldApplyGhProxy(string url)
-    {
-        if (!IsChineseEnvironment())
-        {
-            return false;
-        }
-
-        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
-        {
-            return false;
-        }
-
-        return uri.Host.Contains("github.com", StringComparison.OrdinalIgnoreCase)
-               || uri.Host.Contains("githubusercontent.com", StringComparison.OrdinalIgnoreCase);
-    }
-
-    /// <summary>
-    /// 判断当前是否处于中文环境。
-    /// </summary>
-    private bool IsChineseEnvironment()
-    {
-        return _settingsHostService.Settings.CultureInfo.Name.StartsWith("zh", StringComparison.OrdinalIgnoreCase);
-    }
-
-    /// <summary>
-    /// 检查指定镜像是否可用于当前目标地址。
-    /// 只有确认镜像本身能访问目标地址后，才会真正把镜像前缀应用到下载地址上。
-    /// </summary>
-    /// <param name="mirror">待测试的镜像前缀。</param>
-    /// <param name="targetUrl">准备通过镜像访问的原始地址。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    private async Task<bool> IsMirrorAvailableAsync(string mirror, string targetUrl, CancellationToken cancellationToken)
-    {
-        try
-        {
-            using var request = new HttpRequestMessage(HttpMethod.Get, mirror + targetUrl);
-            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            linkedCts.CancelAfter(TimeSpan.FromSeconds(4));
-            using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead,
-                linkedCts.Token);
-            return response.IsSuccessStatusCode;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogDebug(ex, "Mirror unavailable: {Mirror}", mirror);
-            return false;
-        }
     }
 
     /// <summary>

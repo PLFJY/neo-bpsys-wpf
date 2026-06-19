@@ -389,6 +389,29 @@
                     Visibility="{Binding IsQwenDownloading, Converter={StaticResource BooleanToVisibilityConverter}}"
                     Value="{Binding QwenDownloadProgress}" />
                 <TextBlock Margin="0,4,0,0" Text="{Binding QwenDownloadStatus}" />
+                <TextBlock Margin="0,10,0,4" Text="{lex:Loc SmartBpAiPromptProfile}" />
+                <ComboBox
+                    DisplayMemberPath="DisplayName"
+                    ItemsSource="{Binding AiPromptProfiles}"
+                    SelectedItem="{Binding SelectedAiPromptProfile}" />
+                <TextBlock Margin="0,10,0,4" Text="{lex:Loc SmartBpAiRuntimeProfile}" />
+                <ComboBox
+                    DisplayMemberPath="DisplayName"
+                    ItemsSource="{Binding LlamaRuntimeAssets}"
+                    SelectedItem="{Binding SelectedLlamaRuntimeAsset}" />
+                <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
+                    <TextBlock Text="{lex:Loc SmartBpAiRuntimeInstalled}" />
+                    <TextBlock Margin="4,0,0,0" Text="{Binding IsLlamaRuntimeInstalled}" />
+                </StackPanel>
+                <WrapPanel Margin="0,8,0,0">
+                    <ui:Button Margin="0,0,8,8" Command="{Binding DownloadLlamaRuntimeCommand}" Content="{lex:Loc SmartBpAiDownloadRuntime}" Icon="{ui:SymbolIcon Symbol=ArrowDownload24}" />
+                    <ui:Button Margin="0,0,8,8" Command="{Binding CancelLlamaRuntimeDownloadCommand}" Content="{lex:Loc SmartBpCancelDownload}" Icon="{ui:SymbolIcon Symbol=Stop24}" />
+                    <ui:Button Margin="0,0,8,8" Command="{Binding DeleteLlamaRuntimeCommand}" Content="{lex:Loc SmartBpAiDeleteRuntime}" Icon="{ui:SymbolIcon Symbol=Delete24}" />
+                </WrapPanel>
+                <ProgressBar Height="16" Visibility="{Binding IsLlamaRuntimeDownloading, Converter={StaticResource BooleanToVisibilityConverter}}" Value="{Binding LlamaRuntimeDownloadProgress}" />
+                <TextBlock Margin="0,4,0,0" Text="{Binding LlamaRuntimeDownloadStatus}" />
+                <TextBlock Margin="0,6,0,2" Text="{lex:Loc SmartBpAiManagedRuntimePath}" />
+                <TextBox IsReadOnly="True" Text="{Binding ManagedLlamaServerExecutablePath}" />
                 <TextBlock Margin="0,10,0,4" Text="{lex:Loc SmartBpAiLlamaPath}" />
                 <DockPanel>
                     <ui:Button
@@ -417,6 +440,8 @@
                     DisplayMemberPath="Id"
                     ItemsSource="{Binding AiTestFrames}"
                     SelectedItem="{Binding SelectedAiTestFrame}" />
+                <TextBlock Margin="0,8,0,4" Text="{lex:Loc SmartBpAiCaptureTask}" />
+                <ComboBox ItemsSource="{Binding AiCaptureTasks}" SelectedItem="{Binding SelectedAiCaptureTask}" />
                 <WrapPanel Margin="0,8,0,0">
                     <ui:Button
                         Margin="0,0,8,8"
@@ -458,6 +483,8 @@
                     Text="{Binding AiRawResponse}"
                     TextWrapping="Wrap"
                     VerticalScrollBarVisibility="Auto" />
+                <TextBlock Margin="0,8,0,2" FontWeight="SemiBold" Text="{lex:Loc SmartBpAiParsedVisualResult}" />
+                <TextBox MinHeight="120" AcceptsReturn="True" IsReadOnly="True" Text="{Binding AiParsedVisualResult}" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
                 <TextBlock
                     Margin="0,8,0,2"
                     FontWeight="SemiBold"

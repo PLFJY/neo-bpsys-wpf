@@ -5636,6 +5636,15 @@
   <data name="SmartBpAiNormalizedResult" xml:space="preserve"><value>规范化结果</value></data>
   <data name="SmartBpAiLastError" xml:space="preserve"><value>最后错误</value></data>
   <data name="SmartBpAiDebugConsole" xml:space="preserve"><value>运行调试控制台</value></data>
+  <data name="SmartBpAiPromptProfile" xml:space="preserve"><value>识别提示词语言</value></data>
+  <data name="SmartBpAiRuntimeProfile" xml:space="preserve"><value>llama.cpp 运行时版本</value></data>
+  <data name="SmartBpAiRuntimeInstalled" xml:space="preserve"><value>运行时已安装：</value></data>
+  <data name="SmartBpAiDownloadRuntime" xml:space="preserve"><value>下载运行时</value></data>
+  <data name="SmartBpAiDeleteRuntime" xml:space="preserve"><value>删除运行时</value></data>
+  <data name="SmartBpAiManagedRuntimePath" xml:space="preserve"><value>托管 llama-server.exe 路径</value></data>
+  <data name="SmartBpAiCaptureTask" xml:space="preserve"><value>当前捕获帧识别任务</value></data>
+  <data name="SmartBpAiParsedVisualResult" xml:space="preserve"><value>视觉提取摘要</value></data>
+  <data name="SmartBpAiRuntimeDownloading" xml:space="preserve"><value>正在下载并安装 llama.cpp 运行时</value></data>
   <data name="SmartBpAiDebugConsoleHint" xml:space="preserve"><value>实时显示 llama-server 启动命令、标准输出、错误输出、健康检查与识别请求状态。</value></data>
   <data name="SmartBpAiClearDebugConsole" xml:space="preserve"><value>清空</value></data>
   <data name="SmartBpAiStatusLoading" xml:space="preserve"><value>正在加载</value></data>

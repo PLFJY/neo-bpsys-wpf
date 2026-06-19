@@ -12,7 +12,7 @@
 
 `SmartBpService.StartSmartBp()` 当前有 `DispatcherTimer` 框架，但 `Timer_Tick` 中还没有完整自动 BP 识别/切屏流程。不要在未明确收到需求时补全这条链路，也不要在文档或 UI 中声称它已完成。
 
-Qwen 识别路径读取内置 manifest，模型和 llama.cpp 日志存放于 SmartBP 模块目录的 `AI` 子目录；AppData 中只保存 `SmartBp/RecognitionSettings.json`。该路径当前不识别 MapBP，也不包含 PaddleOCR BP 区域切片。
+Qwen 识别路径读取内置模型 manifest 和 `Prompts` 多语言提示词配置，输出团队、槽位、玩家 ID、原始可见文字与安全解析后的角色摘要。llama.cpp 运行时可从内置 runtime manifest 在线安装，并存放于 SmartBP 模块目录的 `AI/LlamaCpp/Runtimes/{runtimeId}`；模型和长日志同样只存放在模块 `AI` 目录。AppData 中只保存 `SmartBp/RecognitionSettings.json`。该路径只提供识别预览，不自动回填 BP，不识别 MapBP，也不包含 PaddleOCR BP 区域切片。
 
 ## 插件系统
 

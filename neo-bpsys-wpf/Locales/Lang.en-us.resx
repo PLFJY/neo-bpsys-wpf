@@ -4700,6 +4700,15 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="SmartBpAiNormalizedResult" xml:space="preserve"><value>Normalized result</value></data>
   <data name="SmartBpAiLastError" xml:space="preserve"><value>Last error</value></data>
   <data name="SmartBpAiDebugConsole" xml:space="preserve"><value>Runtime debug console</value></data>
+  <data name="SmartBpAiPromptProfile" xml:space="preserve"><value>Recognition prompt language</value></data>
+  <data name="SmartBpAiRuntimeProfile" xml:space="preserve"><value>llama.cpp runtime profile</value></data>
+  <data name="SmartBpAiRuntimeInstalled" xml:space="preserve"><value>Runtime installed:</value></data>
+  <data name="SmartBpAiDownloadRuntime" xml:space="preserve"><value>Download runtime</value></data>
+  <data name="SmartBpAiDeleteRuntime" xml:space="preserve"><value>Delete runtime</value></data>
+  <data name="SmartBpAiManagedRuntimePath" xml:space="preserve"><value>Managed llama-server.exe path</value></data>
+  <data name="SmartBpAiCaptureTask" xml:space="preserve"><value>Current capture recognition task</value></data>
+  <data name="SmartBpAiParsedVisualResult" xml:space="preserve"><value>Visual extraction summary</value></data>
+  <data name="SmartBpAiRuntimeDownloading" xml:space="preserve"><value>Downloading and installing llama.cpp runtime</value></data>
   <data name="SmartBpAiDebugConsoleHint" xml:space="preserve"><value>Live llama-server command, stdout, stderr, health checks, and recognition request status.</value></data>
   <data name="SmartBpAiClearDebugConsole" xml:space="preserve"><value>Clear</value></data>
   <data name="SmartBpAiStatusLoading" xml:space="preserve"><value>Loading</value></data>

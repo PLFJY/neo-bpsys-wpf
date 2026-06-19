@@ -22,6 +22,8 @@ public partial class SmartBpModuleContentViewModel
         new("pick-hun-16x9", "pick-hun-16x9.png", SmartBpRecognitionTask.PickHun),
         new("character-distribution-16x9", "character-distribution-16x9.png", SmartBpRecognitionTask.CharacterDistribution)
     ];
+    /// <summary>Gets tasks available for current capture recognition.</summary>
+    public IReadOnlyList<SmartBpRecognitionTask> AiCaptureTasks { get; } = Enum.GetValues<SmartBpRecognitionTask>();
 
     [ObservableProperty] private SmartBpTestFrame? _selectedAiTestFrame;
     [ObservableProperty] private string _qwenManifestStatus = "SmartBpAiStatusLoading";
@@ -41,6 +43,16 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty] private int _aiRecommendedIntervalMilliseconds;
     [ObservableProperty] private string _aiLastError = "";
     [ObservableProperty] private string _aiDebugLogText = "";
+    [ObservableProperty] private IReadOnlyList<SmartBpPromptProfile> _aiPromptProfiles = [];
+    [ObservableProperty] private SmartBpPromptProfile? _selectedAiPromptProfile;
+    [ObservableProperty] private SmartBpRecognitionTask _selectedAiCaptureTask = SmartBpRecognitionTask.CharacterDistribution;
+    [ObservableProperty] private IReadOnlyList<LlamaCppRuntimeAsset> _llamaRuntimeAssets = [];
+    [ObservableProperty] private LlamaCppRuntimeAsset? _selectedLlamaRuntimeAsset;
+    [ObservableProperty] private bool _isLlamaRuntimeInstalled;
+    [ObservableProperty] private bool _isLlamaRuntimeDownloading;
+    [ObservableProperty] private double _llamaRuntimeDownloadProgress;
+    [ObservableProperty] private string _llamaRuntimeDownloadStatus = "-";
+    [ObservableProperty] private string _managedLlamaServerExecutablePath = "-";
 
     private void InitializeAiRecognition()
     {
@@ -56,7 +68,27 @@ public partial class SmartBpModuleContentViewModel
         });
         _aiDebugLog.MessageWritten += (_, message) => RunOnUiThread(() => AppendAiDebugMessage(message));
         _aiDebugLog.Write("SmartBP", "AI recognition diagnostics initialized.");
+        _llamaRuntimeAssetManager.StateChanged += (_, state) => RunOnUiThread(() =>
+        {
+            IsLlamaRuntimeDownloading = state.IsDownloading;
+            LlamaRuntimeDownloadProgress = state.Progress ?? 0;
+            LlamaRuntimeDownloadStatus = ResolveLocalizedOrRaw(state.Status);
+        });
+        _ = InitializeAiOptionsAsync();
         _ = RefreshQwenStatusAsync();
+    }
+
+    private async Task InitializeAiOptionsAsync()
+    {
+        try
+        {
+            AiPromptProfiles = await _promptProfileProvider.GetAvailableProfilesAsync();
+            SelectedAiPromptProfile = AiPromptProfiles.FirstOrDefault(x => x.Id == _recognitionSettingsService.Settings.PromptProfileId) ?? AiPromptProfiles.FirstOrDefault();
+            LlamaRuntimeAssets = await _llamaRuntimeAssetManager.GetAvailableAssetsAsync();
+            SelectedLlamaRuntimeAsset = await _llamaRuntimeAssetManager.GetSelectedAssetAsync();
+            await RefreshLlamaRuntimeStatusAsync();
+        }
+        catch (Exception ex) { AiLastError = ex.Message; }
     }
 
     [RelayCommand]
@@ -78,8 +110,12 @@ public partial class SmartBpModuleContentViewModel
     }
     [RelayCommand] private async Task DownloadQwenModelAsync() { try { await _qwenAssetManager.InstallAsync(); await RefreshQwenStatusAsync(); } catch (OperationCanceledException) { } catch (Exception ex) { AiLastError = ex.Message; } }
     [RelayCommand] private void CancelQwenDownload() => _qwenAssetManager.Cancel();
-    [RelayCommand] private void DeleteQwenModel() { try { if (_llamaServerManager.IsRunning) throw new InvalidOperationException("Stop llama-server before deleting the model."); _qwenAssetManager.Delete(); IsQwenInstalled = false; } catch (Exception ex) { AiLastError = ex.Message; } }
+    [RelayCommand] private async Task DeleteQwenModelAsync() { try { if (_llamaServerManager.IsRunning) throw new InvalidOperationException("Stop llama-server before deleting the model."); await _qwenAssetManager.DeleteAsync(); IsQwenInstalled = false; } catch (Exception ex) { AiLastError = ex.Message; } }
     [RelayCommand] private async Task BrowseLlamaServerAsync() { var path = _filePickerService.PickExecutableFile(); if (path == null) return; LlamaServerExecutablePath = path; _recognitionSettingsService.Settings.LlamaServerExecutablePath = path; await _recognitionSettingsService.SaveAsync(); }
+    [RelayCommand] private async Task DownloadLlamaRuntimeAsync() { try { await _llamaRuntimeAssetManager.InstallAsync(); LlamaServerExecutablePath = _recognitionSettingsService.Settings.LlamaServerExecutablePath; await RefreshLlamaRuntimeStatusAsync(); } catch (OperationCanceledException) { } catch (Exception ex) { AiLastError = ex.Message; } }
+    [RelayCommand] private void CancelLlamaRuntimeDownload() => _llamaRuntimeAssetManager.Cancel();
+    [RelayCommand] private async Task DeleteLlamaRuntimeAsync() { try { if (_llamaServerManager.IsRunning) throw new InvalidOperationException("Stop llama-server before deleting the runtime."); await _llamaRuntimeAssetManager.DeleteAsync(); LlamaServerExecutablePath = _recognitionSettingsService.Settings.LlamaServerExecutablePath; await RefreshLlamaRuntimeStatusAsync(); } catch (Exception ex) { AiLastError = ex.Message; } }
+    [RelayCommand] private async Task RefreshLlamaRuntimeStatusAsync() { IsLlamaRuntimeInstalled = await _llamaRuntimeAssetManager.IsInstalledAsync(); ManagedLlamaServerExecutablePath = IsLlamaRuntimeInstalled ? await _llamaRuntimeAssetManager.GetInstalledExecutablePathAsync() : "-"; }
     [RelayCommand] private async Task StartLlamaServerAsync() { try { await _llamaServerManager.StartAsync(); LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusReady"); } catch (Exception ex) { LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusFailed"); AiLastError = ex.Message; } }
     [RelayCommand] private async Task StopLlamaServerAsync() { StopAiPreviewLoop(); await _llamaServerManager.StopAsync(); LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusStopped"); }
     [RelayCommand] private async Task RecognizeSelectedTestFrameAsync()
@@ -91,12 +127,36 @@ public partial class SmartBpModuleContentViewModel
     [RelayCommand] private Task RecognizeCurrentCaptureFrameAsync() => RecognizeCurrentFrameCoreAsync();
     [RelayCommand] private void StartAiPreviewLoop() { if (!_windowCaptureService.IsCapturing) { AiLastError = "Start capture before starting the recognition loop."; return; } IsAiPreviewLoopRunning = true; _aiPreviewTimer.Start(); }
     [RelayCommand] private void StopAiPreviewLoop() { _aiPreviewTimer.Stop(); IsAiPreviewLoopRunning = false; }
-    private async Task RecognizeCurrentFrameCoreAsync() { var frame = _windowCaptureService.GetCurrentFrame(); if (frame == null) { AiLastError = "No capture frame is available."; return; } await RecognizeCoreAsync(frame, SmartBpRecognitionTask.FullBpScan); }
+    private async Task RecognizeCurrentFrameCoreAsync() { var frame = _windowCaptureService.GetCurrentFrame(); if (frame == null) { AiLastError = "No capture frame is available."; return; } await RecognizeCoreAsync(frame, SelectedAiCaptureTask); }
     private async Task RecognizeCoreAsync(BitmapSource frame, SmartBpRecognitionTask task)
     {
         if (Interlocked.CompareExchange(ref _recognitionBusy, 1, 0) != 0) return;
         IsAiRecognizing = true; AiLastError = "";
-        try { var result = await _aiRecognitionService.RecognizeAsync(frame, task); AiRawResponse = result.RawResponse; AiNormalizedResult = result.NormalizedSummary; AiElapsedMilliseconds = result.ElapsedMilliseconds; AiRecommendedIntervalMilliseconds = result.RecommendedIntervalMilliseconds; AiLastError = result.Error ?? ""; }
+        try { var result = await _aiRecognitionService.RecognizeAsync(frame, task); AiRawResponse = result.RawResponse; AiParsedVisualResult = result.ParsedVisualSummary; AiNormalizedResult = result.ResolvedCharacterSummary; AiElapsedMilliseconds = result.ElapsedMilliseconds; AiRecommendedIntervalMilliseconds = result.RecommendedIntervalMilliseconds; AiLastError = result.Error ?? ""; }
         finally { IsAiRecognizing = false; Interlocked.Exchange(ref _recognitionBusy, 0); }
+    }
+
+    [ObservableProperty] private string _aiParsedVisualResult = "";
+
+    partial void OnSelectedAiPromptProfileChanged(SmartBpPromptProfile? value)
+    {
+        if (value == null || value.Id == _recognitionSettingsService.Settings.PromptProfileId) return;
+        _recognitionSettingsService.Settings.PromptProfileId = value.Id;
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnSelectedLlamaRuntimeAssetChanged(LlamaCppRuntimeAsset? value)
+    {
+        if (value == null || value.Id == _recognitionSettingsService.Settings.SelectedLlamaRuntimeId) return;
+        _recognitionSettingsService.Settings.SelectedLlamaRuntimeId = value.Id;
+        _recognitionSettingsService.Settings.LlamaServerExecutablePath = "";
+        LlamaServerExecutablePath = "";
+        _ = SaveRuntimeSelectionAsync();
+    }
+
+    private async Task SaveRuntimeSelectionAsync()
+    {
+        await _recognitionSettingsService.SaveAsync();
+        await RefreshLlamaRuntimeStatusAsync();
     }
 }

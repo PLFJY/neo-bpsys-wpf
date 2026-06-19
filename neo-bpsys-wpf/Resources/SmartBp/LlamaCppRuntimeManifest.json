@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "runtimeVersion": "b9712",
-  "releasePage": "https://github.com/ggml-org/llama.cpp/releases/tag/b9712",
+  "runtimeVersion": "b9716",
+  "releasePage": "https://github.com/ggml-org/llama.cpp/releases/tag/b9716",
   "checkIntervalHours": 168,
   "assets": [
     {
