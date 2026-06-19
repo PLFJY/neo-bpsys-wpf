@@ -4618,4 +4618,18 @@
   <data name="SmartBpAiStopServerBeforeSwitchModel" xml:space="preserve"><value>Qwen モデルを切り替える前に llama-server を停止してください。</value></data>
   <data name="SmartBpAiCheckRuntimeUpdate" xml:space="preserve"><value>llama.cpp 更新を確認</value></data>
   <data name="SmartBpAiLedgerResetCompleted" xml:space="preserve"><value>現在の試合の SmartBP AI 認識履歴をリセットしました。</value></data>
+  <data name="SmartBpRecognitionTitle" xml:space="preserve"><value>SmartBP BP 認識</value></data>
+  <data name="SmartBpRecognitionPreviewNotice" xml:space="preserve"><value>OCR は文字と位置を読み取り、BP フェーズ、BAN、選択結果をローカルで解析します。AI / Qwen 認識は実験的なエンジンとして引き続き利用できます。</value></data>
+  <data name="SmartBpRecognitionEngine" xml:space="preserve"><value>認識エンジン</value></data>
+  <data name="SmartBpRecognitionEngineOcrRecommended" xml:space="preserve"><value>OCR（推奨）</value></data>
+  <data name="SmartBpRecognitionEngineAiQwenExperimental" xml:space="preserve"><value>AI / Qwen（実験）</value></data>
+  <data name="SmartBpAiQwenEnginePanel" xml:space="preserve"><value>AI / Qwen エンジン設定</value></data>
+  <data name="SmartBpOcrModelStatus" xml:space="preserve"><value>OCR モデル</value></data>
+  <data name="SmartBpOcrContactSheet" xml:space="preserve"><value>結合認識画像</value></data>
+  <data name="SmartBpOcrEnableBpRecognition" xml:space="preserve"><value>OCR BP 認識を有効化</value></data>
+  <data name="SmartBpOcrUseContactSheet" xml:space="preserve"><value>OCR 結合認識画像を使用</value></data>
+  <data name="SmartBpOcrDebugOverlay" xml:space="preserve"><value>OCR デバッグオーバーレイを有効化</value></data>
+  <data name="SmartBpOcrIntervalMilliseconds" xml:space="preserve"><value>OCR 認識間隔ミリ秒</value></data>
+  <data name="SmartBpOcrFieldStaleMilliseconds" xml:space="preserve"><value>OCR フィールド再更新までのミリ秒</value></data>
+  <data name="SmartBpOcrBackfillLookBehindSteps" xml:space="preserve"><value>OCR ワークフロー振り返り手順数</value></data>
 </root>

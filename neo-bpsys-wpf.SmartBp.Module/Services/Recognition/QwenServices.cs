@@ -67,6 +67,9 @@ internal sealed class SmartBpRecognitionSettingsService : ISmartBpRecognitionSet
         Settings.StageConfidenceThreshold = Math.Clamp(Settings.StageConfidenceThreshold, 0, 1);
         Settings.GuidanceSyncLookAheadSteps = Math.Clamp(Settings.GuidanceSyncLookAheadSteps, 1, 20);
         Settings.RequiredStableSnapshots = Math.Clamp(Settings.RequiredStableSnapshots, 1, 5);
+        Settings.OcrRecognitionIntervalMs = Math.Clamp(Settings.OcrRecognitionIntervalMs, 100, 5000);
+        Settings.OcrFieldStaleMilliseconds = Math.Clamp(Settings.OcrFieldStaleMilliseconds, 250, 30000);
+        Settings.OcrBackfillLookBehindSteps = Math.Clamp(Settings.OcrBackfillLookBehindSteps, 0, 20);
         Settings.RecognitionBackfillLookBehindSteps = Math.Clamp(Settings.RecognitionBackfillLookBehindSteps, 0, 20);
         Settings.RecognitionFieldStaleMilliseconds = Math.Clamp(Settings.RecognitionFieldStaleMilliseconds, 250, 30000);
         Settings.RecognitionVisualBufferMilliseconds = Math.Clamp(Settings.RecognitionVisualBufferMilliseconds, 0, 5000);

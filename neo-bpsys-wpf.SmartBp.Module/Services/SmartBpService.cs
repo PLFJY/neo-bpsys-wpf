@@ -1,6 +1,6 @@
-using F23.StringSimilarity;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Helpers;
@@ -22,6 +22,7 @@ public class SmartBpService : ISmartBpService
     private readonly ISharedDataService _sharedDataService;
     private readonly IWindowCaptureService _windowCaptureService;
     private readonly IOcrService _ocrService;
+    private readonly ICharacterSelectionService _characterSelectionService;
     private readonly ISmartBpRegionConfigService _regionConfigService;
     private readonly ILogger<SmartBpService> _logger;
     private int _ocrWarmupStarted;
@@ -38,18 +39,21 @@ public class SmartBpService : ISmartBpService
     /// <param name="sharedDataService">共享对局数据服务。</param>
     /// <param name="windowCaptureService">窗口捕获服务。</param>
     /// <param name="ocrService">OCR 服务。</param>
+    /// <param name="characterSelectionService">角色匹配与选择服务。</param>
     /// <param name="regionConfigService">SmartBp 区域配置服务。</param>
     /// <param name="logger">日志记录器。</param>
     public SmartBpService(
         ISharedDataService sharedDataService,
         IWindowCaptureService windowCaptureService,
         IOcrService ocrService,
+        ICharacterSelectionService characterSelectionService,
         ISmartBpRegionConfigService regionConfigService,
         ILogger<SmartBpService> logger)
     {
         _sharedDataService = sharedDataService;
         _windowCaptureService = windowCaptureService;
         _ocrService = ocrService;
+        _characterSelectionService = characterSelectionService;
         _regionConfigService = regionConfigService;
         _logger = logger;
 
@@ -276,50 +280,28 @@ public class SmartBpService : ISmartBpService
         _sharedDataService.CurrentGame.HunPlayer.Data.TerrorShocks = recognizedData.HunterData.TerrorShocks;
         _sharedDataService.CurrentGame.HunPlayer.Data.Knockdowns = recognizedData.HunterData.Knockdowns;
 
-        var jw = new JaroWinkler();
-        const double threshold = 0.50;
-
-        // 求生者通过角色名匹配目标对象。先做规范化精确匹配，再做近似匹配兜底。
+        // 求生者通过共享角色匹配服务定位目标对象，保持 BP OCR 与赛后 OCR 规则一致。
         foreach (var survivorInfo in recognizedData.SurvivorInfos)
         {
             var target = survivorInfo.CharacterName;
-            var sur = _sharedDataService.CurrentGame.SurPlayerList
-                .FirstOrDefault(p => NormalizeName(p.Character?.Name) == target);
-            var matchMode = "exact";
-            var fuzzyScore = 1.0;
-
-            if (sur == null)
-            {
-                var fuzzy = _sharedDataService.CurrentGame.SurPlayerList
-                    .Select(p => new
-                    {
-                        Player = p,
-                        Name = NormalizeName(p.Character?.Name)
-                    })
-                    .Where(x => !string.IsNullOrEmpty(x.Name))
-                    .Select(x => new { x.Player, Score = jw.Similarity(x.Name, target) })
-                    .OrderByDescending(x => x.Score)
-                    .FirstOrDefault(x => x.Score >= threshold);
-                sur = fuzzy?.Player;
-                fuzzyScore = fuzzy?.Score ?? 0.0;
-                matchMode = "fuzzy";
-            }
+            var matchedCharacter = _characterSelectionService.ResolveCharacter(target, Camp.Sur);
+            var sur = matchedCharacter == null
+                ? null
+                : _sharedDataService.CurrentGame.SurPlayerList.FirstOrDefault(
+                    player => string.Equals(player.Character?.Name, matchedCharacter.Name, StringComparison.Ordinal));
 
             if (sur == null)
             {
                 _logger.LogDebug(
-                    "SmartBp Match failed: recognizedCharacter={Character}, threshold={Threshold}",
-                    ToLogText(target),
-                    threshold);
+                    "SmartBp Match failed: recognizedCharacter={Character}",
+                    ToLogText(target));
                 continue;
             }
 
             _logger.LogDebug(
-                "SmartBp Match success: mode={Mode}, recognizedCharacter={Character}, mappedTo={MappedCharacter}, score={Score:F3}",
-                matchMode,
+                "SmartBp Match success: recognizedCharacter={Character}, mappedTo={MappedCharacter}",
                 ToLogText(target),
-                ToLogText(sur.Character?.Name),
-                fuzzyScore);
+                ToLogText(sur.Character?.Name));
 
             sur.Data.DecodingProgress = survivorInfo.PlayerData.DecodingProgress;
             sur.Data.PalletStrikes = survivorInfo.PlayerData.PalletStrikes;

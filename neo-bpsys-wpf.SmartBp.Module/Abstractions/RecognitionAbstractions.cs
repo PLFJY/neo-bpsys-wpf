@@ -129,6 +129,48 @@ public interface ISmartBpCropChangeDetector
     /// <summary>Analyzes one crop and returns a lightweight change result.</summary>
     SmartBpCropChangeResult Analyze(SmartBpRecognitionRegion region, BitmapSource crop, long sequence);
 }
+/// <summary>Builds a single OCR contact sheet from multiple SmartBP recognition regions.</summary>
+public interface ISmartBpOcrContactSheetBuilder
+{
+    /// <summary>Builds an unlabeled contact sheet and coordinate mapping.</summary>
+    /// <param name="frame">Source frame.</param>
+    /// <param name="regions">Requested regions.</param>
+    /// <returns>Contact-sheet image and mappings.</returns>
+    SmartBpOcrContactSheet Build(BitmapSource frame, IReadOnlyList<SmartBpRecognitionRegion> regions);
+}
+/// <summary>Resolves OCR text lines to canonical character names.</summary>
+public interface ISmartBpOcrTextResolver
+{
+    /// <summary>Resolves one OCR line as a candidate character.</summary>
+    /// <param name="text">OCR text.</param>
+    /// <param name="camp">Target camp.</param>
+    /// <param name="slotIndex">Visual slot index.</param>
+    /// <returns>Resolved character information, or unresolved details.</returns>
+    SmartBpNormalizedCharacter ResolveCharacterFromLine(string text, Core.Enums.Camp camp, int slotIndex);
+}
+/// <summary>Recognizes BP state from PaddleOCR text and bounding boxes.</summary>
+public interface ISmartBpOcrBpRecognitionService
+{
+    /// <summary>Runs one OCR BP recognition pass.</summary>
+    /// <param name="frame">Source frame.</param>
+    /// <param name="request">Requested OCR regions.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>OCR recognition result.</returns>
+    Task<SmartBpOcrRecognitionResult> RecognizeAsync(
+        BitmapSource frame,
+        SmartBpOcrRecognitionRequest request,
+        CancellationToken cancellationToken = default);
+}
+/// <summary>Recognizes one incremental OCR snapshot delta.</summary>
+public interface ISmartBpOcrSnapshotDeltaRecognitionService
+{
+    /// <summary>Recognizes a requested OCR delta package from one frame.</summary>
+    Task<(SmartBpSnapshotDeltaResult Delta, IReadOnlyDictionary<string, string> RawResponses, SmartBpCroppedFrame PhaseCrop, IReadOnlyList<SmartBpCroppedFrame> ContentCrops, IReadOnlyList<string> Diagnostics)> RecognizeDeltaAsync(
+        BitmapSource frame,
+        SmartBpSnapshotDeltaRequest request,
+        long frameSequence,
+        CancellationToken cancellationToken = default);
+}
 /// <summary>Recognizes and locally merges phase plus all four coarse BP content regions.</summary>
 public interface ISmartBpRegionSnapshotRecognitionService
 {

@@ -13,6 +13,14 @@ namespace neo_bpsys_wpf.Core.Abstractions.Services;
 public interface ICharacterSelectionService
 {
     /// <summary>
+    /// 根据识别文本和阵营匹配角色字典中相似度最高的角色。
+    /// </summary>
+    /// <param name="text">待匹配的 OCR 或外部识别文本。</param>
+    /// <param name="camp">角色阵营。</param>
+    /// <returns>相似度不低于匹配阈值的最佳角色；没有有效候选时返回 <see langword="null"/>。</returns>
+    Character? ResolveCharacter(string text, Camp camp);
+
+    /// <summary>
     /// 选择求生者角色
     /// </summary>
     /// <param name="playerIndex">玩家索引 (0-3)</param>

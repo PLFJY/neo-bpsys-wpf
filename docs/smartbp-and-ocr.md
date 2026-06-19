@@ -9,9 +9,11 @@ SmartBP 需要分清两个能力：
 | 能力 | 当前状态 |
 | --- | --- |
 | 赛后数据 OCR 自动回填 | 已经成熟且可用 |
-| 全流程自动 BP / 自动 BP 画面切换 | TODO。`SmartBpService.StartSmartBp()` 有定时器框架，但 `Timer_Tick` 中尚未实现完整自动 BP 逻辑 |
+| BP 状态 OCR 识别 | 使用 PaddleOCR 文本与边界框，本地解析阶段、禁用、选择与玩家 ID，并复用识别状态、补录、ledger 和应用管线 |
+| Qwen + llama.cpp BP 状态识别 | 保留为实验引擎，不作为默认路径 |
+| 全流程自动 BP 画面切换 | TODO。当前识别结果只进入现有候选操作/应用管线，不实现自动切屏 |
 
-不要在文档、UI 或提交说明中把“全流程自动 BP”描述为已完成。
+不要在文档、UI 或提交说明中把“全流程自动 BP”或 MapBP 识别描述为已完成。
 
 ## OCR 模型管理
 
@@ -73,6 +75,24 @@ SmartBP 模块在线安装和手动导入支持 `.7z` 与旧 `.zip` 包，归档
 9. 将求生者数据按角色名匹配后写回 `CurrentGame.SurPlayerList`。
 
 求生者匹配先做规范化精确匹配，再用 Jaro-Winkler 模糊匹配兜底，阈值当前为 `0.50`。
+
+## BP 状态 OCR 识别流程
+
+BP 状态识别和赛后数据 OCR 是两条不同流程。BP 识别不直接写 `CurrentGame`，而是先生成 `SmartBpBusinessStateRecognitionResult` / `SmartBpSnapshotDeltaResult`，再进入已有状态合并、工作流补录、ledger 和 `SmartBpDetectedOperationApplier`。
+
+默认引擎是 PaddleOCR：
+
+1. 从当前捕获帧裁剪 `phase_top` 和 planner 请求的内容区域。
+2. 默认把裁剪图按纵向拼成无文字标签的 OCR contact sheet，只运行一次 PaddleOCR。
+3. 读取 `PaddleOcrResult.Regions` 中的文本、置信度和 `RotatedRect`，转换为按 `CenterY`、`CenterX` 排序的文本行与轴对齐边界框。
+4. 按 contact sheet 坐标把文本行映射回 `phase_top`、`left_top`、`right_top`、`left_bottom`、`right_bottom`。
+5. 本地规则根据 `phase_top` 文本和左右侧 X 坐标判断阶段；非活动侧 `等待中` 不覆盖活动阶段。
+6. 本地解析四个粗区域：`right_top -> banned_sur`、`left_top -> banned_hun`、`left_bottom -> picked_sur`、`right_bottom -> picked_hun`。
+7. 角色名只从 `ISharedDataService.SurCharaDict` / `HunCharaDict` 匹配；无法明确解析的 OCR 文本只进入诊断，不会应用为角色。
+
+`UseOcrContactSheet = false` 时会逐区域 OCR，主要用于排查 contact sheet 映射问题。OCR 识别默认间隔较短，字段 stale 和回看步数使用 OCR 专用设置；AI / Qwen 引擎仍保留原有较慢的多图请求设置。
+
+当前不识别 MapBP，不识别天赋结果，不直接修改 `CurrentGame`。
 
 ## 区域配置
 

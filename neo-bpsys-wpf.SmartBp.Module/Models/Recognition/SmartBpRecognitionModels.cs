@@ -2,11 +2,16 @@ using System.Text.Json.Serialization;
 using System.Windows.Media.Imaging;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using OpenCvSharp;
 
 namespace neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
 
 /// <summary>Supported AI recognition tasks.</summary>
 public enum SmartBpRecognitionTask { DetectStage, BanSur, BanHun, PickSur, PickHun, CharacterDistribution, FullBpScan }
+
+/// <summary>Supported SmartBP BP recognition engines.</summary>
+public enum SmartBpRecognitionEngine { Ocr, AiQwen }
 
 /// <summary>Coarse SmartBP recognition crop regions.</summary>
 public enum SmartBpRecognitionRegion { PhaseTop, LeftTop, RightTop, LeftBottom, RightBottom }
@@ -149,6 +154,20 @@ public sealed class SmartBpRecognitionSettings
     public int RequiredStableSnapshots { get; set; } = 1;
     /// <summary>Gets or sets whether automatic recognition should use one multi-image snapshot delta request.</summary>
     public bool UseMultiImageSnapshotRequest { get; set; } = true;
+    /// <summary>Gets or sets the selected BP recognition engine.</summary>
+    public SmartBpRecognitionEngine RecognitionEngine { get; set; } = SmartBpRecognitionEngine.Ocr;
+    /// <summary>Gets or sets whether OCR BP recognition is enabled.</summary>
+    public bool EnableOcrBpRecognition { get; set; } = true;
+    /// <summary>Gets or sets the OCR BP loop interval.</summary>
+    public int OcrRecognitionIntervalMs { get; set; } = 300;
+    /// <summary>Gets or sets how long an OCR-merged field may remain fresh.</summary>
+    public int OcrFieldStaleMilliseconds { get; set; } = 1500;
+    /// <summary>Gets or sets how many previous workflow steps OCR considers for backfill planning.</summary>
+    public int OcrBackfillLookBehindSteps { get; set; } = 2;
+    /// <summary>Gets or sets whether OCR should combine crops into one contact sheet.</summary>
+    public bool UseOcrContactSheet { get; set; } = true;
+    /// <summary>Gets or sets whether OCR debug overlay output is enabled.</summary>
+    public bool EnableOcrDebugOverlay { get; set; }
     /// <summary>Gets or sets how many previous workflow steps are considered when planning content-region refreshes.</summary>
     public int RecognitionBackfillLookBehindSteps { get; set; } = 2;
     /// <summary>Gets or sets how long a locally merged recognition field may remain fresh.</summary>
@@ -442,6 +461,55 @@ public sealed record SmartBpBufferedFrame(long Sequence, BitmapSource Frame, Dat
 
 /// <summary>Lightweight crop-change analysis result.</summary>
 public sealed record SmartBpCropChangeResult(SmartBpRecognitionRegion Region, long Sequence, double Difference, bool IsChanged, bool IsStable);
+
+/// <summary>OCR text grouped by one SmartBP coarse recognition region.</summary>
+public sealed class SmartBpOcrRegionText
+{
+    /// <summary>Gets the source coarse region.</summary>
+    public SmartBpRecognitionRegion Region { get; init; }
+    /// <summary>Gets OCR text lines using region-local coordinates.</summary>
+    public IReadOnlyList<OcrTextLine> Lines { get; init; } = [];
+}
+
+/// <summary>OCR-based SmartBP BP recognition result.</summary>
+public sealed class SmartBpOcrRecognitionResult
+{
+    /// <summary>Gets the locally classified BP phase.</summary>
+    public SmartBpPhaseRecognitionResult Phase { get; init; } = new();
+    /// <summary>Gets the locally parsed business state for the requested OCR regions.</summary>
+    public SmartBpBusinessStateRecognitionResult BusinessState { get; init; } = new();
+    /// <summary>Gets OCR text grouped by coarse region.</summary>
+    public IReadOnlyList<SmartBpOcrRegionText> Regions { get; init; } = [];
+    /// <summary>Gets bounded recognition diagnostics.</summary>
+    public IReadOnlyList<string> Diagnostics { get; init; } = [];
+}
+
+/// <summary>OCR BP recognition request.</summary>
+/// <param name="ContentRegions">Content regions to parse in this tick.</param>
+/// <param name="IncludePhase">Whether to include the phase region.</param>
+public sealed record SmartBpOcrRecognitionRequest(
+    IReadOnlyList<SmartBpRecognitionRegion> ContentRegions,
+    bool IncludePhase = true);
+
+/// <summary>One contact-sheet image containing multiple OCR crops.</summary>
+/// <param name="Image">Stacked OCR image.</param>
+/// <param name="Regions">Coordinate mappings from sheet space to SmartBP regions.</param>
+public sealed record SmartBpOcrContactSheet(
+    Mat Image,
+    IReadOnlyList<SmartBpOcrContactSheetRegion> Regions) : IDisposable
+{
+    /// <summary>Disposes the backing OpenCV image.</summary>
+    public void Dispose() => Image.Dispose();
+}
+
+/// <summary>Mapping for one OCR contact-sheet crop.</summary>
+/// <param name="Region">Source SmartBP region.</param>
+/// <param name="SheetRect">Region rectangle in contact-sheet coordinates.</param>
+/// <param name="OriginalFrameRect">Region rectangle in original frame coordinates.</param>
+public sealed record SmartBpOcrContactSheetRegion(
+    SmartBpRecognitionRegion Region,
+    Rect SheetRect,
+    Rect OriginalFrameRect);
 
 /// <summary>Download state exposed to the UI.</summary>
 public record SmartBpDownloadState(bool IsDownloading, double? Progress, string Status,

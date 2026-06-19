@@ -97,6 +97,7 @@ public class GameGuidanceService(
     /// <inheritdoc/>
     public event EventHandler<GameGuidanceHighlightChangedEventArgs>? GuidanceHighlightCleared;
 
+    /// <inheritdoc/>
     public bool IsGuidanceStarted
     {
         get => _isGuidanceStarted;
@@ -154,6 +155,7 @@ public class GameGuidanceService(
         return content[gameProgress];
     }
 
+    /// <inheritdoc/>
     public async Task<string?> StartGuidance()
     {
         if (IsGuidanceStarted)
@@ -195,6 +197,7 @@ public class GameGuidanceService(
         return null;
     }
 
+    /// <inheritdoc/>
     public void StopGuidance()
     {
         if (!IsGuidanceStarted)
@@ -228,7 +231,8 @@ public class GameGuidanceService(
             currentStep?.Index);
     }
 
-    public async Task<string?> NextStepAsync()
+    /// <inheritdoc/>
+    public async Task<string?> NextStepAsync(bool isNavigatePageEnable = true)
     {
         if (!IsGuidanceStarted)
         {
@@ -240,7 +244,7 @@ public class GameGuidanceService(
         {
             if (_currentStep + 1 < _currentGameProperty.WorkFlow.Count)
             {
-                return await HandleStepChange(_currentStep + 1);
+                return await HandleStepChange(_currentStep + 1, isNavigatePageEnable);
             }
 
             _infoBarService.ShowWarningInfoBar(I18nHelper.GetLocalizedString("AlreadyLastStep"));
@@ -255,7 +259,8 @@ public class GameGuidanceService(
         return null;
     }
 
-    public async Task<string?> PrevStepAsync()
+    /// <inheritdoc/>
+    public async Task<string?> PrevStepAsync(bool isNavigatePageEnable = true)
     {
         if (!IsGuidanceStarted)
         {
@@ -267,7 +272,7 @@ public class GameGuidanceService(
         {
             if (_currentStep > 0)
             {
-                return await HandleStepChange(_currentStep - 1);
+                return await HandleStepChange(_currentStep - 1, isNavigatePageEnable);
             }
 
             _infoBarService.ShowWarningInfoBar(I18nHelper.GetLocalizedString("AlreadyFirstStep"));
@@ -292,7 +297,7 @@ public class GameGuidanceService(
     }
 
     /// <inheritdoc />
-    public async Task<string?> MoveToStepAsync(int stepIndex)
+    public async Task<string?> MoveToStepAsync(int stepIndex, bool isNavigatePageEnable = true)
     {
         if (!IsGuidanceStarted)
         {
@@ -301,10 +306,10 @@ public class GameGuidanceService(
         }
         if (_currentGameProperty == null || stepIndex < 0 || stepIndex >= _currentGameProperty.WorkFlow.Count)
             return I18nHelper.GetLocalizedString("GameInfoError");
-        return await HandleStepChange(stepIndex);
+        return await HandleStepChange(stepIndex, isNavigatePageEnable);
     }
 
-    private async Task<string> HandleStepChange(int newStepIndex)
+    private async Task<string> HandleStepChange(int newStepIndex, bool isNavigatePageEnable = true)
     {
         if (_currentGameProperty == null) return "N/A";
         var previousStepIndex = _currentStep;
@@ -315,7 +320,7 @@ public class GameGuidanceService(
         _currentStep = newStepIndex;
 
         //切换页面
-        if (thisStep.Action != GameAction.PickCamp)
+        if (thisStep.Action != GameAction.PickCamp && isNavigatePageEnable)
             _navigationService.Navigate(_actionToPage[thisStep.Action]);
         //设置计时器
         _sharedDataService.TimerStart(thisStep.Time);

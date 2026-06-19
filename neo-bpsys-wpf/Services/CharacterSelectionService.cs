@@ -1,9 +1,11 @@
+using F23.StringSimilarity;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Events;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using System.Diagnostics;
+using System.Text;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -16,12 +18,40 @@ public class CharacterSelectionService(
     IFrontedLayoutService layoutService)
     : ICharacterSelectionService
 {
+    private const double CharacterMatchThreshold = 0.70;
+    private readonly JaroWinkler _characterSimilarity = new();
+
 #if DEBUG
     static CharacterSelectionService()
     {
         Debug.WriteLine($"[DIAG] CharacterSelectionService: static ctor at {DateTimeOffset.Now:HH:mm:ss.fff}");
     }
 #endif
+    /// <inheritdoc/>
+    public Character? ResolveCharacter(string text, Camp camp)
+    {
+        var normalizedText = NormalizeCharacterName(text);
+        if (string.IsNullOrEmpty(normalizedText))
+            return null;
+
+        var candidates = camp == Camp.Sur
+            ? sharedDataService.SurCharaDict.Values
+            : sharedDataService.HunCharaDict.Values;
+
+        return candidates
+            .Select(character => new
+            {
+                Character = character,
+                Score = _characterSimilarity.Similarity(
+                    NormalizeCharacterName(character.Name),
+                    normalizedText)
+            })
+            .Where(candidate => candidate.Score >= CharacterMatchThreshold)
+            .OrderByDescending(candidate => candidate.Score)
+            .FirstOrDefault()
+            ?.Character;
+    }
+
     /// <inheritdoc/>
     public async Task SelectSurvivorAsync(int playerIndex, Character? character, bool playAnimation = true, bool isRecordGlobalBan = true)
     {
@@ -201,6 +231,15 @@ public class CharacterSelectionService(
 
     private static bool HasCharacter(Character? character) =>
         character is not null && !string.IsNullOrWhiteSpace(character.Name);
+
+    private static string NormalizeCharacterName(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return string.Empty;
+
+        var normalized = name.Normalize(NormalizationForm.FormKC).Trim().ToLowerInvariant();
+        return new string(normalized.Where(char.IsLetterOrDigit).ToArray());
+    }
 
     /// <inheritdoc/>
     public event EventHandler<CharacterBannedEventArgs>? CharacterBanned;

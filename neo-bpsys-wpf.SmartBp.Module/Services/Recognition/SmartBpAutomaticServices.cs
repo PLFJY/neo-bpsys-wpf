@@ -434,7 +434,7 @@ internal sealed class SmartBpGuidanceSyncService(
             return new(false, true, "Current GameGuidance step already matches the detected stage.", target.Action, target.Indexes, target.StepIndex);
 
         cancellationToken.ThrowIfCancellationRequested();
-        var moveError = await guidance.MoveToStepAsync(target.StepIndex);
+        var moveError = await guidance.MoveToStepAsync(target.StepIndex, false);
         if (!string.IsNullOrWhiteSpace(moveError)) return Reject(moveError, action);
         return new(true, true, $"GameGuidance moved forward to step {target.StepIndex}.", target.Action, target.Indexes, target.StepIndex);
     }
@@ -456,7 +456,7 @@ internal sealed class SmartBpGuidanceSyncService(
 
         var target = candidates[0];
         cancellationToken.ThrowIfCancellationRequested();
-        var moveError = await guidance.MoveToStepAsync(target.StepIndex);
+        var moveError = await guidance.MoveToStepAsync(target.StepIndex, false);
         if (!string.IsNullOrWhiteSpace(moveError)) return Reject(moveError, target.Action);
         return new(true, true, $"GameGuidance moved forward to locked talent context step {target.StepIndex}.", target.Action, target.Indexes, target.StepIndex);
     }

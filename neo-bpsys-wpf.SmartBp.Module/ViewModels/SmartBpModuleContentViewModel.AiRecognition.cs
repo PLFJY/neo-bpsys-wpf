@@ -63,6 +63,16 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty] private bool _enableAutoApplyRecognition;
     [ObservableProperty] private bool _playBackfillAnimations;
     [ObservableProperty] private bool _useMultiImageSnapshotRequest;
+    [ObservableProperty] private IReadOnlyList<RecognitionEngineSelection> _recognitionEngines = [];
+    [ObservableProperty] private RecognitionEngineSelection? _selectedRecognitionEngine;
+    [ObservableProperty] private bool _isOcrRecognitionEngine = true;
+    [ObservableProperty] private bool _isAiQwenRecognitionEngine;
+    [ObservableProperty] private bool _enableOcrBpRecognition = true;
+    [ObservableProperty] private int _ocrRecognitionIntervalMs;
+    [ObservableProperty] private int _ocrFieldStaleMilliseconds;
+    [ObservableProperty] private int _ocrBackfillLookBehindSteps;
+    [ObservableProperty] private bool _useOcrContactSheet = true;
+    [ObservableProperty] private bool _enableOcrDebugOverlay;
     [ObservableProperty] private bool _allowSequentialSnapshotFallback;
     [ObservableProperty] private bool _useStrictCandidateEnumsInAutoSchema;
     [ObservableProperty] private int _phaseCropMaxImageWidth;
@@ -90,6 +100,14 @@ public partial class SmartBpModuleContentViewModel
     private void InitializeAiRecognition()
     {
         SelectedAiTestFrame = AiTestFrames[0];
+        RecognitionEngines =
+        [
+            new(SmartBpRecognitionEngine.Ocr, "SmartBpRecognitionEngineOcrRecommended"),
+            new(SmartBpRecognitionEngine.AiQwen, "SmartBpRecognitionEngineAiQwenExperimental")
+        ];
+        SelectedRecognitionEngine = RecognitionEngines.FirstOrDefault(x => x.Engine == _recognitionSettingsService.Settings.RecognitionEngine)
+                                    ?? RecognitionEngines.FirstOrDefault();
+        RefreshRecognitionEngineVisibility();
         QwenManifestStatus = ResolveLocalizedOrRaw("SmartBpAiStatusLoading");
         LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusStopped");
         LlamaServerExecutablePath = _recognitionSettingsService.Settings.LlamaServerExecutablePath;
@@ -97,6 +115,12 @@ public partial class SmartBpModuleContentViewModel
         EnableAutoApplyRecognition = _recognitionSettingsService.Settings.EnableAutoApplyRecognition;
         PlayBackfillAnimations = _recognitionSettingsService.Settings.PlayBackfillAnimations;
         UseMultiImageSnapshotRequest = _recognitionSettingsService.Settings.UseMultiImageSnapshotRequest;
+        EnableOcrBpRecognition = _recognitionSettingsService.Settings.EnableOcrBpRecognition;
+        OcrRecognitionIntervalMs = _recognitionSettingsService.Settings.OcrRecognitionIntervalMs;
+        OcrFieldStaleMilliseconds = _recognitionSettingsService.Settings.OcrFieldStaleMilliseconds;
+        OcrBackfillLookBehindSteps = _recognitionSettingsService.Settings.OcrBackfillLookBehindSteps;
+        UseOcrContactSheet = _recognitionSettingsService.Settings.UseOcrContactSheet;
+        EnableOcrDebugOverlay = _recognitionSettingsService.Settings.EnableOcrDebugOverlay;
         AllowSequentialSnapshotFallback = _recognitionSettingsService.Settings.AllowSequentialSnapshotFallback;
         UseStrictCandidateEnumsInAutoSchema = _recognitionSettingsService.Settings.UseStrictCandidateEnumsInAutoSchema;
         PhaseCropMaxImageWidth = _recognitionSettingsService.Settings.PhaseCropMaxImageWidth;
@@ -113,7 +137,7 @@ public partial class SmartBpModuleContentViewModel
         LlamaFlashAttention = _recognitionSettingsService.Settings.LlamaFlashAttention;
         LlamaBatchSize = _recognitionSettingsService.Settings.LlamaBatchSize;
         LlamaUBatchSize = _recognitionSettingsService.Settings.LlamaUBatchSize;
-        _aiPreviewTimer.Interval = TimeSpan.FromMilliseconds(_recognitionSettingsService.Settings.RecognitionIntervalMs);
+        RefreshRecognitionTimerInterval();
         _aiPreviewTimer.Tick += async (_, _) => await RunAutomaticCurrentFrameCoreAsync();
         _qwenAssetManager.StateChanged += (_, state) => RunOnUiThread(() =>
         {
@@ -270,6 +294,22 @@ public partial class SmartBpModuleContentViewModel
     {
         try { var p = await _qwenAssetManager.GetProfileAsync(); QwenModelProfile = p.DisplayName; QwenMmprojProfile = Path.GetFileNameWithoutExtension(p.MmprojFileName); SelectedQwenModelProfile = QwenModelProfiles.FirstOrDefault(x => x.Id == p.Id) ?? SelectedQwenModelProfile; IsQwenInstalled = await _qwenAssetManager.IsInstalledAsync(); QwenManifestStatus = ResolveLocalizedOrRaw("SmartBpAiStatusLoaded"); }
         catch (Exception ex) { QwenManifestStatus = ResolveLocalizedOrRaw("SmartBpAiStatusFailed"); AiLastError = ex.Message; }
+    }
+
+    private void RefreshRecognitionEngineVisibility()
+    {
+        var engine = SelectedRecognitionEngine?.Engine ?? _recognitionSettingsService.Settings.RecognitionEngine;
+        IsOcrRecognitionEngine = engine == SmartBpRecognitionEngine.Ocr;
+        IsAiQwenRecognitionEngine = engine == SmartBpRecognitionEngine.AiQwen;
+        RefreshRecognitionTimerInterval();
+    }
+
+    private void RefreshRecognitionTimerInterval()
+    {
+        var interval = _recognitionSettingsService.Settings.RecognitionEngine == SmartBpRecognitionEngine.Ocr
+            ? _recognitionSettingsService.Settings.OcrRecognitionIntervalMs
+            : _recognitionSettingsService.Settings.RecognitionIntervalMs;
+        _aiPreviewTimer.Interval = TimeSpan.FromMilliseconds(Math.Clamp(interval, 100, 5000));
     }
     [RelayCommand] private async Task DownloadQwenModelAsync() { try { await _qwenAssetManager.InstallAsync(); await RefreshQwenStatusAsync(); } catch (OperationCanceledException) { } catch (Exception ex) { AiLastError = ex.Message; } }
     [RelayCommand] private void CancelQwenDownload() => _qwenAssetManager.Cancel();
@@ -569,6 +609,54 @@ public partial class SmartBpModuleContentViewModel
         await RefreshLlamaRuntimeStatusAsync();
     }
 
+    partial void OnSelectedRecognitionEngineChanged(RecognitionEngineSelection? value)
+    {
+        if (value == null)
+            return;
+
+        _recognitionSettingsService.Settings.RecognitionEngine = value.Engine;
+        RefreshRecognitionEngineVisibility();
+        _ = _recognitionSettingsService.SaveAsync();
+        _aiDebugLog.Write("Recognition", $"Recognition engine switched to {value.Engine}.");
+    }
+
+    partial void OnEnableOcrBpRecognitionChanged(bool value)
+    {
+        _recognitionSettingsService.Settings.EnableOcrBpRecognition = value;
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnOcrRecognitionIntervalMsChanged(int value)
+    {
+        _recognitionSettingsService.Settings.OcrRecognitionIntervalMs = Math.Clamp(value, 100, 5000);
+        RefreshRecognitionTimerInterval();
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnOcrFieldStaleMillisecondsChanged(int value)
+    {
+        _recognitionSettingsService.Settings.OcrFieldStaleMilliseconds = Math.Clamp(value, 250, 30000);
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnOcrBackfillLookBehindStepsChanged(int value)
+    {
+        _recognitionSettingsService.Settings.OcrBackfillLookBehindSteps = Math.Clamp(value, 0, 20);
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnUseOcrContactSheetChanged(bool value)
+    {
+        _recognitionSettingsService.Settings.UseOcrContactSheet = value;
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnEnableOcrDebugOverlayChanged(bool value)
+    {
+        _recognitionSettingsService.Settings.EnableOcrDebugOverlay = value;
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
     partial void OnAllowSequentialSnapshotFallbackChanged(bool value)
     {
         _recognitionSettingsService.Settings.AllowSequentialSnapshotFallback = value;
@@ -642,4 +730,11 @@ public partial class SmartBpModuleContentViewModel
         while (value >= 1024 && index < units.Length - 1) { value /= 1024; index++; }
         return $"{value:0.##} {units[index]}";
     }
+
+    /// <summary>
+    /// Recognition engine combo-box item.
+    /// </summary>
+    /// <param name="Engine">Engine value.</param>
+    /// <param name="DisplayNameKey">Localized display name key.</param>
+    public sealed record RecognitionEngineSelection(SmartBpRecognitionEngine Engine, string DisplayNameKey);
 }

@@ -3,6 +3,29 @@ using OpenCvSharp;
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
 /// <summary>
+/// OCR 识别到的一行文本及其位置。
+/// </summary>
+/// <param name="Text">规范化后的文本。</param>
+/// <param name="Confidence">识别置信度。</param>
+/// <param name="BoundingBox">文本在输入图像中的轴对齐外接矩形。</param>
+/// <param name="CenterX">文本中心点 X 坐标。</param>
+/// <param name="CenterY">文本中心点 Y 坐标。</param>
+public sealed record OcrTextLine(string Text, double Confidence, Rect BoundingBox, double CenterX, double CenterY);
+
+/// <summary>
+/// OCR 文本块识别结果。
+/// </summary>
+/// <param name="Lines">按纵向、横向顺序排列的文本行。</param>
+/// <param name="FullText">合并后的完整文本。</param>
+public sealed record OcrTextBlockResult(IReadOnlyList<OcrTextLine> Lines, string FullText)
+{
+    /// <summary>
+    /// 空 OCR 文本块结果。
+    /// </summary>
+    public static OcrTextBlockResult Empty { get; } = new([], string.Empty);
+}
+
+/// <summary>
 /// OCR 模型定义。
 /// </summary>
 /// <param name="Key">模型唯一标识。</param>
@@ -88,4 +111,11 @@ public interface IOcrService
     /// <param name="bin">待识别图像。</param>
     /// <returns>识别文本；识别失败时返回 <see langword="null"/>。</returns>
     string? RecognizeText(Mat bin);
+
+    /// <summary>
+    /// 识别图像中的文本行与边界框。
+    /// </summary>
+    /// <param name="img">待识别图像。</param>
+    /// <returns>文本行识别结果；无文本或失败时返回空结果。</returns>
+    OcrTextBlockResult RecognizeTextLines(Mat img);
 }

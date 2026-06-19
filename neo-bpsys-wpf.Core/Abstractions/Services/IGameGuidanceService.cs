@@ -91,22 +91,24 @@ public interface IGameGuidanceService
     /// <summary>
     /// 下一步
     /// </summary>
+    /// <param name="isNavigatePageEnable">是否开启页面导航</param>
     /// <returns>错误信息，如果执行成功则返回 <c>null</c></returns>
-    Task<string?> NextStepAsync();
+    Task<string?> NextStepAsync(bool isNavigatePageEnable = true);
 
     /// <summary>
     /// 上一步
     /// </summary>
     /// <returns>错误信息，如果执行成功则返回 <c>null</c></returns>
-    Task<string?> PrevStepAsync();
+    Task<string?> PrevStepAsync(bool isNavigatePageEnable = true);
 
     /// <summary>Gets an immutable snapshot of the active workflow and current step.</summary>
     GameGuidanceRuntimeSnapshot GetRuntimeSnapshot() => new(false, -1, null, [], null, []);
 
     /// <summary>Moves to a validated workflow step through the normal guidance transition path.</summary>
     /// <param name="stepIndex">Target workflow step index.</param>
+    /// <param name="isNavigatePageEnable">Is enable page switch</param>
     /// <returns>Error/display text following the existing guidance command convention.</returns>
-    Task<string?> MoveToStepAsync(int stepIndex) => Task.FromResult<string?>(null);
+    Task<string?> MoveToStepAsync(int stepIndex, bool isNavigatePageEnable = true) => Task.FromResult<string?>(null);
 
     /// <summary>
     /// 停止对局引导

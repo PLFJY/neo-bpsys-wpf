@@ -77,6 +77,11 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint
         services.AddSingleton<ISmartBpFrameRingBuffer, SmartBpFrameRingBuffer>();
         services.AddSingleton<ISmartBpCropChangeDetector, SmartBpCropChangeDetector>();
         services.AddSingleton<ISmartBpCharacterResolver, SmartBpCharacterResolver>();
+        services.AddSingleton<ISmartBpOcrContactSheetBuilder, SmartBpOcrContactSheetBuilder>();
+        services.AddSingleton<ISmartBpOcrTextResolver, SmartBpOcrTextResolver>();
+        services.AddSingleton<SmartBpOcrRegionParser>();
+        services.AddSingleton<ISmartBpOcrBpRecognitionService, SmartBpOcrBpRecognitionService>();
+        services.AddSingleton<ISmartBpOcrSnapshotDeltaRecognitionService, SmartBpOcrSnapshotDeltaRecognitionService>();
         services.AddSingleton<ILlamaCppOpenAiClient, LlamaCppOpenAiClient>();
         services.AddSingleton<ILlamaCppServerManager, LlamaCppServerManager>();
         services.AddSingleton<ISmartBpAiRecognitionService, SmartBpAiRecognitionService>();
@@ -86,7 +91,8 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint
         services.AddSingleton<ISmartBpRegionSnapshotRecognitionService, SmartBpRegionSnapshotRecognitionService>();
         services.AddSingleton<ISmartBpRecognitionStateStore, SmartBpRecognitionStateStore>();
         services.AddSingleton<ISmartBpSnapshotRecognitionPlanner, SmartBpSnapshotRecognitionPlanner>();
-        services.AddSingleton<ISmartBpSnapshotDeltaRecognitionService, SmartBpSnapshotDeltaRecognitionService>();
+        services.AddSingleton<SmartBpAiSnapshotDeltaRecognitionService>();
+        services.AddSingleton<ISmartBpSnapshotDeltaRecognitionService, SmartBpSnapshotDeltaRecognitionRouter>();
         services.AddSingleton<ISmartBpRecognitionLedger, SmartBpRecognitionLedger>();
         services.AddSingleton<ISmartBpWorkflowBackfillService, SmartBpWorkflowBackfillService>();
         services.AddSingleton<ISmartBpDetectedOperationApplier, SmartBpDetectedOperationApplier>();

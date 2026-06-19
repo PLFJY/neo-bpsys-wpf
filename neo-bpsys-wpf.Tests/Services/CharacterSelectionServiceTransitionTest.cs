@@ -20,6 +20,69 @@ namespace neo_bpsys_wpf.Tests.Services;
 public sealed class CharacterSelectionServiceTransitionTest
 {
     [Fact]
+    public void ResolveCharacter_SelectsHighestScoringCandidateInRequestedCamp()
+    {
+        var expected = new Character("心理学家", Camp.Sur, "psychologist.png");
+        var sharedData = new Mock<ISharedDataService>();
+        sharedData.SetupGet(service => service.SurCharaDict).Returns(new SortedDictionary<string, Character>
+        {
+            ["心理学家"] = expected,
+            ["病患"] = new Character("病患", Camp.Sur, "patient.png")
+        });
+        sharedData.SetupGet(service => service.HunCharaDict).Returns(new SortedDictionary<string, Character>
+        {
+            ["心理学家"] = new Character("心理学家", Camp.Hun, "hunter.png")
+        });
+        var service = new CharacterSelectionService(
+            sharedData.Object,
+            Mock.Of<IFrontedTransitionOrchestrator>(),
+            Mock.Of<IFrontedLayoutService>());
+
+        var result = service.ResolveCharacter("『心理学家』", Camp.Sur);
+
+        Assert.Same(expected, result);
+    }
+
+    [Fact]
+    public void ResolveCharacter_AcceptsCandidateAtExactlyHalfSimilarity()
+    {
+        var expected = new Character("abcd", Camp.Sur, "threshold.png");
+        var sharedData = new Mock<ISharedDataService>();
+        sharedData.SetupGet(service => service.SurCharaDict).Returns(new SortedDictionary<string, Character>
+        {
+            [expected.Name] = expected
+        });
+        sharedData.SetupGet(service => service.HunCharaDict).Returns([]);
+        var service = new CharacterSelectionService(
+            sharedData.Object,
+            Mock.Of<IFrontedTransitionOrchestrator>(),
+            Mock.Of<IFrontedLayoutService>());
+
+        var result = service.ResolveCharacter("xbxx", Camp.Sur);
+
+        Assert.Same(expected, result);
+    }
+
+    [Fact]
+    public void ResolveCharacter_RejectsCandidatesBelowHalfSimilarity()
+    {
+        var sharedData = new Mock<ISharedDataService>();
+        sharedData.SetupGet(service => service.SurCharaDict).Returns(new SortedDictionary<string, Character>
+        {
+            ["abcd"] = new Character("abcd", Camp.Sur, "low-score.png")
+        });
+        sharedData.SetupGet(service => service.HunCharaDict).Returns([]);
+        var service = new CharacterSelectionService(
+            sharedData.Object,
+            Mock.Of<IFrontedTransitionOrchestrator>(),
+            Mock.Of<IFrontedLayoutService>());
+
+        var result = service.ResolveCharacter("wxyz", Camp.Sur);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
     public async Task SelectSurvivor_PlayAnimationFalse_BypassesTransitionAndFiresAfterCommit()
     {
         var game = new Game(new Team(Camp.Sur, TeamType.HomeTeam), new Team(Camp.Hun, TeamType.AwayTeam), GameProgress.Free);

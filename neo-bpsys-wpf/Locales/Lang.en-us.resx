@@ -4771,4 +4771,18 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="SmartBpAiStopServerBeforeSwitchModel" xml:space="preserve"><value>Stop llama-server before switching the Qwen model.</value></data>
   <data name="SmartBpAiCheckRuntimeUpdate" xml:space="preserve"><value>Check llama.cpp updates</value></data>
   <data name="SmartBpAiLedgerResetCompleted" xml:space="preserve"><value>The SmartBP AI recognition ledger was reset for the current game.</value></data>
+  <data name="SmartBpRecognitionTitle" xml:space="preserve"><value>SmartBP BP recognition</value></data>
+  <data name="SmartBpRecognitionPreviewNotice" xml:space="preserve"><value>OCR reads text and positions, then parses BP phase, bans, and picks locally. AI / Qwen recognition remains available as an experimental engine.</value></data>
+  <data name="SmartBpRecognitionEngine" xml:space="preserve"><value>Recognition engine</value></data>
+  <data name="SmartBpRecognitionEngineOcrRecommended" xml:space="preserve"><value>OCR (recommended)</value></data>
+  <data name="SmartBpRecognitionEngineAiQwenExperimental" xml:space="preserve"><value>AI / Qwen (experimental)</value></data>
+  <data name="SmartBpAiQwenEnginePanel" xml:space="preserve"><value>AI / Qwen engine settings</value></data>
+  <data name="SmartBpOcrModelStatus" xml:space="preserve"><value>OCR model</value></data>
+  <data name="SmartBpOcrContactSheet" xml:space="preserve"><value>Contact sheet</value></data>
+  <data name="SmartBpOcrEnableBpRecognition" xml:space="preserve"><value>Enable OCR BP recognition</value></data>
+  <data name="SmartBpOcrUseContactSheet" xml:space="preserve"><value>Use OCR contact sheet</value></data>
+  <data name="SmartBpOcrDebugOverlay" xml:space="preserve"><value>Enable OCR debug overlay</value></data>
+  <data name="SmartBpOcrIntervalMilliseconds" xml:space="preserve"><value>OCR interval milliseconds</value></data>
+  <data name="SmartBpOcrFieldStaleMilliseconds" xml:space="preserve"><value>OCR field stale refresh milliseconds</value></data>
+  <data name="SmartBpOcrBackfillLookBehindSteps" xml:space="preserve"><value>OCR workflow look-behind steps</value></data>
 </root>

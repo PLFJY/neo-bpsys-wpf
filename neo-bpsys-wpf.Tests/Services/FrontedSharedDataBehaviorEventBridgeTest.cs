@@ -448,6 +448,7 @@ public class FrontedSharedDataBehaviorEventBridgeTest
         public event EventHandler<CharacterSelectedEventArgs>? CharacterSelected;
         public event EventHandler<CharacterBannedEventArgs>? CharacterBanned;
 
+        public Character? ResolveCharacter(string text, Camp camp) => null;
         public Task SelectSurvivorAsync(int playerIndex, Character? character, bool playAnimation = true, bool isRecordGlobalBan = true) => Task.CompletedTask;
         public Task SelectHunterAsync(Character? character, bool playAnimation = true, bool isRecordGlobalBan = true) => Task.CompletedTask;
         public Task BanCharacterAsync(Camp camp, int index, Character? character, bool playAnimation = true) => Task.CompletedTask;
@@ -467,8 +468,8 @@ public class FrontedSharedDataBehaviorEventBridgeTest
         public event EventHandler<GameGuidanceHighlightChangedEventArgs>? GuidanceHighlightCleared;
 
         public Task<string?> StartGuidance() => Task.FromResult<string?>(null);
-        public Task<string?> NextStepAsync() => Task.FromResult<string?>(null);
-        public Task<string?> PrevStepAsync() => Task.FromResult<string?>(null);
+        public Task<string?> NextStepAsync(bool playAnimation) => Task.FromResult<string?>(null);
+        public Task<string?> PrevStepAsync(bool playAnimation) => Task.FromResult<string?>(null);
         public void StopGuidance() { }
         public void FireHighlightChanged(GameGuidanceHighlightChangedEventArgs args) => GuidanceHighlightChanged?.Invoke(this, args);
         public void FireStepChanged(GameGuidanceStepChangedEventArgs args) => GuidanceStepChanged?.Invoke(this, args);

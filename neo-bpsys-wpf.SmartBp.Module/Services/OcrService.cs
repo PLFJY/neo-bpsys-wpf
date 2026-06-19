@@ -358,6 +358,25 @@ public class OcrService : IOcrService
     }
 
     /// <summary>
+    /// 识别图像中的文本行和边界框。
+    /// </summary>
+    /// <param name="img">待识别图像。</param>
+    /// <returns>文本行识别结果。</returns>
+    public OcrTextBlockResult RecognizeTextLines(Mat img)
+    {
+        if (img.Empty()) return OcrTextBlockResult.Empty;
+
+        if (img.Channels() == 1)
+        {
+            using var bgr = new Mat();
+            Cv2.CvtColor(img, bgr, ColorConversionCodes.GRAY2BGR);
+            return RecognizeTextLinesCore(bgr);
+        }
+
+        return RecognizeTextLinesCore(img);
+    }
+
+    /// <summary>
     /// 执行 OCR 主流程，并在失败时尝试一次重建后重试。
     /// </summary>
     /// <param name="bgr">BGR 格式输入图像。</param>
@@ -366,39 +385,111 @@ public class OcrService : IOcrService
     {
         lock (_ocrLock)
         {
-            if (_ocr is not null)
-            {
-                try
-                {
-                    var r = _ocr.Run(bgr);
-                    return string.IsNullOrWhiteSpace(r.Text) ? null : r.Text;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "OCR run failed, trying to rebuild OCR predictor and retry once.");
-                    if (!TryRebuildCurrentOcrUnsafe())
-                    {
-                        _logger.LogError("OCR rebuild failed, recognition aborted.");
-                        return null;
-                    }
-
-                    try
-                    {
-                        var retry = _ocr!.Run(bgr);
-                        return string.IsNullOrWhiteSpace(retry.Text) ? null : retry.Text;
-                    }
-                    catch (Exception retryEx)
-                    {
-                        _logger.LogError(retryEx, "OCR retry failed after rebuild.");
-                        return null;
-                    }
-                }
-            }
+            var result = RunOcrWithRetryUnsafe(bgr);
+            if (result != null)
+                return string.IsNullOrWhiteSpace(result.Text) ? null : NormalizeOcrText(result.Text);
         }
 
         ShowMissingModelWarningOnce();
         return null;
     }
+
+    /// <summary>
+    /// 执行 OCR 文本行识别，并在失败时尝试一次重建后重试。
+    /// </summary>
+    /// <param name="bgr">BGR 格式输入图像。</param>
+    /// <returns>文本行识别结果。</returns>
+    private OcrTextBlockResult RecognizeTextLinesCore(Mat bgr)
+    {
+        lock (_ocrLock)
+        {
+            var result = RunOcrWithRetryUnsafe(bgr);
+            if (result != null)
+                return ToTextBlockResult(result);
+        }
+
+        ShowMissingModelWarningOnce();
+        return OcrTextBlockResult.Empty;
+    }
+
+    /// <summary>
+    /// 在持锁状态下运行 OCR，并在失败后重建当前 predictor 重试一次。
+    /// </summary>
+    /// <param name="bgr">BGR 格式输入图像。</param>
+    /// <returns>PaddleOCR 原始结果；失败或未就绪时返回 <see langword="null"/>。</returns>
+    private PaddleOcrResult? RunOcrWithRetryUnsafe(Mat bgr)
+    {
+        if (_ocr is null)
+            return null;
+
+        try
+        {
+            return _ocr.Run(bgr);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "OCR run failed, trying to rebuild OCR predictor and retry once.");
+            if (!TryRebuildCurrentOcrUnsafe())
+            {
+                _logger.LogError("OCR rebuild failed, recognition aborted.");
+                return null;
+            }
+
+            try
+            {
+                return _ocr!.Run(bgr);
+            }
+            catch (Exception retryEx)
+            {
+                _logger.LogError(retryEx, "OCR retry failed after rebuild.");
+                return null;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 将 PaddleOCR 原始结果转换为稳定排序的文本块结果。
+    /// </summary>
+    /// <param name="result">PaddleOCR 原始结果。</param>
+    /// <returns>文本块结果。</returns>
+    private static OcrTextBlockResult ToTextBlockResult(PaddleOcrResult result)
+    {
+        var lines = result.Regions
+            .Select(region =>
+            {
+                var text = NormalizeOcrText(region.Text);
+                if (string.IsNullOrWhiteSpace(text))
+                    return null;
+
+                var boundingBox = region.Rect.BoundingRect();
+                return new OcrTextLine(
+                    text,
+                    Math.Clamp(region.Score, 0, 1),
+                    boundingBox,
+                    region.Rect.Center.X,
+                    region.Rect.Center.Y);
+            })
+            .Where(line => line != null)
+            .Cast<OcrTextLine>()
+            .OrderBy(line => line.CenterY)
+            .ThenBy(line => line.CenterX)
+            .ToArray();
+
+        if (lines.Length == 0)
+            return OcrTextBlockResult.Empty;
+
+        return new OcrTextBlockResult(lines, string.Join(Environment.NewLine, lines.Select(line => line.Text)));
+    }
+
+    /// <summary>
+    /// 规范化 OCR 文本，便于本地规则解析。
+    /// </summary>
+    /// <param name="text">OCR 原始文本。</param>
+    /// <returns>规范化文本。</returns>
+    private static string NormalizeOcrText(string? text) =>
+        string.IsNullOrWhiteSpace(text)
+            ? string.Empty
+            : text.Normalize(NormalizationForm.FormKC).Trim();
 
     /// <summary>
     /// 在 OCR 推理异常后尝试重建当前模型实例。

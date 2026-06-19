@@ -227,7 +227,9 @@ internal sealed class SmartBpSnapshotRecognitionPlanner(
 
         if (guidanceSnapshot.IsStarted && guidanceSnapshot.Workflow.Count > 0)
         {
-            var lookBehind = Math.Max(0, settings.Settings.RecognitionBackfillLookBehindSteps);
+            var lookBehind = Math.Max(0, settings.Settings.RecognitionEngine == SmartBpRecognitionEngine.Ocr
+                ? settings.Settings.OcrBackfillLookBehindSteps
+                : settings.Settings.RecognitionBackfillLookBehindSteps);
             var earliest = Math.Max(0, guidanceSnapshot.CurrentStepIndex - lookBehind);
             foreach (var step in guidanceSnapshot.Workflow.OrderBy(x => x.StepIndex)
                          .Where(x => x.StepIndex >= earliest && x.StepIndex <= guidanceSnapshot.CurrentStepIndex))
@@ -241,7 +243,10 @@ internal sealed class SmartBpSnapshotRecognitionPlanner(
             else AddForAction(phaseAction, "last detected phase");
         }
 
-        foreach (var stale in stateStore.GetStaleFieldDiagnostics(DateTimeOffset.Now, settings.Settings.RecognitionFieldStaleMilliseconds))
+        var staleMilliseconds = settings.Settings.RecognitionEngine == SmartBpRecognitionEngine.Ocr
+            ? settings.Settings.OcrFieldStaleMilliseconds
+            : settings.Settings.RecognitionFieldStaleMilliseconds;
+        foreach (var stale in stateStore.GetStaleFieldDiagnostics(DateTimeOffset.Now, staleMilliseconds))
         {
             diagnostics.Add(stale);
             if (stale.Contains("banned_sur", StringComparison.Ordinal)) Add("banned_sur", SmartBpRecognitionRegion.RightTop, "stale field");
@@ -335,7 +340,7 @@ internal sealed class SmartBpCropChangeDetector(ISmartBpRecognitionSettingsServi
     }
 }
 
-internal sealed class SmartBpSnapshotDeltaRecognitionService(
+internal sealed class SmartBpAiSnapshotDeltaRecognitionService(
     ISmartBpImageEncoder encoder,
     ISmartBpRecognitionFrameCropper cropper,
     ILlamaCppOpenAiClient client,
