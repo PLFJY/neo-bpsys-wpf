@@ -4746,5 +4746,18 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="SmartBpAiRegionRightBottom" xml:space="preserve"><value>Lower right: hunter pick</value></data>
   <data name="SmartBpAiPlayBackfillAnimations" xml:space="preserve"><value>Play animations when backfilling previous steps</value></data>
   <data name="SmartBpAiResetLedger" xml:space="preserve"><value>Reset SmartBP AI recognition ledger</value></data>
+  <data name="SmartBpAiAdvancedEngineSettings" xml:space="preserve"><value>Advanced engine settings</value></data>
+  <data name="SmartBpAiAdvancedRecognitionSettings" xml:space="preserve"><value>Advanced recognition settings</value></data>
+  <data name="SmartBpAiParallelSlots" xml:space="preserve"><value>llama.cpp parallel slots</value></data>
+  <data name="SmartBpAiParallelSlotsHint" xml:space="preserve"><value>Increasing parallel slots may improve concurrent throughput, but uses more VRAM/RAM. The default 1 is safer.</value></data>
+  <data name="SmartBpAiGpuLayers" xml:space="preserve"><value>GPU layers (-1 = auto)</value></data>
+  <data name="SmartBpAiFlashAttention" xml:space="preserve"><value>Enable Flash Attention</value></data>
+  <data name="SmartBpAiBatchSize" xml:space="preserve"><value>Batch size</value></data>
+  <data name="SmartBpAiUBatchSize" xml:space="preserve"><value>UBatch size</value></data>
+  <data name="SmartBpAiForceStopLlama" xml:space="preserve"><value>Force stop managed llama.cpp</value></data>
+  <data name="SmartBpAiUseMultiImageSnapshot" xml:space="preserve"><value>Use one multi-image incremental request</value></data>
+  <data name="SmartBpAiBackfillLookBehindSteps" xml:space="preserve"><value>Workflow look-behind steps</value></data>
+  <data name="SmartBpAiFieldStaleMilliseconds" xml:space="preserve"><value>Field stale refresh milliseconds</value></data>
+  <data name="SmartBpAiVisualBufferMilliseconds" xml:space="preserve"><value>Current-step animation buffer milliseconds</value></data>
   <data name="SmartBpAiLedgerResetCompleted" xml:space="preserve"><value>The SmartBP AI recognition ledger was reset for the current game.</value></data>
 </root>

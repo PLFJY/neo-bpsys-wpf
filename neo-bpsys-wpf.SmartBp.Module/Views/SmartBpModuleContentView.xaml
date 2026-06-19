@@ -435,6 +435,21 @@
                         Icon="{ui:SymbolIcon Symbol=Stop24}" />
                     <TextBlock VerticalAlignment="Center" Text="{Binding LlamaServerStatus}" />
                 </WrapPanel>
+                <Expander Margin="0,8,0,0" Header="{lex:Loc SmartBpAiAdvancedEngineSettings}">
+                    <StackPanel>
+                        <TextBlock Margin="0,4,0,2" Text="{lex:Loc SmartBpAiParallelSlots}" />
+                        <TextBox Text="{Binding LlamaParallelSlots}" />
+                        <TextBlock Margin="0,6,0,2" Text="{lex:Loc SmartBpAiGpuLayers}" />
+                        <TextBox Text="{Binding LlamaGpuLayers}" />
+                        <ui:ToggleSwitch Margin="0,6,0,0" Content="{lex:Loc SmartBpAiFlashAttention}" IsChecked="{Binding LlamaFlashAttention}" />
+                        <TextBlock Margin="0,6,0,2" Text="{lex:Loc SmartBpAiBatchSize}" />
+                        <TextBox Text="{Binding LlamaBatchSize}" />
+                        <TextBlock Margin="0,6,0,2" Text="{lex:Loc SmartBpAiUBatchSize}" />
+                        <TextBox Text="{Binding LlamaUBatchSize}" />
+                        <TextBlock Margin="0,6,0,4" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{lex:Loc SmartBpAiParallelSlotsHint}" TextWrapping="Wrap" />
+                        <ui:Button Margin="0,4,0,0" Command="{Binding ForceStopLlamaServerCommand}" Content="{lex:Loc SmartBpAiForceStopLlama}" Icon="{ui:SymbolIcon Symbol=DismissCircle24}" />
+                    </StackPanel>
+                </Expander>
                 <ComboBox
                     Margin="0,6,0,0"
                     DisplayMemberPath="Id"
@@ -448,10 +463,23 @@
                     Margin="0,6,0,0"
                     Content="{lex:Loc SmartBpAiEnableAutoApply}"
                     IsChecked="{Binding EnableAutoApplyRecognition}" />
-                <ui:ToggleSwitch
-                    Margin="0,6,0,0"
-                    Content="{lex:Loc SmartBpAiPlayBackfillAnimations}"
-                    IsChecked="{Binding PlayBackfillAnimations}" />
+                <Expander Margin="0,8,0,0" Header="{lex:Loc SmartBpAiAdvancedRecognitionSettings}">
+                    <StackPanel>
+                        <ui:ToggleSwitch Margin="0,6,0,0" Content="{lex:Loc SmartBpAiUseMultiImageSnapshot}" IsChecked="{Binding UseMultiImageSnapshotRequest}" />
+                        <ui:ToggleSwitch Margin="0,6,0,0" Content="{lex:Loc SmartBpAiPlayBackfillAnimations}" IsChecked="{Binding PlayBackfillAnimations}" />
+                        <TextBlock Margin="0,6,0,2" Text="{lex:Loc SmartBpAiBackfillLookBehindSteps}" />
+                        <TextBox Text="{Binding RecognitionBackfillLookBehindSteps}" />
+                        <TextBlock Margin="0,6,0,2" Text="{lex:Loc SmartBpAiFieldStaleMilliseconds}" />
+                        <TextBox Text="{Binding RecognitionFieldStaleMilliseconds}" />
+                        <TextBlock Margin="0,6,0,2" Text="{lex:Loc SmartBpAiVisualBufferMilliseconds}" />
+                        <TextBox Text="{Binding RecognitionVisualBufferMilliseconds}" />
+                        <TextBlock Margin="0,8,0,2" FontWeight="SemiBold" Text="{lex:Loc SmartBpAiRegionEditor}" />
+                        <WrapPanel>
+                            <ui:Button Margin="0,0,8,8" Command="{Binding OpenAiRecognitionRegionEditorCommand}" Content="{lex:Loc SmartBpAiOpenVisualRegionEditor}" Icon="{ui:SymbolIcon Symbol=Edit24}" />
+                            <ui:Button Margin="0,0,8,8" Command="{Binding ResetAiRecognitionLayoutProfileCommand}" Content="{lex:Loc SmartBpAiResetRegionProfile}" Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
+                        </WrapPanel>
+                    </StackPanel>
+                </Expander>
                 <WrapPanel Margin="0,8,0,0">
                     <ui:Button
                         Margin="0,0,8,8"
@@ -462,16 +490,6 @@
                         Margin="0,0,8,8"
                         Command="{Binding RecognizeCurrentCaptureFrameCommand}"
                         Content="{lex:Loc SmartBpAiRecognizeCapture}"
-                        Icon="{ui:SymbolIcon Symbol=Scan24}" />
-                    <ui:Button
-                        Margin="0,0,8,8"
-                        Command="{Binding DetectStageFromSelectedTestFrameCommand}"
-                        Content="{lex:Loc SmartBpAiDetectStageTestFrame}"
-                        Icon="{ui:SymbolIcon Symbol=Image24}" />
-                    <ui:Button
-                        Margin="0,0,8,8"
-                        Command="{Binding DetectStageFromCurrentCaptureFrameCommand}"
-                        Content="{lex:Loc SmartBpAiDetectStageCapture}"
                         Icon="{ui:SymbolIcon Symbol=Scan24}" />
                     <ui:Button
                         Margin="0,0,8,8"
@@ -503,11 +521,6 @@
                 <Expander Margin="0,8,0,0" Header="{lex:Loc SmartBpAiCropDebug}">
                     <StackPanel>
                         <TextBox MinHeight="60" AcceptsReturn="True" IsReadOnly="True" Text="{Binding AiCropDebugInfo}" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
-                        <TextBlock Margin="0,8,0,2" FontWeight="SemiBold" Text="{lex:Loc SmartBpAiRegionEditor}" />
-                        <WrapPanel>
-                            <ui:Button Margin="0,0,8,8" Command="{Binding OpenAiRecognitionRegionEditorCommand}" Content="{lex:Loc SmartBpAiOpenVisualRegionEditor}" Icon="{ui:SymbolIcon Symbol=Edit24}" />
-                            <ui:Button Margin="0,0,8,8" Command="{Binding ResetAiRecognitionLayoutProfileCommand}" Content="{lex:Loc SmartBpAiResetRegionProfile}" Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
-                        </WrapPanel>
                         <UniformGrid Margin="0,8,0,0" Columns="2">
                             <StackPanel Margin="0,0,8,0">
                                 <TextBlock FontWeight="SemiBold" Text="{lex:Loc SmartBpAiPhaseCropPreview}" />

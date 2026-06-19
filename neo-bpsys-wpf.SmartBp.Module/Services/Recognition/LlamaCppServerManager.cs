@@ -3,7 +3,9 @@ using System.IO;
 using System.Net.Http;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.SmartBp.Module.Abstractions;
 
@@ -18,6 +20,7 @@ internal sealed class LlamaCppServerManager : ILlamaCppServerManager, IDisposabl
     private readonly ISmartBpDebugLog _debugLog;
     private readonly ILlamaCppRuntimeAssetManager _runtimeAssets;
     private Process? _process;
+    private static string StateFilePath => Path.Combine(AppConstants.AppDataPath, "SmartBp", "LlamaServerProcess.json");
     public bool IsRunning => _process is { HasExited: false };
     public string Status { get; private set; } = "Stopped";
 
@@ -35,7 +38,8 @@ internal sealed class LlamaCppServerManager : ILlamaCppServerManager, IDisposabl
         var executable = _settings.Settings.LlamaServerExecutablePath;
         if (string.IsNullOrWhiteSpace(executable)) executable = await _runtimeAssets.GetInstalledExecutablePathAsync(cancellationToken);
         if (!File.Exists(executable)) throw new FileNotFoundException("llama-server.exe was not found.", executable);
-        if (await IsPortOccupiedAsync(_settings.Settings.LlamaServerPort, cancellationToken)) throw new InvalidOperationException($"Port {_settings.Settings.LlamaServerPort} is already occupied.");
+        if (await IsPortOccupiedAsync(_settings.Settings.LlamaServerPort, cancellationToken))
+            await RecoverManagedPortConflictAsync(executable, cancellationToken);
         var (model, mmproj) = await _assets.GetInstalledPathsAsync(cancellationToken);
         Directory.CreateDirectory(_storage.RecognitionLogsRoot); var log = Path.Combine(_storage.RecognitionLogsRoot, $"llama-server-{DateTime.Now:yyyyMMdd-HHmmss}.log");
         var info = new ProcessStartInfo(executable)
@@ -47,12 +51,15 @@ internal sealed class LlamaCppServerManager : ILlamaCppServerManager, IDisposabl
             StandardOutputEncoding = Encoding.UTF8,
             StandardErrorEncoding = Encoding.UTF8
         };
-        var arguments = new[] { "--model", model, "--mmproj", mmproj, "--host", "127.0.0.1", "--port", _settings.Settings.LlamaServerPort.ToString(), "--ctx-size", _settings.Settings.LlamaContextSize.ToString(), "--n-gpu-layers", "auto", "--flash-attn", "auto", "--parallel", "1", "--no-webui", "--log-file", log, "--threads", _settings.Settings.CpuThreads.ToString() };
+        var gpuLayers = _settings.Settings.LlamaGpuLayers < 0 ? "auto" : _settings.Settings.LlamaGpuLayers.ToString();
+        var flashAttention = _settings.Settings.LlamaFlashAttention ? "auto" : "off";
+        var arguments = new[] { "--model", model, "--mmproj", mmproj, "--host", "127.0.0.1", "--port", _settings.Settings.LlamaServerPort.ToString(), "--ctx-size", _settings.Settings.LlamaContextSize.ToString(), "--n-gpu-layers", gpuLayers, "--flash-attn", flashAttention, "--parallel", _settings.Settings.LlamaParallelSlots.ToString(), "--batch-size", _settings.Settings.LlamaBatchSize.ToString(), "--ubatch-size", _settings.Settings.LlamaUBatchSize.ToString(), "--no-webui", "--log-file", log, "--threads", _settings.Settings.CpuThreads.ToString() };
         foreach (var arg in arguments) info.ArgumentList.Add(arg);
         _logger.LogInformation("Starting llama-server. Port={Port}, Model={Model}, Log={Log}", _settings.Settings.LlamaServerPort, Path.GetFileName(model), log);
         _debugLog.Write("llama-server", $"Command: {Quote(executable)} {string.Join(" ", arguments.Select(Quote))}");
         _debugLog.Write("llama-server", $"Log file: {log}");
         _process = await Task.Run(() => StartProcess(info), cancellationToken).ConfigureAwait(false);
+        await WriteStateAsync(_process.Id, _settings.Settings.LlamaServerPort, executable, model, cancellationToken).ConfigureAwait(false);
         Status = "Starting";
         try
         {
@@ -78,6 +85,22 @@ internal sealed class LlamaCppServerManager : ILlamaCppServerManager, IDisposabl
             await Task.Run(() => { process.Kill(true); process.WaitForExit(5000); }).ConfigureAwait(false);
         }
         process?.Dispose(); Status = "Stopped";
+        DeleteStateFile();
+    }
+
+    public async Task ForceStopManagedProcessAsync(CancellationToken cancellationToken = default)
+    {
+        var state = await ReadStateAsync(cancellationToken).ConfigureAwait(false);
+        if (state == null) throw new InvalidOperationException("No managed llama-server process state is recorded.");
+        await KillRecordedProcessAsync(state, cancellationToken).ConfigureAwait(false);
+        DeleteStateFile();
+        if (_process != null)
+        {
+            _process.Dispose();
+            _process = null;
+        }
+        Status = "Stopped";
+        _debugLog.Write("llama-server", $"Force-stopped recorded managed process pid={state.Pid}.");
     }
     private Process StartProcess(ProcessStartInfo info)
     {
@@ -94,10 +117,63 @@ internal sealed class LlamaCppServerManager : ILlamaCppServerManager, IDisposabl
     private void OnErrorDataReceived(object sender, DataReceivedEventArgs e) { if (!string.IsNullOrWhiteSpace(e.Data)) _debugLog.Write("llama-server stderr", e.Data); }
     private static string Quote(string value) => value.Any(char.IsWhiteSpace) ? $"\"{value.Replace("\"", "\\\"")}\"" : value;
     private static async Task<bool> IsPortOccupiedAsync(int port, CancellationToken token) { using var client = new TcpClient(); try { await client.ConnectAsync("127.0.0.1", port, token); return true; } catch (SocketException) { return false; } }
+    private async Task RecoverManagedPortConflictAsync(string executable, CancellationToken cancellationToken)
+    {
+        var state = await ReadStateAsync(cancellationToken).ConfigureAwait(false);
+        if (state == null) throw new InvalidOperationException($"Port {_settings.Settings.LlamaServerPort} is already occupied by an unknown process.");
+        if (state.Port != _settings.Settings.LlamaServerPort || !SamePath(state.ExecutablePath, executable))
+            throw new InvalidOperationException($"Port {_settings.Settings.LlamaServerPort} is occupied, but the recorded managed llama-server state does not match the selected executable.");
+        if (!_settings.Settings.AutoKillStaleManagedLlamaServer)
+            throw new InvalidOperationException($"Port {_settings.Settings.LlamaServerPort} is occupied by a recorded managed llama-server process. Use Force stop llama.cpp or enable stale-process cleanup.");
+        await KillRecordedProcessAsync(state, cancellationToken).ConfigureAwait(false);
+        DeleteStateFile();
+        await Task.Delay(500, cancellationToken).ConfigureAwait(false);
+        if (await IsPortOccupiedAsync(_settings.Settings.LlamaServerPort, cancellationToken).ConfigureAwait(false))
+            throw new InvalidOperationException($"Port {_settings.Settings.LlamaServerPort} is still occupied after stopping the recorded managed process.");
+    }
+
+    private static bool SamePath(string left, string right) =>
+        string.Equals(Path.GetFullPath(left), Path.GetFullPath(right), StringComparison.OrdinalIgnoreCase);
+
+    private static async Task<LlamaServerProcessState?> ReadStateAsync(CancellationToken cancellationToken)
+    {
+        if (!File.Exists(StateFilePath)) return null;
+        await using var stream = File.OpenRead(StateFilePath);
+        return await JsonSerializer.DeserializeAsync<LlamaServerProcessState>(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task WriteStateAsync(int pid, int port, string executable, string model, CancellationToken cancellationToken)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(StateFilePath)!);
+        var state = new LlamaServerProcessState(pid, port, executable, model, DateTimeOffset.Now);
+        await File.WriteAllTextAsync(StateFilePath, JsonSerializer.Serialize(state, new JsonSerializerOptions { WriteIndented = true }), cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task KillRecordedProcessAsync(LlamaServerProcessState state, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        Process? process = null;
+        try { process = Process.GetProcessById(state.Pid); }
+        catch (ArgumentException) { return; }
+        await Task.Run(() =>
+        {
+            try { process.Kill(true); process.WaitForExit(5000); }
+            finally { process.Dispose(); }
+        }, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static void DeleteStateFile()
+    {
+        try { if (File.Exists(StateFilePath)) File.Delete(StateFilePath); }
+        catch { }
+    }
     private void OnProcessExit(object? sender, EventArgs e)
     {
         try { if (_process is { HasExited: false }) _process.Kill(true); }
         catch { }
+        DeleteStateFile();
     }
     public void Dispose() { AppDomain.CurrentDomain.ProcessExit -= OnProcessExit; OnProcessExit(this, EventArgs.Empty); _process?.Dispose(); _process = null; }
+
+    private sealed record LlamaServerProcessState(int Pid, int Port, string ExecutablePath, string ModelPath, DateTimeOffset StartedAt);
 }

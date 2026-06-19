@@ -50,6 +50,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     private readonly ISmartBpCharacterResolver _smartBpCharacterResolver = null!;
     private readonly ISmartBpRecognitionRegionProfileService _aiRegionProfileService = null!;
     private readonly ISmartBpRecognitionLedger _aiRecognitionLedger = null!;
+    private readonly ISmartBpRecognitionStateStore _aiRecognitionStateStore = null!;
 
     /// <summary>
     /// 用于设计时预览的无参构造函数。
@@ -84,6 +85,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         ISmartBpCharacterResolver smartBpCharacterResolver,
         ISmartBpRecognitionRegionProfileService aiRegionProfileService,
         ISmartBpRecognitionLedger aiRecognitionLedger,
+        ISmartBpRecognitionStateStore aiRecognitionStateStore,
         ILogger<SmartBpModuleContentViewModel> logger)
     {
         _logger = logger;
@@ -112,6 +114,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         _smartBpCharacterResolver = smartBpCharacterResolver;
         _aiRegionProfileService = aiRegionProfileService;
         _aiRecognitionLedger = aiRecognitionLedger;
+        _aiRecognitionStateStore = aiRecognitionStateStore;
         InitializeAiRecognition();
         _ocrService.DownloadStateChanged += OcrService_DownloadStateChanged;
         // 配置被保存/导入/重置时同步刷新比例状态展示。

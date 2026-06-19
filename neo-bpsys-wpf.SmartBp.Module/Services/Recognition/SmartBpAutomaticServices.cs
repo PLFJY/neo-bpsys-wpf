@@ -205,6 +205,57 @@ internal static class SmartBpAutomaticParser
         return new() { Phase = phase };
     }
 
+    public static SmartBpSnapshotDeltaResult ParseSnapshotDelta(
+        string raw,
+        IReadOnlyCollection<string> requestedFields,
+        IReadOnlyCollection<string> survivorCandidates,
+        IReadOnlyCollection<string> hunterCandidates)
+    {
+        var result = JsonSerializer.Deserialize<SmartBpSnapshotDeltaResult>(raw)
+            ?? throw new InvalidDataException("Snapshot delta JSON is empty.");
+        if (!SmartBpAutomaticMapping.ValidPhases.Contains(result.Phase)) throw new InvalidDataException("Invalid BP phase.");
+        result.Updates ??= [];
+        var requested = requestedFields.ToHashSet(StringComparer.Ordinal);
+        foreach (var update in result.Updates)
+        {
+            if (!requested.Contains(update.Field)) throw new InvalidDataException($"Snapshot delta contained an unrequested field: {update.Field}.");
+            switch (update.Field)
+            {
+                case "banned_sur":
+                    ValidateDeltaSlots(update.Slots, 4, survivorCandidates, update.Field);
+                    if (update.PickedHun != null) throw new InvalidDataException("banned_sur update must not contain picked_hun.");
+                    break;
+                case "banned_hun":
+                    ValidateDeltaSlots(update.Slots, 2, hunterCandidates, update.Field);
+                    if (update.PickedHun != null) throw new InvalidDataException("banned_hun update must not contain picked_hun.");
+                    break;
+                case "picked_sur":
+                    ValidateDeltaSlots(update.Slots, 4, survivorCandidates, update.Field);
+                    if (update.PickedHun != null) throw new InvalidDataException("picked_sur update must not contain picked_hun.");
+                    break;
+                case "picked_hun":
+                    if (update.Slots != null) throw new InvalidDataException("picked_hun update must not contain slots.");
+                    if (update.PickedHun == null) throw new InvalidDataException("picked_hun update must contain picked_hun.");
+                    if (update.PickedHun.Index != 0) throw new InvalidDataException("picked_hun.index must be 0.");
+                    NormalizeFocusedSlot(update.PickedHun, hunterCandidates, "picked_hun");
+                    break;
+                default:
+                    throw new InvalidDataException($"Invalid snapshot delta field: {update.Field}.");
+            }
+        }
+        return result;
+    }
+
+    private static void ValidateDeltaSlots(List<SmartBpRecognizedPlayerCharacterSlot>? slots, int count, IReadOnlyCollection<string> allowed, string field)
+    {
+        if (slots == null) throw new InvalidDataException($"{field} update must contain slots.");
+        if (slots.Count != count) throw new InvalidDataException($"{field}.slots must contain exactly {count} entries.");
+        var expectedIndexes = Enumerable.Range(0, count).ToArray();
+        if (!slots.Select(x => x.Index).OrderBy(x => x).SequenceEqual(expectedIndexes))
+            throw new InvalidDataException($"{field}.slots contain invalid indexes.");
+        foreach (var slot in slots) NormalizeFocusedSlot(slot, allowed, field);
+    }
+
     public static SmartBpFocusedBusinessExtractionResult ParseFocusedBusiness(
         string raw,
         GameAction expectedAction,
@@ -613,6 +664,8 @@ internal sealed class SmartBpDetectedOperationApplier(
             var dictionary = operation.Camp == Camp.Sur ? shared.SurCharaDict : shared.HunCharaDict;
             if (!dictionary.TryGetValue(operation.ResolvedCharacterKey, out var character)) { skipped++; MarkSkipped(key, "resolved key missing"); messages.Add($"Skipped: resolved character key no longer exists: {operation.ResolvedCharacterKey}."); continue; }
             var playAnimation = operation.ApplyMode == SmartBpDetectedOperationApplyMode.CurrentStep || settings.Settings.PlayBackfillAnimations;
+            if (playAnimation && operation.ApplyMode == SmartBpDetectedOperationApplyMode.CurrentStep && settings.Settings.RecognitionVisualBufferMilliseconds > 0)
+                await Task.Delay(settings.Settings.RecognitionVisualBufferMilliseconds, cancellationToken);
 
             switch (operation.Kind)
             {
@@ -770,6 +823,10 @@ internal sealed class SmartBpDetectedOperationApplier(
 
 internal sealed class SmartBpAutoRecognitionCoordinator(
     ISmartBpRegionSnapshotRecognitionService snapshotRecognition,
+    ISmartBpSnapshotDeltaRecognitionService deltaRecognition,
+    ISmartBpSnapshotRecognitionPlanner planner,
+    ISmartBpRecognitionStateStore stateStore,
+    ISmartBpRecognitionLedger ledger,
     ISmartBpRecognitionSettingsService settings,
     ISmartBpGuidanceSyncService guidanceSync,
     IGameGuidanceService guidance,
@@ -780,6 +837,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
     private CancellationTokenSource? _runCancellation;
     private string? _lastSnapshotFingerprint;
     private int _stableSnapshotCount;
+    private long _frameSequence;
     public bool IsRunning => _runCancellation is { IsCancellationRequested: false };
 
     public Task StartAsync(CancellationToken cancellationToken = default)
@@ -807,19 +865,57 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
         string raw = "";
         try
         {
-            var regionSnapshot = await snapshotRecognition.RecognizeSnapshotAsync(
-                frame,
-                SmartBpRegionSnapshotRecognitionMode.FullAllRegions,
-                cancellationToken);
-            raw = string.Join("\n\n", regionSnapshot.RawResponses.Select(item => $"{item.Key} raw:\n{item.Value}"));
-            var state = regionSnapshot.BusinessState;
-            SmartBpGuidanceSyncResult? sync = settings.Settings.EnableAutoGuidanceSync
-                ? await guidanceSync.SyncAsync(state, cancellationToken)
-                : new(false, false, "Automatic GameGuidance synchronization is disabled.", null, [], null);
+            var sequence = Interlocked.Increment(ref _frameSequence);
             var guidanceSnapshot = guidance.GetRuntimeSnapshot();
+            var request = planner.BuildRequest(guidanceSnapshot, stateStore.Snapshot, ledger.GetSnapshot());
+            SmartBpRegionSnapshot? regionSnapshot = null;
+            SmartBpPhaseRecognitionResult phaseResult;
+            SmartBpCroppedFrame? phaseCrop;
+            IReadOnlyList<SmartBpCroppedFrame> contentCrops;
+            var messages = new List<string>(request.Diagnostics);
+            if (settings.Settings.UseMultiImageSnapshotRequest)
+            {
+                try
+                {
+                    var deltaPackage = await deltaRecognition.RecognizeDeltaAsync(frame, request, sequence, cancellationToken);
+                    raw = string.Join("\n\n", deltaPackage.RawResponses.Select(item => $"{item.Key} raw:\n{item.Value}"));
+                    messages.AddRange(deltaPackage.Diagnostics);
+                    messages.AddRange(stateStore.ApplyDelta(deltaPackage.Delta, sequence, DateTimeOffset.Now));
+                    phaseResult = new SmartBpPhaseRecognitionResult { Phase = deltaPackage.Delta.Phase };
+                    phaseCrop = deltaPackage.PhaseCrop;
+                    contentCrops = deltaPackage.ContentCrops;
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    messages.Add($"Multi-image snapshot request failed; falling back to sequential region requests. {ex.Message}");
+                    if (ex is LlamaCppRequestException requestException) raw = requestException.RawResponse;
+                    regionSnapshot = await snapshotRecognition.RecognizeSnapshotAsync(frame, SmartBpRegionSnapshotRecognitionMode.PendingAndCurrentRegions, cancellationToken);
+                    raw = string.Join("\n\n", regionSnapshot.RawResponses.Select(item => $"{item.Key} raw:\n{item.Value}"));
+                    messages.AddRange(regionSnapshot.Diagnostics);
+                    var fallbackDelta = ToDelta(regionSnapshot.BusinessState, request.RequestedFields);
+                    messages.AddRange(stateStore.ApplyDelta(fallbackDelta, sequence, DateTimeOffset.Now));
+                    phaseResult = regionSnapshot.Phase;
+                    phaseCrop = regionSnapshot.PhaseCrop;
+                    contentCrops = regionSnapshot.ContentCrops;
+                }
+            }
+            else
+            {
+                messages.Add("Multi-image snapshot request is disabled; using sequential region fallback.");
+                regionSnapshot = await snapshotRecognition.RecognizeSnapshotAsync(frame, SmartBpRegionSnapshotRecognitionMode.PendingAndCurrentRegions, cancellationToken);
+                raw = string.Join("\n\n", regionSnapshot.RawResponses.Select(item => $"{item.Key} raw:\n{item.Value}"));
+                messages.AddRange(regionSnapshot.Diagnostics);
+                var fallbackDelta = ToDelta(regionSnapshot.BusinessState, request.RequestedFields);
+                messages.AddRange(stateStore.ApplyDelta(fallbackDelta, sequence, DateTimeOffset.Now));
+                phaseResult = regionSnapshot.Phase;
+                phaseCrop = regionSnapshot.PhaseCrop;
+                contentCrops = regionSnapshot.ContentCrops;
+            }
+
+            var state = stateStore.Snapshot;
+            guidanceSnapshot = guidance.GetRuntimeSnapshot();
             var plan = backfill.BuildPlan(state, guidanceSnapshot);
             var operations = plan.StepCandidates.SelectMany(item => item.Operations).ToArray();
-            var messages = new List<string>(regionSnapshot.Diagnostics);
             messages.AddRange(plan.Diagnostics);
             messages.AddRange(plan.StepCandidates.Select(item => $"Step {item.StepIndex} {item.Action} [{string.Join(",", item.Indexes)}]: {item.Reason} Candidates={item.Operations.Count}."));
             var fingerprint = JsonSerializer.Serialize(state);
@@ -835,8 +931,21 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                     : new(0, operations.Length, operations.Length == 0
                     ? ["Skipped: auto apply disabled; no candidate operations were generated."]
                     : operations.Select(x => $"Skipped: auto apply disabled for step {x.SourceWorkflowStepIndex} {x.Kind} {x.Camp}[{x.SlotIndex}] {x.RawCharacterName ?? "null"}.").ToArray());
-            return new(state, regionSnapshot.Phase, null, regionSnapshot.PhaseCrop, null, sync, guidanceSnapshot,
-                operations, messages, applyResult, raw, null, regionSnapshot, plan, regionSnapshot.ContentCrops);
+            SmartBpGuidanceSyncResult? sync = settings.Settings.EnableAutoGuidanceSync
+                ? await guidanceSync.SyncAsync(state, cancellationToken)
+                : new(false, false, "Automatic GameGuidance synchronization is disabled.", null, [], null);
+            var finalGuidanceSnapshot = guidance.GetRuntimeSnapshot();
+            var snapshotForUi = regionSnapshot ?? new SmartBpRegionSnapshot
+            {
+                Phase = phaseResult,
+                BusinessState = state,
+                Diagnostics = messages,
+                PhaseCrop = phaseCrop,
+                ContentCrops = contentCrops,
+                RawResponses = new Dictionary<string, string> { ["snapshot_delta"] = raw }
+            };
+            return new(state, phaseResult, null, phaseCrop, null, sync, finalGuidanceSnapshot,
+                operations, messages, applyResult, raw, null, snapshotForUi, plan, contentCrops);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -848,4 +957,24 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
 
     private SmartBpAutoRecognitionTickResult Failure(string error) =>
         new(null, null, null, null, null, null, guidance.GetRuntimeSnapshot(), [], [], null, "", error);
+
+    private static SmartBpSnapshotDeltaResult ToDelta(SmartBpBusinessStateRecognitionResult state, IReadOnlyCollection<string> requestedFields)
+    {
+        var updates = new List<SmartBpSnapshotFieldUpdate>();
+        if (requestedFields.Contains("banned_sur"))
+            updates.Add(new() { Field = "banned_sur", Slots = state.BannedSur.Select(ToPlayerSlot).ToList() });
+        if (requestedFields.Contains("banned_hun"))
+            updates.Add(new() { Field = "banned_hun", Slots = state.BannedHun.Select(ToPlayerSlot).ToList() });
+        if (requestedFields.Contains("picked_sur"))
+            updates.Add(new() { Field = "picked_sur", Slots = state.PickedSur.Select(ClonePlayerSlot).ToList() });
+        if (requestedFields.Contains("picked_hun"))
+            updates.Add(new() { Field = "picked_hun", PickedHun = ClonePlayerSlot(state.PickedHun) });
+        return new() { Phase = state.Phase, Updates = updates };
+    }
+
+    private static SmartBpRecognizedPlayerCharacterSlot ToPlayerSlot(SmartBpRecognizedCharacterSlot slot) =>
+        new() { Index = slot.Index, CharacterName = slot.CharacterName };
+
+    private static SmartBpRecognizedPlayerCharacterSlot ClonePlayerSlot(SmartBpRecognizedPlayerCharacterSlot slot) =>
+        new() { Index = slot.Index, CharacterName = slot.CharacterName, PlayerId = slot.PlayerId };
 }

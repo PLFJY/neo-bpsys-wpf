@@ -5682,5 +5682,18 @@
   <data name="SmartBpAiRegionRightBottom" xml:space="preserve"><value>右下：监管者选择</value></data>
   <data name="SmartBpAiPlayBackfillAnimations" xml:space="preserve"><value>补录上一阶段时播放动画</value></data>
   <data name="SmartBpAiResetLedger" xml:space="preserve"><value>重置 SmartBP AI 识别记录</value></data>
+  <data name="SmartBpAiAdvancedEngineSettings" xml:space="preserve"><value>高级引擎设置</value></data>
+  <data name="SmartBpAiAdvancedRecognitionSettings" xml:space="preserve"><value>高级识别设置</value></data>
+  <data name="SmartBpAiParallelSlots" xml:space="preserve"><value>llama.cpp 并行槽位</value></data>
+  <data name="SmartBpAiParallelSlotsHint" xml:space="preserve"><value>增加并行槽位可能提升并发吞吐，但会占用更多显存/内存。默认 1 更稳。</value></data>
+  <data name="SmartBpAiGpuLayers" xml:space="preserve"><value>GPU 层数（-1 为自动）</value></data>
+  <data name="SmartBpAiFlashAttention" xml:space="preserve"><value>启用 Flash Attention</value></data>
+  <data name="SmartBpAiBatchSize" xml:space="preserve"><value>Batch size</value></data>
+  <data name="SmartBpAiUBatchSize" xml:space="preserve"><value>UBatch size</value></data>
+  <data name="SmartBpAiForceStopLlama" xml:space="preserve"><value>强制停止托管 llama.cpp</value></data>
+  <data name="SmartBpAiUseMultiImageSnapshot" xml:space="preserve"><value>使用单次多图增量识别</value></data>
+  <data name="SmartBpAiBackfillLookBehindSteps" xml:space="preserve"><value>回看工作流步数</value></data>
+  <data name="SmartBpAiFieldStaleMilliseconds" xml:space="preserve"><value>字段陈旧刷新毫秒</value></data>
+  <data name="SmartBpAiVisualBufferMilliseconds" xml:space="preserve"><value>当前步骤动画缓冲毫秒</value></data>
   <data name="SmartBpAiLedgerResetCompleted" xml:space="preserve"><value>已重置当前对局的 SmartBP AI 识别记录。</value></data>
 </root>

@@ -81,6 +81,8 @@ public interface ILlamaCppServerManager
     Task StartAsync(CancellationToken cancellationToken = default);
     /// <summary>Stops the managed process.</summary>
     Task StopAsync();
+    /// <summary>Force-stops the previously recorded managed llama-server process, if it is still alive.</summary>
+    Task ForceStopManagedProcessAsync(CancellationToken cancellationToken = default);
 }
 /// <summary>Encodes WPF frames for multimodal requests.</summary>
 public interface ISmartBpImageEncoder { /// <summary>Encodes a PNG data URL.</summary>
@@ -109,6 +111,36 @@ public interface ISmartBpRegionSnapshotRecognitionService
     /// <summary>Recognizes one region-gated BP snapshot.</summary>
     Task<SmartBpRegionSnapshot> RecognizeSnapshotAsync(BitmapSource frame, SmartBpRegionSnapshotRecognitionMode mode, CancellationToken cancellationToken = default);
 }
+/// <summary>Recognizes one incremental multi-region SmartBP snapshot delta.</summary>
+public interface ISmartBpSnapshotDeltaRecognitionService
+{
+    /// <summary>Recognizes a requested delta package from one frame.</summary>
+    Task<(SmartBpSnapshotDeltaResult Delta, IReadOnlyDictionary<string, string> RawResponses, SmartBpCroppedFrame PhaseCrop, IReadOnlyList<SmartBpCroppedFrame> ContentCrops, IReadOnlyList<string> Diagnostics)> RecognizeDeltaAsync(
+        BitmapSource frame,
+        SmartBpSnapshotDeltaRequest request,
+        long frameSequence,
+        CancellationToken cancellationToken = default);
+}
+/// <summary>Stores the locally merged incremental SmartBP recognition state.</summary>
+public interface ISmartBpRecognitionStateStore
+{
+    /// <summary>Gets a complete business-state snapshot.</summary>
+    SmartBpBusinessStateRecognitionResult Snapshot { get; }
+    /// <summary>Applies one model delta to the local state.</summary>
+    IReadOnlyList<string> ApplyDelta(SmartBpSnapshotDeltaResult delta, long frameSequence, DateTimeOffset timestamp);
+    /// <summary>Returns field staleness diagnostics.</summary>
+    IReadOnlyList<string> GetStaleFieldDiagnostics(DateTimeOffset timestamp, int staleMilliseconds);
+    /// <summary>Resets all locally merged state.</summary>
+    void Reset();
+}
+/// <summary>Plans which cropped regions should be refreshed on the next incremental request.</summary>
+public interface ISmartBpSnapshotRecognitionPlanner
+{
+    /// <summary>Builds the next recognition request package.</summary>
+    SmartBpSnapshotDeltaRequest BuildRequest(Core.Models.GameGuidanceRuntimeSnapshot guidanceSnapshot,
+        SmartBpBusinessStateRecognitionResult currentLocalSnapshot,
+        SmartBpRecognitionLedgerSnapshot ledgerSnapshot);
+}
 /// <summary>Merges independent content-region outputs into the simplified BP business state.</summary>
 public interface ISmartBpBusinessStateMerger
 {
@@ -132,6 +164,8 @@ public interface ILlamaCppOpenAiClient
     Task<string> DetectStageAsync(string imageDataUrl, CancellationToken cancellationToken = default);
     /// <summary>Extracts the operation for a locally selected guidance step.</summary>
     Task<string> RecognizeFocusedAsync(string imageDataUrl, Core.Enums.GameAction action, IReadOnlyList<int> indexes, CancellationToken cancellationToken = default);
+    /// <summary>Recognizes a phase plus requested content updates from multiple cropped images in one request.</summary>
+    Task<string> RecognizeSnapshotDeltaAsync(IReadOnlyList<SmartBpMultimodalRegionInput> regions, SmartBpSnapshotDeltaRequest request, CancellationToken cancellationToken = default);
 }
 /// <summary>Resolves model names against shared character dictionaries.</summary>
 public interface ISmartBpCharacterResolver { /// <summary>Resolves a character name safely.</summary>
@@ -183,6 +217,8 @@ public interface ISmartBpRecognitionLedger
     void MarkSkipped(SmartBpWorkflowOperationKey key, string reason);
     /// <summary>Clears all recognition state for the current game.</summary>
     void ResetForCurrentGame();
+    /// <summary>Returns a read-only snapshot for planning.</summary>
+    SmartBpRecognitionLedgerSnapshot GetSnapshot();
 }
 
 /// <summary>Coordinates stage detection, guidance reconciliation and focused extraction.</summary>

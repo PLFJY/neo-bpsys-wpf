@@ -57,6 +57,15 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty] private bool _enableAutoGuidanceSync;
     [ObservableProperty] private bool _enableAutoApplyRecognition;
     [ObservableProperty] private bool _playBackfillAnimations;
+    [ObservableProperty] private bool _useMultiImageSnapshotRequest;
+    [ObservableProperty] private int _recognitionBackfillLookBehindSteps;
+    [ObservableProperty] private int _recognitionFieldStaleMilliseconds;
+    [ObservableProperty] private int _recognitionVisualBufferMilliseconds;
+    [ObservableProperty] private int _llamaParallelSlots;
+    [ObservableProperty] private int _llamaGpuLayers;
+    [ObservableProperty] private bool _llamaFlashAttention;
+    [ObservableProperty] private int _llamaBatchSize;
+    [ObservableProperty] private int _llamaUBatchSize;
     [ObservableProperty] private string _aiStageDetectionResult = "-";
     [ObservableProperty] private string _aiGuidanceSnapshot = "-";
     [ObservableProperty] private string _aiCandidateOperations = "-";
@@ -74,6 +83,15 @@ public partial class SmartBpModuleContentViewModel
         EnableAutoGuidanceSync = _recognitionSettingsService.Settings.EnableAutoGuidanceSync;
         EnableAutoApplyRecognition = _recognitionSettingsService.Settings.EnableAutoApplyRecognition;
         PlayBackfillAnimations = _recognitionSettingsService.Settings.PlayBackfillAnimations;
+        UseMultiImageSnapshotRequest = _recognitionSettingsService.Settings.UseMultiImageSnapshotRequest;
+        RecognitionBackfillLookBehindSteps = _recognitionSettingsService.Settings.RecognitionBackfillLookBehindSteps;
+        RecognitionFieldStaleMilliseconds = _recognitionSettingsService.Settings.RecognitionFieldStaleMilliseconds;
+        RecognitionVisualBufferMilliseconds = _recognitionSettingsService.Settings.RecognitionVisualBufferMilliseconds;
+        LlamaParallelSlots = _recognitionSettingsService.Settings.LlamaParallelSlots;
+        LlamaGpuLayers = _recognitionSettingsService.Settings.LlamaGpuLayers;
+        LlamaFlashAttention = _recognitionSettingsService.Settings.LlamaFlashAttention;
+        LlamaBatchSize = _recognitionSettingsService.Settings.LlamaBatchSize;
+        LlamaUBatchSize = _recognitionSettingsService.Settings.LlamaUBatchSize;
         _aiPreviewTimer.Interval = TimeSpan.FromMilliseconds(_recognitionSettingsService.Settings.RecognitionIntervalMs);
         _aiPreviewTimer.Tick += async (_, _) => await RunAutomaticCurrentFrameCoreAsync();
         _qwenAssetManager.StateChanged += (_, state) => RunOnUiThread(() =>
@@ -238,6 +256,7 @@ public partial class SmartBpModuleContentViewModel
     [RelayCommand] private async Task RefreshLlamaRuntimeStatusAsync() { IsLlamaRuntimeInstalled = await _llamaRuntimeAssetManager.IsInstalledAsync(); ManagedLlamaServerExecutablePath = IsLlamaRuntimeInstalled ? await _llamaRuntimeAssetManager.GetInstalledExecutablePathAsync() : "-"; }
     [RelayCommand] private async Task StartLlamaServerAsync() { try { await _llamaServerManager.StartAsync(); LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusReady"); } catch (Exception ex) { LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusFailed"); AiLastError = ex.Message; } }
     [RelayCommand] private async Task StopLlamaServerAsync() { await StopAiPreviewLoopAsync(); await _llamaServerManager.StopAsync(); LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusStopped"); }
+    [RelayCommand] private async Task ForceStopLlamaServerAsync() { try { await StopAiPreviewLoopAsync(); await _llamaServerManager.ForceStopManagedProcessAsync(); LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusStopped"); } catch (Exception ex) { AiLastError = ex.Message; } }
     [RelayCommand] private async Task RecognizeSelectedTestFrameAsync()
     {
         if (SelectedAiTestFrame == null) return;
@@ -443,12 +462,67 @@ public partial class SmartBpModuleContentViewModel
         _ = _recognitionSettingsService.SaveAsync();
     }
 
+    partial void OnUseMultiImageSnapshotRequestChanged(bool value)
+    {
+        _recognitionSettingsService.Settings.UseMultiImageSnapshotRequest = value;
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnRecognitionBackfillLookBehindStepsChanged(int value)
+    {
+        _recognitionSettingsService.Settings.RecognitionBackfillLookBehindSteps = value;
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnRecognitionFieldStaleMillisecondsChanged(int value)
+    {
+        _recognitionSettingsService.Settings.RecognitionFieldStaleMilliseconds = value;
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnRecognitionVisualBufferMillisecondsChanged(int value)
+    {
+        _recognitionSettingsService.Settings.RecognitionVisualBufferMilliseconds = value;
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnLlamaParallelSlotsChanged(int value)
+    {
+        _recognitionSettingsService.Settings.LlamaParallelSlots = value;
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnLlamaGpuLayersChanged(int value)
+    {
+        _recognitionSettingsService.Settings.LlamaGpuLayers = value;
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnLlamaFlashAttentionChanged(bool value)
+    {
+        _recognitionSettingsService.Settings.LlamaFlashAttention = value;
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnLlamaBatchSizeChanged(int value)
+    {
+        _recognitionSettingsService.Settings.LlamaBatchSize = value;
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnLlamaUBatchSizeChanged(int value)
+    {
+        _recognitionSettingsService.Settings.LlamaUBatchSize = value;
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
     [RelayCommand]
     private void ResetAiRecognitionLedger()
     {
         _aiRecognitionLedger.ResetForCurrentGame();
+        _aiRecognitionStateStore.Reset();
         AiCandidateOperations = ResolveLocalizedOrRaw("SmartBpAiLedgerResetCompleted");
-        _aiDebugLog.Write("Recognition", "Recognition ledger reset for the current game.");
+        _aiDebugLog.Write("Recognition", "Recognition ledger and local snapshot state reset for the current game.");
     }
 
     private async Task SaveRuntimeSelectionAsync()

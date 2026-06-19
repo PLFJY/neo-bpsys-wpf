@@ -81,6 +81,9 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint
         services.AddSingleton<SmartBpCandidateOperationBuilder>();
         services.AddSingleton<ISmartBpBusinessStateMerger, SmartBpBusinessStateMerger>();
         services.AddSingleton<ISmartBpRegionSnapshotRecognitionService, SmartBpRegionSnapshotRecognitionService>();
+        services.AddSingleton<ISmartBpRecognitionStateStore, SmartBpRecognitionStateStore>();
+        services.AddSingleton<ISmartBpSnapshotRecognitionPlanner, SmartBpSnapshotRecognitionPlanner>();
+        services.AddSingleton<ISmartBpSnapshotDeltaRecognitionService, SmartBpSnapshotDeltaRecognitionService>();
         services.AddSingleton<ISmartBpRecognitionLedger, SmartBpRecognitionLedger>();
         services.AddSingleton<ISmartBpWorkflowBackfillService, SmartBpWorkflowBackfillService>();
         services.AddSingleton<ISmartBpDetectedOperationApplier, SmartBpDetectedOperationApplier>();

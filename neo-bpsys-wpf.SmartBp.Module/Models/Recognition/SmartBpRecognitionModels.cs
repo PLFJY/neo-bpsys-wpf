@@ -147,6 +147,26 @@ public sealed class SmartBpRecognitionSettings
     public bool PlayBackfillAnimations { get; set; }
     /// <summary>Gets or sets the number of matching snapshots required before automatic apply.</summary>
     public int RequiredStableSnapshots { get; set; } = 1;
+    /// <summary>Gets or sets whether automatic recognition should use one multi-image snapshot delta request.</summary>
+    public bool UseMultiImageSnapshotRequest { get; set; } = true;
+    /// <summary>Gets or sets how many previous workflow steps are considered when planning content-region refreshes.</summary>
+    public int RecognitionBackfillLookBehindSteps { get; set; } = 2;
+    /// <summary>Gets or sets how long a locally merged recognition field may remain fresh.</summary>
+    public int RecognitionFieldStaleMilliseconds { get; set; } = 2500;
+    /// <summary>Gets or sets an optional delay before applying current-step animated operations.</summary>
+    public int RecognitionVisualBufferMilliseconds { get; set; }
+    /// <summary>Gets or sets llama.cpp parallel slot count.</summary>
+    public int LlamaParallelSlots { get; set; } = 1;
+    /// <summary>Gets or sets llama.cpp GPU layer count; -1 means auto.</summary>
+    public int LlamaGpuLayers { get; set; } = -1;
+    /// <summary>Gets or sets whether llama.cpp flash attention is enabled.</summary>
+    public bool LlamaFlashAttention { get; set; } = true;
+    /// <summary>Gets or sets llama.cpp batch size.</summary>
+    public int LlamaBatchSize { get; set; } = 512;
+    /// <summary>Gets or sets llama.cpp micro-batch size.</summary>
+    public int LlamaUBatchSize { get; set; } = 512;
+    /// <summary>Gets or sets whether stale managed llama-server processes may be killed automatically.</summary>
+    public bool AutoKillStaleManagedLlamaServer { get; set; } = true;
 }
 
 /// <summary>Model-facing BP business-state recognition result.</summary>
@@ -217,6 +237,70 @@ public sealed class SmartBpRegionSnapshot
     /// <summary>Gets raw model responses keyed by logical region.</summary>
     public IReadOnlyDictionary<string, string> RawResponses { get; init; } = new Dictionary<string, string>();
 }
+
+/// <summary>One cropped region image included in a multi-image snapshot request.</summary>
+public sealed record SmartBpMultimodalRegionInput(string Id, SmartBpRecognitionRegion Region, string TargetField, string ImageDataUrl);
+
+/// <summary>One requested incremental snapshot recognition package.</summary>
+public sealed record SmartBpSnapshotDeltaRequest(IReadOnlyList<(SmartBpRecognitionRegion Region, string TargetField)> RequestedRegions,
+    IReadOnlyList<string> Diagnostics)
+{
+    /// <summary>Gets requested business content fields.</summary>
+    public IReadOnlyList<string> RequestedFields => RequestedRegions.Select(item => item.TargetField).Distinct(StringComparer.Ordinal).ToArray();
+}
+
+/// <summary>Incremental model output containing phase and only requested field updates.</summary>
+public sealed class SmartBpSnapshotDeltaResult
+{
+    /// <summary>Gets or sets the detected current phase.</summary>
+    [JsonPropertyName("phase")] public string Phase { get; set; } = "未知";
+    /// <summary>Gets or sets requested field updates.</summary>
+    [JsonPropertyName("updates")] public List<SmartBpSnapshotFieldUpdate> Updates { get; set; } = [];
+}
+
+/// <summary>One field update in a snapshot delta result.</summary>
+public sealed class SmartBpSnapshotFieldUpdate
+{
+    /// <summary>Gets or sets the business field id.</summary>
+    [JsonPropertyName("field")] public string Field { get; set; } = "";
+    /// <summary>Gets or sets slots for banned_sur, banned_hun or picked_sur.</summary>
+    [JsonPropertyName("slots")] public List<SmartBpRecognizedPlayerCharacterSlot>? Slots { get; set; }
+    /// <summary>Gets or sets the hunter pick slot when field is picked_hun.</summary>
+    [JsonPropertyName("picked_hun")] public SmartBpRecognizedPlayerCharacterSlot? PickedHun { get; set; }
+}
+
+/// <summary>In-memory locally merged SmartBP recognition state.</summary>
+public sealed class SmartBpRecognitionState
+{
+    /// <summary>Gets or sets the latest phase.</summary>
+    public string Phase { get; set; } = "未知";
+    /// <summary>Gets or sets known survivor bans.</summary>
+    public List<SmartBpRecognizedCharacterSlot> BannedSur { get; set; } = DefaultBannedSur();
+    /// <summary>Gets or sets known hunter bans.</summary>
+    public List<SmartBpRecognizedCharacterSlot> BannedHun { get; set; } = DefaultBannedHun();
+    /// <summary>Gets or sets known survivor picks or assignments.</summary>
+    public List<SmartBpRecognizedPlayerCharacterSlot> PickedSur { get; set; } = DefaultPickedSur();
+    /// <summary>Gets or sets known hunter pick.</summary>
+    public SmartBpRecognizedPlayerCharacterSlot PickedHun { get; set; } = DefaultPickedHun();
+    /// <summary>Gets or sets last update timestamp per field.</summary>
+    public Dictionary<string, DateTimeOffset> FieldUpdatedAt { get; set; } = [];
+    /// <summary>Gets or sets latest accepted frame sequence.</summary>
+    public long LastFrameSequence { get; set; }
+    /// <summary>Gets or sets latest accepted frame sequence per field.</summary>
+    public Dictionary<string, long> FieldFrameSequences { get; set; } = [];
+
+    /// <summary>Creates default survivor ban slots.</summary>
+    public static List<SmartBpRecognizedCharacterSlot> DefaultBannedSur() => Enumerable.Range(0, 4).Select(i => new SmartBpRecognizedCharacterSlot { Index = i, CharacterName = "未选择" }).ToList();
+    /// <summary>Creates default hunter ban slots.</summary>
+    public static List<SmartBpRecognizedCharacterSlot> DefaultBannedHun() => Enumerable.Range(0, 2).Select(i => new SmartBpRecognizedCharacterSlot { Index = i, CharacterName = "未选择" }).ToList();
+    /// <summary>Creates default survivor pick slots.</summary>
+    public static List<SmartBpRecognizedPlayerCharacterSlot> DefaultPickedSur() => Enumerable.Range(0, 4).Select(i => new SmartBpRecognizedPlayerCharacterSlot { Index = i, CharacterName = "未选择" }).ToList();
+    /// <summary>Creates the default hunter pick slot.</summary>
+    public static SmartBpRecognizedPlayerCharacterSlot DefaultPickedHun() => new() { Index = 0, CharacterName = "未选择" };
+}
+
+/// <summary>Read-only recognition ledger snapshot.</summary>
+public sealed record SmartBpRecognitionLedgerSnapshot(IReadOnlyCollection<SmartBpWorkflowOperationKey> CompletedKeys);
 
 /// <summary>Legacy model-facing BP stage detection result.</summary>
 public sealed class SmartBpStageDetectionResult

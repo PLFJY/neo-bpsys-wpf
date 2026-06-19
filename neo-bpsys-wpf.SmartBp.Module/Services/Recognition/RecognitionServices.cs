@@ -162,6 +162,61 @@ internal sealed partial class SmartBpCharacterResolver(ISharedDataService shared
 
 internal static class SmartBpRecognitionPromptBuilder
 {
+    public static string BuildSnapshotDelta(
+        SmartBpSnapshotDeltaRequest request,
+        IEnumerable<string> survivors,
+        IEnumerable<string> hunters)
+    {
+        var fields = request.RequestedFields.ToArray();
+        var mapping = string.Join(Environment.NewLine, request.RequestedRegions.Select((item, index) =>
+            $"image_{index + 1} = {RegionId(item.Region)}, field={item.TargetField}"));
+        return $$$"""
+/no_think
+
+你会收到多张第五人格 BP 裁剪图。
+image_0 = phase_top，只用于判断 phase。
+{{{mapping}}}
+
+只输出一个 JSON：
+{
+  "phase": "...",
+  "updates": [...]
+}
+
+requested_fields: {{{JsonSerializer.Serialize(fields)}}}
+survivor_candidates: {{{JsonSerializer.Serialize(survivors)}}}
+hunter_candidates: {{{JsonSerializer.Serialize(hunters)}}}
+
+phase 只能是：
+["屏蔽求生者","屏蔽监管者","选择求生者","求生者选择角色中","选择监管者","求生者选择天赋中","监管者选择天赋中","天赋已锁定","等待中","未知"]
+
+区域规则：
+- phase_top 只判断 phase，不识别角色。
+- right_top 只用于 banned_sur。
+- left_top 只用于 banned_hun。
+- left_bottom 只用于 picked_sur。
+- right_bottom 只用于 picked_hun。
+
+只返回 requested_fields 中要求的字段更新；没有请求的字段不要输出。
+如果某字段被请求，必须输出完整固定槽位数量。
+如果 requested field 的裁剪图里仍可见上一阶段结果，即使当前 phase 已进入下一步，也必须输出该区域当前可见业务状态。
+禁用符号、半透明、变暗表示已禁用，不是未选择。
+character_name 必须是对应候选列表中的规范名称，或 "未选择"。
+不要输出完整 BP 快照，除非所有字段都被请求。
+不要输出 teams、all_characters、all_player_ids、scene、warnings、raw_visible_text、confidence、MapBP 字段。
+""";
+    }
+
+    private static string RegionId(SmartBpRecognitionRegion region) => region switch
+    {
+        SmartBpRecognitionRegion.PhaseTop => "phase_top",
+        SmartBpRecognitionRegion.LeftTop => "left_top",
+        SmartBpRecognitionRegion.RightTop => "right_top",
+        SmartBpRecognitionRegion.LeftBottom => "left_bottom",
+        SmartBpRecognitionRegion.RightBottom => "right_bottom",
+        _ => region.ToString()
+    };
+
     public static string BuildPhaseRecognition() => """
 /no_think
 
@@ -360,6 +415,37 @@ internal static class SmartBpRecognitionJsonSchemaProvider
         };
     }
 
+    public static JsonObject GetSnapshotDelta(
+        IReadOnlyCollection<string> requestedFields,
+        IReadOnlyList<string> survivorCandidates,
+        IReadOnlyList<string> hunterCandidates)
+    {
+        var survivorNames = CharacterNameEnum(survivorCandidates);
+        var hunterNames = CharacterNameEnum(hunterCandidates);
+        JsonObject update = Object(new JsonObject
+        {
+            ["field"] = new JsonObject { ["type"] = "string", ["enum"] = new JsonArray(requestedFields.Select(x => (JsonNode?)JsonValue.Create(x)).ToArray()) },
+            ["slots"] = new JsonObject
+            {
+                ["anyOf"] = new JsonArray(
+                    new JsonObject { ["type"] = "null" },
+                    FixedArray(PlayerCharacterSlot(survivorNames, 0, 1, 2, 3), 4),
+                    FixedArray(PlayerCharacterSlot(hunterNames, 0, 1), 2))
+            },
+            ["picked_hun"] = new JsonObject
+            {
+                ["anyOf"] = new JsonArray(
+                    new JsonObject { ["type"] = "null" },
+                    Object(new JsonObject { ["index"] = Const(0), ["character_name"] = hunterNames.DeepClone(), ["player_id"] = NullableString() }, "index", "character_name", "player_id"))
+            }
+        }, "field", "slots", "picked_hun");
+        return Object(new JsonObject
+        {
+            ["phase"] = Phase(),
+            ["updates"] = Array(update)
+        }, "phase", "updates");
+    }
+
     public static JsonObject GetStageDetection()
     {
         JsonObject Enum(params string[] values) => new() { ["type"] = "string", ["enum"] = new JsonArray(values.Select(x => (JsonNode?)JsonValue.Create(x)).ToArray()) };
@@ -431,6 +517,39 @@ internal static class SmartBpRecognitionJsonSchemaProvider
 
 internal sealed class LlamaCppOpenAiClient(ISmartBpRecognitionSettingsService settings, ISharedDataService shared, ISmartBpPromptProfileProvider promptProfiles, ILogger<LlamaCppOpenAiClient> logger, ISmartBpDebugLog debugLog) : ILlamaCppOpenAiClient
 {
+    public async Task<string> RecognizeSnapshotDeltaAsync(IReadOnlyList<SmartBpMultimodalRegionInput> regions, SmartBpSnapshotDeltaRequest request, CancellationToken cancellationToken = default)
+    {
+        var profile = await promptProfiles.LoadAsync(settings.Settings.PromptProfileId, cancellationToken);
+        var content = new JsonArray { new JsonObject { ["type"] = "text", ["text"] = SmartBpRecognitionPromptBuilder.BuildSnapshotDelta(request, shared.SurCharaDict.Keys, shared.HunCharaDict.Keys) } };
+        for (var i = 0; i < regions.Count; i++)
+        {
+            var region = regions[i];
+            content.Add(new JsonObject { ["type"] = "text", ["text"] = $"image_{i} = {region.Id}, purpose = {region.TargetField}" });
+            content.Add(new JsonObject { ["type"] = "image_url", ["image_url"] = new JsonObject { ["url"] = region.ImageDataUrl } });
+        }
+        var body = new JsonObject
+        {
+            ["model"] = "local",
+            ["temperature"] = 0,
+            ["max_tokens"] = settings.Settings.FocusedMaxTokens,
+            ["chat_template_kwargs"] = new JsonObject { ["enable_thinking"] = false },
+            ["messages"] = new JsonArray(
+                new JsonObject { ["role"] = "system", ["content"] = profile.SystemPrompt },
+                new JsonObject { ["role"] = "user", ["content"] = content }),
+            ["response_format"] = new JsonObject
+            {
+                ["type"] = "json_schema",
+                ["json_schema"] = new JsonObject
+                {
+                    ["name"] = "smartbp_delta",
+                    ["strict"] = true,
+                    ["schema"] = SmartBpRecognitionJsonSchemaProvider.GetSnapshotDelta(request.RequestedFields, shared.SurCharaDict.Keys.ToArray(), shared.HunCharaDict.Keys.ToArray())
+                }
+            }
+        };
+        return await SendSpecialAsync(body, $"SnapshotDelta:{string.Join(",", request.RequestedFields)}", cancellationToken);
+    }
+
     public async Task<string> RecognizePhaseAsync(string imageDataUrl, CancellationToken cancellationToken = default)
     {
         var profile = await promptProfiles.LoadAsync(settings.Settings.PromptProfileId, cancellationToken);

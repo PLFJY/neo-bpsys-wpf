@@ -46,6 +46,13 @@ internal sealed class SmartBpRecognitionSettingsService : ISmartBpRecognitionSet
         Settings.StageConfidenceThreshold = Math.Clamp(Settings.StageConfidenceThreshold, 0, 1);
         Settings.GuidanceSyncLookAheadSteps = Math.Clamp(Settings.GuidanceSyncLookAheadSteps, 1, 20);
         Settings.RequiredStableSnapshots = Math.Clamp(Settings.RequiredStableSnapshots, 1, 5);
+        Settings.RecognitionBackfillLookBehindSteps = Math.Clamp(Settings.RecognitionBackfillLookBehindSteps, 0, 20);
+        Settings.RecognitionFieldStaleMilliseconds = Math.Clamp(Settings.RecognitionFieldStaleMilliseconds, 250, 30000);
+        Settings.RecognitionVisualBufferMilliseconds = Math.Clamp(Settings.RecognitionVisualBufferMilliseconds, 0, 5000);
+        Settings.LlamaParallelSlots = Math.Clamp(Settings.LlamaParallelSlots, 1, 8);
+        Settings.LlamaGpuLayers = Math.Clamp(Settings.LlamaGpuLayers, -1, 999);
+        Settings.LlamaBatchSize = Math.Clamp(Settings.LlamaBatchSize, 32, 4096);
+        Settings.LlamaUBatchSize = Math.Clamp(Settings.LlamaUBatchSize, 32, 4096);
         if (string.IsNullOrWhiteSpace(Settings.PromptProfileId)) Settings.PromptProfileId = "zh-CN";
         if (Settings.SelectedQwenModelId == "qwen3.5-2b-q4ks") Settings.SelectedQwenModelId = "qwen3.5-2b-q4km";
     }

@@ -121,6 +121,197 @@ internal sealed class SmartBpRegionSnapshotRecognitionService(
         Task.Run(() => encoder.EncodeDataUrl(image, settings.Settings.MaxImageWidth), cancellationToken);
 }
 
+internal sealed class SmartBpRecognitionStateStore : ISmartBpRecognitionStateStore
+{
+    private readonly object _gate = new();
+    private SmartBpRecognitionState _state = new();
+
+    public SmartBpBusinessStateRecognitionResult Snapshot
+    {
+        get
+        {
+            lock (_gate) return ToSnapshot(_state);
+        }
+    }
+
+    public IReadOnlyList<string> ApplyDelta(SmartBpSnapshotDeltaResult delta, long frameSequence, DateTimeOffset timestamp)
+    {
+        var diagnostics = new List<string>();
+        lock (_gate)
+        {
+            _state.Phase = delta.Phase;
+            _state.LastFrameSequence = Math.Max(_state.LastFrameSequence, frameSequence);
+            foreach (var update in delta.Updates)
+            {
+                if (_state.FieldFrameSequences.TryGetValue(update.Field, out var existing) && frameSequence < existing)
+                {
+                    diagnostics.Add($"Ignored stale field update {update.Field} from frame sequence {frameSequence}; latest={existing}.");
+                    continue;
+                }
+                switch (update.Field)
+                {
+                    case "banned_sur":
+                        _state.BannedSur = update.Slots?.Select(ToCharacterSlot).ToList() ?? _state.BannedSur;
+                        break;
+                    case "banned_hun":
+                        _state.BannedHun = update.Slots?.Select(ToCharacterSlot).ToList() ?? _state.BannedHun;
+                        break;
+                    case "picked_sur":
+                        _state.PickedSur = update.Slots?.Select(ClonePlayerSlot).ToList() ?? _state.PickedSur;
+                        break;
+                    case "picked_hun":
+                        if (update.PickedHun != null) _state.PickedHun = ClonePlayerSlot(update.PickedHun);
+                        break;
+                }
+                _state.FieldFrameSequences[update.Field] = frameSequence;
+                _state.FieldUpdatedAt[update.Field] = timestamp;
+                diagnostics.Add($"Applied delta field {update.Field} from frame sequence {frameSequence}.");
+            }
+        }
+        return diagnostics;
+    }
+
+    public IReadOnlyList<string> GetStaleFieldDiagnostics(DateTimeOffset timestamp, int staleMilliseconds)
+    {
+        if (staleMilliseconds <= 0) return [];
+        lock (_gate)
+        {
+            return new[] { "banned_sur", "banned_hun", "picked_sur", "picked_hun" }
+                .Where(field => !_state.FieldUpdatedAt.TryGetValue(field, out var updated) || (timestamp - updated).TotalMilliseconds > staleMilliseconds)
+                .Select(field => $"Field {field} is stale or unknown.")
+                .ToArray();
+        }
+    }
+
+    public void Reset()
+    {
+        lock (_gate) _state = new();
+    }
+
+    private static SmartBpBusinessStateRecognitionResult ToSnapshot(SmartBpRecognitionState state)
+    {
+        var snapshot = new SmartBpBusinessStateRecognitionResult
+        {
+            Phase = state.Phase,
+            BannedSur = state.BannedSur.Select(slot => new SmartBpRecognizedCharacterSlot { Index = slot.Index, CharacterName = slot.CharacterName }).ToList(),
+            BannedHun = state.BannedHun.Select(slot => new SmartBpRecognizedCharacterSlot { Index = slot.Index, CharacterName = slot.CharacterName }).ToList(),
+            PickedSur = state.PickedSur.Select(ClonePlayerSlot).ToList(),
+            PickedHun = ClonePlayerSlot(state.PickedHun)
+        };
+        SmartBpBusinessStateParser.NormalizeAndValidate(snapshot);
+        return snapshot;
+    }
+
+    private static SmartBpRecognizedCharacterSlot ToCharacterSlot(SmartBpRecognizedPlayerCharacterSlot slot) =>
+        new() { Index = slot.Index, CharacterName = slot.CharacterName };
+
+    private static SmartBpRecognizedPlayerCharacterSlot ClonePlayerSlot(SmartBpRecognizedPlayerCharacterSlot slot) =>
+        new() { Index = slot.Index, CharacterName = slot.CharacterName, PlayerId = slot.PlayerId };
+}
+
+internal sealed class SmartBpSnapshotRecognitionPlanner(
+    ISmartBpRecognitionSettingsService settings,
+    ISmartBpRecognitionStateStore stateStore) : ISmartBpSnapshotRecognitionPlanner
+{
+    public SmartBpSnapshotDeltaRequest BuildRequest(
+        GameGuidanceRuntimeSnapshot guidanceSnapshot,
+        SmartBpBusinessStateRecognitionResult currentLocalSnapshot,
+        SmartBpRecognitionLedgerSnapshot ledgerSnapshot)
+    {
+        var requested = new Dictionary<string, SmartBpRecognitionRegion>(StringComparer.Ordinal);
+        var diagnostics = new List<string>();
+        void Add(string field, SmartBpRecognitionRegion region, string reason)
+        {
+            if (requested.TryAdd(field, region)) diagnostics.Add($"Request {field} ({region}): {reason}");
+        }
+
+        if (guidanceSnapshot.IsStarted && guidanceSnapshot.Workflow.Count > 0)
+        {
+            var lookBehind = Math.Max(0, settings.Settings.RecognitionBackfillLookBehindSteps);
+            var earliest = Math.Max(0, guidanceSnapshot.CurrentStepIndex - lookBehind);
+            foreach (var step in guidanceSnapshot.Workflow.OrderBy(x => x.StepIndex)
+                         .Where(x => x.StepIndex >= earliest && x.StepIndex <= guidanceSnapshot.CurrentStepIndex))
+                AddForAction(step.Action, $"workflow step {step.StepIndex}");
+        }
+
+        if (SmartBpAutomaticMapping.TryMapPhase(currentLocalSnapshot.Phase, out var phaseAction))
+        {
+            if (phaseAction is GameAction.PickSurTalent) Add("picked_sur", SmartBpRecognitionRegion.LeftBottom, "survivor talent phase may need pick backfill");
+            else if (phaseAction is GameAction.PickHunTalent) Add("picked_hun", SmartBpRecognitionRegion.RightBottom, "hunter talent phase may need pick backfill");
+            else AddForAction(phaseAction, "last detected phase");
+        }
+
+        foreach (var stale in stateStore.GetStaleFieldDiagnostics(DateTimeOffset.Now, settings.Settings.RecognitionFieldStaleMilliseconds))
+        {
+            diagnostics.Add(stale);
+            if (stale.Contains("banned_sur", StringComparison.Ordinal)) Add("banned_sur", SmartBpRecognitionRegion.RightTop, "stale field");
+            if (stale.Contains("banned_hun", StringComparison.Ordinal)) Add("banned_hun", SmartBpRecognitionRegion.LeftTop, "stale field");
+            if (stale.Contains("picked_sur", StringComparison.Ordinal)) Add("picked_sur", SmartBpRecognitionRegion.LeftBottom, "stale field");
+            if (stale.Contains("picked_hun", StringComparison.Ordinal)) Add("picked_hun", SmartBpRecognitionRegion.RightBottom, "stale field");
+        }
+
+        if (requested.Count == 0)
+            diagnostics.Add("Only phase_top is requested this tick.");
+        return new(requested.Select(item => (item.Value, item.Key)).ToArray(), diagnostics);
+
+        void AddForAction(GameAction action, string reason)
+        {
+            if (!SmartBpAutomaticMapping.IsCharacterOperationAction(action)) return;
+            var (region, field) = SmartBpAutomaticMapping.GetFocusedTarget(action);
+            Add(field, region, reason);
+        }
+    }
+}
+
+internal sealed class SmartBpSnapshotDeltaRecognitionService(
+    ISmartBpImageEncoder encoder,
+    ISmartBpRecognitionFrameCropper cropper,
+    ILlamaCppOpenAiClient client,
+    ISmartBpRecognitionSettingsService settings,
+    ISharedDataService shared) : ISmartBpSnapshotDeltaRecognitionService
+{
+    public async Task<(SmartBpSnapshotDeltaResult Delta, IReadOnlyDictionary<string, string> RawResponses, SmartBpCroppedFrame PhaseCrop, IReadOnlyList<SmartBpCroppedFrame> ContentCrops, IReadOnlyList<string> Diagnostics)> RecognizeDeltaAsync(
+        BitmapSource frame,
+        SmartBpSnapshotDeltaRequest request,
+        long frameSequence,
+        CancellationToken cancellationToken = default)
+    {
+        var diagnostics = new List<string> { $"Frame sequence {frameSequence}: requested fields [{string.Join(", ", request.RequestedFields)}]." };
+        var crops = new List<SmartBpCroppedFrame>();
+        var inputs = new List<SmartBpMultimodalRegionInput>();
+        var phaseCrop = await CropAsync(frame, SmartBpRecognitionRegion.PhaseTop, cancellationToken);
+        inputs.Add(new("phase_top", SmartBpRecognitionRegion.PhaseTop, "phase", await EncodeAsync(phaseCrop.Image, cancellationToken)));
+        foreach (var (region, targetField) in request.RequestedRegions)
+        {
+            var crop = await CropAsync(frame, region, cancellationToken);
+            crops.Add(crop);
+            inputs.Add(new(ToRegionId(region), region, targetField, await EncodeAsync(crop.Image, cancellationToken)));
+        }
+
+        var raw = await client.RecognizeSnapshotDeltaAsync(inputs, request, cancellationToken);
+        var parsed = SmartBpAutomaticParser.ParseSnapshotDelta(raw, request.RequestedFields,
+            shared.SurCharaDict.Keys.ToArray(), shared.HunCharaDict.Keys.ToArray());
+        diagnostics.Add($"Delta recognized phase={parsed.Phase}; updates=[{string.Join(", ", parsed.Updates.Select(x => x.Field))}].");
+        return (parsed, new Dictionary<string, string> { ["snapshot_delta"] = raw }, phaseCrop, crops, diagnostics);
+    }
+
+    private async Task<SmartBpCroppedFrame> CropAsync(BitmapSource frame, SmartBpRecognitionRegion region, CancellationToken cancellationToken) =>
+        await Task.Run(() => cropper.CropWithInfo(frame, region), cancellationToken);
+
+    private async Task<string> EncodeAsync(BitmapSource image, CancellationToken cancellationToken) =>
+        await Task.Run(() => encoder.EncodeDataUrl(image, settings.Settings.MaxImageWidth), cancellationToken);
+
+    private static string ToRegionId(SmartBpRecognitionRegion region) => region switch
+    {
+        SmartBpRecognitionRegion.PhaseTop => "phase_top",
+        SmartBpRecognitionRegion.LeftTop => "left_top",
+        SmartBpRecognitionRegion.RightTop => "right_top",
+        SmartBpRecognitionRegion.LeftBottom => "left_bottom",
+        SmartBpRecognitionRegion.RightBottom => "right_bottom",
+        _ => region.ToString()
+    };
+}
+
 internal sealed class SmartBpRecognitionLedger : ISmartBpRecognitionLedger, IDisposable
 {
     private readonly object _gate = new();
@@ -162,6 +353,11 @@ internal sealed class SmartBpRecognitionLedger : ISmartBpRecognitionLedger, IDis
             _completed.Clear();
             _skipped.Clear();
         }
+    }
+
+    public SmartBpRecognitionLedgerSnapshot GetSnapshot()
+    {
+        lock (_gate) return new(_completed.ToArray());
     }
 
     public void Dispose()

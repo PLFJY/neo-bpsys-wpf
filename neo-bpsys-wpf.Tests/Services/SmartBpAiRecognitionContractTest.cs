@@ -50,6 +50,10 @@ using SmartBpBusinessStateMerger = smartbp::neo_bpsys_wpf.SmartBp.Module.Service
 using SmartBpWorkflowBackfillService = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpWorkflowBackfillService;
 using SmartBpRecognitionLedger = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpRecognitionLedger;
 using SmartBpWorkflowOperationKey = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpWorkflowOperationKey;
+using SmartBpSnapshotDeltaRequest = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpSnapshotDeltaRequest;
+using SmartBpSnapshotDeltaResult = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpSnapshotDeltaResult;
+using SmartBpSnapshotFieldUpdate = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpSnapshotFieldUpdate;
+using SmartBpRecognitionStateStore = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpRecognitionStateStore;
 
 namespace neo_bpsys_wpf.Tests.Services;
 
@@ -88,6 +92,103 @@ public sealed class SmartBpAiRecognitionContractTest
         Assert.DoesNotContain("\"all_player_ids\"", schema);
         Assert.DoesNotContain("\"raw_visible_text\"", schema);
         Assert.DoesNotContain("MapBP", schema, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void SnapshotDeltaSchemaOnlyAllowsRequestedFields()
+    {
+        var schema = SmartBpRecognitionJsonSchemaProvider.GetSnapshotDelta(["picked_sur"], ["心理学家"], ["厂长"]);
+        var text = schema.ToJsonString();
+
+        Assert.Contains("\"phase\"", text);
+        Assert.Contains("\"updates\"", text);
+        Assert.Contains("\"picked_sur\"", text);
+        Assert.DoesNotContain("\"banned_sur\"", text);
+        Assert.Contains("\"picked_hun\"", text);
+    }
+
+    [Fact]
+    public void SnapshotDeltaParserRejectsUnrequestedField()
+    {
+        var raw = """
+{
+  "phase": "选择求生者",
+  "updates": [
+    {
+      "field": "banned_sur",
+      "slots": [
+        { "index": 0, "character_name": "小说家", "player_id": null },
+        { "index": 1, "character_name": "未选择", "player_id": null },
+        { "index": 2, "character_name": "未选择", "player_id": null },
+        { "index": 3, "character_name": "未选择", "player_id": null }
+      ],
+      "picked_hun": null
+    }
+  ]
+}
+""";
+
+        Assert.Throws<InvalidDataException>(() => SmartBpAutomaticParser.ParseSnapshotDelta(raw, ["picked_sur"], ["小说家"], ["厂长"]));
+    }
+
+    [Fact]
+    public void RecognitionStateStorePreservesMissingFieldsAndIgnoresOlderFieldSequences()
+    {
+        var store = new SmartBpRecognitionStateStore();
+        store.ApplyDelta(new SmartBpSnapshotDeltaResult
+        {
+            Phase = "选择求生者",
+            Updates =
+            [
+                new SmartBpSnapshotFieldUpdate
+                {
+                    Field = "picked_sur",
+                    Slots =
+                    [
+                        new() { Index = 0, CharacterName = "心理学家", PlayerId = "A" },
+                        new() { Index = 1, CharacterName = "守墓人", PlayerId = "B" },
+                        new() { Index = 2, CharacterName = "未选择" },
+                        new() { Index = 3, CharacterName = "未选择" }
+                    ]
+                }
+            ]
+        }, 2, DateTimeOffset.Now);
+
+        store.ApplyDelta(new SmartBpSnapshotDeltaResult
+        {
+            Phase = "屏蔽求生者",
+            Updates =
+            [
+                new SmartBpSnapshotFieldUpdate
+                {
+                    Field = "picked_sur",
+                    Slots =
+                    [
+                        new() { Index = 0, CharacterName = "未选择" },
+                        new() { Index = 1, CharacterName = "未选择" },
+                        new() { Index = 2, CharacterName = "未选择" },
+                        new() { Index = 3, CharacterName = "未选择" }
+                    ]
+                },
+                new SmartBpSnapshotFieldUpdate
+                {
+                    Field = "banned_sur",
+                    Slots =
+                    [
+                        new() { Index = 0, CharacterName = "小说家" },
+                        new() { Index = 1, CharacterName = "未选择" },
+                        new() { Index = 2, CharacterName = "未选择" },
+                        new() { Index = 3, CharacterName = "未选择" }
+                    ]
+                }
+            ]
+        }, 1, DateTimeOffset.Now);
+
+        var snapshot = store.Snapshot;
+        Assert.Equal("屏蔽求生者", snapshot.Phase);
+        Assert.Equal("心理学家", snapshot.PickedSur[0].CharacterName);
+        Assert.Equal("小说家", snapshot.BannedSur[0].CharacterName);
+        Assert.Equal("未选择", snapshot.BannedHun[0].CharacterName);
     }
 
     [Fact]

@@ -4593,5 +4593,18 @@
   <data name="SmartBpAiRegionRightBottom" xml:space="preserve"><value>右下：ハンター選択</value></data>
   <data name="SmartBpAiPlayBackfillAnimations" xml:space="preserve"><value>前の手順を補完するときにアニメーションを再生</value></data>
   <data name="SmartBpAiResetLedger" xml:space="preserve"><value>SmartBP AI 認識履歴をリセット</value></data>
+  <data name="SmartBpAiAdvancedEngineSettings" xml:space="preserve"><value>高度なエンジン設定</value></data>
+  <data name="SmartBpAiAdvancedRecognitionSettings" xml:space="preserve"><value>高度な認識設定</value></data>
+  <data name="SmartBpAiParallelSlots" xml:space="preserve"><value>llama.cpp 並列スロット</value></data>
+  <data name="SmartBpAiParallelSlotsHint" xml:space="preserve"><value>並列スロットを増やすと同時処理性能が上がる場合がありますが、VRAM/RAM を多く使います。既定値 1 が安全です。</value></data>
+  <data name="SmartBpAiGpuLayers" xml:space="preserve"><value>GPU レイヤー（-1 は自動）</value></data>
+  <data name="SmartBpAiFlashAttention" xml:space="preserve"><value>Flash Attention を有効化</value></data>
+  <data name="SmartBpAiBatchSize" xml:space="preserve"><value>Batch size</value></data>
+  <data name="SmartBpAiUBatchSize" xml:space="preserve"><value>UBatch size</value></data>
+  <data name="SmartBpAiForceStopLlama" xml:space="preserve"><value>管理対象 llama.cpp を強制停止</value></data>
+  <data name="SmartBpAiUseMultiImageSnapshot" xml:space="preserve"><value>単一の複数画像差分リクエストを使用</value></data>
+  <data name="SmartBpAiBackfillLookBehindSteps" xml:space="preserve"><value>ワークフローの振り返り手順数</value></data>
+  <data name="SmartBpAiFieldStaleMilliseconds" xml:space="preserve"><value>フィールド再更新までのミリ秒</value></data>
+  <data name="SmartBpAiVisualBufferMilliseconds" xml:space="preserve"><value>現在手順アニメーションのバッファミリ秒</value></data>
   <data name="SmartBpAiLedgerResetCompleted" xml:space="preserve"><value>現在の試合の SmartBP AI 認識履歴をリセットしました。</value></data>
 </root>
