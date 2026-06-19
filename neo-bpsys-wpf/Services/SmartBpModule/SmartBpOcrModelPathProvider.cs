@@ -8,17 +8,17 @@ namespace neo_bpsys_wpf.Services.SmartBpModule;
 /// </summary>
 public sealed class SmartBpOcrModelPathProvider : ISmartBpOcrModelPathProvider
 {
-    private readonly SmartBpModuleManager _moduleManager;
+    private readonly ISmartBpModuleStorageProvider _storageProvider;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SmartBpOcrModelPathProvider"/> class.
     /// </summary>
     /// <param name="moduleManager">Module manager.</param>
-    public SmartBpOcrModelPathProvider(SmartBpModuleManager moduleManager)
+    public SmartBpOcrModelPathProvider(ISmartBpModuleStorageProvider storageProvider)
     {
-        _moduleManager = moduleManager;
+        _storageProvider = storageProvider;
     }
 
     /// <inheritdoc />
-    public string RootDirectory => Path.Combine(_moduleManager.ModuleRoot, "OCRModels");
+    public string RootDirectory => _storageProvider.OcrModelsRoot;
 }

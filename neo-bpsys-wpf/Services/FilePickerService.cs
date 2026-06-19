@@ -92,6 +92,16 @@ public class FilePickerService : IFilePickerService
     }
 
     /// <inheritdoc />
+    public string? PickExecutableFile()
+    {
+        var dialog = new OpenFileDialog
+        {
+            Filter = $"{I18nHelper.GetLocalizedString("ExecutableFiles")} (*.exe)|*.exe|{I18nHelper.GetLocalizedString("AllFiles")} (*.*)|*.*"
+        };
+        return dialog.ShowDialog() == true ? dialog.FileName : null;
+    }
+
+    /// <inheritdoc />
     public string? PickFolder()
     {
         var dialog = new OpenFolderDialog();

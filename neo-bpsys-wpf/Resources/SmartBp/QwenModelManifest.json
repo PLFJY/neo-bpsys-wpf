@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "models": [
+    {
+      "id": "qwen3.5-2b-q4ks",
+      "displayName": "Qwen3.5-2B Q4_K_S",
+      "family": "Qwen3.5",
+      "size": "2B",
+      "recommended": true,
+      "experimental": false,
+      "source": "ModelScope",
+      "modelUrl": "https://www.modelscope.cn/models/unsloth/Qwen3.5-2B-GGUF/resolve/master/Qwen3.5-2B-Q4_K_S.gguf",
+      "modelFileName": "Qwen3.5-2B-Q4_K_S.gguf",
+      "mmprojUrl": "https://www.modelscope.cn/models/unsloth/Qwen3.5-2B-GGUF/resolve/master/mmproj-F16.gguf",
+      "mmprojFileName": "mmproj-F16.gguf",
+      "sha256": "56eee7b85a2023ba393c5f9a5a5e372e3645e7925a13adb4d13723fc5bc14124",
+      "mmprojSha256": "7035e9cb8d7c6a9681d07eef9a364783e86ea4cd73faab2eabb4f43a101830c7",
+      "license": "apache-2.0",
+      "minMemoryGb": 8,
+      "preferredBackends": ["cuda", "vulkan", "cpu"]
+    },
+    {
+      "id": "qwen3.5-0.8b-q4ks",
+      "displayName": "Qwen3.5-0.8B Q4_K_S",
+      "family": "Qwen3.5",
+      "size": "0.8B",
+      "recommended": false,
+      "experimental": true,
+      "source": "ModelScope",
+      "modelUrl": "https://www.modelscope.cn/models/unsloth/Qwen3.5-0.8B-GGUF/resolve/master/Qwen3.5-0.8B-Q4_K_S.gguf",
+      "modelFileName": "Qwen3.5-0.8B-Q4_K_S.gguf",
+      "mmprojUrl": "https://www.modelscope.cn/models/unsloth/Qwen3.5-0.8B-GGUF/resolve/master/mmproj-F16.gguf",
+      "mmprojFileName": "mmproj-F16.gguf",
+      "sha256": "5f7ccfa6e9df0d9ebbaff9ee095b18202bec1e0ac313ca688d2c57c9c80a6bc9",
+      "mmprojSha256": "56e4c6cfe73b0c82e3e82bc518d7591997e61d81f723fc41a586f4fa69ea2453",
+      "license": "apache-2.0",
+      "minMemoryGb": 4,
+      "preferredBackends": ["cuda", "vulkan", "cpu"]
+    }
+  ]
+}

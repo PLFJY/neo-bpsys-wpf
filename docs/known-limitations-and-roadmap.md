@@ -7,9 +7,12 @@
 | 能力 | 状态 |
 | --- | --- |
 | 赛后数据 OCR 自动回填 | 成熟且可用 |
+| Qwen + llama.cpp BP 识别预览 | 可用；仅展示解析结果，不修改对局数据 |
 | 全流程自动 BP / 自动 BP 画面切换 | TODO |
 
 `SmartBpService.StartSmartBp()` 当前有 `DispatcherTimer` 框架，但 `Timer_Tick` 中还没有完整自动 BP 识别/切屏流程。不要在未明确收到需求时补全这条链路，也不要在文档或 UI 中声称它已完成。
+
+Qwen 识别路径读取内置 manifest，模型和 llama.cpp 日志存放于 SmartBP 模块目录的 `AI` 子目录；AppData 中只保存 `SmartBp/RecognitionSettings.json`。该路径当前不识别 MapBP，也不包含 PaddleOCR BP 区域切片。
 
 ## 插件系统
 

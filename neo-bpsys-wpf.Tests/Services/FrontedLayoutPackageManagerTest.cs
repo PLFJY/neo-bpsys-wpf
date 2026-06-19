@@ -1738,6 +1738,7 @@ public class FrontedLayoutPackageManagerTest
         public string? PickZipFile() => null;
 
         public string? PickSmartBpModuleArchiveFile() => null;
+        public string? PickExecutableFile() => null;
 
         public string? PickPluginPackageFile() => null;
 

@@ -79,6 +79,7 @@ public partial class App
         services.AddSingleton<IWindowCaptureService, WindowCaptureService>();
         services.AddSingleton<SmartBpModuleManager>();
         services.AddSingleton<ISmartBpFeatureService, SmartBpFeatureService>();
+        services.AddSingleton<ISmartBpModuleStorageProvider, SmartBpModuleStorageProvider>();
         services.AddSingleton<ISmartBpOcrModelPathProvider, SmartBpOcrModelPathProvider>();
 
         //Additional Feature Services

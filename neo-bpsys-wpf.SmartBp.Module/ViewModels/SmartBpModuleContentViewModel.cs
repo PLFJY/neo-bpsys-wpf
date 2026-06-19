@@ -14,6 +14,7 @@ using Windows.Graphics.Capture;
 using WPFLocalizeExtension.Engine;
 using System.Windows.Threading;
 using neo_bpsys_wpf.Core;
+using neo_bpsys_wpf.SmartBp.Module.Abstractions;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -35,6 +36,11 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     private readonly IFilePickerService _filePickerService = null!;
     private readonly DispatcherTimer _captureAspectRefreshTimer;
     private readonly ILogger<SmartBpModuleContentViewModel> _logger;
+    private readonly IQwenModelAssetManager _qwenAssetManager = null!;
+    private readonly ILlamaCppServerManager _llamaServerManager = null!;
+    private readonly ISmartBpAiRecognitionService _aiRecognitionService = null!;
+    private readonly ISmartBpRecognitionSettingsService _recognitionSettingsService = null!;
+    private readonly ISmartBpDebugLog _aiDebugLog = null!;
 
     /// <summary>
     /// 用于设计时预览的无参构造函数。
@@ -55,6 +61,11 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         ISmartBpRegionConfigService regionConfigService,
         IEnumerable<ISmartBpSceneDefinition> sceneDefinitions,
         IFilePickerService filePickerService,
+        IQwenModelAssetManager qwenAssetManager,
+        ILlamaCppServerManager llamaServerManager,
+        ISmartBpAiRecognitionService aiRecognitionService,
+        ISmartBpRecognitionSettingsService recognitionSettingsService,
+        ISmartBpDebugLog aiDebugLog,
         ILogger<SmartBpModuleContentViewModel> logger)
     {
         _logger = logger;
@@ -69,6 +80,12 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
             throw new InvalidOperationException("Missing SmartBp scene definition: GameData");
         }
         _filePickerService = filePickerService;
+        _qwenAssetManager = qwenAssetManager;
+        _llamaServerManager = llamaServerManager;
+        _aiRecognitionService = aiRecognitionService;
+        _recognitionSettingsService = recognitionSettingsService;
+        _aiDebugLog = aiDebugLog;
+        InitializeAiRecognition();
         _ocrService.DownloadStateChanged += OcrService_DownloadStateChanged;
         // 配置被保存/导入/重置时同步刷新比例状态展示。
         _regionConfigService.GameDataProfileChanged += (_, _) => RunOnUiThread(RefreshRegionAspectInfo);

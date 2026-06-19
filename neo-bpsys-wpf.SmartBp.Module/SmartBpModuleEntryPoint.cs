@@ -5,6 +5,8 @@ using neo_bpsys_wpf.Core.Models.SmartBpModule;
 using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.ViewModels.Pages;
 using neo_bpsys_wpf.Views.Pages;
+using neo_bpsys_wpf.SmartBp.Module.Abstractions;
+using neo_bpsys_wpf.SmartBp.Module.Services.Recognition;
 
 namespace neo_bpsys_wpf.SmartBp.Module;
 
@@ -52,12 +54,22 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint
         services.AddSingleton(hostServices.GetRequiredService<IFilePickerService>());
         services.AddSingleton(hostServices.GetRequiredService<ISettingsHostService>());
         services.AddSingleton(hostServices.GetRequiredService<ISmartBpOcrModelPathProvider>());
+        services.AddSingleton(hostServices.GetRequiredService<ISmartBpModuleStorageProvider>());
         services.AddSingleton(loggerFactory);
         services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
         services.AddSingleton<ISmartBpSceneDefinition, SmartBpGameDataSceneDefinition>();
         services.AddSingleton<ISmartBpRegionConfigService, SmartBpRegionConfigService>();
         services.AddSingleton<IOcrService, OcrService>();
         services.AddSingleton<ISmartBpService, SmartBpService>();
+        services.AddSingleton<IQwenModelManifestProvider, QwenModelManifestProvider>();
+        services.AddSingleton<ISmartBpRecognitionSettingsService, SmartBpRecognitionSettingsService>();
+        services.AddSingleton<IQwenModelAssetManager, QwenModelAssetManager>();
+        services.AddSingleton<ISmartBpImageEncoder, SmartBpImageEncoder>();
+        services.AddSingleton<ISmartBpCharacterResolver, SmartBpCharacterResolver>();
+        services.AddSingleton<ILlamaCppOpenAiClient, LlamaCppOpenAiClient>();
+        services.AddSingleton<ILlamaCppServerManager, LlamaCppServerManager>();
+        services.AddSingleton<ISmartBpAiRecognitionService, SmartBpAiRecognitionService>();
+        services.AddSingleton<ISmartBpDebugLog, SmartBpDebugLog>();
         services.AddSingleton<SmartBpModuleContentViewModel>();
         services.AddTransient<SmartBpModuleContentView>();
         return services.BuildServiceProvider();

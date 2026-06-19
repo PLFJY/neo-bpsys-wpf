@@ -47,6 +47,10 @@ public interface IFilePickerService
     /// <returns>文件路径。</returns>
     public string? PickPluginPackageFile();
 
+    /// <summary>Selects a Windows executable file.</summary>
+    /// <returns>The selected path, or <see langword="null"/> when cancelled.</returns>
+    public string? PickExecutableFile();
+
     /// <summary>
     /// 选择文件夹。
     /// </summary>

@@ -4678,4 +4678,37 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="Designer.Behaviors.Payload.SourceBehaviorGuid.Description" xml:space="preserve"><value>The stable behavior ID of the source control.</value></data>
   <data name="Designer.Graph.Condition.If" xml:space="preserve"><value>IF</value></data>
   <data name="Designer.Graph.Preview.MissingEventContext" xml:space="preserve"><value>The current preview has no event context, so {0} cannot be resolved.</value></data>
+  <data name="ExecutableFiles" xml:space="preserve"><value>Executable files</value></data>
+  <data name="SmartBpAiRecognitionTitle" xml:space="preserve"><value>AI BP Recognition / Qwen + llama.cpp</value></data>
+  <data name="SmartBpAiRecognitionPreviewNotice" xml:space="preserve"><value>Recognition results are preview-only and never modify live BP data.</value></data>
+  <data name="SmartBpAiManifestStatus" xml:space="preserve"><value>Manifest:</value></data>
+  <data name="SmartBpAiModelProfile" xml:space="preserve"><value>Qwen model:</value></data>
+  <data name="SmartBpAiMmprojProfile" xml:space="preserve"><value>Vision projector:</value></data>
+  <data name="SmartBpAiInstalled" xml:space="preserve"><value>Installed:</value></data>
+  <data name="SmartBpAiDownloadQwen" xml:space="preserve"><value>Download Qwen model</value></data>
+  <data name="SmartBpAiDeleteQwen" xml:space="preserve"><value>Delete Qwen model</value></data>
+  <data name="SmartBpAiLlamaPath" xml:space="preserve"><value>llama-server.exe path</value></data>
+  <data name="SmartBpAiStartServer" xml:space="preserve"><value>Start llama-server</value></data>
+  <data name="SmartBpAiStopServer" xml:space="preserve"><value>Stop llama-server</value></data>
+  <data name="SmartBpAiRecognizeTestFrame" xml:space="preserve"><value>Recognize selected test frame</value></data>
+  <data name="SmartBpAiRecognizeCapture" xml:space="preserve"><value>Recognize current capture frame</value></data>
+  <data name="SmartBpAiStartLoop" xml:space="preserve"><value>Start recognition preview loop</value></data>
+  <data name="SmartBpAiStopLoop" xml:space="preserve"><value>Stop recognition preview loop</value></data>
+  <data name="SmartBpAiElapsed" xml:space="preserve"><value>Elapsed:</value></data>
+  <data name="SmartBpAiRecommendedInterval" xml:space="preserve"><value>Recommended interval:</value></data>
+  <data name="SmartBpAiRawJson" xml:space="preserve"><value>Raw JSON</value></data>
+  <data name="SmartBpAiNormalizedResult" xml:space="preserve"><value>Normalized result</value></data>
+  <data name="SmartBpAiLastError" xml:space="preserve"><value>Last error</value></data>
+  <data name="SmartBpAiDebugConsole" xml:space="preserve"><value>Runtime debug console</value></data>
+  <data name="SmartBpAiDebugConsoleHint" xml:space="preserve"><value>Live llama-server command, stdout, stderr, health checks, and recognition request status.</value></data>
+  <data name="SmartBpAiClearDebugConsole" xml:space="preserve"><value>Clear</value></data>
+  <data name="SmartBpAiStatusLoading" xml:space="preserve"><value>Loading</value></data>
+  <data name="SmartBpAiStatusLoaded" xml:space="preserve"><value>Loaded</value></data>
+  <data name="SmartBpAiStatusFailed" xml:space="preserve"><value>Failed</value></data>
+  <data name="SmartBpAiStatusStopped" xml:space="preserve"><value>Stopped</value></data>
+  <data name="SmartBpAiStatusNotInstalled" xml:space="preserve"><value>Not installed</value></data>
+  <data name="SmartBpAiStatusDownloading" xml:space="preserve"><value>Downloading Qwen model</value></data>
+  <data name="SmartBpAiStatusInstalled" xml:space="preserve"><value>Installed</value></data>
+  <data name="SmartBpAiStatusCancelled" xml:space="preserve"><value>Cancelled</value></data>
+  <data name="SmartBpAiStatusReady" xml:space="preserve"><value>Ready</value></data>
 </root>

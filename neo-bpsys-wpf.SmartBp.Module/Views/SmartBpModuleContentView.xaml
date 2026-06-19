@@ -337,5 +337,175 @@
                 </StackPanel>
             </Grid>
         </Border>
+        <Border Margin="0,10,0,0" Style="{StaticResource Card}">
+            <StackPanel>
+                <TextBlock Style="{StaticResource Title}" Text="{lex:Loc SmartBpAiRecognitionTitle}" />
+                <TextBlock
+                    Margin="0,8,0,0"
+                    Text="{lex:Loc SmartBpAiRecognitionPreviewNotice}"
+                    TextWrapping="Wrap" />
+                <UniformGrid Margin="0,8,0,0" Columns="2">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{lex:Loc SmartBpAiManifestStatus}" />
+                        <TextBlock Margin="4,0,0,0" Text="{Binding QwenManifestStatus}" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{lex:Loc SmartBpAiModelProfile}" />
+                        <TextBlock Margin="4,0,0,0" Text="{Binding QwenModelProfile}" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{lex:Loc SmartBpAiMmprojProfile}" />
+                        <TextBlock Margin="4,0,0,0" Text="{Binding QwenMmprojProfile}" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{lex:Loc SmartBpAiInstalled}" />
+                        <TextBlock Margin="4,0,0,0" Text="{Binding IsQwenInstalled}" />
+                    </StackPanel>
+                </UniformGrid>
+                <WrapPanel Margin="0,8,0,0">
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding DownloadQwenModelCommand}"
+                        Content="{lex:Loc SmartBpAiDownloadQwen}"
+                        Icon="{ui:SymbolIcon Symbol=ArrowDownload24}" />
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding CancelQwenDownloadCommand}"
+                        Content="{lex:Loc SmartBpCancelDownload}"
+                        Icon="{ui:SymbolIcon Symbol=Stop24}" />
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding DeleteQwenModelCommand}"
+                        Content="{lex:Loc SmartBpAiDeleteQwen}"
+                        Icon="{ui:SymbolIcon Symbol=Delete24}" />
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding RefreshQwenStatusCommand}"
+                        Content="{lex:Loc SmartBpRefreshStatus}"
+                        Icon="{ui:SymbolIcon Symbol=ArrowSync24}" />
+                </WrapPanel>
+                <ProgressBar
+                    Height="16"
+                    Visibility="{Binding IsQwenDownloading, Converter={StaticResource BooleanToVisibilityConverter}}"
+                    Value="{Binding QwenDownloadProgress}" />
+                <TextBlock Margin="0,4,0,0" Text="{Binding QwenDownloadStatus}" />
+                <TextBlock Margin="0,10,0,4" Text="{lex:Loc SmartBpAiLlamaPath}" />
+                <DockPanel>
+                    <ui:Button
+                        Margin="8,0,0,0"
+                        Command="{Binding BrowseLlamaServerCommand}"
+                        Content="{lex:Loc BrowseFile}"
+                        DockPanel.Dock="Right"
+                        Icon="{ui:SymbolIcon Symbol=FolderOpen24}" />
+                    <TextBox IsReadOnly="True" Text="{Binding LlamaServerExecutablePath}" />
+                </DockPanel>
+                <WrapPanel Margin="0,8,0,0">
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding StartLlamaServerCommand}"
+                        Content="{lex:Loc SmartBpAiStartServer}"
+                        Icon="{ui:SymbolIcon Symbol=Play24}" />
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding StopLlamaServerCommand}"
+                        Content="{lex:Loc SmartBpAiStopServer}"
+                        Icon="{ui:SymbolIcon Symbol=Stop24}" />
+                    <TextBlock VerticalAlignment="Center" Text="{Binding LlamaServerStatus}" />
+                </WrapPanel>
+                <ComboBox
+                    Margin="0,6,0,0"
+                    DisplayMemberPath="Id"
+                    ItemsSource="{Binding AiTestFrames}"
+                    SelectedItem="{Binding SelectedAiTestFrame}" />
+                <WrapPanel Margin="0,8,0,0">
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding RecognizeSelectedTestFrameCommand}"
+                        Content="{lex:Loc SmartBpAiRecognizeTestFrame}"
+                        Icon="{ui:SymbolIcon Symbol=Image24}" />
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding RecognizeCurrentCaptureFrameCommand}"
+                        Content="{lex:Loc SmartBpAiRecognizeCapture}"
+                        Icon="{ui:SymbolIcon Symbol=Scan24}" />
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding StartAiPreviewLoopCommand}"
+                        Content="{lex:Loc SmartBpAiStartLoop}"
+                        Icon="{ui:SymbolIcon Symbol=PlayCircle24}" />
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding StopAiPreviewLoopCommand}"
+                        Content="{lex:Loc SmartBpAiStopLoop}"
+                        Icon="{ui:SymbolIcon Symbol=Stop24}" />
+                </WrapPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{lex:Loc SmartBpAiElapsed}" />
+                    <TextBlock Margin="4,0,0,0" Text="{Binding AiElapsedMilliseconds, StringFormat={}{0} ms}" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{lex:Loc SmartBpAiRecommendedInterval}" />
+                    <TextBlock Margin="4,0,0,0" Text="{Binding AiRecommendedIntervalMilliseconds, StringFormat={}{0} ms}" />
+                </StackPanel>
+                <TextBlock
+                    Margin="0,8,0,2"
+                    FontWeight="SemiBold"
+                    Text="{lex:Loc SmartBpAiRawJson}" />
+                <TextBox
+                    MinHeight="100"
+                    AcceptsReturn="True"
+                    IsReadOnly="True"
+                    Text="{Binding AiRawResponse}"
+                    TextWrapping="Wrap"
+                    VerticalScrollBarVisibility="Auto" />
+                <TextBlock
+                    Margin="0,8,0,2"
+                    FontWeight="SemiBold"
+                    Text="{lex:Loc SmartBpAiNormalizedResult}" />
+                <TextBox
+                    MinHeight="80"
+                    AcceptsReturn="True"
+                    IsReadOnly="True"
+                    Text="{Binding AiNormalizedResult}"
+                    TextWrapping="Wrap"
+                    VerticalScrollBarVisibility="Auto" />
+                <TextBlock
+                    Margin="0,8,0,2"
+                    FontWeight="SemiBold"
+                    Text="{lex:Loc SmartBpAiLastError}" />
+                <TextBox
+                    IsReadOnly="True"
+                    Text="{Binding AiLastError}"
+                    TextWrapping="Wrap" />
+                <DockPanel Margin="0,10,0,2">
+                    <ui:Button
+                        Command="{Binding ClearAiDebugLogCommand}"
+                        Content="{lex:Loc SmartBpAiClearDebugConsole}"
+                        DockPanel.Dock="Right"
+                        Icon="{ui:SymbolIcon Symbol=Delete24}" />
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        FontWeight="SemiBold"
+                        Text="{lex:Loc SmartBpAiDebugConsole}" />
+                </DockPanel>
+                <TextBlock
+                    Margin="0,0,0,4"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    Text="{lex:Loc SmartBpAiDebugConsoleHint}"
+                    TextWrapping="Wrap" />
+                <TextBox
+                    x:Name="AiDebugConsoleTextBox"
+                    MinHeight="180"
+                    MaxHeight="320"
+                    AcceptsReturn="True"
+                    FontFamily="Consolas"
+                    HorizontalScrollBarVisibility="Auto"
+                    IsReadOnly="True"
+                    Text="{Binding AiDebugLogText}"
+                    TextChanged="AiDebugConsoleTextBox_OnTextChanged"
+                    TextWrapping="NoWrap"
+                    VerticalScrollBarVisibility="Auto" />
+            </StackPanel>
+        </Border>
     </StackPanel>
 </UserControl>

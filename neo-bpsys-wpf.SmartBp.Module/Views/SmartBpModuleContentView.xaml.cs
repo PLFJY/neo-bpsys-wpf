@@ -14,4 +14,10 @@ public partial class SmartBpModuleContentView : UserControl
     {
         InitializeComponent();
     }
+
+    private void AiDebugConsoleTextBox_OnTextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (sender is TextBox textBox)
+            textBox.ScrollToEnd();
+    }
 }
