@@ -2,9 +2,11 @@ extern alias smartbp;
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
@@ -61,7 +63,7 @@ public sealed class SmartBpAiRecognitionContractTest
     [InlineData(SmartBpRecognitionTask.FullBpScan)]
     public void RecognitionTasksHaveStrictBpOnlySchemas(SmartBpRecognitionTask task)
     {
-        var schema = SmartBpRecognitionJsonSchemaProvider.Get(task).ToJsonString();
+        var schema = SmartBpRecognitionJsonSchemaProvider.Get(task, ["心理学家", "小说家"], ["厂长", "梦之女巫"]).ToJsonString();
         Assert.Contains("\"additionalProperties\":false", schema);
         Assert.Contains("\"phase\"", schema);
         Assert.Contains("\"banned_sur\"", schema);
@@ -91,8 +93,14 @@ public sealed class SmartBpAiRecognitionContractTest
         var profiles = await provider.GetAvailableProfilesAsync(TestContext.Current.CancellationToken);
         var chinese = await provider.LoadAsync("zh-CN", TestContext.Current.CancellationToken);
         Assert.Equal(3, profiles.Count);
-        Assert.Contains("只输出合法 JSON", chinese.SystemPrompt);
-        Assert.Contains("不要输出 MapBP", chinese.SystemPrompt);
+        Assert.Contains("你只输出一个业务 JSON", chinese.SystemPrompt);
+        Assert.Contains("非活动侧显示的“等待中”不能决定 phase", chinese.SystemPrompt);
+        Assert.Contains("右上大标题包含“屏蔽求生者” => phase = \"屏蔽求生者\"", chinese.SystemPrompt);
+        Assert.Contains("左上大标题包含“屏蔽监管者” => phase = \"屏蔽监管者\"", chinese.SystemPrompt);
+        Assert.Contains("右下监管者头像下方第二行", chinese.SystemPrompt);
+        Assert.Contains("不要因为低亮度、禁用符号、打勾、半透明、背景暗，就把可读角色输出为“未选择”", chinese.SystemPrompt);
+        Assert.Contains("如果画面显示 “心理学家” 或 \"心理学家\"，但候选列表中是 心理学家，输出 \"心理学家\"", chinese.SystemPrompt);
+        Assert.Contains("MapBP 字段", chinese.SystemPrompt);
         Assert.Contains("左上 = 求生者方禁用监管者区域", chinese.SystemPrompt);
         Assert.Contains("右上 = 监管者方禁用求生者区域", chinese.SystemPrompt);
     }
@@ -175,7 +183,7 @@ public sealed class SmartBpAiRecognitionContractTest
     [Fact]
     public void BusinessSchemaUsesOnlyStateSnapshotFields()
     {
-        var schema = SmartBpRecognitionJsonSchemaProvider.Get(SmartBpRecognitionTask.FullBpScan).ToJsonString();
+        var schema = SmartBpRecognitionJsonSchemaProvider.Get(SmartBpRecognitionTask.FullBpScan, ["心理学家"], ["厂长"]).ToJsonString();
         Assert.Contains("\"phase\"", schema);
         Assert.Contains("\"banned_sur\"", schema);
         Assert.Contains("\"banned_hun\"", schema);
@@ -190,19 +198,47 @@ public sealed class SmartBpAiRecognitionContractTest
     }
 
     [Fact]
+    public void BusinessSchemaUsesCandidateEnumsForCharacterNames()
+    {
+        var schema = SmartBpRecognitionJsonSchemaProvider.Get(SmartBpRecognitionTask.FullBpScan, ["心理学家", "小说家"], ["厂长", "梦之女巫"]);
+
+        Assert.Equal(["心理学家", "小说家", "未选择"], CharacterNameEnum(schema, "banned_sur", isArray: true));
+        Assert.Equal(["心理学家", "小说家", "未选择"], CharacterNameEnum(schema, "picked_sur", isArray: true));
+        Assert.Equal(["厂长", "梦之女巫", "未选择"], CharacterNameEnum(schema, "banned_hun", isArray: true));
+        Assert.Equal(["厂长", "梦之女巫", "未选择"], CharacterNameEnum(schema, "picked_hun", isArray: false));
+        Assert.DoesNotContain("任意角色", schema.ToJsonString());
+    }
+
+    [Fact]
     public void BusinessParserAcceptsSampleAndNormalizesUnknownCharacters()
     {
         const string json = """
-        {"phase":"选择求生者","banned_sur":[{"index":0,"character_name":"小说家"},{"index":1,"character_name":"昆虫学者"},{"index":2,"character_name":"未选择"},{"index":3,"character_name":"未选择"}],"banned_hun":[{"index":0,"character_name":"梦之女巫"},{"index":1,"character_name":"女王蜂"}],"picked_sur":[{"index":0,"character_name":"\"心理学家\"","player_id":"IHiganbanaI"},{"index":1,"character_name":"守墓人","player_id":"夜风之缚"},{"index":2,"character_name":"unknown","player_id":"磁兮小狗"},{"index":3,"character_name":"","player_id":"叶落摘星"}],"picked_hun":{"index":0,"character_name":null,"player_id":"导播PLFJY"}}
+        {"phase":"选择监管者","banned_sur":[{"index":0,"character_name":"小说家"},{"index":1,"character_name":"昆虫学者"},{"index":2,"character_name":"未选择"},{"index":3,"character_name":"未选择"}],"banned_hun":[{"index":0,"character_name":"梦之女巫"},{"index":1,"character_name":"女王蜂"}],"picked_sur":[{"index":0,"character_name":"心理学家","player_id":"IHiganbanaI"},{"index":1,"character_name":"守墓人","player_id":"夜风之缚"},{"index":2,"character_name":"机械师","player_id":"磁兮小狗"},{"index":3,"character_name":"记者","player_id":"叶落摘星"}],"picked_hun":{"index":0,"character_name":"厂长","player_id":"导播PLFJY"}}
         """;
 
         var parsed = SmartBpBusinessStateParser.Parse(json);
 
-        Assert.Equal("选择求生者", parsed.Phase);
-        Assert.Equal("\"心理学家\"", parsed.PickedSur[0].CharacterName);
+        Assert.Equal("选择监管者", parsed.Phase);
+        Assert.Equal("心理学家", parsed.PickedSur[0].CharacterName);
         Assert.Equal("磁兮小狗", parsed.PickedSur[2].PlayerId);
-        Assert.Equal("未选择", parsed.PickedSur[2].CharacterName);
-        Assert.Equal("未选择", parsed.PickedSur[3].CharacterName);
+        Assert.Equal("机械师", parsed.PickedSur[2].CharacterName);
+        Assert.Equal("记者", parsed.PickedSur[3].CharacterName);
+        Assert.Equal("厂长", parsed.PickedHun.CharacterName);
+        Assert.Equal("导播PLFJY", parsed.PickedHun.PlayerId);
+    }
+
+    [Fact]
+    public void BusinessParserNormalizesEmptyUnknownAndNullCharactersToUnselected()
+    {
+        const string json = """
+        {"phase":"选择求生者","banned_sur":[{"index":0,"character_name":null},{"index":1,"character_name":"unknown"},{"index":2,"character_name":""},{"index":3,"character_name":"未选择"}],"banned_hun":[{"index":0,"character_name":"unknown"},{"index":1,"character_name":null}],"picked_sur":[{"index":0,"character_name":null,"player_id":"P0"},{"index":1,"character_name":"unknown","player_id":"P1"},{"index":2,"character_name":"","player_id":"P2"},{"index":3,"character_name":"未选择","player_id":"P3"}],"picked_hun":{"index":0,"character_name":null,"player_id":"H"}}
+        """;
+
+        var parsed = SmartBpBusinessStateParser.Parse(json);
+
+        Assert.All(parsed.BannedSur, slot => Assert.Equal("未选择", slot.CharacterName));
+        Assert.All(parsed.BannedHun, slot => Assert.Equal("未选择", slot.CharacterName));
+        Assert.All(parsed.PickedSur, slot => Assert.Equal("未选择", slot.CharacterName));
         Assert.Equal("未选择", parsed.PickedHun.CharacterName);
     }
 
@@ -246,6 +282,101 @@ public sealed class SmartBpAiRecognitionContractTest
         Assert.Contains("玩家Ω", visual);
         Assert.Contains("resolved=祭司", resolved);
         Assert.Contains("raw=未知角色; resolved=unresolved", resolved);
+    }
+
+    [Theory]
+    [InlineData("心理学家")]
+    [InlineData("\"心理学家\"")]
+    [InlineData("“心理学家”")]
+    [InlineData("『心理学家』")]
+    [InlineData("「心理学家」")]
+    public void ResolverHandlesDecorativeQuotedCanonicalCharacterNames(string rawName)
+    {
+        var shared = new Mock<ISharedDataService>();
+        shared.SetupGet(x => x.SurCharaDict).Returns(new SortedDictionary<string, Character>
+        {
+            ["心理学家"] = new("心理学家", Camp.Sur, "psychologist")
+        });
+        shared.SetupGet(x => x.HunCharaDict).Returns([]);
+        var resolver = new SmartBpCharacterResolver(shared.Object);
+
+        var result = resolver.Resolve(rawName, Camp.Sur, 0, .95);
+
+        Assert.Equal("心理学家", result.ResolvedCharacterName);
+        Assert.Empty(result.Warnings);
+    }
+
+    [Fact]
+    public void ResolverDoesNotWarnForUnselected()
+    {
+        var shared = new Mock<ISharedDataService>();
+        shared.SetupGet(x => x.SurCharaDict).Returns([]);
+        shared.SetupGet(x => x.HunCharaDict).Returns([]);
+        var resolver = new SmartBpCharacterResolver(shared.Object);
+
+        var result = resolver.Resolve("未选择", Camp.Sur, 0, .95);
+
+        Assert.Null(result.ResolvedCharacterName);
+        Assert.Empty(result.Warnings);
+    }
+
+    [Fact]
+    public void PreviewPreservesPickedHunterPlayerId()
+    {
+        var shared = new Mock<ISharedDataService>();
+        shared.SetupGet(x => x.SurCharaDict).Returns([]);
+        shared.SetupGet(x => x.HunCharaDict).Returns(new SortedDictionary<string, Character> { ["厂长"] = new("厂长", Camp.Hun, "hell-ember") });
+        var resolver = new SmartBpCharacterResolver(shared.Object);
+        var settings = new Mock<ISmartBpRecognitionSettingsService>();
+        settings.SetupGet(x => x.Settings).Returns(new SmartBpRecognitionSettings());
+        var service = new SmartBpAiRecognitionService(Mock.Of<ISmartBpImageEncoder>(), Mock.Of<ILlamaCppOpenAiClient>(), resolver, settings.Object, NullLogger<SmartBpAiRecognitionService>.Instance);
+        const string json = """
+        {"phase":"选择监管者","banned_sur":[{"index":0,"character_name":"未选择"},{"index":1,"character_name":"未选择"},{"index":2,"character_name":"未选择"},{"index":3,"character_name":"未选择"}],"banned_hun":[{"index":0,"character_name":"未选择"},{"index":1,"character_name":"未选择"}],"picked_sur":[{"index":0,"character_name":"未选择","player_id":null},{"index":1,"character_name":"未选择","player_id":null},{"index":2,"character_name":"未选择","player_id":null},{"index":3,"character_name":"未选择","player_id":null}],"picked_hun":{"index":0,"character_name":"厂长","player_id":"导播PLFJY"}}
+        """;
+
+        var (visual, resolved) = service.Parse(json, SmartBpRecognitionTask.FullBpScan);
+
+        Assert.Contains("[0] 厂长 / 导播PLFJY / resolved=厂长", visual);
+        Assert.Contains("playerId=导播PLFJY", resolved);
+    }
+
+    [Fact]
+    public void MainAiRecognitionUiDoesNotExposeForceTaskComboBox()
+    {
+        var root = FindRepositoryRoot();
+        var xaml = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "Views", "SmartBpModuleContentView.xaml"));
+        var viewModel = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "ViewModels", "SmartBpModuleContentViewModel.AiRecognition.cs"));
+
+        Assert.DoesNotContain("SmartBpAiDebugForceTask", xaml);
+        Assert.DoesNotContain("AiCaptureTasks", xaml);
+        Assert.DoesNotContain("SelectedAiCaptureTask", xaml);
+        Assert.DoesNotContain("AiCaptureTasks", viewModel);
+        Assert.DoesNotContain("SelectedAiCaptureTask", viewModel);
+    }
+
+    private static string FindRepositoryRoot()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null)
+        {
+            if (File.Exists(Path.Combine(directory.FullName, "neo-bpsys-wpf.slnx")))
+            {
+                return directory.FullName;
+            }
+
+            directory = directory.Parent;
+        }
+
+        throw new DirectoryNotFoundException("Could not locate neo-bpsys-wpf repository root.");
+    }
+
+    private static string[] CharacterNameEnum(JsonObject schema, string propertyName, bool isArray)
+    {
+        var rootProperty = schema["properties"]?[propertyName] ?? throw new InvalidDataException($"Missing schema property {propertyName}.");
+        var slot = isArray ? rootProperty["items"] : rootProperty;
+        var values = slot?["properties"]?["character_name"]?["enum"]?.AsArray()
+            ?? throw new InvalidDataException($"Missing character_name enum for {propertyName}.");
+        return values.Select(x => x?.GetValue<string>() ?? "").ToArray();
     }
 
     private static SmartBpStageDetectionResult Stage(string action, double confidence)

@@ -39,17 +39,42 @@ internal sealed partial class SmartBpCharacterResolver(ISharedDataService shared
     {
         var warnings = new List<string>(); var dict = camp == Camp.Sur ? shared.SurCharaDict : shared.HunCharaDict;
         KeyValuePair<string, Core.Models.Character>? match = null;
-        if (!string.IsNullOrWhiteSpace(rawName) && !IsUnselected(rawName))
+        if (IsUnselected(rawName))
+            return new(rawName, null, null, camp, slot, confidence, warnings);
+        if (!string.IsNullOrWhiteSpace(rawName))
         {
             match = dict.FirstOrDefault(x => x.Key.Equals(rawName, StringComparison.Ordinal));
-            if (match.Value.Value == null) match = dict.FirstOrDefault(x => x.Key.Equals(rawName.Trim(), StringComparison.OrdinalIgnoreCase));
+            var stripped = StripDecorativeQuotes(rawName);
+            if (match.Value.Value == null) match = dict.FirstOrDefault(x => x.Key.Equals(stripped, StringComparison.Ordinal));
+            if (match.Value.Value == null) match = dict.FirstOrDefault(x => x.Key.Equals(stripped.Trim(), StringComparison.OrdinalIgnoreCase));
             if (match.Value.Value == null) { var normalized = Normalize(rawName); match = dict.FirstOrDefault(x => Normalize(x.Key) == normalized); }
         }
         if (match?.Value == null) warnings.Add(string.IsNullOrWhiteSpace(rawName) ? "Character was not visible or recognized." : $"Unresolved character: {rawName}");
         return new(rawName, match?.Value is null ? null : match.Value.Key, match?.Value?.Name, camp, slot, confidence, warnings);
     }
-    private static bool IsUnselected(string value) => string.Equals(value.Trim(), "未选择", StringComparison.Ordinal);
-    private static string Normalize(string value) => NonWordRegex().Replace(value.Trim(), "").ToUpperInvariant();
+    private static bool IsUnselected(string? value) => string.Equals(value?.Trim(), "未选择", StringComparison.Ordinal);
+    private static string Normalize(string value) => NonWordRegex().Replace(StripDecorativeQuotes(value), "").ToUpperInvariant();
+    private static string StripDecorativeQuotes(string value)
+    {
+        var trimmed = value.Trim();
+        var changed = true;
+        while (changed && trimmed.Length >= 2)
+        {
+            changed = false;
+            foreach (var (left, right) in QuotePairs)
+            {
+                if (trimmed[0] != left || trimmed[^1] != right) continue;
+                trimmed = trimmed[1..^1].Trim();
+                changed = true;
+                break;
+            }
+        }
+        return trimmed;
+    }
+    private static readonly (char Left, char Right)[] QuotePairs =
+    [
+        ('"', '"'), ('“', '”'), ('”', '“'), ('『', '』'), ('「', '」'), ('《', '》'), ('〈', '〉'), ('‘', '’'), ('\'', '\'')
+    ];
     [GeneratedRegex(@"[\s\p{P}\p{S}]+", RegexOptions.CultureInvariant)] private static partial Regex NonWordRegex();
 }
 
@@ -84,27 +109,51 @@ Do not output unrelated bans, picks, talents, or map data.
     {
         var description = task switch
         {
-            SmartBpRecognitionTask.BanSur => "测试图标注：屏蔽求生者。模型仍必须从画面推断 phase，并输出完整业务状态。",
-            SmartBpRecognitionTask.BanHun => "测试图标注：屏蔽监管者。模型仍必须从画面推断 phase，并输出完整业务状态。",
-            SmartBpRecognitionTask.PickSur => "测试图标注：选择求生者。模型仍必须从画面推断 phase，并输出完整业务状态。",
-            SmartBpRecognitionTask.PickHun => "测试图标注：选择监管者。模型仍必须从画面推断 phase，并输出完整业务状态。",
-            SmartBpRecognitionTask.CharacterDistribution => "测试图标注：求生者选择角色中。模型仍必须从画面推断 phase，并输出完整业务状态。",
-            _ => "从当前截图推断 BP phase，并输出完整业务状态快照。"
+            SmartBpRecognitionTask.BanSur => "测试图参考：右上标题通常是“屏蔽求生者”，但仍必须从截图读取 phase。",
+            SmartBpRecognitionTask.BanHun => "测试图参考：左上标题通常是“屏蔽监管者”，但仍必须从截图读取 phase。",
+            SmartBpRecognitionTask.PickSur => "测试图参考：左上标题通常是“选择求生者”，但仍必须从截图读取 phase。",
+            SmartBpRecognitionTask.PickHun => "测试图参考：右上标题通常是“选择监管者”，但仍必须从截图读取 phase。",
+            SmartBpRecognitionTask.CharacterDistribution => "测试图参考：左上标题通常是“求生者选择角色中”，但仍必须从截图读取 phase。",
+            _ => "从当前截图识别完整 BP 业务状态。"
         };
         return $$$"""
 /no_think
-recognition_task: {{{task}}}
-task_description: {{{description}}}
+
+请从截图识别当前第五人格 BP 业务状态，输出严格 JSON。
+
+task_hint: {{{description}}}
+
 survivor_candidates: {{{JsonSerializer.Serialize(survivors)}}}
 hunter_candidates: {{{JsonSerializer.Serialize(hunters)}}}
-只输出业务 JSON，根字段只能是 phase、banned_sur、banned_hun、picked_sur、picked_hun。
-phase 必须是：屏蔽求生者、屏蔽监管者、选择求生者、求生者选择角色中、选择监管者、等待中、未知。
-banned_sur 固定 4 项 index 0..3；banned_hun 固定 2 项 index 0..1；picked_sur 固定 4 项 index 0..3；picked_hun 固定 index 0。
-未选择、空、未知、不可见的角色一律输出 character_name: "未选择"；character_name 只能是候选角色名或 "未选择"。
-玩家 ID 只能写入 picked_sur/picked_hun 的 player_id，不要写到 character_name。
-输出示例：
-{"phase":"选择求生者","banned_sur":[{"index":0,"character_name":"未选择"},{"index":1,"character_name":"未选择"},{"index":2,"character_name":"未选择"},{"index":3,"character_name":"未选择"}],"banned_hun":[{"index":0,"character_name":"未选择"},{"index":1,"character_name":"未选择"}],"picked_sur":[{"index":0,"character_name":"心理学家","player_id":"IHiganbanaI"},{"index":1,"character_name":"守墓人","player_id":"夜风之缚"},{"index":2,"character_name":"未选择","player_id":null},{"index":3,"character_name":"未选择","player_id":null}],"picked_hun":{"index":0,"character_name":"未选择","player_id":null}}
-不要输出 teams、all_characters、all_player_ids、scene、warnings、raw_visible_text、confidence、operation_region、target_camp、地图 BP 或 MapBP 字段。
+
+phase 只能是：
+["屏蔽求生者","屏蔽监管者","选择求生者","求生者选择角色中","选择监管者","等待中","未知"]
+
+输出 JSON 只能有这些根字段：
+phase, banned_sur, banned_hun, picked_sur, picked_hun
+
+字段要求：
+- banned_sur 固定 4 项，index 0..3，来自右上区域。
+- banned_hun 固定 2 项，index 0..1，来自左上区域。
+- picked_sur 固定 4 项，index 0..3，来自左下区域。
+- picked_hun 固定一个对象，index=0，来自右下区域。
+- character_name 必须是候选列表中的规范名称，或 "未选择"。
+- 如果屏幕文字带装饰性引号，但候选名没有引号，输出候选名本身。
+- player_id 必须和对应 picked_sur / picked_hun 槽位绑定。
+
+阶段参考：
+- 右上标题是“屏蔽求生者” => phase="屏蔽求生者"，填写 banned_sur。
+- 左上标题是“屏蔽监管者” => phase="屏蔽监管者"，填写 banned_hun。
+- 左上标题是“选择求生者” => phase="选择求生者"，填写 picked_sur。
+- 左上标题是“求生者选择角色中” => phase="求生者选择角色中"，填写 picked_sur 的角色和玩家 ID。
+- 右上标题是“选择监管者” => phase="选择监管者"，填写 picked_hun。
+- 非活动侧的“等待中”忽略。
+
+反错误规则：
+- 不要把 ban-sur 图识别为“等待中”：如果右上有“屏蔽求生者”，就是“屏蔽求生者”。
+- 不要把可读角色输出为“未选择”：头像下方文字能读出并匹配候选角色时，必须输出角色名。
+- 不要把监管者玩家 ID 输出 null：右下监管者头像下方第二行可见时，必须填入 picked_hun.player_id。
+- 不要输出 teams、all_characters、all_player_ids、scene、warnings、raw_visible_text、confidence、MapBP 字段。
 """;
     }
 }
@@ -131,12 +180,17 @@ internal static class SmartBpRecognitionJsonSchemaProvider
         var (region, camp, _) = SmartBpAutomaticMapping.Get(action);
         return Object(new JsonObject { ["schema_version"] = Const(1), ["task"] = Const(task), ["operation_region"] = Const(region), ["target_camp"] = Const(camp), ["slots"] = Array(slot), ["warnings"] = StringArray() }, "schema_version", "task", "operation_region", "target_camp", "slots", "warnings");
     }
-    public static JsonObject Get(SmartBpRecognitionTask task)
+    public static JsonObject Get(
+        SmartBpRecognitionTask task,
+        IReadOnlyList<string> survivorCandidates,
+        IReadOnlyList<string> hunterCandidates)
     {
-        var banSurSlot = CharacterSlot(0, 1, 2, 3);
-        var banHunSlot = CharacterSlot(0, 1);
-        var pickSurSlot = PlayerCharacterSlot(0, 1, 2, 3);
-        var pickHunSlot = Object(new JsonObject { ["index"] = Const(0), ["character_name"] = new JsonObject { ["type"] = "string" }, ["player_id"] = NullableString() }, "index", "character_name", "player_id");
+        var survivorNames = CharacterNameEnum(survivorCandidates);
+        var hunterNames = CharacterNameEnum(hunterCandidates);
+        var banSurSlot = CharacterSlot(survivorNames, 0, 1, 2, 3);
+        var banHunSlot = CharacterSlot(hunterNames, 0, 1);
+        var pickSurSlot = PlayerCharacterSlot(survivorNames, 0, 1, 2, 3);
+        var pickHunSlot = Object(new JsonObject { ["index"] = Const(0), ["character_name"] = hunterNames.DeepClone(), ["player_id"] = NullableString() }, "index", "character_name", "player_id");
         return Object(new JsonObject
         {
             ["phase"] = Phase(),
@@ -146,8 +200,20 @@ internal static class SmartBpRecognitionJsonSchemaProvider
             ["picked_hun"] = pickHunSlot
         }, "phase", "banned_sur", "banned_hun", "picked_sur", "picked_hun");
     }
-    private static JsonObject CharacterSlot(params int[] indexes) => Object(new JsonObject { ["index"] = IntegerEnum(indexes), ["character_name"] = new JsonObject { ["type"] = "string" } }, "index", "character_name");
-    private static JsonObject PlayerCharacterSlot(params int[] indexes) => Object(new JsonObject { ["index"] = IntegerEnum(indexes), ["character_name"] = new JsonObject { ["type"] = "string" }, ["player_id"] = NullableString() }, "index", "character_name", "player_id");
+    public static JsonObject Get(SmartBpRecognitionTask task) => Get(task, [], []);
+    private static JsonObject CharacterSlot(JsonObject characterName, params int[] indexes) => Object(new JsonObject { ["index"] = IntegerEnum(indexes), ["character_name"] = characterName.DeepClone() }, "index", "character_name");
+    private static JsonObject PlayerCharacterSlot(JsonObject characterName, params int[] indexes) => Object(new JsonObject { ["index"] = IntegerEnum(indexes), ["character_name"] = characterName.DeepClone(), ["player_id"] = NullableString() }, "index", "character_name", "player_id");
+    private static JsonObject CharacterNameEnum(IReadOnlyList<string> candidates)
+    {
+        var values = candidates
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Select(x => x.Trim())
+            .Append("未选择")
+            .Distinct(StringComparer.Ordinal)
+            .Select(x => (JsonNode?)JsonValue.Create(x))
+            .ToArray();
+        return new JsonObject { ["type"] = "string", ["enum"] = new JsonArray(values) };
+    }
     private static JsonObject Phase() => new() { ["type"] = "string", ["enum"] = new JsonArray("屏蔽求生者", "屏蔽监管者", "选择求生者", "求生者选择角色中", "选择监管者", "等待中", "未知") };
     private static JsonObject IntegerEnum(params int[] values) => new() { ["type"] = "integer", ["enum"] = new JsonArray(values.Select(x => (JsonNode?)JsonValue.Create(x)).ToArray()) };
     private static JsonObject FixedArray(JsonNode? item, int count) => new() { ["type"] = "array", ["minItems"] = count, ["maxItems"] = count, ["items"] = item };
@@ -222,7 +288,7 @@ internal sealed class LlamaCppOpenAiClient(ISmartBpRecognitionSettingsService se
             ["max_tokens"] = initialMaxTokens,
             ["chat_template_kwargs"] = new JsonObject { ["enable_thinking"] = false },
             ["messages"] = new JsonArray(new JsonObject { ["role"] = "system", ["content"] = profile.SystemPrompt }, new JsonObject { ["role"] = "user", ["content"] = new JsonArray(new JsonObject { ["type"] = "text", ["text"] = SmartBpRecognitionPromptBuilder.Build(task, shared.SurCharaDict.Keys, shared.HunCharaDict.Keys) }, new JsonObject { ["type"] = "image_url", ["image_url"] = new JsonObject { ["url"] = imageDataUrl } }) }),
-            ["response_format"] = new JsonObject { ["type"] = "json_schema", ["json_schema"] = new JsonObject { ["name"] = "smartbp_result", ["strict"] = true, ["schema"] = SmartBpRecognitionJsonSchemaProvider.Get(task) } } };
+            ["response_format"] = new JsonObject { ["type"] = "json_schema", ["json_schema"] = new JsonObject { ["name"] = "smartbp_result", ["strict"] = true, ["schema"] = SmartBpRecognitionJsonSchemaProvider.Get(task, shared.SurCharaDict.Keys.ToArray(), shared.HunCharaDict.Keys.ToArray()) } } };
         using var http = new HttpClient { Timeout = TimeSpan.FromMinutes(5) }; var url = $"http://127.0.0.1:{settings.Settings.LlamaServerPort}/v1/chat/completions";
         logger.LogInformation("Recognition request started. Task={Task}", task);
         for (var attempt = 1; attempt <= 2; attempt++)

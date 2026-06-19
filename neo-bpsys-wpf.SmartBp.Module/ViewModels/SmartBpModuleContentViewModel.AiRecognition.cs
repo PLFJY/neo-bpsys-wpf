@@ -23,10 +23,6 @@ public partial class SmartBpModuleContentViewModel
         new("pick-hun-16x9", "pick-hun-16x9.png", SmartBpRecognitionTask.PickHun),
         new("character-distribution-16x9", "character-distribution-16x9.png", SmartBpRecognitionTask.CharacterDistribution)
     ];
-    /// <summary>Gets tasks available for debug-forced recognition.</summary>
-    public IReadOnlyList<SmartBpRecognitionTask> AiCaptureTasks { get; } = Enum.GetValues<SmartBpRecognitionTask>()
-        .Where(x => x != SmartBpRecognitionTask.DetectStage).ToArray();
-
     [ObservableProperty] private SmartBpTestFrame? _selectedAiTestFrame;
     [ObservableProperty] private string _qwenManifestStatus = "SmartBpAiStatusLoading";
     [ObservableProperty] private string _qwenModelProfile = "-";
@@ -47,7 +43,6 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty] private string _aiDebugLogText = "";
     [ObservableProperty] private IReadOnlyList<SmartBpPromptProfile> _aiPromptProfiles = [];
     [ObservableProperty] private SmartBpPromptProfile? _selectedAiPromptProfile;
-    [ObservableProperty] private SmartBpRecognitionTask _selectedAiCaptureTask = SmartBpRecognitionTask.CharacterDistribution;
     [ObservableProperty] private IReadOnlyList<LlamaCppRuntimeAsset> _llamaRuntimeAssets = [];
     [ObservableProperty] private LlamaCppRuntimeAsset? _selectedLlamaRuntimeAsset;
     [ObservableProperty] private bool _isLlamaRuntimeInstalled;

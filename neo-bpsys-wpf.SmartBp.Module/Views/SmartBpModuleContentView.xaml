@@ -485,12 +485,6 @@
                         Content="{lex:Loc SmartBpAiStopLoop}"
                         Icon="{ui:SymbolIcon Symbol=Stop24}" />
                 </WrapPanel>
-                <Expander Margin="0,4,0,0" Header="{lex:Loc SmartBpAiDebugForceTask}">
-                    <StackPanel Margin="0,6,0,0">
-                        <TextBlock Margin="0,0,0,4" Text="{lex:Loc SmartBpAiCaptureTask}" />
-                        <ComboBox ItemsSource="{Binding AiCaptureTasks}" SelectedItem="{Binding SelectedAiCaptureTask}" />
-                    </StackPanel>
-                </Expander>
                 <TextBlock Margin="0,8,0,2" FontWeight="SemiBold" Text="{lex:Loc SmartBpAiStageDetectionResult}" />
                 <TextBox MinHeight="70" AcceptsReturn="True" IsReadOnly="True" Text="{Binding AiStageDetectionResult}" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
                 <TextBlock Margin="0,8,0,2" FontWeight="SemiBold" Text="{lex:Loc SmartBpAiGuidanceSnapshot}" />

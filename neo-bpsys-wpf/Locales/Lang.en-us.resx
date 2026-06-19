@@ -4706,8 +4706,6 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="SmartBpAiDownloadRuntime" xml:space="preserve"><value>Download runtime</value></data>
   <data name="SmartBpAiDeleteRuntime" xml:space="preserve"><value>Delete runtime</value></data>
   <data name="SmartBpAiManagedRuntimePath" xml:space="preserve"><value>Managed llama-server.exe path</value></data>
-  <data name="SmartBpAiCaptureTask" xml:space="preserve"><value>Debug forced recognition task</value></data>
-  <data name="SmartBpAiDebugForceTask" xml:space="preserve"><value>Advanced/debug: force recognition task</value></data>
   <data name="SmartBpAiParsedVisualResult" xml:space="preserve"><value>Business-state snapshot summary</value></data>
   <data name="SmartBpAiRuntimeDownloading" xml:space="preserve"><value>Downloading and installing llama.cpp runtime</value></data>
   <data name="SmartBpAiDebugConsoleHint" xml:space="preserve"><value>Live llama-server command, stdout, stderr, health checks, and recognition request status.</value></data>
