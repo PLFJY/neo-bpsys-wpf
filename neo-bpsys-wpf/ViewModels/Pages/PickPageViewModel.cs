@@ -164,14 +164,26 @@ public partial class PickPageViewModel : ViewModelBase
     /// <summary>
     /// 监管者选择视图模型。
     /// </summary>
-    public class HunPickViewModel(
-        ISharedDataService sharedDataService,
-        ICharacterSelectionService characterSelectionService,
-        ISettingsHostService settingsHostService)
-        : CharaSelectViewModelBase(sharedDataService, Camp.Hun)
+    public class HunPickViewModel : CharaSelectViewModelBase
     {
-        private readonly ICharacterSelectionService _characterSelectionService1 = characterSelectionService;
-        private readonly ISettingsHostService _settingsHostService = settingsHostService;
+        private readonly ICharacterSelectionService _characterSelectionService1;
+        private readonly ISettingsHostService _settingsHostService;
+
+        public HunPickViewModel(
+            ISharedDataService sharedDataService,
+            ICharacterSelectionService characterSelectionService,
+            ISettingsHostService settingsHostService) : base(sharedDataService, Camp.Hun)
+        {
+            _characterSelectionService1 = characterSelectionService;
+            _settingsHostService = settingsHostService;
+            characterSelectionService.CharacterSelected += (sender, e) =>
+            {
+                if (e.Camp == Camp.Hun)
+                {
+                    SyncCharaFromSourceAsync();
+                }
+            };
+        }
 
         protected override async Task SyncCharaToSourceAsync()
         {
