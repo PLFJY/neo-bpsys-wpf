@@ -39,7 +39,7 @@ internal sealed partial class SmartBpCharacterResolver(ISharedDataService shared
     {
         var warnings = new List<string>(); var dict = camp == Camp.Sur ? shared.SurCharaDict : shared.HunCharaDict;
         KeyValuePair<string, Core.Models.Character>? match = null;
-        if (!string.IsNullOrWhiteSpace(rawName))
+        if (!string.IsNullOrWhiteSpace(rawName) && !IsUnselected(rawName))
         {
             match = dict.FirstOrDefault(x => x.Key.Equals(rawName, StringComparison.Ordinal));
             if (match.Value.Value == null) match = dict.FirstOrDefault(x => x.Key.Equals(rawName.Trim(), StringComparison.OrdinalIgnoreCase));
@@ -48,7 +48,8 @@ internal sealed partial class SmartBpCharacterResolver(ISharedDataService shared
         if (match?.Value == null) warnings.Add(string.IsNullOrWhiteSpace(rawName) ? "Character was not visible or recognized." : $"Unresolved character: {rawName}");
         return new(rawName, match?.Value is null ? null : match.Value.Key, match?.Value?.Name, camp, slot, confidence, warnings);
     }
-    private static string Normalize(string value) => NonWordRegex().Replace(value, "").ToUpperInvariant();
+    private static bool IsUnselected(string value) => string.Equals(value.Trim(), "未选择", StringComparison.Ordinal);
+    private static string Normalize(string value) => NonWordRegex().Replace(value.Trim(), "").ToUpperInvariant();
     [GeneratedRegex(@"[\s\p{P}\p{S}]+", RegexOptions.CultureInvariant)] private static partial Regex NonWordRegex();
 }
 
@@ -83,21 +84,27 @@ Do not output unrelated bans, picks, talents, or map data.
     {
         var description = task switch
         {
-            SmartBpRecognitionTask.BanSur => "当前任务是识别求生者禁用 / 不可选相关区域。优先识别被禁用或不可选的求生者角色，以及可见玩家 ID。",
-            SmartBpRecognitionTask.BanHun => "当前任务是识别监管者禁用 / 不可选相关区域。优先识别被禁用或不可选的监管者角色，以及可见玩家 ID。",
-            SmartBpRecognitionTask.PickSur => "当前任务是识别求生者选择区域。优先识别已选择、等待中、未选择的求生者槽位，以及玩家 ID。",
-            SmartBpRecognitionTask.PickHun => "当前任务是识别监管者选择区域。优先识别监管者槽位、玩家 ID、选择状态。",
-            SmartBpRecognitionTask.CharacterDistribution => "当前任务是识别赛前阵容 / 角色分布界面。识别所有可见角色名、玩家 ID、阵营、左右区域与选择状态。",
-            _ => "当前任务是完整识别 BP / 阵容选择画面中的所有可见槽位、角色、玩家 ID、区域与状态。"
+            SmartBpRecognitionTask.BanSur => "测试图标注：屏蔽求生者。模型仍必须从画面推断 phase，并输出完整业务状态。",
+            SmartBpRecognitionTask.BanHun => "测试图标注：屏蔽监管者。模型仍必须从画面推断 phase，并输出完整业务状态。",
+            SmartBpRecognitionTask.PickSur => "测试图标注：选择求生者。模型仍必须从画面推断 phase，并输出完整业务状态。",
+            SmartBpRecognitionTask.PickHun => "测试图标注：选择监管者。模型仍必须从画面推断 phase，并输出完整业务状态。",
+            SmartBpRecognitionTask.CharacterDistribution => "测试图标注：求生者选择角色中。模型仍必须从画面推断 phase，并输出完整业务状态。",
+            _ => "从当前截图推断 BP phase，并输出完整业务状态快照。"
         };
-        return $"""
+        return $$$"""
 /no_think
-recognition_task: {task}
-task_description: {description}
-survivor_candidates: {JsonSerializer.Serialize(survivors)}
-hunter_candidates: {JsonSerializer.Serialize(hunters)}
-必须输出 schema_version、scene、teams、all_characters、all_player_ids、warnings。scene 必须包含 game、interface_type、task、main_status、pause_status、pause_remaining_seconds。每个槽位必须保留 slot_index、slot_state、character_name、player_id、is_banned_or_unavailable、raw_visible_text、confidence。
-character_name 与 player_id 必须分开，角色名只能取候选列表原文。不要输出地图 BP，不要输出 MapBP 字段。
+recognition_task: {{{task}}}
+task_description: {{{description}}}
+survivor_candidates: {{{JsonSerializer.Serialize(survivors)}}}
+hunter_candidates: {{{JsonSerializer.Serialize(hunters)}}}
+只输出业务 JSON，根字段只能是 phase、banned_sur、banned_hun、picked_sur、picked_hun。
+phase 必须是：屏蔽求生者、屏蔽监管者、选择求生者、求生者选择角色中、选择监管者、等待中、未知。
+banned_sur 固定 4 项 index 0..3；banned_hun 固定 2 项 index 0..1；picked_sur 固定 4 项 index 0..3；picked_hun 固定 index 0。
+未选择、空、未知、不可见的角色一律输出 character_name: "未选择"；character_name 只能是候选角色名或 "未选择"。
+玩家 ID 只能写入 picked_sur/picked_hun 的 player_id，不要写到 character_name。
+输出示例：
+{"phase":"选择求生者","banned_sur":[{"index":0,"character_name":"未选择"},{"index":1,"character_name":"未选择"},{"index":2,"character_name":"未选择"},{"index":3,"character_name":"未选择"}],"banned_hun":[{"index":0,"character_name":"未选择"},{"index":1,"character_name":"未选择"}],"picked_sur":[{"index":0,"character_name":"心理学家","player_id":"IHiganbanaI"},{"index":1,"character_name":"守墓人","player_id":"夜风之缚"},{"index":2,"character_name":"未选择","player_id":null},{"index":3,"character_name":"未选择","player_id":null}],"picked_hun":{"index":0,"character_name":"未选择","player_id":null}}
+不要输出 teams、all_characters、all_player_ids、scene、warnings、raw_visible_text、confidence、operation_region、target_camp、地图 BP 或 MapBP 字段。
 """;
     }
 }
@@ -126,13 +133,24 @@ internal static class SmartBpRecognitionJsonSchemaProvider
     }
     public static JsonObject Get(SmartBpRecognitionTask task)
     {
-        var slot = Object(new JsonObject { ["slot_index"] = Integer(), ["slot_state"] = SlotState(), ["character_name"] = NullableString(), ["player_id"] = NullableString(), ["is_banned_or_unavailable"] = new JsonObject { ["type"] = "boolean" }, ["raw_visible_text"] = NullableString(), ["confidence"] = Confidence() }, "slot_index", "slot_state", "character_name", "player_id", "is_banned_or_unavailable", "raw_visible_text", "confidence");
-        var team = Object(new JsonObject { ["side"] = Side(), ["faction"] = Faction(), ["title_text"] = NullableString(), ["subtitle_text"] = NullableString(), ["slots"] = Array(slot) }, "side", "faction", "title_text", "subtitle_text", "slots");
-        var character = Object(new JsonObject { ["character_name"] = NullableString(), ["faction"] = Faction(), ["player_id"] = NullableString(), ["side"] = Side(), ["slot_index"] = Integer(), ["slot_state"] = SlotState(), ["confidence"] = Confidence() }, "character_name", "faction", "player_id", "side", "slot_index", "slot_state", "confidence");
-        var player = Object(new JsonObject { ["player_id"] = NullableString(), ["character_name"] = NullableString(), ["side"] = Side(), ["slot_index"] = Integer(), ["confidence"] = Confidence() }, "player_id", "character_name", "side", "slot_index", "confidence");
-        var scene = Object(new JsonObject { ["game"] = Const("Identity V"), ["interface_type"] = Const("ban_pick_or_lineup_selection"), ["task"] = new JsonObject { ["type"] = "string", ["enum"] = new JsonArray(Enum.GetNames<SmartBpRecognitionTask>().Select(x => (JsonNode?)JsonValue.Create(x)).ToArray()) }, ["main_status"] = NullableString(), ["pause_status"] = NullableString(), ["pause_remaining_seconds"] = new JsonObject { ["type"] = new JsonArray("number", "null") } }, "game", "interface_type", "task", "main_status", "pause_status", "pause_remaining_seconds");
-        return Object(new JsonObject { ["schema_version"] = Const(1), ["scene"] = scene, ["teams"] = Array(team), ["all_characters"] = Array(character), ["all_player_ids"] = Array(player), ["warnings"] = StringArray() }, "schema_version", "scene", "teams", "all_characters", "all_player_ids", "warnings");
+        var banSurSlot = CharacterSlot(0, 1, 2, 3);
+        var banHunSlot = CharacterSlot(0, 1);
+        var pickSurSlot = PlayerCharacterSlot(0, 1, 2, 3);
+        var pickHunSlot = Object(new JsonObject { ["index"] = Const(0), ["character_name"] = new JsonObject { ["type"] = "string" }, ["player_id"] = NullableString() }, "index", "character_name", "player_id");
+        return Object(new JsonObject
+        {
+            ["phase"] = Phase(),
+            ["banned_sur"] = FixedArray(banSurSlot, 4),
+            ["banned_hun"] = FixedArray(banHunSlot, 2),
+            ["picked_sur"] = FixedArray(pickSurSlot, 4),
+            ["picked_hun"] = pickHunSlot
+        }, "phase", "banned_sur", "banned_hun", "picked_sur", "picked_hun");
     }
+    private static JsonObject CharacterSlot(params int[] indexes) => Object(new JsonObject { ["index"] = IntegerEnum(indexes), ["character_name"] = new JsonObject { ["type"] = "string" } }, "index", "character_name");
+    private static JsonObject PlayerCharacterSlot(params int[] indexes) => Object(new JsonObject { ["index"] = IntegerEnum(indexes), ["character_name"] = new JsonObject { ["type"] = "string" }, ["player_id"] = NullableString() }, "index", "character_name", "player_id");
+    private static JsonObject Phase() => new() { ["type"] = "string", ["enum"] = new JsonArray("屏蔽求生者", "屏蔽监管者", "选择求生者", "求生者选择角色中", "选择监管者", "等待中", "未知") };
+    private static JsonObject IntegerEnum(params int[] values) => new() { ["type"] = "integer", ["enum"] = new JsonArray(values.Select(x => (JsonNode?)JsonValue.Create(x)).ToArray()) };
+    private static JsonObject FixedArray(JsonNode? item, int count) => new() { ["type"] = "array", ["minItems"] = count, ["maxItems"] = count, ["items"] = item };
     private static JsonObject Object(JsonObject properties, params string[] required) => new() { ["type"] = "object", ["additionalProperties"] = false, ["properties"] = properties, ["required"] = new JsonArray(required.Select(x => (JsonNode?)JsonValue.Create(x)).ToArray()) };
     private static JsonObject Const(object value) => new() { ["const"] = JsonValue.Create(value) };
     private static JsonObject NullableString() => new() { ["type"] = new JsonArray("string", "null") };
@@ -275,47 +293,29 @@ internal sealed class SmartBpAiRecognitionService(ISmartBpImageEncoder encoder, 
 
     internal (string VisualSummary, string ResolvedSummary) Parse(string raw, SmartBpRecognitionTask expected)
     {
-        var result = JsonSerializer.Deserialize<SmartBpVisionExtractionResult>(raw, new JsonSerializerOptions { PropertyNameCaseInsensitive = false })
+        var result = JsonSerializer.Deserialize<SmartBpBusinessStateRecognitionResult>(raw, new JsonSerializerOptions { PropertyNameCaseInsensitive = false })
             ?? throw new InvalidDataException("Recognition JSON is empty.");
-        result.Teams ??= []; result.AllCharacters ??= []; result.AllPlayerIds ??= []; result.Warnings ??= [];
-        if (result.SchemaVersion != 1) throw new InvalidDataException("Unsupported schema_version.");
-        if (result.Scene.Game != "Identity V" || result.Scene.InterfaceType != "ban_pick_or_lineup_selection") throw new InvalidDataException("Unknown visual extraction scene.");
-        if (result.Scene.Task != expected.ToString()) throw new InvalidDataException("Unexpected recognition task.");
+        SmartBpBusinessStateParser.NormalizeAndValidate(result);
 
         var visual = new StringBuilder();
         var resolved = new StringBuilder();
-        visual.AppendLine($"Task: {result.Scene.Task}");
-        visual.AppendLine($"Scene status: main={result.Scene.MainStatus ?? "null"} pause={result.Scene.PauseStatus ?? "null"} remaining={result.Scene.PauseRemainingSeconds?.ToString(CultureInfo.InvariantCulture) ?? "null"}");
-        visual.AppendLine("Teams:");
-        foreach (var team in result.Teams)
-        {
-            ValidateSide(team.Side); var camp = ParseFaction(team.Faction);
-            visual.AppendLine($"- side={team.Side} faction={team.Faction} title={team.TitleText ?? "null"} subtitle={team.SubtitleText ?? "null"}");
-            team.Slots ??= [];
-            foreach (var slot in team.Slots)
-            {
-                Validate(slot.SlotIndex, slot.Confidence); ValidateState(slot.SlotState);
-                var match = camp == null ? null : resolver.Resolve(slot.CharacterName, camp.Value, slot.SlotIndex, slot.Confidence);
-                visual.AppendLine($"  slot[{slot.SlotIndex}] state={slot.SlotState} charRaw={slot.CharacterName ?? "null"} playerId={slot.PlayerId ?? "null"} banned={slot.IsBannedOrUnavailable.ToString().ToLowerInvariant()} conf={slot.Confidence:0.00} rawText={slot.RawVisibleText ?? "null"}");
-                resolved.AppendLine($"{team.Faction}[{slot.SlotIndex}] raw={slot.CharacterName ?? "null"}; resolved={match?.ResolvedCharacterName ?? "unresolved"}; playerId={slot.PlayerId ?? "null"}; rawText={slot.RawVisibleText ?? "null"}; confidence={slot.Confidence:0.00}{(match?.Warnings.Count > 0 ? "; " + string.Join("; ", match.Warnings) : "")}");
-            }
-        }
-        visual.AppendLine("All characters:");
-        foreach (var character in result.AllCharacters)
-        {
-            Validate(character.SlotIndex, character.Confidence); ValidateSide(character.Side); ValidateState(character.SlotState);
-            var camp = ParseFaction(character.Faction); var match = camp == null ? null : resolver.Resolve(character.CharacterName, camp.Value, character.SlotIndex, character.Confidence);
-            visual.AppendLine($"- {character.Faction} slot[{character.SlotIndex}] side={character.Side} raw={character.CharacterName ?? "null"} resolved={match?.ResolvedCharacterName ?? "unresolved"} playerId={character.PlayerId ?? "null"} state={character.SlotState} conf={character.Confidence:0.00}");
-        }
-        visual.AppendLine("All player IDs:");
-        foreach (var player in result.AllPlayerIds)
-        {
-            Validate(player.SlotIndex, player.Confidence); ValidateSide(player.Side);
-            visual.AppendLine($"- slot[{player.SlotIndex}] side={player.Side} playerId={player.PlayerId ?? "null"} character={player.CharacterName ?? "null"} conf={player.Confidence:0.00}");
-        }
-        visual.AppendLine("Warnings:");
-        foreach (var warning in result.Warnings) visual.AppendLine($"- {warning}");
+        visual.AppendLine(SmartBpBusinessStateFormatter.Format(result, resolver, includeResolved: true));
+        AppendResolved(result.BannedSur, Camp.Sur, resolved);
+        AppendResolved(result.BannedHun, Camp.Hun, resolved);
+        AppendResolved(result.PickedSur, Camp.Sur, resolved, includePlayer: true);
+        AppendResolved([result.PickedHun], Camp.Hun, resolved, includePlayer: true, hunterSlot: true);
         return (visual.ToString().TrimEnd(), resolved.ToString().TrimEnd());
+    }
+    private void AppendResolved(IEnumerable<SmartBpRecognizedCharacterSlot> slots, Camp camp, StringBuilder builder, bool includePlayer = false, bool hunterSlot = false)
+    {
+        foreach (var slot in slots)
+        {
+            if (SmartBpBusinessStateParser.IsUnselected(slot.CharacterName)) continue;
+            var index = hunterSlot ? -1 : slot.Index;
+            var match = resolver.Resolve(slot.CharacterName, camp, index, 1);
+            var playerId = includePlayer && slot is SmartBpRecognizedPlayerCharacterSlot player ? player.PlayerId : null;
+            builder.AppendLine($"{camp}[{index}] raw={slot.CharacterName}; resolved={match.ResolvedCharacterName ?? "unresolved"}; playerId={playerId ?? "null"}{(match.Warnings.Count > 0 ? "; " + string.Join("; ", match.Warnings) : "")}");
+        }
     }
     private static void Validate(int slot, double confidence) { if (slot is < 0 or > 15) throw new InvalidDataException("Invalid slot index."); if (confidence is < 0 or > 1) throw new InvalidDataException("Invalid confidence."); }
     private static void ValidateSide(string value) { if (value is not ("left" or "right" or "top" or "bottom" or "unknown")) throw new InvalidDataException("Invalid side."); }

@@ -117,7 +117,7 @@ public interface ISmartBpDebugLog
 public interface ISmartBpGuidanceSyncService
 {
     /// <summary>Synchronizes to the current or nearest compatible future step.</summary>
-    Task<SmartBpGuidanceSyncResult> SyncAsync(SmartBpStageDetectionResult detectedStage, CancellationToken cancellationToken = default);
+    Task<SmartBpGuidanceSyncResult> SyncAsync(SmartBpBusinessStateRecognitionResult businessState, CancellationToken cancellationToken = default);
 }
 
 /// <summary>Applies locally validated candidate operations through character selection services.</summary>

@@ -2,6 +2,7 @@ extern alias smartbp;
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -25,6 +26,10 @@ using ISmartBpCharacterResolver = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstract
 using ISmartBpRecognitionSettingsService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpRecognitionSettingsService;
 using SmartBpRecognitionSettings = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionSettings;
 using SmartBpStageDetectionResult = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpStageDetectionResult;
+using SmartBpBusinessStateRecognitionResult = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpBusinessStateRecognitionResult;
+using SmartBpRecognizedCharacterSlot = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognizedCharacterSlot;
+using SmartBpRecognizedPlayerCharacterSlot = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognizedPlayerCharacterSlot;
+using SmartBpBusinessStateParser = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpBusinessStateParser;
 using SmartBpAutomaticParser = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpAutomaticParser;
 using SmartBpAutomaticMapping = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpAutomaticMapping;
 using SmartBpGuidanceSyncService = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpGuidanceSyncService;
@@ -58,9 +63,13 @@ public sealed class SmartBpAiRecognitionContractTest
     {
         var schema = SmartBpRecognitionJsonSchemaProvider.Get(task).ToJsonString();
         Assert.Contains("\"additionalProperties\":false", schema);
-        Assert.Contains("\"schema_version\"", schema);
-        Assert.Contains("\"all_player_ids\"", schema);
-        Assert.Contains("\"raw_visible_text\"", schema);
+        Assert.Contains("\"phase\"", schema);
+        Assert.Contains("\"banned_sur\"", schema);
+        Assert.Contains("\"banned_hun\"", schema);
+        Assert.Contains("\"picked_sur\"", schema);
+        Assert.Contains("\"picked_hun\"", schema);
+        Assert.DoesNotContain("\"all_player_ids\"", schema);
+        Assert.DoesNotContain("\"raw_visible_text\"", schema);
         Assert.DoesNotContain("MapBP", schema, StringComparison.OrdinalIgnoreCase);
     }
 
@@ -142,8 +151,8 @@ public sealed class SmartBpAiRecognitionContractTest
         settings.SetupGet(x => x.Settings).Returns(new SmartBpRecognitionSettings { GuidanceSyncLookAheadSteps = 4 });
         var service = new SmartBpGuidanceSyncService(guidance.Object, settings.Object);
 
-        var moved = await service.SyncAsync(Stage("BanHun", .95), TestContext.Current.CancellationToken);
-        var refusedBackward = await service.SyncAsync(Stage("BanSur", .95), TestContext.Current.CancellationToken);
+        var moved = await service.SyncAsync(Business("屏蔽监管者"), TestContext.Current.CancellationToken);
+        var refusedBackward = await service.SyncAsync(Business("屏蔽求生者"), TestContext.Current.CancellationToken);
 
         Assert.True(moved.Changed);
         Assert.Equal(2, moved.TargetStepIndex);
@@ -158,9 +167,55 @@ public sealed class SmartBpAiRecognitionContractTest
         var settings = new Mock<ISmartBpRecognitionSettingsService>();
         settings.SetupGet(x => x.Settings).Returns(new SmartBpRecognitionSettings { StageConfidenceThreshold = .8 });
         var result = await new SmartBpGuidanceSyncService(guidance.Object, settings.Object)
-            .SyncAsync(Stage("BanSur", .79), TestContext.Current.CancellationToken);
+            .SyncAsync(Business("未知"), TestContext.Current.CancellationToken);
         Assert.False(result.IsAccepted);
         guidance.Verify(x => x.MoveToStepAsync(It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public void BusinessSchemaUsesOnlyStateSnapshotFields()
+    {
+        var schema = SmartBpRecognitionJsonSchemaProvider.Get(SmartBpRecognitionTask.FullBpScan).ToJsonString();
+        Assert.Contains("\"phase\"", schema);
+        Assert.Contains("\"banned_sur\"", schema);
+        Assert.Contains("\"banned_hun\"", schema);
+        Assert.Contains("\"picked_sur\"", schema);
+        Assert.Contains("\"picked_hun\"", schema);
+        Assert.DoesNotContain("teams", schema);
+        Assert.DoesNotContain("all_characters", schema);
+        Assert.DoesNotContain("all_player_ids", schema);
+        Assert.DoesNotContain("warnings", schema);
+        Assert.DoesNotContain("raw_visible_text", schema);
+        Assert.DoesNotContain("confidence", schema);
+    }
+
+    [Fact]
+    public void BusinessParserAcceptsSampleAndNormalizesUnknownCharacters()
+    {
+        const string json = """
+        {"phase":"选择求生者","banned_sur":[{"index":0,"character_name":"小说家"},{"index":1,"character_name":"昆虫学者"},{"index":2,"character_name":"未选择"},{"index":3,"character_name":"未选择"}],"banned_hun":[{"index":0,"character_name":"梦之女巫"},{"index":1,"character_name":"女王蜂"}],"picked_sur":[{"index":0,"character_name":"\"心理学家\"","player_id":"IHiganbanaI"},{"index":1,"character_name":"守墓人","player_id":"夜风之缚"},{"index":2,"character_name":"unknown","player_id":"磁兮小狗"},{"index":3,"character_name":"","player_id":"叶落摘星"}],"picked_hun":{"index":0,"character_name":null,"player_id":"导播PLFJY"}}
+        """;
+
+        var parsed = SmartBpBusinessStateParser.Parse(json);
+
+        Assert.Equal("选择求生者", parsed.Phase);
+        Assert.Equal("\"心理学家\"", parsed.PickedSur[0].CharacterName);
+        Assert.Equal("磁兮小狗", parsed.PickedSur[2].PlayerId);
+        Assert.Equal("未选择", parsed.PickedSur[2].CharacterName);
+        Assert.Equal("未选择", parsed.PickedSur[3].CharacterName);
+        Assert.Equal("未选择", parsed.PickedHun.CharacterName);
+    }
+
+    [Theory]
+    [InlineData("屏蔽求生者", GameAction.BanSur)]
+    [InlineData("屏蔽监管者", GameAction.BanHun)]
+    [InlineData("选择求生者", GameAction.PickSur)]
+    [InlineData("求生者选择角色中", GameAction.DistributeChara)]
+    [InlineData("选择监管者", GameAction.PickHun)]
+    public void BusinessPhaseMapsToGuidanceAction(string phase, GameAction expected)
+    {
+        Assert.True(SmartBpAutomaticMapping.TryMapPhase(phase, out var action));
+        Assert.Equal(expected, action);
     }
 
     [Fact]
@@ -176,7 +231,7 @@ public sealed class SmartBpAiRecognitionContractTest
         Assert.Throws<PlatformNotSupportedException>(() => LlamaCppRuntimeAssetManager.GetDefaultRuntimeId(Architecture.X86));
 
     [Fact]
-    public void ParserPreservesVisualOcrContextAndUnresolvedNames()
+    public void ParserPreservesBusinessPlayerIdsAndUnresolvedNames()
     {
         var shared = new Mock<ISharedDataService>();
         shared.SetupGet(x => x.SurCharaDict).Returns(new SortedDictionary<string, Character> { ["祭司"] = new("祭司", Camp.Sur, "priestess") });
@@ -185,11 +240,10 @@ public sealed class SmartBpAiRecognitionContractTest
         var settings = new Mock<ISmartBpRecognitionSettingsService>(); settings.SetupGet(x => x.Settings).Returns(new SmartBpRecognitionSettings());
         var service = new SmartBpAiRecognitionService(Mock.Of<ISmartBpImageEncoder>(), Mock.Of<ILlamaCppOpenAiClient>(), resolver, settings.Object, NullLogger<SmartBpAiRecognitionService>.Instance);
         const string json = """
-        {"schema_version":1,"scene":{"game":"Identity V","interface_type":"ban_pick_or_lineup_selection","task":"PickSur","main_status":"选择中","pause_status":null,"pause_remaining_seconds":null},"teams":[{"side":"left","faction":"survivor","title_text":null,"subtitle_text":null,"slots":[{"slot_index":0,"slot_state":"selected","character_name":"祭司","player_id":"玩家Ω","is_banned_or_unavailable":false,"raw_visible_text":"玩家Ω / 祭司","confidence":0.98},{"slot_index":1,"slot_state":"selected","character_name":"未知角色","player_id":"P2","is_banned_or_unavailable":false,"raw_visible_text":"P2 / 未知角色","confidence":0.6}]}],"all_characters":[],"all_player_ids":[{"player_id":"玩家Ω","character_name":"祭司","side":"left","slot_index":0,"confidence":0.98}],"warnings":[]}
+        {"phase":"选择求生者","banned_sur":[{"index":0,"character_name":"未选择"},{"index":1,"character_name":"未选择"},{"index":2,"character_name":"未选择"},{"index":3,"character_name":"未选择"}],"banned_hun":[{"index":0,"character_name":"未选择"},{"index":1,"character_name":"未选择"}],"picked_sur":[{"index":0,"character_name":"祭司","player_id":"玩家Ω"},{"index":1,"character_name":"未知角色","player_id":"P2"},{"index":2,"character_name":"未选择","player_id":null},{"index":3,"character_name":"未选择","player_id":null}],"picked_hun":{"index":0,"character_name":"未选择","player_id":null}}
         """;
         var (visual, resolved) = service.Parse(json, SmartBpRecognitionTask.PickSur);
-        Assert.Contains("playerId=玩家Ω", visual);
-        Assert.Contains("rawText=玩家Ω / 祭司", visual);
+        Assert.Contains("玩家Ω", visual);
         Assert.Contains("resolved=祭司", resolved);
         Assert.Contains("raw=未知角色; resolved=unresolved", resolved);
     }
@@ -209,4 +263,13 @@ public sealed class SmartBpAiRecognitionContractTest
             Confidence = confidence
         };
     }
+
+    private static SmartBpBusinessStateRecognitionResult Business(string phase) => new()
+    {
+        Phase = phase,
+        BannedSur = Enumerable.Range(0, 4).Select(x => new SmartBpRecognizedCharacterSlot { Index = x, CharacterName = "未选择" }).ToList(),
+        BannedHun = Enumerable.Range(0, 2).Select(x => new SmartBpRecognizedCharacterSlot { Index = x, CharacterName = "未选择" }).ToList(),
+        PickedSur = Enumerable.Range(0, 4).Select(x => new SmartBpRecognizedPlayerCharacterSlot { Index = x, CharacterName = "未选择" }).ToList(),
+        PickedHun = new SmartBpRecognizedPlayerCharacterSlot { Index = 0, CharacterName = "未选择" }
+    };
 }

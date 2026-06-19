@@ -23,7 +23,7 @@ public partial class SmartBpModuleContentViewModel
         new("pick-hun-16x9", "pick-hun-16x9.png", SmartBpRecognitionTask.PickHun),
         new("character-distribution-16x9", "character-distribution-16x9.png", SmartBpRecognitionTask.CharacterDistribution)
     ];
-    /// <summary>Gets tasks available for current capture recognition.</summary>
+    /// <summary>Gets tasks available for debug-forced recognition.</summary>
     public IReadOnlyList<SmartBpRecognitionTask> AiCaptureTasks { get; } = Enum.GetValues<SmartBpRecognitionTask>()
         .Where(x => x != SmartBpRecognitionTask.DetectStage).ToArray();
 
@@ -149,7 +149,7 @@ public partial class SmartBpModuleContentViewModel
     [RelayCommand] private Task RunAutomaticOneTickAsync() => RunAutomaticCurrentFrameCoreAsync();
     [RelayCommand] private async Task StartAiPreviewLoopAsync() { if (!_windowCaptureService.IsCapturing) { AiLastError = "Start capture before starting the recognition loop."; return; } await _autoRecognitionCoordinator.StartAsync(); IsAiPreviewLoopRunning = true; _aiPreviewTimer.Start(); }
     [RelayCommand] private async Task StopAiPreviewLoopAsync() { _aiPreviewTimer.Stop(); await _autoRecognitionCoordinator.StopAsync(); IsAiPreviewLoopRunning = false; }
-    private async Task RecognizeCurrentFrameCoreAsync() { var frame = _windowCaptureService.GetCurrentFrame(); if (frame == null) { AiLastError = "No capture frame is available."; return; } await RecognizeCoreAsync(frame, SelectedAiCaptureTask); }
+    private async Task RecognizeCurrentFrameCoreAsync() { var frame = _windowCaptureService.GetCurrentFrame(); if (frame == null) { AiLastError = "No capture frame is available."; return; } await RecognizeCoreAsync(frame, SmartBpRecognitionTask.FullBpScan); }
 
     private async Task DetectStageCoreAsync(BitmapSource frame)
     {
@@ -158,10 +158,11 @@ public partial class SmartBpModuleContentViewModel
         try
         {
             var dataUrl = await Task.Run(() => _smartBpImageEncoder.EncodeDataUrl(frame, _recognitionSettingsService.Settings.MaxImageWidth));
-            var raw = await _llamaCppOpenAiClient.DetectStageAsync(dataUrl);
-            var stage = await Task.Run(() => SmartBpAutomaticParser.ParseStage(raw));
+            var raw = await _llamaCppOpenAiClient.RecognizeAsync(dataUrl, SmartBpRecognitionTask.FullBpScan);
+            var state = await Task.Run(() => SmartBpBusinessStateParser.Parse(raw));
             AiRawResponse = raw;
-            AiStageDetectionResult = FormatStage(stage);
+            AiStageDetectionResult = FormatBusinessState(state);
+            AiParsedVisualResult = AiStageDetectionResult;
             RefreshGuidanceSnapshot();
         }
         catch (Exception ex) { AiLastError = ex.Message; }
@@ -177,11 +178,11 @@ public partial class SmartBpModuleContentViewModel
         try
         {
             var result = await _autoRecognitionCoordinator.RunOneTickAsync(frame);
-            AiRawResponse = string.Join(Environment.NewLine + Environment.NewLine, new[] { result.RawStageJson, result.RawFocusedJson }.Where(x => !string.IsNullOrWhiteSpace(x)));
-            AiStageDetectionResult = result.Stage == null ? "-" : FormatStage(result.Stage);
+            AiRawResponse = result.RawJson;
+            AiStageDetectionResult = result.BusinessState == null ? "-" : FormatBusinessState(result.BusinessState);
             AiGuidanceSnapshot = FormatGuidance(result.GuidanceSnapshot, result.GuidanceSync?.Reason);
             AiCandidateOperations = result.Operations.Count == 0 ? "-" : string.Join(Environment.NewLine, result.Operations.Select(FormatOperation));
-            AiParsedVisualResult = result.FocusedExtraction == null ? "-" : FormatFocused(result.FocusedExtraction);
+            AiParsedVisualResult = AiStageDetectionResult;
             AiNormalizedResult = AiCandidateOperations;
             AiLastError = result.Error ?? "";
         }
@@ -200,6 +201,9 @@ public partial class SmartBpModuleContentViewModel
         $"action={value.RecognizedAction}; activeSide={value.ActiveSide}; region={value.OperationRegion}; owner={value.OperationOwner}; targetCamp={value.TargetCamp}; confidence={value.Confidence:0.00}{Environment.NewLine}" +
         $"leftTopTitle={value.LeftTopTitle ?? "null"}; rightTopTitle={value.RightTopTitle ?? "null"}; status={value.MainStatus ?? "null"}{Environment.NewLine}" +
         $"evidence={string.Join(" | ", value.Evidence)}{Environment.NewLine}warnings={string.Join(" | ", value.Warnings)}";
+
+    private string FormatBusinessState(SmartBpBusinessStateRecognitionResult value) =>
+        SmartBpBusinessStateFormatter.Format(value, _smartBpCharacterResolver, includeResolved: true);
 
     private static string FormatGuidance(Core.Models.GameGuidanceRuntimeSnapshot value, string? reason = null) =>
         $"started={value.IsStarted}; step={value.CurrentStepIndex}; action={value.CurrentAction?.ToString() ?? "null"}; indexes=[{string.Join(", ", value.CurrentIndexes)}]; time={value.CurrentTime?.ToString() ?? "null"}{Environment.NewLine}{reason ?? ""}";

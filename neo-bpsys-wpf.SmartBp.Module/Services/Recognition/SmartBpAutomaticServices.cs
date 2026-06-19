@@ -1,4 +1,5 @@
 using System.IO;
+using System.Text;
 using System.Text.Json;
 using System.Windows.Media.Imaging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
@@ -11,6 +12,11 @@ namespace neo_bpsys_wpf.SmartBp.Module.Services.Recognition;
 
 internal static class SmartBpAutomaticMapping
 {
+    public static readonly IReadOnlyList<string> ValidPhases =
+    [
+        "屏蔽求生者", "屏蔽监管者", "选择求生者", "求生者选择角色中", "选择监管者", "等待中", "未知"
+    ];
+
     public static (string Region, string Camp, string Meaning) Get(GameAction action) => action switch
     {
         GameAction.BanSur => ("right_top", "survivor", "the hunter-side operation area for banning survivors"),
@@ -43,6 +49,115 @@ internal static class SmartBpAutomaticMapping
             _ => GameAction.None
         };
         return action != GameAction.None;
+    }
+
+    public static bool TryMapPhase(string phase, out GameAction action)
+    {
+        action = phase switch
+        {
+            "屏蔽求生者" => GameAction.BanSur,
+            "屏蔽监管者" => GameAction.BanHun,
+            "选择求生者" => GameAction.PickSur,
+            "求生者选择角色中" => GameAction.DistributeChara,
+            "选择监管者" => GameAction.PickHun,
+            _ => GameAction.None
+        };
+        return action != GameAction.None;
+    }
+}
+
+internal static class SmartBpBusinessStateParser
+{
+    public static SmartBpBusinessStateRecognitionResult Parse(string raw)
+    {
+        var result = JsonSerializer.Deserialize<SmartBpBusinessStateRecognitionResult>(raw)
+            ?? throw new InvalidDataException("Business-state recognition JSON is empty.");
+        NormalizeAndValidate(result);
+        return result;
+    }
+
+    public static void NormalizeAndValidate(SmartBpBusinessStateRecognitionResult result)
+    {
+        if (!SmartBpAutomaticMapping.ValidPhases.Contains(result.Phase))
+            throw new InvalidDataException("Invalid BP phase.");
+        result.BannedSur ??= [];
+        result.BannedHun ??= [];
+        result.PickedSur ??= [];
+        result.PickedHun ??= new();
+        ValidateCharacterSlots(result.BannedSur, 4, "banned_sur");
+        ValidateCharacterSlots(result.BannedHun, 2, "banned_hun");
+        ValidatePlayerSlots(result.PickedSur, 4, "picked_sur");
+        if (result.PickedHun.Index != 0) throw new InvalidDataException("picked_hun.index must be 0.");
+        Normalize(result.PickedHun);
+    }
+
+    public static bool IsUnselected(string? value) => string.Equals(NormalizeName(value), "未选择", StringComparison.Ordinal);
+
+    private static void ValidateCharacterSlots(List<SmartBpRecognizedCharacterSlot> slots, int count, string field)
+    {
+        if (slots.Count != count) throw new InvalidDataException($"{field} must contain exactly {count} entries.");
+        var expected = Enumerable.Range(0, count).ToArray();
+        if (!slots.Select(x => x.Index).OrderBy(x => x).SequenceEqual(expected))
+            throw new InvalidDataException($"{field} must contain indexes {string.Join(",", expected)}.");
+        foreach (var slot in slots) Normalize(slot);
+    }
+
+    private static void ValidatePlayerSlots(List<SmartBpRecognizedPlayerCharacterSlot> slots, int count, string field)
+    {
+        if (slots.Count != count) throw new InvalidDataException($"{field} must contain exactly {count} entries.");
+        var expected = Enumerable.Range(0, count).ToArray();
+        if (!slots.Select(x => x.Index).OrderBy(x => x).SequenceEqual(expected))
+            throw new InvalidDataException($"{field} must contain indexes {string.Join(",", expected)}.");
+        foreach (var slot in slots) Normalize(slot);
+    }
+
+    private static void Normalize(SmartBpRecognizedCharacterSlot slot) => slot.CharacterName = NormalizeName(slot.CharacterName);
+
+    private static string NormalizeName(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return "未选择";
+        var trimmed = value.Trim();
+        return trimmed.Equals("unknown", StringComparison.OrdinalIgnoreCase) || trimmed.Equals("null", StringComparison.OrdinalIgnoreCase)
+            ? "未选择"
+            : trimmed;
+    }
+}
+
+internal static class SmartBpBusinessStateFormatter
+{
+    public static string Format(SmartBpBusinessStateRecognitionResult value, ISmartBpCharacterResolver resolver, bool includeResolved)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine($"Phase: {value.Phase}");
+        AppendCharacterSection(builder, "Banned survivors:", value.BannedSur, Camp.Sur, resolver, includeResolved);
+        AppendCharacterSection(builder, "Banned hunters:", value.BannedHun, Camp.Hun, resolver, includeResolved);
+        AppendPlayerSection(builder, "Picked survivors:", value.PickedSur, Camp.Sur, resolver, includeResolved);
+        AppendPlayerSection(builder, "Picked hunter:", [value.PickedHun], Camp.Hun, resolver, includeResolved, true);
+        return builder.ToString().TrimEnd();
+    }
+
+    private static void AppendCharacterSection(StringBuilder builder, string title, IEnumerable<SmartBpRecognizedCharacterSlot> slots, Camp camp, ISmartBpCharacterResolver resolver, bool includeResolved)
+    {
+        builder.AppendLine().AppendLine(title);
+        foreach (var slot in slots)
+        {
+            var resolved = includeResolved && !SmartBpBusinessStateParser.IsUnselected(slot.CharacterName)
+                ? resolver.Resolve(slot.CharacterName, camp, slot.Index, 1).ResolvedCharacterName
+                : null;
+            builder.AppendLine($"[{slot.Index}] {slot.CharacterName}{(resolved == null ? "" : $" / resolved={resolved}")}");
+        }
+    }
+
+    private static void AppendPlayerSection(StringBuilder builder, string title, IEnumerable<SmartBpRecognizedPlayerCharacterSlot> slots, Camp camp, ISmartBpCharacterResolver resolver, bool includeResolved, bool hunterSlot = false)
+    {
+        builder.AppendLine().AppendLine(title);
+        foreach (var slot in slots)
+        {
+            var resolved = includeResolved && !SmartBpBusinessStateParser.IsUnselected(slot.CharacterName)
+                ? resolver.Resolve(slot.CharacterName, camp, hunterSlot ? -1 : slot.Index, 1).ResolvedCharacterName
+                : null;
+            builder.AppendLine($"[{slot.Index}] {slot.CharacterName} / {slot.PlayerId ?? "null"}{(resolved == null ? "" : $" / resolved={resolved}")}");
+        }
     }
 }
 
@@ -98,13 +213,11 @@ internal sealed class SmartBpGuidanceSyncService(
     IGameGuidanceService guidance,
     ISmartBpRecognitionSettingsService settings) : ISmartBpGuidanceSyncService
 {
-    public async Task<SmartBpGuidanceSyncResult> SyncAsync(SmartBpStageDetectionResult detectedStage, CancellationToken cancellationToken = default)
+    public async Task<SmartBpGuidanceSyncResult> SyncAsync(SmartBpBusinessStateRecognitionResult businessState, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (detectedStage.Confidence < settings.Settings.StageConfidenceThreshold)
-            return Reject($"Stage confidence {detectedStage.Confidence:0.00} is below {settings.Settings.StageConfidenceThreshold:0.00}.");
-        if (!SmartBpAutomaticMapping.TryParseDetectedAction(detectedStage.RecognizedAction, out var action))
-            return Reject("The detected BP action is unknown.");
+        if (!SmartBpAutomaticMapping.TryMapPhase(businessState.Phase, out var action))
+            return Reject($"The detected BP phase '{businessState.Phase}' cannot be synchronized.");
 
         var snapshot = guidance.GetRuntimeSnapshot();
         if (!snapshot.IsStarted)
@@ -144,6 +257,53 @@ internal sealed class SmartBpGuidanceSyncService(
 internal sealed class SmartBpCandidateOperationBuilder(ISmartBpCharacterResolver resolver, ISharedDataService shared)
 {
     public IReadOnlyList<SmartBpDetectedOperation> Build(
+        SmartBpBusinessStateRecognitionResult state,
+        GameAction action,
+        IReadOnlyList<int> guidanceIndexes)
+    {
+        return action switch
+        {
+            GameAction.BanSur => BuildFromCharacterSlots(state.BannedSur, action, guidanceIndexes, Camp.Sur, SmartBpDetectedOperationKind.BanCharacter),
+            GameAction.BanHun => BuildFromCharacterSlots(state.BannedHun, action, guidanceIndexes, Camp.Hun, SmartBpDetectedOperationKind.BanCharacter),
+            GameAction.PickSur => BuildFromPlayerSlots(state.PickedSur, action, guidanceIndexes, Camp.Sur, SmartBpDetectedOperationKind.PickSurvivor),
+            GameAction.DistributeChara => BuildDistribution(state.PickedSur, guidanceIndexes),
+            GameAction.PickHun => BuildFromPlayerSlots([state.PickedHun], action, guidanceIndexes, Camp.Hun, SmartBpDetectedOperationKind.PickHunter, true),
+            _ => []
+        };
+    }
+
+    private IReadOnlyList<SmartBpDetectedOperation> BuildFromCharacterSlots(IEnumerable<SmartBpRecognizedCharacterSlot> slots, GameAction action, IReadOnlyList<int> guidanceIndexes, Camp camp, SmartBpDetectedOperationKind kind)
+    {
+        var operations = new List<SmartBpDetectedOperation>();
+        foreach (var slot in slots)
+        {
+            if (SmartBpBusinessStateParser.IsUnselected(slot.CharacterName)) continue;
+            if (guidanceIndexes.Count > 0 && !guidanceIndexes.Contains(slot.Index)) continue;
+            var resolved = resolver.Resolve(slot.CharacterName, camp, slot.Index, 1);
+            operations.Add(new(kind, action, guidanceIndexes.ToArray(), camp, slot.Index, slot.CharacterName,
+                resolved.ResolvedCharacterKey, resolved.ResolvedCharacterName, null, 1,
+                $"Business-state snapshot phase {action} produced slot {slot.Index}."));
+        }
+        return operations;
+    }
+
+    private IReadOnlyList<SmartBpDetectedOperation> BuildFromPlayerSlots(IEnumerable<SmartBpRecognizedPlayerCharacterSlot> slots, GameAction action, IReadOnlyList<int> guidanceIndexes, Camp camp, SmartBpDetectedOperationKind kind, bool hunterSlot = false)
+    {
+        var operations = new List<SmartBpDetectedOperation>();
+        foreach (var slot in slots)
+        {
+            if (SmartBpBusinessStateParser.IsUnselected(slot.CharacterName)) continue;
+            var internalSlot = hunterSlot ? -1 : slot.Index;
+            if (!hunterSlot && guidanceIndexes.Count > 0 && !guidanceIndexes.Contains(internalSlot)) continue;
+            var resolved = resolver.Resolve(slot.CharacterName, camp, internalSlot, 1);
+            operations.Add(new(kind, action, guidanceIndexes.ToArray(), camp, internalSlot, slot.CharacterName,
+                resolved.ResolvedCharacterKey, resolved.ResolvedCharacterName, slot.PlayerId, 1,
+                hunterSlot ? "Business-state snapshot mapped hunter visual slot 0 to internal hunter slot -1." : $"Business-state snapshot phase {action} produced slot {internalSlot}."));
+        }
+        return operations;
+    }
+
+    public IReadOnlyList<SmartBpDetectedOperation> Build(
         SmartBpFocusedExtractionResult extraction,
         GameAction action,
         IReadOnlyList<int> guidanceIndexes)
@@ -154,7 +314,7 @@ internal sealed class SmartBpCandidateOperationBuilder(ISmartBpCharacterResolver
         var camp = action is GameAction.BanHun or GameAction.PickHun ? Camp.Hun : Camp.Sur;
         foreach (var slot in extraction.Slots)
         {
-            if (slot.CharacterName == null) continue;
+            if (slot.CharacterName == null || SmartBpBusinessStateParser.IsUnselected(slot.CharacterName)) continue;
             var internalSlot = action == GameAction.PickHun ? -1 : slot.SlotIndex;
             if (action is GameAction.BanSur or GameAction.BanHun or GameAction.PickSur &&
                 guidanceIndexes.Count > 0 && !guidanceIndexes.Contains(internalSlot))
@@ -180,12 +340,34 @@ internal sealed class SmartBpCandidateOperationBuilder(ISmartBpCharacterResolver
     }
 
     private IReadOnlyList<SmartBpDetectedOperation> BuildDistribution(
+        IEnumerable<SmartBpRecognizedPlayerCharacterSlot> slots,
+        IReadOnlyList<int> guidanceIndexes)
+    {
+        var operations = new List<SmartBpDetectedOperation>();
+        var simulated = shared.CurrentGame.SurPlayerList.Select(x => x.Character?.Name).ToArray();
+        foreach (var slot in slots.Where(x => !SmartBpBusinessStateParser.IsUnselected(x.CharacterName) && x.Index is >= 0 and < 4).OrderBy(x => x.Index))
+        {
+            var resolved = resolver.Resolve(slot.CharacterName, Camp.Sur, slot.Index, 1);
+            if (resolved.ResolvedCharacterName != null && simulated[slot.Index] == resolved.ResolvedCharacterName) continue;
+            operations.Add(new(SmartBpDetectedOperationKind.SwapSurvivors, GameAction.DistributeChara,
+                guidanceIndexes.ToArray(), Camp.Sur, slot.Index, slot.CharacterName,
+                resolved.ResolvedCharacterKey, resolved.ResolvedCharacterName, slot.PlayerId,
+                1, $"Place the detected character into fixed survivor player slot {slot.Index}."));
+            if (resolved.ResolvedCharacterName == null) continue;
+            var source = Array.FindIndex(simulated, x => x == resolved.ResolvedCharacterName);
+            if (source < 0) continue;
+            (simulated[source], simulated[slot.Index]) = (simulated[slot.Index], simulated[source]);
+        }
+        return operations;
+    }
+
+    private IReadOnlyList<SmartBpDetectedOperation> BuildDistribution(
         SmartBpFocusedExtractionResult extraction,
         IReadOnlyList<int> guidanceIndexes)
     {
         var operations = new List<SmartBpDetectedOperation>();
         var simulated = shared.CurrentGame.SurPlayerList.Select(x => x.Character?.Name).ToArray();
-        foreach (var slot in extraction.Slots.Where(x => x.CharacterName != null && x.SlotIndex is >= 0 and < 4).OrderBy(x => x.SlotIndex))
+        foreach (var slot in extraction.Slots.Where(x => x.CharacterName != null && !SmartBpBusinessStateParser.IsUnselected(x.CharacterName) && x.SlotIndex is >= 0 and < 4).OrderBy(x => x.SlotIndex))
         {
             var resolved = resolver.Resolve(slot.CharacterName, Camp.Sur, slot.SlotIndex, slot.Confidence);
             if (resolved.ResolvedCharacterName != null && simulated[slot.SlotIndex] == resolved.ResolvedCharacterName) continue;
@@ -281,42 +463,40 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
     {
         if (!await _tickGate.WaitAsync(0, cancellationToken))
             return Failure("An automatic recognition tick is already running.");
-        string rawStage = "", rawFocused = "";
+        string raw = "";
         try
         {
             var image = await Task.Run(() => encoder.EncodeDataUrl(frame, settings.Settings.MaxImageWidth), cancellationToken);
-            rawStage = await client.DetectStageAsync(image, cancellationToken);
-            var stage = await Task.Run(() => SmartBpAutomaticParser.ParseStage(rawStage), cancellationToken);
+            raw = await client.RecognizeAsync(image, SmartBpRecognitionTask.FullBpScan, cancellationToken);
+            var state = await Task.Run(() => SmartBpBusinessStateParser.Parse(raw), cancellationToken);
             SmartBpGuidanceSyncResult? sync = settings.Settings.EnableAutoGuidanceSync
-                ? await guidanceSync.SyncAsync(stage, cancellationToken)
+                ? await guidanceSync.SyncAsync(state, cancellationToken)
                 : new(false, false, "Automatic GameGuidance synchronization is disabled.", null, [], null);
             var snapshot = guidance.GetRuntimeSnapshot();
             if (!snapshot.IsStarted || snapshot.CurrentAction is not { } action)
-                return new(stage, sync, snapshot, null, [], rawStage, "", "GameGuidance is not started; focused extraction was skipped.");
-            if (stage.Confidence < settings.Settings.StageConfidenceThreshold)
-                return new(stage, sync, snapshot, null, [], rawStage, "", "Stage confidence is below the automatic recognition threshold.");
-            if (!SmartBpAutomaticMapping.TryParseDetectedAction(stage.RecognizedAction, out var detectedAction) || detectedAction != action)
-                return new(stage, sync, snapshot, null, [], rawStage, "", $"Detected stage {stage.RecognizedAction} does not match current GameGuidance action {action}.");
+                return new(state, sync, snapshot, [], raw, "GameGuidance is not started; candidate generation was skipped.");
+            if (!SmartBpAutomaticMapping.TryMapPhase(state.Phase, out var detectedAction))
+                return new(state, sync, snapshot, [], raw, $"Detected phase {state.Phase} does not map to a BP character operation.");
+            if (detectedAction != action)
+                return new(state, sync, snapshot, [], raw, $"Detected phase {state.Phase} does not match current GameGuidance action {action}.");
             try { _ = SmartBpAutomaticMapping.Get(action); }
             catch (NotSupportedException)
             {
-                return new(stage, sync, snapshot, null, [], rawStage, "", $"Current GameGuidance action {action} is not a BP character operation.");
+                return new(state, sync, snapshot, [], raw, $"Current GameGuidance action {action} is not a BP character operation.");
             }
-            rawFocused = await client.RecognizeFocusedAsync(image, action, snapshot.CurrentIndexes, cancellationToken);
-            var focused = await Task.Run(() => SmartBpAutomaticParser.ParseFocused(rawFocused, action), cancellationToken);
-            var operations = candidateBuilder.Build(focused, action, snapshot.CurrentIndexes);
+            var operations = candidateBuilder.Build(state, action, snapshot.CurrentIndexes);
             if (settings.Settings.EnableAutoApplyRecognition)
                 await applier.ApplyAsync(operations, cancellationToken);
-            return new(stage, sync, snapshot, focused, operations, rawStage, rawFocused, null);
+            return new(state, sync, snapshot, operations, raw, null);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            if (ex is LlamaCppRequestException request && string.IsNullOrEmpty(rawFocused)) rawFocused = request.RawResponse;
-            return new(null, null, guidance.GetRuntimeSnapshot(), null, [], rawStage, rawFocused, ex.Message);
+            if (ex is LlamaCppRequestException request) raw = request.RawResponse;
+            return new(null, null, guidance.GetRuntimeSnapshot(), [], raw, ex.Message);
         }
         finally { _tickGate.Release(); }
     }
 
     private SmartBpAutoRecognitionTickResult Failure(string error) =>
-        new(null, null, guidance.GetRuntimeSnapshot(), null, [], "", "", error);
+        new(null, null, guidance.GetRuntimeSnapshot(), [], "", error);
 }

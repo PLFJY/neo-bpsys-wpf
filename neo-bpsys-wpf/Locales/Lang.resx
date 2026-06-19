@@ -5642,8 +5642,9 @@
   <data name="SmartBpAiDownloadRuntime" xml:space="preserve"><value>下载运行时</value></data>
   <data name="SmartBpAiDeleteRuntime" xml:space="preserve"><value>删除运行时</value></data>
   <data name="SmartBpAiManagedRuntimePath" xml:space="preserve"><value>托管 llama-server.exe 路径</value></data>
-  <data name="SmartBpAiCaptureTask" xml:space="preserve"><value>当前捕获帧识别任务</value></data>
-  <data name="SmartBpAiParsedVisualResult" xml:space="preserve"><value>视觉提取摘要</value></data>
+  <data name="SmartBpAiCaptureTask" xml:space="preserve"><value>调试强制识别任务</value></data>
+  <data name="SmartBpAiDebugForceTask" xml:space="preserve"><value>高级/调试：强制识别任务</value></data>
+  <data name="SmartBpAiParsedVisualResult" xml:space="preserve"><value>业务状态快照摘要</value></data>
   <data name="SmartBpAiRuntimeDownloading" xml:space="preserve"><value>正在下载并安装 llama.cpp 运行时</value></data>
   <data name="SmartBpAiDebugConsoleHint" xml:space="preserve"><value>实时显示 llama-server 启动命令、标准输出、错误输出、健康检查与识别请求状态。</value></data>
   <data name="SmartBpAiClearDebugConsole" xml:space="preserve"><value>清空</value></data>
@@ -5658,10 +5659,10 @@
   <data name="SmartBpAiStatusReady" xml:space="preserve"><value>已就绪</value></data>
   <data name="SmartBpAiEnableGuidanceSync" xml:space="preserve"><value>启用自动同步对局引导</value></data>
   <data name="SmartBpAiEnableAutoApply" xml:space="preserve"><value>启用自动应用识别结果（谨慎）</value></data>
-  <data name="SmartBpAiDetectStageTestFrame" xml:space="preserve"><value>检测测试图阶段</value></data>
-  <data name="SmartBpAiDetectStageCapture" xml:space="preserve"><value>检测捕获帧阶段</value></data>
+  <data name="SmartBpAiDetectStageTestFrame" xml:space="preserve"><value>识别测试图业务状态</value></data>
+  <data name="SmartBpAiDetectStageCapture" xml:space="preserve"><value>识别捕获帧业务状态</value></data>
   <data name="SmartBpAiRunAutomaticTick" xml:space="preserve"><value>运行一次自动识别</value></data>
-  <data name="SmartBpAiStageDetectionResult" xml:space="preserve"><value>BP 阶段检测结果</value></data>
+  <data name="SmartBpAiStageDetectionResult" xml:space="preserve"><value>BP 业务状态快照</value></data>
   <data name="SmartBpAiGuidanceSnapshot" xml:space="preserve"><value>当前对局引导快照</value></data>
   <data name="SmartBpAiCandidateOperations" xml:space="preserve"><value>候选角色操作</value></data>
 </root>

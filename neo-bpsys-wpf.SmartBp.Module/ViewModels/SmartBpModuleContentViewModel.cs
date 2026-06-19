@@ -47,6 +47,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     private readonly IGameGuidanceService _gameGuidanceService = null!;
     private readonly ILlamaCppOpenAiClient _llamaCppOpenAiClient = null!;
     private readonly ISmartBpImageEncoder _smartBpImageEncoder = null!;
+    private readonly ISmartBpCharacterResolver _smartBpCharacterResolver = null!;
 
     /// <summary>
     /// 用于设计时预览的无参构造函数。
@@ -78,6 +79,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         IGameGuidanceService gameGuidanceService,
         ILlamaCppOpenAiClient llamaCppOpenAiClient,
         ISmartBpImageEncoder smartBpImageEncoder,
+        ISmartBpCharacterResolver smartBpCharacterResolver,
         ILogger<SmartBpModuleContentViewModel> logger)
     {
         _logger = logger;
@@ -103,6 +105,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         _gameGuidanceService = gameGuidanceService;
         _llamaCppOpenAiClient = llamaCppOpenAiClient;
         _smartBpImageEncoder = smartBpImageEncoder;
+        _smartBpCharacterResolver = smartBpCharacterResolver;
         InitializeAiRecognition();
         _ocrService.DownloadStateChanged += OcrService_DownloadStateChanged;
         // 配置被保存/导入/重置时同步刷新比例状态展示。

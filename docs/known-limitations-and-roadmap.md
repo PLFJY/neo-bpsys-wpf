@@ -12,9 +12,9 @@
 | 识别结果自动应用 | 可选，默认关闭；仅通过 `ICharacterSelectionService` 应用高置信度且已解析的角色操作 |
 | 自动 BP 画面切换 | TODO |
 
-SmartBP AI 自动循环以 `DetectStage` 为入口，不使用手工任务选择或 `FullBpScan` 作为自动入口。阶段结果只表达画面动作、区域与证据，内部步骤索引由应用根据 GameGuidance 工作流向前匹配；步骤变化继续复用 GameGuidance 原有导航、计时器、高亮与事件逻辑。地图 BP、天赋和自动切屏仍未实现。
+SmartBP AI 自动循环以业务状态快照为入口，不使用手工任务选择作为正常入口。模型输出固定为 `phase`、`banned_sur`、`banned_hun`、`picked_sur`、`picked_hun` 五个业务字段；阶段由 `phase` 映射到 GameGuidance 动作，内部步骤索引由应用根据 GameGuidance 工作流向前匹配。步骤变化继续复用 GameGuidance 原有导航、计时器、高亮与事件逻辑。地图 BP、天赋和自动切屏仍未实现。
 
-Qwen 识别路径读取内置模型 manifest 和 `Prompts` 多语言提示词配置，输出阶段证据、聚焦槽位、玩家 ID、原始可见文字与安全解析后的角色候选。llama.cpp 运行时可从内置 runtime manifest 在线安装，并存放于 SmartBP 模块目录的 `AI/LlamaCpp/Runtimes/{runtimeId}`；模型和长日志同样只存放在模块 `AI` 目录。AppData 中只保存 `SmartBp/RecognitionSettings.json`。默认仍为识别预览；只有用户显式启用自动应用后，才会通过角色选择服务应用置信度至少 0.90 的已解析候选。不识别 MapBP，也不包含 PaddleOCR BP 区域切片。
+Qwen 识别路径读取内置模型 manifest 和 `Prompts` 多语言提示词配置，输出完整 BP 业务状态快照、槽位绑定的玩家 ID 与安全解析后的角色候选。llama.cpp 运行时可从内置 runtime manifest 在线安装，并存放于 SmartBP 模块目录的 `AI/LlamaCpp/Runtimes/{runtimeId}`；模型和长日志同样只存放在模块 `AI` 目录。AppData 中只保存 `SmartBp/RecognitionSettings.json`。默认仍为识别预览；只有用户显式启用自动应用后，才会通过角色选择服务应用已解析候选。不识别 MapBP，也不包含 PaddleOCR BP 区域切片。
 
 ## 插件系统
 

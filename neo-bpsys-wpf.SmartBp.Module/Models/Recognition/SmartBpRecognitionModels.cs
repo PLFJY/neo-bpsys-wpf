@@ -92,7 +92,38 @@ public sealed class SmartBpRecognitionSettings
     public int GuidanceSyncLookAheadSteps { get; set; } = 4;
 }
 
-/// <summary>Model-facing BP stage detection result.</summary>
+/// <summary>Model-facing BP business-state recognition result.</summary>
+public sealed class SmartBpBusinessStateRecognitionResult
+{
+    /// <summary>Gets or sets the detected BP phase.</summary>
+    [JsonPropertyName("phase")] public string Phase { get; set; } = "未知";
+    /// <summary>Gets or sets survivor ban slots.</summary>
+    [JsonPropertyName("banned_sur")] public List<SmartBpRecognizedCharacterSlot> BannedSur { get; set; } = [];
+    /// <summary>Gets or sets hunter ban slots.</summary>
+    [JsonPropertyName("banned_hun")] public List<SmartBpRecognizedCharacterSlot> BannedHun { get; set; } = [];
+    /// <summary>Gets or sets survivor pick or distribution slots.</summary>
+    [JsonPropertyName("picked_sur")] public List<SmartBpRecognizedPlayerCharacterSlot> PickedSur { get; set; } = [];
+    /// <summary>Gets or sets hunter pick slot.</summary>
+    [JsonPropertyName("picked_hun")] public SmartBpRecognizedPlayerCharacterSlot PickedHun { get; set; } = new();
+}
+
+/// <summary>One recognized character slot.</summary>
+public class SmartBpRecognizedCharacterSlot
+{
+    /// <summary>Gets or sets visual slot index.</summary>
+    [JsonPropertyName("index")] public int Index { get; set; }
+    /// <summary>Gets or sets raw model character name or 未选择.</summary>
+    [JsonPropertyName("character_name")] public string CharacterName { get; set; } = "未选择";
+}
+
+/// <summary>One recognized player-bound character slot.</summary>
+public sealed class SmartBpRecognizedPlayerCharacterSlot : SmartBpRecognizedCharacterSlot
+{
+    /// <summary>Gets or sets visible player ID, if any.</summary>
+    [JsonPropertyName("player_id")] public string? PlayerId { get; set; }
+}
+
+/// <summary>Legacy model-facing BP stage detection result.</summary>
 public sealed class SmartBpStageDetectionResult
 {
     /// <summary>Gets or sets schema version.</summary>
@@ -154,10 +185,9 @@ public sealed record SmartBpGuidanceSyncResult(bool Changed, bool IsAccepted, st
 public sealed record SmartBpOperationApplyResult(int AppliedCount, IReadOnlyList<string> Warnings);
 
 /// <summary>One automatic recognition pipeline result.</summary>
-public sealed record SmartBpAutoRecognitionTickResult(SmartBpStageDetectionResult? Stage,
+public sealed record SmartBpAutoRecognitionTickResult(SmartBpBusinessStateRecognitionResult? BusinessState,
     SmartBpGuidanceSyncResult? GuidanceSync, GameGuidanceRuntimeSnapshot GuidanceSnapshot,
-    SmartBpFocusedExtractionResult? FocusedExtraction, IReadOnlyList<SmartBpDetectedOperation> Operations,
-    string RawStageJson, string RawFocusedJson, string? Error);
+    IReadOnlyList<SmartBpDetectedOperation> Operations, string RawJson, string? Error);
 
 /// <summary>Download state exposed to the UI.</summary>
 public sealed record QwenDownloadState(bool IsDownloading, double? Progress, string Status);
