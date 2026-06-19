@@ -1,6 +1,7 @@
 using neo_bpsys_wpf.Core.Attributes;
 using neo_bpsys_wpf.Core.Events;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
+using neo_bpsys_wpf.Core.Models;
 
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
@@ -98,6 +99,14 @@ public interface IGameGuidanceService
     /// </summary>
     /// <returns>错误信息，如果执行成功则返回 <c>null</c></returns>
     Task<string?> PrevStepAsync();
+
+    /// <summary>Gets an immutable snapshot of the active workflow and current step.</summary>
+    GameGuidanceRuntimeSnapshot GetRuntimeSnapshot() => new(false, -1, null, [], null, []);
+
+    /// <summary>Moves to a validated workflow step through the normal guidance transition path.</summary>
+    /// <param name="stepIndex">Target workflow step index.</param>
+    /// <returns>Error/display text following the existing guidance command convention.</returns>
+    Task<string?> MoveToStepAsync(int stepIndex) => Task.FromResult<string?>(null);
 
     /// <summary>
     /// 停止对局引导

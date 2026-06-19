@@ -43,6 +43,8 @@ internal sealed class SmartBpRecognitionSettingsService : ISmartBpRecognitionSet
         Settings.CpuThreads = Math.Clamp(Settings.CpuThreads, 1, 64);
         Settings.FocusedMaxTokens = Math.Clamp(Settings.FocusedMaxTokens, 1024, 4096);
         Settings.FullScanMaxTokens = Math.Clamp(Settings.FullScanMaxTokens, 2048, 8192);
+        Settings.StageConfidenceThreshold = Math.Clamp(Settings.StageConfidenceThreshold, 0, 1);
+        Settings.GuidanceSyncLookAheadSteps = Math.Clamp(Settings.GuidanceSyncLookAheadSteps, 1, 20);
         if (string.IsNullOrWhiteSpace(Settings.PromptProfileId)) Settings.PromptProfileId = "zh-CN";
         if (Settings.SelectedQwenModelId == "qwen3.5-2b-q4ks") Settings.SelectedQwenModelId = "qwen3.5-2b-q4km";
     }

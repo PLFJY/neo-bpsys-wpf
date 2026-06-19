@@ -4720,4 +4720,12 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="SmartBpAiStatusInstalled" xml:space="preserve"><value>Installed</value></data>
   <data name="SmartBpAiStatusCancelled" xml:space="preserve"><value>Cancelled</value></data>
   <data name="SmartBpAiStatusReady" xml:space="preserve"><value>Ready</value></data>
+  <data name="SmartBpAiEnableGuidanceSync" xml:space="preserve"><value>Enable automatic GameGuidance sync</value></data>
+  <data name="SmartBpAiEnableAutoApply" xml:space="preserve"><value>Enable automatic recognition apply (use with care)</value></data>
+  <data name="SmartBpAiDetectStageTestFrame" xml:space="preserve"><value>Detect test-frame stage</value></data>
+  <data name="SmartBpAiDetectStageCapture" xml:space="preserve"><value>Detect capture-frame stage</value></data>
+  <data name="SmartBpAiRunAutomaticTick" xml:space="preserve"><value>Run one automatic recognition</value></data>
+  <data name="SmartBpAiStageDetectionResult" xml:space="preserve"><value>BP stage detection result</value></data>
+  <data name="SmartBpAiGuidanceSnapshot" xml:space="preserve"><value>Current GameGuidance snapshot</value></data>
+  <data name="SmartBpAiCandidateOperations" xml:space="preserve"><value>Candidate character operations</value></data>
 </root>

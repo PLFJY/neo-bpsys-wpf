@@ -5656,4 +5656,12 @@
   <data name="SmartBpAiStatusInstalled" xml:space="preserve"><value>已安装</value></data>
   <data name="SmartBpAiStatusCancelled" xml:space="preserve"><value>已取消</value></data>
   <data name="SmartBpAiStatusReady" xml:space="preserve"><value>已就绪</value></data>
+  <data name="SmartBpAiEnableGuidanceSync" xml:space="preserve"><value>启用自动同步对局引导</value></data>
+  <data name="SmartBpAiEnableAutoApply" xml:space="preserve"><value>启用自动应用识别结果（谨慎）</value></data>
+  <data name="SmartBpAiDetectStageTestFrame" xml:space="preserve"><value>检测测试图阶段</value></data>
+  <data name="SmartBpAiDetectStageCapture" xml:space="preserve"><value>检测捕获帧阶段</value></data>
+  <data name="SmartBpAiRunAutomaticTick" xml:space="preserve"><value>运行一次自动识别</value></data>
+  <data name="SmartBpAiStageDetectionResult" xml:space="preserve"><value>BP 阶段检测结果</value></data>
+  <data name="SmartBpAiGuidanceSnapshot" xml:space="preserve"><value>当前对局引导快照</value></data>
+  <data name="SmartBpAiCandidateOperations" xml:space="preserve"><value>候选角色操作</value></data>
 </root>

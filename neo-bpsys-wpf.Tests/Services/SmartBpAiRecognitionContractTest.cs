@@ -24,6 +24,10 @@ using ILlamaCppOpenAiClient = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions
 using ISmartBpCharacterResolver = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpCharacterResolver;
 using ISmartBpRecognitionSettingsService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpRecognitionSettingsService;
 using SmartBpRecognitionSettings = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionSettings;
+using SmartBpStageDetectionResult = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpStageDetectionResult;
+using SmartBpAutomaticParser = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpAutomaticParser;
+using SmartBpAutomaticMapping = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpAutomaticMapping;
+using SmartBpGuidanceSyncService = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpGuidanceSyncService;
 
 namespace neo_bpsys_wpf.Tests.Services;
 
@@ -80,6 +84,83 @@ public sealed class SmartBpAiRecognitionContractTest
         Assert.Equal(3, profiles.Count);
         Assert.Contains("只输出合法 JSON", chinese.SystemPrompt);
         Assert.Contains("不要输出 MapBP", chinese.SystemPrompt);
+        Assert.Contains("左上 = 求生者方禁用监管者区域", chinese.SystemPrompt);
+        Assert.Contains("右上 = 监管者方禁用求生者区域", chinese.SystemPrompt);
+    }
+
+    [Theory]
+    [InlineData("BanSur", "right", "right_top", "hunter", "survivor")]
+    [InlineData("BanHun", "left", "left_top", "survivor", "hunter")]
+    [InlineData("PickSur", "left", "left_bottom", "survivor", "survivor")]
+    [InlineData("DistributeChara", "left", "left_bottom", "survivor", "survivor")]
+    [InlineData("PickHun", "right", "right_bottom", "hunter", "hunter")]
+    public void StageParserAcceptsBpBusinessMappings(string action, string side, string region, string owner, string camp)
+    {
+        var json = $$"""
+        {"schema_version":1,"recognized_action":"{{action}}","active_side":"{{side}}","operation_region":"{{region}}","operation_owner":"{{owner}}","target_camp":"{{camp}}","left_top_title":null,"right_top_title":null,"main_status":null,"confidence":0.95,"evidence":[],"warnings":[]}
+        """;
+        var parsed = SmartBpAutomaticParser.ParseStage(json);
+        Assert.Equal(action, parsed.RecognizedAction);
+    }
+
+    [Fact]
+    public void StageParserRejectsUnknownOperationRegion()
+    {
+        const string json = """
+        {"schema_version":1,"recognized_action":"BanSur","active_side":"right","operation_region":"center","operation_owner":"hunter","target_camp":"survivor","left_top_title":null,"right_top_title":"屏蔽求生者","main_status":null,"confidence":0.95,"evidence":[],"warnings":[]}
+        """;
+        Assert.ThrowsAny<Exception>(() => SmartBpAutomaticParser.ParseStage(json));
+    }
+
+    [Theory]
+    [InlineData(GameAction.BanSur, "right_top", "survivor")]
+    [InlineData(GameAction.BanHun, "left_top", "hunter")]
+    [InlineData(GameAction.PickSur, "left_bottom", "survivor")]
+    [InlineData(GameAction.DistributeChara, "left_bottom", "survivor")]
+    [InlineData(GameAction.PickHun, "right_bottom", "hunter")]
+    public void FocusedMappingUsesBusinessRegion(GameAction action, string region, string camp)
+    {
+        var mapping = SmartBpAutomaticMapping.Get(action);
+        Assert.Equal(region, mapping.Region);
+        Assert.Equal(camp, mapping.Camp);
+    }
+
+    [Fact]
+    public async Task GuidanceSyncChoosesNearestForwardStepAndNeverBackward()
+    {
+        var workflow = new GameGuidanceStepSnapshot[]
+        {
+            new(0, GameAction.BanSur, [0, 1], 30),
+            new(1, GameAction.PickSur, [0], 30),
+            new(2, GameAction.BanHun, [0], 30),
+            new(3, GameAction.PickSur, [1], 30)
+        };
+        var guidance = new Mock<IGameGuidanceService>();
+        guidance.Setup(x => x.GetRuntimeSnapshot()).Returns(new GameGuidanceRuntimeSnapshot(true, 1, GameAction.PickSur, [0], 30, workflow));
+        guidance.Setup(x => x.MoveToStepAsync(2)).ReturnsAsync((string?)null);
+        var settings = new Mock<ISmartBpRecognitionSettingsService>();
+        settings.SetupGet(x => x.Settings).Returns(new SmartBpRecognitionSettings { GuidanceSyncLookAheadSteps = 4 });
+        var service = new SmartBpGuidanceSyncService(guidance.Object, settings.Object);
+
+        var moved = await service.SyncAsync(Stage("BanHun", .95), TestContext.Current.CancellationToken);
+        var refusedBackward = await service.SyncAsync(Stage("BanSur", .95), TestContext.Current.CancellationToken);
+
+        Assert.True(moved.Changed);
+        Assert.Equal(2, moved.TargetStepIndex);
+        Assert.False(refusedBackward.IsAccepted);
+        guidance.Verify(x => x.MoveToStepAsync(0), Times.Never);
+    }
+
+    [Fact]
+    public async Task GuidanceSyncRejectsLowConfidence()
+    {
+        var guidance = new Mock<IGameGuidanceService>();
+        var settings = new Mock<ISmartBpRecognitionSettingsService>();
+        settings.SetupGet(x => x.Settings).Returns(new SmartBpRecognitionSettings { StageConfidenceThreshold = .8 });
+        var result = await new SmartBpGuidanceSyncService(guidance.Object, settings.Object)
+            .SyncAsync(Stage("BanSur", .79), TestContext.Current.CancellationToken);
+        Assert.False(result.IsAccepted);
+        guidance.Verify(x => x.MoveToStepAsync(It.IsAny<int>()), Times.Never);
     }
 
     [Fact]
@@ -111,5 +192,21 @@ public sealed class SmartBpAiRecognitionContractTest
         Assert.Contains("rawText=玩家Ω / 祭司", visual);
         Assert.Contains("resolved=祭司", resolved);
         Assert.Contains("raw=未知角色; resolved=unresolved", resolved);
+    }
+
+    private static SmartBpStageDetectionResult Stage(string action, double confidence)
+    {
+        var gameAction = Enum.Parse<GameAction>(action);
+        var mapping = SmartBpAutomaticMapping.Get(gameAction);
+        return new SmartBpStageDetectionResult
+        {
+            SchemaVersion = 1,
+            RecognizedAction = action,
+            ActiveSide = mapping.Region.StartsWith("left", StringComparison.Ordinal) ? "left" : "right",
+            OperationRegion = mapping.Region,
+            OperationOwner = action is "BanSur" or "PickHun" ? "hunter" : "survivor",
+            TargetCamp = mapping.Camp,
+            Confidence = confidence
+        };
     }
 }

@@ -442,6 +442,14 @@
                     SelectedItem="{Binding SelectedAiTestFrame}" />
                 <TextBlock Margin="0,8,0,4" Text="{lex:Loc SmartBpAiCaptureTask}" />
                 <ComboBox ItemsSource="{Binding AiCaptureTasks}" SelectedItem="{Binding SelectedAiCaptureTask}" />
+                <ui:ToggleSwitch
+                    Margin="0,10,0,0"
+                    Content="{lex:Loc SmartBpAiEnableGuidanceSync}"
+                    IsChecked="{Binding EnableAutoGuidanceSync}" />
+                <ui:ToggleSwitch
+                    Margin="0,6,0,0"
+                    Content="{lex:Loc SmartBpAiEnableAutoApply}"
+                    IsChecked="{Binding EnableAutoApplyRecognition}" />
                 <WrapPanel Margin="0,8,0,0">
                     <ui:Button
                         Margin="0,0,8,8"
@@ -455,6 +463,21 @@
                         Icon="{ui:SymbolIcon Symbol=Scan24}" />
                     <ui:Button
                         Margin="0,0,8,8"
+                        Command="{Binding DetectStageFromSelectedTestFrameCommand}"
+                        Content="{lex:Loc SmartBpAiDetectStageTestFrame}"
+                        Icon="{ui:SymbolIcon Symbol=Image24}" />
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding DetectStageFromCurrentCaptureFrameCommand}"
+                        Content="{lex:Loc SmartBpAiDetectStageCapture}"
+                        Icon="{ui:SymbolIcon Symbol=Scan24}" />
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding RunAutomaticOneTickCommand}"
+                        Content="{lex:Loc SmartBpAiRunAutomaticTick}"
+                        Icon="{ui:SymbolIcon Symbol=ArrowSync24}" />
+                    <ui:Button
+                        Margin="0,0,8,8"
                         Command="{Binding StartAiPreviewLoopCommand}"
                         Content="{lex:Loc SmartBpAiStartLoop}"
                         Icon="{ui:SymbolIcon Symbol=PlayCircle24}" />
@@ -464,6 +487,12 @@
                         Content="{lex:Loc SmartBpAiStopLoop}"
                         Icon="{ui:SymbolIcon Symbol=Stop24}" />
                 </WrapPanel>
+                <TextBlock Margin="0,8,0,2" FontWeight="SemiBold" Text="{lex:Loc SmartBpAiStageDetectionResult}" />
+                <TextBox MinHeight="70" AcceptsReturn="True" IsReadOnly="True" Text="{Binding AiStageDetectionResult}" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
+                <TextBlock Margin="0,8,0,2" FontWeight="SemiBold" Text="{lex:Loc SmartBpAiGuidanceSnapshot}" />
+                <TextBox MinHeight="55" AcceptsReturn="True" IsReadOnly="True" Text="{Binding AiGuidanceSnapshot}" TextWrapping="Wrap" />
+                <TextBlock Margin="0,8,0,2" FontWeight="SemiBold" Text="{lex:Loc SmartBpAiCandidateOperations}" />
+                <TextBox MinHeight="80" AcceptsReturn="True" IsReadOnly="True" Text="{Binding AiCandidateOperations}" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="{lex:Loc SmartBpAiElapsed}" />
                     <TextBlock Margin="4,0,0,0" Text="{Binding AiElapsedMilliseconds, StringFormat={}{0} ms}" />

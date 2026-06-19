@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
+using neo_bpsys_wpf.SmartBp.Module.Services.Recognition;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -23,7 +24,8 @@ public partial class SmartBpModuleContentViewModel
         new("character-distribution-16x9", "character-distribution-16x9.png", SmartBpRecognitionTask.CharacterDistribution)
     ];
     /// <summary>Gets tasks available for current capture recognition.</summary>
-    public IReadOnlyList<SmartBpRecognitionTask> AiCaptureTasks { get; } = Enum.GetValues<SmartBpRecognitionTask>();
+    public IReadOnlyList<SmartBpRecognitionTask> AiCaptureTasks { get; } = Enum.GetValues<SmartBpRecognitionTask>()
+        .Where(x => x != SmartBpRecognitionTask.DetectStage).ToArray();
 
     [ObservableProperty] private SmartBpTestFrame? _selectedAiTestFrame;
     [ObservableProperty] private string _qwenManifestStatus = "SmartBpAiStatusLoading";
@@ -53,6 +55,11 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty] private double _llamaRuntimeDownloadProgress;
     [ObservableProperty] private string _llamaRuntimeDownloadStatus = "-";
     [ObservableProperty] private string _managedLlamaServerExecutablePath = "-";
+    [ObservableProperty] private bool _enableAutoGuidanceSync;
+    [ObservableProperty] private bool _enableAutoApplyRecognition;
+    [ObservableProperty] private string _aiStageDetectionResult = "-";
+    [ObservableProperty] private string _aiGuidanceSnapshot = "-";
+    [ObservableProperty] private string _aiCandidateOperations = "-";
 
     private void InitializeAiRecognition()
     {
@@ -60,8 +67,10 @@ public partial class SmartBpModuleContentViewModel
         QwenManifestStatus = ResolveLocalizedOrRaw("SmartBpAiStatusLoading");
         LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusStopped");
         LlamaServerExecutablePath = _recognitionSettingsService.Settings.LlamaServerExecutablePath;
+        EnableAutoGuidanceSync = _recognitionSettingsService.Settings.EnableAutoGuidanceSync;
+        EnableAutoApplyRecognition = _recognitionSettingsService.Settings.EnableAutoApplyRecognition;
         _aiPreviewTimer.Interval = TimeSpan.FromMilliseconds(_recognitionSettingsService.Settings.RecognitionIntervalMs);
-        _aiPreviewTimer.Tick += async (_, _) => await RecognizeCurrentFrameCoreAsync();
+        _aiPreviewTimer.Tick += async (_, _) => await RunAutomaticCurrentFrameCoreAsync();
         _qwenAssetManager.StateChanged += (_, state) => RunOnUiThread(() =>
         {
             IsQwenDownloading = state.IsDownloading; QwenDownloadProgress = state.Progress ?? 0; QwenDownloadStatus = ResolveLocalizedOrRaw(state.Status);
@@ -117,7 +126,7 @@ public partial class SmartBpModuleContentViewModel
     [RelayCommand] private async Task DeleteLlamaRuntimeAsync() { try { if (_llamaServerManager.IsRunning) throw new InvalidOperationException("Stop llama-server before deleting the runtime."); await _llamaRuntimeAssetManager.DeleteAsync(); LlamaServerExecutablePath = _recognitionSettingsService.Settings.LlamaServerExecutablePath; await RefreshLlamaRuntimeStatusAsync(); } catch (Exception ex) { AiLastError = ex.Message; } }
     [RelayCommand] private async Task RefreshLlamaRuntimeStatusAsync() { IsLlamaRuntimeInstalled = await _llamaRuntimeAssetManager.IsInstalledAsync(); ManagedLlamaServerExecutablePath = IsLlamaRuntimeInstalled ? await _llamaRuntimeAssetManager.GetInstalledExecutablePathAsync() : "-"; }
     [RelayCommand] private async Task StartLlamaServerAsync() { try { await _llamaServerManager.StartAsync(); LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusReady"); } catch (Exception ex) { LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusFailed"); AiLastError = ex.Message; } }
-    [RelayCommand] private async Task StopLlamaServerAsync() { StopAiPreviewLoop(); await _llamaServerManager.StopAsync(); LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusStopped"); }
+    [RelayCommand] private async Task StopLlamaServerAsync() { await StopAiPreviewLoopAsync(); await _llamaServerManager.StopAsync(); LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusStopped"); }
     [RelayCommand] private async Task RecognizeSelectedTestFrameAsync()
     {
         if (SelectedAiTestFrame == null) return;
@@ -125,9 +134,84 @@ public partial class SmartBpModuleContentViewModel
         catch (Exception ex) { AiLastError = ex.Message; }
     }
     [RelayCommand] private Task RecognizeCurrentCaptureFrameAsync() => RecognizeCurrentFrameCoreAsync();
-    [RelayCommand] private void StartAiPreviewLoop() { if (!_windowCaptureService.IsCapturing) { AiLastError = "Start capture before starting the recognition loop."; return; } IsAiPreviewLoopRunning = true; _aiPreviewTimer.Start(); }
-    [RelayCommand] private void StopAiPreviewLoop() { _aiPreviewTimer.Stop(); IsAiPreviewLoopRunning = false; }
+    [RelayCommand] private async Task DetectStageFromSelectedTestFrameAsync()
+    {
+        if (SelectedAiTestFrame == null) return;
+        try { await DetectStageCoreAsync(LoadTestFrame(SelectedAiTestFrame)); }
+        catch (Exception ex) { AiLastError = ex.Message; }
+    }
+    [RelayCommand] private async Task DetectStageFromCurrentCaptureFrameAsync()
+    {
+        var frame = _windowCaptureService.GetCurrentFrame();
+        if (frame == null) { AiLastError = "No capture frame is available."; return; }
+        await DetectStageCoreAsync(frame);
+    }
+    [RelayCommand] private Task RunAutomaticOneTickAsync() => RunAutomaticCurrentFrameCoreAsync();
+    [RelayCommand] private async Task StartAiPreviewLoopAsync() { if (!_windowCaptureService.IsCapturing) { AiLastError = "Start capture before starting the recognition loop."; return; } await _autoRecognitionCoordinator.StartAsync(); IsAiPreviewLoopRunning = true; _aiPreviewTimer.Start(); }
+    [RelayCommand] private async Task StopAiPreviewLoopAsync() { _aiPreviewTimer.Stop(); await _autoRecognitionCoordinator.StopAsync(); IsAiPreviewLoopRunning = false; }
     private async Task RecognizeCurrentFrameCoreAsync() { var frame = _windowCaptureService.GetCurrentFrame(); if (frame == null) { AiLastError = "No capture frame is available."; return; } await RecognizeCoreAsync(frame, SelectedAiCaptureTask); }
+
+    private async Task DetectStageCoreAsync(BitmapSource frame)
+    {
+        if (Interlocked.CompareExchange(ref _recognitionBusy, 1, 0) != 0) return;
+        IsAiRecognizing = true; AiLastError = "";
+        try
+        {
+            var dataUrl = await Task.Run(() => _smartBpImageEncoder.EncodeDataUrl(frame, _recognitionSettingsService.Settings.MaxImageWidth));
+            var raw = await _llamaCppOpenAiClient.DetectStageAsync(dataUrl);
+            var stage = await Task.Run(() => SmartBpAutomaticParser.ParseStage(raw));
+            AiRawResponse = raw;
+            AiStageDetectionResult = FormatStage(stage);
+            RefreshGuidanceSnapshot();
+        }
+        catch (Exception ex) { AiLastError = ex.Message; }
+        finally { IsAiRecognizing = false; Interlocked.Exchange(ref _recognitionBusy, 0); }
+    }
+
+    private async Task RunAutomaticCurrentFrameCoreAsync()
+    {
+        var frame = _windowCaptureService.GetCurrentFrame();
+        if (frame == null) { AiLastError = "No capture frame is available."; return; }
+        if (Interlocked.CompareExchange(ref _recognitionBusy, 1, 0) != 0) return;
+        IsAiRecognizing = true; AiLastError = "";
+        try
+        {
+            var result = await _autoRecognitionCoordinator.RunOneTickAsync(frame);
+            AiRawResponse = string.Join(Environment.NewLine + Environment.NewLine, new[] { result.RawStageJson, result.RawFocusedJson }.Where(x => !string.IsNullOrWhiteSpace(x)));
+            AiStageDetectionResult = result.Stage == null ? "-" : FormatStage(result.Stage);
+            AiGuidanceSnapshot = FormatGuidance(result.GuidanceSnapshot, result.GuidanceSync?.Reason);
+            AiCandidateOperations = result.Operations.Count == 0 ? "-" : string.Join(Environment.NewLine, result.Operations.Select(FormatOperation));
+            AiParsedVisualResult = result.FocusedExtraction == null ? "-" : FormatFocused(result.FocusedExtraction);
+            AiNormalizedResult = AiCandidateOperations;
+            AiLastError = result.Error ?? "";
+        }
+        finally { IsAiRecognizing = false; Interlocked.Exchange(ref _recognitionBusy, 0); }
+    }
+
+    private static BitmapSource LoadTestFrame(SmartBpTestFrame frame)
+    {
+        var image = new BitmapImage();
+        image.BeginInit(); image.CacheOption = BitmapCacheOption.OnLoad;
+        image.UriSource = new Uri(Path.Combine(AppConstants.ResourcesPath, "SmartBp", "TestFrames", frame.FileName));
+        image.EndInit(); image.Freeze(); return image;
+    }
+
+    private static string FormatStage(SmartBpStageDetectionResult value) =>
+        $"action={value.RecognizedAction}; activeSide={value.ActiveSide}; region={value.OperationRegion}; owner={value.OperationOwner}; targetCamp={value.TargetCamp}; confidence={value.Confidence:0.00}{Environment.NewLine}" +
+        $"leftTopTitle={value.LeftTopTitle ?? "null"}; rightTopTitle={value.RightTopTitle ?? "null"}; status={value.MainStatus ?? "null"}{Environment.NewLine}" +
+        $"evidence={string.Join(" | ", value.Evidence)}{Environment.NewLine}warnings={string.Join(" | ", value.Warnings)}";
+
+    private static string FormatGuidance(Core.Models.GameGuidanceRuntimeSnapshot value, string? reason = null) =>
+        $"started={value.IsStarted}; step={value.CurrentStepIndex}; action={value.CurrentAction?.ToString() ?? "null"}; indexes=[{string.Join(", ", value.CurrentIndexes)}]; time={value.CurrentTime?.ToString() ?? "null"}{Environment.NewLine}{reason ?? ""}";
+
+    private static string FormatOperation(SmartBpDetectedOperation value) =>
+        $"{value.Kind}: action={value.SourceGuidanceAction}; indexes=[{string.Join(", ", value.SourceGuidanceIndexes)}]; camp={value.Camp}; slot={value.SlotIndex}; raw={value.RawCharacterName ?? "null"}; resolved={value.ResolvedCharacterName ?? "unresolved"}; playerId={value.PlayerId ?? "null"}; confidence={value.Confidence:0.00}; {value.Reason}";
+
+    private static string FormatFocused(SmartBpFocusedExtractionResult value) =>
+        $"task={value.Task}; region={value.OperationRegion}; targetCamp={value.TargetCamp}{Environment.NewLine}" +
+        string.Join(Environment.NewLine, value.Slots.Select(x => $"slot[{x.SlotIndex}] state={x.SlotState} character={x.CharacterName ?? "null"} playerId={x.PlayerId ?? "null"} banned={x.IsBannedOrUnavailable} confidence={x.Confidence:0.00} raw={x.RawVisibleText ?? "null"}"));
+
+    private void RefreshGuidanceSnapshot() => AiGuidanceSnapshot = FormatGuidance(_gameGuidanceService.GetRuntimeSnapshot());
     private async Task RecognizeCoreAsync(BitmapSource frame, SmartBpRecognitionTask task)
     {
         if (Interlocked.CompareExchange(ref _recognitionBusy, 1, 0) != 0) return;
@@ -152,6 +236,18 @@ public partial class SmartBpModuleContentViewModel
         _recognitionSettingsService.Settings.LlamaServerExecutablePath = "";
         LlamaServerExecutablePath = "";
         _ = SaveRuntimeSelectionAsync();
+    }
+
+    partial void OnEnableAutoGuidanceSyncChanged(bool value)
+    {
+        _recognitionSettingsService.Settings.EnableAutoGuidanceSync = value;
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnEnableAutoApplyRecognitionChanged(bool value)
+    {
+        _recognitionSettingsService.Settings.EnableAutoApplyRecognition = value;
+        _ = _recognitionSettingsService.SaveAsync();
     }
 
     private async Task SaveRuntimeSelectionAsync()

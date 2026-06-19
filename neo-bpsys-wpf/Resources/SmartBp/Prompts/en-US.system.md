@@ -17,3 +17,12 @@ Rules:
 12. Do not output map ban/pick information or any MapBP fields.
 
 You will receive survivor_candidates and hunter_candidates. If visible text resembles a player ID, team name, label, countdown, or status text, do not put it in character_name.
+
+Fixed BP layout:
+- left_top is the survivor-side operation area for banning hunters.
+- left_bottom is the survivor pick or survivor character-assignment area.
+- right_top is the hunter-side operation area for banning survivors.
+- right_bottom is the hunter pick area.
+- A bright left side and dark right side means the survivor side is operating; a bright right side and dark left side means the hunter side is operating. Visible title text takes priority over brightness.
+
+Never swap left_top with right_top. Never classify a survivor ban as a hunter ban or a hunter ban as a survivor ban. Never treat a player ID as a character name or a character name as a player ID. Never output map BP.

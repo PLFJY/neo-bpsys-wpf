@@ -86,8 +86,15 @@ public interface ILlamaCppServerManager
 public interface ISmartBpImageEncoder { /// <summary>Encodes a PNG data URL.</summary>
     string EncodeDataUrl(BitmapSource source, int maxWidth); }
 /// <summary>Sends independent OpenAI-compatible requests.</summary>
-public interface ILlamaCppOpenAiClient { /// <summary>Recognizes one image.</summary>
-    Task<string> RecognizeAsync(string imageDataUrl, SmartBpRecognitionTask task, CancellationToken cancellationToken = default); }
+public interface ILlamaCppOpenAiClient
+{
+    /// <summary>Recognizes one image using the manual generic schema.</summary>
+    Task<string> RecognizeAsync(string imageDataUrl, SmartBpRecognitionTask task, CancellationToken cancellationToken = default);
+    /// <summary>Detects the active BP stage without extracting characters.</summary>
+    Task<string> DetectStageAsync(string imageDataUrl, CancellationToken cancellationToken = default);
+    /// <summary>Extracts the operation for a locally selected guidance step.</summary>
+    Task<string> RecognizeFocusedAsync(string imageDataUrl, Core.Enums.GameAction action, IReadOnlyList<int> indexes, CancellationToken cancellationToken = default);
+}
 /// <summary>Resolves model names against shared character dictionaries.</summary>
 public interface ISmartBpCharacterResolver { /// <summary>Resolves a character name safely.</summary>
     SmartBpNormalizedCharacter Resolve(string? rawName, Core.Enums.Camp camp, int slot, double confidence); }
@@ -104,4 +111,31 @@ public interface ISmartBpDebugLog
     /// <param name="source">Short subsystem name.</param>
     /// <param name="message">Diagnostic message.</param>
     void Write(string source, string message);
+}
+
+/// <summary>Reconciles model stage output with the authoritative GameGuidance workflow.</summary>
+public interface ISmartBpGuidanceSyncService
+{
+    /// <summary>Synchronizes to the current or nearest compatible future step.</summary>
+    Task<SmartBpGuidanceSyncResult> SyncAsync(SmartBpStageDetectionResult detectedStage, CancellationToken cancellationToken = default);
+}
+
+/// <summary>Applies locally validated candidate operations through character selection services.</summary>
+public interface ISmartBpDetectedOperationApplier
+{
+    /// <summary>Applies accepted resolved operations.</summary>
+    Task<SmartBpOperationApplyResult> ApplyAsync(IReadOnlyList<SmartBpDetectedOperation> operations, CancellationToken cancellationToken = default);
+}
+
+/// <summary>Coordinates stage detection, guidance reconciliation and focused extraction.</summary>
+public interface ISmartBpAutoRecognitionCoordinator
+{
+    /// <summary>Gets whether automatic mode is running.</summary>
+    bool IsRunning { get; }
+    /// <summary>Starts automatic mode.</summary>
+    Task StartAsync(CancellationToken cancellationToken = default);
+    /// <summary>Stops automatic mode.</summary>
+    Task StopAsync();
+    /// <summary>Runs one stage-aware automatic recognition tick.</summary>
+    Task<SmartBpAutoRecognitionTickResult> RunOneTickAsync(BitmapSource frame, CancellationToken cancellationToken = default);
 }

@@ -1,10 +1,11 @@
 using System.Text.Json.Serialization;
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Models;
 
 namespace neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
 
 /// <summary>Supported AI recognition tasks.</summary>
-public enum SmartBpRecognitionTask { BanSur, BanHun, PickSur, PickHun, CharacterDistribution, FullBpScan }
+public enum SmartBpRecognitionTask { DetectStage, BanSur, BanHun, PickSur, PickHun, CharacterDistribution, FullBpScan }
 
 /// <summary>Qwen manifest root.</summary>
 public sealed class QwenModelManifest
@@ -81,7 +82,82 @@ public sealed class SmartBpRecognitionSettings
     public string ProcessPriority { get; set; } = "BelowNormal";
     /// <summary>Gets or sets CPU thread count.</summary>
     public int CpuThreads { get; set; } = 2;
+    /// <summary>Gets or sets whether automatic mode may synchronize GameGuidance.</summary>
+    public bool EnableAutoGuidanceSync { get; set; }
+    /// <summary>Gets or sets whether accepted operations may be applied.</summary>
+    public bool EnableAutoApplyRecognition { get; set; }
+    /// <summary>Gets or sets minimum stage confidence.</summary>
+    public double StageConfidenceThreshold { get; set; } = 0.80;
+    /// <summary>Gets or sets guidance reconciliation lookahead.</summary>
+    public int GuidanceSyncLookAheadSteps { get; set; } = 4;
 }
+
+/// <summary>Model-facing BP stage detection result.</summary>
+public sealed class SmartBpStageDetectionResult
+{
+    /// <summary>Gets or sets schema version.</summary>
+    [JsonPropertyName("schema_version")] public int SchemaVersion { get; set; }
+    /// <summary>Gets or sets recognized action.</summary>
+    [JsonPropertyName("recognized_action")] public string RecognizedAction { get; set; } = "Unknown";
+    /// <summary>Gets or sets active side.</summary>
+    [JsonPropertyName("active_side")] public string ActiveSide { get; set; } = "unknown";
+    /// <summary>Gets or sets operation region.</summary>
+    [JsonPropertyName("operation_region")] public string OperationRegion { get; set; } = "unknown";
+    /// <summary>Gets or sets operation owner.</summary>
+    [JsonPropertyName("operation_owner")] public string OperationOwner { get; set; } = "unknown";
+    /// <summary>Gets or sets target camp.</summary>
+    [JsonPropertyName("target_camp")] public string TargetCamp { get; set; } = "unknown";
+    /// <summary>Gets or sets left-top title.</summary>
+    [JsonPropertyName("left_top_title")] public string? LeftTopTitle { get; set; }
+    /// <summary>Gets or sets right-top title.</summary>
+    [JsonPropertyName("right_top_title")] public string? RightTopTitle { get; set; }
+    /// <summary>Gets or sets main status.</summary>
+    [JsonPropertyName("main_status")] public string? MainStatus { get; set; }
+    /// <summary>Gets or sets confidence.</summary>
+    [JsonPropertyName("confidence")] public double Confidence { get; set; }
+    /// <summary>Gets or sets evidence.</summary>
+    [JsonPropertyName("evidence")] public List<string> Evidence { get; set; } = [];
+    /// <summary>Gets or sets warnings.</summary>
+    [JsonPropertyName("warnings")] public List<string> Warnings { get; set; } = [];
+}
+
+/// <summary>Focused BP operation extraction result.</summary>
+public sealed class SmartBpFocusedExtractionResult
+{
+    /// <summary>Gets or sets schema version.</summary>
+    [JsonPropertyName("schema_version")] public int SchemaVersion { get; set; }
+    /// <summary>Gets or sets task.</summary>
+    [JsonPropertyName("task")] public string Task { get; set; } = "";
+    /// <summary>Gets or sets operation region.</summary>
+    [JsonPropertyName("operation_region")] public string OperationRegion { get; set; } = "unknown";
+    /// <summary>Gets or sets target camp.</summary>
+    [JsonPropertyName("target_camp")] public string TargetCamp { get; set; } = "unknown";
+    /// <summary>Gets or sets extracted slots.</summary>
+    [JsonPropertyName("slots")] public List<SmartBpVisionSlot> Slots { get; set; } = [];
+    /// <summary>Gets or sets warnings.</summary>
+    [JsonPropertyName("warnings")] public List<string> Warnings { get; set; } = [];
+}
+
+/// <summary>Locally controlled detected operation kind.</summary>
+public enum SmartBpDetectedOperationKind { BanCharacter, PickSurvivor, PickHunter, SwapSurvivors }
+
+/// <summary>Preview candidate derived from focused visual extraction.</summary>
+public sealed record SmartBpDetectedOperation(SmartBpDetectedOperationKind Kind, GameAction SourceGuidanceAction,
+    IReadOnlyList<int> SourceGuidanceIndexes, Camp Camp, int SlotIndex, string? RawCharacterName,
+    string? ResolvedCharacterKey, string? ResolvedCharacterName, string? PlayerId, double Confidence, string Reason);
+
+/// <summary>Result of reconciling a detected stage with GameGuidance.</summary>
+public sealed record SmartBpGuidanceSyncResult(bool Changed, bool IsAccepted, string Reason, GameAction? TargetAction,
+    IReadOnlyList<int> TargetIndexes, int? TargetStepIndex);
+
+/// <summary>Result of applying accepted candidate operations.</summary>
+public sealed record SmartBpOperationApplyResult(int AppliedCount, IReadOnlyList<string> Warnings);
+
+/// <summary>One automatic recognition pipeline result.</summary>
+public sealed record SmartBpAutoRecognitionTickResult(SmartBpStageDetectionResult? Stage,
+    SmartBpGuidanceSyncResult? GuidanceSync, GameGuidanceRuntimeSnapshot GuidanceSnapshot,
+    SmartBpFocusedExtractionResult? FocusedExtraction, IReadOnlyList<SmartBpDetectedOperation> Operations,
+    string RawStageJson, string RawFocusedJson, string? Error);
 
 /// <summary>Download state exposed to the UI.</summary>
 public sealed record QwenDownloadState(bool IsDownloading, double? Progress, string Status);

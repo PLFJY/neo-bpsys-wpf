@@ -50,6 +50,8 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint
         var services = new ServiceCollection();
         var loggerFactory = hostServices.GetRequiredService<ILoggerFactory>();
         services.AddSingleton(hostServices.GetRequiredService<ISharedDataService>());
+        services.AddSingleton(hostServices.GetRequiredService<IGameGuidanceService>());
+        services.AddSingleton(hostServices.GetRequiredService<ICharacterSelectionService>());
         services.AddSingleton(hostServices.GetRequiredService<IWindowCaptureService>());
         services.AddSingleton(hostServices.GetRequiredService<IFilePickerService>());
         services.AddSingleton(hostServices.GetRequiredService<ISettingsHostService>());
@@ -73,6 +75,10 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint
         services.AddSingleton<ILlamaCppOpenAiClient, LlamaCppOpenAiClient>();
         services.AddSingleton<ILlamaCppServerManager, LlamaCppServerManager>();
         services.AddSingleton<ISmartBpAiRecognitionService, SmartBpAiRecognitionService>();
+        services.AddSingleton<ISmartBpGuidanceSyncService, SmartBpGuidanceSyncService>();
+        services.AddSingleton<SmartBpCandidateOperationBuilder>();
+        services.AddSingleton<ISmartBpDetectedOperationApplier, SmartBpDetectedOperationApplier>();
+        services.AddSingleton<ISmartBpAutoRecognitionCoordinator, SmartBpAutoRecognitionCoordinator>();
         services.AddSingleton<ISmartBpDebugLog, SmartBpDebugLog>();
         services.AddSingleton<SmartBpModuleContentViewModel>();
         services.AddTransient<SmartBpModuleContentView>();

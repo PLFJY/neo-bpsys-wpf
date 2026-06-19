@@ -6,6 +6,7 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Events;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Messages;
+using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Exceptions;
 using neo_bpsys_wpf.Views.Pages;
 using System.IO;
@@ -277,6 +278,30 @@ public class GameGuidanceService(
         }
 
         return null;
+    }
+
+    /// <inheritdoc />
+    public GameGuidanceRuntimeSnapshot GetRuntimeSnapshot()
+    {
+        IReadOnlyList<GameGuidanceStepSnapshot> workflow = _currentGameProperty?.WorkFlow.Select((step, index) =>
+            new GameGuidanceStepSnapshot(index, step.Action,
+                Array.AsReadOnly(step.Index?.ToArray() ?? []), step.Time)).ToList().AsReadOnly() ?? [];
+        var current = _currentStep >= 0 && _currentStep < workflow.Count ? workflow[_currentStep] : null;
+        return new(IsGuidanceStarted, _currentStep, current?.Action,
+            current?.Indexes ?? Array.AsReadOnly<int>([]), current?.Time, workflow);
+    }
+
+    /// <inheritdoc />
+    public async Task<string?> MoveToStepAsync(int stepIndex)
+    {
+        if (!IsGuidanceStarted)
+        {
+            _infoBarService.ShowWarningInfoBar(I18nHelper.GetLocalizedString("PleaseStartGameFirst"));
+            return null;
+        }
+        if (_currentGameProperty == null || stepIndex < 0 || stepIndex >= _currentGameProperty.WorkFlow.Count)
+            return I18nHelper.GetLocalizedString("GameInfoError");
+        return await HandleStepChange(stepIndex);
     }
 
     private async Task<string> HandleStepChange(int newStepIndex)
