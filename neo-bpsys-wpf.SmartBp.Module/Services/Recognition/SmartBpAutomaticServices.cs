@@ -14,7 +14,8 @@ internal static class SmartBpAutomaticMapping
 {
     public static readonly IReadOnlyList<string> ValidPhases =
     [
-        "屏蔽求生者", "屏蔽监管者", "选择求生者", "求生者选择角色中", "选择监管者", "等待中", "未知"
+        "屏蔽求生者", "屏蔽监管者", "选择求生者", "求生者选择角色中", "选择监管者",
+        "求生者选择天赋中", "监管者选择天赋中", "天赋已锁定", "等待中", "未知"
     ];
 
     public static (string Region, string Camp, string Meaning) Get(GameAction action) => action switch
@@ -22,18 +23,20 @@ internal static class SmartBpAutomaticMapping
         GameAction.BanSur => ("right_top", "survivor", "the hunter-side operation area for banning survivors"),
         GameAction.BanHun => ("left_top", "hunter", "the survivor-side operation area for banning hunters"),
         GameAction.PickSur => ("left_bottom", "survivor", "the survivor picking area"),
-        GameAction.DistributeChara => ("left_bottom", "survivor", "fixed survivor player slots with assigned characters"),
-        GameAction.PickHun => ("right_bottom", "hunter", "the hunter picking area"),
-        _ => throw new NotSupportedException($"GameGuidance action {action} is not supported by BP recognition.")
-    };
+            GameAction.DistributeChara => ("left_bottom", "survivor", "fixed survivor player slots with assigned characters"),
+            GameAction.PickHun => ("right_bottom", "hunter", "the hunter picking area"),
+            GameAction.PickSurTalent => ("left_bottom", "survivor", "the survivor talent selection area"),
+            GameAction.PickHunTalent => ("right_bottom", "hunter", "the hunter talent selection area"),
+            _ => throw new NotSupportedException($"GameGuidance action {action} is not supported by BP recognition.")
+        };
 
     public static SmartBpRecognitionTask ToRecognitionTask(GameAction action) => action switch
     {
         GameAction.BanSur => SmartBpRecognitionTask.BanSur,
         GameAction.BanHun => SmartBpRecognitionTask.BanHun,
         GameAction.PickSur => SmartBpRecognitionTask.PickSur,
-        GameAction.DistributeChara => SmartBpRecognitionTask.CharacterDistribution,
-        GameAction.PickHun => SmartBpRecognitionTask.PickHun,
+            GameAction.DistributeChara => SmartBpRecognitionTask.CharacterDistribution,
+            GameAction.PickHun => SmartBpRecognitionTask.PickHun,
         _ => throw new NotSupportedException($"GameGuidance action {action} is not supported by BP recognition.")
     };
 
@@ -60,10 +63,15 @@ internal static class SmartBpAutomaticMapping
             "选择求生者" => GameAction.PickSur,
             "求生者选择角色中" => GameAction.DistributeChara,
             "选择监管者" => GameAction.PickHun,
+            "求生者选择天赋中" => GameAction.PickSurTalent,
+            "监管者选择天赋中" => GameAction.PickHunTalent,
             _ => GameAction.None
         };
         return action != GameAction.None;
     }
+
+    public static bool IsCharacterOperationAction(GameAction action) =>
+        action is GameAction.BanSur or GameAction.BanHun or GameAction.PickSur or GameAction.DistributeChara or GameAction.PickHun;
 }
 
 internal static class SmartBpBusinessStateParser
@@ -216,7 +224,9 @@ internal sealed class SmartBpGuidanceSyncService(
     public async Task<SmartBpGuidanceSyncResult> SyncAsync(SmartBpBusinessStateRecognitionResult businessState, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (!SmartBpAutomaticMapping.TryMapPhase(businessState.Phase, out var action))
+        var isTalentLocked = businessState.Phase == "天赋已锁定";
+        var action = GameAction.None;
+        if (!isTalentLocked && !SmartBpAutomaticMapping.TryMapPhase(businessState.Phase, out action))
             return Reject($"The detected BP phase '{businessState.Phase}' cannot be synchronized.");
 
         var snapshot = guidance.GetRuntimeSnapshot();
@@ -227,6 +237,9 @@ internal sealed class SmartBpGuidanceSyncService(
             snapshot = guidance.GetRuntimeSnapshot();
         }
         if (!snapshot.IsStarted || snapshot.Workflow.Count == 0) return Reject("GameGuidance is not available.");
+
+        if (isTalentLocked)
+            return await SyncTalentLockedAsync(snapshot, cancellationToken);
 
         GameGuidanceStepSnapshot? target = null;
         if (snapshot.CurrentAction == action && snapshot.CurrentStepIndex >= 0)
@@ -250,6 +263,28 @@ internal sealed class SmartBpGuidanceSyncService(
         return new(true, true, $"GameGuidance moved forward to step {target.StepIndex}.", target.Action, target.Indexes, target.StepIndex);
     }
 
+    private async Task<SmartBpGuidanceSyncResult> SyncTalentLockedAsync(GameGuidanceRuntimeSnapshot snapshot, CancellationToken cancellationToken)
+    {
+        if (snapshot.CurrentAction is GameAction.PickSurTalent or GameAction.PickHunTalent)
+            return new(false, true, "Current GameGuidance step already matches the locked talent phase.", snapshot.CurrentAction, snapshot.CurrentIndexes, snapshot.CurrentStepIndex);
+
+        var last = Math.Min(snapshot.Workflow.Count - 1,
+            Math.Max(snapshot.CurrentStepIndex, -1) + settings.Settings.GuidanceSyncLookAheadSteps);
+        var candidates = snapshot.Workflow
+            .Where(x => x.StepIndex > snapshot.CurrentStepIndex && x.StepIndex <= last &&
+                        x.Action is GameAction.PickSurTalent or GameAction.PickHunTalent or GameAction.EndGuidance)
+            .OrderBy(x => x.StepIndex)
+            .ToArray();
+        if (candidates.Length == 0) return Reject("No forward talent or end step exists within the configured lookahead window.");
+        if (candidates.Length > 1) return Reject("Talent locked phase is ambiguous; not syncing automatically.");
+
+        var target = candidates[0];
+        cancellationToken.ThrowIfCancellationRequested();
+        var moveError = await guidance.MoveToStepAsync(target.StepIndex);
+        if (!string.IsNullOrWhiteSpace(moveError)) return Reject(moveError, target.Action);
+        return new(true, true, $"GameGuidance moved forward to locked talent context step {target.StepIndex}.", target.Action, target.Indexes, target.StepIndex);
+    }
+
     private static SmartBpGuidanceSyncResult Reject(string reason, GameAction? action = null) =>
         new(false, false, reason, action, [], null);
 }
@@ -260,7 +295,15 @@ internal sealed class SmartBpCandidateOperationBuilder(ISmartBpCharacterResolver
         SmartBpBusinessStateRecognitionResult state,
         GameAction action,
         IReadOnlyList<int> guidanceIndexes)
+        => BuildWithDiagnostics(state, action, guidanceIndexes).Operations;
+
+    public SmartBpCandidateOperationBuildResult BuildWithDiagnostics(
+        SmartBpBusinessStateRecognitionResult state,
+        GameAction action,
+        IReadOnlyList<int> guidanceIndexes)
     {
+        if (!SmartBpAutomaticMapping.IsCharacterOperationAction(action))
+            return new([], [$"Detected phase is a talent/lock phase ({state.Phase}); no character operation is generated."]);
         return action switch
         {
             GameAction.BanSur => BuildFromCharacterSlots(state.BannedSur, action, guidanceIndexes, Camp.Sur, SmartBpDetectedOperationKind.BanCharacter),
@@ -268,39 +311,49 @@ internal sealed class SmartBpCandidateOperationBuilder(ISmartBpCharacterResolver
             GameAction.PickSur => BuildFromPlayerSlots(state.PickedSur, action, guidanceIndexes, Camp.Sur, SmartBpDetectedOperationKind.PickSurvivor),
             GameAction.DistributeChara => BuildDistribution(state.PickedSur, guidanceIndexes),
             GameAction.PickHun => BuildFromPlayerSlots([state.PickedHun], action, guidanceIndexes, Camp.Hun, SmartBpDetectedOperationKind.PickHunter, true),
-            _ => []
+            _ => new([], [$"Current GameGuidance action {action} is not a BP character operation."])
         };
     }
 
-    private IReadOnlyList<SmartBpDetectedOperation> BuildFromCharacterSlots(IEnumerable<SmartBpRecognizedCharacterSlot> slots, GameAction action, IReadOnlyList<int> guidanceIndexes, Camp camp, SmartBpDetectedOperationKind kind)
+    private SmartBpCandidateOperationBuildResult BuildFromCharacterSlots(IEnumerable<SmartBpRecognizedCharacterSlot> slots, GameAction action, IReadOnlyList<int> guidanceIndexes, Camp camp, SmartBpDetectedOperationKind kind)
     {
         var operations = new List<SmartBpDetectedOperation>();
+        var messages = new List<string>();
         foreach (var slot in slots)
         {
             if (SmartBpBusinessStateParser.IsUnselected(slot.CharacterName)) continue;
-            if (guidanceIndexes.Count > 0 && !guidanceIndexes.Contains(slot.Index)) continue;
+            if (guidanceIndexes.Count > 0 && !guidanceIndexes.Contains(slot.Index))
+            {
+                messages.Add($"Skipped: index not in current GameGuidance indexes ({camp}[{slot.Index}] {slot.CharacterName}).");
+                continue;
+            }
             var resolved = resolver.Resolve(slot.CharacterName, camp, slot.Index, 1);
             operations.Add(new(kind, action, guidanceIndexes.ToArray(), camp, slot.Index, slot.CharacterName,
                 resolved.ResolvedCharacterKey, resolved.ResolvedCharacterName, null, 1,
                 $"Business-state snapshot phase {action} produced slot {slot.Index}."));
         }
-        return operations;
+        return new(operations, messages);
     }
 
-    private IReadOnlyList<SmartBpDetectedOperation> BuildFromPlayerSlots(IEnumerable<SmartBpRecognizedPlayerCharacterSlot> slots, GameAction action, IReadOnlyList<int> guidanceIndexes, Camp camp, SmartBpDetectedOperationKind kind, bool hunterSlot = false)
+    private SmartBpCandidateOperationBuildResult BuildFromPlayerSlots(IEnumerable<SmartBpRecognizedPlayerCharacterSlot> slots, GameAction action, IReadOnlyList<int> guidanceIndexes, Camp camp, SmartBpDetectedOperationKind kind, bool hunterSlot = false)
     {
         var operations = new List<SmartBpDetectedOperation>();
+        var messages = new List<string>();
         foreach (var slot in slots)
         {
             if (SmartBpBusinessStateParser.IsUnselected(slot.CharacterName)) continue;
             var internalSlot = hunterSlot ? -1 : slot.Index;
-            if (!hunterSlot && guidanceIndexes.Count > 0 && !guidanceIndexes.Contains(internalSlot)) continue;
+            if (!hunterSlot && guidanceIndexes.Count > 0 && !guidanceIndexes.Contains(internalSlot))
+            {
+                messages.Add($"Skipped: index not in current GameGuidance indexes ({camp}[{internalSlot}] {slot.CharacterName}).");
+                continue;
+            }
             var resolved = resolver.Resolve(slot.CharacterName, camp, internalSlot, 1);
             operations.Add(new(kind, action, guidanceIndexes.ToArray(), camp, internalSlot, slot.CharacterName,
                 resolved.ResolvedCharacterKey, resolved.ResolvedCharacterName, slot.PlayerId, 1,
                 hunterSlot ? "Business-state snapshot mapped hunter visual slot 0 to internal hunter slot -1." : $"Business-state snapshot phase {action} produced slot {internalSlot}."));
         }
-        return operations;
+        return new(operations, messages);
     }
 
     public IReadOnlyList<SmartBpDetectedOperation> Build(
@@ -339,16 +392,21 @@ internal sealed class SmartBpCandidateOperationBuilder(ISmartBpCharacterResolver
         return operations;
     }
 
-    private IReadOnlyList<SmartBpDetectedOperation> BuildDistribution(
+    private SmartBpCandidateOperationBuildResult BuildDistribution(
         IEnumerable<SmartBpRecognizedPlayerCharacterSlot> slots,
         IReadOnlyList<int> guidanceIndexes)
     {
         var operations = new List<SmartBpDetectedOperation>();
+        var messages = new List<string>();
         var simulated = shared.CurrentGame.SurPlayerList.Select(x => x.Character?.Name).ToArray();
         foreach (var slot in slots.Where(x => !SmartBpBusinessStateParser.IsUnselected(x.CharacterName) && x.Index is >= 0 and < 4).OrderBy(x => x.Index))
         {
             var resolved = resolver.Resolve(slot.CharacterName, Camp.Sur, slot.Index, 1);
-            if (resolved.ResolvedCharacterName != null && simulated[slot.Index] == resolved.ResolvedCharacterName) continue;
+            if (resolved.ResolvedCharacterName != null && simulated[slot.Index] == resolved.ResolvedCharacterName)
+            {
+                messages.Add($"Skipped: no-op same character Sur[{slot.Index}] {slot.CharacterName}.");
+                continue;
+            }
             operations.Add(new(SmartBpDetectedOperationKind.SwapSurvivors, GameAction.DistributeChara,
                 guidanceIndexes.ToArray(), Camp.Sur, slot.Index, slot.CharacterName,
                 resolved.ResolvedCharacterKey, resolved.ResolvedCharacterName, slot.PlayerId,
@@ -358,7 +416,7 @@ internal sealed class SmartBpCandidateOperationBuilder(ISmartBpCharacterResolver
             if (source < 0) continue;
             (simulated[source], simulated[slot.Index]) = (simulated[slot.Index], simulated[source]);
         }
-        return operations;
+        return new(operations, messages);
     }
 
     private IReadOnlyList<SmartBpDetectedOperation> BuildDistribution(
@@ -391,43 +449,125 @@ internal sealed class SmartBpDetectedOperationApplier(
 {
     public async Task<SmartBpOperationApplyResult> ApplyAsync(IReadOnlyList<SmartBpDetectedOperation> operations, CancellationToken cancellationToken = default)
     {
-        var warnings = new List<string>();
+        var messages = new List<string>();
         var applied = 0;
+        var skipped = 0;
+        if (operations.Count == 0)
+            return new(0, 0, ["No candidate operations to apply."]);
         foreach (var operation in operations)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var snapshot = guidance.GetRuntimeSnapshot();
-            if (snapshot.CurrentAction != operation.SourceGuidanceAction) { warnings.Add("Skipped an operation because GameGuidance moved."); continue; }
-            if (!snapshot.CurrentIndexes.SequenceEqual(operation.SourceGuidanceIndexes)) { warnings.Add("Skipped an operation because the GameGuidance indexes changed."); continue; }
-            if (operation.Confidence < 0.90) { warnings.Add($"Skipped low-confidence character {operation.RawCharacterName}."); continue; }
-            if (operation.ResolvedCharacterKey == null) { warnings.Add($"Skipped unresolved character {operation.RawCharacterName}."); continue; }
+            if (snapshot.CurrentAction != operation.SourceGuidanceAction) { skipped++; messages.Add($"Skipped: current GameGuidance action mismatch for {Describe(operation)}."); continue; }
+            if (!snapshot.CurrentIndexes.SequenceEqual(operation.SourceGuidanceIndexes)) { skipped++; messages.Add($"Skipped: GameGuidance indexes changed for {Describe(operation)}."); continue; }
+            if (operation.Confidence < 0.90) { skipped++; messages.Add($"Skipped: low confidence for {Describe(operation)}."); continue; }
+            if (operation.ResolvedCharacterKey == null) { skipped++; messages.Add($"Skipped: unresolved character for {Describe(operation)}."); continue; }
             var dictionary = operation.Camp == Camp.Sur ? shared.SurCharaDict : shared.HunCharaDict;
-            if (!dictionary.TryGetValue(operation.ResolvedCharacterKey, out var character)) { warnings.Add($"Resolved character key no longer exists: {operation.ResolvedCharacterKey}."); continue; }
+            if (!dictionary.TryGetValue(operation.ResolvedCharacterKey, out var character)) { skipped++; messages.Add($"Skipped: resolved character key no longer exists: {operation.ResolvedCharacterKey}."); continue; }
 
             switch (operation.Kind)
             {
                 case SmartBpDetectedOperationKind.BanCharacter:
+                    if (!TryGetBanSlot(operation.Camp, operation.SlotIndex, out var banned))
+                    {
+                        skipped++;
+                        messages.Add($"Skipped: invalid ban slot for {Describe(operation)}.");
+                        continue;
+                    }
+                    if (IsSameCharacter(banned, character))
+                    {
+                        skipped++;
+                        messages.Add($"Skipped: no-op same ban for {Describe(operation)}.");
+                        continue;
+                    }
                     await selection.BanCharacterAsync(operation.Camp, operation.SlotIndex, character);
+                    messages.Add($"Applied BanCharacter {operation.Camp}[{operation.SlotIndex}] {character.Name}");
                     break;
                 case SmartBpDetectedOperationKind.PickSurvivor:
+                    if (operation.SlotIndex is < 0 or >= 4)
+                    {
+                        skipped++;
+                        messages.Add($"Skipped: invalid survivor slot for {Describe(operation)}.");
+                        continue;
+                    }
+                    if (IsSameCharacter(shared.CurrentGame.SurPlayerList[operation.SlotIndex].Character, character))
+                    {
+                        skipped++;
+                        messages.Add($"Skipped: no-op same character for {Describe(operation)}.");
+                        continue;
+                    }
                     await selection.SelectSurvivorAsync(operation.SlotIndex, character);
+                    messages.Add($"Applied PickSurvivor Sur[{operation.SlotIndex}] {character.Name}");
                     break;
                 case SmartBpDetectedOperationKind.PickHunter:
+                    if (IsSameCharacter(shared.CurrentGame.HunPlayer.Character, character))
+                    {
+                        skipped++;
+                        messages.Add($"Skipped: no-op same character for {Describe(operation)}.");
+                        continue;
+                    }
                     await selection.SelectHunterAsync(character);
+                    messages.Add($"Applied PickHunter {character.Name}");
                     break;
                 case SmartBpDetectedOperationKind.SwapSurvivors:
+                    if (operation.SlotIndex is < 0 or >= 4)
+                    {
+                        skipped++;
+                        messages.Add($"Skipped: invalid survivor swap target for {Describe(operation)}.");
+                        continue;
+                    }
+                    if (IsSameCharacter(shared.CurrentGame.SurPlayerList[operation.SlotIndex].Character, character))
+                    {
+                        skipped++;
+                        messages.Add($"Skipped: no-op same character for {Describe(operation)}.");
+                        continue;
+                    }
                     var sourceMatch = shared.CurrentGame.SurPlayerList
                         .Select((player, index) => (player, index))
-                        .FirstOrDefault(x => ReferenceEquals(x.player.Character, character) || x.player.Character?.Name == character.Name);
-                    if (sourceMatch.player == null) { warnings.Add($"Cannot swap {character.Name} because it is not present in the current survivor order."); continue; }
+                        .FirstOrDefault(x => IsSameCharacter(x.player.Character, character));
+                    if (sourceMatch.player == null) { skipped++; messages.Add($"Skipped: no source slot contains target character for {Describe(operation)}."); continue; }
                     var source = sourceMatch.index;
-                    if (source != operation.SlotIndex) await selection.SwapSurvivorsAsync(source, operation.SlotIndex);
+                    if (source == operation.SlotIndex)
+                    {
+                        skipped++;
+                        messages.Add($"Skipped: no-op swap source and target are the same for {Describe(operation)}.");
+                        continue;
+                    }
+                    await selection.SwapSurvivorsAsync(source, operation.SlotIndex);
+                    messages.Add($"Applied SwapSurvivors source={source} target={operation.SlotIndex} {character.Name}");
                     break;
             }
             applied++;
         }
-        return new(applied, warnings);
+        return new(applied, skipped, messages);
     }
+
+    private bool TryGetBanSlot(Camp camp, int slotIndex, out Character? character)
+    {
+        var list = camp == Camp.Sur ? shared.CurrentGame.CurrentSurBannedList : shared.CurrentGame.CurrentHunBannedList;
+        if (slotIndex < 0 || slotIndex >= list.Count)
+        {
+            character = null;
+            return false;
+        }
+
+        character = list[slotIndex];
+        return true;
+    }
+
+    private static bool IsSameCharacter(Character? left, Character? right)
+    {
+        if (ReferenceEquals(left, right)) return true;
+        if (left == null || right == null) return false;
+        if (!string.IsNullOrWhiteSpace(left.ImageFileName) && !string.IsNullOrWhiteSpace(right.ImageFileName))
+            return string.Equals(left.ImageFileName, right.ImageFileName, StringComparison.Ordinal);
+        return !string.IsNullOrWhiteSpace(left.Name) &&
+               !string.IsNullOrWhiteSpace(right.Name) &&
+               string.Equals(left.Name, right.Name, StringComparison.Ordinal);
+    }
+
+    private static string Describe(SmartBpDetectedOperation operation) =>
+        $"{operation.Kind} {operation.Camp}[{operation.SlotIndex}] {operation.RawCharacterName ?? "null"}";
 }
 
 internal sealed class SmartBpAutoRecognitionCoordinator(
@@ -474,29 +614,35 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                 : new(false, false, "Automatic GameGuidance synchronization is disabled.", null, [], null);
             var snapshot = guidance.GetRuntimeSnapshot();
             if (!snapshot.IsStarted || snapshot.CurrentAction is not { } action)
-                return new(state, sync, snapshot, [], raw, "GameGuidance is not started; candidate generation was skipped.");
-            if (!SmartBpAutomaticMapping.TryMapPhase(state.Phase, out var detectedAction))
-                return new(state, sync, snapshot, [], raw, $"Detected phase {state.Phase} does not map to a BP character operation.");
-            if (detectedAction != action)
-                return new(state, sync, snapshot, [], raw, $"Detected phase {state.Phase} does not match current GameGuidance action {action}.");
-            try { _ = SmartBpAutomaticMapping.Get(action); }
-            catch (NotSupportedException)
+                return new(state, sync, snapshot, [], ["GameGuidance is not started; candidate generation was skipped."], null, raw, "GameGuidance is not started; candidate generation was skipped.");
+            if (state.Phase == "天赋已锁定")
             {
-                return new(state, sync, snapshot, [], raw, $"Current GameGuidance action {action} is not a BP character operation.");
+                var message = "Detected phase is a talent/lock phase (天赋已锁定); no character operation is generated.";
+                return new(state, sync, snapshot, [], [message], new(0, 0, [message]), raw, null);
             }
-            var operations = candidateBuilder.Build(state, action, snapshot.CurrentIndexes);
-            if (settings.Settings.EnableAutoApplyRecognition)
-                await applier.ApplyAsync(operations, cancellationToken);
-            return new(state, sync, snapshot, operations, raw, null);
+            if (!SmartBpAutomaticMapping.TryMapPhase(state.Phase, out var detectedAction))
+                return new(state, sync, snapshot, [], [$"Detected phase {state.Phase} does not map to a BP character operation."], null, raw, null);
+            if (detectedAction != action)
+                return new(state, sync, snapshot, [], [$"Skipped: current GameGuidance action mismatch. Detected phase {state.Phase} maps to {detectedAction}, current action is {action}."], null, raw, null);
+            if (!SmartBpAutomaticMapping.IsCharacterOperationAction(action))
+            {
+                var message = $"Detected phase is a talent/lock phase ({state.Phase}); no character operation is generated.";
+                return new(state, sync, snapshot, [], [message], new(0, 0, [message]), raw, null);
+            }
+            var build = candidateBuilder.BuildWithDiagnostics(state, action, snapshot.CurrentIndexes);
+            SmartBpOperationApplyResult applyResult = settings.Settings.EnableAutoApplyRecognition
+                ? await applier.ApplyAsync(build.Operations, cancellationToken)
+                : new(0, build.Operations.Count, build.Operations.Count == 0 ? ["Skipped: auto apply disabled; no candidate operations were generated."] : build.Operations.Select(x => $"Skipped: auto apply disabled for {x.Kind} {x.Camp}[{x.SlotIndex}] {x.RawCharacterName ?? "null"}.").ToArray());
+            return new(state, sync, snapshot, build.Operations, build.Messages, applyResult, raw, null);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             if (ex is LlamaCppRequestException request) raw = request.RawResponse;
-            return new(null, null, guidance.GetRuntimeSnapshot(), [], raw, ex.Message);
+            return new(null, null, guidance.GetRuntimeSnapshot(), [], [], null, raw, ex.Message);
         }
         finally { _tickGate.Release(); }
     }
 
     private SmartBpAutoRecognitionTickResult Failure(string error) =>
-        new(null, null, guidance.GetRuntimeSnapshot(), [], "", error);
+        new(null, null, guidance.GetRuntimeSnapshot(), [], [], null, "", error);
 }

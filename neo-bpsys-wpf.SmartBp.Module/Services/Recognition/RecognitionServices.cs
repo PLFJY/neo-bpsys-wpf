@@ -127,7 +127,21 @@ survivor_candidates: {{{JsonSerializer.Serialize(survivors)}}}
 hunter_candidates: {{{JsonSerializer.Serialize(hunters)}}}
 
 phase 只能是：
-["屏蔽求生者","屏蔽监管者","选择求生者","求生者选择角色中","选择监管者","等待中","未知"]
+["屏蔽求生者","屏蔽监管者","选择求生者","求生者选择角色中","选择监管者","求生者选择天赋中","监管者选择天赋中","天赋已锁定","等待中","未知"]
+
+重要：禁用符号不是未选择。
+如果角色头像或文字旁边有红色禁止符号 / 不可选标记，并且角色名可读，说明该角色已经被 ban，必须输出角色名。
+只有屏幕文字真的显示“未选择”时，才输出“未选择”。
+
+ban-sur:
+右上区域 = banned_sur。
+右上标题“屏蔽求生者”时，不要读取左侧“等待中”作为 phase。
+右上槽位可读角色必须写入 banned_sur。
+
+ban-hun:
+左上区域 = banned_hun。
+左上标题“屏蔽监管者”时，不要读取右侧“等待中”作为 phase。
+左上槽位可读角色必须写入 banned_hun。
 
 输出 JSON 只能有这些根字段：
 phase, banned_sur, banned_hun, picked_sur, picked_hun
@@ -147,6 +161,9 @@ phase, banned_sur, banned_hun, picked_sur, picked_hun
 - 左上标题是“选择求生者” => phase="选择求生者"，填写 picked_sur。
 - 左上标题是“求生者选择角色中” => phase="求生者选择角色中"，填写 picked_sur 的角色和玩家 ID。
 - 右上标题是“选择监管者” => phase="选择监管者"，填写 picked_hun。
+- 左侧/求生者方标题包含“选择天赋中” => phase="求生者选择天赋中"，不生成角色变更。
+- 右侧/监管者方标题包含“选择天赋中” => phase="监管者选择天赋中"，不生成角色变更。
+- 画面出现“天赋已锁定” => phase="天赋已锁定"，不生成角色变更。
 - 非活动侧的“等待中”忽略。
 
 反错误规则：
@@ -214,7 +231,7 @@ internal static class SmartBpRecognitionJsonSchemaProvider
             .ToArray();
         return new JsonObject { ["type"] = "string", ["enum"] = new JsonArray(values) };
     }
-    private static JsonObject Phase() => new() { ["type"] = "string", ["enum"] = new JsonArray("屏蔽求生者", "屏蔽监管者", "选择求生者", "求生者选择角色中", "选择监管者", "等待中", "未知") };
+    private static JsonObject Phase() => new() { ["type"] = "string", ["enum"] = new JsonArray("屏蔽求生者", "屏蔽监管者", "选择求生者", "求生者选择角色中", "选择监管者", "求生者选择天赋中", "监管者选择天赋中", "天赋已锁定", "等待中", "未知") };
     private static JsonObject IntegerEnum(params int[] values) => new() { ["type"] = "integer", ["enum"] = new JsonArray(values.Select(x => (JsonNode?)JsonValue.Create(x)).ToArray()) };
     private static JsonObject FixedArray(JsonNode? item, int count) => new() { ["type"] = "array", ["minItems"] = count, ["maxItems"] = count, ["items"] = item };
     private static JsonObject Object(JsonObject properties, params string[] required) => new() { ["type"] = "object", ["additionalProperties"] = false, ["properties"] = properties, ["required"] = new JsonArray(required.Select(x => (JsonNode?)JsonValue.Create(x)).ToArray()) };

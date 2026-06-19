@@ -35,6 +35,10 @@ using SmartBpBusinessStateParser = smartbp::neo_bpsys_wpf.SmartBp.Module.Service
 using SmartBpAutomaticParser = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpAutomaticParser;
 using SmartBpAutomaticMapping = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpAutomaticMapping;
 using SmartBpGuidanceSyncService = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpGuidanceSyncService;
+using SmartBpCandidateOperationBuilder = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpCandidateOperationBuilder;
+using SmartBpDetectedOperationApplier = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpDetectedOperationApplier;
+using SmartBpDetectedOperation = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpDetectedOperation;
+using SmartBpDetectedOperationKind = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpDetectedOperationKind;
 
 namespace neo_bpsys_wpf.Tests.Services;
 
@@ -100,6 +104,13 @@ public sealed class SmartBpAiRecognitionContractTest
         Assert.Contains("右下监管者头像下方第二行", chinese.SystemPrompt);
         Assert.Contains("不要因为低亮度、禁用符号、打勾、半透明、背景暗，就把可读角色输出为“未选择”", chinese.SystemPrompt);
         Assert.Contains("如果画面显示 “心理学家” 或 \"心理学家\"，但候选列表中是 心理学家，输出 \"心理学家\"", chinese.SystemPrompt);
+        Assert.Contains("禁用符号不是未选择", chinese.SystemPrompt);
+        Assert.Contains("红色禁止符号", chinese.SystemPrompt);
+        Assert.Contains("banned_sur 来自右上区域", chinese.SystemPrompt);
+        Assert.Contains("banned_hun 来自左上区域", chinese.SystemPrompt);
+        Assert.Contains("求生者选择天赋中", chinese.SystemPrompt);
+        Assert.Contains("监管者选择天赋中", chinese.SystemPrompt);
+        Assert.Contains("天赋已锁定", chinese.SystemPrompt);
         Assert.Contains("MapBP 字段", chinese.SystemPrompt);
         Assert.Contains("左上 = 求生者方禁用监管者区域", chinese.SystemPrompt);
         Assert.Contains("右上 = 监管者方禁用求生者区域", chinese.SystemPrompt);
@@ -189,6 +200,10 @@ public sealed class SmartBpAiRecognitionContractTest
         Assert.Contains("\"banned_hun\"", schema);
         Assert.Contains("\"picked_sur\"", schema);
         Assert.Contains("\"picked_hun\"", schema);
+        var phaseValues = SmartBpRecognitionJsonSchemaProvider.Get(SmartBpRecognitionTask.FullBpScan, ["心理学家"], ["厂长"])["properties"]?["phase"]?["enum"]?.AsArray().Select(x => x?.GetValue<string>()).ToArray();
+        Assert.Contains("求生者选择天赋中", phaseValues);
+        Assert.Contains("监管者选择天赋中", phaseValues);
+        Assert.Contains("天赋已锁定", phaseValues);
         Assert.DoesNotContain("teams", schema);
         Assert.DoesNotContain("all_characters", schema);
         Assert.DoesNotContain("all_player_ids", schema);
@@ -248,10 +263,83 @@ public sealed class SmartBpAiRecognitionContractTest
     [InlineData("选择求生者", GameAction.PickSur)]
     [InlineData("求生者选择角色中", GameAction.DistributeChara)]
     [InlineData("选择监管者", GameAction.PickHun)]
+    [InlineData("求生者选择天赋中", GameAction.PickSurTalent)]
+    [InlineData("监管者选择天赋中", GameAction.PickHunTalent)]
     public void BusinessPhaseMapsToGuidanceAction(string phase, GameAction expected)
     {
         Assert.True(SmartBpAutomaticMapping.TryMapPhase(phase, out var action));
         Assert.Equal(expected, action);
+    }
+
+    [Fact]
+    public void CandidateBuilderGeneratesBanSurAndBanHunOperations()
+    {
+        var novelist = new Character("小说家", Camp.Sur, "novelist.png");
+        var dreamWitch = new Character("梦之女巫", Camp.Hun, "dream-witch.png");
+        var builder = new SmartBpCandidateOperationBuilder(CreateResolver(novelist, dreamWitch), CreateShared(new Game(new Team(Camp.Sur, TeamType.HomeTeam), new Team(Camp.Hun, TeamType.AwayTeam), GameProgress.Free), novelist, dreamWitch).Object);
+
+        var banSur = builder.BuildWithDiagnostics(Business("屏蔽求生者", bannedSur0: "小说家"), GameAction.BanSur, [0, 1]);
+        var banHun = builder.BuildWithDiagnostics(Business("屏蔽监管者", bannedHun0: "梦之女巫"), GameAction.BanHun, [0]);
+
+        Assert.Contains(banSur.Operations, op => op.Kind == SmartBpDetectedOperationKind.BanCharacter && op.Camp == Camp.Sur && op.SlotIndex == 0 && op.RawCharacterName == "小说家");
+        Assert.Contains(banHun.Operations, op => op.Kind == SmartBpDetectedOperationKind.BanCharacter && op.Camp == Camp.Hun && op.SlotIndex == 0 && op.RawCharacterName == "梦之女巫");
+    }
+
+    [Fact]
+    public void CandidateBuilderSkipsUnselectedAndMapsHunterPickToInternalSlot()
+    {
+        var hunter = new Character("厂长", Camp.Hun, "hell-ember.png");
+        var game = new Game(new Team(Camp.Sur, TeamType.HomeTeam), new Team(Camp.Hun, TeamType.AwayTeam), GameProgress.Free);
+        var builder = new SmartBpCandidateOperationBuilder(CreateResolver(hunter), CreateShared(game, hunter).Object);
+
+        var noBan = builder.BuildWithDiagnostics(Business("屏蔽求生者"), GameAction.BanSur, [0, 1]);
+        var pickHun = builder.BuildWithDiagnostics(Business("选择监管者", pickedHun: "厂长", hunterPlayerId: "导播PLFJY"), GameAction.PickHun, []);
+
+        Assert.Empty(noBan.Operations);
+        var op = Assert.Single(pickHun.Operations);
+        Assert.Equal(SmartBpDetectedOperationKind.PickHunter, op.Kind);
+        Assert.Equal(-1, op.SlotIndex);
+        Assert.Equal("导播PLFJY", op.PlayerId);
+    }
+
+    [Fact]
+    public void CandidateBuilderReturnsNoCharacterOperationsForTalentPhase()
+    {
+        var game = new Game(new Team(Camp.Sur, TeamType.HomeTeam), new Team(Camp.Hun, TeamType.AwayTeam), GameProgress.Free);
+        var builder = new SmartBpCandidateOperationBuilder(CreateResolver(), CreateShared(game).Object);
+
+        var result = builder.BuildWithDiagnostics(Business("求生者选择天赋中"), GameAction.PickSurTalent, [0]);
+
+        Assert.Empty(result.Operations);
+        Assert.Contains(result.Messages, message => message.Contains("talent/lock phase", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public async Task ApplierSkipsSameHunterSurvivorAndBanWithoutCallingSelection()
+    {
+        var survivor = new Character("小说家", Camp.Sur, "novelist.png");
+        var hunter = new Character("厂长", Camp.Hun, "hell-ember.png");
+        var game = new Game(new Team(Camp.Sur, TeamType.HomeTeam), new Team(Camp.Hun, TeamType.AwayTeam), GameProgress.Free);
+        game.SurPlayerList[0].Character = survivor;
+        game.HunPlayer.Character = hunter;
+        game.CurrentSurBannedList[0] = survivor;
+        var shared = CreateShared(game, survivor, hunter);
+        var selection = new Mock<ICharacterSelectionService>();
+        var guidance = Guidance(GameAction.PickHun, []);
+        var applier = new SmartBpDetectedOperationApplier(selection.Object, guidance.Object, shared.Object);
+
+        var hunterResult = await applier.ApplyAsync([Operation(SmartBpDetectedOperationKind.PickHunter, GameAction.PickHun, Camp.Hun, -1, "厂长", "厂长", [])], TestContext.Current.CancellationToken);
+        guidance.Setup(x => x.GetRuntimeSnapshot()).Returns(new GameGuidanceRuntimeSnapshot(true, 0, GameAction.PickSur, [0], 30, [new(0, GameAction.PickSur, [0], 30)]));
+        var survivorResult = await applier.ApplyAsync([Operation(SmartBpDetectedOperationKind.PickSurvivor, GameAction.PickSur, Camp.Sur, 0, "小说家", "小说家", [0])], TestContext.Current.CancellationToken);
+        guidance.Setup(x => x.GetRuntimeSnapshot()).Returns(new GameGuidanceRuntimeSnapshot(true, 0, GameAction.BanSur, [0], 30, [new(0, GameAction.BanSur, [0], 30)]));
+        var banResult = await applier.ApplyAsync([Operation(SmartBpDetectedOperationKind.BanCharacter, GameAction.BanSur, Camp.Sur, 0, "小说家", "小说家", [0])], TestContext.Current.CancellationToken);
+
+        Assert.Equal(0, hunterResult.AppliedCount + survivorResult.AppliedCount + banResult.AppliedCount);
+        Assert.Contains(hunterResult.Messages.Concat(survivorResult.Messages).Concat(banResult.Messages), message => message.Contains("no-op same character", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(banResult.Messages, message => message.Contains("no-op same ban", StringComparison.OrdinalIgnoreCase));
+        selection.Verify(x => x.SelectHunterAsync(It.IsAny<Character?>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
+        selection.Verify(x => x.SelectSurvivorAsync(It.IsAny<int>(), It.IsAny<Character?>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
+        selection.Verify(x => x.BanCharacterAsync(It.IsAny<Camp>(), It.IsAny<int>(), It.IsAny<Character?>(), It.IsAny<bool>()), Times.Never);
     }
 
     [Fact]
@@ -403,4 +491,44 @@ public sealed class SmartBpAiRecognitionContractTest
         PickedSur = Enumerable.Range(0, 4).Select(x => new SmartBpRecognizedPlayerCharacterSlot { Index = x, CharacterName = "未选择" }).ToList(),
         PickedHun = new SmartBpRecognizedPlayerCharacterSlot { Index = 0, CharacterName = "未选择" }
     };
+
+    private static SmartBpBusinessStateRecognitionResult Business(
+        string phase,
+        string? bannedSur0 = null,
+        string? bannedHun0 = null,
+        string? pickedHun = null,
+        string? hunterPlayerId = null)
+    {
+        var state = Business(phase);
+        if (bannedSur0 != null) state.BannedSur[0].CharacterName = bannedSur0;
+        if (bannedHun0 != null) state.BannedHun[0].CharacterName = bannedHun0;
+        if (pickedHun != null) state.PickedHun.CharacterName = pickedHun;
+        if (hunterPlayerId != null) state.PickedHun.PlayerId = hunterPlayerId;
+        return state;
+    }
+
+    private static ISmartBpCharacterResolver CreateResolver(params Character[] characters)
+    {
+        var shared = CreateShared(new Game(new Team(Camp.Sur, TeamType.HomeTeam), new Team(Camp.Hun, TeamType.AwayTeam), GameProgress.Free), characters);
+        return new SmartBpCharacterResolver(shared.Object);
+    }
+
+    private static Mock<ISharedDataService> CreateShared(Game game, params Character[] characters)
+    {
+        var shared = new Mock<ISharedDataService>();
+        shared.SetupGet(x => x.CurrentGame).Returns(game);
+        shared.SetupGet(x => x.SurCharaDict).Returns(new SortedDictionary<string, Character>(characters.Where(x => x.Camp == Camp.Sur).ToDictionary(x => x.Name)));
+        shared.SetupGet(x => x.HunCharaDict).Returns(new SortedDictionary<string, Character>(characters.Where(x => x.Camp == Camp.Hun).ToDictionary(x => x.Name)));
+        return shared;
+    }
+
+    private static Mock<IGameGuidanceService> Guidance(GameAction action, IReadOnlyList<int> indexes)
+    {
+        var guidance = new Mock<IGameGuidanceService>();
+        guidance.Setup(x => x.GetRuntimeSnapshot()).Returns(new GameGuidanceRuntimeSnapshot(true, 0, action, indexes, 30, [new(0, action, indexes, 30)]));
+        return guidance;
+    }
+
+    private static SmartBpDetectedOperation Operation(SmartBpDetectedOperationKind kind, GameAction action, Camp camp, int slot, string rawName, string resolvedKey, IReadOnlyList<int> indexes) =>
+        new(kind, action, indexes, camp, slot, rawName, resolvedKey, rawName, null, 1, "test");
 }

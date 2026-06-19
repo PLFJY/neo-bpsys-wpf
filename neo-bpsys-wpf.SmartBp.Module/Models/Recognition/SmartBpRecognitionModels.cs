@@ -181,13 +181,19 @@ public sealed record SmartBpDetectedOperation(SmartBpDetectedOperationKind Kind,
 public sealed record SmartBpGuidanceSyncResult(bool Changed, bool IsAccepted, string Reason, GameAction? TargetAction,
     IReadOnlyList<int> TargetIndexes, int? TargetStepIndex);
 
+/// <summary>Result of building preview candidate operations.</summary>
+public sealed record SmartBpCandidateOperationBuildResult(
+    IReadOnlyList<SmartBpDetectedOperation> Operations,
+    IReadOnlyList<string> Messages);
+
 /// <summary>Result of applying accepted candidate operations.</summary>
-public sealed record SmartBpOperationApplyResult(int AppliedCount, IReadOnlyList<string> Warnings);
+public sealed record SmartBpOperationApplyResult(int AppliedCount, int SkippedCount, IReadOnlyList<string> Messages);
 
 /// <summary>One automatic recognition pipeline result.</summary>
 public sealed record SmartBpAutoRecognitionTickResult(SmartBpBusinessStateRecognitionResult? BusinessState,
     SmartBpGuidanceSyncResult? GuidanceSync, GameGuidanceRuntimeSnapshot GuidanceSnapshot,
-    IReadOnlyList<SmartBpDetectedOperation> Operations, string RawJson, string? Error);
+    IReadOnlyList<SmartBpDetectedOperation> Operations, IReadOnlyList<string> CandidateMessages,
+    SmartBpOperationApplyResult? ApplyResult, string RawJson, string? Error);
 
 /// <summary>Download state exposed to the UI.</summary>
 public sealed record QwenDownloadState(bool IsDownloading, double? Progress, string Status);

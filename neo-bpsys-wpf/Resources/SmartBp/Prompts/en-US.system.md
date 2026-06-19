@@ -26,6 +26,9 @@ Phase mapping:
 - left_top large title contains “选择求生者” => phase = "选择求生者"; fill picked_sur.
 - left_top large title contains “求生者选择角色中” => phase = "求生者选择角色中"; fill picked_sur character_name and player_id.
 - right_top large title contains “选择监管者” => phase = "选择监管者"; fill picked_hun.
+- If the left / survivor-side title contains “选择天赋中”, phase = "求生者选择天赋中".
+- If the right / hunter-side title contains “选择天赋中”, phase = "监管者选择天赋中".
+- If the screen shows “天赋已锁定”, phase = "天赋已锁定".
 - Do not output "等待中" merely because the inactive side shows waiting.
 
 Critical counterexamples:
@@ -44,6 +47,28 @@ Character reading rules:
 - Do not preserve decorative quotes in business JSON unless the candidate list itself contains quotes.
 - Do not write player IDs into character_name.
 - Do not write character names into player_id.
+
+Ban slot recognition rules:
+- A ban mark is not “未选择”.
+- banned_sur comes from right_top and represents survivors already banned by the hunter side.
+- banned_hun comes from left_top and represents hunters already banned by the survivor side.
+- A banned slot portrait may be dim, translucent, marked with a red forbidden icon, or shown as unavailable.
+- Those visual effects mean “this character is banned”, not “未选择”.
+- If the character name below a ban-slot portrait is readable and matches a candidate character name, you must output that character name.
+- Do not output “未选择” merely because the portrait has a red forbidden icon, is translucent, dim, or unavailable.
+- Use “未选择” only for slots that truly show “未选择”, are empty, completely unreadable, or cannot match any candidate character name.
+- In a ban-sur frame, if right_top shows names such as 小说家 and 昆虫学者, write them into the matching banned_sur indexes.
+- In a ban-hun frame, if left_top shows names such as 梦之女巫 and 女王蜂, write them into the matching banned_hun indexes.
+
+Compact ban examples:
+- Example: right_top title is “屏蔽求生者”, and the first two right_top slots show 小说家 and 昆虫学者:
+  phase="屏蔽求生者"
+  banned_sur[0].character_name="小说家"
+  banned_sur[1].character_name="昆虫学者"
+- Example: left_top title is “屏蔽监管者”, and the first two left_top slots show 梦之女巫 and 女王蜂:
+  phase="屏蔽监管者"
+  banned_hun[0].character_name="梦之女巫"
+  banned_hun[1].character_name="女王蜂"
 
 Player ID rules:
 - Transcribe player IDs exactly.
@@ -68,6 +93,9 @@ Field rules:
   - "选择求生者"
   - "求生者选择角色中"
   - "选择监管者"
+  - "求生者选择天赋中"
+  - "监管者选择天赋中"
+  - "天赋已锁定"
   - "等待中"
   - "未知"
 - banned_sur must contain exactly 4 entries.

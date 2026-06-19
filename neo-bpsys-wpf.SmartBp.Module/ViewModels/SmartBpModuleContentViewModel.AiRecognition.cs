@@ -176,7 +176,7 @@ public partial class SmartBpModuleContentViewModel
             AiRawResponse = result.RawJson;
             AiStageDetectionResult = result.BusinessState == null ? "-" : FormatBusinessState(result.BusinessState);
             AiGuidanceSnapshot = FormatGuidance(result.GuidanceSnapshot, result.GuidanceSync?.Reason);
-            AiCandidateOperations = result.Operations.Count == 0 ? "-" : string.Join(Environment.NewLine, result.Operations.Select(FormatOperation));
+            AiCandidateOperations = FormatAutomaticOperations(result);
             AiParsedVisualResult = AiStageDetectionResult;
             AiNormalizedResult = AiCandidateOperations;
             AiLastError = result.Error ?? "";
@@ -205,6 +205,27 @@ public partial class SmartBpModuleContentViewModel
 
     private static string FormatOperation(SmartBpDetectedOperation value) =>
         $"{value.Kind}: action={value.SourceGuidanceAction}; indexes=[{string.Join(", ", value.SourceGuidanceIndexes)}]; camp={value.Camp}; slot={value.SlotIndex}; raw={value.RawCharacterName ?? "null"}; resolved={value.ResolvedCharacterName ?? "unresolved"}; playerId={value.PlayerId ?? "null"}; confidence={value.Confidence:0.00}; {value.Reason}";
+
+    private static string FormatAutomaticOperations(SmartBpAutoRecognitionTickResult result)
+    {
+        var builder = new System.Text.StringBuilder();
+        builder.AppendLine("Candidate operations:");
+        if (result.Operations.Count == 0)
+            builder.AppendLine("-");
+        else
+            foreach (var operation in result.Operations) builder.AppendLine(FormatOperation(operation));
+        if (result.CandidateMessages.Count > 0)
+        {
+            builder.AppendLine().AppendLine("Candidate diagnostics:");
+            foreach (var message in result.CandidateMessages) builder.AppendLine(message);
+        }
+        if (result.ApplyResult != null)
+        {
+            builder.AppendLine().AppendLine($"Apply result: applied={result.ApplyResult.AppliedCount}; skipped={result.ApplyResult.SkippedCount}");
+            foreach (var message in result.ApplyResult.Messages) builder.AppendLine(message);
+        }
+        return builder.ToString().TrimEnd();
+    }
 
     private static string FormatFocused(SmartBpFocusedExtractionResult value) =>
         $"task={value.Task}; region={value.OperationRegion}; targetCamp={value.TargetCamp}{Environment.NewLine}" +
