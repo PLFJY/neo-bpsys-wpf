@@ -194,17 +194,18 @@ phase 只能是：
         };
         var instruction = action switch
         {
-            GameAction.BanSur => "这个区域只表示监管者方禁用求生者。只输出 banned_sur。不要推测左下角求生者选择。禁用符号、变暗、半透明表示已禁用，不是未选择。",
-            GameAction.BanHun => "这个区域只表示求生者方禁用监管者。只输出 banned_hun。不要输出 picked_sur。禁用符号、变暗、半透明表示已禁用，不是未选择。",
-            GameAction.PickSur => "这个区域只表示求生者选择。只输出 picked_sur。不要输出 banned_sur 或 banned_hun。",
-            GameAction.DistributeChara => "这个区域只表示求生者角色分配。只输出 picked_sur。必须尽量复制每个槽位的 player_id。",
-            GameAction.PickHun => "这个区域只表示监管者选择。只输出 picked_hun。监管者头像下通常第一行是角色名，第二行是玩家 ID；如果玩家 ID 可见，必须填入 picked_hun.player_id。",
+            GameAction.BanSur => "这个右上区域只负责 banned_sur。如果禁用求生者结果已经显示，就输出 banned_sur。不要因为全局阶段已经进入下一步，就把可见 ban 结果输出为“未选择”。禁用符号、变暗、半透明表示已禁用，不是未选择。",
+            GameAction.BanHun => "这个左上区域只负责 banned_hun。如果禁用监管者结果已经显示，就输出 banned_hun。不要因为全局阶段已经进入下一步，就把可见 ban 结果输出为“未选择”。禁用符号、变暗、半透明表示已禁用，不是未选择。",
+            GameAction.PickSur => "这个左下区域可能处于选择求生者、求生者选择角色中、求生者选择天赋中或天赋已锁定。无论当前阶段标题是什么，只要求生者角色槽仍然可见，就要输出 picked_sur；玩家 ID 可见时也要填入 player_id。",
+            GameAction.DistributeChara => "这个左下区域只负责 picked_sur。即使全局阶段已经进入天赋选择，只要角色分配和玩家 ID 仍可见，就必须输出最终可见状态。",
+            GameAction.PickHun => "这个右下区域可能处于选择监管者、监管者选择天赋中或天赋已锁定。无论当前阶段标题是什么，只要监管者角色和玩家 ID 仍然可见，就要输出 picked_hun。监管者头像下通常第一行是角色名，第二行是玩家 ID。",
             _ => throw new NotSupportedException($"Focused business extraction does not support {action}.")
         };
         return $$$"""
 /no_think
 
 你看到的是{{{regionText}}}。图片已经由程序裁剪，只能识别这个裁剪区域。
+即使当前全局阶段已经进入下一步，这个区域中仍然可能保留上一阶段的结果。请识别该区域当前可见的最终业务状态，不要因为标题已经变化就丢掉可见角色结果。
 phase="{{{phase}}}"
 target_field="{{{targetField}}}"
 {{{instruction}}}

@@ -27,6 +27,7 @@ using ISmartBpImageEncoder = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.
 using ILlamaCppOpenAiClient = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ILlamaCppOpenAiClient;
 using ISmartBpCharacterResolver = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpCharacterResolver;
 using ISmartBpRecognitionSettingsService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpRecognitionSettingsService;
+using ISmartBpRecognitionLedger = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpRecognitionLedger;
 using SmartBpRecognitionSettings = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionSettings;
 using SmartBpStageDetectionResult = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpStageDetectionResult;
 using SmartBpBusinessStateRecognitionResult = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpBusinessStateRecognitionResult;
@@ -43,6 +44,12 @@ using SmartBpDetectedOperationKind = smartbp::neo_bpsys_wpf.SmartBp.Module.Model
 using SmartBpRecognitionLayoutProfile = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionLayoutProfile;
 using SmartBpRecognitionRegionRect = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionRegionRect;
 using SmartBpRecognitionRegion = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionRegion;
+using SmartBpPhaseRecognitionResult = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpPhaseRecognitionResult;
+using SmartBpFocusedBusinessExtractionResult = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpFocusedBusinessExtractionResult;
+using SmartBpBusinessStateMerger = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpBusinessStateMerger;
+using SmartBpWorkflowBackfillService = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpWorkflowBackfillService;
+using SmartBpRecognitionLedger = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpRecognitionLedger;
+using SmartBpWorkflowOperationKey = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpWorkflowOperationKey;
 
 namespace neo_bpsys_wpf.Tests.Services;
 
@@ -399,6 +406,74 @@ public sealed class SmartBpAiRecognitionContractTest
     }
 
     [Fact]
+    public void RegionSnapshotMergeUsesGlobalPhaseAndDefaultsMissingRegions()
+    {
+        var merger = new SmartBpBusinessStateMerger();
+        var bannedSur = new SmartBpFocusedBusinessExtractionResult
+        {
+            Phase = "屏蔽求生者",
+            TargetField = "banned_sur",
+            Slots =
+            [
+                new() { Index = 0, CharacterName = "小说家" },
+                new() { Index = 1, CharacterName = "未选择" },
+                new() { Index = 2, CharacterName = "未选择" },
+                new() { Index = 3, CharacterName = "未选择" }
+            ]
+        };
+
+        var merged = merger.Merge(new SmartBpPhaseRecognitionResult { Phase = "求生者选择天赋中" }, bannedSur, null, null, null);
+
+        Assert.Equal("求生者选择天赋中", merged.Phase);
+        Assert.Equal("小说家", merged.BannedSur[0].CharacterName);
+        Assert.Equal(2, merged.BannedHun.Count);
+        Assert.Equal(4, merged.PickedSur.Count);
+        Assert.All(merged.BannedHun, slot => Assert.Equal("未选择", slot.CharacterName));
+        Assert.Equal("未选择", merged.PickedHun.CharacterName);
+    }
+
+    [Fact]
+    public void BackfillPlanIncludesPreviousPickBeforeCurrentTalentStep()
+    {
+        var survivor = new Character("小说家", Camp.Sur, "novelist.png");
+        var game = new Game(new Team(Camp.Sur, TeamType.HomeTeam), new Team(Camp.Hun, TeamType.AwayTeam), GameProgress.Free);
+        var shared = CreateShared(game, survivor);
+        var builder = new SmartBpCandidateOperationBuilder(new SmartBpCharacterResolver(shared.Object), shared.Object);
+        var ledger = new Mock<ISmartBpRecognitionLedger>();
+        var service = new SmartBpWorkflowBackfillService(builder, ledger.Object, shared.Object);
+        var state = Business("求生者选择天赋中");
+        state.PickedSur[2].CharacterName = "小说家";
+        var guidance = new GameGuidanceRuntimeSnapshot(true, 6, GameAction.PickSurTalent, [], 30,
+        [
+            new(5, GameAction.PickSur, [2, 3], 30),
+            new(6, GameAction.PickSurTalent, [], 30)
+        ]);
+
+        var plan = service.BuildPlan(state, guidance);
+
+        Assert.Equal([5, 6], plan.StepCandidates.Select(step => step.StepIndex));
+        var operation = Assert.Single(plan.StepCandidates[0].Operations);
+        Assert.Equal(2, operation.SlotIndex);
+        Assert.Equal(5, operation.SourceWorkflowStepIndex);
+        Assert.Equal(smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpDetectedOperationApplyMode.Backfill, operation.ApplyMode);
+        Assert.Empty(plan.StepCandidates[1].Operations);
+    }
+
+    [Fact]
+    public void RecognitionLedgerTracksCompletedKeysAndCanReset()
+    {
+        var game = new Game(new Team(Camp.Sur, TeamType.HomeTeam), new Team(Camp.Hun, TeamType.AwayTeam), GameProgress.Free);
+        var ledger = new SmartBpRecognitionLedger(CreateShared(game).Object);
+        var key = new SmartBpWorkflowOperationKey(GameProgress.Free, 5, GameAction.PickSur, 2, Camp.Sur, "小说家");
+
+        ledger.MarkCompleted(key);
+        Assert.True(ledger.IsStepOperationCompleted(key));
+
+        ledger.ResetForCurrentGame();
+        Assert.False(ledger.IsStepOperationCompleted(key));
+    }
+
+    [Fact]
     public async Task ApplierSkipsSameHunterSurvivorAndBanWithoutCallingSelection()
     {
         var survivor = new Character("小说家", Camp.Sur, "novelist.png");
@@ -410,7 +485,14 @@ public sealed class SmartBpAiRecognitionContractTest
         var shared = CreateShared(game, survivor, hunter);
         var selection = new Mock<ICharacterSelectionService>();
         var guidance = Guidance(GameAction.PickHun, []);
-        var applier = new SmartBpDetectedOperationApplier(selection.Object, guidance.Object, shared.Object);
+        var recognitionSettings = new Mock<ISmartBpRecognitionSettingsService>();
+        recognitionSettings.SetupGet(x => x.Settings).Returns(new SmartBpRecognitionSettings());
+        var applier = new SmartBpDetectedOperationApplier(
+            selection.Object,
+            guidance.Object,
+            shared.Object,
+            recognitionSettings.Object,
+            Mock.Of<ISmartBpRecognitionLedger>());
 
         var hunterResult = await applier.ApplyAsync([Operation(SmartBpDetectedOperationKind.PickHunter, GameAction.PickHun, Camp.Hun, -1, "厂长", "厂长", [])], TestContext.Current.CancellationToken);
         guidance.Setup(x => x.GetRuntimeSnapshot()).Returns(new GameGuidanceRuntimeSnapshot(true, 0, GameAction.PickSur, [0], 30, [new(0, GameAction.PickSur, [0], 30)]));
@@ -424,6 +506,37 @@ public sealed class SmartBpAiRecognitionContractTest
         selection.Verify(x => x.SelectHunterAsync(It.IsAny<Character?>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
         selection.Verify(x => x.SelectSurvivorAsync(It.IsAny<int>(), It.IsAny<Character?>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
         selection.Verify(x => x.BanCharacterAsync(It.IsAny<Camp>(), It.IsAny<int>(), It.IsAny<Character?>(), It.IsAny<bool>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task BackfillApplyUsesSourceWorkflowStepAndDisablesAnimationByDefault()
+    {
+        var survivor = new Character("小说家", Camp.Sur, "novelist.png");
+        var game = new Game(new Team(Camp.Sur, TeamType.HomeTeam), new Team(Camp.Hun, TeamType.AwayTeam), GameProgress.Free);
+        var shared = CreateShared(game, survivor);
+        var selection = new Mock<ICharacterSelectionService>();
+        var guidance = new Mock<IGameGuidanceService>();
+        guidance.Setup(x => x.GetRuntimeSnapshot()).Returns(new GameGuidanceRuntimeSnapshot(true, 6, GameAction.PickSurTalent, [], 30,
+        [
+            new(5, GameAction.PickSur, [0], 30),
+            new(6, GameAction.PickSurTalent, [], 30)
+        ]));
+        var recognitionSettings = new Mock<ISmartBpRecognitionSettingsService>();
+        recognitionSettings.SetupGet(x => x.Settings).Returns(new SmartBpRecognitionSettings { PlayBackfillAnimations = false });
+        var ledger = new Mock<ISmartBpRecognitionLedger>();
+        var applier = new SmartBpDetectedOperationApplier(selection.Object, guidance.Object, shared.Object, recognitionSettings.Object, ledger.Object);
+        var operation = Operation(SmartBpDetectedOperationKind.PickSurvivor, GameAction.PickSur, Camp.Sur, 0, "小说家", "小说家", [0]) with
+        {
+            SourceWorkflowStepIndex = 5,
+            ApplyMode = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpDetectedOperationApplyMode.Backfill
+        };
+
+        var result = await applier.ApplyAsync([operation], TestContext.Current.CancellationToken);
+
+        Assert.Equal(1, result.AppliedCount);
+        Assert.Contains(result.Messages, message => message.Contains("without animation", StringComparison.OrdinalIgnoreCase));
+        selection.Verify(x => x.SelectSurvivorAsync(0, survivor, false, It.IsAny<bool>()), Times.Once);
+        ledger.Verify(x => x.MarkCompleted(It.IsAny<SmartBpWorkflowOperationKey>()), Times.Once);
     }
 
     [Fact]

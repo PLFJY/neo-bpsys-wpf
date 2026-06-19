@@ -56,6 +56,7 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty] private string _managedLlamaServerExecutablePath = "-";
     [ObservableProperty] private bool _enableAutoGuidanceSync;
     [ObservableProperty] private bool _enableAutoApplyRecognition;
+    [ObservableProperty] private bool _playBackfillAnimations;
     [ObservableProperty] private string _aiStageDetectionResult = "-";
     [ObservableProperty] private string _aiGuidanceSnapshot = "-";
     [ObservableProperty] private string _aiCandidateOperations = "-";
@@ -72,6 +73,7 @@ public partial class SmartBpModuleContentViewModel
         LlamaServerExecutablePath = _recognitionSettingsService.Settings.LlamaServerExecutablePath;
         EnableAutoGuidanceSync = _recognitionSettingsService.Settings.EnableAutoGuidanceSync;
         EnableAutoApplyRecognition = _recognitionSettingsService.Settings.EnableAutoApplyRecognition;
+        PlayBackfillAnimations = _recognitionSettingsService.Settings.PlayBackfillAnimations;
         _aiPreviewTimer.Interval = TimeSpan.FromMilliseconds(_recognitionSettingsService.Settings.RecognitionIntervalMs);
         _aiPreviewTimer.Tick += async (_, _) => await RunAutomaticCurrentFrameCoreAsync();
         _qwenAssetManager.StateChanged += (_, state) => RunOnUiThread(() =>
@@ -313,7 +315,7 @@ public partial class SmartBpModuleContentViewModel
         AiParsedVisualResult = AiStageDetectionResult;
         AiNormalizedResult = AiCandidateOperations;
         AiPhaseCropPreview = result.PhaseCrop?.Image;
-        AiFocusedCropPreview = result.FocusedCrop?.Image;
+        AiFocusedCropPreview = result.ContentCrops?.LastOrDefault()?.Image ?? result.FocusedCrop?.Image;
         AiCropDebugInfo = FormatCropDebugInfo(result);
         AiLastError = result.Error ?? "";
     }
@@ -338,11 +340,22 @@ public partial class SmartBpModuleContentViewModel
         $"started={value.IsStarted}; step={value.CurrentStepIndex}; action={value.CurrentAction?.ToString() ?? "null"}; indexes=[{string.Join(", ", value.CurrentIndexes)}]; time={value.CurrentTime?.ToString() ?? "null"}{Environment.NewLine}{reason ?? ""}";
 
     private static string FormatOperation(SmartBpDetectedOperation value) =>
-        $"{value.Kind}: action={value.SourceGuidanceAction}; indexes=[{string.Join(", ", value.SourceGuidanceIndexes)}]; camp={value.Camp}; slot={value.SlotIndex}; raw={value.RawCharacterName ?? "null"}; resolved={value.ResolvedCharacterName ?? "unresolved"}; playerId={value.PlayerId ?? "null"}; confidence={value.Confidence:0.00}; {value.Reason}";
+        $"{value.Kind}: step={value.SourceWorkflowStepIndex?.ToString() ?? "none"}; mode={value.ApplyMode}; action={value.SourceGuidanceAction}; indexes=[{string.Join(", ", value.SourceGuidanceIndexes)}]; camp={value.Camp}; slot={value.SlotIndex}; raw={value.RawCharacterName ?? "null"}; resolved={value.ResolvedCharacterName ?? "unresolved"}; playerId={value.PlayerId ?? "null"}; confidence={value.Confidence:0.00}; {value.Reason}";
 
     private static string FormatAutomaticOperations(SmartBpAutoRecognitionTickResult result)
     {
         var builder = new System.Text.StringBuilder();
+        if (result.BackfillPlan != null)
+        {
+            builder.AppendLine("Workflow backfill plan:");
+            foreach (var step in result.BackfillPlan.StepCandidates)
+            {
+                builder.AppendLine($"Step {step.StepIndex} {step.Action} [{string.Join(", ", step.Indexes)}] - {step.Reason}");
+                if (step.Operations.Count == 0) builder.AppendLine("  no character operation");
+                foreach (var operation in step.Operations) builder.AppendLine("  " + FormatOperation(operation));
+            }
+            builder.AppendLine();
+        }
         builder.AppendLine("Candidate operations:");
         if (result.Operations.Count == 0)
             builder.AppendLine("-");
@@ -367,6 +380,9 @@ public partial class SmartBpModuleContentViewModel
         if (result.PhaseCrop != null) builder.AppendLine($"Phase crop: {result.PhaseCrop.Region}, pixel rect = {result.PhaseCrop.PixelRectText}");
         if (result.PhaseResult != null) builder.AppendLine($"Detected phase: {result.PhaseResult.Phase}");
         if (result.FocusedCrop != null) builder.AppendLine($"Focused crop: {result.FocusedCrop.Region}, pixel rect = {result.FocusedCrop.PixelRectText}");
+        if (result.ContentCrops != null)
+            foreach (var crop in result.ContentCrops)
+                builder.AppendLine($"Snapshot crop: {crop.Region}, pixel rect = {crop.PixelRectText}");
         if (result.FocusedResult != null)
         {
             builder.AppendLine($"Focused target field: {result.FocusedResult.TargetField}");
@@ -419,6 +435,20 @@ public partial class SmartBpModuleContentViewModel
     {
         _recognitionSettingsService.Settings.EnableAutoApplyRecognition = value;
         _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnPlayBackfillAnimationsChanged(bool value)
+    {
+        _recognitionSettingsService.Settings.PlayBackfillAnimations = value;
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    [RelayCommand]
+    private void ResetAiRecognitionLedger()
+    {
+        _aiRecognitionLedger.ResetForCurrentGame();
+        AiCandidateOperations = ResolveLocalizedOrRaw("SmartBpAiLedgerResetCompleted");
+        _aiDebugLog.Write("Recognition", "Recognition ledger reset for the current game.");
     }
 
     private async Task SaveRuntimeSelectionAsync()

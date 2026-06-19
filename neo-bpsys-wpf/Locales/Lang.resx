@@ -5680,4 +5680,7 @@
   <data name="SmartBpAiRegionRightTop" xml:space="preserve"><value>右上：禁用求生者</value></data>
   <data name="SmartBpAiRegionLeftBottom" xml:space="preserve"><value>左下：求生者选择与分配</value></data>
   <data name="SmartBpAiRegionRightBottom" xml:space="preserve"><value>右下：监管者选择</value></data>
+  <data name="SmartBpAiPlayBackfillAnimations" xml:space="preserve"><value>补录上一阶段时播放动画</value></data>
+  <data name="SmartBpAiResetLedger" xml:space="preserve"><value>重置 SmartBP AI 识别记录</value></data>
+  <data name="SmartBpAiLedgerResetCompleted" xml:space="preserve"><value>已重置当前对局的 SmartBP AI 识别记录。</value></data>
 </root>

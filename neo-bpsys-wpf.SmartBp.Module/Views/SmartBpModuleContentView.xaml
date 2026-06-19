@@ -448,6 +448,10 @@
                     Margin="0,6,0,0"
                     Content="{lex:Loc SmartBpAiEnableAutoApply}"
                     IsChecked="{Binding EnableAutoApplyRecognition}" />
+                <ui:ToggleSwitch
+                    Margin="0,6,0,0"
+                    Content="{lex:Loc SmartBpAiPlayBackfillAnimations}"
+                    IsChecked="{Binding PlayBackfillAnimations}" />
                 <WrapPanel Margin="0,8,0,0">
                     <ui:Button
                         Margin="0,0,8,8"
@@ -484,6 +488,11 @@
                         Command="{Binding StopAiPreviewLoopCommand}"
                         Content="{lex:Loc SmartBpAiStopLoop}"
                         Icon="{ui:SymbolIcon Symbol=Stop24}" />
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding ResetAiRecognitionLedgerCommand}"
+                        Content="{lex:Loc SmartBpAiResetLedger}"
+                        Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                 </WrapPanel>
                 <TextBlock Margin="0,8,0,2" FontWeight="SemiBold" Text="{lex:Loc SmartBpAiStageDetectionResult}" />
                 <TextBox MinHeight="70" AcceptsReturn="True" IsReadOnly="True" Text="{Binding AiStageDetectionResult}" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />

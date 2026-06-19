@@ -103,6 +103,22 @@ public interface ISmartBpRecognitionFrameCropper
     /// <summary>Crops a frame to the requested coarse region.</summary>
     BitmapSource Crop(BitmapSource source, SmartBpRecognitionRegion region);
 }
+/// <summary>Recognizes and locally merges phase plus all four coarse BP content regions.</summary>
+public interface ISmartBpRegionSnapshotRecognitionService
+{
+    /// <summary>Recognizes one region-gated BP snapshot.</summary>
+    Task<SmartBpRegionSnapshot> RecognizeSnapshotAsync(BitmapSource frame, SmartBpRegionSnapshotRecognitionMode mode, CancellationToken cancellationToken = default);
+}
+/// <summary>Merges independent content-region outputs into the simplified BP business state.</summary>
+public interface ISmartBpBusinessStateMerger
+{
+    /// <summary>Merges the authoritative phase and four optional region results.</summary>
+    SmartBpBusinessStateRecognitionResult Merge(SmartBpPhaseRecognitionResult phase,
+        SmartBpFocusedBusinessExtractionResult? bannedSur,
+        SmartBpFocusedBusinessExtractionResult? bannedHun,
+        SmartBpFocusedBusinessExtractionResult? pickedSur,
+        SmartBpFocusedBusinessExtractionResult? pickedHun);
+}
 /// <summary>Sends independent OpenAI-compatible requests.</summary>
 public interface ILlamaCppOpenAiClient
 {
@@ -147,6 +163,26 @@ public interface ISmartBpDetectedOperationApplier
 {
     /// <summary>Applies accepted resolved operations.</summary>
     Task<SmartBpOperationApplyResult> ApplyAsync(IReadOnlyList<SmartBpDetectedOperation> operations, CancellationToken cancellationToken = default);
+}
+
+/// <summary>Builds ordered workflow backfill candidates from a complete merged BP snapshot.</summary>
+public interface ISmartBpWorkflowBackfillService
+{
+    /// <summary>Builds a plan from the current workflow without mutating guidance state.</summary>
+    SmartBpWorkflowBackfillPlan BuildPlan(SmartBpBusinessStateRecognitionResult snapshot, Core.Models.GameGuidanceRuntimeSnapshot guidanceSnapshot);
+}
+
+/// <summary>Tracks successfully completed workflow operations for the current game progress.</summary>
+public interface ISmartBpRecognitionLedger
+{
+    /// <summary>Returns whether the operation was already completed.</summary>
+    bool IsStepOperationCompleted(SmartBpWorkflowOperationKey key);
+    /// <summary>Marks an operation completed after apply or a confirmed no-op.</summary>
+    void MarkCompleted(SmartBpWorkflowOperationKey key);
+    /// <summary>Records a non-terminal skip reason without marking the operation completed.</summary>
+    void MarkSkipped(SmartBpWorkflowOperationKey key, string reason);
+    /// <summary>Clears all recognition state for the current game.</summary>
+    void ResetForCurrentGame();
 }
 
 /// <summary>Coordinates stage detection, guidance reconciliation and focused extraction.</summary>

@@ -11,6 +11,9 @@ public enum SmartBpRecognitionTask { DetectStage, BanSur, BanHun, PickSur, PickH
 /// <summary>Coarse SmartBP recognition crop regions.</summary>
 public enum SmartBpRecognitionRegion { PhaseTop, LeftTop, RightTop, LeftBottom, RightBottom }
 
+/// <summary>Controls how many BP content regions are recognized for one snapshot.</summary>
+public enum SmartBpRegionSnapshotRecognitionMode { FullAllRegions, PendingAndCurrentRegions }
+
 /// <summary>Normalized recognition crop rectangle.</summary>
 public sealed class SmartBpRecognitionRegionRect
 {
@@ -140,6 +143,10 @@ public sealed class SmartBpRecognitionSettings
     public double StageConfidenceThreshold { get; set; } = 0.80;
     /// <summary>Gets or sets guidance reconciliation lookahead.</summary>
     public int GuidanceSyncLookAheadSteps { get; set; } = 4;
+    /// <summary>Gets or sets whether late workflow backfill should replay frontend animations.</summary>
+    public bool PlayBackfillAnimations { get; set; }
+    /// <summary>Gets or sets the number of matching snapshots required before automatic apply.</summary>
+    public int RequiredStableSnapshots { get; set; } = 1;
 }
 
 /// <summary>Model-facing BP business-state recognition result.</summary>
@@ -184,6 +191,31 @@ public sealed class SmartBpFocusedBusinessExtractionResult
     [JsonPropertyName("slots")] public List<SmartBpRecognizedPlayerCharacterSlot> Slots { get; set; } = [];
     /// <summary>Gets or sets the focused hunter pick slot.</summary>
     [JsonPropertyName("picked_hun")] public SmartBpRecognizedPlayerCharacterSlot? PickedHun { get; set; }
+}
+
+/// <summary>One locally merged BP snapshot produced from the phase crop and four content crops.</summary>
+public sealed class SmartBpRegionSnapshot
+{
+    /// <summary>Gets the authoritative phase recognition result.</summary>
+    public SmartBpPhaseRecognitionResult Phase { get; init; } = new();
+    /// <summary>Gets the upper-right survivor-ban extraction.</summary>
+    public SmartBpFocusedBusinessExtractionResult? BannedSurRegion { get; init; }
+    /// <summary>Gets the upper-left hunter-ban extraction.</summary>
+    public SmartBpFocusedBusinessExtractionResult? BannedHunRegion { get; init; }
+    /// <summary>Gets the lower-left survivor-pick extraction.</summary>
+    public SmartBpFocusedBusinessExtractionResult? PickedSurRegion { get; init; }
+    /// <summary>Gets the lower-right hunter-pick extraction.</summary>
+    public SmartBpFocusedBusinessExtractionResult? PickedHunRegion { get; init; }
+    /// <summary>Gets the merged simplified business state.</summary>
+    public SmartBpBusinessStateRecognitionResult BusinessState { get; init; } = new();
+    /// <summary>Gets all crop diagnostics.</summary>
+    public IReadOnlyList<string> Diagnostics { get; init; } = [];
+    /// <summary>Gets the phase crop used by the model.</summary>
+    public SmartBpCroppedFrame? PhaseCrop { get; init; }
+    /// <summary>Gets all four content crops used by the model.</summary>
+    public IReadOnlyList<SmartBpCroppedFrame> ContentCrops { get; init; } = [];
+    /// <summary>Gets raw model responses keyed by logical region.</summary>
+    public IReadOnlyDictionary<string, string> RawResponses { get; init; } = new Dictionary<string, string>();
 }
 
 /// <summary>Legacy model-facing BP stage detection result.</summary>
@@ -235,10 +267,27 @@ public sealed class SmartBpFocusedExtractionResult
 /// <summary>Locally controlled detected operation kind.</summary>
 public enum SmartBpDetectedOperationKind { BanCharacter, PickSurvivor, PickHunter, SwapSurvivors }
 
+/// <summary>Controls workflow validation and animation behavior for one detected operation.</summary>
+public enum SmartBpDetectedOperationApplyMode { CurrentStep, Backfill }
+
 /// <summary>Preview candidate derived from focused visual extraction.</summary>
 public sealed record SmartBpDetectedOperation(SmartBpDetectedOperationKind Kind, GameAction SourceGuidanceAction,
     IReadOnlyList<int> SourceGuidanceIndexes, Camp Camp, int SlotIndex, string? RawCharacterName,
-    string? ResolvedCharacterKey, string? ResolvedCharacterName, string? PlayerId, double Confidence, string Reason);
+    string? ResolvedCharacterKey, string? ResolvedCharacterName, string? PlayerId, double Confidence, string Reason,
+    int? SourceWorkflowStepIndex = null,
+    SmartBpDetectedOperationApplyMode ApplyMode = SmartBpDetectedOperationApplyMode.CurrentStep);
+
+/// <summary>Stable ledger identity for one workflow-derived character operation.</summary>
+public sealed record SmartBpWorkflowOperationKey(GameProgress GameProgress, int StepIndex, GameAction Action,
+    int SlotIndex, Camp Camp, string? ResolvedCharacterKey);
+
+/// <summary>Candidate operations associated with one immutable GameGuidance workflow step.</summary>
+public sealed record SmartBpWorkflowStepCandidateSet(int StepIndex, GameAction Action, IReadOnlyList<int> Indexes,
+    IReadOnlyList<SmartBpDetectedOperation> Operations, string Reason);
+
+/// <summary>Ordered character backfill plan built from a merged region snapshot.</summary>
+public sealed record SmartBpWorkflowBackfillPlan(IReadOnlyList<SmartBpWorkflowStepCandidateSet> StepCandidates,
+    IReadOnlyList<string> Diagnostics);
 
 /// <summary>Result of reconciling a detected stage with GameGuidance.</summary>
 public sealed record SmartBpGuidanceSyncResult(bool Changed, bool IsAccepted, string Reason, GameAction? TargetAction,
@@ -258,7 +307,10 @@ public sealed record SmartBpAutoRecognitionTickResult(SmartBpBusinessStateRecogn
     SmartBpCroppedFrame? PhaseCrop, SmartBpCroppedFrame? FocusedCrop,
     SmartBpGuidanceSyncResult? GuidanceSync, GameGuidanceRuntimeSnapshot GuidanceSnapshot,
     IReadOnlyList<SmartBpDetectedOperation> Operations, IReadOnlyList<string> CandidateMessages,
-    SmartBpOperationApplyResult? ApplyResult, string RawJson, string? Error);
+    SmartBpOperationApplyResult? ApplyResult, string RawJson, string? Error,
+    SmartBpRegionSnapshot? RegionSnapshot = null,
+    SmartBpWorkflowBackfillPlan? BackfillPlan = null,
+    IReadOnlyList<SmartBpCroppedFrame>? ContentCrops = null);
 
 /// <summary>Download state exposed to the UI.</summary>
 public sealed record QwenDownloadState(bool IsDownloading, double? Progress, string Status);

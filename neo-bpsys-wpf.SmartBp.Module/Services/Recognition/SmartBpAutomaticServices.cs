@@ -590,7 +590,9 @@ internal sealed class SmartBpCandidateOperationBuilder(ISmartBpCharacterResolver
 internal sealed class SmartBpDetectedOperationApplier(
     ICharacterSelectionService selection,
     IGameGuidanceService guidance,
-    ISharedDataService shared) : ISmartBpDetectedOperationApplier
+    ISharedDataService shared,
+    ISmartBpRecognitionSettingsService settings,
+    ISmartBpRecognitionLedger ledger) : ISmartBpDetectedOperationApplier
 {
     public async Task<SmartBpOperationApplyResult> ApplyAsync(IReadOnlyList<SmartBpDetectedOperation> operations, CancellationToken cancellationToken = default)
     {
@@ -603,12 +605,14 @@ internal sealed class SmartBpDetectedOperationApplier(
         {
             cancellationToken.ThrowIfCancellationRequested();
             var snapshot = guidance.GetRuntimeSnapshot();
-            if (snapshot.CurrentAction != operation.SourceGuidanceAction) { skipped++; messages.Add($"Skipped: current GameGuidance action mismatch for {Describe(operation)}."); continue; }
-            if (!snapshot.CurrentIndexes.SequenceEqual(operation.SourceGuidanceIndexes)) { skipped++; messages.Add($"Skipped: GameGuidance indexes changed for {Describe(operation)}."); continue; }
-            if (operation.Confidence < 0.90) { skipped++; messages.Add($"Skipped: low confidence for {Describe(operation)}."); continue; }
-            if (operation.ResolvedCharacterKey == null) { skipped++; messages.Add($"Skipped: unresolved character for {Describe(operation)}."); continue; }
+            var key = SmartBpWorkflowBackfillService.CreateKey(shared.CurrentGame.GameProgress, operation);
+            if (key != null && ledger.IsStepOperationCompleted(key)) { skipped++; messages.Add($"Skipped: recognition ledger already completed {Describe(operation)}."); continue; }
+            if (!ValidateWorkflowSource(operation, snapshot, out var workflowError)) { skipped++; MarkSkipped(key, workflowError); messages.Add($"Skipped: {workflowError} for {Describe(operation)}."); continue; }
+            if (operation.Confidence < 0.90) { skipped++; MarkSkipped(key, "low confidence"); messages.Add($"Skipped: low confidence for {Describe(operation)}."); continue; }
+            if (operation.ResolvedCharacterKey == null) { skipped++; MarkSkipped(key, "unresolved character"); messages.Add($"Skipped: unresolved character for {Describe(operation)}."); continue; }
             var dictionary = operation.Camp == Camp.Sur ? shared.SurCharaDict : shared.HunCharaDict;
-            if (!dictionary.TryGetValue(operation.ResolvedCharacterKey, out var character)) { skipped++; messages.Add($"Skipped: resolved character key no longer exists: {operation.ResolvedCharacterKey}."); continue; }
+            if (!dictionary.TryGetValue(operation.ResolvedCharacterKey, out var character)) { skipped++; MarkSkipped(key, "resolved key missing"); messages.Add($"Skipped: resolved character key no longer exists: {operation.ResolvedCharacterKey}."); continue; }
+            var playAnimation = operation.ApplyMode == SmartBpDetectedOperationApplyMode.CurrentStep || settings.Settings.PlayBackfillAnimations;
 
             switch (operation.Kind)
             {
@@ -616,76 +620,125 @@ internal sealed class SmartBpDetectedOperationApplier(
                     if (!TryGetBanSlot(operation.Camp, operation.SlotIndex, out var banned))
                     {
                         skipped++;
+                        MarkSkipped(key, "invalid ban slot");
                         messages.Add($"Skipped: invalid ban slot for {Describe(operation)}.");
                         continue;
                     }
                     if (IsSameCharacter(banned, character))
                     {
                         skipped++;
+                        MarkCompleted(key);
                         messages.Add($"Skipped: no-op same ban for {Describe(operation)}.");
                         continue;
                     }
-                    await selection.BanCharacterAsync(operation.Camp, operation.SlotIndex, character);
-                    messages.Add($"Applied BanCharacter {operation.Camp}[{operation.SlotIndex}] {character.Name}");
+                    await selection.BanCharacterAsync(operation.Camp, operation.SlotIndex, character, playAnimation);
+                    messages.Add($"{AppliedPrefix(operation, playAnimation)} BanCharacter {operation.Camp}[{operation.SlotIndex}] {character.Name}");
                     break;
                 case SmartBpDetectedOperationKind.PickSurvivor:
                     if (operation.SlotIndex is < 0 or >= 4)
                     {
                         skipped++;
+                        MarkSkipped(key, "invalid survivor slot");
                         messages.Add($"Skipped: invalid survivor slot for {Describe(operation)}.");
                         continue;
                     }
                     if (IsSameCharacter(shared.CurrentGame.SurPlayerList[operation.SlotIndex].Character, character))
                     {
                         skipped++;
+                        MarkCompleted(key);
                         messages.Add($"Skipped: no-op same character for {Describe(operation)}.");
                         continue;
                     }
-                    await selection.SelectSurvivorAsync(operation.SlotIndex, character);
-                    messages.Add($"Applied PickSurvivor Sur[{operation.SlotIndex}] {character.Name}");
+                    await selection.SelectSurvivorAsync(operation.SlotIndex, character, playAnimation);
+                    messages.Add($"{AppliedPrefix(operation, playAnimation)} PickSurvivor Sur[{operation.SlotIndex}] {character.Name}");
                     break;
                 case SmartBpDetectedOperationKind.PickHunter:
                     if (IsSameCharacter(shared.CurrentGame.HunPlayer.Character, character))
                     {
                         skipped++;
+                        MarkCompleted(key);
                         messages.Add($"Skipped: no-op same character for {Describe(operation)}.");
                         continue;
                     }
-                    await selection.SelectHunterAsync(character);
-                    messages.Add($"Applied PickHunter {character.Name}");
+                    await selection.SelectHunterAsync(character, playAnimation);
+                    messages.Add($"{AppliedPrefix(operation, playAnimation)} PickHunter {character.Name}");
                     break;
                 case SmartBpDetectedOperationKind.SwapSurvivors:
                     if (operation.SlotIndex is < 0 or >= 4)
                     {
                         skipped++;
+                        MarkSkipped(key, "invalid survivor swap target");
                         messages.Add($"Skipped: invalid survivor swap target for {Describe(operation)}.");
                         continue;
                     }
                     if (IsSameCharacter(shared.CurrentGame.SurPlayerList[operation.SlotIndex].Character, character))
                     {
                         skipped++;
+                        MarkCompleted(key);
                         messages.Add($"Skipped: no-op same character for {Describe(operation)}.");
                         continue;
                     }
                     var sourceMatch = shared.CurrentGame.SurPlayerList
                         .Select((player, index) => (player, index))
                         .FirstOrDefault(x => IsSameCharacter(x.player.Character, character));
-                    if (sourceMatch.player == null) { skipped++; messages.Add($"Skipped: no source slot contains target character for {Describe(operation)}."); continue; }
+                    if (sourceMatch.player == null) { skipped++; MarkSkipped(key, "no source slot contains target character"); messages.Add($"Skipped: no source slot contains target character for {Describe(operation)}."); continue; }
                     var source = sourceMatch.index;
                     if (source == operation.SlotIndex)
                     {
                         skipped++;
+                        MarkCompleted(key);
                         messages.Add($"Skipped: no-op swap source and target are the same for {Describe(operation)}.");
                         continue;
                     }
-                    await selection.SwapSurvivorsAsync(source, operation.SlotIndex);
-                    messages.Add($"Applied SwapSurvivors source={source} target={operation.SlotIndex} {character.Name}");
+                    await selection.SwapSurvivorsAsync(source, operation.SlotIndex, playAnimation);
+                    messages.Add($"{AppliedPrefix(operation, playAnimation)} SwapSurvivors source={source} target={operation.SlotIndex} {character.Name}");
                     break;
             }
             applied++;
+            MarkCompleted(key);
         }
         return new(applied, skipped, messages);
     }
+
+    private static bool ValidateWorkflowSource(
+        SmartBpDetectedOperation operation,
+        GameGuidanceRuntimeSnapshot snapshot,
+        out string error)
+    {
+        if (operation.ApplyMode == SmartBpDetectedOperationApplyMode.CurrentStep)
+        {
+            if (snapshot.CurrentAction != operation.SourceGuidanceAction) { error = "current GameGuidance action mismatch"; return false; }
+            if (!snapshot.CurrentIndexes.SequenceEqual(operation.SourceGuidanceIndexes)) { error = "GameGuidance indexes changed"; return false; }
+            error = "";
+            return true;
+        }
+
+        if (operation.SourceWorkflowStepIndex is not { } stepIndex) { error = "backfill source workflow step is missing"; return false; }
+        var step = snapshot.Workflow.FirstOrDefault(item => item.StepIndex == stepIndex);
+        if (step == null) { error = "backfill source workflow step no longer exists"; return false; }
+        if (step.Action != operation.SourceGuidanceAction || !step.Indexes.SequenceEqual(operation.SourceGuidanceIndexes))
+        {
+            error = "backfill source workflow action or indexes changed";
+            return false;
+        }
+        error = "";
+        return true;
+    }
+
+    private void MarkCompleted(SmartBpWorkflowOperationKey? key)
+    {
+        if (key != null) ledger.MarkCompleted(key);
+    }
+
+    private void MarkSkipped(SmartBpWorkflowOperationKey? key, string reason)
+    {
+        if (key != null) ledger.MarkSkipped(key, reason);
+    }
+
+    private static string AppliedPrefix(SmartBpDetectedOperation operation, bool playAnimation) =>
+        operation.ApplyMode == SmartBpDetectedOperationApplyMode.Backfill
+            ? $"Backfilled{(playAnimation ? " with animation" : " without animation")}: Applied"
+            : "Applied";
 
     private bool TryGetBanSlot(Camp camp, int slotIndex, out Character? character)
     {
@@ -716,18 +769,17 @@ internal sealed class SmartBpDetectedOperationApplier(
 }
 
 internal sealed class SmartBpAutoRecognitionCoordinator(
-    ISmartBpImageEncoder encoder,
-    ISmartBpRecognitionFrameCropper cropper,
-    ILlamaCppOpenAiClient client,
+    ISmartBpRegionSnapshotRecognitionService snapshotRecognition,
     ISmartBpRecognitionSettingsService settings,
-    ISharedDataService shared,
     ISmartBpGuidanceSyncService guidanceSync,
     IGameGuidanceService guidance,
-    SmartBpCandidateOperationBuilder candidateBuilder,
+    ISmartBpWorkflowBackfillService backfill,
     ISmartBpDetectedOperationApplier applier) : ISmartBpAutoRecognitionCoordinator
 {
     private readonly SemaphoreSlim _tickGate = new(1, 1);
     private CancellationTokenSource? _runCancellation;
+    private string? _lastSnapshotFingerprint;
+    private int _stableSnapshotCount;
     public bool IsRunning => _runCancellation is { IsCancellationRequested: false };
 
     public Task StartAsync(CancellationToken cancellationToken = default)
@@ -735,6 +787,8 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
         _runCancellation?.Cancel();
         _runCancellation?.Dispose();
         _runCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        _lastSnapshotFingerprint = null;
+        _stableSnapshotCount = 0;
         return Task.CompletedTask;
     }
 
@@ -753,54 +807,36 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
         string raw = "";
         try
         {
-            var phaseCrop = await Task.Run(() => cropper.CropWithInfo(frame, SmartBpRecognitionRegion.PhaseTop), cancellationToken);
-            var phaseImage = await Task.Run(() => encoder.EncodeDataUrl(phaseCrop.Image, settings.Settings.MaxImageWidth), cancellationToken);
-            var phaseRaw = await client.RecognizePhaseAsync(phaseImage, cancellationToken);
-            raw = "Phase raw:\n" + phaseRaw;
-            var phase = await Task.Run(() => SmartBpAutomaticParser.ParsePhase(phaseRaw), cancellationToken);
-            var state = SmartBpAutomaticParser.ToBusinessState(phase, null);
+            var regionSnapshot = await snapshotRecognition.RecognizeSnapshotAsync(
+                frame,
+                SmartBpRegionSnapshotRecognitionMode.FullAllRegions,
+                cancellationToken);
+            raw = string.Join("\n\n", regionSnapshot.RawResponses.Select(item => $"{item.Key} raw:\n{item.Value}"));
+            var state = regionSnapshot.BusinessState;
             SmartBpGuidanceSyncResult? sync = settings.Settings.EnableAutoGuidanceSync
                 ? await guidanceSync.SyncAsync(state, cancellationToken)
                 : new(false, false, "Automatic GameGuidance synchronization is disabled.", null, [], null);
-            var snapshot = guidance.GetRuntimeSnapshot();
-            if (state.Phase == "天赋已锁定")
-            {
-                var message = "Detected phase is a talent/lock phase (天赋已锁定); no character operation is generated.";
-                return new(state, phase, null, phaseCrop, null, sync, snapshot, [], [message], new(0, 0, [message]), raw, null);
-            }
-            if (!SmartBpAutomaticMapping.TryMapPhase(state.Phase, out var detectedAction))
-                return new(state, phase, null, phaseCrop, null, sync, snapshot, [], [$"Detected phase {state.Phase} does not map to a BP character operation."], null, raw, null);
-            if (!SmartBpAutomaticMapping.IsCharacterOperationAction(detectedAction))
-            {
-                var message = $"Detected phase is a talent/lock phase ({state.Phase}); no character operation is generated.";
-                return new(state, phase, null, phaseCrop, null, sync, snapshot, [], [message], new(0, 0, [message]), raw, null);
-            }
-            var currentAction = snapshot.CurrentAction;
-            var hasGuidanceAction = snapshot.IsStarted && currentAction.HasValue;
-            if (hasGuidanceAction && detectedAction != currentAction!.Value)
-                return new(state, phase, null, phaseCrop, null, sync, snapshot, [], [$"Skipped: current GameGuidance action mismatch. Detected phase {state.Phase} maps to {detectedAction}, current action is {currentAction.Value}."], null, raw, null);
-
-            var (region, targetField) = SmartBpAutomaticMapping.GetFocusedTarget(detectedAction);
-            var focusedCrop = await Task.Run(() => cropper.CropWithInfo(frame, region), cancellationToken);
-            var focusedImage = await Task.Run(() => encoder.EncodeDataUrl(focusedCrop.Image, settings.Settings.MaxImageWidth), cancellationToken);
-            var focusedRaw = await client.RecognizeFocusedBusinessAsync(focusedImage, detectedAction, cancellationToken);
-            raw = $"Phase raw:\n{phaseRaw}\n\nFocused raw:\n{focusedRaw}";
-            var focused = await Task.Run(() => SmartBpAutomaticParser.ParseFocusedBusiness(focusedRaw, detectedAction, shared.SurCharaDict.Keys.ToArray(), shared.HunCharaDict.Keys.ToArray()), cancellationToken);
-            state = SmartBpAutomaticParser.ToBusinessState(phase, focused);
-            IReadOnlyList<int> indexes = hasGuidanceAction ? snapshot.CurrentIndexes : Array.Empty<int>();
-            var build = candidateBuilder.BuildWithDiagnostics(focused, detectedAction, indexes);
-            var cropMessages = new List<string>
-            {
-                $"Phase crop: {phaseCrop.Region}, pixel rect = {phaseCrop.PixelRectText}",
-                $"Detected phase: {phase.Phase}",
-                $"Focused crop: {focusedCrop.Region}, pixel rect = {focusedCrop.PixelRectText}",
-                $"Focused target field: {targetField}"
-            };
-            cropMessages.AddRange(build.Messages);
-            SmartBpOperationApplyResult applyResult = settings.Settings.EnableAutoApplyRecognition
-                ? await applier.ApplyAsync(build.Operations, cancellationToken)
-                : new(0, build.Operations.Count, build.Operations.Count == 0 ? ["Skipped: auto apply disabled; no candidate operations were generated."] : build.Operations.Select(x => $"Skipped: auto apply disabled for {x.Kind} {x.Camp}[{x.SlotIndex}] {x.RawCharacterName ?? "null"}.").ToArray());
-            return new(state, phase, focused, phaseCrop, focusedCrop, sync, snapshot, build.Operations, cropMessages, applyResult, raw, null);
+            var guidanceSnapshot = guidance.GetRuntimeSnapshot();
+            var plan = backfill.BuildPlan(state, guidanceSnapshot);
+            var operations = plan.StepCandidates.SelectMany(item => item.Operations).ToArray();
+            var messages = new List<string>(regionSnapshot.Diagnostics);
+            messages.AddRange(plan.Diagnostics);
+            messages.AddRange(plan.StepCandidates.Select(item => $"Step {item.StepIndex} {item.Action} [{string.Join(",", item.Indexes)}]: {item.Reason} Candidates={item.Operations.Count}."));
+            var fingerprint = JsonSerializer.Serialize(state);
+            _stableSnapshotCount = string.Equals(_lastSnapshotFingerprint, fingerprint, StringComparison.Ordinal)
+                ? _stableSnapshotCount + 1
+                : 1;
+            _lastSnapshotFingerprint = fingerprint;
+            var requiredStable = Math.Max(1, settings.Settings.RequiredStableSnapshots);
+            SmartBpOperationApplyResult applyResult = settings.Settings.EnableAutoApplyRecognition && _stableSnapshotCount >= requiredStable
+                ? await applier.ApplyAsync(operations, cancellationToken)
+                : settings.Settings.EnableAutoApplyRecognition
+                    ? new(0, operations.Length, [$"Skipped: waiting for stable BP snapshots ({_stableSnapshotCount}/{requiredStable})."])
+                    : new(0, operations.Length, operations.Length == 0
+                    ? ["Skipped: auto apply disabled; no candidate operations were generated."]
+                    : operations.Select(x => $"Skipped: auto apply disabled for step {x.SourceWorkflowStepIndex} {x.Kind} {x.Camp}[{x.SlotIndex}] {x.RawCharacterName ?? "null"}.").ToArray());
+            return new(state, regionSnapshot.Phase, null, regionSnapshot.PhaseCrop, null, sync, guidanceSnapshot,
+                operations, messages, applyResult, raw, null, regionSnapshot, plan, regionSnapshot.ContentCrops);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {

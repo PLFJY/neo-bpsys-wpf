@@ -4744,4 +4744,7 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="SmartBpAiRegionRightTop" xml:space="preserve"><value>Upper right: ban survivors</value></data>
   <data name="SmartBpAiRegionLeftBottom" xml:space="preserve"><value>Lower left: survivor pick and assignment</value></data>
   <data name="SmartBpAiRegionRightBottom" xml:space="preserve"><value>Lower right: hunter pick</value></data>
+  <data name="SmartBpAiPlayBackfillAnimations" xml:space="preserve"><value>Play animations when backfilling previous steps</value></data>
+  <data name="SmartBpAiResetLedger" xml:space="preserve"><value>Reset SmartBP AI recognition ledger</value></data>
+  <data name="SmartBpAiLedgerResetCompleted" xml:space="preserve"><value>The SmartBP AI recognition ledger was reset for the current game.</value></data>
 </root>
