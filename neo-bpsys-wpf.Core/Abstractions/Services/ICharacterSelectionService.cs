@@ -51,7 +51,7 @@ public interface ICharacterSelectionService
     /// </summary>
     [FrontedBehaviorEvent("Selection.CharacterSelected", DisplayNameKey = "Designer.Behaviors.Event.CharacterSelected", DescriptionKey = "Designer.Behaviors.Event.CharacterSelected.Description", Category = "Game", CategoryKey = "Designer.Behaviors.Category.Game")]
     [FrontedBehaviorEventPayload("Event.Camp", DisplayNameKey = "Designer.Behaviors.Payload.Camp", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(CharacterSelectedEventArgs.Camp), TypeName = "Camp")]
-    [FrontedBehaviorEventPayload("Event.PlayerIndex", DisplayNameKey = "Designer.Behaviors.Payload.PlayerIndex", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(CharacterSelectedEventArgs.PlayerIndex), TypeName = "int")]
+    [FrontedBehaviorEventPayload("Event.Index", DisplayNameKey = "Designer.Behaviors.Payload.Index", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(CharacterSelectedEventArgs.PlayerIndex), TypeName = "int")]
     event EventHandler<CharacterSelectedEventArgs> CharacterSelected;
 
     /// <summary>
@@ -59,6 +59,6 @@ public interface ICharacterSelectionService
     /// </summary>
     [FrontedBehaviorEvent("Selection.CharacterBanned", DisplayNameKey = "Designer.Behaviors.Event.CharacterBanned", DescriptionKey = "Designer.Behaviors.Event.CharacterBanned.Description", Category = "Game", CategoryKey = "Designer.Behaviors.Category.Game")]
     [FrontedBehaviorEventPayload("Event.Camp", DisplayNameKey = "Designer.Behaviors.Payload.Camp", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(CharacterBannedEventArgs.Camp), TypeName = "Camp")]
-    [FrontedBehaviorEventPayload("Event.PlayerIndex", DisplayNameKey = "Designer.Behaviors.Payload.PlayerIndex", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(CharacterBannedEventArgs.PlayerIndex), TypeName = "int")]
+    [FrontedBehaviorEventPayload("Event.Index", DisplayNameKey = "Designer.Behaviors.Payload.Index", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(CharacterBannedEventArgs.Index), TypeName = "int")]
     event EventHandler<CharacterBannedEventArgs> CharacterBanned;
 }

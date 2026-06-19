@@ -84,6 +84,13 @@ public partial class BanHunPageViewModel : ViewModelBase
             _characterSelectionService = characterSelectionService;
             IsEnabled = sharedDataService.CanCurrentHunBannedList[index];
             SharedDataService.BanCountChanged += OnBanCountChanged;
+            _characterSelectionService.CharacterBanned += (sender, e) =>
+            {
+                if (e.Camp == Camp.Hun && e.Index == index)
+                {
+                    SyncCharaFromSourceAsync();
+                }
+            };
         }
 
         private void OnBanCountChanged(object? sender, BanCountChangedEventArgs e)
