@@ -4727,4 +4727,21 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="SmartBpAiStageDetectionResult" xml:space="preserve"><value>BP business-state snapshot</value></data>
   <data name="SmartBpAiGuidanceSnapshot" xml:space="preserve"><value>Current GameGuidance snapshot</value></data>
   <data name="SmartBpAiCandidateOperations" xml:space="preserve"><value>Candidate character operations</value></data>
+  <data name="SmartBpAiCropDebug" xml:space="preserve"><value>Crop debug preview</value></data>
+  <data name="SmartBpAiPhaseCropPreview" xml:space="preserve"><value>Phase crop preview</value></data>
+  <data name="SmartBpAiFocusedCropPreview" xml:space="preserve"><value>Focused crop preview</value></data>
+  <data name="SmartBpAiRegionEditor" xml:space="preserve"><value>SmartBP AI recognition coarse region editor</value></data>
+  <data name="SmartBpAiRegionWidth" xml:space="preserve"><value>Width</value></data>
+  <data name="SmartBpAiRegionHeight" xml:space="preserve"><value>Height</value></data>
+  <data name="SmartBpAiSaveRegionProfile" xml:space="preserve"><value>Save region profile</value></data>
+  <data name="SmartBpAiResetRegionProfile" xml:space="preserve"><value>Reset default regions</value></data>
+  <data name="SmartBpAiOpenVisualRegionEditor" xml:space="preserve"><value>Edit recognition regions visually</value></data>
+  <data name="SmartBpAiRegionEditorRequireFrame" xml:space="preserve"><value>Start window capture or select a built-in test frame first.</value></data>
+  <data name="SmartBpAiRegionProfileSaved" xml:space="preserve"><value>The SmartBP AI recognition region profile was saved.</value></data>
+  <data name="SmartBpAiRegionProfileReset" xml:space="preserve"><value>The SmartBP AI recognition regions were reset to the bundled defaults.</value></data>
+  <data name="SmartBpAiRegionPhaseTop" xml:space="preserve"><value>Top phase recognition area</value></data>
+  <data name="SmartBpAiRegionLeftTop" xml:space="preserve"><value>Upper left: ban hunters</value></data>
+  <data name="SmartBpAiRegionRightTop" xml:space="preserve"><value>Upper right: ban survivors</value></data>
+  <data name="SmartBpAiRegionLeftBottom" xml:space="preserve"><value>Lower left: survivor pick and assignment</value></data>
+  <data name="SmartBpAiRegionRightBottom" xml:space="preserve"><value>Lower right: hunter pick</value></data>
 </root>

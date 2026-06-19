@@ -1,5 +1,6 @@
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using System.Security.Cryptography;
 using System.Net.Http;
@@ -422,6 +423,36 @@ public sealed class SmartBpModuleManager
 
                 _logger.LogDebug("Loading SmartBP module dependency from module root: {Candidate}", candidate);
                 return loadContext.LoadFromAssemblyPath(candidate);
+            };
+            loadContext.ResolvingUnmanagedDll += (_, libraryName) =>
+            {
+                var candidate = FindModuleUnmanagedLibraryPath(moduleRoot, libraryName);
+                if (candidate == null)
+                {
+                    _logger.LogWarning(
+                        "SmartBP module native dependency was not found. LibraryName={LibraryName}, ModuleRoot={ModuleRoot}",
+                        libraryName,
+                        moduleRoot);
+                    return IntPtr.Zero;
+                }
+
+                try
+                {
+                    _logger.LogDebug(
+                        "Loading SmartBP module native dependency. LibraryName={LibraryName}, Candidate={Candidate}",
+                        libraryName,
+                        candidate);
+                    return NativeLibrary.Load(candidate);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(
+                        ex,
+                        "Failed to load SmartBP module native dependency. LibraryName={LibraryName}, Candidate={Candidate}",
+                        libraryName,
+                        candidate);
+                    return IntPtr.Zero;
+                }
             };
             _logger.LogInformation("Loading SmartBP module entry assembly: {EntryAssembly}", entryAssembly);
             var assembly = loadContext.LoadFromAssemblyPath(entryAssembly);
@@ -1362,6 +1393,25 @@ public sealed class SmartBpModuleManager
         }
 
         return string.Join(" | ", messages.Distinct(StringComparer.Ordinal));
+    }
+
+    internal static string? FindModuleUnmanagedLibraryPath(string moduleRoot, string libraryName)
+    {
+        if (string.IsNullOrWhiteSpace(moduleRoot) || string.IsNullOrWhiteSpace(libraryName))
+            return null;
+
+        var safeLibraryName = Path.GetFileName(libraryName);
+        if (!string.Equals(safeLibraryName, libraryName, StringComparison.Ordinal))
+            return null;
+
+        var fileName = Path.HasExtension(safeLibraryName) ? safeLibraryName : $"{safeLibraryName}.dll";
+        var candidates = new[]
+        {
+            Path.Combine(moduleRoot, "runtimes", SmartBpModuleConstants.Rid, "native", fileName),
+            Path.Combine(moduleRoot, fileName)
+        };
+
+        return candidates.FirstOrDefault(File.Exists);
     }
 
 }

@@ -491,6 +491,30 @@
                 <TextBox MinHeight="55" AcceptsReturn="True" IsReadOnly="True" Text="{Binding AiGuidanceSnapshot}" TextWrapping="Wrap" />
                 <TextBlock Margin="0,8,0,2" FontWeight="SemiBold" Text="{lex:Loc SmartBpAiCandidateOperations}" />
                 <TextBox MinHeight="80" AcceptsReturn="True" IsReadOnly="True" Text="{Binding AiCandidateOperations}" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
+                <Expander Margin="0,8,0,0" Header="{lex:Loc SmartBpAiCropDebug}">
+                    <StackPanel>
+                        <TextBox MinHeight="60" AcceptsReturn="True" IsReadOnly="True" Text="{Binding AiCropDebugInfo}" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
+                        <TextBlock Margin="0,8,0,2" FontWeight="SemiBold" Text="{lex:Loc SmartBpAiRegionEditor}" />
+                        <WrapPanel>
+                            <ui:Button Margin="0,0,8,8" Command="{Binding OpenAiRecognitionRegionEditorCommand}" Content="{lex:Loc SmartBpAiOpenVisualRegionEditor}" Icon="{ui:SymbolIcon Symbol=Edit24}" />
+                            <ui:Button Margin="0,0,8,8" Command="{Binding ResetAiRecognitionLayoutProfileCommand}" Content="{lex:Loc SmartBpAiResetRegionProfile}" Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
+                        </WrapPanel>
+                        <UniformGrid Margin="0,8,0,0" Columns="2">
+                            <StackPanel Margin="0,0,8,0">
+                                <TextBlock FontWeight="SemiBold" Text="{lex:Loc SmartBpAiPhaseCropPreview}" />
+                                <Border MinHeight="120" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1">
+                                    <Image MaxHeight="220" Source="{Binding AiPhaseCropPreview}" Stretch="Uniform" />
+                                </Border>
+                            </StackPanel>
+                            <StackPanel Margin="8,0,0,0">
+                                <TextBlock FontWeight="SemiBold" Text="{lex:Loc SmartBpAiFocusedCropPreview}" />
+                                <Border MinHeight="120" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1">
+                                    <Image MaxHeight="220" Source="{Binding AiFocusedCropPreview}" Stretch="Uniform" />
+                                </Border>
+                            </StackPanel>
+                        </UniformGrid>
+                    </StackPanel>
+                </Expander>
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="{lex:Loc SmartBpAiElapsed}" />
                     <TextBlock Margin="4,0,0,0" Text="{Binding AiElapsedMilliseconds, StringFormat={}{0} ms}" />

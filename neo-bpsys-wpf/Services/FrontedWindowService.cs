@@ -303,6 +303,7 @@ public class FrontedWindowService : IFrontedWindowService
 
         if (FrontedWindowStates.GetValueOrDefault(windowId))
         {
+            window.Show();
             window.Activate();
             return;
         }

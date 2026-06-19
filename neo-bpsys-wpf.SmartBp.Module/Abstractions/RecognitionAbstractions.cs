@@ -85,11 +85,33 @@ public interface ILlamaCppServerManager
 /// <summary>Encodes WPF frames for multimodal requests.</summary>
 public interface ISmartBpImageEncoder { /// <summary>Encodes a PNG data URL.</summary>
     string EncodeDataUrl(BitmapSource source, int maxWidth); }
+/// <summary>Loads and persists SmartBP coarse recognition crop layout profiles.</summary>
+public interface ISmartBpRecognitionRegionProfileService
+{
+    /// <summary>Loads the user override profile, or the bundled default profile when no override exists.</summary>
+    Task<SmartBpRecognitionLayoutProfile> LoadAsync(CancellationToken cancellationToken = default);
+    /// <summary>Saves a user override profile.</summary>
+    Task SaveUserOverrideAsync(SmartBpRecognitionLayoutProfile profile, CancellationToken cancellationToken = default);
+    /// <summary>Deletes the user override so the bundled default profile is used again.</summary>
+    Task ResetUserOverrideAsync(CancellationToken cancellationToken = default);
+}
+/// <summary>Crops SmartBP recognition frames into coarse BP regions.</summary>
+public interface ISmartBpRecognitionFrameCropper
+{
+    /// <summary>Crops a frame to the requested coarse region and returns diagnostics.</summary>
+    SmartBpCroppedFrame CropWithInfo(BitmapSource source, SmartBpRecognitionRegion region);
+    /// <summary>Crops a frame to the requested coarse region.</summary>
+    BitmapSource Crop(BitmapSource source, SmartBpRecognitionRegion region);
+}
 /// <summary>Sends independent OpenAI-compatible requests.</summary>
 public interface ILlamaCppOpenAiClient
 {
     /// <summary>Recognizes one image using the manual generic schema.</summary>
     Task<string> RecognizeAsync(string imageDataUrl, SmartBpRecognitionTask task, CancellationToken cancellationToken = default);
+    /// <summary>Recognizes the BP phase from a top-operation crop.</summary>
+    Task<string> RecognizePhaseAsync(string imageDataUrl, CancellationToken cancellationToken = default);
+    /// <summary>Extracts business content from a focused coarse-region crop.</summary>
+    Task<string> RecognizeFocusedBusinessAsync(string imageDataUrl, Core.Enums.GameAction action, CancellationToken cancellationToken = default);
     /// <summary>Detects the active BP stage without extracting characters.</summary>
     Task<string> DetectStageAsync(string imageDataUrl, CancellationToken cancellationToken = default);
     /// <summary>Extracts the operation for a locally selected guidance step.</summary>

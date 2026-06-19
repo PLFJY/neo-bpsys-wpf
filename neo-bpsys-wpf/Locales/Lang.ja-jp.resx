@@ -4582,4 +4582,13 @@
   <data name="Designer.Behaviors.Payload.SourceBehaviorGuid.Description" xml:space="preserve"><value>交換元コントロールの安定した動作 ID です。</value></data>
   <data name="Designer.Graph.Condition.If" xml:space="preserve"><value>もし</value></data>
   <data name="Designer.Graph.Preview.MissingEventContext" xml:space="preserve"><value>現在のプレビューにはイベントコンテキストがないため、{0} を解決できません。</value></data>
+  <data name="SmartBpAiOpenVisualRegionEditor" xml:space="preserve"><value>認識領域を視覚的に編集</value></data>
+  <data name="SmartBpAiRegionEditorRequireFrame" xml:space="preserve"><value>ウィンドウキャプチャを開始するか、組み込みテスト画像を選択してください。</value></data>
+  <data name="SmartBpAiRegionProfileSaved" xml:space="preserve"><value>SmartBP AI 認識領域設定を保存しました。</value></data>
+  <data name="SmartBpAiRegionProfileReset" xml:space="preserve"><value>SmartBP AI 認識領域を組み込みの既定値に戻しました。</value></data>
+  <data name="SmartBpAiRegionPhaseTop" xml:space="preserve"><value>上部フェーズ認識領域</value></data>
+  <data name="SmartBpAiRegionLeftTop" xml:space="preserve"><value>左上：ハンターBAN</value></data>
+  <data name="SmartBpAiRegionRightTop" xml:space="preserve"><value>右上：サバイバーBAN</value></data>
+  <data name="SmartBpAiRegionLeftBottom" xml:space="preserve"><value>左下：サバイバー選択・割り当て</value></data>
+  <data name="SmartBpAiRegionRightBottom" xml:space="preserve"><value>右下：ハンター選択</value></data>
 </root>

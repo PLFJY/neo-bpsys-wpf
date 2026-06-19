@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "idv-default-16x9",
+  "baseAspectRatio": "16:9",
+  "regions": {
+    "phase_top": {
+      "x": 0.0,
+      "y": 0.0,
+      "width": 1.0,
+      "height": 0.46
+    },
+    "left_top": {
+      "x": 0.0,
+      "y": 0.0,
+      "width": 0.5,
+      "height": 0.46
+    },
+    "right_top": {
+      "x": 0.5,
+      "y": 0.0,
+      "width": 0.5,
+      "height": 0.46
+    },
+    "left_bottom": {
+      "x": 0.0,
+      "y": 0.38,
+      "width": 0.5,
+      "height": 0.62
+    },
+    "right_bottom": {
+      "x": 0.5,
+      "y": 0.38,
+      "width": 0.5,
+      "height": 0.62
+    }
+  }
+}

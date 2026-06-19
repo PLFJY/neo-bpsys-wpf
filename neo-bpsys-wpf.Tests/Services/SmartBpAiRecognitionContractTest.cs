@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -39,6 +40,9 @@ using SmartBpCandidateOperationBuilder = smartbp::neo_bpsys_wpf.SmartBp.Module.S
 using SmartBpDetectedOperationApplier = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpDetectedOperationApplier;
 using SmartBpDetectedOperation = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpDetectedOperation;
 using SmartBpDetectedOperationKind = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpDetectedOperationKind;
+using SmartBpRecognitionLayoutProfile = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionLayoutProfile;
+using SmartBpRecognitionRegionRect = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionRegionRect;
+using SmartBpRecognitionRegion = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionRegion;
 
 namespace neo_bpsys_wpf.Tests.Services;
 
@@ -222,6 +226,86 @@ public sealed class SmartBpAiRecognitionContractTest
         Assert.Equal(["厂长", "梦之女巫", "未选择"], CharacterNameEnum(schema, "banned_hun", isArray: true));
         Assert.Equal(["厂长", "梦之女巫", "未选择"], CharacterNameEnum(schema, "picked_hun", isArray: false));
         Assert.DoesNotContain("任意角色", schema.ToJsonString());
+    }
+
+    [Fact]
+    public void BundledBpRecognitionLayoutProfileContainsCoarseRegions()
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, "Resources", "SmartBp", "BpRecognitionLayoutProfile.json");
+        var profile = JsonSerializer.Deserialize<SmartBpRecognitionLayoutProfile>(File.ReadAllText(path), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+        Assert.NotNull(profile);
+        Assert.Contains("phase_top", profile!.Regions.Keys);
+        Assert.Contains("left_top", profile.Regions.Keys);
+        Assert.Contains("right_top", profile.Regions.Keys);
+        Assert.Contains("left_bottom", profile.Regions.Keys);
+        Assert.Contains("right_bottom", profile.Regions.Keys);
+        Assert.All(profile.Regions.Values, rect =>
+        {
+            Assert.InRange(rect.X, 0, 1);
+            Assert.InRange(rect.Y, 0, 1);
+            Assert.InRange(rect.Width, double.Epsilon, 1);
+            Assert.InRange(rect.Height, double.Epsilon, 1);
+            Assert.InRange(rect.X + rect.Width, 0, 1);
+            Assert.InRange(rect.Y + rect.Height, 0, 1);
+        });
+        Assert.False(Overlaps(profile.Regions["right_top"], profile.Regions["left_bottom"]));
+        Assert.False(Overlaps(profile.Regions["left_top"], profile.Regions["right_bottom"]));
+    }
+
+    [Theory]
+    [InlineData("屏蔽求生者", GameAction.BanSur, SmartBpRecognitionRegion.RightTop, "banned_sur")]
+    [InlineData("屏蔽监管者", GameAction.BanHun, SmartBpRecognitionRegion.LeftTop, "banned_hun")]
+    [InlineData("选择求生者", GameAction.PickSur, SmartBpRecognitionRegion.LeftBottom, "picked_sur")]
+    [InlineData("求生者选择角色中", GameAction.DistributeChara, SmartBpRecognitionRegion.LeftBottom, "picked_sur")]
+    [InlineData("选择监管者", GameAction.PickHun, SmartBpRecognitionRegion.RightBottom, "picked_hun")]
+    public void PhaseMapsToFocusedCropAndTargetField(string phase, GameAction action, SmartBpRecognitionRegion region, string targetField)
+    {
+        Assert.True(SmartBpAutomaticMapping.TryMapPhase(phase, out var mapped));
+        Assert.Equal(action, mapped);
+        var focused = SmartBpAutomaticMapping.GetFocusedTarget(mapped);
+        Assert.Equal(region, focused.Region);
+        Assert.Equal(targetField, focused.TargetField);
+    }
+
+    [Fact]
+    public void PhaseOnlySchemaOnlyAllowsPhaseRootField()
+    {
+        var schema = SmartBpRecognitionJsonSchemaProvider.GetPhaseOnly();
+        var properties = schema["properties"]!.AsObject();
+        Assert.Equal(["phase"], properties.Select(x => x.Key).ToArray());
+        Assert.Equal(false, schema["additionalProperties"]!.GetValue<bool>());
+    }
+
+    [Theory]
+    [InlineData(GameAction.BanSur, "banned_sur")]
+    [InlineData(GameAction.BanHun, "banned_hun")]
+    [InlineData(GameAction.PickSur, "picked_sur")]
+    [InlineData(GameAction.DistributeChara, "picked_sur")]
+    [InlineData(GameAction.PickHun, "picked_hun")]
+    public void FocusedBusinessSchemaUsesExpectedTargetField(GameAction action, string targetField)
+    {
+        var schema = SmartBpRecognitionJsonSchemaProvider.GetFocusedBusiness(action, ["心理学家", "小说家"], ["厂长", "梦之女巫"]);
+        Assert.Equal(false, schema["additionalProperties"]!.GetValue<bool>());
+        Assert.Equal(targetField, schema["properties"]!["target_field"]!["const"]!.GetValue<string>());
+        if (targetField == "picked_hun")
+            Assert.Contains("picked_hun", schema["properties"]!.AsObject().Select(x => x.Key));
+        else
+            Assert.Contains("slots", schema["properties"]!.AsObject().Select(x => x.Key));
+    }
+
+    [Fact]
+    public void FocusedBusinessParserRejectsExtraFieldsAndWrongTarget()
+    {
+        const string withExtra = """
+        {"phase":"屏蔽求生者","target_field":"banned_sur","slots":[{"index":0,"character_name":"小说家"},{"index":1,"character_name":"未选择"},{"index":2,"character_name":"未选择"},{"index":3,"character_name":"未选择"}],"warnings":[]}
+        """;
+        const string wrongTarget = """
+        {"phase":"屏蔽求生者","target_field":"picked_sur","slots":[{"index":0,"character_name":"小说家"},{"index":1,"character_name":"未选择"},{"index":2,"character_name":"未选择"},{"index":3,"character_name":"未选择"}]}
+        """;
+
+        Assert.ThrowsAny<Exception>(() => SmartBpAutomaticParser.ParseFocusedBusiness(withExtra, GameAction.BanSur, ["小说家"], ["厂长"]));
+        Assert.ThrowsAny<Exception>(() => SmartBpAutomaticParser.ParseFocusedBusiness(wrongTarget, GameAction.BanSur, ["小说家"], ["厂长"]));
     }
 
     [Fact]
@@ -457,6 +541,12 @@ public sealed class SmartBpAiRecognitionContractTest
 
         throw new DirectoryNotFoundException("Could not locate neo-bpsys-wpf repository root.");
     }
+
+    private static bool Overlaps(SmartBpRecognitionRegionRect left, SmartBpRecognitionRegionRect right) =>
+        left.X < right.X + right.Width &&
+        left.X + left.Width > right.X &&
+        left.Y < right.Y + right.Height &&
+        left.Y + left.Height > right.Y;
 
     private static string[] CharacterNameEnum(JsonObject schema, string propertyName, bool isArray)
     {

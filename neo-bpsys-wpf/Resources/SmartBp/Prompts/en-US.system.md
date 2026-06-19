@@ -125,3 +125,11 @@ banned_sur
 banned_hun
 picked_sur
 picked_hun
+
+Cropped input rules:
+- The app crops a coarse BP region before sending the image to you.
+- If the user prompt says the current image is the upper-right crop, only recognize the upper-right region.
+- If the user prompt says the current image is the upper-left crop, only recognize the upper-left region.
+- If the current image is the lower-left crop, do not output upper-right banned_sur content.
+- If the current image is the lower-right crop, do not output lower-left picked_sur content.
+- Do not infer content from areas outside the crop.

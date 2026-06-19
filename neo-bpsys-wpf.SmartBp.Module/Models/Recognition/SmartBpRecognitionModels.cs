@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using System.Windows.Media.Imaging;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models;
 
@@ -6,6 +7,55 @@ namespace neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
 
 /// <summary>Supported AI recognition tasks.</summary>
 public enum SmartBpRecognitionTask { DetectStage, BanSur, BanHun, PickSur, PickHun, CharacterDistribution, FullBpScan }
+
+/// <summary>Coarse SmartBP recognition crop regions.</summary>
+public enum SmartBpRecognitionRegion { PhaseTop, LeftTop, RightTop, LeftBottom, RightBottom }
+
+/// <summary>Normalized recognition crop rectangle.</summary>
+public sealed class SmartBpRecognitionRegionRect
+{
+    /// <summary>Gets or sets normalized left coordinate.</summary>
+    public double X { get; set; }
+    /// <summary>Gets or sets normalized top coordinate.</summary>
+    public double Y { get; set; }
+    /// <summary>Gets or sets normalized width.</summary>
+    public double Width { get; set; }
+    /// <summary>Gets or sets normalized height.</summary>
+    public double Height { get; set; }
+}
+
+/// <summary>SmartBP coarse recognition layout profile.</summary>
+public sealed class SmartBpRecognitionLayoutProfile
+{
+    /// <summary>Gets or sets schema version.</summary>
+    public int SchemaVersion { get; set; } = 1;
+    /// <summary>Gets or sets profile id.</summary>
+    public string Id { get; set; } = "idv-default-16x9";
+    /// <summary>Gets or sets base aspect ratio label.</summary>
+    public string BaseAspectRatio { get; set; } = "16:9";
+    /// <summary>Gets or sets normalized regions by json id.</summary>
+    public Dictionary<string, SmartBpRecognitionRegionRect> Regions { get; set; } = [];
+}
+
+/// <summary>One cropped recognition frame with diagnostics.</summary>
+public sealed record SmartBpCroppedFrame(
+    SmartBpRecognitionRegion Region,
+    BitmapSource Image,
+    int X,
+    int Y,
+    int Width,
+    int Height)
+{
+    /// <summary>Gets a compact pixel rectangle description.</summary>
+    public string PixelRectText => $"x={X}, y={Y}, width={Width}, height={Height}";
+}
+
+/// <summary>Phase-only model output for region-gated recognition.</summary>
+public sealed class SmartBpPhaseRecognitionResult
+{
+    /// <summary>Gets or sets the detected Chinese BP phase.</summary>
+    [JsonPropertyName("phase")] public string Phase { get; set; } = "未知";
+}
 
 /// <summary>Qwen manifest root.</summary>
 public sealed class QwenModelManifest
@@ -123,6 +173,19 @@ public sealed class SmartBpRecognizedPlayerCharacterSlot : SmartBpRecognizedChar
     [JsonPropertyName("player_id")] public string? PlayerId { get; set; }
 }
 
+/// <summary>Focused model output for one cropped business region.</summary>
+public sealed class SmartBpFocusedBusinessExtractionResult
+{
+    /// <summary>Gets or sets the phase that selected this focused region.</summary>
+    [JsonPropertyName("phase")] public string Phase { get; set; } = "未知";
+    /// <summary>Gets or sets the target business field.</summary>
+    [JsonPropertyName("target_field")] public string TargetField { get; set; } = "";
+    /// <summary>Gets or sets focused slots for ban or survivor-pick regions.</summary>
+    [JsonPropertyName("slots")] public List<SmartBpRecognizedPlayerCharacterSlot> Slots { get; set; } = [];
+    /// <summary>Gets or sets the focused hunter pick slot.</summary>
+    [JsonPropertyName("picked_hun")] public SmartBpRecognizedPlayerCharacterSlot? PickedHun { get; set; }
+}
+
 /// <summary>Legacy model-facing BP stage detection result.</summary>
 public sealed class SmartBpStageDetectionResult
 {
@@ -191,6 +254,8 @@ public sealed record SmartBpOperationApplyResult(int AppliedCount, int SkippedCo
 
 /// <summary>One automatic recognition pipeline result.</summary>
 public sealed record SmartBpAutoRecognitionTickResult(SmartBpBusinessStateRecognitionResult? BusinessState,
+    SmartBpPhaseRecognitionResult? PhaseResult, SmartBpFocusedBusinessExtractionResult? FocusedResult,
+    SmartBpCroppedFrame? PhaseCrop, SmartBpCroppedFrame? FocusedCrop,
     SmartBpGuidanceSyncResult? GuidanceSync, GameGuidanceRuntimeSnapshot GuidanceSnapshot,
     IReadOnlyList<SmartBpDetectedOperation> Operations, IReadOnlyList<string> CandidateMessages,
     SmartBpOperationApplyResult? ApplyResult, string RawJson, string? Error);

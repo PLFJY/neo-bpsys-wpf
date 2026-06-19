@@ -1,11 +1,15 @@
 using System.Windows.Media.Imaging;
+using System.Windows;
 using System.IO;
 using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using neo_bpsys_wpf.Core;
+using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
 using neo_bpsys_wpf.SmartBp.Module.Services.Recognition;
+using neo_bpsys_wpf.Views.Windows;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -55,6 +59,10 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty] private string _aiStageDetectionResult = "-";
     [ObservableProperty] private string _aiGuidanceSnapshot = "-";
     [ObservableProperty] private string _aiCandidateOperations = "-";
+    [ObservableProperty] private BitmapSource? _aiPhaseCropPreview;
+    [ObservableProperty] private BitmapSource? _aiFocusedCropPreview;
+    [ObservableProperty] private string _aiCropDebugInfo = "-";
+    private SmartBpRecognitionLayoutProfile? _aiRegionProfile;
 
     private void InitializeAiRecognition()
     {
@@ -79,8 +87,114 @@ public partial class SmartBpModuleContentViewModel
             LlamaRuntimeDownloadStatus = ResolveLocalizedOrRaw(state.Status);
         });
         _ = InitializeAiOptionsAsync();
+        _ = LoadAiRegionProfileAsync();
         _ = RefreshQwenStatusAsync();
     }
+
+    private async Task LoadAiRegionProfileAsync()
+    {
+        try
+        {
+            _aiRegionProfile = await _aiRegionProfileService.LoadAsync();
+        }
+        catch (Exception ex) { AiLastError = ex.Message; }
+    }
+
+    [RelayCommand]
+    private async Task OpenAiRecognitionRegionEditorAsync()
+    {
+        try
+        {
+            _aiRegionProfile ??= await _aiRegionProfileService.LoadAsync();
+
+            var frame = _windowCaptureService.IsCapturing
+                ? _windowCaptureService.GetCurrentFrame()
+                : null;
+            if (frame == null && SelectedAiTestFrame != null)
+                frame = LoadTestFrame(SelectedAiTestFrame);
+            if (frame == null)
+            {
+                await MessageBoxHelper.ShowInfoAsync(ResolveLocalizedOrRaw("SmartBpAiRegionEditorRequireFrame"));
+                return;
+            }
+
+            var editor = new RegionEditorWindow(frame, BuildAiRegionEditorLayout(_aiRegionProfile))
+            {
+                Owner = Application.Current?.Windows.OfType<Window>().FirstOrDefault(window => window.IsActive)
+                        ?? Application.Current?.MainWindow
+            };
+            if (editor.ShowDialog() != true || editor.ResultLayout == null)
+                return;
+
+            ApplyAiRegionEditorLayout(_aiRegionProfile, editor.ResultLayout);
+            await _aiRegionProfileService.SaveUserOverrideAsync(_aiRegionProfile);
+            await LoadAiRegionProfileAsync();
+            AiCropDebugInfo = ResolveLocalizedOrRaw("SmartBpAiRegionProfileSaved");
+        }
+        catch (Exception ex) { AiLastError = ex.Message; }
+    }
+
+    [RelayCommand]
+    private async Task ResetAiRecognitionLayoutProfileAsync()
+    {
+        try
+        {
+            await _aiRegionProfileService.ResetUserOverrideAsync();
+            await LoadAiRegionProfileAsync();
+            AiCropDebugInfo = ResolveLocalizedOrRaw("SmartBpAiRegionProfileReset");
+        }
+        catch (Exception ex) { AiLastError = ex.Message; }
+    }
+
+    private RegionLayoutDefinition BuildAiRegionEditorLayout(SmartBpRecognitionLayoutProfile profile)
+    {
+        var layout = RegionLayoutDefinition.Builder(ResolveLocalizedOrRaw("SmartBpAiRegionEditor"));
+        foreach (var (id, labelKey) in AiRegionEditorNodes)
+        {
+            if (!profile.Regions.TryGetValue(id, out var rect))
+                throw new InvalidDataException($"Missing SmartBP AI recognition region: {id}.");
+
+            layout.AddNode(
+                id,
+                ResolveLocalizedOrRaw(labelKey),
+                new RegionNodeConfig
+                {
+                    Rect = new RelativeRect(rect.X * 100, rect.Y * 100, rect.Width * 100, rect.Height * 100),
+                    ClampToParent = false
+                });
+        }
+
+        return layout.Build();
+    }
+
+    private static void ApplyAiRegionEditorLayout(
+        SmartBpRecognitionLayoutProfile profile,
+        RegionLayoutDefinition editedLayout)
+    {
+        var nodes = editedLayout.Roots.ToDictionary(node => node.Id, StringComparer.Ordinal);
+        foreach (var (id, _) in AiRegionEditorNodes)
+        {
+            if (!nodes.TryGetValue(id, out var node))
+                throw new InvalidDataException($"Edited SmartBP AI recognition layout is missing region: {id}.");
+
+            profile.Regions[id] = new SmartBpRecognitionRegionRect
+            {
+                X = node.Rect.X / 100,
+                Y = node.Rect.Y / 100,
+                Width = node.Rect.W / 100,
+                Height = node.Rect.H / 100
+            };
+        }
+    }
+
+    private static readonly (string Id, string LabelKey)[] AiRegionEditorNodes =
+    [
+        ("phase_top", "SmartBpAiRegionPhaseTop"),
+        ("left_top", "SmartBpAiRegionLeftTop"),
+        ("right_top", "SmartBpAiRegionRightTop"),
+        ("left_bottom", "SmartBpAiRegionLeftBottom"),
+        ("right_bottom", "SmartBpAiRegionRightBottom")
+    ];
 
     private async Task InitializeAiOptionsAsync()
     {
@@ -125,26 +239,26 @@ public partial class SmartBpModuleContentViewModel
     [RelayCommand] private async Task RecognizeSelectedTestFrameAsync()
     {
         if (SelectedAiTestFrame == null) return;
-        try { var path = Path.Combine(AppConstants.ResourcesPath, "SmartBp", "TestFrames", SelectedAiTestFrame.FileName); var image = new BitmapImage(); image.BeginInit(); image.CacheOption = BitmapCacheOption.OnLoad; image.UriSource = new Uri(path); image.EndInit(); image.Freeze(); await RecognizeCoreAsync(image, SelectedAiTestFrame.Task); }
+        try { await RunRegionGatedFrameCoreAsync(LoadTestFrame(SelectedAiTestFrame)); }
         catch (Exception ex) { AiLastError = ex.Message; }
     }
     [RelayCommand] private Task RecognizeCurrentCaptureFrameAsync() => RecognizeCurrentFrameCoreAsync();
     [RelayCommand] private async Task DetectStageFromSelectedTestFrameAsync()
     {
         if (SelectedAiTestFrame == null) return;
-        try { await DetectStageCoreAsync(LoadTestFrame(SelectedAiTestFrame)); }
+        try { await RunRegionGatedFrameCoreAsync(LoadTestFrame(SelectedAiTestFrame)); }
         catch (Exception ex) { AiLastError = ex.Message; }
     }
     [RelayCommand] private async Task DetectStageFromCurrentCaptureFrameAsync()
     {
         var frame = _windowCaptureService.GetCurrentFrame();
         if (frame == null) { AiLastError = "No capture frame is available."; return; }
-        await DetectStageCoreAsync(frame);
+        await RunRegionGatedFrameCoreAsync(frame);
     }
     [RelayCommand] private Task RunAutomaticOneTickAsync() => RunAutomaticCurrentFrameCoreAsync();
     [RelayCommand] private async Task StartAiPreviewLoopAsync() { if (!_windowCaptureService.IsCapturing) { AiLastError = "Start capture before starting the recognition loop."; return; } await _autoRecognitionCoordinator.StartAsync(); IsAiPreviewLoopRunning = true; _aiPreviewTimer.Start(); }
     [RelayCommand] private async Task StopAiPreviewLoopAsync() { _aiPreviewTimer.Stop(); await _autoRecognitionCoordinator.StopAsync(); IsAiPreviewLoopRunning = false; }
-    private async Task RecognizeCurrentFrameCoreAsync() { var frame = _windowCaptureService.GetCurrentFrame(); if (frame == null) { AiLastError = "No capture frame is available."; return; } await RecognizeCoreAsync(frame, SmartBpRecognitionTask.FullBpScan); }
+    private async Task RecognizeCurrentFrameCoreAsync() { var frame = _windowCaptureService.GetCurrentFrame(); if (frame == null) { AiLastError = "No capture frame is available."; return; } await RunRegionGatedFrameCoreAsync(frame); }
 
     private async Task DetectStageCoreAsync(BitmapSource frame)
     {
@@ -173,15 +287,35 @@ public partial class SmartBpModuleContentViewModel
         try
         {
             var result = await _autoRecognitionCoordinator.RunOneTickAsync(frame);
-            AiRawResponse = result.RawJson;
-            AiStageDetectionResult = result.BusinessState == null ? "-" : FormatBusinessState(result.BusinessState);
-            AiGuidanceSnapshot = FormatGuidance(result.GuidanceSnapshot, result.GuidanceSync?.Reason);
-            AiCandidateOperations = FormatAutomaticOperations(result);
-            AiParsedVisualResult = AiStageDetectionResult;
-            AiNormalizedResult = AiCandidateOperations;
-            AiLastError = result.Error ?? "";
+            ApplyRegionGatedResult(result);
         }
         finally { IsAiRecognizing = false; Interlocked.Exchange(ref _recognitionBusy, 0); }
+    }
+
+    private async Task RunRegionGatedFrameCoreAsync(BitmapSource frame)
+    {
+        if (Interlocked.CompareExchange(ref _recognitionBusy, 1, 0) != 0) return;
+        IsAiRecognizing = true; AiLastError = "";
+        try
+        {
+            var result = await _autoRecognitionCoordinator.RunOneTickAsync(frame);
+            ApplyRegionGatedResult(result);
+        }
+        finally { IsAiRecognizing = false; Interlocked.Exchange(ref _recognitionBusy, 0); }
+    }
+
+    private void ApplyRegionGatedResult(SmartBpAutoRecognitionTickResult result)
+    {
+        AiRawResponse = result.RawJson;
+        AiStageDetectionResult = result.BusinessState == null ? "-" : FormatBusinessState(result.BusinessState);
+        AiGuidanceSnapshot = FormatGuidance(result.GuidanceSnapshot, result.GuidanceSync?.Reason);
+        AiCandidateOperations = FormatAutomaticOperations(result);
+        AiParsedVisualResult = AiStageDetectionResult;
+        AiNormalizedResult = AiCandidateOperations;
+        AiPhaseCropPreview = result.PhaseCrop?.Image;
+        AiFocusedCropPreview = result.FocusedCrop?.Image;
+        AiCropDebugInfo = FormatCropDebugInfo(result);
+        AiLastError = result.Error ?? "";
     }
 
     private static BitmapSource LoadTestFrame(SmartBpTestFrame frame)
@@ -225,6 +359,23 @@ public partial class SmartBpModuleContentViewModel
             foreach (var message in result.ApplyResult.Messages) builder.AppendLine(message);
         }
         return builder.ToString().TrimEnd();
+    }
+
+    private static string FormatCropDebugInfo(SmartBpAutoRecognitionTickResult result)
+    {
+        var builder = new System.Text.StringBuilder();
+        if (result.PhaseCrop != null) builder.AppendLine($"Phase crop: {result.PhaseCrop.Region}, pixel rect = {result.PhaseCrop.PixelRectText}");
+        if (result.PhaseResult != null) builder.AppendLine($"Detected phase: {result.PhaseResult.Phase}");
+        if (result.FocusedCrop != null) builder.AppendLine($"Focused crop: {result.FocusedCrop.Region}, pixel rect = {result.FocusedCrop.PixelRectText}");
+        if (result.FocusedResult != null)
+        {
+            builder.AppendLine($"Focused target field: {result.FocusedResult.TargetField}");
+            if (result.FocusedResult.TargetField == "picked_hun" && result.FocusedResult.PickedHun != null)
+                builder.AppendLine($"[0] {result.FocusedResult.PickedHun.CharacterName} / {result.FocusedResult.PickedHun.PlayerId ?? "null"}");
+            foreach (var slot in result.FocusedResult.Slots)
+                builder.AppendLine($"[{slot.Index}] {slot.CharacterName} / {slot.PlayerId ?? "null"}");
+        }
+        return builder.Length == 0 ? "-" : builder.ToString().TrimEnd();
     }
 
     private static string FormatFocused(SmartBpFocusedExtractionResult value) =>

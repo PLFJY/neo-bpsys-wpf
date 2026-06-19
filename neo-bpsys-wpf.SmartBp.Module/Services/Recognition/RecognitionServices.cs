@@ -10,7 +10,10 @@ using System.Text.RegularExpressions;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Microsoft.Extensions.Logging;
+using OpenCvSharp;
+using OpenCvSharp.WpfExtensions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.SmartBp.Module.Abstractions;
 using neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
@@ -31,6 +34,85 @@ internal sealed class SmartBpImageEncoder : ISmartBpImageEncoder
         using var stream = new MemoryStream(); encoder.Save(stream);
         return "data:image/png;base64," + Convert.ToBase64String(stream.ToArray());
     }
+}
+
+internal sealed class SmartBpRecognitionRegionProfileService : ISmartBpRecognitionRegionProfileService
+{
+    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true, WriteIndented = true };
+    private static string BundledPath => Path.Combine(AppConstants.ResourcesPath, "SmartBp", "BpRecognitionLayoutProfile.json");
+    private static string UserPath => Path.Combine(AppConstants.AppDataPath, "SmartBp", "BpRecognitionLayoutProfile.json");
+
+    public async Task<SmartBpRecognitionLayoutProfile> LoadAsync(CancellationToken cancellationToken = default)
+    {
+        var path = File.Exists(UserPath) ? UserPath : BundledPath;
+        await using var stream = File.OpenRead(path);
+        var profile = await JsonSerializer.DeserializeAsync<SmartBpRecognitionLayoutProfile>(stream, JsonOptions, cancellationToken)
+            ?? throw new InvalidDataException("SmartBP recognition layout profile is empty.");
+        Validate(profile);
+        return profile;
+    }
+
+    public async Task SaveUserOverrideAsync(SmartBpRecognitionLayoutProfile profile, CancellationToken cancellationToken = default)
+    {
+        Validate(profile);
+        Directory.CreateDirectory(Path.GetDirectoryName(UserPath)!);
+        await using var stream = File.Create(UserPath);
+        await JsonSerializer.SerializeAsync(stream, profile, JsonOptions, cancellationToken);
+    }
+
+    public Task ResetUserOverrideAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (File.Exists(UserPath)) File.Delete(UserPath);
+        return Task.CompletedTask;
+    }
+
+    private static void Validate(SmartBpRecognitionLayoutProfile profile)
+    {
+        if (profile.SchemaVersion != 1) throw new InvalidDataException("Unsupported SmartBP recognition layout profile schema.");
+        foreach (var key in new[] { "phase_top", "left_top", "right_top", "left_bottom", "right_bottom" })
+        {
+            if (!profile.Regions.TryGetValue(key, out var rect)) throw new InvalidDataException($"Missing SmartBP recognition region: {key}.");
+            if (rect.X < 0 || rect.Y < 0 || rect.Width <= 0 || rect.Height <= 0 || rect.X + rect.Width > 1.0001 || rect.Y + rect.Height > 1.0001)
+                throw new InvalidDataException($"SmartBP recognition region {key} is outside normalized bounds.");
+        }
+    }
+}
+
+internal sealed class SmartBpRecognitionFrameCropper(ISmartBpRecognitionRegionProfileService profileService) : ISmartBpRecognitionFrameCropper
+{
+    public BitmapSource Crop(BitmapSource source, SmartBpRecognitionRegion region) => CropWithInfo(source, region).Image;
+
+    public SmartBpCroppedFrame CropWithInfo(BitmapSource source, SmartBpRecognitionRegion region)
+    {
+        var profile = profileService.LoadAsync().GetAwaiter().GetResult();
+        var rect = profile.Regions[ToProfileKey(region)];
+        using var sourceMat = BitmapSourceConverter.ToMat(source);
+        var roi = ToPixelRect(rect, sourceMat.Width, sourceMat.Height);
+        using var cropped = new Mat(sourceMat, roi).Clone();
+        var image = BitmapSourceConverter.ToBitmapSource(cropped);
+        image.Freeze();
+        return new(region, image, roi.X, roi.Y, roi.Width, roi.Height);
+    }
+
+    private static Rect ToPixelRect(SmartBpRecognitionRegionRect rect, int width, int height)
+    {
+        var x = Math.Clamp((int)Math.Floor(rect.X * width), 0, Math.Max(0, width - 1));
+        var y = Math.Clamp((int)Math.Floor(rect.Y * height), 0, Math.Max(0, height - 1));
+        var right = Math.Clamp((int)Math.Ceiling((rect.X + rect.Width) * width), x + 1, width);
+        var bottom = Math.Clamp((int)Math.Ceiling((rect.Y + rect.Height) * height), y + 1, height);
+        return new Rect(x, y, Math.Max(1, right - x), Math.Max(1, bottom - y));
+    }
+
+    private static string ToProfileKey(SmartBpRecognitionRegion region) => region switch
+    {
+        SmartBpRecognitionRegion.PhaseTop => "phase_top",
+        SmartBpRecognitionRegion.LeftTop => "left_top",
+        SmartBpRecognitionRegion.RightTop => "right_top",
+        SmartBpRecognitionRegion.LeftBottom => "left_bottom",
+        SmartBpRecognitionRegion.RightBottom => "right_bottom",
+        _ => throw new ArgumentOutOfRangeException(nameof(region), region, null)
+    };
 }
 
 internal sealed partial class SmartBpCharacterResolver(ISharedDataService shared) : ISmartBpCharacterResolver
@@ -80,6 +162,64 @@ internal sealed partial class SmartBpCharacterResolver(ISharedDataService shared
 
 internal static class SmartBpRecognitionPromptBuilder
 {
+    public static string BuildPhaseRecognition() => """
+/no_think
+
+你只需要判断当前第五人格 BP 阶段。
+你看到的是顶部操作区域裁剪图，包含左上和右上。
+不要识别角色。
+不要输出 ban/pick 槽位。
+只输出 {"phase":"..."}。
+phase 只能是：
+["屏蔽求生者","屏蔽监管者","选择求生者","求生者选择角色中","选择监管者","求生者选择天赋中","监管者选择天赋中","天赋已锁定","等待中","未知"]
+非活动侧的“等待中”不能决定 phase。
+如果右上标题是“屏蔽求生者”，phase="屏蔽求生者"。
+如果左上标题是“屏蔽监管者”，phase="屏蔽监管者"。
+如果左侧/求生者方标题包含“选择天赋中”，phase="求生者选择天赋中"。
+如果右侧/监管者方标题包含“选择天赋中”，phase="监管者选择天赋中"。
+不要输出地图 BP。
+""";
+
+    public static string BuildFocusedBusiness(GameAction action, IEnumerable<string> survivors, IEnumerable<string> hunters)
+    {
+        var phase = SmartBpAutomaticMapping.ToPhase(action);
+        var (region, targetField) = SmartBpAutomaticMapping.GetFocusedTarget(action);
+        var regionText = region switch
+        {
+            SmartBpRecognitionRegion.RightTop => "右上角裁剪图",
+            SmartBpRecognitionRegion.LeftTop => "左上角裁剪图",
+            SmartBpRecognitionRegion.LeftBottom => "左下角裁剪图",
+            SmartBpRecognitionRegion.RightBottom => "右下角裁剪图",
+            _ => "裁剪图"
+        };
+        var instruction = action switch
+        {
+            GameAction.BanSur => "这个区域只表示监管者方禁用求生者。只输出 banned_sur。不要推测左下角求生者选择。禁用符号、变暗、半透明表示已禁用，不是未选择。",
+            GameAction.BanHun => "这个区域只表示求生者方禁用监管者。只输出 banned_hun。不要输出 picked_sur。禁用符号、变暗、半透明表示已禁用，不是未选择。",
+            GameAction.PickSur => "这个区域只表示求生者选择。只输出 picked_sur。不要输出 banned_sur 或 banned_hun。",
+            GameAction.DistributeChara => "这个区域只表示求生者角色分配。只输出 picked_sur。必须尽量复制每个槽位的 player_id。",
+            GameAction.PickHun => "这个区域只表示监管者选择。只输出 picked_hun。监管者头像下通常第一行是角色名，第二行是玩家 ID；如果玩家 ID 可见，必须填入 picked_hun.player_id。",
+            _ => throw new NotSupportedException($"Focused business extraction does not support {action}.")
+        };
+        return $$$"""
+/no_think
+
+你看到的是{{{regionText}}}。图片已经由程序裁剪，只能识别这个裁剪区域。
+phase="{{{phase}}}"
+target_field="{{{targetField}}}"
+{{{instruction}}}
+
+survivor_candidates: {{{JsonSerializer.Serialize(survivors)}}}
+hunter_candidates: {{{JsonSerializer.Serialize(hunters)}}}
+
+character_name 必须是对应阵营候选列表里的规范名称，或 "未选择"。
+如果角色名可读且匹配候选角色名，必须输出角色名；不要因为禁用符号、变暗、半透明输出为“未选择”。
+如果屏幕官方名称带装饰性引号，但候选列表中是不带引号的规范名，输出候选列表中的规范名。
+玩家 ID 只能出现在 player_id 字段。
+不要输出地图 BP，不要输出 MapBP，不要输出 teams/all_characters/all_player_ids/warnings/confidence/raw_visible_text。
+""";
+    }
+
     public static string BuildStageDetection() => """
 /no_think
 只判断当前 BP 阶段，不要列出角色。
@@ -177,6 +317,48 @@ phase, banned_sur, banned_hun, picked_sur, picked_hun
 
 internal static class SmartBpRecognitionJsonSchemaProvider
 {
+    public static JsonObject GetPhaseOnly() =>
+        Object(new JsonObject { ["phase"] = Phase() }, "phase");
+
+    public static JsonObject GetFocusedBusiness(
+        GameAction action,
+        IReadOnlyList<string> survivorCandidates,
+        IReadOnlyList<string> hunterCandidates)
+    {
+        var survivorNames = CharacterNameEnum(survivorCandidates);
+        var hunterNames = CharacterNameEnum(hunterCandidates);
+        var phase = SmartBpAutomaticMapping.ToPhase(action);
+        var (_, targetField) = SmartBpAutomaticMapping.GetFocusedTarget(action);
+        return action switch
+        {
+            GameAction.BanSur => Object(new JsonObject
+            {
+                ["phase"] = Const(phase),
+                ["target_field"] = Const(targetField),
+                ["slots"] = FixedArray(CharacterSlot(survivorNames, 0, 1, 2, 3), 4)
+            }, "phase", "target_field", "slots"),
+            GameAction.BanHun => Object(new JsonObject
+            {
+                ["phase"] = Const(phase),
+                ["target_field"] = Const(targetField),
+                ["slots"] = FixedArray(CharacterSlot(hunterNames, 0, 1), 2)
+            }, "phase", "target_field", "slots"),
+            GameAction.PickSur or GameAction.DistributeChara => Object(new JsonObject
+            {
+                ["phase"] = Const(phase),
+                ["target_field"] = Const(targetField),
+                ["slots"] = FixedArray(PlayerCharacterSlot(survivorNames, 0, 1, 2, 3), 4)
+            }, "phase", "target_field", "slots"),
+            GameAction.PickHun => Object(new JsonObject
+            {
+                ["phase"] = Const(phase),
+                ["target_field"] = Const(targetField),
+                ["picked_hun"] = Object(new JsonObject { ["index"] = Const(0), ["character_name"] = hunterNames, ["player_id"] = NullableString() }, "index", "character_name", "player_id")
+            }, "phase", "target_field", "picked_hun"),
+            _ => throw new NotSupportedException($"Focused business schema does not support {action}.")
+        };
+    }
+
     public static JsonObject GetStageDetection()
     {
         JsonObject Enum(params string[] values) => new() { ["type"] = "string", ["enum"] = new JsonArray(values.Select(x => (JsonNode?)JsonValue.Create(x)).ToArray()) };
@@ -248,6 +430,22 @@ internal static class SmartBpRecognitionJsonSchemaProvider
 
 internal sealed class LlamaCppOpenAiClient(ISmartBpRecognitionSettingsService settings, ISharedDataService shared, ISmartBpPromptProfileProvider promptProfiles, ILogger<LlamaCppOpenAiClient> logger, ISmartBpDebugLog debugLog) : ILlamaCppOpenAiClient
 {
+    public async Task<string> RecognizePhaseAsync(string imageDataUrl, CancellationToken cancellationToken = default)
+    {
+        var profile = await promptProfiles.LoadAsync(settings.Settings.PromptProfileId, cancellationToken);
+        var body = CreateBody(profile.SystemPrompt, SmartBpRecognitionPromptBuilder.BuildPhaseRecognition(), imageDataUrl,
+            SmartBpRecognitionJsonSchemaProvider.GetPhaseOnly(), 128);
+        return await SendSpecialAsync(body, "PhaseTop", cancellationToken);
+    }
+
+    public async Task<string> RecognizeFocusedBusinessAsync(string imageDataUrl, GameAction action, CancellationToken cancellationToken = default)
+    {
+        var profile = await promptProfiles.LoadAsync(settings.Settings.PromptProfileId, cancellationToken);
+        var body = CreateBody(profile.SystemPrompt, SmartBpRecognitionPromptBuilder.BuildFocusedBusiness(action, shared.SurCharaDict.Keys, shared.HunCharaDict.Keys), imageDataUrl,
+            SmartBpRecognitionJsonSchemaProvider.GetFocusedBusiness(action, shared.SurCharaDict.Keys.ToArray(), shared.HunCharaDict.Keys.ToArray()), settings.Settings.FocusedMaxTokens);
+        return await SendSpecialAsync(body, $"FocusedBusiness:{action}", cancellationToken);
+    }
+
     public async Task<string> DetectStageAsync(string imageDataUrl, CancellationToken cancellationToken = default)
     {
         var profile = await promptProfiles.LoadAsync(settings.Settings.PromptProfileId, cancellationToken);

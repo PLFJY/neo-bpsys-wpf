@@ -5663,4 +5663,21 @@
   <data name="SmartBpAiStageDetectionResult" xml:space="preserve"><value>BP 业务状态快照</value></data>
   <data name="SmartBpAiGuidanceSnapshot" xml:space="preserve"><value>当前对局引导快照</value></data>
   <data name="SmartBpAiCandidateOperations" xml:space="preserve"><value>候选角色操作</value></data>
+  <data name="SmartBpAiCropDebug" xml:space="preserve"><value>裁剪调试预览</value></data>
+  <data name="SmartBpAiPhaseCropPreview" xml:space="preserve"><value>阶段识别裁剪图</value></data>
+  <data name="SmartBpAiFocusedCropPreview" xml:space="preserve"><value>内容识别裁剪图</value></data>
+  <data name="SmartBpAiRegionEditor" xml:space="preserve"><value>SmartBP AI 识别粗区域编辑器</value></data>
+  <data name="SmartBpAiRegionWidth" xml:space="preserve"><value>宽</value></data>
+  <data name="SmartBpAiRegionHeight" xml:space="preserve"><value>高</value></data>
+  <data name="SmartBpAiSaveRegionProfile" xml:space="preserve"><value>保存区域配置</value></data>
+  <data name="SmartBpAiResetRegionProfile" xml:space="preserve"><value>重置默认区域</value></data>
+  <data name="SmartBpAiOpenVisualRegionEditor" xml:space="preserve"><value>可视化编辑识别区域</value></data>
+  <data name="SmartBpAiRegionEditorRequireFrame" xml:space="preserve"><value>请先启动窗口捕获或选择一张内置测试图。</value></data>
+  <data name="SmartBpAiRegionProfileSaved" xml:space="preserve"><value>SmartBP AI 识别区域配置已保存。</value></data>
+  <data name="SmartBpAiRegionProfileReset" xml:space="preserve"><value>SmartBP AI 识别区域已恢复为内置默认值。</value></data>
+  <data name="SmartBpAiRegionPhaseTop" xml:space="preserve"><value>顶部阶段识别区域</value></data>
+  <data name="SmartBpAiRegionLeftTop" xml:space="preserve"><value>左上：禁用监管者</value></data>
+  <data name="SmartBpAiRegionRightTop" xml:space="preserve"><value>右上：禁用求生者</value></data>
+  <data name="SmartBpAiRegionLeftBottom" xml:space="preserve"><value>左下：求生者选择与分配</value></data>
+  <data name="SmartBpAiRegionRightBottom" xml:space="preserve"><value>右下：监管者选择</value></data>
 </root>

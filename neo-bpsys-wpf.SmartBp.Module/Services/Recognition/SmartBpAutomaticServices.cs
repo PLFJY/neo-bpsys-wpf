@@ -72,6 +72,28 @@ internal static class SmartBpAutomaticMapping
 
     public static bool IsCharacterOperationAction(GameAction action) =>
         action is GameAction.BanSur or GameAction.BanHun or GameAction.PickSur or GameAction.DistributeChara or GameAction.PickHun;
+
+    public static string ToPhase(GameAction action) => action switch
+    {
+        GameAction.BanSur => "屏蔽求生者",
+        GameAction.BanHun => "屏蔽监管者",
+        GameAction.PickSur => "选择求生者",
+        GameAction.DistributeChara => "求生者选择角色中",
+        GameAction.PickHun => "选择监管者",
+        GameAction.PickSurTalent => "求生者选择天赋中",
+        GameAction.PickHunTalent => "监管者选择天赋中",
+        _ => "未知"
+    };
+
+    public static (SmartBpRecognitionRegion Region, string TargetField) GetFocusedTarget(GameAction action) => action switch
+    {
+        GameAction.BanSur => (SmartBpRecognitionRegion.RightTop, "banned_sur"),
+        GameAction.BanHun => (SmartBpRecognitionRegion.LeftTop, "banned_hun"),
+        GameAction.PickSur => (SmartBpRecognitionRegion.LeftBottom, "picked_sur"),
+        GameAction.DistributeChara => (SmartBpRecognitionRegion.LeftBottom, "picked_sur"),
+        GameAction.PickHun => (SmartBpRecognitionRegion.RightBottom, "picked_hun"),
+        _ => throw new NotSupportedException($"GameGuidance action {action} has no focused character extraction region.")
+    };
 }
 
 internal static class SmartBpBusinessStateParser
@@ -171,6 +193,109 @@ internal static class SmartBpBusinessStateFormatter
 
 internal static class SmartBpAutomaticParser
 {
+    public static SmartBpPhaseRecognitionResult ParsePhase(string raw)
+    {
+        using var document = JsonDocument.Parse(raw);
+        var root = document.RootElement;
+        if (root.ValueKind != JsonValueKind.Object) throw new InvalidDataException("Phase recognition JSON must be an object.");
+        var properties = root.EnumerateObject().Select(x => x.Name).ToArray();
+        if (!properties.SequenceEqual(["phase"])) throw new InvalidDataException("Phase recognition JSON may only contain the phase field.");
+        var phase = root.GetProperty("phase").GetString() ?? "未知";
+        if (!SmartBpAutomaticMapping.ValidPhases.Contains(phase)) throw new InvalidDataException("Invalid BP phase.");
+        return new() { Phase = phase };
+    }
+
+    public static SmartBpFocusedBusinessExtractionResult ParseFocusedBusiness(
+        string raw,
+        GameAction expectedAction,
+        IReadOnlyCollection<string> survivorCandidates,
+        IReadOnlyCollection<string> hunterCandidates)
+    {
+        var expected = SmartBpAutomaticMapping.GetFocusedTarget(expectedAction);
+        var expectedPhase = SmartBpAutomaticMapping.ToPhase(expectedAction);
+        using var document = JsonDocument.Parse(raw);
+        var root = document.RootElement;
+        if (root.ValueKind != JsonValueKind.Object) throw new InvalidDataException("Focused business JSON must be an object.");
+        var propertyNames = root.EnumerateObject().Select(x => x.Name).OrderBy(x => x, StringComparer.Ordinal).ToArray();
+        var expectedNames = expected.TargetField == "picked_hun"
+            ? new[] { "phase", "picked_hun", "target_field" }
+            : ["phase", "slots", "target_field"];
+        if (!propertyNames.SequenceEqual(expectedNames.OrderBy(x => x, StringComparer.Ordinal)))
+            throw new InvalidDataException("Focused business JSON contains unexpected fields.");
+
+        var phase = root.GetProperty("phase").GetString() ?? "未知";
+        var targetField = root.GetProperty("target_field").GetString() ?? "";
+        if (phase != expectedPhase) throw new InvalidDataException("Focused business phase does not match the requested crop.");
+        if (targetField != expected.TargetField) throw new InvalidDataException("Focused business target_field does not match the requested crop.");
+
+        var result = new SmartBpFocusedBusinessExtractionResult { Phase = phase, TargetField = targetField };
+        var allowed = expectedAction is GameAction.BanHun or GameAction.PickHun ? hunterCandidates : survivorCandidates;
+        if (targetField == "picked_hun")
+        {
+            var slot = JsonSerializer.Deserialize<SmartBpRecognizedPlayerCharacterSlot>(root.GetProperty("picked_hun").GetRawText())
+                ?? throw new InvalidDataException("picked_hun is empty.");
+            if (slot.Index != 0) throw new InvalidDataException("picked_hun.index must be 0.");
+            NormalizeFocusedSlot(slot, allowed, "picked_hun");
+            result.PickedHun = slot;
+            return result;
+        }
+
+        var slots = JsonSerializer.Deserialize<List<SmartBpRecognizedPlayerCharacterSlot>>(root.GetProperty("slots").GetRawText())
+            ?? throw new InvalidDataException("focused slots are empty.");
+        var count = targetField switch { "banned_hun" => 2, "banned_sur" or "picked_sur" => 4, _ => throw new InvalidDataException("Invalid focused target_field.") };
+        if (slots.Count != count) throw new InvalidDataException($"{targetField}.slots must contain exactly {count} entries.");
+        var expectedIndexes = Enumerable.Range(0, count).ToArray();
+        if (!slots.Select(x => x.Index).OrderBy(x => x).SequenceEqual(expectedIndexes))
+            throw new InvalidDataException($"{targetField}.slots contain invalid indexes.");
+        foreach (var slot in slots) NormalizeFocusedSlot(slot, allowed, targetField);
+        result.Slots = slots;
+        return result;
+    }
+
+    public static SmartBpBusinessStateRecognitionResult ToBusinessState(SmartBpPhaseRecognitionResult phase, SmartBpFocusedBusinessExtractionResult? focused)
+    {
+        var state = new SmartBpBusinessStateRecognitionResult
+        {
+            Phase = phase.Phase,
+            BannedSur = Enumerable.Range(0, 4).Select(i => new SmartBpRecognizedCharacterSlot { Index = i }).ToList(),
+            BannedHun = Enumerable.Range(0, 2).Select(i => new SmartBpRecognizedCharacterSlot { Index = i }).ToList(),
+            PickedSur = Enumerable.Range(0, 4).Select(i => new SmartBpRecognizedPlayerCharacterSlot { Index = i }).ToList(),
+            PickedHun = new SmartBpRecognizedPlayerCharacterSlot { Index = 0 }
+        };
+        if (focused == null) return state;
+        switch (focused.TargetField)
+        {
+            case "banned_sur":
+                state.BannedSur = focused.Slots.Select(x => new SmartBpRecognizedCharacterSlot { Index = x.Index, CharacterName = x.CharacterName }).ToList();
+                break;
+            case "banned_hun":
+                state.BannedHun = focused.Slots.Select(x => new SmartBpRecognizedCharacterSlot { Index = x.Index, CharacterName = x.CharacterName }).ToList();
+                break;
+            case "picked_sur":
+                state.PickedSur = focused.Slots;
+                break;
+            case "picked_hun":
+                state.PickedHun = focused.PickedHun ?? new SmartBpRecognizedPlayerCharacterSlot { Index = 0 };
+                break;
+        }
+        SmartBpBusinessStateParser.NormalizeAndValidate(state);
+        return state;
+    }
+
+    private static void NormalizeFocusedSlot(SmartBpRecognizedCharacterSlot slot, IReadOnlyCollection<string> allowed, string field)
+    {
+        if (string.IsNullOrWhiteSpace(slot.CharacterName) ||
+            slot.CharacterName.Equals("unknown", StringComparison.OrdinalIgnoreCase) ||
+            slot.CharacterName.Equals("null", StringComparison.OrdinalIgnoreCase))
+            slot.CharacterName = "未选择";
+        else
+            slot.CharacterName = slot.CharacterName.Trim();
+
+        if (SmartBpBusinessStateParser.IsUnselected(slot.CharacterName)) return;
+        if (!allowed.Contains(slot.CharacterName))
+            throw new InvalidDataException($"{field}.character_name is not in the matching candidate list: {slot.CharacterName}");
+    }
+
     public static SmartBpStageDetectionResult ParseStage(string raw)
     {
         var result = JsonSerializer.Deserialize<SmartBpStageDetectionResult>(raw)
@@ -311,6 +436,26 @@ internal sealed class SmartBpCandidateOperationBuilder(ISmartBpCharacterResolver
             GameAction.PickSur => BuildFromPlayerSlots(state.PickedSur, action, guidanceIndexes, Camp.Sur, SmartBpDetectedOperationKind.PickSurvivor),
             GameAction.DistributeChara => BuildDistribution(state.PickedSur, guidanceIndexes),
             GameAction.PickHun => BuildFromPlayerSlots([state.PickedHun], action, guidanceIndexes, Camp.Hun, SmartBpDetectedOperationKind.PickHunter, true),
+            _ => new([], [$"Current GameGuidance action {action} is not a BP character operation."])
+        };
+    }
+
+    public SmartBpCandidateOperationBuildResult BuildWithDiagnostics(
+        SmartBpFocusedBusinessExtractionResult focused,
+        GameAction action,
+        IReadOnlyList<int> guidanceIndexes)
+    {
+        if (!SmartBpAutomaticMapping.IsCharacterOperationAction(action))
+            return new([], [$"Detected phase is a talent/lock phase ({focused.Phase}); no character operation is generated."]);
+        return action switch
+        {
+            GameAction.BanSur => BuildFromCharacterSlots(focused.Slots, action, guidanceIndexes, Camp.Sur, SmartBpDetectedOperationKind.BanCharacter),
+            GameAction.BanHun => BuildFromCharacterSlots(focused.Slots, action, guidanceIndexes, Camp.Hun, SmartBpDetectedOperationKind.BanCharacter),
+            GameAction.PickSur => BuildFromPlayerSlots(focused.Slots, action, guidanceIndexes, Camp.Sur, SmartBpDetectedOperationKind.PickSurvivor),
+            GameAction.DistributeChara => BuildDistribution(focused.Slots, guidanceIndexes),
+            GameAction.PickHun => focused.PickedHun == null
+                ? new([], ["Focused picked_hun result did not contain picked_hun."])
+                : BuildFromPlayerSlots([focused.PickedHun], action, guidanceIndexes, Camp.Hun, SmartBpDetectedOperationKind.PickHunter, true),
             _ => new([], [$"Current GameGuidance action {action} is not a BP character operation."])
         };
     }
@@ -572,8 +717,10 @@ internal sealed class SmartBpDetectedOperationApplier(
 
 internal sealed class SmartBpAutoRecognitionCoordinator(
     ISmartBpImageEncoder encoder,
+    ISmartBpRecognitionFrameCropper cropper,
     ILlamaCppOpenAiClient client,
     ISmartBpRecognitionSettingsService settings,
+    ISharedDataService shared,
     ISmartBpGuidanceSyncService guidanceSync,
     IGameGuidanceService guidance,
     SmartBpCandidateOperationBuilder candidateBuilder,
@@ -606,43 +753,63 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
         string raw = "";
         try
         {
-            var image = await Task.Run(() => encoder.EncodeDataUrl(frame, settings.Settings.MaxImageWidth), cancellationToken);
-            raw = await client.RecognizeAsync(image, SmartBpRecognitionTask.FullBpScan, cancellationToken);
-            var state = await Task.Run(() => SmartBpBusinessStateParser.Parse(raw), cancellationToken);
+            var phaseCrop = await Task.Run(() => cropper.CropWithInfo(frame, SmartBpRecognitionRegion.PhaseTop), cancellationToken);
+            var phaseImage = await Task.Run(() => encoder.EncodeDataUrl(phaseCrop.Image, settings.Settings.MaxImageWidth), cancellationToken);
+            var phaseRaw = await client.RecognizePhaseAsync(phaseImage, cancellationToken);
+            raw = "Phase raw:\n" + phaseRaw;
+            var phase = await Task.Run(() => SmartBpAutomaticParser.ParsePhase(phaseRaw), cancellationToken);
+            var state = SmartBpAutomaticParser.ToBusinessState(phase, null);
             SmartBpGuidanceSyncResult? sync = settings.Settings.EnableAutoGuidanceSync
                 ? await guidanceSync.SyncAsync(state, cancellationToken)
                 : new(false, false, "Automatic GameGuidance synchronization is disabled.", null, [], null);
             var snapshot = guidance.GetRuntimeSnapshot();
-            if (!snapshot.IsStarted || snapshot.CurrentAction is not { } action)
-                return new(state, sync, snapshot, [], ["GameGuidance is not started; candidate generation was skipped."], null, raw, "GameGuidance is not started; candidate generation was skipped.");
             if (state.Phase == "天赋已锁定")
             {
                 var message = "Detected phase is a talent/lock phase (天赋已锁定); no character operation is generated.";
-                return new(state, sync, snapshot, [], [message], new(0, 0, [message]), raw, null);
+                return new(state, phase, null, phaseCrop, null, sync, snapshot, [], [message], new(0, 0, [message]), raw, null);
             }
             if (!SmartBpAutomaticMapping.TryMapPhase(state.Phase, out var detectedAction))
-                return new(state, sync, snapshot, [], [$"Detected phase {state.Phase} does not map to a BP character operation."], null, raw, null);
-            if (detectedAction != action)
-                return new(state, sync, snapshot, [], [$"Skipped: current GameGuidance action mismatch. Detected phase {state.Phase} maps to {detectedAction}, current action is {action}."], null, raw, null);
-            if (!SmartBpAutomaticMapping.IsCharacterOperationAction(action))
+                return new(state, phase, null, phaseCrop, null, sync, snapshot, [], [$"Detected phase {state.Phase} does not map to a BP character operation."], null, raw, null);
+            if (!SmartBpAutomaticMapping.IsCharacterOperationAction(detectedAction))
             {
                 var message = $"Detected phase is a talent/lock phase ({state.Phase}); no character operation is generated.";
-                return new(state, sync, snapshot, [], [message], new(0, 0, [message]), raw, null);
+                return new(state, phase, null, phaseCrop, null, sync, snapshot, [], [message], new(0, 0, [message]), raw, null);
             }
-            var build = candidateBuilder.BuildWithDiagnostics(state, action, snapshot.CurrentIndexes);
+            var currentAction = snapshot.CurrentAction;
+            var hasGuidanceAction = snapshot.IsStarted && currentAction.HasValue;
+            if (hasGuidanceAction && detectedAction != currentAction!.Value)
+                return new(state, phase, null, phaseCrop, null, sync, snapshot, [], [$"Skipped: current GameGuidance action mismatch. Detected phase {state.Phase} maps to {detectedAction}, current action is {currentAction.Value}."], null, raw, null);
+
+            var (region, targetField) = SmartBpAutomaticMapping.GetFocusedTarget(detectedAction);
+            var focusedCrop = await Task.Run(() => cropper.CropWithInfo(frame, region), cancellationToken);
+            var focusedImage = await Task.Run(() => encoder.EncodeDataUrl(focusedCrop.Image, settings.Settings.MaxImageWidth), cancellationToken);
+            var focusedRaw = await client.RecognizeFocusedBusinessAsync(focusedImage, detectedAction, cancellationToken);
+            raw = $"Phase raw:\n{phaseRaw}\n\nFocused raw:\n{focusedRaw}";
+            var focused = await Task.Run(() => SmartBpAutomaticParser.ParseFocusedBusiness(focusedRaw, detectedAction, shared.SurCharaDict.Keys.ToArray(), shared.HunCharaDict.Keys.ToArray()), cancellationToken);
+            state = SmartBpAutomaticParser.ToBusinessState(phase, focused);
+            IReadOnlyList<int> indexes = hasGuidanceAction ? snapshot.CurrentIndexes : Array.Empty<int>();
+            var build = candidateBuilder.BuildWithDiagnostics(focused, detectedAction, indexes);
+            var cropMessages = new List<string>
+            {
+                $"Phase crop: {phaseCrop.Region}, pixel rect = {phaseCrop.PixelRectText}",
+                $"Detected phase: {phase.Phase}",
+                $"Focused crop: {focusedCrop.Region}, pixel rect = {focusedCrop.PixelRectText}",
+                $"Focused target field: {targetField}"
+            };
+            cropMessages.AddRange(build.Messages);
             SmartBpOperationApplyResult applyResult = settings.Settings.EnableAutoApplyRecognition
                 ? await applier.ApplyAsync(build.Operations, cancellationToken)
                 : new(0, build.Operations.Count, build.Operations.Count == 0 ? ["Skipped: auto apply disabled; no candidate operations were generated."] : build.Operations.Select(x => $"Skipped: auto apply disabled for {x.Kind} {x.Camp}[{x.SlotIndex}] {x.RawCharacterName ?? "null"}.").ToArray());
-            return new(state, sync, snapshot, build.Operations, build.Messages, applyResult, raw, null);
+            return new(state, phase, focused, phaseCrop, focusedCrop, sync, snapshot, build.Operations, cropMessages, applyResult, raw, null);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             if (ex is LlamaCppRequestException request) raw = request.RawResponse;
-            return new(null, null, guidance.GetRuntimeSnapshot(), [], [], null, raw, ex.Message);
+            return new(null, null, null, null, null, null, guidance.GetRuntimeSnapshot(), [], [], null, raw, ex.Message);
         }
         finally { _tickGate.Release(); }
     }
 
     private SmartBpAutoRecognitionTickResult Failure(string error) =>
-        new(null, null, guidance.GetRuntimeSnapshot(), [], [], null, "", error);
+        new(null, null, null, null, null, null, guidance.GetRuntimeSnapshot(), [], [], null, "", error);
 }
