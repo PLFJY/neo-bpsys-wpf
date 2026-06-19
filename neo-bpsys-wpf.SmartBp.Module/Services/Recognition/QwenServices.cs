@@ -1,5 +1,6 @@
 using System.Net.Http;
 using System.IO;
+using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Net.Http.Headers;
@@ -10,6 +11,26 @@ using neo_bpsys_wpf.SmartBp.Module.Abstractions;
 using neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
 
 namespace neo_bpsys_wpf.SmartBp.Module.Services.Recognition;
+
+internal sealed class SmartBpDownloadProgressTracker
+{
+    private readonly Stopwatch _watch = Stopwatch.StartNew();
+    private readonly TimeSpan _throttle = TimeSpan.FromMilliseconds(250);
+    private TimeSpan _lastRaised = TimeSpan.MinValue;
+
+    public bool ShouldRaise(long bytesReceived, long? totalBytes, out double bytesPerSecond, out TimeSpan? eta)
+    {
+        var elapsed = Math.Max(0.001, _watch.Elapsed.TotalSeconds);
+        bytesPerSecond = bytesReceived / elapsed;
+        eta = totalBytes is > 0 && bytesPerSecond > 1
+            ? TimeSpan.FromSeconds(Math.Max(0, (totalBytes.Value - bytesReceived) / bytesPerSecond))
+            : null;
+        if (_lastRaised != TimeSpan.MinValue && _watch.Elapsed - _lastRaised < _throttle && bytesReceived != totalBytes)
+            return false;
+        _lastRaised = _watch.Elapsed;
+        return true;
+    }
+}
 
 internal sealed class QwenModelManifestProvider(ILogger<QwenModelManifestProvider> logger) : IQwenModelManifestProvider
 {
@@ -53,6 +74,17 @@ internal sealed class SmartBpRecognitionSettingsService : ISmartBpRecognitionSet
         Settings.LlamaGpuLayers = Math.Clamp(Settings.LlamaGpuLayers, -1, 999);
         Settings.LlamaBatchSize = Math.Clamp(Settings.LlamaBatchSize, 32, 4096);
         Settings.LlamaUBatchSize = Math.Clamp(Settings.LlamaUBatchSize, 32, 4096);
+        Settings.PhaseCropMaxImageWidth = Math.Clamp(Settings.PhaseCropMaxImageWidth, 320, Settings.MaxImageWidth);
+        Settings.ContentCropMaxImageWidth = Math.Clamp(Settings.ContentCropMaxImageWidth, 320, Settings.MaxImageWidth);
+        Settings.PhaseMaxTokens = Math.Clamp(Settings.PhaseMaxTokens, 16, 256);
+        Settings.SnapshotDeltaMaxTokens = Math.Clamp(Settings.SnapshotDeltaMaxTokens, 128, 4096);
+        Settings.PhaseTransitionCommitHoldMilliseconds = Math.Clamp(Settings.PhaseTransitionCommitHoldMilliseconds, 0, 2000);
+        Settings.PhaseTransitionCommitHoldMaxMilliseconds = Math.Clamp(Settings.PhaseTransitionCommitHoldMaxMilliseconds, Settings.PhaseTransitionCommitHoldMilliseconds, 3000);
+        Settings.RecognitionFrameBufferMilliseconds = Math.Clamp(Settings.RecognitionFrameBufferMilliseconds, 250, 5000);
+        Settings.RecognitionTransitionLookBehindMilliseconds = Math.Clamp(Settings.RecognitionTransitionLookBehindMilliseconds, 100, 5000);
+        Settings.RecognitionCropChangeThreshold = Math.Clamp(Settings.RecognitionCropChangeThreshold, 0.001, 1);
+        Settings.RecognitionCropStableFrames = Math.Clamp(Settings.RecognitionCropStableFrames, 1, 10);
+        Settings.LlamaRuntimeUpdateCheckIntervalHours = Math.Clamp(Settings.LlamaRuntimeUpdateCheckIntervalHours, 1, 24 * 30);
         if (string.IsNullOrWhiteSpace(Settings.PromptProfileId)) Settings.PromptProfileId = "zh-CN";
         if (Settings.SelectedQwenModelId == "qwen3.5-2b-q4ks") Settings.SelectedQwenModelId = "qwen3.5-2b-q4km";
     }
@@ -83,6 +115,9 @@ internal sealed class QwenModelAssetManager(
         return manifest.Models.SingleOrDefault(x => x.Id == settingsService.Settings.SelectedQwenModelId)
             ?? throw new InvalidDataException($"Qwen profile '{settingsService.Settings.SelectedQwenModelId}' is not present in the manifest.");
     }
+
+    public async Task<IReadOnlyList<QwenModelProfile>> GetProfilesAsync(CancellationToken cancellationToken = default) =>
+        (await manifestProvider.LoadAsync(cancellationToken)).Models;
 
     public async Task<bool> IsInstalledAsync(CancellationToken cancellationToken = default)
     {
@@ -135,6 +170,8 @@ internal sealed class QwenModelAssetManager(
     {
         if (await MatchesAsync(finalPath, hash, token)) return;
         var temp = finalPath + ".download"; if (File.Exists(temp)) File.Delete(temp);
+        var tracker = new SmartBpDownloadProgressTracker();
+        var fileName = Path.GetFileName(finalPath);
         try
         {
             using var http = new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
@@ -144,7 +181,14 @@ internal sealed class QwenModelAssetManager(
             await using (var output = new FileStream(temp, FileMode.CreateNew, FileAccess.Write, FileShare.None, 1024 * 128, true))
             {
                 var buffer = new byte[1024 * 128]; long readTotal = 0; int read;
-                while ((read = await input.ReadAsync(buffer, token)) > 0) { await output.WriteAsync(buffer.AsMemory(0, read), token); readTotal += read; if (total > 0) Set(new(true, from + (to - from) * readTotal / total.Value, State.Status)); }
+                while ((read = await input.ReadAsync(buffer, token)) > 0)
+                {
+                    await output.WriteAsync(buffer.AsMemory(0, read), token);
+                    readTotal += read;
+                    var progress = total > 0 ? from + (to - from) * readTotal / total.Value : (double?)null;
+                    if (tracker.ShouldRaise(readTotal, total, out var speed, out var eta))
+                        Set(new(true, progress, "SmartBpAiStatusDownloading", fileName, readTotal, total, speed, eta));
+                }
                 await output.FlushAsync(token);
             }
             if (!await MatchesAsync(temp, hash, token)) throw new InvalidDataException($"SHA256 validation failed for {Path.GetFileName(finalPath)}.");

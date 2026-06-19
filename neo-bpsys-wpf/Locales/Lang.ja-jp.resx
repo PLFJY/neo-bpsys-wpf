@@ -4603,8 +4603,19 @@
   <data name="SmartBpAiUBatchSize" xml:space="preserve"><value>UBatch size</value></data>
   <data name="SmartBpAiForceStopLlama" xml:space="preserve"><value>管理対象 llama.cpp を強制停止</value></data>
   <data name="SmartBpAiUseMultiImageSnapshot" xml:space="preserve"><value>単一の複数画像差分リクエストを使用</value></data>
+  <data name="SmartBpAiAllowSequentialFallback" xml:space="preserve"><value>複数画像失敗時に順次認識へフォールバック</value></data>
+  <data name="SmartBpAiUseStrictCandidateEnums" xml:space="preserve"><value>自動認識で厳密な候補 enum を使用</value></data>
+  <data name="SmartBpAiPhaseCropMaxWidth" xml:space="preserve"><value>フェーズ裁剪の最大幅</value></data>
+  <data name="SmartBpAiContentCropMaxWidth" xml:space="preserve"><value>内容裁剪の最大幅</value></data>
+  <data name="SmartBpAiPhaseMaxTokens" xml:space="preserve"><value>フェーズ認識 token 上限</value></data>
+  <data name="SmartBpAiSnapshotDeltaMaxTokens" xml:space="preserve"><value>差分認識 token 上限</value></data>
+  <data name="SmartBpAiCommitHoldMilliseconds" xml:space="preserve"><value>フェーズ遷移コミット待機ミリ秒</value></data>
+  <data name="SmartBpAiCommitHoldMaxMilliseconds" xml:space="preserve"><value>フェーズ遷移最大待機ミリ秒</value></data>
   <data name="SmartBpAiBackfillLookBehindSteps" xml:space="preserve"><value>ワークフローの振り返り手順数</value></data>
   <data name="SmartBpAiFieldStaleMilliseconds" xml:space="preserve"><value>フィールド再更新までのミリ秒</value></data>
   <data name="SmartBpAiVisualBufferMilliseconds" xml:space="preserve"><value>現在手順アニメーションのバッファミリ秒</value></data>
+  <data name="SmartBpAiModelProfileHint" xml:space="preserve"><value>0.8B は高速で軽量ですが精度は低めです。2B は遅めですがより安定します。</value></data>
+  <data name="SmartBpAiStopServerBeforeSwitchModel" xml:space="preserve"><value>Qwen モデルを切り替える前に llama-server を停止してください。</value></data>
+  <data name="SmartBpAiCheckRuntimeUpdate" xml:space="preserve"><value>llama.cpp 更新を確認</value></data>
   <data name="SmartBpAiLedgerResetCompleted" xml:space="preserve"><value>現在の試合の SmartBP AI 認識履歴をリセットしました。</value></data>
 </root>

@@ -31,10 +31,13 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty] private string _qwenManifestStatus = "SmartBpAiStatusLoading";
     [ObservableProperty] private string _qwenModelProfile = "-";
     [ObservableProperty] private string _qwenMmprojProfile = "-";
+    [ObservableProperty] private IReadOnlyList<QwenModelProfile> _qwenModelProfiles = [];
+    [ObservableProperty] private QwenModelProfile? _selectedQwenModelProfile;
     [ObservableProperty] private bool _isQwenInstalled;
     [ObservableProperty] private bool _isQwenDownloading;
     [ObservableProperty] private double _qwenDownloadProgress;
     [ObservableProperty] private string _qwenDownloadStatus = "-";
+    [ObservableProperty] private string _qwenDownloadDetail = "-";
     [ObservableProperty] private string _llamaServerExecutablePath = "";
     [ObservableProperty] private string _llamaServerStatus = "SmartBpAiStatusStopped";
     [ObservableProperty] private bool _isAiRecognizing;
@@ -53,11 +56,21 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty] private bool _isLlamaRuntimeDownloading;
     [ObservableProperty] private double _llamaRuntimeDownloadProgress;
     [ObservableProperty] private string _llamaRuntimeDownloadStatus = "-";
+    [ObservableProperty] private string _llamaRuntimeDownloadDetail = "-";
     [ObservableProperty] private string _managedLlamaServerExecutablePath = "-";
+    [ObservableProperty] private string _llamaRuntimeUpdateStatus = "-";
     [ObservableProperty] private bool _enableAutoGuidanceSync;
     [ObservableProperty] private bool _enableAutoApplyRecognition;
     [ObservableProperty] private bool _playBackfillAnimations;
     [ObservableProperty] private bool _useMultiImageSnapshotRequest;
+    [ObservableProperty] private bool _allowSequentialSnapshotFallback;
+    [ObservableProperty] private bool _useStrictCandidateEnumsInAutoSchema;
+    [ObservableProperty] private int _phaseCropMaxImageWidth;
+    [ObservableProperty] private int _contentCropMaxImageWidth;
+    [ObservableProperty] private int _phaseMaxTokens;
+    [ObservableProperty] private int _snapshotDeltaMaxTokens;
+    [ObservableProperty] private int _phaseTransitionCommitHoldMilliseconds;
+    [ObservableProperty] private int _phaseTransitionCommitHoldMaxMilliseconds;
     [ObservableProperty] private int _recognitionBackfillLookBehindSteps;
     [ObservableProperty] private int _recognitionFieldStaleMilliseconds;
     [ObservableProperty] private int _recognitionVisualBufferMilliseconds;
@@ -84,6 +97,14 @@ public partial class SmartBpModuleContentViewModel
         EnableAutoApplyRecognition = _recognitionSettingsService.Settings.EnableAutoApplyRecognition;
         PlayBackfillAnimations = _recognitionSettingsService.Settings.PlayBackfillAnimations;
         UseMultiImageSnapshotRequest = _recognitionSettingsService.Settings.UseMultiImageSnapshotRequest;
+        AllowSequentialSnapshotFallback = _recognitionSettingsService.Settings.AllowSequentialSnapshotFallback;
+        UseStrictCandidateEnumsInAutoSchema = _recognitionSettingsService.Settings.UseStrictCandidateEnumsInAutoSchema;
+        PhaseCropMaxImageWidth = _recognitionSettingsService.Settings.PhaseCropMaxImageWidth;
+        ContentCropMaxImageWidth = _recognitionSettingsService.Settings.ContentCropMaxImageWidth;
+        PhaseMaxTokens = _recognitionSettingsService.Settings.PhaseMaxTokens;
+        SnapshotDeltaMaxTokens = _recognitionSettingsService.Settings.SnapshotDeltaMaxTokens;
+        PhaseTransitionCommitHoldMilliseconds = _recognitionSettingsService.Settings.PhaseTransitionCommitHoldMilliseconds;
+        PhaseTransitionCommitHoldMaxMilliseconds = _recognitionSettingsService.Settings.PhaseTransitionCommitHoldMaxMilliseconds;
         RecognitionBackfillLookBehindSteps = _recognitionSettingsService.Settings.RecognitionBackfillLookBehindSteps;
         RecognitionFieldStaleMilliseconds = _recognitionSettingsService.Settings.RecognitionFieldStaleMilliseconds;
         RecognitionVisualBufferMilliseconds = _recognitionSettingsService.Settings.RecognitionVisualBufferMilliseconds;
@@ -97,6 +118,7 @@ public partial class SmartBpModuleContentViewModel
         _qwenAssetManager.StateChanged += (_, state) => RunOnUiThread(() =>
         {
             IsQwenDownloading = state.IsDownloading; QwenDownloadProgress = state.Progress ?? 0; QwenDownloadStatus = ResolveLocalizedOrRaw(state.Status);
+            QwenDownloadDetail = FormatDownloadState(state);
         });
         _aiDebugLog.MessageWritten += (_, message) => RunOnUiThread(() => AppendAiDebugMessage(message));
         _aiDebugLog.Write("SmartBP", "AI recognition diagnostics initialized.");
@@ -105,6 +127,7 @@ public partial class SmartBpModuleContentViewModel
             IsLlamaRuntimeDownloading = state.IsDownloading;
             LlamaRuntimeDownloadProgress = state.Progress ?? 0;
             LlamaRuntimeDownloadStatus = ResolveLocalizedOrRaw(state.Status);
+            LlamaRuntimeDownloadDetail = FormatDownloadState(state);
         });
         _ = InitializeAiOptionsAsync();
         _ = LoadAiRegionProfileAsync();
@@ -222,6 +245,8 @@ public partial class SmartBpModuleContentViewModel
         {
             AiPromptProfiles = await _promptProfileProvider.GetAvailableProfilesAsync();
             SelectedAiPromptProfile = AiPromptProfiles.FirstOrDefault(x => x.Id == _recognitionSettingsService.Settings.PromptProfileId) ?? AiPromptProfiles.FirstOrDefault();
+            QwenModelProfiles = await _qwenAssetManager.GetProfilesAsync();
+            SelectedQwenModelProfile = QwenModelProfiles.FirstOrDefault(x => x.Id == _recognitionSettingsService.Settings.SelectedQwenModelId) ?? QwenModelProfiles.FirstOrDefault();
             LlamaRuntimeAssets = await _llamaRuntimeAssetManager.GetAvailableAssetsAsync();
             SelectedLlamaRuntimeAsset = await _llamaRuntimeAssetManager.GetSelectedAssetAsync();
             await RefreshLlamaRuntimeStatusAsync();
@@ -243,7 +268,7 @@ public partial class SmartBpModuleContentViewModel
 
     [RelayCommand] private async Task RefreshQwenStatusAsync()
     {
-        try { var p = await _qwenAssetManager.GetProfileAsync(); QwenModelProfile = p.DisplayName; QwenMmprojProfile = Path.GetFileNameWithoutExtension(p.MmprojFileName); IsQwenInstalled = await _qwenAssetManager.IsInstalledAsync(); QwenManifestStatus = ResolveLocalizedOrRaw("SmartBpAiStatusLoaded"); }
+        try { var p = await _qwenAssetManager.GetProfileAsync(); QwenModelProfile = p.DisplayName; QwenMmprojProfile = Path.GetFileNameWithoutExtension(p.MmprojFileName); SelectedQwenModelProfile = QwenModelProfiles.FirstOrDefault(x => x.Id == p.Id) ?? SelectedQwenModelProfile; IsQwenInstalled = await _qwenAssetManager.IsInstalledAsync(); QwenManifestStatus = ResolveLocalizedOrRaw("SmartBpAiStatusLoaded"); }
         catch (Exception ex) { QwenManifestStatus = ResolveLocalizedOrRaw("SmartBpAiStatusFailed"); AiLastError = ex.Message; }
     }
     [RelayCommand] private async Task DownloadQwenModelAsync() { try { await _qwenAssetManager.InstallAsync(); await RefreshQwenStatusAsync(); } catch (OperationCanceledException) { } catch (Exception ex) { AiLastError = ex.Message; } }
@@ -254,6 +279,7 @@ public partial class SmartBpModuleContentViewModel
     [RelayCommand] private void CancelLlamaRuntimeDownload() => _llamaRuntimeAssetManager.Cancel();
     [RelayCommand] private async Task DeleteLlamaRuntimeAsync() { try { if (_llamaServerManager.IsRunning) throw new InvalidOperationException("Stop llama-server before deleting the runtime."); await _llamaRuntimeAssetManager.DeleteAsync(); LlamaServerExecutablePath = _recognitionSettingsService.Settings.LlamaServerExecutablePath; await RefreshLlamaRuntimeStatusAsync(); } catch (Exception ex) { AiLastError = ex.Message; } }
     [RelayCommand] private async Task RefreshLlamaRuntimeStatusAsync() { IsLlamaRuntimeInstalled = await _llamaRuntimeAssetManager.IsInstalledAsync(); ManagedLlamaServerExecutablePath = IsLlamaRuntimeInstalled ? await _llamaRuntimeAssetManager.GetInstalledExecutablePathAsync() : "-"; }
+    [RelayCommand] private async Task CheckLlamaRuntimeUpdateAsync() { try { var result = await _llamaRuntimeUpdateService.CheckForUpdatesAsync(true); LlamaRuntimeUpdateStatus = $"{result.Message} Current={result.CurrentVersion}; Latest={result.LatestVersion ?? "-"}"; LlamaRuntimeAssets = result.LatestAssets.Count > 0 ? result.LatestAssets : LlamaRuntimeAssets; } catch (Exception ex) { LlamaRuntimeUpdateStatus = ex.Message; } }
     [RelayCommand] private async Task StartLlamaServerAsync() { try { await _llamaServerManager.StartAsync(); LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusReady"); } catch (Exception ex) { LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusFailed"); AiLastError = ex.Message; } }
     [RelayCommand] private async Task StopLlamaServerAsync() { await StopAiPreviewLoopAsync(); await _llamaServerManager.StopAsync(); LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusStopped"); }
     [RelayCommand] private async Task ForceStopLlamaServerAsync() { try { await StopAiPreviewLoopAsync(); await _llamaServerManager.ForceStopManagedProcessAsync(); LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusStopped"); } catch (Exception ex) { AiLastError = ex.Message; } }
@@ -435,6 +461,18 @@ public partial class SmartBpModuleContentViewModel
         _ = _recognitionSettingsService.SaveAsync();
     }
 
+    partial void OnSelectedQwenModelProfileChanged(QwenModelProfile? value)
+    {
+        if (value == null || value.Id == _recognitionSettingsService.Settings.SelectedQwenModelId) return;
+        if (_llamaServerManager.IsRunning)
+        {
+            AiLastError = ResolveLocalizedOrRaw("SmartBpAiStopServerBeforeSwitchModel");
+            return;
+        }
+        _recognitionSettingsService.Settings.SelectedQwenModelId = value.Id;
+        _ = SaveQwenSelectionAsync();
+    }
+
     partial void OnSelectedLlamaRuntimeAssetChanged(LlamaCppRuntimeAsset? value)
     {
         if (value == null || value.Id == _recognitionSettingsService.Settings.SelectedLlamaRuntimeId) return;
@@ -529,5 +567,79 @@ public partial class SmartBpModuleContentViewModel
     {
         await _recognitionSettingsService.SaveAsync();
         await RefreshLlamaRuntimeStatusAsync();
+    }
+
+    partial void OnAllowSequentialSnapshotFallbackChanged(bool value)
+    {
+        _recognitionSettingsService.Settings.AllowSequentialSnapshotFallback = value;
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnUseStrictCandidateEnumsInAutoSchemaChanged(bool value)
+    {
+        _recognitionSettingsService.Settings.UseStrictCandidateEnumsInAutoSchema = value;
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnPhaseCropMaxImageWidthChanged(int value)
+    {
+        _recognitionSettingsService.Settings.PhaseCropMaxImageWidth = value;
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnContentCropMaxImageWidthChanged(int value)
+    {
+        _recognitionSettingsService.Settings.ContentCropMaxImageWidth = value;
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnPhaseMaxTokensChanged(int value)
+    {
+        _recognitionSettingsService.Settings.PhaseMaxTokens = value;
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnSnapshotDeltaMaxTokensChanged(int value)
+    {
+        _recognitionSettingsService.Settings.SnapshotDeltaMaxTokens = value;
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnPhaseTransitionCommitHoldMillisecondsChanged(int value)
+    {
+        _recognitionSettingsService.Settings.PhaseTransitionCommitHoldMilliseconds = value;
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnPhaseTransitionCommitHoldMaxMillisecondsChanged(int value)
+    {
+        _recognitionSettingsService.Settings.PhaseTransitionCommitHoldMaxMilliseconds = value;
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    private async Task SaveQwenSelectionAsync()
+    {
+        await _recognitionSettingsService.SaveAsync();
+        await RefreshQwenStatusAsync();
+    }
+
+    private static string FormatDownloadState(SmartBpDownloadState state)
+    {
+        var percent = state.Progress is { } progress ? $"{progress:0.0}%" : "-";
+        var bytes = state.BytesReceived is { } received
+            ? $"{FormatBytes(received)} / {(state.TotalBytes is { } total ? FormatBytes(total) : "?")}"
+            : "-";
+        var speed = state.BytesPerSecond is { } bps ? $"{FormatBytes((long)bps)}/s" : "-";
+        var eta = state.Eta is { } etaValue ? etaValue.ToString(@"mm\:ss") : "-";
+        return $"{percent}; {state.CurrentFileName ?? "-"}; {bytes}; {speed}; ETA {eta}";
+    }
+
+    private static string FormatBytes(long bytes)
+    {
+        string[] units = ["B", "KB", "MB", "GB"];
+        double value = bytes;
+        var index = 0;
+        while (value >= 1024 && index < units.Length - 1) { value /= 1024; index++; }
+        return $"{value:0.##} {units[index]}";
     }
 }

@@ -418,10 +418,17 @@ internal static class SmartBpRecognitionJsonSchemaProvider
     public static JsonObject GetSnapshotDelta(
         IReadOnlyCollection<string> requestedFields,
         IReadOnlyList<string> survivorCandidates,
-        IReadOnlyList<string> hunterCandidates)
+        IReadOnlyList<string> hunterCandidates,
+        bool strictCandidateEnums)
     {
-        var survivorNames = CharacterNameEnum(survivorCandidates);
-        var hunterNames = CharacterNameEnum(hunterCandidates);
+        if (requestedFields.Count == 0)
+            return Object(new JsonObject
+            {
+                ["phase"] = Phase(),
+                ["updates"] = new JsonObject { ["type"] = "array", ["minItems"] = 0, ["maxItems"] = 0 }
+            }, "phase", "updates");
+        var survivorNames = strictCandidateEnums ? CharacterNameEnum(survivorCandidates) : StringCharacterName();
+        var hunterNames = strictCandidateEnums ? CharacterNameEnum(hunterCandidates) : StringCharacterName();
         JsonObject update = Object(new JsonObject
         {
             ["field"] = new JsonObject { ["type"] = "string", ["enum"] = new JsonArray(requestedFields.Select(x => (JsonNode?)JsonValue.Create(x)).ToArray()) },
@@ -500,6 +507,7 @@ internal static class SmartBpRecognitionJsonSchemaProvider
             .ToArray();
         return new JsonObject { ["type"] = "string", ["enum"] = new JsonArray(values) };
     }
+    private static JsonObject StringCharacterName() => new() { ["type"] = "string" };
     private static JsonObject Phase() => new() { ["type"] = "string", ["enum"] = new JsonArray("屏蔽求生者", "屏蔽监管者", "选择求生者", "求生者选择角色中", "选择监管者", "求生者选择天赋中", "监管者选择天赋中", "天赋已锁定", "等待中", "未知") };
     private static JsonObject IntegerEnum(params int[] values) => new() { ["type"] = "integer", ["enum"] = new JsonArray(values.Select(x => (JsonNode?)JsonValue.Create(x)).ToArray()) };
     private static JsonObject FixedArray(JsonNode? item, int count) => new() { ["type"] = "array", ["minItems"] = count, ["maxItems"] = count, ["items"] = item };
@@ -520,7 +528,11 @@ internal sealed class LlamaCppOpenAiClient(ISmartBpRecognitionSettingsService se
     public async Task<string> RecognizeSnapshotDeltaAsync(IReadOnlyList<SmartBpMultimodalRegionInput> regions, SmartBpSnapshotDeltaRequest request, CancellationToken cancellationToken = default)
     {
         var profile = await promptProfiles.LoadAsync(settings.Settings.PromptProfileId, cancellationToken);
-        var content = new JsonArray { new JsonObject { ["type"] = "text", ["text"] = SmartBpRecognitionPromptBuilder.BuildSnapshotDelta(request, shared.SurCharaDict.Keys, shared.HunCharaDict.Keys) } };
+        var needsSurvivors = request.RequestedFields.Any(field => field is "banned_sur" or "picked_sur");
+        var needsHunters = request.RequestedFields.Any(field => field is "banned_hun" or "picked_hun");
+        var survivorCandidates = needsSurvivors ? shared.SurCharaDict.Keys : Enumerable.Empty<string>();
+        var hunterCandidates = needsHunters ? shared.HunCharaDict.Keys : Enumerable.Empty<string>();
+        var content = new JsonArray { new JsonObject { ["type"] = "text", ["text"] = SmartBpRecognitionPromptBuilder.BuildSnapshotDelta(request, survivorCandidates, hunterCandidates) } };
         for (var i = 0; i < regions.Count; i++)
         {
             var region = regions[i];
@@ -531,7 +543,7 @@ internal sealed class LlamaCppOpenAiClient(ISmartBpRecognitionSettingsService se
         {
             ["model"] = "local",
             ["temperature"] = 0,
-            ["max_tokens"] = settings.Settings.FocusedMaxTokens,
+            ["max_tokens"] = settings.Settings.SnapshotDeltaMaxTokens,
             ["chat_template_kwargs"] = new JsonObject { ["enable_thinking"] = false },
             ["messages"] = new JsonArray(
                 new JsonObject { ["role"] = "system", ["content"] = profile.SystemPrompt },
@@ -543,7 +555,7 @@ internal sealed class LlamaCppOpenAiClient(ISmartBpRecognitionSettingsService se
                 {
                     ["name"] = "smartbp_delta",
                     ["strict"] = true,
-                    ["schema"] = SmartBpRecognitionJsonSchemaProvider.GetSnapshotDelta(request.RequestedFields, shared.SurCharaDict.Keys.ToArray(), shared.HunCharaDict.Keys.ToArray())
+                    ["schema"] = SmartBpRecognitionJsonSchemaProvider.GetSnapshotDelta(request.RequestedFields, shared.SurCharaDict.Keys.ToArray(), shared.HunCharaDict.Keys.ToArray(), settings.Settings.UseStrictCandidateEnumsInAutoSchema)
                 }
             }
         };
@@ -554,7 +566,7 @@ internal sealed class LlamaCppOpenAiClient(ISmartBpRecognitionSettingsService se
     {
         var profile = await promptProfiles.LoadAsync(settings.Settings.PromptProfileId, cancellationToken);
         var body = CreateBody(profile.SystemPrompt, SmartBpRecognitionPromptBuilder.BuildPhaseRecognition(), imageDataUrl,
-            SmartBpRecognitionJsonSchemaProvider.GetPhaseOnly(), 128);
+            SmartBpRecognitionJsonSchemaProvider.GetPhaseOnly(), settings.Settings.PhaseMaxTokens);
         return await SendSpecialAsync(body, "PhaseTop", cancellationToken);
     }
 

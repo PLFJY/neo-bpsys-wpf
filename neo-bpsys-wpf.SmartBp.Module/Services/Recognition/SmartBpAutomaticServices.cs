@@ -827,11 +827,12 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
     ISmartBpSnapshotRecognitionPlanner planner,
     ISmartBpRecognitionStateStore stateStore,
     ISmartBpRecognitionLedger ledger,
+    ISmartBpFrameRingBuffer frameRingBuffer,
     ISmartBpRecognitionSettingsService settings,
     ISmartBpGuidanceSyncService guidanceSync,
     IGameGuidanceService guidance,
     ISmartBpWorkflowBackfillService backfill,
-    ISmartBpDetectedOperationApplier applier) : ISmartBpAutoRecognitionCoordinator
+    ISmartBpDetectedOperationApplier applier) : ISmartBpAutoRecognitionCoordinator, ISmartBpStepCommitScheduler
 {
     private readonly SemaphoreSlim _tickGate = new(1, 1);
     private CancellationTokenSource? _runCancellation;
@@ -866,6 +867,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
         try
         {
             var sequence = Interlocked.Increment(ref _frameSequence);
+            frameRingBuffer.AddFrame(sequence, frame, DateTimeOffset.Now);
             var guidanceSnapshot = guidance.GetRuntimeSnapshot();
             var request = planner.BuildRequest(guidanceSnapshot, stateStore.Snapshot, ledger.GetSnapshot());
             SmartBpRegionSnapshot? regionSnapshot = null;
@@ -887,8 +889,12 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
-                    messages.Add($"Multi-image snapshot request failed; falling back to sequential region requests. {ex.Message}");
+                    messages.Add(settings.Settings.AllowSequentialSnapshotFallback
+                        ? $"Multi-image snapshot request failed; falling back to sequential region requests. {ex.Message}"
+                        : $"Multi-image snapshot request failed and sequential fallback is disabled. {ex.Message}");
                     if (ex is LlamaCppRequestException requestException) raw = requestException.RawResponse;
+                    if (!settings.Settings.AllowSequentialSnapshotFallback)
+                        throw;
                     regionSnapshot = await snapshotRecognition.RecognizeSnapshotAsync(frame, SmartBpRegionSnapshotRecognitionMode.PendingAndCurrentRegions, cancellationToken);
                     raw = string.Join("\n\n", regionSnapshot.RawResponses.Select(item => $"{item.Key} raw:\n{item.Value}"));
                     messages.AddRange(regionSnapshot.Diagnostics);
@@ -931,6 +937,19 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                     : new(0, operations.Length, operations.Length == 0
                     ? ["Skipped: auto apply disabled; no candidate operations were generated."]
                     : operations.Select(x => $"Skipped: auto apply disabled for step {x.SourceWorkflowStepIndex} {x.Kind} {x.Camp}[{x.SlotIndex}] {x.RawCharacterName ?? "null"}.").ToArray());
+            if (settings.Settings.EnableAutoGuidanceSync &&
+                SmartBpAutomaticMapping.TryMapPhase(state.Phase, out var detectedAction) &&
+                guidanceSnapshot.CurrentAction != null &&
+                guidanceSnapshot.CurrentAction != detectedAction &&
+                operations.Length > 0)
+            {
+                var hold = Math.Min(settings.Settings.PhaseTransitionCommitHoldMilliseconds, settings.Settings.PhaseTransitionCommitHoldMaxMilliseconds);
+                if (hold > 0)
+                {
+                    messages.Add($"Transition commit hold {hold}ms before guidance sync; pending operations were processed first.");
+                    await Task.Delay(hold, cancellationToken);
+                }
+            }
             SmartBpGuidanceSyncResult? sync = settings.Settings.EnableAutoGuidanceSync
                 ? await guidanceSync.SyncAsync(state, cancellationToken)
                 : new(false, false, "Automatic GameGuidance synchronization is disabled.", null, [], null);
@@ -957,6 +976,14 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
 
     private SmartBpAutoRecognitionTickResult Failure(string error) =>
         new(null, null, null, null, null, null, guidance.GetRuntimeSnapshot(), [], [], null, "", error);
+
+    public async Task<SmartBpStepCommitResult> ProcessTickAsync(BitmapSource frame, CancellationToken cancellationToken = default)
+    {
+        var result = await RunOneTickAsync(frame, cancellationToken).ConfigureAwait(false);
+        if (result.BusinessState == null || result.BackfillPlan == null)
+            throw new InvalidOperationException(result.Error ?? "SmartBP step commit tick failed.");
+        return new(result.BusinessState, result.BackfillPlan, result.ApplyResult, result.GuidanceSync, result.CandidateMessages);
+    }
 
     private static SmartBpSnapshotDeltaResult ToDelta(SmartBpBusinessStateRecognitionResult state, IReadOnlyCollection<string> requestedFields)
     {

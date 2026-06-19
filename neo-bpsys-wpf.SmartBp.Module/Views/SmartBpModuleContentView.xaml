@@ -362,6 +362,16 @@
                         <TextBlock Margin="4,0,0,0" Text="{Binding IsQwenInstalled}" />
                     </StackPanel>
                 </UniformGrid>
+                <TextBlock Margin="0,10,0,4" Text="{lex:Loc SmartBpAiModelProfile}" />
+                <ComboBox
+                    DisplayMemberPath="DisplayName"
+                    ItemsSource="{Binding QwenModelProfiles}"
+                    SelectedItem="{Binding SelectedQwenModelProfile}" />
+                <TextBlock
+                    Margin="0,4,0,0"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    Text="{lex:Loc SmartBpAiModelProfileHint}"
+                    TextWrapping="Wrap" />
                 <WrapPanel Margin="0,8,0,0">
                     <ui:Button
                         Margin="0,0,8,8"
@@ -389,6 +399,7 @@
                     Visibility="{Binding IsQwenDownloading, Converter={StaticResource BooleanToVisibilityConverter}}"
                     Value="{Binding QwenDownloadProgress}" />
                 <TextBlock Margin="0,4,0,0" Text="{Binding QwenDownloadStatus}" />
+                <TextBlock Margin="0,2,0,0" Text="{Binding QwenDownloadDetail}" />
                 <TextBlock Margin="0,10,0,4" Text="{lex:Loc SmartBpAiPromptProfile}" />
                 <ComboBox
                     DisplayMemberPath="DisplayName"
@@ -410,6 +421,7 @@
                 </WrapPanel>
                 <ProgressBar Height="16" Visibility="{Binding IsLlamaRuntimeDownloading, Converter={StaticResource BooleanToVisibilityConverter}}" Value="{Binding LlamaRuntimeDownloadProgress}" />
                 <TextBlock Margin="0,4,0,0" Text="{Binding LlamaRuntimeDownloadStatus}" />
+                <TextBlock Margin="0,2,0,0" Text="{Binding LlamaRuntimeDownloadDetail}" />
                 <TextBlock Margin="0,6,0,2" Text="{lex:Loc SmartBpAiManagedRuntimePath}" />
                 <TextBox IsReadOnly="True" Text="{Binding ManagedLlamaServerExecutablePath}" />
                 <TextBlock Margin="0,10,0,4" Text="{lex:Loc SmartBpAiLlamaPath}" />
@@ -448,6 +460,8 @@
                         <TextBox Text="{Binding LlamaUBatchSize}" />
                         <TextBlock Margin="0,6,0,4" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{lex:Loc SmartBpAiParallelSlotsHint}" TextWrapping="Wrap" />
                         <ui:Button Margin="0,4,0,0" Command="{Binding ForceStopLlamaServerCommand}" Content="{lex:Loc SmartBpAiForceStopLlama}" Icon="{ui:SymbolIcon Symbol=DismissCircle24}" />
+                        <ui:Button Margin="0,8,0,0" Command="{Binding CheckLlamaRuntimeUpdateCommand}" Content="{lex:Loc SmartBpAiCheckRuntimeUpdate}" Icon="{ui:SymbolIcon Symbol=ArrowSync24}" />
+                        <TextBlock Margin="0,4,0,0" Text="{Binding LlamaRuntimeUpdateStatus}" TextWrapping="Wrap" />
                     </StackPanel>
                 </Expander>
                 <ComboBox
@@ -466,7 +480,21 @@
                 <Expander Margin="0,8,0,0" Header="{lex:Loc SmartBpAiAdvancedRecognitionSettings}">
                     <StackPanel>
                         <ui:ToggleSwitch Margin="0,6,0,0" Content="{lex:Loc SmartBpAiUseMultiImageSnapshot}" IsChecked="{Binding UseMultiImageSnapshotRequest}" />
+                        <ui:ToggleSwitch Margin="0,6,0,0" Content="{lex:Loc SmartBpAiAllowSequentialFallback}" IsChecked="{Binding AllowSequentialSnapshotFallback}" />
+                        <ui:ToggleSwitch Margin="0,6,0,0" Content="{lex:Loc SmartBpAiUseStrictCandidateEnums}" IsChecked="{Binding UseStrictCandidateEnumsInAutoSchema}" />
                         <ui:ToggleSwitch Margin="0,6,0,0" Content="{lex:Loc SmartBpAiPlayBackfillAnimations}" IsChecked="{Binding PlayBackfillAnimations}" />
+                        <TextBlock Margin="0,6,0,2" Text="{lex:Loc SmartBpAiPhaseCropMaxWidth}" />
+                        <TextBox Text="{Binding PhaseCropMaxImageWidth}" />
+                        <TextBlock Margin="0,6,0,2" Text="{lex:Loc SmartBpAiContentCropMaxWidth}" />
+                        <TextBox Text="{Binding ContentCropMaxImageWidth}" />
+                        <TextBlock Margin="0,6,0,2" Text="{lex:Loc SmartBpAiPhaseMaxTokens}" />
+                        <TextBox Text="{Binding PhaseMaxTokens}" />
+                        <TextBlock Margin="0,6,0,2" Text="{lex:Loc SmartBpAiSnapshotDeltaMaxTokens}" />
+                        <TextBox Text="{Binding SnapshotDeltaMaxTokens}" />
+                        <TextBlock Margin="0,6,0,2" Text="{lex:Loc SmartBpAiCommitHoldMilliseconds}" />
+                        <TextBox Text="{Binding PhaseTransitionCommitHoldMilliseconds}" />
+                        <TextBlock Margin="0,6,0,2" Text="{lex:Loc SmartBpAiCommitHoldMaxMilliseconds}" />
+                        <TextBox Text="{Binding PhaseTransitionCommitHoldMaxMilliseconds}" />
                         <TextBlock Margin="0,6,0,2" Text="{lex:Loc SmartBpAiBackfillLookBehindSteps}" />
                         <TextBox Text="{Binding RecognitionBackfillLookBehindSteps}" />
                         <TextBlock Margin="0,6,0,2" Text="{lex:Loc SmartBpAiFieldStaleMilliseconds}" />

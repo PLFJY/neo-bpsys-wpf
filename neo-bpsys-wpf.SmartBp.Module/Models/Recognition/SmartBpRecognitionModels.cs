@@ -167,6 +167,40 @@ public sealed class SmartBpRecognitionSettings
     public int LlamaUBatchSize { get; set; } = 512;
     /// <summary>Gets or sets whether stale managed llama-server processes may be killed automatically.</summary>
     public bool AutoKillStaleManagedLlamaServer { get; set; } = true;
+    /// <summary>Gets or sets whether sequential per-region requests may be used when multi-image recognition fails.</summary>
+    public bool AllowSequentialSnapshotFallback { get; set; } = true;
+    /// <summary>Gets or sets whether automatic JSON schemas should use full candidate enums.</summary>
+    public bool UseStrictCandidateEnumsInAutoSchema { get; set; }
+    /// <summary>Gets or sets maximum encoded width for phase crops.</summary>
+    public int PhaseCropMaxImageWidth { get; set; } = 640;
+    /// <summary>Gets or sets maximum encoded width for content crops.</summary>
+    public int ContentCropMaxImageWidth { get; set; } = 768;
+    /// <summary>Gets or sets the phase-only response token budget.</summary>
+    public int PhaseMaxTokens { get; set; } = 48;
+    /// <summary>Gets or sets the incremental snapshot delta token budget.</summary>
+    public int SnapshotDeltaMaxTokens { get; set; } = 768;
+    /// <summary>Gets or sets the short commit hold before moving guidance to a newly detected phase.</summary>
+    public int PhaseTransitionCommitHoldMilliseconds { get; set; } = 350;
+    /// <summary>Gets or sets the maximum commit hold before allowing late backfill.</summary>
+    public int PhaseTransitionCommitHoldMaxMilliseconds { get; set; } = 800;
+    /// <summary>Gets or sets whether late no-animation backfill remains allowed after phase movement.</summary>
+    public bool AllowLateBackfillAfterPhaseMoved { get; set; } = true;
+    /// <summary>Gets or sets the rolling recognition frame buffer length.</summary>
+    public int RecognitionFrameBufferMilliseconds { get; set; } = 1500;
+    /// <summary>Gets or sets how far back transition finalization may inspect frames.</summary>
+    public int RecognitionTransitionLookBehindMilliseconds { get; set; } = 800;
+    /// <summary>Gets or sets the crop-change threshold.</summary>
+    public double RecognitionCropChangeThreshold { get; set; } = 0.035;
+    /// <summary>Gets or sets how many stable crop observations are preferred.</summary>
+    public int RecognitionCropStableFrames { get; set; } = 2;
+    /// <summary>Gets or sets whether llama.cpp runtime update checks are enabled.</summary>
+    public bool EnableLlamaRuntimeUpdateCheck { get; set; } = true;
+    /// <summary>Gets or sets the llama.cpp runtime update interval in hours.</summary>
+    public int LlamaRuntimeUpdateCheckIntervalHours { get; set; } = 24;
+    /// <summary>Gets or sets a custom remote llama.cpp runtime manifest API URL.</summary>
+    public string LlamaRuntimeManifestApiUrl { get; set; } = "";
+    /// <summary>Gets or sets the last llama.cpp runtime update check time.</summary>
+    public DateTimeOffset? LastLlamaRuntimeUpdateCheckAt { get; set; }
 }
 
 /// <summary>Model-facing BP business-state recognition result.</summary>
@@ -396,8 +430,34 @@ public sealed record SmartBpAutoRecognitionTickResult(SmartBpBusinessStateRecogn
     SmartBpWorkflowBackfillPlan? BackfillPlan = null,
     IReadOnlyList<SmartBpCroppedFrame>? ContentCrops = null);
 
+/// <summary>Result returned by the step commit scheduler.</summary>
+public sealed record SmartBpStepCommitResult(SmartBpBusinessStateRecognitionResult Snapshot,
+    SmartBpWorkflowBackfillPlan Plan,
+    SmartBpOperationApplyResult? ApplyResult,
+    SmartBpGuidanceSyncResult? GuidanceSync,
+    IReadOnlyList<string> Diagnostics);
+
+/// <summary>One frame kept in the rolling SmartBP recognition frame buffer.</summary>
+public sealed record SmartBpBufferedFrame(long Sequence, BitmapSource Frame, DateTimeOffset Timestamp);
+
+/// <summary>Lightweight crop-change analysis result.</summary>
+public sealed record SmartBpCropChangeResult(SmartBpRecognitionRegion Region, long Sequence, double Difference, bool IsChanged, bool IsStable);
+
 /// <summary>Download state exposed to the UI.</summary>
-public sealed record QwenDownloadState(bool IsDownloading, double? Progress, string Status);
+public record SmartBpDownloadState(bool IsDownloading, double? Progress, string Status,
+    string? CurrentFileName = null,
+    long? BytesReceived = null,
+    long? TotalBytes = null,
+    double? BytesPerSecond = null,
+    TimeSpan? Eta = null);
+
+/// <summary>Qwen download state exposed to the UI.</summary>
+public sealed record QwenDownloadState(bool IsDownloading, double? Progress, string Status,
+    string? CurrentFileName = null,
+    long? BytesReceived = null,
+    long? TotalBytes = null,
+    double? BytesPerSecond = null,
+    TimeSpan? Eta = null) : SmartBpDownloadState(IsDownloading, Progress, Status, CurrentFileName, BytesReceived, TotalBytes, BytesPerSecond, Eta);
 
 /// <summary>A bundled recognition prompt profile.</summary>
 public sealed record SmartBpPromptProfile(string Id, string DisplayName, string SystemPrompt);
@@ -413,6 +473,8 @@ public sealed class LlamaCppRuntimeManifest
     public string ReleasePage { get; set; } = "";
     /// <summary>Gets or sets runtime assets.</summary>
     public List<LlamaCppRuntimeAsset> Assets { get; set; } = [];
+    /// <summary>Gets or sets optional check interval from the manifest.</summary>
+    public int? CheckIntervalHours { get; set; }
 }
 
 /// <summary>One installable llama.cpp runtime archive.</summary>
@@ -434,10 +496,21 @@ public sealed class LlamaCppRuntimeAsset
     public string? EntryExe { get; set; }
     /// <summary>Gets or sets required extra asset ids.</summary>
     public List<string> RequiredExtraAssets { get; set; } = [];
+    /// <summary>Gets or sets whether the URL already points to a final downloadable file.</summary>
+    public bool UrlIsDirectDownload { get; set; }
 }
 
 /// <summary>Managed llama.cpp runtime installation state.</summary>
-public sealed record LlamaCppRuntimeInstallState(bool IsDownloading, double? Progress, string Status);
+public sealed record LlamaCppRuntimeInstallState(bool IsDownloading, double? Progress, string Status,
+    string? CurrentFileName = null,
+    long? BytesReceived = null,
+    long? TotalBytes = null,
+    double? BytesPerSecond = null,
+    TimeSpan? Eta = null) : SmartBpDownloadState(IsDownloading, Progress, Status, CurrentFileName, BytesReceived, TotalBytes, BytesPerSecond, Eta);
+
+/// <summary>Result of checking for llama.cpp runtime updates.</summary>
+public sealed record LlamaCppRuntimeUpdateCheckResult(bool Checked, bool HasUpdate, string CurrentVersion,
+    string? LatestVersion, IReadOnlyList<LlamaCppRuntimeAsset> LatestAssets, string Message);
 
 /// <summary>Visual extraction result returned by the model.</summary>
 public sealed class SmartBpVisionExtractionResult

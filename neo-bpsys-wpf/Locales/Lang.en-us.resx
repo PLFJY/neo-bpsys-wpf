@@ -4756,8 +4756,19 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="SmartBpAiUBatchSize" xml:space="preserve"><value>UBatch size</value></data>
   <data name="SmartBpAiForceStopLlama" xml:space="preserve"><value>Force stop managed llama.cpp</value></data>
   <data name="SmartBpAiUseMultiImageSnapshot" xml:space="preserve"><value>Use one multi-image incremental request</value></data>
+  <data name="SmartBpAiAllowSequentialFallback" xml:space="preserve"><value>Allow sequential fallback when multi-image fails</value></data>
+  <data name="SmartBpAiUseStrictCandidateEnums" xml:space="preserve"><value>Use strict candidate enums in automatic recognition</value></data>
+  <data name="SmartBpAiPhaseCropMaxWidth" xml:space="preserve"><value>Phase crop max width</value></data>
+  <data name="SmartBpAiContentCropMaxWidth" xml:space="preserve"><value>Content crop max width</value></data>
+  <data name="SmartBpAiPhaseMaxTokens" xml:space="preserve"><value>Phase token limit</value></data>
+  <data name="SmartBpAiSnapshotDeltaMaxTokens" xml:space="preserve"><value>Delta token limit</value></data>
+  <data name="SmartBpAiCommitHoldMilliseconds" xml:space="preserve"><value>Phase transition commit hold milliseconds</value></data>
+  <data name="SmartBpAiCommitHoldMaxMilliseconds" xml:space="preserve"><value>Maximum phase transition hold milliseconds</value></data>
   <data name="SmartBpAiBackfillLookBehindSteps" xml:space="preserve"><value>Workflow look-behind steps</value></data>
   <data name="SmartBpAiFieldStaleMilliseconds" xml:space="preserve"><value>Field stale refresh milliseconds</value></data>
   <data name="SmartBpAiVisualBufferMilliseconds" xml:space="preserve"><value>Current-step animation buffer milliseconds</value></data>
+  <data name="SmartBpAiModelProfileHint" xml:space="preserve"><value>0.8B is faster and lighter with lower accuracy; 2B is slower but more reliable.</value></data>
+  <data name="SmartBpAiStopServerBeforeSwitchModel" xml:space="preserve"><value>Stop llama-server before switching the Qwen model.</value></data>
+  <data name="SmartBpAiCheckRuntimeUpdate" xml:space="preserve"><value>Check llama.cpp updates</value></data>
   <data name="SmartBpAiLedgerResetCompleted" xml:space="preserve"><value>The SmartBP AI recognition ledger was reset for the current game.</value></data>
 </root>

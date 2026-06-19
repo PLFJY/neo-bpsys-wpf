@@ -70,9 +70,12 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint
         services.AddSingleton<ISmartBpPromptProfileProvider, SmartBpPromptProfileProvider>();
         services.AddSingleton<ILlamaCppRuntimeManifestProvider, LlamaCppRuntimeManifestProvider>();
         services.AddSingleton<ILlamaCppRuntimeAssetManager, LlamaCppRuntimeAssetManager>();
+        services.AddSingleton<ILlamaCppRuntimeUpdateService, LlamaCppRuntimeUpdateService>();
         services.AddSingleton<ISmartBpImageEncoder, SmartBpImageEncoder>();
         services.AddSingleton<ISmartBpRecognitionRegionProfileService, SmartBpRecognitionRegionProfileService>();
         services.AddSingleton<ISmartBpRecognitionFrameCropper, SmartBpRecognitionFrameCropper>();
+        services.AddSingleton<ISmartBpFrameRingBuffer, SmartBpFrameRingBuffer>();
+        services.AddSingleton<ISmartBpCropChangeDetector, SmartBpCropChangeDetector>();
         services.AddSingleton<ISmartBpCharacterResolver, SmartBpCharacterResolver>();
         services.AddSingleton<ILlamaCppOpenAiClient, LlamaCppOpenAiClient>();
         services.AddSingleton<ILlamaCppServerManager, LlamaCppServerManager>();
@@ -87,7 +90,9 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint
         services.AddSingleton<ISmartBpRecognitionLedger, SmartBpRecognitionLedger>();
         services.AddSingleton<ISmartBpWorkflowBackfillService, SmartBpWorkflowBackfillService>();
         services.AddSingleton<ISmartBpDetectedOperationApplier, SmartBpDetectedOperationApplier>();
-        services.AddSingleton<ISmartBpAutoRecognitionCoordinator, SmartBpAutoRecognitionCoordinator>();
+        services.AddSingleton<SmartBpAutoRecognitionCoordinator>();
+        services.AddSingleton<ISmartBpAutoRecognitionCoordinator>(provider => provider.GetRequiredService<SmartBpAutoRecognitionCoordinator>());
+        services.AddSingleton<ISmartBpStepCommitScheduler>(provider => provider.GetRequiredService<SmartBpAutoRecognitionCoordinator>());
         services.AddSingleton<ISmartBpDebugLog, SmartBpDebugLog>();
         services.AddSingleton<SmartBpModuleContentViewModel>();
         services.AddTransient<SmartBpModuleContentView>();

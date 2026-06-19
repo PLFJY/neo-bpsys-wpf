@@ -5692,8 +5692,19 @@
   <data name="SmartBpAiUBatchSize" xml:space="preserve"><value>UBatch size</value></data>
   <data name="SmartBpAiForceStopLlama" xml:space="preserve"><value>强制停止托管 llama.cpp</value></data>
   <data name="SmartBpAiUseMultiImageSnapshot" xml:space="preserve"><value>使用单次多图增量识别</value></data>
+  <data name="SmartBpAiAllowSequentialFallback" xml:space="preserve"><value>多图失败时允许顺序识别回退</value></data>
+  <data name="SmartBpAiUseStrictCandidateEnums" xml:space="preserve"><value>自动识别使用严格候选枚举</value></data>
+  <data name="SmartBpAiPhaseCropMaxWidth" xml:space="preserve"><value>阶段裁剪最大宽度</value></data>
+  <data name="SmartBpAiContentCropMaxWidth" xml:space="preserve"><value>内容裁剪最大宽度</value></data>
+  <data name="SmartBpAiPhaseMaxTokens" xml:space="preserve"><value>阶段识别 token 上限</value></data>
+  <data name="SmartBpAiSnapshotDeltaMaxTokens" xml:space="preserve"><value>增量识别 token 上限</value></data>
+  <data name="SmartBpAiCommitHoldMilliseconds" xml:space="preserve"><value>阶段切换提交等待毫秒</value></data>
+  <data name="SmartBpAiCommitHoldMaxMilliseconds" xml:space="preserve"><value>阶段切换最长等待毫秒</value></data>
   <data name="SmartBpAiBackfillLookBehindSteps" xml:space="preserve"><value>回看工作流步数</value></data>
   <data name="SmartBpAiFieldStaleMilliseconds" xml:space="preserve"><value>字段陈旧刷新毫秒</value></data>
   <data name="SmartBpAiVisualBufferMilliseconds" xml:space="preserve"><value>当前步骤动画缓冲毫秒</value></data>
+  <data name="SmartBpAiModelProfileHint" xml:space="preserve"><value>0.8B 更快、占用更低但准确率较低；2B 更慢但识别更稳。</value></data>
+  <data name="SmartBpAiStopServerBeforeSwitchModel" xml:space="preserve"><value>切换 Qwen 模型前请先停止 llama-server。</value></data>
+  <data name="SmartBpAiCheckRuntimeUpdate" xml:space="preserve"><value>检查 llama.cpp 更新</value></data>
   <data name="SmartBpAiLedgerResetCompleted" xml:space="preserve"><value>已重置当前对局的 SmartBP AI 识别记录。</value></data>
 </root>

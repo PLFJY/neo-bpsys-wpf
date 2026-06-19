@@ -16,18 +16,81 @@ namespace neo_bpsys_wpf.SmartBp.Module.Services.Recognition;
 
 internal sealed class LlamaCppRuntimeManifestProvider : ILlamaCppRuntimeManifestProvider
 {
+    private readonly ISmartBpRecognitionSettingsService? _settings;
+    private readonly ISmartBpDebugLog? _debugLog;
+
+    public LlamaCppRuntimeManifestProvider()
+    {
+    }
+
+    public LlamaCppRuntimeManifestProvider(ISmartBpRecognitionSettingsService settings, ISmartBpDebugLog debugLog)
+    {
+        _settings = settings;
+        _debugLog = debugLog;
+    }
+
     public async Task<LlamaCppRuntimeManifest> LoadAsync(CancellationToken cancellationToken = default)
+    {
+        if (_settings != null && !string.IsNullOrWhiteSpace(_settings.Settings.LlamaRuntimeManifestApiUrl))
+        {
+            try
+            {
+                using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(20) };
+                using var response = await http.GetAsync(_settings.Settings.LlamaRuntimeManifestApiUrl, cancellationToken).ConfigureAwait(false);
+                response.EnsureSuccessStatusCode();
+                await using var remote = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+                var manifest = await DeserializeAsync(remote, cancellationToken).ConfigureAwait(false);
+                _debugLog?.Write("runtime", $"Loaded remote llama.cpp runtime manifest {manifest.RuntimeVersion}.");
+                return manifest;
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _debugLog?.Write("runtime", $"Remote runtime manifest check failed; using bundled manifest. {ex.Message}");
+            }
+        }
+
+        return await LoadBundledAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    internal static async Task<LlamaCppRuntimeManifest> LoadBundledAsync(CancellationToken cancellationToken = default)
     {
         var path = Path.Combine(AppConstants.ResourcesPath, "SmartBp", "LlamaCppRuntimeManifest.json");
         await using var stream = File.OpenRead(path);
+        return await DeserializeAsync(stream, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task<LlamaCppRuntimeManifest> DeserializeAsync(Stream stream, CancellationToken cancellationToken)
+    {
         var manifest = await JsonSerializer.DeserializeAsync<LlamaCppRuntimeManifest>(stream,
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true }, cancellationToken)
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true }, cancellationToken).ConfigureAwait(false)
             ?? throw new InvalidDataException("llama.cpp runtime manifest is empty.");
         if (manifest.SchemaVersion != 1 || manifest.Assets.Count == 0) throw new InvalidDataException("Unsupported llama.cpp runtime manifest.");
         if (!manifest.ReleasePage.EndsWith('/' + manifest.RuntimeVersion, StringComparison.OrdinalIgnoreCase) ||
             manifest.Assets.Any(x => !x.Url.Contains('/' + manifest.RuntimeVersion + '/', StringComparison.OrdinalIgnoreCase)))
             throw new InvalidDataException("llama.cpp runtime manifest version is inconsistent with its release URLs.");
         return manifest;
+    }
+}
+
+internal sealed class LlamaCppRuntimeUpdateService(
+    ILlamaCppRuntimeManifestProvider manifestProvider,
+    ISmartBpRecognitionSettingsService settings) : ILlamaCppRuntimeUpdateService
+{
+    public async Task<LlamaCppRuntimeUpdateCheckResult> CheckForUpdatesAsync(bool force, CancellationToken cancellationToken = default)
+    {
+        if (!settings.Settings.EnableLlamaRuntimeUpdateCheck && !force)
+            return new(false, false, "", null, [], "Runtime update checking is disabled.");
+        if (!force && settings.Settings.LastLlamaRuntimeUpdateCheckAt is { } last &&
+            DateTimeOffset.Now - last < TimeSpan.FromHours(settings.Settings.LlamaRuntimeUpdateCheckIntervalHours))
+            return new(false, false, "", null, [], "Runtime update check interval has not elapsed.");
+
+        var bundled = await LlamaCppRuntimeManifestProvider.LoadBundledAsync(cancellationToken).ConfigureAwait(false);
+        var latest = await manifestProvider.LoadAsync(cancellationToken).ConfigureAwait(false);
+        settings.Settings.LastLlamaRuntimeUpdateCheckAt = DateTimeOffset.Now;
+        await settings.SaveAsync(cancellationToken).ConfigureAwait(false);
+        var hasUpdate = !string.Equals(bundled.RuntimeVersion, latest.RuntimeVersion, StringComparison.OrdinalIgnoreCase);
+        return new(true, hasUpdate, bundled.RuntimeVersion, latest.RuntimeVersion, latest.Assets.Where(x => !string.IsNullOrWhiteSpace(x.EntryExe)).ToArray(),
+            hasUpdate ? $"Latest llama.cpp runtime is {latest.RuntimeVersion}." : "Bundled llama.cpp runtime is up to date.");
     }
 }
 
@@ -147,8 +210,10 @@ internal sealed class LlamaCppRuntimeAssetManager(
 
     private async Task DownloadAsync(LlamaCppRuntimeAsset asset, string path, int index, int count, CancellationToken token)
     {
-        var url = await urlResolver.ResolveAsync(asset.Url, token);
+        var url = asset.UrlIsDirectDownload ? asset.Url : await urlResolver.ResolveAsync(asset.Url, token);
         debugLog.Write("runtime", $"Downloading {asset.Id} from {url}");
+        var tracker = new SmartBpDownloadProgressTracker();
+        var fileName = Path.GetFileName(path);
         using var client = new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
         client.DefaultRequestHeaders.UserAgent.ParseAdd(UserAgent);
         client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/octet-stream"));
@@ -161,7 +226,9 @@ internal sealed class LlamaCppRuntimeAssetManager(
         while ((read = await input.ReadAsync(buffer, token)) > 0)
         {
             await output.WriteAsync(buffer.AsMemory(0, read), token); total += read;
-            if (length > 0) Set(new(true, (index + (double)total / length.Value) / count * 100, "SmartBpAiRuntimeDownloading"));
+            var progress = length > 0 ? (index + (double)total / length.Value) / count * 100 : (double?)null;
+            if (tracker.ShouldRaise(total, length, out var speed, out var eta))
+                Set(new(true, progress, "SmartBpAiRuntimeDownloading", fileName, total, length, speed, eta));
         }
         await output.FlushAsync(token);
         if (!string.IsNullOrWhiteSpace(asset.Sha256))

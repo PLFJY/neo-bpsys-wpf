@@ -124,20 +124,18 @@ public partial class PickPageViewModel : ViewModelBase
             _characterSelectionService = characterSelectionService;
             _settingsHostService = settingsHostService;
             sharedDataService.TeamSwapped += (_, _) => OnPropertyChanged(nameof(ThisPlayer));
-            ThisPlayer.PropertyChanged += OnThisPlayerPropertyChanged;
+            characterSelectionService.CharacterSelected += (sender, e) =>
+            {
+                if (e.Camp == Camp.Sur && e.PlayerIndex == index)
+                {
+                    SyncCharaFromSourceAsync();
+                }
+            };
             sharedDataService.CurrentGameChanged += (_, _) =>
             {
-                ThisPlayer.PropertyChanged -= OnThisPlayerPropertyChanged;
                 OnPropertyChanged(nameof(ThisPlayer));
-                ThisPlayer.PropertyChanged += OnThisPlayerPropertyChanged;
                 SyncCharaFromSourceAsync();
             };
-        }
-
-        private void OnThisPlayerPropertyChanged(object? sender, PropertyChangedEventArgs args)
-        {
-            if (args.PropertyName == nameof(ThisPlayer.Character))
-                SyncCharaFromSourceAsync();
         }
 
         protected override async Task SyncCharaToSourceAsync()

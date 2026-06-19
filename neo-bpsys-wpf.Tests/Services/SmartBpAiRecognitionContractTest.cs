@@ -19,6 +19,7 @@ using SmartBpRecognitionTask = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Reco
 using SmartBpCharacterResolver = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpCharacterResolver;
 using SmartBpRecognitionJsonSchemaProvider = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpRecognitionJsonSchemaProvider;
 using QwenModelAssetManager = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.QwenModelAssetManager;
+using QwenModelManifestProvider = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.QwenModelManifestProvider;
 using SmartBpPromptProfileProvider = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpPromptProfileProvider;
 using LlamaCppRuntimeManifestProvider = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.LlamaCppRuntimeManifestProvider;
 using LlamaCppRuntimeAssetManager = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.LlamaCppRuntimeAssetManager;
@@ -97,7 +98,7 @@ public sealed class SmartBpAiRecognitionContractTest
     [Fact]
     public void SnapshotDeltaSchemaOnlyAllowsRequestedFields()
     {
-        var schema = SmartBpRecognitionJsonSchemaProvider.GetSnapshotDelta(["picked_sur"], ["心理学家"], ["厂长"]);
+        var schema = SmartBpRecognitionJsonSchemaProvider.GetSnapshotDelta(["picked_sur"], ["心理学家"], ["厂长"], true);
         var text = schema.ToJsonString();
 
         Assert.Contains("\"phase\"", text);
@@ -105,6 +106,24 @@ public sealed class SmartBpAiRecognitionContractTest
         Assert.Contains("\"picked_sur\"", text);
         Assert.DoesNotContain("\"banned_sur\"", text);
         Assert.Contains("\"picked_hun\"", text);
+    }
+
+    [Fact]
+    public void SnapshotDeltaSchemaCanUseFastStringCharacterNames()
+    {
+        var schema = SmartBpRecognitionJsonSchemaProvider.GetSnapshotDelta(["picked_sur"], ["心理学家"], ["厂长"], false).ToJsonString();
+
+        Assert.Contains("\"character_name\":{\"type\":\"string\"}", schema);
+        Assert.DoesNotContain("\"enum\":[\"心理学家\"", schema);
+    }
+
+    [Fact]
+    public async Task QwenManifestContainsTwoBandPointModelProfiles()
+    {
+        var manifest = await new QwenModelManifestProvider(NullLogger<QwenModelManifestProvider>.Instance).LoadAsync(TestContext.Current.CancellationToken);
+
+        Assert.Contains(manifest.Models, model => model.Id == "qwen3.5-2b-q4km");
+        Assert.Contains(manifest.Models, model => model.Id == "qwen3.5-0.8b-q4km");
     }
 
     [Fact]

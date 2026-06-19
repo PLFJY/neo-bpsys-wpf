@@ -263,12 +263,85 @@ internal sealed class SmartBpSnapshotRecognitionPlanner(
     }
 }
 
+internal sealed class SmartBpFrameRingBuffer(ISmartBpRecognitionSettingsService settings) : ISmartBpFrameRingBuffer
+{
+    private readonly object _gate = new();
+    private readonly Queue<SmartBpBufferedFrame> _frames = new();
+
+    public void AddFrame(long sequence, BitmapSource frame, DateTimeOffset timestamp)
+    {
+        lock (_gate)
+        {
+            _frames.Enqueue(new(sequence, frame, timestamp));
+            Trim(timestamp, TimeSpan.FromMilliseconds(settings.Settings.RecognitionFrameBufferMilliseconds));
+        }
+    }
+
+    public IReadOnlyList<SmartBpBufferedFrame> GetRecentFrames(TimeSpan window)
+    {
+        var cutoff = DateTimeOffset.Now - window;
+        lock (_gate) return _frames.Where(frame => frame.Timestamp >= cutoff).ToArray();
+    }
+
+    public SmartBpBufferedFrame? GetBestFrameForRegion(SmartBpRecognitionRegion region, TimeSpan lookBehind)
+    {
+        return GetRecentFrames(lookBehind).OrderByDescending(frame => frame.Sequence).FirstOrDefault();
+    }
+
+    private void Trim(DateTimeOffset now, TimeSpan window)
+    {
+        while (_frames.TryPeek(out var frame) && now - frame.Timestamp > window)
+            _frames.Dequeue();
+    }
+}
+
+internal sealed class SmartBpCropChangeDetector(ISmartBpRecognitionSettingsService settings) : ISmartBpCropChangeDetector
+{
+    private readonly object _gate = new();
+    private readonly Dictionary<SmartBpRecognitionRegion, byte[]> _previous = [];
+    private readonly Dictionary<SmartBpRecognitionRegion, int> _stableCounts = [];
+
+    public SmartBpCropChangeResult Analyze(SmartBpRecognitionRegion region, BitmapSource crop, long sequence)
+    {
+        var sample = Sample(crop);
+        lock (_gate)
+        {
+            var difference = _previous.TryGetValue(region, out var previous) ? Difference(previous, sample) : 1;
+            var changed = difference >= settings.Settings.RecognitionCropChangeThreshold;
+            _stableCounts[region] = changed ? 0 : _stableCounts.GetValueOrDefault(region) + 1;
+            _previous[region] = sample;
+            return new(region, sequence, difference, changed, _stableCounts[region] >= settings.Settings.RecognitionCropStableFrames);
+        }
+    }
+
+    private static byte[] Sample(BitmapSource source)
+    {
+        var width = Math.Max(1, Math.Min(32, source.PixelWidth));
+        var height = Math.Max(1, Math.Min(18, source.PixelHeight));
+        var scaled = new TransformedBitmap(source, new System.Windows.Media.ScaleTransform((double)width / source.PixelWidth, (double)height / source.PixelHeight));
+        var converted = new FormatConvertedBitmap(scaled, System.Windows.Media.PixelFormats.Gray8, null, 0);
+        var pixels = new byte[width * height];
+        converted.CopyPixels(pixels, width, 0);
+        return pixels;
+    }
+
+    private static double Difference(byte[] left, byte[] right)
+    {
+        var count = Math.Min(left.Length, right.Length);
+        if (count == 0) return 1;
+        long sum = 0;
+        for (var i = 0; i < count; i++) sum += Math.Abs(left[i] - right[i]);
+        return sum / (count * 255.0);
+    }
+}
+
 internal sealed class SmartBpSnapshotDeltaRecognitionService(
     ISmartBpImageEncoder encoder,
     ISmartBpRecognitionFrameCropper cropper,
     ILlamaCppOpenAiClient client,
     ISmartBpRecognitionSettingsService settings,
-    ISharedDataService shared) : ISmartBpSnapshotDeltaRecognitionService
+    ISharedDataService shared,
+    ISmartBpCropChangeDetector cropChangeDetector) : ISmartBpSnapshotDeltaRecognitionService
 {
     public async Task<(SmartBpSnapshotDeltaResult Delta, IReadOnlyDictionary<string, string> RawResponses, SmartBpCroppedFrame PhaseCrop, IReadOnlyList<SmartBpCroppedFrame> ContentCrops, IReadOnlyList<string> Diagnostics)> RecognizeDeltaAsync(
         BitmapSource frame,
@@ -279,17 +352,29 @@ internal sealed class SmartBpSnapshotDeltaRecognitionService(
         var diagnostics = new List<string> { $"Frame sequence {frameSequence}: requested fields [{string.Join(", ", request.RequestedFields)}]." };
         var crops = new List<SmartBpCroppedFrame>();
         var inputs = new List<SmartBpMultimodalRegionInput>();
+        var effectiveRegions = new List<(SmartBpRecognitionRegion Region, string TargetField)>();
         var phaseCrop = await CropAsync(frame, SmartBpRecognitionRegion.PhaseTop, cancellationToken);
-        inputs.Add(new("phase_top", SmartBpRecognitionRegion.PhaseTop, "phase", await EncodeAsync(phaseCrop.Image, cancellationToken)));
+        var phaseChange = cropChangeDetector.Analyze(SmartBpRecognitionRegion.PhaseTop, phaseCrop.Image, frameSequence);
+        diagnostics.Add($"Crop change {phaseChange.Region}: diff={phaseChange.Difference:0.0000}; changed={phaseChange.IsChanged}; stable={phaseChange.IsStable}.");
+        inputs.Add(new("phase_top", SmartBpRecognitionRegion.PhaseTop, "phase", await EncodeAsync(phaseCrop.Image, settings.Settings.PhaseCropMaxImageWidth, cancellationToken)));
         foreach (var (region, targetField) in request.RequestedRegions)
         {
             var crop = await CropAsync(frame, region, cancellationToken);
             crops.Add(crop);
-            inputs.Add(new(ToRegionId(region), region, targetField, await EncodeAsync(crop.Image, cancellationToken)));
+            var change = cropChangeDetector.Analyze(region, crop.Image, frameSequence);
+            diagnostics.Add($"Crop change {change.Region}: diff={change.Difference:0.0000}; changed={change.IsChanged}; stable={change.IsStable}.");
+            if (!change.IsChanged && change.IsStable)
+            {
+                diagnostics.Add($"Skipped unchanged stable crop {region}; local state will preserve {targetField}.");
+                continue;
+            }
+            inputs.Add(new(ToRegionId(region), region, targetField, await EncodeAsync(crop.Image, settings.Settings.ContentCropMaxImageWidth, cancellationToken)));
+            effectiveRegions.Add((region, targetField));
         }
 
-        var raw = await client.RecognizeSnapshotDeltaAsync(inputs, request, cancellationToken);
-        var parsed = SmartBpAutomaticParser.ParseSnapshotDelta(raw, request.RequestedFields,
+        var effectiveRequest = new SmartBpSnapshotDeltaRequest(effectiveRegions, request.Diagnostics);
+        var raw = await client.RecognizeSnapshotDeltaAsync(inputs, effectiveRequest, cancellationToken);
+        var parsed = SmartBpAutomaticParser.ParseSnapshotDelta(raw, effectiveRequest.RequestedFields,
             shared.SurCharaDict.Keys.ToArray(), shared.HunCharaDict.Keys.ToArray());
         diagnostics.Add($"Delta recognized phase={parsed.Phase}; updates=[{string.Join(", ", parsed.Updates.Select(x => x.Field))}].");
         return (parsed, new Dictionary<string, string> { ["snapshot_delta"] = raw }, phaseCrop, crops, diagnostics);
@@ -298,8 +383,8 @@ internal sealed class SmartBpSnapshotDeltaRecognitionService(
     private async Task<SmartBpCroppedFrame> CropAsync(BitmapSource frame, SmartBpRecognitionRegion region, CancellationToken cancellationToken) =>
         await Task.Run(() => cropper.CropWithInfo(frame, region), cancellationToken);
 
-    private async Task<string> EncodeAsync(BitmapSource image, CancellationToken cancellationToken) =>
-        await Task.Run(() => encoder.EncodeDataUrl(image, settings.Settings.MaxImageWidth), cancellationToken);
+    private async Task<string> EncodeAsync(BitmapSource image, int maxWidth, CancellationToken cancellationToken) =>
+        await Task.Run(() => encoder.EncodeDataUrl(image, Math.Min(settings.Settings.MaxImageWidth, maxWidth)), cancellationToken);
 
     private static string ToRegionId(SmartBpRecognitionRegion region) => region switch
     {

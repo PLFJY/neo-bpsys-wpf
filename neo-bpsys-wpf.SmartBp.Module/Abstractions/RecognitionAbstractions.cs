@@ -15,6 +15,8 @@ public interface IQwenModelAssetManager
     QwenDownloadState State { get; }
     /// <summary>Gets the selected profile.</summary>
     Task<QwenModelProfile> GetProfileAsync(CancellationToken cancellationToken = default);
+    /// <summary>Gets all selectable Qwen model profiles.</summary>
+    Task<IReadOnlyList<QwenModelProfile>> GetProfilesAsync(CancellationToken cancellationToken = default);
     /// <summary>Checks installed assets, including hashes.</summary>
     Task<bool> IsInstalledAsync(CancellationToken cancellationToken = default);
     /// <summary>Downloads missing assets.</summary>
@@ -70,6 +72,12 @@ public interface ILlamaCppRuntimeAssetManager
     /// <summary>Gets the selected installed server executable.</summary>
     Task<string> GetInstalledExecutablePathAsync(CancellationToken cancellationToken = default);
 }
+/// <summary>Checks for remote llama.cpp runtime manifest updates.</summary>
+public interface ILlamaCppRuntimeUpdateService
+{
+    /// <summary>Checks whether a newer runtime manifest is available.</summary>
+    Task<LlamaCppRuntimeUpdateCheckResult> CheckForUpdatesAsync(bool force, CancellationToken cancellationToken = default);
+}
 /// <summary>Controls the local llama.cpp server.</summary>
 public interface ILlamaCppServerManager
 {
@@ -104,6 +112,22 @@ public interface ISmartBpRecognitionFrameCropper
     SmartBpCroppedFrame CropWithInfo(BitmapSource source, SmartBpRecognitionRegion region);
     /// <summary>Crops a frame to the requested coarse region.</summary>
     BitmapSource Crop(BitmapSource source, SmartBpRecognitionRegion region);
+}
+/// <summary>Keeps recent frames for transition finalization.</summary>
+public interface ISmartBpFrameRingBuffer
+{
+    /// <summary>Adds one captured frame.</summary>
+    void AddFrame(long sequence, BitmapSource frame, DateTimeOffset timestamp);
+    /// <summary>Gets recent frames within a time window.</summary>
+    IReadOnlyList<SmartBpBufferedFrame> GetRecentFrames(TimeSpan window);
+    /// <summary>Gets the best recent frame for a region.</summary>
+    SmartBpBufferedFrame? GetBestFrameForRegion(SmartBpRecognitionRegion region, TimeSpan lookBehind);
+}
+/// <summary>Detects whether a cropped recognition region changed enough to refresh.</summary>
+public interface ISmartBpCropChangeDetector
+{
+    /// <summary>Analyzes one crop and returns a lightweight change result.</summary>
+    SmartBpCropChangeResult Analyze(SmartBpRecognitionRegion region, BitmapSource crop, long sequence);
 }
 /// <summary>Recognizes and locally merges phase plus all four coarse BP content regions.</summary>
 public interface ISmartBpRegionSnapshotRecognitionService
@@ -232,4 +256,11 @@ public interface ISmartBpAutoRecognitionCoordinator
     Task StopAsync();
     /// <summary>Runs one stage-aware automatic recognition tick.</summary>
     Task<SmartBpAutoRecognitionTickResult> RunOneTickAsync(BitmapSource frame, CancellationToken cancellationToken = default);
+}
+
+/// <summary>Owns one automatic step-commit transaction.</summary>
+public interface ISmartBpStepCommitScheduler
+{
+    /// <summary>Processes one frame through recognition, apply, and optional guidance synchronization.</summary>
+    Task<SmartBpStepCommitResult> ProcessTickAsync(BitmapSource frame, CancellationToken cancellationToken = default);
 }
