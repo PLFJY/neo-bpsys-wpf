@@ -23,20 +23,12 @@ public sealed class CharacterSelectionServiceTransitionTest
     public void ResolveCharacter_SelectsHighestScoringCandidateInRequestedCamp()
     {
         var expected = new Character("心理学家", Camp.Sur, "psychologist.png");
-        var sharedData = new Mock<ISharedDataService>();
-        sharedData.SetupGet(service => service.SurCharaDict).Returns(new SortedDictionary<string, Character>
-        {
-            ["心理学家"] = expected,
-            ["病患"] = new Character("病患", Camp.Sur, "patient.png")
-        });
-        sharedData.SetupGet(service => service.HunCharaDict).Returns(new SortedDictionary<string, Character>
-        {
-            ["心理学家"] = new Character("心理学家", Camp.Hun, "hunter.png")
-        });
-        var service = new CharacterSelectionService(
-            sharedData.Object,
-            Mock.Of<IFrontedTransitionOrchestrator>(),
-            Mock.Of<IFrontedLayoutService>());
+        var service = CreateService(
+            [
+                expected,
+                new Character("病患", Camp.Sur, "patient.png")
+            ],
+            [new Character("心理学家", Camp.Hun, "hunter.png")]);
 
         var result = service.ResolveCharacter("『心理学家』", Camp.Sur);
 
@@ -44,42 +36,107 @@ public sealed class CharacterSelectionServiceTransitionTest
     }
 
     [Fact]
-    public void ResolveCharacter_AcceptsCandidateAtExactlyHalfSimilarity()
+    public void ResolveCharacterDetailed_ExactSurvivorMatch()
     {
-        var expected = new Character("abcd", Camp.Sur, "threshold.png");
-        var sharedData = new Mock<ISharedDataService>();
-        sharedData.SetupGet(service => service.SurCharaDict).Returns(new SortedDictionary<string, Character>
-        {
-            [expected.Name] = expected
-        });
-        sharedData.SetupGet(service => service.HunCharaDict).Returns([]);
-        var service = new CharacterSelectionService(
-            sharedData.Object,
-            Mock.Of<IFrontedTransitionOrchestrator>(),
-            Mock.Of<IFrontedLayoutService>());
+        var expected = new Character("入殓师", Camp.Sur, "embalmer.png");
+        var service = CreateService([expected], []);
 
-        var result = service.ResolveCharacter("xbxx", Camp.Sur);
+        var result = service.ResolveCharacterDetailed("入殓师", Camp.Sur);
 
-        Assert.Same(expected, result);
+        Assert.Same(expected, result.Character);
+        Assert.Equal("入殓师", result.CanonicalName);
+        Assert.Equal("exact", result.MatchMode);
+        Assert.True(result.IsAutoApplySafe);
     }
 
     [Fact]
-    public void ResolveCharacter_RejectsCandidatesBelowHalfSimilarity()
+    public void ResolveCharacterDetailed_ChineseOcrTypoUsesShortNameCorrection()
     {
-        var sharedData = new Mock<ISharedDataService>();
-        sharedData.SetupGet(service => service.SurCharaDict).Returns(new SortedDictionary<string, Character>
-        {
-            ["abcd"] = new Character("abcd", Camp.Sur, "low-score.png")
-        });
-        sharedData.SetupGet(service => service.HunCharaDict).Returns([]);
-        var service = new CharacterSelectionService(
-            sharedData.Object,
-            Mock.Of<IFrontedTransitionOrchestrator>(),
-            Mock.Of<IFrontedLayoutService>());
+        var expected = new Character("入殓师", Camp.Sur, "embalmer.png");
+        var service = CreateService([expected], []);
 
-        var result = service.ResolveCharacter("wxyz", Camp.Sur);
+        var result = service.ResolveCharacterDetailed("入验师", Camp.Sur);
 
-        Assert.Null(result);
+        Assert.Same(expected, result.Character);
+        Assert.Equal("short-name-correction", result.MatchMode);
+        Assert.True(result.IsAutoApplySafe);
+    }
+
+    [Fact]
+    public void ResolveCharacterDetailed_NeverFallsBackAcrossCampsForSurvivorTypo()
+    {
+        var service = CreateService([new Character("入殓师", Camp.Sur, "embalmer.png")], []);
+
+        var result = service.ResolveCharacterDetailed("入验师", Camp.Hun);
+
+        Assert.Null(result.Character);
+        Assert.False(result.IsAutoApplySafe);
+    }
+
+    [Fact]
+    public void ResolveCharacterDetailed_HunterTypoUsesShortNameCorrection()
+    {
+        var expected = new Character("厂长", Camp.Hun, "hell-ember.png");
+        var service = CreateService([], [expected]);
+
+        var result = service.ResolveCharacterDetailed("广长", Camp.Hun);
+
+        Assert.Same(expected, result.Character);
+        Assert.Equal("short-name-correction", result.MatchMode);
+        Assert.True(result.IsAutoApplySafe);
+    }
+
+    [Fact]
+    public void ResolveCharacterDetailed_NeverFallsBackAcrossCampsForHunterTypo()
+    {
+        var service = CreateService([], [new Character("厂长", Camp.Hun, "hell-ember.png")]);
+
+        var result = service.ResolveCharacterDetailed("广长", Camp.Sur);
+
+        Assert.Null(result.Character);
+        Assert.False(result.IsAutoApplySafe);
+    }
+
+    [Fact]
+    public void ResolveCharacterDetailed_StripsDecorativeQuotes()
+    {
+        var expected = new Character("心理学家", Camp.Sur, "psychologist.png");
+        var service = CreateService([expected], []);
+
+        var result = service.ResolveCharacterDetailed("“心理学家”", Camp.Sur);
+
+        Assert.Same(expected, result.Character);
+        Assert.Equal("normalized-exact", result.MatchMode);
+        Assert.True(result.IsAutoApplySafe);
+    }
+
+    [Fact]
+    public void ResolveCharacterDetailed_AmbiguousFuzzyResultIsUnresolved()
+    {
+        var service = CreateService(
+            [
+                new Character("abcx", Camp.Sur, "left.png"),
+                new Character("abcy", Camp.Sur, "right.png")
+            ],
+            []);
+
+        var result = service.ResolveCharacterDetailed("abc", Camp.Sur);
+
+        Assert.Null(result.Character);
+        Assert.Equal("ambiguous", result.MatchMode);
+        Assert.False(result.IsAutoApplySafe);
+    }
+
+    [Fact]
+    public void ResolveCharacterDetailed_WeakMatchBelowThresholdIsUnresolved()
+    {
+        var service = CreateService([new Character("入殓师", Camp.Sur, "embalmer.png")], []);
+
+        var result = service.ResolveCharacterDetailed("xyz", Camp.Sur);
+
+        Assert.Null(result.Character);
+        Assert.Equal("unresolved", result.MatchMode);
+        Assert.False(result.IsAutoApplySafe);
     }
 
     [Fact]
@@ -217,6 +274,19 @@ public sealed class CharacterSelectionServiceTransitionTest
 
     private static IFrontedLayoutService CreateLayoutService(Guid targetGuid)
         => CreateLayoutService(("SurPick0", targetGuid));
+
+    private static CharacterSelectionService CreateService(
+        IReadOnlyList<Character> survivors,
+        IReadOnlyList<Character> hunters)
+    {
+        var sharedData = new Mock<ISharedDataService>();
+        sharedData.SetupGet(service => service.SurCharaDict).Returns(new SortedDictionary<string, Character>(survivors.ToDictionary(item => item.Name)));
+        sharedData.SetupGet(service => service.HunCharaDict).Returns(new SortedDictionary<string, Character>(hunters.ToDictionary(item => item.Name)));
+        return new(
+            sharedData.Object,
+            Mock.Of<IFrontedTransitionOrchestrator>(),
+            Mock.Of<IFrontedLayoutService>());
+    }
 
     private static IFrontedLayoutService CreateLayoutService(params (string Name, Guid Guid)[] controls)
     {

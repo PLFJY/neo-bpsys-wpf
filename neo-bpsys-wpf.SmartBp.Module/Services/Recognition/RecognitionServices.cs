@@ -115,49 +115,30 @@ internal sealed class SmartBpRecognitionFrameCropper(ISmartBpRecognitionRegionPr
     };
 }
 
-internal sealed partial class SmartBpCharacterResolver(ISharedDataService shared) : ISmartBpCharacterResolver
+internal sealed class SmartBpCharacterResolver(ICharacterSelectionService characterSelectionService) : ISmartBpCharacterResolver
 {
     public SmartBpNormalizedCharacter Resolve(string? rawName, Camp camp, int slot, double confidence)
     {
-        var warnings = new List<string>(); var dict = camp == Camp.Sur ? shared.SurCharaDict : shared.HunCharaDict;
-        KeyValuePair<string, Core.Models.Character>? match = null;
-        if (IsUnselected(rawName))
-            return new(rawName, null, null, camp, slot, confidence, warnings);
-        if (!string.IsNullOrWhiteSpace(rawName))
-        {
-            match = dict.FirstOrDefault(x => x.Key.Equals(rawName, StringComparison.Ordinal));
-            var stripped = StripDecorativeQuotes(rawName);
-            if (match.Value.Value == null) match = dict.FirstOrDefault(x => x.Key.Equals(stripped, StringComparison.Ordinal));
-            if (match.Value.Value == null) match = dict.FirstOrDefault(x => x.Key.Equals(stripped.Trim(), StringComparison.OrdinalIgnoreCase));
-            if (match.Value.Value == null) { var normalized = Normalize(rawName); match = dict.FirstOrDefault(x => Normalize(x.Key) == normalized); }
-        }
-        if (match?.Value == null) warnings.Add(string.IsNullOrWhiteSpace(rawName) ? "Character was not visible or recognized." : $"Unresolved character: {rawName}");
-        return new(rawName, match?.Value is null ? null : match.Value.Key, match?.Value?.Name, camp, slot, confidence, warnings);
+        if (SmartBpBusinessStateParser.IsUnselected(rawName))
+            return new(rawName, null, null, camp, slot, confidence, []);
+
+        var result = characterSelectionService.ResolveCharacterDetailed(rawName ?? string.Empty, camp);
+        string[] warnings = result.Character == null
+            ? [$"Unresolved character: {rawName}; matchMode={result.MatchMode}; score={result.Score:0.00}; reason={result.Reason}"]
+            : [];
+        var reason = $"matchMode={result.MatchMode}; score={result.Score:0.00}; safe={result.IsAutoApplySafe}; reason={result.Reason}";
+        return new(
+            rawName,
+            result.CanonicalName,
+            result.CanonicalName,
+            camp,
+            slot,
+            Math.Min(confidence, result.Character == null ? .89 : Math.Max(confidence, result.Score)),
+            warnings,
+            result.MatchMode,
+            result.IsAutoApplySafe,
+            reason);
     }
-    private static bool IsUnselected(string? value) => string.Equals(value?.Trim(), "未选择", StringComparison.Ordinal);
-    private static string Normalize(string value) => NonWordRegex().Replace(StripDecorativeQuotes(value), "").ToUpperInvariant();
-    private static string StripDecorativeQuotes(string value)
-    {
-        var trimmed = value.Trim();
-        var changed = true;
-        while (changed && trimmed.Length >= 2)
-        {
-            changed = false;
-            foreach (var (left, right) in QuotePairs)
-            {
-                if (trimmed[0] != left || trimmed[^1] != right) continue;
-                trimmed = trimmed[1..^1].Trim();
-                changed = true;
-                break;
-            }
-        }
-        return trimmed;
-    }
-    private static readonly (char Left, char Right)[] QuotePairs =
-    [
-        ('"', '"'), ('“', '”'), ('”', '“'), ('『', '』'), ('「', '」'), ('《', '》'), ('〈', '〉'), ('‘', '’'), ('\'', '\'')
-    ];
-    [GeneratedRegex(@"[\s\p{P}\p{S}]+", RegexOptions.CultureInvariant)] private static partial Regex NonWordRegex();
 }
 
 internal static class SmartBpRecognitionPromptBuilder

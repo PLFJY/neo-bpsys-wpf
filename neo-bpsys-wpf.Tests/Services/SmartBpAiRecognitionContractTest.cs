@@ -14,6 +14,7 @@ using Moq;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models;
+using neo_bpsys_wpf.Services;
 using Xunit;
 using SmartBpRecognitionTask = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionTask;
 using SmartBpRecognitionPromptBuilder = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpRecognitionPromptBuilder;
@@ -71,10 +72,10 @@ public sealed class SmartBpAiRecognitionContractTest
             ["Test Name"] = new("Test Name", Camp.Sur, "test")
         });
         shared.SetupGet(x => x.HunCharaDict).Returns([]);
-        var resolver = new SmartBpCharacterResolver(shared.Object);
+        var resolver = CreateResolverFromShared(shared.Object);
 
         var normalized = resolver.Resolve("test-name", Camp.Sur, 0, .9);
-        var unresolved = resolver.Resolve("test", Camp.Sur, 1, .4);
+        var unresolved = resolver.Resolve("unknown", Camp.Sur, 1, .4);
 
         Assert.Equal("Test Name", normalized.ResolvedCharacterName);
         Assert.Null(unresolved.ResolvedCharacterName);
@@ -826,7 +827,7 @@ public sealed class SmartBpAiRecognitionContractTest
         var survivor = new Character("小说家", Camp.Sur, "novelist.png");
         var game = new Game(new Team(Camp.Sur, TeamType.HomeTeam), new Team(Camp.Hun, TeamType.AwayTeam), GameProgress.Free);
         var shared = CreateShared(game, survivor);
-        var builder = new SmartBpCandidateOperationBuilder(new SmartBpCharacterResolver(shared.Object), shared.Object);
+        var builder = new SmartBpCandidateOperationBuilder(CreateResolverFromShared(shared.Object), shared.Object);
         var ledger = new Mock<ISmartBpRecognitionLedger>();
         var service = new SmartBpWorkflowBackfillService(builder, ledger.Object, shared.Object);
         var state = Business("求生者选择天赋中");
@@ -945,7 +946,7 @@ public sealed class SmartBpAiRecognitionContractTest
         var shared = new Mock<ISharedDataService>();
         shared.SetupGet(x => x.SurCharaDict).Returns(new SortedDictionary<string, Character> { ["祭司"] = new("祭司", Camp.Sur, "priestess") });
         shared.SetupGet(x => x.HunCharaDict).Returns([]);
-        var resolver = new SmartBpCharacterResolver(shared.Object);
+        var resolver = CreateResolverFromShared(shared.Object);
         var settings = new Mock<ISmartBpRecognitionSettingsService>(); settings.SetupGet(x => x.Settings).Returns(new SmartBpRecognitionSettings());
         var service = new SmartBpAiRecognitionService(Mock.Of<ISmartBpImageEncoder>(), Mock.Of<ILlamaCppOpenAiClient>(), resolver, settings.Object, NullLogger<SmartBpAiRecognitionService>.Instance);
         const string json = """
@@ -971,7 +972,7 @@ public sealed class SmartBpAiRecognitionContractTest
             ["心理学家"] = new("心理学家", Camp.Sur, "psychologist")
         });
         shared.SetupGet(x => x.HunCharaDict).Returns([]);
-        var resolver = new SmartBpCharacterResolver(shared.Object);
+        var resolver = CreateResolverFromShared(shared.Object);
 
         var result = resolver.Resolve(rawName, Camp.Sur, 0, .95);
 
@@ -985,7 +986,7 @@ public sealed class SmartBpAiRecognitionContractTest
         var shared = new Mock<ISharedDataService>();
         shared.SetupGet(x => x.SurCharaDict).Returns([]);
         shared.SetupGet(x => x.HunCharaDict).Returns([]);
-        var resolver = new SmartBpCharacterResolver(shared.Object);
+        var resolver = CreateResolverFromShared(shared.Object);
 
         var result = resolver.Resolve("未选择", Camp.Sur, 0, .95);
 
@@ -999,7 +1000,7 @@ public sealed class SmartBpAiRecognitionContractTest
         var shared = new Mock<ISharedDataService>();
         shared.SetupGet(x => x.SurCharaDict).Returns([]);
         shared.SetupGet(x => x.HunCharaDict).Returns(new SortedDictionary<string, Character> { ["厂长"] = new("厂长", Camp.Hun, "hell-ember") });
-        var resolver = new SmartBpCharacterResolver(shared.Object);
+        var resolver = CreateResolverFromShared(shared.Object);
         var settings = new Mock<ISmartBpRecognitionSettingsService>();
         settings.SetupGet(x => x.Settings).Returns(new SmartBpRecognitionSettings());
         var service = new SmartBpAiRecognitionService(Mock.Of<ISmartBpImageEncoder>(), Mock.Of<ILlamaCppOpenAiClient>(), resolver, settings.Object, NullLogger<SmartBpAiRecognitionService>.Instance);
@@ -1028,7 +1029,7 @@ public sealed class SmartBpAiRecognitionContractTest
     }
 
     [Fact]
-    public void RecognitionSpeedTestUsesRegionGatedAiPathLikeDebugTestFrames()
+    public void RecognitionSpeedTestDoesNotUseAutomaticGuidanceOrApplyPipeline()
     {
         var root = FindRepositoryRoot();
         var viewModel = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "ViewModels", "SmartBpModuleContentViewModel.AiRecognition.cs"));
@@ -1038,8 +1039,34 @@ public sealed class SmartBpAiRecognitionContractTest
         Assert.True(speedMethodEnd > speedMethodStart);
         var speedMethod = viewModel[speedMethodStart..speedMethodEnd];
 
-        Assert.Contains("_autoRecognitionCoordinator.RunOneTickAsync(frame)", speedMethod);
+        Assert.Contains("_autoRecognitionCoordinator.RunOneTickDryRunAsync(frame)", speedMethod);
+        Assert.Contains("_ocrBpRecognitionService.RecognizeAsync(frame", speedMethod);
+        Assert.Contains("SelectedAiTestFrame ?? AiTestFrames.FirstOrDefault()", speedMethod);
+        Assert.DoesNotContain("foreach (var testFrame in AiTestFrames)", speedMethod);
+        Assert.DoesNotContain("_autoRecognitionCoordinator.RunOneTickAsync(frame)", speedMethod);
         Assert.DoesNotContain("_aiRecognitionService.RecognizeAsync(frame, testFrame.Task)", speedMethod);
+        Assert.DoesNotContain("ApplyRegionGatedResult", speedMethod);
+    }
+
+    [Fact]
+    public void SelectedTestFrameRecognitionUsesDirectOcrPathWhenOcrEngineIsSelected()
+    {
+        var root = FindRepositoryRoot();
+        var viewModel = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "ViewModels", "SmartBpModuleContentViewModel.AiRecognition.cs"));
+        var methodStart = viewModel.IndexOf("[RelayCommand] private async Task RecognizeSelectedTestFrameAsync()", StringComparison.Ordinal);
+        var methodEnd = viewModel.IndexOf("[RelayCommand] private Task RecognizeCurrentCaptureFrameAsync()", StringComparison.Ordinal);
+        Assert.True(methodStart >= 0);
+        Assert.True(methodEnd > methodStart);
+        var method = viewModel[methodStart..methodEnd];
+
+        Assert.Contains("RecognitionEngine == SmartBpRecognitionEngine.Ocr", method);
+        Assert.Contains("RunOcrSelectedTestFrameCoreAsync(frame, SelectedAiTestFrame.Task)", method);
+        Assert.Contains("RunRegionGatedFrameCoreAsync(frame)", method);
+        Assert.Contains("_ocrBpRecognitionService.RecognizeAsync(frame, new SmartBpOcrRecognitionRequest(regions))", viewModel);
+        Assert.Contains("SmartBpRecognitionTask.BanSur => [SmartBpRecognitionRegion.RightTop]", viewModel);
+        Assert.Contains("SmartBpRecognitionTask.BanHun => [SmartBpRecognitionRegion.LeftTop]", viewModel);
+        Assert.Contains("SmartBpRecognitionTask.PickSur or SmartBpRecognitionTask.CharacterDistribution => [SmartBpRecognitionRegion.LeftBottom]", viewModel);
+        Assert.Contains("SmartBpRecognitionTask.PickHun => [SmartBpRecognitionRegion.RightBottom]", viewModel);
     }
 
     [Fact]
@@ -1155,8 +1182,14 @@ public sealed class SmartBpAiRecognitionContractTest
     private static ISmartBpCharacterResolver CreateResolver(params Character[] characters)
     {
         var shared = CreateShared(new Game(new Team(Camp.Sur, TeamType.HomeTeam), new Team(Camp.Hun, TeamType.AwayTeam), GameProgress.Free), characters);
-        return new SmartBpCharacterResolver(shared.Object);
+        return CreateResolverFromShared(shared.Object);
     }
+
+    private static ISmartBpCharacterResolver CreateResolverFromShared(ISharedDataService shared) =>
+        new SmartBpCharacterResolver(new CharacterSelectionService(
+            shared,
+            Mock.Of<IFrontedTransitionOrchestrator>(),
+            Mock.Of<IFrontedLayoutService>()));
 
     private static Mock<ISharedDataService> CreateShared(Game game, params Character[] characters)
     {

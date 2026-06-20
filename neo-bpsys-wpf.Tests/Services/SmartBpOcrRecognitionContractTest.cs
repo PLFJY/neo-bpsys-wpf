@@ -33,7 +33,6 @@ using SmartBpOcrContactSheetRegion = smartbp::neo_bpsys_wpf.SmartBp.Module.Model
 using SmartBpOcrPhaseClassifier = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpOcrPhaseClassifier;
 using SmartBpOcrRegionParser = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpOcrRegionParser;
 using SmartBpOcrTextResolver = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpOcrTextResolver;
-using SmartBpOcrCandidateMatcher = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpOcrCandidateMatcher;
 using TesseractCoordinateMapper = smartbp::neo_bpsys_wpf.Services.TesseractCoordinateMapper;
 using SmartBpOcrProviderSelector = smartbp::neo_bpsys_wpf.Services.SmartBpOcrProviderSelector;
 using ISmartBpRecognitionSettingsService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpRecognitionSettingsService;
@@ -224,7 +223,7 @@ public sealed class SmartBpOcrRecognitionContractTest
     }
 
     [Fact]
-    public void AliasMapsToCanonicalHunterAndQuotedNameStillResolves()
+    public void GlobalResolverMapsHunterOcrTypoAndQuotedNameStillResolves()
     {
         var resolver = Resolver(new Character("厂长", Camp.Hun, "hell-ember"));
 
@@ -233,7 +232,7 @@ public sealed class SmartBpOcrRecognitionContractTest
 
         Assert.Equal("厂长", alias.ResolvedCharacterKey);
         Assert.Equal("厂长", quoted.ResolvedCharacterKey);
-        Assert.Contains(alias.Warnings, item => item.Contains("matchMode=alias", StringComparison.Ordinal));
+        Assert.Contains(alias.Warnings, item => item.Contains("matchMode=short-name-correction", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -268,6 +267,34 @@ public sealed class SmartBpOcrRecognitionContractTest
         Assert.Equal("厂长", result.PickedHun!.CharacterName);
         Assert.False(result.PickedHun.IsAutoApplySafe);
         Assert.True(result.PickedHun.RecognitionConfidence < .90);
+    }
+
+    [Fact]
+    public void RightTopOcrTypoUsesGlobalResolverAndPreservesSlotOrder()
+    {
+        var parser = Parser(
+            new Character("小说家", Camp.Sur, "novelist"),
+            new Character("昆虫学者", Camp.Sur, "entomologist"),
+            new Character("入殓师", Camp.Sur, "embalmer"),
+            new Character("祭司", Camp.Sur, "priestess"));
+        var diagnostics = new List<string>();
+
+        var result = parser.Parse(
+            SmartBpRecognitionRegion.RightTop,
+            [
+                Line("小说家", 118, 40, 1.00),
+                Line("昆虫学者", 228, 40, 1.00),
+                Line("入验师", 336, 40, .98),
+                Line("祭司", 445, 40, .90)
+            ],
+            diagnostics);
+
+        Assert.Equal(["小说家", "昆虫学者", "入殓师", "祭司"], result.Slots.Select(slot => slot.CharacterName));
+        Assert.Contains(diagnostics, item =>
+            item.Contains("ocr-match region=right_top", StringComparison.Ordinal) &&
+            item.Contains("raw=入验师", StringComparison.Ordinal) &&
+            item.Contains("result=入殓师", StringComparison.Ordinal) &&
+            item.Contains("matchMode=short-name-correction", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -314,12 +341,15 @@ public sealed class SmartBpOcrRecognitionContractTest
         var shared = new Mock<ISharedDataService>();
         shared.SetupGet(x => x.SurCharaDict).Returns(new SortedDictionary<string, Character>(characters.Where(x => x.Camp == Camp.Sur).ToDictionary(x => x.Name)));
         shared.SetupGet(x => x.HunCharaDict).Returns(new SortedDictionary<string, Character>(characters.Where(x => x.Camp == Camp.Hun).ToDictionary(x => x.Name)));
-        var matcher = new SmartBpOcrCandidateMatcher(shared.Object, Mock.Of<ILogger<SmartBpOcrCandidateMatcher>>());
-        return new SmartBpOcrTextResolver(matcher);
+        var service = new CharacterSelectionService(
+            shared.Object,
+            Mock.Of<IFrontedTransitionOrchestrator>(),
+            Mock.Of<IFrontedLayoutService>());
+        return new SmartBpOcrTextResolver(service);
     }
 
-    private static OcrTextLine Line(string text, double x, double y) =>
-        new(text, .98, new Rect((int)x - 5, (int)y - 5, 10, 10), x, y);
+    private static OcrTextLine Line(string text, double x, double y, double confidence = .98) =>
+        new(text, confidence, new Rect((int)x - 5, (int)y - 5, 10, 10), x, y);
 
     private static BitmapSource CreateFrame()
     {

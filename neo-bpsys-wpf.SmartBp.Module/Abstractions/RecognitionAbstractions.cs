@@ -377,6 +377,8 @@ public interface ISmartBpAutoRecognitionCoordinator
     Task StopAsync();
     /// <summary>Runs one stage-aware automatic recognition tick.</summary>
     Task<SmartBpAutoRecognitionTickResult> RunOneTickAsync(BitmapSource frame, CancellationToken cancellationToken = default);
+    /// <summary>Runs one stage-aware recognition tick without applying deltas, character operations, or guidance synchronization.</summary>
+    Task<SmartBpAutoRecognitionTickResult> RunOneTickDryRunAsync(BitmapSource frame, CancellationToken cancellationToken = default);
 }
 
 /// <summary>Owns one automatic step-commit transaction.</summary>

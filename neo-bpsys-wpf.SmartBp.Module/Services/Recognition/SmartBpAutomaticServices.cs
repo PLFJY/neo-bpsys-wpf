@@ -948,6 +948,12 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
     }
 
     public async Task<SmartBpAutoRecognitionTickResult> RunOneTickAsync(BitmapSource frame, CancellationToken cancellationToken = default)
+        => await RunOneTickCoreAsync(frame, isDryRun: false, cancellationToken).ConfigureAwait(false);
+
+    public async Task<SmartBpAutoRecognitionTickResult> RunOneTickDryRunAsync(BitmapSource frame, CancellationToken cancellationToken = default)
+        => await RunOneTickCoreAsync(frame, isDryRun: true, cancellationToken).ConfigureAwait(false);
+
+    private async Task<SmartBpAutoRecognitionTickResult> RunOneTickCoreAsync(BitmapSource frame, bool isDryRun, CancellationToken cancellationToken = default)
     {
         if (!await _tickGate.WaitAsync(0, cancellationToken))
             return Failure("An automatic recognition tick is already running.");
@@ -971,7 +977,10 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
             SmartBpPhaseRecognitionResult phaseResult;
             SmartBpCroppedFrame? phaseCrop;
             IReadOnlyList<SmartBpCroppedFrame> contentCrops;
+            SmartBpBusinessStateRecognitionResult state;
             var messages = new List<string>(request.Diagnostics);
+            if (isDryRun)
+                messages.Add("Speed-test dry run: recognition request shape matches automatic tick, but local merge, auto apply, and GameGuidance sync are disabled.");
             IReadOnlyDictionary<string, string> rawResponses;
             if (settings.Settings.UseMultiImageSnapshotRequest)
             {
@@ -981,7 +990,10 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                     rawResponses = deltaPackage.RawResponses;
                     raw = string.Join("\n\n", deltaPackage.RawResponses.Select(item => $"{item.Key} raw:\n{item.Value}"));
                     messages.AddRange(deltaPackage.Diagnostics);
-                    messages.AddRange(stateStore.ApplyDelta(deltaPackage.Delta, sequence, DateTimeOffset.Now));
+                    if (isDryRun)
+                        messages.Add("Speed-test dry run: skipped local snapshot delta merge.");
+                    else
+                        messages.AddRange(stateStore.ApplyDelta(deltaPackage.Delta, sequence, DateTimeOffset.Now));
                     phaseResult = new SmartBpPhaseRecognitionResult { Phase = deltaPackage.Delta.Phase };
                     phaseCrop = deltaPackage.PhaseCrop;
                     contentCrops = deltaPackage.ContentCrops;
@@ -999,7 +1011,10 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                     raw = string.Join("\n\n", regionSnapshot.RawResponses.Select(item => $"{item.Key} raw:\n{item.Value}"));
                     messages.AddRange(regionSnapshot.Diagnostics);
                     var fallbackDelta = ToDelta(regionSnapshot.BusinessState, request.RequestedFields);
-                    messages.AddRange(stateStore.ApplyDelta(fallbackDelta, sequence, DateTimeOffset.Now));
+                    if (isDryRun)
+                        messages.Add("Speed-test dry run: skipped sequential fallback merge.");
+                    else
+                        messages.AddRange(stateStore.ApplyDelta(fallbackDelta, sequence, DateTimeOffset.Now));
                     phaseResult = regionSnapshot.Phase;
                     phaseCrop = regionSnapshot.PhaseCrop;
                     contentCrops = regionSnapshot.ContentCrops;
@@ -1013,17 +1028,37 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                 raw = string.Join("\n\n", regionSnapshot.RawResponses.Select(item => $"{item.Key} raw:\n{item.Value}"));
                 messages.AddRange(regionSnapshot.Diagnostics);
                 var fallbackDelta = ToDelta(regionSnapshot.BusinessState, request.RequestedFields);
-                messages.AddRange(stateStore.ApplyDelta(fallbackDelta, sequence, DateTimeOffset.Now));
+                if (isDryRun)
+                    messages.Add("Speed-test dry run: skipped sequential snapshot merge.");
+                else
+                    messages.AddRange(stateStore.ApplyDelta(fallbackDelta, sequence, DateTimeOffset.Now));
                 phaseResult = regionSnapshot.Phase;
                 phaseCrop = regionSnapshot.PhaseCrop;
                 contentCrops = regionSnapshot.ContentCrops;
             }
 
-            var state = stateStore.Snapshot;
+            state = isDryRun && regionSnapshot != null ? regionSnapshot.BusinessState : stateStore.Snapshot;
             guidanceSnapshot = guidance.GetRuntimeSnapshot();
             var gate = sceneGate.Classify(phaseResult, state, rawResponses, guidanceSnapshot);
             messages.Add($"Scene: {gate.Scene}; BP recognition allowed: {gate.IsBpRecognitionAllowed}; Character operations allowed: {gate.IsCharacterOperationAllowed}; Action: {(gate.ShouldPauseAutomaticRecognition ? "automatic recognition paused" : "continue monitoring")}; Reason: {gate.Reason}.");
             ApplyAiUnknownPhaseInference(state, guidanceSnapshot, gate, messages);
+            if (isDryRun)
+            {
+                var dryRunSync = new SmartBpGuidanceSyncResult(false, false, "Speed-test dry run: GameGuidance synchronization is disabled.", null, [], null);
+                var dryRunApply = new SmartBpOperationApplyResult(0, 0, ["Speed-test dry run: character operation application is disabled."]);
+                var dryRunSnapshot = regionSnapshot ?? new SmartBpRegionSnapshot
+                {
+                    Phase = phaseResult,
+                    BusinessState = state,
+                    Diagnostics = messages,
+                    PhaseCrop = phaseCrop,
+                    ContentCrops = contentCrops,
+                    RawResponses = new Dictionary<string, string> { ["snapshot_delta"] = raw }
+                };
+                return new(state, phaseResult, null, phaseCrop, null, dryRunSync, guidanceSnapshot,
+                    [], messages, dryRunApply, raw, null, dryRunSnapshot, null, contentCrops, gate);
+            }
+
             var isFreeSync = settings.Settings.RecognitionApplyMode == SmartBpRecognitionApplyMode.FreeFullSync;
             var plan = !gate.IsCharacterOperationAllowed
                 ? new SmartBpWorkflowBackfillPlan([], [$"Character operations blocked by scene gate: {gate.Reason}."])

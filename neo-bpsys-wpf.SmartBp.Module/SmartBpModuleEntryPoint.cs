@@ -86,7 +86,6 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint
         services.AddSingleton<ISmartBpCropChangeDetector, SmartBpCropChangeDetector>();
         services.AddSingleton<ISmartBpCharacterResolver, SmartBpCharacterResolver>();
         services.AddSingleton<ISmartBpOcrContactSheetBuilder, SmartBpOcrContactSheetBuilder>();
-        services.AddSingleton<SmartBpOcrCandidateMatcher>();
         services.AddSingleton<ISmartBpOcrTextResolver, SmartBpOcrTextResolver>();
         services.AddSingleton<SmartBpOcrRegionParser>();
         services.AddSingleton<ISmartBpOcrBpRecognitionService, SmartBpOcrBpRecognitionService>();

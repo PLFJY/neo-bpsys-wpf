@@ -137,7 +137,10 @@
                     </WrapPanel>
                     <ProgressBar Visibility="{Binding IsModelDownloading, Converter={StaticResource BooleanToVisibilityConverter}}" Value="{Binding ModelDownloadProgress}" />
                 </StackPanel>
-                <StackPanel Margin="0,10,0,0" Visibility="{Binding IsTesseractRecognitionEngine, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <StackPanel
+                    Margin="0,10,0,0"
+                    d:Visibility="Visible"
+                    Visibility="{Binding IsTesseractRecognitionEngine, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <TextBlock Text="{Binding TesseractOcrStatus}" />
                     <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding TesseractLanguageOptions}">
                         <ItemsControl.ItemsPanel>
@@ -203,7 +206,10 @@
                         <TextBlock Text="{Binding TesseractDownloadDetail}" TextWrapping="Wrap" />
                     </StackPanel>
                 </StackPanel>
-                <StackPanel Margin="0,10,0,0" Visibility="{Binding IsAiQwenRecognitionEngine, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <StackPanel
+                    Margin="0,10,0,0"
+                    d:Visibility="Visible"
+                    Visibility="{Binding IsAiQwenRecognitionEngine, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <TextBlock Text="{Binding QwenManifestStatus}" />
                     <TextBlock
                         Margin="0,4,0,0"
@@ -308,7 +314,10 @@
                                 VerticalAlignment="Center"
                                 IsIndeterminate="True"
                                 Visibility="{Binding IsLlamaServerStarting, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                            <TextBlock VerticalAlignment="Center" Text="{Binding LlamaServerStatus}" />
+                            <TextBlock
+                                Margin="8,0,0,0"
+                                VerticalAlignment="Center"
+                                Text="{Binding LlamaServerStatus}" />
                         </StackPanel>
                     </WrapPanel>
                     <TextBlock Margin="0,8,0,0"><Run Text="{lex:Loc SmartBpAiGpuName}" /><Run Text=": " /><Run Text="{Binding AiGpuName}" /></TextBlock>

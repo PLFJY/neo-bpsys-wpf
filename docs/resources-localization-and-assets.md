@@ -130,7 +130,7 @@ I18nHelper.GetLocalizedString("SomeKey")
 
 `I18nHelper` 找不到 key 时返回原始 key，便于界面降级显示和定位缺失翻译。新增用户可见文本时至少添加默认 `Lang.resx`，并尽量补齐英文、日文资源，避免用户看到裸 key。
 
-SmartBP OCR 角色别名位于 SmartBP 模块资源 `Resources/SmartBp/OcrCharacterAliases.json`，按 `hunter` / `survivor` 分组并映射到应用内规范角色名，匹配时不得跨阵营查询。Tesseract traineddata 属于托管模型资产，固定下载到 SmartBP 模块目录的 `OCRModels/Tesseract/tessdata/`；SmartBP 页面可勾选下载本软件会用到的语言文件，当前包括 `chi_sim.traineddata`、`eng.traineddata` 和 `jpn.traineddata`，默认语言表达式仍为 `chi_sim+eng`。下载 URL 必须经过 `IGitHubDownloadUrlResolver`；再次下载时只补缺失文件，单个语言下载失败不得删除其他已安装语言。AppData 只保存 SmartBP 配置，不保存托管模型文件。
+SmartBP OCR 不维护模块内角色别名表；OCR 只解析区域和槽位，角色名匹配统一交给 `ICharacterSelectionService` / `CharacterSelectionService`，并且匹配时必须限定在传入阵营内，不得跨阵营查询。Tesseract traineddata 属于托管模型资产，固定下载到 SmartBP 模块目录的 `OCRModels/Tesseract/tessdata/`；SmartBP 页面可勾选下载本软件会用到的语言文件，当前包括 `chi_sim.traineddata`、`eng.traineddata` 和 `jpn.traineddata`，默认语言表达式仍为 `chi_sim+eng`。下载 URL 必须经过 `IGitHubDownloadUrlResolver`；再次下载时只补缺失文件，单个语言下载失败不得删除其他已安装语言。AppData 只保存 SmartBP 配置，不保存托管模型文件。
 
 Designer v3 的显示层本地化统一使用 `Designer.*` key 前缀。代码侧通过 `IFrontedDesignerLocalizationService` 访问，WPF 宿主实现再委托 `I18nHelper.GetLocalizedString(key)`；Core 中的默认实现只返回原始值，避免 Core 反向引用 WPF 项目。常用命名包括 `Designer.Property.*`、`Designer.PropertyGroup.*`、`Designer.ControlType.*`、`Designer.Option.{Property}.{Value}`、`Designer.Window.*`、`Designer.Canvas.*`、`Designer.Binding.*` 和 `Designer.BindingType.*`。
 

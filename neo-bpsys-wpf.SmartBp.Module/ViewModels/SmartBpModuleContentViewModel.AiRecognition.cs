@@ -549,29 +549,28 @@ public partial class SmartBpModuleContentViewModel
         try
         {
             var elapsed = new List<long>();
-            foreach (var testFrame in AiTestFrames)
+            var testFrame = SelectedAiTestFrame ?? AiTestFrames.FirstOrDefault();
+            if (testFrame == null) throw new InvalidOperationException("No SmartBP recognition test frame is available.");
+            var frame = LoadTestFrame(testFrame);
+            if (_recognitionSettingsService.Settings.RecognitionEngine == SmartBpRecognitionEngine.AiQwen)
             {
-                var frame = LoadTestFrame(testFrame);
-                if (_recognitionSettingsService.Settings.RecognitionEngine == SmartBpRecognitionEngine.AiQwen)
-                {
-                    if (!_llamaServerManager.IsRunning) throw new InvalidOperationException("Start llama-server before testing AI recognition speed.");
-                    var watch = Stopwatch.StartNew();
-                    var result = await _autoRecognitionCoordinator.RunOneTickAsync(frame);
-                    watch.Stop();
-                    if (result.Error != null) throw new InvalidOperationException(result.Error);
-                    elapsed.Add(watch.ElapsedMilliseconds);
-                }
-                else
-                {
-                    var watch = Stopwatch.StartNew();
-                    await _ocrBpRecognitionService.RecognizeAsync(frame, new SmartBpOcrRecognitionRequest(
-                    [
-                        SmartBpRecognitionRegion.RightTop, SmartBpRecognitionRegion.LeftTop,
-                        SmartBpRecognitionRegion.LeftBottom, SmartBpRecognitionRegion.RightBottom
-                    ]));
-                    watch.Stop();
-                    elapsed.Add(watch.ElapsedMilliseconds);
-                }
+                if (!_llamaServerManager.IsRunning) throw new InvalidOperationException("Start llama-server before testing AI recognition speed.");
+                var watch = Stopwatch.StartNew();
+                var result = await _autoRecognitionCoordinator.RunOneTickDryRunAsync(frame);
+                watch.Stop();
+                if (!string.IsNullOrWhiteSpace(result.Error)) throw new InvalidOperationException(result.Error);
+                elapsed.Add(watch.ElapsedMilliseconds);
+            }
+            else
+            {
+                var watch = Stopwatch.StartNew();
+                await _ocrBpRecognitionService.RecognizeAsync(frame, new SmartBpOcrRecognitionRequest(
+                [
+                    SmartBpRecognitionRegion.RightTop, SmartBpRecognitionRegion.LeftTop,
+                    SmartBpRecognitionRegion.LeftBottom, SmartBpRecognitionRegion.RightBottom
+                ]));
+                watch.Stop();
+                elapsed.Add(watch.ElapsedMilliseconds);
             }
             var minimum = checked((int)Math.Min(int.MaxValue, elapsed.Max() + 250));
             var settings = _recognitionSettingsService.Settings;
@@ -730,7 +729,14 @@ public partial class SmartBpModuleContentViewModel
     [RelayCommand] private async Task RecognizeSelectedTestFrameAsync()
     {
         if (SelectedAiTestFrame == null) return;
-        try { await RunRegionGatedFrameCoreAsync(LoadTestFrame(SelectedAiTestFrame)); }
+        try
+        {
+            var frame = LoadTestFrame(SelectedAiTestFrame);
+            if (_recognitionSettingsService.Settings.RecognitionEngine == SmartBpRecognitionEngine.Ocr)
+                await RunOcrSelectedTestFrameCoreAsync(frame, SelectedAiTestFrame.Task);
+            else
+                await RunRegionGatedFrameCoreAsync(frame);
+        }
         catch (Exception ex) { AiLastError = ex.Message; }
     }
     [RelayCommand] private Task RecognizeCurrentCaptureFrameAsync() => RecognizeCurrentFrameCoreAsync();
@@ -884,6 +890,33 @@ public partial class SmartBpModuleContentViewModel
         finally { IsAiRecognizing = false; Interlocked.Exchange(ref _recognitionBusy, 0); }
     }
 
+    private async Task RunOcrSelectedTestFrameCoreAsync(BitmapSource frame, SmartBpRecognitionTask task)
+    {
+        if (Interlocked.CompareExchange(ref _recognitionBusy, 1, 0) != 0) return;
+        IsAiRecognizing = true; AiLastError = "";
+        try
+        {
+            var watch = Stopwatch.StartNew();
+            var regions = GetOcrContentRegionsForTestFrame(task);
+            var result = await _ocrBpRecognitionService.RecognizeAsync(frame, new SmartBpOcrRecognitionRequest(regions));
+            watch.Stop();
+
+            AiRawResponse = FormatOcrRawLines(result);
+            AiStageDetectionResult = FormatBusinessState(result.BusinessState);
+            AiGuidanceSnapshot = FormatGuidance(_gameGuidanceService.GetRuntimeSnapshot(), "OCR selected test frame uses direct OCR regions.");
+            AiCandidateOperations = string.Join(Environment.NewLine, result.Diagnostics);
+            AiParsedVisualResult = AiStageDetectionResult;
+            AiNormalizedResult = AiCandidateOperations;
+            AiPhaseCropPreview = null;
+            AiFocusedCropPreview = null;
+            AiCropDebugInfo = $"OCR selected test frame task={task}; regions=[{string.Join(", ", regions.Select(GetRecognitionRegionId))}]";
+            AiSceneDiagnostics = "OCR selected test frame bypasses automatic scene gating.";
+            AiRequestMetrics = $"OCR request elapsed: {watch.ElapsedMilliseconds}ms; regions=[{string.Join(", ", regions.Select(GetRecognitionRegionId))}]";
+            AiLastError = "";
+        }
+        finally { IsAiRecognizing = false; Interlocked.Exchange(ref _recognitionBusy, 0); }
+    }
+
     private void ApplyRegionGatedResult(SmartBpAutoRecognitionTickResult result)
     {
         AiRawResponse = result.RawJson;
@@ -918,6 +951,41 @@ public partial class SmartBpModuleContentViewModel
 
     private string FormatBusinessState(SmartBpBusinessStateRecognitionResult value) =>
         SmartBpBusinessStateFormatter.Format(value, _smartBpCharacterResolver, includeResolved: true);
+
+    private static IReadOnlyList<SmartBpRecognitionRegion> GetOcrContentRegionsForTestFrame(SmartBpRecognitionTask task) =>
+        task switch
+        {
+            SmartBpRecognitionTask.BanSur => [SmartBpRecognitionRegion.RightTop],
+            SmartBpRecognitionTask.BanHun => [SmartBpRecognitionRegion.LeftTop],
+            SmartBpRecognitionTask.PickSur or SmartBpRecognitionTask.CharacterDistribution => [SmartBpRecognitionRegion.LeftBottom],
+            SmartBpRecognitionTask.PickHun => [SmartBpRecognitionRegion.RightBottom],
+            _ => [SmartBpRecognitionRegion.RightTop, SmartBpRecognitionRegion.LeftTop, SmartBpRecognitionRegion.LeftBottom, SmartBpRecognitionRegion.RightBottom]
+        };
+
+    private static string FormatOcrRawLines(SmartBpOcrRecognitionResult result)
+    {
+        var builder = new System.Text.StringBuilder();
+        builder.AppendLine($"phase={result.Phase.Phase}");
+        foreach (var region in result.Regions)
+        {
+            builder.AppendLine($"[{GetRecognitionRegionId(region.Region)}]");
+            foreach (var line in region.Lines)
+                builder.AppendLine($"provider={line.Provider ?? "unknown"}\tcoordinateSpace=region-local\ttext={line.Text}\tbbox={line.BoundingBox}\tcenter={line.CenterX:0.0},{line.CenterY:0.0}\tconf={line.Confidence:0.00}");
+        }
+
+        return builder.ToString().TrimEnd();
+    }
+
+    private static string GetRecognitionRegionId(SmartBpRecognitionRegion region) =>
+        region switch
+        {
+            SmartBpRecognitionRegion.PhaseTop => "phase_top",
+            SmartBpRecognitionRegion.LeftTop => "left_top",
+            SmartBpRecognitionRegion.RightTop => "right_top",
+            SmartBpRecognitionRegion.LeftBottom => "left_bottom",
+            SmartBpRecognitionRegion.RightBottom => "right_bottom",
+            _ => region.ToString()
+        };
 
     private static string FormatGuidance(Core.Models.GameGuidanceRuntimeSnapshot value, string? reason = null) =>
         $"started={value.IsStarted}; step={value.CurrentStepIndex}; action={value.CurrentAction?.ToString() ?? "null"}; indexes=[{string.Join(", ", value.CurrentIndexes)}]; time={value.CurrentTime?.ToString() ?? "null"}{Environment.NewLine}{reason ?? ""}";

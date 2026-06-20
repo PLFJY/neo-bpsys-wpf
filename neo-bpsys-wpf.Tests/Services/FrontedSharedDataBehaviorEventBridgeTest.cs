@@ -448,7 +448,16 @@ public class FrontedSharedDataBehaviorEventBridgeTest
         public event EventHandler<CharacterSelectedEventArgs>? CharacterSelected;
         public event EventHandler<CharacterBannedEventArgs>? CharacterBanned;
 
+        public CharacterResolveResult ResolveCharacterDetailed(string text, Camp camp) =>
+            new(text, camp, null, null, null, 0, "unresolved", false, "mock");
+        public string? ResolveCharacterName(string text, Camp camp) => null;
         public Character? ResolveCharacter(string text, Camp camp) => null;
+        public Task<CharacterResolveApplyResult> SelectSurvivorFromTextAsync(int playerIndex, string text, bool playAnimation = true, bool isRecordGlobalBan = true) =>
+            Task.FromResult(new CharacterResolveApplyResult(ResolveCharacterDetailed(text, Camp.Sur), false, "mock"));
+        public Task<CharacterResolveApplyResult> SelectHunterFromTextAsync(string text, bool playAnimation = true, bool isRecordGlobalBan = true) =>
+            Task.FromResult(new CharacterResolveApplyResult(ResolveCharacterDetailed(text, Camp.Hun), false, "mock"));
+        public Task<CharacterResolveApplyResult> BanCharacterFromTextAsync(Camp camp, int index, string text, bool playAnimation = true) =>
+            Task.FromResult(new CharacterResolveApplyResult(ResolveCharacterDetailed(text, camp), false, "mock"));
         public Task SelectSurvivorAsync(int playerIndex, Character? character, bool playAnimation = true, bool isRecordGlobalBan = true) => Task.CompletedTask;
         public Task SelectHunterAsync(Character? character, bool playAnimation = true, bool isRecordGlobalBan = true) => Task.CompletedTask;
         public Task BanCharacterAsync(Camp camp, int index, Character? character, bool playAnimation = true) => Task.CompletedTask;

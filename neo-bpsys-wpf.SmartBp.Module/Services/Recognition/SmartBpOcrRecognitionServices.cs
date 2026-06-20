@@ -123,7 +123,7 @@ internal static class SmartBpOcrContactSheetMapper
     }
 }
 
-internal sealed partial class SmartBpOcrTextResolver(SmartBpOcrCandidateMatcher matcher) : ISmartBpOcrTextResolver
+internal sealed partial class SmartBpOcrTextResolver(ICharacterSelectionService characterSelectionService) : ISmartBpOcrTextResolver
 {
     public SmartBpNormalizedCharacter ResolveCharacterFromLine(string text, Camp camp, int slotIndex, string? provider = null)
     {
@@ -131,7 +131,20 @@ internal sealed partial class SmartBpOcrTextResolver(SmartBpOcrCandidateMatcher 
             return new(text, null, null, camp, slotIndex, 1, [], "unselected", false, "unselected slot");
         if (IsStatusOrPhaseText(text))
             return new(text, null, null, camp, slotIndex, 0, [], "filtered-status", false, "status or phase text");
-        return matcher.Match(text, camp, slotIndex, provider);
+        var result = characterSelectionService.ResolveCharacterDetailed(text, camp);
+        var resolved = result.CanonicalName ?? "unresolved";
+        var diagnostic = $"raw={text}; provider={provider ?? "unknown"}; camp={camp}; result={resolved}; matchMode={result.MatchMode}; score={result.Score:0.00}; safe={result.IsAutoApplySafe}; reason={result.Reason}";
+        return new(
+            text,
+            result.CanonicalName,
+            result.CanonicalName,
+            camp,
+            slotIndex,
+            result.Score,
+            [diagnostic],
+            result.MatchMode,
+            result.IsAutoApplySafe,
+            result.Reason);
     }
 
     private static bool IsStatusOrPhaseText(string text)
@@ -279,8 +292,13 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
         int count,
         ICollection<string> diagnostics)
     {
-        var matches = lines.Where(line => !IsStatusLine(line.Text))
+        var regionId = field == "banned_sur" ? "right_top" : "left_top";
+        var candidates = lines.Where(line => !IsStatusLine(line.Text))
             .Select(line => new { Line = line, Character = resolver.ResolveCharacterFromLine(line.Text, camp, -1, line.Provider) })
+            .ToArray();
+        foreach (var candidate in candidates)
+            AddResolverDiagnostics(diagnostics, regionId, candidate.Line, candidate.Character);
+        var matches = candidates
             .Where(item => item.Character.ResolvedCharacterKey != null)
             .GroupBy(item => item.Character.ResolvedCharacterKey, StringComparer.Ordinal)
             .Select(group => group.OrderByDescending(item => item.Character.Confidence).First())
@@ -293,8 +311,6 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
         {
             slots[i].CharacterName = matches[i].Character.ResolvedCharacterKey!;
             ApplyRecognitionMetadata(slots[i], matches[i].Character);
-            foreach (var message in matches[i].Character.Warnings)
-                diagnostics.Add(message);
         }
         diagnostics.Add($"{field}: parsed [{string.Join(", ", slots.Select(slot => $"{slot.Index}={slot.CharacterName}"))}]");
         return new() { Phase = "未知", TargetField = field, Slots = slots };
@@ -305,8 +321,12 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
         ICollection<string> diagnostics)
     {
         var contentLines = lines.Where(line => !IsStatusLine(line.Text)).ToArray();
-        var anchors = contentLines
+        var candidates = contentLines
             .Select(line => new { Line = line, Character = resolver.ResolveCharacterFromLine(line.Text, Camp.Sur, -1, line.Provider) })
+            .ToArray();
+        foreach (var candidate in candidates)
+            AddResolverDiagnostics(diagnostics, "left_bottom", candidate.Line, candidate.Character);
+        var anchors = candidates
             .Where(item => item.Character.ResolvedCharacterKey != null)
             .GroupBy(item => item.Character.ResolvedCharacterKey, StringComparer.Ordinal)
             .Select(group => group.OrderBy(item => item.Line.CenterY).First())
@@ -319,8 +339,6 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
             var anchor = anchors[slotIndex];
             slots[slotIndex].CharacterName = anchor.Character.ResolvedCharacterKey!;
             ApplyRecognitionMetadata(slots[slotIndex], anchor.Character);
-            foreach (var message in anchor.Character.Warnings)
-                diagnostics.Add(message);
             slots[slotIndex].PlayerId = FindNearestPlayerIdBelow(anchor.Line, slotIndex, anchors.Select(item => item.Line).ToArray(), contentLines, Camp.Sur);
         }
 
@@ -333,8 +351,12 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
         ICollection<string> diagnostics)
     {
         var contentLines = lines.Where(line => !IsStatusLine(line.Text)).ToArray();
-        var anchor = contentLines
+        var candidates = contentLines
             .Select(line => new { Line = line, Character = resolver.ResolveCharacterFromLine(line.Text, Camp.Hun, 0, line.Provider) })
+            .ToArray();
+        foreach (var candidate in candidates)
+            AddResolverDiagnostics(diagnostics, "right_bottom", candidate.Line, candidate.Character);
+        var anchor = candidates
             .Where(item => item.Character.ResolvedCharacterKey != null)
             .OrderBy(item => item.Line.CenterY)
             .ThenBy(item => item.Line.CenterX)
@@ -344,8 +366,6 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
         {
             slot.CharacterName = anchor.Character.ResolvedCharacterKey!;
             ApplyRecognitionMetadata(slot, anchor.Character);
-            foreach (var message in anchor.Character.Warnings)
-                diagnostics.Add(message);
             slot.PlayerId = FindNearestPlayerIdBelow(anchor.Line, 0, [anchor.Line], contentLines, Camp.Hun);
         }
 
@@ -376,6 +396,16 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
             .ThenBy(line => Math.Abs(line.CenterX - anchor.CenterX))
             .Select(line => SmartBpOcrTextResolver.NormalizeText(line.Text))
             .FirstOrDefault(text => !string.IsNullOrWhiteSpace(text));
+    }
+
+    private static void AddResolverDiagnostics(
+        ICollection<string> diagnostics,
+        string region,
+        OcrTextLine line,
+        SmartBpNormalizedCharacter character)
+    {
+        var result = character.ResolvedCharacterName ?? "unresolved";
+        diagnostics.Add($"ocr-match region={region} raw={character.RawCharacterName ?? line.Text} provider={line.Provider ?? "unknown"} ocrConf={line.Confidence:0.00} camp={character.Camp} result={result} matchMode={character.MatchMode} score={character.Confidence:0.00} safe={character.IsAutoApplySafe} reason={character.RecognitionReason ?? string.Join(" | ", character.Warnings)}");
     }
 
     private static List<SmartBpRecognizedPlayerCharacterSlot> DefaultPlayerSlots(int count) =>
