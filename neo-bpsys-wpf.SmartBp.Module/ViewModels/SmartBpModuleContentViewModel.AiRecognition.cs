@@ -59,6 +59,8 @@ public partial class SmartBpModuleContentViewModel
     private string _qwenDownloadDetail = "";
     [ObservableProperty] private string _llamaServerExecutablePath = "";
     [ObservableProperty] private string _llamaServerStatus = "SmartBpAiStatusStopped";
+    [NotifyCanExecuteChangedFor(nameof(StartAiPreviewLoopCommand))]
+    [NotifyCanExecuteChangedFor(nameof(StopAiPreviewLoopCommand))]
     [ObservableProperty] private bool _isAiRecognizing;
     [ObservableProperty] private bool _isAiPreviewLoopRunning;
     [ObservableProperty] private string _aiRawResponse = "";
@@ -89,6 +91,13 @@ public partial class SmartBpModuleContentViewModel
     [NotifyCanExecuteChangedFor(nameof(StopLlamaServerCommand))]
     [NotifyCanExecuteChangedFor(nameof(ForceStopLlamaServerCommand))]
     [ObservableProperty] private bool _isLlamaServerRunning;
+    [NotifyCanExecuteChangedFor(nameof(DownloadLlamaRuntimeCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteLlamaRuntimeCommand))]
+    [NotifyCanExecuteChangedFor(nameof(RollbackLlamaRuntimeCommand))]
+    [NotifyCanExecuteChangedFor(nameof(StartLlamaServerCommand))]
+    [NotifyCanExecuteChangedFor(nameof(StopLlamaServerCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ForceStopLlamaServerCommand))]
+    [ObservableProperty] private bool _isLlamaServerStarting;
     [ObservableProperty] private double _llamaRuntimeDownloadProgress;
     [ObservableProperty] private string _llamaRuntimeDownloadStatus = "-";
     [ObservableProperty]
@@ -111,6 +120,7 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty] private bool _isPaddleRecognitionEngine = true;
     [ObservableProperty] private bool _isTesseractRecognitionEngine;
     [ObservableProperty] private bool _enableOcrBpRecognition = true;
+    [ObservableProperty] private int _recognitionIntervalMs;
     [ObservableProperty] private int _ocrRecognitionIntervalMs;
     [ObservableProperty] private int _ocrFieldStaleMilliseconds;
     [ObservableProperty] private int _ocrBackfillLookBehindSteps;
@@ -153,6 +163,12 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty] private BitmapSource? _aiFocusedCropPreview;
     [ObservableProperty] private string _aiCropDebugInfo = "-";
     [ObservableProperty] private string _recognitionSpeedTestStatus = "-";
+    [ObservableProperty] private string _currentRecognitionEngineText = "-";
+    [ObservableProperty] private int _currentRecognitionIntervalMs;
+    [ObservableProperty] private int _minimumRecognitionIntervalMs;
+    [ObservableProperty] private string _recognitionIntervalEditHint = "-";
+    [ObservableProperty] private string _aiSceneDiagnostics = "-";
+    [ObservableProperty] private string _aiRequestMetrics = "-";
     [ObservableProperty] private bool _isRecognitionSpeedTesting;
     [ObservableProperty] private bool _isRecognitionIntervalEditable;
     [ObservableProperty] private string _aiGpuName = "not available";
@@ -196,6 +212,7 @@ public partial class SmartBpModuleContentViewModel
         PlayBackfillAnimations = _recognitionSettingsService.Settings.PlayBackfillAnimations;
         UseMultiImageSnapshotRequest = _recognitionSettingsService.Settings.UseMultiImageSnapshotRequest;
         EnableOcrBpRecognition = _recognitionSettingsService.Settings.EnableOcrBpRecognition;
+        RecognitionIntervalMs = _recognitionSettingsService.Settings.RecognitionIntervalMs;
         OcrRecognitionIntervalMs = _recognitionSettingsService.Settings.OcrRecognitionIntervalMs;
         OcrFieldStaleMilliseconds = _recognitionSettingsService.Settings.OcrFieldStaleMilliseconds;
         OcrBackfillLookBehindSteps = _recognitionSettingsService.Settings.OcrBackfillLookBehindSteps;
@@ -277,9 +294,7 @@ public partial class SmartBpModuleContentViewModel
                 AiLastError = TesseractDownloadDetail;
             if (!state.IsDownloading) _ = RefreshTesseractDataStatusAsync();
         });
-        // Eagerly load llama.cpp asset list from local manifest so the ComboBox
-        // is populated before the UI renders. All I/O is local (bundled JSON + File.Exists).
-        LoadLlamaCppAssetsEagerly();
+        _ = LoadLlamaCppAssetsAsync();
         _ = InitializeAiOptionsAsync();
         _ = LoadAiRegionProfileAsync();
         _ = RefreshQwenStatusAsync();
@@ -414,25 +429,33 @@ public partial class SmartBpModuleContentViewModel
         catch (Exception ex) { AiLastError = ex.Message; }
     }
 
-    /// <summary>Eagerly loads llama.cpp runtime assets from local manifest so they are ready before the UI first renders.</summary>
-    private void LoadLlamaCppAssetsEagerly()
+    /// <summary>Loads bundled llama.cpp runtime assets without blocking the UI thread.</summary>
+    private async Task LoadLlamaCppAssetsAsync()
     {
+        LlamaRuntimeDownloadStatus = ResolveLocalizedOrRaw("SmartBpAiStatusLoading");
         try
         {
-            var assets = _llamaRuntimeAssetManager.GetAvailableAssetsAsync().GetAwaiter().GetResult();
+            var assets = await _llamaRuntimeAssetManager.GetAvailableAssetsAsync();
             var selections = assets.Select(a => new LlamaCppRuntimeAssetSelection(a)).ToList();
             foreach (var selection in selections)
-                selection.IsInstalled = _llamaRuntimeAssetManager.IsAssetInstalledAsync(selection.Id, selection.EntryExe).GetAwaiter().GetResult();
-            LlamaRuntimeAssets = selections;
-            var selected = _llamaRuntimeAssetManager.GetSelectedAssetAsync().GetAwaiter().GetResult();
-            SelectedLlamaRuntimeAsset = selections.FirstOrDefault(s => s.Id == selected.Id) ?? selections.FirstOrDefault();
-            IsLlamaRuntimeInstalled = _llamaRuntimeAssetManager.IsInstalledAsync().GetAwaiter().GetResult();
-            ManagedLlamaServerExecutablePath = IsLlamaRuntimeInstalled
-                ? _llamaRuntimeAssetManager.GetInstalledExecutablePathAsync().GetAwaiter().GetResult() : "-";
+                selection.IsInstalled = await _llamaRuntimeAssetManager.IsAssetInstalledAsync(selection.Id, selection.EntryExe);
+            var selected = await _llamaRuntimeAssetManager.GetSelectedAssetAsync();
+            var installed = await _llamaRuntimeAssetManager.IsInstalledAsync();
+            var executable = installed ? await _llamaRuntimeAssetManager.GetInstalledExecutablePathAsync() : "-";
+            RunOnUiThread(() =>
+            {
+                LlamaRuntimeAssets = selections;
+                SelectedLlamaRuntimeAsset = selections.FirstOrDefault(s => s.Id == selected.Id) ?? selections.FirstOrDefault();
+                IsLlamaRuntimeInstalled = installed;
+                ManagedLlamaServerExecutablePath = executable;
+                LlamaRuntimeDownloadStatus = installed
+                    ? ResolveLocalizedOrRaw("SmartBpAiStatusInstalled")
+                    : ResolveLocalizedOrRaw("SmartBpAiStatusNotInstalled");
+            });
         }
         catch (Exception ex)
         {
-            _aiDebugLog.Write("runtime", $"Eager llama.cpp asset load failed, will retry later: {ex.Message}");
+            _aiDebugLog.Write("runtime", $"llama.cpp asset load failed, will retry later: {ex.Message}");
         }
     }
 
@@ -560,6 +583,7 @@ public partial class SmartBpModuleContentViewModel
             {
                 settings.MinimumAiRecognitionIntervalMs = minimum;
                 settings.RecognitionIntervalMs = Math.Max(settings.RecognitionIntervalMs, minimum);
+                RecognitionIntervalMs = settings.RecognitionIntervalMs;
             }
             settings.LastRecognitionSpeedTestAt = DateTimeOffset.Now;
             settings.LastRecognitionSpeedTestEngine = GetRecognitionSpeedFingerprint();
@@ -580,9 +604,18 @@ public partial class SmartBpModuleContentViewModel
 
     private void RefreshRecognitionSpeedTestValidity()
     {
+        var settings = _recognitionSettingsService.Settings;
         IsRecognitionIntervalEditable = string.Equals(
-            _recognitionSettingsService.Settings.LastRecognitionSpeedTestConfigurationHash,
+            settings.LastRecognitionSpeedTestConfigurationHash,
             GetRecognitionSpeedFingerprint(), StringComparison.Ordinal);
+        CurrentRecognitionEngineText = settings.RecognitionEngine == SmartBpRecognitionEngine.Ocr ? "OCR" : "AI / Qwen";
+        CurrentRecognitionIntervalMs = settings.RecognitionEngine == SmartBpRecognitionEngine.Ocr
+            ? settings.OcrRecognitionIntervalMs : settings.RecognitionIntervalMs;
+        MinimumRecognitionIntervalMs = settings.RecognitionEngine == SmartBpRecognitionEngine.Ocr
+            ? settings.MinimumOcrRecognitionIntervalMs : settings.MinimumAiRecognitionIntervalMs;
+        RecognitionIntervalEditHint = IsRecognitionIntervalEditable
+            ? ResolveLocalizedOrRaw("SmartBpRecognitionIntervalReady")
+            : ResolveLocalizedOrRaw("SmartBpRecognitionIntervalRequiresSpeedTest");
     }
     [RelayCommand(CanExecute = nameof(CanDownloadQwenModel))]
     private async Task DownloadQwenModelAsync()
@@ -619,16 +652,16 @@ public partial class SmartBpModuleContentViewModel
         !IsQwenDownloading && !_llamaServerManager.IsRunning && SelectedQwenModelProfile != null && IsSelectedQwenModelInstalled;
 
     private bool CanDownloadLlamaRuntime() =>
-        !IsLlamaRuntimeDownloading && !IsLlamaServerRunning && SelectedLlamaRuntimeAsset != null && !SelectedLlamaRuntimeAsset.IsInstalled;
+        !IsLlamaRuntimeDownloading && !IsLlamaServerRunning && !IsLlamaServerStarting && SelectedLlamaRuntimeAsset != null && !SelectedLlamaRuntimeAsset.IsInstalled;
 
     private bool CanDeleteLlamaRuntime() =>
-        !IsLlamaRuntimeDownloading && !IsLlamaServerRunning && SelectedLlamaRuntimeAsset != null && SelectedLlamaRuntimeAsset.IsInstalled;
+        !IsLlamaRuntimeDownloading && !IsLlamaServerRunning && !IsLlamaServerStarting && SelectedLlamaRuntimeAsset != null && SelectedLlamaRuntimeAsset.IsInstalled;
 
     private bool CanRollbackLlamaRuntime() =>
-        !IsLlamaRuntimeDownloading && !IsLlamaServerRunning && IsLlamaRuntimeInstalled;
+        !IsLlamaRuntimeDownloading && !IsLlamaServerRunning && !IsLlamaServerStarting && IsLlamaRuntimeInstalled;
 
     private bool CanStartLlamaServer() =>
-        !IsLlamaServerRunning && IsLlamaRuntimeInstalled;
+        !IsLlamaServerRunning && !IsLlamaServerStarting && IsLlamaRuntimeInstalled;
 
     private bool CanStopLlamaServer() =>
         IsLlamaServerRunning;
@@ -667,7 +700,27 @@ public partial class SmartBpModuleContentViewModel
     }
     [RelayCommand] private async Task CheckLlamaRuntimeUpdateAsync() { try { var result = await _llamaRuntimeUpdateService.CheckForUpdatesAsync(true); LlamaRuntimeUpdateStatus = $"{result.Message} Current={result.CurrentVersion}; Latest={result.LatestVersion ?? "-"}"; if (result.LatestAssets.Count > 0) { var selections = result.LatestAssets.Select(a => new LlamaCppRuntimeAssetSelection(a)).ToList(); await RefreshLlamaRuntimeAssetsInstallStatusAsync(selections); LlamaRuntimeAssets = selections; } } catch (Exception ex) { LlamaRuntimeUpdateStatus = ex.Message; } }
     [RelayCommand(CanExecute = nameof(CanStartLlamaServer))]
-    private async Task StartLlamaServerAsync() { try { await _llamaServerManager.StartAsync(); LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusReady"); IsLlamaServerRunning = true; } catch (Exception ex) { LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusFailed"); IsLlamaServerRunning = false; AiLastError = ex.Message; } }
+    private async Task StartLlamaServerAsync()
+    {
+        IsLlamaServerStarting = true;
+        LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusStarting");
+        try
+        {
+            await _llamaServerManager.StartAsync();
+            LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusReady");
+            IsLlamaServerRunning = true;
+        }
+        catch (Exception ex)
+        {
+            LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusFailed");
+            IsLlamaServerRunning = false;
+            AiLastError = ex.Message;
+        }
+        finally
+        {
+            IsLlamaServerStarting = false;
+        }
+    }
     [RelayCommand(CanExecute = nameof(CanStopLlamaServer))]
     private async Task StopLlamaServerAsync() { await StopAiPreviewLoopAsync(); await _llamaServerManager.StopAsync(); LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusStopped"); IsLlamaServerRunning = false; }
     [RelayCommand(CanExecute = nameof(CanForceStopLlamaServer))]
@@ -718,8 +771,8 @@ public partial class SmartBpModuleContentViewModel
         NotifyAutomaticRecognitionCommands();
     }
 
-    private bool CanStartAutomaticRecognition() => !IsAiPreviewLoopRunning;
-    private bool CanStopAutomaticRecognition() => IsAiPreviewLoopRunning;
+    private bool CanStartAutomaticRecognition() => !IsAiPreviewLoopRunning && !IsAiRecognizing;
+    private bool CanStopAutomaticRecognition() => IsAiPreviewLoopRunning || IsAiRecognizing;
     private void NotifyAutomaticRecognitionCommands()
     {
         StartAiPreviewLoopCommand.NotifyCanExecuteChanged();
@@ -807,7 +860,13 @@ public partial class SmartBpModuleContentViewModel
         {
             var result = await _autoRecognitionCoordinator.RunOneTickAsync(frame);
             ApplyRegionGatedResult(result);
+            if (result.SceneGate?.ShouldPauseAutomaticRecognition == true && IsAiPreviewLoopRunning)
+            {
+                await StopAiPreviewLoopAsync();
+                AiSceneDiagnostics += Environment.NewLine + ResolveLocalizedOrRaw("SmartBpRecognitionPausedBpEnded");
+            }
         }
+        catch (OperationCanceledException) { }
         finally { IsAiRecognizing = false; Interlocked.Exchange(ref _recognitionBusy, 0); }
     }
 
@@ -834,6 +893,11 @@ public partial class SmartBpModuleContentViewModel
         AiPhaseCropPreview = result.PhaseCrop?.Image;
         AiFocusedCropPreview = result.ContentCrops?.LastOrDefault()?.Image ?? result.FocusedCrop?.Image;
         AiCropDebugInfo = FormatCropDebugInfo(result);
+        AiSceneDiagnostics = result.SceneGate == null ? "-" :
+            $"Scene: {result.SceneGate.Scene}{Environment.NewLine}BP recognition allowed: {result.SceneGate.IsBpRecognitionAllowed}{Environment.NewLine}Character operations allowed: {result.SceneGate.IsCharacterOperationAllowed}{Environment.NewLine}Action: {(result.SceneGate.ShouldPauseAutomaticRecognition ? "automatic recognition paused" : "continue monitoring")}{Environment.NewLine}Reason: {result.SceneGate.Reason}";
+        var metrics = _llamaCppOpenAiClient.LastResponseMetrics;
+        AiRequestMetrics = metrics == null ? "not available" :
+            $"AI request elapsed: {metrics.ElapsedMilliseconds}ms; completion tokens: {metrics.CompletionTokens?.ToString() ?? "not available"}; output tokens/sec: {metrics.TokensPerSecond?.ToString("0.##") ?? "not available"}; finish_reason: {_llamaCppOpenAiClient.LastFinishReason ?? "not available"}";
         AiLastError = result.Error ?? "";
     }
 
@@ -1168,6 +1232,16 @@ public partial class SmartBpModuleContentViewModel
         var minimum = Math.Max(100, _recognitionSettingsService.Settings.MinimumOcrRecognitionIntervalMs);
         _recognitionSettingsService.Settings.OcrRecognitionIntervalMs = Math.Clamp(value, minimum, 300000);
         RefreshRecognitionTimerInterval();
+        RefreshRecognitionSpeedTestValidity();
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnRecognitionIntervalMsChanged(int value)
+    {
+        var minimum = Math.Max(100, _recognitionSettingsService.Settings.MinimumAiRecognitionIntervalMs);
+        _recognitionSettingsService.Settings.RecognitionIntervalMs = Math.Clamp(value, minimum, 300000);
+        RefreshRecognitionTimerInterval();
+        RefreshRecognitionSpeedTestValidity();
         _ = _recognitionSettingsService.SaveAsync();
     }
 

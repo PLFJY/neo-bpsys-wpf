@@ -1,8 +1,6 @@
-using System.Diagnostics;
 using System.IO;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.SmartBp.Module.Abstractions;
 using neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
 
@@ -20,9 +18,6 @@ public sealed class TesseractDataAssetManager(
         new("eng", "SmartBpTesseractLanguageEnglish", "https://github.com/tesseract-ocr/tessdata/raw/main/eng.traineddata"),
         new("jpn", "SmartBpTesseractLanguageJapanese", "https://github.com/tesseract-ocr/tessdata/raw/main/jpn.traineddata")
     ];
-    private static readonly TimeSpan ResponseHeaderTimeout = TimeSpan.FromSeconds(30);
-    private static readonly TimeSpan ReadStallTimeout = TimeSpan.FromSeconds(30);
-    private const string BrowserUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
     private CancellationTokenSource? _downloadCts;
 
     /// <inheritdoc />
@@ -109,90 +104,37 @@ public sealed class TesseractDataAssetManager(
             return;
         }
 
-        var temporary = destination + ".download";
-        try
-        {
-            Raise(new(true, baseProgress, "SmartBpTesseractDataDownloading", fileName));
-            var resolvedUrl = await urlResolver.ResolveAsync(asset.Url, token).ConfigureAwait(false);
-            using var client = new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
-            ConfigureDownloadHeaders(client, new Uri(resolvedUrl));
-            using var response = await GetResponseAsync(client, resolvedUrl, token).ConfigureAwait(false);
-            response.EnsureSuccessStatusCode();
-            var length = response.Content.Headers.ContentLength;
-            var watch = Stopwatch.StartNew();
-            long received = 0;
+        Raise(new(true, baseProgress, "SmartBpTesseractDataDownloading", fileName));
+        var resolvedUrl = await urlResolver.ResolveAsync(asset.Url, token).ConfigureAwait(false);
+        await SmartBpParallelDownload.DownloadFileAsync(
+            resolvedUrl,
+            destination,
+            token,
+            progress =>
             {
-                await using var input = await response.Content.ReadAsStreamAsync(token).ConfigureAwait(false);
-                await using var output = new FileStream(temporary, FileMode.Create, FileAccess.Write, FileShare.None, 131072, true);
-                var buffer = new byte[131072];
-                int read;
-                while ((read = await ReadWithStallTimeoutAsync(input, buffer, token).ConfigureAwait(false)) > 0)
-                {
-                    await output.WriteAsync(buffer.AsMemory(0, read), token).ConfigureAwait(false);
-                    received += read;
-                    var speed = received / Math.Max(.001, watch.Elapsed.TotalSeconds);
-                    TimeSpan? eta = length is > 0 && speed > 1 ? TimeSpan.FromSeconds((length.Value - received) / speed) : null;
-                    double? progress = length is > 0 && count > 0
-                        ? (index + Math.Min(.98, received / (double)length.Value * .98)) / count * 100
-                        : null;
-                    Raise(new(true, progress, "SmartBpTesseractDataDownloading", Path.GetFileName(destination), received, length, speed, eta));
-                }
-                await output.FlushAsync(token).ConfigureAwait(false);
-            }
-            if (length is > 0 && received != length.Value)
-            {
-                throw new InvalidDataException(
-                    $"Tesseract language-data download ended early for {fileName}: received {received} of {length.Value} bytes.");
-            }
-            File.Move(temporary, destination, true);
-            Raise(new(true, count == 0 ? 100 : (index + 1D) / count * 100, "SmartBpTesseractDataDownloading", fileName));
-        }
-        finally
-        {
-            if (File.Exists(temporary)) File.Delete(temporary);
-        }
+                var length = progress.TotalBytesToReceive > 0 ? progress.TotalBytesToReceive : (long?)null;
+                var overallProgress = count > 0
+                    ? (index + progress.ProgressPercentage / 100D) / count * 100D
+                    : 100D;
+                TimeSpan? eta = length is > 0 && progress.BytesPerSecondSpeed > 1
+                    ? TimeSpan.FromSeconds(Math.Max(0, length.Value - progress.ReceivedBytesSize) / progress.BytesPerSecondSpeed)
+                    : null;
+                Raise(new(
+                    true,
+                    overallProgress,
+                    "SmartBpTesseractDataDownloading",
+                    fileName,
+                    progress.ReceivedBytesSize,
+                    length,
+                    progress.BytesPerSecondSpeed,
+                    eta));
+            }).ConfigureAwait(false);
+        Raise(new(true, count == 0 ? 100 : (index + 1D) / count * 100, "SmartBpTesseractDataDownloading", fileName));
     }
 
     private string GetManagedPath() => storage.TesseractDataRoot;
 
     private void Raise(SmartBpDownloadState state) => StateChanged?.Invoke(this, state);
-
-    private static void ConfigureDownloadHeaders(HttpClient client, Uri downloadUri)
-    {
-        client.DefaultRequestHeaders.UserAgent.ParseAdd(BrowserUserAgent);
-        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/octet-stream"));
-        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*", 0.8));
-        client.DefaultRequestHeaders.Referrer = new Uri(downloadUri.GetLeftPart(UriPartial.Authority) + "/");
-    }
-
-    private static async Task<HttpResponseMessage> GetResponseAsync(HttpClient client, string url, CancellationToken token)
-    {
-        try
-        {
-            return await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, token)
-                .WaitAsync(ResponseHeaderTimeout, token)
-                .ConfigureAwait(false);
-        }
-        catch (TimeoutException ex) when (!token.IsCancellationRequested)
-        {
-            throw new TimeoutException("Tesseract language-data download timed out while waiting for response headers.", ex);
-        }
-    }
-
-    private static async Task<int> ReadWithStallTimeoutAsync(Stream input, byte[] buffer, CancellationToken token)
-    {
-        try
-        {
-            return await input.ReadAsync(buffer, token)
-                .AsTask()
-                .WaitAsync(ReadStallTimeout, token)
-                .ConfigureAwait(false);
-        }
-        catch (TimeoutException ex) when (!token.IsCancellationRequested)
-        {
-            throw new TimeoutException("Tesseract language-data download stalled because no data was received for 30 seconds.", ex);
-        }
-    }
 
     private static IEnumerable<TesseractManagedLanguage> ResolveAssets(IEnumerable<string> languages)
     {

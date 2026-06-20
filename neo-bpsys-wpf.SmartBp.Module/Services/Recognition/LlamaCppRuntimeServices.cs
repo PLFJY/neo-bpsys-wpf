@@ -9,6 +9,7 @@ using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.SmartBp.Module.Abstractions;
 using neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
 
@@ -421,28 +422,32 @@ internal sealed class LlamaCppRuntimeAssetManager(
     {
         var url = asset.UrlIsDirectDownload ? asset.Url : await urlResolver.ResolveAsync(asset.Url, token);
         debugLog.Write("runtime", $"Downloading {asset.Id} from {url}");
-        var tracker = new SmartBpDownloadProgressTracker();
         var fileName = Path.GetFileName(path);
-        using var client = new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
-        client.DefaultRequestHeaders.UserAgent.ParseAdd(UserAgent);
-        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/octet-stream"));
-        using var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, token);
-        response.EnsureSuccessStatusCode();
-        var length = response.Content.Headers.ContentLength;
-        await using var input = await response.Content.ReadAsStreamAsync(token);
-        await using var output = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None, 131072, true);
-        var buffer = new byte[131072]; long total = 0; int read;
-        while ((read = await input.ReadAsync(buffer, token)) > 0)
-        {
-            await output.WriteAsync(buffer.AsMemory(0, read), token); total += read;
-            var progress = length > 0 ? (index + (double)total / length.Value) / count * 100 : (double?)null;
-            if (tracker.ShouldRaise(total, length, out var speed, out var eta))
-                Set(new(true, progress, "SmartBpAiRuntimeDownloading", fileName, total, length, speed, eta));
-        }
-        await output.FlushAsync(token);
+        await SmartBpParallelDownload.DownloadFileAsync(
+            url,
+            path,
+            token,
+            progress =>
+            {
+                var length = progress.TotalBytesToReceive > 0 ? progress.TotalBytesToReceive : (long?)null;
+                var overallProgress = count > 0
+                    ? (index + progress.ProgressPercentage / 100D) / count * 100D
+                    : 100D;
+                TimeSpan? eta = length is > 0 && progress.BytesPerSecondSpeed > 1
+                    ? TimeSpan.FromSeconds(Math.Max(0, length.Value - progress.ReceivedBytesSize) / progress.BytesPerSecondSpeed)
+                    : null;
+                Set(new(
+                    true,
+                    overallProgress,
+                    "SmartBpAiRuntimeDownloading",
+                    fileName,
+                    progress.ReceivedBytesSize,
+                    length,
+                    progress.BytesPerSecondSpeed,
+                    eta));
+            }).ConfigureAwait(false);
         if (!string.IsNullOrWhiteSpace(asset.Sha256))
         {
-            await output.DisposeAsync();
             await using var verify = File.OpenRead(path);
             var actual = Convert.ToHexString(await SHA256.HashDataAsync(verify, token));
             if (!actual.Equals(asset.Sha256, StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException($"SHA256 validation failed for {asset.Id}.");

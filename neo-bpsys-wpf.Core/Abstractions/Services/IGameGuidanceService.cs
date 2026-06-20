@@ -85,8 +85,9 @@ public interface IGameGuidanceService
     /// <summary>
     /// 启动对局引导
     /// </summary>
+    /// <param name="isNavigatePageEnable">是否开启页面导航</param>
     /// <returns>错误信息，如果启动成功则返回 <c>null</c></returns>
-    Task<string?> StartGuidance();
+    Task<string?> StartGuidance(bool isNavigatePageEnable = true);
 
     /// <summary>
     /// 下一步

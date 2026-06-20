@@ -188,7 +188,7 @@ survivor_candidates: {{{JsonSerializer.Serialize(survivors)}}}
 hunter_candidates: {{{JsonSerializer.Serialize(hunters)}}}
 
 phase 只能是：
-["屏蔽求生者","屏蔽监管者","选择求生者","求生者选择角色中","选择监管者","求生者选择天赋中","监管者选择天赋中","天赋已锁定","等待中","未知"]
+["大厅","规则设置","查看禁选顺序","选择禁用数量","开始案件还原","阵容选择中","屏蔽求生者","屏蔽监管者","选择求生者","求生者选择角色中","选择监管者","求生者选择天赋中","监管者选择天赋中","天赋已锁定","即将进入区域选择","区域选择","求生者选择区域中","监管者选择区域中","等待游戏开始","加载中","对局中","等待中","未知"]
 
 区域规则：
 - phase_top 只判断 phase，不识别角色。
@@ -226,13 +226,14 @@ character_name 必须是对应候选列表中的规范名称，或 "未选择"�
 不要输出 ban/pick 槽位。
 只输出 {"phase":"..."}。
 phase 只能是：
-["屏蔽求生者","屏蔽监管者","选择求生者","求生者选择角色中","选择监管者","求生者选择天赋中","监管者选择天赋中","天赋已锁定","等待中","未知"]
+["大厅","规则设置","查看禁选顺序","选择禁用数量","开始案件还原","阵容选择中","屏蔽求生者","屏蔽监管者","选择求生者","求生者选择角色中","选择监管者","求生者选择天赋中","监管者选择天赋中","天赋已锁定","即将进入区域选择","区域选择","求生者选择区域中","监管者选择区域中","等待游戏开始","加载中","对局中","等待中","未知"]
 非活动侧的“等待中”不能决定 phase。
 如果右上标题是“屏蔽求生者”，phase="屏蔽求生者"。
 如果左上标题是“屏蔽监管者”，phase="屏蔽监管者"。
 如果左侧/求生者方标题包含“选择天赋中”，phase="求生者选择天赋中"。
 如果右侧/监管者方标题包含“选择天赋中”，phase="监管者选择天赋中"。
 不要输出地图 BP。
+区域选择只用于输出对应 phase 以停止角色 BP，不识别区域或地图内容。
 """;
 
     public static string BuildFocusedBusiness(GameAction action, IEnumerable<string> survivors, IEnumerable<string> hunters)
@@ -323,7 +324,7 @@ survivor_candidates: {{{JsonSerializer.Serialize(survivors)}}}
 hunter_candidates: {{{JsonSerializer.Serialize(hunters)}}}
 
 phase 只能是：
-["屏蔽求生者","屏蔽监管者","选择求生者","求生者选择角色中","选择监管者","求生者选择天赋中","监管者选择天赋中","天赋已锁定","等待中","未知"]
+["大厅","规则设置","查看禁选顺序","选择禁用数量","开始案件还原","阵容选择中","屏蔽求生者","屏蔽监管者","选择求生者","求生者选择角色中","选择监管者","求生者选择天赋中","监管者选择天赋中","天赋已锁定","即将进入区域选择","区域选择","求生者选择区域中","监管者选择区域中","等待游戏开始","加载中","对局中","等待中","未知"]
 
 重要：禁用符号不是未选择。
 如果角色头像或文字旁边有红色禁止符号 / 不可选标记，并且角色名可读，说明该角色已经被 ban，必须输出角色名。
@@ -508,7 +509,11 @@ internal static class SmartBpRecognitionJsonSchemaProvider
         return new JsonObject { ["type"] = "string", ["enum"] = new JsonArray(values) };
     }
     private static JsonObject StringCharacterName() => new() { ["type"] = "string" };
-    private static JsonObject Phase() => new() { ["type"] = "string", ["enum"] = new JsonArray("屏蔽求生者", "屏蔽监管者", "选择求生者", "求生者选择角色中", "选择监管者", "求生者选择天赋中", "监管者选择天赋中", "天赋已锁定", "等待中", "未知") };
+    private static JsonObject Phase() => new() { ["type"] = "string", ["enum"] = new JsonArray(
+        "大厅", "规则设置", "查看禁选顺序", "选择禁用数量", "开始案件还原", "阵容选择中",
+        "屏蔽求生者", "屏蔽监管者", "选择求生者", "求生者选择角色中", "选择监管者",
+        "求生者选择天赋中", "监管者选择天赋中", "天赋已锁定", "即将进入区域选择", "区域选择",
+        "求生者选择区域中", "监管者选择区域中", "等待游戏开始", "加载中", "对局中", "等待中", "未知") };
     private static JsonObject IntegerEnum(params int[] values) => new() { ["type"] = "integer", ["enum"] = new JsonArray(values.Select(x => (JsonNode?)JsonValue.Create(x)).ToArray()) };
     private static JsonObject FixedArray(JsonNode? item, int count) => new() { ["type"] = "array", ["minItems"] = count, ["maxItems"] = count, ["items"] = item };
     private static JsonObject Object(JsonObject properties, params string[] required) => new() { ["type"] = "object", ["additionalProperties"] = false, ["properties"] = properties, ["required"] = new JsonArray(required.Select(x => (JsonNode?)JsonValue.Create(x)).ToArray()) };
@@ -525,6 +530,8 @@ internal static class SmartBpRecognitionJsonSchemaProvider
 
 internal sealed class LlamaCppOpenAiClient(ISmartBpRecognitionSettingsService settings, ISharedDataService shared, ISmartBpPromptProfileProvider promptProfiles, ILogger<LlamaCppOpenAiClient> logger, ISmartBpDebugLog debugLog) : ILlamaCppOpenAiClient
 {
+    public LlamaCppResponseMetrics? LastResponseMetrics { get; private set; }
+    public string? LastFinishReason { get; private set; }
     public async Task<string> RecognizeSnapshotDeltaAsync(IReadOnlyList<SmartBpMultimodalRegionInput> regions, SmartBpSnapshotDeltaRequest request, CancellationToken cancellationToken = default)
     {
         var profile = await promptProfiles.LoadAsync(settings.Settings.PromptProfileId, cancellationToken);
@@ -604,17 +611,30 @@ internal sealed class LlamaCppOpenAiClient(ISmartBpRecognitionSettingsService se
 
     private async Task<string> SendSpecialAsync(JsonObject body, string taskLabel, CancellationToken token)
     {
-        using var http = new HttpClient { Timeout = TimeSpan.FromMinutes(5) };
+        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(settings.Settings.AiRequestTimeoutSeconds) };
         var url = $"http://127.0.0.1:{settings.Settings.LlamaServerPort}/v1/chat/completions";
         for (var attempt = 1; attempt <= 2; attempt++)
         {
             debugLog.Write("recognition", $"POST {url}; task={taskLabel}; max_tokens={body["max_tokens"]}; attempt={attempt}/2");
-            using var response = await http.PostAsync(url, new StringContent(body.ToJsonString(), Encoding.UTF8, "application/json"), token).ConfigureAwait(false);
+            var watch = Stopwatch.StartNew();
+            HttpResponseMessage response;
+            try
+            {
+                response = await http.PostAsync(url, new StringContent(body.ToJsonString(), Encoding.UTF8, "application/json"), token).ConfigureAwait(false);
+            }
+            catch (TaskCanceledException) when (!token.IsCancellationRequested)
+            {
+                throw new TimeoutException($"AI request timed out after {settings.Settings.AiRequestTimeoutSeconds}s. The current tick was cancelled. Try a smaller model, larger interval, or lower image width.");
+            }
+            using (response)
+            {
             var envelope = await response.Content.ReadAsStringAsync(token).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode) throw new LlamaCppRequestException($"llama.cpp returned {(int)response.StatusCode}: {envelope}", envelope);
             using var document = JsonDocument.Parse(envelope);
             var choice = document.RootElement.GetProperty("choices")[0];
             var finish = choice.TryGetProperty("finish_reason", out var finishElement) ? finishElement.GetString() : null;
+            watch.Stop();
+            PublishMetrics(document.RootElement, finish, watch.ElapsedMilliseconds);
             if (finish == "length")
             {
                 if (attempt == 1) { body["max_tokens"] = Math.Min((body["max_tokens"]?.GetValue<int>() ?? 512) * 2, 8192); continue; }
@@ -623,6 +643,7 @@ internal sealed class LlamaCppOpenAiClient(ISmartBpRecognitionSettingsService se
             var content = choice.GetProperty("message").GetProperty("content").GetString();
             if (string.IsNullOrWhiteSpace(content)) throw new LlamaCppRequestException("llama.cpp returned empty content.", envelope);
             return content;
+            }
         }
         throw new InvalidOperationException("Recognition retry loop ended unexpectedly.");
     }
@@ -636,12 +657,23 @@ internal sealed class LlamaCppOpenAiClient(ISmartBpRecognitionSettingsService se
             ["chat_template_kwargs"] = new JsonObject { ["enable_thinking"] = false },
             ["messages"] = new JsonArray(new JsonObject { ["role"] = "system", ["content"] = profile.SystemPrompt }, new JsonObject { ["role"] = "user", ["content"] = new JsonArray(new JsonObject { ["type"] = "text", ["text"] = SmartBpRecognitionPromptBuilder.Build(task, shared.SurCharaDict.Keys, shared.HunCharaDict.Keys) }, new JsonObject { ["type"] = "image_url", ["image_url"] = new JsonObject { ["url"] = imageDataUrl } }) }),
             ["response_format"] = new JsonObject { ["type"] = "json_schema", ["json_schema"] = new JsonObject { ["name"] = "smartbp_result", ["strict"] = true, ["schema"] = SmartBpRecognitionJsonSchemaProvider.Get(task, shared.SurCharaDict.Keys.ToArray(), shared.HunCharaDict.Keys.ToArray()) } } };
-        using var http = new HttpClient { Timeout = TimeSpan.FromMinutes(5) }; var url = $"http://127.0.0.1:{settings.Settings.LlamaServerPort}/v1/chat/completions";
+        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(settings.Settings.AiRequestTimeoutSeconds) }; var url = $"http://127.0.0.1:{settings.Settings.LlamaServerPort}/v1/chat/completions";
         logger.LogInformation("Recognition request started. Task={Task}", task);
         for (var attempt = 1; attempt <= 2; attempt++)
         {
             debugLog.Write("recognition", $"POST {url}; task={task}; max_tokens={body["max_tokens"]}; attempt={attempt}/2");
-            using var response = await http.PostAsync(url, new StringContent(body.ToJsonString(), Encoding.UTF8, "application/json"), cancellationToken).ConfigureAwait(false);
+            var watch = Stopwatch.StartNew();
+            HttpResponseMessage response;
+            try
+            {
+                response = await http.PostAsync(url, new StringContent(body.ToJsonString(), Encoding.UTF8, "application/json"), cancellationToken).ConfigureAwait(false);
+            }
+            catch (TaskCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                throw new TimeoutException($"AI request timed out after {settings.Settings.AiRequestTimeoutSeconds}s. The current tick was cancelled. Try a smaller model, larger interval, or lower image width.");
+            }
+            using (response)
+            {
             var raw = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
             debugLog.Write("recognition", $"HTTP {(int)response.StatusCode} {response.ReasonPhrase}; response length={raw.Length}");
             if (!response.IsSuccessStatusCode) throw new LlamaCppRequestException($"llama.cpp returned {(int)response.StatusCode}: {raw}", raw);
@@ -650,6 +682,8 @@ internal sealed class LlamaCppOpenAiClient(ISmartBpRecognitionSettingsService se
                 using var document = JsonDocument.Parse(raw);
                 var choice = document.RootElement.GetProperty("choices")[0];
                 var finishReason = choice.TryGetProperty("finish_reason", out var finish) ? finish.GetString() : null;
+                watch.Stop();
+                PublishMetrics(document.RootElement, finishReason, watch.ElapsedMilliseconds);
                 if (string.Equals(finishReason, "length", StringComparison.OrdinalIgnoreCase))
                 {
                     if (attempt == 1)
@@ -681,9 +715,33 @@ internal sealed class LlamaCppOpenAiClient(ISmartBpRecognitionSettingsService se
             {
                 throw new LlamaCppRequestException($"Invalid OpenAI-compatible response envelope: {ex.Message}", raw);
             }
+            }
         }
         throw new InvalidOperationException("Recognition retry loop ended unexpectedly.");
     }
+
+    private void PublishMetrics(JsonElement root, string? finishReason, long elapsedMilliseconds)
+    {
+        int? prompt = null, completion = null, total = null;
+        double? tokensPerSecond = null;
+        if (root.TryGetProperty("usage", out var usage))
+        {
+            prompt = TryGetInt(usage, "prompt_tokens");
+            completion = TryGetInt(usage, "completion_tokens");
+            total = TryGetInt(usage, "total_tokens");
+        }
+        if (root.TryGetProperty("timings", out var timings))
+            tokensPerSecond = TryGetDouble(timings, "predicted_per_second") ?? TryGetDouble(timings, "tokens_per_second");
+        LastFinishReason = finishReason;
+        LastResponseMetrics = new(prompt, completion, total, tokensPerSecond, elapsedMilliseconds);
+        debugLog.Write("metrics", $"elapsed={elapsedMilliseconds}ms; completion_tokens={completion?.ToString() ?? "not available"}; tokens/s={tokensPerSecond?.ToString("0.##") ?? "not available"}; finish_reason={finishReason ?? "not available"}");
+    }
+
+    private static int? TryGetInt(JsonElement parent, string name) =>
+        parent.TryGetProperty(name, out var value) && value.TryGetInt32(out var result) ? result : null;
+
+    private static double? TryGetDouble(JsonElement parent, string name) =>
+        parent.TryGetProperty(name, out var value) && value.TryGetDouble(out var result) ? result : null;
 }
 
 internal sealed class SmartBpAiRecognitionService(ISmartBpImageEncoder encoder, ILlamaCppOpenAiClient client,

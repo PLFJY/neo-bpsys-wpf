@@ -287,6 +287,13 @@
                             Command="{Binding ForceStopLlamaServerCommand}"
                             Content="{lex:Loc SmartBpAiForceStopLlama}"
                             Icon="{ui:SymbolIcon Symbol=ShieldDismiss24}" />
+                        <ui:ProgressRing
+                            Width="20"
+                            Height="20"
+                            Margin="0,0,8,8"
+                            VerticalAlignment="Center"
+                            IsIndeterminate="True"
+                            Visibility="{Binding IsLlamaServerStarting, Converter={StaticResource BooleanToVisibilityConverter}}" />
                         <TextBlock
                             VerticalAlignment="Center"
                             Text="{Binding LlamaServerStatus}" />
@@ -342,6 +349,10 @@
                         Content="{lex:Loc SmartBpStopAutomaticRecognition}"
                         Icon="{ui:SymbolIcon Symbol=Stop24}" />
                 </WrapPanel>
+                <TextBlock
+                    Margin="0,4,0,0"
+                    Text="{lex:Loc SmartBpRecognizing}"
+                    Visibility="{Binding IsAiRecognizing, Converter={StaticResource BooleanToVisibilityConverter}}" />
             </StackPanel>
         </Border>
 
@@ -359,6 +370,11 @@
                     Margin="0,0,0,8"
                     Text="{Binding RecognitionSpeedTestStatus}"
                     TextWrapping="Wrap" />
+                <TextBlock Text="{lex:Loc SmartBpAutomaticRecognitionInterval}" FontWeight="SemiBold" />
+                <WrapPanel><TextBlock Text="{lex:Loc SmartBpCurrentEngine}" /><TextBlock Text=": " /><TextBlock Text="{Binding CurrentRecognitionEngineText}" /></WrapPanel>
+                <WrapPanel><TextBlock Text="{lex:Loc SmartBpCurrentInterval}" /><TextBlock Text=": " /><TextBlock Text="{Binding CurrentRecognitionIntervalMs}" /><TextBlock Text=" ms" /></WrapPanel>
+                <WrapPanel><TextBlock Text="{lex:Loc SmartBpMinimumInterval}" /><TextBlock Text=": " /><TextBlock Text="{Binding MinimumRecognitionIntervalMs}" /><TextBlock Text=" ms" /></WrapPanel>
+                <TextBlock Margin="0,0,0,8" Text="{Binding RecognitionIntervalEditHint}" TextWrapping="Wrap" />
                 <StackPanel Visibility="{Binding IsOcrRecognitionEngine, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <ui:ToggleSwitch
                         Content="{lex:Loc SmartBpOcrUseContactSheet}"
@@ -409,6 +425,14 @@
                     </StackPanel>
                 </StackPanel>
                 <StackPanel Visibility="{Binding IsAiQwenRecognitionEngine, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <StackPanel Margin="0,6,0,0">
+                        <TextBlock Text="{lex:Loc SmartBpAiIntervalMilliseconds}" />
+                        <TextBox
+                            IsEnabled="{Binding IsRecognitionIntervalEditable}"
+                            Text="{Binding RecognitionIntervalMs}"
+                            ToolTip="{lex:Loc SmartBpTooltipAiRecognitionInterval}" />
+                        <TextBlock Text="{Binding RecognitionIntervalEditHint}" TextWrapping="Wrap" />
+                    </StackPanel>
                     <ui:ToggleSwitch
                         Content="{lex:Loc SmartBpAiOneStepDelayedMode}"
                         IsChecked="{Binding AiOneStepDelayedMode}"
@@ -431,47 +455,47 @@
                         <TextBlock Text="{lex:Loc SmartBpAiPhaseCropMaxWidth}" />
                         <TextBox
                             Text="{Binding PhaseCropMaxImageWidth}"
-                            ToolTip="{lex:Loc SmartBpAiPhaseCropMaxWidth}" />
+                            ToolTip="{lex:Loc SmartBpTooltipPhaseCropWidth}" />
                     </StackPanel>
                     <StackPanel Margin="0,6,0,0">
                         <TextBlock Text="{lex:Loc SmartBpAiContentCropMaxWidth}" />
                         <TextBox
                             Text="{Binding ContentCropMaxImageWidth}"
-                            ToolTip="{lex:Loc SmartBpAiContentCropMaxWidth}" />
+                            ToolTip="{lex:Loc SmartBpTooltipContentCropWidth}" />
                     </StackPanel>
                     <StackPanel Margin="0,6,0,0">
                         <TextBlock Text="{lex:Loc SmartBpAiPhaseMaxTokens}" />
                         <TextBox
                             Text="{Binding PhaseMaxTokens}"
-                            ToolTip="{lex:Loc SmartBpAiPhaseMaxTokens}" />
+                            ToolTip="{lex:Loc SmartBpTooltipPhaseTokens}" />
                     </StackPanel>
                     <StackPanel Margin="0,6,0,0">
                         <TextBlock Text="{lex:Loc SmartBpAiSnapshotDeltaMaxTokens}" />
                         <TextBox
                             Text="{Binding SnapshotDeltaMaxTokens}"
-                            ToolTip="{lex:Loc SmartBpAiSnapshotDeltaMaxTokens}" />
+                            ToolTip="{lex:Loc SmartBpTooltipSnapshotTokens}" />
                     </StackPanel>
                     <ui:ToggleSwitch
                         Content="{lex:Loc SmartBpAiUseStrictCandidateEnums}"
                         IsChecked="{Binding UseStrictCandidateEnumsInAutoSchema}"
-                        ToolTip="{lex:Loc SmartBpAiUseStrictCandidateEnums}" />
+                        ToolTip="{lex:Loc SmartBpTooltipStrictCandidateEnums}" />
                     <StackPanel Margin="0,6,0,0">
                         <TextBlock Text="{lex:Loc SmartBpAiCommitHoldMilliseconds}" />
                         <TextBox
                             Text="{Binding PhaseTransitionCommitHoldMilliseconds}"
-                            ToolTip="{lex:Loc SmartBpAiCommitHoldMilliseconds}" />
+                            ToolTip="{lex:Loc SmartBpTooltipCommitHold}" />
                     </StackPanel>
                     <StackPanel Margin="0,6,0,0">
                         <TextBlock Text="{lex:Loc SmartBpAiCommitHoldMaxMilliseconds}" />
                         <TextBox
                             Text="{Binding PhaseTransitionCommitHoldMaxMilliseconds}"
-                            ToolTip="{lex:Loc SmartBpAiCommitHoldMaxMilliseconds}" />
+                            ToolTip="{lex:Loc SmartBpTooltipCommitHold}" />
                     </StackPanel>
                     <StackPanel Margin="0,6,0,0">
                         <TextBlock Text="{lex:Loc SmartBpAiVisualBufferMilliseconds}" />
                         <TextBox
                             Text="{Binding RecognitionVisualBufferMilliseconds}"
-                            ToolTip="{lex:Loc SmartBpAiVisualBufferMilliseconds}" />
+                            ToolTip="{lex:Loc SmartBpTooltipVisualBuffer}" />
                     </StackPanel>
                     <StackPanel Margin="0,6,0,0">
                         <TextBlock Text="{lex:Loc SmartBpAiParallelSlots}" />
@@ -553,6 +577,8 @@
                     Margin="0,6,0,0"
                     Text="{Binding AiCandidateOperations}"
                     TextWrapping="Wrap" />
+                <TextBlock Margin="0,6,0,0" Text="{Binding AiSceneDiagnostics}" TextWrapping="Wrap" />
+                <TextBlock Margin="0,6,0,0" Text="{Binding AiRequestMetrics}" TextWrapping="Wrap" />
                 <TextBox
                     Margin="0,6,0,0"
                     IsReadOnly="True"

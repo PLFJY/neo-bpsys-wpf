@@ -759,6 +759,21 @@ public sealed class SmartBpAiRecognitionContractTest
         Assert.DoesNotContain("SelectedAiCaptureTask", viewModel);
     }
 
+    [Fact]
+    public void LlamaServerStartupShowsBusyProgressUntilStartCompletes()
+    {
+        var root = FindRepositoryRoot();
+        var xaml = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "Views", "SmartBpModuleContentView.xaml"));
+        var viewModel = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "ViewModels", "SmartBpModuleContentViewModel.AiRecognition.cs"));
+
+        Assert.Contains("<ui:ProgressRing", xaml);
+        Assert.Contains("IsLlamaServerStarting", xaml);
+        Assert.Contains("IsLlamaServerStarting = true", viewModel);
+        Assert.Contains("finally", viewModel);
+        Assert.Contains("IsLlamaServerStarting = false", viewModel);
+        Assert.Contains("SmartBpAiStatusStarting", viewModel);
+    }
+
     private static string FindRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

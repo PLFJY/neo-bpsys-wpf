@@ -92,6 +92,12 @@ BP 状态识别和赛后数据 OCR 是两条不同流程。BP 识别不直接写
 
 `UseOcrContactSheet = false` 时会逐区域 OCR，主要用于排查 contact sheet 映射问题。OCR 识别默认间隔较短，字段 stale 和回看步数使用 OCR 专用设置；AI / Qwen 引擎仍保留原有较慢的多图请求设置。
 
+自动 BP 循环使用 `SmartBpRecognitionScene` 场景门禁。角色 BP 场景才允许生成和应用 Ban/Pick 操作；求生者/监管者天赋阶段只允许同步引导；大厅、规则、禁选顺序、转场不写入；区域选择、等待开始、加载和对局内会阻断任何延迟操作并正常暂停循环。区域选择不属于 MapBP 或角色 BP 识别范围。停止自动识别会取消当前 llama.cpp 请求；单次 AI 请求超时由 `AiRequestTimeoutSeconds` 控制。
+
+Qwen manifest 支持直链与 HuggingFace 仓库来源。HuggingFace 文件按 `{endpoint}/{repoId}/resolve/{revision}/{fileName}` 下载，中文界面默认可使用 `hf-mirror.com`，显式 endpoint override 优先。`mmprojMode` 必须明确标为 `Separate`、`Embedded` 或 `None`：独立模式下载并传入 `--mmproj`，内嵌模式只传模型，None 不允许启动 SmartBP 图像识别。不得根据文件名猜测投影模式。
+
+Qwen 模型、独立 mmproj、llama.cpp 运行时、PaddleOCR 模型和 Tesseract 语言文件统一使用 Downloader 的并行分片下载：单文件 8 个分片、最多 6 个并发连接、失败最多重试 5 次，并启用断点续传和下载前磁盘空间检查。多个安装资源仍按顺序处理，避免同时下载模型和运行时造成网络、内存与磁盘争抢；取消令牌会停止当前分片任务。
+
 当前不识别 MapBP，不识别天赋结果，不直接修改 `CurrentGame`。
 
 ## 区域配置

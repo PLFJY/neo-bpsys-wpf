@@ -408,7 +408,7 @@ internal sealed class SmartBpGuidanceSyncService(
         var snapshot = guidance.GetRuntimeSnapshot();
         if (!snapshot.IsStarted)
         {
-            var error = await guidance.StartGuidance();
+            var error = await guidance.StartGuidance(settings.Settings.EnableAutoGuidancePageNavigation);
             if (!string.IsNullOrWhiteSpace(error)) return Reject(error);
             snapshot = guidance.GetRuntimeSnapshot();
         }
@@ -852,10 +852,13 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
     IGameGuidanceService guidance,
     ISmartBpWorkflowBackfillService backfill,
     SmartBpCandidateOperationBuilder candidateBuilder,
-    ISmartBpDetectedOperationApplier applier) : ISmartBpAutoRecognitionCoordinator, ISmartBpStepCommitScheduler
+    ISmartBpDetectedOperationApplier applier,
+    ISmartBpSceneGateService sceneGate) : ISmartBpAutoRecognitionCoordinator, ISmartBpStepCommitScheduler
 {
     private readonly SemaphoreSlim _tickGate = new(1, 1);
+    private readonly object _cancellationLock = new();
     private CancellationTokenSource? _runCancellation;
+    private CancellationTokenSource? _currentTickCancellation;
     private string? _lastSnapshotFingerprint;
     private int _stableSnapshotCount;
     private long _frameSequence;
@@ -865,9 +868,12 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
 
     public Task StartAsync(CancellationToken cancellationToken = default)
     {
-        _runCancellation?.Cancel();
-        _runCancellation?.Dispose();
-        _runCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        lock (_cancellationLock)
+        {
+            _runCancellation?.Cancel();
+            _runCancellation?.Dispose();
+            _runCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        }
         _lastSnapshotFingerprint = null;
         _stableSnapshotCount = 0;
         _lastExplicitAction = null;
@@ -877,9 +883,11 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
 
     public Task StopAsync()
     {
-        _runCancellation?.Cancel();
-        _runCancellation?.Dispose();
-        _runCancellation = null;
+        lock (_cancellationLock)
+        {
+            _runCancellation?.Cancel();
+            _currentTickCancellation?.Cancel();
+        }
         return Task.CompletedTask;
     }
 
@@ -887,6 +895,15 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
     {
         if (!await _tickGate.WaitAsync(0, cancellationToken))
             return Failure("An automatic recognition tick is already running.");
+        CancellationTokenSource linked;
+        lock (_cancellationLock)
+        {
+            linked = CancellationTokenSource.CreateLinkedTokenSource(
+                cancellationToken,
+                _runCancellation?.Token ?? CancellationToken.None);
+            _currentTickCancellation = linked;
+        }
+        var tickToken = linked.Token;
         string raw = "";
         try
         {
@@ -899,11 +916,13 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
             SmartBpCroppedFrame? phaseCrop;
             IReadOnlyList<SmartBpCroppedFrame> contentCrops;
             var messages = new List<string>(request.Diagnostics);
+            IReadOnlyDictionary<string, string> rawResponses;
             if (settings.Settings.UseMultiImageSnapshotRequest)
             {
                 try
                 {
-                    var deltaPackage = await deltaRecognition.RecognizeDeltaAsync(frame, request, sequence, cancellationToken);
+                    var deltaPackage = await deltaRecognition.RecognizeDeltaAsync(frame, request, sequence, tickToken);
+                    rawResponses = deltaPackage.RawResponses;
                     raw = string.Join("\n\n", deltaPackage.RawResponses.Select(item => $"{item.Key} raw:\n{item.Value}"));
                     messages.AddRange(deltaPackage.Diagnostics);
                     messages.AddRange(stateStore.ApplyDelta(deltaPackage.Delta, sequence, DateTimeOffset.Now));
@@ -919,7 +938,8 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                     if (ex is LlamaCppRequestException requestException) raw = requestException.RawResponse;
                     if (!settings.Settings.AllowSequentialSnapshotFallback)
                         throw;
-                    regionSnapshot = await snapshotRecognition.RecognizeSnapshotAsync(frame, SmartBpRegionSnapshotRecognitionMode.PendingAndCurrentRegions, cancellationToken);
+                    regionSnapshot = await snapshotRecognition.RecognizeSnapshotAsync(frame, SmartBpRegionSnapshotRecognitionMode.PendingAndCurrentRegions, tickToken);
+                    rawResponses = regionSnapshot.RawResponses;
                     raw = string.Join("\n\n", regionSnapshot.RawResponses.Select(item => $"{item.Key} raw:\n{item.Value}"));
                     messages.AddRange(regionSnapshot.Diagnostics);
                     var fallbackDelta = ToDelta(regionSnapshot.BusinessState, request.RequestedFields);
@@ -932,7 +952,8 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
             else
             {
                 messages.Add("Multi-image snapshot request is disabled; using sequential region fallback.");
-                regionSnapshot = await snapshotRecognition.RecognizeSnapshotAsync(frame, SmartBpRegionSnapshotRecognitionMode.PendingAndCurrentRegions, cancellationToken);
+                regionSnapshot = await snapshotRecognition.RecognizeSnapshotAsync(frame, SmartBpRegionSnapshotRecognitionMode.PendingAndCurrentRegions, tickToken);
+                rawResponses = regionSnapshot.RawResponses;
                 raw = string.Join("\n\n", regionSnapshot.RawResponses.Select(item => $"{item.Key} raw:\n{item.Value}"));
                 messages.AddRange(regionSnapshot.Diagnostics);
                 var fallbackDelta = ToDelta(regionSnapshot.BusinessState, request.RequestedFields);
@@ -944,12 +965,18 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
 
             var state = stateStore.Snapshot;
             guidanceSnapshot = guidance.GetRuntimeSnapshot();
-            ApplyAiUnknownPhaseInference(state, guidanceSnapshot, messages);
+            var gate = sceneGate.Classify(phaseResult, state, rawResponses, guidanceSnapshot);
+            messages.Add($"Scene: {gate.Scene}; BP recognition allowed: {gate.IsBpRecognitionAllowed}; Character operations allowed: {gate.IsCharacterOperationAllowed}; Action: {(gate.ShouldPauseAutomaticRecognition ? "automatic recognition paused" : "continue monitoring")}; Reason: {gate.Reason}.");
+            ApplyAiUnknownPhaseInference(state, guidanceSnapshot, gate, messages);
             var isFreeSync = settings.Settings.RecognitionApplyMode == SmartBpRecognitionApplyMode.FreeFullSync;
-            var plan = isFreeSync
+            var plan = !gate.IsCharacterOperationAllowed
+                ? new SmartBpWorkflowBackfillPlan([], [$"Character operations blocked by scene gate: {gate.Reason}."])
+                : isFreeSync
                 ? new SmartBpWorkflowBackfillPlan([], ["Free full sync bypasses GameGuidance workflow planning."])
                 : backfill.BuildPlan(state, guidanceSnapshot);
-            var operations = isFreeSync
+            var operations = !gate.IsCharacterOperationAllowed
+                ? []
+                : isFreeSync
                 ? BuildFreeSyncOperations(state, candidateBuilder)
                 : plan.StepCandidates.SelectMany(item => item.Operations).ToArray();
             messages.AddRange(plan.Diagnostics);
@@ -961,7 +988,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
             _lastSnapshotFingerprint = fingerprint;
             var requiredStable = Math.Max(1, settings.Settings.RequiredStableSnapshots);
             SmartBpOperationApplyResult applyResult = settings.Settings.EnableAutoApplyRecognition && _stableSnapshotCount >= requiredStable
-                ? await applier.ApplyAsync(operations, cancellationToken)
+                ? await applier.ApplyAsync(operations, tickToken)
                 : settings.Settings.EnableAutoApplyRecognition
                     ? new(0, operations.Length, [$"Skipped: waiting for stable BP snapshots ({_stableSnapshotCount}/{requiredStable})."])
                     : new(0, operations.Length, operations.Length == 0
@@ -977,14 +1004,14 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                 if (hold > 0)
                 {
                     messages.Add($"Transition commit hold {hold}ms before guidance sync; pending operations were processed first.");
-                    await Task.Delay(hold, cancellationToken);
+                    await Task.Delay(hold, tickToken);
                 }
             }
             var delayedAiCanSync = settings.Settings.RecognitionEngine != SmartBpRecognitionEngine.AiQwen ||
                                    !settings.Settings.AiOneStepDelayedMode ||
                                    operations.All(IsOperationCompleted);
-            SmartBpGuidanceSyncResult? sync = !isFreeSync && settings.Settings.EnableAutoGuidanceSync && delayedAiCanSync
-                ? await guidanceSync.SyncAsync(state, cancellationToken)
+            SmartBpGuidanceSyncResult? sync = gate.IsBpRecognitionAllowed && !isFreeSync && settings.Settings.EnableAutoGuidanceSync && delayedAiCanSync
+                ? await guidanceSync.SyncAsync(state, tickToken)
                 : new(false, false, isFreeSync
                     ? "Free full sync does not synchronize GameGuidance."
                     : !delayedAiCanSync
@@ -1001,14 +1028,23 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                 RawResponses = new Dictionary<string, string> { ["snapshot_delta"] = raw }
             };
             return new(state, phaseResult, null, phaseCrop, null, sync, finalGuidanceSnapshot,
-                operations, messages, applyResult, raw, null, snapshotForUi, plan, contentCrops);
+                operations, messages, applyResult, raw, null, snapshotForUi, plan, contentCrops, gate);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             if (ex is LlamaCppRequestException request) raw = request.RawResponse;
             return new(null, null, null, null, null, null, guidance.GetRuntimeSnapshot(), [], [], null, raw, ex.Message);
         }
-        finally { _tickGate.Release(); }
+        finally
+        {
+            lock (_cancellationLock)
+            {
+                if (ReferenceEquals(_currentTickCancellation, linked))
+                    _currentTickCancellation = null;
+            }
+            linked.Dispose();
+            _tickGate.Release();
+        }
     }
 
     private SmartBpAutoRecognitionTickResult Failure(string error) =>
@@ -1038,10 +1074,12 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
     private void ApplyAiUnknownPhaseInference(
         SmartBpBusinessStateRecognitionResult state,
         GameGuidanceRuntimeSnapshot guidanceSnapshot,
+        SmartBpSceneGateResult gate,
         ICollection<string> diagnostics)
     {
         if (settings.Settings.RecognitionEngine != SmartBpRecognitionEngine.AiQwen ||
-            !settings.Settings.AiOneStepDelayedMode || !guidanceSnapshot.IsStarted)
+            !settings.Settings.AiOneStepDelayedMode || !guidanceSnapshot.IsStarted ||
+            gate.Scene is not (SmartBpRecognitionScene.CharacterBp or SmartBpRecognitionScene.HunterTalent))
         {
             _unknownPhaseFrames = 0;
             return;

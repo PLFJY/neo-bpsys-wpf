@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.SmartBp.Module.Abstractions;
+using neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
 
 namespace neo_bpsys_wpf.SmartBp.Module.Services.Recognition;
 
@@ -41,7 +42,11 @@ internal sealed class LlamaCppServerManager : ILlamaCppServerManager, IDisposabl
         if (!File.Exists(executable)) throw new FileNotFoundException("llama-server.exe was not found.", executable);
         if (await IsPortOccupiedAsync(_settings.Settings.LlamaServerPort, cancellationToken))
             await RecoverManagedPortConflictAsync(executable, cancellationToken);
-        var (model, mmproj) = await _assets.GetInstalledPathsAsync(cancellationToken);
+        var installed = await _assets.GetInstalledPathsAsync(cancellationToken);
+        var profile = await _assets.GetProfileAsync(cancellationToken);
+        if (installed.MmprojMode == QwenMmprojMode.None)
+            throw new InvalidOperationException("The selected Qwen profile has no vision projector. SmartBP image recognition is unavailable for this profile.");
+        var model = installed.ModelPath;
         Directory.CreateDirectory(_storage.RecognitionLogsRoot); var log = Path.Combine(_storage.RecognitionLogsRoot, $"llama-server-{DateTime.Now:yyyyMMdd-HHmmss}.log");
         var info = new ProcessStartInfo(executable)
         {
@@ -54,9 +59,17 @@ internal sealed class LlamaCppServerManager : ILlamaCppServerManager, IDisposabl
         };
         var gpuLayers = _settings.Settings.LlamaGpuLayers < 0 ? "auto" : _settings.Settings.LlamaGpuLayers.ToString();
         var flashAttention = _settings.Settings.LlamaFlashAttention ? "auto" : "off";
-        var arguments = new[] { "--model", model, "--mmproj", mmproj, "--host", "127.0.0.1", "--port", _settings.Settings.LlamaServerPort.ToString(), "--ctx-size", _settings.Settings.LlamaContextSize.ToString(), "--n-gpu-layers", gpuLayers, "--flash-attn", flashAttention, "--parallel", _settings.Settings.LlamaParallelSlots.ToString(), "--batch-size", _settings.Settings.LlamaBatchSize.ToString(), "--ubatch-size", _settings.Settings.LlamaUBatchSize.ToString(), "--no-webui", "--log-file", log, "--threads", _settings.Settings.CpuThreads.ToString() };
+        var arguments = new List<string> { "--model", model };
+        if (installed.MmprojMode == QwenMmprojMode.Separate)
+        {
+            if (string.IsNullOrWhiteSpace(installed.MmprojPath))
+                throw new FileNotFoundException("The selected Qwen profile requires a separate vision projector.");
+            arguments.AddRange(["--mmproj", installed.MmprojPath]);
+        }
+        arguments.AddRange(["--host", "127.0.0.1", "--port", _settings.Settings.LlamaServerPort.ToString(), "--ctx-size", _settings.Settings.LlamaContextSize.ToString(), "--n-gpu-layers", gpuLayers, "--flash-attn", flashAttention, "--parallel", _settings.Settings.LlamaParallelSlots.ToString(), "--batch-size", _settings.Settings.LlamaBatchSize.ToString(), "--ubatch-size", _settings.Settings.LlamaUBatchSize.ToString(), "--no-webui", "--log-file", log, "--threads", _settings.Settings.CpuThreads.ToString()]);
         foreach (var arg in arguments) info.ArgumentList.Add(arg);
         _logger.LogInformation("Starting llama-server. Port={Port}, Model={Model}, Log={Log}", _settings.Settings.LlamaServerPort, Path.GetFileName(model), log);
+        _debugLog.Write("llama-server", $"Qwen profile: {profile.Id} ({profile.DisplayName}); mmproj mode: {installed.MmprojMode}; model path: {model}; mmproj path: {installed.MmprojPath ?? "not used"}");
         _debugLog.Write("llama-server", $"Command: {Quote(executable)} {string.Join(" ", arguments.Select(Quote))}");
         _debugLog.Write("llama-server", $"Log file: {log}");
         _process = await Task.Run(() => StartProcess(info), cancellationToken).ConfigureAwait(false);
@@ -64,14 +77,14 @@ internal sealed class LlamaCppServerManager : ILlamaCppServerManager, IDisposabl
         Status = "Starting";
         try
         {
-            using var http = new HttpClient(); var deadline = DateTime.UtcNow.AddMinutes(2);
+            using var http = new HttpClient(); var deadline = DateTime.UtcNow.AddSeconds(_settings.Settings.AiStartupTimeoutSeconds);
             while (DateTime.UtcNow < deadline)
             {
                 cancellationToken.ThrowIfCancellationRequested(); if (_process.HasExited) throw new InvalidOperationException($"llama-server exited with code {_process.ExitCode}.");
                 try { using var response = await http.GetAsync($"http://127.0.0.1:{_settings.Settings.LlamaServerPort}/health", cancellationToken); if (response.IsSuccessStatusCode) { Status = "Ready"; _logger.LogInformation("llama-server responsive"); _debugLog.Write("health", "llama-server is ready."); return; } } catch (HttpRequestException) { }
                 await Task.Delay(500, cancellationToken);
             }
-            throw new TimeoutException("llama-server did not become responsive within two minutes.");
+            throw new TimeoutException($"llama-server did not become responsive within {_settings.Settings.AiStartupTimeoutSeconds} seconds.");
         }
         catch (Exception ex) { _debugLog.Write("health", $"Server startup failed: {ex.Message}"); await StopAsync(); _logger.LogWarning("llama-server not responsive"); throw; }
     }

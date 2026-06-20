@@ -203,6 +203,7 @@ public sealed class TesseractDataAssetManagerTest
         private readonly TcpListener _listener;
         private readonly Task _serverTask;
         private readonly byte[] _body;
+        private readonly CancellationTokenSource _cancellation = new();
 
         public SingleResponseHttpServer(byte[] body)
         {
@@ -211,28 +212,47 @@ public sealed class TesseractDataAssetManagerTest
             _listener.Start();
             var endpoint = (IPEndPoint)_listener.LocalEndpoint;
             Url = $"http://127.0.0.1:{endpoint.Port}/eng.traineddata";
-            _serverTask = ServeOnceAsync();
+            _serverTask = ServeAsync();
         }
 
         public string Url { get; }
 
         public void Dispose()
         {
+            _cancellation.Cancel();
             _listener.Stop();
             try { _serverTask.Wait(TimeSpan.FromSeconds(2)); }
             catch { }
+            _cancellation.Dispose();
         }
 
-        private async Task ServeOnceAsync()
+        private async Task ServeAsync()
         {
-            using var client = await _listener.AcceptTcpClientAsync();
-            await using var stream = client.GetStream();
-            var buffer = new byte[4096];
-            _ = await stream.ReadAsync(buffer);
-            var header = Encoding.ASCII.GetBytes(
-                $"HTTP/1.1 200 OK\r\nContent-Length: {_body.Length}\r\nContent-Type: application/octet-stream\r\nConnection: close\r\n\r\n");
-            await stream.WriteAsync(header);
-            await stream.WriteAsync(_body);
+            while (!_cancellation.IsCancellationRequested)
+            {
+                try
+                {
+                    using var client = await _listener.AcceptTcpClientAsync(_cancellation.Token);
+                    await using var stream = client.GetStream();
+                    var buffer = new byte[4096];
+                    var read = await stream.ReadAsync(buffer, _cancellation.Token);
+                    var request = Encoding.ASCII.GetString(buffer, 0, read);
+                    var isHead = request.StartsWith("HEAD ", StringComparison.OrdinalIgnoreCase);
+                    var header = Encoding.ASCII.GetBytes(
+                        $"HTTP/1.1 200 OK\r\nContent-Length: {_body.Length}\r\nContent-Type: application/octet-stream\r\nAccept-Ranges: bytes\r\nConnection: close\r\n\r\n");
+                    await stream.WriteAsync(header, _cancellation.Token);
+                    if (!isHead)
+                        await stream.WriteAsync(_body, _cancellation.Token);
+                }
+                catch (OperationCanceledException) when (_cancellation.IsCancellationRequested)
+                {
+                    return;
+                }
+                catch (SocketException) when (_cancellation.IsCancellationRequested)
+                {
+                    return;
+                }
+            }
         }
     }
 }

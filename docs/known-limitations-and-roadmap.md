@@ -15,6 +15,8 @@
 | 自由全同步 | 实验能力；不依赖 GameGuidance，识别四类角色槽位并通过 `ICharacterSelectionService` 无动画同步，默认不启用 |
 | 自动 BP 画面切换 | TODO |
 
+自动循环通过细分场景门禁限制写入：只在角色 BP 中应用角色操作，天赋阶段只同步引导，区域选择、等待开始、加载和对局内会丢弃延迟结果并暂停。区域选择和 MapBP 均不在此识别范围内。Qwen 模型 manifest 支持 HuggingFace/中文镜像以及独立、内嵌或无 mmproj 三种显式模式。
+
 SmartBP 自动循环以区域门控识别为入口，不使用手工任务选择作为正常入口。默认每个 tick 先裁剪 `phase_top`，再由本地 planner 按工作流未完成步骤、最近阶段和字段陈旧程度选择需要刷新的内容区域。OCR 默认使用 Paddle，也可由用户显式切换为 Tesseract；一次只运行所选 Provider，不提供自动 fallback 或 ensemble。裁剪图可合并为无标签 contact sheet，Provider 只读取文字、置信度和边界框；阶段、禁用、选择、玩家 ID 均由本地规则、区域 ID、坐标和角色候选字典解释。Qwen 引擎仍保留原有多图增量请求，但仅作为实验模式。本地识别状态会保留未返回字段，不再因为快节奏阶段切换把旧字段清空。候选操作按 GameGuidance 工作流顺序从尚未完成的角色步骤回填到当前步骤，并且先尝试应用/跳过 pending 操作，再经过短暂阶段切换提交屏障后才根据识别到的阶段同步 GameGuidance，因此阶段快速进入天赋选择后，仍可利用画面中保留的角色结果补录上一选择步骤。内存 ledger 与当前状态 no-op 检查共同防止重复应用；补录默认不播放动画，可由用户显式开启。步骤变化继续复用 GameGuidance 原有导航、计时器、高亮与事件逻辑。地图 BP、天赋角色操作和自动切屏仍未实现。
 
 BP 识别路径读取 SmartBP 模块资源中的 `BpRecognitionLayoutProfile.json` 粗裁剪配置，五个区域同时服务 OCR 与实验 AI 引擎。用户可通过通用 `RegionEditorWindow` 在当前捕获帧或内置测试图上可视化调整五个粗区域，结果保存为 AppData 下的 SmartBP recognition profile 覆盖；这套配置独立于 PaddleOCR 赛后数据 OCR 细区域。Tesseract traineddata、Qwen 模型、llama.cpp runtime 和长日志均存放在 SmartBP 模块目录；Qwen 模型列表、llama.cpp runtime manifest、AI prompt、内置测试帧、OCR 别名和 SmartBP 默认区域配置均随 SmartBP 模块 `Resources` 复制到模块输出目录，不放在主程序 `Resources`。llama.cpp 运行时可从内置 runtime manifest 在线安装，也可通过用户配置的远程 manifest API 检查更新，并存放于 `AI/LlamaCpp/Runtimes/{runtimeId}`。AppData 中只保存纯配置（如 `SmartBp/RecognitionSettings.json`、`SmartBp/BpRecognitionLayoutProfile.json`、托管 llama-server 进程状态）。默认仍为识别预览；只有用户显式启用自动应用后，才会通过角色选择服务应用已解析候选。不识别 MapBP。

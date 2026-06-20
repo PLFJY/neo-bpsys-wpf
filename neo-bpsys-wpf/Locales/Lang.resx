@@ -5651,6 +5651,7 @@
   <data name="SmartBpAiDebugConsoleHint" xml:space="preserve"><value>实时显示 llama-server 启动命令、标准输出、错误输出、健康检查与识别请求状态。</value></data>
   <data name="SmartBpAiClearDebugConsole" xml:space="preserve"><value>清空</value></data>
   <data name="SmartBpAiStatusLoading" xml:space="preserve"><value>正在加载</value></data>
+  <data name="SmartBpAiStatusStarting" xml:space="preserve"><value>正在启动 llama.cpp 服务…</value></data>
   <data name="SmartBpAiStatusLoaded" xml:space="preserve"><value>已加载</value></data>
   <data name="SmartBpAiStatusFailed" xml:space="preserve"><value>失败</value></data>
   <data name="SmartBpAiStatusStopped" xml:space="preserve"><value>已停止</value></data>
@@ -5776,22 +5777,22 @@
   <data name="SmartBpAiSwitchModelRestartConfirm" xml:space="preserve"><value>llama-server 正在运行。切换模型需要自动重启服务，是否继续？</value></data>
   <data name="SmartBpAiSwitchModelTitle" xml:space="preserve"><value>切换 Qwen 模型</value></data>
   <data name="SmartBpAiModelDownloadRequired" xml:space="preserve"><value>所选模型尚未安装，请先下载。</value></data>
-  <data name="SmartBpTooltipContactSheet" xml:space="preserve"><value>将多个识别区域合并为一次 OCR 输入。</value></data>
-  <data name="SmartBpTooltipRecognitionInterval" xml:space="preserve"><value>自动识别两次运行之间的最短等待时间（毫秒）。</value></data>
-  <data name="SmartBpTooltipFieldStale" xml:space="preserve"><value>字段超过该时间未刷新时重新识别。</value></data>
-  <data name="SmartBpTooltipBackfill" xml:space="preserve"><value>允许回看并补录的工作流步骤数量。</value></data>
-  <data name="SmartBpTooltipDebugOverlay" xml:space="preserve"><value>输出 OCR 区域和文本定位调试信息。</value></data>
-  <data name="SmartBpTooltipTesseractLanguages" xml:space="preserve"><value>Tesseract 语言表达式，例如 chi_sim+eng。</value></data>
-  <data name="SmartBpTooltipTesseractPsm" xml:space="preserve"><value>Tesseract 页面分割模式。</value></data>
-  <data name="SmartBpTooltipTesseractVariants" xml:space="preserve"><value>每个区域尝试的图像预处理版本数量。</value></data>
-  <data name="SmartBpTooltipAiDelayed" xml:space="preserve"><value>先完成上一识别步骤，再移动 GameGuidance。</value></data>
-  <data name="SmartBpTooltipAiInferenceFrames" xml:space="preserve"><value>连续多少帧未知阶段后才允许推断监管者天赋步骤。</value></data>
-  <data name="SmartBpTooltipMultiImage" xml:space="preserve"><value>在一次 AI 请求中发送阶段和内容区域。</value></data>
-  <data name="SmartBpTooltipSequentialFallback" xml:space="preserve"><value>多图请求失败时允许逐区域重试。</value></data>
-  <data name="SmartBpTooltipGpuLayers" xml:space="preserve"><value>卸载到 GPU 的 llama.cpp 层数，-1 表示自动。</value></data>
-  <data name="SmartBpTooltipBatchSize" xml:space="preserve"><value>llama.cpp 逻辑批大小。</value></data>
-  <data name="SmartBpTooltipUBatchSize" xml:space="preserve"><value>llama.cpp 物理微批大小。</value></data>
-  <data name="SmartBpTooltipFlashAttention" xml:space="preserve"><value>启用 llama.cpp Flash Attention。</value></data>
+  <data name="SmartBpTooltipContactSheet" xml:space="preserve"><value>把多个 BP 裁剪区域拼成一次 OCR 输入，通常能减少调用开销。关闭后逐区域识别更容易排查映射问题，但一次 tick 更慢。普通用户建议开启；若文字被错误归到其他区域再关闭。</value></data>
+  <data name="SmartBpTooltipRecognitionInterval" xml:space="preserve"><value>控制 OCR 自动识别两次截图之间的间隔。间隔低于实际处理耗时时会造成结果滞后和界面卡顿。建议先运行“测试识别速度”，最低值会设为实测最大耗时 + 250ms。</value></data>
+  <data name="SmartBpTooltipFieldStale" xml:space="preserve"><value>字段超过此时间未刷新就重新 OCR。太短会重复识别并增加 CPU 占用，太长可能保留旧结果。建议 1000–3000ms，并应大于单次 OCR 耗时。</value></data>
+  <data name="SmartBpTooltipBackfill" xml:space="preserve"><value>允许回看并补录的工作流步骤数量。数值越大越能补快节奏遗漏，但也更可能把旧画面误配到更早步骤。通常建议 1–3；流程稳定时保持 2。</value></data>
+  <data name="SmartBpTooltipDebugOverlay" xml:space="preserve"><value>输出 OCR 区域、文字框和匹配调试信息，便于定位识别问题。会增加磁盘写入和少量处理开销；日常使用建议关闭，排障时临时开启。</value></data>
+  <data name="SmartBpTooltipTesseractLanguages" xml:space="preserve"><value>控制 Tesseract 加载的语言，例如 chi_sim+eng。缺少对应 traineddata 会识别失败；加载过多语言会更慢并增加误判。中文赛事建议 chi_sim+eng。</value></data>
+  <data name="SmartBpTooltipTesseractPsm" xml:space="preserve"><value>控制 Tesseract 页面分割模式。错误模式会漏字或把多行粘连。SmartBP 默认 6 适合统一文本块；除非根据调试图确认布局不同，否则保持 6。</value></data>
+  <data name="SmartBpTooltipTesseractVariants" xml:space="preserve"><value>每个区域尝试的预处理版本数量。更多版本可能提高复杂背景下的识别率，但耗时近似成倍增加。安全范围 1–3；自动识别卡顿时降低。</value></data>
+  <data name="SmartBpTooltipAiDelayed" xml:space="preserve"><value>让 AI 先确认并完成上一角色步骤，再移动 GameGuidance，可降低模型结果慢一拍造成的漏录。只在角色 BP/紧邻天赋阶段生效，绝不会跨入区域选择。建议开启；关闭会更快但更容易漏掉最后一步。</value></data>
+  <data name="SmartBpTooltipAiInferenceFrames" xml:space="preserve"><value>连续多少个未知阶段画面后，才可在“监管者已选择且账本完成”的严格条件下推断监管者天赋。太小可能误跳，太大会延迟引导；建议 2–4，区域选择后不会推断。</value></data>
+  <data name="SmartBpTooltipMultiImage" xml:space="preserve"><value>开启后会把 phase_top 和需要识别的 BP 区域合并到一次 llama.cpp 请求中，通常比多次请求更快。若当前 llama.cpp/模型不支持多图输入，可能返回错误；可关闭后使用顺序回退，但延迟会明显增加。</value></data>
+  <data name="SmartBpTooltipSequentialFallback" xml:space="preserve"><value>当多图 AI 请求失败时，允许退回到逐区域识别。优点是兼容性更好；缺点是一次 tick 可能变成多次模型请求，延迟和显存占用更高。出现卡顿时建议关闭并查看错误。</value></data>
+  <data name="SmartBpTooltipGpuLayers" xml:space="preserve"><value>控制模型有多少层放到 GPU。-1 表示自动。数值越高显存占用越高，速度可能更快；显存不足会导致 llama.cpp 启动失败或推理崩溃。</value></data>
+  <data name="SmartBpTooltipBatchSize" xml:space="preserve"><value>影响 llama.cpp prompt 处理吞吐和显存峰值。数值过大可能更快但更吃显存；数值过小更稳但慢。除非你了解 llama.cpp 的 batch 参数，否则保持默认 512。</value></data>
+  <data name="SmartBpTooltipUBatchSize" xml:space="preserve"><value>控制 llama.cpp 物理微批大小并影响显存峰值。过大可能显存不足，过小会降低速度。普通用户建议保持默认 512，遇到显存问题时再逐步降低。</value></data>
+  <data name="SmartBpTooltipFlashAttention" xml:space="preserve"><value>开启 llama.cpp Flash Attention。通常可降低显存或提升速度，但依赖当前 runtime 和显卡后端支持；如果启动失败或输出异常，可以关闭。</value></data>
   <data name="SmartBpTestRecognitionSpeed" xml:space="preserve"><value>测试识别速度</value></data>
   <data name="SmartBpAiGpuName" xml:space="preserve"><value>GPU 名称</value></data>
   <data name="SmartBpAiGpuUtilization" xml:space="preserve"><value>GPU 利用率</value></data>
@@ -5800,4 +5801,21 @@
   <data name="SmartBpAiLastUpdated" xml:space="preserve"><value>最后更新</value></data>
   <data name="SmartBpGuidedWorkflowRecommended" xml:space="preserve"><value>引导工作流（推荐）</value></data>
   <data name="SmartBpFreeFullSyncExperimental" xml:space="preserve"><value>自由全同步（实验性）</value></data>
+  <data name="SmartBpAutomaticRecognitionInterval" xml:space="preserve"><value>自动识别间隔</value></data>
+  <data name="SmartBpRecognizing" xml:space="preserve"><value>正在识别…</value></data>
+  <data name="SmartBpCurrentEngine" xml:space="preserve"><value>当前引擎</value></data>
+  <data name="SmartBpCurrentInterval" xml:space="preserve"><value>当前间隔</value></data>
+  <data name="SmartBpMinimumInterval" xml:space="preserve"><value>测速允许的最低间隔</value></data>
+  <data name="SmartBpAiIntervalMilliseconds" xml:space="preserve"><value>AI 自动识别间隔（毫秒）</value></data>
+  <data name="SmartBpRecognitionIntervalRequiresSpeedTest" xml:space="preserve"><value>请先运行识别速度测试。最低间隔将设为“实测最大耗时 + 250ms”。</value></data>
+  <data name="SmartBpRecognitionIntervalReady" xml:space="preserve"><value>测速结果与当前配置匹配，可以编辑识别间隔。</value></data>
+  <data name="SmartBpRecognitionPausedBpEnded" xml:space="preserve"><value>SmartBP 已因 BP 流程结束或进入区域选择而暂停自动识别。</value></data>
+  <data name="SmartBpTooltipAiRecognitionInterval" xml:space="preserve"><value>控制自动识别两次截图之间的间隔。AI/Qwen 每次识别可能耗时几秒，如果间隔低于模型实际耗时，会导致请求堆积、识别结果滞后、停止按钮响应变慢。建议先运行“测试识别速度”，系统会把最低间隔锁定为“实测最大耗时 + 250ms”。</value></data>
+  <data name="SmartBpTooltipPhaseCropWidth" xml:space="preserve"><value>限制送入 AI 的阶段裁剪图最大宽度。数值越小越快、显存占用越低，但阶段文字可能丢失。通常 480–768；修改后需要重新测试识别速度。</value></data>
+  <data name="SmartBpTooltipContentCropWidth" xml:space="preserve"><value>限制送入 AI 的 BP 内容裁剪图最大宽度。数值越小越快、显存占用越低，但文字和头像细节可能丢失。通常 640–1280；修改后需要重新测速。</value></data>
+  <data name="SmartBpTooltipPhaseTokens" xml:space="preserve"><value>限制阶段识别最多输出多少 token。太小会导致 JSON 被截断，太大会延长生成。阶段结果很短，建议 32–128，默认 48。</value></data>
+  <data name="SmartBpTooltipSnapshotTokens" xml:space="preserve"><value>限制增量快照最多输出多少 token。太小会截断 JSON，太大可能生成更久并增加卡顿。建议 256–1536，并确保能覆盖本次请求字段。</value></data>
+  <data name="SmartBpTooltipCommitHold" xml:space="preserve"><value>检测到阶段切换后，在同步对局引导前短暂等待上一步识别和应用完成。太小可能漏掉上一步，太大会让 UI 跟随变慢。AI 通常建议 250–1000ms，OCR 可更小。</value></data>
+  <data name="SmartBpTooltipVisualBuffer" xml:space="preserve"><value>当前步骤识别结果应用前的额外延迟，默认 0。只在希望动画更稳定、减少闪烁时使用；数值过大会让 BP 界面明显慢半拍，建议 0–500ms。</value></data>
+  <data name="SmartBpTooltipStrictCandidateEnums" xml:space="preserve"><value>把当前角色候选表写入 AI JSON schema，能减少模型输出不存在的角色名，但 schema 更大、prompt 处理更慢，部分模型兼容性较差。角色名幻觉较多时开启；出现 schema 错误或延迟增加时关闭。</value></data>
 </root>

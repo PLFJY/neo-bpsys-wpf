@@ -26,7 +26,6 @@ public sealed class PaddleOcrProvider : IOcrProvider
     private readonly ILogger<PaddleOcrProvider> _logger;
     private readonly Lock _ocrLock = new();
     private readonly Lock _downloadLock = new();
-    private readonly DownloadService _downloader;
 
     private PaddleOcrAll? _ocr;
     private CancellationTokenSource? _downloadCts;
@@ -73,17 +72,6 @@ public sealed class PaddleOcrProvider : IOcrProvider
         _settingsHostService = settingsHostService;
         _logger = logger;
         SmartBpOcrModelRegistry.ConfigurePathProvider(modelPathProvider);
-
-        var downloadOpt = new DownloadConfiguration
-        {
-            ChunkCount = 12,
-            ParallelDownload = true,
-            MaxTryAgainOnFailure = 3,
-            ParallelCount = 6,
-        };
-
-        _downloader = new DownloadService(downloadOpt);
-        _downloader.DownloadProgressChanged += Downloader_DownloadProgressChanged;
 
         TryLoadPreferredModel();
     }
@@ -240,7 +228,6 @@ public sealed class PaddleOcrProvider : IOcrProvider
             _downloadCts?.Cancel();
         }
 
-        _downloader.CancelAsync();
     }
 
     /// <summary>
@@ -624,7 +611,11 @@ public sealed class PaddleOcrProvider : IOcrProvider
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        await _downloader.DownloadFileTaskAsync(sourceUrl, destinationFilePath);
+        await SmartBpParallelDownload.DownloadFileAsync(
+            sourceUrl,
+            destinationFilePath,
+            cancellationToken,
+            args => Downloader_DownloadProgressChanged(this, args));
     }
 
     /// <summary>

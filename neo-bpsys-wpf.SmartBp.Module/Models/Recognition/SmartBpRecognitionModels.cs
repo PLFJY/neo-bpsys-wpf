@@ -13,6 +13,28 @@ public enum SmartBpRecognitionTask { DetectStage, BanSur, BanHun, PickSur, PickH
 /// <summary>Supported SmartBP BP recognition engines.</summary>
 public enum SmartBpRecognitionEngine { Ocr, AiQwen }
 
+/// <summary>Identifies the source used to download a Qwen model profile.</summary>
+public enum QwenModelSourceType { DirectUrl, HuggingFace }
+
+/// <summary>Describes how a Qwen vision projector is supplied.</summary>
+public enum QwenMmprojMode { Separate, Embedded, None }
+
+/// <summary>Fine-grained Identity V scene used to gate BP recognition.</summary>
+public enum SmartBpRecognitionScene
+{
+    Unknown, Lobby, RulesDialog, BanPickOrderDialog, Transition, CharacterBp,
+    SurvivorTalent, HunterTalent, TalentLocked, AreaSelectionSurvivor,
+    AreaSelectionHunter, WaitingGameStart, Loading, InGame, OutOfBp
+}
+
+/// <summary>Decision produced by the BP scene gate.</summary>
+public sealed record SmartBpSceneGateResult(
+    SmartBpRecognitionScene Scene,
+    bool IsBpRecognitionAllowed,
+    bool IsCharacterOperationAllowed,
+    bool ShouldPauseAutomaticRecognition,
+    string Reason);
+
 /// <summary>Controls how recognized operations are reconciled with the current game.</summary>
 public enum SmartBpRecognitionApplyMode
 {
@@ -90,14 +112,24 @@ public sealed class QwenModelProfile
     public string Id { get; set; } = "";
     /// <summary>Gets or sets the display name.</summary>
     public string DisplayName { get; set; } = "";
-    /// <summary>Gets or sets the model URL.</summary>
+    /// <summary>Gets or sets the model source type.</summary>
+    public QwenModelSourceType SourceType { get; set; } = QwenModelSourceType.DirectUrl;
+    /// <summary>Gets or sets the model URL for direct URL profiles.</summary>
     public string ModelUrl { get; set; } = "";
     /// <summary>Gets or sets the model filename.</summary>
     public string ModelFileName { get; set; } = "";
     /// <summary>Gets or sets the projector URL.</summary>
-    public string MmprojUrl { get; set; } = "";
+    public string? MmprojUrl { get; set; }
     /// <summary>Gets or sets the projector filename.</summary>
-    public string MmprojFileName { get; set; } = "";
+    public string? MmprojFileName { get; set; }
+    /// <summary>Gets or sets the HuggingFace repository id.</summary>
+    public string? HuggingFaceRepoId { get; set; }
+    /// <summary>Gets or sets the HuggingFace revision.</summary>
+    public string HuggingFaceRevision { get; set; } = "main";
+    /// <summary>Gets or sets how the vision projector is supplied.</summary>
+    public QwenMmprojMode MmprojMode { get; set; } = QwenMmprojMode.Separate;
+    /// <summary>Gets or sets whether Chinese UI should prefer the HuggingFace mirror.</summary>
+    public bool UseHuggingFaceMirrorForChineseUi { get; set; } = true;
     /// <summary>Gets or sets the optional model hash.</summary>
     public string? Sha256 { get; set; }
     /// <summary>Gets or sets the optional projector hash.</summary>
@@ -113,6 +145,14 @@ public sealed class SmartBpRecognitionSettings
     public string LlamaServerExecutablePath { get; set; } = "";
     /// <summary>Gets or sets the loopback port.</summary>
     public int LlamaServerPort { get; set; } = 18080;
+    /// <summary>Gets or sets the timeout for one llama.cpp inference request.</summary>
+    public int AiRequestTimeoutSeconds { get; set; } = 35;
+    /// <summary>Gets or sets the timeout for llama.cpp startup.</summary>
+    public int AiStartupTimeoutSeconds { get; set; } = 120;
+    /// <summary>Gets or sets whether Chinese UI uses the HuggingFace mirror.</summary>
+    public bool UseHuggingFaceMirrorForChineseUi { get; set; } = true;
+    /// <summary>Gets or sets an optional HuggingFace endpoint override.</summary>
+    public string HuggingFaceEndpointOverride { get; set; } = "";
     /// <summary>Gets or sets the llama.cpp context size.</summary>
     public int LlamaContextSize { get; set; } = 8192;
     /// <summary>Gets or sets selected Qwen profile.</summary>
@@ -500,7 +540,19 @@ public sealed record SmartBpAutoRecognitionTickResult(SmartBpBusinessStateRecogn
     SmartBpOperationApplyResult? ApplyResult, string RawJson, string? Error,
     SmartBpRegionSnapshot? RegionSnapshot = null,
     SmartBpWorkflowBackfillPlan? BackfillPlan = null,
-    IReadOnlyList<SmartBpCroppedFrame>? ContentCrops = null);
+    IReadOnlyList<SmartBpCroppedFrame>? ContentCrops = null,
+    SmartBpSceneGateResult? SceneGate = null);
+
+/// <summary>Performance information returned by one llama.cpp response.</summary>
+public sealed record LlamaCppResponseMetrics(
+    int? PromptTokens,
+    int? CompletionTokens,
+    int? TotalTokens,
+    double? TokensPerSecond,
+    long ElapsedMilliseconds);
+
+/// <summary>Validated installed paths for a Qwen model profile.</summary>
+public sealed record QwenInstalledPaths(string ModelPath, string? MmprojPath, QwenMmprojMode MmprojMode);
 
 /// <summary>Result returned by the step commit scheduler.</summary>
 public sealed record SmartBpStepCommitResult(SmartBpBusinessStateRecognitionResult Snapshot,

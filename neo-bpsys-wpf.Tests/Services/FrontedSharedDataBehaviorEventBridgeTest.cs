@@ -467,7 +467,7 @@ public class FrontedSharedDataBehaviorEventBridgeTest
         public event EventHandler<GameGuidanceHighlightChangedEventArgs>? GuidanceHighlightChanged;
         public event EventHandler<GameGuidanceHighlightChangedEventArgs>? GuidanceHighlightCleared;
 
-        public Task<string?> StartGuidance() => Task.FromResult<string?>(null);
+        public Task<string?> StartGuidance(bool isNavigatePageEnable = true) => Task.FromResult<string?>(null);
         public Task<string?> NextStepAsync(bool playAnimation) => Task.FromResult<string?>(null);
         public Task<string?> PrevStepAsync(bool playAnimation) => Task.FromResult<string?>(null);
         public void StopGuidance() { }

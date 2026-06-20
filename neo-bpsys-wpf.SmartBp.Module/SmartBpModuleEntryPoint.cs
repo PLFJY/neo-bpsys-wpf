@@ -105,6 +105,7 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint
         services.AddSingleton<ISmartBpRecognitionLedger, SmartBpRecognitionLedger>();
         services.AddSingleton<ISmartBpWorkflowBackfillService, SmartBpWorkflowBackfillService>();
         services.AddSingleton<ISmartBpDetectedOperationApplier, SmartBpDetectedOperationApplier>();
+        services.AddSingleton<ISmartBpSceneGateService, SmartBpSceneGateService>();
         services.AddSingleton<SmartBpAutoRecognitionCoordinator>();
         services.AddSingleton<ISmartBpAutoRecognitionCoordinator>(provider => provider.GetRequiredService<SmartBpAutoRecognitionCoordinator>());
         services.AddSingleton<ISmartBpStepCommitScheduler>(provider => provider.GetRequiredService<SmartBpAutoRecognitionCoordinator>());

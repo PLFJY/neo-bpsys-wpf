@@ -4711,4 +4711,22 @@
   <data name="SmartBpAiLastUpdated" xml:space="preserve"><value>Last updated</value></data>
   <data name="SmartBpGuidedWorkflowRecommended" xml:space="preserve"><value>Guided workflow (recommended)</value></data>
   <data name="SmartBpFreeFullSyncExperimental" xml:space="preserve"><value>Free full sync (experimental)</value></data>
+  <data name="SmartBpAutomaticRecognitionInterval" xml:space="preserve"><value>自動認識間隔</value></data>
+  <data name="SmartBpRecognizing" xml:space="preserve"><value>認識中…</value></data>
+  <data name="SmartBpCurrentEngine" xml:space="preserve"><value>現在のエンジン</value></data>
+  <data name="SmartBpCurrentInterval" xml:space="preserve"><value>現在の間隔</value></data>
+  <data name="SmartBpMinimumInterval" xml:space="preserve"><value>速度テストの最小間隔</value></data>
+  <data name="SmartBpAiIntervalMilliseconds" xml:space="preserve"><value>AI 自動認識間隔（ms）</value></data>
+  <data name="SmartBpRecognitionIntervalRequiresSpeedTest" xml:space="preserve"><value>先に認識速度テストを実行してください。最小間隔は最大実測時間 + 250ms です。</value></data>
+  <data name="SmartBpRecognitionIntervalReady" xml:space="preserve"><value>速度テストは現在の設定と一致しています。間隔を編集できます。</value></data>
+  <data name="SmartBpRecognitionPausedBpEnded" xml:space="preserve"><value>BP 終了またはエリア選択開始のため SmartBP 自動認識を一時停止しました。</value></data>
+  <data name="SmartBpTooltipAiRecognitionInterval" xml:space="preserve"><value>AI スクリーンショット間隔を制御します。実際の推論時間より短いと古い結果が滞留し停止も遅くなります。速度テスト後、最大実測時間 + 250ms が最小値になります。</value></data>
+  <data name="SmartBpTooltipPhaseCropWidth" xml:space="preserve"><value>段階画像の最大幅です。小さいほど高速ですが文字を失う場合があります。推奨 480–768。変更後は再測定してください。</value></data>
+  <data name="SmartBpTooltipContentCropWidth" xml:space="preserve"><value>BP 内容画像の最大幅です。小さいほど高速ですが文字やアイコン詳細を失う場合があります。推奨 640–1280。</value></data>
+  <data name="SmartBpTooltipPhaseTokens" xml:space="preserve"><value>段階出力 token 上限です。小さすぎると JSON が切れ、大きすぎると生成が長引きます。推奨 32–128。</value></data>
+  <data name="SmartBpTooltipSnapshotTokens" xml:space="preserve"><value>差分出力 token 上限です。小さすぎると JSON が切れます。要求フィールドに応じて 256–1536 を推奨します。</value></data>
+  <data name="SmartBpTooltipCommitHold" xml:space="preserve"><value>案内移動前に直前の認識・適用を待つ時間です。短すぎると前段を失い、長すぎると UI が遅れます。AI は通常 250–1000ms。</value></data>
+  <data name="SmartBpTooltipVisualBuffer" xml:space="preserve"><value>現在ステップ適用前の追加遅延です。既定値 0。アニメーション安定化時のみ使用し、推奨 0–500ms。</value></data>
+  <data name="SmartBpTooltipStrictCandidateEnums" xml:space="preserve"><value>キャラクター候補を AI JSON schema に追加し架空名を減らしますが、処理時間と互換性リスクが増えます。schema エラー時は無効にしてください。</value></data>
+  <data name="SmartBpAiStatusStarting" xml:space="preserve"><value>llama.cpp サーバーを起動しています…</value></data>
 </root>

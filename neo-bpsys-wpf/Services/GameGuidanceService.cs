@@ -156,7 +156,7 @@ public class GameGuidanceService(
     }
 
     /// <inheritdoc/>
-    public async Task<string?> StartGuidance()
+    public async Task<string?> StartGuidance(bool isNavigatePageEnable = true)
     {
         if (IsGuidanceStarted)
         {
@@ -188,7 +188,7 @@ public class GameGuidanceService(
             _sharedDataService.CurrentGame.SurTeam.UpdateGlobalBanFromRecord();
             _sharedDataService.CurrentGame.HunTeam.UpdateGlobalBanFromRecord();
             IsGuidanceStarted = true;
-            var nextStepResult = await NextStepAsync();
+            var nextStepResult = await NextStepAsync(isNavigatePageEnable);
             return nextStepResult;
         }
 

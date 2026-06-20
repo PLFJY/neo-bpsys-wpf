@@ -77,7 +77,7 @@ public interface IQwenModelAssetManager
     /// <returns>A task representing the operation.</returns>
     Task DeleteAsync(string modelId, CancellationToken cancellationToken = default);
     /// <summary>Gets installed model and projector paths.</summary>
-    Task<(string ModelPath, string MmprojPath)> GetInstalledPathsAsync(CancellationToken cancellationToken = default);
+    Task<QwenInstalledPaths> GetInstalledPathsAsync(CancellationToken cancellationToken = default);
 }
 /// <summary>Persists recognition settings.</summary>
 public interface ISmartBpRecognitionSettingsService
@@ -282,6 +282,10 @@ public interface ISmartBpBusinessStateMerger
 /// <summary>Sends independent OpenAI-compatible requests.</summary>
 public interface ILlamaCppOpenAiClient
 {
+    /// <summary>Gets metrics from the most recently completed response.</summary>
+    LlamaCppResponseMetrics? LastResponseMetrics { get; }
+    /// <summary>Gets the finish reason from the most recently completed response.</summary>
+    string? LastFinishReason { get; }
     /// <summary>Recognizes one image using the manual generic schema.</summary>
     Task<string> RecognizeAsync(string imageDataUrl, SmartBpRecognitionTask task, CancellationToken cancellationToken = default);
     /// <summary>Recognizes the BP phase from a top-operation crop.</summary>
@@ -294,6 +298,17 @@ public interface ILlamaCppOpenAiClient
     Task<string> RecognizeFocusedAsync(string imageDataUrl, Core.Enums.GameAction action, IReadOnlyList<int> indexes, CancellationToken cancellationToken = default);
     /// <summary>Recognizes a phase plus requested content updates from multiple cropped images in one request.</summary>
     Task<string> RecognizeSnapshotDeltaAsync(IReadOnlyList<SmartBpMultimodalRegionInput> regions, SmartBpSnapshotDeltaRequest request, CancellationToken cancellationToken = default);
+}
+
+/// <summary>Classifies the current Identity V scene and gates BP writes.</summary>
+public interface ISmartBpSceneGateService
+{
+    /// <summary>Classifies scene evidence without mutating game state.</summary>
+    SmartBpSceneGateResult Classify(
+        SmartBpPhaseRecognitionResult phase,
+        SmartBpBusinessStateRecognitionResult state,
+        IReadOnlyDictionary<string, string> rawResponses,
+        Core.Models.GameGuidanceRuntimeSnapshot guidanceSnapshot);
 }
 /// <summary>Resolves model names against shared character dictionaries.</summary>
 public interface ISmartBpCharacterResolver { /// <summary>Resolves a character name safely.</summary>
