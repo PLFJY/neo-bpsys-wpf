@@ -23,6 +23,7 @@ internal sealed class LlamaCppServerManager : ILlamaCppServerManager, IDisposabl
     private static string StateFilePath => Path.Combine(AppConstants.AppDataPath, "SmartBp", "LlamaServerProcess.json");
     public bool IsRunning => _process is { HasExited: false };
     public string Status { get; private set; } = "Stopped";
+    public int? ProcessId => IsRunning ? _process?.Id : null;
 
     public LlamaCppServerManager(IQwenModelAssetManager assets, ISmartBpRecognitionSettingsService settings,
         ISmartBpModuleStorageProvider storage, ILogger<LlamaCppServerManager> logger, ISmartBpDebugLog debugLog,

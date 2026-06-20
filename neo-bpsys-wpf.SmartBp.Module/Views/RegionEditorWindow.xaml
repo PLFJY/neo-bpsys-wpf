@@ -15,7 +15,15 @@
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     WindowStartupLocation="CenterOwner"
     mc:Ignorable="d">
-    <Grid>
+    <WindowChrome.WindowChrome>
+        <WindowChrome
+            CaptionHeight="35"
+            CornerRadius="0"
+            GlassFrameThickness="0"
+            ResizeBorderThickness="5"
+            UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
+    <Grid Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="350" />
             <ColumnDefinition Width="*" />
@@ -26,8 +34,6 @@
         </Grid.RowDefinitions>
         <ui:TitleBar Grid.Row="0" Grid.ColumnSpan="2" />
         <ui:DynamicScrollViewer Grid.Row="1" Grid.Column="0">
-
-
             <StackPanel Margin="10,0,10,10">
                 <TextBlock
                     x:Name="HeaderText"
@@ -106,7 +112,6 @@
         <Border
             Grid.Row="1"
             Grid.Column="1"
-            Margin="0,0,10,10"
             BorderBrush="#3F3F46"
             BorderThickness="1"
             CornerRadius="6">

@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Logging;
 using System.IO;
-using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.SmartBp.Module.Abstractions;
 using OpenCvSharp;
@@ -14,6 +13,7 @@ namespace neo_bpsys_wpf.Services;
 public sealed class TesseractOcrProvider : IOcrProvider, IDisposable
 {
     private readonly ISmartBpRecognitionSettingsService _settingsService;
+    private readonly ISmartBpModuleStorageProvider _storage;
     private readonly ILogger<TesseractOcrProvider> _logger;
     private readonly Lock _engineLock = new();
     private TesseractEngine? _engine;
@@ -21,12 +21,15 @@ public sealed class TesseractOcrProvider : IOcrProvider, IDisposable
 
     /// <summary>Initializes the Tesseract OCR provider.</summary>
     /// <param name="settingsService">Recognition settings service.</param>
+    /// <param name="storage">SmartBP module storage provider.</param>
     /// <param name="logger">Logger.</param>
     public TesseractOcrProvider(
         ISmartBpRecognitionSettingsService settingsService,
+        ISmartBpModuleStorageProvider storage,
         ILogger<TesseractOcrProvider> logger)
     {
         _settingsService = settingsService;
+        _storage = storage;
         _logger = logger;
     }
 
@@ -38,11 +41,7 @@ public sealed class TesseractOcrProvider : IOcrProvider, IDisposable
     {
         get
         {
-            var fallback = Path.Combine(AppConstants.AppDataPath, "SmartBp", "Tesseract", "tessdata");
-            if (string.IsNullOrWhiteSpace(_settingsService.Settings.TesseractDataPath))
-                return fallback;
-            try { return Path.GetFullPath(_settingsService.Settings.TesseractDataPath); }
-            catch { return fallback; }
+            return _storage.TesseractDataRoot;
         }
     }
 

@@ -3,6 +3,42 @@ using neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
 
 namespace neo_bpsys_wpf.SmartBp.Module.Abstractions;
 
+/// <summary>Installs and validates Tesseract language data.</summary>
+public interface ITesseractDataAssetManager
+{
+    /// <summary>Occurs when download state changes.</summary>
+    event EventHandler<SmartBpDownloadState>? StateChanged;
+    /// <summary>Gets the current language-data status.</summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The validated status.</returns>
+    Task<TesseractDataStatus> GetStatusAsync(CancellationToken cancellationToken = default);
+    /// <summary>Gets all language data assets that can be managed by SmartBP.</summary>
+    /// <returns>Available Tesseract language assets.</returns>
+    IReadOnlyList<TesseractLanguageAsset> GetAvailableLanguages();
+    /// <summary>Installs the selected language data assets that are not already installed.</summary>
+    /// <param name="languages">Language identifiers to install.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A task representing the operation.</returns>
+    Task InstallLanguagesAsync(IEnumerable<string> languages, CancellationToken cancellationToken = default);
+    /// <summary>Deletes selected managed language data files from the effective tessdata directory.</summary>
+    /// <param name="languages">Language identifiers to delete.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A task representing the operation.</returns>
+    Task DeleteAsync(IEnumerable<string> languages, CancellationToken cancellationToken = default);
+    /// <summary>Cancels an active download.</summary>
+    void Cancel();
+}
+
+/// <summary>Reads optional NVIDIA GPU telemetry for the managed AI runtime.</summary>
+public interface ISmartBpAiPerformanceMonitor
+{
+    /// <summary>Gets the latest GPU and llama-server process snapshot.</summary>
+    /// <param name="processId">Managed llama-server process identifier.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The current performance snapshot.</returns>
+    Task<SmartBpAiPerformanceSnapshot> GetSnapshotAsync(int? processId, CancellationToken cancellationToken = default);
+}
+
 /// <summary>Loads bundled Qwen metadata.</summary>
 public interface IQwenModelManifestProvider { /// <summary>Loads and validates the manifest.</summary>
     Task<QwenModelManifest> LoadAsync(CancellationToken cancellationToken = default); }
@@ -19,12 +55,27 @@ public interface IQwenModelAssetManager
     Task<IReadOnlyList<QwenModelProfile>> GetProfilesAsync(CancellationToken cancellationToken = default);
     /// <summary>Checks installed assets, including hashes.</summary>
     Task<bool> IsInstalledAsync(CancellationToken cancellationToken = default);
+    /// <summary>Checks installed assets for a specific Qwen model profile, including hashes.</summary>
+    /// <param name="modelId">Qwen model profile id.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns><see langword="true"/> if the selected model files are installed and valid; otherwise <see langword="false"/>.</returns>
+    Task<bool> IsInstalledAsync(string modelId, CancellationToken cancellationToken = default);
     /// <summary>Downloads missing assets.</summary>
     Task InstallAsync(CancellationToken cancellationToken = default);
+    /// <summary>Downloads missing assets for a specific Qwen model profile.</summary>
+    /// <param name="modelId">Qwen model profile id.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A task representing the operation.</returns>
+    Task InstallAsync(string modelId, CancellationToken cancellationToken = default);
     /// <summary>Cancels an active download.</summary>
     void Cancel();
     /// <summary>Deletes installed assets without blocking the caller thread.</summary>
     Task DeleteAsync(CancellationToken cancellationToken = default);
+    /// <summary>Deletes installed assets for a specific Qwen model profile without blocking the caller thread.</summary>
+    /// <param name="modelId">Qwen model profile id.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A task representing the operation.</returns>
+    Task DeleteAsync(string modelId, CancellationToken cancellationToken = default);
     /// <summary>Gets installed model and projector paths.</summary>
     Task<(string ModelPath, string MmprojPath)> GetInstalledPathsAsync(CancellationToken cancellationToken = default);
 }
@@ -71,6 +122,10 @@ public interface ILlamaCppRuntimeAssetManager
     Task DeleteAsync(CancellationToken cancellationToken = default);
     /// <summary>Gets the selected installed server executable.</summary>
     Task<string> GetInstalledExecutablePathAsync(CancellationToken cancellationToken = default);
+    /// <summary>Gets whether a previous runtime snapshot can be restored.</summary>
+    Task<bool> CanRollbackAsync(CancellationToken cancellationToken = default);
+    /// <summary>Swaps the current and previous runtime snapshots.</summary>
+    Task RollbackAsync(CancellationToken cancellationToken = default);
 }
 /// <summary>Checks for remote llama.cpp runtime manifest updates.</summary>
 public interface ILlamaCppRuntimeUpdateService
@@ -85,6 +140,8 @@ public interface ILlamaCppServerManager
     bool IsRunning { get; }
     /// <summary>Gets a display status.</summary>
     string Status { get; }
+    /// <summary>Gets the managed llama-server process identifier.</summary>
+    int? ProcessId { get; }
     /// <summary>Starts and awaits readiness.</summary>
     Task StartAsync(CancellationToken cancellationToken = default);
     /// <summary>Stops the managed process.</summary>

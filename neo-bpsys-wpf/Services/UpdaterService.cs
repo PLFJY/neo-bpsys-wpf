@@ -114,7 +114,7 @@ public class UpdaterService : IUpdaterService
     /// <returns>异步任务。</returns>
     public Task DownloadUpdate(string mirror = "")
     {
-        mirror = string.IsNullOrWhiteSpace(mirror) ? _settingsHostService.Settings.GhProxyMirror : mirror;
+        mirror = NormalizeMirror(mirror);
         var asset = NewVersionInfo.Assets.FirstOrDefault(a => a.Name == InstallerFileName);
         var sha256Asset = NewVersionInfo.Assets.FirstOrDefault(a => a.Name == InstallerSha256FileName);
         if (asset == null
@@ -273,7 +273,7 @@ public class UpdaterService : IUpdaterService
     /// <returns>如果有新版本则返回 <see langword="true"/>，反之为 <see langword="false"/>。</returns>
     public async Task<bool> UpdateCheck(bool isInitial = false, string mirror = "")
     {
-        mirror = string.IsNullOrWhiteSpace(mirror) ? _settingsHostService.Settings.GhProxyMirror : mirror;
+        mirror = NormalizeMirror(mirror);
         await GetNewVersionInfoAsync();
         if (string.IsNullOrEmpty(NewVersionInfo.TagName))
         {
@@ -396,6 +396,16 @@ public class UpdaterService : IUpdaterService
         }
 
         RaiseDownloadStateChanged();
+    }
+
+    private string NormalizeMirror(string mirror)
+    {
+        if (!_settingsHostService.Settings.CultureInfo.Name.StartsWith("zh", StringComparison.OrdinalIgnoreCase))
+        {
+            return string.Empty;
+        }
+
+        return string.IsNullOrWhiteSpace(mirror) ? _settingsHostService.Settings.GhProxyMirror : mirror;
     }
 
     /// <summary>

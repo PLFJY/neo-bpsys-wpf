@@ -7,6 +7,8 @@ public interface ISmartBpModuleStorageProvider
     string ModuleRoot { get; }
     /// <summary>Gets the PaddleOCR model root.</summary>
     string OcrModelsRoot { get; }
+    /// <summary>Gets the managed Tesseract tessdata root.</summary>
+    string TesseractDataRoot { get; }
     /// <summary>Gets the AI data root.</summary>
     string AiRoot { get; }
     /// <summary>Gets the Qwen model root.</summary>

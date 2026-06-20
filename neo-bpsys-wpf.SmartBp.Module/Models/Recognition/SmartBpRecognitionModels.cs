@@ -13,6 +13,15 @@ public enum SmartBpRecognitionTask { DetectStage, BanSur, BanHun, PickSur, PickH
 /// <summary>Supported SmartBP BP recognition engines.</summary>
 public enum SmartBpRecognitionEngine { Ocr, AiQwen }
 
+/// <summary>Controls how recognized operations are reconciled with the current game.</summary>
+public enum SmartBpRecognitionApplyMode
+{
+    /// <summary>Reconciles recognition against the active GameGuidance workflow.</summary>
+    GuidedWorkflow,
+    /// <summary>Synchronizes recognized character slots without workflow context.</summary>
+    FreeFullSync
+}
+
 /// <summary>Coarse SmartBP recognition crop regions.</summary>
 public enum SmartBpRecognitionRegion { PhaseTop, LeftTop, RightTop, LeftBottom, RightBottom }
 
@@ -142,8 +151,16 @@ public sealed class SmartBpRecognitionSettings
     public int CpuThreads { get; set; } = 2;
     /// <summary>Gets or sets whether automatic mode may synchronize GameGuidance.</summary>
     public bool EnableAutoGuidanceSync { get; set; }
+    /// <summary>Gets or sets whether guidance synchronization follows backend page navigation.</summary>
+    public bool EnableAutoGuidancePageNavigation { get; set; }
     /// <summary>Gets or sets whether accepted operations may be applied.</summary>
     public bool EnableAutoApplyRecognition { get; set; }
+    /// <summary>Gets or sets the recognition application strategy.</summary>
+    public SmartBpRecognitionApplyMode RecognitionApplyMode { get; set; } = SmartBpRecognitionApplyMode.GuidedWorkflow;
+    /// <summary>Gets or sets whether AI completes the preceding step before moving guidance.</summary>
+    public bool AiOneStepDelayedMode { get; set; } = true;
+    /// <summary>Gets or sets consecutive unknown-phase frames required for hunter-talent inference.</summary>
+    public int AiUnknownPhaseTalentInferenceFrames { get; set; } = 2;
     /// <summary>Gets or sets minimum stage confidence.</summary>
     public double StageConfidenceThreshold { get; set; } = 0.80;
     /// <summary>Gets or sets guidance reconciliation lookahead.</summary>
@@ -160,6 +177,16 @@ public sealed class SmartBpRecognitionSettings
     public bool EnableOcrBpRecognition { get; set; } = true;
     /// <summary>Gets or sets the OCR BP loop interval.</summary>
     public int OcrRecognitionIntervalMs { get; set; } = 300;
+    /// <summary>Gets or sets the measured minimum OCR interval.</summary>
+    public int MinimumOcrRecognitionIntervalMs { get; set; }
+    /// <summary>Gets or sets the measured minimum AI interval.</summary>
+    public int MinimumAiRecognitionIntervalMs { get; set; }
+    /// <summary>Gets or sets when recognition speed was last measured.</summary>
+    public DateTimeOffset? LastRecognitionSpeedTestAt { get; set; }
+    /// <summary>Gets or sets the engine label used by the last speed test.</summary>
+    public string LastRecognitionSpeedTestEngine { get; set; } = "";
+    /// <summary>Gets or sets the performance-affecting configuration fingerprint.</summary>
+    public string LastRecognitionSpeedTestConfigurationHash { get; set; } = "";
     /// <summary>Gets or sets how long an OCR-merged field may remain fresh.</summary>
     public int OcrFieldStaleMilliseconds { get; set; } = 1500;
     /// <summary>Gets or sets how many previous workflow steps OCR considers for backfill planning.</summary>
@@ -170,7 +197,7 @@ public sealed class SmartBpRecognitionSettings
     public bool EnableOcrDebugOverlay { get; set; }
     /// <summary>Gets or sets the explicitly selected OCR provider.</summary>
     public SmartBpOcrProviderMode OcrProviderMode { get; set; } = SmartBpOcrProviderMode.Paddle;
-    /// <summary>Gets or sets an optional external Tesseract tessdata directory.</summary>
+    /// <summary>Gets or sets a legacy external Tesseract tessdata directory value. Managed downloads ignore this path.</summary>
     public string TesseractDataPath { get; set; } = "";
     /// <summary>Gets or sets the Tesseract language expression.</summary>
     public string TesseractLanguages { get; set; } = "chi_sim+eng";
@@ -423,7 +450,15 @@ public sealed class SmartBpFocusedExtractionResult
 public enum SmartBpDetectedOperationKind { BanCharacter, PickSurvivor, PickHunter, SwapSurvivors }
 
 /// <summary>Controls workflow validation and animation behavior for one detected operation.</summary>
-public enum SmartBpDetectedOperationApplyMode { CurrentStep, Backfill }
+public enum SmartBpDetectedOperationApplyMode
+{
+    /// <summary>Applies an operation associated with the current guidance step.</summary>
+    CurrentStep,
+    /// <summary>Applies a late operation associated with an earlier workflow step.</summary>
+    Backfill,
+    /// <summary>Applies a no-animation operation without workflow validation.</summary>
+    FreeSync
+}
 
 /// <summary>Preview candidate derived from focused visual extraction.</summary>
 public sealed record SmartBpDetectedOperation(SmartBpDetectedOperationKind Kind, GameAction SourceGuidanceAction,
@@ -543,12 +578,46 @@ public sealed record SmartBpOcrContactSheetRegion(
     Rect OriginalFrameRect);
 
 /// <summary>Download state exposed to the UI.</summary>
+/// <param name="IsDownloading">Whether a download is currently running.</param>
+/// <param name="Progress">Overall progress percentage, when known.</param>
+/// <param name="Status">Localization key or status text.</param>
+/// <param name="CurrentFileName">Current file name.</param>
+/// <param name="BytesReceived">Downloaded byte count.</param>
+/// <param name="TotalBytes">Expected byte count.</param>
+/// <param name="BytesPerSecond">Estimated download speed.</param>
+/// <param name="Eta">Estimated remaining time.</param>
+/// <param name="ErrorMessage">Detailed error message when the operation failed.</param>
 public record SmartBpDownloadState(bool IsDownloading, double? Progress, string Status,
     string? CurrentFileName = null,
     long? BytesReceived = null,
     long? TotalBytes = null,
     double? BytesPerSecond = null,
-    TimeSpan? Eta = null);
+    TimeSpan? Eta = null,
+    string? ErrorMessage = null);
+
+/// <summary>Describes one downloadable Tesseract language data asset.</summary>
+/// <param name="Language">Tesseract language identifier.</param>
+/// <param name="DisplayNameKey">Localization key for display.</param>
+public sealed record TesseractLanguageAsset(string Language, string DisplayNameKey);
+
+/// <summary>Describes required Tesseract language data in one tessdata directory.</summary>
+/// <param name="IsInstalled">Whether every required language is installed.</param>
+/// <param name="DataPath">Effective tessdata directory.</param>
+/// <param name="MissingLanguages">Missing required language identifiers.</param>
+/// <param name="InstalledLanguages">Installed required language identifiers.</param>
+public sealed record TesseractDataStatus(bool IsInstalled, string DataPath,
+    IReadOnlyList<string> MissingLanguages, IReadOnlyList<string> InstalledLanguages);
+
+/// <summary>One optional AI runtime performance sample.</summary>
+/// <param name="GpuName">GPU display name.</param>
+/// <param name="GpuUtilizationPercent">GPU utilization percentage.</param>
+/// <param name="VramUsedBytes">Used video memory.</param>
+/// <param name="VramTotalBytes">Total video memory.</param>
+/// <param name="ProcessId">Managed llama-server process identifier.</param>
+/// <param name="UpdatedAt">Sample timestamp.</param>
+/// <param name="IsAvailable">Whether NVML telemetry was available.</param>
+public sealed record SmartBpAiPerformanceSnapshot(string GpuName, uint? GpuUtilizationPercent,
+    ulong? VramUsedBytes, ulong? VramTotalBytes, int? ProcessId, DateTimeOffset UpdatedAt, bool IsAvailable);
 
 /// <summary>Qwen download state exposed to the UI.</summary>
 public sealed record QwenDownloadState(bool IsDownloading, double? Progress, string Status,
@@ -556,7 +625,8 @@ public sealed record QwenDownloadState(bool IsDownloading, double? Progress, str
     long? BytesReceived = null,
     long? TotalBytes = null,
     double? BytesPerSecond = null,
-    TimeSpan? Eta = null) : SmartBpDownloadState(IsDownloading, Progress, Status, CurrentFileName, BytesReceived, TotalBytes, BytesPerSecond, Eta);
+    TimeSpan? Eta = null,
+    string? ErrorMessage = null) : SmartBpDownloadState(IsDownloading, Progress, Status, CurrentFileName, BytesReceived, TotalBytes, BytesPerSecond, Eta, ErrorMessage);
 
 /// <summary>A bundled recognition prompt profile.</summary>
 public sealed record SmartBpPromptProfile(string Id, string DisplayName, string SystemPrompt);
@@ -605,7 +675,8 @@ public sealed record LlamaCppRuntimeInstallState(bool IsDownloading, double? Pro
     long? BytesReceived = null,
     long? TotalBytes = null,
     double? BytesPerSecond = null,
-    TimeSpan? Eta = null) : SmartBpDownloadState(IsDownloading, Progress, Status, CurrentFileName, BytesReceived, TotalBytes, BytesPerSecond, Eta);
+    TimeSpan? Eta = null,
+    string? ErrorMessage = null) : SmartBpDownloadState(IsDownloading, Progress, Status, CurrentFileName, BytesReceived, TotalBytes, BytesPerSecond, Eta, ErrorMessage);
 
 /// <summary>Result of checking for llama.cpp runtime updates.</summary>
 public sealed record LlamaCppRuntimeUpdateCheckResult(bool Checked, bool HasUpdate, string CurrentVersion,
@@ -715,7 +786,8 @@ public sealed class SmartBpVisionPlayerId
 
 /// <summary>A normalized character occurrence.</summary>
 public sealed record SmartBpNormalizedCharacter(string? RawCharacterName, string? ResolvedCharacterKey,
-    string? ResolvedCharacterName, Camp Camp, int SlotIndex, double Confidence, IReadOnlyList<string> Warnings);
+    string? ResolvedCharacterName, Camp Camp, int SlotIndex, double Confidence, IReadOnlyList<string> Warnings,
+    string MatchMode = "none", bool IsAutoApplySafe = false, string? RecognitionReason = null);
 
 /// <summary>Recognition preview returned to the UI.</summary>
 public sealed record SmartBpRecognitionPreview(string RawResponse, string ParsedVisualSummary,

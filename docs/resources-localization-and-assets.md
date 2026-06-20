@@ -8,6 +8,7 @@
 | --- | --- | --- |
 | `neo-bpsys-wpf/Assets` | 多数作为 WPF `Resource` 嵌入程序集 | 应用图标、首页图、字体、主题图标等 pack URI 资源 |
 | `neo-bpsys-wpf/Resources` | `<None Include="Resources\**" CopyToOutputDirectory="PreserveNewest" />` | 运行时文件资源，按文件路径读取 |
+| `neo-bpsys-wpf.SmartBp.Module/Resources` | `<Content Include="Resources\**" CopyToOutputDirectory="PreserveNewest" />` | SmartBP 模块自有运行时资源，随模块复制到模块输出目录 |
 
 `GameRule.json` 单独设置为 `CopyToOutputDirectory=Always`，输出到应用基目录，供 `GameGuidanceService` 读取。
 
@@ -21,13 +22,14 @@
 | `data` | `CharacterList.json` 及多语言角色列表 |
 | `FrontedLayouts` | v3 Window-centric 内置前台窗口默认布局 |
 | `FrontedBehaviors` | 内置前台窗口默认行为与动画图 |
-| `SmartBpDefaultConfigs` | SmartBP 默认区域配置 |
 | `surBig/surHalf/surHeader/surHeader_singleColor` | 求生者不同展示尺寸/样式图片 |
 | `hunBig/hunHalf/hunHeader/hunHeader_singleColor` | 监管者不同展示尺寸/样式图片 |
 | `map/map_singleColor/map_square` | 地图图片 |
 | `talent` / `trait` | 天赋和辅助特质图标 |
 
 `ImageHelper` 使用 `AppConstants.ResourcesPath` 拼接这些目录，按文件路径加载。新增运行时图片时，应确认文件被放在 `Resources` 下并能复制到输出目录。
+
+SmartBP 模块自有资源不放在主程序 `neo-bpsys-wpf/Resources` 下，应放在 `neo-bpsys-wpf.SmartBp.Module/Resources` 并由模块项目复制到输出目录。当前包括 `Resources/SmartBp` 下的 Qwen 模型 manifest、llama.cpp runtime manifest、AI prompt、内置测试帧、BP 识别区域默认配置、OCR 角色别名，以及 `Resources/SmartBpDefaultConfigs` 下的赛后数据 OCR 默认区域配置。Qwen 模型管理 UI 从模块内 `Resources/SmartBp/QwenModelManifest.json` 动态读取模型列表，manifest 中有多少模型就展示多少模型。
 
 v3 默认布局采用 Window-centric 一级路径，位于 `Resources/FrontedLayouts/{WindowTypeName}.json`。每个 v3 layout window 运行时固定生成 `ViewBox -> Canvas BaseCanvas`，Canvas 不再是资源路径或包管理单位。CutScene 背景使用 `Resources/cutScene.png`（解析到运行目录 `Resources/bpui/cutScene.png`），GameData 背景使用 `Resources/gameData.png`，BpWindow 背景使用 `Resources/bp.png`。`WidgetsWindow` 和 MapV1 已删除；旧 `BpOverViewCanvas` 迁移为 `BpOverviewWindow.json`，旧 `MapV2Canvas` 迁移为 `MapV2Window.json`，MapV2 背景继续使用 `Resources/mapBpV2.png`。内置业务控件复用这些资源目录：`TalentTraitDisplay` 通过 `ImageHelper.GetTalentImageSource` / `GetTraitImageSource` 读取 `Resources/talent` 和 `Resources/trait`；Ban 位默认布局使用通用 `Image` 绑定角色 `HeaderImageSingleColor`，锁定覆盖层优先使用 `LockImagePath`，为空时回退内置锁图；pick 呼吸边框优先使用 `PickingBorderImagePath`，为空时回退内置 BP 选择边框图；`CurrentBanDisplay`、`BanSlotDisplay` 和 `PickingBorderOverlay` 已移除；`MapV2Display` 复用现有 `MapV2Presenter` 并使用 v3 运行时默认样式。旧 Config.json 中可映射的图片会迁移到 v3 layout，旧前台设置不再作为 active Settings 运行时来源。
 
@@ -128,7 +130,7 @@ I18nHelper.GetLocalizedString("SomeKey")
 
 `I18nHelper` 找不到 key 时返回原始 key，便于界面降级显示和定位缺失翻译。新增用户可见文本时至少添加默认 `Lang.resx`，并尽量补齐英文、日文资源，避免用户看到裸 key。
 
-SmartBP OCR 角色别名位于 `Resources/SmartBp/OcrCharacterAliases.json`，按 `hunter` / `survivor` 分组并映射到应用内规范角色名。Tesseract 默认从 `%APPDATA%/neo-bpsys-wpf/SmartBp/Tesseract/tessdata/` 读取 traineddata；设置中的外部路径非空时直接使用该目录，不复制模型文件。
+SmartBP OCR 角色别名位于 SmartBP 模块资源 `Resources/SmartBp/OcrCharacterAliases.json`，按 `hunter` / `survivor` 分组并映射到应用内规范角色名，匹配时不得跨阵营查询。Tesseract traineddata 属于托管模型资产，固定下载到 SmartBP 模块目录的 `OCRModels/Tesseract/tessdata/`；SmartBP 页面可勾选下载本软件会用到的语言文件，当前包括 `chi_sim.traineddata`、`eng.traineddata` 和 `jpn.traineddata`，默认语言表达式仍为 `chi_sim+eng`。下载 URL 必须经过 `IGitHubDownloadUrlResolver`；再次下载时只补缺失文件，单个语言下载失败不得删除其他已安装语言。AppData 只保存 SmartBP 配置，不保存托管模型文件。
 
 Designer v3 的显示层本地化统一使用 `Designer.*` key 前缀。代码侧通过 `IFrontedDesignerLocalizationService` 访问，WPF 宿主实现再委托 `I18nHelper.GetLocalizedString(key)`；Core 中的默认实现只返回原始值，避免 Core 反向引用 WPF 项目。常用命名包括 `Designer.Property.*`、`Designer.PropertyGroup.*`、`Designer.ControlType.*`、`Designer.Option.{Property}.{Value}`、`Designer.Window.*`、`Designer.Canvas.*`、`Designer.Binding.*` 和 `Designer.BindingType.*`。
 
@@ -147,7 +149,7 @@ Designer v3 的显示层本地化统一使用 `Designer.*` key 前缀。代码�
 3. 如果代码用 `ImageSourceKey.surHalf`，文件应在 `Resources/surHalf/{name}.png`。
 4. 旧 XAML-first 默认位置文件命名必须匹配 `{WindowTypeName}Config-{CanvasName}.default.json`（`CanvasName` 是旧多 Canvas 概念）；v3 默认布局使用 `Resources/FrontedLayouts/{WindowTypeName}.json`。
 5. v3 JSON 中 `Resources/xxx.png` 会解析到运行目录 `Resources/bpui/xxx.png`，新增默认背景时要确认对应文件存在于 `Resources/bpui` 并会复制到输出目录。
-6. SmartBP 默认配置文件名和 `SmartBpGameDataSceneDefinition` 中的相对路径一致。
+6. SmartBP 默认配置文件名和 `SmartBpGameDataSceneDefinition` 中的相对路径一致，并确认文件位于 SmartBP 模块 `Resources` 下且会复制到模块输出目录。
 
 ## 常见坑
 

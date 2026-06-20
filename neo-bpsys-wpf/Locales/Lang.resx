@@ -5619,6 +5619,7 @@
   <data name="SmartBpAiRecognitionPreviewNotice" xml:space="preserve"><value>识别结果仅供预览，不会自动修改当前 BP 数据。</value></data>
   <data name="SmartBpAiManifestStatus" xml:space="preserve"><value>模型清单：</value></data>
   <data name="SmartBpAiModelProfile" xml:space="preserve"><value>Qwen 模型：</value></data>
+  <data name="SmartBpCurrentQwenModelFormat" xml:space="preserve"><value>当前 Qwen 模型：{0}</value></data>
   <data name="SmartBpAiMmprojProfile" xml:space="preserve"><value>视觉投影模型：</value></data>
   <data name="SmartBpAiInstalled" xml:space="preserve"><value>已安装：</value></data>
   <data name="SmartBpAiDownloadQwen" xml:space="preserve"><value>下载 Qwen 模型</value></data>
@@ -5700,6 +5701,7 @@
   <data name="SmartBpAiSnapshotDeltaMaxTokens" xml:space="preserve"><value>增量识别 token 上限</value></data>
   <data name="SmartBpAiCommitHoldMilliseconds" xml:space="preserve"><value>阶段切换提交等待毫秒</value></data>
   <data name="SmartBpAiCommitHoldMaxMilliseconds" xml:space="preserve"><value>阶段切换最长等待毫秒</value></data>
+  <data name="SmartBpAiUnknownPhaseTalentInferenceFrames" xml:space="preserve"><value>未知阶段推断天赋帧数</value></data>
   <data name="SmartBpAiBackfillLookBehindSteps" xml:space="preserve"><value>回看工作流步数</value></data>
   <data name="SmartBpAiFieldStaleMilliseconds" xml:space="preserve"><value>字段陈旧刷新毫秒</value></data>
   <data name="SmartBpAiVisualBufferMilliseconds" xml:space="preserve"><value>当前步骤动画缓冲毫秒</value></data>
@@ -5728,9 +5730,69 @@
   <data name="SmartBpOcrStatusMissing" xml:space="preserve"><value>缺失</value></data>
   <data name="SmartBpOcrEnableTesseract" xml:space="preserve"><value>启用 Tesseract OCR</value></data>
   <data name="SmartBpOcrTesseractLanguages" xml:space="preserve"><value>Tesseract 语言</value></data>
-  <data name="SmartBpOcrTesseractDataPath" xml:space="preserve"><value>tessdata 路径</value></data>
-  <data name="SmartBpOcrSelectTessdataFolder" xml:space="preserve"><value>选择 tessdata 文件夹</value></data>
   <data name="SmartBpOcrOpenTessdataFolder" xml:space="preserve"><value>打开 tessdata 文件夹</value></data>
   <data name="SmartBpOcrTesseractPsm" xml:space="preserve"><value>Tesseract 页面分割模式（PSM）</value></data>
   <data name="SmartBpOcrTesseractVariants" xml:space="preserve"><value>最大预处理变体数</value></data>
+  <data name="Download" xml:space="preserve"><value>下载</value></data>
+  <data name="Switch" xml:space="preserve"><value>切换</value></data>
+  <data name="SmartBpModelManagement" xml:space="preserve"><value>模型管理</value></data>
+  <data name="SmartBpFeatureSwitches" xml:space="preserve"><value>功能开关</value></data>
+  <data name="SmartBpAdvancedParameters" xml:space="preserve"><value>识别引擎高级参数</value></data>
+  <data name="SmartBpDebugOptions" xml:space="preserve"><value>调试选项</value></data>
+  <data name="SmartBpRecognitionEnginePaddle" xml:space="preserve"><value>Paddle OCR</value></data>
+  <data name="SmartBpRecognitionEngineTesseract" xml:space="preserve"><value>Tesseract OCR</value></data>
+  <data name="SmartBpTesseractDownloadData" xml:space="preserve"><value>下载所选语言数据</value></data>
+  <data name="SmartBpTesseractDeleteData" xml:space="preserve"><value>删除所选语言数据</value></data>
+  <data name="SmartBpTesseractDataDownloading" xml:space="preserve"><value>正在下载 Tesseract 语言数据</value></data>
+  <data name="SmartBpTesseractDataInstalled" xml:space="preserve"><value>Tesseract 语言数据已安装</value></data>
+  <data name="SmartBpTesseractDataMissing" xml:space="preserve"><value>Tesseract 语言数据缺失</value></data>
+  <data name="SmartBpTesseractLanguageChineseSimplified" xml:space="preserve"><value>简体中文（chi_sim）</value></data>
+  <data name="SmartBpTesseractLanguageEnglish" xml:space="preserve"><value>英语（eng）</value></data>
+  <data name="SmartBpTesseractLanguageJapanese" xml:space="preserve"><value>日语（jpn）</value></data>
+  <data name="SmartBpTesseractLanguageInstalled" xml:space="preserve"><value>已安装</value></data>
+  <data name="SmartBpTesseractLanguageMissing" xml:space="preserve"><value>缺失</value></data>
+  <data name="SmartBpTesseractNoLanguageSelected" xml:space="preserve"><value>请至少选择一个 Tesseract 语言。</value></data>
+  <data name="SmartBpDownloadCancelled" xml:space="preserve"><value>下载已取消</value></data>
+  <data name="SmartBpDownloadFailedSimple" xml:space="preserve"><value>下载失败</value></data>
+  <data name="SmartBpGameDataAiRecognitionNotImplemented" xml:space="preserve"><value>赛后数据暂未接入 AI 识别，请先切换到 Paddle OCR 或 Tesseract OCR。</value></data>
+  <data name="SmartBpAiDownloadModel" xml:space="preserve"><value>下载所选模型</value></data>
+  <data name="SmartBpAiRollbackRuntime" xml:space="preserve"><value>回滚 llama.cpp 运行时</value></data>
+  <data name="SmartBpAiRuntimeRollbackComplete" xml:space="preserve"><value>llama.cpp 运行时回滚完成</value></data>
+  <data name="SmartBpEnableAutoGuidanceSync" xml:space="preserve"><value>启用 GameGuidance 自动同步</value></data>
+  <data name="SmartBpEnableAutoGuidancePageNavigation" xml:space="preserve"><value>同步步骤时跟随页面导航</value></data>
+  <data name="SmartBpFreeFullSyncWarning" xml:space="preserve"><value>自由全同步为实验功能，可能在没有工作流上下文时写入识别槽位。推荐使用引导工作流。</value></data>
+  <data name="SmartBpStartAutomaticRecognition" xml:space="preserve"><value>启动自动识别</value></data>
+  <data name="SmartBpStopAutomaticRecognition" xml:space="preserve"><value>停止 SmartBP 识别</value></data>
+  <data name="SmartBpAutoRecognitionStartTitle" xml:space="preserve"><value>启动自动识别</value></data>
+  <data name="SmartBpAutoRecognitionStartConfirm" xml:space="preserve"><value>请确认当前对局进度和半场已正确设置。设置错误可能导致识别结果写入错误对局。</value></data>
+  <data name="SmartBpAiOneStepDelayedMode" xml:space="preserve"><value>AI 单步延迟模式</value></data>
+  <data name="SmartBpAiUseMultiImage" xml:space="preserve"><value>使用多图请求</value></data>
+  <data name="SmartBpAiRecognizeCurrentFrame" xml:space="preserve"><value>识别当前捕获画面</value></data>
+  <data name="SmartBpAiSwitchModelRestartConfirm" xml:space="preserve"><value>llama-server 正在运行。切换模型需要自动重启服务，是否继续？</value></data>
+  <data name="SmartBpAiSwitchModelTitle" xml:space="preserve"><value>切换 Qwen 模型</value></data>
+  <data name="SmartBpAiModelDownloadRequired" xml:space="preserve"><value>所选模型尚未安装，请先下载。</value></data>
+  <data name="SmartBpTooltipContactSheet" xml:space="preserve"><value>将多个识别区域合并为一次 OCR 输入。</value></data>
+  <data name="SmartBpTooltipRecognitionInterval" xml:space="preserve"><value>自动识别两次运行之间的最短等待时间（毫秒）。</value></data>
+  <data name="SmartBpTooltipFieldStale" xml:space="preserve"><value>字段超过该时间未刷新时重新识别。</value></data>
+  <data name="SmartBpTooltipBackfill" xml:space="preserve"><value>允许回看并补录的工作流步骤数量。</value></data>
+  <data name="SmartBpTooltipDebugOverlay" xml:space="preserve"><value>输出 OCR 区域和文本定位调试信息。</value></data>
+  <data name="SmartBpTooltipTesseractLanguages" xml:space="preserve"><value>Tesseract 语言表达式，例如 chi_sim+eng。</value></data>
+  <data name="SmartBpTooltipTesseractPsm" xml:space="preserve"><value>Tesseract 页面分割模式。</value></data>
+  <data name="SmartBpTooltipTesseractVariants" xml:space="preserve"><value>每个区域尝试的图像预处理版本数量。</value></data>
+  <data name="SmartBpTooltipAiDelayed" xml:space="preserve"><value>先完成上一识别步骤，再移动 GameGuidance。</value></data>
+  <data name="SmartBpTooltipAiInferenceFrames" xml:space="preserve"><value>连续多少帧未知阶段后才允许推断监管者天赋步骤。</value></data>
+  <data name="SmartBpTooltipMultiImage" xml:space="preserve"><value>在一次 AI 请求中发送阶段和内容区域。</value></data>
+  <data name="SmartBpTooltipSequentialFallback" xml:space="preserve"><value>多图请求失败时允许逐区域重试。</value></data>
+  <data name="SmartBpTooltipGpuLayers" xml:space="preserve"><value>卸载到 GPU 的 llama.cpp 层数，-1 表示自动。</value></data>
+  <data name="SmartBpTooltipBatchSize" xml:space="preserve"><value>llama.cpp 逻辑批大小。</value></data>
+  <data name="SmartBpTooltipUBatchSize" xml:space="preserve"><value>llama.cpp 物理微批大小。</value></data>
+  <data name="SmartBpTooltipFlashAttention" xml:space="preserve"><value>启用 llama.cpp Flash Attention。</value></data>
+  <data name="SmartBpTestRecognitionSpeed" xml:space="preserve"><value>测试识别速度</value></data>
+  <data name="SmartBpAiGpuName" xml:space="preserve"><value>GPU 名称</value></data>
+  <data name="SmartBpAiGpuUtilization" xml:space="preserve"><value>GPU 利用率</value></data>
+  <data name="SmartBpAiVram" xml:space="preserve"><value>显存使用</value></data>
+  <data name="SmartBpAiProcessId" xml:space="preserve"><value>llama.cpp 进程 ID</value></data>
+  <data name="SmartBpAiLastUpdated" xml:space="preserve"><value>最后更新</value></data>
+  <data name="SmartBpGuidedWorkflowRecommended" xml:space="preserve"><value>引导工作流（推荐）</value></data>
+  <data name="SmartBpFreeFullSyncExperimental" xml:space="preserve"><value>自由全同步（实验性）</value></data>
 </root>

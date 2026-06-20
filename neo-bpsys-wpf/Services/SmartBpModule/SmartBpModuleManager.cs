@@ -41,6 +41,12 @@ public sealed class SmartBpModuleManager
         "zh-cn-v3-slim"
     ];
 
+    private static readonly HashSet<string> ManagedAssetRootNames = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "OCRModels",
+        "AI"
+    };
+
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<SmartBpModuleManager> _logger;
     private readonly ISettingsHostService _settingsHostService;
@@ -640,13 +646,7 @@ public sealed class SmartBpModuleManager
 
             try
             {
-                if (Directory.Exists(normalizedTargetRoot))
-                {
-                    _logger.LogInformation("Replacing existing SmartBP module target root: {TargetRoot}", normalizedTargetRoot);
-                    Directory.Delete(normalizedTargetRoot, recursive: true);
-                }
-                Directory.CreateDirectory(Path.GetDirectoryName(normalizedTargetRoot)!);
-                Directory.Move(candidateRoot, normalizedTargetRoot);
+                ReplaceModuleRootPreservingManagedAssets(candidateRoot, normalizedTargetRoot);
                 return await LoadModuleFromDirectoryAsync(normalizedTargetRoot, installKind);
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
@@ -983,17 +983,7 @@ public sealed class SmartBpModuleManager
                 return false;
             }
 
-            if (Directory.Exists(targetRoot))
-            {
-                _logger.LogInformation(
-                    "Replacing SmartBP module target from pending archive import. TargetRoot={TargetRoot}, PreparedRoot={PreparedRoot}",
-                    targetRoot,
-                    preparedRoot);
-                Directory.Delete(targetRoot, recursive: true);
-            }
-
-            Directory.CreateDirectory(Path.GetDirectoryName(targetRoot)!);
-            Directory.Move(preparedRoot, targetRoot);
+            ReplaceModuleRootPreservingManagedAssets(preparedRoot, targetRoot);
             File.Delete(MovePendingFilePath);
             _logger.LogInformation("Completed pending SmartBP module archive import: {TargetRoot}", targetRoot);
             return true;
@@ -1257,6 +1247,80 @@ public sealed class SmartBpModuleManager
         }
     }
 
+    private void ReplaceModuleRootPreservingManagedAssets(string sourceRoot, string targetRoot)
+    {
+        var normalizedSourceRoot = Path.GetFullPath(sourceRoot);
+        var normalizedTargetRoot = Path.GetFullPath(targetRoot);
+        Directory.CreateDirectory(Path.GetDirectoryName(normalizedTargetRoot)!);
+
+        if (!Directory.Exists(normalizedTargetRoot))
+        {
+            Directory.Move(normalizedSourceRoot, normalizedTargetRoot);
+            return;
+        }
+
+        _logger.LogInformation(
+            "Replacing SmartBP module target root while preserving managed model assets. TargetRoot={TargetRoot}",
+            normalizedTargetRoot);
+
+        foreach (var entry in Directory.EnumerateFileSystemEntries(normalizedTargetRoot).ToArray())
+        {
+            if (IsManagedAssetRoot(entry))
+            {
+                _logger.LogDebug("Preserving SmartBP managed asset directory during module replacement: {Path}", entry);
+                continue;
+            }
+
+            DeleteFileSystemEntry(entry);
+        }
+
+        foreach (var entry in Directory.EnumerateFileSystemEntries(normalizedSourceRoot).ToArray())
+        {
+            var name = Path.GetFileName(entry);
+            var destination = Path.Combine(normalizedTargetRoot, name);
+            if (ManagedAssetRootNames.Contains(name) && Directory.Exists(destination))
+            {
+                _logger.LogInformation(
+                    "Skipping packaged SmartBP managed asset directory because an existing downloaded asset directory is present. Path={Path}",
+                    destination);
+                continue;
+            }
+
+            if (Directory.Exists(destination) || File.Exists(destination))
+            {
+                DeleteFileSystemEntry(destination);
+            }
+
+            if (Directory.Exists(entry))
+            {
+                Directory.Move(entry, destination);
+            }
+            else
+            {
+                File.Move(entry, destination, overwrite: true);
+            }
+        }
+    }
+
+    private static bool IsManagedAssetRoot(string path)
+    {
+        return Directory.Exists(path) && ManagedAssetRootNames.Contains(Path.GetFileName(path));
+    }
+
+    private static void DeleteFileSystemEntry(string path)
+    {
+        if (Directory.Exists(path))
+        {
+            Directory.Delete(path, recursive: true);
+            return;
+        }
+
+        if (File.Exists(path))
+        {
+            File.Delete(path);
+        }
+    }
+
     private static bool IsSameOrChildPath(string child, string parent)
     {
         var normalizedChild = Path.GetFullPath(child)
@@ -1370,6 +1434,9 @@ public sealed class SmartBpModuleManager
     private string GetMirroredDownloadUrl(string url)
     {
         if (string.IsNullOrWhiteSpace(url))
+            return url;
+
+        if (!_settingsHostService.Settings.CultureInfo.Name.StartsWith("zh", StringComparison.OrdinalIgnoreCase))
             return url;
 
         var mirror = _settingsHostService.Settings.GhProxyMirror;

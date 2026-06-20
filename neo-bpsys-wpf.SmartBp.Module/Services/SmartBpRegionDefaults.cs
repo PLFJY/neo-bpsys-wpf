@@ -1,6 +1,5 @@
 using System.IO;
 using System.Text.Json;
-using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Models;
 
 namespace neo_bpsys_wpf.Services;
@@ -25,20 +24,20 @@ public static class SmartBpRegionDefaults
     /// 以代码方式构建一份 GameData 默认配置。
     /// 优先读取 Resources 内置默认文件，读取失败时回退到代码兜底模板。
     /// </summary>
-    public static SmartBpRegionProfile CreateGameDataDefaultProfile()
+    public static SmartBpRegionProfile CreateGameDataDefaultProfile(string? moduleRoot = null)
     {
-        var resourceProfile = TryLoadBuiltinDefaultProfile();
+        var resourceProfile = TryLoadBuiltinDefaultProfile(moduleRoot);
         if (resourceProfile != null)
             return resourceProfile;
 
         return CreateFallbackProfile();
     }
 
-    private static SmartBpRegionProfile? TryLoadBuiltinDefaultProfile()
+    private static SmartBpRegionProfile? TryLoadBuiltinDefaultProfile(string? moduleRoot)
     {
         try
         {
-            var path = Path.Combine(AppConstants.ResourcesPath, BuiltinGameDataDefaultRelativePath);
+            var path = Path.Combine(moduleRoot ?? AppContext.BaseDirectory, "Resources", BuiltinGameDataDefaultRelativePath);
             if (!File.Exists(path))
                 return null;
 

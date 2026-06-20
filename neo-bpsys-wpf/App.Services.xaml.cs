@@ -82,6 +82,11 @@ public partial class App
         services.AddSingleton<ISmartBpFeatureService, SmartBpFeatureService>();
         services.AddSingleton<ISmartBpModuleStorageProvider, SmartBpModuleStorageProvider>();
         services.AddSingleton<ISmartBpOcrModelPathProvider, SmartBpOcrModelPathProvider>();
+        services.AddSingleton<SmartBpAutoRecognitionGlobalControl>();
+        services.AddSingleton<ISmartBpAutoRecognitionGlobalControl>(sp =>
+            sp.GetRequiredService<SmartBpAutoRecognitionGlobalControl>());
+        services.AddSingleton<ISmartBpAutoRecognitionGlobalControlSink>(sp =>
+            sp.GetRequiredService<SmartBpAutoRecognitionGlobalControl>());
 
         //Additional Feature Services
         services.AddSingleton<IGameGuidanceService, GameGuidanceService>();

@@ -128,8 +128,17 @@ internal sealed partial class SmartBpOcrTextResolver(SmartBpOcrCandidateMatcher 
     public SmartBpNormalizedCharacter ResolveCharacterFromLine(string text, Camp camp, int slotIndex, string? provider = null)
     {
         if (SmartBpBusinessStateParser.IsUnselected(text))
-            return new(text, null, null, camp, slotIndex, 1, []);
+            return new(text, null, null, camp, slotIndex, 1, [], "unselected", false, "unselected slot");
+        if (IsStatusOrPhaseText(text))
+            return new(text, null, null, camp, slotIndex, 0, [], "filtered-status", false, "status or phase text");
         return matcher.Match(text, camp, slotIndex, provider);
+    }
+
+    private static bool IsStatusOrPhaseText(string text)
+    {
+        var normalized = NormalizeForMatch(text);
+        string[] markers = ["等待中", "屏蔽求生者", "屏蔽监管者", "禁用求生者", "禁用监管者", "选择求生者", "选择监管者", "求生者选择角色中", "选择天赋中", "天赋已锁定"];
+        return markers.Any(marker => normalized.Contains(NormalizeForMatch(marker), StringComparison.Ordinal));
     }
 
     internal static string NormalizeText(string? value) =>
@@ -270,7 +279,7 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
         int count,
         ICollection<string> diagnostics)
     {
-        var matches = lines
+        var matches = lines.Where(line => !IsStatusLine(line.Text))
             .Select(line => new { Line = line, Character = resolver.ResolveCharacterFromLine(line.Text, camp, -1, line.Provider) })
             .Where(item => item.Character.ResolvedCharacterKey != null)
             .GroupBy(item => item.Character.ResolvedCharacterKey, StringComparer.Ordinal)
@@ -379,8 +388,8 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
         SmartBpNormalizedCharacter character)
     {
         slot.RecognitionConfidence = character.Confidence;
-        slot.IsAutoApplySafe = character.Confidence >= .90;
-        slot.RecognitionReason = character.Warnings.FirstOrDefault();
+        slot.IsAutoApplySafe = character.IsAutoApplySafe && character.Confidence >= .90;
+        slot.RecognitionReason = $"matchMode={character.MatchMode}; {character.RecognitionReason ?? character.Warnings.FirstOrDefault()}";
     }
 
     private static bool IsStatusLine(string text)

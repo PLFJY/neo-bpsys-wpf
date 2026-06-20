@@ -52,6 +52,11 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     private readonly ISmartBpRecognitionLedger _aiRecognitionLedger = null!;
     private readonly ISmartBpRecognitionStateStore _aiRecognitionStateStore = null!;
     private readonly ILlamaCppRuntimeUpdateService _llamaRuntimeUpdateService = null!;
+    private readonly ITesseractDataAssetManager _tesseractDataAssetManager = null!;
+    private readonly ISmartBpAutoRecognitionGlobalControlSink _autoRecognitionGlobalControl = null!;
+    private readonly ISmartBpOcrBpRecognitionService _ocrBpRecognitionService = null!;
+    private readonly ISmartBpAiPerformanceMonitor _aiPerformanceMonitor = null!;
+    private readonly ISmartBpModuleStorageProvider _smartBpModuleStorage = null!;
 
     /// <summary>
     /// 用于设计时预览的无参构造函数。
@@ -88,6 +93,11 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         ISmartBpRecognitionLedger aiRecognitionLedger,
         ISmartBpRecognitionStateStore aiRecognitionStateStore,
         ILlamaCppRuntimeUpdateService llamaRuntimeUpdateService,
+        ITesseractDataAssetManager tesseractDataAssetManager,
+        ISmartBpAutoRecognitionGlobalControlSink autoRecognitionGlobalControl,
+        ISmartBpOcrBpRecognitionService ocrBpRecognitionService,
+        ISmartBpAiPerformanceMonitor aiPerformanceMonitor,
+        ISmartBpModuleStorageProvider smartBpModuleStorage,
         ILogger<SmartBpModuleContentViewModel> logger)
     {
         _logger = logger;
@@ -118,6 +128,11 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         _aiRecognitionLedger = aiRecognitionLedger;
         _aiRecognitionStateStore = aiRecognitionStateStore;
         _llamaRuntimeUpdateService = llamaRuntimeUpdateService;
+        _tesseractDataAssetManager = tesseractDataAssetManager;
+        _autoRecognitionGlobalControl = autoRecognitionGlobalControl;
+        _ocrBpRecognitionService = ocrBpRecognitionService;
+        _aiPerformanceMonitor = aiPerformanceMonitor;
+        _smartBpModuleStorage = smartBpModuleStorage;
         InitializeAiRecognition();
         _ocrService.DownloadStateChanged += OcrService_DownloadStateChanged;
         // 配置被保存/导入/重置时同步刷新比例状态展示。
@@ -201,7 +216,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     /// <summary>
     /// 当前 OCR 模型显示名称。
     /// </summary>
-    [ObservableProperty] private string _currentOcrModelDisplayName = "SmartBpCurrentOcrModelNotEnabled";
+    [ObservableProperty] private string _currentOcrModelDisplayName = "";
 
     /// <summary>
     /// 当前识别区域配置文件路径。
@@ -418,8 +433,8 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
                 .OrderByDescending(m => m.Key == recommendedModelKey)
                 .Select(m => new OcrModelSelection(
                     m.Key,
-                    m.DisplayName,
-                    m.Description,
+                    ResolveLocalizedOrRaw(m.DisplayName),
+                    ResolveLocalizedOrRaw(m.Description),
                     _ocrService.IsModelInstalled(m.Key),
                     m.Key == currentModelKey))
         ];
@@ -430,8 +445,10 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
                            ?? OcrModelList.FirstOrDefault();
 
         CurrentOcrModelDisplayName = currentModelKey is null
-            ? "SmartBpCurrentOcrModelNotEnabled"
-            : OcrModelList.FirstOrDefault(m => m.Key == currentModelKey)?.DisplayName ?? currentModelKey;
+            ? ResolveLocalizedOrRaw("SmartBpCurrentOcrModelDisabled")
+            : string.Format(
+                ResolveLocalizedOrRaw("SmartBpCurrentOcrModelFormat"),
+                OcrModelList.FirstOrDefault(m => m.Key == currentModelKey)?.DisplayName ?? currentModelKey);
         RefreshOcrProviderStatuses();
     }
 
@@ -522,7 +539,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         !IsModelDownloading && SelectedOcrModel is { IsInstalled: true };
 
     private bool CanSwitchSelectedOcrModel() =>
-        !IsModelDownloading && SelectedOcrModel is { IsInstalled: true };
+        !IsModelDownloading && SelectedOcrModel is { IsInstalled: true, IsCurrent: false };
 
     private void RefreshCommandStates()
     {

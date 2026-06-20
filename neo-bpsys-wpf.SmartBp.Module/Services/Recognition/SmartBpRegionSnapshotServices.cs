@@ -221,6 +221,14 @@ internal sealed class SmartBpSnapshotRecognitionPlanner(
         SmartBpBusinessStateRecognitionResult currentLocalSnapshot,
         SmartBpRecognitionLedgerSnapshot ledgerSnapshot)
     {
+        if (settings.Settings.RecognitionApplyMode == SmartBpRecognitionApplyMode.FreeFullSync)
+            return new(
+            [
+                (SmartBpRecognitionRegion.RightTop, "banned_sur"),
+                (SmartBpRecognitionRegion.LeftTop, "banned_hun"),
+                (SmartBpRecognitionRegion.LeftBottom, "picked_sur"),
+                (SmartBpRecognitionRegion.RightBottom, "picked_hun")
+            ], ["Free full sync requests every character region."]);
         var requested = new Dictionary<string, SmartBpRecognitionRegion>(StringComparer.Ordinal);
         var diagnostics = new List<string>();
         void Add(string field, SmartBpRecognitionRegion region, string reason)

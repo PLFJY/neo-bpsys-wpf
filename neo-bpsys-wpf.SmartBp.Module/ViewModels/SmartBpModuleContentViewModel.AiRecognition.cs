@@ -18,7 +18,11 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 public partial class SmartBpModuleContentViewModel
 {
     private readonly DispatcherTimer _aiPreviewTimer = new();
+    private readonly DispatcherTimer _aiPerformanceTimer = new() { Interval = TimeSpan.FromSeconds(2) };
     private int _recognitionBusy;
+    private bool _isSwitchingQwenModel;
+    /// <summary>Gets available recognition application modes.</summary>
+    public IReadOnlyList<SmartBpRecognitionApplyMode> RecognitionApplyModes { get; } = Enum.GetValues<SmartBpRecognitionApplyMode>();
 
     /// <summary>Gets available built-in frames.</summary>
     public IReadOnlyList<SmartBpTestFrame> AiTestFrames { get; } =
@@ -34,12 +38,24 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty] private string _qwenModelProfile = "-";
     [ObservableProperty] private string _qwenMmprojProfile = "-";
     [ObservableProperty] private IReadOnlyList<QwenModelProfile> _qwenModelProfiles = [];
+    [NotifyCanExecuteChangedFor(nameof(DownloadQwenModelCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteQwenModelCommand))]
+    [NotifyCanExecuteChangedFor(nameof(SwitchSelectedQwenModelCommand))]
     [ObservableProperty] private QwenModelProfile? _selectedQwenModelProfile;
+    [ObservableProperty] private string _currentQwenModelDisplayName = "";
     [ObservableProperty] private bool _isQwenInstalled;
+    [NotifyCanExecuteChangedFor(nameof(DownloadQwenModelCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteQwenModelCommand))]
+    [NotifyCanExecuteChangedFor(nameof(SwitchSelectedQwenModelCommand))]
     [ObservableProperty] private bool _isQwenDownloading;
+    [NotifyCanExecuteChangedFor(nameof(DownloadQwenModelCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteQwenModelCommand))]
+    [ObservableProperty] private bool _isSelectedQwenModelInstalled;
     [ObservableProperty] private double _qwenDownloadProgress;
     [ObservableProperty] private string _qwenDownloadStatus = "-";
-    [ObservableProperty] private string _qwenDownloadDetail = "-";
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasQwenDownloadDetail))]
+    private string _qwenDownloadDetail = "";
     [ObservableProperty] private string _llamaServerExecutablePath = "";
     [ObservableProperty] private string _llamaServerStatus = "SmartBpAiStatusStopped";
     [ObservableProperty] private bool _isAiRecognizing;
@@ -58,17 +74,25 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty] private bool _isLlamaRuntimeDownloading;
     [ObservableProperty] private double _llamaRuntimeDownloadProgress;
     [ObservableProperty] private string _llamaRuntimeDownloadStatus = "-";
-    [ObservableProperty] private string _llamaRuntimeDownloadDetail = "-";
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasLlamaRuntimeDownloadDetail))]
+    private string _llamaRuntimeDownloadDetail = "";
     [ObservableProperty] private string _managedLlamaServerExecutablePath = "-";
     [ObservableProperty] private string _llamaRuntimeUpdateStatus = "-";
     [ObservableProperty] private bool _enableAutoGuidanceSync;
     [ObservableProperty] private bool _enableAutoApplyRecognition;
+    [ObservableProperty] private bool _enableAutoGuidancePageNavigation;
+    [ObservableProperty] private SmartBpRecognitionApplyMode _recognitionApplyMode;
+    [ObservableProperty] private bool _aiOneStepDelayedMode = true;
+    [ObservableProperty] private int _aiUnknownPhaseTalentInferenceFrames = 2;
     [ObservableProperty] private bool _playBackfillAnimations;
     [ObservableProperty] private bool _useMultiImageSnapshotRequest;
     [ObservableProperty] private IReadOnlyList<RecognitionEngineSelection> _recognitionEngines = [];
     [ObservableProperty] private RecognitionEngineSelection? _selectedRecognitionEngine;
     [ObservableProperty] private bool _isOcrRecognitionEngine = true;
     [ObservableProperty] private bool _isAiQwenRecognitionEngine;
+    [ObservableProperty] private bool _isPaddleRecognitionEngine = true;
+    [ObservableProperty] private bool _isTesseractRecognitionEngine;
     [ObservableProperty] private bool _enableOcrBpRecognition = true;
     [ObservableProperty] private int _ocrRecognitionIntervalMs;
     [ObservableProperty] private int _ocrFieldStaleMilliseconds;
@@ -79,8 +103,13 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty] private OcrProviderSelection? _selectedOcrProvider;
     [ObservableProperty] private string _paddleOcrStatus = "-";
     [ObservableProperty] private string _tesseractOcrStatus = "-";
-    [ObservableProperty] private string _tesseractDataPath = "";
+    [ObservableProperty] private bool _isTesseractDataDownloading;
+    [ObservableProperty] private double _tesseractDownloadProgress;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasTesseractDownloadDetail))]
+    private string _tesseractDownloadDetail = "";
     [ObservableProperty] private string _tesseractLanguages = "chi_sim+eng";
+    [ObservableProperty] private IReadOnlyList<TesseractLanguageSelection> _tesseractLanguageOptions = [];
     [ObservableProperty] private bool _enableTesseractOcr = true;
     [ObservableProperty] private int _tesseractDefaultPsm = 6;
     [ObservableProperty] private int _tesseractMaxPreprocessVariants = 3;
@@ -106,17 +135,36 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty] private BitmapSource? _aiPhaseCropPreview;
     [ObservableProperty] private BitmapSource? _aiFocusedCropPreview;
     [ObservableProperty] private string _aiCropDebugInfo = "-";
+    [ObservableProperty] private string _recognitionSpeedTestStatus = "-";
+    [ObservableProperty] private bool _isRecognitionSpeedTesting;
+    [ObservableProperty] private bool _isRecognitionIntervalEditable;
+    [ObservableProperty] private string _aiGpuName = "not available";
+    [ObservableProperty] private string _aiGpuUtilization = "not available";
+    [ObservableProperty] private string _aiVramUsage = "not available";
+    [ObservableProperty] private string _aiLlamaProcessId = "-";
+    [ObservableProperty] private string _aiPerformanceUpdatedAt = "-";
     private SmartBpRecognitionLayoutProfile? _aiRegionProfile;
+
+    /// <summary>Gets whether Qwen download details should be shown.</summary>
+    public bool HasQwenDownloadDetail => !string.IsNullOrWhiteSpace(QwenDownloadDetail);
+
+    /// <summary>Gets whether llama.cpp runtime download details should be shown.</summary>
+    public bool HasLlamaRuntimeDownloadDetail => !string.IsNullOrWhiteSpace(LlamaRuntimeDownloadDetail);
+
+    /// <summary>Gets whether Tesseract download details should be shown.</summary>
+    public bool HasTesseractDownloadDetail => !string.IsNullOrWhiteSpace(TesseractDownloadDetail);
 
     private void InitializeAiRecognition()
     {
         SelectedAiTestFrame = AiTestFrames[0];
         RecognitionEngines =
         [
-            new(SmartBpRecognitionEngine.Ocr, "SmartBpRecognitionEngineOcrRecommended"),
-            new(SmartBpRecognitionEngine.AiQwen, "SmartBpRecognitionEngineAiQwenExperimental")
+            new(SmartBpRecognitionEngine.Ocr, SmartBpOcrProviderMode.Paddle, "SmartBpRecognitionEnginePaddle"),
+            new(SmartBpRecognitionEngine.Ocr, SmartBpOcrProviderMode.Tesseract, "SmartBpRecognitionEngineTesseract"),
+            new(SmartBpRecognitionEngine.AiQwen, null, "SmartBpRecognitionEngineAiQwenExperimental")
         ];
-        SelectedRecognitionEngine = RecognitionEngines.FirstOrDefault(x => x.Engine == _recognitionSettingsService.Settings.RecognitionEngine)
+        SelectedRecognitionEngine = RecognitionEngines.FirstOrDefault(x => x.Engine == _recognitionSettingsService.Settings.RecognitionEngine &&
+            (x.Engine == SmartBpRecognitionEngine.AiQwen || x.OcrProviderMode == _recognitionSettingsService.Settings.OcrProviderMode))
                                     ?? RecognitionEngines.FirstOrDefault();
         RefreshRecognitionEngineVisibility();
         QwenManifestStatus = ResolveLocalizedOrRaw("SmartBpAiStatusLoading");
@@ -124,6 +172,10 @@ public partial class SmartBpModuleContentViewModel
         LlamaServerExecutablePath = _recognitionSettingsService.Settings.LlamaServerExecutablePath;
         EnableAutoGuidanceSync = _recognitionSettingsService.Settings.EnableAutoGuidanceSync;
         EnableAutoApplyRecognition = _recognitionSettingsService.Settings.EnableAutoApplyRecognition;
+        EnableAutoGuidancePageNavigation = _recognitionSettingsService.Settings.EnableAutoGuidancePageNavigation;
+        RecognitionApplyMode = _recognitionSettingsService.Settings.RecognitionApplyMode;
+        AiOneStepDelayedMode = _recognitionSettingsService.Settings.AiOneStepDelayedMode;
+        AiUnknownPhaseTalentInferenceFrames = _recognitionSettingsService.Settings.AiUnknownPhaseTalentInferenceFrames;
         PlayBackfillAnimations = _recognitionSettingsService.Settings.PlayBackfillAnimations;
         UseMultiImageSnapshotRequest = _recognitionSettingsService.Settings.UseMultiImageSnapshotRequest;
         EnableOcrBpRecognition = _recognitionSettingsService.Settings.EnableOcrBpRecognition;
@@ -138,12 +190,16 @@ public partial class SmartBpModuleContentViewModel
             new(SmartBpOcrProviderMode.Tesseract, "Tesseract OCR")
         ];
         SelectedOcrProvider = OcrProviders.First(item => item.Mode == _recognitionSettingsService.Settings.OcrProviderMode);
-        TesseractDataPath = _recognitionSettingsService.Settings.TesseractDataPath;
         TesseractLanguages = _recognitionSettingsService.Settings.TesseractLanguages;
+        TesseractLanguageOptions = _tesseractDataAssetManager.GetAvailableLanguages()
+            .Select(asset => new TesseractLanguageSelection(asset.Language, asset.DisplayNameKey))
+            .ToArray();
+        SyncSelectedTesseractLanguageOptions();
         EnableTesseractOcr = _recognitionSettingsService.Settings.EnableTesseractOcr;
         TesseractDefaultPsm = _recognitionSettingsService.Settings.TesseractDefaultPsm;
         TesseractMaxPreprocessVariants = _recognitionSettingsService.Settings.TesseractMaxPreprocessVariants;
         RefreshOcrProviderStatuses();
+        _ = RefreshTesseractDataStatusAsync();
         AllowSequentialSnapshotFallback = _recognitionSettingsService.Settings.AllowSequentialSnapshotFallback;
         UseStrictCandidateEnumsInAutoSchema = _recognitionSettingsService.Settings.UseStrictCandidateEnumsInAutoSchema;
         PhaseCropMaxImageWidth = _recognitionSettingsService.Settings.PhaseCropMaxImageWidth;
@@ -161,11 +217,18 @@ public partial class SmartBpModuleContentViewModel
         LlamaBatchSize = _recognitionSettingsService.Settings.LlamaBatchSize;
         LlamaUBatchSize = _recognitionSettingsService.Settings.LlamaUBatchSize;
         RefreshRecognitionTimerInterval();
+        RefreshRecognitionSpeedTestValidity();
         _aiPreviewTimer.Tick += async (_, _) => await RunAutomaticCurrentFrameCoreAsync();
+        _aiPerformanceTimer.Tick += async (_, _) => await RefreshAiPerformanceAsync();
+        _aiPerformanceTimer.Start();
         _qwenAssetManager.StateChanged += (_, state) => RunOnUiThread(() =>
         {
             IsQwenDownloading = state.IsDownloading; QwenDownloadProgress = state.Progress ?? 0; QwenDownloadStatus = ResolveLocalizedOrRaw(state.Status);
             QwenDownloadDetail = FormatDownloadState(state);
+            if (!string.IsNullOrWhiteSpace(state.ErrorMessage))
+                AiLastError = QwenDownloadDetail;
+            if (!state.IsDownloading)
+                _ = RefreshSelectedQwenModelInstallStatusAsync();
         });
         _aiDebugLog.MessageWritten += (_, message) => RunOnUiThread(() => AppendAiDebugMessage(message));
         _aiDebugLog.Write("SmartBP", "AI recognition diagnostics initialized.");
@@ -175,6 +238,17 @@ public partial class SmartBpModuleContentViewModel
             LlamaRuntimeDownloadProgress = state.Progress ?? 0;
             LlamaRuntimeDownloadStatus = ResolveLocalizedOrRaw(state.Status);
             LlamaRuntimeDownloadDetail = FormatDownloadState(state);
+            if (!string.IsNullOrWhiteSpace(state.ErrorMessage))
+                AiLastError = LlamaRuntimeDownloadDetail;
+        });
+        _tesseractDataAssetManager.StateChanged += (_, state) => RunOnUiThread(() =>
+        {
+            IsTesseractDataDownloading = state.IsDownloading;
+            TesseractDownloadProgress = state.Progress ?? 0;
+            TesseractDownloadDetail = FormatDownloadState(state);
+            if (!string.IsNullOrWhiteSpace(state.ErrorMessage))
+                AiLastError = TesseractDownloadDetail;
+            if (!state.IsDownloading) _ = RefreshTesseractDataStatusAsync();
         });
         _ = InitializeAiOptionsAsync();
         _ = LoadAiRegionProfileAsync();
@@ -294,6 +368,7 @@ public partial class SmartBpModuleContentViewModel
             SelectedAiPromptProfile = AiPromptProfiles.FirstOrDefault(x => x.Id == _recognitionSettingsService.Settings.PromptProfileId) ?? AiPromptProfiles.FirstOrDefault();
             QwenModelProfiles = await _qwenAssetManager.GetProfilesAsync();
             SelectedQwenModelProfile = QwenModelProfiles.FirstOrDefault(x => x.Id == _recognitionSettingsService.Settings.SelectedQwenModelId) ?? QwenModelProfiles.FirstOrDefault();
+            await RefreshSelectedQwenModelInstallStatusAsync();
             LlamaRuntimeAssets = await _llamaRuntimeAssetManager.GetAvailableAssetsAsync();
             SelectedLlamaRuntimeAsset = await _llamaRuntimeAssetManager.GetSelectedAssetAsync();
             await RefreshLlamaRuntimeStatusAsync();
@@ -315,7 +390,18 @@ public partial class SmartBpModuleContentViewModel
 
     [RelayCommand] private async Task RefreshQwenStatusAsync()
     {
-        try { var p = await _qwenAssetManager.GetProfileAsync(); QwenModelProfile = p.DisplayName; QwenMmprojProfile = Path.GetFileNameWithoutExtension(p.MmprojFileName); SelectedQwenModelProfile = QwenModelProfiles.FirstOrDefault(x => x.Id == p.Id) ?? SelectedQwenModelProfile; IsQwenInstalled = await _qwenAssetManager.IsInstalledAsync(); QwenManifestStatus = ResolveLocalizedOrRaw("SmartBpAiStatusLoaded"); }
+        try
+        {
+            var p = await _qwenAssetManager.GetProfileAsync();
+            QwenModelProfile = p.DisplayName;
+            CurrentQwenModelDisplayName = string.Format(ResolveLocalizedOrRaw("SmartBpCurrentQwenModelFormat"), p.DisplayName);
+            QwenMmprojProfile = Path.GetFileNameWithoutExtension(p.MmprojFileName);
+            SelectedQwenModelProfile = QwenModelProfiles.FirstOrDefault(x => x.Id == p.Id) ?? SelectedQwenModelProfile;
+            IsQwenInstalled = await _qwenAssetManager.IsInstalledAsync();
+            await RefreshSelectedQwenModelInstallStatusAsync();
+            QwenManifestStatus = ResolveLocalizedOrRaw("SmartBpAiStatusLoaded");
+            SwitchSelectedQwenModelCommand.NotifyCanExecuteChanged();
+        }
         catch (Exception ex) { QwenManifestStatus = ResolveLocalizedOrRaw("SmartBpAiStatusFailed"); AiLastError = ex.Message; }
     }
 
@@ -324,6 +410,9 @@ public partial class SmartBpModuleContentViewModel
         var engine = SelectedRecognitionEngine?.Engine ?? _recognitionSettingsService.Settings.RecognitionEngine;
         IsOcrRecognitionEngine = engine == SmartBpRecognitionEngine.Ocr;
         IsAiQwenRecognitionEngine = engine == SmartBpRecognitionEngine.AiQwen;
+        var provider = SelectedRecognitionEngine?.OcrProviderMode ?? _recognitionSettingsService.Settings.OcrProviderMode;
+        IsPaddleRecognitionEngine = engine == SmartBpRecognitionEngine.Ocr && provider == SmartBpOcrProviderMode.Paddle;
+        IsTesseractRecognitionEngine = engine == SmartBpRecognitionEngine.Ocr && provider == SmartBpOcrProviderMode.Tesseract;
         RefreshRecognitionTimerInterval();
     }
 
@@ -334,13 +423,123 @@ public partial class SmartBpModuleContentViewModel
             : _recognitionSettingsService.Settings.RecognitionIntervalMs;
         _aiPreviewTimer.Interval = TimeSpan.FromMilliseconds(Math.Clamp(interval, 100, 5000));
     }
-    [RelayCommand] private async Task DownloadQwenModelAsync() { try { await _qwenAssetManager.InstallAsync(); await RefreshQwenStatusAsync(); } catch (OperationCanceledException) { } catch (Exception ex) { AiLastError = ex.Message; } }
+
+    private async Task RefreshAiPerformanceAsync()
+    {
+        if (!IsAiQwenRecognitionEngine && !_llamaServerManager.IsRunning) return;
+        var snapshot = await _aiPerformanceMonitor.GetSnapshotAsync(_llamaServerManager.ProcessId);
+        AiGpuName = snapshot.GpuName;
+        AiGpuUtilization = snapshot.GpuUtilizationPercent is { } utilization ? $"{utilization}%" : "not available";
+        AiVramUsage = snapshot.VramUsedBytes is { } used && snapshot.VramTotalBytes is { } total
+            ? $"{FormatBytes((long)used)} / {FormatBytes((long)total)}" : "not available";
+        AiLlamaProcessId = snapshot.ProcessId?.ToString() ?? "-";
+        AiPerformanceUpdatedAt = snapshot.UpdatedAt.ToString("HH:mm:ss");
+    }
+
+    [RelayCommand]
+    private async Task TestRecognitionSpeedAsync()
+    {
+        if (IsRecognitionSpeedTesting) return;
+        IsRecognitionSpeedTesting = true;
+        try
+        {
+            var elapsed = new List<long>();
+            foreach (var testFrame in AiTestFrames)
+            {
+                var frame = LoadTestFrame(testFrame);
+                if (_recognitionSettingsService.Settings.RecognitionEngine == SmartBpRecognitionEngine.AiQwen)
+                {
+                    if (!_llamaServerManager.IsRunning) throw new InvalidOperationException("Start llama-server before testing AI recognition speed.");
+                    var result = await _aiRecognitionService.RecognizeAsync(frame, testFrame.Task);
+                    if (result.Error != null) throw new InvalidOperationException(result.Error);
+                    elapsed.Add(result.ElapsedMilliseconds);
+                }
+                else
+                {
+                    var watch = Stopwatch.StartNew();
+                    await _ocrBpRecognitionService.RecognizeAsync(frame, new SmartBpOcrRecognitionRequest(
+                    [
+                        SmartBpRecognitionRegion.RightTop, SmartBpRecognitionRegion.LeftTop,
+                        SmartBpRecognitionRegion.LeftBottom, SmartBpRecognitionRegion.RightBottom
+                    ]));
+                    watch.Stop();
+                    elapsed.Add(watch.ElapsedMilliseconds);
+                }
+            }
+            var minimum = checked((int)Math.Min(int.MaxValue, elapsed.Max() + 250));
+            var settings = _recognitionSettingsService.Settings;
+            if (settings.RecognitionEngine == SmartBpRecognitionEngine.Ocr)
+            {
+                settings.MinimumOcrRecognitionIntervalMs = minimum;
+                settings.OcrRecognitionIntervalMs = Math.Max(settings.OcrRecognitionIntervalMs, minimum);
+                OcrRecognitionIntervalMs = settings.OcrRecognitionIntervalMs;
+            }
+            else
+            {
+                settings.MinimumAiRecognitionIntervalMs = minimum;
+                settings.RecognitionIntervalMs = Math.Max(settings.RecognitionIntervalMs, minimum);
+            }
+            settings.LastRecognitionSpeedTestAt = DateTimeOffset.Now;
+            settings.LastRecognitionSpeedTestEngine = GetRecognitionSpeedFingerprint();
+            settings.LastRecognitionSpeedTestConfigurationHash = settings.LastRecognitionSpeedTestEngine;
+            await _recognitionSettingsService.SaveAsync();
+            RecognitionSpeedTestStatus = $"max={elapsed.Max()} ms; minimum={minimum} ms";
+            RefreshRecognitionSpeedTestValidity();
+        }
+        catch (Exception ex) { RecognitionSpeedTestStatus = ex.Message; }
+        finally { IsRecognitionSpeedTesting = false; }
+    }
+
+    private string GetRecognitionSpeedFingerprint()
+    {
+        var s = _recognitionSettingsService.Settings;
+        return $"{s.RecognitionEngine}|{s.OcrProviderMode}|{s.SelectedQwenModelId}|{s.SelectedLlamaRuntimeId}|{s.PromptProfileId}|{s.UseOcrContactSheet}|{s.TesseractLanguages}|{s.TesseractDefaultPsm}|{s.TesseractMaxPreprocessVariants}|{s.UseMultiImageSnapshotRequest}|{s.AllowSequentialSnapshotFallback}|{s.UseStrictCandidateEnumsInAutoSchema}|{s.PhaseCropMaxImageWidth}|{s.ContentCropMaxImageWidth}|{s.PhaseMaxTokens}|{s.SnapshotDeltaMaxTokens}|{s.PhaseTransitionCommitHoldMilliseconds}|{s.PhaseTransitionCommitHoldMaxMilliseconds}|{s.RecognitionVisualBufferMilliseconds}|{s.LlamaParallelSlots}|{s.LlamaGpuLayers}|{s.LlamaBatchSize}|{s.LlamaUBatchSize}|{s.LlamaFlashAttention}";
+    }
+
+    private void RefreshRecognitionSpeedTestValidity()
+    {
+        IsRecognitionIntervalEditable = string.Equals(
+            _recognitionSettingsService.Settings.LastRecognitionSpeedTestConfigurationHash,
+            GetRecognitionSpeedFingerprint(), StringComparison.Ordinal);
+    }
+    [RelayCommand(CanExecute = nameof(CanDownloadQwenModel))]
+    private async Task DownloadQwenModelAsync()
+    {
+        if (SelectedQwenModelProfile == null) return;
+        try
+        {
+            await _qwenAssetManager.InstallAsync(SelectedQwenModelProfile.Id);
+            await RefreshQwenStatusAsync();
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex) { AiLastError = ex.ToString(); }
+    }
+
     [RelayCommand] private void CancelQwenDownload() => _qwenAssetManager.Cancel();
-    [RelayCommand] private async Task DeleteQwenModelAsync() { try { if (_llamaServerManager.IsRunning) throw new InvalidOperationException("Stop llama-server before deleting the model."); await _qwenAssetManager.DeleteAsync(); IsQwenInstalled = false; } catch (Exception ex) { AiLastError = ex.Message; } }
+
+    [RelayCommand(CanExecute = nameof(CanDeleteQwenModel))]
+    private async Task DeleteQwenModelAsync()
+    {
+        if (SelectedQwenModelProfile == null) return;
+        try
+        {
+            if (_llamaServerManager.IsRunning) throw new InvalidOperationException("Stop llama-server before deleting the model.");
+            await _qwenAssetManager.DeleteAsync(SelectedQwenModelProfile.Id);
+            await RefreshQwenStatusAsync();
+        }
+        catch (Exception ex) { AiLastError = ex.Message; }
+    }
+
+    private bool CanDownloadQwenModel() =>
+        !IsQwenDownloading && SelectedQwenModelProfile != null && !IsSelectedQwenModelInstalled;
+
+    private bool CanDeleteQwenModel() =>
+        !IsQwenDownloading && !_llamaServerManager.IsRunning && SelectedQwenModelProfile != null && IsSelectedQwenModelInstalled;
     [RelayCommand] private async Task BrowseLlamaServerAsync() { var path = _filePickerService.PickExecutableFile(); if (path == null) return; LlamaServerExecutablePath = path; _recognitionSettingsService.Settings.LlamaServerExecutablePath = path; await _recognitionSettingsService.SaveAsync(); }
-    [RelayCommand] private async Task DownloadLlamaRuntimeAsync() { try { await _llamaRuntimeAssetManager.InstallAsync(); LlamaServerExecutablePath = _recognitionSettingsService.Settings.LlamaServerExecutablePath; await RefreshLlamaRuntimeStatusAsync(); } catch (OperationCanceledException) { } catch (Exception ex) { AiLastError = ex.Message; } }
+    [RelayCommand] private async Task DownloadLlamaRuntimeAsync() { try { if (_llamaServerManager.IsRunning) throw new InvalidOperationException("Stop llama-server before installing or updating the runtime."); await _llamaRuntimeAssetManager.InstallAsync(); LlamaServerExecutablePath = _recognitionSettingsService.Settings.LlamaServerExecutablePath; await RefreshLlamaRuntimeStatusAsync(); } catch (OperationCanceledException) { } catch (Exception ex) { AiLastError = ex.ToString(); } }
     [RelayCommand] private void CancelLlamaRuntimeDownload() => _llamaRuntimeAssetManager.Cancel();
     [RelayCommand] private async Task DeleteLlamaRuntimeAsync() { try { if (_llamaServerManager.IsRunning) throw new InvalidOperationException("Stop llama-server before deleting the runtime."); await _llamaRuntimeAssetManager.DeleteAsync(); LlamaServerExecutablePath = _recognitionSettingsService.Settings.LlamaServerExecutablePath; await RefreshLlamaRuntimeStatusAsync(); } catch (Exception ex) { AiLastError = ex.Message; } }
+    [RelayCommand] private async Task RollbackLlamaRuntimeAsync() { try { if (_llamaServerManager.IsRunning) throw new InvalidOperationException("Stop llama-server before rolling back the runtime."); await _llamaRuntimeAssetManager.RollbackAsync(); LlamaServerExecutablePath = _recognitionSettingsService.Settings.LlamaServerExecutablePath; await RefreshLlamaRuntimeStatusAsync(); } catch (Exception ex) { AiLastError = ex.Message; } }
     [RelayCommand] private async Task RefreshLlamaRuntimeStatusAsync() { IsLlamaRuntimeInstalled = await _llamaRuntimeAssetManager.IsInstalledAsync(); ManagedLlamaServerExecutablePath = IsLlamaRuntimeInstalled ? await _llamaRuntimeAssetManager.GetInstalledExecutablePathAsync() : "-"; }
     [RelayCommand] private async Task CheckLlamaRuntimeUpdateAsync() { try { var result = await _llamaRuntimeUpdateService.CheckForUpdatesAsync(true); LlamaRuntimeUpdateStatus = $"{result.Message} Current={result.CurrentVersion}; Latest={result.LatestVersion ?? "-"}"; LlamaRuntimeAssets = result.LatestAssets.Count > 0 ? result.LatestAssets : LlamaRuntimeAssets; } catch (Exception ex) { LlamaRuntimeUpdateStatus = ex.Message; } }
     [RelayCommand] private async Task StartLlamaServerAsync() { try { await _llamaServerManager.StartAsync(); LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusReady"); } catch (Exception ex) { LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusFailed"); AiLastError = ex.Message; } }
@@ -366,8 +565,91 @@ public partial class SmartBpModuleContentViewModel
         await RunRegionGatedFrameCoreAsync(frame);
     }
     [RelayCommand] private Task RunAutomaticOneTickAsync() => RunAutomaticCurrentFrameCoreAsync();
-    [RelayCommand] private async Task StartAiPreviewLoopAsync() { if (!_windowCaptureService.IsCapturing) { AiLastError = "Start capture before starting the recognition loop."; return; } await _autoRecognitionCoordinator.StartAsync(); IsAiPreviewLoopRunning = true; _aiPreviewTimer.Start(); }
-    [RelayCommand] private async Task StopAiPreviewLoopAsync() { _aiPreviewTimer.Stop(); await _autoRecognitionCoordinator.StopAsync(); IsAiPreviewLoopRunning = false; }
+    [RelayCommand(CanExecute = nameof(CanStartAutomaticRecognition))]
+    private async Task StartAiPreviewLoopAsync()
+    {
+        if (!_windowCaptureService.IsCapturing) { AiLastError = "Start capture before starting automatic recognition."; return; }
+        var confirmed = await MessageBoxHelper.ShowConfirmAsync(
+            ResolveLocalizedOrRaw("SmartBpAutoRecognitionStartConfirm"),
+            ResolveLocalizedOrRaw("SmartBpAutoRecognitionStartTitle"),
+            ResolveLocalizedOrRaw("Confirm"), ResolveLocalizedOrRaw("Cancel"));
+        if (!confirmed) return;
+        await _autoRecognitionCoordinator.StartAsync();
+        IsAiPreviewLoopRunning = true;
+        _aiPreviewTimer.Start();
+        _autoRecognitionGlobalControl.Update(true, _ => StopAiPreviewLoopAsync());
+        NotifyAutomaticRecognitionCommands();
+    }
+
+    [RelayCommand(CanExecute = nameof(CanStopAutomaticRecognition))]
+    private async Task StopAiPreviewLoopAsync()
+    {
+        _aiPreviewTimer.Stop();
+        await _autoRecognitionCoordinator.StopAsync();
+        IsAiPreviewLoopRunning = false;
+        _autoRecognitionGlobalControl.Update(false);
+        NotifyAutomaticRecognitionCommands();
+    }
+
+    private bool CanStartAutomaticRecognition() => !IsAiPreviewLoopRunning;
+    private bool CanStopAutomaticRecognition() => IsAiPreviewLoopRunning;
+    private void NotifyAutomaticRecognitionCommands()
+    {
+        StartAiPreviewLoopCommand.NotifyCanExecuteChanged();
+        StopAiPreviewLoopCommand.NotifyCanExecuteChanged();
+    }
+
+    [RelayCommand]
+    private async Task DownloadTesseractDataAsync()
+    {
+        try
+        {
+            var languages = GetSelectedTesseractLanguages();
+            if (languages.Length == 0) { AiLastError = ResolveLocalizedOrRaw("SmartBpTesseractNoLanguageSelected"); return; }
+            TesseractLanguages = string.Join('+', languages);
+            await _tesseractDataAssetManager.InstallLanguagesAsync(languages);
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex) { AiLastError = ex.ToString(); }
+    }
+
+    [RelayCommand] private void CancelTesseractDataDownload() => _tesseractDataAssetManager.Cancel();
+
+    [RelayCommand]
+    private async Task RefreshTesseractDataStatusForUiAsync()
+    {
+        try
+        {
+            await RefreshTesseractDataStatusAsync();
+            TesseractDownloadDetail = ResolveLocalizedOrRaw("SmartBpRefreshStatus");
+        }
+        catch (Exception ex)
+        {
+            AiLastError = ex.ToString();
+            TesseractDownloadDetail = ex.ToString();
+        }
+    }
+
+    [RelayCommand]
+    private async Task DeleteTesseractDataAsync()
+    {
+        try
+        {
+            var languages = GetSelectedTesseractLanguages();
+            if (languages.Length == 0) { AiLastError = ResolveLocalizedOrRaw("SmartBpTesseractNoLanguageSelected"); return; }
+            await _tesseractDataAssetManager.DeleteAsync(languages);
+            await RefreshTesseractDataStatusAsync();
+        }
+        catch (Exception ex) { AiLastError = ex.Message; }
+    }
+
+    private async Task RefreshTesseractDataStatusAsync()
+    {
+        var status = await _tesseractDataAssetManager.GetStatusAsync();
+        foreach (var option in TesseractLanguageOptions)
+            option.IsInstalled = status.InstalledLanguages.Contains(option.Language, StringComparer.OrdinalIgnoreCase);
+        RefreshOcrProviderStatuses();
+    }
     private async Task RecognizeCurrentFrameCoreAsync() { var frame = _windowCaptureService.GetCurrentFrame(); if (frame == null) { AiLastError = "No capture frame is available."; return; } await RunRegionGatedFrameCoreAsync(frame); }
 
     private async Task DetectStageCoreAsync(BitmapSource frame)
@@ -428,11 +710,11 @@ public partial class SmartBpModuleContentViewModel
         AiLastError = result.Error ?? "";
     }
 
-    private static BitmapSource LoadTestFrame(SmartBpTestFrame frame)
+    private BitmapSource LoadTestFrame(SmartBpTestFrame frame)
     {
         var image = new BitmapImage();
         image.BeginInit(); image.CacheOption = BitmapCacheOption.OnLoad;
-        image.UriSource = new Uri(Path.Combine(AppConstants.ResourcesPath, "SmartBp", "TestFrames", frame.FileName));
+        image.UriSource = new Uri(Path.Combine(_smartBpModuleStorage.ModuleRoot, "Resources", "SmartBp", "TestFrames", frame.FileName));
         image.EndInit(); image.Freeze(); return image;
     }
 
@@ -521,19 +803,76 @@ public partial class SmartBpModuleContentViewModel
     {
         if (value == null || value.Id == _recognitionSettingsService.Settings.PromptProfileId) return;
         _recognitionSettingsService.Settings.PromptProfileId = value.Id;
+        RefreshRecognitionSpeedTestValidity();
         _ = _recognitionSettingsService.SaveAsync();
     }
 
     partial void OnSelectedQwenModelProfileChanged(QwenModelProfile? value)
     {
-        if (value == null || value.Id == _recognitionSettingsService.Settings.SelectedQwenModelId) return;
-        if (_llamaServerManager.IsRunning)
+        if (_isSwitchingQwenModel) return;
+        _ = RefreshSelectedQwenModelInstallStatusAsync();
+        SwitchSelectedQwenModelCommand.NotifyCanExecuteChanged();
+    }
+
+    private async Task RefreshSelectedQwenModelInstallStatusAsync()
+    {
+        try
         {
-            AiLastError = ResolveLocalizedOrRaw("SmartBpAiStopServerBeforeSwitchModel");
-            return;
+            IsSelectedQwenModelInstalled = SelectedQwenModelProfile != null &&
+                await _qwenAssetManager.IsInstalledAsync(SelectedQwenModelProfile.Id);
         }
-        _recognitionSettingsService.Settings.SelectedQwenModelId = value.Id;
-        _ = SaveQwenSelectionAsync();
+        catch
+        {
+            IsSelectedQwenModelInstalled = false;
+        }
+    }
+
+    [RelayCommand(CanExecute = nameof(CanSwitchSelectedQwenModel))]
+    private async Task SwitchSelectedQwenModelAsync()
+    {
+        if (SelectedQwenModelProfile == null) return;
+        await SwitchQwenModelAsync(SelectedQwenModelProfile);
+    }
+
+    private bool CanSwitchSelectedQwenModel() =>
+        !IsQwenDownloading &&
+        SelectedQwenModelProfile != null &&
+        !string.Equals(SelectedQwenModelProfile.Id, _recognitionSettingsService.Settings.SelectedQwenModelId, StringComparison.Ordinal);
+
+    private async Task SwitchQwenModelAsync(QwenModelProfile value)
+    {
+        _isSwitchingQwenModel = true;
+        var oldId = _recognitionSettingsService.Settings.SelectedQwenModelId;
+        try
+        {
+            var restart = _llamaServerManager.IsRunning;
+            if (restart)
+            {
+                var confirmed = await MessageBoxHelper.ShowConfirmAsync(
+                    ResolveLocalizedOrRaw("SmartBpAiSwitchModelRestartConfirm"),
+                    ResolveLocalizedOrRaw("SmartBpAiSwitchModelTitle"),
+                    ResolveLocalizedOrRaw("Confirm"), ResolveLocalizedOrRaw("Cancel"));
+                if (!confirmed)
+                {
+                    SelectedQwenModelProfile = QwenModelProfiles.FirstOrDefault(profile => profile.Id == oldId);
+                    return;
+                }
+                await _llamaServerManager.StopAsync();
+            }
+            _recognitionSettingsService.Settings.SelectedQwenModelId = value.Id;
+            RefreshRecognitionSpeedTestValidity();
+            await SaveQwenSelectionAsync();
+            CurrentQwenModelDisplayName = string.Format(ResolveLocalizedOrRaw("SmartBpCurrentQwenModelFormat"), value.DisplayName);
+            IsQwenInstalled = await _qwenAssetManager.IsInstalledAsync();
+            await RefreshSelectedQwenModelInstallStatusAsync();
+            SwitchSelectedQwenModelCommand.NotifyCanExecuteChanged();
+            if (restart && IsQwenInstalled)
+                await _llamaServerManager.StartAsync();
+            else if (!IsQwenInstalled)
+                AiLastError = ResolveLocalizedOrRaw("SmartBpAiModelDownloadRequired");
+        }
+        catch (Exception ex) { AiLastError = ex.Message; }
+        finally { _isSwitchingQwenModel = false; }
     }
 
     partial void OnSelectedLlamaRuntimeAssetChanged(LlamaCppRuntimeAsset? value)
@@ -542,6 +881,7 @@ public partial class SmartBpModuleContentViewModel
         _recognitionSettingsService.Settings.SelectedLlamaRuntimeId = value.Id;
         _recognitionSettingsService.Settings.LlamaServerExecutablePath = "";
         LlamaServerExecutablePath = "";
+        RefreshRecognitionSpeedTestValidity();
         _ = SaveRuntimeSelectionAsync();
     }
 
@@ -557,6 +897,30 @@ public partial class SmartBpModuleContentViewModel
         _ = _recognitionSettingsService.SaveAsync();
     }
 
+    partial void OnEnableAutoGuidancePageNavigationChanged(bool value)
+    {
+        _recognitionSettingsService.Settings.EnableAutoGuidancePageNavigation = value;
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnRecognitionApplyModeChanged(SmartBpRecognitionApplyMode value)
+    {
+        _recognitionSettingsService.Settings.RecognitionApplyMode = value;
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnAiOneStepDelayedModeChanged(bool value)
+    {
+        _recognitionSettingsService.Settings.AiOneStepDelayedMode = value;
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnAiUnknownPhaseTalentInferenceFramesChanged(int value)
+    {
+        _recognitionSettingsService.Settings.AiUnknownPhaseTalentInferenceFrames = Math.Clamp(value, 1, 30);
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
     partial void OnPlayBackfillAnimationsChanged(bool value)
     {
         _recognitionSettingsService.Settings.PlayBackfillAnimations = value;
@@ -566,6 +930,7 @@ public partial class SmartBpModuleContentViewModel
     partial void OnUseMultiImageSnapshotRequestChanged(bool value)
     {
         _recognitionSettingsService.Settings.UseMultiImageSnapshotRequest = value;
+        RefreshRecognitionSpeedTestValidity();
         _ = _recognitionSettingsService.SaveAsync();
     }
 
@@ -584,36 +949,42 @@ public partial class SmartBpModuleContentViewModel
     partial void OnRecognitionVisualBufferMillisecondsChanged(int value)
     {
         _recognitionSettingsService.Settings.RecognitionVisualBufferMilliseconds = value;
+        RefreshRecognitionSpeedTestValidity();
         _ = _recognitionSettingsService.SaveAsync();
     }
 
     partial void OnLlamaParallelSlotsChanged(int value)
     {
         _recognitionSettingsService.Settings.LlamaParallelSlots = value;
+        RefreshRecognitionSpeedTestValidity();
         _ = _recognitionSettingsService.SaveAsync();
     }
 
     partial void OnLlamaGpuLayersChanged(int value)
     {
         _recognitionSettingsService.Settings.LlamaGpuLayers = value;
+        RefreshRecognitionSpeedTestValidity();
         _ = _recognitionSettingsService.SaveAsync();
     }
 
     partial void OnLlamaFlashAttentionChanged(bool value)
     {
         _recognitionSettingsService.Settings.LlamaFlashAttention = value;
+        RefreshRecognitionSpeedTestValidity();
         _ = _recognitionSettingsService.SaveAsync();
     }
 
     partial void OnLlamaBatchSizeChanged(int value)
     {
         _recognitionSettingsService.Settings.LlamaBatchSize = value;
+        RefreshRecognitionSpeedTestValidity();
         _ = _recognitionSettingsService.SaveAsync();
     }
 
     partial void OnLlamaUBatchSizeChanged(int value)
     {
         _recognitionSettingsService.Settings.LlamaUBatchSize = value;
+        RefreshRecognitionSpeedTestValidity();
         _ = _recognitionSettingsService.SaveAsync();
     }
 
@@ -638,7 +1009,13 @@ public partial class SmartBpModuleContentViewModel
             return;
 
         _recognitionSettingsService.Settings.RecognitionEngine = value.Engine;
+        if (value.OcrProviderMode is { } provider)
+        {
+            _recognitionSettingsService.Settings.OcrProviderMode = provider;
+            SelectedOcrProvider = OcrProviders.FirstOrDefault(item => item.Mode == provider);
+        }
         RefreshRecognitionEngineVisibility();
+        RefreshRecognitionSpeedTestValidity();
         _ = _recognitionSettingsService.SaveAsync();
         _aiDebugLog.Write("Recognition", $"Recognition engine switched to {value.Engine}.");
     }
@@ -651,7 +1028,8 @@ public partial class SmartBpModuleContentViewModel
 
     partial void OnOcrRecognitionIntervalMsChanged(int value)
     {
-        _recognitionSettingsService.Settings.OcrRecognitionIntervalMs = Math.Clamp(value, 100, 5000);
+        var minimum = Math.Max(100, _recognitionSettingsService.Settings.MinimumOcrRecognitionIntervalMs);
+        _recognitionSettingsService.Settings.OcrRecognitionIntervalMs = Math.Clamp(value, minimum, 300000);
         RefreshRecognitionTimerInterval();
         _ = _recognitionSettingsService.SaveAsync();
     }
@@ -671,6 +1049,7 @@ public partial class SmartBpModuleContentViewModel
     partial void OnUseOcrContactSheetChanged(bool value)
     {
         _recognitionSettingsService.Settings.UseOcrContactSheet = value;
+        RefreshRecognitionSpeedTestValidity();
         _ = _recognitionSettingsService.SaveAsync();
     }
 
@@ -684,13 +1063,7 @@ public partial class SmartBpModuleContentViewModel
     {
         if (value == null) return;
         _recognitionSettingsService.Settings.OcrProviderMode = value.Mode;
-        RefreshOcrProviderStatuses();
-        _ = _recognitionSettingsService.SaveAsync();
-    }
-
-    partial void OnTesseractDataPathChanged(string value)
-    {
-        _recognitionSettingsService.Settings.TesseractDataPath = value?.Trim() ?? string.Empty;
+        RefreshRecognitionSpeedTestValidity();
         RefreshOcrProviderStatuses();
         _ = _recognitionSettingsService.SaveAsync();
     }
@@ -698,6 +1071,8 @@ public partial class SmartBpModuleContentViewModel
     partial void OnTesseractLanguagesChanged(string value)
     {
         _recognitionSettingsService.Settings.TesseractLanguages = string.IsNullOrWhiteSpace(value) ? "chi_sim+eng" : value.Trim();
+        SyncSelectedTesseractLanguageOptions();
+        RefreshRecognitionSpeedTestValidity();
         RefreshOcrProviderStatuses();
         _ = _recognitionSettingsService.SaveAsync();
     }
@@ -712,21 +1087,15 @@ public partial class SmartBpModuleContentViewModel
     partial void OnTesseractDefaultPsmChanged(int value)
     {
         _recognitionSettingsService.Settings.TesseractDefaultPsm = Math.Clamp(value, 0, 13);
+        RefreshRecognitionSpeedTestValidity();
         _ = _recognitionSettingsService.SaveAsync();
     }
 
     partial void OnTesseractMaxPreprocessVariantsChanged(int value)
     {
         _recognitionSettingsService.Settings.TesseractMaxPreprocessVariants = Math.Clamp(value, 1, 3);
+        RefreshRecognitionSpeedTestValidity();
         _ = _recognitionSettingsService.SaveAsync();
-    }
-
-    [RelayCommand]
-    private void SelectTesseractDataFolder()
-    {
-        var selected = _filePickerService.PickFolder();
-        if (!string.IsNullOrWhiteSpace(selected))
-            TesseractDataPath = selected;
     }
 
     [RelayCommand]
@@ -749,51 +1118,80 @@ public partial class SmartBpModuleContentViewModel
             : $"{ResolveLocalizedOrRaw("SmartBpOcrStatusMissing")}: {tesseract.Details}";
     }
 
+    private string[] GetSelectedTesseractLanguages() =>
+        TesseractLanguageOptions
+            .Where(option => option.IsSelected)
+            .Select(option => option.Language)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+    private void SyncSelectedTesseractLanguageOptions()
+    {
+        if (TesseractLanguageOptions.Count == 0)
+            return;
+
+        var selected = ParseTesseractLanguageExpression(TesseractLanguages).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        foreach (var option in TesseractLanguageOptions)
+            option.IsSelected = selected.Contains(option.Language);
+    }
+
+    private static IEnumerable<string> ParseTesseractLanguageExpression(string? languages) =>
+        (string.IsNullOrWhiteSpace(languages) ? "chi_sim+eng" : languages)
+        .Split(['+', ',', ';', ' '], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
     partial void OnAllowSequentialSnapshotFallbackChanged(bool value)
     {
         _recognitionSettingsService.Settings.AllowSequentialSnapshotFallback = value;
+        RefreshRecognitionSpeedTestValidity();
         _ = _recognitionSettingsService.SaveAsync();
     }
 
     partial void OnUseStrictCandidateEnumsInAutoSchemaChanged(bool value)
     {
         _recognitionSettingsService.Settings.UseStrictCandidateEnumsInAutoSchema = value;
+        RefreshRecognitionSpeedTestValidity();
         _ = _recognitionSettingsService.SaveAsync();
     }
 
     partial void OnPhaseCropMaxImageWidthChanged(int value)
     {
         _recognitionSettingsService.Settings.PhaseCropMaxImageWidth = value;
+        RefreshRecognitionSpeedTestValidity();
         _ = _recognitionSettingsService.SaveAsync();
     }
 
     partial void OnContentCropMaxImageWidthChanged(int value)
     {
         _recognitionSettingsService.Settings.ContentCropMaxImageWidth = value;
+        RefreshRecognitionSpeedTestValidity();
         _ = _recognitionSettingsService.SaveAsync();
     }
 
     partial void OnPhaseMaxTokensChanged(int value)
     {
         _recognitionSettingsService.Settings.PhaseMaxTokens = value;
+        RefreshRecognitionSpeedTestValidity();
         _ = _recognitionSettingsService.SaveAsync();
     }
 
     partial void OnSnapshotDeltaMaxTokensChanged(int value)
     {
         _recognitionSettingsService.Settings.SnapshotDeltaMaxTokens = value;
+        RefreshRecognitionSpeedTestValidity();
         _ = _recognitionSettingsService.SaveAsync();
     }
 
     partial void OnPhaseTransitionCommitHoldMillisecondsChanged(int value)
     {
         _recognitionSettingsService.Settings.PhaseTransitionCommitHoldMilliseconds = value;
+        RefreshRecognitionSpeedTestValidity();
         _ = _recognitionSettingsService.SaveAsync();
     }
 
     partial void OnPhaseTransitionCommitHoldMaxMillisecondsChanged(int value)
     {
         _recognitionSettingsService.Settings.PhaseTransitionCommitHoldMaxMilliseconds = value;
+        RefreshRecognitionSpeedTestValidity();
         _ = _recognitionSettingsService.SaveAsync();
     }
 
@@ -803,15 +1201,18 @@ public partial class SmartBpModuleContentViewModel
         await RefreshQwenStatusAsync();
     }
 
-    private static string FormatDownloadState(SmartBpDownloadState state)
+    private string FormatDownloadState(SmartBpDownloadState state)
     {
+        var status = ResolveLocalizedOrRaw(state.Status);
+        if (!string.IsNullOrWhiteSpace(state.ErrorMessage))
+            return $"{status}: {state.ErrorMessage}";
         var percent = state.Progress is { } progress ? $"{progress:0.0}%" : "-";
         var bytes = state.BytesReceived is { } received
             ? $"{FormatBytes(received)} / {(state.TotalBytes is { } total ? FormatBytes(total) : "?")}"
             : "-";
         var speed = state.BytesPerSecond is { } bps ? $"{FormatBytes((long)bps)}/s" : "-";
         var eta = state.Eta is { } etaValue ? etaValue.ToString(@"mm\:ss") : "-";
-        return $"{percent}; {state.CurrentFileName ?? "-"}; {bytes}; {speed}; ETA {eta}";
+        return $"{status}; {percent}; {state.CurrentFileName ?? "-"}; {bytes}; {speed}; ETA {eta}";
     }
 
     private static string FormatBytes(long bytes)
@@ -828,10 +1229,34 @@ public partial class SmartBpModuleContentViewModel
     /// </summary>
     /// <param name="Engine">Engine value.</param>
     /// <param name="DisplayNameKey">Localized display name key.</param>
-    public sealed record RecognitionEngineSelection(SmartBpRecognitionEngine Engine, string DisplayNameKey);
+    public sealed record RecognitionEngineSelection(SmartBpRecognitionEngine Engine,
+        SmartBpOcrProviderMode? OcrProviderMode, string DisplayNameKey);
 
     /// <summary>One selectable OCR provider.</summary>
     /// <param name="Mode">Persisted provider mode.</param>
     /// <param name="DisplayName">Display name.</param>
     public sealed record OcrProviderSelection(SmartBpOcrProviderMode Mode, string DisplayName);
+
+    /// <summary>Selectable Tesseract language data option shown in the SmartBP UI.</summary>
+    /// <param name="language">Tesseract language identifier.</param>
+    /// <param name="displayNameKey">Localization key for the display name.</param>
+    public sealed partial class TesseractLanguageSelection(string language, string displayNameKey) : ObservableObject
+    {
+        /// <summary>Gets the Tesseract language identifier.</summary>
+        public string Language { get; } = language;
+
+        /// <summary>Gets the localization key for display.</summary>
+        public string DisplayNameKey { get; } = displayNameKey;
+
+        /// <summary>Gets or sets whether this language is selected for install, delete, and use.</summary>
+        [ObservableProperty] private bool _isSelected;
+
+        /// <summary>Gets or sets whether this language data file is installed.</summary>
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(StatusKey))]
+        private bool _isInstalled;
+
+        /// <summary>Gets the localization key for the current install status.</summary>
+        public string StatusKey => IsInstalled ? "SmartBpTesseractLanguageInstalled" : "SmartBpTesseractLanguageMissing";
+    }
 }

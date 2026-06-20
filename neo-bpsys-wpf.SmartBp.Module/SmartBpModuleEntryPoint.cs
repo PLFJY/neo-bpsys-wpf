@@ -58,12 +58,16 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint
         services.AddSingleton(hostServices.GetRequiredService<ISmartBpOcrModelPathProvider>());
         services.AddSingleton(hostServices.GetRequiredService<ISmartBpModuleStorageProvider>());
         services.AddSingleton(hostServices.GetRequiredService<IGitHubDownloadUrlResolver>());
+        services.AddSingleton(hostServices.GetRequiredService<ISmartBpAutoRecognitionGlobalControl>());
+        services.AddSingleton(hostServices.GetRequiredService<ISmartBpAutoRecognitionGlobalControlSink>());
         services.AddSingleton(loggerFactory);
         services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
         services.AddSingleton<ISmartBpSceneDefinition, SmartBpGameDataSceneDefinition>();
         services.AddSingleton<ISmartBpRegionConfigService, SmartBpRegionConfigService>();
         services.AddSingleton<PaddleOcrProvider>();
         services.AddSingleton<TesseractOcrProvider>();
+        services.AddSingleton<ITesseractDataAssetManager, TesseractDataAssetManager>();
+        services.AddSingleton<ISmartBpAiPerformanceMonitor, NvmlAiPerformanceMonitor>();
         services.AddSingleton<IOcrProvider>(provider => provider.GetRequiredService<PaddleOcrProvider>());
         services.AddSingleton<IOcrProvider>(provider => provider.GetRequiredService<TesseractOcrProvider>());
         services.AddSingleton<SmartBpOcrProviderSelector>();

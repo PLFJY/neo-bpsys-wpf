@@ -105,10 +105,10 @@ BP 状态识别和赛后数据 OCR 是两条不同流程。BP 识别不直接写
 默认配置优先来自：
 
 ```text
-Resources/SmartBpDefaultConfigs/GameDataRegions.16-9.default.json
+neo-bpsys-wpf.SmartBp.Module/Resources/SmartBpDefaultConfigs/GameDataRegions.16-9.default.json
 ```
 
-如果资源缺失，`SmartBpGameDataSceneDefinition` 会生成代码内 fallback 配置。配置保存前会校验：
+运行时从 SmartBP 模块输出目录读取该文件；如果资源缺失，`SmartBpGameDataSceneDefinition` 会生成代码内 fallback 配置。配置保存前会校验：
 
 1. `Scene` 必须是 `GameData`。
 2. 根节点行数为 5。

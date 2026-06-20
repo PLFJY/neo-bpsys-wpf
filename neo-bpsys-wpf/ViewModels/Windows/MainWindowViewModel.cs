@@ -50,6 +50,10 @@ public partial class MainWindowViewModel :
 
     private readonly IGameGuidanceService _gameGuidanceService;
     private readonly ILogger<MainWindowViewModel> _logger;
+    private readonly ISmartBpAutoRecognitionGlobalControl _smartBpAutoRecognitionGlobalControl;
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(StopSmartBpAutoRecognitionCommand))]
+    private bool _isSmartBpAutoRecognitionRunning;
     [ObservableProperty] private ApplicationTheme _applicationTheme = ApplicationTheme.Dark;
 
     private bool _isGuidanceStarted;
@@ -90,11 +94,13 @@ public partial class MainWindowViewModel :
         ISharedDataService sharedDataService,
         IGameGuidanceService gameGuidanceService,
         IFilePickerService filePickerService,
+        ISmartBpAutoRecognitionGlobalControl smartBpAutoRecognitionGlobalControl,
         ILogger<MainWindowViewModel> logger)
     {
         _sharedDataService = sharedDataService;
         _gameGuidanceService = gameGuidanceService;
         _filePickerService = filePickerService;
+        _smartBpAutoRecognitionGlobalControl = smartBpAutoRecognitionGlobalControl;
         _logger = logger;
         _isGuidanceStarted = false;
         _jsonSerializerOptions = new JsonSerializerOptions
@@ -107,6 +113,9 @@ public partial class MainWindowViewModel :
         BuildNavigationMenuItems();
         sharedDataService.CountDownValueChanged += (_, _) => OnPropertyChanged(nameof(RemainingSeconds));
         sharedDataService.CurrentGameChanged += (_, _) => OnPropertyChanged(nameof(CurrentGame));
+        IsSmartBpAutoRecognitionRunning = smartBpAutoRecognitionGlobalControl.IsRunning;
+        smartBpAutoRecognitionGlobalControl.StateChanged += (_, _) =>
+            IsSmartBpAutoRecognitionRunning = smartBpAutoRecognitionGlobalControl.IsRunning;
 
         // 订阅对局引导服务的显式事件
         _gameGuidanceService.GuidanceStateChanged += (_, args) =>
@@ -125,6 +134,11 @@ public partial class MainWindowViewModel :
             IsEndGuidanceHighlighted = args.GameAction == GameAction.EndGuidance;
         };
     }
+
+    private bool CanStopSmartBpAutoRecognition() => IsSmartBpAutoRecognitionRunning;
+
+    [RelayCommand(CanExecute = nameof(CanStopSmartBpAutoRecognition))]
+    private Task StopSmartBpAutoRecognitionAsync() => _smartBpAutoRecognitionGlobalControl.StopAsync();
 
     private void BuildNavigationMenuItems()
     {

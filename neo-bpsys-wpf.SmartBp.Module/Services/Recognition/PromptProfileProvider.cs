@@ -1,5 +1,5 @@
-using neo_bpsys_wpf.Core;
 using System.IO;
+using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.SmartBp.Module.Abstractions;
 using neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
 
@@ -7,6 +7,17 @@ namespace neo_bpsys_wpf.SmartBp.Module.Services.Recognition;
 
 internal sealed class SmartBpPromptProfileProvider : ISmartBpPromptProfileProvider
 {
+    private readonly ISmartBpModuleStorageProvider? _storage;
+
+    public SmartBpPromptProfileProvider()
+    {
+    }
+
+    public SmartBpPromptProfileProvider(ISmartBpModuleStorageProvider storage)
+    {
+        _storage = storage;
+    }
+
     private static readonly (string Id, string DisplayName)[] Profiles =
     [
         ("zh-CN", "简体中文 (zh-CN)"),
@@ -25,7 +36,7 @@ internal sealed class SmartBpPromptProfileProvider : ISmartBpPromptProfileProvid
     {
         var profile = Profiles.SingleOrDefault(x => x.Id.Equals(profileId, StringComparison.OrdinalIgnoreCase));
         if (string.IsNullOrWhiteSpace(profile.Id)) throw new InvalidDataException($"Unknown prompt profile '{profileId}'.");
-        var path = Path.Combine(AppConstants.ResourcesPath, "SmartBp", "Prompts", $"{profile.Id}.system.md");
+        var path = Path.Combine(_storage?.ModuleRoot ?? AppContext.BaseDirectory, "Resources", "SmartBp", "Prompts", $"{profile.Id}.system.md");
         var prompt = await File.ReadAllTextAsync(path, cancellationToken);
         if (string.IsNullOrWhiteSpace(prompt)) throw new InvalidDataException($"Prompt profile '{profile.Id}' is empty.");
         return new(profile.Id, profile.DisplayName, prompt.Trim());

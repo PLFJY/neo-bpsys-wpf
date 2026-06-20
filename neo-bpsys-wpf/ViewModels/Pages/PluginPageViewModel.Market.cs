@@ -85,6 +85,12 @@ public partial class PluginPageViewModel
     private string _selectedPluginMarketMirror = string.Empty;
 
     /// <summary>
+    /// 获取或设置插件市场 GitHub 镜像设置入口是否可见。
+    /// </summary>
+    [ObservableProperty]
+    private bool _isPluginMarketMirrorSettingVisible;
+
+    /// <summary>
     /// 当前选中的插件市场源地址。
     /// </summary>
     [ObservableProperty]
@@ -225,6 +231,7 @@ public partial class PluginPageViewModel
         }
         SelectedPluginMarketMirror = _settingsHostService.Settings.GhProxyMirror;
         SelectedPluginMarketSource = _settingsHostService.Settings.PluginMarketSource;
+        IsPluginMarketMirrorSettingVisible = IsChineseCultureForPluginMarketMirror();
         _pluginMarketService.DownloadStateChanged += PluginMarketService_DownloadStateChanged;
         _isPluginMarketInitialized = true;
         _ = RefreshMarketAsync();
@@ -704,6 +711,7 @@ public partial class PluginPageViewModel
         {
             SelectedPluginMarketMirror = _settingsHostService.Settings.GhProxyMirror;
             SelectedPluginMarketSource = _settingsHostService.Settings.PluginMarketSource;
+            IsPluginMarketMirrorSettingVisible = IsChineseCultureForPluginMarketMirror();
         }
         finally
         {
@@ -711,6 +719,9 @@ public partial class PluginPageViewModel
             _isSyncingPluginMarketSource = false;
         }
     }
+
+    private bool IsChineseCultureForPluginMarketMirror() =>
+        _settingsHostService.Settings.CultureInfo.Name.StartsWith("zh", StringComparison.OrdinalIgnoreCase);
 
     private static string FormatLocalized(string key, params object[] args)
     {

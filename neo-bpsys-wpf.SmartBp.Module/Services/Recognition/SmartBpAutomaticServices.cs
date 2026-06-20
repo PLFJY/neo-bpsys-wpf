@@ -434,7 +434,7 @@ internal sealed class SmartBpGuidanceSyncService(
             return new(false, true, "Current GameGuidance step already matches the detected stage.", target.Action, target.Indexes, target.StepIndex);
 
         cancellationToken.ThrowIfCancellationRequested();
-        var moveError = await guidance.MoveToStepAsync(target.StepIndex, false);
+        var moveError = await guidance.MoveToStepAsync(target.StepIndex, settings.Settings.EnableAutoGuidancePageNavigation);
         if (!string.IsNullOrWhiteSpace(moveError)) return Reject(moveError, action);
         return new(true, true, $"GameGuidance moved forward to step {target.StepIndex}.", target.Action, target.Indexes, target.StepIndex);
     }
@@ -456,7 +456,7 @@ internal sealed class SmartBpGuidanceSyncService(
 
         var target = candidates[0];
         cancellationToken.ThrowIfCancellationRequested();
-        var moveError = await guidance.MoveToStepAsync(target.StepIndex, false);
+        var moveError = await guidance.MoveToStepAsync(target.StepIndex, settings.Settings.EnableAutoGuidancePageNavigation);
         if (!string.IsNullOrWhiteSpace(moveError)) return Reject(moveError, target.Action);
         return new(true, true, $"GameGuidance moved forward to locked talent context step {target.StepIndex}.", target.Action, target.Indexes, target.StepIndex);
     }
@@ -666,7 +666,10 @@ internal sealed class SmartBpDetectedOperationApplier(
             if (operation.ResolvedCharacterKey == null) { skipped++; MarkSkipped(key, "unresolved character"); messages.Add($"Skipped: unresolved character for {Describe(operation)}."); continue; }
             var dictionary = operation.Camp == Camp.Sur ? shared.SurCharaDict : shared.HunCharaDict;
             if (!dictionary.TryGetValue(operation.ResolvedCharacterKey, out var character)) { skipped++; MarkSkipped(key, "resolved key missing"); messages.Add($"Skipped: resolved character key no longer exists: {operation.ResolvedCharacterKey}."); continue; }
-            var playAnimation = operation.ApplyMode == SmartBpDetectedOperationApplyMode.CurrentStep || settings.Settings.PlayBackfillAnimations;
+            var playAnimation = operation.ApplyMode == SmartBpDetectedOperationApplyMode.CurrentStep ||
+                                operation.ApplyMode == SmartBpDetectedOperationApplyMode.Backfill &&
+                                settings.Settings.RecognitionEngine != SmartBpRecognitionEngine.AiQwen &&
+                                settings.Settings.PlayBackfillAnimations;
             if (playAnimation && operation.ApplyMode == SmartBpDetectedOperationApplyMode.CurrentStep && settings.Settings.RecognitionVisualBufferMilliseconds > 0)
                 await Task.Delay(settings.Settings.RecognitionVisualBufferMilliseconds, cancellationToken);
 
@@ -761,6 +764,18 @@ internal sealed class SmartBpDetectedOperationApplier(
         GameGuidanceRuntimeSnapshot snapshot,
         out string error)
     {
+        if (operation.ApplyMode == SmartBpDetectedOperationApplyMode.FreeSync)
+        {
+            var valid = operation.Kind switch
+            {
+                SmartBpDetectedOperationKind.BanCharacter => operation.Camp is Camp.Sur or Camp.Hun && operation.SlotIndex >= 0,
+                SmartBpDetectedOperationKind.PickSurvivor => operation.Camp == Camp.Sur && operation.SlotIndex is >= 0 and < 4,
+                SmartBpDetectedOperationKind.PickHunter => operation.Camp == Camp.Hun && operation.SlotIndex == -1,
+                _ => false
+            };
+            error = valid ? "" : "invalid free-sync operation contract";
+            return valid;
+        }
         if (operation.ApplyMode == SmartBpDetectedOperationApplyMode.CurrentStep)
         {
             if (snapshot.CurrentAction != operation.SourceGuidanceAction) { error = "current GameGuidance action mismatch"; return false; }
@@ -832,9 +847,11 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
     ISmartBpRecognitionLedger ledger,
     ISmartBpFrameRingBuffer frameRingBuffer,
     ISmartBpRecognitionSettingsService settings,
+    ISharedDataService shared,
     ISmartBpGuidanceSyncService guidanceSync,
     IGameGuidanceService guidance,
     ISmartBpWorkflowBackfillService backfill,
+    SmartBpCandidateOperationBuilder candidateBuilder,
     ISmartBpDetectedOperationApplier applier) : ISmartBpAutoRecognitionCoordinator, ISmartBpStepCommitScheduler
 {
     private readonly SemaphoreSlim _tickGate = new(1, 1);
@@ -842,6 +859,8 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
     private string? _lastSnapshotFingerprint;
     private int _stableSnapshotCount;
     private long _frameSequence;
+    private GameAction? _lastExplicitAction;
+    private int _unknownPhaseFrames;
     public bool IsRunning => _runCancellation is { IsCancellationRequested: false };
 
     public Task StartAsync(CancellationToken cancellationToken = default)
@@ -851,6 +870,8 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
         _runCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         _lastSnapshotFingerprint = null;
         _stableSnapshotCount = 0;
+        _lastExplicitAction = null;
+        _unknownPhaseFrames = 0;
         return Task.CompletedTask;
     }
 
@@ -923,8 +944,14 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
 
             var state = stateStore.Snapshot;
             guidanceSnapshot = guidance.GetRuntimeSnapshot();
-            var plan = backfill.BuildPlan(state, guidanceSnapshot);
-            var operations = plan.StepCandidates.SelectMany(item => item.Operations).ToArray();
+            ApplyAiUnknownPhaseInference(state, guidanceSnapshot, messages);
+            var isFreeSync = settings.Settings.RecognitionApplyMode == SmartBpRecognitionApplyMode.FreeFullSync;
+            var plan = isFreeSync
+                ? new SmartBpWorkflowBackfillPlan([], ["Free full sync bypasses GameGuidance workflow planning."])
+                : backfill.BuildPlan(state, guidanceSnapshot);
+            var operations = isFreeSync
+                ? BuildFreeSyncOperations(state, candidateBuilder)
+                : plan.StepCandidates.SelectMany(item => item.Operations).ToArray();
             messages.AddRange(plan.Diagnostics);
             messages.AddRange(plan.StepCandidates.Select(item => $"Step {item.StepIndex} {item.Action} [{string.Join(",", item.Indexes)}]: {item.Reason} Candidates={item.Operations.Count}."));
             var fingerprint = JsonSerializer.Serialize(state);
@@ -953,9 +980,16 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                     await Task.Delay(hold, cancellationToken);
                 }
             }
-            SmartBpGuidanceSyncResult? sync = settings.Settings.EnableAutoGuidanceSync
+            var delayedAiCanSync = settings.Settings.RecognitionEngine != SmartBpRecognitionEngine.AiQwen ||
+                                   !settings.Settings.AiOneStepDelayedMode ||
+                                   operations.All(IsOperationCompleted);
+            SmartBpGuidanceSyncResult? sync = !isFreeSync && settings.Settings.EnableAutoGuidanceSync && delayedAiCanSync
                 ? await guidanceSync.SyncAsync(state, cancellationToken)
-                : new(false, false, "Automatic GameGuidance synchronization is disabled.", null, [], null);
+                : new(false, false, isFreeSync
+                    ? "Free full sync does not synchronize GameGuidance."
+                    : !delayedAiCanSync
+                        ? "AI delayed mode is waiting for current or previous operations to be applied or confirmed as no-op."
+                        : "Automatic GameGuidance synchronization is disabled.", null, [], null);
             var finalGuidanceSnapshot = guidance.GetRuntimeSnapshot();
             var snapshotForUi = regionSnapshot ?? new SmartBpRegionSnapshot
             {
@@ -979,6 +1013,65 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
 
     private SmartBpAutoRecognitionTickResult Failure(string error) =>
         new(null, null, null, null, null, null, guidance.GetRuntimeSnapshot(), [], [], null, "", error);
+
+    private static SmartBpDetectedOperation[] BuildFreeSyncOperations(
+        SmartBpBusinessStateRecognitionResult state,
+        SmartBpCandidateOperationBuilder builder)
+    {
+        return new[]
+        {
+            builder.BuildWithDiagnostics(state, GameAction.BanSur, []).Operations,
+            builder.BuildWithDiagnostics(state, GameAction.BanHun, []).Operations,
+            builder.BuildWithDiagnostics(state, GameAction.PickSur, []).Operations,
+            builder.BuildWithDiagnostics(state, GameAction.PickHun, []).Operations
+        }.SelectMany(items => items)
+         .Select(operation => operation with { ApplyMode = SmartBpDetectedOperationApplyMode.FreeSync, SourceWorkflowStepIndex = null })
+         .ToArray();
+    }
+
+    private bool IsOperationCompleted(SmartBpDetectedOperation operation)
+    {
+        var key = SmartBpWorkflowBackfillService.CreateKey(shared.CurrentGame.GameProgress, operation);
+        return key is not null && ledger.IsStepOperationCompleted(key);
+    }
+
+    private void ApplyAiUnknownPhaseInference(
+        SmartBpBusinessStateRecognitionResult state,
+        GameGuidanceRuntimeSnapshot guidanceSnapshot,
+        ICollection<string> diagnostics)
+    {
+        if (settings.Settings.RecognitionEngine != SmartBpRecognitionEngine.AiQwen ||
+            !settings.Settings.AiOneStepDelayedMode || !guidanceSnapshot.IsStarted)
+        {
+            _unknownPhaseFrames = 0;
+            return;
+        }
+        if (SmartBpAutomaticMapping.TryMapPhase(state.Phase, out var explicitAction))
+        {
+            _lastExplicitAction = explicitAction;
+            _unknownPhaseFrames = 0;
+            return;
+        }
+        if (!string.Equals(state.Phase, "未知", StringComparison.Ordinal) || _lastExplicitAction != GameAction.PickHun)
+        {
+            _unknownPhaseFrames = 0;
+            return;
+        }
+        _unknownPhaseFrames++;
+        if (_unknownPhaseFrames < Math.Max(1, settings.Settings.AiUnknownPhaseTalentInferenceFrames)) return;
+        var pickStep = guidanceSnapshot.Workflow.Where(step => step.Action == GameAction.PickHun && step.StepIndex <= guidanceSnapshot.CurrentStepIndex)
+            .OrderByDescending(step => step.StepIndex).FirstOrDefault();
+        var future = guidanceSnapshot.Workflow.Where(step => step.StepIndex > guidanceSnapshot.CurrentStepIndex)
+            .OrderBy(step => step.StepIndex).FirstOrDefault(step => step.Action == GameAction.PickHunTalent);
+        var character = state.PickedHun.CharacterName;
+        if (pickStep is null || future is null || SmartBpBusinessStateParser.IsUnselected(character)) return;
+        var key = new SmartBpWorkflowOperationKey(
+            shared.CurrentGame.GameProgress, pickStep.StepIndex, GameAction.PickHun, -1, Camp.Hun, character);
+        if (!ledger.IsStepOperationCompleted(key)) return;
+        state.Phase = "监管者选择天赋中";
+        diagnostics.Add("AI delayed mode inferred hunter talent selection after a completed hunter pick.");
+        _unknownPhaseFrames = 0;
+    }
 
     public async Task<SmartBpStepCommitResult> ProcessTickAsync(BitmapSource frame, CancellationToken cancellationToken = default)
     {

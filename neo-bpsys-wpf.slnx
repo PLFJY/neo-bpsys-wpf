@@ -16,6 +16,8 @@
     <Platform Solution="*|x64" Project="x64" />
   </Project>
   <Project Path="neo-bpsys-wpf.CropDebugger/neo-bpsys-wpf.CropDebugger.csproj">
+    <BuildType Solution="Beta|*" Project="Debug" />
+    <BuildType Solution="Preview|*" Project="Debug" />
     <Platform Solution="Debug|x64" Project="x64" />
     <Platform Solution="Release|x64" Project="x64" />
   </Project>

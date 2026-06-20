@@ -32,17 +32,33 @@ internal sealed class SmartBpDownloadProgressTracker
     }
 }
 
-internal sealed class QwenModelManifestProvider(ILogger<QwenModelManifestProvider> logger) : IQwenModelManifestProvider
+internal sealed class QwenModelManifestProvider : IQwenModelManifestProvider
 {
+    private readonly ISmartBpModuleStorageProvider? _storage;
+    private readonly ILogger<QwenModelManifestProvider> _logger;
+
+    public QwenModelManifestProvider(ILogger<QwenModelManifestProvider> logger)
+    {
+        _logger = logger;
+    }
+
+    public QwenModelManifestProvider(
+        ISmartBpModuleStorageProvider storage,
+        ILogger<QwenModelManifestProvider> logger)
+    {
+        _storage = storage;
+        _logger = logger;
+    }
+
     public async Task<QwenModelManifest> LoadAsync(CancellationToken cancellationToken = default)
     {
-        var path = Path.Combine(AppConstants.ResourcesPath, "SmartBp", "QwenModelManifest.json");
+        var path = Path.Combine(_storage?.ModuleRoot ?? AppContext.BaseDirectory, "Resources", "SmartBp", "QwenModelManifest.json");
         await using var stream = File.OpenRead(path);
         var manifest = await JsonSerializer.DeserializeAsync<QwenModelManifest>(stream,
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true }, cancellationToken)
             ?? throw new InvalidDataException("Qwen model manifest is empty.");
         if (manifest.SchemaVersion != 1 || manifest.Models.Count == 0) throw new InvalidDataException("Unsupported Qwen model manifest.");
-        logger.LogInformation("Qwen manifest loaded. Profiles={Count}", manifest.Models.Count);
+        _logger.LogInformation("Qwen manifest loaded. Profiles={Count}", manifest.Models.Count);
         return manifest;
     }
 }
@@ -68,6 +84,9 @@ internal sealed class SmartBpRecognitionSettingsService : ISmartBpRecognitionSet
         Settings.GuidanceSyncLookAheadSteps = Math.Clamp(Settings.GuidanceSyncLookAheadSteps, 1, 20);
         Settings.RequiredStableSnapshots = Math.Clamp(Settings.RequiredStableSnapshots, 1, 5);
         Settings.OcrRecognitionIntervalMs = Math.Clamp(Settings.OcrRecognitionIntervalMs, 100, 5000);
+        Settings.MinimumOcrRecognitionIntervalMs = Math.Clamp(Settings.MinimumOcrRecognitionIntervalMs, 0, 300000);
+        Settings.MinimumAiRecognitionIntervalMs = Math.Clamp(Settings.MinimumAiRecognitionIntervalMs, 0, 300000);
+        Settings.AiUnknownPhaseTalentInferenceFrames = Math.Clamp(Settings.AiUnknownPhaseTalentInferenceFrames, 1, 30);
         Settings.OcrFieldStaleMilliseconds = Math.Clamp(Settings.OcrFieldStaleMilliseconds, 250, 30000);
         Settings.OcrBackfillLookBehindSteps = Math.Clamp(Settings.OcrBackfillLookBehindSteps, 0, 20);
         Settings.TesseractDefaultPsm = Math.Clamp(Settings.TesseractDefaultPsm, 0, 13);
@@ -124,6 +143,13 @@ internal sealed class QwenModelAssetManager(
             ?? throw new InvalidDataException($"Qwen profile '{settingsService.Settings.SelectedQwenModelId}' is not present in the manifest.");
     }
 
+    private async Task<QwenModelProfile> GetProfileAsync(string modelId, CancellationToken cancellationToken = default)
+    {
+        var manifest = await manifestProvider.LoadAsync(cancellationToken);
+        return manifest.Models.SingleOrDefault(x => x.Id == modelId)
+            ?? throw new InvalidDataException($"Qwen profile '{modelId}' is not present in the manifest.");
+    }
+
     public async Task<IReadOnlyList<QwenModelProfile>> GetProfilesAsync(CancellationToken cancellationToken = default) =>
         (await manifestProvider.LoadAsync(cancellationToken)).Models;
 
@@ -135,28 +161,60 @@ internal sealed class QwenModelAssetManager(
         return installed;
     }
 
+    public async Task<bool> IsInstalledAsync(string modelId, CancellationToken cancellationToken = default)
+    {
+        var p = await GetProfileAsync(modelId, cancellationToken); var paths = GetPaths(p);
+        var installed = await MatchesAsync(paths.Model, p.Sha256, cancellationToken) && await MatchesAsync(paths.Mmproj, p.MmprojSha256, cancellationToken);
+        logger.LogInformation("Qwen model install status. Model={ModelId}, Installed={Installed}", p.Id, installed);
+        return installed;
+    }
+
     public async Task InstallAsync(CancellationToken cancellationToken = default)
+    {
+        var p = await GetProfileAsync(cancellationToken).ConfigureAwait(false);
+        await InstallAsync(p, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task InstallAsync(string modelId, CancellationToken cancellationToken = default)
+    {
+        var p = await GetProfileAsync(modelId, cancellationToken).ConfigureAwait(false);
+        await InstallAsync(p, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task InstallAsync(QwenModelProfile p, CancellationToken cancellationToken)
     {
         if (_downloadCts != null) throw new InvalidOperationException("A Qwen download is already active.");
         _downloadCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         try
         {
-            var p = await GetProfileAsync(_downloadCts.Token); var paths = GetPaths(p); Directory.CreateDirectory(paths.Root);
+            var paths = GetPaths(p); Directory.CreateDirectory(paths.Root);
             Set(new(true, 0, "SmartBpAiStatusDownloading")); logger.LogInformation("Qwen model download started. Model={ModelId}", p.Id);
             await DownloadAsync(p.ModelUrl, paths.Model, p.Sha256, 0, 50, _downloadCts.Token);
             await DownloadAsync(p.MmprojUrl, paths.Mmproj, p.MmprojSha256, 50, 100, _downloadCts.Token);
             Set(new(false, 100, "SmartBpAiStatusInstalled")); logger.LogInformation("Qwen model download completed. Model={ModelId}", p.Id);
         }
         catch (OperationCanceledException) { Set(new(false, null, "SmartBpAiStatusCancelled")); logger.LogInformation("Qwen model download cancelled"); throw; }
-        catch (Exception ex) { Set(new(false, null, ex.Message)); logger.LogError(ex, "Qwen model download failed"); throw; }
+        catch (Exception ex) { Set(new(false, null, "SmartBpDownloadFailedSimple", ErrorMessage: ex.ToString())); logger.LogError(ex, "Qwen model download failed"); throw; }
         finally { _downloadCts?.Dispose(); _downloadCts = null; }
     }
 
     public void Cancel() => _downloadCts?.Cancel();
     public async Task DeleteAsync(CancellationToken cancellationToken = default)
     {
+        var p = await GetProfileAsync(cancellationToken).ConfigureAwait(false);
+        await DeleteAsync(p, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task DeleteAsync(string modelId, CancellationToken cancellationToken = default)
+    {
+        var p = await GetProfileAsync(modelId, cancellationToken).ConfigureAwait(false);
+        await DeleteAsync(p, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task DeleteAsync(QwenModelProfile p, CancellationToken cancellationToken)
+    {
         if (_downloadCts != null) throw new InvalidOperationException("Cannot delete while downloading.");
-        var p = await GetProfileAsync(cancellationToken).ConfigureAwait(false); var root = GetPaths(p).Root;
+        var root = GetPaths(p).Root;
         await Task.Run(() => { if (Directory.Exists(root)) Directory.Delete(root, true); }, cancellationToken).ConfigureAwait(false);
         Set(new(false, null, "SmartBpAiStatusNotInstalled"));
     }

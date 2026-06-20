@@ -4,6 +4,8 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.SmartBp.Module.Abstractions;
+using neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
 using OpenCvSharp;
 using System.IO;
 using System.Text;
@@ -24,6 +26,7 @@ public class SmartBpService : ISmartBpService
     private readonly IOcrService _ocrService;
     private readonly ICharacterSelectionService _characterSelectionService;
     private readonly ISmartBpRegionConfigService _regionConfigService;
+    private readonly ISmartBpRecognitionSettingsService _recognitionSettingsService;
     private readonly ILogger<SmartBpService> _logger;
     private int _ocrWarmupStarted;
     private readonly DispatcherTimer _timer;
@@ -41,6 +44,7 @@ public class SmartBpService : ISmartBpService
     /// <param name="ocrService">OCR 服务。</param>
     /// <param name="characterSelectionService">角色匹配与选择服务。</param>
     /// <param name="regionConfigService">SmartBp 区域配置服务。</param>
+    /// <param name="recognitionSettingsService">SmartBP 识别设置服务。</param>
     /// <param name="logger">日志记录器。</param>
     public SmartBpService(
         ISharedDataService sharedDataService,
@@ -48,6 +52,7 @@ public class SmartBpService : ISmartBpService
         IOcrService ocrService,
         ICharacterSelectionService characterSelectionService,
         ISmartBpRegionConfigService regionConfigService,
+        ISmartBpRecognitionSettingsService recognitionSettingsService,
         ILogger<SmartBpService> logger)
     {
         _sharedDataService = sharedDataService;
@@ -55,6 +60,7 @@ public class SmartBpService : ISmartBpService
         _ocrService = ocrService;
         _characterSelectionService = characterSelectionService;
         _regionConfigService = regionConfigService;
+        _recognitionSettingsService = recognitionSettingsService;
         _logger = logger;
 
         _timer = new DispatcherTimer();
@@ -65,6 +71,13 @@ public class SmartBpService : ISmartBpService
     /// <inheritdoc/>
     public void StartSmartBp()
     {
+        if (IsGameDataAiRecognitionSelected())
+        {
+            IsSmartBpRunning = false;
+            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("SmartBpGameDataAiRecognitionNotImplemented"));
+            return;
+        }
+
         // SmartBp 依赖 OCR 模型，未就绪时直接阻止启动。
         if (!IsOcrReady())
         {
@@ -116,6 +129,12 @@ public class SmartBpService : ISmartBpService
     {
         try
         {
+            if (IsGameDataAiRecognitionSelected())
+            {
+                await MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("SmartBpGameDataAiRecognitionNotImplemented"));
+                return;
+            }
+
             if (!IsOcrReady())
             {
                 _logger.LogDebug("SmartBp AutoFill skipped: OCR model is not ready.");
@@ -149,6 +168,7 @@ public class SmartBpService : ISmartBpService
         catch (Exception ex)
         {
             _logger.LogError(ex, "SmartBp AutoFill failed with exception. {Message}", ex.Message);
+            await MessageBoxHelper.ShowErrorAsync(ex.Message);
         }
     }
 
@@ -317,10 +337,11 @@ public class SmartBpService : ISmartBpService
     /// <returns>模型可用时返回 <see langword="true"/>，否则返回 <see langword="false"/>。</returns>
     private bool IsOcrReady()
     {
-        var currentModelKey = _ocrService.CurrentOcrModelKey;
-        return !string.IsNullOrWhiteSpace(currentModelKey) &&
-               _ocrService.IsModelInstalled(currentModelKey);
+        return _ocrService.GetProviderStatus(_ocrService.SelectedProvider).IsReady;
     }
+
+    private bool IsGameDataAiRecognitionSelected() =>
+        _recognitionSettingsService.Settings.RecognitionEngine == SmartBpRecognitionEngine.AiQwen;
 
     /// <summary>
     /// 识别监管者行的玩家名称、角色名称与数据字段。

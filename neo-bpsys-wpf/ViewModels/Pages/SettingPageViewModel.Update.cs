@@ -70,6 +70,11 @@ public partial class SettingPageViewModel : ViewModelBase
     [ObservableProperty] private string _mirror = DownloadMirrorPresets.DefaultMirror;
 
     /// <summary>
+    /// 获取或设置 GitHub 镜像设置入口是否可见。
+    /// </summary>
+    [ObservableProperty] private bool _isGitHubMirrorSettingVisible;
+
+    /// <summary>
     /// 是否查找预发布版本。
     /// </summary>
     [ObservableProperty] private bool _isFindPreRelease;
@@ -164,6 +169,7 @@ public partial class SettingPageViewModel : ViewModelBase
         try
         {
             Mirror = mirror;
+            IsGitHubMirrorSettingVisible = IsChineseCultureForGitHubMirror();
             IsFindPreRelease = _settingsHostService.Settings.IsFindPreRelease;
             UpdaterService.IsFindPreRelease = IsFindPreRelease;
         }
@@ -173,6 +179,9 @@ public partial class SettingPageViewModel : ViewModelBase
             _isSyncingPreRelease = false;
         }
     }
+
+    private bool IsChineseCultureForGitHubMirror() =>
+        _settingsHostService.Settings.CultureInfo.Name.StartsWith("zh", StringComparison.OrdinalIgnoreCase);
 
     #endregion
 }

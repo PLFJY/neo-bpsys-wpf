@@ -104,6 +104,77 @@ public sealed class SmartBpModuleArchiveImportTest : IDisposable
         }, TimeSpan.FromSeconds(30));
     }
 
+    [Fact]
+    public async Task ImportArchiveAsync_PreservesDownloadedModelDirectories_WhenReplacingExistingTarget()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var updateArchivePath = Path.Combine(_root, "SmartBpModule-update.7z");
+            var targetRoot = Path.Combine(_root, "installed-with-models");
+            CreateModuleArchive(updateArchivePath, ArchiveFormat.SevenZip, "2.0.0", includePackagedAssetDirectories: true);
+            CopyTestDirectory(CreateTestModuleDirectory("1.0.0", includePackagedAssetDirectories: false), targetRoot);
+            var paddleModel = Path.Combine(targetRoot, "OCRModels", "zh-cn-v5-mobile", "det", "inference.pdiparams");
+            var qwenModel = Path.Combine(targetRoot, "AI", "QwenModels", "qwen-test", "model.gguf");
+            var runtimeFile = Path.Combine(targetRoot, "AI", "LlamaCpp", "Runtimes", "cuda", "current", "llama-server.exe");
+            Directory.CreateDirectory(Path.GetDirectoryName(paddleModel)!);
+            Directory.CreateDirectory(Path.GetDirectoryName(qwenModel)!);
+            Directory.CreateDirectory(Path.GetDirectoryName(runtimeFile)!);
+            await File.WriteAllTextAsync(paddleModel, "downloaded-paddle");
+            await File.WriteAllTextAsync(qwenModel, "downloaded-qwen");
+            await File.WriteAllTextAsync(runtimeFile, "downloaded-runtime");
+
+            Assert.True(await CreateManager().ImportArchiveAsync(updateArchivePath, targetRoot));
+
+            Assert.Contains("\"ModuleVersion\": \"2.0.0\"", await File.ReadAllTextAsync(Path.Combine(targetRoot, "component.json")));
+            Assert.Equal("downloaded-paddle", await File.ReadAllTextAsync(paddleModel));
+            Assert.Equal("downloaded-qwen", await File.ReadAllTextAsync(qwenModel));
+            Assert.Equal("downloaded-runtime", await File.ReadAllTextAsync(runtimeFile));
+        }, TimeSpan.FromSeconds(30));
+    }
+
+    [Fact]
+    public async Task PendingArchiveImport_PreservesDownloadedModelDirectories_WhenCompletingAfterRestart()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var targetRoot = Path.Combine(_root, "pending-with-models");
+            var preparedRoot = Path.Combine(_root, "prepared-update");
+            CopyTestDirectory(CreateTestModuleDirectory("1.0.0", includePackagedAssetDirectories: false), targetRoot);
+            CopyTestDirectory(CreateTestModuleDirectory("2.0.0", includePackagedAssetDirectories: true), preparedRoot);
+            var tesseractData = Path.Combine(targetRoot, "OCRModels", "Tesseract", "tessdata", "chi_sim.traineddata");
+            var qwenModel = Path.Combine(targetRoot, "AI", "QwenModels", "qwen-test", "model.gguf");
+            Directory.CreateDirectory(Path.GetDirectoryName(tesseractData)!);
+            Directory.CreateDirectory(Path.GetDirectoryName(qwenModel)!);
+            await File.WriteAllTextAsync(tesseractData, "downloaded-tesseract");
+            await File.WriteAllTextAsync(qwenModel, "downloaded-qwen");
+            Directory.CreateDirectory(AppConstants.AppDataPath);
+            await File.WriteAllTextAsync(
+                SmartBpModuleManager.StateFilePath,
+                JsonSerializer.Serialize(
+                    new SmartBpModuleState { ModuleRoot = targetRoot, InstallKind = "LocalDirectory" },
+                    new JsonSerializerOptions { WriteIndented = true }));
+            await File.WriteAllTextAsync(
+                SmartBpModuleManager.MovePendingFilePath,
+                JsonSerializer.Serialize(
+                    new SmartBpModuleMovePendingState
+                    {
+                        SourceRoot = targetRoot,
+                        TargetRoot = targetRoot,
+                        PreparedRoot = preparedRoot,
+                        InstallKind = "SettingsArchiveImport",
+                        CreatedAt = DateTimeOffset.UtcNow
+                    },
+                    new JsonSerializerOptions { WriteIndented = true }));
+
+            Assert.True(await CreateManager().TryLoadPersistedModuleAsync());
+
+            Assert.Contains("\"ModuleVersion\": \"2.0.0\"", await File.ReadAllTextAsync(Path.Combine(targetRoot, "component.json")));
+            Assert.Equal("downloaded-tesseract", await File.ReadAllTextAsync(tesseractData));
+            Assert.Equal("downloaded-qwen", await File.ReadAllTextAsync(qwenModel));
+            Assert.False(File.Exists(SmartBpModuleManager.MovePendingFilePath));
+        }, TimeSpan.FromSeconds(30));
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(_root))
@@ -181,9 +252,13 @@ public sealed class SmartBpModuleArchiveImportTest : IDisposable
             new SharpCompressArchiveService());
     }
 
-    private void CreateModuleArchive(string archivePath, ArchiveFormat format)
+    private void CreateModuleArchive(
+        string archivePath,
+        ArchiveFormat format,
+        string moduleVersion = "1.0.0",
+        bool includePackagedAssetDirectories = false)
     {
-        var moduleRoot = CreateTestModuleDirectory();
+        var moduleRoot = CreateTestModuleDirectory(moduleVersion, includePackagedAssetDirectories);
         var files = Directory.EnumerateFiles(moduleRoot, "*", SearchOption.AllDirectories)
             .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
             .ToArray();
@@ -207,7 +282,7 @@ public sealed class SmartBpModuleArchiveImportTest : IDisposable
         }
     }
 
-    private string CreateTestModuleDirectory()
+    private string CreateTestModuleDirectory(string moduleVersion, bool includePackagedAssetDirectories)
     {
         var moduleRoot = Path.Combine(_root, "module-source", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(moduleRoot);
@@ -216,17 +291,43 @@ public sealed class SmartBpModuleArchiveImportTest : IDisposable
             testAssemblyPath,
             Path.Combine(moduleRoot, SmartBpModuleConstants.EntryAssemblyName),
             overwrite: true);
+        File.WriteAllText(Path.Combine(moduleRoot, "module-version.txt"), moduleVersion);
+        if (includePackagedAssetDirectories)
+        {
+            var packagedOcrAsset = Path.Combine(moduleRoot, "OCRModels", "packaged", "model.txt");
+            var packagedAiAsset = Path.Combine(moduleRoot, "AI", "QwenModels", "packaged", "model.gguf");
+            Directory.CreateDirectory(Path.GetDirectoryName(packagedOcrAsset)!);
+            Directory.CreateDirectory(Path.GetDirectoryName(packagedAiAsset)!);
+            File.WriteAllText(packagedOcrAsset, "packaged-ocr");
+            File.WriteAllText(packagedAiAsset, "packaged-ai");
+        }
+
         File.WriteAllText(
             Path.Combine(moduleRoot, "component.json"),
-            """
+            $$"""
             {
               "ComponentId": "SmartBpModule",
-              "ModuleVersion": "1.0.0",
+              "ModuleVersion": "{{moduleVersion}}",
               "RuntimeAbiVersion": 1,
               "Rid": "win-x64"
             }
             """);
         return moduleRoot;
+    }
+
+    private static void CopyTestDirectory(string source, string target)
+    {
+        foreach (var directory in Directory.EnumerateDirectories(source, "*", SearchOption.AllDirectories))
+        {
+            Directory.CreateDirectory(Path.Combine(target, Path.GetRelativePath(source, directory)));
+        }
+
+        foreach (var file in Directory.EnumerateFiles(source, "*", SearchOption.AllDirectories))
+        {
+            var destination = Path.Combine(target, Path.GetRelativePath(source, file));
+            Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+            File.Copy(file, destination, overwrite: true);
+        }
     }
 }
 

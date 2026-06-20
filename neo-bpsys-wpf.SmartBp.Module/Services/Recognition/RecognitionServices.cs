@@ -36,10 +36,10 @@ internal sealed class SmartBpImageEncoder : ISmartBpImageEncoder
     }
 }
 
-internal sealed class SmartBpRecognitionRegionProfileService : ISmartBpRecognitionRegionProfileService
+internal sealed class SmartBpRecognitionRegionProfileService(ISmartBpModuleStorageProvider storage) : ISmartBpRecognitionRegionProfileService
 {
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true, WriteIndented = true };
-    private static string BundledPath => Path.Combine(AppConstants.ResourcesPath, "SmartBp", "BpRecognitionLayoutProfile.json");
+    private string BundledPath => Path.Combine(storage.ModuleRoot, "Resources", "SmartBp", "BpRecognitionLayoutProfile.json");
     private static string UserPath => Path.Combine(AppConstants.AppDataPath, "SmartBp", "BpRecognitionLayoutProfile.json");
 
     public async Task<SmartBpRecognitionLayoutProfile> LoadAsync(CancellationToken cancellationToken = default)

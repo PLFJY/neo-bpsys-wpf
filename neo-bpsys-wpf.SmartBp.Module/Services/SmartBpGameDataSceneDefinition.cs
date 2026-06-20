@@ -1,6 +1,6 @@
 using System.IO;
 using System.Text.Json;
-using neo_bpsys_wpf.Core;
+using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Helpers;
 
@@ -10,7 +10,7 @@ namespace neo_bpsys_wpf.Services;
 /// GameData 场景定义。
 /// 将编辑器结构、默认模板和校验规则集中在同一处，避免 VM 与 Service 分散维护。
 /// </summary>
-public sealed class SmartBpGameDataSceneDefinition : SmartBpSceneDefinitionBase
+public sealed class SmartBpGameDataSceneDefinition(ISmartBpModuleStorageProvider storage) : SmartBpSceneDefinitionBase
 {
     /// <summary>
     /// 内置默认 JSON 文件的相对资源路径（相对于 Resources 根目录）。
@@ -223,11 +223,11 @@ public sealed class SmartBpGameDataSceneDefinition : SmartBpSceneDefinitionBase
         return true;
     }
 
-    private static SmartBpRegionProfile? TryLoadBuiltinDefaultProfile()
+    private SmartBpRegionProfile? TryLoadBuiltinDefaultProfile()
     {
         try
         {
-            var path = Path.Combine(AppConstants.ResourcesPath, BuiltinGameDataDefaultRelativePath);
+            var path = Path.Combine(storage.ModuleRoot, "Resources", BuiltinGameDataDefaultRelativePath);
             if (!File.Exists(path))
                 return null;
 

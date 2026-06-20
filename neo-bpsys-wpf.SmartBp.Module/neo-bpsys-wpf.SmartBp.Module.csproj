@@ -34,9 +34,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Resources\**" />
     <Content Include="component.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <EmbeddedResource Include="..\neo-bpsys-wpf\Resources\SmartBp\OcrCharacterAliases.json" Link="Resources\SmartBp\OcrCharacterAliases.json" />
+    <Content Include="Resources\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 </Project>

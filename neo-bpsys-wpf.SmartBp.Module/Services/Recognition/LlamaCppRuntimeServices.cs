@@ -18,15 +18,20 @@ internal sealed class LlamaCppRuntimeManifestProvider : ILlamaCppRuntimeManifest
 {
     private readonly ISmartBpRecognitionSettingsService? _settings;
     private readonly ISmartBpDebugLog? _debugLog;
+    private readonly ISmartBpModuleStorageProvider? _storage;
 
     public LlamaCppRuntimeManifestProvider()
     {
     }
 
-    public LlamaCppRuntimeManifestProvider(ISmartBpRecognitionSettingsService settings, ISmartBpDebugLog debugLog)
+    public LlamaCppRuntimeManifestProvider(
+        ISmartBpRecognitionSettingsService settings,
+        ISmartBpDebugLog debugLog,
+        ISmartBpModuleStorageProvider storage)
     {
         _settings = settings;
         _debugLog = debugLog;
+        _storage = storage;
     }
 
     public async Task<LlamaCppRuntimeManifest> LoadAsync(CancellationToken cancellationToken = default)
@@ -49,12 +54,14 @@ internal sealed class LlamaCppRuntimeManifestProvider : ILlamaCppRuntimeManifest
             }
         }
 
-        return await LoadBundledAsync(cancellationToken).ConfigureAwait(false);
+        return await LoadBundledAsync(_storage?.ModuleRoot, cancellationToken).ConfigureAwait(false);
     }
 
-    internal static async Task<LlamaCppRuntimeManifest> LoadBundledAsync(CancellationToken cancellationToken = default)
+    internal static async Task<LlamaCppRuntimeManifest> LoadBundledAsync(
+        string? moduleRoot = null,
+        CancellationToken cancellationToken = default)
     {
-        var path = Path.Combine(AppConstants.ResourcesPath, "SmartBp", "LlamaCppRuntimeManifest.json");
+        var path = Path.Combine(moduleRoot ?? AppContext.BaseDirectory, "Resources", "SmartBp", "LlamaCppRuntimeManifest.json");
         await using var stream = File.OpenRead(path);
         return await DeserializeAsync(stream, cancellationToken).ConfigureAwait(false);
     }
@@ -74,7 +81,8 @@ internal sealed class LlamaCppRuntimeManifestProvider : ILlamaCppRuntimeManifest
 
 internal sealed class LlamaCppRuntimeUpdateService(
     ILlamaCppRuntimeManifestProvider manifestProvider,
-    ISmartBpRecognitionSettingsService settings) : ILlamaCppRuntimeUpdateService
+    ISmartBpRecognitionSettingsService settings,
+    ISmartBpModuleStorageProvider storage) : ILlamaCppRuntimeUpdateService
 {
     public async Task<LlamaCppRuntimeUpdateCheckResult> CheckForUpdatesAsync(bool force, CancellationToken cancellationToken = default)
     {
@@ -84,13 +92,25 @@ internal sealed class LlamaCppRuntimeUpdateService(
             DateTimeOffset.Now - last < TimeSpan.FromHours(settings.Settings.LlamaRuntimeUpdateCheckIntervalHours))
             return new(false, false, "", null, [], "Runtime update check interval has not elapsed.");
 
-        var bundled = await LlamaCppRuntimeManifestProvider.LoadBundledAsync(cancellationToken).ConfigureAwait(false);
         var latest = await manifestProvider.LoadAsync(cancellationToken).ConfigureAwait(false);
         settings.Settings.LastLlamaRuntimeUpdateCheckAt = DateTimeOffset.Now;
         await settings.SaveAsync(cancellationToken).ConfigureAwait(false);
-        var hasUpdate = !string.Equals(bundled.RuntimeVersion, latest.RuntimeVersion, StringComparison.OrdinalIgnoreCase);
-        return new(true, hasUpdate, bundled.RuntimeVersion, latest.RuntimeVersion, latest.Assets.Where(x => !string.IsNullOrWhiteSpace(x.EntryExe)).ToArray(),
-            hasUpdate ? $"Latest llama.cpp runtime is {latest.RuntimeVersion}." : "Bundled llama.cpp runtime is up to date.");
+        var installedVersion = await GetInstalledVersionAsync(cancellationToken).ConfigureAwait(false) ?? "";
+        var hasUpdate = !string.Equals(installedVersion, latest.RuntimeVersion, StringComparison.OrdinalIgnoreCase);
+        return new(true, hasUpdate, installedVersion, latest.RuntimeVersion, latest.Assets.Where(x => !string.IsNullOrWhiteSpace(x.EntryExe)).ToArray(),
+            hasUpdate ? $"Latest llama.cpp runtime is {latest.RuntimeVersion}." : "Installed llama.cpp runtime is up to date.");
+    }
+
+    private async Task<string?> GetInstalledVersionAsync(CancellationToken token)
+    {
+        if (string.IsNullOrWhiteSpace(settings.Settings.SelectedLlamaRuntimeId)) return null;
+        var path = Path.Combine(storage.LlamaCppRoot, "Runtimes", settings.Settings.SelectedLlamaRuntimeId, "current", "manifest.json");
+        if (!File.Exists(path)) return null;
+        await using var stream = File.OpenRead(path);
+        using var document = await JsonDocument.ParseAsync(stream, cancellationToken: token).ConfigureAwait(false);
+        return document.RootElement.TryGetProperty("RuntimeVersion", out var pascal)
+            ? pascal.GetString()
+            : document.RootElement.TryGetProperty("runtimeVersion", out var camel) ? camel.GetString() : null;
     }
 }
 
@@ -139,6 +159,15 @@ internal sealed class LlamaCppRuntimeAssetManager(
             installAssets.AddRange(selected.RequiredExtraAssets.Select(id => manifest.Assets.Single(x => x.Id == id)));
             var runtimeRoot = GetRuntimeRoot(selected);
             await Task.Run(() => Directory.CreateDirectory(runtimeRoot), _downloadCts.Token).ConfigureAwait(false);
+            var currentManifest = await ReadInstallManifestAsync(Path.Combine(runtimeRoot, "current", "manifest.json"), _downloadCts.Token);
+            if (currentManifest is not null &&
+                string.Equals(currentManifest.AssetId, selected.Id, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(currentManifest.RuntimeVersion, manifest.RuntimeVersion, StringComparison.OrdinalIgnoreCase) &&
+                await IsInstalledAsync(_downloadCts.Token))
+            {
+                Set(new(false, 100, "SmartBpAiStatusInstalled"));
+                return;
+            }
             staging = Path.Combine(runtimeRoot, $"staging-{DateTime.Now:yyyyMMdd-HHmmssfff}");
             await Task.Run(() => Directory.CreateDirectory(staging), _downloadCts.Token).ConfigureAwait(false);
             Set(new(true, 0, "SmartBpAiRuntimeDownloading"));
@@ -156,6 +185,9 @@ internal sealed class LlamaCppRuntimeAssetManager(
             var stagedExe = Directory.EnumerateFiles(staging, selected.EntryExe!, SearchOption.AllDirectories).FirstOrDefault()
                 ?? throw new FileNotFoundException($"{selected.EntryExe} was not found in the downloaded runtime.");
             await SmokeCheckAsync(stagedExe, _downloadCts.Token);
+            await File.WriteAllTextAsync(Path.Combine(staging, "manifest.json"),
+                JsonSerializer.Serialize(new RuntimeInstallManifest(selected.Id, manifest.RuntimeVersion), new JsonSerializerOptions { WriteIndented = true }),
+                _downloadCts.Token).ConfigureAwait(false);
             var current = Path.Combine(runtimeRoot, "current");
             var previous = Path.Combine(runtimeRoot, "previous");
             await Task.Run(() => CommitStaging(staging, current, previous), _downloadCts.Token).ConfigureAwait(false);
@@ -166,7 +198,7 @@ internal sealed class LlamaCppRuntimeAssetManager(
             debugLog.Write("runtime", $"Installed {selected.DisplayName}: {settings.Settings.LlamaServerExecutablePath}");
         }
         catch (OperationCanceledException) { Set(new(false, null, "SmartBpAiStatusCancelled")); throw; }
-        catch (Exception ex) { Set(new(false, null, ex.Message)); logger.LogError(ex, "llama.cpp runtime installation failed"); throw; }
+        catch (Exception ex) { Set(new(false, null, "SmartBpDownloadFailedSimple", ErrorMessage: ex.ToString())); logger.LogError(ex, "llama.cpp runtime installation failed"); throw; }
         finally
         {
             if (staging != null)
@@ -203,6 +235,43 @@ internal sealed class LlamaCppRuntimeAssetManager(
         return Directory.Exists(current)
             ? Directory.EnumerateFiles(current, asset.EntryExe!, SearchOption.AllDirectories).FirstOrDefault() ?? throw new FileNotFoundException("The selected llama.cpp runtime is not installed.")
             : throw new FileNotFoundException("The selected llama.cpp runtime is not installed.");
+    }
+
+    public async Task<bool> CanRollbackAsync(CancellationToken cancellationToken = default)
+    {
+        var asset = await GetSelectedAssetAsync(cancellationToken).ConfigureAwait(false);
+        var previous = Path.Combine(GetRuntimeRoot(asset), "previous");
+        return Directory.Exists(previous) && File.Exists(Path.Combine(previous, "manifest.json")) &&
+               Directory.EnumerateFiles(previous, asset.EntryExe!, SearchOption.AllDirectories).Any();
+    }
+
+    public async Task RollbackAsync(CancellationToken cancellationToken = default)
+    {
+        if (_downloadCts is not null) throw new InvalidOperationException("Cannot roll back while downloading.");
+        var asset = await GetSelectedAssetAsync(cancellationToken).ConfigureAwait(false);
+        var root = GetRuntimeRoot(asset);
+        var current = Path.Combine(root, "current");
+        var previous = Path.Combine(root, "previous");
+        if (!await CanRollbackAsync(cancellationToken).ConfigureAwait(false))
+            throw new InvalidOperationException("No previous llama.cpp runtime is available.");
+        var swap = Path.Combine(root, $"swap-{Guid.NewGuid():N}");
+        await Task.Run(() =>
+        {
+            Directory.Move(current, swap);
+            try
+            {
+                Directory.Move(previous, current);
+                Directory.Move(swap, previous);
+            }
+            catch
+            {
+                if (!Directory.Exists(current) && Directory.Exists(swap)) Directory.Move(swap, current);
+                throw;
+            }
+        }, cancellationToken).ConfigureAwait(false);
+        settings.Settings.LlamaServerExecutablePath = Directory.EnumerateFiles(current, asset.EntryExe!, SearchOption.AllDirectories).First();
+        await settings.SaveAsync(cancellationToken).ConfigureAwait(false);
+        Set(new(false, 100, "SmartBpAiRuntimeRollbackComplete"));
     }
 
     private string GetRuntimeRoot(LlamaCppRuntimeAsset asset) => Path.Combine(storage.LlamaCppRoot, "Runtimes", asset.Id);
@@ -263,6 +332,15 @@ internal sealed class LlamaCppRuntimeAssetManager(
             throw;
         }
     }
+
+    private static async Task<RuntimeInstallManifest?> ReadInstallManifestAsync(string path, CancellationToken token)
+    {
+        if (!File.Exists(path)) return null;
+        await using var stream = File.OpenRead(path);
+        return await JsonSerializer.DeserializeAsync<RuntimeInstallManifest>(stream, cancellationToken: token).ConfigureAwait(false);
+    }
+
+    private sealed record RuntimeInstallManifest(string AssetId, string RuntimeVersion);
 
     internal static string GetDefaultRuntimeId(Architecture architecture) => architecture switch
     {

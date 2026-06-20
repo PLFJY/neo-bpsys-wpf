@@ -237,6 +237,28 @@ public sealed class SmartBpOcrRecognitionContractTest
     }
 
     [Fact]
+    public void HunterAliasDoesNotResolveInSurvivorContext()
+    {
+        var resolver = Resolver(new Character("厂长", Camp.Hun, "hell-ember"));
+
+        var result = resolver.ResolveCharacterFromLine("广长", Camp.Sur, 0, "Tesseract");
+
+        Assert.Null(result.ResolvedCharacterKey);
+        Assert.False(result.IsAutoApplySafe);
+    }
+
+    [Fact]
+    public void PhaseTextIsFilteredBeforeCharacterMatching()
+    {
+        var resolver = Resolver(new Character("求生者", Camp.Sur, "survivor"));
+
+        var result = resolver.ResolveCharacterFromLine("屏蔽求生者", Camp.Sur, 0, "Paddle");
+
+        Assert.Null(result.ResolvedCharacterKey);
+        Assert.Equal("filtered-status", result.MatchMode);
+    }
+
+    [Fact]
     public void OneCharacterHunterHintRemainsUnsafeForAutoApply()
     {
         var parser = Parser(new Character("厂长", Camp.Hun, "hell-ember"));

@@ -3,7 +3,6 @@ using System.Text;
 using System.IO;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
-using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
@@ -17,6 +16,7 @@ public sealed partial class SmartBpOcrCandidateMatcher
     private readonly ILogger<SmartBpOcrCandidateMatcher> _logger;
     private readonly Lazy<OcrAliasDocument> _aliases;
     private readonly string? _aliasPath;
+    private readonly string? _resourceRoot;
 
     /// <summary>Initializes the OCR candidate matcher.</summary>
     /// <param name="shared">Shared candidate dictionaries.</param>
@@ -28,6 +28,19 @@ public sealed partial class SmartBpOcrCandidateMatcher
         _shared = shared;
         _logger = logger;
         _aliases = new(LoadAliases);
+    }
+
+    /// <summary>Initializes the OCR candidate matcher with module-local resource paths.</summary>
+    /// <param name="shared">Shared candidate dictionaries.</param>
+    /// <param name="storage">SmartBP module storage provider.</param>
+    /// <param name="logger">Logger.</param>
+    public SmartBpOcrCandidateMatcher(
+        ISharedDataService shared,
+        ISmartBpModuleStorageProvider storage,
+        ILogger<SmartBpOcrCandidateMatcher> logger)
+        : this(shared, logger)
+    {
+        _resourceRoot = Path.Combine(storage.ModuleRoot, "Resources");
     }
 
     internal SmartBpOcrCandidateMatcher(
@@ -67,7 +80,7 @@ public sealed partial class SmartBpOcrCandidateMatcher
 
         var exact = candidates.FirstOrDefault(candidate => candidate.Normalized == normalized);
         if (exact != null)
-            return Resolved(rawText, exact.Name, camp, slotIndex, 1, "exact", normalized, provider);
+            return Resolved(rawText, exact.Name, camp, slotIndex, 1, "exact", normalized, provider, true);
 
         var aliasMatches = GetAliases(camp)
             .Where(pair => pair.Value.Any(alias => NormalizeForMatch(alias) == normalized))
@@ -77,7 +90,7 @@ public sealed partial class SmartBpOcrCandidateMatcher
             .DistinctBy(candidate => candidate.Name)
             .ToArray();
         if (aliasMatches.Length == 1)
-            return Resolved(rawText, aliasMatches[0].Name, camp, slotIndex, .98, "alias", normalized, provider);
+            return Resolved(rawText, aliasMatches[0].Name, camp, slotIndex, .98, "alias", normalized, provider, true);
         if (aliasMatches.Length > 1)
             return Unresolved(rawText, camp, slotIndex, normalized, "alias", .98, provider, "ambiguous alias");
 
@@ -88,9 +101,9 @@ public sealed partial class SmartBpOcrCandidateMatcher
             .OrderByDescending(candidate => Math.Min(normalized.Length, candidate.Normalized.Length))
             .ToArray();
         if (contained.Length == 1)
-            return Resolved(rawText, contained[0].Name, camp, slotIndex, .95, "contains", normalized, provider);
+            return Resolved(rawText, contained[0].Name, camp, slotIndex, .95, "contains", normalized, provider, true);
         if (contained.Length > 1 && contained[0].Normalized.Length > contained[1].Normalized.Length)
-            return Resolved(rawText, contained[0].Name, camp, slotIndex, .95, "contains", normalized, provider);
+            return Resolved(rawText, contained[0].Name, camp, slotIndex, .95, "contains", normalized, provider, true);
 
         var scored = candidates
             .Select(candidate => new { Candidate = candidate, Score = Similarity(normalized, candidate.Normalized) })
@@ -101,13 +114,13 @@ public sealed partial class SmartBpOcrCandidateMatcher
             var best = scored[0];
             var next = scored.Length > 1 ? scored[1].Score : 0;
             if (best.Score >= .82 && best.Score - next >= .15)
-                return Resolved(rawText, best.Candidate.Name, camp, slotIndex, best.Score, "fuzzy", normalized, provider);
+                return Resolved(rawText, best.Candidate.Name, camp, slotIndex, Math.Min(best.Score, .89), "fuzzy", normalized, provider, false);
 
             if (camp == Camp.Hun && slotIndex == 0 && normalized.Length == 1)
             {
                 var oneCharacter = candidates.Where(candidate => candidate.Normalized.Contains(normalized, StringComparison.Ordinal)).ToArray();
                 if (oneCharacter.Length == 1)
-                    return Resolved(rawText, oneCharacter[0].Name, camp, slotIndex, .75, "fuzzy-one-character", normalized, provider);
+                    return Resolved(rawText, oneCharacter[0].Name, camp, slotIndex, .75, "fuzzy-one-character", normalized, provider, false);
             }
         }
 
@@ -125,11 +138,11 @@ public sealed partial class SmartBpOcrCandidateMatcher
     }
 
     private SmartBpNormalizedCharacter Resolved(
-        string raw, string candidate, Camp camp, int slot, double score, string mode, string normalized, string? provider)
+        string raw, string candidate, Camp camp, int slot, double score, string mode, string normalized, string? provider, bool isAutoApplySafe)
     {
         var diagnostic = Diagnostic(raw, normalized, candidate, mode, score, provider);
         _logger.LogDebug("{Diagnostic}", diagnostic);
-        return new(raw, candidate, candidate, camp, slot, score, [diagnostic]);
+        return new(raw, candidate, candidate, camp, slot, score, [diagnostic], mode, isAutoApplySafe, diagnostic);
     }
 
     private SmartBpNormalizedCharacter Unresolved(
@@ -137,7 +150,7 @@ public sealed partial class SmartBpOcrCandidateMatcher
     {
         var diagnostic = $"{Diagnostic(raw, normalized, "unresolved", mode, score, provider)}; reason={reason}";
         _logger.LogDebug("{Diagnostic}", diagnostic);
-        return new(raw, null, null, camp, slot, score, [diagnostic]);
+        return new(raw, null, null, camp, slot, Math.Min(score, .89), [diagnostic], mode, false, reason);
     }
 
     private static string Diagnostic(string raw, string normalized, string candidate, string mode, double score, string? provider) =>
@@ -148,18 +161,10 @@ public sealed partial class SmartBpOcrCandidateMatcher
 
     private OcrAliasDocument LoadAliases()
     {
-        var path = _aliasPath ?? Path.Combine(AppConstants.ResourcesPath, "SmartBp", "OcrCharacterAliases.json");
+        var path = _aliasPath ?? Path.Combine(_resourceRoot ?? Path.Combine(AppContext.BaseDirectory, "Resources"), "SmartBp", "OcrCharacterAliases.json");
         try
         {
             string? json = File.Exists(path) ? File.ReadAllText(path) : null;
-            if (json == null)
-            {
-                using var stream = typeof(SmartBpOcrCandidateMatcher).Assembly.GetManifestResourceStream(
-                    "neo_bpsys_wpf.Resources.SmartBp.OcrCharacterAliases.json");
-                if (stream != null)
-                    using (var reader = new StreamReader(stream))
-                        json = reader.ReadToEnd();
-            }
             return json == null
                 ? new()
                 : JsonSerializer.Deserialize<OcrAliasDocument>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
