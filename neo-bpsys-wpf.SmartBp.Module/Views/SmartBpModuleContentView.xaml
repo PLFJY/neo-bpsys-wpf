@@ -225,15 +225,34 @@
                         Visibility="{Binding HasQwenDownloadDetail, Converter={StaticResource BooleanToVisibilityConverter}}" />
                     <ComboBox
                         Margin="0,8,0,6"
-                        DisplayMemberPath="DisplayName"
                         ItemsSource="{Binding LlamaRuntimeAssets}"
-                        SelectedItem="{Binding SelectedLlamaRuntimeAsset}" />
+                        SelectedItem="{Binding SelectedLlamaRuntimeAsset}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock VerticalAlignment="Center" Text="{Binding DisplayName}" />
+                                    <TextBlock
+                                        Margin="6,0,0,0"
+                                        VerticalAlignment="Center"
+                                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                        Text="{lex:Loc {Binding StatusKey},
+                                                       FallbackBehavior=Key}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
                     <WrapPanel>
                         <ui:Button
                             Margin="0,0,8,8"
                             Command="{Binding DownloadLlamaRuntimeCommand}"
                             Content="{lex:Loc SmartBpAiDownloadRuntime}"
                             Icon="{ui:SymbolIcon Symbol=ArrowDownload24}" />
+                        <ui:Button
+                            Margin="0,0,8,8"
+                            Command="{Binding CancelLlamaRuntimeDownloadCommand}"
+                            Content="{lex:Loc SmartBpCancelDownload}"
+                            Icon="{ui:SymbolIcon Symbol=Stop24}"
+                            Visibility="{Binding IsLlamaRuntimeDownloading, Converter={StaticResource BooleanToVisibilityConverter}}" />
                         <ui:Button
                             Margin="0,0,8,8"
                             Command="{Binding DeleteLlamaRuntimeCommand}"
@@ -244,6 +263,15 @@
                             Command="{Binding RollbackLlamaRuntimeCommand}"
                             Content="{lex:Loc SmartBpAiRollbackRuntime}"
                             Icon="{ui:SymbolIcon Symbol=ArrowUndo24}" />
+                    </WrapPanel>
+                    <StackPanel Visibility="{Binding IsLlamaRuntimeDownloading, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <ProgressBar Value="{Binding LlamaRuntimeDownloadProgress}" />
+                        <TextBlock
+                            Text="{Binding LlamaRuntimeDownloadDetail}"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+                    <Separator Margin="0,8,0,4" />
+                    <WrapPanel>
                         <ui:Button
                             Margin="0,0,8,8"
                             Command="{Binding StartLlamaServerCommand}"
@@ -254,13 +282,15 @@
                             Command="{Binding StopLlamaServerCommand}"
                             Content="{lex:Loc Stop}"
                             Icon="{ui:SymbolIcon Symbol=Stop24}" />
+                        <ui:Button
+                            Margin="0,0,8,8"
+                            Command="{Binding ForceStopLlamaServerCommand}"
+                            Content="{lex:Loc SmartBpAiForceStopLlama}"
+                            Icon="{ui:SymbolIcon Symbol=ShieldDismiss24}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Text="{Binding LlamaServerStatus}" />
                     </WrapPanel>
-                    <ProgressBar Visibility="{Binding IsLlamaRuntimeDownloading, Converter={StaticResource BooleanToVisibilityConverter}}" Value="{Binding LlamaRuntimeDownloadProgress}" />
-                    <TextBlock
-                        Text="{Binding LlamaRuntimeDownloadDetail}"
-                        TextWrapping="Wrap"
-                        Visibility="{Binding HasLlamaRuntimeDownloadDetail, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                    <TextBlock Text="{Binding LlamaServerStatus}" />
                     <TextBlock Margin="0,8,0,0"><Run Text="{lex:Loc SmartBpAiGpuName}" /><Run Text=": " /><Run Text="{Binding AiGpuName}" /></TextBlock>
                     <TextBlock><Run Text="{lex:Loc SmartBpAiGpuUtilization}" /><Run Text=": " /><Run Text="{Binding AiGpuUtilization}" /></TextBlock>
                     <TextBlock><Run Text="{lex:Loc SmartBpAiVram}" /><Run Text=": " /><Run Text="{Binding AiVramUsage}" /></TextBlock>
@@ -501,6 +531,11 @@
                         Command="{Binding ResetAiRecognitionLedgerCommand}"
                         Content="{lex:Loc SmartBpAiResetLedger}"
                         Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding ClearAiDebugLogCommand}"
+                        Content="{lex:Loc SmartBpClearDebugLog}"
+                        Icon="{ui:SymbolIcon Symbol=Delete24}" />
                 </WrapPanel>
                 <TextBlock
                     Margin="0,6,0,0"
@@ -526,6 +561,7 @@
                     TextWrapping="Wrap" />
                 <TextBox
                     Margin="0,6,0,0"
+                    Height="200"
                     IsReadOnly="True"
                     Text="{Binding AiDebugLogText}"
                     TextChanged="AiDebugConsoleTextBox_OnTextChanged"

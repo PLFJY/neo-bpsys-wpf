@@ -254,7 +254,7 @@ public sealed class SmartBpRecognitionSettings
     /// <summary>Gets or sets whether llama.cpp runtime update checks are enabled.</summary>
     public bool EnableLlamaRuntimeUpdateCheck { get; set; } = true;
     /// <summary>Gets or sets the llama.cpp runtime update interval in hours.</summary>
-    public int LlamaRuntimeUpdateCheckIntervalHours { get; set; } = 24;
+    public int LlamaRuntimeUpdateCheckIntervalHours { get; set; } = 168;
     /// <summary>Gets or sets a custom remote llama.cpp runtime manifest API URL.</summary>
     public string LlamaRuntimeManifestApiUrl { get; set; } = "";
     /// <summary>Gets or sets the last llama.cpp runtime update check time.</summary>

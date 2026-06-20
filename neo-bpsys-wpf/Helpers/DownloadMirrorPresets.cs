@@ -18,10 +18,14 @@ public static class DownloadMirrorPresets
         @"https://gh-proxy.com/",
         @"https://ghproxy.net/",
         @"https://ghfast.top/",
-        @"https://hk.gh-proxy.com/",
         @"https://cdn.gh-proxy.com/",
         @"https://edgeone.gh-proxy.com/",
         @"https://gh.plfjy.top/",
+        @"https://gh.jasonzeng.dev/",
+        @"https://gh-proxy.org/",
+        @"https://v4.gh-proxy.org/",
+        @"https://v6.gh-proxy.org/",
+        @"https://cdn.gh-proxy.org/",
         @""
     ];
 }

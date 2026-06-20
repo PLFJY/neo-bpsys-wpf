@@ -17,6 +17,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Net.Http;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -182,6 +183,66 @@ public partial class SettingPageViewModel : ViewModelBase
 
     private bool IsChineseCultureForGitHubMirror() =>
         _settingsHostService.Settings.CultureInfo.Name.StartsWith("zh", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// 是否正在测试镜像延迟。
+    /// </summary>
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(TestMirrorLatencyCommand))]
+    private bool _isTestingLatency;
+
+    /// <summary>
+    /// 测试所有镜像的延迟。
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanTestMirrorLatency))]
+    private async Task TestMirrorLatency()
+    {
+        if (IsTestingLatency) return;
+
+        IsTestingLatency = true;
+        try
+        {
+            // 重置所有延迟
+            foreach (var item in MirrorList)
+            {
+                item.LatencyMs = null;
+            }
+
+            using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+
+            var tasks = MirrorList.Select(async item =>
+            {
+                // 直连模式测试 GitHub 本身
+                var testUrl = string.IsNullOrWhiteSpace(item.Value)
+                    ? "https://github.com/"
+                    : item.Value;
+
+                try
+                {
+                    var sw = Stopwatch.StartNew();
+                    using var request = new HttpRequestMessage(HttpMethod.Head, testUrl);
+                    using var response = await httpClient.SendAsync(request);
+                    sw.Stop();
+
+                    item.LatencyMs = response.IsSuccessStatusCode
+                        ? (int)sw.ElapsedMilliseconds
+                        : -1;
+                }
+                catch
+                {
+                    item.LatencyMs = -1;
+                }
+            });
+
+            await Task.WhenAll(tasks);
+        }
+        finally
+        {
+            IsTestingLatency = false;
+        }
+    }
+
+    private bool CanTestMirrorLatency() => !IsTestingLatency;
 
     #endregion
 }

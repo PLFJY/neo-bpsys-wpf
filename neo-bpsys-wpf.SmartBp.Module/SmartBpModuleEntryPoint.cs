@@ -77,7 +77,6 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint
         services.AddSingleton<ISmartBpRecognitionSettingsService, SmartBpRecognitionSettingsService>();
         services.AddSingleton<IQwenModelAssetManager, QwenModelAssetManager>();
         services.AddSingleton<ISmartBpPromptProfileProvider, SmartBpPromptProfileProvider>();
-        services.AddSingleton<ILlamaCppRuntimeManifestProvider, LlamaCppRuntimeManifestProvider>();
         services.AddSingleton<ILlamaCppRuntimeAssetManager, LlamaCppRuntimeAssetManager>();
         services.AddSingleton<ILlamaCppRuntimeUpdateService, LlamaCppRuntimeUpdateService>();
         services.AddSingleton<ISmartBpImageEncoder, SmartBpImageEncoder>();

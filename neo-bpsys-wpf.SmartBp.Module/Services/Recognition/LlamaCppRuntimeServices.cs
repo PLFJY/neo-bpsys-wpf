@@ -80,10 +80,13 @@ internal sealed class LlamaCppRuntimeManifestProvider : ILlamaCppRuntimeManifest
 }
 
 internal sealed class LlamaCppRuntimeUpdateService(
-    ILlamaCppRuntimeManifestProvider manifestProvider,
     ISmartBpRecognitionSettingsService settings,
     ISmartBpModuleStorageProvider storage) : ILlamaCppRuntimeUpdateService
 {
+    private const string GitHubApiUserAgent = "neo-bpsys-wpf/1.0";
+    private const string GitHubApiAccept = "application/vnd.github+json";
+
+    /// <inheritdoc />
     public async Task<LlamaCppRuntimeUpdateCheckResult> CheckForUpdatesAsync(bool force, CancellationToken cancellationToken = default)
     {
         if (!settings.Settings.EnableLlamaRuntimeUpdateCheck && !force)
@@ -92,13 +95,103 @@ internal sealed class LlamaCppRuntimeUpdateService(
             DateTimeOffset.Now - last < TimeSpan.FromHours(settings.Settings.LlamaRuntimeUpdateCheckIntervalHours))
             return new(false, false, "", null, [], "Runtime update check interval has not elapsed.");
 
-        var latest = await manifestProvider.LoadAsync(cancellationToken).ConfigureAwait(false);
+        // Load bundled manifest for asset templates — no network call
+        var bundled = await LlamaCppRuntimeManifestProvider.LoadBundledAsync(cancellationToken: cancellationToken);
+        var installedVersion = await GetInstalledVersionAsync(cancellationToken).ConfigureAwait(false) ?? "";
+
+        // Fetch latest release tag from GitHub API
+        var latestVersion = await FetchLatestReleaseTagAsync(bundled.ReleasePage, cancellationToken).ConfigureAwait(false);
         settings.Settings.LastLlamaRuntimeUpdateCheckAt = DateTimeOffset.Now;
         await settings.SaveAsync(cancellationToken).ConfigureAwait(false);
-        var installedVersion = await GetInstalledVersionAsync(cancellationToken).ConfigureAwait(false) ?? "";
-        var hasUpdate = !string.Equals(installedVersion, latest.RuntimeVersion, StringComparison.OrdinalIgnoreCase);
-        return new(true, hasUpdate, installedVersion, latest.RuntimeVersion, latest.Assets.Where(x => !string.IsNullOrWhiteSpace(x.EntryExe)).ToArray(),
-            hasUpdate ? $"Latest llama.cpp runtime is {latest.RuntimeVersion}." : "Installed llama.cpp runtime is up to date.");
+
+        if (latestVersion == null)
+            return new(true, false, installedVersion, null, [], "Failed to fetch latest llama.cpp release version.");
+
+        var hasUpdate = !string.Equals(installedVersion, latestVersion, StringComparison.OrdinalIgnoreCase);
+        var latestAssets = hasUpdate
+            ? bundled.Assets.Where(x => !string.IsNullOrWhiteSpace(x.EntryExe))
+                .Select(a => CloneAssetWithVersion(a, bundled.RuntimeVersion, latestVersion))
+                .ToList()
+            : [];
+
+        if (hasUpdate)
+        {
+            // Persist the updated manifest as a local cache so downloads can use the new URLs
+            var cachedManifest = new LlamaCppRuntimeManifest
+            {
+                SchemaVersion = bundled.SchemaVersion,
+                RuntimeVersion = latestVersion,
+                ReleasePage = bundled.ReleasePage,
+                CheckIntervalHours = bundled.CheckIntervalHours,
+                Assets = latestAssets.Concat(
+                    bundled.Assets.Where(x => string.IsNullOrWhiteSpace(x.EntryExe)).Select(a =>
+                        CloneAssetWithVersion(a, bundled.RuntimeVersion, latestVersion))).ToList()
+            };
+            await SaveCachedManifestAsync(cachedManifest, cancellationToken).ConfigureAwait(false);
+        }
+
+        return new(true, hasUpdate, installedVersion, latestVersion, latestAssets,
+            hasUpdate ? $"Latest llama.cpp runtime is {latestVersion}." : "Installed llama.cpp runtime is up to date.");
+    }
+
+    /// <summary>Fetches the latest release tag name from the GitHub API.</summary>
+    private static async Task<string?> FetchLatestReleaseTagAsync(string releasePageUrl, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var repo = ExtractGitHubRepo(releasePageUrl);
+            if (repo == null) return null;
+
+            using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
+            http.DefaultRequestHeaders.UserAgent.ParseAdd(GitHubApiUserAgent);
+            http.DefaultRequestHeaders.Accept.ParseAdd(GitHubApiAccept);
+
+            using var response = await http.GetAsync(
+                $"https://api.github.com/repos/{repo}/releases/latest", cancellationToken).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+
+            using var document = await JsonDocument.ParseAsync(
+                await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false),
+                cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            return document.RootElement.TryGetProperty("tag_name", out var tag) ? tag.GetString() : null;
+        }
+        catch (Exception) { return null; }
+    }
+
+    /// <summary>Extracts "owner/repo" from a GitHub release page URL.</summary>
+    internal static string? ExtractGitHubRepo(string releasePageUrl)
+    {
+        if (string.IsNullOrWhiteSpace(releasePageUrl)) return null;
+        var uri = new Uri(releasePageUrl);
+        var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        return segments.Length >= 2 ? $"{segments[0]}/{segments[1]}" : null;
+    }
+
+    /// <summary>Creates a copy of an asset with URLs updated to a new version string.</summary>
+    internal static LlamaCppRuntimeAsset CloneAssetWithVersion(LlamaCppRuntimeAsset source, string oldVersion, string newVersion)
+    {
+        return new LlamaCppRuntimeAsset
+        {
+            Id = source.Id,
+            DisplayName = source.DisplayName,
+            Architecture = source.Architecture,
+            Backend = source.Backend,
+            Url = source.Url.Replace($"/{oldVersion}/", $"/{newVersion}/"),
+            Sha256 = null, // SHA256 changes per release; null means skip verification for updated version
+            EntryExe = source.EntryExe,
+            RequiredExtraAssets = [.. source.RequiredExtraAssets],
+            UrlIsDirectDownload = source.UrlIsDirectDownload
+        };
+    }
+
+    /// <summary>Saves an updated manifest as a local cache file for download use.</summary>
+    private async Task SaveCachedManifestAsync(LlamaCppRuntimeManifest manifest, CancellationToken cancellationToken)
+    {
+        Directory.CreateDirectory(storage.LlamaCppRoot);
+        var path = Path.Combine(storage.LlamaCppRoot, "LlamaCppRuntimeManifestCache.json");
+        await File.WriteAllTextAsync(path,
+            JsonSerializer.Serialize(manifest, new JsonSerializerOptions { WriteIndented = true }), cancellationToken);
     }
 
     private async Task<string?> GetInstalledVersionAsync(CancellationToken token)
@@ -115,7 +208,6 @@ internal sealed class LlamaCppRuntimeUpdateService(
 }
 
 internal sealed class LlamaCppRuntimeAssetManager(
-    ILlamaCppRuntimeManifestProvider manifestProvider,
     ISmartBpRecognitionSettingsService settings,
     ISmartBpModuleStorageProvider storage,
     IGitHubDownloadUrlResolver urlResolver,
@@ -124,11 +216,49 @@ internal sealed class LlamaCppRuntimeAssetManager(
 {
     private const string UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0 Safari/537.36";
     private CancellationTokenSource? _downloadCts;
+    private LlamaCppRuntimeManifest? _bundledManifest;
     public event EventHandler<LlamaCppRuntimeInstallState>? StateChanged;
     public LlamaCppRuntimeInstallState State { get; private set; } = new(false, null, "SmartBpAiStatusNotInstalled");
 
+    /// <summary>Gets the bundled manifest, loaded and cached once.</summary>
+    private async Task<LlamaCppRuntimeManifest> GetBundledManifestAsync(CancellationToken cancellationToken = default)
+    {
+        if (_bundledManifest != null) return _bundledManifest;
+        _bundledManifest = await LlamaCppRuntimeManifestProvider.LoadBundledAsync(cancellationToken: cancellationToken);
+        return _bundledManifest;
+    }
+
+    /// <summary>Loads the manifest to use for available assets. Prefers the locally cached update manifest if it exists and is newer than the bundled version.</summary>
+    private async Task<LlamaCppRuntimeManifest> GetEffectiveManifestAsync(CancellationToken cancellationToken = default)
+    {
+        var bundled = await GetBundledManifestAsync(cancellationToken);
+        var cachePath = Path.Combine(storage.LlamaCppRoot, "LlamaCppRuntimeManifestCache.json");
+        if (!File.Exists(cachePath)) return bundled;
+        try
+        {
+            await using var stream = File.OpenRead(cachePath);
+            var cached = await JsonSerializer.DeserializeAsync<LlamaCppRuntimeManifest>(
+                stream, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }, cancellationToken);
+            if (cached != null && !string.Equals(cached.RuntimeVersion, bundled.RuntimeVersion, StringComparison.OrdinalIgnoreCase))
+                return cached;
+        }
+        catch { /* Cache file is corrupt; fall through to bundled */ }
+        return bundled;
+    }
+
+    /// <summary>Deletes the local manifest cache file after a successful install.</summary>
+    private void DeleteManifestCacheFile()
+    {
+        var cachePath = Path.Combine(storage.LlamaCppRoot, "LlamaCppRuntimeManifestCache.json");
+        try { if (File.Exists(cachePath)) File.Delete(cachePath); } catch { /* best effort */ }
+    }
+
+    /// <inheritdoc />
     public async Task<IReadOnlyList<LlamaCppRuntimeAsset>> GetAvailableAssetsAsync(CancellationToken cancellationToken = default)
-        => (await manifestProvider.LoadAsync(cancellationToken)).Assets.Where(x => !string.IsNullOrWhiteSpace(x.EntryExe)).ToList();
+    {
+        var manifest = await GetEffectiveManifestAsync(cancellationToken);
+        return manifest.Assets.Where(x => !string.IsNullOrWhiteSpace(x.EntryExe)).ToList();
+    }
 
     public async Task<LlamaCppRuntimeAsset> GetSelectedAssetAsync(CancellationToken cancellationToken = default)
     {
@@ -146,6 +276,13 @@ internal sealed class LlamaCppRuntimeAssetManager(
         return File.Exists(GetExecutablePath(asset));
     }
 
+    /// <inheritdoc />
+    public Task<bool> IsAssetInstalledAsync(string assetId, string entryExe, CancellationToken cancellationToken = default)
+    {
+        var exePath = Path.Combine(storage.LlamaCppRoot, "Runtimes", assetId, "current", entryExe);
+        return Task.FromResult(File.Exists(exePath));
+    }
+
     public async Task InstallAsync(CancellationToken cancellationToken = default)
     {
         if (_downloadCts != null) throw new InvalidOperationException("A llama.cpp runtime download is already active.");
@@ -153,7 +290,7 @@ internal sealed class LlamaCppRuntimeAssetManager(
         string? staging = null;
         try
         {
-            var manifest = await manifestProvider.LoadAsync(_downloadCts.Token);
+            var manifest = await GetEffectiveManifestAsync(_downloadCts.Token);
             var selected = await GetSelectedAssetAsync(_downloadCts.Token);
             var installAssets = new List<LlamaCppRuntimeAsset> { selected };
             installAssets.AddRange(selected.RequiredExtraAssets.Select(id => manifest.Assets.Single(x => x.Id == id)));
@@ -195,6 +332,9 @@ internal sealed class LlamaCppRuntimeAssetManager(
             settings.Settings.LlamaServerExecutablePath = Directory.EnumerateFiles(current, selected.EntryExe!, SearchOption.AllDirectories).First();
             await settings.SaveAsync(_downloadCts.Token);
             Set(new(false, 100, "SmartBpAiStatusInstalled"));
+            DeleteManifestCacheFile();
+            // Clean up old version after successful update; rollback is no longer possible
+            await Task.Run(() => { if (Directory.Exists(previous)) Directory.Delete(previous, true); }).ConfigureAwait(false);
             debugLog.Write("runtime", $"Installed {selected.DisplayName}: {settings.Settings.LlamaServerExecutablePath}");
         }
         catch (OperationCanceledException) { Set(new(false, null, "SmartBpAiStatusCancelled")); throw; }

@@ -68,10 +68,25 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty] private string _aiDebugLogText = "";
     [ObservableProperty] private IReadOnlyList<SmartBpPromptProfile> _aiPromptProfiles = [];
     [ObservableProperty] private SmartBpPromptProfile? _selectedAiPromptProfile;
-    [ObservableProperty] private IReadOnlyList<LlamaCppRuntimeAsset> _llamaRuntimeAssets = [];
-    [ObservableProperty] private LlamaCppRuntimeAsset? _selectedLlamaRuntimeAsset;
+    [ObservableProperty] private IReadOnlyList<LlamaCppRuntimeAssetSelection> _llamaRuntimeAssets = [];
+    [ObservableProperty] private LlamaCppRuntimeAssetSelection? _selectedLlamaRuntimeAsset;
+    [NotifyCanExecuteChangedFor(nameof(DownloadLlamaRuntimeCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteLlamaRuntimeCommand))]
+    [NotifyCanExecuteChangedFor(nameof(RollbackLlamaRuntimeCommand))]
+    [NotifyCanExecuteChangedFor(nameof(StartLlamaServerCommand))]
+    [NotifyCanExecuteChangedFor(nameof(StopLlamaServerCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ForceStopLlamaServerCommand))]
     [ObservableProperty] private bool _isLlamaRuntimeInstalled;
+    [NotifyCanExecuteChangedFor(nameof(DownloadLlamaRuntimeCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteLlamaRuntimeCommand))]
     [ObservableProperty] private bool _isLlamaRuntimeDownloading;
+    [NotifyCanExecuteChangedFor(nameof(DownloadLlamaRuntimeCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteLlamaRuntimeCommand))]
+    [NotifyCanExecuteChangedFor(nameof(RollbackLlamaRuntimeCommand))]
+    [NotifyCanExecuteChangedFor(nameof(StartLlamaServerCommand))]
+    [NotifyCanExecuteChangedFor(nameof(StopLlamaServerCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ForceStopLlamaServerCommand))]
+    [ObservableProperty] private bool _isLlamaServerRunning;
     [ObservableProperty] private double _llamaRuntimeDownloadProgress;
     [ObservableProperty] private string _llamaRuntimeDownloadStatus = "-";
     [ObservableProperty]
@@ -240,6 +255,8 @@ public partial class SmartBpModuleContentViewModel
             LlamaRuntimeDownloadDetail = FormatDownloadState(state);
             if (!string.IsNullOrWhiteSpace(state.ErrorMessage))
                 AiLastError = LlamaRuntimeDownloadDetail;
+            if (!state.IsDownloading)
+                _ = RefreshLlamaRuntimeStatusAsync();
         });
         _tesseractDataAssetManager.StateChanged += (_, state) => RunOnUiThread(() =>
         {
@@ -250,6 +267,9 @@ public partial class SmartBpModuleContentViewModel
                 AiLastError = TesseractDownloadDetail;
             if (!state.IsDownloading) _ = RefreshTesseractDataStatusAsync();
         });
+        // Eagerly load llama.cpp asset list from local manifest so the ComboBox
+        // is populated before the UI renders. All I/O is local (bundled JSON + File.Exists).
+        LoadLlamaCppAssetsEagerly();
         _ = InitializeAiOptionsAsync();
         _ = LoadAiRegionProfileAsync();
         _ = RefreshQwenStatusAsync();
@@ -369,11 +389,41 @@ public partial class SmartBpModuleContentViewModel
             QwenModelProfiles = await _qwenAssetManager.GetProfilesAsync();
             SelectedQwenModelProfile = QwenModelProfiles.FirstOrDefault(x => x.Id == _recognitionSettingsService.Settings.SelectedQwenModelId) ?? QwenModelProfiles.FirstOrDefault();
             await RefreshSelectedQwenModelInstallStatusAsync();
-            LlamaRuntimeAssets = await _llamaRuntimeAssetManager.GetAvailableAssetsAsync();
-            SelectedLlamaRuntimeAsset = await _llamaRuntimeAssetManager.GetSelectedAssetAsync();
-            await RefreshLlamaRuntimeStatusAsync();
+            // Llama.cpp assets are already loaded eagerly in InitializeAiRecognition; fall back if that failed.
+            if (LlamaRuntimeAssets.Count == 0)
+            {
+                var assets = await _llamaRuntimeAssetManager.GetAvailableAssetsAsync();
+                var selections = assets.Select(a => new LlamaCppRuntimeAssetSelection(a)).ToList();
+                await RefreshLlamaRuntimeAssetsInstallStatusAsync(selections);
+                LlamaRuntimeAssets = selections;
+                var selected = await _llamaRuntimeAssetManager.GetSelectedAssetAsync();
+                SelectedLlamaRuntimeAsset = selections.FirstOrDefault(s => s.Id == selected.Id) ?? selections.FirstOrDefault();
+                await RefreshLlamaRuntimeStatusAsync();
+            }
         }
         catch (Exception ex) { AiLastError = ex.Message; }
+    }
+
+    /// <summary>Eagerly loads llama.cpp runtime assets from local manifest so they are ready before the UI first renders.</summary>
+    private void LoadLlamaCppAssetsEagerly()
+    {
+        try
+        {
+            var assets = _llamaRuntimeAssetManager.GetAvailableAssetsAsync().GetAwaiter().GetResult();
+            var selections = assets.Select(a => new LlamaCppRuntimeAssetSelection(a)).ToList();
+            foreach (var selection in selections)
+                selection.IsInstalled = _llamaRuntimeAssetManager.IsAssetInstalledAsync(selection.Id, selection.EntryExe).GetAwaiter().GetResult();
+            LlamaRuntimeAssets = selections;
+            var selected = _llamaRuntimeAssetManager.GetSelectedAssetAsync().GetAwaiter().GetResult();
+            SelectedLlamaRuntimeAsset = selections.FirstOrDefault(s => s.Id == selected.Id) ?? selections.FirstOrDefault();
+            IsLlamaRuntimeInstalled = _llamaRuntimeAssetManager.IsInstalledAsync().GetAwaiter().GetResult();
+            ManagedLlamaServerExecutablePath = IsLlamaRuntimeInstalled
+                ? _llamaRuntimeAssetManager.GetInstalledExecutablePathAsync().GetAwaiter().GetResult() : "-";
+        }
+        catch (Exception ex)
+        {
+            _aiDebugLog.Write("runtime", $"Eager llama.cpp asset load failed, will retry later: {ex.Message}");
+        }
     }
 
     [RelayCommand]
@@ -535,16 +585,61 @@ public partial class SmartBpModuleContentViewModel
 
     private bool CanDeleteQwenModel() =>
         !IsQwenDownloading && !_llamaServerManager.IsRunning && SelectedQwenModelProfile != null && IsSelectedQwenModelInstalled;
+
+    private bool CanDownloadLlamaRuntime() =>
+        !IsLlamaRuntimeDownloading && !IsLlamaServerRunning && SelectedLlamaRuntimeAsset != null && !SelectedLlamaRuntimeAsset.IsInstalled;
+
+    private bool CanDeleteLlamaRuntime() =>
+        !IsLlamaRuntimeDownloading && !IsLlamaServerRunning && SelectedLlamaRuntimeAsset != null && SelectedLlamaRuntimeAsset.IsInstalled;
+
+    private bool CanRollbackLlamaRuntime() =>
+        !IsLlamaRuntimeDownloading && !IsLlamaServerRunning && IsLlamaRuntimeInstalled;
+
+    private bool CanStartLlamaServer() =>
+        !IsLlamaServerRunning && IsLlamaRuntimeInstalled;
+
+    private bool CanStopLlamaServer() =>
+        IsLlamaServerRunning;
+
+    private bool CanForceStopLlamaServer() =>
+        IsLlamaServerRunning;
     [RelayCommand] private async Task BrowseLlamaServerAsync() { var path = _filePickerService.PickExecutableFile(); if (path == null) return; LlamaServerExecutablePath = path; _recognitionSettingsService.Settings.LlamaServerExecutablePath = path; await _recognitionSettingsService.SaveAsync(); }
-    [RelayCommand] private async Task DownloadLlamaRuntimeAsync() { try { if (_llamaServerManager.IsRunning) throw new InvalidOperationException("Stop llama-server before installing or updating the runtime."); await _llamaRuntimeAssetManager.InstallAsync(); LlamaServerExecutablePath = _recognitionSettingsService.Settings.LlamaServerExecutablePath; await RefreshLlamaRuntimeStatusAsync(); } catch (OperationCanceledException) { } catch (Exception ex) { AiLastError = ex.ToString(); } }
+    /// <inheritdoc cref="CanDownloadLlamaRuntime"/>
+    [RelayCommand(CanExecute = nameof(CanDownloadLlamaRuntime))]
+    private async Task DownloadLlamaRuntimeAsync() { try { if (_llamaServerManager.IsRunning) throw new InvalidOperationException("Stop llama-server before installing or updating the runtime."); await _llamaRuntimeAssetManager.InstallAsync(); LlamaServerExecutablePath = _recognitionSettingsService.Settings.LlamaServerExecutablePath; await RefreshLlamaRuntimeStatusAsync(); } catch (OperationCanceledException) { } catch (Exception ex) { AiLastError = ex.ToString(); } }
     [RelayCommand] private void CancelLlamaRuntimeDownload() => _llamaRuntimeAssetManager.Cancel();
-    [RelayCommand] private async Task DeleteLlamaRuntimeAsync() { try { if (_llamaServerManager.IsRunning) throw new InvalidOperationException("Stop llama-server before deleting the runtime."); await _llamaRuntimeAssetManager.DeleteAsync(); LlamaServerExecutablePath = _recognitionSettingsService.Settings.LlamaServerExecutablePath; await RefreshLlamaRuntimeStatusAsync(); } catch (Exception ex) { AiLastError = ex.Message; } }
-    [RelayCommand] private async Task RollbackLlamaRuntimeAsync() { try { if (_llamaServerManager.IsRunning) throw new InvalidOperationException("Stop llama-server before rolling back the runtime."); await _llamaRuntimeAssetManager.RollbackAsync(); LlamaServerExecutablePath = _recognitionSettingsService.Settings.LlamaServerExecutablePath; await RefreshLlamaRuntimeStatusAsync(); } catch (Exception ex) { AiLastError = ex.Message; } }
-    [RelayCommand] private async Task RefreshLlamaRuntimeStatusAsync() { IsLlamaRuntimeInstalled = await _llamaRuntimeAssetManager.IsInstalledAsync(); ManagedLlamaServerExecutablePath = IsLlamaRuntimeInstalled ? await _llamaRuntimeAssetManager.GetInstalledExecutablePathAsync() : "-"; }
-    [RelayCommand] private async Task CheckLlamaRuntimeUpdateAsync() { try { var result = await _llamaRuntimeUpdateService.CheckForUpdatesAsync(true); LlamaRuntimeUpdateStatus = $"{result.Message} Current={result.CurrentVersion}; Latest={result.LatestVersion ?? "-"}"; LlamaRuntimeAssets = result.LatestAssets.Count > 0 ? result.LatestAssets : LlamaRuntimeAssets; } catch (Exception ex) { LlamaRuntimeUpdateStatus = ex.Message; } }
-    [RelayCommand] private async Task StartLlamaServerAsync() { try { await _llamaServerManager.StartAsync(); LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusReady"); } catch (Exception ex) { LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusFailed"); AiLastError = ex.Message; } }
-    [RelayCommand] private async Task StopLlamaServerAsync() { await StopAiPreviewLoopAsync(); await _llamaServerManager.StopAsync(); LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusStopped"); }
-    [RelayCommand] private async Task ForceStopLlamaServerAsync() { try { await StopAiPreviewLoopAsync(); await _llamaServerManager.ForceStopManagedProcessAsync(); LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusStopped"); } catch (Exception ex) { AiLastError = ex.Message; } }
+    /// <inheritdoc cref="CanDeleteLlamaRuntime"/>
+    [RelayCommand(CanExecute = nameof(CanDeleteLlamaRuntime))]
+    private async Task DeleteLlamaRuntimeAsync() { try { if (_llamaServerManager.IsRunning) throw new InvalidOperationException("Stop llama-server before deleting the runtime."); await _llamaRuntimeAssetManager.DeleteAsync(); LlamaServerExecutablePath = _recognitionSettingsService.Settings.LlamaServerExecutablePath; await RefreshLlamaRuntimeStatusAsync(); } catch (Exception ex) { AiLastError = ex.Message; } }
+    /// <inheritdoc cref="CanRollbackLlamaRuntime"/>
+    [RelayCommand(CanExecute = nameof(CanRollbackLlamaRuntime))]
+    private async Task RollbackLlamaRuntimeAsync() { try { if (_llamaServerManager.IsRunning) throw new InvalidOperationException("Stop llama-server before rolling back the runtime."); await _llamaRuntimeAssetManager.RollbackAsync(); LlamaServerExecutablePath = _recognitionSettingsService.Settings.LlamaServerExecutablePath; await RefreshLlamaRuntimeStatusAsync(); } catch (Exception ex) { AiLastError = ex.Message; } }
+    [RelayCommand] private async Task RefreshLlamaRuntimeStatusAsync()
+    {
+        if (LlamaRuntimeAssets.Count > 0)
+            await RefreshLlamaRuntimeAssetsInstallStatusAsync(LlamaRuntimeAssets);
+        IsLlamaRuntimeInstalled = await _llamaRuntimeAssetManager.IsInstalledAsync();
+        ManagedLlamaServerExecutablePath = IsLlamaRuntimeInstalled ? await _llamaRuntimeAssetManager.GetInstalledExecutablePathAsync() : "-";
+        DownloadLlamaRuntimeCommand.NotifyCanExecuteChanged();
+        DeleteLlamaRuntimeCommand.NotifyCanExecuteChanged();
+        RollbackLlamaRuntimeCommand.NotifyCanExecuteChanged();
+        StartLlamaServerCommand.NotifyCanExecuteChanged();
+        StopLlamaServerCommand.NotifyCanExecuteChanged();
+        ForceStopLlamaServerCommand.NotifyCanExecuteChanged();
+    }
+
+    private async Task RefreshLlamaRuntimeAssetsInstallStatusAsync(IReadOnlyList<LlamaCppRuntimeAssetSelection> selections)
+    {
+        foreach (var selection in selections)
+            selection.IsInstalled = await _llamaRuntimeAssetManager.IsAssetInstalledAsync(selection.Id, selection.EntryExe);
+    }
+    [RelayCommand] private async Task CheckLlamaRuntimeUpdateAsync() { try { var result = await _llamaRuntimeUpdateService.CheckForUpdatesAsync(true); LlamaRuntimeUpdateStatus = $"{result.Message} Current={result.CurrentVersion}; Latest={result.LatestVersion ?? "-"}"; if (result.LatestAssets.Count > 0) { var selections = result.LatestAssets.Select(a => new LlamaCppRuntimeAssetSelection(a)).ToList(); await RefreshLlamaRuntimeAssetsInstallStatusAsync(selections); LlamaRuntimeAssets = selections; } } catch (Exception ex) { LlamaRuntimeUpdateStatus = ex.Message; } }
+    [RelayCommand(CanExecute = nameof(CanStartLlamaServer))]
+    private async Task StartLlamaServerAsync() { try { await _llamaServerManager.StartAsync(); LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusReady"); IsLlamaServerRunning = true; } catch (Exception ex) { LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusFailed"); IsLlamaServerRunning = false; AiLastError = ex.Message; } }
+    [RelayCommand(CanExecute = nameof(CanStopLlamaServer))]
+    private async Task StopLlamaServerAsync() { await StopAiPreviewLoopAsync(); await _llamaServerManager.StopAsync(); LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusStopped"); IsLlamaServerRunning = false; }
+    [RelayCommand(CanExecute = nameof(CanForceStopLlamaServer))]
+    private async Task ForceStopLlamaServerAsync() { try { await StopAiPreviewLoopAsync(); await _llamaServerManager.ForceStopManagedProcessAsync(); LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusStopped"); IsLlamaServerRunning = false; } catch (Exception ex) { AiLastError = ex.Message; } }
     [RelayCommand] private async Task RecognizeSelectedTestFrameAsync()
     {
         if (SelectedAiTestFrame == null) return;
@@ -875,9 +970,19 @@ public partial class SmartBpModuleContentViewModel
         finally { _isSwitchingQwenModel = false; }
     }
 
-    partial void OnSelectedLlamaRuntimeAssetChanged(LlamaCppRuntimeAsset? value)
+    partial void OnSelectedLlamaRuntimeAssetChanged(LlamaCppRuntimeAssetSelection? value)
     {
         if (value == null || value.Id == _recognitionSettingsService.Settings.SelectedLlamaRuntimeId) return;
+        if (_llamaServerManager.IsRunning)
+        {
+            // Revert to the current selection
+            var current = LlamaRuntimeAssets.FirstOrDefault(a => a.Id == _recognitionSettingsService.Settings.SelectedLlamaRuntimeId);
+            if (current != null)
+            {
+                SelectedLlamaRuntimeAsset = current;
+                return;
+            }
+        }
         _recognitionSettingsService.Settings.SelectedLlamaRuntimeId = value.Id;
         _recognitionSettingsService.Settings.LlamaServerExecutablePath = "";
         LlamaServerExecutablePath = "";
@@ -1236,6 +1341,40 @@ public partial class SmartBpModuleContentViewModel
     /// <param name="Mode">Persisted provider mode.</param>
     /// <param name="DisplayName">Display name.</param>
     public sealed record OcrProviderSelection(SmartBpOcrProviderMode Mode, string DisplayName);
+
+    /// <summary>Selectable llama.cpp runtime asset shown in the SmartBP UI combobox.</summary>
+    public sealed partial class LlamaCppRuntimeAssetSelection : ObservableObject
+    {
+        /// <summary>Initializes a new instance from a manifest asset.</summary>
+        /// <param name="asset">The manifest asset definition.</param>
+        public LlamaCppRuntimeAssetSelection(LlamaCppRuntimeAsset asset)
+        {
+            Id = asset.Id;
+            DisplayName = asset.DisplayName;
+            Architecture = asset.Architecture;
+            Backend = asset.Backend;
+            EntryExe = asset.EntryExe ?? "";
+        }
+
+        /// <summary>Gets the asset identifier.</summary>
+        public string Id { get; }
+        /// <summary>Gets the display name.</summary>
+        public string DisplayName { get; }
+        /// <summary>Gets the CPU architecture.</summary>
+        public string Architecture { get; }
+        /// <summary>Gets the backend name.</summary>
+        public string Backend { get; }
+        /// <summary>Gets the entry executable filename.</summary>
+        public string EntryExe { get; }
+
+        /// <summary>Gets or sets whether this runtime asset is currently installed.</summary>
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(StatusKey))]
+        private bool _isInstalled;
+
+        /// <summary>Gets the localization key for the current install status.</summary>
+        public string StatusKey => IsInstalled ? "SmartBpAiStatusInstalled" : "SmartBpAiStatusNotInstalled";
+    }
 
     /// <summary>Selectable Tesseract language data option shown in the SmartBP UI.</summary>
     /// <param name="language">Tesseract language identifier.</param>

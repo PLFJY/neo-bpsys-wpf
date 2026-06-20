@@ -22,6 +22,7 @@
     <Page.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <cv:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+        <cv:LatencyToBrushConverter x:Key="LatencyToBrushConverter" />
         <Style x:Key="Title" TargetType="TextBlock">
             <Setter Property="FontWeight" Value="DemiBold" />
             <Setter Property="FontSize" Value="18" />
@@ -136,8 +137,10 @@
                             FontSize="16"
                             FontWeight="Bold"
                             Text="{lex:Loc SoftwareUpdates}" />
-                        <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                        <WrapPanel Margin="0,10,0,0" Orientation="Horizontal">
                             <StackPanel
+                                Margin="0,0,10,8"
+                                d:Visibility="Visible"
                                 Orientation="Horizontal"
                                 Visibility="{Binding IsGitHubMirrorSettingVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
                                 <TextBlock VerticalAlignment="Center" Text="{lex:Loc DownloadSource}" />
@@ -148,17 +151,35 @@
                                     SelectedValuePath="Value">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
-                                            <TextBlock Text="{lex:Loc {Binding DisplayNameKey}, FallbackBehavior=Key}" />
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0" Text="{lex:Loc {Binding DisplayNameKey}, FallbackBehavior=Key}" />
+                                                <TextBlock
+                                                    Grid.Column="1"
+                                                    Margin="8,0,0,0"
+                                                    VerticalAlignment="Center"
+                                                    Foreground="{Binding LatencyMs, Converter={StaticResource LatencyToBrushConverter}}"
+                                                    Text="{Binding LatencyDisplayText}" />
+                                            </Grid>
                                         </DataTemplate>
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
+                                <ui:Button
+                                    Margin="10,0,0,0"
+                                    Command="{Binding TestMirrorLatencyCommand}"
+                                    Content="{lex:Loc TestMirrorLatency}"
+                                    Icon="{ui:SymbolIcon Symbol=Flash24}"
+                                    IsEnabled="{Binding IsTestingLatency, Converter={StaticResource InverseBooleanConverter}}" />
                             </StackPanel>
                             <TextBlock
-                                Margin="10,0,0,0"
+                                Margin="0,0,10,8"
                                 VerticalAlignment="Center"
                                 Text="{lex:Loc DownloadPreviewVersion}" />
-                            <ui:ToggleSwitch Margin="10,0,0,0" IsChecked="{Binding IsFindPreRelease, Mode=TwoWay}" />
-                        </StackPanel>
+                            <ui:ToggleSwitch Margin="0,0,10,8" IsChecked="{Binding IsFindPreRelease, Mode=TwoWay}" />
+                        </WrapPanel>
                         <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
                             <ui:Button
                                 Command="{Binding UpdateCheckCommand}"

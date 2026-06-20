@@ -114,6 +114,10 @@ public interface ILlamaCppRuntimeAssetManager
     Task<LlamaCppRuntimeAsset> GetSelectedAssetAsync(CancellationToken cancellationToken = default);
     /// <summary>Checks whether the selected runtime is installed.</summary>
     Task<bool> IsInstalledAsync(CancellationToken cancellationToken = default);
+    /// <summary>Checks whether a specific runtime asset is installed without loading the manifest.</summary>
+    /// <param name="assetId">The asset identifier.</param>
+    /// <param name="entryExe">The entry executable filename.</param>
+    Task<bool> IsAssetInstalledAsync(string assetId, string entryExe, CancellationToken cancellationToken = default);
     /// <summary>Installs the selected runtime.</summary>
     Task InstallAsync(CancellationToken cancellationToken = default);
     /// <summary>Cancels an active installation.</summary>
