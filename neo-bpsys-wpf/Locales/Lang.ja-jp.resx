@@ -4597,6 +4597,7 @@
   <data name="SmartBpAiPlayBackfillAnimations" xml:space="preserve"><value>前の手順を補完するときにアニメーションを再生</value></data>
   <data name="SmartBpAiResetLedger" xml:space="preserve"><value>SmartBP AI 認識履歴をリセット</value></data>
   <data name="SmartBpClearDebugLog" xml:space="preserve"><value>ログをクリア</value></data>
+  <data name="SmartBpEnableDebugLog" xml:space="preserve"><value>デバッグログを有効にする</value></data>
   <data name="SmartBpAiAdvancedEngineSettings" xml:space="preserve"><value>高度なエンジン設定</value></data>
   <data name="SmartBpAiAdvancedRecognitionSettings" xml:space="preserve"><value>高度な認識設定</value></data>
   <data name="SmartBpAiParallelSlots" xml:space="preserve"><value>llama.cpp 並列スロット</value></data>

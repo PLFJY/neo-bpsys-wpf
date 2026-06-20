@@ -7,9 +7,11 @@ internal sealed class SmartBpDebugLog : ISmartBpDebugLog
 {
     public event EventHandler<SmartBpDebugMessageEventArgs>? MessageWritten;
 
+    public bool IsEnabled { get; set; } = true;
+
     public void Write(string source, string message)
     {
-        if (string.IsNullOrWhiteSpace(message)) return;
+        if (!IsEnabled || string.IsNullOrWhiteSpace(message)) return;
         MessageWritten?.Invoke(this, new SmartBpDebugMessageEventArgs(DateTimeOffset.Now, source, message));
     }
 }

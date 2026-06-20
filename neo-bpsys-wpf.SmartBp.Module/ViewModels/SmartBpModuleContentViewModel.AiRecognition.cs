@@ -1,3 +1,4 @@
+using System.Text;
 using System.Windows.Media.Imaging;
 using System.Windows;
 using System.IO;
@@ -66,6 +67,7 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty] private int _aiRecommendedIntervalMilliseconds;
     [ObservableProperty] private string _aiLastError = "";
     [ObservableProperty] private string _aiDebugLogText = "";
+    [ObservableProperty] private bool _isDebugLogEnabled = true;
     [ObservableProperty] private IReadOnlyList<SmartBpPromptProfile> _aiPromptProfiles = [];
     [ObservableProperty] private SmartBpPromptProfile? _selectedAiPromptProfile;
     [ObservableProperty] private IReadOnlyList<LlamaCppRuntimeAssetSelection> _llamaRuntimeAssets = [];
@@ -245,7 +247,15 @@ public partial class SmartBpModuleContentViewModel
             if (!state.IsDownloading)
                 _ = RefreshSelectedQwenModelInstallStatusAsync();
         });
-        _aiDebugLog.MessageWritten += (_, message) => RunOnUiThread(() => AppendAiDebugMessage(message));
+        _aiDebugLog.MessageWritten += (_, message) =>
+        {
+            lock (_debugLogBufferLock)
+                _debugLogBuffer.AppendFormat("[{0:HH:mm:ss.fff}] [{1}] {2}{3}",
+                    message.Timestamp, message.Source, message.Message, Environment.NewLine);
+        };
+        _debugLogFlushTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
+        _debugLogFlushTimer.Tick += (_, _) => FlushDebugLogBuffer();
+        _debugLogFlushTimer.Start();
         _aiDebugLog.Write("SmartBP", "AI recognition diagnostics initialized.");
         _llamaRuntimeAssetManager.StateChanged += (_, state) => RunOnUiThread(() =>
         {
@@ -427,15 +437,37 @@ public partial class SmartBpModuleContentViewModel
     }
 
     [RelayCommand]
-    private void ClearAiDebugLog() => AiDebugLogText = "";
-
-    private void AppendAiDebugMessage(SmartBpDebugMessageEventArgs message)
+    private void ClearAiDebugLog()
     {
+        lock (_debugLogBufferLock)
+            _debugLogBuffer.Clear();
+        AiDebugLogText = "";
+    }
+
+    /// <summary>Flushes buffered log messages to <see cref="AiDebugLogText"/> and clears the buffer.</summary>
+    private void FlushDebugLogBuffer()
+    {
+        string batch;
+        lock (_debugLogBufferLock)
+        {
+            if (_debugLogBuffer.Length == 0) return;
+            batch = _debugLogBuffer.ToString();
+            _debugLogBuffer.Clear();
+        }
+
         const int maximumCharacters = 60000;
-        AiDebugLogText += $"[{message.Timestamp:HH:mm:ss.fff}] [{message.Source}] {message.Message}{Environment.NewLine}";
-        if (AiDebugLogText.Length <= maximumCharacters) return;
-        var firstLineBreak = AiDebugLogText.IndexOf(Environment.NewLine, AiDebugLogText.Length - maximumCharacters, StringComparison.Ordinal);
-        AiDebugLogText = firstLineBreak >= 0 ? AiDebugLogText[(firstLineBreak + Environment.NewLine.Length)..] : AiDebugLogText[^maximumCharacters..];
+        var newText = AiDebugLogText + batch;
+        if (newText.Length > maximumCharacters)
+        {
+            var firstLineBreak = newText.IndexOf(Environment.NewLine, newText.Length - maximumCharacters, StringComparison.Ordinal);
+            newText = firstLineBreak >= 0 ? newText[(firstLineBreak + Environment.NewLine.Length)..] : newText[^maximumCharacters..];
+        }
+        AiDebugLogText = newText;
+    }
+
+    partial void OnIsDebugLogEnabledChanged(bool value)
+    {
+        _aiDebugLog.IsEnabled = value;
     }
 
     [RelayCommand] private async Task RefreshQwenStatusAsync()

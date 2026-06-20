@@ -5687,6 +5687,7 @@
   <data name="SmartBpAiPlayBackfillAnimations" xml:space="preserve"><value>补录上一阶段时播放动画</value></data>
   <data name="SmartBpAiResetLedger" xml:space="preserve"><value>重置 SmartBP AI 识别记录</value></data>
   <data name="SmartBpClearDebugLog" xml:space="preserve"><value>清空日志</value></data>
+  <data name="SmartBpEnableDebugLog" xml:space="preserve"><value>启用调试日志</value></data>
   <data name="SmartBpAiAdvancedEngineSettings" xml:space="preserve"><value>高级引擎设置</value></data>
   <data name="SmartBpAiAdvancedRecognitionSettings" xml:space="preserve"><value>高级识别设置</value></data>
   <data name="SmartBpAiParallelSlots" xml:space="preserve"><value>llama.cpp 并行槽位</value></data>

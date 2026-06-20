@@ -328,6 +328,10 @@
                     Text="{lex:Loc SmartBpFreeFullSyncWarning}"
                     TextWrapping="Wrap" />
                 <WrapPanel Margin="0,8,0,0">
+                    <ui:ToggleSwitch
+                        Margin="0,0,12,8"
+                        IsChecked="{Binding IsDebugLogEnabled}"
+                        Content="{lex:Loc SmartBpEnableDebugLog}" />
                     <ui:Button
                         Margin="0,0,8,0"
                         Command="{Binding StartAiPreviewLoopCommand}"
@@ -566,7 +570,7 @@
                     Text="{Binding AiDebugLogText}"
                     TextChanged="AiDebugConsoleTextBox_OnTextChanged"
                     TextWrapping="Wrap"
-                    Visibility="{Binding IsAiQwenRecognitionEngine, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding IsDebugLogEnabled, Converter={StaticResource BooleanToVisibilityConverter}}" />
             </StackPanel>
         </ui:CardExpander>
     </StackPanel>

@@ -1,4 +1,6 @@
+using System.Text;
 using System.Windows;
+using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
@@ -57,6 +59,9 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     private readonly ISmartBpOcrBpRecognitionService _ocrBpRecognitionService = null!;
     private readonly ISmartBpAiPerformanceMonitor _aiPerformanceMonitor = null!;
     private readonly ISmartBpModuleStorageProvider _smartBpModuleStorage = null!;
+    private readonly object _debugLogBufferLock = new();
+    private readonly StringBuilder _debugLogBuffer = new();
+    private DispatcherTimer? _debugLogFlushTimer;
 
     /// <summary>
     /// 用于设计时预览的无参构造函数。

@@ -307,10 +307,12 @@ public interface ISmartBpDebugLog
 {
     /// <summary>Raised whenever a diagnostic line is written.</summary>
     event EventHandler<SmartBpDebugMessageEventArgs>? MessageWritten;
-    /// <summary>Writes one diagnostic line.</summary>
+    /// <summary>Writes one diagnostic line. No-op when <see cref="IsEnabled"/> is false.</summary>
     /// <param name="source">Short subsystem name.</param>
     /// <param name="message">Diagnostic message.</param>
     void Write(string source, string message);
+    /// <summary>When false, <see cref="Write"/> is a no-op and no events are raised.</summary>
+    bool IsEnabled { get; set; }
 }
 
 /// <summary>Reconciles model stage output with the authoritative GameGuidance workflow.</summary>

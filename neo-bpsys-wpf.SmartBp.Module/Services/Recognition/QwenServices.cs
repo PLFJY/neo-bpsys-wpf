@@ -67,6 +67,7 @@ internal sealed class SmartBpRecognitionSettingsService : ISmartBpRecognitionSet
 {
     private static readonly JsonSerializerOptions Options = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true };
     private readonly string _path = Path.Combine(AppConstants.AppDataPath, "SmartBp", "RecognitionSettings.json");
+    private readonly SemaphoreSlim _saveLock = new(1, 1);
     public SmartBpRecognitionSettings Settings { get; private set; }
 
     public SmartBpRecognitionSettingsService()
@@ -118,10 +119,18 @@ internal sealed class SmartBpRecognitionSettingsService : ISmartBpRecognitionSet
 
     public async Task SaveAsync(CancellationToken cancellationToken = default)
     {
-        Directory.CreateDirectory(Path.GetDirectoryName(_path)!);
-        var temporary = _path + ".tmp";
-        await File.WriteAllTextAsync(temporary, JsonSerializer.Serialize(Settings, Options), cancellationToken);
-        await Task.Run(() => File.Move(temporary, _path, true), cancellationToken).ConfigureAwait(false);
+        await _saveLock.WaitAsync(cancellationToken);
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(_path)!);
+            var temporary = _path + ".tmp";
+            await File.WriteAllTextAsync(temporary, JsonSerializer.Serialize(Settings, Options), cancellationToken);
+            File.Move(temporary, _path, true);
+        }
+        finally
+        {
+            _saveLock.Release();
+        }
     }
 }
 
