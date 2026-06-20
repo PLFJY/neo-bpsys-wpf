@@ -130,6 +130,7 @@ public abstract partial class CharaSelectViewModelBase :
             SharedDataService.CanGlobalHunBannedList.CollectionChanged += OnBannedOrPickChanged;
         }
 
+        SyncCharaFromSourceAsync();
         SubscribeCurrentGameEvents();
         UpdateDisabledKeys();
     }

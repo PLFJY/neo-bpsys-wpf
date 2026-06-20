@@ -17,6 +17,15 @@
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <cv:InverseBooleanConverter x:Key="InverseBooleanConverter" />
         <cv:LocalizationKeyToTextConverter x:Key="LocalizationKeyToTextConverter" />
+        <Style x:Key="SmartBpDebugOutputTextBox" TargetType="TextBox">
+            <Setter Property="Height" Value="96" />
+            <Setter Property="Margin" Value="0,6,0,0" />
+            <Setter Property="AcceptsReturn" Value="True" />
+            <Setter Property="IsReadOnly" Value="True" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+            <Setter Property="HorizontalScrollBarVisibility" Value="Disabled" />
+        </Style>
     </UserControl.Resources>
     <StackPanel>
         <TextBlock
@@ -565,37 +574,35 @@
                         Content="{lex:Loc SmartBpClearDebugLog}"
                         Icon="{ui:SymbolIcon Symbol=Delete24}" />
                 </WrapPanel>
-                <TextBlock
-                    Margin="0,6,0,0"
-                    Text="{Binding AiStageDetectionResult}"
-                    TextWrapping="Wrap" />
-                <TextBlock
-                    Margin="0,6,0,0"
-                    Text="{Binding AiGuidanceSnapshot}"
-                    TextWrapping="Wrap" />
-                <TextBlock
-                    Margin="0,6,0,0"
-                    Text="{Binding AiCandidateOperations}"
-                    TextWrapping="Wrap" />
-                <TextBlock Margin="0,6,0,0" Text="{Binding AiSceneDiagnostics}" TextWrapping="Wrap" />
-                <TextBlock Margin="0,6,0,0" Text="{Binding AiRequestMetrics}" TextWrapping="Wrap" />
                 <TextBox
-                    Margin="0,6,0,0"
-                    IsReadOnly="True"
-                    Text="{Binding AiRawResponse}"
-                    TextWrapping="Wrap" />
+                    Style="{StaticResource SmartBpDebugOutputTextBox}"
+                    Text="{Binding AiStageDetectionResult}" />
+                <TextBox
+                    Style="{StaticResource SmartBpDebugOutputTextBox}"
+                    Text="{Binding AiGuidanceSnapshot}" />
+                <TextBox
+                    Style="{StaticResource SmartBpDebugOutputTextBox}"
+                    Text="{Binding AiCandidateOperations}" />
+                <TextBox
+                    Style="{StaticResource SmartBpDebugOutputTextBox}"
+                    Text="{Binding AiSceneDiagnostics}" />
+                <TextBox
+                    Style="{StaticResource SmartBpDebugOutputTextBox}"
+                    Text="{Binding AiRequestMetrics}" />
+                <TextBox
+                    Height="140"
+                    Style="{StaticResource SmartBpDebugOutputTextBox}"
+                    Text="{Binding AiRawResponse}" />
                 <TextBlock
                     Margin="0,6,0,0"
                     Foreground="{DynamicResource SystemFillColorCriticalBrush}"
                     Text="{Binding AiLastError}"
                     TextWrapping="Wrap" />
                 <TextBox
-                    Margin="0,6,0,0"
                     Height="200"
-                    IsReadOnly="True"
+                    Style="{StaticResource SmartBpDebugOutputTextBox}"
                     Text="{Binding AiDebugLogText}"
                     TextChanged="AiDebugConsoleTextBox_OnTextChanged"
-                    TextWrapping="Wrap"
                     Visibility="{Binding IsDebugLogEnabled, Converter={StaticResource BooleanToVisibilityConverter}}" />
             </StackPanel>
         </ui:CardExpander>
