@@ -50,6 +50,28 @@ public enum SmartBpRecognitionRegion { PhaseTop, LeftTop, RightTop, LeftBottom, 
 /// <summary>Controls how many BP content regions are recognized for one snapshot.</summary>
 public enum SmartBpRegionSnapshotRecognitionMode { FullAllRegions, PendingAndCurrentRegions }
 
+/// <summary>Controls how the AI client requests structured JSON output from llama-server.</summary>
+public enum AiStructuredOutputMode
+{
+    /// <summary>Sends <c>response_format=json_schema</c> and relies on the server to enforce the schema.</summary>
+    JsonSchemaStrict,
+    /// <summary>Omits <c>response_format</c>, asks for raw JSON in the prompt, and repairs Markdown fences locally.</summary>
+    JsonPromptAndRepair
+}
+
+/// <summary>Identifies which recognition path the coordinator used for one tick.</summary>
+public enum SmartBpRecognitionPath
+{
+    /// <summary>Only the phase crop was recognized because no business fields were requested.</summary>
+    PhaseOnly,
+    /// <summary>Independent per-field snapshot recognitions were run for the requested fields.</summary>
+    FieldSnapshot,
+    /// <summary>All four business fields were recognized as independent field snapshots.</summary>
+    FullFieldSnapshot,
+    /// <summary>Legacy multi-image snapshot delta recognition (model-side delta updates).</summary>
+    LegacyDelta
+}
+
 /// <summary>Normalized recognition crop rectangle.</summary>
 public sealed class SmartBpRecognitionRegionRect
 {
@@ -211,6 +233,10 @@ public sealed class SmartBpRecognitionSettings
     public int RequiredStableSnapshots { get; set; } = 1;
     /// <summary>Gets or sets whether automatic recognition should use one multi-image snapshot delta request.</summary>
     public bool UseMultiImageSnapshotRequest { get; set; } = true;
+    /// <summary>Gets or sets whether the legacy model-side snapshot delta recognition is used instead of field snapshots.</summary>
+    public bool UseLegacySnapshotDeltaRecognition { get; set; }
+    /// <summary>Gets or sets how the AI client requests structured JSON output from llama-server.</summary>
+    public AiStructuredOutputMode StructuredOutputMode { get; set; } = AiStructuredOutputMode.JsonSchemaStrict;
     /// <summary>Gets or sets the selected BP recognition engine.</summary>
     public SmartBpRecognitionEngine RecognitionEngine { get; set; } = SmartBpRecognitionEngine.Ocr;
     /// <summary>Gets or sets whether OCR BP recognition is enabled.</summary>
@@ -277,6 +303,14 @@ public sealed class SmartBpRecognitionSettings
     public int PhaseMaxTokens { get; set; } = 48;
     /// <summary>Gets or sets the incremental snapshot delta token budget.</summary>
     public int SnapshotDeltaMaxTokens { get; set; } = 768;
+    /// <summary>Gets or sets the banned_sur field snapshot token budget.</summary>
+    public int BannedSurFieldMaxTokens { get; set; } = 256;
+    /// <summary>Gets or sets the banned_hun field snapshot token budget.</summary>
+    public int BannedHunFieldMaxTokens { get; set; } = 192;
+    /// <summary>Gets or sets the picked_sur field snapshot token budget.</summary>
+    public int PickedSurFieldMaxTokens { get; set; } = 384;
+    /// <summary>Gets or sets the picked_hun field snapshot token budget.</summary>
+    public int PickedHunFieldMaxTokens { get; set; } = 192;
     /// <summary>Gets or sets the short commit hold before moving guidance to a newly detected phase.</summary>
     public int PhaseTransitionCommitHoldMilliseconds { get; set; } = 350;
     /// <summary>Gets or sets the maximum commit hold before allowing late backfill.</summary>
@@ -437,6 +471,38 @@ public sealed class SmartBpSnapshotFieldUpdate
     [JsonPropertyName("slots")] public List<SmartBpSnapshotDeltaSlot>? Slots { get; set; }
     /// <summary>Gets or sets the hunter pick slot when field is picked_hun.</summary>
     [JsonPropertyName("picked_hun")] public SmartBpSnapshotDeltaSlot? PickedHun { get; set; }
+}
+
+/// <summary>Phase-only AI recognition result produced by the phase-only recognition path.</summary>
+public sealed class SmartBpAiPhaseOnlyResult
+{
+    /// <summary>Gets the recognized phase.</summary>
+    public SmartBpPhaseRecognitionResult Phase { get; init; } = new();
+    /// <summary>Gets the phase crop used by the model.</summary>
+    public SmartBpCroppedFrame Crop { get; init; } = default!;
+    /// <summary>Gets the raw model JSON response.</summary>
+    public string RawJson { get; init; } = "";
+    /// <summary>Gets recognition diagnostics.</summary>
+    public IReadOnlyList<string> Diagnostics { get; init; } = [];
+}
+
+/// <summary>One field-level AI snapshot recognition result.</summary>
+public sealed class SmartBpAiFieldSnapshotResult
+{
+    /// <summary>Gets the business field id (banned_sur, banned_hun, picked_sur, picked_hun).</summary>
+    public string Field { get; init; } = "";
+    /// <summary>Gets the parsed field snapshot slots with slot_state evidence.</summary>
+    public IReadOnlyList<SmartBpSnapshotDeltaSlot> Slots { get; init; } = [];
+    /// <summary>Gets the hunter pick slot when the field is picked_hun.</summary>
+    public SmartBpSnapshotDeltaSlot? PickedHun { get; init; }
+    /// <summary>Gets the focused business extraction derived from the visible snapshot.</summary>
+    public SmartBpFocusedBusinessExtractionResult FocusedResult { get; init; } = new();
+    /// <summary>Gets the content crop used by the model.</summary>
+    public SmartBpCroppedFrame Crop { get; init; } = default!;
+    /// <summary>Gets the raw model JSON response.</summary>
+    public string RawJson { get; init; } = "";
+    /// <summary>Gets recognition diagnostics.</summary>
+    public IReadOnlyList<string> Diagnostics { get; init; } = [];
 }
 
 /// <summary>In-memory locally merged SmartBP recognition state.</summary>

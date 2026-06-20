@@ -148,26 +148,57 @@ internal sealed class SmartBpRecognitionStateStore : ISmartBpRecognitionStateSto
                     diagnostics.Add($"Ignored stale field update {update.Field} from frame sequence {frameSequence}; latest={existing}.");
                     continue;
                 }
-                switch (update.Field)
-                {
-                    case "banned_sur":
-                        if (update.Slots != null) MergeCharacterSlots(_state.BannedSur, update.Slots, update.Field, frameSequence, diagnostics);
-                        break;
-                    case "banned_hun":
-                        if (update.Slots != null) MergeCharacterSlots(_state.BannedHun, update.Slots, update.Field, frameSequence, diagnostics);
-                        break;
-                    case "picked_sur":
-                        if (update.Slots != null) MergePlayerSlots(_state.PickedSur, update.Slots, update.Field, frameSequence, diagnostics);
-                        break;
-                    case "picked_hun":
-                        if (update.PickedHun != null) MergePickedHunter(_state, update.PickedHun, frameSequence, diagnostics);
-                        break;
-                }
+                ApplyFieldUpdateLocked(update, frameSequence, diagnostics);
                 _state.FieldFrameSequences[update.Field] = frameSequence;
                 _state.FieldUpdatedAt[update.Field] = timestamp;
             }
         }
         return diagnostics;
+    }
+
+    public IReadOnlyList<string> ApplyFieldSnapshot(string field, SmartBpSnapshotFieldUpdate snapshot, long frameSequence, DateTimeOffset timestamp)
+    {
+        var diagnostics = new List<string>();
+        lock (_gate)
+        {
+            if (_state.FieldFrameSequences.TryGetValue(field, out var existing) && frameSequence < existing)
+            {
+                diagnostics.Add($"Ignored stale field snapshot {field} from frame sequence {frameSequence}; latest={existing}.");
+                return diagnostics;
+            }
+            ApplyFieldUpdateLocked(snapshot, frameSequence, diagnostics);
+            _state.FieldFrameSequences[field] = frameSequence;
+            _state.FieldUpdatedAt[field] = timestamp;
+        }
+        return diagnostics;
+    }
+
+    public void ApplyPhase(string phase, long frameSequence)
+    {
+        lock (_gate)
+        {
+            _state.Phase = phase;
+            _state.LastFrameSequence = Math.Max(_state.LastFrameSequence, frameSequence);
+        }
+    }
+
+    private void ApplyFieldUpdateLocked(SmartBpSnapshotFieldUpdate update, long frameSequence, List<string> diagnostics)
+    {
+        switch (update.Field)
+        {
+            case "banned_sur":
+                if (update.Slots != null) MergeCharacterSlots(_state.BannedSur, update.Slots, update.Field, frameSequence, diagnostics);
+                break;
+            case "banned_hun":
+                if (update.Slots != null) MergeCharacterSlots(_state.BannedHun, update.Slots, update.Field, frameSequence, diagnostics);
+                break;
+            case "picked_sur":
+                if (update.Slots != null) MergePlayerSlots(_state.PickedSur, update.Slots, update.Field, frameSequence, diagnostics);
+                break;
+            case "picked_hun":
+                if (update.PickedHun != null) MergePickedHunter(_state, update.PickedHun, frameSequence, diagnostics);
+                break;
+        }
     }
 
     public IReadOnlyList<string> GetStaleFieldDiagnostics(DateTimeOffset timestamp, int staleMilliseconds)
@@ -502,6 +533,122 @@ internal sealed class SmartBpAiSnapshotDeltaRecognitionService(
         SmartBpRecognitionRegion.RightBottom => "right_bottom",
         _ => region.ToString()
     };
+}
+
+internal sealed class SmartBpAiFieldSnapshotRecognitionService(
+    ISmartBpImageEncoder encoder,
+    ISmartBpRecognitionFrameCropper cropper,
+    ILlamaCppOpenAiClient client,
+    ISmartBpRecognitionSettingsService settings,
+    ISharedDataService shared,
+    ISmartBpRecognitionStateStore stateStore,
+    ISmartBpDebugLog debugLog) : ISmartBpAiFieldSnapshotRecognitionService
+{
+    public async Task<SmartBpAiPhaseOnlyResult> RecognizePhaseOnlyAsync(BitmapSource frame, CancellationToken cancellationToken = default)
+    {
+        var diagnostics = new List<string>();
+        var crop = await CropAsync(frame, SmartBpRecognitionRegion.PhaseTop, cancellationToken);
+        var imageDataUrl = await EncodeAsync(crop.Image, settings.Settings.PhaseCropMaxImageWidth, cancellationToken);
+        var raw = await client.RecognizePhaseOnlyAsync(imageDataUrl, cancellationToken);
+        SmartBpPhaseRecognitionResult phase;
+        try
+        {
+            phase = SmartBpAutomaticParser.ParsePhase(raw);
+            diagnostics.Add($"Phase-only recognized phase={phase.Phase}; crop={crop.PixelRectText}.");
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            diagnostics.Add($"Phase-only parse failed: {ex.Message}");
+            debugLog.Write("recognition", $"Phase-only parse failed: {ex.Message}");
+            phase = new SmartBpPhaseRecognitionResult { Phase = "未知" };
+        }
+        return new SmartBpAiPhaseOnlyResult
+        {
+            Phase = phase,
+            Crop = crop,
+            RawJson = raw,
+            Diagnostics = diagnostics
+        };
+    }
+
+    public async Task<SmartBpAiFieldSnapshotResult> RecognizeFieldAsync(
+        BitmapSource frame,
+        SmartBpRecognitionRegion region,
+        string field,
+        CancellationToken cancellationToken = default)
+    {
+        var diagnostics = new List<string>();
+        var crop = await CropAsync(frame, region, cancellationToken);
+        var imageDataUrl = await EncodeAsync(crop.Image, settings.Settings.ContentCropMaxImageWidth, cancellationToken);
+        var raw = await client.RecognizeFieldSnapshotAsync(imageDataUrl, field, cancellationToken);
+        SmartBpSnapshotFieldUpdate update;
+        try
+        {
+            update = SmartBpAutomaticParser.ParseFieldSnapshot(raw, field, shared.SurCharaDict.Keys.ToArray(), shared.HunCharaDict.Keys.ToArray());
+            diagnostics.Add($"Field snapshot {field} parsed; crop={crop.PixelRectText}.");
+            diagnostics.AddRange(FormatParsedSlotStates(update));
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            diagnostics.Add($"Field snapshot {field} parse failed: {ex.Message}");
+            debugLog.Write("recognition", $"Field snapshot {field} parse failed: {ex.Message}");
+            throw;
+        }
+        var focused = ToFocusedResult(update, stateStore.Snapshot.Phase);
+        return new SmartBpAiFieldSnapshotResult
+        {
+            Field = field,
+            Slots = update.Slots ?? [],
+            PickedHun = update.PickedHun,
+            FocusedResult = focused,
+            Crop = crop,
+            RawJson = raw,
+            Diagnostics = diagnostics
+        };
+    }
+
+    private static SmartBpFocusedBusinessExtractionResult ToFocusedResult(SmartBpSnapshotFieldUpdate update, string phase)
+    {
+        var result = new SmartBpFocusedBusinessExtractionResult { Phase = phase, TargetField = update.Field };
+        switch (update.Field)
+        {
+            case "banned_sur":
+            case "banned_hun":
+            case "picked_sur":
+                result.Slots = (update.Slots ?? []).Select(ToPlayerSlot).ToList();
+                break;
+            case "picked_hun":
+                result.PickedHun = update.PickedHun is { } hunter ? ToPlayerSlot(hunter) : null;
+                break;
+        }
+        return result;
+    }
+
+    private static SmartBpRecognizedPlayerCharacterSlot ToPlayerSlot(SmartBpSnapshotDeltaSlot slot) =>
+        new()
+        {
+            Index = slot.Index,
+            CharacterName = string.IsNullOrWhiteSpace(slot.CharacterName) ? "未选择" : slot.CharacterName,
+            PlayerId = slot.PlayerId
+        };
+
+    private static IEnumerable<string> FormatParsedSlotStates(SmartBpSnapshotFieldUpdate update)
+    {
+        if (update.Field == "picked_hun" && update.PickedHun != null)
+        {
+            yield return $"Parsed picked_hun[0]: slot_state={update.PickedHun.SlotState}; character={update.PickedHun.CharacterName}; player_id={update.PickedHun.PlayerId ?? "null"}.";
+            yield break;
+        }
+        if (update.Slots == null) yield break;
+        foreach (var slot in update.Slots.OrderBy(x => x.Index))
+            yield return $"Parsed {update.Field}[{slot.Index}]: slot_state={slot.SlotState}; character={slot.CharacterName}; player_id={slot.PlayerId ?? "null"}.";
+    }
+
+    private async Task<SmartBpCroppedFrame> CropAsync(BitmapSource frame, SmartBpRecognitionRegion region, CancellationToken cancellationToken) =>
+        await Task.Run(() => cropper.CropWithInfo(frame, region), cancellationToken);
+
+    private async Task<string> EncodeAsync(BitmapSource image, int maxWidth, CancellationToken cancellationToken) =>
+        await Task.Run(() => encoder.EncodeDataUrl(image, Math.Min(settings.Settings.MaxImageWidth, maxWidth)), cancellationToken);
 }
 
 internal sealed class SmartBpRecognitionLedger : ISmartBpRecognitionLedger, IDisposable

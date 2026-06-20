@@ -38,6 +38,8 @@ using ISmartBpWorkflowBackfillService = smartbp::neo_bpsys_wpf.SmartBp.Module.Ab
 using ISmartBpDetectedOperationApplier = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpDetectedOperationApplier;
 using ISmartBpCharacterResolver = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpCharacterResolver;
 using ISmartBpSceneGateService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpSceneGateService;
+using ISmartBpAiFieldSnapshotRecognitionService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpAiFieldSnapshotRecognitionService;
+using ISmartBpDebugLog = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpDebugLog;
 
 namespace neo_bpsys_wpf.Tests.Services;
 
@@ -85,11 +87,11 @@ public sealed class SmartBpSceneGateAndModelSourceTest
             guidance.Setup(service => service.GetRuntimeSnapshot()).Returns(new GameGuidanceRuntimeSnapshot(true, 0, null, [], null, []));
             var shared = new Mock<ISharedDataService>();
             var coordinator = new SmartBpAutoRecognitionCoordinator(
-                Mock.Of<ISmartBpRegionSnapshotRecognitionService>(), delta.Object, planner.Object, state.Object,
+                Mock.Of<ISmartBpRegionSnapshotRecognitionService>(), delta.Object, Mock.Of<ISmartBpAiFieldSnapshotRecognitionService>(), planner.Object, state.Object,
                 ledger.Object, Mock.Of<ISmartBpFrameRingBuffer>(), recognitionSettings.Object, shared.Object,
                 Mock.Of<ISmartBpGuidanceSyncService>(), guidance.Object, Mock.Of<ISmartBpWorkflowBackfillService>(),
                 new SmartBpCandidateOperationBuilder(Mock.Of<ISmartBpCharacterResolver>(), shared.Object),
-                Mock.Of<ISmartBpDetectedOperationApplier>(), Mock.Of<ISmartBpSceneGateService>());
+                Mock.Of<ISmartBpDetectedOperationApplier>(), Mock.Of<ISmartBpSceneGateService>(), Mock.Of<ISmartBpDebugLog>());
             await coordinator.StartAsync();
             var frame = new WriteableBitmap(1, 1, 96, 96, PixelFormats.Bgra32, null);
             var tick = coordinator.RunOneTickAsync(frame);

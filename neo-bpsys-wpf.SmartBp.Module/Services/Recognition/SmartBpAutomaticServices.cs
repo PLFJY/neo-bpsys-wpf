@@ -312,6 +312,97 @@ internal static class SmartBpAutomaticParser
             throw new InvalidDataException($"{field}.unknown character_name is not in the matching candidate list: {slot.CharacterName}");
     }
 
+    /// <summary>
+    /// Parses one field snapshot JSON response (shape <c>{"field":"...","slots":[...]}</c> or
+    /// <c>{"field":"picked_hun","picked_hun":{...}}</c>) into a <see cref="SmartBpSnapshotFieldUpdate"/>
+    /// with slot_state validation. The returned update is suitable for <see cref="ISmartBpRecognitionStateStore.ApplyFieldSnapshot"/>.
+    /// </summary>
+    /// <param name="raw">Raw model JSON response (already repaired when using prompt-and-repair mode).</param>
+    /// <param name="expectedField">Expected business field id.</param>
+    /// <param name="survivorCandidates">Allowed survivor candidate names.</param>
+    /// <param name="hunterCandidates">Allowed hunter candidate names.</param>
+    /// <returns>The validated <see cref="SmartBpSnapshotFieldUpdate"/>.</returns>
+    /// <exception cref="InvalidDataException">Thrown when the JSON shape, field id, slot count, slot index, or slot_state is invalid.</exception>
+    public static SmartBpSnapshotFieldUpdate ParseFieldSnapshot(
+        string raw,
+        string expectedField,
+        IReadOnlyCollection<string> survivorCandidates,
+        IReadOnlyCollection<string> hunterCandidates)
+    {
+        using var document = JsonDocument.Parse(raw);
+        var root = document.RootElement;
+        if (root.ValueKind != JsonValueKind.Object) throw new InvalidDataException("Field snapshot JSON must be an object.");
+        if (!root.TryGetProperty("field", out var fieldElement) || fieldElement.ValueKind != JsonValueKind.String)
+            throw new InvalidDataException("Field snapshot JSON must contain a string 'field' property.");
+        var field = fieldElement.GetString() ?? "";
+        if (!string.Equals(field, expectedField, StringComparison.Ordinal))
+            throw new InvalidDataException($"Field snapshot field mismatch: expected={expectedField}; actual={field}.");
+        var allowed = field switch
+        {
+            "banned_sur" or "picked_sur" => survivorCandidates,
+            "banned_hun" or "picked_hun" => hunterCandidates,
+            _ => throw new InvalidDataException($"Invalid field snapshot field: {field}.")
+        };
+        var update = new SmartBpSnapshotFieldUpdate { Field = field };
+        switch (field)
+        {
+            case "banned_sur":
+                {
+                    if (!root.TryGetProperty("slots", out var slotsElement) || slotsElement.ValueKind != JsonValueKind.Array)
+                        throw new InvalidDataException("banned_sur field snapshot must contain a 'slots' array.");
+                    update.Slots = ParseFieldSnapshotSlots(slotsElement, 4, allowed, field);
+                    if (root.TryGetProperty("picked_hun", out var pickedHunElement) && pickedHunElement.ValueKind != JsonValueKind.Null)
+                        throw new InvalidDataException("banned_sur field snapshot must not contain picked_hun.");
+                    break;
+                }
+            case "banned_hun":
+                {
+                    if (!root.TryGetProperty("slots", out var slotsElement) || slotsElement.ValueKind != JsonValueKind.Array)
+                        throw new InvalidDataException("banned_hun field snapshot must contain a 'slots' array.");
+                    update.Slots = ParseFieldSnapshotSlots(slotsElement, 2, allowed, field);
+                    if (root.TryGetProperty("picked_hun", out var pickedHunElement) && pickedHunElement.ValueKind != JsonValueKind.Null)
+                        throw new InvalidDataException("banned_hun field snapshot must not contain picked_hun.");
+                    break;
+                }
+            case "picked_sur":
+                {
+                    if (!root.TryGetProperty("slots", out var slotsElement) || slotsElement.ValueKind != JsonValueKind.Array)
+                        throw new InvalidDataException("picked_sur field snapshot must contain a 'slots' array.");
+                    update.Slots = ParseFieldSnapshotSlots(slotsElement, 4, allowed, field);
+                    if (root.TryGetProperty("picked_hun", out var pickedHunElement) && pickedHunElement.ValueKind != JsonValueKind.Null)
+                        throw new InvalidDataException("picked_sur field snapshot must not contain picked_hun.");
+                    break;
+                }
+            case "picked_hun":
+                {
+                    if (root.TryGetProperty("slots", out var slotsElement) && slotsElement.ValueKind != JsonValueKind.Null)
+                        throw new InvalidDataException("picked_hun field snapshot must not contain slots.");
+                    if (!root.TryGetProperty("picked_hun", out var pickedHunElement) || pickedHunElement.ValueKind != JsonValueKind.Object)
+                        throw new InvalidDataException("picked_hun field snapshot must contain a 'picked_hun' object.");
+                    var slot = JsonSerializer.Deserialize<SmartBpSnapshotDeltaSlot>(pickedHunElement.GetRawText())
+                        ?? throw new InvalidDataException("picked_hun field snapshot object is empty.");
+                    if (slot.Index != 0) throw new InvalidDataException("picked_hun.index must be 0.");
+                    ValidateDeltaSlot(slot, allowed, "picked_hun");
+                    update.PickedHun = slot;
+                    break;
+                }
+        }
+        return update;
+    }
+
+    private static List<SmartBpSnapshotDeltaSlot> ParseFieldSnapshotSlots(JsonElement slotsElement, int expectedCount, IReadOnlyCollection<string> allowed, string field)
+    {
+        var slots = JsonSerializer.Deserialize<List<SmartBpSnapshotDeltaSlot>>(slotsElement.GetRawText())
+            ?? throw new InvalidDataException($"{field} field snapshot slots array is empty.");
+        if (slots.Count != expectedCount)
+            throw new InvalidDataException($"{field} field snapshot must contain exactly {expectedCount} slots.");
+        var expectedIndexes = Enumerable.Range(0, expectedCount).ToArray();
+        if (!slots.Select(x => x.Index).OrderBy(x => x).SequenceEqual(expectedIndexes))
+            throw new InvalidDataException($"{field} field snapshot slots contain invalid indexes.");
+        foreach (var slot in slots) ValidateDeltaSlot(slot, allowed, field);
+        return slots;
+    }
+
     public static SmartBpFocusedBusinessExtractionResult ParseFocusedBusiness(
         string raw,
         GameAction expectedAction,
@@ -898,6 +989,7 @@ internal sealed class SmartBpDetectedOperationApplier(
 internal sealed class SmartBpAutoRecognitionCoordinator(
     ISmartBpRegionSnapshotRecognitionService snapshotRecognition,
     ISmartBpSnapshotDeltaRecognitionService deltaRecognition,
+    ISmartBpAiFieldSnapshotRecognitionService fieldSnapshotRecognition,
     ISmartBpSnapshotRecognitionPlanner planner,
     ISmartBpRecognitionStateStore stateStore,
     ISmartBpRecognitionLedger ledger,
@@ -909,7 +1001,8 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
     ISmartBpWorkflowBackfillService backfill,
     SmartBpCandidateOperationBuilder candidateBuilder,
     ISmartBpDetectedOperationApplier applier,
-    ISmartBpSceneGateService sceneGate) : ISmartBpAutoRecognitionCoordinator, ISmartBpStepCommitScheduler
+    ISmartBpSceneGateService sceneGate,
+    ISmartBpDebugLog debugLog) : ISmartBpAutoRecognitionCoordinator, ISmartBpStepCommitScheduler
 {
     private readonly SemaphoreSlim _tickGate = new(1, 1);
     private readonly object _cancellationLock = new();
@@ -982,7 +1075,52 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
             if (isDryRun)
                 messages.Add("Speed-test dry run: recognition request shape matches automatic tick, but local merge, auto apply, and GameGuidance sync are disabled.");
             IReadOnlyDictionary<string, string> rawResponses;
-            if (settings.Settings.UseMultiImageSnapshotRequest)
+            var recognitionPath = ResolveRecognitionPath(request);
+            debugLog.Write("recognition", $"Recognition path={recognitionPath}; structured_output_mode={settings.Settings.StructuredOutputMode}; requested_fields=[{string.Join(", ", request.RequestedFields)}]; legacy_delta={settings.Settings.UseLegacySnapshotDeltaRecognition}.");
+            messages.Add($"Recognition path: {recognitionPath}; structured output: {settings.Settings.StructuredOutputMode}.");
+            if (recognitionPath == SmartBpRecognitionPath.PhaseOnly)
+            {
+                var phaseOnly = await fieldSnapshotRecognition.RecognizePhaseOnlyAsync(frame, tickToken);
+                rawResponses = new Dictionary<string, string> { ["phase_only"] = phaseOnly.RawJson };
+                raw = phaseOnly.RawJson;
+                messages.AddRange(phaseOnly.Diagnostics);
+                phaseResult = phaseOnly.Phase;
+                phaseCrop = phaseOnly.Crop;
+                contentCrops = [];
+                if (!isDryRun)
+                {
+                    stateStore.ApplyPhase(phaseResult.Phase, sequence);
+                    messages.Add($"Applied phase-only update: phase={phaseResult.Phase}.");
+                }
+            }
+            else if (recognitionPath == SmartBpRecognitionPath.FieldSnapshot || recognitionPath == SmartBpRecognitionPath.FullFieldSnapshot)
+            {
+                var phaseOnly = await fieldSnapshotRecognition.RecognizePhaseOnlyAsync(frame, tickToken);
+                var rawMap = new Dictionary<string, string> { ["phase_only"] = phaseOnly.RawJson };
+                raw = phaseOnly.RawJson;
+                messages.AddRange(phaseOnly.Diagnostics);
+                phaseResult = phaseOnly.Phase;
+                phaseCrop = phaseOnly.Crop;
+                if (!isDryRun) stateStore.ApplyPhase(phaseResult.Phase, sequence);
+                var contentCropList = new List<SmartBpCroppedFrame>();
+                var rawBuilder = new StringBuilder(raw);
+                foreach (var (region, targetField) in request.RequestedRegions)
+                {
+                    var fieldResult = await fieldSnapshotRecognition.RecognizeFieldAsync(frame, region, targetField, tickToken);
+                    rawMap[$"field_{targetField}"] = fieldResult.RawJson;
+                    rawBuilder.Append("\n\n").Append($"field_{targetField} raw:\n").Append(fieldResult.RawJson);
+                    messages.AddRange(fieldResult.Diagnostics);
+                    contentCropList.Add(fieldResult.Crop);
+                    if (isDryRun) continue;
+                    var update = new SmartBpSnapshotFieldUpdate { Field = fieldResult.Field, Slots = fieldResult.Slots.ToList(), PickedHun = fieldResult.PickedHun };
+                    var mergeMessages = stateStore.ApplyFieldSnapshot(fieldResult.Field, update, sequence, DateTimeOffset.Now);
+                    messages.AddRange(mergeMessages);
+                }
+                rawResponses = rawMap;
+                raw = rawBuilder.ToString();
+                contentCrops = contentCropList;
+            }
+            else if (settings.Settings.UseMultiImageSnapshotRequest)
             {
                 try
                 {
@@ -1140,6 +1278,27 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
 
     private SmartBpAutoRecognitionTickResult Failure(string error) =>
         new(null, null, null, null, null, null, guidance.GetRuntimeSnapshot(), [], [], null, "", error);
+
+    /// <summary>
+    /// Resolves which recognition path the coordinator should use for this tick.
+    /// OCR engine and legacy delta flag always use the legacy delta path. AI engine without
+    /// legacy flag uses phase-only when no fields are requested, field snapshot when one or more
+    /// fields are requested, and full field snapshot when all four fields are requested.
+    /// </summary>
+    /// <param name="request">The planner-built recognition request.</param>
+    /// <returns>The recognition path enum value.</returns>
+    private SmartBpRecognitionPath ResolveRecognitionPath(SmartBpSnapshotDeltaRequest request)
+    {
+        if (settings.Settings.RecognitionEngine == SmartBpRecognitionEngine.Ocr && settings.Settings.EnableOcrBpRecognition)
+            return SmartBpRecognitionPath.LegacyDelta;
+        if (settings.Settings.UseLegacySnapshotDeltaRecognition)
+            return SmartBpRecognitionPath.LegacyDelta;
+        var requestedFields = request.RequestedFields;
+        if (requestedFields.Count == 0)
+            return SmartBpRecognitionPath.PhaseOnly;
+        var allFields = new HashSet<string>(StringComparer.Ordinal) { "banned_sur", "banned_hun", "picked_sur", "picked_hun" };
+        return allFields.IsSubsetOf(requestedFields) ? SmartBpRecognitionPath.FullFieldSnapshot : SmartBpRecognitionPath.FieldSnapshot;
+    }
 
     private static SmartBpDetectedOperation[] BuildFreeSyncOperations(
         SmartBpBusinessStateRecognitionResult state,

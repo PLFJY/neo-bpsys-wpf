@@ -113,6 +113,10 @@ internal sealed class SmartBpRecognitionSettingsService : ISmartBpRecognitionSet
         Settings.ContentCropMaxImageWidth = Math.Clamp(Settings.ContentCropMaxImageWidth, 320, Settings.MaxImageWidth);
         Settings.PhaseMaxTokens = Math.Clamp(Settings.PhaseMaxTokens, 16, 256);
         Settings.SnapshotDeltaMaxTokens = Math.Clamp(Settings.SnapshotDeltaMaxTokens, 128, 4096);
+        Settings.BannedSurFieldMaxTokens = Math.Clamp(Settings.BannedSurFieldMaxTokens, 64, 2048);
+        Settings.BannedHunFieldMaxTokens = Math.Clamp(Settings.BannedHunFieldMaxTokens, 64, 2048);
+        Settings.PickedSurFieldMaxTokens = Math.Clamp(Settings.PickedSurFieldMaxTokens, 64, 2048);
+        Settings.PickedHunFieldMaxTokens = Math.Clamp(Settings.PickedHunFieldMaxTokens, 64, 2048);
         Settings.PhaseTransitionCommitHoldMilliseconds = Math.Clamp(Settings.PhaseTransitionCommitHoldMilliseconds, 0, 2000);
         Settings.PhaseTransitionCommitHoldMaxMilliseconds = Math.Clamp(Settings.PhaseTransitionCommitHoldMaxMilliseconds, Settings.PhaseTransitionCommitHoldMilliseconds, 3000);
         Settings.RecognitionFrameBufferMilliseconds = Math.Clamp(Settings.RecognitionFrameBufferMilliseconds, 250, 5000);

@@ -249,6 +249,26 @@ public interface ISmartBpSnapshotDeltaRecognitionService
         long frameSequence,
         CancellationToken cancellationToken = default);
 }
+/// <summary>Recognizes the BP phase and individual field snapshots using independent AI requests.</summary>
+public interface ISmartBpAiFieldSnapshotRecognitionService
+{
+    /// <summary>Recognizes only the phase crop without any business field updates.</summary>
+    /// <param name="frame">Source frame.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The phase-only recognition result.</returns>
+    Task<SmartBpAiPhaseOnlyResult> RecognizePhaseOnlyAsync(BitmapSource frame, CancellationToken cancellationToken = default);
+    /// <summary>Recognizes the current visible snapshot of one business field from its crop.</summary>
+    /// <param name="frame">Source frame.</param>
+    /// <param name="region">Coarse crop region that owns the field.</param>
+    /// <param name="field">Business field id (banned_sur, banned_hun, picked_sur, picked_hun).</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The field snapshot recognition result.</returns>
+    Task<SmartBpAiFieldSnapshotResult> RecognizeFieldAsync(
+        BitmapSource frame,
+        SmartBpRecognitionRegion region,
+        string field,
+        CancellationToken cancellationToken = default);
+}
 /// <summary>Stores the locally merged incremental SmartBP recognition state.</summary>
 public interface ISmartBpRecognitionStateStore
 {
@@ -256,6 +276,17 @@ public interface ISmartBpRecognitionStateStore
     SmartBpBusinessStateRecognitionResult Snapshot { get; }
     /// <summary>Applies one model delta to the local state.</summary>
     IReadOnlyList<string> ApplyDelta(SmartBpSnapshotDeltaResult delta, long frameSequence, DateTimeOffset timestamp);
+    /// <summary>Applies one field snapshot to the local state using per-slot merge rules.</summary>
+    /// <param name="field">Business field id.</param>
+    /// <param name="snapshot">Field snapshot update carrying slot_state evidence.</param>
+    /// <param name="frameSequence">Frame sequence number.</param>
+    /// <param name="timestamp">Application timestamp.</param>
+    /// <returns>Per-slot merge diagnostics.</returns>
+    IReadOnlyList<string> ApplyFieldSnapshot(string field, SmartBpSnapshotFieldUpdate snapshot, long frameSequence, DateTimeOffset timestamp);
+    /// <summary>Updates only the locally merged phase.</summary>
+    /// <param name="phase">Recognized phase.</param>
+    /// <param name="frameSequence">Frame sequence number.</param>
+    void ApplyPhase(string phase, long frameSequence);
     /// <summary>Returns field staleness diagnostics.</summary>
     IReadOnlyList<string> GetStaleFieldDiagnostics(DateTimeOffset timestamp, int staleMilliseconds);
     /// <summary>Resets all locally merged state.</summary>
@@ -298,6 +329,17 @@ public interface ILlamaCppOpenAiClient
     Task<string> RecognizeFocusedAsync(string imageDataUrl, Core.Enums.GameAction action, IReadOnlyList<int> indexes, CancellationToken cancellationToken = default);
     /// <summary>Recognizes a phase plus requested content updates from multiple cropped images in one request.</summary>
     Task<string> RecognizeSnapshotDeltaAsync(IReadOnlyList<SmartBpMultimodalRegionInput> regions, SmartBpSnapshotDeltaRequest request, CancellationToken cancellationToken = default);
+    /// <summary>Recognizes one field snapshot from a single cropped image using a field-specific prompt and schema.</summary>
+    /// <param name="imageDataUrl">Encoded crop image data URL.</param>
+    /// <param name="field">Business field id.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The raw model JSON response (already repaired when using prompt-and-repair mode).</returns>
+    Task<string> RecognizeFieldSnapshotAsync(string imageDataUrl, string field, CancellationToken cancellationToken = default);
+    /// <summary>Recognizes only the phase crop using the short phase-only prompt.</summary>
+    /// <param name="imageDataUrl">Encoded phase crop image data URL.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The raw model JSON response (already repaired when using prompt-and-repair mode).</returns>
+    Task<string> RecognizePhaseOnlyAsync(string imageDataUrl, CancellationToken cancellationToken = default);
 }
 
 /// <summary>Classifies the current Identity V scene and gates BP writes.</summary>

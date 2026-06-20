@@ -341,6 +341,96 @@ phase 只能是：
 区域选择只用于输出对应 phase 以停止角色 BP，不识别区域或地图内容。
 """;
 
+    public static string BuildPhaseOnly() => """
+/no_think
+
+你只会收到第五人格 BP 顶部/阶段裁剪图。
+只判断当前 phase。
+只输出 JSON：
+{"phase":"..."}
+""";
+
+    public static string BuildBannedSurFieldSnapshot() => """
+/no_think
+
+你只会收到 right_top 裁剪图。
+这是监管者方禁用求生者区域。
+只输出 banned_sur。
+banned_sur 固定 4 个槽，index 0,1,2,3。
+槽位顺序按视觉从左到右。
+已禁用旧槽可能变暗、半透明、红叉、禁用标记；这些都表示 selected/banned，不是 empty。
+只有明确显示“未选择”或空槽，slot_state 才能是 empty。
+看不清但不能确定为空时，slot_state 输出 unknown。
+不要输出 phase。
+不要输出 picked_sur / picked_hun / banned_hun。
+只输出 JSON：
+{"field":"banned_sur","slots":[{"index":0,"slot_state":"selected","character_name":"..."},{"index":1,"slot_state":"selected","character_name":"..."},{"index":2,"slot_state":"selected","character_name":"..."},{"index":3,"slot_state":"empty","character_name":"未选择"}]}
+""";
+
+    public static string BuildBannedHunFieldSnapshot() => """
+/no_think
+
+你只会收到 left_top 裁剪图。
+这是求生者方禁用监管者区域。
+只输出 banned_hun。
+banned_hun 固定 2 个槽，index 0,1。
+槽位顺序按视觉从左到右。
+已禁用旧槽可能变暗、半透明、红叉、禁用标记；这些都表示 selected/banned，不是 empty。
+只有明确显示“未选择”或空槽，slot_state 才能是 empty。
+看不清但不能确定为空时，slot_state 输出 unknown。
+不要输出 phase。
+不要输出 banned_sur / picked_sur / picked_hun。
+只输出 JSON：
+{"field":"banned_hun","slots":[{"index":0,"slot_state":"selected","character_name":"..."},{"index":1,"slot_state":"empty","character_name":"未选择"}]}
+""";
+
+    public static string BuildPickedSurFieldSnapshot() => """
+/no_think
+
+你只会收到 left_bottom 裁剪图。
+这是求生者选择/角色分配区域。
+只输出 picked_sur。
+4 survivor player slots left-to-right.
+character_name is usually the highest text near/under portrait.
+player_id is below character_name.
+talent name may appear below player_id; do not put talent into character_name.
+picked_sur 固定 4 个槽，index 0,1,2,3。
+只有明确显示“未选择”或空槽，slot_state 才能是 empty。
+看不清但不能确定为空时，slot_state 输出 unknown。
+不要输出 phase。
+不要输出 banned_sur / banned_hun / picked_hun。
+只输出 JSON：
+{"field":"picked_sur","slots":[{"index":0,"slot_state":"selected","character_name":"...","player_id":"..."},{"index":1,"slot_state":"selected","character_name":"...","player_id":"..."},{"index":2,"slot_state":"empty","character_name":"未选择","player_id":null},{"index":3,"slot_state":"empty","character_name":"未选择","player_id":null}]}
+""";
+
+    public static string BuildPickedHunFieldSnapshot() => """
+/no_think
+
+你只会收到 right_bottom 裁剪图。
+这是监管者选择区域。
+只输出 picked_hun。
+picked_hun 只有一个槽，index 0。
+character_name 通常是监管者头像下方第一行。
+player_id 通常是第二行。
+talent name may appear lower; do not put talent name into character_name。
+只有明确显示“未选择”或空槽，slot_state 才能是 empty。
+看不清但不能确定为空时，slot_state 输出 unknown。
+不要输出 phase。
+不要输出 banned_sur / banned_hun / picked_sur。
+只输出 JSON：
+{"field":"picked_hun","picked_hun":{"index":0,"slot_state":"selected","character_name":"...","player_id":"..."}}
+""";
+
+    /// <summary>Returns the field-snapshot user prompt for the requested field id.</summary>
+    public static string BuildFieldSnapshot(string field) => field switch
+    {
+        "banned_sur" => BuildBannedSurFieldSnapshot(),
+        "banned_hun" => BuildBannedHunFieldSnapshot(),
+        "picked_sur" => BuildPickedSurFieldSnapshot(),
+        "picked_hun" => BuildPickedHunFieldSnapshot(),
+        _ => throw new NotSupportedException($"Field snapshot prompt does not support field '{field}'.")
+    };
+
     public static string BuildFocusedBusiness(GameAction action, IEnumerable<string> survivors, IEnumerable<string> hunters)
     {
         var phase = SmartBpAutomaticMapping.ToPhase(action);
@@ -481,6 +571,56 @@ internal static class SmartBpRecognitionJsonSchemaProvider
 {
     public static JsonObject GetPhaseOnly() =>
         Object(new JsonObject { ["phase"] = Phase() }, "phase");
+
+    public static JsonObject GetBannedSurFieldSnapshot(IReadOnlyList<string> survivorCandidates, bool strictCandidateEnums)
+    {
+        var characterName = strictCandidateEnums ? CharacterNameEnum(survivorCandidates) : StringCharacterName();
+        return Object(new JsonObject
+        {
+            ["field"] = Const("banned_sur"),
+            ["slots"] = FixedArray(DeltaSlot(characterName, 0, 1, 2, 3), 4)
+        }, "field", "slots");
+    }
+
+    public static JsonObject GetBannedHunFieldSnapshot(IReadOnlyList<string> hunterCandidates, bool strictCandidateEnums)
+    {
+        var characterName = strictCandidateEnums ? CharacterNameEnum(hunterCandidates) : StringCharacterName();
+        return Object(new JsonObject
+        {
+            ["field"] = Const("banned_hun"),
+            ["slots"] = FixedArray(DeltaSlot(characterName, 0, 1), 2)
+        }, "field", "slots");
+    }
+
+    public static JsonObject GetPickedSurFieldSnapshot(IReadOnlyList<string> survivorCandidates, bool strictCandidateEnums)
+    {
+        var characterName = strictCandidateEnums ? CharacterNameEnum(survivorCandidates) : StringCharacterName();
+        return Object(new JsonObject
+        {
+            ["field"] = Const("picked_sur"),
+            ["slots"] = FixedArray(DeltaSlot(characterName, 0, 1, 2, 3), 4)
+        }, "field", "slots");
+    }
+
+    public static JsonObject GetPickedHunFieldSnapshot(IReadOnlyList<string> hunterCandidates, bool strictCandidateEnums)
+    {
+        var characterName = strictCandidateEnums ? CharacterNameEnum(hunterCandidates) : StringCharacterName();
+        return Object(new JsonObject
+        {
+            ["field"] = Const("picked_hun"),
+            ["picked_hun"] = Object(new JsonObject { ["index"] = Const(0), ["slot_state"] = DeltaSlotState(), ["character_name"] = characterName, ["player_id"] = NullableString() }, "index", "slot_state", "character_name", "player_id")
+        }, "field", "picked_hun");
+    }
+
+    /// <summary>Returns the field-snapshot JSON schema for the requested field id.</summary>
+    public static JsonObject GetFieldSnapshot(string field, IReadOnlyList<string> survivorCandidates, IReadOnlyList<string> hunterCandidates, bool strictCandidateEnums) => field switch
+    {
+        "banned_sur" => GetBannedSurFieldSnapshot(survivorCandidates, strictCandidateEnums),
+        "banned_hun" => GetBannedHunFieldSnapshot(hunterCandidates, strictCandidateEnums),
+        "picked_sur" => GetPickedSurFieldSnapshot(survivorCandidates, strictCandidateEnums),
+        "picked_hun" => GetPickedHunFieldSnapshot(hunterCandidates, strictCandidateEnums),
+        _ => throw new NotSupportedException($"Field snapshot schema does not support field '{field}'.")
+    };
 
     public static JsonObject GetFocusedBusiness(
         GameAction action,
@@ -648,6 +788,38 @@ internal static class SmartBpRecognitionJsonSchemaProvider
     private static JsonObject Array(JsonNode? item) => new() { ["type"] = "array", ["items"] = item };
 }
 
+internal static class SmartBpJsonRepair
+{
+    private static readonly Regex FenceRegex = new(@"^\s*```(?:json)?\s*\n?([\s\S]*?)\n?\s*```\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+    private static readonly Regex FirstObjectRegex = new(@"\{[\s\S]*\}", RegexOptions.Compiled);
+
+    /// <summary>Repairs common model output issues such as Markdown JSON fences and surrounding prose.</summary>
+    /// <param name="raw">Raw model content.</param>
+    /// <returns>The repaired JSON string and whether a fence was removed.</returns>
+    public static (string Repaired, bool RemovedFence) Repair(string raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return (raw, false);
+        var trimmed = raw.Trim();
+        var match = FenceRegex.Match(trimmed);
+        if (match.Success)
+            return (match.Groups[1].Value.Trim(), true);
+        if (trimmed.StartsWith("```", StringComparison.Ordinal))
+        {
+            var withoutOpening = trimmed[3..];
+            if (withoutOpening.StartsWith("json", StringComparison.OrdinalIgnoreCase)) withoutOpening = withoutOpening[4..];
+            withoutOpening = withoutOpening.TrimStart('\r', '\n', ' ', '\t');
+            if (withoutOpening.EndsWith("```", StringComparison.Ordinal)) withoutOpening = withoutOpening[..^3];
+            return (withoutOpening.Trim(), true);
+        }
+        if (!trimmed.StartsWith('{') || !trimmed.EndsWith('}'))
+        {
+            var objectMatch = FirstObjectRegex.Match(trimmed);
+            if (objectMatch.Success) return (objectMatch.Value, false);
+        }
+        return (trimmed, false);
+    }
+}
+
 internal sealed class LlamaCppOpenAiClient(ISmartBpRecognitionSettingsService settings, ISharedDataService shared, ISmartBpPromptProfileProvider promptProfiles, ILogger<LlamaCppOpenAiClient> logger, ISmartBpDebugLog debugLog) : ILlamaCppOpenAiClient
 {
     public LlamaCppResponseMetrics? LastResponseMetrics { get; private set; }
@@ -704,6 +876,88 @@ internal sealed class LlamaCppOpenAiClient(ISmartBpRecognitionSettingsService se
         var body = CreateBody(profile.SystemPrompt, SmartBpRecognitionPromptBuilder.BuildPhaseRecognition(), imageDataUrl,
             SmartBpRecognitionJsonSchemaProvider.GetPhaseOnly(), settings.Settings.PhaseMaxTokens);
         return await SendSpecialAsync(body, "PhaseTop", cancellationToken);
+    }
+
+    public async Task<string> RecognizePhaseOnlyAsync(string imageDataUrl, CancellationToken cancellationToken = default)
+    {
+        var profile = await promptProfiles.LoadAsync(settings.Settings.PromptProfileId, cancellationToken);
+        var prompt = SmartBpRecognitionPromptBuilder.BuildPhaseOnly();
+        var mode = settings.Settings.StructuredOutputMode;
+        debugLog.Write("recognition", $"Phase-only path; structured_output_mode={mode}; prompt_chars={prompt.Length}; max_tokens={settings.Settings.PhaseMaxTokens}.");
+        debugLog.Write("recognition", $"Phase-only prompt text:\n{prompt}");
+        var body = CreateStructuredBody(profile.SystemPrompt, prompt, imageDataUrl,
+            SmartBpRecognitionJsonSchemaProvider.GetPhaseOnly(), settings.Settings.PhaseMaxTokens, mode, "smartbp_phase");
+        var raw = await SendSpecialAsync(body, "PhaseOnly", cancellationToken);
+        return await RepairAndLogAsync(raw, mode, "PhaseOnly");
+    }
+
+    public async Task<string> RecognizeFieldSnapshotAsync(string imageDataUrl, string field, CancellationToken cancellationToken = default)
+    {
+        var profile = await promptProfiles.LoadAsync(settings.Settings.PromptProfileId, cancellationToken);
+        var prompt = SmartBpRecognitionPromptBuilder.BuildFieldSnapshot(field);
+        var maxTokens = FieldMaxTokens(field);
+        var mode = settings.Settings.StructuredOutputMode;
+        var strictCandidateEnums = settings.Settings.UseStrictCandidateEnumsInAutoSchema;
+        var schema = SmartBpRecognitionJsonSchemaProvider.GetFieldSnapshot(field, shared.SurCharaDict.Keys.ToArray(), shared.HunCharaDict.Keys.ToArray(), strictCandidateEnums);
+        debugLog.Write("recognition", $"Field snapshot field={field}; structured_output_mode={mode}; prompt_chars={prompt.Length}; max_tokens={maxTokens}.");
+        debugLog.Write("recognition", $"Field snapshot prompt text:\n{prompt}");
+        var body = CreateStructuredBody(profile.SystemPrompt, prompt, imageDataUrl, schema, maxTokens, mode, $"smartbp_field_{field}");
+        var raw = await SendSpecialAsync(body, $"FieldSnapshot:{field}", cancellationToken);
+        return await RepairAndLogAsync(raw, mode, $"FieldSnapshot:{field}");
+    }
+
+    private int FieldMaxTokens(string field) => field switch
+    {
+        "banned_sur" => settings.Settings.BannedSurFieldMaxTokens,
+        "banned_hun" => settings.Settings.BannedHunFieldMaxTokens,
+        "picked_sur" => settings.Settings.PickedSurFieldMaxTokens,
+        "picked_hun" => settings.Settings.PickedHunFieldMaxTokens,
+        _ => settings.Settings.SnapshotDeltaMaxTokens
+    };
+
+    private async Task<string> RepairAndLogAsync(string raw, AiStructuredOutputMode mode, string taskLabel)
+    {
+        if (mode != AiStructuredOutputMode.JsonPromptAndRepair)
+        {
+            debugLog.Write("recognition", $"{taskLabel} raw JSON response:\n{raw}");
+            return raw;
+        }
+        var (repaired, removedFence) = SmartBpJsonRepair.Repair(raw);
+        if (removedFence) debugLog.Write("recognition", $"Removed markdown JSON fence during repair for {taskLabel}.");
+        debugLog.Write("recognition", $"{taskLabel} raw JSON response:\n{raw}");
+        if (!string.Equals(repaired, raw, StringComparison.Ordinal))
+            debugLog.Write("recognition", $"{taskLabel} repaired JSON:\n{repaired}");
+        return repaired;
+    }
+
+    private JsonObject CreateStructuredBody(string systemPrompt, string userPrompt, string imageDataUrl, JsonObject schema, int maxTokens, AiStructuredOutputMode mode, string schemaName)
+    {
+        var content = new JsonArray(
+            new JsonObject { ["type"] = "text", ["text"] = userPrompt },
+            new JsonObject { ["type"] = "image_url", ["image_url"] = new JsonObject { ["url"] = imageDataUrl } });
+        if (mode == AiStructuredOutputMode.JsonPromptAndRepair)
+        {
+            content.Insert(0, new JsonObject { ["type"] = "text", ["text"] = "只输出 JSON。\n不要输出 Markdown。\n不要输出 ```json 代码块。\n不要输出解释。" });
+        }
+        var body = new JsonObject
+        {
+            ["model"] = "local",
+            ["temperature"] = 0,
+            ["max_tokens"] = maxTokens,
+            ["chat_template_kwargs"] = new JsonObject { ["enable_thinking"] = false },
+            ["messages"] = new JsonArray(
+                new JsonObject { ["role"] = "system", ["content"] = systemPrompt },
+                new JsonObject { ["role"] = "user", ["content"] = content })
+        };
+        if (mode == AiStructuredOutputMode.JsonSchemaStrict)
+        {
+            body["response_format"] = new JsonObject
+            {
+                ["type"] = "json_schema",
+                ["json_schema"] = new JsonObject { ["name"] = schemaName, ["strict"] = true, ["schema"] = schema }
+            };
+        }
+        return body;
     }
 
     public async Task<string> RecognizeFocusedBusinessAsync(string imageDataUrl, GameAction action, CancellationToken cancellationToken = default)
