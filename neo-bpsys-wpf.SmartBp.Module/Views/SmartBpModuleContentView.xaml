@@ -21,13 +21,14 @@
             x:Key="SmartBpDebugOutputTextBox"
             BasedOn="{StaticResource {x:Type TextBox}}"
             TargetType="TextBox">
-            <Setter Property="Height" Value="96" />
+            <Setter Property="Height" Value="200" />
             <Setter Property="Margin" Value="0,6,0,0" />
             <Setter Property="AcceptsReturn" Value="True" />
             <Setter Property="IsReadOnly" Value="True" />
             <Setter Property="TextWrapping" Value="Wrap" />
-            <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+            <Setter Property="VerticalScrollBarVisibility" Value="Visible" />
             <Setter Property="HorizontalScrollBarVisibility" Value="Disabled" />
+            <EventSetter Event="PreviewMouseWheel" Handler="DebugTextBox_OnPreviewMouseWheel" />
         </Style>
     </UserControl.Resources>
     <StackPanel>
@@ -297,14 +298,18 @@
                             Command="{Binding ForceStopLlamaServerCommand}"
                             Content="{lex:Loc SmartBpAiForceStopLlama}"
                             Icon="{ui:SymbolIcon Symbol=ShieldDismiss24}" />
-                        <ui:ProgressRing
-                            Width="20"
-                            Height="20"
+                        <StackPanel
                             Margin="0,0,8,8"
                             VerticalAlignment="Center"
-                            IsIndeterminate="True"
-                            Visibility="{Binding IsLlamaServerStarting, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                        <TextBlock VerticalAlignment="Center" Text="{Binding LlamaServerStatus}" />
+                            Orientation="Horizontal">
+                            <ui:ProgressRing
+                                Width="20"
+                                Height="20"
+                                VerticalAlignment="Center"
+                                IsIndeterminate="True"
+                                Visibility="{Binding IsLlamaServerStarting, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                            <TextBlock VerticalAlignment="Center" Text="{Binding LlamaServerStatus}" />
+                        </StackPanel>
                     </WrapPanel>
                     <TextBlock Margin="0,8,0,0"><Run Text="{lex:Loc SmartBpAiGpuName}" /><Run Text=": " /><Run Text="{Binding AiGpuName}" /></TextBlock>
                     <TextBlock><Run Text="{lex:Loc SmartBpAiGpuUtilization}" /><Run Text=": " /><Run Text="{Binding AiGpuUtilization}" /></TextBlock>
@@ -556,7 +561,7 @@
                         Content="{lex:Loc SmartBpClearDebugLog}"
                         Icon="{ui:SymbolIcon Symbol=Delete24}" />
                 </WrapPanel>
-                <TextBox Style="{StaticResource SmartBpDebugOutputTextBox}" Text="{Binding AiStageDetectionResult}" />
+                <TextBlock Text="{Binding AiStageDetectionResult}" />
                 <TextBox Style="{StaticResource SmartBpDebugOutputTextBox}" Text="{Binding AiGuidanceSnapshot}" />
                 <TextBox Style="{StaticResource SmartBpDebugOutputTextBox}" Text="{Binding AiCandidateOperations}" />
                 <TextBox Style="{StaticResource SmartBpDebugOutputTextBox}" Text="{Binding AiSceneDiagnostics}" />
