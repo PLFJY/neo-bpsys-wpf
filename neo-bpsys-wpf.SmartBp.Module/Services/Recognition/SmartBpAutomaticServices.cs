@@ -211,25 +211,34 @@ internal static class SmartBpAutomaticParser
         IReadOnlyCollection<string> survivorCandidates,
         IReadOnlyCollection<string> hunterCandidates)
     {
+        using var document = JsonDocument.Parse(raw);
         var result = JsonSerializer.Deserialize<SmartBpSnapshotDeltaResult>(raw)
             ?? throw new InvalidDataException("Snapshot delta JSON is empty.");
         if (!SmartBpAutomaticMapping.ValidPhases.Contains(result.Phase)) throw new InvalidDataException("Invalid BP phase.");
         result.Updates ??= [];
         var requested = requestedFields.ToHashSet(StringComparer.Ordinal);
-        foreach (var update in result.Updates)
+        var rawUpdates = document.RootElement.TryGetProperty("updates", out var updatesElement) && updatesElement.ValueKind == JsonValueKind.Array
+            ? updatesElement.EnumerateArray().ToArray()
+            : [];
+        for (var updateIndex = 0; updateIndex < result.Updates.Count; updateIndex++)
         {
+            var update = result.Updates[updateIndex];
+            var rawUpdate = updateIndex < rawUpdates.Length ? rawUpdates[updateIndex] : default;
             if (!requested.Contains(update.Field)) throw new InvalidDataException($"Snapshot delta contained an unrequested field: {update.Field}.");
             switch (update.Field)
             {
                 case "banned_sur":
+                    NormalizeLegacyDeltaSlotStates(update.Slots, rawUpdate, "slots");
                     ValidateDeltaSlots(update.Slots, 4, survivorCandidates, update.Field);
                     if (update.PickedHun != null) throw new InvalidDataException("banned_sur update must not contain picked_hun.");
                     break;
                 case "banned_hun":
+                    NormalizeLegacyDeltaSlotStates(update.Slots, rawUpdate, "slots");
                     ValidateDeltaSlots(update.Slots, 2, hunterCandidates, update.Field);
                     if (update.PickedHun != null) throw new InvalidDataException("banned_hun update must not contain picked_hun.");
                     break;
                 case "picked_sur":
+                    NormalizeLegacyDeltaSlotStates(update.Slots, rawUpdate, "slots");
                     ValidateDeltaSlots(update.Slots, 4, survivorCandidates, update.Field);
                     if (update.PickedHun != null) throw new InvalidDataException("picked_sur update must not contain picked_hun.");
                     break;
@@ -237,7 +246,8 @@ internal static class SmartBpAutomaticParser
                     if (update.Slots != null) throw new InvalidDataException("picked_hun update must not contain slots.");
                     if (update.PickedHun == null) throw new InvalidDataException("picked_hun update must contain picked_hun.");
                     if (update.PickedHun.Index != 0) throw new InvalidDataException("picked_hun.index must be 0.");
-                    NormalizeFocusedSlot(update.PickedHun, hunterCandidates, "picked_hun");
+                    NormalizeLegacyDeltaSlotState(update.PickedHun, rawUpdate, "picked_hun");
+                    ValidateDeltaSlot(update.PickedHun, hunterCandidates, "picked_hun");
                     break;
                 default:
                     throw new InvalidDataException($"Invalid snapshot delta field: {update.Field}.");
@@ -246,14 +256,60 @@ internal static class SmartBpAutomaticParser
         return result;
     }
 
-    private static void ValidateDeltaSlots(List<SmartBpRecognizedPlayerCharacterSlot>? slots, int count, IReadOnlyCollection<string> allowed, string field)
+    private static void NormalizeLegacyDeltaSlotStates(List<SmartBpSnapshotDeltaSlot>? slots, JsonElement rawUpdate, string propertyName)
+    {
+        if (slots == null || rawUpdate.ValueKind != JsonValueKind.Object || !rawUpdate.TryGetProperty(propertyName, out var rawSlots) || rawSlots.ValueKind != JsonValueKind.Array) return;
+        var rawItems = rawSlots.EnumerateArray().ToArray();
+        for (var i = 0; i < slots.Count && i < rawItems.Length; i++)
+            NormalizeLegacyDeltaSlotState(slots[i], rawItems[i]);
+    }
+
+    private static void NormalizeLegacyDeltaSlotState(SmartBpSnapshotDeltaSlot slot, JsonElement rawUpdate, string propertyName)
+    {
+        if (rawUpdate.ValueKind == JsonValueKind.Object && rawUpdate.TryGetProperty(propertyName, out var rawSlot))
+            NormalizeLegacyDeltaSlotState(slot, rawSlot);
+    }
+
+    private static void NormalizeLegacyDeltaSlotState(SmartBpSnapshotDeltaSlot slot, JsonElement rawSlot)
+    {
+        if (rawSlot.ValueKind == JsonValueKind.Object && !rawSlot.TryGetProperty("slot_state", out _))
+            slot.SlotState = SmartBpBusinessStateParser.IsUnselected(slot.CharacterName) ? "empty" : "selected";
+    }
+
+    private static void ValidateDeltaSlots(List<SmartBpSnapshotDeltaSlot>? slots, int count, IReadOnlyCollection<string> allowed, string field)
     {
         if (slots == null) throw new InvalidDataException($"{field} update must contain slots.");
         if (slots.Count != count) throw new InvalidDataException($"{field}.slots must contain exactly {count} entries.");
         var expectedIndexes = Enumerable.Range(0, count).ToArray();
         if (!slots.Select(x => x.Index).OrderBy(x => x).SequenceEqual(expectedIndexes))
             throw new InvalidDataException($"{field}.slots contain invalid indexes.");
-        foreach (var slot in slots) NormalizeFocusedSlot(slot, allowed, field);
+        foreach (var slot in slots) ValidateDeltaSlot(slot, allowed, field);
+    }
+
+    private static void ValidateDeltaSlot(SmartBpSnapshotDeltaSlot slot, IReadOnlyCollection<string> allowed, string field)
+    {
+        if (string.IsNullOrWhiteSpace(slot.CharacterName) ||
+            slot.CharacterName.Equals("unknown", StringComparison.OrdinalIgnoreCase) ||
+            slot.CharacterName.Equals("null", StringComparison.OrdinalIgnoreCase))
+            slot.CharacterName = "未选择";
+        else
+            slot.CharacterName = slot.CharacterName.Trim();
+
+        slot.SlotState = slot.SlotState?.Trim().ToLowerInvariant() ?? "unknown";
+        if (slot.SlotState is not ("selected" or "empty" or "unknown"))
+            throw new InvalidDataException($"{field}.slot_state is invalid: {slot.SlotState}");
+        if (slot.SlotState == "selected")
+        {
+            if (SmartBpBusinessStateParser.IsUnselected(slot.CharacterName))
+                throw new InvalidDataException($"{field}.selected slot must contain a candidate character.");
+            if (!allowed.Contains(slot.CharacterName))
+                throw new InvalidDataException($"{field}.character_name is not in the matching candidate list: {slot.CharacterName}");
+            return;
+        }
+        if (slot.SlotState == "empty" && !SmartBpBusinessStateParser.IsUnselected(slot.CharacterName))
+            throw new InvalidDataException($"{field}.empty slot must use character_name=未选择.");
+        if (slot.SlotState == "unknown" && !SmartBpBusinessStateParser.IsUnselected(slot.CharacterName) && !allowed.Contains(slot.CharacterName))
+            throw new InvalidDataException($"{field}.unknown character_name is not in the matching candidate list: {slot.CharacterName}");
     }
 
     public static SmartBpFocusedBusinessExtractionResult ParseFocusedBusiness(
@@ -1123,19 +1179,30 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
     {
         var updates = new List<SmartBpSnapshotFieldUpdate>();
         if (requestedFields.Contains("banned_sur"))
-            updates.Add(new() { Field = "banned_sur", Slots = state.BannedSur.Select(ToPlayerSlot).ToList() });
+            updates.Add(new() { Field = "banned_sur", Slots = state.BannedSur.Select(ToDeltaSlot).ToList() });
         if (requestedFields.Contains("banned_hun"))
-            updates.Add(new() { Field = "banned_hun", Slots = state.BannedHun.Select(ToPlayerSlot).ToList() });
+            updates.Add(new() { Field = "banned_hun", Slots = state.BannedHun.Select(ToDeltaSlot).ToList() });
         if (requestedFields.Contains("picked_sur"))
-            updates.Add(new() { Field = "picked_sur", Slots = state.PickedSur.Select(ClonePlayerSlot).ToList() });
+            updates.Add(new() { Field = "picked_sur", Slots = state.PickedSur.Select(ToDeltaSlot).ToList() });
         if (requestedFields.Contains("picked_hun"))
-            updates.Add(new() { Field = "picked_hun", PickedHun = ClonePlayerSlot(state.PickedHun) });
+            updates.Add(new() { Field = "picked_hun", PickedHun = ToDeltaSlot(state.PickedHun) });
         return new() { Phase = state.Phase, Updates = updates };
     }
 
-    private static SmartBpRecognizedPlayerCharacterSlot ToPlayerSlot(SmartBpRecognizedCharacterSlot slot) =>
-        new() { Index = slot.Index, CharacterName = slot.CharacterName, RecognitionConfidence = slot.RecognitionConfidence, IsAutoApplySafe = slot.IsAutoApplySafe, RecognitionReason = slot.RecognitionReason };
+    private static SmartBpSnapshotDeltaSlot ToDeltaSlot(SmartBpRecognizedCharacterSlot slot) =>
+        new()
+        {
+            Index = slot.Index,
+            SlotState = SmartBpBusinessStateParser.IsUnselected(slot.CharacterName) ? "empty" : "selected",
+            CharacterName = slot.CharacterName
+        };
 
-    private static SmartBpRecognizedPlayerCharacterSlot ClonePlayerSlot(SmartBpRecognizedPlayerCharacterSlot slot) =>
-        new() { Index = slot.Index, CharacterName = slot.CharacterName, PlayerId = slot.PlayerId, RecognitionConfidence = slot.RecognitionConfidence, IsAutoApplySafe = slot.IsAutoApplySafe, RecognitionReason = slot.RecognitionReason };
+    private static SmartBpSnapshotDeltaSlot ToDeltaSlot(SmartBpRecognizedPlayerCharacterSlot slot) =>
+        new()
+        {
+            Index = slot.Index,
+            SlotState = SmartBpBusinessStateParser.IsUnselected(slot.CharacterName) ? "empty" : "selected",
+            CharacterName = slot.CharacterName,
+            PlayerId = slot.PlayerId
+        };
 }

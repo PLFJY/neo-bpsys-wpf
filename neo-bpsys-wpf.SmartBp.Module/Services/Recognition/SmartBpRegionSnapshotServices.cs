@@ -151,21 +151,20 @@ internal sealed class SmartBpRecognitionStateStore : ISmartBpRecognitionStateSto
                 switch (update.Field)
                 {
                     case "banned_sur":
-                        _state.BannedSur = update.Slots?.Select(ToCharacterSlot).ToList() ?? _state.BannedSur;
+                        if (update.Slots != null) MergeCharacterSlots(_state.BannedSur, update.Slots, update.Field, frameSequence, diagnostics);
                         break;
                     case "banned_hun":
-                        _state.BannedHun = update.Slots?.Select(ToCharacterSlot).ToList() ?? _state.BannedHun;
+                        if (update.Slots != null) MergeCharacterSlots(_state.BannedHun, update.Slots, update.Field, frameSequence, diagnostics);
                         break;
                     case "picked_sur":
-                        _state.PickedSur = update.Slots?.Select(ClonePlayerSlot).ToList() ?? _state.PickedSur;
+                        if (update.Slots != null) MergePlayerSlots(_state.PickedSur, update.Slots, update.Field, frameSequence, diagnostics);
                         break;
                     case "picked_hun":
-                        if (update.PickedHun != null) _state.PickedHun = ClonePlayerSlot(update.PickedHun);
+                        if (update.PickedHun != null) MergePickedHunter(_state, update.PickedHun, frameSequence, diagnostics);
                         break;
                 }
                 _state.FieldFrameSequences[update.Field] = frameSequence;
                 _state.FieldUpdatedAt[update.Field] = timestamp;
-                diagnostics.Add($"Applied delta field {update.Field} from frame sequence {frameSequence}.");
             }
         }
         return diagnostics;
@@ -202,8 +201,84 @@ internal sealed class SmartBpRecognitionStateStore : ISmartBpRecognitionStateSto
         return snapshot;
     }
 
-    private static SmartBpRecognizedCharacterSlot ToCharacterSlot(SmartBpRecognizedPlayerCharacterSlot slot) =>
-        new() { Index = slot.Index, CharacterName = slot.CharacterName, RecognitionConfidence = slot.RecognitionConfidence, IsAutoApplySafe = slot.IsAutoApplySafe, RecognitionReason = slot.RecognitionReason };
+    private static void MergeCharacterSlots(List<SmartBpRecognizedCharacterSlot> current, IEnumerable<SmartBpSnapshotDeltaSlot> updates, string field, long frameSequence, List<string> diagnostics)
+    {
+        foreach (var update in updates.OrderBy(x => x.Index))
+        {
+            var slot = current.FirstOrDefault(x => x.Index == update.Index);
+            if (slot == null)
+            {
+                slot = new SmartBpRecognizedCharacterSlot { Index = update.Index };
+                current.Add(slot);
+            }
+            switch (update.SlotState)
+            {
+                case "selected":
+                    slot.CharacterName = update.CharacterName;
+                    diagnostics.Add($"Applied {field}[{update.Index}] = {update.CharacterName} from frame {frameSequence}.");
+                    break;
+                case "empty":
+                    slot.CharacterName = "未选择";
+                    diagnostics.Add($"Cleared {field}[{update.Index}] because slot_state=empty.");
+                    break;
+                case "unknown":
+                    diagnostics.Add($"Preserved {field}[{update.Index}] because slot_state=unknown.");
+                    break;
+            }
+        }
+        current.Sort((left, right) => left.Index.CompareTo(right.Index));
+    }
+
+    private static void MergePlayerSlots(List<SmartBpRecognizedPlayerCharacterSlot> current, IEnumerable<SmartBpSnapshotDeltaSlot> updates, string field, long frameSequence, List<string> diagnostics)
+    {
+        foreach (var update in updates.OrderBy(x => x.Index))
+        {
+            var slot = current.FirstOrDefault(x => x.Index == update.Index);
+            if (slot == null)
+            {
+                slot = new SmartBpRecognizedPlayerCharacterSlot { Index = update.Index };
+                current.Add(slot);
+            }
+            switch (update.SlotState)
+            {
+                case "selected":
+                    slot.CharacterName = update.CharacterName;
+                    slot.PlayerId = update.PlayerId;
+                    diagnostics.Add($"Applied {field}[{update.Index}] = {update.CharacterName}{FormatPlayer(update.PlayerId)} from frame {frameSequence}.");
+                    break;
+                case "empty":
+                    slot.CharacterName = "未选择";
+                    slot.PlayerId = update.PlayerId;
+                    diagnostics.Add($"Cleared {field}[{update.Index}] because slot_state=empty.");
+                    break;
+                case "unknown":
+                    diagnostics.Add($"Preserved {field}[{update.Index}] because slot_state=unknown.");
+                    break;
+            }
+        }
+        current.Sort((left, right) => left.Index.CompareTo(right.Index));
+    }
+
+    private static void MergePickedHunter(SmartBpRecognitionState state, SmartBpSnapshotDeltaSlot update, long frameSequence, List<string> diagnostics)
+    {
+        switch (update.SlotState)
+        {
+            case "selected":
+                state.PickedHun = new SmartBpRecognizedPlayerCharacterSlot { Index = 0, CharacterName = update.CharacterName, PlayerId = update.PlayerId };
+                diagnostics.Add($"Applied picked_hun[0] = {update.CharacterName}{FormatPlayer(update.PlayerId)} from frame {frameSequence}.");
+                break;
+            case "empty":
+                state.PickedHun.CharacterName = "未选择";
+                state.PickedHun.PlayerId = update.PlayerId ?? state.PickedHun.PlayerId;
+                diagnostics.Add("Cleared picked_hun[0] because slot_state=empty.");
+                break;
+            case "unknown":
+                diagnostics.Add("Preserved picked_hun[0] because slot_state=unknown.");
+                break;
+        }
+    }
+
+    private static string FormatPlayer(string? playerId) => string.IsNullOrWhiteSpace(playerId) ? "" : $" / player_id={playerId}";
 
     private static SmartBpRecognizedCharacterSlot CloneCharacterSlot(SmartBpRecognizedCharacterSlot slot) =>
         new() { Index = slot.Index, CharacterName = slot.CharacterName, RecognitionConfidence = slot.RecognitionConfidence, IsAutoApplySafe = slot.IsAutoApplySafe, RecognitionReason = slot.RecognitionReason };
@@ -228,7 +303,7 @@ internal sealed class SmartBpSnapshotRecognitionPlanner(
                 (SmartBpRecognitionRegion.LeftTop, "banned_hun"),
                 (SmartBpRecognitionRegion.LeftBottom, "picked_sur"),
                 (SmartBpRecognitionRegion.RightBottom, "picked_hun")
-            ], ["Free full sync requests every character region."]);
+            ], ["Free full sync requests every character region."], currentLocalSnapshot);
         var requested = new Dictionary<string, SmartBpRecognitionRegion>(StringComparer.Ordinal);
         var diagnostics = new List<string>();
         void Add(string field, SmartBpRecognitionRegion region, string reason)
@@ -268,7 +343,7 @@ internal sealed class SmartBpSnapshotRecognitionPlanner(
 
         if (requested.Count == 0)
             diagnostics.Add("Only phase_top is requested this tick.");
-        return new(requested.Select(item => (item.Value, item.Key)).ToArray(), diagnostics);
+        return new(requested.Select(item => (item.Value, item.Key)).ToArray(), diagnostics, currentLocalSnapshot);
 
         void AddForAction(GameAction action, string reason)
         {
@@ -388,12 +463,28 @@ internal sealed class SmartBpAiSnapshotDeltaRecognitionService(
             effectiveRegions.Add((region, targetField));
         }
 
-        var effectiveRequest = new SmartBpSnapshotDeltaRequest(effectiveRegions, request.Diagnostics);
+        var effectiveRequest = new SmartBpSnapshotDeltaRequest(effectiveRegions, request.Diagnostics, request.CurrentKnownState);
         var raw = await client.RecognizeSnapshotDeltaAsync(inputs, effectiveRequest, cancellationToken);
         var parsed = SmartBpAutomaticParser.ParseSnapshotDelta(raw, effectiveRequest.RequestedFields,
             shared.SurCharaDict.Keys.ToArray(), shared.HunCharaDict.Keys.ToArray());
         diagnostics.Add($"Delta recognized phase={parsed.Phase}; updates=[{string.Join(", ", parsed.Updates.Select(x => x.Field))}].");
+        diagnostics.AddRange(FormatParsedSlotStates(parsed));
         return (parsed, new Dictionary<string, string> { ["snapshot_delta"] = raw }, phaseCrop, crops, diagnostics);
+    }
+
+    private static IEnumerable<string> FormatParsedSlotStates(SmartBpSnapshotDeltaResult parsed)
+    {
+        foreach (var update in parsed.Updates)
+        {
+            if (update.Field == "picked_hun" && update.PickedHun != null)
+            {
+                yield return $"Parsed picked_hun[0]: slot_state={update.PickedHun.SlotState}; character={update.PickedHun.CharacterName}; player_id={update.PickedHun.PlayerId ?? "null"}.";
+                continue;
+            }
+            if (update.Slots == null) continue;
+            foreach (var slot in update.Slots.OrderBy(x => x.Index))
+                yield return $"Parsed {update.Field}[{slot.Index}]: slot_state={slot.SlotState}; character={slot.CharacterName}; player_id={slot.PlayerId ?? "null"}.";
+        }
     }
 
     private async Task<SmartBpCroppedFrame> CropAsync(BitmapSource frame, SmartBpRecognitionRegion region, CancellationToken cancellationToken) =>

@@ -165,16 +165,31 @@ internal static class SmartBpRecognitionPromptBuilder
     public static string BuildSnapshotDelta(
         SmartBpSnapshotDeltaRequest request,
         IEnumerable<string> survivors,
-        IEnumerable<string> hunters)
+        IEnumerable<string> hunters,
+        bool includeCandidateLists = true)
     {
         var fields = request.RequestedFields.ToArray();
         var mapping = string.Join(Environment.NewLine, request.RequestedRegions.Select((item, index) =>
             $"image_{index + 1} = {RegionId(item.Region)}, field={item.TargetField}"));
+        var currentKnownState = FormatCurrentKnownState(request.CurrentKnownState);
+        var candidatePolicy = includeCandidateLists
+            ? $"survivor_candidates: {JsonSerializer.Serialize(survivors)}{Environment.NewLine}hunter_candidates: {JsonSerializer.Serialize(hunters)}{Environment.NewLine}character_name 必须是对应候选列表中的规范名称，或 \"未选择\"。"
+            : "candidate_lists: omitted. Output the visible character name text or \"未选择\".";
         return $$$"""
 /no_think
 
-你会收到多张第五人格 BP 裁剪图。
-image_0 = phase_top，只用于判断 phase。
+你会收到多张第五人格 BP 裁剪图。必须遵守严格 multi-image protocol。
+
+image_0 = phase_top
+  Only determine phase.
+  Never output characters from phase_top.
+
+Each additional image has an explicit id and field:
+  right_top -> banned_sur
+  left_top -> banned_hun
+  left_bottom -> picked_sur
+  right_bottom -> picked_hun
+
 {{{mapping}}}
 
 只输出一个 JSON：
@@ -184,27 +199,136 @@ image_0 = phase_top，只用于判断 phase。
 }
 
 requested_fields: {{{JsonSerializer.Serialize(fields)}}}
-survivor_candidates: {{{JsonSerializer.Serialize(survivors)}}}
-hunter_candidates: {{{JsonSerializer.Serialize(hunters)}}}
+{{{candidatePolicy}}}
+current_known_state: {{{currentKnownState}}}
 
 phase 只能是：
 ["大厅","规则设置","查看禁选顺序","选择禁用数量","开始案件还原","阵容选择中","屏蔽求生者","屏蔽监管者","选择求生者","求生者选择角色中","选择监管者","求生者选择天赋中","监管者选择天赋中","天赋已锁定","即将进入区域选择","区域选择","求生者选择区域中","监管者选择区域中","等待游戏开始","加载中","对局中","等待中","未知"]
 
-区域规则：
-- phase_top 只判断 phase，不识别角色。
-- right_top 只用于 banned_sur。
-- left_top 只用于 banned_hun。
-- left_bottom 只用于 picked_sur。
-- right_bottom 只用于 picked_hun。
+全局规则：
+- Only output updates for requested_fields.
+- Never output a field whose crop was not provided.
+- Never infer a field from phase alone.
+- Never infer one crop's field from another crop.
+- Each crop has exactly one responsibility.
+- 如果 requested field 的裁剪图里仍可见上一阶段结果，即使当前 phase 已进入下一步，也必须输出该区域当前可见业务状态。
+- 每个 slot 必须输出 slot_state："selected"、"empty"、"unknown"。
 
-只返回 requested_fields 中要求的字段更新；没有请求的字段不要输出。
-如果某字段被请求，必须输出完整固定槽位数量。
-如果 requested field 的裁剪图里仍可见上一阶段结果，即使当前 phase 已进入下一步，也必须输出该区域当前可见业务状态。
-禁用符号、半透明、变暗表示已禁用，不是未选择。
-character_name 必须是对应候选列表中的规范名称，或 "未选择"。
+slot_state 含义：
+- selected: The crop clearly shows a character in this slot. character_name must be a candidate character.
+- empty: The crop clearly shows an empty/unselected slot. character_name must be "未选择".
+- unknown: The crop does not provide enough reliable evidence for this slot. Local merge must preserve the previous known value.
+- unknown is not an error. It is a state-preserving result.
+- Do not use empty for dark/disabled/crossed old ban slots.
+
+current_known_state 使用规则：
+- Use current_known_state only to decide whether an unreadable old slot should be "unknown" rather than "empty".
+- Do not invent new characters from current_known_state.
+- If the crop clearly shows a different selected character, output selected with the visible character.
+- If the crop clearly shows empty/未选择, output empty.
+- If the crop is unreadable but current_known_state has a previously known selected character, output unknown to preserve it.
+- Do not let current_known_state override visible crop evidence.
+
+field responsibility:
+right_top is the hunter-side survivor-ban area.
+It outputs banned_sur only.
+banned_sur has exactly 4 slots: index 0,1,2,3.
+Slot order is visual left-to-right.
+Index 0 and 1 are usually first-round bans.
+Index 2 may be a later-round ban.
+Index 3 may be a later-round ban.
+Already banned old slots may appear dark, semi-transparent, crossed, disabled, or with a red ban icon.
+Those visual effects mean selected/banned, not empty.
+Only output empty/未选择 if the slot is clearly empty or clearly says 未选择.
+Do not output only the currently active ban slot; output the visible state of all four banned_sur slots.
+
+left_top is the survivor-side hunter-ban area.
+It outputs banned_hun only.
+banned_hun has exactly 2 slots: index 0,1.
+Slot order is visual left-to-right.
+Dark/disabled/red-ban old slots are still selected bans, not empty.
+
+left_bottom is the survivor pick/distribution/talent visible area.
+It outputs picked_sur only.
+picked_sur has exactly 4 slots: index 0,1,2,3.
+Slot order is visual left-to-right by player slot.
+Character name is usually the highest text under/near the character portrait.
+Player id is usually below character name.
+Talent name may appear below player id; do not put talent name into character_name.
+If the phase is survivor talent, keep visible selected survivor characters if readable.
+
+right_bottom is the hunter pick/talent visible area.
+It outputs picked_hun only.
+picked_hun has one visual slot, index 0.
+Character name is usually the first/highest line under the hunter portrait.
+Player id is usually the second line.
+Talent name may appear lower; do not put talent name into character_name.
+
+Examples:
+BanSur second round:
+right_top crop:
+- slot 0 shows 小说家, dimmed with ban mark
+- slot 1 shows 昆虫学者, dimmed with ban mark
+- slot 2 shows 入殓师
+- slot 3 shows 未选择
+Output:
+banned_sur[0] slot_state=selected character_name=小说家
+banned_sur[1] slot_state=selected character_name=昆虫学者
+banned_sur[2] slot_state=selected character_name=入殓师
+banned_sur[3] slot_state=empty character_name=未选择
+
+BanSur third round:
+right_top crop:
+- slot 0 shows 小说家
+- slot 1 shows 昆虫学者
+- slot 2 shows 入殓师
+- slot 3 shows 祭司
+Output all four selected slots.
+
+Unreadable old slot:
+right_top crop:
+- slot 0 is too dark/unreadable
+- current_known_state.banned_sur[0] = 小说家
+- slot 2 clearly shows 入殓师
+Output:
+slot 0 slot_state=unknown character_name=未选择
+slot 2 slot_state=selected character_name=入殓师
+The local merge will preserve slot 0 as 小说家.
+
 不要输出完整 BP 快照，除非所有字段都被请求。
 不要输出 teams、all_characters、all_player_ids、scene、warnings、raw_visible_text、confidence、MapBP 字段。
 """;
+    }
+
+    private static string FormatCurrentKnownState(SmartBpBusinessStateRecognitionResult? state)
+    {
+        return CreateCurrentKnownStateJson(state).ToJsonString();
+    }
+
+    internal static string FormatCurrentKnownStateForDiagnostics(SmartBpBusinessStateRecognitionResult? state)
+    {
+        return CreateCurrentKnownStateJson(state).ToJsonString(new JsonSerializerOptions { WriteIndented = false });
+    }
+
+    private static JsonObject CreateCurrentKnownStateJson(SmartBpBusinessStateRecognitionResult? state)
+    {
+        static string[] Names(IEnumerable<SmartBpRecognizedCharacterSlot> slots, int count) =>
+            slots.OrderBy(x => x.Index).Take(count).Select(x => string.IsNullOrWhiteSpace(x.CharacterName) ? "未选择" : x.CharacterName).ToArray();
+        return state == null
+            ? new JsonObject
+            {
+                ["banned_sur"] = new JsonArray("未选择", "未选择", "未选择", "未选择"),
+                ["banned_hun"] = new JsonArray("未选择", "未选择"),
+                ["picked_sur"] = new JsonArray("未选择", "未选择", "未选择", "未选择"),
+                ["picked_hun"] = "未选择"
+            }
+            : new JsonObject
+            {
+                ["banned_sur"] = new JsonArray(Names(state.BannedSur, 4).Select(x => (JsonNode?)JsonValue.Create(x)).ToArray()),
+                ["banned_hun"] = new JsonArray(Names(state.BannedHun, 2).Select(x => (JsonNode?)JsonValue.Create(x)).ToArray()),
+                ["picked_sur"] = new JsonArray(Names(state.PickedSur, 4).Select(x => (JsonNode?)JsonValue.Create(x)).ToArray()),
+                ["picked_hun"] = string.IsNullOrWhiteSpace(state.PickedHun.CharacterName) ? "未选择" : state.PickedHun.CharacterName
+            };
     }
 
     private static string RegionId(SmartBpRecognitionRegion region) => region switch
@@ -430,23 +554,36 @@ internal static class SmartBpRecognitionJsonSchemaProvider
             }, "phase", "updates");
         var survivorNames = strictCandidateEnums ? CharacterNameEnum(survivorCandidates) : StringCharacterName();
         var hunterNames = strictCandidateEnums ? CharacterNameEnum(hunterCandidates) : StringCharacterName();
-        JsonObject update = Object(new JsonObject
-        {
-            ["field"] = new JsonObject { ["type"] = "string", ["enum"] = new JsonArray(requestedFields.Select(x => (JsonNode?)JsonValue.Create(x)).ToArray()) },
-            ["slots"] = new JsonObject
+        var updateShapes = new JsonArray();
+        if (requestedFields.Contains("banned_sur"))
+            updateShapes.Add(Object(new JsonObject
             {
-                ["anyOf"] = new JsonArray(
-                    new JsonObject { ["type"] = "null" },
-                    FixedArray(PlayerCharacterSlot(survivorNames, 0, 1, 2, 3), 4),
-                    FixedArray(PlayerCharacterSlot(hunterNames, 0, 1), 2))
-            },
-            ["picked_hun"] = new JsonObject
+                ["field"] = Const("banned_sur"),
+                ["slots"] = FixedArray(DeltaSlot(survivorNames, 0, 1, 2, 3), 4),
+                ["picked_hun"] = new JsonObject { ["type"] = "null" }
+            }, "field", "slots", "picked_hun"));
+        if (requestedFields.Contains("banned_hun"))
+            updateShapes.Add(Object(new JsonObject
             {
-                ["anyOf"] = new JsonArray(
-                    new JsonObject { ["type"] = "null" },
-                    Object(new JsonObject { ["index"] = Const(0), ["character_name"] = hunterNames.DeepClone(), ["player_id"] = NullableString() }, "index", "character_name", "player_id"))
-            }
-        }, "field", "slots", "picked_hun");
+                ["field"] = Const("banned_hun"),
+                ["slots"] = FixedArray(DeltaSlot(hunterNames, 0, 1), 2),
+                ["picked_hun"] = new JsonObject { ["type"] = "null" }
+            }, "field", "slots", "picked_hun"));
+        if (requestedFields.Contains("picked_sur"))
+            updateShapes.Add(Object(new JsonObject
+            {
+                ["field"] = Const("picked_sur"),
+                ["slots"] = FixedArray(DeltaSlot(survivorNames, 0, 1, 2, 3), 4),
+                ["picked_hun"] = new JsonObject { ["type"] = "null" }
+            }, "field", "slots", "picked_hun"));
+        if (requestedFields.Contains("picked_hun"))
+            updateShapes.Add(Object(new JsonObject
+            {
+                ["field"] = Const("picked_hun"),
+                ["slots"] = new JsonObject { ["type"] = "null" },
+                ["picked_hun"] = DeltaSlot(hunterNames, 0)
+            }, "field", "slots", "picked_hun"));
+        JsonObject update = new() { ["oneOf"] = updateShapes };
         return Object(new JsonObject
         {
             ["phase"] = Phase(),
@@ -497,6 +634,7 @@ internal static class SmartBpRecognitionJsonSchemaProvider
     public static JsonObject Get(SmartBpRecognitionTask task) => Get(task, [], []);
     private static JsonObject CharacterSlot(JsonObject characterName, params int[] indexes) => Object(new JsonObject { ["index"] = IntegerEnum(indexes), ["character_name"] = characterName.DeepClone() }, "index", "character_name");
     private static JsonObject PlayerCharacterSlot(JsonObject characterName, params int[] indexes) => Object(new JsonObject { ["index"] = IntegerEnum(indexes), ["character_name"] = characterName.DeepClone(), ["player_id"] = NullableString() }, "index", "character_name", "player_id");
+    private static JsonObject DeltaSlot(JsonObject characterName, params int[] indexes) => Object(new JsonObject { ["index"] = IntegerEnum(indexes), ["slot_state"] = DeltaSlotState(), ["character_name"] = characterName.DeepClone(), ["player_id"] = NullableString() }, "index", "slot_state", "character_name", "player_id");
     private static JsonObject CharacterNameEnum(IReadOnlyList<string> candidates)
     {
         var values = candidates
@@ -524,6 +662,7 @@ internal static class SmartBpRecognitionJsonSchemaProvider
     private static JsonObject Side() => new() { ["type"] = "string", ["enum"] = new JsonArray("left", "right", "top", "bottom", "unknown") };
     private static JsonObject Faction() => new() { ["type"] = "string", ["enum"] = new JsonArray("survivor", "hunter", "unknown") };
     private static JsonObject SlotState() => new() { ["type"] = "string", ["enum"] = new JsonArray("selected", "waiting", "unselected", "banned", "unknown") };
+    private static JsonObject DeltaSlotState() => new() { ["type"] = "string", ["enum"] = new JsonArray("selected", "empty", "unknown") };
     private static JsonObject StringArray() => new() { ["type"] = "array", ["items"] = new JsonObject { ["type"] = "string" } };
     private static JsonObject Array(JsonNode? item) => new() { ["type"] = "array", ["items"] = item };
 }
@@ -539,7 +678,14 @@ internal sealed class LlamaCppOpenAiClient(ISmartBpRecognitionSettingsService se
         var needsHunters = request.RequestedFields.Any(field => field is "banned_hun" or "picked_hun");
         var survivorCandidates = needsSurvivors ? shared.SurCharaDict.Keys : Enumerable.Empty<string>();
         var hunterCandidates = needsHunters ? shared.HunCharaDict.Keys : Enumerable.Empty<string>();
-        var content = new JsonArray { new JsonObject { ["type"] = "text", ["text"] = SmartBpRecognitionPromptBuilder.BuildSnapshotDelta(request, survivorCandidates, hunterCandidates) } };
+        var includeCandidateLists = settings.Settings.UseStrictCandidateEnumsInAutoSchema;
+        var prompt = SmartBpRecognitionPromptBuilder.BuildSnapshotDelta(request, survivorCandidates, hunterCandidates, includeCandidateLists);
+        var imageLabels = regions.Select((region, index) => $"image_{index}={region.Id}/field={region.TargetField}").ToArray();
+        debugLog.Write("recognition", $"Snapshot delta requested_fields=[{string.Join(", ", request.RequestedFields)}]; image_labels=[{string.Join("; ", imageLabels)}].");
+        debugLog.Write("recognition", $"Snapshot delta candidate_lists={(includeCandidateLists ? "included" : "omitted")}; prompt_chars={prompt.Length}.");
+        debugLog.Write("recognition", $"Snapshot delta current_known_state={SmartBpRecognitionPromptBuilder.FormatCurrentKnownStateForDiagnostics(request.CurrentKnownState)}");
+        debugLog.Write("recognition", $"Snapshot delta prompt text:\n{prompt}");
+        var content = new JsonArray { new JsonObject { ["type"] = "text", ["text"] = prompt } };
         for (var i = 0; i < regions.Count; i++)
         {
             var region = regions[i];
@@ -566,7 +712,9 @@ internal sealed class LlamaCppOpenAiClient(ISmartBpRecognitionSettingsService se
                 }
             }
         };
-        return await SendSpecialAsync(body, $"SnapshotDelta:{string.Join(",", request.RequestedFields)}", cancellationToken);
+        var raw = await SendSpecialAsync(body, $"SnapshotDelta:{string.Join(",", request.RequestedFields)}", cancellationToken);
+        debugLog.Write("recognition", $"Snapshot delta raw JSON response:\n{raw}");
+        return raw;
     }
 
     public async Task<string> RecognizePhaseAsync(string imageDataUrl, CancellationToken cancellationToken = default)

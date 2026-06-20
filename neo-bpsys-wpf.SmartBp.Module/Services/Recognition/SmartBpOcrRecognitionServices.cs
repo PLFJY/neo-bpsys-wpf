@@ -576,13 +576,13 @@ internal sealed class SmartBpOcrSnapshotDeltaRecognitionService(
     {
         var updates = new List<SmartBpSnapshotFieldUpdate>();
         if (requestedFields.Contains("banned_sur"))
-            updates.Add(new() { Field = "banned_sur", Slots = state.BannedSur.Select(ToPlayerSlot).ToList() });
+            updates.Add(new() { Field = "banned_sur", Slots = state.BannedSur.Select(ToDeltaSlot).ToList() });
         if (requestedFields.Contains("banned_hun"))
-            updates.Add(new() { Field = "banned_hun", Slots = state.BannedHun.Select(ToPlayerSlot).ToList() });
+            updates.Add(new() { Field = "banned_hun", Slots = state.BannedHun.Select(ToDeltaSlot).ToList() });
         if (requestedFields.Contains("picked_sur"))
-            updates.Add(new() { Field = "picked_sur", Slots = state.PickedSur.Select(ClonePlayerSlot).ToList() });
+            updates.Add(new() { Field = "picked_sur", Slots = state.PickedSur.Select(ToDeltaSlot).ToList() });
         if (requestedFields.Contains("picked_hun"))
-            updates.Add(new() { Field = "picked_hun", PickedHun = ClonePlayerSlot(state.PickedHun) });
+            updates.Add(new() { Field = "picked_hun", PickedHun = ToDeltaSlot(state.PickedHun) });
         return new() { Phase = state.Phase, Updates = updates };
     }
 
@@ -600,11 +600,22 @@ internal sealed class SmartBpOcrSnapshotDeltaRecognitionService(
         return builder.ToString().TrimEnd();
     }
 
-    private static SmartBpRecognizedPlayerCharacterSlot ToPlayerSlot(SmartBpRecognizedCharacterSlot slot) =>
-        new() { Index = slot.Index, CharacterName = slot.CharacterName, RecognitionConfidence = slot.RecognitionConfidence, IsAutoApplySafe = slot.IsAutoApplySafe, RecognitionReason = slot.RecognitionReason };
+    private static SmartBpSnapshotDeltaSlot ToDeltaSlot(SmartBpRecognizedCharacterSlot slot) =>
+        new()
+        {
+            Index = slot.Index,
+            SlotState = SmartBpBusinessStateParser.IsUnselected(slot.CharacterName) ? "empty" : "selected",
+            CharacterName = slot.CharacterName
+        };
 
-    private static SmartBpRecognizedPlayerCharacterSlot ClonePlayerSlot(SmartBpRecognizedPlayerCharacterSlot slot) =>
-        new() { Index = slot.Index, CharacterName = slot.CharacterName, PlayerId = slot.PlayerId, RecognitionConfidence = slot.RecognitionConfidence, IsAutoApplySafe = slot.IsAutoApplySafe, RecognitionReason = slot.RecognitionReason };
+    private static SmartBpSnapshotDeltaSlot ToDeltaSlot(SmartBpRecognizedPlayerCharacterSlot slot) =>
+        new()
+        {
+            Index = slot.Index,
+            SlotState = SmartBpBusinessStateParser.IsUnselected(slot.CharacterName) ? "empty" : "selected",
+            CharacterName = slot.CharacterName,
+            PlayerId = slot.PlayerId
+        };
 }
 
 internal sealed class SmartBpSnapshotDeltaRecognitionRouter(

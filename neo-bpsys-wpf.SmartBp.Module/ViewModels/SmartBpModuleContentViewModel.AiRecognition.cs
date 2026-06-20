@@ -555,9 +555,11 @@ public partial class SmartBpModuleContentViewModel
                 if (_recognitionSettingsService.Settings.RecognitionEngine == SmartBpRecognitionEngine.AiQwen)
                 {
                     if (!_llamaServerManager.IsRunning) throw new InvalidOperationException("Start llama-server before testing AI recognition speed.");
-                    var result = await _aiRecognitionService.RecognizeAsync(frame, testFrame.Task);
+                    var watch = Stopwatch.StartNew();
+                    var result = await _autoRecognitionCoordinator.RunOneTickAsync(frame);
+                    watch.Stop();
                     if (result.Error != null) throw new InvalidOperationException(result.Error);
-                    elapsed.Add(result.ElapsedMilliseconds);
+                    elapsed.Add(watch.ElapsedMilliseconds);
                 }
                 else
                 {

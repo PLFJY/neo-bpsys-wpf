@@ -16,6 +16,7 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models;
 using Xunit;
 using SmartBpRecognitionTask = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionTask;
+using SmartBpRecognitionPromptBuilder = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpRecognitionPromptBuilder;
 using SmartBpCharacterResolver = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpCharacterResolver;
 using SmartBpRecognitionJsonSchemaProvider = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpRecognitionJsonSchemaProvider;
 using QwenModelAssetManager = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.QwenModelAssetManager;
@@ -54,6 +55,7 @@ using SmartBpWorkflowOperationKey = smartbp::neo_bpsys_wpf.SmartBp.Module.Models
 using SmartBpSnapshotDeltaRequest = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpSnapshotDeltaRequest;
 using SmartBpSnapshotDeltaResult = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpSnapshotDeltaResult;
 using SmartBpSnapshotFieldUpdate = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpSnapshotFieldUpdate;
+using SmartBpSnapshotDeltaSlot = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpSnapshotDeltaSlot;
 using SmartBpRecognitionStateStore = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpRecognitionStateStore;
 
 namespace neo_bpsys_wpf.Tests.Services;
@@ -115,6 +117,95 @@ public sealed class SmartBpAiRecognitionContractTest
 
         Assert.Contains("\"character_name\":{\"type\":\"string\"}", schema);
         Assert.DoesNotContain("\"enum\":[\"心理学家\"", schema);
+        Assert.Contains("\"slot_state\"", schema);
+        Assert.Contains("\"enum\":[\"selected\",\"empty\",\"unknown\"]", schema);
+        Assert.Contains("\"minItems\":4", schema);
+        Assert.Contains("\"maxItems\":4", schema);
+    }
+
+    [Fact]
+    public void SnapshotDeltaPromptDefinesStrictMultiImageResponsibilitiesAndLaterBanExamples()
+    {
+        var current = Business("屏蔽求生者");
+        current.BannedSur[0].CharacterName = "小说家";
+        current.BannedSur[1].CharacterName = "昆虫学者";
+        var request = new SmartBpSnapshotDeltaRequest(
+            [
+                (SmartBpRecognitionRegion.RightTop, "banned_sur"),
+                (SmartBpRecognitionRegion.LeftTop, "banned_hun"),
+                (SmartBpRecognitionRegion.LeftBottom, "picked_sur"),
+                (SmartBpRecognitionRegion.RightBottom, "picked_hun")
+            ],
+            [],
+            current);
+
+        var prompt = SmartBpRecognitionPromptBuilder.BuildSnapshotDelta(
+            request,
+            ["小说家", "昆虫学者", "入殓师", "祭司", "心理学家", "守墓人"],
+            ["梦之女巫", "女王蜂"]);
+
+        Assert.Contains("image_0 = phase_top", prompt);
+        Assert.Contains("Only determine phase", prompt);
+        Assert.Contains("Never output characters from phase_top", prompt);
+        Assert.Contains("right_top -> banned_sur", prompt);
+        Assert.Contains("left_top -> banned_hun", prompt);
+        Assert.Contains("left_bottom -> picked_sur", prompt);
+        Assert.Contains("right_bottom -> picked_hun", prompt);
+        Assert.Contains("banned_sur has exactly 4 slots: index 0,1,2,3", prompt);
+        Assert.Contains("Slot order is visual left-to-right", prompt);
+        Assert.Contains("Index 2 may be a later-round ban", prompt);
+        Assert.Contains("Index 3 may be a later-round ban", prompt);
+        Assert.Contains("Dark/disabled/red-ban old slots are still selected bans, not empty", prompt);
+        Assert.Contains("banned_sur[2] slot_state=selected character_name=入殓师", prompt);
+        Assert.Contains("Output all four selected slots", prompt);
+        Assert.Contains("current_known_state", prompt);
+    }
+
+    [Fact]
+    public void SnapshotDeltaPromptCanOmitCandidateListsForSmallContextModels()
+    {
+        var request = new SmartBpSnapshotDeltaRequest([(SmartBpRecognitionRegion.RightTop, "banned_sur")], [], Business("屏蔽求生者"));
+
+        var prompt = SmartBpRecognitionPromptBuilder.BuildSnapshotDelta(
+            request,
+            ["小说家", "昆虫学者", "入殓师"],
+            ["梦之女巫"],
+            includeCandidateLists: false);
+
+        Assert.Contains("candidate_lists: omitted", prompt);
+        Assert.Contains("Output the visible character name text", prompt);
+        Assert.DoesNotContain("local resolver", prompt);
+        Assert.DoesNotContain("survivor_candidates", prompt);
+        Assert.DoesNotContain("hunter_candidates", prompt);
+        Assert.DoesNotContain("\"小说家\"", prompt);
+    }
+
+    [Fact]
+    public void SnapshotDeltaSchemaUsesFieldSpecificSlotShapesAndRequiresSlotState()
+    {
+        var schema = SmartBpRecognitionJsonSchemaProvider.GetSnapshotDelta(["banned_sur", "banned_hun", "picked_hun"], ["小说家"], ["梦之女巫"], true);
+        var updateShapes = schema["properties"]?["updates"]?["items"]?["oneOf"]?.AsArray()
+            ?? throw new InvalidDataException("Snapshot delta schema must use update oneOf.");
+
+        var bannedSur = FindUpdateShape(updateShapes, "banned_sur");
+        var bannedHun = FindUpdateShape(updateShapes, "banned_hun");
+        var pickedHun = FindUpdateShape(updateShapes, "picked_hun");
+
+        Assert.Equal(4, bannedSur["properties"]?["slots"]?["minItems"]?.GetValue<int>());
+        Assert.Equal(4, bannedSur["properties"]?["slots"]?["maxItems"]?.GetValue<int>());
+        Assert.Equal([0, 1, 2, 3], SlotIndexEnum(bannedSur));
+        Assert.Contains("slot_state", RequiredProperties(bannedSur));
+
+        Assert.Equal(2, bannedHun["properties"]?["slots"]?["minItems"]?.GetValue<int>());
+        Assert.Equal(2, bannedHun["properties"]?["slots"]?["maxItems"]?.GetValue<int>());
+        Assert.Equal([0, 1], SlotIndexEnum(bannedHun));
+        Assert.Contains("slot_state", RequiredProperties(bannedHun));
+
+        var pickedHunText = pickedHun.ToJsonString();
+        Assert.Contains("\"slots\":{\"type\":\"null\"}", pickedHunText);
+        Assert.Contains("\"picked_hun\"", pickedHunText);
+        Assert.Contains("\"index\"", pickedHunText);
+        Assert.Contains("\"enum\":[0]", pickedHunText);
     }
 
     [Fact]
@@ -151,6 +242,63 @@ public sealed class SmartBpAiRecognitionContractTest
     }
 
     [Fact]
+    public void SnapshotDeltaParserAcceptsSelectedEmptyUnknownAndLegacyMissingSlotState()
+    {
+        const string raw = """
+{
+  "phase": "屏蔽求生者",
+  "updates": [
+    {
+      "field": "banned_sur",
+      "slots": [
+        { "index": 0, "slot_state": "selected", "character_name": "小说家", "player_id": null },
+        { "index": 1, "slot_state": "empty", "character_name": "未选择", "player_id": null },
+        { "index": 2, "slot_state": "unknown", "character_name": "未选择", "player_id": null },
+        { "index": 3, "character_name": "入殓师", "player_id": null }
+      ],
+      "picked_hun": null
+    }
+  ]
+}
+""";
+
+        var parsed = SmartBpAutomaticParser.ParseSnapshotDelta(raw, ["banned_sur"], ["小说家", "入殓师"], []);
+
+        Assert.Equal("selected", parsed.Updates[0].Slots![0].SlotState);
+        Assert.Equal("empty", parsed.Updates[0].Slots![1].SlotState);
+        Assert.Equal("unknown", parsed.Updates[0].Slots![2].SlotState);
+        Assert.Equal("selected", parsed.Updates[0].Slots![3].SlotState);
+    }
+
+    [Fact]
+    public void SnapshotDeltaParserRejectsInvalidSlotStateCharacterPairs()
+    {
+        const string selectedUnselected = """
+{"phase":"屏蔽求生者","updates":[{"field":"banned_sur","slots":[{"index":0,"slot_state":"selected","character_name":"未选择","player_id":null},{"index":1,"slot_state":"empty","character_name":"未选择","player_id":null},{"index":2,"slot_state":"empty","character_name":"未选择","player_id":null},{"index":3,"slot_state":"empty","character_name":"未选择","player_id":null}],"picked_hun":null}]}
+""";
+        const string emptySelected = """
+{"phase":"屏蔽求生者","updates":[{"field":"banned_sur","slots":[{"index":0,"slot_state":"empty","character_name":"小说家","player_id":null},{"index":1,"slot_state":"empty","character_name":"未选择","player_id":null},{"index":2,"slot_state":"empty","character_name":"未选择","player_id":null},{"index":3,"slot_state":"empty","character_name":"未选择","player_id":null}],"picked_hun":null}]}
+""";
+
+        Assert.Throws<InvalidDataException>(() => SmartBpAutomaticParser.ParseSnapshotDelta(selectedUnselected, ["banned_sur"], ["小说家"], []));
+        Assert.Throws<InvalidDataException>(() => SmartBpAutomaticParser.ParseSnapshotDelta(emptySelected, ["banned_sur"], ["小说家"], []));
+    }
+
+    [Fact]
+    public void SnapshotDeltaParserRejectsMismatchedFieldSlotShapes()
+    {
+        const string bannedSurWithTwoSlots = """
+{"phase":"屏蔽求生者","updates":[{"field":"banned_sur","slots":[{"index":0,"slot_state":"empty","character_name":"未选择","player_id":null},{"index":1,"slot_state":"empty","character_name":"未选择","player_id":null}],"picked_hun":null}]}
+""";
+        const string bannedHunWithFourSlots = """
+{"phase":"屏蔽监管者","updates":[{"field":"banned_hun","slots":[{"index":0,"slot_state":"empty","character_name":"未选择","player_id":null},{"index":1,"slot_state":"empty","character_name":"未选择","player_id":null},{"index":2,"slot_state":"empty","character_name":"未选择","player_id":null},{"index":3,"slot_state":"empty","character_name":"未选择","player_id":null}],"picked_hun":null}]}
+""";
+
+        Assert.Throws<InvalidDataException>(() => SmartBpAutomaticParser.ParseSnapshotDelta(bannedSurWithTwoSlots, ["banned_sur"], [], []));
+        Assert.Throws<InvalidDataException>(() => SmartBpAutomaticParser.ParseSnapshotDelta(bannedHunWithFourSlots, ["banned_hun"], [], []));
+    }
+
+    [Fact]
     public void RecognitionStateStorePreservesMissingFieldsAndIgnoresOlderFieldSequences()
     {
         var store = new SmartBpRecognitionStateStore();
@@ -164,10 +312,10 @@ public sealed class SmartBpAiRecognitionContractTest
                     Field = "picked_sur",
                     Slots =
                     [
-                        new() { Index = 0, CharacterName = "心理学家", PlayerId = "A" },
-                        new() { Index = 1, CharacterName = "守墓人", PlayerId = "B" },
-                        new() { Index = 2, CharacterName = "未选择" },
-                        new() { Index = 3, CharacterName = "未选择" }
+                        Slot(0, "selected", "心理学家", "A"),
+                        Slot(1, "selected", "守墓人", "B"),
+                        Slot(2, "empty"),
+                        Slot(3, "empty")
                     ]
                 }
             ]
@@ -183,10 +331,10 @@ public sealed class SmartBpAiRecognitionContractTest
                     Field = "picked_sur",
                     Slots =
                     [
-                        new() { Index = 0, CharacterName = "未选择" },
-                        new() { Index = 1, CharacterName = "未选择" },
-                        new() { Index = 2, CharacterName = "未选择" },
-                        new() { Index = 3, CharacterName = "未选择" }
+                        Slot(0, "empty"),
+                        Slot(1, "empty"),
+                        Slot(2, "empty"),
+                        Slot(3, "empty")
                     ]
                 },
                 new SmartBpSnapshotFieldUpdate
@@ -194,10 +342,10 @@ public sealed class SmartBpAiRecognitionContractTest
                     Field = "banned_sur",
                     Slots =
                     [
-                        new() { Index = 0, CharacterName = "小说家" },
-                        new() { Index = 1, CharacterName = "未选择" },
-                        new() { Index = 2, CharacterName = "未选择" },
-                        new() { Index = 3, CharacterName = "未选择" }
+                        Slot(0, "selected", "小说家"),
+                        Slot(1, "empty"),
+                        Slot(2, "empty"),
+                        Slot(3, "empty")
                     ]
                 }
             ]
@@ -208,6 +356,126 @@ public sealed class SmartBpAiRecognitionContractTest
         Assert.Equal("心理学家", snapshot.PickedSur[0].CharacterName);
         Assert.Equal("小说家", snapshot.BannedSur[0].CharacterName);
         Assert.Equal("未选择", snapshot.BannedHun[0].CharacterName);
+    }
+
+    [Fact]
+    public void RecognitionStateStoreMergesBannedSurSlotsBySlotState()
+    {
+        var store = new SmartBpRecognitionStateStore();
+        store.ApplyDelta(new SmartBpSnapshotDeltaResult
+        {
+            Phase = "屏蔽求生者",
+            Updates =
+            [
+                new SmartBpSnapshotFieldUpdate
+                {
+                    Field = "banned_sur",
+                    Slots =
+                    [
+                        Slot(0, "selected", "小说家"),
+                        Slot(1, "selected", "昆虫学者"),
+                        Slot(2, "empty"),
+                        Slot(3, "empty")
+                    ]
+                }
+            ]
+        }, 1, DateTimeOffset.Now);
+
+        var diagnostics = store.ApplyDelta(new SmartBpSnapshotDeltaResult
+        {
+            Phase = "屏蔽求生者",
+            Updates =
+            [
+                new SmartBpSnapshotFieldUpdate
+                {
+                    Field = "banned_sur",
+                    Slots =
+                    [
+                        Slot(0, "unknown"),
+                        Slot(1, "selected", "昆虫学者"),
+                        Slot(2, "selected", "入殓师"),
+                        Slot(3, "empty")
+                    ]
+                }
+            ]
+        }, 2, DateTimeOffset.Now);
+
+        var snapshot = store.Snapshot;
+        Assert.Equal(["小说家", "昆虫学者", "入殓师", "未选择"], snapshot.BannedSur.Select(x => x.CharacterName).ToArray());
+        Assert.Contains(diagnostics, message => message.Contains("Preserved banned_sur[0] because slot_state=unknown", StringComparison.Ordinal));
+        Assert.Contains(diagnostics, message => message.Contains("Applied banned_sur[2] = 入殓师", StringComparison.Ordinal));
+        Assert.Contains(diagnostics, message => message.Contains("Cleared banned_sur[3] because slot_state=empty", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void RecognitionStateStoreMergesThirdRoundBanAndPreservesPickedCharacters()
+    {
+        var store = new SmartBpRecognitionStateStore();
+        store.ApplyDelta(new SmartBpSnapshotDeltaResult
+        {
+            Phase = "选择求生者",
+            Updates =
+            [
+                new SmartBpSnapshotFieldUpdate
+                {
+                    Field = "picked_sur",
+                    Slots =
+                    [
+                        Slot(0, "selected", "心理学家", "P1"),
+                        Slot(1, "empty"),
+                        Slot(2, "empty"),
+                        Slot(3, "empty")
+                    ]
+                },
+                new SmartBpSnapshotFieldUpdate
+                {
+                    Field = "picked_hun",
+                    PickedHun = Slot(0, "selected", "梦之女巫", "H1")
+                }
+            ]
+        }, 1, DateTimeOffset.Now);
+
+        store.ApplyDelta(new SmartBpSnapshotDeltaResult
+        {
+            Phase = "屏蔽求生者",
+            Updates =
+            [
+                new SmartBpSnapshotFieldUpdate
+                {
+                    Field = "banned_sur",
+                    Slots =
+                    [
+                        Slot(0, "selected", "小说家"),
+                        Slot(1, "selected", "昆虫学者"),
+                        Slot(2, "selected", "入殓师"),
+                        Slot(3, "selected", "祭司")
+                    ]
+                },
+                new SmartBpSnapshotFieldUpdate
+                {
+                    Field = "picked_sur",
+                    Slots =
+                    [
+                        Slot(0, "unknown"),
+                        Slot(1, "empty"),
+                        Slot(2, "empty"),
+                        Slot(3, "empty")
+                    ]
+                },
+                new SmartBpSnapshotFieldUpdate
+                {
+                    Field = "picked_hun",
+                    PickedHun = Slot(0, "unknown")
+                }
+            ]
+        }, 2, DateTimeOffset.Now);
+
+        var snapshot = store.Snapshot;
+        Assert.Equal(["小说家", "昆虫学者", "入殓师", "祭司"], snapshot.BannedSur.Select(x => x.CharacterName).ToArray());
+        Assert.Equal("心理学家", snapshot.PickedSur[0].CharacterName);
+        Assert.Equal("P1", snapshot.PickedSur[0].PlayerId);
+        Assert.Equal("梦之女巫", snapshot.PickedHun.CharacterName);
+        Assert.Equal("H1", snapshot.PickedHun.PlayerId);
     }
 
     [Fact]
@@ -760,6 +1028,21 @@ public sealed class SmartBpAiRecognitionContractTest
     }
 
     [Fact]
+    public void RecognitionSpeedTestUsesRegionGatedAiPathLikeDebugTestFrames()
+    {
+        var root = FindRepositoryRoot();
+        var viewModel = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "ViewModels", "SmartBpModuleContentViewModel.AiRecognition.cs"));
+        var speedMethodStart = viewModel.IndexOf("private async Task TestRecognitionSpeedAsync()", StringComparison.Ordinal);
+        var speedMethodEnd = viewModel.IndexOf("private string GetRecognitionSpeedFingerprint()", StringComparison.Ordinal);
+        Assert.True(speedMethodStart >= 0);
+        Assert.True(speedMethodEnd > speedMethodStart);
+        var speedMethod = viewModel[speedMethodStart..speedMethodEnd];
+
+        Assert.Contains("_autoRecognitionCoordinator.RunOneTickAsync(frame)", speedMethod);
+        Assert.DoesNotContain("_aiRecognitionService.RecognizeAsync(frame, testFrame.Task)", speedMethod);
+    }
+
+    [Fact]
     public void LlamaServerStartupShowsBusyProgressUntilStartCompletes()
     {
         var root = FindRepositoryRoot();
@@ -804,6 +1087,30 @@ public sealed class SmartBpAiRecognitionContractTest
             ?? throw new InvalidDataException($"Missing character_name enum for {propertyName}.");
         return values.Select(x => x?.GetValue<string>() ?? "").ToArray();
     }
+
+    private static JsonObject FindUpdateShape(JsonArray updateShapes, string field)
+    {
+        return updateShapes.Select(node => node?.AsObject())
+            .FirstOrDefault(shape => shape?["properties"]?["field"]?["const"]?.GetValue<string>() == field)
+            ?? throw new InvalidDataException($"Missing update shape for {field}.");
+    }
+
+    private static int[] SlotIndexEnum(JsonObject updateShape)
+    {
+        var values = updateShape["properties"]?["slots"]?["items"]?["properties"]?["index"]?["enum"]?.AsArray()
+            ?? throw new InvalidDataException("Missing slot index enum.");
+        return values.Select(x => x?.GetValue<int>() ?? -1).ToArray();
+    }
+
+    private static string[] RequiredProperties(JsonObject updateShape)
+    {
+        var values = updateShape["properties"]?["slots"]?["items"]?["required"]?.AsArray()
+            ?? throw new InvalidDataException("Missing slot required properties.");
+        return values.Select(x => x?.GetValue<string>() ?? "").ToArray();
+    }
+
+    private static SmartBpSnapshotDeltaSlot Slot(int index, string slotState, string characterName = "未选择", string? playerId = null) =>
+        new() { Index = index, SlotState = slotState, CharacterName = characterName, PlayerId = playerId };
 
     private static SmartBpStageDetectionResult Stage(string action, double confidence)
     {

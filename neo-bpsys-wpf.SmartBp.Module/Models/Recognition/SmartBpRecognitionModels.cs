@@ -381,10 +381,42 @@ public sealed record SmartBpMultimodalRegionInput(string Id, SmartBpRecognitionR
 
 /// <summary>One requested incremental snapshot recognition package.</summary>
 public sealed record SmartBpSnapshotDeltaRequest(IReadOnlyList<(SmartBpRecognitionRegion Region, string TargetField)> RequestedRegions,
-    IReadOnlyList<string> Diagnostics)
+    IReadOnlyList<string> Diagnostics,
+    SmartBpBusinessStateRecognitionResult? CurrentKnownState = null)
 {
     /// <summary>Gets requested business content fields.</summary>
     public IReadOnlyList<string> RequestedFields => RequestedRegions.Select(item => item.TargetField).Distinct(StringComparer.Ordinal).ToArray();
+}
+
+/// <summary>Model-visible state of one incremental snapshot slot.</summary>
+public enum SmartBpRecognizedSlotState
+{
+    /// <summary>The crop clearly shows a selected character in this slot.</summary>
+    Selected,
+    /// <summary>The crop clearly shows an empty or unselected slot.</summary>
+    Empty,
+    /// <summary>The crop is not reliable enough, so local merge should preserve previous state.</summary>
+    Unknown
+}
+
+/// <summary>One slot update in a snapshot delta response.</summary>
+public sealed class SmartBpSnapshotDeltaSlot
+{
+    /// <summary>Gets or sets the visual slot index.</summary>
+    [JsonPropertyName("index")]
+    public int Index { get; set; }
+
+    /// <summary>Gets or sets selected, empty, or unknown slot evidence.</summary>
+    [JsonPropertyName("slot_state")]
+    public string SlotState { get; set; } = "unknown";
+
+    /// <summary>Gets or sets the recognized candidate character name or 未选择.</summary>
+    [JsonPropertyName("character_name")]
+    public string CharacterName { get; set; } = "未选择";
+
+    /// <summary>Gets or sets the visible player id when the slot belongs to a picked character.</summary>
+    [JsonPropertyName("player_id")]
+    public string? PlayerId { get; set; }
 }
 
 /// <summary>Incremental model output containing phase and only requested field updates.</summary>
@@ -402,9 +434,9 @@ public sealed class SmartBpSnapshotFieldUpdate
     /// <summary>Gets or sets the business field id.</summary>
     [JsonPropertyName("field")] public string Field { get; set; } = "";
     /// <summary>Gets or sets slots for banned_sur, banned_hun or picked_sur.</summary>
-    [JsonPropertyName("slots")] public List<SmartBpRecognizedPlayerCharacterSlot>? Slots { get; set; }
+    [JsonPropertyName("slots")] public List<SmartBpSnapshotDeltaSlot>? Slots { get; set; }
     /// <summary>Gets or sets the hunter pick slot when field is picked_hun.</summary>
-    [JsonPropertyName("picked_hun")] public SmartBpRecognizedPlayerCharacterSlot? PickedHun { get; set; }
+    [JsonPropertyName("picked_hun")] public SmartBpSnapshotDeltaSlot? PickedHun { get; set; }
 }
 
 /// <summary>In-memory locally merged SmartBP recognition state.</summary>
