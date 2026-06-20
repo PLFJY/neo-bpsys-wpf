@@ -4785,4 +4785,16 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="SmartBpOcrIntervalMilliseconds" xml:space="preserve"><value>OCR interval milliseconds</value></data>
   <data name="SmartBpOcrFieldStaleMilliseconds" xml:space="preserve"><value>OCR field stale refresh milliseconds</value></data>
   <data name="SmartBpOcrBackfillLookBehindSteps" xml:space="preserve"><value>OCR workflow look-behind steps</value></data>
+  <data name="SmartBpOcrProviderSection" xml:space="preserve"><value>OCR provider</value></data>
+  <data name="SmartBpOcrPaddleStatus" xml:space="preserve"><value>Paddle status</value></data>
+  <data name="SmartBpOcrTesseractStatus" xml:space="preserve"><value>Tesseract data status</value></data>
+  <data name="SmartBpOcrStatusInstalled" xml:space="preserve"><value>Installed</value></data>
+  <data name="SmartBpOcrStatusMissing" xml:space="preserve"><value>Missing</value></data>
+  <data name="SmartBpOcrEnableTesseract" xml:space="preserve"><value>Enable Tesseract OCR</value></data>
+  <data name="SmartBpOcrTesseractLanguages" xml:space="preserve"><value>Tesseract languages</value></data>
+  <data name="SmartBpOcrTesseractDataPath" xml:space="preserve"><value>tessdata path</value></data>
+  <data name="SmartBpOcrSelectTessdataFolder" xml:space="preserve"><value>Select tessdata folder</value></data>
+  <data name="SmartBpOcrOpenTessdataFolder" xml:space="preserve"><value>Open tessdata folder</value></data>
+  <data name="SmartBpOcrTesseractPsm" xml:space="preserve"><value>Tesseract page segmentation mode (PSM)</value></data>
+  <data name="SmartBpOcrTesseractVariants" xml:space="preserve"><value>Maximum preprocessing variants</value></data>
 </root>

@@ -3,6 +3,7 @@ extern alias smartbp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 using Moq;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
@@ -14,6 +15,7 @@ using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Xunit;
+using Microsoft.Extensions.Logging;
 using ISmartBpOcrBpRecognitionService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpOcrBpRecognitionService;
 using ISmartBpRecognitionFrameCropper = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpRecognitionFrameCropper;
 using SmartBpBusinessStateRecognitionResult = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpBusinessStateRecognitionResult;
@@ -31,6 +33,15 @@ using SmartBpOcrContactSheetRegion = smartbp::neo_bpsys_wpf.SmartBp.Module.Model
 using SmartBpOcrPhaseClassifier = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpOcrPhaseClassifier;
 using SmartBpOcrRegionParser = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpOcrRegionParser;
 using SmartBpOcrTextResolver = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpOcrTextResolver;
+using SmartBpOcrCandidateMatcher = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpOcrCandidateMatcher;
+using TesseractCoordinateMapper = smartbp::neo_bpsys_wpf.Services.TesseractCoordinateMapper;
+using SmartBpOcrProviderSelector = smartbp::neo_bpsys_wpf.Services.SmartBpOcrProviderSelector;
+using ISmartBpRecognitionSettingsService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpRecognitionSettingsService;
+using SmartBpRecognitionSettings = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionSettings;
+using SmartBpOcrProviderMode = smartbp::neo_bpsys_wpf.Core.Abstractions.Services.SmartBpOcrProviderMode;
+using SmartBpOcrProviderKind = smartbp::neo_bpsys_wpf.Core.Abstractions.Services.SmartBpOcrProviderKind;
+using IOcrProvider = smartbp::neo_bpsys_wpf.Core.Abstractions.Services.IOcrProvider;
+using OcrRecognitionOptions = smartbp::neo_bpsys_wpf.Core.Abstractions.Services.OcrRecognitionOptions;
 using SmartBpRecognitionRegion = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionRegion;
 
 namespace neo_bpsys_wpf.Tests.Services;
@@ -191,6 +202,53 @@ public sealed class SmartBpOcrRecognitionContractTest
     }
 
     [Fact]
+    public void TesseractScaledCoordinatesMapBackToInputCoordinates()
+    {
+        var mapped = TesseractCoordinateMapper.MapToOriginal(new Rect(100, 40, 80, 24), 2, 2, 400, 200);
+
+        Assert.Equal(new Rect(50, 20, 40, 12), mapped);
+    }
+
+    [Theory]
+    [InlineData(SmartBpOcrProviderMode.Paddle, SmartBpOcrProviderKind.Paddle)]
+    [InlineData(SmartBpOcrProviderMode.Tesseract, SmartBpOcrProviderKind.Tesseract)]
+    public void ProviderSelectorUsesOnlyExplicitSelection(SmartBpOcrProviderMode mode, SmartBpOcrProviderKind expected)
+    {
+        var settings = new FakeRecognitionSettings { Settings = new SmartBpRecognitionSettings { OcrProviderMode = mode } };
+        var paddle = new FakeProvider(SmartBpOcrProviderKind.Paddle, true);
+        var tesseract = new FakeProvider(SmartBpOcrProviderKind.Tesseract, false);
+        var selector = new SmartBpOcrProviderSelector([paddle, tesseract], settings);
+
+        Assert.Equal(expected, selector.GetSelectedProvider().Kind);
+        Assert.Equal(expected == SmartBpOcrProviderKind.Paddle, selector.GetSelectedProvider().IsReady);
+    }
+
+    [Fact]
+    public void AliasMapsToCanonicalHunterAndQuotedNameStillResolves()
+    {
+        var resolver = Resolver(new Character("厂长", Camp.Hun, "hell-ember"));
+
+        var alias = resolver.ResolveCharacterFromLine("广长", Camp.Hun, 0, "Tesseract");
+        var quoted = resolver.ResolveCharacterFromLine("“厂长”", Camp.Hun, 0, "Paddle");
+
+        Assert.Equal("厂长", alias.ResolvedCharacterKey);
+        Assert.Equal("厂长", quoted.ResolvedCharacterKey);
+        Assert.Contains(alias.Warnings, item => item.Contains("matchMode=alias", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void OneCharacterHunterHintRemainsUnsafeForAutoApply()
+    {
+        var parser = Parser(new Character("厂长", Camp.Hun, "hell-ember"));
+
+        var result = parser.Parse(SmartBpRecognitionRegion.RightBottom, [Line("厂", 50, 20)], []);
+
+        Assert.Equal("厂长", result.PickedHun!.CharacterName);
+        Assert.False(result.PickedHun.IsAutoApplySafe);
+        Assert.True(result.PickedHun.RecognitionConfidence < .90);
+    }
+
+    [Fact]
     public async Task OcrDeltaServiceProducesExistingSnapshotDeltaShape()
     {
         var frame = CreateFrame();
@@ -234,11 +292,8 @@ public sealed class SmartBpOcrRecognitionContractTest
         var shared = new Mock<ISharedDataService>();
         shared.SetupGet(x => x.SurCharaDict).Returns(new SortedDictionary<string, Character>(characters.Where(x => x.Camp == Camp.Sur).ToDictionary(x => x.Name)));
         shared.SetupGet(x => x.HunCharaDict).Returns(new SortedDictionary<string, Character>(characters.Where(x => x.Camp == Camp.Hun).ToDictionary(x => x.Name)));
-        var selection = new CharacterSelectionService(
-            shared.Object,
-            Mock.Of<IFrontedTransitionOrchestrator>(),
-            Mock.Of<IFrontedLayoutService>());
-        return new SmartBpOcrTextResolver(selection);
+        var matcher = new SmartBpOcrCandidateMatcher(shared.Object, Mock.Of<ILogger<SmartBpOcrCandidateMatcher>>());
+        return new SmartBpOcrTextResolver(matcher);
     }
 
     private static OcrTextLine Line(string text, double x, double y) =>
@@ -272,5 +327,18 @@ public sealed class SmartBpOcrRecognitionContractTest
             new(region, frame, 0, 0, frame.PixelWidth, frame.PixelHeight);
 
         public BitmapSource Crop(BitmapSource source, SmartBpRecognitionRegion region) => frame;
+    }
+
+    private sealed class FakeProvider(SmartBpOcrProviderKind kind, bool ready) : IOcrProvider
+    {
+        public SmartBpOcrProviderKind Kind { get; } = kind;
+        public bool IsReady { get; } = ready;
+        public OcrTextBlockResult RecognizeTextLines(Mat img, OcrRecognitionOptions? options = null) => OcrTextBlockResult.Empty;
+    }
+
+    private sealed class FakeRecognitionSettings : ISmartBpRecognitionSettingsService
+    {
+        public required SmartBpRecognitionSettings Settings { get; init; }
+        public Task SaveAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
     }
 }

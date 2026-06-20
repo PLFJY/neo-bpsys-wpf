@@ -128,6 +128,8 @@ I18nHelper.GetLocalizedString("SomeKey")
 
 `I18nHelper` 找不到 key 时返回原始 key，便于界面降级显示和定位缺失翻译。新增用户可见文本时至少添加默认 `Lang.resx`，并尽量补齐英文、日文资源，避免用户看到裸 key。
 
+SmartBP OCR 角色别名位于 `Resources/SmartBp/OcrCharacterAliases.json`，按 `hunter` / `survivor` 分组并映射到应用内规范角色名。Tesseract 默认从 `%APPDATA%/neo-bpsys-wpf/SmartBp/Tesseract/tessdata/` 读取 traineddata；设置中的外部路径非空时直接使用该目录，不复制模型文件。
+
 Designer v3 的显示层本地化统一使用 `Designer.*` key 前缀。代码侧通过 `IFrontedDesignerLocalizationService` 访问，WPF 宿主实现再委托 `I18nHelper.GetLocalizedString(key)`；Core 中的默认实现只返回原始值，避免 Core 反向引用 WPF 项目。常用命名包括 `Designer.Property.*`、`Designer.PropertyGroup.*`、`Designer.ControlType.*`、`Designer.Option.{Property}.{Value}`、`Designer.Window.*`、`Designer.Canvas.*`、`Designer.Binding.*` 和 `Designer.BindingType.*`。
 
 后，常用命名还包括 `Designer.Value.*`、`Designer.Editor.*` 和 `Designer.Validation.*`，用于只读布尔值、Binding Browser / Resource Browser 和属性校验提示。

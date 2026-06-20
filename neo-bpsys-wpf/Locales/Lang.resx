@@ -5721,4 +5721,16 @@
   <data name="SmartBpOcrIntervalMilliseconds" xml:space="preserve"><value>OCR 识别间隔毫秒</value></data>
   <data name="SmartBpOcrFieldStaleMilliseconds" xml:space="preserve"><value>OCR 字段陈旧刷新毫秒</value></data>
   <data name="SmartBpOcrBackfillLookBehindSteps" xml:space="preserve"><value>OCR 回看工作流步数</value></data>
+  <data name="SmartBpOcrProviderSection" xml:space="preserve"><value>OCR 提供程序</value></data>
+  <data name="SmartBpOcrPaddleStatus" xml:space="preserve"><value>Paddle 状态</value></data>
+  <data name="SmartBpOcrTesseractStatus" xml:space="preserve"><value>Tesseract 数据状态</value></data>
+  <data name="SmartBpOcrStatusInstalled" xml:space="preserve"><value>已安装</value></data>
+  <data name="SmartBpOcrStatusMissing" xml:space="preserve"><value>缺失</value></data>
+  <data name="SmartBpOcrEnableTesseract" xml:space="preserve"><value>启用 Tesseract OCR</value></data>
+  <data name="SmartBpOcrTesseractLanguages" xml:space="preserve"><value>Tesseract 语言</value></data>
+  <data name="SmartBpOcrTesseractDataPath" xml:space="preserve"><value>tessdata 路径</value></data>
+  <data name="SmartBpOcrSelectTessdataFolder" xml:space="preserve"><value>选择 tessdata 文件夹</value></data>
+  <data name="SmartBpOcrOpenTessdataFolder" xml:space="preserve"><value>打开 tessdata 文件夹</value></data>
+  <data name="SmartBpOcrTesseractPsm" xml:space="preserve"><value>Tesseract 页面分割模式（PSM）</value></data>
+  <data name="SmartBpOcrTesseractVariants" xml:space="preserve"><value>最大预处理变体数</value></data>
 </root>

@@ -1,10 +1,12 @@
 using System.Windows.Media.Imaging;
 using System.Windows;
 using System.IO;
+using System.Diagnostics;
 using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using neo_bpsys_wpf.Core;
+using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
@@ -73,6 +75,15 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty] private int _ocrBackfillLookBehindSteps;
     [ObservableProperty] private bool _useOcrContactSheet = true;
     [ObservableProperty] private bool _enableOcrDebugOverlay;
+    [ObservableProperty] private IReadOnlyList<OcrProviderSelection> _ocrProviders = [];
+    [ObservableProperty] private OcrProviderSelection? _selectedOcrProvider;
+    [ObservableProperty] private string _paddleOcrStatus = "-";
+    [ObservableProperty] private string _tesseractOcrStatus = "-";
+    [ObservableProperty] private string _tesseractDataPath = "";
+    [ObservableProperty] private string _tesseractLanguages = "chi_sim+eng";
+    [ObservableProperty] private bool _enableTesseractOcr = true;
+    [ObservableProperty] private int _tesseractDefaultPsm = 6;
+    [ObservableProperty] private int _tesseractMaxPreprocessVariants = 3;
     [ObservableProperty] private bool _allowSequentialSnapshotFallback;
     [ObservableProperty] private bool _useStrictCandidateEnumsInAutoSchema;
     [ObservableProperty] private int _phaseCropMaxImageWidth;
@@ -121,6 +132,18 @@ public partial class SmartBpModuleContentViewModel
         OcrBackfillLookBehindSteps = _recognitionSettingsService.Settings.OcrBackfillLookBehindSteps;
         UseOcrContactSheet = _recognitionSettingsService.Settings.UseOcrContactSheet;
         EnableOcrDebugOverlay = _recognitionSettingsService.Settings.EnableOcrDebugOverlay;
+        OcrProviders =
+        [
+            new(SmartBpOcrProviderMode.Paddle, "Paddle OCR"),
+            new(SmartBpOcrProviderMode.Tesseract, "Tesseract OCR")
+        ];
+        SelectedOcrProvider = OcrProviders.First(item => item.Mode == _recognitionSettingsService.Settings.OcrProviderMode);
+        TesseractDataPath = _recognitionSettingsService.Settings.TesseractDataPath;
+        TesseractLanguages = _recognitionSettingsService.Settings.TesseractLanguages;
+        EnableTesseractOcr = _recognitionSettingsService.Settings.EnableTesseractOcr;
+        TesseractDefaultPsm = _recognitionSettingsService.Settings.TesseractDefaultPsm;
+        TesseractMaxPreprocessVariants = _recognitionSettingsService.Settings.TesseractMaxPreprocessVariants;
+        RefreshOcrProviderStatuses();
         AllowSequentialSnapshotFallback = _recognitionSettingsService.Settings.AllowSequentialSnapshotFallback;
         UseStrictCandidateEnumsInAutoSchema = _recognitionSettingsService.Settings.UseStrictCandidateEnumsInAutoSchema;
         PhaseCropMaxImageWidth = _recognitionSettingsService.Settings.PhaseCropMaxImageWidth;
@@ -657,6 +680,75 @@ public partial class SmartBpModuleContentViewModel
         _ = _recognitionSettingsService.SaveAsync();
     }
 
+    partial void OnSelectedOcrProviderChanged(OcrProviderSelection? value)
+    {
+        if (value == null) return;
+        _recognitionSettingsService.Settings.OcrProviderMode = value.Mode;
+        RefreshOcrProviderStatuses();
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnTesseractDataPathChanged(string value)
+    {
+        _recognitionSettingsService.Settings.TesseractDataPath = value?.Trim() ?? string.Empty;
+        RefreshOcrProviderStatuses();
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnTesseractLanguagesChanged(string value)
+    {
+        _recognitionSettingsService.Settings.TesseractLanguages = string.IsNullOrWhiteSpace(value) ? "chi_sim+eng" : value.Trim();
+        RefreshOcrProviderStatuses();
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnEnableTesseractOcrChanged(bool value)
+    {
+        _recognitionSettingsService.Settings.EnableTesseractOcr = value;
+        RefreshOcrProviderStatuses();
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnTesseractDefaultPsmChanged(int value)
+    {
+        _recognitionSettingsService.Settings.TesseractDefaultPsm = Math.Clamp(value, 0, 13);
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnTesseractMaxPreprocessVariantsChanged(int value)
+    {
+        _recognitionSettingsService.Settings.TesseractMaxPreprocessVariants = Math.Clamp(value, 1, 3);
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    [RelayCommand]
+    private void SelectTesseractDataFolder()
+    {
+        var selected = _filePickerService.PickFolder();
+        if (!string.IsNullOrWhiteSpace(selected))
+            TesseractDataPath = selected;
+    }
+
+    [RelayCommand]
+    private void OpenTesseractDataFolder()
+    {
+        var status = _ocrService.GetProviderStatus(SmartBpOcrProviderKind.Tesseract);
+        var path = status.DataPath;
+        if (string.IsNullOrWhiteSpace(path)) return;
+        Directory.CreateDirectory(path);
+        Process.Start(new ProcessStartInfo("explorer.exe", path) { UseShellExecute = true });
+    }
+
+    private void RefreshOcrProviderStatuses()
+    {
+        var paddle = _ocrService.GetProviderStatus(SmartBpOcrProviderKind.Paddle);
+        var tesseract = _ocrService.GetProviderStatus(SmartBpOcrProviderKind.Tesseract);
+        PaddleOcrStatus = paddle.IsReady ? ResolveLocalizedOrRaw("SmartBpOcrStatusInstalled") : ResolveLocalizedOrRaw("SmartBpOcrStatusMissing");
+        TesseractOcrStatus = tesseract.IsReady
+            ? ResolveLocalizedOrRaw("SmartBpOcrStatusInstalled")
+            : $"{ResolveLocalizedOrRaw("SmartBpOcrStatusMissing")}: {tesseract.Details}";
+    }
+
     partial void OnAllowSequentialSnapshotFallbackChanged(bool value)
     {
         _recognitionSettingsService.Settings.AllowSequentialSnapshotFallback = value;
@@ -737,4 +829,9 @@ public partial class SmartBpModuleContentViewModel
     /// <param name="Engine">Engine value.</param>
     /// <param name="DisplayNameKey">Localized display name key.</param>
     public sealed record RecognitionEngineSelection(SmartBpRecognitionEngine Engine, string DisplayNameKey);
+
+    /// <summary>One selectable OCR provider.</summary>
+    /// <param name="Mode">Persisted provider mode.</param>
+    /// <param name="DisplayName">Display name.</param>
+    public sealed record OcrProviderSelection(SmartBpOcrProviderMode Mode, string DisplayName);
 }

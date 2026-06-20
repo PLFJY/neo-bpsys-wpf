@@ -20,10 +20,10 @@ namespace neo_bpsys_wpf.Services;
 /// OCR 服务实现。
 /// 提供模型管理（枚举、下载、删除、切换）与图像文本识别能力。
 /// </summary>
-public class OcrService : IOcrService
+public sealed class PaddleOcrProvider : IOcrProvider
 {
     private readonly ISettingsHostService _settingsHostService;
-    private readonly ILogger<OcrService> _logger;
+    private readonly ILogger<PaddleOcrProvider> _logger;
     private readonly Lock _ocrLock = new();
     private readonly Lock _downloadLock = new();
     private readonly DownloadService _downloader;
@@ -65,9 +65,9 @@ public class OcrService : IOcrService
     /// <param name="settingsHostService">设置服务。</param>
     /// <param name="logger">日志记录器。</param>
     /// <param name="modelPathProvider">OCR 模型路径提供器。</param>
-    public OcrService(
+    public PaddleOcrProvider(
         ISettingsHostService settingsHostService,
-        ILogger<OcrService> logger,
+        ILogger<PaddleOcrProvider> logger,
         ISmartBpOcrModelPathProvider modelPathProvider)
     {
         _settingsHostService = settingsHostService;
@@ -86,6 +86,19 @@ public class OcrService : IOcrService
         _downloader.DownloadProgressChanged += Downloader_DownloadProgressChanged;
 
         TryLoadPreferredModel();
+    }
+
+    /// <inheritdoc />
+    public SmartBpOcrProviderKind Kind => SmartBpOcrProviderKind.Paddle;
+
+    /// <inheritdoc />
+    public bool IsReady
+    {
+        get
+        {
+            lock (_ocrLock)
+                return _ocr != null;
+        }
     }
 
     /// <summary>
@@ -364,7 +377,7 @@ public class OcrService : IOcrService
     /// <returns>文本行识别结果。</returns>
     public OcrTextBlockResult RecognizeTextLines(Mat img)
     {
-        if (img.Empty()) return OcrTextBlockResult.Empty;
+        if (img.Empty()) return new([], string.Empty, "Paddle");
 
         if (img.Channels() == 1)
         {
@@ -375,6 +388,10 @@ public class OcrService : IOcrService
 
         return RecognizeTextLinesCore(img);
     }
+
+    /// <inheritdoc />
+    OcrTextBlockResult IOcrProvider.RecognizeTextLines(Mat img, OcrRecognitionOptions? options) =>
+        RecognizeTextLines(img);
 
     /// <summary>
     /// 执行 OCR 主流程，并在失败时尝试一次重建后重试。
@@ -405,11 +422,11 @@ public class OcrService : IOcrService
         {
             var result = RunOcrWithRetryUnsafe(bgr);
             if (result != null)
-                return ToTextBlockResult(result);
+                return ToTextBlockResult(result, bgr.Width, bgr.Height);
         }
 
         ShowMissingModelWarningOnce();
-        return OcrTextBlockResult.Empty;
+        return new([], string.Empty, "Paddle");
     }
 
     /// <summary>
@@ -452,7 +469,7 @@ public class OcrService : IOcrService
     /// </summary>
     /// <param name="result">PaddleOCR 原始结果。</param>
     /// <returns>文本块结果。</returns>
-    private static OcrTextBlockResult ToTextBlockResult(PaddleOcrResult result)
+    private OcrTextBlockResult ToTextBlockResult(PaddleOcrResult result, int inputWidth, int inputHeight)
     {
         var lines = result.Regions
             .Select(region =>
@@ -461,13 +478,24 @@ public class OcrService : IOcrService
                 if (string.IsNullOrWhiteSpace(text))
                     return null;
 
-                var boundingBox = region.Rect.BoundingRect();
+                var originalBox = region.Rect.BoundingRect();
+                var boundingBox = ClampToInput(originalBox, inputWidth, inputHeight);
+                if (boundingBox != originalBox)
+                    _logger.LogWarning(
+                        "Paddle OCR returned an out-of-bounds box. input={Width}x{Height}; original={Original}; clamped={Clamped}",
+                        inputWidth, inputHeight, originalBox, boundingBox);
+                var centerX = boundingBox.X + boundingBox.Width / 2d;
+                var centerY = boundingBox.Y + boundingBox.Height / 2d;
+                _logger.LogDebug(
+                    "provider=Paddle; input={Width}x{Height}; line bbox={Box}; center={CenterX:0.0},{CenterY:0.0}",
+                    inputWidth, inputHeight, boundingBox, centerX, centerY);
                 return new OcrTextLine(
                     text,
                     Math.Clamp(region.Score, 0, 1),
                     boundingBox,
-                    region.Rect.Center.X,
-                    region.Rect.Center.Y);
+                    centerX,
+                    centerY,
+                    "Paddle");
             })
             .Where(line => line != null)
             .Cast<OcrTextLine>()
@@ -476,9 +504,18 @@ public class OcrService : IOcrService
             .ToArray();
 
         if (lines.Length == 0)
-            return OcrTextBlockResult.Empty;
+            return new([], string.Empty, "Paddle");
 
-        return new OcrTextBlockResult(lines, string.Join(Environment.NewLine, lines.Select(line => line.Text)));
+        return new OcrTextBlockResult(lines, string.Join(Environment.NewLine, lines.Select(line => line.Text)), "Paddle");
+    }
+
+    private static Rect ClampToInput(Rect box, int width, int height)
+    {
+        var left = Math.Clamp(box.Left, 0, width);
+        var top = Math.Clamp(box.Top, 0, height);
+        var right = Math.Clamp(box.Right, left, width);
+        var bottom = Math.Clamp(box.Bottom, top, height);
+        return new Rect(left, top, right - left, bottom - top);
     }
 
     /// <summary>

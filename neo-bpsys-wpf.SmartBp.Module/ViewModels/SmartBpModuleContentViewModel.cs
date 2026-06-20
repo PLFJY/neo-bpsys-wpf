@@ -432,6 +432,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         CurrentOcrModelDisplayName = currentModelKey is null
             ? "SmartBpCurrentOcrModelNotEnabled"
             : OcrModelList.FirstOrDefault(m => m.Key == currentModelKey)?.DisplayName ?? currentModelKey;
+        RefreshOcrProviderStatuses();
     }
 
     [RelayCommand(CanExecute = nameof(CanDownloadSelectedOcrModel))]

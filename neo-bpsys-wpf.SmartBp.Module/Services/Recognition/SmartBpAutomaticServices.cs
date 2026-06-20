@@ -317,10 +317,10 @@ internal static class SmartBpAutomaticParser
         switch (focused.TargetField)
         {
             case "banned_sur":
-                state.BannedSur = focused.Slots.Select(x => new SmartBpRecognizedCharacterSlot { Index = x.Index, CharacterName = x.CharacterName }).ToList();
+                state.BannedSur = focused.Slots.Select(x => new SmartBpRecognizedCharacterSlot { Index = x.Index, CharacterName = x.CharacterName, RecognitionConfidence = x.RecognitionConfidence, IsAutoApplySafe = x.IsAutoApplySafe, RecognitionReason = x.RecognitionReason }).ToList();
                 break;
             case "banned_hun":
-                state.BannedHun = focused.Slots.Select(x => new SmartBpRecognizedCharacterSlot { Index = x.Index, CharacterName = x.CharacterName }).ToList();
+                state.BannedHun = focused.Slots.Select(x => new SmartBpRecognizedCharacterSlot { Index = x.Index, CharacterName = x.CharacterName, RecognitionConfidence = x.RecognitionConfidence, IsAutoApplySafe = x.IsAutoApplySafe, RecognitionReason = x.RecognitionReason }).ToList();
                 break;
             case "picked_sur":
                 state.PickedSur = focused.Slots;
@@ -523,10 +523,11 @@ internal sealed class SmartBpCandidateOperationBuilder(ISmartBpCharacterResolver
                 messages.Add($"Skipped: index not in current GameGuidance indexes ({camp}[{slot.Index}] {slot.CharacterName}).");
                 continue;
             }
-            var resolved = resolver.Resolve(slot.CharacterName, camp, slot.Index, 1);
+            var confidence = slot.IsAutoApplySafe ? slot.RecognitionConfidence : Math.Min(slot.RecognitionConfidence, .89);
+            var resolved = resolver.Resolve(slot.CharacterName, camp, slot.Index, confidence);
             operations.Add(new(kind, action, guidanceIndexes.ToArray(), camp, slot.Index, slot.CharacterName,
-                resolved.ResolvedCharacterKey, resolved.ResolvedCharacterName, null, 1,
-                $"Business-state snapshot phase {action} produced slot {slot.Index}."));
+                resolved.ResolvedCharacterKey, resolved.ResolvedCharacterName, null, confidence,
+                slot.RecognitionReason ?? $"Business-state snapshot phase {action} produced slot {slot.Index}."));
         }
         return new(operations, messages);
     }
@@ -544,10 +545,11 @@ internal sealed class SmartBpCandidateOperationBuilder(ISmartBpCharacterResolver
                 messages.Add($"Skipped: index not in current GameGuidance indexes ({camp}[{internalSlot}] {slot.CharacterName}).");
                 continue;
             }
-            var resolved = resolver.Resolve(slot.CharacterName, camp, internalSlot, 1);
+            var confidence = slot.IsAutoApplySafe ? slot.RecognitionConfidence : Math.Min(slot.RecognitionConfidence, .89);
+            var resolved = resolver.Resolve(slot.CharacterName, camp, internalSlot, confidence);
             operations.Add(new(kind, action, guidanceIndexes.ToArray(), camp, internalSlot, slot.CharacterName,
-                resolved.ResolvedCharacterKey, resolved.ResolvedCharacterName, slot.PlayerId, 1,
-                hunterSlot ? "Business-state snapshot mapped hunter visual slot 0 to internal hunter slot -1." : $"Business-state snapshot phase {action} produced slot {internalSlot}."));
+                resolved.ResolvedCharacterKey, resolved.ResolvedCharacterName, slot.PlayerId, confidence,
+                slot.RecognitionReason ?? (hunterSlot ? "Business-state snapshot mapped hunter visual slot 0 to internal hunter slot -1." : $"Business-state snapshot phase {action} produced slot {internalSlot}.")));
         }
         return new(operations, messages);
     }
@@ -597,7 +599,8 @@ internal sealed class SmartBpCandidateOperationBuilder(ISmartBpCharacterResolver
         var simulated = shared.CurrentGame.SurPlayerList.Select(x => x.Character?.Name).ToArray();
         foreach (var slot in slots.Where(x => !SmartBpBusinessStateParser.IsUnselected(x.CharacterName) && x.Index is >= 0 and < 4).OrderBy(x => x.Index))
         {
-            var resolved = resolver.Resolve(slot.CharacterName, Camp.Sur, slot.Index, 1);
+            var confidence = slot.IsAutoApplySafe ? slot.RecognitionConfidence : Math.Min(slot.RecognitionConfidence, .89);
+            var resolved = resolver.Resolve(slot.CharacterName, Camp.Sur, slot.Index, confidence);
             if (resolved.ResolvedCharacterName != null && simulated[slot.Index] == resolved.ResolvedCharacterName)
             {
                 messages.Add($"Skipped: no-op same character Sur[{slot.Index}] {slot.CharacterName}.");
@@ -606,7 +609,7 @@ internal sealed class SmartBpCandidateOperationBuilder(ISmartBpCharacterResolver
             operations.Add(new(SmartBpDetectedOperationKind.SwapSurvivors, GameAction.DistributeChara,
                 guidanceIndexes.ToArray(), Camp.Sur, slot.Index, slot.CharacterName,
                 resolved.ResolvedCharacterKey, resolved.ResolvedCharacterName, slot.PlayerId,
-                1, $"Place the detected character into fixed survivor player slot {slot.Index}."));
+                confidence, slot.RecognitionReason ?? $"Place the detected character into fixed survivor player slot {slot.Index}."));
             if (resolved.ResolvedCharacterName == null) continue;
             var source = Array.FindIndex(simulated, x => x == resolved.ResolvedCharacterName);
             if (source < 0) continue;
@@ -1000,8 +1003,8 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
     }
 
     private static SmartBpRecognizedPlayerCharacterSlot ToPlayerSlot(SmartBpRecognizedCharacterSlot slot) =>
-        new() { Index = slot.Index, CharacterName = slot.CharacterName };
+        new() { Index = slot.Index, CharacterName = slot.CharacterName, RecognitionConfidence = slot.RecognitionConfidence, IsAutoApplySafe = slot.IsAutoApplySafe, RecognitionReason = slot.RecognitionReason };
 
     private static SmartBpRecognizedPlayerCharacterSlot ClonePlayerSlot(SmartBpRecognizedPlayerCharacterSlot slot) =>
-        new() { Index = slot.Index, CharacterName = slot.CharacterName, PlayerId = slot.PlayerId };
+        new() { Index = slot.Index, CharacterName = slot.CharacterName, PlayerId = slot.PlayerId, RecognitionConfidence = slot.RecognitionConfidence, IsAutoApplySafe = slot.IsAutoApplySafe, RecognitionReason = slot.RecognitionReason };
 }

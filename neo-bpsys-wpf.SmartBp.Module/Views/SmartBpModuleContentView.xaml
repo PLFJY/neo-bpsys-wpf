@@ -519,6 +519,30 @@
                         <ui:ToggleSwitch Margin="0,6,0,0" Content="{lex:Loc SmartBpOcrEnableBpRecognition}" IsChecked="{Binding EnableOcrBpRecognition}" />
                         <ui:ToggleSwitch Margin="0,6,0,0" Content="{lex:Loc SmartBpOcrUseContactSheet}" IsChecked="{Binding UseOcrContactSheet}" />
                         <ui:ToggleSwitch Margin="0,6,0,0" Content="{lex:Loc SmartBpOcrDebugOverlay}" IsChecked="{Binding EnableOcrDebugOverlay}" />
+                        <TextBlock Margin="0,10,0,2" FontWeight="SemiBold" Text="{lex:Loc SmartBpOcrProviderSection}" />
+                        <ComboBox
+                            DisplayMemberPath="DisplayName"
+                            ItemsSource="{Binding OcrProviders}"
+                            SelectedItem="{Binding SelectedOcrProvider}" />
+                        <TextBlock Margin="0,6,0,0">
+                            <Run Text="{lex:Loc SmartBpOcrPaddleStatus}" /><Run Text=": " /><Run Text="{Binding PaddleOcrStatus}" />
+                        </TextBlock>
+                        <TextBlock Margin="0,2,0,0">
+                            <Run Text="{lex:Loc SmartBpOcrTesseractStatus}" /><Run Text=": " /><Run Text="{Binding TesseractOcrStatus}" />
+                        </TextBlock>
+                        <ui:ToggleSwitch Margin="0,6,0,0" Content="{lex:Loc SmartBpOcrEnableTesseract}" IsChecked="{Binding EnableTesseractOcr}" />
+                        <TextBlock Margin="0,6,0,2" Text="{lex:Loc SmartBpOcrTesseractLanguages}" />
+                        <TextBox Text="{Binding TesseractLanguages, UpdateSourceTrigger=LostFocus}" />
+                        <TextBlock Margin="0,6,0,2" Text="{lex:Loc SmartBpOcrTesseractDataPath}" />
+                        <TextBox Text="{Binding TesseractDataPath, UpdateSourceTrigger=LostFocus}" />
+                        <WrapPanel Margin="0,6,0,0">
+                            <ui:Button Margin="0,0,8,0" Command="{Binding SelectTesseractDataFolderCommand}" Content="{lex:Loc SmartBpOcrSelectTessdataFolder}" Icon="{ui:SymbolIcon Symbol=Folder24}" />
+                            <ui:Button Command="{Binding OpenTesseractDataFolderCommand}" Content="{lex:Loc SmartBpOcrOpenTessdataFolder}" Icon="{ui:SymbolIcon Symbol=FolderOpen24}" />
+                        </WrapPanel>
+                        <TextBlock Margin="0,6,0,2" Text="{lex:Loc SmartBpOcrTesseractPsm}" />
+                        <TextBox Text="{Binding TesseractDefaultPsm}" />
+                        <TextBlock Margin="0,6,0,2" Text="{lex:Loc SmartBpOcrTesseractVariants}" />
+                        <TextBox Text="{Binding TesseractMaxPreprocessVariants}" />
                         <TextBlock Margin="0,6,0,2" Text="{lex:Loc SmartBpOcrIntervalMilliseconds}" />
                         <TextBox Text="{Binding OcrRecognitionIntervalMs}" />
                         <TextBlock Margin="0,6,0,2" Text="{lex:Loc SmartBpOcrFieldStaleMilliseconds}" />

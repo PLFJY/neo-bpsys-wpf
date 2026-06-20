@@ -145,8 +145,9 @@ public interface ISmartBpOcrTextResolver
     /// <param name="text">OCR text.</param>
     /// <param name="camp">Target camp.</param>
     /// <param name="slotIndex">Visual slot index.</param>
+    /// <param name="provider">Optional OCR provider name.</param>
     /// <returns>Resolved character information, or unresolved details.</returns>
-    SmartBpNormalizedCharacter ResolveCharacterFromLine(string text, Core.Enums.Camp camp, int slotIndex);
+    SmartBpNormalizedCharacter ResolveCharacterFromLine(string text, Core.Enums.Camp camp, int slotIndex, string? provider = null);
 }
 /// <summary>Recognizes BP state from PaddleOCR text and bounding boxes.</summary>
 public interface ISmartBpOcrBpRecognitionService

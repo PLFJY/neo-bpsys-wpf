@@ -168,6 +168,18 @@ public sealed class SmartBpRecognitionSettings
     public bool UseOcrContactSheet { get; set; } = true;
     /// <summary>Gets or sets whether OCR debug overlay output is enabled.</summary>
     public bool EnableOcrDebugOverlay { get; set; }
+    /// <summary>Gets or sets the explicitly selected OCR provider.</summary>
+    public SmartBpOcrProviderMode OcrProviderMode { get; set; } = SmartBpOcrProviderMode.Paddle;
+    /// <summary>Gets or sets an optional external Tesseract tessdata directory.</summary>
+    public string TesseractDataPath { get; set; } = "";
+    /// <summary>Gets or sets the Tesseract language expression.</summary>
+    public string TesseractLanguages { get; set; } = "chi_sim+eng";
+    /// <summary>Gets or sets the default Tesseract page segmentation mode.</summary>
+    public int TesseractDefaultPsm { get; set; } = 6;
+    /// <summary>Gets or sets whether Tesseract may be used when selected.</summary>
+    public bool EnableTesseractOcr { get; set; } = true;
+    /// <summary>Gets or sets the maximum number of Tesseract preprocessing variants.</summary>
+    public int TesseractMaxPreprocessVariants { get; set; } = 3;
     /// <summary>Gets or sets how many previous workflow steps are considered when planning content-region refreshes.</summary>
     public int RecognitionBackfillLookBehindSteps { get; set; } = 2;
     /// <summary>Gets or sets how long a locally merged recognition field may remain fresh.</summary>
@@ -244,6 +256,12 @@ public class SmartBpRecognizedCharacterSlot
     [JsonPropertyName("index")] public int Index { get; set; }
     /// <summary>Gets or sets raw model character name or 未选择.</summary>
     [JsonPropertyName("character_name")] public string CharacterName { get; set; } = "未选择";
+    /// <summary>Gets or sets the local OCR match confidence; model JSON does not serialize this metadata.</summary>
+    [JsonIgnore] public double RecognitionConfidence { get; set; } = 1;
+    /// <summary>Gets or sets whether local OCR matching is safe for automatic application.</summary>
+    [JsonIgnore] public bool IsAutoApplySafe { get; set; } = true;
+    /// <summary>Gets or sets the OCR match diagnostic reason.</summary>
+    [JsonIgnore] public string? RecognitionReason { get; set; }
 }
 
 /// <summary>One recognized player-bound character slot.</summary>
@@ -482,6 +500,19 @@ public sealed class SmartBpOcrRecognitionResult
     public IReadOnlyList<SmartBpOcrRegionText> Regions { get; init; } = [];
     /// <summary>Gets bounded recognition diagnostics.</summary>
     public IReadOnlyList<string> Diagnostics { get; init; } = [];
+}
+
+/// <summary>Detailed local parse result for one OCR coarse region.</summary>
+public sealed class SmartBpOcrParsedRegionResult
+{
+    /// <summary>Gets the parsed business result.</summary>
+    public SmartBpFocusedBusinessExtractionResult Result { get; init; } = new();
+    /// <summary>Gets resolver and parser diagnostics.</summary>
+    public IReadOnlyList<string> Diagnostics { get; init; } = [];
+    /// <summary>Gets whether a required role slot remains unresolved.</summary>
+    public bool HasCriticalUnresolvedField { get; init; }
+    /// <summary>Gets whether every resolved slot is safe for automatic application.</summary>
+    public bool IsAutoApplySafe { get; init; }
 }
 
 /// <summary>OCR BP recognition request.</summary>

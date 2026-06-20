@@ -4632,4 +4632,16 @@
   <data name="SmartBpOcrIntervalMilliseconds" xml:space="preserve"><value>OCR 認識間隔ミリ秒</value></data>
   <data name="SmartBpOcrFieldStaleMilliseconds" xml:space="preserve"><value>OCR フィールド再更新までのミリ秒</value></data>
   <data name="SmartBpOcrBackfillLookBehindSteps" xml:space="preserve"><value>OCR ワークフロー振り返り手順数</value></data>
+  <data name="SmartBpOcrProviderSection" xml:space="preserve"><value>OCR プロバイダー</value></data>
+  <data name="SmartBpOcrPaddleStatus" xml:space="preserve"><value>Paddle の状態</value></data>
+  <data name="SmartBpOcrTesseractStatus" xml:space="preserve"><value>Tesseract データの状態</value></data>
+  <data name="SmartBpOcrStatusInstalled" xml:space="preserve"><value>インストール済み</value></data>
+  <data name="SmartBpOcrStatusMissing" xml:space="preserve"><value>不足</value></data>
+  <data name="SmartBpOcrEnableTesseract" xml:space="preserve"><value>Tesseract OCR を有効にする</value></data>
+  <data name="SmartBpOcrTesseractLanguages" xml:space="preserve"><value>Tesseract 言語</value></data>
+  <data name="SmartBpOcrTesseractDataPath" xml:space="preserve"><value>tessdata パス</value></data>
+  <data name="SmartBpOcrSelectTessdataFolder" xml:space="preserve"><value>tessdata フォルダーを選択</value></data>
+  <data name="SmartBpOcrOpenTessdataFolder" xml:space="preserve"><value>tessdata フォルダーを開く</value></data>
+  <data name="SmartBpOcrTesseractPsm" xml:space="preserve"><value>Tesseract ページ分割モード（PSM）</value></data>
+  <data name="SmartBpOcrTesseractVariants" xml:space="preserve"><value>前処理バリアントの最大数</value></data>
 </root>

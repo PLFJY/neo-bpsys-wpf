@@ -107,31 +107,29 @@ internal static class SmartBpOcrContactSheetMapper
             .ToArray();
     }
 
-    private static OcrTextLine ToRegionLocalLine(OcrTextLine line, Rect sheetRect) =>
-        line with
+    private static OcrTextLine ToRegionLocalLine(OcrTextLine line, Rect sheetRect)
+    {
+        var clipped = line.BoundingBox & sheetRect;
+        return line with
         {
             BoundingBox = new Rect(
-                line.BoundingBox.X - sheetRect.X,
-                line.BoundingBox.Y - sheetRect.Y,
-                line.BoundingBox.Width,
-                line.BoundingBox.Height),
+                clipped.X - sheetRect.X,
+                clipped.Y - sheetRect.Y,
+                clipped.Width,
+                clipped.Height),
             CenterX = line.CenterX - sheetRect.X,
             CenterY = line.CenterY - sheetRect.Y
         };
+    }
 }
 
-internal sealed partial class SmartBpOcrTextResolver(ICharacterSelectionService characterSelection) : ISmartBpOcrTextResolver
+internal sealed partial class SmartBpOcrTextResolver(SmartBpOcrCandidateMatcher matcher) : ISmartBpOcrTextResolver
 {
-    public SmartBpNormalizedCharacter ResolveCharacterFromLine(string text, Camp camp, int slotIndex)
+    public SmartBpNormalizedCharacter ResolveCharacterFromLine(string text, Camp camp, int slotIndex, string? provider = null)
     {
         if (SmartBpBusinessStateParser.IsUnselected(text))
             return new(text, null, null, camp, slotIndex, 1, []);
-
-        var match = characterSelection.ResolveCharacter(StripDecorativeQuotes(NormalizeText(text)), camp);
-        if (match != null)
-            return new(text, match.Name, match.Name, camp, slotIndex, 1, []);
-
-        return new(text, null, null, camp, slotIndex, 0, [$"Unresolved OCR character: {text}"]);
+        return matcher.Match(text, camp, slotIndex, provider);
     }
 
     internal static string NormalizeText(string? value) =>
@@ -182,7 +180,7 @@ internal static class SmartBpOcrPhaseClassifier
         ICollection<string> diagnostics)
     {
         foreach (var line in lines)
-            diagnostics.Add($"phase line: text={line.Text}; x={line.CenterX:0.0}; y={line.CenterY:0.0}; conf={line.Confidence:0.00}");
+            diagnostics.Add($"phase line: provider={line.Provider ?? "unknown"}; coordinateSpace=region-local; text={line.Text}; bbox={line.BoundingBox}; x={line.CenterX:0.0}; y={line.CenterY:0.0}; conf={line.Confidence:0.00}");
 
         if (lines.Any(line => ContainsNormalized(line.Text, "天赋已锁定")))
             return Matched("天赋已锁定", "matched rule: any line contains 天赋已锁定", diagnostics);
@@ -231,6 +229,25 @@ internal static class SmartBpOcrPhaseClassifier
 
 internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
 {
+    public SmartBpOcrParsedRegionResult ParseDetailed(
+        SmartBpRecognitionRegion region,
+        IReadOnlyList<OcrTextLine> lines)
+    {
+        var diagnostics = new List<string>();
+        var result = Parse(region, lines, diagnostics);
+        IReadOnlyList<SmartBpRecognizedPlayerCharacterSlot> slots = result.PickedHun != null ? [result.PickedHun] : result.Slots;
+        var unresolved = slots.Count == 0 || slots.Any(slot => SmartBpBusinessStateParser.IsUnselected(slot.CharacterName));
+        var safe = slots.Where(slot => !SmartBpBusinessStateParser.IsUnselected(slot.CharacterName)).All(slot => slot.IsAutoApplySafe);
+        diagnostics.Add($"region={SmartBpOcrBpRecognitionService.ToRegionId(region)}; criticalUnresolved={unresolved}; autoApplySafe={safe}");
+        return new()
+        {
+            Result = result,
+            Diagnostics = diagnostics,
+            HasCriticalUnresolvedField = unresolved,
+            IsAutoApplySafe = safe
+        };
+    }
+
     public SmartBpFocusedBusinessExtractionResult Parse(
         SmartBpRecognitionRegion region,
         IReadOnlyList<OcrTextLine> lines,
@@ -254,7 +271,7 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
         ICollection<string> diagnostics)
     {
         var matches = lines
-            .Select(line => new { Line = line, Character = resolver.ResolveCharacterFromLine(line.Text, camp, -1) })
+            .Select(line => new { Line = line, Character = resolver.ResolveCharacterFromLine(line.Text, camp, -1, line.Provider) })
             .Where(item => item.Character.ResolvedCharacterKey != null)
             .GroupBy(item => item.Character.ResolvedCharacterKey, StringComparer.Ordinal)
             .Select(group => group.OrderByDescending(item => item.Character.Confidence).First())
@@ -264,7 +281,12 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
             .ToArray();
         var slots = DefaultPlayerSlots(count);
         for (var i = 0; i < matches.Length; i++)
+        {
             slots[i].CharacterName = matches[i].Character.ResolvedCharacterKey!;
+            ApplyRecognitionMetadata(slots[i], matches[i].Character);
+            foreach (var message in matches[i].Character.Warnings)
+                diagnostics.Add(message);
+        }
         diagnostics.Add($"{field}: parsed [{string.Join(", ", slots.Select(slot => $"{slot.Index}={slot.CharacterName}"))}]");
         return new() { Phase = "未知", TargetField = field, Slots = slots };
     }
@@ -275,7 +297,7 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
     {
         var contentLines = lines.Where(line => !IsStatusLine(line.Text)).ToArray();
         var anchors = contentLines
-            .Select(line => new { Line = line, Character = resolver.ResolveCharacterFromLine(line.Text, Camp.Sur, -1) })
+            .Select(line => new { Line = line, Character = resolver.ResolveCharacterFromLine(line.Text, Camp.Sur, -1, line.Provider) })
             .Where(item => item.Character.ResolvedCharacterKey != null)
             .GroupBy(item => item.Character.ResolvedCharacterKey, StringComparer.Ordinal)
             .Select(group => group.OrderBy(item => item.Line.CenterY).First())
@@ -287,6 +309,9 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
         {
             var anchor = anchors[slotIndex];
             slots[slotIndex].CharacterName = anchor.Character.ResolvedCharacterKey!;
+            ApplyRecognitionMetadata(slots[slotIndex], anchor.Character);
+            foreach (var message in anchor.Character.Warnings)
+                diagnostics.Add(message);
             slots[slotIndex].PlayerId = FindNearestPlayerIdBelow(anchor.Line, slotIndex, anchors.Select(item => item.Line).ToArray(), contentLines, Camp.Sur);
         }
 
@@ -300,7 +325,7 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
     {
         var contentLines = lines.Where(line => !IsStatusLine(line.Text)).ToArray();
         var anchor = contentLines
-            .Select(line => new { Line = line, Character = resolver.ResolveCharacterFromLine(line.Text, Camp.Hun, 0) })
+            .Select(line => new { Line = line, Character = resolver.ResolveCharacterFromLine(line.Text, Camp.Hun, 0, line.Provider) })
             .Where(item => item.Character.ResolvedCharacterKey != null)
             .OrderBy(item => item.Line.CenterY)
             .ThenBy(item => item.Line.CenterX)
@@ -309,6 +334,9 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
         if (anchor != null)
         {
             slot.CharacterName = anchor.Character.ResolvedCharacterKey!;
+            ApplyRecognitionMetadata(slot, anchor.Character);
+            foreach (var message in anchor.Character.Warnings)
+                diagnostics.Add(message);
             slot.PlayerId = FindNearestPlayerIdBelow(anchor.Line, 0, [anchor.Line], contentLines, Camp.Hun);
         }
 
@@ -333,7 +361,7 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
             .Where(line => !ReferenceEquals(line, anchor))
             .Where(line => line.CenterY > anchor.CenterY)
             .Where(line => line.CenterX >= leftBoundary && line.CenterX <= rightBoundary)
-            .Where(line => resolver.ResolveCharacterFromLine(line.Text, camp, anchorIndex).ResolvedCharacterKey == null)
+            .Where(line => resolver.ResolveCharacterFromLine(line.Text, camp, anchorIndex, line.Provider).ResolvedCharacterKey == null)
             .Where(line => !IsStatusLine(line.Text))
             .OrderBy(line => line.CenterY)
             .ThenBy(line => Math.Abs(line.CenterX - anchor.CenterX))
@@ -345,6 +373,15 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
         Enumerable.Range(0, count)
             .Select(index => new SmartBpRecognizedPlayerCharacterSlot { Index = index, CharacterName = "未选择" })
             .ToList();
+
+    private static void ApplyRecognitionMetadata(
+        SmartBpRecognizedCharacterSlot slot,
+        SmartBpNormalizedCharacter character)
+    {
+        slot.RecognitionConfidence = character.Confidence;
+        slot.IsAutoApplySafe = character.Confidence >= .90;
+        slot.RecognitionReason = character.Warnings.FirstOrDefault();
+    }
 
     private static bool IsStatusLine(string text)
     {
@@ -372,6 +409,7 @@ internal sealed class SmartBpOcrBpRecognitionService(
         CancellationToken cancellationToken = default)
     {
         var diagnostics = new List<string>();
+        diagnostics.Add($"OCR provider selected: {ocr.SelectedProvider}; fallback=false.");
         var requestedRegions = BuildRequestedRegions(request);
         var regionTexts = settings.Settings.UseOcrContactSheet
             ? await RecognizeContactSheetAsync(frame, requestedRegions, diagnostics, cancellationToken).ConfigureAwait(false)
@@ -387,9 +425,11 @@ internal sealed class SmartBpOcrBpRecognitionService(
         var parsed = new Dictionary<SmartBpRecognitionRegion, SmartBpFocusedBusinessExtractionResult>();
         foreach (var regionText in regionTexts.Where(item => item.Region != SmartBpRecognitionRegion.PhaseTop))
         {
-            parsed[regionText.Region] = parser.Parse(regionText.Region, regionText.Lines, diagnostics);
+            var parsedRegion = parser.ParseDetailed(regionText.Region, regionText.Lines);
+            parsed[regionText.Region] = parsedRegion.Result;
+            diagnostics.AddRange(parsedRegion.Diagnostics);
             foreach (var line in regionText.Lines)
-                diagnostics.Add($"{ToRegionId(regionText.Region)} line: text={line.Text}; x={line.CenterX:0.0}; y={line.CenterY:0.0}; width={line.BoundingBox.Width}; height={line.BoundingBox.Height}; confidence={line.Confidence:0.00}");
+                diagnostics.Add($"provider={line.Provider ?? "unknown"}; region={ToRegionId(regionText.Region)}; coordinateSpace=region-local; text={line.Text}; bbox={line.BoundingBox}; center={line.CenterX:0.0},{line.CenterY:0.0}; confidence={line.Confidence:0.00}");
         }
 
         var state = merger.Merge(
@@ -545,17 +585,17 @@ internal sealed class SmartBpOcrSnapshotDeltaRecognitionService(
         {
             builder.AppendLine($"[{SmartBpOcrBpRecognitionService.ToRegionId(region.Region)}]");
             foreach (var line in region.Lines)
-                builder.AppendLine($"{line.Text}\tx={line.CenterX:0.0}\ty={line.CenterY:0.0}\tw={line.BoundingBox.Width}\th={line.BoundingBox.Height}\tconf={line.Confidence:0.00}");
+                builder.AppendLine($"provider={line.Provider ?? "unknown"}\tcoordinateSpace=region-local\ttext={line.Text}\tbbox={line.BoundingBox}\tcenter={line.CenterX:0.0},{line.CenterY:0.0}\tconf={line.Confidence:0.00}");
         }
 
         return builder.ToString().TrimEnd();
     }
 
     private static SmartBpRecognizedPlayerCharacterSlot ToPlayerSlot(SmartBpRecognizedCharacterSlot slot) =>
-        new() { Index = slot.Index, CharacterName = slot.CharacterName };
+        new() { Index = slot.Index, CharacterName = slot.CharacterName, RecognitionConfidence = slot.RecognitionConfidence, IsAutoApplySafe = slot.IsAutoApplySafe, RecognitionReason = slot.RecognitionReason };
 
     private static SmartBpRecognizedPlayerCharacterSlot ClonePlayerSlot(SmartBpRecognizedPlayerCharacterSlot slot) =>
-        new() { Index = slot.Index, CharacterName = slot.CharacterName, PlayerId = slot.PlayerId };
+        new() { Index = slot.Index, CharacterName = slot.CharacterName, PlayerId = slot.PlayerId, RecognitionConfidence = slot.RecognitionConfidence, IsAutoApplySafe = slot.IsAutoApplySafe, RecognitionReason = slot.RecognitionReason };
 }
 
 internal sealed class SmartBpSnapshotDeltaRecognitionRouter(

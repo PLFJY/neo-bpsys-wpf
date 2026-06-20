@@ -62,6 +62,11 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint
         services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
         services.AddSingleton<ISmartBpSceneDefinition, SmartBpGameDataSceneDefinition>();
         services.AddSingleton<ISmartBpRegionConfigService, SmartBpRegionConfigService>();
+        services.AddSingleton<PaddleOcrProvider>();
+        services.AddSingleton<TesseractOcrProvider>();
+        services.AddSingleton<IOcrProvider>(provider => provider.GetRequiredService<PaddleOcrProvider>());
+        services.AddSingleton<IOcrProvider>(provider => provider.GetRequiredService<TesseractOcrProvider>());
+        services.AddSingleton<SmartBpOcrProviderSelector>();
         services.AddSingleton<IOcrService, OcrService>();
         services.AddSingleton<ISmartBpService, SmartBpService>();
         services.AddSingleton<IQwenModelManifestProvider, QwenModelManifestProvider>();
@@ -78,6 +83,7 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint
         services.AddSingleton<ISmartBpCropChangeDetector, SmartBpCropChangeDetector>();
         services.AddSingleton<ISmartBpCharacterResolver, SmartBpCharacterResolver>();
         services.AddSingleton<ISmartBpOcrContactSheetBuilder, SmartBpOcrContactSheetBuilder>();
+        services.AddSingleton<SmartBpOcrCandidateMatcher>();
         services.AddSingleton<ISmartBpOcrTextResolver, SmartBpOcrTextResolver>();
         services.AddSingleton<SmartBpOcrRegionParser>();
         services.AddSingleton<ISmartBpOcrBpRecognitionService, SmartBpOcrBpRecognitionService>();

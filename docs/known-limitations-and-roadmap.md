@@ -7,13 +7,14 @@
 | 能力 | 状态 |
 | --- | --- |
 | 赛后数据 OCR 自动回填 | 成熟且可用 |
-| PaddleOCR BP 状态识别 | 默认路径；读取文字与边界框，本地解析阶段、禁用、选择与玩家 ID |
+| PaddleOCR BP 状态识别 | 默认 OCR Provider；读取文字与边界框，本地解析阶段、禁用、选择与玩家 ID |
+| Tesseract BP 状态识别 | 可选 OCR Provider；需安装 tessdata 并由用户显式选择，不会自动回退到 Paddle |
 | Qwen + llama.cpp BP 状态识别 | 保留为实验引擎；当前不作为默认路径 |
 | GameGuidance 自动对齐 | 可选，默认关闭；只向前匹配当前或最近步骤 |
 | 识别结果自动应用 | 可选，默认关闭；仅通过 `ICharacterSelectionService` 应用高置信度且已解析的角色操作 |
 | 自动 BP 画面切换 | TODO |
 
-SmartBP 自动循环以区域门控识别为入口，不使用手工任务选择作为正常入口。默认每个 tick 先裁剪 `phase_top`，再由本地 planner 按工作流未完成步骤、最近阶段和字段陈旧程度选择需要刷新的内容区域。PaddleOCR 引擎默认把这些裁剪图合并为无标签 contact sheet，只读取文字、置信度和边界框；阶段、禁用、选择、玩家 ID 均由本地规则、区域 ID、坐标和角色候选字典解释。Qwen 引擎仍保留原有多图增量请求，但仅作为实验模式。本地识别状态会保留未返回字段，不再因为快节奏阶段切换把旧字段清空。候选操作按 GameGuidance 工作流顺序从尚未完成的角色步骤回填到当前步骤，并且先尝试应用/跳过 pending 操作，再经过短暂阶段切换提交屏障后才根据识别到的阶段同步 GameGuidance，因此阶段快速进入天赋选择后，仍可利用画面中保留的角色结果补录上一选择步骤。内存 ledger 与当前状态 no-op 检查共同防止重复应用；补录默认不播放动画，可由用户显式开启。步骤变化继续复用 GameGuidance 原有导航、计时器、高亮与事件逻辑。地图 BP、天赋角色操作和自动切屏仍未实现。
+SmartBP 自动循环以区域门控识别为入口，不使用手工任务选择作为正常入口。默认每个 tick 先裁剪 `phase_top`，再由本地 planner 按工作流未完成步骤、最近阶段和字段陈旧程度选择需要刷新的内容区域。OCR 默认使用 Paddle，也可由用户显式切换为 Tesseract；一次只运行所选 Provider，不提供自动 fallback 或 ensemble。裁剪图可合并为无标签 contact sheet，Provider 只读取文字、置信度和边界框；阶段、禁用、选择、玩家 ID 均由本地规则、区域 ID、坐标和角色候选字典解释。Qwen 引擎仍保留原有多图增量请求，但仅作为实验模式。本地识别状态会保留未返回字段，不再因为快节奏阶段切换把旧字段清空。候选操作按 GameGuidance 工作流顺序从尚未完成的角色步骤回填到当前步骤，并且先尝试应用/跳过 pending 操作，再经过短暂阶段切换提交屏障后才根据识别到的阶段同步 GameGuidance，因此阶段快速进入天赋选择后，仍可利用画面中保留的角色结果补录上一选择步骤。内存 ledger 与当前状态 no-op 检查共同防止重复应用；补录默认不播放动画，可由用户显式开启。步骤变化继续复用 GameGuidance 原有导航、计时器、高亮与事件逻辑。地图 BP、天赋角色操作和自动切屏仍未实现。
 
 BP 识别路径读取 `BpRecognitionLayoutProfile.json` 粗裁剪配置，五个区域同时服务 OCR 与实验 AI 引擎。用户可通过通用 `RegionEditorWindow` 在当前捕获帧或内置测试图上可视化调整五个粗区域，结果保存为 AppData 下的 SmartBP recognition profile 覆盖；这套配置独立于 PaddleOCR 赛后数据 OCR 细区域。llama.cpp 运行时可从内置 runtime manifest 在线安装，也可通过用户配置的远程 manifest API 检查更新，并存放于 SmartBP 模块目录的 `AI/LlamaCpp/Runtimes/{runtimeId}`；模型和长日志同样只存放在模块 `AI` 目录。AppData 中只保存纯配置（如 `SmartBp/RecognitionSettings.json`、`SmartBp/BpRecognitionLayoutProfile.json`、托管 llama-server 进程状态）。默认仍为识别预览；只有用户显式启用自动应用后，才会通过角色选择服务应用已解析候选。不识别 MapBP。
 

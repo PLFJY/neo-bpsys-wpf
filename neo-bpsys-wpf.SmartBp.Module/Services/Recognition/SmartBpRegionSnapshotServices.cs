@@ -39,10 +39,10 @@ internal sealed class SmartBpBusinessStateMerger : ISmartBpBusinessStateMerger
         Enumerable.Range(0, count).Select(index => new SmartBpRecognizedPlayerCharacterSlot { Index = index, CharacterName = "未选择" }).ToList();
 
     private static SmartBpRecognizedCharacterSlot ToCharacterSlot(SmartBpRecognizedPlayerCharacterSlot slot) =>
-        new() { Index = slot.Index, CharacterName = slot.CharacterName };
+        new() { Index = slot.Index, CharacterName = slot.CharacterName, RecognitionConfidence = slot.RecognitionConfidence, IsAutoApplySafe = slot.IsAutoApplySafe, RecognitionReason = slot.RecognitionReason };
 
     private static SmartBpRecognizedPlayerCharacterSlot ClonePlayerSlot(SmartBpRecognizedPlayerCharacterSlot slot) =>
-        new() { Index = slot.Index, CharacterName = slot.CharacterName, PlayerId = slot.PlayerId };
+        new() { Index = slot.Index, CharacterName = slot.CharacterName, PlayerId = slot.PlayerId, RecognitionConfidence = slot.RecognitionConfidence, IsAutoApplySafe = slot.IsAutoApplySafe, RecognitionReason = slot.RecognitionReason };
 }
 
 internal sealed class SmartBpRegionSnapshotRecognitionService(
@@ -193,8 +193,8 @@ internal sealed class SmartBpRecognitionStateStore : ISmartBpRecognitionStateSto
         var snapshot = new SmartBpBusinessStateRecognitionResult
         {
             Phase = state.Phase,
-            BannedSur = state.BannedSur.Select(slot => new SmartBpRecognizedCharacterSlot { Index = slot.Index, CharacterName = slot.CharacterName }).ToList(),
-            BannedHun = state.BannedHun.Select(slot => new SmartBpRecognizedCharacterSlot { Index = slot.Index, CharacterName = slot.CharacterName }).ToList(),
+            BannedSur = state.BannedSur.Select(CloneCharacterSlot).ToList(),
+            BannedHun = state.BannedHun.Select(CloneCharacterSlot).ToList(),
             PickedSur = state.PickedSur.Select(ClonePlayerSlot).ToList(),
             PickedHun = ClonePlayerSlot(state.PickedHun)
         };
@@ -203,10 +203,13 @@ internal sealed class SmartBpRecognitionStateStore : ISmartBpRecognitionStateSto
     }
 
     private static SmartBpRecognizedCharacterSlot ToCharacterSlot(SmartBpRecognizedPlayerCharacterSlot slot) =>
-        new() { Index = slot.Index, CharacterName = slot.CharacterName };
+        new() { Index = slot.Index, CharacterName = slot.CharacterName, RecognitionConfidence = slot.RecognitionConfidence, IsAutoApplySafe = slot.IsAutoApplySafe, RecognitionReason = slot.RecognitionReason };
+
+    private static SmartBpRecognizedCharacterSlot CloneCharacterSlot(SmartBpRecognizedCharacterSlot slot) =>
+        new() { Index = slot.Index, CharacterName = slot.CharacterName, RecognitionConfidence = slot.RecognitionConfidence, IsAutoApplySafe = slot.IsAutoApplySafe, RecognitionReason = slot.RecognitionReason };
 
     private static SmartBpRecognizedPlayerCharacterSlot ClonePlayerSlot(SmartBpRecognizedPlayerCharacterSlot slot) =>
-        new() { Index = slot.Index, CharacterName = slot.CharacterName, PlayerId = slot.PlayerId };
+        new() { Index = slot.Index, CharacterName = slot.CharacterName, PlayerId = slot.PlayerId, RecognitionConfidence = slot.RecognitionConfidence, IsAutoApplySafe = slot.IsAutoApplySafe, RecognitionReason = slot.RecognitionReason };
 }
 
 internal sealed class SmartBpSnapshotRecognitionPlanner(
