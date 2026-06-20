@@ -2,18 +2,101 @@
 
 线程和后台任务注意事项见 [threading-dispatcher-and-async.md](threading-dispatcher-and-async.md)。SmartBP 默认配置和资源文件见 [resources-localization-and-assets.md](resources-localization-and-assets.md)。
 
-## 当前边界
+## 架构概览
 
-SmartBP 需要分清两个能力：
+SmartBP 是面向第五人格赛事的直播导播辅助系统中的智能 BP 识别与赛后数据回填子系统。它采用**模块分离架构**：主应用只保留 SmartBP 页面壳、安装覆盖层、模块加载器、状态模型和功能命令抽象；真正的 SmartBP UI、OCR 引擎、AI 推理运行时、OpenCvSharp 等重型依赖全部位于 `neo-bpsys-wpf.SmartBp.Module` 独立项目中。
+
+```text
+neo-bpsys-wpf (主应用)
+├── Views/Pages/SmartBpPage.xaml          ← 页面壳 + 模块未加载覆盖层
+├── ViewModels/Pages/SmartBpPageViewModel  ← 模块加载/安装/版本管理
+├── Core/Models/SmartBpModule/             ← 模块 manifest、状态、命令抽象
+└── Core/Abstractions/Services/ISmartBpService.cs  ← 服务契约（宿主侧）
+
+neo-bpsys-wpf.SmartBp.Module (SmartBP 模块)
+├── SmartBpModuleEntryPoint.cs             ← 模块入口，实现 ISmartBpModuleEntryPoint
+│   ├── CreateSmartBpContent() → 构建 DI 容器并返回 SmartBpModuleContentView
+│   └── GetFeatureCommands()   → 暴露 AutoFillGameData 命令
+├── Services/
+│   ├── SmartBpService.cs                  ← 赛后数据 OCR 回填（宿主侧服务）
+│   ├── Recognition/
+│   │   ├── SmartBpOcrRecognitionServices.cs  ← OCR BP 识别全流程
+│   │   ├── SmartBpSceneGateService.cs        ← 场景门禁
+│   │   ├── SmartBpAutoRecognitionCoordinator ← 自动循环主控
+│   │   └── ... (更多识别/状态/应用管线)
+│   └── OcrService.cs / PaddleOcrProvider.cs / TesseractOcrProvider.cs
+├── ViewModels/SmartBpModuleContentViewModel.cs ← 模块 UI 主 ViewModel
+├── Abstractions/                          ← 模块内部接口
+└── Models/Recognition/                    ← 识别数据模型
+```
+
+### 两条能力线
+
+SmartBP 包含两条独立的能力线：
+
+| 能力线 | 入口 | 引擎 | 产出 | 成熟度 |
+| --- | --- | --- | --- | --- |
+| 赛后数据 OCR 回填 | `ISmartBpService.AutoFillGameDataAsync` | PaddleOCR | 直接写 `CurrentGame` | 成熟可用 |
+| BP 状态自动识别 | `SmartBpAutoRecognitionCoordinator` | PaddleOCR（默认）/ Qwen+llama.cpp（实验） | 候选操作 → 应用管线 → `CurrentGame` | BP 状态 OCR 可用；AI 实验 |
+
+两条线共享同一套窗口捕获、OCR 模型管理和粗裁剪区域配置基础设施，但区域配置（细区域 vs 粗区域）和结果写入路径完全独立。
+
+### 宿主侧接口
+
+宿主侧在 `Core.Abstractions.Services` 中定义 `ISmartBpService`：
+
+```csharp
+public interface ISmartBpService
+{
+    bool IsSmartBpRunning { get; }
+    void StartSmartBp();
+    void StopSmartBp();
+    Task AutoFillGameDataAsync(CancellationToken cancellationToken = default);
+}
+```
+
+实际实现 `SmartBpService` 位于主应用 `Services/` 目录，但依赖 `neo-bpsys-wpf.SmartBp.Module` 提供的 `IOcrService`、`ISmartBpRegionConfigService` 等。
+
+### 模块入口与 DI
+
+`SmartBpModuleEntryPoint` 是模块的单一入口点，实现 `ISmartBpModuleEntryPoint`：
+
+- `CreateSmartBpContent(hostServices)`：构建独立的 `ServiceProvider`，注入所有模块级服务（OCR Provider、识别管线、AI 引擎、debug log 等），创建 `SmartBpModuleContentView` 并绑定 `SmartBpModuleContentViewModel`
+- `GetFeatureCommands()`：返回宿主可调用的功能命令，目前只有 `AutoFillGameData`（赛后数据回填）
+
+模块 DI 容器注册了约 50+ 个服务，涵盖 OCR 双引擎（Paddle + Tesseract）、AI 推理全套（Qwen + llama.cpp）、BP 识别管线、场景门禁、状态管理、补录与应用等。
+
+## 当前边界
 
 | 能力 | 当前状态 |
 | --- | --- |
 | 赛后数据 OCR 自动回填 | 已经成熟且可用 |
-| BP 状态 OCR 识别 | 使用 PaddleOCR 文本与边界框，本地解析阶段、禁用、选择与玩家 ID，并复用识别状态、补录、ledger 和应用管线 |
+| PaddleOCR BP 状态识别 | 默认 OCR Provider；读取文字与边界框，本地解析阶段、禁用、选择与玩家 ID |
+| Tesseract BP 状态识别 | 可选 OCR Provider；可在 SmartBP 页面勾选下载 `chi_sim`/`eng`/`jpn` 到 SmartBP 模块目录，不会自动回退到 Paddle |
 | Qwen + llama.cpp BP 状态识别 | 保留为实验引擎，不作为默认路径 |
+| GameGuidance 自动对齐 | 可选，默认关闭；只向前匹配当前或最近步骤 |
+| 识别结果自动应用 | 可选，默认关闭；仅通过 `ICharacterSelectionService` 应用高置信度且已解析的角色操作 |
+| 自由全同步（FreeFullSync） | 实验能力；不依赖 GameGuidance，识别四类角色槽位并通过 `ICharacterSelectionService` 无动画同步 |
 | 全流程自动 BP 画面切换 | TODO。当前识别结果只进入现有候选操作/应用管线，不实现自动切屏 |
+| MapBP 识别 | 不识别 |
+| 天赋角色操作识别 | 不识别 |
 
-不要在文档、UI 或提交说明中把“全流程自动 BP”或 MapBP 识别描述为已完成。
+不要在文档、UI 或提交说明中把"全流程自动 BP"或 MapBP 识别描述为已完成。
+
+## SmartBP UI 页面
+
+SmartBP 后台页面 (`SmartBpPage.xaml`) 是一个 WPF `Page`，包含两层结构：
+
+1. **模块未加载层**：当 SmartBP 模块尚未安装或加载失败时，显示覆盖层，包含模块路径选择、在线安装/导入压缩包/选择本地目录等按钮
+2. **模块内容层**：通过 `ContentControl` 承载 `SmartBpModuleEntryPoint.CreateSmartBpContent()` 返回的 `SmartBpModuleContentView`
+
+`SmartBpModuleContentViewModel` 是模块 UI 的主 ViewModel，管理：
+- 窗口捕获（WGC / Bitblt）和窗口选择
+- OCR 模型下载/切换/删除
+- 赛后数据区域配置编辑器（通过 `RegionEditorWindow`）
+- Qwen 模型安装/llama.cpp 运行时管理
+- AI 识别预览与设置
+- 自动识别启停与 debug 日志展示
 
 ## OCR 模型管理
 
@@ -100,9 +183,134 @@ Qwen 模型、独立 mmproj、llama.cpp 运行时、PaddleOCR 模型和 Tesserac
 
 当前不识别 MapBP，不识别天赋结果，不直接修改 `CurrentGame`。
 
+### 自动识别循环全流程
+
+BP 状态自动识别的完整循环由 `SmartBpAutoRecognitionCoordinator` 协调，每个 tick 执行以下流程：
+
+```text
+捕获帧
+  │
+  ├─ 1. SmartBpFrameRingBuffer        ← 保存最近帧到滚动缓冲区
+  ├─ 2. SmartBpRecognitionFrameCropper ← 裁剪 phase_top 粗区域
+  ├─ 3. SmartBpSnapshotRecognitionPlanner ← 根据工作流未完成步骤、字段新鲜度、最近阶段，规划需要刷新的内容区域
+  ├─ 4. SmartBpSnapshotDeltaRecognitionRouter ← 根据引擎选择路由到 OCR 或 AI 识别
+  │     ├─ [OCR 路径] SmartBpOcrSnapshotDeltaRecognitionService
+  │     │     ├─ SmartBpOcrContactSheetBuilder  ← 拼接 contact sheet
+  │     │     ├─ IOcrService.RecognizeTextLines ← 一次 PaddleOCR 推理
+  │     │     ├─ SmartBpOcrContactSheetMapper   ← 文本行映射回区域
+  │     │     ├─ SmartBpOcrPhaseClassifier      ← 本地规则判阶段
+  │     │     ├─ SmartBpOcrRegionParser         ← 本地解析 Ban/Pick 槽位
+  │     │     └─ SmartBpBusinessStateMerger     ← 合并为统一业务状态
+  │     └─ [AI 路径] SmartBpAiSnapshotDeltaRecognitionService
+  │           ├── ISmartBpImageEncoder          ← 编码裁剪图为 data URL
+  │           └── ILlamaCppOpenAiClient         ← 发送多图请求到 llama-server
+  │
+  ├─ 5. SmartBpRecognitionStateStore ← 应用增量 delta 到本地合并状态
+  ├─ 6. SmartBpSceneGateService      ← 场景门禁分类
+  │     ├── CharacterBp → 允许生成角色操作
+  │     ├── SurvivorTalent / HunterTalent → 仅允许同步引导
+  │     ├── TalentLocked → 仅允许同步引导
+  │     ├── 其他 → 阻断写入，可能暂停循环
+  │
+  ├─ 7. SmartBpCandidateOperationBuilder ← 从识别状态构建候选操作
+  ├─ 8. SmartBpWorkflowBackfillService   ← 按工作流顺序补录未完成步骤
+  ├─ 9. SmartBpDetectedOperationApplier  ← 应用高置信度操作（需用户启用）
+  │     └── ICharacterSelectionService   ← 实际执行角色选择
+  │
+  └─ 10. SmartBpGuidanceSyncService      ← 同步 GameGuidance 步骤（需用户启用）
+        └── SmartBpRecognitionLedger     ← 记录已完成操作，防止重复应用
+```
+
+### 场景门禁详解
+
+`SmartBpSceneGateService.Classify()` 根据识别到的 phase 文本、业务状态和原始引擎响应，将当前画面分为以下场景：
+
+| 场景 | 枚举值 | 角色操作 | 引导同步 | 暂停循环 | 触发条件 |
+| --- | --- | --- | --- | --- | --- |
+| 角色 BP | `CharacterBp` | 允许 | 允许 | 否 | 检测到屏蔽/选择/角色选择中等文本 |
+| 求生者天赋 | `SurvivorTalent` | 禁止 | 允许 | 否 | 检测到"求生者天赋特质调整" |
+| 监管者天赋 | `HunterTalent` | 禁止 | 允许 | 否 | 检测到"监管者天赋特质调整"/"监管者选择天赋中" |
+| 天赋已锁定 | `TalentLocked` | 禁止 | 允许 | 是 | 检测到"天赋已锁定" |
+| 区域选择-求生者 | `AreaSelectionSurvivor` | 禁止 | 禁止 | 是 | 检测到"求生者选择区域中" |
+| 区域选择-监管者 | `AreaSelectionHunter` | 禁止 | 禁止 | 是 | 检测到"监管者选择区域中" |
+| 等待开始 | `WaitingGameStart` | 禁止 | 禁止 | 是 | 检测到"等待游戏开始" |
+| 加载中 | `Loading` | 禁止 | 禁止 | 是 | 检测到"加载中"/"正在加载" |
+| 对局中 | `InGame` | 禁止 | 禁止 | 是 | 检测到对局内 HUD 文本 |
+| 大厅 | `Lobby` | 禁止 | 禁止 | 否 | 检测到"大厅" |
+| 规则设置 | `RulesDialog` | 禁止 | 禁止 | 否 | 检测到"规则设置" |
+| 禁选顺序 | `BanPickOrderDialog` | 禁止 | 禁止 | 否 | 检测到"查看禁选顺序"/"选择禁用数量" |
+| 转场 | `Transition` | 禁止 | 禁止 | 否 | 检测到"开始案件还原"/"阵容选择中"等 |
+
+### 工作流补录与操作应用
+
+识别结果不是直接写入 `CurrentGame`，而是经过以下管线：
+
+1. **`SmartBpCandidateOperationBuilder`**：从合并后的业务状态中构建候选操作（Ban 角色 / Pick 求生者 / Pick 监管者 / Swap 求生者），并关联到当前的 GameGuidance 工作流步骤
+2. **`SmartBpWorkflowBackfillService`**：按工作流顺序，从尚未完成的角色步骤回填到当前步骤，生成 `SmartBpWorkflowBackfillPlan`
+3. **`SmartBpDetectedOperationApplier`**：通过 `ICharacterSelectionService` 应用已解析的高置信度操作。应用模式包括：
+   - `CurrentStep`：当前步骤操作（可播放动画）
+   - `Backfill`：补录操作（默认不播放动画，可由用户开启）
+   - `FreeSync`：无动画同步（不依赖 GameGuidance）
+4. **`SmartBpRecognitionLedger`**：内存 ledger 记录已完成的操作 key，与当前状态 no-op 检查共同防止重复应用
+5. **`SmartBpGuidanceSyncService`**：当识别到的阶段与当前 GameGuidance 步骤不一致时，尝试同步引导步骤。阶段快速进入天赋选择后，仍可利用画面中保留的角色结果补录上一选择步骤（通过短暂阶段切换提交屏障）
+
+### OCR 双引擎
+
+SmartBP 支持两种 OCR Provider，一次只运行所选 Provider，不提供自动 fallback 或 ensemble：
+
+| Provider | 接口 | 适用场景 | 依赖 |
+| --- | --- | --- | --- |
+| PaddleOCR | `PaddleOcrProvider : IOcrProvider` | 默认引擎，BP 状态识别 + 赛后数据回填 | PaddleInference 原生库 + det/cls/rec 模型 |
+| Tesseract | `TesseractOcrProvider : IOcrProvider` | 可选引擎，手动切换 | Tesseract 原生库 + `traineddata` 语言文件 |
+
+`SmartBpOcrProviderSelector` 根据 `SmartBpRecognitionSettings.OcrProviderMode` 选择当前活跃的 Provider。Tesseract 的 `traineddata` 通过 `ITesseractDataAssetManager` 下载到 `{SmartBpModuleRoot}\tessdata`，支持 `chi_sim`、`eng`、`jpn` 等语言。
+
+### AI / Qwen 引擎（实验）
+
+Qwen + llama.cpp 是 SmartBP 的实验性 AI 识别引擎，不作为默认路径。其核心组件：
+
+| 组件 | 接口 | 职责 |
+| --- | --- | --- |
+| `ILlamaCppServerManager` | 管理 llama-server 子进程生命周期 | 启动/停止/就绪检测 |
+| `ILlamaCppOpenAiClient` | OpenAI 兼容 HTTP 客户端 | 发送图像识别请求，获取 JSON 结果 |
+| `IQwenModelAssetManager` | Qwen 模型下载管理 | 安装/删除/校验 Qwen GGUF 模型和 mmproj |
+| `ILlamaCppRuntimeAssetManager` | llama.cpp 运行时管理 | 安装/更新/回滚 llama-server 可执行文件 |
+| `ISmartBpAiPerformanceMonitor` | GPU 性能监控 | 通过 NVML 读取 GPU 利用率、显存占用 |
+| `ISmartBpImageEncoder` | 图像编码 | 将 WPF BitmapSource 编码为 PNG data URL |
+| `ISmartBpPromptProfileProvider` | 提示词管理 | 加载内置的识别 prompt 模板 |
+
+Qwen 模型 manifest 支持直链和 HuggingFace 仓库两种来源。`mmprojMode` 必须显式标注为 `Separate`（独立下载 `--mmproj`）、`Embedded`（内嵌）或 `None`（不允许图像识别）。中文界面默认使用 `hf-mirror.com` 镜像。
+
+llama.cpp 运行时可以从内置 runtime manifest 在线安装，也可通过用户配置的远程 manifest API 检查更新，存放于 `{SmartBpModuleRoot}\AI\LlamaCpp\Runtimes\{runtimeId}`。
+
+### 识别设置总览
+
+`SmartBpRecognitionSettings`（持久化到 `%APPDATA%\neo-bpsys-wpf\SmartBp\RecognitionSettings.json`）包含以下关键配置组：
+
+| 配置组 | 关键字段 | 默认值 |
+| --- | --- | --- |
+| 引擎选择 | `RecognitionEngine` | `Ocr` |
+| OCR BP | `EnableOcrBpRecognition`, `UseOcrContactSheet`, `OcrRecognitionIntervalMs` | true / true / 300ms |
+| OCR Provider | `OcrProviderMode` | `Paddle` |
+| Tesseract | `EnableTesseractOcr`, `TesseractLanguages`, `TesseractDefaultPsm` | true / "chi_sim+eng" / 6 |
+| AI 推理 | `AiRequestTimeoutSeconds`, `AiStartupTimeoutSeconds` | 35s / 120s |
+| AI 模型 | `SelectedQwenModelId`, `SelectedMmprojId` | "qwen3.5-2b-q4km" / "mmproj-f16" |
+| llama.cpp | `LlamaContextSize`, `LlamaGpuLayers`, `LlamaFlashAttention`, `CpuThreads` | 8192 / -1 (auto) / true / 2 |
+| 循环控制 | `RecognitionIntervalMs`, `OcrRecognitionIntervalMs` | 1200ms / 300ms |
+| 自动应用 | `EnableAutoApplyRecognition`, `EnableAutoGuidanceSync` | false / false |
+| 应用模式 | `RecognitionApplyMode` | `GuidedWorkflow` |
+| 补录 | `PlayBackfillAnimations`, `AllowLateBackfillAfterPhaseMoved` | false / true |
+| 状态管理 | `OcrFieldStaleMilliseconds`, `OcrBackfillLookBehindSteps`, `RequiredStableSnapshots` | 1500ms / 2 / 1 |
+| 图像编码 | `MaxImageWidth`, `PhaseCropMaxImageWidth`, `ContentCropMaxImageWidth` | 1280 / 640 / 768 |
+| 帧缓冲 | `RecognitionFrameBufferMilliseconds`, `RecognitionCropChangeThreshold` | 1500ms / 0.035 |
+
 ## 区域配置
 
-当前 SmartBP 只管理 GameData 场景配置：
+SmartBP 管理两套独立的区域配置：
+
+### 赛后数据细区域配置（GameData）
+
+用于赛后数据 OCR 回填，定义每行（监管者行 + 4 个求生者行）内各单元格的精确位置：
 
 ```text
 %APPDATA%\neo-bpsys-wpf\SmartBp\GameDataRegions.json
@@ -117,10 +325,30 @@ neo-bpsys-wpf.SmartBp.Module/Resources/SmartBpDefaultConfigs/GameDataRegions.16-
 运行时从 SmartBP 模块输出目录读取该文件；如果资源缺失，`SmartBpGameDataSceneDefinition` 会生成代码内 fallback 配置。配置保存前会校验：
 
 1. `Scene` 必须是 `GameData`。
-2. 根节点行数为 5。
-3. 每行 6 个 cell。
+2. 根节点行数为 5（1 监管者 + 4 求生者）。
+3. 每行 6 个 cell（1 名称 + 5 数据列）。
 4. 大框和小框相对坐标合法。
 5. `BaseAspectRatio` 会被规范化，存储时优先保留比例基准。
+
+用户可通过 `SmartBpModuleContentViewModel` 中的"编辑识别区域"按钮打开 `RegionEditorWindow`，在当前捕获帧上可视化调整各单元格位置。
+
+### BP 识别粗区域配置（Recognition Layout）
+
+用于 BP 状态识别，定义 5 个粗裁剪区域：
+
+```text
+%APPDATA%\neo-bpsys-wpf\SmartBp\BpRecognitionLayoutProfile.json
+```
+
+| 区域 ID | 枚举值 | 画面对应位置 | 识别内容 |
+| --- | --- | --- | --- |
+| `phase_top` | `PhaseTop` | 顶部操作栏 | BP 阶段文本（屏蔽/选择/天赋等） |
+| `left_top` | `LeftTop` | 左上角 | 监管者 Ban 位 |
+| `right_top` | `RightTop` | 右上角 | 求生者 Ban 位 |
+| `left_bottom` | `LeftBottom` | 左下角 | 求生者 Pick 位 |
+| `right_bottom` | `RightBottom` | 右下角 | 监管者 Pick 位 |
+
+默认配置来自 SmartBP 模块 `Resources` 中的 `BpRecognitionLayoutProfile.json`。用户可通过 `RegionEditorWindow` 在当前捕获帧或内置测试图上可视化调整五个粗区域。这套配置独立于赛后数据细区域配置，同时服务 OCR 和 AI 引擎。
 
 ## 图像预处理
 
@@ -132,19 +360,89 @@ neo-bpsys-wpf.SmartBp.Module/Resources/SmartBpDefaultConfigs/GameDataRegions.16-
 
 ## 调试点
 
+### 赛后数据 OCR
+
 1. OCR 不工作先看是否已下载并切换模型。
 2. 捕获不到数据先看窗口捕获服务是否处于 capturing。
 3. 识别错位先导出/检查 `GameDataRegions.json` 与实际画面比例。
 4. 角色匹配失败时看日志中的 `SmartBp Match failed` 和 OCR 原始名称。
 5. 预处理图像可临时用 `SaveDebug` 输出到运行目录 `debug`，但不要把调试图片提交进仓库。
 
-常见日志关键词：
+### BP 状态识别
+
+1. 自动识别不工作先检查 `SmartBpRecognitionSettings` 中 `EnableOcrBpRecognition` 是否为 `true`，`RecognitionEngine` 是否为 `Ocr`
+2. 场景门禁阻断写入时查看 `SmartBpSceneGateResult` 的 `Reason` 字段
+3. OCR contact sheet 映射异常时，可设置 `UseOcrContactSheet = false` 逐区域识别排查
+4. 角色解析失败时查看日志中的 `ocr-match` 诊断行，包含 `raw`、`result`、`matchMode`、`score` 等信息
+5. AI 引擎调试可开启 `ISmartBpDebugLog.IsEnabled`，在 SmartBP 页面 UI 中查看实时诊断日志
+6. 识别状态可通过 `SmartBpRecognitionStateStore.GetStaleFieldDiagnostics()` 查看各字段新鲜度
+
+### 通用
+
+1. 模块加载失败时检查 `SmartBpModuleState.json` 中的 `ModuleRoot` 路径和 `component.json` 校验结果
+2. 原生依赖缺失时确认 `runtimes/win-x64/native/` 目录结构完整
+3. OCR 推理失败重建可通过日志 `OCR run failed, trying to rebuild OCR predictor and retry once.` 确认
+
+### 常见日志关键词
 
 | 关键词 | 含义 |
 | --- | --- |
 | `SmartBp AutoFill skipped: OCR model is not ready.` | 未选择或未安装 OCR 模型 |
 | `SmartBp AutoFill skipped: capture is not running.` | 窗口捕获未启动 |
 | `SmartBp OCR Survivor` / `SmartBp OCR Hunter` | 行识别结果和原始 OCR 文本 |
+| `SmartBp OCR RowData batch` | 整行数字条带一次 OCR 的结果 |
+| `SmartBp OCR RowData fallback` | 批量识别失败后的逐列 OCR 回退结果 |
 | `SmartBp Match success` | 求生者角色匹配成功，含 exact/fuzzy 模式 |
 | `SmartBp Match failed` | 识别角色无法映射到当前对局求生者 |
 | `OCR run failed, trying to rebuild OCR predictor and retry once.` | PaddleOCR 推理失败，正在重建后重试 |
+| `OCR contact sheet: regions=[...]` | contact sheet 拼接信息，含区域列表和 unmapped 行数 |
+| `phase line:` / `ocr-match` | BP 阶段文本行和 OCR 角色匹配诊断 |
+| `OCR provider selected:` | 当前活跃的 OCR Provider |
+| `Frame sequence N:` | 自动识别 tick 的帧序号和请求字段 |
+
+## 关键数据模型速查
+
+### 识别结果模型
+
+| 模型 | 用途 |
+| --- | --- |
+| `SmartBpPhaseRecognitionResult` | 阶段识别结果（仅 `Phase` 字段） |
+| `SmartBpBusinessStateRecognitionResult` | 合并后的业务状态（banned_sur/hun + picked_sur/hun） |
+| `SmartBpFocusedBusinessExtractionResult` | 单个粗区域的业务提取结果 |
+| `SmartBpSnapshotDeltaResult` | 增量识别 delta（仅含请求字段的更新） |
+| `SmartBpSnapshotFieldUpdate` | 单个字段更新（banned_sur/banned_hun/picked_sur/picked_hun） |
+| `SmartBpOcrRecognitionResult` | OCR BP 识别完整结果（阶段 + 业务状态 + 区域文本 + 诊断） |
+| `SmartBpAutoRecognitionTickResult` | 一次自动识别 tick 的完整结果 |
+
+### 识别状态模型
+
+| 模型 | 用途 |
+| --- | --- |
+| `SmartBpRecognitionState` | 内存中本地合并的识别状态（含字段新鲜度时间戳） |
+| `SmartBpRecognizedCharacterSlot` | 单个角色槽位（含识别置信度、自动应用安全标记） |
+| `SmartBpRecognizedPlayerCharacterSlot` | 绑定玩家 ID 的角色槽位（继承 `SmartBpRecognizedCharacterSlot`） |
+| `SmartBpNormalizedCharacter` | 规范化角色解析结果（原始名 → 标准名 → 匹配模式） |
+
+### 操作/补录模型
+
+| 模型 | 用途 |
+| --- | --- |
+| `SmartBpDetectedOperation` | 检测到的候选操作（Ban/Pick/Swap + 关联的 GameGuidance 步骤） |
+| `SmartBpWorkflowStepCandidateSet` | 一个工作流步骤的一组候选操作 |
+| `SmartBpWorkflowBackfillPlan` | 按工作流顺序排列的补录计划 |
+| `SmartBpWorkflowOperationKey` | 操作 ledger 的唯一标识（GameProgress + StepIndex + Action + SlotIndex + Camp + CharacterKey） |
+| `SmartBpGuidanceSyncResult` | 引导同步结果（是否变更、是否接受、目标步骤） |
+
+## 文件路径速查
+
+| 路径 | 内容 |
+| --- | --- |
+| `%APPDATA%\neo-bpsys-wpf\SmartBpModuleState.json` | 模块安装状态（ModuleRoot 路径） |
+| `%APPDATA%\neo-bpsys-wpf\SmartBp\GameDataRegions.json` | 赛后数据细区域配置 |
+| `%APPDATA%\neo-bpsys-wpf\SmartBp\BpRecognitionLayoutProfile.json` | BP 识别粗区域配置 |
+| `%APPDATA%\neo-bpsys-wpf\SmartBp\RecognitionSettings.json` | 识别引擎设置 |
+| `{SmartBpModuleRoot}\OCRModels\{modelKey}\` | PaddleOCR 模型文件（det/cls/rec） |
+| `{SmartBpModuleRoot}\tessdata\` | Tesseract traineddata 语言文件 |
+| `{SmartBpModuleRoot}\AI\Qwen\Models\{modelId}\` | Qwen GGUF 模型和 mmproj 文件 |
+| `{SmartBpModuleRoot}\AI\LlamaCpp\Runtimes\{runtimeId}\` | llama.cpp 运行时可执行文件 |
+| `{SmartBpModuleRoot}\Resources\` | 内置默认配置、prompt、测试帧等资源 |

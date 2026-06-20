@@ -40,6 +40,27 @@
       "license": "apache-2.0",
       "minMemoryGb": 4,
       "preferredBackends": ["cuda", "vulkan", "cpu"]
+    },
+    {
+      "id": "glm-ocr-q4km",
+      "displayName": "GLM-OCR Q4_K_M",
+      "family": "GLM",
+      "size": "~3B",
+      "recommended": false,
+      "experimental": true,
+      "source": "HuggingFace",
+      "sourceType": "huggingFace",
+      "huggingFaceRepoId": "nopesadly/GLM-OCR-Q4_K_M.gguf",
+      "huggingFaceRevision": "main",
+      "modelFileName": "GLM-OCR.-Q4_K_M.gguf",
+      "mmprojFileName": "GLM-OCR.mmproj-Q4_K_M.gguf",
+      "mmprojMode": "separate",
+      "sha256": "2b1b57d1891a3e99ee28c455a3693651e7cba2307bd0edc6bee52a4f499a8a50",
+      "mmprojSha256": "fad8ec289bd8340e38924aba8470269b60e88ddba8f8237f41305d68b52d4447",
+      "useHuggingFaceMirrorForChineseUi": true,
+      "license": "mit",
+      "minMemoryGb": 8,
+      "preferredBackends": ["cuda", "vulkan", "cpu"]
     }
   ]
 }
