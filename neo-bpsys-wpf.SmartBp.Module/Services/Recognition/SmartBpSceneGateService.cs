@@ -27,7 +27,7 @@ internal sealed class SmartBpSceneGateService : ISmartBpSceneGateService
             return PostBp(SmartBpRecognitionScene.Loading);
         if (Contains(evidence, "天赋已锁定"))
             return GuidanceOnly(SmartBpRecognitionScene.TalentLocked, false, "talent is locked; BP cleanup may still be pending");
-        if (Contains(evidence, "求生者天赋特质调整"))
+        if (Contains(evidence, "求生者天赋特质调整", "求生者选择天赋中"))
             return GuidanceOnly(SmartBpRecognitionScene.SurvivorTalent, false, "survivor talent adjustment allows guidance sync only");
         if (Contains(evidence, "监管者天赋特质调整", "监管者选择天赋中"))
             return GuidanceOnly(SmartBpRecognitionScene.HunterTalent, false, "hunter talent adjustment allows guidance sync only");

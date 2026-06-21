@@ -1050,6 +1050,7 @@ public sealed class SmartBpAiRecognitionContractTest
 
         Assert.NotNull(profile);
         Assert.Contains("phase_top", profile!.Regions.Keys);
+        Assert.Contains("top_left_status", profile.Regions.Keys);
         Assert.Contains("left_top", profile.Regions.Keys);
         Assert.Contains("right_top", profile.Regions.Keys);
         Assert.Contains("left_bottom", profile.Regions.Keys);
@@ -1065,6 +1066,11 @@ public sealed class SmartBpAiRecognitionContractTest
         });
         Assert.False(Overlaps(profile.Regions["right_top"], profile.Regions["left_bottom"]));
         Assert.False(Overlaps(profile.Regions["left_top"], profile.Regions["right_bottom"]));
+        var status = profile.Regions["top_left_status"];
+        Assert.Equal(0, status.X);
+        Assert.Equal(0, status.Y);
+        Assert.True(status.Width >= .5);
+        Assert.True(status.Height >= .16);
     }
 
     [Theory]

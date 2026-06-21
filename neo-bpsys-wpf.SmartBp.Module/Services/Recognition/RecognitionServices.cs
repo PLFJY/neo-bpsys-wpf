@@ -183,6 +183,7 @@ Return only JSON:
         region switch
         {
             SmartBpRecognitionRegion.PhaseTop => "phase_top",
+            SmartBpRecognitionRegion.TopLeftStatus => "top_left_status",
             SmartBpRecognitionRegion.LeftTop => "left_top",
             SmartBpRecognitionRegion.RightTop => "right_top",
             SmartBpRecognitionRegion.LeftBottom => "left_bottom",
@@ -314,6 +315,7 @@ internal sealed class SmartBpAiOcrTranscriptInterpreter(ICharacterSelectionServi
         region switch
         {
             SmartBpRecognitionRegion.PhaseTop => "phase_top",
+            SmartBpRecognitionRegion.TopLeftStatus => "top_left_status",
             SmartBpRecognitionRegion.LeftTop => "left_top",
             SmartBpRecognitionRegion.RightTop => "right_top",
             SmartBpRecognitionRegion.LeftBottom => "left_bottom",
@@ -675,6 +677,7 @@ Previous invalid output:
         region switch
         {
             SmartBpRecognitionRegion.PhaseTop => "phase_top",
+            SmartBpRecognitionRegion.TopLeftStatus => "top_left_status",
             SmartBpRecognitionRegion.LeftTop => "left_top",
             SmartBpRecognitionRegion.RightTop => "right_top",
             SmartBpRecognitionRegion.LeftBottom => "left_bottom",
@@ -695,12 +698,14 @@ internal sealed class SmartBpRecognitionRegionProfileService(ISmartBpModuleStora
         await using var stream = File.OpenRead(path);
         var profile = await JsonSerializer.DeserializeAsync<SmartBpRecognitionLayoutProfile>(stream, JsonOptions, cancellationToken)
             ?? throw new InvalidDataException("SmartBP recognition layout profile is empty.");
+        EnsureTopLeftStatusRegion(profile);
         Validate(profile);
         return profile;
     }
 
     public async Task SaveUserOverrideAsync(SmartBpRecognitionLayoutProfile profile, CancellationToken cancellationToken = default)
     {
+        EnsureTopLeftStatusRegion(profile);
         Validate(profile);
         Directory.CreateDirectory(Path.GetDirectoryName(UserPath)!);
         await using var stream = File.Create(UserPath);
@@ -717,12 +722,23 @@ internal sealed class SmartBpRecognitionRegionProfileService(ISmartBpModuleStora
     private static void Validate(SmartBpRecognitionLayoutProfile profile)
     {
         if (profile.SchemaVersion != 1) throw new InvalidDataException("Unsupported SmartBP recognition layout profile schema.");
-        foreach (var key in new[] { "phase_top", "left_top", "right_top", "left_bottom", "right_bottom" })
+        foreach (var key in new[] { "phase_top", "top_left_status", "left_top", "right_top", "left_bottom", "right_bottom" })
         {
             if (!profile.Regions.TryGetValue(key, out var rect)) throw new InvalidDataException($"Missing SmartBP recognition region: {key}.");
             if (rect.X < 0 || rect.Y < 0 || rect.Width <= 0 || rect.Height <= 0 || rect.X + rect.Width > 1.0001 || rect.Y + rect.Height > 1.0001)
                 throw new InvalidDataException($"SmartBP recognition region {key} is outside normalized bounds.");
         }
+    }
+
+    private static void EnsureTopLeftStatusRegion(SmartBpRecognitionLayoutProfile profile)
+    {
+        profile.Regions.TryAdd("top_left_status", new SmartBpRecognitionRegionRect
+        {
+            X = 0,
+            Y = 0,
+            Width = .5,
+            Height = .16
+        });
     }
 }
 
@@ -754,6 +770,7 @@ internal sealed class SmartBpRecognitionFrameCropper(ISmartBpRecognitionRegionPr
     private static string ToProfileKey(SmartBpRecognitionRegion region) => region switch
     {
         SmartBpRecognitionRegion.PhaseTop => "phase_top",
+        SmartBpRecognitionRegion.TopLeftStatus => "top_left_status",
         SmartBpRecognitionRegion.LeftTop => "left_top",
         SmartBpRecognitionRegion.RightTop => "right_top",
         SmartBpRecognitionRegion.LeftBottom => "left_bottom",
@@ -962,6 +979,7 @@ The local merge will preserve slot 0 as 小说家.
     private static string RegionId(SmartBpRecognitionRegion region) => region switch
     {
         SmartBpRecognitionRegion.PhaseTop => "phase_top",
+        SmartBpRecognitionRegion.TopLeftStatus => "top_left_status",
         SmartBpRecognitionRegion.LeftTop => "left_top",
         SmartBpRecognitionRegion.RightTop => "right_top",
         SmartBpRecognitionRegion.LeftBottom => "left_bottom",
@@ -991,8 +1009,17 @@ phase 只能是：
     public static string BuildPhaseOnly() => """
 /no_think
 
-你只会收到第五人格 BP 顶部/阶段裁剪图。
-只判断当前 phase。
+你会收到两张第五人格裁剪图：
+1. phase_top：BP 阶段标题区域。
+2. top_left_status：画面绝对左上角的全局游戏状态。
+
+如果 top_left_status 显示“等待游戏开始”、“前往【...】”、“剩余 xx 秒”、“区域选择”、“加载中”或“对局中”，请分类为对应的角色 BP 后阶段。
+判断优先级：
+1. top_left_status 中的角色 BP 后状态锚点。
+2. phase_top 中的 BP 标题。
+3. 未知。
+
+不要识别角色，不要输出角色候选、当前业务状态或任何 BP 字段。
 只输出 JSON：
 {"phase":"..."}
 """;
@@ -1570,14 +1597,22 @@ internal sealed class LlamaCppOpenAiClient(ISmartBpRecognitionSettingsService se
         }
     }
 
-    public async Task<string> RecognizePhaseOnlyAsync(string imageDataUrl, CancellationToken cancellationToken = default)
+    public async Task<string> RecognizePhaseOnlyAsync(IReadOnlyList<SmartBpMultimodalRegionInput> images, CancellationToken cancellationToken = default)
     {
         var profile = await promptProfiles.LoadAsync(settings.Settings.PromptProfileId, cancellationToken);
         var prompt = SmartBpRecognitionPromptBuilder.BuildPhaseOnly();
         var mode = settings.Settings.StructuredOutputMode;
-        debugLog.Write("recognition", $"Phase-only path; structured_output_mode={mode}; prompt_chars={prompt.Length}; max_tokens={settings.Settings.PhaseMaxTokens}.");
+        debugLog.Write("recognition", $"task=PhaseOnly; image_count={images.Count}; images=[{string.Join(", ", images.Select(image => image.Id))}]; candidate_lists_in_prompt=False; candidate_lists_in_schema=False; structured_output_mode={mode}; prompt_chars={prompt.Length}; max_tokens={settings.Settings.PhaseMaxTokens}.");
         debugLog.Write("recognition", $"Phase-only prompt text:\n{prompt}");
-        var body = CreateStructuredBody(profile.SystemPrompt, prompt, imageDataUrl,
+        var content = new JsonArray(new JsonObject { ["type"] = "text", ["text"] = prompt });
+        if (mode == AiStructuredOutputMode.JsonPromptAndRepair)
+            content.Insert(0, new JsonObject { ["type"] = "text", ["text"] = "只输出 JSON。不要输出 Markdown、代码块或解释。" });
+        foreach (var image in images)
+        {
+            content.Add(new JsonObject { ["type"] = "text", ["text"] = $"{image.Id}: {image.TargetField}" });
+            content.Add(new JsonObject { ["type"] = "image_url", ["image_url"] = new JsonObject { ["url"] = image.ImageDataUrl } });
+        }
+        var body = CreateStructuredMultimodalBody(profile.SystemPrompt, content,
             SmartBpRecognitionJsonSchemaProvider.GetPhaseOnly(), settings.Settings.PhaseMaxTokens, mode, "smartbp_phase");
         var raw = await SendSpecialAsync(body, "PhaseOnly", cancellationToken);
         return await RepairAndLogAsync(raw, mode, "PhaseOnly");
@@ -1649,6 +1684,21 @@ internal sealed class LlamaCppOpenAiClient(ISmartBpRecognitionSettingsService se
                 ["json_schema"] = new JsonObject { ["name"] = schemaName, ["strict"] = true, ["schema"] = schema }
             };
         }
+        return body;
+    }
+
+    private static JsonObject CreateStructuredMultimodalBody(string systemPrompt, JsonArray content, JsonObject schema, int maxTokens, AiStructuredOutputMode mode, string schemaName)
+    {
+        var body = new JsonObject
+        {
+            ["model"] = "local", ["temperature"] = 0, ["max_tokens"] = maxTokens,
+            ["chat_template_kwargs"] = new JsonObject { ["enable_thinking"] = false },
+            ["messages"] = new JsonArray(
+                new JsonObject { ["role"] = "system", ["content"] = systemPrompt },
+                new JsonObject { ["role"] = "user", ["content"] = content })
+        };
+        if (mode == AiStructuredOutputMode.JsonSchemaStrict)
+            body["response_format"] = new JsonObject { ["type"] = "json_schema", ["json_schema"] = new JsonObject { ["name"] = schemaName, ["strict"] = true, ["schema"] = schema } };
         return body;
     }
 

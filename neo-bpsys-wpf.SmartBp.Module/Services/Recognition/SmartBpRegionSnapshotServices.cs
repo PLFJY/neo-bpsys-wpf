@@ -527,6 +527,7 @@ internal sealed class SmartBpAiSnapshotDeltaRecognitionService(
     private static string ToRegionId(SmartBpRecognitionRegion region) => region switch
     {
         SmartBpRecognitionRegion.PhaseTop => "phase_top",
+        SmartBpRecognitionRegion.TopLeftStatus => "top_left_status",
         SmartBpRecognitionRegion.LeftTop => "left_top",
         SmartBpRecognitionRegion.RightTop => "right_top",
         SmartBpRecognitionRegion.LeftBottom => "left_bottom",
@@ -548,8 +549,17 @@ internal sealed class SmartBpAiFieldSnapshotRecognitionService(
     {
         var diagnostics = new List<string>();
         var crop = await CropAsync(frame, SmartBpRecognitionRegion.PhaseTop, cancellationToken);
-        var imageDataUrl = await EncodeAsync(crop.Image, settings.Settings.PhaseCropMaxImageWidth, cancellationToken);
-        var raw = await client.RecognizePhaseOnlyAsync(imageDataUrl, cancellationToken);
+        var statusCrop = await CropAsync(frame, SmartBpRecognitionRegion.TopLeftStatus, cancellationToken);
+        var inputs = new SmartBpMultimodalRegionInput[]
+        {
+            new("phase_top", SmartBpRecognitionRegion.PhaseTop, "BP phase title area", await EncodeAsync(crop.Image, settings.Settings.PhaseCropMaxImageWidth, cancellationToken)),
+            new("top_left_status", SmartBpRecognitionRegion.TopLeftStatus, "global game status in the absolute top-left corner", await EncodeAsync(statusCrop.Image, settings.Settings.PhaseCropMaxImageWidth, cancellationToken))
+        };
+        diagnostics.Add("task=PhaseOnly; image_count=2; images=[phase_top, top_left_status]; candidate_lists_in_prompt=False; candidate_lists_in_schema=False.");
+        diagnostics.Add($"top_left_status crop={statusCrop.PixelRectText}");
+        debugLog.Write("recognition", diagnostics[0]);
+        debugLog.Write("recognition", diagnostics[1]);
+        var raw = await client.RecognizePhaseOnlyAsync(inputs, cancellationToken);
         SmartBpPhaseRecognitionResult phase;
         try
         {
@@ -566,6 +576,7 @@ internal sealed class SmartBpAiFieldSnapshotRecognitionService(
         {
             Phase = phase,
             Crop = crop,
+            TopLeftStatusCrop = statusCrop,
             RawJson = raw,
             Diagnostics = diagnostics
         };

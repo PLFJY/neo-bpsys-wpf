@@ -269,6 +269,86 @@ internal static class SmartBpOcrPhaseClassifier
         SmartBpOcrTextResolver.NormalizeForMatch(text).Contains(SmartBpOcrTextResolver.NormalizeForMatch(candidate), StringComparison.Ordinal);
 }
 
+internal static class SmartBpPostBpStatusDetector
+{
+    public static SmartBpPostBpStatusResult Detect(IReadOnlyList<OcrTextLine> lines)
+    {
+        var evidence = string.Join(" / ", lines.Select(line => line.Text).Where(text => !string.IsNullOrWhiteSpace(text)));
+        var normalizedLines = lines.Select(line => SmartBpOcrTextResolver.NormalizeForMatch(line.Text)).Where(text => text.Length > 0).ToArray();
+        var combined = string.Concat(normalizedLines);
+
+        var waitingScore = BestSubstringSimilarity(combined, "等待游戏开始");
+        if (waitingScore >= .75)
+            return Match("等待游戏开始", SmartBpRecognitionScene.WaitingGameStart, "fuzzy 等待游戏开始 anchor", evidence, waitingScore);
+
+        var hasRemaining = ContainsFuzzy(combined, "剩余", .5);
+        var hasSeconds = combined.Contains('秒');
+        if (hasRemaining && hasSeconds)
+            return Match("等待游戏开始", SmartBpRecognitionScene.WaitingGameStart, "剩余/秒 countdown anchors", evidence, .9);
+
+        var hasGoTo = ContainsFuzzy(combined, "前往", .5);
+        var hasBracketedDestination = lines.Any(line => Regex.IsMatch(
+            line.Text.Normalize(NormalizationForm.FormKC),
+            @"[【\[（(《<].+?[】\]）)》>]",
+            RegexOptions.CultureInvariant));
+        if (hasGoTo && hasBracketedDestination)
+            return Match("等待游戏开始", SmartBpRecognitionScene.WaitingGameStart, "fuzzy 前往 plus bracketed destination anchor", evidence, .8);
+
+        foreach (var candidate in new[]
+                 {
+                     (Phase: "即将进入区域选择", Scene: SmartBpRecognitionScene.OutOfBp),
+                     (Phase: "求生者选择区域中", Scene: SmartBpRecognitionScene.AreaSelectionSurvivor),
+                     (Phase: "监管者选择区域中", Scene: SmartBpRecognitionScene.AreaSelectionHunter),
+                     (Phase: "区域选择", Scene: SmartBpRecognitionScene.OutOfBp),
+                     (Phase: "加载中", Scene: SmartBpRecognitionScene.Loading),
+                     (Phase: "对局中", Scene: SmartBpRecognitionScene.InGame)
+                 })
+        {
+            var score = BestSubstringSimilarity(combined, candidate.Phase);
+            if (score >= .75)
+                return Match(candidate.Phase, candidate.Scene, $"fuzzy {candidate.Phase} anchor", evidence, score);
+        }
+
+        return new SmartBpPostBpStatusResult { Evidence = evidence };
+    }
+
+    private static SmartBpPostBpStatusResult Match(string phase, SmartBpRecognitionScene scene, string reason, string evidence, double score) =>
+        new() { IsPostBp = true, Phase = phase, Scene = scene, Reason = reason, Evidence = evidence, Score = score };
+
+    private static bool ContainsFuzzy(string text, string candidate, double threshold) =>
+        BestSubstringSimilarity(text, SmartBpOcrTextResolver.NormalizeForMatch(candidate)) >= threshold;
+
+    private static double BestSubstringSimilarity(string text, string candidate)
+    {
+        if (string.IsNullOrEmpty(text) || string.IsNullOrEmpty(candidate)) return 0;
+        if (text.Contains(candidate, StringComparison.Ordinal)) return 1;
+        var best = 0d;
+        var minLength = Math.Max(1, candidate.Length - 1);
+        var maxLength = Math.Min(text.Length, candidate.Length + 1);
+        for (var length = minLength; length <= maxLength; length++)
+        for (var start = 0; start + length <= text.Length; start++)
+        {
+            var distance = EditDistance(text.AsSpan(start, length), candidate.AsSpan());
+            best = Math.Max(best, 1d - (double)distance / Math.Max(length, candidate.Length));
+        }
+        return best;
+    }
+
+    private static int EditDistance(ReadOnlySpan<char> left, ReadOnlySpan<char> right)
+    {
+        var previous = Enumerable.Range(0, right.Length + 1).ToArray();
+        var current = new int[right.Length + 1];
+        for (var i = 1; i <= left.Length; i++)
+        {
+            current[0] = i;
+            for (var j = 1; j <= right.Length; j++)
+                current[j] = Math.Min(Math.Min(current[j - 1] + 1, previous[j] + 1), previous[j - 1] + (left[i - 1] == right[j - 1] ? 0 : 1));
+            (previous, current) = (current, previous);
+        }
+        return previous[right.Length];
+    }
+}
+
 internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
 {
     public SmartBpOcrParsedRegionResult ParseDetailed(
@@ -645,13 +725,24 @@ internal sealed class SmartBpOcrBpRecognitionService(
 
         var dimensions = await GetRegionDimensionsAsync(frame, requestedRegions, cancellationToken).ConfigureAwait(false);
         var phaseLines = regionTexts.FirstOrDefault(item => item.Region == SmartBpRecognitionRegion.PhaseTop)?.Lines ?? [];
+        var statusLines = regionTexts.FirstOrDefault(item => item.Region == SmartBpRecognitionRegion.TopLeftStatus)?.Lines ?? [];
         var phaseWidth = (double)dimensions.GetValueOrDefault(SmartBpRecognitionRegion.PhaseTop).Width;
         if (phaseWidth <= 0)
             phaseWidth = phaseLines.Select(line => line.CenterX).DefaultIfEmpty(1).Max() * 2;
-        var phase = SmartBpOcrPhaseClassifier.Classify(phaseLines, phaseWidth, diagnostics);
+        var postBpStatus = SmartBpPostBpStatusDetector.Detect(statusLines);
+        SmartBpPhaseRecognitionResult phase;
+        if (postBpStatus.IsPostBp)
+        {
+            phase = new SmartBpPhaseRecognitionResult { Phase = postBpStatus.Phase };
+            diagnostics.Add($"Pure OCR post-BP fuzzy anchor matched: phase={postBpStatus.Phase}; evidence=\"{postBpStatus.Evidence}\"; score={postBpStatus.Score:0.00}; reason={postBpStatus.Reason}.");
+        }
+        else
+        {
+            phase = SmartBpOcrPhaseClassifier.Classify(phaseLines, phaseWidth, diagnostics);
+        }
 
         var parsed = new Dictionary<SmartBpRecognitionRegion, SmartBpFocusedBusinessExtractionResult>();
-        foreach (var regionText in regionTexts.Where(item => item.Region != SmartBpRecognitionRegion.PhaseTop))
+        foreach (var regionText in regionTexts.Where(item => item.Region is not SmartBpRecognitionRegion.PhaseTop and not SmartBpRecognitionRegion.TopLeftStatus))
         {
             var parsedRegion = parser.ParseDetailed(regionText.Region, regionText.Lines);
             parsed[regionText.Region] = parsedRegion.Result;
@@ -688,6 +779,8 @@ internal sealed class SmartBpOcrBpRecognitionService(
             var result = ocr.RecognizeTextLines(sheet.Image);
             var grouped = SmartBpOcrContactSheetMapper.MapLinesToRegions(result, sheet.Regions, out var unmapped);
             diagnostics.Add($"provider={result.Provider ?? ocr.SelectedProvider.ToString()}; line_count={result.Lines.Count}; OCR contact sheet regions=[{string.Join(", ", requestedRegions.Select(ToRegionId))}], unmapped={unmapped}.");
+            foreach (var region in sheet.Regions.Where(region => region.Region == SmartBpRecognitionRegion.TopLeftStatus))
+                diagnostics.Add($"top_left_status crop=x={region.OriginalFrameRect.X}, y={region.OriginalFrameRect.Y}, width={region.OriginalFrameRect.Width}, height={region.OriginalFrameRect.Height}");
             return grouped;
         }, cancellationToken).ConfigureAwait(false);
     }
@@ -707,7 +800,10 @@ internal sealed class SmartBpOcrBpRecognitionService(
                 var crop = cropper.CropWithInfo(frame, region);
                 using var raw = BitmapSourceConverter.ToMat(crop.Image);
                 using var bgr = ToBgr(raw);
-                return ocr.RecognizeTextLines(bgr).Lines;
+                var result = ocr.RecognizeTextLines(bgr).Lines;
+                if (region == SmartBpRecognitionRegion.TopLeftStatus)
+                    diagnostics.Add($"top_left_status crop={crop.PixelRectText}");
+                return result;
             }, cancellationToken).ConfigureAwait(false);
             diagnostics.Add($"provider={ocr.SelectedProvider}; line_count={lines.Count}; OCR per-region fallback={ToRegionId(region)}.");
             groups.Add(new() { Region = region, Lines = lines });
@@ -729,7 +825,10 @@ internal sealed class SmartBpOcrBpRecognitionService(
     {
         var regions = new List<SmartBpRecognitionRegion>();
         if (request.IncludePhase)
+        {
             regions.Add(SmartBpRecognitionRegion.PhaseTop);
+            regions.Add(SmartBpRecognitionRegion.TopLeftStatus);
+        }
         regions.AddRange(request.ContentRegions.Where(region => region != SmartBpRecognitionRegion.PhaseTop));
         return regions.Distinct().ToArray();
     }
@@ -749,6 +848,7 @@ internal sealed class SmartBpOcrBpRecognitionService(
     internal static string ToRegionId(SmartBpRecognitionRegion region) => region switch
     {
         SmartBpRecognitionRegion.PhaseTop => "phase_top",
+        SmartBpRecognitionRegion.TopLeftStatus => "top_left_status",
         SmartBpRecognitionRegion.LeftTop => "left_top",
         SmartBpRecognitionRegion.RightTop => "right_top",
         SmartBpRecognitionRegion.LeftBottom => "left_bottom",

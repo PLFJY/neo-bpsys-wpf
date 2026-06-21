@@ -133,7 +133,21 @@ public enum SmartBpRecognitionApplyMode
 }
 
 /// <summary>Coarse SmartBP recognition crop regions.</summary>
-public enum SmartBpRecognitionRegion { PhaseTop, LeftTop, RightTop, LeftBottom, RightBottom }
+public enum SmartBpRecognitionRegion
+{
+    /// <summary>BP phase title area.</summary>
+    PhaseTop,
+    /// <summary>Absolute top-left global game-status area.</summary>
+    TopLeftStatus,
+    /// <summary>Left-side upper BP content area.</summary>
+    LeftTop,
+    /// <summary>Right-side upper BP content area.</summary>
+    RightTop,
+    /// <summary>Left-side lower BP content area.</summary>
+    LeftBottom,
+    /// <summary>Right-side lower BP content area.</summary>
+    RightBottom
+}
 
 /// <summary>Controls how many BP content regions are recognized for one snapshot.</summary>
 public enum SmartBpRegionSnapshotRecognitionMode { FullAllRegions, PendingAndCurrentRegions }
@@ -213,6 +227,23 @@ public sealed class QwenModelManifest
     public int SchemaVersion { get; set; }
     /// <summary>Gets or sets model profiles.</summary>
     public List<QwenModelProfile> Models { get; set; } = [];
+}
+
+/// <summary>Normalized result of detecting a status shown after character BP has ended.</summary>
+public sealed class SmartBpPostBpStatusResult
+{
+    /// <summary>Gets whether the evidence identifies a post-BP scene.</summary>
+    public bool IsPostBp { get; init; }
+    /// <summary>Gets the normalized phase.</summary>
+    public string Phase { get; init; } = "未知";
+    /// <summary>Gets the normalized scene.</summary>
+    public SmartBpRecognitionScene Scene { get; init; } = SmartBpRecognitionScene.Unknown;
+    /// <summary>Gets the detection reason.</summary>
+    public string Reason { get; init; } = "";
+    /// <summary>Gets the source evidence.</summary>
+    public string Evidence { get; init; } = "";
+    /// <summary>Gets the fuzzy-match score.</summary>
+    public double Score { get; init; }
 }
 
 /// <summary>Local vision model manifest root.</summary>
@@ -774,6 +805,8 @@ public sealed class SmartBpAiPhaseOnlyResult
     public SmartBpPhaseRecognitionResult Phase { get; init; } = new();
     /// <summary>Gets the phase crop used by the model.</summary>
     public SmartBpCroppedFrame Crop { get; init; } = default!;
+    /// <summary>Gets the absolute top-left global-status crop used by the model.</summary>
+    public SmartBpCroppedFrame TopLeftStatusCrop { get; init; } = default!;
     /// <summary>Gets the raw model JSON response.</summary>
     public string RawJson { get; init; } = "";
     /// <summary>Gets recognition diagnostics.</summary>

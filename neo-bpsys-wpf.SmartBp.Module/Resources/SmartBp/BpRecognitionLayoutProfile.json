@@ -9,6 +9,12 @@
       "width": 1.0,
       "height": 0.46
     },
+    "top_left_status": {
+      "x": 0.0,
+      "y": 0.0,
+      "width": 0.5,
+      "height": 0.16
+    },
     "left_top": {
       "x": 0.0,
       "y": 0.0,

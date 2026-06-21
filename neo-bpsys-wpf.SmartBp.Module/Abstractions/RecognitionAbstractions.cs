@@ -505,11 +505,11 @@ public interface ILlamaCppOpenAiClient
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The raw model JSON response, repaired when needed.</returns>
     Task<string> FuseTranscriptEvidenceAsync(string prompt, string lockedPhase, IReadOnlyCollection<string> requestedFields, CancellationToken cancellationToken = default);
-    /// <summary>Recognizes only the phase crop using the short phase-only prompt.</summary>
-    /// <param name="imageDataUrl">Encoded phase crop image data URL.</param>
+    /// <summary>Recognizes only the phase from the labeled phase and global-status crops.</summary>
+    /// <param name="images">Labeled encoded crop inputs.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The raw model JSON response (already repaired when using prompt-and-repair mode).</returns>
-    Task<string> RecognizePhaseOnlyAsync(string imageDataUrl, CancellationToken cancellationToken = default);
+    Task<string> RecognizePhaseOnlyAsync(IReadOnlyList<SmartBpMultimodalRegionInput> images, CancellationToken cancellationToken = default);
 }
 
 /// <summary>Classifies the current Identity V scene and gates BP writes.</summary>

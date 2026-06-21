@@ -176,7 +176,7 @@ BP 状态识别和赛后数据 OCR 是两条不同流程。BP 识别不直接写
 
 `UseOcrContactSheet = false` 时会逐区域 OCR，主要用于排查 contact sheet 映射问题。OCR 识别默认间隔较短，字段 stale 和回看步数使用 OCR 专用设置；AI 策略仍保留原有较慢的多图请求设置。
 
-自动 BP 循环使用 `SmartBpRecognitionScene` 场景门禁。角色 BP 场景才允许生成和应用 Ban/Pick 操作；求生者/监管者天赋阶段只允许同步引导；大厅、规则、禁选顺序、转场不写入；区域选择、等待开始、加载和对局内会阻断任何延迟操作并正常暂停循环。区域选择不属于 MapBP 或角色 BP 识别范围。停止自动识别会取消当前 llama.cpp 请求；单次 AI 请求超时由 `AiRequestTimeoutSeconds` 控制。
+自动 BP 循环使用 `SmartBpRecognitionScene` 场景门禁。角色 BP 场景才允许生成和应用 Ban/Pick 操作；求生者/监管者天赋阶段只允许同步引导；大厅、规则、禁选顺序、转场不写入。区域选择、等待开始、加载和对局内会阻断当前帧的内容识别与新操作生成，并停止调度后续 tick；已经排队或正在应用的角色 BP 操作会继续完成，队列排空后才以 `SmartBpCharacterBpEnded` 正常完成 GameGuidance 和自动识别，不触发取消事件。区域选择不属于 MapBP 或角色 BP 识别范围。用户手动停止仍会立即取消当前识别；单次 AI 请求超时由 `AiRequestTimeoutSeconds` 控制。
 
 本地视觉模型 manifest 支持直链与 HuggingFace 仓库来源。HuggingFace 文件按 `{endpoint}/{repoId}/resolve/{revision}/{fileName}` 下载，中文界面默认可使用 `hf-mirror.com`，显式 endpoint override 优先。`projectorMode` / 兼容字段 `mmprojMode` 必须明确标为 `Separate`、`Embedded` 或 `None`：独立模式下载并传入 `--mmproj`，内嵌模式只传模型，None 不允许启动 SmartBP 图像识别。不得根据文件名猜测投影模式。模型 profile 还声明 `family` 和 `role`，例如 Qwen 3.5 可作为业务 VLM，GLM OCR 与 PaddleOCR-VL 用作 AI OCR 文本提取。
 
@@ -355,6 +355,7 @@ neo-bpsys-wpf.SmartBp.Module/Resources/SmartBpDefaultConfigs/GameDataRegions.16-
 | 区域 ID | 枚举值 | 画面对应位置 | 识别内容 |
 | --- | --- | --- | --- |
 | `phase_top` | `PhaseTop` | 顶部操作栏 | BP 阶段文本（屏蔽/选择/天赋等） |
+| `top_left_status` | `TopLeftStatus` | 画面绝对左上角 | 角色 BP 结束后的等待游戏开始、区域选择、加载与对局状态；默认 16:9 区域为 `(0, 0, 0.5, 0.16)` |
 | `left_top` | `LeftTop` | 左上角 | 监管者 Ban 位 |
 | `right_top` | `RightTop` | 右上角 | 求生者 Ban 位 |
 | `left_bottom` | `LeftBottom` | 左下角 | 求生者 Pick 位 |

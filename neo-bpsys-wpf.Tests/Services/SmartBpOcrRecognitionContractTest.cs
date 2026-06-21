@@ -31,6 +31,7 @@ using SmartBpSnapshotDeltaRequest = smartbp::neo_bpsys_wpf.SmartBp.Module.Models
 using SmartBpOcrContactSheetMapper = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpOcrContactSheetMapper;
 using SmartBpOcrContactSheetRegion = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpOcrContactSheetRegion;
 using SmartBpOcrPhaseClassifier = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpOcrPhaseClassifier;
+using SmartBpPostBpStatusDetector = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpPostBpStatusDetector;
 using SmartBpOcrRegionParser = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpOcrRegionParser;
 using SmartBpOcrTextResolver = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpOcrTextResolver;
 using TesseractCoordinateMapper = smartbp::neo_bpsys_wpf.Services.TesseractCoordinateMapper;
@@ -106,6 +107,34 @@ public sealed class SmartBpOcrRecognitionContractTest
         var phase = SmartBpOcrPhaseClassifier.Classify([Line("永眠镇", 50, 20)], 200, diagnostics);
 
         Assert.Equal("未知", phase.Phase);
+    }
+
+    [Theory]
+    [InlineData("等待游戏开始，剩余 28 秒")]
+    [InlineData("等侍游戏开始")]
+    [InlineData("等待游戏升始")]
+    [InlineData("剩余28秒")]
+    [InlineData("前柱【永眠镇】")]
+    [InlineData("前住【湖景村】")]
+    public void TopLeftStatusDetectorFuzzyMatchesWaitingGameStart(string text)
+    {
+        var result = SmartBpPostBpStatusDetector.Detect([Line(text, 50, 20)]);
+
+        Assert.True(result.IsPostBp);
+        Assert.Equal("等待游戏开始", result.Phase);
+        Assert.Equal(smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionScene.WaitingGameStart, result.Scene);
+        Assert.Contains(text, result.Evidence);
+    }
+
+    [Theory]
+    [InlineData("永眠镇")]
+    [InlineData("屏蔽求生者")]
+    [InlineData("选择监管者")]
+    public void TopLeftStatusDetectorDoesNotFalseTrigger(string text)
+    {
+        var result = SmartBpPostBpStatusDetector.Detect([Line(text, 50, 20)]);
+
+        Assert.False(result.IsPostBp);
     }
 
     [Fact]

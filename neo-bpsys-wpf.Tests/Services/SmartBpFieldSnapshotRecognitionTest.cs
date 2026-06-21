@@ -39,6 +39,9 @@ public sealed class SmartBpFieldSnapshotRecognitionTest
 
         Assert.Contains("/no_think", prompt);
         Assert.Contains("phase", prompt);
+        Assert.Contains("phase_top", prompt);
+        Assert.Contains("top_left_status", prompt);
+        Assert.Contains("等待游戏开始", prompt);
         Assert.DoesNotContain("current_known_state", prompt);
         Assert.DoesNotContain("survivor_candidates", prompt);
         Assert.DoesNotContain("hunter_candidates", prompt);

@@ -1939,6 +1939,7 @@ public partial class SmartBpModuleContentViewModel
         region switch
         {
             SmartBpRecognitionRegion.PhaseTop => "phase_top",
+            SmartBpRecognitionRegion.TopLeftStatus => "top_left_status",
             SmartBpRecognitionRegion.LeftTop => "left_top",
             SmartBpRecognitionRegion.RightTop => "right_top",
             SmartBpRecognitionRegion.LeftBottom => "left_bottom",
