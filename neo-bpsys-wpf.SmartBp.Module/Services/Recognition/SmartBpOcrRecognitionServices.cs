@@ -322,31 +322,198 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
         IReadOnlyList<OcrTextLine> lines,
         ICollection<string> diagnostics)
     {
-        var contentLines = lines.Where(line => !IsStatusLine(line.Text)).ToArray();
-        var candidates = contentLines
-            .Select(line => new { Line = line, Character = resolver.ResolveCharacterFromLine(line.Text, Camp.Sur, -1, line.Provider) })
-            .ToArray();
-        foreach (var candidate in candidates)
-            AddResolverDiagnostics(diagnostics, "left_bottom", candidate.Line, candidate.Character);
-        var anchors = candidates
-            .Where(item => item.Character.ResolvedCharacterKey != null)
-            .GroupBy(item => item.Character.ResolvedCharacterKey, StringComparer.Ordinal)
-            .Select(group => group.OrderBy(item => item.Line.CenterY).First())
-            .OrderBy(item => item.Line.CenterX)
-            .Take(4)
-            .ToArray();
         var slots = DefaultPlayerSlots(4);
-        for (var slotIndex = 0; slotIndex < anchors.Length; slotIndex++)
+        var layoutLines = lines
+            .Where(line => !IsStatusLine(line.Text))
+            .Select(line => CreateLayoutLine(SmartBpRecognitionRegion.LeftBottom, line))
+            .Where(line => !string.IsNullOrWhiteSpace(line.Text))
+            .ToArray();
+        var rows = ClusterRows(layoutLines, CalculateRowTolerance(layoutLines));
+        AddPickedSurRowDiagnostics(rows, diagnostics);
+
+        var characterRow = rows.FirstOrDefault() ?? [];
+        var playerRow = rows.Skip(1).FirstOrDefault() ?? [];
+        var selectedCharacterItems = characterRow.Take(4).ToArray();
+        var slotCenters = BuildPickedSurSlotCenters(selectedCharacterItems, playerRow, slots.Count);
+        if (selectedCharacterItems.Length >= slots.Count)
         {
-            var anchor = anchors[slotIndex];
-            slots[slotIndex].CharacterName = anchor.Character.ResolvedCharacterKey!;
-            ApplyRecognitionMetadata(slots[slotIndex], anchor.Character);
-            slots[slotIndex].PlayerId = FindNearestPlayerIdBelow(anchor.Line, slotIndex, anchors.Select(item => item.Line).ToArray(), contentLines, Camp.Sur);
+            for (var slotIndex = 0; slotIndex < slots.Count; slotIndex++)
+                ApplyPickedSurCharacterSlot(slots[slotIndex], selectedCharacterItems[slotIndex], diagnostics);
+        }
+        else
+        {
+            var assignedCharacterSlots = new HashSet<int>();
+            foreach (var item in selectedCharacterItems.OrderBy(line => line.CenterX))
+            {
+                var slotIndex = Enumerable.Range(0, slots.Count)
+                    .Where(index => !assignedCharacterSlots.Contains(index))
+                    .OrderBy(index => Math.Abs(item.CenterX - slotCenters[index]))
+                    .First();
+                ApplyPickedSurCharacterSlot(slots[slotIndex], item, diagnostics);
+                assignedCharacterSlots.Add(slotIndex);
+            }
         }
 
+        AssignPickedSurPlayerIds(slots, slotCenters, playerRow);
+        AddIgnoredPickedSurRowDiagnostics(rows, diagnostics);
+        diagnostics.Add("picked_sur slot assignment:");
+        foreach (var slot in slots)
+            diagnostics.Add($"slot {slot.Index} char={slot.CharacterName} player_id={slot.PlayerId ?? "null"}");
         diagnostics.Add($"picked_sur: parsed [{string.Join(", ", slots.Select(slot => $"{slot.Index}={slot.CharacterName}/{slot.PlayerId ?? "null"}"))}]");
         return new() { Phase = "未知", TargetField = "picked_sur", Slots = slots };
     }
+
+    private void ApplyPickedSurCharacterSlot(
+        SmartBpRecognizedPlayerCharacterSlot slot,
+        OcrLineLayout item,
+        ICollection<string> diagnostics)
+    {
+        var resolved = resolver.ResolveCharacterFromLine(item.Text, Camp.Sur, slot.Index, item.Provider);
+        AddResolverDiagnostics(diagnostics, "left_bottom", item.Line, resolved);
+        if (resolved.ResolvedCharacterKey != null)
+        {
+            slot.CharacterName = resolved.ResolvedCharacterKey;
+            ApplyRecognitionMetadata(slot, resolved);
+        }
+        else if (SmartBpBusinessStateParser.IsUnselected(item.Text))
+        {
+            slot.CharacterName = "未选择";
+        }
+    }
+
+    private void AssignPickedSurPlayerIds(
+        IReadOnlyList<SmartBpRecognizedPlayerCharacterSlot> slots,
+        IReadOnlyList<double> slotCenters,
+        IReadOnlyList<OcrLineLayout> playerRow)
+    {
+        if (playerRow.Count == 0)
+            return;
+
+        var assigned = new HashSet<int>();
+        foreach (var player in playerRow.OrderBy(line => line.CenterX))
+        {
+            if (assigned.Count >= slots.Count)
+                break;
+
+            var playerId = SmartBpOcrTextResolver.NormalizeText(player.Text);
+            if (string.IsNullOrWhiteSpace(playerId))
+                continue;
+
+            var slotIndex = Enumerable.Range(0, slots.Count)
+                .Where(index => !assigned.Contains(index))
+                .OrderBy(index => Math.Abs(player.CenterX - slotCenters[index]))
+                .FirstOrDefault();
+            slots[slotIndex].PlayerId = playerId;
+            assigned.Add(slotIndex);
+        }
+    }
+
+    private static double[] BuildPickedSurSlotCenters(
+        IReadOnlyList<OcrLineLayout> characterRow,
+        IReadOnlyList<OcrLineLayout> playerRow,
+        int count)
+    {
+        var centers = new double[count];
+        if (characterRow.Count >= count)
+        {
+            for (var i = 0; i < count; i++)
+                centers[i] = characterRow[i].CenterX;
+            return centers;
+        }
+
+        var ordered = characterRow.Concat(playerRow)
+            .OrderBy(line => line.CenterX)
+            .Select(line => line.CenterX)
+            .Distinct()
+            .Take(count)
+            .ToArray();
+        for (var i = 0; i < count; i++)
+            centers[i] = i < ordered.Length ? ordered[i] : (ordered.DefaultIfEmpty(0).Last() + (i - ordered.Length + 1) * 100);
+        return centers;
+    }
+
+    private void AddIgnoredPickedSurRowDiagnostics(
+        IReadOnlyList<IReadOnlyList<OcrLineLayout>> rows,
+        ICollection<string> diagnostics)
+    {
+        for (var rowIndex = 2; rowIndex < rows.Count; rowIndex++)
+        {
+            var texts = rows[rowIndex].Select(line => line.Text).ToArray();
+            diagnostics.Add($"picked_sur ignored talent/extra row {rowIndex} texts=[{string.Join(", ", texts)}]");
+            foreach (var line in rows[rowIndex])
+            {
+                var resolved = resolver.ResolveCharacterFromLine(line.Text, Camp.Sur, -1, line.Provider);
+                if (resolved.ResolvedCharacterKey != null)
+                    diagnostics.Add($"picked_sur ignored lower-row character candidate row={rowIndex} raw={line.Text} result={resolved.ResolvedCharacterKey} reason=below-player-id-row");
+            }
+        }
+    }
+
+    private static void AddPickedSurRowDiagnostics(
+        IReadOnlyList<IReadOnlyList<OcrLineLayout>> rows,
+        ICollection<string> diagnostics)
+    {
+        diagnostics.Add("picked_sur row clustering:");
+        for (var rowIndex = 0; rowIndex < rows.Count; rowIndex++)
+        {
+            var row = rows[rowIndex];
+            var minY = row.Min(line => line.CenterY);
+            var maxY = row.Max(line => line.CenterY);
+            var meanY = row.Average(line => line.CenterY);
+            diagnostics.Add($"row {rowIndex} y={meanY:0.#} range={minY:0.#}-{maxY:0.#} texts=[{string.Join(", ", row.Select(line => line.Text))}]");
+        }
+    }
+
+    private static OcrLineLayout CreateLayoutLine(SmartBpRecognitionRegion region, OcrTextLine line)
+    {
+        var centerX = line.BoundingBox.Width > 0 ? line.BoundingBox.X + line.BoundingBox.Width / 2d : line.CenterX;
+        var centerY = line.BoundingBox.Height > 0 ? line.BoundingBox.Y + line.BoundingBox.Height / 2d : line.CenterY;
+        return new(region, SmartBpOcrTextResolver.NormalizeText(line.Text), line.Confidence, line.BoundingBox, centerX, centerY, line.Provider, line);
+    }
+
+    private static double CalculateRowTolerance(IReadOnlyList<OcrLineLayout> lines)
+    {
+        var heights = lines
+            .Select(line => line.BoundingBox.Height)
+            .Where(height => height > 0)
+            .OrderBy(height => height)
+            .ToArray();
+        if (heights.Length == 0)
+            return 12;
+        var median = (double)heights[heights.Length / 2];
+        if (heights.Length % 2 == 0)
+            median = (heights[heights.Length / 2 - 1] + median) / 2d;
+        return Math.Max(12, median * .75);
+    }
+
+    private static IReadOnlyList<IReadOnlyList<OcrLineLayout>> ClusterRows(
+        IEnumerable<OcrLineLayout> lines,
+        double rowTolerance)
+    {
+        var rows = new List<List<OcrLineLayout>>();
+        foreach (var line in lines.OrderBy(line => line.CenterY).ThenBy(line => line.CenterX))
+        {
+            var current = rows.LastOrDefault();
+            if (current == null || Math.Abs(line.CenterY - current.Average(item => item.CenterY)) > rowTolerance)
+                rows.Add([line]);
+            else
+                current.Add(line);
+        }
+
+        return rows
+            .Select(row => (IReadOnlyList<OcrLineLayout>)row.OrderBy(line => line.CenterX).ToArray())
+            .ToArray();
+    }
+
+    private sealed record OcrLineLayout(
+        SmartBpRecognitionRegion Region,
+        string Text,
+        double Confidence,
+        Rect BoundingBox,
+        double CenterX,
+        double CenterY,
+        string? Provider,
+        OcrTextLine Line);
 
     private SmartBpFocusedBusinessExtractionResult ParseHunterPickRegion(
         IReadOnlyList<OcrTextLine> lines,

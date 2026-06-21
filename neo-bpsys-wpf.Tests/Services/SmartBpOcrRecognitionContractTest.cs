@@ -140,6 +140,99 @@ public sealed class SmartBpOcrRecognitionContractTest
     }
 
     [Fact]
+    public void LeftBottomIgnoresTalentRowEvenWhenTalentTextIsSurvivorName()
+    {
+        var parser = Parser(
+            new Character("拉拉队员", Camp.Sur, "cheerleader"),
+            new Character("魔术师", Camp.Sur, "magician"),
+            new Character("守墓人", Camp.Sur, "grave-keeper"),
+            new Character("先知", Camp.Sur, "seer"),
+            new Character("冒险家", Camp.Sur, "explorer"));
+        var diagnostics = new List<string>();
+
+        var result = parser.Parse(
+            SmartBpRecognitionRegion.LeftBottom,
+            [
+                Line("拉拉队员", 83, 152),
+                Line("魔术师", 207, 152),
+                Line("守墓人", 327, 152),
+                Line("先知", 451, 152),
+                Line("不满绩不改名", 83, 176),
+                Line("冥归处", 207, 176),
+                Line("袁宇梦男", 327, 176),
+                Line("特芯糖0v0", 451, 176),
+                Line("冒险家", 83, 199),
+                Line("博命心", 207, 199),
+                Line("救", 327, 199),
+                Line("双弹飞轮", 451, 199)
+            ],
+            diagnostics);
+
+        Assert.Equal("picked_sur", result.TargetField);
+        Assert.Equal("拉拉队员", result.Slots[0].CharacterName);
+        Assert.Equal("不满绩不改名", result.Slots[0].PlayerId);
+        Assert.Equal("魔术师", result.Slots[1].CharacterName);
+        Assert.Equal("冥归处", result.Slots[1].PlayerId);
+        Assert.Equal("守墓人", result.Slots[2].CharacterName);
+        Assert.Equal("袁宇梦男", result.Slots[2].PlayerId);
+        Assert.Equal("先知", result.Slots[3].CharacterName);
+        Assert.Equal("特芯糖0v0", result.Slots[3].PlayerId);
+        Assert.DoesNotContain(result.Slots, slot => slot.CharacterName == "冒险家");
+        Assert.Contains(diagnostics, item => item.Contains("picked_sur row clustering", StringComparison.Ordinal));
+        Assert.Contains(diagnostics, item => item.Contains("row 2", StringComparison.Ordinal) && item.Contains("冒险家", StringComparison.Ordinal));
+        Assert.Contains(diagnostics, item => item.Contains("ignored lower-row character candidate", StringComparison.Ordinal) && item.Contains("冒险家", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void LeftBottomMissingPlayerRowKeepsCharactersWithoutPlayerIds()
+    {
+        var parser = Parser(
+            new Character("拉拉队员", Camp.Sur, "cheerleader"),
+            new Character("魔术师", Camp.Sur, "magician"));
+
+        var result = parser.Parse(
+            SmartBpRecognitionRegion.LeftBottom,
+            [Line("拉拉队员", 83, 152), Line("魔术师", 207, 152)],
+            []);
+
+        Assert.Equal("拉拉队员", result.Slots[0].CharacterName);
+        Assert.Null(result.Slots[0].PlayerId);
+        Assert.Equal("魔术师", result.Slots[1].CharacterName);
+        Assert.Null(result.Slots[1].PlayerId);
+    }
+
+    [Fact]
+    public void LeftBottomDoesNotFillMissingCharacterSlotsFromTalentRows()
+    {
+        var parser = Parser(
+            new Character("拉拉队员", Camp.Sur, "cheerleader"),
+            new Character("守墓人", Camp.Sur, "grave-keeper"),
+            new Character("先知", Camp.Sur, "seer"),
+            new Character("冒险家", Camp.Sur, "explorer"));
+
+        var result = parser.Parse(
+            SmartBpRecognitionRegion.LeftBottom,
+            [
+                Line("拉拉队员", 83, 152),
+                Line("守墓人", 327, 152),
+                Line("先知", 451, 152),
+                Line("不满绩不改名", 83, 176),
+                Line("冥归处", 207, 176),
+                Line("袁宇梦男", 327, 176),
+                Line("特芯糖0v0", 451, 176),
+                Line("冒险家", 207, 199)
+            ],
+            []);
+
+        Assert.Equal("拉拉队员", result.Slots[0].CharacterName);
+        Assert.Equal("未选择", result.Slots[1].CharacterName);
+        Assert.Equal("守墓人", result.Slots[2].CharacterName);
+        Assert.Equal("先知", result.Slots[3].CharacterName);
+        Assert.Equal("冥归处", result.Slots[1].PlayerId);
+        Assert.DoesNotContain(result.Slots, slot => slot.CharacterName == "冒险家");
+    }
+
+    [Fact]
     public void RightBottomLinesProduceHunterPickAndPlayerId()
     {
         var parser = Parser(new Character("厂长", Camp.Hun, "hell-ember"));
