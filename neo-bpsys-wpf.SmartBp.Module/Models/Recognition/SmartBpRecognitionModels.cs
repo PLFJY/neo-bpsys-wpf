@@ -158,6 +158,98 @@ public sealed class QwenModelProfile
     public string? MmprojSha256 { get; set; }
 }
 
+/// <summary>Root document for managed RapidOCR model profiles.</summary>
+public sealed class RapidOcrModelManifest
+{
+    /// <summary>Gets or sets the manifest schema version.</summary>
+    public int SchemaVersion { get; set; } = 1;
+    /// <summary>Gets or sets the available model profiles.</summary>
+    public List<RapidOcrModelProfile> Models { get; set; } = [];
+}
+
+/// <summary>One managed RapidOCR detector, classifier, recognizer, and dictionary set.</summary>
+public sealed class RapidOcrModelProfile
+{
+    /// <summary>Gets or sets the stable profile id.</summary>
+    public string Id { get; set; } = "";
+    /// <summary>Gets or sets the user-facing profile name.</summary>
+    public string DisplayName { get; set; } = "";
+    /// <summary>Gets or sets the user-facing profile description.</summary>
+    public string Description { get; set; } = "";
+    /// <summary>Gets or sets the upstream RapidOCR model manifest version.</summary>
+    public string Version { get; set; } = "";
+    /// <summary>Gets or sets the detector asset.</summary>
+    public RapidOcrModelAsset Det { get; set; } = new();
+    /// <summary>Gets or sets the angle-classifier asset.</summary>
+    public RapidOcrModelAsset Cls { get; set; } = new();
+    /// <summary>Gets or sets the recognizer asset.</summary>
+    public RapidOcrModelAsset Rec { get; set; } = new();
+    /// <summary>Gets or sets the recognition dictionary asset.</summary>
+    public RapidOcrModelAsset Dict { get; set; } = new();
+}
+
+/// <summary>One downloadable RapidOCR model asset.</summary>
+public sealed class RapidOcrModelAsset
+{
+    /// <summary>Gets or sets the installed filename.</summary>
+    public string FileName { get; set; } = "";
+    /// <summary>Gets or sets the repository-relative source path.</summary>
+    public string RemotePath { get; set; } = "";
+    /// <summary>Gets or sets the official direct download URL copied from RapidOCR's default model manifest.</summary>
+    public string DownloadUrl { get; set; } = "";
+    /// <summary>Gets or sets the expected SHA-256 of the downloaded source.</summary>
+    public string? Sha256 { get; set; }
+    /// <summary>Gets or sets the deterministic source transform; supported values are Direct and PaddleCharacterDictionaryYaml.</summary>
+    public string Transform { get; set; } = "Direct";
+}
+
+/// <summary>Resolved installed paths for one RapidOCR model profile.</summary>
+/// <param name="ProfileId">Profile id.</param>
+/// <param name="Directory">Profile directory.</param>
+/// <param name="DetPath">Detector path.</param>
+/// <param name="ClsPath">Classifier path.</param>
+/// <param name="RecPath">Recognizer path.</param>
+/// <param name="DictPath">Dictionary path.</param>
+public sealed record RapidOcrInstalledPaths(
+    string ProfileId,
+    string Directory,
+    string DetPath,
+    string ClsPath,
+    string RecPath,
+    string DictPath);
+
+/// <summary>Managed RapidOCR model readiness information.</summary>
+/// <param name="ProfileId">Selected profile id.</param>
+/// <param name="ModelDirectory">Selected profile directory.</param>
+/// <param name="IsInstalled">Whether every required file is installed.</param>
+/// <param name="MissingFiles">Missing installed filenames.</param>
+/// <param name="IsUsingFallback">Whether bundled fallback assets are active.</param>
+/// <param name="InstalledVersion">Installed upstream model version, if recorded.</param>
+/// <param name="LatestVersion">Version declared by the bundled manifest.</param>
+/// <param name="HasUpdate">Whether the installed version or profile fingerprint is stale.</param>
+public sealed record RapidOcrModelStatus(
+    string ProfileId,
+    string ModelDirectory,
+    bool IsInstalled,
+    IReadOnlyList<string> MissingFiles,
+    bool IsUsingFallback = false,
+    string? InstalledVersion = null,
+    string? LatestVersion = null,
+    bool HasUpdate = false);
+
+/// <summary>Result of comparing an installed RapidOCR profile with bundled and official manifests.</summary>
+/// <param name="InstalledVersion">Installed version, if recorded.</param>
+/// <param name="BundledVersion">Version available in the bundled SmartBP manifest.</param>
+/// <param name="OfficialVersion">Version currently referenced by RapidOCR's official manifest.</param>
+/// <param name="HasInstallableUpdate">Whether the bundled profile can update the installed files.</param>
+/// <param name="IsBundledManifestCurrent">Whether SmartBP's bundled profile matches the official manifest version.</param>
+public sealed record RapidOcrModelUpdateCheckResult(
+    string? InstalledVersion,
+    string BundledVersion,
+    string OfficialVersion,
+    bool HasInstallableUpdate,
+    bool IsBundledManifestCurrent);
+
 /// <summary>Persisted AI recognition settings.</summary>
 public sealed class SmartBpRecognitionSettings
 {
@@ -263,6 +355,22 @@ public sealed class SmartBpRecognitionSettings
     public bool EnableOcrDebugOverlay { get; set; }
     /// <summary>Gets or sets the explicitly selected OCR provider.</summary>
     public SmartBpOcrProviderMode OcrProviderMode { get; set; } = SmartBpOcrProviderMode.Paddle;
+    /// <summary>Gets or sets the selected managed RapidOCR profile id.</summary>
+    public string SelectedRapidOcrModelId { get; set; } = "ppocr-v5-zh-mobile";
+    /// <summary>Gets or sets RapidOCR detector input padding.</summary>
+    public int RapidOcrPadding { get; set; }
+    /// <summary>Gets or sets the RapidOCR legacy maximum-side resize cap.</summary>
+    public int RapidOcrMaxSideLen { get; set; } = 1024;
+    /// <summary>Gets or sets the RapidOCR DB box score threshold.</summary>
+    public double RapidOcrBoxScoreThreshold { get; set; } = 0.5;
+    /// <summary>Gets or sets the RapidOCR DB bitmap threshold.</summary>
+    public double RapidOcrBoxThreshold { get; set; } = 0.3;
+    /// <summary>Gets or sets the RapidOCR DB polygon expansion ratio.</summary>
+    public double RapidOcrUnclipRatio { get; set; } = 1.6;
+    /// <summary>Gets or sets whether RapidOCR runs its angle classifier.</summary>
+    public bool RapidOcrUseAngleClassifier { get; set; } = true;
+    /// <summary>Gets or sets whether RapidOCR also tries a contrast-enhanced grayscale image.</summary>
+    public bool RapidOcrUsePreprocessingVariants { get; set; }
     /// <summary>Gets or sets a legacy external Tesseract tessdata directory value. Managed downloads ignore this path.</summary>
     public string TesseractDataPath { get; set; } = "";
     /// <summary>Gets or sets the Tesseract language expression.</summary>

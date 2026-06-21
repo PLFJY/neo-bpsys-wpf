@@ -66,10 +66,14 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint
         services.AddSingleton<ISmartBpRegionConfigService, SmartBpRegionConfigService>();
         services.AddSingleton<PaddleOcrProvider>();
         services.AddSingleton<TesseractOcrProvider>();
+        services.AddSingleton<RapidOcrNetProvider>();
         services.AddSingleton<ITesseractDataAssetManager, TesseractDataAssetManager>();
+        services.AddSingleton<IRapidOcrModelManifestProvider, RapidOcrModelManifestProvider>();
+        services.AddSingleton<IRapidOcrModelAssetManager, RapidOcrModelAssetManager>();
         services.AddSingleton<ISmartBpAiPerformanceMonitor, NvmlAiPerformanceMonitor>();
         services.AddSingleton<IOcrProvider>(provider => provider.GetRequiredService<PaddleOcrProvider>());
         services.AddSingleton<IOcrProvider>(provider => provider.GetRequiredService<TesseractOcrProvider>());
+        services.AddSingleton<IOcrProvider>(provider => provider.GetRequiredService<RapidOcrNetProvider>());
         services.AddSingleton<SmartBpOcrProviderSelector>();
         services.AddSingleton<IOcrService, OcrService>();
         services.AddSingleton<ISmartBpService, SmartBpService>();

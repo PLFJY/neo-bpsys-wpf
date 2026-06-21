@@ -29,7 +29,7 @@
 
 `ImageHelper` 使用 `AppConstants.ResourcesPath` 拼接这些目录，按文件路径加载。新增运行时图片时，应确认文件被放在 `Resources` 下并能复制到输出目录。
 
-SmartBP 模块自有资源不放在主程序 `neo-bpsys-wpf/Resources` 下，应放在 `neo-bpsys-wpf.SmartBp.Module/Resources` 并由模块项目复制到输出目录。当前包括 `Resources/SmartBp` 下的 Qwen 模型 manifest、llama.cpp runtime manifest、AI prompt、内置测试帧、BP 识别区域默认配置、OCR 角色别名，以及 `Resources/SmartBpDefaultConfigs` 下的赛后数据 OCR 默认区域配置。Qwen 模型管理 UI 从模块内 `Resources/SmartBp/QwenModelManifest.json` 动态读取模型列表，manifest 中有多少模型就展示多少模型。
+SmartBP 模块自有资源不放在主程序 `neo-bpsys-wpf/Resources` 下，应放在 `neo-bpsys-wpf.SmartBp.Module/Resources` 并由模块项目复制到输出目录。当前包括 `Resources/SmartBp` 下的 Qwen、llama.cpp 和 RapidOCR 模型 manifest、AI prompt、内置测试帧、BP 识别区域默认配置、OCR 角色别名，以及 `Resources/SmartBpDefaultConfigs` 下的赛后数据 OCR 默认区域配置。模型管理 UI 从相应 manifest 动态读取 profile。
 
 v3 默认布局采用 Window-centric 一级路径，位于 `Resources/FrontedLayouts/{WindowTypeName}.json`。每个 v3 layout window 运行时固定生成 `ViewBox -> Canvas BaseCanvas`，Canvas 不再是资源路径或包管理单位。CutScene 背景使用 `Resources/cutScene.png`（解析到运行目录 `Resources/bpui/cutScene.png`），GameData 背景使用 `Resources/gameData.png`，BpWindow 背景使用 `Resources/bp.png`。`WidgetsWindow` 和 MapV1 已删除；旧 `BpOverViewCanvas` 迁移为 `BpOverviewWindow.json`，旧 `MapV2Canvas` 迁移为 `MapV2Window.json`，MapV2 背景继续使用 `Resources/mapBpV2.png`。内置业务控件复用这些资源目录：`TalentTraitDisplay` 通过 `ImageHelper.GetTalentImageSource` / `GetTraitImageSource` 读取 `Resources/talent` 和 `Resources/trait`；Ban 位默认布局使用通用 `Image` 绑定角色 `HeaderImageSingleColor`，锁定覆盖层优先使用 `LockImagePath`，为空时回退内置锁图；pick 呼吸边框优先使用 `PickingBorderImagePath`，为空时回退内置 BP 选择边框图；`CurrentBanDisplay`、`BanSlotDisplay` 和 `PickingBorderOverlay` 已移除；`MapV2Display` 复用现有 `MapV2Presenter` 并使用 v3 运行时默认样式。旧 Config.json 中可映射的图片会迁移到 v3 layout，旧前台设置不再作为 active Settings 运行时来源。
 
@@ -130,7 +130,9 @@ I18nHelper.GetLocalizedString("SomeKey")
 
 `I18nHelper` 找不到 key 时返回原始 key，便于界面降级显示和定位缺失翻译。新增用户可见文本时至少添加默认 `Lang.resx`，并尽量补齐英文、日文资源，避免用户看到裸 key。
 
-SmartBP OCR 不维护模块内角色别名表；OCR 只解析区域和槽位，角色名匹配统一交给 `ICharacterSelectionService` / `CharacterSelectionService`，并且匹配时必须限定在传入阵营内，不得跨阵营查询。Tesseract traineddata 属于托管模型资产，固定下载到 SmartBP 模块目录的 `OCRModels/Tesseract/tessdata/`；SmartBP 页面可勾选下载本软件会用到的语言文件，当前包括 `chi_sim.traineddata`、`eng.traineddata` 和 `jpn.traineddata`，默认语言表达式仍为 `chi_sim+eng`。下载 URL 必须经过 `IGitHubDownloadUrlResolver`；再次下载时只补缺失文件，单个语言下载失败不得删除其他已安装语言。AppData 只保存 SmartBP 配置，不保存托管模型文件。
+SmartBP OCR 不维护模块内角色别名表；OCR 只解析区域和槽位，角色名匹配统一交给 `ICharacterSelectionService` / `CharacterSelectionService`，并且匹配时必须限定在传入阵营内，不得跨阵营查询。Tesseract traineddata 属于托管模型资产，固定下载到 SmartBP 模块目录的 `OCRModels/Tesseract/tessdata/`。RapidOCR profile 由 `Resources/SmartBp/RapidOcrModelManifest.json` 声明，安装到 `OCRModels/RapidOCR/Models/{profileId}/`。中、日、英模型及字典的完整 ModelScope 地址摘自 RapidOCR 官方 `python/rapidocr/default_models.yaml`；模型 SHA-256 使用官方值，字典则固定校验官方文件内容，不得在代码中拼接地址。下载统一使用 `SmartBpParallelDownload`。AppData 只保存 SmartBP 配置，不保存托管模型文件。
+
+RapidOCR manifest 的 `version` 和每个资产的下载契约共同生成安装指纹；安装目录内的 `.smartbp-install.json` 用于判断当前模型是否落后于随模块发布的 manifest。更新官方模型条目时必须同步提升版本或更新资产契约，并更新对应测试。
 
 Designer v3 的显示层本地化统一使用 `Designer.*` key 前缀。代码侧通过 `IFrontedDesignerLocalizationService` 访问，WPF 宿主实现再委托 `I18nHelper.GetLocalizedString(key)`；Core 中的默认实现只返回原始值，避免 Core 反向引用 WPF 项目。常用命名包括 `Designer.Property.*`、`Designer.PropertyGroup.*`、`Designer.ControlType.*`、`Designer.Option.{Property}.{Value}`、`Designer.Window.*`、`Designer.Canvas.*`、`Designer.Binding.*` 和 `Designer.BindingType.*`。
 

@@ -39,7 +39,9 @@ public enum SmartBpOcrProviderKind
     /// <summary>PaddleOCR.</summary>
     Paddle,
     /// <summary>Tesseract OCR.</summary>
-    Tesseract
+    Tesseract,
+    /// <summary>RapidOCR through RapidOcrNet.</summary>
+    Rapid
 }
 
 /// <summary>Selects the OCR provider used by SmartBP.</summary>
@@ -48,7 +50,9 @@ public enum SmartBpOcrProviderMode
     /// <summary>Use PaddleOCR.</summary>
     Paddle,
     /// <summary>Use Tesseract OCR.</summary>
-    Tesseract
+    Tesseract,
+    /// <summary>Use RapidOCR through RapidOcrNet.</summary>
+    Rapid
 }
 
 /// <summary>Options supplied to an OCR provider for one recognition call.</summary>

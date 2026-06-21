@@ -14,22 +14,30 @@ public sealed class OcrService : IOcrService
 {
     private readonly PaddleOcrProvider _paddle;
     private readonly TesseractOcrProvider _tesseract;
+    private readonly RapidOcrNetProvider _rapid;
+    private readonly IRapidOcrModelAssetManager _rapidAssets;
     private readonly SmartBpOcrProviderSelector _selector;
     private readonly ILogger<OcrService> _logger;
 
     /// <summary>Initializes the selected-provider OCR facade.</summary>
     /// <param name="paddle">Paddle provider.</param>
     /// <param name="tesseract">Tesseract provider.</param>
-    /// <param name="settings">Recognition settings.</param>
+    /// <param name="rapid">RapidOCR provider.</param>
+    /// <param name="rapidAssets">Managed RapidOCR model assets.</param>
+    /// <param name="selector">Configured provider selector.</param>
     /// <param name="logger">Logger.</param>
     public OcrService(
         PaddleOcrProvider paddle,
         TesseractOcrProvider tesseract,
+        RapidOcrNetProvider rapid,
+        IRapidOcrModelAssetManager rapidAssets,
         SmartBpOcrProviderSelector selector,
         ILogger<OcrService> logger)
     {
         _paddle = paddle;
         _tesseract = tesseract;
+        _rapid = rapid;
+        _rapidAssets = rapidAssets;
         _selector = selector;
         _logger = logger;
     }
@@ -58,6 +66,14 @@ public sealed class OcrService : IOcrService
     {
         if (kind == SmartBpOcrProviderKind.Paddle)
             return new(kind, _paddle.IsReady, null, _paddle.IsReady ? "installed" : "missing");
+        if (kind == SmartBpOcrProviderKind.Rapid)
+        {
+            var status = _rapidAssets.GetStatusAsync().GetAwaiter().GetResult();
+            var runtimeReady = status.IsInstalled && _rapid.IsReady;
+            var details = $"profile={status.ProfileId}; directory={status.ModelDirectory}; missing=[{string.Join(", ", status.MissingFiles)}]; fallback={status.IsUsingFallback}; installedVersion={status.InstalledVersion ?? "unknown"}; latestVersion={status.LatestVersion ?? "unknown"}; update={status.HasUpdate}";
+            if (!runtimeReady && !string.IsNullOrWhiteSpace(_rapid.InitializationError)) details += $"; runtime={_rapid.InitializationError}";
+            return new(kind, runtimeReady, status.ModelDirectory, details);
+        }
         var missing = _tesseract.GetMissingLanguages();
         return new(
             kind,
@@ -147,10 +163,12 @@ public sealed class SmartBpOcrProviderSelector
     public SmartBpRecognitionSettings Settings => _settings.Settings;
 
     /// <summary>Gets the selected provider kind.</summary>
-    public SmartBpOcrProviderKind SelectedProvider =>
-        Settings.OcrProviderMode == SmartBpOcrProviderMode.Tesseract
-            ? SmartBpOcrProviderKind.Tesseract
-            : SmartBpOcrProviderKind.Paddle;
+    public SmartBpOcrProviderKind SelectedProvider => Settings.OcrProviderMode switch
+    {
+        SmartBpOcrProviderMode.Tesseract => SmartBpOcrProviderKind.Tesseract,
+        SmartBpOcrProviderMode.Rapid => SmartBpOcrProviderKind.Rapid,
+        _ => SmartBpOcrProviderKind.Paddle
+    };
 
     /// <summary>Gets the selected provider and never substitutes another provider.</summary>
     /// <returns>The explicitly selected provider.</returns>

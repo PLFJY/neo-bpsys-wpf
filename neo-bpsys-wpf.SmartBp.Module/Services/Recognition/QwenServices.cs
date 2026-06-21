@@ -102,6 +102,14 @@ internal sealed class SmartBpRecognitionSettingsService : ISmartBpRecognitionSet
         Settings.TesseractLanguages = string.IsNullOrWhiteSpace(Settings.TesseractLanguages)
             ? "chi_sim+eng"
             : Settings.TesseractLanguages.Trim();
+        Settings.SelectedRapidOcrModelId = string.IsNullOrWhiteSpace(Settings.SelectedRapidOcrModelId)
+            ? "ppocr-v5-zh-mobile"
+            : Settings.SelectedRapidOcrModelId.Trim();
+        Settings.RapidOcrPadding = Math.Clamp(Settings.RapidOcrPadding, 0, 256);
+        Settings.RapidOcrMaxSideLen = Math.Clamp(Settings.RapidOcrMaxSideLen, 320, 4096);
+        Settings.RapidOcrBoxScoreThreshold = Math.Clamp(Settings.RapidOcrBoxScoreThreshold, 0, 1);
+        Settings.RapidOcrBoxThreshold = Math.Clamp(Settings.RapidOcrBoxThreshold, 0, 1);
+        Settings.RapidOcrUnclipRatio = Math.Clamp(Settings.RapidOcrUnclipRatio, 0.1, 5);
         Settings.RecognitionBackfillLookBehindSteps = Math.Clamp(Settings.RecognitionBackfillLookBehindSteps, 0, 20);
         Settings.RecognitionFieldStaleMilliseconds = Math.Clamp(Settings.RecognitionFieldStaleMilliseconds, 250, 30000);
         Settings.RecognitionVisualBufferMilliseconds = Math.Clamp(Settings.RecognitionVisualBufferMilliseconds, 0, 5000);

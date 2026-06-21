@@ -256,6 +256,8 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
         IReadOnlyList<OcrTextLine> lines)
     {
         var diagnostics = new List<string>();
+        foreach (var line in lines.Where(line => IsStatusLine(line.Text)))
+            diagnostics.Add($"ocr-ignore region={SmartBpOcrBpRecognitionService.ToRegionId(region)} raw={line.Text} provider={line.Provider ?? "unknown"} confidence={line.Confidence:0.00} reason=status-line");
         var result = Parse(region, lines, diagnostics);
         IReadOnlyList<SmartBpRecognizedPlayerCharacterSlot> slots = result.PickedHun != null ? [result.PickedHun] : result.Slots;
         var unresolved = slots.Count == 0 || slots.Any(slot => SmartBpBusinessStateParser.IsUnselected(slot.CharacterName));
@@ -498,7 +500,7 @@ internal sealed class SmartBpOcrBpRecognitionService(
             using var sheet = contactSheetBuilder.Build(frame, requestedRegions);
             var result = ocr.RecognizeTextLines(sheet.Image);
             var grouped = SmartBpOcrContactSheetMapper.MapLinesToRegions(result, sheet.Regions, out var unmapped);
-            diagnostics.Add($"OCR contact sheet: regions=[{string.Join(", ", requestedRegions.Select(ToRegionId))}], lines={result.Lines.Count}, unmapped={unmapped}.");
+            diagnostics.Add($"provider={result.Provider ?? ocr.SelectedProvider.ToString()}; line_count={result.Lines.Count}; OCR contact sheet regions=[{string.Join(", ", requestedRegions.Select(ToRegionId))}], unmapped={unmapped}.");
             return grouped;
         }, cancellationToken).ConfigureAwait(false);
     }
@@ -520,7 +522,7 @@ internal sealed class SmartBpOcrBpRecognitionService(
                 using var bgr = ToBgr(raw);
                 return ocr.RecognizeTextLines(bgr).Lines;
             }, cancellationToken).ConfigureAwait(false);
-            diagnostics.Add($"OCR per-region fallback: {ToRegionId(region)}, lines={lines.Count}.");
+            diagnostics.Add($"provider={ocr.SelectedProvider}; line_count={lines.Count}; OCR per-region fallback={ToRegionId(region)}.");
             groups.Add(new() { Region = region, Lines = lines });
         }
 
@@ -634,7 +636,7 @@ internal sealed class SmartBpOcrSnapshotDeltaRecognitionService(
         new()
         {
             Index = slot.Index,
-            SlotState = SmartBpBusinessStateParser.IsUnselected(slot.CharacterName) ? "empty" : "selected",
+            SlotState = SmartBpBusinessStateParser.IsUnselected(slot.CharacterName) ? "unknown" : "selected",
             CharacterName = slot.CharacterName
         };
 
@@ -642,7 +644,7 @@ internal sealed class SmartBpOcrSnapshotDeltaRecognitionService(
         new()
         {
             Index = slot.Index,
-            SlotState = SmartBpBusinessStateParser.IsUnselected(slot.CharacterName) ? "empty" : "selected",
+            SlotState = SmartBpBusinessStateParser.IsUnselected(slot.CharacterName) ? "unknown" : "selected",
             CharacterName = slot.CharacterName,
             PlayerId = slot.PlayerId
         };

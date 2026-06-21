@@ -9,6 +9,8 @@ public interface ISmartBpModuleStorageProvider
     string OcrModelsRoot { get; }
     /// <summary>Gets the managed Tesseract tessdata root.</summary>
     string TesseractDataRoot { get; }
+    /// <summary>Gets the managed RapidOCR model profiles root.</summary>
+    string RapidOcrModelsRoot { get; }
     /// <summary>Gets the AI data root.</summary>
     string AiRoot { get; }
     /// <summary>Gets the Qwen model root.</summary>

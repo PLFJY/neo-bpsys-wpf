@@ -42,6 +42,55 @@ public interface ISmartBpAiPerformanceMonitor
 /// <summary>Loads bundled Qwen metadata.</summary>
 public interface IQwenModelManifestProvider { /// <summary>Loads and validates the manifest.</summary>
     Task<QwenModelManifest> LoadAsync(CancellationToken cancellationToken = default); }
+
+/// <summary>Loads bundled RapidOCR model metadata.</summary>
+public interface IRapidOcrModelManifestProvider
+{
+    /// <summary>Loads and validates the RapidOCR manifest.</summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The validated manifest.</returns>
+    Task<RapidOcrModelManifest> LoadAsync(CancellationToken cancellationToken = default);
+}
+
+/// <summary>Installs and validates managed RapidOCR Chinese model assets.</summary>
+public interface IRapidOcrModelAssetManager
+{
+    /// <summary>Occurs when installation state changes.</summary>
+    event EventHandler<SmartBpDownloadState>? StateChanged;
+    /// <summary>Gets the last calculated model status.</summary>
+    RapidOcrModelStatus Status { get; }
+    /// <summary>Gets the selected profile status.</summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The selected model status.</returns>
+    Task<RapidOcrModelStatus> GetStatusAsync(CancellationToken cancellationToken = default);
+    /// <summary>Gets available RapidOCR profiles.</summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Available profiles.</returns>
+    Task<IReadOnlyList<RapidOcrModelProfile>> GetAvailableProfilesAsync(CancellationToken cancellationToken = default);
+    /// <summary>Checks the selected profile against RapidOCR's official online manifest.</summary>
+    /// <param name="profileId">Profile id to check.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Installed, bundled, and official version comparison.</returns>
+    Task<RapidOcrModelUpdateCheckResult> CheckForUpdatesAsync(
+        string profileId,
+        CancellationToken cancellationToken = default);
+    /// <summary>Installs one RapidOCR model profile.</summary>
+    /// <param name="profileId">Profile id.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A task representing the installation.</returns>
+    Task InstallAsync(string profileId, CancellationToken cancellationToken = default);
+    /// <summary>Deletes one managed RapidOCR profile.</summary>
+    /// <param name="profileId">Profile id.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A task representing deletion.</returns>
+    Task DeleteAsync(string profileId, CancellationToken cancellationToken = default);
+    /// <summary>Cancels the active installation.</summary>
+    void Cancel();
+    /// <summary>Gets validated paths for the selected profile.</summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Installed paths.</returns>
+    Task<RapidOcrInstalledPaths> GetInstalledPathsAsync(CancellationToken cancellationToken = default);
+}
 /// <summary>Installs and removes Qwen model assets.</summary>
 public interface IQwenModelAssetManager
 {

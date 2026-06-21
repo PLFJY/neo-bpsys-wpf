@@ -51,6 +51,9 @@ public sealed class SmartBpModuleManager
     private readonly ILogger<SmartBpModuleManager> _logger;
     private readonly ISettingsHostService _settingsHostService;
     private readonly IArchiveService _archiveService;
+    private static readonly object NativeSearchPathSync = new();
+    private static readonly HashSet<string> RegisteredNativeSearchDirectories = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<string, IntPtr> PreloadedNativeLibraries = new(StringComparer.OrdinalIgnoreCase);
     private ISmartBpModuleEntryPoint? _entryPoint;
     private IReadOnlyList<SmartBpFeatureCommand> _featureCommands = [];
 
@@ -397,6 +400,7 @@ public sealed class SmartBpModuleManager
         try
         {
             var loadContext = new AssemblyLoadContext($"SmartBpModule-{Guid.NewGuid():N}", isCollectible: false);
+            RegisterModuleNativeSearchDirectories(moduleRoot, _logger);
             loadContext.Resolving += (_, name) =>
             {
                 _logger.LogDebug("Resolving SmartBP module assembly: {AssemblyName}", name.FullName);
@@ -1472,13 +1476,120 @@ public sealed class SmartBpModuleManager
             return null;
 
         var fileName = Path.HasExtension(safeLibraryName) ? safeLibraryName : $"{safeLibraryName}.dll";
-        var candidates = new[]
-        {
-            Path.Combine(moduleRoot, "runtimes", SmartBpModuleConstants.Rid, "native", fileName),
-            Path.Combine(moduleRoot, fileName)
-        };
+        var candidates = GetModuleNativeSearchDirectories(moduleRoot)
+            .Select(directory => Path.Combine(directory, fileName));
 
         return candidates.FirstOrDefault(File.Exists);
     }
+
+    internal static void RegisterModuleNativeSearchDirectories(
+        string moduleRoot,
+        ILogger? logger = null)
+    {
+        lock (NativeSearchPathSync)
+        {
+            foreach (var directory in GetModuleNativeSearchDirectories(moduleRoot).Where(Directory.Exists))
+            {
+                if (!RegisteredNativeSearchDirectories.Add(directory)) continue;
+
+                var cookie = AddDllDirectory(directory);
+                if (cookie == IntPtr.Zero)
+                {
+                    logger?.LogDebug(
+                        "Failed to add SmartBP module native search directory through AddDllDirectory. Directory={Directory}, Error={Error}",
+                        directory,
+                        Marshal.GetLastWin32Error());
+                }
+                else
+                {
+                    logger?.LogDebug("Added SmartBP module native search directory: {Directory}", directory);
+                }
+
+                PrependProcessPath(directory);
+            }
+
+            PreloadModuleNativeLibraries(moduleRoot, logger);
+        }
+    }
+
+    private static void PreloadModuleNativeLibraries(
+        string moduleRoot,
+        ILogger? logger)
+    {
+        foreach (var libraryPath in GetKnownModuleNativeLibrariesToPreload(moduleRoot))
+        {
+            if (PreloadedNativeLibraries.ContainsKey(libraryPath)) continue;
+
+            try
+            {
+                var handle = NativeLibrary.Load(libraryPath);
+                PreloadedNativeLibraries[libraryPath] = handle;
+                logger?.LogDebug("Preloaded SmartBP module native library: {LibraryPath}", libraryPath);
+            }
+            catch (Exception ex)
+            {
+                logger?.LogDebug(
+                    ex,
+                    "Failed to preload SmartBP module native library. LibraryPath={LibraryPath}",
+                    libraryPath);
+            }
+        }
+    }
+
+    private static IEnumerable<string> GetKnownModuleNativeLibrariesToPreload(string moduleRoot)
+    {
+        var nativeDirectories = GetModuleNativeSearchDirectories(moduleRoot).Where(Directory.Exists).ToArray();
+        var orderedNames = new[]
+        {
+            "onnxruntime_providers_shared.dll",
+            "onnxruntime.dll"
+        };
+
+        foreach (var name in orderedNames)
+        {
+            foreach (var directory in nativeDirectories)
+            {
+                var path = Path.Combine(directory, name);
+                if (File.Exists(path)) yield return path;
+            }
+        }
+    }
+
+    private static IReadOnlyList<string> GetModuleNativeSearchDirectories(string moduleRoot)
+    {
+        if (string.IsNullOrWhiteSpace(moduleRoot)) return [];
+
+        var directories = new List<string>
+        {
+            Path.Combine(moduleRoot, "runtimes", SmartBpModuleConstants.Rid, "native"),
+            moduleRoot
+        };
+
+        var runtimesRoot = Path.Combine(moduleRoot, "runtimes");
+        if (Directory.Exists(runtimesRoot))
+        {
+            foreach (var runtimeDirectory in Directory.EnumerateDirectories(runtimesRoot))
+            {
+                var nativeDirectory = Path.Combine(runtimeDirectory, "native");
+                if (!directories.Contains(nativeDirectory, StringComparer.OrdinalIgnoreCase))
+                    directories.Add(nativeDirectory);
+            }
+        }
+
+        return directories;
+    }
+
+    private static void PrependProcessPath(string directory)
+    {
+        var current = Environment.GetEnvironmentVariable("PATH") ?? string.Empty;
+        var paths = current.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (paths.Any(path => string.Equals(path, directory, StringComparison.OrdinalIgnoreCase))) return;
+        Environment.SetEnvironmentVariable("PATH", string.IsNullOrWhiteSpace(current)
+            ? directory
+            : $"{directory}{Path.PathSeparator}{current}");
+    }
+
+    [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Unicode)]
+    private static extern IntPtr AddDllDirectory(string newDirectory);
 
 }

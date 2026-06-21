@@ -14,7 +14,6 @@ using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.Views.Windows;
 using Windows.Graphics.Capture;
 using WPFLocalizeExtension.Engine;
-using System.Windows.Threading;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.SmartBp.Module.Abstractions;
 
@@ -55,6 +54,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     private readonly ISmartBpRecognitionStateStore _aiRecognitionStateStore = null!;
     private readonly ILlamaCppRuntimeUpdateService _llamaRuntimeUpdateService = null!;
     private readonly ITesseractDataAssetManager _tesseractDataAssetManager = null!;
+    private readonly IRapidOcrModelAssetManager _rapidOcrModelAssetManager = null!;
     private readonly ISmartBpAutoRecognitionGlobalControlSink _autoRecognitionGlobalControl = null!;
     private readonly ISmartBpOcrBpRecognitionService _ocrBpRecognitionService = null!;
     private readonly ISmartBpAiPerformanceMonitor _aiPerformanceMonitor = null!;
@@ -99,6 +99,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         ISmartBpRecognitionStateStore aiRecognitionStateStore,
         ILlamaCppRuntimeUpdateService llamaRuntimeUpdateService,
         ITesseractDataAssetManager tesseractDataAssetManager,
+        IRapidOcrModelAssetManager rapidOcrModelAssetManager,
         ISmartBpAutoRecognitionGlobalControlSink autoRecognitionGlobalControl,
         ISmartBpOcrBpRecognitionService ocrBpRecognitionService,
         ISmartBpAiPerformanceMonitor aiPerformanceMonitor,
@@ -134,6 +135,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         _aiRecognitionStateStore = aiRecognitionStateStore;
         _llamaRuntimeUpdateService = llamaRuntimeUpdateService;
         _tesseractDataAssetManager = tesseractDataAssetManager;
+        _rapidOcrModelAssetManager = rapidOcrModelAssetManager;
         _autoRecognitionGlobalControl = autoRecognitionGlobalControl;
         _ocrBpRecognitionService = ocrBpRecognitionService;
         _aiPerformanceMonitor = aiPerformanceMonitor;

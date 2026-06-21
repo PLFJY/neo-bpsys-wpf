@@ -24,7 +24,7 @@ neo-bpsys-wpf.SmartBp.Module (SmartBP 模块)
 │   │   ├── SmartBpSceneGateService.cs        ← 场景门禁
 │   │   ├── SmartBpAutoRecognitionCoordinator ← 自动循环主控
 │   │   └── ... (更多识别/状态/应用管线)
-│   └── OcrService.cs / PaddleOcrProvider.cs / TesseractOcrProvider.cs
+│   └── OcrService.cs / PaddleOcrProvider.cs / TesseractOcrProvider.cs / RapidOcrNetProvider.cs
 ├── ViewModels/SmartBpModuleContentViewModel.cs ← 模块 UI 主 ViewModel
 ├── Abstractions/                          ← 模块内部接口
 └── Models/Recognition/                    ← 识别数据模型
@@ -64,7 +64,7 @@ public interface ISmartBpService
 - `CreateSmartBpContent(hostServices)`：构建独立的 `ServiceProvider`，注入所有模块级服务（OCR Provider、识别管线、AI 引擎、debug log 等），创建 `SmartBpModuleContentView` 并绑定 `SmartBpModuleContentViewModel`
 - `GetFeatureCommands()`：返回宿主可调用的功能命令，目前只有 `AutoFillGameData`（赛后数据回填）
 
-模块 DI 容器注册了约 50+ 个服务，涵盖 OCR 双引擎（Paddle + Tesseract）、AI 推理全套（Qwen + llama.cpp）、BP 识别管线、场景门禁、状态管理、补录与应用等。
+模块 DI 容器注册了 OCR Provider（Paddle、Tesseract、RapidOCR）、AI 推理全套（Qwen + llama.cpp）、BP 识别管线、场景门禁、状态管理、补录与应用等服务。
 
 ## 当前边界
 
@@ -73,6 +73,7 @@ public interface ISmartBpService
 | 赛后数据 OCR 自动回填 | 已经成熟且可用 |
 | PaddleOCR BP 状态识别 | 默认 OCR Provider；读取文字与边界框，本地解析阶段、禁用、选择与玩家 ID |
 | Tesseract BP 状态识别 | 可选 OCR Provider；可在 SmartBP 页面勾选下载 `chi_sim`/`eng`/`jpn` 到 SmartBP 模块目录，不会自动回退到 Paddle |
+| RapidOCR BP 状态识别 | 可选本地 OCR Provider；使用 SmartBP 托管的中文 det/cls/rec/dict 资产，不会自动回退到其他 Provider |
 | Qwen + llama.cpp BP 状态识别 | 保留为实验引擎，不作为默认路径 |
 | GameGuidance 自动对齐 | 可选，默认关闭；只向前匹配当前或最近步骤 |
 | 识别结果自动应用 | 可选，默认关闭；仅通过 `ICharacterSelectionService` 应用高置信度且已解析的角色操作 |
@@ -254,16 +255,23 @@ BP 状态自动识别的完整循环由 `SmartBpAutoRecognitionCoordinator` 协�
 4. **`SmartBpRecognitionLedger`**：内存 ledger 记录已完成的操作 key，与当前状态 no-op 检查共同防止重复应用
 5. **`SmartBpGuidanceSyncService`**：当识别到的阶段与当前 GameGuidance 步骤不一致时，尝试同步引导步骤。阶段快速进入天赋选择后，仍可利用画面中保留的角色结果补录上一选择步骤（通过短暂阶段切换提交屏障）
 
-### OCR 双引擎
+### OCR Provider
 
-SmartBP 支持两种 OCR Provider，一次只运行所选 Provider，不提供自动 fallback 或 ensemble：
+SmartBP 支持三种 OCR Provider，一次只运行所选 Provider，不提供自动 fallback 或跨 Provider ensemble：
 
 | Provider | 接口 | 适用场景 | 依赖 |
 | --- | --- | --- | --- |
 | PaddleOCR | `PaddleOcrProvider : IOcrProvider` | 默认引擎，BP 状态识别 + 赛后数据回填 | PaddleInference 原生库 + det/cls/rec 模型 |
 | Tesseract | `TesseractOcrProvider : IOcrProvider` | 可选引擎，手动切换 | Tesseract 原生库 + `traineddata` 语言文件 |
+| RapidOCR | `RapidOcrNetProvider : IOcrProvider` | 可选引擎，手动切换 | RapidOcrNet + 托管中文 det/cls/rec/dict |
 
-`SmartBpOcrProviderSelector` 根据 `SmartBpRecognitionSettings.OcrProviderMode` 选择当前活跃的 Provider。Tesseract 的 `traineddata` 通过 `ITesseractDataAssetManager` 下载到 `{SmartBpModuleRoot}\tessdata`，支持 `chi_sim`、`eng`、`jpn` 等语言。
+`SmartBpOcrProviderSelector` 根据 `SmartBpRecognitionSettings.OcrProviderMode` 显式选择当前 Provider。Tesseract 的 `traineddata` 通过 `ITesseractDataAssetManager` 管理。RapidOCR 资产由 `IRapidOcrModelAssetManager` 下载到 `{SmartBpModuleRoot}\OCRModels\RapidOCR\Models\{profileId}`；只有选中 profile 的 det、cls、rec、dict 均存在且 RapidOcrNet 能初始化时才为 ready，不隐式使用包内拉丁模型。
+
+RapidOCR manifest 预置中、日、英三个官方组合。检测、分类、识别模型和匹配字典的完整 ModelScope URL 摘自 RapidOCR 官方 `python/rapidocr/default_models.yaml`，不在代码中推导或拼接；模型使用官方 SHA-256，字典固定校验官方文件内容。下载复用 `SmartBpParallelDownload` 的并行分片、续传、重试和取消能力，并使用临时目录和安装完成后的原子提升。RapidOCR 将 `Mat` 在内存中转换为 `SKBitmap`，输出统一映射到输入粗区域坐标；可选预处理变体只在同尺寸图像上运行并去重。
+
+每次安装会在 profile 目录写入 `.smartbp-install.json`，记录 profile、上游版本和内置 manifest 指纹。普通状态刷新比较安装记录与当前内置 manifest；版本或任一资产 URL、文件名、SHA-256、转换声明变化时提示更新。“检查模型更新”还会通过统一下载器临时读取 RapidOCR 官方 `default_models.yaml`，按当前识别模型的官方 ONNX URL 比较上游版本。若官方版本已领先内置 manifest，UI 会要求先更新 SmartBP 模块，不会把旧模型误标为可安装更新。旧版安装没有记录时标为“未知（旧版安装）”并提示更新，但现有完整模型仍可继续使用。
+
+RapidOCR 与 Qwen 没有依赖关系。Qwen 负责场景、阶段和字段刷新建议；所选 OCR Provider 负责文字与坐标提取；本地解释器、`CharacterSelectionService`、StateStore、门禁和应用管线继续承担业务语义与安全合并。
 
 ### AI / Qwen 引擎（实验）
 
@@ -293,6 +301,8 @@ llama.cpp 运行时可以从内置 runtime manifest 在线安装，也可通过�
 | OCR BP | `EnableOcrBpRecognition`, `UseOcrContactSheet`, `OcrRecognitionIntervalMs` | true / true / 300ms |
 | OCR Provider | `OcrProviderMode` | `Paddle` |
 | Tesseract | `EnableTesseractOcr`, `TesseractLanguages`, `TesseractDefaultPsm` | true / "chi_sim+eng" / 6 |
+| RapidOCR 模型 | `SelectedRapidOcrModelId` | "ppocr-v5-zh-mobile" |
+| RapidOCR 推理 | `RapidOcrPadding`, `RapidOcrMaxSideLen`, `RapidOcrBoxScoreThreshold`, `RapidOcrBoxThreshold`, `RapidOcrUnclipRatio`, `RapidOcrUseAngleClassifier`, `RapidOcrUsePreprocessingVariants` | 0 / 1024 / 0.5 / 0.3 / 1.6 / true / false |
 | AI 推理 | `AiRequestTimeoutSeconds`, `AiStartupTimeoutSeconds` | 35s / 120s |
 | AI 模型 | `SelectedQwenModelId`, `SelectedMmprojId` | "qwen3.5-2b-q4km" / "mmproj-f16" |
 | llama.cpp | `LlamaContextSize`, `LlamaGpuLayers`, `LlamaFlashAttention`, `CpuThreads` | 8192 / -1 (auto) / true / 2 |

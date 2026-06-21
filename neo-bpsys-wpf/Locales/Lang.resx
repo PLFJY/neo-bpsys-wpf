@@ -5818,4 +5818,24 @@
   <data name="SmartBpTooltipCommitHold" xml:space="preserve"><value>检测到阶段切换后，在同步对局引导前短暂等待上一步识别和应用完成。太小可能漏掉上一步，太大会让 UI 跟随变慢。AI 通常建议 250–1000ms，OCR 可更小。</value></data>
   <data name="SmartBpTooltipVisualBuffer" xml:space="preserve"><value>当前步骤识别结果应用前的额外延迟，默认 0。只在希望动画更稳定、减少闪烁时使用；数值过大会让 BP 界面明显慢半拍，建议 0–500ms。</value></data>
   <data name="SmartBpTooltipStrictCandidateEnums" xml:space="preserve"><value>把当前角色候选表写入 AI JSON schema，能减少模型输出不存在的角色名，但 schema 更大、prompt 处理更慢，部分模型兼容性较差。角色名幻觉较多时开启；出现 schema 错误或延迟增加时关闭。</value></data>
+  <data name="SmartBpRecognitionEngineRapid" xml:space="preserve"><value>RapidOCR</value></data>
+  <data name="SmartBpRapidOcrModelManagement" xml:space="preserve"><value>RapidOCR 中文模型</value></data>
+  <data name="SmartBpRapidOcrDownloading" xml:space="preserve"><value>正在下载 RapidOCR 模型</value></data>
+  <data name="SmartBpRapidOcrMaxSideLen" xml:space="preserve"><value>最大图像边长</value></data>
+  <data name="SmartBpRapidOcrPadding" xml:space="preserve"><value>检测边缘留白</value></data>
+  <data name="SmartBpRapidOcrBoxScoreThreshold" xml:space="preserve"><value>文本框评分阈值</value></data>
+  <data name="SmartBpRapidOcrBoxThreshold" xml:space="preserve"><value>文本框检测阈值</value></data>
+  <data name="SmartBpRapidOcrUnclipRatio" xml:space="preserve"><value>文本框扩张比例</value></data>
+  <data name="SmartBpRapidOcrAngleClassifier" xml:space="preserve"><value>启用文字方向分类</value></data>
+  <data name="SmartBpRapidOcrPreprocessingVariants" xml:space="preserve"><value>尝试对比度增强版本</value></data>
+  <data name="SmartBpTooltipRapidOcrMaxSideLen" xml:space="preserve"><value>较大的边长可能改善小字识别，但会增加内存和推理时间。建议保持 1024。</value></data>
+  <data name="SmartBpTooltipRapidOcrThresholds" xml:space="preserve"><value>提高阈值可减少误识别，但也可能漏掉较弱或较小的文字。</value></data>
+  <data name="SmartBpRapidOcrCheckUpdate" xml:space="preserve"><value>检查模型更新</value></data>
+  <data name="SmartBpRapidOcrUpdate" xml:space="preserve"><value>更新模型</value></data>
+  <data name="SmartBpRapidOcrInstalledVersion" xml:space="preserve"><value>已安装版本：</value></data>
+  <data name="SmartBpRapidOcrLatestVersion" xml:space="preserve"><value>清单版本：</value></data>
+  <data name="SmartBpRapidOcrVersionUnknown" xml:space="preserve"><value>未知（旧版安装）</value></data>
+  <data name="SmartBpRapidOcrUpdateAvailableFormat" xml:space="preserve"><value>RapidOCR 模型可更新：{0} → {1}</value></data>
+  <data name="SmartBpRapidOcrUpToDateFormat" xml:space="preserve"><value>RapidOCR 模型已是最新版本（{0}）</value></data>
+  <data name="SmartBpRapidOcrBundledManifestOutdatedFormat" xml:space="preserve"><value>官方模型清单已更新（内置 {0}，官方 {1}）。请先更新 SmartBP 模块，避免安装旧模型。</value></data>
 </root>

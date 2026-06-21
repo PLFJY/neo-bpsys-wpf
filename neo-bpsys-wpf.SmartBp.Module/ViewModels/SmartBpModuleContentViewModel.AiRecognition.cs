@@ -119,6 +119,7 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty] private bool _isAiQwenRecognitionEngine;
     [ObservableProperty] private bool _isPaddleRecognitionEngine = true;
     [ObservableProperty] private bool _isTesseractRecognitionEngine;
+    [ObservableProperty] private bool _isRapidRecognitionEngine;
     [ObservableProperty] private bool _enableOcrBpRecognition = true;
     [ObservableProperty] private int _recognitionIntervalMs;
     [ObservableProperty] private int _ocrRecognitionIntervalMs;
@@ -140,6 +141,26 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty] private bool _enableTesseractOcr = true;
     [ObservableProperty] private int _tesseractDefaultPsm = 6;
     [ObservableProperty] private int _tesseractMaxPreprocessVariants = 3;
+    [ObservableProperty] private IReadOnlyList<RapidOcrModelProfile> _rapidOcrModelProfiles = [];
+    [ObservableProperty] private RapidOcrModelProfile? _selectedRapidOcrModelProfile;
+    [ObservableProperty] private string _rapidOcrStatus = "-";
+    [ObservableProperty] private string _rapidOcrModelDirectory = "-";
+    [ObservableProperty] private string _rapidOcrInstalledVersion = "-";
+    [ObservableProperty] private string _rapidOcrLatestVersion = "-";
+    [ObservableProperty] private bool _isRapidOcrUpdateAvailable;
+    [ObservableProperty] private string _rapidOcrInstallActionText = "-";
+    [ObservableProperty] private bool _isRapidOcrDownloading;
+    [ObservableProperty] private double _rapidOcrDownloadProgress;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasRapidOcrDownloadDetail))]
+    private string _rapidOcrDownloadDetail = "";
+    [ObservableProperty] private int _rapidOcrPadding;
+    [ObservableProperty] private int _rapidOcrMaxSideLen = 1024;
+    [ObservableProperty] private double _rapidOcrBoxScoreThreshold = .5;
+    [ObservableProperty] private double _rapidOcrBoxThreshold = .3;
+    [ObservableProperty] private double _rapidOcrUnclipRatio = 1.6;
+    [ObservableProperty] private bool _rapidOcrUseAngleClassifier = true;
+    [ObservableProperty] private bool _rapidOcrUsePreprocessingVariants;
     [ObservableProperty] private bool _allowSequentialSnapshotFallback;
     [ObservableProperty] private bool _useStrictCandidateEnumsInAutoSchema;
     [ObservableProperty] private int _phaseCropMaxImageWidth;
@@ -187,6 +208,9 @@ public partial class SmartBpModuleContentViewModel
     /// <summary>Gets whether Tesseract download details should be shown.</summary>
     public bool HasTesseractDownloadDetail => !string.IsNullOrWhiteSpace(TesseractDownloadDetail);
 
+    /// <summary>Gets whether RapidOCR download details should be shown.</summary>
+    public bool HasRapidOcrDownloadDetail => !string.IsNullOrWhiteSpace(RapidOcrDownloadDetail);
+
     private void InitializeAiRecognition()
     {
         SelectedAiTestFrame = AiTestFrames[0];
@@ -194,6 +218,7 @@ public partial class SmartBpModuleContentViewModel
         [
             new(SmartBpRecognitionEngine.Ocr, SmartBpOcrProviderMode.Paddle, "SmartBpRecognitionEnginePaddle"),
             new(SmartBpRecognitionEngine.Ocr, SmartBpOcrProviderMode.Tesseract, "SmartBpRecognitionEngineTesseract"),
+            new(SmartBpRecognitionEngine.Ocr, SmartBpOcrProviderMode.Rapid, "SmartBpRecognitionEngineRapid"),
             new(SmartBpRecognitionEngine.AiQwen, null, "SmartBpRecognitionEngineAiQwenExperimental")
         ];
         SelectedRecognitionEngine = RecognitionEngines.FirstOrDefault(x => x.Engine == _recognitionSettingsService.Settings.RecognitionEngine &&
@@ -221,7 +246,8 @@ public partial class SmartBpModuleContentViewModel
         OcrProviders =
         [
             new(SmartBpOcrProviderMode.Paddle, "Paddle OCR"),
-            new(SmartBpOcrProviderMode.Tesseract, "Tesseract OCR")
+            new(SmartBpOcrProviderMode.Tesseract, "Tesseract OCR"),
+            new(SmartBpOcrProviderMode.Rapid, "RapidOCR")
         ];
         SelectedOcrProvider = OcrProviders.First(item => item.Mode == _recognitionSettingsService.Settings.OcrProviderMode);
         TesseractLanguages = _recognitionSettingsService.Settings.TesseractLanguages;
@@ -232,8 +258,16 @@ public partial class SmartBpModuleContentViewModel
         EnableTesseractOcr = _recognitionSettingsService.Settings.EnableTesseractOcr;
         TesseractDefaultPsm = _recognitionSettingsService.Settings.TesseractDefaultPsm;
         TesseractMaxPreprocessVariants = _recognitionSettingsService.Settings.TesseractMaxPreprocessVariants;
+        RapidOcrPadding = _recognitionSettingsService.Settings.RapidOcrPadding;
+        RapidOcrMaxSideLen = _recognitionSettingsService.Settings.RapidOcrMaxSideLen;
+        RapidOcrBoxScoreThreshold = _recognitionSettingsService.Settings.RapidOcrBoxScoreThreshold;
+        RapidOcrBoxThreshold = _recognitionSettingsService.Settings.RapidOcrBoxThreshold;
+        RapidOcrUnclipRatio = _recognitionSettingsService.Settings.RapidOcrUnclipRatio;
+        RapidOcrUseAngleClassifier = _recognitionSettingsService.Settings.RapidOcrUseAngleClassifier;
+        RapidOcrUsePreprocessingVariants = _recognitionSettingsService.Settings.RapidOcrUsePreprocessingVariants;
         RefreshOcrProviderStatuses();
         _ = RefreshTesseractDataStatusAsync();
+        _ = InitializeRapidOcrAsync();
         AllowSequentialSnapshotFallback = _recognitionSettingsService.Settings.AllowSequentialSnapshotFallback;
         UseStrictCandidateEnumsInAutoSchema = _recognitionSettingsService.Settings.UseStrictCandidateEnumsInAutoSchema;
         PhaseCropMaxImageWidth = _recognitionSettingsService.Settings.PhaseCropMaxImageWidth;
@@ -263,6 +297,16 @@ public partial class SmartBpModuleContentViewModel
                 AiLastError = QwenDownloadDetail;
             if (!state.IsDownloading)
                 _ = RefreshSelectedQwenModelInstallStatusAsync();
+        });
+        _rapidOcrModelAssetManager.StateChanged += (_, state) => RunOnUiThread(() =>
+        {
+            IsRapidOcrDownloading = state.IsDownloading;
+            RapidOcrDownloadProgress = state.Progress ?? 0;
+            RapidOcrDownloadDetail = state.IsDownloading || !string.IsNullOrWhiteSpace(state.ErrorMessage)
+                ? FormatDownloadState(state)
+                : string.Empty;
+            if (!string.IsNullOrWhiteSpace(state.ErrorMessage)) AiLastError = RapidOcrDownloadDetail;
+            if (!state.IsDownloading) _ = RefreshRapidOcrStatusAsync();
         });
         _aiDebugLog.MessageWritten += (_, message) =>
         {
@@ -518,6 +562,7 @@ public partial class SmartBpModuleContentViewModel
         var provider = SelectedRecognitionEngine?.OcrProviderMode ?? _recognitionSettingsService.Settings.OcrProviderMode;
         IsPaddleRecognitionEngine = engine == SmartBpRecognitionEngine.Ocr && provider == SmartBpOcrProviderMode.Paddle;
         IsTesseractRecognitionEngine = engine == SmartBpRecognitionEngine.Ocr && provider == SmartBpOcrProviderMode.Tesseract;
+        IsRapidRecognitionEngine = engine == SmartBpRecognitionEngine.Ocr && provider == SmartBpOcrProviderMode.Rapid;
         RefreshRecognitionTimerInterval();
     }
 
@@ -600,7 +645,7 @@ public partial class SmartBpModuleContentViewModel
     private string GetRecognitionSpeedFingerprint()
     {
         var s = _recognitionSettingsService.Settings;
-        return $"{s.RecognitionEngine}|{s.OcrProviderMode}|{s.SelectedQwenModelId}|{s.SelectedLlamaRuntimeId}|{s.PromptProfileId}|{s.UseOcrContactSheet}|{s.TesseractLanguages}|{s.TesseractDefaultPsm}|{s.TesseractMaxPreprocessVariants}|{s.UseMultiImageSnapshotRequest}|{s.AllowSequentialSnapshotFallback}|{s.UseStrictCandidateEnumsInAutoSchema}|{s.PhaseCropMaxImageWidth}|{s.ContentCropMaxImageWidth}|{s.PhaseMaxTokens}|{s.SnapshotDeltaMaxTokens}|{s.PhaseTransitionCommitHoldMilliseconds}|{s.PhaseTransitionCommitHoldMaxMilliseconds}|{s.RecognitionVisualBufferMilliseconds}|{s.LlamaParallelSlots}|{s.LlamaGpuLayers}|{s.LlamaBatchSize}|{s.LlamaUBatchSize}|{s.LlamaFlashAttention}";
+        return $"{s.RecognitionEngine}|{s.OcrProviderMode}|{s.SelectedQwenModelId}|{s.SelectedLlamaRuntimeId}|{s.PromptProfileId}|{s.UseOcrContactSheet}|{s.TesseractLanguages}|{s.TesseractDefaultPsm}|{s.TesseractMaxPreprocessVariants}|{s.SelectedRapidOcrModelId}|{s.RapidOcrPadding}|{s.RapidOcrMaxSideLen}|{s.RapidOcrBoxScoreThreshold}|{s.RapidOcrBoxThreshold}|{s.RapidOcrUnclipRatio}|{s.RapidOcrUseAngleClassifier}|{s.RapidOcrUsePreprocessingVariants}|{s.UseMultiImageSnapshotRequest}|{s.AllowSequentialSnapshotFallback}|{s.UseStrictCandidateEnumsInAutoSchema}|{s.PhaseCropMaxImageWidth}|{s.ContentCropMaxImageWidth}|{s.PhaseMaxTokens}|{s.SnapshotDeltaMaxTokens}|{s.PhaseTransitionCommitHoldMilliseconds}|{s.PhaseTransitionCommitHoldMaxMilliseconds}|{s.RecognitionVisualBufferMilliseconds}|{s.LlamaParallelSlots}|{s.LlamaGpuLayers}|{s.LlamaBatchSize}|{s.LlamaUBatchSize}|{s.LlamaFlashAttention}";
     }
 
     private void RefreshRecognitionSpeedTestValidity()
@@ -837,6 +882,118 @@ public partial class SmartBpModuleContentViewModel
         foreach (var option in TesseractLanguageOptions)
             option.IsInstalled = status.InstalledLanguages.Contains(option.Language, StringComparer.OrdinalIgnoreCase);
         RefreshOcrProviderStatuses();
+    }
+
+    private async Task InitializeRapidOcrAsync()
+    {
+        try
+        {
+            RapidOcrModelProfiles = await _rapidOcrModelAssetManager.GetAvailableProfilesAsync();
+            SelectedRapidOcrModelProfile = RapidOcrModelProfiles.FirstOrDefault(profile =>
+                profile.Id == _recognitionSettingsService.Settings.SelectedRapidOcrModelId)
+                ?? RapidOcrModelProfiles.FirstOrDefault();
+            await RefreshRapidOcrStatusAsync();
+        }
+        catch
+        {
+            RapidOcrStatus = ResolveLocalizedOrRaw("SmartBpOcrStatusMissing");
+            RapidOcrDownloadDetail = "";
+        }
+    }
+
+    [RelayCommand]
+    private async Task DownloadRapidOcrModelAsync()
+    {
+        if (SelectedRapidOcrModelProfile == null) return;
+        try { await _rapidOcrModelAssetManager.InstallAsync(SelectedRapidOcrModelProfile.Id); }
+        catch (OperationCanceledException) { }
+        catch (Exception ex) { AiLastError = ex.Message; }
+    }
+
+    [RelayCommand]
+    private void CancelRapidOcrDownload() => _rapidOcrModelAssetManager.Cancel();
+
+    [RelayCommand]
+    private async Task DeleteRapidOcrModelAsync()
+    {
+        if (SelectedRapidOcrModelProfile == null) return;
+        try { await _rapidOcrModelAssetManager.DeleteAsync(SelectedRapidOcrModelProfile.Id); }
+        catch (Exception ex) { AiLastError = ex.Message; }
+    }
+
+    [RelayCommand]
+    private async Task RefreshRapidOcrStatusAsync()
+    {
+        try
+        {
+            var status = await _rapidOcrModelAssetManager.GetStatusAsync();
+            RapidOcrModelDirectory = status.ModelDirectory;
+            RapidOcrInstalledVersion = status.InstalledVersion ?? ResolveLocalizedOrRaw("SmartBpRapidOcrVersionUnknown");
+            RapidOcrLatestVersion = status.LatestVersion ?? "-";
+            IsRapidOcrUpdateAvailable = status.HasUpdate;
+            RapidOcrInstallActionText = ResolveLocalizedOrRaw(status.HasUpdate ? "SmartBpRapidOcrUpdate" : "Download");
+            RapidOcrStatus = !status.IsInstalled
+                ? ResolveLocalizedOrRaw("SmartBpOcrStatusMissing")
+                : status.HasUpdate
+                    ? string.Format(ResolveLocalizedOrRaw("SmartBpRapidOcrUpdateAvailableFormat"), RapidOcrInstalledVersion, RapidOcrLatestVersion)
+                    : string.Format(ResolveLocalizedOrRaw("SmartBpRapidOcrUpToDateFormat"), RapidOcrLatestVersion);
+            if (!IsRapidOcrDownloading) RapidOcrDownloadDetail = "";
+        }
+        catch
+        {
+            RapidOcrStatus = ResolveLocalizedOrRaw("SmartBpOcrStatusMissing");
+            RapidOcrDownloadDetail = "";
+        }
+    }
+
+    [RelayCommand]
+    private async Task CheckRapidOcrModelUpdateAsync()
+    {
+        if (SelectedRapidOcrModelProfile == null) return;
+        try
+        {
+            await RefreshRapidOcrStatusAsync();
+            var result = await _rapidOcrModelAssetManager.CheckForUpdatesAsync(SelectedRapidOcrModelProfile.Id);
+            RapidOcrLatestVersion = result.OfficialVersion;
+            if (!result.IsBundledManifestCurrent)
+            {
+                IsRapidOcrUpdateAvailable = false;
+                RapidOcrStatus = string.Format(
+                    ResolveLocalizedOrRaw("SmartBpRapidOcrBundledManifestOutdatedFormat"),
+                    result.BundledVersion,
+                    result.OfficialVersion);
+                return;
+            }
+
+            if (result.HasInstallableUpdate)
+            {
+                IsRapidOcrUpdateAvailable = true;
+                RapidOcrInstallActionText = ResolveLocalizedOrRaw("SmartBpRapidOcrUpdate");
+                RapidOcrStatus = string.Format(
+                    ResolveLocalizedOrRaw("SmartBpRapidOcrUpdateAvailableFormat"),
+                    result.InstalledVersion ?? ResolveLocalizedOrRaw("SmartBpRapidOcrVersionUnknown"),
+                    result.OfficialVersion);
+            }
+            else if (result.InstalledVersion != null)
+            {
+                RapidOcrStatus = string.Format(
+                    ResolveLocalizedOrRaw("SmartBpRapidOcrUpToDateFormat"),
+                    result.OfficialVersion);
+            }
+        }
+        catch (Exception ex)
+        {
+            RapidOcrDownloadDetail = ex.Message;
+            AiLastError = ex.Message;
+        }
+    }
+
+    [RelayCommand]
+    private void OpenRapidOcrModelFolder()
+    {
+        if (string.IsNullOrWhiteSpace(RapidOcrModelDirectory)) return;
+        Directory.CreateDirectory(RapidOcrModelDirectory);
+        Process.Start(new ProcessStartInfo("explorer.exe", RapidOcrModelDirectory) { UseShellExecute = true });
     }
     private async Task RecognizeCurrentFrameCoreAsync() { var frame = _windowCaptureService.GetCurrentFrame(); if (frame == null) { AiLastError = "No capture frame is available."; return; } await RunRegionGatedFrameCoreAsync(frame); }
 
@@ -1349,6 +1506,30 @@ public partial class SmartBpModuleContentViewModel
         _ = _recognitionSettingsService.SaveAsync();
     }
 
+    partial void OnSelectedRapidOcrModelProfileChanged(RapidOcrModelProfile? value)
+    {
+        if (value == null || value.Id == _recognitionSettingsService.Settings.SelectedRapidOcrModelId) return;
+        _recognitionSettingsService.Settings.SelectedRapidOcrModelId = value.Id;
+        RefreshRecognitionSpeedTestValidity();
+        _ = _recognitionSettingsService.SaveAsync();
+        _ = RefreshRapidOcrStatusAsync();
+    }
+
+    partial void OnRapidOcrPaddingChanged(int value) => SaveRapidSettings(settings => settings.RapidOcrPadding = Math.Clamp(value, 0, 256));
+    partial void OnRapidOcrMaxSideLenChanged(int value) => SaveRapidSettings(settings => settings.RapidOcrMaxSideLen = Math.Clamp(value, 320, 4096));
+    partial void OnRapidOcrBoxScoreThresholdChanged(double value) => SaveRapidSettings(settings => settings.RapidOcrBoxScoreThreshold = Math.Clamp(value, 0, 1));
+    partial void OnRapidOcrBoxThresholdChanged(double value) => SaveRapidSettings(settings => settings.RapidOcrBoxThreshold = Math.Clamp(value, 0, 1));
+    partial void OnRapidOcrUnclipRatioChanged(double value) => SaveRapidSettings(settings => settings.RapidOcrUnclipRatio = Math.Clamp(value, .1, 5));
+    partial void OnRapidOcrUseAngleClassifierChanged(bool value) => SaveRapidSettings(settings => settings.RapidOcrUseAngleClassifier = value);
+    partial void OnRapidOcrUsePreprocessingVariantsChanged(bool value) => SaveRapidSettings(settings => settings.RapidOcrUsePreprocessingVariants = value);
+
+    private void SaveRapidSettings(Action<SmartBpRecognitionSettings> update)
+    {
+        update(_recognitionSettingsService.Settings);
+        RefreshRecognitionSpeedTestValidity();
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
     partial void OnTesseractLanguagesChanged(string value)
     {
         _recognitionSettingsService.Settings.TesseractLanguages = string.IsNullOrWhiteSpace(value) ? "chi_sim+eng" : value.Trim();
@@ -1393,10 +1574,14 @@ public partial class SmartBpModuleContentViewModel
     {
         var paddle = _ocrService.GetProviderStatus(SmartBpOcrProviderKind.Paddle);
         var tesseract = _ocrService.GetProviderStatus(SmartBpOcrProviderKind.Tesseract);
+        var rapid = _ocrService.GetProviderStatus(SmartBpOcrProviderKind.Rapid);
         PaddleOcrStatus = paddle.IsReady ? ResolveLocalizedOrRaw("SmartBpOcrStatusInstalled") : ResolveLocalizedOrRaw("SmartBpOcrStatusMissing");
         TesseractOcrStatus = tesseract.IsReady
             ? ResolveLocalizedOrRaw("SmartBpOcrStatusInstalled")
             : $"{ResolveLocalizedOrRaw("SmartBpOcrStatusMissing")}: {tesseract.Details}";
+        RapidOcrStatus = rapid.IsReady
+            ? ResolveLocalizedOrRaw("SmartBpOcrStatusInstalled")
+            : ResolveLocalizedOrRaw("SmartBpOcrStatusMissing");
     }
 
     private string[] GetSelectedTesseractLanguages() =>

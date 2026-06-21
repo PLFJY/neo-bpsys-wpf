@@ -4882,4 +4882,24 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="SmartBpTooltipCommitHold" xml:space="preserve"><value>Briefly waits for the preceding recognition/apply before guidance moves. Too short may miss a step; too long delays UI. AI usually needs 250–1000ms.</value></data>
   <data name="SmartBpTooltipVisualBuffer" xml:space="preserve"><value>Extra delay before applying current-step results. Default 0; use only to stabilize animation. Large values make BP visibly lag. Recommended 0–500ms.</value></data>
   <data name="SmartBpTooltipStrictCandidateEnums" xml:space="preserve"><value>Adds the character candidate list to the AI JSON schema. This reduces invented names but increases schema processing and may be incompatible with some models. Disable it on schema errors or added latency.</value></data>
+  <data name="SmartBpRecognitionEngineRapid" xml:space="preserve"><value>RapidOCR</value></data>
+  <data name="SmartBpRapidOcrModelManagement" xml:space="preserve"><value>RapidOCR Chinese model</value></data>
+  <data name="SmartBpRapidOcrDownloading" xml:space="preserve"><value>Downloading RapidOCR model</value></data>
+  <data name="SmartBpRapidOcrMaxSideLen" xml:space="preserve"><value>Maximum image side</value></data>
+  <data name="SmartBpRapidOcrPadding" xml:space="preserve"><value>Detection padding</value></data>
+  <data name="SmartBpRapidOcrBoxScoreThreshold" xml:space="preserve"><value>Text box score threshold</value></data>
+  <data name="SmartBpRapidOcrBoxThreshold" xml:space="preserve"><value>Text box detection threshold</value></data>
+  <data name="SmartBpRapidOcrUnclipRatio" xml:space="preserve"><value>Text box expansion ratio</value></data>
+  <data name="SmartBpRapidOcrAngleClassifier" xml:space="preserve"><value>Enable text angle classifier</value></data>
+  <data name="SmartBpRapidOcrPreprocessingVariants" xml:space="preserve"><value>Try a contrast-enhanced variant</value></data>
+  <data name="SmartBpTooltipRapidOcrMaxSideLen" xml:space="preserve"><value>A larger side may improve small text at the cost of memory and speed. Keep 1024 unless tuning.</value></data>
+  <data name="SmartBpTooltipRapidOcrThresholds" xml:space="preserve"><value>Higher thresholds reduce false positives but can miss weak or small text.</value></data>
+  <data name="SmartBpRapidOcrCheckUpdate" xml:space="preserve"><value>Check model updates</value></data>
+  <data name="SmartBpRapidOcrUpdate" xml:space="preserve"><value>Update model</value></data>
+  <data name="SmartBpRapidOcrInstalledVersion" xml:space="preserve"><value>Installed: </value></data>
+  <data name="SmartBpRapidOcrLatestVersion" xml:space="preserve"><value>Manifest: </value></data>
+  <data name="SmartBpRapidOcrVersionUnknown" xml:space="preserve"><value>Unknown (legacy install)</value></data>
+  <data name="SmartBpRapidOcrUpdateAvailableFormat" xml:space="preserve"><value>RapidOCR model update available: {0} → {1}</value></data>
+  <data name="SmartBpRapidOcrUpToDateFormat" xml:space="preserve"><value>RapidOCR model is up to date ({0})</value></data>
+  <data name="SmartBpRapidOcrBundledManifestOutdatedFormat" xml:space="preserve"><value>The official model manifest is newer (bundled {0}, official {1}). Update the SmartBP module before installing models.</value></data>
 </root>

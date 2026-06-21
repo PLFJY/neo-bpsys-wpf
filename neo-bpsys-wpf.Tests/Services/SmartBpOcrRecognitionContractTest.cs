@@ -211,15 +211,17 @@ public sealed class SmartBpOcrRecognitionContractTest
     [Theory]
     [InlineData(SmartBpOcrProviderMode.Paddle, SmartBpOcrProviderKind.Paddle)]
     [InlineData(SmartBpOcrProviderMode.Tesseract, SmartBpOcrProviderKind.Tesseract)]
+    [InlineData(SmartBpOcrProviderMode.Rapid, SmartBpOcrProviderKind.Rapid)]
     public void ProviderSelectorUsesOnlyExplicitSelection(SmartBpOcrProviderMode mode, SmartBpOcrProviderKind expected)
     {
         var settings = new FakeRecognitionSettings { Settings = new SmartBpRecognitionSettings { OcrProviderMode = mode } };
         var paddle = new FakeProvider(SmartBpOcrProviderKind.Paddle, true);
         var tesseract = new FakeProvider(SmartBpOcrProviderKind.Tesseract, false);
-        var selector = new SmartBpOcrProviderSelector([paddle, tesseract], settings);
+        var rapid = new FakeProvider(SmartBpOcrProviderKind.Rapid, true);
+        var selector = new SmartBpOcrProviderSelector([paddle, tesseract, rapid], settings);
 
         Assert.Equal(expected, selector.GetSelectedProvider().Kind);
-        Assert.Equal(expected == SmartBpOcrProviderKind.Paddle, selector.GetSelectedProvider().IsReady);
+        Assert.Equal(expected != SmartBpOcrProviderKind.Tesseract, selector.GetSelectedProvider().IsReady);
     }
 
     [Fact]

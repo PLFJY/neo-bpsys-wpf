@@ -139,6 +139,36 @@
                 </StackPanel>
                 <StackPanel
                     Margin="0,10,0,0"
+                    Visibility="{Binding IsRapidRecognitionEngine, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <TextBlock FontWeight="SemiBold" Text="{lex:Loc SmartBpRapidOcrModelManagement}" />
+                    <TextBlock Margin="0,4,0,0" Text="{Binding RapidOcrStatus}" TextWrapping="Wrap" />
+                    <ComboBox
+                        Margin="0,6,0,6"
+                        DisplayMemberPath="DisplayName"
+                        ItemsSource="{Binding RapidOcrModelProfiles}"
+                        SelectedItem="{Binding SelectedRapidOcrModelProfile}" />
+                    <TextBlock Margin="0,4,0,0" Text="{Binding RapidOcrModelDirectory}" TextWrapping="Wrap" />
+                    <TextBlock Margin="0,4,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}">
+                        <Run Text="{lex:Loc SmartBpRapidOcrInstalledVersion}" />
+                        <Run Text="{Binding RapidOcrInstalledVersion}" />
+                        <Run Text="  " />
+                        <Run Text="{lex:Loc SmartBpRapidOcrLatestVersion}" />
+                        <Run Text="{Binding RapidOcrLatestVersion}" />
+                    </TextBlock>
+                    <WrapPanel Margin="0,8,0,0">
+                        <ui:Button Margin="0,0,8,8" Command="{Binding DownloadRapidOcrModelCommand}" Content="{Binding RapidOcrInstallActionText}" Icon="{ui:SymbolIcon Symbol=ArrowDownload24}" />
+                        <ui:Button Margin="0,0,8,8" Command="{Binding CancelRapidOcrDownloadCommand}" Content="{lex:Loc SmartBpCancelDownload}" Icon="{ui:SymbolIcon Symbol=Stop24}" />
+                        <ui:Button Margin="0,0,8,8" Command="{Binding DeleteRapidOcrModelCommand}" Content="{lex:Loc Delete}" Icon="{ui:SymbolIcon Symbol=Delete24}" />
+                        <ui:Button Margin="0,0,8,8" Command="{Binding CheckRapidOcrModelUpdateCommand}" Content="{lex:Loc SmartBpRapidOcrCheckUpdate}" Icon="{ui:SymbolIcon Symbol=ArrowSync24}" />
+                        <ui:Button Margin="0,0,8,8" Command="{Binding OpenRapidOcrModelFolderCommand}" Content="{lex:Loc SmartBpOcrOpenTessdataFolder}" Icon="{ui:SymbolIcon Symbol=FolderOpen24}" />
+                    </WrapPanel>
+                    <StackPanel Visibility="{Binding HasRapidOcrDownloadDetail, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <ProgressBar Visibility="{Binding IsRapidOcrDownloading, Converter={StaticResource BooleanToVisibilityConverter}}" Value="{Binding RapidOcrDownloadProgress}" />
+                        <TextBlock Text="{Binding RapidOcrDownloadDetail}" TextWrapping="Wrap" />
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel
+                    Margin="0,10,0,0"
                     d:Visibility="Visible"
                     Visibility="{Binding IsTesseractRecognitionEngine, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <TextBlock Text="{Binding TesseractOcrStatus}" />
@@ -452,6 +482,30 @@
                         <TextBlock Text="{lex:Loc SmartBpOcrTesseractVariants}" />
                         <TextBox Text="{Binding TesseractMaxPreprocessVariants}" ToolTip="{lex:Loc SmartBpTooltipTesseractVariants}" />
                     </StackPanel>
+                </StackPanel>
+                <StackPanel Visibility="{Binding IsRapidRecognitionEngine, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <StackPanel Margin="0,6,0,0">
+                        <TextBlock Text="{lex:Loc SmartBpRapidOcrMaxSideLen}" />
+                        <TextBox Text="{Binding RapidOcrMaxSideLen}" ToolTip="{lex:Loc SmartBpTooltipRapidOcrMaxSideLen}" />
+                    </StackPanel>
+                    <StackPanel Margin="0,6,0,0">
+                        <TextBlock Text="{lex:Loc SmartBpRapidOcrPadding}" />
+                        <TextBox Text="{Binding RapidOcrPadding}" />
+                    </StackPanel>
+                    <StackPanel Margin="0,6,0,0">
+                        <TextBlock Text="{lex:Loc SmartBpRapidOcrBoxScoreThreshold}" />
+                        <TextBox Text="{Binding RapidOcrBoxScoreThreshold}" ToolTip="{lex:Loc SmartBpTooltipRapidOcrThresholds}" />
+                    </StackPanel>
+                    <StackPanel Margin="0,6,0,0">
+                        <TextBlock Text="{lex:Loc SmartBpRapidOcrBoxThreshold}" />
+                        <TextBox Text="{Binding RapidOcrBoxThreshold}" ToolTip="{lex:Loc SmartBpTooltipRapidOcrThresholds}" />
+                    </StackPanel>
+                    <StackPanel Margin="0,6,0,0">
+                        <TextBlock Text="{lex:Loc SmartBpRapidOcrUnclipRatio}" />
+                        <TextBox Text="{Binding RapidOcrUnclipRatio}" />
+                    </StackPanel>
+                    <ui:ToggleSwitch Content="{lex:Loc SmartBpRapidOcrAngleClassifier}" IsChecked="{Binding RapidOcrUseAngleClassifier}" />
+                    <ui:ToggleSwitch Content="{lex:Loc SmartBpRapidOcrPreprocessingVariants}" IsChecked="{Binding RapidOcrUsePreprocessingVariants}" />
                 </StackPanel>
                 <StackPanel Visibility="{Binding IsAiQwenRecognitionEngine, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <StackPanel Margin="0,6,0,0">

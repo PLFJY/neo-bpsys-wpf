@@ -13,6 +13,8 @@ public sealed class SmartBpModuleStorageProvider(SmartBpModuleManager moduleMana
     /// <inheritdoc />
     public string TesseractDataRoot => Path.Combine(OcrModelsRoot, "Tesseract", "tessdata");
     /// <inheritdoc />
+    public string RapidOcrModelsRoot => Path.Combine(OcrModelsRoot, "RapidOCR", "Models");
+    /// <inheritdoc />
     public string AiRoot => Path.Combine(ModuleRoot, "AI");
     /// <inheritdoc />
     public string QwenModelsRoot => Path.Combine(AiRoot, "QwenModels");
