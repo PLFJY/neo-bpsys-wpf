@@ -477,10 +477,11 @@ public interface ILlamaCppOpenAiClient
     Task<string> RecognizeFieldSnapshotAsync(string imageDataUrl, string field, CancellationToken cancellationToken = default);
     /// <summary>Fuses text-only transcript evidence into a snapshot delta through the Business AI server.</summary>
     /// <param name="prompt">Text-only business fusion prompt.</param>
+    /// <param name="lockedPhase">Authoritative phase that the fusion response must preserve.</param>
     /// <param name="requestedFields">Fields allowed in the output.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The raw model JSON response, repaired when needed.</returns>
-    Task<string> FuseTranscriptEvidenceAsync(string prompt, IReadOnlyCollection<string> requestedFields, CancellationToken cancellationToken = default);
+    Task<string> FuseTranscriptEvidenceAsync(string prompt, string lockedPhase, IReadOnlyCollection<string> requestedFields, CancellationToken cancellationToken = default);
     /// <summary>Recognizes only the phase crop using the short phase-only prompt.</summary>
     /// <param name="imageDataUrl">Encoded phase crop image data URL.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
@@ -572,6 +573,11 @@ public interface ISmartBpAutoRecognitionCoordinator
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The full strategy recognition result.</returns>
     Task<SmartBpAutoRecognitionTickResult> RunFullRecognitionDebugAsync(BitmapSource frame, CancellationToken cancellationToken = default);
+    /// <summary>Runs the selected strategy with the automatic planner request shape without applying operations or guidance changes.</summary>
+    /// <param name="frame">Frame to recognize.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The incremental strategy preview result.</returns>
+    Task<SmartBpAutoRecognitionTickResult> RunIncrementalRecognitionDebugAsync(BitmapSource frame, CancellationToken cancellationToken = default);
     /// <summary>Runs only phase and scene recognition for debugging.</summary>
     /// <param name="frame">Frame to recognize.</param>
     /// <param name="cancellationToken">Cancellation token.</param>

@@ -4694,7 +4694,7 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="SmartBpAiLlamaPath" xml:space="preserve"><value>llama-server.exe path</value></data>
   <data name="SmartBpAiStartServer" xml:space="preserve"><value>Start llama-server</value></data>
   <data name="SmartBpAiStopServer" xml:space="preserve"><value>Stop llama-server</value></data>
-  <data name="SmartBpAiRecognizeTestFrame" xml:space="preserve"><value>Recognize selected test frame</value></data>
+  <data name="SmartBpAiRecognizeTestFrame" xml:space="preserve"><value>Recognize selected test image (full)</value></data>
   <data name="SmartBpAiRecognizeCapture" xml:space="preserve"><value>Recognize current capture frame</value></data>
   <data name="SmartBpAiStartLoop" xml:space="preserve"><value>Start recognition preview loop</value></data>
   <data name="SmartBpAiStopLoop" xml:space="preserve"><value>Stop recognition preview loop</value></data>
@@ -4716,6 +4716,7 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="SmartBpAiClearDebugConsole" xml:space="preserve"><value>Clear</value></data>
   <data name="SmartBpAiStatusLoading" xml:space="preserve"><value>Loading</value></data>
   <data name="SmartBpAiStatusStarting" xml:space="preserve"><value>Starting llama.cpp server…</value></data>
+  <data name="SmartBpAiStatusRestarting" xml:space="preserve"><value>Restarting llama.cpp server…</value></data>
   <data name="SmartBpAiStatusLoaded" xml:space="preserve"><value>Loaded</value></data>
   <data name="SmartBpAiStatusFailed" xml:space="preserve"><value>Failed</value></data>
   <data name="SmartBpAiStatusStopped" xml:space="preserve"><value>Stopped</value></data>
@@ -4795,6 +4796,8 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="SmartBpAiOcrServer" xml:space="preserve"><value>AI OCR server</value></data>
   <data name="SmartBpBusinessAiServerStarting" xml:space="preserve"><value>Starting Business AI server...</value></data>
   <data name="SmartBpAiOcrServerStarting" xml:space="preserve"><value>Starting AI OCR server...</value></data>
+  <data name="SmartBpBusinessAiServerRestarting" xml:space="preserve"><value>Restarting Business AI server...</value></data>
+  <data name="SmartBpAiOcrServerRestarting" xml:space="preserve"><value>Restarting AI OCR server...</value></data>
   <data name="SmartBpRequiredServersStarting" xml:space="preserve"><value>Starting servers required by the current strategy...</value></data>
   <data name="SmartBpServerModel" xml:space="preserve"><value>Model</value></data>
   <data name="SmartBpServerPort" xml:space="preserve"><value>Port</value></data>
@@ -4831,10 +4834,10 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="SmartBpAiWithOcrFusionMode" xml:space="preserve"><value>AI + OCR fusion mode</value></data>
   <data name="SmartBpAiWithAiOcrFusionMode" xml:space="preserve"><value>AI + AI OCR fusion mode</value></data>
   <data name="SmartBpDebugOptions" xml:space="preserve"><value>Debug options</value></data>
-  <data name="SmartBpFullRecognitionTest" xml:space="preserve"><value>Full recognition test</value></data>
-  <data name="SmartBpPhaseSceneOnlyTest" xml:space="preserve"><value>Phase / scene-only test</value></data>
+  <data name="SmartBpFullRecognitionTest" xml:space="preserve"><value>Recognize full image</value></data>
+  <data name="SmartBpPhaseSceneOnlyTest" xml:space="preserve"><value>Recognize current phase</value></data>
   <data name="SmartBpDebugTools" xml:space="preserve"><value>Debug tools</value></data>
-  <data name="SmartBpAiRecognizeSelectedPhase" xml:space="preserve"><value>Recognize selected phase</value></data>
+  <data name="SmartBpAiRecognizeSelectedPhase" xml:space="preserve"><value>Recognize selected test-image phase</value></data>
   <data name="SmartBpAiRecognizeCurrentPhase" xml:space="preserve"><value>Recognize current phase</value></data>
   <data name="SmartBpDebugStrategySummary" xml:space="preserve"><value>Strategy</value></data>
   <data name="SmartBpDebugPhaseScene" xml:space="preserve"><value>Phase / scene</value></data>
@@ -4875,9 +4878,9 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="SmartBpAutoRecognitionStartConfirm" xml:space="preserve"><value>Please confirm that the current game progress and half are set correctly. Incorrect settings may write recognition results to the wrong game.</value></data>
   <data name="SmartBpAiOneStepDelayedMode" xml:space="preserve"><value>AI one-step-delayed mode</value></data>
   <data name="SmartBpAiUseMultiImage" xml:space="preserve"><value>Use multi-image request</value></data>
-  <data name="SmartBpAiRecognizeCurrentFrame" xml:space="preserve"><value>Recognize current capture</value></data>
+  <data name="SmartBpAiRecognizeCurrentFrame" xml:space="preserve"><value>Recognize current capture (full)</value></data>
   <data name="SmartBpAiSwitchModelRestartConfirm" xml:space="preserve"><value>llama-server is running. Switching models will restart it automatically. Continue?</value></data>
-  <data name="SmartBpAiSwitchModelTitle" xml:space="preserve"><value>Switch Qwen model</value></data>
+  <data name="SmartBpAiSwitchModelTitle" xml:space="preserve"><value>Switch AI model</value></data>
   <data name="SmartBpAiModelDownloadRequired" xml:space="preserve"><value>The selected model must be downloaded first.</value></data>
   <data name="SmartBpTooltipContactSheet" xml:space="preserve"><value>Combines recognition regions into one OCR input.</value></data>
   <data name="SmartBpTooltipRecognitionInterval" xml:space="preserve"><value>Minimum delay between automatic recognition runs in milliseconds.</value></data>
@@ -4940,4 +4943,14 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="SmartBpRapidOcrUpdateAvailableFormat" xml:space="preserve"><value>RapidOCR model update available: {0} → {1}</value></data>
   <data name="SmartBpRapidOcrUpToDateFormat" xml:space="preserve"><value>RapidOCR model is up to date ({0})</value></data>
   <data name="SmartBpRapidOcrBundledManifestOutdatedFormat" xml:space="preserve"><value>The official model manifest is newer (bundled {0}, official {1}). Update the SmartBP module before installing models.</value></data>
+  <data name="SmartBpIncrementalRecognitionTest" xml:space="preserve"><value>Recognize current-stage incremental</value></data>
+  <data name="SmartBpRecognizeSelectedIncremental" xml:space="preserve"><value>Recognize test-frame incremental</value></data>
+  <data name="SmartBpRecognizeCurrentIncremental" xml:space="preserve"><value>Recognize current-frame incremental</value></data>
+  <data name="SmartBpDebugFinalBusinessState" xml:space="preserve"><value>Final business state</value></data>
+  <data name="SmartBpDebugFusionSummary" xml:space="preserve"><value>Fusion summary</value></data>
+  <data name="SmartBpDebugTimingServerSummary" xml:space="preserve"><value>Timing and server summary</value></data>
+  <data name="SmartBpOpenRecognitionDebugLogWindow" xml:space="preserve"><value>Open recognition log window</value></data>
+  <data name="SmartBpRecognitionDebugLogWindowTitle" xml:space="preserve"><value>SmartBP Recognition Debug Log</value></data>
+  <data name="SmartBpRecognitionDebugLogAutoScroll" xml:space="preserve"><value>Auto-scroll</value></data>
+  <data name="SmartBpCopyRecognitionDebugLog" xml:space="preserve"><value>Copy log</value></data>
 </root>

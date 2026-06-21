@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Globalization;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
@@ -127,7 +128,7 @@ Return only JSON:
         !settings.Settings.UseSeparateAiOcrServer ||
         string.Equals(settings.Settings.SelectedBusinessAiModelId, settings.Settings.SelectedAiOcrModelId, StringComparison.Ordinal);
 
-    private static (IReadOnlyList<SmartBpAiOcrTranscriptLine> Lines, IReadOnlyList<string> Diagnostics) ParseLines(string raw)
+    internal static (IReadOnlyList<SmartBpAiOcrTranscriptLine> Lines, IReadOnlyList<string> Diagnostics) ParseLines(string raw)
     {
         var diagnostics = new List<string>();
         var (repaired, removedFence) = SmartBpJsonRepair.Repair(raw);
@@ -149,13 +150,13 @@ Return only JSON:
         }
         catch (JsonException)
         {
-            diagnostics.Add("AI OCR transcript was not valid JSON; parsed as plain text fallback.");
+            diagnostics.Add("AI OCR transcript was not valid JSON.");
         }
 
+        diagnostics.Add("AI OCR transcript parsed as plain text fallback.");
         var plain = Regex.Split(raw, @"[\r\n\t ,，;；、|/\\]+")
             .Select(text => text.Trim().Trim('"', '\'', '`'))
             .Where(text => !string.IsNullOrWhiteSpace(text))
-            .Distinct(StringComparer.Ordinal)
             .Select(text => new SmartBpAiOcrTranscriptLine { Text = text })
             .ToArray();
         return (plain, diagnostics);
@@ -304,8 +305,25 @@ internal sealed class SmartBpAiOcrTranscriptInterpreter(ICharacterSelectionServi
         };
 }
 
-internal sealed class SmartBpBusinessAiFusionService(ILlamaCppOpenAiClient client, ISharedDataService shared, ISmartBpDebugLog debugLog) : ISmartBpBusinessAiFusionService
+internal sealed class SmartBpBusinessAiFusionValidationException(string message, string rawJson, IReadOnlyList<string> diagnostics, Exception? innerException = null)
+    : Exception(message, innerException)
 {
+    public string RawJson { get; } = rawJson;
+    public IReadOnlyList<string> Diagnostics { get; } = diagnostics;
+}
+
+internal sealed class SmartBpBusinessAiFusionService(
+    ILlamaCppOpenAiClient client,
+    ISharedDataService shared,
+    ICharacterSelectionService characterSelection,
+    ISmartBpDebugLog debugLog) : ISmartBpBusinessAiFusionService
+{
+    private static readonly JsonSerializerOptions PromptJsonOptions = new()
+    {
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        WriteIndented = true
+    };
+
     public async Task<(SmartBpSnapshotDeltaResult Delta, string RawJson, IReadOnlyList<string> Diagnostics)> FuseAsync(
         SmartBpPhaseRecognitionResult phase,
         IReadOnlyList<SmartBpAiOcrTranscriptRegionEvidence> evidence,
@@ -313,22 +331,39 @@ internal sealed class SmartBpBusinessAiFusionService(ILlamaCppOpenAiClient clien
         SmartBpBusinessStateRecognitionResult currentKnownState,
         CancellationToken cancellationToken = default)
     {
-        var prompt = BuildPrompt(phase, evidence, requestedFields, currentKnownState);
+        var survivorCandidates = shared.SurCharaDict.Keys.OrderBy(name => name, StringComparer.Ordinal).ToArray();
+        var hunterCandidates = shared.HunCharaDict.Keys.OrderBy(name => name, StringComparer.Ordinal).ToArray();
+        var prompt = BuildPrompt(phase, evidence, requestedFields, currentKnownState, survivorCandidates, hunterCandidates);
         debugLog.Write("recognition", $"Business AI fusion prompt:\n{prompt}");
-        var raw = await client.FuseTranscriptEvidenceAsync(prompt, requestedFields, cancellationToken).ConfigureAwait(false);
-        var parsed = SmartBpAutomaticParser.ParseSnapshotDelta(raw, requestedFields, shared.SurCharaDict.Keys, shared.HunCharaDict.Keys);
-        return (parsed, raw,
-        [
-            $"Business AI fusion produced updates=[{string.Join(", ", parsed.Updates.Select(update => update.Field))}].",
-            $"Business AI fusion evidence_regions={evidence.Count}; requested_fields=[{string.Join(", ", requestedFields)}]."
-        ]);
+        var raw = await client.FuseTranscriptEvidenceAsync(prompt, phase.Phase, requestedFields, cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var parsed = SmartBpAutomaticParser.ParseBusinessAiFusionSnapshotDelta(
+                raw, phase.Phase, requestedFields, survivorCandidates, hunterCandidates, characterSelection, out var validationDiagnostics);
+            var diagnostics = new List<string>(validationDiagnostics)
+            {
+                $"Business AI fusion produced updates=[{string.Join(", ", parsed.Updates.Select(update => update.Field))}].",
+                $"Business AI fusion evidence_regions={evidence.Count}; requested_fields=[{string.Join(", ", requestedFields)}]."
+            };
+            return (parsed, raw, diagnostics);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            var message = ex.Message.StartsWith("Business AI fusion output rejected:", StringComparison.Ordinal)
+                ? ex.Message
+                : $"Business AI fusion output rejected: {ex.Message}";
+            debugLog.Write("recognition", $"{message}\nBusiness AI fusion rejected raw response:\n{raw}");
+            throw new SmartBpBusinessAiFusionValidationException(message, raw, [message], ex);
+        }
     }
 
     private static string BuildPrompt(
         SmartBpPhaseRecognitionResult phase,
         IReadOnlyList<SmartBpAiOcrTranscriptRegionEvidence> evidence,
         IReadOnlyCollection<string> requestedFields,
-        SmartBpBusinessStateRecognitionResult currentKnownState)
+        SmartBpBusinessStateRecognitionResult currentKnownState,
+        IReadOnlyList<string> survivorCandidates,
+        IReadOnlyList<string> hunterCandidates)
     {
         var evidenceJson = new JsonArray(evidence.Select(item => new JsonObject
         {
@@ -341,30 +376,53 @@ internal sealed class SmartBpBusinessAiFusionService(ILlamaCppOpenAiClient clien
         {
             ["phase"] = phase.Phase,
             ["requestedFields"] = new JsonArray(requestedFields.Select(field => JsonValue.Create(field)).ToArray<JsonNode?>()),
-            ["currentKnownState"] = SmartBpRecognitionPromptBuilder.FormatCurrentKnownStateForDiagnostics(currentKnownState),
+            ["currentKnownState"] = SmartBpRecognitionPromptBuilder.CreateCurrentKnownStateJson(currentKnownState),
+            ["survivorCandidates"] = new JsonArray(survivorCandidates.Select(name => JsonValue.Create(name)).ToArray<JsonNode?>()),
+            ["hunterCandidates"] = new JsonArray(hunterCandidates.Select(name => JsonValue.Create(name)).ToArray<JsonNode?>()),
             ["evidence"] = evidenceJson
         };
         return $$"""
 You are the SmartBP business fusion model.
-You will receive:
-- recognized phase
-- requested fields
-- current known state
-- AI OCR text transcript per BP region
 
-Convert the transcript into requested SmartBP field updates.
+You are NOT doing OCR.
+You are NOT doing phase detection.
+The phase is already locked.
 
-Do not invent characters.
-Use transcript evidence only.
-If transcript is unclear, output slot_state="unknown".
-If transcript clearly says 未选择 or empty, output slot_state="empty".
-If transcript clearly shows a character, output slot_state="selected".
-Only output requested fields.
-Return only JSON in this shape:
-{"phase":"...","updates":[{"field":"banned_sur","slots":[{"index":0,"slot_state":"selected","character_name":"小说家","player_id":null}],"picked_hun":null}]}
+Your task:
+Convert AI OCR transcript evidence into requested SmartBP field updates.
+
+Use only transcript evidence and candidate lists. Do not invent characters.
+Ignore UI noise, player names, streamer/director labels, authorization warnings, tips, and unrelated text.
+Use candidate lists to distinguish characters from non-character text.
+
+Important:
+- phase is locked. Do not change phase. Output phase must equal input.phase exactly.
+- "导播PLFJY" is not a character.
+- "未授权" is UI/system text, not a character.
+- "未经授权的页面将无法识别出来。" is UI/system text, not a character.
+- If text contains "未选择" and no valid character candidate, treat the slot as empty when the target field has an empty slot.
+- If evidence is unclear, output slot_state="unknown", not empty.
+- Only output requested fields.
+- Each update object may contain only field, slots, and picked_hun, and may represent only one target field.
+
+Field responsibilities:
+- right_top -> banned_sur, exactly 4 survivor slots, left-to-right. Use survivorCandidates only.
+- left_top -> banned_hun, exactly 2 hunter slots, left-to-right. Use hunterCandidates only.
+- left_bottom -> picked_sur, exactly 4 survivor slots, left-to-right. Use survivorCandidates only. Player IDs are optional. Talent names and UI labels are not characters.
+- right_bottom -> picked_hun, exactly 1 hunter slot at index 0. Use hunterCandidates only.
+
+For banned_sur transcript "小说家 昆虫学者 未选择 未选择": output selected 小说家, selected 昆虫学者, empty 未选择, empty 未选择 in slots 0..3.
+For picked_hun transcript "未选择导播PLFJY": output picked_hun empty with character_name="未选择" unless a valid hunter candidate is visible.
+
+Output contract:
+- banned_sur, banned_hun, picked_sur updates require slots and picked_hun=null.
+- picked_hun update requires slots=null and one picked_hun object.
+- selected character_name must come from the matching candidate list.
+- empty/unknown character_name must be "未选择".
+- Return JSON only. Do not include any sibling business field such as banned_hun or picked_sur inside an update object.
 
 Input:
-{{payload.ToJsonString()}}
+{{payload.ToJsonString(PromptJsonOptions)}}
 """;
     }
 
@@ -635,7 +693,7 @@ The local merge will preserve slot 0 as 小说家.
         return CreateCurrentKnownStateJson(state).ToJsonString(new JsonSerializerOptions { WriteIndented = false });
     }
 
-    private static JsonObject CreateCurrentKnownStateJson(SmartBpBusinessStateRecognitionResult? state)
+    internal static JsonObject CreateCurrentKnownStateJson(SmartBpBusinessStateRecognitionResult? state)
     {
         static string[] Names(IEnumerable<SmartBpRecognizedCharacterSlot> slots, int count) =>
             slots.OrderBy(x => x.Index).Take(count).Select(x => string.IsNullOrWhiteSpace(x.CharacterName) ? "未选择" : x.CharacterName).ToArray();
@@ -1056,6 +1114,20 @@ internal static class SmartBpRecognitionJsonSchemaProvider
         }, "phase", "updates");
     }
 
+    public static JsonObject GetBusinessAiFusionSnapshotDelta(
+        string lockedPhase,
+        IReadOnlyCollection<string> requestedFields,
+        IReadOnlyList<string> survivorCandidates,
+        IReadOnlyList<string> hunterCandidates,
+        bool strictCandidateEnums)
+    {
+        var schema = GetSnapshotDelta(requestedFields, survivorCandidates, hunterCandidates, strictCandidateEnums);
+        schema["properties"]!["phase"] = Const(lockedPhase);
+        schema["properties"]!["updates"]!["minItems"] = requestedFields.Count;
+        schema["properties"]!["updates"]!["maxItems"] = requestedFields.Count;
+        return schema;
+    }
+
     public static JsonObject GetStageDetection()
     {
         JsonObject Enum(params string[] values) => new() { ["type"] = "string", ["enum"] = new JsonArray(values.Select(x => (JsonNode?)JsonValue.Create(x)).ToArray()) };
@@ -1222,10 +1294,11 @@ internal sealed class LlamaCppOpenAiClient(ISmartBpRecognitionSettingsService se
         return await SendSpecialAsync(body, "PhaseTop", cancellationToken);
     }
 
-    public async Task<string> FuseTranscriptEvidenceAsync(string prompt, IReadOnlyCollection<string> requestedFields, CancellationToken cancellationToken = default)
+    public async Task<string> FuseTranscriptEvidenceAsync(string prompt, string lockedPhase, IReadOnlyCollection<string> requestedFields, CancellationToken cancellationToken = default)
     {
         var profile = await promptProfiles.LoadAsync(settings.Settings.PromptProfileId, cancellationToken);
-        var schema = SmartBpRecognitionJsonSchemaProvider.GetSnapshotDelta(
+        var schema = SmartBpRecognitionJsonSchemaProvider.GetBusinessAiFusionSnapshotDelta(
+            lockedPhase,
             requestedFields,
             shared.SurCharaDict.Keys.ToArray(),
             shared.HunCharaDict.Keys.ToArray(),
@@ -1235,10 +1308,10 @@ internal sealed class LlamaCppOpenAiClient(ISmartBpRecognitionSettingsService se
             prompt,
             schema,
             settings.Settings.SnapshotDeltaMaxTokens,
-            AiStructuredOutputMode.JsonPromptAndRepair,
+            AiStructuredOutputMode.JsonSchemaStrict,
             "smartbp_business_fusion");
         var raw = await SendSpecialAsync(body, $"BusinessAiFusion:{string.Join(",", requestedFields)}", cancellationToken);
-        return await RepairAndLogAsync(raw, AiStructuredOutputMode.JsonPromptAndRepair, "BusinessAiFusion");
+        return await RepairAndLogAsync(raw, AiStructuredOutputMode.JsonSchemaStrict, "BusinessAiFusion");
     }
 
     public async Task<string> RecognizePhaseOnlyAsync(string imageDataUrl, CancellationToken cancellationToken = default)

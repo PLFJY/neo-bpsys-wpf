@@ -63,6 +63,7 @@ using SmartBpSnapshotDeltaResult = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.
 using SmartBpSnapshotFieldUpdate = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpSnapshotFieldUpdate;
 using SmartBpSnapshotDeltaSlot = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpSnapshotDeltaSlot;
 using SmartBpRecognitionStateStore = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpRecognitionStateStore;
+using SmartBpAiOcrTranscriptRecognitionService = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpAiOcrTranscriptRecognitionService;
 
 namespace neo_bpsys_wpf.Tests.Services;
 
@@ -212,6 +213,61 @@ public sealed class SmartBpAiRecognitionContractTest
         Assert.Contains("\"picked_hun\"", pickedHunText);
         Assert.Contains("\"index\"", pickedHunText);
         Assert.Contains("\"enum\":[0]", pickedHunText);
+    }
+
+    [Fact]
+    public void BusinessAiFusionSchemaLocksPhaseAndUsesStrictFieldShapes()
+    {
+        var schema = SmartBpRecognitionJsonSchemaProvider.GetBusinessAiFusionSnapshotDelta(
+            "屏蔽求生者", ["banned_sur", "banned_hun", "picked_sur", "picked_hun"], ["小说家"], ["厂长"], true);
+        var updateShapes = schema["properties"]?["updates"]?["items"]?["oneOf"]?.AsArray()
+            ?? throw new InvalidDataException("Fusion schema must use oneOf update shapes.");
+
+        Assert.Equal("屏蔽求生者", schema["properties"]?["phase"]?["const"]?.GetValue<string>());
+        Assert.Equal(4, FindUpdateShape(updateShapes, "banned_sur")["properties"]?["slots"]?["minItems"]?.GetValue<int>());
+        Assert.Equal(2, FindUpdateShape(updateShapes, "banned_hun")["properties"]?["slots"]?["minItems"]?.GetValue<int>());
+        Assert.Equal(4, FindUpdateShape(updateShapes, "picked_sur")["properties"]?["slots"]?["minItems"]?.GetValue<int>());
+        Assert.Equal("null", FindUpdateShape(updateShapes, "picked_hun")["properties"]?["slots"]?["type"]?.GetValue<string>());
+        Assert.All(updateShapes, shape => Assert.False(shape?["additionalProperties"]?.GetValue<bool>()));
+    }
+
+    [Fact]
+    public void BusinessAiFusionParserOverridesChangedPhaseAndWarns()
+    {
+        const string raw = """
+        {"phase":"等待中","updates":[{"field":"banned_sur","slots":[
+          {"index":0,"slot_state":"selected","character_name":"小说家","player_id":null},
+          {"index":1,"slot_state":"empty","character_name":"未选择","player_id":null},
+          {"index":2,"slot_state":"unknown","character_name":"未选择","player_id":null},
+          {"index":3,"slot_state":"empty","character_name":"未选择","player_id":null}
+        ],"picked_hun":null}]}
+        """;
+
+        var parsed = SmartBpAutomaticParser.ParseBusinessAiFusionSnapshotDelta(
+            raw, "屏蔽求生者", ["banned_sur"], ["小说家"], ["厂长"], Mock.Of<ICharacterSelectionService>(), out var diagnostics);
+
+        Assert.Equal("屏蔽求生者", parsed.Phase);
+        Assert.Contains("Business AI fusion changed phase from 屏蔽求生者 to 等待中; overridden to 屏蔽求生者.", diagnostics);
+    }
+
+    [Theory]
+    [InlineData("picked_hun", "\"picked_hun\":{\"index\":0,\"slot_state\":\"empty\",\"character_name\":\"未选择\",\"player_id\":null}")]
+    [InlineData("banned_hun", "\"picked_hun\":null,\"banned_hun\":[]")]
+    public void BusinessAiFusionParserRejectsMixedFieldProperties(string unexpectedProperty, string updateTail)
+    {
+        var raw = $$"""
+        {"phase":"屏蔽求生者","updates":[{"field":"banned_sur","slots":[
+          {"index":0,"slot_state":"empty","character_name":"未选择","player_id":null},
+          {"index":1,"slot_state":"empty","character_name":"未选择","player_id":null},
+          {"index":2,"slot_state":"empty","character_name":"未选择","player_id":null},
+          {"index":3,"slot_state":"empty","character_name":"未选择","player_id":null}
+        ],{{updateTail}}}]}
+        """;
+
+        var error = Assert.Throws<InvalidDataException>(() => SmartBpAutomaticParser.ParseBusinessAiFusionSnapshotDelta(
+            raw, "屏蔽求生者", ["banned_sur"], ["小说家"], ["厂长"], Mock.Of<ICharacterSelectionService>(), out _));
+
+        Assert.Contains($"contained unexpected property {unexpectedProperty}", error.Message);
     }
 
     [Fact]
@@ -1136,19 +1192,25 @@ public sealed class SmartBpAiRecognitionContractTest
 
         Assert.Contains("SmartBpFullRecognitionTest", xaml);
         Assert.Contains("SmartBpPhaseSceneOnlyTest", xaml);
+        Assert.Contains("SmartBpIncrementalRecognitionTest", xaml);
         Assert.Contains("RecognizeSelectedTestFrameCommand", xaml);
+        Assert.Contains("RecognizeIncrementalSelectedTestFrameCommand", xaml);
         Assert.Contains("DetectStageFromSelectedTestFrameCommand", xaml);
         Assert.Contains("StartBusinessAiServerCommand", xaml);
         Assert.Contains("StartAiOcrServerCommand", xaml);
         Assert.Contains("StartRequiredLlamaServersCommand", xaml);
         Assert.Contains("BusinessAiServerStatus", xaml);
         Assert.Contains("AiOcrServerReuseStatus", xaml);
-        Assert.Contains("DebugPureAiFullRaw", xaml);
-        Assert.Contains("DebugAiOcrTranscript", xaml);
+        Assert.Contains("DebugFinalBusinessState", xaml);
+        Assert.Contains("OpenRecognitionDebugLogWindowCommand", xaml);
 
         Assert.Contains("_llamaServerManagers.Get(LlamaVisionServerRole.BusinessAi)", viewModel);
         Assert.Contains("_llamaServerManagers.Get(LlamaVisionServerRole.AiOcr)", viewModel);
         Assert.Contains("IsAiOcrReusingBusinessServer()", viewModel);
+        Assert.Contains("_autoRecognitionCoordinator.RunIncrementalRecognitionDebugAsync(frame)", viewModel);
+        Assert.Contains("CurrentStageIncremental", viewModel);
+        Assert.Contains("PhaseOnly", viewModel);
+        Assert.Contains("FullImage", viewModel);
     }
 
     [Fact]
@@ -1191,14 +1253,89 @@ public sealed class SmartBpAiRecognitionContractTest
     }
 
     [Fact]
-    public void AiOcrTranscriptParsingFallsBackToPlainText()
+    public void BusinessAiFusionPromptCarriesRawEvidenceCandidatesAndStrictResponsibilities()
     {
         var root = FindRepositoryRoot();
         var services = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "Services", "Recognition", "RecognitionServices.cs"));
+        var coordinator = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "Services", "Recognition", "SmartBpAutomaticServices.cs"));
 
-        Assert.Contains("AI OCR transcript was not valid JSON; parsed as plain text fallback.", services);
-        Assert.Contains("Regex.Split(raw", services);
-        Assert.Contains("SmartBpJsonRepair.Repair(raw)", services);
+        Assert.Contains("rawTranscript", services);
+        Assert.Contains("survivorCandidates", services);
+        Assert.Contains("hunterCandidates", services);
+        Assert.Contains("phase is locked", services);
+        Assert.Contains("right_top -> banned_sur", services);
+        Assert.Contains("left_top -> banned_hun", services);
+        Assert.Contains("left_bottom -> picked_sur", services);
+        Assert.Contains("right_bottom -> picked_hun", services);
+        Assert.Contains("小说家 昆虫学者 未选择 未选择", services);
+        Assert.Contains("未选择导播PLFJY", services);
+        Assert.Contains("未授权", services);
+        Assert.Contains("未经授权的页面将无法识别出来。", services);
+        Assert.Contains("CreateCurrentKnownStateJson(currentKnownState)", services);
+        Assert.Contains("AiStructuredOutputMode.JsonSchemaStrict", services);
+        Assert.Contains("Business AI fusion validation failed; corrupted updates were not merged.", coordinator);
+        Assert.Contains("if (!isDryRun && delta != null)", coordinator);
+    }
+
+    [Fact]
+    public void AiOcrTranscriptParsingFallsBackToPlainText()
+    {
+        var newline = SmartBpAiOcrTranscriptRecognitionService.ParseLines("小说家\n昆虫学者\n入殓师");
+        var spaces = SmartBpAiOcrTranscriptRecognitionService.ParseLines("小说家 昆虫学者 未选择 未选择");
+        var combinedNoise = SmartBpAiOcrTranscriptRecognitionService.ParseLines("未选择导播PLFJY");
+
+        Assert.Equal(["小说家", "昆虫学者", "入殓师"], newline.Lines.Select(line => line.Text));
+        Assert.Equal(["小说家", "昆虫学者", "未选择", "未选择"], spaces.Lines.Select(line => line.Text));
+        Assert.Equal("未选择导播PLFJY", Assert.Single(combinedNoise.Lines).Text);
+        Assert.Contains("AI OCR transcript parsed as plain text fallback.", combinedNoise.Diagnostics);
+    }
+
+    [Theory]
+    [InlineData("{\"lines\":[{\"text\":\"小说家\"},{\"text\":\"昆虫学者\"}]}")]
+    [InlineData("```json\n{\"lines\":[{\"text\":\"小说家\"},{\"text\":\"昆虫学者\"}]}\n```")]
+    public void AiOcrTranscriptParsingAcceptsJsonAndFencedJson(string raw)
+    {
+        var parsed = SmartBpAiOcrTranscriptRecognitionService.ParseLines(raw);
+
+        Assert.Equal(["小说家", "昆虫学者"], parsed.Lines.Select(line => line.Text));
+    }
+
+    [Fact]
+    public void RecognitionRawLogsUseSeparateWindowCommandsAndBinding()
+    {
+        var root = FindRepositoryRoot();
+        var mainXaml = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "Views", "SmartBpModuleContentView.xaml"));
+        var logXaml = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "Views", "SmartBpRecognitionDebugLogWindow.xaml"));
+        var logCodeBehind = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "Views", "SmartBpRecognitionDebugLogWindow.xaml.cs"));
+        var viewModel = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "ViewModels", "SmartBpModuleContentViewModel.AiRecognition.cs"));
+
+        Assert.DoesNotContain("DebugPureAiFullRaw", mainXaml);
+        Assert.DoesNotContain("DebugAiOcrTranscript", mainXaml);
+        Assert.Contains("DebugFinalBusinessState", mainXaml);
+        Assert.DoesNotContain("{Binding DebugStrategySummary}", mainXaml);
+        Assert.DoesNotContain("{Binding DebugPhaseScene}", mainXaml);
+        Assert.DoesNotContain("{Binding DebugFusionSummary}", mainXaml);
+        Assert.DoesNotContain("{Binding DebugCandidateOperations}", mainXaml);
+        Assert.DoesNotContain("{Binding DebugServerStatus}", mainXaml);
+        Assert.DoesNotContain("{Binding DebugTiming}", mainXaml);
+        Assert.DoesNotContain("{Binding AiLastError}", mainXaml);
+        Assert.Contains("RecognitionDebugLogText", logXaml);
+        Assert.Contains("{Binding DebugStrategySummary}", logXaml);
+        Assert.Contains("{Binding DebugPhaseScene}", logXaml);
+        Assert.Contains("{Binding DebugFusionSummary}", logXaml);
+        Assert.Contains("{Binding DebugCandidateOperations}", logXaml);
+        Assert.Contains("{Binding DebugServerStatus}", logXaml);
+        Assert.Contains("{Binding DebugTiming}", logXaml);
+        Assert.Contains("{Binding AiLastError}", logXaml);
+        Assert.Contains("CopyRecognitionDebugLogCommand", logXaml);
+        Assert.Contains("ClearAiDebugLogCommand", logXaml);
+        Assert.Contains("RefreshRecognitionDebugLogCommand", logXaml);
+        Assert.Contains("<ui:FluentWindow", logXaml);
+        Assert.Contains("<ui:TitleBar", logXaml);
+        Assert.Contains("<ui:ToggleSwitch", logXaml);
+        Assert.Contains("<ui:TextBox", logXaml);
+        Assert.Contains("DataContext = viewModel", logCodeBehind);
+        Assert.Contains("new SmartBpRecognitionDebugLogWindow(this)", viewModel);
     }
 
     [Fact]
@@ -1230,6 +1367,22 @@ public sealed class SmartBpAiRecognitionContractTest
         Assert.Contains("finally", viewModel);
         Assert.Contains("SetRoleServerStarting(role, false)", viewModel);
         Assert.Contains("SmartBpAiStatusStarting", viewModel);
+    }
+
+    [Fact]
+    public void ModelSwitchPreservesRoleServerAndShowsRestartProgress()
+    {
+        var root = FindRepositoryRoot();
+        var xaml = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "Views", "SmartBpModuleContentView.xaml"));
+        var viewModel = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "ViewModels", "SmartBpModuleContentViewModel.AiRecognition.cs"));
+
+        Assert.Contains("SetRoleServerStarting(LlamaVisionServerRole.BusinessAi, true, true)", viewModel);
+        Assert.Contains("SetRoleServerStarting(LlamaVisionServerRole.AiOcr, true, true)", viewModel);
+        Assert.Contains("var aiOcrRoleWasRunning = wasReusingBusiness ? business.IsRunning : aiOcr.IsRunning", viewModel);
+        Assert.Contains("await business.StartAsync()", viewModel);
+        Assert.Contains("await aiOcr.StartAsync()", viewModel);
+        Assert.Contains("BusinessAiServerActivityText", xaml);
+        Assert.Contains("AiOcrServerActivityText", xaml);
     }
 
     private static string FindRepositoryRoot()

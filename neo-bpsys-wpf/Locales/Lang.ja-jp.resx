@@ -4657,6 +4657,8 @@
   <data name="SmartBpAiOcrServer" xml:space="preserve"><value>AI OCR server</value></data>
   <data name="SmartBpBusinessAiServerStarting" xml:space="preserve"><value>Starting Business AI server...</value></data>
   <data name="SmartBpAiOcrServerStarting" xml:space="preserve"><value>Starting AI OCR server...</value></data>
+  <data name="SmartBpBusinessAiServerRestarting" xml:space="preserve"><value>Business AI サーバーを再起動しています...</value></data>
+  <data name="SmartBpAiOcrServerRestarting" xml:space="preserve"><value>AI OCR サーバーを再起動しています...</value></data>
   <data name="SmartBpRequiredServersStarting" xml:space="preserve"><value>Starting servers required by the current strategy...</value></data>
   <data name="SmartBpServerModel" xml:space="preserve"><value>Model</value></data>
   <data name="SmartBpServerPort" xml:space="preserve"><value>Port</value></data>
@@ -4668,11 +4670,11 @@
   <data name="SmartBpAiWithOcrFusionMode" xml:space="preserve"><value>AI + OCR fusion mode</value></data>
   <data name="SmartBpAiWithAiOcrFusionMode" xml:space="preserve"><value>AI + AI OCR fusion mode</value></data>
   <data name="SmartBpDebugOptions" xml:space="preserve"><value>Debug options</value></data>
-  <data name="SmartBpFullRecognitionTest" xml:space="preserve"><value>Full recognition test</value></data>
-  <data name="SmartBpPhaseSceneOnlyTest" xml:space="preserve"><value>Phase / scene-only test</value></data>
+  <data name="SmartBpFullRecognitionTest" xml:space="preserve"><value>画像全体を認識</value></data>
+  <data name="SmartBpPhaseSceneOnlyTest" xml:space="preserve"><value>現在のフェーズを認識</value></data>
   <data name="SmartBpDebugTools" xml:space="preserve"><value>Debug tools</value></data>
-  <data name="SmartBpAiRecognizeSelectedPhase" xml:space="preserve"><value>Recognize selected phase</value></data>
-  <data name="SmartBpAiRecognizeCurrentPhase" xml:space="preserve"><value>Recognize current phase</value></data>
+  <data name="SmartBpAiRecognizeSelectedPhase" xml:space="preserve"><value>選択したテスト画像のフェーズを認識</value></data>
+  <data name="SmartBpAiRecognizeCurrentPhase" xml:space="preserve"><value>現在のフェーズを認識</value></data>
   <data name="SmartBpDebugStrategySummary" xml:space="preserve"><value>Strategy</value></data>
   <data name="SmartBpDebugPhaseScene" xml:space="preserve"><value>Phase / scene</value></data>
   <data name="SmartBpDebugBusinessAiRaw" xml:space="preserve"><value>Business AI raw</value></data>
@@ -4712,9 +4714,9 @@
   <data name="SmartBpAutoRecognitionStartConfirm" xml:space="preserve"><value>Please confirm that the current game progress and half are set correctly. Incorrect settings may write recognition results to the wrong game.</value></data>
   <data name="SmartBpAiOneStepDelayedMode" xml:space="preserve"><value>AI one-step-delayed mode</value></data>
   <data name="SmartBpAiUseMultiImage" xml:space="preserve"><value>Use multi-image request</value></data>
-  <data name="SmartBpAiRecognizeCurrentFrame" xml:space="preserve"><value>Recognize current capture</value></data>
+  <data name="SmartBpAiRecognizeCurrentFrame" xml:space="preserve"><value>現在のキャプチャ全体を認識</value></data>
   <data name="SmartBpAiSwitchModelRestartConfirm" xml:space="preserve"><value>llama-server is running. Switching models will restart it automatically. Continue?</value></data>
-  <data name="SmartBpAiSwitchModelTitle" xml:space="preserve"><value>Switch Qwen model</value></data>
+  <data name="SmartBpAiSwitchModelTitle" xml:space="preserve"><value>AI モデルを切り替え</value></data>
   <data name="SmartBpAiModelDownloadRequired" xml:space="preserve"><value>The selected model must be downloaded first.</value></data>
   <data name="SmartBpTooltipContactSheet" xml:space="preserve"><value>Combines recognition regions into one OCR input.</value></data>
   <data name="SmartBpTooltipRecognitionInterval" xml:space="preserve"><value>Minimum delay between automatic recognition runs in milliseconds.</value></data>
@@ -4758,6 +4760,7 @@
   <data name="SmartBpTooltipVisualBuffer" xml:space="preserve"><value>現在ステップ適用前の追加遅延です。既定値 0。アニメーション安定化時のみ使用し、推奨 0–500ms。</value></data>
   <data name="SmartBpTooltipStrictCandidateEnums" xml:space="preserve"><value>キャラクター候補を AI JSON schema に追加し架空名を減らしますが、処理時間と互換性リスクが増えます。schema エラー時は無効にしてください。</value></data>
   <data name="SmartBpAiStatusStarting" xml:space="preserve"><value>llama.cpp サーバーを起動しています…</value></data>
+  <data name="SmartBpAiStatusRestarting" xml:space="preserve"><value>llama.cpp サーバーを再起動しています…</value></data>
   <data name="SmartBpRecognitionEngineRapid" xml:space="preserve"><value>RapidOCR</value></data>
   <data name="SmartBpRapidOcrModelManagement" xml:space="preserve"><value>RapidOCR 中国語モデル</value></data>
   <data name="SmartBpRapidOcrDownloading" xml:space="preserve"><value>RapidOCR モデルをダウンロード中</value></data>
@@ -4778,4 +4781,14 @@
   <data name="SmartBpRapidOcrUpdateAvailableFormat" xml:space="preserve"><value>RapidOCR モデルを更新できます：{0} → {1}</value></data>
   <data name="SmartBpRapidOcrUpToDateFormat" xml:space="preserve"><value>RapidOCR モデルは最新です（{0}）</value></data>
   <data name="SmartBpRapidOcrBundledManifestOutdatedFormat" xml:space="preserve"><value>公式モデルマニフェストが更新されています（内蔵 {0}、公式 {1}）。古いモデルを防ぐため、先に SmartBP モジュールを更新してください。</value></data>
+  <data name="SmartBpIncrementalRecognitionTest" xml:space="preserve"><value>現在ステージの差分認識</value></data>
+  <data name="SmartBpRecognizeSelectedIncremental" xml:space="preserve"><value>テスト画像の差分認識</value></data>
+  <data name="SmartBpRecognizeCurrentIncremental" xml:space="preserve"><value>現在画像の差分認識</value></data>
+  <data name="SmartBpDebugFinalBusinessState" xml:space="preserve"><value>最終ビジネス状態</value></data>
+  <data name="SmartBpDebugFusionSummary" xml:space="preserve"><value>融合サマリー</value></data>
+  <data name="SmartBpDebugTimingServerSummary" xml:space="preserve"><value>時間とサーバーのサマリー</value></data>
+  <data name="SmartBpOpenRecognitionDebugLogWindow" xml:space="preserve"><value>認識ログウィンドウを開く</value></data>
+  <data name="SmartBpRecognitionDebugLogWindowTitle" xml:space="preserve"><value>SmartBP 認識デバッグログ</value></data>
+  <data name="SmartBpRecognitionDebugLogAutoScroll" xml:space="preserve"><value>自動スクロール</value></data>
+  <data name="SmartBpCopyRecognitionDebugLog" xml:space="preserve"><value>ログをコピー</value></data>
 </root>

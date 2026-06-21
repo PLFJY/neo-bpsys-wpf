@@ -438,7 +438,7 @@
                             <TextBlock
                                 Margin="8,0,0,0"
                                 VerticalAlignment="Center"
-                                Text="{lex:Loc SmartBpBusinessAiServerStarting}" />
+                                Text="{Binding BusinessAiServerActivityText}" />
                         </StackPanel>
                     </WrapPanel>
                     <StackPanel
@@ -483,7 +483,7 @@
                                 <TextBlock
                                     Margin="8,0,0,0"
                                     VerticalAlignment="Center"
-                                    Text="{lex:Loc SmartBpAiOcrServerStarting}" />
+                                    Text="{Binding AiOcrServerActivityText}" />
                             </StackPanel>
                         </WrapPanel>
                     </StackPanel>
@@ -791,6 +791,22 @@
                 <TextBlock
                     Margin="0,8,0,0"
                     FontWeight="SemiBold"
+                    Text="{lex:Loc SmartBpIncrementalRecognitionTest}" />
+                <WrapPanel Margin="0,8,0,0">
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding RecognizeIncrementalSelectedTestFrameCommand}"
+                        Content="{lex:Loc SmartBpRecognizeSelectedIncremental}"
+                        Icon="{ui:SymbolIcon Symbol=Scan24}" />
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding RecognizeIncrementalCurrentCaptureFrameCommand}"
+                        Content="{lex:Loc SmartBpRecognizeCurrentIncremental}"
+                        Icon="{ui:SymbolIcon Symbol=CameraSwitch24}" />
+                </WrapPanel>
+                <TextBlock
+                    Margin="0,8,0,0"
+                    FontWeight="SemiBold"
                     Text="{lex:Loc SmartBpPhaseSceneOnlyTest}" />
                 <WrapPanel Margin="0,8,0,0">
                     <ui:Button
@@ -819,57 +835,15 @@
                         Command="{Binding ResetAiRecognitionLedgerCommand}"
                         Content="{lex:Loc SmartBpAiResetLedger}"
                         Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
-                    <ui:Button
-                        Margin="0,0,8,8"
-                        Command="{Binding ClearAiDebugLogCommand}"
-                        Content="{lex:Loc SmartBpClearDebugLog}"
-                        Icon="{ui:SymbolIcon Symbol=Delete24}" />
                 </WrapPanel>
-                <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Text="{lex:Loc SmartBpDebugStrategySummary}" />
-                <TextBox Style="{StaticResource SmartBpDebugOutputTextBox}" Text="{Binding DebugStrategySummary}" />
-                <TextBlock Margin="0,6,0,0" FontWeight="SemiBold" Text="{lex:Loc SmartBpDebugServerStatus}" />
-                <TextBox Style="{StaticResource SmartBpDebugOutputTextBox}" Text="{Binding DebugServerStatus}" />
-                <TextBlock Margin="0,6,0,0" FontWeight="SemiBold" Text="{lex:Loc SmartBpDebugPhaseScene}" />
-                <TextBox Style="{StaticResource SmartBpDebugOutputTextBox}" Text="{Binding DebugPhaseScene}" />
-                <TextBlock Margin="0,6,0,0" FontWeight="SemiBold" Text="{lex:Loc SmartBpDebugPureAiFullRaw}" />
-                <TextBox
-                    Height="100"
-                    Style="{StaticResource SmartBpDebugOutputTextBox}"
-                    Text="{Binding DebugPureAiFullRaw}" />
-                <TextBlock Margin="0,6,0,0" FontWeight="SemiBold" Text="{lex:Loc SmartBpDebugBusinessAiRaw}" />
-                <TextBox
-                    Height="100"
-                    Style="{StaticResource SmartBpDebugOutputTextBox}"
-                    Text="{Binding DebugBusinessAiRaw}" />
-                <TextBlock Margin="0,6,0,0" FontWeight="SemiBold" Text="{lex:Loc SmartBpDebugOcrRawLines}" />
-                <TextBox
-                    Height="100"
-                    Style="{StaticResource SmartBpDebugOutputTextBox}"
-                    Text="{Binding DebugOcrRawLines}" />
-                <TextBlock Margin="0,6,0,0" FontWeight="SemiBold" Text="{lex:Loc SmartBpDebugAiOcrTranscript}" />
-                <TextBox
-                    Height="100"
-                    Style="{StaticResource SmartBpDebugOutputTextBox}"
-                    Text="{Binding DebugAiOcrTranscript}" />
-                <TextBlock Margin="0,6,0,0" FontWeight="SemiBold" Text="{lex:Loc SmartBpDebugParsedState}" />
-                <TextBox Style="{StaticResource SmartBpDebugOutputTextBox}" Text="{Binding DebugParsedState}" />
-                <TextBlock Margin="0,6,0,0" FontWeight="SemiBold" Text="{lex:Loc SmartBpDebugMergeLog}" />
-                <TextBox Style="{StaticResource SmartBpDebugOutputTextBox}" Text="{Binding DebugMergeLog}" />
-                <TextBlock Margin="0,6,0,0" FontWeight="SemiBold" Text="{lex:Loc SmartBpDebugCandidateOperations}" />
-                <TextBox Style="{StaticResource SmartBpDebugOutputTextBox}" Text="{Binding DebugCandidateOperations}" />
-                <TextBlock Margin="0,6,0,0" FontWeight="SemiBold" Text="{lex:Loc SmartBpDebugTiming}" />
-                <TextBox Style="{StaticResource SmartBpDebugOutputTextBox}" Text="{Binding DebugTiming}" />
-                <TextBlock
-                    Margin="0,6,0,0"
-                    Foreground="{DynamicResource SystemFillColorCriticalBrush}"
-                    Text="{Binding AiLastError}"
-                    TextWrapping="Wrap" />
-                <TextBox
-                    Height="200"
-                    Style="{StaticResource SmartBpDebugOutputTextBox}"
-                    Text="{Binding AiDebugLogText}"
-                    TextChanged="AiDebugConsoleTextBox_OnTextChanged"
-                    Visibility="{Binding IsDebugLogEnabled, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Text="{lex:Loc SmartBpDebugFinalBusinessState}" />
+                <TextBox Style="{StaticResource SmartBpDebugOutputTextBox}" Text="{Binding DebugFinalBusinessState}" />
+                <ui:Button
+                    Margin="0,8,0,0"
+                    HorizontalAlignment="Left"
+                    Command="{Binding OpenRecognitionDebugLogWindowCommand}"
+                    Content="{lex:Loc SmartBpOpenRecognitionDebugLogWindow}"
+                    Icon="{ui:SymbolIcon Symbol=Open24}" />
             </StackPanel>
         </ui:CardExpander>
     </StackPanel>

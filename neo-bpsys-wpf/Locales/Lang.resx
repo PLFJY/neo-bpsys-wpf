@@ -5630,7 +5630,7 @@
   <data name="SmartBpAiLlamaPath" xml:space="preserve"><value>llama-server.exe 路径</value></data>
   <data name="SmartBpAiStartServer" xml:space="preserve"><value>启动 llama-server</value></data>
   <data name="SmartBpAiStopServer" xml:space="preserve"><value>停止 llama-server</value></data>
-  <data name="SmartBpAiRecognizeTestFrame" xml:space="preserve"><value>识别所选测试图</value></data>
+  <data name="SmartBpAiRecognizeTestFrame" xml:space="preserve"><value>识别所选测试图全图</value></data>
   <data name="SmartBpAiRecognizeCapture" xml:space="preserve"><value>识别当前捕获帧</value></data>
   <data name="SmartBpAiStartLoop" xml:space="preserve"><value>启动识别预览循环</value></data>
   <data name="SmartBpAiStopLoop" xml:space="preserve"><value>停止识别预览循环</value></data>
@@ -5652,6 +5652,7 @@
   <data name="SmartBpAiClearDebugConsole" xml:space="preserve"><value>清空</value></data>
   <data name="SmartBpAiStatusLoading" xml:space="preserve"><value>正在加载</value></data>
   <data name="SmartBpAiStatusStarting" xml:space="preserve"><value>正在启动 llama.cpp 服务…</value></data>
+  <data name="SmartBpAiStatusRestarting" xml:space="preserve"><value>正在重启 llama.cpp 服务…</value></data>
   <data name="SmartBpAiStatusLoaded" xml:space="preserve"><value>已加载</value></data>
   <data name="SmartBpAiStatusFailed" xml:space="preserve"><value>失败</value></data>
   <data name="SmartBpAiStatusStopped" xml:space="preserve"><value>已停止</value></data>
@@ -5731,6 +5732,8 @@
   <data name="SmartBpAiOcrServer" xml:space="preserve"><value>AI OCR 服务器</value></data>
   <data name="SmartBpBusinessAiServerStarting" xml:space="preserve"><value>正在启动业务 AI 服务器...</value></data>
   <data name="SmartBpAiOcrServerStarting" xml:space="preserve"><value>正在启动 AI OCR 服务器...</value></data>
+  <data name="SmartBpBusinessAiServerRestarting" xml:space="preserve"><value>正在重启业务 AI 服务器...</value></data>
+  <data name="SmartBpAiOcrServerRestarting" xml:space="preserve"><value>正在重启 AI OCR 服务器...</value></data>
   <data name="SmartBpRequiredServersStarting" xml:space="preserve"><value>正在启动当前策略所需服务器...</value></data>
   <data name="SmartBpServerModel" xml:space="preserve"><value>模型</value></data>
   <data name="SmartBpServerPort" xml:space="preserve"><value>端口</value></data>
@@ -5767,10 +5770,10 @@
   <data name="SmartBpAiWithOcrFusionMode" xml:space="preserve"><value>AI + OCR 融合模式</value></data>
   <data name="SmartBpAiWithAiOcrFusionMode" xml:space="preserve"><value>AI + AI OCR 融合模式</value></data>
   <data name="SmartBpDebugOptions" xml:space="preserve"><value>调试选项</value></data>
-  <data name="SmartBpFullRecognitionTest" xml:space="preserve"><value>完整识别测试</value></data>
-  <data name="SmartBpPhaseSceneOnlyTest" xml:space="preserve"><value>阶段 / 场景测试</value></data>
+  <data name="SmartBpFullRecognitionTest" xml:space="preserve"><value>识别全图</value></data>
+  <data name="SmartBpPhaseSceneOnlyTest" xml:space="preserve"><value>识别当前阶段</value></data>
   <data name="SmartBpDebugTools" xml:space="preserve"><value>调试工具</value></data>
-  <data name="SmartBpAiRecognizeSelectedPhase" xml:space="preserve"><value>识别所选图阶段</value></data>
+  <data name="SmartBpAiRecognizeSelectedPhase" xml:space="preserve"><value>识别所选测试图阶段</value></data>
   <data name="SmartBpAiRecognizeCurrentPhase" xml:space="preserve"><value>识别当前阶段</value></data>
   <data name="SmartBpDebugStrategySummary" xml:space="preserve"><value>策略</value></data>
   <data name="SmartBpDebugPhaseScene" xml:space="preserve"><value>阶段 / 场景</value></data>
@@ -5811,9 +5814,9 @@
   <data name="SmartBpAutoRecognitionStartConfirm" xml:space="preserve"><value>请确认当前对局进度和半场已正确设置。设置错误可能导致识别结果写入错误对局。</value></data>
   <data name="SmartBpAiOneStepDelayedMode" xml:space="preserve"><value>AI 单步延迟模式</value></data>
   <data name="SmartBpAiUseMultiImage" xml:space="preserve"><value>使用多图请求</value></data>
-  <data name="SmartBpAiRecognizeCurrentFrame" xml:space="preserve"><value>识别当前捕获画面</value></data>
+  <data name="SmartBpAiRecognizeCurrentFrame" xml:space="preserve"><value>识别当前捕获画面全图</value></data>
   <data name="SmartBpAiSwitchModelRestartConfirm" xml:space="preserve"><value>llama-server 正在运行。切换模型需要自动重启服务，是否继续？</value></data>
-  <data name="SmartBpAiSwitchModelTitle" xml:space="preserve"><value>切换 Qwen 模型</value></data>
+  <data name="SmartBpAiSwitchModelTitle" xml:space="preserve"><value>切换 AI 模型</value></data>
   <data name="SmartBpAiModelDownloadRequired" xml:space="preserve"><value>所选模型尚未安装，请先下载。</value></data>
   <data name="SmartBpTooltipContactSheet" xml:space="preserve"><value>把多个 BP 裁剪区域拼成一次 OCR 输入，通常能减少调用开销。关闭后逐区域识别更容易排查映射问题，但一次 tick 更慢。普通用户建议开启；若文字被错误归到其他区域再关闭。</value></data>
   <data name="SmartBpTooltipRecognitionInterval" xml:space="preserve"><value>控制 OCR 自动识别两次截图之间的间隔。间隔低于实际处理耗时时会造成结果滞后和界面卡顿。建议先运行“测试识别速度”，最低值会设为实测最大耗时 + 250ms。</value></data>
@@ -5876,4 +5879,14 @@
   <data name="SmartBpRapidOcrUpdateAvailableFormat" xml:space="preserve"><value>RapidOCR 模型可更新：{0} → {1}</value></data>
   <data name="SmartBpRapidOcrUpToDateFormat" xml:space="preserve"><value>RapidOCR 模型已是最新版本（{0}）</value></data>
   <data name="SmartBpRapidOcrBundledManifestOutdatedFormat" xml:space="preserve"><value>官方模型清单已更新（内置 {0}，官方 {1}）。请先更新 SmartBP 模块，避免安装旧模型。</value></data>
+  <data name="SmartBpIncrementalRecognitionTest" xml:space="preserve"><value>识别当前阶段的增量</value></data>
+  <data name="SmartBpRecognizeSelectedIncremental" xml:space="preserve"><value>识别所选测试图增量</value></data>
+  <data name="SmartBpRecognizeCurrentIncremental" xml:space="preserve"><value>识别当前捕获画面增量</value></data>
+  <data name="SmartBpDebugFinalBusinessState" xml:space="preserve"><value>最终业务状态</value></data>
+  <data name="SmartBpDebugFusionSummary" xml:space="preserve"><value>融合摘要</value></data>
+  <data name="SmartBpDebugTimingServerSummary" xml:space="preserve"><value>时序与服务器摘要</value></data>
+  <data name="SmartBpOpenRecognitionDebugLogWindow" xml:space="preserve"><value>打开识别日志窗口</value></data>
+  <data name="SmartBpRecognitionDebugLogWindowTitle" xml:space="preserve"><value>SmartBP 识别调试日志</value></data>
+  <data name="SmartBpRecognitionDebugLogAutoScroll" xml:space="preserve"><value>自动滚动</value></data>
+  <data name="SmartBpCopyRecognitionDebugLog" xml:space="preserve"><value>复制日志</value></data>
 </root>

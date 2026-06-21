@@ -247,6 +247,9 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty] private string _aiLlamaProcessId = "-";
     [ObservableProperty] private string _aiPerformanceUpdatedAt = "-";
     [ObservableProperty] private string _debugStrategySummary = "-";
+    [ObservableProperty] private string _debugModeSummary = "-";
+    [ObservableProperty] private string _debugFinalBusinessState = "-";
+    [ObservableProperty] private string _debugFusionSummary = "-";
     [ObservableProperty] private string _debugPhaseScene = "-";
     [ObservableProperty] private string _debugBusinessAiRaw = "-";
     [ObservableProperty] private string _debugPureAiFullRaw = "-";
@@ -257,10 +260,13 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty] private string _debugCandidateOperations = "-";
     [ObservableProperty] private string _debugServerStatus = "-";
     [ObservableProperty] private string _debugTiming = "-";
+    [ObservableProperty] private string _recognitionDebugLogText = "-";
+    [ObservableProperty] private bool _isRecognitionDebugLogAutoScrollEnabled = true;
     [ObservableProperty] private string _businessAiServerStatus = "-";
     [ObservableProperty] private string _businessAiServerProcessId = "-";
     [ObservableProperty] private string _businessAiServerPortText = "-";
     [ObservableProperty] private string _businessAiServerModelText = "-";
+    [ObservableProperty] private string _businessAiServerActivityText = "-";
     [NotifyCanExecuteChangedFor(nameof(StartBusinessAiServerCommand))]
     [NotifyCanExecuteChangedFor(nameof(StartRequiredLlamaServersCommand))]
     [ObservableProperty] private bool _isBusinessAiServerStarting;
@@ -268,6 +274,7 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty] private string _aiOcrServerProcessId = "-";
     [ObservableProperty] private string _aiOcrServerPortText = "-";
     [ObservableProperty] private string _aiOcrServerModelText = "-";
+    [ObservableProperty] private string _aiOcrServerActivityText = "-";
     [ObservableProperty] private string _aiOcrServerReuseStatus = "-";
     [NotifyCanExecuteChangedFor(nameof(StartAiOcrServerCommand))]
     [NotifyCanExecuteChangedFor(nameof(StartRequiredLlamaServersCommand))]
@@ -1044,17 +1051,25 @@ public partial class SmartBpModuleContentViewModel
         }
     }
 
-    private void SetRoleServerStarting(LlamaVisionServerRole role, bool value)
+    private void SetRoleServerStarting(LlamaVisionServerRole role, bool value, bool isRestart = false)
     {
         if (role == LlamaVisionServerRole.BusinessAi)
         {
             IsBusinessAiServerStarting = value;
-            if (value) BusinessAiServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusStarting");
+            if (value)
+            {
+                BusinessAiServerStatus = ResolveLocalizedOrRaw(isRestart ? "SmartBpAiStatusRestarting" : "SmartBpAiStatusStarting");
+                BusinessAiServerActivityText = ResolveLocalizedOrRaw(isRestart ? "SmartBpBusinessAiServerRestarting" : "SmartBpBusinessAiServerStarting");
+            }
         }
         else
         {
             IsAiOcrServerStarting = value;
-            if (value) AiOcrServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusStarting");
+            if (value)
+            {
+                AiOcrServerStatus = ResolveLocalizedOrRaw(isRestart ? "SmartBpAiStatusRestarting" : "SmartBpAiStatusStarting");
+                AiOcrServerActivityText = ResolveLocalizedOrRaw(isRestart ? "SmartBpAiOcrServerRestarting" : "SmartBpAiOcrServerStarting");
+            }
         }
     }
 
@@ -1132,6 +1147,18 @@ public partial class SmartBpModuleContentViewModel
         catch (Exception ex) { AiLastError = ex.Message; }
     }
     [RelayCommand] private Task RecognizeCurrentCaptureFrameAsync() => RecognizeCurrentFrameCoreAsync();
+    [RelayCommand] private async Task RecognizeIncrementalSelectedTestFrameAsync()
+    {
+        if (SelectedAiTestFrame == null) return;
+        try { await RunIncrementalRecognitionCoreAsync(LoadTestFrame(SelectedAiTestFrame)); }
+        catch (Exception ex) { AiLastError = ex.Message; }
+    }
+    [RelayCommand] private async Task RecognizeIncrementalCurrentCaptureFrameAsync()
+    {
+        var frame = _windowCaptureService.GetCurrentFrame();
+        if (frame == null) { AiLastError = "No capture frame is available."; return; }
+        await RunIncrementalRecognitionCoreAsync(frame);
+    }
     [RelayCommand] private async Task DetectStageFromSelectedTestFrameAsync()
     {
         if (SelectedAiTestFrame == null) return;
@@ -1433,6 +1460,7 @@ public partial class SmartBpModuleContentViewModel
         IsAiRecognizing = true; AiLastError = "";
         try
         {
+            DebugModeSummary = "FullImage";
             if (_recognitionSettingsService.Settings.RecognitionStrategy == SmartBpRecognitionStrategy.PureAi)
             {
                 await RunPureAiFullRecognitionDebugCoreAsync(frame);
@@ -1453,6 +1481,7 @@ public partial class SmartBpModuleContentViewModel
         var result = await _aiRecognitionService.RecognizeAsync(frame, SmartBpRecognitionTask.FullBpScan);
         watch.Stop();
         AiRawResponse = result.RawResponse;
+        DebugFinalBusinessState = "Recognition failed before final business state was produced.";
         DebugPureAiFullRaw = result.RawResponse;
         DebugBusinessAiRaw = "-";
         DebugOcrRawLines = "-";
@@ -1460,7 +1489,7 @@ public partial class SmartBpModuleContentViewModel
         DebugMergeLog = "Pure AI full debug uses the full BP scan result directly; no local OCR merge was run.";
         DebugCandidateOperations = "Pure AI full debug does not generate or apply operations.";
         DebugTiming = $"Pure AI full recognition elapsed: {result.ElapsedMilliseconds}ms; wall clock: {watch.ElapsedMilliseconds}ms; recommended interval: {result.RecommendedIntervalMilliseconds}ms.";
-        DebugStrategySummary = $"strategy=PureAi{Environment.NewLine}business_ai_model={_recognitionSettingsService.Settings.SelectedBusinessAiModelId}{Environment.NewLine}server_role=BusinessAi";
+        DebugStrategySummary = $"debug_mode={DebugModeSummary}{Environment.NewLine}strategy=PureAi{Environment.NewLine}business_ai_model={_recognitionSettingsService.Settings.SelectedBusinessAiModelId}{Environment.NewLine}server_role=BusinessAi";
         RefreshRoleServerStatus();
         DebugServerStatus = FormatRoleServerStatus();
 
@@ -1472,11 +1501,13 @@ public partial class SmartBpModuleContentViewModel
             AiStageDetectionResult = "-";
             AiCandidateOperations = DebugCandidateOperations;
             AiRequestMetrics = DebugTiming;
+            RefreshRecognitionDebugLogText();
             return;
         }
 
         var state = SmartBpBusinessStateParser.Parse(result.RawResponse);
         DebugParsedState = FormatBusinessState(state);
+        DebugFinalBusinessState = DebugParsedState;
         DebugPhaseScene = $"phase={state.Phase}";
         AiStageDetectionResult = DebugParsedState;
         AiParsedVisualResult = DebugParsedState;
@@ -1489,6 +1520,7 @@ public partial class SmartBpModuleContentViewModel
         AiFocusedCropPreview = null;
         AiCropDebugInfo = "Pure AI full debug sends the full frame to the full BP scan prompt/schema.";
         AiLastError = "";
+        RefreshRecognitionDebugLogText();
     }
 
     private async Task RunPhaseOnlyRecognitionCoreAsync(BitmapSource frame)
@@ -1497,7 +1529,21 @@ public partial class SmartBpModuleContentViewModel
         IsAiRecognizing = true; AiLastError = "";
         try
         {
+            DebugModeSummary = "PhaseOnly";
             var result = await _autoRecognitionCoordinator.RunPhaseOnlyDebugAsync(frame);
+            ApplyRegionGatedResult(result);
+        }
+        finally { IsAiRecognizing = false; Interlocked.Exchange(ref _recognitionBusy, 0); }
+    }
+
+    private async Task RunIncrementalRecognitionCoreAsync(BitmapSource frame)
+    {
+        if (Interlocked.CompareExchange(ref _recognitionBusy, 1, 0) != 0) return;
+        IsAiRecognizing = true; AiLastError = "";
+        try
+        {
+            DebugModeSummary = "CurrentStageIncremental";
+            var result = await _autoRecognitionCoordinator.RunIncrementalRecognitionDebugAsync(frame);
             ApplyRegionGatedResult(result);
         }
         finally { IsAiRecognizing = false; Interlocked.Exchange(ref _recognitionBusy, 0); }
@@ -1548,11 +1594,14 @@ public partial class SmartBpModuleContentViewModel
         AiRequestMetrics = metrics == null ? "not available" :
             $"AI request elapsed: {metrics.ElapsedMilliseconds}ms; completion tokens: {metrics.CompletionTokens?.ToString() ?? "not available"}; output tokens/sec: {metrics.TokensPerSecond?.ToString("0.##") ?? "not available"}; finish_reason: {_llamaCppOpenAiClient.LastFinishReason ?? "not available"}";
         AiLastError = result.Error ?? "";
+        RefreshRecognitionDebugLogText();
     }
 
     private void ResetStrategyDebugSections()
     {
         DebugStrategySummary = "-";
+        DebugFinalBusinessState = "Recognition failed before final business state was produced.";
+        DebugFusionSummary = "-";
         DebugPhaseScene = "-";
         DebugBusinessAiRaw = "-";
         DebugPureAiFullRaw = "-";
@@ -1563,17 +1612,30 @@ public partial class SmartBpModuleContentViewModel
         DebugCandidateOperations = "-";
         DebugServerStatus = FormatRoleServerStatus();
         DebugTiming = "-";
+        RefreshRecognitionDebugLogText();
     }
 
     private void RefreshStrategyDebugSections(SmartBpAutoRecognitionTickResult result)
     {
         var strategy = _recognitionSettingsService.Settings.RecognitionStrategy;
         RefreshRoleServerStatus();
-        DebugStrategySummary = FormatStrategySummary(strategy);
+        DebugStrategySummary = $"debug_mode={DebugModeSummary}{Environment.NewLine}{FormatStrategySummary(strategy)}";
         DebugPhaseScene = result.SceneGate == null
             ? $"phase={result.PhaseResult?.Phase ?? "unknown"}"
             : $"phase={result.PhaseResult?.Phase ?? "unknown"}{Environment.NewLine}scene={result.SceneGate.Scene}{Environment.NewLine}bp_allowed={result.SceneGate.IsBpRecognitionAllowed}{Environment.NewLine}character_operations_allowed={result.SceneGate.IsCharacterOperationAllowed}{Environment.NewLine}reason={result.SceneGate.Reason}";
         DebugParsedState = result.BusinessState == null ? "-" : FormatBusinessState(result.BusinessState);
+        DebugFinalBusinessState = result.BusinessState == null
+            ? "Recognition failed before final business state was produced."
+            : DebugParsedState;
+        DebugFusionSummary = strategy switch
+        {
+            SmartBpRecognitionStrategy.AiWithOcr => $"fusion_mode={_recognitionSettingsService.Settings.AiWithOcrFusionMode}; OCR evidence is merged locally by default.",
+            SmartBpRecognitionStrategy.AiWithAiOcr => $"fusion_mode={_recognitionSettingsService.Settings.AiWithAiOcrFusionMode}; " +
+                (result.CandidateMessages.Any(message => message.Contains("validation failed", StringComparison.OrdinalIgnoreCase))
+                    ? "Business AI fusion output was rejected; StateStore was preserved."
+                    : "AI OCR transcript evidence was fused before StateStore merge."),
+            _ => "No hybrid fusion was used."
+        };
         DebugCandidateOperations = FormatAutomaticOperations(result);
         DebugTiming = FormatRecognitionTiming();
         DebugServerStatus = FormatRoleServerStatus();
@@ -1581,12 +1643,24 @@ public partial class SmartBpModuleContentViewModel
             message.Contains("Applied ", StringComparison.OrdinalIgnoreCase) ||
             message.Contains("merge", StringComparison.OrdinalIgnoreCase) ||
             message.Contains("parsed", StringComparison.OrdinalIgnoreCase) ||
+            message.Contains("validation", StringComparison.OrdinalIgnoreCase) ||
+            message.Contains("rejected", StringComparison.OrdinalIgnoreCase) ||
+            message.Contains("overridden", StringComparison.OrdinalIgnoreCase) ||
             message.Contains("updates=", StringComparison.OrdinalIgnoreCase)));
         if (string.IsNullOrWhiteSpace(DebugMergeLog)) DebugMergeLog = "-";
 
-        DebugBusinessAiRaw = strategy is SmartBpRecognitionStrategy.PureAi or SmartBpRecognitionStrategy.AiWithOcr or SmartBpRecognitionStrategy.AiWithAiOcr
-            ? ExtractRawSection(result.RawJson, "phase_only")
-            : "-";
+        if (strategy is SmartBpRecognitionStrategy.PureAi or SmartBpRecognitionStrategy.AiWithOcr or SmartBpRecognitionStrategy.AiWithAiOcr)
+        {
+            var phaseRaw = ExtractRawSection(result.RawJson, "phase_only");
+            var fusionRaw = ExtractRawSection(result.RawJson, "business_ai_fusion");
+            DebugBusinessAiRaw = fusionRaw == "-"
+                ? phaseRaw
+                : $"phase_only raw:{Environment.NewLine}{phaseRaw}{Environment.NewLine}{Environment.NewLine}business_ai_fusion raw:{Environment.NewLine}{fusionRaw}";
+        }
+        else
+        {
+            DebugBusinessAiRaw = "-";
+        }
         DebugPureAiFullRaw = "-";
         DebugOcrRawLines = strategy is SmartBpRecognitionStrategy.PureOcr or SmartBpRecognitionStrategy.AiWithOcr
             ? ExtractOcrRaw(result.RawJson)
@@ -1594,7 +1668,87 @@ public partial class SmartBpModuleContentViewModel
         DebugAiOcrTranscript = strategy == SmartBpRecognitionStrategy.AiWithAiOcr
             ? ExtractAiOcrRaw(result.RawJson)
             : "-";
+        RefreshRecognitionDebugLogText();
     }
+
+    [RelayCommand]
+    private void OpenRecognitionDebugLogWindow()
+    {
+        RefreshRecognitionDebugLogText();
+        if (_recognitionDebugLogWindow is { IsVisible: true })
+        {
+            _recognitionDebugLogWindow.Activate();
+            return;
+        }
+        var window = new SmartBpRecognitionDebugLogWindow(this)
+        {
+            Owner = Application.Current?.Windows.OfType<Window>().FirstOrDefault(candidate => candidate.IsActive)
+                    ?? Application.Current?.MainWindow
+        };
+        window.Closed += (_, _) => _recognitionDebugLogWindow = null;
+        _recognitionDebugLogWindow = window;
+        window.Show();
+    }
+
+    [RelayCommand]
+    private void CopyRecognitionDebugLog()
+    {
+        RefreshRecognitionDebugLogText();
+        if (!string.IsNullOrWhiteSpace(RecognitionDebugLogText))
+            Clipboard.SetText(RecognitionDebugLogText);
+    }
+
+    [RelayCommand]
+    private void RefreshRecognitionDebugLog() => RefreshRecognitionDebugLogText();
+
+    private void RefreshRecognitionDebugLogText()
+    {
+        RecognitionDebugLogText = $"""
+=== Final Business State ===
+{DebugFinalBusinessState}
+
+=== Debug Mode / Strategy ===
+{DebugStrategySummary}
+
+=== Phase / Scene ===
+{DebugPhaseScene}
+
+=== Fusion Summary ===
+{DebugFusionSummary}
+
+=== Pure AI Full Raw ===
+{DebugPureAiFullRaw}
+
+=== Business AI Raw / Fusion Raw ===
+{DebugBusinessAiRaw}
+
+=== OCR Raw Lines ===
+{DebugOcrRawLines}
+
+=== AI OCR Transcript ===
+{DebugAiOcrTranscript}
+
+=== Merge / Validation Diagnostics ===
+{DebugMergeLog}
+
+=== Candidate Operations ===
+{DebugCandidateOperations}
+
+=== Server Status ===
+{DebugServerStatus}
+
+=== Timing ===
+{DebugTiming}
+
+=== Runtime Log ===
+{AiDebugLogText}
+
+=== Last Error ===
+{AiLastError}
+""";
+    }
+
+    partial void OnAiDebugLogTextChanged(string value) => RefreshRecognitionDebugLogText();
 
     private string FormatStrategySummary(SmartBpRecognitionStrategy strategy) =>
         strategy switch
@@ -1623,6 +1777,11 @@ public partial class SmartBpModuleContentViewModel
         if (string.IsNullOrWhiteSpace(raw)) return "-";
         var marker = $"{key} raw:";
         var index = raw.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+        if (index < 0)
+        {
+            marker = $"{key} rejected raw:";
+            index = raw.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+        }
         if (index < 0 && key == "phase_only" && raw.TrimStart().StartsWith('{')) return raw;
         if (index < 0) return "-";
         var start = index + marker.Length;
@@ -1855,11 +2014,16 @@ public partial class SmartBpModuleContentViewModel
     {
         _isSwitchingQwenModel = true;
         var oldId = _recognitionSettingsService.Settings.SelectedBusinessAiModelId;
+        var business = _llamaServerManagers.Get(LlamaVisionServerRole.BusinessAi);
+        var aiOcr = _llamaServerManagers.Get(LlamaVisionServerRole.AiOcr);
+        var restartBusiness = business.IsRunning;
+        var preserveAiOcrRole = _recognitionSettingsService.Settings.RecognitionStrategy == SmartBpRecognitionStrategy.AiWithAiOcr &&
+                                IsAiOcrRelevantServerRunning();
+        var businessRestartStateSet = false;
+        var aiOcrRestartStateSet = false;
         try
         {
-            var business = _llamaServerManagers.Get(LlamaVisionServerRole.BusinessAi);
-            var restart = business.IsRunning;
-            if (restart)
+            if (restartBusiness)
             {
                 var confirmed = await MessageBoxHelper.ShowConfirmAsync(
                     ResolveLocalizedOrRaw("SmartBpAiSwitchModelRestartConfirm"),
@@ -1870,6 +2034,8 @@ public partial class SmartBpModuleContentViewModel
                     SelectedQwenModelProfile = QwenModelProfiles.FirstOrDefault(profile => profile.Id == oldId);
                     return;
                 }
+                SetRoleServerStarting(LlamaVisionServerRole.BusinessAi, true, true);
+                businessRestartStateSet = true;
                 await business.StopAsync();
             }
             _recognitionSettingsService.Settings.SelectedBusinessAiModelId = value.Id;
@@ -1880,26 +2046,44 @@ public partial class SmartBpModuleContentViewModel
             IsQwenInstalled = await _qwenAssetManager.IsInstalledAsync(value.Id);
             await RefreshSelectedQwenModelInstallStatusAsync();
             SwitchSelectedQwenModelCommand.NotifyCanExecuteChanged();
-            if (restart && IsQwenInstalled)
+            if (restartBusiness && IsQwenInstalled)
                 await business.StartAsync();
             else if (!IsQwenInstalled)
                 AiLastError = ResolveLocalizedOrRaw("SmartBpAiModelDownloadRequired");
+
+            var aiOcrModelInstalled = await _qwenAssetManager.IsInstalledAsync(_recognitionSettingsService.Settings.SelectedAiOcrModelId);
+            if (preserveAiOcrRole && !IsAiOcrReusingBusinessServer() && !aiOcr.IsRunning && aiOcrModelInstalled)
+            {
+                SetRoleServerStarting(LlamaVisionServerRole.AiOcr, true, true);
+                aiOcrRestartStateSet = true;
+                await aiOcr.StartAsync();
+            }
             await ReconcileLlamaServersForCurrentStrategyAsync();
             RefreshLlamaServerUiState();
         }
         catch (Exception ex) { AiLastError = ex.Message; }
-        finally { _isSwitchingQwenModel = false; }
+        finally
+        {
+            if (businessRestartStateSet) SetRoleServerStarting(LlamaVisionServerRole.BusinessAi, false);
+            if (aiOcrRestartStateSet) SetRoleServerStarting(LlamaVisionServerRole.AiOcr, false);
+            _isSwitchingQwenModel = false;
+            RefreshLlamaServerUiState();
+        }
     }
 
     private async Task SwitchAiOcrModelAsync(QwenModelProfile value)
     {
         _isSwitchingAiOcrModel = true;
         var oldId = _recognitionSettingsService.Settings.SelectedAiOcrModelId;
+        var business = _llamaServerManagers.Get(LlamaVisionServerRole.BusinessAi);
+        var aiOcr = _llamaServerManagers.Get(LlamaVisionServerRole.AiOcr);
+        var wasReusingBusiness = IsAiOcrReusingBusinessServer();
+        var aiOcrRoleWasRunning = wasReusingBusiness ? business.IsRunning : aiOcr.IsRunning;
+        var aiOcrRestartStateSet = false;
+        var businessRestartStateSet = false;
         try
         {
-            var aiOcr = _llamaServerManagers.Get(LlamaVisionServerRole.AiOcr);
-            var restartAiOcr = !IsAiOcrReusingBusinessServer() && aiOcr.IsRunning;
-            if (restartAiOcr)
+            if (aiOcrRoleWasRunning)
             {
                 var confirmed = await MessageBoxHelper.ShowConfirmAsync(
                     ResolveLocalizedOrRaw("SmartBpAiSwitchModelRestartConfirm"),
@@ -1910,6 +2094,12 @@ public partial class SmartBpModuleContentViewModel
                     SelectedAiOcrModelProfile = AiOcrModelProfiles.FirstOrDefault(profile => profile.Id == oldId);
                     return;
                 }
+            }
+
+            if (!wasReusingBusiness && aiOcr.IsRunning)
+            {
+                SetRoleServerStarting(LlamaVisionServerRole.AiOcr, true, true);
+                aiOcrRestartStateSet = true;
                 await aiOcr.StopAsync();
             }
 
@@ -1918,15 +2108,37 @@ public partial class SmartBpModuleContentViewModel
             await _recognitionSettingsService.SaveAsync();
             CurrentAiOcrModelDisplayName = value.DisplayName;
             await RefreshSelectedAiOcrModelInstallStatusAsync();
-            if (restartAiOcr && IsSelectedAiOcrModelInstalled && _recognitionSettingsService.Settings.RecognitionStrategy == SmartBpRecognitionStrategy.AiWithAiOcr && !IsAiOcrReusingBusinessServer())
+
+            if (aiOcrRoleWasRunning && _recognitionSettingsService.Settings.RecognitionStrategy == SmartBpRecognitionStrategy.AiWithAiOcr &&
+                !IsAiOcrReusingBusinessServer() && IsSelectedAiOcrModelInstalled)
+            {
+                if (!aiOcrRestartStateSet)
+                {
+                    SetRoleServerStarting(LlamaVisionServerRole.AiOcr, true, true);
+                    aiOcrRestartStateSet = true;
+                }
                 await aiOcr.StartAsync();
-            else if (!IsSelectedAiOcrModelInstalled)
+            }
+            else if (aiOcrRoleWasRunning && IsAiOcrReusingBusinessServer() && !business.IsRunning &&
+                     await _qwenAssetManager.IsInstalledAsync(_recognitionSettingsService.Settings.SelectedBusinessAiModelId))
+            {
+                SetRoleServerStarting(LlamaVisionServerRole.BusinessAi, true, true);
+                businessRestartStateSet = true;
+                await business.StartAsync();
+            }
+            else if (!IsAiOcrReusingBusinessServer() && !IsSelectedAiOcrModelInstalled)
                 AiLastError = ResolveLocalizedOrRaw("SmartBpAiModelDownloadRequired");
             await ReconcileLlamaServersForCurrentStrategyAsync();
             RefreshLlamaServerUiState();
         }
         catch (Exception ex) { AiLastError = ex.Message; }
-        finally { _isSwitchingAiOcrModel = false; }
+        finally
+        {
+            if (aiOcrRestartStateSet) SetRoleServerStarting(LlamaVisionServerRole.AiOcr, false);
+            if (businessRestartStateSet) SetRoleServerStarting(LlamaVisionServerRole.BusinessAi, false);
+            _isSwitchingAiOcrModel = false;
+            RefreshLlamaServerUiState();
+        }
     }
 
     partial void OnSelectedLlamaRuntimeAssetChanged(LlamaCppRuntimeAssetSelection? value)

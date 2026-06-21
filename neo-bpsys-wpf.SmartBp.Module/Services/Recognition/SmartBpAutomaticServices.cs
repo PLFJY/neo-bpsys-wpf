@@ -1,6 +1,7 @@
 using System.IO;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Windows.Media.Imaging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
@@ -254,6 +255,106 @@ internal static class SmartBpAutomaticParser
             }
         }
         return result;
+    }
+
+    public static SmartBpSnapshotDeltaResult ParseBusinessAiFusionSnapshotDelta(
+        string raw,
+        string lockedPhase,
+        IReadOnlyCollection<string> requestedFields,
+        IReadOnlyCollection<string> survivorCandidates,
+        IReadOnlyCollection<string> hunterCandidates,
+        ICharacterSelectionService characterSelection,
+        out IReadOnlyList<string> diagnostics)
+    {
+        var messages = new List<string>();
+        var (repaired, removedFence) = SmartBpJsonRepair.Repair(raw);
+        if (removedFence)
+            messages.Add("Business AI fusion JSON fence was removed before validation.");
+        var root = JsonNode.Parse(repaired)?.AsObject()
+            ?? throw new InvalidDataException("Business AI fusion output rejected: response must be a JSON object.");
+        RejectUnexpectedProperties(root, ["phase", "updates"], "root");
+        if (root["phase"] is not JsonValue phaseValue || !phaseValue.TryGetValue<string>(out var outputPhase))
+            throw new InvalidDataException("Business AI fusion output rejected: phase must be a string.");
+        if (!string.Equals(outputPhase, lockedPhase, StringComparison.Ordinal))
+        {
+            messages.Add($"Business AI fusion changed phase from {lockedPhase} to {outputPhase}; overridden to {lockedPhase}.");
+            root["phase"] = lockedPhase;
+        }
+
+        if (root["updates"] is not JsonArray updates)
+            throw new InvalidDataException("Business AI fusion output rejected: updates must be an array.");
+        var seenFields = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var node in updates)
+        {
+            if (node is not JsonObject update)
+                throw new InvalidDataException("Business AI fusion output rejected: every update must be an object.");
+            var field = update["field"]?.GetValue<string>() ?? "";
+            RejectUnexpectedProperties(update, ["field", "slots", "picked_hun"], $"update field={field}");
+            if (!requestedFields.Contains(field))
+                throw new InvalidDataException($"Business AI fusion output rejected: update field={field} was not requested.");
+            if (!seenFields.Add(field))
+                throw new InvalidDataException($"Business AI fusion output rejected: duplicate update field={field}.");
+            if (!update.ContainsKey("slots") || !update.ContainsKey("picked_hun"))
+                throw new InvalidDataException($"Business AI fusion output rejected: update field={field} must contain slots and picked_hun.");
+
+            var camp = field is "banned_hun" or "picked_hun" ? Camp.Hun : Camp.Sur;
+            var candidates = camp == Camp.Sur ? survivorCandidates : hunterCandidates;
+            if (field == "picked_hun")
+            {
+                if (update["slots"] is not null)
+                    throw new InvalidDataException("Business AI fusion output rejected: update field=picked_hun requires slots=null.");
+                if (update["picked_hun"] is not JsonObject pickedHunter)
+                    throw new InvalidDataException("Business AI fusion output rejected: update field=picked_hun requires a picked_hun object.");
+                NormalizeFusionSlot(pickedHunter, field, camp, candidates, characterSelection, messages);
+            }
+            else
+            {
+                if (update["picked_hun"] is not null)
+                    throw new InvalidDataException($"Business AI fusion output rejected: update field={field} contained unexpected property picked_hun.");
+                if (update["slots"] is not JsonArray slots)
+                    throw new InvalidDataException($"Business AI fusion output rejected: update field={field} requires a slots array.");
+                foreach (var slot in slots.OfType<JsonObject>())
+                    NormalizeFusionSlot(slot, field, camp, candidates, characterSelection, messages);
+            }
+        }
+        var missingFields = requestedFields.Where(field => !seenFields.Contains(field)).ToArray();
+        if (missingFields.Length > 0)
+            throw new InvalidDataException($"Business AI fusion output rejected: missing requested fields [{string.Join(", ", missingFields)}].");
+
+        diagnostics = messages;
+        return ParseSnapshotDelta(root.ToJsonString(), requestedFields, survivorCandidates, hunterCandidates);
+    }
+
+    private static void RejectUnexpectedProperties(JsonObject value, IReadOnlyCollection<string> allowed, string context)
+    {
+        var unexpected = value.Select(property => property.Key).FirstOrDefault(name => !allowed.Contains(name));
+        if (unexpected != null)
+            throw new InvalidDataException($"Business AI fusion output rejected: {context} contained unexpected property {unexpected}.");
+    }
+
+    private static void NormalizeFusionSlot(
+        JsonObject slot,
+        string field,
+        Camp camp,
+        IReadOnlyCollection<string> candidates,
+        ICharacterSelectionService characterSelection,
+        ICollection<string> diagnostics)
+    {
+        RejectUnexpectedProperties(slot, ["index", "slot_state", "character_name", "player_id"], $"{field} slot");
+        var slotState = slot["slot_state"]?.GetValue<string>()?.Trim().ToLowerInvariant() ?? "";
+        var characterName = slot["character_name"]?.GetValue<string>()?.Trim() ?? "";
+        if (slotState is "empty" or "unknown")
+        {
+            slot["character_name"] = "未选择";
+            return;
+        }
+        if (slotState != "selected" || candidates.Contains(characterName))
+            return;
+        var resolution = characterSelection.ResolveCharacterDetailed(characterName, camp);
+        if (resolution.CanonicalName == null || !candidates.Contains(resolution.CanonicalName))
+            throw new InvalidDataException($"Business AI fusion output rejected: {field}.character_name is not a valid {camp} candidate: {characterName}.");
+        slot["character_name"] = resolution.CanonicalName;
+        diagnostics.Add($"Business AI fusion normalized {field} character '{characterName}' to '{resolution.CanonicalName}'.");
     }
 
     private static void NormalizeLegacyDeltaSlotStates(List<SmartBpSnapshotDeltaSlot>? slots, JsonElement rawUpdate, string propertyName)
@@ -989,7 +1090,8 @@ internal sealed class SmartBpDetectedOperationApplier(
 internal enum SmartBpRecognitionDebugMode
 {
     Automatic,
-    FullStrategy
+    FullStrategy,
+    CurrentStageIncremental
 }
 
 internal sealed class SmartBpAutoRecognitionCoordinator(
@@ -1065,6 +1167,9 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
     public async Task<SmartBpAutoRecognitionTickResult> RunFullRecognitionDebugAsync(BitmapSource frame, CancellationToken cancellationToken = default)
         => await RunOneTickCoreAsync(frame, isDryRun: false, cancellationToken, SmartBpRecognitionDebugMode.FullStrategy).ConfigureAwait(false);
 
+    public async Task<SmartBpAutoRecognitionTickResult> RunIncrementalRecognitionDebugAsync(BitmapSource frame, CancellationToken cancellationToken = default)
+        => await RunOneTickCoreAsync(frame, isDryRun: false, cancellationToken, SmartBpRecognitionDebugMode.CurrentStageIncremental).ConfigureAwait(false);
+
     public async Task<SmartBpAutoRecognitionTickResult> RunPhaseOnlyDebugAsync(BitmapSource frame, CancellationToken cancellationToken = default)
         => await RunPhaseOnlyDebugCoreAsync(frame, cancellationToken).ConfigureAwait(false);
 
@@ -1085,6 +1190,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
             _currentTickCancellation = linked;
         }
         var tickToken = linked.Token;
+        var isDebugPreview = debugMode != SmartBpRecognitionDebugMode.Automatic;
         string raw = "";
         try
         {
@@ -1105,6 +1211,8 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                 messages.Add("Speed-test dry run: recognition request shape matches automatic tick, but local merge, auto apply, and GameGuidance sync are disabled.");
             if (debugMode == SmartBpRecognitionDebugMode.FullStrategy)
                 messages.Add("Full strategy debug: phase_top plus all four BP business fields are requested.");
+            else if (debugMode == SmartBpRecognitionDebugMode.CurrentStageIncremental)
+                messages.Add("Current-stage incremental debug: automatic planner requested only relevant/stale fields; operation apply and guidance sync are disabled.");
             IReadOnlyDictionary<string, string> rawResponses;
             var recognitionPath = ResolveRecognitionPath(request);
             debugLog.Write("recognition", $"Recognition path={recognitionPath}; structured_output_mode={settings.Settings.StructuredOutputMode}; requested_fields=[{string.Join(", ", request.RequestedFields)}]; legacy_delta={settings.Settings.UseLegacySnapshotDeltaRecognition}.");
@@ -1210,28 +1318,41 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                         }
                     }
 
-                    SmartBpSnapshotDeltaResult delta;
+                    SmartBpSnapshotDeltaResult? delta;
                     if (settings.Settings.AiWithAiOcrFusionMode == SmartBpHybridFusionMode.BusinessAi)
                     {
-                        var fusion = await businessAiFusion.FuseAsync(phaseResult, evidence, request.RequestedFields, preGateState, tickToken);
-                        delta = fusion.Delta;
-                        rawMap["business_ai_fusion"] = fusion.RawJson;
-                        rawBuilder.Append("\n\nbusiness_ai_fusion raw:\n").Append(fusion.RawJson);
-                        messages.AddRange(fusion.Diagnostics);
-                        messages.Add("AI + AI OCR fusion_mode=BusinessAi; transcript evidence was fused by the Business AI model.");
+                        try
+                        {
+                            var fusion = await businessAiFusion.FuseAsync(phaseResult, evidence, request.RequestedFields, preGateState, tickToken);
+                            delta = fusion.Delta;
+                            rawMap["business_ai_fusion"] = fusion.RawJson;
+                            rawBuilder.Append("\n\nbusiness_ai_fusion raw:\n").Append(fusion.RawJson);
+                            messages.AddRange(fusion.Diagnostics);
+                            messages.Add("AI + AI OCR fusion_mode=BusinessAi; transcript evidence was fused and validated before merge.");
+                        }
+                        catch (SmartBpBusinessAiFusionValidationException ex)
+                        {
+                            delta = null;
+                            rawMap["business_ai_fusion"] = ex.RawJson;
+                            rawBuilder.Append("\n\nbusiness_ai_fusion rejected raw:\n").Append(ex.RawJson);
+                            messages.AddRange(ex.Diagnostics);
+                            messages.Add("Business AI fusion validation failed; corrupted updates were not merged.");
+                        }
                     }
                     else
                     {
                         delta = new SmartBpSnapshotDeltaResult { Phase = phaseResult.Phase, Updates = updates };
                         messages.Add("AI + AI OCR fusion_mode=LocalCSharp; local transcript interpreter is experimental.");
                     }
-                    if (!isDryRun)
+                    if (!isDryRun && delta != null)
                         messages.AddRange(stateStore.ApplyDelta(delta, sequence, DateTimeOffset.Now));
                     state = isDryRun ? preGateState : stateStore.Snapshot;
                     raw = rawBuilder.ToString();
                     rawResponses = rawMap;
                     contentCrops = [];
-                    messages.Add($"AI + AI OCR transcript merge result updates=[{string.Join(", ", delta.Updates.Select(update => update.Field))}].");
+                    messages.Add(delta == null
+                        ? "AI + AI OCR transcript merge result: rejected; previous StateStore values were preserved."
+                        : $"AI + AI OCR transcript merge result updates=[{string.Join(", ", delta.Updates.Select(update => update.Field))}].");
                 }
             }
             else if (recognitionPath == SmartBpRecognitionPath.FieldSnapshot || recognitionPath == SmartBpRecognitionPath.FullFieldSnapshot)
@@ -1357,7 +1478,9 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                 : 1;
             _lastSnapshotFingerprint = fingerprint;
             var requiredStable = Math.Max(1, settings.Settings.RequiredStableSnapshots);
-            SmartBpOperationApplyResult applyResult = settings.Settings.EnableAutoApplyRecognition && _stableSnapshotCount >= requiredStable
+            SmartBpOperationApplyResult applyResult = isDebugPreview
+                ? new(0, operations.Length, ["Recognition debug preview: operation application is disabled."])
+                : settings.Settings.EnableAutoApplyRecognition && _stableSnapshotCount >= requiredStable
                 ? await applier.ApplyAsync(operations, tickToken)
                 : settings.Settings.EnableAutoApplyRecognition
                     ? new(0, operations.Length, [$"Skipped: waiting for stable BP snapshots ({_stableSnapshotCount}/{requiredStable})."])
@@ -1380,9 +1503,11 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
             var delayedAiCanSync = settings.Settings.RecognitionStrategy == SmartBpRecognitionStrategy.PureOcr ||
                                    !settings.Settings.AiOneStepDelayedMode ||
                                    operations.All(IsOperationCompleted);
-            SmartBpGuidanceSyncResult? sync = gate.IsBpRecognitionAllowed && !isFreeSync && settings.Settings.EnableAutoGuidanceSync && delayedAiCanSync
+            SmartBpGuidanceSyncResult? sync = !isDebugPreview && gate.IsBpRecognitionAllowed && !isFreeSync && settings.Settings.EnableAutoGuidanceSync && delayedAiCanSync
                 ? await guidanceSync.SyncAsync(state, tickToken)
-                : new(false, false, isFreeSync
+                : new(false, false, isDebugPreview
+                    ? "Recognition debug preview: GameGuidance synchronization is disabled."
+                    : isFreeSync
                     ? "Free full sync does not synchronize GameGuidance."
                     : !delayedAiCanSync
                         ? "AI delayed mode is waiting for current or previous operations to be applied or confirmed as no-op."

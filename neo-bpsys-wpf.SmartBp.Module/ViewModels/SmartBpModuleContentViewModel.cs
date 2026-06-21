@@ -63,6 +63,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     private readonly object _debugLogBufferLock = new();
     private readonly StringBuilder _debugLogBuffer = new();
     private DispatcherTimer? _debugLogFlushTimer;
+    private Window? _recognitionDebugLogWindow;
 
     /// <summary>
     /// 用于设计时预览的无参构造函数。
