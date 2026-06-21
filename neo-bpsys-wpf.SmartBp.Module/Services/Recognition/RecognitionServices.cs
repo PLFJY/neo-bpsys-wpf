@@ -68,8 +68,9 @@ Return only JSON:
                 cancellationToken).ConfigureAwait(false);
             var raw = await RecognizeRegionAsync(imageDataUrl, region, field, cancellationToken).ConfigureAwait(false);
             rawBuilder.AppendLine($"[{ToRegionId(region)} field={field}]").AppendLine(raw);
-            var lines = ParseLines(raw);
+            var (lines, parseDiagnostics) = ParseLines(raw);
             diagnostics.Add($"AI OCR transcript region={ToRegionId(region)}; field={field}; line_count={lines.Count}.");
+            diagnostics.AddRange(parseDiagnostics);
             allLines.AddRange(lines);
         }
 
@@ -126,17 +127,38 @@ Return only JSON:
         !settings.Settings.UseSeparateAiOcrServer ||
         string.Equals(settings.Settings.SelectedBusinessAiModelId, settings.Settings.SelectedAiOcrModelId, StringComparison.Ordinal);
 
-    private static IReadOnlyList<SmartBpAiOcrTranscriptLine> ParseLines(string raw)
+    private static (IReadOnlyList<SmartBpAiOcrTranscriptLine> Lines, IReadOnlyList<string> Diagnostics) ParseLines(string raw)
     {
-        using var document = JsonDocument.Parse(raw);
-        if (!document.RootElement.TryGetProperty("lines", out var linesElement) ||
-            linesElement.ValueKind != JsonValueKind.Array)
-            return [];
-        return linesElement.EnumerateArray()
-            .Select(item => item.TryGetProperty("text", out var text) ? text.GetString() : null)
+        var diagnostics = new List<string>();
+        var (repaired, removedFence) = SmartBpJsonRepair.Repair(raw);
+        if (removedFence)
+            diagnostics.Add("AI OCR transcript JSON fence was removed before parsing.");
+        try
+        {
+            using var document = JsonDocument.Parse(repaired);
+            if (document.RootElement.TryGetProperty("lines", out var linesElement) &&
+                linesElement.ValueKind == JsonValueKind.Array)
+            {
+                var lines = linesElement.EnumerateArray()
+                    .Select(item => item.TryGetProperty("text", out var text) ? text.GetString() : null)
+                    .Where(text => !string.IsNullOrWhiteSpace(text))
+                    .Select(text => new SmartBpAiOcrTranscriptLine { Text = text!.Trim() })
+                    .ToArray();
+                return (lines, diagnostics);
+            }
+        }
+        catch (JsonException)
+        {
+            diagnostics.Add("AI OCR transcript was not valid JSON; parsed as plain text fallback.");
+        }
+
+        var plain = Regex.Split(raw, @"[\r\n\t ,，;；、|/\\]+")
+            .Select(text => text.Trim().Trim('"', '\'', '`'))
             .Where(text => !string.IsNullOrWhiteSpace(text))
-            .Select(text => new SmartBpAiOcrTranscriptLine { Text = text! })
+            .Distinct(StringComparer.Ordinal)
+            .Select(text => new SmartBpAiOcrTranscriptLine { Text = text })
             .ToArray();
+        return (plain, diagnostics);
     }
 
     private static string ToRegionId(SmartBpRecognitionRegion region) =>
@@ -269,6 +291,82 @@ internal sealed class SmartBpAiOcrTranscriptInterpreter(ICharacterSelectionServi
         Enumerable.Range(0, count)
             .Select(index => new SmartBpSnapshotDeltaSlot { Index = index, SlotState = "unknown", CharacterName = "未选择" })
             .ToList();
+
+    private static string ToRegionId(SmartBpRecognitionRegion region) =>
+        region switch
+        {
+            SmartBpRecognitionRegion.PhaseTop => "phase_top",
+            SmartBpRecognitionRegion.LeftTop => "left_top",
+            SmartBpRecognitionRegion.RightTop => "right_top",
+            SmartBpRecognitionRegion.LeftBottom => "left_bottom",
+            SmartBpRecognitionRegion.RightBottom => "right_bottom",
+            _ => region.ToString()
+        };
+}
+
+internal sealed class SmartBpBusinessAiFusionService(ILlamaCppOpenAiClient client, ISharedDataService shared, ISmartBpDebugLog debugLog) : ISmartBpBusinessAiFusionService
+{
+    public async Task<(SmartBpSnapshotDeltaResult Delta, string RawJson, IReadOnlyList<string> Diagnostics)> FuseAsync(
+        SmartBpPhaseRecognitionResult phase,
+        IReadOnlyList<SmartBpAiOcrTranscriptRegionEvidence> evidence,
+        IReadOnlyCollection<string> requestedFields,
+        SmartBpBusinessStateRecognitionResult currentKnownState,
+        CancellationToken cancellationToken = default)
+    {
+        var prompt = BuildPrompt(phase, evidence, requestedFields, currentKnownState);
+        debugLog.Write("recognition", $"Business AI fusion prompt:\n{prompt}");
+        var raw = await client.FuseTranscriptEvidenceAsync(prompt, requestedFields, cancellationToken).ConfigureAwait(false);
+        var parsed = SmartBpAutomaticParser.ParseSnapshotDelta(raw, requestedFields, shared.SurCharaDict.Keys, shared.HunCharaDict.Keys);
+        return (parsed, raw,
+        [
+            $"Business AI fusion produced updates=[{string.Join(", ", parsed.Updates.Select(update => update.Field))}].",
+            $"Business AI fusion evidence_regions={evidence.Count}; requested_fields=[{string.Join(", ", requestedFields)}]."
+        ]);
+    }
+
+    private static string BuildPrompt(
+        SmartBpPhaseRecognitionResult phase,
+        IReadOnlyList<SmartBpAiOcrTranscriptRegionEvidence> evidence,
+        IReadOnlyCollection<string> requestedFields,
+        SmartBpBusinessStateRecognitionResult currentKnownState)
+    {
+        var evidenceJson = new JsonArray(evidence.Select(item => new JsonObject
+        {
+            ["region"] = ToRegionId(item.Region),
+            ["field"] = item.Field,
+            ["rawTranscript"] = item.RawTranscript,
+            ["lines"] = new JsonArray(item.Lines.Select(line => JsonValue.Create(line)).ToArray<JsonNode?>())
+        }).ToArray<JsonNode?>());
+        var payload = new JsonObject
+        {
+            ["phase"] = phase.Phase,
+            ["requestedFields"] = new JsonArray(requestedFields.Select(field => JsonValue.Create(field)).ToArray<JsonNode?>()),
+            ["currentKnownState"] = SmartBpRecognitionPromptBuilder.FormatCurrentKnownStateForDiagnostics(currentKnownState),
+            ["evidence"] = evidenceJson
+        };
+        return $$"""
+You are the SmartBP business fusion model.
+You will receive:
+- recognized phase
+- requested fields
+- current known state
+- AI OCR text transcript per BP region
+
+Convert the transcript into requested SmartBP field updates.
+
+Do not invent characters.
+Use transcript evidence only.
+If transcript is unclear, output slot_state="unknown".
+If transcript clearly says 未选择 or empty, output slot_state="empty".
+If transcript clearly shows a character, output slot_state="selected".
+Only output requested fields.
+Return only JSON in this shape:
+{"phase":"...","updates":[{"field":"banned_sur","slots":[{"index":0,"slot_state":"selected","character_name":"小说家","player_id":null}],"picked_hun":null}]}
+
+Input:
+{{payload.ToJsonString()}}
+""";
+    }
 
     private static string ToRegionId(SmartBpRecognitionRegion region) =>
         region switch
@@ -1124,6 +1222,25 @@ internal sealed class LlamaCppOpenAiClient(ISmartBpRecognitionSettingsService se
         return await SendSpecialAsync(body, "PhaseTop", cancellationToken);
     }
 
+    public async Task<string> FuseTranscriptEvidenceAsync(string prompt, IReadOnlyCollection<string> requestedFields, CancellationToken cancellationToken = default)
+    {
+        var profile = await promptProfiles.LoadAsync(settings.Settings.PromptProfileId, cancellationToken);
+        var schema = SmartBpRecognitionJsonSchemaProvider.GetSnapshotDelta(
+            requestedFields,
+            shared.SurCharaDict.Keys.ToArray(),
+            shared.HunCharaDict.Keys.ToArray(),
+            settings.Settings.UseStrictCandidateEnumsInAutoSchema);
+        var body = CreateStructuredTextBody(
+            profile.SystemPrompt,
+            prompt,
+            schema,
+            settings.Settings.SnapshotDeltaMaxTokens,
+            AiStructuredOutputMode.JsonPromptAndRepair,
+            "smartbp_business_fusion");
+        var raw = await SendSpecialAsync(body, $"BusinessAiFusion:{string.Join(",", requestedFields)}", cancellationToken);
+        return await RepairAndLogAsync(raw, AiStructuredOutputMode.JsonPromptAndRepair, "BusinessAiFusion");
+    }
+
     public async Task<string> RecognizePhaseOnlyAsync(string imageDataUrl, CancellationToken cancellationToken = default)
     {
         var profile = await promptProfiles.LoadAsync(settings.Settings.PromptProfileId, cancellationToken);
@@ -1181,6 +1298,34 @@ internal sealed class LlamaCppOpenAiClient(ISmartBpRecognitionSettingsService se
         var content = new JsonArray(
             new JsonObject { ["type"] = "text", ["text"] = userPrompt },
             new JsonObject { ["type"] = "image_url", ["image_url"] = new JsonObject { ["url"] = imageDataUrl } });
+        if (mode == AiStructuredOutputMode.JsonPromptAndRepair)
+        {
+            content.Insert(0, new JsonObject { ["type"] = "text", ["text"] = "只输出 JSON。\n不要输出 Markdown。\n不要输出 ```json 代码块。\n不要输出解释。" });
+        }
+        var body = new JsonObject
+        {
+            ["model"] = "local",
+            ["temperature"] = 0,
+            ["max_tokens"] = maxTokens,
+            ["chat_template_kwargs"] = new JsonObject { ["enable_thinking"] = false },
+            ["messages"] = new JsonArray(
+                new JsonObject { ["role"] = "system", ["content"] = systemPrompt },
+                new JsonObject { ["role"] = "user", ["content"] = content })
+        };
+        if (mode == AiStructuredOutputMode.JsonSchemaStrict)
+        {
+            body["response_format"] = new JsonObject
+            {
+                ["type"] = "json_schema",
+                ["json_schema"] = new JsonObject { ["name"] = schemaName, ["strict"] = true, ["schema"] = schema }
+            };
+        }
+        return body;
+    }
+
+    private static JsonObject CreateStructuredTextBody(string systemPrompt, string userPrompt, JsonObject schema, int maxTokens, AiStructuredOutputMode mode, string schemaName)
+    {
+        var content = new JsonArray(new JsonObject { ["type"] = "text", ["text"] = userPrompt });
         if (mode == AiStructuredOutputMode.JsonPromptAndRepair)
         {
             content.Insert(0, new JsonObject { ["type"] = "text", ["text"] = "只输出 JSON。\n不要输出 Markdown。\n不要输出 ```json 代码块。\n不要输出解释。" });

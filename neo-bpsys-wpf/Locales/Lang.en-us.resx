@@ -4686,7 +4686,7 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="SmartBpAiRecognitionPreviewNotice" xml:space="preserve"><value>Recognition results are preview-only and never modify live BP data.</value></data>
   <data name="SmartBpAiManifestStatus" xml:space="preserve"><value>Manifest:</value></data>
   <data name="SmartBpAiModelProfile" xml:space="preserve"><value>Qwen model:</value></data>
-  <data name="SmartBpCurrentQwenModelFormat" xml:space="preserve"><value>Current Qwen model: {0}</value></data>
+  <data name="SmartBpCurrentQwenModelFormat" xml:space="preserve"><value>Current Business AI model: {0}</value></data>
   <data name="SmartBpAiMmprojProfile" xml:space="preserve"><value>Vision projector:</value></data>
   <data name="SmartBpAiInstalled" xml:space="preserve"><value>Installed:</value></data>
   <data name="SmartBpAiDownloadQwen" xml:space="preserve"><value>Download Qwen model</value></data>
@@ -4720,7 +4720,7 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="SmartBpAiStatusFailed" xml:space="preserve"><value>Failed</value></data>
   <data name="SmartBpAiStatusStopped" xml:space="preserve"><value>Stopped</value></data>
   <data name="SmartBpAiStatusNotInstalled" xml:space="preserve"><value>Not installed</value></data>
-  <data name="SmartBpAiStatusDownloading" xml:space="preserve"><value>Downloading Qwen model</value></data>
+  <data name="SmartBpAiStatusDownloading" xml:space="preserve"><value>Downloading AI model</value></data>
   <data name="SmartBpAiStatusInstalled" xml:space="preserve"><value>Installed</value></data>
   <data name="SmartBpAiStatusCancelled" xml:space="preserve"><value>Cancelled</value></data>
   <data name="SmartBpAiStatusReady" xml:space="preserve"><value>Ready</value></data>
@@ -4801,6 +4801,7 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="SmartBpServerStatus" xml:space="preserve"><value>Status</value></data>
   <data name="SmartBpStartRequiredServers" xml:space="preserve"><value>Start required servers</value></data>
   <data name="SmartBpStopAllServers" xml:space="preserve"><value>Stop all servers</value></data>
+  <data name="SmartBpCheckRuntimeUpdate" xml:space="preserve"><value>Check runtime update</value></data>
   <data name="SmartBpRecognitionEngineOcrRecommended" xml:space="preserve"><value>OCR (recommended)</value></data>
   <data name="SmartBpRecognitionEngineAiQwenExperimental" xml:space="preserve"><value>AI / Qwen (experimental)</value></data>
   <data name="SmartBpAiQwenEnginePanel" xml:space="preserve"><value>AI / Qwen engine settings</value></data>
@@ -4827,6 +4828,8 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="SmartBpModelManagement" xml:space="preserve"><value>Model management</value></data>
   <data name="SmartBpFeatureSwitches" xml:space="preserve"><value>Feature switches</value></data>
   <data name="SmartBpAdvancedParameters" xml:space="preserve"><value>Recognition engine advanced parameters</value></data>
+  <data name="SmartBpAiWithOcrFusionMode" xml:space="preserve"><value>AI + OCR fusion mode</value></data>
+  <data name="SmartBpAiWithAiOcrFusionMode" xml:space="preserve"><value>AI + AI OCR fusion mode</value></data>
   <data name="SmartBpDebugOptions" xml:space="preserve"><value>Debug options</value></data>
   <data name="SmartBpFullRecognitionTest" xml:space="preserve"><value>Full recognition test</value></data>
   <data name="SmartBpPhaseSceneOnlyTest" xml:space="preserve"><value>Phase / scene-only test</value></data>

@@ -4620,7 +4620,7 @@
   <data name="SmartBpAiBackfillLookBehindSteps" xml:space="preserve"><value>ワークフローの振り返り手順数</value></data>
   <data name="SmartBpAiFieldStaleMilliseconds" xml:space="preserve"><value>フィールド再更新までのミリ秒</value></data>
   <data name="SmartBpAiVisualBufferMilliseconds" xml:space="preserve"><value>現在手順アニメーションのバッファミリ秒</value></data>
-  <data name="SmartBpCurrentQwenModelFormat" xml:space="preserve"><value>現在の Qwen モデル：{0}</value></data>
+  <data name="SmartBpCurrentQwenModelFormat" xml:space="preserve"><value>Current Business AI model: {0}</value></data>
   <data name="SmartBpAiModelProfileHint" xml:space="preserve"><value>0.8B は高速で軽量ですが精度は低めです。2B は遅めですがより安定します。</value></data>
   <data name="SmartBpAiStopServerBeforeSwitchModel" xml:space="preserve"><value>Qwen モデルを切り替える前に llama-server を停止してください。</value></data>
   <data name="SmartBpAiCheckRuntimeUpdate" xml:space="preserve"><value>llama.cpp 更新を確認</value></data>
@@ -4663,7 +4663,10 @@
   <data name="SmartBpServerStatus" xml:space="preserve"><value>Status</value></data>
   <data name="SmartBpStartRequiredServers" xml:space="preserve"><value>Start required servers</value></data>
   <data name="SmartBpStopAllServers" xml:space="preserve"><value>Stop all servers</value></data>
+  <data name="SmartBpCheckRuntimeUpdate" xml:space="preserve"><value>Check runtime update</value></data>
   <data name="SmartBpAdvancedParameters" xml:space="preserve"><value>Recognition engine advanced parameters</value></data>
+  <data name="SmartBpAiWithOcrFusionMode" xml:space="preserve"><value>AI + OCR fusion mode</value></data>
+  <data name="SmartBpAiWithAiOcrFusionMode" xml:space="preserve"><value>AI + AI OCR fusion mode</value></data>
   <data name="SmartBpDebugOptions" xml:space="preserve"><value>Debug options</value></data>
   <data name="SmartBpFullRecognitionTest" xml:space="preserve"><value>Full recognition test</value></data>
   <data name="SmartBpPhaseSceneOnlyTest" xml:space="preserve"><value>Phase / scene-only test</value></data>

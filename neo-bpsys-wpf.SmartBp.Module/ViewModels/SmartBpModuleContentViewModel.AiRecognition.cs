@@ -23,8 +23,17 @@ public partial class SmartBpModuleContentViewModel
     private int _recognitionBusy;
     private bool _isSwitchingQwenModel;
     private bool _isSwitchingAiOcrModel;
+    private LocalVisionModelDownloadRole? _activeVisionModelDownloadRole;
+
+    private enum LocalVisionModelDownloadRole
+    {
+        BusinessAi,
+        AiOcr
+    }
     /// <summary>Gets available recognition application modes.</summary>
     public IReadOnlyList<SmartBpRecognitionApplyMode> RecognitionApplyModes { get; } = Enum.GetValues<SmartBpRecognitionApplyMode>();
+    /// <summary>Gets available hybrid fusion modes.</summary>
+    public IReadOnlyList<SmartBpHybridFusionMode> HybridFusionModes { get; } = Enum.GetValues<SmartBpHybridFusionMode>();
 
     /// <summary>Gets available built-in frames.</summary>
     public IReadOnlyList<SmartBpTestFrame> AiTestFrames { get; } =
@@ -45,6 +54,14 @@ public partial class SmartBpModuleContentViewModel
     [NotifyCanExecuteChangedFor(nameof(SwitchSelectedQwenModelCommand))]
     [ObservableProperty] private QwenModelProfile? _selectedQwenModelProfile;
     [ObservableProperty] private string _currentQwenModelDisplayName = "";
+    [NotifyCanExecuteChangedFor(nameof(DownloadQwenModelCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteQwenModelCommand))]
+    [NotifyCanExecuteChangedFor(nameof(SwitchSelectedQwenModelCommand))]
+    [ObservableProperty] private bool _isBusinessAiModelDownloading;
+    [ObservableProperty] private double _businessAiModelDownloadProgress;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasBusinessAiModelDownloadDetail))]
+    private string _businessAiModelDownloadDetail = "";
     [ObservableProperty] private bool _isQwenInstalled;
     [NotifyCanExecuteChangedFor(nameof(DownloadQwenModelCommand))]
     [NotifyCanExecuteChangedFor(nameof(DeleteQwenModelCommand))]
@@ -64,6 +81,10 @@ public partial class SmartBpModuleContentViewModel
     [NotifyCanExecuteChangedFor(nameof(DeleteAiOcrModelCommand))]
     [NotifyCanExecuteChangedFor(nameof(SwitchSelectedAiOcrModelCommand))]
     [ObservableProperty] private bool _isAiOcrModelDownloading;
+    [ObservableProperty] private double _aiOcrModelDownloadProgress;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasAiOcrModelDownloadDetail))]
+    private string _aiOcrModelDownloadDetail = "";
     [NotifyCanExecuteChangedFor(nameof(DownloadAiOcrModelCommand))]
     [NotifyCanExecuteChangedFor(nameof(DeleteAiOcrModelCommand))]
     [NotifyCanExecuteChangedFor(nameof(SwitchSelectedAiOcrModelCommand))]
@@ -139,6 +160,10 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty] private bool _isBusinessAiModelVisible;
     [ObservableProperty] private bool _isOcrProviderCardVisible = true;
     [ObservableProperty] private bool _isAiOcrModelVisible;
+    [ObservableProperty] private bool _isAiWithOcrFusionModeVisible;
+    [ObservableProperty] private bool _isAiWithAiOcrFusionModeVisible;
+    [ObservableProperty] private SmartBpHybridFusionMode _aiWithOcrFusionMode = SmartBpHybridFusionMode.LocalCSharp;
+    [ObservableProperty] private SmartBpHybridFusionMode _aiWithAiOcrFusionMode = SmartBpHybridFusionMode.BusinessAi;
     [ObservableProperty] private bool _enableOcrBpRecognition = true;
     [ObservableProperty] private int _recognitionIntervalMs;
     [ObservableProperty] private int _ocrRecognitionIntervalMs;
@@ -253,6 +278,10 @@ public partial class SmartBpModuleContentViewModel
 
     /// <summary>Gets whether Qwen download details should be shown.</summary>
     public bool HasQwenDownloadDetail => !string.IsNullOrWhiteSpace(QwenDownloadDetail);
+    /// <summary>Gets whether Business AI model download details should be shown.</summary>
+    public bool HasBusinessAiModelDownloadDetail => !string.IsNullOrWhiteSpace(BusinessAiModelDownloadDetail);
+    /// <summary>Gets whether AI OCR model download details should be shown.</summary>
+    public bool HasAiOcrModelDownloadDetail => !string.IsNullOrWhiteSpace(AiOcrModelDownloadDetail);
 
     /// <summary>Gets whether llama.cpp runtime download details should be shown.</summary>
     public bool HasLlamaRuntimeDownloadDetail => !string.IsNullOrWhiteSpace(LlamaRuntimeDownloadDetail);
@@ -288,6 +317,8 @@ public partial class SmartBpModuleContentViewModel
         PlayBackfillAnimations = _recognitionSettingsService.Settings.PlayBackfillAnimations;
         UseMultiImageSnapshotRequest = _recognitionSettingsService.Settings.UseMultiImageSnapshotRequest;
         EnableOcrBpRecognition = _recognitionSettingsService.Settings.EnableOcrBpRecognition;
+        AiWithOcrFusionMode = _recognitionSettingsService.Settings.AiWithOcrFusionMode;
+        AiWithAiOcrFusionMode = _recognitionSettingsService.Settings.AiWithAiOcrFusionMode;
         RecognitionIntervalMs = _recognitionSettingsService.Settings.RecognitionIntervalMs;
         OcrRecognitionIntervalMs = _recognitionSettingsService.Settings.OcrRecognitionIntervalMs;
         OcrFieldStaleMilliseconds = _recognitionSettingsService.Settings.OcrFieldStaleMilliseconds;
@@ -343,15 +374,12 @@ public partial class SmartBpModuleContentViewModel
         _aiPerformanceTimer.Start();
         _qwenAssetManager.StateChanged += (_, state) => RunOnUiThread(() =>
         {
-            IsQwenDownloading = state.IsDownloading; QwenDownloadProgress = state.Progress ?? 0; QwenDownloadStatus = ResolveLocalizedOrRaw(state.Status);
-            IsAiOcrModelDownloading = state.IsDownloading;
-            QwenDownloadDetail = FormatDownloadState(state);
-            if (!string.IsNullOrWhiteSpace(state.ErrorMessage))
-                AiLastError = QwenDownloadDetail;
+            ApplyVisionModelDownloadState(state);
             if (!state.IsDownloading)
             {
                 _ = RefreshSelectedQwenModelInstallStatusAsync();
                 _ = RefreshSelectedAiOcrModelInstallStatusAsync();
+                _activeVisionModelDownloadRole = null;
             }
         });
         _rapidOcrModelAssetManager.StateChanged += (_, state) => RunOnUiThread(() =>
@@ -627,6 +655,8 @@ public partial class SmartBpModuleContentViewModel
         IsBusinessAiModelVisible = IsAiQwenRecognitionEngine;
         IsOcrProviderCardVisible = strategy is SmartBpRecognitionStrategy.PureOcr or SmartBpRecognitionStrategy.AiWithOcr;
         IsAiOcrModelVisible = strategy == SmartBpRecognitionStrategy.AiWithAiOcr;
+        IsAiWithOcrFusionModeVisible = strategy == SmartBpRecognitionStrategy.AiWithOcr;
+        IsAiWithAiOcrFusionModeVisible = strategy == SmartBpRecognitionStrategy.AiWithAiOcr;
         var provider = SelectedOcrProvider?.Mode ?? _recognitionSettingsService.Settings.SelectedOcrProviderMode;
         IsPaddleRecognitionEngine = IsOcrProviderCardVisible && provider == SmartBpOcrProviderMode.Paddle;
         IsTesseractRecognitionEngine = IsOcrProviderCardVisible && provider == SmartBpOcrProviderMode.Tesseract;
@@ -713,7 +743,7 @@ public partial class SmartBpModuleContentViewModel
     private string GetRecognitionSpeedFingerprint()
     {
         var s = _recognitionSettingsService.Settings;
-        return $"{s.RecognitionStrategy}|{s.SelectedOcrProviderMode}|{s.SelectedBusinessAiModelId}|{s.SelectedAiOcrModelId}|{s.UseSeparateAiOcrServer}|{s.BusinessAiServerPort}|{s.AiOcrServerPort}|{s.SelectedLlamaRuntimeId}|{s.PromptProfileId}|{s.UseOcrContactSheet}|{s.TesseractLanguages}|{s.TesseractDefaultPsm}|{s.TesseractMaxPreprocessVariants}|{s.SelectedRapidOcrModelId}|{s.RapidOcrPadding}|{s.RapidOcrMaxSideLen}|{s.RapidOcrBoxScoreThreshold}|{s.RapidOcrBoxThreshold}|{s.RapidOcrUnclipRatio}|{s.RapidOcrUseAngleClassifier}|{s.RapidOcrUsePreprocessingVariants}|{s.UseMultiImageSnapshotRequest}|{s.AllowSequentialSnapshotFallback}|{s.UseStrictCandidateEnumsInAutoSchema}|{s.PhaseCropMaxImageWidth}|{s.ContentCropMaxImageWidth}|{s.PhaseMaxTokens}|{s.SnapshotDeltaMaxTokens}|{s.PhaseTransitionCommitHoldMilliseconds}|{s.PhaseTransitionCommitHoldMaxMilliseconds}|{s.RecognitionVisualBufferMilliseconds}|{s.LlamaParallelSlots}|{s.LlamaGpuLayers}|{s.LlamaBatchSize}|{s.LlamaUBatchSize}|{s.LlamaFlashAttention}";
+        return $"{s.RecognitionStrategy}|{s.AiWithOcrFusionMode}|{s.AiWithAiOcrFusionMode}|{s.SelectedOcrProviderMode}|{s.SelectedBusinessAiModelId}|{s.SelectedAiOcrModelId}|{s.UseSeparateAiOcrServer}|{s.BusinessAiServerPort}|{s.AiOcrServerPort}|{s.SelectedLlamaRuntimeId}|{s.PromptProfileId}|{s.UseOcrContactSheet}|{s.TesseractLanguages}|{s.TesseractDefaultPsm}|{s.TesseractMaxPreprocessVariants}|{s.SelectedRapidOcrModelId}|{s.RapidOcrPadding}|{s.RapidOcrMaxSideLen}|{s.RapidOcrBoxScoreThreshold}|{s.RapidOcrBoxThreshold}|{s.RapidOcrUnclipRatio}|{s.RapidOcrUseAngleClassifier}|{s.RapidOcrUsePreprocessingVariants}|{s.UseMultiImageSnapshotRequest}|{s.AllowSequentialSnapshotFallback}|{s.UseStrictCandidateEnumsInAutoSchema}|{s.PhaseCropMaxImageWidth}|{s.ContentCropMaxImageWidth}|{s.PhaseMaxTokens}|{s.SnapshotDeltaMaxTokens}|{s.PhaseTransitionCommitHoldMilliseconds}|{s.PhaseTransitionCommitHoldMaxMilliseconds}|{s.RecognitionVisualBufferMilliseconds}|{s.LlamaParallelSlots}|{s.LlamaGpuLayers}|{s.LlamaBatchSize}|{s.LlamaUBatchSize}|{s.LlamaFlashAttention}";
     }
 
     private void RefreshRecognitionSpeedTestValidity()
@@ -737,6 +767,7 @@ public partial class SmartBpModuleContentViewModel
         if (SelectedQwenModelProfile == null) return;
         try
         {
+            _activeVisionModelDownloadRole = LocalVisionModelDownloadRole.BusinessAi;
             await _qwenAssetManager.InstallAsync(SelectedQwenModelProfile.Id);
             await RefreshQwenStatusAsync();
         }
@@ -745,6 +776,8 @@ public partial class SmartBpModuleContentViewModel
     }
 
     [RelayCommand] private void CancelQwenDownload() => _qwenAssetManager.Cancel();
+    [RelayCommand] private void CancelBusinessAiModelDownload() => _qwenAssetManager.Cancel();
+    [RelayCommand] private void CancelAiOcrModelDownload() => _qwenAssetManager.Cancel();
 
     [RelayCommand(CanExecute = nameof(CanDeleteQwenModel))]
     private async Task DeleteQwenModelAsync()
@@ -760,10 +793,10 @@ public partial class SmartBpModuleContentViewModel
     }
 
     private bool CanDownloadQwenModel() =>
-        !IsQwenDownloading && SelectedQwenModelProfile != null && !IsSelectedQwenModelInstalled;
+        !IsBusinessAiModelDownloading && !IsAiOcrModelDownloading && SelectedQwenModelProfile != null && !IsSelectedQwenModelInstalled;
 
     private bool CanDeleteQwenModel() =>
-        !IsQwenDownloading && !_llamaServerManager.IsRunning && SelectedQwenModelProfile != null && IsSelectedQwenModelInstalled;
+        !IsBusinessAiModelDownloading && !IsAiOcrModelDownloading && !_llamaServerManagers.Get(LlamaVisionServerRole.BusinessAi).IsRunning && SelectedQwenModelProfile != null && IsSelectedQwenModelInstalled;
 
     [RelayCommand(CanExecute = nameof(CanDownloadAiOcrModel))]
     private async Task DownloadAiOcrModelAsync()
@@ -771,6 +804,7 @@ public partial class SmartBpModuleContentViewModel
         if (SelectedAiOcrModelProfile == null) return;
         try
         {
+            _activeVisionModelDownloadRole = LocalVisionModelDownloadRole.AiOcr;
             await _qwenAssetManager.InstallAsync(SelectedAiOcrModelProfile.Id);
             await RefreshSelectedAiOcrModelInstallStatusAsync();
         }
@@ -799,13 +833,13 @@ public partial class SmartBpModuleContentViewModel
     }
 
     private bool CanDownloadAiOcrModel() =>
-        !IsAiOcrModelDownloading && SelectedAiOcrModelProfile != null && !IsSelectedAiOcrModelInstalled;
+        !IsAiOcrModelDownloading && !IsBusinessAiModelDownloading && SelectedAiOcrModelProfile != null && !IsSelectedAiOcrModelInstalled;
 
     private bool CanDeleteAiOcrModel() =>
-        !IsAiOcrModelDownloading && !_llamaServerManager.IsRunning && SelectedAiOcrModelProfile != null && IsSelectedAiOcrModelInstalled;
+        !IsAiOcrModelDownloading && !IsBusinessAiModelDownloading && !IsAiOcrRelevantServerRunning() && SelectedAiOcrModelProfile != null && IsSelectedAiOcrModelInstalled;
 
     private bool CanSwitchSelectedAiOcrModel() =>
-        !IsAiOcrModelDownloading &&
+        !IsAiOcrModelDownloading && !IsBusinessAiModelDownloading &&
         SelectedAiOcrModelProfile != null &&
         !string.Equals(SelectedAiOcrModelProfile.Id, _recognitionSettingsService.Settings.SelectedAiOcrModelId, StringComparison.Ordinal);
 
@@ -978,6 +1012,38 @@ public partial class SmartBpModuleContentViewModel
         finally { NotifyRoleServerCommands(); }
     }
 
+    private async Task ReconcileLlamaServersForCurrentStrategyAsync()
+    {
+        try
+        {
+            var business = _llamaServerManagers.Get(LlamaVisionServerRole.BusinessAi);
+            var aiOcr = _llamaServerManagers.Get(LlamaVisionServerRole.AiOcr);
+            switch (_recognitionSettingsService.Settings.RecognitionStrategy)
+            {
+                case SmartBpRecognitionStrategy.PureOcr:
+                    if (aiOcr.IsRunning) await aiOcr.StopAsync();
+                    if (business.IsRunning) await business.StopAsync();
+                    break;
+                case SmartBpRecognitionStrategy.PureAi:
+                case SmartBpRecognitionStrategy.AiWithOcr:
+                    if (aiOcr.IsRunning) await aiOcr.StopAsync();
+                    break;
+                case SmartBpRecognitionStrategy.AiWithAiOcr:
+                    if (IsAiOcrReusingBusinessServer() && aiOcr.IsRunning)
+                        await aiOcr.StopAsync();
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            AiLastError = ex.Message;
+        }
+        finally
+        {
+            RefreshLlamaServerUiState();
+        }
+    }
+
     private void SetRoleServerStarting(LlamaVisionServerRole role, bool value)
     {
         if (role == LlamaVisionServerRole.BusinessAi)
@@ -1035,6 +1101,11 @@ public partial class SmartBpModuleContentViewModel
     private bool IsAiOcrReusingBusinessServer() =>
         !_recognitionSettingsService.Settings.UseSeparateAiOcrServer ||
         string.Equals(_recognitionSettingsService.Settings.SelectedBusinessAiModelId, _recognitionSettingsService.Settings.SelectedAiOcrModelId, StringComparison.Ordinal);
+
+    private bool IsAiOcrRelevantServerRunning() =>
+        IsAiOcrReusingBusinessServer()
+            ? _llamaServerManagers.Get(LlamaVisionServerRole.BusinessAi).IsRunning
+            : _llamaServerManagers.Get(LlamaVisionServerRole.AiOcr).IsRunning;
 
     private string FormatRoleServerStatus() =>
         $"BusinessAi: model={_recognitionSettingsService.Settings.SelectedBusinessAiModelId}; port={_llamaServerManagers.Get(LlamaVisionServerRole.BusinessAi).Port}; status={BusinessAiServerStatus}; pid={BusinessAiServerProcessId}{Environment.NewLine}" +
@@ -1533,9 +1604,9 @@ public partial class SmartBpModuleContentViewModel
             SmartBpRecognitionStrategy.PureAi =>
                 $"strategy=PureAi{Environment.NewLine}business_ai_model={_recognitionSettingsService.Settings.SelectedBusinessAiModelId}{Environment.NewLine}server_role=BusinessAi",
             SmartBpRecognitionStrategy.AiWithOcr =>
-                $"strategy=AiWithOcr{Environment.NewLine}business_ai_model={_recognitionSettingsService.Settings.SelectedBusinessAiModelId}{Environment.NewLine}ocr_provider={_recognitionSettingsService.Settings.SelectedOcrProviderMode}",
+                $"strategy=AiWithOcr{Environment.NewLine}fusion_mode={_recognitionSettingsService.Settings.AiWithOcrFusionMode}{Environment.NewLine}business_ai_model={_recognitionSettingsService.Settings.SelectedBusinessAiModelId}{Environment.NewLine}ocr_provider={_recognitionSettingsService.Settings.SelectedOcrProviderMode}",
             SmartBpRecognitionStrategy.AiWithAiOcr =>
-                $"strategy=AiWithAiOcr{Environment.NewLine}business_ai_model={_recognitionSettingsService.Settings.SelectedBusinessAiModelId}{Environment.NewLine}ai_ocr_model={_recognitionSettingsService.Settings.SelectedAiOcrModelId}{Environment.NewLine}reuse_server={IsAiOcrReusingBusinessServer()}",
+                $"strategy=AiWithAiOcr{Environment.NewLine}fusion_mode={_recognitionSettingsService.Settings.AiWithAiOcrFusionMode}{Environment.NewLine}business_ai_model={_recognitionSettingsService.Settings.SelectedBusinessAiModelId}{Environment.NewLine}ai_ocr_model={_recognitionSettingsService.Settings.SelectedAiOcrModelId}{Environment.NewLine}reuse_server={IsAiOcrReusingBusinessServer()}",
             _ => $"strategy={strategy}"
         };
 
@@ -1776,7 +1847,7 @@ public partial class SmartBpModuleContentViewModel
     }
 
     private bool CanSwitchSelectedQwenModel() =>
-        !IsQwenDownloading &&
+        !IsBusinessAiModelDownloading && !IsAiOcrModelDownloading &&
         SelectedQwenModelProfile != null &&
         !string.Equals(SelectedQwenModelProfile.Id, _recognitionSettingsService.Settings.SelectedBusinessAiModelId, StringComparison.Ordinal);
 
@@ -1786,7 +1857,8 @@ public partial class SmartBpModuleContentViewModel
         var oldId = _recognitionSettingsService.Settings.SelectedBusinessAiModelId;
         try
         {
-            var restart = _llamaServerManager.IsRunning;
+            var business = _llamaServerManagers.Get(LlamaVisionServerRole.BusinessAi);
+            var restart = business.IsRunning;
             if (restart)
             {
                 var confirmed = await MessageBoxHelper.ShowConfirmAsync(
@@ -1798,21 +1870,22 @@ public partial class SmartBpModuleContentViewModel
                     SelectedQwenModelProfile = QwenModelProfiles.FirstOrDefault(profile => profile.Id == oldId);
                     return;
                 }
-                await _llamaServerManager.StopAsync();
+                await business.StopAsync();
             }
             _recognitionSettingsService.Settings.SelectedBusinessAiModelId = value.Id;
             _recognitionSettingsService.Settings.SelectedQwenModelId = value.Id;
             RefreshRecognitionSpeedTestValidity();
-            RefreshRoleServerStatus();
             await SaveQwenSelectionAsync();
             CurrentQwenModelDisplayName = string.Format(ResolveLocalizedOrRaw("SmartBpCurrentQwenModelFormat"), value.DisplayName);
-            IsQwenInstalled = await _qwenAssetManager.IsInstalledAsync();
+            IsQwenInstalled = await _qwenAssetManager.IsInstalledAsync(value.Id);
             await RefreshSelectedQwenModelInstallStatusAsync();
             SwitchSelectedQwenModelCommand.NotifyCanExecuteChanged();
             if (restart && IsQwenInstalled)
-                await _llamaServerManager.StartAsync();
+                await business.StartAsync();
             else if (!IsQwenInstalled)
                 AiLastError = ResolveLocalizedOrRaw("SmartBpAiModelDownloadRequired");
+            await ReconcileLlamaServersForCurrentStrategyAsync();
+            RefreshLlamaServerUiState();
         }
         catch (Exception ex) { AiLastError = ex.Message; }
         finally { _isSwitchingQwenModel = false; }
@@ -1824,7 +1897,9 @@ public partial class SmartBpModuleContentViewModel
         var oldId = _recognitionSettingsService.Settings.SelectedAiOcrModelId;
         try
         {
-            if (_llamaServerManager.IsRunning)
+            var aiOcr = _llamaServerManagers.Get(LlamaVisionServerRole.AiOcr);
+            var restartAiOcr = !IsAiOcrReusingBusinessServer() && aiOcr.IsRunning;
+            if (restartAiOcr)
             {
                 var confirmed = await MessageBoxHelper.ShowConfirmAsync(
                     ResolveLocalizedOrRaw("SmartBpAiSwitchModelRestartConfirm"),
@@ -1835,17 +1910,20 @@ public partial class SmartBpModuleContentViewModel
                     SelectedAiOcrModelProfile = AiOcrModelProfiles.FirstOrDefault(profile => profile.Id == oldId);
                     return;
                 }
-                await _llamaServerManager.StopAsync();
+                await aiOcr.StopAsync();
             }
 
             _recognitionSettingsService.Settings.SelectedAiOcrModelId = value.Id;
             RefreshRecognitionSpeedTestValidity();
-            RefreshRoleServerStatus();
             await _recognitionSettingsService.SaveAsync();
             CurrentAiOcrModelDisplayName = value.DisplayName;
             await RefreshSelectedAiOcrModelInstallStatusAsync();
-            if (!IsSelectedAiOcrModelInstalled)
+            if (restartAiOcr && IsSelectedAiOcrModelInstalled && _recognitionSettingsService.Settings.RecognitionStrategy == SmartBpRecognitionStrategy.AiWithAiOcr && !IsAiOcrReusingBusinessServer())
+                await aiOcr.StartAsync();
+            else if (!IsSelectedAiOcrModelInstalled)
                 AiLastError = ResolveLocalizedOrRaw("SmartBpAiModelDownloadRequired");
+            await ReconcileLlamaServersForCurrentStrategyAsync();
+            RefreshLlamaServerUiState();
         }
         catch (Exception ex) { AiLastError = ex.Message; }
         finally { _isSwitchingAiOcrModel = false; }
@@ -2000,9 +2078,8 @@ public partial class SmartBpModuleContentViewModel
             : SmartBpRecognitionEngine.AiQwen;
         RefreshRecognitionEngineVisibility();
         RefreshRecognitionSpeedTestValidity();
-        RefreshRoleServerStatus();
-        NotifyRoleServerCommands();
         _ = _recognitionSettingsService.SaveAsync();
+        _ = ReconcileLlamaServersForCurrentStrategyAsync();
         _aiDebugLog.Write("Recognition", $"Recognition strategy switched to {value.Strategy}.");
     }
 
@@ -2045,6 +2122,20 @@ public partial class SmartBpModuleContentViewModel
     partial void OnUseOcrContactSheetChanged(bool value)
     {
         _recognitionSettingsService.Settings.UseOcrContactSheet = value;
+        RefreshRecognitionSpeedTestValidity();
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnAiWithOcrFusionModeChanged(SmartBpHybridFusionMode value)
+    {
+        _recognitionSettingsService.Settings.AiWithOcrFusionMode = value;
+        RefreshRecognitionSpeedTestValidity();
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnAiWithAiOcrFusionModeChanged(SmartBpHybridFusionMode value)
+    {
+        _recognitionSettingsService.Settings.AiWithAiOcrFusionMode = value;
         RefreshRecognitionSpeedTestValidity();
         _ = _recognitionSettingsService.SaveAsync();
     }
@@ -2231,6 +2322,37 @@ public partial class SmartBpModuleContentViewModel
     {
         await _recognitionSettingsService.SaveAsync();
         await RefreshQwenStatusAsync();
+    }
+
+    private void ApplyVisionModelDownloadState(QwenDownloadState state)
+    {
+        var detail = FormatDownloadState(state);
+        QwenDownloadStatus = ResolveLocalizedOrRaw(state.Status);
+        if (_activeVisionModelDownloadRole == LocalVisionModelDownloadRole.AiOcr)
+        {
+            IsAiOcrModelDownloading = state.IsDownloading;
+            AiOcrModelDownloadProgress = state.Progress ?? 0;
+            AiOcrModelDownloadDetail = detail;
+            IsBusinessAiModelDownloading = false;
+            BusinessAiModelDownloadDetail = "";
+        }
+        else
+        {
+            IsBusinessAiModelDownloading = state.IsDownloading;
+            IsQwenDownloading = state.IsDownloading;
+            BusinessAiModelDownloadProgress = state.Progress ?? 0;
+            BusinessAiModelDownloadDetail = detail;
+            QwenDownloadProgress = state.Progress ?? 0;
+            QwenDownloadDetail = detail;
+            IsAiOcrModelDownloading = false;
+            AiOcrModelDownloadDetail = "";
+        }
+        if (!string.IsNullOrWhiteSpace(state.ErrorMessage))
+            AiLastError = detail;
+        DownloadQwenModelCommand.NotifyCanExecuteChanged();
+        DeleteQwenModelCommand.NotifyCanExecuteChanged();
+        DownloadAiOcrModelCommand.NotifyCanExecuteChanged();
+        DeleteAiOcrModelCommand.NotifyCanExecuteChanged();
     }
 
     private string FormatDownloadState(SmartBpDownloadState state)

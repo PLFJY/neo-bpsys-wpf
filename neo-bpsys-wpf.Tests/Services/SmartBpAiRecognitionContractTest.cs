@@ -18,6 +18,7 @@ using neo_bpsys_wpf.Services;
 using Xunit;
 using SmartBpRecognitionTask = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionTask;
 using SmartBpRecognitionStrategy = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionStrategy;
+using SmartBpHybridFusionMode = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpHybridFusionMode;
 using LocalVisionModelFamily = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.LocalVisionModelFamily;
 using LocalVisionModelRole = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.LocalVisionModelRole;
 using QwenMmprojMode = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.QwenMmprojMode;
@@ -219,6 +220,16 @@ public sealed class SmartBpAiRecognitionContractTest
         Assert.Equal(
             [SmartBpRecognitionStrategy.PureOcr, SmartBpRecognitionStrategy.PureAi, SmartBpRecognitionStrategy.AiWithOcr, SmartBpRecognitionStrategy.AiWithAiOcr],
             Enum.GetValues<SmartBpRecognitionStrategy>());
+    }
+
+    [Fact]
+    public void HybridFusionModesHaveStrategySpecificDefaults()
+    {
+        var settings = new SmartBpRecognitionSettings();
+
+        Assert.Equal(SmartBpHybridFusionMode.LocalCSharp, settings.AiWithOcrFusionMode);
+        Assert.Equal(SmartBpHybridFusionMode.BusinessAi, settings.AiWithAiOcrFusionMode);
+        Assert.False(settings.EnableAutoApplyRecognition);
     }
 
     [Fact]
@@ -1141,6 +1152,56 @@ public sealed class SmartBpAiRecognitionContractTest
     }
 
     [Fact]
+    public void SmartBpRuntimeAndModelDownloadUiUsesRoleSpecificBindings()
+    {
+        var root = FindRepositoryRoot();
+        var xaml = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "Views", "SmartBpModuleContentView.xaml"));
+        var viewModel = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "ViewModels", "SmartBpModuleContentViewModel.AiRecognition.cs"));
+
+        Assert.Contains("CheckLlamaRuntimeUpdateCommand", xaml);
+        Assert.Contains("LlamaRuntimeUpdateStatus", xaml);
+        Assert.Contains("BusinessAiModelDownloadProgress", xaml);
+        Assert.Contains("BusinessAiModelDownloadDetail", xaml);
+        Assert.Contains("AiOcrModelDownloadProgress", xaml);
+        Assert.Contains("AiOcrModelDownloadDetail", xaml);
+        Assert.Contains("CancelBusinessAiModelDownloadCommand", xaml);
+        Assert.Contains("CancelAiOcrModelDownloadCommand", xaml);
+        Assert.Contains("ApplyVisionModelDownloadState", viewModel);
+        Assert.Contains("LocalVisionModelDownloadRole.BusinessAi", viewModel);
+        Assert.Contains("LocalVisionModelDownloadRole.AiOcr", viewModel);
+    }
+
+    [Fact]
+    public void HybridStrategyFusionUsesBusinessAiByDefaultForAiOcr()
+    {
+        var root = FindRepositoryRoot();
+        var coordinator = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "Services", "Recognition", "SmartBpAutomaticServices.cs"));
+        var services = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "Services", "Recognition", "RecognitionServices.cs"));
+        var xaml = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "Views", "SmartBpModuleContentView.xaml"));
+
+        Assert.Contains("AI + OCR fusion_mode=", coordinator);
+        Assert.Contains("AiWithAiOcrFusionMode == SmartBpHybridFusionMode.BusinessAi", coordinator);
+        Assert.Contains("businessAiFusion.FuseAsync", coordinator);
+        Assert.Contains("AI + AI OCR fusion_mode=BusinessAi", coordinator);
+        Assert.Contains("AI + AI OCR fusion_mode=LocalCSharp", coordinator);
+        Assert.Contains("SmartBpBusinessAiFusionService", services);
+        Assert.Contains("FuseTranscriptEvidenceAsync", services);
+        Assert.Contains("SmartBpAiWithOcrFusionMode", xaml);
+        Assert.Contains("SmartBpAiWithAiOcrFusionMode", xaml);
+    }
+
+    [Fact]
+    public void AiOcrTranscriptParsingFallsBackToPlainText()
+    {
+        var root = FindRepositoryRoot();
+        var services = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "Services", "Recognition", "RecognitionServices.cs"));
+
+        Assert.Contains("AI OCR transcript was not valid JSON; parsed as plain text fallback.", services);
+        Assert.Contains("Regex.Split(raw", services);
+        Assert.Contains("SmartBpJsonRepair.Repair(raw)", services);
+    }
+
+    [Fact]
     public void AiOcrTranscriptInterpreterUsesResolverAndDoesNotCreateFakeOcrBoxes()
     {
         var root = FindRepositoryRoot();
@@ -1162,10 +1223,12 @@ public sealed class SmartBpAiRecognitionContractTest
         var viewModel = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "ViewModels", "SmartBpModuleContentViewModel.AiRecognition.cs"));
 
         Assert.Contains("<ui:ProgressRing", xaml);
-        Assert.Contains("IsLlamaServerStarting", xaml);
-        Assert.Contains("IsLlamaServerStarting = true", viewModel);
+        Assert.Contains("IsBusinessAiServerStarting", xaml);
+        Assert.Contains("IsAiOcrServerStarting", xaml);
+        Assert.Contains("IsRequiredLlamaServersStarting", xaml);
+        Assert.Contains("SetRoleServerStarting(role, true)", viewModel);
         Assert.Contains("finally", viewModel);
-        Assert.Contains("IsLlamaServerStarting = false", viewModel);
+        Assert.Contains("SetRoleServerStarting(role, false)", viewModel);
         Assert.Contains("SmartBpAiStatusStarting", viewModel);
     }
 

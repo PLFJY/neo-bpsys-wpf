@@ -5622,7 +5622,7 @@
   <data name="SmartBpAiRecognitionPreviewNotice" xml:space="preserve"><value>识别结果仅供预览，不会自动修改当前 BP 数据。</value></data>
   <data name="SmartBpAiManifestStatus" xml:space="preserve"><value>模型清单：</value></data>
   <data name="SmartBpAiModelProfile" xml:space="preserve"><value>Qwen 模型：</value></data>
-  <data name="SmartBpCurrentQwenModelFormat" xml:space="preserve"><value>当前 Qwen 模型：{0}</value></data>
+  <data name="SmartBpCurrentQwenModelFormat" xml:space="preserve"><value>当前业务 AI 模型：{0}</value></data>
   <data name="SmartBpAiMmprojProfile" xml:space="preserve"><value>视觉投影模型：</value></data>
   <data name="SmartBpAiInstalled" xml:space="preserve"><value>已安装：</value></data>
   <data name="SmartBpAiDownloadQwen" xml:space="preserve"><value>下载 Qwen 模型</value></data>
@@ -5656,7 +5656,7 @@
   <data name="SmartBpAiStatusFailed" xml:space="preserve"><value>失败</value></data>
   <data name="SmartBpAiStatusStopped" xml:space="preserve"><value>已停止</value></data>
   <data name="SmartBpAiStatusNotInstalled" xml:space="preserve"><value>未安装</value></data>
-  <data name="SmartBpAiStatusDownloading" xml:space="preserve"><value>正在下载 Qwen 模型</value></data>
+  <data name="SmartBpAiStatusDownloading" xml:space="preserve"><value>正在下载 AI 模型</value></data>
   <data name="SmartBpAiStatusInstalled" xml:space="preserve"><value>已安装</value></data>
   <data name="SmartBpAiStatusCancelled" xml:space="preserve"><value>已取消</value></data>
   <data name="SmartBpAiStatusReady" xml:space="preserve"><value>已就绪</value></data>
@@ -5737,6 +5737,7 @@
   <data name="SmartBpServerStatus" xml:space="preserve"><value>状态</value></data>
   <data name="SmartBpStartRequiredServers" xml:space="preserve"><value>启动所需服务器</value></data>
   <data name="SmartBpStopAllServers" xml:space="preserve"><value>停止全部服务器</value></data>
+  <data name="SmartBpCheckRuntimeUpdate" xml:space="preserve"><value>检查运行时更新</value></data>
   <data name="SmartBpRecognitionEngineOcrRecommended" xml:space="preserve"><value>OCR（推荐）</value></data>
   <data name="SmartBpRecognitionEngineAiQwenExperimental" xml:space="preserve"><value>AI / Qwen（实验）</value></data>
   <data name="SmartBpAiQwenEnginePanel" xml:space="preserve"><value>AI / Qwen 引擎设置</value></data>
@@ -5763,6 +5764,8 @@
   <data name="SmartBpModelManagement" xml:space="preserve"><value>模型管理</value></data>
   <data name="SmartBpFeatureSwitches" xml:space="preserve"><value>功能开关</value></data>
   <data name="SmartBpAdvancedParameters" xml:space="preserve"><value>识别引擎高级参数</value></data>
+  <data name="SmartBpAiWithOcrFusionMode" xml:space="preserve"><value>AI + OCR 融合模式</value></data>
+  <data name="SmartBpAiWithAiOcrFusionMode" xml:space="preserve"><value>AI + AI OCR 融合模式</value></data>
   <data name="SmartBpDebugOptions" xml:space="preserve"><value>调试选项</value></data>
   <data name="SmartBpFullRecognitionTest" xml:space="preserve"><value>完整识别测试</value></data>
   <data name="SmartBpPhaseSceneOnlyTest" xml:space="preserve"><value>阶段 / 场景测试</value></data>

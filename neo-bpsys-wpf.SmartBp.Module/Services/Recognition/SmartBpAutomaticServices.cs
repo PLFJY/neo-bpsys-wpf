@@ -1011,6 +1011,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
     ISmartBpOcrBpRecognitionService ocrRecognition,
     ISmartBpAiOcrTranscriptRecognitionService aiOcrTranscriptRecognition,
     ISmartBpAiOcrTranscriptInterpreter aiOcrTranscriptInterpreter,
+    ISmartBpBusinessAiFusionService businessAiFusion,
     ILlamaCppServerManagerFactory llamaServerManagers,
     ISmartBpDebugLog debugLog) : ISmartBpAutoRecognitionCoordinator, ISmartBpStepCommitScheduler
 {
@@ -1125,6 +1126,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
             }
             else if (settings.Settings.RecognitionStrategy == SmartBpRecognitionStrategy.AiWithOcr)
             {
+                messages.Add($"AI + OCR fusion_mode={settings.Settings.AiWithOcrFusionMode}; default LocalCSharp path uses OCR provider text lines plus local parser/state merge.");
                 var phaseOnly = await fieldSnapshotRecognition.RecognizePhaseOnlyAsync(frame, tickToken);
                 rawResponses = new Dictionary<string, string> { ["phase_only"] = phaseOnly.RawJson };
                 raw = phaseOnly.RawJson;
@@ -1184,6 +1186,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                 else
                 {
                     var updates = new List<SmartBpSnapshotFieldUpdate>();
+                    var evidence = new List<SmartBpAiOcrTranscriptRegionEvidence>();
                     var rawBuilder = new StringBuilder(raw);
                     foreach (var (region, targetField) in request.RequestedRegions)
                     {
@@ -1191,12 +1194,37 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                         rawMap[$"ai_ocr_{targetField}"] = transcript.RawJson;
                         rawBuilder.Append("\n\n").Append($"ai_ocr_{targetField} raw:\n").Append(transcript.RawJson);
                         messages.AddRange(transcript.Diagnostics);
-                        var interpreted = aiOcrTranscriptInterpreter.Interpret(transcript, region, targetField);
-                        updates.Add(interpreted.Update);
-                        messages.AddRange(interpreted.Diagnostics);
+                        evidence.Add(new()
+                        {
+                            Region = region,
+                            Field = targetField,
+                            RawTranscript = transcript.RawJson,
+                            Lines = transcript.Lines.Select(line => line.Text).Where(text => !string.IsNullOrWhiteSpace(text)).ToArray()
+                        });
+                        if (settings.Settings.AiWithAiOcrFusionMode == SmartBpHybridFusionMode.LocalCSharp)
+                        {
+                            var interpreted = aiOcrTranscriptInterpreter.Interpret(transcript, region, targetField);
+                            updates.Add(interpreted.Update);
+                            messages.Add("AI + AI OCR local C# transcript interpreter is experimental.");
+                            messages.AddRange(interpreted.Diagnostics);
+                        }
                     }
 
-                    var delta = new SmartBpSnapshotDeltaResult { Phase = phaseResult.Phase, Updates = updates };
+                    SmartBpSnapshotDeltaResult delta;
+                    if (settings.Settings.AiWithAiOcrFusionMode == SmartBpHybridFusionMode.BusinessAi)
+                    {
+                        var fusion = await businessAiFusion.FuseAsync(phaseResult, evidence, request.RequestedFields, preGateState, tickToken);
+                        delta = fusion.Delta;
+                        rawMap["business_ai_fusion"] = fusion.RawJson;
+                        rawBuilder.Append("\n\nbusiness_ai_fusion raw:\n").Append(fusion.RawJson);
+                        messages.AddRange(fusion.Diagnostics);
+                        messages.Add("AI + AI OCR fusion_mode=BusinessAi; transcript evidence was fused by the Business AI model.");
+                    }
+                    else
+                    {
+                        delta = new SmartBpSnapshotDeltaResult { Phase = phaseResult.Phase, Updates = updates };
+                        messages.Add("AI + AI OCR fusion_mode=LocalCSharp; local transcript interpreter is experimental.");
+                    }
                     if (!isDryRun)
                         messages.AddRange(stateStore.ApplyDelta(delta, sequence, DateTimeOffset.Now));
                     state = isDryRun ? preGateState : stateStore.Snapshot;

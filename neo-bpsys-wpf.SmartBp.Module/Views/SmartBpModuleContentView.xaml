@@ -269,6 +269,12 @@
                             Icon="{ui:SymbolIcon Symbol=ArrowDownload24}" />
                         <ui:Button
                             Margin="0,0,8,8"
+                            Command="{Binding CancelBusinessAiModelDownloadCommand}"
+                            Content="{lex:Loc SmartBpCancelDownload}"
+                            Icon="{ui:SymbolIcon Symbol=Stop24}"
+                            Visibility="{Binding IsBusinessAiModelDownloading, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        <ui:Button
+                            Margin="0,0,8,8"
                             Command="{Binding DeleteQwenModelCommand}"
                             Content="{lex:Loc Delete}"
                             Icon="{ui:SymbolIcon Symbol=Delete24}" />
@@ -278,11 +284,11 @@
                             Content="{lex:Loc Switch}"
                             Icon="{ui:SymbolIcon Symbol=ArrowSwap24}" />
                     </WrapPanel>
-                    <ProgressBar Visibility="{Binding IsQwenDownloading, Converter={StaticResource BooleanToVisibilityConverter}}" Value="{Binding QwenDownloadProgress}" />
+                    <ProgressBar Visibility="{Binding IsBusinessAiModelDownloading, Converter={StaticResource BooleanToVisibilityConverter}}" Value="{Binding BusinessAiModelDownloadProgress}" />
                     <TextBlock
-                        Text="{Binding QwenDownloadDetail}"
+                        Text="{Binding BusinessAiModelDownloadDetail}"
                         TextWrapping="Wrap"
-                        Visibility="{Binding HasQwenDownloadDetail, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        Visibility="{Binding HasBusinessAiModelDownloadDetail, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 </StackPanel>
             </StackPanel>
         </Border>
@@ -312,6 +318,12 @@
                         Icon="{ui:SymbolIcon Symbol=ArrowDownload24}" />
                     <ui:Button
                         Margin="0,0,8,8"
+                        Command="{Binding CancelAiOcrModelDownloadCommand}"
+                        Content="{lex:Loc SmartBpCancelDownload}"
+                        Icon="{ui:SymbolIcon Symbol=Stop24}"
+                        Visibility="{Binding IsAiOcrModelDownloading, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    <ui:Button
+                        Margin="0,0,8,8"
                         Command="{Binding DeleteAiOcrModelCommand}"
                         Content="{lex:Loc Delete}"
                         Icon="{ui:SymbolIcon Symbol=Delete24}" />
@@ -326,11 +338,11 @@
                         Content="{lex:Loc Refresh}"
                         Icon="{ui:SymbolIcon Symbol=ArrowClockwise24}" />
                 </WrapPanel>
-                <ProgressBar Visibility="{Binding IsAiOcrModelDownloading, Converter={StaticResource BooleanToVisibilityConverter}}" Value="{Binding QwenDownloadProgress}" />
+                <ProgressBar Visibility="{Binding IsAiOcrModelDownloading, Converter={StaticResource BooleanToVisibilityConverter}}" Value="{Binding AiOcrModelDownloadProgress}" />
                 <TextBlock
-                    Text="{Binding QwenDownloadDetail}"
+                    Text="{Binding AiOcrModelDownloadDetail}"
                     TextWrapping="Wrap"
-                    Visibility="{Binding HasQwenDownloadDetail, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding HasAiOcrModelDownloadDetail, Converter={StaticResource BooleanToVisibilityConverter}}" />
             </StackPanel>
         </Border>
 
@@ -377,7 +389,13 @@
                             Command="{Binding RollbackLlamaRuntimeCommand}"
                             Content="{lex:Loc SmartBpAiRollbackRuntime}"
                             Icon="{ui:SymbolIcon Symbol=ArrowUndo24}" />
+                        <ui:Button
+                            Margin="0,0,8,8"
+                            Command="{Binding CheckLlamaRuntimeUpdateCommand}"
+                            Content="{lex:Loc SmartBpCheckRuntimeUpdate}"
+                            Icon="{ui:SymbolIcon Symbol=ArrowSync24}" />
                     </WrapPanel>
+                    <TextBlock Text="{Binding LlamaRuntimeUpdateStatus}" TextWrapping="Wrap" />
                     <StackPanel Visibility="{Binding IsLlamaRuntimeDownloading, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <ProgressBar Value="{Binding LlamaRuntimeDownloadProgress}" />
                         <TextBlock Text="{Binding LlamaRuntimeDownloadDetail}" TextWrapping="Wrap" />
@@ -651,6 +669,18 @@
                     </StackPanel>
                     <ui:ToggleSwitch Content="{lex:Loc SmartBpRapidOcrAngleClassifier}" IsChecked="{Binding RapidOcrUseAngleClassifier}" />
                     <ui:ToggleSwitch Content="{lex:Loc SmartBpRapidOcrPreprocessingVariants}" IsChecked="{Binding RapidOcrUsePreprocessingVariants}" />
+                </StackPanel>
+                <StackPanel Visibility="{Binding IsAiWithOcrFusionModeVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <StackPanel Margin="0,6,0,0">
+                        <TextBlock Text="{lex:Loc SmartBpAiWithOcrFusionMode}" />
+                        <ComboBox ItemsSource="{Binding HybridFusionModes}" SelectedItem="{Binding AiWithOcrFusionMode}" />
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel Visibility="{Binding IsAiWithAiOcrFusionModeVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <StackPanel Margin="0,6,0,0">
+                        <TextBlock Text="{lex:Loc SmartBpAiWithAiOcrFusionMode}" />
+                        <ComboBox ItemsSource="{Binding HybridFusionModes}" SelectedItem="{Binding AiWithAiOcrFusionMode}" />
+                    </StackPanel>
                 </StackPanel>
                 <StackPanel Visibility="{Binding IsAiQwenRecognitionEngine, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <StackPanel Margin="0,6,0,0">

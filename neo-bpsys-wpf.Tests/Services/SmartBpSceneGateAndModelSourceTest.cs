@@ -43,6 +43,7 @@ using ISmartBpDebugLog = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISma
 using ISmartBpOcrBpRecognitionService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpOcrBpRecognitionService;
 using ISmartBpAiOcrTranscriptRecognitionService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpAiOcrTranscriptRecognitionService;
 using ISmartBpAiOcrTranscriptInterpreter = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpAiOcrTranscriptInterpreter;
+using ISmartBpBusinessAiFusionService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpBusinessAiFusionService;
 using ILlamaCppServerManagerFactory = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ILlamaCppServerManagerFactory;
 
 namespace neo_bpsys_wpf.Tests.Services;
@@ -98,6 +99,7 @@ public sealed class SmartBpSceneGateAndModelSourceTest
                 Mock.Of<ISmartBpDetectedOperationApplier>(), Mock.Of<ISmartBpSceneGateService>(),
                 Mock.Of<ISmartBpOcrBpRecognitionService>(), Mock.Of<ISmartBpAiOcrTranscriptRecognitionService>(),
                 Mock.Of<ISmartBpAiOcrTranscriptInterpreter>(),
+                Mock.Of<ISmartBpBusinessAiFusionService>(),
                 Mock.Of<ILlamaCppServerManagerFactory>(), Mock.Of<ISmartBpDebugLog>());
             await coordinator.StartAsync();
             var frame = new WriteableBitmap(1, 1, 96, 96, PixelFormats.Bgra32, null);

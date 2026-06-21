@@ -275,6 +275,24 @@ public interface ISmartBpAiOcrTranscriptInterpreter
         SmartBpRecognitionRegion region,
         string field);
 }
+
+/// <summary>Uses the Business AI model to fuse OCR or AI OCR evidence into structured SmartBP field updates.</summary>
+public interface ISmartBpBusinessAiFusionService
+{
+    /// <summary>Converts transcript evidence into requested SmartBP field updates.</summary>
+    /// <param name="phase">Recognized phase and scene evidence.</param>
+    /// <param name="evidence">Transcript evidence grouped by BP region.</param>
+    /// <param name="requestedFields">Business fields that may be updated.</param>
+    /// <param name="currentKnownState">Current locally known BP state.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Structured snapshot delta returned by the Business AI model.</returns>
+    Task<(SmartBpSnapshotDeltaResult Delta, string RawJson, IReadOnlyList<string> Diagnostics)> FuseAsync(
+        SmartBpPhaseRecognitionResult phase,
+        IReadOnlyList<SmartBpAiOcrTranscriptRegionEvidence> evidence,
+        IReadOnlyCollection<string> requestedFields,
+        SmartBpBusinessStateRecognitionResult currentKnownState,
+        CancellationToken cancellationToken = default);
+}
 /// <summary>Encodes WPF frames for multimodal requests.</summary>
 public interface ISmartBpImageEncoder { /// <summary>Encodes a PNG data URL.</summary>
     string EncodeDataUrl(BitmapSource source, int maxWidth); }
@@ -457,6 +475,12 @@ public interface ILlamaCppOpenAiClient
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The raw model JSON response (already repaired when using prompt-and-repair mode).</returns>
     Task<string> RecognizeFieldSnapshotAsync(string imageDataUrl, string field, CancellationToken cancellationToken = default);
+    /// <summary>Fuses text-only transcript evidence into a snapshot delta through the Business AI server.</summary>
+    /// <param name="prompt">Text-only business fusion prompt.</param>
+    /// <param name="requestedFields">Fields allowed in the output.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The raw model JSON response, repaired when needed.</returns>
+    Task<string> FuseTranscriptEvidenceAsync(string prompt, IReadOnlyCollection<string> requestedFields, CancellationToken cancellationToken = default);
     /// <summary>Recognizes only the phase crop using the short phase-only prompt.</summary>
     /// <param name="imageDataUrl">Encoded phase crop image data URL.</param>
     /// <param name="cancellationToken">Cancellation token.</param>

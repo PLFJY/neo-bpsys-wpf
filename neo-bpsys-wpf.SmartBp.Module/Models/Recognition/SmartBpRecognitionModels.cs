@@ -26,6 +26,15 @@ public enum SmartBpRecognitionStrategy
     AiWithAiOcr
 }
 
+/// <summary>Chooses how hybrid recognition evidence is fused into SmartBP field updates.</summary>
+public enum SmartBpHybridFusionMode
+{
+    /// <summary>Use local C# parsers/interpreters and merge in-process.</summary>
+    LocalCSharp,
+    /// <summary>Ask the Business AI model to convert evidence into structured BP field updates.</summary>
+    BusinessAi
+}
+
 /// <summary>Family of a managed local vision model.</summary>
 public enum LocalVisionModelFamily
 {
@@ -427,6 +436,10 @@ public sealed class SmartBpRecognitionSettings
     public string SelectedAiOcrModelId { get; set; } = "paddleocr-vl-1.6-gguf";
     /// <summary>Gets or sets whether AI OCR should use its own llama.cpp server when models differ.</summary>
     public bool UseSeparateAiOcrServer { get; set; } = true;
+    /// <summary>Gets or sets how AI + OCR fuses OCR evidence into business state.</summary>
+    public SmartBpHybridFusionMode AiWithOcrFusionMode { get; set; } = SmartBpHybridFusionMode.LocalCSharp;
+    /// <summary>Gets or sets how AI + AI OCR fuses transcript evidence into business state.</summary>
+    public SmartBpHybridFusionMode AiWithAiOcrFusionMode { get; set; } = SmartBpHybridFusionMode.BusinessAi;
     /// <summary>Gets or sets the selected projector profile label.</summary>
     public string SelectedMmprojId { get; set; } = "mmproj-f16";
     /// <summary>Gets or sets the bundled prompt profile id.</summary>
@@ -971,6 +984,19 @@ public sealed class SmartBpAiOcrTranscriptResult
     public string RawJson { get; init; } = "";
     /// <summary>Gets bounded diagnostics.</summary>
     public IReadOnlyList<string> Diagnostics { get; init; } = [];
+}
+
+/// <summary>AI OCR transcript evidence for one coarse BP business region.</summary>
+public sealed class SmartBpAiOcrTranscriptRegionEvidence
+{
+    /// <summary>Gets the source SmartBP coarse region.</summary>
+    public SmartBpRecognitionRegion Region { get; init; }
+    /// <summary>Gets the SmartBP business field represented by the region.</summary>
+    public string Field { get; init; } = "";
+    /// <summary>Gets the raw transcript returned by the AI OCR model.</summary>
+    public string RawTranscript { get; init; } = "";
+    /// <summary>Gets transcript lines parsed locally from the raw transcript.</summary>
+    public IReadOnlyList<string> Lines { get; init; } = [];
 }
 
 /// <summary>Detailed local parse result for one OCR coarse region.</summary>
