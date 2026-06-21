@@ -204,6 +204,26 @@ internal static class SmartBpOcrPhaseClassifier
         foreach (var line in lines)
             diagnostics.Add($"phase line: provider={line.Provider ?? "unknown"}; coordinateSpace=region-local; text={line.Text}; bbox={line.BoundingBox}; x={line.CenterX:0.0}; y={line.CenterY:0.0}; conf={line.Confidence:0.00}");
 
+        var phaseText = string.Join('\n', lines.Select(line => line.Text));
+        if (ContainsNormalized(phaseText, "等待游戏开始"))
+            return Matched("等待游戏开始", "Pure OCR post-BP anchor matched: 等待游戏开始.", diagnostics);
+        if (Regex.IsMatch(phaseText, @"前往【.+?】", RegexOptions.CultureInvariant))
+            return Matched("等待游戏开始", "Pure OCR post-BP anchor matched: 前往【...】.", diagnostics);
+        if (Regex.IsMatch(phaseText, @"剩余\s*\d+\s*秒", RegexOptions.CultureInvariant))
+            return Matched("等待游戏开始", "Pure OCR post-BP anchor matched: 剩余 秒 countdown.", diagnostics);
+        if (ContainsNormalized(phaseText, "即将进入区域选择"))
+            return Matched("即将进入区域选择", "Pure OCR post-BP anchor matched: 即将进入区域选择.", diagnostics);
+        if (ContainsNormalized(phaseText, "求生者选择区域中"))
+            return Matched("求生者选择区域中", "Pure OCR post-BP anchor matched: 求生者选择区域中.", diagnostics);
+        if (ContainsNormalized(phaseText, "监管者选择区域中"))
+            return Matched("监管者选择区域中", "Pure OCR post-BP anchor matched: 监管者选择区域中.", diagnostics);
+        if (ContainsNormalized(phaseText, "区域选择") || ContainsNormalized(phaseText, "选择区域"))
+            return Matched("区域选择", "Pure OCR post-BP anchor matched: 区域选择 / 选择区域.", diagnostics);
+        if (ContainsNormalized(phaseText, "加载中"))
+            return Matched("加载中", "Pure OCR post-BP anchor matched: 加载中.", diagnostics);
+        if (ContainsNormalized(phaseText, "对局中"))
+            return Matched("对局中", "Pure OCR post-BP anchor matched: 对局中.", diagnostics);
+
         if (lines.Any(line => ContainsNormalized(line.Text, "天赋已锁定")))
             return Matched("天赋已锁定", "matched rule: any line contains 天赋已锁定", diagnostics);
 

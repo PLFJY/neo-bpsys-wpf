@@ -115,4 +115,10 @@ public interface IGameGuidanceService
     /// 停止对局引导
     /// </summary>
     void StopGuidance();
+
+    /// <summary>
+    /// Completes the active game guidance workflow without treating it as a user cancellation.
+    /// </summary>
+    /// <param name="reason">Completion reason published with the stopped event.</param>
+    void CompleteGuidance(string reason = "SmartBpCharacterBpEnded") => StopGuidance();
 }

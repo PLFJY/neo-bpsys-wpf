@@ -79,6 +79,35 @@ public sealed class SmartBpOcrRecognitionContractTest
         Assert.Equal("选择求生者", phase.Phase);
     }
 
+    [Theory]
+    [InlineData("等待游戏开始，剩余 28 秒", "等待游戏开始")]
+    [InlineData("前往【永眠镇】", "等待游戏开始")]
+    [InlineData("即将进入区域选择", "即将进入区域选择")]
+    [InlineData("求生者选择区域中", "求生者选择区域中")]
+    [InlineData("监管者选择区域中", "监管者选择区域中")]
+    [InlineData("区域选择", "区域选择")]
+    [InlineData("加载中", "加载中")]
+    [InlineData("对局中", "对局中")]
+    public void PhaseClassifierDetectsPostBpAnchors(string text, string expected)
+    {
+        var diagnostics = new List<string>();
+
+        var phase = SmartBpOcrPhaseClassifier.Classify([Line(text, 50, 20)], 200, diagnostics);
+
+        Assert.Equal(expected, phase.Phase);
+        Assert.Contains(diagnostics, item => item.Contains("Pure OCR post-BP anchor matched", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void PhaseClassifierDoesNotStopOnBareMapName()
+    {
+        var diagnostics = new List<string>();
+
+        var phase = SmartBpOcrPhaseClassifier.Classify([Line("永眠镇", 50, 20)], 200, diagnostics);
+
+        Assert.Equal("未知", phase.Phase);
+    }
+
     [Fact]
     public void RightTopLinesProduceSurvivorBans()
     {

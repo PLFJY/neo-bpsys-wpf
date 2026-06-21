@@ -23,6 +23,7 @@ public partial class SmartBpModuleContentViewModel
     private int _recognitionBusy;
     private bool _isSwitchingQwenModel;
     private bool _isSwitchingAiOcrModel;
+    private bool _isAutomaticRecognitionStopPendingAfterQueueDrain;
     private LocalVisionModelDownloadRole? _activeVisionModelDownloadRole;
 
     private enum LocalVisionModelDownloadRole
@@ -1190,6 +1191,7 @@ public partial class SmartBpModuleContentViewModel
         {
             await EnsureRequiredLlamaServersForAutomaticRecognitionAsync();
             await _autoRecognitionCoordinator.StartAsync();
+            _isAutomaticRecognitionStopPendingAfterQueueDrain = false;
             IsAiPreviewLoopRunning = true;
             _aiPreviewTimer.Start();
             _autoRecognitionGlobalControl.Update(true, _ => StopAiPreviewLoopAsync());
@@ -1210,6 +1212,7 @@ public partial class SmartBpModuleContentViewModel
     [RelayCommand(CanExecute = nameof(CanStopAutomaticRecognition))]
     private async Task StopAiPreviewLoopAsync()
     {
+        _isAutomaticRecognitionStopPendingAfterQueueDrain = false;
         _aiPreviewTimer.Stop();
         await _autoRecognitionCoordinator.StopAsync();
         IsAiPreviewLoopRunning = false;
@@ -1469,12 +1472,52 @@ public partial class SmartBpModuleContentViewModel
             ApplyRegionGatedResult(result);
             if (result.SceneGate?.ShouldPauseAutomaticRecognition == true && IsAiPreviewLoopRunning)
             {
-                await StopAiPreviewLoopAsync();
-                AiSceneDiagnostics += Environment.NewLine + ResolveLocalizedOrRaw("SmartBpRecognitionPausedBpEnded");
+                await RequestStopAutomaticRecognitionAfterQueueDrainedAsync(result);
             }
         }
         catch (OperationCanceledException) { }
         finally { IsAiRecognizing = false; Interlocked.Exchange(ref _recognitionBusy, 0); }
+    }
+
+    private async Task RequestStopAutomaticRecognitionAfterQueueDrainedAsync(SmartBpAutoRecognitionTickResult result)
+    {
+        if (_isAutomaticRecognitionStopPendingAfterQueueDrain)
+            return;
+
+        _isAutomaticRecognitionStopPendingAfterQueueDrain = true;
+        _aiPreviewTimer.Stop();
+        var phase = result.PhaseResult?.Phase ?? result.BusinessState?.Phase ?? "未知";
+        var scene = result.SceneGate?.Scene.ToString() ?? "Unknown";
+        var pendingMessage =
+            $"Post-BP phase detected: phase={phase}; scene={scene}.{Environment.NewLine}" +
+            "Character BP has ended; no new recognition ticks will be scheduled." + Environment.NewLine +
+            "Automatic recognition stop is queued after pending operations drain." + Environment.NewLine +
+            "Skipped content field recognition because BP ended.";
+        AiSceneDiagnostics = string.IsNullOrWhiteSpace(AiSceneDiagnostics)
+            ? pendingMessage
+            : AiSceneDiagnostics + Environment.NewLine + pendingMessage;
+        _aiDebugLog.Write("recognition", pendingMessage);
+
+        await CompleteAutomaticRecognitionAfterQueueDrainedAsync("SmartBpCharacterBpEnded");
+    }
+
+    private async Task CompleteAutomaticRecognitionAfterQueueDrainedAsync(string reason)
+    {
+        await _autoRecognitionCoordinator.CompleteAsync();
+        _gameGuidanceService.CompleteGuidance(reason);
+        IsAiPreviewLoopRunning = false;
+        _autoRecognitionGlobalControl.Update(false);
+        _isAutomaticRecognitionStopPendingAfterQueueDrain = false;
+        var completedMessage =
+            $"Pending BP operation queue drained.{Environment.NewLine}" +
+            $"Automatic recognition stopped.{Environment.NewLine}" +
+            $"GameGuidance completed with reason={reason}.";
+        AiSceneDiagnostics = string.IsNullOrWhiteSpace(AiSceneDiagnostics)
+            ? completedMessage
+            : AiSceneDiagnostics + Environment.NewLine + completedMessage;
+        _aiDebugLog.Write("recognition", completedMessage);
+        AiLastError = ResolveLocalizedOrRaw("SmartBpRecognitionPausedBpEnded");
+        NotifyAutomaticRecognitionCommands();
     }
 
     private async Task RunRegionGatedFrameCoreAsync(BitmapSource frame)

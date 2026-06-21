@@ -1092,6 +1092,23 @@ public sealed class SmartBpAiRecognitionContractTest
     }
 
     [Theory]
+    [InlineData("即将进入区域选择")]
+    [InlineData("区域选择")]
+    [InlineData("求生者选择区域中")]
+    [InlineData("监管者选择区域中")]
+    [InlineData("等待游戏开始")]
+    [InlineData("加载中")]
+    [InlineData("对局中")]
+    public void PhaseParserAcceptsPostBpPhases(string phase)
+    {
+        Assert.Contains(phase, SmartBpAutomaticMapping.ValidPhases);
+
+        var parsed = SmartBpAutomaticParser.ParsePhase($$"""{"phase":"{{phase}}"}""");
+
+        Assert.Equal(phase, parsed.Phase);
+    }
+
+    [Theory]
     [InlineData(GameAction.BanSur, "banned_sur")]
     [InlineData(GameAction.BanHun, "banned_hun")]
     [InlineData(GameAction.PickSur, "picked_sur")]

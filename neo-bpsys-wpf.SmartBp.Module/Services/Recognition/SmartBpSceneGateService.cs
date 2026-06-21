@@ -13,20 +13,20 @@ internal sealed class SmartBpSceneGateService : ISmartBpSceneGateService
         GameGuidanceRuntimeSnapshot guidanceSnapshot)
     {
         var evidence = string.Join('\n', rawResponses.Values.Append(phase.Phase).Append(state.Phase));
-        if (Contains(evidence, "密码机尚未破译", "地窖未刷新", "监管者投降", "对局中"))
-            return Block(SmartBpRecognitionScene.InGame, true, "detected in-game HUD text");
+        if (Contains(evidence, "对局中", "密码机尚未破译", "地窖未刷新", "监管者投降"))
+            return PostBp(SmartBpRecognitionScene.InGame);
         if (Contains(evidence, "监管者选择区域中"))
-            return Block(SmartBpRecognitionScene.AreaSelectionHunter, true, "detected area selection after talent lock");
+            return PostBp(SmartBpRecognitionScene.AreaSelectionHunter);
         if (Contains(evidence, "求生者选择区域中"))
-            return Block(SmartBpRecognitionScene.AreaSelectionSurvivor, true, "detected area selection after talent lock");
+            return PostBp(SmartBpRecognitionScene.AreaSelectionSurvivor);
         if (Contains(evidence, "即将进入区域选择", "区域选择"))
-            return Block(SmartBpRecognitionScene.OutOfBp, true, "area selection is outside BP character recognition scope");
-        if (Contains(evidence, "等待游戏开始"))
-            return Block(SmartBpRecognitionScene.WaitingGameStart, true, "detected waiting-for-game-start scene");
+            return PostBp(SmartBpRecognitionScene.OutOfBp);
+        if (Contains(evidence, "等待游戏开始", "前往【"))
+            return PostBp(SmartBpRecognitionScene.WaitingGameStart);
         if (Contains(evidence, "加载中", "正在加载"))
-            return Block(SmartBpRecognitionScene.Loading, true, "detected loading scene");
+            return PostBp(SmartBpRecognitionScene.Loading);
         if (Contains(evidence, "天赋已锁定"))
-            return GuidanceOnly(SmartBpRecognitionScene.TalentLocked, true, "talent is locked; BP character operations are complete");
+            return GuidanceOnly(SmartBpRecognitionScene.TalentLocked, false, "talent is locked; BP cleanup may still be pending");
         if (Contains(evidence, "求生者天赋特质调整"))
             return GuidanceOnly(SmartBpRecognitionScene.SurvivorTalent, false, "survivor talent adjustment allows guidance sync only");
         if (Contains(evidence, "监管者天赋特质调整", "监管者选择天赋中"))
@@ -55,4 +55,8 @@ internal sealed class SmartBpSceneGateService : ISmartBpSceneGateService
 
     private static SmartBpSceneGateResult GuidanceOnly(SmartBpRecognitionScene scene, bool pause, string reason) =>
         new(scene, true, false, pause, reason);
+
+    private static SmartBpSceneGateResult PostBp(SmartBpRecognitionScene scene) =>
+        new(scene, false, false, true,
+            "character BP has ended; automatic recognition should stop after queued operations drain");
 }

@@ -213,6 +213,21 @@ public class GameGuidanceService(
         IsGuidanceStarted = false;
     }
 
+    /// <inheritdoc/>
+    public void CompleteGuidance(string reason = "SmartBpCharacterBpEnded")
+    {
+        if (!IsGuidanceStarted)
+            return;
+
+        _pendingGuidanceStopReason = string.IsNullOrWhiteSpace(reason)
+            ? "SmartBpCharacterBpEnded"
+            : reason;
+        _infoBarService.CloseInfoBar();
+        WeakReferenceMessenger.Default.Send(new HighlightMessage(null, null));
+        PublishHighlight(null, null);
+        IsGuidanceStarted = false;
+    }
+
     private GameGuidanceStateChangedEventArgs CreateStateChangedArgs(bool isStarted, string? reason)
     {
         var currentStepIndex = _currentStep;

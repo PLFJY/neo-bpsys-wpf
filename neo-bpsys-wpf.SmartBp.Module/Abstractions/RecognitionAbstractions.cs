@@ -587,6 +587,8 @@ public interface ISmartBpAutoRecognitionCoordinator
     Task StartAsync(CancellationToken cancellationToken = default);
     /// <summary>Stops automatic mode.</summary>
     Task StopAsync();
+    /// <summary>Completes automatic mode without cancelling the active tick token.</summary>
+    Task CompleteAsync();
     /// <summary>Runs one stage-aware automatic recognition tick.</summary>
     Task<SmartBpAutoRecognitionTickResult> RunOneTickAsync(BitmapSource frame, CancellationToken cancellationToken = default);
     /// <summary>Runs one stage-aware recognition tick without applying deltas, character operations, or guidance synchronization.</summary>

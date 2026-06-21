@@ -480,6 +480,7 @@ public class FrontedSharedDataBehaviorEventBridgeTest
         public Task<string?> NextStepAsync(bool playAnimation) => Task.FromResult<string?>(null);
         public Task<string?> PrevStepAsync(bool playAnimation) => Task.FromResult<string?>(null);
         public void StopGuidance() { }
+        public void CompleteGuidance(string reason = "SmartBpCharacterBpEnded") { }
         public void FireHighlightChanged(GameGuidanceHighlightChangedEventArgs args) => GuidanceHighlightChanged?.Invoke(this, args);
         public void FireStepChanged(GameGuidanceStepChangedEventArgs args) => GuidanceStepChanged?.Invoke(this, args);
         public void FireCancelled(GameGuidanceStateChangedEventArgs args) => GuidanceCancelled?.Invoke(this, args);
