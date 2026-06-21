@@ -986,6 +986,12 @@ internal sealed class SmartBpDetectedOperationApplier(
         $"{operation.Kind} {operation.Camp}[{operation.SlotIndex}] {operation.RawCharacterName ?? "null"}";
 }
 
+internal enum SmartBpRecognitionDebugMode
+{
+    Automatic,
+    FullStrategy
+}
+
 internal sealed class SmartBpAutoRecognitionCoordinator(
     ISmartBpRegionSnapshotRecognitionService snapshotRecognition,
     ISmartBpSnapshotDeltaRecognitionService deltaRecognition,
@@ -1003,6 +1009,9 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
     ISmartBpDetectedOperationApplier applier,
     ISmartBpSceneGateService sceneGate,
     ISmartBpOcrBpRecognitionService ocrRecognition,
+    ISmartBpAiOcrTranscriptRecognitionService aiOcrTranscriptRecognition,
+    SmartBpOcrRegionParser ocrRegionParser,
+    ISmartBpBusinessStateMerger merger,
     ILlamaCppServerManagerFactory llamaServerManagers,
     ISmartBpDebugLog debugLog) : ISmartBpAutoRecognitionCoordinator, ISmartBpStepCommitScheduler
 {
@@ -1048,7 +1057,17 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
     public async Task<SmartBpAutoRecognitionTickResult> RunOneTickDryRunAsync(BitmapSource frame, CancellationToken cancellationToken = default)
         => await RunOneTickCoreAsync(frame, isDryRun: true, cancellationToken).ConfigureAwait(false);
 
-    private async Task<SmartBpAutoRecognitionTickResult> RunOneTickCoreAsync(BitmapSource frame, bool isDryRun, CancellationToken cancellationToken = default)
+    public async Task<SmartBpAutoRecognitionTickResult> RunFullRecognitionDebugAsync(BitmapSource frame, CancellationToken cancellationToken = default)
+        => await RunOneTickCoreAsync(frame, isDryRun: false, cancellationToken, SmartBpRecognitionDebugMode.FullStrategy).ConfigureAwait(false);
+
+    public async Task<SmartBpAutoRecognitionTickResult> RunPhaseOnlyDebugAsync(BitmapSource frame, CancellationToken cancellationToken = default)
+        => await RunPhaseOnlyDebugCoreAsync(frame, cancellationToken).ConfigureAwait(false);
+
+    private async Task<SmartBpAutoRecognitionTickResult> RunOneTickCoreAsync(
+        BitmapSource frame,
+        bool isDryRun,
+        CancellationToken cancellationToken = default,
+        SmartBpRecognitionDebugMode debugMode = SmartBpRecognitionDebugMode.Automatic)
     {
         if (!await _tickGate.WaitAsync(0, cancellationToken))
             return Failure("An automatic recognition tick is already running.");
@@ -1068,7 +1087,9 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
             await EnsureStrategyServersAsync(tickToken).ConfigureAwait(false);
             frameRingBuffer.AddFrame(sequence, frame, DateTimeOffset.Now);
             var guidanceSnapshot = guidance.GetRuntimeSnapshot();
-            var request = planner.BuildRequest(guidanceSnapshot, stateStore.Snapshot, ledger.GetSnapshot());
+            var request = debugMode == SmartBpRecognitionDebugMode.FullStrategy
+                ? BuildFullStrategyDebugRequest(stateStore.Snapshot)
+                : planner.BuildRequest(guidanceSnapshot, stateStore.Snapshot, ledger.GetSnapshot());
             SmartBpRegionSnapshot? regionSnapshot = null;
             SmartBpPhaseRecognitionResult phaseResult;
             SmartBpCroppedFrame? phaseCrop;
@@ -1077,6 +1098,8 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
             var messages = new List<string>(request.Diagnostics);
             if (isDryRun)
                 messages.Add("Speed-test dry run: recognition request shape matches automatic tick, but local merge, auto apply, and GameGuidance sync are disabled.");
+            if (debugMode == SmartBpRecognitionDebugMode.FullStrategy)
+                messages.Add("Full strategy debug: phase_top plus all four BP business fields are requested.");
             IReadOnlyDictionary<string, string> rawResponses;
             var recognitionPath = ResolveRecognitionPath(request);
             debugLog.Write("recognition", $"Recognition path={recognitionPath}; structured_output_mode={settings.Settings.StructuredOutputMode}; requested_fields=[{string.Join(", ", request.RequestedFields)}]; legacy_delta={settings.Settings.UseLegacySnapshotDeltaRecognition}.");
@@ -1108,7 +1131,8 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                 var preGateState = stateStore.Snapshot;
                 var preGate = sceneGate.Classify(phaseResult, preGateState, rawResponses, guidanceSnapshot);
                 messages.Add($"AI scene/phase controller: scene={preGate.Scene}; phase={phaseResult.Phase}; allowed={preGate.IsBpRecognitionAllowed}; recommended_fields=[{string.Join(", ", request.RequestedFields)}]; reason={preGate.Reason}.");
-                if (!preGate.IsBpRecognitionAllowed || request.RequestedRegions.Count == 0)
+                var debugForced = debugMode == SmartBpRecognitionDebugMode.FullStrategy;
+                if ((!preGate.IsBpRecognitionAllowed && !debugForced) || request.RequestedRegions.Count == 0)
                 {
                     state = preGateState;
                     contentCrops = [];
@@ -1129,6 +1153,62 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                     state = isDryRun ? ocr.BusinessState : stateStore.Snapshot;
                     contentCrops = [];
                     rawResponses = new Dictionary<string, string>(rawResponses) { ["ocr"] = raw };
+                }
+            }
+            else if (settings.Settings.RecognitionStrategy == SmartBpRecognitionStrategy.AiWithAiOcr)
+            {
+                var phaseOnly = await fieldSnapshotRecognition.RecognizePhaseOnlyAsync(frame, tickToken);
+                var rawMap = new Dictionary<string, string> { ["phase_only"] = phaseOnly.RawJson };
+                raw = phaseOnly.RawJson;
+                messages.AddRange(phaseOnly.Diagnostics);
+                phaseResult = phaseOnly.Phase;
+                phaseCrop = phaseOnly.Crop;
+                if (!isDryRun) stateStore.ApplyPhase(phaseResult.Phase, sequence);
+                var preGateState = stateStore.Snapshot;
+                var preGate = sceneGate.Classify(phaseResult, preGateState, rawMap, guidanceSnapshot);
+                messages.Add($"AI + AI OCR scene/phase controller: scene={preGate.Scene}; phase={phaseResult.Phase}; allowed={preGate.IsBpRecognitionAllowed}; requested_fields=[{string.Join(", ", request.RequestedFields)}]; reason={preGate.Reason}.");
+                var debugForced = debugMode == SmartBpRecognitionDebugMode.FullStrategy;
+                if ((!preGate.IsBpRecognitionAllowed && !debugForced) || request.RequestedRegions.Count == 0)
+                {
+                    state = preGateState;
+                    contentCrops = [];
+                    rawResponses = rawMap;
+                    messages.Add(preGate.IsBpRecognitionAllowed
+                        ? "AI + AI OCR skipped transcript extraction because no fields were requested."
+                        : "AI + AI OCR skipped transcript extraction because BP recognition is blocked by the scene decision.");
+                }
+                else
+                {
+                    var parsed = new Dictionary<SmartBpRecognitionRegion, SmartBpFocusedBusinessExtractionResult>();
+                    var rawBuilder = new StringBuilder(raw);
+                    foreach (var (region, targetField) in request.RequestedRegions)
+                    {
+                        var transcript = await aiOcrTranscriptRecognition.RecognizeAsync(frame, [(region, targetField)], tickToken);
+                        rawMap[$"ai_ocr_{targetField}"] = transcript.RawJson;
+                        rawBuilder.Append("\n\n").Append($"ai_ocr_{targetField} raw:\n").Append(transcript.RawJson);
+                        messages.AddRange(transcript.Diagnostics);
+                        var lines = transcript.Lines
+                            .Select((line, index) => new OcrTextLine(line.Text, 1, new OpenCvSharp.Rect(0, index * 16, 1, 16), index, index, "AI OCR"))
+                            .ToArray();
+                        var parsedRegion = ocrRegionParser.ParseDetailed(region, lines);
+                        parsed[region] = parsedRegion.Result;
+                        messages.AddRange(parsedRegion.Diagnostics);
+                    }
+
+                    state = merger.Merge(
+                        phaseResult,
+                        parsed.GetValueOrDefault(SmartBpRecognitionRegion.RightTop),
+                        parsed.GetValueOrDefault(SmartBpRecognitionRegion.LeftTop),
+                        parsed.GetValueOrDefault(SmartBpRecognitionRegion.LeftBottom),
+                        parsed.GetValueOrDefault(SmartBpRecognitionRegion.RightBottom));
+                    var delta = ToDelta(state, request.RequestedFields);
+                    if (!isDryRun)
+                        messages.AddRange(stateStore.ApplyDelta(delta, sequence, DateTimeOffset.Now));
+                    state = isDryRun ? state : stateStore.Snapshot;
+                    raw = rawBuilder.ToString();
+                    rawResponses = rawMap;
+                    contentCrops = [];
+                    messages.Add($"AI + AI OCR transcript merge result updates=[{string.Join(", ", delta.Updates.Select(update => update.Field))}].");
                 }
             }
             else if (recognitionPath == SmartBpRecognitionPath.FieldSnapshot || recognitionPath == SmartBpRecognitionPath.FullFieldSnapshot)
@@ -1316,6 +1396,71 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
 
     private SmartBpAutoRecognitionTickResult Failure(string error) =>
         new(null, null, null, null, null, null, guidance.GetRuntimeSnapshot(), [], [], null, "", error);
+
+    private async Task<SmartBpAutoRecognitionTickResult> RunPhaseOnlyDebugCoreAsync(
+        BitmapSource frame,
+        CancellationToken cancellationToken = default)
+    {
+        if (!await _tickGate.WaitAsync(0, cancellationToken))
+            return Failure("An automatic recognition tick is already running.");
+        try
+        {
+            if (settings.Settings.RecognitionStrategy != SmartBpRecognitionStrategy.PureOcr)
+                await StartIfNeededAsync(llamaServerManagers.Get(LlamaVisionServerRole.BusinessAi), cancellationToken).ConfigureAwait(false);
+            SmartBpPhaseRecognitionResult phaseResult;
+            SmartBpCroppedFrame? phaseCrop;
+            string raw;
+            IReadOnlyDictionary<string, string> rawResponses;
+            var messages = new List<string>
+            {
+                $"Phase-only debug: strategy={settings.Settings.RecognitionStrategy}; no field OCR, AI OCR, merge, operations, or apply."
+            };
+
+            if (settings.Settings.RecognitionStrategy == SmartBpRecognitionStrategy.PureOcr)
+            {
+                var ocr = await ocrRecognition.RecognizeAsync(frame, new SmartBpOcrRecognitionRequest([], IncludePhase: true), cancellationToken).ConfigureAwait(false);
+                phaseResult = ocr.Phase;
+                phaseCrop = null;
+                raw = string.Join(Environment.NewLine, ocr.Regions.SelectMany(region => region.Lines.Select(line => $"[{SmartBpOcrBpRecognitionService.ToRegionId(region.Region)}] {line.Text}")));
+                rawResponses = new Dictionary<string, string> { ["ocr_phase"] = raw };
+                messages.AddRange(ocr.Diagnostics);
+            }
+            else
+            {
+                var phaseOnly = await fieldSnapshotRecognition.RecognizePhaseOnlyAsync(frame, cancellationToken).ConfigureAwait(false);
+                phaseResult = phaseOnly.Phase;
+                phaseCrop = phaseOnly.Crop;
+                raw = phaseOnly.RawJson;
+                rawResponses = new Dictionary<string, string> { ["phase_only"] = raw };
+                messages.AddRange(phaseOnly.Diagnostics);
+            }
+
+            var state = stateStore.Snapshot;
+            var gate = sceneGate.Classify(phaseResult, state, rawResponses, guidance.GetRuntimeSnapshot());
+            messages.Add($"Scene: {gate.Scene}; BP recognition allowed: {gate.IsBpRecognitionAllowed}; Character operations allowed: {gate.IsCharacterOperationAllowed}; Action: {(gate.ShouldPauseAutomaticRecognition ? "automatic recognition paused" : "continue monitoring")}; Reason: {gate.Reason}.");
+            return new(state, phaseResult, null, phaseCrop, null, null, guidance.GetRuntimeSnapshot(),
+                [], messages, new(0, 0, ["Phase-only debug: operation generation is disabled."]), raw, null, null, null, [], gate);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            return new(null, null, null, null, null, null, guidance.GetRuntimeSnapshot(), [], [], null, "", ex.Message);
+        }
+        finally
+        {
+            _tickGate.Release();
+        }
+    }
+
+    private static SmartBpSnapshotDeltaRequest BuildFullStrategyDebugRequest(SmartBpBusinessStateRecognitionResult currentKnownState) =>
+        new(
+            [
+                (SmartBpRecognitionRegion.RightTop, "banned_sur"),
+                (SmartBpRecognitionRegion.LeftTop, "banned_hun"),
+                (SmartBpRecognitionRegion.LeftBottom, "picked_sur"),
+                (SmartBpRecognitionRegion.RightBottom, "picked_hun")
+            ],
+            ["Full strategy debug requested phase_top and all four BP business fields."],
+            currentKnownState);
 
     /// <summary>
     /// Resolves which recognition path the coordinator should use for this tick.

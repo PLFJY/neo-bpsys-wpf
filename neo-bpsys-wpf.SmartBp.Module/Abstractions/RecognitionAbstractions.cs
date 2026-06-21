@@ -529,6 +529,16 @@ public interface ISmartBpAutoRecognitionCoordinator
     Task<SmartBpAutoRecognitionTickResult> RunOneTickAsync(BitmapSource frame, CancellationToken cancellationToken = default);
     /// <summary>Runs one stage-aware recognition tick without applying deltas, character operations, or guidance synchronization.</summary>
     Task<SmartBpAutoRecognitionTickResult> RunOneTickDryRunAsync(BitmapSource frame, CancellationToken cancellationToken = default);
+    /// <summary>Runs the selected recognition strategy with all BP business fields requested for debugging.</summary>
+    /// <param name="frame">Frame to recognize.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The full strategy recognition result.</returns>
+    Task<SmartBpAutoRecognitionTickResult> RunFullRecognitionDebugAsync(BitmapSource frame, CancellationToken cancellationToken = default);
+    /// <summary>Runs only phase and scene recognition for debugging.</summary>
+    /// <param name="frame">Frame to recognize.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The phase-only recognition result.</returns>
+    Task<SmartBpAutoRecognitionTickResult> RunPhaseOnlyDebugAsync(BitmapSource frame, CancellationToken cancellationToken = default);
 }
 
 /// <summary>Owns one automatic step-commit transaction.</summary>

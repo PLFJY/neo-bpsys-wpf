@@ -291,7 +291,46 @@
             <StackPanel>
                 <TextBlock Style="{StaticResource Title}" Text="{lex:Loc SmartBpAiOcrModel}" />
                 <TextBlock Text="{lex:Loc SmartBpAiOcrModelHint}" TextWrapping="Wrap" />
-                <TextBlock Margin="0,6,0,0" Text="{Binding AiRawResponse}" Visibility="Collapsed" />
+                <TextBlock
+                    Margin="0,6,0,0"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    Text="{Binding CurrentAiOcrModelDisplayName}" />
+                <TextBlock
+                    Margin="0,2,0,0"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    Text="{Binding AiOcrModelStatus}" />
+                <ComboBox
+                    Margin="0,6,0,6"
+                    DisplayMemberPath="DisplayName"
+                    ItemsSource="{Binding AiOcrModelProfiles}"
+                    SelectedItem="{Binding SelectedAiOcrModelProfile}" />
+                <WrapPanel>
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding DownloadAiOcrModelCommand}"
+                        Content="{lex:Loc SmartBpAiDownloadModel}"
+                        Icon="{ui:SymbolIcon Symbol=ArrowDownload24}" />
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding DeleteAiOcrModelCommand}"
+                        Content="{lex:Loc Delete}"
+                        Icon="{ui:SymbolIcon Symbol=Delete24}" />
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding SwitchSelectedAiOcrModelCommand}"
+                        Content="{lex:Loc Switch}"
+                        Icon="{ui:SymbolIcon Symbol=ArrowSwap24}" />
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding RefreshSelectedAiOcrModelInstallStatusCommand}"
+                        Content="{lex:Loc Refresh}"
+                        Icon="{ui:SymbolIcon Symbol=ArrowClockwise24}" />
+                </WrapPanel>
+                <ProgressBar Visibility="{Binding IsAiOcrModelDownloading, Converter={StaticResource BooleanToVisibilityConverter}}" Value="{Binding QwenDownloadProgress}" />
+                <TextBlock
+                    Text="{Binding QwenDownloadDetail}"
+                    TextWrapping="Wrap"
+                    Visibility="{Binding HasQwenDownloadDetail, Converter={StaticResource BooleanToVisibilityConverter}}" />
             </StackPanel>
         </Border>
 

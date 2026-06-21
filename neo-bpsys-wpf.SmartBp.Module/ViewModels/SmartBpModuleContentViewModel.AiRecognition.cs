@@ -22,6 +22,7 @@ public partial class SmartBpModuleContentViewModel
     private readonly DispatcherTimer _aiPerformanceTimer = new() { Interval = TimeSpan.FromSeconds(2) };
     private int _recognitionBusy;
     private bool _isSwitchingQwenModel;
+    private bool _isSwitchingAiOcrModel;
     /// <summary>Gets available recognition application modes.</summary>
     public IReadOnlyList<SmartBpRecognitionApplyMode> RecognitionApplyModes { get; } = Enum.GetValues<SmartBpRecognitionApplyMode>();
 
@@ -52,6 +53,21 @@ public partial class SmartBpModuleContentViewModel
     [NotifyCanExecuteChangedFor(nameof(DownloadQwenModelCommand))]
     [NotifyCanExecuteChangedFor(nameof(DeleteQwenModelCommand))]
     [ObservableProperty] private bool _isSelectedQwenModelInstalled;
+    [ObservableProperty] private IReadOnlyList<QwenModelProfile> _aiOcrModelProfiles = [];
+    [NotifyCanExecuteChangedFor(nameof(DownloadAiOcrModelCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteAiOcrModelCommand))]
+    [NotifyCanExecuteChangedFor(nameof(SwitchSelectedAiOcrModelCommand))]
+    [ObservableProperty] private QwenModelProfile? _selectedAiOcrModelProfile;
+    [ObservableProperty] private string _currentAiOcrModelDisplayName = "";
+    [ObservableProperty] private string _aiOcrModelStatus = "-";
+    [NotifyCanExecuteChangedFor(nameof(DownloadAiOcrModelCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteAiOcrModelCommand))]
+    [NotifyCanExecuteChangedFor(nameof(SwitchSelectedAiOcrModelCommand))]
+    [ObservableProperty] private bool _isAiOcrModelDownloading;
+    [NotifyCanExecuteChangedFor(nameof(DownloadAiOcrModelCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteAiOcrModelCommand))]
+    [NotifyCanExecuteChangedFor(nameof(SwitchSelectedAiOcrModelCommand))]
+    [ObservableProperty] private bool _isSelectedAiOcrModelInstalled;
     [ObservableProperty] private double _qwenDownloadProgress;
     [ObservableProperty] private string _qwenDownloadStatus = "-";
     [ObservableProperty]
@@ -151,7 +167,12 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty] private string _rapidOcrInstalledVersion = "-";
     [ObservableProperty] private string _rapidOcrLatestVersion = "-";
     [ObservableProperty] private bool _isRapidOcrUpdateAvailable;
+    [NotifyCanExecuteChangedFor(nameof(DownloadRapidOcrModelCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteRapidOcrModelCommand))]
+    [ObservableProperty] private bool _isSelectedRapidOcrModelInstalled;
     [ObservableProperty] private string _rapidOcrInstallActionText = "-";
+    [NotifyCanExecuteChangedFor(nameof(DownloadRapidOcrModelCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteRapidOcrModelCommand))]
     [ObservableProperty] private bool _isRapidOcrDownloading;
     [ObservableProperty] private double _rapidOcrDownloadProgress;
     [ObservableProperty]
@@ -294,11 +315,15 @@ public partial class SmartBpModuleContentViewModel
         _qwenAssetManager.StateChanged += (_, state) => RunOnUiThread(() =>
         {
             IsQwenDownloading = state.IsDownloading; QwenDownloadProgress = state.Progress ?? 0; QwenDownloadStatus = ResolveLocalizedOrRaw(state.Status);
+            IsAiOcrModelDownloading = state.IsDownloading;
             QwenDownloadDetail = FormatDownloadState(state);
             if (!string.IsNullOrWhiteSpace(state.ErrorMessage))
                 AiLastError = QwenDownloadDetail;
             if (!state.IsDownloading)
+            {
                 _ = RefreshSelectedQwenModelInstallStatusAsync();
+                _ = RefreshSelectedAiOcrModelInstallStatusAsync();
+            }
         });
         _rapidOcrModelAssetManager.StateChanged += (_, state) => RunOnUiThread(() =>
         {
@@ -458,8 +483,16 @@ public partial class SmartBpModuleContentViewModel
             AiPromptProfiles = await _promptProfileProvider.GetAvailableProfilesAsync();
             SelectedAiPromptProfile = AiPromptProfiles.FirstOrDefault(x => x.Id == _recognitionSettingsService.Settings.PromptProfileId) ?? AiPromptProfiles.FirstOrDefault();
             QwenModelProfiles = await _qwenAssetManager.GetProfilesAsync();
-            SelectedQwenModelProfile = QwenModelProfiles.FirstOrDefault(x => x.Id == _recognitionSettingsService.Settings.SelectedBusinessAiModelId) ?? QwenModelProfiles.FirstOrDefault();
+            SelectedQwenModelProfile = QwenModelProfiles.FirstOrDefault(x => x.Id == _recognitionSettingsService.Settings.SelectedBusinessAiModelId) ??
+                                       QwenModelProfiles.FirstOrDefault(profile => profile.Role is LocalVisionModelRole.BusinessVlm or LocalVisionModelRole.Both) ??
+                                       QwenModelProfiles.FirstOrDefault();
+            AiOcrModelProfiles = QwenModelProfiles
+                .Where(profile => profile.Role is LocalVisionModelRole.AiOcrTextExtractor or LocalVisionModelRole.Both)
+                .ToArray();
+            SelectedAiOcrModelProfile = AiOcrModelProfiles.FirstOrDefault(x => x.Id == _recognitionSettingsService.Settings.SelectedAiOcrModelId) ??
+                                        AiOcrModelProfiles.FirstOrDefault();
             await RefreshSelectedQwenModelInstallStatusAsync();
+            await RefreshSelectedAiOcrModelInstallStatusAsync();
             // Llama.cpp assets are already loaded eagerly in InitializeAiRecognition; fall back if that failed.
             if (LlamaRuntimeAssets.Count == 0)
             {
@@ -702,6 +735,50 @@ public partial class SmartBpModuleContentViewModel
     private bool CanDeleteQwenModel() =>
         !IsQwenDownloading && !_llamaServerManager.IsRunning && SelectedQwenModelProfile != null && IsSelectedQwenModelInstalled;
 
+    [RelayCommand(CanExecute = nameof(CanDownloadAiOcrModel))]
+    private async Task DownloadAiOcrModelAsync()
+    {
+        if (SelectedAiOcrModelProfile == null) return;
+        try
+        {
+            await _qwenAssetManager.InstallAsync(SelectedAiOcrModelProfile.Id);
+            await RefreshSelectedAiOcrModelInstallStatusAsync();
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex) { AiLastError = ex.ToString(); }
+    }
+
+    [RelayCommand(CanExecute = nameof(CanDeleteAiOcrModel))]
+    private async Task DeleteAiOcrModelAsync()
+    {
+        if (SelectedAiOcrModelProfile == null) return;
+        try
+        {
+            if (_llamaServerManager.IsRunning) throw new InvalidOperationException("Stop llama-server before deleting the model.");
+            await _qwenAssetManager.DeleteAsync(SelectedAiOcrModelProfile.Id);
+            await RefreshSelectedAiOcrModelInstallStatusAsync();
+        }
+        catch (Exception ex) { AiLastError = ex.Message; }
+    }
+
+    [RelayCommand(CanExecute = nameof(CanSwitchSelectedAiOcrModel))]
+    private async Task SwitchSelectedAiOcrModelAsync()
+    {
+        if (SelectedAiOcrModelProfile == null) return;
+        await SwitchAiOcrModelAsync(SelectedAiOcrModelProfile);
+    }
+
+    private bool CanDownloadAiOcrModel() =>
+        !IsAiOcrModelDownloading && SelectedAiOcrModelProfile != null && !IsSelectedAiOcrModelInstalled;
+
+    private bool CanDeleteAiOcrModel() =>
+        !IsAiOcrModelDownloading && !_llamaServerManager.IsRunning && SelectedAiOcrModelProfile != null && IsSelectedAiOcrModelInstalled;
+
+    private bool CanSwitchSelectedAiOcrModel() =>
+        !IsAiOcrModelDownloading &&
+        SelectedAiOcrModelProfile != null &&
+        !string.Equals(SelectedAiOcrModelProfile.Id, _recognitionSettingsService.Settings.SelectedAiOcrModelId, StringComparison.Ordinal);
+
     private bool CanDownloadLlamaRuntime() =>
         !IsLlamaRuntimeDownloading && !IsLlamaServerRunning && !IsLlamaServerStarting && SelectedLlamaRuntimeAsset != null && !SelectedLlamaRuntimeAsset.IsInstalled;
 
@@ -782,10 +859,7 @@ public partial class SmartBpModuleContentViewModel
         try
         {
             var frame = LoadTestFrame(SelectedAiTestFrame);
-            if (_recognitionSettingsService.Settings.RecognitionStrategy == SmartBpRecognitionStrategy.PureOcr)
-                await RunOcrSelectedTestFrameCoreAsync(frame, SelectedAiTestFrame.Task);
-            else
-                await RunRegionGatedFrameCoreAsync(frame);
+            await RunFullStrategyRecognitionCoreAsync(frame);
         }
         catch (Exception ex) { AiLastError = ex.Message; }
     }
@@ -793,14 +867,14 @@ public partial class SmartBpModuleContentViewModel
     [RelayCommand] private async Task DetectStageFromSelectedTestFrameAsync()
     {
         if (SelectedAiTestFrame == null) return;
-        try { await RunRegionGatedFrameCoreAsync(LoadTestFrame(SelectedAiTestFrame)); }
+        try { await RunPhaseOnlyRecognitionCoreAsync(LoadTestFrame(SelectedAiTestFrame)); }
         catch (Exception ex) { AiLastError = ex.Message; }
     }
     [RelayCommand] private async Task DetectStageFromCurrentCaptureFrameAsync()
     {
         var frame = _windowCaptureService.GetCurrentFrame();
         if (frame == null) { AiLastError = "No capture frame is available."; return; }
-        await RunRegionGatedFrameCoreAsync(frame);
+        await RunPhaseOnlyRecognitionCoreAsync(frame);
     }
     [RelayCommand] private Task RunAutomaticOneTickAsync() => RunAutomaticCurrentFrameCoreAsync();
     [RelayCommand(CanExecute = nameof(CanStartAutomaticRecognition))]
@@ -906,11 +980,15 @@ public partial class SmartBpModuleContentViewModel
         }
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanDownloadRapidOcrModel))]
     private async Task DownloadRapidOcrModelAsync()
     {
         if (SelectedRapidOcrModelProfile == null) return;
-        try { await _rapidOcrModelAssetManager.InstallAsync(SelectedRapidOcrModelProfile.Id); }
+        try
+        {
+            await _rapidOcrModelAssetManager.InstallAsync(SelectedRapidOcrModelProfile.Id);
+            await RefreshRapidOcrStatusAsync();
+        }
         catch (OperationCanceledException) { }
         catch (Exception ex) { AiLastError = ex.Message; }
     }
@@ -918,13 +996,27 @@ public partial class SmartBpModuleContentViewModel
     [RelayCommand]
     private void CancelRapidOcrDownload() => _rapidOcrModelAssetManager.Cancel();
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanDeleteRapidOcrModel))]
     private async Task DeleteRapidOcrModelAsync()
     {
         if (SelectedRapidOcrModelProfile == null) return;
-        try { await _rapidOcrModelAssetManager.DeleteAsync(SelectedRapidOcrModelProfile.Id); }
+        try
+        {
+            await _rapidOcrModelAssetManager.DeleteAsync(SelectedRapidOcrModelProfile.Id);
+            await RefreshRapidOcrStatusAsync();
+        }
         catch (Exception ex) { AiLastError = ex.Message; }
     }
+
+    private bool CanDownloadRapidOcrModel() =>
+        SelectedRapidOcrModelProfile != null &&
+        !IsRapidOcrDownloading &&
+        (!IsSelectedRapidOcrModelInstalled || IsRapidOcrUpdateAvailable);
+
+    private bool CanDeleteRapidOcrModel() =>
+        SelectedRapidOcrModelProfile != null &&
+        !IsRapidOcrDownloading &&
+        IsSelectedRapidOcrModelInstalled;
 
     [RelayCommand]
     private async Task RefreshRapidOcrStatusAsync()
@@ -935,6 +1027,7 @@ public partial class SmartBpModuleContentViewModel
             RapidOcrModelDirectory = status.ModelDirectory;
             RapidOcrInstalledVersion = status.InstalledVersion ?? ResolveLocalizedOrRaw("SmartBpRapidOcrVersionUnknown");
             RapidOcrLatestVersion = status.LatestVersion ?? "-";
+            IsSelectedRapidOcrModelInstalled = status.IsInstalled;
             IsRapidOcrUpdateAvailable = status.HasUpdate;
             RapidOcrInstallActionText = ResolveLocalizedOrRaw(status.HasUpdate ? "SmartBpRapidOcrUpdate" : "Download");
             RapidOcrStatus = !status.IsInstalled
@@ -948,6 +1041,13 @@ public partial class SmartBpModuleContentViewModel
         {
             RapidOcrStatus = ResolveLocalizedOrRaw("SmartBpOcrStatusMissing");
             RapidOcrDownloadDetail = "";
+            IsSelectedRapidOcrModelInstalled = false;
+            IsRapidOcrUpdateAvailable = false;
+        }
+        finally
+        {
+            DownloadRapidOcrModelCommand.NotifyCanExecuteChanged();
+            DeleteRapidOcrModelCommand.NotifyCanExecuteChanged();
         }
     }
 
@@ -963,6 +1063,7 @@ public partial class SmartBpModuleContentViewModel
             if (!result.IsBundledManifestCurrent)
             {
                 IsRapidOcrUpdateAvailable = false;
+                DownloadRapidOcrModelCommand.NotifyCanExecuteChanged();
                 RapidOcrStatus = string.Format(
                     ResolveLocalizedOrRaw("SmartBpRapidOcrBundledManifestOutdatedFormat"),
                     result.BundledVersion,
@@ -981,6 +1082,7 @@ public partial class SmartBpModuleContentViewModel
             }
             else if (result.InstalledVersion != null)
             {
+                IsRapidOcrUpdateAvailable = false;
                 RapidOcrStatus = string.Format(
                     ResolveLocalizedOrRaw("SmartBpRapidOcrUpToDateFormat"),
                     result.OfficialVersion);
@@ -991,6 +1093,11 @@ public partial class SmartBpModuleContentViewModel
             RapidOcrDownloadDetail = ex.Message;
             AiLastError = ex.Message;
         }
+        finally
+        {
+            DownloadRapidOcrModelCommand.NotifyCanExecuteChanged();
+            DeleteRapidOcrModelCommand.NotifyCanExecuteChanged();
+        }
     }
 
     [RelayCommand]
@@ -1000,7 +1107,7 @@ public partial class SmartBpModuleContentViewModel
         Directory.CreateDirectory(RapidOcrModelDirectory);
         Process.Start(new ProcessStartInfo("explorer.exe", RapidOcrModelDirectory) { UseShellExecute = true });
     }
-    private async Task RecognizeCurrentFrameCoreAsync() { var frame = _windowCaptureService.GetCurrentFrame(); if (frame == null) { AiLastError = "No capture frame is available."; return; } await RunRegionGatedFrameCoreAsync(frame); }
+    private async Task RecognizeCurrentFrameCoreAsync() { var frame = _windowCaptureService.GetCurrentFrame(); if (frame == null) { AiLastError = "No capture frame is available."; return; } await RunFullStrategyRecognitionCoreAsync(frame); }
 
     private async Task DetectStageCoreAsync(BitmapSource frame)
     {
@@ -1047,6 +1154,30 @@ public partial class SmartBpModuleContentViewModel
         try
         {
             var result = await _autoRecognitionCoordinator.RunOneTickAsync(frame);
+            ApplyRegionGatedResult(result);
+        }
+        finally { IsAiRecognizing = false; Interlocked.Exchange(ref _recognitionBusy, 0); }
+    }
+
+    private async Task RunFullStrategyRecognitionCoreAsync(BitmapSource frame)
+    {
+        if (Interlocked.CompareExchange(ref _recognitionBusy, 1, 0) != 0) return;
+        IsAiRecognizing = true; AiLastError = "";
+        try
+        {
+            var result = await _autoRecognitionCoordinator.RunFullRecognitionDebugAsync(frame);
+            ApplyRegionGatedResult(result);
+        }
+        finally { IsAiRecognizing = false; Interlocked.Exchange(ref _recognitionBusy, 0); }
+    }
+
+    private async Task RunPhaseOnlyRecognitionCoreAsync(BitmapSource frame)
+    {
+        if (Interlocked.CompareExchange(ref _recognitionBusy, 1, 0) != 0) return;
+        IsAiRecognizing = true; AiLastError = "";
+        try
+        {
+            var result = await _autoRecognitionCoordinator.RunPhaseOnlyDebugAsync(frame);
             ApplyRegionGatedResult(result);
         }
         finally { IsAiRecognizing = false; Interlocked.Exchange(ref _recognitionBusy, 0); }
@@ -1237,6 +1368,13 @@ public partial class SmartBpModuleContentViewModel
         SwitchSelectedQwenModelCommand.NotifyCanExecuteChanged();
     }
 
+    partial void OnSelectedAiOcrModelProfileChanged(QwenModelProfile? value)
+    {
+        if (_isSwitchingAiOcrModel) return;
+        _ = RefreshSelectedAiOcrModelInstallStatusAsync();
+        SwitchSelectedAiOcrModelCommand.NotifyCanExecuteChanged();
+    }
+
     private async Task RefreshSelectedQwenModelInstallStatusAsync()
     {
         try
@@ -1247,6 +1385,40 @@ public partial class SmartBpModuleContentViewModel
         catch
         {
             IsSelectedQwenModelInstalled = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task RefreshSelectedAiOcrModelInstallStatusAsync()
+    {
+        try
+        {
+            IsSelectedAiOcrModelInstalled = SelectedAiOcrModelProfile != null &&
+                await _qwenAssetManager.IsInstalledAsync(SelectedAiOcrModelProfile.Id);
+            if (SelectedAiOcrModelProfile == null)
+            {
+                CurrentAiOcrModelDisplayName = "";
+                AiOcrModelStatus = "-";
+            }
+            else
+            {
+                CurrentAiOcrModelDisplayName = SelectedAiOcrModelProfile.DisplayName;
+                AiOcrModelStatus = IsSelectedAiOcrModelInstalled
+                    ? ResolveLocalizedOrRaw("SmartBpAiStatusInstalled")
+                    : ResolveLocalizedOrRaw("SmartBpAiStatusNotInstalled");
+            }
+        }
+        catch (Exception ex)
+        {
+            IsSelectedAiOcrModelInstalled = false;
+            AiOcrModelStatus = ResolveLocalizedOrRaw("SmartBpAiStatusFailed");
+            AiLastError = ex.Message;
+        }
+        finally
+        {
+            DownloadAiOcrModelCommand.NotifyCanExecuteChanged();
+            DeleteAiOcrModelCommand.NotifyCanExecuteChanged();
+            SwitchSelectedAiOcrModelCommand.NotifyCanExecuteChanged();
         }
     }
 
@@ -1297,6 +1469,38 @@ public partial class SmartBpModuleContentViewModel
         }
         catch (Exception ex) { AiLastError = ex.Message; }
         finally { _isSwitchingQwenModel = false; }
+    }
+
+    private async Task SwitchAiOcrModelAsync(QwenModelProfile value)
+    {
+        _isSwitchingAiOcrModel = true;
+        var oldId = _recognitionSettingsService.Settings.SelectedAiOcrModelId;
+        try
+        {
+            if (_llamaServerManager.IsRunning)
+            {
+                var confirmed = await MessageBoxHelper.ShowConfirmAsync(
+                    ResolveLocalizedOrRaw("SmartBpAiSwitchModelRestartConfirm"),
+                    ResolveLocalizedOrRaw("SmartBpAiSwitchModelTitle"),
+                    ResolveLocalizedOrRaw("Confirm"), ResolveLocalizedOrRaw("Cancel"));
+                if (!confirmed)
+                {
+                    SelectedAiOcrModelProfile = AiOcrModelProfiles.FirstOrDefault(profile => profile.Id == oldId);
+                    return;
+                }
+                await _llamaServerManager.StopAsync();
+            }
+
+            _recognitionSettingsService.Settings.SelectedAiOcrModelId = value.Id;
+            RefreshRecognitionSpeedTestValidity();
+            await _recognitionSettingsService.SaveAsync();
+            CurrentAiOcrModelDisplayName = value.DisplayName;
+            await RefreshSelectedAiOcrModelInstallStatusAsync();
+            if (!IsSelectedAiOcrModelInstalled)
+                AiLastError = ResolveLocalizedOrRaw("SmartBpAiModelDownloadRequired");
+        }
+        catch (Exception ex) { AiLastError = ex.Message; }
+        finally { _isSwitchingAiOcrModel = false; }
     }
 
     partial void OnSelectedLlamaRuntimeAssetChanged(LlamaCppRuntimeAssetSelection? value)
@@ -1514,7 +1718,13 @@ public partial class SmartBpModuleContentViewModel
 
     partial void OnSelectedRapidOcrModelProfileChanged(RapidOcrModelProfile? value)
     {
-        if (value == null || value.Id == _recognitionSettingsService.Settings.SelectedRapidOcrModelId) return;
+        DownloadRapidOcrModelCommand.NotifyCanExecuteChanged();
+        DeleteRapidOcrModelCommand.NotifyCanExecuteChanged();
+        if (value == null || value.Id == _recognitionSettingsService.Settings.SelectedRapidOcrModelId)
+        {
+            _ = RefreshRapidOcrStatusAsync();
+            return;
+        }
         _recognitionSettingsService.Settings.SelectedRapidOcrModelId = value.Id;
         RefreshRecognitionSpeedTestValidity();
         _ = _recognitionSettingsService.SaveAsync();

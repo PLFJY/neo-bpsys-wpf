@@ -36,6 +36,121 @@ internal sealed class SmartBpImageEncoder : ISmartBpImageEncoder
     }
 }
 
+internal sealed class SmartBpAiOcrTranscriptRecognitionService(
+    ISmartBpImageEncoder encoder,
+    ISmartBpRecognitionFrameCropper cropper,
+    ISmartBpRecognitionSettingsService settings,
+    ILlamaCppServerManagerFactory serverManagers,
+    ISmartBpDebugLog debugLog) : ISmartBpAiOcrTranscriptRecognitionService
+{
+    private const string Prompt = """
+Read visible text in the cropped Identity V UI image.
+Do not infer missing text.
+Do not explain.
+Return only JSON:
+{"lines":[{"text":"..."}]}
+""";
+
+    public async Task<SmartBpAiOcrTranscriptResult> RecognizeAsync(
+        BitmapSource frame,
+        IReadOnlyList<(SmartBpRecognitionRegion Region, string Field)> regions,
+        CancellationToken cancellationToken = default)
+    {
+        var allLines = new List<SmartBpAiOcrTranscriptLine>();
+        var diagnostics = new List<string>();
+        var rawBuilder = new StringBuilder();
+        foreach (var (region, field) in regions)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var crop = await Task.Run(() => cropper.CropWithInfo(frame, region), cancellationToken).ConfigureAwait(false);
+            var imageDataUrl = await Task.Run(
+                () => encoder.EncodeDataUrl(crop.Image, Math.Max(256, settings.Settings.ContentCropMaxImageWidth)),
+                cancellationToken).ConfigureAwait(false);
+            var raw = await RecognizeRegionAsync(imageDataUrl, region, field, cancellationToken).ConfigureAwait(false);
+            rawBuilder.AppendLine($"[{ToRegionId(region)} field={field}]").AppendLine(raw);
+            var lines = ParseLines(raw);
+            diagnostics.Add($"AI OCR transcript region={ToRegionId(region)}; field={field}; line_count={lines.Count}.");
+            allLines.AddRange(lines);
+        }
+
+        return new()
+        {
+            Lines = allLines,
+            RawJson = rawBuilder.ToString().TrimEnd(),
+            Diagnostics = diagnostics
+        };
+    }
+
+    private async Task<string> RecognizeRegionAsync(
+        string imageDataUrl,
+        SmartBpRecognitionRegion region,
+        string field,
+        CancellationToken cancellationToken)
+    {
+        var role = ShouldReuseBusinessServer() ? LlamaVisionServerRole.BusinessAi : LlamaVisionServerRole.AiOcr;
+        var port = serverManagers.Get(role).Port;
+        var body = new JsonObject
+        {
+            ["model"] = "local",
+            ["temperature"] = 0,
+            ["max_tokens"] = Math.Max(128, settings.Settings.SnapshotDeltaMaxTokens),
+            ["chat_template_kwargs"] = new JsonObject { ["enable_thinking"] = false },
+            ["messages"] = new JsonArray(
+                new JsonObject { ["role"] = "system", ["content"] = "You are a precise OCR text extractor." },
+                new JsonObject
+                {
+                    ["role"] = "user",
+                    ["content"] = new JsonArray(
+                        new JsonObject { ["type"] = "text", ["text"] = Prompt },
+                        new JsonObject { ["type"] = "text", ["text"] = $"region={ToRegionId(region)}; field={field}" },
+                        new JsonObject { ["type"] = "image_url", ["image_url"] = new JsonObject { ["url"] = imageDataUrl } })
+                })
+        };
+        var url = $"http://127.0.0.1:{port}/v1/chat/completions";
+        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(settings.Settings.AiRequestTimeoutSeconds) };
+        debugLog.Write("recognition", $"POST {url}; task=AiOcrTranscript; region={ToRegionId(region)}; field={field}; role={role}");
+        using var response = await http.PostAsync(url, new StringContent(body.ToJsonString(), Encoding.UTF8, "application/json"), cancellationToken).ConfigureAwait(false);
+        var envelope = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        if (!response.IsSuccessStatusCode)
+            throw new LlamaCppRequestException($"llama.cpp returned {(int)response.StatusCode}: {envelope}", envelope);
+        using var document = JsonDocument.Parse(envelope);
+        var content = document.RootElement.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString();
+        if (string.IsNullOrWhiteSpace(content))
+            throw new LlamaCppRequestException("llama.cpp returned empty AI OCR content.", envelope);
+        var (repaired, _) = SmartBpJsonRepair.Repair(content);
+        debugLog.Write("recognition", $"AI OCR transcript raw region={ToRegionId(region)}:\n{content}");
+        return repaired;
+    }
+
+    private bool ShouldReuseBusinessServer() =>
+        !settings.Settings.UseSeparateAiOcrServer ||
+        string.Equals(settings.Settings.SelectedBusinessAiModelId, settings.Settings.SelectedAiOcrModelId, StringComparison.Ordinal);
+
+    private static IReadOnlyList<SmartBpAiOcrTranscriptLine> ParseLines(string raw)
+    {
+        using var document = JsonDocument.Parse(raw);
+        if (!document.RootElement.TryGetProperty("lines", out var linesElement) ||
+            linesElement.ValueKind != JsonValueKind.Array)
+            return [];
+        return linesElement.EnumerateArray()
+            .Select(item => item.TryGetProperty("text", out var text) ? text.GetString() : null)
+            .Where(text => !string.IsNullOrWhiteSpace(text))
+            .Select(text => new SmartBpAiOcrTranscriptLine { Text = text! })
+            .ToArray();
+    }
+
+    private static string ToRegionId(SmartBpRecognitionRegion region) =>
+        region switch
+        {
+            SmartBpRecognitionRegion.PhaseTop => "phase_top",
+            SmartBpRecognitionRegion.LeftTop => "left_top",
+            SmartBpRecognitionRegion.RightTop => "right_top",
+            SmartBpRecognitionRegion.LeftBottom => "left_bottom",
+            SmartBpRecognitionRegion.RightBottom => "right_bottom",
+            _ => region.ToString()
+        };
+}
+
 internal sealed class SmartBpRecognitionRegionProfileService(ISmartBpModuleStorageProvider storage) : ISmartBpRecognitionRegionProfileService
 {
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true, WriteIndented = true };

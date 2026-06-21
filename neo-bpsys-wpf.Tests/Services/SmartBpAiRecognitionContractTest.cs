@@ -1096,7 +1096,7 @@ public sealed class SmartBpAiRecognitionContractTest
     }
 
     [Fact]
-    public void SelectedTestFrameRecognitionUsesDirectOcrPathWhenOcrEngineIsSelected()
+    public void SelectedTestFrameRecognitionUsesFullStrategyDebugPath()
     {
         var root = FindRepositoryRoot();
         var viewModel = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "ViewModels", "SmartBpModuleContentViewModel.AiRecognition.cs"));
@@ -1106,10 +1106,10 @@ public sealed class SmartBpAiRecognitionContractTest
         Assert.True(methodEnd > methodStart);
         var method = viewModel[methodStart..methodEnd];
 
-        Assert.Contains("RecognitionStrategy == SmartBpRecognitionStrategy.PureOcr", method);
-        Assert.Contains("RunOcrSelectedTestFrameCoreAsync(frame, SelectedAiTestFrame.Task)", method);
-        Assert.Contains("RunRegionGatedFrameCoreAsync(frame)", method);
-        Assert.Contains("_ocrBpRecognitionService.RecognizeAsync(frame, new SmartBpOcrRecognitionRequest(regions))", viewModel);
+        Assert.Contains("RunFullStrategyRecognitionCoreAsync(frame)", method);
+        Assert.Contains("_autoRecognitionCoordinator.RunFullRecognitionDebugAsync(frame)", viewModel);
+        Assert.Contains("_autoRecognitionCoordinator.RunPhaseOnlyDebugAsync(frame)", viewModel);
+        Assert.Contains("RunPhaseOnlyRecognitionCoreAsync(LoadTestFrame(SelectedAiTestFrame))", viewModel);
         Assert.Contains("SmartBpRecognitionTask.BanSur => [SmartBpRecognitionRegion.RightTop]", viewModel);
         Assert.Contains("SmartBpRecognitionTask.BanHun => [SmartBpRecognitionRegion.LeftTop]", viewModel);
         Assert.Contains("SmartBpRecognitionTask.PickSur or SmartBpRecognitionTask.CharacterDistribution => [SmartBpRecognitionRegion.LeftBottom]", viewModel);

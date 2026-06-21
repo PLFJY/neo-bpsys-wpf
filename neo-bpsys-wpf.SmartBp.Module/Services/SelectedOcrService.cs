@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.SmartBp.Module.Abstractions;
 using neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
 using OpenCvSharp;
@@ -101,7 +100,6 @@ public sealed class OcrService : IOcrService
     /// <inheritdoc />
     public string? RecognizeText(Mat img)
     {
-        ThrowIfGameDataAiRecognitionSelected();
         if (SelectedProvider == SmartBpOcrProviderKind.Paddle)
         {
             if (!_paddle.IsReady)
@@ -118,7 +116,6 @@ public sealed class OcrService : IOcrService
     /// <inheritdoc />
     public OcrTextBlockResult RecognizeTextLines(Mat img)
     {
-        ThrowIfGameDataAiRecognitionSelected();
         var provider = _selector.GetSelectedProvider();
         if (!provider.IsReady)
         {
@@ -131,15 +128,6 @@ public sealed class OcrService : IOcrService
             UsePreprocessingVariants = true
         });
     }
-
-    private static string L(string key) => I18nHelper.GetLocalizedString(key);
-
-    private void ThrowIfGameDataAiRecognitionSelected()
-    {
-        if (_selector.Settings.RecognitionEngine == SmartBpRecognitionEngine.AiQwen)
-            throw new InvalidOperationException(L("SmartBpGameDataAiRecognitionNotImplemented"));
-    }
-
 }
 
 /// <summary>Selects exactly one configured OCR provider without automatic fallback.</summary>
