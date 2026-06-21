@@ -104,7 +104,10 @@
             </StackPanel>
         </Border>
 
-        <Border Margin="0,0,0,10" Style="{StaticResource Card}" Visibility="{Binding IsOcrProviderCardVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+        <Border
+            Margin="0,0,0,10"
+            Style="{StaticResource Card}"
+            Visibility="{Binding IsOcrProviderCardVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
             <StackPanel>
                 <TextBlock Style="{StaticResource Title}" Text="{lex:Loc SmartBpOcrProviderSection}" />
                 <ComboBox
@@ -142,17 +145,21 @@
                     </WrapPanel>
                     <ProgressBar Visibility="{Binding IsModelDownloading, Converter={StaticResource BooleanToVisibilityConverter}}" Value="{Binding ModelDownloadProgress}" />
                 </StackPanel>
-                <StackPanel
-                    Margin="0,10,0,0"
-                    Visibility="{Binding IsRapidRecognitionEngine, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <StackPanel Margin="0,10,0,0" Visibility="{Binding IsRapidRecognitionEngine, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <TextBlock FontWeight="SemiBold" Text="{lex:Loc SmartBpRapidOcrModelManagement}" />
-                    <TextBlock Margin="0,4,0,0" Text="{Binding RapidOcrStatus}" TextWrapping="Wrap" />
+                    <TextBlock
+                        Margin="0,4,0,0"
+                        Text="{Binding RapidOcrStatus}"
+                        TextWrapping="Wrap" />
                     <ComboBox
                         Margin="0,6,0,6"
                         DisplayMemberPath="DisplayName"
                         ItemsSource="{Binding RapidOcrModelProfiles}"
                         SelectedItem="{Binding SelectedRapidOcrModelProfile}" />
-                    <TextBlock Margin="0,4,0,0" Text="{Binding RapidOcrModelDirectory}" TextWrapping="Wrap" />
+                    <TextBlock
+                        Margin="0,4,0,0"
+                        Text="{Binding RapidOcrModelDirectory}"
+                        TextWrapping="Wrap" />
                     <TextBlock Margin="0,4,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}">
                         <Run Text="{lex:Loc SmartBpRapidOcrInstalledVersion}" />
                         <Run Text="{Binding RapidOcrInstalledVersion}" />
@@ -161,11 +168,31 @@
                         <Run Text="{Binding RapidOcrLatestVersion}" />
                     </TextBlock>
                     <WrapPanel Margin="0,8,0,0">
-                        <ui:Button Margin="0,0,8,8" Command="{Binding DownloadRapidOcrModelCommand}" Content="{Binding RapidOcrInstallActionText}" Icon="{ui:SymbolIcon Symbol=ArrowDownload24}" />
-                        <ui:Button Margin="0,0,8,8" Command="{Binding CancelRapidOcrDownloadCommand}" Content="{lex:Loc SmartBpCancelDownload}" Icon="{ui:SymbolIcon Symbol=Stop24}" />
-                        <ui:Button Margin="0,0,8,8" Command="{Binding DeleteRapidOcrModelCommand}" Content="{lex:Loc Delete}" Icon="{ui:SymbolIcon Symbol=Delete24}" />
-                        <ui:Button Margin="0,0,8,8" Command="{Binding CheckRapidOcrModelUpdateCommand}" Content="{lex:Loc SmartBpRapidOcrCheckUpdate}" Icon="{ui:SymbolIcon Symbol=ArrowSync24}" />
-                        <ui:Button Margin="0,0,8,8" Command="{Binding OpenRapidOcrModelFolderCommand}" Content="{lex:Loc SmartBpOcrOpenTessdataFolder}" Icon="{ui:SymbolIcon Symbol=FolderOpen24}" />
+                        <ui:Button
+                            Margin="0,0,8,8"
+                            Command="{Binding DownloadRapidOcrModelCommand}"
+                            Content="{Binding RapidOcrInstallActionText}"
+                            Icon="{ui:SymbolIcon Symbol=ArrowDownload24}" />
+                        <ui:Button
+                            Margin="0,0,8,8"
+                            Command="{Binding CancelRapidOcrDownloadCommand}"
+                            Content="{lex:Loc SmartBpCancelDownload}"
+                            Icon="{ui:SymbolIcon Symbol=Stop24}" />
+                        <ui:Button
+                            Margin="0,0,8,8"
+                            Command="{Binding DeleteRapidOcrModelCommand}"
+                            Content="{lex:Loc Delete}"
+                            Icon="{ui:SymbolIcon Symbol=Delete24}" />
+                        <ui:Button
+                            Margin="0,0,8,8"
+                            Command="{Binding CheckRapidOcrModelUpdateCommand}"
+                            Content="{lex:Loc SmartBpRapidOcrCheckUpdate}"
+                            Icon="{ui:SymbolIcon Symbol=ArrowSync24}" />
+                        <ui:Button
+                            Margin="0,0,8,8"
+                            Command="{Binding OpenRapidOcrModelFolderCommand}"
+                            Content="{lex:Loc SmartBpOcrOpenTessdataFolder}"
+                            Icon="{ui:SymbolIcon Symbol=FolderOpen24}" />
                     </WrapPanel>
                     <StackPanel Visibility="{Binding HasRapidOcrDownloadDetail, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <ProgressBar Visibility="{Binding IsRapidOcrDownloading, Converter={StaticResource BooleanToVisibilityConverter}}" Value="{Binding RapidOcrDownloadProgress}" />
@@ -244,7 +271,10 @@
             </StackPanel>
         </Border>
 
-        <Border Margin="0,0,0,10" Style="{StaticResource Card}" Visibility="{Binding IsBusinessAiModelVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+        <Border
+            Margin="0,0,0,10"
+            Style="{StaticResource Card}"
+            Visibility="{Binding IsBusinessAiModelVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
             <StackPanel>
                 <TextBlock Style="{StaticResource Title}" Text="{lex:Loc SmartBpBusinessAiModel}" />
                 <StackPanel
@@ -293,7 +323,10 @@
             </StackPanel>
         </Border>
 
-        <Border Margin="0,0,0,10" Style="{StaticResource Card}" Visibility="{Binding IsAiOcrModelVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+        <Border
+            Margin="0,0,0,10"
+            Style="{StaticResource Card}"
+            Visibility="{Binding IsAiOcrModelVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
             <StackPanel>
                 <TextBlock Style="{StaticResource Title}" Text="{lex:Loc SmartBpAiOcrModel}" />
                 <TextBlock Text="{lex:Loc SmartBpAiOcrModelHint}" TextWrapping="Wrap" />
@@ -346,90 +379,136 @@
             </StackPanel>
         </Border>
 
-        <Border Margin="0,0,0,10" Style="{StaticResource Card}" Visibility="{Binding IsBusinessAiModelVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+        <Border
+            Margin="0,0,0,10"
+            Style="{StaticResource Card}"
+            Visibility="{Binding IsBusinessAiModelVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
             <StackPanel>
                 <TextBlock Style="{StaticResource Title}" Text="{lex:Loc SmartBpLlamaRuntime}" />
-                    <ComboBox
-                        Margin="0,8,0,6"
-                        ItemsSource="{Binding LlamaRuntimeAssets}"
-                        SelectedItem="{Binding SelectedLlamaRuntimeAsset}">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock VerticalAlignment="Center" Text="{Binding DisplayName}" />
-                                    <TextBlock
-                                        Margin="6,0,0,0"
-                                        VerticalAlignment="Center"
-                                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                        Text="{lex:Loc {Binding StatusKey},
-                                                       FallbackBehavior=Key}" />
-                                </StackPanel>
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
-                    <WrapPanel>
-                        <ui:Button
-                            Margin="0,0,8,8"
-                            Command="{Binding DownloadLlamaRuntimeCommand}"
-                            Content="{lex:Loc SmartBpAiDownloadRuntime}"
-                            Icon="{ui:SymbolIcon Symbol=ArrowDownload24}" />
-                        <ui:Button
-                            Margin="0,0,8,8"
-                            Command="{Binding CancelLlamaRuntimeDownloadCommand}"
-                            Content="{lex:Loc SmartBpCancelDownload}"
-                            Icon="{ui:SymbolIcon Symbol=Stop24}"
-                            Visibility="{Binding IsLlamaRuntimeDownloading, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                        <ui:Button
-                            Margin="0,0,8,8"
-                            Command="{Binding DeleteLlamaRuntimeCommand}"
-                            Content="{lex:Loc SmartBpAiDeleteRuntime}"
-                            Icon="{ui:SymbolIcon Symbol=Delete24}" />
-                        <ui:Button
-                            Margin="0,0,8,8"
-                            Command="{Binding RollbackLlamaRuntimeCommand}"
-                            Content="{lex:Loc SmartBpAiRollbackRuntime}"
-                            Icon="{ui:SymbolIcon Symbol=ArrowUndo24}" />
-                        <ui:Button
-                            Margin="0,0,8,8"
-                            Command="{Binding CheckLlamaRuntimeUpdateCommand}"
-                            Content="{lex:Loc SmartBpCheckRuntimeUpdate}"
-                            Icon="{ui:SymbolIcon Symbol=ArrowSync24}" />
-                    </WrapPanel>
-                    <TextBlock Text="{Binding LlamaRuntimeUpdateStatus}" TextWrapping="Wrap" />
-                    <StackPanel Visibility="{Binding IsLlamaRuntimeDownloading, Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <ProgressBar Value="{Binding LlamaRuntimeDownloadProgress}" />
-                        <TextBlock Text="{Binding LlamaRuntimeDownloadDetail}" TextWrapping="Wrap" />
+                <ComboBox
+                    Margin="0,8,0,6"
+                    ItemsSource="{Binding LlamaRuntimeAssets}"
+                    SelectedItem="{Binding SelectedLlamaRuntimeAsset}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock VerticalAlignment="Center" Text="{Binding DisplayName}" />
+                                <TextBlock
+                                    Margin="6,0,0,0"
+                                    VerticalAlignment="Center"
+                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                    Text="{lex:Loc {Binding StatusKey},
+                                                   FallbackBehavior=Key}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                <WrapPanel>
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding DownloadLlamaRuntimeCommand}"
+                        Content="{lex:Loc SmartBpAiDownloadRuntime}"
+                        Icon="{ui:SymbolIcon Symbol=ArrowDownload24}" />
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding CancelLlamaRuntimeDownloadCommand}"
+                        Content="{lex:Loc SmartBpCancelDownload}"
+                        Icon="{ui:SymbolIcon Symbol=Stop24}"
+                        Visibility="{Binding IsLlamaRuntimeDownloading, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding DeleteLlamaRuntimeCommand}"
+                        Content="{lex:Loc SmartBpAiDeleteRuntime}"
+                        Icon="{ui:SymbolIcon Symbol=Delete24}" />
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding RollbackLlamaRuntimeCommand}"
+                        Content="{lex:Loc SmartBpAiRollbackRuntime}"
+                        Icon="{ui:SymbolIcon Symbol=ArrowUndo24}" />
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding CheckLlamaRuntimeUpdateCommand}"
+                        Content="{lex:Loc SmartBpCheckRuntimeUpdate}"
+                        Icon="{ui:SymbolIcon Symbol=ArrowSync24}" />
+                </WrapPanel>
+                <TextBlock Text="{Binding LlamaRuntimeUpdateStatus}" TextWrapping="Wrap" />
+                <StackPanel Visibility="{Binding IsLlamaRuntimeDownloading, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <ProgressBar Value="{Binding LlamaRuntimeDownloadProgress}" />
+                    <TextBlock Text="{Binding LlamaRuntimeDownloadDetail}" TextWrapping="Wrap" />
+                </StackPanel>
+                <Separator Margin="0,8,0,4" />
+                <TextBlock
+                    Margin="0,4,0,4"
+                    FontWeight="SemiBold"
+                    Text="{lex:Loc SmartBpBusinessAiServer}" />
+                <TextBlock><Run Text="{lex:Loc SmartBpServerModel}" /><Run Text=": " /><Run Text="{Binding BusinessAiServerModelText}" /></TextBlock>
+                <TextBlock><Run Text="{lex:Loc SmartBpServerPort}" /><Run Text=": " /><Run Text="{Binding BusinessAiServerPortText}" /></TextBlock>
+                <TextBlock><Run Text="{lex:Loc SmartBpServerStatus}" /><Run Text=": " /><Run Text="{Binding BusinessAiServerStatus}" /></TextBlock>
+                <TextBlock><Run Text="{lex:Loc SmartBpAiProcessId}" /><Run Text=": " /><Run Text="{Binding BusinessAiServerProcessId}" /></TextBlock>
+                <WrapPanel>
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding StartBusinessAiServerCommand}"
+                        Content="{lex:Loc Start}"
+                        Icon="{ui:SymbolIcon Symbol=Play24}" />
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding StopBusinessAiServerCommand}"
+                        Content="{lex:Loc Stop}"
+                        Icon="{ui:SymbolIcon Symbol=Stop24}" />
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding ForceStopBusinessAiServerCommand}"
+                        Content="{lex:Loc SmartBpAiForceStopLlama}"
+                        Icon="{ui:SymbolIcon Symbol=ShieldDismiss24}" />
+                    <StackPanel
+                        Margin="0,0,8,8"
+                        VerticalAlignment="Center"
+                        Orientation="Horizontal"
+                        Visibility="{Binding IsBusinessAiServerStarting, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <ui:ProgressRing
+                            Width="20"
+                            Height="20"
+                            VerticalAlignment="Center"
+                            IsIndeterminate="True" />
+                        <TextBlock
+                            Margin="8,0,0,0"
+                            VerticalAlignment="Center"
+                            Text="{Binding BusinessAiServerActivityText}" />
                     </StackPanel>
-                    <Separator Margin="0,8,0,4" />
+                </WrapPanel>
+                <StackPanel Margin="0,8,0,0" Visibility="{Binding IsAiOcrModelVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <Separator Margin="0,0,0,4" />
                     <TextBlock
                         Margin="0,4,0,4"
                         FontWeight="SemiBold"
-                        Text="{lex:Loc SmartBpBusinessAiServer}" />
-                    <TextBlock><Run Text="{lex:Loc SmartBpServerModel}" /><Run Text=": " /><Run Text="{Binding BusinessAiServerModelText}" /></TextBlock>
-                    <TextBlock><Run Text="{lex:Loc SmartBpServerPort}" /><Run Text=": " /><Run Text="{Binding BusinessAiServerPortText}" /></TextBlock>
-                    <TextBlock><Run Text="{lex:Loc SmartBpServerStatus}" /><Run Text=": " /><Run Text="{Binding BusinessAiServerStatus}" /></TextBlock>
-                    <TextBlock><Run Text="{lex:Loc SmartBpAiProcessId}" /><Run Text=": " /><Run Text="{Binding BusinessAiServerProcessId}" /></TextBlock>
-                    <WrapPanel>
+                        Text="{lex:Loc SmartBpAiOcrServer}" />
+                    <TextBlock Text="{Binding AiOcrServerReuseStatus}" TextWrapping="Wrap" />
+                    <TextBlock><Run Text="{lex:Loc SmartBpServerModel}" /><Run Text=": " /><Run Text="{Binding AiOcrServerModelText}" /></TextBlock>
+                    <TextBlock><Run Text="{lex:Loc SmartBpServerPort}" /><Run Text=": " /><Run Text="{Binding AiOcrServerPortText}" /></TextBlock>
+                    <TextBlock><Run Text="{lex:Loc SmartBpServerStatus}" /><Run Text=": " /><Run Text="{Binding AiOcrServerStatus}" /></TextBlock>
+                    <TextBlock><Run Text="{lex:Loc SmartBpAiProcessId}" /><Run Text=": " /><Run Text="{Binding AiOcrServerProcessId}" /></TextBlock>
+                    <WrapPanel Margin="0,4,0,0">
                         <ui:Button
                             Margin="0,0,8,8"
-                            Command="{Binding StartBusinessAiServerCommand}"
+                            Command="{Binding StartAiOcrServerCommand}"
                             Content="{lex:Loc Start}"
                             Icon="{ui:SymbolIcon Symbol=Play24}" />
                         <ui:Button
                             Margin="0,0,8,8"
-                            Command="{Binding StopBusinessAiServerCommand}"
+                            Command="{Binding StopAiOcrServerCommand}"
                             Content="{lex:Loc Stop}"
                             Icon="{ui:SymbolIcon Symbol=Stop24}" />
                         <ui:Button
                             Margin="0,0,8,8"
-                            Command="{Binding ForceStopBusinessAiServerCommand}"
+                            Command="{Binding ForceStopAiOcrServerCommand}"
                             Content="{lex:Loc SmartBpAiForceStopLlama}"
                             Icon="{ui:SymbolIcon Symbol=ShieldDismiss24}" />
                         <StackPanel
                             Margin="0,0,8,8"
                             VerticalAlignment="Center"
                             Orientation="Horizontal"
-                            Visibility="{Binding IsBusinessAiServerStarting, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            Visibility="{Binding IsAiOcrServerStarting, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <ui:ProgressRing
                                 Width="20"
                                 Height="20"
@@ -438,87 +517,42 @@
                             <TextBlock
                                 Margin="8,0,0,0"
                                 VerticalAlignment="Center"
-                                Text="{Binding BusinessAiServerActivityText}" />
+                                Text="{Binding AiOcrServerActivityText}" />
                         </StackPanel>
                     </WrapPanel>
+                </StackPanel>
+                <WrapPanel Margin="0,8,0,0">
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding StartRequiredLlamaServersCommand}"
+                        Content="{lex:Loc SmartBpStartRequiredServers}"
+                        Icon="{ui:SymbolIcon Symbol=PlayCircle24}" />
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding StopAllSmartBpLlamaServersCommand}"
+                        Content="{lex:Loc SmartBpStopAllServers}"
+                        Icon="{ui:SymbolIcon Symbol=Stop24}" />
                     <StackPanel
-                        Margin="0,8,0,0"
-                        Visibility="{Binding IsAiOcrModelVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <Separator Margin="0,0,0,4" />
-                        <TextBlock
-                            Margin="0,4,0,4"
-                            FontWeight="SemiBold"
-                            Text="{lex:Loc SmartBpAiOcrServer}" />
-                        <TextBlock Text="{Binding AiOcrServerReuseStatus}" TextWrapping="Wrap" />
-                        <TextBlock><Run Text="{lex:Loc SmartBpServerModel}" /><Run Text=": " /><Run Text="{Binding AiOcrServerModelText}" /></TextBlock>
-                        <TextBlock><Run Text="{lex:Loc SmartBpServerPort}" /><Run Text=": " /><Run Text="{Binding AiOcrServerPortText}" /></TextBlock>
-                        <TextBlock><Run Text="{lex:Loc SmartBpServerStatus}" /><Run Text=": " /><Run Text="{Binding AiOcrServerStatus}" /></TextBlock>
-                        <TextBlock><Run Text="{lex:Loc SmartBpAiProcessId}" /><Run Text=": " /><Run Text="{Binding AiOcrServerProcessId}" /></TextBlock>
-                        <WrapPanel Margin="0,4,0,0">
-                            <ui:Button
-                                Margin="0,0,8,8"
-                                Command="{Binding StartAiOcrServerCommand}"
-                                Content="{lex:Loc Start}"
-                                Icon="{ui:SymbolIcon Symbol=Play24}" />
-                            <ui:Button
-                                Margin="0,0,8,8"
-                                Command="{Binding StopAiOcrServerCommand}"
-                                Content="{lex:Loc Stop}"
-                                Icon="{ui:SymbolIcon Symbol=Stop24}" />
-                            <ui:Button
-                                Margin="0,0,8,8"
-                                Command="{Binding ForceStopAiOcrServerCommand}"
-                                Content="{lex:Loc SmartBpAiForceStopLlama}"
-                                Icon="{ui:SymbolIcon Symbol=ShieldDismiss24}" />
-                            <StackPanel
-                                Margin="0,0,8,8"
-                                VerticalAlignment="Center"
-                                Orientation="Horizontal"
-                                Visibility="{Binding IsAiOcrServerStarting, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                <ui:ProgressRing
-                                    Width="20"
-                                    Height="20"
-                                    VerticalAlignment="Center"
-                                    IsIndeterminate="True" />
-                                <TextBlock
-                                    Margin="8,0,0,0"
-                                    VerticalAlignment="Center"
-                                    Text="{Binding AiOcrServerActivityText}" />
-                            </StackPanel>
-                        </WrapPanel>
-                    </StackPanel>
-                    <WrapPanel Margin="0,8,0,0">
-                        <ui:Button
-                            Margin="0,0,8,8"
-                            Command="{Binding StartRequiredLlamaServersCommand}"
-                            Content="{lex:Loc SmartBpStartRequiredServers}"
-                            Icon="{ui:SymbolIcon Symbol=PlayCircle24}" />
-                        <ui:Button
-                            Margin="0,0,8,8"
-                            Command="{Binding StopAllSmartBpLlamaServersCommand}"
-                            Content="{lex:Loc SmartBpStopAllServers}"
-                            Icon="{ui:SymbolIcon Symbol=Stop24}" />
-                        <StackPanel
-                            Margin="0,0,8,8"
+                        Margin="0,0,8,8"
+                        VerticalAlignment="Center"
+                        Orientation="Horizontal"
+                        Visibility="{Binding IsRequiredLlamaServersStarting, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <ui:ProgressRing
+                            Width="20"
+                            Height="20"
                             VerticalAlignment="Center"
-                            Orientation="Horizontal"
-                            Visibility="{Binding IsRequiredLlamaServersStarting, Converter={StaticResource BooleanToVisibilityConverter}}">
-                            <ui:ProgressRing
-                                Width="20"
-                                Height="20"
-                                VerticalAlignment="Center"
-                                IsIndeterminate="True" />
-                            <TextBlock
-                                Margin="8,0,0,0"
-                                VerticalAlignment="Center"
-                                Text="{lex:Loc SmartBpRequiredServersStarting}" />
-                        </StackPanel>
-                    </WrapPanel>
-                    <TextBlock Margin="0,8,0,0"><Run Text="{lex:Loc SmartBpAiGpuName}" /><Run Text=": " /><Run Text="{Binding AiGpuName}" /></TextBlock>
-                    <TextBlock><Run Text="{lex:Loc SmartBpAiGpuUtilization}" /><Run Text=": " /><Run Text="{Binding AiGpuUtilization}" /></TextBlock>
-                    <TextBlock><Run Text="{lex:Loc SmartBpAiVram}" /><Run Text=": " /><Run Text="{Binding AiVramUsage}" /></TextBlock>
-                    <TextBlock><Run Text="{lex:Loc SmartBpAiProcessId}" /><Run Text=": " /><Run Text="{Binding AiLlamaProcessId}" /></TextBlock>
-                    <TextBlock><Run Text="{lex:Loc SmartBpAiLastUpdated}" /><Run Text=": " /><Run Text="{Binding AiPerformanceUpdatedAt}" /></TextBlock>
+                            IsIndeterminate="True" />
+                        <TextBlock
+                            Margin="8,0,0,0"
+                            VerticalAlignment="Center"
+                            Text="{lex:Loc SmartBpRequiredServersStarting}" />
+                    </StackPanel>
+                </WrapPanel>
+                <TextBlock Margin="0,8,0,0"><Run Text="{lex:Loc SmartBpAiGpuName}" /><Run Text=": " /><Run Text="{Binding AiGpuName}" /></TextBlock>
+                <TextBlock><Run Text="{lex:Loc SmartBpAiGpuUtilization}" /><Run Text=": " /><Run Text="{Binding AiGpuUtilization}" /></TextBlock>
+                <TextBlock><Run Text="{lex:Loc SmartBpAiVram}" /><Run Text=": " /><Run Text="{Binding AiVramUsage}" /></TextBlock>
+                <TextBlock><Run Text="{lex:Loc SmartBpAiProcessId}" /><Run Text=": " /><Run Text="{Binding AiLlamaProcessId}" /></TextBlock>
+                <TextBlock><Run Text="{lex:Loc SmartBpAiLastUpdated}" /><Run Text=": " /><Run Text="{Binding AiPerformanceUpdatedAt}" /></TextBlock>
             </StackPanel>
         </Border>
 
@@ -836,8 +870,11 @@
                         Content="{lex:Loc SmartBpAiResetLedger}"
                         Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                 </WrapPanel>
-                <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Text="{lex:Loc SmartBpDebugFinalBusinessState}" />
-                <TextBox Style="{StaticResource SmartBpDebugOutputTextBox}" Text="{Binding DebugFinalBusinessState}" />
+                <TextBlock
+                    Margin="0,8,0,0"
+                    FontWeight="SemiBold"
+                    Text="{lex:Loc SmartBpDebugFinalBusinessState}" />
+                <TextBlock Text="{Binding DebugFinalBusinessState}" />
                 <ui:Button
                     Margin="0,8,0,0"
                     HorizontalAlignment="Left"
