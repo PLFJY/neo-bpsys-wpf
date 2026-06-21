@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
@@ -64,6 +65,13 @@ using SmartBpSnapshotFieldUpdate = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.
 using SmartBpSnapshotDeltaSlot = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpSnapshotDeltaSlot;
 using SmartBpRecognitionStateStore = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpRecognitionStateStore;
 using SmartBpAiOcrTranscriptRecognitionService = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpAiOcrTranscriptRecognitionService;
+using SmartBpBusinessAiFusionService = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpBusinessAiFusionService;
+using SmartBpBusinessAiFusionValidator = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpBusinessAiFusionValidator;
+using SmartBpAiOcrTranscriptRegionEvidence = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpAiOcrTranscriptRegionEvidence;
+using AiStructuredOutputMode = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.AiStructuredOutputMode;
+using LlamaCppOpenAiClient = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.LlamaCppOpenAiClient;
+using ISmartBpBusinessAiFusionValidator = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpBusinessAiFusionValidator;
+using ISmartBpDebugLog = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpDebugLog;
 
 namespace neo_bpsys_wpf.Tests.Services;
 
@@ -268,6 +276,123 @@ public sealed class SmartBpAiRecognitionContractTest
             raw, "屏蔽求生者", ["banned_sur"], ["小说家"], ["厂长"], Mock.Of<ICharacterSelectionService>(), out _));
 
         Assert.Contains($"contained unexpected property {unexpectedProperty}", error.Message);
+    }
+
+    [Fact]
+    public void BusinessAiFusionDefaultsToPromptRepairAndStrictModeIsExplicit()
+    {
+        var settings = new SmartBpRecognitionSettings();
+        var schema = new JsonObject { ["type"] = "object" };
+
+        var defaultBody = LlamaCppOpenAiClient.CreateStructuredTextBody(
+            "system", "prompt", schema, 512, settings.BusinessAiFusionStructuredOutputMode, "fusion");
+        var strictBody = LlamaCppOpenAiClient.CreateStructuredTextBody(
+            "system", "prompt", schema, 512, AiStructuredOutputMode.JsonSchemaStrict, "fusion");
+
+        Assert.Equal(AiStructuredOutputMode.JsonPromptAndRepair, settings.BusinessAiFusionStructuredOutputMode);
+        Assert.False(defaultBody.ContainsKey("response_format"));
+        Assert.NotNull(strictBody["response_format"]);
+    }
+
+    [Fact]
+    public void BusinessAiFusionValidatorAcceptsFourUpdatesAndNormalizesSlotNames()
+    {
+        const string raw = """
+        {"phase":"等待中","updates":[
+          {"field":"banned_sur","slots":[
+            {"index":0,"slot_state":"selected","character_name":"小说家OCR","player_id":null},
+            {"index":1,"slot_state":"empty","character_name":"noise","player_id":null},
+            {"index":2,"slot_state":"unknown","character_name":"unknown","player_id":null},
+            {"index":3,"slot_state":"empty","character_name":"未选择","player_id":null}],"picked_hun":null},
+          {"field":"banned_hun","slots":[
+            {"index":0,"slot_state":"empty","character_name":"未选择","player_id":null},
+            {"index":1,"slot_state":"unknown","character_name":"noise","player_id":null}],"picked_hun":null},
+          {"field":"picked_sur","slots":[
+            {"index":0,"slot_state":"unknown","character_name":"未选择","player_id":null},
+            {"index":1,"slot_state":"unknown","character_name":"未选择","player_id":null},
+            {"index":2,"slot_state":"unknown","character_name":"未选择","player_id":null},
+            {"index":3,"slot_state":"unknown","character_name":"未选择","player_id":null}],"picked_hun":null},
+          {"field":"picked_hun","slots":null,"picked_hun":{"index":0,"slot_state":"empty","character_name":"noise","player_id":null}}
+        ]}
+        """;
+        var shared = CreateShared(
+            new Game(new Team(Camp.Sur, TeamType.HomeTeam), new Team(Camp.Hun, TeamType.AwayTeam), GameProgress.Free),
+            new Character("小说家", Camp.Sur, "novelist"),
+            new Character("厂长", Camp.Hun, "hell-ember"));
+        var selection = new Mock<ICharacterSelectionService>();
+        selection.Setup(service => service.ResolveCharacterDetailed("小说家OCR", Camp.Sur))
+            .Returns(new CharacterResolveResult("小说家OCR", Camp.Sur, shared.Object.SurCharaDict["小说家"], "小说家", "novelist", 1, "test", true, "test"));
+        ISmartBpBusinessAiFusionValidator validator = new SmartBpBusinessAiFusionValidator(shared.Object, selection.Object);
+
+        var delta = validator.ValidateAndNormalize(
+            raw,
+            "屏蔽求生者",
+            ["banned_sur", "banned_hun", "picked_sur", "picked_hun"],
+            Business("屏蔽求生者"),
+            out var diagnostics);
+
+        Assert.Equal("屏蔽求生者", delta.Phase);
+        Assert.Equal(4, delta.Updates.Count);
+        Assert.Equal("小说家", delta.Updates.Single(update => update.Field == "banned_sur").Slots![0].CharacterName);
+        Assert.Equal("未选择", delta.Updates.Single(update => update.Field == "banned_sur").Slots![1].CharacterName);
+        Assert.Equal("未选择", delta.Updates.Single(update => update.Field == "banned_hun").Slots![1].CharacterName);
+        Assert.Equal("未选择", delta.Updates.Single(update => update.Field == "picked_hun").PickedHun!.CharacterName);
+        Assert.Contains(diagnostics, message => message.Contains("overridden to 屏蔽求生者", StringComparison.Ordinal));
+        selection.Verify(service => service.ResolveCharacterDetailed("小说家OCR", Camp.Sur), Times.Once);
+    }
+
+    [Fact]
+    public async Task BusinessAiFusionRetriesOnlyTextFusionAfterLocalValidationFailure()
+    {
+        const string invalid = """
+        {"phase":"屏蔽求生者","updates":[{"field":"banned_sur","slots":[],"picked_hun":null}]}
+        """;
+        const string repaired = """
+        {"phase":"屏蔽求生者","updates":[{"field":"banned_sur","slots":[
+          {"index":0,"slot_state":"empty","character_name":"未选择","player_id":null},
+          {"index":1,"slot_state":"empty","character_name":"未选择","player_id":null},
+          {"index":2,"slot_state":"empty","character_name":"未选择","player_id":null},
+          {"index":3,"slot_state":"empty","character_name":"未选择","player_id":null}],"picked_hun":null}]}
+        """;
+        var game = new Game(new Team(Camp.Sur, TeamType.HomeTeam), new Team(Camp.Hun, TeamType.AwayTeam), GameProgress.Free);
+        var shared = CreateShared(game, new Character("小说家", Camp.Sur, "novelist"));
+        var validator = new SmartBpBusinessAiFusionValidator(shared.Object, Mock.Of<ICharacterSelectionService>());
+        var settings = new Mock<ISmartBpRecognitionSettingsService>();
+        settings.SetupGet(service => service.Settings).Returns(new SmartBpRecognitionSettings());
+        var prompts = new List<string>();
+        var call = 0;
+        var client = new Mock<ILlamaCppOpenAiClient>();
+        client.Setup(service => service.FuseTranscriptEvidenceAsync(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IReadOnlyCollection<string>>(), It.IsAny<CancellationToken>()))
+            .Returns((string prompt, string _, IReadOnlyCollection<string> _, CancellationToken _) =>
+            {
+                prompts.Add(prompt);
+                return Task.FromResult(call++ == 0 ? invalid : repaired);
+            });
+        var service = new SmartBpBusinessAiFusionService(
+            client.Object, shared.Object, validator, settings.Object, Mock.Of<ISmartBpDebugLog>());
+        var evidence = new SmartBpAiOcrTranscriptRegionEvidence
+        {
+            Region = SmartBpRecognitionRegion.RightTop,
+            Field = "banned_sur",
+            RawTranscript = "未选择 未选择 未选择 未选择",
+            Lines = ["未选择", "未选择", "未选择", "未选择"]
+        };
+
+        var result = await service.FuseAsync(
+            new SmartBpPhaseRecognitionResult { Phase = "屏蔽求生者" },
+            [evidence],
+            ["banned_sur"],
+            Business("屏蔽求生者"),
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal(2, prompts.Count);
+        Assert.Contains("Your previous output was invalid because", prompts[1]);
+        Assert.Contains("未选择 未选择 未选择 未选择", prompts[1]);
+        Assert.Contains("attempt_1 raw", result.RawJson);
+        Assert.Contains("attempt_2 raw", result.RawJson);
+        client.Verify(service => service.FuseTranscriptEvidenceAsync(
+            It.IsAny<string>(), "屏蔽求生者", It.IsAny<IReadOnlyCollection<string>>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
     }
 
     [Fact]
@@ -1248,6 +1373,8 @@ public sealed class SmartBpAiRecognitionContractTest
         Assert.Contains("AI + AI OCR fusion_mode=LocalCSharp", coordinator);
         Assert.Contains("SmartBpBusinessAiFusionService", services);
         Assert.Contains("FuseTranscriptEvidenceAsync", services);
+        Assert.Contains("RawTranscript = transcript.RawJson", coordinator);
+        Assert.Contains("Lines = transcript.Lines.Select", coordinator);
         Assert.Contains("SmartBpAiWithOcrFusionMode", xaml);
         Assert.Contains("SmartBpAiWithAiOcrFusionMode", xaml);
     }
@@ -1274,7 +1401,10 @@ public sealed class SmartBpAiRecognitionContractTest
         Assert.Contains("CreateCurrentKnownStateJson(currentKnownState)", services);
         Assert.Contains("AiStructuredOutputMode.JsonSchemaStrict", services);
         Assert.Contains("Business AI fusion validation failed; corrupted updates were not merged.", coordinator);
+        Assert.Contains("Business AI fusion failed after phase/transcript recognition. No final business state was merged.", coordinator);
         Assert.Contains("if (!isDryRun && delta != null)", coordinator);
+        var viewModel = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "ViewModels", "SmartBpModuleContentViewModel.AiRecognition.cs"));
+        Assert.Contains("Recognition failed during Business AI fusion. No final business state was merged.", viewModel);
     }
 
     [Fact]
@@ -1298,6 +1428,16 @@ public sealed class SmartBpAiRecognitionContractTest
         var parsed = SmartBpAiOcrTranscriptRecognitionService.ParseLines(raw);
 
         Assert.Equal(["小说家", "昆虫学者"], parsed.Lines.Select(line => line.Text));
+    }
+
+    [Theory]
+    [InlineData("{\"lines\":[{\"text\":\"小说家\\n昆虫学者\\n未选择\\n未选择\"}]}")]
+    [InlineData("{\"lines\":[{\"text\":\"小说家 昆虫学者 未选择 未选择\"}]}")]
+    public void AiOcrTranscriptJsonTextIsSplitIntoUsableEvidenceLines(string raw)
+    {
+        var parsed = SmartBpAiOcrTranscriptRecognitionService.ParseLines(raw);
+
+        Assert.Equal(["小说家", "昆虫学者", "未选择", "未选择"], parsed.Lines.Select(line => line.Text));
     }
 
     [Fact]

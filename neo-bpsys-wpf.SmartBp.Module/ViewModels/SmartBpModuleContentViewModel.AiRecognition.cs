@@ -1624,9 +1624,15 @@ public partial class SmartBpModuleContentViewModel
             ? $"phase={result.PhaseResult?.Phase ?? "unknown"}"
             : $"phase={result.PhaseResult?.Phase ?? "unknown"}{Environment.NewLine}scene={result.SceneGate.Scene}{Environment.NewLine}bp_allowed={result.SceneGate.IsBpRecognitionAllowed}{Environment.NewLine}character_operations_allowed={result.SceneGate.IsCharacterOperationAllowed}{Environment.NewLine}reason={result.SceneGate.Reason}";
         DebugParsedState = result.BusinessState == null ? "-" : FormatBusinessState(result.BusinessState);
-        DebugFinalBusinessState = result.BusinessState == null
-            ? "Recognition failed before final business state was produced."
-            : DebugParsedState;
+        var businessAiFusionFailed = strategy == SmartBpRecognitionStrategy.AiWithAiOcr &&
+                                     result.CandidateMessages.Any(message => message.Contains(
+                                         "Business AI fusion failed after phase/transcript recognition",
+                                         StringComparison.Ordinal));
+        DebugFinalBusinessState = businessAiFusionFailed
+            ? "Recognition failed during Business AI fusion. No final business state was merged."
+            : result.BusinessState == null
+                ? "Recognition failed before final business state was produced."
+                : DebugParsedState;
         DebugFusionSummary = strategy switch
         {
             SmartBpRecognitionStrategy.AiWithOcr => $"fusion_mode={_recognitionSettingsService.Settings.AiWithOcrFusionMode}; OCR evidence is merged locally by default.",
@@ -1646,6 +1652,12 @@ public partial class SmartBpModuleContentViewModel
             message.Contains("validation", StringComparison.OrdinalIgnoreCase) ||
             message.Contains("rejected", StringComparison.OrdinalIgnoreCase) ||
             message.Contains("overridden", StringComparison.OrdinalIgnoreCase) ||
+            message.Contains("request failed", StringComparison.OrdinalIgnoreCase) ||
+            message.Contains("repair", StringComparison.OrdinalIgnoreCase) ||
+            message.Contains("business_ai_model=", StringComparison.OrdinalIgnoreCase) ||
+            message.Contains("ai_ocr_model=", StringComparison.OrdinalIgnoreCase) ||
+            message.Contains("structured_output_mode=", StringComparison.OrdinalIgnoreCase) ||
+            message.Contains("strict_schema_enabled=", StringComparison.OrdinalIgnoreCase) ||
             message.Contains("updates=", StringComparison.OrdinalIgnoreCase)));
         if (string.IsNullOrWhiteSpace(DebugMergeLog)) DebugMergeLog = "-";
 

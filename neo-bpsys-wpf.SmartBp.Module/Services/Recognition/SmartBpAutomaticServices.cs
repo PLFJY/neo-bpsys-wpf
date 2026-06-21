@@ -1334,9 +1334,12 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                         {
                             delta = null;
                             rawMap["business_ai_fusion"] = ex.RawJson;
+                            rawMap["business_ai_fusion_diagnostics"] = string.Join(Environment.NewLine, ex.Diagnostics);
                             rawBuilder.Append("\n\nbusiness_ai_fusion rejected raw:\n").Append(ex.RawJson);
+                            rawBuilder.Append("\n\nbusiness_ai_fusion diagnostics:\n").AppendJoin(Environment.NewLine, ex.Diagnostics);
                             messages.AddRange(ex.Diagnostics);
                             messages.Add("Business AI fusion validation failed; corrupted updates were not merged.");
+                            messages.Add("Business AI fusion failed after phase/transcript recognition. No final business state was merged.");
                         }
                     }
                     else

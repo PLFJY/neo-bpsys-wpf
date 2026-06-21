@@ -68,7 +68,10 @@ Return only JSON:
                 () => encoder.EncodeDataUrl(crop.Image, Math.Max(256, settings.Settings.ContentCropMaxImageWidth)),
                 cancellationToken).ConfigureAwait(false);
             var raw = await RecognizeRegionAsync(imageDataUrl, region, field, cancellationToken).ConfigureAwait(false);
-            rawBuilder.AppendLine($"[{ToRegionId(region)} field={field}]").AppendLine(raw);
+            if (regions.Count == 1)
+                rawBuilder.Append(raw);
+            else
+                rawBuilder.AppendLine($"[{ToRegionId(region)} field={field}]").AppendLine(raw);
             var (lines, parseDiagnostics) = ParseLines(raw);
             diagnostics.Add($"AI OCR transcript region={ToRegionId(region)}; field={field}; line_count={lines.Count}.");
             diagnostics.AddRange(parseDiagnostics);
@@ -119,9 +122,8 @@ Return only JSON:
         var content = document.RootElement.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString();
         if (string.IsNullOrWhiteSpace(content))
             throw new LlamaCppRequestException("llama.cpp returned empty AI OCR content.", envelope);
-        var (repaired, _) = SmartBpJsonRepair.Repair(content);
         debugLog.Write("recognition", $"AI OCR transcript raw region={ToRegionId(region)}:\n{content}");
-        return repaired;
+        return content;
     }
 
     private bool ShouldReuseBusinessServer() =>
@@ -143,7 +145,8 @@ Return only JSON:
                 var lines = linesElement.EnumerateArray()
                     .Select(item => item.TryGetProperty("text", out var text) ? text.GetString() : null)
                     .Where(text => !string.IsNullOrWhiteSpace(text))
-                    .Select(text => new SmartBpAiOcrTranscriptLine { Text = text!.Trim() })
+                    .SelectMany(text => SplitTranscriptText(text!))
+                    .Select(text => new SmartBpAiOcrTranscriptLine { Text = text })
                     .ToArray();
                 return (lines, diagnostics);
             }
@@ -154,13 +157,16 @@ Return only JSON:
         }
 
         diagnostics.Add("AI OCR transcript parsed as plain text fallback.");
-        var plain = Regex.Split(raw, @"[\r\n\t ,，;；、|/\\]+")
-            .Select(text => text.Trim().Trim('"', '\'', '`'))
-            .Where(text => !string.IsNullOrWhiteSpace(text))
+        var plain = SplitTranscriptText(raw)
             .Select(text => new SmartBpAiOcrTranscriptLine { Text = text })
             .ToArray();
         return (plain, diagnostics);
     }
+
+    private static IEnumerable<string> SplitTranscriptText(string text) =>
+        Regex.Split(text, @"[\r\n\t ,，;；、|/\\]+")
+            .Select(part => part.Trim().Trim('"', '\'', '`'))
+            .Where(part => !string.IsNullOrWhiteSpace(part));
 
     private static string ToRegionId(SmartBpRecognitionRegion region) =>
         region switch
@@ -312,10 +318,34 @@ internal sealed class SmartBpBusinessAiFusionValidationException(string message,
     public IReadOnlyList<string> Diagnostics { get; } = diagnostics;
 }
 
+internal sealed class SmartBpBusinessAiFusionValidator(
+    ISharedDataService shared,
+    ICharacterSelectionService characterSelection) : ISmartBpBusinessAiFusionValidator
+{
+    public SmartBpSnapshotDeltaResult ValidateAndNormalize(
+        string rawJson,
+        string lockedPhase,
+        IReadOnlyCollection<string> requestedFields,
+        SmartBpBusinessStateRecognitionResult currentKnownState,
+        out IReadOnlyList<string> diagnostics)
+    {
+        ArgumentNullException.ThrowIfNull(currentKnownState);
+        return SmartBpAutomaticParser.ParseBusinessAiFusionSnapshotDelta(
+            rawJson,
+            lockedPhase,
+            requestedFields,
+            shared.SurCharaDict.Keys.ToArray(),
+            shared.HunCharaDict.Keys.ToArray(),
+            characterSelection,
+            out diagnostics);
+    }
+}
+
 internal sealed class SmartBpBusinessAiFusionService(
     ILlamaCppOpenAiClient client,
     ISharedDataService shared,
-    ICharacterSelectionService characterSelection,
+    ISmartBpBusinessAiFusionValidator validator,
+    ISmartBpRecognitionSettingsService settings,
     ISmartBpDebugLog debugLog) : ISmartBpBusinessAiFusionService
 {
     private static readonly JsonSerializerOptions PromptJsonOptions = new()
@@ -334,12 +364,29 @@ internal sealed class SmartBpBusinessAiFusionService(
         var survivorCandidates = shared.SurCharaDict.Keys.OrderBy(name => name, StringComparer.Ordinal).ToArray();
         var hunterCandidates = shared.HunCharaDict.Keys.OrderBy(name => name, StringComparer.Ordinal).ToArray();
         var prompt = BuildPrompt(phase, evidence, requestedFields, currentKnownState, survivorCandidates, hunterCandidates);
+        var inputPayload = CreateInputPayload(phase, evidence, requestedFields, currentKnownState, survivorCandidates, hunterCandidates);
         debugLog.Write("recognition", $"Business AI fusion prompt:\n{prompt}");
-        var raw = await client.FuseTranscriptEvidenceAsync(prompt, phase.Phase, requestedFields, cancellationToken).ConfigureAwait(false);
+        string raw;
         try
         {
-            var parsed = SmartBpAutomaticParser.ParseBusinessAiFusionSnapshotDelta(
-                raw, phase.Phase, requestedFields, survivorCandidates, hunterCandidates, characterSelection, out var validationDiagnostics);
+            raw = await client.FuseTranscriptEvidenceAsync(prompt, phase.Phase, requestedFields, cancellationToken).ConfigureAwait(false);
+        }
+        catch (LlamaCppRequestException ex)
+        {
+            var diagnostics = BuildRequestFailureDiagnostics(ex.Message);
+            debugLog.Write("recognition", $"{string.Join(Environment.NewLine, diagnostics)}\nResponse envelope:\n{ex.RawResponse}");
+            throw new SmartBpBusinessAiFusionValidationException(diagnostics[0], ex.RawResponse, diagnostics, ex);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            var diagnostics = BuildRequestFailureDiagnostics(ex.Message);
+            debugLog.Write("recognition", string.Join(Environment.NewLine, diagnostics));
+            throw new SmartBpBusinessAiFusionValidationException(diagnostics[0], "", diagnostics, ex);
+        }
+
+        try
+        {
+            var parsed = validator.ValidateAndNormalize(raw, phase.Phase, requestedFields, currentKnownState, out var validationDiagnostics);
             var diagnostics = new List<string>(validationDiagnostics)
             {
                 $"Business AI fusion produced updates=[{string.Join(", ", parsed.Updates.Select(update => update.Field))}].",
@@ -347,15 +394,72 @@ internal sealed class SmartBpBusinessAiFusionService(
             };
             return (parsed, raw, diagnostics);
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+        catch (Exception firstValidationError) when (firstValidationError is not OperationCanceledException)
         {
-            var message = ex.Message.StartsWith("Business AI fusion output rejected:", StringComparison.Ordinal)
-                ? ex.Message
-                : $"Business AI fusion output rejected: {ex.Message}";
-            debugLog.Write("recognition", $"{message}\nBusiness AI fusion rejected raw response:\n{raw}");
-            throw new SmartBpBusinessAiFusionValidationException(message, raw, [message], ex);
+            var firstDiagnostic = NormalizeValidationMessage(firstValidationError.Message);
+            debugLog.Write("recognition", $"{firstDiagnostic}\nBusiness AI fusion attempt 1 rejected raw response:\n{raw}");
+            var repairPrompt = BuildRepairPrompt(inputPayload, raw, [firstDiagnostic]);
+            debugLog.Write("recognition", $"Business AI fusion repair prompt:\n{repairPrompt}");
+            string retryRaw;
+            try
+            {
+                retryRaw = await client.FuseTranscriptEvidenceAsync(repairPrompt, phase.Phase, requestedFields, cancellationToken).ConfigureAwait(false);
+            }
+            catch (LlamaCppRequestException ex)
+            {
+                var requestDiagnostics = BuildRequestFailureDiagnostics(ex.Message);
+                var combinedRaw = FormatAttempts(raw, ex.RawResponse);
+                var diagnostics = new List<string> { firstDiagnostic, "Business AI fusion repair request failed." };
+                diagnostics.AddRange(requestDiagnostics);
+                debugLog.Write("recognition", $"{string.Join(Environment.NewLine, diagnostics)}\nBusiness AI fusion attempts:\n{combinedRaw}");
+                throw new SmartBpBusinessAiFusionValidationException(diagnostics[1], combinedRaw, diagnostics, ex);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                var requestDiagnostics = BuildRequestFailureDiagnostics(ex.Message);
+                var combinedRaw = FormatAttempts(raw, "No response envelope was returned.");
+                var diagnostics = new List<string> { firstDiagnostic, "Business AI fusion repair request failed." };
+                diagnostics.AddRange(requestDiagnostics);
+                debugLog.Write("recognition", $"{string.Join(Environment.NewLine, diagnostics)}\nBusiness AI fusion attempts:\n{combinedRaw}");
+                throw new SmartBpBusinessAiFusionValidationException(diagnostics[1], combinedRaw, diagnostics, ex);
+            }
+
+            try
+            {
+                var parsed = validator.ValidateAndNormalize(retryRaw, phase.Phase, requestedFields, currentKnownState, out var retryDiagnostics);
+                var diagnostics = new List<string> { firstDiagnostic, "Business AI fusion local validation retry succeeded." };
+                diagnostics.AddRange(retryDiagnostics);
+                diagnostics.Add($"Business AI fusion produced updates=[{string.Join(", ", parsed.Updates.Select(update => update.Field))}] after one repair retry.");
+                return (parsed, FormatAttempts(raw, retryRaw), diagnostics);
+            }
+            catch (Exception retryValidationError) when (retryValidationError is not OperationCanceledException)
+            {
+                var retryDiagnostic = NormalizeValidationMessage(retryValidationError.Message);
+                var combinedRaw = FormatAttempts(raw, retryRaw);
+                var diagnostics = new[] { firstDiagnostic, retryDiagnostic, "Business AI fusion repair retry was rejected; no updates were merged." };
+                debugLog.Write("recognition", $"{string.Join(Environment.NewLine, diagnostics)}\nBusiness AI fusion attempts:\n{combinedRaw}");
+                throw new SmartBpBusinessAiFusionValidationException(retryDiagnostic, combinedRaw, diagnostics, retryValidationError);
+            }
         }
     }
+
+    private List<string> BuildRequestFailureDiagnostics(string error) =>
+    [
+        $"Business AI fusion request failed before local validation: {error}",
+        "task=BusinessAiFusion",
+        $"business_ai_model={settings.Settings.SelectedBusinessAiModelId}",
+        $"ai_ocr_model={settings.Settings.SelectedAiOcrModelId}",
+        $"structured_output_mode={settings.Settings.BusinessAiFusionStructuredOutputMode}",
+        $"strict_schema_enabled={settings.Settings.BusinessAiFusionStructuredOutputMode == AiStructuredOutputMode.JsonSchemaStrict}"
+    ];
+
+    private static string NormalizeValidationMessage(string message) =>
+        message.StartsWith("Business AI fusion output rejected:", StringComparison.Ordinal)
+            ? message
+            : $"Business AI fusion output rejected: {message}";
+
+    private static string FormatAttempts(string first, string second) =>
+        $"attempt_1 raw:{Environment.NewLine}{first}{Environment.NewLine}{Environment.NewLine}attempt_2 raw:{Environment.NewLine}{second}";
 
     private static string BuildPrompt(
         SmartBpPhaseRecognitionResult phase,
@@ -365,22 +469,7 @@ internal sealed class SmartBpBusinessAiFusionService(
         IReadOnlyList<string> survivorCandidates,
         IReadOnlyList<string> hunterCandidates)
     {
-        var evidenceJson = new JsonArray(evidence.Select(item => new JsonObject
-        {
-            ["region"] = ToRegionId(item.Region),
-            ["field"] = item.Field,
-            ["rawTranscript"] = item.RawTranscript,
-            ["lines"] = new JsonArray(item.Lines.Select(line => JsonValue.Create(line)).ToArray<JsonNode?>())
-        }).ToArray<JsonNode?>());
-        var payload = new JsonObject
-        {
-            ["phase"] = phase.Phase,
-            ["requestedFields"] = new JsonArray(requestedFields.Select(field => JsonValue.Create(field)).ToArray<JsonNode?>()),
-            ["currentKnownState"] = SmartBpRecognitionPromptBuilder.CreateCurrentKnownStateJson(currentKnownState),
-            ["survivorCandidates"] = new JsonArray(survivorCandidates.Select(name => JsonValue.Create(name)).ToArray<JsonNode?>()),
-            ["hunterCandidates"] = new JsonArray(hunterCandidates.Select(name => JsonValue.Create(name)).ToArray<JsonNode?>()),
-            ["evidence"] = evidenceJson
-        };
+        var payload = CreateInputPayload(phase, evidence, requestedFields, currentKnownState, survivorCandidates, hunterCandidates);
         return $$"""
 You are the SmartBP business fusion model.
 
@@ -425,6 +514,50 @@ Input:
 {{payload.ToJsonString(PromptJsonOptions)}}
 """;
     }
+
+    private static JsonObject CreateInputPayload(
+        SmartBpPhaseRecognitionResult phase,
+        IReadOnlyList<SmartBpAiOcrTranscriptRegionEvidence> evidence,
+        IReadOnlyCollection<string> requestedFields,
+        SmartBpBusinessStateRecognitionResult currentKnownState,
+        IReadOnlyList<string> survivorCandidates,
+        IReadOnlyList<string> hunterCandidates)
+    {
+        var evidenceJson = new JsonArray(evidence.Select(item => new JsonObject
+        {
+            ["region"] = ToRegionId(item.Region),
+            ["field"] = item.Field,
+            ["rawTranscript"] = item.RawTranscript,
+            ["lines"] = new JsonArray(item.Lines.Select(line => JsonValue.Create(line)).ToArray<JsonNode?>())
+        }).ToArray<JsonNode?>());
+        return new JsonObject
+        {
+            ["phase"] = phase.Phase,
+            ["requestedFields"] = new JsonArray(requestedFields.Select(field => JsonValue.Create(field)).ToArray<JsonNode?>()),
+            ["currentKnownState"] = SmartBpRecognitionPromptBuilder.CreateCurrentKnownStateJson(currentKnownState),
+            ["survivorCandidates"] = new JsonArray(survivorCandidates.Select(name => JsonValue.Create(name)).ToArray<JsonNode?>()),
+            ["hunterCandidates"] = new JsonArray(hunterCandidates.Select(name => JsonValue.Create(name)).ToArray<JsonNode?>()),
+            ["evidence"] = evidenceJson
+        };
+    }
+
+    private static string BuildRepairPrompt(JsonObject inputPayload, string previousRaw, IReadOnlyList<string> diagnostics) => $$"""
+Your previous output was invalid because:
+{{string.Join(Environment.NewLine, diagnostics)}}
+
+Return corrected JSON only.
+Do not include explanation.
+Do not include any fields except phase and updates.
+Each update object may contain only field, slots, picked_hun.
+Keep phase exactly equal to input.phase.
+Only include requestedFields and preserve exact slot counts.
+
+Input:
+{{inputPayload.ToJsonString(PromptJsonOptions)}}
+
+Previous invalid output:
+{{previousRaw}}
+""";
 
     private static string ToRegionId(SmartBpRecognitionRegion region) =>
         region switch
@@ -1297,6 +1430,7 @@ internal sealed class LlamaCppOpenAiClient(ISmartBpRecognitionSettingsService se
     public async Task<string> FuseTranscriptEvidenceAsync(string prompt, string lockedPhase, IReadOnlyCollection<string> requestedFields, CancellationToken cancellationToken = default)
     {
         var profile = await promptProfiles.LoadAsync(settings.Settings.PromptProfileId, cancellationToken);
+        var mode = settings.Settings.BusinessAiFusionStructuredOutputMode;
         var schema = SmartBpRecognitionJsonSchemaProvider.GetBusinessAiFusionSnapshotDelta(
             lockedPhase,
             requestedFields,
@@ -1308,10 +1442,20 @@ internal sealed class LlamaCppOpenAiClient(ISmartBpRecognitionSettingsService se
             prompt,
             schema,
             settings.Settings.SnapshotDeltaMaxTokens,
-            AiStructuredOutputMode.JsonSchemaStrict,
+            mode,
             "smartbp_business_fusion");
-        var raw = await SendSpecialAsync(body, $"BusinessAiFusion:{string.Join(",", requestedFields)}", cancellationToken);
-        return await RepairAndLogAsync(raw, AiStructuredOutputMode.JsonSchemaStrict, "BusinessAiFusion");
+        var taskLabel = $"BusinessAiFusion:{string.Join(",", requestedFields)}";
+        debugLog.Write("recognition", $"Business AI fusion request; task={taskLabel}; business_ai_model={settings.Settings.SelectedBusinessAiModelId}; ai_ocr_model={settings.Settings.SelectedAiOcrModelId}; structured_output_mode={mode}; strict_schema_enabled={mode == AiStructuredOutputMode.JsonSchemaStrict}; prompt_chars={prompt.Length}.");
+        try
+        {
+            var raw = await SendSpecialAsync(body, taskLabel, cancellationToken);
+            return await RepairAndLogAsync(raw, mode, "BusinessAiFusion");
+        }
+        catch (LlamaCppRequestException ex)
+        {
+            debugLog.Write("recognition", $"Business AI fusion llama.cpp request failed; task={taskLabel}; structured_output_mode={mode}; strict_schema_enabled={mode == AiStructuredOutputMode.JsonSchemaStrict}; response_envelope:\n{ex.RawResponse}");
+            throw;
+        }
     }
 
     public async Task<string> RecognizePhaseOnlyAsync(string imageDataUrl, CancellationToken cancellationToken = default)
@@ -1396,7 +1540,7 @@ internal sealed class LlamaCppOpenAiClient(ISmartBpRecognitionSettingsService se
         return body;
     }
 
-    private static JsonObject CreateStructuredTextBody(string systemPrompt, string userPrompt, JsonObject schema, int maxTokens, AiStructuredOutputMode mode, string schemaName)
+    internal static JsonObject CreateStructuredTextBody(string systemPrompt, string userPrompt, JsonObject schema, int maxTokens, AiStructuredOutputMode mode, string schemaName)
     {
         var content = new JsonArray(new JsonObject { ["type"] = "text", ["text"] = userPrompt });
         if (mode == AiStructuredOutputMode.JsonPromptAndRepair)

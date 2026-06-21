@@ -440,6 +440,8 @@ public sealed class SmartBpRecognitionSettings
     public SmartBpHybridFusionMode AiWithOcrFusionMode { get; set; } = SmartBpHybridFusionMode.LocalCSharp;
     /// <summary>Gets or sets how AI + AI OCR fuses transcript evidence into business state.</summary>
     public SmartBpHybridFusionMode AiWithAiOcrFusionMode { get; set; } = SmartBpHybridFusionMode.BusinessAi;
+    /// <summary>Gets or sets how Business AI fusion requests structured output from llama.cpp.</summary>
+    public AiStructuredOutputMode BusinessAiFusionStructuredOutputMode { get; set; } = AiStructuredOutputMode.JsonPromptAndRepair;
     /// <summary>Gets or sets the selected projector profile label.</summary>
     public string SelectedMmprojId { get; set; } = "mmproj-f16";
     /// <summary>Gets or sets the bundled prompt profile id.</summary>

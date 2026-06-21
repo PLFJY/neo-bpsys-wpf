@@ -293,6 +293,25 @@ public interface ISmartBpBusinessAiFusionService
         SmartBpBusinessStateRecognitionResult currentKnownState,
         CancellationToken cancellationToken = default);
 }
+
+/// <summary>Validates and normalizes Business AI transcript-fusion output before StateStore merge.</summary>
+public interface ISmartBpBusinessAiFusionValidator
+{
+    /// <summary>Repairs, validates, and normalizes one Business AI fusion response.</summary>
+    /// <param name="rawJson">Raw model response.</param>
+    /// <param name="lockedPhase">Authoritative phase recognized before fusion.</param>
+    /// <param name="requestedFields">Fields allowed in the response.</param>
+    /// <param name="currentKnownState">State known before fusion.</param>
+    /// <param name="diagnostics">Validation and normalization diagnostics.</param>
+    /// <returns>A validated snapshot delta suitable for StateStore merge.</returns>
+    /// <exception cref="InvalidDataException">Thrown when the response cannot be safely normalized.</exception>
+    SmartBpSnapshotDeltaResult ValidateAndNormalize(
+        string rawJson,
+        string lockedPhase,
+        IReadOnlyCollection<string> requestedFields,
+        SmartBpBusinessStateRecognitionResult currentKnownState,
+        out IReadOnlyList<string> diagnostics);
+}
 /// <summary>Encodes WPF frames for multimodal requests.</summary>
 public interface ISmartBpImageEncoder { /// <summary>Encodes a PNG data URL.</summary>
     string EncodeDataUrl(BitmapSource source, int maxWidth); }
