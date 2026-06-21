@@ -264,6 +264,7 @@ internal static class SmartBpAutomaticParser
         IReadOnlyCollection<string> survivorCandidates,
         IReadOnlyCollection<string> hunterCandidates,
         ICharacterSelectionService characterSelection,
+        SmartBpBusinessAiFusionOutputContract outputContract,
         out IReadOnlyList<string> diagnostics)
     {
         var messages = new List<string>();
@@ -272,7 +273,6 @@ internal static class SmartBpAutomaticParser
             messages.Add("Business AI fusion JSON fence was removed before validation.");
         var root = JsonNode.Parse(repaired)?.AsObject()
             ?? throw new InvalidDataException("Business AI fusion output rejected: response must be a JSON object.");
-        RejectUnexpectedProperties(root, ["phase", "updates"], "root");
         if (root["phase"] is not JsonValue phaseValue || !phaseValue.TryGetValue<string>(out var outputPhase))
             throw new InvalidDataException("Business AI fusion output rejected: phase must be a string.");
         if (!string.Equals(outputPhase, lockedPhase, StringComparison.Ordinal))
@@ -280,6 +280,18 @@ internal static class SmartBpAutomaticParser
             messages.Add($"Business AI fusion changed phase from {lockedPhase} to {outputPhase}; overridden to {lockedPhase}.");
             root["phase"] = lockedPhase;
         }
+
+        if (HasFullBusinessStateFields(root))
+        {
+            var delta = NormalizeBusinessAiFusionFullState(root, lockedPhase, requestedFields, survivorCandidates, hunterCandidates, characterSelection, messages);
+            messages.Add(outputContract == SmartBpBusinessAiFusionOutputContract.FullBusinessState
+                ? "Business AI fusion returned full-state contract; normalized to snapshot delta."
+                : "Business AI fusion returned full-state contract while snapshot delta was expected; normalized to snapshot delta.");
+            diagnostics = messages;
+            return delta;
+        }
+
+        RejectUnexpectedProperties(root, ["phase", "updates"], "root");
 
         if (root["updates"] is not JsonArray updates)
             throw new InvalidDataException("Business AI fusion output rejected: updates must be an array.");
@@ -323,6 +335,247 @@ internal static class SmartBpAutomaticParser
 
         diagnostics = messages;
         return ParseSnapshotDelta(root.ToJsonString(), requestedFields, survivorCandidates, hunterCandidates);
+    }
+
+    private static bool HasFullBusinessStateFields(JsonObject root) =>
+        root.ContainsKey("banned_sur") ||
+        root.ContainsKey("banned_hun") ||
+        root.ContainsKey("picked_sur") ||
+        root.ContainsKey("picked_hun");
+
+    private static SmartBpSnapshotDeltaResult NormalizeBusinessAiFusionFullState(
+        JsonObject root,
+        string lockedPhase,
+        IReadOnlyCollection<string> requestedFields,
+        IReadOnlyCollection<string> survivorCandidates,
+        IReadOnlyCollection<string> hunterCandidates,
+        ICharacterSelectionService characterSelection,
+        ICollection<string> diagnostics)
+    {
+        RejectUnexpectedProperties(root, ["phase", "banned_sur", "banned_hun", "picked_sur", "picked_hun"], "root");
+        var requested = requestedFields.ToHashSet(StringComparer.Ordinal);
+        var updates = new List<SmartBpSnapshotFieldUpdate>();
+        if (root.TryGetPropertyValue("banned_sur", out var bannedSur) && requested.Contains("banned_sur"))
+            updates.Add(new SmartBpSnapshotFieldUpdate
+            {
+                Field = "banned_sur",
+                Slots = NormalizeFullStateCharacterSlots(bannedSur, 4, Camp.Sur, survivorCandidates, characterSelection, "banned_sur", diagnostics),
+                PickedHun = null
+            });
+        if (root.TryGetPropertyValue("banned_hun", out var bannedHun) && requested.Contains("banned_hun"))
+            updates.Add(new SmartBpSnapshotFieldUpdate
+            {
+                Field = "banned_hun",
+                Slots = NormalizeFullStateCharacterSlots(bannedHun, 2, Camp.Hun, hunterCandidates, characterSelection, "banned_hun", diagnostics),
+                PickedHun = null
+            });
+        if (root.TryGetPropertyValue("picked_sur", out var pickedSur) && requested.Contains("picked_sur"))
+            updates.Add(new SmartBpSnapshotFieldUpdate
+            {
+                Field = "picked_sur",
+                Slots = NormalizeFullStatePickedSurSlots(pickedSur, survivorCandidates, characterSelection, diagnostics),
+                PickedHun = null
+            });
+        if (root.TryGetPropertyValue("picked_hun", out var pickedHun) && requested.Contains("picked_hun"))
+            updates.Add(new SmartBpSnapshotFieldUpdate
+            {
+                Field = "picked_hun",
+                Slots = null,
+                PickedHun = NormalizeFullStatePickedHunSlot(pickedHun, hunterCandidates, characterSelection, diagnostics)
+            });
+        var missingFields = requestedFields.Where(field => updates.All(update => update.Field != field)).ToArray();
+        if (missingFields.Length > 0)
+            throw new InvalidDataException($"Business AI fusion output rejected: missing requested fields [{string.Join(", ", missingFields)}].");
+
+        var delta = new SmartBpSnapshotDeltaResult { Phase = lockedPhase, Updates = updates };
+        foreach (var update in updates)
+        {
+            switch (update.Field)
+            {
+                case "banned_sur":
+                    ValidateDeltaSlots(update.Slots, 4, survivorCandidates, update.Field);
+                    break;
+                case "banned_hun":
+                    ValidateDeltaSlots(update.Slots, 2, hunterCandidates, update.Field);
+                    break;
+                case "picked_sur":
+                    ValidateDeltaSlots(update.Slots, 4, survivorCandidates, update.Field);
+                    break;
+                case "picked_hun":
+                    if (update.PickedHun == null) throw new InvalidDataException("picked_hun update must contain picked_hun.");
+                    ValidateDeltaSlot(update.PickedHun, hunterCandidates, "picked_hun");
+                    break;
+            }
+        }
+        return delta;
+    }
+
+    private static List<SmartBpSnapshotDeltaSlot> NormalizeFullStateCharacterSlots(
+        JsonNode? node,
+        int count,
+        Camp camp,
+        IReadOnlyCollection<string> candidates,
+        ICharacterSelectionService characterSelection,
+        string field,
+        ICollection<string> diagnostics)
+    {
+        if (node is not JsonArray array)
+            throw new InvalidDataException($"Business AI fusion output rejected: {field} must be an array.");
+        var slots = new List<SmartBpSnapshotDeltaSlot>();
+        var index = 0;
+        foreach (var item in array)
+        {
+            if (index >= count) break;
+            slots.Add(item is JsonObject obj
+                ? NormalizeFullStateSlotObject(obj, index, camp, candidates, characterSelection, field, diagnostics)
+                : NormalizeFullStateShorthandSlot(GetStringValue(item), index, camp, candidates, characterSelection, field, null, diagnostics));
+            index++;
+        }
+        while (slots.Count < count)
+            slots.Add(new SmartBpSnapshotDeltaSlot { Index = slots.Count, SlotState = "unknown", CharacterName = "未选择" });
+        return slots;
+    }
+
+    private static List<SmartBpSnapshotDeltaSlot> NormalizeFullStatePickedSurSlots(
+        JsonNode? node,
+        IReadOnlyCollection<string> survivorCandidates,
+        ICharacterSelectionService characterSelection,
+        ICollection<string> diagnostics)
+    {
+        if (node is not JsonArray array)
+            throw new InvalidDataException("Business AI fusion output rejected: picked_sur must be an array.");
+        if (array.All(item => item is not JsonObject) && array.Count >= 8)
+        {
+            var alternating = array.Select(GetStringValue).ToArray();
+            return Enumerable.Range(0, 4)
+                .Select(index => NormalizeFullStateShorthandSlot(
+                    index * 2 < alternating.Length ? alternating[index * 2] : "",
+                    index,
+                    Camp.Sur,
+                    survivorCandidates,
+                    characterSelection,
+                    "picked_sur",
+                    index * 2 + 1 < alternating.Length ? NormalizePlayerId(alternating[index * 2 + 1]) : null,
+                    diagnostics))
+                .ToList();
+        }
+        return NormalizeFullStateCharacterSlots(node, 4, Camp.Sur, survivorCandidates, characterSelection, "picked_sur", diagnostics);
+    }
+
+    private static SmartBpSnapshotDeltaSlot NormalizeFullStatePickedHunSlot(
+        JsonNode? node,
+        IReadOnlyCollection<string> hunterCandidates,
+        ICharacterSelectionService characterSelection,
+        ICollection<string> diagnostics)
+    {
+        return node is JsonObject obj
+            ? NormalizeFullStateSlotObject(obj, 0, Camp.Hun, hunterCandidates, characterSelection, "picked_hun", diagnostics)
+            : NormalizeFullStateShorthandSlot(GetStringValue(node), 0, Camp.Hun, hunterCandidates, characterSelection, "picked_hun", null, diagnostics);
+    }
+
+    private static SmartBpSnapshotDeltaSlot NormalizeFullStateSlotObject(
+        JsonObject slot,
+        int expectedIndex,
+        Camp camp,
+        IReadOnlyCollection<string> candidates,
+        ICharacterSelectionService characterSelection,
+        string field,
+        ICollection<string> diagnostics)
+    {
+        RejectUnexpectedProperties(slot, ["index", "slot_state", "character_name", "player_id"], $"{field} slot");
+        var index = GetIntValue(slot["index"], expectedIndex);
+        if (index != expectedIndex)
+            throw new InvalidDataException($"Business AI fusion output rejected: {field}.index expected {expectedIndex} but was {index}.");
+        var rawName = GetStringValue(slot["character_name"]);
+        var playerId = NormalizePlayerId(GetStringValue(slot["player_id"]));
+        var slotState = GetStringValue(slot["slot_state"]).Trim().ToLowerInvariant();
+        if (string.IsNullOrWhiteSpace(slotState))
+            return NormalizeFullStateShorthandSlot(rawName, expectedIndex, camp, candidates, characterSelection, field, playerId, diagnostics);
+        if (slotState is "empty" or "unknown")
+            return new SmartBpSnapshotDeltaSlot { Index = expectedIndex, SlotState = slotState, CharacterName = "未选择", PlayerId = playerId };
+        if (slotState != "selected")
+            throw new InvalidDataException($"Business AI fusion output rejected: {field}.slot_state is invalid: {slotState}.");
+        var normalized = ResolveSelectedCharacter(rawName, camp, candidates, characterSelection, field, diagnostics, allowUnknown: false);
+        return new SmartBpSnapshotDeltaSlot { Index = expectedIndex, SlotState = "selected", CharacterName = normalized!, PlayerId = playerId };
+    }
+
+    private static SmartBpSnapshotDeltaSlot NormalizeFullStateShorthandSlot(
+        string? rawName,
+        int index,
+        Camp camp,
+        IReadOnlyCollection<string> candidates,
+        ICharacterSelectionService characterSelection,
+        string field,
+        string? playerId,
+        ICollection<string> diagnostics)
+    {
+        var name = NormalizeRawText(rawName);
+        if (SmartBpBusinessStateParser.IsUnselected(name))
+            return new SmartBpSnapshotDeltaSlot { Index = index, SlotState = "empty", CharacterName = "未选择", PlayerId = playerId };
+        var normalized = ResolveSelectedCharacter(name, camp, candidates, characterSelection, field, diagnostics, allowUnknown: true);
+        return normalized == null
+            ? new SmartBpSnapshotDeltaSlot { Index = index, SlotState = "unknown", CharacterName = "未选择", PlayerId = playerId }
+            : new SmartBpSnapshotDeltaSlot { Index = index, SlotState = "selected", CharacterName = normalized, PlayerId = playerId };
+    }
+
+    private static string? ResolveSelectedCharacter(
+        string rawName,
+        Camp camp,
+        IReadOnlyCollection<string> candidates,
+        ICharacterSelectionService characterSelection,
+        string field,
+        ICollection<string> diagnostics,
+        bool allowUnknown)
+    {
+        if (candidates.Contains(rawName))
+            return rawName;
+        var resolution = characterSelection.ResolveCharacterDetailed(rawName, camp);
+        if (resolution.CanonicalName != null && candidates.Contains(resolution.CanonicalName))
+        {
+            diagnostics.Add($"Business AI fusion normalized {field} character '{rawName}' to '{resolution.CanonicalName}'.");
+            return resolution.CanonicalName;
+        }
+        if (allowUnknown)
+            return null;
+        throw new InvalidDataException($"Business AI fusion output rejected: {field}.character_name is not a valid {camp} candidate: {rawName}.");
+    }
+
+    private static string NormalizeRawText(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return "未选择";
+        var trimmed = value.Trim();
+        return trimmed.Equals("unknown", StringComparison.OrdinalIgnoreCase) ||
+               trimmed.Equals("null", StringComparison.OrdinalIgnoreCase) ||
+               trimmed.Equals("none", StringComparison.OrdinalIgnoreCase)
+            ? "未选择"
+            : trimmed;
+    }
+
+    private static string? NormalizePlayerId(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        var trimmed = value.Trim();
+        return trimmed.Equals("null", StringComparison.OrdinalIgnoreCase) ||
+               trimmed.Equals("none", StringComparison.OrdinalIgnoreCase) ||
+               trimmed.Equals("未选择", StringComparison.Ordinal)
+            ? null
+            : trimmed;
+    }
+
+    private static string GetStringValue(JsonNode? node)
+    {
+        if (node == null) return "";
+        return node is JsonValue value && value.TryGetValue<string>(out var text)
+            ? text
+            : node.ToJsonString().Trim('"');
+    }
+
+    private static int GetIntValue(JsonNode? node, int fallback)
+    {
+        if (node == null) return fallback;
+        if (node is JsonValue value && value.TryGetValue<int>(out var intValue))
+            return intValue;
+        return int.TryParse(GetStringValue(node), out var parsed) ? parsed : fallback;
     }
 
     private static void RejectUnexpectedProperties(JsonObject value, IReadOnlyCollection<string> allowed, string context)
@@ -1323,12 +1576,15 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                     {
                         try
                         {
-                            var fusion = await businessAiFusion.FuseAsync(phaseResult, evidence, request.RequestedFields, preGateState, tickToken);
+                            var outputContract = debugMode == SmartBpRecognitionDebugMode.FullStrategy
+                                ? settings.Settings.AiWithAiOcrFullDebugFusionContract
+                                : SmartBpBusinessAiFusionOutputContract.SnapshotDelta;
+                            var fusion = await businessAiFusion.FuseAsync(phaseResult, evidence, request.RequestedFields, preGateState, outputContract, tickToken);
                             delta = fusion.Delta;
                             rawMap["business_ai_fusion"] = fusion.RawJson;
                             rawBuilder.Append("\n\nbusiness_ai_fusion raw:\n").Append(fusion.RawJson);
                             messages.AddRange(fusion.Diagnostics);
-                            messages.Add("AI + AI OCR fusion_mode=BusinessAi; transcript evidence was fused and validated before merge.");
+                            messages.Add($"AI + AI OCR fusion_mode=BusinessAi; output_contract={outputContract}; transcript evidence was fused and validated before merge.");
                         }
                         catch (SmartBpBusinessAiFusionValidationException ex)
                         {

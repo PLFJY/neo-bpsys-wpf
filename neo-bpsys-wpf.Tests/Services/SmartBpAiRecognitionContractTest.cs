@@ -20,6 +20,7 @@ using Xunit;
 using SmartBpRecognitionTask = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionTask;
 using SmartBpRecognitionStrategy = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionStrategy;
 using SmartBpHybridFusionMode = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpHybridFusionMode;
+using SmartBpBusinessAiFusionOutputContract = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpBusinessAiFusionOutputContract;
 using LocalVisionModelFamily = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.LocalVisionModelFamily;
 using LocalVisionModelRole = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.LocalVisionModelRole;
 using QwenMmprojMode = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.QwenMmprojMode;
@@ -252,7 +253,7 @@ public sealed class SmartBpAiRecognitionContractTest
         """;
 
         var parsed = SmartBpAutomaticParser.ParseBusinessAiFusionSnapshotDelta(
-            raw, "屏蔽求生者", ["banned_sur"], ["小说家"], ["厂长"], Mock.Of<ICharacterSelectionService>(), out var diagnostics);
+            raw, "屏蔽求生者", ["banned_sur"], ["小说家"], ["厂长"], Mock.Of<ICharacterSelectionService>(), SmartBpBusinessAiFusionOutputContract.SnapshotDelta, out var diagnostics);
 
         Assert.Equal("屏蔽求生者", parsed.Phase);
         Assert.Contains("Business AI fusion changed phase from 屏蔽求生者 to 等待中; overridden to 屏蔽求生者.", diagnostics);
@@ -273,7 +274,7 @@ public sealed class SmartBpAiRecognitionContractTest
         """;
 
         var error = Assert.Throws<InvalidDataException>(() => SmartBpAutomaticParser.ParseBusinessAiFusionSnapshotDelta(
-            raw, "屏蔽求生者", ["banned_sur"], ["小说家"], ["厂长"], Mock.Of<ICharacterSelectionService>(), out _));
+            raw, "屏蔽求生者", ["banned_sur"], ["小说家"], ["厂长"], Mock.Of<ICharacterSelectionService>(), SmartBpBusinessAiFusionOutputContract.SnapshotDelta, out _));
 
         Assert.Contains($"contained unexpected property {unexpectedProperty}", error.Message);
     }
@@ -329,6 +330,7 @@ public sealed class SmartBpAiRecognitionContractTest
             "屏蔽求生者",
             ["banned_sur", "banned_hun", "picked_sur", "picked_hun"],
             Business("屏蔽求生者"),
+            SmartBpBusinessAiFusionOutputContract.SnapshotDelta,
             out var diagnostics);
 
         Assert.Equal("屏蔽求生者", delta.Phase);
@@ -339,6 +341,128 @@ public sealed class SmartBpAiRecognitionContractTest
         Assert.Equal("未选择", delta.Updates.Single(update => update.Field == "picked_hun").PickedHun!.CharacterName);
         Assert.Contains(diagnostics, message => message.Contains("overridden to 屏蔽求生者", StringComparison.Ordinal));
         selection.Verify(service => service.ResolveCharacterDetailed("小说家OCR", Camp.Sur), Times.Once);
+    }
+
+    [Fact]
+    public void BusinessAiFusionValidatorAcceptsFullStateRootFieldsAndConvertsToDelta()
+    {
+        const string raw = """
+        {
+          "phase": "屏蔽求生者",
+          "banned_sur": ["小说家", "昆虫学者", "未选择", "未选择"],
+          "banned_hun": ["未选择", "未选择"],
+          "picked_sur": ["未选择", "未选择", "未选择", "未选择"],
+          "picked_hun": {"index":0,"character_name":"未选择","player_id":"null"}
+        }
+        """;
+        var shared = CreateShared(
+            new Game(new Team(Camp.Sur, TeamType.HomeTeam), new Team(Camp.Hun, TeamType.AwayTeam), GameProgress.Free),
+            new Character("小说家", Camp.Sur, "novelist"),
+            new Character("昆虫学者", Camp.Sur, "entomologist"),
+            new Character("厂长", Camp.Hun, "hell-ember"));
+        ISmartBpBusinessAiFusionValidator validator = new SmartBpBusinessAiFusionValidator(shared.Object, Mock.Of<ICharacterSelectionService>());
+
+        var delta = validator.ValidateAndNormalize(
+            raw,
+            "屏蔽求生者",
+            ["banned_sur", "banned_hun", "picked_sur", "picked_hun"],
+            Business("屏蔽求生者"),
+            SmartBpBusinessAiFusionOutputContract.FullBusinessState,
+            out var diagnostics);
+
+        Assert.Equal("屏蔽求生者", delta.Phase);
+        Assert.Equal(["banned_sur", "banned_hun", "picked_sur", "picked_hun"], delta.Updates.Select(update => update.Field));
+        var bannedSur = delta.Updates.Single(update => update.Field == "banned_sur").Slots!;
+        Assert.Equal("selected", bannedSur[0].SlotState);
+        Assert.Equal("小说家", bannedSur[0].CharacterName);
+        Assert.Equal("selected", bannedSur[1].SlotState);
+        Assert.Equal("昆虫学者", bannedSur[1].CharacterName);
+        Assert.Equal("empty", bannedSur[2].SlotState);
+        Assert.Equal("empty", delta.Updates.Single(update => update.Field == "picked_hun").PickedHun!.SlotState);
+        Assert.Null(delta.Updates.Single(update => update.Field == "picked_hun").PickedHun!.PlayerId);
+        Assert.Contains("full-state contract; normalized to snapshot delta", string.Join("\n", diagnostics));
+    }
+
+    [Fact]
+    public void BusinessAiFusionValidatorNormalizesPickedSurAlternatingPlayerIdsAndMergesThroughStateStore()
+    {
+        const string raw = """
+        {
+          "phase": "屏蔽求生者",
+          "banned_sur": ["小说家", "昆虫学者", "未选择", "未选择"],
+          "banned_hun": ["未选择", "未选择"],
+          "picked_sur": ["未选择", "IHiganbanal", "未选择", "夜风之缚", "未选择", "磁台小狗", "未选择", "叶落摘星"],
+          "picked_hun": {"index":0,"character_name":"未选择","player_id":"NULL"}
+        }
+        """;
+        var shared = CreateShared(
+            new Game(new Team(Camp.Sur, TeamType.HomeTeam), new Team(Camp.Hun, TeamType.AwayTeam), GameProgress.Free),
+            new Character("小说家", Camp.Sur, "novelist"),
+            new Character("昆虫学者", Camp.Sur, "entomologist"),
+            new Character("厂长", Camp.Hun, "hell-ember"));
+        ISmartBpBusinessAiFusionValidator validator = new SmartBpBusinessAiFusionValidator(shared.Object, Mock.Of<ICharacterSelectionService>());
+
+        var delta = validator.ValidateAndNormalize(
+            raw,
+            "屏蔽求生者",
+            ["banned_sur", "banned_hun", "picked_sur", "picked_hun"],
+            Business("屏蔽求生者"),
+            SmartBpBusinessAiFusionOutputContract.FullBusinessState,
+            out _);
+        var stateStore = new SmartBpRecognitionStateStore();
+        stateStore.ApplyDelta(delta, 1, DateTimeOffset.Now);
+        var snapshot = stateStore.Snapshot;
+
+        Assert.Equal("IHiganbanal", delta.Updates.Single(update => update.Field == "picked_sur").Slots![0].PlayerId);
+        Assert.Equal("夜风之缚", delta.Updates.Single(update => update.Field == "picked_sur").Slots![1].PlayerId);
+        Assert.Equal("磁台小狗", delta.Updates.Single(update => update.Field == "picked_sur").Slots![2].PlayerId);
+        Assert.Equal("叶落摘星", delta.Updates.Single(update => update.Field == "picked_sur").Slots![3].PlayerId);
+        Assert.Equal("小说家", snapshot.BannedSur[0].CharacterName);
+        Assert.Equal("昆虫学者", snapshot.BannedSur[1].CharacterName);
+        Assert.Equal("IHiganbanal", snapshot.PickedSur[0].PlayerId);
+        Assert.Null(snapshot.PickedHun.PlayerId);
+    }
+
+    [Fact]
+    public async Task BusinessAiFusionFullStateRetryPromptDoesNotAskForUpdates()
+    {
+        const string invalid = """
+        {"phase":"屏蔽求生者","banned_sur":["小说家"]}
+        """;
+        const string repaired = """
+        {"phase":"屏蔽求生者","banned_sur":["小说家","未选择","未选择","未选择"],"banned_hun":["未选择","未选择"],"picked_sur":["未选择","未选择","未选择","未选择"],"picked_hun":{"index":0,"character_name":"未选择","player_id":"null"}}
+        """;
+        var game = new Game(new Team(Camp.Sur, TeamType.HomeTeam), new Team(Camp.Hun, TeamType.AwayTeam), GameProgress.Free);
+        var shared = CreateShared(game, new Character("小说家", Camp.Sur, "novelist"), new Character("厂长", Camp.Hun, "hell-ember"));
+        var validator = new SmartBpBusinessAiFusionValidator(shared.Object, Mock.Of<ICharacterSelectionService>());
+        var settings = new Mock<ISmartBpRecognitionSettingsService>();
+        settings.SetupGet(service => service.Settings).Returns(new SmartBpRecognitionSettings());
+        var prompts = new List<string>();
+        var call = 0;
+        var client = new Mock<ILlamaCppOpenAiClient>();
+        client.Setup(service => service.FuseTranscriptEvidenceAsync(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IReadOnlyCollection<string>>(), It.IsAny<CancellationToken>()))
+            .Returns((string prompt, string _, IReadOnlyCollection<string> _, CancellationToken _) =>
+            {
+                prompts.Add(prompt);
+                return Task.FromResult(call++ == 0 ? invalid : repaired);
+            });
+        var service = new SmartBpBusinessAiFusionService(
+            client.Object, shared.Object, validator, settings.Object, Mock.Of<ISmartBpDebugLog>());
+
+        var result = await service.FuseAsync(
+            new SmartBpPhaseRecognitionResult { Phase = "屏蔽求生者" },
+            [new SmartBpAiOcrTranscriptRegionEvidence { Region = SmartBpRecognitionRegion.RightTop, Field = "banned_sur", RawTranscript = "小说家", Lines = ["小说家"] }],
+            ["banned_sur", "banned_hun", "picked_sur", "picked_hun"],
+            Business("屏蔽求生者"),
+            SmartBpBusinessAiFusionOutputContract.FullBusinessState,
+            TestContext.Current.CancellationToken);
+
+        Assert.Contains("complete SmartBP business state", prompts[0]);
+        Assert.Contains("Return corrected full business state JSON only.", prompts[1]);
+        Assert.Contains("Do not use updates[].", prompts[1]);
+        Assert.DoesNotContain("Do not include any fields except phase and updates.", prompts[1]);
+        Assert.Equal(4, result.Delta.Updates.Count);
     }
 
     [Fact]
@@ -384,6 +508,7 @@ public sealed class SmartBpAiRecognitionContractTest
             [evidence],
             ["banned_sur"],
             Business("屏蔽求生者"),
+            SmartBpBusinessAiFusionOutputContract.SnapshotDelta,
             TestContext.Current.CancellationToken);
 
         Assert.Equal(2, prompts.Count);

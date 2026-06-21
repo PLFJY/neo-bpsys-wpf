@@ -35,6 +35,15 @@ public enum SmartBpHybridFusionMode
     BusinessAi
 }
 
+/// <summary>Expected JSON contract for Business AI transcript fusion output.</summary>
+public enum SmartBpBusinessAiFusionOutputContract
+{
+    /// <summary>Return a complete BP business-state object with phase and all four BP fields.</summary>
+    FullBusinessState,
+    /// <summary>Return a snapshot delta object with phase and updates.</summary>
+    SnapshotDelta
+}
+
 /// <summary>Family of a managed local vision model.</summary>
 public enum LocalVisionModelFamily
 {
@@ -442,6 +451,8 @@ public sealed class SmartBpRecognitionSettings
     public SmartBpHybridFusionMode AiWithAiOcrFusionMode { get; set; } = SmartBpHybridFusionMode.BusinessAi;
     /// <summary>Gets or sets how Business AI fusion requests structured output from llama.cpp.</summary>
     public AiStructuredOutputMode BusinessAiFusionStructuredOutputMode { get; set; } = AiStructuredOutputMode.JsonPromptAndRepair;
+    /// <summary>Gets or sets the Business AI fusion output contract used by AI + AI OCR full debug recognition.</summary>
+    public SmartBpBusinessAiFusionOutputContract AiWithAiOcrFullDebugFusionContract { get; set; } = SmartBpBusinessAiFusionOutputContract.FullBusinessState;
     /// <summary>Gets or sets the selected projector profile label.</summary>
     public string SelectedMmprojId { get; set; } = "mmproj-f16";
     /// <summary>Gets or sets the bundled prompt profile id.</summary>

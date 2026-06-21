@@ -284,6 +284,7 @@ public interface ISmartBpBusinessAiFusionService
     /// <param name="evidence">Transcript evidence grouped by BP region.</param>
     /// <param name="requestedFields">Business fields that may be updated.</param>
     /// <param name="currentKnownState">Current locally known BP state.</param>
+    /// <param name="outputContract">Expected output contract for this fusion request.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Structured snapshot delta returned by the Business AI model.</returns>
     Task<(SmartBpSnapshotDeltaResult Delta, string RawJson, IReadOnlyList<string> Diagnostics)> FuseAsync(
@@ -291,6 +292,7 @@ public interface ISmartBpBusinessAiFusionService
         IReadOnlyList<SmartBpAiOcrTranscriptRegionEvidence> evidence,
         IReadOnlyCollection<string> requestedFields,
         SmartBpBusinessStateRecognitionResult currentKnownState,
+        SmartBpBusinessAiFusionOutputContract outputContract = SmartBpBusinessAiFusionOutputContract.SnapshotDelta,
         CancellationToken cancellationToken = default);
 }
 
@@ -302,6 +304,7 @@ public interface ISmartBpBusinessAiFusionValidator
     /// <param name="lockedPhase">Authoritative phase recognized before fusion.</param>
     /// <param name="requestedFields">Fields allowed in the response.</param>
     /// <param name="currentKnownState">State known before fusion.</param>
+    /// <param name="outputContract">Expected output contract for this fusion response.</param>
     /// <param name="diagnostics">Validation and normalization diagnostics.</param>
     /// <returns>A validated snapshot delta suitable for StateStore merge.</returns>
     /// <exception cref="InvalidDataException">Thrown when the response cannot be safely normalized.</exception>
@@ -310,6 +313,7 @@ public interface ISmartBpBusinessAiFusionValidator
         string lockedPhase,
         IReadOnlyCollection<string> requestedFields,
         SmartBpBusinessStateRecognitionResult currentKnownState,
+        SmartBpBusinessAiFusionOutputContract outputContract,
         out IReadOnlyList<string> diagnostics);
 }
 /// <summary>Encodes WPF frames for multimodal requests.</summary>

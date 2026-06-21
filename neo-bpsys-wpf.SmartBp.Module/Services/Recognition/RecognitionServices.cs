@@ -327,6 +327,7 @@ internal sealed class SmartBpBusinessAiFusionValidator(
         string lockedPhase,
         IReadOnlyCollection<string> requestedFields,
         SmartBpBusinessStateRecognitionResult currentKnownState,
+        SmartBpBusinessAiFusionOutputContract outputContract,
         out IReadOnlyList<string> diagnostics)
     {
         ArgumentNullException.ThrowIfNull(currentKnownState);
@@ -337,6 +338,7 @@ internal sealed class SmartBpBusinessAiFusionValidator(
             shared.SurCharaDict.Keys.ToArray(),
             shared.HunCharaDict.Keys.ToArray(),
             characterSelection,
+            outputContract,
             out diagnostics);
     }
 }
@@ -359,11 +361,12 @@ internal sealed class SmartBpBusinessAiFusionService(
         IReadOnlyList<SmartBpAiOcrTranscriptRegionEvidence> evidence,
         IReadOnlyCollection<string> requestedFields,
         SmartBpBusinessStateRecognitionResult currentKnownState,
+        SmartBpBusinessAiFusionOutputContract outputContract = SmartBpBusinessAiFusionOutputContract.SnapshotDelta,
         CancellationToken cancellationToken = default)
     {
         var survivorCandidates = shared.SurCharaDict.Keys.OrderBy(name => name, StringComparer.Ordinal).ToArray();
         var hunterCandidates = shared.HunCharaDict.Keys.OrderBy(name => name, StringComparer.Ordinal).ToArray();
-        var prompt = BuildPrompt(phase, evidence, requestedFields, currentKnownState, survivorCandidates, hunterCandidates);
+        var prompt = BuildPrompt(phase, evidence, requestedFields, currentKnownState, survivorCandidates, hunterCandidates, outputContract);
         var inputPayload = CreateInputPayload(phase, evidence, requestedFields, currentKnownState, survivorCandidates, hunterCandidates);
         debugLog.Write("recognition", $"Business AI fusion prompt:\n{prompt}");
         string raw;
@@ -386,7 +389,7 @@ internal sealed class SmartBpBusinessAiFusionService(
 
         try
         {
-            var parsed = validator.ValidateAndNormalize(raw, phase.Phase, requestedFields, currentKnownState, out var validationDiagnostics);
+            var parsed = validator.ValidateAndNormalize(raw, phase.Phase, requestedFields, currentKnownState, outputContract, out var validationDiagnostics);
             var diagnostics = new List<string>(validationDiagnostics)
             {
                 $"Business AI fusion produced updates=[{string.Join(", ", parsed.Updates.Select(update => update.Field))}].",
@@ -398,7 +401,7 @@ internal sealed class SmartBpBusinessAiFusionService(
         {
             var firstDiagnostic = NormalizeValidationMessage(firstValidationError.Message);
             debugLog.Write("recognition", $"{firstDiagnostic}\nBusiness AI fusion attempt 1 rejected raw response:\n{raw}");
-            var repairPrompt = BuildRepairPrompt(inputPayload, raw, [firstDiagnostic]);
+            var repairPrompt = BuildRepairPrompt(inputPayload, raw, [firstDiagnostic], outputContract);
             debugLog.Write("recognition", $"Business AI fusion repair prompt:\n{repairPrompt}");
             string retryRaw;
             try
@@ -426,7 +429,7 @@ internal sealed class SmartBpBusinessAiFusionService(
 
             try
             {
-                var parsed = validator.ValidateAndNormalize(retryRaw, phase.Phase, requestedFields, currentKnownState, out var retryDiagnostics);
+                var parsed = validator.ValidateAndNormalize(retryRaw, phase.Phase, requestedFields, currentKnownState, outputContract, out var retryDiagnostics);
                 var diagnostics = new List<string> { firstDiagnostic, "Business AI fusion local validation retry succeeded." };
                 diagnostics.AddRange(retryDiagnostics);
                 diagnostics.Add($"Business AI fusion produced updates=[{string.Join(", ", parsed.Updates.Select(update => update.Field))}] after one repair retry.");
@@ -467,9 +470,49 @@ internal sealed class SmartBpBusinessAiFusionService(
         IReadOnlyCollection<string> requestedFields,
         SmartBpBusinessStateRecognitionResult currentKnownState,
         IReadOnlyList<string> survivorCandidates,
-        IReadOnlyList<string> hunterCandidates)
+        IReadOnlyList<string> hunterCandidates,
+        SmartBpBusinessAiFusionOutputContract outputContract)
     {
         var payload = CreateInputPayload(phase, evidence, requestedFields, currentKnownState, survivorCandidates, hunterCandidates);
+        var task = outputContract == SmartBpBusinessAiFusionOutputContract.FullBusinessState
+            ? """
+Convert AI OCR transcript evidence into the complete SmartBP business state.
+
+Return JSON with exactly:
+phase
+banned_sur
+banned_hun
+picked_sur
+picked_hun
+"""
+            : """
+Convert AI OCR transcript evidence into requested SmartBP field updates.
+
+Return JSON with exactly:
+phase
+updates
+""";
+        var contract = outputContract == SmartBpBusinessAiFusionOutputContract.FullBusinessState
+            ? """
+Output contract:
+- Return the complete BP business state, not updates[].
+- Root fields must be exactly phase, banned_sur, banned_hun, picked_sur, picked_hun.
+- banned_sur and picked_sur each contain exactly 4 slots.
+- banned_hun contains exactly 2 slots.
+- picked_hun is one object at index 0.
+- Shorthand string arrays are allowed, but canonical slot objects are preferred.
+- selected character_name must come from the matching candidate list.
+- empty/unknown character_name must be "未选择".
+"""
+            : """
+Output contract:
+- Return snapshot delta JSON with phase and updates.
+- banned_sur, banned_hun, picked_sur updates require slots and picked_hun=null.
+- picked_hun update requires slots=null and one picked_hun object.
+- selected character_name must come from the matching candidate list.
+- empty/unknown character_name must be "未选择".
+- Return JSON only. Do not include any sibling business field such as banned_hun or picked_sur inside an update object.
+""";
         return $$"""
 You are the SmartBP business fusion model.
 
@@ -478,7 +521,7 @@ You are NOT doing phase detection.
 The phase is already locked.
 
 Your task:
-Convert AI OCR transcript evidence into requested SmartBP field updates.
+{{task}}
 
 Use only transcript evidence and candidate lists. Do not invent characters.
 Ignore UI noise, player names, streamer/director labels, authorization warnings, tips, and unrelated text.
@@ -503,12 +546,7 @@ Field responsibilities:
 For banned_sur transcript "小说家 昆虫学者 未选择 未选择": output selected 小说家, selected 昆虫学者, empty 未选择, empty 未选择 in slots 0..3.
 For picked_hun transcript "未选择导播PLFJY": output picked_hun empty with character_name="未选择" unless a valid hunter candidate is visible.
 
-Output contract:
-- banned_sur, banned_hun, picked_sur updates require slots and picked_hun=null.
-- picked_hun update requires slots=null and one picked_hun object.
-- selected character_name must come from the matching candidate list.
-- empty/unknown character_name must be "未选择".
-- Return JSON only. Do not include any sibling business field such as banned_hun or picked_sur inside an update object.
+{{contract}}
 
 Input:
 {{payload.ToJsonString(PromptJsonOptions)}}
@@ -541,14 +579,34 @@ Input:
         };
     }
 
-    private static string BuildRepairPrompt(JsonObject inputPayload, string previousRaw, IReadOnlyList<string> diagnostics) => $$"""
-Your previous output was invalid because:
-{{string.Join(Environment.NewLine, diagnostics)}}
-
+    private static string BuildRepairPrompt(
+        JsonObject inputPayload,
+        string previousRaw,
+        IReadOnlyList<string> diagnostics,
+        SmartBpBusinessAiFusionOutputContract outputContract)
+    {
+        var contract = outputContract == SmartBpBusinessAiFusionOutputContract.FullBusinessState
+            ? """
+Return corrected full business state JSON only.
+Do not use updates[].
+Root fields must be:
+phase
+banned_sur
+banned_hun
+picked_sur
+picked_hun
+"""
+            : """
 Return corrected JSON only.
 Do not include explanation.
 Do not include any fields except phase and updates.
 Each update object may contain only field, slots, picked_hun.
+""";
+        return $$"""
+Your previous output was invalid because:
+{{string.Join(Environment.NewLine, diagnostics)}}
+
+{{contract}}
 Keep phase exactly equal to input.phase.
 Only include requestedFields and preserve exact slot counts.
 
@@ -558,6 +616,7 @@ Input:
 Previous invalid output:
 {{previousRaw}}
 """;
+    }
 
     private static string ToRegionId(SmartBpRecognitionRegion region) =>
         region switch
