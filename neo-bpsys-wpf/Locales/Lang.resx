@@ -5727,6 +5727,16 @@
   <data name="SmartBpAiOcrModel" xml:space="preserve"><value>AI OCR 模型</value></data>
   <data name="SmartBpAiOcrModelHint" xml:space="preserve"><value>PaddleOCR-VL、GLM OCR 和实验 Qwen 模型用于读取可见文字；BP 业务映射由本地解释器负责。</value></data>
   <data name="SmartBpLlamaRuntime" xml:space="preserve"><value>llama.cpp 运行时</value></data>
+  <data name="SmartBpBusinessAiServer" xml:space="preserve"><value>业务 AI 服务器</value></data>
+  <data name="SmartBpAiOcrServer" xml:space="preserve"><value>AI OCR 服务器</value></data>
+  <data name="SmartBpBusinessAiServerStarting" xml:space="preserve"><value>正在启动业务 AI 服务器...</value></data>
+  <data name="SmartBpAiOcrServerStarting" xml:space="preserve"><value>正在启动 AI OCR 服务器...</value></data>
+  <data name="SmartBpRequiredServersStarting" xml:space="preserve"><value>正在启动当前策略所需服务器...</value></data>
+  <data name="SmartBpServerModel" xml:space="preserve"><value>模型</value></data>
+  <data name="SmartBpServerPort" xml:space="preserve"><value>端口</value></data>
+  <data name="SmartBpServerStatus" xml:space="preserve"><value>状态</value></data>
+  <data name="SmartBpStartRequiredServers" xml:space="preserve"><value>启动所需服务器</value></data>
+  <data name="SmartBpStopAllServers" xml:space="preserve"><value>停止全部服务器</value></data>
   <data name="SmartBpRecognitionEngineOcrRecommended" xml:space="preserve"><value>OCR（推荐）</value></data>
   <data name="SmartBpRecognitionEngineAiQwenExperimental" xml:space="preserve"><value>AI / Qwen（实验）</value></data>
   <data name="SmartBpAiQwenEnginePanel" xml:space="preserve"><value>AI / Qwen 引擎设置</value></data>
@@ -5754,6 +5764,22 @@
   <data name="SmartBpFeatureSwitches" xml:space="preserve"><value>功能开关</value></data>
   <data name="SmartBpAdvancedParameters" xml:space="preserve"><value>识别引擎高级参数</value></data>
   <data name="SmartBpDebugOptions" xml:space="preserve"><value>调试选项</value></data>
+  <data name="SmartBpFullRecognitionTest" xml:space="preserve"><value>完整识别测试</value></data>
+  <data name="SmartBpPhaseSceneOnlyTest" xml:space="preserve"><value>阶段 / 场景测试</value></data>
+  <data name="SmartBpDebugTools" xml:space="preserve"><value>调试工具</value></data>
+  <data name="SmartBpAiRecognizeSelectedPhase" xml:space="preserve"><value>识别所选图阶段</value></data>
+  <data name="SmartBpAiRecognizeCurrentPhase" xml:space="preserve"><value>识别当前阶段</value></data>
+  <data name="SmartBpDebugStrategySummary" xml:space="preserve"><value>策略</value></data>
+  <data name="SmartBpDebugPhaseScene" xml:space="preserve"><value>阶段 / 场景</value></data>
+  <data name="SmartBpDebugBusinessAiRaw" xml:space="preserve"><value>业务 AI 原始输出</value></data>
+  <data name="SmartBpDebugPureAiFullRaw" xml:space="preserve"><value>纯 AI 完整原始输出</value></data>
+  <data name="SmartBpDebugOcrRawLines" xml:space="preserve"><value>OCR 原始行</value></data>
+  <data name="SmartBpDebugAiOcrTranscript" xml:space="preserve"><value>AI OCR 转写</value></data>
+  <data name="SmartBpDebugParsedState" xml:space="preserve"><value>解析状态</value></data>
+  <data name="SmartBpDebugMergeLog" xml:space="preserve"><value>合并诊断</value></data>
+  <data name="SmartBpDebugCandidateOperations" xml:space="preserve"><value>候选操作</value></data>
+  <data name="SmartBpDebugServerStatus" xml:space="preserve"><value>服务器状态</value></data>
+  <data name="SmartBpDebugTiming" xml:space="preserve"><value>耗时</value></data>
   <data name="SmartBpRecognitionEnginePaddle" xml:space="preserve"><value>Paddle OCR</value></data>
   <data name="SmartBpRecognitionEngineTesseract" xml:space="preserve"><value>Tesseract OCR</value></data>
   <data name="SmartBpTesseractDownloadData" xml:space="preserve"><value>下载所选语言数据</value></data>

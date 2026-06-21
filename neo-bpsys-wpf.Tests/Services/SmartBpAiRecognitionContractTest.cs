@@ -1107,13 +1107,51 @@ public sealed class SmartBpAiRecognitionContractTest
         var method = viewModel[methodStart..methodEnd];
 
         Assert.Contains("RunFullStrategyRecognitionCoreAsync(frame)", method);
+        Assert.Contains("RunPureAiFullRecognitionDebugCoreAsync(frame)", viewModel);
+        Assert.Contains("_aiRecognitionService.RecognizeAsync(frame, SmartBpRecognitionTask.FullBpScan)", viewModel);
         Assert.Contains("_autoRecognitionCoordinator.RunFullRecognitionDebugAsync(frame)", viewModel);
         Assert.Contains("_autoRecognitionCoordinator.RunPhaseOnlyDebugAsync(frame)", viewModel);
         Assert.Contains("RunPhaseOnlyRecognitionCoreAsync(LoadTestFrame(SelectedAiTestFrame))", viewModel);
-        Assert.Contains("SmartBpRecognitionTask.BanSur => [SmartBpRecognitionRegion.RightTop]", viewModel);
-        Assert.Contains("SmartBpRecognitionTask.BanHun => [SmartBpRecognitionRegion.LeftTop]", viewModel);
-        Assert.Contains("SmartBpRecognitionTask.PickSur or SmartBpRecognitionTask.CharacterDistribution => [SmartBpRecognitionRegion.LeftBottom]", viewModel);
-        Assert.Contains("SmartBpRecognitionTask.PickHun => [SmartBpRecognitionRegion.RightBottom]", viewModel);
+        Assert.Contains("SmartBpRecognitionStrategy.PureAi", viewModel);
+        Assert.Contains("FullBpScan", viewModel);
+    }
+
+    [Fact]
+    public void SmartBpDebugUiExposesSeparatePhaseOnlyAndRoleServerControls()
+    {
+        var root = FindRepositoryRoot();
+        var xaml = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "Views", "SmartBpModuleContentView.xaml"));
+        var viewModel = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "ViewModels", "SmartBpModuleContentViewModel.AiRecognition.cs"));
+
+        Assert.Contains("SmartBpFullRecognitionTest", xaml);
+        Assert.Contains("SmartBpPhaseSceneOnlyTest", xaml);
+        Assert.Contains("RecognizeSelectedTestFrameCommand", xaml);
+        Assert.Contains("DetectStageFromSelectedTestFrameCommand", xaml);
+        Assert.Contains("StartBusinessAiServerCommand", xaml);
+        Assert.Contains("StartAiOcrServerCommand", xaml);
+        Assert.Contains("StartRequiredLlamaServersCommand", xaml);
+        Assert.Contains("BusinessAiServerStatus", xaml);
+        Assert.Contains("AiOcrServerReuseStatus", xaml);
+        Assert.Contains("DebugPureAiFullRaw", xaml);
+        Assert.Contains("DebugAiOcrTranscript", xaml);
+
+        Assert.Contains("_llamaServerManagers.Get(LlamaVisionServerRole.BusinessAi)", viewModel);
+        Assert.Contains("_llamaServerManagers.Get(LlamaVisionServerRole.AiOcr)", viewModel);
+        Assert.Contains("IsAiOcrReusingBusinessServer()", viewModel);
+    }
+
+    [Fact]
+    public void AiOcrTranscriptInterpreterUsesResolverAndDoesNotCreateFakeOcrBoxes()
+    {
+        var root = FindRepositoryRoot();
+        var services = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "Services", "Recognition", "RecognitionServices.cs"));
+        var coordinator = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "Services", "Recognition", "SmartBpAutomaticServices.cs"));
+
+        Assert.Contains("SmartBpAiOcrTranscriptInterpreter", services);
+        Assert.Contains("ResolveCharacterDetailed", services);
+        Assert.Contains("aiOcrTranscriptInterpreter.Interpret", coordinator);
+        Assert.DoesNotContain("new OcrTextLine(line.Text", coordinator);
+        Assert.DoesNotContain("new OpenCvSharp.Rect", coordinator);
     }
 
     [Fact]

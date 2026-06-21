@@ -99,6 +99,7 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint
         services.AddSingleton<ISmartBpOcrBpRecognitionService, SmartBpOcrBpRecognitionService>();
         services.AddSingleton<ISmartBpOcrSnapshotDeltaRecognitionService, SmartBpOcrSnapshotDeltaRecognitionService>();
         services.AddSingleton<ISmartBpAiOcrTranscriptRecognitionService, SmartBpAiOcrTranscriptRecognitionService>();
+        services.AddSingleton<ISmartBpAiOcrTranscriptInterpreter, SmartBpAiOcrTranscriptInterpreter>();
         services.AddSingleton<ILlamaCppOpenAiClient, LlamaCppOpenAiClient>();
         services.AddSingleton<ILlamaCppServerManager, LlamaCppServerManager>();
         services.AddSingleton<ILlamaCppServerManagerFactory, LlamaCppServerManagerFactory>();

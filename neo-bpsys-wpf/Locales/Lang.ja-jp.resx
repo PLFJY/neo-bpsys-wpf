@@ -4653,8 +4653,34 @@
   <data name="Switch" xml:space="preserve"><value>Switch</value></data>
   <data name="SmartBpModelManagement" xml:space="preserve"><value>Model management</value></data>
   <data name="SmartBpFeatureSwitches" xml:space="preserve"><value>Feature switches</value></data>
+  <data name="SmartBpBusinessAiServer" xml:space="preserve"><value>Business AI server</value></data>
+  <data name="SmartBpAiOcrServer" xml:space="preserve"><value>AI OCR server</value></data>
+  <data name="SmartBpBusinessAiServerStarting" xml:space="preserve"><value>Starting Business AI server...</value></data>
+  <data name="SmartBpAiOcrServerStarting" xml:space="preserve"><value>Starting AI OCR server...</value></data>
+  <data name="SmartBpRequiredServersStarting" xml:space="preserve"><value>Starting servers required by the current strategy...</value></data>
+  <data name="SmartBpServerModel" xml:space="preserve"><value>Model</value></data>
+  <data name="SmartBpServerPort" xml:space="preserve"><value>Port</value></data>
+  <data name="SmartBpServerStatus" xml:space="preserve"><value>Status</value></data>
+  <data name="SmartBpStartRequiredServers" xml:space="preserve"><value>Start required servers</value></data>
+  <data name="SmartBpStopAllServers" xml:space="preserve"><value>Stop all servers</value></data>
   <data name="SmartBpAdvancedParameters" xml:space="preserve"><value>Recognition engine advanced parameters</value></data>
   <data name="SmartBpDebugOptions" xml:space="preserve"><value>Debug options</value></data>
+  <data name="SmartBpFullRecognitionTest" xml:space="preserve"><value>Full recognition test</value></data>
+  <data name="SmartBpPhaseSceneOnlyTest" xml:space="preserve"><value>Phase / scene-only test</value></data>
+  <data name="SmartBpDebugTools" xml:space="preserve"><value>Debug tools</value></data>
+  <data name="SmartBpAiRecognizeSelectedPhase" xml:space="preserve"><value>Recognize selected phase</value></data>
+  <data name="SmartBpAiRecognizeCurrentPhase" xml:space="preserve"><value>Recognize current phase</value></data>
+  <data name="SmartBpDebugStrategySummary" xml:space="preserve"><value>Strategy</value></data>
+  <data name="SmartBpDebugPhaseScene" xml:space="preserve"><value>Phase / scene</value></data>
+  <data name="SmartBpDebugBusinessAiRaw" xml:space="preserve"><value>Business AI raw</value></data>
+  <data name="SmartBpDebugPureAiFullRaw" xml:space="preserve"><value>Pure AI full raw</value></data>
+  <data name="SmartBpDebugOcrRawLines" xml:space="preserve"><value>OCR raw lines</value></data>
+  <data name="SmartBpDebugAiOcrTranscript" xml:space="preserve"><value>AI OCR transcript</value></data>
+  <data name="SmartBpDebugParsedState" xml:space="preserve"><value>Parsed state</value></data>
+  <data name="SmartBpDebugMergeLog" xml:space="preserve"><value>Merge diagnostics</value></data>
+  <data name="SmartBpDebugCandidateOperations" xml:space="preserve"><value>Candidate operations</value></data>
+  <data name="SmartBpDebugServerStatus" xml:space="preserve"><value>Server status</value></data>
+  <data name="SmartBpDebugTiming" xml:space="preserve"><value>Timing</value></data>
   <data name="SmartBpRecognitionEnginePaddle" xml:space="preserve"><value>Paddle OCR</value></data>
   <data name="SmartBpRecognitionEngineTesseract" xml:space="preserve"><value>Tesseract OCR</value></data>
   <data name="SmartBpTesseractDownloadData" xml:space="preserve"><value>選択した言語データをダウンロード</value></data>

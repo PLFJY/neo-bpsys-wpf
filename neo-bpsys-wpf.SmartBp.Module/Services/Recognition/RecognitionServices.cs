@@ -151,6 +151,137 @@ Return only JSON:
         };
 }
 
+internal sealed class SmartBpAiOcrTranscriptInterpreter(ICharacterSelectionService characterSelection) : ISmartBpAiOcrTranscriptInterpreter
+{
+    public (SmartBpSnapshotFieldUpdate Update, IReadOnlyList<string> Diagnostics) Interpret(
+        SmartBpAiOcrTranscriptResult transcript,
+        SmartBpRecognitionRegion region,
+        string field)
+    {
+        var diagnostics = new List<string> { $"AI OCR transcript interpreter region={ToRegionId(region)}; field={field}; line_count={transcript.Lines.Count}." };
+        return field switch
+        {
+            "banned_sur" => (new() { Field = field, Slots = InterpretCharacterSlots(transcript, Camp.Sur, 4, diagnostics) }, diagnostics),
+            "banned_hun" => (new() { Field = field, Slots = InterpretCharacterSlots(transcript, Camp.Hun, 2, diagnostics) }, diagnostics),
+            "picked_sur" => (new() { Field = field, Slots = InterpretPlayerSlots(transcript, Camp.Sur, 4, diagnostics) }, diagnostics),
+            "picked_hun" => (new() { Field = field, PickedHun = InterpretPickedHunter(transcript, diagnostics) }, diagnostics),
+            _ => (new() { Field = field }, [$"AI OCR transcript interpreter skipped unsupported field={field}."])
+        };
+    }
+
+    private List<SmartBpSnapshotDeltaSlot> InterpretCharacterSlots(
+        SmartBpAiOcrTranscriptResult transcript,
+        Camp camp,
+        int count,
+        ICollection<string> diagnostics)
+    {
+        var matches = ResolveCharacters(transcript, camp, diagnostics).Take(count).ToArray();
+        var slots = DefaultSlots(count);
+        for (var i = 0; i < matches.Length; i++)
+        {
+            slots[i].SlotState = "selected";
+            slots[i].CharacterName = matches[i].CanonicalName ?? matches[i].CharacterKey ?? "未选择";
+        }
+
+        return slots;
+    }
+
+    private List<SmartBpSnapshotDeltaSlot> InterpretPlayerSlots(
+        SmartBpAiOcrTranscriptResult transcript,
+        Camp camp,
+        int count,
+        ICollection<string> diagnostics)
+    {
+        var lines = transcript.Lines.Select(line => line.Text).Where(text => !string.IsNullOrWhiteSpace(text)).ToArray();
+        var characterIndexes = new HashSet<int>();
+        var slots = DefaultSlots(count);
+        var slot = 0;
+        for (var i = 0; i < lines.Length && slot < count; i++)
+        {
+            var resolved = Resolve(lines[i], camp, diagnostics);
+            if (resolved.Character == null)
+                continue;
+            slots[slot].SlotState = "selected";
+            slots[slot].CharacterName = resolved.CanonicalName ?? resolved.CharacterKey ?? "未选择";
+            characterIndexes.Add(i);
+            var playerId = lines.Skip(i + 1)
+                .Where((_, offset) => !characterIndexes.Contains(i + 1 + offset))
+                .FirstOrDefault(candidate => Resolve(candidate, camp, diagnostics, logUnresolved: false).Character == null);
+            if (!string.IsNullOrWhiteSpace(playerId))
+                slots[slot].PlayerId = playerId.Trim();
+            slot++;
+        }
+
+        return slots;
+    }
+
+    private SmartBpSnapshotDeltaSlot InterpretPickedHunter(
+        SmartBpAiOcrTranscriptResult transcript,
+        ICollection<string> diagnostics)
+    {
+        var lines = transcript.Lines.Select(line => line.Text).Where(text => !string.IsNullOrWhiteSpace(text)).ToArray();
+        var result = new SmartBpSnapshotDeltaSlot { Index = 0, SlotState = "unknown", CharacterName = "未选择" };
+        for (var i = 0; i < lines.Length; i++)
+        {
+            var resolved = Resolve(lines[i], Camp.Hun, diagnostics);
+            if (resolved.Character == null)
+                continue;
+            result.SlotState = "selected";
+            result.CharacterName = resolved.CanonicalName ?? resolved.CharacterKey ?? "未选择";
+            result.PlayerId = lines.Skip(i + 1).FirstOrDefault(candidate => Resolve(candidate, Camp.Hun, diagnostics, logUnresolved: false).Character == null)?.Trim();
+            return result;
+        }
+
+        return result;
+    }
+
+    private IEnumerable<CharacterResolveResult> ResolveCharacters(
+        SmartBpAiOcrTranscriptResult transcript,
+        Camp camp,
+        ICollection<string> diagnostics)
+    {
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var line in transcript.Lines)
+        {
+            var resolved = Resolve(line.Text, camp, diagnostics);
+            var key = resolved.CanonicalName ?? resolved.CharacterKey;
+            if (resolved.Character == null || key == null || !seen.Add(key))
+                continue;
+            yield return resolved;
+        }
+    }
+
+    private CharacterResolveResult Resolve(
+        string text,
+        Camp camp,
+        ICollection<string> diagnostics,
+        bool logUnresolved = true)
+    {
+        var resolved = characterSelection.ResolveCharacterDetailed(text, camp);
+        if (resolved.Character != null)
+            diagnostics.Add($"ai-ocr-match raw={text}; camp={camp}; result={resolved.CanonicalName}; matchMode={resolved.MatchMode}; score={resolved.Score:0.00}; safe={resolved.IsAutoApplySafe}; reason={resolved.Reason}");
+        else if (logUnresolved)
+            diagnostics.Add($"ai-ocr-unresolved raw={text}; camp={camp}; matchMode={resolved.MatchMode}; score={resolved.Score:0.00}; reason={resolved.Reason}");
+        return resolved;
+    }
+
+    private static List<SmartBpSnapshotDeltaSlot> DefaultSlots(int count) =>
+        Enumerable.Range(0, count)
+            .Select(index => new SmartBpSnapshotDeltaSlot { Index = index, SlotState = "unknown", CharacterName = "未选择" })
+            .ToList();
+
+    private static string ToRegionId(SmartBpRecognitionRegion region) =>
+        region switch
+        {
+            SmartBpRecognitionRegion.PhaseTop => "phase_top",
+            SmartBpRecognitionRegion.LeftTop => "left_top",
+            SmartBpRecognitionRegion.RightTop => "right_top",
+            SmartBpRecognitionRegion.LeftBottom => "left_bottom",
+            SmartBpRecognitionRegion.RightBottom => "right_bottom",
+            _ => region.ToString()
+        };
+}
+
 internal sealed class SmartBpRecognitionRegionProfileService(ISmartBpModuleStorageProvider storage) : ISmartBpRecognitionRegionProfileService
 {
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true, WriteIndented = true };

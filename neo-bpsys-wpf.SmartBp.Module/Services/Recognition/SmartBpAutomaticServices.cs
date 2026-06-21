@@ -1010,8 +1010,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
     ISmartBpSceneGateService sceneGate,
     ISmartBpOcrBpRecognitionService ocrRecognition,
     ISmartBpAiOcrTranscriptRecognitionService aiOcrTranscriptRecognition,
-    SmartBpOcrRegionParser ocrRegionParser,
-    ISmartBpBusinessStateMerger merger,
+    ISmartBpAiOcrTranscriptInterpreter aiOcrTranscriptInterpreter,
     ILlamaCppServerManagerFactory llamaServerManagers,
     ISmartBpDebugLog debugLog) : ISmartBpAutoRecognitionCoordinator, ISmartBpStepCommitScheduler
 {
@@ -1057,6 +1056,11 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
     public async Task<SmartBpAutoRecognitionTickResult> RunOneTickDryRunAsync(BitmapSource frame, CancellationToken cancellationToken = default)
         => await RunOneTickCoreAsync(frame, isDryRun: true, cancellationToken).ConfigureAwait(false);
 
+    // Strategy execution matrix:
+    // PureOcr: full debug OCRs all BP fields; phase-only OCRs status/phase only; automatic uses planner fields.
+    // PureAi: full debug is handled by the ViewModel's legacy full BP scan path; phase-only uses AI phase/scene; automatic uses AI phase plus requested field snapshots.
+    // AiWithOcr: full debug uses AI phase/scene plus OCR all BP fields; phase-only uses AI phase/scene only; automatic OCRs requested/stale fields.
+    // AiWithAiOcr: full debug uses Business AI phase/scene plus AI OCR transcripts for all BP fields; phase-only uses Business AI phase/scene only; automatic uses requested/stale fields.
     public async Task<SmartBpAutoRecognitionTickResult> RunFullRecognitionDebugAsync(BitmapSource frame, CancellationToken cancellationToken = default)
         => await RunOneTickCoreAsync(frame, isDryRun: false, cancellationToken, SmartBpRecognitionDebugMode.FullStrategy).ConfigureAwait(false);
 
@@ -1179,7 +1183,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                 }
                 else
                 {
-                    var parsed = new Dictionary<SmartBpRecognitionRegion, SmartBpFocusedBusinessExtractionResult>();
+                    var updates = new List<SmartBpSnapshotFieldUpdate>();
                     var rawBuilder = new StringBuilder(raw);
                     foreach (var (region, targetField) in request.RequestedRegions)
                     {
@@ -1187,24 +1191,15 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                         rawMap[$"ai_ocr_{targetField}"] = transcript.RawJson;
                         rawBuilder.Append("\n\n").Append($"ai_ocr_{targetField} raw:\n").Append(transcript.RawJson);
                         messages.AddRange(transcript.Diagnostics);
-                        var lines = transcript.Lines
-                            .Select((line, index) => new OcrTextLine(line.Text, 1, new OpenCvSharp.Rect(0, index * 16, 1, 16), index, index, "AI OCR"))
-                            .ToArray();
-                        var parsedRegion = ocrRegionParser.ParseDetailed(region, lines);
-                        parsed[region] = parsedRegion.Result;
-                        messages.AddRange(parsedRegion.Diagnostics);
+                        var interpreted = aiOcrTranscriptInterpreter.Interpret(transcript, region, targetField);
+                        updates.Add(interpreted.Update);
+                        messages.AddRange(interpreted.Diagnostics);
                     }
 
-                    state = merger.Merge(
-                        phaseResult,
-                        parsed.GetValueOrDefault(SmartBpRecognitionRegion.RightTop),
-                        parsed.GetValueOrDefault(SmartBpRecognitionRegion.LeftTop),
-                        parsed.GetValueOrDefault(SmartBpRecognitionRegion.LeftBottom),
-                        parsed.GetValueOrDefault(SmartBpRecognitionRegion.RightBottom));
-                    var delta = ToDelta(state, request.RequestedFields);
+                    var delta = new SmartBpSnapshotDeltaResult { Phase = phaseResult.Phase, Updates = updates };
                     if (!isDryRun)
                         messages.AddRange(stateStore.ApplyDelta(delta, sequence, DateTimeOffset.Now));
-                    state = isDryRun ? state : stateStore.Snapshot;
+                    state = isDryRun ? preGateState : stateStore.Snapshot;
                     raw = rawBuilder.ToString();
                     rawResponses = rawMap;
                     contentCrops = [];

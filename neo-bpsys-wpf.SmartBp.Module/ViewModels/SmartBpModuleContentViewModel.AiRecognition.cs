@@ -221,6 +221,34 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty] private string _aiVramUsage = "not available";
     [ObservableProperty] private string _aiLlamaProcessId = "-";
     [ObservableProperty] private string _aiPerformanceUpdatedAt = "-";
+    [ObservableProperty] private string _debugStrategySummary = "-";
+    [ObservableProperty] private string _debugPhaseScene = "-";
+    [ObservableProperty] private string _debugBusinessAiRaw = "-";
+    [ObservableProperty] private string _debugPureAiFullRaw = "-";
+    [ObservableProperty] private string _debugOcrRawLines = "-";
+    [ObservableProperty] private string _debugAiOcrTranscript = "-";
+    [ObservableProperty] private string _debugParsedState = "-";
+    [ObservableProperty] private string _debugMergeLog = "-";
+    [ObservableProperty] private string _debugCandidateOperations = "-";
+    [ObservableProperty] private string _debugServerStatus = "-";
+    [ObservableProperty] private string _debugTiming = "-";
+    [ObservableProperty] private string _businessAiServerStatus = "-";
+    [ObservableProperty] private string _businessAiServerProcessId = "-";
+    [ObservableProperty] private string _businessAiServerPortText = "-";
+    [ObservableProperty] private string _businessAiServerModelText = "-";
+    [NotifyCanExecuteChangedFor(nameof(StartBusinessAiServerCommand))]
+    [NotifyCanExecuteChangedFor(nameof(StartRequiredLlamaServersCommand))]
+    [ObservableProperty] private bool _isBusinessAiServerStarting;
+    [ObservableProperty] private string _aiOcrServerStatus = "-";
+    [ObservableProperty] private string _aiOcrServerProcessId = "-";
+    [ObservableProperty] private string _aiOcrServerPortText = "-";
+    [ObservableProperty] private string _aiOcrServerModelText = "-";
+    [ObservableProperty] private string _aiOcrServerReuseStatus = "-";
+    [NotifyCanExecuteChangedFor(nameof(StartAiOcrServerCommand))]
+    [NotifyCanExecuteChangedFor(nameof(StartRequiredLlamaServersCommand))]
+    [ObservableProperty] private bool _isAiOcrServerStarting;
+    [NotifyCanExecuteChangedFor(nameof(StartRequiredLlamaServersCommand))]
+    [ObservableProperty] private bool _isRequiredLlamaServersStarting;
     private SmartBpRecognitionLayoutProfile? _aiRegionProfile;
 
     /// <summary>Gets whether Qwen download details should be shown.</summary>
@@ -309,6 +337,7 @@ public partial class SmartBpModuleContentViewModel
         LlamaUBatchSize = _recognitionSettingsService.Settings.LlamaUBatchSize;
         RefreshRecognitionTimerInterval();
         RefreshRecognitionSpeedTestValidity();
+        RefreshLlamaServerUiState();
         _aiPreviewTimer.Tick += async (_, _) => await RunAutomaticCurrentFrameCoreAsync();
         _aiPerformanceTimer.Tick += async (_, _) => await RefreshAiPerformanceAsync();
         _aiPerformanceTimer.Start();
@@ -530,6 +559,7 @@ public partial class SmartBpModuleContentViewModel
                 LlamaRuntimeDownloadStatus = installed
                     ? ResolveLocalizedOrRaw("SmartBpAiStatusInstalled")
                     : ResolveLocalizedOrRaw("SmartBpAiStatusNotInstalled");
+                RefreshLlamaServerUiState();
             });
         }
         catch (Exception ex)
@@ -794,8 +824,7 @@ public partial class SmartBpModuleContentViewModel
     private bool CanStopLlamaServer() =>
         IsLlamaServerRunning;
 
-    private bool CanForceStopLlamaServer() =>
-        IsLlamaServerRunning;
+    private bool CanForceStopLlamaServer() => true;
     [RelayCommand] private async Task BrowseLlamaServerAsync() { var path = _filePickerService.PickExecutableFile(); if (path == null) return; LlamaServerExecutablePath = path; _recognitionSettingsService.Settings.LlamaServerExecutablePath = path; await _recognitionSettingsService.SaveAsync(); }
     /// <inheritdoc cref="CanDownloadLlamaRuntime"/>
     [RelayCommand(CanExecute = nameof(CanDownloadLlamaRuntime))]
@@ -818,7 +847,7 @@ public partial class SmartBpModuleContentViewModel
         RollbackLlamaRuntimeCommand.NotifyCanExecuteChanged();
         StartLlamaServerCommand.NotifyCanExecuteChanged();
         StopLlamaServerCommand.NotifyCanExecuteChanged();
-        ForceStopLlamaServerCommand.NotifyCanExecuteChanged();
+        RefreshLlamaServerUiState();
     }
 
     private async Task RefreshLlamaRuntimeAssetsInstallStatusAsync(IReadOnlyList<LlamaCppRuntimeAssetSelection> selections)
@@ -853,6 +882,174 @@ public partial class SmartBpModuleContentViewModel
     private async Task StopLlamaServerAsync() { await StopAiPreviewLoopAsync(); await _llamaServerManager.StopAsync(); LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusStopped"); IsLlamaServerRunning = false; }
     [RelayCommand(CanExecute = nameof(CanForceStopLlamaServer))]
     private async Task ForceStopLlamaServerAsync() { try { await StopAiPreviewLoopAsync(); await _llamaServerManager.ForceStopManagedProcessAsync(); LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusStopped"); IsLlamaServerRunning = false; } catch (Exception ex) { AiLastError = ex.Message; } }
+
+    [RelayCommand(CanExecute = nameof(CanStartBusinessAiServer))]
+    private async Task StartBusinessAiServerAsync() => await StartRoleServerAsync(LlamaVisionServerRole.BusinessAi);
+
+    [RelayCommand(CanExecute = nameof(CanStopBusinessAiServer))]
+    private async Task StopBusinessAiServerAsync() => await StopRoleServerAsync(LlamaVisionServerRole.BusinessAi);
+
+    [RelayCommand(CanExecute = nameof(CanForceStopBusinessAiServer))]
+    private async Task ForceStopBusinessAiServerAsync() => await ForceStopRoleServerAsync(LlamaVisionServerRole.BusinessAi);
+
+    [RelayCommand(CanExecute = nameof(CanStartAiOcrServer))]
+    private async Task StartAiOcrServerAsync() => await StartRoleServerAsync(LlamaVisionServerRole.AiOcr);
+
+    [RelayCommand(CanExecute = nameof(CanStopAiOcrServer))]
+    private async Task StopAiOcrServerAsync() => await StopRoleServerAsync(LlamaVisionServerRole.AiOcr);
+
+    [RelayCommand(CanExecute = nameof(CanForceStopAiOcrServer))]
+    private async Task ForceStopAiOcrServerAsync() => await ForceStopRoleServerAsync(LlamaVisionServerRole.AiOcr);
+
+    [RelayCommand(CanExecute = nameof(CanStartRequiredLlamaServers))]
+    private async Task StartRequiredLlamaServersAsync()
+    {
+        IsRequiredLlamaServersStarting = true;
+        try
+        {
+            var strategy = _recognitionSettingsService.Settings.RecognitionStrategy;
+            if (strategy == SmartBpRecognitionStrategy.PureOcr)
+                return;
+            await StartRoleServerAsync(LlamaVisionServerRole.BusinessAi);
+            if (strategy == SmartBpRecognitionStrategy.AiWithAiOcr && !IsAiOcrReusingBusinessServer())
+                await StartRoleServerAsync(LlamaVisionServerRole.AiOcr);
+        }
+        finally
+        {
+            IsRequiredLlamaServersStarting = false;
+            NotifyRoleServerCommands();
+        }
+    }
+
+    [RelayCommand]
+    private async Task StopAllSmartBpLlamaServersAsync()
+    {
+        await StopRoleServerAsync(LlamaVisionServerRole.AiOcr);
+        await StopRoleServerAsync(LlamaVisionServerRole.BusinessAi);
+    }
+
+    private bool CanStartBusinessAiServer() => IsLlamaRuntimeInstalled && !IsBusinessAiServerStarting && !_llamaServerManagers.Get(LlamaVisionServerRole.BusinessAi).IsRunning;
+    private bool CanStopBusinessAiServer() => _llamaServerManagers.Get(LlamaVisionServerRole.BusinessAi).IsRunning;
+    private bool CanForceStopBusinessAiServer() => true;
+    private bool CanStartAiOcrServer() => IsLlamaRuntimeInstalled && !IsAiOcrServerStarting && !IsAiOcrReusingBusinessServer() && !_llamaServerManagers.Get(LlamaVisionServerRole.AiOcr).IsRunning;
+    private bool CanStopAiOcrServer() => !IsAiOcrReusingBusinessServer() && _llamaServerManagers.Get(LlamaVisionServerRole.AiOcr).IsRunning;
+    private bool CanForceStopAiOcrServer() => !IsAiOcrReusingBusinessServer();
+    private bool CanStartRequiredLlamaServers() => IsLlamaRuntimeInstalled && !IsRequiredLlamaServersStarting && !IsBusinessAiServerStarting && !IsAiOcrServerStarting && _recognitionSettingsService.Settings.RecognitionStrategy != SmartBpRecognitionStrategy.PureOcr;
+
+    private async Task StartRoleServerAsync(LlamaVisionServerRole role)
+    {
+        SetRoleServerStarting(role, true);
+        try
+        {
+            await _llamaServerManagers.Get(role).StartAsync();
+            RefreshRoleServerStatus();
+        }
+        catch (Exception ex)
+        {
+            SetRoleServerFailed(role);
+            AiLastError = ex.Message;
+        }
+        finally
+        {
+            SetRoleServerStarting(role, false);
+            NotifyRoleServerCommands();
+        }
+    }
+
+    private async Task StopRoleServerAsync(LlamaVisionServerRole role)
+    {
+        try
+        {
+            await _llamaServerManagers.Get(role).StopAsync();
+            RefreshRoleServerStatus();
+        }
+        catch (Exception ex) { AiLastError = ex.Message; }
+        finally { NotifyRoleServerCommands(); }
+    }
+
+    private async Task ForceStopRoleServerAsync(LlamaVisionServerRole role)
+    {
+        try
+        {
+            await _llamaServerManagers.Get(role).ForceStopManagedProcessAsync();
+            RefreshRoleServerStatus();
+        }
+        catch (Exception ex) { AiLastError = ex.Message; }
+        finally { NotifyRoleServerCommands(); }
+    }
+
+    private void SetRoleServerStarting(LlamaVisionServerRole role, bool value)
+    {
+        if (role == LlamaVisionServerRole.BusinessAi)
+        {
+            IsBusinessAiServerStarting = value;
+            if (value) BusinessAiServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusStarting");
+        }
+        else
+        {
+            IsAiOcrServerStarting = value;
+            if (value) AiOcrServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusStarting");
+        }
+    }
+
+    private void SetRoleServerFailed(LlamaVisionServerRole role)
+    {
+        if (role == LlamaVisionServerRole.BusinessAi)
+            BusinessAiServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusFailed");
+        else
+            AiOcrServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusFailed");
+    }
+
+    private void RefreshRoleServerStatus()
+    {
+        var business = _llamaServerManagers.Get(LlamaVisionServerRole.BusinessAi);
+        var aiOcr = _llamaServerManagers.Get(LlamaVisionServerRole.AiOcr);
+        BusinessAiServerStatus = business.Status;
+        BusinessAiServerProcessId = business.ProcessId?.ToString() ?? "-";
+        BusinessAiServerPortText = business.Port.ToString();
+        BusinessAiServerModelText = _recognitionSettingsService.Settings.SelectedBusinessAiModelId;
+        AiOcrServerStatus = IsAiOcrReusingBusinessServer() ? "Reusing Business AI server" : aiOcr.Status;
+        AiOcrServerProcessId = IsAiOcrReusingBusinessServer() ? business.ProcessId?.ToString() ?? "-" : aiOcr.ProcessId?.ToString() ?? "-";
+        AiOcrServerPortText = IsAiOcrReusingBusinessServer() ? business.Port.ToString() : aiOcr.Port.ToString();
+        AiOcrServerModelText = _recognitionSettingsService.Settings.SelectedAiOcrModelId;
+        AiOcrServerReuseStatus = IsAiOcrReusingBusinessServer()
+            ? "AI OCR is reusing the Business AI server. No separate AI OCR server is required."
+            : "AI OCR uses a separate role-specific llama.cpp server.";
+        DebugServerStatus = FormatRoleServerStatus();
+    }
+
+    private void RefreshLlamaServerUiState()
+    {
+        IsLlamaServerRunning = _llamaServerManager.IsRunning;
+        LlamaServerStatus = _llamaServerManager.Status;
+        RefreshRoleServerStatus();
+        DownloadLlamaRuntimeCommand.NotifyCanExecuteChanged();
+        DeleteLlamaRuntimeCommand.NotifyCanExecuteChanged();
+        RollbackLlamaRuntimeCommand.NotifyCanExecuteChanged();
+        StartLlamaServerCommand.NotifyCanExecuteChanged();
+        StopLlamaServerCommand.NotifyCanExecuteChanged();
+        ForceStopLlamaServerCommand.NotifyCanExecuteChanged();
+        NotifyRoleServerCommands();
+    }
+
+    private bool IsAiOcrReusingBusinessServer() =>
+        !_recognitionSettingsService.Settings.UseSeparateAiOcrServer ||
+        string.Equals(_recognitionSettingsService.Settings.SelectedBusinessAiModelId, _recognitionSettingsService.Settings.SelectedAiOcrModelId, StringComparison.Ordinal);
+
+    private string FormatRoleServerStatus() =>
+        $"BusinessAi: model={_recognitionSettingsService.Settings.SelectedBusinessAiModelId}; port={_llamaServerManagers.Get(LlamaVisionServerRole.BusinessAi).Port}; status={BusinessAiServerStatus}; pid={BusinessAiServerProcessId}{Environment.NewLine}" +
+        $"AiOcr: model={_recognitionSettingsService.Settings.SelectedAiOcrModelId}; port={AiOcrServerPortText}; status={AiOcrServerStatus}; pid={AiOcrServerProcessId}; reuse={IsAiOcrReusingBusinessServer()}";
+
+    private void NotifyRoleServerCommands()
+    {
+        StartBusinessAiServerCommand.NotifyCanExecuteChanged();
+        StopBusinessAiServerCommand.NotifyCanExecuteChanged();
+        ForceStopBusinessAiServerCommand.NotifyCanExecuteChanged();
+        StartAiOcrServerCommand.NotifyCanExecuteChanged();
+        StopAiOcrServerCommand.NotifyCanExecuteChanged();
+        ForceStopAiOcrServerCommand.NotifyCanExecuteChanged();
+        StartRequiredLlamaServersCommand.NotifyCanExecuteChanged();
+    }
     [RelayCommand] private async Task RecognizeSelectedTestFrameAsync()
     {
         if (SelectedAiTestFrame == null) return;
@@ -1165,10 +1362,62 @@ public partial class SmartBpModuleContentViewModel
         IsAiRecognizing = true; AiLastError = "";
         try
         {
+            if (_recognitionSettingsService.Settings.RecognitionStrategy == SmartBpRecognitionStrategy.PureAi)
+            {
+                await RunPureAiFullRecognitionDebugCoreAsync(frame);
+                return;
+            }
+
             var result = await _autoRecognitionCoordinator.RunFullRecognitionDebugAsync(frame);
             ApplyRegionGatedResult(result);
         }
         finally { IsAiRecognizing = false; Interlocked.Exchange(ref _recognitionBusy, 0); }
+    }
+
+    private async Task RunPureAiFullRecognitionDebugCoreAsync(BitmapSource frame)
+    {
+        var watch = Stopwatch.StartNew();
+        ResetStrategyDebugSections();
+        await StartRoleServerAsync(LlamaVisionServerRole.BusinessAi);
+        var result = await _aiRecognitionService.RecognizeAsync(frame, SmartBpRecognitionTask.FullBpScan);
+        watch.Stop();
+        AiRawResponse = result.RawResponse;
+        DebugPureAiFullRaw = result.RawResponse;
+        DebugBusinessAiRaw = "-";
+        DebugOcrRawLines = "-";
+        DebugAiOcrTranscript = "-";
+        DebugMergeLog = "Pure AI full debug uses the full BP scan result directly; no local OCR merge was run.";
+        DebugCandidateOperations = "Pure AI full debug does not generate or apply operations.";
+        DebugTiming = $"Pure AI full recognition elapsed: {result.ElapsedMilliseconds}ms; wall clock: {watch.ElapsedMilliseconds}ms; recommended interval: {result.RecommendedIntervalMilliseconds}ms.";
+        DebugStrategySummary = $"strategy=PureAi{Environment.NewLine}business_ai_model={_recognitionSettingsService.Settings.SelectedBusinessAiModelId}{Environment.NewLine}server_role=BusinessAi";
+        RefreshRoleServerStatus();
+        DebugServerStatus = FormatRoleServerStatus();
+
+        if (!string.IsNullOrWhiteSpace(result.Error))
+        {
+            AiLastError = result.Error;
+            DebugParsedState = "-";
+            DebugPhaseScene = "-";
+            AiStageDetectionResult = "-";
+            AiCandidateOperations = DebugCandidateOperations;
+            AiRequestMetrics = DebugTiming;
+            return;
+        }
+
+        var state = SmartBpBusinessStateParser.Parse(result.RawResponse);
+        DebugParsedState = FormatBusinessState(state);
+        DebugPhaseScene = $"phase={state.Phase}";
+        AiStageDetectionResult = DebugParsedState;
+        AiParsedVisualResult = DebugParsedState;
+        AiNormalizedResult = result.ResolvedCharacterSummary;
+        AiCandidateOperations = DebugCandidateOperations;
+        AiGuidanceSnapshot = FormatGuidance(_gameGuidanceService.GetRuntimeSnapshot(), "Pure AI full debug bypasses automatic guidance sync.");
+        AiSceneDiagnostics = DebugPhaseScene;
+        AiRequestMetrics = DebugTiming;
+        AiPhaseCropPreview = null;
+        AiFocusedCropPreview = null;
+        AiCropDebugInfo = "Pure AI full debug sends the full frame to the full BP scan prompt/schema.";
+        AiLastError = "";
     }
 
     private async Task RunPhaseOnlyRecognitionCoreAsync(BitmapSource frame)
@@ -1212,6 +1461,7 @@ public partial class SmartBpModuleContentViewModel
 
     private void ApplyRegionGatedResult(SmartBpAutoRecognitionTickResult result)
     {
+        RefreshStrategyDebugSections(result);
         AiRawResponse = result.RawJson;
         AiStageDetectionResult = result.BusinessState == null ? "-" : FormatBusinessState(result.BusinessState);
         AiGuidanceSnapshot = FormatGuidance(result.GuidanceSnapshot, result.GuidanceSync?.Reason);
@@ -1227,6 +1477,102 @@ public partial class SmartBpModuleContentViewModel
         AiRequestMetrics = metrics == null ? "not available" :
             $"AI request elapsed: {metrics.ElapsedMilliseconds}ms; completion tokens: {metrics.CompletionTokens?.ToString() ?? "not available"}; output tokens/sec: {metrics.TokensPerSecond?.ToString("0.##") ?? "not available"}; finish_reason: {_llamaCppOpenAiClient.LastFinishReason ?? "not available"}";
         AiLastError = result.Error ?? "";
+    }
+
+    private void ResetStrategyDebugSections()
+    {
+        DebugStrategySummary = "-";
+        DebugPhaseScene = "-";
+        DebugBusinessAiRaw = "-";
+        DebugPureAiFullRaw = "-";
+        DebugOcrRawLines = "-";
+        DebugAiOcrTranscript = "-";
+        DebugParsedState = "-";
+        DebugMergeLog = "-";
+        DebugCandidateOperations = "-";
+        DebugServerStatus = FormatRoleServerStatus();
+        DebugTiming = "-";
+    }
+
+    private void RefreshStrategyDebugSections(SmartBpAutoRecognitionTickResult result)
+    {
+        var strategy = _recognitionSettingsService.Settings.RecognitionStrategy;
+        RefreshRoleServerStatus();
+        DebugStrategySummary = FormatStrategySummary(strategy);
+        DebugPhaseScene = result.SceneGate == null
+            ? $"phase={result.PhaseResult?.Phase ?? "unknown"}"
+            : $"phase={result.PhaseResult?.Phase ?? "unknown"}{Environment.NewLine}scene={result.SceneGate.Scene}{Environment.NewLine}bp_allowed={result.SceneGate.IsBpRecognitionAllowed}{Environment.NewLine}character_operations_allowed={result.SceneGate.IsCharacterOperationAllowed}{Environment.NewLine}reason={result.SceneGate.Reason}";
+        DebugParsedState = result.BusinessState == null ? "-" : FormatBusinessState(result.BusinessState);
+        DebugCandidateOperations = FormatAutomaticOperations(result);
+        DebugTiming = FormatRecognitionTiming();
+        DebugServerStatus = FormatRoleServerStatus();
+        DebugMergeLog = string.Join(Environment.NewLine, result.CandidateMessages.Where(message =>
+            message.Contains("Applied ", StringComparison.OrdinalIgnoreCase) ||
+            message.Contains("merge", StringComparison.OrdinalIgnoreCase) ||
+            message.Contains("parsed", StringComparison.OrdinalIgnoreCase) ||
+            message.Contains("updates=", StringComparison.OrdinalIgnoreCase)));
+        if (string.IsNullOrWhiteSpace(DebugMergeLog)) DebugMergeLog = "-";
+
+        DebugBusinessAiRaw = strategy is SmartBpRecognitionStrategy.PureAi or SmartBpRecognitionStrategy.AiWithOcr or SmartBpRecognitionStrategy.AiWithAiOcr
+            ? ExtractRawSection(result.RawJson, "phase_only")
+            : "-";
+        DebugPureAiFullRaw = "-";
+        DebugOcrRawLines = strategy is SmartBpRecognitionStrategy.PureOcr or SmartBpRecognitionStrategy.AiWithOcr
+            ? ExtractOcrRaw(result.RawJson)
+            : "-";
+        DebugAiOcrTranscript = strategy == SmartBpRecognitionStrategy.AiWithAiOcr
+            ? ExtractAiOcrRaw(result.RawJson)
+            : "-";
+    }
+
+    private string FormatStrategySummary(SmartBpRecognitionStrategy strategy) =>
+        strategy switch
+        {
+            SmartBpRecognitionStrategy.PureOcr =>
+                $"strategy=PureOcr{Environment.NewLine}ocr_provider={_recognitionSettingsService.Settings.SelectedOcrProviderMode}",
+            SmartBpRecognitionStrategy.PureAi =>
+                $"strategy=PureAi{Environment.NewLine}business_ai_model={_recognitionSettingsService.Settings.SelectedBusinessAiModelId}{Environment.NewLine}server_role=BusinessAi",
+            SmartBpRecognitionStrategy.AiWithOcr =>
+                $"strategy=AiWithOcr{Environment.NewLine}business_ai_model={_recognitionSettingsService.Settings.SelectedBusinessAiModelId}{Environment.NewLine}ocr_provider={_recognitionSettingsService.Settings.SelectedOcrProviderMode}",
+            SmartBpRecognitionStrategy.AiWithAiOcr =>
+                $"strategy=AiWithAiOcr{Environment.NewLine}business_ai_model={_recognitionSettingsService.Settings.SelectedBusinessAiModelId}{Environment.NewLine}ai_ocr_model={_recognitionSettingsService.Settings.SelectedAiOcrModelId}{Environment.NewLine}reuse_server={IsAiOcrReusingBusinessServer()}",
+            _ => $"strategy={strategy}"
+        };
+
+    private string FormatRecognitionTiming()
+    {
+        var metrics = _llamaCppOpenAiClient.LastResponseMetrics;
+        return metrics == null
+            ? "not available"
+            : $"AI request elapsed: {metrics.ElapsedMilliseconds}ms; completion tokens: {metrics.CompletionTokens?.ToString() ?? "not available"}; output tokens/sec: {metrics.TokensPerSecond?.ToString("0.##") ?? "not available"}; finish_reason: {_llamaCppOpenAiClient.LastFinishReason ?? "not available"}";
+    }
+
+    private static string ExtractRawSection(string raw, string key)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return "-";
+        var marker = $"{key} raw:";
+        var index = raw.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+        if (index < 0 && key == "phase_only" && raw.TrimStart().StartsWith('{')) return raw;
+        if (index < 0) return "-";
+        var start = index + marker.Length;
+        var next = raw.IndexOf("\n\n", start, StringComparison.Ordinal);
+        return (next < 0 ? raw[start..] : raw[start..next]).Trim();
+    }
+
+    private static string ExtractOcrRaw(string raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return "-";
+        var index = raw.IndexOf("ocr raw:", StringComparison.OrdinalIgnoreCase);
+        return index < 0 ? "-" : raw[(index + "ocr raw:".Length)..].Trim();
+    }
+
+    private static string ExtractAiOcrRaw(string raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return "-";
+        var lines = raw.Split(["\n\n"], StringSplitOptions.None)
+            .Where(section => section.Contains("ai_ocr_", StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+        return lines.Length == 0 ? "-" : string.Join(Environment.NewLine + Environment.NewLine, lines);
     }
 
     private BitmapSource LoadTestFrame(SmartBpTestFrame frame)
@@ -1457,6 +1803,7 @@ public partial class SmartBpModuleContentViewModel
             _recognitionSettingsService.Settings.SelectedBusinessAiModelId = value.Id;
             _recognitionSettingsService.Settings.SelectedQwenModelId = value.Id;
             RefreshRecognitionSpeedTestValidity();
+            RefreshRoleServerStatus();
             await SaveQwenSelectionAsync();
             CurrentQwenModelDisplayName = string.Format(ResolveLocalizedOrRaw("SmartBpCurrentQwenModelFormat"), value.DisplayName);
             IsQwenInstalled = await _qwenAssetManager.IsInstalledAsync();
@@ -1493,6 +1840,7 @@ public partial class SmartBpModuleContentViewModel
 
             _recognitionSettingsService.Settings.SelectedAiOcrModelId = value.Id;
             RefreshRecognitionSpeedTestValidity();
+            RefreshRoleServerStatus();
             await _recognitionSettingsService.SaveAsync();
             CurrentAiOcrModelDisplayName = value.DisplayName;
             await RefreshSelectedAiOcrModelInstallStatusAsync();
@@ -1652,6 +2000,8 @@ public partial class SmartBpModuleContentViewModel
             : SmartBpRecognitionEngine.AiQwen;
         RefreshRecognitionEngineVisibility();
         RefreshRecognitionSpeedTestValidity();
+        RefreshRoleServerStatus();
+        NotifyRoleServerCommands();
         _ = _recognitionSettingsService.SaveAsync();
         _aiDebugLog.Write("Recognition", $"Recognition strategy switched to {value.Strategy}.");
     }

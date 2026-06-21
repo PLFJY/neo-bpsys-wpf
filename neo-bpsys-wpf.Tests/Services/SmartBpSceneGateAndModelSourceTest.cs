@@ -26,7 +26,6 @@ using SmartBpSnapshotDeltaRequest = smartbp::neo_bpsys_wpf.SmartBp.Module.Models
 using SmartBpRecognitionLedgerSnapshot = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionLedgerSnapshot;
 using SmartBpAutoRecognitionCoordinator = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpAutoRecognitionCoordinator;
 using SmartBpCandidateOperationBuilder = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpCandidateOperationBuilder;
-using SmartBpOcrRegionParser = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpOcrRegionParser;
 using ISmartBpRegionSnapshotRecognitionService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpRegionSnapshotRecognitionService;
 using ISmartBpSnapshotDeltaRecognitionService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpSnapshotDeltaRecognitionService;
 using ISmartBpSnapshotRecognitionPlanner = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpSnapshotRecognitionPlanner;
@@ -43,8 +42,7 @@ using ISmartBpAiFieldSnapshotRecognitionService = smartbp::neo_bpsys_wpf.SmartBp
 using ISmartBpDebugLog = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpDebugLog;
 using ISmartBpOcrBpRecognitionService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpOcrBpRecognitionService;
 using ISmartBpAiOcrTranscriptRecognitionService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpAiOcrTranscriptRecognitionService;
-using ISmartBpBusinessStateMerger = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpBusinessStateMerger;
-using ISmartBpOcrTextResolver = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpOcrTextResolver;
+using ISmartBpAiOcrTranscriptInterpreter = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpAiOcrTranscriptInterpreter;
 using ILlamaCppServerManagerFactory = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ILlamaCppServerManagerFactory;
 
 namespace neo_bpsys_wpf.Tests.Services;
@@ -99,7 +97,7 @@ public sealed class SmartBpSceneGateAndModelSourceTest
                 new SmartBpCandidateOperationBuilder(Mock.Of<ISmartBpCharacterResolver>(), shared.Object),
                 Mock.Of<ISmartBpDetectedOperationApplier>(), Mock.Of<ISmartBpSceneGateService>(),
                 Mock.Of<ISmartBpOcrBpRecognitionService>(), Mock.Of<ISmartBpAiOcrTranscriptRecognitionService>(),
-                new SmartBpOcrRegionParser(Mock.Of<ISmartBpOcrTextResolver>()), Mock.Of<ISmartBpBusinessStateMerger>(),
+                Mock.Of<ISmartBpAiOcrTranscriptInterpreter>(),
                 Mock.Of<ILlamaCppServerManagerFactory>(), Mock.Of<ISmartBpDebugLog>());
             await coordinator.StartAsync();
             var frame = new WriteableBitmap(1, 1, 96, 96, PixelFormats.Bgra32, null);

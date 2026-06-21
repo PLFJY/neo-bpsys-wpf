@@ -39,6 +39,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     private readonly ILogger<SmartBpModuleContentViewModel> _logger;
     private readonly IQwenModelAssetManager _qwenAssetManager = null!;
     private readonly ILlamaCppServerManager _llamaServerManager = null!;
+    private readonly ILlamaCppServerManagerFactory _llamaServerManagers = null!;
     private readonly ISmartBpAiRecognitionService _aiRecognitionService = null!;
     private readonly ISmartBpRecognitionSettingsService _recognitionSettingsService = null!;
     private readonly ISmartBpDebugLog _aiDebugLog = null!;
@@ -84,6 +85,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         IFilePickerService filePickerService,
         IQwenModelAssetManager qwenAssetManager,
         ILlamaCppServerManager llamaServerManager,
+        ILlamaCppServerManagerFactory llamaServerManagers,
         ISmartBpAiRecognitionService aiRecognitionService,
         ISmartBpRecognitionSettingsService recognitionSettingsService,
         ISmartBpDebugLog aiDebugLog,
@@ -120,6 +122,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         _filePickerService = filePickerService;
         _qwenAssetManager = qwenAssetManager;
         _llamaServerManager = llamaServerManager;
+        _llamaServerManagers = llamaServerManagers;
         _aiRecognitionService = aiRecognitionService;
         _recognitionSettingsService = recognitionSettingsService;
         _aiDebugLog = aiDebugLog;

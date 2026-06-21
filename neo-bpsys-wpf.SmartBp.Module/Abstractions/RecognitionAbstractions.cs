@@ -261,6 +261,20 @@ public interface ISmartBpAiOcrTranscriptRecognitionService
         IReadOnlyList<(SmartBpRecognitionRegion Region, string Field)> regions,
         CancellationToken cancellationToken = default);
 }
+
+/// <summary>Interprets raw AI OCR text transcripts into SmartBP field updates without using OCR coordinates.</summary>
+public interface ISmartBpAiOcrTranscriptInterpreter
+{
+    /// <summary>Maps one AI OCR transcript to a business field update.</summary>
+    /// <param name="transcript">Raw transcript result.</param>
+    /// <param name="region">Source coarse BP region.</param>
+    /// <param name="field">Target business field id.</param>
+    /// <returns>The interpreted field update and diagnostics.</returns>
+    (SmartBpSnapshotFieldUpdate Update, IReadOnlyList<string> Diagnostics) Interpret(
+        SmartBpAiOcrTranscriptResult transcript,
+        SmartBpRecognitionRegion region,
+        string field);
+}
 /// <summary>Encodes WPF frames for multimodal requests.</summary>
 public interface ISmartBpImageEncoder { /// <summary>Encodes a PNG data URL.</summary>
     string EncodeDataUrl(BitmapSource source, int maxWidth); }
