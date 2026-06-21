@@ -72,7 +72,7 @@ Return only JSON:
                 rawBuilder.Append(raw);
             else
                 rawBuilder.AppendLine($"[{ToRegionId(region)} field={field}]").AppendLine(raw);
-            var (lines, parseDiagnostics) = ParseLines(raw);
+            var (lines, parseDiagnostics) = ParseTechnicalLines(raw);
             diagnostics.Add($"AI OCR transcript region={ToRegionId(region)}; field={field}; line_count={lines.Count}.");
             diagnostics.AddRange(parseDiagnostics);
             allLines.AddRange(lines);
@@ -130,12 +130,12 @@ Return only JSON:
         !settings.Settings.UseSeparateAiOcrServer ||
         string.Equals(settings.Settings.SelectedBusinessAiModelId, settings.Settings.SelectedAiOcrModelId, StringComparison.Ordinal);
 
-    internal static (IReadOnlyList<SmartBpAiOcrTranscriptLine> Lines, IReadOnlyList<string> Diagnostics) ParseLines(string raw)
+    internal static (IReadOnlyList<SmartBpAiOcrTranscriptLine> Lines, IReadOnlyList<string> Diagnostics) ParseTechnicalLines(string raw)
     {
         var diagnostics = new List<string>();
         var (repaired, removedFence) = SmartBpJsonRepair.Repair(raw);
         if (removedFence)
-            diagnostics.Add("AI OCR transcript JSON fence was removed before parsing.");
+            diagnostics.Add("AI OCR transcript JSON fence was removed for technical-line extraction.");
         try
         {
             using var document = JsonDocument.Parse(repaired);
@@ -143,10 +143,9 @@ Return only JSON:
                 linesElement.ValueKind == JsonValueKind.Array)
             {
                 var lines = linesElement.EnumerateArray()
-                    .Select(item => item.TryGetProperty("text", out var text) ? text.GetString() : null)
+                    .Select(ReadTechnicalLineText)
                     .Where(text => !string.IsNullOrWhiteSpace(text))
-                    .SelectMany(text => SplitTranscriptText(text!))
-                    .Select(text => new SmartBpAiOcrTranscriptLine { Text = text })
+                    .Select(text => new SmartBpAiOcrTranscriptLine { Text = text!.Trim() })
                     .ToArray();
                 return (lines, diagnostics);
             }
@@ -156,16 +155,28 @@ Return only JSON:
             diagnostics.Add("AI OCR transcript was not valid JSON.");
         }
 
-        diagnostics.Add("AI OCR transcript parsed as plain text fallback.");
-        var plain = SplitTranscriptText(raw)
+        diagnostics.Add("AI OCR transcript parsed as plain text technical lines.");
+        var plain = SplitPlainTechnicalLines(removedFence ? repaired : raw)
             .Select(text => new SmartBpAiOcrTranscriptLine { Text = text })
             .ToArray();
         return (plain, diagnostics);
     }
 
-    private static IEnumerable<string> SplitTranscriptText(string text) =>
-        Regex.Split(text, @"[\r\n\t ,，;；、|/\\]+")
-            .Select(part => part.Trim().Trim('"', '\'', '`'))
+    internal static (IReadOnlyList<SmartBpAiOcrTranscriptLine> Lines, IReadOnlyList<string> Diagnostics) ParseLines(string raw) =>
+        ParseTechnicalLines(raw);
+
+    private static string? ReadTechnicalLineText(JsonElement item)
+    {
+        if (item.ValueKind == JsonValueKind.String)
+            return item.GetString();
+        if (item.ValueKind == JsonValueKind.Object && item.TryGetProperty("text", out var text) && text.ValueKind == JsonValueKind.String)
+            return text.GetString();
+        return null;
+    }
+
+    private static IEnumerable<string> SplitPlainTechnicalLines(string text) =>
+        Regex.Split(text, @"\r\n|\n|\r")
+            .Select(part => part.Trim())
             .Where(part => !string.IsNullOrWhiteSpace(part));
 
     private static string ToRegionId(SmartBpRecognitionRegion region) =>
@@ -392,6 +403,7 @@ internal sealed class SmartBpBusinessAiFusionService(
             var parsed = validator.ValidateAndNormalize(raw, phase.Phase, requestedFields, currentKnownState, outputContract, out var validationDiagnostics);
             var diagnostics = new List<string>(validationDiagnostics)
             {
+                "post-fusion validation: Business AI output was validated, normalized, and masked to requested fields before StateStore merge.",
                 $"Business AI fusion produced updates=[{string.Join(", ", parsed.Updates.Select(update => update.Field))}].",
                 $"Business AI fusion evidence_regions={evidence.Count}; requested_fields=[{string.Join(", ", requestedFields)}]."
             };
@@ -476,7 +488,7 @@ internal sealed class SmartBpBusinessAiFusionService(
         var payload = CreateInputPayload(phase, evidence, requestedFields, currentKnownState, survivorCandidates, hunterCandidates);
         var task = outputContract == SmartBpBusinessAiFusionOutputContract.FullBusinessState
             ? """
-Convert AI OCR transcript evidence into the complete SmartBP business state.
+Integrate raw AI OCR evidence into the complete SmartBP business state.
 
 Return JSON with exactly:
 phase
@@ -486,7 +498,7 @@ picked_sur
 picked_hun
 """
             : """
-Convert AI OCR transcript evidence into requested SmartBP field updates.
+Integrate raw AI OCR evidence into requested SmartBP field updates.
 
 Return JSON with exactly:
 phase
@@ -516,6 +528,22 @@ Output contract:
         return $$"""
 You are the SmartBP business fusion model.
 
+You receive raw AI OCR evidence.
+The OCR model may output noisy text, player names, UI labels, authorization warnings, streamer/director labels, or malformed line groupings.
+
+Your job is to integrate this evidence into the complete SmartBP business state.
+
+You must decide:
+- which text is a character
+- which text is a player id
+- which text is UI noise
+- which slot each text belongs to
+- whether a slot is selected, empty, or unknown
+
+Use candidate lists to identify characters.
+Do not invent characters.
+If a text is not in the candidate list, treat it as player_id or UI noise, not character_name.
+
 You are NOT doing OCR.
 You are NOT doing phase detection.
 The phase is already locked.
@@ -523,18 +551,20 @@ The phase is already locked.
 Your task:
 {{task}}
 
-Use only transcript evidence and candidate lists. Do not invent characters.
-Ignore UI noise, player names, streamer/director labels, authorization warnings, tips, and unrelated text.
-Use candidate lists to distinguish characters from non-character text.
+Use only raw AI OCR evidence, currentKnownState, and candidate lists.
+C# has not semantically cleaned the AI OCR text. C# only packaged rawOutput and technicalLines for transport/debug.
+You own semantic cleanup and slot binding.
 
 Important:
 - phase is locked. Do not change phase. Output phase must equal input.phase exactly.
-- "导播PLFJY" is not a character.
+- Use survivorCandidates for survivor fields and hunterCandidates for hunter fields.
+- "导播PLFJY" is not a character because it is not in the hunter candidate list.
 - "未授权" is UI/system text, not a character.
 - "未经授权的页面将无法识别出来。" is UI/system text, not a character.
-- If text contains "未选择" and no valid character candidate, treat the slot as empty when the target field has an empty slot.
+- If evidence for one slot contains "未选择" and no valid character candidate, treat that slot as empty.
 - If evidence is unclear, output slot_state="unknown", not empty.
-- Only output requested fields.
+- For incremental or automatic requests, you may return the full business state; C# will apply only requestedFields after post-fusion validation.
+- If using updates[], only output requested fields.
 - Each update object may contain only field, slots, and picked_hun, and may represent only one target field.
 
 Field responsibilities:
@@ -543,8 +573,28 @@ Field responsibilities:
 - left_bottom -> picked_sur, exactly 4 survivor slots, left-to-right. Use survivorCandidates only. Player IDs are optional. Talent names and UI labels are not characters.
 - right_bottom -> picked_hun, exactly 1 hunter slot at index 0. Use hunterCandidates only.
 
-For banned_sur transcript "小说家 昆虫学者 未选择 未选择": output selected 小说家, selected 昆虫学者, empty 未选择, empty 未选择 in slots 0..3.
-For picked_hun transcript "未选择导播PLFJY": output picked_hun empty with character_name="未选择" unless a valid hunter candidate is visible.
+Example:
+AI OCR raw:
+未选择
+特芯糖0v0
+未选择
+不满绩不改名
+
+For picked_sur:
+slot 0 = empty, player_id=特芯糖0v0
+slot 1 = empty, player_id=不满绩不改名
+
+Example:
+AI OCR raw:
+未选择
+导播PLFJY
+
+For picked_hun:
+character_name=未选择
+player_id=null
+导播PLFJY is UI/director text, not a hunter player id unless the field explicitly represents visible player id.
+
+For banned_sur raw "小说家 昆虫学者 未选择 未选择": output selected 小说家, selected 昆虫学者, empty 未选择, empty 未选择 in slots 0..3.
 
 {{contract}}
 
@@ -565,8 +615,9 @@ Input:
         {
             ["region"] = ToRegionId(item.Region),
             ["field"] = item.Field,
-            ["rawTranscript"] = item.RawTranscript,
-            ["lines"] = new JsonArray(item.Lines.Select(line => JsonValue.Create(line)).ToArray<JsonNode?>())
+            ["aiOcrModel"] = item.AiOcrModel,
+            ["rawOutput"] = item.RawOutput,
+            ["technicalLines"] = new JsonArray(item.TechnicalLines.Select(line => JsonValue.Create(line)).ToArray<JsonNode?>())
         }).ToArray<JsonNode?>());
         return new JsonObject
         {

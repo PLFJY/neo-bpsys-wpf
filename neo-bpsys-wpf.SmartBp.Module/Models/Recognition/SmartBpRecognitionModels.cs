@@ -981,19 +981,19 @@ public sealed class SmartBpOcrRecognitionResult
     public IReadOnlyList<string> Diagnostics { get; init; } = [];
 }
 
-/// <summary>One text line returned by an AI OCR model.</summary>
+/// <summary>One technical text line extracted from an AI OCR model response.</summary>
 public sealed class SmartBpAiOcrTranscriptLine
 {
-    /// <summary>Gets or sets recognized visible text.</summary>
+    /// <summary>Gets or sets visible text extracted for transport and debugging.</summary>
     public string Text { get; set; } = "";
 }
 
 /// <summary>AI OCR transcript recognition result.</summary>
 public sealed class SmartBpAiOcrTranscriptResult
 {
-    /// <summary>Gets recognized transcript lines.</summary>
+    /// <summary>Gets technical transcript lines extracted without business interpretation.</summary>
     public IReadOnlyList<SmartBpAiOcrTranscriptLine> Lines { get; init; } = [];
-    /// <summary>Gets raw JSON returned by the AI OCR model.</summary>
+    /// <summary>Gets raw output returned by the AI OCR model.</summary>
     public string RawJson { get; init; } = "";
     /// <summary>Gets bounded diagnostics.</summary>
     public IReadOnlyList<string> Diagnostics { get; init; } = [];
@@ -1006,10 +1006,12 @@ public sealed class SmartBpAiOcrTranscriptRegionEvidence
     public SmartBpRecognitionRegion Region { get; init; }
     /// <summary>Gets the SmartBP business field represented by the region.</summary>
     public string Field { get; init; } = "";
-    /// <summary>Gets the raw transcript returned by the AI OCR model.</summary>
-    public string RawTranscript { get; init; } = "";
-    /// <summary>Gets transcript lines parsed locally from the raw transcript.</summary>
-    public IReadOnlyList<string> Lines { get; init; } = [];
+    /// <summary>Gets the AI OCR model id that produced this evidence.</summary>
+    public string AiOcrModel { get; init; } = "";
+    /// <summary>Gets the raw output returned by the AI OCR model.</summary>
+    public string RawOutput { get; init; } = "";
+    /// <summary>Gets technical transcript lines extracted without semantic cleanup.</summary>
+    public IReadOnlyList<string> TechnicalLines { get; init; } = [];
 }
 
 /// <summary>Detailed local parse result for one OCR coarse region.</summary>

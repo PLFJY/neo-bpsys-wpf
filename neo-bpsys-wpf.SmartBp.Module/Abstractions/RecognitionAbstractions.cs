@@ -276,17 +276,17 @@ public interface ISmartBpAiOcrTranscriptInterpreter
         string field);
 }
 
-/// <summary>Uses the Business AI model to fuse OCR or AI OCR evidence into structured SmartBP field updates.</summary>
+/// <summary>Uses the Business AI model to fuse raw OCR or AI OCR evidence into structured SmartBP field updates.</summary>
 public interface ISmartBpBusinessAiFusionService
 {
-    /// <summary>Converts transcript evidence into requested SmartBP field updates.</summary>
+    /// <summary>Converts raw transcript evidence into requested SmartBP field updates.</summary>
     /// <param name="phase">Recognized phase and scene evidence.</param>
     /// <param name="evidence">Transcript evidence grouped by BP region.</param>
     /// <param name="requestedFields">Business fields that may be updated.</param>
     /// <param name="currentKnownState">Current locally known BP state.</param>
     /// <param name="outputContract">Expected output contract for this fusion request.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Structured snapshot delta returned by the Business AI model.</returns>
+    /// <returns>Structured snapshot delta validated after the Business AI model responds.</returns>
     Task<(SmartBpSnapshotDeltaResult Delta, string RawJson, IReadOnlyList<string> Diagnostics)> FuseAsync(
         SmartBpPhaseRecognitionResult phase,
         IReadOnlyList<SmartBpAiOcrTranscriptRegionEvidence> evidence,

@@ -495,7 +495,7 @@ public sealed class SmartBpAiRecognitionContractTest
 
         var result = await service.FuseAsync(
             new SmartBpPhaseRecognitionResult { Phase = "屏蔽求生者" },
-            [new SmartBpAiOcrTranscriptRegionEvidence { Region = SmartBpRecognitionRegion.RightTop, Field = "banned_sur", RawTranscript = "小说家", Lines = ["小说家"] }],
+            [new SmartBpAiOcrTranscriptRegionEvidence { Region = SmartBpRecognitionRegion.RightTop, Field = "banned_sur", AiOcrModel = "glm-ocr-q4km", RawOutput = "小说家", TechnicalLines = ["小说家"] }],
             ["banned_sur", "banned_hun", "picked_sur", "picked_hun"],
             Business("屏蔽求生者"),
             SmartBpBusinessAiFusionOutputContract.FullBusinessState,
@@ -552,8 +552,9 @@ public sealed class SmartBpAiRecognitionContractTest
         {
             Region = SmartBpRecognitionRegion.RightTop,
             Field = "banned_sur",
-            RawTranscript = "未选择 未选择 未选择 未选择",
-            Lines = ["未选择", "未选择", "未选择", "未选择"]
+            AiOcrModel = "glm-ocr-q4km",
+            RawOutput = "未选择 未选择 未选择 未选择",
+            TechnicalLines = ["未选择 未选择 未选择 未选择"]
         };
 
         var result = await service.FuseAsync(
@@ -1551,8 +1552,21 @@ public sealed class SmartBpAiRecognitionContractTest
         Assert.Contains("AI + AI OCR fusion_mode=LocalCSharp", coordinator);
         Assert.Contains("SmartBpBusinessAiFusionService", services);
         Assert.Contains("FuseTranscriptEvidenceAsync", services);
-        Assert.Contains("RawTranscript = transcript.RawJson", coordinator);
-        Assert.Contains("Lines = transcript.Lines.Select", coordinator);
+        Assert.Contains("RawOutput = transcript.RawJson", coordinator);
+        Assert.Contains("TechnicalLines = transcript.Lines.Select", coordinator);
+        Assert.Contains("AiOcrModel = settings.Settings.SelectedAiOcrModelId", coordinator);
+        Assert.Contains("AI + AI OCR fusion_mode=BusinessAi; raw AI OCR evidence sent to Business AI", coordinator);
+        Assert.Contains("AI + AI OCR fusion_mode=LocalCSharp; local transcript interpreter used", coordinator);
+        var businessAiBranchStart = coordinator.IndexOf(
+            "if (settings.Settings.AiWithAiOcrFusionMode == SmartBpHybridFusionMode.BusinessAi)",
+            StringComparison.Ordinal);
+        var businessAiBranchEnd = coordinator.IndexOf(
+            "catch (SmartBpBusinessAiFusionValidationException",
+            businessAiBranchStart,
+            StringComparison.Ordinal);
+        var businessAiBranch = coordinator[businessAiBranchStart..businessAiBranchEnd];
+        Assert.DoesNotContain("aiOcrTranscriptInterpreter.Interpret", businessAiBranch);
+        Assert.Contains("aiOcrTranscriptInterpreter.Interpret", coordinator);
         Assert.Contains("SmartBpAiWithOcrFusionMode", xaml);
         Assert.Contains("SmartBpAiWithAiOcrFusionMode", xaml);
     }
@@ -1564,20 +1578,31 @@ public sealed class SmartBpAiRecognitionContractTest
         var services = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "Services", "Recognition", "RecognitionServices.cs"));
         var coordinator = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "Services", "Recognition", "SmartBpAutomaticServices.cs"));
 
-        Assert.Contains("rawTranscript", services);
+        Assert.Contains("rawOutput", services);
+        Assert.Contains("technicalLines", services);
+        Assert.Contains("aiOcrModel", services);
         Assert.Contains("survivorCandidates", services);
         Assert.Contains("hunterCandidates", services);
-        Assert.Contains("phase is locked", services);
+        Assert.Contains("You receive raw AI OCR evidence.", services);
+        Assert.Contains("which text is a character", services);
+        Assert.Contains("which text is a player id", services);
+        Assert.Contains("which text is UI noise", services);
+        Assert.Contains("which slot each text belongs to", services);
+        Assert.Contains("whether a slot is selected, empty, or unknown", services);
+        Assert.Contains("Use candidate lists to identify characters.", services);
+        Assert.Contains("If a text is not in the candidate list, treat it as player_id or UI noise", services);
+        Assert.Contains("C# has not semantically cleaned the AI OCR text.", services);
         Assert.Contains("right_top -> banned_sur", services);
         Assert.Contains("left_top -> banned_hun", services);
         Assert.Contains("left_bottom -> picked_sur", services);
         Assert.Contains("right_bottom -> picked_hun", services);
-        Assert.Contains("小说家 昆虫学者 未选择 未选择", services);
-        Assert.Contains("未选择导播PLFJY", services);
-        Assert.Contains("未授权", services);
-        Assert.Contains("未经授权的页面将无法识别出来。", services);
+        Assert.Contains("特芯糖0v0", services);
+        Assert.Contains("导播PLFJY is UI/director text", services);
         Assert.Contains("CreateCurrentKnownStateJson(currentKnownState)", services);
         Assert.Contains("AiStructuredOutputMode.JsonSchemaStrict", services);
+        Assert.Contains("pre-fusion raw evidence packaging", coordinator);
+        Assert.Contains("post-fusion validation", services);
+        Assert.Contains("SmartBpBusinessAiFusionOutputContract.FullBusinessState", coordinator);
         Assert.Contains("Business AI fusion validation failed; corrupted updates were not merged.", coordinator);
         Assert.Contains("Business AI fusion failed after phase/transcript recognition. No final business state was merged.", coordinator);
         Assert.Contains("if (!isDryRun && delta != null)", coordinator);
@@ -1612,22 +1637,23 @@ public sealed class SmartBpAiRecognitionContractTest
     [Fact]
     public void AiOcrTranscriptParsingFallsBackToPlainText()
     {
-        var newline = SmartBpAiOcrTranscriptRecognitionService.ParseLines("小说家\n昆虫学者\n入殓师");
-        var spaces = SmartBpAiOcrTranscriptRecognitionService.ParseLines("小说家 昆虫学者 未选择 未选择");
-        var combinedNoise = SmartBpAiOcrTranscriptRecognitionService.ParseLines("未选择导播PLFJY");
+        var newline = SmartBpAiOcrTranscriptRecognitionService.ParseTechnicalLines("小说家\n昆虫学者\n入殓师");
+        var spaces = SmartBpAiOcrTranscriptRecognitionService.ParseTechnicalLines("小说家 昆虫学者 未选择 未选择");
+        var combinedNoise = SmartBpAiOcrTranscriptRecognitionService.ParseTechnicalLines("未选择导播PLFJY");
 
         Assert.Equal(["小说家", "昆虫学者", "入殓师"], newline.Lines.Select(line => line.Text));
-        Assert.Equal(["小说家", "昆虫学者", "未选择", "未选择"], spaces.Lines.Select(line => line.Text));
+        Assert.Equal("小说家 昆虫学者 未选择 未选择", Assert.Single(spaces.Lines).Text);
         Assert.Equal("未选择导播PLFJY", Assert.Single(combinedNoise.Lines).Text);
-        Assert.Contains("AI OCR transcript parsed as plain text fallback.", combinedNoise.Diagnostics);
+        Assert.Contains("AI OCR transcript parsed as plain text technical lines.", combinedNoise.Diagnostics);
     }
 
     [Theory]
     [InlineData("{\"lines\":[{\"text\":\"小说家\"},{\"text\":\"昆虫学者\"}]}")]
     [InlineData("```json\n{\"lines\":[{\"text\":\"小说家\"},{\"text\":\"昆虫学者\"}]}\n```")]
+    [InlineData("{\"lines\":[\"小说家\",\"昆虫学者\"]}")]
     public void AiOcrTranscriptParsingAcceptsJsonAndFencedJson(string raw)
     {
-        var parsed = SmartBpAiOcrTranscriptRecognitionService.ParseLines(raw);
+        var parsed = SmartBpAiOcrTranscriptRecognitionService.ParseTechnicalLines(raw);
 
         Assert.Equal(["小说家", "昆虫学者"], parsed.Lines.Select(line => line.Text));
     }
@@ -1635,11 +1661,13 @@ public sealed class SmartBpAiRecognitionContractTest
     [Theory]
     [InlineData("{\"lines\":[{\"text\":\"小说家\\n昆虫学者\\n未选择\\n未选择\"}]}")]
     [InlineData("{\"lines\":[{\"text\":\"小说家 昆虫学者 未选择 未选择\"}]}")]
-    public void AiOcrTranscriptJsonTextIsSplitIntoUsableEvidenceLines(string raw)
+    public void AiOcrTranscriptJsonTextPreservesTechnicalLineGroups(string raw)
     {
-        var parsed = SmartBpAiOcrTranscriptRecognitionService.ParseLines(raw);
+        var parsed = SmartBpAiOcrTranscriptRecognitionService.ParseTechnicalLines(raw);
 
-        Assert.Equal(["小说家", "昆虫学者", "未选择", "未选择"], parsed.Lines.Select(line => line.Text));
+        Assert.Single(parsed.Lines);
+        Assert.Contains("小说家", parsed.Lines[0].Text);
+        Assert.Contains("未选择", parsed.Lines[0].Text);
     }
 
     [Fact]

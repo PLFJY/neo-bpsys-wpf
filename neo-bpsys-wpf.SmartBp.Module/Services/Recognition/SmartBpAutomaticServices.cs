@@ -1575,11 +1575,17 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                 }
                 else
                 {
+                    var aiWithOcrTickMode = DescribeRecognitionTickMode(debugMode);
+                    var aiWithOcrBeforeMerge = stateStore.Snapshot;
+                    messages.Add($"AI + OCR role-distribution diagnostics: saved_frame_id={sequence}; tick_mode={aiWithOcrTickMode}; planner_requested_fields=[{string.Join(", ", request.RequestedFields)}]; ocr_requested_regions=[{string.Join(", ", request.RequestedRegions.Select(item => $"{item.Region}->{item.TargetField}"))}]; debug_thumbnail_id=frame_sequence:{sequence}:ocr_regions.");
                     var ocr = await ocrRecognition.RecognizeAsync(frame, new SmartBpOcrRecognitionRequest(
                         request.RequestedRegions.Select(item => item.Region).Distinct().ToArray(),
                         IncludePhase: false), tickToken);
                     raw = raw + "\n\nocr raw:\n" + string.Join(Environment.NewLine, ocr.Regions.SelectMany(region =>
                         region.Lines.Select(line => $"[{region.Region}] {line.Text} conf={line.Confidence:0.00}")));
+                    messages.Add($"AI + OCR role-distribution diagnostics: phase_result={phaseResult.Phase}; ocr_raw_lines=[{string.Join(" | ", ocr.Regions.SelectMany(region => region.Lines.Select(line => $"[{region.Region}] {line.Text}")))}].");
+                    messages.Add($"AI + OCR role-distribution diagnostics: parsed_local_state_before_merge={FormatBusinessStateForDiagnostics(ocr.BusinessState)}.");
+                    messages.Add($"AI + OCR role-distribution diagnostics: StateStore before merge={FormatBusinessStateForDiagnostics(aiWithOcrBeforeMerge)}.");
                     messages.AddRange(ocr.Diagnostics);
                     var delta = ToDelta(ocr.BusinessState, request.RequestedFields);
                     if (!string.Equals(delta.Phase, phaseResult.Phase, StringComparison.Ordinal))
@@ -1588,9 +1594,16 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                         delta.Phase = phaseResult.Phase;
                         ocr.BusinessState.Phase = phaseResult.Phase;
                     }
+                    IReadOnlyList<string> mergeDiagnostics = [];
                     if (!isDryRun)
-                        messages.AddRange(stateStore.ApplyDelta(delta, sequence, DateTimeOffset.Now));
+                    {
+                        mergeDiagnostics = stateStore.ApplyDelta(delta, sequence, DateTimeOffset.Now);
+                        messages.AddRange(mergeDiagnostics);
+                    }
                     state = isDryRun ? ocr.BusinessState : stateStore.Snapshot;
+                    messages.Add($"AI + OCR role-distribution diagnostics: StateStore after merge={FormatBusinessStateForDiagnostics(state)}.");
+                    var staleFieldIgnored = mergeDiagnostics.Any(message => message.Contains("Ignored stale", StringComparison.Ordinal));
+                    messages.Add($"AI + OCR role-distribution diagnostics: stale_field_rewritten=false; stale_field_ignored={staleFieldIgnored}; tick_mode={aiWithOcrTickMode}.");
                     contentCrops = [];
                     rawResponses = new Dictionary<string, string>(rawResponses) { ["ocr"] = raw };
                 }
@@ -1632,8 +1645,9 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                         {
                             Region = region,
                             Field = targetField,
-                            RawTranscript = transcript.RawJson,
-                            Lines = transcript.Lines.Select(line => line.Text).Where(text => !string.IsNullOrWhiteSpace(text)).ToArray()
+                            AiOcrModel = settings.Settings.SelectedAiOcrModelId,
+                            RawOutput = transcript.RawJson,
+                            TechnicalLines = transcript.Lines.Select(line => line.Text).Where(text => !string.IsNullOrWhiteSpace(text)).ToArray()
                         });
                         if (settings.Settings.AiWithAiOcrFusionMode == SmartBpHybridFusionMode.LocalCSharp)
                         {
@@ -1649,15 +1663,15 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                     {
                         try
                         {
-                            var outputContract = debugMode == SmartBpRecognitionDebugMode.FullStrategy
-                                ? settings.Settings.AiWithAiOcrFullDebugFusionContract
-                                : SmartBpBusinessAiFusionOutputContract.SnapshotDelta;
+                            var outputContract = SmartBpBusinessAiFusionOutputContract.FullBusinessState;
+                            messages.Add("pre-fusion raw evidence packaging: AI OCR rawOutput, technicalLines, region/field/model metadata, candidate lists, locked phase, and current known state are sent to Business AI.");
                             var fusion = await businessAiFusion.FuseAsync(phaseResult, evidence, request.RequestedFields, preGateState, outputContract, tickToken);
                             delta = fusion.Delta;
                             rawMap["business_ai_fusion"] = fusion.RawJson;
                             rawBuilder.Append("\n\nbusiness_ai_fusion raw:\n").Append(fusion.RawJson);
                             messages.AddRange(fusion.Diagnostics);
-                            messages.Add($"AI + AI OCR fusion_mode=BusinessAi; output_contract={outputContract}; transcript evidence was fused and validated before merge.");
+                            messages.Add("AI + AI OCR fusion_mode=BusinessAi; raw AI OCR evidence sent to Business AI");
+                            messages.Add($"AI + AI OCR fusion_mode=BusinessAi; output_contract={outputContract}; post-fusion validation completed before merge.");
                         }
                         catch (SmartBpBusinessAiFusionValidationException ex)
                         {
@@ -1674,7 +1688,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                     else
                     {
                         delta = new SmartBpSnapshotDeltaResult { Phase = phaseResult.Phase, Updates = updates };
-                        messages.Add("AI + AI OCR fusion_mode=LocalCSharp; local transcript interpreter is experimental.");
+                        messages.Add("AI + AI OCR fusion_mode=LocalCSharp; local transcript interpreter used");
                     }
                     if (!isDryRun && delta != null)
                         messages.AddRange(stateStore.ApplyDelta(delta, sequence, DateTimeOffset.Now));
@@ -2063,6 +2077,17 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
             throw new InvalidOperationException(result.Error ?? "SmartBP step commit tick failed.");
         return new(result.BusinessState, result.BackfillPlan, result.ApplyResult, result.GuidanceSync, result.CandidateMessages);
     }
+
+    private static string DescribeRecognitionTickMode(SmartBpRecognitionDebugMode debugMode) =>
+        debugMode switch
+        {
+            SmartBpRecognitionDebugMode.FullStrategy => "full image debug",
+            SmartBpRecognitionDebugMode.CurrentStageIncremental => "incremental debug",
+            _ => "automatic"
+        };
+
+    private static string FormatBusinessStateForDiagnostics(SmartBpBusinessStateRecognitionResult state) =>
+        JsonSerializer.Serialize(SmartBpRecognitionPromptBuilder.CreateCurrentKnownStateJson(state));
 
     private static SmartBpSnapshotDeltaResult ToDelta(SmartBpBusinessStateRecognitionResult state, IReadOnlyCollection<string> requestedFields)
     {
