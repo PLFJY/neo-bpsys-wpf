@@ -293,6 +293,14 @@ internal static class SmartBpAutomaticParser
 
         RejectUnexpectedProperties(root, ["phase", "updates"], "root");
 
+        if (root["updates"] is JsonObject updatesMap)
+        {
+            var delta = NormalizeBusinessAiFusionShorthandUpdates(updatesMap, lockedPhase, requestedFields, survivorCandidates, hunterCandidates, characterSelection, messages);
+            messages.Add("Business AI fusion returned shorthand updates object; normalized to canonical updates array.");
+            diagnostics = messages;
+            return delta;
+        }
+
         if (root["updates"] is not JsonArray updates)
             throw new InvalidDataException("Business AI fusion output rejected: updates must be an array.");
         var seenFields = new HashSet<string>(StringComparer.Ordinal);
@@ -337,6 +345,27 @@ internal static class SmartBpAutomaticParser
         return ParseSnapshotDelta(root.ToJsonString(), requestedFields, survivorCandidates, hunterCandidates);
     }
 
+    private static SmartBpSnapshotDeltaResult NormalizeBusinessAiFusionShorthandUpdates(
+        JsonObject updatesMap,
+        string lockedPhase,
+        IReadOnlyCollection<string> requestedFields,
+        IReadOnlyCollection<string> survivorCandidates,
+        IReadOnlyCollection<string> hunterCandidates,
+        ICharacterSelectionService characterSelection,
+        ICollection<string> diagnostics)
+    {
+        RejectUnexpectedProperties(updatesMap, ["banned_sur", "banned_hun", "picked_sur", "picked_hun"], "updates");
+        var updates = NormalizeBusinessAiFusionFieldNodes(
+            updatesMap,
+            lockedPhase,
+            requestedFields,
+            survivorCandidates,
+            hunterCandidates,
+            characterSelection,
+            diagnostics);
+        return new SmartBpSnapshotDeltaResult { Phase = lockedPhase, Updates = updates };
+    }
+
     private static bool HasFullBusinessStateFields(JsonObject root) =>
         root.ContainsKey("banned_sur") ||
         root.ContainsKey("banned_hun") ||
@@ -353,30 +382,51 @@ internal static class SmartBpAutomaticParser
         ICollection<string> diagnostics)
     {
         RejectUnexpectedProperties(root, ["phase", "banned_sur", "banned_hun", "picked_sur", "picked_hun"], "root");
+        var updates = NormalizeBusinessAiFusionFieldNodes(
+            root,
+            lockedPhase,
+            requestedFields,
+            survivorCandidates,
+            hunterCandidates,
+            characterSelection,
+            diagnostics);
+        return new SmartBpSnapshotDeltaResult { Phase = lockedPhase, Updates = updates };
+    }
+
+    private static List<SmartBpSnapshotFieldUpdate> NormalizeBusinessAiFusionFieldNodes(
+        JsonObject fieldNodes,
+        string lockedPhase,
+        IReadOnlyCollection<string> requestedFields,
+        IReadOnlyCollection<string> survivorCandidates,
+        IReadOnlyCollection<string> hunterCandidates,
+        ICharacterSelectionService characterSelection,
+        ICollection<string> diagnostics)
+    {
+        _ = lockedPhase;
         var requested = requestedFields.ToHashSet(StringComparer.Ordinal);
         var updates = new List<SmartBpSnapshotFieldUpdate>();
-        if (root.TryGetPropertyValue("banned_sur", out var bannedSur) && requested.Contains("banned_sur"))
+        if (fieldNodes.TryGetPropertyValue("banned_sur", out var bannedSur) && requested.Contains("banned_sur"))
             updates.Add(new SmartBpSnapshotFieldUpdate
             {
                 Field = "banned_sur",
                 Slots = NormalizeFullStateCharacterSlots(bannedSur, 4, Camp.Sur, survivorCandidates, characterSelection, "banned_sur", diagnostics),
                 PickedHun = null
             });
-        if (root.TryGetPropertyValue("banned_hun", out var bannedHun) && requested.Contains("banned_hun"))
+        if (fieldNodes.TryGetPropertyValue("banned_hun", out var bannedHun) && requested.Contains("banned_hun"))
             updates.Add(new SmartBpSnapshotFieldUpdate
             {
                 Field = "banned_hun",
                 Slots = NormalizeFullStateCharacterSlots(bannedHun, 2, Camp.Hun, hunterCandidates, characterSelection, "banned_hun", diagnostics),
                 PickedHun = null
             });
-        if (root.TryGetPropertyValue("picked_sur", out var pickedSur) && requested.Contains("picked_sur"))
+        if (fieldNodes.TryGetPropertyValue("picked_sur", out var pickedSur) && requested.Contains("picked_sur"))
             updates.Add(new SmartBpSnapshotFieldUpdate
             {
                 Field = "picked_sur",
                 Slots = NormalizeFullStatePickedSurSlots(pickedSur, survivorCandidates, characterSelection, diagnostics),
                 PickedHun = null
             });
-        if (root.TryGetPropertyValue("picked_hun", out var pickedHun) && requested.Contains("picked_hun"))
+        if (fieldNodes.TryGetPropertyValue("picked_hun", out var pickedHun) && requested.Contains("picked_hun"))
             updates.Add(new SmartBpSnapshotFieldUpdate
             {
                 Field = "picked_hun",
@@ -403,11 +453,12 @@ internal static class SmartBpAutomaticParser
                     break;
                 case "picked_hun":
                     if (update.PickedHun == null) throw new InvalidDataException("picked_hun update must contain picked_hun.");
+                    if (update.PickedHun.Index != 0) throw new InvalidDataException("picked_hun.index must be 0.");
                     ValidateDeltaSlot(update.PickedHun, hunterCandidates, "picked_hun");
                     break;
             }
         }
-        return delta;
+        return updates;
     }
 
     private static List<SmartBpSnapshotDeltaSlot> NormalizeFullStateCharacterSlots(
@@ -469,8 +520,23 @@ internal static class SmartBpAutomaticParser
         ICollection<string> diagnostics)
     {
         return node is JsonObject obj
-            ? NormalizeFullStateSlotObject(obj, 0, Camp.Hun, hunterCandidates, characterSelection, "picked_hun", diagnostics)
+            ? NormalizeFullStateSlotObject(RemoveNullSlotsProperty(obj, "picked_hun"), 0, Camp.Hun, hunterCandidates, characterSelection, "picked_hun", diagnostics)
             : NormalizeFullStateShorthandSlot(GetStringValue(node), 0, Camp.Hun, hunterCandidates, characterSelection, "picked_hun", null, diagnostics);
+    }
+
+    private static JsonObject RemoveNullSlotsProperty(JsonObject obj, string field)
+    {
+        if (obj["slots"] is not null)
+            throw new InvalidDataException($"Business AI fusion output rejected: {field}.slots must be null when present.");
+        if (!obj.ContainsKey("slots"))
+            return obj;
+        var clone = new JsonObject();
+        foreach (var property in obj)
+        {
+            if (property.Key == "slots") continue;
+            clone[property.Key] = property.Value?.DeepClone();
+        }
+        return clone;
     }
 
     private static SmartBpSnapshotDeltaSlot NormalizeFullStateSlotObject(
@@ -1515,8 +1581,15 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                     raw = raw + "\n\nocr raw:\n" + string.Join(Environment.NewLine, ocr.Regions.SelectMany(region =>
                         region.Lines.Select(line => $"[{region.Region}] {line.Text} conf={line.Confidence:0.00}")));
                     messages.AddRange(ocr.Diagnostics);
+                    var delta = ToDelta(ocr.BusinessState, request.RequestedFields);
+                    if (!string.Equals(delta.Phase, phaseResult.Phase, StringComparison.Ordinal))
+                    {
+                        messages.Add($"AI + OCR local fusion locked final phase to Business AI phase={phaseResult.Phase}; OCR phase={delta.Phase} ignored.");
+                        delta.Phase = phaseResult.Phase;
+                        ocr.BusinessState.Phase = phaseResult.Phase;
+                    }
                     if (!isDryRun)
-                        messages.AddRange(stateStore.ApplyDelta(ToDelta(ocr.BusinessState, request.RequestedFields), sequence, DateTimeOffset.Now));
+                        messages.AddRange(stateStore.ApplyDelta(delta, sequence, DateTimeOffset.Now));
                     state = isDryRun ? ocr.BusinessState : stateStore.Snapshot;
                     contentCrops = [];
                     rawResponses = new Dictionary<string, string>(rawResponses) { ["ocr"] = raw };

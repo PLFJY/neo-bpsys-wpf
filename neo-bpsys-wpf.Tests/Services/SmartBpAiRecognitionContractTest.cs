@@ -424,6 +424,49 @@ public sealed class SmartBpAiRecognitionContractTest
     }
 
     [Fact]
+    public void BusinessAiFusionValidatorAcceptsShorthandUpdatesObjectAndConvertsToCanonicalDelta()
+    {
+        const string raw = """
+        {
+          "phase": "屏蔽求生者",
+          "updates": {
+            "banned_sur": ["小说家", "昆虫学者", "未选择", "未选择"],
+            "banned_hun": ["未选择", "未选择"],
+            "picked_sur": ["未选择", "IHiganbanal", "未选择", "夜风之缚", "未选择", "磁台小狗", "未选择", "叶落摘星"],
+            "picked_hun": {"index":0,"character_name":"未选择","slots":null,"player_id":"null"}
+          }
+        }
+        """;
+        var shared = CreateShared(
+            new Game(new Team(Camp.Sur, TeamType.HomeTeam), new Team(Camp.Hun, TeamType.AwayTeam), GameProgress.Free),
+            new Character("小说家", Camp.Sur, "novelist"),
+            new Character("昆虫学者", Camp.Sur, "entomologist"),
+            new Character("厂长", Camp.Hun, "hell-ember"));
+        ISmartBpBusinessAiFusionValidator validator = new SmartBpBusinessAiFusionValidator(shared.Object, Mock.Of<ICharacterSelectionService>());
+
+        var delta = validator.ValidateAndNormalize(
+            raw,
+            "屏蔽求生者",
+            ["banned_sur", "banned_hun", "picked_sur", "picked_hun"],
+            Business("屏蔽求生者"),
+            SmartBpBusinessAiFusionOutputContract.SnapshotDelta,
+            out var diagnostics);
+        var stateStore = new SmartBpRecognitionStateStore();
+        stateStore.ApplyDelta(delta, 1, DateTimeOffset.Now);
+        var snapshot = stateStore.Snapshot;
+
+        Assert.Equal(["banned_sur", "banned_hun", "picked_sur", "picked_hun"], delta.Updates.Select(update => update.Field));
+        Assert.Equal("小说家", delta.Updates.Single(update => update.Field == "banned_sur").Slots![0].CharacterName);
+        Assert.Equal("昆虫学者", delta.Updates.Single(update => update.Field == "banned_sur").Slots![1].CharacterName);
+        Assert.Equal("empty", delta.Updates.Single(update => update.Field == "banned_hun").Slots![0].SlotState);
+        Assert.Equal("IHiganbanal", delta.Updates.Single(update => update.Field == "picked_sur").Slots![0].PlayerId);
+        Assert.Null(delta.Updates.Single(update => update.Field == "picked_hun").PickedHun!.PlayerId);
+        Assert.Equal("屏蔽求生者", snapshot.Phase);
+        Assert.Equal("小说家", snapshot.BannedSur[0].CharacterName);
+        Assert.Contains("shorthand updates object; normalized to canonical updates array", string.Join("\n", diagnostics));
+    }
+
+    [Fact]
     public async Task BusinessAiFusionFullStateRetryPromptDoesNotAskForUpdates()
     {
         const string invalid = """
@@ -463,6 +506,16 @@ public sealed class SmartBpAiRecognitionContractTest
         Assert.Contains("Do not use updates[].", prompts[1]);
         Assert.DoesNotContain("Do not include any fields except phase and updates.", prompts[1]);
         Assert.Equal(4, result.Delta.Updates.Count);
+    }
+
+    [Fact]
+    public void BusinessAiFusionDeltaRepairPromptExplicitlyRequiresUpdatesArray()
+    {
+        var root = FindRepositoryRoot();
+        var services = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "Services", "Recognition", "RecognitionServices.cs"));
+
+        Assert.Contains("updates MUST be an array, not an object.", services);
+        Assert.Contains("Do not output \"updates\": { \"banned_sur\": ... }.", services);
     }
 
     [Fact]
@@ -1530,6 +1583,30 @@ public sealed class SmartBpAiRecognitionContractTest
         Assert.Contains("if (!isDryRun && delta != null)", coordinator);
         var viewModel = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "ViewModels", "SmartBpModuleContentViewModel.AiRecognition.cs"));
         Assert.Contains("Recognition failed during Business AI fusion. No final business state was merged.", viewModel);
+    }
+
+    [Fact]
+    public void AiWithOcrLocalFusionLocksFinalPhaseToBusinessAiPhase()
+    {
+        var root = FindRepositoryRoot();
+        var coordinator = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "Services", "Recognition", "SmartBpAutomaticServices.cs"));
+
+        Assert.Contains("AI + OCR local fusion locked final phase to Business AI phase=", coordinator);
+        Assert.Contains("delta.Phase = phaseResult.Phase", coordinator);
+        Assert.Contains("ocr.BusinessState.Phase = phaseResult.Phase", coordinator);
+    }
+
+    [Fact]
+    public void AutomaticRecognitionStartShowsCaptureErrorAndEnsuresRequiredServers()
+    {
+        var root = FindRepositoryRoot();
+        var viewModel = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "ViewModels", "SmartBpModuleContentViewModel.AiRecognition.cs"));
+
+        Assert.Contains("Start capture before starting automatic recognition.", viewModel);
+        Assert.Contains("EnsureRequiredLlamaServersForAutomaticRecognitionAsync", viewModel);
+        Assert.Contains("await StartRequiredLlamaServersAsync()", viewModel);
+        Assert.Contains("IsAiPreviewLoopRunning = false", viewModel);
+        Assert.Contains("_autoRecognitionGlobalControl.Update(false)", viewModel);
     }
 
     [Fact]

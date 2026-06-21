@@ -601,6 +601,8 @@ Return corrected JSON only.
 Do not include explanation.
 Do not include any fields except phase and updates.
 Each update object may contain only field, slots, picked_hun.
+updates MUST be an array, not an object.
+Do not output "updates": { "banned_sur": ... }.
 """;
         return $$"""
 Your previous output was invalid because:

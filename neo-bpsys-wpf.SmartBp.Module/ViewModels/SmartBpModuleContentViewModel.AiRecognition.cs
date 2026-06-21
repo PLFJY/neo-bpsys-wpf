@@ -1175,17 +1175,36 @@ public partial class SmartBpModuleContentViewModel
     [RelayCommand(CanExecute = nameof(CanStartAutomaticRecognition))]
     private async Task StartAiPreviewLoopAsync()
     {
-        if (!_windowCaptureService.IsCapturing) { AiLastError = "Start capture before starting automatic recognition."; return; }
+        if (!_windowCaptureService.IsCapturing)
+        {
+            AiLastError = "Start capture before starting automatic recognition.";
+            NotifyAutomaticRecognitionCommands();
+            return;
+        }
         var confirmed = await MessageBoxHelper.ShowConfirmAsync(
             ResolveLocalizedOrRaw("SmartBpAutoRecognitionStartConfirm"),
             ResolveLocalizedOrRaw("SmartBpAutoRecognitionStartTitle"),
             ResolveLocalizedOrRaw("Confirm"), ResolveLocalizedOrRaw("Cancel"));
         if (!confirmed) return;
-        await _autoRecognitionCoordinator.StartAsync();
-        IsAiPreviewLoopRunning = true;
-        _aiPreviewTimer.Start();
-        _autoRecognitionGlobalControl.Update(true, _ => StopAiPreviewLoopAsync());
-        NotifyAutomaticRecognitionCommands();
+        try
+        {
+            await EnsureRequiredLlamaServersForAutomaticRecognitionAsync();
+            await _autoRecognitionCoordinator.StartAsync();
+            IsAiPreviewLoopRunning = true;
+            _aiPreviewTimer.Start();
+            _autoRecognitionGlobalControl.Update(true, _ => StopAiPreviewLoopAsync());
+        }
+        catch (Exception ex)
+        {
+            _aiPreviewTimer.Stop();
+            IsAiPreviewLoopRunning = false;
+            _autoRecognitionGlobalControl.Update(false);
+            AiLastError = ex.ToString();
+        }
+        finally
+        {
+            NotifyAutomaticRecognitionCommands();
+        }
     }
 
     [RelayCommand(CanExecute = nameof(CanStopAutomaticRecognition))]
@@ -1200,6 +1219,22 @@ public partial class SmartBpModuleContentViewModel
 
     private bool CanStartAutomaticRecognition() => !IsAiPreviewLoopRunning && !IsAiRecognizing;
     private bool CanStopAutomaticRecognition() => IsAiPreviewLoopRunning || IsAiRecognizing;
+    private async Task EnsureRequiredLlamaServersForAutomaticRecognitionAsync()
+    {
+        var strategy = _recognitionSettingsService.Settings.RecognitionStrategy;
+        if (strategy == SmartBpRecognitionStrategy.PureOcr)
+            return;
+        if (!IsLlamaRuntimeInstalled)
+            throw new InvalidOperationException("Install llama.cpp runtime before starting automatic AI recognition.");
+
+        await StartRequiredLlamaServersAsync();
+        var business = _llamaServerManagers.Get(LlamaVisionServerRole.BusinessAi);
+        if (!business.IsRunning)
+            throw new InvalidOperationException(AiLastError ?? "Business AI llama.cpp server failed to start.");
+        if (strategy == SmartBpRecognitionStrategy.AiWithAiOcr && !IsAiOcrReusingBusinessServer() && !_llamaServerManagers.Get(LlamaVisionServerRole.AiOcr).IsRunning)
+            throw new InvalidOperationException(AiLastError ?? "AI OCR llama.cpp server failed to start.");
+    }
+
     private void NotifyAutomaticRecognitionCommands()
     {
         StartAiPreviewLoopCommand.NotifyCanExecuteChanged();
