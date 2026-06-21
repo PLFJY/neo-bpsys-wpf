@@ -17,6 +17,10 @@ using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Services;
 using Xunit;
 using SmartBpRecognitionTask = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionTask;
+using SmartBpRecognitionStrategy = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionStrategy;
+using LocalVisionModelFamily = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.LocalVisionModelFamily;
+using LocalVisionModelRole = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.LocalVisionModelRole;
+using QwenMmprojMode = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.QwenMmprojMode;
 using SmartBpRecognitionPromptBuilder = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpRecognitionPromptBuilder;
 using SmartBpCharacterResolver = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpCharacterResolver;
 using SmartBpRecognitionJsonSchemaProvider = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpRecognitionJsonSchemaProvider;
@@ -210,12 +214,55 @@ public sealed class SmartBpAiRecognitionContractTest
     }
 
     [Fact]
+    public void RecognitionStrategyContainsFourFirstClassStrategies()
+    {
+        Assert.Equal(
+            [SmartBpRecognitionStrategy.PureOcr, SmartBpRecognitionStrategy.PureAi, SmartBpRecognitionStrategy.AiWithOcr, SmartBpRecognitionStrategy.AiWithAiOcr],
+            Enum.GetValues<SmartBpRecognitionStrategy>());
+    }
+
+    [Fact]
     public async Task QwenManifestContainsTwoBandPointModelProfiles()
     {
         var manifest = await new QwenModelManifestProvider(NullLogger<QwenModelManifestProvider>.Instance).LoadAsync(TestContext.Current.CancellationToken);
 
         Assert.Contains(manifest.Models, model => model.Id == "qwen3.5-2b-q4km");
         Assert.Contains(manifest.Models, model => model.Id == "qwen3.5-0.8b-q4km");
+    }
+
+    [Fact]
+    public async Task LocalVisionManifestContainsPaddleOcrVlModelScopeProfile()
+    {
+        var manifest = await new QwenModelManifestProvider(NullLogger<QwenModelManifestProvider>.Instance).LoadAsync(TestContext.Current.CancellationToken);
+
+        var profile = Assert.Single(manifest.Models.Where(model => model.Id == "paddleocr-vl-1.6-gguf"));
+        Assert.Equal("PaddleOCR-VL 1.6 GGUF", profile.DisplayName);
+        Assert.Equal(LocalVisionModelFamily.PaddleOcrVl, profile.Family);
+        Assert.Equal(LocalVisionModelRole.AiOcrTextExtractor, profile.Role);
+        Assert.False(profile.Recommended);
+        Assert.True(profile.Experimental);
+        Assert.Equal("https://www.modelscope.cn/models/PaddlePaddle/PaddleOCR-VL-1.6-GGUF/resolve/master/PaddleOCR-VL-1.6-GGUF.gguf", profile.ModelUrl);
+        Assert.Equal("PaddleOCR-VL-1.6-GGUF.gguf", profile.ModelFileName);
+        Assert.Equal("f3ae46ec885050acf4b3d31944431e1fd90d50664fb09126af4a3c050ba14ee8", profile.Sha256);
+        Assert.Equal("https://www.modelscope.cn/models/PaddlePaddle/PaddleOCR-VL-1.6-GGUF/resolve/master/PaddleOCR-VL-1.6-GGUF-mmproj.gguf", profile.MmprojUrl);
+        Assert.Equal("PaddleOCR-VL-1.6-GGUF-mmproj.gguf", profile.MmprojFileName);
+        Assert.Equal("204d757d7610d9b3faab10d506d69e5b244e32bf765e2bab2d0167e65e0a058a", profile.MmprojSha256);
+        Assert.Equal(QwenMmprojMode.Separate, profile.MmprojMode);
+    }
+
+    [Fact]
+    public async Task LocalVisionManifestAssignsModelRoles()
+    {
+        var manifest = await new QwenModelManifestProvider(NullLogger<QwenModelManifestProvider>.Instance).LoadAsync(TestContext.Current.CancellationToken);
+
+        Assert.Contains(manifest.Models, model => model.Id == "glm-ocr-q4km" &&
+                                                  model.Role == LocalVisionModelRole.AiOcrTextExtractor &&
+                                                  !model.Recommended);
+        Assert.Contains(manifest.Models, model => model.Id == "qwen3.5-2b-q4km" &&
+                                                  model.Role is LocalVisionModelRole.BusinessVlm or LocalVisionModelRole.Both);
+        Assert.Contains(manifest.Models, model => model.Id == "qwen3.5-0.8b-q4km" &&
+                                                  model.Role is LocalVisionModelRole.BusinessVlm or LocalVisionModelRole.AiOcrTextExtractor or LocalVisionModelRole.Both &&
+                                                  model.Experimental);
     }
 
     [Fact]
@@ -1059,7 +1106,7 @@ public sealed class SmartBpAiRecognitionContractTest
         Assert.True(methodEnd > methodStart);
         var method = viewModel[methodStart..methodEnd];
 
-        Assert.Contains("RecognitionEngine == SmartBpRecognitionEngine.Ocr", method);
+        Assert.Contains("RecognitionStrategy == SmartBpRecognitionStrategy.PureOcr", method);
         Assert.Contains("RunOcrSelectedTestFrameCoreAsync(frame, SelectedAiTestFrame.Task)", method);
         Assert.Contains("RunRegionGatedFrameCoreAsync(frame)", method);
         Assert.Contains("_ocrBpRecognitionService.RecognizeAsync(frame, new SmartBpOcrRecognitionRequest(regions))", viewModel);

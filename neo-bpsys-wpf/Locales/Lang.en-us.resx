@@ -4782,6 +4782,15 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="SmartBpRecognitionTitle" xml:space="preserve"><value>SmartBP BP recognition</value></data>
   <data name="SmartBpRecognitionPreviewNotice" xml:space="preserve"><value>OCR reads text and positions, then parses BP phase, bans, and picks locally. AI / Qwen recognition remains available as an experimental engine.</value></data>
   <data name="SmartBpRecognitionEngine" xml:space="preserve"><value>Recognition engine</value></data>
+  <data name="SmartBpRecognitionMethod" xml:space="preserve"><value>Recognition method</value></data>
+  <data name="SmartBpRecognitionStrategyPureOcr" xml:space="preserve"><value>Pure OCR</value></data>
+  <data name="SmartBpRecognitionStrategyPureAi" xml:space="preserve"><value>Pure AI</value></data>
+  <data name="SmartBpRecognitionStrategyAiWithOcr" xml:space="preserve"><value>AI + OCR</value></data>
+  <data name="SmartBpRecognitionStrategyAiWithAiOcr" xml:space="preserve"><value>AI + AI OCR</value></data>
+  <data name="SmartBpBusinessAiModel" xml:space="preserve"><value>Business AI model</value></data>
+  <data name="SmartBpAiOcrModel" xml:space="preserve"><value>AI OCR model</value></data>
+  <data name="SmartBpAiOcrModelHint" xml:space="preserve"><value>PaddleOCR-VL, GLM OCR, and experimental Qwen models read visible text; local interpreters own BP business mapping.</value></data>
+  <data name="SmartBpLlamaRuntime" xml:space="preserve"><value>llama.cpp runtime</value></data>
   <data name="SmartBpRecognitionEngineOcrRecommended" xml:space="preserve"><value>OCR (recommended)</value></data>
   <data name="SmartBpRecognitionEngineAiQwenExperimental" xml:space="preserve"><value>AI / Qwen (experimental)</value></data>
   <data name="SmartBpAiQwenEnginePanel" xml:space="preserve"><value>AI / Qwen engine settings</value></data>

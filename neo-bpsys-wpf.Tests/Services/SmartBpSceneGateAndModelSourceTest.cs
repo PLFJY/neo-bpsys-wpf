@@ -40,6 +40,8 @@ using ISmartBpCharacterResolver = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstract
 using ISmartBpSceneGateService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpSceneGateService;
 using ISmartBpAiFieldSnapshotRecognitionService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpAiFieldSnapshotRecognitionService;
 using ISmartBpDebugLog = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpDebugLog;
+using ISmartBpOcrBpRecognitionService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpOcrBpRecognitionService;
+using ILlamaCppServerManagerFactory = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ILlamaCppServerManagerFactory;
 
 namespace neo_bpsys_wpf.Tests.Services;
 
@@ -91,7 +93,8 @@ public sealed class SmartBpSceneGateAndModelSourceTest
                 ledger.Object, Mock.Of<ISmartBpFrameRingBuffer>(), recognitionSettings.Object, shared.Object,
                 Mock.Of<ISmartBpGuidanceSyncService>(), guidance.Object, Mock.Of<ISmartBpWorkflowBackfillService>(),
                 new SmartBpCandidateOperationBuilder(Mock.Of<ISmartBpCharacterResolver>(), shared.Object),
-                Mock.Of<ISmartBpDetectedOperationApplier>(), Mock.Of<ISmartBpSceneGateService>(), Mock.Of<ISmartBpDebugLog>());
+                Mock.Of<ISmartBpDetectedOperationApplier>(), Mock.Of<ISmartBpSceneGateService>(),
+                Mock.Of<ISmartBpOcrBpRecognitionService>(), Mock.Of<ILlamaCppServerManagerFactory>(), Mock.Of<ISmartBpDebugLog>());
             await coordinator.StartAsync();
             var frame = new WriteableBitmap(1, 1, 96, 96, PixelFormats.Bgra32, null);
             var tick = coordinator.RunOneTickAsync(frame);

@@ -5718,6 +5718,15 @@
   <data name="SmartBpRecognitionTitle" xml:space="preserve"><value>SmartBP BP 识别</value></data>
   <data name="SmartBpRecognitionPreviewNotice" xml:space="preserve"><value>OCR 会读取文字和位置，本地解析 BP 阶段、禁用与选择结果；AI / Qwen 识别仍可在实验模式中使用。</value></data>
   <data name="SmartBpRecognitionEngine" xml:space="preserve"><value>识别引擎</value></data>
+  <data name="SmartBpRecognitionMethod" xml:space="preserve"><value>识别方式</value></data>
+  <data name="SmartBpRecognitionStrategyPureOcr" xml:space="preserve"><value>纯 OCR</value></data>
+  <data name="SmartBpRecognitionStrategyPureAi" xml:space="preserve"><value>纯 AI</value></data>
+  <data name="SmartBpRecognitionStrategyAiWithOcr" xml:space="preserve"><value>AI + OCR</value></data>
+  <data name="SmartBpRecognitionStrategyAiWithAiOcr" xml:space="preserve"><value>AI + AI OCR</value></data>
+  <data name="SmartBpBusinessAiModel" xml:space="preserve"><value>业务 AI 模型</value></data>
+  <data name="SmartBpAiOcrModel" xml:space="preserve"><value>AI OCR 模型</value></data>
+  <data name="SmartBpAiOcrModelHint" xml:space="preserve"><value>PaddleOCR-VL、GLM OCR 和实验 Qwen 模型用于读取可见文字；BP 业务映射由本地解释器负责。</value></data>
+  <data name="SmartBpLlamaRuntime" xml:space="preserve"><value>llama.cpp 运行时</value></data>
   <data name="SmartBpRecognitionEngineOcrRecommended" xml:space="preserve"><value>OCR（推荐）</value></data>
   <data name="SmartBpRecognitionEngineAiQwenExperimental" xml:space="preserve"><value>AI / Qwen（实验）</value></data>
   <data name="SmartBpAiQwenEnginePanel" xml:space="preserve"><value>AI / Qwen 引擎设置</value></data>

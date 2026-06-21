@@ -20,8 +20,11 @@ internal sealed class LlamaCppServerManager : ILlamaCppServerManager, IDisposabl
     private readonly ILogger<LlamaCppServerManager> _logger;
     private readonly ISmartBpDebugLog _debugLog;
     private readonly ILlamaCppRuntimeAssetManager _runtimeAssets;
+    private readonly LlamaVisionServerRole _role;
     private Process? _process;
-    private static string StateFilePath => Path.Combine(AppConstants.AppDataPath, "SmartBp", "LlamaServerProcess.json");
+    private string StateFilePath => Path.Combine(AppConstants.AppDataPath, "SmartBp", $"LlamaServerProcess.{_role}.json");
+    public LlamaVisionServerRole Role => _role;
+    public int Port => GetPort();
     public bool IsRunning => _process is { HasExited: false };
     public string Status { get; private set; } = "Stopped";
     public int? ProcessId => IsRunning ? _process?.Id : null;
@@ -29,8 +32,16 @@ internal sealed class LlamaCppServerManager : ILlamaCppServerManager, IDisposabl
     public LlamaCppServerManager(IQwenModelAssetManager assets, ISmartBpRecognitionSettingsService settings,
         ISmartBpModuleStorageProvider storage, ILogger<LlamaCppServerManager> logger, ISmartBpDebugLog debugLog,
         ILlamaCppRuntimeAssetManager runtimeAssets)
+        : this(assets, settings, storage, logger, debugLog, runtimeAssets, LlamaVisionServerRole.BusinessAi)
+    {
+    }
+
+    public LlamaCppServerManager(IQwenModelAssetManager assets, ISmartBpRecognitionSettingsService settings,
+        ISmartBpModuleStorageProvider storage, ILogger<LlamaCppServerManager> logger, ISmartBpDebugLog debugLog,
+        ILlamaCppRuntimeAssetManager runtimeAssets, LlamaVisionServerRole role)
     {
         _assets = assets; _settings = settings; _storage = storage; _logger = logger; _debugLog = debugLog; _runtimeAssets = runtimeAssets;
+        _role = role;
         AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
     }
 
@@ -40,14 +51,16 @@ internal sealed class LlamaCppServerManager : ILlamaCppServerManager, IDisposabl
         var executable = _settings.Settings.LlamaServerExecutablePath;
         if (string.IsNullOrWhiteSpace(executable)) executable = await _runtimeAssets.GetInstalledExecutablePathAsync(cancellationToken);
         if (!File.Exists(executable)) throw new FileNotFoundException("llama-server.exe was not found.", executable);
-        if (await IsPortOccupiedAsync(_settings.Settings.LlamaServerPort, cancellationToken))
+        var port = GetPort();
+        if (await IsPortOccupiedAsync(port, cancellationToken))
             await RecoverManagedPortConflictAsync(executable, cancellationToken);
-        var installed = await _assets.GetInstalledPathsAsync(cancellationToken);
-        var profile = await _assets.GetProfileAsync(cancellationToken);
+        var modelId = GetModelId();
+        var installed = await _assets.GetInstalledPathsAsync(modelId, cancellationToken);
+        var profile = await _assets.GetProfileAsync(modelId, cancellationToken);
         if (installed.MmprojMode == QwenMmprojMode.None)
-            throw new InvalidOperationException("The selected Qwen profile has no vision projector. SmartBP image recognition is unavailable for this profile.");
+            throw new InvalidOperationException("The selected local vision profile has no vision projector. SmartBP image recognition is unavailable for this profile.");
         var model = installed.ModelPath;
-        Directory.CreateDirectory(_storage.RecognitionLogsRoot); var log = Path.Combine(_storage.RecognitionLogsRoot, $"llama-server-{DateTime.Now:yyyyMMdd-HHmmss}.log");
+        Directory.CreateDirectory(_storage.RecognitionLogsRoot); var log = Path.Combine(_storage.RecognitionLogsRoot, $"llama-server-{_role}-{DateTime.Now:yyyyMMdd-HHmmss}.log");
         var info = new ProcessStartInfo(executable)
         {
             UseShellExecute = false,
@@ -66,14 +79,14 @@ internal sealed class LlamaCppServerManager : ILlamaCppServerManager, IDisposabl
                 throw new FileNotFoundException("The selected Qwen profile requires a separate vision projector.");
             arguments.AddRange(["--mmproj", installed.MmprojPath]);
         }
-        arguments.AddRange(["--host", "127.0.0.1", "--port", _settings.Settings.LlamaServerPort.ToString(), "--ctx-size", _settings.Settings.LlamaContextSize.ToString(), "--n-gpu-layers", gpuLayers, "--flash-attn", flashAttention, "--parallel", _settings.Settings.LlamaParallelSlots.ToString(), "--batch-size", _settings.Settings.LlamaBatchSize.ToString(), "--ubatch-size", _settings.Settings.LlamaUBatchSize.ToString(), "--no-webui", "--log-file", log, "--threads", _settings.Settings.CpuThreads.ToString()]);
+        arguments.AddRange(["--host", "127.0.0.1", "--port", port.ToString(), "--ctx-size", _settings.Settings.LlamaContextSize.ToString(), "--n-gpu-layers", gpuLayers, "--flash-attn", flashAttention, "--parallel", _settings.Settings.LlamaParallelSlots.ToString(), "--batch-size", _settings.Settings.LlamaBatchSize.ToString(), "--ubatch-size", _settings.Settings.LlamaUBatchSize.ToString(), "--no-webui", "--log-file", log, "--threads", _settings.Settings.CpuThreads.ToString()]);
         foreach (var arg in arguments) info.ArgumentList.Add(arg);
-        _logger.LogInformation("Starting llama-server. Port={Port}, Model={Model}, Log={Log}", _settings.Settings.LlamaServerPort, Path.GetFileName(model), log);
-        _debugLog.Write("llama-server", $"Qwen profile: {profile.Id} ({profile.DisplayName}); mmproj mode: {installed.MmprojMode}; model path: {model}; mmproj path: {installed.MmprojPath ?? "not used"}");
+        _logger.LogInformation("Starting llama-server. Role={Role}, Port={Port}, Model={Model}, Log={Log}", _role, port, Path.GetFileName(model), log);
+        _debugLog.Write("llama-server", $"Role={_role}; local vision profile: {profile.Id} ({profile.DisplayName}); mmproj mode: {installed.MmprojMode}; model path: {model}; mmproj path: {installed.MmprojPath ?? "not used"}");
         _debugLog.Write("llama-server", $"Command: {Quote(executable)} {string.Join(" ", arguments.Select(Quote))}");
         _debugLog.Write("llama-server", $"Log file: {log}");
         _process = await Task.Run(() => StartProcess(info), cancellationToken).ConfigureAwait(false);
-        await WriteStateAsync(_process.Id, _settings.Settings.LlamaServerPort, executable, model, cancellationToken).ConfigureAwait(false);
+        await WriteStateAsync(_process.Id, port, executable, model, cancellationToken).ConfigureAwait(false);
         Status = "Starting";
         try
         {
@@ -81,7 +94,7 @@ internal sealed class LlamaCppServerManager : ILlamaCppServerManager, IDisposabl
             while (DateTime.UtcNow < deadline)
             {
                 cancellationToken.ThrowIfCancellationRequested(); if (_process.HasExited) throw new InvalidOperationException($"llama-server exited with code {_process.ExitCode}.");
-                try { using var response = await http.GetAsync($"http://127.0.0.1:{_settings.Settings.LlamaServerPort}/health", cancellationToken); if (response.IsSuccessStatusCode) { Status = "Ready"; _logger.LogInformation("llama-server responsive"); _debugLog.Write("health", "llama-server is ready."); return; } } catch (HttpRequestException) { }
+                try { using var response = await http.GetAsync($"http://127.0.0.1:{port}/health", cancellationToken); if (response.IsSuccessStatusCode) { Status = "Ready"; _logger.LogInformation("llama-server responsive"); _debugLog.Write("health", $"llama-server {_role} is ready."); return; } } catch (HttpRequestException) { }
                 await Task.Delay(500, cancellationToken);
             }
             throw new TimeoutException($"llama-server did not become responsive within {_settings.Settings.AiStartupTimeoutSeconds} seconds.");
@@ -134,29 +147,30 @@ internal sealed class LlamaCppServerManager : ILlamaCppServerManager, IDisposabl
     private async Task RecoverManagedPortConflictAsync(string executable, CancellationToken cancellationToken)
     {
         var state = await ReadStateAsync(cancellationToken).ConfigureAwait(false);
-        if (state == null) throw new InvalidOperationException($"Port {_settings.Settings.LlamaServerPort} is already occupied by an unknown process.");
-        if (state.Port != _settings.Settings.LlamaServerPort || !SamePath(state.ExecutablePath, executable))
-            throw new InvalidOperationException($"Port {_settings.Settings.LlamaServerPort} is occupied, but the recorded managed llama-server state does not match the selected executable.");
+        var port = GetPort();
+        if (state == null) throw new InvalidOperationException($"Port {port} is already occupied by an unknown process.");
+        if (state.Port != port || !SamePath(state.ExecutablePath, executable))
+            throw new InvalidOperationException($"Port {port} is occupied, but the recorded managed llama-server state does not match the selected executable.");
         if (!_settings.Settings.AutoKillStaleManagedLlamaServer)
-            throw new InvalidOperationException($"Port {_settings.Settings.LlamaServerPort} is occupied by a recorded managed llama-server process. Use Force stop llama.cpp or enable stale-process cleanup.");
+            throw new InvalidOperationException($"Port {port} is occupied by a recorded managed llama-server process. Use Force stop llama.cpp or enable stale-process cleanup.");
         await KillRecordedProcessAsync(state, cancellationToken).ConfigureAwait(false);
         DeleteStateFile();
         await Task.Delay(500, cancellationToken).ConfigureAwait(false);
-        if (await IsPortOccupiedAsync(_settings.Settings.LlamaServerPort, cancellationToken).ConfigureAwait(false))
-            throw new InvalidOperationException($"Port {_settings.Settings.LlamaServerPort} is still occupied after stopping the recorded managed process.");
+        if (await IsPortOccupiedAsync(port, cancellationToken).ConfigureAwait(false))
+            throw new InvalidOperationException($"Port {port} is still occupied after stopping the recorded managed process.");
     }
 
     private static bool SamePath(string left, string right) =>
         string.Equals(Path.GetFullPath(left), Path.GetFullPath(right), StringComparison.OrdinalIgnoreCase);
 
-    private static async Task<LlamaServerProcessState?> ReadStateAsync(CancellationToken cancellationToken)
+    private async Task<LlamaServerProcessState?> ReadStateAsync(CancellationToken cancellationToken)
     {
         if (!File.Exists(StateFilePath)) return null;
         await using var stream = File.OpenRead(StateFilePath);
         return await JsonSerializer.DeserializeAsync<LlamaServerProcessState>(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
-    private static async Task WriteStateAsync(int pid, int port, string executable, string model, CancellationToken cancellationToken)
+    private async Task WriteStateAsync(int pid, int port, string executable, string model, CancellationToken cancellationToken)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(StateFilePath)!);
         var state = new LlamaServerProcessState(pid, port, executable, model, DateTimeOffset.Now);
@@ -176,7 +190,7 @@ internal sealed class LlamaCppServerManager : ILlamaCppServerManager, IDisposabl
         }, cancellationToken).ConfigureAwait(false);
     }
 
-    private static void DeleteStateFile()
+    private void DeleteStateFile()
     {
         try { if (File.Exists(StateFilePath)) File.Delete(StateFilePath); }
         catch { }
@@ -189,5 +203,37 @@ internal sealed class LlamaCppServerManager : ILlamaCppServerManager, IDisposabl
     }
     public void Dispose() { AppDomain.CurrentDomain.ProcessExit -= OnProcessExit; OnProcessExit(this, EventArgs.Empty); _process?.Dispose(); _process = null; }
 
+    private int GetPort() => _role == LlamaVisionServerRole.AiOcr
+        ? _settings.Settings.AiOcrServerPort
+        : _settings.Settings.BusinessAiServerPort;
+
+    private string GetModelId() => _role == LlamaVisionServerRole.AiOcr
+        ? _settings.Settings.SelectedAiOcrModelId
+        : _settings.Settings.SelectedBusinessAiModelId;
+
     private sealed record LlamaServerProcessState(int Pid, int Port, string ExecutablePath, string ModelPath, DateTimeOffset StartedAt);
+}
+
+internal sealed class LlamaCppServerManagerFactory : ILlamaCppServerManagerFactory, IDisposable
+{
+    private readonly ILlamaCppServerManager _business;
+    private readonly LlamaCppServerManager _aiOcr;
+
+    public LlamaCppServerManagerFactory(
+        IQwenModelAssetManager assets,
+        ISmartBpRecognitionSettingsService settings,
+        ISmartBpModuleStorageProvider storage,
+        ILogger<LlamaCppServerManager> logger,
+        ISmartBpDebugLog debugLog,
+        ILlamaCppRuntimeAssetManager runtimeAssets,
+        ILlamaCppServerManager business)
+    {
+        _business = business;
+        _aiOcr = new LlamaCppServerManager(assets, settings, storage, logger, debugLog, runtimeAssets, LlamaVisionServerRole.AiOcr);
+    }
+
+    public ILlamaCppServerManager Get(LlamaVisionServerRole role) =>
+        role == LlamaVisionServerRole.AiOcr ? _aiOcr : _business;
+
+    public void Dispose() => _aiOcr.Dispose();
 }

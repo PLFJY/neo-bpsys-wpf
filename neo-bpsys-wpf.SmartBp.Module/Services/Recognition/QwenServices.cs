@@ -35,7 +35,7 @@ internal sealed class SmartBpDownloadProgressTracker
     }
 }
 
-internal sealed class QwenModelManifestProvider : IQwenModelManifestProvider
+internal sealed class QwenModelManifestProvider : IQwenModelManifestProvider, ILocalVisionModelManifestProvider
 {
     private readonly ISmartBpModuleStorageProvider? _storage;
     private readonly ILogger<QwenModelManifestProvider> _logger;
@@ -66,6 +66,37 @@ internal sealed class QwenModelManifestProvider : IQwenModelManifestProvider
         _logger.LogInformation("Qwen manifest loaded. Profiles={Count}", manifest.Models.Count);
         return manifest;
     }
+
+    async Task<LocalVisionModelManifest> ILocalVisionModelManifestProvider.LoadAsync(CancellationToken cancellationToken)
+    {
+        var manifest = await LoadAsync(cancellationToken).ConfigureAwait(false);
+        return new LocalVisionModelManifest
+        {
+            SchemaVersion = manifest.SchemaVersion,
+            Models = manifest.Models.Select(ToLocalVisionProfile).ToList()
+        };
+    }
+
+    private static LocalVisionModelProfile ToLocalVisionProfile(QwenModelProfile profile) => new()
+    {
+        Id = profile.Id,
+        DisplayName = profile.DisplayName,
+        Family = profile.Family,
+        Role = profile.Role,
+        SourceType = profile.SourceType,
+        ModelUrl = profile.ModelUrl,
+        ModelFileName = profile.ModelFileName,
+        MmprojUrl = profile.MmprojUrl,
+        MmprojFileName = profile.MmprojFileName,
+        HuggingFaceRepoId = profile.HuggingFaceRepoId,
+        HuggingFaceRevision = profile.HuggingFaceRevision,
+        ProjectorMode = profile.ProjectorMode,
+        Sha256 = profile.Sha256,
+        MmprojSha256 = profile.MmprojSha256,
+        Recommended = profile.Recommended,
+        Experimental = profile.Experimental,
+        DefaultStructuredOutputMode = profile.DefaultStructuredOutputMode
+    };
 }
 
 internal sealed class SmartBpRecognitionSettingsService : ISmartBpRecognitionSettingsService
@@ -77,9 +108,54 @@ internal sealed class SmartBpRecognitionSettingsService : ISmartBpRecognitionSet
 
     public SmartBpRecognitionSettingsService()
     {
-        try { Settings = File.Exists(_path) ? JsonSerializer.Deserialize<SmartBpRecognitionSettings>(File.ReadAllText(_path), Options) ?? new() : new(); }
+        var hasRecognitionStrategy = false;
+        var hasSelectedBusinessAiModelId = false;
+        var hasSelectedOcrProviderMode = false;
+        var hasBusinessAiServerPort = false;
+        try
+        {
+            if (File.Exists(_path))
+            {
+                var json = File.ReadAllText(_path);
+                using var document = JsonDocument.Parse(json);
+                if (document.RootElement.ValueKind == JsonValueKind.Object)
+                {
+                    hasRecognitionStrategy = document.RootElement.TryGetProperty("recognitionStrategy", out _);
+                    hasSelectedBusinessAiModelId = document.RootElement.TryGetProperty("selectedBusinessAiModelId", out _);
+                    hasSelectedOcrProviderMode = document.RootElement.TryGetProperty("selectedOcrProviderMode", out _);
+                    hasBusinessAiServerPort = document.RootElement.TryGetProperty("businessAiServerPort", out _);
+                }
+                Settings = JsonSerializer.Deserialize<SmartBpRecognitionSettings>(json, Options) ?? new();
+            }
+            else
+            {
+                Settings = new();
+            }
+        }
         catch { Settings = new(); }
+        if (!hasRecognitionStrategy)
+            Settings.RecognitionStrategy = Settings.RecognitionEngine == SmartBpRecognitionEngine.AiQwen
+                ? SmartBpRecognitionStrategy.PureAi
+                : SmartBpRecognitionStrategy.PureOcr;
+        if (!hasSelectedBusinessAiModelId)
+            Settings.SelectedBusinessAiModelId = Settings.SelectedQwenModelId;
+        if (!hasSelectedOcrProviderMode)
+            Settings.SelectedOcrProviderMode = Settings.OcrProviderMode;
+        if (!hasBusinessAiServerPort)
+            Settings.BusinessAiServerPort = Settings.LlamaServerPort;
+        if (string.IsNullOrWhiteSpace(Settings.SelectedBusinessAiModelId))
+            Settings.SelectedBusinessAiModelId = string.IsNullOrWhiteSpace(Settings.SelectedQwenModelId) ? "qwen3.5-2b-q4km" : Settings.SelectedQwenModelId;
+        if (string.IsNullOrWhiteSpace(Settings.SelectedAiOcrModelId))
+            Settings.SelectedAiOcrModelId = "paddleocr-vl-1.6-gguf";
+        Settings.SelectedQwenModelId = Settings.SelectedBusinessAiModelId;
+        Settings.OcrProviderMode = Settings.SelectedOcrProviderMode;
+        Settings.RecognitionEngine = Settings.RecognitionStrategy == SmartBpRecognitionStrategy.PureOcr
+            ? SmartBpRecognitionEngine.Ocr
+            : SmartBpRecognitionEngine.AiQwen;
+        Settings.LlamaServerPort = Settings.BusinessAiServerPort;
         Settings.LlamaServerPort = Math.Clamp(Settings.LlamaServerPort, 1024, 65535);
+        Settings.BusinessAiServerPort = Math.Clamp(Settings.BusinessAiServerPort, 1024, 65535);
+        Settings.AiOcrServerPort = Math.Clamp(Settings.AiOcrServerPort, 1024, 65535);
         Settings.AiRequestTimeoutSeconds = Math.Clamp(Settings.AiRequestTimeoutSeconds, 5, 300);
         Settings.AiStartupTimeoutSeconds = Math.Clamp(Settings.AiStartupTimeoutSeconds, 15, 600);
         Settings.LlamaContextSize = Math.Clamp(Settings.LlamaContextSize, 8192, 32768);
@@ -157,7 +233,7 @@ internal sealed class QwenModelAssetManager(
     IQwenModelManifestProvider manifestProvider,
     ISmartBpRecognitionSettingsService settingsService,
     ISmartBpModuleStorageProvider storage,
-    ILogger<QwenModelAssetManager> logger) : IQwenModelAssetManager
+    ILogger<QwenModelAssetManager> logger) : IQwenModelAssetManager, ILocalVisionModelAssetManager
 {
     private const string BrowserUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
     private CancellationTokenSource? _downloadCts;
@@ -167,15 +243,18 @@ internal sealed class QwenModelAssetManager(
     public async Task<QwenModelProfile> GetProfileAsync(CancellationToken cancellationToken = default)
     {
         var manifest = await manifestProvider.LoadAsync(cancellationToken);
-        return manifest.Models.SingleOrDefault(x => x.Id == settingsService.Settings.SelectedQwenModelId)
-            ?? throw new InvalidDataException($"Qwen profile '{settingsService.Settings.SelectedQwenModelId}' is not present in the manifest.");
+        var selected = string.IsNullOrWhiteSpace(settingsService.Settings.SelectedBusinessAiModelId)
+            ? settingsService.Settings.SelectedQwenModelId
+            : settingsService.Settings.SelectedBusinessAiModelId;
+        return manifest.Models.SingleOrDefault(x => x.Id == selected)
+            ?? throw new InvalidDataException($"Local vision profile '{selected}' is not present in the manifest.");
     }
 
-    private async Task<QwenModelProfile> GetProfileAsync(string modelId, CancellationToken cancellationToken = default)
+    public async Task<QwenModelProfile> GetProfileAsync(string modelId, CancellationToken cancellationToken = default)
     {
         var manifest = await manifestProvider.LoadAsync(cancellationToken);
         return manifest.Models.SingleOrDefault(x => x.Id == modelId)
-            ?? throw new InvalidDataException($"Qwen profile '{modelId}' is not present in the manifest.");
+            ?? throw new InvalidDataException($"Local vision profile '{modelId}' is not present in the manifest.");
     }
 
     public async Task<IReadOnlyList<QwenModelProfile>> GetProfilesAsync(CancellationToken cancellationToken = default) =>
@@ -263,6 +342,13 @@ internal sealed class QwenModelAssetManager(
     {
         var p = await GetProfileAsync(cancellationToken); var paths = GetPaths(p);
         if (!await IsInstalledAsync(cancellationToken)) throw new FileNotFoundException("The selected Qwen model is not installed.");
+        return new(paths.Model, paths.Mmproj, p.MmprojMode);
+    }
+
+    public async Task<QwenInstalledPaths> GetInstalledPathsAsync(string modelId, CancellationToken cancellationToken = default)
+    {
+        var p = await GetProfileAsync(modelId, cancellationToken); var paths = GetPaths(p);
+        if (!await IsInstalledAsync(modelId, cancellationToken)) throw new FileNotFoundException($"The selected local vision model '{modelId}' is not installed.");
         return new(paths.Model, paths.Mmproj, p.MmprojMode);
     }
 

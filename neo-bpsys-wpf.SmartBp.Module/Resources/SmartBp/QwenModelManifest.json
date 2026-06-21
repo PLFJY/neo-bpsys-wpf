@@ -4,7 +4,8 @@
     {
       "id": "qwen3.5-2b-q4km",
       "displayName": "Qwen3.5-2B Q4_K_M",
-      "family": "Qwen3.5",
+      "family": "Qwen35",
+      "role": "Both",
       "size": "2B",
       "recommended": true,
       "experimental": false,
@@ -24,7 +25,8 @@
     {
       "id": "qwen3.5-0.8b-q4km",
       "displayName": "Qwen3.5-0.8B Q4_K_M",
-      "family": "Qwen3.5",
+      "family": "Qwen35",
+      "role": "Both",
       "size": "0.8B",
       "recommended": false,
       "experimental": true,
@@ -44,7 +46,8 @@
     {
       "id": "glm-ocr-q4km",
       "displayName": "GLM-OCR Q4_K_M",
-      "family": "GLM",
+      "family": "GlmOcr",
+      "role": "AiOcrTextExtractor",
       "size": "~3B",
       "recommended": false,
       "experimental": true,
@@ -61,6 +64,27 @@
       "license": "mit",
       "minMemoryGb": 8,
       "preferredBackends": ["cuda", "vulkan", "cpu"]
+    },
+    {
+      "id": "paddleocr-vl-1.6-gguf",
+      "displayName": "PaddleOCR-VL 1.6 GGUF",
+      "family": "PaddleOcrVl",
+      "role": "AiOcrTextExtractor",
+      "recommended": false,
+      "experimental": true,
+      "source": "ModelScope",
+      "sourceType": "directUrl",
+      "modelUrl": "https://www.modelscope.cn/models/PaddlePaddle/PaddleOCR-VL-1.6-GGUF/resolve/master/PaddleOCR-VL-1.6-GGUF.gguf",
+      "modelFileName": "PaddleOCR-VL-1.6-GGUF.gguf",
+      "sha256": "f3ae46ec885050acf4b3d31944431e1fd90d50664fb09126af4a3c050ba14ee8",
+      "mmprojUrl": "https://www.modelscope.cn/models/PaddlePaddle/PaddleOCR-VL-1.6-GGUF/resolve/master/PaddleOCR-VL-1.6-GGUF-mmproj.gguf",
+      "mmprojFileName": "PaddleOCR-VL-1.6-GGUF-mmproj.gguf",
+      "mmprojSha256": "204d757d7610d9b3faab10d506d69e5b244e32bf765e2bab2d0167e65e0a058a",
+      "projectorMode": "Separate",
+      "license": "apache-2.0",
+      "minMemoryGb": 8,
+      "preferredBackends": ["cuda", "vulkan", "cpu"],
+      "defaultStructuredOutputMode": "JsonPromptAndRepair"
     }
   ]
 }

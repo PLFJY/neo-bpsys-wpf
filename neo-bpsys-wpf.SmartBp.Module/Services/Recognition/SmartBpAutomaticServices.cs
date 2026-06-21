@@ -1002,6 +1002,8 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
     SmartBpCandidateOperationBuilder candidateBuilder,
     ISmartBpDetectedOperationApplier applier,
     ISmartBpSceneGateService sceneGate,
+    ISmartBpOcrBpRecognitionService ocrRecognition,
+    ILlamaCppServerManagerFactory llamaServerManagers,
     ISmartBpDebugLog debugLog) : ISmartBpAutoRecognitionCoordinator, ISmartBpStepCommitScheduler
 {
     private readonly SemaphoreSlim _tickGate = new(1, 1);
@@ -1063,6 +1065,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
         try
         {
             var sequence = Interlocked.Increment(ref _frameSequence);
+            await EnsureStrategyServersAsync(tickToken).ConfigureAwait(false);
             frameRingBuffer.AddFrame(sequence, frame, DateTimeOffset.Now);
             var guidanceSnapshot = guidance.GetRuntimeSnapshot();
             var request = planner.BuildRequest(guidanceSnapshot, stateStore.Snapshot, ledger.GetSnapshot());
@@ -1091,6 +1094,41 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                 {
                     stateStore.ApplyPhase(phaseResult.Phase, sequence);
                     messages.Add($"Applied phase-only update: phase={phaseResult.Phase}.");
+                }
+            }
+            else if (settings.Settings.RecognitionStrategy == SmartBpRecognitionStrategy.AiWithOcr)
+            {
+                var phaseOnly = await fieldSnapshotRecognition.RecognizePhaseOnlyAsync(frame, tickToken);
+                rawResponses = new Dictionary<string, string> { ["phase_only"] = phaseOnly.RawJson };
+                raw = phaseOnly.RawJson;
+                messages.AddRange(phaseOnly.Diagnostics);
+                phaseResult = phaseOnly.Phase;
+                phaseCrop = phaseOnly.Crop;
+                if (!isDryRun) stateStore.ApplyPhase(phaseResult.Phase, sequence);
+                var preGateState = stateStore.Snapshot;
+                var preGate = sceneGate.Classify(phaseResult, preGateState, rawResponses, guidanceSnapshot);
+                messages.Add($"AI scene/phase controller: scene={preGate.Scene}; phase={phaseResult.Phase}; allowed={preGate.IsBpRecognitionAllowed}; recommended_fields=[{string.Join(", ", request.RequestedFields)}]; reason={preGate.Reason}.");
+                if (!preGate.IsBpRecognitionAllowed || request.RequestedRegions.Count == 0)
+                {
+                    state = preGateState;
+                    contentCrops = [];
+                    messages.Add(preGate.IsBpRecognitionAllowed
+                        ? "AI + OCR skipped OCR because no fields were requested."
+                        : "AI + OCR skipped OCR because BP recognition is blocked by the scene decision.");
+                }
+                else
+                {
+                    var ocr = await ocrRecognition.RecognizeAsync(frame, new SmartBpOcrRecognitionRequest(
+                        request.RequestedRegions.Select(item => item.Region).Distinct().ToArray(),
+                        IncludePhase: false), tickToken);
+                    raw = raw + "\n\nocr raw:\n" + string.Join(Environment.NewLine, ocr.Regions.SelectMany(region =>
+                        region.Lines.Select(line => $"[{region.Region}] {line.Text} conf={line.Confidence:0.00}")));
+                    messages.AddRange(ocr.Diagnostics);
+                    if (!isDryRun)
+                        messages.AddRange(stateStore.ApplyDelta(ToDelta(ocr.BusinessState, request.RequestedFields), sequence, DateTimeOffset.Now));
+                    state = isDryRun ? ocr.BusinessState : stateStore.Snapshot;
+                    contentCrops = [];
+                    rawResponses = new Dictionary<string, string>(rawResponses) { ["ocr"] = raw };
                 }
             }
             else if (recognitionPath == SmartBpRecognitionPath.FieldSnapshot || recognitionPath == SmartBpRecognitionPath.FullFieldSnapshot)
@@ -1236,7 +1274,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                     await Task.Delay(hold, tickToken);
                 }
             }
-            var delayedAiCanSync = settings.Settings.RecognitionEngine != SmartBpRecognitionEngine.AiQwen ||
+            var delayedAiCanSync = settings.Settings.RecognitionStrategy == SmartBpRecognitionStrategy.PureOcr ||
                                    !settings.Settings.AiOneStepDelayedMode ||
                                    operations.All(IsOperationCompleted);
             SmartBpGuidanceSyncResult? sync = gate.IsBpRecognitionAllowed && !isFreeSync && settings.Settings.EnableAutoGuidanceSync && delayedAiCanSync
@@ -1289,8 +1327,10 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
     /// <returns>The recognition path enum value.</returns>
     private SmartBpRecognitionPath ResolveRecognitionPath(SmartBpSnapshotDeltaRequest request)
     {
-        if (settings.Settings.RecognitionEngine == SmartBpRecognitionEngine.Ocr && settings.Settings.EnableOcrBpRecognition)
+        if (settings.Settings.RecognitionStrategy == SmartBpRecognitionStrategy.PureOcr && settings.Settings.EnableOcrBpRecognition)
             return SmartBpRecognitionPath.LegacyDelta;
+        if (settings.Settings.RecognitionStrategy == SmartBpRecognitionStrategy.AiWithOcr)
+            return request.RequestedFields.Count == 0 ? SmartBpRecognitionPath.PhaseOnly : SmartBpRecognitionPath.FieldSnapshot;
         if (settings.Settings.UseLegacySnapshotDeltaRecognition)
             return SmartBpRecognitionPath.LegacyDelta;
         var requestedFields = request.RequestedFields;
@@ -1298,6 +1338,36 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
             return SmartBpRecognitionPath.PhaseOnly;
         var allFields = new HashSet<string>(StringComparer.Ordinal) { "banned_sur", "banned_hun", "picked_sur", "picked_hun" };
         return allFields.IsSubsetOf(requestedFields) ? SmartBpRecognitionPath.FullFieldSnapshot : SmartBpRecognitionPath.FieldSnapshot;
+    }
+
+    private async Task EnsureStrategyServersAsync(CancellationToken cancellationToken)
+    {
+        switch (settings.Settings.RecognitionStrategy)
+        {
+            case SmartBpRecognitionStrategy.PureOcr:
+                return;
+            case SmartBpRecognitionStrategy.PureAi:
+            case SmartBpRecognitionStrategy.AiWithOcr:
+                await StartIfNeededAsync(llamaServerManagers.Get(LlamaVisionServerRole.BusinessAi), cancellationToken).ConfigureAwait(false);
+                return;
+            case SmartBpRecognitionStrategy.AiWithAiOcr:
+                var business = llamaServerManagers.Get(LlamaVisionServerRole.BusinessAi);
+                await StartIfNeededAsync(business, cancellationToken).ConfigureAwait(false);
+                if (!settings.Settings.UseSeparateAiOcrServer ||
+                    string.Equals(settings.Settings.SelectedBusinessAiModelId, settings.Settings.SelectedAiOcrModelId, StringComparison.Ordinal))
+                {
+                    debugLog.Write("llama-server", "AI OCR is reusing the Business AI server because the selected model is the same or separate server mode is disabled.");
+                    return;
+                }
+                await StartIfNeededAsync(llamaServerManagers.Get(LlamaVisionServerRole.AiOcr), cancellationToken).ConfigureAwait(false);
+                return;
+        }
+    }
+
+    private static async Task StartIfNeededAsync(ILlamaCppServerManager manager, CancellationToken cancellationToken)
+    {
+        if (!manager.IsRunning)
+            await manager.StartAsync(cancellationToken).ConfigureAwait(false);
     }
 
     private static SmartBpDetectedOperation[] BuildFreeSyncOperations(
@@ -1327,7 +1397,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
         SmartBpSceneGateResult gate,
         ICollection<string> diagnostics)
     {
-        if (settings.Settings.RecognitionEngine != SmartBpRecognitionEngine.AiQwen ||
+        if (settings.Settings.RecognitionStrategy == SmartBpRecognitionStrategy.PureOcr ||
             !settings.Settings.AiOneStepDelayedMode || !guidanceSnapshot.IsStarted ||
             gate.Scene is not (SmartBpRecognitionScene.CharacterBp or SmartBpRecognitionScene.HunterTalent))
         {

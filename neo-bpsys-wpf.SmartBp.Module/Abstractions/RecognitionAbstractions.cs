@@ -43,6 +43,15 @@ public interface ISmartBpAiPerformanceMonitor
 public interface IQwenModelManifestProvider { /// <summary>Loads and validates the manifest.</summary>
     Task<QwenModelManifest> LoadAsync(CancellationToken cancellationToken = default); }
 
+/// <summary>Loads bundled local vision model metadata.</summary>
+public interface ILocalVisionModelManifestProvider
+{
+    /// <summary>Loads and validates the manifest.</summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The local vision model manifest.</returns>
+    Task<LocalVisionModelManifest> LoadAsync(CancellationToken cancellationToken = default);
+}
+
 /// <summary>Loads bundled RapidOCR model metadata.</summary>
 public interface IRapidOcrModelManifestProvider
 {
@@ -100,6 +109,11 @@ public interface IQwenModelAssetManager
     QwenDownloadState State { get; }
     /// <summary>Gets the selected profile.</summary>
     Task<QwenModelProfile> GetProfileAsync(CancellationToken cancellationToken = default);
+    /// <summary>Gets a specific local vision model profile.</summary>
+    /// <param name="modelId">Model profile id.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The matching profile.</returns>
+    Task<QwenModelProfile> GetProfileAsync(string modelId, CancellationToken cancellationToken = default);
     /// <summary>Gets all selectable Qwen model profiles.</summary>
     Task<IReadOnlyList<QwenModelProfile>> GetProfilesAsync(CancellationToken cancellationToken = default);
     /// <summary>Checks installed assets, including hashes.</summary>
@@ -127,7 +141,15 @@ public interface IQwenModelAssetManager
     Task DeleteAsync(string modelId, CancellationToken cancellationToken = default);
     /// <summary>Gets installed model and projector paths.</summary>
     Task<QwenInstalledPaths> GetInstalledPathsAsync(CancellationToken cancellationToken = default);
+    /// <summary>Gets installed model and projector paths for a specific local vision model profile.</summary>
+    /// <param name="modelId">Model profile id.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The validated installed paths.</returns>
+    Task<QwenInstalledPaths> GetInstalledPathsAsync(string modelId, CancellationToken cancellationToken = default);
 }
+
+/// <summary>Installs and removes managed local vision model assets.</summary>
+public interface ILocalVisionModelAssetManager : IQwenModelAssetManager;
 /// <summary>Persists recognition settings.</summary>
 public interface ISmartBpRecognitionSettingsService
 {
@@ -191,6 +213,10 @@ public interface ILlamaCppServerManager
 {
     /// <summary>Gets whether the managed process is ready.</summary>
     bool IsRunning { get; }
+    /// <summary>Gets the server role.</summary>
+    LlamaVisionServerRole Role { get; }
+    /// <summary>Gets the configured server port.</summary>
+    int Port { get; }
     /// <summary>Gets a display status.</summary>
     string Status { get; }
     /// <summary>Gets the managed llama-server process identifier.</summary>
@@ -201,6 +227,39 @@ public interface ILlamaCppServerManager
     Task StopAsync();
     /// <summary>Force-stops the previously recorded managed llama-server process, if it is still alive.</summary>
     Task ForceStopManagedProcessAsync(CancellationToken cancellationToken = default);
+}
+
+/// <summary>Resolves managed llama.cpp server managers by role.</summary>
+public interface ILlamaCppServerManagerFactory
+{
+    /// <summary>Gets the manager for a server role.</summary>
+    /// <param name="role">Server role.</param>
+    /// <returns>The role-specific server manager.</returns>
+    ILlamaCppServerManager Get(LlamaVisionServerRole role);
+}
+
+/// <summary>Classifies the scene and phase without field extraction.</summary>
+public interface ISmartBpScenePhaseController
+{
+    /// <summary>Recognizes scene and phase from a frame.</summary>
+    /// <param name="frame">Source frame.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The scene and phase decision.</returns>
+    Task<SmartBpScenePhaseDecision> RecognizeAsync(BitmapSource frame, CancellationToken cancellationToken = default);
+}
+
+/// <summary>Extracts a raw text transcript using an AI OCR model.</summary>
+public interface ISmartBpAiOcrTranscriptRecognitionService
+{
+    /// <summary>Recognizes visible text lines from requested business regions.</summary>
+    /// <param name="frame">Source frame.</param>
+    /// <param name="regions">Requested regions and owning field names.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The raw AI OCR transcript.</returns>
+    Task<SmartBpAiOcrTranscriptResult> RecognizeAsync(
+        BitmapSource frame,
+        IReadOnlyList<(SmartBpRecognitionRegion Region, string Field)> regions,
+        CancellationToken cancellationToken = default);
 }
 /// <summary>Encodes WPF frames for multimodal requests.</summary>
 public interface ISmartBpImageEncoder { /// <summary>Encodes a PNG data URL.</summary>

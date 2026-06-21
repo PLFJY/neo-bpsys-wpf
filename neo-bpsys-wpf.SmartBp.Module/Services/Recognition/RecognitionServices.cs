@@ -995,7 +995,7 @@ internal sealed class LlamaCppOpenAiClient(ISmartBpRecognitionSettingsService se
     private async Task<string> SendSpecialAsync(JsonObject body, string taskLabel, CancellationToken token)
     {
         using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(settings.Settings.AiRequestTimeoutSeconds) };
-        var url = $"http://127.0.0.1:{settings.Settings.LlamaServerPort}/v1/chat/completions";
+        var url = $"http://127.0.0.1:{settings.Settings.BusinessAiServerPort}/v1/chat/completions";
         for (var attempt = 1; attempt <= 2; attempt++)
         {
             debugLog.Write("recognition", $"POST {url}; task={taskLabel}; max_tokens={body["max_tokens"]}; attempt={attempt}/2");
@@ -1040,7 +1040,7 @@ internal sealed class LlamaCppOpenAiClient(ISmartBpRecognitionSettingsService se
             ["chat_template_kwargs"] = new JsonObject { ["enable_thinking"] = false },
             ["messages"] = new JsonArray(new JsonObject { ["role"] = "system", ["content"] = profile.SystemPrompt }, new JsonObject { ["role"] = "user", ["content"] = new JsonArray(new JsonObject { ["type"] = "text", ["text"] = SmartBpRecognitionPromptBuilder.Build(task, shared.SurCharaDict.Keys, shared.HunCharaDict.Keys) }, new JsonObject { ["type"] = "image_url", ["image_url"] = new JsonObject { ["url"] = imageDataUrl } }) }),
             ["response_format"] = new JsonObject { ["type"] = "json_schema", ["json_schema"] = new JsonObject { ["name"] = "smartbp_result", ["strict"] = true, ["schema"] = SmartBpRecognitionJsonSchemaProvider.Get(task, shared.SurCharaDict.Keys.ToArray(), shared.HunCharaDict.Keys.ToArray()) } } };
-        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(settings.Settings.AiRequestTimeoutSeconds) }; var url = $"http://127.0.0.1:{settings.Settings.LlamaServerPort}/v1/chat/completions";
+        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(settings.Settings.AiRequestTimeoutSeconds) }; var url = $"http://127.0.0.1:{settings.Settings.BusinessAiServerPort}/v1/chat/completions";
         logger.LogInformation("Recognition request started. Task={Task}", task);
         for (var attempt = 1; attempt <= 2; attempt++)
         {

@@ -78,8 +78,12 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint
         services.AddSingleton<IOcrService, OcrService>();
         services.AddSingleton<ISmartBpService, SmartBpService>();
         services.AddSingleton<IQwenModelManifestProvider, QwenModelManifestProvider>();
+        services.AddSingleton<ILocalVisionModelManifestProvider>(provider =>
+            (ILocalVisionModelManifestProvider)provider.GetRequiredService<IQwenModelManifestProvider>());
         services.AddSingleton<ISmartBpRecognitionSettingsService, SmartBpRecognitionSettingsService>();
         services.AddSingleton<IQwenModelAssetManager, QwenModelAssetManager>();
+        services.AddSingleton<ILocalVisionModelAssetManager>(provider =>
+            (ILocalVisionModelAssetManager)provider.GetRequiredService<IQwenModelAssetManager>());
         services.AddSingleton<ISmartBpPromptProfileProvider, SmartBpPromptProfileProvider>();
         services.AddSingleton<ILlamaCppRuntimeAssetManager, LlamaCppRuntimeAssetManager>();
         services.AddSingleton<ILlamaCppRuntimeUpdateService, LlamaCppRuntimeUpdateService>();
@@ -96,6 +100,7 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint
         services.AddSingleton<ISmartBpOcrSnapshotDeltaRecognitionService, SmartBpOcrSnapshotDeltaRecognitionService>();
         services.AddSingleton<ILlamaCppOpenAiClient, LlamaCppOpenAiClient>();
         services.AddSingleton<ILlamaCppServerManager, LlamaCppServerManager>();
+        services.AddSingleton<ILlamaCppServerManagerFactory, LlamaCppServerManagerFactory>();
         services.AddSingleton<ISmartBpAiRecognitionService, SmartBpAiRecognitionService>();
         services.AddSingleton<ISmartBpGuidanceSyncService, SmartBpGuidanceSyncService>();
         services.AddSingleton<SmartBpCandidateOperationBuilder>();

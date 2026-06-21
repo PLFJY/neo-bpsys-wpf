@@ -13,11 +13,62 @@ public enum SmartBpRecognitionTask { DetectStage, BanSur, BanHun, PickSur, PickH
 /// <summary>Supported SmartBP BP recognition engines.</summary>
 public enum SmartBpRecognitionEngine { Ocr, AiQwen }
 
+/// <summary>First-class SmartBP recognition strategy selected by the coordinator and UI.</summary>
+public enum SmartBpRecognitionStrategy
+{
+    /// <summary>Use the selected local OCR provider only.</summary>
+    PureOcr,
+    /// <summary>Use the selected business vision model only.</summary>
+    PureAi,
+    /// <summary>Use business AI for scene and phase decisions, then local OCR for text extraction.</summary>
+    AiWithOcr,
+    /// <summary>Use business AI for scene and phase decisions, then a dedicated AI OCR model for text extraction.</summary>
+    AiWithAiOcr
+}
+
+/// <summary>Family of a managed local vision model.</summary>
+public enum LocalVisionModelFamily
+{
+    /// <summary>Qwen 3.5 vision-language models.</summary>
+    Qwen35,
+    /// <summary>GLM OCR models.</summary>
+    GlmOcr,
+    /// <summary>PaddleOCR-VL models.</summary>
+    PaddleOcrVl,
+    /// <summary>Custom or unknown local vision model family.</summary>
+    Custom
+}
+
+/// <summary>Role a local vision model is expected to serve.</summary>
+public enum LocalVisionModelRole
+{
+    /// <summary>Business VLM for scene, phase, and BP state recognition.</summary>
+    BusinessVlm,
+    /// <summary>AI OCR text extractor that should not own BP business interpretation.</summary>
+    AiOcrTextExtractor,
+    /// <summary>Model can be used for both business recognition and AI OCR extraction.</summary>
+    Both,
+    /// <summary>Role is unknown.</summary>
+    Unknown
+}
+
 /// <summary>Identifies the source used to download a Qwen model profile.</summary>
 public enum QwenModelSourceType { DirectUrl, HuggingFace }
 
 /// <summary>Describes how a Qwen vision projector is supplied.</summary>
 public enum QwenMmprojMode { Separate, Embedded, None }
+
+/// <summary>Describes how a local vision projector is supplied.</summary>
+public enum VisionProjectorMode { Separate, Embedded, None }
+
+/// <summary>Role of a managed llama.cpp vision server.</summary>
+public enum LlamaVisionServerRole
+{
+    /// <summary>Business AI server used for scene, phase, and BP business reasoning.</summary>
+    BusinessAi,
+    /// <summary>AI OCR server used only to extract visible text transcripts.</summary>
+    AiOcr
+}
 
 /// <summary>Fine-grained Identity V scene used to gate BP recognition.</summary>
 public enum SmartBpRecognitionScene
@@ -34,6 +85,25 @@ public sealed record SmartBpSceneGateResult(
     bool IsCharacterOperationAllowed,
     bool ShouldPauseAutomaticRecognition,
     string Reason);
+
+/// <summary>Decision produced by the scene/phase controller.</summary>
+public sealed class SmartBpScenePhaseDecision
+{
+    /// <summary>Gets the recognized scene.</summary>
+    public SmartBpRecognitionScene Scene { get; init; }
+    /// <summary>Gets the recognized phase text.</summary>
+    public string Phase { get; init; } = "未知";
+    /// <summary>Gets whether BP recognition is allowed in this scene.</summary>
+    public bool BpRecognitionAllowed { get; init; }
+    /// <summary>Gets whether character operations are allowed in this scene.</summary>
+    public bool CharacterOperationAllowed { get; init; }
+    /// <summary>Gets whether automatic recognition should pause.</summary>
+    public bool ShouldPauseAutomaticRecognition { get; init; }
+    /// <summary>Gets recommended business fields for the next extraction step.</summary>
+    public IReadOnlyList<string> RecommendedFields { get; init; } = [];
+    /// <summary>Gets a human-readable decision reason.</summary>
+    public string Reason { get; init; } = "";
+}
 
 /// <summary>Controls how recognized operations are reconciled with the current game.</summary>
 public enum SmartBpRecognitionApplyMode
@@ -127,6 +197,15 @@ public sealed class QwenModelManifest
     public List<QwenModelProfile> Models { get; set; } = [];
 }
 
+/// <summary>Local vision model manifest root.</summary>
+public sealed class LocalVisionModelManifest
+{
+    /// <summary>Gets or sets the schema version.</summary>
+    public int SchemaVersion { get; set; }
+    /// <summary>Gets or sets model profiles.</summary>
+    public List<LocalVisionModelProfile> Models { get; set; } = [];
+}
+
 /// <summary>One Qwen model and its matching vision projector.</summary>
 public sealed class QwenModelProfile
 {
@@ -134,6 +213,10 @@ public sealed class QwenModelProfile
     public string Id { get; set; } = "";
     /// <summary>Gets or sets the display name.</summary>
     public string DisplayName { get; set; } = "";
+    /// <summary>Gets or sets the model family.</summary>
+    public LocalVisionModelFamily Family { get; set; } = LocalVisionModelFamily.Custom;
+    /// <summary>Gets or sets the intended model role.</summary>
+    public LocalVisionModelRole Role { get; set; } = LocalVisionModelRole.Unknown;
     /// <summary>Gets or sets the model source type.</summary>
     public QwenModelSourceType SourceType { get; set; } = QwenModelSourceType.DirectUrl;
     /// <summary>Gets or sets the model URL for direct URL profiles.</summary>
@@ -150,12 +233,75 @@ public sealed class QwenModelProfile
     public string HuggingFaceRevision { get; set; } = "main";
     /// <summary>Gets or sets how the vision projector is supplied.</summary>
     public QwenMmprojMode MmprojMode { get; set; } = QwenMmprojMode.Separate;
+    /// <summary>Gets or sets how the vision projector is supplied using the generic local vision terminology.</summary>
+    public VisionProjectorMode ProjectorMode
+    {
+        get => MmprojMode switch
+        {
+            QwenMmprojMode.Separate => VisionProjectorMode.Separate,
+            QwenMmprojMode.Embedded => VisionProjectorMode.Embedded,
+            QwenMmprojMode.None => VisionProjectorMode.None,
+            _ => VisionProjectorMode.Separate
+        };
+        set => MmprojMode = value switch
+        {
+            VisionProjectorMode.Separate => QwenMmprojMode.Separate,
+            VisionProjectorMode.Embedded => QwenMmprojMode.Embedded,
+            VisionProjectorMode.None => QwenMmprojMode.None,
+            _ => QwenMmprojMode.Separate
+        };
+    }
     /// <summary>Gets or sets whether Chinese UI should prefer the HuggingFace mirror.</summary>
     public bool UseHuggingFaceMirrorForChineseUi { get; set; } = true;
     /// <summary>Gets or sets the optional model hash.</summary>
     public string? Sha256 { get; set; }
     /// <summary>Gets or sets the optional projector hash.</summary>
     public string? MmprojSha256 { get; set; }
+    /// <summary>Gets or sets whether this profile is the recommended default for its role.</summary>
+    public bool Recommended { get; set; }
+    /// <summary>Gets or sets whether this profile is experimental.</summary>
+    public bool Experimental { get; set; }
+    /// <summary>Gets or sets the default structured-output mode for this model.</summary>
+    public AiStructuredOutputMode DefaultStructuredOutputMode { get; set; } = AiStructuredOutputMode.JsonPromptAndRepair;
+}
+
+/// <summary>One local vision model and its matching vision projector.</summary>
+public sealed class LocalVisionModelProfile
+{
+    /// <summary>Gets or sets the profile id.</summary>
+    public string Id { get; set; } = "";
+    /// <summary>Gets or sets the display name.</summary>
+    public string DisplayName { get; set; } = "";
+    /// <summary>Gets or sets the model family.</summary>
+    public LocalVisionModelFamily Family { get; set; } = LocalVisionModelFamily.Custom;
+    /// <summary>Gets or sets the intended model role.</summary>
+    public LocalVisionModelRole Role { get; set; } = LocalVisionModelRole.Unknown;
+    /// <summary>Gets or sets the model source type.</summary>
+    public QwenModelSourceType SourceType { get; set; } = QwenModelSourceType.DirectUrl;
+    /// <summary>Gets or sets the model URL for direct URL profiles.</summary>
+    public string ModelUrl { get; set; } = "";
+    /// <summary>Gets or sets the model filename.</summary>
+    public string ModelFileName { get; set; } = "";
+    /// <summary>Gets or sets the projector URL.</summary>
+    public string? MmprojUrl { get; set; }
+    /// <summary>Gets or sets the projector filename.</summary>
+    public string? MmprojFileName { get; set; }
+    /// <summary>Gets or sets the HuggingFace repository id.</summary>
+    public string? HuggingFaceRepoId { get; set; }
+    /// <summary>Gets or sets the HuggingFace revision.</summary>
+    public string HuggingFaceRevision { get; set; } = "main";
+    /// <summary>Gets or sets how the vision projector is supplied.</summary>
+    public VisionProjectorMode ProjectorMode { get; set; } = VisionProjectorMode.Separate;
+    /// <summary>Gets or sets the optional model hash.</summary>
+    public string? Sha256 { get; set; }
+    /// <summary>Gets or sets the optional projector hash.</summary>
+    public string? MmprojSha256 { get; set; }
+    /// <summary>Gets or sets whether this profile is the recommended default for its role.</summary>
+    public bool Recommended { get; set; }
+    /// <summary>Gets or sets whether this profile is experimental.</summary>
+    public bool Experimental { get; set; }
+    /// <summary>Gets or sets the default structured-output mode for this model.</summary>
+    public AiStructuredOutputMode DefaultStructuredOutputMode { get; set; } = AiStructuredOutputMode.JsonPromptAndRepair;
 }
 
 /// <summary>Root document for managed RapidOCR model profiles.</summary>
@@ -259,6 +405,10 @@ public sealed class SmartBpRecognitionSettings
     public string LlamaServerExecutablePath { get; set; } = "";
     /// <summary>Gets or sets the loopback port.</summary>
     public int LlamaServerPort { get; set; } = 18080;
+    /// <summary>Gets or sets the business AI server port.</summary>
+    public int BusinessAiServerPort { get; set; } = 18080;
+    /// <summary>Gets or sets the AI OCR server port.</summary>
+    public int AiOcrServerPort { get; set; } = 18081;
     /// <summary>Gets or sets the timeout for one llama.cpp inference request.</summary>
     public int AiRequestTimeoutSeconds { get; set; } = 35;
     /// <summary>Gets or sets the timeout for llama.cpp startup.</summary>
@@ -271,6 +421,12 @@ public sealed class SmartBpRecognitionSettings
     public int LlamaContextSize { get; set; } = 8192;
     /// <summary>Gets or sets selected Qwen profile.</summary>
     public string SelectedQwenModelId { get; set; } = "qwen3.5-2b-q4km";
+    /// <summary>Gets or sets the selected business local vision model profile.</summary>
+    public string SelectedBusinessAiModelId { get; set; } = "qwen3.5-2b-q4km";
+    /// <summary>Gets or sets the selected AI OCR local vision model profile.</summary>
+    public string SelectedAiOcrModelId { get; set; } = "paddleocr-vl-1.6-gguf";
+    /// <summary>Gets or sets whether AI OCR should use its own llama.cpp server when models differ.</summary>
+    public bool UseSeparateAiOcrServer { get; set; } = true;
     /// <summary>Gets or sets the selected projector profile label.</summary>
     public string SelectedMmprojId { get; set; } = "mmproj-f16";
     /// <summary>Gets or sets the bundled prompt profile id.</summary>
@@ -331,6 +487,8 @@ public sealed class SmartBpRecognitionSettings
     public AiStructuredOutputMode StructuredOutputMode { get; set; } = AiStructuredOutputMode.JsonSchemaStrict;
     /// <summary>Gets or sets the selected BP recognition engine.</summary>
     public SmartBpRecognitionEngine RecognitionEngine { get; set; } = SmartBpRecognitionEngine.Ocr;
+    /// <summary>Gets or sets the selected SmartBP recognition strategy.</summary>
+    public SmartBpRecognitionStrategy RecognitionStrategy { get; set; } = SmartBpRecognitionStrategy.PureOcr;
     /// <summary>Gets or sets whether OCR BP recognition is enabled.</summary>
     public bool EnableOcrBpRecognition { get; set; } = true;
     /// <summary>Gets or sets the OCR BP loop interval.</summary>
@@ -355,6 +513,8 @@ public sealed class SmartBpRecognitionSettings
     public bool EnableOcrDebugOverlay { get; set; }
     /// <summary>Gets or sets the explicitly selected OCR provider.</summary>
     public SmartBpOcrProviderMode OcrProviderMode { get; set; } = SmartBpOcrProviderMode.Paddle;
+    /// <summary>Gets or sets the explicitly selected OCR provider for strategy-based recognition.</summary>
+    public SmartBpOcrProviderMode SelectedOcrProviderMode { get; set; } = SmartBpOcrProviderMode.Paddle;
     /// <summary>Gets or sets the selected managed RapidOCR profile id.</summary>
     public string SelectedRapidOcrModelId { get; set; } = "ppocr-v5-zh-mobile";
     /// <summary>Gets or sets RapidOCR detector input padding.</summary>
@@ -792,6 +952,24 @@ public sealed class SmartBpOcrRecognitionResult
     /// <summary>Gets OCR text grouped by coarse region.</summary>
     public IReadOnlyList<SmartBpOcrRegionText> Regions { get; init; } = [];
     /// <summary>Gets bounded recognition diagnostics.</summary>
+    public IReadOnlyList<string> Diagnostics { get; init; } = [];
+}
+
+/// <summary>One text line returned by an AI OCR model.</summary>
+public sealed class SmartBpAiOcrTranscriptLine
+{
+    /// <summary>Gets or sets recognized visible text.</summary>
+    public string Text { get; set; } = "";
+}
+
+/// <summary>AI OCR transcript recognition result.</summary>
+public sealed class SmartBpAiOcrTranscriptResult
+{
+    /// <summary>Gets recognized transcript lines.</summary>
+    public IReadOnlyList<SmartBpAiOcrTranscriptLine> Lines { get; init; } = [];
+    /// <summary>Gets raw JSON returned by the AI OCR model.</summary>
+    public string RawJson { get; init; } = "";
+    /// <summary>Gets bounded diagnostics.</summary>
     public IReadOnlyList<string> Diagnostics { get; init; } = [];
 }
 

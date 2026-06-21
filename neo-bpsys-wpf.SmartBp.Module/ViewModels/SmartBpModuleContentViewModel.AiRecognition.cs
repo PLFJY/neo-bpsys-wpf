@@ -113,13 +113,16 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty] private int _aiUnknownPhaseTalentInferenceFrames = 2;
     [ObservableProperty] private bool _playBackfillAnimations;
     [ObservableProperty] private bool _useMultiImageSnapshotRequest;
-    [ObservableProperty] private IReadOnlyList<RecognitionEngineSelection> _recognitionEngines = [];
-    [ObservableProperty] private RecognitionEngineSelection? _selectedRecognitionEngine;
+    [ObservableProperty] private IReadOnlyList<RecognitionStrategySelection> _recognitionStrategies = [];
+    [ObservableProperty] private RecognitionStrategySelection? _selectedRecognitionStrategy;
     [ObservableProperty] private bool _isOcrRecognitionEngine = true;
     [ObservableProperty] private bool _isAiQwenRecognitionEngine;
     [ObservableProperty] private bool _isPaddleRecognitionEngine = true;
     [ObservableProperty] private bool _isTesseractRecognitionEngine;
     [ObservableProperty] private bool _isRapidRecognitionEngine;
+    [ObservableProperty] private bool _isBusinessAiModelVisible;
+    [ObservableProperty] private bool _isOcrProviderCardVisible = true;
+    [ObservableProperty] private bool _isAiOcrModelVisible;
     [ObservableProperty] private bool _enableOcrBpRecognition = true;
     [ObservableProperty] private int _recognitionIntervalMs;
     [ObservableProperty] private int _ocrRecognitionIntervalMs;
@@ -214,16 +217,15 @@ public partial class SmartBpModuleContentViewModel
     private void InitializeAiRecognition()
     {
         SelectedAiTestFrame = AiTestFrames[0];
-        RecognitionEngines =
+        RecognitionStrategies =
         [
-            new(SmartBpRecognitionEngine.Ocr, SmartBpOcrProviderMode.Paddle, "SmartBpRecognitionEnginePaddle"),
-            new(SmartBpRecognitionEngine.Ocr, SmartBpOcrProviderMode.Tesseract, "SmartBpRecognitionEngineTesseract"),
-            new(SmartBpRecognitionEngine.Ocr, SmartBpOcrProviderMode.Rapid, "SmartBpRecognitionEngineRapid"),
-            new(SmartBpRecognitionEngine.AiQwen, null, "SmartBpRecognitionEngineAiQwenExperimental")
+            new(SmartBpRecognitionStrategy.PureOcr, "SmartBpRecognitionStrategyPureOcr"),
+            new(SmartBpRecognitionStrategy.PureAi, "SmartBpRecognitionStrategyPureAi"),
+            new(SmartBpRecognitionStrategy.AiWithOcr, "SmartBpRecognitionStrategyAiWithOcr"),
+            new(SmartBpRecognitionStrategy.AiWithAiOcr, "SmartBpRecognitionStrategyAiWithAiOcr")
         ];
-        SelectedRecognitionEngine = RecognitionEngines.FirstOrDefault(x => x.Engine == _recognitionSettingsService.Settings.RecognitionEngine &&
-            (x.Engine == SmartBpRecognitionEngine.AiQwen || x.OcrProviderMode == _recognitionSettingsService.Settings.OcrProviderMode))
-                                    ?? RecognitionEngines.FirstOrDefault();
+        SelectedRecognitionStrategy = RecognitionStrategies.FirstOrDefault(x => x.Strategy == _recognitionSettingsService.Settings.RecognitionStrategy)
+                                      ?? RecognitionStrategies.FirstOrDefault();
         RefreshRecognitionEngineVisibility();
         QwenManifestStatus = ResolveLocalizedOrRaw("SmartBpAiStatusLoading");
         LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusStopped");
@@ -245,11 +247,11 @@ public partial class SmartBpModuleContentViewModel
         EnableOcrDebugOverlay = _recognitionSettingsService.Settings.EnableOcrDebugOverlay;
         OcrProviders =
         [
-            new(SmartBpOcrProviderMode.Paddle, "Paddle OCR"),
-            new(SmartBpOcrProviderMode.Tesseract, "Tesseract OCR"),
-            new(SmartBpOcrProviderMode.Rapid, "RapidOCR")
+            new(SmartBpOcrProviderMode.Paddle, "PaddleOCR"),
+            new(SmartBpOcrProviderMode.Rapid, "RapidOCR"),
+            new(SmartBpOcrProviderMode.Tesseract, "Tesseract OCR")
         ];
-        SelectedOcrProvider = OcrProviders.First(item => item.Mode == _recognitionSettingsService.Settings.OcrProviderMode);
+        SelectedOcrProvider = OcrProviders.First(item => item.Mode == _recognitionSettingsService.Settings.SelectedOcrProviderMode);
         TesseractLanguages = _recognitionSettingsService.Settings.TesseractLanguages;
         TesseractLanguageOptions = _tesseractDataAssetManager.GetAvailableLanguages()
             .Select(asset => new TesseractLanguageSelection(asset.Language, asset.DisplayNameKey))
@@ -456,7 +458,7 @@ public partial class SmartBpModuleContentViewModel
             AiPromptProfiles = await _promptProfileProvider.GetAvailableProfilesAsync();
             SelectedAiPromptProfile = AiPromptProfiles.FirstOrDefault(x => x.Id == _recognitionSettingsService.Settings.PromptProfileId) ?? AiPromptProfiles.FirstOrDefault();
             QwenModelProfiles = await _qwenAssetManager.GetProfilesAsync();
-            SelectedQwenModelProfile = QwenModelProfiles.FirstOrDefault(x => x.Id == _recognitionSettingsService.Settings.SelectedQwenModelId) ?? QwenModelProfiles.FirstOrDefault();
+            SelectedQwenModelProfile = QwenModelProfiles.FirstOrDefault(x => x.Id == _recognitionSettingsService.Settings.SelectedBusinessAiModelId) ?? QwenModelProfiles.FirstOrDefault();
             await RefreshSelectedQwenModelInstallStatusAsync();
             // Llama.cpp assets are already loaded eagerly in InitializeAiRecognition; fall back if that failed.
             if (LlamaRuntimeAssets.Count == 0)
@@ -556,19 +558,22 @@ public partial class SmartBpModuleContentViewModel
 
     private void RefreshRecognitionEngineVisibility()
     {
-        var engine = SelectedRecognitionEngine?.Engine ?? _recognitionSettingsService.Settings.RecognitionEngine;
-        IsOcrRecognitionEngine = engine == SmartBpRecognitionEngine.Ocr;
-        IsAiQwenRecognitionEngine = engine == SmartBpRecognitionEngine.AiQwen;
-        var provider = SelectedRecognitionEngine?.OcrProviderMode ?? _recognitionSettingsService.Settings.OcrProviderMode;
-        IsPaddleRecognitionEngine = engine == SmartBpRecognitionEngine.Ocr && provider == SmartBpOcrProviderMode.Paddle;
-        IsTesseractRecognitionEngine = engine == SmartBpRecognitionEngine.Ocr && provider == SmartBpOcrProviderMode.Tesseract;
-        IsRapidRecognitionEngine = engine == SmartBpRecognitionEngine.Ocr && provider == SmartBpOcrProviderMode.Rapid;
+        var strategy = SelectedRecognitionStrategy?.Strategy ?? _recognitionSettingsService.Settings.RecognitionStrategy;
+        IsOcrRecognitionEngine = strategy is SmartBpRecognitionStrategy.PureOcr or SmartBpRecognitionStrategy.AiWithOcr;
+        IsAiQwenRecognitionEngine = strategy is SmartBpRecognitionStrategy.PureAi or SmartBpRecognitionStrategy.AiWithOcr or SmartBpRecognitionStrategy.AiWithAiOcr;
+        IsBusinessAiModelVisible = IsAiQwenRecognitionEngine;
+        IsOcrProviderCardVisible = strategy is SmartBpRecognitionStrategy.PureOcr or SmartBpRecognitionStrategy.AiWithOcr;
+        IsAiOcrModelVisible = strategy == SmartBpRecognitionStrategy.AiWithAiOcr;
+        var provider = SelectedOcrProvider?.Mode ?? _recognitionSettingsService.Settings.SelectedOcrProviderMode;
+        IsPaddleRecognitionEngine = IsOcrProviderCardVisible && provider == SmartBpOcrProviderMode.Paddle;
+        IsTesseractRecognitionEngine = IsOcrProviderCardVisible && provider == SmartBpOcrProviderMode.Tesseract;
+        IsRapidRecognitionEngine = IsOcrProviderCardVisible && provider == SmartBpOcrProviderMode.Rapid;
         RefreshRecognitionTimerInterval();
     }
 
     private void RefreshRecognitionTimerInterval()
     {
-        var interval = _recognitionSettingsService.Settings.RecognitionEngine == SmartBpRecognitionEngine.Ocr
+        var interval = _recognitionSettingsService.Settings.RecognitionStrategy == SmartBpRecognitionStrategy.PureOcr
             ? _recognitionSettingsService.Settings.OcrRecognitionIntervalMs
             : _recognitionSettingsService.Settings.RecognitionIntervalMs;
         _aiPreviewTimer.Interval = TimeSpan.FromMilliseconds(Math.Clamp(interval, 100, 5000));
@@ -597,7 +602,7 @@ public partial class SmartBpModuleContentViewModel
             var testFrame = SelectedAiTestFrame ?? AiTestFrames.FirstOrDefault();
             if (testFrame == null) throw new InvalidOperationException("No SmartBP recognition test frame is available.");
             var frame = LoadTestFrame(testFrame);
-            if (_recognitionSettingsService.Settings.RecognitionEngine == SmartBpRecognitionEngine.AiQwen)
+            if (_recognitionSettingsService.Settings.RecognitionStrategy != SmartBpRecognitionStrategy.PureOcr)
             {
                 if (!_llamaServerManager.IsRunning) throw new InvalidOperationException("Start llama-server before testing AI recognition speed.");
                 var watch = Stopwatch.StartNew();
@@ -619,7 +624,7 @@ public partial class SmartBpModuleContentViewModel
             }
             var minimum = checked((int)Math.Min(int.MaxValue, elapsed.Max() + 250));
             var settings = _recognitionSettingsService.Settings;
-            if (settings.RecognitionEngine == SmartBpRecognitionEngine.Ocr)
+            if (settings.RecognitionStrategy == SmartBpRecognitionStrategy.PureOcr)
             {
                 settings.MinimumOcrRecognitionIntervalMs = minimum;
                 settings.OcrRecognitionIntervalMs = Math.Max(settings.OcrRecognitionIntervalMs, minimum);
@@ -645,7 +650,7 @@ public partial class SmartBpModuleContentViewModel
     private string GetRecognitionSpeedFingerprint()
     {
         var s = _recognitionSettingsService.Settings;
-        return $"{s.RecognitionEngine}|{s.OcrProviderMode}|{s.SelectedQwenModelId}|{s.SelectedLlamaRuntimeId}|{s.PromptProfileId}|{s.UseOcrContactSheet}|{s.TesseractLanguages}|{s.TesseractDefaultPsm}|{s.TesseractMaxPreprocessVariants}|{s.SelectedRapidOcrModelId}|{s.RapidOcrPadding}|{s.RapidOcrMaxSideLen}|{s.RapidOcrBoxScoreThreshold}|{s.RapidOcrBoxThreshold}|{s.RapidOcrUnclipRatio}|{s.RapidOcrUseAngleClassifier}|{s.RapidOcrUsePreprocessingVariants}|{s.UseMultiImageSnapshotRequest}|{s.AllowSequentialSnapshotFallback}|{s.UseStrictCandidateEnumsInAutoSchema}|{s.PhaseCropMaxImageWidth}|{s.ContentCropMaxImageWidth}|{s.PhaseMaxTokens}|{s.SnapshotDeltaMaxTokens}|{s.PhaseTransitionCommitHoldMilliseconds}|{s.PhaseTransitionCommitHoldMaxMilliseconds}|{s.RecognitionVisualBufferMilliseconds}|{s.LlamaParallelSlots}|{s.LlamaGpuLayers}|{s.LlamaBatchSize}|{s.LlamaUBatchSize}|{s.LlamaFlashAttention}";
+        return $"{s.RecognitionStrategy}|{s.SelectedOcrProviderMode}|{s.SelectedBusinessAiModelId}|{s.SelectedAiOcrModelId}|{s.UseSeparateAiOcrServer}|{s.BusinessAiServerPort}|{s.AiOcrServerPort}|{s.SelectedLlamaRuntimeId}|{s.PromptProfileId}|{s.UseOcrContactSheet}|{s.TesseractLanguages}|{s.TesseractDefaultPsm}|{s.TesseractMaxPreprocessVariants}|{s.SelectedRapidOcrModelId}|{s.RapidOcrPadding}|{s.RapidOcrMaxSideLen}|{s.RapidOcrBoxScoreThreshold}|{s.RapidOcrBoxThreshold}|{s.RapidOcrUnclipRatio}|{s.RapidOcrUseAngleClassifier}|{s.RapidOcrUsePreprocessingVariants}|{s.UseMultiImageSnapshotRequest}|{s.AllowSequentialSnapshotFallback}|{s.UseStrictCandidateEnumsInAutoSchema}|{s.PhaseCropMaxImageWidth}|{s.ContentCropMaxImageWidth}|{s.PhaseMaxTokens}|{s.SnapshotDeltaMaxTokens}|{s.PhaseTransitionCommitHoldMilliseconds}|{s.PhaseTransitionCommitHoldMaxMilliseconds}|{s.RecognitionVisualBufferMilliseconds}|{s.LlamaParallelSlots}|{s.LlamaGpuLayers}|{s.LlamaBatchSize}|{s.LlamaUBatchSize}|{s.LlamaFlashAttention}";
     }
 
     private void RefreshRecognitionSpeedTestValidity()
@@ -654,10 +659,10 @@ public partial class SmartBpModuleContentViewModel
         IsRecognitionIntervalEditable = string.Equals(
             settings.LastRecognitionSpeedTestConfigurationHash,
             GetRecognitionSpeedFingerprint(), StringComparison.Ordinal);
-        CurrentRecognitionEngineText = settings.RecognitionEngine == SmartBpRecognitionEngine.Ocr ? "OCR" : "AI / Qwen";
-        CurrentRecognitionIntervalMs = settings.RecognitionEngine == SmartBpRecognitionEngine.Ocr
+        CurrentRecognitionEngineText = settings.RecognitionStrategy.ToString();
+        CurrentRecognitionIntervalMs = settings.RecognitionStrategy == SmartBpRecognitionStrategy.PureOcr
             ? settings.OcrRecognitionIntervalMs : settings.RecognitionIntervalMs;
-        MinimumRecognitionIntervalMs = settings.RecognitionEngine == SmartBpRecognitionEngine.Ocr
+        MinimumRecognitionIntervalMs = settings.RecognitionStrategy == SmartBpRecognitionStrategy.PureOcr
             ? settings.MinimumOcrRecognitionIntervalMs : settings.MinimumAiRecognitionIntervalMs;
         RecognitionIntervalEditHint = IsRecognitionIntervalEditable
             ? ResolveLocalizedOrRaw("SmartBpRecognitionIntervalReady")
@@ -777,7 +782,7 @@ public partial class SmartBpModuleContentViewModel
         try
         {
             var frame = LoadTestFrame(SelectedAiTestFrame);
-            if (_recognitionSettingsService.Settings.RecognitionEngine == SmartBpRecognitionEngine.Ocr)
+            if (_recognitionSettingsService.Settings.RecognitionStrategy == SmartBpRecognitionStrategy.PureOcr)
                 await RunOcrSelectedTestFrameCoreAsync(frame, SelectedAiTestFrame.Task);
             else
                 await RunRegionGatedFrameCoreAsync(frame);
@@ -1255,12 +1260,12 @@ public partial class SmartBpModuleContentViewModel
     private bool CanSwitchSelectedQwenModel() =>
         !IsQwenDownloading &&
         SelectedQwenModelProfile != null &&
-        !string.Equals(SelectedQwenModelProfile.Id, _recognitionSettingsService.Settings.SelectedQwenModelId, StringComparison.Ordinal);
+        !string.Equals(SelectedQwenModelProfile.Id, _recognitionSettingsService.Settings.SelectedBusinessAiModelId, StringComparison.Ordinal);
 
     private async Task SwitchQwenModelAsync(QwenModelProfile value)
     {
         _isSwitchingQwenModel = true;
-        var oldId = _recognitionSettingsService.Settings.SelectedQwenModelId;
+        var oldId = _recognitionSettingsService.Settings.SelectedBusinessAiModelId;
         try
         {
             var restart = _llamaServerManager.IsRunning;
@@ -1277,6 +1282,7 @@ public partial class SmartBpModuleContentViewModel
                 }
                 await _llamaServerManager.StopAsync();
             }
+            _recognitionSettingsService.Settings.SelectedBusinessAiModelId = value.Id;
             _recognitionSettingsService.Settings.SelectedQwenModelId = value.Id;
             RefreshRecognitionSpeedTestValidity();
             await SaveQwenSelectionAsync();
@@ -1431,21 +1437,19 @@ public partial class SmartBpModuleContentViewModel
         await RefreshLlamaRuntimeStatusAsync();
     }
 
-    partial void OnSelectedRecognitionEngineChanged(RecognitionEngineSelection? value)
+    partial void OnSelectedRecognitionStrategyChanged(RecognitionStrategySelection? value)
     {
         if (value == null)
             return;
 
-        _recognitionSettingsService.Settings.RecognitionEngine = value.Engine;
-        if (value.OcrProviderMode is { } provider)
-        {
-            _recognitionSettingsService.Settings.OcrProviderMode = provider;
-            SelectedOcrProvider = OcrProviders.FirstOrDefault(item => item.Mode == provider);
-        }
+        _recognitionSettingsService.Settings.RecognitionStrategy = value.Strategy;
+        _recognitionSettingsService.Settings.RecognitionEngine = value.Strategy == SmartBpRecognitionStrategy.PureOcr
+            ? SmartBpRecognitionEngine.Ocr
+            : SmartBpRecognitionEngine.AiQwen;
         RefreshRecognitionEngineVisibility();
         RefreshRecognitionSpeedTestValidity();
         _ = _recognitionSettingsService.SaveAsync();
-        _aiDebugLog.Write("Recognition", $"Recognition engine switched to {value.Engine}.");
+        _aiDebugLog.Write("Recognition", $"Recognition strategy switched to {value.Strategy}.");
     }
 
     partial void OnEnableOcrBpRecognitionChanged(bool value)
@@ -1500,7 +1504,9 @@ public partial class SmartBpModuleContentViewModel
     partial void OnSelectedOcrProviderChanged(OcrProviderSelection? value)
     {
         if (value == null) return;
+        _recognitionSettingsService.Settings.SelectedOcrProviderMode = value.Mode;
         _recognitionSettingsService.Settings.OcrProviderMode = value.Mode;
+        RefreshRecognitionEngineVisibility();
         RefreshRecognitionSpeedTestValidity();
         RefreshOcrProviderStatuses();
         _ = _recognitionSettingsService.SaveAsync();
@@ -1691,12 +1697,11 @@ public partial class SmartBpModuleContentViewModel
     }
 
     /// <summary>
-    /// Recognition engine combo-box item.
+    /// Recognition strategy combo-box item.
     /// </summary>
-    /// <param name="Engine">Engine value.</param>
+    /// <param name="Strategy">Strategy value.</param>
     /// <param name="DisplayNameKey">Localized display name key.</param>
-    public sealed record RecognitionEngineSelection(SmartBpRecognitionEngine Engine,
-        SmartBpOcrProviderMode? OcrProviderMode, string DisplayNameKey);
+    public sealed record RecognitionStrategySelection(SmartBpRecognitionStrategy Strategy, string DisplayNameKey);
 
     /// <summary>One selectable OCR provider.</summary>
     /// <param name="Mode">Persisted provider mode.</param>
