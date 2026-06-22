@@ -4082,8 +4082,16 @@
     <value>将样式应用到所有地图卡片</value>
   </data>
   <data name="Designer.MapV2Display.ApplyStyleToAllDescription" xml:space="preserve">
-    <value>复制当前地图卡片的大小、文字样式、地图外框、选图边框样式和行为；保留其他卡片的位置、文字内容、地图绑定和布局属性。</value>
+    <value>复制当前地图卡片的大小、内部部件位置和尺寸、文字样式、地图外框、选图边框样式和行为；保留其他卡片的位置、文字内容、地图绑定和顶层布局属性。</value>
   </data>
+  <data name="Designer.MapV2Display.EditInternalStyle" xml:space="preserve"><value>编辑控件内部样式</value></data>
+  <data name="Designer.MapV2Display.InternalParts" xml:space="preserve"><value>内部部件</value></data>
+  <data name="Designer.MapV2Display.SelectedInternalPart" xml:space="preserve"><value>MapV2Display 内部部件</value></data>
+  <data name="Designer.MapV2Display.Part.TeamName" xml:space="preserve"><value>队伍名称</value></data>
+  <data name="Designer.MapV2Display.Part.MapCard" xml:space="preserve"><value>地图卡片</value></data>
+  <data name="Designer.MapV2Display.Part.MapName" xml:space="preserve"><value>地图名称</value></data>
+  <data name="Designer.MapV2Display.Part.CampName" xml:space="preserve"><value>阵营名称</value></data>
+  <data name="Designer.MapV2Display.Part.PickingBorder" xml:space="preserve"><value>选图边框</value></data>
   <data name="Designer.MapV2Display.StyleAppliedToAll" xml:space="preserve">
     <value>已将样式和行为应用到当前画布中的所有地图卡片。</value>
   </data>

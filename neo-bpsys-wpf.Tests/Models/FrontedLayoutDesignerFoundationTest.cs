@@ -2207,6 +2207,68 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
+    public void MapV2DisplayInternalStyleEditorFiltersFixedChildPartPropertiesAndEditsParentConfig()
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = "Map",
+            Config = new MapV2DisplayControlConfig
+            {
+                TeamNameColor = "#FFFFFFFF",
+                MapBorderNormalColor = "#FF112233"
+            }
+        };
+        var document = CreateDocument([item]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        viewModel.SelectDesignItem(item);
+
+        viewModel.ToggleMapV2InternalStyleEditorCommand.Execute(null);
+
+        Assert.True(viewModel.IsMapV2InternalStyleEditorVisible);
+        Assert.Equal(MapV2InternalStylePart.TeamName, viewModel.SelectedMapV2InternalStylePart?.Part);
+        Assert.Equal(
+            [
+                nameof(MapV2InternalPartLayoutConfig.X),
+                nameof(MapV2InternalPartLayoutConfig.Y),
+                nameof(MapV2InternalPartLayoutConfig.Width),
+                nameof(MapV2InternalPartLayoutConfig.Height),
+                nameof(MapV2DisplayControlConfig.TeamNameFontFamily),
+                nameof(MapV2DisplayControlConfig.TeamNameFontWeight),
+                nameof(MapV2DisplayControlConfig.TeamNameColor),
+                nameof(MapV2DisplayControlConfig.TeamNameFontSize)
+            ],
+            viewModel.PropertyEditorItems.Select(row => row.PropertyName).ToArray());
+
+        viewModel.MoveSelectedDesignItemBy(1, 1);
+        Assert.True(document.IsDirty);
+        Assert.True(viewModel.CanUndo);
+
+        var colorRow = viewModel.PropertyEditorItems.Single(row =>
+            row.PropertyName == nameof(MapV2DisplayControlConfig.TeamNameColor));
+        Assert.True(viewModel.ApplyPropertyEdit(colorRow, "#FF010203"));
+        Assert.Equal("#FF010203", ((MapV2DisplayControlConfig)item.Config).TeamNameColor);
+
+        viewModel.SelectedMapV2InternalStylePart = viewModel.MapV2InternalStylePartOptions.Single(option =>
+            option.Part == MapV2InternalStylePart.MapCard);
+
+        Assert.Equal(
+            [
+                nameof(MapV2InternalPartLayoutConfig.X),
+                nameof(MapV2InternalPartLayoutConfig.Y),
+                nameof(MapV2InternalPartLayoutConfig.Width),
+                nameof(MapV2InternalPartLayoutConfig.Height),
+                nameof(MapV2DisplayControlConfig.MapBorderNormalColor),
+                nameof(MapV2DisplayControlConfig.MapBorderBannedColor)
+            ],
+            viewModel.PropertyEditorItems.Select(row => row.PropertyName).ToArray());
+
+        viewModel.ToggleMapV2InternalStyleEditorCommand.Execute(null);
+        Assert.False(viewModel.IsMapV2InternalStyleEditorVisible);
+        Assert.Null(viewModel.SelectedMapV2InternalStylePart);
+        Assert.Contains(viewModel.PropertyEditorItems, row => row.PropertyName == nameof(FrontedControlConfigBase.Left));
+    }
+
+    [Fact]
     public void MapV2DisplayStyleCanApplyToAllSameTypeControlsIncludingSizeWithoutChangingPositionOrBinding()
     {
         var source = new FrontedControlDesignItem
@@ -2274,6 +2336,9 @@ public class FrontedLayoutDesignerFoundationTest
         var targetConfig = Assert.IsType<MapV2DisplayControlConfig>(target.Config);
         Assert.Equal("Map1", targetConfig.MapKey);
         Assert.Equal("Target.Binding", targetConfig.BindingPath);
+        Assert.Equal(Enum.GetValues<MapV2InternalStylePart>(), targetConfig.InternalParts.Select(part => part.Part));
+        Assert.All(targetConfig.InternalParts, part =>
+            Assert.DoesNotContain(part, ((MapV2DisplayControlConfig)source.Config).InternalParts, ReferenceEqualityComparer.Instance));
         Assert.True(document.IsDirty);
         Assert.True(viewModel.CanUndo);
 

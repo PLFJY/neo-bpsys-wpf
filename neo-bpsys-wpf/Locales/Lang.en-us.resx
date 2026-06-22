@@ -4052,8 +4052,16 @@
   <data name="Designer.MapV2Display.ApplyStyleToAll" xml:space="preserve">
     <value>Apply Style to All Map Cards</value>
   </data>
+  <data name="Designer.MapV2Display.EditInternalStyle" xml:space="preserve"><value>Edit Internal Styles</value></data>
+  <data name="Designer.MapV2Display.InternalParts" xml:space="preserve"><value>Internal Parts</value></data>
+  <data name="Designer.MapV2Display.SelectedInternalPart" xml:space="preserve"><value>MapV2Display Internal Part</value></data>
+  <data name="Designer.MapV2Display.Part.TeamName" xml:space="preserve"><value>Team Name</value></data>
+  <data name="Designer.MapV2Display.Part.MapCard" xml:space="preserve"><value>Map Card</value></data>
+  <data name="Designer.MapV2Display.Part.MapName" xml:space="preserve"><value>Map Name</value></data>
+  <data name="Designer.MapV2Display.Part.CampName" xml:space="preserve"><value>Camp Name</value></data>
+  <data name="Designer.MapV2Display.Part.PickingBorder" xml:space="preserve"><value>Picking Border</value></data>
   <data name="Designer.MapV2Display.ApplyStyleToAllDescription" xml:space="preserve">
-    <value>Copies size, text styles, map border, picking border styles, and behaviors while preserving each card's position, text content, map binding, and layout properties.</value>
+    <value>Copies size, internal part positions and sizes, text styles, map border, picking border styles, and behaviors while preserving each card's position, text content, map binding, and top-level layout properties.</value>
   </data>
   <data name="Designer.MapV2Display.StyleAppliedToAll" xml:space="preserve">
     <value>Applied the style and behaviors to all map cards on the current canvas.</value>

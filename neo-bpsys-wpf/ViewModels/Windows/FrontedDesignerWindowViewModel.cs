@@ -260,6 +260,18 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     public ObservableCollection<GlobalScoreCellConfig> GlobalScoreCellEditorItems { get; } = [];
 
+    /// <summary>
+    /// Gets the fixed internal style parts exposed by the selected MapV2Display composite control.
+    /// </summary>
+    public ObservableCollection<MapV2InternalStylePartOption> MapV2InternalStylePartOptions { get; } =
+    [
+        new(MapV2InternalStylePart.TeamName, I18nHelper.GetLocalizedString("Designer.MapV2Display.Part.TeamName")),
+        new(MapV2InternalStylePart.MapCard, I18nHelper.GetLocalizedString("Designer.MapV2Display.Part.MapCard")),
+        new(MapV2InternalStylePart.MapName, I18nHelper.GetLocalizedString("Designer.MapV2Display.Part.MapName")),
+        new(MapV2InternalStylePart.CampName, I18nHelper.GetLocalizedString("Designer.MapV2Display.Part.CampName")),
+        new(MapV2InternalStylePart.PickingBorder, I18nHelper.GetLocalizedString("Designer.MapV2Display.Part.PickingBorder"))
+    ];
+
     public DesignerLayerNode? SelectedLayerNode
     {
         get => _selectedLayerNode;
@@ -385,6 +397,36 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     public bool IsBorderedImageSelected => SelectedDesignItem?.Config is BorderedImageFrontedControlConfig;
 
     public bool IsMapV2DisplaySelected => SelectedDesignItem?.Config is MapV2DisplayControlConfig;
+
+    /// <summary>
+    /// Gets a value indicating whether a MapV2Display internal style part is selected.
+    /// </summary>
+    public bool HasSelectedMapV2InternalStylePart => SelectedMapV2InternalStylePart is not null;
+
+    /// <summary>
+    /// Gets the persisted layout for the selected MapV2Display internal part.
+    /// </summary>
+    public MapV2InternalPartLayoutConfig? SelectedMapV2InternalPartLayout
+    {
+        get
+        {
+            if (SelectedDesignItem?.Config is not MapV2DisplayControlConfig config
+                || SelectedMapV2InternalStylePart is not { } option)
+            {
+                return null;
+            }
+
+            MapV2InternalPartLayoutHelper.EnsureParts(config);
+            return config.InternalParts.First(part => part.Part == option.Part);
+        }
+    }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasSelectedMapV2InternalStylePart))]
+    private MapV2InternalStylePartOption? _selectedMapV2InternalStylePart;
+
+    [ObservableProperty]
+    private bool _isMapV2InternalStyleEditorVisible;
 
     public bool IsPolygonSelected => SelectedDesignItem?.Config is IPolygonFrontedControlConfig;
 
@@ -513,9 +555,13 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     public bool CanDeleteSelectedControl =>
         !HasSelectedGlobalScoreCell
+        && !HasSelectedMapV2InternalStylePart
         && SelectedDesignItem is { IsSelectableInEditor: true, IsEditableInEditor: true };
 
-    public bool CanCopySelectedControl => !HasSelectedGlobalScoreCell && CanCopyControl(SelectedDesignItem);
+    public bool CanCopySelectedControl =>
+        !HasSelectedGlobalScoreCell
+        && !HasSelectedMapV2InternalStylePart
+        && CanCopyControl(SelectedDesignItem);
 
     public bool CanPasteControl => CurrentDocument is not null && _copiedControl is not null;
 
@@ -714,6 +760,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _propertyEditErrors.Clear();
         _propertyEditBuffers.Clear();
         ClearSelectedGlobalScoreCell();
+        SelectedMapV2InternalStylePart = null;
+        IsMapV2InternalStyleEditorVisible = false;
         SelectedPolygonVertexIndex = value?.Config is IPolygonFrontedControlConfig polygon && polygon.Points.Count > 0
             ? 0
             : -1;
@@ -742,6 +790,31 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     partial void OnSelectedPolygonVertexIndexChanged(int value)
     {
         RemovePolygonVertexCommand.NotifyCanExecuteChanged();
+    }
+
+    partial void OnSelectedMapV2InternalStylePartChanged(MapV2InternalStylePartOption? value)
+    {
+        if (value is not null && SelectedDesignItem?.Config is MapV2DisplayControlConfig config)
+        {
+            MapV2InternalPartLayoutHelper.EnsureParts(config);
+        }
+
+        _propertyEditErrors.Clear();
+        _propertyEditBuffers.Clear();
+        OnPropertyChanged(nameof(SelectedMapV2InternalPartLayout));
+        OnPropertyChanged(nameof(CanDeleteSelectedControl));
+        OnPropertyChanged(nameof(CanCopySelectedControl));
+        DeleteSelectedControlCommand.NotifyCanExecuteChanged();
+        CopySelectedControlCommand.NotifyCanExecuteChanged();
+        RebuildPropertyEditorItems();
+        RefreshSelectedControlDisplay();
+    }
+
+    partial void OnIsMapV2InternalStyleEditorVisibleChanged(bool value)
+    {
+        SelectedMapV2InternalStylePart = value
+            ? SelectedMapV2InternalStylePart ?? MapV2InternalStylePartOptions[0]
+            : null;
     }
 
     partial void OnSelectedAnimationPartChanged(FrontedAnimationPartConfig? value)
@@ -1731,6 +1804,17 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private void ToggleMapV2InternalStyleEditor()
+    {
+        if (SelectedDesignItem?.Config is not MapV2DisplayControlConfig)
+        {
+            return;
+        }
+
+        IsMapV2InternalStyleEditorVisible = !IsMapV2InternalStyleEditorVisible;
+    }
+
+    [RelayCommand]
     private void ApplyMapV2DisplayStyleToAll()
     {
         if (CurrentDocument is null || SelectedDesignItem?.Config is not MapV2DisplayControlConfig source)
@@ -1782,6 +1866,17 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         target.MapBorderBannedColor = source.MapBorderBannedColor;
         target.PickingBorderImagePath = source.PickingBorderImagePath;
         target.PickingBorderFillColor = source.PickingBorderFillColor;
+        MapV2InternalPartLayoutHelper.EnsureParts(source);
+        target.InternalParts = source.InternalParts
+            .Select(part => new MapV2InternalPartLayoutConfig
+            {
+                Part = part.Part,
+                X = part.X,
+                Y = part.Y,
+                Width = part.Width,
+                Height = part.Height
+            })
+            .ToList();
     }
 
     private void ApplyMapV2DisplayBehaviorSetToTargets(
@@ -2544,6 +2639,12 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return;
         }
 
+        if (HasSelectedMapV2InternalStylePart)
+        {
+            MoveSelectedMapV2InternalPart(originalLeft, originalTop, deltaX, deltaY, renderPreview);
+            return;
+        }
+
         var selectedItems = GetMovableSelectedDesignItems();
         if (selectedItems.Count > 1)
         {
@@ -2672,6 +2773,17 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return;
         }
 
+        if (SelectedMapV2InternalPartLayout is { } internalPart)
+        {
+            MoveSelectedMapV2InternalPart(
+                internalPart.X,
+                internalPart.Y,
+                deltaX,
+                deltaY,
+                renderPreview: true);
+            return;
+        }
+
         var selectedItems = GetMovableSelectedDesignItems();
         if (selectedItems.Count > 1)
         {
@@ -2738,6 +2850,20 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         if (HasSelectedGlobalScoreCell)
         {
             ResizeSelectedGlobalScoreCell(
+                handle,
+                originalLeft,
+                originalTop,
+                originalWidth,
+                originalHeight,
+                deltaX,
+                deltaY,
+                renderPreview);
+            return;
+        }
+
+        if (HasSelectedMapV2InternalStylePart)
+        {
+            ResizeSelectedMapV2InternalPart(
                 handle,
                 originalLeft,
                 originalTop,
@@ -2911,6 +3037,36 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         OnDesignItemGeometryChanged(renderPreview);
     }
 
+    /// <summary>
+    /// Moves the selected MapV2Display internal part within its parent bounds.
+    /// </summary>
+    /// <param name="originalX">Original relative X coordinate.</param>
+    /// <param name="originalY">Original relative Y coordinate.</param>
+    /// <param name="deltaX">Horizontal pointer delta.</param>
+    /// <param name="deltaY">Vertical pointer delta.</param>
+    /// <param name="renderPreview">Whether to render the preview immediately.</param>
+    public void MoveSelectedMapV2InternalPart(
+        double originalX,
+        double originalY,
+        double deltaX,
+        double deltaY,
+        bool renderPreview)
+    {
+        if (CurrentDocument is null
+            || SelectedDesignItem?.Config is not MapV2DisplayControlConfig parent
+            || SelectedMapV2InternalPartLayout is not { } part)
+        {
+            return;
+        }
+
+        var parentWidth = Math.Max(1D, parent.Width ?? part.X + part.Width);
+        var parentHeight = Math.Max(1D, parent.Height ?? part.Y + part.Height);
+        part.X = Math.Clamp(FrontedDesignerGeometryHelper.Snap(originalX + deltaX), 0D, Math.Max(0D, parentWidth - part.Width));
+        part.Y = Math.Clamp(FrontedDesignerGeometryHelper.Snap(originalY + deltaY), 0D, Math.Max(0D, parentHeight - part.Height));
+        CurrentDocument.IsDirty = true;
+        OnDesignItemGeometryChanged(renderPreview);
+    }
+
     public void ResizeSelectedGlobalScoreCell(
         FrontedDesignerResizeHandleKind handle,
         double originalX,
@@ -2974,6 +3130,85 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         CurrentDocument.IsDirty = true;
         SelectedDesignItem = parentItem;
         OnDesignItemGeometryChanged(renderPreview);
+    }
+
+    /// <summary>
+    /// Resizes the selected MapV2Display internal part within its parent bounds.
+    /// </summary>
+    /// <param name="handle">Active resize handle.</param>
+    /// <param name="originalX">Original relative X coordinate.</param>
+    /// <param name="originalY">Original relative Y coordinate.</param>
+    /// <param name="originalWidth">Original width.</param>
+    /// <param name="originalHeight">Original height.</param>
+    /// <param name="deltaX">Horizontal pointer delta.</param>
+    /// <param name="deltaY">Vertical pointer delta.</param>
+    /// <param name="renderPreview">Whether to render the preview immediately.</param>
+    public void ResizeSelectedMapV2InternalPart(
+        FrontedDesignerResizeHandleKind handle,
+        double originalX,
+        double originalY,
+        double originalWidth,
+        double originalHeight,
+        double deltaX,
+        double deltaY,
+        bool renderPreview)
+    {
+        if (CurrentDocument is null
+            || SelectedDesignItem?.Config is not MapV2DisplayControlConfig
+            || SelectedMapV2InternalPartLayout is not { } part)
+        {
+            return;
+        }
+
+        var left = originalX;
+        var top = originalY;
+        var width = originalWidth;
+        var height = originalHeight;
+        if (handle is FrontedDesignerResizeHandleKind.Left or FrontedDesignerResizeHandleKind.TopLeft or FrontedDesignerResizeHandleKind.BottomLeft)
+        {
+            left += deltaX;
+            width -= deltaX;
+        }
+        else if (handle is FrontedDesignerResizeHandleKind.Right or FrontedDesignerResizeHandleKind.TopRight or FrontedDesignerResizeHandleKind.BottomRight)
+        {
+            width += deltaX;
+        }
+
+        if (handle is FrontedDesignerResizeHandleKind.Top or FrontedDesignerResizeHandleKind.TopLeft or FrontedDesignerResizeHandleKind.TopRight)
+        {
+            top += deltaY;
+            height -= deltaY;
+        }
+        else if (handle is FrontedDesignerResizeHandleKind.Bottom or FrontedDesignerResizeHandleKind.BottomLeft or FrontedDesignerResizeHandleKind.BottomRight)
+        {
+            height += deltaY;
+        }
+
+        part.X = FrontedDesignerGeometryHelper.Snap(left);
+        part.Y = FrontedDesignerGeometryHelper.Snap(top);
+        part.Width = Math.Max(FrontedDesignerGeometryHelper.MinResizeWidth, FrontedDesignerGeometryHelper.Snap(width));
+        part.Height = Math.Max(FrontedDesignerGeometryHelper.MinResizeHeight, FrontedDesignerGeometryHelper.Snap(height));
+        ClampSelectedMapV2InternalPart();
+        CurrentDocument.IsDirty = true;
+        OnDesignItemGeometryChanged(renderPreview);
+    }
+
+    private void ClampSelectedMapV2InternalPart()
+    {
+        if (SelectedDesignItem?.Config is not MapV2DisplayControlConfig parent
+            || SelectedMapV2InternalPartLayout is not { } part)
+        {
+            return;
+        }
+
+        var parentWidth = Math.Max(1D, parent.Width ?? part.X + part.Width);
+        var parentHeight = Math.Max(1D, parent.Height ?? part.Y + part.Height);
+        var minimumWidth = Math.Min(FrontedDesignerGeometryHelper.MinResizeWidth, parentWidth);
+        var minimumHeight = Math.Min(FrontedDesignerGeometryHelper.MinResizeHeight, parentHeight);
+        part.Width = Math.Clamp(part.Width, minimumWidth, parentWidth);
+        part.Height = Math.Clamp(part.Height, minimumHeight, parentHeight);
+        part.X = Math.Clamp(part.X, 0D, Math.Max(0D, parentWidth - part.Width));
+        part.Y = Math.Clamp(part.Y, 0D, Math.Max(0D, parentHeight - part.Height));
     }
 
     private void ClampSelectedGlobalScoreCell()
@@ -3373,6 +3608,12 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return ApplyGlobalScoreCellPropertyEdit(item, newValue);
         }
 
+        if (SelectedMapV2InternalPartLayout is { } internalPart
+            && typeof(MapV2InternalPartLayoutConfig).GetProperty(item.PropertyName) is { CanWrite: true } internalProperty)
+        {
+            return ApplyMapV2InternalPartLayoutPropertyEdit(item, newValue, internalPart, internalProperty);
+        }
+
         var property = SelectedDesignItem.Config.GetType().GetProperty(
             item.PropertyName,
             BindingFlags.Instance | BindingFlags.Public);
@@ -3503,6 +3744,35 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         item.EditText = GetCommittedEditText(item, convertedValue);
         CurrentDocument.IsDirty = true;
         FinishPropertyEdit(item.PropertyName);
+        return true;
+    }
+
+    private bool ApplyMapV2InternalPartLayoutPropertyEdit(
+        FrontedPropertyEditorItem item,
+        object? newValue,
+        MapV2InternalPartLayoutConfig part,
+        PropertyInfo property)
+    {
+        if (CurrentDocument is null)
+        {
+            return false;
+        }
+
+        if (!TryConvertPropertyValue(property, newValue, out var convertedValue, out var errorMessage))
+        {
+            SetPropertyEditError(item, errorMessage, newValue);
+            return false;
+        }
+
+        CaptureUndoSnapshot();
+        property.SetValue(part, convertedValue);
+        ClampSelectedMapV2InternalPart();
+        item.Value = property.GetValue(part);
+        item.EditText = GetCommittedEditText(item, item.Value);
+        CurrentDocument.IsDirty = true;
+        RefreshDirtyState();
+        RequestPreviewRenderCurrentDocument();
+        RefreshSelectedControlDisplay();
         return true;
     }
 
@@ -3813,13 +4083,23 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 return;
             }
 
-            var rows = TryGetSelectedGlobalScoreCell(out _, out _, out var selectedCell)
+            IEnumerable<FrontedPropertyEditorItem> rows = TryGetSelectedGlobalScoreCell(out _, out _, out var selectedCell)
                 ? BuildGlobalScoreCellPropertyRows(selectedCell)
                 : _propertyGridBuilder.Build(
                     CurrentDocument,
                     SelectedDesignItem,
                     _validator,
                     _referenceScanner);
+
+            if (SelectedDesignItem.Config is MapV2DisplayControlConfig
+                && SelectedMapV2InternalStylePart is { } selectedPart)
+            {
+                var styleRows = rows
+                    .Where(row => IsMapV2InternalStyleProperty(selectedPart.Part, row.PropertyName));
+                rows = BuildMapV2InternalPartLayoutPropertyRows(SelectedMapV2InternalPartLayout)
+                    .Concat(styleRows)
+                    .ToArray();
+            }
 
             foreach (var row in rows)
             {
@@ -3849,6 +4129,50 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             _isRebuildingPropertyGrid = false;
             OnPropertyChanged(nameof(IsRebuildingPropertyGrid));
         }
+    }
+
+    private static bool IsMapV2InternalStyleProperty(MapV2InternalStylePart part, string propertyName) =>
+        part switch
+        {
+            MapV2InternalStylePart.TeamName => propertyName is
+                nameof(MapV2DisplayControlConfig.TeamNameFontFamily)
+                or nameof(MapV2DisplayControlConfig.TeamNameFontWeight)
+                or nameof(MapV2DisplayControlConfig.TeamNameColor)
+                or nameof(MapV2DisplayControlConfig.TeamNameFontSize),
+            MapV2InternalStylePart.MapCard => propertyName is
+                nameof(MapV2DisplayControlConfig.MapBorderNormalColor)
+                or nameof(MapV2DisplayControlConfig.MapBorderBannedColor),
+            MapV2InternalStylePart.MapName => propertyName is
+                nameof(MapV2DisplayControlConfig.MapNameFontFamily)
+                or nameof(MapV2DisplayControlConfig.MapNameFontWeight)
+                or nameof(MapV2DisplayControlConfig.MapNameColor)
+                or nameof(MapV2DisplayControlConfig.MapNameFontSize),
+            MapV2InternalStylePart.CampName => propertyName is
+                nameof(MapV2DisplayControlConfig.CampNameFontFamily)
+                or nameof(MapV2DisplayControlConfig.CampNameFontWeight)
+                or nameof(MapV2DisplayControlConfig.CampNameColor)
+                or nameof(MapV2DisplayControlConfig.CampNameFontSize),
+            MapV2InternalStylePart.PickingBorder => propertyName is
+                nameof(MapV2DisplayControlConfig.PickingBorderImagePath)
+                or nameof(MapV2DisplayControlConfig.PickingBorderFillColor),
+            _ => false
+        };
+
+    private ObservableCollection<FrontedPropertyEditorItem> BuildMapV2InternalPartLayoutPropertyRows(
+        MapV2InternalPartLayoutConfig? part)
+    {
+        if (part is null)
+        {
+            return [];
+        }
+
+        return
+        [
+            CreateCellPropertyRow(nameof(MapV2InternalPartLayoutConfig.X), typeof(double), FrontedPropertyEditorKind.Number, part.X, "Layout"),
+            CreateCellPropertyRow(nameof(MapV2InternalPartLayoutConfig.Y), typeof(double), FrontedPropertyEditorKind.Number, part.Y, "Layout"),
+            CreateCellPropertyRow(nameof(MapV2InternalPartLayoutConfig.Width), typeof(double), FrontedPropertyEditorKind.Number, part.Width, "Layout"),
+            CreateCellPropertyRow(nameof(MapV2InternalPartLayoutConfig.Height), typeof(double), FrontedPropertyEditorKind.Number, part.Height, "Layout")
+        ];
     }
 
     private void ApplyMultiSelectionPropertyRowState(FrontedPropertyEditorItem row)
@@ -5179,6 +5503,18 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             SelectedControlGeometryDisplay =
                 $"X {cell.X:0.##}  Y {cell.Y:0.##}  "
                 + $"W {cell.Width:0.##}  H {cell.Height:0.##}";
+            SelectedControlValidationMessageCount = SelectedDesignItem.ValidationMessages.Count;
+            return;
+        }
+
+        if (SelectedMapV2InternalStylePart is { } selectedPart)
+        {
+            SelectedControlDisplay = $"{SelectedDesignItem.Name} / {selectedPart.DisplayName}";
+            SelectedControlTypeDisplay = I18nHelper.GetLocalizedString("Designer.MapV2Display.SelectedInternalPart");
+            var part = SelectedMapV2InternalPartLayout;
+            SelectedControlGeometryDisplay = part is null
+                ? string.Empty
+                : $"X {part.X:0.##}  Y {part.Y:0.##}  W {part.Width:0.##}  H {part.Height:0.##}";
             SelectedControlValidationMessageCount = SelectedDesignItem.ValidationMessages.Count;
             return;
         }

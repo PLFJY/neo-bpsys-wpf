@@ -97,4 +97,47 @@ public class MapV2DisplayControlConfig : FrontedControlConfigBase
     /// 选图边框填充颜色。
     /// </summary>
     public string? PickingBorderFillColor { get; set; }
+
+    /// <summary>
+    /// 可独立移动和缩放的固定内部部件。坐标相对于 MapV2Display 父控件。
+    /// </summary>
+    public List<MapV2InternalPartLayoutConfig> InternalParts { get; set; } = [];
+}
+
+/// <summary>
+/// MapV2Display 复合控件中可独立编辑的固定内部部件。
+/// </summary>
+public enum MapV2InternalStylePart
+{
+    /// <summary>队伍名称区域。</summary>
+    TeamName,
+    /// <summary>地图图片和外框区域。</summary>
+    MapCard,
+    /// <summary>地图名称区域。</summary>
+    MapName,
+    /// <summary>阵营名称区域。</summary>
+    CampName,
+    /// <summary>选图高亮边框。</summary>
+    PickingBorder
+}
+
+/// <summary>
+/// MapV2Display 内部部件的相对布局配置。
+/// </summary>
+public sealed class MapV2InternalPartLayoutConfig
+{
+    /// <summary>内部部件类型。</summary>
+    public MapV2InternalStylePart Part { get; set; }
+
+    /// <summary>相对于父控件左侧的坐标。</summary>
+    public double X { get; set; }
+
+    /// <summary>相对于父控件顶部的坐标。</summary>
+    public double Y { get; set; }
+
+    /// <summary>部件宽度。</summary>
+    public double Width { get; set; }
+
+    /// <summary>部件高度。</summary>
+    public double Height { get; set; }
 }

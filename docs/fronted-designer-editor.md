@@ -521,7 +521,7 @@ Resource Browser 的标题、搜索、按钮、空状态和来源/类型显示�
 3. 更新 hitbox 和 adorner。
 4. 标记布局 dirty。
 
-选中 `MapV2Display` 后，属性摘要区提供“将样式应用到所有地图卡片”按钮。该操作把控件大小、地图名/队名/阵营文字样式、地图卡片边框、选图边框样式和行为集复制到当前 Canvas 中其他 `MapV2Display`，并作为单个 Undo 步骤立即刷新预览；每张卡片自己的位置、`MapKey`、`ZIndex`、`Visibility` 和 `BindingPath` 保持不变，不会复制文字内容或绑定源。复制行为时会替换目标地图卡片原行为集，并把动画目标 GUID 与 `Event.MapKey` / `StartEvent.MapKey` / `StopEvent.MapKey` 过滤改写为目标卡片。
+选中 `MapV2Display` 后，属性摘要区提供“编辑内部样式”入口。`MapV2Display` 作为父级复合控件保留整体位置和大小，内部编辑器按队伍名称、地图卡片、地图名称、阵营名称和选图边框五个固定部件筛选属性；从列表选中部件后，设计画布显示该部件的选择框和缩放手柄，可以直接拖动、缩放，也可以在属性面板编辑相对于父控件的 `X`、`Y`、`Width` 和 `Height`。这些相对布局保存在 `MapV2Display.InternalParts` 中；内部部件不是全局图层，不能脱离父级删除。属性摘要区同时提供“将样式应用到所有地图卡片”按钮。该操作把控件大小、内部部件布局、地图名/队名/阵营文字样式、地图卡片边框、选图边框样式和行为集复制到当前 Canvas 中其他 `MapV2Display`，并作为单个 Undo 步骤立即刷新预览；每张卡片自己的位置、`MapKey`、`ZIndex`、`Visibility` 和 `BindingPath` 保持不变，不会复制文字内容或绑定源。复制行为时会替换目标地图卡片原行为集，并把动画目标 GUID 与 `Event.MapKey` / `StartEvent.MapKey` / `StopEvent.MapKey` 过滤改写为目标卡片。
 
 `MapV2Display` 的选图边框不是独立可编辑控件。内置 `MapV2Window.behaviors.json` 通过 `MapV2.PickingBorderStateChanged` 事件和 `part:{BehaviorGuid}:PickingBorder` 目标实现 MapBpV2 的旧呼吸灯语义；后台开关只发布业务状态，淡入、呼吸、淡出和隐藏由 v3 行为定义。
 

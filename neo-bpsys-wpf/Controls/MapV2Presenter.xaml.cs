@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using MapV2 = neo_bpsys_wpf.Core.Models.MapV2;
+using neo_bpsys_wpf.Core.Models.FrontedLayout;
 
 namespace neo_bpsys_wpf.Controls;
 
@@ -20,6 +21,35 @@ public partial class MapV2Presenter : UserControl
     /// 获取地图 BP v2 选图边框动画目标元素。
     /// </summary>
     public FrameworkElement PickingBorderAnimationTarget => PickingBorder;
+
+    /// <summary>
+    /// 将持久化的相对布局应用到内部固定部件。
+    /// </summary>
+    /// <param name="parts">内部部件布局。</param>
+    public void ApplyInternalPartLayout(IEnumerable<MapV2InternalPartLayoutConfig> parts)
+    {
+        foreach (var part in parts)
+        {
+            FrameworkElement? element = part.Part switch
+            {
+                MapV2InternalStylePart.TeamName => TeamNamePart,
+                MapV2InternalStylePart.MapCard => MapCardPart,
+                MapV2InternalStylePart.MapName => MapNamePart,
+                MapV2InternalStylePart.CampName => CampNamePart,
+                MapV2InternalStylePart.PickingBorder => PickingBorder,
+                _ => null
+            };
+            if (element is null)
+            {
+                continue;
+            }
+
+            Canvas.SetLeft(element, part.X);
+            Canvas.SetTop(element, part.Y);
+            element.Width = Math.Max(1D, part.Width);
+            element.Height = Math.Max(1D, part.Height);
+        }
+    }
 
     /// <summary>
     /// 获取或设置要展示的地图数据。

@@ -94,6 +94,8 @@ public class MapV2DisplayFrontedControl(ILogger<MapV2DisplayFrontedControl>? log
             });
 
             ApplyPresenterStyle(config, resourceResolver, logger);
+            MapV2InternalPartLayoutHelper.EnsureParts(config);
+            _presenter.ApplyInternalPartLayout(config.InternalParts);
             MarkPickingBorderPart(name, config);
             Child = _presenter;
         }

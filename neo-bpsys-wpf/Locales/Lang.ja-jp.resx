@@ -3956,8 +3956,16 @@
   <data name="Designer.MapV2Display.ApplyStyleToAll" xml:space="preserve">
     <value>スタイルをすべてのマップカードに適用</value>
   </data>
+  <data name="Designer.MapV2Display.EditInternalStyle" xml:space="preserve"><value>内部スタイルを編集</value></data>
+  <data name="Designer.MapV2Display.InternalParts" xml:space="preserve"><value>内部パーツ</value></data>
+  <data name="Designer.MapV2Display.SelectedInternalPart" xml:space="preserve"><value>MapV2Display 内部パーツ</value></data>
+  <data name="Designer.MapV2Display.Part.TeamName" xml:space="preserve"><value>チーム名</value></data>
+  <data name="Designer.MapV2Display.Part.MapCard" xml:space="preserve"><value>マップカード</value></data>
+  <data name="Designer.MapV2Display.Part.MapName" xml:space="preserve"><value>マップ名</value></data>
+  <data name="Designer.MapV2Display.Part.CampName" xml:space="preserve"><value>陣営名</value></data>
+  <data name="Designer.MapV2Display.Part.PickingBorder" xml:space="preserve"><value>選択枠</value></data>
   <data name="Designer.MapV2Display.ApplyStyleToAllDescription" xml:space="preserve">
-    <value>サイズ、テキストスタイル、マップ枠、選択枠のスタイル、動作をコピーし、各カードの位置、テキスト内容、マップ割り当て、レイアウト属性は保持します。</value>
+    <value>サイズ、内部パーツの位置とサイズ、テキストスタイル、マップ枠、選択枠のスタイル、動作をコピーし、各カードの位置、テキスト内容、マップ割り当て、最上位レイアウト属性は保持します。</value>
   </data>
   <data name="Designer.MapV2Display.StyleAppliedToAll" xml:space="preserve">
     <value>現在のキャンバス内のすべてのマップカードにスタイルと動作を適用しました。</value>

@@ -22,16 +22,12 @@
         <cv:NullObjectToReverseVisibilityConverter x:Key="NullObjectToReverseVisibilityConverter" />
         <cv:MapV2BorderBrushConverter x:Key="MapV2BorderBrushConverter" />
     </UserControl.Resources>
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="1.5*" />
-            <RowDefinition Height="2*" />
-            <RowDefinition Height="1*" />
-        </Grid.RowDefinitions>
+    <Canvas x:Name="PartsCanvas" ClipToBounds="True">
         <!--  染色层  -->
         <Rectangle
             x:Name="PickingBorder"
-            Grid.RowSpan="3"
+            Canvas.Left="0"
+            Canvas.Top="0"
             Panel.ZIndex="1"
             d:Fill="#FF032903"
             d:Visibility="Visible"
@@ -45,38 +41,39 @@
                 </ImageBrush>
             </Rectangle.OpacityMask>
         </Rectangle>
-        <StackPanel
-            Grid.Row="0"
-            HorizontalAlignment="Center"
-            Orientation="Horizontal">
-            <ui:Image
-                x:Name="TeamLogo"
-                Width="50"
-                Height="50"
-                VerticalAlignment="Center"
-                d:Source="/Assets/testLogo.jpg"
-                CornerRadius="8"
-                Source="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.OperationTeam.Logo}"
-                Visibility="{Binding RelativeSource={RelativeSource Mode=Self}, Path=Source, Converter={StaticResource NullObjectToVisibilityConverter}}" />
-            <TextBlock
-                Grid.Row="0"
-                Margin="5,0,0,0"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                d:FontSize="16"
-                d:Foreground="White"
-                d:Text="队伍名称"
-                FontFamily="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=TeamNameFontFamily}"
-                FontSize="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=TeamNameFontSize}"
-                FontWeight="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=TeamNameFontWeight}"
-                Foreground="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=TeamNameForeground}"
-                Text="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.OperationTeam.Name}"
-                Visibility="{Binding ElementName=TeamLogo, Path=Source, Converter={StaticResource NullObjectToReverseVisibilityConverter}}" />
-        </StackPanel>
+        <Grid
+            x:Name="TeamNamePart"
+            Canvas.Left="0"
+            Canvas.Top="0">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal">
+                <ui:Image
+                    x:Name="TeamLogo"
+                    Width="50"
+                    Height="50"
+                    VerticalAlignment="Center"
+                    d:Source="/Assets/testLogo.jpg"
+                    CornerRadius="8"
+                    Source="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.OperationTeam.Logo}"
+                    Visibility="{Binding RelativeSource={RelativeSource Mode=Self}, Path=Source, Converter={StaticResource NullObjectToVisibilityConverter}}" />
+                <TextBlock
+                    Margin="5,0,0,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    d:FontSize="16"
+                    d:Foreground="White"
+                    d:Text="队伍名称"
+                    FontFamily="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=TeamNameFontFamily}"
+                    FontSize="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=TeamNameFontSize}"
+                    FontWeight="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=TeamNameFontWeight}"
+                    Foreground="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=TeamNameForeground}"
+                    Text="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.OperationTeam.Name}"
+                    Visibility="{Binding ElementName=TeamLogo, Path=Source, Converter={StaticResource NullObjectToReverseVisibilityConverter}}" />
+            </StackPanel>
+        </Grid>
         <Border
-            x:Name="MapBorder"
-            Grid.Row="1"
-            Margin="5,5,5,5"
+            x:Name="MapCardPart"
+            Canvas.Left="5"
+            Canvas.Top="52"
             d:BorderBrush="#2b483b"
             BorderThickness="2"
             CornerRadius="8">
@@ -93,28 +90,32 @@
                     ImageSource="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.ImageSource}"
                     Stretch="UniformToFill" />
             </Border.Background>
-            <Border
-                Height="20"
-                VerticalAlignment="Bottom"
-                Background="Black"
-                CornerRadius="4">
-                <TextBlock
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    d:FontFamily="{StaticResource Hanyi}"
-                    d:FontSize="14"
-                    d:Foreground="White"
-                    d:Text="China Town"
-                    FontFamily="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=MapNameFontFamily}"
-                    FontSize="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=MapNameFontSize}"
-                    FontWeight="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=MapNameFontWeight}"
-                    Foreground="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=MapNameForeground}"
-                    Text="{lex:Loc {Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.MapName, TargetNullValue=null}}" />
-            </Border>
+        </Border>
+
+        <Border
+            x:Name="MapNamePart"
+            Canvas.Left="5"
+            Canvas.Top="96"
+            Background="Black"
+            CornerRadius="4">
+            <TextBlock
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                d:FontFamily="{StaticResource Hanyi}"
+                d:FontSize="14"
+                d:Foreground="White"
+                d:Text="China Town"
+                FontFamily="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=MapNameFontFamily}"
+                FontSize="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=MapNameFontSize}"
+                FontWeight="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=MapNameFontWeight}"
+                Foreground="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=MapNameForeground}"
+                Text="{lex:Loc {Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.MapName, TargetNullValue=null}}" />
         </Border>
 
         <Grid
-            Grid.Row="2"
+            x:Name="CampNamePart"
+            Canvas.Left="0"
+            Canvas.Top="120"
             VerticalAlignment="Center"
             d:Visibility="Visible"
             Visibility="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.IsCampVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
@@ -145,5 +146,5 @@
                     Visibility="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.OperationTeam.Camp, Converter={StaticResource CampHunToVisibilityConverter}}" />
             </Grid>
         </Grid>
-    </Grid>
+    </Canvas>
 </UserControl>

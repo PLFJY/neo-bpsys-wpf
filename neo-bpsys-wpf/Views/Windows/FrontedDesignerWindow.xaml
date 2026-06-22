@@ -1023,6 +1023,21 @@
                                     </Style>
                                 </StackPanel.Style>
                                 <ui:Button
+                                    Margin="0,0,0,6"
+                                    Command="{Binding ToggleMapV2InternalStyleEditorCommand}"
+                                    Content="{lex:Loc Designer.MapV2Display.EditInternalStyle}"
+                                    Icon="{ui:SymbolIcon Symbol=Edit24}" />
+                                <Expander
+                                    Margin="0,0,0,6"
+                                    Header="{lex:Loc Designer.MapV2Display.InternalParts}"
+                                    IsExpanded="{Binding IsMapV2InternalStyleEditorVisible, Mode=TwoWay}">
+                                    <ListBox
+                                        Margin="0,6,0,0"
+                                        ItemsSource="{Binding MapV2InternalStylePartOptions}"
+                                        SelectedItem="{Binding SelectedMapV2InternalStylePart, Mode=TwoWay}"
+                                        DisplayMemberPath="DisplayName" />
+                                </Expander>
+                                <ui:Button
                                     Command="{Binding ApplyMapV2DisplayStyleToAllCommand}"
                                     Content="{lex:Loc Designer.MapV2Display.ApplyStyleToAll}"
                                     ToolTip="{lex:Loc Designer.MapV2Display.ApplyStyleToAllDescription}" />

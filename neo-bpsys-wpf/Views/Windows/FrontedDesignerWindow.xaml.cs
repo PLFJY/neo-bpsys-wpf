@@ -1262,6 +1262,13 @@ public partial class FrontedDesignerWindow : FluentWindow
             FocusDesignSurface();
         }
 
+        if (e.PropertyName == nameof(FrontedDesignerWindowViewModel.SelectedMapV2InternalStylePart))
+        {
+            SuppressPropertyEditorCommitForLayoutPass();
+            RebuildInteractionLayer();
+            FocusDesignSurface();
+        }
+
         if (e.PropertyName == nameof(FrontedDesignerWindowViewModel.BorderedImageResizeTarget))
         {
             RebuildInteractionLayer();
@@ -2098,9 +2105,13 @@ public partial class FrontedDesignerWindow : FluentWindow
         var bounds = _viewModel?.SelectedGlobalScoreCell is { } cell
                      && item.Config is GlobalScoreRowControlConfig
             ? ResolveGlobalScoreCellBounds(item, cell)
-            : parentBounds;
+            : _viewModel?.SelectedMapV2InternalPartLayout is { } internalPart
+              && item.Config is MapV2DisplayControlConfig
+                ? ResolveMapV2InternalPartBounds(item, internalPart)
+                : parentBounds;
 
-        if (_viewModel?.SelectedGlobalScoreCell is not null)
+        if (_viewModel?.SelectedGlobalScoreCell is not null
+            || _viewModel?.SelectedMapV2InternalPartLayout is not null)
         {
             _parentSelectionOutline = new Border
             {
@@ -2138,6 +2149,8 @@ public partial class FrontedDesignerWindow : FluentWindow
             {
                 Text = _viewModel?.SelectedGlobalScoreCell is { } selectedCell
                     ? selectedCell.Id
+                    : _viewModel?.SelectedMapV2InternalStylePart is { } selectedPart
+                        ? selectedPart.DisplayName
                     : item.Name,
                 FontSize = FrontedDesignerEditorVisualHelper.SelectionLabelBaseFontSize,
                 Foreground = Brushes.White
@@ -2228,7 +2241,10 @@ public partial class FrontedDesignerWindow : FluentWindow
         var bounds = _viewModel?.SelectedGlobalScoreCell is { } cell
                      && item.Config is GlobalScoreRowControlConfig
             ? ResolveGlobalScoreCellBounds(item, cell)
-            : ResolveItemBounds(item);
+            : _viewModel?.SelectedMapV2InternalPartLayout is { } internalPart
+              && item.Config is MapV2DisplayControlConfig
+                ? ResolveMapV2InternalPartBounds(item, internalPart)
+                : ResolveItemBounds(item);
         if (_parentSelectionOutline is not null)
         {
             var parentBounds = ResolveItemBounds(item);
@@ -2869,8 +2885,12 @@ public partial class FrontedDesignerWindow : FluentWindow
         _viewModel?.CaptureUndoSnapshot();
         _interactionMode = mode;
         _startMousePosition = startMousePosition;
-        _originalLeft = _viewModel?.SelectedGlobalScoreCell?.X ?? item.Config.Left;
-        _originalTop = _viewModel?.SelectedGlobalScoreCell?.Y ?? item.Config.Top;
+        _originalLeft = _viewModel?.SelectedGlobalScoreCell?.X
+                        ?? _viewModel?.SelectedMapV2InternalPartLayout?.X
+                        ?? item.Config.Left;
+        _originalTop = _viewModel?.SelectedGlobalScoreCell?.Y
+                       ?? _viewModel?.SelectedMapV2InternalPartLayout?.Y
+                       ?? item.Config.Top;
         var bounds = ResolveItemBounds(item);
         if (_viewModel?.SelectedGlobalScoreCell is { } selectedCell
             && item.Config is GlobalScoreRowControlConfig)
@@ -2880,6 +2900,11 @@ public partial class FrontedDesignerWindow : FluentWindow
                 item.Config.Top + selectedCell.Y,
                 selectedCell.Width,
                 selectedCell.Height);
+        }
+        else if (_viewModel?.SelectedMapV2InternalPartLayout is { } internalPart
+                 && item.Config is MapV2DisplayControlConfig)
+        {
+            bounds = ResolveMapV2InternalPartBounds(item, internalPart);
         }
         if (item.Config is BorderedImageFrontedControlConfig imageConfig
             && _viewModel?.BorderedImageResizeTarget == FrontedDesignerResizeTarget.Image)
@@ -2955,9 +2980,12 @@ public partial class FrontedDesignerWindow : FluentWindow
         ResetPointerInteraction();
         _pendingHitCandidate = item;
         _startMousePosition = startMousePosition;
-        _originalLeft = item.Config.Left;
-        _originalTop = item.Config.Top;
-        var bounds = ResolveItemBounds(item);
+        _originalLeft = _viewModel?.SelectedMapV2InternalPartLayout?.X ?? item.Config.Left;
+        _originalTop = _viewModel?.SelectedMapV2InternalPartLayout?.Y ?? item.Config.Top;
+        var bounds = _viewModel?.SelectedMapV2InternalPartLayout is { } internalPart
+                     && item.Config is MapV2DisplayControlConfig
+            ? ResolveMapV2InternalPartBounds(item, internalPart)
+            : ResolveItemBounds(item);
         _originalWidth = bounds.Width;
         _originalHeight = bounds.Height;
         CaptureOriginalSelectedBounds();
@@ -3166,6 +3194,15 @@ public partial class FrontedDesignerWindow : FluentWindow
             parent.Config.Top + cell.Y,
             Math.Max(FrontedDesignerGeometryHelper.MinHitWidth, cell.Width),
             Math.Max(FrontedDesignerGeometryHelper.MinHitHeight, cell.Height));
+
+    private static FrontedDesignerResolvedBounds ResolveMapV2InternalPartBounds(
+        FrontedControlDesignItem parent,
+        MapV2InternalPartLayoutConfig part) =>
+        new(
+            parent.Config.Left + part.X,
+            parent.Config.Top + part.Y,
+            Math.Max(FrontedDesignerGeometryHelper.MinHitWidth, part.Width),
+            Math.Max(FrontedDesignerGeometryHelper.MinHitHeight, part.Height));
 
     private static FrontedDesignerResolvedBounds ResolveBorderedImageInnerBounds(
         BorderedImageFrontedControlConfig config,
