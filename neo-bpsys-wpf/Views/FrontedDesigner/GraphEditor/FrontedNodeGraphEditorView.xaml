@@ -427,7 +427,7 @@
                                                                                         </TextBlock>
                                                                                         <TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}">
                                                                                             <Run Text="{lex:Loc Designer.Graph.Tooltip.PortType}" /><Run Text=": " />
-                                                                                            <Run Text="{Binding ValueTypeName}" />
+                                                                                            <Run Text="{Binding ValueTypeName, Mode=OneWay}" />
                                                                                         </TextBlock>
                                                                                         <TextBlock
                                                                                             Margin="0,4,0,0"
@@ -533,7 +533,7 @@
                                                                                         </TextBlock>
                                                                                         <TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}">
                                                                                             <Run Text="{lex:Loc Designer.Graph.Tooltip.PortType}" /><Run Text=": " />
-                                                                                            <Run Text="{Binding ValueTypeName}" />
+                                                                                            <Run Text="{Binding ValueTypeName, Mode=OneWay}" />
                                                                                         </TextBlock>
                                                                                         <TextBlock
                                                                                             Margin="0,4,0,0"
