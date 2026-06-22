@@ -54,6 +54,14 @@ public partial class CharacterSelectionService(
         if (normalizedExact.Length > 1)
             return Ambiguous(rawText, camp, 1, "normalized-exact", normalizedExact.Select(item => item.Name));
 
+        var oppositeCamp = camp == Camp.Sur ? Camp.Hun : Camp.Sur;
+        var oppositeExact = GetCandidates(oppositeCamp)
+            .Where(candidate => string.Equals(candidate.Name, rawText.Trim(), StringComparison.Ordinal))
+            .ToArray();
+        if (oppositeExact.Length > 0)
+            return Unresolved(rawText, camp, 1, "opposite-camp-exact-veto",
+                $"opposite-camp exact-name veto: {rawText.Trim()} is canonical in {oppositeCamp}");
+
         var contains = candidates
             .Where(candidate =>
                 normalizedText.Length >= 2 &&

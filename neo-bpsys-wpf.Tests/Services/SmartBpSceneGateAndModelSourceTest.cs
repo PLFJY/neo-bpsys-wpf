@@ -4,6 +4,7 @@ using System;
 using System.Globalization;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media;
@@ -57,6 +58,39 @@ namespace neo_bpsys_wpf.Tests.Services;
 
 public sealed class SmartBpSceneGateAndModelSourceTest
 {
+    [Theory]
+    [InlineData("求生者选择角色中", "picked_sur")]
+    [InlineData("求生者选择天赋中", "picked_sur")]
+    [InlineData("选择监管者", "picked_hun")]
+    public void AutomaticFieldFilterKeepsOnlyFieldsAllowedByAuthoritativePhase(string phase, string expectedField)
+    {
+        var request = new SmartBpSnapshotDeltaRequest(
+        [
+            (SmartBpRecognitionRegion.RightTop, "banned_sur"),
+            (SmartBpRecognitionRegion.LeftTop, "banned_hun"),
+            (SmartBpRecognitionRegion.LeftBottom, "picked_sur"),
+            (SmartBpRecognitionRegion.RightBottom, "picked_hun")
+        ], []);
+
+        var filtered = SmartBpAutoRecognitionCoordinator.FilterAutomaticRequestByPhase(request, phase);
+
+        Assert.Equal([expectedField], filtered.RequestedFields);
+    }
+
+    [Theory]
+    [InlineData("求生者选择区域中")]
+    [InlineData("天赋已锁定")]
+    [InlineData("未知")]
+    public void AutomaticFieldFilterBlocksAllContentOutsideCharacterPhases(string phase)
+    {
+        var request = new SmartBpSnapshotDeltaRequest(
+            [(SmartBpRecognitionRegion.RightBottom, "picked_hun")], []);
+
+        var filtered = SmartBpAutoRecognitionCoordinator.FilterAutomaticRequestByPhase(request, phase);
+
+        Assert.Empty(filtered.RequestedFields);
+    }
+
     [Fact]
     public void ManagedAssetDownloads_UseUpdaterGradeParallelConfiguration()
     {
@@ -107,13 +141,30 @@ public sealed class SmartBpSceneGateAndModelSourceTest
             manager.SetupGet(service => service.IsRunning).Returns(true);
             var managers = new Mock<ILlamaCppServerManagerFactory>();
             managers.Setup(service => service.Get(LlamaVisionServerRole.BusinessAi)).Returns(manager.Object);
+            var ocr = new Mock<ISmartBpOcrBpRecognitionService>();
+            ocr.Setup(service => service.RecognizeAsync(
+                    It.IsAny<BitmapSource>(), It.IsAny<SmartBpOcrRecognitionRequest>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpOcrRecognitionResult
+                {
+                    Phase = new SmartBpPhaseRecognitionResult { Phase = "未知" }
+                });
+            var field = new Mock<ISmartBpAiFieldSnapshotRecognitionService>();
+            field.Setup(service => service.RecognizePhaseOnlyAsync(
+                    It.IsAny<BitmapSource>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new SmartBpAiPhaseOnlyResult
+                {
+                    Phase = new SmartBpPhaseRecognitionResult { Phase = "屏蔽求生者" },
+                    Crop = new SmartBpCroppedFrame(SmartBpRecognitionRegion.PhaseTop,
+                        new WriteableBitmap(1, 1, 96, 96, PixelFormats.Bgra32, null), 0, 0, 1, 1),
+                    RawJson = """{"phase":"屏蔽求生者"}"""
+                });
             var coordinator = new SmartBpAutoRecognitionCoordinator(
-                Mock.Of<ISmartBpRegionSnapshotRecognitionService>(), delta.Object, Mock.Of<ISmartBpAiFieldSnapshotRecognitionService>(), planner.Object, state.Object,
+                Mock.Of<ISmartBpRegionSnapshotRecognitionService>(), delta.Object, field.Object, planner.Object, state.Object,
                 ledger.Object, Mock.Of<ISmartBpFrameRingBuffer>(), recognitionSettings.Object, shared.Object,
                 Mock.Of<ISmartBpGuidanceSyncService>(), guidance.Object, Mock.Of<ISmartBpWorkflowBackfillService>(),
                 new SmartBpCandidateOperationBuilder(Mock.Of<ISmartBpCharacterResolver>(), shared.Object),
-                Mock.Of<ISmartBpDetectedOperationApplier>(), Mock.Of<ISmartBpSceneGateService>(),
-                Mock.Of<ISmartBpOcrBpRecognitionService>(), Mock.Of<ISmartBpAiOcrTranscriptRecognitionService>(),
+                Mock.Of<ISmartBpDetectedOperationApplier>(), new SmartBpSceneGateService(),
+                ocr.Object, Mock.Of<ISmartBpAiOcrTranscriptRecognitionService>(),
                 Mock.Of<ISmartBpAiOcrTranscriptInterpreter>(),
                 Mock.Of<ISmartBpBusinessAiFusionService>(),
                 managers.Object, Mock.Of<ISmartBpDebugLog>());
@@ -132,7 +183,7 @@ public sealed class SmartBpSceneGateAndModelSourceTest
     }
 
     [Fact]
-    public async Task AiWithOcrAutomatic_ReturnsBeforeOcrFields_WhenPhaseIsPostBp()
+    public async Task AiWithOcrAutomatic_LocalPostBpOverridesStaleAiPhaseBeforeContentOcr()
     {
         await WpfTestThread.RunAsync(async () =>
         {
@@ -143,7 +194,7 @@ public sealed class SmartBpSceneGateAndModelSourceTest
                     [(SmartBpRecognitionRegion.RightTop, "banned_sur")],
                     ["test requested banned_sur"]));
             var state = new Mock<ISmartBpRecognitionStateStore>();
-            state.SetupGet(service => service.Snapshot).Returns(new SmartBpBusinessStateRecognitionResult { Phase = "等待游戏开始" });
+            state.SetupGet(service => service.Snapshot).Returns(new SmartBpBusinessStateRecognitionResult { Phase = "求生者选择区域中" });
             var ledger = new Mock<ISmartBpRecognitionLedger>();
             ledger.Setup(service => service.GetSnapshot()).Returns(new SmartBpRecognitionLedgerSnapshot([]));
             var recognitionSettings = new Mock<ISmartBpRecognitionSettingsService>();
@@ -159,12 +210,23 @@ public sealed class SmartBpSceneGateAndModelSourceTest
             field.Setup(service => service.RecognizePhaseOnlyAsync(It.IsAny<BitmapSource>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new SmartBpAiPhaseOnlyResult
                 {
-                    Phase = new SmartBpPhaseRecognitionResult { Phase = "等待游戏开始" },
+                    Phase = new SmartBpPhaseRecognitionResult { Phase = "求生者选择角色中" },
                     Crop = new SmartBpCroppedFrame(SmartBpRecognitionRegion.PhaseTop, frame, 0, 0, 1, 1),
-                    RawJson = """{"phase":"等待游戏开始"}""",
+                    RawJson = """{"phase":"求生者选择角色中"}""",
                     Diagnostics = ["phase only"]
                 });
             var ocr = new Mock<ISmartBpOcrBpRecognitionService>(MockBehavior.Strict);
+            ocr.Setup(service => service.RecognizeAsync(
+                    It.IsAny<BitmapSource>(),
+                    It.Is<SmartBpOcrRecognitionRequest>(request =>
+                        !request.IncludePhase &&
+                        request.ContentRegions.SequenceEqual(new[] { SmartBpRecognitionRegion.TopLeftStatus })),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpOcrRecognitionResult
+                {
+                    Phase = new SmartBpPhaseRecognitionResult { Phase = "求生者选择区域中" },
+                    Diagnostics = ["local status detected"]
+                });
             var manager = new Mock<ILlamaCppServerManager>();
             manager.SetupGet(service => service.IsRunning).Returns(true);
             var managers = new Mock<ILlamaCppServerManagerFactory>();
@@ -184,11 +246,28 @@ public sealed class SmartBpSceneGateAndModelSourceTest
             var result = await coordinator.RunOneTickAsync(frame);
 
             Assert.True(result.SceneGate?.ShouldPauseAutomaticRecognition);
+            Assert.Equal("求生者选择区域中", result.PhaseResult?.Phase);
             Assert.Empty(result.Operations);
+            Assert.Contains(result.CandidateMessages, message => message.Contains(
+                "TopLeftStatus post-BP detector override: AI phase=求生者选择角色中", StringComparison.Ordinal));
             ocr.Verify(service => service.RecognizeAsync(
                 It.IsAny<BitmapSource>(),
                 It.IsAny<SmartBpOcrRecognitionRequest>(),
-                It.IsAny<CancellationToken>()), Times.Never);
+                It.IsAny<CancellationToken>()), Times.Once);
+            field.Verify(service => service.RecognizeFieldAsync(
+                It.IsAny<BitmapSource>(), It.IsAny<SmartBpRecognitionRegion>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+
+            var latched = await coordinator.RunOneTickAsync(frame);
+            Assert.Contains(latched.CandidateMessages, message => message.Contains("Post-BP latch already set", StringComparison.Ordinal));
+            ocr.Verify(service => service.RecognizeAsync(
+                It.IsAny<BitmapSource>(), It.IsAny<SmartBpOcrRecognitionRequest>(), It.IsAny<CancellationToken>()), Times.Once);
+
+            await coordinator.CompleteAsync();
+            await coordinator.StartAsync();
+            var restarted = await coordinator.RunOneTickAsync(frame);
+            Assert.DoesNotContain(restarted.CandidateMessages, message => message.Contains("Post-BP latch already set", StringComparison.Ordinal));
+            ocr.Verify(service => service.RecognizeAsync(
+                It.IsAny<BitmapSource>(), It.IsAny<SmartBpOcrRecognitionRequest>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
         });
     }
 

@@ -21,7 +21,7 @@ internal sealed class SmartBpSceneGateService : ISmartBpSceneGateService
             return PostBp(SmartBpRecognitionScene.AreaSelectionSurvivor);
         if (Contains(evidence, "即将进入区域选择", "区域选择"))
             return PostBp(SmartBpRecognitionScene.OutOfBp);
-        if (Contains(evidence, "等待游戏开始", "前往【"))
+        if (Contains(evidence, "等待游戏开始"))
             return PostBp(SmartBpRecognitionScene.WaitingGameStart);
         if (Contains(evidence, "加载中", "正在加载"))
             return PostBp(SmartBpRecognitionScene.Loading);

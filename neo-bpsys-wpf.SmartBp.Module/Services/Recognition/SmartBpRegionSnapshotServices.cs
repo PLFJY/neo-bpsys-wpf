@@ -328,13 +328,18 @@ internal sealed class SmartBpSnapshotRecognitionPlanner(
         SmartBpRecognitionLedgerSnapshot ledgerSnapshot)
     {
         if (settings.Settings.RecognitionApplyMode == SmartBpRecognitionApplyMode.FreeFullSync)
-            return new(
+        {
+            var fullRequest = new SmartBpSnapshotDeltaRequest(
             [
                 (SmartBpRecognitionRegion.RightTop, "banned_sur"),
                 (SmartBpRecognitionRegion.LeftTop, "banned_hun"),
                 (SmartBpRecognitionRegion.LeftBottom, "picked_sur"),
                 (SmartBpRecognitionRegion.RightBottom, "picked_hun")
-            ], ["Free full sync requests every character region."], currentLocalSnapshot);
+            ], ["Free full sync initially considers every character region."], currentLocalSnapshot);
+            var freeSyncDiagnostics = fullRequest.Diagnostics.ToList();
+            return SmartBpAutoRecognitionCoordinator.FilterAutomaticRequestByPhase(
+                fullRequest, currentLocalSnapshot.Phase, freeSyncDiagnostics) with { Diagnostics = freeSyncDiagnostics };
+        }
         var requested = new Dictionary<string, SmartBpRecognitionRegion>(StringComparer.Ordinal);
         var diagnostics = new List<string>();
         void Add(string field, SmartBpRecognitionRegion region, string reason)
@@ -374,7 +379,10 @@ internal sealed class SmartBpSnapshotRecognitionPlanner(
 
         if (requested.Count == 0)
             diagnostics.Add("Only phase_top is requested this tick.");
-        return new(requested.Select(item => (item.Value, item.Key)).ToArray(), diagnostics, currentLocalSnapshot);
+        var planned = new SmartBpSnapshotDeltaRequest(
+            requested.Select(item => (item.Value, item.Key)).ToArray(), diagnostics, currentLocalSnapshot);
+        return SmartBpAutoRecognitionCoordinator.FilterAutomaticRequestByPhase(
+            planned, currentLocalSnapshot.Phase, diagnostics) with { Diagnostics = diagnostics };
 
         void AddForAction(GameAction action, string reason)
         {

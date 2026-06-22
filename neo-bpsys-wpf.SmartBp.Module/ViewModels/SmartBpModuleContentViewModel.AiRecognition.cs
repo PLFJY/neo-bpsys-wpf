@@ -535,6 +535,7 @@ public partial class SmartBpModuleContentViewModel
     private static readonly (string Id, string LabelKey)[] AiRegionEditorNodes =
     [
         ("phase_top", "SmartBpAiRegionPhaseTop"),
+        ("top_left_status", "SmartBpAiRegionTopLeftStatus"),
         ("left_top", "SmartBpAiRegionLeftTop"),
         ("right_top", "SmartBpAiRegionRightTop"),
         ("left_bottom", "SmartBpAiRegionLeftBottom"),

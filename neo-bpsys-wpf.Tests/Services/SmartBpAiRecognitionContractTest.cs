@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
@@ -16,6 +17,9 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Services;
+using neo_bpsys_wpf.Tests.Infrastructure;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using Xunit;
 using SmartBpRecognitionTask = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionTask;
 using SmartBpRecognitionStrategy = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionStrategy;
@@ -54,6 +58,9 @@ using SmartBpDetectedOperationKind = smartbp::neo_bpsys_wpf.SmartBp.Module.Model
 using SmartBpRecognitionLayoutProfile = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionLayoutProfile;
 using SmartBpRecognitionRegionRect = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionRegionRect;
 using SmartBpRecognitionRegion = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionRegion;
+using SmartBpRecognitionFrameCropper = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpRecognitionFrameCropper;
+using ISmartBpRecognitionRegionProfileService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpRecognitionRegionProfileService;
+using SmartBpModuleContentViewModel = smartbp::neo_bpsys_wpf.ViewModels.Pages.SmartBpModuleContentViewModel;
 using SmartBpPhaseRecognitionResult = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpPhaseRecognitionResult;
 using SmartBpFocusedBusinessExtractionResult = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpFocusedBusinessExtractionResult;
 using SmartBpBusinessStateMerger = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpBusinessStateMerger;
@@ -1069,8 +1076,47 @@ public sealed class SmartBpAiRecognitionContractTest
         var status = profile.Regions["top_left_status"];
         Assert.Equal(0, status.X);
         Assert.Equal(0, status.Y);
-        Assert.True(status.Width >= .5);
-        Assert.True(status.Height >= .16);
+        Assert.InRange(status.Width, .32, .38);
+        Assert.InRange(status.Height, .10, .12);
+    }
+
+    [Fact]
+    public void VisualRecognitionRegionEditorIncludesTopLeftStatus()
+    {
+        var field = typeof(SmartBpModuleContentViewModel).GetField(
+            "AiRegionEditorNodes", BindingFlags.Static | BindingFlags.NonPublic);
+
+        var nodes = Assert.IsType<(string Id, string LabelKey)[]>(field!.GetValue(null));
+
+        Assert.Contains(nodes, node => node.Id == "top_left_status");
+    }
+
+    [Fact]
+    public async Task RuntimeCropUsesEditedTopLeftStatusProfileAndReportsSource()
+    {
+        await WpfTestThread.RunAsync(() =>
+        {
+            var profile = new SmartBpRecognitionLayoutProfile
+            {
+                RuntimeSource = "user-layout",
+                Regions = new Dictionary<string, SmartBpRecognitionRegionRect>
+                {
+                    ["top_left_status"] = new() { X = .2, Y = .1, Width = .3, Height = .2 }
+                }
+            };
+            var profileService = new Mock<ISmartBpRecognitionRegionProfileService>();
+            profileService.Setup(service => service.LoadAsync(It.IsAny<CancellationToken>())).ReturnsAsync(profile);
+            var cropper = new SmartBpRecognitionFrameCropper(profileService.Object);
+            var frame = new WriteableBitmap(100, 100, 96, 96, PixelFormats.Bgra32, null);
+
+            var crop = cropper.CropWithInfo(frame, SmartBpRecognitionRegion.TopLeftStatus);
+
+            Assert.Equal((20, 10, 30), (crop.X, crop.Y, crop.Width));
+            Assert.InRange(crop.Height, 20, 21);
+            Assert.Equal("user-layout", crop.LayoutSource);
+            Assert.Equal("x=0.2, y=0.1, w=0.3, h=0.2", crop.NormalizedRectText);
+            return Task.CompletedTask;
+        });
     }
 
     [Theory]

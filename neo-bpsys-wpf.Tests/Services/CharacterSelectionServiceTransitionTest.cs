@@ -87,6 +87,32 @@ public sealed class CharacterSelectionServiceTransitionTest
     }
 
     [Fact]
+    public void ResolveCharacterDetailed_OppositeCampExactNameVetoesHunterFuzzyCorrection()
+    {
+        var service = CreateService(
+            [new Character("守墓人", Camp.Sur, "grave-keeper.png")],
+            [new Character("守夜人", Camp.Hun, "night-watch.png")]);
+
+        var result = service.ResolveCharacterDetailed("守墓人", Camp.Hun);
+
+        Assert.Null(result.Character);
+        Assert.Equal("opposite-camp-exact-veto", result.MatchMode);
+        Assert.Contains("opposite-camp exact-name veto", result.Reason, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ResolveCharacterDetailed_SameCampHunterExactNameStillResolves()
+    {
+        var expected = new Character("守夜人", Camp.Hun, "night-watch.png");
+        var service = CreateService([new Character("守墓人", Camp.Sur, "grave-keeper.png")], [expected]);
+
+        var result = service.ResolveCharacterDetailed("守夜人", Camp.Hun);
+
+        Assert.Same(expected, result.Character);
+        Assert.Equal("exact", result.MatchMode);
+    }
+
+    [Fact]
     public void ResolveCharacterDetailed_NeverFallsBackAcrossCampsForHunterTypo()
     {
         var service = CreateService([], [new Character("厂长", Camp.Hun, "hell-ember.png")]);

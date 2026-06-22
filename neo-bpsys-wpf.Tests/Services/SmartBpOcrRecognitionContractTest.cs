@@ -80,25 +80,6 @@ public sealed class SmartBpOcrRecognitionContractTest
         Assert.Equal("选择求生者", phase.Phase);
     }
 
-    [Theory]
-    [InlineData("等待游戏开始，剩余 28 秒", "等待游戏开始")]
-    [InlineData("前往【永眠镇】", "等待游戏开始")]
-    [InlineData("即将进入区域选择", "即将进入区域选择")]
-    [InlineData("求生者选择区域中", "求生者选择区域中")]
-    [InlineData("监管者选择区域中", "监管者选择区域中")]
-    [InlineData("区域选择", "区域选择")]
-    [InlineData("加载中", "加载中")]
-    [InlineData("对局中", "对局中")]
-    public void PhaseClassifierDetectsPostBpAnchors(string text, string expected)
-    {
-        var diagnostics = new List<string>();
-
-        var phase = SmartBpOcrPhaseClassifier.Classify([Line(text, 50, 20)], 200, diagnostics);
-
-        Assert.Equal(expected, phase.Phase);
-        Assert.Contains(diagnostics, item => item.Contains("Pure OCR post-BP anchor matched", StringComparison.Ordinal));
-    }
-
     [Fact]
     public void PhaseClassifierDoesNotStopOnBareMapName()
     {
@@ -110,24 +91,25 @@ public sealed class SmartBpOcrRecognitionContractTest
     }
 
     [Theory]
-    [InlineData("等待游戏开始，剩余 28 秒")]
-    [InlineData("等侍游戏开始")]
-    [InlineData("等待游戏升始")]
-    [InlineData("剩余28秒")]
-    [InlineData("前柱【永眠镇】")]
-    [InlineData("前住【湖景村】")]
-    public void TopLeftStatusDetectorFuzzyMatchesWaitingGameStart(string text)
+    [InlineData("求生者选择区域中，剩余24秒", "求生者选择区域中")]
+    [InlineData("监管者选择区域中，剩余10秒", "监管者选择区域中")]
+    [InlineData("等待游戏开始，剩余58秒", "等待游戏开始")]
+    [InlineData("等侍游戏开始", "等待游戏开始")]
+    [InlineData("等待游戏升始", "等待游戏开始")]
+    public void TopLeftStatusDetectorMatchesPrimaryTitles(string text, string expected)
     {
         var result = SmartBpPostBpStatusDetector.Detect([Line(text, 50, 20)]);
 
         Assert.True(result.IsPostBp);
-        Assert.Equal("等待游戏开始", result.Phase);
-        Assert.Equal(smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionScene.WaitingGameStart, result.Scene);
+        Assert.Equal(expected, result.Phase);
         Assert.Contains(text, result.Evidence);
+        Assert.NotEmpty(result.NormalizedText);
     }
 
     [Theory]
     [InlineData("永眠镇")]
+    [InlineData("剩余28秒")]
+    [InlineData("前往【永眠镇】")]
     [InlineData("屏蔽求生者")]
     [InlineData("选择监管者")]
     public void TopLeftStatusDetectorDoesNotFalseTrigger(string text)
@@ -135,6 +117,17 @@ public sealed class SmartBpOcrRecognitionContractTest
         var result = SmartBpPostBpStatusDetector.Detect([Line(text, 50, 20)]);
 
         Assert.False(result.IsPostBp);
+    }
+
+    [Fact]
+    public void TopLeftStatusDetectorUsesCombinedAuxiliaryEvidenceWithoutMapList()
+    {
+        var result = SmartBpPostBpStatusDetector.Detect(
+            [Line("剩余28秒", 50, 20), Line("前往【永眠镇】", 50, 40)]);
+
+        Assert.True(result.IsPostBp);
+        Assert.Equal("等待游戏开始", result.Phase);
+        Assert.Equal(["剩余秒", "前往地图"], result.AuxiliaryEvidence);
     }
 
     [Fact]
@@ -304,6 +297,22 @@ public sealed class SmartBpOcrRecognitionContractTest
         Assert.NotNull(result.PickedHun);
         Assert.Equal("厂长", result.PickedHun!.CharacterName);
         Assert.Equal("导播PLFJY", result.PickedHun.PlayerId);
+    }
+
+    [Theory]
+    [InlineData("已选择")]
+    [InlineData("等待选择...")]
+    public void RightBottomStatusTextIsNotUsedAsPlayerId(string statusText)
+    {
+        var parser = Parser(new Character("厂长", Camp.Hun, "hell-ember"));
+
+        var result = parser.Parse(
+            SmartBpRecognitionRegion.RightBottom,
+            [Line("厂长", 50, 20), Line(statusText, 50, 45)],
+            []);
+
+        Assert.Equal("厂长", result.PickedHun!.CharacterName);
+        Assert.Null(result.PickedHun.PlayerId);
     }
 
     [Fact]

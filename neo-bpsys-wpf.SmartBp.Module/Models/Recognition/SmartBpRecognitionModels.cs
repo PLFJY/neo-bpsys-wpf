@@ -198,6 +198,9 @@ public sealed class SmartBpRecognitionLayoutProfile
     public string BaseAspectRatio { get; set; } = "16:9";
     /// <summary>Gets or sets normalized regions by json id.</summary>
     public Dictionary<string, SmartBpRecognitionRegionRect> Regions { get; set; } = [];
+    /// <summary>Gets the runtime source of this profile for crop diagnostics.</summary>
+    [JsonIgnore]
+    public string RuntimeSource { get; set; } = "default";
 }
 
 /// <summary>One cropped recognition frame with diagnostics.</summary>
@@ -211,6 +214,10 @@ public sealed record SmartBpCroppedFrame(
 {
     /// <summary>Gets a compact pixel rectangle description.</summary>
     public string PixelRectText => $"x={X}, y={Y}, width={Width}, height={Height}";
+    /// <summary>Gets the layout source used to calculate this crop.</summary>
+    public string LayoutSource { get; init; } = "default";
+    /// <summary>Gets the normalized rectangle used to calculate this crop.</summary>
+    public string NormalizedRectText { get; init; } = "";
 }
 
 /// <summary>Phase-only model output for region-gated recognition.</summary>
@@ -244,6 +251,10 @@ public sealed class SmartBpPostBpStatusResult
     public string Evidence { get; init; } = "";
     /// <summary>Gets the fuzzy-match score.</summary>
     public double Score { get; init; }
+    /// <summary>Gets the normalized OCR text used for matching.</summary>
+    public string NormalizedText { get; init; } = "";
+    /// <summary>Gets the auxiliary evidence labels found in the status crop.</summary>
+    public IReadOnlyList<string> AuxiliaryEvidence { get; init; } = [];
 }
 
 /// <summary>Local vision model manifest root.</summary>

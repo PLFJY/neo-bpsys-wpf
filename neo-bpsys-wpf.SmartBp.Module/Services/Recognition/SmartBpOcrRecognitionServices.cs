@@ -205,25 +205,6 @@ internal static class SmartBpOcrPhaseClassifier
             diagnostics.Add($"phase line: provider={line.Provider ?? "unknown"}; coordinateSpace=region-local; text={line.Text}; bbox={line.BoundingBox}; x={line.CenterX:0.0}; y={line.CenterY:0.0}; conf={line.Confidence:0.00}");
 
         var phaseText = string.Join('\n', lines.Select(line => line.Text));
-        if (ContainsNormalized(phaseText, "等待游戏开始"))
-            return Matched("等待游戏开始", "Pure OCR post-BP anchor matched: 等待游戏开始.", diagnostics);
-        if (Regex.IsMatch(phaseText, @"前往【.+?】", RegexOptions.CultureInvariant))
-            return Matched("等待游戏开始", "Pure OCR post-BP anchor matched: 前往【...】.", diagnostics);
-        if (Regex.IsMatch(phaseText, @"剩余\s*\d+\s*秒", RegexOptions.CultureInvariant))
-            return Matched("等待游戏开始", "Pure OCR post-BP anchor matched: 剩余 秒 countdown.", diagnostics);
-        if (ContainsNormalized(phaseText, "即将进入区域选择"))
-            return Matched("即将进入区域选择", "Pure OCR post-BP anchor matched: 即将进入区域选择.", diagnostics);
-        if (ContainsNormalized(phaseText, "求生者选择区域中"))
-            return Matched("求生者选择区域中", "Pure OCR post-BP anchor matched: 求生者选择区域中.", diagnostics);
-        if (ContainsNormalized(phaseText, "监管者选择区域中"))
-            return Matched("监管者选择区域中", "Pure OCR post-BP anchor matched: 监管者选择区域中.", diagnostics);
-        if (ContainsNormalized(phaseText, "区域选择") || ContainsNormalized(phaseText, "选择区域"))
-            return Matched("区域选择", "Pure OCR post-BP anchor matched: 区域选择 / 选择区域.", diagnostics);
-        if (ContainsNormalized(phaseText, "加载中"))
-            return Matched("加载中", "Pure OCR post-BP anchor matched: 加载中.", diagnostics);
-        if (ContainsNormalized(phaseText, "对局中"))
-            return Matched("对局中", "Pure OCR post-BP anchor matched: 对局中.", diagnostics);
-
         if (lines.Any(line => ContainsNormalized(line.Text, "天赋已锁定")))
             return Matched("天赋已锁定", "matched rule: any line contains 天赋已锁定", diagnostics);
 
@@ -273,47 +254,80 @@ internal static class SmartBpPostBpStatusDetector
 {
     public static SmartBpPostBpStatusResult Detect(IReadOnlyList<OcrTextLine> lines)
     {
-        var evidence = string.Join(" / ", lines.Select(line => line.Text).Where(text => !string.IsNullOrWhiteSpace(text)));
-        var normalizedLines = lines.Select(line => SmartBpOcrTextResolver.NormalizeForMatch(line.Text)).Where(text => text.Length > 0).ToArray();
+        var rawLines = lines.Select(line => line.Text).Where(text => !string.IsNullOrWhiteSpace(text)).ToArray();
+        var evidence = string.Join(" / ", rawLines);
+        var normalizedLines = rawLines.Select(SmartBpOcrTextResolver.NormalizeForMatch).Where(text => text.Length > 0).ToArray();
         var combined = string.Concat(normalizedLines);
-
-        var waitingScore = BestSubstringSimilarity(combined, "等待游戏开始");
-        if (waitingScore >= .75)
-            return Match("等待游戏开始", SmartBpRecognitionScene.WaitingGameStart, "fuzzy 等待游戏开始 anchor", evidence, waitingScore);
-
-        var hasRemaining = ContainsFuzzy(combined, "剩余", .5);
-        var hasSeconds = combined.Contains('秒');
-        if (hasRemaining && hasSeconds)
-            return Match("等待游戏开始", SmartBpRecognitionScene.WaitingGameStart, "剩余/秒 countdown anchors", evidence, .9);
-
+        var auxiliary = new List<string>();
+        var hasRemainingSeconds = ContainsFuzzy(combined, "剩余", .5) && combined.Contains('秒');
+        if (hasRemainingSeconds) auxiliary.Add("剩余秒");
         var hasGoTo = ContainsFuzzy(combined, "前往", .5);
-        var hasBracketedDestination = lines.Any(line => Regex.IsMatch(
-            line.Text.Normalize(NormalizationForm.FormKC),
+        var hasBracketedDestination = rawLines.Any(line => Regex.IsMatch(
+            line.Normalize(NormalizationForm.FormKC),
             @"[【\[（(《<].+?[】\]）)》>]",
             RegexOptions.CultureInvariant));
-        if (hasGoTo && hasBracketedDestination)
-            return Match("等待游戏开始", SmartBpRecognitionScene.WaitingGameStart, "fuzzy 前往 plus bracketed destination anchor", evidence, .8);
+        if (hasGoTo && hasBracketedDestination) auxiliary.Add("前往地图");
 
-        foreach (var candidate in new[]
-                 {
-                     (Phase: "即将进入区域选择", Scene: SmartBpRecognitionScene.OutOfBp),
-                     (Phase: "求生者选择区域中", Scene: SmartBpRecognitionScene.AreaSelectionSurvivor),
-                     (Phase: "监管者选择区域中", Scene: SmartBpRecognitionScene.AreaSelectionHunter),
-                     (Phase: "区域选择", Scene: SmartBpRecognitionScene.OutOfBp),
-                     (Phase: "加载中", Scene: SmartBpRecognitionScene.Loading),
-                     (Phase: "对局中", Scene: SmartBpRecognitionScene.InGame)
-                 })
+        var titleMatch = PrimaryTitles
+            .Select(candidate => new
+            {
+                Candidate = candidate,
+                Exact = combined.Contains(candidate.Phase, StringComparison.Ordinal),
+                TokenMatch = candidate.Tokens.All(token => combined.Contains(token, StringComparison.Ordinal)),
+                Similarity = BestSubstringSimilarity(combined, candidate.Phase)
+            })
+            .Where(match => match.Exact || match.TokenMatch || match.Similarity >= .75)
+            .OrderByDescending(match => match.Exact)
+            .ThenByDescending(match => match.TokenMatch)
+            .ThenByDescending(match => match.Similarity)
+            .FirstOrDefault();
+        if (titleMatch != null)
         {
-            var score = BestSubstringSimilarity(combined, candidate.Phase);
-            if (score >= .75)
-                return Match(candidate.Phase, candidate.Scene, $"fuzzy {candidate.Phase} anchor", evidence, score);
+            var score = titleMatch.Exact ? 1 : titleMatch.TokenMatch ? .9 : titleMatch.Similarity;
+            if (auxiliary.Count > 0)
+                score = Math.Min(1, score + .03 * auxiliary.Count);
+            var matchMode = titleMatch.Exact ? "exact" : titleMatch.TokenMatch ? "keywords" : "edit-distance";
+            return Match(titleMatch.Candidate.Phase, titleMatch.Candidate.Scene, $"{matchMode} title anchor", evidence, combined, auxiliary, score);
         }
 
-        return new SmartBpPostBpStatusResult { Evidence = evidence };
+        if (hasRemainingSeconds && hasGoTo && hasBracketedDestination)
+            return Match("等待游戏开始", SmartBpRecognitionScene.WaitingGameStart,
+                "combined auxiliary countdown and destination anchors", evidence, combined, auxiliary, .7);
+
+        return new SmartBpPostBpStatusResult
+        {
+            Evidence = evidence,
+            NormalizedText = combined,
+            AuxiliaryEvidence = auxiliary
+        };
     }
 
-    private static SmartBpPostBpStatusResult Match(string phase, SmartBpRecognitionScene scene, string reason, string evidence, double score) =>
-        new() { IsPostBp = true, Phase = phase, Scene = scene, Reason = reason, Evidence = evidence, Score = score };
+    private static readonly (string Phase, SmartBpRecognitionScene Scene, string[] Tokens)[] PrimaryTitles =
+    [
+        ("求生者选择区域中", SmartBpRecognitionScene.AreaSelectionSurvivor, ["求生者", "选择", "区域"]),
+        ("监管者选择区域中", SmartBpRecognitionScene.AreaSelectionHunter, ["监管者", "选择", "区域"]),
+        ("等待游戏开始", SmartBpRecognitionScene.WaitingGameStart, ["等待", "游戏", "开始"])
+    ];
+
+    private static SmartBpPostBpStatusResult Match(
+        string phase,
+        SmartBpRecognitionScene scene,
+        string reason,
+        string evidence,
+        string normalized,
+        IReadOnlyList<string> auxiliary,
+        double score) =>
+        new()
+        {
+            IsPostBp = true,
+            Phase = phase,
+            Scene = scene,
+            Reason = reason,
+            Evidence = evidence,
+            NormalizedText = normalized,
+            AuxiliaryEvidence = auxiliary,
+            Score = score
+        };
 
     private static bool ContainsFuzzy(string text, string candidate, double threshold) =>
         BestSubstringSimilarity(text, SmartBpOcrTextResolver.NormalizeForMatch(candidate)) >= threshold;
@@ -496,7 +510,7 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
                 break;
 
             var playerId = SmartBpOcrTextResolver.NormalizeText(player.Text);
-            if (string.IsNullOrWhiteSpace(playerId))
+            if (string.IsNullOrWhiteSpace(playerId) || IsInvalidPlayerId(playerId))
                 continue;
 
             var slotIndex = Enumerable.Range(0, slots.Count)
@@ -664,7 +678,7 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
             .OrderBy(line => line.CenterY)
             .ThenBy(line => Math.Abs(line.CenterX - anchor.CenterX))
             .Select(line => SmartBpOcrTextResolver.NormalizeText(line.Text))
-            .FirstOrDefault(text => !string.IsNullOrWhiteSpace(text));
+            .FirstOrDefault(text => !string.IsNullOrWhiteSpace(text) && !IsInvalidPlayerId(text));
     }
 
     private static void AddResolverDiagnostics(
@@ -701,6 +715,18 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
         ];
         return markers.Any(marker => normalized.Contains(SmartBpOcrTextResolver.NormalizeForMatch(marker), StringComparison.Ordinal));
     }
+
+    private static bool IsInvalidPlayerId(string text)
+    {
+        var normalized = SmartBpOcrTextResolver.NormalizeForMatch(text);
+        string[] statusValues =
+        [
+            "已选择", "未选择", "等待选择", "等待中", "选择中", "天赋已锁定",
+            "区域选择", "等待游戏开始", "前往", "剩余"
+        ];
+        return statusValues.Any(status => normalized.Equals(
+            SmartBpOcrTextResolver.NormalizeForMatch(status), StringComparison.Ordinal));
+    }
 }
 
 internal sealed class SmartBpOcrBpRecognitionService(
@@ -730,6 +756,9 @@ internal sealed class SmartBpOcrBpRecognitionService(
         if (phaseWidth <= 0)
             phaseWidth = phaseLines.Select(line => line.CenterX).DefaultIfEmpty(1).Max() * 2;
         var postBpStatus = SmartBpPostBpStatusDetector.Detect(statusLines);
+        diagnostics.Add($"TopLeftStatus OCR raw text={postBpStatus.Evidence}");
+        diagnostics.Add($"TopLeftStatus OCR normalized={postBpStatus.NormalizedText}");
+        diagnostics.Add($"TopLeftStatus OCR matched_title={(postBpStatus.IsPostBp ? postBpStatus.Phase : "none")}; score={postBpStatus.Score:0.00}; auxiliary=[{string.Join(", ", postBpStatus.AuxiliaryEvidence)}]");
         SmartBpPhaseRecognitionResult phase;
         if (postBpStatus.IsPostBp)
         {
@@ -781,6 +810,8 @@ internal sealed class SmartBpOcrBpRecognitionService(
             diagnostics.Add($"provider={result.Provider ?? ocr.SelectedProvider.ToString()}; line_count={result.Lines.Count}; OCR contact sheet regions=[{string.Join(", ", requestedRegions.Select(ToRegionId))}], unmapped={unmapped}.");
             foreach (var region in sheet.Regions.Where(region => region.Region == SmartBpRecognitionRegion.TopLeftStatus))
                 diagnostics.Add($"top_left_status crop=x={region.OriginalFrameRect.X}, y={region.OriginalFrameRect.Y}, width={region.OriginalFrameRect.Width}, height={region.OriginalFrameRect.Height}");
+            var statusCrop = cropper.CropWithInfo(frame, SmartBpRecognitionRegion.TopLeftStatus);
+            AddTopLeftStatusCropDiagnostics(diagnostics, statusCrop);
             return grouped;
         }, cancellationToken).ConfigureAwait(false);
     }
@@ -802,7 +833,7 @@ internal sealed class SmartBpOcrBpRecognitionService(
                 using var bgr = ToBgr(raw);
                 var result = ocr.RecognizeTextLines(bgr).Lines;
                 if (region == SmartBpRecognitionRegion.TopLeftStatus)
-                    diagnostics.Add($"top_left_status crop={crop.PixelRectText}");
+                    AddTopLeftStatusCropDiagnostics(diagnostics, crop);
                 return result;
             }, cancellationToken).ConfigureAwait(false);
             diagnostics.Add($"provider={ocr.SelectedProvider}; line_count={lines.Count}; OCR per-region fallback={ToRegionId(region)}.");
@@ -855,6 +886,13 @@ internal sealed class SmartBpOcrBpRecognitionService(
         SmartBpRecognitionRegion.RightBottom => "right_bottom",
         _ => region.ToString()
     };
+
+    private static void AddTopLeftStatusCropDiagnostics(ICollection<string> diagnostics, SmartBpCroppedFrame crop)
+    {
+        diagnostics.Add($"top_left_status crop source={crop.LayoutSource}");
+        diagnostics.Add($"top_left_status normalized rect={crop.NormalizedRectText}");
+        diagnostics.Add($"top_left_status pixel rect={crop.PixelRectText}");
+    }
 }
 
 internal sealed class SmartBpOcrSnapshotDeltaRecognitionService(

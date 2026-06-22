@@ -694,12 +694,14 @@ internal sealed class SmartBpRecognitionRegionProfileService(ISmartBpModuleStora
 
     public async Task<SmartBpRecognitionLayoutProfile> LoadAsync(CancellationToken cancellationToken = default)
     {
-        var path = File.Exists(UserPath) ? UserPath : BundledPath;
+        var isUserLayout = File.Exists(UserPath);
+        var path = isUserLayout ? UserPath : BundledPath;
         await using var stream = File.OpenRead(path);
         var profile = await JsonSerializer.DeserializeAsync<SmartBpRecognitionLayoutProfile>(stream, JsonOptions, cancellationToken)
             ?? throw new InvalidDataException("SmartBP recognition layout profile is empty.");
         EnsureTopLeftStatusRegion(profile);
         Validate(profile);
+        profile.RuntimeSource = isUserLayout ? "user-layout" : "default";
         return profile;
     }
 
@@ -736,8 +738,8 @@ internal sealed class SmartBpRecognitionRegionProfileService(ISmartBpModuleStora
         {
             X = 0,
             Y = 0,
-            Width = .5,
-            Height = .16
+            Width = .36,
+            Height = .11
         });
     }
 }
@@ -755,7 +757,11 @@ internal sealed class SmartBpRecognitionFrameCropper(ISmartBpRecognitionRegionPr
         using var cropped = new Mat(sourceMat, roi).Clone();
         var image = BitmapSourceConverter.ToBitmapSource(cropped);
         image.Freeze();
-        return new(region, image, roi.X, roi.Y, roi.Width, roi.Height);
+        return new(region, image, roi.X, roi.Y, roi.Width, roi.Height)
+        {
+            LayoutSource = profile.RuntimeSource,
+            NormalizedRectText = $"x={rect.X:0.####}, y={rect.Y:0.####}, w={rect.Width:0.####}, h={rect.Height:0.####}"
+        };
     }
 
     private static Rect ToPixelRect(SmartBpRecognitionRegionRect rect, int width, int height)

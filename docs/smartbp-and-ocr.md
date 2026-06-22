@@ -355,13 +355,15 @@ neo-bpsys-wpf.SmartBp.Module/Resources/SmartBpDefaultConfigs/GameDataRegions.16-
 | 区域 ID | 枚举值 | 画面对应位置 | 识别内容 |
 | --- | --- | --- | --- |
 | `phase_top` | `PhaseTop` | 顶部操作栏 | BP 阶段文本（屏蔽/选择/天赋等） |
-| `top_left_status` | `TopLeftStatus` | 画面绝对左上角 | 角色 BP 结束后的等待游戏开始、区域选择、加载与对局状态；默认 16:9 区域为 `(0, 0, 0.5, 0.16)` |
+| `top_left_status` | `TopLeftStatus` | 画面绝对左上角 | 角色 BP 结束后的区域选择和等待开始标题；默认 16:9 区域为 `(0, 0, 0.36, 0.11)` |
 | `left_top` | `LeftTop` | 左上角 | 监管者 Ban 位 |
 | `right_top` | `RightTop` | 右上角 | 求生者 Ban 位 |
 | `left_bottom` | `LeftBottom` | 左下角 | 求生者 Pick 位 |
 | `right_bottom` | `RightBottom` | 右下角 | 监管者 Pick 位 |
 
-默认配置来自 SmartBP 模块 `Resources` 中的 `BpRecognitionLayoutProfile.json`。用户可通过 `RegionEditorWindow` 在当前捕获帧或内置测试图上可视化调整五个粗区域。这套配置独立于赛后数据细区域配置，同时服务 OCR 和 AI 引擎。
+默认配置来自 SmartBP 模块 `Resources` 中的 `BpRecognitionLayoutProfile.json`。用户可通过 `RegionEditorWindow` 在当前捕获帧或内置测试图上可视化调整六个粗区域（包括 `TopLeftStatus`）。保存后的同一份用户 profile 同时供编辑器预览、本地 OCR 状态检测和 AI 阶段裁剪读取。这套配置独立于赛后数据细区域配置。
+
+自动循环会先只 OCR `TopLeftStatus`。本地规则以“求生者选择区域中”“监管者选择区域中”“等待游戏开始”三个标题为强锚点，并使用关键词与编辑距离容忍少量 OCR 错字；“剩余…秒”和“前往【…】”只作为辅助证据。命中后本地结果覆盖 Business AI 的旧 BP 阶段输出，设置 post-BP latch，并在任何角色内容区域识别和字段合并前进入排空队列停止流程。
 
 ## 图像预处理
 
