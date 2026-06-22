@@ -729,13 +729,99 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
     }
 }
 
+internal sealed class SmartBpLifecycleStatusDetector : ISmartBpLifecycleStatusDetector
+{
+    private const double WeakThreshold = .65;
+
+    /// <inheritdoc />
+    public SmartBpLifecycleStatusResult Detect(IReadOnlyList<OcrTextLine> lines)
+    {
+        var rawLines = lines.Select(line => line.Text).Where(text => !string.IsNullOrWhiteSpace(text)).ToArray();
+        var evidence = string.Join(" / ", rawLines);
+        var normalized = string.Concat(rawLines.Select(SmartBpOcrTextResolver.NormalizeForMatch));
+        var hasDestination = BestSubstringSimilarity(normalized, "前往") >= .5;
+        var matches = Candidates.Select(candidate =>
+        {
+            var phraseScore = BestSubstringSimilarity(normalized, candidate.Status);
+            var keywordHits = candidate.Tokens.Count(token =>
+                BestSubstringSimilarity(normalized, token) >= (token.Length <= 2 ? .5 : .67));
+            var coverage = (double)keywordHits / candidate.Tokens.Length;
+            var score = phraseScore * .72 + coverage * .28 + (hasDestination ? .03 : 0);
+            return new { Candidate = candidate, PhraseScore = phraseScore, Coverage = coverage, Score = Math.Min(1, score) };
+        }).OrderByDescending(match => match.Score).First();
+
+        var recognized = matches.Score >= WeakThreshold && matches.Coverage >= .5;
+        var status = recognized ? matches.Candidate.Status : "未知";
+        var category = recognized ? matches.Candidate.Category : SmartBpLifecycleCategory.Unknown;
+        var reason = $"phrase similarity={matches.PhraseScore:0.00} + keyword coverage={matches.Coverage:0.00}";
+        var diagnostics = new[]
+        {
+            $"TopCenterStatus raw=\"{evidence}\"",
+            $"normalized=\"{normalized}\"",
+            $"best_match=\"{matches.Candidate.Status}\" score={matches.Score:0.00} category={category} reason=\"{reason}\""
+        };
+        return new SmartBpLifecycleStatusResult
+        {
+            IsRecognized = recognized,
+            Status = status,
+            Category = category,
+            Score = matches.Score,
+            Evidence = evidence,
+            NormalizedText = normalized,
+            HasDestinationEvidence = hasDestination,
+            Diagnostics = diagnostics
+        };
+    }
+
+    private static readonly (string Status, SmartBpLifecycleCategory Category, string[] Tokens)[] Candidates =
+    [
+        ("阵营选择中", SmartBpLifecycleCategory.CharacterBpActive, ["阵营", "选择"]),
+        ("求生者天赋特质调整", SmartBpLifecycleCategory.SurvivorTalentAdjust, ["求生者", "天赋", "特质", "调整"]),
+        ("监管者天赋特质调整", SmartBpLifecycleCategory.HunterTalentAdjust, ["监管者", "天赋", "特质", "调整"]),
+        ("即将进入区域选择", SmartBpLifecycleCategory.TransitionToAreaSelection, ["即将", "进入", "区域", "选择"])
+    ];
+
+    private static double BestSubstringSimilarity(string text, string candidate)
+    {
+        text = SmartBpOcrTextResolver.NormalizeForMatch(text);
+        candidate = SmartBpOcrTextResolver.NormalizeForMatch(candidate);
+        if (string.IsNullOrEmpty(text) || string.IsNullOrEmpty(candidate)) return 0;
+        if (text.Contains(candidate, StringComparison.Ordinal)) return 1;
+        var best = 0d;
+        var minLength = Math.Max(1, candidate.Length - 2);
+        var maxLength = Math.Min(text.Length, candidate.Length + 2);
+        for (var length = minLength; length <= maxLength; length++)
+        for (var start = 0; start + length <= text.Length; start++)
+        {
+            var distance = EditDistance(text.AsSpan(start, length), candidate.AsSpan());
+            best = Math.Max(best, 1d - (double)distance / Math.Max(length, candidate.Length));
+        }
+        return best;
+    }
+
+    private static int EditDistance(ReadOnlySpan<char> left, ReadOnlySpan<char> right)
+    {
+        var previous = Enumerable.Range(0, right.Length + 1).ToArray();
+        var current = new int[right.Length + 1];
+        for (var i = 1; i <= left.Length; i++)
+        {
+            current[0] = i;
+            for (var j = 1; j <= right.Length; j++)
+                current[j] = Math.Min(Math.Min(current[j - 1] + 1, previous[j] + 1), previous[j - 1] + (left[i - 1] == right[j - 1] ? 0 : 1));
+            (previous, current) = (current, previous);
+        }
+        return previous[right.Length];
+    }
+}
+
 internal sealed class SmartBpOcrBpRecognitionService(
     IOcrService ocr,
     ISmartBpRecognitionFrameCropper cropper,
     ISmartBpOcrContactSheetBuilder contactSheetBuilder,
     ISmartBpRecognitionSettingsService settings,
     ISmartBpBusinessStateMerger merger,
-    SmartBpOcrRegionParser parser) : ISmartBpOcrBpRecognitionService
+    SmartBpOcrRegionParser parser,
+    ISmartBpLifecycleStatusDetector lifecycleDetector) : ISmartBpOcrBpRecognitionService
 {
     public async Task<SmartBpOcrRecognitionResult> RecognizeAsync(
         BitmapSource frame,
@@ -751,11 +837,19 @@ internal sealed class SmartBpOcrBpRecognitionService(
 
         var dimensions = await GetRegionDimensionsAsync(frame, requestedRegions, cancellationToken).ConfigureAwait(false);
         var phaseLines = regionTexts.FirstOrDefault(item => item.Region == SmartBpRecognitionRegion.PhaseTop)?.Lines ?? [];
+        var lifecycleLines = regionTexts.FirstOrDefault(item => item.Region == SmartBpRecognitionRegion.TopCenterStatus)?.Lines ?? [];
         var statusLines = regionTexts.FirstOrDefault(item => item.Region == SmartBpRecognitionRegion.TopLeftStatus)?.Lines ?? [];
         var phaseWidth = (double)dimensions.GetValueOrDefault(SmartBpRecognitionRegion.PhaseTop).Width;
         if (phaseWidth <= 0)
             phaseWidth = phaseLines.Select(line => line.CenterX).DefaultIfEmpty(1).Max() * 2;
         var postBpStatus = SmartBpPostBpStatusDetector.Detect(statusLines);
+        SmartBpLifecycleStatusResult? lifecycleStatus = null;
+        if (requestedRegions.Contains(SmartBpRecognitionRegion.TopCenterStatus))
+        {
+            lifecycleStatus = lifecycleDetector.Detect(lifecycleLines);
+            foreach (var diagnostic in lifecycleStatus.Diagnostics)
+                diagnostics.Add(diagnostic);
+        }
         diagnostics.Add($"TopLeftStatus OCR raw text={postBpStatus.Evidence}");
         diagnostics.Add($"TopLeftStatus OCR normalized={postBpStatus.NormalizedText}");
         diagnostics.Add($"TopLeftStatus OCR matched_title={(postBpStatus.IsPostBp ? postBpStatus.Phase : "none")}; score={postBpStatus.Score:0.00}; auxiliary=[{string.Join(", ", postBpStatus.AuxiliaryEvidence)}]");
@@ -771,7 +865,7 @@ internal sealed class SmartBpOcrBpRecognitionService(
         }
 
         var parsed = new Dictionary<SmartBpRecognitionRegion, SmartBpFocusedBusinessExtractionResult>();
-        foreach (var regionText in regionTexts.Where(item => item.Region is not SmartBpRecognitionRegion.PhaseTop and not SmartBpRecognitionRegion.TopLeftStatus))
+        foreach (var regionText in regionTexts.Where(item => item.Region is not SmartBpRecognitionRegion.PhaseTop and not SmartBpRecognitionRegion.TopCenterStatus and not SmartBpRecognitionRegion.TopLeftStatus))
         {
             var parsedRegion = parser.ParseDetailed(regionText.Region, regionText.Lines);
             parsed[regionText.Region] = parsedRegion.Result;
@@ -791,6 +885,8 @@ internal sealed class SmartBpOcrBpRecognitionService(
             Phase = phase,
             BusinessState = state,
             Regions = regionTexts,
+            LifecycleStatus = lifecycleStatus,
+            PostBpStatus = requestedRegions.Contains(SmartBpRecognitionRegion.TopLeftStatus) ? postBpStatus : null,
             Diagnostics = diagnostics
         };
     }
@@ -808,10 +904,8 @@ internal sealed class SmartBpOcrBpRecognitionService(
             var result = ocr.RecognizeTextLines(sheet.Image);
             var grouped = SmartBpOcrContactSheetMapper.MapLinesToRegions(result, sheet.Regions, out var unmapped);
             diagnostics.Add($"provider={result.Provider ?? ocr.SelectedProvider.ToString()}; line_count={result.Lines.Count}; OCR contact sheet regions=[{string.Join(", ", requestedRegions.Select(ToRegionId))}], unmapped={unmapped}.");
-            foreach (var region in sheet.Regions.Where(region => region.Region == SmartBpRecognitionRegion.TopLeftStatus))
-                diagnostics.Add($"top_left_status crop=x={region.OriginalFrameRect.X}, y={region.OriginalFrameRect.Y}, width={region.OriginalFrameRect.Width}, height={region.OriginalFrameRect.Height}");
-            var statusCrop = cropper.CropWithInfo(frame, SmartBpRecognitionRegion.TopLeftStatus);
-            AddTopLeftStatusCropDiagnostics(diagnostics, statusCrop);
+            foreach (var region in sheet.Regions.Where(region => region.Region is SmartBpRecognitionRegion.TopCenterStatus or SmartBpRecognitionRegion.TopLeftStatus))
+                AddStatusCropDiagnostics(diagnostics, cropper.CropWithInfo(frame, region.Region));
             return grouped;
         }, cancellationToken).ConfigureAwait(false);
     }
@@ -832,8 +926,8 @@ internal sealed class SmartBpOcrBpRecognitionService(
                 using var raw = BitmapSourceConverter.ToMat(crop.Image);
                 using var bgr = ToBgr(raw);
                 var result = ocr.RecognizeTextLines(bgr).Lines;
-                if (region == SmartBpRecognitionRegion.TopLeftStatus)
-                    AddTopLeftStatusCropDiagnostics(diagnostics, crop);
+                if (region is SmartBpRecognitionRegion.TopCenterStatus or SmartBpRecognitionRegion.TopLeftStatus)
+                    AddStatusCropDiagnostics(diagnostics, crop);
                 return result;
             }, cancellationToken).ConfigureAwait(false);
             diagnostics.Add($"provider={ocr.SelectedProvider}; line_count={lines.Count}; OCR per-region fallback={ToRegionId(region)}.");
@@ -879,6 +973,7 @@ internal sealed class SmartBpOcrBpRecognitionService(
     internal static string ToRegionId(SmartBpRecognitionRegion region) => region switch
     {
         SmartBpRecognitionRegion.PhaseTop => "phase_top",
+        SmartBpRecognitionRegion.TopCenterStatus => "top_center_status",
         SmartBpRecognitionRegion.TopLeftStatus => "top_left_status",
         SmartBpRecognitionRegion.LeftTop => "left_top",
         SmartBpRecognitionRegion.RightTop => "right_top",
@@ -887,11 +982,12 @@ internal sealed class SmartBpOcrBpRecognitionService(
         _ => region.ToString()
     };
 
-    private static void AddTopLeftStatusCropDiagnostics(ICollection<string> diagnostics, SmartBpCroppedFrame crop)
+    private static void AddStatusCropDiagnostics(ICollection<string> diagnostics, SmartBpCroppedFrame crop)
     {
-        diagnostics.Add($"top_left_status crop source={crop.LayoutSource}");
-        diagnostics.Add($"top_left_status normalized rect={crop.NormalizedRectText}");
-        diagnostics.Add($"top_left_status pixel rect={crop.PixelRectText}");
+        var id = ToRegionId(crop.Region);
+        diagnostics.Add($"{id} crop source={crop.LayoutSource}");
+        diagnostics.Add($"{id} normalized rect={crop.NormalizedRectText}");
+        diagnostics.Add($"{id} pixel rect={crop.PixelRectText}");
     }
 }
 

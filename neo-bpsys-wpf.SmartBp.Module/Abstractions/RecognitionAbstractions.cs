@@ -610,6 +610,15 @@ public interface ISmartBpAutoRecognitionCoordinator
     Task<SmartBpAutoRecognitionTickResult> RunPhaseOnlyDebugAsync(BitmapSource frame, CancellationToken cancellationToken = default);
 }
 
+/// <summary>Classifies OCR text from the top-center BP lifecycle region without mutating game state.</summary>
+public interface ISmartBpLifecycleStatusDetector
+{
+    /// <summary>Classifies top-center OCR lines using normalized fuzzy scoring.</summary>
+    /// <param name="lines">OCR lines from <see cref="Models.Recognition.SmartBpRecognitionRegion.TopCenterStatus"/>.</param>
+    /// <returns>The deterministic lifecycle classification and diagnostics.</returns>
+    SmartBpLifecycleStatusResult Detect(IReadOnlyList<Core.Abstractions.Services.OcrTextLine> lines);
+}
+
 /// <summary>Owns one automatic step-commit transaction.</summary>
 public interface ISmartBpStepCommitScheduler
 {

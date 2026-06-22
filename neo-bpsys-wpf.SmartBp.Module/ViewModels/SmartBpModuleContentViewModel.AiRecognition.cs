@@ -535,6 +535,7 @@ public partial class SmartBpModuleContentViewModel
     private static readonly (string Id, string LabelKey)[] AiRegionEditorNodes =
     [
         ("phase_top", "SmartBpAiRegionPhaseTop"),
+        ("top_center_status", "SmartBpAiRegionTopCenterStatus"),
         ("top_left_status", "SmartBpAiRegionTopLeftStatus"),
         ("left_top", "SmartBpAiRegionLeftTop"),
         ("right_top", "SmartBpAiRegionRightTop"),
@@ -1940,6 +1941,7 @@ public partial class SmartBpModuleContentViewModel
         region switch
         {
             SmartBpRecognitionRegion.PhaseTop => "phase_top",
+            SmartBpRecognitionRegion.TopCenterStatus => "top_center_status",
             SmartBpRecognitionRegion.TopLeftStatus => "top_left_status",
             SmartBpRecognitionRegion.LeftTop => "left_top",
             SmartBpRecognitionRegion.RightTop => "right_top",

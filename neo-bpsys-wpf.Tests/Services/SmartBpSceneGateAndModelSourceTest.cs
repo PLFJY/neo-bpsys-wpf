@@ -30,6 +30,7 @@ using SmartBpOcrRecognitionRequest = smartbp::neo_bpsys_wpf.SmartBp.Module.Model
 using SmartBpSnapshotDeltaRequest = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpSnapshotDeltaRequest;
 using SmartBpRecognitionLedgerSnapshot = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionLedgerSnapshot;
 using SmartBpRecognitionRegion = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionRegion;
+using SmartBpLifecycleCategory = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpLifecycleCategory;
 using LlamaVisionServerRole = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.LlamaVisionServerRole;
 using SmartBpAutoRecognitionCoordinator = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpAutoRecognitionCoordinator;
 using SmartBpCandidateOperationBuilder = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpCandidateOperationBuilder;
@@ -58,6 +59,27 @@ namespace neo_bpsys_wpf.Tests.Services;
 
 public sealed class SmartBpSceneGateAndModelSourceTest
 {
+    [Theory]
+    [InlineData(SmartBpLifecycleCategory.CharacterBpActive, "banned_sur,banned_hun,picked_sur,picked_hun")]
+    [InlineData(SmartBpLifecycleCategory.SurvivorTalentAdjust, "picked_sur")]
+    [InlineData(SmartBpLifecycleCategory.HunterTalentAdjust, "picked_hun")]
+    [InlineData(SmartBpLifecycleCategory.TransitionToAreaSelection, "")]
+    [InlineData(SmartBpLifecycleCategory.Unknown, "")]
+    public void LifecycleFieldFilterAllowsOnlyCategorySafeFields(SmartBpLifecycleCategory category, string expected)
+    {
+        var request = new SmartBpSnapshotDeltaRequest(
+        [
+            (SmartBpRecognitionRegion.RightTop, "banned_sur"),
+            (SmartBpRecognitionRegion.LeftTop, "banned_hun"),
+            (SmartBpRecognitionRegion.LeftBottom, "picked_sur"),
+            (SmartBpRecognitionRegion.RightBottom, "picked_hun")
+        ], []);
+
+        var result = SmartBpAutoRecognitionCoordinator.FilterAutomaticRequestByLifecycle(request, category);
+
+        Assert.Equal(expected, string.Join(',', result.RequestedFields));
+    }
+
     [Theory]
     [InlineData("求生者选择角色中", "picked_sur")]
     [InlineData("求生者选择天赋中", "picked_sur")]
@@ -220,7 +242,11 @@ public sealed class SmartBpSceneGateAndModelSourceTest
                     It.IsAny<BitmapSource>(),
                     It.Is<SmartBpOcrRecognitionRequest>(request =>
                         !request.IncludePhase &&
-                        request.ContentRegions.SequenceEqual(new[] { SmartBpRecognitionRegion.TopLeftStatus })),
+                        request.ContentRegions.SequenceEqual(new[]
+                        {
+                            SmartBpRecognitionRegion.TopCenterStatus,
+                            SmartBpRecognitionRegion.TopLeftStatus
+                        })),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpOcrRecognitionResult
                 {
@@ -249,7 +275,7 @@ public sealed class SmartBpSceneGateAndModelSourceTest
             Assert.Equal("求生者选择区域中", result.PhaseResult?.Phase);
             Assert.Empty(result.Operations);
             Assert.Contains(result.CandidateMessages, message => message.Contains(
-                "TopLeftStatus post-BP detector override: AI phase=求生者选择角色中", StringComparison.Ordinal));
+                "TopLeftStatus hard confirmation", StringComparison.Ordinal));
             ocr.Verify(service => service.RecognizeAsync(
                 It.IsAny<BitmapSource>(),
                 It.IsAny<SmartBpOcrRecognitionRequest>(),

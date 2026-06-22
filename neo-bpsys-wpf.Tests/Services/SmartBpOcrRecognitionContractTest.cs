@@ -32,6 +32,8 @@ using SmartBpOcrContactSheetMapper = smartbp::neo_bpsys_wpf.SmartBp.Module.Servi
 using SmartBpOcrContactSheetRegion = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpOcrContactSheetRegion;
 using SmartBpOcrPhaseClassifier = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpOcrPhaseClassifier;
 using SmartBpPostBpStatusDetector = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpPostBpStatusDetector;
+using SmartBpLifecycleStatusDetector = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpLifecycleStatusDetector;
+using SmartBpLifecycleCategory = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpLifecycleCategory;
 using SmartBpOcrRegionParser = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpOcrRegionParser;
 using SmartBpOcrTextResolver = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpOcrTextResolver;
 using TesseractCoordinateMapper = smartbp::neo_bpsys_wpf.Services.TesseractCoordinateMapper;
@@ -48,6 +50,34 @@ namespace neo_bpsys_wpf.Tests.Services;
 
 public sealed class SmartBpOcrRecognitionContractTest
 {
+    [Theory]
+    [InlineData("阵营选择中", SmartBpLifecycleCategory.CharacterBpActive)]
+    [InlineData("求生者天赋特质调整", SmartBpLifecycleCategory.SurvivorTalentAdjust)]
+    [InlineData("监管者天赋特质调整", SmartBpLifecycleCategory.HunterTalentAdjust)]
+    [InlineData("即将进入区域选择", SmartBpLifecycleCategory.TransitionToAreaSelection)]
+    [InlineData("即将进人区域选择", SmartBpLifecycleCategory.TransitionToAreaSelection)]
+    public void TopCenterLifecycleDetectorUsesFuzzyScoring(string text, SmartBpLifecycleCategory expected)
+    {
+        var result = new SmartBpLifecycleStatusDetector().Detect([Line(text, 50, 20)]);
+
+        Assert.True(result.IsRecognized);
+        Assert.Equal(expected, result.Category);
+        Assert.InRange(result.Score, .65, 1);
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Contains("phrase similarity", StringComparison.Ordinal));
+    }
+
+    [Theory]
+    [InlineData("前往【永眠镇】")]
+    [InlineData("区域")]
+    [InlineData("随机字幕噪声")]
+    public void TopCenterLifecycleDetectorDoesNotInferStateFromWeakOrAuxiliaryText(string text)
+    {
+        var result = new SmartBpLifecycleStatusDetector().Detect([Line(text, 50, 20)]);
+
+        Assert.False(result.IsRecognized);
+        Assert.Equal(SmartBpLifecycleCategory.Unknown, result.Category);
+    }
+
     [Theory]
     [InlineData("屏蔽求生者", 150, "屏蔽求生者")]
     [InlineData("屏蔽监管者", 50, "屏蔽监管者")]

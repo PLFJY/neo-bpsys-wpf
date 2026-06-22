@@ -1457,6 +1457,8 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
     private bool _hasDetectedPostBp;
     private string _postBpPhase = "未知";
     private long _postBpDetectedFrameSequence;
+    private int _transitionToAreaSelectionConsecutiveCount;
+    private SmartBpLifecycleCategory _lastStableLifecycleCategory = SmartBpLifecycleCategory.Unknown;
     public bool IsRunning => _runCancellation is { IsCancellationRequested: false };
 
     public Task StartAsync(CancellationToken cancellationToken = default)
@@ -1541,7 +1543,6 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
             var sequence = Interlocked.Increment(ref _frameSequence);
             if (!isDebugPreview && !isDryRun && _hasDetectedPostBp)
                 return CreateLatchedPostBpResult(sequence);
-            await EnsureStrategyServersAsync(tickToken).ConfigureAwait(false);
             frameRingBuffer.AddFrame(sequence, frame, DateTimeOffset.Now);
             var guidanceSnapshot = guidance.GetRuntimeSnapshot();
             var request = debugMode == SmartBpRecognitionDebugMode.FullStrategy
@@ -1567,13 +1568,16 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
             {
                 var localStatus = await ocrRecognition.RecognizeAsync(
                     frame,
-                    new SmartBpOcrRecognitionRequest([SmartBpRecognitionRegion.TopLeftStatus], IncludePhase: false),
+                    new SmartBpOcrRecognitionRequest(
+                        [SmartBpRecognitionRegion.TopCenterStatus, SmartBpRecognitionRegion.TopLeftStatus],
+                        IncludePhase: false),
                     tickToken).ConfigureAwait(false);
                 messages.AddRange(localStatus.Diagnostics);
                 var statusRaw = string.Join(Environment.NewLine, localStatus.Regions
-                    .Where(region => region.Region == SmartBpRecognitionRegion.TopLeftStatus)
-                    .SelectMany(region => region.Lines.Select(line => $"[top_left_status] {line.Text}")));
-                if (IsPrimaryPostBpPhase(localStatus.Phase.Phase))
+                    .Where(region => region.Region is SmartBpRecognitionRegion.TopCenterStatus or SmartBpRecognitionRegion.TopLeftStatus)
+                    .SelectMany(region => region.Lines.Select(line => $"[{SmartBpOcrBpRecognitionService.ToRegionId(region.Region)}] {line.Text}")));
+                var lifecycle = localStatus.LifecycleStatus;
+                if (localStatus.PostBpStatus?.IsPostBp == true || IsPrimaryPostBpPhase(localStatus.Phase.Phase))
                 {
                     var aiPhase = "not-run";
                     SmartBpCroppedFrame? comparisonCrop = null;
@@ -1599,12 +1603,62 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                     state = stateStore.Snapshot;
                     var statusGate = sceneGate.Classify(phaseResult, state,
                         new Dictionary<string, string> { ["top_left_status"] = statusRaw }, guidanceSnapshot);
-                    messages.Add($"TopLeftStatus post-BP detector override: AI phase={aiPhase}; top_left_status={phaseResult.Phase}; final_phase={phaseResult.Phase}.");
+                    messages.Add($"TopLeftStatus hard confirmation: {phaseResult.Phase}. AI phase={aiPhase}; final_phase={phaseResult.Phase}.");
                     return LatchAndCreatePostBpPausedResult(
                         sequence, state, phaseResult, comparisonCrop, guidanceSnapshot, messages,
                         string.Join(Environment.NewLine, new[] { statusRaw, comparisonRaw }.Where(value => !string.IsNullOrWhiteSpace(value))), statusGate);
                 }
+
+                if (lifecycle != null)
+                {
+                    messages.Add($"TopCenterStatus lifecycle gate: status={lifecycle.Status}; category={lifecycle.Category}; score={lifecycle.Score:0.00}.");
+                    if (lifecycle.Category == SmartBpLifecycleCategory.TransitionToAreaSelection)
+                    {
+                        _transitionToAreaSelectionConsecutiveCount++;
+                        var confirmed = lifecycle.Score >= .80 || _transitionToAreaSelectionConsecutiveCount >= 2;
+                        if (confirmed)
+                        {
+                            phaseResult = new SmartBpPhaseRecognitionResult { Phase = "即将进入区域选择" };
+                            stateStore.ApplyPhase(phaseResult.Phase, sequence);
+                            state = stateStore.Snapshot;
+                            var transitionGate = new SmartBpSceneGateResult(
+                                SmartBpRecognitionScene.OutOfBp, false, false, true,
+                                "top-center lifecycle reached transition to area selection");
+                            messages.Add("content_recognition_allowed=False; post_bp_stop_pending=True; no new BP field recognition will run.");
+                            messages.Add($"Post-BP latch set by TopCenterStatus: 即将进入区域选择. confirmation={(lifecycle.Score >= .80 ? "strong score" : "two consecutive weak matches")}.");
+                            return LatchAndCreatePostBpPausedResult(sequence, state, phaseResult, null,
+                                guidanceSnapshot, messages, statusRaw, transitionGate);
+                        }
+
+                        messages.Add("Weak TransitionToAreaSelection match blocked content recognition for this tick; waiting for confirmation; no stop requested.");
+                        return CreateLifecycleBlockedResult(sequence, messages, statusRaw,
+                            "weak transition match is awaiting a second tick or TopLeftStatus confirmation");
+                    }
+
+                    _transitionToAreaSelectionConsecutiveCount = 0;
+                    if (lifecycle.IsRecognized)
+                    {
+                        _lastStableLifecycleCategory = lifecycle.Category;
+                        request = FilterAutomaticRequestByLifecycle(request, lifecycle.Category, messages);
+                        if ((lifecycle.Category is SmartBpLifecycleCategory.SurvivorTalentAdjust or SmartBpLifecycleCategory.HunterTalentAdjust) &&
+                            request.RequestedRegions.Count == 0)
+                            return CreateLifecycleBlockedResult(sequence, messages, statusRaw,
+                                $"{lifecycle.Category} has no safe configured final-backfill field");
+                        messages.Add($"content_recognition_allowed=True; lifecycle_safe_fields=[{string.Join(", ", request.RequestedFields)}].");
+                    }
+                    else if (_lastStableLifecycleCategory != SmartBpLifecycleCategory.CharacterBpActive)
+                    {
+                        messages.Add($"TopCenterStatus lifecycle uncertain: best_match={lifecycle.Status} score={lifecycle.Score:0.00}; skipped content recognition for this tick; no stop requested.");
+                        return CreateLifecycleBlockedResult(sequence, messages, statusRaw,
+                            "top-center lifecycle status is uncertain");
+                    }
+                    else
+                    {
+                        messages.Add("TopCenterStatus lifecycle uncertain; safe previous stable CharacterBpActive state allows this tick to continue.");
+                    }
+                }
             }
+            await EnsureStrategyServersAsync(tickToken).ConfigureAwait(false);
             if (!isDebugPreview && !isDryRun &&
                 recognitionPath == SmartBpRecognitionPath.LegacyDelta &&
                 settings.Settings.RecognitionStrategy != SmartBpRecognitionStrategy.PureOcr)
@@ -2075,6 +2129,22 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
         _hasDetectedPostBp = false;
         _postBpPhase = "未知";
         _postBpDetectedFrameSequence = 0;
+        _transitionToAreaSelectionConsecutiveCount = 0;
+        _lastStableLifecycleCategory = SmartBpLifecycleCategory.Unknown;
+    }
+
+    private SmartBpAutoRecognitionTickResult CreateLifecycleBlockedResult(
+        long frameSequence,
+        ICollection<string> messages,
+        string raw,
+        string reason)
+    {
+        var state = stateStore.Snapshot;
+        var phase = new SmartBpPhaseRecognitionResult { Phase = state.Phase };
+        var gate = new SmartBpSceneGateResult(SmartBpRecognitionScene.Unknown, false, false, false, reason);
+        messages.Add("content_recognition_allowed=False; no BP OCR, AI OCR, Business AI fusion, field merge, or candidate operation generation was run.");
+        return new(state, phase, null, null, null, null, guidance.GetRuntimeSnapshot(), [], messages.ToArray(),
+            new SmartBpOperationApplyResult(0, 0, []), raw, null, null, null, [], gate);
     }
 
     private static bool IsPrimaryPostBpPhase(string phase) =>
@@ -2102,6 +2172,26 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
             diagnostics?.Add($"Phase-aware field filter removed [{string.Join(", ", removed)}] because authoritative phase={authoritativePhase}.");
         if (filtered.Length == 0)
             diagnostics?.Add($"Phase-aware field filter requested no content fields for authoritative phase={authoritativePhase}.");
+        return new SmartBpSnapshotDeltaRequest(filtered, request.Diagnostics, request.CurrentKnownState);
+    }
+
+    internal static SmartBpSnapshotDeltaRequest FilterAutomaticRequestByLifecycle(
+        SmartBpSnapshotDeltaRequest request,
+        SmartBpLifecycleCategory category,
+        ICollection<string>? diagnostics = null)
+    {
+        HashSet<string>? allowedFields = category switch
+        {
+            SmartBpLifecycleCategory.CharacterBpActive => null,
+            SmartBpLifecycleCategory.SurvivorTalentAdjust => new(["picked_sur"], StringComparer.Ordinal),
+            SmartBpLifecycleCategory.HunterTalentAdjust => new(["picked_hun"], StringComparer.Ordinal),
+            _ => new(StringComparer.Ordinal)
+        };
+        if (allowedFields == null) return request;
+        var filtered = request.RequestedRegions.Where(item => allowedFields.Contains(item.TargetField)).ToArray();
+        var removed = request.RequestedFields.Where(field => !allowedFields.Contains(field)).ToArray();
+        if (removed.Length > 0)
+            diagnostics?.Add($"Lifecycle-aware field filter removed [{string.Join(", ", removed)}] because category={category}.");
         return new SmartBpSnapshotDeltaRequest(filtered, request.Diagnostics, request.CurrentKnownState);
     }
 

@@ -183,6 +183,7 @@ Return only JSON:
         region switch
         {
             SmartBpRecognitionRegion.PhaseTop => "phase_top",
+            SmartBpRecognitionRegion.TopCenterStatus => "top_center_status",
             SmartBpRecognitionRegion.TopLeftStatus => "top_left_status",
             SmartBpRecognitionRegion.LeftTop => "left_top",
             SmartBpRecognitionRegion.RightTop => "right_top",
@@ -315,6 +316,7 @@ internal sealed class SmartBpAiOcrTranscriptInterpreter(ICharacterSelectionServi
         region switch
         {
             SmartBpRecognitionRegion.PhaseTop => "phase_top",
+            SmartBpRecognitionRegion.TopCenterStatus => "top_center_status",
             SmartBpRecognitionRegion.TopLeftStatus => "top_left_status",
             SmartBpRecognitionRegion.LeftTop => "left_top",
             SmartBpRecognitionRegion.RightTop => "right_top",
@@ -677,6 +679,7 @@ Previous invalid output:
         region switch
         {
             SmartBpRecognitionRegion.PhaseTop => "phase_top",
+            SmartBpRecognitionRegion.TopCenterStatus => "top_center_status",
             SmartBpRecognitionRegion.TopLeftStatus => "top_left_status",
             SmartBpRecognitionRegion.LeftTop => "left_top",
             SmartBpRecognitionRegion.RightTop => "right_top",
@@ -699,7 +702,7 @@ internal sealed class SmartBpRecognitionRegionProfileService(ISmartBpModuleStora
         await using var stream = File.OpenRead(path);
         var profile = await JsonSerializer.DeserializeAsync<SmartBpRecognitionLayoutProfile>(stream, JsonOptions, cancellationToken)
             ?? throw new InvalidDataException("SmartBP recognition layout profile is empty.");
-        EnsureTopLeftStatusRegion(profile);
+        EnsureStatusRegions(profile);
         Validate(profile);
         profile.RuntimeSource = isUserLayout ? "user-layout" : "default";
         return profile;
@@ -707,7 +710,7 @@ internal sealed class SmartBpRecognitionRegionProfileService(ISmartBpModuleStora
 
     public async Task SaveUserOverrideAsync(SmartBpRecognitionLayoutProfile profile, CancellationToken cancellationToken = default)
     {
-        EnsureTopLeftStatusRegion(profile);
+        EnsureStatusRegions(profile);
         Validate(profile);
         Directory.CreateDirectory(Path.GetDirectoryName(UserPath)!);
         await using var stream = File.Create(UserPath);
@@ -724,7 +727,7 @@ internal sealed class SmartBpRecognitionRegionProfileService(ISmartBpModuleStora
     private static void Validate(SmartBpRecognitionLayoutProfile profile)
     {
         if (profile.SchemaVersion != 1) throw new InvalidDataException("Unsupported SmartBP recognition layout profile schema.");
-        foreach (var key in new[] { "phase_top", "top_left_status", "left_top", "right_top", "left_bottom", "right_bottom" })
+        foreach (var key in new[] { "phase_top", "top_center_status", "top_left_status", "left_top", "right_top", "left_bottom", "right_bottom" })
         {
             if (!profile.Regions.TryGetValue(key, out var rect)) throw new InvalidDataException($"Missing SmartBP recognition region: {key}.");
             if (rect.X < 0 || rect.Y < 0 || rect.Width <= 0 || rect.Height <= 0 || rect.X + rect.Width > 1.0001 || rect.Y + rect.Height > 1.0001)
@@ -732,8 +735,15 @@ internal sealed class SmartBpRecognitionRegionProfileService(ISmartBpModuleStora
         }
     }
 
-    private static void EnsureTopLeftStatusRegion(SmartBpRecognitionLayoutProfile profile)
+    private static void EnsureStatusRegions(SmartBpRecognitionLayoutProfile profile)
     {
+        profile.Regions.TryAdd("top_center_status", new SmartBpRecognitionRegionRect
+        {
+            X = .275,
+            Y = .01,
+            Width = .45,
+            Height = .14
+        });
         profile.Regions.TryAdd("top_left_status", new SmartBpRecognitionRegionRect
         {
             X = 0,
@@ -776,6 +786,7 @@ internal sealed class SmartBpRecognitionFrameCropper(ISmartBpRecognitionRegionPr
     private static string ToProfileKey(SmartBpRecognitionRegion region) => region switch
     {
         SmartBpRecognitionRegion.PhaseTop => "phase_top",
+        SmartBpRecognitionRegion.TopCenterStatus => "top_center_status",
         SmartBpRecognitionRegion.TopLeftStatus => "top_left_status",
         SmartBpRecognitionRegion.LeftTop => "left_top",
         SmartBpRecognitionRegion.RightTop => "right_top",
@@ -985,6 +996,7 @@ The local merge will preserve slot 0 as 小说家.
     private static string RegionId(SmartBpRecognitionRegion region) => region switch
     {
         SmartBpRecognitionRegion.PhaseTop => "phase_top",
+        SmartBpRecognitionRegion.TopCenterStatus => "top_center_status",
         SmartBpRecognitionRegion.TopLeftStatus => "top_left_status",
         SmartBpRecognitionRegion.LeftTop => "left_top",
         SmartBpRecognitionRegion.RightTop => "right_top",

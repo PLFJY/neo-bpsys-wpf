@@ -104,6 +104,42 @@ public sealed record SmartBpSceneGateResult(
     bool ShouldPauseAutomaticRecognition,
     string Reason);
 
+/// <summary>Top-center character-BP lifecycle categories recognized locally from OCR text.</summary>
+public enum SmartBpLifecycleCategory
+{
+    /// <summary>The lifecycle status could not be recognized reliably.</summary>
+    Unknown,
+    /// <summary>Character ban/pick is active.</summary>
+    CharacterBpActive,
+    /// <summary>Survivors are adjusting talents and traits.</summary>
+    SurvivorTalentAdjust,
+    /// <summary>The hunter is adjusting talents and traits.</summary>
+    HunterTalentAdjust,
+    /// <summary>Character BP is transitioning to area selection.</summary>
+    TransitionToAreaSelection
+}
+
+/// <summary>Deterministic local classification of the top-center BP lifecycle status.</summary>
+public sealed class SmartBpLifecycleStatusResult
+{
+    /// <summary>Gets whether the best candidate reached the weak recognition threshold.</summary>
+    public bool IsRecognized { get; init; }
+    /// <summary>Gets the matched canonical status.</summary>
+    public string Status { get; init; } = "未知";
+    /// <summary>Gets the matched lifecycle category.</summary>
+    public SmartBpLifecycleCategory Category { get; init; }
+    /// <summary>Gets the weighted fuzzy-match score.</summary>
+    public double Score { get; init; }
+    /// <summary>Gets the raw OCR evidence.</summary>
+    public string Evidence { get; init; } = "";
+    /// <summary>Gets the normalized OCR text.</summary>
+    public string NormalizedText { get; init; } = "";
+    /// <summary>Gets whether the auxiliary destination line was found.</summary>
+    public bool HasDestinationEvidence { get; init; }
+    /// <summary>Gets detector diagnostics.</summary>
+    public IReadOnlyList<string> Diagnostics { get; init; } = [];
+}
+
 /// <summary>Decision produced by the scene/phase controller.</summary>
 public sealed class SmartBpScenePhaseDecision
 {
@@ -137,6 +173,8 @@ public enum SmartBpRecognitionRegion
 {
     /// <summary>BP phase title area.</summary>
     PhaseTop,
+    /// <summary>Top-center character-BP lifecycle/status area.</summary>
+    TopCenterStatus,
     /// <summary>Absolute top-left global game-status area.</summary>
     TopLeftStatus,
     /// <summary>Left-side upper BP content area.</summary>
@@ -1021,6 +1059,10 @@ public sealed class SmartBpOcrRecognitionResult
     public SmartBpBusinessStateRecognitionResult BusinessState { get; init; } = new();
     /// <summary>Gets OCR text grouped by coarse region.</summary>
     public IReadOnlyList<SmartBpOcrRegionText> Regions { get; init; } = [];
+    /// <summary>Gets the top-center lifecycle classification when that region was requested.</summary>
+    public SmartBpLifecycleStatusResult? LifecycleStatus { get; init; }
+    /// <summary>Gets the top-left hard post-BP confirmation when that region was requested.</summary>
+    public SmartBpPostBpStatusResult? PostBpStatus { get; init; }
     /// <summary>Gets bounded recognition diagnostics.</summary>
     public IReadOnlyList<string> Diagnostics { get; init; } = [];
 }

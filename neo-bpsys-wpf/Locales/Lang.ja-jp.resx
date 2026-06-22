@@ -4590,6 +4590,7 @@
   <data name="SmartBpAiRegionProfileSaved" xml:space="preserve"><value>SmartBP AI 認識領域設定を保存しました。</value></data>
   <data name="SmartBpAiRegionProfileReset" xml:space="preserve"><value>SmartBP AI 認識領域を組み込みの既定値に戻しました。</value></data>
   <data name="SmartBpAiRegionPhaseTop" xml:space="preserve"><value>上部フェーズ認識領域</value></data>
+  <data name="SmartBpAiRegionTopCenterStatus" xml:space="preserve"><value>上部中央のBPライフサイクル状態領域</value></data>
   <data name="SmartBpAiRegionTopLeftStatus" xml:space="preserve"><value>左上のBP終了後ステータス領域</value></data>
   <data name="SmartBpAiRegionLeftTop" xml:space="preserve"><value>左上：ハンターBAN</value></data>
   <data name="SmartBpAiRegionRightTop" xml:space="preserve"><value>右上：サバイバーBAN</value></data>

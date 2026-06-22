@@ -535,6 +535,7 @@ internal sealed class SmartBpAiSnapshotDeltaRecognitionService(
     private static string ToRegionId(SmartBpRecognitionRegion region) => region switch
     {
         SmartBpRecognitionRegion.PhaseTop => "phase_top",
+        SmartBpRecognitionRegion.TopCenterStatus => "top_center_status",
         SmartBpRecognitionRegion.TopLeftStatus => "top_left_status",
         SmartBpRecognitionRegion.LeftTop => "left_top",
         SmartBpRecognitionRegion.RightTop => "right_top",

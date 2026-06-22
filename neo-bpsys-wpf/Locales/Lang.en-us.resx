@@ -4746,6 +4746,7 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="SmartBpAiRegionProfileSaved" xml:space="preserve"><value>The SmartBP AI recognition region profile was saved.</value></data>
   <data name="SmartBpAiRegionProfileReset" xml:space="preserve"><value>The SmartBP AI recognition regions were reset to the bundled defaults.</value></data>
   <data name="SmartBpAiRegionPhaseTop" xml:space="preserve"><value>Top phase recognition area</value></data>
+  <data name="SmartBpAiRegionTopCenterStatus" xml:space="preserve"><value>Top-center BP lifecycle status area</value></data>
   <data name="SmartBpAiRegionTopLeftStatus" xml:space="preserve"><value>Top-left post-BP status area</value></data>
   <data name="SmartBpAiRegionLeftTop" xml:space="preserve"><value>Upper left: ban hunters</value></data>
   <data name="SmartBpAiRegionRightTop" xml:space="preserve"><value>Upper right: ban survivors</value></data>

@@ -9,6 +9,12 @@
       "width": 1.0,
       "height": 0.46
     },
+    "top_center_status": {
+      "x": 0.275,
+      "y": 0.01,
+      "width": 0.45,
+      "height": 0.14
+    },
     "top_left_status": {
       "x": 0.0,
       "y": 0.0,

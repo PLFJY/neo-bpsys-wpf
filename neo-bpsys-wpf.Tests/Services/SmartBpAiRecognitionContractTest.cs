@@ -1057,6 +1057,7 @@ public sealed class SmartBpAiRecognitionContractTest
 
         Assert.NotNull(profile);
         Assert.Contains("phase_top", profile!.Regions.Keys);
+        Assert.Contains("top_center_status", profile.Regions.Keys);
         Assert.Contains("top_left_status", profile.Regions.Keys);
         Assert.Contains("left_top", profile.Regions.Keys);
         Assert.Contains("right_top", profile.Regions.Keys);
@@ -1081,13 +1082,14 @@ public sealed class SmartBpAiRecognitionContractTest
     }
 
     [Fact]
-    public void VisualRecognitionRegionEditorIncludesTopLeftStatus()
+    public void VisualRecognitionRegionEditorIncludesLifecycleAndTopLeftStatus()
     {
         var field = typeof(SmartBpModuleContentViewModel).GetField(
             "AiRegionEditorNodes", BindingFlags.Static | BindingFlags.NonPublic);
 
         var nodes = Assert.IsType<(string Id, string LabelKey)[]>(field!.GetValue(null));
 
+        Assert.Contains(nodes, node => node.Id == "top_center_status");
         Assert.Contains(nodes, node => node.Id == "top_left_status");
     }
 
