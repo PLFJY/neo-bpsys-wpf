@@ -1,7 +1,7 @@
 {
   "Game1FirstHalf": {
     "SurCurrentBan": 4,
-    "HunCurrentBan": 2,
+    "HunCurrentBan": 0,
     "SurGlobalBan": 0,
     "HunGlobalBan": 0,
     "WorkFlow": [
@@ -74,7 +74,7 @@
   },
   "Game1SecondHalf": {
     "SurCurrentBan": 4,
-    "HunCurrentBan": 2,
+    "HunCurrentBan": 0,
     "SurGlobalBan": 0,
     "HunGlobalBan": 0,
     "WorkFlow": [
@@ -132,7 +132,7 @@
   },
   "Game2FirstHalf": {
     "SurCurrentBan": 4,
-    "HunCurrentBan": 2,
+    "HunCurrentBan": 1,
     "SurGlobalBan": 4,
     "HunGlobalBan": 1,
     "WorkFlow": [
@@ -210,7 +210,7 @@
   },
   "Game2SecondHalf": {
     "SurCurrentBan": 4,
-    "HunCurrentBan": 2,
+    "HunCurrentBan": 1,
     "SurGlobalBan": 4,
     "HunGlobalBan": 1,
     "WorkFlow": [
