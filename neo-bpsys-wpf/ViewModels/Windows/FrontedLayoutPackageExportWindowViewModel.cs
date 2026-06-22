@@ -33,25 +33,25 @@ public partial class FrontedLayoutPackageExportWindowViewModel : ViewModelBase
     }
 
     [ObservableProperty]
-    private string _packageId = string.Empty;
+    public partial string PackageId { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string _packageName = string.Empty;
+    public partial string PackageName { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string _description = string.Empty;
+    public partial string Description { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string _author = string.Empty;
+    public partial string Author { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string _minVersion = string.Empty;
+    public partial string MinVersion { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string _outputPath = string.Empty;
+    public partial string OutputPath { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string _validationMessage = string.Empty;
+    public partial string ValidationMessage { get; set; } = string.Empty;
 
     partial void OnPackageIdChanged(string value) =>
         ClampManifestField(nameof(PackageId), value, v => PackageId = v);

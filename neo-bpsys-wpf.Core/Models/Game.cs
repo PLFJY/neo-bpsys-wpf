@@ -66,7 +66,8 @@ public partial class Game : ObservableObjectBase
     /// <summary>
     /// 对局进度
     /// </summary>
-    [ObservableProperty] private GameProgress _gameProgress;
+    [ObservableProperty]
+    public partial GameProgress GameProgress { get; set; }
 
     /// <summary>
     /// Score System v2 的权威比分状态。
@@ -81,8 +82,8 @@ public partial class Game : ObservableObjectBase
     /// 当局求生者禁用列表
     /// </summary>
     [ObservableProperty]
-    [property: FrontedBindingCollection(FixedCount = AppConstants.CurrentBanSurCount)]
-    private ObservableCollection<Character?> _currentSurBannedList = [];
+    [FrontedBindingCollection(FixedCount = AppConstants.CurrentBanSurCount)]
+    public partial ObservableCollection<Character?> CurrentSurBannedList { get; set; } = [];
 
     /// <summary>
     /// 当局监管者禁用列表
@@ -282,22 +283,22 @@ public partial class Game : ObservableObjectBase
     /// 选择的地图的图片
     /// </summary>
     [ObservableProperty]
-    [property: JsonIgnore]
-    private ImageSource? _pickedMapImage;
+    [JsonIgnore]
+    public partial ImageSource? PickedMapImage { get; set; }
 
     /// <summary>
     /// 选择的地图的图片
     /// </summary>
     [ObservableProperty]
-    [property: JsonIgnore]
-    private ImageSource? _pickedMapImageLarge;
+    [JsonIgnore]
+    public partial ImageSource? PickedMapImageLarge { get; set; }
 
     /// <summary>
     /// Ban掉的地图的图片
     /// </summary>
     [ObservableProperty]
-    [property: JsonIgnore]
-    private ImageSource? _bannedMapImage;
+    [JsonIgnore]
+    public partial ImageSource? BannedMapImage { get; set; }
 
     /// <summary>
     /// 地图V2字典

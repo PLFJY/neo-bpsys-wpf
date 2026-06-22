@@ -47,52 +47,62 @@ public partial class SmartBpPageViewModel : ViewModelBase
     /// <summary>
     /// Whether the SmartBP module is loaded.
     /// </summary>
-    [ObservableProperty] private bool _isModuleLoaded;
+    [ObservableProperty]
+    public partial bool IsModuleLoaded { get; set; }
 
     /// <summary>
     /// Loaded module content.
     /// </summary>
-    [ObservableProperty] private object? _moduleContent;
+    [ObservableProperty]
+    public partial object? ModuleContent { get; set; }
 
     /// <summary>
     /// Selected module path.
     /// </summary>
-    [ObservableProperty] private string _selectedModulePath = string.Empty;
+    [ObservableProperty]
+    public partial string SelectedModulePath { get; set; } = string.Empty;
 
     /// <summary>
     /// Overlay message.
     /// </summary>
-    [ObservableProperty] private string _overlayMessage = L("SmartBpModuleRequired");
+    [ObservableProperty]
+    public partial string OverlayMessage { get; set; } = L("SmartBpModuleRequired");
 
     /// <summary>
     /// Primary button text.
     /// </summary>
-    [ObservableProperty] private string _primaryActionText = L("SmartBpModuleDownloadAndInstall");
+    [ObservableProperty]
+    public partial string PrimaryActionText { get; set; } = L("SmartBpModuleDownloadAndInstall");
 
     /// <summary>
     /// Whether the installed-module-folder button is visible.
     /// </summary>
-    [ObservableProperty] private bool _isSelectInstalledModuleButtonVisible = true;
+    [ObservableProperty]
+    public partial bool IsSelectInstalledModuleButtonVisible { get; set; } = true;
 
     /// <summary>
     /// Whether operation progress is visible.
     /// </summary>
-    [ObservableProperty] private bool _isProgressVisible;
+    [ObservableProperty]
+    public partial bool IsProgressVisible { get; set; }
 
     /// <summary>
     /// SmartBP module version display text.
     /// </summary>
-    [ObservableProperty] private string _moduleVersionText = string.Empty;
+    [ObservableProperty]
+    public partial string ModuleVersionText { get; set; } = string.Empty;
 
     /// <summary>
     /// Whether the SmartBP module version text is visible.
     /// </summary>
-    [ObservableProperty] private bool _isModuleVersionVisible;
+    [ObservableProperty]
+    public partial bool IsModuleVersionVisible { get; set; }
 
     /// <summary>
     /// Operation progress value.
     /// </summary>
-    [ObservableProperty] private double _progressValue;
+    [ObservableProperty]
+    public partial double ProgressValue { get; set; }
 
     /// <summary>
     /// Whether preview-local mode is active.

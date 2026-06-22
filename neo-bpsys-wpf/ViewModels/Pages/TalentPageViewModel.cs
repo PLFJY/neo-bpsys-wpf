@@ -77,9 +77,11 @@ public partial class TalentPageViewModel : ViewModelBase, IRecipient<HighlightMe
         });
     }
 
-    [ObservableProperty] private bool _isSurTalentHighlighted;
+    [ObservableProperty]
+    public partial bool IsSurTalentHighlighted { get; set; }
 
-    [ObservableProperty] private bool _isHunTalentHighlighted;
+    [ObservableProperty]
+    public partial bool IsHunTalentHighlighted { get; set; }
 
     public void Receive(HighlightMessage message)
     {

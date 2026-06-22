@@ -28,7 +28,7 @@ public partial class Player : ObservableObjectBase
     [NotifyPropertyChangedFor(nameof(PictureShown))]
     [NotifyPropertyChangedFor(nameof(PictureShownWithFullCharacter))]
     [NotifyPropertyChangedFor(nameof(PictureShownHeader))]
-    private Member _member;
+    public partial Member Member { get; set; }
 
     /// <summary>
     /// 选手所选的角色
@@ -37,22 +37,25 @@ public partial class Player : ObservableObjectBase
     [NotifyPropertyChangedFor(nameof(PictureShown))]
     [NotifyPropertyChangedFor(nameof(PictureShownWithFullCharacter))]
     [NotifyPropertyChangedFor(nameof(PictureShownHeader))]
-    private Character? _character;
+    public partial Character? Character { get; set; }
 
     /// <summary>
     /// 天赋
     /// </summary>
-    [ObservableProperty] private Talent _talent = new();
+    [ObservableProperty]
+    public partial Talent Talent { get; set; } = new();
 
     /// <summary>
     /// 辅助特质
     /// </summary>
-    [ObservableProperty] private Trait _trait = new(null);
+    [ObservableProperty]
+    public partial Trait Trait { get; set; } = new(null);
 
     /// <summary>
     /// 选手的数据
     /// </summary>
-    [ObservableProperty] private PlayerData _data = new();
+    [ObservableProperty]
+    public partial PlayerData Data { get; set; } = new();
 
     /// <summary>
     /// 显示的图片

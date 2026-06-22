@@ -40,12 +40,6 @@ public static class PolygonVertexGeometryHelper
         var height = GetDimension(config.Height);
         return new PolygonVertexConfig(
             ClampCoordinate((canvasPoint.X - config.Left) / width),
-    /// <summary>
-    /// 根据顶点配置列表创建 WPF PointCollection，用于多边形绘制。
-    /// </summary>
-    /// <param name="config">控件配置，用于获取位置和尺寸。</param>
-    /// <param name="vertices">顶点配置列表。若数量不足 3 个，将使用默认三角形顶点。</param>
-    /// <returns>WPF PointCollection。</returns>
             ClampCoordinate((canvasPoint.Y - config.Top) / height));
     }
 
@@ -57,6 +51,12 @@ public static class PolygonVertexGeometryHelper
     public static double ClampCoordinate(double value) =>
         double.IsFinite(value) ? Math.Clamp(value, 0D, 1D) : 0D;
 
+    /// <summary>
+    /// 根据顶点配置列表创建 WPF PointCollection，用于多边形绘制。
+    /// </summary>
+    /// <param name="config">控件配置，用于获取位置和尺寸。</param>
+    /// <param name="vertices">顶点配置列表。若数量不足 3 个，将使用默认三角形顶点。</param>
+    /// <returns>WPF PointCollection。</returns>
     public static PointCollection CreateLocalPointCollection(
         FrontedControlConfigBase config,
         IEnumerable<PolygonVertexConfig>? vertices)

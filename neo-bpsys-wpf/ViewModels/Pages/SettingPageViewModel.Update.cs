@@ -36,49 +36,58 @@ public partial class SettingPageViewModel : ViewModelBase
     /// <summary>
     /// 应用版本号。
     /// </summary>
-    [ObservableProperty] private string _appVersion = string.Empty;
+    [ObservableProperty]
+    public partial string AppVersion { get; set; } = string.Empty;
 
     /// <summary>
     /// 是否正在下载更新。
     /// </summary>
-    [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(UpdateCheckCommand))]
-    private bool _isDownloading;
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(UpdateCheckCommand))]
+    public partial bool IsDownloading { get; set; }
 
     /// <summary>
     /// 更新是否已下载完成。
     /// </summary>
-    [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(InstallUpdateCommand))]
-    private bool _isDownloadFinished;
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(InstallUpdateCommand))]
+    public partial bool IsDownloadFinished { get; set; }
 
     /// <summary>
     /// 下载进度文本（百分比）。
     /// </summary>
-    [ObservableProperty] private string _downloadProgressText = string.Empty;
+    [ObservableProperty]
+    public partial string DownloadProgressText { get; set; } = string.Empty;
 
     /// <summary>
     /// 下载进度值（0-100）。
     /// </summary>
-    [ObservableProperty] private double _downloadProgress;
+    [ObservableProperty]
+    public partial double DownloadProgress { get; set; }
 
     /// <summary>
     /// 下载速度文本（MB/s）。
     /// </summary>
-    [ObservableProperty] private string _mbPerSecondSpeed = string.Empty;
+    [ObservableProperty]
+    public partial string MbPerSecondSpeed { get; set; } = string.Empty;
 
     /// <summary>
     /// GitHub 代理镜像地址。
     /// </summary>
-    [ObservableProperty] private string _mirror = DownloadMirrorPresets.DefaultMirror;
+    [ObservableProperty]
+    public partial string Mirror { get; set; } = DownloadMirrorPresets.DefaultMirror;
 
     /// <summary>
     /// 获取或设置 GitHub 镜像设置入口是否可见。
     /// </summary>
-    [ObservableProperty] private bool _isGitHubMirrorSettingVisible;
+    [ObservableProperty]
+    public partial bool IsGitHubMirrorSettingVisible { get; set; }
 
     /// <summary>
     /// 是否查找预发布版本。
     /// </summary>
-    [ObservableProperty] private bool _isFindPreRelease;
+    [ObservableProperty]
+    public partial bool IsFindPreRelease { get; set; }
 
     /// <summary>
     /// 代理镜像选项列表。
@@ -189,7 +198,7 @@ public partial class SettingPageViewModel : ViewModelBase
     /// </summary>
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(TestMirrorLatencyCommand))]
-    private bool _isTestingLatency;
+    public partial bool IsTestingLatency { get; set; }
 
     /// <summary>
     /// 测试所有镜像的延迟。

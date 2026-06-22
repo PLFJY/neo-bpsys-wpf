@@ -27,17 +27,17 @@ public partial class FrontedResourceBrowserWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasNoResults))]
-    private string _searchText = string.Empty;
+    public partial string SearchText { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private FrontedResourceBrowserItem? _selectedResource;
+    public partial FrontedResourceBrowserItem? SelectedResource { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanUseSelected))]
-    private string _selectedPath = string.Empty;
+    public partial string SelectedPath { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string _validationMessage = string.Empty;
+    public partial string ValidationMessage { get; set; } = string.Empty;
 
     public bool CanUseSelected => !string.IsNullOrWhiteSpace(SelectedPath);
 

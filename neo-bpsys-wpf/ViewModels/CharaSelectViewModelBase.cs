@@ -53,12 +53,14 @@ public abstract partial class CharaSelectViewModelBase :
     /// <summary>
     /// 当前选中的角色
     /// </summary>
-    [ObservableProperty] private Character? _selectedChara;
+    [ObservableProperty]
+    public partial Character? SelectedChara { get; set; }
 
     /// <summary>
     /// 预览图片
     /// </summary>
-    [ObservableProperty] private ImageSource? _previewImage;
+    [ObservableProperty]
+    public partial ImageSource? PreviewImage { get; set; }
 
     /// <summary>
     /// 当前选择器是否可用
@@ -72,17 +74,20 @@ public abstract partial class CharaSelectViewModelBase :
     /// <summary>
     /// 当前选择器是否高亮
     /// </summary>
-    [ObservableProperty] private bool _isHighlighted;
+    [ObservableProperty]
+    public partial bool IsHighlighted { get; set; }
 
     /// <summary>
     /// 对应的互换器是否高亮
     /// </summary>
-    [ObservableProperty] private bool _isCharaChangerHighlighted;
+    [ObservableProperty]
+    public partial bool IsCharaChangerHighlighted { get; set; }
 
     /// <summary>
     /// 角色列表
     /// </summary>
-    [ObservableProperty] private SortedDictionary<string, Character> _charaDict = [];
+    [ObservableProperty]
+    public partial SortedDictionary<string, Character> CharaDict { get; set; } = [];
 
     /// <summary>
     /// 已被禁用或选中的角色名称集合，用于在 UI 中禁用对应的下拉选项

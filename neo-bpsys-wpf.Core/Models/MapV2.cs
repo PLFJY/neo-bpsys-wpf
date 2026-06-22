@@ -29,7 +29,7 @@ public partial class MapV2 : ObservableObjectBase, IRecipient<PropertyChangedMes
     [NotifyPropertyChangedFor(nameof(ImageSource))]
     [NotifyPropertyChangedFor(nameof(CanBePicked))]
     [NotifyPropertyChangedFor(nameof(CanBeBanned))]
-    private bool _isPicked;
+    public partial bool IsPicked { get; set; }
 
     private bool _isBanned;
 
@@ -55,7 +55,7 @@ public partial class MapV2 : ObservableObjectBase, IRecipient<PropertyChangedMes
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsCampVisible))]
-    private Team? _operationTeam;
+    public partial Team? OperationTeam { get; set; }
 
     /// <summary>
     /// 地图是否可被选

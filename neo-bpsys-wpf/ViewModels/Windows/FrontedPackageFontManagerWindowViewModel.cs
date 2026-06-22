@@ -53,10 +53,10 @@ public partial class FrontedPackageFontManagerWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanDeleteSelectedFont))]
-    private FrontedPackageFontItem? _selectedFont;
+    public partial FrontedPackageFontItem? SelectedFont { get; set; }
 
     [ObservableProperty]
-    private string _statusText = string.Empty;
+    public partial string StatusText { get; set; } = string.Empty;
 
     /// <summary>
     /// Loads the current active package font list.

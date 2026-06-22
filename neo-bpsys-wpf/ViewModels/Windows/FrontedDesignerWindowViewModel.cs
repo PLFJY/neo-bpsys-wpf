@@ -291,27 +291,27 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     public bool IsRebuildingPropertyGrid => _isRebuildingPropertyGrid;
 
     [ObservableProperty]
-    private FrontedDesignerWindowOption? _selectedWindow;
+    public partial FrontedDesignerWindowOption? SelectedWindow { get; set; }
 
     [ObservableProperty]
-    private FrontedCanvasDesignDocument? _currentDocument;
+    public partial FrontedCanvasDesignDocument? CurrentDocument { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanSaveLayout))]
     [NotifyPropertyChangedFor(nameof(HasUnsavedChanges))]
-    private bool _areBehaviorsDirty;
+    public partial bool AreBehaviorsDirty { get; set; }
 
     [ObservableProperty]
-    private string _layoutSourcePath = string.Empty;
+    public partial string LayoutSourcePath { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string _layoutSourceDisplay = string.Empty;
+    public partial string LayoutSourceDisplay { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string _statusMessage = string.Empty;
+    public partial string StatusMessage { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string _currentWindowCanvasDisplay = string.Empty;
+    public partial string CurrentWindowCanvasDisplay { get; set; } = string.Empty;
 
     [ObservableProperty]
     private string _dirtyIndicatorText = "○";

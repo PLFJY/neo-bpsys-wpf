@@ -39,16 +39,16 @@ public partial class TextSettingsEditControl : UserControl
     public List<FontFamily> FontList { get; }
 
     [ObservableProperty]
-    private Color _selectedColor = Color.FromArgb(255, 255, 255, 255);
+    public partial Color SelectedColor { get; set; } = Color.FromArgb(255, 255, 255, 255);
 
     [ObservableProperty]
-    private FontFamily _selectedFontFamily = new("Arial");
+    public partial FontFamily SelectedFontFamily { get; set; } = new("Arial");
 
     [ObservableProperty]
-    private string _selectedFontSize = "16.0";
+    public partial string SelectedFontSize { get; set; } = "16.0";
 
     [ObservableProperty]
-    private FontWeight _selectedFontWeight = FontWeights.Normal;
+    public partial FontWeight SelectedFontWeight { get; set; } = FontWeights.Normal;
 
     [RelayCommand]
     private void Apply()

@@ -44,13 +44,13 @@ public partial class Settings : ObservableObjectBase
     public string? OcrModelKey { get; set; }
 
     [ObservableProperty]
-    private string _ghProxyMirror = "https://ghproxy.net/";
+    public partial string GhProxyMirror { get; set; } = "https://ghproxy.net/";
 
     [ObservableProperty]
-    private string _pluginMarketSource = "https://bpsys-plugin-index.plfjy.top/";
+    public partial string PluginMarketSource { get; set; } = "https://bpsys-plugin-index.plfjy.top/";
 
     [ObservableProperty]
-    private bool _isFindPreRelease =
+    public partial bool IsFindPreRelease { get; set; } =
 #if BETA
         true;
 #else
@@ -58,7 +58,7 @@ public partial class Settings : ObservableObjectBase
 #endif
 
     [ObservableProperty]
-    private AppLogLevel _logLevel = AppLogLevel.Information;
+    public partial AppLogLevel LogLevel { get; set; } = AppLogLevel.Information;
 
     private LanguageKey _language = LanguageKey.System;
 

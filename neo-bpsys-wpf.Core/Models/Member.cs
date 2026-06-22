@@ -38,7 +38,8 @@ public partial class Member : ObservableObjectBase
     /// <summary>
     /// 选手所属阵营
     /// </summary>
-    [ObservableProperty] private Camp _camp;
+    [ObservableProperty]
+    public partial Camp Camp { get; set; }
 
     private ImageSource? _image;
 
@@ -70,14 +71,15 @@ public partial class Member : ObservableObjectBase
     /// <summary>
     /// 选手是否上场
     /// </summary>
-    [ObservableProperty] private bool _isOnField;
+    [ObservableProperty]
+    public partial bool IsOnField { get; set; }
 
     /// <summary>
     /// 选手是否可上场
     /// </summary>
     [ObservableProperty]
-    [property: JsonIgnore]
-    private bool _canOnFieldChange = true;
+    [JsonIgnore]
+    public partial bool CanOnFieldChange { get; set; } = true;
 
     /// <summary>
     /// 选手定妆照是否有效

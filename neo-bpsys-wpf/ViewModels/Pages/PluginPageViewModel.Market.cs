@@ -40,7 +40,7 @@ public partial class PluginPageViewModel
     /// 当前插件市场列表。
     /// </summary>
     [ObservableProperty]
-    private ObservableCollection<PluginMarketItem> _marketPluginsCollection;
+    public partial ObservableCollection<PluginMarketItem> MarketPluginsCollection { get; set; }
 
     /// <summary>
     /// 当前选中的插件市场条目。
@@ -49,70 +49,70 @@ public partial class PluginPageViewModel
     [NotifyPropertyChangedFor(nameof(IsMarketPluginSelected))]
     [NotifyPropertyChangedFor(nameof(HasPluginMarketOverlay))]
     [NotifyCanExecuteChangedFor(nameof(ExecutePrimaryMarketActionCommand))]
-    private PluginMarketItem? _selectedMarketPlugin;
+    public partial PluginMarketItem? SelectedMarketPlugin { get; set; }
 
     /// <summary>
     /// 插件市场列表是否正在加载。
     /// </summary>
     [ObservableProperty]
-    private bool _isMarketLoading;
+    public partial bool IsMarketLoading { get; set; }
 
     /// <summary>
     /// 插件市场加载失败时显示的错误消息。
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasMarketError))]
-    private string _marketErrorMessage = string.Empty;
+    public partial string MarketErrorMessage { get; set; } = string.Empty;
 
     /// <summary>
     /// 插件市场设置面板是否打开。
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasPluginMarketOverlay))]
-    private bool _isPluginMarketSettingsOpen;
+    public partial bool IsPluginMarketSettingsOpen { get; set; }
 
     /// <summary>
     /// 下载队列面板是否打开。
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasPluginMarketOverlay))]
-    private bool _isDownloadQueueOpen;
+    public partial bool IsDownloadQueueOpen { get; set; }
 
     /// <summary>
     /// 当前选中的下载镜像地址。
     /// </summary>
     [ObservableProperty]
-    private string _selectedPluginMarketMirror = string.Empty;
+    public partial string SelectedPluginMarketMirror { get; set; } = string.Empty;
 
     /// <summary>
     /// 获取或设置插件市场 GitHub 镜像设置入口是否可见。
     /// </summary>
     [ObservableProperty]
-    private bool _isPluginMarketMirrorSettingVisible;
+    public partial bool IsPluginMarketMirrorSettingVisible { get; set; }
 
     /// <summary>
     /// 当前选中的插件市场源地址。
     /// </summary>
     [ObservableProperty]
-    private string _selectedPluginMarketSource = string.Empty;
+    public partial string SelectedPluginMarketSource { get; set; } = string.Empty;
 
     /// <summary>
     /// 当前正在下载的插件进度值。
     /// </summary>
     [ObservableProperty]
-    private double _pluginDownloadProgress;
+    public partial double PluginDownloadProgress { get; set; }
 
     /// <summary>
     /// 当前正在下载的插件进度文本。
     /// </summary>
     [ObservableProperty]
-    private string _pluginDownloadProgressText = string.Empty;
+    public partial string PluginDownloadProgressText { get; set; } = string.Empty;
 
     /// <summary>
     /// 当前正在下载的插件速度文本。
     /// </summary>
     [ObservableProperty]
-    private string _pluginDownloadSpeedText = string.Empty;
+    public partial string PluginDownloadSpeedText { get; set; } = string.Empty;
 
     /// <summary>
     /// 插件市场镜像选项列表。

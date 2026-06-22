@@ -176,13 +176,13 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
     }
 
     [ObservableProperty]
-    private FrontedLayoutPackageInfo? _selectedPackage;
+    public partial FrontedLayoutPackageInfo? SelectedPackage { get; set; }
 
     [ObservableProperty]
-    private string _activePackageDisplay = "builtin";
+    public partial string ActivePackageDisplay { get; set; } = "builtin";
 
     [ObservableProperty]
-    private string _packageManagerStatus = string.Empty;
+    public partial string PackageManagerStatus { get; set; } = string.Empty;
 
     [RelayCommand]
     private void ShowAllWindows()

@@ -48,14 +48,14 @@ public partial class FrontedBindingBrowserWindowViewModel : ViewModelBase
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSearchText))]
     [NotifyPropertyChangedFor(nameof(HasNoResults))]
-    private string _searchText = string.Empty;
+    public partial string SearchText { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private FrontedBindingTreeNode? _selectedNode;
+    public partial FrontedBindingTreeNode? SelectedNode { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanUseSelected))]
-    private string _selectedPath = string.Empty;
+    public partial string SelectedPath { get; set; } = string.Empty;
 
     public bool CanUseSelected => !string.IsNullOrWhiteSpace(SelectedPath);
 

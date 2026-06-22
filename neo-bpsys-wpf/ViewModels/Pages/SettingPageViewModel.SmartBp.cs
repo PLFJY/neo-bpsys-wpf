@@ -16,16 +16,16 @@ public partial class SettingPageViewModel
     /// SmartBP 模块安装和加载目录。
     /// </summary>
     [ObservableProperty]
-    private string _smartBpModuleRoot = string.Empty;
+    public partial string SmartBpModuleRoot { get; set; } = string.Empty;
 
     /// <summary>
     /// SmartBP 模块路径设置状态文本。
     /// </summary>
     [ObservableProperty]
-    private string _smartBpModulePathStatus = string.Empty;
+    public partial string SmartBpModulePathStatus { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private bool _isModuleExtracting = false;
+    public partial bool IsModuleExtracting { get; set; } = false;
 
     /// <summary>
     /// 选择 SmartBP 模块目录。

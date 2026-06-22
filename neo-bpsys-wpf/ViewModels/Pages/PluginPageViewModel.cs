@@ -69,12 +69,14 @@ public partial class PluginPageViewModel : ViewModelBase
     /// <summary>
     /// 获取或设置是否需要重启以生效插件更改。
     /// </summary>
-    [ObservableProperty] private bool _isRestartNeeded;
+    [ObservableProperty]
+    public partial bool IsRestartNeeded { get; set; }
 
     /// <summary>
     /// 获取或设置已加载插件列表。
     /// </summary>
-    [ObservableProperty] private ObservableCollection<PluginInfo> _pluginsCollection;
+    [ObservableProperty]
+    public partial ObservableCollection<PluginInfo> PluginsCollection { get; set; }
 
     [RelayCommand]
     private void ToggleEnable(PluginInfo plugin)

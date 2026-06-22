@@ -45,243 +45,585 @@ public partial class SmartBpModuleContentViewModel
         new("pick-hun-16x9", "pick-hun-16x9.png", SmartBpRecognitionTask.PickHun),
         new("character-distribution-16x9", "character-distribution-16x9.png", SmartBpRecognitionTask.CharacterDistribution)
     ];
-    [ObservableProperty] private SmartBpTestFrame? _selectedAiTestFrame;
-    [ObservableProperty] private string _qwenManifestStatus = "SmartBpAiStatusLoading";
-    [ObservableProperty] private string _qwenModelProfile = "-";
-    [ObservableProperty] private string _qwenMmprojProfile = "-";
-    [ObservableProperty] private IReadOnlyList<QwenModelProfile> _qwenModelProfiles = [];
+    [ObservableProperty]
+    public partial SmartBpTestFrame? SelectedAiTestFrame { get; set; }
+
+    [ObservableProperty]
+    public partial string QwenManifestStatus { get; set; } = "SmartBpAiStatusLoading";
+
+    [ObservableProperty]
+    public partial string QwenModelProfile { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string QwenMmprojProfile { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial IReadOnlyList<QwenModelProfile> QwenModelProfiles { get; set; } = [];
+
     [NotifyCanExecuteChangedFor(nameof(DownloadQwenModelCommand))]
     [NotifyCanExecuteChangedFor(nameof(DeleteQwenModelCommand))]
     [NotifyCanExecuteChangedFor(nameof(SwitchSelectedQwenModelCommand))]
-    [ObservableProperty] private QwenModelProfile? _selectedQwenModelProfile;
-    [ObservableProperty] private string _currentQwenModelDisplayName = "";
+    [ObservableProperty]
+    public partial QwenModelProfile? SelectedQwenModelProfile { get; set; }
+
+    [ObservableProperty]
+    public partial string CurrentQwenModelDisplayName { get; set; } = "";
+
     [NotifyCanExecuteChangedFor(nameof(DownloadQwenModelCommand))]
     [NotifyCanExecuteChangedFor(nameof(DeleteQwenModelCommand))]
     [NotifyCanExecuteChangedFor(nameof(SwitchSelectedQwenModelCommand))]
-    [ObservableProperty] private bool _isBusinessAiModelDownloading;
-    [ObservableProperty] private double _businessAiModelDownloadProgress;
+    [ObservableProperty]
+    public partial bool IsBusinessAiModelDownloading { get; set; }
+
+    [ObservableProperty]
+    public partial double BusinessAiModelDownloadProgress { get; set; }
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasBusinessAiModelDownloadDetail))]
-    private string _businessAiModelDownloadDetail = "";
-    [ObservableProperty] private bool _isQwenInstalled;
+    public partial string BusinessAiModelDownloadDetail { get; set; } = "";
+
+    [ObservableProperty]
+    public partial bool IsQwenInstalled { get; set; }
+
     [NotifyCanExecuteChangedFor(nameof(DownloadQwenModelCommand))]
     [NotifyCanExecuteChangedFor(nameof(DeleteQwenModelCommand))]
     [NotifyCanExecuteChangedFor(nameof(SwitchSelectedQwenModelCommand))]
-    [ObservableProperty] private bool _isQwenDownloading;
+    [ObservableProperty]
+    public partial bool IsQwenDownloading { get; set; }
+
     [NotifyCanExecuteChangedFor(nameof(DownloadQwenModelCommand))]
     [NotifyCanExecuteChangedFor(nameof(DeleteQwenModelCommand))]
-    [ObservableProperty] private bool _isSelectedQwenModelInstalled;
-    [ObservableProperty] private IReadOnlyList<QwenModelProfile> _aiOcrModelProfiles = [];
+    [ObservableProperty]
+    public partial bool IsSelectedQwenModelInstalled { get; set; }
+
+    [ObservableProperty]
+    public partial IReadOnlyList<QwenModelProfile> AiOcrModelProfiles { get; set; } = [];
+
     [NotifyCanExecuteChangedFor(nameof(DownloadAiOcrModelCommand))]
     [NotifyCanExecuteChangedFor(nameof(DeleteAiOcrModelCommand))]
     [NotifyCanExecuteChangedFor(nameof(SwitchSelectedAiOcrModelCommand))]
-    [ObservableProperty] private QwenModelProfile? _selectedAiOcrModelProfile;
-    [ObservableProperty] private string _currentAiOcrModelDisplayName = "";
-    [ObservableProperty] private string _aiOcrModelStatus = "-";
+    [ObservableProperty]
+    public partial QwenModelProfile? SelectedAiOcrModelProfile { get; set; }
+
+    [ObservableProperty]
+    public partial string CurrentAiOcrModelDisplayName { get; set; } = "";
+
+    [ObservableProperty]
+    public partial string AiOcrModelStatus { get; set; } = "-";
+
     [NotifyCanExecuteChangedFor(nameof(DownloadAiOcrModelCommand))]
     [NotifyCanExecuteChangedFor(nameof(DeleteAiOcrModelCommand))]
     [NotifyCanExecuteChangedFor(nameof(SwitchSelectedAiOcrModelCommand))]
-    [ObservableProperty] private bool _isAiOcrModelDownloading;
-    [ObservableProperty] private double _aiOcrModelDownloadProgress;
+    [ObservableProperty]
+    public partial bool IsAiOcrModelDownloading { get; set; }
+
+    [ObservableProperty]
+    public partial double AiOcrModelDownloadProgress { get; set; }
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasAiOcrModelDownloadDetail))]
-    private string _aiOcrModelDownloadDetail = "";
+    public partial string AiOcrModelDownloadDetail { get; set; } = "";
+
     [NotifyCanExecuteChangedFor(nameof(DownloadAiOcrModelCommand))]
     [NotifyCanExecuteChangedFor(nameof(DeleteAiOcrModelCommand))]
     [NotifyCanExecuteChangedFor(nameof(SwitchSelectedAiOcrModelCommand))]
-    [ObservableProperty] private bool _isSelectedAiOcrModelInstalled;
-    [ObservableProperty] private double _qwenDownloadProgress;
-    [ObservableProperty] private string _qwenDownloadStatus = "-";
+    [ObservableProperty]
+    public partial bool IsSelectedAiOcrModelInstalled { get; set; }
+
+    [ObservableProperty]
+    public partial double QwenDownloadProgress { get; set; }
+
+    [ObservableProperty]
+    public partial string QwenDownloadStatus { get; set; } = "-";
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasQwenDownloadDetail))]
-    private string _qwenDownloadDetail = "";
-    [ObservableProperty] private string _llamaServerExecutablePath = "";
-    [ObservableProperty] private string _llamaServerStatus = "SmartBpAiStatusStopped";
+    public partial string QwenDownloadDetail { get; set; } = "";
+
+    [ObservableProperty]
+    public partial string LlamaServerExecutablePath { get; set; } = "";
+
+    [ObservableProperty]
+    public partial string LlamaServerStatus { get; set; } = "SmartBpAiStatusStopped";
+
     [NotifyCanExecuteChangedFor(nameof(StartAiPreviewLoopCommand))]
     [NotifyCanExecuteChangedFor(nameof(StopAiPreviewLoopCommand))]
-    [ObservableProperty] private bool _isAiRecognizing;
-    [ObservableProperty] private bool _isAiPreviewLoopRunning;
-    [ObservableProperty] private string _aiRawResponse = "";
-    [ObservableProperty] private string _aiNormalizedResult = "";
-    [ObservableProperty] private long _aiElapsedMilliseconds;
-    [ObservableProperty] private int _aiRecommendedIntervalMilliseconds;
-    [ObservableProperty] private string _aiLastError = "";
-    [ObservableProperty] private string _aiDebugLogText = "";
-    [ObservableProperty] private bool _isDebugLogEnabled = true;
-    [ObservableProperty] private IReadOnlyList<SmartBpPromptProfile> _aiPromptProfiles = [];
-    [ObservableProperty] private SmartBpPromptProfile? _selectedAiPromptProfile;
-    [ObservableProperty] private IReadOnlyList<LlamaCppRuntimeAssetSelection> _llamaRuntimeAssets = [];
-    [ObservableProperty] private LlamaCppRuntimeAssetSelection? _selectedLlamaRuntimeAsset;
+    [ObservableProperty]
+    public partial bool IsAiRecognizing { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsAiPreviewLoopRunning { get; set; }
+
+    [ObservableProperty]
+    public partial string AiRawResponse { get; set; } = "";
+
+    [ObservableProperty]
+    public partial string AiNormalizedResult { get; set; } = "";
+
+    [ObservableProperty]
+    public partial long AiElapsedMilliseconds { get; set; }
+
+    [ObservableProperty]
+    public partial int AiRecommendedIntervalMilliseconds { get; set; }
+
+    [ObservableProperty]
+    public partial string AiLastError { get; set; } = "";
+
+    [ObservableProperty]
+    public partial string AiDebugLogText { get; set; } = "";
+
+    [ObservableProperty]
+    public partial bool IsDebugLogEnabled { get; set; } = true;
+
+    [ObservableProperty]
+    public partial IReadOnlyList<SmartBpPromptProfile> AiPromptProfiles { get; set; } = [];
+
+    [ObservableProperty]
+    public partial SmartBpPromptProfile? SelectedAiPromptProfile { get; set; }
+
+    [ObservableProperty]
+    public partial IReadOnlyList<LlamaCppRuntimeAssetSelection> LlamaRuntimeAssets { get; set; } = [];
+
+    [ObservableProperty]
+    public partial LlamaCppRuntimeAssetSelection? SelectedLlamaRuntimeAsset { get; set; }
+
     [NotifyCanExecuteChangedFor(nameof(DownloadLlamaRuntimeCommand))]
     [NotifyCanExecuteChangedFor(nameof(DeleteLlamaRuntimeCommand))]
     [NotifyCanExecuteChangedFor(nameof(RollbackLlamaRuntimeCommand))]
     [NotifyCanExecuteChangedFor(nameof(StartLlamaServerCommand))]
     [NotifyCanExecuteChangedFor(nameof(StopLlamaServerCommand))]
     [NotifyCanExecuteChangedFor(nameof(ForceStopLlamaServerCommand))]
-    [ObservableProperty] private bool _isLlamaRuntimeInstalled;
+    [ObservableProperty]
+    public partial bool IsLlamaRuntimeInstalled { get; set; }
+
     [NotifyCanExecuteChangedFor(nameof(DownloadLlamaRuntimeCommand))]
     [NotifyCanExecuteChangedFor(nameof(DeleteLlamaRuntimeCommand))]
-    [ObservableProperty] private bool _isLlamaRuntimeDownloading;
-    [NotifyCanExecuteChangedFor(nameof(DownloadLlamaRuntimeCommand))]
-    [NotifyCanExecuteChangedFor(nameof(DeleteLlamaRuntimeCommand))]
-    [NotifyCanExecuteChangedFor(nameof(RollbackLlamaRuntimeCommand))]
-    [NotifyCanExecuteChangedFor(nameof(StartLlamaServerCommand))]
-    [NotifyCanExecuteChangedFor(nameof(StopLlamaServerCommand))]
-    [NotifyCanExecuteChangedFor(nameof(ForceStopLlamaServerCommand))]
-    [ObservableProperty] private bool _isLlamaServerRunning;
+    [ObservableProperty]
+    public partial bool IsLlamaRuntimeDownloading { get; set; }
+
     [NotifyCanExecuteChangedFor(nameof(DownloadLlamaRuntimeCommand))]
     [NotifyCanExecuteChangedFor(nameof(DeleteLlamaRuntimeCommand))]
     [NotifyCanExecuteChangedFor(nameof(RollbackLlamaRuntimeCommand))]
     [NotifyCanExecuteChangedFor(nameof(StartLlamaServerCommand))]
     [NotifyCanExecuteChangedFor(nameof(StopLlamaServerCommand))]
     [NotifyCanExecuteChangedFor(nameof(ForceStopLlamaServerCommand))]
-    [ObservableProperty] private bool _isLlamaServerStarting;
-    [ObservableProperty] private double _llamaRuntimeDownloadProgress;
-    [ObservableProperty] private string _llamaRuntimeDownloadStatus = "-";
+    [ObservableProperty]
+    public partial bool IsLlamaServerRunning { get; set; }
+
+    [NotifyCanExecuteChangedFor(nameof(DownloadLlamaRuntimeCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteLlamaRuntimeCommand))]
+    [NotifyCanExecuteChangedFor(nameof(RollbackLlamaRuntimeCommand))]
+    [NotifyCanExecuteChangedFor(nameof(StartLlamaServerCommand))]
+    [NotifyCanExecuteChangedFor(nameof(StopLlamaServerCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ForceStopLlamaServerCommand))]
+    [ObservableProperty]
+    public partial bool IsLlamaServerStarting { get; set; }
+
+    [ObservableProperty]
+    public partial double LlamaRuntimeDownloadProgress { get; set; }
+
+    [ObservableProperty]
+    public partial string LlamaRuntimeDownloadStatus { get; set; } = "-";
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasLlamaRuntimeDownloadDetail))]
-    private string _llamaRuntimeDownloadDetail = "";
-    [ObservableProperty] private string _managedLlamaServerExecutablePath = "-";
-    [ObservableProperty] private string _llamaRuntimeUpdateStatus = "-";
-    [ObservableProperty] private bool _enableAutoGuidanceSync;
-    [ObservableProperty] private bool _enableAutoApplyRecognition;
-    [ObservableProperty] private bool _enableAutoGuidancePageNavigation;
-    [ObservableProperty] private SmartBpRecognitionApplyMode _recognitionApplyMode;
-    [ObservableProperty] private bool _aiOneStepDelayedMode = true;
-    [ObservableProperty] private int _aiUnknownPhaseTalentInferenceFrames = 2;
-    [ObservableProperty] private bool _playBackfillAnimations;
-    [ObservableProperty] private bool _useMultiImageSnapshotRequest;
-    [ObservableProperty] private IReadOnlyList<RecognitionStrategySelection> _recognitionStrategies = [];
-    [ObservableProperty] private RecognitionStrategySelection? _selectedRecognitionStrategy;
-    [ObservableProperty] private bool _isOcrRecognitionEngine = true;
-    [ObservableProperty] private bool _isAiQwenRecognitionEngine;
-    [ObservableProperty] private bool _isPaddleRecognitionEngine = true;
-    [ObservableProperty] private bool _isTesseractRecognitionEngine;
-    [ObservableProperty] private bool _isRapidRecognitionEngine;
-    [ObservableProperty] private bool _isBusinessAiModelVisible;
-    [ObservableProperty] private bool _isOcrProviderCardVisible = true;
-    [ObservableProperty] private bool _isAiOcrModelVisible;
-    [ObservableProperty] private bool _isAiWithOcrFusionModeVisible;
-    [ObservableProperty] private bool _isAiWithAiOcrFusionModeVisible;
-    [ObservableProperty] private SmartBpHybridFusionMode _aiWithOcrFusionMode = SmartBpHybridFusionMode.LocalCSharp;
-    [ObservableProperty] private SmartBpHybridFusionMode _aiWithAiOcrFusionMode = SmartBpHybridFusionMode.BusinessAi;
-    [ObservableProperty] private bool _enableOcrBpRecognition = true;
-    [ObservableProperty] private int _recognitionIntervalMs;
-    [ObservableProperty] private int _ocrRecognitionIntervalMs;
-    [ObservableProperty] private int _ocrFieldStaleMilliseconds;
-    [ObservableProperty] private int _ocrBackfillLookBehindSteps;
-    [ObservableProperty] private bool _useOcrContactSheet = true;
-    [ObservableProperty] private bool _enableOcrDebugOverlay;
-    [ObservableProperty] private IReadOnlyList<OcrProviderSelection> _ocrProviders = [];
-    [ObservableProperty] private OcrProviderSelection? _selectedOcrProvider;
-    [ObservableProperty] private string _paddleOcrStatus = "-";
-    [ObservableProperty] private string _tesseractOcrStatus = "-";
-    [ObservableProperty] private bool _isTesseractDataDownloading;
-    [ObservableProperty] private double _tesseractDownloadProgress;
+    public partial string LlamaRuntimeDownloadDetail { get; set; } = "";
+
+    [ObservableProperty]
+    public partial string ManagedLlamaServerExecutablePath { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string LlamaRuntimeUpdateStatus { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial bool EnableAutoGuidanceSync { get; set; }
+
+    [ObservableProperty]
+    public partial bool EnableAutoApplyRecognition { get; set; }
+
+    [ObservableProperty]
+    public partial bool EnableAutoGuidancePageNavigation { get; set; }
+
+    [ObservableProperty]
+    public partial SmartBpRecognitionApplyMode RecognitionApplyMode { get; set; }
+
+    [ObservableProperty]
+    public partial bool AiOneStepDelayedMode { get; set; } = true;
+
+    [ObservableProperty]
+    public partial int AiUnknownPhaseTalentInferenceFrames { get; set; } = 2;
+
+    [ObservableProperty]
+    public partial bool PlayBackfillAnimations { get; set; }
+
+    [ObservableProperty]
+    public partial bool UseMultiImageSnapshotRequest { get; set; }
+
+    [ObservableProperty]
+    public partial IReadOnlyList<RecognitionStrategySelection> RecognitionStrategies { get; set; } = [];
+
+    [ObservableProperty]
+    public partial RecognitionStrategySelection? SelectedRecognitionStrategy { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsOcrRecognitionEngine { get; set; } = true;
+
+    [ObservableProperty]
+    public partial bool IsAiQwenRecognitionEngine { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsPaddleRecognitionEngine { get; set; } = true;
+
+    [ObservableProperty]
+    public partial bool IsTesseractRecognitionEngine { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsRapidRecognitionEngine { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsBusinessAiModelVisible { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsOcrProviderCardVisible { get; set; } = true;
+
+    [ObservableProperty]
+    public partial bool IsAiOcrModelVisible { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsAiWithOcrFusionModeVisible { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsAiWithAiOcrFusionModeVisible { get; set; }
+
+    [ObservableProperty]
+    public partial SmartBpHybridFusionMode AiWithOcrFusionMode { get; set; } = SmartBpHybridFusionMode.LocalCSharp;
+
+    [ObservableProperty]
+    public partial SmartBpHybridFusionMode AiWithAiOcrFusionMode { get; set; } = SmartBpHybridFusionMode.BusinessAi;
+
+    [ObservableProperty]
+    public partial bool EnableOcrBpRecognition { get; set; } = true;
+
+    [ObservableProperty]
+    public partial int RecognitionIntervalMs { get; set; }
+
+    [ObservableProperty]
+    public partial int OcrRecognitionIntervalMs { get; set; }
+
+    [ObservableProperty]
+    public partial int OcrFieldStaleMilliseconds { get; set; }
+
+    [ObservableProperty]
+    public partial int OcrBackfillLookBehindSteps { get; set; }
+
+    [ObservableProperty]
+    public partial bool UseOcrContactSheet { get; set; } = true;
+
+    [ObservableProperty]
+    public partial bool EnableOcrDebugOverlay { get; set; }
+
+    [ObservableProperty]
+    public partial IReadOnlyList<OcrProviderSelection> OcrProviders { get; set; } = [];
+
+    [ObservableProperty]
+    public partial OcrProviderSelection? SelectedOcrProvider { get; set; }
+
+    [ObservableProperty]
+    public partial string PaddleOcrStatus { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string TesseractOcrStatus { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial bool IsTesseractDataDownloading { get; set; }
+
+    [ObservableProperty]
+    public partial double TesseractDownloadProgress { get; set; }
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasTesseractDownloadDetail))]
-    private string _tesseractDownloadDetail = "";
-    [ObservableProperty] private string _tesseractLanguages = "chi_sim+eng";
-    [ObservableProperty] private IReadOnlyList<TesseractLanguageSelection> _tesseractLanguageOptions = [];
-    [ObservableProperty] private bool _enableTesseractOcr = true;
-    [ObservableProperty] private int _tesseractDefaultPsm = 6;
-    [ObservableProperty] private int _tesseractMaxPreprocessVariants = 3;
-    [ObservableProperty] private IReadOnlyList<RapidOcrModelProfile> _rapidOcrModelProfiles = [];
-    [ObservableProperty] private RapidOcrModelProfile? _selectedRapidOcrModelProfile;
-    [ObservableProperty] private string _rapidOcrStatus = "-";
-    [ObservableProperty] private string _rapidOcrModelDirectory = "-";
-    [ObservableProperty] private string _rapidOcrInstalledVersion = "-";
-    [ObservableProperty] private string _rapidOcrLatestVersion = "-";
-    [ObservableProperty] private bool _isRapidOcrUpdateAvailable;
+    public partial string TesseractDownloadDetail { get; set; } = "";
+
+    [ObservableProperty]
+    public partial string TesseractLanguages { get; set; } = "chi_sim+eng";
+
+    [ObservableProperty]
+    public partial IReadOnlyList<TesseractLanguageSelection> TesseractLanguageOptions { get; set; } = [];
+
+    [ObservableProperty]
+    public partial bool EnableTesseractOcr { get; set; } = true;
+
+    [ObservableProperty]
+    public partial int TesseractDefaultPsm { get; set; } = 6;
+
+    [ObservableProperty]
+    public partial int TesseractMaxPreprocessVariants { get; set; } = 3;
+
+    [ObservableProperty]
+    public partial IReadOnlyList<RapidOcrModelProfile> RapidOcrModelProfiles { get; set; } = [];
+
+    [ObservableProperty]
+    public partial RapidOcrModelProfile? SelectedRapidOcrModelProfile { get; set; }
+
+    [ObservableProperty]
+    public partial string RapidOcrStatus { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string RapidOcrModelDirectory { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string RapidOcrInstalledVersion { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string RapidOcrLatestVersion { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial bool IsRapidOcrUpdateAvailable { get; set; }
+
     [NotifyCanExecuteChangedFor(nameof(DownloadRapidOcrModelCommand))]
     [NotifyCanExecuteChangedFor(nameof(DeleteRapidOcrModelCommand))]
-    [ObservableProperty] private bool _isSelectedRapidOcrModelInstalled;
-    [ObservableProperty] private string _rapidOcrInstallActionText = "-";
+    [ObservableProperty]
+    public partial bool IsSelectedRapidOcrModelInstalled { get; set; }
+
+    [ObservableProperty]
+    public partial string RapidOcrInstallActionText { get; set; } = "-";
+
     [NotifyCanExecuteChangedFor(nameof(DownloadRapidOcrModelCommand))]
     [NotifyCanExecuteChangedFor(nameof(DeleteRapidOcrModelCommand))]
-    [ObservableProperty] private bool _isRapidOcrDownloading;
-    [ObservableProperty] private double _rapidOcrDownloadProgress;
+    [ObservableProperty]
+    public partial bool IsRapidOcrDownloading { get; set; }
+
+    [ObservableProperty]
+    public partial double RapidOcrDownloadProgress { get; set; }
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasRapidOcrDownloadDetail))]
-    private string _rapidOcrDownloadDetail = "";
-    [ObservableProperty] private int _rapidOcrPadding;
-    [ObservableProperty] private int _rapidOcrMaxSideLen = 1024;
-    [ObservableProperty] private double _rapidOcrBoxScoreThreshold = .5;
-    [ObservableProperty] private double _rapidOcrBoxThreshold = .3;
-    [ObservableProperty] private double _rapidOcrUnclipRatio = 1.6;
-    [ObservableProperty] private bool _rapidOcrUseAngleClassifier = true;
-    [ObservableProperty] private bool _rapidOcrUsePreprocessingVariants;
-    [ObservableProperty] private bool _allowSequentialSnapshotFallback;
-    [ObservableProperty] private bool _useStrictCandidateEnumsInAutoSchema;
-    [ObservableProperty] private int _phaseCropMaxImageWidth;
-    [ObservableProperty] private int _contentCropMaxImageWidth;
-    [ObservableProperty] private int _phaseMaxTokens;
-    [ObservableProperty] private int _snapshotDeltaMaxTokens;
-    [ObservableProperty] private int _phaseTransitionCommitHoldMilliseconds;
-    [ObservableProperty] private int _phaseTransitionCommitHoldMaxMilliseconds;
-    [ObservableProperty] private int _recognitionBackfillLookBehindSteps;
-    [ObservableProperty] private int _recognitionFieldStaleMilliseconds;
-    [ObservableProperty] private int _recognitionVisualBufferMilliseconds;
-    [ObservableProperty] private int _llamaParallelSlots;
-    [ObservableProperty] private int _llamaGpuLayers;
-    [ObservableProperty] private bool _llamaFlashAttention;
-    [ObservableProperty] private int _llamaBatchSize;
-    [ObservableProperty] private int _llamaUBatchSize;
-    [ObservableProperty] private string _aiStageDetectionResult = "-";
-    [ObservableProperty] private string _aiGuidanceSnapshot = "-";
-    [ObservableProperty] private string _aiCandidateOperations = "-";
-    [ObservableProperty] private BitmapSource? _aiPhaseCropPreview;
-    [ObservableProperty] private BitmapSource? _aiFocusedCropPreview;
-    [ObservableProperty] private string _aiCropDebugInfo = "-";
-    [ObservableProperty] private string _recognitionSpeedTestStatus = "-";
-    [ObservableProperty] private string _currentRecognitionEngineText = "-";
-    [ObservableProperty] private int _currentRecognitionIntervalMs;
-    [ObservableProperty] private int _minimumRecognitionIntervalMs;
-    [ObservableProperty] private string _recognitionIntervalEditHint = "-";
-    [ObservableProperty] private string _aiSceneDiagnostics = "-";
-    [ObservableProperty] private string _aiRequestMetrics = "-";
-    [ObservableProperty] private bool _isRecognitionSpeedTesting;
-    [ObservableProperty] private bool _isRecognitionIntervalEditable;
-    [ObservableProperty] private string _aiGpuName = "not available";
-    [ObservableProperty] private string _aiGpuUtilization = "not available";
-    [ObservableProperty] private string _aiVramUsage = "not available";
-    [ObservableProperty] private string _aiLlamaProcessId = "-";
-    [ObservableProperty] private string _aiPerformanceUpdatedAt = "-";
-    [ObservableProperty] private string _debugStrategySummary = "-";
-    [ObservableProperty] private string _debugModeSummary = "-";
-    [ObservableProperty] private string _debugFinalBusinessState = "-";
-    [ObservableProperty] private string _debugFusionSummary = "-";
-    [ObservableProperty] private string _debugPhaseScene = "-";
-    [ObservableProperty] private string _debugBusinessAiRaw = "-";
-    [ObservableProperty] private string _debugPureAiFullRaw = "-";
-    [ObservableProperty] private string _debugOcrRawLines = "-";
-    [ObservableProperty] private string _debugAiOcrTranscript = "-";
-    [ObservableProperty] private string _debugParsedState = "-";
-    [ObservableProperty] private string _debugMergeLog = "-";
-    [ObservableProperty] private string _debugCandidateOperations = "-";
-    [ObservableProperty] private string _debugServerStatus = "-";
-    [ObservableProperty] private string _debugTiming = "-";
-    [ObservableProperty] private string _recognitionDebugLogText = "-";
-    [ObservableProperty] private bool _isRecognitionDebugLogAutoScrollEnabled = true;
-    [ObservableProperty] private string _businessAiServerStatus = "-";
-    [ObservableProperty] private string _businessAiServerProcessId = "-";
-    [ObservableProperty] private string _businessAiServerPortText = "-";
-    [ObservableProperty] private string _businessAiServerModelText = "-";
-    [ObservableProperty] private string _businessAiServerActivityText = "-";
+    public partial string RapidOcrDownloadDetail { get; set; } = "";
+
+    [ObservableProperty]
+    public partial int RapidOcrPadding { get; set; }
+
+    [ObservableProperty]
+    public partial int RapidOcrMaxSideLen { get; set; } = 1024;
+
+    [ObservableProperty]
+    public partial double RapidOcrBoxScoreThreshold { get; set; } = .5;
+
+    [ObservableProperty]
+    public partial double RapidOcrBoxThreshold { get; set; } = .3;
+
+    [ObservableProperty]
+    public partial double RapidOcrUnclipRatio { get; set; } = 1.6;
+
+    [ObservableProperty]
+    public partial bool RapidOcrUseAngleClassifier { get; set; } = true;
+
+    [ObservableProperty]
+    public partial bool RapidOcrUsePreprocessingVariants { get; set; }
+
+    [ObservableProperty]
+    public partial bool AllowSequentialSnapshotFallback { get; set; }
+
+    [ObservableProperty]
+    public partial bool UseStrictCandidateEnumsInAutoSchema { get; set; }
+
+    [ObservableProperty]
+    public partial int PhaseCropMaxImageWidth { get; set; }
+
+    [ObservableProperty]
+    public partial int ContentCropMaxImageWidth { get; set; }
+
+    [ObservableProperty]
+    public partial int PhaseMaxTokens { get; set; }
+
+    [ObservableProperty]
+    public partial int SnapshotDeltaMaxTokens { get; set; }
+
+    [ObservableProperty]
+    public partial int PhaseTransitionCommitHoldMilliseconds { get; set; }
+
+    [ObservableProperty]
+    public partial int PhaseTransitionCommitHoldMaxMilliseconds { get; set; }
+
+    [ObservableProperty]
+    public partial int RecognitionBackfillLookBehindSteps { get; set; }
+
+    [ObservableProperty]
+    public partial int RecognitionFieldStaleMilliseconds { get; set; }
+
+    [ObservableProperty]
+    public partial int RecognitionVisualBufferMilliseconds { get; set; }
+
+    [ObservableProperty]
+    public partial int LlamaParallelSlots { get; set; }
+
+    [ObservableProperty]
+    public partial int LlamaGpuLayers { get; set; }
+
+    [ObservableProperty]
+    public partial bool LlamaFlashAttention { get; set; }
+
+    [ObservableProperty]
+    public partial int LlamaBatchSize { get; set; }
+
+    [ObservableProperty]
+    public partial int LlamaUBatchSize { get; set; }
+
+    [ObservableProperty]
+    public partial string AiStageDetectionResult { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string AiGuidanceSnapshot { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string AiCandidateOperations { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial BitmapSource? AiPhaseCropPreview { get; set; }
+
+    [ObservableProperty]
+    public partial BitmapSource? AiFocusedCropPreview { get; set; }
+
+    [ObservableProperty]
+    public partial string AiCropDebugInfo { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string RecognitionSpeedTestStatus { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string CurrentRecognitionEngineText { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial int CurrentRecognitionIntervalMs { get; set; }
+
+    [ObservableProperty]
+    public partial int MinimumRecognitionIntervalMs { get; set; }
+
+    [ObservableProperty]
+    public partial string RecognitionIntervalEditHint { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string AiSceneDiagnostics { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string AiRequestMetrics { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial bool IsRecognitionSpeedTesting { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsRecognitionIntervalEditable { get; set; }
+
+    [ObservableProperty]
+    public partial string AiGpuName { get; set; } = "not available";
+
+    [ObservableProperty]
+    public partial string AiGpuUtilization { get; set; } = "not available";
+
+    [ObservableProperty]
+    public partial string AiVramUsage { get; set; } = "not available";
+
+    [ObservableProperty]
+    public partial string AiLlamaProcessId { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string AiPerformanceUpdatedAt { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string DebugStrategySummary { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string DebugModeSummary { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string DebugFinalBusinessState { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string DebugFusionSummary { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string DebugPhaseScene { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string DebugBusinessAiRaw { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string DebugPureAiFullRaw { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string DebugOcrRawLines { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string DebugAiOcrTranscript { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string DebugParsedState { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string DebugMergeLog { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string DebugCandidateOperations { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string DebugServerStatus { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string DebugTiming { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string RecognitionDebugLogText { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial bool IsRecognitionDebugLogAutoScrollEnabled { get; set; } = true;
+
+    [ObservableProperty]
+    public partial string BusinessAiServerStatus { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string BusinessAiServerProcessId { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string BusinessAiServerPortText { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string BusinessAiServerModelText { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string BusinessAiServerActivityText { get; set; } = "-";
+
     [NotifyCanExecuteChangedFor(nameof(StartBusinessAiServerCommand))]
     [NotifyCanExecuteChangedFor(nameof(StartRequiredLlamaServersCommand))]
-    [ObservableProperty] private bool _isBusinessAiServerStarting;
-    [ObservableProperty] private string _aiOcrServerStatus = "-";
-    [ObservableProperty] private string _aiOcrServerProcessId = "-";
-    [ObservableProperty] private string _aiOcrServerPortText = "-";
-    [ObservableProperty] private string _aiOcrServerModelText = "-";
-    [ObservableProperty] private string _aiOcrServerActivityText = "-";
-    [ObservableProperty] private string _aiOcrServerReuseStatus = "-";
+    [ObservableProperty]
+    public partial bool IsBusinessAiServerStarting { get; set; }
+
+    [ObservableProperty]
+    public partial string AiOcrServerStatus { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string AiOcrServerProcessId { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string AiOcrServerPortText { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string AiOcrServerModelText { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string AiOcrServerActivityText { get; set; } = "-";
+
+    [ObservableProperty]
+    public partial string AiOcrServerReuseStatus { get; set; } = "-";
+
     [NotifyCanExecuteChangedFor(nameof(StartAiOcrServerCommand))]
     [NotifyCanExecuteChangedFor(nameof(StartRequiredLlamaServersCommand))]
-    [ObservableProperty] private bool _isAiOcrServerStarting;
+    [ObservableProperty]
+    public partial bool IsAiOcrServerStarting { get; set; }
+
     [NotifyCanExecuteChangedFor(nameof(StartRequiredLlamaServersCommand))]
-    [ObservableProperty] private bool _isRequiredLlamaServersStarting;
+    [ObservableProperty]
+    public partial bool IsRequiredLlamaServersStarting { get; set; }
+
     private SmartBpRecognitionLayoutProfile? _aiRegionProfile;
 
     /// <summary>Gets whether Qwen download details should be shown.</summary>
@@ -2021,7 +2363,8 @@ public partial class SmartBpModuleContentViewModel
         finally { IsAiRecognizing = false; Interlocked.Exchange(ref _recognitionBusy, 0); }
     }
 
-    [ObservableProperty] private string _aiParsedVisualResult = "";
+    [ObservableProperty]
+    public partial string AiParsedVisualResult { get; set; } = "";
 
     partial void OnSelectedAiPromptProfileChanged(SmartBpPromptProfile? value)
     {
@@ -2724,7 +3067,7 @@ public partial class SmartBpModuleContentViewModel
         /// <summary>Gets or sets whether this runtime asset is currently installed.</summary>
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(StatusKey))]
-        private bool _isInstalled;
+        public partial bool IsInstalled { get; set; }
 
         /// <summary>Gets the localization key for the current install status.</summary>
         public string StatusKey => IsInstalled ? "SmartBpAiStatusInstalled" : "SmartBpAiStatusNotInstalled";
@@ -2742,12 +3085,13 @@ public partial class SmartBpModuleContentViewModel
         public string DisplayNameKey { get; } = displayNameKey;
 
         /// <summary>Gets or sets whether this language is selected for install, delete, and use.</summary>
-        [ObservableProperty] private bool _isSelected;
+        [ObservableProperty]
+        public partial bool IsSelected { get; set; }
 
         /// <summary>Gets or sets whether this language data file is installed.</summary>
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(StatusKey))]
-        private bool _isInstalled;
+        public partial bool IsInstalled { get; set; }
 
         /// <summary>Gets the localization key for the current install status.</summary>
         public string StatusKey => IsInstalled ? "SmartBpTesseractLanguageInstalled" : "SmartBpTesseractLanguageMissing";

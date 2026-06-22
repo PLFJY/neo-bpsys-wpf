@@ -191,7 +191,7 @@ public partial class SettingPageViewModel : ViewModelBase
     /// 当前选择的日志级别。
     /// </summary>
     [ObservableProperty]
-    private AppLogLevel _selectedLogLevel;
+    public partial AppLogLevel SelectedLogLevel { get; set; }
 
     /// <summary>
     /// 可选日志级别字典，键为本地化 Key，值为对应级别。

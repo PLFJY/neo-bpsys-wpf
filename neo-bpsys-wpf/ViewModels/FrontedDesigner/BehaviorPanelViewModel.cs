@@ -99,14 +99,14 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedControl))]
     [NotifyPropertyChangedFor(nameof(EmptyText))]
-    private FrontedControlDesignItem? _selectedControl;
+    public partial FrontedControlDesignItem? SelectedControl { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedBehavior))]
-    private BehaviorEditorViewModel? _selectedBehavior;
+    public partial BehaviorEditorViewModel? SelectedBehavior { get; set; }
 
     [ObservableProperty]
-    private string _pasteStatus = string.Empty;
+    public partial string PasteStatus { get; set; } = string.Empty;
 
     public bool HasSelectedControl => SelectedControl is not null;
 
@@ -1737,7 +1737,7 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
     [NotifyCanExecuteChangedFor(nameof(PreviewStartCommand))]
     [NotifyCanExecuteChangedFor(nameof(PreviewLoopOnceCommand))]
     [NotifyCanExecuteChangedFor(nameof(StartLoopPreviewCommand))]
-    private bool _isLoopPreviewRunning;
+    public partial bool IsLoopPreviewRunning { get; set; }
 
     private static FrontedBehaviorAnimationStageViewModel Stage(
         string name,

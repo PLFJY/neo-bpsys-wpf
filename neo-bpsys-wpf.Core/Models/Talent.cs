@@ -12,22 +12,26 @@ public partial class Talent : ObservableObjectBase
     /// <summary>
     /// 回光返照
     /// </summary>
-    [ObservableProperty] private bool _borrowedTime;
+    [ObservableProperty]
+    public partial bool BorrowedTime { get; set; }
 
     /// <summary>
     /// 飞轮效应
     /// </summary>
-    [ObservableProperty] private bool _flywheelEffect;
+    [ObservableProperty]
+    public partial bool FlywheelEffect { get; set; }
 
     /// <summary>
     /// 膝跳反射
     /// </summary>
-    [ObservableProperty] private bool _kneeJerkReflex;
+    [ObservableProperty]
+    public partial bool KneeJerkReflex { get; set; }
 
     /// <summary>
     /// 化险为夷
     /// </summary>
-    [ObservableProperty] private bool _tideTurner;
+    [ObservableProperty]
+    public partial bool TideTurner { get; set; }
 
     #endregion
 
@@ -36,22 +40,26 @@ public partial class Talent : ObservableObjectBase
     /// <summary>
     /// 禁闭空间
     /// </summary>
-    [ObservableProperty] private bool _confinedSpace;
+    [ObservableProperty]
+    public partial bool ConfinedSpace { get; set; }
 
     /// <summary>
     /// 挽留
     /// </summary>
-    [ObservableProperty] private bool _detention;
+    [ObservableProperty]
+    public partial bool Detention { get; set; }
 
     /// <summary>
     /// 张狂
     /// </summary>
-    [ObservableProperty] private bool _insolence;
+    [ObservableProperty]
+    public partial bool Insolence { get; set; }
 
     /// <summary>
     /// 底牌
     /// </summary>
-    [ObservableProperty] private bool _trumpCard;
+    [ObservableProperty]
+    public partial bool TrumpCard { get; set; }
 
     #endregion
 }

@@ -141,7 +141,8 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
     /// <summary>
     /// 当前选图队伍。
     /// </summary>
-    [ObservableProperty] private MapSelectTeam _pickMapTeam;
+    [ObservableProperty]
+    public partial MapSelectTeam PickMapTeam { get; set; }
 
     partial void OnPickMapTeamChanged(MapSelectTeam value)
     {
@@ -157,7 +158,8 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
     /// <summary>
     /// 当前禁用地图队伍。
     /// </summary>
-    [ObservableProperty] private MapSelectTeam _banMapTeam;
+    [ObservableProperty]
+    public partial MapSelectTeam BanMapTeam { get; set; }
 
     [RelayCommand]
     private void BanMap(Map? map = null)
@@ -190,9 +192,11 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
         PickedMap = null;
     }
 
-    [ObservableProperty] private bool _isPickHighlighted;
+    [ObservableProperty]
+    public partial bool IsPickHighlighted { get; set; }
 
-    [ObservableProperty] private bool _isBanHighlighted;
+    [ObservableProperty]
+    public partial bool IsBanHighlighted { get; set; }
 
     public void Receive(HighlightMessage message)
     {

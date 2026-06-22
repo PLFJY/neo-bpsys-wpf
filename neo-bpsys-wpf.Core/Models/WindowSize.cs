@@ -11,12 +11,14 @@ public partial class WindowSize: ObservableObjectBase
     /// <summary>
     /// 宽度
     /// </summary>
-    [ObservableProperty] private double _width;
+    [ObservableProperty]
+    public partial double Width { get; set; }
 
     /// <summary>
     /// 高度
     /// </summary>
-    [ObservableProperty] private double _height;
+    [ObservableProperty]
+    public partial double Height { get; set; }
 
     /// <summary>
     /// 使用指定的宽度和高度构造窗体大小实例。

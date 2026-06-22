@@ -34,9 +34,9 @@ public sealed partial class FrontedBehaviorEventDebuggerViewModel : ViewModelBas
     public FrontedBehaviorEventDebuggerViewModel(IFrontedBehaviorEventDebugService debugService)
     {
         _debugService = debugService;
-        _isEnabled = debugService.IsEnabled;
-        _isPaused = debugService.IsPaused;
-        _maxRecords = debugService.MaxRecords;
+        IsEnabled = debugService.IsEnabled;
+        IsPaused = debugService.IsPaused;
+        MaxRecords = debugService.MaxRecords;
 
         foreach (var record in debugService.Records)
         {
@@ -63,49 +63,49 @@ public sealed partial class FrontedBehaviorEventDebuggerViewModel : ViewModelBas
     /// Selected event record in the event list.
     /// </summary>
     [ObservableProperty]
-    private FrontedBehaviorEventDebugRecordViewModel? _selectedRecord;
+    public partial FrontedBehaviorEventDebugRecordViewModel? SelectedRecord { get; set; }
 
     /// <summary>
     /// Selected payload entry for copy helper commands.
     /// </summary>
     [ObservableProperty]
-    private FrontedBehaviorPayloadDebugEntry? _selectedPayloadEntry;
+    public partial FrontedBehaviorPayloadDebugEntry? SelectedPayloadEntry { get; set; }
 
     /// <summary>
     /// Gets or sets whether the debugger records incoming behavior events.
     /// </summary>
     [ObservableProperty]
-    private bool _isEnabled;
+    public partial bool IsEnabled { get; set; }
 
     /// <summary>
     /// Gets or sets whether the debugger keeps existing records but ignores new events.
     /// </summary>
     [ObservableProperty]
-    private bool _isPaused;
+    public partial bool IsPaused { get; set; }
 
     /// <summary>
     /// Gets or sets the maximum number of records retained by the debugger.
     /// </summary>
     [ObservableProperty]
-    private int _maxRecords;
+    public partial int MaxRecords { get; set; }
 
     /// <summary>
     /// Gets or sets the free-text filter used by the event list.
     /// </summary>
     [ObservableProperty]
-    private string _filterText = string.Empty;
+    public partial string FilterText { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the event type filter.
     /// </summary>
     [ObservableProperty]
-    private string _eventTypeFilter = string.Empty;
+    public partial string EventTypeFilter { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the window type filter.
     /// </summary>
     [ObservableProperty]
-    private string _windowTypeFilter = string.Empty;
+    public partial string WindowTypeFilter { get; set; } = string.Empty;
 
     partial void OnIsEnabledChanged(bool value) => _debugService.IsEnabled = value;
 

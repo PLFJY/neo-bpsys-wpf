@@ -18,21 +18,21 @@ public partial class Score : ObservableObjectBase
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MajorPointsOnFront))]
-    private int _win;
+    public partial int Win { get; set; }
 
     /// <summary>
     /// 大比分--平
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MajorPointsOnFront))]
-    private int _tie;
+    public partial int Tie { get; set; }
 
     /// <summary>
     /// 小比分
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MajorPointsOnFront))]
-    private int _gameScores;
+    public partial int GameScores { get; set; }
 
     /// <summary>
     /// 前台显示的格式化的大比分

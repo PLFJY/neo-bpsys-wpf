@@ -7,7 +7,7 @@ namespace neo_bpsys_wpf.ExamplePlugin.ViewModels;
 public partial class MainPageViewModel : ViewModelBase
 {
     [ObservableProperty]
-    private string _editedText = "ExamplePlugin";
+    public partial string EditedText { get; set; } = "ExamplePlugin";
 
     [RelayCommand]
     private void Confirm()
@@ -16,7 +16,7 @@ public partial class MainPageViewModel : ViewModelBase
     }
 
     [ObservableProperty]
-    private int _counter;
+    public partial int Counter { get; set; }
 
     [RelayCommand]
     private void Plus1()

@@ -53,11 +53,11 @@ public partial class HomePageViewModel : ViewModelBase
     /// 当前版本更新信息。
     /// </summary>
     [ObservableProperty]
-    private ReleaseInfo? _releaseInfo;
+    public partial ReleaseInfo? ReleaseInfo { get; set; }
 
     /// <summary>
     /// 更新日志内容（Markdown 格式）。
     /// </summary>
     [ObservableProperty]
-    private string _releaseNotes = string.Empty;
+    public partial string ReleaseNotes { get; set; } = string.Empty;
 }

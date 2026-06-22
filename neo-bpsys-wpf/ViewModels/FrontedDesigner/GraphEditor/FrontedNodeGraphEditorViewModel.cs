@@ -88,23 +88,23 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     public IReadOnlyList<FrontedNodeCatalogItemViewModel> Catalog { get; }
 
     [ObservableProperty]
-    private FrontedNodeEditorViewModel? _selectedNode;
+    public partial FrontedNodeEditorViewModel? SelectedNode { get; set; }
 
     /// <summary>是否可以撤销</summary>
     [ObservableProperty]
-    private bool _canUndo;
+    public partial bool CanUndo { get; set; }
 
     /// <summary>是否可以重做</summary>
     [ObservableProperty]
-    private bool _canRedo;
+    public partial bool CanRedo { get; set; }
 
     /// <summary>是否有未保存的更改</summary>
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
-    private bool _isDirty;
+    public partial bool IsDirty { get; set; }
 
     [ObservableProperty]
-    private string _catalogSearchText = string.Empty;
+    public partial string CatalogSearchText { get; set; } = string.Empty;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ConnectionStatus))]

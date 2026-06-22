@@ -63,13 +63,13 @@ public partial class TeamInfoPageViewModel
         }
 
         [ObservableProperty]
-        private string _teamName = string.Empty;
+        public partial string TeamName { get; set; } = string.Empty;
 
         [ObservableProperty]
-        private string _teamColorHexEditText = string.Empty;
+        public partial string TeamColorHexEditText { get; set; } = string.Empty;
 
         [ObservableProperty]
-        private string _teamColorStatus = string.Empty;
+        public partial string TeamColorStatus { get; set; } = string.Empty;
 
         private Color _teamColorPickerValue = Colors.White;
         private bool _syncingTeamColorEditor;

@@ -179,12 +179,14 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     /// <summary>
     /// 当前活动窗口列表。
     /// </summary>
-    [ObservableProperty] private List<WindowInfo> _activeWindows = [];
+    [ObservableProperty]
+    public partial List<WindowInfo> ActiveWindows { get; set; } = [];
 
     /// <summary>
     /// 可选 OCR 模型列表。
     /// </summary>
-    [ObservableProperty] private List<OcrModelSelection> _ocrModelList = [];
+    [ObservableProperty]
+    public partial List<OcrModelSelection> OcrModelList { get; set; } = [];
 
     /// <summary>
     /// 当前选中的 OCR 模型。
@@ -193,7 +195,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     [NotifyCanExecuteChangedFor(nameof(DownloadSelectedOcrModelCommand))]
     [NotifyCanExecuteChangedFor(nameof(DeleteSelectedOcrModelCommand))]
     [NotifyCanExecuteChangedFor(nameof(SwitchSelectedOcrModelCommand))]
-    private OcrModelSelection? _selectedOcrModel;
+    public partial OcrModelSelection? SelectedOcrModel { get; set; }
 
     /// <summary>
     /// 是否正在下载 OCR 模型。
@@ -202,62 +204,73 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     [NotifyCanExecuteChangedFor(nameof(DownloadSelectedOcrModelCommand))]
     [NotifyCanExecuteChangedFor(nameof(DeleteSelectedOcrModelCommand))]
     [NotifyCanExecuteChangedFor(nameof(SwitchSelectedOcrModelCommand))]
-    private bool _isModelDownloading;
+    public partial bool IsModelDownloading { get; set; }
 
     /// <summary>
     /// 是否有精确下载进度（区别于不确定进度条）。
     /// </summary>
-    [ObservableProperty] private bool _hasPreciseDownloadProgress;
+    [ObservableProperty]
+    public partial bool HasPreciseDownloadProgress { get; set; }
 
     /// <summary>
     /// OCR 模型下载进度值（0-100）。
     /// </summary>
-    [ObservableProperty] private double _modelDownloadProgress;
+    [ObservableProperty]
+    public partial double ModelDownloadProgress { get; set; }
 
     /// <summary>
     /// OCR 模型下载进度文本（百分比）。
     /// </summary>
-    [ObservableProperty] private string _modelDownloadProgressText = string.Empty;
+    [ObservableProperty]
+    public partial string ModelDownloadProgressText { get; set; } = string.Empty;
 
     /// <summary>
     /// OCR 模型下载阶段描述文本。
     /// </summary>
-    [ObservableProperty] private string _modelDownloadStageText = string.Empty;
+    [ObservableProperty]
+    public partial string ModelDownloadStageText { get; set; } = string.Empty;
 
     /// <summary>
     /// 当前 OCR 模型显示名称。
     /// </summary>
-    [ObservableProperty] private string _currentOcrModelDisplayName = "";
+    [ObservableProperty]
+    public partial string CurrentOcrModelDisplayName { get; set; } = "";
 
     /// <summary>
     /// 当前识别区域配置文件路径。
     /// </summary>
-    [ObservableProperty] private string _regionConfigPath = "-";
+    [ObservableProperty]
+    public partial string RegionConfigPath { get; set; } = "-";
 
     /// <summary>
     /// 识别区域配置的比例文本（如 16:9）。
     /// </summary>
-    [ObservableProperty] private string _regionConfigAspectRatioText = "-";
+    [ObservableProperty]
+    public partial string RegionConfigAspectRatioText { get; set; } = "-";
 
     /// <summary>
     /// 当前捕获画面比例文本（如 16:9）。
     /// </summary>
-    [ObservableProperty] private string _captureAspectRatioText = "-";
+    [ObservableProperty]
+    public partial string CaptureAspectRatioText { get; set; } = "-";
 
     /// <summary>
     /// 区域比例状态文本。
     /// </summary>
-    [ObservableProperty] private string _regionAspectStatusText = "-";
+    [ObservableProperty]
+    public partial string RegionAspectStatusText { get; set; } = "-";
 
     /// <summary>
     /// 区域比例提示文本。
     /// </summary>
-    [ObservableProperty] private string _regionAspectHintText = "-";
+    [ObservableProperty]
+    public partial string RegionAspectHintText { get; set; } = "-";
 
     /// <summary>
     /// 区域比例是否不匹配。
     /// </summary>
-    [ObservableProperty] private bool _regionAspectIsMismatch;
+    [ObservableProperty]
+    public partial bool RegionAspectIsMismatch { get; set; }
 
     /// <summary>
     /// 是否显示下载模型按钮。

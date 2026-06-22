@@ -53,8 +53,10 @@ public partial class MainWindowViewModel :
     private readonly ISmartBpAutoRecognitionGlobalControl _smartBpAutoRecognitionGlobalControl;
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(StopSmartBpAutoRecognitionCommand))]
-    private bool _isSmartBpAutoRecognitionRunning;
-    [ObservableProperty] private ApplicationTheme _applicationTheme = ApplicationTheme.Dark;
+    public partial bool IsSmartBpAutoRecognitionRunning { get; set; }
+
+    [ObservableProperty]
+    public partial ApplicationTheme ApplicationTheme { get; set; } = ApplicationTheme.Dark;
 
     private bool _isGuidanceStarted;
 
@@ -88,7 +90,8 @@ public partial class MainWindowViewModel :
         });
     }
 
-    [ObservableProperty] private string _actionName = string.Empty;
+    [ObservableProperty]
+    public partial string ActionName { get; set; } = string.Empty;
 
     public MainWindowViewModel(
         ISharedDataService sharedDataService,
@@ -346,9 +349,11 @@ public partial class MainWindowViewModel :
         });
     }
 
-    [ObservableProperty] private bool _isSwapHighlighted;
+    [ObservableProperty]
+    public partial bool IsSwapHighlighted { get; set; }
 
-    [ObservableProperty] private bool _isEndGuidanceHighlighted;
+    [ObservableProperty]
+    public partial bool IsEndGuidanceHighlighted { get; set; }
 
     public void Receive(HighlightMessage message)
     {
@@ -360,7 +365,8 @@ public partial class MainWindowViewModel :
 
     public List<int> RecommendTimerList { get; } = [30, 45, 60, 90, 120, 150, 180];
 
-    [ObservableProperty] private OrderedDictionary<GameProgress, string> _gameList;
+    [ObservableProperty]
+    public partial OrderedDictionary<GameProgress, string> GameList { get; set; }
 
     private static OrderedDictionary<GameProgress, string> GameListBo5 => new()
     {

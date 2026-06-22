@@ -56,7 +56,7 @@ public partial class Team : ObservableObjectBase
     public Camp? Camp
     {
         get => _camp;
-        set => SetPropertyWithAction(ref _camp, value, 
+        set => SetPropertyWithAction(ref _camp, value,
             _ => UpdateGlobalBanFromRecord());
     }
 
@@ -64,8 +64,8 @@ public partial class Team : ObservableObjectBase
     /// 队伍LOGO
     /// </summary>
     [ObservableProperty]
-    [property: JsonIgnore]
-    private ImageSource? _logo;
+    [JsonIgnore]
+    public partial ImageSource? Logo { get; set; }
 
     /// <summary>
     /// 队伍LOGO的Uri
@@ -119,31 +119,15 @@ public partial class Team : ObservableObjectBase
     /// 全局被禁用的求生者列表
     /// </summary>
     [ObservableProperty]
-    [property: FrontedBindingCollection(FixedCount = AppConstants.GlobalBanSurCount)]
-    private ObservableCollection<Character?> _globalBannedSurList = [];
+    [FrontedBindingCollection(FixedCount = AppConstants.GlobalBanSurCount)]
+    public partial ObservableCollection<Character?> GlobalBannedSurList { get; set; } = [];
 
     /// <summary>
     /// 全局被禁用的监管者列表
     /// </summary>
     [ObservableProperty]
-    [property: FrontedBindingCollection(FixedCount = AppConstants.GlobalBanHunCount)]
-    private ObservableCollection<Character?> _globalBannedHunList = [];
-
-    /// <summary>
-    /// 全局被禁用的求生者记录
-    /// </summary>
-    [Obsolete("此数组已弃用，将在3.0.0.0后删除，请迁移至 GlobalBannedSurRecordList")]
-    [JsonIgnore]
-    [FrontedBindingIgnore]
-    public Character?[] GlobalBannedSurRecordArray => [.. GlobalBannedSurRecordList];
-
-    /// <summary>
-    /// 全局被禁用的监管者记录
-    /// </summary>
-    [Obsolete("此数组已弃用，将在3.0.0.0后删除，请迁移至 GlobalBannedHunRecordList")]
-    [JsonIgnore]
-    [FrontedBindingIgnore]
-    public Character?[] GlobalBannedHunRecordArray => [.. GlobalBannedHunRecordList];
+    [FrontedBindingCollection(FixedCount = AppConstants.GlobalBanHunCount)]
+    public partial ObservableCollection<Character?> GlobalBannedHunList { get; set; } = [];
 
     /// <summary>
     /// 全局被禁用的求生者记录
@@ -246,7 +230,7 @@ public partial class Team : ObservableObjectBase
             [.. Enumerable.Range(0, AppConstants.GlobalBanHunCount).Select(_ => new Character(Enums.Camp.Hun))];
         GlobalBannedSurList =
             [.. Enumerable.Range(0, AppConstants.GlobalBanSurCount).Select(_ => new Character(Enums.Camp.Hun))];
-        
+
         _surMemberOnFieldPrivateCollection = [.. Enumerable.Range(0, 4).Select<int, Member?>(_ => null)];
         _surMemberOnFieldCollection = new ReadOnlyObservableCollection<Member?>(_surMemberOnFieldPrivateCollection);
         OnPropertyChanged(nameof(SurMemberOnFieldCollection));
@@ -264,6 +248,8 @@ public partial class Team : ObservableObjectBase
     /// <param name="hunMemberList">监管者队员列表</param>
     /// <param name="globalBannedHunList">全局被禁用的监管者列表(用于对局回溯)</param>
     /// <param name="globalBannedSurList">全局被禁用的求生者列表(用于对局回溯)</param>
+    /// <param name="colorHex">队伍颜色Hex值</param>
+    /// <param name="teamType">队伍类型</param>
     [JsonConstructor]
     internal Team(string name, string imageUri,
         ObservableCollection<Member>? surMemberList, ObservableCollection<Member>? hunMemberList,
@@ -313,7 +299,7 @@ public partial class Team : ObservableObjectBase
         Name = newTeam.Name;
         ColorHex = newTeam.ColorHex;
         Logo = null;
-        if (!string.IsNullOrEmpty(newTeam.ImageUri)&&newTeam.ImageUri!="null")
+        if (!string.IsNullOrEmpty(newTeam.ImageUri) && newTeam.ImageUri != "null")
         {
             ImageUri = newTeam.ImageUri;
             Logo = new BitmapImage(new Uri(ImageUri));
