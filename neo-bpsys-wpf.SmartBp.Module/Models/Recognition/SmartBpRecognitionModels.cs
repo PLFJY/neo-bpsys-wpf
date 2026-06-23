@@ -16,7 +16,7 @@ public enum SmartBpRecognitionEngine { Ocr, AiQwen }
 /// <summary>协调器和 UI 选择的一等 SmartBP 识别策略。</summary>
 public enum SmartBpRecognitionStrategy
 {
-    /// <summary>只使用已选本地 OCR 提供程序。</summary>
+    /// <summary>只使用已选本地 OCR Provider。</summary>
     PureOcr,
     /// <summary>只使用已选业务视觉模型。</summary>
     PureAi,
@@ -617,9 +617,9 @@ public sealed class SmartBpRecognitionSettings
     public bool UseOcrContactSheet { get; set; } = true;
     /// <summary>获取或设置是否启用 OCR 调试覆盖层输出。</summary>
     public bool EnableOcrDebugOverlay { get; set; }
-    /// <summary>获取或设置显式选择的 OCR 提供程序。</summary>
+    /// <summary>获取或设置显式选择的 OCR Provider。</summary>
     public SmartBpOcrProviderMode OcrProviderMode { get; set; } = SmartBpOcrProviderMode.Paddle;
-    /// <summary>获取或设置基于策略识别时显式选择的 OCR 提供程序。</summary>
+    /// <summary>获取或设置基于策略识别时显式选择的 OCR Provider。</summary>
     public SmartBpOcrProviderMode SelectedOcrProviderMode { get; set; } = SmartBpOcrProviderMode.Paddle;
     /// <summary>获取或设置已选托管 RapidOCR 配置档标识。</summary>
     public string SelectedRapidOcrModelId { get; set; } = "ppocr-v5-zh-mobile";

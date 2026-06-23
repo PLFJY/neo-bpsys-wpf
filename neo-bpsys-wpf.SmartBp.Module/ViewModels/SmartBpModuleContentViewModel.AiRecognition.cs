@@ -3135,8 +3135,8 @@ public partial class SmartBpModuleContentViewModel
     /// <param name="DisplayNameKey">本地化显示名称资源键。</param>
     public sealed record RecognitionStrategySelection(SmartBpRecognitionStrategy Strategy, string DisplayNameKey);
 
-    /// <summary>一个可选择的 OCR 提供程序选项。</summary>
-    /// <param name="Mode">持久化使用的提供程序模式。</param>
+    /// <summary>一个可选择的 OCR Provider选项。</summary>
+    /// <param name="Mode">持久化使用的Provider模式。</param>
     /// <param name="DisplayName">界面显示名称。</param>
     public sealed record OcrProviderSelection(SmartBpOcrProviderMode Mode, string DisplayName);
 

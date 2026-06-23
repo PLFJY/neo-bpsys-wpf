@@ -206,7 +206,7 @@ public class ModernFrame : Control
     }
 
     /// <summary>
-    /// 获取或设置用于依赖注入的服务提供程序。
+    /// 获取或设置用于依赖注入的服务Provider。
     /// </summary>
     public IServiceProvider? ServiceProvider { get; set; }
 

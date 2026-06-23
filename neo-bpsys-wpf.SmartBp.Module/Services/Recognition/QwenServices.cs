@@ -55,7 +55,7 @@ internal sealed class QwenModelManifestProvider : IQwenModelManifestProvider, IL
     private readonly ILogger<QwenModelManifestProvider> _logger;
 
     /// <summary>
-    /// 初始化从应用基目录读取资源的 Qwen manifest 提供程序。
+    /// 初始化从应用基目录读取资源的 Qwen manifest Provider。
     /// </summary>
     /// <param name="logger">日志记录器。</param>
     public QwenModelManifestProvider(ILogger<QwenModelManifestProvider> logger)
@@ -64,9 +64,9 @@ internal sealed class QwenModelManifestProvider : IQwenModelManifestProvider, IL
     }
 
     /// <summary>
-    /// 初始化从 SmartBP 模块目录读取资源的 Qwen manifest 提供程序。
+    /// 初始化从 SmartBP 模块目录读取资源的 Qwen manifest Provider。
     /// </summary>
-    /// <param name="storage">SmartBP 模块存储提供程序。</param>
+    /// <param name="storage">SmartBP 模块存储Provider。</param>
     /// <param name="logger">日志记录器。</param>
     public QwenModelManifestProvider(
         ISmartBpModuleStorageProvider storage,

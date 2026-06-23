@@ -72,7 +72,7 @@ public partial class SettingPageViewModel : ViewModelBase
     /// <param name="bpuiFileAssociationService">bpui 文件关联服务</param>
     /// <param name="filePickerService">文件选择服务</param>
     /// <param name="smartBpModuleManager">SmartBP 模块管理器</param>
-    /// <param name="serviceProvider">服务提供程序</param>
+    /// <param name="serviceProvider">服务Provider</param>
     /// <param name="logger">日志记录器</param>
     public SettingPageViewModel(
         IUpdaterService updaterService,

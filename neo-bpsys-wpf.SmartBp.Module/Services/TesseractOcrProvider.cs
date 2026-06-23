@@ -19,9 +19,9 @@ public sealed class TesseractOcrProvider : IOcrProvider, IDisposable
     private TesseractEngine? _engine;
     private string? _engineKey;
 
-    /// <summary>初始化 Tesseract OCR 提供程序。</summary>
+    /// <summary>初始化 Tesseract OCR Provider。</summary>
     /// <param name="settingsService">识别设置服务。</param>
-    /// <param name="storage">SmartBP 模块存储提供程序。</param>
+    /// <param name="storage">SmartBP 模块存储Provider。</param>
     /// <param name="logger">日志记录器。</param>
     public TesseractOcrProvider(
         ISmartBpRecognitionSettingsService settingsService,

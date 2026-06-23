@@ -88,7 +88,7 @@ public sealed class RapidOcrNetProvider : IOcrProvider, IDisposable
     private string? _initializedKey;
     private string? _initializationError;
 
-    /// <summary>初始化 RapidOCR 提供程序。</summary>
+    /// <summary>初始化 RapidOCR Provider。</summary>
     /// <param name="assets">托管模型资产管理器。</param>
     /// <param name="settings">识别设置服务。</param>
     /// <param name="logger">日志记录器。</param>

@@ -369,7 +369,7 @@ public interface ISmartBpOcrTextResolver
     /// <param name="text">OCR 文本。</param>
     /// <param name="camp">目标阵营。</param>
     /// <param name="slotIndex">视觉槽位索引。</param>
-    /// <param name="provider">可选 OCR 提供程序名称。</param>
+    /// <param name="provider">可选 OCR Provider名称。</param>
     /// <returns>已解析角色信息，或未解析详情。</returns>
     SmartBpNormalizedCharacter ResolveCharacterFromLine(string text, Core.Enums.Camp camp, int slotIndex, string? provider = null);
 }

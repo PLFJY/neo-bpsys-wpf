@@ -60,7 +60,7 @@ public sealed class SmartBpModuleManager
     /// <summary>
     /// 初始化 <see cref="SmartBpModuleManager"/> 类的新实例。
     /// </summary>
-    /// <param name="serviceProvider">宿主服务提供程序。</param>
+    /// <param name="serviceProvider">宿主服务Provider。</param>
     /// <param name="logger">日志记录器。</param>
     /// <param name="settingsHostService">设置宿主服务。</param>
     /// <param name="archiveService">压缩包解压服务。</param>

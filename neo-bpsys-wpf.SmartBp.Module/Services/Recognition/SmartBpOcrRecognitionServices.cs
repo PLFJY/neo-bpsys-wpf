@@ -41,7 +41,7 @@ internal sealed class SmartBpOcrContactSheetBuilder(ISmartBpRecognitionFrameCrop
                 crops.Add((region, crop, ToBgr(raw)));
             }
 
-            // 合并识别可以减少 OCR 提供程序调用次数；映射表负责把结果再还原到区域局部坐标。
+            // 合并识别可以减少 OCR Provider调用次数；映射表负责把结果再还原到区域局部坐标。
             var width = crops.Max(item => item.Image.Width);
             var height = crops.Sum(item => item.Image.Height) + Padding * Math.Max(0, crops.Count - 1);
             var sheet = new Mat(new Size(width, height), MatType.CV_8UC3, Scalar.All(255));
@@ -68,7 +68,7 @@ internal sealed class SmartBpOcrContactSheetBuilder(ISmartBpRecognitionFrameCrop
     }
 
     /// <summary>
-    /// 把 OpenCV 图像规范化为 BGR 三通道，方便后续拼接和 OCR 提供程序处理。
+    /// 把 OpenCV 图像规范化为 BGR 三通道，方便后续拼接和 OCR Provider处理。
     /// </summary>
     /// <param name="source">源图像。</param>
     /// <returns>BGR 三通道图像，调用方负责释放。</returns>
@@ -93,7 +93,7 @@ internal static class SmartBpOcrContactSheetMapper
     /// <summary>
     /// 按区域映射拆分 OCR 文本行，并转成区域局部坐标。
     /// </summary>
-    /// <param name="result">OCR 提供程序返回的整图识别结果。</param>
+    /// <param name="result">OCR Provider返回的整图识别结果。</param>
     /// <param name="regions">拼接图区域映射。</param>
     /// <param name="unmappedLineCount">未命中任何区域的文本行数量。</param>
     /// <returns>按区域分组的 OCR 文本。</returns>
@@ -165,7 +165,7 @@ internal sealed partial class SmartBpOcrTextResolver(ICharacterSelectionService 
     /// <param name="text">OCR 原始文本。</param>
     /// <param name="camp">目标阵营。</param>
     /// <param name="slotIndex">目标槽位索引。</param>
-    /// <param name="provider">OCR 提供程序名称。</param>
+    /// <param name="provider">OCR Provider名称。</param>
     /// <returns>规范化角色解析结果。</returns>
     public SmartBpNormalizedCharacter ResolveCharacterFromLine(string text, Camp camp, int slotIndex, string? provider = null)
     {

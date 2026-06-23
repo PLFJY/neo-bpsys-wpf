@@ -13,16 +13,16 @@ internal sealed class SmartBpPromptProfileProvider : ISmartBpPromptProfileProvid
     private readonly ISmartBpModuleStorageProvider? _storage;
 
     /// <summary>
-    /// 初始化从应用基目录读取提示词资源的提供程序。
+    /// 初始化从应用基目录读取提示词资源的Provider。
     /// </summary>
     public SmartBpPromptProfileProvider()
     {
     }
 
     /// <summary>
-    /// 初始化从 SmartBP 模块目录读取提示词资源的提供程序。
+    /// 初始化从 SmartBP 模块目录读取提示词资源的Provider。
     /// </summary>
-    /// <param name="storage">SmartBP 模块存储提供程序。</param>
+    /// <param name="storage">SmartBP 模块存储Provider。</param>
     public SmartBpPromptProfileProvider(ISmartBpModuleStorageProvider storage)
     {
         _storage = storage;

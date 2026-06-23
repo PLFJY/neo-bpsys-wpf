@@ -705,18 +705,18 @@ public partial class ModernNavigationView : UserControl, INavigationView
     }
 
     /// <summary>
-    /// 设置页面提供程序服务。
+    /// 设置页面Provider服务。
     /// </summary>
-    /// <param name="navigationViewPageProvider">页面提供程序。</param>
+    /// <param name="navigationViewPageProvider">页面Provider。</param>
     public void SetPageProviderService(INavigationViewPageProvider navigationViewPageProvider)
     {
         _pageProvider = navigationViewPageProvider;
     }
 
     /// <summary>
-    /// 设置依赖注入服务提供程序。
+    /// 设置依赖注入服务Provider。
     /// </summary>
-    /// <param name="serviceProvider">服务提供程序。</param>
+    /// <param name="serviceProvider">服务Provider。</param>
     public void SetServiceProvider(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;

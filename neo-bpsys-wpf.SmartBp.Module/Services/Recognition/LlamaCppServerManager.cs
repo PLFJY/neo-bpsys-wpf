@@ -42,7 +42,7 @@ internal sealed class LlamaCppServerManager : ILlamaCppServerManager, IDisposabl
     /// </summary>
     /// <param name="assets">本地视觉模型资产管理器。</param>
     /// <param name="settings">SmartBP 识别设置服务。</param>
-    /// <param name="storage">SmartBP 模块存储提供程序。</param>
+    /// <param name="storage">SmartBP 模块存储Provider。</param>
     /// <param name="logger">日志记录器。</param>
     /// <param name="debugLog">SmartBP 识别调试日志。</param>
     /// <param name="runtimeAssets">llama.cpp 运行时资产管理器。</param>
@@ -58,7 +58,7 @@ internal sealed class LlamaCppServerManager : ILlamaCppServerManager, IDisposabl
     /// </summary>
     /// <param name="assets">本地视觉模型资产管理器。</param>
     /// <param name="settings">SmartBP 识别设置服务。</param>
-    /// <param name="storage">SmartBP 模块存储提供程序。</param>
+    /// <param name="storage">SmartBP 模块存储Provider。</param>
     /// <param name="logger">日志记录器。</param>
     /// <param name="debugLog">SmartBP 识别调试日志。</param>
     /// <param name="runtimeAssets">llama.cpp 运行时资产管理器。</param>
@@ -258,7 +258,7 @@ internal sealed class LlamaCppServerManagerFactory : ILlamaCppServerManagerFacto
     /// </summary>
     /// <param name="assets">本地视觉模型资产管理器。</param>
     /// <param name="settings">SmartBP 识别设置服务。</param>
-    /// <param name="storage">SmartBP 模块存储提供程序。</param>
+    /// <param name="storage">SmartBP 模块存储Provider。</param>
     /// <param name="logger">日志记录器。</param>
     /// <param name="debugLog">SmartBP 识别调试日志。</param>
     /// <param name="runtimeAssets">llama.cpp 运行时资产管理器。</param>
