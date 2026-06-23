@@ -6,24 +6,34 @@ using System.Windows.Media;
 namespace neo_bpsys_wpf.Views.Pages;
 
 /// <summary>
-/// SmartBP module content view.
+/// SmartBP 模块内容视图。
 /// </summary>
 public partial class SmartBpModuleContentView : UserControl
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="SmartBpModuleContentView"/> class.
+    /// 初始化 <see cref="SmartBpModuleContentView"/> 类的新实例。
     /// </summary>
     public SmartBpModuleContentView()
     {
         InitializeComponent();
     }
 
+    /// <summary>
+    /// AI 调试控制台文本变化时自动滚动到末尾。
+    /// </summary>
+    /// <param name="sender">触发事件的文本框。</param>
+    /// <param name="e">文本变化事件参数。</param>
     private void AiDebugConsoleTextBox_OnTextChanged(object sender, TextChangedEventArgs e)
     {
         if (sender is TextBox textBox)
             textBox.ScrollToEnd();
     }
 
+    /// <summary>
+    /// 在调试文本框内部消费可滚动方向的鼠标滚轮事件，避免外层滚动容器抢先滚动。
+    /// </summary>
+    /// <param name="sender">触发滚轮事件的文本框。</param>
+    /// <param name="e">鼠标滚轮事件参数。</param>
     private void DebugTextBox_OnPreviewMouseWheel(object sender, MouseWheelEventArgs e)
     {
         if (sender is not TextBox textBox)
@@ -46,6 +56,12 @@ public partial class SmartBpModuleContentView : UserControl
         e.Handled = true;
     }
 
+    /// <summary>
+    /// 从指定可视树节点下查找第一个指定类型的后代元素。
+    /// </summary>
+    /// <typeparam name="T">要查找的后代元素类型。</typeparam>
+    /// <param name="parent">查找起点。</param>
+    /// <returns>找到的第一个后代元素；未找到时返回 <see langword="null"/>。</returns>
     private static T? FindDescendant<T>(DependencyObject parent) where T : DependencyObject
     {
         for (var index = 0; index < VisualTreeHelper.GetChildrenCount(parent); index++)

@@ -7,7 +7,7 @@ using OpenCvSharp;
 namespace neo_bpsys_wpf.Services;
 
 /// <summary>
-/// Preserves the legacy OCR service contract while routing recognition to the provider explicitly selected by the user.
+/// 保留旧版 OCR 服务契约，同时把识别请求路由到用户显式选择的提供程序。
 /// </summary>
 public sealed class OcrService : IOcrService
 {
@@ -18,13 +18,13 @@ public sealed class OcrService : IOcrService
     private readonly SmartBpOcrProviderSelector _selector;
     private readonly ILogger<OcrService> _logger;
 
-    /// <summary>Initializes the selected-provider OCR facade.</summary>
-    /// <param name="paddle">Paddle provider.</param>
-    /// <param name="tesseract">Tesseract provider.</param>
-    /// <param name="rapid">RapidOCR provider.</param>
-    /// <param name="rapidAssets">Managed RapidOCR model assets.</param>
-    /// <param name="selector">Configured provider selector.</param>
-    /// <param name="logger">Logger.</param>
+    /// <summary>初始化基于已选提供程序的 OCR 外观服务。</summary>
+    /// <param name="paddle">Paddle OCR 提供程序。</param>
+    /// <param name="tesseract">Tesseract OCR 提供程序。</param>
+    /// <param name="rapid">RapidOCR 提供程序。</param>
+    /// <param name="rapidAssets">RapidOCR 托管模型资产管理器。</param>
+    /// <param name="selector">已配置的提供程序选择器。</param>
+    /// <param name="logger">日志记录器。</param>
     public OcrService(
         PaddleOcrProvider paddle,
         TesseractOcrProvider tesseract,
@@ -130,15 +130,15 @@ public sealed class OcrService : IOcrService
     }
 }
 
-/// <summary>Selects exactly one configured OCR provider without automatic fallback.</summary>
+/// <summary>选择唯一一个已配置的 OCR 提供程序，不做自动降级。</summary>
 public sealed class SmartBpOcrProviderSelector
 {
     private readonly IReadOnlyDictionary<SmartBpOcrProviderKind, IOcrProvider> _providers;
     private readonly ISmartBpRecognitionSettingsService _settings;
 
-    /// <summary>Initializes the provider selector.</summary>
-    /// <param name="providers">Registered OCR providers.</param>
-    /// <param name="settings">Recognition settings.</param>
+    /// <summary>初始化 OCR 提供程序选择器。</summary>
+    /// <param name="providers">已注册的 OCR 提供程序集合。</param>
+    /// <param name="settings">识别设置服务。</param>
     public SmartBpOcrProviderSelector(
         IEnumerable<IOcrProvider> providers,
         ISmartBpRecognitionSettingsService settings)
@@ -147,10 +147,10 @@ public sealed class SmartBpOcrProviderSelector
         _settings = settings;
     }
 
-    /// <summary>Gets the current recognition settings.</summary>
+    /// <summary>获取当前识别设置。</summary>
     public SmartBpRecognitionSettings Settings => _settings.Settings;
 
-    /// <summary>Gets the selected provider kind.</summary>
+    /// <summary>获取当前选中的提供程序类型。</summary>
     public SmartBpOcrProviderKind SelectedProvider => Settings.OcrProviderMode switch
     {
         SmartBpOcrProviderMode.Tesseract => SmartBpOcrProviderKind.Tesseract,
@@ -158,8 +158,8 @@ public sealed class SmartBpOcrProviderSelector
         _ => SmartBpOcrProviderKind.Paddle
     };
 
-    /// <summary>Gets the selected provider and never substitutes another provider.</summary>
-    /// <returns>The explicitly selected provider.</returns>
+    /// <summary>获取当前选中的提供程序，且绝不替换为其他提供程序。</summary>
+    /// <returns>用户显式选择的 OCR 提供程序。</returns>
     public IOcrProvider GetSelectedProvider() => _providers.TryGetValue(SelectedProvider, out var provider)
         ? provider
         : throw new InvalidOperationException($"OCR provider {SelectedProvider} is not registered.");

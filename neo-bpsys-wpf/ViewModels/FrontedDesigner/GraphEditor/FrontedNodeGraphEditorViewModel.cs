@@ -13,6 +13,9 @@ using neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 namespace neo_bpsys_wpf.ViewModels.FrontedDesigner.GraphEditor;
 
+/// <summary>
+/// 用于编辑 Designer v3 行为节点图的视图模型。
+/// </summary>
 public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
 {
     private readonly FrontedNodeCatalog _catalog;
@@ -34,6 +37,22 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     private const int UndoStackLimit = 50;
     private Func<Task<bool>>? _saveAsync;
 
+    /// <summary>
+    /// 为已有图模型初始化新的节点图编辑器。
+    /// </summary>
+    /// <param name="graph">正在编辑的图模型。</param>
+    /// <param name="catalog">Optional node catalog override.</param>
+    /// <param name="validator">Optional graph validator override.</param>
+    /// <param name="runtime">Optional graph runtime override.</param>
+    /// <param name="animationRuntime">Optional animation runtime for preview actions.</param>
+    /// <param name="createAnimationContext">Factory for animation preview context.</param>
+    /// <param name="markDirty">Callback invoked when the graph changes.</param>
+    /// <param name="localize">Localization callback.</param>
+    /// <param name="save">Synchronous save fallback.</param>
+    /// <param name="saveAsync">Asynchronous save callback.</param>
+    /// <param name="captureUndoSnapshot">捕获父级 Designer 撤销快照的回调。</param>
+    /// <param name="targetOptions">动作节点可用的动画目标选项。</param>
+    /// <param name="conditionFieldOptions">Condition field options available to branch nodes.</param>
     public FrontedNodeGraphEditorViewModel(
         FrontedNodeGraph graph,
         FrontedNodeCatalog? catalog = null,
@@ -79,12 +98,39 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         ValidateGraph();
     }
 
+    /// <summary>
+    /// 获取正在编辑的图模型。
+    /// </summary>
     public FrontedNodeGraph Graph { get; }
+
+    /// <summary>
+    /// 获取当前显示在画布上的节点视图模型。
+    /// </summary>
     public ObservableCollection<FrontedNodeEditorViewModel> Nodes { get; } = [];
+
+    /// <summary>
+    /// 获取当前多选集合。
+    /// </summary>
     public ObservableCollection<FrontedNodeEditorViewModel> SelectedNodes { get; } = [];
+
+    /// <summary>
+    /// 获取当前显示在画布上的连接视图模型。
+    /// </summary>
     public ObservableCollection<FrontedNodeConnectionViewModel> Connections { get; } = [];
+
+    /// <summary>
+    /// 获取当前图的校验消息。
+    /// </summary>
     public ObservableCollection<FrontedNodeGraphValidationMessage> ValidationMessages { get; } = [];
+
+    /// <summary>
+    /// 获取预览执行日志项。
+    /// </summary>
     public ObservableCollection<FrontedGraphExecutionLogItem> ExecutionLog { get; } = [];
+
+    /// <summary>
+    /// 获取所有可插入的节点目录项。
+    /// </summary>
     public IReadOnlyList<FrontedNodeCatalogItemViewModel> Catalog { get; }
 
     [ObservableProperty]
@@ -122,18 +168,28 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     [ObservableProperty]
     private double _canvasHeight = 1400;
 
+    /// <summary>
+    /// 获取按当前搜索文本过滤后的目录项。
+    /// </summary>
     public IEnumerable<FrontedNodeCatalogItemViewModel> FilteredCatalog =>
         string.IsNullOrWhiteSpace(CatalogSearchText)
             ? Catalog
             : Catalog.Where(item => item.DisplayName.Contains(CatalogSearchText, StringComparison.OrdinalIgnoreCase)
                                     || item.Category.Contains(CatalogSearchText, StringComparison.OrdinalIgnoreCase));
 
+    /// <summary>
+    /// 获取当前连接模式状态文本。
+    /// </summary>
     public string ConnectionStatus => IsConnecting
         ? _localize("Designer.Graph.Connection.SelectInput", "Select an input port.")
         : string.Empty;
 
     partial void OnCatalogSearchTextChanged(string value) => OnPropertyChanged(nameof(FilteredCatalog));
 
+    /// <summary>
+    /// 在默认插入位置附近添加目录中的节点。
+    /// </summary>
+    /// <param name="nodeType">节点类型标识。</param>
     [RelayCommand]
     public void AddNode(string? nodeType)
     {
@@ -151,6 +207,12 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// 在指定图画布位置添加目录中的节点。
+    /// </summary>
+    /// <param name="nodeType">节点类型标识。</param>
+    /// <param name="x">画布 X 坐标。</param>
+    /// <param name="y">画布 Y 坐标。</param>
     public void AddNodeAt(string? nodeType, double x, double y)
     {
         if (string.IsNullOrWhiteSpace(nodeType)
@@ -174,6 +236,9 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         Changed();
     }
 
+    /// <summary>
+    /// 在图为空时创建最小的开始到结束图。
+    /// </summary>
     [RelayCommand]
     public void AutoCreateStartEnd()
     {
@@ -192,6 +257,9 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         Changed();
     }
 
+    /// <summary>
+    /// 删除选中节点或多选节点。
+    /// </summary>
     [RelayCommand]
     public void DeleteSelectedNode()
     {
@@ -205,7 +273,10 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         }
     }
 
-    /// <summary>删除多个节点</summary>
+    /// <summary>
+    /// 删除多个节点及其附加连接。
+    /// </summary>
+    /// <param name="nodes">要删除的节点视图模型。</param>
     public void DeleteNodes(IReadOnlyList<FrontedNodeEditorViewModel> nodes)
     {
         if (nodes.Count == 0)
@@ -229,6 +300,10 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         Changed();
     }
 
+    /// <summary>
+    /// 删除单个节点及其附加连接。
+    /// </summary>
+    /// <param name="node">要删除的节点视图模型。</param>
     public void DeleteNode(FrontedNodeEditorViewModel? node)
     {
         if (node is null || !Graph.RemoveNode(node.Model.NodeId))
@@ -247,6 +322,9 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         Changed();
     }
 
+    /// <summary>
+    /// 复制选中节点或多选节点。
+    /// </summary>
     [RelayCommand]
     public void DuplicateSelectedNode()
     {
@@ -304,7 +382,9 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         Changed();
     }
 
-    /// <summary>Copies selected nodes and their internal connections to the app-level graph clipboard.</summary>
+    /// <summary>
+    /// 将选中节点及其内部连接复制到应用级图剪贴板。
+    /// </summary>
     [RelayCommand]
     public void CopySelectedNodes()
     {
@@ -327,7 +407,9 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         };
     }
 
-    /// <summary>Pastes nodes from the app-level graph clipboard and remaps all copied identifiers.</summary>
+    /// <summary>
+    /// 从应用级图剪贴板粘贴节点，并重新映射所有复制出的标识。
+    /// </summary>
     [RelayCommand]
     public void PasteNodes()
     {
@@ -380,6 +462,10 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         Changed();
     }
 
+    /// <summary>
+    /// 选择单个节点，并在拖拽场景中保留多选状态。
+    /// </summary>
+    /// <param name="node">要选中的节点；传入 <see langword="null"/> 时清除选择。</param>
     [RelayCommand]
     public void SelectNode(FrontedNodeEditorViewModel? node)
     {
@@ -400,7 +486,10 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         // 如果 node 已在 SelectedNodes 中，保持多选（用于拖拽场景）
     }
 
-    /// <summary>框选过程中实时预览选中效果（仅更新 IsSelected，不修改 SelectedNodes）</summary>
+    /// <summary>
+    /// 通过更新可视选中标记预览框选结果，但不提交到 <see cref="SelectedNodes"/>。
+    /// </summary>
+    /// <param name="selectionRect">Selection rectangle in graph canvas coordinates.</param>
     public void UpdateSelectionPreview(Rect selectionRect)
     {
         ClearIsSelected();
@@ -414,8 +503,10 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         }
     }
 
-    /// <summary>框选矩形内的所有节点</summary>
-    /// <param name="selectionRect">选框（画布坐标系）</param>
+    /// <summary>
+    /// 选中与选择矩形相交的所有节点。
+    /// </summary>
+    /// <param name="selectionRect">Selection rectangle in graph canvas coordinates.</param>
     public void SelectNodes(Rect selectionRect)
     {
         ClearIsSelected();
@@ -432,7 +523,9 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         SelectedNode = SelectedNodes.FirstOrDefault();
     }
 
-    /// <summary>清除多选</summary>
+    /// <summary>
+    /// 清除当前节点选择。
+    /// </summary>
     [RelayCommand]
     public void DeselectAll()
     {
@@ -441,6 +534,9 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         SelectedNodes.Clear();
     }
 
+    /// <summary>
+    /// 清除每个节点的可视选中标记，但不改变已提交的选择集合。
+    /// </summary>
     private void ClearIsSelected()
     {
         foreach (var node in Nodes)
@@ -449,14 +545,21 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         }
     }
 
-    /// <summary>在拖拽开始前调用，创建一次快照（避免每次 DragDelta 都创建）</summary>
+    /// <summary>
+    /// 开始拖拽事务，并为整次拖拽创建一个撤销快照。
+    /// </summary>
     public void BeginMoveNodes()
     {
         CreateSnapshot();
         _isDragging = true;
     }
 
-    /// <summary>移动节点（支持多选同步移动）</summary>
+    /// <summary>
+    /// 移动节点；当被移动节点处于选中状态时移动整个多选集合。
+    /// </summary>
+    /// <param name="node">正在拖拽的节点。</param>
+    /// <param name="x">New X coordinate for the dragged node.</param>
+    /// <param name="y">New Y coordinate for the dragged node.</param>
     public void MoveNode(FrontedNodeEditorViewModel node, double x, double y)
     {
         var dx = x - node.X;
@@ -479,12 +582,18 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         Changed();
     }
 
-    /// <summary>拖拽结束</summary>
+    /// <summary>
+    /// 结束当前拖拽事务。
+    /// </summary>
     public void EndMoveNodes()
     {
         _isDragging = false;
     }
 
+    /// <summary>
+    /// 从输出或输入端口开始一个待完成连接。
+    /// </summary>
+    /// <param name="port">连接手势开始的端口。</param>
     [RelayCommand]
     public void StartConnection(FrontedNodePortViewModel? port)
     {
@@ -498,6 +607,10 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         ApplyPortHighlights(port);
     }
 
+    /// <summary>
+    /// 在兼容目标端口上完成待完成连接。
+    /// </summary>
+    /// <param name="port">连接手势结束的端口。</param>
     [RelayCommand]
     public void CompleteConnection(FrontedNodePortViewModel? port)
     {
@@ -526,6 +639,12 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         IsConnecting = false;
     }
 
+    /// <summary>
+    /// 在两个兼容端口之间添加或替换图连接。
+    /// </summary>
+    /// <param name="source">候选源端口。</param>
+    /// <param name="target">候选目标端口。</param>
+    /// <returns><see langword="true"/> when the connection was added.</returns>
     public bool AddConnection(FrontedNodePortViewModel source, FrontedNodePortViewModel target)
     {
         if (!TryNormalizeConnection(source, target, out source, out target)
@@ -554,6 +673,10 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         return true;
     }
 
+    /// <summary>
+    /// 从图中删除连接。
+    /// </summary>
+    /// <param name="connection">要删除的连接。</param>
     [RelayCommand]
     public void DeleteConnection(FrontedNodeConnectionViewModel? connection)
     {
@@ -568,7 +691,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     }
 
     /// <summary>
-    /// 刷新所有端口的连接状态，标记已连接的端口。
+    /// 根据图连接列表刷新每个端口的连接状态。
     /// </summary>
     public void RefreshPortConnectionStates()
     {
@@ -589,8 +712,9 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     }
 
     /// <summary>
-    /// 根据待连端口设置所有端口的兼容高亮/变灰状态。
+    /// 用户拖拽连接时应用兼容/不兼容的可视状态。
     /// </summary>
+    /// <param name="pendingPort">当前正在连接的端口。</param>
     public void ApplyPortHighlights(FrontedNodePortViewModel? pendingPort)
     {
         foreach (var node in Nodes)
@@ -616,7 +740,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     }
 
     /// <summary>
-    /// 清除所有端口的高亮/变灰状态。
+    /// 清除所有端口上的连接高亮和弱化状态。
     /// </summary>
     public void ClearPortHighlights()
     {
@@ -637,7 +761,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     }
 
     /// <summary>
-    /// 取消当前正在进行的连接拖拽，清除高亮并重置状态。
+    /// 取消当前连接手势，并重置连接模式 UI 状态。
     /// </summary>
     public void CancelConnection()
     {
@@ -646,6 +770,9 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         IsConnecting = false;
     }
 
+    /// <summary>
+    /// 重新校验当前图，并替换校验消息集合。
+    /// </summary>
     [RelayCommand]
     public void ValidateGraph()
     {
@@ -656,6 +783,10 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// 以预览模式执行图，并将运行时日志输出写入 <see cref="ExecutionLog"/>。
+    /// </summary>
+    /// <returns>预览执行停止后结束的任务。</returns>
     [RelayCommand]
     public async Task RunGraphPreviewAsync()
     {
@@ -709,9 +840,15 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// 取消当前正在运行的图预览（如果存在）。
+    /// </summary>
     [RelayCommand]
     public void StopPreview() => _previewCancellation?.Cancel();
 
+    /// <summary>
+    /// 重置当前预览目标的动画值。
+    /// </summary>
     [RelayCommand]
     public void ResetCurrentTarget()
     {
@@ -734,6 +871,9 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         });
     }
 
+    /// <summary>
+    /// 重置当前预览作用域中的所有动画值。
+    /// </summary>
     [RelayCommand]
     public void ResetAllPreview()
     {
@@ -756,9 +896,17 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         });
     }
 
+    /// <summary>
+    /// 清除预览执行日志行。
+    /// </summary>
     [RelayCommand]
     public void ClearExecutionLog() => ExecutionLog.Clear();
 
+    /// <summary>
+    /// 当预览没有事件上下文导致事件 payload 条件无法解析时添加预览警告。
+    /// </summary>
+    /// <param name="graph">正在预览的图。</param>
+    /// <param name="context">运行时执行上下文。</param>
     private void AddMissingEventContextWarning(FrontedNodeGraph graph, FrontedGraphExecutionContext context)
     {
         var missingPath = graph.Nodes
@@ -783,6 +931,9 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         });
     }
 
+    /// <summary>
+    /// 根据当前图模型重建节点和连接视图模型。
+    /// </summary>
     private void Reload()
     {
         Nodes.Clear();
@@ -794,9 +945,18 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         UpdateCanvasSize();
     }
 
+    /// <summary>
+    /// 为单个图节点创建编辑器视图模型。
+    /// </summary>
+    /// <param name="node">图节点模型。</param>
+    /// <returns>节点编辑器视图模型。</returns>
     private FrontedNodeEditorViewModel CreateNode(FrontedNode node) =>
         new(node, _catalog.Find(node.NodeType), MarkDirtyAndSetIsDirty, ValidateGraph, RefreshParallelNode, _localize, _targetOptions, _conditionFieldOptions);
 
+    /// <summary>
+    /// 并行节点分支数变化后重建该节点，并移除指向已删除分支端口的连接。
+    /// </summary>
+    /// <param name="node">Parallel node model that changed.</param>
     private void RefreshParallelNode(FrontedNode node)
     {
         var branchCount = FrontedParallelNodePorts.GetBranchCount(node);
@@ -821,12 +981,18 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         ValidateGraph();
     }
 
+    /// <summary>
+    /// 将父级行为文档和当前图编辑器都标记为已修改。
+    /// </summary>
     private void MarkDirtyAndSetIsDirty()
     {
         _markDirty();
         IsDirty = true;
     }
 
+    /// <summary>
+    /// 根据图连接列表重建连接视图模型。
+    /// </summary>
     private void ReloadConnections()
     {
         Connections.Clear();
@@ -842,6 +1008,9 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         RefreshPortConnectionStates();
     }
 
+    /// <summary>
+    /// 处理已提交的图变更：标记已修改状态、执行校验，并刷新过滤后的目录状态。
+    /// </summary>
     private void Changed()
     {
         _markDirty();
@@ -850,6 +1019,9 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         OnPropertyChanged(nameof(FilteredCatalog));
     }
 
+    /// <summary>
+    /// 扩展虚拟图画布，确保靠近边缘的节点仍可访问。
+    /// </summary>
     private void UpdateCanvasSize()
     {
         CanvasWidth = Math.Max(2200, Nodes.Select(node => node.X).DefaultIfEmpty(0).Max() + 520);
@@ -934,17 +1106,17 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Sets the save action to be invoked when <see cref="SaveAsync"/> is called.
-    /// This allows post-construction wiring of the save delegate (e.g. from an animation editor).
+    /// 设置调用 <see cref="SaveAsync"/> 时要执行的保存动作。
+    /// 这允许在构造后接入保存委托（例如从动画编辑器接入）。
     /// </summary>
-    /// <param name="saveAsync">The asynchronous save action to set.</param>
+    /// <param name="saveAsync">要设置的异步保存动作。</param>
     public void SetSaveAction(Func<Task<bool>>? saveAsync)
     {
         _saveAsync = saveAsync;
     }
 
     /// <summary>
-    /// Clears editor-local dirty state without saving the graph.
+    /// 在不保存图的情况下清除编辑器本地已修改状态。
     /// </summary>
     public void DiscardLocalDirtyState()
     {
@@ -1139,23 +1311,23 @@ public sealed partial class FrontedNodeEditorViewModel : ObservableObject
     public FrontedNodeTypeDescriptor? Descriptor { get; }
     public string DisplayName { get; }
     public string Description { get; }
-    /// <summary>Gets a readable summary for nodes with user-editable expressions.</summary>
+    /// <summary>获取带有用户可编辑表达式节点的可读摘要。</summary>
     private readonly IReadOnlyList<FrontedGraphConditionFieldOptionViewModel> ConditionFieldOptions;
     private readonly Func<string, string, string> _localize;
     public string Summary => Model.NodeType == "flow.if"
         ? $"{_localize("Designer.Graph.Condition.If", "IF")} {ConditionFieldDisplayName(ReadProperty("Left"))} {OperatorSymbol(ReadProperty("Operator"))} {ReadProperty("Right")}".TrimEnd()
         : string.Empty;
-    /// <summary>Gets the stable raw expression shown in the node tooltip.</summary>
+    /// <summary>获取节点工具提示中显示的稳定原始表达式。</summary>
     public string RawSummary => Model.NodeType == "flow.if"
         ? $"{ReadProperty("Left")} {ReadProperty("Operator")} {ReadProperty("Right")}".TrimEnd()
         : Description;
-    /// <summary>Gets whether the node has a readable expression summary.</summary>
+    /// <summary>获取节点是否拥有可读表达式摘要。</summary>
     public bool HasSummary => !string.IsNullOrWhiteSpace(Summary);
-    /// <summary>Gets the node card header text.</summary>
+    /// <summary>获取节点卡片标题文本。</summary>
     public string HeaderText => HasSummary ? Summary : DisplayName;
-    /// <summary>Gets the rendered node card width.</summary>
+    /// <summary>获取节点卡片渲染宽度。</summary>
     public double CardWidth { get; }
-    /// <summary>Gets the approximate rendered node card height used for canvas bounds and selection.</summary>
+    /// <summary>获取用于画布边界和选择计算的节点卡片近似渲染高度。</summary>
     public double CardHeight => Math.Max(
         80D,
         InputPorts.Concat(OutputPorts).Select(port => port.CenterOffsetY).DefaultIfEmpty(56D).Max() + 24D);
@@ -1234,17 +1406,17 @@ public sealed partial class FrontedNodeEditorViewModel : ObservableObject
 }
 
 /// <summary>
-/// Describes the editor-only semantic role of a node port.
+/// 描述节点端口仅供编辑器使用的语义角色。
 /// </summary>
 public enum FrontedNodePortRole
 {
-    /// <summary>A regular port without specialized graph meaning.</summary>
+    /// <summary>没有特殊图语义的普通端口。</summary>
     Default,
 
-    /// <summary>A branch output on a flow.parallel node.</summary>
+    /// <summary>flow.parallel 节点上的分支输出端口。</summary>
     ParallelBranch,
 
-    /// <summary>The continuation output that runs after all connected flow.parallel branches finish.</summary>
+    /// <summary>所有已连接 flow.parallel 分支完成后运行的继续输出端口。</summary>
     ParallelContinuation
 }
 
@@ -1269,28 +1441,28 @@ public sealed partial class FrontedNodePortViewModel : ObservableObject
     /// <summary>基于端口类型的颜色十六进制值</summary>
     public string PortColorHex { get; }
 
-    /// <summary>Gets the visible port label.</summary>
+    /// <summary>获取可见端口标签。</summary>
     public string DisplayName { get; }
 
-    /// <summary>Gets the semantic role used for editor styling and help text.</summary>
+    /// <summary>获取用于编辑器样式和帮助文本的语义角色。</summary>
     public FrontedNodePortRole Role { get; }
 
-    /// <summary>Gets a value indicating whether this port is a parallel continuation port.</summary>
+    /// <summary>获取该端口是否为并行继续端口。</summary>
     public bool IsParallelContinuation => Role == FrontedNodePortRole.ParallelContinuation;
 
-    /// <summary>Gets a value indicating whether this port is a parallel branch port.</summary>
+    /// <summary>获取该端口是否为并行分支端口。</summary>
     public bool IsParallelBranch => Role == FrontedNodePortRole.ParallelBranch;
 
-    /// <summary>Gets the margin applied before this port row.</summary>
+    /// <summary>获取该端口行前应用的外边距。</summary>
     public Thickness RowMargin { get; }
 
-    /// <summary>Gets the port center offset from the node card top.</summary>
+    /// <summary>获取端口中心相对节点卡片顶部的偏移量。</summary>
     public double CenterOffsetY { get; }
 
-    /// <summary>Gets tooltip text that explains the port semantics.</summary>
+    /// <summary>获取解释端口语义的工具提示文本。</summary>
     public string TooltipText { get; }
 
-    /// <summary>Gets a short meaning description for connection inspection.</summary>
+    /// <summary>获取用于连接检查的简短含义描述。</summary>
     public string Meaning { get; }
 
     /// <summary>是否为 Flow 端口（FlowIn 或 FlowOut）</summary>
@@ -1352,17 +1524,17 @@ public sealed partial class FrontedNodePortViewModel : ObservableObject
         }
 
         if (descriptor.PortKind is FrontedNodePortKind.FlowIn or FrontedNodePortKind.FlowOut)
-            return "#1976D2"; // Blue（更饱和，与 Control 明显区分）
+            return "#1976D2"; // 蓝色（更饱和，与 Control 明显区分）
 
         return descriptor.ValueType switch
         {
-            FrontedNodePortValueType.Number => "#43A047",  // Green
-            FrontedNodePortValueType.String => "#8E24AA",  // Purple
-            FrontedNodePortValueType.Boolean => "#FB8C00", // Orange
-            FrontedNodePortValueType.Color => "#E53935",   // Red（从粉色改为红色，与 String 区分）
-            FrontedNodePortValueType.Control => "#00897B", // Teal（从青色改为青绿，与 Flow 明显区分）
-            FrontedNodePortValueType.Object => "#757575",  // Gray
-            _ => "#757575"                                  // Gray (unknown)
+            FrontedNodePortValueType.Number => "#43A047",  // 绿色
+            FrontedNodePortValueType.String => "#8E24AA",  // 紫色
+            FrontedNodePortValueType.Boolean => "#FB8C00", // 橙色
+            FrontedNodePortValueType.Color => "#E53935",   // 红色（从粉色改为红色，与 String 区分）
+            FrontedNodePortValueType.Control => "#00897B", // 青绿色（从青色改为青绿，与 Flow 明显区分）
+            FrontedNodePortValueType.Object => "#757575",  // 灰色
+            _ => "#757575"                                  // 灰色（未知类型）
         };
     }
 
@@ -1466,21 +1638,21 @@ public sealed partial class FrontedNodeConnectionViewModel(
     public FrontedNodeEditorViewModel Source { get; } = source;
     public FrontedNodeEditorViewModel Target { get; } = target;
     public string Summary => $"{Source.DisplayName}.{Model.SourcePort} -> {Target.DisplayName}.{Model.TargetPort}";
-    /// <summary>Gets the source port view model for this connection.</summary>
+    /// <summary>获取该连接的源端口视图模型。</summary>
     public FrontedNodePortViewModel? SourcePort => Source.OutputPorts.FirstOrDefault(port => port.Name == Model.SourcePort);
-    /// <summary>Gets the target port view model for this connection.</summary>
+    /// <summary>获取该连接的目标端口视图模型。</summary>
     public FrontedNodePortViewModel? TargetPort => Target.InputPorts.FirstOrDefault(port => port.Name == Model.TargetPort);
-    /// <summary>Gets the visible source port name.</summary>
+    /// <summary>获取可见源端口名称。</summary>
     public string SourcePortDisplayName => SourcePort?.DisplayName ?? Model.SourcePort;
-    /// <summary>Gets the visible target port name.</summary>
+    /// <summary>获取可见目标端口名称。</summary>
     public string TargetPortDisplayName => TargetPort?.DisplayName ?? Model.TargetPort;
-    /// <summary>Gets the semantic meaning of the source side of the connection.</summary>
+    /// <summary>获取连接源侧的语义含义。</summary>
     public string Meaning => SourcePort?.Meaning ?? SourcePortDisplayName;
-    /// <summary>Gets the connection stroke color derived from the source port role.</summary>
+    /// <summary>获取根据源端口角色派生的连接描边颜色。</summary>
     public string StrokeColorHex => SourcePort?.PortColorHex ?? "#1976D2";
-    /// <summary>Gets the connection stroke thickness derived from the source port role.</summary>
+    /// <summary>获取根据源端口角色派生的连接描边粗细。</summary>
     public double StrokeThickness => SourcePort?.IsParallelContinuation == true ? 4D : 3D;
-    /// <summary>Gets the connection inspection text shown while hovering the connection.</summary>
+    /// <summary>获取悬停连接时显示的连接检查文本。</summary>
     public string InspectionText => $"{Source.DisplayName}.{Model.SourcePort} -> {Target.DisplayName}.{Model.TargetPort}{Environment.NewLine}"
                                     + $"{Source.DisplayName}: {SourcePortDisplayName}{Environment.NewLine}"
                                     + $"{Target.DisplayName}: {TargetPortDisplayName}{Environment.NewLine}"
@@ -1591,18 +1763,18 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableValid
     public FrontedNodePropertyDescriptor Descriptor { get; }
     public string DisplayName { get; }
     public string Description { get; }
-    /// <summary>Gets contextual input guidance for the current property.</summary>
+    /// <summary>获取当前属性的上下文输入提示。</summary>
     public string Placeholder => DynamicMetadata?.Placeholder ?? string.Empty;
-    /// <summary>Gets contextual help for the current property.</summary>
+    /// <summary>获取当前属性的上下文帮助。</summary>
     public string HelpText => DynamicMetadata is null
         ? Description
         : _localize(DynamicMetadata.DescriptionKey, $"{DynamicMetadata.Placeholder}; example: {DynamicMetadata.Example}");
     public bool IsBoolean => Descriptor.EditorKind == FrontedNodePropertyEditorKind.Boolean;
     public bool IsEnum => Descriptor.EditorKind == FrontedNodePropertyEditorKind.Enum && !IsConditionOperator;
     public bool IsNumber => Descriptor.EditorKind == FrontedNodePropertyEditorKind.Number || IsNumericDynamicValue || IsNumericConditionValue;
-    /// <summary>Gets whether this numeric property can use a NumberBox without losing percentage expressions.</summary>
+    /// <summary>获取该数值属性是否可在不丢失百分比表达式的情况下使用 NumberBox。</summary>
     public bool IsNumberBox => IsNumber && !FrontedBehaviorPropertyMetadata.SupportsPercentage(EffectivePropertyNameForValidation());
-    /// <summary>Gets whether this numeric property must retain text editing for percentage expressions.</summary>
+    /// <summary>获取该数值属性是否必须保留文本编辑以支持百分比表达式。</summary>
     public bool IsPercentageNumberText => IsNumber && !IsNumberBox;
     public bool IsColor => Descriptor.EditorKind == FrontedNodePropertyEditorKind.Color || IsColorDynamicValue;
     public bool IsControlReference => Descriptor.EditorKind == FrontedNodePropertyEditorKind.ControlReference;
@@ -1610,29 +1782,29 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableValid
     public bool IsVisibilityValue => IsDynamicValue && FrontedBehaviorPropertyMetadata.IsVisibilityProperty(CurrentBehaviorPropertyName);
     public bool HasTextSuggestions => !IsConditionProperty && !IsBoolean && !IsEnum && !IsNumber && !IsColor && !IsControlReference && !IsPropertyName && Descriptor.Options.Count > 0;
     public bool IsText => !IsConditionProperty && !IsBoolean && !IsEnum && !IsNumber && !IsColor && !IsControlReference && !IsPropertyName && !HasTextSuggestions && !IsVisibilityValue;
-    /// <summary>Gets whether this property selects the left-side condition field.</summary>
+    /// <summary>获取该属性是否选择左侧条件字段。</summary>
     public bool IsConditionField => _node.NodeType == "flow.if" && Descriptor.Name == "Left";
-    /// <summary>Gets whether this property selects the condition operator.</summary>
+    /// <summary>获取该属性是否选择条件运算符。</summary>
     public bool IsConditionOperator => _node.NodeType == "flow.if" && Descriptor.Name == "Operator";
-    /// <summary>Gets whether this property edits the right-side condition value.</summary>
+    /// <summary>获取该属性是否编辑右侧条件值。</summary>
     public bool IsConditionValue => _node.NodeType == "flow.if" && Descriptor.Name == "Right";
-    /// <summary>Gets whether the selected condition value is boolean-like.</summary>
+    /// <summary>获取选中的条件值是否类似布尔值。</summary>
     public bool IsBooleanConditionValue => IsConditionValue && IsBooleanType(SelectedConditionField?.TypeName);
-    /// <summary>Gets whether the selected condition value is enum-like.</summary>
+    /// <summary>获取选中的条件值是否类似枚举。</summary>
     public bool IsEnumConditionValue => IsConditionValue && SelectedConditionField?.EnumValues.Count > 0;
-    /// <summary>Gets whether the selected condition value is numeric.</summary>
+    /// <summary>获取选中的条件值是否为数值。</summary>
     public bool IsNumericConditionValue => IsConditionValue && IsNumericType(SelectedConditionField?.TypeName);
-    /// <summary>Gets whether the condition value should use free text.</summary>
+    /// <summary>获取条件值是否应使用自由文本。</summary>
     public bool IsTextConditionValue => IsConditionValue && !IsBooleanConditionValue && !IsEnumConditionValue && !IsNumericConditionValue;
-    /// <summary>Gets context-aware event fields available to this condition.</summary>
+    /// <summary>获取该条件可用的上下文感知事件字段。</summary>
     public IReadOnlyList<FrontedGraphConditionFieldOptionViewModel> ConditionFieldOptions => EnsureCurrentConditionFieldOption();
-    /// <summary>Gets context-aware operators available for the selected field type.</summary>
+    /// <summary>获取选中字段类型可用的上下文感知运算符。</summary>
     public IReadOnlyList<FrontedNodePropertyOptionViewModel> ConditionOperatorOptions => ResolveConditionOperatorOptions();
-    /// <summary>Gets stable bool or enum values available for the selected field.</summary>
+    /// <summary>获取选中字段可用的稳定布尔值或枚举值。</summary>
     public IReadOnlyList<FrontedNodePropertyOptionViewModel> ConditionValueOptions => ResolveConditionValueOptions();
     public IReadOnlyList<string> Options => Descriptor.Options;
     public IReadOnlyList<FrontedNodePropertyOptionViewModel> LocalizedOptions => _localizedOptions;
-    /// <summary>Gets the stable boolean choices for boolean property editors.</summary>
+    /// <summary>获取布尔属性编辑器可用的稳定布尔选项。</summary>
     public IReadOnlyList<FrontedNodePropertyOptionViewModel> BooleanOptions => _booleanOptions;
     public IReadOnlyList<FrontedNodePropertyOptionViewModel> DisplayedOptions => ResolveDisplayedOptions();
     public IReadOnlyList<FrontedNodePropertyOptionViewModel> VisibilityOptions => _visibilityOptions;
@@ -1697,7 +1869,7 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableValid
         set => Write(JsonSerializer.SerializeToElement(value));
     }
 
-    /// <summary>Gets or sets the numeric value edited by WPF-UI NumberBox.</summary>
+    /// <summary>获取或设置由 WPF-UI NumberBox 编辑的数值。</summary>
     [CustomValidation(typeof(FrontedNodePropertyEditorViewModel), nameof(ValidateNumberBoxValue))]
     public double? NumberValue
     {
@@ -1716,22 +1888,22 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableValid
         }
     }
 
-    /// <summary>Gets the minimum value displayed by NumberBox.</summary>
+    /// <summary>获取 NumberBox 显示的最小值。</summary>
     public double NumberMinimum => _node.NodeType == "flow.parallel" && Descriptor.Name == "BranchCount"
         ? FrontedParallelNodePorts.MinBranchCount
         : Descriptor.Name == "DurationMs"
             ? 0D
             : DynamicMetadata?.Min ?? double.MinValue;
 
-    /// <summary>Gets the maximum value displayed by NumberBox.</summary>
+    /// <summary>获取 NumberBox 显示的最大值。</summary>
     public double NumberMaximum => _node.NodeType == "flow.parallel" && Descriptor.Name == "BranchCount"
         ? FrontedParallelNodePorts.MaxBranchCount
         : DynamicMetadata?.Max ?? double.MaxValue;
 
-    /// <summary>Gets the NumberBox decimal-place limit.</summary>
+    /// <summary>获取 NumberBox 的小数位限制。</summary>
     public int NumberMaxDecimalPlaces => RequiresIntegerNumber ? 0 : 6;
 
-    /// <summary>Gets or sets the boolean value as a stable lowercase string for ComboBox editing.</summary>
+    /// <summary>获取或设置用于 ComboBox 编辑的稳定小写布尔字符串。</summary>
     public string BooleanTextValue
     {
         get => BooleanValue ? "true" : "false";
@@ -1744,7 +1916,7 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableValid
         set => Write(JsonSerializer.SerializeToElement(value));
     }
 
-    /// <summary>Gets or sets a stable condition field path.</summary>
+    /// <summary>获取或设置稳定的条件字段路径。</summary>
     public string ConditionFieldValue
     {
         get => TextValue;
@@ -1763,14 +1935,14 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableValid
         }
     }
 
-    /// <summary>Gets or sets a stable condition operator name.</summary>
+    /// <summary>获取或设置稳定的条件运算符名称。</summary>
     public string ConditionOperatorValue
     {
         get => TextValue;
         set => TextValue = value;
     }
 
-    /// <summary>Gets or sets a stable typed condition choice.</summary>
+    /// <summary>获取或设置稳定的类型化条件选项。</summary>
     public string ConditionChoiceValue
     {
         get => TextValue;
@@ -2093,11 +2265,11 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableValid
     }
 
     /// <summary>
-    /// Validates a NumberBox value against graph property metadata.
+    /// 根据图属性元数据校验 NumberBox 值。
     /// </summary>
     /// <param name="value">Candidate numeric value.</param>
-    /// <param name="context">Validation context containing the property editor.</param>
-    /// <returns>The validation result.</returns>
+    /// <param name="context">包含属性编辑器的校验上下文。</param>
+    /// <returns>校验结果。</returns>
     public static ValidationResult? ValidateNumberBoxValue(double? value, ValidationContext context)
     {
         var editor = (FrontedNodePropertyEditorViewModel)context.ObjectInstance;
@@ -2132,14 +2304,14 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableValid
 }
 
 /// <summary>
-/// Target option displayed by behavior graph target editors.
+/// 行为图目标编辑器显示的目标选项。
 /// </summary>
-/// <param name="Value">The persisted target reference value.</param>
-/// <param name="DisplayName">The user-facing target display name.</param>
+/// <param name="Value">已持久化的目标引用值。</param>
+/// <param name="DisplayName">面向用户的目标显示名称。</param>
 public sealed record FrontedNodeTargetOptionViewModel(string Value, string DisplayName);
 
 /// <summary>
-/// Event payload field available to a context-aware graph condition editor.
+/// 上下文感知图条件编辑器可用的事件 payload 字段。
 /// </summary>
 /// <param name="ValuePath">Stable condition path persisted in the graph.</param>
 /// <param name="DisplayText">User-facing localized field label plus stable path.</param>
@@ -2158,10 +2330,10 @@ public sealed record FrontedGraphConditionFieldOptionViewModel(
     string LocalizedDisplayName);
 
 /// <summary>
-/// Option displayed by node property editors while preserving a stable stored value.
+/// 节点属性编辑器显示的选项，同时保留稳定的存储值。
 /// </summary>
-/// <param name="Value">The value stored in node JSON.</param>
-/// <param name="DisplayName">The localized option label shown to the user.</param>
+/// <param name="Value">存储在节点 JSON 中的值。</param>
+/// <param name="DisplayName">向用户显示的本地化选项标签。</param>
 public sealed record FrontedNodePropertyOptionViewModel(string Value, string DisplayName)
 {
     /// <inheritdoc />

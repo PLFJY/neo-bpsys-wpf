@@ -5,8 +5,12 @@ using neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
 
 namespace neo_bpsys_wpf.SmartBp.Module.Services.Recognition;
 
+/// <summary>
+/// 通过 NVIDIA NVML 读取本机 GPU 占用和显存信息，用于 SmartBP AI 性能面板。
+/// </summary>
 internal sealed class NvmlAiPerformanceMonitor : ISmartBpAiPerformanceMonitor
 {
+    /// <inheritdoc />
     public Task<SmartBpAiPerformanceSnapshot> GetSnapshotAsync(int? processId, CancellationToken cancellationToken = default) =>
         Task.Run(() => Read(processId, cancellationToken), cancellationToken);
 

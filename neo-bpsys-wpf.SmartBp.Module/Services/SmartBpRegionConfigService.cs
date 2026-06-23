@@ -254,6 +254,12 @@ public sealed class SmartBpRegionConfigService : ISmartBpRegionConfigService
         return new WindowSize(Math.Max(1, width), Math.Max(1, height));
     }
 
+    /// <summary>
+    /// 计算两个整数的最大公约数。
+    /// </summary>
+    /// <param name="a">第一个整数。</param>
+    /// <param name="b">第二个整数。</param>
+    /// <returns>最大公约数。</returns>
     private static int Gcd(int a, int b)
     {
         while (b != 0)
@@ -266,6 +272,12 @@ public sealed class SmartBpRegionConfigService : ISmartBpRegionConfigService
         return Math.Abs(a);
     }
 
+    /// <summary>
+    /// 判断配置比例与当前捕获比例是否在容差内匹配。
+    /// </summary>
+    /// <param name="configAspect">配置比例文本。</param>
+    /// <param name="captureAspect">捕获比例文本。</param>
+    /// <returns>匹配返回 <see langword="true"/>。</returns>
     private static bool IsAspectMatched(string configAspect, string captureAspect)
     {
         var r1 = ParseAspect(configAspect);
@@ -277,6 +289,11 @@ public sealed class SmartBpRegionConfigService : ISmartBpRegionConfigService
         return Math.Abs(r1 - r2) <= 0.01;
     }
 
+    /// <summary>
+    /// 解析形如 <c>16:9</c> 的比例文本。
+    /// </summary>
+    /// <param name="text">比例文本。</param>
+    /// <returns>比例值；解析失败返回 -1。</returns>
     private static double ParseAspect(string text)
     {
         var parts = text.Split(':');
@@ -289,6 +306,13 @@ public sealed class SmartBpRegionConfigService : ISmartBpRegionConfigService
         return w / h;
     }
 
+    /// <summary>
+    /// 尝试从比例文本中解析整数宽高。
+    /// </summary>
+    /// <param name="text">比例文本。</param>
+    /// <param name="w">解析出的宽。</param>
+    /// <param name="h">解析出的高。</param>
+    /// <returns>解析成功返回 <see langword="true"/>。</returns>
     private static bool TryParseAspectIntegerPair(string text, out int w, out int h)
     {
         w = 0;
@@ -303,6 +327,14 @@ public sealed class SmartBpRegionConfigService : ISmartBpRegionConfigService
         return w > 0 && h > 0;
     }
 
+    /// <summary>
+    /// 将浮点比例近似为较小整数比。
+    /// </summary>
+    /// <param name="ratio">浮点比例。</param>
+    /// <param name="maxDenominator">允许的最大分母。</param>
+    /// <param name="w">近似宽。</param>
+    /// <param name="h">近似高。</param>
+    /// <returns>找到足够接近的小整数比返回 <see langword="true"/>。</returns>
     private static bool TryApproximateAspectRatio(double ratio, int maxDenominator, out int w, out int h)
     {
         w = 0;
@@ -339,6 +371,10 @@ public sealed class SmartBpRegionConfigService : ISmartBpRegionConfigService
         return true;
     }
 
+    /// <summary>
+    /// 确保配置已从用户文件加载；缺失或损坏时回退并写入默认配置。
+    /// </summary>
+    /// <returns>成功加载或重置返回 <see langword="true"/>。</returns>
     private bool EnsureLoaded()
     {
         Directory.CreateDirectory(ConfigDirectoryPath);
@@ -368,6 +404,11 @@ public sealed class SmartBpRegionConfigService : ISmartBpRegionConfigService
         return TryResetGameDataToBuiltinDefault(out _);
     }
 
+    /// <summary>
+    /// 深拷贝区域配置 profile，避免调用方绕过校验修改缓存。
+    /// </summary>
+    /// <param name="profile">源 profile。</param>
+    /// <returns>拷贝后的 profile。</returns>
     private static SmartBpRegionProfile DeepClone(SmartBpRegionProfile profile)
     {
         return new SmartBpRegionProfile
@@ -380,6 +421,11 @@ public sealed class SmartBpRegionConfigService : ISmartBpRegionConfigService
         };
     }
 
+    /// <summary>
+    /// 深拷贝区域布局定义。
+    /// </summary>
+    /// <param name="layout">源布局。</param>
+    /// <returns>拷贝后的布局。</returns>
     private static RegionLayoutDefinition DeepCloneLayout(RegionLayoutDefinition layout)
     {
         return new RegionLayoutDefinition
@@ -389,6 +435,11 @@ public sealed class SmartBpRegionConfigService : ISmartBpRegionConfigService
         };
     }
 
+    /// <summary>
+    /// 递归拷贝区域布局节点。
+    /// </summary>
+    /// <param name="node">源节点。</param>
+    /// <returns>拷贝后的节点。</returns>
     private static RegionLayoutNode CloneNode(RegionLayoutNode node)
     {
         return new RegionLayoutNode

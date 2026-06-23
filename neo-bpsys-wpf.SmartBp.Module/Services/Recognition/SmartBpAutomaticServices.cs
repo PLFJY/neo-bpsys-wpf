@@ -11,8 +11,14 @@ using neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
 
 namespace neo_bpsys_wpf.SmartBp.Module.Services.Recognition;
 
+/// <summary>
+/// SmartBP 自动识别阶段、GameGuidance 动作和裁剪区域之间的映射表。
+/// </summary>
 internal static class SmartBpAutomaticMapping
 {
+    /// <summary>
+    /// AI/OCR 识别结果允许返回的阶段名称集合。
+    /// </summary>
     public static readonly IReadOnlyList<string> ValidPhases =
     [
         "屏蔽求生者", "屏蔽监管者", "选择求生者", "求生者选择角色中", "选择监管者",
@@ -21,6 +27,12 @@ internal static class SmartBpAutomaticMapping
         "等待游戏开始", "加载中", "对局中", "等待中", "未知"
     ];
 
+    /// <summary>
+    /// 将 GameGuidance 动作映射为 prompt 中使用的区域、阵营和含义说明。
+    /// </summary>
+    /// <param name="action">GameGuidance 动作。</param>
+    /// <returns>区域 ID、阵营和含义说明。</returns>
+    /// <exception cref="NotSupportedException">动作不属于当前 BP 识别支持范围时抛出。</exception>
     public static (string Region, string Camp, string Meaning) Get(GameAction action) => action switch
     {
         GameAction.BanSur => ("right_top", "survivor", "the hunter-side operation area for banning survivors"),
@@ -33,6 +45,12 @@ internal static class SmartBpAutomaticMapping
             _ => throw new NotSupportedException($"GameGuidance action {action} is not supported by BP recognition.")
         };
 
+    /// <summary>
+    /// 将 GameGuidance 动作转换为自动识别任务类型。
+    /// </summary>
+    /// <param name="action">GameGuidance 动作。</param>
+    /// <returns>识别任务类型。</returns>
+    /// <exception cref="NotSupportedException">动作不属于当前 BP 识别支持范围时抛出。</exception>
     public static SmartBpRecognitionTask ToRecognitionTask(GameAction action) => action switch
     {
         GameAction.BanSur => SmartBpRecognitionTask.BanSur,
@@ -43,6 +61,12 @@ internal static class SmartBpAutomaticMapping
         _ => throw new NotSupportedException($"GameGuidance action {action} is not supported by BP recognition.")
     };
 
+    /// <summary>
+    /// 将识别输出中的动作文本解析为 GameGuidance 动作。
+    /// </summary>
+    /// <param name="value">识别输出动作名。</param>
+    /// <param name="action">解析得到的动作。</param>
+    /// <returns>解析成功返回 <see langword="true"/>。</returns>
     public static bool TryParseDetectedAction(string value, out GameAction action)
     {
         action = value switch
@@ -57,6 +81,12 @@ internal static class SmartBpAutomaticMapping
         return action != GameAction.None;
     }
 
+    /// <summary>
+    /// 将阶段名称映射到最接近的 GameGuidance 动作。
+    /// </summary>
+    /// <param name="phase">识别阶段名。</param>
+    /// <param name="action">映射得到的动作。</param>
+    /// <returns>存在动作映射返回 <see langword="true"/>。</returns>
     public static bool TryMapPhase(string phase, out GameAction action)
     {
         action = phase switch
@@ -73,9 +103,19 @@ internal static class SmartBpAutomaticMapping
         return action != GameAction.None;
     }
 
+    /// <summary>
+    /// 判断动作是否属于可自动应用角色变更的 BP 角色操作。
+    /// </summary>
+    /// <param name="action">GameGuidance 动作。</param>
+    /// <returns>角色操作返回 <see langword="true"/>。</returns>
     public static bool IsCharacterOperationAction(GameAction action) =>
         action is GameAction.BanSur or GameAction.BanHun or GameAction.PickSur or GameAction.DistributeChara or GameAction.PickHun;
 
+    /// <summary>
+    /// 将 GameGuidance 动作转换为 SmartBP 阶段名。
+    /// </summary>
+    /// <param name="action">GameGuidance 动作。</param>
+    /// <returns>阶段名。</returns>
     public static string ToPhase(GameAction action) => action switch
     {
         GameAction.BanSur => "屏蔽求生者",
@@ -88,6 +128,12 @@ internal static class SmartBpAutomaticMapping
         _ => "未知"
     };
 
+    /// <summary>
+    /// 获取某个角色操作需要重点刷新和解析的画面区域及字段名。
+    /// </summary>
+    /// <param name="action">GameGuidance 动作。</param>
+    /// <returns>识别区域和业务字段名。</returns>
+    /// <exception cref="NotSupportedException">动作没有角色字段目标时抛出。</exception>
     public static (SmartBpRecognitionRegion Region, string TargetField) GetFocusedTarget(GameAction action) => action switch
     {
         GameAction.BanSur => (SmartBpRecognitionRegion.RightTop, "banned_sur"),
@@ -99,8 +145,17 @@ internal static class SmartBpAutomaticMapping
     };
 }
 
+/// <summary>
+/// 解析并校验 AI 返回的完整 BP 业务状态 JSON。
+/// </summary>
 internal static class SmartBpBusinessStateParser
 {
+    /// <summary>
+    /// 解析完整业务状态 JSON。
+    /// </summary>
+    /// <param name="raw">AI 原始 JSON 文本。</param>
+    /// <returns>规范化后的业务状态。</returns>
+    /// <exception cref="InvalidDataException">JSON 为空或字段不符合契约时抛出。</exception>
     public static SmartBpBusinessStateRecognitionResult Parse(string raw)
     {
         var result = JsonSerializer.Deserialize<SmartBpBusinessStateRecognitionResult>(raw)
@@ -109,6 +164,11 @@ internal static class SmartBpBusinessStateParser
         return result;
     }
 
+    /// <summary>
+    /// 规范化并校验完整业务状态对象。
+    /// </summary>
+    /// <param name="result">待校验的业务状态对象。</param>
+    /// <exception cref="InvalidDataException">阶段、槽位数量或索引不符合契约时抛出。</exception>
     public static void NormalizeAndValidate(SmartBpBusinessStateRecognitionResult result)
     {
         if (!SmartBpAutomaticMapping.ValidPhases.Contains(result.Phase))
@@ -124,8 +184,19 @@ internal static class SmartBpBusinessStateParser
         Normalize(result.PickedHun);
     }
 
+    /// <summary>
+    /// 判断识别文本是否表示未选择槽位。
+    /// </summary>
+    /// <param name="value">角色名文本。</param>
+    /// <returns>表示未选择返回 <see langword="true"/>。</returns>
     public static bool IsUnselected(string? value) => string.Equals(NormalizeName(value), "未选择", StringComparison.Ordinal);
 
+    /// <summary>
+    /// 校验 ban 位等仅包含角色名的槽位集合。
+    /// </summary>
+    /// <param name="slots">槽位集合。</param>
+    /// <param name="count">期望槽位数量。</param>
+    /// <param name="field">字段名。</param>
     private static void ValidateCharacterSlots(List<SmartBpRecognizedCharacterSlot> slots, int count, string field)
     {
         if (slots.Count != count) throw new InvalidDataException($"{field} must contain exactly {count} entries.");
@@ -135,6 +206,12 @@ internal static class SmartBpBusinessStateParser
         foreach (var slot in slots) Normalize(slot);
     }
 
+    /// <summary>
+    /// 校验 pick 位等同时包含角色和玩家 ID 的槽位集合。
+    /// </summary>
+    /// <param name="slots">槽位集合。</param>
+    /// <param name="count">期望槽位数量。</param>
+    /// <param name="field">字段名。</param>
     private static void ValidatePlayerSlots(List<SmartBpRecognizedPlayerCharacterSlot> slots, int count, string field)
     {
         if (slots.Count != count) throw new InvalidDataException($"{field} must contain exactly {count} entries.");
@@ -144,8 +221,17 @@ internal static class SmartBpBusinessStateParser
         foreach (var slot in slots) Normalize(slot);
     }
 
+    /// <summary>
+    /// 规范化角色槽位的角色名。
+    /// </summary>
+    /// <param name="slot">角色槽位。</param>
     private static void Normalize(SmartBpRecognizedCharacterSlot slot) => slot.CharacterName = NormalizeName(slot.CharacterName);
 
+    /// <summary>
+    /// 将空值、unknown 和 null 文本统一成“未选择”。
+    /// </summary>
+    /// <param name="value">原始角色名。</param>
+    /// <returns>规范化角色名。</returns>
     private static string NormalizeName(string? value)
     {
         if (string.IsNullOrWhiteSpace(value)) return "未选择";
@@ -156,8 +242,18 @@ internal static class SmartBpBusinessStateParser
     }
 }
 
+/// <summary>
+/// 将识别出的 BP 业务状态格式化为调试文本。
+/// </summary>
 internal static class SmartBpBusinessStateFormatter
 {
+    /// <summary>
+    /// 格式化完整业务状态。
+    /// </summary>
+    /// <param name="value">业务状态。</param>
+    /// <param name="resolver">角色解析器，用于可选输出 resolved 名称。</param>
+    /// <param name="includeResolved">是否包含解析后的角色名。</param>
+    /// <returns>调试文本。</returns>
     public static string Format(SmartBpBusinessStateRecognitionResult value, ISmartBpCharacterResolver resolver, bool includeResolved)
     {
         var builder = new StringBuilder();
@@ -169,6 +265,9 @@ internal static class SmartBpBusinessStateFormatter
         return builder.ToString().TrimEnd();
     }
 
+    /// <summary>
+    /// 追加仅包含角色名的槽位段落。
+    /// </summary>
     private static void AppendCharacterSection(StringBuilder builder, string title, IEnumerable<SmartBpRecognizedCharacterSlot> slots, Camp camp, ISmartBpCharacterResolver resolver, bool includeResolved)
     {
         builder.AppendLine().AppendLine(title);
@@ -181,6 +280,9 @@ internal static class SmartBpBusinessStateFormatter
         }
     }
 
+    /// <summary>
+    /// 追加包含角色名和玩家 ID 的槽位段落。
+    /// </summary>
     private static void AppendPlayerSection(StringBuilder builder, string title, IEnumerable<SmartBpRecognizedPlayerCharacterSlot> slots, Camp camp, ISmartBpCharacterResolver resolver, bool includeResolved, bool hunterSlot = false)
     {
         builder.AppendLine().AppendLine(title);
@@ -194,8 +296,17 @@ internal static class SmartBpBusinessStateFormatter
     }
 }
 
+/// <summary>
+/// 解析 SmartBP 自动识别 AI 输出的严格 JSON 结构。
+/// </summary>
 internal static class SmartBpAutomaticParser
 {
+    /// <summary>
+    /// 解析只包含阶段字段的 JSON。
+    /// </summary>
+    /// <param name="raw">AI 原始 JSON 文本。</param>
+    /// <returns>阶段识别结果。</returns>
+    /// <exception cref="InvalidDataException">JSON 结构或阶段值非法时抛出。</exception>
     public static SmartBpPhaseRecognitionResult ParsePhase(string raw)
     {
         using var document = JsonDocument.Parse(raw);
@@ -208,6 +319,15 @@ internal static class SmartBpAutomaticParser
         return new() { Phase = phase };
     }
 
+    /// <summary>
+    /// 解析增量快照 JSON，并确认 AI 只返回本次请求的字段。
+    /// </summary>
+    /// <param name="raw">AI 原始 JSON 文本。</param>
+    /// <param name="requestedFields">本次请求允许返回的字段集合。</param>
+    /// <param name="survivorCandidates">求生者候选名集合。</param>
+    /// <param name="hunterCandidates">监管者候选名集合。</param>
+    /// <returns>规范化后的快照增量。</returns>
+    /// <exception cref="InvalidDataException">JSON 结构、字段或候选值非法时抛出。</exception>
     public static SmartBpSnapshotDeltaResult ParseSnapshotDelta(
         string raw,
         IReadOnlyCollection<string> requestedFields,
@@ -742,16 +862,16 @@ internal static class SmartBpAutomaticParser
     }
 
     /// <summary>
-    /// Parses one field snapshot JSON response (shape <c>{"field":"...","slots":[...]}</c> or
-    /// <c>{"field":"picked_hun","picked_hun":{...}}</c>) into a <see cref="SmartBpSnapshotFieldUpdate"/>
-    /// with slot_state validation. The returned update is suitable for <see cref="ISmartBpRecognitionStateStore.ApplyFieldSnapshot"/>.
+    /// 将单个字段快照 JSON 响应（形如 <c>{"field":"...","slots":[...]}</c> 或
+    /// <c>{"field":"picked_hun","picked_hun":{...}}</c>）解析为 <see cref="SmartBpSnapshotFieldUpdate"/>，
+    /// 并校验 slot_state。返回的更新可直接交给 <see cref="ISmartBpRecognitionStateStore.ApplyFieldSnapshot"/>。
     /// </summary>
-    /// <param name="raw">Raw model JSON response (already repaired when using prompt-and-repair mode).</param>
-    /// <param name="expectedField">Expected business field id.</param>
-    /// <param name="survivorCandidates">Allowed survivor candidate names.</param>
-    /// <param name="hunterCandidates">Allowed hunter candidate names.</param>
-    /// <returns>The validated <see cref="SmartBpSnapshotFieldUpdate"/>.</returns>
-    /// <exception cref="InvalidDataException">Thrown when the JSON shape, field id, slot count, slot index, or slot_state is invalid.</exception>
+    /// <param name="raw">模型返回的原始 JSON 响应；使用提示词修复模式时已经过修复。</param>
+    /// <param name="expectedField">期望的业务字段标识。</param>
+    /// <param name="survivorCandidates">允许的求生者候选名称。</param>
+    /// <param name="hunterCandidates">允许的监管者候选名称。</param>
+    /// <returns>校验后的 <see cref="SmartBpSnapshotFieldUpdate"/>。</returns>
+    /// <exception cref="InvalidDataException">JSON 结构、字段标识、槽位数量、槽位索引或 slot_state 非法时抛出。</exception>
     public static SmartBpSnapshotFieldUpdate ParseFieldSnapshot(
         string raw,
         string expectedField,
@@ -1505,11 +1625,11 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
     public async Task<SmartBpAutoRecognitionTickResult> RunOneTickDryRunAsync(BitmapSource frame, CancellationToken cancellationToken = default)
         => await RunOneTickCoreAsync(frame, isDryRun: true, cancellationToken).ConfigureAwait(false);
 
-    // Strategy execution matrix:
-    // PureOcr: full debug OCRs all BP fields; phase-only OCRs status/phase only; automatic uses planner fields.
-    // PureAi: full debug is handled by the ViewModel's legacy full BP scan path; phase-only uses AI phase/scene; automatic uses AI phase plus requested field snapshots.
-    // AiWithOcr: full debug uses AI phase/scene plus OCR all BP fields; phase-only uses AI phase/scene only; automatic OCRs requested/stale fields.
-    // AiWithAiOcr: full debug uses Business AI phase/scene plus AI OCR transcripts for all BP fields; phase-only uses Business AI phase/scene only; automatic uses requested/stale fields.
+    // 策略执行矩阵：
+    // PureOcr：完整调试 OCR 所有 BP 字段；仅阶段识别只 OCR 状态/阶段；自动模式使用规划器请求的字段。
+    // PureAi：完整调试由 ViewModel 旧版全量 BP 扫描路径处理；仅阶段识别使用 AI 阶段/场景；自动模式使用 AI 阶段和请求字段快照。
+    // AiWithOcr：完整调试使用 AI 阶段/场景加 OCR 全部 BP 字段；仅阶段识别只使用 AI 阶段/场景；自动模式 OCR 请求字段或过期字段。
+    // AiWithAiOcr：完整调试使用业务 AI 阶段/场景加 AI OCR 全字段转写；仅阶段识别只使用业务 AI 阶段/场景；自动模式使用请求字段或过期字段。
     public async Task<SmartBpAutoRecognitionTickResult> RunFullRecognitionDebugAsync(BitmapSource frame, CancellationToken cancellationToken = default)
         => await RunOneTickCoreAsync(frame, isDryRun: false, cancellationToken, SmartBpRecognitionDebugMode.FullStrategy).ConfigureAwait(false);
 
@@ -2340,13 +2460,12 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
             currentKnownState);
 
     /// <summary>
-    /// Resolves which recognition path the coordinator should use for this tick.
-    /// OCR engine and legacy delta flag always use the legacy delta path. AI engine without
-    /// legacy flag uses phase-only when no fields are requested, field snapshot when one or more
-    /// fields are requested, and full field snapshot when all four fields are requested.
+    /// 解析协调器在当前 tick 中应使用的识别路径。
+    /// OCR 引擎和旧版增量标志始终使用旧版增量路径；未启用旧版标志的 AI 引擎在没有请求字段时使用仅阶段路径，
+    /// 请求一个或多个字段时使用字段快照路径，请求四个字段时使用完整字段快照路径。
     /// </summary>
-    /// <param name="request">The planner-built recognition request.</param>
-    /// <returns>The recognition path enum value.</returns>
+    /// <param name="request">规划器构建的识别请求。</param>
+    /// <returns>识别路径枚举值。</returns>
     private SmartBpRecognitionPath ResolveRecognitionPath(SmartBpSnapshotDeltaRequest request)
     {
         if (settings.Settings.RecognitionStrategy == SmartBpRecognitionStrategy.PureOcr && settings.Settings.EnableOcrBpRecognition)

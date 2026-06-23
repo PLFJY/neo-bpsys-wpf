@@ -10,7 +10,7 @@ namespace neo_bpsys_wpf.Core.Abstractions.Services;
 /// <param name="BoundingBox">文本在输入图像中的轴对齐外接矩形。</param>
 /// <param name="CenterX">文本中心点 X 坐标。</param>
 /// <param name="CenterY">文本中心点 Y 坐标。</param>
-/// <param name="Provider">OCR Provider 名称。</param>
+/// <param name="Provider">OCR 提供程序名称。</param>
 public sealed record OcrTextLine(
     string Text,
     double Confidence,
@@ -24,7 +24,7 @@ public sealed record OcrTextLine(
 /// </summary>
 /// <param name="Lines">按纵向、横向顺序排列的文本行。</param>
 /// <param name="FullText">合并后的完整文本。</param>
-/// <param name="Provider">OCR Provider 名称。</param>
+/// <param name="Provider">OCR 提供程序名称。</param>
 public sealed record OcrTextBlockResult(IReadOnlyList<OcrTextLine> Lines, string FullText, string? Provider = null)
 {
     /// <summary>
@@ -33,56 +33,56 @@ public sealed record OcrTextBlockResult(IReadOnlyList<OcrTextLine> Lines, string
     public static OcrTextBlockResult Empty { get; } = new([], string.Empty);
 }
 
-/// <summary>Identifies an OCR provider implementation.</summary>
+/// <summary>标识一个 OCR 提供程序实现。</summary>
 public enum SmartBpOcrProviderKind
 {
-    /// <summary>PaddleOCR.</summary>
+    /// <summary>PaddleOCR 提供程序。</summary>
     Paddle,
-    /// <summary>Tesseract OCR.</summary>
+    /// <summary>Tesseract OCR 提供程序。</summary>
     Tesseract,
-    /// <summary>RapidOCR through RapidOcrNet.</summary>
+    /// <summary>通过 RapidOcrNet 接入的 RapidOCR 提供程序。</summary>
     Rapid
 }
 
-/// <summary>Selects the OCR provider used by SmartBP.</summary>
+/// <summary>选择 SmartBP 使用的 OCR 提供程序。</summary>
 public enum SmartBpOcrProviderMode
 {
-    /// <summary>Use PaddleOCR.</summary>
+    /// <summary>使用 PaddleOCR。</summary>
     Paddle,
-    /// <summary>Use Tesseract OCR.</summary>
+    /// <summary>使用 Tesseract OCR。</summary>
     Tesseract,
-    /// <summary>Use RapidOCR through RapidOcrNet.</summary>
+    /// <summary>使用通过 RapidOcrNet 接入的 RapidOCR。</summary>
     Rapid
 }
 
-/// <summary>Options supplied to an OCR provider for one recognition call.</summary>
+/// <summary>一次 OCR 识别调用传递给提供程序的选项。</summary>
 public sealed class OcrRecognitionOptions
 {
-    /// <summary>Gets or sets the logical image-region hint.</summary>
+    /// <summary>获取或设置逻辑图像区域提示。</summary>
     public string? RegionHint { get; set; }
-    /// <summary>Gets or sets the logical business-field hint.</summary>
+    /// <summary>获取或设置逻辑业务字段提示。</summary>
     public string? FieldHint { get; set; }
-    /// <summary>Gets or sets whether Chinese recognition is preferred.</summary>
+    /// <summary>获取或设置是否优先识别中文。</summary>
     public bool PreferChinese { get; set; } = true;
-    /// <summary>Gets or sets whether English recognition is preferred.</summary>
+    /// <summary>获取或设置是否优先识别英文。</summary>
     public bool PreferEnglish { get; set; } = true;
-    /// <summary>Gets or sets the Tesseract page segmentation mode number.</summary>
+    /// <summary>获取或设置 Tesseract 页面分割模式编号。</summary>
     public int Psm { get; set; } = 6;
-    /// <summary>Gets or sets whether inexpensive preprocessing variants may be used.</summary>
+    /// <summary>获取或设置是否允许使用轻量预处理变体。</summary>
     public bool UsePreprocessingVariants { get; set; } = true;
 }
 
-/// <summary>Recognizes positioned text using one OCR engine.</summary>
+/// <summary>使用单个 OCR 引擎识别带位置的文本。</summary>
 public interface IOcrProvider
 {
-    /// <summary>Gets the provider kind.</summary>
+    /// <summary>获取提供程序类型。</summary>
     SmartBpOcrProviderKind Kind { get; }
-    /// <summary>Gets whether all runtime assets required by the provider are ready.</summary>
+    /// <summary>获取提供程序所需的运行时资产是否全部就绪。</summary>
     bool IsReady { get; }
-    /// <summary>Recognizes text lines in coordinates local to <paramref name="img"/>.</summary>
-    /// <param name="img">Input image.</param>
-    /// <param name="options">Optional recognition hints.</param>
-    /// <returns>Positioned OCR text.</returns>
+    /// <summary>识别以 <paramref name="img"/> 为本地坐标系的文本行。</summary>
+    /// <param name="img">输入图像。</param>
+    /// <param name="options">可选识别提示。</param>
+    /// <returns>带位置的 OCR 文本。</returns>
     OcrTextBlockResult RecognizeTextLines(Mat img, OcrRecognitionOptions? options = null);
 }
 
@@ -94,11 +94,11 @@ public interface IOcrProvider
 /// <param name="Description">模型描述资源键。</param>
 public sealed record OcrModelDefinition(string Key, string DisplayName, string Description);
 
-/// <summary>Describes the runtime readiness of one OCR provider.</summary>
-/// <param name="Kind">Provider kind.</param>
-/// <param name="IsReady">Whether the provider is ready.</param>
-/// <param name="DataPath">Optional runtime data directory.</param>
-/// <param name="Details">Human-readable diagnostic details.</param>
+/// <summary>描述一个 OCR 提供程序的运行时就绪状态。</summary>
+/// <param name="Kind">提供程序类型。</param>
+/// <param name="IsReady">提供程序是否就绪。</param>
+/// <param name="DataPath">可选运行时数据目录。</param>
+/// <param name="Details">面向人工阅读的诊断详情。</param>
 public sealed record SmartBpOcrProviderStatus(
     SmartBpOcrProviderKind Kind,
     bool IsReady,
@@ -110,12 +110,12 @@ public sealed record SmartBpOcrProviderStatus(
 /// </summary>
 public interface IOcrService
 {
-    /// <summary>Gets the explicitly selected OCR provider.</summary>
+    /// <summary>获取当前显式选择的 OCR 提供程序。</summary>
     SmartBpOcrProviderKind SelectedProvider { get; }
 
-    /// <summary>Gets runtime readiness information for a provider.</summary>
-    /// <param name="kind">Provider kind.</param>
-    /// <returns>Provider status.</returns>
+    /// <summary>获取指定提供程序的运行时就绪状态。</summary>
+    /// <param name="kind">提供程序类型。</param>
+    /// <returns>提供程序状态。</returns>
     SmartBpOcrProviderStatus GetProviderStatus(SmartBpOcrProviderKind kind);
 
     /// <summary>

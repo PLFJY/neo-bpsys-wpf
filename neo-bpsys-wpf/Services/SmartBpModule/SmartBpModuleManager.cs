@@ -15,7 +15,7 @@ using neo_bpsys_wpf.Core.Models.SmartBpModule;
 namespace neo_bpsys_wpf.Services.SmartBpModule;
 
 /// <summary>
-/// Loads, validates, installs, and persists the SmartBP module.
+/// 负责加载、校验、安装和持久化 SmartBP 模块。
 /// </summary>
 public sealed class SmartBpModuleManager
 {
@@ -58,12 +58,12 @@ public sealed class SmartBpModuleManager
     private IReadOnlyList<SmartBpFeatureCommand> _featureCommands = [];
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SmartBpModuleManager"/> class.
+    /// 初始化 <see cref="SmartBpModuleManager"/> 类的新实例。
     /// </summary>
-    /// <param name="serviceProvider">Host service provider.</param>
-    /// <param name="logger">Logger.</param>
-    /// <param name="settingsHostService">Settings host service.</param>
-    /// <param name="archiveService">Archive extraction service.</param>
+    /// <param name="serviceProvider">宿主服务提供程序。</param>
+    /// <param name="logger">日志记录器。</param>
+    /// <param name="settingsHostService">设置宿主服务。</param>
+    /// <param name="archiveService">压缩包解压服务。</param>
     public SmartBpModuleManager(
         IServiceProvider serviceProvider,
         ILogger<SmartBpModuleManager> logger,
@@ -78,55 +78,55 @@ public sealed class SmartBpModuleManager
     }
 
     /// <summary>
-    /// Raised when module load state changes.
+    /// 模块加载状态变化时触发。
     /// </summary>
     public event EventHandler? ModuleStateChanged;
 
     /// <summary>
-    /// Loaded module content object.
+    /// 获取已加载的模块内容对象。
     /// </summary>
     public object? ModuleContent { get; private set; }
 
     /// <summary>
-    /// Current module root.
+    /// 获取当前模块根目录。
     /// </summary>
     public string ModuleRoot { get; private set; }
 
     /// <summary>
-    /// Whether the module is loaded.
+    /// 获取模块是否已加载。
     /// </summary>
     public bool IsModuleLoaded => _entryPoint != null && ModuleContent != null;
 
     /// <summary>
-    /// Last module load or validation failure message.
+    /// 获取最近一次模块加载或校验失败消息。
     /// </summary>
     public string LastFailureMessage { get; private set; } = string.Empty;
 
     /// <summary>
-    /// Whether the last module archive import was staged and requires an application restart to finish.
+    /// 获取最近一次模块压缩包导入是否已暂存且需要重启应用才能完成。
     /// </summary>
     public bool IsRestartRequiredForPendingModuleImport { get; private set; }
 
     /// <summary>
-    /// State file path.
+    /// 获取状态文件路径。
     /// </summary>
     public static string StateFilePath => Path.Combine(AppConstants.AppDataPath, "SmartBpModuleState.json");
 
     /// <summary>
-    /// Pending module directory migration marker file path.
+    /// 获取待完成模块目录迁移标记文件路径。
     /// </summary>
     public static string MovePendingFilePath => Path.Combine(AppConstants.AppDataPath, "SmartBpModuleMovePending.json");
 
     /// <summary>
-    /// Default module root path.
+    /// 获取默认模块根目录路径。
     /// </summary>
     public static string GetDefaultModuleRoot() =>
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "neo-bpsys-wpf", "Components", "SmartBpModule");
 
     /// <summary>
-    /// Reads persisted state.
+    /// 读取已持久化的模块状态。
     /// </summary>
-    /// <returns>Persisted state, or null.</returns>
+    /// <returns>已持久化的状态；不存在或读取失败时返回 <see langword="null"/>。</returns>
     public SmartBpModuleState? ReadState()
     {
         try
@@ -148,9 +148,9 @@ public sealed class SmartBpModuleManager
     }
 
     /// <summary>
-    /// Gets the preferred module root for UI display and startup loading.
+    /// 获取用于界面显示和启动加载的首选模块根目录。
     /// </summary>
-    /// <returns>Preferred module root.</returns>
+    /// <returns>首选模块根目录。</returns>
     public string GetPreferredModuleRoot()
     {
         var pending = ReadMovePendingState();
@@ -163,9 +163,9 @@ public sealed class SmartBpModuleManager
     }
 
     /// <summary>
-    /// Determines whether a saved module root or pending migration target exists.
+    /// 判断是否存在已保存的模块根目录或待完成迁移目标。
     /// </summary>
-    /// <returns>True when a persisted module root preference exists.</returns>
+    /// <returns>存在已持久化模块根目录偏好时返回 <see langword="true"/>。</returns>
     public bool HasPersistedModuleRoot()
     {
         var pending = ReadMovePendingState();
@@ -178,9 +178,9 @@ public sealed class SmartBpModuleManager
     }
 
     /// <summary>
-    /// Persists the preferred SmartBP module root without marking the module as successfully loaded.
+    /// 持久化首选 SmartBP 模块根目录，但不把模块标记为已成功加载。
     /// </summary>
-    /// <param name="moduleRoot">Preferred module root path.</param>
+    /// <param name="moduleRoot">首选模块根目录路径。</param>
     public void PersistModuleRootPreference(string moduleRoot)
     {
         if (string.IsNullOrWhiteSpace(moduleRoot))
@@ -219,10 +219,10 @@ public sealed class SmartBpModuleManager
     }
 
     /// <summary>
-    /// Updates the preferred SmartBP module directory by copying the current module through staging when an existing module is available.
+    /// 当已有模块可用时，通过暂存复制方式更新首选 SmartBP 模块目录。
     /// </summary>
-    /// <param name="targetRoot">Target module root.</param>
-    /// <returns>True when the target was prepared and persisted.</returns>
+    /// <param name="targetRoot">目标模块根目录。</param>
+    /// <returns>目标目录准备完成且已持久化时返回 <see langword="true"/>。</returns>
     public async Task<bool> MigrateModuleRootPreferenceAsync(string targetRoot)
     {
         if (string.IsNullOrWhiteSpace(targetRoot))
@@ -328,9 +328,9 @@ public sealed class SmartBpModuleManager
     }
 
     /// <summary>
-    /// Loads the persisted module if available.
+    /// 在可用时加载已持久化的模块。
     /// </summary>
-    /// <returns>True when loaded.</returns>
+    /// <returns>成功加载时返回 <see langword="true"/>。</returns>
     public async Task<bool> TryLoadPersistedModuleAsync()
     {
         var state = ReadState();
@@ -363,11 +363,11 @@ public sealed class SmartBpModuleManager
     }
 
     /// <summary>
-    /// Loads a module from a directory.
+    /// 从目录加载模块。
     /// </summary>
-    /// <param name="moduleRoot">Module root.</param>
+    /// <param name="moduleRoot">模块根目录。</param>
     /// <param name="installKind">Install kind.</param>
-    /// <returns>True when loaded.</returns>
+    /// <returns>成功加载时返回 <see langword="true"/>。</returns>
     public async Task<bool> LoadModuleFromDirectoryAsync(string moduleRoot, string installKind = "LocalDirectory")
     {
         _logger.LogInformation(
@@ -421,7 +421,7 @@ public sealed class SmartBpModuleManager
                 catch (Exception ex)
                 {
                     _logger.LogDebug(ex, "SmartBP module assembly was not available from default context: {AssemblyName}", name.FullName);
-                    // Continue with module-local probing for SmartBP-owned dependencies.
+                    // 对 SmartBP 自有依赖继续使用模块内探测。
                 }
 
                 var candidate = Path.Combine(moduleRoot, $"{name.Name}.dll");
@@ -508,12 +508,12 @@ public sealed class SmartBpModuleManager
     }
 
     /// <summary>
-    /// Downloads the current app tag SmartBP module package and installs it through a staging directory.
+    /// 下载当前应用标签对应的 SmartBP 模块包，并通过暂存目录完成安装。
     /// </summary>
     /// <param name="targetRoot">Final target root.</param>
     /// <param name="progress">Optional progress reporter from 0 to 100.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>True when downloaded and installed or staged for restart.</returns>
+    /// <returns>成功下载并安装，或已暂存并等待重启时返回 <see langword="true"/>。</returns>
     public async Task<bool> DownloadAndInstallCurrentModuleAsync(
         string targetRoot,
         IProgress<double>? progress,
@@ -588,23 +588,23 @@ public sealed class SmartBpModuleManager
     }
 
     /// <summary>
-    /// Imports a module archive through a staging directory.
+    /// 通过暂存目录导入模块压缩包。
     /// </summary>
-    /// <param name="archivePath">Archive path.</param>
+    /// <param name="archivePath">压缩包路径。</param>
     /// <param name="targetRoot">Final target root.</param>
-    /// <returns>True when imported and loaded or staged for restart.</returns>
+    /// <returns>成功导入并加载，或已暂存并等待重启时返回 <see langword="true"/>。</returns>
     public async Task<bool> ImportArchiveAsync(string archivePath, string targetRoot)
     {
         return await ImportArchiveAsync(archivePath, targetRoot, "PreviewArchiveImport");
     }
 
     /// <summary>
-    /// Imports a module archive through a staging directory.
+    /// 通过暂存目录导入模块压缩包。
     /// </summary>
-    /// <param name="archivePath">Archive path.</param>
+    /// <param name="archivePath">压缩包路径。</param>
     /// <param name="targetRoot">Final target root.</param>
     /// <param name="installKind">Install kind persisted in module state.</param>
-    /// <returns>True when imported and loaded or staged for restart.</returns>
+    /// <returns>成功导入并加载，或已暂存并等待重启时返回 <see langword="true"/>。</returns>
     public async Task<bool> ImportArchiveAsync(string archivePath, string targetRoot, string installKind)
     {
         IsRestartRequiredForPendingModuleImport = false;
@@ -671,9 +671,9 @@ public sealed class SmartBpModuleManager
     }
 
     /// <summary>
-    /// Executes a feature command.
+    /// 执行功能命令。
     /// </summary>
-    /// <param name="commandId">Command id.</param>
+    /// <param name="commandId">命令标识。</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Asynchronous task.</returns>
     public Task ExecuteFeatureCommandAsync(string commandId, CancellationToken cancellationToken)
@@ -683,13 +683,13 @@ public sealed class SmartBpModuleManager
     }
 
     /// <summary>
-    /// Validates a module directory.
+    /// 校验模块目录。
     /// </summary>
-    /// <param name="moduleRoot">Module root.</param>
-    /// <param name="allowDevelopmentDirectory">Whether debug development directory is allowed.</param>
+    /// <param name="moduleRoot">模块根目录。</param>
+    /// <param name="allowDevelopmentDirectory">是否允许调试开发目录。</param>
     /// <param name="manifest">Component manifest.</param>
-    /// <param name="error">Validation error.</param>
-    /// <returns>Validation result.</returns>
+    /// <param name="error">校验错误。</param>
+    /// <returns>校验结果。</returns>
     public bool ValidateModuleDirectory(
         string moduleRoot,
         bool allowDevelopmentDirectory,
@@ -759,10 +759,10 @@ public sealed class SmartBpModuleManager
     }
 
     /// <summary>
-    /// Determines whether a path is unsafe for module installation.
+    /// 判断路径是否不适合作为模块安装目录。
     /// </summary>
     /// <param name="path">Candidate path.</param>
-    /// <returns>True when unsafe.</returns>
+    /// <returns>路径不安全时返回 <see langword="true"/>。</returns>
     public static bool IsUnsafeInstallPath(string path)
     {
         if (string.IsNullOrWhiteSpace(path))
@@ -785,10 +785,10 @@ public sealed class SmartBpModuleManager
     }
 
     /// <summary>
-    /// Computes a file SHA-256 hash.
+    /// 计算文件的 SHA-256 哈希。
     /// </summary>
-    /// <param name="filePath">File path.</param>
-    /// <returns>Lower-case SHA-256 hash.</returns>
+    /// <param name="filePath">文件路径。</param>
+    /// <returns>小写 SHA-256 哈希字符串。</returns>
     public static string ComputeSha256(string filePath)
     {
         using var stream = File.OpenRead(filePath);
@@ -796,7 +796,7 @@ public sealed class SmartBpModuleManager
     }
 
     /// <summary>
-    /// Fetches the SmartBP module manifest for the current app release tag.
+    /// 获取当前应用发布标签对应的 SmartBP 模块 manifest。
     /// </summary>
     /// <returns>Required module manifest, or null when offline, unavailable, or not required.</returns>
     public async Task<SmartBpModuleManifest?> TryFetchRequiredModuleManifestAsync()
@@ -808,11 +808,11 @@ public sealed class SmartBpModuleManager
     }
 
     /// <summary>
-    /// Determines whether a local module version satisfies the required module version.
+    /// 判断本地模块版本是否满足要求的模块版本。
     /// </summary>
     /// <param name="localVersion">Local module version.</param>
     /// <param name="requiredVersion">Required module version.</param>
-    /// <returns>True when local version is equal or newer.</returns>
+    /// <returns>本地版本等于或新于要求版本时返回 <see langword="true"/>。</returns>
     public static bool IsModuleVersionAllowed(string localVersion, string requiredVersion)
     {
         if (Version.TryParse(localVersion.Replace('-', '.'), out var local) &&
@@ -824,6 +824,10 @@ public sealed class SmartBpModuleManager
         return string.Compare(localVersion, requiredVersion, StringComparison.OrdinalIgnoreCase) >= 0;
     }
 
+    /// <summary>
+    /// 写入 SmartBP 模块状态文件，并把模块根目录镜像到 HKCU 供卸载器清理使用。
+    /// </summary>
+    /// <param name="state">State to persist.</param>
     private void WriteState(SmartBpModuleState state)
     {
         Directory.CreateDirectory(AppConstants.AppDataPath);
@@ -837,6 +841,10 @@ public sealed class SmartBpModuleManager
             state.LastLoadedSuccessfully);
     }
 
+    /// <summary>
+    /// 将模块根目录保存到当前用户注册表配置单元，供不便解析 JSON 状态文件的工具使用。
+    /// </summary>
+    /// <param name="moduleRoot">要写入的模块根目录路径。</param>
     private void WriteModuleRootRegistryValue(string? moduleRoot)
     {
         if (string.IsNullOrWhiteSpace(moduleRoot))
@@ -862,6 +870,14 @@ public sealed class SmartBpModuleManager
         }
     }
 
+    /// <summary>
+    /// 暂存导入的模块压缩包，使下一次进程启动时可以替换当前活动模块目录。
+    /// </summary>
+    /// <param name="candidateRoot">Temporary extracted candidate module root.</param>
+    /// <param name="targetRoot">Final module root that should be replaced on restart.</param>
+    /// <param name="installKind">Install source label written to module state.</param>
+    /// <param name="manifest">Validated module manifest, if one was read.</param>
+    /// <exception cref="InvalidOperationException">Thrown when the staged path overlaps the target path.</exception>
     private void PrepareArchiveImportForRestart(
         string candidateRoot,
         string targetRoot,
@@ -880,6 +896,8 @@ public sealed class SmartBpModuleManager
             throw new InvalidOperationException("Pending SmartBP module path overlaps the target module path.");
         }
 
+        // 已加载模块可能持有 native DLL 句柄，因此压缩包导入先暂存，
+        // 并在下一次进程启动、模块加载前完成替换。
         CleanupExistingPendingArchiveImport();
         Directory.CreateDirectory(pendingParent);
         Directory.Move(normalizedCandidateRoot, preparedRoot);
@@ -916,6 +934,9 @@ public sealed class SmartBpModuleManager
         ModuleStateChanged?.Invoke(this, EventArgs.Empty);
     }
 
+    /// <summary>
+    /// 当新的压缩包导入取代旧导入时，移除先前暂存的导入目录。
+    /// </summary>
     private void CleanupExistingPendingArchiveImport()
     {
         var pending = ReadMovePendingState();
@@ -937,6 +958,11 @@ public sealed class SmartBpModuleManager
         }
     }
 
+    /// <summary>
+    /// 在当前进程尝试加载 SmartBP 前完成已暂存的压缩包导入。
+    /// </summary>
+    /// <param name="pending">Pending move/import marker read from disk.</param>
+    /// <returns><see langword="true"/> when there is nothing left to do or replacement succeeded; otherwise <see langword="false"/>.</returns>
     private bool TryCompletePendingArchiveImport(SmartBpModuleMovePendingState pending)
     {
         if (string.IsNullOrWhiteSpace(pending.PreparedRoot) ||
@@ -987,6 +1013,8 @@ public sealed class SmartBpModuleManager
                 return false;
             }
 
+            // 运行时托管模型可能体积较大且由用户下载；替换代码/资源时
+            // 保留同一模块根目录下的 OCR 或 AI 资产。
             ReplaceModuleRootPreservingManagedAssets(preparedRoot, targetRoot);
             File.Delete(MovePendingFilePath);
             _logger.LogInformation("Completed pending SmartBP module archive import: {TargetRoot}", targetRoot);
@@ -1001,6 +1029,13 @@ public sealed class SmartBpModuleManager
         }
     }
 
+    /// <summary>
+    /// 通过已校验的暂存目录，把现有模块根目录复制到新的目标根目录。
+    /// </summary>
+    /// <param name="sourceRoot">Existing module root.</param>
+    /// <param name="targetRoot">目标模块根目录。</param>
+    /// <returns>复制与替换完成后结束的任务。</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the target or staged copy is not a valid SmartBP module.</exception>
     private async Task CopyModuleRootForMigrationAsync(string sourceRoot, string targetRoot)
     {
         var targetExists = Directory.Exists(targetRoot);
@@ -1050,6 +1085,10 @@ public sealed class SmartBpModuleManager
         }
     }
 
+    /// <summary>
+    /// 读取待完成的模块移动或压缩包导入标记。
+    /// </summary>
+    /// <returns>待完成移动状态；标记不存在或无法读取时返回 <see langword="null"/>。</returns>
     private SmartBpModuleMovePendingState? ReadMovePendingState()
     {
         try
@@ -1070,6 +1109,10 @@ public sealed class SmartBpModuleManager
         }
     }
 
+    /// <summary>
+    /// 写入待完成的模块移动或压缩包导入标记。
+    /// </summary>
+    /// <param name="state">Move marker state.</param>
     private void WriteMovePendingState(SmartBpModuleMovePendingState state)
     {
         Directory.CreateDirectory(AppConstants.AppDataPath);
@@ -1081,6 +1124,9 @@ public sealed class SmartBpModuleManager
             MovePendingFilePath);
     }
 
+    /// <summary>
+    /// 切换到开发目录且不应继续此前移动时，删除待完成移动标记。
+    /// </summary>
     private void DeleteMovePendingStateIfExists()
     {
         try
@@ -1099,6 +1145,10 @@ public sealed class SmartBpModuleManager
         }
     }
 
+    /// <summary>
+    /// 迁移后的目标根目录成功加载后清理旧模块根目录。
+    /// </summary>
+    /// <param name="loadedModuleRoot">刚刚完成加载的模块根目录。</param>
     private void CompletePendingModuleRootMigration(string loadedModuleRoot)
     {
         var pending = ReadMovePendingState();
@@ -1165,6 +1215,11 @@ public sealed class SmartBpModuleManager
         }
     }
 
+    /// <summary>
+    /// 将旧 Documents 位置中的旧版 OCR 模型目录一次性迁移到 SmartBP 模块根目录。
+    /// </summary>
+    /// <param name="moduleRoot">当前 SmartBP 模块根目录。</param>
+    /// <returns>迁移状态记录完成后结束的任务。</returns>
     private async Task MigrateLegacyOcrModelsOnceAsync(string moduleRoot)
     {
         var state = ReadState();
@@ -1230,6 +1285,11 @@ public sealed class SmartBpModuleManager
         await Task.CompletedTask;
     }
 
+    /// <summary>
+    /// 判断旧版 PaddleOCR 模型目录是否包含所有必需的推理组件。
+    /// </summary>
+    /// <param name="modelRoot">Legacy model root directory.</param>
+    /// <returns><see langword="true"/> when det, cls, and rec components are present.</returns>
     private static bool IsLegacyModelReady(string modelRoot) =>
         new[] { "det", "cls", "rec" }.All(component =>
         {
@@ -1239,6 +1299,11 @@ public sealed class SmartBpModuleManager
                     File.Exists(Path.Combine(dir, "inference.json")));
         });
 
+    /// <summary>
+    /// 递归复制目录树并保留相对路径。
+    /// </summary>
+    /// <param name="source">源目录。</param>
+    /// <param name="target">目标目录。</param>
     private static void CopyDirectory(string source, string target)
     {
         foreach (var directory in Directory.EnumerateDirectories(source, "*", SearchOption.AllDirectories))
@@ -1251,6 +1316,11 @@ public sealed class SmartBpModuleManager
         }
     }
 
+    /// <summary>
+    /// 替换模块文件，同时保留运行时托管的 OCR 和 AI 资产目录。
+    /// </summary>
+    /// <param name="sourceRoot">Validated replacement module root.</param>
+    /// <param name="targetRoot">Existing module root to update.</param>
     private void ReplaceModuleRootPreservingManagedAssets(string sourceRoot, string targetRoot)
     {
         var normalizedSourceRoot = Path.GetFullPath(sourceRoot);
@@ -1306,11 +1376,20 @@ public sealed class SmartBpModuleManager
         }
     }
 
+    /// <summary>
+    /// 判断路径是否属于 SmartBP 运行时托管资产根目录之一。
+    /// </summary>
+    /// <param name="path">要检查的路径。</param>
+    /// <returns><see langword="true"/> when the path is a known managed asset directory.</returns>
     private static bool IsManagedAssetRoot(string path)
     {
         return Directory.Exists(path) && ManagedAssetRootNames.Contains(Path.GetFileName(path));
     }
 
+    /// <summary>
+    /// 当文件系统项是已存在的文件或目录时删除它。
+    /// </summary>
+    /// <param name="path">要删除的文件或目录路径。</param>
     private static void DeleteFileSystemEntry(string path)
     {
         if (Directory.Exists(path))
@@ -1325,6 +1404,12 @@ public sealed class SmartBpModuleManager
         }
     }
 
+    /// <summary>
+    /// 在完整路径标准化后，判断一个路径是否等于或嵌套在另一个路径下。
+    /// </summary>
+    /// <param name="child">Candidate child path.</param>
+    /// <param name="parent">Candidate parent path.</param>
+    /// <returns><see langword="true"/> when <paramref name="child"/> is the same as or below <paramref name="parent"/>.</returns>
     private static bool IsSameOrChildPath(string child, string parent)
     {
         var normalizedChild = Path.GetFullPath(child)
@@ -1334,6 +1419,11 @@ public sealed class SmartBpModuleManager
         return normalizedChild.StartsWith(normalizedParent, StringComparison.OrdinalIgnoreCase);
     }
 
+    /// <summary>
+    /// 通过在最近的已存在目录中创建临时探测文件检查写入权限。
+    /// </summary>
+    /// <param name="path">Requested module path or parent path.</param>
+    /// <returns><see langword="true"/> when a temporary file can be created.</returns>
     private static bool HasWriteAccess(string path)
     {
         try
@@ -1359,6 +1449,11 @@ public sealed class SmartBpModuleManager
         }
     }
 
+    /// <summary>
+    /// 从给定路径向上查找，直到找到已存在的目录。
+    /// </summary>
+    /// <param name="path">可能尚不存在的路径。</param>
+    /// <returns>最近的已存在目录；找不到时返回 <see langword="null"/>。</returns>
     private static string? GetNearestExistingDirectory(string path)
     {
         var current = Path.GetDirectoryName(Path.GetFullPath(path)
@@ -1374,6 +1469,10 @@ public sealed class SmartBpModuleManager
         return null;
     }
 
+    /// <summary>
+    /// 报告当前程序集是否使用 DEBUG 符号编译。
+    /// </summary>
+    /// <returns><see langword="true"/> in debug builds.</returns>
     private static bool IsDebugBuild()
     {
 #if DEBUG
@@ -1383,6 +1482,10 @@ public sealed class SmartBpModuleManager
 #endif
     }
 
+    /// <summary>
+    /// 报告当前程序集是否使用 PREVIEW 符号编译。
+    /// </summary>
+    /// <returns><see langword="true"/> in preview builds.</returns>
     private static bool IsPreviewBuild()
     {
 #if PREVIEW
@@ -1392,6 +1495,10 @@ public sealed class SmartBpModuleManager
 #endif
     }
 
+    /// <summary>
+    /// 获取与当前应用版本匹配的发布标签中附带的 SmartBP 模块 manifest。
+    /// </summary>
+    /// <returns>要求的模块 manifest；无法获取发布元数据时返回 <see langword="null"/>。</returns>
     private async Task<SmartBpModuleManifest?> TryFetchCurrentTagManifestAsync()
     {
         try
@@ -1435,6 +1542,11 @@ public sealed class SmartBpModuleManager
         }
     }
 
+    /// <summary>
+    /// 为中文用户应用已配置的 GitHub 代理镜像。
+    /// </summary>
+    /// <param name="url">原始下载 URL。</param>
+    /// <returns>已配置镜像时返回镜像 URL；否则返回原始 URL。</returns>
     private string GetMirroredDownloadUrl(string url)
     {
         if (string.IsNullOrWhiteSpace(url))
@@ -1447,6 +1559,11 @@ public sealed class SmartBpModuleManager
         return string.IsNullOrWhiteSpace(mirror) ? url : mirror + url;
     }
 
+    /// <summary>
+    /// 将异常链扁平化为紧凑的用户可读诊断字符串。
+    /// </summary>
+    /// <param name="exception">要格式化的异常。</param>
+    /// <returns>去重后的消息摘要。</returns>
     private static string FormatExceptionForUser(Exception exception)
     {
         var messages = new List<string>();
@@ -1466,6 +1583,12 @@ public sealed class SmartBpModuleManager
         return string.Join(" | ", messages.Distinct(StringComparer.Ordinal));
     }
 
+    /// <summary>
+    /// 在 SmartBP 模块 native 探测目录中查找非托管库。
+    /// </summary>
+    /// <param name="moduleRoot">SmartBP module root.</param>
+    /// <param name="libraryName">库文件名，可带或不带 .dll 扩展名。</param>
+    /// <returns>匹配的库路径；未找到时返回 <see langword="null"/>。</returns>
     internal static string? FindModuleUnmanagedLibraryPath(string moduleRoot, string libraryName)
     {
         if (string.IsNullOrWhiteSpace(moduleRoot) || string.IsNullOrWhiteSpace(libraryName))
@@ -1482,6 +1605,11 @@ public sealed class SmartBpModuleManager
         return candidates.FirstOrDefault(File.Exists);
     }
 
+    /// <summary>
+    /// 为 Windows DLL 解析注册 SmartBP native 目录，并预加载已知依赖锚点。
+    /// </summary>
+    /// <param name="moduleRoot">SmartBP module root.</param>
+    /// <param name="logger">Optional logger for native probing diagnostics.</param>
     internal static void RegisterModuleNativeSearchDirectories(
         string moduleRoot,
         ILogger? logger = null)
@@ -1505,6 +1633,8 @@ public sealed class SmartBpModuleManager
                     logger?.LogDebug("Added SmartBP module native search directory: {Directory}", directory);
                 }
 
+                // AddDllDirectory 帮助 P/Invoke；PATH 也能帮助仍使用旧版 Windows
+                // 搜索语义加载自身依赖的 native 库。
                 PrependProcessPath(directory);
             }
 
@@ -1512,6 +1642,11 @@ public sealed class SmartBpModuleManager
         }
     }
 
+    /// <summary>
+    /// 预加载依赖解析顺序敏感的已知 native 库。
+    /// </summary>
+    /// <param name="moduleRoot">SmartBP module root.</param>
+    /// <param name="logger">Optional logger for preload diagnostics.</param>
     private static void PreloadModuleNativeLibraries(
         string moduleRoot,
         ILogger? logger)
@@ -1536,6 +1671,11 @@ public sealed class SmartBpModuleManager
         }
     }
 
+    /// <summary>
+    /// 枚举在托管模块代码运行前应提前加载的 native 库。
+    /// </summary>
+    /// <param name="moduleRoot">SmartBP module root.</param>
+    /// <returns>Existing library paths in dependency-friendly order.</returns>
     private static IEnumerable<string> GetKnownModuleNativeLibrariesToPreload(string moduleRoot)
     {
         var nativeDirectories = GetModuleNativeSearchDirectories(moduleRoot).Where(Directory.Exists).ToArray();
@@ -1555,6 +1695,11 @@ public sealed class SmartBpModuleManager
         }
     }
 
+    /// <summary>
+    /// 构建 SmartBP 模块内 native 探测目录的有序集合。
+    /// </summary>
+    /// <param name="moduleRoot">SmartBP module root.</param>
+    /// <returns>Native probing directories, including RID-specific and module-root fallbacks.</returns>
     private static IReadOnlyList<string> GetModuleNativeSearchDirectories(string moduleRoot)
     {
         if (string.IsNullOrWhiteSpace(moduleRoot)) return [];
@@ -1579,6 +1724,10 @@ public sealed class SmartBpModuleManager
         return directories;
     }
 
+    /// <summary>
+    /// 当 native 探测目录尚未存在于进程 PATH 中时，将其前置加入 PATH。
+    /// </summary>
+    /// <param name="directory">要添加的目录。</param>
     private static void PrependProcessPath(string directory)
     {
         var current = Environment.GetEnvironmentVariable("PATH") ?? string.Empty;

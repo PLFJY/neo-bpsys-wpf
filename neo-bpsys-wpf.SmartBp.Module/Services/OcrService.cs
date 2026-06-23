@@ -496,6 +496,13 @@ public sealed class PaddleOcrProvider : IOcrProvider
         return new OcrTextBlockResult(lines, string.Join(Environment.NewLine, lines.Select(line => line.Text)), "Paddle");
     }
 
+    /// <summary>
+    /// 将 OCR 返回的边界框裁剪到输入图像范围内。
+    /// </summary>
+    /// <param name="box">OCR 返回的原始边界框。</param>
+    /// <param name="width">输入图像宽度。</param>
+    /// <param name="height">输入图像高度。</param>
+    /// <returns>裁剪后的边界框。</returns>
     private static Rect ClampToInput(Rect box, int width, int height)
     {
         var left = Math.Clamp(box.Left, 0, width);
@@ -820,11 +827,29 @@ public sealed class PaddleOcrProvider : IOcrProvider
         return new FullOcrModel(detModel, clsModel, recModel);
     }
 
+    /// <summary>
+    /// 读取 SmartBP 模块本地化文本。
+    /// </summary>
+    /// <param name="key">资源 key。</param>
+    /// <returns>本地化文本。</returns>
     private static string L(string key) => I18nHelper.GetLocalizedString(key);
 
+    /// <summary>
+    /// 读取并格式化 SmartBP 模块本地化文本。
+    /// </summary>
+    /// <param name="key">资源 key。</param>
+    /// <param name="args">格式化参数。</param>
+    /// <returns>格式化后的本地化文本。</returns>
     private static string Lf(string key, params object?[] args) =>
         string.Format(I18nHelper.GetLocalizedString(key), args);
 
+    /// <summary>
+    /// 从 PaddleOCR 模型元数据中选择下载地址。
+    /// </summary>
+    /// <param name="onlineModel">Sdcb 模型元数据对象。</param>
+    /// <param name="errorMessage">元数据缺失时抛出的本地化错误。</param>
+    /// <returns>模型下载地址。</returns>
+    /// <exception cref="InvalidOperationException">模型元数据缺少可用下载地址时抛出。</exception>
     private Uri PickModelSourceUri(object? onlineModel, string errorMessage)
     {
         if (onlineModel is null)

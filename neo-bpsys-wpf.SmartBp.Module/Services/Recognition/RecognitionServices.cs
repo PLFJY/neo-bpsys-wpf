@@ -21,8 +21,12 @@ using neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
 
 namespace neo_bpsys_wpf.SmartBp.Module.Services.Recognition;
 
+/// <summary>
+/// 将 WPF 位图压缩并编码为可发送给本地视觉模型的 data URL。
+/// </summary>
 internal sealed class SmartBpImageEncoder : ISmartBpImageEncoder
 {
+    /// <inheritdoc />
     public string EncodeDataUrl(BitmapSource source, int maxWidth)
     {
         BitmapSource image = source;
@@ -37,6 +41,9 @@ internal sealed class SmartBpImageEncoder : ISmartBpImageEncoder
     }
 }
 
+/// <summary>
+/// 使用本地视觉模型执行轻量 AI OCR 转写，只抽取区域内可见文本。
+/// </summary>
 internal sealed class SmartBpAiOcrTranscriptRecognitionService(
     ISmartBpImageEncoder encoder,
     ISmartBpRecognitionFrameCropper cropper,
@@ -193,6 +200,9 @@ Return only JSON:
         };
 }
 
+/// <summary>
+/// 将 AI OCR 转写文本解释成 SmartBP 业务字段候选结果。
+/// </summary>
 internal sealed class SmartBpAiOcrTranscriptInterpreter(ICharacterSelectionService characterSelection) : ISmartBpAiOcrTranscriptInterpreter
 {
     public (SmartBpSnapshotFieldUpdate Update, IReadOnlyList<string> Diagnostics) Interpret(
@@ -326,6 +336,9 @@ internal sealed class SmartBpAiOcrTranscriptInterpreter(ICharacterSelectionServi
         };
 }
 
+/// <summary>
+/// 表示业务 AI 融合结果校验失败，并携带原始 JSON 与诊断信息。
+/// </summary>
 internal sealed class SmartBpBusinessAiFusionValidationException(string message, string rawJson, IReadOnlyList<string> diagnostics, Exception? innerException = null)
     : Exception(message, innerException)
 {
@@ -333,6 +346,9 @@ internal sealed class SmartBpBusinessAiFusionValidationException(string message,
     public IReadOnlyList<string> Diagnostics { get; } = diagnostics;
 }
 
+/// <summary>
+/// 校验业务 AI 融合输出是否符合候选角色、阶段和字段契约。
+/// </summary>
 internal sealed class SmartBpBusinessAiFusionValidator(
     ISharedDataService shared,
     ICharacterSelectionService characterSelection) : ISmartBpBusinessAiFusionValidator
@@ -358,6 +374,9 @@ internal sealed class SmartBpBusinessAiFusionValidator(
     }
 }
 
+/// <summary>
+/// 将 OCR 区域结果与业务 AI 结果融合为可写入状态的快照增量。
+/// </summary>
 internal sealed class SmartBpBusinessAiFusionService(
     ILlamaCppOpenAiClient client,
     ISharedDataService shared,
@@ -689,6 +708,9 @@ Previous invalid output:
         };
 }
 
+/// <summary>
+/// 管理 SmartBP 识别区域 profile 的读取、保存和默认值回退。
+/// </summary>
 internal sealed class SmartBpRecognitionRegionProfileService(ISmartBpModuleStorageProvider storage) : ISmartBpRecognitionRegionProfileService
 {
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true, WriteIndented = true };
@@ -754,6 +776,9 @@ internal sealed class SmartBpRecognitionRegionProfileService(ISmartBpModuleStora
     }
 }
 
+/// <summary>
+/// 按当前区域 profile 从前台截图裁剪识别所需的业务区域。
+/// </summary>
 internal sealed class SmartBpRecognitionFrameCropper(ISmartBpRecognitionRegionProfileService profileService) : ISmartBpRecognitionFrameCropper
 {
     public BitmapSource Crop(BitmapSource source, SmartBpRecognitionRegion region) => CropWithInfo(source, region).Image;
@@ -796,6 +821,9 @@ internal sealed class SmartBpRecognitionFrameCropper(ISmartBpRecognitionRegionPr
     };
 }
 
+/// <summary>
+/// 将模型输出的角色名称解析到当前共享数据中的规范角色名称。
+/// </summary>
 internal sealed class SmartBpCharacterResolver(ICharacterSelectionService characterSelectionService) : ISmartBpCharacterResolver
 {
     public SmartBpNormalizedCharacter Resolve(string? rawName, Camp camp, int slot, double confidence)
@@ -822,6 +850,9 @@ internal sealed class SmartBpCharacterResolver(ICharacterSelectionService charac
     }
 }
 
+/// <summary>
+/// 构建 SmartBP 本地视觉模型识别所需的提示词文本。
+/// </summary>
 internal static class SmartBpRecognitionPromptBuilder
 {
     public static string BuildSnapshotDelta(
@@ -1113,7 +1144,7 @@ talent name may appear lower; do not put talent name into character_name。
 {"field":"picked_hun","picked_hun":{"index":0,"slot_state":"selected","character_name":"...","player_id":"..."}}
 """;
 
-    /// <summary>Returns the field-snapshot user prompt for the requested field id.</summary>
+    /// <summary>返回指定字段标识对应的字段快照用户提示词。</summary>
     public static string BuildFieldSnapshot(string field) => field switch
     {
         "banned_sur" => BuildBannedSurFieldSnapshot(),
@@ -1259,6 +1290,9 @@ phase, banned_sur, banned_hun, picked_sur, picked_hun
     }
 }
 
+/// <summary>
+/// 构建 SmartBP 本地视觉模型结构化输出使用的 JSON 架构。
+/// </summary>
 internal static class SmartBpRecognitionJsonSchemaProvider
 {
     public static JsonObject GetPhaseOnly() =>
@@ -1304,7 +1338,7 @@ internal static class SmartBpRecognitionJsonSchemaProvider
         }, "field", "picked_hun");
     }
 
-    /// <summary>Returns the field-snapshot JSON schema for the requested field id.</summary>
+    /// <summary>返回指定字段标识对应的字段快照 JSON 架构。</summary>
     public static JsonObject GetFieldSnapshot(string field, IReadOnlyList<string> survivorCandidates, IReadOnlyList<string> hunterCandidates, bool strictCandidateEnums) => field switch
     {
         "banned_sur" => GetBannedSurFieldSnapshot(survivorCandidates, strictCandidateEnums),
@@ -1494,14 +1528,17 @@ internal static class SmartBpRecognitionJsonSchemaProvider
     private static JsonObject Array(JsonNode? item) => new() { ["type"] = "array", ["items"] = item };
 }
 
+/// <summary>
+/// 修复本地模型返回的 JSON 包装格式，便于后续严格解析。
+/// </summary>
 internal static class SmartBpJsonRepair
 {
     private static readonly Regex FenceRegex = new(@"^\s*```(?:json)?\s*\n?([\s\S]*?)\n?\s*```\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
     private static readonly Regex FirstObjectRegex = new(@"\{[\s\S]*\}", RegexOptions.Compiled);
 
-    /// <summary>Repairs common model output issues such as Markdown JSON fences and surrounding prose.</summary>
-    /// <param name="raw">Raw model content.</param>
-    /// <returns>The repaired JSON string and whether a fence was removed.</returns>
+    /// <summary>修复模型输出中常见的 Markdown JSON 围栏和前后说明文本。</summary>
+    /// <param name="raw">模型原始输出内容。</param>
+    /// <returns>修复后的 JSON 字符串，以及是否移除了代码围栏。</returns>
     public static (string Repaired, bool RemovedFence) Repair(string raw)
     {
         if (string.IsNullOrWhiteSpace(raw)) return (raw, false);
@@ -1526,6 +1563,9 @@ internal static class SmartBpJsonRepair
     }
 }
 
+/// <summary>
+/// 调用 llama.cpp OpenAI 兼容接口完成视觉识别请求。
+/// </summary>
 internal sealed class LlamaCppOpenAiClient(ISmartBpRecognitionSettingsService settings, ISharedDataService shared, ISmartBpPromptProfileProvider promptProfiles, ILogger<LlamaCppOpenAiClient> logger, ISmartBpDebugLog debugLog) : ILlamaCppOpenAiClient
 {
     public LlamaCppResponseMetrics? LastResponseMetrics { get; private set; }
@@ -1915,6 +1955,9 @@ internal sealed class LlamaCppOpenAiClient(ISmartBpRecognitionSettingsService se
         parent.TryGetProperty(name, out var value) && value.TryGetDouble(out var result) ? result : null;
 }
 
+/// <summary>
+/// 组合图像编码、本地模型调用和 JSON 解析，提供 SmartBP AI 识别入口。
+/// </summary>
 internal sealed class SmartBpAiRecognitionService(ISmartBpImageEncoder encoder, ILlamaCppOpenAiClient client,
     ISmartBpCharacterResolver resolver, ISmartBpRecognitionSettingsService settings, ILogger<SmartBpAiRecognitionService> logger) : ISmartBpAiRecognitionService
 {
@@ -1965,6 +2008,9 @@ internal sealed class SmartBpAiRecognitionService(ISmartBpImageEncoder encoder, 
     private static Camp? ParseFaction(string value) => value switch { "survivor" => Camp.Sur, "hunter" => Camp.Hun, "unknown" => null, _ => throw new InvalidDataException("Invalid faction.") };
 }
 
+/// <summary>
+/// 表示 llama.cpp 请求失败，并保留原始响应便于调试。
+/// </summary>
 internal sealed class LlamaCppRequestException(string message, string rawResponse) : Exception(message)
 {
     public string RawResponse { get; } = rawResponse;

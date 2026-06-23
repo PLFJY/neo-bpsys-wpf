@@ -9,8 +9,12 @@ using neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
 
 namespace neo_bpsys_wpf.SmartBp.Module.Services.Recognition;
 
+/// <summary>
+/// 将阶段识别和各区域聚焦识别结果合并成完整 BP 业务状态。
+/// </summary>
 internal sealed class SmartBpBusinessStateMerger : ISmartBpBusinessStateMerger
 {
+    /// <inheritdoc />
     public SmartBpBusinessStateRecognitionResult Merge(
         SmartBpPhaseRecognitionResult phase,
         SmartBpFocusedBusinessExtractionResult? bannedSur,
@@ -45,6 +49,9 @@ internal sealed class SmartBpBusinessStateMerger : ISmartBpBusinessStateMerger
         new() { Index = slot.Index, CharacterName = slot.CharacterName, PlayerId = slot.PlayerId, RecognitionConfidence = slot.RecognitionConfidence, IsAutoApplySafe = slot.IsAutoApplySafe, RecognitionReason = slot.RecognitionReason };
 }
 
+/// <summary>
+/// 以区域快照方式分别识别阶段、禁用和选择区域，再合并为业务状态。
+/// </summary>
 internal sealed class SmartBpRegionSnapshotRecognitionService(
     ISmartBpImageEncoder encoder,
     ISmartBpRecognitionFrameCropper cropper,
@@ -121,11 +128,15 @@ internal sealed class SmartBpRegionSnapshotRecognitionService(
         Task.Run(() => encoder.EncodeDataUrl(image, settings.Settings.MaxImageWidth), cancellationToken);
 }
 
+/// <summary>
+/// 持有 SmartBP 自动识别的最新业务状态，并按帧序合并字段增量。
+/// </summary>
 internal sealed class SmartBpRecognitionStateStore : ISmartBpRecognitionStateStore
 {
     private readonly object _gate = new();
     private SmartBpRecognitionState _state = new();
 
+    /// <inheritdoc />
     public SmartBpBusinessStateRecognitionResult Snapshot
     {
         get
@@ -134,6 +145,7 @@ internal sealed class SmartBpRecognitionStateStore : ISmartBpRecognitionStateSto
         }
     }
 
+    /// <inheritdoc />
     public IReadOnlyList<string> ApplyDelta(SmartBpSnapshotDeltaResult delta, long frameSequence, DateTimeOffset timestamp)
     {
         var diagnostics = new List<string>();
@@ -156,6 +168,7 @@ internal sealed class SmartBpRecognitionStateStore : ISmartBpRecognitionStateSto
         return diagnostics;
     }
 
+    /// <inheritdoc />
     public IReadOnlyList<string> ApplyFieldSnapshot(string field, SmartBpSnapshotFieldUpdate snapshot, long frameSequence, DateTimeOffset timestamp)
     {
         var diagnostics = new List<string>();
@@ -173,6 +186,7 @@ internal sealed class SmartBpRecognitionStateStore : ISmartBpRecognitionStateSto
         return diagnostics;
     }
 
+    /// <inheritdoc />
     public void ApplyPhase(string phase, long frameSequence)
     {
         lock (_gate)
@@ -201,6 +215,7 @@ internal sealed class SmartBpRecognitionStateStore : ISmartBpRecognitionStateSto
         }
     }
 
+    /// <inheritdoc />
     public IReadOnlyList<string> GetStaleFieldDiagnostics(DateTimeOffset timestamp, int staleMilliseconds)
     {
         if (staleMilliseconds <= 0) return [];
@@ -213,6 +228,7 @@ internal sealed class SmartBpRecognitionStateStore : ISmartBpRecognitionStateSto
         }
     }
 
+    /// <inheritdoc />
     public void Reset()
     {
         lock (_gate) _state = new();
@@ -318,6 +334,9 @@ internal sealed class SmartBpRecognitionStateStore : ISmartBpRecognitionStateSto
         new() { Index = slot.Index, CharacterName = slot.CharacterName, PlayerId = slot.PlayerId, RecognitionConfidence = slot.RecognitionConfidence, IsAutoApplySafe = slot.IsAutoApplySafe, RecognitionReason = slot.RecognitionReason };
 }
 
+/// <summary>
+/// 根据当前引导步骤、本地状态和已完成台账规划本轮需要识别的区域字段。
+/// </summary>
 internal sealed class SmartBpSnapshotRecognitionPlanner(
     ISmartBpRecognitionSettingsService settings,
     ISmartBpRecognitionStateStore stateStore) : ISmartBpSnapshotRecognitionPlanner
@@ -393,6 +412,9 @@ internal sealed class SmartBpSnapshotRecognitionPlanner(
     }
 }
 
+/// <summary>
+/// 保留最近若干帧，供阶段转场和回填逻辑选择更合适的截图。
+/// </summary>
 internal sealed class SmartBpFrameRingBuffer(ISmartBpRecognitionSettingsService settings) : ISmartBpFrameRingBuffer
 {
     private readonly object _gate = new();
@@ -425,6 +447,9 @@ internal sealed class SmartBpFrameRingBuffer(ISmartBpRecognitionSettingsService 
     }
 }
 
+/// <summary>
+/// 对裁剪图进行低分辨率采样，判断区域画面是否发生足够变化。
+/// </summary>
 internal sealed class SmartBpCropChangeDetector(ISmartBpRecognitionSettingsService settings) : ISmartBpCropChangeDetector
 {
     private readonly object _gate = new();
@@ -465,6 +490,9 @@ internal sealed class SmartBpCropChangeDetector(ISmartBpRecognitionSettingsServi
     }
 }
 
+/// <summary>
+/// 使用业务 AI 一次识别多个区域字段并返回快照增量。
+/// </summary>
 internal sealed class SmartBpAiSnapshotDeltaRecognitionService(
     ISmartBpImageEncoder encoder,
     ISmartBpRecognitionFrameCropper cropper,
@@ -545,6 +573,9 @@ internal sealed class SmartBpAiSnapshotDeltaRecognitionService(
     };
 }
 
+/// <summary>
+/// 使用业务 AI 分阶段识别阶段标题和单个字段快照。
+/// </summary>
 internal sealed class SmartBpAiFieldSnapshotRecognitionService(
     ISmartBpImageEncoder encoder,
     ISmartBpRecognitionFrameCropper cropper,
@@ -671,6 +702,9 @@ internal sealed class SmartBpAiFieldSnapshotRecognitionService(
         await Task.Run(() => encoder.EncodeDataUrl(image, Math.Min(settings.Settings.MaxImageWidth, maxWidth)), cancellationToken);
 }
 
+/// <summary>
+/// 记录已应用或跳过的工作流操作，避免自动识别重复写入同一步骤。
+/// </summary>
 internal sealed class SmartBpRecognitionLedger : ISmartBpRecognitionLedger, IDisposable
 {
     private readonly object _gate = new();
@@ -745,6 +779,9 @@ internal sealed class SmartBpRecognitionLedger : ISmartBpRecognitionLedger, IDis
     }
 }
 
+/// <summary>
+/// 根据当前快照和工作流步骤生成可回填的候选操作计划。
+/// </summary>
 internal sealed class SmartBpWorkflowBackfillService(
     SmartBpCandidateOperationBuilder candidateBuilder,
     ISmartBpRecognitionLedger ledger,

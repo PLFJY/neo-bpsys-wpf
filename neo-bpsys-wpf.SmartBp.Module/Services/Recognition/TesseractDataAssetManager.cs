@@ -6,7 +6,9 @@ using neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
 
 namespace neo_bpsys_wpf.SmartBp.Module.Services.Recognition;
 
-/// <summary>Downloads and validates managed Tesseract language data.</summary>
+/// <summary>
+/// 下载并校验 SmartBP 托管的 Tesseract 语言数据。
+/// </summary>
 public sealed class TesseractDataAssetManager(
     ISmartBpModuleStorageProvider storage,
     ISmartBpRecognitionSettingsService settingsService,
@@ -93,6 +95,9 @@ public sealed class TesseractDataAssetManager(
     /// <inheritdoc />
     public void Cancel() => _downloadCts?.Cancel();
 
+    /// <summary>
+    /// 下载单个 Tesseract 语言数据文件并汇总整体进度。
+    /// </summary>
     private async Task DownloadAsync(TesseractManagedLanguage asset, string directory, int index, int count, CancellationToken token)
     {
         var destination = Path.Combine(directory, $"{asset.Language}.traineddata");
@@ -132,10 +137,19 @@ public sealed class TesseractDataAssetManager(
         Raise(new(true, count == 0 ? 100 : (index + 1D) / count * 100, "SmartBpTesseractDataDownloading", fileName));
     }
 
+    /// <summary>
+    /// 获取模块托管的 tessdata 目录。
+    /// </summary>
     private string GetManagedPath() => storage.TesseractDataRoot;
 
+    /// <summary>
+    /// 发布下载状态变化事件。
+    /// </summary>
     private void Raise(SmartBpDownloadState state) => StateChanged?.Invoke(this, state);
 
+    /// <summary>
+    /// 将语言代码解析为受支持的托管语言资产。
+    /// </summary>
     private static IEnumerable<TesseractManagedLanguage> ResolveAssets(IEnumerable<string> languages)
     {
         var requested = languages
@@ -152,6 +166,9 @@ public sealed class TesseractDataAssetManager(
         }
     }
 
+    /// <summary>
+    /// 解析设置中的 Tesseract 语言表达式。
+    /// </summary>
     private static IEnumerable<string> ParseLanguages(string? languages) =>
         (string.IsNullOrWhiteSpace(languages) ? "chi_sim+eng" : languages)
         .Split(['+', ',', ';', ' '], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)

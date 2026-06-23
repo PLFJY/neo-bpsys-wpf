@@ -11,7 +11,7 @@ using neo_bpsys_wpf.SmartBp.Module.Services.Recognition;
 namespace neo_bpsys_wpf.SmartBp.Module;
 
 /// <summary>
-/// SmartBP runtime module entry point.
+/// SmartBP 运行时模块入口。
 /// </summary>
 public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint
 {
@@ -45,10 +45,17 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint
         ];
     }
 
+    /// <summary>
+    /// 构建 SmartBP 模块内部 DI 容器，并桥接宿主提供的全局服务。
+    /// </summary>
+    /// <param name="hostServices">宿主应用的服务容器。</param>
+    /// <returns>模块内部服务容器。</returns>
     private static ServiceProvider BuildServices(IServiceProvider hostServices)
     {
         var services = new ServiceCollection();
         var loggerFactory = hostServices.GetRequiredService<ILoggerFactory>();
+
+        // 宿主状态与导播控制服务仍由主程序持有，模块只复用引用，不复制比赛状态。
         services.AddSingleton(hostServices.GetRequiredService<ISharedDataService>());
         services.AddSingleton(hostServices.GetRequiredService<IGameGuidanceService>());
         services.AddSingleton(hostServices.GetRequiredService<ICharacterSelectionService>());
@@ -62,6 +69,8 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint
         services.AddSingleton(hostServices.GetRequiredService<ISmartBpAutoRecognitionGlobalControlSink>());
         services.AddSingleton(loggerFactory);
         services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
+
+        // GameData 赛后数据 OCR 与 BP 自动识别共用模块服务，但配置文件和区域 profile 分开管理。
         services.AddSingleton<ISmartBpSceneDefinition, SmartBpGameDataSceneDefinition>();
         services.AddSingleton<ISmartBpRegionConfigService, SmartBpRegionConfigService>();
         services.AddSingleton<PaddleOcrProvider>();
@@ -89,6 +98,8 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint
         services.AddSingleton<ILlamaCppRuntimeUpdateService, LlamaCppRuntimeUpdateService>();
         services.AddSingleton<ISmartBpImageEncoder, SmartBpImageEncoder>();
         services.AddSingleton<ISmartBpRecognitionRegionProfileService, SmartBpRecognitionRegionProfileService>();
+
+        // 自动识别流水线：裁剪、OCR/AI 识别、状态合并、候选操作、GameGuidance 同步与实际应用。
         services.AddSingleton<ISmartBpRecognitionFrameCropper, SmartBpRecognitionFrameCropper>();
         services.AddSingleton<ISmartBpFrameRingBuffer, SmartBpFrameRingBuffer>();
         services.AddSingleton<ISmartBpCropChangeDetector, SmartBpCropChangeDetector>();

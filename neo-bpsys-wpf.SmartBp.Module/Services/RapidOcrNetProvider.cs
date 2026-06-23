@@ -76,7 +76,7 @@ internal sealed class RapidOcrEngine : IRapidOcrEngine
     public void Dispose() => _ocr?.Dispose();
 }
 
-/// <summary>Recognizes positioned text with RapidOcrNet and managed Chinese PP-OCR models.</summary>
+/// <summary>使用 RapidOcrNet 和托管中文 PP-OCR 模型识别带位置的文本。</summary>
 public sealed class RapidOcrNetProvider : IOcrProvider, IDisposable
 {
     private const string ProviderName = "RapidOCR";
@@ -88,10 +88,10 @@ public sealed class RapidOcrNetProvider : IOcrProvider, IDisposable
     private string? _initializedKey;
     private string? _initializationError;
 
-    /// <summary>Initializes the RapidOCR provider.</summary>
-    /// <param name="assets">Managed model asset manager.</param>
-    /// <param name="settings">Recognition settings.</param>
-    /// <param name="logger">Logger.</param>
+    /// <summary>初始化 RapidOCR 提供程序。</summary>
+    /// <param name="assets">托管模型资产管理器。</param>
+    /// <param name="settings">识别设置服务。</param>
+    /// <param name="logger">日志记录器。</param>
     public RapidOcrNetProvider(
         IRapidOcrModelAssetManager assets,
         ISmartBpRecognitionSettingsService settings,

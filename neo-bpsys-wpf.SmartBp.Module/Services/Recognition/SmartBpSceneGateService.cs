@@ -4,8 +4,12 @@ using neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
 
 namespace neo_bpsys_wpf.SmartBp.Module.Services.Recognition;
 
+/// <summary>
+/// 根据 OCR/AI 识别证据和当前引导状态判断是否允许自动写入 BP 数据。
+/// </summary>
 internal sealed class SmartBpSceneGateService : ISmartBpSceneGateService
 {
+    /// <inheritdoc />
     public SmartBpSceneGateResult Classify(
         SmartBpPhaseRecognitionResult phase,
         SmartBpBusinessStateRecognitionResult state,

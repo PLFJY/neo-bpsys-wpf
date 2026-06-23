@@ -5,7 +5,7 @@ using neo_bpsys_wpf.Helpers;
 namespace neo_bpsys_wpf.Converters;
 
 /// <summary>
-/// Converts a localization key to localized text.
+/// 将本地化资源键转换为当前语言文本。
 /// </summary>
 public sealed class LocalizationKeyToTextConverter : IValueConverter
 {

@@ -4,7 +4,7 @@ using System.Windows.Data;
 namespace neo_bpsys_wpf.Converters;
 
 /// <summary>
-/// Converts a Boolean value to its inverse.
+/// 将布尔值转换为相反值。
 /// </summary>
 public sealed class InverseBooleanConverter : IValueConverter
 {

@@ -253,7 +253,7 @@ public sealed class SmartBpGameDataSceneDefinition(ISmartBpModuleStorageProvider
     {
         var layoutBuilder = RegionLayoutDefinition.Builder("SmartBpSceneGameData");
 
-        // row0: hunter
+        // 第 0 行：监管者。
         layoutBuilder.AddTemplatedNode(
             "hunter_rows",
             "row0_hunter",
@@ -265,7 +265,7 @@ public sealed class SmartBpGameDataSceneDefinition(ISmartBpModuleStorageProvider
                 AddHunterDataCells(node);
             });
 
-        // row1-row4: survivor template rows
+        // 第 1-4 行：求生者模板行。
         layoutBuilder.AddTemplatedNode(
             "survivor_rows",
             "row1_survivor",

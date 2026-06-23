@@ -33,33 +33,33 @@ using System.Windows.Threading;
 namespace neo_bpsys_wpf.ViewModels.Windows;
 
 /// <summary>
-/// Controls how a designer snapshot restore updates validation and preview visuals.
+/// 控制设计器快照恢复时如何更新校验和预览视觉状态。
 /// </summary>
 public enum FrontedDesignerSnapshotRestoreMode
 {
     /// <summary>
-    /// Prefer an in-place geometry patch, then defer validation; fall back to scheduled atomic preview.
+    /// 优先就地修补几何信息，然后延迟校验；失败时回退到已调度的原子预览。
     /// </summary>
     PreferGeometryFastPathThenScheduledAtomicPreview,
 
     /// <summary>
-    /// Render preview immediately, then defer validation to the scheduled designer work queue.
+    /// 立即渲染预览，然后将校验延迟到已调度的设计器工作队列。
     /// </summary>
     ImmediatePreviewThenScheduledValidation,
 
     /// <summary>
-    /// Defer validation and preview together to the scheduled designer work queue.
+    /// 将校验和预览一起延迟到已调度的设计器工作队列。
     /// </summary>
     ScheduledValidationAndPreview,
 
     /// <summary>
-    /// Run validation and preview immediately in one restore transaction.
+    /// 在一次恢复事务中立即运行校验和预览。
     /// </summary>
     ImmediateValidationAndPreview
 }
 
 /// <summary>
-/// ViewModel for the independent v3 fronted designer editor shell.
+/// 独立 v3 前台窗口设计器编辑器外壳的视图模型。
 /// </summary>
 public partial class FrontedDesignerWindowViewModel : ViewModelBase
 {
@@ -127,10 +127,13 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private FrontedDesignerLayoutCatalogEntry? _selectedCatalogEntry;
 
 #pragma warning disable CS8618
+    /// <summary>
+    /// 初始化设计器视图模型的设计时实例。
+    /// </summary>
     public FrontedDesignerWindowViewModel()
 #pragma warning restore CS8618
     {
-        // Decorative constructor for design-time only.
+        // 仅供设计器构造预览使用。
         _layoutService = null!;
         _designConverter = new FrontedLayoutDesignConverter();
         _referenceScanner = new FrontedLayoutReferenceScanner();
@@ -158,12 +161,40 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         InitializeZoomPresets();
     }
 
+    /// <summary>
+    /// 使用自定义行为服务初始化面向测试的实例。
+    /// </summary>
+    /// <param name="behaviorService">测试使用的行为服务。</param>
     public FrontedDesignerWindowViewModel(IFrontedBehaviorService behaviorService)
         : this()
     {
         _behaviorService = behaviorService;
     }
 
+    /// <summary>
+    /// 初始化生产环境 Designer v3 编辑器视图模型。
+    /// </summary>
+    /// <param name="layoutCatalog">Catalog of editable v3 layout windows.</param>
+    /// <param name="layoutService">布局加载/保存服务。</param>
+    /// <param name="designConverter">Converter between runtime layout config and design document.</param>
+    /// <param name="validator">布局校验器。</param>
+    /// <param name="referenceScanner">Reference scanner used for rename/delete safety.</param>
+    /// <param name="propertyGridBuilder">属性网格行构建器。</param>
+    /// <param name="defaultConfigFactory">“添加控件”使用的默认控件配置工厂。</param>
+    /// <param name="controlNameGenerator">Unique control name generator.</param>
+    /// <param name="localizationService">Designer 本地化服务。</param>
+    /// <param name="designerPreviewSharedDataService">仅用于预览的共享数据服务。</param>
+    /// <param name="localResourceStore">Local package resource store.</param>
+    /// <param name="windowLayoutOptionsService">窗口选项持久化服务。</param>
+    /// <param name="packageManager">布局包管理器。</param>
+    /// <param name="frontedWindowService">Fronted window service used to refresh live output after saves.</param>
+    /// <param name="behaviorService">行为文档服务。</param>
+    /// <param name="behaviorClipboard">Shared behavior clipboard.</param>
+    /// <param name="behaviorCopyPasteService">行为复制/粘贴服务。</param>
+    /// <param name="animationRuntime">预览使用的动画运行时。</param>
+    /// <param name="previewAnimationScope">预览动画目标作用域。</param>
+    /// <param name="logger">Logger.</param>
+    /// <param name="settingsHostService">Optional settings host service.</param>
     public FrontedDesignerWindowViewModel(
         FrontedDesignerLayoutCatalog layoutCatalog,
         IFrontedLayoutService layoutService,
@@ -218,19 +249,22 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Raised when the view should render or clear the preview canvas.
+    /// 需要视图渲染或清除预览画布时触发。
     /// </summary>
     public event EventHandler<FrontedDesignerPreviewRenderRequestedEventArgs>? PreviewRenderRequested;
 
     /// <summary>
-    /// Raised when an undo/redo restore can be applied by patching existing preview elements.
+    /// 撤销/重做恢复可通过修补现有预览元素完成时触发。
     /// </summary>
     public event EventHandler<FrontedDesignerGeometryPatchRequestedEventArgs>? DesignerGeometryPatchRequested;
 
+    /// <summary>
+    /// 获取窗口选择器中显示的可编辑窗口选项。
+    /// </summary>
     public ObservableCollection<FrontedDesignerWindowOption> WindowOptions { get; } = [];
 
     /// <summary>
-    /// Refreshes localized window names without reloading the current layout.
+    /// 在不重新加载当前布局的情况下刷新本地化窗口名称。
     /// </summary>
     public void RefreshWindowDisplayNames()
     {
@@ -244,24 +278,36 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         LoadWindowOptions(_selectedCatalogEntry.WindowTypeName);
     }
 
+    /// <summary>
+    /// 获取当前设计文档的校验消息。
+    /// </summary>
     public ObservableCollection<FrontedLayoutValidationMessage> ValidationMessages { get; } = [];
 
+    /// <summary>
+    /// 获取 Designer 工具栏中显示的缩放预设项。
+    /// </summary>
     public ObservableCollection<FrontedDesignerZoomPreset> ZoomPresets { get; } = [];
 
     /// <summary>
-    /// Zoom presets for the ComboBox dropdown, excluding the Fit item.
+    /// ComboBox 下拉框使用的缩放预设，不包含自适应项。
     /// </summary>
     public IEnumerable<FrontedDesignerZoomPreset> ManualZoomPresets =>
         ZoomPresets.Where(p => !p.IsFit).ToList();
 
+    /// <summary>
+    /// 获取应用图层/搜索过滤后的设计项。
+    /// </summary>
     public ObservableCollection<FrontedControlDesignItem> FilteredDesignItems { get; } = [];
 
+    /// <summary>
+    /// 获取分组后的图层树节点。
+    /// </summary>
     public ObservableCollection<FrontedLayerGroup> LayerGroups { get; } = [];
 
     public ObservableCollection<GlobalScoreCellConfig> GlobalScoreCellEditorItems { get; } = [];
 
     /// <summary>
-    /// Gets the fixed internal style parts exposed by the selected MapV2Display composite control.
+    /// 获取选中 MapV2Display 复合控件暴露的固定内部样式部件。
     /// </summary>
     public ObservableCollection<MapV2InternalStylePartOption> MapV2InternalStylePartOptions { get; } =
     [
@@ -281,12 +327,12 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     public ObservableCollection<FrontedPropertyEditorItem> PropertyEditorItems { get; } = [];
 
     /// <summary>
-    /// Gets the currently selected design controls. The primary selection remains <see cref="SelectedDesignItem"/>.
+    /// 获取当前选中的设计控件；主选中项仍保留在 <see cref="SelectedDesignItem"/>。
     /// </summary>
     public ObservableCollection<FrontedControlDesignItem> SelectedDesignItems { get; } = [];
 
     /// <summary>
-    /// Gets animation parts configured on the selected control.
+    /// 获取选中控件上配置的动画部件。
     /// </summary>
     public ObservableCollection<FrontedAnimationPartConfig> AnimationPartEditorItems { get; } = [];
 
@@ -399,12 +445,12 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     public bool IsMapV2DisplaySelected => SelectedDesignItem?.Config is MapV2DisplayControlConfig;
 
     /// <summary>
-    /// Gets a value indicating whether a MapV2Display internal style part is selected.
+    /// 获取是否已选中 MapV2Display 内部样式部件。
     /// </summary>
     public bool HasSelectedMapV2InternalStylePart => SelectedMapV2InternalStylePart is not null;
 
     /// <summary>
-    /// Gets the persisted layout for the selected MapV2Display internal part.
+    /// 获取选中 MapV2Display 内部部件的已持久化布局。
     /// </summary>
     public MapV2InternalPartLayoutConfig? SelectedMapV2InternalPartLayout
     {
@@ -431,7 +477,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     public bool IsPolygonSelected => SelectedDesignItem?.Config is IPolygonFrontedControlConfig;
 
     /// <summary>
-    /// Gets a value indicating whether a control is selected for animation part editing.
+    /// 获取是否已选择用于动画部件编辑的控件。
     /// </summary>
     public bool HasAnimationPartEditor => SelectedDesignItem is not null;
 
@@ -443,7 +489,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private FrontedAnimationPartEditorViewModel? _AnimationPartEditBuffer;
 
     /// <summary>
-    /// Gets a value indicating whether a animation part is selected.
+    /// 获取是否已选中动画部件。
     /// </summary>
     public bool HasSelectedAnimationPart => SelectedAnimationPart is not null;
 
@@ -572,7 +618,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     public int ScheduledDesignerPreviewExecutionCount { get; private set; }
 
     /// <summary>
-    /// True while snapshot restore is updating preview visuals and selection state as one transaction.
+    /// 快照恢复正以一个事务更新预览视觉和选择状态时为 true。
     /// </summary>
     public bool IsRestoringSnapshotVisuals => _isRestoringSnapshot;
 
@@ -983,9 +1029,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Updates the selected animation part image edit buffer from a resource-browser selection.
+    /// 根据资源浏览器选择更新选中动画部件的图片编辑缓冲。
     /// </summary>
-    /// <param name="selectedResourcePath">Selected built-in, package, or absolute image path.</param>
+    /// <param name="selectedResourcePath">选中的内置、包内或绝对图片路径。</param>
     /// <returns><see langword="true"/> when the edit buffer was updated.</returns>
     public bool ApplyAnimationPartImageResourceSelection(string selectedResourcePath)
     {
@@ -1004,7 +1050,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Imports a local image and updates the selected image animation part edit buffer.
+    /// 导入本地图片，并更新选中图片动画部件的编辑缓冲。
     /// </summary>
     /// <param name="sourcePath">Absolute local image path.</param>
     /// <returns><see langword="true"/> when the image was imported and selected.</returns>
@@ -1155,12 +1201,20 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             selectedControlName: SelectedDesignItem?.Name);
     }
 
+    /// <summary>
+    /// 通过命令包装器重新加载当前布局。
+    /// </summary>
+    /// <returns>重新加载完成后结束的任务。</returns>
     [RelayCommand]
     private async Task ReloadLayoutAsync()
     {
         await ReloadLayoutCoreAsync();
     }
 
+    /// <summary>
+    /// 重新加载选中布局、行为文档、预览状态、校验消息和编辑器选择。
+    /// </summary>
+    /// <returns>布局完成加载或清除后结束的任务。</returns>
     public async Task ReloadLayoutCoreAsync()
     {
         if (SelectedWindow is null || _selectedCatalogEntry is null)
@@ -1235,7 +1289,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
         catch (OperationCanceledException)
         {
-            // A newer window/canvas selection superseded this load request.
+            // 更新的窗口/画布选择已经取代本次加载请求。
         }
         catch (Exception ex)
         {
@@ -1256,12 +1310,20 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
     }
 
+    /// <summary>
+    /// 通过命令包装器保存当前布局，并保留可见的校验失败消息。
+    /// </summary>
+    /// <returns>保存成功或失败后结束的任务。</returns>
     [RelayCommand(CanExecute = nameof(CanSaveLayout))]
     private async Task SaveLayoutAsync()
     {
         await SaveCurrentLayoutAsync();
     }
 
+    /// <summary>
+    /// 校验当前布局和行为文档，并保存到活动布局包。
+    /// </summary>
+    /// <returns><see langword="true"/> when save completed successfully.</returns>
     public async Task<bool> SaveCurrentLayoutAsync()
     {
         if (CurrentDocument is null)
@@ -1368,12 +1430,20 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
     }
 
+    /// <summary>
+    /// 通过命令包装器重置当前布局。
+    /// </summary>
+    /// <returns>重置处理完成后结束的任务。</returns>
     [RelayCommand(CanExecute = nameof(CanResetToBuiltIn))]
     private async Task ResetToBuiltInAsync()
     {
         await ResetToBuiltInCoreAsync();
     }
 
+    /// <summary>
+    /// 使用内置包版本替换当前可编辑布局。
+    /// </summary>
+    /// <returns><see langword="true"/> when reset succeeded.</returns>
     public async Task<bool> ResetToBuiltInCoreAsync()
     {
         if (CurrentDocument is null)
@@ -1416,11 +1486,18 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         return true;
     }
 
+    /// <summary>
+    /// 更新临时 Shift 键吸附状态，而不改变已持久化的吸附开关。
+    /// </summary>
+    /// <param name="isActive">当前 Shift 吸附是否处于活动状态。</param>
     public void UpdateShiftSnapActive(bool isActive)
     {
         IsShiftSnapActive = isActive;
     }
 
+    /// <summary>
+    /// 运行完整布局校验并更新校验面板。
+    /// </summary>
     [RelayCommand]
     private void ValidateLayout()
     {
@@ -1433,6 +1510,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         ValidateCurrentDocument();
     }
 
+    /// <summary>
+    /// 恢复上一个 Designer 撤销快照。
+    /// </summary>
     [RelayCommand(CanExecute = nameof(CanUndo))]
     private void Undo()
     {
@@ -1459,6 +1539,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         LogDesignerPerf("Undo", "total", Elapsed(total));
     }
 
+    /// <summary>
+    /// 恢复下一个 Designer 重做快照。
+    /// </summary>
     [RelayCommand(CanExecute = nameof(CanRedo))]
     private void Redo()
     {
@@ -1519,6 +1602,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
     }
 
+    /// <summary>
+    /// 添加由“添加控件”目录项描述的新控件。
+    /// </summary>
+    /// <param name="parameter">Expected to be a <see cref="FrontedAddControlCatalogItem"/>.</param>
     [RelayCommand]
     private void AddControl(object? parameter)
     {
@@ -1567,6 +1654,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         StatusMessage = $"{I18nHelper.GetLocalizedString("AddedControl")}: {item.Name}";
     }
 
+    /// <summary>
+    /// 将选中的可编辑控件复制到 Designer 控件剪贴板。
+    /// </summary>
     [RelayCommand(CanExecute = nameof(CanCopySelectedControl))]
     private void CopySelectedControl()
     {
@@ -1582,6 +1672,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         StatusMessage = I18nHelper.GetLocalizedString("CopyControl");
     }
 
+    /// <summary>
+    /// 将复制的控件粘贴到当前文档，并分配不冲突的名称。
+    /// </summary>
     [RelayCommand(CanExecute = nameof(CanPasteControl))]
     private void PasteControl()
     {
@@ -1641,6 +1734,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         LogDesignerPerf("Paste", "total", Elapsed(total));
     }
 
+    /// <summary>
+    /// 在完成引用和运行时关键检查后删除选中的可编辑控件。
+    /// </summary>
     [RelayCommand(CanExecute = nameof(CanDeleteSelectedControl))]
     private void DeleteSelectedControl()
     {
@@ -2049,6 +2145,12 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         ApplyCanvasSizeEdit(CanvasWidthEditText, CanvasHeightEditText);
     }
 
+    /// <summary>
+    /// 应用画布设置编辑器中的 Canvas 宽高文本。
+    /// </summary>
+    /// <param name="widthText">Canvas 宽度文本。</param>
+    /// <param name="heightText">Canvas 高度文本。</param>
+    /// <returns><see langword="true"/> when both values were valid and applied.</returns>
     public bool ApplyCanvasSizeEdit(string widthText, string heightText)
     {
         if (CurrentDocument is null)
@@ -2085,6 +2187,12 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         ApplyWindowSizeEdit(WindowWidthEditText, WindowHeightEditText);
     }
 
+    /// <summary>
+    /// 应用窗口设置编辑器中的前台窗口宽高文本。
+    /// </summary>
+    /// <param name="widthText">窗口宽度文本。</param>
+    /// <param name="heightText">窗口高度文本。</param>
+    /// <returns><see langword="true"/> when both values were valid and applied.</returns>
     public bool ApplyWindowSizeEdit(string widthText, string heightText)
     {
         if (SelectedWindow is null)
@@ -2095,7 +2203,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         if (!TryParseOptionalPositiveDouble(widthText).HasValue
             && !TryParseOptionalPositiveDouble(heightText).HasValue)
         {
-            // Allow clearing both fields — save nulls.
+            // 允许同时清空两个字段，并保存为 null。
         }
         else if (!TryParseOptionalPositiveDouble(widthText).HasValue
                  || !TryParseOptionalPositiveDouble(heightText).HasValue)
@@ -2112,10 +2220,15 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Parses a string as a positive double, or returns <c>null</c> when the string is empty or whitespace.
+    /// 将字符串解析为正数 double；字符串为空或空白时返回 <c>null</c>。
     /// </summary>
-    /// <param name="text">The input text, or <c>null</c>.</param>
-    /// <returns>A positive double, or <c>null</c> when the input is empty or whitespace.</returns>
+    /// <param name="text">输入文本，或 <c>null</c>。</param>
+    /// <returns>正数 double；输入为空或空白时返回 <c>null</c>。</returns>
+    /// <summary>
+    /// 从编辑器文本解析可选正数。
+    /// </summary>
+    /// <param name="text">Text to parse.</param>
+    /// <returns>解析后的值；文本为空或无效时返回 <see langword="null"/>。</returns>
     private static double? TryParseOptionalPositiveDouble(string? text)
     {
         if (string.IsNullOrWhiteSpace(text))
@@ -2132,6 +2245,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         ApplyCanvasBackgroundEdit(BackgroundImageEditText);
     }
 
+    /// <summary>
+    /// 根据文本输入应用 Canvas 背景图片 URI。
+    /// </summary>
+    /// <param name="backgroundImage">Background image URI or path.</param>
+    /// <returns><see langword="true"/> when the edit was accepted.</returns>
     public bool ApplyCanvasBackgroundEdit(string? backgroundImage)
     {
         if (CurrentDocument is null)
@@ -2167,6 +2285,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         return true;
     }
 
+    /// <summary>
+    /// 应用资源浏览器选中的 Canvas 背景图片。
+    /// </summary>
+    /// <param name="selectedResourcePath">选中的资源 URI 或文件路径。</param>
+    /// <returns><see langword="true"/> when the resource was accepted.</returns>
     public bool ApplyCanvasBackgroundResourceSelection(string selectedResourcePath)
     {
         return IsAbsoluteFilePath(selectedResourcePath)
@@ -2180,11 +2303,20 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         ClearCanvasBackground();
     }
 
+    /// <summary>
+    /// 清除活动 Canvas 状态的背景图片。
+    /// </summary>
+    /// <returns><see langword="true"/> when a document was available and updated.</returns>
     public bool ClearCanvasBackground()
     {
         return ApplyCanvasBackgroundEdit(null);
     }
 
+    /// <summary>
+    /// 将本地背景图片复制到可编辑包资源存储，并应用其 BPUI URI。
+    /// </summary>
+    /// <param name="sourcePath">Local image file selected by the user.</param>
+    /// <returns><see langword="true"/> when the file was imported and applied.</returns>
     public bool StoreLocalBackgroundImage(string sourcePath)
     {
         if (_localResourceStore is null)
@@ -2234,6 +2366,12 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         CanvasPropertiesStatus = I18nHelper.GetLocalizedString("Designer.Canvas.Bo3LayoutCopied");
     }
 
+    /// <summary>
+    /// 将资源浏览器结果应用到图片/资源属性行。
+    /// </summary>
+    /// <param name="item">接收资源值的属性行。</param>
+    /// <param name="selectedResourcePath">选中的资源 URI 或文件路径。</param>
+    /// <returns><see langword="true"/> when the property was updated.</returns>
     public bool ApplyPropertyResourceSelection(FrontedPropertyEditorItem item, string selectedResourcePath)
     {
         if (IsAbsoluteFilePath(selectedResourcePath))
@@ -2268,11 +2406,17 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Imports a font file into the active layout package and applies the first discovered font family.
+    /// 将字体文件导入活动布局包，并应用第一个发现的字体族。
     /// </summary>
     /// <param name="item">Font family property row.</param>
-    /// <param name="sourcePath">Source font file path.</param>
-    /// <returns>Whether a font was imported and applied.</returns>
+    /// <param name="sourcePath">源字体文件路径。</param>
+    /// <returns>是否已导入并应用字体。</returns>
+    /// <summary>
+    /// 将字体导入当前布局包，并把其 BPUI 字体 URI 应用到属性行。
+    /// </summary>
+    /// <param name="item">Font-family property row receiving the imported font URI.</param>
+    /// <param name="sourcePath">Local font file path.</param>
+    /// <returns><see langword="true"/> when import and property application succeeded.</returns>
     public async Task<bool> ImportAndApplyPackageFontAsync(FrontedPropertyEditorItem item, string sourcePath)
     {
         if (_localResourceStore is null || _packageManager is null)
@@ -2312,7 +2456,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Refreshes font options for currently visible font family editor rows.
+    /// 刷新当前可见字体族编辑行的字体选项。
+    /// </summary>
+    /// <summary>
+    /// 包字体变化后重建字体族编辑器选项。
     /// </summary>
     public void RefreshFontFamilyEditorOptions()
     {
@@ -2336,8 +2483,12 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Adds a non-fatal render error to the validation/status panel.
+    /// 将非致命渲染错误添加到校验/状态面板。
     /// </summary>
+    /// <summary>
+    /// 将预览渲染异常转换为编辑器校验消息。
+    /// </summary>
+    /// <param name="exception">Render exception.</param>
     public void ReportRenderFailure(Exception exception)
     {
         _logger.LogError(exception, "Failed to render fronted designer preview.");
@@ -2356,6 +2507,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         StatusMessage = exception.Message;
     }
 
+    /// <summary>
+    /// 选择一个设计项，并刷新属性、行为和图层选择状态。
+    /// </summary>
+    /// <param name="item">Item to select, or <see langword="null"/> to clear selection.</param>
     public void SelectDesignItem(FrontedControlDesignItem? item)
     {
         if (item?.IsSelectableInEditor == false)
@@ -2368,10 +2523,15 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Selects multiple design controls and makes one of them the primary property-grid target.
+    /// 选择多个设计控件，并将其中一个设为属性网格的主目标。
     /// </summary>
-    /// <param name="items">The controls to select.</param>
-    /// <param name="primaryItem">The primary selected control. When omitted, the first selected control is used.</param>
+    /// <param name="items">要选中的控件。</param>
+    /// <param name="primaryItem">主选中控件；省略时使用第一个选中控件。</param>
+    /// <summary>
+    /// 在一次选择事务中选择多个设计项。
+    /// </summary>
+    /// <param name="items">Items to select.</param>
+    /// <param name="primaryItem">Primary item used for property editing.</param>
     public void SelectDesignItems(
         IEnumerable<FrontedControlDesignItem> items,
         FrontedControlDesignItem? primaryItem = null)
@@ -2395,9 +2555,13 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Adds or removes a control from the current multi-selection.
+    /// 从当前多选中添加或移除一个控件。
     /// </summary>
-    /// <param name="item">The control to toggle.</param>
+    /// <param name="item">要切换选中状态的控件。</param>
+    /// <summary>
+    /// 切换多选集合中的一个项目。
+    /// </summary>
+    /// <param name="item">Item to toggle.</param>
     public void ToggleDesignItemSelection(FrontedControlDesignItem item)
     {
         if (CurrentDocument is null || !item.IsSelectableInEditor || !CurrentDocument.Controls.Contains(item))
@@ -2420,6 +2584,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         ClearSelectedGlobalScoreCell();
     }
 
+    /// <summary>
+    /// 选择 <see cref="GlobalScoreRowControlConfig"/> 设计项内部的子单元格。
+    /// </summary>
+    /// <param name="parent">Parent global score row item.</param>
+    /// <param name="cell">Cell to select, or <see langword="null"/> to clear child selection.</param>
     public void SelectGlobalScoreCell(FrontedControlDesignItem parent, GlobalScoreCellConfig? cell)
     {
         if (parent.Config is not GlobalScoreRowControlConfig row || cell is not null && !row.Cells.Contains(cell))
@@ -2442,6 +2611,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         OnGlobalScoreCellSelectionChanged();
     }
 
+    /// <summary>
+    /// 选择图层树节点，并在可能时将该选择同步到设计画布。
+    /// </summary>
+    /// <param name="node">Layer node to select.</param>
     public void SelectLayerNode(DesignerLayerNode? node)
     {
         if (node is null || !node.CanSelect)
@@ -2453,16 +2626,28 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         SelectDesignItem(node.ControlItem);
     }
 
+    /// <summary>
+    /// 切换图层树节点的展开状态。
+    /// </summary>
+    /// <param name="node">Layer node to expand or collapse.</param>
     public void ToggleLayerNodeExpansion(DesignerLayerNode node)
     {
     }
 
+    /// <summary>
+    /// 清除设计画布、图层树、属性和行为选择状态。
+    /// </summary>
     public void ClearSelection()
     {
         ClearSelectedGlobalScoreCell();
         SelectDesignItem(null);
     }
 
+    /// <summary>
+    /// 应用完整选择集合，同时保留用于属性编辑的主项目。
+    /// </summary>
+    /// <param name="items">Items that should become selected.</param>
+    /// <param name="primaryItem">Primary selected item.</param>
     private void SetSelectedDesignItems(
         IReadOnlyCollection<FrontedControlDesignItem> items,
         FrontedControlDesignItem? primaryItem)
@@ -2500,6 +2685,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         RefreshLayerNodeSelection();
     }
 
+    /// <summary>
+    /// 获取可参与移动或缩放操作的选中设计项。
+    /// </summary>
+    /// <returns>Movable selected items.</returns>
     private IReadOnlyList<FrontedControlDesignItem> GetMovableSelectedDesignItems()
     {
         if (SelectedDesignItems.Count == 0)
@@ -2514,6 +2703,13 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             .ToList();
     }
 
+    /// <summary>
+    /// 当前选择指向全局比分行单元格时获取该单元格。
+    /// </summary>
+    /// <param name="parentItem">Parent design item.</param>
+    /// <param name="row">Parent global score row config.</param>
+    /// <param name="cell">选中的单元格。</param>
+    /// <returns><see langword="true"/> when a cell is selected.</returns>
     public bool TryGetSelectedGlobalScoreCell(
         out FrontedControlDesignItem parentItem,
         out GlobalScoreRowControlConfig row,
@@ -2549,6 +2745,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         return true;
     }
 
+    /// <summary>
+    /// 清除全局比分子单元格选择。
+    /// </summary>
+    /// <param name="notify">是否触发依赖属性通知。</param>
     public void ClearSelectedGlobalScoreCell(bool notify = true)
     {
         var hadSelection = SelectedGlobalScoreCellParentName is not null || SelectedGlobalScoreCellId is not null;
@@ -2621,6 +2821,14 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(HasSelectedGlobalScoreCell));
     }
 
+    /// <summary>
+    /// 按逻辑增量从拖拽起点移动主选中设计项。
+    /// </summary>
+    /// <param name="originalLeft">Drag-start left coordinate.</param>
+    /// <param name="originalTop">Drag-start top coordinate.</param>
+    /// <param name="deltaX">Horizontal pointer delta.</param>
+    /// <param name="deltaY">Vertical pointer delta.</param>
+    /// <param name="renderPreview">是否请求更新预览。</param>
     public void MoveSelectedDesignItem(
         double originalLeft,
         double originalTop,
@@ -2699,12 +2907,12 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Moves selected controls from their original drag-start bounds by a logical delta.
+    /// 按逻辑增量从原始拖拽起点边界移动选中控件。
     /// </summary>
     /// <param name="originalBounds">Original bounds captured when the drag started.</param>
     /// <param name="deltaX">Horizontal pointer delta.</param>
     /// <param name="deltaY">Vertical pointer delta.</param>
-    /// <param name="renderPreview">Whether to render the full preview immediately.</param>
+    /// <param name="renderPreview">是否立即渲染完整预览。</param>
     public void MoveSelectedDesignItems(
         IReadOnlyDictionary<FrontedControlDesignItem, FrontedDesignerResolvedBounds> originalBounds,
         double deltaX,
@@ -2753,6 +2961,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         OnDesignItemGeometryChanged(renderPreview);
     }
 
+    /// <summary>
+    /// 按增量移动当前选择，通常用于键盘微调。
+    /// </summary>
+    /// <param name="deltaX">Horizontal delta.</param>
+    /// <param name="deltaY">Vertical delta.</param>
     public void MoveSelectedDesignItemBy(double deltaX, double deltaY)
     {
         if (CurrentDocument is null || SelectedDesignItem is null)
@@ -2832,6 +3045,17 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         RequestDesignerGeometryPatch(changedItems, updateSelection: true);
     }
 
+    /// <summary>
+    /// 通过拖拽手柄缩放主选中设计项。
+    /// </summary>
+    /// <param name="handle">Resize handle being dragged.</param>
+    /// <param name="originalLeft">Drag-start left coordinate.</param>
+    /// <param name="originalTop">Drag-start top coordinate.</param>
+    /// <param name="originalWidth">Drag-start width.</param>
+    /// <param name="originalHeight">Drag-start height.</param>
+    /// <param name="deltaX">Horizontal drag delta.</param>
+    /// <param name="deltaY">Vertical drag delta.</param>
+    /// <param name="renderPreview">是否请求更新预览。</param>
     public void ResizeSelectedDesignItem(
         FrontedDesignerResizeHandleKind handle,
         double originalLeft,
@@ -2951,13 +3175,13 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Resizes selected controls from their original drag-start bounds by a logical delta.
+    /// 按逻辑增量从原始拖拽起点边界缩放选中控件。
     /// </summary>
-    /// <param name="handle">The resize handle being dragged.</param>
+    /// <param name="handle">正在拖拽的缩放手柄。</param>
     /// <param name="originalBounds">Original bounds captured when the resize started.</param>
     /// <param name="deltaX">Horizontal pointer delta.</param>
     /// <param name="deltaY">Vertical pointer delta.</param>
-    /// <param name="renderPreview">Whether to render the full preview immediately.</param>
+    /// <param name="renderPreview">是否立即渲染完整预览。</param>
     public void ResizeSelectedDesignItems(
         FrontedDesignerResizeHandleKind handle,
         IReadOnlyDictionary<FrontedControlDesignItem, FrontedDesignerResolvedBounds> originalBounds,
@@ -3038,13 +3262,13 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Moves the selected MapV2Display internal part within its parent bounds.
+    /// 在父级边界内移动选中的 MapV2Display 内部部件。
     /// </summary>
     /// <param name="originalX">Original relative X coordinate.</param>
     /// <param name="originalY">Original relative Y coordinate.</param>
     /// <param name="deltaX">Horizontal pointer delta.</param>
     /// <param name="deltaY">Vertical pointer delta.</param>
-    /// <param name="renderPreview">Whether to render the preview immediately.</param>
+    /// <param name="renderPreview">是否立即渲染预览。</param>
     public void MoveSelectedMapV2InternalPart(
         double originalX,
         double originalY,
@@ -3133,7 +3357,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Resizes the selected MapV2Display internal part within its parent bounds.
+    /// 在父级边界内缩放选中的 MapV2Display 内部部件。
     /// </summary>
     /// <param name="handle">Active resize handle.</param>
     /// <param name="originalX">Original relative X coordinate.</param>
@@ -3142,7 +3366,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     /// <param name="originalHeight">Original height.</param>
     /// <param name="deltaX">Horizontal pointer delta.</param>
     /// <param name="deltaY">Vertical pointer delta.</param>
-    /// <param name="renderPreview">Whether to render the preview immediately.</param>
+    /// <param name="renderPreview">是否立即渲染预览。</param>
     public void ResizeSelectedMapV2InternalPart(
         FrontedDesignerResizeHandleKind handle,
         double originalX,
@@ -4945,8 +5169,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Persists the current behavior document and clears the outer dirty flag.
-    /// Called by the animation editor save flow.
+    /// 持久化当前行为文档，并清除外层已修改标记。
+    /// 由动画编辑器保存流程调用。
     /// </summary>
     /// <returns><c>true</c> if the save succeeded; otherwise <c>false</c>.</returns>
     private async Task<bool> SaveBehaviorDocumentAsync()
@@ -5758,7 +5982,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
         catch (JsonException)
         {
-            // Older in-memory snapshots stored only the canvas config JSON.
+            // 较旧的内存快照只存储了画布配置 JSON。
         }
 
         var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(snapshot);
@@ -6630,12 +6854,12 @@ public sealed class FrontedDesignerPreviewRenderRequestedEventArgs(
 internal sealed class FrontedDesignerUndoSnapshot
 {
     /// <summary>
-    /// Gets or sets the canvas layout config captured for undo/redo.
+    /// 获取或设置为撤销/重做捕获的画布布局配置。
     /// </summary>
     public FrontedCanvasConfig? CanvasConfig { get; set; }
 
     /// <summary>
-    /// Gets or sets the behavior document captured with the layout config.
+    /// 获取或设置随布局配置一起捕获的行为文档。
     /// </summary>
     public FrontedBehaviorDocument? BehaviorDocument { get; set; }
 }

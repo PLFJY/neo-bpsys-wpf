@@ -7,88 +7,88 @@ using OpenCvSharp;
 
 namespace neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
 
-/// <summary>Supported AI recognition tasks.</summary>
+/// <summary>支持的 AI 识别任务。</summary>
 public enum SmartBpRecognitionTask { DetectStage, BanSur, BanHun, PickSur, PickHun, CharacterDistribution, FullBpScan }
 
-/// <summary>Supported SmartBP BP recognition engines.</summary>
+/// <summary>支持的 SmartBP BP 识别引擎。</summary>
 public enum SmartBpRecognitionEngine { Ocr, AiQwen }
 
-/// <summary>First-class SmartBP recognition strategy selected by the coordinator and UI.</summary>
+/// <summary>协调器和 UI 选择的一等 SmartBP 识别策略。</summary>
 public enum SmartBpRecognitionStrategy
 {
-    /// <summary>Use the selected local OCR provider only.</summary>
+    /// <summary>只使用已选本地 OCR 提供程序。</summary>
     PureOcr,
-    /// <summary>Use the selected business vision model only.</summary>
+    /// <summary>只使用已选业务视觉模型。</summary>
     PureAi,
-    /// <summary>Use business AI for scene and phase decisions, then local OCR for text extraction.</summary>
+    /// <summary>使用业务 AI 判断场景和阶段，再使用本地 OCR 提取文本。</summary>
     AiWithOcr,
-    /// <summary>Use business AI for scene and phase decisions, then a dedicated AI OCR model for text extraction.</summary>
+    /// <summary>使用业务 AI 判断场景和阶段，再使用专用 AI OCR 模型提取文本。</summary>
     AiWithAiOcr
 }
 
-/// <summary>Chooses how hybrid recognition evidence is fused into SmartBP field updates.</summary>
+/// <summary>选择混合识别证据如何融合为 SmartBP 字段更新。</summary>
 public enum SmartBpHybridFusionMode
 {
-    /// <summary>Use local C# parsers/interpreters and merge in-process.</summary>
+    /// <summary>使用本地 C# 解析器/解释器并在进程内合并。</summary>
     LocalCSharp,
-    /// <summary>Ask the Business AI model to convert evidence into structured BP field updates.</summary>
+    /// <summary>请求业务 AI 模型将证据转换为结构化 BP 字段更新。</summary>
     BusinessAi
 }
 
-/// <summary>Expected JSON contract for Business AI transcript fusion output.</summary>
+/// <summary>业务 AI 转写融合输出期望的 JSON 契约。</summary>
 public enum SmartBpBusinessAiFusionOutputContract
 {
-    /// <summary>Return a complete BP business-state object with phase and all four BP fields.</summary>
+    /// <summary>返回包含阶段和四个 BP 字段的完整 BP 业务状态对象。</summary>
     FullBusinessState,
-    /// <summary>Return a snapshot delta object with phase and updates.</summary>
+    /// <summary>返回包含阶段和更新的快照增量对象。</summary>
     SnapshotDelta
 }
 
-/// <summary>Family of a managed local vision model.</summary>
+/// <summary>托管本地视觉模型系列。</summary>
 public enum LocalVisionModelFamily
 {
-    /// <summary>Qwen 3.5 vision-language models.</summary>
+    /// <summary>Qwen 3.5 视觉语言模型。</summary>
     Qwen35,
-    /// <summary>GLM OCR models.</summary>
+    /// <summary>GLM OCR 模型。</summary>
     GlmOcr,
-    /// <summary>PaddleOCR-VL models.</summary>
+    /// <summary>PaddleOCR-VL 模型。</summary>
     PaddleOcrVl,
-    /// <summary>Custom or unknown local vision model family.</summary>
+    /// <summary>自定义或未知本地视觉模型系列。</summary>
     Custom
 }
 
-/// <summary>Role a local vision model is expected to serve.</summary>
+/// <summary>本地视觉模型预期承担的角色。</summary>
 public enum LocalVisionModelRole
 {
-    /// <summary>Business VLM for scene, phase, and BP state recognition.</summary>
+    /// <summary>用于场景、阶段和 BP 状态识别的业务 VLM。</summary>
     BusinessVlm,
-    /// <summary>AI OCR text extractor that should not own BP business interpretation.</summary>
+    /// <summary>AI OCR 文本提取器，不负责 BP 业务解释。</summary>
     AiOcrTextExtractor,
-    /// <summary>Model can be used for both business recognition and AI OCR extraction.</summary>
+    /// <summary>模型可同时用于业务识别和 AI OCR 提取。</summary>
     Both,
-    /// <summary>Role is unknown.</summary>
+    /// <summary>角色未知。</summary>
     Unknown
 }
 
-/// <summary>Identifies the source used to download a Qwen model profile.</summary>
+/// <summary>标识 Qwen 模型配置档使用的下载来源。</summary>
 public enum QwenModelSourceType { DirectUrl, HuggingFace }
 
-/// <summary>Describes how a Qwen vision projector is supplied.</summary>
+/// <summary>描述 Qwen 视觉投影器的提供方式。</summary>
 public enum QwenMmprojMode { Separate, Embedded, None }
 
-/// <summary>Describes how a local vision projector is supplied.</summary>
+/// <summary>描述本地视觉投影器的提供方式。</summary>
 public enum VisionProjectorMode { Separate, Embedded, None }
 
-/// <summary>Role of a managed llama.cpp vision server.</summary>
+/// <summary>托管 llama.cpp 视觉服务器角色。</summary>
 public enum LlamaVisionServerRole
 {
-    /// <summary>Business AI server used for scene, phase, and BP business reasoning.</summary>
+    /// <summary>用于场景、阶段和 BP 业务推理的业务 AI 服务器。</summary>
     BusinessAi,
-    /// <summary>AI OCR server used only to extract visible text transcripts.</summary>
+    /// <summary>仅用于提取可见文本转写的 AI OCR 服务器。</summary>
     AiOcr
 }
 
-/// <summary>Fine-grained Identity V scene used to gate BP recognition.</summary>
+/// <summary>用于门控 BP 识别的第五人格细粒度场景。</summary>
 public enum SmartBpRecognitionScene
 {
     Unknown, Lobby, RulesDialog, BanPickOrderDialog, Transition, CharacterBp,
@@ -96,7 +96,7 @@ public enum SmartBpRecognitionScene
     AreaSelectionHunter, WaitingGameStart, Loading, InGame, OutOfBp
 }
 
-/// <summary>Decision produced by the BP scene gate.</summary>
+/// <summary>BP 场景门控产出的决策。</summary>
 public sealed record SmartBpSceneGateResult(
     SmartBpRecognitionScene Scene,
     bool IsBpRecognitionAllowed,
@@ -104,144 +104,144 @@ public sealed record SmartBpSceneGateResult(
     bool ShouldPauseAutomaticRecognition,
     string Reason);
 
-/// <summary>Top-center character-BP lifecycle categories recognized locally from OCR text.</summary>
+/// <summary>根据 OCR 文本本地识别的顶部中间角色 BP 生命周期分类。</summary>
 public enum SmartBpLifecycleCategory
 {
-    /// <summary>The lifecycle status could not be recognized reliably.</summary>
+    /// <summary>生命周期状态无法可靠识别。</summary>
     Unknown,
-    /// <summary>Character ban/pick is active.</summary>
+    /// <summary>角色禁选正在进行。</summary>
     CharacterBpActive,
-    /// <summary>Survivors are adjusting talents and traits.</summary>
+    /// <summary>求生者正在调整天赋和特质。</summary>
     SurvivorTalentAdjust,
-    /// <summary>The hunter is adjusting talents and traits.</summary>
+    /// <summary>监管者正在调整天赋和特质。</summary>
     HunterTalentAdjust,
-    /// <summary>Character BP is transitioning to area selection.</summary>
+    /// <summary>角色 BP 正在转入区域选择。</summary>
     TransitionToAreaSelection
 }
 
-/// <summary>Deterministic local classification of the top-center BP lifecycle status.</summary>
+/// <summary>顶部中间 BP 生命周期状态的确定性本地分类。</summary>
 public sealed class SmartBpLifecycleStatusResult
 {
-    /// <summary>Gets whether the best candidate reached the weak recognition threshold.</summary>
+    /// <summary>获取最佳候选是否达到弱识别阈值。</summary>
     public bool IsRecognized { get; init; }
-    /// <summary>Gets the matched canonical status.</summary>
+    /// <summary>获取匹配到的规范状态。</summary>
     public string Status { get; init; } = "未知";
-    /// <summary>Gets the matched lifecycle category.</summary>
+    /// <summary>获取匹配到的生命周期分类。</summary>
     public SmartBpLifecycleCategory Category { get; init; }
-    /// <summary>Gets the weighted fuzzy-match score.</summary>
+    /// <summary>获取加权模糊匹配分数。</summary>
     public double Score { get; init; }
-    /// <summary>Gets the raw OCR evidence.</summary>
+    /// <summary>获取原始 OCR 证据。</summary>
     public string Evidence { get; init; } = "";
-    /// <summary>Gets the normalized OCR text.</summary>
+    /// <summary>获取归一化后的 OCR 文本。</summary>
     public string NormalizedText { get; init; } = "";
-    /// <summary>Gets whether the auxiliary destination line was found.</summary>
+    /// <summary>获取是否发现辅助去向行。</summary>
     public bool HasDestinationEvidence { get; init; }
-    /// <summary>Gets detector diagnostics.</summary>
+    /// <summary>获取检测器诊断信息。</summary>
     public IReadOnlyList<string> Diagnostics { get; init; } = [];
 }
 
-/// <summary>Decision produced by the scene/phase controller.</summary>
+/// <summary>场景/阶段控制器产出的决策。</summary>
 public sealed class SmartBpScenePhaseDecision
 {
-    /// <summary>Gets the recognized scene.</summary>
+    /// <summary>获取识别到的场景。</summary>
     public SmartBpRecognitionScene Scene { get; init; }
-    /// <summary>Gets the recognized phase text.</summary>
+    /// <summary>获取识别到的阶段文本。</summary>
     public string Phase { get; init; } = "未知";
-    /// <summary>Gets whether BP recognition is allowed in this scene.</summary>
+    /// <summary>获取该场景是否允许 BP 识别。</summary>
     public bool BpRecognitionAllowed { get; init; }
-    /// <summary>Gets whether character operations are allowed in this scene.</summary>
+    /// <summary>获取该场景是否允许角色操作。</summary>
     public bool CharacterOperationAllowed { get; init; }
-    /// <summary>Gets whether automatic recognition should pause.</summary>
+    /// <summary>获取自动识别是否应暂停。</summary>
     public bool ShouldPauseAutomaticRecognition { get; init; }
-    /// <summary>Gets recommended business fields for the next extraction step.</summary>
+    /// <summary>获取下一步提取推荐的业务字段。</summary>
     public IReadOnlyList<string> RecommendedFields { get; init; } = [];
-    /// <summary>Gets a human-readable decision reason.</summary>
+    /// <summary>获取便于阅读的决策原因。</summary>
     public string Reason { get; init; } = "";
 }
 
-/// <summary>Controls how recognized operations are reconciled with the current game.</summary>
+/// <summary>控制识别到的操作如何与当前对局对齐。</summary>
 public enum SmartBpRecognitionApplyMode
 {
-    /// <summary>Reconciles recognition against the active GameGuidance workflow.</summary>
+    /// <summary>根据活动 GameGuidance 工作流对齐识别结果。</summary>
     GuidedWorkflow,
-    /// <summary>Synchronizes recognized character slots without workflow context.</summary>
+    /// <summary>不依赖工作流上下文，同步识别到的角色槽位。</summary>
     FreeFullSync
 }
 
-/// <summary>Coarse SmartBP recognition crop regions.</summary>
+/// <summary>SmartBP 粗粒度识别裁剪区域。</summary>
 public enum SmartBpRecognitionRegion
 {
-    /// <summary>BP phase title area.</summary>
+    /// <summary>BP 阶段标题区域。</summary>
     PhaseTop,
-    /// <summary>Top-center character-BP lifecycle/status area.</summary>
+    /// <summary>顶部中间角色 BP 生命周期/状态区域。</summary>
     TopCenterStatus,
-    /// <summary>Absolute top-left global game-status area.</summary>
+    /// <summary>绝对左上角全局游戏状态区域。</summary>
     TopLeftStatus,
-    /// <summary>Left-side upper BP content area.</summary>
+    /// <summary>左侧上方 BP 内容区域。</summary>
     LeftTop,
-    /// <summary>Right-side upper BP content area.</summary>
+    /// <summary>右侧上方 BP 内容区域。</summary>
     RightTop,
-    /// <summary>Left-side lower BP content area.</summary>
+    /// <summary>左侧下方 BP 内容区域。</summary>
     LeftBottom,
-    /// <summary>Right-side lower BP content area.</summary>
+    /// <summary>右侧下方 BP 内容区域。</summary>
     RightBottom
 }
 
-/// <summary>Controls how many BP content regions are recognized for one snapshot.</summary>
+/// <summary>控制单次快照识别多少个 BP 内容区域。</summary>
 public enum SmartBpRegionSnapshotRecognitionMode { FullAllRegions, PendingAndCurrentRegions }
 
-/// <summary>Controls how the AI client requests structured JSON output from llama-server.</summary>
+/// <summary>控制 AI 客户端如何向 llama-server 请求结构化 JSON 输出。</summary>
 public enum AiStructuredOutputMode
 {
-    /// <summary>Sends <c>response_format=json_schema</c> and relies on the server to enforce the schema.</summary>
+    /// <summary>发送 <c>response_format=json_schema</c> 并依赖服务器强制执行 schema。</summary>
     JsonSchemaStrict,
-    /// <summary>Omits <c>response_format</c>, asks for raw JSON in the prompt, and repairs Markdown fences locally.</summary>
+    /// <summary>不发送 <c>response_format</c>，在提示词中要求原始 JSON，并在本地修复 Markdown 围栏。</summary>
     JsonPromptAndRepair
 }
 
-/// <summary>Identifies which recognition path the coordinator used for one tick.</summary>
+/// <summary>标识协调器在一个 tick 中使用的识别路径。</summary>
 public enum SmartBpRecognitionPath
 {
-    /// <summary>Only the phase crop was recognized because no business fields were requested.</summary>
+    /// <summary>由于没有请求业务字段，仅识别阶段裁剪图。</summary>
     PhaseOnly,
-    /// <summary>Independent per-field snapshot recognitions were run for the requested fields.</summary>
+    /// <summary>对请求字段运行逐字段独立快照识别。</summary>
     FieldSnapshot,
-    /// <summary>All four business fields were recognized as independent field snapshots.</summary>
+    /// <summary>将四个业务字段都作为独立字段快照识别。</summary>
     FullFieldSnapshot,
-    /// <summary>Legacy multi-image snapshot delta recognition (model-side delta updates).</summary>
+    /// <summary>旧版多图快照增量识别（模型侧增量更新）。</summary>
     LegacyDelta
 }
 
-/// <summary>Normalized recognition crop rectangle.</summary>
+/// <summary>归一化识别裁剪矩形。</summary>
 public sealed class SmartBpRecognitionRegionRect
 {
-    /// <summary>Gets or sets normalized left coordinate.</summary>
+    /// <summary>获取或设置归一化左坐标。</summary>
     public double X { get; set; }
-    /// <summary>Gets or sets normalized top coordinate.</summary>
+    /// <summary>获取或设置归一化上坐标。</summary>
     public double Y { get; set; }
-    /// <summary>Gets or sets normalized width.</summary>
+    /// <summary>获取或设置归一化宽度。</summary>
     public double Width { get; set; }
-    /// <summary>Gets or sets normalized height.</summary>
+    /// <summary>获取或设置归一化高度。</summary>
     public double Height { get; set; }
 }
 
-/// <summary>SmartBP coarse recognition layout profile.</summary>
+/// <summary>SmartBP 粗粒度识别布局配置档。</summary>
 public sealed class SmartBpRecognitionLayoutProfile
 {
-    /// <summary>Gets or sets schema version.</summary>
+    /// <summary>获取或设置 schema 版本。</summary>
     public int SchemaVersion { get; set; } = 1;
-    /// <summary>Gets or sets profile id.</summary>
+    /// <summary>获取或设置配置档标识。</summary>
     public string Id { get; set; } = "idv-default-16x9";
-    /// <summary>Gets or sets base aspect ratio label.</summary>
+    /// <summary>获取或设置基础宽高比标签。</summary>
     public string BaseAspectRatio { get; set; } = "16:9";
-    /// <summary>Gets or sets normalized regions by json id.</summary>
+    /// <summary>获取或设置按 JSON 标识索引的归一化区域。</summary>
     public Dictionary<string, SmartBpRecognitionRegionRect> Regions { get; set; } = [];
-    /// <summary>Gets the runtime source of this profile for crop diagnostics.</summary>
+    /// <summary>获取该配置档的运行时来源，用于裁剪诊断。</summary>
     [JsonIgnore]
     public string RuntimeSource { get; set; } = "default";
 }
 
-/// <summary>One cropped recognition frame with diagnostics.</summary>
+/// <summary>一张带诊断信息的识别裁剪帧。</summary>
 public sealed record SmartBpCroppedFrame(
     SmartBpRecognitionRegion Region,
     BitmapSource Image,
@@ -250,88 +250,88 @@ public sealed record SmartBpCroppedFrame(
     int Width,
     int Height)
 {
-    /// <summary>Gets a compact pixel rectangle description.</summary>
+    /// <summary>获取紧凑的像素矩形描述。</summary>
     public string PixelRectText => $"x={X}, y={Y}, width={Width}, height={Height}";
-    /// <summary>Gets the layout source used to calculate this crop.</summary>
+    /// <summary>获取用于计算该裁剪图的布局来源。</summary>
     public string LayoutSource { get; init; } = "default";
-    /// <summary>Gets the normalized rectangle used to calculate this crop.</summary>
+    /// <summary>获取用于计算该裁剪图的归一化矩形。</summary>
     public string NormalizedRectText { get; init; } = "";
 }
 
-/// <summary>Phase-only model output for region-gated recognition.</summary>
+/// <summary>区域门控识别使用的仅阶段模型输出。</summary>
 public sealed class SmartBpPhaseRecognitionResult
 {
-    /// <summary>Gets or sets the detected Chinese BP phase.</summary>
+    /// <summary>获取或设置检测到的中文 BP 阶段。</summary>
     [JsonPropertyName("phase")] public string Phase { get; set; } = "未知";
 }
 
-/// <summary>Qwen manifest root.</summary>
+/// <summary>Qwen 清单根对象。</summary>
 public sealed class QwenModelManifest
 {
-    /// <summary>Gets or sets the schema version.</summary>
+    /// <summary>获取或设置 schema 版本。</summary>
     public int SchemaVersion { get; set; }
-    /// <summary>Gets or sets model profiles.</summary>
+    /// <summary>获取或设置模型配置档集合。</summary>
     public List<QwenModelProfile> Models { get; set; } = [];
 }
 
-/// <summary>Normalized result of detecting a status shown after character BP has ended.</summary>
+/// <summary>角色 BP 结束后状态检测的归一化结果。</summary>
 public sealed class SmartBpPostBpStatusResult
 {
-    /// <summary>Gets whether the evidence identifies a post-BP scene.</summary>
+    /// <summary>获取证据是否指向 BP 后场景。</summary>
     public bool IsPostBp { get; init; }
-    /// <summary>Gets the normalized phase.</summary>
+    /// <summary>获取归一化阶段。</summary>
     public string Phase { get; init; } = "未知";
-    /// <summary>Gets the normalized scene.</summary>
+    /// <summary>获取归一化场景。</summary>
     public SmartBpRecognitionScene Scene { get; init; } = SmartBpRecognitionScene.Unknown;
-    /// <summary>Gets the detection reason.</summary>
+    /// <summary>获取检测原因。</summary>
     public string Reason { get; init; } = "";
-    /// <summary>Gets the source evidence.</summary>
+    /// <summary>获取来源证据。</summary>
     public string Evidence { get; init; } = "";
-    /// <summary>Gets the fuzzy-match score.</summary>
+    /// <summary>获取模糊匹配分数。</summary>
     public double Score { get; init; }
-    /// <summary>Gets the normalized OCR text used for matching.</summary>
+    /// <summary>获取用于匹配的归一化 OCR 文本。</summary>
     public string NormalizedText { get; init; } = "";
-    /// <summary>Gets the auxiliary evidence labels found in the status crop.</summary>
+    /// <summary>获取状态裁剪图中发现的辅助证据标签。</summary>
     public IReadOnlyList<string> AuxiliaryEvidence { get; init; } = [];
 }
 
-/// <summary>Local vision model manifest root.</summary>
+/// <summary>本地视觉模型清单根对象。</summary>
 public sealed class LocalVisionModelManifest
 {
-    /// <summary>Gets or sets the schema version.</summary>
+    /// <summary>获取或设置 schema 版本。</summary>
     public int SchemaVersion { get; set; }
-    /// <summary>Gets or sets model profiles.</summary>
+    /// <summary>获取或设置模型配置档集合。</summary>
     public List<LocalVisionModelProfile> Models { get; set; } = [];
 }
 
-/// <summary>One Qwen model and its matching vision projector.</summary>
+/// <summary>一个 Qwen 模型及其匹配的视觉投影器。</summary>
 public sealed class QwenModelProfile
 {
-    /// <summary>Gets or sets the profile id.</summary>
+    /// <summary>获取或设置配置档标识。</summary>
     public string Id { get; set; } = "";
-    /// <summary>Gets or sets the display name.</summary>
+    /// <summary>获取或设置显示名称。</summary>
     public string DisplayName { get; set; } = "";
-    /// <summary>Gets or sets the model family.</summary>
+    /// <summary>获取或设置模型系列。</summary>
     public LocalVisionModelFamily Family { get; set; } = LocalVisionModelFamily.Custom;
-    /// <summary>Gets or sets the intended model role.</summary>
+    /// <summary>获取或设置预期模型角色。</summary>
     public LocalVisionModelRole Role { get; set; } = LocalVisionModelRole.Unknown;
-    /// <summary>Gets or sets the model source type.</summary>
+    /// <summary>获取或设置模型来源类型。</summary>
     public QwenModelSourceType SourceType { get; set; } = QwenModelSourceType.DirectUrl;
-    /// <summary>Gets or sets the model URL for direct URL profiles.</summary>
+    /// <summary>获取或设置直链配置档的模型 URL。</summary>
     public string ModelUrl { get; set; } = "";
-    /// <summary>Gets or sets the model filename.</summary>
+    /// <summary>获取或设置模型文件名。</summary>
     public string ModelFileName { get; set; } = "";
-    /// <summary>Gets or sets the projector URL.</summary>
+    /// <summary>获取或设置投影器 URL。</summary>
     public string? MmprojUrl { get; set; }
-    /// <summary>Gets or sets the projector filename.</summary>
+    /// <summary>获取或设置投影器文件名。</summary>
     public string? MmprojFileName { get; set; }
-    /// <summary>Gets or sets the HuggingFace repository id.</summary>
+    /// <summary>获取或设置 HuggingFace 仓库标识。</summary>
     public string? HuggingFaceRepoId { get; set; }
-    /// <summary>Gets or sets the HuggingFace revision.</summary>
+    /// <summary>获取或设置 HuggingFace 修订版本。</summary>
     public string HuggingFaceRevision { get; set; } = "main";
-    /// <summary>Gets or sets how the vision projector is supplied.</summary>
+    /// <summary>获取或设置视觉投影器的提供方式。</summary>
     public QwenMmprojMode MmprojMode { get; set; } = QwenMmprojMode.Separate;
-    /// <summary>Gets or sets how the vision projector is supplied using the generic local vision terminology.</summary>
+    /// <summary>获取或设置使用通用本地视觉术语表达的视觉投影器提供方式。</summary>
     public VisionProjectorMode ProjectorMode
     {
         get => MmprojMode switch
@@ -349,111 +349,111 @@ public sealed class QwenModelProfile
             _ => QwenMmprojMode.Separate
         };
     }
-    /// <summary>Gets or sets whether Chinese UI should prefer the HuggingFace mirror.</summary>
+    /// <summary>获取或设置中文 UI 是否优先使用 HuggingFace 镜像。</summary>
     public bool UseHuggingFaceMirrorForChineseUi { get; set; } = true;
-    /// <summary>Gets or sets the optional model hash.</summary>
+    /// <summary>获取或设置可选模型哈希。</summary>
     public string? Sha256 { get; set; }
-    /// <summary>Gets or sets the optional projector hash.</summary>
+    /// <summary>获取或设置可选投影器哈希。</summary>
     public string? MmprojSha256 { get; set; }
-    /// <summary>Gets or sets whether this profile is the recommended default for its role.</summary>
+    /// <summary>获取或设置该配置档是否为其角色的推荐默认项。</summary>
     public bool Recommended { get; set; }
-    /// <summary>Gets or sets whether this profile is experimental.</summary>
+    /// <summary>获取或设置该配置档是否为实验性配置档。</summary>
     public bool Experimental { get; set; }
-    /// <summary>Gets or sets the default structured-output mode for this model.</summary>
+    /// <summary>获取或设置该模型的默认结构化输出模式。</summary>
     public AiStructuredOutputMode DefaultStructuredOutputMode { get; set; } = AiStructuredOutputMode.JsonPromptAndRepair;
 }
 
-/// <summary>One local vision model and its matching vision projector.</summary>
+/// <summary>一个本地视觉模型及其匹配的视觉投影器。</summary>
 public sealed class LocalVisionModelProfile
 {
-    /// <summary>Gets or sets the profile id.</summary>
+    /// <summary>获取或设置配置档标识。</summary>
     public string Id { get; set; } = "";
-    /// <summary>Gets or sets the display name.</summary>
+    /// <summary>获取或设置显示名称。</summary>
     public string DisplayName { get; set; } = "";
-    /// <summary>Gets or sets the model family.</summary>
+    /// <summary>获取或设置模型系列。</summary>
     public LocalVisionModelFamily Family { get; set; } = LocalVisionModelFamily.Custom;
-    /// <summary>Gets or sets the intended model role.</summary>
+    /// <summary>获取或设置预期模型角色。</summary>
     public LocalVisionModelRole Role { get; set; } = LocalVisionModelRole.Unknown;
-    /// <summary>Gets or sets the model source type.</summary>
+    /// <summary>获取或设置模型来源类型。</summary>
     public QwenModelSourceType SourceType { get; set; } = QwenModelSourceType.DirectUrl;
-    /// <summary>Gets or sets the model URL for direct URL profiles.</summary>
+    /// <summary>获取或设置直链配置档的模型 URL。</summary>
     public string ModelUrl { get; set; } = "";
-    /// <summary>Gets or sets the model filename.</summary>
+    /// <summary>获取或设置模型文件名。</summary>
     public string ModelFileName { get; set; } = "";
-    /// <summary>Gets or sets the projector URL.</summary>
+    /// <summary>获取或设置投影器 URL。</summary>
     public string? MmprojUrl { get; set; }
-    /// <summary>Gets or sets the projector filename.</summary>
+    /// <summary>获取或设置投影器文件名。</summary>
     public string? MmprojFileName { get; set; }
-    /// <summary>Gets or sets the HuggingFace repository id.</summary>
+    /// <summary>获取或设置 HuggingFace 仓库标识。</summary>
     public string? HuggingFaceRepoId { get; set; }
-    /// <summary>Gets or sets the HuggingFace revision.</summary>
+    /// <summary>获取或设置 HuggingFace 修订版本。</summary>
     public string HuggingFaceRevision { get; set; } = "main";
-    /// <summary>Gets or sets how the vision projector is supplied.</summary>
+    /// <summary>获取或设置视觉投影器的提供方式。</summary>
     public VisionProjectorMode ProjectorMode { get; set; } = VisionProjectorMode.Separate;
-    /// <summary>Gets or sets the optional model hash.</summary>
+    /// <summary>获取或设置可选模型哈希。</summary>
     public string? Sha256 { get; set; }
-    /// <summary>Gets or sets the optional projector hash.</summary>
+    /// <summary>获取或设置可选投影器哈希。</summary>
     public string? MmprojSha256 { get; set; }
-    /// <summary>Gets or sets whether this profile is the recommended default for its role.</summary>
+    /// <summary>获取或设置该配置档是否为其角色的推荐默认项。</summary>
     public bool Recommended { get; set; }
-    /// <summary>Gets or sets whether this profile is experimental.</summary>
+    /// <summary>获取或设置该配置档是否为实验性配置档。</summary>
     public bool Experimental { get; set; }
-    /// <summary>Gets or sets the default structured-output mode for this model.</summary>
+    /// <summary>获取或设置该模型的默认结构化输出模式。</summary>
     public AiStructuredOutputMode DefaultStructuredOutputMode { get; set; } = AiStructuredOutputMode.JsonPromptAndRepair;
 }
 
-/// <summary>Root document for managed RapidOCR model profiles.</summary>
+/// <summary>托管 RapidOCR 模型配置档的根文档。</summary>
 public sealed class RapidOcrModelManifest
 {
-    /// <summary>Gets or sets the manifest schema version.</summary>
+    /// <summary>获取或设置清单 schema 版本。</summary>
     public int SchemaVersion { get; set; } = 1;
-    /// <summary>Gets or sets the available model profiles.</summary>
+    /// <summary>获取或设置可用模型配置档集合。</summary>
     public List<RapidOcrModelProfile> Models { get; set; } = [];
 }
 
-/// <summary>One managed RapidOCR detector, classifier, recognizer, and dictionary set.</summary>
+/// <summary>一组托管 RapidOCR 检测器、方向分类器、识别器和字典。</summary>
 public sealed class RapidOcrModelProfile
 {
-    /// <summary>Gets or sets the stable profile id.</summary>
+    /// <summary>获取或设置稳定配置档标识。</summary>
     public string Id { get; set; } = "";
-    /// <summary>Gets or sets the user-facing profile name.</summary>
+    /// <summary>获取或设置面向用户的配置档名称。</summary>
     public string DisplayName { get; set; } = "";
-    /// <summary>Gets or sets the user-facing profile description.</summary>
+    /// <summary>获取或设置面向用户的配置档描述。</summary>
     public string Description { get; set; } = "";
-    /// <summary>Gets or sets the upstream RapidOCR model manifest version.</summary>
+    /// <summary>获取或设置上游 RapidOCR 模型清单版本。</summary>
     public string Version { get; set; } = "";
-    /// <summary>Gets or sets the detector asset.</summary>
+    /// <summary>获取或设置检测器资产。</summary>
     public RapidOcrModelAsset Det { get; set; } = new();
-    /// <summary>Gets or sets the angle-classifier asset.</summary>
+    /// <summary>获取或设置方向分类器资产。</summary>
     public RapidOcrModelAsset Cls { get; set; } = new();
-    /// <summary>Gets or sets the recognizer asset.</summary>
+    /// <summary>获取或设置识别器资产。</summary>
     public RapidOcrModelAsset Rec { get; set; } = new();
-    /// <summary>Gets or sets the recognition dictionary asset.</summary>
+    /// <summary>获取或设置识别字典资产。</summary>
     public RapidOcrModelAsset Dict { get; set; } = new();
 }
 
-/// <summary>One downloadable RapidOCR model asset.</summary>
+/// <summary>一个可下载 RapidOCR 模型资产。</summary>
 public sealed class RapidOcrModelAsset
 {
-    /// <summary>Gets or sets the installed filename.</summary>
+    /// <summary>获取或设置安装后的文件名。</summary>
     public string FileName { get; set; } = "";
-    /// <summary>Gets or sets the repository-relative source path.</summary>
+    /// <summary>获取或设置仓库相对源路径。</summary>
     public string RemotePath { get; set; } = "";
-    /// <summary>Gets or sets the official direct download URL copied from RapidOCR's default model manifest.</summary>
+    /// <summary>获取或设置从 RapidOCR 默认模型清单复制的官方直链下载 URL。</summary>
     public string DownloadUrl { get; set; } = "";
-    /// <summary>Gets or sets the expected SHA-256 of the downloaded source.</summary>
+    /// <summary>获取或设置下载源期望的 SHA-256。</summary>
     public string? Sha256 { get; set; }
-    /// <summary>Gets or sets the deterministic source transform; supported values are Direct and PaddleCharacterDictionaryYaml.</summary>
+    /// <summary>获取或设置确定性源转换；支持值为 Direct 和 PaddleCharacterDictionaryYaml。</summary>
     public string Transform { get; set; } = "Direct";
 }
 
-/// <summary>Resolved installed paths for one RapidOCR model profile.</summary>
-/// <param name="ProfileId">Profile id.</param>
-/// <param name="Directory">Profile directory.</param>
-/// <param name="DetPath">Detector path.</param>
-/// <param name="ClsPath">Classifier path.</param>
-/// <param name="RecPath">Recognizer path.</param>
-/// <param name="DictPath">Dictionary path.</param>
+/// <summary>一个 RapidOCR 模型配置档的已解析安装路径。</summary>
+/// <param name="ProfileId">配置档标识。</param>
+/// <param name="Directory">配置档目录。</param>
+/// <param name="DetPath">检测器路径。</param>
+/// <param name="ClsPath">方向分类器路径。</param>
+/// <param name="RecPath">识别器路径。</param>
+/// <param name="DictPath">字典路径。</param>
 public sealed record RapidOcrInstalledPaths(
     string ProfileId,
     string Directory,
@@ -462,15 +462,15 @@ public sealed record RapidOcrInstalledPaths(
     string RecPath,
     string DictPath);
 
-/// <summary>Managed RapidOCR model readiness information.</summary>
-/// <param name="ProfileId">Selected profile id.</param>
-/// <param name="ModelDirectory">Selected profile directory.</param>
-/// <param name="IsInstalled">Whether every required file is installed.</param>
-/// <param name="MissingFiles">Missing installed filenames.</param>
-/// <param name="IsUsingFallback">Whether bundled fallback assets are active.</param>
-/// <param name="InstalledVersion">Installed upstream model version, if recorded.</param>
-/// <param name="LatestVersion">Version declared by the bundled manifest.</param>
-/// <param name="HasUpdate">Whether the installed version or profile fingerprint is stale.</param>
+/// <summary>托管 RapidOCR 模型就绪信息。</summary>
+/// <param name="ProfileId">已选配置档标识。</param>
+/// <param name="ModelDirectory">已选配置档目录。</param>
+/// <param name="IsInstalled">是否所有必需文件都已安装。</param>
+/// <param name="MissingFiles">缺失的安装文件名。</param>
+/// <param name="IsUsingFallback">是否正在使用内置兜底资产。</param>
+/// <param name="InstalledVersion">已安装的上游模型版本（如果已记录）。</param>
+/// <param name="LatestVersion">内置清单声明的版本。</param>
+/// <param name="HasUpdate">已安装版本或配置档指纹是否过期。</param>
 public sealed record RapidOcrModelStatus(
     string ProfileId,
     string ModelDirectory,
@@ -481,12 +481,12 @@ public sealed record RapidOcrModelStatus(
     string? LatestVersion = null,
     bool HasUpdate = false);
 
-/// <summary>Result of comparing an installed RapidOCR profile with bundled and official manifests.</summary>
-/// <param name="InstalledVersion">Installed version, if recorded.</param>
-/// <param name="BundledVersion">Version available in the bundled SmartBP manifest.</param>
-/// <param name="OfficialVersion">Version currently referenced by RapidOCR's official manifest.</param>
-/// <param name="HasInstallableUpdate">Whether the bundled profile can update the installed files.</param>
-/// <param name="IsBundledManifestCurrent">Whether SmartBP's bundled profile matches the official manifest version.</param>
+/// <summary>已安装 RapidOCR 配置档与内置/官方清单的比较结果。</summary>
+/// <param name="InstalledVersion">已安装版本（如果已记录）。</param>
+/// <param name="BundledVersion">SmartBP 内置清单中可用的版本。</param>
+/// <param name="OfficialVersion">RapidOCR 官方清单当前引用的版本。</param>
+/// <param name="HasInstallableUpdate">内置配置档是否可更新已安装文件。</param>
+/// <param name="IsBundledManifestCurrent">SmartBP 内置配置档是否匹配官方清单版本。</param>
 public sealed record RapidOcrModelUpdateCheckResult(
     string? InstalledVersion,
     string BundledVersion,
@@ -494,518 +494,518 @@ public sealed record RapidOcrModelUpdateCheckResult(
     bool HasInstallableUpdate,
     bool IsBundledManifestCurrent);
 
-/// <summary>Persisted AI recognition settings.</summary>
+/// <summary>已持久化的 AI 识别设置。</summary>
 public sealed class SmartBpRecognitionSettings
 {
-    /// <summary>Gets or sets the schema version.</summary>
+    /// <summary>获取或设置 schema 版本。</summary>
     public int SchemaVersion { get; set; } = 1;
-    /// <summary>Gets or sets llama-server path.</summary>
+    /// <summary>获取或设置 llama-server 路径。</summary>
     public string LlamaServerExecutablePath { get; set; } = "";
-    /// <summary>Gets or sets the loopback port.</summary>
+    /// <summary>获取或设置回环端口。</summary>
     public int LlamaServerPort { get; set; } = 18080;
-    /// <summary>Gets or sets the business AI server port.</summary>
+    /// <summary>获取或设置业务 AI 服务器端口。</summary>
     public int BusinessAiServerPort { get; set; } = 18080;
-    /// <summary>Gets or sets the AI OCR server port.</summary>
+    /// <summary>获取或设置 AI OCR 服务器端口。</summary>
     public int AiOcrServerPort { get; set; } = 18081;
-    /// <summary>Gets or sets the timeout for one llama.cpp inference request.</summary>
+    /// <summary>获取或设置单次 llama.cpp 推理请求超时时间。</summary>
     public int AiRequestTimeoutSeconds { get; set; } = 35;
-    /// <summary>Gets or sets the timeout for llama.cpp startup.</summary>
+    /// <summary>获取或设置 llama.cpp 启动超时时间。</summary>
     public int AiStartupTimeoutSeconds { get; set; } = 120;
-    /// <summary>Gets or sets whether Chinese UI uses the HuggingFace mirror.</summary>
+    /// <summary>获取或设置中文 UI 是否使用 HuggingFace 镜像。</summary>
     public bool UseHuggingFaceMirrorForChineseUi { get; set; } = true;
-    /// <summary>Gets or sets an optional HuggingFace endpoint override.</summary>
+    /// <summary>获取或设置可选 HuggingFace 端点覆盖值。</summary>
     public string HuggingFaceEndpointOverride { get; set; } = "";
-    /// <summary>Gets or sets the llama.cpp context size.</summary>
+    /// <summary>获取或设置 llama.cpp 上下文大小。</summary>
     public int LlamaContextSize { get; set; } = 8192;
-    /// <summary>Gets or sets selected Qwen profile.</summary>
+    /// <summary>获取或设置已选 Qwen 配置档。</summary>
     public string SelectedQwenModelId { get; set; } = "qwen3.5-2b-q4km";
-    /// <summary>Gets or sets the selected business local vision model profile.</summary>
+    /// <summary>获取或设置已选业务本地视觉模型配置档。</summary>
     public string SelectedBusinessAiModelId { get; set; } = "qwen3.5-2b-q4km";
-    /// <summary>Gets or sets the selected AI OCR local vision model profile.</summary>
+    /// <summary>获取或设置已选 AI OCR 本地视觉模型配置档。</summary>
     public string SelectedAiOcrModelId { get; set; } = "paddleocr-vl-1.6-gguf";
-    /// <summary>Gets or sets whether AI OCR should use its own llama.cpp server when models differ.</summary>
+    /// <summary>获取或设置模型不同时 AI OCR 是否使用独立 llama.cpp 服务器。</summary>
     public bool UseSeparateAiOcrServer { get; set; } = true;
-    /// <summary>Gets or sets how AI + OCR fuses OCR evidence into business state.</summary>
+    /// <summary>获取或设置 AI + OCR 如何将 OCR 证据融合为业务状态。</summary>
     public SmartBpHybridFusionMode AiWithOcrFusionMode { get; set; } = SmartBpHybridFusionMode.LocalCSharp;
-    /// <summary>Gets or sets how AI + AI OCR fuses transcript evidence into business state.</summary>
+    /// <summary>获取或设置 AI + AI OCR 如何将转写证据融合为业务状态。</summary>
     public SmartBpHybridFusionMode AiWithAiOcrFusionMode { get; set; } = SmartBpHybridFusionMode.BusinessAi;
-    /// <summary>Gets or sets how Business AI fusion requests structured output from llama.cpp.</summary>
+    /// <summary>获取或设置业务 AI 融合如何向 llama.cpp 请求结构化输出。</summary>
     public AiStructuredOutputMode BusinessAiFusionStructuredOutputMode { get; set; } = AiStructuredOutputMode.JsonPromptAndRepair;
-    /// <summary>Gets or sets the Business AI fusion output contract used by AI + AI OCR full debug recognition.</summary>
+    /// <summary>获取或设置 AI + AI OCR 完整调试识别使用的业务 AI 融合输出契约。</summary>
     public SmartBpBusinessAiFusionOutputContract AiWithAiOcrFullDebugFusionContract { get; set; } = SmartBpBusinessAiFusionOutputContract.FullBusinessState;
-    /// <summary>Gets or sets the selected projector profile label.</summary>
+    /// <summary>获取或设置已选投影器配置档标签。</summary>
     public string SelectedMmprojId { get; set; } = "mmproj-f16";
-    /// <summary>Gets or sets the bundled prompt profile id.</summary>
+    /// <summary>获取或设置内置提示词配置档标识。</summary>
     public string PromptProfileId { get; set; } = "zh-CN";
-    /// <summary>Gets or sets the managed llama.cpp runtime asset id.</summary>
+    /// <summary>获取或设置托管 llama.cpp 运行时资产标识。</summary>
     public string SelectedLlamaRuntimeId { get; set; } = "";
-    /// <summary>Gets or sets maximum encoded width.</summary>
+    /// <summary>获取或设置最大编码宽度。</summary>
     public int MaxImageWidth { get; set; } = 1280;
-    /// <summary>Gets or sets image encoding format.</summary>
+    /// <summary>获取或设置图片编码格式。</summary>
     public string ImageFormat { get; set; } = "png";
-    /// <summary>Gets or sets inference temperature.</summary>
+    /// <summary>获取或设置推理温度。</summary>
     public double Temperature { get; set; }
-    /// <summary>Gets or sets focused token limit.</summary>
+    /// <summary>获取或设置聚焦识别 token 上限。</summary>
     public int FocusedMaxTokens { get; set; } = 1024;
-    /// <summary>Gets or sets full-scan token limit.</summary>
+    /// <summary>获取或设置全量扫描 token 上限。</summary>
     public int FullScanMaxTokens { get; set; } = 2048;
-    /// <summary>Gets or sets loop interval.</summary>
+    /// <summary>获取或设置循环间隔。</summary>
     public int RecognitionIntervalMs { get; set; } = 1200;
-    /// <summary>Gets or sets minimum recommended interval.</summary>
+    /// <summary>获取或设置推荐最小间隔。</summary>
     public int MinRecognitionIntervalMs { get; set; } = 500;
-    /// <summary>Gets or sets maximum recommended interval.</summary>
+    /// <summary>获取或设置推荐最大间隔。</summary>
     public int MaxRecognitionIntervalMs { get; set; } = 5000;
-    /// <summary>Gets or sets required stable preview frames.</summary>
+    /// <summary>获取或设置所需稳定预览帧数。</summary>
     public int RequiredStableFrames { get; set; } = 2;
-    /// <summary>Gets or sets cooldown after recognition.</summary>
+    /// <summary>获取或设置识别后的冷却时间。</summary>
     public int PostRecognitionCooldownMs { get; set; } = 1200;
-    /// <summary>Gets or sets whether busy frames are dropped.</summary>
+    /// <summary>获取或设置忙碌时是否丢帧。</summary>
     public bool DropFrameWhenBusy { get; set; } = true;
-    /// <summary>Gets or sets process priority.</summary>
+    /// <summary>获取或设置进程优先级。</summary>
     public string ProcessPriority { get; set; } = "BelowNormal";
-    /// <summary>Gets or sets CPU thread count.</summary>
+    /// <summary>获取或设置 CPU 线程数。</summary>
     public int CpuThreads { get; set; } = 2;
-    /// <summary>Gets or sets whether automatic mode may synchronize GameGuidance.</summary>
+    /// <summary>获取或设置自动模式是否可以同步 GameGuidance。</summary>
     public bool EnableAutoGuidanceSync { get; set; }
-    /// <summary>Gets or sets whether guidance synchronization follows backend page navigation.</summary>
+    /// <summary>获取或设置引导同步是否跟随后台页面导航。</summary>
     public bool EnableAutoGuidancePageNavigation { get; set; }
-    /// <summary>Gets or sets whether accepted operations may be applied.</summary>
+    /// <summary>获取或设置是否可以应用已接受操作。</summary>
     public bool EnableAutoApplyRecognition { get; set; }
-    /// <summary>Gets or sets the recognition application strategy.</summary>
+    /// <summary>获取或设置识别结果应用策略。</summary>
     public SmartBpRecognitionApplyMode RecognitionApplyMode { get; set; } = SmartBpRecognitionApplyMode.GuidedWorkflow;
-    /// <summary>Gets or sets whether AI completes the preceding step before moving guidance.</summary>
+    /// <summary>获取或设置 AI 是否在移动引导前先完成前一步。</summary>
     public bool AiOneStepDelayedMode { get; set; } = true;
-    /// <summary>Gets or sets consecutive unknown-phase frames required for hunter-talent inference.</summary>
+    /// <summary>获取或设置推断监管者天赋阶段所需的连续未知阶段帧数。</summary>
     public int AiUnknownPhaseTalentInferenceFrames { get; set; } = 2;
-    /// <summary>Gets or sets minimum stage confidence.</summary>
+    /// <summary>获取或设置最小阶段置信度。</summary>
     public double StageConfidenceThreshold { get; set; } = 0.80;
-    /// <summary>Gets or sets guidance reconciliation lookahead.</summary>
+    /// <summary>获取或设置引导对齐向前查找步数。</summary>
     public int GuidanceSyncLookAheadSteps { get; set; } = 4;
-    /// <summary>Gets or sets whether late workflow backfill should replay frontend animations.</summary>
+    /// <summary>获取或设置延迟工作流回填是否应重放前端动画。</summary>
     public bool PlayBackfillAnimations { get; set; }
-    /// <summary>Gets or sets the number of matching snapshots required before automatic apply.</summary>
+    /// <summary>获取或设置自动应用前所需的匹配快照数量。</summary>
     public int RequiredStableSnapshots { get; set; } = 1;
-    /// <summary>Gets or sets whether automatic recognition should use one multi-image snapshot delta request.</summary>
+    /// <summary>获取或设置自动识别是否使用单次多图快照增量请求。</summary>
     public bool UseMultiImageSnapshotRequest { get; set; } = true;
-    /// <summary>Gets or sets whether the legacy model-side snapshot delta recognition is used instead of field snapshots.</summary>
+    /// <summary>获取或设置是否使用旧版模型侧快照增量识别替代字段快照。</summary>
     public bool UseLegacySnapshotDeltaRecognition { get; set; }
-    /// <summary>Gets or sets how the AI client requests structured JSON output from llama-server.</summary>
+    /// <summary>获取或设置 AI 客户端如何向 llama-server 请求结构化 JSON 输出。</summary>
     public AiStructuredOutputMode StructuredOutputMode { get; set; } = AiStructuredOutputMode.JsonSchemaStrict;
-    /// <summary>Gets or sets the selected BP recognition engine.</summary>
+    /// <summary>获取或设置已选 BP 识别引擎。</summary>
     public SmartBpRecognitionEngine RecognitionEngine { get; set; } = SmartBpRecognitionEngine.Ocr;
-    /// <summary>Gets or sets the selected SmartBP recognition strategy.</summary>
+    /// <summary>获取或设置已选 SmartBP 识别策略。</summary>
     public SmartBpRecognitionStrategy RecognitionStrategy { get; set; } = SmartBpRecognitionStrategy.PureOcr;
-    /// <summary>Gets or sets whether OCR BP recognition is enabled.</summary>
+    /// <summary>获取或设置是否启用 OCR BP 识别。</summary>
     public bool EnableOcrBpRecognition { get; set; } = true;
-    /// <summary>Gets or sets the OCR BP loop interval.</summary>
+    /// <summary>获取或设置 OCR BP 循环间隔。</summary>
     public int OcrRecognitionIntervalMs { get; set; } = 300;
-    /// <summary>Gets or sets the measured minimum OCR interval.</summary>
+    /// <summary>获取或设置实测最小 OCR 间隔。</summary>
     public int MinimumOcrRecognitionIntervalMs { get; set; }
-    /// <summary>Gets or sets the measured minimum AI interval.</summary>
+    /// <summary>获取或设置实测最小 AI 间隔。</summary>
     public int MinimumAiRecognitionIntervalMs { get; set; }
-    /// <summary>Gets or sets when recognition speed was last measured.</summary>
+    /// <summary>获取或设置最近一次识别速度测量时间。</summary>
     public DateTimeOffset? LastRecognitionSpeedTestAt { get; set; }
-    /// <summary>Gets or sets the engine label used by the last speed test.</summary>
+    /// <summary>获取或设置最近一次速度测试使用的引擎标签。</summary>
     public string LastRecognitionSpeedTestEngine { get; set; } = "";
-    /// <summary>Gets or sets the performance-affecting configuration fingerprint.</summary>
+    /// <summary>获取或设置影响性能的配置指纹。</summary>
     public string LastRecognitionSpeedTestConfigurationHash { get; set; } = "";
-    /// <summary>Gets or sets how long an OCR-merged field may remain fresh.</summary>
+    /// <summary>获取或设置 OCR 合并字段可保持新鲜的时长。</summary>
     public int OcrFieldStaleMilliseconds { get; set; } = 1500;
-    /// <summary>Gets or sets how many previous workflow steps OCR considers for backfill planning.</summary>
+    /// <summary>获取或设置 OCR 回填规划考虑多少个前置工作流步骤。</summary>
     public int OcrBackfillLookBehindSteps { get; set; } = 2;
-    /// <summary>Gets or sets whether OCR should combine crops into one contact sheet.</summary>
+    /// <summary>获取或设置 OCR 是否将裁剪图合成为一张拼接图。</summary>
     public bool UseOcrContactSheet { get; set; } = true;
-    /// <summary>Gets or sets whether OCR debug overlay output is enabled.</summary>
+    /// <summary>获取或设置是否启用 OCR 调试覆盖层输出。</summary>
     public bool EnableOcrDebugOverlay { get; set; }
-    /// <summary>Gets or sets the explicitly selected OCR provider.</summary>
+    /// <summary>获取或设置显式选择的 OCR 提供程序。</summary>
     public SmartBpOcrProviderMode OcrProviderMode { get; set; } = SmartBpOcrProviderMode.Paddle;
-    /// <summary>Gets or sets the explicitly selected OCR provider for strategy-based recognition.</summary>
+    /// <summary>获取或设置基于策略识别时显式选择的 OCR 提供程序。</summary>
     public SmartBpOcrProviderMode SelectedOcrProviderMode { get; set; } = SmartBpOcrProviderMode.Paddle;
-    /// <summary>Gets or sets the selected managed RapidOCR profile id.</summary>
+    /// <summary>获取或设置已选托管 RapidOCR 配置档标识。</summary>
     public string SelectedRapidOcrModelId { get; set; } = "ppocr-v5-zh-mobile";
-    /// <summary>Gets or sets RapidOCR detector input padding.</summary>
+    /// <summary>获取或设置 RapidOCR 检测器输入边距。</summary>
     public int RapidOcrPadding { get; set; }
-    /// <summary>Gets or sets the RapidOCR legacy maximum-side resize cap.</summary>
+    /// <summary>获取或设置 RapidOCR 旧版最长边缩放上限。</summary>
     public int RapidOcrMaxSideLen { get; set; } = 1024;
-    /// <summary>Gets or sets the RapidOCR DB box score threshold.</summary>
+    /// <summary>获取或设置 RapidOCR DB 框分数阈值。</summary>
     public double RapidOcrBoxScoreThreshold { get; set; } = 0.5;
-    /// <summary>Gets or sets the RapidOCR DB bitmap threshold.</summary>
+    /// <summary>获取或设置 RapidOCR DB 位图阈值。</summary>
     public double RapidOcrBoxThreshold { get; set; } = 0.3;
-    /// <summary>Gets or sets the RapidOCR DB polygon expansion ratio.</summary>
+    /// <summary>获取或设置 RapidOCR DB 多边形扩张比例。</summary>
     public double RapidOcrUnclipRatio { get; set; } = 1.6;
-    /// <summary>Gets or sets whether RapidOCR runs its angle classifier.</summary>
+    /// <summary>获取或设置 RapidOCR 是否运行方向分类器。</summary>
     public bool RapidOcrUseAngleClassifier { get; set; } = true;
-    /// <summary>Gets or sets whether RapidOCR also tries a contrast-enhanced grayscale image.</summary>
+    /// <summary>获取或设置 RapidOCR 是否额外尝试对比度增强灰度图。</summary>
     public bool RapidOcrUsePreprocessingVariants { get; set; }
-    /// <summary>Gets or sets a legacy external Tesseract tessdata directory value. Managed downloads ignore this path.</summary>
+    /// <summary>获取或设置旧版外部 Tesseract tessdata 目录值；托管下载会忽略该路径。</summary>
     public string TesseractDataPath { get; set; } = "";
-    /// <summary>Gets or sets the Tesseract language expression.</summary>
+    /// <summary>获取或设置 Tesseract 语言表达式。</summary>
     public string TesseractLanguages { get; set; } = "chi_sim+eng";
-    /// <summary>Gets or sets the default Tesseract page segmentation mode.</summary>
+    /// <summary>获取或设置默认 Tesseract 页面分割模式。</summary>
     public int TesseractDefaultPsm { get; set; } = 6;
-    /// <summary>Gets or sets whether Tesseract may be used when selected.</summary>
+    /// <summary>获取或设置选中时是否允许使用 Tesseract。</summary>
     public bool EnableTesseractOcr { get; set; } = true;
-    /// <summary>Gets or sets the maximum number of Tesseract preprocessing variants.</summary>
+    /// <summary>获取或设置 Tesseract 预处理变体最大数量。</summary>
     public int TesseractMaxPreprocessVariants { get; set; } = 3;
-    /// <summary>Gets or sets how many previous workflow steps are considered when planning content-region refreshes.</summary>
+    /// <summary>获取或设置规划内容区域刷新时考虑多少个前置工作流步骤。</summary>
     public int RecognitionBackfillLookBehindSteps { get; set; } = 2;
-    /// <summary>Gets or sets how long a locally merged recognition field may remain fresh.</summary>
+    /// <summary>获取或设置本地合并识别字段可保持新鲜的时长。</summary>
     public int RecognitionFieldStaleMilliseconds { get; set; } = 2500;
-    /// <summary>Gets or sets an optional delay before applying current-step animated operations.</summary>
+    /// <summary>获取或设置应用当前步骤动画操作前的可选延迟。</summary>
     public int RecognitionVisualBufferMilliseconds { get; set; }
-    /// <summary>Gets or sets llama.cpp parallel slot count.</summary>
+    /// <summary>获取或设置 llama.cpp 并行槽位数量。</summary>
     public int LlamaParallelSlots { get; set; } = 1;
-    /// <summary>Gets or sets llama.cpp GPU layer count; -1 means auto.</summary>
+    /// <summary>获取或设置 llama.cpp GPU 层数；-1 表示自动。</summary>
     public int LlamaGpuLayers { get; set; } = -1;
-    /// <summary>Gets or sets whether llama.cpp flash attention is enabled.</summary>
+    /// <summary>获取或设置是否启用 llama.cpp flash attention。</summary>
     public bool LlamaFlashAttention { get; set; } = true;
-    /// <summary>Gets or sets llama.cpp batch size.</summary>
+    /// <summary>获取或设置 llama.cpp batch size。</summary>
     public int LlamaBatchSize { get; set; } = 512;
-    /// <summary>Gets or sets llama.cpp micro-batch size.</summary>
+    /// <summary>获取或设置 llama.cpp micro-batch size。</summary>
     public int LlamaUBatchSize { get; set; } = 512;
-    /// <summary>Gets or sets whether stale managed llama-server processes may be killed automatically.</summary>
+    /// <summary>获取或设置是否可自动结束过期的托管 llama-server 进程。</summary>
     public bool AutoKillStaleManagedLlamaServer { get; set; } = true;
-    /// <summary>Gets or sets whether sequential per-region requests may be used when multi-image recognition fails.</summary>
+    /// <summary>获取或设置多图识别失败时是否允许使用逐区域顺序请求。</summary>
     public bool AllowSequentialSnapshotFallback { get; set; } = true;
-    /// <summary>Gets or sets whether automatic JSON schemas should use full candidate enums.</summary>
+    /// <summary>获取或设置自动 JSON schema 是否使用完整候选枚举。</summary>
     public bool UseStrictCandidateEnumsInAutoSchema { get; set; }
-    /// <summary>Gets or sets maximum encoded width for phase crops.</summary>
+    /// <summary>获取或设置阶段裁剪图最大编码宽度。</summary>
     public int PhaseCropMaxImageWidth { get; set; } = 640;
-    /// <summary>Gets or sets maximum encoded width for content crops.</summary>
+    /// <summary>获取或设置内容裁剪图最大编码宽度。</summary>
     public int ContentCropMaxImageWidth { get; set; } = 768;
-    /// <summary>Gets or sets the phase-only response token budget.</summary>
+    /// <summary>获取或设置仅阶段响应 token 预算。</summary>
     public int PhaseMaxTokens { get; set; } = 48;
-    /// <summary>Gets or sets the incremental snapshot delta token budget.</summary>
+    /// <summary>获取或设置增量快照增量 token 预算。</summary>
     public int SnapshotDeltaMaxTokens { get; set; } = 768;
-    /// <summary>Gets or sets the banned_sur field snapshot token budget.</summary>
+    /// <summary>获取或设置 banned_sur 字段快照 token 预算。</summary>
     public int BannedSurFieldMaxTokens { get; set; } = 256;
-    /// <summary>Gets or sets the banned_hun field snapshot token budget.</summary>
+    /// <summary>获取或设置 banned_hun 字段快照 token 预算。</summary>
     public int BannedHunFieldMaxTokens { get; set; } = 192;
-    /// <summary>Gets or sets the picked_sur field snapshot token budget.</summary>
+    /// <summary>获取或设置 picked_sur 字段快照 token 预算。</summary>
     public int PickedSurFieldMaxTokens { get; set; } = 384;
-    /// <summary>Gets or sets the picked_hun field snapshot token budget.</summary>
+    /// <summary>获取或设置 picked_hun 字段快照 token 预算。</summary>
     public int PickedHunFieldMaxTokens { get; set; } = 192;
-    /// <summary>Gets or sets the short commit hold before moving guidance to a newly detected phase.</summary>
+    /// <summary>获取或设置将引导移动到新检测阶段前的短提交等待时间。</summary>
     public int PhaseTransitionCommitHoldMilliseconds { get; set; } = 350;
-    /// <summary>Gets or sets the maximum commit hold before allowing late backfill.</summary>
+    /// <summary>获取或设置允许延迟回填前的最大提交等待时间。</summary>
     public int PhaseTransitionCommitHoldMaxMilliseconds { get; set; } = 800;
-    /// <summary>Gets or sets whether late no-animation backfill remains allowed after phase movement.</summary>
+    /// <summary>获取或设置阶段移动后是否仍允许无动画延迟回填。</summary>
     public bool AllowLateBackfillAfterPhaseMoved { get; set; } = true;
-    /// <summary>Gets or sets the rolling recognition frame buffer length.</summary>
+    /// <summary>获取或设置滚动识别帧缓冲长度。</summary>
     public int RecognitionFrameBufferMilliseconds { get; set; } = 1500;
-    /// <summary>Gets or sets how far back transition finalization may inspect frames.</summary>
+    /// <summary>获取或设置转场最终确认可向前回看画面帧的时长。</summary>
     public int RecognitionTransitionLookBehindMilliseconds { get; set; } = 800;
-    /// <summary>Gets or sets the crop-change threshold.</summary>
+    /// <summary>获取或设置裁剪图变化阈值。</summary>
     public double RecognitionCropChangeThreshold { get; set; } = 0.035;
-    /// <summary>Gets or sets how many stable crop observations are preferred.</summary>
+    /// <summary>获取或设置优先要求的稳定裁剪观测帧数。</summary>
     public int RecognitionCropStableFrames { get; set; } = 2;
-    /// <summary>Gets or sets whether llama.cpp runtime update checks are enabled.</summary>
+    /// <summary>获取或设置是否启用 llama.cpp 运行时更新检查。</summary>
     public bool EnableLlamaRuntimeUpdateCheck { get; set; } = true;
-    /// <summary>Gets or sets the llama.cpp runtime update interval in hours.</summary>
+    /// <summary>获取或设置 llama.cpp 运行时更新检查间隔（小时）。</summary>
     public int LlamaRuntimeUpdateCheckIntervalHours { get; set; } = 168;
-    /// <summary>Gets or sets a custom remote llama.cpp runtime manifest API URL.</summary>
+    /// <summary>获取或设置自定义远程 llama.cpp 运行时清单 API URL。</summary>
     public string LlamaRuntimeManifestApiUrl { get; set; } = "";
-    /// <summary>Gets or sets the last llama.cpp runtime update check time.</summary>
+    /// <summary>获取或设置最近一次 llama.cpp 运行时更新检查时间。</summary>
     public DateTimeOffset? LastLlamaRuntimeUpdateCheckAt { get; set; }
 }
 
-/// <summary>Model-facing BP business-state recognition result.</summary>
+/// <summary>面向模型的 BP 业务状态识别结果。</summary>
 public sealed class SmartBpBusinessStateRecognitionResult
 {
-    /// <summary>Gets or sets the detected BP phase.</summary>
+    /// <summary>获取或设置检测到的 BP 阶段。</summary>
     [JsonPropertyName("phase")] public string Phase { get; set; } = "未知";
-    /// <summary>Gets or sets survivor ban slots.</summary>
+    /// <summary>获取或设置求生者禁用槽位。</summary>
     [JsonPropertyName("banned_sur")] public List<SmartBpRecognizedCharacterSlot> BannedSur { get; set; } = [];
-    /// <summary>Gets or sets hunter ban slots.</summary>
+    /// <summary>获取或设置监管者禁用槽位。</summary>
     [JsonPropertyName("banned_hun")] public List<SmartBpRecognizedCharacterSlot> BannedHun { get; set; } = [];
-    /// <summary>Gets or sets survivor pick or distribution slots.</summary>
+    /// <summary>获取或设置求生者选择或分配槽位。</summary>
     [JsonPropertyName("picked_sur")] public List<SmartBpRecognizedPlayerCharacterSlot> PickedSur { get; set; } = [];
-    /// <summary>Gets or sets hunter pick slot.</summary>
+    /// <summary>获取或设置监管者选择槽位。</summary>
     [JsonPropertyName("picked_hun")] public SmartBpRecognizedPlayerCharacterSlot PickedHun { get; set; } = new();
 }
 
-/// <summary>One recognized character slot.</summary>
+/// <summary>一个已识别角色槽位。</summary>
 public class SmartBpRecognizedCharacterSlot
 {
-    /// <summary>Gets or sets visual slot index.</summary>
+    /// <summary>获取或设置视觉槽位索引。</summary>
     [JsonPropertyName("index")] public int Index { get; set; }
-    /// <summary>Gets or sets raw model character name or 未选择.</summary>
+    /// <summary>获取或设置模型原始角色名称或“未选择”。</summary>
     [JsonPropertyName("character_name")] public string CharacterName { get; set; } = "未选择";
-    /// <summary>Gets or sets the local OCR match confidence; model JSON does not serialize this metadata.</summary>
+    /// <summary>获取或设置本地 OCR 匹配置信度；模型 JSON 不序列化该元数据。</summary>
     [JsonIgnore] public double RecognitionConfidence { get; set; } = 1;
-    /// <summary>Gets or sets whether local OCR matching is safe for automatic application.</summary>
+    /// <summary>获取或设置本地 OCR 匹配是否可安全自动应用。</summary>
     [JsonIgnore] public bool IsAutoApplySafe { get; set; } = true;
-    /// <summary>Gets or sets the OCR match diagnostic reason.</summary>
+    /// <summary>获取或设置 OCR 匹配诊断原因。</summary>
     [JsonIgnore] public string? RecognitionReason { get; set; }
 }
 
-/// <summary>One recognized player-bound character slot.</summary>
+/// <summary>一个绑定玩家的已识别角色槽位。</summary>
 public sealed class SmartBpRecognizedPlayerCharacterSlot : SmartBpRecognizedCharacterSlot
 {
-    /// <summary>Gets or sets visible player ID, if any.</summary>
+    /// <summary>获取或设置可见玩家 ID（如果存在）。</summary>
     [JsonPropertyName("player_id")] public string? PlayerId { get; set; }
 }
 
-/// <summary>Focused model output for one cropped business region.</summary>
+/// <summary>单个业务裁剪区域的聚焦模型输出。</summary>
 public sealed class SmartBpFocusedBusinessExtractionResult
 {
-    /// <summary>Gets or sets the phase that selected this focused region.</summary>
+    /// <summary>获取或设置选择该聚焦区域的阶段。</summary>
     [JsonPropertyName("phase")] public string Phase { get; set; } = "未知";
-    /// <summary>Gets or sets the target business field.</summary>
+    /// <summary>获取或设置目标业务字段。</summary>
     [JsonPropertyName("target_field")] public string TargetField { get; set; } = "";
-    /// <summary>Gets or sets focused slots for ban or survivor-pick regions.</summary>
+    /// <summary>获取或设置禁用或求生者选择区域的聚焦槽位。</summary>
     [JsonPropertyName("slots")] public List<SmartBpRecognizedPlayerCharacterSlot> Slots { get; set; } = [];
-    /// <summary>Gets or sets the focused hunter pick slot.</summary>
+    /// <summary>获取或设置聚焦监管者选择槽位。</summary>
     [JsonPropertyName("picked_hun")] public SmartBpRecognizedPlayerCharacterSlot? PickedHun { get; set; }
 }
 
-/// <summary>One locally merged BP snapshot produced from the phase crop and four content crops.</summary>
+/// <summary>根据阶段裁剪图和四个内容裁剪图生成的本地合并 BP 快照。</summary>
 public sealed class SmartBpRegionSnapshot
 {
-    /// <summary>Gets the authoritative phase recognition result.</summary>
+    /// <summary>获取权威阶段识别结果。</summary>
     public SmartBpPhaseRecognitionResult Phase { get; init; } = new();
-    /// <summary>Gets the upper-right survivor-ban extraction.</summary>
+    /// <summary>获取右上求生者禁用提取结果。</summary>
     public SmartBpFocusedBusinessExtractionResult? BannedSurRegion { get; init; }
-    /// <summary>Gets the upper-left hunter-ban extraction.</summary>
+    /// <summary>获取左上监管者禁用提取结果。</summary>
     public SmartBpFocusedBusinessExtractionResult? BannedHunRegion { get; init; }
-    /// <summary>Gets the lower-left survivor-pick extraction.</summary>
+    /// <summary>获取左下求生者选择提取结果。</summary>
     public SmartBpFocusedBusinessExtractionResult? PickedSurRegion { get; init; }
-    /// <summary>Gets the lower-right hunter-pick extraction.</summary>
+    /// <summary>获取右下监管者选择提取结果。</summary>
     public SmartBpFocusedBusinessExtractionResult? PickedHunRegion { get; init; }
-    /// <summary>Gets the merged simplified business state.</summary>
+    /// <summary>获取合并后的简化业务状态。</summary>
     public SmartBpBusinessStateRecognitionResult BusinessState { get; init; } = new();
-    /// <summary>Gets all crop diagnostics.</summary>
+    /// <summary>获取全部裁剪诊断信息。</summary>
     public IReadOnlyList<string> Diagnostics { get; init; } = [];
-    /// <summary>Gets the phase crop used by the model.</summary>
+    /// <summary>获取模型使用的阶段裁剪图。</summary>
     public SmartBpCroppedFrame? PhaseCrop { get; init; }
-    /// <summary>Gets all four content crops used by the model.</summary>
+    /// <summary>获取模型使用的四个内容裁剪图。</summary>
     public IReadOnlyList<SmartBpCroppedFrame> ContentCrops { get; init; } = [];
-    /// <summary>Gets raw model responses keyed by logical region.</summary>
+    /// <summary>获取按逻辑区域索引的模型原始响应。</summary>
     public IReadOnlyDictionary<string, string> RawResponses { get; init; } = new Dictionary<string, string>();
 }
 
-/// <summary>One cropped region image included in a multi-image snapshot request.</summary>
+/// <summary>多图快照请求中包含的一张裁剪区域图。</summary>
 public sealed record SmartBpMultimodalRegionInput(string Id, SmartBpRecognitionRegion Region, string TargetField, string ImageDataUrl);
 
-/// <summary>One requested incremental snapshot recognition package.</summary>
+/// <summary>一个请求的增量快照识别包。</summary>
 public sealed record SmartBpSnapshotDeltaRequest(IReadOnlyList<(SmartBpRecognitionRegion Region, string TargetField)> RequestedRegions,
     IReadOnlyList<string> Diagnostics,
     SmartBpBusinessStateRecognitionResult? CurrentKnownState = null)
 {
-    /// <summary>Gets requested business content fields.</summary>
+    /// <summary>获取请求的业务内容字段。</summary>
     public IReadOnlyList<string> RequestedFields => RequestedRegions.Select(item => item.TargetField).Distinct(StringComparer.Ordinal).ToArray();
 }
 
-/// <summary>Model-visible state of one incremental snapshot slot.</summary>
+/// <summary>模型可见的单个增量快照槽位状态。</summary>
 public enum SmartBpRecognizedSlotState
 {
-    /// <summary>The crop clearly shows a selected character in this slot.</summary>
+    /// <summary>裁剪图明确显示该槽位已有选中角色。</summary>
     Selected,
-    /// <summary>The crop clearly shows an empty or unselected slot.</summary>
+    /// <summary>裁剪图明确显示该槽位为空或未选择。</summary>
     Empty,
-    /// <summary>The crop is not reliable enough, so local merge should preserve previous state.</summary>
+    /// <summary>裁剪图不够可靠，本地合并应保留先前状态。</summary>
     Unknown
 }
 
-/// <summary>One slot update in a snapshot delta response.</summary>
+/// <summary>快照增量响应中的单个槽位更新。</summary>
 public sealed class SmartBpSnapshotDeltaSlot
 {
-    /// <summary>Gets or sets the visual slot index.</summary>
+    /// <summary>获取或设置视觉槽位索引。</summary>
     [JsonPropertyName("index")]
     public int Index { get; set; }
 
-    /// <summary>Gets or sets selected, empty, or unknown slot evidence.</summary>
+    /// <summary>获取或设置 selected、empty 或 unknown 槽位证据。</summary>
     [JsonPropertyName("slot_state")]
     public string SlotState { get; set; } = "unknown";
 
-    /// <summary>Gets or sets the recognized candidate character name or 未选择.</summary>
+    /// <summary>获取或设置识别到的候选角色名称或“未选择”。</summary>
     [JsonPropertyName("character_name")]
     public string CharacterName { get; set; } = "未选择";
 
-    /// <summary>Gets or sets the visible player id when the slot belongs to a picked character.</summary>
+    /// <summary>获取或设置槽位属于已选角色时的可见玩家 ID。</summary>
     [JsonPropertyName("player_id")]
     public string? PlayerId { get; set; }
 }
 
-/// <summary>Incremental model output containing phase and only requested field updates.</summary>
+/// <summary>包含阶段和请求字段更新的增量模型输出。</summary>
 public sealed class SmartBpSnapshotDeltaResult
 {
-    /// <summary>Gets or sets the detected current phase.</summary>
+    /// <summary>获取或设置检测到的当前阶段。</summary>
     [JsonPropertyName("phase")] public string Phase { get; set; } = "未知";
-    /// <summary>Gets or sets requested field updates.</summary>
+    /// <summary>获取或设置请求字段更新集合。</summary>
     [JsonPropertyName("updates")] public List<SmartBpSnapshotFieldUpdate> Updates { get; set; } = [];
 }
 
-/// <summary>One field update in a snapshot delta result.</summary>
+/// <summary>快照增量结果中的单个字段更新。</summary>
 public sealed class SmartBpSnapshotFieldUpdate
 {
-    /// <summary>Gets or sets the business field id.</summary>
+    /// <summary>获取或设置业务字段标识。</summary>
     [JsonPropertyName("field")] public string Field { get; set; } = "";
-    /// <summary>Gets or sets slots for banned_sur, banned_hun or picked_sur.</summary>
+    /// <summary>获取或设置 banned_sur、banned_hun 或 picked_sur 的槽位集合。</summary>
     [JsonPropertyName("slots")] public List<SmartBpSnapshotDeltaSlot>? Slots { get; set; }
-    /// <summary>Gets or sets the hunter pick slot when field is picked_hun.</summary>
+    /// <summary>字段为 picked_hun 时，获取或设置监管者选择槽位。</summary>
     [JsonPropertyName("picked_hun")] public SmartBpSnapshotDeltaSlot? PickedHun { get; set; }
 }
 
-/// <summary>Phase-only AI recognition result produced by the phase-only recognition path.</summary>
+/// <summary>仅阶段识别路径产出的 AI 识别结果。</summary>
 public sealed class SmartBpAiPhaseOnlyResult
 {
-    /// <summary>Gets the recognized phase.</summary>
+    /// <summary>获取识别到的阶段。</summary>
     public SmartBpPhaseRecognitionResult Phase { get; init; } = new();
-    /// <summary>Gets the phase crop used by the model.</summary>
+    /// <summary>获取模型使用的阶段裁剪图。</summary>
     public SmartBpCroppedFrame Crop { get; init; } = default!;
-    /// <summary>Gets the absolute top-left global-status crop used by the model.</summary>
+    /// <summary>获取模型使用的绝对左上角全局状态裁剪图。</summary>
     public SmartBpCroppedFrame TopLeftStatusCrop { get; init; } = default!;
-    /// <summary>Gets the raw model JSON response.</summary>
+    /// <summary>获取模型原始 JSON 响应。</summary>
     public string RawJson { get; init; } = "";
-    /// <summary>Gets recognition diagnostics.</summary>
+    /// <summary>获取识别诊断信息。</summary>
     public IReadOnlyList<string> Diagnostics { get; init; } = [];
 }
 
-/// <summary>One field-level AI snapshot recognition result.</summary>
+/// <summary>一个字段级 AI 快照识别结果。</summary>
 public sealed class SmartBpAiFieldSnapshotResult
 {
-    /// <summary>Gets the business field id (banned_sur, banned_hun, picked_sur, picked_hun).</summary>
+    /// <summary>获取业务字段标识（banned_sur、banned_hun、picked_sur、picked_hun）。</summary>
     public string Field { get; init; } = "";
-    /// <summary>Gets the parsed field snapshot slots with slot_state evidence.</summary>
+    /// <summary>获取带 slot_state 证据的已解析字段快照槽位。</summary>
     public IReadOnlyList<SmartBpSnapshotDeltaSlot> Slots { get; init; } = [];
-    /// <summary>Gets the hunter pick slot when the field is picked_hun.</summary>
+    /// <summary>字段为 picked_hun 时获取监管者选择槽位。</summary>
     public SmartBpSnapshotDeltaSlot? PickedHun { get; init; }
-    /// <summary>Gets the focused business extraction derived from the visible snapshot.</summary>
+    /// <summary>获取从可见快照派生出的聚焦业务提取结果。</summary>
     public SmartBpFocusedBusinessExtractionResult FocusedResult { get; init; } = new();
-    /// <summary>Gets the content crop used by the model.</summary>
+    /// <summary>获取模型使用的内容裁剪图。</summary>
     public SmartBpCroppedFrame Crop { get; init; } = default!;
-    /// <summary>Gets the raw model JSON response.</summary>
+    /// <summary>获取模型原始 JSON 响应。</summary>
     public string RawJson { get; init; } = "";
-    /// <summary>Gets recognition diagnostics.</summary>
+    /// <summary>获取识别诊断信息。</summary>
     public IReadOnlyList<string> Diagnostics { get; init; } = [];
 }
 
-/// <summary>In-memory locally merged SmartBP recognition state.</summary>
+/// <summary>内存中的 SmartBP 本地合并识别状态。</summary>
 public sealed class SmartBpRecognitionState
 {
-    /// <summary>Gets or sets the latest phase.</summary>
+    /// <summary>获取或设置最新阶段。</summary>
     public string Phase { get; set; } = "未知";
-    /// <summary>Gets or sets known survivor bans.</summary>
+    /// <summary>获取或设置已知求生者禁用。</summary>
     public List<SmartBpRecognizedCharacterSlot> BannedSur { get; set; } = DefaultBannedSur();
-    /// <summary>Gets or sets known hunter bans.</summary>
+    /// <summary>获取或设置已知监管者禁用。</summary>
     public List<SmartBpRecognizedCharacterSlot> BannedHun { get; set; } = DefaultBannedHun();
-    /// <summary>Gets or sets known survivor picks or assignments.</summary>
+    /// <summary>获取或设置已知求生者选择或分配。</summary>
     public List<SmartBpRecognizedPlayerCharacterSlot> PickedSur { get; set; } = DefaultPickedSur();
-    /// <summary>Gets or sets known hunter pick.</summary>
+    /// <summary>获取或设置已知监管者选择。</summary>
     public SmartBpRecognizedPlayerCharacterSlot PickedHun { get; set; } = DefaultPickedHun();
-    /// <summary>Gets or sets last update timestamp per field.</summary>
+    /// <summary>获取或设置每个字段的最近更新时间戳。</summary>
     public Dictionary<string, DateTimeOffset> FieldUpdatedAt { get; set; } = [];
-    /// <summary>Gets or sets latest accepted frame sequence.</summary>
+    /// <summary>获取或设置最新已接受画面帧序号。</summary>
     public long LastFrameSequence { get; set; }
-    /// <summary>Gets or sets latest accepted frame sequence per field.</summary>
+    /// <summary>获取或设置每个字段最新已接受画面帧序号。</summary>
     public Dictionary<string, long> FieldFrameSequences { get; set; } = [];
 
-    /// <summary>Creates default survivor ban slots.</summary>
+    /// <summary>创建默认求生者禁用槽位。</summary>
     public static List<SmartBpRecognizedCharacterSlot> DefaultBannedSur() => Enumerable.Range(0, 4).Select(i => new SmartBpRecognizedCharacterSlot { Index = i, CharacterName = "未选择" }).ToList();
-    /// <summary>Creates default hunter ban slots.</summary>
+    /// <summary>创建默认监管者禁用槽位。</summary>
     public static List<SmartBpRecognizedCharacterSlot> DefaultBannedHun() => Enumerable.Range(0, 2).Select(i => new SmartBpRecognizedCharacterSlot { Index = i, CharacterName = "未选择" }).ToList();
-    /// <summary>Creates default survivor pick slots.</summary>
+    /// <summary>创建默认求生者选择槽位。</summary>
     public static List<SmartBpRecognizedPlayerCharacterSlot> DefaultPickedSur() => Enumerable.Range(0, 4).Select(i => new SmartBpRecognizedPlayerCharacterSlot { Index = i, CharacterName = "未选择" }).ToList();
-    /// <summary>Creates the default hunter pick slot.</summary>
+    /// <summary>创建默认监管者选择槽位。</summary>
     public static SmartBpRecognizedPlayerCharacterSlot DefaultPickedHun() => new() { Index = 0, CharacterName = "未选择" };
 }
 
-/// <summary>Read-only recognition ledger snapshot.</summary>
+/// <summary>只读识别台账快照。</summary>
 public sealed record SmartBpRecognitionLedgerSnapshot(IReadOnlyCollection<SmartBpWorkflowOperationKey> CompletedKeys);
 
-/// <summary>Legacy model-facing BP stage detection result.</summary>
+/// <summary>面向模型的旧版 BP 阶段检测结果。</summary>
 public sealed class SmartBpStageDetectionResult
 {
-    /// <summary>Gets or sets schema version.</summary>
+    /// <summary>获取或设置 schema 版本。</summary>
     [JsonPropertyName("schema_version")] public int SchemaVersion { get; set; }
-    /// <summary>Gets or sets recognized action.</summary>
+    /// <summary>获取或设置已识别动作。</summary>
     [JsonPropertyName("recognized_action")] public string RecognizedAction { get; set; } = "Unknown";
-    /// <summary>Gets or sets active side.</summary>
+    /// <summary>获取或设置活动侧。</summary>
     [JsonPropertyName("active_side")] public string ActiveSide { get; set; } = "unknown";
-    /// <summary>Gets or sets operation region.</summary>
+    /// <summary>获取或设置操作区域。</summary>
     [JsonPropertyName("operation_region")] public string OperationRegion { get; set; } = "unknown";
-    /// <summary>Gets or sets operation owner.</summary>
+    /// <summary>获取或设置操作归属方。</summary>
     [JsonPropertyName("operation_owner")] public string OperationOwner { get; set; } = "unknown";
-    /// <summary>Gets or sets target camp.</summary>
+    /// <summary>获取或设置目标阵营。</summary>
     [JsonPropertyName("target_camp")] public string TargetCamp { get; set; } = "unknown";
-    /// <summary>Gets or sets left-top title.</summary>
+    /// <summary>获取或设置左上标题。</summary>
     [JsonPropertyName("left_top_title")] public string? LeftTopTitle { get; set; }
-    /// <summary>Gets or sets right-top title.</summary>
+    /// <summary>获取或设置右上标题。</summary>
     [JsonPropertyName("right_top_title")] public string? RightTopTitle { get; set; }
-    /// <summary>Gets or sets main status.</summary>
+    /// <summary>获取或设置主状态。</summary>
     [JsonPropertyName("main_status")] public string? MainStatus { get; set; }
-    /// <summary>Gets or sets confidence.</summary>
+    /// <summary>获取或设置置信度。</summary>
     [JsonPropertyName("confidence")] public double Confidence { get; set; }
-    /// <summary>Gets or sets evidence.</summary>
+    /// <summary>获取或设置证据。</summary>
     [JsonPropertyName("evidence")] public List<string> Evidence { get; set; } = [];
-    /// <summary>Gets or sets warnings.</summary>
+    /// <summary>获取或设置警告。</summary>
     [JsonPropertyName("warnings")] public List<string> Warnings { get; set; } = [];
 }
 
-/// <summary>Focused BP operation extraction result.</summary>
+/// <summary>聚焦 BP 操作提取结果。</summary>
 public sealed class SmartBpFocusedExtractionResult
 {
-    /// <summary>Gets or sets schema version.</summary>
+    /// <summary>获取或设置 schema 版本。</summary>
     [JsonPropertyName("schema_version")] public int SchemaVersion { get; set; }
-    /// <summary>Gets or sets task.</summary>
+    /// <summary>获取或设置任务。</summary>
     [JsonPropertyName("task")] public string Task { get; set; } = "";
-    /// <summary>Gets or sets operation region.</summary>
+    /// <summary>获取或设置操作区域。</summary>
     [JsonPropertyName("operation_region")] public string OperationRegion { get; set; } = "unknown";
-    /// <summary>Gets or sets target camp.</summary>
+    /// <summary>获取或设置目标阵营。</summary>
     [JsonPropertyName("target_camp")] public string TargetCamp { get; set; } = "unknown";
-    /// <summary>Gets or sets extracted slots.</summary>
+    /// <summary>获取或设置提取出的槽位。</summary>
     [JsonPropertyName("slots")] public List<SmartBpVisionSlot> Slots { get; set; } = [];
-    /// <summary>Gets or sets warnings.</summary>
+    /// <summary>获取或设置警告。</summary>
     [JsonPropertyName("warnings")] public List<string> Warnings { get; set; } = [];
 }
 
-/// <summary>Locally controlled detected operation kind.</summary>
+/// <summary>本地控制的已检测操作类型。</summary>
 public enum SmartBpDetectedOperationKind { BanCharacter, PickSurvivor, PickHunter, SwapSurvivors }
 
-/// <summary>Controls workflow validation and animation behavior for one detected operation.</summary>
+/// <summary>控制单个已检测操作的工作流校验和动画行为。</summary>
 public enum SmartBpDetectedOperationApplyMode
 {
-    /// <summary>Applies an operation associated with the current guidance step.</summary>
+    /// <summary>应用与当前引导步骤关联的操作。</summary>
     CurrentStep,
-    /// <summary>Applies a late operation associated with an earlier workflow step.</summary>
+    /// <summary>应用与较早工作流步骤关联的延迟操作。</summary>
     Backfill,
-    /// <summary>Applies a no-animation operation without workflow validation.</summary>
+    /// <summary>应用不带动画且不进行工作流校验的操作。</summary>
     FreeSync
 }
 
-/// <summary>Preview candidate derived from focused visual extraction.</summary>
+/// <summary>根据聚焦视觉提取派生出的预览候选操作。</summary>
 public sealed record SmartBpDetectedOperation(SmartBpDetectedOperationKind Kind, GameAction SourceGuidanceAction,
     IReadOnlyList<int> SourceGuidanceIndexes, Camp Camp, int SlotIndex, string? RawCharacterName,
     string? ResolvedCharacterKey, string? ResolvedCharacterName, string? PlayerId, double Confidence, string Reason,
     int? SourceWorkflowStepIndex = null,
     SmartBpDetectedOperationApplyMode ApplyMode = SmartBpDetectedOperationApplyMode.CurrentStep);
 
-/// <summary>Stable ledger identity for one workflow-derived character operation.</summary>
+/// <summary>一个工作流派生角色操作的稳定台账身份。</summary>
 public sealed record SmartBpWorkflowOperationKey(GameProgress GameProgress, int StepIndex, GameAction Action,
     int SlotIndex, Camp Camp, string? ResolvedCharacterKey);
 
-/// <summary>Candidate operations associated with one immutable GameGuidance workflow step.</summary>
+/// <summary>与一个不可变 GameGuidance 工作流步骤关联的候选操作集合。</summary>
 public sealed record SmartBpWorkflowStepCandidateSet(int StepIndex, GameAction Action, IReadOnlyList<int> Indexes,
     IReadOnlyList<SmartBpDetectedOperation> Operations, string Reason);
 
-/// <summary>Ordered character backfill plan built from a merged region snapshot.</summary>
+/// <summary>根据合并区域快照构建的有序角色回填计划。</summary>
 public sealed record SmartBpWorkflowBackfillPlan(IReadOnlyList<SmartBpWorkflowStepCandidateSet> StepCandidates,
     IReadOnlyList<string> Diagnostics);
 
-/// <summary>Result of reconciling a detected stage with GameGuidance.</summary>
+/// <summary>将已检测阶段与 GameGuidance 对齐后的结果。</summary>
 public sealed record SmartBpGuidanceSyncResult(bool Changed, bool IsAccepted, string Reason, GameAction? TargetAction,
     IReadOnlyList<int> TargetIndexes, int? TargetStepIndex);
 
-/// <summary>Result of building preview candidate operations.</summary>
+/// <summary>构建预览候选操作的结果。</summary>
 public sealed record SmartBpCandidateOperationBuildResult(
     IReadOnlyList<SmartBpDetectedOperation> Operations,
     IReadOnlyList<string> Messages);
 
-/// <summary>Result of applying accepted candidate operations.</summary>
+/// <summary>应用已接受候选操作的结果。</summary>
 public sealed record SmartBpOperationApplyResult(int AppliedCount, int SkippedCount, IReadOnlyList<string> Messages);
 
-/// <summary>One automatic recognition pipeline result.</summary>
+/// <summary>一次自动识别流水线结果。</summary>
 public sealed record SmartBpAutoRecognitionTickResult(SmartBpBusinessStateRecognitionResult? BusinessState,
     SmartBpPhaseRecognitionResult? PhaseResult, SmartBpFocusedBusinessExtractionResult? FocusedResult,
     SmartBpCroppedFrame? PhaseCrop, SmartBpCroppedFrame? FocusedCrop,
@@ -1017,7 +1017,7 @@ public sealed record SmartBpAutoRecognitionTickResult(SmartBpBusinessStateRecogn
     IReadOnlyList<SmartBpCroppedFrame>? ContentCrops = null,
     SmartBpSceneGateResult? SceneGate = null);
 
-/// <summary>Performance information returned by one llama.cpp response.</summary>
+/// <summary>一次 llama.cpp 响应返回的性能信息。</summary>
 public sealed record LlamaCppResponseMetrics(
     int? PromptTokens,
     int? CompletionTokens,
@@ -1025,131 +1025,131 @@ public sealed record LlamaCppResponseMetrics(
     double? TokensPerSecond,
     long ElapsedMilliseconds);
 
-/// <summary>Validated installed paths for a Qwen model profile.</summary>
+/// <summary>一个 Qwen 模型配置档的校验后安装路径。</summary>
 public sealed record QwenInstalledPaths(string ModelPath, string? MmprojPath, QwenMmprojMode MmprojMode);
 
-/// <summary>Result returned by the step commit scheduler.</summary>
+/// <summary>步骤提交调度器返回的结果。</summary>
 public sealed record SmartBpStepCommitResult(SmartBpBusinessStateRecognitionResult Snapshot,
     SmartBpWorkflowBackfillPlan Plan,
     SmartBpOperationApplyResult? ApplyResult,
     SmartBpGuidanceSyncResult? GuidanceSync,
     IReadOnlyList<string> Diagnostics);
 
-/// <summary>One frame kept in the rolling SmartBP recognition frame buffer.</summary>
+/// <summary>SmartBP 滚动识别帧缓冲中保留的一帧画面。</summary>
 public sealed record SmartBpBufferedFrame(long Sequence, BitmapSource Frame, DateTimeOffset Timestamp);
 
-/// <summary>Lightweight crop-change analysis result.</summary>
+/// <summary>轻量裁剪图变化分析结果。</summary>
 public sealed record SmartBpCropChangeResult(SmartBpRecognitionRegion Region, long Sequence, double Difference, bool IsChanged, bool IsStable);
 
-/// <summary>OCR text grouped by one SmartBP coarse recognition region.</summary>
+/// <summary>按单个 SmartBP 粗粒度识别区域分组的 OCR 文本。</summary>
 public sealed class SmartBpOcrRegionText
 {
-    /// <summary>Gets the source coarse region.</summary>
+    /// <summary>获取来源粗粒度区域。</summary>
     public SmartBpRecognitionRegion Region { get; init; }
-    /// <summary>Gets OCR text lines using region-local coordinates.</summary>
+    /// <summary>获取使用区域局部坐标的 OCR 文本行。</summary>
     public IReadOnlyList<OcrTextLine> Lines { get; init; } = [];
 }
 
-/// <summary>OCR-based SmartBP BP recognition result.</summary>
+/// <summary>基于 OCR 的 SmartBP BP 识别结果。</summary>
 public sealed class SmartBpOcrRecognitionResult
 {
-    /// <summary>Gets the locally classified BP phase.</summary>
+    /// <summary>获取本地分类出的 BP 阶段。</summary>
     public SmartBpPhaseRecognitionResult Phase { get; init; } = new();
-    /// <summary>Gets the locally parsed business state for the requested OCR regions.</summary>
+    /// <summary>获取针对请求 OCR 区域本地解析出的业务状态。</summary>
     public SmartBpBusinessStateRecognitionResult BusinessState { get; init; } = new();
-    /// <summary>Gets OCR text grouped by coarse region.</summary>
+    /// <summary>获取按粗粒度区域分组的 OCR 文本。</summary>
     public IReadOnlyList<SmartBpOcrRegionText> Regions { get; init; } = [];
-    /// <summary>Gets the top-center lifecycle classification when that region was requested.</summary>
+    /// <summary>请求顶部中间区域时，获取该区域的生命周期分类。</summary>
     public SmartBpLifecycleStatusResult? LifecycleStatus { get; init; }
-    /// <summary>Gets the top-left hard post-BP confirmation when that region was requested.</summary>
+    /// <summary>请求左上区域时，获取该区域的强确认 BP 后状态。</summary>
     public SmartBpPostBpStatusResult? PostBpStatus { get; init; }
-    /// <summary>Gets bounded recognition diagnostics.</summary>
+    /// <summary>获取有界识别诊断信息。</summary>
     public IReadOnlyList<string> Diagnostics { get; init; } = [];
 }
 
-/// <summary>One technical text line extracted from an AI OCR model response.</summary>
+/// <summary>从 AI OCR 模型响应中提取出的一行技术文本。</summary>
 public sealed class SmartBpAiOcrTranscriptLine
 {
-    /// <summary>Gets or sets visible text extracted for transport and debugging.</summary>
+    /// <summary>获取或设置为传输和调试提取出的可见文本。</summary>
     public string Text { get; set; } = "";
 }
 
-/// <summary>AI OCR transcript recognition result.</summary>
+/// <summary>AI OCR 转写识别结果。</summary>
 public sealed class SmartBpAiOcrTranscriptResult
 {
-    /// <summary>Gets technical transcript lines extracted without business interpretation.</summary>
+    /// <summary>获取未进行业务解释的技术转写行。</summary>
     public IReadOnlyList<SmartBpAiOcrTranscriptLine> Lines { get; init; } = [];
-    /// <summary>Gets raw output returned by the AI OCR model.</summary>
+    /// <summary>获取 AI OCR 模型返回的原始输出。</summary>
     public string RawJson { get; init; } = "";
-    /// <summary>Gets bounded diagnostics.</summary>
+    /// <summary>获取有界诊断信息。</summary>
     public IReadOnlyList<string> Diagnostics { get; init; } = [];
 }
 
-/// <summary>AI OCR transcript evidence for one coarse BP business region.</summary>
+/// <summary>单个粗粒度 BP 业务区域的 AI OCR 转写证据。</summary>
 public sealed class SmartBpAiOcrTranscriptRegionEvidence
 {
-    /// <summary>Gets the source SmartBP coarse region.</summary>
+    /// <summary>获取来源 SmartBP 粗粒度区域。</summary>
     public SmartBpRecognitionRegion Region { get; init; }
-    /// <summary>Gets the SmartBP business field represented by the region.</summary>
+    /// <summary>获取该区域代表的 SmartBP 业务字段。</summary>
     public string Field { get; init; } = "";
-    /// <summary>Gets the AI OCR model id that produced this evidence.</summary>
+    /// <summary>获取产生该证据的 AI OCR 模型标识。</summary>
     public string AiOcrModel { get; init; } = "";
-    /// <summary>Gets the raw output returned by the AI OCR model.</summary>
+    /// <summary>获取 AI OCR 模型返回的原始输出。</summary>
     public string RawOutput { get; init; } = "";
-    /// <summary>Gets technical transcript lines extracted without semantic cleanup.</summary>
+    /// <summary>获取未经语义清理的技术转写行。</summary>
     public IReadOnlyList<string> TechnicalLines { get; init; } = [];
 }
 
-/// <summary>Detailed local parse result for one OCR coarse region.</summary>
+/// <summary>单个 OCR 粗粒度区域的详细本地解析结果。</summary>
 public sealed class SmartBpOcrParsedRegionResult
 {
-    /// <summary>Gets the parsed business result.</summary>
+    /// <summary>获取解析出的业务结果。</summary>
     public SmartBpFocusedBusinessExtractionResult Result { get; init; } = new();
-    /// <summary>Gets resolver and parser diagnostics.</summary>
+    /// <summary>获取解析器和名称解析器诊断信息。</summary>
     public IReadOnlyList<string> Diagnostics { get; init; } = [];
-    /// <summary>Gets whether a required role slot remains unresolved.</summary>
+    /// <summary>获取是否仍有必需角色槽位未解析。</summary>
     public bool HasCriticalUnresolvedField { get; init; }
-    /// <summary>Gets whether every resolved slot is safe for automatic application.</summary>
+    /// <summary>获取所有已解析槽位是否都可安全自动应用。</summary>
     public bool IsAutoApplySafe { get; init; }
 }
 
-/// <summary>OCR BP recognition request.</summary>
-/// <param name="ContentRegions">Content regions to parse in this tick.</param>
-/// <param name="IncludePhase">Whether to include the phase region.</param>
+/// <summary>OCR BP 识别请求。</summary>
+/// <param name="ContentRegions">本次 tick 要解析的内容区域。</param>
+/// <param name="IncludePhase">是否包含阶段区域。</param>
 public sealed record SmartBpOcrRecognitionRequest(
     IReadOnlyList<SmartBpRecognitionRegion> ContentRegions,
     bool IncludePhase = true);
 
-/// <summary>One contact-sheet image containing multiple OCR crops.</summary>
-/// <param name="Image">Stacked OCR image.</param>
-/// <param name="Regions">Coordinate mappings from sheet space to SmartBP regions.</param>
+/// <summary>一张包含多个 OCR 裁剪图的拼接图。</summary>
+/// <param name="Image">堆叠后的 OCR 图片。</param>
+/// <param name="Regions">从拼接图空间到 SmartBP 区域的坐标映射。</param>
 public sealed record SmartBpOcrContactSheet(
     Mat Image,
     IReadOnlyList<SmartBpOcrContactSheetRegion> Regions) : IDisposable
 {
-    /// <summary>Disposes the backing OpenCV image.</summary>
+    /// <summary>释放底层 OpenCV 图片。</summary>
     public void Dispose() => Image.Dispose();
 }
 
-/// <summary>Mapping for one OCR contact-sheet crop.</summary>
-/// <param name="Region">Source SmartBP region.</param>
-/// <param name="SheetRect">Region rectangle in contact-sheet coordinates.</param>
-/// <param name="OriginalFrameRect">Region rectangle in original frame coordinates.</param>
+/// <summary>单个 OCR 拼接图裁剪块的映射。</summary>
+/// <param name="Region">来源 SmartBP 区域。</param>
+/// <param name="SheetRect">拼接图坐标中的区域矩形。</param>
+/// <param name="OriginalFrameRect">原始画面帧坐标中的区域矩形。</param>
 public sealed record SmartBpOcrContactSheetRegion(
     SmartBpRecognitionRegion Region,
     Rect SheetRect,
     Rect OriginalFrameRect);
 
-/// <summary>Download state exposed to the UI.</summary>
-/// <param name="IsDownloading">Whether a download is currently running.</param>
-/// <param name="Progress">Overall progress percentage, when known.</param>
-/// <param name="Status">Localization key or status text.</param>
-/// <param name="CurrentFileName">Current file name.</param>
-/// <param name="BytesReceived">Downloaded byte count.</param>
-/// <param name="TotalBytes">Expected byte count.</param>
-/// <param name="BytesPerSecond">Estimated download speed.</param>
-/// <param name="Eta">Estimated remaining time.</param>
-/// <param name="ErrorMessage">Detailed error message when the operation failed.</param>
+/// <summary>暴露给 UI 的下载状态。</summary>
+/// <param name="IsDownloading">当前是否正在下载。</param>
+/// <param name="Progress">已知时的整体进度百分比。</param>
+/// <param name="Status">本地化资源键或状态文本。</param>
+/// <param name="CurrentFileName">当前文件名。</param>
+/// <param name="BytesReceived">已下载字节数。</param>
+/// <param name="TotalBytes">预期总字节数。</param>
+/// <param name="BytesPerSecond">估算下载速度。</param>
+/// <param name="Eta">估算剩余时间。</param>
+/// <param name="ErrorMessage">操作失败时的详细错误消息。</param>
 public record SmartBpDownloadState(bool IsDownloading, double? Progress, string Status,
     string? CurrentFileName = null,
     long? BytesReceived = null,
@@ -1158,31 +1158,31 @@ public record SmartBpDownloadState(bool IsDownloading, double? Progress, string 
     TimeSpan? Eta = null,
     string? ErrorMessage = null);
 
-/// <summary>Describes one downloadable Tesseract language data asset.</summary>
-/// <param name="Language">Tesseract language identifier.</param>
-/// <param name="DisplayNameKey">Localization key for display.</param>
+/// <summary>描述一个可下载 Tesseract 语言数据资产。</summary>
+/// <param name="Language">Tesseract 语言标识。</param>
+/// <param name="DisplayNameKey">显示用本地化资源键。</param>
 public sealed record TesseractLanguageAsset(string Language, string DisplayNameKey);
 
-/// <summary>Describes required Tesseract language data in one tessdata directory.</summary>
-/// <param name="IsInstalled">Whether every required language is installed.</param>
-/// <param name="DataPath">Effective tessdata directory.</param>
-/// <param name="MissingLanguages">Missing required language identifiers.</param>
-/// <param name="InstalledLanguages">Installed required language identifiers.</param>
+/// <summary>描述一个 tessdata 目录中的必需 Tesseract 语言数据。</summary>
+/// <param name="IsInstalled">是否所有必需语言都已安装。</param>
+/// <param name="DataPath">有效 tessdata 目录。</param>
+/// <param name="MissingLanguages">缺失的必需语言标识。</param>
+/// <param name="InstalledLanguages">已安装的必需语言标识。</param>
 public sealed record TesseractDataStatus(bool IsInstalled, string DataPath,
     IReadOnlyList<string> MissingLanguages, IReadOnlyList<string> InstalledLanguages);
 
-/// <summary>One optional AI runtime performance sample.</summary>
-/// <param name="GpuName">GPU display name.</param>
-/// <param name="GpuUtilizationPercent">GPU utilization percentage.</param>
-/// <param name="VramUsedBytes">Used video memory.</param>
-/// <param name="VramTotalBytes">Total video memory.</param>
-/// <param name="ProcessId">Managed llama-server process identifier.</param>
-/// <param name="UpdatedAt">Sample timestamp.</param>
-/// <param name="IsAvailable">Whether NVML telemetry was available.</param>
+/// <summary>一个可选 AI 运行时性能采样。</summary>
+/// <param name="GpuName">GPU 显示名称。</param>
+/// <param name="GpuUtilizationPercent">GPU 利用率百分比。</param>
+/// <param name="VramUsedBytes">已用显存。</param>
+/// <param name="VramTotalBytes">总显存。</param>
+/// <param name="ProcessId">托管 llama-server 进程标识。</param>
+/// <param name="UpdatedAt">采样时间戳。</param>
+/// <param name="IsAvailable">NVML 遥测是否可用。</param>
 public sealed record SmartBpAiPerformanceSnapshot(string GpuName, uint? GpuUtilizationPercent,
     ulong? VramUsedBytes, ulong? VramTotalBytes, int? ProcessId, DateTimeOffset UpdatedAt, bool IsAvailable);
 
-/// <summary>Qwen download state exposed to the UI.</summary>
+/// <summary>暴露给 UI 的 Qwen 下载状态。</summary>
 public sealed record QwenDownloadState(bool IsDownloading, double? Progress, string Status,
     string? CurrentFileName = null,
     long? BytesReceived = null,
@@ -1191,48 +1191,48 @@ public sealed record QwenDownloadState(bool IsDownloading, double? Progress, str
     TimeSpan? Eta = null,
     string? ErrorMessage = null) : SmartBpDownloadState(IsDownloading, Progress, Status, CurrentFileName, BytesReceived, TotalBytes, BytesPerSecond, Eta, ErrorMessage);
 
-/// <summary>A bundled recognition prompt profile.</summary>
+/// <summary>一个内置识别提示词配置档。</summary>
 public sealed record SmartBpPromptProfile(string Id, string DisplayName, string SystemPrompt);
 
-/// <summary>llama.cpp runtime manifest root.</summary>
+/// <summary>llama.cpp 运行时清单根对象。</summary>
 public sealed class LlamaCppRuntimeManifest
 {
-    /// <summary>Gets or sets schema version.</summary>
+    /// <summary>获取或设置 schema 版本。</summary>
     public int SchemaVersion { get; set; }
-    /// <summary>Gets or sets upstream runtime version.</summary>
+    /// <summary>获取或设置上游运行时版本。</summary>
     public string RuntimeVersion { get; set; } = "";
-    /// <summary>Gets or sets release page.</summary>
+    /// <summary>获取或设置发布页。</summary>
     public string ReleasePage { get; set; } = "";
-    /// <summary>Gets or sets runtime assets.</summary>
+    /// <summary>获取或设置运行时资产集合。</summary>
     public List<LlamaCppRuntimeAsset> Assets { get; set; } = [];
-    /// <summary>Gets or sets optional check interval from the manifest.</summary>
+    /// <summary>获取或设置清单中声明的可选检查间隔。</summary>
     public int? CheckIntervalHours { get; set; }
 }
 
-/// <summary>One installable llama.cpp runtime archive.</summary>
+/// <summary>一个可安装 llama.cpp 运行时压缩包。</summary>
 public sealed class LlamaCppRuntimeAsset
 {
-    /// <summary>Gets or sets asset id.</summary>
+    /// <summary>获取或设置资产标识。</summary>
     public string Id { get; set; } = "";
-    /// <summary>Gets or sets display name.</summary>
+    /// <summary>获取或设置显示名称。</summary>
     public string DisplayName { get; set; } = "";
-    /// <summary>Gets or sets CPU architecture.</summary>
+    /// <summary>获取或设置 CPU 架构。</summary>
     public string Architecture { get; set; } = "";
-    /// <summary>Gets or sets backend.</summary>
+    /// <summary>获取或设置后端。</summary>
     public string Backend { get; set; } = "";
-    /// <summary>Gets or sets archive URL.</summary>
+    /// <summary>获取或设置压缩包 URL。</summary>
     public string Url { get; set; } = "";
-    /// <summary>Gets or sets optional SHA256.</summary>
+    /// <summary>获取或设置可选 SHA256。</summary>
     public string? Sha256 { get; set; }
-    /// <summary>Gets or sets executable filename.</summary>
+    /// <summary>获取或设置可执行文件名。</summary>
     public string? EntryExe { get; set; }
-    /// <summary>Gets or sets required extra asset ids.</summary>
+    /// <summary>获取或设置必需的额外资产标识。</summary>
     public List<string> RequiredExtraAssets { get; set; } = [];
-    /// <summary>Gets or sets whether the URL already points to a final downloadable file.</summary>
+    /// <summary>获取或设置 URL 是否已经指向最终可下载文件。</summary>
     public bool UrlIsDirectDownload { get; set; }
 }
 
-/// <summary>Managed llama.cpp runtime installation state.</summary>
+/// <summary>托管 llama.cpp 运行时安装状态。</summary>
 public sealed record LlamaCppRuntimeInstallState(bool IsDownloading, double? Progress, string Status,
     string? CurrentFileName = null,
     long? BytesReceived = null,
@@ -1241,141 +1241,141 @@ public sealed record LlamaCppRuntimeInstallState(bool IsDownloading, double? Pro
     TimeSpan? Eta = null,
     string? ErrorMessage = null) : SmartBpDownloadState(IsDownloading, Progress, Status, CurrentFileName, BytesReceived, TotalBytes, BytesPerSecond, Eta, ErrorMessage);
 
-/// <summary>Result of checking for llama.cpp runtime updates.</summary>
+/// <summary>llama.cpp 运行时更新检查结果。</summary>
 public sealed record LlamaCppRuntimeUpdateCheckResult(bool Checked, bool HasUpdate, string CurrentVersion,
     string? LatestVersion, IReadOnlyList<LlamaCppRuntimeAsset> LatestAssets, string Message);
 
-/// <summary>Visual extraction result returned by the model.</summary>
+/// <summary>模型返回的视觉提取结果。</summary>
 public sealed class SmartBpVisionExtractionResult
 {
-    /// <summary>Gets or sets schema version.</summary>
+    /// <summary>获取或设置 schema 版本。</summary>
     [JsonPropertyName("schema_version")] public int SchemaVersion { get; set; }
-    /// <summary>Gets or sets scene information.</summary>
+    /// <summary>获取或设置场景信息。</summary>
     [JsonPropertyName("scene")] public SmartBpVisionScene Scene { get; set; } = new();
-    /// <summary>Gets or sets visible teams.</summary>
+    /// <summary>获取或设置可见队伍。</summary>
     [JsonPropertyName("teams")] public List<SmartBpVisionTeam> Teams { get; set; } = [];
-    /// <summary>Gets or sets flattened visible characters.</summary>
+    /// <summary>获取或设置扁平化可见角色集合。</summary>
     [JsonPropertyName("all_characters")] public List<SmartBpVisionCharacter> AllCharacters { get; set; } = [];
-    /// <summary>Gets or sets flattened player IDs.</summary>
+    /// <summary>获取或设置扁平化玩家 ID 集合。</summary>
     [JsonPropertyName("all_player_ids")] public List<SmartBpVisionPlayerId> AllPlayerIds { get; set; } = [];
-    /// <summary>Gets or sets recognition warnings.</summary>
+    /// <summary>获取或设置识别警告。</summary>
     [JsonPropertyName("warnings")] public List<string> Warnings { get; set; } = [];
 }
 
-/// <summary>Visual scene metadata.</summary>
+/// <summary>视觉场景元数据。</summary>
 public sealed class SmartBpVisionScene
 {
-    /// <summary>Gets or sets game name.</summary>
+    /// <summary>获取或设置游戏名称。</summary>
     [JsonPropertyName("game")] public string Game { get; set; } = "";
-    /// <summary>Gets or sets interface type.</summary>
+    /// <summary>获取或设置界面类型。</summary>
     [JsonPropertyName("interface_type")] public string InterfaceType { get; set; } = "";
-    /// <summary>Gets or sets task.</summary>
+    /// <summary>获取或设置任务。</summary>
     [JsonPropertyName("task")] public string Task { get; set; } = "";
-    /// <summary>Gets or sets main status text.</summary>
+    /// <summary>获取或设置主状态文本。</summary>
     [JsonPropertyName("main_status")] public string? MainStatus { get; set; }
-    /// <summary>Gets or sets pause status text.</summary>
+    /// <summary>获取或设置暂停状态文本。</summary>
     [JsonPropertyName("pause_status")] public string? PauseStatus { get; set; }
-    /// <summary>Gets or sets pause remaining seconds.</summary>
+    /// <summary>获取或设置暂停剩余秒数。</summary>
     [JsonPropertyName("pause_remaining_seconds")] public double? PauseRemainingSeconds { get; set; }
 }
 
-/// <summary>One visual team region.</summary>
+/// <summary>一个视觉队伍区域。</summary>
 public sealed class SmartBpVisionTeam
 {
-    /// <summary>Gets or sets screen side.</summary>
+    /// <summary>获取或设置屏幕侧。</summary>
     [JsonPropertyName("side")] public string Side { get; set; } = "unknown";
-    /// <summary>Gets or sets faction.</summary>
+    /// <summary>获取或设置阵营。</summary>
     [JsonPropertyName("faction")] public string Faction { get; set; } = "unknown";
-    /// <summary>Gets or sets title text.</summary>
+    /// <summary>获取或设置标题文本。</summary>
     [JsonPropertyName("title_text")] public string? TitleText { get; set; }
-    /// <summary>Gets or sets subtitle text.</summary>
+    /// <summary>获取或设置副标题文本。</summary>
     [JsonPropertyName("subtitle_text")] public string? SubtitleText { get; set; }
-    /// <summary>Gets or sets slots.</summary>
+    /// <summary>获取或设置槽位集合。</summary>
     [JsonPropertyName("slots")] public List<SmartBpVisionSlot> Slots { get; set; } = [];
 }
 
-/// <summary>One visual slot.</summary>
+/// <summary>一个视觉槽位。</summary>
 public sealed class SmartBpVisionSlot
 {
-    /// <summary>Gets or sets slot index.</summary>
+    /// <summary>获取或设置槽位索引。</summary>
     [JsonPropertyName("slot_index")] public int SlotIndex { get; set; }
-    /// <summary>Gets or sets slot state.</summary>
+    /// <summary>获取或设置槽位状态。</summary>
     [JsonPropertyName("slot_state")] public string SlotState { get; set; } = "unknown";
-    /// <summary>Gets or sets raw candidate character name.</summary>
+    /// <summary>获取或设置原始候选角色名称。</summary>
     [JsonPropertyName("character_name")] public string? CharacterName { get; set; }
-    /// <summary>Gets or sets player ID.</summary>
+    /// <summary>获取或设置玩家 ID。</summary>
     [JsonPropertyName("player_id")] public string? PlayerId { get; set; }
-    /// <summary>Gets or sets banned/unavailable flag.</summary>
+    /// <summary>获取或设置禁用/不可用标记。</summary>
     [JsonPropertyName("is_banned_or_unavailable")] public bool IsBannedOrUnavailable { get; set; }
-    /// <summary>Gets or sets all visible raw text.</summary>
+    /// <summary>获取或设置全部可见原始文本。</summary>
     [JsonPropertyName("raw_visible_text")] public string? RawVisibleText { get; set; }
-    /// <summary>Gets or sets confidence.</summary>
+    /// <summary>获取或设置置信度。</summary>
     [JsonPropertyName("confidence")] public double Confidence { get; set; }
 }
 
-/// <summary>One flattened visual character.</summary>
+/// <summary>一个扁平化视觉角色。</summary>
 public sealed class SmartBpVisionCharacter
 {
-    /// <summary>Gets or sets character name.</summary>
+    /// <summary>获取或设置角色名称。</summary>
     [JsonPropertyName("character_name")] public string? CharacterName { get; set; }
-    /// <summary>Gets or sets faction.</summary>
+    /// <summary>获取或设置阵营。</summary>
     [JsonPropertyName("faction")] public string Faction { get; set; } = "unknown";
-    /// <summary>Gets or sets player ID.</summary>
+    /// <summary>获取或设置玩家 ID。</summary>
     [JsonPropertyName("player_id")] public string? PlayerId { get; set; }
-    /// <summary>Gets or sets side.</summary>
+    /// <summary>获取或设置侧向。</summary>
     [JsonPropertyName("side")] public string Side { get; set; } = "unknown";
-    /// <summary>Gets or sets slot index.</summary>
+    /// <summary>获取或设置槽位索引。</summary>
     [JsonPropertyName("slot_index")] public int SlotIndex { get; set; }
-    /// <summary>Gets or sets state.</summary>
+    /// <summary>获取或设置状态。</summary>
     [JsonPropertyName("slot_state")] public string SlotState { get; set; } = "unknown";
-    /// <summary>Gets or sets confidence.</summary>
+    /// <summary>获取或设置置信度。</summary>
     [JsonPropertyName("confidence")] public double Confidence { get; set; }
 }
 
-/// <summary>One flattened visual player ID.</summary>
+/// <summary>一个扁平化视觉玩家 ID。</summary>
 public sealed class SmartBpVisionPlayerId
 {
-    /// <summary>Gets or sets player ID.</summary>
+    /// <summary>获取或设置玩家 ID。</summary>
     [JsonPropertyName("player_id")] public string? PlayerId { get; set; }
-    /// <summary>Gets or sets character name.</summary>
+    /// <summary>获取或设置角色名称。</summary>
     [JsonPropertyName("character_name")] public string? CharacterName { get; set; }
-    /// <summary>Gets or sets side.</summary>
+    /// <summary>获取或设置侧向。</summary>
     [JsonPropertyName("side")] public string Side { get; set; } = "unknown";
-    /// <summary>Gets or sets slot index.</summary>
+    /// <summary>获取或设置槽位索引。</summary>
     [JsonPropertyName("slot_index")] public int SlotIndex { get; set; }
-    /// <summary>Gets or sets confidence.</summary>
+    /// <summary>获取或设置置信度。</summary>
     [JsonPropertyName("confidence")] public double Confidence { get; set; }
 }
 
-/// <summary>A normalized character occurrence.</summary>
+/// <summary>一个归一化角色出现项。</summary>
 public sealed record SmartBpNormalizedCharacter(string? RawCharacterName, string? ResolvedCharacterKey,
     string? ResolvedCharacterName, Camp Camp, int SlotIndex, double Confidence, IReadOnlyList<string> Warnings,
     string MatchMode = "none", bool IsAutoApplySafe = false, string? RecognitionReason = null);
 
-/// <summary>Recognition preview returned to the UI.</summary>
+/// <summary>返回给 UI 的识别预览。</summary>
 public sealed record SmartBpRecognitionPreview(string RawResponse, string ParsedVisualSummary,
     string ResolvedCharacterSummary, long ElapsedMilliseconds, int RecommendedIntervalMilliseconds, string? Error);
 
-/// <summary>Built-in recognition sample.</summary>
+/// <summary>内置识别样例。</summary>
 public sealed record SmartBpTestFrame(string Id, string FileName, SmartBpRecognitionTask Task);
 
-/// <summary>One timestamped AI pipeline diagnostic message.</summary>
+/// <summary>一条带时间戳的 AI 流水线诊断消息。</summary>
 public sealed class SmartBpDebugMessageEventArgs : EventArgs
 {
-    /// <summary>Initializes a diagnostic message.</summary>
-    /// <param name="timestamp">Message timestamp.</param>
-    /// <param name="source">Subsystem name.</param>
-    /// <param name="message">Message text.</param>
+    /// <summary>初始化诊断消息。</summary>
+    /// <param name="timestamp">消息时间戳。</param>
+    /// <param name="source">子系统名称。</param>
+    /// <param name="message">消息文本。</param>
     public SmartBpDebugMessageEventArgs(DateTimeOffset timestamp, string source, string message)
     {
         Timestamp = timestamp;
         Source = source;
         Message = message;
     }
-    /// <summary>Gets the timestamp.</summary>
+    /// <summary>获取时间戳。</summary>
     public DateTimeOffset Timestamp { get; }
-    /// <summary>Gets the subsystem name.</summary>
+    /// <summary>获取子系统名称。</summary>
     public string Source { get; }
-    /// <summary>Gets the message text.</summary>
+    /// <summary>获取消息文本。</summary>
     public string Message { get; }
 }

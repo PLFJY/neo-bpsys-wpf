@@ -14,6 +14,9 @@ using System.Windows;
 
 namespace neo_bpsys_wpf.ViewModels.FrontedDesigner;
 
+/// <summary>
+/// Designer v3 行为面板视图模型，绑定到当前选中的布局控件。
+/// </summary>
 public sealed partial class BehaviorPanelViewModel : ViewModelBase
 {
     private readonly IFrontedDesignerLocalizationService _localizationService;
@@ -37,6 +40,9 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
 
     private readonly Func<Task<bool>>? _saveBehaviorAsync;
 
+    /// <summary>
+    /// 初始化设计时行为面板视图模型。
+    /// </summary>
     public BehaviorPanelViewModel()
         : this(
             new FrontedDesignerLocalizationService(),
@@ -46,6 +52,22 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
     {
     }
 
+    /// <summary>
+    /// 初始化新的行为面板视图模型。
+    /// </summary>
+    /// <param name="localizationService">Designer 本地化服务。</param>
+    /// <param name="eventCatalog">Catalog of supported behavior trigger events.</param>
+    /// <param name="markLayoutDirty">Callback used when behavior edits also change layout-owned control metadata.</param>
+    /// <param name="markBehaviorsDirty">Callback used when the behavior document changes.</param>
+    /// <param name="nodeCatalog">Optional node catalog override.</param>
+    /// <param name="graphValidator">Optional graph validator override.</param>
+    /// <param name="graphRuntime">Optional graph runtime override.</param>
+    /// <param name="animationRuntime">Optional animation runtime used by preview actions.</param>
+    /// <param name="previewAnimationScope">Optional preview scope that supplies the current preview root.</param>
+    /// <param name="saveBehaviorAsync">Optional save callback for animation editor save-all.</param>
+    /// <param name="behaviorClipboard">Optional shared behavior clipboard.</param>
+    /// <param name="copyPasteService">Optional behavior copy/paste service.</param>
+    /// <param name="captureUndoSnapshot">用于捕获外层 Designer 撤销快照的可选回调。</param>
     public BehaviorPanelViewModel(
         IFrontedDesignerLocalizationService localizationService,
         FrontedBehaviorEventCatalog eventCatalog,
@@ -80,20 +102,44 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
         ReentryPolicyOptions = CreateEnumOptions<FrontedReentryPolicy>("Designer.Behaviors.ReentryPolicy");
     }
 
+    /// <summary>
+    /// 获取为选中控件显示的行为行。
+    /// </summary>
     public ObservableCollection<BehaviorEditorViewModel> Behaviors { get; } = [];
 
+    /// <summary>
+    /// 获取事件选择器中显示的触发事件选项。
+    /// </summary>
     public IReadOnlyList<BehaviorEventOptionViewModel> EventOptions { get; }
 
+    /// <summary>
+    /// 获取过滤条件行中显示的触发过滤运算符选项。
+    /// </summary>
     public IReadOnlyList<BehaviorOptionViewModel> OperatorOptions { get; }
 
+    /// <summary>
+    /// 获取循环行为中显示的循环停止模式选项。
+    /// </summary>
     public IReadOnlyList<BehaviorOptionViewModel> StopModeOptions { get; }
 
+    /// <summary>
+    /// 获取行为执行设置中显示的重入策略选项。
+    /// </summary>
     public IReadOnlyList<BehaviorOptionViewModel> ReentryPolicyOptions { get; }
 
+    /// <summary>
+    /// 获取当前正在编辑的行为文档。
+    /// </summary>
     public FrontedBehaviorDocument CurrentDocument { get; private set; } = new();
 
+    /// <summary>
+    /// 需要为行为打开完整动画图编辑器时触发。
+    /// </summary>
     public event Action<FrontedBehaviorAnimationEditorViewModel>? AnimationEditorRequested;
 
+    /// <summary>
+    /// 需要打开复制到目标控件对话框时触发。
+    /// </summary>
     public event Action<FrontedBehaviorCopyToRequest>? CopyBehaviorToRequested;
 
     [ObservableProperty]
@@ -108,28 +154,54 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
     [ObservableProperty]
     public partial string PasteStatus { get; set; } = string.Empty;
 
+    /// <summary>
+    /// 获取是否已选中 Designer 控件。
+    /// </summary>
     public bool HasSelectedControl => SelectedControl is not null;
 
+    /// <summary>
+    /// 获取是否已选中行为行。
+    /// </summary>
     public bool HasSelectedBehavior => SelectedBehavior is not null;
 
+    /// <summary>
+    /// 获取是否可以向选中控件粘贴行为。
+    /// </summary>
     public bool CanPasteBehavior => SelectedControl is not null && _behaviorClipboard.Payload is not null;
 
+    /// <summary>
+    /// 获取选中控件是否拥有行为。
+    /// </summary>
     public bool HasBehaviors => Behaviors.Count > 0;
 
+    /// <summary>
+    /// 获取行为列表的空状态文本。
+    /// </summary>
     public string EmptyText => HasSelectedControl
         ? Localize("Designer.Behaviors.Empty", "No behaviors yet.")
         : Localize("NoSelectedControl", "No selected control.");
 
+    /// <summary>
+    /// 获取内联图预览未打开时显示的占位文本。
+    /// </summary>
     public string GraphPlaceholder => Localize(
         "Designer.Behaviors.GraphPlaceholder",
         "Node graph editor is available from the animation editor.");
 
+    /// <summary>
+    /// 替换正在编辑的行为文档，并根据当前选择刷新行。
+    /// </summary>
+    /// <param name="document">要编辑的行为文档。</param>
     public void SetDocument(FrontedBehaviorDocument document)
     {
         CurrentDocument = document;
         RefreshForSelectedControl();
     }
 
+    /// <summary>
+    /// 更新选中的布局控件并重新加载其行为集合。
+    /// </summary>
+    /// <param name="selectedControl">选中的 Designer 控件；没有选中控件时为 <see langword="null"/>。</param>
     public void SetSelectedControl(FrontedControlDesignItem? selectedControl)
     {
         SelectedControl = selectedControl;
@@ -137,10 +209,10 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Sets the current window and available behavior paste targets.
+    /// 设置当前窗口以及可用的行为粘贴目标。
     /// </summary>
-    /// <param name="windowType">The current window type.</param>
-    /// <param name="controls">The controls available in the current design document.</param>
+    /// <param name="windowType">当前窗口类型。</param>
+    /// <param name="controls">当前设计文档中可用的控件。</param>
     public void SetCopyContext(string? windowType, IEnumerable<FrontedControlDesignItem>? controls)
     {
         CurrentWindowType = windowType ?? string.Empty;
@@ -150,15 +222,20 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Gets the current window type used by behavior clipboard payloads.
+    /// 获取行为剪贴板 payload 使用的当前窗口类型。
     /// </summary>
     public string CurrentWindowType { get; private set; } = string.Empty;
 
     /// <summary>
-    /// Gets the controls available for multi-target behavior paste.
+    /// 获取可用于多目标行为粘贴的控件。
     /// </summary>
     public IReadOnlyList<FrontedControlDesignItem> AvailableControls { get; private set; } = [];
 
+    /// <summary>
+    /// 移除与控件行为 GUID 关联的行为集合。
+    /// </summary>
+    /// <param name="behaviorGuid">布局控件配置上存储的行为 GUID。</param>
+    /// <returns><see langword="true"/> when a set was removed.</returns>
     public bool RemoveBehaviors(Guid behaviorGuid)
     {
         var existing = CurrentDocument.FindSet(behaviorGuid);
@@ -183,6 +260,9 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
         return true;
     }
 
+    /// <summary>
+    /// 向选中控件添加一次性行为。
+    /// </summary>
     [RelayCommand]
     public void AddOneShotBehavior()
     {
@@ -211,6 +291,9 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
         MarkBehaviorsDirty();
     }
 
+    /// <summary>
+    /// 向选中控件添加包含启动、循环和停止图的循环行为。
+    /// </summary>
     [RelayCommand]
     public void AddLoopBehavior()
     {
@@ -243,6 +326,9 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
         MarkBehaviorsDirty();
     }
 
+    /// <summary>
+    /// 向选中控件添加转场行为。
+    /// </summary>
     [RelayCommand]
     public void AddTransitionBehavior()
     {
@@ -278,12 +364,20 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
         MarkBehaviorsDirty();
     }
 
+    /// <summary>
+    /// 在面板中选择一个行为行。
+    /// </summary>
+    /// <param name="behavior">要选中的行为行。</param>
     [RelayCommand]
     public void SelectBehavior(BehaviorEditorViewModel? behavior)
     {
         SelectedBehavior = behavior;
     }
 
+    /// <summary>
+    /// 从当前控件行为集合中删除行为。
+    /// </summary>
+    /// <param name="behavior">要删除的行为行。</param>
     [RelayCommand]
     public void DeleteBehavior(BehaviorEditorViewModel? behavior)
     {
@@ -313,6 +407,10 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
         MarkBehaviorsDirty();
     }
 
+    /// <summary>
+    /// 复制行为，并重新生成所有行为和图节点 ID。
+    /// </summary>
+    /// <param name="behavior">要复制的行为行。</param>
     [RelayCommand]
     public void DuplicateBehavior(BehaviorEditorViewModel? behavior)
     {
@@ -346,6 +444,10 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
         MarkBehaviorsDirty();
     }
 
+    /// <summary>
+    /// 将行为复制到共享 Designer 行为剪贴板。
+    /// </summary>
+    /// <param name="behavior">要复制到剪贴板的行为行。</param>
     [RelayCommand]
     public void CopyBehavior(BehaviorEditorViewModel? behavior)
     {
@@ -359,6 +461,9 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
         PasteBehaviorCommand.NotifyCanExecuteChanged();
     }
 
+    /// <summary>
+    /// 将剪贴板行为粘贴到选中控件。
+    /// </summary>
     [RelayCommand(CanExecute = nameof(CanPasteBehavior))]
     public void PasteBehavior()
     {
@@ -370,6 +475,10 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
         PasteBehaviorToTargets([SelectedControl], new FrontedBehaviorPasteOptions());
     }
 
+    /// <summary>
+    /// 启动多目标行为复制流程。
+    /// </summary>
+    /// <param name="behavior">要复制到其他目标控件的行为行。</param>
     [RelayCommand]
     public void CopyBehaviorTo(BehaviorEditorViewModel? behavior)
     {
@@ -390,11 +499,11 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Pastes the current behavior clipboard payload into multiple controls.
+    /// 将当前行为剪贴板 payload 粘贴到多个控件。
     /// </summary>
-    /// <param name="targets">The selected target controls.</param>
-    /// <param name="options">The paste options.</param>
-    /// <returns>The paste results, including incompatible skipped targets.</returns>
+    /// <param name="targets">选中的目标控件。</param>
+    /// <param name="options">粘贴选项。</param>
+    /// <returns>粘贴结果，包含因不兼容而跳过的目标。</returns>
     public IReadOnlyList<FrontedBehaviorPasteResult> PasteBehaviorToTargets(
         IEnumerable<FrontedControlDesignItem> targets,
         FrontedBehaviorPasteOptions options)
@@ -439,10 +548,10 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Creates paste previews for the supplied target controls using the current behavior clipboard.
+    /// 使用当前行为剪贴板为给定目标控件创建粘贴预览。
     /// </summary>
-    /// <param name="targets">The controls to preview.</param>
-    /// <param name="options">The paste options.</param>
+    /// <param name="targets">要预览的控件。</param>
+    /// <param name="options">粘贴选项。</param>
     /// <returns>Compatibility and rewrite previews.</returns>
     public IReadOnlyList<FrontedBehaviorPastePreview> PreviewBehaviorTargets(
         IEnumerable<FrontedControlDesignItem> targets,
@@ -468,6 +577,10 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
         PasteBehaviorCommand.NotifyCanExecuteChanged();
     }
 
+    /// <summary>
+    /// 获取或创建选中控件的行为集合，并确保控件拥有稳定的行为 GUID。
+    /// </summary>
+    /// <returns>选中控件的行为集合；没有选中控件时返回 <see langword="null"/>。</returns>
     private ControlBehaviorSet? GetOrCreateSelectedSet()
     {
         if (SelectedControl is null)
@@ -486,6 +599,9 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
         return _currentSet;
     }
 
+    /// <summary>
+    /// 为当前选中控件重新加载行为行和命令状态。
+    /// </summary>
     private void RefreshForSelectedControl()
     {
         Behaviors.Clear();
@@ -510,6 +626,11 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
         RefreshFromSet(set, set.Behaviors.FirstOrDefault());
     }
 
+    /// <summary>
+    /// 根据行为集合重建行为行，并选中请求的行为模型。
+    /// </summary>
+    /// <param name="set">要显示的行为集合。</param>
+    /// <param name="selectedModel">应被选中的行为模型。</param>
     private void RefreshFromSet(ControlBehaviorSet set, FrontedBehavior? selectedModel)
     {
         _currentSet = set;
@@ -526,6 +647,11 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
         OnPropertyChanged(nameof(EmptyText));
     }
 
+    /// <summary>
+    /// 为行为模型创建行视图模型。
+    /// </summary>
+    /// <param name="behavior">行为模型。</param>
+    /// <returns>行为编辑器行视图模型。</returns>
     private BehaviorEditorViewModel CreateBehaviorEditor(FrontedBehavior behavior)
     {
         return new BehaviorEditorViewModel(
@@ -548,6 +674,10 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
             saveBehaviorAsync: _saveBehaviorAsync);
     }
 
+    /// <summary>
+    /// 根据选中控件及其生成的动画部件构建动画目标选项。
+    /// </summary>
+    /// <returns>节点图编辑器可用的目标选项。</returns>
     private IReadOnlyList<FrontedNodeTargetOptionViewModel> CreateTargetOptions()
     {
         var targets = new List<FrontedNodeTargetOptionViewModel>
@@ -567,6 +697,11 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
         return targets;
     }
 
+    /// <summary>
+    /// 为动画目标选项创建本地化显示名称。
+    /// </summary>
+    /// <param name="target">动画目标描述符。</param>
+    /// <returns>目标选择器使用的显示名称。</returns>
     private string CreateTargetDisplayName(FrontedDesignerAnimationTargetOption target)
     {
         if (string.IsNullOrWhiteSpace(target.PartName))
@@ -581,6 +716,11 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
             partDisplayName);
     }
 
+    /// <summary>
+    /// 根据行为事件目录创建触发事件选项。
+    /// </summary>
+    /// <param name="descriptor">事件描述符。</param>
+    /// <returns>事件选项视图模型。</returns>
     private BehaviorEventOptionViewModel CreateEventOption(FrontedBehaviorEventDescriptor descriptor)
     {
         return new BehaviorEventOptionViewModel(
@@ -602,6 +742,10 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
             Localize);
     }
 
+    /// <summary>
+    /// 创建本地化触发过滤运算符选项。
+    /// </summary>
+    /// <returns>Operator options.</returns>
     private IReadOnlyList<BehaviorOptionViewModel> CreateOperatorOptions() =>
     [
         new(TriggerFilterOperator.Equals, "="),
@@ -627,23 +771,37 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
             .ToArray();
     }
 
+    /// <summary>
+    /// 将行为文档标记为已修改，并刷新粘贴/保存命令状态。
+    /// </summary>
     private void MarkBehaviorsDirty()
     {
         _markBehaviorsDirty();
         OnPropertyChanged(nameof(HasBehaviors));
     }
 
+    /// <summary>
+    /// 在修改行为数据前捕获外层 Designer 撤销快照。
+    /// </summary>
     private void CaptureUndoSnapshot()
     {
         _captureUndoSnapshot();
     }
 
+    /// <summary>
+    /// 解析 Designer 本地化字符串，并为仅加载 Core 的测试上下文提供兜底。
+    /// </summary>
+    /// <param name="key">Localization key.</param>
+    /// <param name="fallback">Fallback text.</param>
+    /// <returns>本地化文本或兜底文本。</returns>
     private string Localize(string key, string fallback) =>
         _localizationService.GetDesignerText(key, fallback);
 
     /// <summary>
-    /// Refreshes all localized display strings in the behavior panel to support
-    /// hot language switching without requiring restart.
+    /// 刷新行为面板中的所有本地化显示字符串，以支持无需重启的热切换语言。
+    /// </summary>
+    /// <summary>
+    /// 应用语言变化后刷新行为面板文本。
     /// </summary>
     public void RefreshLocalization()
     {
@@ -676,6 +834,10 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
         OnPropertyChanged(nameof(GraphPlaceholder));
     }
 
+    /// <summary>
+    /// 重新生成克隆图中的所有节点和连接 ID，使其可与源行为共存。
+    /// </summary>
+    /// <param name="graph">要重写的图。</param>
     private static void RegenerateGraphIds(FrontedNodeGraph? graph)
     {
         if (graph is null)
@@ -724,7 +886,7 @@ public sealed class BehaviorOptionViewModel : ObservableObject
     }
 
     /// <summary>
-    /// For non-localized values (e.g. operators with symbol-only display).
+    /// 用于非本地化值（例如仅显示符号的运算符）。
     /// </summary>
     public BehaviorOptionViewModel(object value, string displayName)
     {
@@ -744,7 +906,7 @@ public sealed class BehaviorOptionViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Re-resolves <see cref="DisplayName"/> from the localization function.
+    /// 通过本地化函数重新解析 <see cref="DisplayName"/>。
     /// </summary>
     public void Refresh()
     {
@@ -814,7 +976,7 @@ public sealed class BehaviorEventOptionViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Re-resolves all localized display strings from the localization function.
+    /// 通过本地化函数重新解析所有本地化显示字符串。
     /// </summary>
     public void Refresh()
     {
@@ -871,7 +1033,7 @@ public sealed class BehaviorPayloadFieldOptionViewModel : ObservableObject
 
     public string Path { get; }
     public string TypeName { get; }
-    /// <summary>Gets stable enum names available for this payload field.</summary>
+    /// <summary>获取该 payload 字段可用的稳定枚举名称。</summary>
     public IReadOnlyList<string> EnumValues { get; }
     public bool IsUnknown { get; }
     public bool IsCommonFilterTarget { get; }
@@ -889,7 +1051,7 @@ public sealed class BehaviorPayloadFieldOptionViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Re-resolves all localized display strings from the localization function.
+    /// 通过本地化函数重新解析所有本地化显示字符串。
     /// </summary>
     public void Refresh()
     {
@@ -1101,7 +1263,7 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
     public string GraphPlaceholder => _graphPlaceholder;
 
     /// <summary>
-    /// Refreshes all localized display strings to support hot language switching.
+    /// 刷新所有本地化显示字符串以支持热切换语言。
     /// </summary>
     public void RefreshLocalization()
     {
@@ -1346,7 +1508,7 @@ public sealed partial class TriggerDescriptorEditorViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Refreshes all localized display strings to support hot language switching.
+    /// 刷新所有本地化显示字符串以支持热切换语言。
     /// </summary>
     public void RefreshLocalization()
     {
@@ -1388,7 +1550,7 @@ public sealed partial class TriggerFilterEditorViewModel : ObservableObject
 
     public IReadOnlyList<BehaviorOptionViewModel> OperatorOptions { get; }
 
-    /// <summary>Gets operators recommended for the selected payload field type.</summary>
+    /// <summary>获取当前选中 payload 字段类型推荐的运算符。</summary>
     public IReadOnlyList<BehaviorOptionViewModel> DisplayedOperatorOptions =>
         IsEnumField || IsBooleanField
             ? OperatorOptions.Where(option => option.Value is TriggerFilterOperator.Equals
@@ -1401,19 +1563,19 @@ public sealed partial class TriggerFilterEditorViewModel : ObservableObject
     public bool IsUnknownParameter => PayloadFieldOptions.FirstOrDefault(option =>
         string.Equals(option.Path, Left, StringComparison.Ordinal))?.IsUnknown == true;
 
-    /// <summary>Gets whether the selected payload field is enum-like.</summary>
+    /// <summary>获取当前选中 payload 字段是否类似枚举。</summary>
     public bool IsEnumField => SelectedPayloadField is { } selectedField
         && (selectedField.EnumValues.Count > 0
             || string.Equals(selectedField.TypeName.TrimEnd('?'), "Enum", StringComparison.OrdinalIgnoreCase));
 
-    /// <summary>Gets whether the selected payload field is boolean-like.</summary>
+    /// <summary>获取当前选中 payload 字段是否类似布尔值。</summary>
     public bool IsBooleanField => SelectedPayloadField is { } selectedField
         && IsBooleanTypeName(selectedField.TypeName);
 
-    /// <summary>Gets whether the right value should use a text editor.</summary>
+    /// <summary>获取右侧值是否应使用文本编辑器。</summary>
     public bool IsTextValue => !IsEnumField && !IsBooleanField;
 
-    /// <summary>Gets stable enum choices for the right value editor.</summary>
+    /// <summary>获取右侧值编辑器可用的稳定枚举选项。</summary>
     public IReadOnlyList<BehaviorOptionViewModel> EnumValueOptions =>
         SelectedPayloadField?.EnumValues
             .Select(value => new BehaviorOptionViewModel(
@@ -1422,7 +1584,7 @@ public sealed partial class TriggerFilterEditorViewModel : ObservableObject
             .ToArray()
         ?? [];
 
-    /// <summary>Gets stable boolean choices for the right value editor.</summary>
+    /// <summary>获取右侧值编辑器可用的稳定布尔选项。</summary>
     public IReadOnlyList<BehaviorOptionViewModel> BooleanValueOptions { get; } =
     [
         new("true", "true"),
@@ -1497,7 +1659,7 @@ public sealed partial class TriggerFilterEditorViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Gets contextual guidance for filter values.
+    /// 获取过滤值的上下文提示。
     /// </summary>
     public string HintText => Left switch
     {
@@ -1511,7 +1673,7 @@ public sealed partial class TriggerFilterEditorViewModel : ObservableObject
     };
 
     /// <summary>
-    /// Gets whether <see cref="HintText" /> has content.
+    /// 获取 <see cref="HintText" /> 是否有内容。
     /// </summary>
     public bool HasHintText => !string.IsNullOrWhiteSpace(HintText);
 
@@ -1531,7 +1693,7 @@ public sealed partial class TriggerFilterEditorViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Refreshes payload field option display strings to support hot language switching.
+    /// 刷新 payload 字段选项显示字符串以支持热切换语言。
     /// </summary>
     public void RefreshLocalization()
     {
@@ -1632,7 +1794,7 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
             _ => [Stage(localize("Designer.Behaviors.Animation", "Animation"), behavior.Graph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions, BuildEventFields(eventCatalog, behavior.Trigger?.EventType, "Event.", localize), captureUndoSnapshot)]
         };
 
-        // Wire each stage's graph editor save action to trigger SaveAllAsync on this animation editor.
+        // 将每个阶段图编辑器的保存动作接到当前动画编辑器的 SaveAllAsync。
         foreach (var stage in Stages)
         {
             var vm = this;
@@ -1678,13 +1840,13 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
             }
             catch (Exception)
             {
-                // Save failed — keep dirty state intact
+                // 保存失败，保留已修改状态。
                 return false;
             }
         }
 
-        // Clear all stages' dirty state after successful save.
-        // Must dispatch to the UI thread because setting IsDirty triggers RelayCommand.NotifyCanExecuteChanged.
+        // 保存成功后清除所有阶段的已修改状态。
+        // 设置 IsDirty 会触发 RelayCommand.NotifyCanExecuteChanged，因此必须调度到 UI 线程。
         var dispatcher = Application.Current?.Dispatcher;
         if (dispatcher is null)
         {
@@ -1718,7 +1880,7 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
     }
 
     /// <summary>
-    /// Stops preview activity, resets preview animation state, and discards editor-local dirty state.
+    /// 停止预览活动、重置预览动画状态，并丢弃编辑器本地的已修改状态。
     /// </summary>
     public void DiscardAll()
     {
@@ -1945,7 +2107,7 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
         }
         catch (InvalidOperationException)
         {
-            // The preview visual tree may already be unloading while the editor closes.
+            // 编辑器关闭时预览可视树可能已经正在卸载。
         }
     }
 
@@ -2034,9 +2196,9 @@ public sealed record FrontedBehaviorAnimationStageViewModel(
     FrontedNodeGraphEditorViewModel GraphEditor);
 
 /// <summary>
-/// Requests the behavior panel view to show the multi-target behavior paste picker.
+/// 请求行为面板视图显示多目标行为粘贴选择器。
 /// </summary>
-/// <param name="Panel">The behavior panel that owns the paste operation.</param>
+/// <param name="Panel">拥有本次粘贴操作的行为面板。</param>
 /// <param name="Previews">Compatibility and rewrite previews for available targets.</param>
 public sealed record FrontedBehaviorCopyToRequest(
     BehaviorPanelViewModel Panel,

@@ -15,16 +15,25 @@ using neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
 
 namespace neo_bpsys_wpf.SmartBp.Module.Services.Recognition;
 
+/// <summary>
+/// 读取 llama.cpp runtime manifest，优先远程配置，失败时回退模块内置配置。
+/// </summary>
 internal sealed class LlamaCppRuntimeManifestProvider : ILlamaCppRuntimeManifestProvider
 {
     private readonly ISmartBpRecognitionSettingsService? _settings;
     private readonly ISmartBpDebugLog? _debugLog;
     private readonly ISmartBpModuleStorageProvider? _storage;
 
+    /// <summary>
+    /// 初始化仅用于测试或静态内置 manifest 加载的 provider。
+    /// </summary>
     public LlamaCppRuntimeManifestProvider()
     {
     }
 
+    /// <summary>
+    /// 初始化支持远程 manifest 回退的 provider。
+    /// </summary>
     public LlamaCppRuntimeManifestProvider(
         ISmartBpRecognitionSettingsService settings,
         ISmartBpDebugLog debugLog,
@@ -35,6 +44,11 @@ internal sealed class LlamaCppRuntimeManifestProvider : ILlamaCppRuntimeManifest
         _storage = storage;
     }
 
+    /// <summary>
+    /// 加载可用 runtime manifest。
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>运行时 manifest。</returns>
     public async Task<LlamaCppRuntimeManifest> LoadAsync(CancellationToken cancellationToken = default)
     {
         if (_settings != null && !string.IsNullOrWhiteSpace(_settings.Settings.LlamaRuntimeManifestApiUrl))
@@ -58,6 +72,12 @@ internal sealed class LlamaCppRuntimeManifestProvider : ILlamaCppRuntimeManifest
         return await LoadBundledAsync(_storage?.ModuleRoot, cancellationToken).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// 从模块资源目录加载内置 runtime manifest。
+    /// </summary>
+    /// <param name="moduleRoot">模块根目录；为空时使用当前应用基目录。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>内置 runtime manifest。</returns>
     internal static async Task<LlamaCppRuntimeManifest> LoadBundledAsync(
         string? moduleRoot = null,
         CancellationToken cancellationToken = default)
@@ -67,6 +87,9 @@ internal sealed class LlamaCppRuntimeManifestProvider : ILlamaCppRuntimeManifest
         return await DeserializeAsync(stream, cancellationToken).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// 反序列化并校验 runtime manifest 的基本一致性。
+    /// </summary>
     private static async Task<LlamaCppRuntimeManifest> DeserializeAsync(Stream stream, CancellationToken cancellationToken)
     {
         var manifest = await JsonSerializer.DeserializeAsync<LlamaCppRuntimeManifest>(stream,
@@ -80,6 +103,9 @@ internal sealed class LlamaCppRuntimeManifestProvider : ILlamaCppRuntimeManifest
     }
 }
 
+/// <summary>
+/// 检查 llama.cpp runtime 官方 release 更新，并生成可安装资产清单。
+/// </summary>
 internal sealed class LlamaCppRuntimeUpdateService(
     ISmartBpRecognitionSettingsService settings,
     ISmartBpModuleStorageProvider storage) : ILlamaCppRuntimeUpdateService
@@ -96,11 +122,11 @@ internal sealed class LlamaCppRuntimeUpdateService(
             DateTimeOffset.Now - last < TimeSpan.FromHours(settings.Settings.LlamaRuntimeUpdateCheckIntervalHours))
             return new(false, false, "", null, [], "Runtime update check interval has not elapsed.");
 
-        // Load bundled manifest for asset templates — no network call
+        // 使用内置 manifest 作为资产模板；这一步不访问网络。
         var bundled = await LlamaCppRuntimeManifestProvider.LoadBundledAsync(cancellationToken: cancellationToken);
         var installedVersion = await GetInstalledVersionAsync(cancellationToken).ConfigureAwait(false) ?? "";
 
-        // Fetch latest release tag from GitHub API
+        // 仅通过 GitHub API 获取最新 release tag，具体下载仍走 runtime asset manager。
         var latestVersion = await FetchLatestReleaseTagAsync(bundled.ReleasePage, cancellationToken).ConfigureAwait(false);
         settings.Settings.LastLlamaRuntimeUpdateCheckAt = DateTimeOffset.Now;
         await settings.SaveAsync(cancellationToken).ConfigureAwait(false);
@@ -117,7 +143,7 @@ internal sealed class LlamaCppRuntimeUpdateService(
 
         if (hasUpdate)
         {
-            // Persist the updated manifest as a local cache so downloads can use the new URLs
+            // 将新版本 URL 缓存到本地 manifest，后续安装可直接复用。
             var cachedManifest = new LlamaCppRuntimeManifest
             {
                 SchemaVersion = bundled.SchemaVersion,
@@ -135,7 +161,9 @@ internal sealed class LlamaCppRuntimeUpdateService(
             hasUpdate ? $"Latest llama.cpp runtime is {latestVersion}." : "Installed llama.cpp runtime is up to date.");
     }
 
-    /// <summary>Fetches the latest release tag name from the GitHub API.</summary>
+    /// <summary>
+    /// 从 GitHub API 获取最新 release tag。
+    /// </summary>
     private static async Task<string?> FetchLatestReleaseTagAsync(string releasePageUrl, CancellationToken cancellationToken)
     {
         try
@@ -160,7 +188,9 @@ internal sealed class LlamaCppRuntimeUpdateService(
         catch (Exception) { return null; }
     }
 
-    /// <summary>Extracts "owner/repo" from a GitHub release page URL.</summary>
+    /// <summary>
+    /// 从 GitHub release 页面 URL 中提取 <c>owner/repo</c>。
+    /// </summary>
     internal static string? ExtractGitHubRepo(string releasePageUrl)
     {
         if (string.IsNullOrWhiteSpace(releasePageUrl)) return null;
@@ -169,7 +199,9 @@ internal sealed class LlamaCppRuntimeUpdateService(
         return segments.Length >= 2 ? $"{segments[0]}/{segments[1]}" : null;
     }
 
-    /// <summary>Creates a copy of an asset with URLs updated to a new version string.</summary>
+    /// <summary>
+    /// 克隆 runtime 资产，并把 URL 中的版本号替换为新版本。
+    /// </summary>
     internal static LlamaCppRuntimeAsset CloneAssetWithVersion(LlamaCppRuntimeAsset source, string oldVersion, string newVersion)
     {
         return new LlamaCppRuntimeAsset
@@ -179,14 +211,16 @@ internal sealed class LlamaCppRuntimeUpdateService(
             Architecture = source.Architecture,
             Backend = source.Backend,
             Url = source.Url.Replace($"/{oldVersion}/", $"/{newVersion}/"),
-            Sha256 = null, // SHA256 changes per release; null means skip verification for updated version
+            Sha256 = null, // 新 release 的 SHA256 不在内置 manifest 中，置空表示跳过校验。
             EntryExe = source.EntryExe,
             RequiredExtraAssets = [.. source.RequiredExtraAssets],
             UrlIsDirectDownload = source.UrlIsDirectDownload
         };
     }
 
-    /// <summary>Saves an updated manifest as a local cache file for download use.</summary>
+    /// <summary>
+    /// 将远程检查得到的新 manifest 保存为本地下载缓存。
+    /// </summary>
     private async Task SaveCachedManifestAsync(LlamaCppRuntimeManifest manifest, CancellationToken cancellationToken)
     {
         Directory.CreateDirectory(storage.LlamaCppRoot);
@@ -195,6 +229,9 @@ internal sealed class LlamaCppRuntimeUpdateService(
             JsonSerializer.Serialize(manifest, new JsonSerializerOptions { WriteIndented = true }), cancellationToken);
     }
 
+    /// <summary>
+    /// 读取当前已安装 runtime 的版本号。
+    /// </summary>
     private async Task<string?> GetInstalledVersionAsync(CancellationToken token)
     {
         if (string.IsNullOrWhiteSpace(settings.Settings.SelectedLlamaRuntimeId)) return null;
@@ -208,6 +245,9 @@ internal sealed class LlamaCppRuntimeUpdateService(
     }
 }
 
+/// <summary>
+/// 安装、删除和回滚 SmartBP 托管的 llama.cpp runtime。
+/// </summary>
 internal sealed class LlamaCppRuntimeAssetManager(
     ISmartBpRecognitionSettingsService settings,
     ISmartBpModuleStorageProvider storage,
@@ -221,7 +261,9 @@ internal sealed class LlamaCppRuntimeAssetManager(
     public event EventHandler<LlamaCppRuntimeInstallState>? StateChanged;
     public LlamaCppRuntimeInstallState State { get; private set; } = new(false, null, "SmartBpAiStatusNotInstalled");
 
-    /// <summary>Gets the bundled manifest, loaded and cached once.</summary>
+    /// <summary>
+    /// 获取内置 manifest，并在进程内缓存一次。
+    /// </summary>
     private async Task<LlamaCppRuntimeManifest> GetBundledManifestAsync(CancellationToken cancellationToken = default)
     {
         if (_bundledManifest != null) return _bundledManifest;
@@ -229,7 +271,9 @@ internal sealed class LlamaCppRuntimeAssetManager(
         return _bundledManifest;
     }
 
-    /// <summary>Loads the manifest to use for available assets. Prefers the locally cached update manifest if it exists and is newer than the bundled version.</summary>
+    /// <summary>
+    /// 获取可用于安装的有效 manifest；本地更新缓存版本高于内置版本时优先使用缓存。
+    /// </summary>
     private async Task<LlamaCppRuntimeManifest> GetEffectiveManifestAsync(CancellationToken cancellationToken = default)
     {
         var bundled = await GetBundledManifestAsync(cancellationToken);
@@ -243,15 +287,17 @@ internal sealed class LlamaCppRuntimeAssetManager(
             if (cached != null && !string.Equals(cached.RuntimeVersion, bundled.RuntimeVersion, StringComparison.OrdinalIgnoreCase))
                 return cached;
         }
-        catch { /* Cache file is corrupt; fall through to bundled */ }
+        catch { /* 缓存损坏时回退内置 manifest。 */ }
         return bundled;
     }
 
-    /// <summary>Deletes the local manifest cache file after a successful install.</summary>
+    /// <summary>
+    /// 安装成功后删除本地 manifest 更新缓存。
+    /// </summary>
     private void DeleteManifestCacheFile()
     {
         var cachePath = Path.Combine(storage.LlamaCppRoot, "LlamaCppRuntimeManifestCache.json");
-        try { if (File.Exists(cachePath)) File.Delete(cachePath); } catch { /* best effort */ }
+        try { if (File.Exists(cachePath)) File.Delete(cachePath); } catch { /* 尽力清理即可。 */ }
     }
 
     /// <inheritdoc />
@@ -334,7 +380,7 @@ internal sealed class LlamaCppRuntimeAssetManager(
             await settings.SaveAsync(_downloadCts.Token);
             Set(new(false, 100, "SmartBpAiStatusInstalled"));
             DeleteManifestCacheFile();
-            // Clean up old version after successful update; rollback is no longer possible
+            // 更新成功后清理旧版本；此时已经无法回滚。
             await Task.Run(() => { if (Directory.Exists(previous)) Directory.Delete(previous, true); }).ConfigureAwait(false);
             debugLog.Write("runtime", $"Installed {selected.DisplayName}: {settings.Settings.LlamaServerExecutablePath}");
         }

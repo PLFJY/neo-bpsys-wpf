@@ -27,7 +27,7 @@ internal static class SmartBpParallelDownload
     /// 创建统一的并行下载配置。
     /// </summary>
     /// <param name="downloadUri">当前下载地址，用于设置请求来源。</param>
-    /// <returns>Downloader 配置。</returns>
+    /// <returns>下载器配置。</returns>
     internal static DownloadConfiguration CreateConfiguration(Uri downloadUri)
     {
         return new DownloadConfiguration

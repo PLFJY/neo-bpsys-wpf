@@ -12,6 +12,9 @@ using neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
 
 namespace neo_bpsys_wpf.SmartBp.Module.Services.Recognition;
 
+/// <summary>
+/// 管理单个 llama.cpp 视觉识别服务进程的启动、健康检查、状态记录和停止。
+/// </summary>
 internal sealed class LlamaCppServerManager : ILlamaCppServerManager, IDisposable
 {
     private readonly IQwenModelAssetManager _assets;
@@ -23,12 +26,26 @@ internal sealed class LlamaCppServerManager : ILlamaCppServerManager, IDisposabl
     private readonly LlamaVisionServerRole _role;
     private Process? _process;
     private string StateFilePath => Path.Combine(AppConstants.AppDataPath, "SmartBp", $"LlamaServerProcess.{_role}.json");
+    /// <inheritdoc />
     public LlamaVisionServerRole Role => _role;
+    /// <inheritdoc />
     public int Port => GetPort();
+    /// <inheritdoc />
     public bool IsRunning => _process is { HasExited: false };
+    /// <inheritdoc />
     public string Status { get; private set; } = "Stopped";
+    /// <inheritdoc />
     public int? ProcessId => IsRunning ? _process?.Id : null;
 
+    /// <summary>
+    /// 初始化业务 AI 使用的 llama.cpp 服务进程管理器。
+    /// </summary>
+    /// <param name="assets">本地视觉模型资产管理器。</param>
+    /// <param name="settings">SmartBP 识别设置服务。</param>
+    /// <param name="storage">SmartBP 模块存储提供程序。</param>
+    /// <param name="logger">日志记录器。</param>
+    /// <param name="debugLog">SmartBP 识别调试日志。</param>
+    /// <param name="runtimeAssets">llama.cpp 运行时资产管理器。</param>
     public LlamaCppServerManager(IQwenModelAssetManager assets, ISmartBpRecognitionSettingsService settings,
         ISmartBpModuleStorageProvider storage, ILogger<LlamaCppServerManager> logger, ISmartBpDebugLog debugLog,
         ILlamaCppRuntimeAssetManager runtimeAssets)
@@ -36,6 +53,16 @@ internal sealed class LlamaCppServerManager : ILlamaCppServerManager, IDisposabl
     {
     }
 
+    /// <summary>
+    /// 初始化指定角色的 llama.cpp 服务进程管理器。
+    /// </summary>
+    /// <param name="assets">本地视觉模型资产管理器。</param>
+    /// <param name="settings">SmartBP 识别设置服务。</param>
+    /// <param name="storage">SmartBP 模块存储提供程序。</param>
+    /// <param name="logger">日志记录器。</param>
+    /// <param name="debugLog">SmartBP 识别调试日志。</param>
+    /// <param name="runtimeAssets">llama.cpp 运行时资产管理器。</param>
+    /// <param name="role">服务角色。</param>
     public LlamaCppServerManager(IQwenModelAssetManager assets, ISmartBpRecognitionSettingsService settings,
         ISmartBpModuleStorageProvider storage, ILogger<LlamaCppServerManager> logger, ISmartBpDebugLog debugLog,
         ILlamaCppRuntimeAssetManager runtimeAssets, LlamaVisionServerRole role)
@@ -45,6 +72,7 @@ internal sealed class LlamaCppServerManager : ILlamaCppServerManager, IDisposabl
         AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
     }
 
+    /// <inheritdoc />
     public async Task StartAsync(CancellationToken cancellationToken = default)
     {
         if (IsRunning) throw new InvalidOperationException("llama-server is already running.");
@@ -102,6 +130,7 @@ internal sealed class LlamaCppServerManager : ILlamaCppServerManager, IDisposabl
         catch (Exception ex) { _debugLog.Write("health", $"Server startup failed: {ex.Message}"); await StopAsync(); _logger.LogWarning("llama-server not responsive"); throw; }
     }
 
+    /// <inheritdoc />
     public async Task StopAsync()
     {
         var process = _process;
@@ -115,6 +144,7 @@ internal sealed class LlamaCppServerManager : ILlamaCppServerManager, IDisposabl
         DeleteStateFile();
     }
 
+    /// <inheritdoc />
     public async Task ForceStopManagedProcessAsync(CancellationToken cancellationToken = default)
     {
         var state = await ReadStateAsync(cancellationToken).ConfigureAwait(false);
@@ -201,6 +231,7 @@ internal sealed class LlamaCppServerManager : ILlamaCppServerManager, IDisposabl
         catch { }
         DeleteStateFile();
     }
+    /// <inheritdoc />
     public void Dispose() { AppDomain.CurrentDomain.ProcessExit -= OnProcessExit; OnProcessExit(this, EventArgs.Empty); _process?.Dispose(); _process = null; }
 
     private int GetPort() => _role == LlamaVisionServerRole.AiOcr
@@ -214,11 +245,24 @@ internal sealed class LlamaCppServerManager : ILlamaCppServerManager, IDisposabl
     private sealed record LlamaServerProcessState(int Pid, int Port, string ExecutablePath, string ModelPath, DateTimeOffset StartedAt);
 }
 
+/// <summary>
+/// 按识别角色分发业务 AI 与 AI OCR 两个 llama.cpp 服务进程管理器。
+/// </summary>
 internal sealed class LlamaCppServerManagerFactory : ILlamaCppServerManagerFactory, IDisposable
 {
     private readonly ILlamaCppServerManager _business;
     private readonly LlamaCppServerManager _aiOcr;
 
+    /// <summary>
+    /// 初始化 llama.cpp 服务进程管理器工厂。
+    /// </summary>
+    /// <param name="assets">本地视觉模型资产管理器。</param>
+    /// <param name="settings">SmartBP 识别设置服务。</param>
+    /// <param name="storage">SmartBP 模块存储提供程序。</param>
+    /// <param name="logger">日志记录器。</param>
+    /// <param name="debugLog">SmartBP 识别调试日志。</param>
+    /// <param name="runtimeAssets">llama.cpp 运行时资产管理器。</param>
+    /// <param name="business">业务 AI 服务进程管理器。</param>
     public LlamaCppServerManagerFactory(
         IQwenModelAssetManager assets,
         ISmartBpRecognitionSettingsService settings,
@@ -232,8 +276,10 @@ internal sealed class LlamaCppServerManagerFactory : ILlamaCppServerManagerFacto
         _aiOcr = new LlamaCppServerManager(assets, settings, storage, logger, debugLog, runtimeAssets, LlamaVisionServerRole.AiOcr);
     }
 
+    /// <inheritdoc />
     public ILlamaCppServerManager Get(LlamaVisionServerRole role) =>
         role == LlamaVisionServerRole.AiOcr ? _aiOcr : _business;
 
+    /// <inheritdoc />
     public void Dispose() => _aiOcr.Dispose();
 }

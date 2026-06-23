@@ -10,10 +10,18 @@ using neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
 
 namespace neo_bpsys_wpf.SmartBp.Module.Services.Recognition;
 
+/// <summary>
+/// 从 SmartBP 模块资源读取 RapidOCR 模型 manifest。
+/// </summary>
 internal sealed class RapidOcrModelManifestProvider(
     ISmartBpModuleStorageProvider storage,
     ILogger<RapidOcrModelManifestProvider> logger) : IRapidOcrModelManifestProvider
 {
+    /// <summary>
+    /// 加载并校验 RapidOCR 模型 manifest。
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>模型 manifest。</returns>
     public async Task<RapidOcrModelManifest> LoadAsync(CancellationToken cancellationToken = default)
     {
         var path = Path.Combine(storage.ModuleRoot, "Resources", "SmartBp", "RapidOcrModelManifest.json");
@@ -30,6 +38,9 @@ internal sealed class RapidOcrModelManifestProvider(
         return manifest;
     }
 
+    /// <summary>
+    /// 枚举一个 RapidOCR profile 的全部资产。
+    /// </summary>
     private static IEnumerable<RapidOcrModelAsset> GetAssets(RapidOcrModelProfile profile)
     {
         yield return profile.Det;
@@ -39,6 +50,9 @@ internal sealed class RapidOcrModelManifestProvider(
     }
 }
 
+/// <summary>
+/// 管理 RapidOCR 模型 profile 的安装、删除和更新检查。
+/// </summary>
 internal sealed class RapidOcrModelAssetManager(
     IRapidOcrModelManifestProvider manifestProvider,
     ISmartBpRecognitionSettingsService settings,
@@ -51,9 +65,19 @@ internal sealed class RapidOcrModelAssetManager(
     private const string DownloadFailure = "RapidOCR model download failed. Please verify the official ModelScope URL and file integrity.";
     private CancellationTokenSource? _downloadCts;
 
+    /// <summary>
+    /// 模型下载或安装状态变化事件。
+    /// </summary>
     public event EventHandler<SmartBpDownloadState>? StateChanged;
+
+    /// <summary>
+    /// 最近一次查询得到的 RapidOCR 模型状态。
+    /// </summary>
     public RapidOcrModelStatus Status { get; private set; } = new("", "", false, []);
 
+    /// <summary>
+    /// 获取 manifest 中可用的 RapidOCR 模型 profile。
+    /// </summary>
     public async Task<IReadOnlyList<RapidOcrModelProfile>> GetAvailableProfilesAsync(CancellationToken cancellationToken = default) =>
         (await manifestProvider.LoadAsync(cancellationToken).ConfigureAwait(false)).Models;
 
@@ -183,6 +207,9 @@ internal sealed class RapidOcrModelAssetManager(
         return GetPaths(profile);
     }
 
+    /// <summary>
+    /// 按 profile ID 读取 RapidOCR 模型 profile。
+    /// </summary>
     private async Task<RapidOcrModelProfile> GetProfileAsync(string profileId, CancellationToken cancellationToken)
     {
         var profiles = await GetAvailableProfilesAsync(cancellationToken).ConfigureAwait(false);
@@ -190,6 +217,9 @@ internal sealed class RapidOcrModelAssetManager(
             ?? throw new InvalidDataException($"RapidOCR profile '{profileId}' is not present in the manifest.");
     }
 
+    /// <summary>
+    /// 计算某个 RapidOCR profile 的安装路径集合。
+    /// </summary>
     private RapidOcrInstalledPaths GetPaths(RapidOcrModelProfile profile)
     {
         var directory = Path.Combine(storage.RapidOcrModelsRoot, profile.Id);
@@ -200,6 +230,9 @@ internal sealed class RapidOcrModelAssetManager(
             Path.Combine(directory, Path.GetFileName(profile.Dict.FileName)));
     }
 
+    /// <summary>
+    /// 按 det/cls/rec/dict 顺序枚举 profile 资产。
+    /// </summary>
     private static IEnumerable<(string Name, RapidOcrModelAsset Asset)> GetAssets(RapidOcrModelProfile profile)
     {
         yield return ("det", profile.Det);
@@ -208,6 +241,9 @@ internal sealed class RapidOcrModelAssetManager(
         yield return ("dict", profile.Dict);
     }
 
+    /// <summary>
+    /// 下载、校验并按需转换单个 RapidOCR 资产。
+    /// </summary>
     private async Task DownloadAssetAsync(RapidOcrModelAsset asset,
         string targetRoot, double from, double to, CancellationToken cancellationToken)
     {
@@ -240,6 +276,9 @@ internal sealed class RapidOcrModelAssetManager(
         File.Delete(downloadedPath);
     }
 
+    /// <summary>
+    /// 从 PaddleOCR YAML 元数据中抽取纯字符字典文件内容。
+    /// </summary>
     internal static byte[] ExtractPaddleCharacterDictionary(byte[] yamlBytes)
     {
         var lines = Encoding.UTF8.GetString(yamlBytes).Replace("\r\n", "\n").Split('\n');

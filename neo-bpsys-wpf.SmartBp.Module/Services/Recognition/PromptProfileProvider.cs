@@ -5,14 +5,24 @@ using neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
 
 namespace neo_bpsys_wpf.SmartBp.Module.Services.Recognition;
 
+/// <summary>
+/// 从 SmartBP 模块资源加载本地视觉模型使用的系统提示词 profile。
+/// </summary>
 internal sealed class SmartBpPromptProfileProvider : ISmartBpPromptProfileProvider
 {
     private readonly ISmartBpModuleStorageProvider? _storage;
 
+    /// <summary>
+    /// 初始化从应用基目录读取提示词资源的提供程序。
+    /// </summary>
     public SmartBpPromptProfileProvider()
     {
     }
 
+    /// <summary>
+    /// 初始化从 SmartBP 模块目录读取提示词资源的提供程序。
+    /// </summary>
+    /// <param name="storage">SmartBP 模块存储提供程序。</param>
     public SmartBpPromptProfileProvider(ISmartBpModuleStorageProvider storage)
     {
         _storage = storage;
@@ -25,6 +35,7 @@ internal sealed class SmartBpPromptProfileProvider : ISmartBpPromptProfileProvid
         ("ja-JP", "日本語 (ja-JP)")
     ];
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<SmartBpPromptProfile>> GetAvailableProfilesAsync(CancellationToken cancellationToken = default)
     {
         var results = new List<SmartBpPromptProfile>();
@@ -32,6 +43,7 @@ internal sealed class SmartBpPromptProfileProvider : ISmartBpPromptProfileProvid
         return results;
     }
 
+    /// <inheritdoc />
     public async Task<SmartBpPromptProfile> LoadAsync(string profileId, CancellationToken cancellationToken = default)
     {
         var profile = Profiles.SingleOrDefault(x => x.Id.Equals(profileId, StringComparison.OrdinalIgnoreCase));

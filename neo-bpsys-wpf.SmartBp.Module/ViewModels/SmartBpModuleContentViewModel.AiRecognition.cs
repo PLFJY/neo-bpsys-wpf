@@ -31,12 +31,12 @@ public partial class SmartBpModuleContentViewModel
         BusinessAi,
         AiOcr
     }
-    /// <summary>Gets available recognition application modes.</summary>
+    /// <summary>获取可用的识别应用模式。</summary>
     public IReadOnlyList<SmartBpRecognitionApplyMode> RecognitionApplyModes { get; } = Enum.GetValues<SmartBpRecognitionApplyMode>();
-    /// <summary>Gets available hybrid fusion modes.</summary>
+    /// <summary>获取可用的混合融合模式。</summary>
     public IReadOnlyList<SmartBpHybridFusionMode> HybridFusionModes { get; } = Enum.GetValues<SmartBpHybridFusionMode>();
 
-    /// <summary>Gets available built-in frames.</summary>
+    /// <summary>获取可用的内置测试帧。</summary>
     public IReadOnlyList<SmartBpTestFrame> AiTestFrames { get; } =
     [
         new("ban-sur-16x9", "ban-sur-16x9.png", SmartBpRecognitionTask.BanSur),
@@ -626,22 +626,25 @@ public partial class SmartBpModuleContentViewModel
 
     private SmartBpRecognitionLayoutProfile? _aiRegionProfile;
 
-    /// <summary>Gets whether Qwen download details should be shown.</summary>
+    /// <summary>是否显示 Qwen 模型下载详情。</summary>
     public bool HasQwenDownloadDetail => !string.IsNullOrWhiteSpace(QwenDownloadDetail);
-    /// <summary>Gets whether Business AI model download details should be shown.</summary>
+    /// <summary>是否显示业务 AI 模型下载详情。</summary>
     public bool HasBusinessAiModelDownloadDetail => !string.IsNullOrWhiteSpace(BusinessAiModelDownloadDetail);
-    /// <summary>Gets whether AI OCR model download details should be shown.</summary>
+    /// <summary>是否显示 AI OCR 模型下载详情。</summary>
     public bool HasAiOcrModelDownloadDetail => !string.IsNullOrWhiteSpace(AiOcrModelDownloadDetail);
 
-    /// <summary>Gets whether llama.cpp runtime download details should be shown.</summary>
+    /// <summary>是否显示 llama.cpp 运行时下载详情。</summary>
     public bool HasLlamaRuntimeDownloadDetail => !string.IsNullOrWhiteSpace(LlamaRuntimeDownloadDetail);
 
-    /// <summary>Gets whether Tesseract download details should be shown.</summary>
+    /// <summary>是否显示 Tesseract 语言数据下载详情。</summary>
     public bool HasTesseractDownloadDetail => !string.IsNullOrWhiteSpace(TesseractDownloadDetail);
 
-    /// <summary>Gets whether RapidOCR download details should be shown.</summary>
+    /// <summary>是否显示 RapidOCR 模型下载详情。</summary>
     public bool HasRapidOcrDownloadDetail => !string.IsNullOrWhiteSpace(RapidOcrDownloadDetail);
 
+    /// <summary>
+    /// 初始化 AI/BP 自动识别页面状态、下载事件、调试日志缓冲和后台刷新计时器。
+    /// </summary>
     private void InitializeAiRecognition()
     {
         SelectedAiTestFrame = AiTestFrames[0];
@@ -719,6 +722,7 @@ public partial class SmartBpModuleContentViewModel
         RefreshRecognitionTimerInterval();
         RefreshRecognitionSpeedTestValidity();
         RefreshLlamaServerUiState();
+        // 自动循环 Tick 只负责调度当前帧识别，具体阶段门禁和写回保护在 coordinator 内完成。
         _aiPreviewTimer.Tick += async (_, _) => await RunAutomaticCurrentFrameCoreAsync();
         _aiPerformanceTimer.Tick += async (_, _) => await RefreshAiPerformanceAsync();
         _aiPerformanceTimer.Start();
@@ -778,6 +782,10 @@ public partial class SmartBpModuleContentViewModel
         _ = RefreshQwenStatusAsync();
     }
 
+    /// <summary>
+    /// 从配置服务加载 BP 自动识别区域配置档。
+    /// </summary>
+    /// <returns>加载任务。</returns>
     private async Task LoadAiRegionProfileAsync()
     {
         try
@@ -787,6 +795,10 @@ public partial class SmartBpModuleContentViewModel
         catch (Exception ex) { AiLastError = ex.Message; }
     }
 
+    /// <summary>
+    /// 打开 BP 自动识别区域编辑器，并保存用户覆盖配置。
+    /// </summary>
+    /// <returns>编辑流程完成后的任务。</returns>
     [RelayCommand]
     private async Task OpenAiRecognitionRegionEditorAsync()
     {
@@ -821,6 +833,10 @@ public partial class SmartBpModuleContentViewModel
         catch (Exception ex) { AiLastError = ex.Message; }
     }
 
+    /// <summary>
+    /// 将 BP 自动识别区域配置重置为模块内置默认值。
+    /// </summary>
+    /// <returns>重置流程完成后的任务。</returns>
     [RelayCommand]
     private async Task ResetAiRecognitionLayoutProfileAsync()
     {
@@ -833,6 +849,11 @@ public partial class SmartBpModuleContentViewModel
         catch (Exception ex) { AiLastError = ex.Message; }
     }
 
+    /// <summary>
+    /// 将归一化 BP 识别区域配置档转换为通用区域编辑器使用的百分比布局。
+    /// </summary>
+    /// <param name="profile">BP 自动识别区域配置档。</param>
+    /// <returns>区域编辑器布局。</returns>
     private RegionLayoutDefinition BuildAiRegionEditorLayout(SmartBpRecognitionLayoutProfile profile)
     {
         var layout = RegionLayoutDefinition.Builder(ResolveLocalizedOrRaw("SmartBpAiRegionEditor"));
@@ -854,6 +875,11 @@ public partial class SmartBpModuleContentViewModel
         return layout.Build();
     }
 
+    /// <summary>
+    /// 将区域编辑器保存的百分比布局写回归一化 BP 识别区域配置档。
+    /// </summary>
+    /// <param name="profile">待更新的 BP 自动识别区域配置档。</param>
+    /// <param name="editedLayout">区域编辑器输出布局。</param>
     private static void ApplyAiRegionEditorLayout(
         SmartBpRecognitionLayoutProfile profile,
         RegionLayoutDefinition editedLayout)
@@ -874,6 +900,9 @@ public partial class SmartBpModuleContentViewModel
         }
     }
 
+    /// <summary>
+    /// BP 自动识别区域编辑器中暴露给用户调整的区域节点。
+    /// </summary>
     private static readonly (string Id, string LabelKey)[] AiRegionEditorNodes =
     [
         ("phase_top", "SmartBpAiRegionPhaseTop"),
@@ -902,7 +931,7 @@ public partial class SmartBpModuleContentViewModel
                                         AiOcrModelProfiles.FirstOrDefault();
             await RefreshSelectedQwenModelInstallStatusAsync();
             await RefreshSelectedAiOcrModelInstallStatusAsync();
-            // Llama.cpp assets are already loaded eagerly in InitializeAiRecognition; fall back if that failed.
+            // llama.cpp 资产通常已在 InitializeAiRecognition 中提前加载；这里兜底处理加载失败的场景。
             if (LlamaRuntimeAssets.Count == 0)
             {
                 var assets = await _llamaRuntimeAssetManager.GetAvailableAssetsAsync();
@@ -917,7 +946,7 @@ public partial class SmartBpModuleContentViewModel
         catch (Exception ex) { AiLastError = ex.Message; }
     }
 
-    /// <summary>Loads bundled llama.cpp runtime assets without blocking the UI thread.</summary>
+    /// <summary>异步加载内置 llama.cpp 运行时资产，避免阻塞 UI 线程。</summary>
     private async Task LoadLlamaCppAssetsAsync()
     {
         LlamaRuntimeDownloadStatus = ResolveLocalizedOrRaw("SmartBpAiStatusLoading");
@@ -956,7 +985,7 @@ public partial class SmartBpModuleContentViewModel
         AiDebugLogText = "";
     }
 
-    /// <summary>Flushes buffered log messages to <see cref="AiDebugLogText"/> and clears the buffer.</summary>
+    /// <summary>将缓冲的日志消息写入 <see cref="AiDebugLogText"/> 并清空缓冲区。</summary>
     private void FlushDebugLogBuffer()
     {
         string batch;
@@ -1517,6 +1546,10 @@ public partial class SmartBpModuleContentViewModel
         await RunPhaseOnlyRecognitionCoreAsync(frame);
     }
     [RelayCommand] private Task RunAutomaticOneTickAsync() => RunAutomaticCurrentFrameCoreAsync();
+    /// <summary>
+    /// 启动自动识别循环，并在需要时启动对应 llama.cpp 服务。
+    /// </summary>
+    /// <returns>启动流程完成后的任务。</returns>
     [RelayCommand(CanExecute = nameof(CanStartAutomaticRecognition))]
     private async Task StartAiPreviewLoopAsync()
     {
@@ -1553,6 +1586,10 @@ public partial class SmartBpModuleContentViewModel
         }
     }
 
+    /// <summary>
+    /// 停止自动识别循环并清理全局停止控制入口。
+    /// </summary>
+    /// <returns>停止流程完成后的任务。</returns>
     [RelayCommand(CanExecute = nameof(CanStopAutomaticRecognition))]
     private async Task StopAiPreviewLoopAsync()
     {
@@ -1564,8 +1601,21 @@ public partial class SmartBpModuleContentViewModel
         NotifyAutomaticRecognitionCommands();
     }
 
+    /// <summary>
+    /// 判断当前是否允许启动自动识别循环。
+    /// </summary>
     private bool CanStartAutomaticRecognition() => !IsAiPreviewLoopRunning && !IsAiRecognizing;
+
+    /// <summary>
+    /// 判断当前是否允许停止自动识别循环。
+    /// </summary>
     private bool CanStopAutomaticRecognition() => IsAiPreviewLoopRunning || IsAiRecognizing;
+
+    /// <summary>
+    /// 按当前识别策略确保自动识别所需的 llama.cpp 服务已经启动。
+    /// </summary>
+    /// <returns>服务启动和校验任务。</returns>
+    /// <exception cref="InvalidOperationException">运行时未安装或必要服务启动失败时抛出。</exception>
     private async Task EnsureRequiredLlamaServersForAutomaticRecognitionAsync()
     {
         var strategy = _recognitionSettingsService.Settings.RecognitionStrategy;
@@ -1582,12 +1632,19 @@ public partial class SmartBpModuleContentViewModel
             throw new InvalidOperationException(AiLastError ?? "AI OCR llama.cpp server failed to start.");
     }
 
+    /// <summary>
+    /// 刷新自动识别启动/停止命令状态。
+    /// </summary>
     private void NotifyAutomaticRecognitionCommands()
     {
         StartAiPreviewLoopCommand.NotifyCanExecuteChanged();
         StopAiPreviewLoopCommand.NotifyCanExecuteChanged();
     }
 
+    /// <summary>
+    /// 下载当前勾选的 Tesseract traineddata 语言文件。
+    /// </summary>
+    /// <returns>下载任务。</returns>
     [RelayCommand]
     private async Task DownloadTesseractDataAsync()
     {
@@ -1602,8 +1659,15 @@ public partial class SmartBpModuleContentViewModel
         catch (Exception ex) { AiLastError = ex.ToString(); }
     }
 
+    /// <summary>
+    /// 取消 Tesseract traineddata 下载。
+    /// </summary>
     [RelayCommand] private void CancelTesseractDataDownload() => _tesseractDataAssetManager.Cancel();
 
+    /// <summary>
+    /// 刷新 Tesseract 语言数据安装状态并更新 UI 提示。
+    /// </summary>
+    /// <returns>刷新任务。</returns>
     [RelayCommand]
     private async Task RefreshTesseractDataStatusForUiAsync()
     {
@@ -1619,6 +1683,10 @@ public partial class SmartBpModuleContentViewModel
         }
     }
 
+    /// <summary>
+    /// 删除当前勾选的 Tesseract traineddata 语言文件。
+    /// </summary>
+    /// <returns>删除任务。</returns>
     [RelayCommand]
     private async Task DeleteTesseractDataAsync()
     {
@@ -1632,6 +1700,10 @@ public partial class SmartBpModuleContentViewModel
         catch (Exception ex) { AiLastError = ex.Message; }
     }
 
+    /// <summary>
+    /// 从资产管理器同步 Tesseract 语言安装状态。
+    /// </summary>
+    /// <returns>刷新任务。</returns>
     private async Task RefreshTesseractDataStatusAsync()
     {
         var status = await _tesseractDataAssetManager.GetStatusAsync();
@@ -1640,6 +1712,10 @@ public partial class SmartBpModuleContentViewModel
         RefreshOcrProviderStatuses();
     }
 
+    /// <summary>
+    /// 初始化 RapidOCR 配置档列表并刷新当前模型安装状态。
+    /// </summary>
+    /// <returns>初始化任务。</returns>
     private async Task InitializeRapidOcrAsync()
     {
         try
@@ -1657,6 +1733,10 @@ public partial class SmartBpModuleContentViewModel
         }
     }
 
+    /// <summary>
+    /// 下载或更新当前选择的 RapidOCR 模型配置档。
+    /// </summary>
+    /// <returns>下载任务。</returns>
     [RelayCommand(CanExecute = nameof(CanDownloadRapidOcrModel))]
     private async Task DownloadRapidOcrModelAsync()
     {
@@ -1670,9 +1750,16 @@ public partial class SmartBpModuleContentViewModel
         catch (Exception ex) { AiLastError = ex.Message; }
     }
 
+    /// <summary>
+    /// 取消 RapidOCR 模型下载。
+    /// </summary>
     [RelayCommand]
     private void CancelRapidOcrDownload() => _rapidOcrModelAssetManager.Cancel();
 
+    /// <summary>
+    /// 删除当前选择的 RapidOCR 模型配置档。
+    /// </summary>
+    /// <returns>删除任务。</returns>
     [RelayCommand(CanExecute = nameof(CanDeleteRapidOcrModel))]
     private async Task DeleteRapidOcrModelAsync()
     {
@@ -1685,16 +1772,26 @@ public partial class SmartBpModuleContentViewModel
         catch (Exception ex) { AiLastError = ex.Message; }
     }
 
+    /// <summary>
+    /// 判断是否允许下载或更新当前 RapidOCR 模型。
+    /// </summary>
     private bool CanDownloadRapidOcrModel() =>
         SelectedRapidOcrModelProfile != null &&
         !IsRapidOcrDownloading &&
         (!IsSelectedRapidOcrModelInstalled || IsRapidOcrUpdateAvailable);
 
+    /// <summary>
+    /// 判断是否允许删除当前 RapidOCR 模型。
+    /// </summary>
     private bool CanDeleteRapidOcrModel() =>
         SelectedRapidOcrModelProfile != null &&
         !IsRapidOcrDownloading &&
         IsSelectedRapidOcrModelInstalled;
 
+    /// <summary>
+    /// 刷新 RapidOCR 当前配置档的安装、版本和更新状态。
+    /// </summary>
+    /// <returns>刷新任务。</returns>
     [RelayCommand]
     private async Task RefreshRapidOcrStatusAsync()
     {
@@ -1728,6 +1825,10 @@ public partial class SmartBpModuleContentViewModel
         }
     }
 
+    /// <summary>
+    /// 通过远程清单检查 RapidOCR 官方模型是否有可安装更新。
+    /// </summary>
+    /// <returns>检查任务。</returns>
     [RelayCommand]
     private async Task CheckRapidOcrModelUpdateAsync()
     {
@@ -2583,7 +2684,7 @@ public partial class SmartBpModuleContentViewModel
         if (value == null || value.Id == _recognitionSettingsService.Settings.SelectedLlamaRuntimeId) return;
         if (_llamaServerManager.IsRunning)
         {
-            // Revert to the current selection
+            // 服务运行时不允许切换运行时资产，回退到当前设置中的选择。
             var current = LlamaRuntimeAssets.FirstOrDefault(a => a.Id == _recognitionSettingsService.Settings.SelectedLlamaRuntimeId);
             if (current != null)
             {
@@ -3028,22 +3129,22 @@ public partial class SmartBpModuleContentViewModel
     }
 
     /// <summary>
-    /// Recognition strategy combo-box item.
+    /// 识别策略下拉框选项。
     /// </summary>
-    /// <param name="Strategy">Strategy value.</param>
-    /// <param name="DisplayNameKey">Localized display name key.</param>
+    /// <param name="Strategy">识别策略值。</param>
+    /// <param name="DisplayNameKey">本地化显示名称资源键。</param>
     public sealed record RecognitionStrategySelection(SmartBpRecognitionStrategy Strategy, string DisplayNameKey);
 
-    /// <summary>One selectable OCR provider.</summary>
-    /// <param name="Mode">Persisted provider mode.</param>
-    /// <param name="DisplayName">Display name.</param>
+    /// <summary>一个可选择的 OCR 提供程序选项。</summary>
+    /// <param name="Mode">持久化使用的提供程序模式。</param>
+    /// <param name="DisplayName">界面显示名称。</param>
     public sealed record OcrProviderSelection(SmartBpOcrProviderMode Mode, string DisplayName);
 
-    /// <summary>Selectable llama.cpp runtime asset shown in the SmartBP UI combobox.</summary>
+    /// <summary>SmartBP 界面下拉框中展示的 llama.cpp 运行时资产选项。</summary>
     public sealed partial class LlamaCppRuntimeAssetSelection : ObservableObject
     {
-        /// <summary>Initializes a new instance from a manifest asset.</summary>
-        /// <param name="asset">The manifest asset definition.</param>
+        /// <summary>根据清单中的资产定义初始化运行时选项。</summary>
+        /// <param name="asset">清单资产定义。</param>
         public LlamaCppRuntimeAssetSelection(LlamaCppRuntimeAsset asset)
         {
             Id = asset.Id;
@@ -3053,47 +3154,47 @@ public partial class SmartBpModuleContentViewModel
             EntryExe = asset.EntryExe ?? "";
         }
 
-        /// <summary>Gets the asset identifier.</summary>
+        /// <summary>获取资产标识。</summary>
         public string Id { get; }
-        /// <summary>Gets the display name.</summary>
+        /// <summary>获取显示名称。</summary>
         public string DisplayName { get; }
-        /// <summary>Gets the CPU architecture.</summary>
+        /// <summary>获取 CPU 架构名称。</summary>
         public string Architecture { get; }
-        /// <summary>Gets the backend name.</summary>
+        /// <summary>获取后端名称。</summary>
         public string Backend { get; }
-        /// <summary>Gets the entry executable filename.</summary>
+        /// <summary>获取入口可执行文件名。</summary>
         public string EntryExe { get; }
 
-        /// <summary>Gets or sets whether this runtime asset is currently installed.</summary>
+        /// <summary>获取或设置该运行时资产当前是否已安装。</summary>
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(StatusKey))]
         public partial bool IsInstalled { get; set; }
 
-        /// <summary>Gets the localization key for the current install status.</summary>
+        /// <summary>获取当前安装状态对应的本地化资源键。</summary>
         public string StatusKey => IsInstalled ? "SmartBpAiStatusInstalled" : "SmartBpAiStatusNotInstalled";
     }
 
-    /// <summary>Selectable Tesseract language data option shown in the SmartBP UI.</summary>
-    /// <param name="language">Tesseract language identifier.</param>
-    /// <param name="displayNameKey">Localization key for the display name.</param>
+    /// <summary>SmartBP 界面中展示的可选择 Tesseract 语言数据选项。</summary>
+    /// <param name="language">Tesseract 语言标识。</param>
+    /// <param name="displayNameKey">显示名称的本地化资源键。</param>
     public sealed partial class TesseractLanguageSelection(string language, string displayNameKey) : ObservableObject
     {
-        /// <summary>Gets the Tesseract language identifier.</summary>
+        /// <summary>获取 Tesseract 语言标识。</summary>
         public string Language { get; } = language;
 
-        /// <summary>Gets the localization key for display.</summary>
+        /// <summary>获取用于显示的本地化资源键。</summary>
         public string DisplayNameKey { get; } = displayNameKey;
 
-        /// <summary>Gets or sets whether this language is selected for install, delete, and use.</summary>
+        /// <summary>获取或设置该语言是否被选中用于安装、删除和使用。</summary>
         [ObservableProperty]
         public partial bool IsSelected { get; set; }
 
-        /// <summary>Gets or sets whether this language data file is installed.</summary>
+        /// <summary>获取或设置该语言数据文件是否已安装。</summary>
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(StatusKey))]
         public partial bool IsInstalled { get; set; }
 
-        /// <summary>Gets the localization key for the current install status.</summary>
+        /// <summary>获取当前安装状态对应的本地化资源键。</summary>
         public string StatusKey => IsInstalled ? "SmartBpTesseractLanguageInstalled" : "SmartBpTesseractLanguageMissing";
     }
 }

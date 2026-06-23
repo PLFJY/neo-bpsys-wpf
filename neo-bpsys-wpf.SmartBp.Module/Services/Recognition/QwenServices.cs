@@ -15,12 +15,23 @@ using neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
 
 namespace neo_bpsys_wpf.SmartBp.Module.Services.Recognition;
 
+/// <summary>
+/// 计算模型下载速度并限制进度事件的触发频率。
+/// </summary>
 internal sealed class SmartBpDownloadProgressTracker
 {
     private readonly Stopwatch _watch = Stopwatch.StartNew();
     private readonly TimeSpan _throttle = TimeSpan.FromMilliseconds(250);
     private TimeSpan _lastRaised = TimeSpan.MinValue;
 
+    /// <summary>
+    /// 判断当前下载进度是否应该通知 UI，并输出速度和剩余时间估计。
+    /// </summary>
+    /// <param name="bytesReceived">已接收字节数。</param>
+    /// <param name="totalBytes">总字节数；未知时为 <see langword="null"/>。</param>
+    /// <param name="bytesPerSecond">当前估算下载速度。</param>
+    /// <param name="eta">当前估算剩余时间；未知时为 <see langword="null"/>。</param>
+    /// <returns>应通知 UI 返回 <see langword="true"/>，否则返回 <see langword="false"/>。</returns>
     public bool ShouldRaise(long bytesReceived, long? totalBytes, out double bytesPerSecond, out TimeSpan? eta)
     {
         var elapsed = Math.Max(0.001, _watch.Elapsed.TotalSeconds);
@@ -35,16 +46,28 @@ internal sealed class SmartBpDownloadProgressTracker
     }
 }
 
+/// <summary>
+/// 从模块资源加载本地视觉模型 manifest，并兼容旧 Qwen 专用接口。
+/// </summary>
 internal sealed class QwenModelManifestProvider : IQwenModelManifestProvider, ILocalVisionModelManifestProvider
 {
     private readonly ISmartBpModuleStorageProvider? _storage;
     private readonly ILogger<QwenModelManifestProvider> _logger;
 
+    /// <summary>
+    /// 初始化从应用基目录读取资源的 Qwen manifest 提供程序。
+    /// </summary>
+    /// <param name="logger">日志记录器。</param>
     public QwenModelManifestProvider(ILogger<QwenModelManifestProvider> logger)
     {
         _logger = logger;
     }
 
+    /// <summary>
+    /// 初始化从 SmartBP 模块目录读取资源的 Qwen manifest 提供程序。
+    /// </summary>
+    /// <param name="storage">SmartBP 模块存储提供程序。</param>
+    /// <param name="logger">日志记录器。</param>
     public QwenModelManifestProvider(
         ISmartBpModuleStorageProvider storage,
         ILogger<QwenModelManifestProvider> logger)
@@ -53,6 +76,7 @@ internal sealed class QwenModelManifestProvider : IQwenModelManifestProvider, IL
         _logger = logger;
     }
 
+    /// <inheritdoc />
     public async Task<QwenModelManifest> LoadAsync(CancellationToken cancellationToken = default)
     {
         var path = Path.Combine(_storage?.ModuleRoot ?? AppContext.BaseDirectory, "Resources", "SmartBp", "QwenModelManifest.json");
@@ -99,13 +123,20 @@ internal sealed class QwenModelManifestProvider : IQwenModelManifestProvider, IL
     };
 }
 
+/// <summary>
+/// 读取、规范化并持久化 SmartBP 识别设置。
+/// </summary>
 internal sealed class SmartBpRecognitionSettingsService : ISmartBpRecognitionSettingsService
 {
     private static readonly JsonSerializerOptions Options = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true };
     private readonly string _path = Path.Combine(AppConstants.AppDataPath, "SmartBp", "RecognitionSettings.json");
     private readonly SemaphoreSlim _saveLock = new(1, 1);
+    /// <inheritdoc />
     public SmartBpRecognitionSettings Settings { get; private set; }
 
+    /// <summary>
+    /// 初始化识别设置服务，并迁移旧设置字段到当前字段。
+    /// </summary>
     public SmartBpRecognitionSettingsService()
     {
         var hasRecognitionStrategy = false;
@@ -212,6 +243,7 @@ internal sealed class SmartBpRecognitionSettingsService : ISmartBpRecognitionSet
         if (Settings.SelectedQwenModelId == "qwen3.5-2b-q4ks") Settings.SelectedQwenModelId = "qwen3.5-2b-q4km";
     }
 
+    /// <inheritdoc />
     public async Task SaveAsync(CancellationToken cancellationToken = default)
     {
         await _saveLock.WaitAsync(cancellationToken);
@@ -229,6 +261,9 @@ internal sealed class SmartBpRecognitionSettingsService : ISmartBpRecognitionSet
     }
 }
 
+/// <summary>
+/// 管理本地视觉模型的安装、完整性校验、删除和下载状态通知。
+/// </summary>
 internal sealed class QwenModelAssetManager(
     IQwenModelManifestProvider manifestProvider,
     ISmartBpRecognitionSettingsService settingsService,

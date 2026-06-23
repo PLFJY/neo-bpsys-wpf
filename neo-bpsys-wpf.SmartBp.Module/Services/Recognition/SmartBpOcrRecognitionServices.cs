@@ -12,10 +12,19 @@ using OpenCvSharp.WpfExtensions;
 
 namespace neo_bpsys_wpf.SmartBp.Module.Services.Recognition;
 
+/// <summary>
+/// 将多个 BP 识别区域裁剪并纵向拼接成一张 OCR 拼接图。
+/// </summary>
 internal sealed class SmartBpOcrContactSheetBuilder(ISmartBpRecognitionFrameCropper cropper) : ISmartBpOcrContactSheetBuilder
 {
     private const int Padding = 24;
 
+    /// <summary>
+    /// 构建 OCR 拼接图，并记录每个原始区域在拼接图中的位置映射。
+    /// </summary>
+    /// <param name="frame">完整捕获帧。</param>
+    /// <param name="regions">需要识别的区域集合。</param>
+    /// <returns>拼接图和区域映射信息。</returns>
     public SmartBpOcrContactSheet Build(BitmapSource frame, IReadOnlyList<SmartBpRecognitionRegion> regions)
     {
         var distinctRegions = regions.Distinct().ToArray();
@@ -32,6 +41,7 @@ internal sealed class SmartBpOcrContactSheetBuilder(ISmartBpRecognitionFrameCrop
                 crops.Add((region, crop, ToBgr(raw)));
             }
 
+            // 合并识别可以减少 OCR 提供程序调用次数；映射表负责把结果再还原到区域局部坐标。
             var width = crops.Max(item => item.Image.Width);
             var height = crops.Sum(item => item.Image.Height) + Padding * Math.Max(0, crops.Count - 1);
             var sheet = new Mat(new Size(width, height), MatType.CV_8UC3, Scalar.All(255));
@@ -57,6 +67,11 @@ internal sealed class SmartBpOcrContactSheetBuilder(ISmartBpRecognitionFrameCrop
         }
     }
 
+    /// <summary>
+    /// 把 OpenCV 图像规范化为 BGR 三通道，方便后续拼接和 OCR 提供程序处理。
+    /// </summary>
+    /// <param name="source">源图像。</param>
+    /// <returns>BGR 三通道图像，调用方负责释放。</returns>
     private static Mat ToBgr(Mat source)
     {
         var result = new Mat();
@@ -70,8 +85,18 @@ internal sealed class SmartBpOcrContactSheetBuilder(ISmartBpRecognitionFrameCrop
     }
 }
 
+/// <summary>
+/// 将拼接图上的 OCR 文本行映射回各 BP 识别区域。
+/// </summary>
 internal static class SmartBpOcrContactSheetMapper
 {
+    /// <summary>
+    /// 按区域映射拆分 OCR 文本行，并转成区域局部坐标。
+    /// </summary>
+    /// <param name="result">OCR 提供程序返回的整图识别结果。</param>
+    /// <param name="regions">拼接图区域映射。</param>
+    /// <param name="unmappedLineCount">未命中任何区域的文本行数量。</param>
+    /// <returns>按区域分组的 OCR 文本。</returns>
     public static IReadOnlyList<SmartBpOcrRegionText> MapLinesToRegions(
         OcrTextBlockResult result,
         IReadOnlyList<SmartBpOcrContactSheetRegion> regions,
@@ -107,6 +132,12 @@ internal static class SmartBpOcrContactSheetMapper
             .ToArray();
     }
 
+    /// <summary>
+    /// 将拼接图坐标中的文本行转换为区域局部坐标。
+    /// </summary>
+    /// <param name="line">OCR 文本行。</param>
+    /// <param name="sheetRect">区域在拼接图中的位置。</param>
+    /// <returns>区域局部坐标文本行。</returns>
     private static OcrTextLine ToRegionLocalLine(OcrTextLine line, Rect sheetRect)
     {
         var clipped = line.BoundingBox & sheetRect;
@@ -123,8 +154,19 @@ internal static class SmartBpOcrContactSheetMapper
     }
 }
 
+/// <summary>
+/// 将 OCR 文本解析为阵营内角色候选。
+/// </summary>
 internal sealed partial class SmartBpOcrTextResolver(ICharacterSelectionService characterSelectionService) : ISmartBpOcrTextResolver
 {
+    /// <summary>
+    /// 在指定阵营和槽位语境下解析 OCR 文本。
+    /// </summary>
+    /// <param name="text">OCR 原始文本。</param>
+    /// <param name="camp">目标阵营。</param>
+    /// <param name="slotIndex">目标槽位索引。</param>
+    /// <param name="provider">OCR 提供程序名称。</param>
+    /// <returns>规范化角色解析结果。</returns>
     public SmartBpNormalizedCharacter ResolveCharacterFromLine(string text, Camp camp, int slotIndex, string? provider = null)
     {
         if (SmartBpBusinessStateParser.IsUnselected(text))
@@ -147,6 +189,11 @@ internal sealed partial class SmartBpOcrTextResolver(ICharacterSelectionService 
             result.Reason);
     }
 
+    /// <summary>
+    /// 判断文本是否更像阶段/状态提示，而不是角色名。
+    /// </summary>
+    /// <param name="text">OCR 文本。</param>
+    /// <returns>是状态文本则返回 <see langword="true"/>。</returns>
     private static bool IsStatusOrPhaseText(string text)
     {
         var normalized = NormalizeForMatch(text);
@@ -154,11 +201,21 @@ internal sealed partial class SmartBpOcrTextResolver(ICharacterSelectionService 
         return markers.Any(marker => normalized.Contains(NormalizeForMatch(marker), StringComparison.Ordinal));
     }
 
+    /// <summary>
+    /// 规范化 OCR 文本，执行 Unicode 兼容归一化并去除首尾空白。
+    /// </summary>
+    /// <param name="value">原始文本。</param>
+    /// <returns>规范化文本。</returns>
     internal static string NormalizeText(string? value) =>
         string.IsNullOrWhiteSpace(value)
             ? string.Empty
             : value.Normalize(NormalizationForm.FormKC).Trim();
 
+    /// <summary>
+    /// 生成用于模糊匹配的规范化文本。
+    /// </summary>
+    /// <param name="value">原始文本。</param>
+    /// <returns>去除符号、空白并转大写后的文本。</returns>
     internal static string NormalizeForMatch(string? value)
     {
         var normalized = NormalizeText(value);
@@ -166,6 +223,11 @@ internal sealed partial class SmartBpOcrTextResolver(ICharacterSelectionService 
         return NonWordRegex().Replace(normalized, "").ToUpperInvariant();
     }
 
+    /// <summary>
+    /// 去掉 OCR 结果外围可能误带的成对装饰引号。
+    /// </summary>
+    /// <param name="value">输入文本。</param>
+    /// <returns>去除外围引号后的文本。</returns>
     internal static string StripDecorativeQuotes(string value)
     {
         var trimmed = value.Trim();
@@ -194,8 +256,18 @@ internal sealed partial class SmartBpOcrTextResolver(ICharacterSelectionService 
     private static partial Regex NonWordRegex();
 }
 
+/// <summary>
+/// 基于顶部阶段区域 OCR 文本判断当前 BP 阶段。
+/// </summary>
 internal static class SmartBpOcrPhaseClassifier
 {
+    /// <summary>
+    /// 根据 OCR 文本行和区域宽度分类当前阶段。
+    /// </summary>
+    /// <param name="lines">阶段区域 OCR 文本行。</param>
+    /// <param name="phaseRegionWidth">阶段区域宽度，用于区分左右侧提示。</param>
+    /// <param name="diagnostics">诊断日志收集器。</param>
+    /// <returns>阶段识别结果。</returns>
     public static SmartBpPhaseRecognitionResult Classify(
         IReadOnlyList<OcrTextLine> lines,
         double phaseRegionWidth,
@@ -231,6 +303,13 @@ internal static class SmartBpOcrPhaseClassifier
         return Matched("未知", "matched rule: no phase text matched", diagnostics);
     }
 
+    /// <summary>
+    /// 创建阶段匹配结果并追加诊断信息。
+    /// </summary>
+    /// <param name="phase">识别到的阶段。</param>
+    /// <param name="message">匹配规则说明。</param>
+    /// <param name="diagnostics">诊断日志收集器。</param>
+    /// <returns>阶段识别结果。</returns>
     private static SmartBpPhaseRecognitionResult Matched(string phase, string message, ICollection<string> diagnostics)
     {
         diagnostics.Add(message);
@@ -238,6 +317,12 @@ internal static class SmartBpOcrPhaseClassifier
         return new() { Phase = phase };
     }
 
+    /// <summary>
+    /// 判断文本行中心是否位于阶段区域左半边。
+    /// </summary>
+    /// <param name="line">OCR 文本行。</param>
+    /// <param name="width">阶段区域宽度。</param>
+    /// <returns>位于左半边返回 <see langword="true"/>。</returns>
     private static bool IsLeft(OcrTextLine line, double width) => line.CenterX < width * .5;
 
     private static bool ContainsBanSur(string text) =>
@@ -250,8 +335,16 @@ internal static class SmartBpOcrPhaseClassifier
         SmartBpOcrTextResolver.NormalizeForMatch(text).Contains(SmartBpOcrTextResolver.NormalizeForMatch(candidate), StringComparison.Ordinal);
 }
 
+/// <summary>
+/// 根据 OCR 文本判断角色 BP 后的区域选择、等待开局等状态。
+/// </summary>
 internal static class SmartBpPostBpStatusDetector
 {
+    /// <summary>
+    /// 从 OCR 文本行中检测角色 BP 后状态。
+    /// </summary>
+    /// <param name="lines">待检测的 OCR 文本行。</param>
+    /// <returns>检测结果。</returns>
     public static SmartBpPostBpStatusResult Detect(IReadOnlyList<OcrTextLine> lines)
     {
         var rawLines = lines.Select(line => line.Text).Where(text => !string.IsNullOrWhiteSpace(text)).ToArray();
@@ -363,6 +456,9 @@ internal static class SmartBpPostBpStatusDetector
     }
 }
 
+/// <summary>
+/// 将单个 OCR 区域文本解析为 SmartBP 聚焦业务识别结果。
+/// </summary>
 internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
 {
     public SmartBpOcrParsedRegionResult ParseDetailed(
@@ -729,6 +825,9 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
     }
 }
 
+/// <summary>
+/// 从顶部生命周期状态区域识别 BP 进行中、天赋调整或区域选择等生命周期阶段。
+/// </summary>
 internal sealed class SmartBpLifecycleStatusDetector : ISmartBpLifecycleStatusDetector
 {
     private const double WeakThreshold = .65;
@@ -814,6 +913,9 @@ internal sealed class SmartBpLifecycleStatusDetector : ISmartBpLifecycleStatusDe
     }
 }
 
+/// <summary>
+/// 使用纯 OCR 路径识别当前 BP 阶段和各角色区域业务状态。
+/// </summary>
 internal sealed class SmartBpOcrBpRecognitionService(
     IOcrService ocr,
     ISmartBpRecognitionFrameCropper cropper,
@@ -991,6 +1093,9 @@ internal sealed class SmartBpOcrBpRecognitionService(
     }
 }
 
+/// <summary>
+/// 将纯 OCR 业务状态识别结果转换为自动识别状态机使用的快照增量。
+/// </summary>
 internal sealed class SmartBpOcrSnapshotDeltaRecognitionService(
     ISmartBpOcrBpRecognitionService ocrRecognition,
     ISmartBpRecognitionFrameCropper cropper) : ISmartBpOcrSnapshotDeltaRecognitionService
@@ -1071,6 +1176,9 @@ internal sealed class SmartBpOcrSnapshotDeltaRecognitionService(
         };
 }
 
+/// <summary>
+/// 根据当前设置在 AI 快照增量识别和 OCR 快照增量识别之间路由。
+/// </summary>
 internal sealed class SmartBpSnapshotDeltaRecognitionRouter(
     ISmartBpRecognitionSettingsService settings,
     SmartBpAiSnapshotDeltaRecognitionService ai,

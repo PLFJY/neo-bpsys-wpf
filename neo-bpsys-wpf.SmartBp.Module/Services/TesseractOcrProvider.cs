@@ -9,7 +9,7 @@ using OpenCvRect = OpenCvSharp.Rect;
 
 namespace neo_bpsys_wpf.Services;
 
-/// <summary>Recognizes positioned text using a locally installed Tesseract runtime.</summary>
+/// <summary>使用本地安装的 Tesseract 运行时识别带位置的文本。</summary>
 public sealed class TesseractOcrProvider : IOcrProvider, IDisposable
 {
     private readonly ISmartBpRecognitionSettingsService _settingsService;
@@ -19,10 +19,10 @@ public sealed class TesseractOcrProvider : IOcrProvider, IDisposable
     private TesseractEngine? _engine;
     private string? _engineKey;
 
-    /// <summary>Initializes the Tesseract OCR provider.</summary>
-    /// <param name="settingsService">Recognition settings service.</param>
-    /// <param name="storage">SmartBP module storage provider.</param>
-    /// <param name="logger">Logger.</param>
+    /// <summary>初始化 Tesseract OCR 提供程序。</summary>
+    /// <param name="settingsService">识别设置服务。</param>
+    /// <param name="storage">SmartBP 模块存储提供程序。</param>
+    /// <param name="logger">日志记录器。</param>
     public TesseractOcrProvider(
         ISmartBpRecognitionSettingsService settingsService,
         ISmartBpModuleStorageProvider storage,
@@ -36,7 +36,7 @@ public sealed class TesseractOcrProvider : IOcrProvider, IDisposable
     /// <inheritdoc />
     public SmartBpOcrProviderKind Kind => SmartBpOcrProviderKind.Tesseract;
 
-    /// <summary>Gets the effective tessdata directory.</summary>
+    /// <summary>获取当前生效的 tessdata 目录。</summary>
     public string EffectiveDataPath
     {
         get
@@ -48,11 +48,11 @@ public sealed class TesseractOcrProvider : IOcrProvider, IDisposable
     /// <inheritdoc />
     public bool IsReady => _settingsService.Settings.EnableTesseractOcr && GetMissingLanguages().Count == 0;
 
-    /// <summary>Gets whether Tesseract is enabled in recognition settings.</summary>
+    /// <summary>获取识别设置中是否启用了 Tesseract。</summary>
     public bool IsEnabled => _settingsService.Settings.EnableTesseractOcr;
 
-    /// <summary>Gets configured language data files that are not installed.</summary>
-    /// <returns>Missing language identifiers.</returns>
+    /// <summary>获取已配置但尚未安装的语言数据文件。</summary>
+    /// <returns>缺失的语言标识列表。</returns>
     public IReadOnlyList<string> GetMissingLanguages() => ParseLanguages(_settingsService.Settings.TesseractLanguages)
         .Where(language => !File.Exists(Path.Combine(EffectiveDataPath, $"{language}.traineddata")))
         .ToArray();
@@ -114,7 +114,7 @@ public sealed class TesseractOcrProvider : IOcrProvider, IDisposable
         return new(lines, string.Join(Environment.NewLine, lines.Select(line => line.Text)), "Tesseract");
     }
 
-    /// <summary>Releases the cached native OCR engine.</summary>
+    /// <summary>释放缓存的原生 OCR 引擎。</summary>
     public void Dispose()
     {
         lock (_engineLock)
@@ -253,10 +253,10 @@ public sealed class TesseractOcrProvider : IOcrProvider, IDisposable
     private sealed record TesseractVariant(string Name, Mat Image, double ScaleX, double ScaleY);
 }
 
-/// <summary>Maps Tesseract variant coordinates into the original input image.</summary>
+/// <summary>将 Tesseract 预处理变体坐标映射回原始输入图像。</summary>
 internal static class TesseractCoordinateMapper
 {
-    /// <summary>Maps and clamps a variant-local rectangle.</summary>
+    /// <summary>映射并裁剪变体本地坐标矩形。</summary>
     internal static OpenCvRect MapToOriginal(OpenCvRect box, double scaleX, double scaleY, int width, int height)
     {
         var left = Math.Clamp((int)Math.Floor(box.Left / scaleX), 0, width);

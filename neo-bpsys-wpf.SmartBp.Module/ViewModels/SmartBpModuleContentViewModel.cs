@@ -72,7 +72,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     public SmartBpModuleContentViewModel()
 #pragma warning restore CS8618
     {
-        // Decorative constructor for design-time only.
+        // 仅供设计器构造预览使用。
     }
 
     /// <summary>
@@ -298,9 +298,15 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         });
     }
 
+    /// <summary>
+    /// 刷新可捕获窗口列表。
+    /// </summary>
     [RelayCommand]
     private void RefreshActiveWindows() => ActiveWindows = _windowCaptureService.ListActiveWindows();
 
+    /// <summary>
+    /// 按当前选择的窗口与捕获方式启动窗口捕获。
+    /// </summary>
     [RelayCommand(CanExecute = nameof(CanCaptureStarted))]
     private void StartCapture()
     {
@@ -312,6 +318,9 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         RefreshRegionAspectInfo();
     }
 
+    /// <summary>
+    /// 停止当前窗口捕获，并停止捕获比例刷新计时器。
+    /// </summary>
     [RelayCommand(CanExecute = nameof(CanCaptureStopped))]
     private void StopCapture()
     {
@@ -321,9 +330,16 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         RefreshRegionAspectInfo();
     }
 
+    /// <summary>
+    /// 打开当前捕获源的预览窗口。
+    /// </summary>
     [RelayCommand(CanExecute = nameof(CanOpenPreviewWindow))]
     private void OpenPreviewWindow() => _windowCaptureService.OpenPreviewWindow();
 
+    /// <summary>
+    /// 打开 Windows Graphics Capture 系统窗口选择器。
+    /// </summary>
+    /// <returns>窗口选择流程完成后的任务。</returns>
     [RelayCommand(CanExecute = nameof(CanOpenWindowPicker))]
     private async Task OpenWindowPickerAsync()
     {
@@ -338,6 +354,10 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         RefreshRegionAspectInfo();
     }
 
+    /// <summary>
+    /// 打开赛后数据 OCR 区域编辑器，并在保存后写入当前 GameData profile。
+    /// </summary>
+    /// <returns>区域编辑窗口关闭后的任务。</returns>
     [RelayCommand(CanExecute = nameof(CanOpenRegionEditor))]
     private async Task OpenGameDataRegionEditorAsync()
     {
@@ -388,6 +408,10 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         await MessageBoxHelper.ShowInfoAsync(ResolveLocalizedOrRaw("SmartBpRegionConfigSaved"));
     }
 
+    /// <summary>
+    /// 从外部 JSON 文件导入 GameData OCR 区域配置。
+    /// </summary>
+    /// <returns>导入流程完成后的任务。</returns>
     [RelayCommand]
     private async Task ImportGameDataRegionConfigAsync()
     {
@@ -406,6 +430,10 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         await MessageBoxHelper.ShowInfoAsync(ResolveLocalizedOrRaw("SmartBpRegionConfigImported"));
     }
 
+    /// <summary>
+    /// 将当前 GameData OCR 区域配置导出为 JSON 文件。
+    /// </summary>
+    /// <returns>导出流程完成后的任务。</returns>
     [RelayCommand]
     private async Task ExportGameDataRegionConfigAsync()
     {
@@ -423,6 +451,10 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
             string.Format(I18nHelper.GetLocalizedString("SaveSuccessfullyTo"), file));
     }
 
+    /// <summary>
+    /// 将 GameData OCR 区域配置重置为模块内置默认值。
+    /// </summary>
+    /// <returns>重置流程完成后的任务。</returns>
     [RelayCommand]
     private async Task ResetGameDataRegionConfigAsync()
     {
@@ -446,6 +478,9 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    /// <summary>
+    /// 刷新 PaddleOCR 模型列表、安装状态和当前模型显示名。
+    /// </summary>
     private void RefreshOcrModelStatus()
     {
         var preferredSelectedKey = SelectedOcrModel?.Key;
@@ -476,6 +511,10 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         RefreshOcrProviderStatuses();
     }
 
+    /// <summary>
+    /// 下载当前选择的 PaddleOCR 模型。
+    /// </summary>
+    /// <returns>下载流程完成后的任务。</returns>
     [RelayCommand(CanExecute = nameof(CanDownloadSelectedOcrModel))]
     private async Task DownloadSelectedOcrModelAsync()
     {
@@ -499,6 +538,10 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         }
     }
 
+    /// <summary>
+    /// 删除当前选择的 PaddleOCR 模型。
+    /// </summary>
+    /// <returns>删除流程完成后的任务。</returns>
     [RelayCommand(CanExecute = nameof(CanDeleteSelectedOcrModel))]
     private async Task DeleteSelectedOcrModelAsync()
     {
@@ -523,12 +566,18 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         RefreshOcrModelStatus();
     }
 
+    /// <summary>
+    /// 取消正在进行的 PaddleOCR 模型下载。
+    /// </summary>
     [RelayCommand]
     private void CancelOcrModelDownload()
     {
         _ocrService.CancelDownload();
     }
 
+    /// <summary>
+    /// 切换当前 PaddleOCR 模型。
+    /// </summary>
     [RelayCommand(CanExecute = nameof(CanSwitchSelectedOcrModel))]
     private void SwitchSelectedOcrModel()
     {
@@ -544,6 +593,10 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         RefreshOcrModelStatus();
     }
 
+    /// <summary>
+    /// 判断当前是否允许启动窗口捕获。
+    /// </summary>
+    /// <returns>允许启动返回 <see langword="true"/>。</returns>
     private bool CanCaptureStarted() =>
         SelectedCaptureMethod == CaptureMethod.WGC
             ? SelectedWindow is not null && IsWgcHwndCaptureSupported()
@@ -565,6 +618,9 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     private bool CanSwitchSelectedOcrModel() =>
         !IsModelDownloading && SelectedOcrModel is { IsInstalled: true, IsCurrent: false };
 
+    /// <summary>
+    /// 刷新捕获、预览、区域编辑和模型管理命令的可执行状态。
+    /// </summary>
     private void RefreshCommandStates()
     {
         // 捕获状态变化后，统一刷新和捕获相关的命令可用性。
@@ -575,6 +631,9 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         OpenGameDataRegionEditorCommand.NotifyCanExecuteChanged();
     }
 
+    /// <summary>
+    /// 刷新当前捕获比例与 GameData 区域配置比例的匹配提示。
+    /// </summary>
     private void RefreshRegionAspectInfo()
     {
         // 页面显示的比例信息全部来自配置服务，避免 UI 层重复计算逻辑。
@@ -618,6 +677,10 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     /// 获取当前捕获帧比例文本（如 16:9）。
     /// 若未捕获或帧不可用，返回 "-" 供界面展示。
     /// </summary>
+    /// <summary>
+    /// 获取当前捕获帧的宽高比例文本。
+    /// </summary>
+    /// <returns>比例文本；当前无捕获帧时返回 <see langword="null"/>。</returns>
     private string? GetCurrentCaptureAspectRatio()
     {
         if (!_windowCaptureService.IsCapturing)
@@ -630,11 +693,17 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         return SmartBpRegionConfigService.ToAspectRatioText(frame.PixelWidth, frame.PixelHeight);
     }
 
+    /// <summary>
+    /// 处理 OCR 下载状态变化，并切回 UI 线程同步绑定属性。
+    /// </summary>
     private void OcrService_DownloadStateChanged(object? sender, EventArgs e)
     {
         RunOnUiThread(SyncDownloadStateFromService);
     }
 
+    /// <summary>
+    /// 从 OCR 服务同步下载进度、阶段文本和命令状态。
+    /// </summary>
     private void SyncDownloadStateFromService()
     {
         IsModelDownloading = _ocrService.IsDownloading;
@@ -654,6 +723,10 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         }
     }
 
+    /// <summary>
+    /// 在 WPF UI 线程执行绑定属性更新。
+    /// </summary>
+    /// <param name="action">要执行的 UI 更新。</param>
     private static void RunOnUiThread(Action action)
     {
         if (Application.Current?.Dispatcher == null || Application.Current.Dispatcher.CheckAccess())
@@ -671,11 +744,21 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         OnPropertyChanged(nameof(ShowDeleteModelButton));
     }
 
+    /// <summary>
+    /// 判断当前系统是否支持 Windows Graphics Capture 基础 API。
+    /// </summary>
     private static bool IsWgcApiAvailable() => OperatingSystem.IsWindowsVersionAtLeast(10, 0, WgcMinimumBuild);
 
+    /// <summary>
+    /// 判断当前系统是否支持基于 HWND 的 WGC 直捕。
+    /// </summary>
     private static bool IsWgcHwndInteropAvailable() =>
         OperatingSystem.IsWindowsVersionAtLeast(10, 0, WgcHwndInteropMinimumBuild);
 
+    /// <summary>
+    /// 判断系统与 API contract 是否支持 WGC 窗口选择。
+    /// </summary>
+    /// <returns>支持 WGC 返回 <see langword="true"/>。</returns>
     private static bool IsWgcSupported()
     {
         if (!IsWgcApiAvailable())
@@ -684,8 +767,15 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         return GraphicsCaptureSession.IsSupported();
     }
 
+    /// <summary>
+    /// 判断是否可以使用 HWND 直捕路径。
+    /// </summary>
     private static bool IsWgcHwndCaptureSupported() => IsWgcHwndInteropAvailable() && IsWgcSupported();
 
+    /// <summary>
+    /// 根据当前应用语言选择推荐 PaddleOCR 模型。
+    /// </summary>
+    /// <returns>推荐模型 key。</returns>
     private static string GetRecommendedModelKeyForCurrentLanguage()
     {
         var language = LocalizeDictionary.CurrentCulture.Name;
@@ -698,6 +788,11 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         return "zh-cn-v5-mobile";
     }
 
+    /// <summary>
+    /// 将资源 key 解析为本地化文本；找不到资源时保留原始文本。
+    /// </summary>
+    /// <param name="keyOrRawText">资源 key 或原始文本。</param>
+    /// <returns>本地化文本或原始文本。</returns>
     private static string ResolveLocalizedOrRaw(string keyOrRawText)
     {
         var localized = I18nHelper.GetLocalizedString(keyOrRawText);
