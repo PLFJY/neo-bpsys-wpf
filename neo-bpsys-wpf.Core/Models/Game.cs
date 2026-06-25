@@ -130,7 +130,7 @@ public partial class Game : ObservableObjectBase
         HunTeam = hunTeam;
         HunTeam.Camp = Camp.Hun;
         MatchScore = matchScore ?? MatchScoreState.CreateDefault();
-        MatchScore.Recalculate(null);
+        MatchScore.Recalculate(isBo3Mode: false);
         //初始化对局进度
         GameProgress = gameProgress;
 

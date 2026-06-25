@@ -4,7 +4,6 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Models.ScoreSystem;
 using System.ComponentModel;
-using System.Globalization;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -72,14 +71,13 @@ public class MatchScoreService : IMatchScoreService
 
         Recalculate();
         RefreshCurrentProgress();
-        SyncLegacyTeamScoreMirror();
     }
 
     /// <inheritdoc />
     public void ClearCurrentHalfResult() => SetCurrentHalfResult(null);
 
     /// <inheritdoc />
-    public void Recalculate() => Current.Recalculate(CurrentGameScore?.Key);
+    public void Recalculate() => Current.Recalculate(_sharedDataService.IsBo3Mode);
 
     /// <inheritdoc />
     public void RefreshCurrentProgress()
@@ -91,41 +89,11 @@ public class MatchScoreService : IMatchScoreService
             _sharedDataService.IsBo3Mode);
     }
 
-    /// <inheritdoc />
-    public void SyncLegacyTeamScoreMirror()
-    {
-        var currentGame = _sharedDataService.CurrentGame;
-
-        // Transitional compatibility only: Team.Score is no longer authoritative for new score code.
-        currentGame.SurTeam.Score.GameScores = ParseMinorScore(Current.CurrentSurTeamPreHalfMinorScoreText);
-        currentGame.HunTeam.Score.GameScores = ParseMinorScore(Current.CurrentHunTeamPreHalfMinorScoreText);
-
-        SyncMajorMirror(currentGame.SurTeam);
-        SyncMajorMirror(currentGame.HunTeam);
-    }
-
-    private void SyncMajorMirror(Team team)
-    {
-        if (team.TeamType == TeamType.HomeTeam)
-        {
-            team.Score.Win = Current.HomeMajorWin;
-            team.Score.Tie = Current.HomeMajorTie;
-            return;
-        }
-
-        team.Score.Win = Current.AwayMajorWin;
-        team.Score.Tie = Current.AwayMajorTie;
-    }
-
-    private static int ParseMinorScore(string text) =>
-        int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var score) ? score : 0;
-
     private void OnCurrentGameChanged(object? sender, EventArgs args)
     {
         SubscribeGame(_sharedDataService.CurrentGame);
         Recalculate();
         RefreshCurrentProgress();
-        SyncLegacyTeamScoreMirror();
     }
 
     private void SubscribeGame(Game game)
@@ -146,19 +114,19 @@ public class MatchScoreService : IMatchScoreService
         if (args.PropertyName != nameof(Game.GameProgress))
             return;
 
+        Recalculate();
         RefreshCurrentProgress();
-        SyncLegacyTeamScoreMirror();
     }
 
     private void OnTeamSwapped(object? sender, EventArgs args)
     {
+        Recalculate();
         RefreshCurrentProgress();
-        SyncLegacyTeamScoreMirror();
     }
 
     private void OnIsBo3ModeChanged(object? sender, EventArgs args)
     {
+        Recalculate();
         RefreshCurrentProgress();
-        SyncLegacyTeamScoreMirror();
     }
 }

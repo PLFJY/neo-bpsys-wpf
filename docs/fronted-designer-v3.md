@@ -468,6 +468,6 @@ Designer v3 内置 `Rectangle` 和 `Polygon`。两者共享 Shape 填充配置�
 
 ## 12. 与 Score System v2 的关系
 
-`ScoreSurWindow` 和 `ScoreHunWindow` 已作为 v3 renderer pilot 接入 JSON 布局，默认布局不再绑定旧的 `CurrentGame.*Team.Score.*` 字段。Score System v2 的权威比分状态在现有 `Core.Models.Game.MatchScoreState`，局内比分窗口绑定 `CurrentGame.MatchScore` 的派生字段。`Team.Score` 只作为剩余旧窗口的过渡兼容镜像。
+`ScoreSurWindow` 和 `ScoreHunWindow` 已作为 v3 renderer pilot 接入 JSON 布局，默认布局不再绑定旧的 `CurrentGame.*Team.Score.*` 字段。Score System v2 的权威比分状态在现有 `Core.Models.Game.MatchScoreState`，局内比分窗口绑定 `CurrentGame.MatchScore` 的派生字段。运行时不再把 `MatchScoreState` 同步回 `Team.Score`。
 
 `ScoreGlobalWindow` 已接入 v3 renderer，默认布局绑定 `MatchScoreState`，全局比分行由 `GlobalScoreRow` 控件生成。`FrontedWindowService` 不再动态创建并直接修改全局比分控件。详细设计见 [score-system-v2.md](score-system-v2.md)。

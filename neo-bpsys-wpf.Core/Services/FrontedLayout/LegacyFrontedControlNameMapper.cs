@@ -80,6 +80,9 @@ public static class LegacyFrontedControlNameMapper
             .ThenBy(item => item.Name, StringComparer.Ordinal)
             .Take(maxCount)
             .Select(item => item.Name)
+            .ToArray();
+    }
+
     /// <summary>
     /// 判断指定的旧版控件名称是否为 ScoreGlobal 窗口 BaseCanvas 中的聚合比分单元格。
     /// </summary>
@@ -87,9 +90,6 @@ public static class LegacyFrontedControlNameMapper
     /// <param name="canvas">画布名称。</param>
     /// <param name="legacyName">旧版控件名称。</param>
     /// <returns>是否为全局比分聚合单元格。</returns>
-            .ToArray();
-    }
-
     public static bool IsScoreGlobalAggregateCell(string window, string canvas, string legacyName)
     {
         return IsScoreGlobalBaseCanvas(window, canvas)

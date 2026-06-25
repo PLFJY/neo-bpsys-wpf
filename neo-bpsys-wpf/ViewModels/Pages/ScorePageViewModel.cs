@@ -3,7 +3,6 @@ using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models;
-using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.ScoreSystem;
 using neo_bpsys_wpf.Locales;
 using System.Collections.ObjectModel;
@@ -217,7 +216,6 @@ public partial class ScorePageViewModel : ViewModelBase
 
         _matchScoreService.Recalculate();
         _matchScoreService.RefreshCurrentProgress();
-        _matchScoreService.SyncLegacyTeamScoreMirror();
         RefreshScorePageState();
     }
 
@@ -250,7 +248,7 @@ public partial class ScorePageViewModel : ViewModelBase
         ScorePreviewRows.Clear();
 
         foreach (var scoreGame in CurrentGame.MatchScore.Games
-                     .Where(game => GlobalScoreRowDisplay.IsVisibleInBoMode(game.Key, _sharedDataService.IsBo3Mode)))
+                     .Where(game => ScoreGameVisibility.IsVisibleInBoMode(game.Key, _sharedDataService.IsBo3Mode)))
         {
             AddPreviewRow(scoreGame, scoreGame.FirstHalf);
             AddPreviewRow(scoreGame, scoreGame.SecondHalf);

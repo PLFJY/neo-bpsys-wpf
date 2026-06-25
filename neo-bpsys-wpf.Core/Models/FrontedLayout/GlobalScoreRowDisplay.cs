@@ -37,7 +37,7 @@ public static class GlobalScoreRowDisplay
         var cells = new List<GlobalScoreRowCellDisplay>();
         var visibleGameIndex = 0;
 
-        foreach (var game in matchScore.Games.Where(game => IsVisibleInBoMode(game.Key, isBo3Mode)))
+        foreach (var game in matchScore.Games.Where(game => ScoreGameVisibility.IsVisibleInBoMode(game.Key, isBo3Mode)))
         {
             AddHalf(game.Key, game.FirstHalf, visibleGameIndex, halfIndex: 0);
             AddHalf(game.Key, game.SecondHalf, visibleGameIndex, halfIndex: 1);
@@ -124,17 +124,8 @@ public static class GlobalScoreRowDisplay
     /// <summary>
     /// 显式 BO3/BO5 可见性规则，避免依赖 GameProgress enum 原始数值。
     /// </summary>
-    public static bool IsVisibleInBoMode(ScoreGameKey key, bool isBo3Mode)
-    {
-        if (isBo3Mode)
-        {
-            return key.GameNumber is 1 or 2
-                   || key is { GameNumber: 3, GameKind: ScoreGameKind.Normal or ScoreGameKind.Overtime };
-        }
-
-        return key.GameKind == ScoreGameKind.Normal
-               || key is { GameNumber: 5, GameKind: ScoreGameKind.Overtime };
-    }
+    public static bool IsVisibleInBoMode(ScoreGameKey key, bool isBo3Mode) =>
+        ScoreGameVisibility.IsVisibleInBoMode(key, isBo3Mode);
 
     private static Camp? GetRecordedCamp(ScoreHalf half, TeamType teamType)
     {

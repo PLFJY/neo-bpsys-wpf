@@ -3,11 +3,14 @@ using Moq;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models;
+using neo_bpsys_wpf.Core.Models.ScoreSystem;
 using neo_bpsys_wpf.Locales;
 using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.ViewModels.Pages;
+using System;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Services;
@@ -119,8 +122,6 @@ public class MatchScoreServiceTest
 
         service.SetCurrentHalfResult(GameResult.Out4);
 
-        Assert.Equal(1, sharedDataService.Object.HomeTeam.Score.Win);
-        Assert.Equal(0, sharedDataService.Object.AwayTeam.Score.Win);
         Assert.Equal(1, currentGame.MatchScore.HomeMajorWin);
         Assert.Equal(0, currentGame.MatchScore.AwayMajorWin);
     }
@@ -155,15 +156,22 @@ public class MatchScoreServiceTest
     }
 
     [Fact]
-    public void LegacyTeamScoreMirrorUpdatesFromMatchScoreState()
+    public void NoRuntimeLegacyMirror()
     {
         var (currentGame, sharedDataService, service) = CreateScorePageTestServices(GameProgress.Game1FirstHalf);
+        sharedDataService.Object.HomeTeam.Score.GameScores = 42;
+        sharedDataService.Object.AwayTeam.Score.GameScores = 24;
+
         service.SetCurrentHalfResult(GameResult.Escape3);
 
         currentGame.GameProgress = GameProgress.Game1SecondHalf;
 
-        Assert.Equal(3, sharedDataService.Object.HomeTeam.Score.GameScores);
-        Assert.Equal(1, sharedDataService.Object.AwayTeam.Score.GameScores);
+        Assert.Null(typeof(IMatchScoreService).GetMethod("SyncLegacyTeamScoreMirror"));
+        Assert.Null(typeof(MatchScoreService).GetMethod(
+            "SyncLegacyTeamScoreMirror",
+            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic));
+        Assert.Equal(42, sharedDataService.Object.HomeTeam.Score.GameScores);
+        Assert.Equal(24, sharedDataService.Object.AwayTeam.Score.GameScores);
     }
 
     [Fact]
@@ -262,6 +270,41 @@ public class MatchScoreServiceTest
     }
 
     [Fact]
+    public void OnIsBo3ModeChangedCallsRecalculate()
+    {
+        var (currentGame, sharedDataService, service) =
+            CreateScorePageTestServices(GameProgress.Game1FirstHalf);
+        var isBo3Mode = false;
+        sharedDataService.Setup(service => service.IsBo3Mode).Returns(() => isBo3Mode);
+        FillGame(currentGame.MatchScore, new ScoreGameKey(3, ScoreGameKind.Overtime), GameResult.Escape3);
+        FillGame(currentGame.MatchScore, new ScoreGameKey(4, ScoreGameKind.Normal), GameResult.Escape4);
+        service.Recalculate();
+        Assert.Equal(10, currentGame.MatchScore.HomeTotalMinorScore);
+
+        isBo3Mode = true;
+        sharedDataService.Raise(service => service.IsBo3ModeChanged += null, EventArgs.Empty);
+
+        Assert.Equal(6, currentGame.MatchScore.HomeTotalMinorScore);
+        Assert.Equal(2, currentGame.MatchScore.AwayTotalMinorScore);
+    }
+
+    [Fact]
+    public void CurrentHalfResolutionStillUsesBoMode()
+    {
+        var (_, _, bo3Service) =
+            CreateScorePageTestServices(GameProgress.Game3OvertimeFirstHalf, isBo3Mode: true);
+        var (_, _, bo5Service) =
+            CreateScorePageTestServices(GameProgress.Game4FirstHalf, isBo3Mode: false);
+
+        Assert.Equal(
+            new ScoreGameKey(3, ScoreGameKind.Overtime),
+            bo3Service.CurrentGameScore?.Key);
+        Assert.Equal(
+            new ScoreGameKey(4, ScoreGameKind.Normal),
+            bo5Service.CurrentGameScore?.Key);
+    }
+
+    [Fact]
     public void ScorePagePreviewNullResultShowsDash()
     {
         var (_, sharedDataService, service) =
@@ -355,4 +398,18 @@ public class MatchScoreServiceTest
 
     private static string Loc(string key, int arg) =>
         string.Format(CultureInfo.CurrentUICulture, Loc(key), arg);
+
+    private static void FillGame(MatchScoreState state, ScoreGameKey key, GameResult result)
+    {
+        var game = state.Games.Single(scoreGame => scoreGame.Key == key);
+        SetHalf(game.FirstHalf, result);
+        SetHalf(game.SecondHalf, result);
+    }
+
+    private static void SetHalf(ScoreHalf half, GameResult result)
+    {
+        half.Result = result;
+        half.SurTeamTypeWhenRecorded = TeamType.HomeTeam;
+        half.HunTeamTypeWhenRecorded = TeamType.AwayTeam;
+    }
 }

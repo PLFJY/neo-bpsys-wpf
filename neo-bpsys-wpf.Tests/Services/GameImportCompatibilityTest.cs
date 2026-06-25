@@ -107,7 +107,7 @@ public class GameImportCompatibilityTest
         half.Result = GameResult.Escape4;
         half.SurTeamTypeWhenRecorded = TeamType.HomeTeam;
         half.HunTeamTypeWhenRecorded = TeamType.AwayTeam;
-        sourceGame.MatchScore.Recalculate(null);
+        sourceGame.MatchScore.Recalculate(isBo3Mode: false);
 
         var node = JsonNode.Parse(JsonSerializer.Serialize(sourceGame, CreateJsonOptions()))!.AsObject();
         SetLegacyScore(node[nameof(Game.SurTeam)]!, win: 9, tie: 9, gameScores: 99);
@@ -124,9 +124,7 @@ public class GameImportCompatibilityTest
                 sharedDataService.CurrentGame.MatchScore.GetHalf(GameProgress.Game1FirstHalf)!.Result);
             Assert.Equal(5, sharedDataService.CurrentGame.MatchScore.HomeTotalMinorScore);
             Assert.Equal(0, sharedDataService.CurrentGame.MatchScore.AwayTotalMinorScore);
-            Assert.Equal(0, sharedDataService.CurrentGame.SurTeam.Score.Win);
-            Assert.Equal(0, sharedDataService.CurrentGame.SurTeam.Score.Tie);
-            Assert.Equal(5, sharedDataService.CurrentGame.SurTeam.Score.GameScores);
+            Assert.Equal(0, sharedDataService.CurrentGame.SurTeam.Score.GameScores);
             Assert.Equal(0, sharedDataService.CurrentGame.HunTeam.Score.GameScores);
         }
         finally
@@ -199,7 +197,7 @@ public class GameImportCompatibilityTest
             GameResult.Escape4,
             TeamType.AwayTeam,
             TeamType.HomeTeam);
-        game.MatchScore.Recalculate(null);
+        game.MatchScore.Recalculate(isBo3Mode: false);
         return game;
     }
 

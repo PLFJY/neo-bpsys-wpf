@@ -14,7 +14,7 @@ namespace neo_bpsys_wpf.Core.Models.ScoreSystem;
 /// </summary>
 /// <remarks>
 /// 此类型保存可序列化的半场结果与记录时阵营映射，并派生大比分、总小比分和当前前台显示文本。
-/// 迁移期的 <see cref="Score"/> / <c>Team.Score</c> 只是兼容镜像，不能作为新比分数据源。
+/// <see cref="Score"/> / <c>Team.Score</c> 仅用于旧数据反序列化，不再由运行时比分状态同步。
 /// </remarks>
 [FrontedBindingObject]
 public partial class MatchScoreState : ObservableObjectBase
@@ -40,6 +40,7 @@ public partial class MatchScoreState : ObservableObjectBase
     private TeamType _currentDisplaySurTeamType = TeamType.HomeTeam;
     private TeamType _currentDisplayHunTeamType = TeamType.AwayTeam;
     private bool _currentDisplayIsBo3Mode;
+    private bool _lastRecalculateIsBo3Mode;
 
     /// <summary>
     /// 创建比分状态。未提供 <paramref name="games"/> 时会创建 BO3/BO5 支持的默认比分单元。
@@ -50,7 +51,7 @@ public partial class MatchScoreState : ObservableObjectBase
     {
         _games = games ?? CreateDefaultGames();
         SubscribeGames(_games);
-        Recalculate(null);
+        Recalculate(isBo3Mode: false);
     }
 
     /// <summary>
@@ -68,7 +69,7 @@ public partial class MatchScoreState : ObservableObjectBase
             UnsubscribeGames(_games);
             SetProperty(ref _games, value);
             SubscribeGames(_games);
-            Recalculate(null);
+            Recalculate(_lastRecalculateIsBo3Mode);
         }
     }
 
@@ -253,6 +254,8 @@ public partial class MatchScoreState : ObservableObjectBase
         clone._currentDisplaySurTeamType = _currentDisplaySurTeamType;
         clone._currentDisplayHunTeamType = _currentDisplayHunTeamType;
         clone._currentDisplayIsBo3Mode = _currentDisplayIsBo3Mode;
+        clone._lastRecalculateIsBo3Mode = _lastRecalculateIsBo3Mode;
+        clone.Recalculate(_lastRecalculateIsBo3Mode);
         clone.UpdateCurrentDisplay();
         return clone;
     }
@@ -299,21 +302,22 @@ public partial class MatchScoreState : ObservableObjectBase
     }
 
     /// <summary>
-    /// 从所有已记录半场重新派生大比分、总小比分和当前显示文本。
+    /// 按指定 BO 模式从所有可见且已记录的比分单元重新派生大比分、总小比分和当前显示文本。
     /// </summary>
-    public void Recalculate(ScoreGameKey? currentGameScoreKey)
+    /// <param name="isBo3Mode">是否按 BO3 可见性计算；否则按 BO5 可见性计算。</param>
+    public void Recalculate(bool isBo3Mode)
     {
+        _lastRecalculateIsBo3Mode = isBo3Mode;
+
         var homeMajorWin = 0;
         var homeMajorTie = 0;
         var awayMajorWin = 0;
         var awayMajorTie = 0;
         var homeTotalMinorScore = 0;
         var awayTotalMinorScore = 0;
-        if(currentGameScoreKey is null) return;
 
-        for (int i = 0; i < currentGameScoreKey?.GameNumber; i++)
+        foreach (var game in Games.Where(game => ScoreGameVisibility.IsVisibleInBoMode(game.Key, isBo3Mode)))
         {
-            ScoreGame? game = Games[i];
             switch (game.MajorResult)
             {
                 case ScoreGameMajorResult.HomeWin:
@@ -513,8 +517,9 @@ public partial class MatchScoreState : ObservableObjectBase
             }
         }
 
-        Recalculate(null);
+        Recalculate(_lastRecalculateIsBo3Mode);
     }
 
-    private void OnScoreGamePropertyChanged(object? sender, PropertyChangedEventArgs args) => Recalculate(null);
+    private void OnScoreGamePropertyChanged(object? sender, PropertyChangedEventArgs args) =>
+        Recalculate(_lastRecalculateIsBo3Mode);
 }

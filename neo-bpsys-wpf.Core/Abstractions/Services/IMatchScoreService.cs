@@ -10,7 +10,7 @@ namespace neo_bpsys_wpf.Core.Abstractions.Services;
 /// <remarks>
 /// 服务本身不持有权威比分数据；权威状态来自 <see cref="ISharedDataService.CurrentGame"/> 的
 /// <see cref="Game.MatchScore"/>。它负责按当前 <see cref="GameProgress"/>、BO3/BO5 模式和实时阵营映射，
-/// 将半场赛果写入 v2 状态并同步兼容旧绑定。
+/// 将半场赛果写入 v2 状态并刷新派生显示字段。
 /// </remarks>
 public interface IMatchScoreService
 {
@@ -63,13 +63,4 @@ public interface IMatchScoreService
     /// 按当前赛事进度、阵营映射和 BO3/BO5 模式刷新当前半场显示文本。
     /// </summary>
     void RefreshCurrentProgress();
-
-    /// <summary>
-    /// 将 Score System v2 的结果同步到旧版 <see cref="Team.Score"/> 镜像字段。
-    /// </summary>
-    /// <remarks>
-    /// 这是过渡兼容入口，旧版前台绑定和导入逻辑可能仍读取 <see cref="Team.Score"/>；
-    /// 新的比分逻辑应以 <see cref="Current"/> 为准。
-    /// </remarks>
-    void SyncLegacyTeamScoreMirror();
 }

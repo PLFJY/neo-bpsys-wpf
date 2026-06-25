@@ -129,6 +129,129 @@ public class ScoreSystemModelTest
     }
 
     [Fact]
+    public void Bo3RecalculateIncludesGame3Overtime()
+    {
+        var state = MatchScoreState.CreateDefault();
+        FillGame(state, new ScoreGameKey(1, ScoreGameKind.Normal), GameResult.Escape4);
+        FillGame(state, new ScoreGameKey(2, ScoreGameKind.Normal), GameResult.Out4);
+        FillGame(state, new ScoreGameKey(3, ScoreGameKind.Normal), GameResult.Tie);
+        FillGame(state, new ScoreGameKey(3, ScoreGameKind.Overtime), GameResult.Escape3);
+        FillGame(state, new ScoreGameKey(4, ScoreGameKind.Normal), GameResult.Out4);
+        FillGame(state, new ScoreGameKey(5, ScoreGameKind.Normal), GameResult.Out4);
+        FillGame(state, new ScoreGameKey(5, ScoreGameKind.Overtime), GameResult.Out4);
+
+        state.Recalculate(isBo3Mode: true);
+
+        Assert.Equal(20, state.HomeTotalMinorScore);
+        Assert.Equal(16, state.AwayTotalMinorScore);
+        Assert.Equal(2, state.HomeMajorWin);
+        Assert.Equal(1, state.AwayMajorWin);
+        Assert.Equal(1, state.HomeMajorTie);
+        Assert.Equal(1, state.AwayMajorTie);
+    }
+
+    [Fact]
+    public void Bo3RecalculateExcludesBo5OnlyGames()
+    {
+        var state = MatchScoreState.CreateDefault();
+        FillGame(state, new ScoreGameKey(4, ScoreGameKind.Normal), GameResult.Escape4);
+        FillGame(state, new ScoreGameKey(5, ScoreGameKind.Normal), GameResult.Escape4);
+        FillGame(state, new ScoreGameKey(5, ScoreGameKind.Overtime), GameResult.Escape4);
+
+        state.Recalculate(isBo3Mode: true);
+
+        Assert.Equal(0, state.HomeTotalMinorScore);
+        Assert.Equal(0, state.AwayTotalMinorScore);
+        Assert.Equal(0, state.HomeMajorWin);
+        Assert.Equal(0, state.AwayMajorWin);
+        Assert.Equal(0, state.HomeMajorTie);
+        Assert.Equal(0, state.AwayMajorTie);
+    }
+
+    [Fact]
+    public void Bo5RecalculateIncludesGame5Overtime()
+    {
+        var state = MatchScoreState.CreateDefault();
+        FillGame(state, new ScoreGameKey(1, ScoreGameKind.Normal), GameResult.Escape4);
+        FillGame(state, new ScoreGameKey(2, ScoreGameKind.Normal), GameResult.Tie);
+        FillGame(state, new ScoreGameKey(3, ScoreGameKind.Normal), GameResult.Out4);
+        FillGame(state, new ScoreGameKey(4, ScoreGameKind.Normal), GameResult.Escape3);
+        FillGame(state, new ScoreGameKey(5, ScoreGameKind.Normal), GameResult.Escape4);
+        FillGame(state, new ScoreGameKey(5, ScoreGameKind.Overtime), GameResult.Out3);
+
+        state.Recalculate(isBo3Mode: false);
+
+        Assert.Equal(32, state.HomeTotalMinorScore);
+        Assert.Equal(22, state.AwayTotalMinorScore);
+        Assert.Equal(3, state.HomeMajorWin);
+        Assert.Equal(2, state.AwayMajorWin);
+        Assert.Equal(1, state.HomeMajorTie);
+        Assert.Equal(1, state.AwayMajorTie);
+    }
+
+    [Fact]
+    public void Bo5RecalculateExcludesGame3Overtime()
+    {
+        var state = MatchScoreState.CreateDefault();
+        FillGame(state, new ScoreGameKey(3, ScoreGameKind.Overtime), GameResult.Escape4);
+
+        state.Recalculate(isBo3Mode: false);
+
+        Assert.Equal(0, state.HomeTotalMinorScore);
+        Assert.Equal(0, state.AwayTotalMinorScore);
+        Assert.Equal(0, state.HomeMajorWin);
+        Assert.Equal(0, state.AwayMajorWin);
+    }
+
+    [Fact]
+    public void SwitchingBo5ToBo3RecalculatesTotals()
+    {
+        var state = MatchScoreState.CreateDefault();
+        FillGame(state, new ScoreGameKey(3, ScoreGameKind.Overtime), GameResult.Escape3);
+        FillGame(state, new ScoreGameKey(4, ScoreGameKind.Normal), GameResult.Escape4);
+        FillGame(state, new ScoreGameKey(5, ScoreGameKind.Normal), GameResult.Escape4);
+        FillGame(state, new ScoreGameKey(5, ScoreGameKind.Overtime), GameResult.Escape4);
+        state.Recalculate(isBo3Mode: false);
+
+        state.Recalculate(isBo3Mode: true);
+
+        Assert.Equal(6, state.HomeTotalMinorScore);
+        Assert.Equal(2, state.AwayTotalMinorScore);
+        Assert.Equal(1, state.HomeMajorWin);
+        Assert.Equal(0, state.AwayMajorWin);
+    }
+
+    [Fact]
+    public void SwitchingBo3ToBo5RecalculatesTotals()
+    {
+        var state = MatchScoreState.CreateDefault();
+        FillGame(state, new ScoreGameKey(3, ScoreGameKind.Overtime), GameResult.Escape3);
+        FillGame(state, new ScoreGameKey(5, ScoreGameKind.Overtime), GameResult.Out3);
+        state.Recalculate(isBo3Mode: true);
+
+        state.Recalculate(isBo3Mode: false);
+
+        Assert.Equal(2, state.HomeTotalMinorScore);
+        Assert.Equal(6, state.AwayTotalMinorScore);
+        Assert.Equal(0, state.HomeMajorWin);
+        Assert.Equal(1, state.AwayMajorWin);
+    }
+
+    [Fact]
+    public void FreeProgressDoesNotLeaveStaleTotals()
+    {
+        var state = MatchScoreState.CreateDefault();
+        FillGame(state, new ScoreGameKey(4, ScoreGameKind.Normal), GameResult.Escape4);
+        state.Recalculate(isBo3Mode: false);
+        Assert.Equal(10, state.HomeTotalMinorScore);
+
+        state.Recalculate(isBo3Mode: true);
+
+        Assert.Equal(0, state.HomeTotalMinorScore);
+        Assert.Equal(0, state.AwayTotalMinorScore);
+    }
+
+    [Fact]
     public void GameConstructedWithoutMatchScoreGetsDefaultMatchScore()
     {
         var game = new Game(
@@ -180,8 +303,8 @@ public class ScoreSystemModelTest
         Assert.Equal(TeamType.AwayTeam, deserializedHalf.HunTeamTypeWhenRecorded);
         Assert.Equal(3, deserializedHalf.HomeMinorScore);
         Assert.Equal(1, deserializedHalf.AwayMinorScore);
-        Assert.Equal(0, deserialized.MatchScore.HomeTotalMinorScore);
-        Assert.Equal(0, deserialized.MatchScore.AwayTotalMinorScore);
+        Assert.Equal(3, deserialized.MatchScore.HomeTotalMinorScore);
+        Assert.Equal(1, deserialized.MatchScore.AwayTotalMinorScore);
     }
 
     [Fact]
@@ -205,4 +328,18 @@ public class ScoreSystemModelTest
         {
             Converters = { new JsonStringEnumConverter() }
         };
+
+    private static void FillGame(MatchScoreState state, ScoreGameKey key, GameResult result)
+    {
+        var game = state.Games.Single(scoreGame => scoreGame.Key == key);
+        SetHalf(game.FirstHalf, result);
+        SetHalf(game.SecondHalf, result);
+    }
+
+    private static void SetHalf(ScoreHalf half, GameResult result)
+    {
+        half.Result = result;
+        half.SurTeamTypeWhenRecorded = TeamType.HomeTeam;
+        half.HunTeamTypeWhenRecorded = TeamType.AwayTeam;
+    }
 }

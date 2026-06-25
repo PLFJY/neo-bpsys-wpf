@@ -138,6 +138,19 @@ public class GlobalScoreRowDisplayTest
     }
 
     [Fact]
+    public void GlobalScoreRowDisplayUsesSameVisibilityHelper()
+    {
+        var key = new ScoreGameKey(3, ScoreGameKind.Overtime);
+
+        Assert.Equal(
+            ScoreGameVisibility.IsVisibleInBoMode(key, isBo3Mode: true),
+            GlobalScoreRowDisplay.IsVisibleInBoMode(key, isBo3Mode: true));
+        Assert.Equal(
+            ScoreGameVisibility.IsVisibleInBoMode(key, isBo3Mode: false),
+            GlobalScoreRowDisplay.IsVisibleInBoMode(key, isBo3Mode: false));
+    }
+
+    [Fact]
     public void CompleteCellTemplateUsesBoSpecificScoreGameKeys()
     {
         var bo3Cells = GlobalScoreRowCellLayoutHelper.CreateCompleteCellTemplate(

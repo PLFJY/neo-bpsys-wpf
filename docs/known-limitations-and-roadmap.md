@@ -90,7 +90,7 @@ Designer v3 独立编辑器（`FrontedDesignerWindow`）已实现并作为设计
 
 | 边界 | 说明 |
 | --- | --- |
-| `Team.Score` 语义混杂 | 当前仅作为迁移期兼容镜像保留；不要重新让它成为权威状态。 |
+| `Team.Score` 语义混杂 | 运行时不再从 `MatchScoreState` 同步它；仅保留旧 JSON/旧 DTO 反序列化兼容，不得重新作为权威状态。 |
 | `ScoreGlobalWindow` BO3/BO5 状态 | v3 已使用通用 Canvas BO states，不依赖旧 `MajorGameGap` / `HalfGameGap`。 |
 | `GameProgress.Free` 未定义比分语义 | Score System v2 暂把它记录为设计缺口。 |
 | `Game3Overtime*` 与 `Game4*` enum 数值重叠 | `MatchScoreService` 结合 BO3/BO5 状态解析；缺少上下文的保守按 BO5 第四局解析。 |

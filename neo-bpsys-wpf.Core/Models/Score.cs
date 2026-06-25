@@ -5,11 +5,11 @@ using System.Text.Json.Serialization;
 namespace neo_bpsys_wpf.Core.Models;
 
 /// <summary>
-/// 旧比分镜像，用于仍读取 Team.Score 的过渡显示路径。
+/// 旧比分数据，用于旧 JSON 和旧 DTO 的反序列化兼容。
 /// </summary>
 /// <remarks>
-/// Score System v2 的权威比分状态是 <see cref="ScoreSystem.MatchScoreState"/>；此类型只保留 legacy
-/// `Team.Score` 显示兼容，不能作为新比分写入入口。
+/// Score System v2 的权威比分状态是 <see cref="ScoreSystem.MatchScoreState"/>；运行时不再从
+/// <see cref="ScoreSystem.MatchScoreState"/> 同步此类型，不能作为新比分写入入口。
 /// </remarks>
 public partial class Score : ObservableObjectBase
 {
