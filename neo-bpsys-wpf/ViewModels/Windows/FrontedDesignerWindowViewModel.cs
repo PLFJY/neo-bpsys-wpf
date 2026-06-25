@@ -5555,7 +5555,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             CreateCellPropertyRow(nameof(GlobalScoreCellConfig.FontWeight), typeof(string), FrontedPropertyEditorKind.Enum, cell.FontWeight, "Appearance", new object[] { "Normal", "Bold", "SemiBold", "Light", "Medium", "ExtraBold" }),
             CreateCellPropertyRow(nameof(GlobalScoreCellConfig.Color), typeof(string), FrontedPropertyEditorKind.Color, cell.Color, "Appearance"),
             CreateCellPropertyRow(nameof(GlobalScoreCellConfig.FontSize), typeof(double?), FrontedPropertyEditorKind.Number, cell.FontSize, "Appearance"),
-            CreateCellPropertyRow(nameof(GlobalScoreCellConfig.ShowCampIcon), typeof(bool?), FrontedPropertyEditorKind.Boolean, cell.ShowCampIcon, "Appearance")
+            CreateCellPropertyRow(nameof(GlobalScoreCellConfig.ShowCampIcon), typeof(bool?), FrontedPropertyEditorKind.Boolean, cell.ShowCampIcon, "Appearance"),
+            CreateCellPropertyRow(nameof(GlobalScoreCellConfig.CampIconColor), typeof(GlobalScoreCampIconColor?), FrontedPropertyEditorKind.Enum, cell.CampIconColor, "Appearance")
         };
 
         string? currentGroup = null;
@@ -5566,6 +5567,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 or nameof(GlobalScoreCellConfig.Color)
                 or nameof(GlobalScoreCellConfig.FontSize)
                 or nameof(GlobalScoreCellConfig.ShowCampIcon)
+                or nameof(GlobalScoreCellConfig.CampIconColor)
                 ? I18nHelper.GetLocalizedString("Designer.GlobalScoreRow.CellInheritsFromParent")
                 : row.Description;
             row.IsGroupHeaderVisible = row.GroupName != currentGroup;
@@ -5657,6 +5659,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             nameof(GlobalScoreCellConfig.X) => "CellX",
             nameof(GlobalScoreCellConfig.Y) => "CellY",
             nameof(GlobalScoreCellConfig.ShowCampIcon) => "ShowCampIconOverride",
+            nameof(GlobalScoreCellConfig.CampIconColor) => "CampIconColorOverride",
             _ => propertyName
         };
 

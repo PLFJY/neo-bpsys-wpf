@@ -3059,6 +3059,9 @@
   <data name="Designer.Property.ShowCampIcon" xml:space="preserve">
     <value>陣営アイコンを表示</value>
   </data>
+  <data name="Designer.Property.CampIconColor" xml:space="preserve">
+    <value>陣営アイコン色</value>
+  </data>
   <data name="Designer.Property.MapKey" xml:space="preserve">
     <value>マップキー</value>
   </data>
@@ -3298,6 +3301,12 @@
   </data>
   <data name="Designer.Option.DisplayKind.HunterTrait" xml:space="preserve">
     <value>ハンター補助特質</value>
+  </data>
+  <data name="Designer.Option.CampIconColor.White" xml:space="preserve">
+    <value>白</value>
+  </data>
+  <data name="Designer.Option.CampIconColor.Black" xml:space="preserve">
+    <value>黒</value>
   </data>
   <data name="Designer.Option.SlotKind.Current" xml:space="preserve">
     <value>現在の Ban</value>
@@ -4002,6 +4011,9 @@
   </data>
   <data name="Designer.Property.ShowCampIconOverride" xml:space="preserve">
     <value>陣営アイコン上書き</value>
+  </data>
+  <data name="Designer.Property.CampIconColorOverride" xml:space="preserve">
+    <value>陣営アイコン色上書き</value>
   </data>
   <data name="Designer.TextBinding.Title" xml:space="preserve"><value>テキストバインディングエディター</value></data>
   <data name="Designer.TextBinding.AddSource" xml:space="preserve"><value>ソースを追加</value></data>

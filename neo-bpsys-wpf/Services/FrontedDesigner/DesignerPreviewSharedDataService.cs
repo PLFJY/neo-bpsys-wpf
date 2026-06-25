@@ -4,6 +4,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Events;
 using neo_bpsys_wpf.Core.Models;
+using neo_bpsys_wpf.Core.Models.ScoreSystem;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Media;
@@ -78,6 +79,7 @@ public sealed class DesignerPreviewSharedDataService : ISharedDataService
         CurrentGame.MapV2Dictionary[Map.EversleepingTown.ToString()].IsPicked = true;
         CurrentGame.MapV2Dictionary[Map.EversleepingTown.ToString()].OperationTeam = HomeTeam;
         CurrentGame.MapV2Dictionary[Map.TheRedChurch.ToString()].IsBanned = true;
+        FillPreviewMatchScore(CurrentGame.MatchScore);
         CurrentGame.MatchScore.RefreshCurrentDisplay(
             CurrentGame.GameProgress,
             CurrentGame.SurTeam.TeamType,
@@ -364,6 +366,106 @@ public sealed class DesignerPreviewSharedDataService : ISharedDataService
         {
             list[i] = character;
         }
+    }
+
+    private static void FillPreviewMatchScore(MatchScoreState matchScore)
+    {
+        SetPreviewGame(
+            matchScore,
+            new ScoreGameKey(1, ScoreGameKind.Normal),
+            GameResult.Escape3,
+            TeamType.HomeTeam,
+            TeamType.AwayTeam,
+            GameResult.Out3,
+            TeamType.HomeTeam,
+            TeamType.AwayTeam);
+        SetPreviewGame(
+            matchScore,
+            new ScoreGameKey(2, ScoreGameKind.Normal),
+            GameResult.Out4,
+            TeamType.AwayTeam,
+            TeamType.HomeTeam,
+            GameResult.Tie,
+            TeamType.AwayTeam,
+            TeamType.HomeTeam);
+        SetPreviewGame(
+            matchScore,
+            new ScoreGameKey(3, ScoreGameKind.Normal),
+            GameResult.Escape4,
+            TeamType.HomeTeam,
+            TeamType.AwayTeam,
+            GameResult.Escape3,
+            TeamType.HomeTeam,
+            TeamType.AwayTeam);
+        SetPreviewGame(
+            matchScore,
+            new ScoreGameKey(3, ScoreGameKind.Overtime),
+            GameResult.Escape3,
+            TeamType.HomeTeam,
+            TeamType.AwayTeam,
+            GameResult.Out3,
+            TeamType.HomeTeam,
+            TeamType.AwayTeam);
+        SetPreviewGame(
+            matchScore,
+            new ScoreGameKey(4, ScoreGameKind.Normal),
+            GameResult.Escape3,
+            TeamType.AwayTeam,
+            TeamType.HomeTeam,
+            GameResult.Out3,
+            TeamType.AwayTeam,
+            TeamType.HomeTeam);
+        SetPreviewGame(
+            matchScore,
+            new ScoreGameKey(5, ScoreGameKind.Normal),
+            GameResult.Tie,
+            TeamType.HomeTeam,
+            TeamType.AwayTeam,
+            GameResult.Out4,
+            TeamType.HomeTeam,
+            TeamType.AwayTeam);
+        SetPreviewGame(
+            matchScore,
+            new ScoreGameKey(5, ScoreGameKind.Overtime),
+            GameResult.Escape3,
+            TeamType.HomeTeam,
+            TeamType.AwayTeam,
+            GameResult.Out4,
+            TeamType.HomeTeam,
+            TeamType.AwayTeam);
+
+        matchScore.Recalculate(isBo3Mode: false);
+    }
+
+    private static void SetPreviewGame(
+        MatchScoreState matchScore,
+        ScoreGameKey key,
+        GameResult firstHalfResult,
+        TeamType firstHalfSurTeamType,
+        TeamType firstHalfHunTeamType,
+        GameResult secondHalfResult,
+        TeamType secondHalfSurTeamType,
+        TeamType secondHalfHunTeamType)
+    {
+        var game = matchScore.Games.FirstOrDefault(item => item.Key == key);
+        if (game is null)
+        {
+            return;
+        }
+
+        SetPreviewHalf(game.FirstHalf, firstHalfResult, firstHalfSurTeamType, firstHalfHunTeamType);
+        SetPreviewHalf(game.SecondHalf, secondHalfResult, secondHalfSurTeamType, secondHalfHunTeamType);
+    }
+
+    private static void SetPreviewHalf(
+        ScoreHalf half,
+        GameResult result,
+        TeamType surTeamType,
+        TeamType hunTeamType)
+    {
+        half.Result = result;
+        half.SurTeamTypeWhenRecorded = surTeamType;
+        half.HunTeamTypeWhenRecorded = hunTeamType;
     }
 
     private static ImageSource? LoadAppIcon()

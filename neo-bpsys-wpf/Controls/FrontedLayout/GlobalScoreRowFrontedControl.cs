@@ -170,6 +170,7 @@ public class GlobalScoreRowFrontedControl : IFrontedControl
                 Text = display.Text,
                 IsCampVisible = display.IsCampVisible,
                 IsHunIcon = display.IsHunIcon,
+                CampIconColor = cell.CampIconColor ?? _config.CampIconColor,
                 Visibility = MapVisibility(cell.Visibility)
             };
 

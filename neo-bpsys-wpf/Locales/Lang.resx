@@ -3172,6 +3172,9 @@
   <data name="Designer.Property.ShowCampIcon" xml:space="preserve">
     <value>显示阵营图标</value>
   </data>
+  <data name="Designer.Property.CampIconColor" xml:space="preserve">
+    <value>阵营图标颜色</value>
+  </data>
   <data name="Designer.Property.MapKey" xml:space="preserve">
     <value>地图键</value>
   </data>
@@ -3402,6 +3405,12 @@
   </data>
   <data name="Designer.Option.TeamType.AwayTeam" xml:space="preserve">
     <value>客队</value>
+  </data>
+  <data name="Designer.Option.CampIconColor.White" xml:space="preserve">
+    <value>白色</value>
+  </data>
+  <data name="Designer.Option.CampIconColor.Black" xml:space="preserve">
+    <value>黑色</value>
   </data>
   <data name="Designer.Option.DisplayKind.SurvivorTalent" xml:space="preserve">
     <value>求生者天赋</value>
@@ -4115,6 +4124,9 @@
   </data>
   <data name="Designer.Property.ShowCampIconOverride" xml:space="preserve">
     <value>阵营图标覆盖</value>
+  </data>
+  <data name="Designer.Property.CampIconColorOverride" xml:space="preserve">
+    <value>阵营图标颜色覆盖</value>
   </data>
   <data name="Designer.TextBinding.Title" xml:space="preserve">
     <value>文本绑定编辑器</value>

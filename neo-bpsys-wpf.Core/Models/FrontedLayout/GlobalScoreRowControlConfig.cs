@@ -62,6 +62,12 @@ public class GlobalScoreRowControlConfig : FrontedControlConfigBase, IFrontedTex
     /// 是否显示阵营图标。
     /// </summary>
     public bool ShowCampIcon { get; set; } = true;
+
+    /// <summary>
+    /// 阵营图标填充颜色。
+    /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public GlobalScoreCampIconColor CampIconColor { get; set; } = GlobalScoreCampIconColor.White;
 }
 
 /// <summary>
@@ -140,4 +146,10 @@ public class GlobalScoreCellConfig
     /// 是否显示阵营图标；为空时继承父行。
     /// </summary>
     public bool? ShowCampIcon { get; set; }
+
+    /// <summary>
+    /// 阵营图标填充颜色；为空时继承父行。
+    /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public GlobalScoreCampIconColor? CampIconColor { get; set; }
 }

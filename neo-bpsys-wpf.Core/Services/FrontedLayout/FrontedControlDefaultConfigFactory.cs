@@ -310,6 +310,7 @@ public class FrontedControlDefaultConfigFactory
                 FontSize = 24,
                 Color = "#FFFFFFFF",
                 ShowCampIcon = true,
+                CampIconColor = GlobalScoreCampIconColor.White,
                 Cells = GlobalScoreRowCellLayoutHelper.CreateCompleteCellTemplate()
             },
             "MapV2Display" => new MapV2DisplayControlConfig

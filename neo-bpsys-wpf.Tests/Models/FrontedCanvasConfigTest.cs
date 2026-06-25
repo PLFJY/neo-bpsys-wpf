@@ -24,6 +24,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
+using System.Windows.Media.Imaging;
 using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Models;
@@ -419,6 +420,7 @@ public class FrontedCanvasConfigTest
                 "Color": "#FFFFFFFF",
                 "FontSize": 24,
                 "ShowCampIcon": true,
+                "CampIconColor": "Black",
                 "ZIndex": 2,
                 "Cells": [
                   {
@@ -435,7 +437,8 @@ public class FrontedCanvasConfigTest
                     "FontWeight": "Normal",
                     "Color": "#FF112233",
                     "FontSize": 18,
-                    "ShowCampIcon": false
+                    "ShowCampIcon": false,
+                    "CampIconColor": "White"
                   }
                 ]
               }
@@ -447,6 +450,7 @@ public class FrontedCanvasConfigTest
         Assert.Equal("GlobalScoreRow", row.ControlType);
         Assert.Equal(neo_bpsys_wpf.Core.Enums.TeamType.HomeTeam, row.TeamType);
         Assert.True(row.ShowCampIcon);
+        Assert.Equal(GlobalScoreCampIconColor.Black, row.CampIconColor);
         var cell = Assert.Single(row.Cells);
         Assert.Equal("Game1FirstHalf", cell.Id);
         Assert.Equal(1, cell.GameNumber);
@@ -454,6 +458,30 @@ public class FrontedCanvasConfigTest
         Assert.Equal(ScoreHalfKind.FirstHalf, cell.HalfKind);
         Assert.Equal(0, cell.X);
         Assert.False(cell.ShowCampIcon);
+        Assert.Equal(GlobalScoreCampIconColor.White, cell.CampIconColor);
+    }
+
+    [Fact]
+    public void GlobalScorePresenterFillsCampIconColorFromSourceAlpha()
+    {
+        WpfTestThread.Run(() =>
+        {
+            var source = CreateSinglePixelBitmap(alpha: 128);
+            var presenter = new GlobalScorePresenter
+            {
+                CampIconColor = GlobalScoreCampIconColor.Black
+            };
+            presenter.Resources["scoreGlobal_surIcon"] = source;
+            presenter.Resources["scoreGlobal_hunIcon"] = source;
+
+            presenter.OnApplyTemplate();
+
+            AssertPixel(presenter.TintedSurIcon, expectedRgb: 0, expectedAlpha: 128);
+
+            presenter.CampIconColor = GlobalScoreCampIconColor.White;
+
+            AssertPixel(presenter.TintedHunIcon, expectedRgb: 255, expectedAlpha: 128);
+        });
     }
 
     [Fact]
@@ -528,6 +556,25 @@ public class FrontedCanvasConfigTest
         var mapName = Assert.IsType<MapNameTextControlConfig>(config.Controls["MapName"]);
         Assert.Equal("MapNameText", mapName.ControlType);
         Assert.Equal(string.Empty, mapName.EmptyText);
+    }
+
+    private static BitmapSource CreateSinglePixelBitmap(byte alpha)
+    {
+        var pixels = new byte[] { 30, 20, 10, alpha };
+        var bitmap = BitmapSource.Create(1, 1, 96, 96, PixelFormats.Bgra32, null, pixels, 4);
+        bitmap.Freeze();
+        return bitmap;
+    }
+
+    private static void AssertPixel(ImageSource source, byte expectedRgb, byte expectedAlpha)
+    {
+        var bitmap = Assert.IsAssignableFrom<BitmapSource>(source);
+        var pixels = new byte[4];
+        bitmap.CopyPixels(pixels, 4, 0);
+        Assert.Equal(expectedRgb, pixels[0]);
+        Assert.Equal(expectedRgb, pixels[1]);
+        Assert.Equal(expectedRgb, pixels[2]);
+        Assert.Equal(expectedAlpha, pixels[3]);
     }
 
     [Fact]

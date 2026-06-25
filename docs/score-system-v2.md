@@ -337,7 +337,7 @@ ScorePage button
 | 有结果且该队当半为求生者 | 对应小比分 | 显示求生者图标 |
 | 有结果且该队当半为监管者 | 对应小比分 | 显示监管者图标 |
 
-全局比分格表示 `ScoreGame` 内部的 `ScoreHalf` 结果，由内置 v3 控件 `GlobalScoreRow` 的 `Cells` 显式配置。总分显示从 `MatchScoreState` 派生，不再从 `ScoreWindowViewModel` 独有字段或 `FrontedWindowService` UI mutation 派生。每个 cell 用 `ScoreGameKey` 和 `ScoreHalfKind` 定位比分，避免依赖 `GameProgress` 原始数值。`ScoreGlobalWindow/BaseCanvas` 使用 Designer v3 通用 Canvas BO states：BO5 是 root/default state，BO3 是 `BoModeStates["Bo3"]`，背景、总分位置、父行框和 cell 列表都由对应 state 决定；窗口订阅 `IsBo3ModeChanged` 后会重新应用 v3 布局，让 BO3/BO5 state 即时刷新。
+全局比分格表示 `ScoreGame` 内部的 `ScoreHalf` 结果，由内置 v3 控件 `GlobalScoreRow` 的 `Cells` 显式配置。总分显示从 `MatchScoreState` 派生，不再从 `ScoreWindowViewModel` 独有字段或 `FrontedWindowService` UI mutation 派生。每个 cell 用 `ScoreGameKey` 和 `ScoreHalfKind` 定位比分，避免依赖 `GameProgress` 原始数值。阵营图标颜色由 `CampIconColor` 控制，支持黑/白两种填充色；运行时基于原始阵营图标资源的 alpha 直接填充颜色，不需要维护额外黑色图标资源。`ScoreGlobalWindow/BaseCanvas` 使用 Designer v3 通用 Canvas BO states：BO5 是 root/default state，BO3 是 `BoModeStates["Bo3"]`，背景、总分位置、父行框和 cell 列表都由对应 state 决定；窗口订阅 `IsBo3ModeChanged` 后会重新应用 v3 布局，让 BO3/BO5 state 即时刷新。
 
 ## 9. 导入、导出与新建对局
 

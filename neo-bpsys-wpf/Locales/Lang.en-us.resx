@@ -3155,6 +3155,9 @@
   <data name="Designer.Property.ShowCampIcon" xml:space="preserve">
     <value>Show Camp Icon</value>
   </data>
+  <data name="Designer.Property.CampIconColor" xml:space="preserve">
+    <value>Camp Icon Color</value>
+  </data>
   <data name="Designer.Property.MapKey" xml:space="preserve">
     <value>Map Key</value>
   </data>
@@ -3394,6 +3397,12 @@
   </data>
   <data name="Designer.Option.DisplayKind.HunterTrait" xml:space="preserve">
     <value>Hunter Trait</value>
+  </data>
+  <data name="Designer.Option.CampIconColor.White" xml:space="preserve">
+    <value>White</value>
+  </data>
+  <data name="Designer.Option.CampIconColor.Black" xml:space="preserve">
+    <value>Black</value>
   </data>
   <data name="Designer.Option.SlotKind.Current" xml:space="preserve">
     <value>Current Ban</value>
@@ -4098,6 +4107,9 @@
   </data>
   <data name="Designer.Property.ShowCampIconOverride" xml:space="preserve">
     <value>Camp Icon Override</value>
+  </data>
+  <data name="Designer.Property.CampIconColorOverride" xml:space="preserve">
+    <value>Camp Icon Color Override</value>
   </data>
   <data name="Designer.TextBinding.Title" xml:space="preserve"><value>Text Binding Editor</value></data>
   <data name="Designer.TextBinding.AddSource" xml:space="preserve"><value>Add Source</value></data>

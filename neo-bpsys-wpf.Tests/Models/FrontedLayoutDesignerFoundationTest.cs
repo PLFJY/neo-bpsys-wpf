@@ -638,8 +638,15 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.True(service.CurrentGame.HunPlayer.Talent.Detention);
         Assert.True(service.CurrentGame.HunPlayer.Talent.TrumpCard);
         Assert.Equal(TraitType.Blink, service.CurrentGame.HunPlayer.Trait.TraitName);
-        Assert.Equal(0, service.CurrentGame.MatchScore.HomeTotalMinorScore);
-        Assert.Equal(0, service.CurrentGame.MatchScore.AwayTotalMinorScore);
+        Assert.Equal(28, service.CurrentGame.MatchScore.HomeTotalMinorScore);
+        Assert.Equal(24, service.CurrentGame.MatchScore.AwayTotalMinorScore);
+        Assert.Equal(2, service.CurrentGame.MatchScore.HomeMajorWin);
+        Assert.Equal(2, service.CurrentGame.MatchScore.HomeMajorTie);
+        Assert.Equal(2, service.CurrentGame.MatchScore.AwayMajorWin);
+        Assert.Equal(2, service.CurrentGame.MatchScore.AwayMajorTie);
+        service.CurrentGame.MatchScore.Recalculate(isBo3Mode: true);
+        Assert.Equal(23, service.CurrentGame.MatchScore.HomeTotalMinorScore);
+        Assert.Equal(11, service.CurrentGame.MatchScore.AwayTotalMinorScore);
         Assert.All(service.CanCurrentSurBannedList, Assert.True);
         Assert.All(service.CanCurrentHunBannedList, Assert.True);
         Assert.All(service.CanGlobalSurBannedList, Assert.True);
@@ -855,6 +862,7 @@ public class FrontedLayoutDesignerFoundationTest
         var globalScore = Assert.IsType<GlobalScoreRowControlConfig>(factory.Create("GlobalScoreRow", document));
         Assert.Equal(TeamType.HomeTeam, globalScore.TeamType);
         Assert.True(globalScore.ShowCampIcon);
+        Assert.Equal(GlobalScoreCampIconColor.White, globalScore.CampIconColor);
         Assert.Equal(12, globalScore.Cells.Count);
         Assert.All(globalScore.Cells, cell =>
         {
