@@ -15,6 +15,7 @@
     mc:Ignorable="d">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <cv:BooleanToHiddenVisibilityConverter x:Key="BooleanToHiddenVisibilityConverter" />
         <cv:InverseBooleanConverter x:Key="InverseBooleanConverter" />
         <cv:LocalizationKeyToTextConverter x:Key="LocalizationKeyToTextConverter" />
         <Style
@@ -85,6 +86,11 @@
                         Content="{lex:Loc Preview}"
                         Icon="{ui:SymbolIcon Symbol=Eye24}" />
                 </WrapPanel>
+                <TextBlock
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    Text="{lex:Loc SmartBpCaptureStopDisabledWhileRecognizing}"
+                    TextWrapping="Wrap"
+                    Visibility="{Binding IsAiPreviewLoopRunning, Converter={StaticResource BooleanToVisibilityConverter}}" />
             </StackPanel>
         </Border>
 
@@ -257,7 +263,7 @@
 
         <Border Margin="0,0,0,10" Style="{StaticResource Card}">
             <StackPanel>
-                <TextBlock Style="{StaticResource Title}" Text="{lex:Loc SmartBpFeatureSwitches}" />
+                <TextBlock Style="{StaticResource Title}" Text="{lex:Loc SmartBpAutomaticRecognitionAndApply}" />
                 <ui:ToggleSwitch
                     Margin="0,8,0,0"
                     Content="{lex:Loc SmartBpEnableAutoGuidanceSync}"
@@ -281,7 +287,18 @@
                     Margin="0,6,0,0"
                     Foreground="{DynamicResource SystemFillColorCautionBrush}"
                     Text="{lex:Loc SmartBpFreeFullSyncWarning}"
-                    TextWrapping="Wrap" />
+                    TextWrapping="Wrap">
+                    <TextBlock.Style>
+                        <Style BasedOn="{StaticResource {x:Type TextBlock}}" TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding RecognitionApplyMode}" Value="{x:Static rec:SmartBpRecognitionApplyMode.FreeFullSync}">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
                 <WrapPanel Margin="0,8,0,0">
                     <ui:ToggleSwitch
                         Margin="0,0,12,8"
@@ -300,7 +317,98 @@
                 <TextBlock
                     Margin="0,4,0,0"
                     Text="{lex:Loc SmartBpRecognizing}"
-                    Visibility="{Binding IsAiRecognizing, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding IsAiRecognizing, Converter={StaticResource BooleanToHiddenVisibilityConverter}}" />
+            </StackPanel>
+        </Border>
+
+        <Border Margin="0,0,0,10" Style="{StaticResource Card}">
+            <StackPanel>
+                <TextBlock Style="{StaticResource Title}" Text="{lex:Loc SmartBpRecognitionAreaConfiguration}" />
+                <TextBlock
+                    Margin="0,8,0,0"
+                    FontWeight="SemiBold"
+                    Text="{lex:Loc SmartBpBpRecognitionRegions}" />
+                <WrapPanel Margin="0,8,0,0">
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding OpenAiRecognitionRegionEditorCommand}"
+                        Content="{lex:Loc SmartBpOpenBpRecognitionRegionEditor}"
+                        Icon="{ui:SymbolIcon Symbol=Edit24}" />
+                </WrapPanel>
+                <TextBlock
+                    Margin="0,10,0,0"
+                    FontWeight="SemiBold"
+                    Text="{lex:Loc SmartBpGameDataRecognitionRegions}" />
+                <Grid Margin="0,8,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Margin="0,0,12,4" Text="{lex:Loc SmartBpRegionConfigCurrentPath}" />
+                    <TextBlock
+                        Grid.Column="1"
+                        Margin="0,0,0,4"
+                        Text="{Binding RegionConfigPath}"
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        Grid.Row="1"
+                        Margin="0,0,12,4"
+                        Text="{lex:Loc SmartBpRegionConfigConfiguredAspectRatio}" />
+                    <TextBlock
+                        Grid.Row="1"
+                        Grid.Column="1"
+                        Margin="0,0,0,4"
+                        Text="{Binding RegionConfigAspectRatioText}" />
+                    <TextBlock
+                        Grid.Row="2"
+                        Margin="0,0,12,4"
+                        Text="{lex:Loc SmartBpRegionConfigCurrentCaptureAspectRatio}" />
+                    <TextBlock
+                        Grid.Row="2"
+                        Grid.Column="1"
+                        Margin="0,0,0,4"
+                        Text="{Binding CaptureAspectRatioText}" />
+                    <TextBlock
+                        Grid.Row="3"
+                        Margin="0,0,12,0"
+                        Text="{lex:Loc SmartBpRegionConfigAspectStatus}" />
+                    <StackPanel Grid.Row="3" Grid.Column="1">
+                        <TextBlock Text="{Binding RegionAspectStatusText}" />
+                        <TextBlock
+                            Margin="0,4,0,0"
+                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                            Text="{Binding RegionAspectHintText}"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+                </Grid>
+                <WrapPanel Margin="0,10,0,0">
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding OpenGameDataRegionEditorCommand}"
+                        Content="{lex:Loc SmartBpEditGameDataRegionConfig}"
+                        Icon="{ui:SymbolIcon Symbol=Edit24}" />
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding ImportGameDataRegionConfigCommand}"
+                        Content="{lex:Loc SmartBpImportGameDataRegionConfig}"
+                        Icon="{ui:SymbolIcon Symbol=ArrowImport24}" />
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding ExportGameDataRegionConfigCommand}"
+                        Content="{lex:Loc SmartBpExportGameDataRegionConfig}"
+                        Icon="{ui:SymbolIcon Symbol=ArrowExportLtr24}" />
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding ResetGameDataRegionConfigCommand}"
+                        Content="{lex:Loc SmartBpResetGameDataRegionConfig}"
+                        Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
+                </WrapPanel>
             </StackPanel>
         </Border>
 
@@ -546,11 +654,6 @@
                     FontWeight="SemiBold"
                     Text="{lex:Loc SmartBpDebugTools}" />
                 <WrapPanel Margin="0,8,0,0">
-                    <ui:Button
-                        Margin="0,0,8,8"
-                        Command="{Binding OpenAiRecognitionRegionEditorCommand}"
-                        Content="{lex:Loc SmartBpAiOpenVisualRegionEditor}"
-                        Icon="{ui:SymbolIcon Symbol=Edit24}" />
                     <ui:Button
                         Margin="0,0,8,8"
                         Command="{Binding ResetAiRecognitionLedgerCommand}"

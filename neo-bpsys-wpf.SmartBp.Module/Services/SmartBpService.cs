@@ -145,6 +145,21 @@ public class SmartBpService : ISmartBpService
             if (!_windowCaptureService.IsCapturing)
             {
                 _logger.LogDebug("SmartBp AutoFill skipped: capture is not running.");
+                await MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString("SmartBpValidationCaptureNotRunning"));
+                return;
+            }
+
+            if (_windowCaptureService.GetCurrentFrame() == null)
+            {
+                _logger.LogDebug("SmartBp AutoFill skipped: current capture frame is unavailable.");
+                await MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString("SmartBpValidationCaptureFrameUnavailable"));
+                return;
+            }
+
+            if (!IsGameDataRegionProfileValid(out var regionError))
+            {
+                _logger.LogDebug("SmartBp AutoFill skipped: GameData region profile is invalid. {Error}", regionError);
+                await MessageBoxHelper.ShowErrorAsync(regionError);
                 return;
             }
 
@@ -155,6 +170,7 @@ public class SmartBpService : ISmartBpService
             if (recognizedData == null)
             {
                 _logger.LogDebug("SmartBp AutoFill finished with no result.");
+                await MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString("SmartBpValidationGameDataRecognitionNoResult"));
                 return;
             }
 
@@ -342,6 +358,19 @@ public class SmartBpService : ISmartBpService
 
     private bool IsGameDataAiRecognitionSelected() =>
         _recognitionSettingsService.Settings.RecognitionEngine == SmartBpRecognitionEngine.AiQwen;
+
+    private bool IsGameDataRegionProfileValid(out string error)
+    {
+        var profile = _regionConfigService.GetCurrentGameDataProfile();
+        if (TryResolveGameDataRows(profile, out _, out _))
+        {
+            error = string.Empty;
+            return true;
+        }
+
+        error = I18nHelper.GetLocalizedString("SmartBpValidationRegionProfileInvalid");
+        return false;
+    }
 
     /// <summary>
     /// 识别监管者行的玩家名称、角色名称与数据字段。

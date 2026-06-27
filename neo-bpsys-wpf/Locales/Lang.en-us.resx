@@ -1656,6 +1656,21 @@
   <data name="SmartBpOcrNotReadyFirstDownloadAndSwitchModel" xml:space="preserve">
     <value>OCR is not ready. Please download and switch an OCR model before using this feature.</value>
   </data>
+  <data name="SmartBpValidationCaptureNotRunning" xml:space="preserve">
+    <value>Start window capture before starting recognition.</value>
+  </data>
+  <data name="SmartBpValidationCaptureFrameUnavailable" xml:space="preserve">
+    <value>No capture frame is available. Confirm that the captured window still exists.</value>
+  </data>
+  <data name="SmartBpValidationOcrNotReady" xml:space="preserve">
+    <value>Download and switch to an available OCR model before starting recognition.</value>
+  </data>
+  <data name="SmartBpValidationRegionProfileInvalid" xml:space="preserve">
+    <value>The post-game data recognition region profile is invalid. Reset to the built-in default or import a valid profile.</value>
+  </data>
+  <data name="SmartBpValidationGameDataRecognitionNoResult" xml:space="preserve">
+    <value>No post-game data could be recognized from the current capture frame. Check the image and region profile.</value>
+  </data>
   <data name="SmartBpOcrUnsupportedModelFormat" xml:space="preserve">
     <value>Unsupported OCR model: {0}</value>
   </data>
@@ -1952,7 +1967,7 @@
     <value>Aspect ratio matched. Ready to use.</value>
   </data>
   <data name="SmartBpImportGameDataRegionConfig" xml:space="preserve">
-    <value>Import Config</value>
+    <value>Import post-game region config</value>
   </data>
   <data name="SmartBpEditGameDataRegion" xml:space="preserve">
     <value>Edit Regions</value>
@@ -1988,7 +2003,7 @@
     <value>Failed to export config: {0}</value>
   </data>
   <data name="SmartBpExportGameDataRegionConfig" xml:space="preserve">
-    <value>Export Config</value>
+    <value>Export post-game region config</value>
   </data>
   <data name="SaveAs" xml:space="preserve">
     <value>Save As</value>
@@ -4746,7 +4761,7 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="SmartBpAiStatusCancelled" xml:space="preserve"><value>Cancelled</value></data>
   <data name="SmartBpAiStatusReady" xml:space="preserve"><value>Ready</value></data>
   <data name="SmartBpAiEnableGuidanceSync" xml:space="preserve"><value>Enable automatic GameGuidance sync</value></data>
-  <data name="SmartBpAiEnableAutoApply" xml:space="preserve"><value>Enable automatic recognition apply (use with care)</value></data>
+  <data name="SmartBpAiEnableAutoApply" xml:space="preserve"><value>Automatically apply recognition results</value></data>
   <data name="SmartBpAiDetectStageTestFrame" xml:space="preserve"><value>Recognize test-frame business state</value></data>
   <data name="SmartBpAiDetectStageCapture" xml:space="preserve"><value>Recognize capture-frame business state</value></data>
   <data name="SmartBpAiRunAutomaticTick" xml:space="preserve"><value>Run one automatic recognition</value></data>
@@ -4756,15 +4771,15 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="SmartBpAiCropDebug" xml:space="preserve"><value>Crop debug preview</value></data>
   <data name="SmartBpAiPhaseCropPreview" xml:space="preserve"><value>Phase crop preview</value></data>
   <data name="SmartBpAiFocusedCropPreview" xml:space="preserve"><value>Focused crop preview</value></data>
-  <data name="SmartBpAiRegionEditor" xml:space="preserve"><value>SmartBP AI recognition coarse region editor</value></data>
+  <data name="SmartBpAiRegionEditor" xml:space="preserve"><value>SmartBP OCR recognition region editor</value></data>
   <data name="SmartBpAiRegionWidth" xml:space="preserve"><value>Width</value></data>
   <data name="SmartBpAiRegionHeight" xml:space="preserve"><value>Height</value></data>
   <data name="SmartBpAiSaveRegionProfile" xml:space="preserve"><value>Save region profile</value></data>
   <data name="SmartBpAiResetRegionProfile" xml:space="preserve"><value>Reset default regions</value></data>
-  <data name="SmartBpAiOpenVisualRegionEditor" xml:space="preserve"><value>Edit recognition regions visually</value></data>
-  <data name="SmartBpAiRegionEditorRequireFrame" xml:space="preserve"><value>Start window capture or select a built-in test frame first.</value></data>
-  <data name="SmartBpAiRegionProfileSaved" xml:space="preserve"><value>The SmartBP AI recognition region profile was saved.</value></data>
-  <data name="SmartBpAiRegionProfileReset" xml:space="preserve"><value>The SmartBP AI recognition regions were reset to the bundled defaults.</value></data>
+  <data name="SmartBpAiOpenVisualRegionEditor" xml:space="preserve"><value>Edit BP recognition regions</value></data>
+  <data name="SmartBpAiRegionEditorRequireFrame" xml:space="preserve"><value>Start window capture and wait for a frame before editing recognition regions.</value></data>
+  <data name="SmartBpAiRegionProfileSaved" xml:space="preserve"><value>The SmartBP OCR recognition region profile was saved.</value></data>
+  <data name="SmartBpAiRegionProfileReset" xml:space="preserve"><value>The SmartBP OCR recognition regions were reset to the bundled defaults.</value></data>
   <data name="SmartBpAiRegionPhaseTop" xml:space="preserve"><value>Top phase recognition area</value></data>
   <data name="SmartBpAiRegionTopCenterStatus" xml:space="preserve"><value>Top-center BP lifecycle status area</value></data>
   <data name="SmartBpAiRegionTopLeftStatus" xml:space="preserve"><value>Top-left post-BP status area</value></data>
@@ -4773,7 +4788,7 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="SmartBpAiRegionLeftBottom" xml:space="preserve"><value>Lower left: survivor pick and assignment</value></data>
   <data name="SmartBpAiRegionRightBottom" xml:space="preserve"><value>Lower right: hunter pick</value></data>
   <data name="SmartBpAiPlayBackfillAnimations" xml:space="preserve"><value>Play animations when backfilling previous steps</value></data>
-  <data name="SmartBpAiResetLedger" xml:space="preserve"><value>Reset SmartBP AI recognition ledger</value></data>
+  <data name="SmartBpAiResetLedger" xml:space="preserve"><value>Reset SmartBP recognition ledger</value></data>
   <data name="SmartBpClearDebugLog" xml:space="preserve"><value>Clear log</value></data>
   <data name="SmartBpEnableDebugLog" xml:space="preserve"><value>Enable debug log</value></data>
   <data name="SmartBpAiAdvancedEngineSettings" xml:space="preserve"><value>Advanced engine settings</value></data>
@@ -4839,6 +4854,7 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="SmartBpOcrFieldStaleMilliseconds" xml:space="preserve"><value>OCR field stale refresh milliseconds</value></data>
   <data name="SmartBpOcrBackfillLookBehindSteps" xml:space="preserve"><value>OCR workflow look-behind steps</value></data>
   <data name="SmartBpOcrProviderSection" xml:space="preserve"><value>OCR provider</value></data>
+  <data name="SmartBpRecommendedProviderFormat" xml:space="preserve"><value>{0} (Recommended)</value></data>
   <data name="SmartBpOcrPaddleStatus" xml:space="preserve"><value>Paddle status</value></data>
   <data name="SmartBpOcrTesseractStatus" xml:space="preserve"><value>Tesseract data status</value></data>
   <data name="SmartBpOcrStatusInstalled" xml:space="preserve"><value>Installed</value></data>
@@ -4852,7 +4868,18 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="Switch" xml:space="preserve"><value>Switch</value></data>
   <data name="SmartBpModelManagement" xml:space="preserve"><value>Model management</value></data>
   <data name="SmartBpFeatureSwitches" xml:space="preserve"><value>Feature switches</value></data>
-  <data name="SmartBpAdvancedParameters" xml:space="preserve"><value>Recognition engine advanced parameters</value></data>
+  <data name="SmartBpAutomaticRecognitionAndApply" xml:space="preserve"><value>Automatic Recognition and Apply</value></data>
+  <data name="SmartBpRecognitionAreaConfiguration" xml:space="preserve"><value>Recognition Area Configuration</value></data>
+  <data name="SmartBpBpRecognitionRegions" xml:space="preserve"><value>BP automatic recognition regions</value></data>
+  <data name="SmartBpGameDataRecognitionRegions" xml:space="preserve"><value>Post-game data recognition regions</value></data>
+  <data name="SmartBpOpenBpRecognitionRegionEditor" xml:space="preserve"><value>Edit BP recognition regions</value></data>
+  <data name="SmartBpEditGameDataRegionConfig" xml:space="preserve"><value>Edit post-game data region</value></data>
+  <data name="SmartBpResetGameDataRegionConfig" xml:space="preserve"><value>Reset to built-in 16:9 default</value></data>
+  <data name="SmartBpRegionConfigCurrentPath" xml:space="preserve"><value>Current config path</value></data>
+  <data name="SmartBpRegionConfigConfiguredAspectRatio" xml:space="preserve"><value>Configured aspect ratio</value></data>
+  <data name="SmartBpRegionConfigCurrentCaptureAspectRatio" xml:space="preserve"><value>Current capture aspect ratio</value></data>
+  <data name="SmartBpRegionConfigAspectStatus" xml:space="preserve"><value>Aspect status</value></data>
+  <data name="SmartBpAdvancedParameters" xml:space="preserve"><value>Advanced Parameters</value></data>
   <data name="SmartBpAiWithOcrFusionMode" xml:space="preserve"><value>AI + OCR fusion mode</value></data>
   <data name="SmartBpAiWithAiOcrFusionMode" xml:space="preserve"><value>AI + AI OCR fusion mode</value></data>
   <data name="SmartBpDebugOptions" xml:space="preserve"><value>Debug options</value></data>
@@ -4894,6 +4921,10 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="SmartBpEnableAutoGuidanceSync" xml:space="preserve"><value>Enable automatic GameGuidance sync</value></data>
   <data name="SmartBpEnableAutoGuidancePageNavigation" xml:space="preserve"><value>Follow page navigation when sync moves step</value></data>
   <data name="SmartBpFreeFullSyncWarning" xml:space="preserve"><value>Free full sync is experimental and may write slots without workflow context. Guided workflow is recommended.</value></data>
+  <data name="SmartBpCaptureStopDisabledWhileRecognizing" xml:space="preserve"><value>Window capture is kept running while automatic recognition is active. Stop automatic recognition before stopping capture.</value></data>
+  <data name="SmartBpStopCaptureWhileRecognizing" xml:space="preserve"><value>Automatic recognition is running. Stop automatic recognition before stopping window capture.</value></data>
+  <data name="SmartBpRecognitionPausedCaptureStopped" xml:space="preserve"><value>Window capture stopped, so automatic recognition has been paused.</value></data>
+  <data name="SmartBpRecognitionPausedFrameUnavailable" xml:space="preserve"><value>The current capture frame could not be obtained, so automatic recognition has been paused.</value></data>
   <data name="SmartBpStartAutomaticRecognition" xml:space="preserve"><value>Start automatic recognition</value></data>
   <data name="SmartBpStopAutomaticRecognition" xml:space="preserve"><value>Stop SmartBP recognition</value></data>
   <data name="SmartBpAutoRecognitionStartTitle" xml:space="preserve"><value>Start automatic recognition</value></data>

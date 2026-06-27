@@ -61,6 +61,9 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     private readonly StringBuilder _debugLogBuffer = new();
     private DispatcherTimer? _debugLogFlushTimer;
     private Window? _recognitionDebugLogWindow;
+    private const string CaptureNotRunningMessageKey = "SmartBpValidationCaptureNotRunning";
+    private const string CaptureFrameUnavailableMessageKey = "SmartBpValidationCaptureFrameUnavailable";
+    private const string OcrNotReadyMessageKey = "SmartBpValidationOcrNotReady";
 
     /// <summary>
     /// 用于设计时预览的无参构造函数。
@@ -315,6 +318,12 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     [RelayCommand(CanExecute = nameof(CanCaptureStopped))]
     private void StopCapture()
     {
+        if (IsAiPreviewLoopRunning || IsAiRecognizing)
+        {
+            _ = MessageBoxHelper.ShowInfoAsync(ResolveLocalizedOrRaw("SmartBpStopCaptureWhileRecognizing"));
+            return;
+        }
+
         _windowCaptureService.StopCapture();
         _captureAspectRefreshTimer.Stop();
         RefreshCommandStates();
@@ -362,7 +371,10 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         // 编辑器仅使用单帧冻结图像，不做实时刷新。
         var frame = _windowCaptureService.GetCurrentFrame();
         if (frame == null)
+        {
+            await MessageBoxHelper.ShowInfoAsync(ResolveLocalizedOrRaw(CaptureFrameUnavailableMessageKey));
             return;
+        }
 
         var profile = _regionConfigService.GetCurrentGameDataProfile();
         // 保存编辑基准尺寸/比例，便于后续页面匹配展示与诊断。
@@ -593,12 +605,12 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
             ? SelectedWindow is not null && IsWgcHwndCaptureSupported()
             : SelectedWindow is not null;
 
-    private bool CanCaptureStopped() => _windowCaptureService.IsCapturing;
+    private bool CanCaptureStopped() => _windowCaptureService.IsCapturing && !IsAiPreviewLoopRunning && !IsAiRecognizing;
 
     private bool CanOpenPreviewWindow() => _windowCaptureService.IsCapturing;
 
     private static bool CanOpenWindowPicker() => IsWgcSupported();
-    private bool CanOpenRegionEditor() => _windowCaptureService.IsCapturing;
+    private static bool CanOpenRegionEditor() => true;
 
     private bool CanDownloadSelectedOcrModel() =>
         !IsModelDownloading && SelectedOcrModel is { IsInstalled: false };
@@ -621,6 +633,41 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         OpenWindowPickerCommand.NotifyCanExecuteChanged();
         OpenGameDataRegionEditorCommand.NotifyCanExecuteChanged();
     }
+
+    /// <summary>
+    /// Validates that a capture session is running and returns the current frozen frame.
+    /// </summary>
+    /// <param name="requireOcrReady">Whether the selected OCR provider must be ready.</param>
+    /// <returns>The current capture frame, or <see langword="null"/> when validation failed.</returns>
+    private async Task<System.Windows.Media.Imaging.BitmapSource?> GetValidatedCurrentFrameAsync(bool requireOcrReady)
+    {
+        if (!_windowCaptureService.IsCapturing)
+        {
+            await MessageBoxHelper.ShowInfoAsync(ResolveLocalizedOrRaw(CaptureNotRunningMessageKey));
+            return null;
+        }
+
+        var frame = _windowCaptureService.GetCurrentFrame();
+        if (frame == null)
+        {
+            await MessageBoxHelper.ShowInfoAsync(ResolveLocalizedOrRaw(CaptureFrameUnavailableMessageKey));
+            return null;
+        }
+
+        if (requireOcrReady && !IsSelectedOcrProviderReady())
+        {
+            await MessageBoxHelper.ShowInfoAsync(ResolveLocalizedOrRaw(OcrNotReadyMessageKey));
+            return null;
+        }
+
+        return frame;
+    }
+
+    /// <summary>
+    /// Checks whether the currently selected OCR provider can run recognition.
+    /// </summary>
+    /// <returns><see langword="true"/> when OCR is ready.</returns>
+    private bool IsSelectedOcrProviderReady() => _ocrService.GetProviderStatus(_ocrService.SelectedProvider).IsReady;
 
     /// <summary>
     /// 刷新当前捕获比例与 GameData 区域配置比例的匹配提示。

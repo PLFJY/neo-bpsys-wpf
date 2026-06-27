@@ -24,6 +24,7 @@ public partial class SmartBpModuleContentViewModel
     private bool _isSwitchingQwenModel;
     private bool _isSwitchingAiOcrModel;
     private bool _isAutomaticRecognitionStopPendingAfterQueueDrain;
+    private int _automaticRecognitionUnavailableFrameCount;
     private LocalVisionModelDownloadRole? _activeVisionModelDownloadRole;
 
     private enum LocalVisionModelDownloadRole
@@ -677,7 +678,7 @@ public partial class SmartBpModuleContentViewModel
         EnableOcrDebugOverlay = _recognitionSettingsService.Settings.EnableOcrDebugOverlay;
         OcrProviders =
         [
-            new(SmartBpOcrProviderMode.Paddle, "PaddleOCR"),
+            new(SmartBpOcrProviderMode.Paddle, string.Format(ResolveLocalizedOrRaw("SmartBpRecommendedProviderFormat"), "PaddleOCR")),
             new(SmartBpOcrProviderMode.Rapid, "RapidOCR"),
             new(SmartBpOcrProviderMode.Tesseract, "Tesseract OCR")
         ];
@@ -803,16 +804,9 @@ public partial class SmartBpModuleContentViewModel
         {
             _aiRegionProfile ??= await _aiRegionProfileService.LoadAsync();
 
-            var frame = _windowCaptureService.IsCapturing
-                ? _windowCaptureService.GetCurrentFrame()
-                : null;
-            if (frame == null && SelectedAiTestFrame != null)
-                frame = LoadTestFrame(SelectedAiTestFrame);
+            var frame = await GetValidatedCurrentFrameAsync(requireOcrReady: false);
             if (frame == null)
-            {
-                await MessageBoxHelper.ShowInfoAsync(ResolveLocalizedOrRaw("SmartBpAiRegionEditorRequireFrame"));
                 return;
-            }
 
             var editor = new RegionEditorWindow(frame, BuildAiRegionEditorLayout(_aiRegionProfile))
             {
@@ -827,7 +821,11 @@ public partial class SmartBpModuleContentViewModel
             await LoadAiRegionProfileAsync();
             AiCropDebugInfo = ResolveLocalizedOrRaw("SmartBpAiRegionProfileSaved");
         }
-        catch (Exception ex) { AiLastError = ex.Message; }
+        catch (Exception ex)
+        {
+            AiLastError = ex.Message;
+            await MessageBoxHelper.ShowErrorAsync(ex.Message);
+        }
     }
 
     /// <summary>
@@ -1487,8 +1485,8 @@ public partial class SmartBpModuleContentViewModel
     }
     [RelayCommand] private async Task RecognizeIncrementalCurrentCaptureFrameAsync()
     {
-        var frame = _windowCaptureService.GetCurrentFrame();
-        if (frame == null) { AiLastError = "No capture frame is available."; return; }
+        var frame = await GetValidatedCurrentFrameAsync(requireOcrReady: true);
+        if (frame == null) return;
         await RunIncrementalRecognitionCoreAsync(frame);
     }
     [RelayCommand] private async Task DetectStageFromSelectedTestFrameAsync()
@@ -1499,8 +1497,8 @@ public partial class SmartBpModuleContentViewModel
     }
     [RelayCommand] private async Task DetectStageFromCurrentCaptureFrameAsync()
     {
-        var frame = _windowCaptureService.GetCurrentFrame();
-        if (frame == null) { AiLastError = "No capture frame is available."; return; }
+        var frame = await GetValidatedCurrentFrameAsync(requireOcrReady: true);
+        if (frame == null) return;
         await RunPhaseOnlyRecognitionCoreAsync(frame);
     }
     [RelayCommand] private Task RunAutomaticOneTickAsync() => RunAutomaticCurrentFrameCoreAsync();
@@ -1511,12 +1509,9 @@ public partial class SmartBpModuleContentViewModel
     [RelayCommand(CanExecute = nameof(CanStartAutomaticRecognition))]
     private async Task StartAiPreviewLoopAsync()
     {
-        if (!_windowCaptureService.IsCapturing)
-        {
-            AiLastError = "Start capture before starting automatic recognition.";
-            NotifyAutomaticRecognitionCommands();
-            return;
-        }
+        var frame = await GetValidatedCurrentFrameAsync(requireOcrReady: true);
+        if (frame == null) { NotifyAutomaticRecognitionCommands(); return; }
+
         var confirmed = await MessageBoxHelper.ShowConfirmAsync(
             ResolveLocalizedOrRaw("SmartBpAutoRecognitionStartConfirm"),
             ResolveLocalizedOrRaw("SmartBpAutoRecognitionStartTitle"),
@@ -1527,6 +1522,7 @@ public partial class SmartBpModuleContentViewModel
             await EnsureRequiredLlamaServersForAutomaticRecognitionAsync();
             await _autoRecognitionCoordinator.StartAsync();
             _isAutomaticRecognitionStopPendingAfterQueueDrain = false;
+            _automaticRecognitionUnavailableFrameCount = 0;
             IsAiPreviewLoopRunning = true;
             _aiPreviewTimer.Start();
             _autoRecognitionGlobalControl.Update(true, _ => StopAiPreviewLoopAsync());
@@ -1552,6 +1548,7 @@ public partial class SmartBpModuleContentViewModel
     private async Task StopAiPreviewLoopAsync()
     {
         _isAutomaticRecognitionStopPendingAfterQueueDrain = false;
+        _automaticRecognitionUnavailableFrameCount = 0;
         _aiPreviewTimer.Stop();
         await _autoRecognitionCoordinator.StopAsync();
         IsAiPreviewLoopRunning = false;
@@ -1586,6 +1583,7 @@ public partial class SmartBpModuleContentViewModel
     {
         StartAiPreviewLoopCommand.NotifyCanExecuteChanged();
         StopAiPreviewLoopCommand.NotifyCanExecuteChanged();
+        StopCaptureCommand.NotifyCanExecuteChanged();
     }
 
     /// <summary>
@@ -1832,15 +1830,34 @@ public partial class SmartBpModuleContentViewModel
         Directory.CreateDirectory(RapidOcrModelDirectory);
         Process.Start(new ProcessStartInfo("explorer.exe", RapidOcrModelDirectory) { UseShellExecute = true });
     }
-    private async Task RecognizeCurrentFrameCoreAsync() { var frame = _windowCaptureService.GetCurrentFrame(); if (frame == null) { AiLastError = "No capture frame is available."; return; } await RunFullStrategyRecognitionCoreAsync(frame); }
+    private async Task RecognizeCurrentFrameCoreAsync()
+    {
+        var frame = await GetValidatedCurrentFrameAsync(requireOcrReady: true);
+        if (frame == null) return;
+        await RunFullStrategyRecognitionCoreAsync(frame);
+    }
 
     private async Task DetectStageCoreAsync(BitmapSource frame)
         => await RunPhaseOnlyRecognitionCoreAsync(frame);
 
     private async Task RunAutomaticCurrentFrameCoreAsync()
     {
+        if (!_windowCaptureService.IsCapturing)
+        {
+            await StopAutomaticRecognitionForCaptureIssueAsync("SmartBpRecognitionPausedCaptureStopped");
+            return;
+        }
+
         var frame = _windowCaptureService.GetCurrentFrame();
-        if (frame == null) { AiLastError = "No capture frame is available."; return; }
+        if (frame == null)
+        {
+            _automaticRecognitionUnavailableFrameCount++;
+            if (_automaticRecognitionUnavailableFrameCount >= 1)
+                await StopAutomaticRecognitionForCaptureIssueAsync("SmartBpRecognitionPausedFrameUnavailable");
+            return;
+        }
+
+        _automaticRecognitionUnavailableFrameCount = 0;
         if (Interlocked.CompareExchange(ref _recognitionBusy, 1, 0) != 0) return;
         IsAiRecognizing = true; AiLastError = "";
         try
@@ -1854,6 +1871,24 @@ public partial class SmartBpModuleContentViewModel
         }
         catch (OperationCanceledException) { }
         finally { IsAiRecognizing = false; Interlocked.Exchange(ref _recognitionBusy, 0); }
+    }
+
+    private async Task StopAutomaticRecognitionForCaptureIssueAsync(string messageKey)
+    {
+        var message = ResolveLocalizedOrRaw(messageKey);
+        _aiPreviewTimer.Stop();
+        await _autoRecognitionCoordinator.StopAsync();
+        IsAiPreviewLoopRunning = false;
+        IsAiRecognizing = false;
+        _autoRecognitionGlobalControl.Update(false);
+        _automaticRecognitionUnavailableFrameCount = 0;
+        AiLastError = message;
+        AiSceneDiagnostics = string.IsNullOrWhiteSpace(AiSceneDiagnostics)
+            ? message
+            : AiSceneDiagnostics + Environment.NewLine + message;
+        _aiDebugLog.Write("recognition", message);
+        NotifyAutomaticRecognitionCommands();
+        await MessageBoxHelper.ShowInfoAsync(message);
     }
 
     private async Task RequestStopAutomaticRecognitionAfterQueueDrainedAsync(SmartBpAutoRecognitionTickResult result)
@@ -2527,6 +2562,16 @@ public partial class SmartBpModuleContentViewModel
     {
         _recognitionSettingsService.Settings.RecognitionApplyMode = value;
         _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnIsAiRecognizingChanged(bool value)
+    {
+        StopCaptureCommand.NotifyCanExecuteChanged();
+    }
+
+    partial void OnIsAiPreviewLoopRunningChanged(bool value)
+    {
+        StopCaptureCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnAiOneStepDelayedModeChanged(bool value)

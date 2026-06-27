@@ -1674,6 +1674,21 @@
   <data name="SmartBpOcrNotReadyFirstDownloadAndSwitchModel" xml:space="preserve">
     <value>OCR 功能未就绪，请先下载并切换 OCR 模型后再启动相关功能。</value>
   </data>
+  <data name="SmartBpValidationCaptureNotRunning" xml:space="preserve">
+    <value>请先开启窗口捕获后再启动识别。</value>
+  </data>
+  <data name="SmartBpValidationCaptureFrameUnavailable" xml:space="preserve">
+    <value>当前没有可用的捕获画面，请确认捕获窗口仍然存在。</value>
+  </data>
+  <data name="SmartBpValidationOcrNotReady" xml:space="preserve">
+    <value>请先下载并切换可用的 OCR 模型后再启动识别。</value>
+  </data>
+  <data name="SmartBpValidationRegionProfileInvalid" xml:space="preserve">
+    <value>当前赛后数据识别区域配置无效，请重置为内置默认配置或重新导入有效配置。</value>
+  </data>
+  <data name="SmartBpValidationGameDataRecognitionNoResult" xml:space="preserve">
+    <value>未能从当前捕获画面识别到赛后数据，请确认画面和识别区域配置正确。</value>
+  </data>
   <data name="SmartBpOcrUnsupportedModelFormat" xml:space="preserve">
     <value>不支持的 OCR 模型：{0}</value>
   </data>
@@ -1970,7 +1985,7 @@
     <value>当前比例匹配，可直接使用。</value>
   </data>
   <data name="SmartBpImportGameDataRegionConfig" xml:space="preserve">
-    <value>导入配置文件</value>
+    <value>导入赛后区域配置</value>
   </data>
   <data name="SmartBpEditGameDataRegion" xml:space="preserve">
     <value>编辑识别区域</value>
@@ -2006,7 +2021,7 @@
     <value>导出配置失败：{0}</value>
   </data>
   <data name="SmartBpExportGameDataRegionConfig" xml:space="preserve">
-    <value>导出配置文件</value>
+    <value>导出赛后区域配置</value>
   </data>
   <data name="SaveAs" xml:space="preserve">
     <value>保存为</value>
@@ -5682,7 +5697,7 @@
   <data name="SmartBpAiStatusCancelled" xml:space="preserve"><value>已取消</value></data>
   <data name="SmartBpAiStatusReady" xml:space="preserve"><value>已就绪</value></data>
   <data name="SmartBpAiEnableGuidanceSync" xml:space="preserve"><value>启用自动同步对局引导</value></data>
-  <data name="SmartBpAiEnableAutoApply" xml:space="preserve"><value>启用自动应用识别结果（谨慎）</value></data>
+  <data name="SmartBpAiEnableAutoApply" xml:space="preserve"><value>自动应用识别结果</value></data>
   <data name="SmartBpAiDetectStageTestFrame" xml:space="preserve"><value>识别测试图业务状态</value></data>
   <data name="SmartBpAiDetectStageCapture" xml:space="preserve"><value>识别捕获帧业务状态</value></data>
   <data name="SmartBpAiRunAutomaticTick" xml:space="preserve"><value>运行一次自动识别</value></data>
@@ -5692,15 +5707,15 @@
   <data name="SmartBpAiCropDebug" xml:space="preserve"><value>裁剪调试预览</value></data>
   <data name="SmartBpAiPhaseCropPreview" xml:space="preserve"><value>阶段识别裁剪图</value></data>
   <data name="SmartBpAiFocusedCropPreview" xml:space="preserve"><value>内容识别裁剪图</value></data>
-  <data name="SmartBpAiRegionEditor" xml:space="preserve"><value>SmartBP AI 识别粗区域编辑器</value></data>
+  <data name="SmartBpAiRegionEditor" xml:space="preserve"><value>SmartBP OCR 识别区域编辑器</value></data>
   <data name="SmartBpAiRegionWidth" xml:space="preserve"><value>宽</value></data>
   <data name="SmartBpAiRegionHeight" xml:space="preserve"><value>高</value></data>
   <data name="SmartBpAiSaveRegionProfile" xml:space="preserve"><value>保存区域配置</value></data>
   <data name="SmartBpAiResetRegionProfile" xml:space="preserve"><value>重置默认区域</value></data>
-  <data name="SmartBpAiOpenVisualRegionEditor" xml:space="preserve"><value>可视化编辑识别区域</value></data>
-  <data name="SmartBpAiRegionEditorRequireFrame" xml:space="preserve"><value>请先启动窗口捕获或选择一张内置测试图。</value></data>
-  <data name="SmartBpAiRegionProfileSaved" xml:space="preserve"><value>SmartBP AI 识别区域配置已保存。</value></data>
-  <data name="SmartBpAiRegionProfileReset" xml:space="preserve"><value>SmartBP AI 识别区域已恢复为内置默认值。</value></data>
+  <data name="SmartBpAiOpenVisualRegionEditor" xml:space="preserve"><value>编辑 BP 识别区域</value></data>
+  <data name="SmartBpAiRegionEditorRequireFrame" xml:space="preserve"><value>请先开启窗口捕获，等待画面可用后再编辑识别区域。</value></data>
+  <data name="SmartBpAiRegionProfileSaved" xml:space="preserve"><value>SmartBP OCR 识别区域配置已保存。</value></data>
+  <data name="SmartBpAiRegionProfileReset" xml:space="preserve"><value>SmartBP OCR 识别区域已恢复为内置默认值。</value></data>
   <data name="SmartBpAiRegionPhaseTop" xml:space="preserve"><value>顶部阶段识别区域</value></data>
   <data name="SmartBpAiRegionTopCenterStatus" xml:space="preserve"><value>顶部中央 BP 生命周期状态区域</value></data>
   <data name="SmartBpAiRegionTopLeftStatus" xml:space="preserve"><value>左上角赛后状态区域</value></data>
@@ -5709,7 +5724,7 @@
   <data name="SmartBpAiRegionLeftBottom" xml:space="preserve"><value>左下：求生者选择与分配</value></data>
   <data name="SmartBpAiRegionRightBottom" xml:space="preserve"><value>右下：监管者选择</value></data>
   <data name="SmartBpAiPlayBackfillAnimations" xml:space="preserve"><value>补录上一阶段时播放动画</value></data>
-  <data name="SmartBpAiResetLedger" xml:space="preserve"><value>重置 SmartBP AI 识别记录</value></data>
+  <data name="SmartBpAiResetLedger" xml:space="preserve"><value>重置 SmartBP 识别记录</value></data>
   <data name="SmartBpClearDebugLog" xml:space="preserve"><value>清空日志</value></data>
   <data name="SmartBpEnableDebugLog" xml:space="preserve"><value>启用调试日志</value></data>
   <data name="SmartBpAiAdvancedEngineSettings" xml:space="preserve"><value>高级引擎设置</value></data>
@@ -5775,6 +5790,7 @@
   <data name="SmartBpOcrFieldStaleMilliseconds" xml:space="preserve"><value>OCR 字段陈旧刷新毫秒</value></data>
   <data name="SmartBpOcrBackfillLookBehindSteps" xml:space="preserve"><value>OCR 回看工作流步数</value></data>
   <data name="SmartBpOcrProviderSection" xml:space="preserve"><value>OCR 提供程序</value></data>
+  <data name="SmartBpRecommendedProviderFormat" xml:space="preserve"><value>{0}（推荐）</value></data>
   <data name="SmartBpOcrPaddleStatus" xml:space="preserve"><value>Paddle 状态</value></data>
   <data name="SmartBpOcrTesseractStatus" xml:space="preserve"><value>Tesseract 数据状态</value></data>
   <data name="SmartBpOcrStatusInstalled" xml:space="preserve"><value>已安装</value></data>
@@ -5788,7 +5804,18 @@
   <data name="Switch" xml:space="preserve"><value>切换</value></data>
   <data name="SmartBpModelManagement" xml:space="preserve"><value>模型管理</value></data>
   <data name="SmartBpFeatureSwitches" xml:space="preserve"><value>功能开关</value></data>
-  <data name="SmartBpAdvancedParameters" xml:space="preserve"><value>识别引擎高级参数</value></data>
+  <data name="SmartBpAutomaticRecognitionAndApply" xml:space="preserve"><value>自动识别与应用</value></data>
+  <data name="SmartBpRecognitionAreaConfiguration" xml:space="preserve"><value>识别区域配置</value></data>
+  <data name="SmartBpBpRecognitionRegions" xml:space="preserve"><value>BP 自动识别区域</value></data>
+  <data name="SmartBpGameDataRecognitionRegions" xml:space="preserve"><value>赛后数据识别区域</value></data>
+  <data name="SmartBpOpenBpRecognitionRegionEditor" xml:space="preserve"><value>编辑 BP 识别区域</value></data>
+  <data name="SmartBpEditGameDataRegionConfig" xml:space="preserve"><value>编辑赛后数据区域</value></data>
+  <data name="SmartBpResetGameDataRegionConfig" xml:space="preserve"><value>重置为内置 16:9 默认</value></data>
+  <data name="SmartBpRegionConfigCurrentPath" xml:space="preserve"><value>当前配置路径</value></data>
+  <data name="SmartBpRegionConfigConfiguredAspectRatio" xml:space="preserve"><value>配置比例</value></data>
+  <data name="SmartBpRegionConfigCurrentCaptureAspectRatio" xml:space="preserve"><value>当前捕获比例</value></data>
+  <data name="SmartBpRegionConfigAspectStatus" xml:space="preserve"><value>比例匹配状态</value></data>
+  <data name="SmartBpAdvancedParameters" xml:space="preserve"><value>高级参数</value></data>
   <data name="SmartBpAiWithOcrFusionMode" xml:space="preserve"><value>AI + OCR 融合模式</value></data>
   <data name="SmartBpAiWithAiOcrFusionMode" xml:space="preserve"><value>AI + AI OCR 融合模式</value></data>
   <data name="SmartBpDebugOptions" xml:space="preserve"><value>调试选项</value></data>
@@ -5830,6 +5857,10 @@
   <data name="SmartBpEnableAutoGuidanceSync" xml:space="preserve"><value>启用 GameGuidance 自动同步</value></data>
   <data name="SmartBpEnableAutoGuidancePageNavigation" xml:space="preserve"><value>同步步骤时跟随页面导航</value></data>
   <data name="SmartBpFreeFullSyncWarning" xml:space="preserve"><value>自由全同步为实验功能，可能在没有工作流上下文时写入识别槽位。推荐使用引导工作流。</value></data>
+  <data name="SmartBpCaptureStopDisabledWhileRecognizing" xml:space="preserve"><value>自动识别运行时会保持窗口捕获；请先停止自动识别再停止捕获。</value></data>
+  <data name="SmartBpStopCaptureWhileRecognizing" xml:space="preserve"><value>自动识别正在运行。请先停止自动识别，再停止窗口捕获。</value></data>
+  <data name="SmartBpRecognitionPausedCaptureStopped" xml:space="preserve"><value>窗口捕获已停止，自动识别已暂停。</value></data>
+  <data name="SmartBpRecognitionPausedFrameUnavailable" xml:space="preserve"><value>无法获取当前捕获画面，自动识别已暂停。</value></data>
   <data name="SmartBpStartAutomaticRecognition" xml:space="preserve"><value>启动自动识别</value></data>
   <data name="SmartBpStopAutomaticRecognition" xml:space="preserve"><value>停止 SmartBP 识别</value></data>
   <data name="SmartBpAutoRecognitionStartTitle" xml:space="preserve"><value>启动自动识别</value></data>

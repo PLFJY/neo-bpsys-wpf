@@ -144,6 +144,7 @@ internal sealed class SmartBpRecognitionSettingsService : ISmartBpRecognitionSet
         var hasSelectedBusinessAiModelId = false;
         var hasSelectedOcrProviderMode = false;
         var hasBusinessAiServerPort = false;
+        var hasOcrRecognitionIntervalMs = false;
         try
         {
             if (File.Exists(_path))
@@ -156,6 +157,7 @@ internal sealed class SmartBpRecognitionSettingsService : ISmartBpRecognitionSet
                     hasSelectedBusinessAiModelId = document.RootElement.TryGetProperty("selectedBusinessAiModelId", out _);
                     hasSelectedOcrProviderMode = document.RootElement.TryGetProperty("selectedOcrProviderMode", out _);
                     hasBusinessAiServerPort = document.RootElement.TryGetProperty("businessAiServerPort", out _);
+                    hasOcrRecognitionIntervalMs = document.RootElement.TryGetProperty("ocrRecognitionIntervalMs", out _);
                 }
                 Settings = JsonSerializer.Deserialize<SmartBpRecognitionSettings>(NormalizeOcrOnlySettingsJson(json), Options) ?? new();
             }
@@ -194,7 +196,10 @@ internal sealed class SmartBpRecognitionSettingsService : ISmartBpRecognitionSet
         Settings.StageConfidenceThreshold = Math.Clamp(Settings.StageConfidenceThreshold, 0, 1);
         Settings.GuidanceSyncLookAheadSteps = Math.Clamp(Settings.GuidanceSyncLookAheadSteps, 1, 20);
         Settings.RequiredStableSnapshots = Math.Clamp(Settings.RequiredStableSnapshots, 1, 5);
-        Settings.OcrRecognitionIntervalMs = Math.Clamp(Settings.OcrRecognitionIntervalMs, 100, 5000);
+        if (!hasOcrRecognitionIntervalMs || Settings.OcrRecognitionIntervalMs <= 0)
+            Settings.OcrRecognitionIntervalMs = 3000;
+        else
+            Settings.OcrRecognitionIntervalMs = Math.Clamp(Settings.OcrRecognitionIntervalMs, 100, 5000);
         Settings.MinimumOcrRecognitionIntervalMs = Math.Clamp(Settings.MinimumOcrRecognitionIntervalMs, 0, 300000);
         Settings.MinimumAiRecognitionIntervalMs = Math.Clamp(Settings.MinimumAiRecognitionIntervalMs, 0, 300000);
         Settings.AiUnknownPhaseTalentInferenceFrames = Math.Clamp(Settings.AiUnknownPhaseTalentInferenceFrames, 1, 30);

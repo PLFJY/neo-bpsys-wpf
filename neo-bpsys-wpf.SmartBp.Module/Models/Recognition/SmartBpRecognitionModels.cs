@@ -592,7 +592,7 @@ public sealed class SmartBpRecognitionSettings
     /// <summary>获取或设置是否启用 OCR BP 识别。</summary>
     public bool EnableOcrBpRecognition { get; set; } = true;
     /// <summary>获取或设置 OCR BP 循环间隔。</summary>
-    public int OcrRecognitionIntervalMs { get; set; } = 300;
+    public int OcrRecognitionIntervalMs { get; set; } = 3000;
     /// <summary>获取或设置实测最小 OCR 间隔。</summary>
     public int MinimumOcrRecognitionIntervalMs { get; set; }
     /// <summary>获取或设置实测最小 AI 间隔。</summary>

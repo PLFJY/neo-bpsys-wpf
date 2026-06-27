@@ -1659,6 +1659,21 @@
   <data name="SmartBpOcrNotReadyFirstDownloadAndSwitchModel" xml:space="preserve">
     <value>OCR機能の準備ができていません。先にOCRモデルをダウンロードして切り替えてください。</value>
   </data>
+  <data name="SmartBpValidationCaptureNotRunning" xml:space="preserve">
+    <value>認識を開始する前にウィンドウキャプチャを開始してください。</value>
+  </data>
+  <data name="SmartBpValidationCaptureFrameUnavailable" xml:space="preserve">
+    <value>利用可能なキャプチャ画像がありません。キャプチャ対象のウィンドウが存在するか確認してください。</value>
+  </data>
+  <data name="SmartBpValidationOcrNotReady" xml:space="preserve">
+    <value>認識を開始する前に、利用可能な OCR モデルをダウンロードして切り替えてください。</value>
+  </data>
+  <data name="SmartBpValidationRegionProfileInvalid" xml:space="preserve">
+    <value>試合後データ認識領域の設定が無効です。内蔵既定値に戻すか、有効な設定をインポートしてください。</value>
+  </data>
+  <data name="SmartBpValidationGameDataRecognitionNoResult" xml:space="preserve">
+    <value>現在のキャプチャ画像から試合後データを認識できませんでした。画像と領域設定を確認してください。</value>
+  </data>
   <data name="SmartBpOcrUnsupportedModelFormat" xml:space="preserve">
     <value>サポートされていないOCRモデルです：{0}</value>
   </data>
@@ -1955,7 +1970,7 @@
     <value>現在の比率は一致しています。このまま利用できます。</value>
   </data>
   <data name="SmartBpImportGameDataRegionConfig" xml:space="preserve">
-    <value>設定ファイルをインポート</value>
+    <value>試合後領域設定をインポート</value>
   </data>
   <data name="SmartBpEditGameDataRegion" xml:space="preserve">
     <value>認識領域を編集</value>
@@ -1991,7 +2006,7 @@
     <value>設定のエクスポートに失敗しました：{0}</value>
   </data>
   <data name="SmartBpExportGameDataRegionConfig" xml:space="preserve">
-    <value>設定ファイルをエクスポート</value>
+    <value>試合後領域設定をエクスポート</value>
   </data>
   <data name="SaveAs" xml:space="preserve">
     <value>名前を付けて保存</value>
@@ -4605,10 +4620,12 @@
   <data name="Designer.Behaviors.Payload.SourceBehaviorGuid.Description" xml:space="preserve"><value>交換元コントロールの安定した動作 ID です。</value></data>
   <data name="Designer.Graph.Condition.If" xml:space="preserve"><value>もし</value></data>
   <data name="Designer.Graph.Preview.MissingEventContext" xml:space="preserve"><value>現在のプレビューにはイベントコンテキストがないため、{0} を解決できません。</value></data>
-  <data name="SmartBpAiOpenVisualRegionEditor" xml:space="preserve"><value>認識領域を視覚的に編集</value></data>
-  <data name="SmartBpAiRegionEditorRequireFrame" xml:space="preserve"><value>ウィンドウキャプチャを開始するか、組み込みテスト画像を選択してください。</value></data>
-  <data name="SmartBpAiRegionProfileSaved" xml:space="preserve"><value>SmartBP AI 認識領域設定を保存しました。</value></data>
-  <data name="SmartBpAiRegionProfileReset" xml:space="preserve"><value>SmartBP AI 認識領域を組み込みの既定値に戻しました。</value></data>
+  <data name="SmartBpAiEnableAutoApply" xml:space="preserve"><value>認識結果を自動適用</value></data>
+  <data name="SmartBpAiRegionEditor" xml:space="preserve"><value>SmartBP OCR 認識領域エディター</value></data>
+  <data name="SmartBpAiOpenVisualRegionEditor" xml:space="preserve"><value>BP 認識領域を編集</value></data>
+  <data name="SmartBpAiRegionEditorRequireFrame" xml:space="preserve"><value>ウィンドウキャプチャを開始し、画像が利用可能になってから認識領域を編集してください。</value></data>
+  <data name="SmartBpAiRegionProfileSaved" xml:space="preserve"><value>SmartBP OCR 認識領域設定を保存しました。</value></data>
+  <data name="SmartBpAiRegionProfileReset" xml:space="preserve"><value>SmartBP OCR 認識領域を組み込みの既定値に戻しました。</value></data>
   <data name="SmartBpAiRegionPhaseTop" xml:space="preserve"><value>上部フェーズ認識領域</value></data>
   <data name="SmartBpAiRegionTopCenterStatus" xml:space="preserve"><value>上部中央のBPライフサイクル状態領域</value></data>
   <data name="SmartBpAiRegionTopLeftStatus" xml:space="preserve"><value>左上のBP終了後ステータス領域</value></data>
@@ -4617,7 +4634,7 @@
   <data name="SmartBpAiRegionLeftBottom" xml:space="preserve"><value>左下：サバイバー選択・割り当て</value></data>
   <data name="SmartBpAiRegionRightBottom" xml:space="preserve"><value>右下：ハンター選択</value></data>
   <data name="SmartBpAiPlayBackfillAnimations" xml:space="preserve"><value>前の手順を補完するときにアニメーションを再生</value></data>
-  <data name="SmartBpAiResetLedger" xml:space="preserve"><value>SmartBP AI 認識履歴をリセット</value></data>
+  <data name="SmartBpAiResetLedger" xml:space="preserve"><value>SmartBP 認識履歴をリセット</value></data>
   <data name="SmartBpClearDebugLog" xml:space="preserve"><value>ログをクリア</value></data>
   <data name="SmartBpEnableDebugLog" xml:space="preserve"><value>デバッグログを有効にする</value></data>
   <data name="SmartBpAiAdvancedEngineSettings" xml:space="preserve"><value>高度なエンジン設定</value></data>
@@ -4662,6 +4679,7 @@
   <data name="SmartBpOcrFieldStaleMilliseconds" xml:space="preserve"><value>OCR フィールド再更新までのミリ秒</value></data>
   <data name="SmartBpOcrBackfillLookBehindSteps" xml:space="preserve"><value>OCR ワークフロー振り返り手順数</value></data>
   <data name="SmartBpOcrProviderSection" xml:space="preserve"><value>OCR プロバイダー</value></data>
+  <data name="SmartBpRecommendedProviderFormat" xml:space="preserve"><value>{0}（推奨）</value></data>
   <data name="SmartBpOcrPaddleStatus" xml:space="preserve"><value>Paddle の状態</value></data>
   <data name="SmartBpOcrTesseractStatus" xml:space="preserve"><value>Tesseract データの状態</value></data>
   <data name="SmartBpOcrStatusInstalled" xml:space="preserve"><value>インストール済み</value></data>
@@ -4675,6 +4693,17 @@
   <data name="Switch" xml:space="preserve"><value>Switch</value></data>
   <data name="SmartBpModelManagement" xml:space="preserve"><value>Model management</value></data>
   <data name="SmartBpFeatureSwitches" xml:space="preserve"><value>Feature switches</value></data>
+  <data name="SmartBpAutomaticRecognitionAndApply" xml:space="preserve"><value>自動認識と適用</value></data>
+  <data name="SmartBpRecognitionAreaConfiguration" xml:space="preserve"><value>認識領域設定</value></data>
+  <data name="SmartBpBpRecognitionRegions" xml:space="preserve"><value>BP 自動認識領域</value></data>
+  <data name="SmartBpGameDataRecognitionRegions" xml:space="preserve"><value>試合後データ認識領域</value></data>
+  <data name="SmartBpOpenBpRecognitionRegionEditor" xml:space="preserve"><value>BP 認識領域を編集</value></data>
+  <data name="SmartBpEditGameDataRegionConfig" xml:space="preserve"><value>試合後データ領域を編集</value></data>
+  <data name="SmartBpResetGameDataRegionConfig" xml:space="preserve"><value>内蔵 16:9 既定値に戻す</value></data>
+  <data name="SmartBpRegionConfigCurrentPath" xml:space="preserve"><value>現在の設定パス</value></data>
+  <data name="SmartBpRegionConfigConfiguredAspectRatio" xml:space="preserve"><value>設定のアスペクト比</value></data>
+  <data name="SmartBpRegionConfigCurrentCaptureAspectRatio" xml:space="preserve"><value>現在のキャプチャ比率</value></data>
+  <data name="SmartBpRegionConfigAspectStatus" xml:space="preserve"><value>比率一致状態</value></data>
   <data name="SmartBpBusinessAiServer" xml:space="preserve"><value>Business AI server</value></data>
   <data name="SmartBpAiOcrServer" xml:space="preserve"><value>AI OCR server</value></data>
   <data name="SmartBpBusinessAiServerStarting" xml:space="preserve"><value>Starting Business AI server...</value></data>
@@ -4688,7 +4717,7 @@
   <data name="SmartBpStartRequiredServers" xml:space="preserve"><value>Start required servers</value></data>
   <data name="SmartBpStopAllServers" xml:space="preserve"><value>Stop all servers</value></data>
   <data name="SmartBpCheckRuntimeUpdate" xml:space="preserve"><value>Check runtime update</value></data>
-  <data name="SmartBpAdvancedParameters" xml:space="preserve"><value>Recognition engine advanced parameters</value></data>
+  <data name="SmartBpAdvancedParameters" xml:space="preserve"><value>高度なパラメーター</value></data>
   <data name="SmartBpAiWithOcrFusionMode" xml:space="preserve"><value>AI + OCR fusion mode</value></data>
   <data name="SmartBpAiWithAiOcrFusionMode" xml:space="preserve"><value>AI + AI OCR fusion mode</value></data>
   <data name="SmartBpDebugOptions" xml:space="preserve"><value>Debug options</value></data>
@@ -4730,6 +4759,10 @@
   <data name="SmartBpEnableAutoGuidanceSync" xml:space="preserve"><value>Enable automatic GameGuidance sync</value></data>
   <data name="SmartBpEnableAutoGuidancePageNavigation" xml:space="preserve"><value>Follow page navigation when sync moves step</value></data>
   <data name="SmartBpFreeFullSyncWarning" xml:space="preserve"><value>Free full sync is experimental and may write slots without workflow context. Guided workflow is recommended.</value></data>
+  <data name="SmartBpCaptureStopDisabledWhileRecognizing" xml:space="preserve"><value>自動認識中はウィンドウキャプチャを維持します。キャプチャを停止する前に自動認識を停止してください。</value></data>
+  <data name="SmartBpStopCaptureWhileRecognizing" xml:space="preserve"><value>自動認識が実行中です。先に自動認識を停止してからウィンドウキャプチャを停止してください。</value></data>
+  <data name="SmartBpRecognitionPausedCaptureStopped" xml:space="preserve"><value>ウィンドウキャプチャが停止したため、自動認識を一時停止しました。</value></data>
+  <data name="SmartBpRecognitionPausedFrameUnavailable" xml:space="preserve"><value>現在のキャプチャ画像を取得できないため、自動認識を一時停止しました。</value></data>
   <data name="SmartBpStartAutomaticRecognition" xml:space="preserve"><value>Start automatic recognition</value></data>
   <data name="SmartBpStopAutomaticRecognition" xml:space="preserve"><value>Stop SmartBP recognition</value></data>
   <data name="SmartBpAutoRecognitionStartTitle" xml:space="preserve"><value>Start automatic recognition</value></data>

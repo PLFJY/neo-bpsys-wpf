@@ -1691,7 +1691,8 @@ public sealed class SmartBpAiRecognitionContractTest
         var root = FindRepositoryRoot();
         var viewModel = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "ViewModels", "SmartBpModuleContentViewModel.AiRecognition.cs"));
 
-        Assert.Contains("Start capture before starting automatic recognition.", viewModel);
+        Assert.Contains("GetValidatedCurrentFrameAsync(requireOcrReady: true)", viewModel);
+        Assert.Contains("SmartBpValidationCaptureNotRunning", File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.SmartBp.Module", "ViewModels", "SmartBpModuleContentViewModel.cs")));
         Assert.Contains("EnsureRequiredLlamaServersForAutomaticRecognitionAsync", viewModel);
         Assert.DoesNotContain("await StartRequiredLlamaServersAsync()", viewModel);
         Assert.Contains("IsAiPreviewLoopRunning = false", viewModel);
