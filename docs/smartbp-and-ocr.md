@@ -4,7 +4,7 @@
 
 ## 架构概览
 
-SmartBP 是面向第五人格赛事的直播导播辅助系统中的智能 BP 识别与赛后数据回填子系统。它采用**模块分离架构**：主应用只保留 SmartBP 页面壳、安装覆盖层、模块加载器、状态模型和功能命令抽象；真正的 SmartBP UI、OCR 引擎、AI 推理运行时、OpenCvSharp 等重型依赖全部位于 `neo-bpsys-wpf.SmartBp.Module` 独立项目中。
+SmartBP 是面向第五人格赛事的直播导播辅助系统中的智能 BP 识别与赛后数据回填子系统。它采用**模块分离架构**：主应用只保留 SmartBP 页面壳、安装覆盖层、模块加载器、状态模型和功能命令抽象；真正的 SmartBP UI、OCR 引擎、OpenCvSharp 等重型依赖全部位于 `neo-bpsys-wpf.SmartBp.Module` 独立项目中。
 
 ```text
 neo-bpsys-wpf (主应用)
@@ -37,7 +37,7 @@ SmartBP 包含两条独立的能力线：
 | 能力线 | 入口 | 引擎 | 产出 | 成熟度 |
 | --- | --- | --- | --- | --- |
 | 赛后数据 OCR 回填 | `ISmartBpService.AutoFillGameDataAsync` | PaddleOCR | 直接写 `CurrentGame` | 成熟可用 |
-| BP 状态自动识别 | `SmartBpAutoRecognitionCoordinator` | 纯 OCR / 纯 AI / AI+OCR / AI+AI OCR | 候选操作 → 应用管线 → `CurrentGame` | BP 状态 OCR 可用；AI 路径实验 |
+| BP 状态自动识别 | `SmartBpAutoRecognitionCoordinator` | OCR-only | 候选操作 → 应用管线 → `CurrentGame` | BP 状态 OCR 可用 |
 
 两条线共享同一套窗口捕获、OCR 模型管理和粗裁剪区域配置基础设施，但区域配置（细区域 vs 粗区域）和结果写入路径完全独立。
 
@@ -61,10 +61,10 @@ public interface ISmartBpService
 
 `SmartBpModuleEntryPoint` 是模块的单一入口点，实现 `ISmartBpModuleEntryPoint`：
 
-- `CreateSmartBpContent(hostServices)`：构建独立的 `ServiceProvider`，注入所有模块级服务（OCR Provider、识别管线、AI 引擎、debug log 等），创建 `SmartBpModuleContentView` 并绑定 `SmartBpModuleContentViewModel`
+- `CreateSmartBpContent(hostServices)`：构建独立的 `ServiceProvider`，注入所有模块级服务（OCR Provider、识别管线、debug log 等），创建 `SmartBpModuleContentView` 并绑定 `SmartBpModuleContentViewModel`
 - `GetFeatureCommands()`：返回宿主可调用的功能命令，目前只有 `AutoFillGameData`（赛后数据回填）
 
-模块 DI 容器注册了 OCR Provider（Paddle、Tesseract、RapidOCR）、本地视觉模型与 llama.cpp 运行时、BP 识别管线、场景门禁、状态管理、补录与应用等服务。
+模块 DI 容器注册了 OCR Provider（Paddle、Tesseract、RapidOCR）、BP 识别管线、场景门禁、状态管理、补录与应用等服务。
 
 ## 当前边界
 
@@ -74,7 +74,7 @@ public interface ISmartBpService
 | PaddleOCR BP 状态识别 | 默认 OCR Provider；读取文字与边界框，本地解析阶段、禁用、选择与玩家 ID |
 | Tesseract BP 状态识别 | 可选 OCR Provider；可在 SmartBP 页面勾选下载 `chi_sim`/`eng`/`jpn` 到 SmartBP 模块目录，不会自动回退到 Paddle |
 | RapidOCR BP 状态识别 | 可选本地 OCR Provider；使用 SmartBP 托管的中文 det/cls/rec/dict 资产，不会自动回退到其他 Provider |
-| 本地视觉模型 + llama.cpp BP 状态识别 | 保留为实验策略，不作为默认路径 |
+| 本地视觉模型 + llama.cpp BP 状态识别 | 已从 SmartBP 自动识别运行路径移除 |
 | GameGuidance 自动对齐 | 可选，默认关闭；只向前匹配当前或最近步骤 |
 | 识别结果自动应用 | 可选，默认关闭；仅通过 `ICharacterSelectionService` 应用高置信度且已解析的角色操作 |
 | 自由全同步（FreeFullSync） | 实验能力；不依赖 GameGuidance，识别四类角色槽位并通过 `ICharacterSelectionService` 无动画同步 |
@@ -95,8 +95,7 @@ SmartBP 后台页面 (`SmartBpPage.xaml`) 是一个 WPF `Page`，包含两层结
 - 窗口捕获（WGC / Bitblt）和窗口选择
 - OCR 模型下载/切换/删除
 - 赛后数据区域配置编辑器（通过 `RegionEditorWindow`）
-- 本地视觉模型安装/llama.cpp 运行时管理
-- AI 识别预览与设置
+- OCR BP 自动识别启停、设置与 debug 日志展示
 - 自动识别启停与 debug 日志展示
 
 ## OCR 模型管理
@@ -174,13 +173,11 @@ BP 状态识别和赛后数据 OCR 是两条不同流程。BP 识别不直接写
 6. 本地解析四个粗区域：`right_top -> banned_sur`、`left_top -> banned_hun`、`left_bottom -> picked_sur`、`right_bottom -> picked_hun`。
 7. 角色名只从 `ISharedDataService.SurCharaDict` / `HunCharaDict` 匹配；无法明确解析的 OCR 文本只进入诊断，不会应用为角色。
 
-`UseOcrContactSheet = false` 时会逐区域 OCR，主要用于排查 contact sheet 映射问题。OCR 识别默认间隔较短，字段 stale 和回看步数使用 OCR 专用设置；AI 策略仍保留原有较慢的多图请求设置。
+`UseOcrContactSheet = false` 时会逐区域 OCR，主要用于排查 contact sheet 映射问题。OCR 识别默认间隔较短，字段 stale 和回看步数使用 OCR 专用设置。旧配置中的 AI 策略值会在加载时回退为 `PureOcr`。
 
-自动 BP 循环使用 `SmartBpRecognitionScene` 场景门禁。角色 BP 场景才允许生成和应用 Ban/Pick 操作；求生者/监管者天赋阶段只允许同步引导；大厅、规则、禁选顺序、转场不写入。区域选择、等待开始、加载和对局内会阻断当前帧的内容识别与新操作生成，并停止调度后续 tick；已经排队或正在应用的角色 BP 操作会继续完成，队列排空后才以 `SmartBpCharacterBpEnded` 正常完成 GameGuidance 和自动识别，不触发取消事件。区域选择不属于 MapBP 或角色 BP 识别范围。用户手动停止仍会立即取消当前识别；单次 AI 请求超时由 `AiRequestTimeoutSeconds` 控制。
+自动 BP 循环使用 `SmartBpRecognitionScene` 场景门禁。角色 BP 场景才允许生成和应用 Ban/Pick 操作；求生者/监管者天赋阶段只允许同步引导；大厅、规则、禁选顺序、转场不写入。区域选择、等待开始、加载和对局内会阻断当前帧的内容识别与新操作生成，并停止调度后续 tick；已经排队或正在应用的角色 BP 操作会继续完成，队列排空后才以 `SmartBpCharacterBpEnded` 正常完成 GameGuidance 和自动识别，不触发取消事件。区域选择不属于 MapBP 或角色 BP 识别范围。用户手动停止仍会立即取消当前识别。
 
-本地视觉模型 manifest 支持直链与 HuggingFace 仓库来源。HuggingFace 文件按 `{endpoint}/{repoId}/resolve/{revision}/{fileName}` 下载，中文界面默认可使用 `hf-mirror.com`，显式 endpoint override 优先。`projectorMode` / 兼容字段 `mmprojMode` 必须明确标为 `Separate`、`Embedded` 或 `None`：独立模式下载并传入 `--mmproj`，内嵌模式只传模型，None 不允许启动 SmartBP 图像识别。不得根据文件名猜测投影模式。模型 profile 还声明 `family` 和 `role`，例如 Qwen 3.5 可作为业务 VLM，GLM OCR 与 PaddleOCR-VL 用作 AI OCR 文本提取。
-
-本地视觉模型、独立 mmproj、llama.cpp 运行时、PaddleOCR 模型和 Tesseract 语言文件统一使用 Downloader 的并行分片下载：单文件 8 个分片、最多 6 个并发连接、失败最多重试 5 次，并启用断点续传和下载前磁盘空间检查。多个安装资源仍按顺序处理，避免同时下载模型和运行时造成网络、内存与磁盘争抢；取消令牌会停止当前分片任务。
+PaddleOCR 模型、RapidOCR 模型和 Tesseract 语言文件统一使用 Downloader 的并行分片下载：单文件 8 个分片、最多 6 个并发连接、失败最多重试 5 次，并启用断点续传和下载前磁盘空间检查。多个安装资源仍按顺序处理，避免同时下载模型造成网络、内存与磁盘争抢；取消令牌会停止当前分片任务。
 
 当前不识别 MapBP，不识别天赋结果，不直接修改 `CurrentGame`。
 
@@ -192,21 +189,18 @@ BP 状态自动识别的完整循环由 `SmartBpAutoRecognitionCoordinator` 协�
 捕获帧
   │
   ├─ 1. SmartBpFrameRingBuffer        ← 保存最近帧到滚动缓冲区
-  ├─ 2. SmartBpRecognitionFrameCropper ← 裁剪 phase_top 粗区域
+  ├─ 2. OCR TopCenterStatus / TopLeftStatus
+  │     ├─ TopCenterStatus ← 阵营选择、天赋调整、即将进入区域选择等生命周期 gate
+  │     └─ TopLeftStatus   ← 区域选择/等待开始 post-BP hard latch
   ├─ 3. SmartBpSnapshotRecognitionPlanner ← 根据工作流未完成步骤、字段新鲜度、最近阶段，规划需要刷新的内容区域
-  ├─ 4. SmartBpSnapshotDeltaRecognitionRouter ← 根据引擎选择路由到 OCR 或 AI 识别
-  │     ├─ [OCR 路径] SmartBpOcrSnapshotDeltaRecognitionService
-  │     │     ├─ SmartBpOcrContactSheetBuilder  ← 拼接 contact sheet
-  │     │     ├─ IOcrService.RecognizeTextLines ← 一次 PaddleOCR 推理
-  │     │     ├─ SmartBpOcrContactSheetMapper   ← 文本行映射回区域
-  │     │     ├─ SmartBpOcrPhaseClassifier      ← 本地规则判阶段
-  │     │     ├─ SmartBpOcrRegionParser         ← 本地解析 Ban/Pick 槽位
-  │     │     └─ SmartBpBusinessStateMerger     ← 合并为统一业务状态
-  │     └─ [AI 路径] SmartBpAiSnapshotDeltaRecognitionService
-  │           ├── ISmartBpImageEncoder          ← 编码裁剪图为 data URL
-  │           └── ILlamaCppOpenAiClient         ← 发送多图请求到 llama-server
+  ├─ 4. SmartBpOcrSnapshotDeltaRecognitionService
+  │     ├─ SmartBpOcrContactSheetBuilder  ← 拼接 contact sheet
+  │     ├─ IOcrService.RecognizeTextLines ← 一次所选 OCR Provider 推理
+  │     ├─ SmartBpOcrContactSheetMapper   ← 文本行映射回区域
+  │     ├─ SmartBpOcrPhaseClassifier      ← 本地规则判阶段
+  │     └─ SmartBpOcrRegionParser         ← 本地解析 Ban/Pick 槽位与 player_id
   │
-  ├─ 5. SmartBpRecognitionStateStore ← 应用增量 delta 到本地合并状态
+  ├─ 5. SmartBpRecognitionStateStore ← 使用 automatic guards 应用增量 delta
   ├─ 6. SmartBpSceneGateService      ← 场景门禁分类
   │     ├── CharacterBp → 允许生成角色操作
   │     ├── SurvivorTalent / HunterTalent → 仅允许同步引导
@@ -271,25 +265,11 @@ RapidOCR manifest 预置中、日、英三个官方组合。检测、分类、�
 
 每次安装会在 profile 目录写入 `.smartbp-install.json`，记录 profile、上游版本和内置 manifest 指纹。普通状态刷新比较安装记录与当前内置 manifest；版本或任一资产 URL、文件名、SHA-256、转换声明变化时提示更新。“检查模型更新”还会通过统一下载器临时读取 RapidOCR 官方 `default_models.yaml`，按当前识别模型的官方 ONNX URL 比较上游版本。若官方版本已领先内置 manifest，UI 会要求先更新 SmartBP 模块，不会把旧模型误标为可安装更新。旧版安装没有记录时标为“未知（旧版安装）”并提示更新，但现有完整模型仍可继续使用。
 
-RapidOCR 与 Qwen 没有依赖关系。Qwen 负责场景、阶段和字段刷新建议；所选 OCR Provider 负责文字与坐标提取；本地解释器、`CharacterSelectionService`、StateStore、门禁和应用管线继续承担业务语义与安全合并。
+RapidOCR 与本地视觉模型没有依赖关系。SmartBP 自动识别只使用所选 OCR Provider 读取文字与坐标；本地解释器、`CharacterSelectionService`、StateStore、门禁和应用管线继续承担业务语义与安全合并。
 
-### AI / 本地视觉模型策略（实验）
+### 旧 AI 字段兼容
 
-本地视觉模型 + llama.cpp 是 SmartBP 的实验性 AI 识别策略，不作为默认路径。其核心组件：
-
-| 组件 | 接口 | 职责 |
-| --- | --- | --- |
-| `ILlamaCppServerManager` | 管理 llama-server 子进程生命周期 | 启动/停止/就绪检测 |
-| `ILlamaCppOpenAiClient` | OpenAI 兼容 HTTP 客户端 | 发送图像识别请求，获取 JSON 结果 |
-| `ILocalVisionModelAssetManager` / `IQwenModelAssetManager` | 本地视觉模型下载管理 | 安装/删除/校验 GGUF 模型和 mmproj，保留 Qwen 兼容接口 |
-| `ILlamaCppRuntimeAssetManager` | llama.cpp 运行时管理 | 安装/更新/回滚 llama-server 可执行文件 |
-| `ISmartBpAiPerformanceMonitor` | GPU 性能监控 | 通过 NVML 读取 GPU 利用率、显存占用 |
-| `ISmartBpImageEncoder` | 图像编码 | 将 WPF BitmapSource 编码为 PNG data URL |
-| `ISmartBpPromptProfileProvider` | 提示词管理 | 加载内置的识别 prompt 模板 |
-
-本地视觉模型 manifest 支持直链和 HuggingFace 仓库两种来源。PaddleOCR-VL-1.6-GGUF 以 ModelScope 直链 profile 提供，并使用独立 mmproj。`projectorMode` 必须显式标注为 `Separate`（独立下载 `--mmproj`）、`Embedded`（内嵌）或 `None`（不允许图像识别）。中文界面默认使用 `hf-mirror.com` 镜像。
-
-llama.cpp 运行时可以从内置 runtime manifest 在线安装，也可通过用户配置的远程 manifest API 检查更新，存放于 `{SmartBpModuleRoot}\AI\LlamaCpp\Runtimes\{runtimeId}`。
+SmartBP 自动识别曾提供 Pure AI、AI+OCR、AI+AI OCR、业务 AI 融合和 AI OCR transcript 方案。这些路径已从生产运行链路移除。`SmartBpRecognitionSettings` 仍可能保留若干旧字段用于读取历史配置，但加载时会把缺失或不支持的策略归一化为 `PureOcr`，UI 不再暴露相关模式、模型或服务器状态。
 
 ### 识别设置总览
 
@@ -304,10 +284,7 @@ llama.cpp 运行时可以从内置 runtime manifest 在线安装，也可通过�
 | Tesseract | `EnableTesseractOcr`, `TesseractLanguages`, `TesseractDefaultPsm` | true / "chi_sim+eng" / 6 |
 | RapidOCR 模型 | `SelectedRapidOcrModelId` | "ppocr-v5-zh-mobile" |
 | RapidOCR 推理 | `RapidOcrPadding`, `RapidOcrMaxSideLen`, `RapidOcrBoxScoreThreshold`, `RapidOcrBoxThreshold`, `RapidOcrUnclipRatio`, `RapidOcrUseAngleClassifier`, `RapidOcrUsePreprocessingVariants` | 0 / 1024 / 0.5 / 0.3 / 1.6 / true / false |
-| AI 推理 | `AiRequestTimeoutSeconds`, `AiStartupTimeoutSeconds` | 35s / 120s |
-| 业务 AI 模型 | `SelectedBusinessAiModelId`, `SelectedQwenModelId` | "qwen3.5-2b-q4km" |
-| AI OCR 模型 | `SelectedAiOcrModelId` | "paddleocr-vl-1.6-gguf" |
-| llama.cpp | `BusinessAiServerPort`, `AiOcrServerPort`, `UseSeparateAiOcrServer`, `LlamaContextSize`, `LlamaGpuLayers`, `LlamaFlashAttention`, `CpuThreads` | 18080 / 18081 / true / 8192 / -1 (auto) / true / 2 |
+| 旧 AI 字段兼容 | 历史 AI 策略、模型与端口字段 | 加载后不参与 SmartBP 自动识别，策略回退为 `PureOcr` |
 | 循环控制 | `RecognitionIntervalMs`, `OcrRecognitionIntervalMs` | 1200ms / 300ms |
 | 自动应用 | `EnableAutoApplyRecognition`, `EnableAutoGuidanceSync` | false / false |
 | 应用模式 | `RecognitionApplyMode` | `GuidedWorkflow` |
@@ -361,9 +338,9 @@ neo-bpsys-wpf.SmartBp.Module/Resources/SmartBpDefaultConfigs/GameDataRegions.16-
 | `left_bottom` | `LeftBottom` | 左下角 | 求生者 Pick 位 |
 | `right_bottom` | `RightBottom` | 右下角 | 监管者 Pick 位 |
 
-默认配置来自 SmartBP 模块 `Resources` 中的 `BpRecognitionLayoutProfile.json`。用户可通过 `RegionEditorWindow` 在当前捕获帧或内置测试图上可视化调整六个粗区域（包括 `TopLeftStatus`）。保存后的同一份用户 profile 同时供编辑器预览、本地 OCR 状态检测和 AI 阶段裁剪读取。这套配置独立于赛后数据细区域配置。
+默认配置来自 SmartBP 模块 `Resources` 中的 `BpRecognitionLayoutProfile.json`。用户可通过 `RegionEditorWindow` 在当前捕获帧或内置测试图上可视化调整六个粗区域（包括 `TopLeftStatus`）。保存后的同一份用户 profile 同时供编辑器预览和本地 OCR 状态检测读取。这套配置独立于赛后数据细区域配置。
 
-自动循环会先只 OCR `TopLeftStatus`。本地规则以“求生者选择区域中”“监管者选择区域中”“等待游戏开始”三个标题为强锚点，并使用关键词与编辑距离容忍少量 OCR 错字；“剩余…秒”和“前往【…】”只作为辅助证据。命中后本地结果覆盖 Business AI 的旧 BP 阶段输出，设置 post-BP latch，并在任何角色内容区域识别和字段合并前进入排空队列停止流程。
+自动循环会先 OCR `TopCenterStatus` / `TopLeftStatus`。本地规则以“求生者选择区域中”“监管者选择区域中”“等待游戏开始”三个标题为强锚点，并使用关键词与编辑距离容忍少量 OCR 错字；“剩余…秒”和“前往【…】”只作为辅助证据。命中后设置 post-BP latch，并在任何角色内容区域识别和字段合并前进入排空队列停止流程。
 
 ## 图像预处理
 

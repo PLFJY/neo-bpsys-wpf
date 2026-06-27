@@ -40,15 +40,12 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     private readonly IQwenModelAssetManager _qwenAssetManager = null!;
     private readonly ILlamaCppServerManager _llamaServerManager = null!;
     private readonly ILlamaCppServerManagerFactory _llamaServerManagers = null!;
-    private readonly ISmartBpAiRecognitionService _aiRecognitionService = null!;
     private readonly ISmartBpRecognitionSettingsService _recognitionSettingsService = null!;
     private readonly ISmartBpDebugLog _aiDebugLog = null!;
     private readonly ISmartBpPromptProfileProvider _promptProfileProvider = null!;
     private readonly ILlamaCppRuntimeAssetManager _llamaRuntimeAssetManager = null!;
     private readonly ISmartBpAutoRecognitionCoordinator _autoRecognitionCoordinator = null!;
     private readonly IGameGuidanceService _gameGuidanceService = null!;
-    private readonly ILlamaCppOpenAiClient _llamaCppOpenAiClient = null!;
-    private readonly ISmartBpImageEncoder _smartBpImageEncoder = null!;
     private readonly ISmartBpCharacterResolver _smartBpCharacterResolver = null!;
     private readonly ISmartBpRecognitionRegionProfileService _aiRegionProfileService = null!;
     private readonly ISmartBpRecognitionLedger _aiRecognitionLedger = null!;
@@ -87,15 +84,12 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         IQwenModelAssetManager qwenAssetManager,
         ILlamaCppServerManager llamaServerManager,
         ILlamaCppServerManagerFactory llamaServerManagers,
-        ISmartBpAiRecognitionService aiRecognitionService,
         ISmartBpRecognitionSettingsService recognitionSettingsService,
         ISmartBpDebugLog aiDebugLog,
         ISmartBpPromptProfileProvider promptProfileProvider,
         ILlamaCppRuntimeAssetManager llamaRuntimeAssetManager,
         ISmartBpAutoRecognitionCoordinator autoRecognitionCoordinator,
         IGameGuidanceService gameGuidanceService,
-        ILlamaCppOpenAiClient llamaCppOpenAiClient,
-        ISmartBpImageEncoder smartBpImageEncoder,
         ISmartBpCharacterResolver smartBpCharacterResolver,
         ISmartBpRecognitionRegionProfileService aiRegionProfileService,
         ISmartBpRecognitionLedger aiRecognitionLedger,
@@ -124,15 +118,12 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         _qwenAssetManager = qwenAssetManager;
         _llamaServerManager = llamaServerManager;
         _llamaServerManagers = llamaServerManagers;
-        _aiRecognitionService = aiRecognitionService;
         _recognitionSettingsService = recognitionSettingsService;
         _aiDebugLog = aiDebugLog;
         _promptProfileProvider = promptProfileProvider;
         _llamaRuntimeAssetManager = llamaRuntimeAssetManager;
         _autoRecognitionCoordinator = autoRecognitionCoordinator;
         _gameGuidanceService = gameGuidanceService;
-        _llamaCppOpenAiClient = llamaCppOpenAiClient;
-        _smartBpImageEncoder = smartBpImageEncoder;
         _smartBpCharacterResolver = smartBpCharacterResolver;
         _aiRegionProfileService = aiRegionProfileService;
         _aiRecognitionLedger = aiRecognitionLedger;

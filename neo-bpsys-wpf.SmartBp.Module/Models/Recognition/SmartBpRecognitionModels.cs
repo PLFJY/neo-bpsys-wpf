@@ -17,13 +17,7 @@ public enum SmartBpRecognitionEngine { Ocr, AiQwen }
 public enum SmartBpRecognitionStrategy
 {
     /// <summary>只使用已选本地 OCR Provider。</summary>
-    PureOcr,
-    /// <summary>只使用已选业务视觉模型。</summary>
-    PureAi,
-    /// <summary>使用业务 AI 判断场景和阶段，再使用本地 OCR 提取文本。</summary>
-    AiWithOcr,
-    /// <summary>使用业务 AI 判断场景和阶段，再使用专用 AI OCR 模型提取文本。</summary>
-    AiWithAiOcr
+    PureOcr
 }
 
 /// <summary>选择混合识别证据如何融合为 SmartBP 字段更新。</summary>

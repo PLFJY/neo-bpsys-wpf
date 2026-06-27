@@ -96,7 +96,6 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint
         services.AddSingleton<ISmartBpPromptProfileProvider, SmartBpPromptProfileProvider>();
         services.AddSingleton<ILlamaCppRuntimeAssetManager, LlamaCppRuntimeAssetManager>();
         services.AddSingleton<ILlamaCppRuntimeUpdateService, LlamaCppRuntimeUpdateService>();
-        services.AddSingleton<ISmartBpImageEncoder, SmartBpImageEncoder>();
         services.AddSingleton<ISmartBpRecognitionRegionProfileService, SmartBpRecognitionRegionProfileService>();
 
         // 自动识别流水线：裁剪、OCR/AI 识别、状态合并、候选操作、GameGuidance 同步与实际应用。
@@ -111,23 +110,13 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint
         services.AddSingleton<SmartBpOcrRegionParser>();
         services.AddSingleton<ISmartBpOcrBpRecognitionService, SmartBpOcrBpRecognitionService>();
         services.AddSingleton<ISmartBpOcrSnapshotDeltaRecognitionService, SmartBpOcrSnapshotDeltaRecognitionService>();
-        services.AddSingleton<ISmartBpAiOcrTranscriptRecognitionService, SmartBpAiOcrTranscriptRecognitionService>();
-        services.AddSingleton<ISmartBpAiOcrTranscriptInterpreter, SmartBpAiOcrTranscriptInterpreter>();
-        services.AddSingleton<ISmartBpBusinessAiFusionValidator, SmartBpBusinessAiFusionValidator>();
-        services.AddSingleton<ISmartBpBusinessAiFusionService, SmartBpBusinessAiFusionService>();
-        services.AddSingleton<ILlamaCppOpenAiClient, LlamaCppOpenAiClient>();
         services.AddSingleton<ILlamaCppServerManager, LlamaCppServerManager>();
         services.AddSingleton<ILlamaCppServerManagerFactory, LlamaCppServerManagerFactory>();
-        services.AddSingleton<ISmartBpAiRecognitionService, SmartBpAiRecognitionService>();
         services.AddSingleton<ISmartBpGuidanceSyncService, SmartBpGuidanceSyncService>();
         services.AddSingleton<SmartBpCandidateOperationBuilder>();
         services.AddSingleton<ISmartBpBusinessStateMerger, SmartBpBusinessStateMerger>();
-        services.AddSingleton<ISmartBpRegionSnapshotRecognitionService, SmartBpRegionSnapshotRecognitionService>();
         services.AddSingleton<ISmartBpRecognitionStateStore, SmartBpRecognitionStateStore>();
         services.AddSingleton<ISmartBpSnapshotRecognitionPlanner, SmartBpSnapshotRecognitionPlanner>();
-        services.AddSingleton<SmartBpAiSnapshotDeltaRecognitionService>();
-        services.AddSingleton<ISmartBpSnapshotDeltaRecognitionService, SmartBpSnapshotDeltaRecognitionRouter>();
-        services.AddSingleton<ISmartBpAiFieldSnapshotRecognitionService, SmartBpAiFieldSnapshotRecognitionService>();
         services.AddSingleton<ISmartBpRecognitionLedger, SmartBpRecognitionLedger>();
         services.AddSingleton<ISmartBpWorkflowBackfillService, SmartBpWorkflowBackfillService>();
         services.AddSingleton<ISmartBpDetectedOperationApplier, SmartBpDetectedOperationApplier>();

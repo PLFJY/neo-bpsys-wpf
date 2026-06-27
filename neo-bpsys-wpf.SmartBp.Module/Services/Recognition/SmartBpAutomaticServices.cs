@@ -1638,27 +1638,18 @@ internal enum SmartBpRecognitionDebugMode
 }
 
 internal sealed class SmartBpAutoRecognitionCoordinator(
-    ISmartBpRegionSnapshotRecognitionService snapshotRecognition,
-    ISmartBpSnapshotDeltaRecognitionService deltaRecognition,
-    ISmartBpAiFieldSnapshotRecognitionService fieldSnapshotRecognition,
     ISmartBpSnapshotRecognitionPlanner planner,
     ISmartBpRecognitionStateStore stateStore,
     ISmartBpRecognitionLedger ledger,
     ISmartBpFrameRingBuffer frameRingBuffer,
     ISmartBpRecognitionSettingsService settings,
-    ISharedDataService shared,
     ISmartBpGuidanceSyncService guidanceSync,
     IGameGuidanceService guidance,
     ISmartBpWorkflowBackfillService backfill,
     SmartBpCandidateOperationBuilder candidateBuilder,
     ISmartBpDetectedOperationApplier applier,
     ISmartBpSceneGateService sceneGate,
-    ISmartBpOcrBpRecognitionService ocrRecognition,
-    ISmartBpAiOcrTranscriptRecognitionService aiOcrTranscriptRecognition,
-    ISmartBpAiOcrTranscriptInterpreter aiOcrTranscriptInterpreter,
-    ISmartBpBusinessAiFusionService businessAiFusion,
-    ILlamaCppServerManagerFactory llamaServerManagers,
-    ISmartBpDebugLog debugLog) : ISmartBpAutoRecognitionCoordinator, ISmartBpStepCommitScheduler
+    ISmartBpOcrBpRecognitionService ocrRecognition) : ISmartBpAutoRecognitionCoordinator, ISmartBpStepCommitScheduler
 {
     private readonly SemaphoreSlim _tickGate = new(1, 1);
     private readonly object _cancellationLock = new();
@@ -1667,8 +1658,6 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
     private string? _lastSnapshotFingerprint;
     private int _stableSnapshotCount;
     private long _frameSequence;
-    private GameAction? _lastExplicitAction;
-    private int _unknownPhaseFrames;
     private bool _hasDetectedPostBp;
     private string _postBpPhase = "未知";
     private long _postBpDetectedFrameSequence;
@@ -1686,8 +1675,6 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
         }
         _lastSnapshotFingerprint = null;
         _stableSnapshotCount = 0;
-        _lastExplicitAction = null;
-        _unknownPhaseFrames = 0;
         ClearPostBpLatch();
         return Task.CompletedTask;
     }
@@ -1720,11 +1707,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
     public async Task<SmartBpAutoRecognitionTickResult> RunOneTickDryRunAsync(BitmapSource frame, CancellationToken cancellationToken = default)
         => await RunOneTickCoreAsync(frame, isDryRun: true, cancellationToken).ConfigureAwait(false);
 
-    // 策略执行矩阵：
-    // PureOcr：完整调试 OCR 所有 BP 字段；仅阶段识别只 OCR 状态/阶段；自动模式使用规划器请求的字段。
-    // PureAi：完整调试由 ViewModel 旧版全量 BP 扫描路径处理；仅阶段识别使用 AI 阶段/场景；自动模式使用 AI 阶段和请求字段快照。
-    // AiWithOcr：完整调试使用 AI 阶段/场景加 OCR 全部 BP 字段；仅阶段识别只使用 AI 阶段/场景；自动模式 OCR 请求字段或过期字段。
-    // AiWithAiOcr：完整调试使用业务 AI 阶段/场景加 AI OCR 全字段转写；仅阶段识别只使用业务 AI 阶段/场景；自动模式使用请求字段或过期字段。
+    // OCR-only 执行矩阵：完整调试 OCR 所有 BP 字段；仅阶段识别只 OCR 状态/阶段；自动模式使用规划器请求的字段。
     public async Task<SmartBpAutoRecognitionTickResult> RunFullRecognitionDebugAsync(BitmapSource frame, CancellationToken cancellationToken = default)
         => await RunOneTickCoreAsync(frame, isDryRun: false, cancellationToken, SmartBpRecognitionDebugMode.FullStrategy).ConfigureAwait(false);
 
@@ -1777,8 +1760,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                 messages.Add("Current-stage incremental debug: automatic planner requested only relevant/stale fields; operation apply and guidance sync are disabled.");
             IReadOnlyDictionary<string, string> rawResponses;
             var recognitionPath = ResolveRecognitionPath(request);
-            debugLog.Write("recognition", $"Recognition path={recognitionPath}; structured_output_mode={settings.Settings.StructuredOutputMode}; requested_fields=[{string.Join(", ", request.RequestedFields)}]; legacy_delta={settings.Settings.UseLegacySnapshotDeltaRecognition}.");
-            messages.Add($"Recognition path: {recognitionPath}; structured output: {settings.Settings.StructuredOutputMode}.");
+            messages.Add($"Recognition path: {recognitionPath}; requested_fields=[{string.Join(", ", request.RequestedFields)}].");
             if (!isDebugPreview && !isDryRun)
             {
                 var localStatus = await ocrRecognition.RecognizeAsync(
@@ -1794,34 +1776,14 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                 var lifecycle = localStatus.LifecycleStatus;
                 if (localStatus.PostBpStatus?.IsPostBp == true || IsPrimaryPostBpPhase(localStatus.Phase.Phase))
                 {
-                    var aiPhase = "not-run";
-                    SmartBpCroppedFrame? comparisonCrop = null;
-                    var comparisonRaw = "";
-                    if (settings.Settings.RecognitionStrategy != SmartBpRecognitionStrategy.PureOcr)
-                    {
-                        try
-                        {
-                            var comparison = await fieldSnapshotRecognition.RecognizePhaseOnlyAsync(frame, tickToken).ConfigureAwait(false);
-                            aiPhase = comparison.Phase.Phase;
-                            comparisonCrop = comparison.Crop;
-                            comparisonRaw = comparison.RawJson;
-                            messages.AddRange(comparison.Diagnostics);
-                        }
-                        catch (Exception ex) when (ex is not OperationCanceledException)
-                        {
-                            messages.Add($"Business AI phase comparison failed after deterministic post-BP detection: {ex.Message}");
-                        }
-                    }
-
                     phaseResult = new SmartBpPhaseRecognitionResult { Phase = localStatus.Phase.Phase };
                     stateStore.ApplyPhase(phaseResult.Phase, sequence);
                     state = stateStore.Snapshot;
                     var statusGate = sceneGate.Classify(phaseResult, state,
                         new Dictionary<string, string> { ["top_left_status"] = statusRaw }, guidanceSnapshot);
-                    messages.Add($"TopLeftStatus hard confirmation: {phaseResult.Phase}. AI phase={aiPhase}; final_phase={phaseResult.Phase}.");
+                    messages.Add($"TopLeftStatus hard confirmation: {phaseResult.Phase}; final_phase={phaseResult.Phase}.");
                     return LatchAndCreatePostBpPausedResult(
-                        sequence, state, phaseResult, comparisonCrop, guidanceSnapshot, messages,
-                        string.Join(Environment.NewLine, new[] { statusRaw, comparisonRaw }.Where(value => !string.IsNullOrWhiteSpace(value))), statusGate);
+                        sequence, state, phaseResult, null, guidanceSnapshot, messages, statusRaw, statusGate);
                 }
 
                 if (lifecycle != null)
@@ -1873,26 +1835,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                     }
                 }
             }
-            await EnsureStrategyServersAsync(tickToken).ConfigureAwait(false);
-            if (!isDebugPreview && !isDryRun &&
-                recognitionPath == SmartBpRecognitionPath.LegacyDelta &&
-                settings.Settings.RecognitionStrategy != SmartBpRecognitionStrategy.PureOcr)
-            {
-                var preliminary = await fieldSnapshotRecognition.RecognizePhaseOnlyAsync(frame, tickToken).ConfigureAwait(false);
-                messages.AddRange(preliminary.Diagnostics);
-                phaseResult = preliminary.Phase;
-                phaseCrop = preliminary.Crop;
-                stateStore.ApplyPhase(phaseResult.Phase, sequence);
-                state = stateStore.Snapshot;
-                var preliminaryRaw = new Dictionary<string, string> { ["phase_only"] = preliminary.RawJson };
-                var preliminaryGate = sceneGate.Classify(phaseResult, state, preliminaryRaw, guidanceSnapshot);
-                messages.Add($"Legacy delta pre-content phase gate: phase={phaseResult.Phase}; scene={preliminaryGate.Scene}; reason={preliminaryGate.Reason}.");
-                if (preliminaryGate.ShouldPauseAutomaticRecognition)
-                    return LatchAndCreatePostBpPausedResult(sequence, state, phaseResult, phaseCrop,
-                        guidanceSnapshot, messages, preliminary.RawJson, preliminaryGate);
-                request = FilterAutomaticRequestByPhase(request, phaseResult.Phase, messages);
-            }
-            if (!isDebugPreview && settings.Settings.RecognitionStrategy == SmartBpRecognitionStrategy.PureOcr)
+            if (!isDebugPreview)
             {
                 var phaseOnlyOcr = await ocrRecognition.RecognizeAsync(
                     frame,
@@ -1911,298 +1854,83 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                 var preContentGate = sceneGate.Classify(phaseResult, state, rawResponses, guidanceSnapshot);
                 messages.Add(preContentGate.ShouldPauseAutomaticRecognition
                     ? $"Post-BP phase detected: phase={phaseResult.Phase}; scene={preContentGate.Scene}."
-                    : $"Pure OCR phase gate: phase={phaseResult.Phase}; scene={preContentGate.Scene}.");
+                    : $"OCR phase gate: phase={phaseResult.Phase}; scene={preContentGate.Scene}.");
                 if (preContentGate.ShouldPauseAutomaticRecognition)
                     return LatchAndCreatePostBpPausedResult(sequence,
                         state, phaseResult, phaseCrop, guidanceSnapshot, messages, phaseRaw, preContentGate);
                 request = FilterAutomaticRequestByPhase(request, phaseResult.Phase, messages);
-                messages.Add("Pure OCR phase gate allowed BP content recognition.");
-            }
-            if (recognitionPath == SmartBpRecognitionPath.PhaseOnly)
-            {
-                var phaseOnly = await fieldSnapshotRecognition.RecognizePhaseOnlyAsync(frame, tickToken);
-                rawResponses = new Dictionary<string, string> { ["phase_only"] = phaseOnly.RawJson };
-                raw = phaseOnly.RawJson;
-                messages.AddRange(phaseOnly.Diagnostics);
-                phaseResult = phaseOnly.Phase;
-                phaseCrop = phaseOnly.Crop;
-                contentCrops = [];
-                if (!isDryRun)
-                {
-                    stateStore.ApplyPhase(phaseResult.Phase, sequence);
-                    messages.Add($"Applied phase-only update: phase={phaseResult.Phase}.");
-                }
-            }
-            else if (settings.Settings.RecognitionStrategy == SmartBpRecognitionStrategy.AiWithOcr)
-            {
-                messages.Add($"AI + OCR fusion_mode={settings.Settings.AiWithOcrFusionMode}; default LocalCSharp path uses OCR provider text lines plus local parser/state merge.");
-                var phaseOnly = await fieldSnapshotRecognition.RecognizePhaseOnlyAsync(frame, tickToken);
-                rawResponses = new Dictionary<string, string> { ["phase_only"] = phaseOnly.RawJson };
-                raw = phaseOnly.RawJson;
-                messages.AddRange(phaseOnly.Diagnostics);
-                phaseResult = phaseOnly.Phase;
-                phaseCrop = phaseOnly.Crop;
-                if (!isDryRun) stateStore.ApplyPhase(phaseResult.Phase, sequence);
-                var preGateState = stateStore.Snapshot;
-                var preGate = sceneGate.Classify(phaseResult, preGateState, rawResponses, guidanceSnapshot);
-                messages.Add($"AI scene/phase controller: scene={preGate.Scene}; phase={phaseResult.Phase}; allowed={preGate.IsBpRecognitionAllowed}; recommended_fields=[{string.Join(", ", request.RequestedFields)}]; reason={preGate.Reason}.");
-                if (!isDebugPreview && preGate.ShouldPauseAutomaticRecognition)
-                    return LatchAndCreatePostBpPausedResult(sequence,
-                        preGateState, phaseResult, phaseCrop, guidanceSnapshot, messages, raw, preGate);
-                if (!isDebugPreview)
-                    request = FilterAutomaticRequestByPhase(request, phaseResult.Phase, messages);
-                var debugForced = debugMode == SmartBpRecognitionDebugMode.FullStrategy;
-                if ((!preGate.IsBpRecognitionAllowed && !debugForced) || request.RequestedRegions.Count == 0)
-                {
-                    state = preGateState;
-                    contentCrops = [];
-                    messages.Add(preGate.IsBpRecognitionAllowed
-                        ? "AI + OCR skipped OCR because no fields were requested."
-                        : "AI + OCR skipped OCR because BP recognition is blocked by the scene decision.");
-                }
-                else
-                {
-                    var aiWithOcrTickMode = DescribeRecognitionTickMode(debugMode);
-                    var aiWithOcrBeforeMerge = stateStore.Snapshot;
-                    messages.Add($"AI + OCR role-distribution diagnostics: saved_frame_id={sequence}; tick_mode={aiWithOcrTickMode}; planner_requested_fields=[{string.Join(", ", request.RequestedFields)}]; ocr_requested_regions=[{string.Join(", ", request.RequestedRegions.Select(item => $"{item.Region}->{item.TargetField}"))}]; debug_thumbnail_id=frame_sequence:{sequence}:ocr_regions.");
-                    var ocrParseContext = new SmartBpOcrFieldParseContext
-                    {
-                        AuthoritativePhase = phaseResult.Phase,
-                        CurrentGuidanceAction = guidanceSnapshot.CurrentAction,
-                        SurvivorPickLocked = SmartBpAutomaticMapping.IsSurvivorPickLocked(guidanceSnapshot, phaseResult.Phase),
-                        IsAutomaticMode = !isDebugPreview
-                    };
-                    var ocr = await ocrRecognition.RecognizeAsync(frame, new SmartBpOcrRecognitionRequest(
-                        request.RequestedRegions.Select(item => item.Region).Distinct().ToArray(),
-                        IncludePhase: false,
-                        ParseContext: ocrParseContext), tickToken);
-                    raw = raw + "\n\nocr raw:\n" + string.Join(Environment.NewLine, ocr.Regions.SelectMany(region =>
-                        region.Lines.Select(line => $"[{region.Region}] {line.Text} conf={line.Confidence:0.00}")));
-                    messages.Add($"AI + OCR role-distribution diagnostics: phase_result={phaseResult.Phase}; ocr_raw_lines=[{string.Join(" | ", ocr.Regions.SelectMany(region => region.Lines.Select(line => $"[{region.Region}] {line.Text}")))}].");
-                    messages.Add($"AI + OCR role-distribution diagnostics: parsed_local_state_before_merge={FormatBusinessStateForDiagnostics(ocr.BusinessState)}.");
-                    messages.Add($"AI + OCR role-distribution diagnostics: StateStore before merge={FormatBusinessStateForDiagnostics(aiWithOcrBeforeMerge)}.");
-                    messages.AddRange(ocr.Diagnostics);
-                    var delta = ToDelta(ocr.BusinessState, request.RequestedFields);
-                    if (!string.Equals(delta.Phase, phaseResult.Phase, StringComparison.Ordinal))
-                    {
-                        messages.Add($"AI + OCR local fusion locked final phase to Business AI phase={phaseResult.Phase}; OCR phase={delta.Phase} ignored.");
-                        delta.Phase = phaseResult.Phase;
-                        ocr.BusinessState.Phase = phaseResult.Phase;
-                    }
-                    IReadOnlyList<string> mergeDiagnostics = [];
-                    if (!isDryRun)
-                    {
-                        mergeDiagnostics = MergeDeltaWithAutomaticGuards(delta, sequence, phaseResult.Phase, !isDebugPreview, guidanceSnapshot);
-                        messages.AddRange(mergeDiagnostics);
-                    }
-                    state = isDryRun ? ocr.BusinessState : stateStore.Snapshot;
-                    messages.Add($"AI + OCR role-distribution diagnostics: StateStore after merge={FormatBusinessStateForDiagnostics(state)}.");
-                    var staleFieldIgnored = mergeDiagnostics.Any(message => message.Contains("Ignored stale", StringComparison.Ordinal));
-                    messages.Add($"AI + OCR role-distribution diagnostics: stale_field_rewritten=false; stale_field_ignored={staleFieldIgnored}; tick_mode={aiWithOcrTickMode}.");
-                    contentCrops = [];
-                    rawResponses = new Dictionary<string, string>(rawResponses) { ["ocr"] = raw };
-                }
-            }
-            else if (settings.Settings.RecognitionStrategy == SmartBpRecognitionStrategy.AiWithAiOcr)
-            {
-                var phaseOnly = await fieldSnapshotRecognition.RecognizePhaseOnlyAsync(frame, tickToken);
-                var rawMap = new Dictionary<string, string> { ["phase_only"] = phaseOnly.RawJson };
-                raw = phaseOnly.RawJson;
-                messages.AddRange(phaseOnly.Diagnostics);
-                phaseResult = phaseOnly.Phase;
-                phaseCrop = phaseOnly.Crop;
-                if (!isDryRun) stateStore.ApplyPhase(phaseResult.Phase, sequence);
-                var preGateState = stateStore.Snapshot;
-                var preGate = sceneGate.Classify(phaseResult, preGateState, rawMap, guidanceSnapshot);
-                messages.Add($"AI + AI OCR scene/phase controller: scene={preGate.Scene}; phase={phaseResult.Phase}; allowed={preGate.IsBpRecognitionAllowed}; requested_fields=[{string.Join(", ", request.RequestedFields)}]; reason={preGate.Reason}.");
-                if (!isDebugPreview && preGate.ShouldPauseAutomaticRecognition)
-                    return LatchAndCreatePostBpPausedResult(sequence,
-                        preGateState, phaseResult, phaseCrop, guidanceSnapshot, messages, raw, preGate);
-                if (!isDebugPreview)
-                    request = FilterAutomaticRequestByPhase(request, phaseResult.Phase, messages);
-                var debugForced = debugMode == SmartBpRecognitionDebugMode.FullStrategy;
-                if ((!preGate.IsBpRecognitionAllowed && !debugForced) || request.RequestedRegions.Count == 0)
-                {
-                    state = preGateState;
-                    contentCrops = [];
-                    rawResponses = rawMap;
-                    messages.Add(preGate.IsBpRecognitionAllowed
-                        ? "AI + AI OCR skipped transcript extraction because no fields were requested."
-                        : "AI + AI OCR skipped transcript extraction because BP recognition is blocked by the scene decision.");
-                }
-                else
-                {
-                    var updates = new List<SmartBpSnapshotFieldUpdate>();
-                    var evidence = new List<SmartBpAiOcrTranscriptRegionEvidence>();
-                    var rawBuilder = new StringBuilder(raw);
-                    foreach (var (region, targetField) in request.RequestedRegions)
-                    {
-                        var transcript = await aiOcrTranscriptRecognition.RecognizeAsync(frame, [(region, targetField)], tickToken);
-                        rawMap[$"ai_ocr_{targetField}"] = transcript.RawJson;
-                        rawBuilder.Append("\n\n").Append($"ai_ocr_{targetField} raw:\n").Append(transcript.RawJson);
-                        messages.AddRange(transcript.Diagnostics);
-                        evidence.Add(new()
-                        {
-                            Region = region,
-                            Field = targetField,
-                            AiOcrModel = settings.Settings.SelectedAiOcrModelId,
-                            RawOutput = transcript.RawJson,
-                            TechnicalLines = transcript.Lines.Select(line => line.Text).Where(text => !string.IsNullOrWhiteSpace(text)).ToArray()
-                        });
-                        if (settings.Settings.AiWithAiOcrFusionMode == SmartBpHybridFusionMode.LocalCSharp)
-                        {
-                            var interpreted = aiOcrTranscriptInterpreter.Interpret(transcript, region, targetField);
-                            updates.Add(interpreted.Update);
-                            messages.Add("AI + AI OCR local C# transcript interpreter is experimental.");
-                            messages.AddRange(interpreted.Diagnostics);
-                        }
-                    }
-
-                    SmartBpSnapshotDeltaResult? delta;
-                    if (settings.Settings.AiWithAiOcrFusionMode == SmartBpHybridFusionMode.BusinessAi)
-                    {
-                        try
-                        {
-                            var outputContract = SmartBpBusinessAiFusionOutputContract.FullBusinessState;
-                            messages.Add("pre-fusion raw evidence packaging: AI OCR rawOutput, technicalLines, region/field/model metadata, candidate lists, locked phase, and current known state are sent to Business AI.");
-                            var fusion = await businessAiFusion.FuseAsync(phaseResult, evidence, request.RequestedFields, preGateState, outputContract, tickToken);
-                            delta = fusion.Delta;
-                            rawMap["business_ai_fusion"] = fusion.RawJson;
-                            rawBuilder.Append("\n\nbusiness_ai_fusion raw:\n").Append(fusion.RawJson);
-                            messages.AddRange(fusion.Diagnostics);
-                            messages.Add("AI + AI OCR fusion_mode=BusinessAi; raw AI OCR evidence sent to Business AI");
-                            messages.Add($"AI + AI OCR fusion_mode=BusinessAi; output_contract={outputContract}; post-fusion validation completed before merge.");
-                        }
-                        catch (SmartBpBusinessAiFusionValidationException ex)
-                        {
-                            delta = null;
-                            rawMap["business_ai_fusion"] = ex.RawJson;
-                            rawMap["business_ai_fusion_diagnostics"] = string.Join(Environment.NewLine, ex.Diagnostics);
-                            rawBuilder.Append("\n\nbusiness_ai_fusion rejected raw:\n").Append(ex.RawJson);
-                            rawBuilder.Append("\n\nbusiness_ai_fusion diagnostics:\n").AppendJoin(Environment.NewLine, ex.Diagnostics);
-                            messages.AddRange(ex.Diagnostics);
-                            messages.Add("Business AI fusion validation failed; corrupted updates were not merged.");
-                            messages.Add("Business AI fusion failed after phase/transcript recognition. No final business state was merged.");
-                        }
-                    }
-                    else
-                    {
-                        delta = new SmartBpSnapshotDeltaResult { Phase = phaseResult.Phase, Updates = updates };
-                        messages.Add("AI + AI OCR fusion_mode=LocalCSharp; local transcript interpreter used");
-                    }
-                    if (!isDryRun && delta != null)
-                        messages.AddRange(MergeDeltaWithAutomaticGuards(delta, sequence, phaseResult.Phase, !isDebugPreview, guidanceSnapshot));
-                    state = isDryRun ? preGateState : stateStore.Snapshot;
-                    raw = rawBuilder.ToString();
-                    rawResponses = rawMap;
-                    contentCrops = [];
-                    messages.Add(delta == null
-                        ? "AI + AI OCR transcript merge result: rejected; previous StateStore values were preserved."
-                        : $"AI + AI OCR transcript merge result updates=[{string.Join(", ", delta.Updates.Select(update => update.Field))}].");
-                }
-            }
-            else if (recognitionPath == SmartBpRecognitionPath.FieldSnapshot || recognitionPath == SmartBpRecognitionPath.FullFieldSnapshot)
-            {
-                var phaseOnly = await fieldSnapshotRecognition.RecognizePhaseOnlyAsync(frame, tickToken);
-                var rawMap = new Dictionary<string, string> { ["phase_only"] = phaseOnly.RawJson };
-                raw = phaseOnly.RawJson;
-                messages.AddRange(phaseOnly.Diagnostics);
-                phaseResult = phaseOnly.Phase;
-                phaseCrop = phaseOnly.Crop;
-                if (!isDryRun) stateStore.ApplyPhase(phaseResult.Phase, sequence);
-                var preGateState = stateStore.Snapshot;
-                var preGate = sceneGate.Classify(phaseResult, preGateState, rawMap, guidanceSnapshot);
-                messages.Add($"AI field-snapshot scene/phase controller: scene={preGate.Scene}; phase={phaseResult.Phase}; allowed={preGate.IsBpRecognitionAllowed}; requested_fields=[{string.Join(", ", request.RequestedFields)}]; reason={preGate.Reason}.");
-                if (!isDebugPreview && preGate.ShouldPauseAutomaticRecognition)
-                    return LatchAndCreatePostBpPausedResult(sequence,
-                        preGateState, phaseResult, phaseCrop, guidanceSnapshot, messages, raw, preGate);
-                if (!isDebugPreview)
-                    request = FilterAutomaticRequestByPhase(request, phaseResult.Phase, messages);
-                var contentCropList = new List<SmartBpCroppedFrame>();
-                var rawBuilder = new StringBuilder(raw);
-                foreach (var (region, targetField) in request.RequestedRegions)
-                {
-                    var fieldResult = await fieldSnapshotRecognition.RecognizeFieldAsync(frame, region, targetField, tickToken);
-                    rawMap[$"field_{targetField}"] = fieldResult.RawJson;
-                    rawBuilder.Append("\n\n").Append($"field_{targetField} raw:\n").Append(fieldResult.RawJson);
-                    messages.AddRange(fieldResult.Diagnostics);
-                    contentCropList.Add(fieldResult.Crop);
-                    if (isDryRun) continue;
-                    var update = new SmartBpSnapshotFieldUpdate { Field = fieldResult.Field, Slots = fieldResult.Slots.ToList(), PickedHun = fieldResult.PickedHun };
-                    var mergeMessages = MergeFieldWithAutomaticGuards(
-                        fieldResult.Field, update, sequence, phaseResult.Phase, !isDebugPreview, guidanceSnapshot);
-                    messages.AddRange(mergeMessages);
-                }
-                rawResponses = rawMap;
-                raw = rawBuilder.ToString();
-                contentCrops = contentCropList;
-            }
-            else if (settings.Settings.UseMultiImageSnapshotRequest)
-            {
-                try
-                {
-                    var deltaPackage = await deltaRecognition.RecognizeDeltaAsync(frame, request, sequence, tickToken);
-                    rawResponses = deltaPackage.RawResponses;
-                    raw = string.Join("\n\n", deltaPackage.RawResponses.Select(item => $"{item.Key} raw:\n{item.Value}"));
-                    messages.AddRange(deltaPackage.Diagnostics);
-                    if (isDryRun)
-                        messages.Add("Speed-test dry run: skipped local snapshot delta merge.");
-                    else
-                        messages.AddRange(MergeDeltaWithAutomaticGuards(
-                            deltaPackage.Delta, sequence, deltaPackage.Delta.Phase, !isDebugPreview, guidanceSnapshot));
-                    phaseResult = new SmartBpPhaseRecognitionResult { Phase = deltaPackage.Delta.Phase };
-                    phaseCrop = deltaPackage.PhaseCrop;
-                    contentCrops = deltaPackage.ContentCrops;
-                }
-                catch (Exception ex) when (ex is not OperationCanceledException)
-                {
-                    messages.Add(settings.Settings.AllowSequentialSnapshotFallback
-                        ? $"Multi-image snapshot request failed; falling back to sequential region requests. {ex.Message}"
-                        : $"Multi-image snapshot request failed and sequential fallback is disabled. {ex.Message}");
-                    if (ex is LlamaCppRequestException requestException) raw = requestException.RawResponse;
-                    if (!settings.Settings.AllowSequentialSnapshotFallback)
-                        throw;
-                    regionSnapshot = await snapshotRecognition.RecognizeSnapshotAsync(frame, SmartBpRegionSnapshotRecognitionMode.PendingAndCurrentRegions, tickToken);
-                    rawResponses = regionSnapshot.RawResponses;
-                    raw = string.Join("\n\n", regionSnapshot.RawResponses.Select(item => $"{item.Key} raw:\n{item.Value}"));
-                    messages.AddRange(regionSnapshot.Diagnostics);
-                    var fallbackDelta = ToDelta(regionSnapshot.BusinessState, request.RequestedFields);
-                    if (isDryRun)
-                        messages.Add("Speed-test dry run: skipped sequential fallback merge.");
-                    else
-                        messages.AddRange(MergeDeltaWithAutomaticGuards(
-                            fallbackDelta, sequence, regionSnapshot.Phase.Phase, !isDebugPreview, guidanceSnapshot));
-                    phaseResult = regionSnapshot.Phase;
-                    phaseCrop = regionSnapshot.PhaseCrop;
-                    contentCrops = regionSnapshot.ContentCrops;
-                }
+                messages.Add("OCR phase gate allowed BP content recognition.");
             }
             else
             {
-                messages.Add("Multi-image snapshot request is disabled; using sequential region fallback.");
-                regionSnapshot = await snapshotRecognition.RecognizeSnapshotAsync(frame, SmartBpRegionSnapshotRecognitionMode.PendingAndCurrentRegions, tickToken);
-                rawResponses = regionSnapshot.RawResponses;
-                raw = string.Join("\n\n", regionSnapshot.RawResponses.Select(item => $"{item.Key} raw:\n{item.Value}"));
-                messages.AddRange(regionSnapshot.Diagnostics);
-                var fallbackDelta = ToDelta(regionSnapshot.BusinessState, request.RequestedFields);
-                if (isDryRun)
-                    messages.Add("Speed-test dry run: skipped sequential snapshot merge.");
-                else
-                    messages.AddRange(MergeDeltaWithAutomaticGuards(
-                        fallbackDelta, sequence, regionSnapshot.Phase.Phase, !isDebugPreview, guidanceSnapshot));
-                phaseResult = regionSnapshot.Phase;
-                phaseCrop = regionSnapshot.PhaseCrop;
-                contentCrops = regionSnapshot.ContentCrops;
+                var phaseOnlyOcr = await ocrRecognition.RecognizeAsync(
+                    frame,
+                    new SmartBpOcrRecognitionRequest([], IncludePhase: true),
+                    tickToken).ConfigureAwait(false);
+                phaseResult = phaseOnlyOcr.Phase;
+                phaseCrop = null;
+                raw = string.Join(Environment.NewLine, phaseOnlyOcr.Regions
+                    .SelectMany(region => region.Lines.Select(line => $"[{SmartBpOcrBpRecognitionService.ToRegionId(region.Region)}] {line.Text}")));
+                rawResponses = new Dictionary<string, string> { ["ocr_phase"] = raw };
+                messages.AddRange(phaseOnlyOcr.Diagnostics);
             }
 
-            state = isDryRun && regionSnapshot != null ? regionSnapshot.BusinessState : stateStore.Snapshot;
+            var gateBeforeContent = sceneGate.Classify(phaseResult, stateStore.Snapshot, rawResponses, guidanceSnapshot);
+            if ((!gateBeforeContent.IsBpRecognitionAllowed && !isDebugPreview) || request.RequestedRegions.Count == 0)
+            {
+                state = stateStore.Snapshot;
+                contentCrops = [];
+                messages.Add(request.RequestedRegions.Count == 0
+                    ? "OCR skipped content recognition because no fields were requested."
+                    : $"OCR skipped content recognition because BP recognition is blocked by the scene decision: {gateBeforeContent.Reason}.");
+            }
+            else
+            {
+                var tickMode = DescribeRecognitionTickMode(debugMode);
+                var beforeMerge = stateStore.Snapshot;
+                messages.Add($"OCR role-distribution diagnostics: saved_frame_id={sequence}; tick_mode={tickMode}; planner_requested_fields=[{string.Join(", ", request.RequestedFields)}]; ocr_requested_regions=[{string.Join(", ", request.RequestedRegions.Select(item => $"{item.Region}->{item.TargetField}"))}].");
+                var ocrParseContext = new SmartBpOcrFieldParseContext
+                {
+                    AuthoritativePhase = phaseResult.Phase,
+                    CurrentGuidanceAction = guidanceSnapshot.CurrentAction,
+                    SurvivorPickLocked = SmartBpAutomaticMapping.IsSurvivorPickLocked(guidanceSnapshot, phaseResult.Phase),
+                    IsAutomaticMode = !isDebugPreview
+                };
+                var ocr = await ocrRecognition.RecognizeAsync(frame, new SmartBpOcrRecognitionRequest(
+                    request.RequestedRegions.Select(item => item.Region).Distinct().ToArray(),
+                    IncludePhase: false,
+                    ParseContext: ocrParseContext), tickToken);
+                var ocrRaw = string.Join(Environment.NewLine, ocr.Regions.SelectMany(region =>
+                    region.Lines.Select(line => $"[{SmartBpOcrBpRecognitionService.ToRegionId(region.Region)}] {line.Text} conf={line.Confidence:0.00}")));
+                raw = string.IsNullOrWhiteSpace(raw) ? ocrRaw : raw + "\n\nocr raw:\n" + ocrRaw;
+                rawResponses = new Dictionary<string, string>(rawResponses) { ["ocr"] = ocrRaw };
+                messages.Add($"OCR role-distribution diagnostics: phase_result={phaseResult.Phase}; ocr_raw_lines=[{string.Join(" | ", ocr.Regions.SelectMany(region => region.Lines.Select(line => $"[{SmartBpOcrBpRecognitionService.ToRegionId(region.Region)}] {line.Text}")))}].");
+                messages.Add($"OCR role-distribution diagnostics: parsed_local_state_before_merge={FormatBusinessStateForDiagnostics(ocr.BusinessState)}.");
+                messages.Add($"OCR role-distribution diagnostics: StateStore before merge={FormatBusinessStateForDiagnostics(beforeMerge)}.");
+                messages.AddRange(ocr.Diagnostics);
+                var delta = ToDelta(ocr.BusinessState, request.RequestedFields);
+                if (!string.Equals(delta.Phase, phaseResult.Phase, StringComparison.Ordinal))
+                {
+                    messages.Add($"OCR content phase={delta.Phase} ignored; authoritative phase gate remains {phaseResult.Phase}.");
+                    delta.Phase = phaseResult.Phase;
+                    ocr.BusinessState.Phase = phaseResult.Phase;
+                }
+                if (isDryRun)
+                    messages.Add("Speed-test dry run: skipped OCR StateStore merge.");
+                else
+                    messages.AddRange(MergeDeltaWithAutomaticGuards(delta, sequence, phaseResult.Phase, !isDebugPreview, guidanceSnapshot));
+                state = isDryRun ? ocr.BusinessState : stateStore.Snapshot;
+                messages.Add($"OCR role-distribution diagnostics: StateStore after merge={FormatBusinessStateForDiagnostics(state)}.");
+                contentCrops = [];
+            }
+
+            state = isDryRun ? state : stateStore.Snapshot;
             guidanceSnapshot = guidance.GetRuntimeSnapshot();
             var gate = sceneGate.Classify(phaseResult, state, rawResponses, guidanceSnapshot);
             messages.Add($"Scene: {gate.Scene}; BP recognition allowed: {gate.IsBpRecognitionAllowed}; Character operations allowed: {gate.IsCharacterOperationAllowed}; Action: {(gate.ShouldPauseAutomaticRecognition ? "automatic recognition paused" : "continue monitoring")}; Reason: {gate.Reason}.");
             if (!isDebugPreview && !isDryRun && gate.ShouldPauseAutomaticRecognition)
                 return LatchAndCreatePostBpPausedResult(sequence, state, phaseResult, phaseCrop,
                     guidanceSnapshot, messages, raw, gate);
-            ApplyAiUnknownPhaseInference(state, guidanceSnapshot, gate, messages);
             if (isDryRun)
             {
                 var dryRunSync = new SmartBpGuidanceSyncResult(false, false, "Speed-test dry run: GameGuidance synchronization is disabled.", null, [], null);
@@ -2261,18 +1989,13 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                     await Task.Delay(hold, tickToken);
                 }
             }
-            var delayedAiCanSync = settings.Settings.RecognitionStrategy == SmartBpRecognitionStrategy.PureOcr ||
-                                   !settings.Settings.AiOneStepDelayedMode ||
-                                   operations.All(IsOperationCompleted);
-            SmartBpGuidanceSyncResult? sync = !isDebugPreview && gate.IsBpRecognitionAllowed && !isFreeSync && settings.Settings.EnableAutoGuidanceSync && delayedAiCanSync
+            SmartBpGuidanceSyncResult? sync = !isDebugPreview && gate.IsBpRecognitionAllowed && !isFreeSync && settings.Settings.EnableAutoGuidanceSync
                 ? await guidanceSync.SyncAsync(state, tickToken)
                 : new(false, false, isDebugPreview
                     ? "Recognition debug preview: GameGuidance synchronization is disabled."
                     : isFreeSync
                     ? "Free full sync does not synchronize GameGuidance."
-                    : !delayedAiCanSync
-                        ? "AI delayed mode is waiting for current or previous operations to be applied or confirmed as no-op."
-                        : "Automatic GameGuidance synchronization is disabled.", null, [], null);
+                    : "Automatic GameGuidance synchronization is disabled.", null, [], null);
             var finalGuidanceSnapshot = guidance.GetRuntimeSnapshot();
             var snapshotForUi = regionSnapshot ?? new SmartBpRegionSnapshot
             {
@@ -2583,35 +2306,21 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
             return Failure("An automatic recognition tick is already running.");
         try
         {
-            if (settings.Settings.RecognitionStrategy != SmartBpRecognitionStrategy.PureOcr)
-                await StartIfNeededAsync(llamaServerManagers.Get(LlamaVisionServerRole.BusinessAi), cancellationToken).ConfigureAwait(false);
             SmartBpPhaseRecognitionResult phaseResult;
             SmartBpCroppedFrame? phaseCrop;
             string raw;
             IReadOnlyDictionary<string, string> rawResponses;
             var messages = new List<string>
             {
-                $"Phase-only debug: strategy={settings.Settings.RecognitionStrategy}; no field OCR, AI OCR, merge, operations, or apply."
+                "Phase-only debug: strategy=PureOcr; no field OCR, merge, operations, or apply."
             };
 
-            if (settings.Settings.RecognitionStrategy == SmartBpRecognitionStrategy.PureOcr)
-            {
-                var ocr = await ocrRecognition.RecognizeAsync(frame, new SmartBpOcrRecognitionRequest([], IncludePhase: true), cancellationToken).ConfigureAwait(false);
-                phaseResult = ocr.Phase;
-                phaseCrop = null;
-                raw = string.Join(Environment.NewLine, ocr.Regions.SelectMany(region => region.Lines.Select(line => $"[{SmartBpOcrBpRecognitionService.ToRegionId(region.Region)}] {line.Text}")));
-                rawResponses = new Dictionary<string, string> { ["ocr_phase"] = raw };
-                messages.AddRange(ocr.Diagnostics);
-            }
-            else
-            {
-                var phaseOnly = await fieldSnapshotRecognition.RecognizePhaseOnlyAsync(frame, cancellationToken).ConfigureAwait(false);
-                phaseResult = phaseOnly.Phase;
-                phaseCrop = phaseOnly.Crop;
-                raw = phaseOnly.RawJson;
-                rawResponses = new Dictionary<string, string> { ["phase_only"] = raw };
-                messages.AddRange(phaseOnly.Diagnostics);
-            }
+            var ocr = await ocrRecognition.RecognizeAsync(frame, new SmartBpOcrRecognitionRequest([], IncludePhase: true), cancellationToken).ConfigureAwait(false);
+            phaseResult = ocr.Phase;
+            phaseCrop = null;
+            raw = string.Join(Environment.NewLine, ocr.Regions.SelectMany(region => region.Lines.Select(line => $"[{SmartBpOcrBpRecognitionService.ToRegionId(region.Region)}] {line.Text}")));
+            rawResponses = new Dictionary<string, string> { ["ocr_phase"] = raw };
+            messages.AddRange(ocr.Diagnostics);
 
             var state = stateStore.Snapshot;
             var gate = sceneGate.Classify(phaseResult, state, rawResponses, guidance.GetRuntimeSnapshot());
@@ -2647,50 +2356,8 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
     /// </summary>
     /// <param name="request">规划器构建的识别请求。</param>
     /// <returns>识别路径枚举值。</returns>
-    private SmartBpRecognitionPath ResolveRecognitionPath(SmartBpSnapshotDeltaRequest request)
-    {
-        if (settings.Settings.RecognitionStrategy == SmartBpRecognitionStrategy.PureOcr && settings.Settings.EnableOcrBpRecognition)
-            return SmartBpRecognitionPath.LegacyDelta;
-        if (settings.Settings.RecognitionStrategy == SmartBpRecognitionStrategy.AiWithOcr)
-            return request.RequestedFields.Count == 0 ? SmartBpRecognitionPath.PhaseOnly : SmartBpRecognitionPath.FieldSnapshot;
-        if (settings.Settings.UseLegacySnapshotDeltaRecognition)
-            return SmartBpRecognitionPath.LegacyDelta;
-        var requestedFields = request.RequestedFields;
-        if (requestedFields.Count == 0)
-            return SmartBpRecognitionPath.PhaseOnly;
-        var allFields = new HashSet<string>(StringComparer.Ordinal) { "banned_sur", "banned_hun", "picked_sur", "picked_hun" };
-        return allFields.IsSubsetOf(requestedFields) ? SmartBpRecognitionPath.FullFieldSnapshot : SmartBpRecognitionPath.FieldSnapshot;
-    }
-
-    private async Task EnsureStrategyServersAsync(CancellationToken cancellationToken)
-    {
-        switch (settings.Settings.RecognitionStrategy)
-        {
-            case SmartBpRecognitionStrategy.PureOcr:
-                return;
-            case SmartBpRecognitionStrategy.PureAi:
-            case SmartBpRecognitionStrategy.AiWithOcr:
-                await StartIfNeededAsync(llamaServerManagers.Get(LlamaVisionServerRole.BusinessAi), cancellationToken).ConfigureAwait(false);
-                return;
-            case SmartBpRecognitionStrategy.AiWithAiOcr:
-                var business = llamaServerManagers.Get(LlamaVisionServerRole.BusinessAi);
-                await StartIfNeededAsync(business, cancellationToken).ConfigureAwait(false);
-                if (!settings.Settings.UseSeparateAiOcrServer ||
-                    string.Equals(settings.Settings.SelectedBusinessAiModelId, settings.Settings.SelectedAiOcrModelId, StringComparison.Ordinal))
-                {
-                    debugLog.Write("llama-server", "AI OCR is reusing the Business AI server because the selected model is the same or separate server mode is disabled.");
-                    return;
-                }
-                await StartIfNeededAsync(llamaServerManagers.Get(LlamaVisionServerRole.AiOcr), cancellationToken).ConfigureAwait(false);
-                return;
-        }
-    }
-
-    private static async Task StartIfNeededAsync(ILlamaCppServerManager manager, CancellationToken cancellationToken)
-    {
-        if (!manager.IsRunning)
-            await manager.StartAsync(cancellationToken).ConfigureAwait(false);
-    }
+    private static SmartBpRecognitionPath ResolveRecognitionPath(SmartBpSnapshotDeltaRequest request) =>
+        request.RequestedFields.Count == 0 ? SmartBpRecognitionPath.PhaseOnly : SmartBpRecognitionPath.FieldSnapshot;
 
     private static SmartBpDetectedOperation[] BuildFreeSyncOperations(
         SmartBpBusinessStateRecognitionResult state,
@@ -2705,52 +2372,6 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
         }.SelectMany(items => items)
          .Select(operation => operation with { ApplyMode = SmartBpDetectedOperationApplyMode.FreeSync, SourceWorkflowStepIndex = null })
          .ToArray();
-    }
-
-    private bool IsOperationCompleted(SmartBpDetectedOperation operation)
-    {
-        var key = SmartBpWorkflowBackfillService.CreateKey(shared.CurrentGame.GameProgress, operation);
-        return key is not null && ledger.IsStepOperationCompleted(key);
-    }
-
-    private void ApplyAiUnknownPhaseInference(
-        SmartBpBusinessStateRecognitionResult state,
-        GameGuidanceRuntimeSnapshot guidanceSnapshot,
-        SmartBpSceneGateResult gate,
-        ICollection<string> diagnostics)
-    {
-        if (settings.Settings.RecognitionStrategy == SmartBpRecognitionStrategy.PureOcr ||
-            !settings.Settings.AiOneStepDelayedMode || !guidanceSnapshot.IsStarted ||
-            gate.Scene is not (SmartBpRecognitionScene.CharacterBp or SmartBpRecognitionScene.HunterTalent))
-        {
-            _unknownPhaseFrames = 0;
-            return;
-        }
-        if (SmartBpAutomaticMapping.TryMapPhase(state.Phase, out var explicitAction))
-        {
-            _lastExplicitAction = explicitAction;
-            _unknownPhaseFrames = 0;
-            return;
-        }
-        if (!string.Equals(state.Phase, "未知", StringComparison.Ordinal) || _lastExplicitAction != GameAction.PickHun)
-        {
-            _unknownPhaseFrames = 0;
-            return;
-        }
-        _unknownPhaseFrames++;
-        if (_unknownPhaseFrames < Math.Max(1, settings.Settings.AiUnknownPhaseTalentInferenceFrames)) return;
-        var pickStep = guidanceSnapshot.Workflow.Where(step => step.Action == GameAction.PickHun && step.StepIndex <= guidanceSnapshot.CurrentStepIndex)
-            .OrderByDescending(step => step.StepIndex).FirstOrDefault();
-        var future = guidanceSnapshot.Workflow.Where(step => step.StepIndex > guidanceSnapshot.CurrentStepIndex)
-            .OrderBy(step => step.StepIndex).FirstOrDefault(step => step.Action == GameAction.PickHunTalent);
-        var character = state.PickedHun.CharacterName;
-        if (pickStep is null || future is null || SmartBpBusinessStateParser.IsUnselected(character)) return;
-        var key = new SmartBpWorkflowOperationKey(
-            shared.CurrentGame.GameProgress, pickStep.StepIndex, GameAction.PickHun, -1, Camp.Hun, character);
-        if (!ledger.IsStepOperationCompleted(key)) return;
-        state.Phase = "监管者选择天赋中";
-        diagnostics.Add("AI delayed mode inferred hunter talent selection after a completed hunter pick.");
-        _unknownPhaseFrames = 0;
     }
 
     public async Task<SmartBpStepCommitResult> ProcessTickAsync(BitmapSource frame, CancellationToken cancellationToken = default)

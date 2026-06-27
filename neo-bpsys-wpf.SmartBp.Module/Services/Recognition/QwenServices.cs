@@ -3,6 +3,7 @@ using System.IO;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Net.Http.Headers;
 using System.Globalization;
@@ -156,7 +157,7 @@ internal sealed class SmartBpRecognitionSettingsService : ISmartBpRecognitionSet
                     hasSelectedOcrProviderMode = document.RootElement.TryGetProperty("selectedOcrProviderMode", out _);
                     hasBusinessAiServerPort = document.RootElement.TryGetProperty("businessAiServerPort", out _);
                 }
-                Settings = JsonSerializer.Deserialize<SmartBpRecognitionSettings>(json, Options) ?? new();
+                Settings = JsonSerializer.Deserialize<SmartBpRecognitionSettings>(NormalizeOcrOnlySettingsJson(json), Options) ?? new();
             }
             else
             {
@@ -164,10 +165,7 @@ internal sealed class SmartBpRecognitionSettingsService : ISmartBpRecognitionSet
             }
         }
         catch { Settings = new(); }
-        if (!hasRecognitionStrategy)
-            Settings.RecognitionStrategy = Settings.RecognitionEngine == SmartBpRecognitionEngine.AiQwen
-                ? SmartBpRecognitionStrategy.PureAi
-                : SmartBpRecognitionStrategy.PureOcr;
+        Settings.RecognitionStrategy = SmartBpRecognitionStrategy.PureOcr;
         if (!hasSelectedBusinessAiModelId)
             Settings.SelectedBusinessAiModelId = Settings.SelectedQwenModelId;
         if (!hasSelectedOcrProviderMode)
@@ -180,9 +178,7 @@ internal sealed class SmartBpRecognitionSettingsService : ISmartBpRecognitionSet
             Settings.SelectedAiOcrModelId = "paddleocr-vl-1.6-gguf";
         Settings.SelectedQwenModelId = Settings.SelectedBusinessAiModelId;
         Settings.OcrProviderMode = Settings.SelectedOcrProviderMode;
-        Settings.RecognitionEngine = Settings.RecognitionStrategy == SmartBpRecognitionStrategy.PureOcr
-            ? SmartBpRecognitionEngine.Ocr
-            : SmartBpRecognitionEngine.AiQwen;
+        Settings.RecognitionEngine = SmartBpRecognitionEngine.Ocr;
         Settings.LlamaServerPort = Settings.BusinessAiServerPort;
         Settings.LlamaServerPort = Math.Clamp(Settings.LlamaServerPort, 1024, 65535);
         Settings.BusinessAiServerPort = Math.Clamp(Settings.BusinessAiServerPort, 1024, 65535);
@@ -241,6 +237,30 @@ internal sealed class SmartBpRecognitionSettingsService : ISmartBpRecognitionSet
         Settings.LlamaRuntimeUpdateCheckIntervalHours = Math.Clamp(Settings.LlamaRuntimeUpdateCheckIntervalHours, 1, 24 * 30);
         if (string.IsNullOrWhiteSpace(Settings.PromptProfileId)) Settings.PromptProfileId = "zh-CN";
         if (Settings.SelectedQwenModelId == "qwen3.5-2b-q4ks") Settings.SelectedQwenModelId = "qwen3.5-2b-q4km";
+    }
+
+    private static string NormalizeOcrOnlySettingsJson(string json)
+    {
+        try
+        {
+            var node = JsonNode.Parse(json) as JsonObject;
+            if (node == null) return json;
+            SetCaseInsensitive(node, "recognitionStrategy", 0);
+            SetCaseInsensitive(node, "recognitionEngine", 0);
+            return node.ToJsonString();
+        }
+        catch
+        {
+            return json;
+        }
+    }
+
+    private static void SetCaseInsensitive(JsonObject node, string propertyName, JsonNode? value)
+    {
+        var existing = node
+            .Select(pair => pair.Key)
+            .FirstOrDefault(key => string.Equals(key, propertyName, StringComparison.OrdinalIgnoreCase));
+        node[existing ?? propertyName] = value;
     }
 
     /// <inheritdoc />
