@@ -1,11 +1,14 @@
 #nullable enable
 
+using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Events;
+using neo_bpsys_wpf.Core.Messages;
 using neo_bpsys_wpf.Services;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -129,6 +132,75 @@ public class GameGuidanceEventPayloadTest
         Assert.Equal("[2]", received.PreviousIndexesText);
     }
 
+    /// <summary>
+    /// Verifies authoritative step events are published before backend highlight messages.
+    /// </summary>
+    [Fact]
+    public async Task MoveToStepAsync_PublishesStepChangedBeforeHighlightMessage()
+    {
+        WeakReferenceMessenger.Default.Reset();
+        try
+        {
+            var service = CreateService(
+            [
+                new GameGuidanceService.Step { Action = GameAction.BanHun, Index = [0, 1] },
+                new GameGuidanceService.Step { Action = GameAction.PickSur, Index = [0, 1] }
+            ]);
+            SetCurrentStep(service, 0);
+            var order = new List<string>();
+            service.GuidanceStepChanged += (_, args) =>
+            {
+                Assert.Equal(GameAction.PickSur, args.Action);
+                order.Add("step");
+            };
+            WeakReferenceMessenger.Default.Register<HighlightMessage>(
+                new HighlightRecorder(order),
+                static (recipient, message) => ((HighlightRecorder)recipient).Receive(message));
+
+            var error = await service.MoveToStepAsync(1);
+
+            Assert.Null(error);
+            Assert.Equal(["step", "highlight"], order);
+        }
+        finally
+        {
+            WeakReferenceMessenger.Default.Reset();
+        }
+    }
+
+    /// <summary>
+    /// Verifies a failed authoritative step event does not leave backend highlight ahead of it.
+    /// </summary>
+    [Fact]
+    public async Task MoveToStepAsync_WhenStepChangedThrows_DoesNotSendHighlightMessage()
+    {
+        WeakReferenceMessenger.Default.Reset();
+        try
+        {
+            var service = CreateService(
+            [
+                new GameGuidanceService.Step { Action = GameAction.BanHun, Index = [0] },
+                new GameGuidanceService.Step { Action = GameAction.PickSur, Index = [1] }
+            ]);
+            SetCurrentStep(service, 0);
+            var highlightSent = false;
+            service.GuidanceStepChanged += (_, _) => throw new InvalidOperationException("bridge failed");
+            WeakReferenceMessenger.Default.Register<HighlightMessage>(
+                new HighlightFlag(() => highlightSent = true),
+                static (recipient, message) => ((HighlightFlag)recipient).Receive(message));
+
+            var error = await service.MoveToStepAsync(1);
+
+            Assert.Contains("bridge failed", error);
+            Assert.False(highlightSent);
+            Assert.Equal(0, service.GetRuntimeSnapshot().CurrentStepIndex);
+        }
+        finally
+        {
+            WeakReferenceMessenger.Default.Reset();
+        }
+    }
+
     private static GameGuidanceStepChangedEventArgs CreateStepArgs(List<int>? indexes) =>
         new(0, GameAction.PickSur, indexes, null);
 
@@ -148,5 +220,36 @@ public class GameGuidanceEventPayloadTest
         Assert.NotNull(gamePropertyField);
         gamePropertyField.SetValue(service, new GameGuidanceService.GameProperty { WorkFlow = workflow });
         return service;
+    }
+
+    private static void SetCurrentStep(GameGuidanceService service, int stepIndex)
+    {
+        var currentStepField = typeof(GameGuidanceService).GetField(
+            "_currentStep",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.NotNull(currentStepField);
+        currentStepField.SetValue(service, stepIndex);
+    }
+
+    private sealed class HighlightRecorder(List<string> order)
+    {
+        public void Receive(HighlightMessage message)
+        {
+            if (message.GameAction == GameAction.PickSur)
+            {
+                order.Add("highlight");
+            }
+        }
+    }
+
+    private sealed class HighlightFlag(Action set)
+    {
+        public void Receive(HighlightMessage message)
+        {
+            if (message.GameAction == GameAction.PickSur)
+            {
+                set();
+            }
+        }
     }
 }

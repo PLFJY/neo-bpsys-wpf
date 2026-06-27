@@ -211,6 +211,15 @@ public sealed class FrontedSharedDataBehaviorEventBridge : IDisposable
         };
 
         _eventBus.Publish(behaviorEvent);
+
+        if (string.Equals(metadata.EventType, "Guidance.StepChanged", StringComparison.Ordinal))
+        {
+            _logger.LogInformation(
+                "Fronted behavior event published: {EventType}; action={Action}; indexes={Indexes}",
+                metadata.EventType,
+                payload.TryGetValue("Action", out var action) ? action : null,
+                payload.TryGetValue("IndexesText", out var indexesText) ? indexesText : FormatIndexes(payload.TryGetValue("Indexes", out var indexes) ? indexes : null));
+        }
     }
 
     private IReadOnlyDictionary<string, object?> BuildPayload(
@@ -297,6 +306,16 @@ public sealed class FrontedSharedDataBehaviorEventBridge : IDisposable
 
         var property = sender.GetType().GetProperty(sourcePath, BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase);
         return property?.GetValue(sender);
+    }
+
+    private static string FormatIndexes(object? indexes)
+    {
+        if (indexes is IEnumerable<int> values)
+        {
+            return $"[{string.Join(", ", values)}]";
+        }
+
+        return "[]";
     }
 
     /// <inheritdoc />

@@ -537,6 +537,27 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
                 return;
             }
 
+            // Running state - check StopTriggers before reentry. Filters inside one
+            // trigger are AND; triggers in the list are OR.
+            if (state.LoopPhase is LoopPhase.Starting or LoopPhase.Looping)
+            {
+                var stopTrigger = behavior.StopTriggers.FirstOrDefault(trigger =>
+                    _triggerEvaluator.Evaluate(trigger, behaviorEvent));
+                if (stopTrigger is not null)
+                {
+                    _logger.LogInformation(
+                        "Loop stop trigger matched. BehaviorId={BehaviorId}, EventType={EventType}.",
+                        behavior.BehaviorId, stopTrigger.EventType);
+                    RequestLoopStop(
+                        behavior,
+                        state,
+                        GetStopReason(behaviorEvent),
+                        forceRunStopGraph: false,
+                        stopEvent: behaviorEvent);
+                    return;
+                }
+            }
+
             if (startMatches)
             {
                 switch (behavior.LoopPolicy?.ReentryPolicy ?? FrontedReentryPolicy.IgnoreIfRunning)
@@ -555,33 +576,11 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
                     case FrontedReentryPolicy.Queue:
                     case FrontedReentryPolicy.AllowParallel:
                         _logger.LogWarning(
-                            "Loop {BehaviorId} reentry policy {Policy} is not implemented in Phase 5 runtime; ignoring while running.",
+                            "Loop {BehaviorId} reentry policy {Policy} is not implemented in the runtime; ignoring while running.",
                             behavior.BehaviorId,
                             behavior.LoopPolicy?.ReentryPolicy);
                         return;
                 }
-            }
-
-            // Running state - check StopTriggers. Filters inside one trigger are AND;
-            // triggers in the list are OR.
-            if (state.LoopPhase is LoopPhase.Starting or LoopPhase.Looping)
-            {
-                var stopTrigger = behavior.StopTriggers.FirstOrDefault(trigger =>
-                    _triggerEvaluator.Evaluate(trigger, behaviorEvent));
-                if (stopTrigger is null)
-                {
-                    return;
-                }
-
-                _logger.LogInformation(
-                    "Loop stop trigger matched. BehaviorId={BehaviorId}, EventType={EventType}.",
-                    behavior.BehaviorId, stopTrigger.EventType);
-                RequestLoopStop(
-                    behavior,
-                    state,
-                    GetStopReason(behaviorEvent),
-                    forceRunStopGraph: false,
-                    stopEvent: behaviorEvent);
             }
         }
     }

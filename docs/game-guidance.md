@@ -57,9 +57,13 @@
 3. 如果步骤不是 `PickCamp`，按 `_actionToPage` 导航到对应后台页面。
 4. 调用 `_sharedDataService.TimerStart(thisStep.Time)`。
 5. 等待 250ms，让待选框动画/页面状态就位。
-6. 发送 `HighlightMessage(thisStep.Action, thisStep.Index)`。
-7. 触发包含当前步骤和上一步骤 payload 的 `GuidanceStepChanged`。
-8. 返回本地化后的步骤名称。
+6. 构造包含当前步骤和上一步骤 payload 的 `GameGuidanceStepChangedEventArgs`。
+7. 触发权威步骤事件 `GuidanceStepChanged`，前台行为运行时通过 `Guidance.StepChanged` 消费它。
+8. 触发后台高亮事件 `GuidanceHighlightChanged`。
+9. 发送后台 UI 便利消息 `HighlightMessage(thisStep.Action, thisStep.Index)`。
+10. 返回本地化后的步骤名称。
+
+`MoveToStepAsync` 用于 SmartBP 等自动同步路径，成功时返回 `null`，失败时返回错误文本。它和 `StartGuidance`、`NextStepAsync`、`PrevStepAsync`、`StopGuidance`、`CompleteGuidance` 都会在存在 WPF `Application.Current.Dispatcher` 时切回 UI Dispatcher 执行，避免后台识别线程直接修改 WPF 导航、计时器、消息和事件状态。
 
 ## 行为事件 payload
 

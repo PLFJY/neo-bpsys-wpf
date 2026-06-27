@@ -1008,6 +1008,46 @@ public sealed class SmartBpAiRecognitionContractTest
     }
 
     [Fact]
+    public async Task GuidanceSync_PickSurFromBanHun_LogsTargetMoveAndFinalSnapshot()
+    {
+        var workflow = new GameGuidanceStepSnapshot[]
+        {
+            new(0, GameAction.BanSur, [0, 1], 30),
+            new(1, GameAction.BanHun, [0, 1], 30),
+            new(2, GameAction.PickSur, [0, 1], 30)
+        };
+        var before = new GameGuidanceRuntimeSnapshot(true, 1, GameAction.BanHun, [0, 1], 30, workflow);
+        var after = new GameGuidanceRuntimeSnapshot(true, 2, GameAction.PickSur, [0, 1], 30, workflow);
+        var guidance = new Mock<IGameGuidanceService>();
+        guidance.SetupSequence(x => x.GetRuntimeSnapshot())
+            .Returns(before)
+            .Returns(after);
+        guidance.Setup(x => x.MoveToStepAsync(2, false)).ReturnsAsync((string?)null);
+        var settings = new Mock<ISmartBpRecognitionSettingsService>();
+        settings.SetupGet(x => x.Settings).Returns(new SmartBpRecognitionSettings
+        {
+            GuidanceSyncLookAheadSteps = 4,
+            EnableAutoGuidancePageNavigation = false
+        });
+        var diagnostics = new List<string>();
+        var debugLog = new Mock<ISmartBpDebugLog>();
+        debugLog.Setup(x => x.Write("GuidanceSync", It.IsAny<string>()))
+            .Callback<string, string>((_, message) => diagnostics.Add(message));
+        var service = new SmartBpGuidanceSyncService(guidance.Object, settings.Object, debugLog.Object);
+
+        var result = await service.SyncAsync(Business("选择求生者"), TestContext.Current.CancellationToken);
+
+        Assert.True(result.Changed);
+        Assert.Equal(GameAction.PickSur, result.TargetAction);
+        Assert.Equal(2, result.TargetStepIndex);
+        Assert.Contains(diagnostics, x => x.Contains("phase=选择求生者 -> action=PickSur", StringComparison.Ordinal));
+        Assert.Contains(diagnostics, x => x.Contains("Current guidance: step=1 action=BanHun indexes=[0, 1]", StringComparison.Ordinal));
+        Assert.Contains(diagnostics, x => x.Contains("Target guidance: step=2 action=PickSur indexes=[0, 1]", StringComparison.Ordinal));
+        Assert.Contains(diagnostics, x => x.Contains("MoveToStepAsync completed: moved=True", StringComparison.Ordinal));
+        Assert.Contains(diagnostics, x => x.Contains("Final guidance: step=2 action=PickSur indexes=[0, 1]", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public async Task GuidanceSyncRejectsLowConfidence()
     {
         var guidance = new Mock<IGameGuidanceService>();

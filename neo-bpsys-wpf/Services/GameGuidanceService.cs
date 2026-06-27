@@ -12,6 +12,7 @@ using neo_bpsys_wpf.Views.Pages;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Windows;
 using Wpf.Ui;
 using I18nHelper = neo_bpsys_wpf.Helpers.I18nHelper;
 
@@ -158,6 +159,11 @@ public class GameGuidanceService(
     /// <inheritdoc/>
     public async Task<string?> StartGuidance(bool isNavigatePageEnable = true)
     {
+        if (TryGetDispatcher(out var dispatcher) && !dispatcher.CheckAccess())
+        {
+            return await dispatcher.InvokeAsync(() => StartGuidance(isNavigatePageEnable)).Task.Unwrap();
+        }
+
         if (IsGuidanceStarted)
         {
             _infoBarService.ShowWarningInfoBar(I18nHelper.GetLocalizedString("GameAlreadyStarted"));
@@ -200,6 +206,12 @@ public class GameGuidanceService(
     /// <inheritdoc/>
     public void StopGuidance()
     {
+        if (TryGetDispatcher(out var dispatcher) && !dispatcher.CheckAccess())
+        {
+            dispatcher.Invoke(StopGuidance);
+            return;
+        }
+
         if (!IsGuidanceStarted)
         {
             _infoBarService.ShowWarningInfoBar(I18nHelper.GetLocalizedString("PleaseStartGameFirst"));
@@ -216,6 +228,12 @@ public class GameGuidanceService(
     /// <inheritdoc/>
     public void CompleteGuidance(string reason = "SmartBpCharacterBpEnded")
     {
+        if (TryGetDispatcher(out var dispatcher) && !dispatcher.CheckAccess())
+        {
+            dispatcher.Invoke(() => CompleteGuidance(reason));
+            return;
+        }
+
         if (!IsGuidanceStarted)
             return;
 
@@ -249,6 +267,11 @@ public class GameGuidanceService(
     /// <inheritdoc/>
     public async Task<string?> NextStepAsync(bool isNavigatePageEnable = true)
     {
+        if (TryGetDispatcher(out var dispatcher) && !dispatcher.CheckAccess())
+        {
+            return await dispatcher.InvokeAsync(() => NextStepAsync(isNavigatePageEnable)).Task.Unwrap();
+        }
+
         if (!IsGuidanceStarted)
         {
             _infoBarService.ShowWarningInfoBar(I18nHelper.GetLocalizedString("PleaseStartGameFirst"));
@@ -259,7 +282,8 @@ public class GameGuidanceService(
         {
             if (_currentStep + 1 < _currentGameProperty.WorkFlow.Count)
             {
-                return await HandleStepChange(_currentStep + 1, isNavigatePageEnable);
+                var result = await HandleStepChange(_currentStep + 1, isNavigatePageEnable);
+                return result.Error ?? result.ActionName;
             }
 
             _infoBarService.ShowWarningInfoBar(I18nHelper.GetLocalizedString("AlreadyLastStep"));
@@ -277,6 +301,11 @@ public class GameGuidanceService(
     /// <inheritdoc/>
     public async Task<string?> PrevStepAsync(bool isNavigatePageEnable = true)
     {
+        if (TryGetDispatcher(out var dispatcher) && !dispatcher.CheckAccess())
+        {
+            return await dispatcher.InvokeAsync(() => PrevStepAsync(isNavigatePageEnable)).Task.Unwrap();
+        }
+
         if (!IsGuidanceStarted)
         {
             _infoBarService.ShowWarningInfoBar(I18nHelper.GetLocalizedString("PleaseStartGameFirst"));
@@ -287,7 +316,8 @@ public class GameGuidanceService(
         {
             if (_currentStep > 0)
             {
-                return await HandleStepChange(_currentStep - 1, isNavigatePageEnable);
+                var result = await HandleStepChange(_currentStep - 1, isNavigatePageEnable);
+                return result.Error ?? result.ActionName;
             }
 
             _infoBarService.ShowWarningInfoBar(I18nHelper.GetLocalizedString("AlreadyFirstStep"));
@@ -314,6 +344,24 @@ public class GameGuidanceService(
     /// <inheritdoc />
     public async Task<string?> MoveToStepAsync(int stepIndex, bool isNavigatePageEnable = true)
     {
+        if (TryGetDispatcher(out var dispatcher) && !dispatcher.CheckAccess())
+        {
+            _logger.LogInformation(
+                "GameGuidance MoveToStep requested: targetStep={TargetStep}, requestedAction={RequestedAction}, callerThread={CallerThread}, dispatcherAccess={DispatcherAccess}",
+                stepIndex,
+                GetActionForStep(stepIndex),
+                Environment.CurrentManagedThreadId,
+                false);
+            return await dispatcher.InvokeAsync(() => MoveToStepAsync(stepIndex, isNavigatePageEnable)).Task.Unwrap();
+        }
+
+        _logger.LogInformation(
+            "GameGuidance MoveToStep requested: targetStep={TargetStep}, requestedAction={RequestedAction}, callerThread={CallerThread}, dispatcherAccess={DispatcherAccess}",
+            stepIndex,
+            GetActionForStep(stepIndex),
+            Environment.CurrentManagedThreadId,
+            GetDispatcherAccess());
+
         if (!IsGuidanceStarted)
         {
             _infoBarService.ShowWarningInfoBar(I18nHelper.GetLocalizedString("PleaseStartGameFirst"));
@@ -321,47 +369,94 @@ public class GameGuidanceService(
         }
         if (_currentGameProperty == null || stepIndex < 0 || stepIndex >= _currentGameProperty.WorkFlow.Count)
             return I18nHelper.GetLocalizedString("GameInfoError");
-        return await HandleStepChange(stepIndex, isNavigatePageEnable);
+        var result = await HandleStepChange(stepIndex, isNavigatePageEnable);
+        return result.Error;
     }
 
-    private async Task<string> HandleStepChange(int newStepIndex, bool isNavigatePageEnable = true)
+    private async Task<StepChangeResult> HandleStepChange(int newStepIndex, bool isNavigatePageEnable = true)
     {
-        if (_currentGameProperty == null) return "N/A";
+        if (TryGetDispatcher(out var dispatcher) && !dispatcher.CheckAccess())
+        {
+            return await dispatcher.InvokeAsync(() => HandleStepChange(newStepIndex, isNavigatePageEnable)).Task.Unwrap();
+        }
+
+        if (_currentGameProperty == null) return new(null, "N/A");
         var previousStepIndex = _currentStep;
         var previousStep = previousStepIndex >= 0 && previousStepIndex < _currentGameProperty.WorkFlow.Count
             ? _currentGameProperty.WorkFlow[previousStepIndex]
             : null;
         var thisStep = _currentGameProperty.WorkFlow[newStepIndex];
-        _currentStep = newStepIndex;
 
-        //切换页面
-        if (thisStep.Action != GameAction.PickCamp && isNavigatePageEnable)
-            _navigationService.Navigate(_actionToPage[thisStep.Action]);
-        //设置计时器
-        _sharedDataService.TimerStart(thisStep.Time);
-        //等待待选框动画就位
-        await Task.Delay(250);
+        _logger.LogInformation(
+            "GameGuidance HandleStepChange begin: previousStep={PreviousStep}, previousAction={PreviousAction}, currentStep={CurrentStep}, currentAction={CurrentAction}, dispatcherAccess={DispatcherAccess}",
+            previousStep is null ? null : previousStepIndex,
+            previousStep?.Action,
+            newStepIndex,
+            thisStep.Action,
+            GetDispatcherAccess());
 
-        var actionName = ActionName[thisStep.Action].Invoke();
+        var stepChangedPublished = false;
+        try
+        {
+            _currentStep = newStepIndex;
 
-        //广播高亮消息
-        WeakReferenceMessenger.Default.Send(new HighlightMessage(thisStep.Action, thisStep.Index));
+            //切换页面
+            if (thisStep.Action != GameAction.PickCamp && isNavigatePageEnable)
+                _navigationService.Navigate(_actionToPage[thisStep.Action]);
+            //设置计时器
+            _sharedDataService.TimerStart(thisStep.Time);
+            //等待待选框动画就位
+            await Task.Delay(250);
 
-        //触发步骤变化事件
-        GuidanceStepChanged?.Invoke(this, new GameGuidanceStepChangedEventArgs(
-            stepIndex: _currentStep,
-            action: thisStep.Action,
-            index: thisStep.Index,
-            time: thisStep.Time,
-            previousStepIndex: previousStep is null ? null : previousStepIndex,
-            previousAction: previousStep?.Action,
-            previousIndex: previousStep?.Index,
-            previousTime: previousStep?.Time));
+            var actionName = ActionName[thisStep.Action].Invoke();
+            var args = new GameGuidanceStepChangedEventArgs(
+                stepIndex: _currentStep,
+                action: thisStep.Action,
+                index: thisStep.Index,
+                time: thisStep.Time,
+                previousStepIndex: previousStep is null ? null : previousStepIndex,
+                previousAction: previousStep?.Action,
+                previousIndex: previousStep?.Index,
+                previousTime: previousStep?.Time);
 
-        //触发高亮变化事件
-        PublishHighlight(thisStep.Action, thisStep.Index);
+            //触发步骤变化事件
+            GuidanceStepChanged?.Invoke(this, args);
+            stepChangedPublished = true;
+            _logger.LogInformation(
+                "GameGuidance GuidanceStepChanged published: step={Step}, action={Action}, indexes={Indexes}",
+                args.StepIndex,
+                args.Action,
+                args.IndexesText);
 
-        return actionName;
+            //触发高亮变化事件
+            PublishHighlight(thisStep.Action, thisStep.Index);
+            _logger.LogInformation(
+                "GameGuidance GuidanceHighlightChanged published: action={Action}, indexes={Indexes}",
+                thisStep.Action,
+                FormatIndexes(thisStep.Index));
+
+            //广播高亮消息
+            WeakReferenceMessenger.Default.Send(new HighlightMessage(thisStep.Action, thisStep.Index));
+            _logger.LogInformation(
+                "GameGuidance HighlightMessage sent: action={Action}, indexes={Indexes}",
+                thisStep.Action,
+                FormatIndexes(thisStep.Index));
+
+            return new(actionName, null);
+        }
+        catch (Exception ex)
+        {
+            if (!stepChangedPublished)
+            {
+                _currentStep = previousStepIndex;
+            }
+
+            _logger.LogError(
+                ex,
+                "GameGuidance HandleStepChange failed: exception={Exception}",
+                ex.Message);
+            return new(null, ex.Message);
+        }
     }
 
     private void PublishHighlight(GameAction? action, List<int>? indexes)
@@ -373,6 +468,30 @@ public class GameGuidanceService(
             GuidanceHighlightCleared?.Invoke(this, args);
         }
     }
+
+    private static bool TryGetDispatcher(out System.Windows.Threading.Dispatcher dispatcher)
+    {
+        dispatcher = Application.Current?.Dispatcher!;
+        return dispatcher is not null;
+    }
+
+    private static bool GetDispatcherAccess()
+        => TryGetDispatcher(out var dispatcher) && dispatcher.CheckAccess();
+
+    private GameAction? GetActionForStep(int stepIndex)
+    {
+        if (_currentGameProperty is null || stepIndex < 0 || stepIndex >= _currentGameProperty.WorkFlow.Count)
+        {
+            return null;
+        }
+
+        return _currentGameProperty.WorkFlow[stepIndex].Action;
+    }
+
+    private static string FormatIndexes(IEnumerable<int>? indexes)
+        => indexes is null ? "[]" : $"[{string.Join(", ", indexes)}]";
+
+    private readonly record struct StepChangeResult(string? ActionName, string? Error);
 
     /// <summary>
     /// 对局属性（包含各阶段禁选数量与工作流）。

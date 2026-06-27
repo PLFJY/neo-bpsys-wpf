@@ -1132,7 +1132,8 @@ internal static class SmartBpAutomaticParser
 
 internal sealed class SmartBpGuidanceSyncService(
     IGameGuidanceService guidance,
-    ISmartBpRecognitionSettingsService settings) : ISmartBpGuidanceSyncService
+    ISmartBpRecognitionSettingsService settings,
+    ISmartBpDebugLog? debugLog = null) : ISmartBpGuidanceSyncService
 {
     public async Task<SmartBpGuidanceSyncResult> SyncAsync(SmartBpBusinessStateRecognitionResult businessState, CancellationToken cancellationToken = default)
     {
@@ -1141,13 +1142,17 @@ internal sealed class SmartBpGuidanceSyncService(
         var action = GameAction.None;
         if (!isTalentLocked && !SmartBpAutomaticMapping.TryMapPhase(businessState.Phase, out action))
             return Reject($"The detected BP phase '{businessState.Phase}' cannot be synchronized.");
+        WriteDiagnostic(
+            $"SmartBP guidance sync: phase={businessState.Phase} -> action={(isTalentLocked ? "TalentLocked" : action)}; thread={Environment.CurrentManagedThreadId}; dispatcherAccess={GetDispatcherAccess()}.");
 
         var snapshot = guidance.GetRuntimeSnapshot();
+        WriteDiagnostic($"Current guidance: {FormatGuidanceSnapshot(snapshot)}.");
         if (!snapshot.IsStarted)
         {
             var error = await guidance.StartGuidance(settings.Settings.EnableAutoGuidancePageNavigation);
             if (!string.IsNullOrWhiteSpace(error)) return Reject(error);
             snapshot = guidance.GetRuntimeSnapshot();
+            WriteDiagnostic($"Guidance started for sync: {FormatGuidanceSnapshot(snapshot)}.");
         }
         if (!snapshot.IsStarted || snapshot.Workflow.Count == 0) return Reject("GameGuidance is not available.");
 
@@ -1167,11 +1172,15 @@ internal sealed class SmartBpGuidanceSyncService(
                 .FirstOrDefault();
         }
         if (target == null) return Reject($"No forward {action} step exists within the configured lookahead window.", action);
+        WriteDiagnostic($"Target guidance: {FormatStepSnapshot(target)}.");
         if (target.StepIndex == snapshot.CurrentStepIndex)
             return new(false, true, "Current GameGuidance step already matches the detected stage.", target.Action, target.Indexes, target.StepIndex);
 
         cancellationToken.ThrowIfCancellationRequested();
         var moveError = await guidance.MoveToStepAsync(target.StepIndex, settings.Settings.EnableAutoGuidancePageNavigation);
+        var finalSnapshot = guidance.GetRuntimeSnapshot();
+        WriteDiagnostic($"MoveToStepAsync completed: moved={string.IsNullOrWhiteSpace(moveError)}; dispatcherAccess={GetDispatcherAccess()}; result={(string.IsNullOrWhiteSpace(moveError) ? "OK" : moveError)}.");
+        WriteDiagnostic($"Final guidance: {FormatGuidanceSnapshot(finalSnapshot)}.");
         if (!string.IsNullOrWhiteSpace(moveError)) return Reject(moveError, action);
         return new(true, true, $"GameGuidance moved forward to step {target.StepIndex}.", target.Action, target.Indexes, target.StepIndex);
     }
@@ -1192,14 +1201,32 @@ internal sealed class SmartBpGuidanceSyncService(
         if (candidates.Length > 1) return Reject("Talent locked phase is ambiguous; not syncing automatically.");
 
         var target = candidates[0];
+        WriteDiagnostic($"Target guidance: {FormatStepSnapshot(target)}.");
         cancellationToken.ThrowIfCancellationRequested();
         var moveError = await guidance.MoveToStepAsync(target.StepIndex, settings.Settings.EnableAutoGuidancePageNavigation);
+        var finalSnapshot = guidance.GetRuntimeSnapshot();
+        WriteDiagnostic($"MoveToStepAsync completed: moved={string.IsNullOrWhiteSpace(moveError)}; dispatcherAccess={GetDispatcherAccess()}; result={(string.IsNullOrWhiteSpace(moveError) ? "OK" : moveError)}.");
+        WriteDiagnostic($"Final guidance: {FormatGuidanceSnapshot(finalSnapshot)}.");
         if (!string.IsNullOrWhiteSpace(moveError)) return Reject(moveError, target.Action);
         return new(true, true, $"GameGuidance moved forward to locked talent context step {target.StepIndex}.", target.Action, target.Indexes, target.StepIndex);
     }
 
     private static SmartBpGuidanceSyncResult Reject(string reason, GameAction? action = null) =>
         new(false, false, reason, action, [], null);
+
+    private void WriteDiagnostic(string message) => debugLog?.Write("GuidanceSync", message);
+
+    private static bool GetDispatcherAccess()
+        => System.Windows.Application.Current?.Dispatcher.CheckAccess() == true;
+
+    private static string FormatGuidanceSnapshot(GameGuidanceRuntimeSnapshot snapshot)
+        => $"step={snapshot.CurrentStepIndex} action={snapshot.CurrentAction?.ToString() ?? "null"} indexes={FormatIndexes(snapshot.CurrentIndexes)}";
+
+    private static string FormatStepSnapshot(GameGuidanceStepSnapshot step)
+        => $"step={step.StepIndex} action={step.Action} indexes={FormatIndexes(step.Indexes)}";
+
+    private static string FormatIndexes(IEnumerable<int>? indexes)
+        => indexes is null ? "[]" : $"[{string.Join(", ", indexes)}]";
 }
 
 internal sealed class SmartBpCandidateOperationBuilder(

@@ -450,6 +450,84 @@ public class FrontedBehaviorRuntimeLoopTest
         });
     }
 
+    [Fact]
+    public async Task BehaviorRuntime_Loop_StopTriggerRunsBeforeReentryPolicy()
+    {
+        await RunOnStaThreadAsync(async () =>
+        {
+            var runtime = new ControlledGraphRuntime
+            {
+                LoopGate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously)
+            };
+            var behavior = new FrontedBehavior
+            {
+                Kind = FrontedBehaviorKind.Loop,
+                StartTrigger = new TriggerDescriptor
+                {
+                    EventType = "Guidance.StepChanged",
+                    Filters =
+                    [
+                        new TriggerFilter
+                        {
+                            Left = "Event.Action",
+                            Operator = TriggerFilterOperator.Equals,
+                            Right = "PickSur"
+                        }
+                    ]
+                },
+                StopTriggers =
+                [
+                    new TriggerDescriptor
+                    {
+                        EventType = "Guidance.StepChanged",
+                        Filters =
+                        [
+                            new TriggerFilter
+                            {
+                                Left = "Event.PreviousAction",
+                                Operator = TriggerFilterOperator.Equals,
+                                Right = "PickSur"
+                            }
+                        ]
+                    }
+                ],
+                StartGraph = new FrontedNodeGraph(),
+                LoopGraph = new FrontedNodeGraph(),
+                StopGraph = new FrontedNodeGraph(),
+                LoopPolicy = new FrontedLoopPolicy
+                {
+                    RepeatCount = -1,
+                    ReentryPolicy = FrontedReentryPolicy.IgnoreIfRunning,
+                    StopMode = FrontedLoopStopMode.RunStopGraph,
+                    ResetOnStop = false
+                }
+            };
+
+            using var host = CreateHost(runtime);
+            await AttachHost(host, CreateDocument(behavior));
+
+            RunEvent(host, new FrontedBehaviorEvent
+            {
+                EventType = "Guidance.StepChanged",
+                Payload = new Dictionary<string, object?> { ["Action"] = GameAction.PickSur }
+            });
+            await runtime.WaitForStartGraphAsync(TimeSpan.FromSeconds(5));
+
+            RunEvent(host, new FrontedBehaviorEvent
+            {
+                EventType = "Guidance.StepChanged",
+                Payload = new Dictionary<string, object?>
+                {
+                    ["Action"] = GameAction.PickSur,
+                    ["PreviousAction"] = GameAction.PickSur
+                }
+            });
+
+            await WaitForGraphAsync(runtime, behavior.StopGraph, TimeSpan.FromSeconds(5));
+            Assert.Contains(behavior.StopGraph, runtime.ExecutedGraphs);
+        });
+    }
+
     /// <summary>
     /// ResetOnStop=true 但 StopMode=RunStopGraph 时，StopGraph 执行后不调用 ResetTarget。
     /// StopGraph 本身就是结束动画，Reset 会覆盖其视觉效果。
