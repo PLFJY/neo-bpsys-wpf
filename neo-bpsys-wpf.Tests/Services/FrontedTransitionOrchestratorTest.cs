@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using System.Windows.Threading;
 using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Services;
@@ -222,6 +223,67 @@ public sealed class FrontedTransitionOrchestratorTest
 
             Assert.Equal(2, exits);
             Assert.Equal(2, enters);
+        });
+    }
+
+    [Fact]
+    public async Task Transition_BackgroundCall_RunsCommitOnUiDispatcher()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var uiDispatcher = Dispatcher.CurrentDispatcher;
+            var graphRuntime = new Mock<IFrontedNodeGraphRuntime>();
+            var manager = await CreateAttachedManagerAsync(new FrontedBehaviorDocument(), graphRuntime.Object);
+            var orchestrator = CreateOrchestrator(manager);
+            var commitOnUi = false;
+
+            await Task.Run(() => orchestrator.RunTransitionAsync(CreateRequest(Guid.NewGuid(), 0), () =>
+            {
+                commitOnUi = uiDispatcher.CheckAccess();
+                return Task.CompletedTask;
+            }));
+
+            Assert.True(commitOnUi);
+        });
+    }
+
+    [Fact]
+    public async Task MultiTargetTransition_BackgroundCall_RunsCommitOnUiDispatcher()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var uiDispatcher = Dispatcher.CurrentDispatcher;
+            var graphRuntime = new Mock<IFrontedNodeGraphRuntime>();
+            var manager = await CreateAttachedManagerAsync(new FrontedBehaviorDocument(), graphRuntime.Object);
+            var orchestrator = CreateOrchestrator(manager);
+            var commitOnUi = false;
+
+            await Task.Run(() => orchestrator.RunMultiTargetTransitionAsync(
+                [CreateRequest(Guid.NewGuid(), 0), CreateRequest(Guid.NewGuid(), 1)],
+                () =>
+                {
+                    commitOnUi = uiDispatcher.CheckAccess();
+                    return Task.CompletedTask;
+                }));
+
+            Assert.True(commitOnUi);
+        });
+    }
+
+    [Fact]
+    public async Task Transition_BackgroundCommitException_Propagates()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var graphRuntime = new Mock<IFrontedNodeGraphRuntime>();
+            var manager = await CreateAttachedManagerAsync(new FrontedBehaviorDocument(), graphRuntime.Object);
+            var orchestrator = CreateOrchestrator(manager);
+
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                Task.Run(() => orchestrator.RunTransitionAsync(CreateRequest(Guid.NewGuid(), 0), () =>
+                    throw new InvalidOperationException("commit failed"))));
+
+            Assert.Equal("commit failed", exception.Message);
         });
     }
 

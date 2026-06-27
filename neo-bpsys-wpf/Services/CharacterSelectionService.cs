@@ -1,4 +1,6 @@
 using F23.StringSimilarity;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Events;
@@ -7,6 +9,8 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Windows;
+using System.Windows.Threading;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -16,13 +20,16 @@ namespace neo_bpsys_wpf.Services;
 public partial class CharacterSelectionService(
     ISharedDataService sharedDataService,
     IFrontedTransitionOrchestrator transitionOrchestrator,
-    IFrontedLayoutService layoutService)
+    IFrontedLayoutService layoutService,
+    ILogger<CharacterSelectionService>? logger = null)
     : ICharacterSelectionService
 {
     private const double CharacterMatchThreshold = 0.70;
     private const double SafeFuzzyThreshold = 0.88;
     private const double ClearFuzzyGap = 0.08;
     private readonly JaroWinkler _characterSimilarity = new();
+    private readonly Dispatcher _uiDispatcher = Application.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
+    private readonly ILogger<CharacterSelectionService> _logger = logger ?? NullLogger<CharacterSelectionService>.Instance;
 
 #if DEBUG
     static CharacterSelectionService()
@@ -168,6 +175,19 @@ public partial class CharacterSelectionService(
     /// <inheritdoc/>
     public async Task SelectSurvivorAsync(int playerIndex, Character? character, bool playAnimation = true, bool isRecordGlobalBan = true)
     {
+        _logger.LogInformation(
+            "CharacterSelection SelectSurvivorAsync requested: dispatcherAccess={DispatcherAccess}, playerIndex={PlayerIndex}, character={Character}",
+            HasUiAccess(),
+            playerIndex,
+            GetCharacterId(character));
+        await InvokeOnUiAsync(() => SelectSurvivorOnUiAsync(playerIndex, character, playAnimation, isRecordGlobalBan));
+    }
+
+    private async Task SelectSurvivorOnUiAsync(int playerIndex, Character? character, bool playAnimation, bool isRecordGlobalBan)
+    {
+        _logger.LogInformation(
+            "CharacterSelection SelectSurvivorAsync executing: dispatcherAccess={DispatcherAccess}",
+            HasUiAccess());
         if (!playAnimation)
         {
             CommitSurvivorPick(playerIndex, character, isRecordGlobalBan);
@@ -187,6 +207,18 @@ public partial class CharacterSelectionService(
     /// <inheritdoc/>
     public async Task SelectHunterAsync(Character? character, bool playAnimation = true, bool isRecordGlobalBan = true)
     {
+        _logger.LogInformation(
+            "CharacterSelection SelectHunterAsync requested: dispatcherAccess={DispatcherAccess}, character={Character}",
+            HasUiAccess(),
+            GetCharacterId(character));
+        await InvokeOnUiAsync(() => SelectHunterOnUiAsync(character, playAnimation, isRecordGlobalBan));
+    }
+
+    private async Task SelectHunterOnUiAsync(Character? character, bool playAnimation, bool isRecordGlobalBan)
+    {
+        _logger.LogInformation(
+            "CharacterSelection SelectHunterAsync executing: dispatcherAccess={DispatcherAccess}",
+            HasUiAccess());
         if (!playAnimation)
         {
             CommitHunterPick(character, isRecordGlobalBan);
@@ -206,6 +238,20 @@ public partial class CharacterSelectionService(
     /// <inheritdoc/>
     public Task BanCharacterAsync(Camp camp, int index, Character? character, bool playAnimation = true)
     {
+        _logger.LogInformation(
+            "CharacterSelection BanCharacterAsync requested: dispatcherAccess={DispatcherAccess}, camp={Camp}, index={Index}, character={Character}",
+            HasUiAccess(),
+            camp,
+            index,
+            GetCharacterId(character));
+        return InvokeOnUiAsync(() => BanCharacterOnUi(camp, index, character));
+    }
+
+    private void BanCharacterOnUi(Camp camp, int index, Character? character)
+    {
+        _logger.LogInformation(
+            "CharacterSelection BanCharacterAsync executing: dispatcherAccess={DispatcherAccess}",
+            HasUiAccess());
         // 更新数据
         if (camp == Camp.Sur)
             sharedDataService.CurrentGame.CurrentSurBannedList[index] = character;
@@ -213,13 +259,24 @@ public partial class CharacterSelectionService(
             sharedDataService.CurrentGame.CurrentHunBannedList[index] = character;
         
         CharacterBanned?.Invoke(this, new CharacterBannedEventArgs(camp, index));
-
-        return Task.CompletedTask;
     }
 
     /// <inheritdoc/>
     public async Task SwapSurvivorsAsync(int sourceIndex, int targetIndex, bool playAnimation = true)
     {
+        _logger.LogInformation(
+            "CharacterSelection SwapSurvivorsAsync requested: dispatcherAccess={DispatcherAccess}, source={Source}, target={Target}",
+            HasUiAccess(),
+            sourceIndex,
+            targetIndex);
+        await InvokeOnUiAsync(() => SwapSurvivorsOnUiAsync(sourceIndex, targetIndex, playAnimation));
+    }
+
+    private async Task SwapSurvivorsOnUiAsync(int sourceIndex, int targetIndex, bool playAnimation)
+    {
+        _logger.LogInformation(
+            "CharacterSelection SwapSurvivorsAsync executing: dispatcherAccess={DispatcherAccess}",
+            HasUiAccess());
         if (!playAnimation)
         {
             CommitSurvivorSwap(sourceIndex, targetIndex);
@@ -248,6 +305,11 @@ public partial class CharacterSelectionService(
 
     private void CommitSurvivorPick(int playerIndex, Character? character, bool isRecordGlobalBan)
     {
+        _logger.LogInformation(
+            "CharacterSelection CommitSurvivorPick: dispatcherAccess={DispatcherAccess}, playerIndex={PlayerIndex}, character={Character}",
+            HasUiAccess(),
+            playerIndex,
+            GetCharacterId(character));
         sharedDataService.CurrentGame.SurPlayerList[playerIndex].Character = character;
         if (isRecordGlobalBan && sharedDataService.CurrentGame.GameProgress is > GameProgress.Free and < GameProgress.Game4FirstHalf)
         {
@@ -260,6 +322,10 @@ public partial class CharacterSelectionService(
 
     private void CommitHunterPick(Character? character, bool isRecordGlobalBan)
     {
+        _logger.LogInformation(
+            "CharacterSelection CommitHunterPick: dispatcherAccess={DispatcherAccess}, character={Character}",
+            HasUiAccess(),
+            GetCharacterId(character));
         sharedDataService.CurrentGame.HunPlayer.Character = character;
         if (isRecordGlobalBan && sharedDataService.CurrentGame.GameProgress is > GameProgress.Free and < GameProgress.Game4FirstHalf)
         {
@@ -272,10 +338,38 @@ public partial class CharacterSelectionService(
 
     private void CommitSurvivorSwap(int sourceIndex, int targetIndex)
     {
+        _logger.LogInformation(
+            "CharacterSelection CommitSurvivorSwap: dispatcherAccess={DispatcherAccess}, source={Source}, target={Target}",
+            HasUiAccess(),
+            sourceIndex,
+            targetIndex);
         sharedDataService.CurrentGame.SwapCharactersInPlayers(sourceIndex, targetIndex);
         CharacterSelected?.Invoke(this, new CharacterSelectedEventArgs(Camp.Sur, sourceIndex));
         CharacterSelected?.Invoke(this, new CharacterSelectedEventArgs(Camp.Sur, targetIndex));
     }
+
+    private Task InvokeOnUiAsync(Action action)
+    {
+        if (_uiDispatcher.CheckAccess())
+        {
+            action();
+            return Task.CompletedTask;
+        }
+
+        return _uiDispatcher.InvokeAsync(action).Task;
+    }
+
+    private Task InvokeOnUiAsync(Func<Task> action)
+    {
+        if (_uiDispatcher.CheckAccess())
+        {
+            return action();
+        }
+
+        return _uiDispatcher.InvokeAsync(action).Task.Unwrap();
+    }
+
+    private bool HasUiAccess() => _uiDispatcher.CheckAccess();
 
     private async Task<FrontedTransitionRequest> CreateCharacterPickRequestAsync(
         Camp camp,

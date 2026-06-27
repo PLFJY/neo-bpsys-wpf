@@ -48,6 +48,8 @@ StartGraph
 
 `IFrontedTransitionOrchestrator` 串联来源状态退出和目标状态进入动画，并在重入、取消、窗口关闭和包切换时终止旧 transition。Transition 不拥有第二份比赛状态，状态变化仍以 `ISharedDataService` 和显式事件 payload 为权威源。
 
+Transition 的顺序固定为 `ExitGraph -> commit -> EnterGraph`。其中 `commit` 是实际比赛状态变更点，必须在 WPF UI Dispatcher 上执行；SmartBP 等后台识别线程只能通过 `ICharacterSelectionService` / `IFrontedTransitionOrchestrator` 调用服务层，由服务层负责切回 UI 线程，不能直接修改 `CurrentGame`。
+
 ## Behavior package files
 
 ```text

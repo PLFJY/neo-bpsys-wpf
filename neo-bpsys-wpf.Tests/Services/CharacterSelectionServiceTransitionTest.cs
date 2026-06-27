@@ -8,11 +8,13 @@ using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Services;
+using neo_bpsys_wpf.Tests.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Threading;
 using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Services;
@@ -298,6 +300,110 @@ public sealed class CharacterSelectionServiceTransitionTest
         transition.VerifyAll();
     }
 
+    [Fact]
+    public async Task SelectSurvivorAsync_BackgroundCall_CommitsAndRaisesEventOnUiDispatcher()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var uiDispatcher = Dispatcher.CurrentDispatcher;
+            var game = new Game(new Team(Camp.Sur, TeamType.HomeTeam), new Team(Camp.Hun, TeamType.AwayTeam), GameProgress.Free);
+            var service = CreateServiceForGame(game);
+            var selected = new Character("new", Camp.Sur, "new.png");
+            var eventOnUi = false;
+            service.CharacterSelected += (_, args) =>
+            {
+                if (args.Camp == Camp.Sur && args.PlayerIndex == 0)
+                {
+                    eventOnUi = uiDispatcher.CheckAccess();
+                }
+            };
+
+            await Task.Run(() => service.SelectSurvivorAsync(0, selected, playAnimation: false));
+
+            Assert.Same(selected, game.SurPlayerList[0].Character);
+            Assert.True(eventOnUi);
+        });
+    }
+
+    [Fact]
+    public async Task SelectHunterAsync_BackgroundCall_CommitsAndRaisesEventOnUiDispatcher()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var uiDispatcher = Dispatcher.CurrentDispatcher;
+            var game = new Game(new Team(Camp.Sur, TeamType.HomeTeam), new Team(Camp.Hun, TeamType.AwayTeam), GameProgress.Free);
+            var service = CreateServiceForGame(game);
+            var selected = new Character("new", Camp.Hun, "new.png");
+            var eventOnUi = false;
+            service.CharacterSelected += (_, args) =>
+            {
+                if (args.Camp == Camp.Hun && args.PlayerIndex == -1)
+                {
+                    eventOnUi = uiDispatcher.CheckAccess();
+                }
+            };
+
+            await Task.Run(() => service.SelectHunterAsync(selected, playAnimation: false));
+
+            Assert.Same(selected, game.HunPlayer.Character);
+            Assert.True(eventOnUi);
+        });
+    }
+
+    [Fact]
+    public async Task BanCharacterAsync_BackgroundCall_MutatesAndRaisesEventOnUiDispatcher()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var uiDispatcher = Dispatcher.CurrentDispatcher;
+            var game = new Game(new Team(Camp.Sur, TeamType.HomeTeam), new Team(Camp.Hun, TeamType.AwayTeam), GameProgress.Free);
+            var service = CreateServiceForGame(game);
+            var selected = new Character("new", Camp.Sur, "new.png");
+            var eventOnUi = false;
+            service.CharacterBanned += (_, args) =>
+            {
+                if (args.Camp == Camp.Sur && args.Index == 0)
+                {
+                    eventOnUi = uiDispatcher.CheckAccess();
+                }
+            };
+
+            await Task.Run(() => service.BanCharacterAsync(Camp.Sur, 0, selected));
+
+            Assert.Same(selected, game.CurrentSurBannedList[0]);
+            Assert.True(eventOnUi);
+        });
+    }
+
+    [Fact]
+    public async Task SwapSurvivorsAsync_BackgroundCall_CommitsAndRaisesEventsOnUiDispatcher()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var uiDispatcher = Dispatcher.CurrentDispatcher;
+            var game = new Game(new Team(Camp.Sur, TeamType.HomeTeam), new Team(Camp.Hun, TeamType.AwayTeam), GameProgress.Free);
+            var first = new Character("first", Camp.Sur, "first.png");
+            var second = new Character("second", Camp.Sur, "second.png");
+            game.SurPlayerList[0].Character = first;
+            game.SurPlayerList[1].Character = second;
+            var service = CreateServiceForGame(game);
+            var uiEventCount = 0;
+            service.CharacterSelected += (_, args) =>
+            {
+                if (args.Camp == Camp.Sur && uiDispatcher.CheckAccess())
+                {
+                    uiEventCount++;
+                }
+            };
+
+            await Task.Run(() => service.SwapSurvivorsAsync(0, 1, playAnimation: false));
+
+            Assert.Same(second, game.SurPlayerList[0].Character);
+            Assert.Same(first, game.SurPlayerList[1].Character);
+            Assert.Equal(2, uiEventCount);
+        });
+    }
+
     private static IFrontedLayoutService CreateLayoutService(Guid targetGuid)
         => CreateLayoutService(("SurPick0", targetGuid));
 
@@ -308,6 +414,16 @@ public sealed class CharacterSelectionServiceTransitionTest
         var sharedData = new Mock<ISharedDataService>();
         sharedData.SetupGet(service => service.SurCharaDict).Returns(new SortedDictionary<string, Character>(survivors.ToDictionary(item => item.Name)));
         sharedData.SetupGet(service => service.HunCharaDict).Returns(new SortedDictionary<string, Character>(hunters.ToDictionary(item => item.Name)));
+        return new(
+            sharedData.Object,
+            Mock.Of<IFrontedTransitionOrchestrator>(),
+            Mock.Of<IFrontedLayoutService>());
+    }
+
+    private static CharacterSelectionService CreateServiceForGame(Game game)
+    {
+        var sharedData = new Mock<ISharedDataService>();
+        sharedData.Setup(service => service.CurrentGame).Returns(game);
         return new(
             sharedData.Object,
             Mock.Of<IFrontedTransitionOrchestrator>(),

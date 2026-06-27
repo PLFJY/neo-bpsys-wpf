@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
+using System.Windows;
+using System.Windows.Threading;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
@@ -11,6 +13,7 @@ public sealed class FrontedTransitionOrchestrator : IFrontedTransitionOrchestrat
 {
     private readonly FrontedBehaviorRuntimeHostManager _hostManager;
     private readonly ILogger<FrontedTransitionOrchestrator> _logger;
+    private readonly Dispatcher _uiDispatcher;
 
     /// <summary>
     /// Initializes a new instance of <see cref="FrontedTransitionOrchestrator"/>.
@@ -23,6 +26,7 @@ public sealed class FrontedTransitionOrchestrator : IFrontedTransitionOrchestrat
     {
         _hostManager = hostManager;
         _logger = logger;
+        _uiDispatcher = Application.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
     }
 
     /// <inheritdoc />
@@ -55,6 +59,7 @@ public sealed class FrontedTransitionOrchestrator : IFrontedTransitionOrchestrat
             if (executions.Length > 0)
             {
                 await Task.WhenAll(executions.Select(execution => execution.RunExitGraphAsync(cancellationToken)));
+                _logger.LogInformation("Transition ExitGraph completed.");
 
                 if (executions.Any(execution => execution.IsCancellationRequested))
                 {
@@ -64,10 +69,13 @@ public sealed class FrontedTransitionOrchestrator : IFrontedTransitionOrchestrat
                 }
             }
 
-            await commitAsync();
+            await InvokeCommitOnUiAsync(commitAsync);
 
             if (executions.Length > 0)
             {
+                _logger.LogInformation(
+                    "Transition EnterGraph begin: dispatcherAccess={DispatcherAccess}",
+                    _uiDispatcher.CheckAccess());
                 await Task.WhenAll(executions.Select(execution => execution.RunEnterGraphAsync(cancellationToken)));
             }
         }
@@ -83,5 +91,23 @@ public sealed class FrontedTransitionOrchestrator : IFrontedTransitionOrchestrat
                 execution.Complete();
             }
         }
+    }
+
+    private async Task InvokeCommitOnUiAsync(Func<Task> commitAsync)
+    {
+        _logger.LogInformation(
+            "Transition commit begin: dispatcherAccess={DispatcherAccess}",
+            _uiDispatcher.CheckAccess());
+
+        if (_uiDispatcher.CheckAccess())
+        {
+            await commitAsync();
+        }
+        else
+        {
+            await _uiDispatcher.InvokeAsync(commitAsync).Task.Unwrap();
+        }
+
+        _logger.LogInformation("Transition commit completed.");
     }
 }
