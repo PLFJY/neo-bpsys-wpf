@@ -34,6 +34,7 @@ using SmartBpLifecycleCategory = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Re
 using LlamaVisionServerRole = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.LlamaVisionServerRole;
 using SmartBpAutoRecognitionCoordinator = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpAutoRecognitionCoordinator;
 using SmartBpCandidateOperationBuilder = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpCandidateOperationBuilder;
+using SmartBpPlayerIdentityMatcher = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpPlayerIdentityMatcher;
 using ISmartBpRegionSnapshotRecognitionService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpRegionSnapshotRecognitionService;
 using ISmartBpSnapshotDeltaRecognitionService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpSnapshotDeltaRecognitionService;
 using ISmartBpSnapshotRecognitionPlanner = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpSnapshotRecognitionPlanner;
@@ -184,7 +185,7 @@ public sealed class SmartBpSceneGateAndModelSourceTest
                 Mock.Of<ISmartBpRegionSnapshotRecognitionService>(), delta.Object, field.Object, planner.Object, state.Object,
                 ledger.Object, Mock.Of<ISmartBpFrameRingBuffer>(), recognitionSettings.Object, shared.Object,
                 Mock.Of<ISmartBpGuidanceSyncService>(), guidance.Object, Mock.Of<ISmartBpWorkflowBackfillService>(),
-                new SmartBpCandidateOperationBuilder(Mock.Of<ISmartBpCharacterResolver>(), shared.Object),
+                new SmartBpCandidateOperationBuilder(Mock.Of<ISmartBpCharacterResolver>(), shared.Object, new SmartBpPlayerIdentityMatcher(shared.Object)),
                 Mock.Of<ISmartBpDetectedOperationApplier>(), new SmartBpSceneGateService(),
                 ocr.Object, Mock.Of<ISmartBpAiOcrTranscriptRecognitionService>(),
                 Mock.Of<ISmartBpAiOcrTranscriptInterpreter>(),
@@ -261,7 +262,7 @@ public sealed class SmartBpSceneGateAndModelSourceTest
                 Mock.Of<ISmartBpRegionSnapshotRecognitionService>(), Mock.Of<ISmartBpSnapshotDeltaRecognitionService>(), field.Object, planner.Object, state.Object,
                 ledger.Object, Mock.Of<ISmartBpFrameRingBuffer>(), recognitionSettings.Object, Mock.Of<ISharedDataService>(),
                 Mock.Of<ISmartBpGuidanceSyncService>(), guidance.Object, Mock.Of<ISmartBpWorkflowBackfillService>(),
-                new SmartBpCandidateOperationBuilder(Mock.Of<ISmartBpCharacterResolver>(), Mock.Of<ISharedDataService>()),
+                new SmartBpCandidateOperationBuilder(Mock.Of<ISmartBpCharacterResolver>(), Mock.Of<ISharedDataService>(), new SmartBpPlayerIdentityMatcher(Mock.Of<ISharedDataService>())),
                 Mock.Of<ISmartBpDetectedOperationApplier>(), new SmartBpSceneGateService(),
                 ocr.Object, Mock.Of<ISmartBpAiOcrTranscriptRecognitionService>(),
                 Mock.Of<ISmartBpAiOcrTranscriptInterpreter>(),

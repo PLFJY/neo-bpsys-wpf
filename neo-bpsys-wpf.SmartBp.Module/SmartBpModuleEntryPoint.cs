@@ -104,6 +104,7 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint
         services.AddSingleton<ISmartBpFrameRingBuffer, SmartBpFrameRingBuffer>();
         services.AddSingleton<ISmartBpCropChangeDetector, SmartBpCropChangeDetector>();
         services.AddSingleton<ISmartBpCharacterResolver, SmartBpCharacterResolver>();
+        services.AddSingleton<ISmartBpPlayerIdentityMatcher, SmartBpPlayerIdentityMatcher>();
         services.AddSingleton<ISmartBpOcrContactSheetBuilder, SmartBpOcrContactSheetBuilder>();
         services.AddSingleton<ISmartBpOcrTextResolver, SmartBpOcrTextResolver>();
         services.AddSingleton<ISmartBpLifecycleStatusDetector, SmartBpLifecycleStatusDetector>();

@@ -851,6 +851,105 @@ internal sealed class SmartBpCharacterResolver(ICharacterSelectionService charac
 }
 
 /// <summary>
+/// 将 OCR 识别到的玩家 ID 文本匹配到当前对局内部求生者玩家位置。
+/// 支持精确匹配、去噪归一化匹配和高阈值非模糊模糊匹配；模糊匹配不用于自动应用。
+/// </summary>
+internal sealed class SmartBpPlayerIdentityMatcher(ISharedDataService shared) : ISmartBpPlayerIdentityMatcher
+{
+    private const double SafeThreshold = 0.85;
+    private const double AmbiguityMargin = 0.10;
+
+    /// <inheritdoc />
+    public SmartBpPlayerIdentityMatchResult MatchSurvivorPlayer(string? rawPlayerId)
+    {
+        if (string.IsNullOrWhiteSpace(rawPlayerId))
+            return SmartBpPlayerIdentityMatchResult.Unmatched("player_id missing or empty.");
+
+        var players = shared.CurrentGame.SurPlayerList;
+        var raw = rawPlayerId.Trim();
+        var normalizedRaw = Normalize(raw);
+
+        var scored = new List<(int Index, string Name, double Score, string Mode)>();
+        for (var i = 0; i < players.Count; i++)
+        {
+            var name = players[i].Member?.Name;
+            if (string.IsNullOrWhiteSpace(name))
+                continue;
+            var trimmedName = name.Trim();
+            var (score, mode) = ScoreMatch(normalizedRaw, Normalize(trimmedName), raw, trimmedName);
+            if (score > 0)
+                scored.Add((i, trimmedName, score, mode));
+        }
+
+        if (scored.Count == 0)
+            return SmartBpPlayerIdentityMatchResult.Unmatched($"no survivor player matched '{rawPlayerId}'.");
+
+        scored.Sort((a, b) => b.Score.CompareTo(a.Score));
+        var best = scored[0];
+        if (best.Score < SafeThreshold)
+            return SmartBpPlayerIdentityMatchResult.Unmatched($"best match '{best.Name}' score={best.Score:0.00} below safe threshold {SafeThreshold:0.00}; mode={best.Mode}.");
+
+        if (scored.Count > 1)
+        {
+            var second = scored[1];
+            if (second.Score >= SafeThreshold && best.Score - second.Score < AmbiguityMargin)
+                return SmartBpPlayerIdentityMatchResult.Unmatched(
+                    $"ambiguous match: '{best.Name}' score={best.Score:0.00} vs '{second.Name}' score={second.Score:0.00}; rejected.");
+        }
+
+        return new(true, best.Index, best.Name, best.Score, true, $"matched mode={best.Mode}; score={best.Score:0.00}.");
+    }
+
+    private static string Normalize(string value)
+    {
+        var builder = new StringBuilder(value.Length);
+        foreach (var ch in value)
+        {
+            if (char.IsWhiteSpace(ch)) continue;
+            if (ch == '_' || ch == '-' || ch == '.' || ch == ',' || ch == '·' || ch == '•' || ch == '\'' || ch == '"') continue;
+            builder.Append(char.ToLowerInvariant(ch));
+        }
+        return builder.ToString();
+    }
+
+    private static (double Score, string Mode) ScoreMatch(string normalizedRaw, string normalizedName, string raw, string name)
+    {
+        if (string.Equals(raw, name, StringComparison.Ordinal))
+            return (1.0, "exact");
+        if (string.Equals(normalizedRaw, normalizedName, StringComparison.Ordinal))
+            return (0.98, "normalized");
+        return (LevenshteinSimilarity(normalizedRaw, normalizedName), "fuzzy");
+    }
+
+    private static double LevenshteinSimilarity(string left, string right)
+    {
+        var maxLen = Math.Max(left.Length, right.Length);
+        if (maxLen == 0) return 1.0;
+        return 1.0 - (double)LevenshteinDistance(left, right) / maxLen;
+    }
+
+    private static int LevenshteinDistance(string left, string right)
+    {
+        if (left.Length == 0) return right.Length;
+        if (right.Length == 0) return left.Length;
+        var previous = new int[right.Length + 1];
+        var current = new int[right.Length + 1];
+        for (var j = 0; j <= right.Length; j++) previous[j] = j;
+        for (var i = 1; i <= left.Length; i++)
+        {
+            current[0] = i;
+            for (var j = 1; j <= right.Length; j++)
+            {
+                var cost = left[i - 1] == right[j - 1] ? 0 : 1;
+                current[j] = Math.Min(Math.Min(current[j - 1] + 1, previous[j] + 1), previous[j - 1] + cost);
+            }
+            (previous, current) = (current, previous);
+        }
+        return previous[right.Length];
+    }
+}
+
+/// <summary>
 /// 构建 SmartBP 本地视觉模型识别所需的提示词文本。
 /// </summary>
 internal static class SmartBpRecognitionPromptBuilder

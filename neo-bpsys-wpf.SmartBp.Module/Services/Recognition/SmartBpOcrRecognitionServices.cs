@@ -463,12 +463,13 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
 {
     public SmartBpOcrParsedRegionResult ParseDetailed(
         SmartBpRecognitionRegion region,
-        IReadOnlyList<OcrTextLine> lines)
+        IReadOnlyList<OcrTextLine> lines,
+        SmartBpOcrFieldParseContext? parseContext = null)
     {
         var diagnostics = new List<string>();
         foreach (var line in lines.Where(line => IsStatusLine(line.Text)))
             diagnostics.Add($"ocr-ignore region={SmartBpOcrBpRecognitionService.ToRegionId(region)} raw={line.Text} provider={line.Provider ?? "unknown"} confidence={line.Confidence:0.00} reason=status-line");
-        var result = Parse(region, lines, diagnostics);
+        var result = Parse(region, lines, diagnostics, parseContext);
         IReadOnlyList<SmartBpRecognizedPlayerCharacterSlot> slots = result.PickedHun != null ? [result.PickedHun] : result.Slots;
         var unresolved = slots.Count == 0 || slots.Any(slot => SmartBpBusinessStateParser.IsUnselected(slot.CharacterName));
         var safe = slots.Where(slot => !SmartBpBusinessStateParser.IsUnselected(slot.CharacterName)).All(slot => slot.IsAutoApplySafe);
@@ -485,13 +486,14 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
     public SmartBpFocusedBusinessExtractionResult Parse(
         SmartBpRecognitionRegion region,
         IReadOnlyList<OcrTextLine> lines,
-        ICollection<string> diagnostics)
+        ICollection<string> diagnostics,
+        SmartBpOcrFieldParseContext? parseContext = null)
     {
         return region switch
         {
             SmartBpRecognitionRegion.RightTop => ParseBanRegion(lines, Camp.Sur, "banned_sur", 4, diagnostics),
             SmartBpRecognitionRegion.LeftTop => ParseBanRegion(lines, Camp.Hun, "banned_hun", 2, diagnostics),
-            SmartBpRecognitionRegion.LeftBottom => ParseSurvivorPickRegion(lines, diagnostics),
+            SmartBpRecognitionRegion.LeftBottom => ParseSurvivorPickRegion(lines, diagnostics, parseContext),
             SmartBpRecognitionRegion.RightBottom => ParseHunterPickRegion(lines, diagnostics),
             _ => new SmartBpFocusedBusinessExtractionResult()
         };
@@ -530,7 +532,8 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
 
     private SmartBpFocusedBusinessExtractionResult ParseSurvivorPickRegion(
         IReadOnlyList<OcrTextLine> lines,
-        ICollection<string> diagnostics)
+        ICollection<string> diagnostics,
+        SmartBpOcrFieldParseContext? parseContext = null)
     {
         var slots = DefaultPlayerSlots(4);
         var layoutLines = lines
@@ -539,8 +542,88 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
             .Where(line => !string.IsNullOrWhiteSpace(line.Text))
             .ToArray();
         var rows = ClusterRows(layoutLines, CalculateRowTolerance(layoutLines));
+        var mode = parseContext?.ResolvePickedSurParseMode() ?? SmartBpPickedSurOcrParseMode.Unknown;
+        diagnostics.Add($"picked_sur parse mode={mode}");
+
         AddPickedSurRowDiagnostics(rows, diagnostics);
 
+        if (mode == SmartBpPickedSurOcrParseMode.Unknown)
+        {
+            // 未知模式回退到旧行为：物理行索引语义。
+            ParseSurvivorPickRegionLegacy(rows, slots, diagnostics);
+            return new() { Phase = "未知", TargetField = "picked_sur", Slots = slots };
+        }
+
+        // 结构化行分类：噪声 / character / player-id / talent。
+        var (xMin, xMax) = ResolveXRange(layoutLines);
+        var scoredRows = rows.Select((row, index) => ScoreRow(row, index, xMin, xMax)).ToArray();
+        AddRowClassificationDiagnostics(scoredRows, diagnostics);
+
+        var nonNoiseRows = scoredRows.Where(sr => sr.Classification != RowClassification.Noise).ToArray();
+        if (nonNoiseRows.Length == 0)
+        {
+            diagnostics.Add("picked_sur: all rows classified as noise; no slots parsed.");
+            diagnostics.Add($"picked_sur: parsed [{string.Join(", ", slots.Select(slot => $"{slot.Index}={slot.CharacterName}/{slot.PlayerId ?? "null"}"))}]");
+            return new() { Phase = "未知", TargetField = "picked_sur", Slots = slots };
+        }
+
+        // 选择 character row：优先选择 slot-like character texts 最多的行。
+        var characterRowScored = nonNoiseRows
+            .Where(sr => sr.Classification == RowClassification.Character || sr.Features.HasFourSlotStructure)
+            .OrderByDescending(sr => sr.Features.ValidSurvivorCharacterCount + sr.Features.UnselectedCount)
+            .ThenByDescending(sr => sr.Features.CoveredSlotsCount)
+            .ThenBy(sr => sr.PhysicalIndex)
+            .FirstOrDefault() ?? nonNoiseRows.First();
+
+        // 选择 player-id row：character row 之后的第一个 player-id-like 行。
+        var playerRowScored = nonNoiseRows
+            .Where(sr => sr.PhysicalIndex > characterRowScored.PhysicalIndex)
+            .Where(sr => sr.Classification == RowClassification.PlayerId || sr.Features.PlayerIdLikeCount > 0)
+            .OrderByDescending(sr => sr.Features.CoveredSlotsCount)
+            .ThenBy(sr => sr.PhysicalIndex)
+            .FirstOrDefault();
+
+        diagnostics.Add($"picked_sur selected character row={characterRowScored.PhysicalIndex}; player-id row={playerRowScored?.PhysicalIndex ?? -1}");
+
+        // 分配 character slots。
+        var slotCenters = BuildSlotCentersFromXRange(xMin, xMax, slots.Count);
+        var characterItems = characterRowScored.Lines.OrderBy(line => line.CenterX).ToArray();
+        var assignedCharacterSlots = new HashSet<int>();
+        foreach (var item in characterItems)
+        {
+            if (assignedCharacterSlots.Count >= slots.Count)
+                break;
+            var slotIndex = ResolveSurvivorSlotIndex(item.CenterX, xMin, xMax, slots.Count);
+            if (assignedCharacterSlots.Contains(slotIndex))
+                slotIndex = Enumerable.Range(0, slots.Count)
+                    .Where(index => !assignedCharacterSlots.Contains(index))
+                    .OrderBy(index => Math.Abs(item.CenterX - slotCenters[index]))
+                    .First();
+            ApplyPickedSurCharacterSlot(slots[slotIndex], item, diagnostics);
+            assignedCharacterSlots.Add(slotIndex);
+        }
+
+        // 分配 player IDs。
+        if (playerRowScored != null)
+            AssignPickedSurPlayerIdsBySlot(slots, slotCenters, playerRowScored.Lines, xMin, xMax, diagnostics);
+
+        // 在 DistributeChara / SurvivorTalent 模式下，输出 talent/extra 行忽略诊断。
+        if (mode is SmartBpPickedSurOcrParseMode.DistributeChara or SmartBpPickedSurOcrParseMode.SurvivorTalent)
+            AddIgnoredPickedSurRowDiagnostics(scoredRows, characterRowScored, playerRowScored, diagnostics);
+
+        diagnostics.Add("picked_sur slot assignment:");
+        foreach (var slot in slots)
+            diagnostics.Add($"slot {slot.Index} char={slot.CharacterName} player_id={slot.PlayerId ?? "null"}");
+        diagnostics.Add($"picked_sur: parsed [{string.Join(", ", slots.Select(slot => $"{slot.Index}={slot.CharacterName}/{slot.PlayerId ?? "null"}"))}]");
+        return new() { Phase = "未知", TargetField = "picked_sur", Slots = slots };
+    }
+
+    /// <summary>未知模式下的旧行为回退：物理行索引语义。</summary>
+    private void ParseSurvivorPickRegionLegacy(
+        IReadOnlyList<IReadOnlyList<OcrLineLayout>> rows,
+        IReadOnlyList<SmartBpRecognizedPlayerCharacterSlot> slots,
+        ICollection<string> diagnostics)
+    {
         var characterRow = rows.FirstOrDefault() ?? [];
         var playerRow = rows.Skip(1).FirstOrDefault() ?? [];
         var selectedCharacterItems = characterRow.Take(4).ToArray();
@@ -563,15 +646,200 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
                 assignedCharacterSlots.Add(slotIndex);
             }
         }
-
         AssignPickedSurPlayerIds(slots, slotCenters, playerRow);
         AddIgnoredPickedSurRowDiagnostics(rows, diagnostics);
-        diagnostics.Add("picked_sur slot assignment:");
-        foreach (var slot in slots)
-            diagnostics.Add($"slot {slot.Index} char={slot.CharacterName} player_id={slot.PlayerId ?? "null"}");
-        diagnostics.Add($"picked_sur: parsed [{string.Join(", ", slots.Select(slot => $"{slot.Index}={slot.CharacterName}/{slot.PlayerId ?? "null"}"))}]");
-        return new() { Phase = "未知", TargetField = "picked_sur", Slots = slots };
     }
+
+    /// <summary>基于 X 范围将中心坐标映射到 survivor 槽位索引（0-3）。</summary>
+    private static int ResolveSurvivorSlotIndex(double centerX, double xMin, double xMax, int slotCount)
+    {
+        if (xMax <= xMin)
+            return 0;
+        var normalized = (centerX - xMin) / (xMax - xMin);
+        var slotIndex = (int)Math.Round(normalized * (slotCount - 1));
+        return Math.Clamp(slotIndex, 0, slotCount - 1);
+    }
+
+    /// <summary>从 X 范围构建 4 个槽位中心坐标。</summary>
+    private static double[] BuildSlotCentersFromXRange(double xMin, double xMax, int slotCount)
+    {
+        var centers = new double[slotCount];
+        if (xMax <= xMin)
+        {
+            for (var i = 0; i < slotCount; i++)
+                centers[i] = xMin + i * 100;
+            return centers;
+        }
+        for (var i = 0; i < slotCount; i++)
+            centers[i] = xMin + (double)i / (slotCount - 1) * (xMax - xMin);
+        return centers;
+    }
+
+    /// <summary>计算所有 layout lines 的 X 范围。</summary>
+    private static (double Min, double Max) ResolveXRange(IReadOnlyList<OcrLineLayout> lines)
+    {
+        if (lines.Count == 0)
+            return (0, 1);
+        var minX = lines.Min(line => line.CenterX);
+        var maxX = lines.Max(line => line.CenterX);
+        return (minX, maxX);
+    }
+
+    /// <summary>对一行 OCR layout lines 进行结构化评分。</summary>
+    private ScoredRow ScoreRow(IReadOnlyList<OcrLineLayout> row, int physicalIndex, double xMin, double xMax)
+    {
+        var features = new RowFeatures
+        {
+            ItemCount = row.Count,
+            CoveredSlotsCount = row.Select(line => ResolveSurvivorSlotIndex(line.CenterX, xMin, xMax, 4)).Distinct().Count(),
+            AverageConfidence = row.Count > 0 ? row.Average(line => line.Confidence) : 0,
+            ValidSurvivorCharacterCount = 0,
+            UnselectedCount = 0,
+            PlayerIdLikeCount = 0,
+            ShortFragmentCount = 0
+        };
+
+        foreach (var line in row)
+        {
+            if (SmartBpBusinessStateParser.IsUnselected(line.Text))
+            {
+                features.UnselectedCount++;
+                continue;
+            }
+            var resolved = resolver.ResolveCharacterFromLine(line.Text, Camp.Sur, -1, line.Provider);
+            if (resolved.ResolvedCharacterKey != null)
+            {
+                features.ValidSurvivorCharacterCount++;
+                continue;
+            }
+            if (line.Text.Length <= 2)
+                features.ShortFragmentCount++;
+            if (!IsInvalidPlayerId(line.Text) && !string.IsNullOrWhiteSpace(line.Text))
+                features.PlayerIdLikeCount++;
+        }
+
+        features.HasFourSlotStructure = features.CoveredSlotsCount >= 3;
+        features.HasMostlySlotLikeTexts = (features.UnselectedCount + features.ValidSurvivorCharacterCount) * 2 >= features.ItemCount;
+        features.IsSingleLowValueFragmentRow = features.ItemCount == 1 && features.ValidSurvivorCharacterCount == 0 && features.UnselectedCount == 0;
+
+        var classification = ClassifyRow(features);
+        return new ScoredRow(physicalIndex, row, features, classification);
+    }
+
+    /// <summary>基于结构特征对行进行分类。</summary>
+    private static RowClassification ClassifyRow(RowFeatures features)
+    {
+        // 噪声行：低覆盖、无角色、无未选择、不构成 player-id 行结构。
+        if (features.IsSingleLowValueFragmentRow && features.CoveredSlotsCount <= 1 && features.AverageConfidence < 0.6)
+            return RowClassification.Noise;
+        if (features.CoveredSlotsCount <= 1 && features.ValidSurvivorCharacterCount == 0 && features.UnselectedCount == 0 && features.PlayerIdLikeCount == 0)
+            return RowClassification.Noise;
+
+        // character 行：有未选择或有效 survivor 角色。
+        if (features.UnselectedCount > 0 || features.ValidSurvivorCharacterCount > 0)
+            return RowClassification.Character;
+
+        // player-id 行：非角色、非未选择文本，覆盖多槽位。
+        if (features.PlayerIdLikeCount > 0 && features.ValidSurvivorCharacterCount == 0 && features.UnselectedCount == 0)
+            return RowClassification.PlayerId;
+
+        return RowClassification.Unknown;
+    }
+
+    /// <summary>按 X 坐标和槽位中心分配 player IDs。</summary>
+    private void AssignPickedSurPlayerIdsBySlot(
+        IReadOnlyList<SmartBpRecognizedPlayerCharacterSlot> slots,
+        IReadOnlyList<double> slotCenters,
+        IReadOnlyList<OcrLineLayout> playerRow,
+        double xMin,
+        double xMax,
+        ICollection<string> diagnostics)
+    {
+        if (playerRow.Count == 0)
+            return;
+        var assigned = new HashSet<int>();
+        foreach (var player in playerRow.OrderBy(line => line.CenterX))
+        {
+            if (assigned.Count >= slots.Count)
+                break;
+            var playerId = SmartBpOcrTextResolver.NormalizeText(player.Text);
+            if (string.IsNullOrWhiteSpace(playerId) || IsInvalidPlayerId(playerId))
+                continue;
+            var slotIndex = ResolveSurvivorSlotIndex(player.CenterX, xMin, xMax, slots.Count);
+            if (assigned.Contains(slotIndex))
+                slotIndex = Enumerable.Range(0, slots.Count)
+                    .Where(index => !assigned.Contains(index))
+                    .OrderBy(index => Math.Abs(player.CenterX - slotCenters[index]))
+                    .FirstOrDefault();
+            slots[slotIndex].PlayerId = playerId;
+            assigned.Add(slotIndex);
+            diagnostics.Add($"line text=\"{player.Text}\" centerX={player.CenterX:0.0} -> slot={slotIndex}");
+        }
+    }
+
+    /// <summary>添加行分类诊断日志。</summary>
+    private void AddRowClassificationDiagnostics(ScoredRow[] scoredRows, ICollection<string> diagnostics)
+    {
+        diagnostics.Add("row classification:");
+        foreach (var sr in scoredRows)
+        {
+            var texts = string.Join(", ", sr.Lines.Select(line => line.Text));
+            diagnostics.Add($"  row {sr.PhysicalIndex} => {sr.Classification}; reason=coveredSlots={sr.Features.CoveredSlotsCount}, avgConf={sr.Features.AverageConfidence:0.00}, charCount={sr.Features.ValidSurvivorCharacterCount}, unselectedCount={sr.Features.UnselectedCount}, playerIdLike={sr.Features.PlayerIdLikeCount} texts=[{texts}]");
+        }
+    }
+
+    /// <summary>在 DistributeChara/SurvivorTalent 模式下输出 talent/extra 行忽略诊断。</summary>
+    private void AddIgnoredPickedSurRowDiagnostics(
+        ScoredRow[] scoredRows,
+        ScoredRow characterRow,
+        ScoredRow? playerRow,
+        ICollection<string> diagnostics)
+    {
+        var lastSemanticIndex = Math.Max(characterRow.PhysicalIndex, playerRow?.PhysicalIndex ?? characterRow.PhysicalIndex);
+        foreach (var sr in scoredRows.Where(sr => sr.PhysicalIndex > lastSemanticIndex && sr.Classification != RowClassification.Noise))
+        {
+            var texts = string.Join(", ", sr.Lines.Select(line => line.Text));
+            diagnostics.Add($"picked_sur ignored talent/extra row {sr.PhysicalIndex} texts=[{texts}]");
+            foreach (var line in sr.Lines)
+            {
+                var resolved = resolver.ResolveCharacterFromLine(line.Text, Camp.Sur, -1, line.Provider);
+                if (resolved.ResolvedCharacterKey != null)
+                    diagnostics.Add($"picked_sur ignored lower-row character candidate row={sr.PhysicalIndex} raw={line.Text} result={resolved.ResolvedCharacterKey} reason=below-player-id-row");
+            }
+        }
+    }
+
+    /// <summary>行结构特征。</summary>
+    private sealed class RowFeatures
+    {
+        public int ItemCount { get; set; }
+        public int CoveredSlotsCount { get; set; }
+        public double AverageConfidence { get; set; }
+        public int ValidSurvivorCharacterCount { get; set; }
+        public int UnselectedCount { get; set; }
+        public int PlayerIdLikeCount { get; set; }
+        public int ShortFragmentCount { get; set; }
+        public bool HasFourSlotStructure { get; set; }
+        public bool HasMostlySlotLikeTexts { get; set; }
+        public bool IsSingleLowValueFragmentRow { get; set; }
+    }
+
+    /// <summary>行分类标签。</summary>
+    private enum RowClassification
+    {
+        Unknown,
+        Noise,
+        Character,
+        PlayerId,
+        Talent
+    }
+
+    /// <summary>带评分和分类的行。</summary>
+    private sealed record ScoredRow(
+        int PhysicalIndex,
+        IReadOnlyList<OcrLineLayout> Lines,
+        RowFeatures Features,
+        RowClassification Classification);
 
     private void ApplyPickedSurCharacterSlot(
         SmartBpRecognizedPlayerCharacterSlot slot,
@@ -967,9 +1235,10 @@ internal sealed class SmartBpOcrBpRecognitionService(
         }
 
         var parsed = new Dictionary<SmartBpRecognitionRegion, SmartBpFocusedBusinessExtractionResult>();
+        var effectiveParseContext = request.ParseContext ?? new SmartBpOcrFieldParseContext { AuthoritativePhase = phase.Phase };
         foreach (var regionText in regionTexts.Where(item => item.Region is not SmartBpRecognitionRegion.PhaseTop and not SmartBpRecognitionRegion.TopCenterStatus and not SmartBpRecognitionRegion.TopLeftStatus))
         {
-            var parsedRegion = parser.ParseDetailed(regionText.Region, regionText.Lines);
+            var parsedRegion = parser.ParseDetailed(regionText.Region, regionText.Lines, effectiveParseContext);
             parsed[regionText.Region] = parsedRegion.Result;
             diagnostics.AddRange(parsedRegion.Diagnostics);
             foreach (var line in regionText.Lines)

@@ -112,6 +112,46 @@ internal static class SmartBpAutomaticMapping
         action is GameAction.BanSur or GameAction.BanHun or GameAction.PickSur or GameAction.DistributeChara or GameAction.PickHun;
 
     /// <summary>
+    /// 求生者选择锁定后不再按视觉槽位索引合并的权威阶段集合。
+    /// 仅包含「分配角色」之后明确不再进行求生者角色选择的阶段。
+    /// 注意：<c>求生者选择角色中</c> 不在此集合内，因为它在 PickSur 阶段仍可能按视觉槽位索引合并。
+    /// </summary>
+    public static readonly IReadOnlyCollection<string> SurvivorPickLockedPhases = new HashSet<string>(StringComparer.Ordinal)
+    {
+        "求生者选择天赋中",
+        "选择监管者", "监管者选择天赋中", "天赋已锁定",
+        "即将进入区域选择", "区域选择", "求生者选择区域中", "监管者选择区域中",
+        "等待游戏开始", "加载中", "对局中"
+    };
+
+    /// <summary>
+    /// 判断当前是否处于求生者选择锁定状态。
+    /// 锁定后 picked_sur 视觉槽位更新不得按索引直接合并到内部状态，只能按 player_id 生成分配交换。
+    /// 优先级：GameGuidance 已启动时信任 guidance action；未启动时保守使用权威阶段名。
+    /// </summary>
+    /// <param name="snapshot">当前 GameGuidance 运行时快照。</param>
+    /// <param name="authoritativePhase">权威识别阶段名。</param>
+    /// <returns>锁定返回 <see langword="true"/>。</returns>
+    public static bool IsSurvivorPickLocked(GameGuidanceRuntimeSnapshot snapshot, string authoritativePhase)
+    {
+        // 优先级 1：GameGuidance 已启动时，信任 guidance action / workflow 位置。
+        if (snapshot.IsStarted)
+        {
+            // PickSur 明确不锁定：即使权威阶段是「求生者选择角色中」也允许按槽位索引合并。
+            if (snapshot.CurrentAction == GameAction.PickSur)
+                return false;
+            // DistributeChara 及之后动作锁定。
+            if (snapshot.CurrentAction is GameAction.DistributeChara or GameAction.PickSurTalent or GameAction.PickHun or GameAction.PickHunTalent or GameAction.EndGuidance)
+                return true;
+            // 若工作流中已执行过 DistributeChara，则视为锁定（防止 action 回退）。
+            if (snapshot.Workflow.Any(step => step.StepIndex < snapshot.CurrentStepIndex && step.Action == GameAction.DistributeChara))
+                return true;
+        }
+        // 优先级 2：GameGuidance 未启动或 action 未知时，保守使用权威阶段名。
+        return SurvivorPickLockedPhases.Contains(authoritativePhase);
+    }
+
+    /// <summary>
     /// 将 GameGuidance 动作转换为 SmartBP 阶段名。
     /// </summary>
     /// <param name="action">GameGuidance 动作。</param>
@@ -177,6 +217,7 @@ internal static class SmartBpBusinessStateParser
         result.BannedHun ??= [];
         result.PickedSur ??= [];
         result.PickedHun ??= new();
+        result.DistributionEvidence ??= [];
         ValidateCharacterSlots(result.BannedSur, 4, "banned_sur");
         ValidateCharacterSlots(result.BannedHun, 2, "banned_hun");
         ValidatePlayerSlots(result.PickedSur, 4, "picked_sur");
@@ -1161,7 +1202,10 @@ internal sealed class SmartBpGuidanceSyncService(
         new(false, false, reason, action, [], null);
 }
 
-internal sealed class SmartBpCandidateOperationBuilder(ISmartBpCharacterResolver resolver, ISharedDataService shared)
+internal sealed class SmartBpCandidateOperationBuilder(
+    ISmartBpCharacterResolver resolver,
+    ISharedDataService shared,
+    ISmartBpPlayerIdentityMatcher matcher)
 {
     public IReadOnlyList<SmartBpDetectedOperation> Build(
         SmartBpBusinessStateRecognitionResult state,
@@ -1181,7 +1225,9 @@ internal sealed class SmartBpCandidateOperationBuilder(ISmartBpCharacterResolver
             GameAction.BanSur => BuildFromCharacterSlots(state.BannedSur, action, guidanceIndexes, Camp.Sur, SmartBpDetectedOperationKind.BanCharacter),
             GameAction.BanHun => BuildFromCharacterSlots(state.BannedHun, action, guidanceIndexes, Camp.Hun, SmartBpDetectedOperationKind.BanCharacter),
             GameAction.PickSur => BuildFromPlayerSlots(state.PickedSur, action, guidanceIndexes, Camp.Sur, SmartBpDetectedOperationKind.PickSurvivor),
-            GameAction.DistributeChara => BuildDistribution(state.PickedSur, guidanceIndexes),
+            GameAction.DistributeChara => BuildDistribution(
+                state.DistributionEvidence.Count > 0 ? state.DistributionEvidence : state.PickedSur,
+                guidanceIndexes),
             GameAction.PickHun => BuildFromPlayerSlots([state.PickedHun], action, guidanceIndexes, Camp.Hun, SmartBpDetectedOperationKind.PickHunter, true),
             _ => new([], [$"Current GameGuidance action {action} is not a BP character operation."])
         };
@@ -1295,21 +1341,49 @@ internal sealed class SmartBpCandidateOperationBuilder(ISmartBpCharacterResolver
         var simulated = shared.CurrentGame.SurPlayerList.Select(x => x.Character?.Name).ToArray();
         foreach (var slot in slots.Where(x => !SmartBpBusinessStateParser.IsUnselected(x.CharacterName) && x.Index is >= 0 and < 4).OrderBy(x => x.Index))
         {
-            var confidence = slot.IsAutoApplySafe ? slot.RecognitionConfidence : Math.Min(slot.RecognitionConfidence, .89);
-            var resolved = resolver.Resolve(slot.CharacterName, Camp.Sur, slot.Index, confidence);
-            if (resolved.ResolvedCharacterName != null && simulated[slot.Index] == resolved.ResolvedCharacterName)
+            var playerIdText = string.IsNullOrWhiteSpace(slot.PlayerId) ? "<missing>" : slot.PlayerId;
+            messages.Add($"Distribution visual slot {slot.Index}: char={slot.CharacterName}, player_id={playerIdText}.");
+            if (string.IsNullOrWhiteSpace(slot.PlayerId))
             {
-                messages.Add($"Skipped: no-op same character Sur[{slot.Index}] {slot.CharacterName}.");
+                messages.Add($"Skipped distribution visual slot {slot.Index}: player_id missing; state preserved.");
                 continue;
             }
-            operations.Add(new(SmartBpDetectedOperationKind.SwapSurvivors, GameAction.DistributeChara,
-                guidanceIndexes.ToArray(), Camp.Sur, slot.Index, slot.CharacterName,
-                resolved.ResolvedCharacterKey, resolved.ResolvedCharacterName, slot.PlayerId,
-                confidence, slot.RecognitionReason ?? $"Place the detected character into fixed survivor player slot {slot.Index}."));
-            if (resolved.ResolvedCharacterName == null) continue;
+
+            var playerMatch = matcher.MatchSurvivorPlayer(slot.PlayerId);
+            if (!playerMatch.IsMatched || !playerMatch.IsSafe)
+            {
+                messages.Add($"Skipped distribution visual slot {slot.Index}: player_id '{slot.PlayerId}' did not match a survivor player safely ({playerMatch.Reason}).");
+                continue;
+            }
+            var target = playerMatch.Index;
+            messages.Add($"Player identity matched: {slot.PlayerId} -> internal Sur[{target}] ({playerMatch.DisplayName}), score={playerMatch.Score:0.00}.");
+
+            var confidence = slot.IsAutoApplySafe ? slot.RecognitionConfidence : Math.Min(slot.RecognitionConfidence, .89);
+            var resolved = resolver.Resolve(slot.CharacterName, Camp.Sur, target, confidence);
+            if (resolved.ResolvedCharacterName == null)
+            {
+                messages.Add($"Skipped distribution for player {playerMatch.DisplayName}: unresolved character '{slot.CharacterName}'.");
+                continue;
+            }
+
             var source = Array.FindIndex(simulated, x => x == resolved.ResolvedCharacterName);
-            if (source < 0) continue;
-            (simulated[source], simulated[slot.Index]) = (simulated[slot.Index], simulated[source]);
+            if (source < 0)
+            {
+                messages.Add($"Skipped distribution for player {playerMatch.DisplayName}: character {resolved.ResolvedCharacterName} is not among currently selected survivors; distribution cannot introduce new characters.");
+                continue;
+            }
+            if (source == target)
+            {
+                messages.Add($"Skipped distribution no-op: player {playerMatch.DisplayName} already has {resolved.ResolvedCharacterName}.");
+                continue;
+            }
+
+            messages.Add($"Distribution operation: swap existing {resolved.ResolvedCharacterName} source={source} target={target}.");
+            operations.Add(new(SmartBpDetectedOperationKind.SwapSurvivors, GameAction.DistributeChara,
+                guidanceIndexes.ToArray(), Camp.Sur, target, slot.CharacterName,
+                resolved.ResolvedCharacterKey, resolved.ResolvedCharacterName, slot.PlayerId,
+                confidence, $"Distribution: place existing character {resolved.ResolvedCharacterName} onto player {playerMatch.DisplayName} internal slot {target}."));
+            (simulated[source], simulated[target]) = (simulated[target], simulated[source]);
         }
         return new(operations, messages);
     }
@@ -1318,22 +1392,16 @@ internal sealed class SmartBpCandidateOperationBuilder(ISmartBpCharacterResolver
         SmartBpFocusedExtractionResult extraction,
         IReadOnlyList<int> guidanceIndexes)
     {
-        var operations = new List<SmartBpDetectedOperation>();
-        var simulated = shared.CurrentGame.SurPlayerList.Select(x => x.Character?.Name).ToArray();
-        foreach (var slot in extraction.Slots.Where(x => x.CharacterName != null && !SmartBpBusinessStateParser.IsUnselected(x.CharacterName) && x.SlotIndex is >= 0 and < 4).OrderBy(x => x.SlotIndex))
-        {
-            var resolved = resolver.Resolve(slot.CharacterName, Camp.Sur, slot.SlotIndex, slot.Confidence);
-            if (resolved.ResolvedCharacterName != null && simulated[slot.SlotIndex] == resolved.ResolvedCharacterName) continue;
-            operations.Add(new(SmartBpDetectedOperationKind.SwapSurvivors, GameAction.DistributeChara,
-                guidanceIndexes.ToArray(), Camp.Sur, slot.SlotIndex, slot.CharacterName,
-                resolved.ResolvedCharacterKey, resolved.ResolvedCharacterName, slot.PlayerId,
-                slot.Confidence, $"Place the detected character into fixed survivor player slot {slot.SlotIndex}."));
-            if (resolved.ResolvedCharacterName == null) continue;
-            var source = Array.FindIndex(simulated, x => x == resolved.ResolvedCharacterName);
-            if (source < 0) continue;
-            (simulated[source], simulated[slot.SlotIndex]) = (simulated[slot.SlotIndex], simulated[source]);
-        }
-        return operations;
+        var slots = extraction.Slots
+            .Where(x => x.CharacterName != null && !SmartBpBusinessStateParser.IsUnselected(x.CharacterName) && x.SlotIndex is >= 0 and < 4)
+            .Select(x => new SmartBpRecognizedPlayerCharacterSlot
+            {
+                Index = x.SlotIndex,
+                CharacterName = x.CharacterName!,
+                PlayerId = x.PlayerId,
+                RecognitionConfidence = x.Confidence
+            });
+        return BuildDistribution(slots, guidanceIndexes).Operations;
     }
 }
 
@@ -1870,9 +1938,17 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                     var aiWithOcrTickMode = DescribeRecognitionTickMode(debugMode);
                     var aiWithOcrBeforeMerge = stateStore.Snapshot;
                     messages.Add($"AI + OCR role-distribution diagnostics: saved_frame_id={sequence}; tick_mode={aiWithOcrTickMode}; planner_requested_fields=[{string.Join(", ", request.RequestedFields)}]; ocr_requested_regions=[{string.Join(", ", request.RequestedRegions.Select(item => $"{item.Region}->{item.TargetField}"))}]; debug_thumbnail_id=frame_sequence:{sequence}:ocr_regions.");
+                    var ocrParseContext = new SmartBpOcrFieldParseContext
+                    {
+                        AuthoritativePhase = phaseResult.Phase,
+                        CurrentGuidanceAction = guidanceSnapshot.CurrentAction,
+                        SurvivorPickLocked = SmartBpAutomaticMapping.IsSurvivorPickLocked(guidanceSnapshot, phaseResult.Phase),
+                        IsAutomaticMode = !isDebugPreview
+                    };
                     var ocr = await ocrRecognition.RecognizeAsync(frame, new SmartBpOcrRecognitionRequest(
                         request.RequestedRegions.Select(item => item.Region).Distinct().ToArray(),
-                        IncludePhase: false), tickToken);
+                        IncludePhase: false,
+                        ParseContext: ocrParseContext), tickToken);
                     raw = raw + "\n\nocr raw:\n" + string.Join(Environment.NewLine, ocr.Regions.SelectMany(region =>
                         region.Lines.Select(line => $"[{region.Region}] {line.Text} conf={line.Confidence:0.00}")));
                     messages.Add($"AI + OCR role-distribution diagnostics: phase_result={phaseResult.Phase}; ocr_raw_lines=[{string.Join(" | ", ocr.Regions.SelectMany(region => region.Lines.Select(line => $"[{region.Region}] {line.Text}")))}].");
@@ -1889,7 +1965,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                     IReadOnlyList<string> mergeDiagnostics = [];
                     if (!isDryRun)
                     {
-                        mergeDiagnostics = MergeDeltaWithAutomaticGuards(delta, sequence, phaseResult.Phase, !isDebugPreview);
+                        mergeDiagnostics = MergeDeltaWithAutomaticGuards(delta, sequence, phaseResult.Phase, !isDebugPreview, guidanceSnapshot);
                         messages.AddRange(mergeDiagnostics);
                     }
                     state = isDryRun ? ocr.BusinessState : stateStore.Snapshot;
@@ -1988,7 +2064,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                         messages.Add("AI + AI OCR fusion_mode=LocalCSharp; local transcript interpreter used");
                     }
                     if (!isDryRun && delta != null)
-                        messages.AddRange(MergeDeltaWithAutomaticGuards(delta, sequence, phaseResult.Phase, !isDebugPreview));
+                        messages.AddRange(MergeDeltaWithAutomaticGuards(delta, sequence, phaseResult.Phase, !isDebugPreview, guidanceSnapshot));
                     state = isDryRun ? preGateState : stateStore.Snapshot;
                     raw = rawBuilder.ToString();
                     rawResponses = rawMap;
@@ -2027,7 +2103,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                     if (isDryRun) continue;
                     var update = new SmartBpSnapshotFieldUpdate { Field = fieldResult.Field, Slots = fieldResult.Slots.ToList(), PickedHun = fieldResult.PickedHun };
                     var mergeMessages = MergeFieldWithAutomaticGuards(
-                        fieldResult.Field, update, sequence, phaseResult.Phase, !isDebugPreview);
+                        fieldResult.Field, update, sequence, phaseResult.Phase, !isDebugPreview, guidanceSnapshot);
                     messages.AddRange(mergeMessages);
                 }
                 rawResponses = rawMap;
@@ -2046,7 +2122,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                         messages.Add("Speed-test dry run: skipped local snapshot delta merge.");
                     else
                         messages.AddRange(MergeDeltaWithAutomaticGuards(
-                            deltaPackage.Delta, sequence, deltaPackage.Delta.Phase, !isDebugPreview));
+                            deltaPackage.Delta, sequence, deltaPackage.Delta.Phase, !isDebugPreview, guidanceSnapshot));
                     phaseResult = new SmartBpPhaseRecognitionResult { Phase = deltaPackage.Delta.Phase };
                     phaseCrop = deltaPackage.PhaseCrop;
                     contentCrops = deltaPackage.ContentCrops;
@@ -2068,7 +2144,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                         messages.Add("Speed-test dry run: skipped sequential fallback merge.");
                     else
                         messages.AddRange(MergeDeltaWithAutomaticGuards(
-                            fallbackDelta, sequence, regionSnapshot.Phase.Phase, !isDebugPreview));
+                            fallbackDelta, sequence, regionSnapshot.Phase.Phase, !isDebugPreview, guidanceSnapshot));
                     phaseResult = regionSnapshot.Phase;
                     phaseCrop = regionSnapshot.PhaseCrop;
                     contentCrops = regionSnapshot.ContentCrops;
@@ -2086,7 +2162,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                     messages.Add("Speed-test dry run: skipped sequential snapshot merge.");
                 else
                     messages.AddRange(MergeDeltaWithAutomaticGuards(
-                        fallbackDelta, sequence, regionSnapshot.Phase.Phase, !isDebugPreview));
+                        fallbackDelta, sequence, regionSnapshot.Phase.Phase, !isDebugPreview, guidanceSnapshot));
                 phaseResult = regionSnapshot.Phase;
                 phaseCrop = regionSnapshot.PhaseCrop;
                 contentCrops = regionSnapshot.ContentCrops;
@@ -2319,10 +2395,32 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
         SmartBpSnapshotDeltaResult delta,
         long frameSequence,
         string authoritativePhase,
-        bool enforceAutomaticGuards)
+        bool enforceAutomaticGuards,
+        GameGuidanceRuntimeSnapshot guidanceSnapshot)
     {
+        var locked = SmartBpAutomaticMapping.IsSurvivorPickLocked(guidanceSnapshot, authoritativePhase);
+        var hasPickedSur = delta.Updates.Any(update => update.Field == "picked_sur");
         if (!enforceAutomaticGuards)
-            return stateStore.ApplyDelta(delta, frameSequence, DateTimeOffset.Now);
+        {
+            if (!locked)
+            {
+                var unlockedDiagnostics = stateStore.ApplyDelta(delta, frameSequence, DateTimeOffset.Now).ToList();
+                if (hasPickedSur)
+                    unlockedDiagnostics.Add(BuildSurvivorPickLockDecisionDiagnostic(locked, guidanceSnapshot, authoritativePhase));
+                return unlockedDiagnostics;
+            }
+            var evidenceUpdate = delta.Updates.FirstOrDefault(update => update.Field == "picked_sur");
+            var rest = delta.Updates.Where(update => update.Field != "picked_sur").ToList();
+            var debugDiagnostics = new List<string>();
+            if (evidenceUpdate != null)
+            {
+                debugDiagnostics.AddRange(stateStore.ApplyDistributionEvidence(evidenceUpdate, frameSequence, DateTimeOffset.Now));
+                debugDiagnostics.Add(BuildSurvivorPickLockDecisionDiagnostic(locked, guidanceSnapshot, authoritativePhase));
+            }
+            if (rest.Count > 0)
+                debugDiagnostics.AddRange(stateStore.ApplyDelta(new SmartBpSnapshotDeltaResult { Phase = delta.Phase, Updates = rest }, frameSequence, DateTimeOffset.Now));
+            return debugDiagnostics;
+        }
         if (_hasDetectedPostBp)
             return [$"Ignored all BP field updates because post-BP latch phase={_postBpPhase} is set."];
 
@@ -2336,10 +2434,24 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                 ? $"Ignored picked_hun update because authoritative phase={authoritativePhase} does not allow hunter pick updates."
                 : $"Ignored {update.Field} update because authoritative phase={authoritativePhase} does not allow that field.")
             .ToList();
+
+        var pickedSurEvidence = locked
+            ? delta.Updates.FirstOrDefault(update => update.Field == "picked_sur" && allowed.Contains(update.Field))
+            : null;
+        if (pickedSurEvidence != null)
+        {
+            diagnostics.AddRange(stateStore.ApplyDistributionEvidence(pickedSurEvidence, frameSequence, DateTimeOffset.Now));
+            diagnostics.Add(BuildSurvivorPickLockDecisionDiagnostic(locked, guidanceSnapshot, authoritativePhase));
+        }
+        else if (!locked && hasPickedSur && allowed.Contains("picked_sur"))
+        {
+            diagnostics.Add(BuildSurvivorPickLockDecisionDiagnostic(locked, guidanceSnapshot, authoritativePhase));
+        }
+
         var guarded = new SmartBpSnapshotDeltaResult
         {
             Phase = authoritativePhase,
-            Updates = delta.Updates.Where(update => allowed.Contains(update.Field)).ToList()
+            Updates = delta.Updates.Where(update => allowed.Contains(update.Field) && !(locked && update.Field == "picked_sur")).ToList()
         };
         diagnostics.AddRange(stateStore.ApplyDelta(guarded, frameSequence, DateTimeOffset.Now));
         return diagnostics;
@@ -2350,21 +2462,63 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
         SmartBpSnapshotFieldUpdate update,
         long frameSequence,
         string authoritativePhase,
-        bool enforceAutomaticGuards)
+        bool enforceAutomaticGuards,
+        GameGuidanceRuntimeSnapshot guidanceSnapshot)
     {
+        var locked = SmartBpAutomaticMapping.IsSurvivorPickLocked(guidanceSnapshot, authoritativePhase);
         if (!enforceAutomaticGuards)
-            return stateStore.ApplyFieldSnapshot(field, update, frameSequence, DateTimeOffset.Now);
+        {
+            if (locked && field == "picked_sur")
+            {
+                var debugDiagnostics = stateStore.ApplyDistributionEvidence(update, frameSequence, DateTimeOffset.Now).ToList();
+                debugDiagnostics.Add(BuildSurvivorPickLockDecisionDiagnostic(locked, guidanceSnapshot, authoritativePhase));
+                return debugDiagnostics;
+            }
+            var unlockedDiagnostics = stateStore.ApplyFieldSnapshot(field, update, frameSequence, DateTimeOffset.Now).ToList();
+            if (field == "picked_sur")
+                unlockedDiagnostics.Add(BuildSurvivorPickLockDecisionDiagnostic(locked, guidanceSnapshot, authoritativePhase));
+            return unlockedDiagnostics;
+        }
         if (_hasDetectedPostBp)
             return [$"Ignored {field} update because post-BP latch phase={_postBpPhase} is set."];
         var request = new SmartBpSnapshotDeltaRequest([(RegionForField(field), field)], []);
-        if (FilterAutomaticRequestByPhase(request, authoritativePhase).RequestedFields.Contains(field, StringComparer.Ordinal))
-            return stateStore.ApplyFieldSnapshot(field, update, frameSequence, DateTimeOffset.Now);
-        return
-        [
-            field == "picked_hun"
-                ? $"Ignored picked_hun update because authoritative phase={authoritativePhase} does not allow hunter pick updates."
-                : $"Ignored {field} update because authoritative phase={authoritativePhase} does not allow that field."
-        ];
+        if (!FilterAutomaticRequestByPhase(request, authoritativePhase).RequestedFields.Contains(field, StringComparer.Ordinal))
+        {
+            return
+            [
+                field == "picked_hun"
+                    ? $"Ignored picked_hun update because authoritative phase={authoritativePhase} does not allow hunter pick updates."
+                    : $"Ignored {field} update because authoritative phase={authoritativePhase} does not allow that field."
+            ];
+        }
+        if (locked && field == "picked_sur")
+        {
+            var lockedDiagnostics = stateStore.ApplyDistributionEvidence(update, frameSequence, DateTimeOffset.Now).ToList();
+            lockedDiagnostics.Add(BuildSurvivorPickLockDecisionDiagnostic(locked, guidanceSnapshot, authoritativePhase));
+            return lockedDiagnostics;
+        }
+        var result = stateStore.ApplyFieldSnapshot(field, update, frameSequence, DateTimeOffset.Now).ToList();
+        if (field == "picked_sur")
+            result.Add(BuildSurvivorPickLockDecisionDiagnostic(locked, guidanceSnapshot, authoritativePhase));
+        return result;
+    }
+
+    /// <summary>
+    /// 构造求生者选择锁定决策的诊断日志行，暴露 action、phase 和 lock 原因。
+    /// </summary>
+    /// <param name="locked">锁定状态。</param>
+    /// <param name="snapshot">当前 GameGuidance 运行时快照。</param>
+    /// <param name="authoritativePhase">权威识别阶段名。</param>
+    /// <returns>诊断日志行。</returns>
+    private static string BuildSurvivorPickLockDecisionDiagnostic(bool locked, GameGuidanceRuntimeSnapshot snapshot, string authoritativePhase)
+    {
+        var actionText = snapshot.IsStarted && snapshot.CurrentAction != null
+            ? snapshot.CurrentAction.ToString()
+            : "none";
+        var modeText = locked
+            ? "picked_sur stored as distribution evidence."
+            : "picked_sur slot-index merge allowed.";
+        return $"Survivor pick lock decision: {(locked ? "locked" : "unlocked")}; action={actionText}; phase={authoritativePhase}; {modeText}";
     }
 
     private static SmartBpRecognitionRegion RegionForField(string field) => field switch

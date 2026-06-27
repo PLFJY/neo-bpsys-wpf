@@ -722,6 +722,11 @@ public sealed class SmartBpBusinessStateRecognitionResult
     [JsonPropertyName("picked_sur")] public List<SmartBpRecognizedPlayerCharacterSlot> PickedSur { get; set; } = [];
     /// <summary>获取或设置监管者选择槽位。</summary>
     [JsonPropertyName("picked_hun")] public SmartBpRecognizedPlayerCharacterSlot PickedHun { get; set; } = new();
+    /// <summary>
+    /// 获取或设置求生者分配阶段识别到的视觉槽位证据。
+    /// 仅在求生者选择锁定后使用，按 player_id 匹配内部玩家位置，不再按视觉槽位索引直接覆盖内部状态。
+    /// </summary>
+    [JsonIgnore] public List<SmartBpRecognizedPlayerCharacterSlot> DistributionEvidence { get; set; } = [];
 }
 
 /// <summary>一个已识别角色槽位。</summary>
@@ -894,6 +899,11 @@ public sealed class SmartBpRecognitionState
     public List<SmartBpRecognizedPlayerCharacterSlot> PickedSur { get; set; } = DefaultPickedSur();
     /// <summary>获取或设置已知监管者选择。</summary>
     public SmartBpRecognizedPlayerCharacterSlot PickedHun { get; set; } = DefaultPickedHun();
+    /// <summary>
+    /// 获取或设置求生者分配阶段识别到的视觉槽位证据。
+    /// 锁定后 picked_sur 不再按视觉槽位索引合并到 <see cref="PickedSur"/>，而是记录在此处供 player_id 分配使用。
+    /// </summary>
+    public List<SmartBpRecognizedPlayerCharacterSlot> DistributionEvidence { get; set; } = [];
     /// <summary>获取或设置每个字段的最近更新时间戳。</summary>
     public Dictionary<string, DateTimeOffset> FieldUpdatedAt { get; set; } = [];
     /// <summary>获取或设置最新已接受画面帧序号。</summary>
@@ -1001,6 +1011,27 @@ public sealed record SmartBpGuidanceSyncResult(bool Changed, bool IsAccepted, st
 public sealed record SmartBpCandidateOperationBuildResult(
     IReadOnlyList<SmartBpDetectedOperation> Operations,
     IReadOnlyList<string> Messages);
+
+/// <summary>OCR player_id 与内部求生者玩家的匹配结果。</summary>
+/// <param name="IsMatched">是否匹配到唯一内部玩家。</param>
+/// <param name="Index">匹配到的内部求生者玩家索引；未匹配为 -1。</param>
+/// <param name="DisplayName">匹配到的内部玩家显示名；未匹配为 <see langword="null"/>。</param>
+/// <param name="Score">匹配分数，范围 [0, 1]。</param>
+/// <param name="IsSafe">是否可安全用于自动应用。</param>
+/// <param name="Reason">匹配或拒绝原因。</param>
+public sealed record SmartBpPlayerIdentityMatchResult(
+    bool IsMatched,
+    int Index,
+    string? DisplayName,
+    double Score,
+    bool IsSafe,
+    string Reason)
+{
+    /// <summary>创建一个未匹配的默认结果。</summary>
+    /// <param name="reason">未匹配原因。</param>
+    /// <returns>未匹配结果。</returns>
+    public static SmartBpPlayerIdentityMatchResult Unmatched(string reason) => new(false, -1, null, 0, false, reason);
+}
 
 /// <summary>应用已接受候选操作的结果。</summary>
 public sealed record SmartBpOperationApplyResult(int AppliedCount, int SkippedCount, IReadOnlyList<string> Messages);
@@ -1116,9 +1147,61 @@ public sealed class SmartBpOcrParsedRegionResult
 /// <summary>OCR BP 识别请求。</summary>
 /// <param name="ContentRegions">本次 tick 要解析的内容区域。</param>
 /// <param name="IncludePhase">是否包含阶段区域。</param>
+/// <param name="ParseContext">可选的 OCR 字段解析上下文，用于传递阶段/动作/锁定信息。</param>
 public sealed record SmartBpOcrRecognitionRequest(
     IReadOnlyList<SmartBpRecognitionRegion> ContentRegions,
-    bool IncludePhase = true);
+    bool IncludePhase = true,
+    SmartBpOcrFieldParseContext? ParseContext = null);
+
+/// <summary>picked_sur OCR 解析模式，决定行语义分类策略。</summary>
+public enum SmartBpPickedSurOcrParseMode
+{
+    /// <summary>求生者选择角色阶段：character row + player-id row，无 talent 行。</summary>
+    PickSur,
+    /// <summary>角色分配阶段：character row + player-id row，后续行为 talent。</summary>
+    DistributeChara,
+    /// <summary>求生者天赋阶段：character row + player-id row + talent/extra 行。</summary>
+    SurvivorTalent,
+    /// <summary>未知模式，回退到旧行为（物理行索引语义）。</summary>
+    Unknown
+}
+
+/// <summary>OCR 字段解析上下文，将阶段/动作/锁定信息传递给行解析器。</summary>
+public sealed class SmartBpOcrFieldParseContext
+{
+    /// <summary>获取或设置权威识别阶段名。</summary>
+    public string AuthoritativePhase { get; init; } = "未知";
+
+    /// <summary>获取或设置当前 GameGuidance 动作（若已启动）。</summary>
+    public GameAction? CurrentGuidanceAction { get; init; }
+
+    /// <summary>获取或设置求生者选择是否已锁定。</summary>
+    public bool SurvivorPickLocked { get; init; }
+
+    /// <summary>获取或设置是否为自动识别模式。</summary>
+    public bool IsAutomaticMode { get; init; }
+
+    /// <summary>从上下文解析 picked_sur 解析模式。</summary>
+    /// <returns>解析模式。</returns>
+    public SmartBpPickedSurOcrParseMode ResolvePickedSurParseMode()
+    {
+        if (CurrentGuidanceAction == GameAction.PickSur && !SurvivorPickLocked)
+            return SmartBpPickedSurOcrParseMode.PickSur;
+        if (CurrentGuidanceAction == GameAction.DistributeChara || SurvivorPickLocked)
+            return SmartBpPickedSurOcrParseMode.DistributeChara;
+        if (CurrentGuidanceAction == GameAction.PickSurTalent)
+            return SmartBpPickedSurOcrParseMode.SurvivorTalent;
+
+        // 无 guidance 动作时，按权威阶段名判断。
+        return AuthoritativePhase switch
+        {
+            "选择求生者" or "求生者选择角色中" when !SurvivorPickLocked => SmartBpPickedSurOcrParseMode.PickSur,
+            "求生者选择天赋中" => SmartBpPickedSurOcrParseMode.SurvivorTalent,
+            "选择监管者" or "监管者选择天赋中" or "天赋已锁定" => SmartBpPickedSurOcrParseMode.DistributeChara,
+            _ => SmartBpPickedSurOcrParseMode.Unknown
+        };
+    }
+}
 
 /// <summary>一张包含多个 OCR 裁剪图的拼接图。</summary>
 /// <param name="Image">堆叠后的 OCR 图片。</param>

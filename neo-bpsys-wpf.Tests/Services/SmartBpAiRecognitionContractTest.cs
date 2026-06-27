@@ -40,6 +40,9 @@ using SmartBpAiRecognitionService = smartbp::neo_bpsys_wpf.SmartBp.Module.Servic
 using ISmartBpImageEncoder = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpImageEncoder;
 using ILlamaCppOpenAiClient = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ILlamaCppOpenAiClient;
 using ISmartBpCharacterResolver = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpCharacterResolver;
+using ISmartBpPlayerIdentityMatcher = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpPlayerIdentityMatcher;
+using SmartBpPlayerIdentityMatcher = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpPlayerIdentityMatcher;
+using SmartBpPlayerIdentityMatchResult = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpPlayerIdentityMatchResult;
 using ISmartBpRecognitionSettingsService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpRecognitionSettingsService;
 using ISmartBpRecognitionLedger = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpRecognitionLedger;
 using SmartBpRecognitionSettings = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionSettings;
@@ -1245,7 +1248,7 @@ public sealed class SmartBpAiRecognitionContractTest
     {
         var novelist = new Character("小说家", Camp.Sur, "novelist.png");
         var dreamWitch = new Character("梦之女巫", Camp.Hun, "dream-witch.png");
-        var builder = new SmartBpCandidateOperationBuilder(CreateResolver(novelist, dreamWitch), CreateShared(new Game(new Team(Camp.Sur, TeamType.HomeTeam), new Team(Camp.Hun, TeamType.AwayTeam), GameProgress.Free), novelist, dreamWitch).Object);
+        var builder = new SmartBpCandidateOperationBuilder(CreateResolver(novelist, dreamWitch), CreateShared(new Game(new Team(Camp.Sur, TeamType.HomeTeam), new Team(Camp.Hun, TeamType.AwayTeam), GameProgress.Free), novelist, dreamWitch).Object, CreateMatcher(CreateShared(new Game(new Team(Camp.Sur, TeamType.HomeTeam), new Team(Camp.Hun, TeamType.AwayTeam), GameProgress.Free)).Object));
 
         var banSur = builder.BuildWithDiagnostics(Business("屏蔽求生者", bannedSur0: "小说家"), GameAction.BanSur, [0, 1]);
         var banHun = builder.BuildWithDiagnostics(Business("屏蔽监管者", bannedHun0: "梦之女巫"), GameAction.BanHun, [0]);
@@ -1259,7 +1262,7 @@ public sealed class SmartBpAiRecognitionContractTest
     {
         var hunter = new Character("厂长", Camp.Hun, "hell-ember.png");
         var game = new Game(new Team(Camp.Sur, TeamType.HomeTeam), new Team(Camp.Hun, TeamType.AwayTeam), GameProgress.Free);
-        var builder = new SmartBpCandidateOperationBuilder(CreateResolver(hunter), CreateShared(game, hunter).Object);
+        var builder = new SmartBpCandidateOperationBuilder(CreateResolver(hunter), CreateShared(game, hunter).Object, CreateMatcher(CreateShared(game).Object));
 
         var noBan = builder.BuildWithDiagnostics(Business("屏蔽求生者"), GameAction.BanSur, [0, 1]);
         var pickHun = builder.BuildWithDiagnostics(Business("选择监管者", pickedHun: "厂长", hunterPlayerId: "导播PLFJY"), GameAction.PickHun, []);
@@ -1275,7 +1278,7 @@ public sealed class SmartBpAiRecognitionContractTest
     public void CandidateBuilderReturnsNoCharacterOperationsForTalentPhase()
     {
         var game = new Game(new Team(Camp.Sur, TeamType.HomeTeam), new Team(Camp.Hun, TeamType.AwayTeam), GameProgress.Free);
-        var builder = new SmartBpCandidateOperationBuilder(CreateResolver(), CreateShared(game).Object);
+        var builder = new SmartBpCandidateOperationBuilder(CreateResolver(), CreateShared(game).Object, CreateMatcher(CreateShared(game).Object));
 
         var result = builder.BuildWithDiagnostics(Business("求生者选择天赋中"), GameAction.PickSurTalent, [0]);
 
@@ -1316,7 +1319,7 @@ public sealed class SmartBpAiRecognitionContractTest
         var survivor = new Character("小说家", Camp.Sur, "novelist.png");
         var game = new Game(new Team(Camp.Sur, TeamType.HomeTeam), new Team(Camp.Hun, TeamType.AwayTeam), GameProgress.Free);
         var shared = CreateShared(game, survivor);
-        var builder = new SmartBpCandidateOperationBuilder(CreateResolverFromShared(shared.Object), shared.Object);
+        var builder = new SmartBpCandidateOperationBuilder(CreateResolverFromShared(shared.Object), shared.Object, CreateMatcher(shared.Object));
         var ledger = new Mock<ISmartBpRecognitionLedger>();
         var service = new SmartBpWorkflowBackfillService(builder, ledger.Object, shared.Object);
         var state = Business("求生者选择天赋中");
@@ -1826,6 +1829,368 @@ public sealed class SmartBpAiRecognitionContractTest
         Assert.Contains("AiOcrServerActivityText", xaml);
     }
 
+    [Fact]
+    public void DistributeCharaTargetsInternalPlayerByPlayerIdNotVisualSlot()
+    {
+        var prophet = new Character("先知", Camp.Sur, "prophet.png");
+        var cheerleader = new Character("拉拉队员", Camp.Sur, "cheerleader.png");
+        var magician = new Character("魔术师", Camp.Sur, "magician.png");
+        var gravekeeper = new Character("守墓人", Camp.Sur, "gravekeeper.png");
+        var game = CreateGameWithNamedSurvivors(["A", "B", "C", "D"], [prophet, cheerleader, magician, gravekeeper]);
+        var shared = CreateShared(game, prophet, cheerleader, magician, gravekeeper);
+        var builder = new SmartBpCandidateOperationBuilder(CreateResolverFromShared(shared.Object), shared.Object, CreateMatcher(shared.Object));
+
+        var state = Business("求生者选择角色中");
+        state.DistributionEvidence =
+        [
+            new() { Index = 0, CharacterName = "先知", PlayerId = "D" }
+        ];
+
+        var result = builder.BuildWithDiagnostics(state, GameAction.DistributeChara, []);
+
+        var op = Assert.Single(result.Operations);
+        Assert.Equal(SmartBpDetectedOperationKind.SwapSurvivors, op.Kind);
+        Assert.Equal(3, op.SlotIndex);
+        Assert.Contains(result.Messages, m => m.Contains("internal Sur[3]", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void DistributeCharaSkipsWhenPlayerIdDoesNotMatchAnySurvivor()
+    {
+        var prophet = new Character("先知", Camp.Sur, "prophet.png");
+        var game = CreateGameWithNamedSurvivors(["A", "B", "C", "D"], [prophet, null, null, null]);
+        var shared = CreateShared(game, prophet);
+        var builder = new SmartBpCandidateOperationBuilder(CreateResolverFromShared(shared.Object), shared.Object, CreateMatcher(shared.Object));
+
+        var state = Business("求生者选择角色中");
+        state.DistributionEvidence =
+        [
+            new() { Index = 0, CharacterName = "先知", PlayerId = "不存在的玩家" }
+        ];
+
+        var result = builder.BuildWithDiagnostics(state, GameAction.DistributeChara, []);
+
+        Assert.Empty(result.Operations);
+        Assert.Contains(result.Messages, m => m.Contains("did not match", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void DistributeCharaSkipsWhenPlayerIdIsAmbiguous()
+    {
+        var prophet = new Character("先知", Camp.Sur, "prophet.png");
+        var game = CreateGameWithNamedSurvivors(["PlayerX", "PlayerY", "PlayerX1", "D"], [prophet, null, null, null]);
+        var shared = CreateShared(game, prophet);
+        var builder = new SmartBpCandidateOperationBuilder(CreateResolverFromShared(shared.Object), shared.Object, CreateMatcher(shared.Object));
+
+        var state = Business("求生者选择角色中");
+        state.DistributionEvidence =
+        [
+            new() { Index = 0, CharacterName = "先知", PlayerId = "PlayerX" }
+        ];
+
+        var result = builder.BuildWithDiagnostics(state, GameAction.DistributeChara, []);
+
+        Assert.Empty(result.Operations);
+    }
+
+    [Fact]
+    public void DistributeCharaDoesNotIntroduceNewCharacterNotCurrentlySelected()
+    {
+        var prophet = new Character("先知", Camp.Sur, "prophet.png");
+        var adventurer = new Character("冒险家", Camp.Sur, "adventurer.png");
+        var game = CreateGameWithNamedSurvivors(["A", "B", "C", "D"], [prophet, null, null, null]);
+        var shared = CreateShared(game, prophet, adventurer);
+        var builder = new SmartBpCandidateOperationBuilder(CreateResolverFromShared(shared.Object), shared.Object, CreateMatcher(shared.Object));
+
+        var state = Business("求生者选择角色中");
+        state.DistributionEvidence =
+        [
+            new() { Index = 0, CharacterName = "冒险家", PlayerId = "A" }
+        ];
+
+        var result = builder.BuildWithDiagnostics(state, GameAction.DistributeChara, []);
+
+        Assert.Empty(result.Operations);
+        Assert.Contains(result.Messages, m => m.Contains("not among currently selected", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void DistributeCharaIsNoOpWhenCharacterAlreadyOnMatchedPlayerSlot()
+    {
+        var prophet = new Character("先知", Camp.Sur, "prophet.png");
+        var game = CreateGameWithNamedSurvivors(["A", "B", "C", "D"], [prophet, null, null, null]);
+        var shared = CreateShared(game, prophet);
+        var builder = new SmartBpCandidateOperationBuilder(CreateResolverFromShared(shared.Object), shared.Object, CreateMatcher(shared.Object));
+
+        var state = Business("求生者选择角色中");
+        state.DistributionEvidence =
+        [
+            new() { Index = 0, CharacterName = "先知", PlayerId = "A" }
+        ];
+
+        var result = builder.BuildWithDiagnostics(state, GameAction.DistributeChara, []);
+
+        Assert.Empty(result.Operations);
+        Assert.Contains(result.Messages, m => m.Contains("no-op", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void DistributeCharaMultipleSwapsUseSimulationToAvoidContradictions()
+    {
+        var prophet = new Character("先知", Camp.Sur, "prophet.png");
+        var cheerleader = new Character("拉拉队员", Camp.Sur, "cheerleader.png");
+        var magician = new Character("魔术师", Camp.Sur, "magician.png");
+        var gravekeeper = new Character("守墓人", Camp.Sur, "gravekeeper.png");
+        var game = CreateGameWithNamedSurvivors(["A", "B", "C", "D"], [prophet, cheerleader, magician, gravekeeper]);
+        var shared = CreateShared(game, prophet, cheerleader, magician, gravekeeper);
+        var builder = new SmartBpCandidateOperationBuilder(CreateResolverFromShared(shared.Object), shared.Object, CreateMatcher(shared.Object));
+
+        var state = Business("求生者选择角色中");
+        state.DistributionEvidence =
+        [
+            new() { Index = 0, CharacterName = "守墓人", PlayerId = "A" },
+            new() { Index = 1, CharacterName = "魔术师", PlayerId = "B" }
+        ];
+
+        var result = builder.BuildWithDiagnostics(state, GameAction.DistributeChara, []);
+
+        Assert.Equal(2, result.Operations.Count);
+        Assert.All(result.Operations, op => Assert.Equal(SmartBpDetectedOperationKind.SwapSurvivors, op.Kind));
+        Assert.Equal(0, result.Operations[0].SlotIndex);
+        Assert.Equal(1, result.Operations[1].SlotIndex);
+    }
+
+    [Fact]
+    public void DistributeCharaNeverGeneratesPickSurvivorOperation()
+    {
+        var prophet = new Character("先知", Camp.Sur, "prophet.png");
+        var game = CreateGameWithNamedSurvivors(["A", "B", "C", "D"], [prophet, null, null, null]);
+        var shared = CreateShared(game, prophet);
+        var builder = new SmartBpCandidateOperationBuilder(CreateResolverFromShared(shared.Object), shared.Object, CreateMatcher(shared.Object));
+
+        var state = Business("求生者选择角色中");
+        state.DistributionEvidence =
+        [
+            new() { Index = 0, CharacterName = "先知", PlayerId = "B" }
+        ];
+
+        var result = builder.BuildWithDiagnostics(state, GameAction.DistributeChara, []);
+
+        Assert.All(result.Operations, op => Assert.NotEqual(SmartBpDetectedOperationKind.PickSurvivor, op.Kind));
+    }
+
+    [Fact]
+    public void DistributeCharaSkipsWhenPlayerIdMissing()
+    {
+        var prophet = new Character("先知", Camp.Sur, "prophet.png");
+        var game = CreateGameWithNamedSurvivors(["A", "B", "C", "D"], [prophet, null, null, null]);
+        var shared = CreateShared(game, prophet);
+        var builder = new SmartBpCandidateOperationBuilder(CreateResolverFromShared(shared.Object), shared.Object, CreateMatcher(shared.Object));
+
+        var state = Business("求生者选择角色中");
+        state.DistributionEvidence =
+        [
+            new() { Index = 0, CharacterName = "先知", PlayerId = null }
+        ];
+
+        var result = builder.BuildWithDiagnostics(state, GameAction.DistributeChara, []);
+
+        Assert.Empty(result.Operations);
+        Assert.Contains(result.Messages, m => m.Contains("player_id missing", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void IsSurvivorPickLockedReturnsFalseBeforeDistributeChara()
+    {
+        var snapshot = new GameGuidanceRuntimeSnapshot(true, 0, GameAction.PickSur, [0, 1], 30, [new(0, GameAction.PickSur, [0, 1], 30)]);
+        Assert.False(SmartBpAutomaticMapping.IsSurvivorPickLocked(snapshot, "选择求生者"));
+    }
+
+    [Fact]
+    public void IsSurvivorPickLockedReturnsFalseForPickSurEvenWhenPhaseIsSurvivorSelectingCharacter()
+    {
+        var snapshot = new GameGuidanceRuntimeSnapshot(true, 0, GameAction.PickSur, [0, 1], 30, [new(0, GameAction.PickSur, [0, 1], 30)]);
+        Assert.False(SmartBpAutomaticMapping.IsSurvivorPickLocked(snapshot, "求生者选择角色中"));
+    }
+
+    [Fact]
+    public void IsSurvivorPickLockedReturnsFalseWithoutGuidanceForSurvivorSelectingCharacterPhase()
+    {
+        var snapshot = new GameGuidanceRuntimeSnapshot(false, 0, null, [], null, []);
+        Assert.False(SmartBpAutomaticMapping.IsSurvivorPickLocked(snapshot, "求生者选择角色中"));
+        Assert.False(SmartBpAutomaticMapping.IsSurvivorPickLocked(snapshot, "选择求生者"));
+        Assert.False(SmartBpAutomaticMapping.IsSurvivorPickLocked(snapshot, "屏蔽求生者"));
+        Assert.False(SmartBpAutomaticMapping.IsSurvivorPickLocked(snapshot, "未知"));
+    }
+
+    [Fact]
+    public void IsSurvivorPickLockedReturnsTrueWithoutGuidanceForPostPickPhases()
+    {
+        var snapshot = new GameGuidanceRuntimeSnapshot(false, 0, null, [], null, []);
+        Assert.True(SmartBpAutomaticMapping.IsSurvivorPickLocked(snapshot, "求生者选择天赋中"));
+        Assert.True(SmartBpAutomaticMapping.IsSurvivorPickLocked(snapshot, "选择监管者"));
+        Assert.True(SmartBpAutomaticMapping.IsSurvivorPickLocked(snapshot, "监管者选择天赋中"));
+    }
+
+    [Fact]
+    public void IsSurvivorPickLockedReturnsTrueDuringDistributeChara()
+    {
+        var snapshot = new GameGuidanceRuntimeSnapshot(true, 1, GameAction.DistributeChara, [], 30,
+        [
+            new(0, GameAction.PickSur, [0, 1], 30),
+            new(1, GameAction.DistributeChara, [], 30)
+        ]);
+        Assert.True(SmartBpAutomaticMapping.IsSurvivorPickLocked(snapshot, "求生者选择角色中"));
+    }
+
+    [Fact]
+    public void IsSurvivorPickLockedReturnsTrueDuringSurvivorTalentPhase()
+    {
+        var snapshot = new GameGuidanceRuntimeSnapshot(true, 2, GameAction.PickSurTalent, [], 30,
+        [
+            new(0, GameAction.PickSur, [0, 1], 30),
+            new(1, GameAction.DistributeChara, [], 30),
+            new(2, GameAction.PickSurTalent, [], 30)
+        ]);
+        Assert.True(SmartBpAutomaticMapping.IsSurvivorPickLocked(snapshot, "求生者选择天赋中"));
+    }
+
+    [Fact]
+    public void IsSurvivorPickLockedReturnsTrueDuringHunterPickPhase()
+    {
+        var snapshot = new GameGuidanceRuntimeSnapshot(true, 3, GameAction.PickHun, [], 30,
+        [
+            new(0, GameAction.PickSur, [0, 1], 30),
+            new(1, GameAction.DistributeChara, [], 30),
+            new(3, GameAction.PickHun, [], 30)
+        ]);
+        Assert.True(SmartBpAutomaticMapping.IsSurvivorPickLocked(snapshot, "选择监管者"));
+    }
+
+    [Fact]
+    public void IsSurvivorPickLockedReturnsTrueForLockedPhasesByAuthoritativePhase()
+    {
+        var snapshot = new GameGuidanceRuntimeSnapshot(false, 0, null, [], null, []);
+        Assert.True(SmartBpAutomaticMapping.IsSurvivorPickLocked(snapshot, "天赋已锁定"));
+        Assert.True(SmartBpAutomaticMapping.IsSurvivorPickLocked(snapshot, "等待游戏开始"));
+        Assert.True(SmartBpAutomaticMapping.IsSurvivorPickLocked(snapshot, "对局中"));
+    }
+
+    [Fact]
+    public void IsSurvivorPickLockedReturnsTrueAfterDistributeCharaLatchEvenIfCurrentActionChanged()
+    {
+        var snapshot = new GameGuidanceRuntimeSnapshot(true, 5, GameAction.PickHunTalent, [], 30,
+        [
+            new(0, GameAction.PickSur, [0, 1], 30),
+            new(1, GameAction.DistributeChara, [], 30),
+            new(5, GameAction.PickHunTalent, [], 30)
+        ]);
+        Assert.True(SmartBpAutomaticMapping.IsSurvivorPickLocked(snapshot, "监管者选择天赋中"));
+    }
+
+    [Fact]
+    public void ApplyDistributionEvidenceReplacesEvidenceAndSkipsSlotIndexMerge()
+    {
+        var store = new SmartBpRecognitionStateStore();
+        var update = new SmartBpSnapshotFieldUpdate
+        {
+            Field = "picked_sur",
+            Slots =
+            [
+                Slot(0, "selected", "先知", "D"),
+                Slot(1, "selected", "拉拉队员", "C")
+            ]
+        };
+        var diagnostics = store.ApplyDistributionEvidence(update, frameSequence: 10, DateTimeOffset.Now);
+        Assert.Contains(diagnostics, d => d.Contains("distribution evidence", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(diagnostics, d => d.Contains("authoritative picked_sur freshness unchanged", StringComparison.OrdinalIgnoreCase));
+        var snapshot = store.Snapshot;
+        Assert.Equal(2, snapshot.DistributionEvidence.Count);
+        Assert.Equal("先知", snapshot.DistributionEvidence[0].CharacterName);
+        Assert.Equal("D", snapshot.DistributionEvidence[0].PlayerId);
+        Assert.Equal("拉拉队员", snapshot.DistributionEvidence[1].CharacterName);
+        Assert.Equal("C", snapshot.DistributionEvidence[1].PlayerId);
+    }
+
+    [Fact]
+    public void ApplyDistributionEvidenceDoesNotMarkAuthoritativePickedSurFresh()
+    {
+        var store = new SmartBpRecognitionStateStore();
+        var before = DateTimeOffset.Now;
+        store.ApplyDistributionEvidence(new SmartBpSnapshotFieldUpdate
+        {
+            Field = "picked_sur",
+            Slots = [Slot(0, "selected", "先知", "D")]
+        }, frameSequence: 10, before);
+        var staleDiagnostics = store.GetStaleFieldDiagnostics(before.AddSeconds(1), staleMilliseconds: 500);
+        Assert.Contains(staleDiagnostics, d => d.Contains("picked_sur", StringComparison.Ordinal) && d.Contains("stale", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void ApplyDistributionEvidenceStaleProtectionUsesSeparateKey()
+    {
+        var store = new SmartBpRecognitionStateStore();
+        store.ApplyDistributionEvidence(new SmartBpSnapshotFieldUpdate
+        {
+            Field = "picked_sur",
+            Slots = [Slot(0, "selected", "先知", "D")]
+        }, frameSequence: 10, DateTimeOffset.Now);
+        var diagnostics = store.ApplyDistributionEvidence(new SmartBpSnapshotFieldUpdate
+        {
+            Field = "picked_sur",
+            Slots = [Slot(0, "selected", "魔术师", "A")]
+        }, frameSequence: 5, DateTimeOffset.Now);
+        Assert.Contains(diagnostics, d => d.Contains("stale", StringComparison.OrdinalIgnoreCase));
+        Assert.Equal("先知", store.Snapshot.DistributionEvidence[0].CharacterName);
+    }
+
+    [Fact]
+    public void DistributeCharaFallsBackToPickedSurWhenDistributionEvidenceEmpty()
+    {
+        var prophet = new Character("先知", Camp.Sur, "prophet.png");
+        var game = CreateGameWithNamedSurvivors(["A", "B", "C", "D"], [prophet, null, null, null]);
+        var shared = CreateShared(game, prophet);
+        var builder = new SmartBpCandidateOperationBuilder(CreateResolverFromShared(shared.Object), shared.Object, CreateMatcher(shared.Object));
+
+        var state = Business("求生者选择角色中");
+        state.PickedSur[0].CharacterName = "先知";
+        state.PickedSur[0].PlayerId = "B";
+        state.DistributionEvidence = [];
+
+        var result = builder.BuildWithDiagnostics(state, GameAction.DistributeChara, []);
+
+        var op = Assert.Single(result.Operations);
+        Assert.Equal(SmartBpDetectedOperationKind.SwapSurvivors, op.Kind);
+        Assert.Equal(1, op.SlotIndex);
+    }
+
+    private static Game CreateGameWithNamedSurvivors(string[] names, Character?[]? characters = null)
+    {
+        var surTeam = new Team(Camp.Sur, TeamType.HomeTeam);
+        var hunTeam = new Team(Camp.Hun, TeamType.AwayTeam);
+        for (var i = 0; i < 4 && i < names.Length; i++)
+        {
+            var member = surTeam.SurMemberList[i];
+            member.Name = names[i];
+            member.IsOnField = true;
+            surTeam.MemberOnField(member);
+        }
+        var hunMember = hunTeam.HunMemberList[0];
+        hunMember.Name = "Hunter";
+        hunMember.IsOnField = true;
+        hunTeam.MemberOnField(hunMember);
+        var game = new Game(surTeam, hunTeam, GameProgress.Free);
+        if (characters != null)
+        {
+            for (var i = 0; i < 4 && i < characters.Length; i++)
+            {
+                if (characters[i] != null)
+                    game.SurPlayerList[i].Character = characters[i];
+            }
+        }
+        return game;
+    }
+
     private static string FindRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
@@ -1932,6 +2297,9 @@ public sealed class SmartBpAiRecognitionContractTest
             shared,
             Mock.Of<IFrontedTransitionOrchestrator>(),
             Mock.Of<IFrontedLayoutService>()));
+
+    private static ISmartBpPlayerIdentityMatcher CreateMatcher(ISharedDataService shared) =>
+        new SmartBpPlayerIdentityMatcher(shared);
 
     private static Mock<ISharedDataService> CreateShared(Game game, params Character[] characters)
     {

@@ -30,6 +30,7 @@
 1. `IsActive` 只保留给框架/运行时激活语义，尤其是 CommunityToolkit.Mvvm `ObservableRecipient.IsActive`。布局、包、设置、业务状态、可见性、绑定 payload 和 behavior payload 不得使用泛名 `IsActive`，应使用 `IsActivePackage`、`IsVisible`、`IsEnabled`、`IsSelected` 等明确名称。`Visibility` 绑定不得直接绑定泛名 `IsActive`。
 1. WPF/Dispatcher 测试必须使用 `neo_bpsys_wpf.Tests.Infrastructure.WpfTestThread`，不要复制手写 `new Thread(...)`、裸 `thread.Join()` 或 `new Thread(async () => ...)`；相关超时规律见 `docs/testing-guidelines.md`。
 1. **禁止新增样式/布局宽高类测试**：不要断言视觉样式、坐标、窗口宽高、Canvas 宽高、控件位置、Margin/Padding、精确行列结构等展示细节。唯一例外是为了验证 WPF/XAML 语法或运行时必需命名部件是否正确。已有此类测试失败时，应删除或改成行为/契约测试，不得为了测试回滚布局。
+1. **禁止未经用户明确同意执行有副作用的 Git 命令**：包括但不限于 `git stash`、`git stash pop`、`git stash drop`、`git checkout .`、`git restore .`、`git reset`、`git clean`、`git switch`、`git checkout <branch>`、`git merge`、`git rebase`。本仓库可能处于无 initial commit 的状态，此时 `git stash` 会把大量未跟踪文件异常处理，导致工作区状态被搅乱、用户修改丢失。需要对比"改动前/后"行为时，应改用：直接读文件内容对比、用 `git diff`（只读）、或先询问用户如何验证。只允许执行只读类 git 命令（`git status`、`git diff`、`git log`、`git show` 等）。
 
 ## Naming rule: do not use generic IsActive
 

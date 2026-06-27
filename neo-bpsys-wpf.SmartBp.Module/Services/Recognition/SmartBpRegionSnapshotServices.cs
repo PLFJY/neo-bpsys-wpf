@@ -196,6 +196,41 @@ internal sealed class SmartBpRecognitionStateStore : ISmartBpRecognitionStateSto
         }
     }
 
+    /// <summary>
+    /// 分配证据在 frame sequence / freshness 跟踪中使用的独立键。
+    /// 与权威 <c>picked_sur</c> 分离，避免仅更新分配证据时让权威字段看起来新鲜。
+    /// </summary>
+    internal const string DistributionEvidenceFieldKey = "picked_sur_distribution_evidence";
+
+    /// <inheritdoc />
+    public IReadOnlyList<string> ApplyDistributionEvidence(SmartBpSnapshotFieldUpdate update, long frameSequence, DateTimeOffset timestamp)
+    {
+        var diagnostics = new List<string>();
+        lock (_gate)
+        {
+            if (_state.FieldFrameSequences.TryGetValue(DistributionEvidenceFieldKey, out var existing) && frameSequence < existing)
+            {
+                diagnostics.Add($"Ignored stale distribution evidence from frame sequence {frameSequence}; latest={existing}.");
+                return diagnostics;
+            }
+            var slots = update.Slots ?? [];
+            _state.DistributionEvidence = slots
+                .Where(slot => slot.Index is >= 0 and < 4)
+                .Select(slot => new SmartBpRecognizedPlayerCharacterSlot
+                {
+                    Index = slot.Index,
+                    CharacterName = slot.CharacterName,
+                    PlayerId = slot.PlayerId
+                })
+                .ToList();
+            _state.DistributionEvidence.Sort((left, right) => left.Index.CompareTo(right.Index));
+            _state.FieldFrameSequences[DistributionEvidenceFieldKey] = frameSequence;
+            _state.FieldUpdatedAt[DistributionEvidenceFieldKey] = timestamp;
+            diagnostics.Add($"Replaced distribution evidence with {_state.DistributionEvidence.Count} visual slot(s) from frame {frameSequence}; authoritative picked_sur freshness unchanged.");
+        }
+        return diagnostics;
+    }
+
     private void ApplyFieldUpdateLocked(SmartBpSnapshotFieldUpdate update, long frameSequence, List<string> diagnostics)
     {
         switch (update.Field)
@@ -242,7 +277,8 @@ internal sealed class SmartBpRecognitionStateStore : ISmartBpRecognitionStateSto
             BannedSur = state.BannedSur.Select(CloneCharacterSlot).ToList(),
             BannedHun = state.BannedHun.Select(CloneCharacterSlot).ToList(),
             PickedSur = state.PickedSur.Select(ClonePlayerSlot).ToList(),
-            PickedHun = ClonePlayerSlot(state.PickedHun)
+            PickedHun = ClonePlayerSlot(state.PickedHun),
+            DistributionEvidence = state.DistributionEvidence.Select(ClonePlayerSlot).ToList()
         };
         SmartBpBusinessStateParser.NormalizeAndValidate(snapshot);
         return snapshot;
@@ -295,8 +331,8 @@ internal sealed class SmartBpRecognitionStateStore : ISmartBpRecognitionStateSto
                     break;
                 case "empty":
                     slot.CharacterName = "未选择";
-                    slot.PlayerId = update.PlayerId;
-                    diagnostics.Add($"Cleared {field}[{update.Index}] because slot_state=empty.");
+                    slot.PlayerId = update.PlayerId ?? slot.PlayerId;
+                    diagnostics.Add($"Cleared {field}[{update.Index}] because slot_state=empty; player_id={(slot.PlayerId ?? "null")}.");
                     break;
                 case "unknown":
                     diagnostics.Add($"Preserved {field}[{update.Index}] because slot_state=unknown.");

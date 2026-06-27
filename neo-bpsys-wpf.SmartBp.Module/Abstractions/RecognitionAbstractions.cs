@@ -446,6 +446,14 @@ public interface ISmartBpRecognitionStateStore
     /// <param name="timestamp">应用时间戳。</param>
     /// <returns>逐槽位合并诊断信息。</returns>
     IReadOnlyList<string> ApplyFieldSnapshot(string field, SmartBpSnapshotFieldUpdate snapshot, long frameSequence, DateTimeOffset timestamp);
+    /// <summary>
+    /// 在求生者选择锁定后，将 picked_sur 视觉槽位证据替换为分配证据，而不按视觉槽位索引合并到 <c>PickedSur</c>。
+    /// </summary>
+    /// <param name="update">携带 picked_sur 视觉槽位的字段快照更新。</param>
+    /// <param name="frameSequence">画面帧序号。</param>
+    /// <param name="timestamp">应用时间戳。</param>
+    /// <returns>分配证据更新诊断信息。</returns>
+    IReadOnlyList<string> ApplyDistributionEvidence(SmartBpSnapshotFieldUpdate update, long frameSequence, DateTimeOffset timestamp);
     /// <summary>仅更新本地合并后的阶段。</summary>
     /// <param name="phase">识别到的阶段。</param>
     /// <param name="frameSequence">画面帧序号。</param>
@@ -525,6 +533,14 @@ public interface ISmartBpSceneGateService
 /// <summary>根据共享角色字典解析模型输出名称。</summary>
 public interface ISmartBpCharacterResolver { /// <summary>安全解析角色名称。</summary>
     SmartBpNormalizedCharacter Resolve(string? rawName, Core.Enums.Camp camp, int slot, double confidence); }
+/// <summary>将 OCR 识别到的玩家 ID 文本匹配到内部求生者玩家位置。</summary>
+public interface ISmartBpPlayerIdentityMatcher
+{
+    /// <summary>将原始 player_id 文本匹配到当前对局内部求生者玩家。</summary>
+    /// <param name="rawPlayerId">OCR 识别到的玩家 ID 文本。</param>
+    /// <returns>匹配结果，包含内部索引、匹配名称、分数、是否安全及原因。</returns>
+    SmartBpPlayerIdentityMatchResult MatchSurvivorPlayer(string? rawPlayerId);
+}
 /// <summary>运行并归一化一次识别请求。</summary>
 public interface ISmartBpAiRecognitionService { /// <summary>识别一帧画面。</summary>
     Task<SmartBpRecognitionPreview> RecognizeAsync(BitmapSource frame, SmartBpRecognitionTask task, CancellationToken cancellationToken = default); }
