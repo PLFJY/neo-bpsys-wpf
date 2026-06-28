@@ -4920,6 +4920,21 @@ Value nodes: Number/String/Boolean/Color store constant values for later value-p
   <data name="SmartBpAiRuntimeRollbackComplete" xml:space="preserve"><value>llama.cpp runtime rollback completed</value></data>
   <data name="SmartBpEnableAutoGuidanceSync" xml:space="preserve"><value>Enable automatic GameGuidance sync</value></data>
   <data name="SmartBpEnableAutoGuidancePageNavigation" xml:space="preserve"><value>Follow page navigation when sync moves step</value></data>
+  <data name="SmartBpProgressAutoCorrection" xml:space="preserve"><value>Diagnose and auto-sync progress</value></data>
+  <data name="SmartBpProgressAutoCorrectionDescription" xml:space="preserve"><value>When automatic recognition finds that GameGuidance clearly differs from the screen, confirm with full OCR and sync forward.</value></data>
+  <data name="SmartBpForceSyncGameProgress" xml:space="preserve"><value>Force sync game progress</value></data>
+  <data name="SmartBpForceSyncGameProgressDescription" xml:space="preserve"><value>Infer and switch to the best matching GameGuidance step from the currently recognized ban/pick slots.</value></data>
+  <data name="SmartBpProgressDiagnosisAligned" xml:space="preserve"><value>Last progress diagnosis: aligned</value></data>
+  <data name="SmartBpProgressDiagnosisInsufficient" xml:space="preserve"><value>Last progress diagnosis: insufficient evidence</value></data>
+  <data name="SmartBpProgressDiagnosisMisalignedFormat" xml:space="preserve"><value>Last progress diagnosis: current Step {0} {1}[{2}], screen fits Step {3} {4}[{5}] better</value></data>
+  <data name="SmartBpProgressDiagnosisSyncedFormat" xml:space="preserve"><value>Last progress diagnosis: synced to Step {0} {1}[{2}]</value></data>
+  <data name="SmartBpProgressForceSyncNoSnapshot" xml:space="preserve"><value>Could not recognize a full BP snapshot, so game progress was not synchronized.</value></data>
+  <data name="SmartBpProgressForceSyncRecognitionBusy" xml:space="preserve"><value>The current recognition task has not finished yet, so a full BP snapshot cannot be captured. Please try again shortly.</value></data>
+  <data name="SmartBpProgressForceSyncGuidanceStartFailed" xml:space="preserve"><value>Game guidance could not be started, so game progress was not synchronized.</value></data>
+  <data name="SmartBpProgressForceSyncForwardOnly" xml:space="preserve"><value>Automatic progress sync only moves forward, so this sync was skipped.</value></data>
+  <data name="SmartBpProgressForceSyncFailedFormat" xml:space="preserve"><value>Failed to force sync game progress: {0}</value></data>
+  <data name="SmartBpOperationFailedFormat" xml:space="preserve"><value>Operation failed: {0}</value></data>
+  <data name="SmartBpAlreadyRunning" xml:space="preserve"><value>SmartBP is already running. Do not start it again.</value></data>
   <data name="SmartBpFreeFullSyncWarning" xml:space="preserve"><value>Free full sync is experimental and may write slots without workflow context. Guided workflow is recommended.</value></data>
   <data name="SmartBpCaptureStopDisabledWhileRecognizing" xml:space="preserve"><value>Window capture is kept running while automatic recognition is active. Stop automatic recognition before stopping capture.</value></data>
   <data name="SmartBpStopCaptureWhileRecognizing" xml:space="preserve"><value>Automatic recognition is running. Stop automatic recognition before stopping window capture.</value></data>

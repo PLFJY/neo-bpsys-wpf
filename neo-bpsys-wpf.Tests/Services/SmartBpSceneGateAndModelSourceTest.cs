@@ -43,6 +43,7 @@ using ISmartBpRecognitionLedger = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstract
 using ISmartBpFrameRingBuffer = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpFrameRingBuffer;
 using ISmartBpRecognitionSettingsService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpRecognitionSettingsService;
 using ISmartBpGuidanceSyncService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpGuidanceSyncService;
+using ISmartBpProgressSyncService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpProgressSyncService;
 using ISmartBpWorkflowBackfillService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpWorkflowBackfillService;
 using ISmartBpDetectedOperationApplier = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpDetectedOperationApplier;
 using ISmartBpCharacterResolver = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpCharacterResolver;
@@ -163,7 +164,7 @@ public sealed class SmartBpSceneGateAndModelSourceTest
                 });
             var coordinator = new SmartBpAutoRecognitionCoordinator(
                 planner.Object, state.Object, ledger.Object, Mock.Of<ISmartBpFrameRingBuffer>(), recognitionSettings.Object,
-                Mock.Of<ISmartBpGuidanceSyncService>(), guidance.Object, Mock.Of<ISmartBpWorkflowBackfillService>(),
+                Mock.Of<ISmartBpGuidanceSyncService>(), Mock.Of<ISmartBpProgressSyncService>(), guidance.Object, Mock.Of<ISmartBpWorkflowBackfillService>(),
                 new SmartBpCandidateOperationBuilder(Mock.Of<ISmartBpCharacterResolver>(), shared.Object, new SmartBpPlayerIdentityMatcher(shared.Object)),
                 Mock.Of<ISmartBpDetectedOperationApplier>(), new SmartBpSceneGateService(), ocr.Object);
             await coordinator.StartAsync();
@@ -222,7 +223,7 @@ public sealed class SmartBpSceneGateAndModelSourceTest
                 });
             var coordinator = new SmartBpAutoRecognitionCoordinator(
                 planner.Object, state.Object, ledger.Object, Mock.Of<ISmartBpFrameRingBuffer>(), recognitionSettings.Object,
-                Mock.Of<ISmartBpGuidanceSyncService>(), guidance.Object, Mock.Of<ISmartBpWorkflowBackfillService>(),
+                Mock.Of<ISmartBpGuidanceSyncService>(), Mock.Of<ISmartBpProgressSyncService>(), guidance.Object, Mock.Of<ISmartBpWorkflowBackfillService>(),
                 new SmartBpCandidateOperationBuilder(Mock.Of<ISmartBpCharacterResolver>(), Mock.Of<ISharedDataService>(), new SmartBpPlayerIdentityMatcher(Mock.Of<ISharedDataService>())),
                 Mock.Of<ISmartBpDetectedOperationApplier>(), new SmartBpSceneGateService(), ocr.Object);
             await coordinator.StartAsync();

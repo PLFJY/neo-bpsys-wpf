@@ -1644,6 +1644,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
     ISmartBpFrameRingBuffer frameRingBuffer,
     ISmartBpRecognitionSettingsService settings,
     ISmartBpGuidanceSyncService guidanceSync,
+    ISmartBpProgressSyncService progressSync,
     IGameGuidanceService guidance,
     ISmartBpWorkflowBackfillService backfill,
     SmartBpCandidateOperationBuilder candidateBuilder,
@@ -1663,6 +1664,9 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
     private long _postBpDetectedFrameSequence;
     private int _transitionToAreaSelectionConsecutiveCount;
     private SmartBpLifecycleCategory _lastStableLifecycleCategory = SmartBpLifecycleCategory.Unknown;
+    private int? _progressMismatchTargetStepIndex;
+    private int _progressMismatchConsecutiveCount;
+    private DateTimeOffset _progressAutoCorrectionCooldownUntil = DateTimeOffset.MinValue;
     public bool IsRunning => _runCancellation is { IsCancellationRequested: false };
 
     public Task StartAsync(CancellationToken cancellationToken = default)
@@ -1709,7 +1713,22 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
 
     // OCR-only 执行矩阵：完整调试 OCR 所有 BP 字段；仅阶段识别只 OCR 状态/阶段；自动模式使用规划器请求的字段。
     public async Task<SmartBpAutoRecognitionTickResult> RunFullRecognitionDebugAsync(BitmapSource frame, CancellationToken cancellationToken = default)
-        => await RunOneTickCoreAsync(frame, isDryRun: false, cancellationToken, SmartBpRecognitionDebugMode.FullStrategy).ConfigureAwait(false);
+        => await RecognizeFullBpSnapshotAsync(frame, mergeIntoStateStore: true, cancellationToken).ConfigureAwait(false);
+
+    public async Task<SmartBpAutoRecognitionTickResult> RecognizeFullBpSnapshotAsync(
+        BitmapSource frame,
+        bool mergeIntoStateStore,
+        CancellationToken cancellationToken = default)
+    {
+        CancelCurrentAutomaticTick();
+        return await RunOneTickCoreAsync(
+            frame,
+            isDryRun: !mergeIntoStateStore,
+            cancellationToken,
+            SmartBpRecognitionDebugMode.FullStrategy,
+            linkToAutomaticRunCancellation: false,
+            waitForRunningTick: true).ConfigureAwait(false);
+    }
 
     public async Task<SmartBpAutoRecognitionTickResult> RunIncrementalRecognitionDebugAsync(BitmapSource frame, CancellationToken cancellationToken = default)
         => await RunOneTickCoreAsync(frame, isDryRun: false, cancellationToken, SmartBpRecognitionDebugMode.CurrentStageIncremental).ConfigureAwait(false);
@@ -1721,17 +1740,25 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
         BitmapSource frame,
         bool isDryRun,
         CancellationToken cancellationToken = default,
-        SmartBpRecognitionDebugMode debugMode = SmartBpRecognitionDebugMode.Automatic)
+        SmartBpRecognitionDebugMode debugMode = SmartBpRecognitionDebugMode.Automatic,
+        bool linkToAutomaticRunCancellation = true,
+        bool waitForRunningTick = false)
     {
-        if (!await _tickGate.WaitAsync(0, cancellationToken))
+        var gateAcquired = waitForRunningTick
+            ? await _tickGate.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken).ConfigureAwait(false)
+            : await _tickGate.WaitAsync(0, cancellationToken).ConfigureAwait(false);
+        if (!gateAcquired)
             return Failure("An automatic recognition tick is already running.");
         CancellationTokenSource linked;
         lock (_cancellationLock)
         {
-            linked = CancellationTokenSource.CreateLinkedTokenSource(
-                cancellationToken,
-                _runCancellation?.Token ?? CancellationToken.None);
-            _currentTickCancellation = linked;
+            linked = linkToAutomaticRunCancellation
+                ? CancellationTokenSource.CreateLinkedTokenSource(
+                    cancellationToken,
+                    _runCancellation?.Token ?? CancellationToken.None)
+                : CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            if (linkToAutomaticRunCancellation)
+                _currentTickCancellation = linked;
         }
         var tickToken = linked.Token;
         var isDebugPreview = debugMode != SmartBpRecognitionDebugMode.Automatic;
@@ -1997,6 +2024,11 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                     ? "Free full sync does not synchronize GameGuidance."
                     : "Automatic GameGuidance synchronization is disabled.", null, [], null);
             var finalGuidanceSnapshot = guidance.GetRuntimeSnapshot();
+            var progress = !isDebugPreview && !isDryRun && gate.IsBpRecognitionAllowed && !isFreeSync
+                ? await HandleProgressAlignmentAsync(frame, state, finalGuidanceSnapshot, messages, tickToken)
+                : (Alignment: (SmartBpProgressAlignmentResult?)null, Sync: (SmartBpProgressSyncResult?)null);
+            if (progress.Sync?.Moved == true)
+                finalGuidanceSnapshot = guidance.GetRuntimeSnapshot();
             var snapshotForUi = regionSnapshot ?? new SmartBpRegionSnapshot
             {
                 Phase = phaseResult,
@@ -2007,7 +2039,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                 RawResponses = new Dictionary<string, string> { ["snapshot_delta"] = raw }
             };
             return new(state, phaseResult, null, phaseCrop, null, sync, finalGuidanceSnapshot,
-                operations, messages, applyResult, raw, null, snapshotForUi, plan, contentCrops, gate);
+                operations, messages, applyResult, raw, null, snapshotForUi, plan, contentCrops, gate, progress.Alignment, progress.Sync);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -2018,7 +2050,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
         {
             lock (_cancellationLock)
             {
-                if (ReferenceEquals(_currentTickCancellation, linked))
+                if (linkToAutomaticRunCancellation && ReferenceEquals(_currentTickCancellation, linked))
                     _currentTickCancellation = null;
             }
             linked.Dispose();
@@ -2026,8 +2058,133 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
         }
     }
 
+    private void CancelCurrentAutomaticTick()
+    {
+        lock (_cancellationLock)
+        {
+            _currentTickCancellation?.Cancel();
+        }
+    }
+
     private SmartBpAutoRecognitionTickResult Failure(string error) =>
         new(null, null, null, null, null, null, guidance.GetRuntimeSnapshot(), [], [], null, "", error);
+
+    private async Task<(SmartBpProgressAlignmentResult? Alignment, SmartBpProgressSyncResult? Sync)> HandleProgressAlignmentAsync(
+        BitmapSource frame,
+        SmartBpBusinessStateRecognitionResult state,
+        GameGuidanceRuntimeSnapshot guidanceSnapshot,
+        ICollection<string> messages,
+        CancellationToken cancellationToken)
+    {
+        var options = new SmartBpProgressInferenceOptions(
+            false,
+            settings.Settings.GuidanceSyncLookAheadSteps,
+            settings.Settings.SmartBpProgressInferenceMinimumScore,
+            settings.Settings.SmartBpProgressInferenceMinimumScoreMargin);
+        var alignment = progressSync.CheckAlignment(state, guidanceSnapshot, options);
+        messages.Add($"Progress alignment check: {(alignment.IsAligned ? "aligned" : alignment.IsAmbiguous ? "ambiguous" : "misaligned")}. {alignment.Reason}");
+        if (alignment.IsAligned)
+        {
+            _progressMismatchTargetStepIndex = null;
+            _progressMismatchConsecutiveCount = 0;
+            return (alignment, null);
+        }
+
+        if (alignment.IsAmbiguous ||
+            !settings.Settings.EnableSmartBpProgressAutoCorrection ||
+            alignment.Inference.TargetStepIndex is not { } targetStep)
+        {
+            if (alignment.IsAmbiguous)
+                messages.Add("Progress auto correction skipped because inference is ambiguous.");
+            else
+                messages.Add("Progress auto correction skipped because the setting is disabled.");
+            return (alignment, null);
+        }
+
+        if (targetStep <= guidanceSnapshot.CurrentStepIndex)
+        {
+            messages.Add($"Progress auto correction skipped because target step {targetStep} is not forward from current step {guidanceSnapshot.CurrentStepIndex}.");
+            return (alignment, null);
+        }
+
+        var now = DateTimeOffset.Now;
+        if (now < _progressAutoCorrectionCooldownUntil)
+        {
+            messages.Add($"Progress auto correction skipped by cooldown until {_progressAutoCorrectionCooldownUntil:O}.");
+            return (alignment, null);
+        }
+
+        if (_progressMismatchTargetStepIndex == targetStep)
+            _progressMismatchConsecutiveCount++;
+        else
+        {
+            _progressMismatchTargetStepIndex = targetStep;
+            _progressMismatchConsecutiveCount = 1;
+        }
+
+        var required = Math.Max(1, settings.Settings.SmartBpProgressMismatchConfirmationCount);
+        messages.Add($"Progress mismatch stable count={_progressMismatchConsecutiveCount}/{required}; target=step {targetStep}.");
+        if (_progressMismatchConsecutiveCount < required)
+            return (alignment, null);
+
+        messages.Add("Progress mismatch is stable; requesting full OCR confirmation snapshot.");
+        var confirmation = await RecognizeFullBpSnapshotForProgressConfirmationAsync(frame, guidanceSnapshot, cancellationToken);
+        foreach (var diagnostic in confirmation.Diagnostics)
+            messages.Add(diagnostic);
+        var confirmedSync = await progressSync.ForceSyncAsync(
+            confirmation.BusinessState,
+            SmartBpProgressSyncMode.AutomaticDiagnostic,
+            cancellationToken);
+        foreach (var diagnostic in confirmedSync.Diagnostics)
+            messages.Add(diagnostic);
+        messages.Add(confirmedSync.Message);
+        if (confirmedSync.Moved)
+        {
+            _progressMismatchTargetStepIndex = null;
+            _progressMismatchConsecutiveCount = 0;
+            _progressAutoCorrectionCooldownUntil = now.AddMilliseconds(settings.Settings.SmartBpProgressAutoCorrectionCooldownMs);
+            messages.Add($"Progress auto correction cooldown started: {settings.Settings.SmartBpProgressAutoCorrectionCooldownMs}ms.");
+        }
+
+        return (alignment, confirmedSync);
+    }
+
+    private async Task<(SmartBpBusinessStateRecognitionResult BusinessState, IReadOnlyList<string> Diagnostics)> RecognizeFullBpSnapshotForProgressConfirmationAsync(
+        BitmapSource frame,
+        GameGuidanceRuntimeSnapshot guidanceSnapshot,
+        CancellationToken cancellationToken)
+    {
+        var diagnostics = new List<string> { "Full BP OCR confirmation snapshot requested for progress sync." };
+        var phaseOcr = await ocrRecognition.RecognizeAsync(
+            frame,
+            new SmartBpOcrRecognitionRequest([], IncludePhase: true),
+            cancellationToken).ConfigureAwait(false);
+        diagnostics.AddRange(phaseOcr.Diagnostics);
+        var phase = phaseOcr.Phase.Phase;
+        var parseContext = new SmartBpOcrFieldParseContext
+        {
+            AuthoritativePhase = phase,
+            CurrentGuidanceAction = guidanceSnapshot.CurrentAction,
+            SurvivorPickLocked = SmartBpAutomaticMapping.IsSurvivorPickLocked(guidanceSnapshot, phase),
+            IsAutomaticMode = true
+        };
+        var content = await ocrRecognition.RecognizeAsync(
+            frame,
+            new SmartBpOcrRecognitionRequest(
+                [
+                    SmartBpRecognitionRegion.RightTop,
+                    SmartBpRecognitionRegion.LeftTop,
+                    SmartBpRecognitionRegion.LeftBottom,
+                    SmartBpRecognitionRegion.RightBottom
+                ],
+                IncludePhase: false,
+                ParseContext: parseContext),
+            cancellationToken).ConfigureAwait(false);
+        content.BusinessState.Phase = phase;
+        diagnostics.AddRange(content.Diagnostics);
+        diagnostics.Add($"Full BP OCR confirmation recognized: {FormatBusinessStateForDiagnostics(content.BusinessState)}.");
+        return (content.BusinessState, diagnostics);
+    }
 
     private SmartBpAutoRecognitionTickResult LatchAndCreatePostBpPausedResult(
         long frameSequence,
@@ -2077,6 +2234,9 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
         _postBpDetectedFrameSequence = 0;
         _transitionToAreaSelectionConsecutiveCount = 0;
         _lastStableLifecycleCategory = SmartBpLifecycleCategory.Unknown;
+        _progressMismatchTargetStepIndex = null;
+        _progressMismatchConsecutiveCount = 0;
+        _progressAutoCorrectionCooldownUntil = DateTimeOffset.MinValue;
     }
 
     private SmartBpAutoRecognitionTickResult CreateLifecycleBlockedResult(

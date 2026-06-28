@@ -50,6 +50,8 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     private readonly ISmartBpRecognitionRegionProfileService _aiRegionProfileService = null!;
     private readonly ISmartBpRecognitionLedger _aiRecognitionLedger = null!;
     private readonly ISmartBpRecognitionStateStore _aiRecognitionStateStore = null!;
+    private readonly ISmartBpProgressSyncService _progressSyncService = null!;
+    private readonly IInfoBarService _infoBarService = null!;
     private readonly ILlamaCppRuntimeUpdateService _llamaRuntimeUpdateService = null!;
     private readonly ITesseractDataAssetManager _tesseractDataAssetManager = null!;
     private readonly IRapidOcrModelAssetManager _rapidOcrModelAssetManager = null!;
@@ -97,6 +99,8 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         ISmartBpRecognitionRegionProfileService aiRegionProfileService,
         ISmartBpRecognitionLedger aiRecognitionLedger,
         ISmartBpRecognitionStateStore aiRecognitionStateStore,
+        ISmartBpProgressSyncService progressSyncService,
+        IInfoBarService infoBarService,
         ILlamaCppRuntimeUpdateService llamaRuntimeUpdateService,
         ITesseractDataAssetManager tesseractDataAssetManager,
         IRapidOcrModelAssetManager rapidOcrModelAssetManager,
@@ -131,6 +135,8 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         _aiRegionProfileService = aiRegionProfileService;
         _aiRecognitionLedger = aiRecognitionLedger;
         _aiRecognitionStateStore = aiRecognitionStateStore;
+        _progressSyncService = progressSyncService;
+        _infoBarService = infoBarService;
         _llamaRuntimeUpdateService = llamaRuntimeUpdateService;
         _tesseractDataAssetManager = tesseractDataAssetManager;
         _rapidOcrModelAssetManager = rapidOcrModelAssetManager;
@@ -605,9 +611,10 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
             ? SelectedWindow is not null && IsWgcHwndCaptureSupported()
             : SelectedWindow is not null;
 
-    private bool CanCaptureStopped() => _windowCaptureService.IsCapturing && !IsAiPreviewLoopRunning && !IsAiRecognizing;
+    private bool CanCaptureStopped() =>
+        _windowCaptureService is { IsCapturing: true } && !IsAiPreviewLoopRunning && !IsAiRecognizing;
 
-    private bool CanOpenPreviewWindow() => _windowCaptureService.IsCapturing;
+    private bool CanOpenPreviewWindow() => _windowCaptureService is { IsCapturing: true };
 
     private static bool CanOpenWindowPicker() => IsWgcSupported();
     private static bool CanOpenRegionEditor() => true;
@@ -639,28 +646,47 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     /// </summary>
     /// <param name="requireOcrReady">Whether the selected OCR provider must be ready.</param>
     /// <returns>The current capture frame, or <see langword="null"/> when validation failed.</returns>
-    private async Task<System.Windows.Media.Imaging.BitmapSource?> GetValidatedCurrentFrameAsync(bool requireOcrReady)
+    private async Task<System.Windows.Media.Imaging.BitmapSource?> GetValidatedCurrentFrameAsync(bool requireOcrReady, bool useInfoBar = false)
     {
         if (!_windowCaptureService.IsCapturing)
         {
-            await MessageBoxHelper.ShowInfoAsync(ResolveLocalizedOrRaw(CaptureNotRunningMessageKey));
+            await ShowValidationMessageAsync(ResolveLocalizedOrRaw(CaptureNotRunningMessageKey), useInfoBar);
             return null;
         }
 
         var frame = _windowCaptureService.GetCurrentFrame();
         if (frame == null)
         {
-            await MessageBoxHelper.ShowInfoAsync(ResolveLocalizedOrRaw(CaptureFrameUnavailableMessageKey));
+            await ShowValidationMessageAsync(ResolveLocalizedOrRaw(CaptureFrameUnavailableMessageKey), useInfoBar);
             return null;
         }
 
         if (requireOcrReady && !IsSelectedOcrProviderReady())
         {
-            await MessageBoxHelper.ShowInfoAsync(ResolveLocalizedOrRaw(OcrNotReadyMessageKey));
+            await ShowValidationMessageAsync(ResolveLocalizedOrRaw(OcrNotReadyMessageKey), useInfoBar);
             return null;
         }
 
         return frame;
+    }
+
+    private static Task ShowMessageBoxValidationMessageAsync(string message) => MessageBoxHelper.ShowInfoAsync(message);
+
+    private Task ShowValidationMessageAsync(string message, bool useInfoBar)
+    {
+        if (useInfoBar)
+        {
+            if (_infoBarService is not null)
+            {
+                _infoBarService.ShowWarningInfoBar(message);
+                return Task.CompletedTask;
+            }
+
+            // 设计时构造函数不会注入 InfoBarService，保留原提示路径作为兜底。
+            return ShowMessageBoxValidationMessageAsync(message);
+        }
+
+        return ShowMessageBoxValidationMessageAsync(message);
     }
 
     /// <summary>

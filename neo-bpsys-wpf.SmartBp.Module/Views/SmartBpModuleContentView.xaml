@@ -274,6 +274,11 @@
                     IsChecked="{Binding EnableAutoGuidancePageNavigation}" />
                 <ui:ToggleSwitch
                     Margin="0,8,0,0"
+                    Content="{lex:Loc SmartBpProgressAutoCorrection}"
+                    IsChecked="{Binding EnableSmartBpProgressAutoCorrection}"
+                    ToolTip="{lex:Loc SmartBpProgressAutoCorrectionDescription}" />
+                <ui:ToggleSwitch
+                    Margin="0,8,0,0"
                     Content="{lex:Loc SmartBpAiEnableAutoApply}"
                     IsChecked="{Binding EnableAutoApplyRecognition}" />
                 <ComboBox
@@ -310,10 +315,21 @@
                         Content="{lex:Loc SmartBpStartAutomaticRecognition}"
                         Icon="{ui:SymbolIcon Symbol=Play24}" />
                     <ui:Button
+                        Margin="0,0,8,0"
                         Command="{Binding StopAiPreviewLoopCommand}"
                         Content="{lex:Loc SmartBpStopAutomaticRecognition}"
                         Icon="{ui:SymbolIcon Symbol=Stop24}" />
+                    <ui:Button
+                        Command="{Binding ForceSyncGameProgressCommand}"
+                        Content="{lex:Loc SmartBpForceSyncGameProgress}"
+                        Icon="{ui:SymbolIcon Symbol=ArrowSync24}"
+                        ToolTip="{lex:Loc SmartBpForceSyncGameProgressDescription}" />
                 </WrapPanel>
+                <TextBlock
+                    Margin="0,4,0,0"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    Text="{Binding LastSmartBpProgressDiagnosis}"
+                    TextWrapping="Wrap" />
                 <TextBlock
                     Margin="0,4,0,0"
                     Text="{lex:Loc SmartBpRecognizing}"

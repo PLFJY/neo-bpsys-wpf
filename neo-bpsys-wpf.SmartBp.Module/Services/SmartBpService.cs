@@ -88,7 +88,7 @@ public class SmartBpService : ISmartBpService
 
         if(IsSmartBpRunning)
         {
-            _ = MessageBoxHelper.ShowErrorAsync("请勿重复启动");
+            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("SmartBpAlreadyRunning"));
         }
         _timer.Start();
         IsSmartBpRunning = true;
@@ -184,7 +184,9 @@ public class SmartBpService : ISmartBpService
         catch (Exception ex)
         {
             _logger.LogError(ex, "SmartBp AutoFill failed with exception. {Message}", ex.Message);
-            await MessageBoxHelper.ShowErrorAsync(ex.Message);
+            await MessageBoxHelper.ShowErrorAsync(string.Format(
+                I18nHelper.GetLocalizedString("SmartBpOperationFailedFormat"),
+                ex.Message));
         }
     }
 

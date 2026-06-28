@@ -1,4 +1,5 @@
 using System.Windows.Media.Imaging;
+using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
 
 namespace neo_bpsys_wpf.SmartBp.Module.Abstractions;
@@ -565,6 +566,44 @@ public interface ISmartBpGuidanceSyncService
     Task<SmartBpGuidanceSyncResult> SyncAsync(SmartBpBusinessStateRecognitionResult businessState, CancellationToken cancellationToken = default);
 }
 
+/// <summary>根据完整 SmartBP 业务快照推断最符合的 GameGuidance 工作流步骤。</summary>
+public interface ISmartBpProgressInferenceService
+{
+    /// <summary>推断当前画面最符合的 GameGuidance 工作流步骤。</summary>
+    /// <param name="observed">观察到的完整 SmartBP 业务状态。</param>
+    /// <param name="guidanceSnapshot">当前 GameGuidance 运行时快照。</param>
+    /// <param name="options">可选推断阈值和范围。</param>
+    /// <returns>进度推断结果。</returns>
+    SmartBpProgressInferenceResult Infer(
+        SmartBpBusinessStateRecognitionResult observed,
+        GameGuidanceRuntimeSnapshot guidanceSnapshot,
+        SmartBpProgressInferenceOptions? options = null);
+}
+
+/// <summary>执行 SmartBP 精确进度对齐检查和强制同步。</summary>
+public interface ISmartBpProgressSyncService
+{
+    /// <summary>检查观察到的 SmartBP 业务状态与 GameGuidance 当前步骤是否一致。</summary>
+    /// <param name="observed">观察到的完整 SmartBP 业务状态。</param>
+    /// <param name="guidanceSnapshot">当前 GameGuidance 运行时快照。</param>
+    /// <param name="options">可选推断阈值和范围。</param>
+    /// <returns>对齐检查结果。</returns>
+    SmartBpProgressAlignmentResult CheckAlignment(
+        SmartBpBusinessStateRecognitionResult observed,
+        GameGuidanceRuntimeSnapshot guidanceSnapshot,
+        SmartBpProgressInferenceOptions? options = null);
+
+    /// <summary>将 GameGuidance 强制同步到根据观察状态推断出的精确步骤。</summary>
+    /// <param name="observed">观察到的完整 SmartBP 业务状态。</param>
+    /// <param name="mode">同步模式。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>同步结果。</returns>
+    Task<SmartBpProgressSyncResult> ForceSyncAsync(
+        SmartBpBusinessStateRecognitionResult observed,
+        SmartBpProgressSyncMode mode,
+        CancellationToken cancellationToken = default);
+}
+
 /// <summary>通过角色选择服务应用本地校验后的候选操作。</summary>
 public interface ISmartBpDetectedOperationApplier
 {
@@ -614,6 +653,15 @@ public interface ISmartBpAutoRecognitionCoordinator
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>完整策略识别结果。</returns>
     Task<SmartBpAutoRecognitionTickResult> RunFullRecognitionDebugAsync(BitmapSource frame, CancellationToken cancellationToken = default);
+    /// <summary>识别当前帧的完整 BP 业务快照，可选合并到自动识别状态仓库。</summary>
+    /// <param name="frame">要识别的画面帧。</param>
+    /// <param name="mergeIntoStateStore">是否将识别结果合并到状态仓库。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>完整 BP 快照识别结果。</returns>
+    Task<SmartBpAutoRecognitionTickResult> RecognizeFullBpSnapshotAsync(
+        BitmapSource frame,
+        bool mergeIntoStateStore,
+        CancellationToken cancellationToken = default);
     /// <summary>使用自动规划器请求形态运行已选策略，但不应用操作或引导变化。</summary>
     /// <param name="frame">要识别的画面帧。</param>
     /// <param name="cancellationToken">取消令牌。</param>

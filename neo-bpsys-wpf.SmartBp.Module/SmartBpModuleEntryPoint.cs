@@ -61,6 +61,7 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint
         services.AddSingleton(hostServices.GetRequiredService<ICharacterSelectionService>());
         services.AddSingleton(hostServices.GetRequiredService<IWindowCaptureService>());
         services.AddSingleton(hostServices.GetRequiredService<IFilePickerService>());
+        services.AddSingleton(hostServices.GetRequiredService<IInfoBarService>());
         services.AddSingleton(hostServices.GetRequiredService<ISettingsHostService>());
         services.AddSingleton(hostServices.GetRequiredService<ISmartBpOcrModelPathProvider>());
         services.AddSingleton(hostServices.GetRequiredService<ISmartBpModuleStorageProvider>());
@@ -113,6 +114,8 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint
         services.AddSingleton<ILlamaCppServerManager, LlamaCppServerManager>();
         services.AddSingleton<ILlamaCppServerManagerFactory, LlamaCppServerManagerFactory>();
         services.AddSingleton<ISmartBpGuidanceSyncService, SmartBpGuidanceSyncService>();
+        services.AddSingleton<ISmartBpProgressInferenceService, SmartBpProgressInferenceService>();
+        services.AddSingleton<ISmartBpProgressSyncService, SmartBpProgressSyncService>();
         services.AddSingleton<SmartBpCandidateOperationBuilder>();
         services.AddSingleton<ISmartBpBusinessStateMerger, SmartBpBusinessStateMerger>();
         services.AddSingleton<ISmartBpRecognitionStateStore, SmartBpRecognitionStateStore>();

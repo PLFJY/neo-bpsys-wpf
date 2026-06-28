@@ -246,6 +246,12 @@ public partial class SmartBpModuleContentViewModel
     public partial bool EnableAutoGuidancePageNavigation { get; set; }
 
     [ObservableProperty]
+    public partial bool EnableSmartBpProgressAutoCorrection { get; set; }
+
+    [ObservableProperty]
+    public partial string LastSmartBpProgressDiagnosis { get; set; } = "-";
+
+    [ObservableProperty]
     public partial SmartBpRecognitionApplyMode RecognitionApplyMode { get; set; }
 
     [ObservableProperty]
@@ -662,6 +668,7 @@ public partial class SmartBpModuleContentViewModel
         EnableAutoGuidanceSync = _recognitionSettingsService.Settings.EnableAutoGuidanceSync;
         EnableAutoApplyRecognition = _recognitionSettingsService.Settings.EnableAutoApplyRecognition;
         EnableAutoGuidancePageNavigation = _recognitionSettingsService.Settings.EnableAutoGuidancePageNavigation;
+        EnableSmartBpProgressAutoCorrection = _recognitionSettingsService.Settings.EnableSmartBpProgressAutoCorrection;
         RecognitionApplyMode = _recognitionSettingsService.Settings.RecognitionApplyMode;
         AiOneStepDelayedMode = _recognitionSettingsService.Settings.AiOneStepDelayedMode;
         AiUnknownPhaseTalentInferenceFrames = _recognitionSettingsService.Settings.AiUnknownPhaseTalentInferenceFrames;
@@ -824,7 +831,7 @@ public partial class SmartBpModuleContentViewModel
         catch (Exception ex)
         {
             AiLastError = ex.Message;
-            await MessageBoxHelper.ShowErrorAsync(ex.Message);
+            await MessageBoxHelper.ShowErrorAsync(FormatLocalizedDetail("SmartBpOperationFailedFormat", ex.Message));
         }
     }
 
@@ -1477,6 +1484,49 @@ public partial class SmartBpModuleContentViewModel
         catch (Exception ex) { AiLastError = ex.Message; }
     }
     [RelayCommand] private Task RecognizeCurrentCaptureFrameAsync() => RecognizeCurrentFrameCoreAsync();
+    [RelayCommand]
+    private async Task ForceSyncGameProgressAsync()
+    {
+        var frame = await GetValidatedCurrentFrameAsync(requireOcrReady: true, useInfoBar: true);
+        if (frame == null) return;
+        try
+        {
+            IsAiRecognizing = true;
+            var snapshot = await _autoRecognitionCoordinator.RecognizeFullBpSnapshotAsync(frame, mergeIntoStateStore: true);
+            if (snapshot.BusinessState == null)
+            {
+                var error = LocalizeProgressSyncMessage(snapshot.Error) ?? ResolveLocalizedOrRaw("SmartBpProgressForceSyncNoSnapshot");
+                LastSmartBpProgressDiagnosis = error;
+                _infoBarService.ShowWarningInfoBar(error);
+                return;
+            }
+
+            var result = await _progressSyncService.ForceSyncAsync(snapshot.BusinessState, SmartBpProgressSyncMode.Manual);
+            ApplyRegionGatedResult(snapshot);
+            LastSmartBpProgressDiagnosis = FormatProgressSyncResult(result);
+            AiCandidateOperations = string.Join(Environment.NewLine, result.Diagnostics);
+            AiNormalizedResult = AiCandidateOperations;
+            ShowForceSyncProgressInfoBar(result);
+        }
+        catch (OperationCanceledException)
+        {
+            var message = ResolveLocalizedOrRaw("QueueCanceled");
+            LastSmartBpProgressDiagnosis = message;
+            _infoBarService.ShowInformationalInfoBar(message);
+        }
+        catch (Exception ex)
+        {
+            AiLastError = ex.ToString();
+            var message = FormatLocalizedDetail("SmartBpProgressForceSyncFailedFormat", ex.Message);
+            LastSmartBpProgressDiagnosis = message;
+            _infoBarService.ShowErrorInfoBar(message);
+        }
+        finally
+        {
+            IsAiRecognizing = false;
+        }
+    }
+
     [RelayCommand] private async Task RecognizeIncrementalSelectedTestFrameAsync()
     {
         if (SelectedAiTestFrame == null) return;
@@ -2020,6 +2070,7 @@ public partial class SmartBpModuleContentViewModel
         AiStageDetectionResult = result.BusinessState == null ? "-" : FormatBusinessState(result.BusinessState);
         AiGuidanceSnapshot = FormatGuidance(result.GuidanceSnapshot, result.GuidanceSync?.Reason);
         AiCandidateOperations = FormatAutomaticOperations(result);
+        LastSmartBpProgressDiagnosis = FormatProgressDiagnosis(result);
         AiParsedVisualResult = AiStageDetectionResult;
         AiNormalizedResult = AiCandidateOperations;
         AiPhaseCropPreview = result.PhaseCrop?.Image;
@@ -2031,6 +2082,76 @@ public partial class SmartBpModuleContentViewModel
         AiLastError = result.Error ?? "";
         RefreshRecognitionDebugLogText();
     }
+
+    private string FormatProgressSyncResult(SmartBpProgressSyncResult result)
+    {
+        if (!result.Succeeded) return LocalizeProgressSyncMessage(result.Message) ?? FormatLocalizedDetail("SmartBpProgressForceSyncFailedFormat", result.Message);
+        if (!result.Moved) return ResolveLocalizedOrRaw("SmartBpProgressDiagnosisAligned");
+        return string.Format(
+            ResolveLocalizedOrRaw("SmartBpProgressDiagnosisSyncedFormat"),
+            result.TargetStepIndex,
+            result.TargetAction,
+            string.Join(",", result.TargetIndexes));
+    }
+
+    private void ShowForceSyncProgressInfoBar(SmartBpProgressSyncResult result)
+    {
+        var message = FormatProgressSyncResult(result);
+        if (!result.Succeeded)
+        {
+            _infoBarService.ShowWarningInfoBar(message);
+            return;
+        }
+
+        if (result.Moved)
+            _infoBarService.ShowSuccessInfoBar(message);
+        else
+            _infoBarService.ShowInformationalInfoBar(message);
+    }
+
+    private string FormatProgressDiagnosis(SmartBpAutoRecognitionTickResult result)
+    {
+        if (result.ProgressSync?.Moved == true)
+            return string.Format(
+                ResolveLocalizedOrRaw("SmartBpProgressDiagnosisSyncedFormat"),
+                result.ProgressSync.TargetStepIndex,
+                result.ProgressSync.TargetAction,
+                string.Join(",", result.ProgressSync.TargetIndexes));
+        if (result.ProgressAlignment?.IsAligned == true) return ResolveLocalizedOrRaw("SmartBpProgressDiagnosisAligned");
+        if (result.ProgressAlignment?.IsMisaligned == true)
+            return string.Format(
+                ResolveLocalizedOrRaw("SmartBpProgressDiagnosisMisalignedFormat"),
+                result.GuidanceSnapshot.CurrentStepIndex,
+                result.GuidanceSnapshot.CurrentAction,
+                string.Join(",", result.GuidanceSnapshot.CurrentIndexes),
+                result.ProgressAlignment.Inference.TargetStepIndex,
+                result.ProgressAlignment.Inference.TargetAction,
+                string.Join(",", result.ProgressAlignment.Inference.TargetIndexes));
+        if (result.ProgressAlignment?.IsAmbiguous == true) return ResolveLocalizedOrRaw("SmartBpProgressDiagnosisInsufficient");
+        return "-";
+    }
+
+    private string? LocalizeProgressSyncMessage(string? message)
+    {
+        if (string.IsNullOrWhiteSpace(message))
+            return null;
+
+        return message switch
+        {
+            "An automatic recognition tick is already running." => ResolveLocalizedOrRaw("SmartBpProgressForceSyncRecognitionBusy"),
+            "Inference ambiguous; no automatic movement." => ResolveLocalizedOrRaw("SmartBpProgressDiagnosisInsufficient"),
+            "GameGuidance could not be started for progress sync." => ResolveLocalizedOrRaw("SmartBpProgressForceSyncGuidanceStartFailed"),
+            "Automatic progress sync only moves forward." => ResolveLocalizedOrRaw("SmartBpProgressForceSyncForwardOnly"),
+            "Current GameGuidance step already matches inferred progress." => ResolveLocalizedOrRaw("SmartBpProgressDiagnosisAligned"),
+            "GameGuidance is not started or workflow is empty." => ResolveLocalizedOrRaw("SmartBpProgressForceSyncGuidanceStartFailed"),
+            _ => null
+        };
+    }
+
+    private string FormatLocalizedDetail(string formatKey, string? detail) =>
+        string.Format(ResolveLocalizedOrRaw(formatKey), string.IsNullOrWhiteSpace(detail)
+            ? ResolveLocalizedOrRaw("UnknownError")
+            : detail);
 
     private void ResetStrategyDebugSections()
     {
@@ -2555,6 +2676,12 @@ public partial class SmartBpModuleContentViewModel
     partial void OnEnableAutoGuidancePageNavigationChanged(bool value)
     {
         _recognitionSettingsService.Settings.EnableAutoGuidancePageNavigation = value;
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnEnableSmartBpProgressAutoCorrectionChanged(bool value)
+    {
+        _recognitionSettingsService.Settings.EnableSmartBpProgressAutoCorrection = value;
         _ = _recognitionSettingsService.SaveAsync();
     }
 

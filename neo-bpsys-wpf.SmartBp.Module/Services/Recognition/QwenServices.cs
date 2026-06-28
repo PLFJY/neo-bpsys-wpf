@@ -195,6 +195,10 @@ internal sealed class SmartBpRecognitionSettingsService : ISmartBpRecognitionSet
         Settings.FullScanMaxTokens = Math.Clamp(Settings.FullScanMaxTokens, 2048, 8192);
         Settings.StageConfidenceThreshold = Math.Clamp(Settings.StageConfidenceThreshold, 0, 1);
         Settings.GuidanceSyncLookAheadSteps = Math.Clamp(Settings.GuidanceSyncLookAheadSteps, 1, 20);
+        Settings.SmartBpProgressMismatchConfirmationCount = Math.Clamp(Settings.SmartBpProgressMismatchConfirmationCount, 1, 10);
+        Settings.SmartBpProgressAutoCorrectionCooldownMs = Math.Clamp(Settings.SmartBpProgressAutoCorrectionCooldownMs, 1000, 60000);
+        Settings.SmartBpProgressInferenceMinimumScore = Math.Clamp(Settings.SmartBpProgressInferenceMinimumScore, 0, 1);
+        Settings.SmartBpProgressInferenceMinimumScoreMargin = Math.Clamp(Settings.SmartBpProgressInferenceMinimumScoreMargin, 0, 1);
         Settings.RequiredStableSnapshots = Math.Clamp(Settings.RequiredStableSnapshots, 1, 5);
         if (!hasOcrRecognitionIntervalMs || Settings.OcrRecognitionIntervalMs <= 0)
             Settings.OcrRecognitionIntervalMs = 3000;

@@ -4758,6 +4758,21 @@
   <data name="SmartBpAiRuntimeRollbackComplete" xml:space="preserve"><value>llama.cpp runtime rollback completed</value></data>
   <data name="SmartBpEnableAutoGuidanceSync" xml:space="preserve"><value>Enable automatic GameGuidance sync</value></data>
   <data name="SmartBpEnableAutoGuidancePageNavigation" xml:space="preserve"><value>Follow page navigation when sync moves step</value></data>
+  <data name="SmartBpProgressAutoCorrection" xml:space="preserve"><value>進行状況を診断して自動同期</value></data>
+  <data name="SmartBpProgressAutoCorrectionDescription" xml:space="preserve"><value>自動認識で GameGuidance と画面状態の明確なずれを検出した場合、全量 OCR で確認してから前方へ同期します。</value></data>
+  <data name="SmartBpForceSyncGameProgress" xml:space="preserve"><value>対局進行を強制同期</value></data>
+  <data name="SmartBpForceSyncGameProgressDescription" xml:space="preserve"><value>現在認識された ban / pick スロットから、最も一致する GameGuidance ステップを推定して切り替えます。</value></data>
+  <data name="SmartBpProgressDiagnosisAligned" xml:space="preserve"><value>最近の進行診断：一致</value></data>
+  <data name="SmartBpProgressDiagnosisInsufficient" xml:space="preserve"><value>最近の進行診断：証拠不足</value></data>
+  <data name="SmartBpProgressDiagnosisMisalignedFormat" xml:space="preserve"><value>最近の進行診断：現在は Step {0} {1}[{2}]、画面は Step {3} {4}[{5}] により一致しています</value></data>
+  <data name="SmartBpProgressDiagnosisSyncedFormat" xml:space="preserve"><value>最近の進行診断：Step {0} {1}[{2}] に同期済み</value></data>
+  <data name="SmartBpProgressForceSyncNoSnapshot" xml:space="preserve"><value>完全な BP スナップショットを認識できなかったため、対局進行は同期されませんでした。</value></data>
+  <data name="SmartBpProgressForceSyncRecognitionBusy" xml:space="preserve"><value>現在の認識タスクがまだ完了していないため、完全な BP スナップショットを取得できません。少し待ってから再試行してください。</value></data>
+  <data name="SmartBpProgressForceSyncGuidanceStartFailed" xml:space="preserve"><value>対局ガイダンスを開始できなかったため、対局進行は同期されませんでした。</value></data>
+  <data name="SmartBpProgressForceSyncForwardOnly" xml:space="preserve"><value>自動進行同期は前方への移動のみ行うため、今回の同期はスキップされました。</value></data>
+  <data name="SmartBpProgressForceSyncFailedFormat" xml:space="preserve"><value>対局進行の強制同期に失敗しました：{0}</value></data>
+  <data name="SmartBpOperationFailedFormat" xml:space="preserve"><value>操作に失敗しました：{0}</value></data>
+  <data name="SmartBpAlreadyRunning" xml:space="preserve"><value>SmartBP はすでに実行中です。重複して起動しないでください。</value></data>
   <data name="SmartBpFreeFullSyncWarning" xml:space="preserve"><value>Free full sync is experimental and may write slots without workflow context. Guided workflow is recommended.</value></data>
   <data name="SmartBpCaptureStopDisabledWhileRecognizing" xml:space="preserve"><value>自動認識中はウィンドウキャプチャを維持します。キャプチャを停止する前に自動認識を停止してください。</value></data>
   <data name="SmartBpStopCaptureWhileRecognizing" xml:space="preserve"><value>自動認識が実行中です。先に自動認識を停止してからウィンドウキャプチャを停止してください。</value></data>

@@ -5856,6 +5856,21 @@
   <data name="SmartBpAiRuntimeRollbackComplete" xml:space="preserve"><value>llama.cpp 运行时回滚完成</value></data>
   <data name="SmartBpEnableAutoGuidanceSync" xml:space="preserve"><value>启用 GameGuidance 自动同步</value></data>
   <data name="SmartBpEnableAutoGuidancePageNavigation" xml:space="preserve"><value>同步步骤时跟随页面导航</value></data>
+  <data name="SmartBpProgressAutoCorrection" xml:space="preserve"><value>智能诊断并自动同步进度</value></data>
+  <data name="SmartBpProgressAutoCorrectionDescription" xml:space="preserve"><value>自动识别发现对局引导步骤与画面状态明显不一致时，使用全量 OCR 确认后自动向前同步。</value></data>
+  <data name="SmartBpForceSyncGameProgress" xml:space="preserve"><value>强制同步对局进度</value></data>
+  <data name="SmartBpForceSyncGameProgressDescription" xml:space="preserve"><value>根据当前识别到的禁选/选择槽位，推断并切换到最符合的对局引导步骤。</value></data>
+  <data name="SmartBpProgressDiagnosisAligned" xml:space="preserve"><value>最近进度诊断：已对齐</value></data>
+  <data name="SmartBpProgressDiagnosisInsufficient" xml:space="preserve"><value>最近进度诊断：证据不足</value></data>
+  <data name="SmartBpProgressDiagnosisMisalignedFormat" xml:space="preserve"><value>最近进度诊断：当前 Step {0} {1}[{2}]，画面更符合 Step {3} {4}[{5}]</value></data>
+  <data name="SmartBpProgressDiagnosisSyncedFormat" xml:space="preserve"><value>最近进度诊断：已同步到 Step {0} {1}[{2}]</value></data>
+  <data name="SmartBpProgressForceSyncNoSnapshot" xml:space="preserve"><value>未能识别完整 BP 快照，无法同步对局进度。</value></data>
+  <data name="SmartBpProgressForceSyncRecognitionBusy" xml:space="preserve"><value>当前识别任务尚未结束，暂时无法获取完整 BP 快照。请稍后再试。</value></data>
+  <data name="SmartBpProgressForceSyncGuidanceStartFailed" xml:space="preserve"><value>未能启动对局引导，无法同步对局进度。</value></data>
+  <data name="SmartBpProgressForceSyncForwardOnly" xml:space="preserve"><value>自动进度同步只会向前移动，已跳过本次同步。</value></data>
+  <data name="SmartBpProgressForceSyncFailedFormat" xml:space="preserve"><value>强制同步对局进度失败：{0}</value></data>
+  <data name="SmartBpOperationFailedFormat" xml:space="preserve"><value>操作失败：{0}</value></data>
+  <data name="SmartBpAlreadyRunning" xml:space="preserve"><value>SmartBP 已在运行，请勿重复启动。</value></data>
   <data name="SmartBpFreeFullSyncWarning" xml:space="preserve"><value>自由全同步为实验功能，可能在没有工作流上下文时写入识别槽位。推荐使用引导工作流。</value></data>
   <data name="SmartBpCaptureStopDisabledWhileRecognizing" xml:space="preserve"><value>自动识别运行时会保持窗口捕获；请先停止自动识别再停止捕获。</value></data>
   <data name="SmartBpStopCaptureWhileRecognizing" xml:space="preserve"><value>自动识别正在运行。请先停止自动识别，再停止窗口捕获。</value></data>

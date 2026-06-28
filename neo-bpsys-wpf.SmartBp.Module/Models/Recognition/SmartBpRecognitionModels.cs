@@ -575,6 +575,16 @@ public sealed class SmartBpRecognitionSettings
     public double StageConfidenceThreshold { get; set; } = 0.80;
     /// <summary>获取或设置引导对齐向前查找步数。</summary>
     public int GuidanceSyncLookAheadSteps { get; set; } = 4;
+    /// <summary>获取或设置是否启用 SmartBP 进度智能诊断后的自动向前同步。</summary>
+    public bool EnableSmartBpProgressAutoCorrection { get; set; }
+    /// <summary>获取或设置自动进度同步前需要连续确认同一目标的次数。</summary>
+    public int SmartBpProgressMismatchConfirmationCount { get; set; } = 2;
+    /// <summary>获取或设置自动进度同步后的冷却时间（毫秒）。</summary>
+    public int SmartBpProgressAutoCorrectionCooldownMs { get; set; } = 10000;
+    /// <summary>获取或设置自动进度推断的最低置信分数。</summary>
+    public double SmartBpProgressInferenceMinimumScore { get; set; } = 0.82;
+    /// <summary>获取或设置自动进度推断最佳候选与次佳候选之间的最低分差。</summary>
+    public double SmartBpProgressInferenceMinimumScoreMargin { get; set; } = 0.15;
     /// <summary>获取或设置延迟工作流回填是否应重放前端动画。</summary>
     public bool PlayBackfillAnimations { get; set; }
     /// <summary>获取或设置自动应用前所需的匹配快照数量。</summary>
@@ -1001,6 +1011,94 @@ public sealed record SmartBpWorkflowBackfillPlan(IReadOnlyList<SmartBpWorkflowSt
 public sealed record SmartBpGuidanceSyncResult(bool Changed, bool IsAccepted, string Reason, GameAction? TargetAction,
     IReadOnlyList<int> TargetIndexes, int? TargetStepIndex);
 
+/// <summary>SmartBP 精确进度同步模式。</summary>
+public enum SmartBpProgressSyncMode
+{
+    /// <summary>用户手动触发，允许向前或向后同步。</summary>
+    Manual,
+    /// <summary>自动识别诊断触发，只允许保守地向前同步。</summary>
+    AutomaticDiagnostic
+}
+
+/// <summary>控制 SmartBP 精确进度推断的阈值和搜索范围。</summary>
+/// <param name="AllowBackwardSync">是否允许选择当前步骤之前的候选。</param>
+/// <param name="MaxForwardDistance">允许选择的最大前进步数；<see langword="null"/> 表示不限制。</param>
+/// <param name="MinimumScore">接受候选的最低分数。</param>
+/// <param name="MinimumScoreMargin">最佳候选和次佳候选之间的最低分差。</param>
+public sealed record SmartBpProgressInferenceOptions(
+    bool AllowBackwardSync,
+    int? MaxForwardDistance,
+    double MinimumScore,
+    double MinimumScoreMargin);
+
+/// <summary>单个 GameGuidance 工作流候选步骤的 SmartBP 进度推断分数。</summary>
+/// <param name="StepIndex">候选步骤索引。</param>
+/// <param name="Action">候选步骤动作。</param>
+/// <param name="Indexes">候选步骤索引集合。</param>
+/// <param name="Score">候选总分。</param>
+/// <param name="Reason">候选评分说明。</param>
+public sealed record SmartBpProgressCandidateScore(
+    int StepIndex,
+    GameAction Action,
+    IReadOnlyList<int> Indexes,
+    double Score,
+    string Reason);
+
+/// <summary>SmartBP 精确进度推断结果。</summary>
+/// <param name="IsConfident">推断是否满足置信阈值。</param>
+/// <param name="TargetStepIndex">推荐目标步骤索引。</param>
+/// <param name="TargetAction">推荐目标动作。</param>
+/// <param name="TargetIndexes">推荐目标步骤索引集合。</param>
+/// <param name="Score">最佳候选分数。</param>
+/// <param name="SecondBestScore">次佳候选分数。</param>
+/// <param name="Reason">推断结果说明。</param>
+/// <param name="Candidates">所有候选分数。</param>
+/// <param name="Diagnostics">详细诊断信息。</param>
+public sealed record SmartBpProgressInferenceResult(
+    bool IsConfident,
+    int? TargetStepIndex,
+    GameAction? TargetAction,
+    IReadOnlyList<int> TargetIndexes,
+    double Score,
+    double SecondBestScore,
+    string Reason,
+    IReadOnlyList<SmartBpProgressCandidateScore> Candidates,
+    IReadOnlyList<string> Diagnostics);
+
+/// <summary>SmartBP 识别状态与 GameGuidance 当前步骤的对齐检查结果。</summary>
+/// <param name="IsAligned">当前引导步骤是否与推断步骤一致。</param>
+/// <param name="IsAmbiguous">推断证据是否不足。</param>
+/// <param name="IsMisaligned">当前引导步骤是否与可信推断不一致。</param>
+/// <param name="Inference">底层推断结果。</param>
+/// <param name="Reason">对齐检查说明。</param>
+/// <param name="Diagnostics">详细诊断信息。</param>
+public sealed record SmartBpProgressAlignmentResult(
+    bool IsAligned,
+    bool IsAmbiguous,
+    bool IsMisaligned,
+    SmartBpProgressInferenceResult Inference,
+    string Reason,
+    IReadOnlyList<string> Diagnostics);
+
+/// <summary>SmartBP 精确进度同步结果。</summary>
+/// <param name="Succeeded">同步流程是否成功完成。</param>
+/// <param name="Moved">是否实际移动了 GameGuidance 步骤。</param>
+/// <param name="PreviousStepIndex">同步前步骤索引。</param>
+/// <param name="TargetStepIndex">目标步骤索引。</param>
+/// <param name="TargetAction">目标动作。</param>
+/// <param name="TargetIndexes">目标步骤索引集合。</param>
+/// <param name="Message">用户可读结果消息。</param>
+/// <param name="Diagnostics">详细诊断信息。</param>
+public sealed record SmartBpProgressSyncResult(
+    bool Succeeded,
+    bool Moved,
+    int? PreviousStepIndex,
+    int? TargetStepIndex,
+    GameAction? TargetAction,
+    IReadOnlyList<int> TargetIndexes,
+    string Message,
+    IReadOnlyList<string> Diagnostics);
+
 /// <summary>构建预览候选操作的结果。</summary>
 public sealed record SmartBpCandidateOperationBuildResult(
     IReadOnlyList<SmartBpDetectedOperation> Operations,
@@ -1040,7 +1138,9 @@ public sealed record SmartBpAutoRecognitionTickResult(SmartBpBusinessStateRecogn
     SmartBpRegionSnapshot? RegionSnapshot = null,
     SmartBpWorkflowBackfillPlan? BackfillPlan = null,
     IReadOnlyList<SmartBpCroppedFrame>? ContentCrops = null,
-    SmartBpSceneGateResult? SceneGate = null);
+    SmartBpSceneGateResult? SceneGate = null,
+    SmartBpProgressAlignmentResult? ProgressAlignment = null,
+    SmartBpProgressSyncResult? ProgressSync = null);
 
 /// <summary>一次 llama.cpp 响应返回的性能信息。</summary>
 public sealed record LlamaCppResponseMetrics(
