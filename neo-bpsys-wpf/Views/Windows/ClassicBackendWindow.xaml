@@ -121,6 +121,7 @@
                                 VerticalAlignment="Center"
                                 FontSize="16"
                                 FontWeight="DemiBold"
+                                Margin="0,10,0,0"
                                 Text="{Binding CurrentGame.HunTeam.Name}" />
                         </StackPanel>
                     </StackPanel>
