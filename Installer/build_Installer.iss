@@ -59,17 +59,36 @@ Source: "..\build\neo-bpsys-wpf\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignor
 Source: "..\build\neo-bpsys-wpf\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 
-#include "InnoDependencyInstaller\CodeDependencies.iss"
+; Wine/no-dependency build: intentionally do not include InnoDependencyInstaller.
+; #include "InnoDependencyInstaller\CodeDependencies.iss"
+
+[Code]
+
+function IsWine: Boolean;
+begin
+  Result := RegKeyExists(HKCU, 'Software\Wine') or RegKeyExists(HKLM, 'Software\Wine');
+end;
 
 procedure InitializeWizard();
 begin
-WizardForm.LICENSEACCEPTEDRADIO.checked:= true;
+  Log('InitializeWizard: begin.');
+
+  if WizardSilent or IsWine then
+  begin
+    Log('Wine or silent mode detected: skipping license radio pre-check.');
+  end
+  else
+  begin
+    WizardForm.LICENSEACCEPTEDRADIO.checked := true;
+  end;
+
+  Log('InitializeWizard: end.');
 end;
 
 function InitializeSetup: Boolean;
 begin
-Dependency_AddDotNet100Desktop;
-Result := True;
+  Log('Dependency installer disabled in this Wine/no-dependency build.');
+  Result := True;
 end;
 
 function IsSameOrChildPath(Child: string; Parent: string): Boolean;

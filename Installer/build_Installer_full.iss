@@ -49,10 +49,25 @@ Source: "..\build\neo-bpsys-wpf\*"; DestDir: "{app}"; Flags: ignoreversion recur
 Source: "..\build\SmartBpModule\*"; DestDir: "{code:GetSmartBpModuleDir}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 
-#include "InnoDependencyInstaller\CodeDependencies.iss"
+; Wine/no-dependency build: intentionally do not include InnoDependencyInstaller.
+; #include "InnoDependencyInstaller\CodeDependencies.iss"
+
+[Code]
 
 var
   SmartBpDirPage: TInputDirWizardPage;
+  SmartBpDirPageCreated: Boolean;
+  SmartBpModuleDirValue: string;
+
+function IsWine: Boolean;
+begin
+  Result := RegKeyExists(HKCU, 'Software\Wine') or RegKeyExists(HKLM, 'Software\Wine');
+end;
+
+function GetDefaultSmartBpModuleDir(): string;
+begin
+  Result := ExpandConstant('{localappdata}\neo-bpsys-wpf\Components\SmartBpModule');
+end;
 
 function IsSameOrChildPath(Child: string; Parent: string): Boolean;
 var
@@ -104,27 +119,47 @@ end;
 
 function GetSmartBpModuleDir(Param: string): string;
 begin
-  Result := SmartBpDirPage.Values[0];
+  if SmartBpDirPageCreated then
+    Result := SmartBpDirPage.Values[0]
+  else
+    Result := SmartBpModuleDirValue;
 end;
 
 procedure InitializeWizard();
 begin
-  WizardForm.LICENSEACCEPTEDRADIO.checked := true;
-  SmartBpDirPage := CreateInputDirPage(
-    wpSelectDir,
-    'SmartBP 模块安装位置',
-    '选择 SmartBP 模块安装目录',
-    '请选择一个可写的用户目录。不要选择 Program Files、Windows、System32 或磁盘根目录。',
-    False,
-    '');
-  SmartBpDirPage.Add('');
-  SmartBpDirPage.Values[0] := ExpandConstant('{localappdata}\neo-bpsys-wpf\Components\SmartBpModule');
+  Log('InitializeWizard: begin.');
+
+  if SmartBpModuleDirValue = '' then
+    SmartBpModuleDirValue := GetDefaultSmartBpModuleDir();
+
+  if WizardSilent or IsWine then
+  begin
+    Log('Wine or silent mode detected: skipping license radio pre-check and SmartBP input page creation.');
+    SmartBpDirPageCreated := False;
+  end
+  else
+  begin
+    WizardForm.LICENSEACCEPTEDRADIO.checked := true;
+
+    SmartBpDirPage := CreateInputDirPage(
+      wpSelectDir,
+      'SmartBP 模块安装位置',
+      '选择 SmartBP 模块安装目录',
+      '请选择一个可写的用户目录。不要选择 Program Files、Windows、System32 或磁盘根目录。',
+      False,
+      '');
+    SmartBpDirPage.Add('');
+    SmartBpDirPage.Values[0] := SmartBpModuleDirValue;
+    SmartBpDirPageCreated := True;
+  end;
+
+  Log('InitializeWizard: end. SmartBP module dir=' + GetSmartBpModuleDir(''));
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
 begin
   Result := True;
-  if CurPageID = SmartBpDirPage.ID then
+  if SmartBpDirPageCreated and (CurPageID = SmartBpDirPage.ID) then
   begin
     if IsUnsafeSmartBpPath(SmartBpDirPage.Values[0]) then
     begin
@@ -136,7 +171,8 @@ end;
 
 function InitializeSetup: Boolean;
 begin
-  Dependency_AddDotNet100Desktop;
+  SmartBpModuleDirValue := GetDefaultSmartBpModuleDir();
+  Log('Dependency installer disabled in this Wine/no-dependency build. SmartBP module dir=' + SmartBpModuleDirValue);
   Result := True;
 end;
 
