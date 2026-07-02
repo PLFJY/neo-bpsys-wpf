@@ -84,6 +84,9 @@ $BuildPath = Join-Path $RepoRoot "build\neo-bpsys-wpf"
 $ModuleBuildPath = Join-Path $RepoRoot "build\SmartBpModule"
 $ProjPath  = Join-Path $RepoRoot "neo-bpsys-wpf\neo-bpsys-wpf.csproj"
 $ModuleProjPath = Join-Path $RepoRoot "neo-bpsys-wpf.SmartBp.Module\neo-bpsys-wpf.SmartBp.Module.csproj"
+$TeamJsonMakerProjPath = Join-Path $RepoRoot "Built-inPlugins\neo-bpsys-wpf.TeamJsonMaker\neo-bpsys-wpf.TeamJsonMaker.csproj"
+$RuntimeIdentifier = "win-x64"
+$SelfContained = "false"
 
 # Clean build output before packaging.
 $repoFullPath = [System.IO.Path]::GetFullPath($RepoRoot)
@@ -106,9 +109,23 @@ $GitHash = $gitHashRaw.Trim()
 
 # Build (dotnet publish)
 Invoke-External -FilePath "dotnet" -Arguments @(
+    "restore", $ProjPath,
+    "-r", $RuntimeIdentifier,
+    "/p:SelfContained=$SelfContained"
+) -ErrorMessage "dotnet restore failed"
+
+Invoke-External -FilePath "dotnet" -Arguments @(
+    "restore", $TeamJsonMakerProjPath,
+    "-r", $RuntimeIdentifier,
+    "/p:SelfContained=$SelfContained"
+) -ErrorMessage "TeamJsonMaker plugin restore failed"
+
+Invoke-External -FilePath "dotnet" -Arguments @(
     "publish", $ProjPath,
     "-c", $Configuration,
     "-o", $BuildPath,
+    "-r", $RuntimeIdentifier,
+    "--self-contained", $SelfContained,
     "--no-restore",
     "/p:BuildMeta=$GitHash"
 ) -ErrorMessage "dotnet publish failed"
@@ -153,9 +170,17 @@ if (Test-Path -LiteralPath $ModuleBuildPath) {
 New-Item -ItemType Directory -Path $ModuleBuildPath | Out-Null
 
 Invoke-External -FilePath "dotnet" -Arguments @(
+    "restore", $ModuleProjPath,
+    "-r", $RuntimeIdentifier,
+    "/p:SelfContained=$SelfContained"
+) -ErrorMessage "SmartBP module restore failed"
+
+Invoke-External -FilePath "dotnet" -Arguments @(
     "publish", $ModuleProjPath,
     "-c", $Configuration,
     "-o", $ModuleBuildPath,
+    "-r", $RuntimeIdentifier,
+    "--self-contained", $SelfContained,
     "--no-restore"
 ) -ErrorMessage "SmartBP module publish failed"
 

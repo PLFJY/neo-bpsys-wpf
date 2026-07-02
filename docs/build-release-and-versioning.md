@@ -38,16 +38,19 @@ dotnet publish ".\neo-bpsys-wpf\neo-bpsys-wpf.csproj" -c Release -o ".\build\neo
 1. 切到仓库根目录。
 2. 创建 `build\neo-bpsys-wpf`。
 3. 用 `git rev-parse --short=7 HEAD` 获取 `BuildMeta`。
-4. 按指定配置执行主应用 `dotnet publish --no-restore`。
-5. 检查 `neo-bpsys-wpf.exe` 是否存在。
-6. 从 `neo-bpsys-wpf.exe` 的 `ProductVersion` 读取本次 tag。
-7. 调用 `Installer\Inno Setup 6\ISCC.exe` 构建 lite 安装包。
-8. 计算 `neo-bpsys-wpf_Installer.exe.sha256`。
-9. 按同一配置执行 SmartBP 模块项目 `dotnet publish --no-restore` 到 `build\SmartBpModule`。
-10. 用本次 tag 写入模块 staging 的 `component.json`。
-11. 用 .NET 10 + SharpCompress 从同一 staging 目录生成 `SmartBpModule.7z` 和 `SmartBpModuleManifest.json`。
-12. 调用 `Installer/build_Installer_full.iss` 构建 full 安装包。
-13. 计算 `neo-bpsys-wpf_Installer_full.exe.sha256`。
+4. 按 `win-x64`、`SelfContained=false` 执行主应用 `dotnet restore`。
+5. 按同一 RID 和 self-contained 配置执行内置插件 `TeamJsonMaker` 的 `dotnet restore`。
+6. 按同一 RID 和 self-contained 配置执行主应用 `dotnet publish --no-restore`。
+7. 检查 `neo-bpsys-wpf.exe` 是否存在。
+8. 从 `neo-bpsys-wpf.exe` 的 `ProductVersion` 读取本次 tag。
+9. 调用 `Installer\Inno Setup 6\ISCC.exe` 构建 lite 安装包。
+10. 计算 `neo-bpsys-wpf_Installer.exe.sha256`。
+11. 按 `win-x64`、`SelfContained=false` 执行 SmartBP 模块项目 `dotnet restore`。
+12. 按同一 RID 和 self-contained 配置执行 SmartBP 模块项目 `dotnet publish --no-restore` 到 `build\SmartBpModule`。
+13. 用本次 tag 写入模块 staging 的 `component.json`。
+14. 用 .NET 10 + SharpCompress 从同一 staging 目录生成 `SmartBpModule.7z` 和 `SmartBpModuleManifest.json`。
+15. 调用 `Installer/build_Installer_full.iss` 构建 full 安装包。
+16. 计算 `neo-bpsys-wpf_Installer_full.exe.sha256`。
 
 所有配置预期产物：
 

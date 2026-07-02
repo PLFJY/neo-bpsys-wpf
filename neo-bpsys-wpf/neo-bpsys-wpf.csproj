@@ -92,7 +92,13 @@
 
         <MakeDir Directories="@(BuiltinPlugin->'$(PluginsOutDir)%(FolderName)\')" />
 
-        <ItemGroup>
+        <ItemGroup Condition="'$(RuntimeIdentifier)' != ''">
+            <_PluginFiles Include="$([System.IO.Path]::GetDirectoryName('%(BuiltinPlugin.FullPath)'))\bin\$(Configuration)\%(BuiltinPlugin.PluginTargetFramework)\$(RuntimeIdentifier)\**\*.*">
+                <FolderName>%(BuiltinPlugin.FolderName)</FolderName>
+            </_PluginFiles>
+        </ItemGroup>
+
+        <ItemGroup Condition="'$(RuntimeIdentifier)' == ''">
             <_PluginFiles Include="$([System.IO.Path]::GetDirectoryName('%(BuiltinPlugin.FullPath)'))\bin\$(Configuration)\%(BuiltinPlugin.PluginTargetFramework)\**\*.*">
                 <FolderName>%(BuiltinPlugin.FolderName)</FolderName>
             </_PluginFiles>
@@ -109,7 +115,13 @@
 
         <MakeDir Directories="@(BuiltinPlugin->'$(PluginsOutDir)%(FolderName)\')" />
 
-        <ItemGroup>
+        <ItemGroup Condition="'$(RuntimeIdentifier)' != ''">
+            <_PluginFiles Include="$([System.IO.Path]::GetDirectoryName('%(BuiltinPlugin.FullPath)'))\bin\$(Configuration)\%(BuiltinPlugin.PluginTargetFramework)\$(RuntimeIdentifier)\**\*.*">
+                <FolderName>%(BuiltinPlugin.FolderName)</FolderName>
+            </_PluginFiles>
+        </ItemGroup>
+
+        <ItemGroup Condition="'$(RuntimeIdentifier)' == ''">
             <_PluginFiles Include="$([System.IO.Path]::GetDirectoryName('%(BuiltinPlugin.FullPath)'))\bin\$(Configuration)\%(BuiltinPlugin.PluginTargetFramework)\**\*.*">
                 <FolderName>%(BuiltinPlugin.FolderName)</FolderName>
             </_PluginFiles>
