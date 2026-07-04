@@ -8,9 +8,11 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Tests.Infrastructure;
+using neo_bpsys_wpf.ViewModels.Pages;
 using neo_bpsys_wpf.ViewModels.Windows;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Windows;
@@ -42,6 +44,46 @@ public class TeamColorAndShapeTest
         var target = new Team(Camp.Hun, TeamType.AwayTeam);
         target.ImportTeamInfo(team);
         Assert.Equal("#80ABCDEF", target.ColorHex);
+    }
+
+    [Fact]
+    public void TeamJsonImportUsesTargetDefaultWhenColorIsMissing()
+    {
+        var target = new Team(Camp.Hun, TeamType.AwayTeam) { ColorHex = "#FF000000" };
+        var filePath = WriteTeamJson("""{"Name":"Away","ImageUri":"","SurMemberList":[],"HunMemberList":[]}""");
+
+        try
+        {
+            var viewModel = CreateTeamInfoViewModel(target, filePath);
+
+            viewModel.ImportInfoFromJsonCommand.Execute(null);
+
+            Assert.Equal(Team.DefaultAwayColorHex, target.ColorHex);
+        }
+        finally
+        {
+            File.Delete(filePath);
+        }
+    }
+
+    [Fact]
+    public void TeamJsonImportPreservesExplicitColor()
+    {
+        var target = new Team(Camp.Hun, TeamType.AwayTeam);
+        var filePath = WriteTeamJson("""{"Name":"Away","ImageUri":"","ColorHex":"#80123456","SurMemberList":[],"HunMemberList":[]}""");
+
+        try
+        {
+            var viewModel = CreateTeamInfoViewModel(target, filePath);
+
+            viewModel.ImportInfoFromJsonCommand.Execute(null);
+
+            Assert.Equal("#80123456", target.ColorHex);
+        }
+        finally
+        {
+            File.Delete(filePath);
+        }
     }
 
     [Fact]
@@ -285,6 +327,21 @@ public class TeamColorAndShapeTest
             CanvasName = "BaseCanvas",
             Logger = NullLogger.Instance
         };
+
+    private static TeamInfoPageViewModel.TeamInfoViewModel CreateTeamInfoViewModel(Team team, string jsonPath)
+    {
+        var filePicker = new Mock<IFilePickerService>();
+        filePicker.Setup(service => service.PickJsonFile()).Returns(jsonPath);
+        var imageSafety = new Mock<IFrontedImageSafetyService>();
+        return new TeamInfoPageViewModel.TeamInfoViewModel(team, filePicker.Object, imageSafety.Object);
+    }
+
+    private static string WriteTeamJson(string json)
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"neo-bpsys-team-{Guid.NewGuid():N}.json");
+        File.WriteAllText(path, json);
+        return path;
+    }
 
     private static IEnumerable<FrontedBindingTreeNode> FlattenCatalog(IEnumerable<FrontedBindingTreeNode> nodes)
     {

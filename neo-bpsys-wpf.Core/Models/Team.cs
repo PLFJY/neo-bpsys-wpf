@@ -17,7 +17,14 @@ namespace neo_bpsys_wpf.Core.Models;
 [FrontedBindingObject]
 public partial class Team : ObservableObjectBase
 {
+    /// <summary>
+    /// 默认主队颜色
+    /// </summary>
     public const string DefaultHomeColorHex = "#FF337FB9";
+
+    /// <summary>
+    /// 默认客队颜色
+    /// </summary>
     public const string DefaultAwayColorHex = "#FFE34341";
 
     /// <summary>

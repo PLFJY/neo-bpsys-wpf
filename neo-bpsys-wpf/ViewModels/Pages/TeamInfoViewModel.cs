@@ -174,10 +174,16 @@ public partial class TeamInfoPageViewModel
 
             try
             {
+                var missingColor = IsTeamColorMissing(jsonFile);
                 var teamInfo = JsonSerializer.Deserialize<Team>(jsonFile);
 
                 if (teamInfo == null)
                     return;
+
+                if (missingColor)
+                    teamInfo.ColorHex = CurrentTeam.TeamType == Core.Enums.TeamType.HomeTeam
+                        ? Team.DefaultHomeColorHex
+                        : Team.DefaultAwayColorHex;
 
                 teamInfo.Camp = CurrentTeam.Camp;
                 CurrentTeam.ImportTeamInfo(teamInfo);
@@ -194,6 +200,24 @@ public partial class TeamInfoPageViewModel
             {
                 _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("ImageMaybeDamagedOrUnsurpported"));
             }
+        }
+
+        private static bool IsTeamColorMissing(string json)
+        {
+            using var document = JsonDocument.Parse(json);
+            if (document.RootElement.ValueKind != JsonValueKind.Object)
+                return true;
+
+            var colorProperty = document.RootElement
+                .EnumerateObject()
+                .FirstOrDefault(property => string.Equals(property.Name, nameof(Team.ColorHex), StringComparison.OrdinalIgnoreCase));
+
+            return colorProperty.Value.ValueKind switch
+            {
+                JsonValueKind.Undefined or JsonValueKind.Null => true,
+                JsonValueKind.String => string.IsNullOrWhiteSpace(colorProperty.Value.GetString()),
+                _ => false
+            };
         }
 
         [RelayCommand]
