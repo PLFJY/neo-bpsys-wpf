@@ -117,11 +117,11 @@
                         <StackPanel>
                             <TextBlock VerticalAlignment="Center" Text="{lex:Loc CurrentHunterTeamColon}" />
                             <TextBlock
+                                Margin="0,10,0,0"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
                                 FontSize="16"
                                 FontWeight="DemiBold"
-                                Margin="0,10,0,0"
                                 Text="{Binding CurrentGame.HunTeam.Name}" />
                         </StackPanel>
                     </StackPanel>
@@ -783,108 +783,10 @@
                                 </TextBlock>
                             </StackPanel>
                         </Border>
-
-                        <Border
-                            x:Name="GlobalBanRecordRoot"
-                            Margin="0,10,10,0"
-                            Style="{StaticResource Card}">
-                            <StackPanel>
-                                <TextBlock Style="{StaticResource Title}" Text="{lex:Loc GlobalBanRecord}" />
-                                <ui:ToggleSwitch
-                                    Margin="0,10,0,0"
-                                    Content="{lex:Loc AutoRecord}"
-                                    IsChecked="{Binding IsGlobalBanAutoRecord}" />
-                                <TextBlock Margin="0,12,0,0">
-                                    <TextBlock.Text>
-                                        <MultiBinding StringFormat="{}{0}: {1}">
-                                            <lex:BLoc Key="HomeTeam" />
-                                            <Binding Path="HomeTeam.Name" />
-                                        </MultiBinding>
-                                    </TextBlock.Text>
-                                </TextBlock>
-                                <TextBlock Text="{lex:Loc Survivor}" />
-                                <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding HomeSurGlobalBanRecordViewModelList}">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <WrapPanel />
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <cc:CharacterSelector
-                                                Margin="0,0,8,8"
-                                                IsSimpleModeEnabled="True"
-                                                ItemsSource="{Binding CharaDict}"
-                                                SelectedValue="{Binding RecordedChara}" />
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                                <TextBlock Text="{lex:Loc Hunter}" />
-                                <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding HomeHunGlobalBanRecordViewModelList}">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <WrapPanel />
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <cc:CharacterSelector
-                                                Margin="0,0,8,8"
-                                                IsSimpleModeEnabled="True"
-                                                ItemsSource="{Binding CharaDict}"
-                                                SelectedValue="{Binding RecordedChara}" />
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                                <TextBlock Margin="0,12,0,0">
-                                    <TextBlock.Text>
-                                        <MultiBinding StringFormat="{}{0}: {1}">
-                                            <lex:BLoc Key="AwayTeam" />
-                                            <Binding Path="AwayTeam.Name" />
-                                        </MultiBinding>
-                                    </TextBlock.Text>
-                                </TextBlock>
-                                <TextBlock Text="{lex:Loc Survivor}" />
-                                <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding AwaySurGlobalBanRecordViewModelList}">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <WrapPanel />
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <cc:CharacterSelector
-                                                Margin="0,0,8,8"
-                                                IsSimpleModeEnabled="True"
-                                                ItemsSource="{Binding CharaDict}"
-                                                SelectedValue="{Binding RecordedChara}" />
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                                <TextBlock Text="{lex:Loc Hunter}" />
-                                <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding AwayHunGlobalBanRecordViewModelList}">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <WrapPanel />
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <cc:CharacterSelector
-                                                Margin="0,0,8,8"
-                                                IsSimpleModeEnabled="True"
-                                                ItemsSource="{Binding CharaDict}"
-                                                SelectedValue="{Binding RecordedChara}" />
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </StackPanel>
-                        </Border>
-
                         <Expander
                             Margin="0,10,10,0"
                             Header="{lex:Loc Talent}"
-                            IsExpanded="False">
+                            IsExpanded="True">
                             <Border
                                 x:Name="TalentRoot"
                                 Margin="0,10,0,0"
@@ -1018,6 +920,107 @@
                                         Margin="0,8,0,0"
                                         IsHunMode="True"
                                         PlayerData="{Binding HunPlayer.Data}" />
+                                </StackPanel>
+                            </Border>
+                        </Expander>
+
+                        <Expander
+                            Margin="0,10,10,0"
+                            Header="{lex:Loc GlobalBanRecord}"
+                            IsExpanded="False">
+                            <Border
+                                x:Name="GlobalBanRecordRoot"
+                                Margin="0,10,10,0"
+                                Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <ui:ToggleSwitch
+                                        Margin="0,10,0,0"
+                                        Content="{lex:Loc AutoRecord}"
+                                        IsChecked="{Binding IsGlobalBanAutoRecord}" />
+                                    <TextBlock Margin="0,12,0,0">
+                                        <TextBlock.Text>
+                                            <MultiBinding StringFormat="{}{0}: {1}">
+                                                <lex:BLoc Key="HomeTeam" />
+                                                <Binding Path="HomeTeam.Name" />
+                                            </MultiBinding>
+                                        </TextBlock.Text>
+                                    </TextBlock>
+                                    <TextBlock Text="{lex:Loc Survivor}" />
+                                    <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding HomeSurGlobalBanRecordViewModelList}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <cc:CharacterSelector
+                                                    Margin="0,0,8,8"
+                                                    IsSimpleModeEnabled="True"
+                                                    ItemsSource="{Binding CharaDict}"
+                                                    SelectedValue="{Binding RecordedChara}" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <TextBlock Text="{lex:Loc Hunter}" />
+                                    <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding HomeHunGlobalBanRecordViewModelList}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <cc:CharacterSelector
+                                                    Margin="0,0,8,8"
+                                                    IsSimpleModeEnabled="True"
+                                                    ItemsSource="{Binding CharaDict}"
+                                                    SelectedValue="{Binding RecordedChara}" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <TextBlock Margin="0,12,0,0">
+                                        <TextBlock.Text>
+                                            <MultiBinding StringFormat="{}{0}: {1}">
+                                                <lex:BLoc Key="AwayTeam" />
+                                                <Binding Path="AwayTeam.Name" />
+                                            </MultiBinding>
+                                        </TextBlock.Text>
+                                    </TextBlock>
+                                    <TextBlock Text="{lex:Loc Survivor}" />
+                                    <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding AwaySurGlobalBanRecordViewModelList}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <cc:CharacterSelector
+                                                    Margin="0,0,8,8"
+                                                    IsSimpleModeEnabled="True"
+                                                    ItemsSource="{Binding CharaDict}"
+                                                    SelectedValue="{Binding RecordedChara}" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <TextBlock Text="{lex:Loc Hunter}" />
+                                    <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding AwayHunGlobalBanRecordViewModelList}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <cc:CharacterSelector
+                                                    Margin="0,0,8,8"
+                                                    IsSimpleModeEnabled="True"
+                                                    ItemsSource="{Binding CharaDict}"
+                                                    SelectedValue="{Binding RecordedChara}" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
                                 </StackPanel>
                             </Border>
                         </Expander>
