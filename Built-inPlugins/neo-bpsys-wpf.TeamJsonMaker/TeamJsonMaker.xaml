@@ -15,10 +15,18 @@
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
     <StackPanel>
-        <TextBlock
-            Grid.Row="0"
-            Style="{StaticResource Title}"
-            Text="队伍 JSON 导入文件制作" />
+        <StackPanel Orientation="Horizontal">
+            <TextBlock
+                Grid.Row="0"
+                VerticalAlignment="Center"
+                Style="{StaticResource Title}"
+                Text="队伍 JSON 导入文件制作" />
+            <ui:Button
+                Margin="12,0,0,0"
+                Command="{Binding ImportCommand}"
+                Content="导入已有 JSON"
+                Icon="{ui:SymbolIcon Symbol=ArrowImport24}" />
+        </StackPanel>
         <Border
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
