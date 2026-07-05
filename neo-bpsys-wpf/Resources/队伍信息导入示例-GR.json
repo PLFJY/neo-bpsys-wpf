@@ -1,6 +1,6 @@
 {
   "Name": "Gr",
-  "ImageUri": "https://patchwiki.biligame.com/images/dwrg/b/be/fca4fwk94d87pkj9d4rudposbk3r2y0.png",
+  "ColorHex": "#FFD98098",
   "SurMemberList": [
     {
       "Name": "Gr_heart",
@@ -39,5 +39,7 @@
       "Camp": "Hun",
       "ImageUri": "https://patchwiki.biligame.com/images/dwrg/0/08/2fp7w10or7jlufkjcoxkeofv33v4abk.png"
     }
-  ]
-} 
+  ],
+  "ImageUri": "https://patchwiki.biligame.com/images/dwrg/b/be/fca4fwk94d87pkj9d4rudposbk3r2y0.png",
+  "IsActive": false
+}

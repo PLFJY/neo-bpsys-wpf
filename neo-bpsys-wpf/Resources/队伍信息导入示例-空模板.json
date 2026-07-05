@@ -1,6 +1,6 @@
 {
   "Name": "",
-  "ImageUri": "",
+  "ColorHex": "#FFFFFFFF",
   "SurMemberList": [
     {
       "Name": "",
@@ -29,5 +29,7 @@
       "Camp": "Hun",
       "ImageUri": null
     }
-  ]
-} 
+  ],
+  "ImageUri": "",
+  "IsActive": false
+}
