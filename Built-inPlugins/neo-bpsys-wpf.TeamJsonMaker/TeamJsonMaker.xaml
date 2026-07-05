@@ -2,6 +2,7 @@
     x:Class="neo_bpsys_wpf.TeamJsonMaker.TeamJsonMaker"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:colorpicker="clr-namespace:ColorPicker;assembly=ColorPicker"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:neo_bpsys_wpf.TeamJsonMaker"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -56,9 +57,18 @@
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
                     <TextBlock VerticalAlignment="Center" Text="队伍颜色（#RRGGBB 或 #AARRGGBB）: " />
+                    <colorpicker:PortableColorPicker
+                        Width="60"
+                        Height="30"
+                        Margin="10,0,0,0"
+                        HexRepresentation="ARGB"
+                        SelectedColor="{Binding CurrentTeam.Color, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        ShowAlpha="True"
+                        Style="{StaticResource DefaultColorPickerStyle}" />
                     <ui:TextBox
                         MinWidth="180"
                         Margin="10,0,0,0"
+                        MaxLength="9"
                         Text="{Binding CurrentTeam.ColorHex}" />
                 </StackPanel>
                 <StackPanel

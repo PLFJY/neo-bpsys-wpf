@@ -33,5 +33,9 @@
 		<ProjectReference Include="..\..\neo-bpsys-wpf.PluginSdk\neo-bpsys-wpf.PluginSdk.csproj" Private="false" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<PackageReference Include="PixiEditor.ColorPicker" Version="3.4.2.3" />
+	</ItemGroup>
+
 	<Import Project="..\..\neo-bpsys-wpf.PluginSdk\neo-bpsys-wpf.PluginSdk.targets" />
 </Project>
