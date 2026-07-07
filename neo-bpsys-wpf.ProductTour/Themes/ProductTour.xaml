@@ -7,9 +7,7 @@
     <SolidColorBrush x:Key="ProductTourFallbackSecondaryBrush" Color="#33FFFFFF" />
     <SolidColorBrush x:Key="ProductTourFallbackMaskBrush" Color="#CC202020" />
 
-    <Style x:Key="ProductTourOverlayStyle" TargetType="{x:Type Canvas}">
-        <Setter Property="Background" Value="Transparent" />
-    </Style>
+    <Style x:Key="ProductTourOverlayStyle" TargetType="{x:Type Canvas}" />
 
     <Style x:Key="ProductTourSpotlightStyle" TargetType="{x:Type Border}">
         <Setter Property="CornerRadius" Value="8" />

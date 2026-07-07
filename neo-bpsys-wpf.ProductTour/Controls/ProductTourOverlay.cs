@@ -61,19 +61,20 @@ public sealed class ProductTourOverlay : Canvas
         HorizontalAlignment = HorizontalAlignment.Stretch;
         VerticalAlignment = VerticalAlignment.Stretch;
         Opacity = 0;
+        Background = null;
 
-        _blockAllMask = CreateMask();
-        _topMask = CreateMask();
-        _leftMask = CreateMask();
-        _rightMask = CreateMask();
-        _bottomMask = CreateMask();
+        _blockAllMask = CreateMask("BlockAllMask");
+        _topMask = CreateMask("TopMask");
+        _leftMask = CreateMask("LeftMask");
+        _rightMask = CreateMask("RightMask");
+        _bottomMask = CreateMask("BottomMask");
         Children.Add(_blockAllMask);
         Children.Add(_topMask);
         Children.Add(_leftMask);
         Children.Add(_rightMask);
         Children.Add(_bottomMask);
 
-        _spotlight = new Border { Style = TryFindResource("ProductTourSpotlightStyle") as Style, IsHitTestVisible = false };
+        _spotlight = new Border { Name = "Spotlight", Style = TryFindResource("ProductTourSpotlightStyle") as Style, IsHitTestVisible = false };
         Children.Add(_spotlight);
 
         _title = new TextBlock();
@@ -112,6 +113,7 @@ public sealed class ProductTourOverlay : Canvas
 
         _card = new Border
         {
+            Name = "Card",
             Style = TryFindResource("ProductTourCardStyle") as Style,
             Width = CardWidth,
             MaxHeight = CardMaxHeight,
@@ -210,9 +212,10 @@ public sealed class ProductTourOverlay : Canvas
         Opacity = to;
     }
 
-    private static Border CreateMask() =>
+    private static Border CreateMask(string name) =>
         new()
         {
+            Name = name,
             Background = new SolidColorBrush(Color.FromArgb(176, 0, 0, 0)),
             IsHitTestVisible = true
         };
