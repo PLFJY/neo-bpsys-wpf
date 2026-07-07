@@ -20,6 +20,7 @@
 | [classic-mode.md](classic-mode.md) | Classic Mode 导播台定位、弹窗入口、导航边界、间距和重启规范 |
 | [modern-smooth-scrolling.md](modern-smooth-scrolling.md) | 项目本地 Modern 平滑滚动基础设施、opt-in 边界和后续 GameGuidance 复用方式 |
 | [game-guidance.md](game-guidance.md) | 引导式 BP 的规则文件和工作流 |
+| [product-tour-and-onboarding.md](product-tour-and-onboarding.md) | 首次导览、页面教程包、Product Tour overlay、教程状态和 Signal 边界 |
 | [smartbp-and-ocr.md](smartbp-and-ocr.md) | SmartBP、赛后数据 OCR、模型和区域配置 |
 | [shared-data-and-state.md](shared-data-and-state.md) | 共享状态、CurrentGame、队伍、Ban、倒计时和前台绑定 |
 | [score-system-v2.md](score-system-v2.md) | Score System v2 的 `Core.Models.Game` 持有比分状态、小比分（MinorScore）计算规则、前台绑定和兼容策略 |
@@ -41,7 +42,7 @@
 | --- | --- |
 | 架构入门 | `project-positioning.md`、`runtime-architecture.md`、`module-overview.md` |
 | UI / 前台 / 后台 | `frontend-windows-and-layout.md`、`fronted-layout-v3-window-centric.md`、`fronted-designer-v3.md`、`fronted-designer-editor.md`、`fronted-behavior-system.md`、`bpui-package-v3.md`、`backend-pages-and-navigation.md`、`classic-mode.md`、`modern-smooth-scrolling.md`、`wpf-ui-pitfalls.md` |
-| 业务流程 | `game-guidance.md`、`smartbp-and-ocr.md`、`shared-data-and-state.md`、`score-system-v2.md` |
+| 业务流程 | `game-guidance.md`、`product-tour-and-onboarding.md`、`smartbp-and-ocr.md`、`shared-data-and-state.md`、`score-system-v2.md` |
 | 插件 | `plugin-system.md`、`plugin-market.md` |
 | 资源 / 本地化 | `resources-localization-and-assets.md`、`settings-paths-and-data.md`、`bpui-package-v3.md` |
 | 构建 / 打包 / 更新 / 调试 | `build-release-and-versioning.md`、`bpui-package-v3.md`、`updater-and-downloads.md`、`testing-and-debugging.md`、`testing-guidelines.md` |

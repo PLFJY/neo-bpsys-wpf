@@ -1,18 +1,6 @@
-﻿using neo_bpsys_wpf.Core.Attributes;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+using neo_bpsys_wpf.Core.Attributes;
+using neo_bpsys_wpf.Tutorial;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace neo_bpsys_wpf.Views.Pages;
 
@@ -28,5 +16,6 @@ public partial class SmartBpPage : Page
     public SmartBpPage()
     {
         InitializeComponent();
+        Loaded += (_, _) => TutorialPageLoader.RunPendingOnLoaded(this, "Page.SmartBp");
     }
 }

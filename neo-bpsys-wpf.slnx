@@ -34,6 +34,9 @@
     <BuildType Solution="Preview|*" Project="Debug" />
     <Platform Solution="*|x64" Project="x64" />
   </Project>
+  <Project Path="neo-bpsys-wpf.ProductTour/neo-bpsys-wpf.ProductTour.csproj">
+    <Platform Solution="*|x64" Project="x64" />
+  </Project>
   <Project Path="neo-bpsys-wpf.SmartBp.Module/neo-bpsys-wpf.SmartBp.Module.csproj">
     <Platform Solution="*|x64" Project="x64" />
   </Project>

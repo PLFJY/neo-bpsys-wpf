@@ -5,6 +5,7 @@
 | 项目 | 职责 |
 | --- | --- |
 | `neo-bpsys-wpf` | 主 WPF 宿主。包含后台页面、前台窗口、业务服务、资源、主题、本地化和启动逻辑 |
+| `neo-bpsys-wpf.ProductTour` | 教程与导览 WPF 控件库。包含首次 Welcome、Dialogue、Product Tour overlay、教程注册表、状态和 Signal 服务 |
 | `neo-bpsys-wpf.SmartBp.Module` | SmartBP 运行时模块。包含真实 SmartBP 页面内容、ViewModel、OCR/SmartBP 服务、OpenCvSharp/PaddleOCR/PaddleInference 使用和 OCR 模型下载逻辑 |
 | `neo-bpsys-wpf.Core` | 核心抽象、模型、枚举、特性、注册扩展、控件基类和辅助类。插件也依赖这里的公共 API |
 | `neo-bpsys-wpf.PluginSdk` | 插件开发 SDK 和 MSBuild 打包目标。项目引用它后可使用 Core API 并创建插件 zip |
@@ -53,6 +54,7 @@
 | 改 SmartBP 宿主安装/加载 | `neo-bpsys-wpf/Services/SmartBpModule`、`SmartBpPageViewModel`、`SmartBpPage.xaml` |
 | 改插件加载 | `PluginService`、`PluginPageViewModel`、`PluginMarketService`、Core 插件模型 |
 | 改构建/发布 | `neo-bpsys-wpf.csproj`、`build*.ps1`、`Installer/build_Installer.iss`、`PluginSdk.targets` |
+| 改首次导览或页面教程 | `neo-bpsys-wpf.ProductTour`、`neo-bpsys-wpf/Tutorial`、`docs/product-tour-and-onboarding.md` |
 
 维护原则：先沿用现有注册扩展和服务抽象，不要在页面、窗口或插件中手动 `new` 一套并绕开 DI。
 
@@ -64,6 +66,8 @@
 | `SettingsHostService` | `Config.json` 读写、窗口设置重置、语言设置事件 | 保存时会处理 `%APPDATA%` 路径替换 |
 | `FrontedWindowService` | 前台窗口注册、显示隐藏、v3 布局重载、插件窗口管理、全局比分兼容适配 | 前台窗口不要绕开它直接生命周期管理 |
 | `GameGuidanceService` | 根据 `GameRule.json` 推进引导式 BP、导航页面、启动计时器和发送高亮消息 | 自由赛当前不支持引导 |
+| `TutorialService` | 运行页面教程包和总导览 flow，记录 Completed / Skipped / CoveredByFlow 状态 | 不替代 `GameGuidanceService`，flow 内部应引用 package |
+| `TutorialSignalService` | 在业务动作和交互式教程步骤之间传递 signal | 教程不应直接读取业务对象内部状态来判断用户动作 |
 | `SmartBpModuleManager` | SmartBP 模块目录校验、zip 导入、Release manifest 检查、动态加载、状态写入和旧 OCR 模型迁移 | Release 使用当前 app tag 的 manifest，不查询 latest release |
 | `SmartBpService` | 模块内服务，窗口捕获帧裁切、OCR 识别赛后数据、写回 `CurrentGame` | 全流程自动 BP 仍是 TODO |
 | `OcrService` | 模块内服务，PaddleOCR 模型下载、删除、切换、推理和失败重建 | 受 `_ocrLock` 和 `_downloadLock` 保护，模型根目录来自模块根 |

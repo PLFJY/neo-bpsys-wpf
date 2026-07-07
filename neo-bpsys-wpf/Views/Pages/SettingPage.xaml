@@ -335,6 +335,36 @@
         <TextBlock
             Margin="0,10,0,0"
             Style="{StaticResource Title}"
+            Text="教程与导览" />
+        <Border Margin="0,10,0,0" Style="{StaticResource Card}">
+            <StackPanel>
+                <TextBlock
+                    FontSize="16"
+                    FontWeight="DemiBold"
+                    Text="首次启动导览与页面教程" />
+                <TextBlock
+                    Margin="0,6,0,0"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    Text="可以重新启动首次导览，或清空所有页面教程、总导览和 CoveredByFlow 记录。"
+                    TextWrapping="Wrap" />
+                <WrapPanel Margin="0,12,0,0">
+                    <ui:Button
+                        Margin="0,0,10,10"
+                        Command="{Binding RestartFirstRunTutorialCommand}"
+                        Content="重新启动首次导览"
+                        Icon="{ui:SymbolIcon Symbol=ArrowClockwise24}" />
+                    <ui:Button
+                        Margin="0,0,10,10"
+                        Command="{Binding ResetAllTutorialStateCommand}"
+                        Content="重置全部教程状态"
+                        Icon="{ui:SymbolIcon Symbol=Delete24}" />
+                </WrapPanel>
+            </StackPanel>
+        </Border>
+
+        <TextBlock
+            Margin="0,10,0,0"
+            Style="{StaticResource Title}"
             Text="{lex:Loc SmartBpModuleSettingsTitle}" />
         <Border Margin="0,10,0,0" Style="{StaticResource Card}">
             <StackPanel>

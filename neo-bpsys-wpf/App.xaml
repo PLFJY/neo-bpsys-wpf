@@ -27,6 +27,7 @@
                 <ResourceDictionary Source="/Styles/TitleBarButtonStyles.xaml" />
                 <ResourceDictionary Source="/Styles/HighlightStyle.xaml" />
                 <ResourceDictionary Source="/Styles/DefaultColorPickerStyle.xaml" />
+                <ResourceDictionary Source="/neo-bpsys-wpf.ProductTour;component/Themes/ProductTour.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <!--  Fonts  -->
             <FontFamily x:Key="Hanyi">/neo-bpsys-wpf;Component/Assets/Fonts/#汉仪第五人格体简</FontFamily>

@@ -274,6 +274,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\neo-bpsys-wpf.Core\neo-bpsys-wpf.Core.csproj" />
+        <ProjectReference Include="..\neo-bpsys-wpf.ProductTour\neo-bpsys-wpf.ProductTour.csproj" />
         <ProjectReference Include="..\neo-bpsys-wpf.SmartBp.Module\neo-bpsys-wpf.SmartBp.Module.csproj" ReferenceOutputAssembly="false" OutputItemType="SmartBpModuleBuildOnly" PrivateAssets="all" Condition="'$(Configuration)'=='Debug'" />
     </ItemGroup>
 

@@ -1,0 +1,107 @@
+using System.Windows;
+using Microsoft.Extensions.Logging;
+using neo_bpsys_wpf.ProductTour.Controls;
+
+namespace neo_bpsys_wpf.ProductTour;
+
+/// <summary>
+/// Coordinates first-run onboarding entry points.
+/// </summary>
+public interface IOnboardingCoordinator
+{
+    /// <summary>Shows first-run welcome when needed.</summary>
+    /// <param name="owner">Owner window.</param>
+    /// <param name="force">Whether the welcome should be forced.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task ShowFirstRunWelcomeAsync(Window owner, bool force = false, CancellationToken cancellationToken = default);
+
+    /// <summary>Restarts the first-run flow.</summary>
+    /// <param name="owner">Owner window.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task RestartFirstRunFlowAsync(Window owner, CancellationToken cancellationToken = default);
+}
+
+/// <summary>
+/// Default first-run onboarding coordinator.
+/// </summary>
+public sealed class OnboardingCoordinator : IOnboardingCoordinator
+{
+    /// <summary>The standard first-run flow id.</summary>
+    public const string FirstRunFlowId = "Flow.FirstRun.StandardBp";
+
+    private readonly ITutorialService _tutorialService;
+    private readonly ITutorialStateStore _stateStore;
+    private readonly ITutorialLanguageService _languageService;
+    private readonly ILogger<OnboardingCoordinator> _logger;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="OnboardingCoordinator"/> class.
+    /// </summary>
+    /// <param name="tutorialService">Tutorial service.</param>
+    /// <param name="stateStore">State store.</param>
+    /// <param name="logger">Logger.</param>
+    public OnboardingCoordinator(
+        ITutorialService tutorialService,
+        ITutorialStateStore stateStore,
+        ITutorialLanguageService languageService,
+        ILogger<OnboardingCoordinator> logger)
+    {
+        _tutorialService = tutorialService;
+        _stateStore = stateStore;
+        _languageService = languageService;
+        _logger = logger;
+    }
+
+    /// <inheritdoc />
+    public async Task ShowFirstRunWelcomeAsync(Window owner, bool force = false, CancellationToken cancellationToken = default)
+    {
+        var state = await _stateStore.LoadAsync(cancellationToken);
+        if (!force
+            && state.CompletedFlows.TryGetValue(FirstRunFlowId, out var record)
+            && record.CompletionKind == TutorialCompletionKind.Completed)
+        {
+            return;
+        }
+
+        var host = OverlayHost.GetHostPanel(owner);
+        var overlay = new FirstRunWelcomeOverlay();
+        host.Children.Add(overlay);
+        overlay.SkipConfirmed += async (_, _) =>
+        {
+            await MarkFirstRunSkippedAsync(cancellationToken);
+            host.Children.Remove(overlay);
+        };
+        overlay.StartRequested += async (_, cultureName) =>
+        {
+            host.Children.Remove(overlay);
+            try
+            {
+                await _languageService.ApplyLanguageAsync(cultureName, cancellationToken);
+                await _tutorialService.RunFlowAsync(owner, FirstRunFlowId, force: true, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to run first-run tutorial flow.");
+            }
+        };
+        await overlay.FadeInAsync();
+    }
+
+    /// <inheritdoc />
+    public async Task RestartFirstRunFlowAsync(Window owner, CancellationToken cancellationToken = default)
+    {
+        await _tutorialService.ClearFlowStateAsync(FirstRunFlowId, cancellationToken);
+        await ShowFirstRunWelcomeAsync(owner, force: true, cancellationToken);
+    }
+
+    private async Task MarkFirstRunSkippedAsync(CancellationToken cancellationToken)
+    {
+        var state = await _stateStore.LoadAsync(cancellationToken);
+        state.CompletedFlows[FirstRunFlowId] = new TutorialCompletionRecord
+        {
+            Version = 1,
+            CompletionKind = TutorialCompletionKind.Skipped
+        };
+        await _stateStore.SaveAsync(state, cancellationToken);
+    }
+}

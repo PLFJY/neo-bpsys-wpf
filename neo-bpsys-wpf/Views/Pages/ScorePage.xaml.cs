@@ -3,6 +3,7 @@ using System.Windows.Data;
 using neo_bpsys_wpf.Core.Attributes;
 using neo_bpsys_wpf.Core.Enums;
 using Wpf.Ui.Controls;
+using neo_bpsys_wpf.Tutorial;
 
 namespace neo_bpsys_wpf.Views.Pages;
 
@@ -18,6 +19,7 @@ public partial class ScorePage : Page
     public ScorePage()
     {
         InitializeComponent();
+        Loaded += (_, _) => TutorialPageLoader.RunPendingOnLoaded(this, "Page.Score");
     }
 
     private void RestoreScorePreviewDefaultSort_Click(object sender, System.Windows.RoutedEventArgs e)

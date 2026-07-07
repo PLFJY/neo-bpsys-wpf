@@ -32,6 +32,7 @@ public class ApplicationHostService(IServiceProvider serviceProvider) : IHostedS
         await Task.CompletedTask;
 
         var settingsHostService = serviceProvider.GetRequiredService<ISettingsHostService>();
+        _ = serviceProvider.GetRequiredService<ProductTourRegistrationMarker>();
         if (settingsHostService.Settings.IsClassicMode)
         {
             if (!Application.Current.Windows.OfType<ClassicBackendWindow>().Any()

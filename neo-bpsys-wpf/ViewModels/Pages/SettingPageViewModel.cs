@@ -10,6 +10,7 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Models;
+using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.Services.SmartBpModule;
 using neo_bpsys_wpf.Services.Abstractions;
 using neo_bpsys_wpf.Views.Windows;
@@ -41,6 +42,8 @@ public partial class SettingPageViewModel : ViewModelBase
     private readonly IBpuiFileAssociationService _bpuiFileAssociationService;
     private readonly IFilePickerService _filePickerService;
     private readonly SmartBpModuleManager _smartBpModuleManager;
+    private readonly ITutorialService _tutorialService;
+    private readonly IOnboardingCoordinator _onboardingCoordinator;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<SettingPageViewModel> _logger;
     private FrontedBehaviorEventDebuggerWindow? _behaviorEventDebuggerWindow;
@@ -72,6 +75,8 @@ public partial class SettingPageViewModel : ViewModelBase
     /// <param name="bpuiFileAssociationService">bpui 文件关联服务</param>
     /// <param name="filePickerService">文件选择服务</param>
     /// <param name="smartBpModuleManager">SmartBP 模块管理器</param>
+    /// <param name="tutorialService">教程服务</param>
+    /// <param name="onboardingCoordinator">首次导览协调器</param>
     /// <param name="serviceProvider">服务Provider</param>
     /// <param name="logger">日志记录器</param>
     public SettingPageViewModel(
@@ -81,6 +86,8 @@ public partial class SettingPageViewModel : ViewModelBase
         IBpuiFileAssociationService bpuiFileAssociationService,
         IFilePickerService filePickerService,
         SmartBpModuleManager smartBpModuleManager,
+        ITutorialService tutorialService,
+        IOnboardingCoordinator onboardingCoordinator,
         IServiceProvider serviceProvider,
         ILogger<SettingPageViewModel> logger)
     {
@@ -91,6 +98,8 @@ public partial class SettingPageViewModel : ViewModelBase
         _bpuiFileAssociationService = bpuiFileAssociationService;
         _filePickerService = filePickerService;
         _smartBpModuleManager = smartBpModuleManager;
+        _tutorialService = tutorialService;
+        _onboardingCoordinator = onboardingCoordinator;
         _serviceProvider = serviceProvider;
         _logger = logger;
 
@@ -184,6 +193,48 @@ public partial class SettingPageViewModel : ViewModelBase
             Application.Current.Dispatcher.Invoke(SyncMirrorFromSettings);
         }
     }
+
+    #region 教程与导览
+
+    /// <summary>
+    /// 重新启动首次导览。
+    /// </summary>
+    [RelayCommand]
+    private async Task RestartFirstRunTutorialAsync()
+    {
+        var confirmed = await MessageBoxHelper.ShowConfirmAsync(
+            "确定要重新启动首次导览吗？当前操作会清除首次导览完成状态。",
+            "教程与导览",
+            "重新启动",
+            "取消");
+        if (!confirmed || Application.Current.MainWindow is not Window owner)
+        {
+            return;
+        }
+
+        await _onboardingCoordinator.RestartFirstRunFlowAsync(owner);
+    }
+
+    /// <summary>
+    /// 重置全部教程状态。
+    /// </summary>
+    [RelayCommand]
+    private async Task ResetAllTutorialStateAsync()
+    {
+        var confirmed = await MessageBoxHelper.ShowConfirmAsync(
+            "确定要重置全部教程状态吗？所有已完成、已跳过和被总导览覆盖的记录都会被清空。",
+            "教程与导览",
+            "重置",
+            "取消");
+        if (!confirmed)
+        {
+            return;
+        }
+
+        await _tutorialService.ResetStateAsync();
+    }
+
+    #endregion
 
     #region 调试选项
 

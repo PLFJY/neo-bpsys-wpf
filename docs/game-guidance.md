@@ -1,5 +1,7 @@
 # 引导式 BP
 
+首次启动导览和页面 Product Tour 见 [product-tour-and-onboarding.md](product-tour-and-onboarding.md)。Product Tour 可以引导用户点击“开启对局引导”并等待相关 signal，但不替代 `GameGuidanceService`，也不重写对局引导的规则推进、计时器、导航和高亮业务逻辑。
+
 ## 核心服务
 
 `GameGuidanceService` 实现对局引导功能。它依赖：

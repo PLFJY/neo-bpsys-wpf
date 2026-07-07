@@ -11,6 +11,8 @@ using neo_bpsys_wpf.Services.Abstractions;
 using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.Services.FrontedDesigner;
 using neo_bpsys_wpf.Services.SmartBpModule;
+using neo_bpsys_wpf.ProductTour;
+using neo_bpsys_wpf.Tutorial;
 using neo_bpsys_wpf.ViewModels.Pages;
 using neo_bpsys_wpf.ViewModels.Windows;
 using neo_bpsys_wpf.Views.Pages;
@@ -28,6 +30,8 @@ public partial class App
     private static void ConfigureServices(HostBuilderContext context, IServiceCollection services)
     {
         services.AddNavigationViewPageProvider();
+        services.AddProductTour();
+        services.AddSingleton<ITutorialLanguageService, NeoBpsysTutorialLanguageService>();
 
         //App Host
         services.AddHostedService<ApplicationHostService>();
@@ -56,6 +60,7 @@ public partial class App
             sp.GetRequiredService<IInfoBarService>(),
             sp.GetRequiredService<ISnackbarService>(),
             sp.GetRequiredService<ISettingsHostService>(),
+            sp.GetRequiredService<IOnboardingCoordinator>(),
             sp.GetRequiredService<ILogger<MainWindow>>()
         )
         {
@@ -185,6 +190,15 @@ public partial class App
         services.AddSingleton<IBpuiFileAssociationService, BpuiFileAssociationService>();
         services.AddSingleton<IBpuiFileActivationService, BpuiFileActivationService>();
 
+        services.AddSingleton(sp =>
+        {
+            NeoBpsysTutorialRegistration.Register(
+                sp.GetRequiredService<ITutorialPackageRegistry>(),
+                sp.GetRequiredService<ITutorialSequenceRegistry>(),
+                sp.GetRequiredService<ITutorialFlowRegistry>());
+            return new ProductTourRegistrationMarker();
+        });
+
         //Views and ViewModels
         //Windows
         services.AddTransient<FrontedDesignerWindowViewModel>();
@@ -220,3 +234,5 @@ public partial class App
         PluginService.InitializePlugins(context, services);
     }
 }
+
+internal sealed class ProductTourRegistrationMarker;

@@ -2,6 +2,7 @@
 using neo_bpsys_wpf.Core.Attributes;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.ViewModels.Pages;
+using neo_bpsys_wpf.Tutorial;
 using System.Windows;
 using System.Windows.Input;
 using Wpf.Ui.Controls;
@@ -20,6 +21,7 @@ public partial class TeamInfoPage : Page
     public TeamInfoPage()
     {
         InitializeComponent();
+        Loaded += (_, _) => TutorialPageLoader.RunPendingOnLoaded(this, "Page.TeamInfo");
     }
 
     private void TeamColorTextBox_OnKeyDown(object sender, KeyEventArgs e)

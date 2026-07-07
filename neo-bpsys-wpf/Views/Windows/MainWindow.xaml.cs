@@ -3,9 +3,11 @@ using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Controls;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.ProductTour;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media.Animation;
 using Wpf.Ui;
 using Wpf.Ui.Abstractions;
 using Wpf.Ui.Controls;
@@ -22,16 +24,20 @@ namespace neo_bpsys_wpf.Views.Windows;
 public partial class MainWindow : FluentWindow, INavigationWindow
 {
     private readonly ILogger<MainWindow> _logger;
+    private readonly IOnboardingCoordinator _onboardingCoordinator;
+    private bool _firstRunWelcomeAttempted;
 
     public MainWindow(
         INavigationService navigationService,
         IInfoBarService infoBarService,
         ISnackbarService snackbarService,
         ISettingsHostService settingsHostService,
+        IOnboardingCoordinator onboardingCoordinator,
         ILogger<MainWindow> logger
     )
     {
         _logger = logger;
+        _onboardingCoordinator = onboardingCoordinator;
         InitializeComponent();
         navigationService.SetNavigationControl(RootNavigation);
         infoBarService.SetInfoBarControl(InfoBar);
@@ -58,6 +64,21 @@ public partial class MainWindow : FluentWindow, INavigationWindow
                     }, TimeSpan.FromSeconds(10), true
                 );
             };
+        if (Resources["StartupLoading"] is Storyboard startupLoading)
+        {
+            startupLoading.Completed += async (_, _) => await TryShowFirstRunWelcomeAsync();
+        }
+    }
+
+    private async Task TryShowFirstRunWelcomeAsync()
+    {
+        if (_firstRunWelcomeAttempted)
+        {
+            return;
+        }
+
+        _firstRunWelcomeAttempted = true;
+        await _onboardingCoordinator.ShowFirstRunWelcomeAsync(this);
     }
 
 #if !Release

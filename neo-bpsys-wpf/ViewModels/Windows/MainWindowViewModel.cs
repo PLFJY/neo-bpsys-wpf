@@ -12,6 +12,7 @@ using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Messages;
 using neo_bpsys_wpf.Core.Services.Registry;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.Views.Pages;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -49,6 +50,7 @@ public partial class MainWindowViewModel :
     };
 
     private readonly IGameGuidanceService _gameGuidanceService;
+    private readonly ITutorialSignalService _tutorialSignalService;
     private readonly ILogger<MainWindowViewModel> _logger;
     private readonly ISmartBpAutoRecognitionGlobalControl _smartBpAutoRecognitionGlobalControl;
     [ObservableProperty]
@@ -86,6 +88,11 @@ public partial class MainWindowViewModel :
         {
             _selectedGameProgress = value;
             CurrentGame.GameProgress = _selectedGameProgress;
+            if (_selectedGameProgress == GameProgress.Game1FirstHalf)
+            {
+                _tutorialSignalService.Publish("GameProgressSelected.Bo1FirstHalf", _selectedGameProgress);
+            }
+
             NextGameCommand.NotifyCanExecuteChanged();
         });
     }
@@ -97,12 +104,14 @@ public partial class MainWindowViewModel :
         ISharedDataService sharedDataService,
         IGameGuidanceService gameGuidanceService,
         IFilePickerService filePickerService,
+        ITutorialSignalService tutorialSignalService,
         ISmartBpAutoRecognitionGlobalControl smartBpAutoRecognitionGlobalControl,
         ILogger<MainWindowViewModel> logger)
     {
         _sharedDataService = sharedDataService;
         _gameGuidanceService = gameGuidanceService;
         _filePickerService = filePickerService;
+        _tutorialSignalService = tutorialSignalService;
         _smartBpAutoRecognitionGlobalControl = smartBpAutoRecognitionGlobalControl;
         _logger = logger;
         _isGuidanceStarted = false;
@@ -173,6 +182,7 @@ public partial class MainWindowViewModel :
     private void NewGame()
     {
         _sharedDataService.NewGame();
+        _tutorialSignalService.Publish("NewGameCreated", CurrentGame);
     }
 
     [RelayCommand]
@@ -287,6 +297,7 @@ public partial class MainWindowViewModel :
         if (string.IsNullOrEmpty(result)) return;
         ActionName = result;
         IsGuidanceStarted = true;
+        _tutorialSignalService.Publish("GameGuidanceStarted", result);
     }
 
     [RelayCommand]
@@ -301,6 +312,7 @@ public partial class MainWindowViewModel :
     private async Task NavigateToNextStepAsync()
     {
         ActionName = await _gameGuidanceService.NextStepAsync() ?? string.Empty;
+        _tutorialSignalService.Publish("GuidanceNextClicked", ActionName);
         await Task.Delay(250);
     }
 

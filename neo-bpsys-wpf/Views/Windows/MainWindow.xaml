@@ -234,6 +234,7 @@
                     VerticalAlignment="Center"
                     Text="{lex:Loc GameProgressColon}" />
                 <ComboBox
+                    x:Name="GameProgressComboBox"
                     Width="215"
                     Margin="0,0,10,10"
                     IsEnabled="{Binding CanGameProgressChange}"
@@ -249,23 +250,27 @@
                     </ComboBox.ItemTemplate>
                 </ComboBox>
                 <ui:Button
+                    x:Name="NewGameButton"
                     Margin="0,0,10,10"
                     Command="{Binding NextGameCommand}"
                     Content="{lex:Loc Next}"
                     Icon="{ui:SymbolIcon Symbol=ArrowNext24}"
                     IsEnabled="{Binding CanGameProgressChange}" />
                 <ui:Button
+                    x:Name="StartGameGuidanceButton"
                     Margin="0,0,10,10"
                     Command="{Binding StopSmartBpAutoRecognitionCommand}"
                     Content="{lex:Loc SmartBpStopAutomaticRecognition}"
                     Icon="{ui:SymbolIcon Symbol=Stop24}"
                     Visibility="{Binding IsSmartBpAutoRecognitionRunning, Converter={StaticResource BoolToVisibilityConverter}}" />
                 <ui:Button
+                    x:Name="PreviousGuidanceStepButton"
                     Margin="0,0,10,10"
                     Command="{Binding StartNavigationCommand}"
                     Content="{lex:Loc StartGameGuidance}"
                     Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
                 <ui:Button
+                    x:Name="NextGuidanceStepButton"
                     Margin="0,0,10,10"
                     Command="{Binding NavigateToPreviousStepCommand}"
                     Content="{lex:Loc LastStep}"

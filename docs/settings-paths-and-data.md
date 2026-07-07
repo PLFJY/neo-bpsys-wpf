@@ -79,6 +79,7 @@ active `Settings.cs` 不再包含旧前台窗口设置。旧 `BpWindowSettings`�
 | v3 活动包状态 | `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\active-package.json` |
 | SmartBP 区域 | `%APPDATA%\neo-bpsys-wpf\SmartBp\GameDataRegions.json` |
 | SmartBP 模块状态 | `%APPDATA%\neo-bpsys-wpf\SmartBpModuleState.json` |
+| 教程与导览状态 | `%APPDATA%\neo-bpsys-wpf\TutorialState.json` |
 | SmartBP 模块目录迁移标记 | `%APPDATA%\neo-bpsys-wpf\SmartBpModuleMovePending.json` |
 | SmartBP 模块卸载路径记录 | `HKCU\Software\neo-bpsys-wpf\SmartBpModule\ModuleRoot` |
 | SmartBP 模块默认安装目录 | `%LOCALAPPDATA%\neo-bpsys-wpf\Components\SmartBpModule` |
@@ -87,6 +88,8 @@ active `Settings.cs` 不再包含旧前台窗口设置。旧 `BpWindowSettings`�
 | 插件市场临时下载 | `%TEMP%\neo-bpsys-wpf\PluginMarket\...` |
 
 SmartBP 模块加载/安装目录可在设置页修改。若当前已有可用模块目录，保存时会先复制旧目录到新目录的 staging，验证复制结果后移动到目标目录，再写入 `SmartBpModuleMovePending.json` 标记和 `SmartBpModuleState.json` 的目标 `ModuleRoot`，同时把目标路径写入 `HKCU\Software\neo-bpsys-wpf\SmartBpModule\ModuleRoot` 供卸载器清理。下一次从目标目录成功加载模块并写回状态后，会尝试删除旧目录；如果删除失败，迁移标记保留并记录 cleanup 错误，后续成功加载目标目录时继续清理。路径校验沿用模块安装安全规则，拒绝系统目录、驱动器根目录、不可写目录、源目录父子路径，以及包含非 SmartBP 内容的目标目录。
+
+`TutorialState.json` 由 `neo-bpsys-wpf.ProductTour` 的状态存储读写，记录 `CompletedFlows` 和 `CompletedPackages`。首次总导览完成时，flow 的 `IncludedPackageIds` 会以 `CoveredByFlow` 写入 package 状态；用户跳过 flow 时只记录 flow 的 `Skipped`，不覆盖 package。设置页的“重新启动首次导览”和“重置全部教程状态”会修改该文件对应状态，危险操作必须二次确认。
 
 Debug 构建下修改 SmartBP 模块目录不复制模块文件，也不写迁移标记；目标目录只要通过开发模块目录校验，就直接以 `InstallKind = DevelopmentDirectory` 写入状态和注册表，并清理旧的迁移标记。
 

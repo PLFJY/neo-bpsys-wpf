@@ -5,6 +5,7 @@ using neo_bpsys_wpf.Core.Attributes;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Views.Pages.FrontManage;
+using neo_bpsys_wpf.Tutorial;
 using Wpf.Ui.Controls;
 
 namespace neo_bpsys_wpf.Views.Pages;
@@ -32,6 +33,7 @@ public partial class FrontManagePage : Page, IRecipient<FrontManageTabNavigation
             typeof(FrontedLayoutPackagesView)));
 
         Loaded += OnLoaded;
+        Loaded += (_, _) => TutorialPageLoader.RunPendingOnLoaded(this, "Page.FrontManage");
         WeakReferenceMessenger.Default.Register(this);
     }
 
