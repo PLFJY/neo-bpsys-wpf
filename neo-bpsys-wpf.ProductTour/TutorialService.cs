@@ -155,13 +155,16 @@ public sealed class TutorialService : ITutorialService
         try
         {
             var result = await RunStepsAsync(owner, package.Steps, flowId, package.PackageId, cancellationToken);
-            if (result == TutorialRunResult.Completed && triggerMode != TutorialTriggerMode.EmbeddedInFlow)
+            if ((result == TutorialRunResult.Completed || result == TutorialRunResult.Skipped)
+                && triggerMode != TutorialTriggerMode.EmbeddedInFlow)
             {
                 var state = await _stateStore.LoadAsync(cancellationToken);
                 state.CompletedPackages[package.PackageId] = new TutorialCompletionRecord
                 {
                     Version = package.Version,
-                    CompletionKind = TutorialCompletionKind.Completed
+                    CompletionKind = result == TutorialRunResult.Completed
+                        ? TutorialCompletionKind.Completed
+                        : TutorialCompletionKind.Skipped
                 };
                 await _stateStore.SaveAsync(state, cancellationToken);
             }
@@ -295,15 +298,23 @@ public sealed class TutorialService : ITutorialService
                 {
                     if (step.AllowMissingTarget)
                     {
+                        _logger.LogInformation(
+                            "Tutorial target missing; skipping optional step. FlowId={FlowId}, PackageId={PackageId}, StepIndex={StepIndex}, StepCount={StepCount}, TargetName={TargetName}",
+                            flowId,
+                            packageId,
+                            index,
+                            steps.Count,
+                            step.TargetName);
                         index++;
                         continue;
                     }
 
                     _logger.LogWarning(
-                        "Tutorial target missing. FlowId={FlowId}, PackageId={PackageId}, StepIndex={StepIndex}, TargetName={TargetName}",
+                        "Tutorial target missing. FlowId={FlowId}, PackageId={PackageId}, StepIndex={StepIndex}, StepCount={StepCount}, TargetName={TargetName}",
                         flowId,
                         packageId,
                         index,
+                        steps.Count,
                         step.TargetName);
                     return TutorialRunResult.TargetMissing;
                 }
@@ -318,26 +329,53 @@ public sealed class TutorialService : ITutorialService
                 StepCount = steps.Count,
                 Owner = owner
             };
-            overlay.PreviousRequested += (_, _) =>
-            {
-                if (index > 0)
-                {
-                    index -= 2;
-                    overlay.CompleteExpectedAction();
-                }
-            };
-            overlay.SkipRequested += (_, _) => overlay.CompleteExpectedAction();
             host.Children.Add(overlay);
 
-            var stepTask = overlay.ShowStepAsync(step, target, context, cancellationToken);
-            var waitTask = WaitForStepSignalAsync(step, overlay, flowId, packageId, index, cancellationToken);
-            var result = await stepTask;
-            await waitTask;
-            await overlay.FadeOutAsync();
-            host.Children.Remove(overlay);
-            if (result != TutorialRunResult.Completed)
+            ProductTourStepAction action;
+            using (var stepCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
             {
-                return result;
+                try
+                {
+                    var stepTask = overlay.ShowStepAsync(step, target, context, stepCts.Token);
+                    var waitTask = WaitForStepSignalAsync(step, overlay, flowId, packageId, index, steps.Count, stepCts.Token);
+                    action = await stepTask;
+                    await stepCts.CancelAsync();
+
+                    try
+                    {
+                        await waitTask;
+                    }
+                    catch (OperationCanceledException) when (stepCts.IsCancellationRequested)
+                    {
+                    }
+                }
+                finally
+                {
+                    try
+                    {
+                        await overlay.FadeOutAsync();
+                    }
+                    finally
+                    {
+                        host.Children.Remove(overlay);
+                    }
+                }
+            }
+
+            if (action == ProductTourStepAction.Previous)
+            {
+                index = Math.Max(0, index - 1);
+                continue;
+            }
+
+            if (action == ProductTourStepAction.Skip)
+            {
+                return TutorialRunResult.Skipped;
+            }
+
+            if (action == ProductTourStepAction.Cancel)
+            {
+                return TutorialRunResult.Canceled;
             }
 
             await (step.AfterCompleteAsync?.Invoke(_serviceProvider, cancellationToken) ?? Task.CompletedTask);
@@ -353,6 +391,7 @@ public sealed class TutorialService : ITutorialService
         string? flowId,
         string? packageId,
         int stepIndex,
+        int stepCount,
         CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(step.WaitForSignalId))
@@ -363,18 +402,21 @@ public sealed class TutorialService : ITutorialService
         try
         {
             await _signalService.WaitAsync(step.WaitForSignalId, null, step.Timeout, cancellationToken);
-            overlay.CompleteExpectedAction();
+            overlay.MarkSignalCompleted();
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
+            var message =
+                $"等待操作超时。FlowId={flowId ?? "(none)"}, PackageId={packageId ?? "(none)"}, StepIndex={stepIndex}, StepCount={stepCount}, TargetName={step.TargetName ?? "(none)"}, SignalId={step.WaitForSignalId}";
             _logger.LogWarning(
-                "Tutorial signal timeout. FlowId={FlowId}, PackageId={PackageId}, StepIndex={StepIndex}, TargetName={TargetName}, SignalId={SignalId}",
+                "Tutorial signal timeout. FlowId={FlowId}, PackageId={PackageId}, StepIndex={StepIndex}, StepCount={StepCount}, TargetName={TargetName}, SignalId={SignalId}",
                 flowId,
                 packageId,
                 stepIndex,
+                stepCount,
                 step.TargetName,
                 step.WaitForSignalId);
-            overlay.CompleteExpectedAction();
+            overlay.MarkSignalTimedOut(message);
         }
     }
 
