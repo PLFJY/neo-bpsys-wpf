@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Threading;
 using System.Reflection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
@@ -42,7 +43,7 @@ public sealed class ProductTourStateTest
     }
 
     [Fact]
-    public async Task AutoOnLoadedRunsOnlyOnePendingPackagePerInvocation()
+    public async Task AutoRunStrategy_SinglePendingPackage_ShouldRunOnePackagePerTrigger()
     {
         await WpfTestThread.RunAsync(async () =>
         {
@@ -53,7 +54,11 @@ public sealed class ProductTourStateTest
 
             var previousHost = IAppHost.Host;
             using var host = Host.CreateDefaultBuilder()
-                .ConfigureServices(services => services.AddSingleton<ITutorialService>(fixture.Service))
+                .ConfigureServices(services =>
+                {
+                    services.AddSingleton<ITutorialService>(fixture.Service);
+                    services.AddSingleton<ITutorialSequenceRegistry>(fixture.SequenceRegistry);
+                })
                 .Build();
             IAppHost.Host = host;
             try
@@ -84,6 +89,126 @@ public sealed class ProductTourStateTest
             {
                 IAppHost.Host = previousHost;
             }
+        });
+    }
+
+    [Fact]
+    public async Task AutoRunStrategy_DrainSequence_ShouldRunAllPendingPackagesInOneTrigger()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var fixture = new Fixture();
+            fixture.RegisterPackage("Package.A", version: 1, pageKey: "Page.Test");
+            fixture.RegisterPackage("Package.B", version: 1, pageKey: "Page.Test");
+            fixture.SequenceRegistry.RegisterSequence(
+                "Page.Test",
+                ["Package.A", "Package.B"],
+                TutorialAutoRunStrategy.DrainSequence);
+
+            await RunAutoOnLoadedWithHostAsync(fixture, async owner =>
+            {
+                await InvokeRunPendingOnLoadedAsync(owner, "Page.Test");
+            });
+
+            var state = await fixture.StateStore.LoadAsync();
+            Assert.True(state.CompletedPackages.ContainsKey("Package.A"));
+            Assert.True(state.CompletedPackages.ContainsKey("Package.B"));
+        });
+    }
+
+    [Fact]
+    public async Task DrainSequence_ShouldStopWhenUserSkips()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var fixture = new Fixture();
+            fixture.RegisterPackage(
+                "Package.Interactive",
+                version: 1,
+                pageKey: "Page.Test",
+                steps:
+                [
+                    new ProductTourStep
+                    {
+                        Title = "Interactive",
+                        Description = "Can skip",
+                        Placement = ProductTourPlacement.Center
+                    }
+                ]);
+            fixture.RegisterPackage("Package.AfterSkip", version: 1, pageKey: "Page.Test");
+            fixture.SequenceRegistry.RegisterSequence(
+                "Page.Test",
+                ["Package.Interactive", "Package.AfterSkip"],
+                TutorialAutoRunStrategy.DrainSequence);
+
+            await RunAutoOnLoadedWithHostAsync(fixture, async owner =>
+            {
+                var runTask = InvokeRunPendingOnLoadedAsync(owner, "Page.Test");
+                var overlay = await WaitForOverlayAsync(owner);
+                var skipButton = FindButtonByContent(overlay, "跳过");
+                Assert.NotNull(skipButton);
+                skipButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                await Task.Delay(50);
+                var confirmButton = FindButtonByContent(overlay, "确认跳过");
+                Assert.NotNull(confirmButton);
+                confirmButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                await runTask;
+            });
+
+            var state = await fixture.StateStore.LoadAsync();
+            Assert.Equal(TutorialCompletionKind.Skipped, state.CompletedPackages["Package.Interactive"].CompletionKind);
+            Assert.False(state.CompletedPackages.ContainsKey("Package.AfterSkip"));
+        });
+    }
+
+    [Fact]
+    public async Task DrainSequence_ShouldResumeUnfinishedPackagesOnNextOpen()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var fixture = new Fixture();
+            fixture.RegisterPackage("Package.A", version: 1, pageKey: "Page.Test");
+            fixture.RegisterPackage(
+                "Package.B",
+                version: 1,
+                pageKey: "Page.Test",
+                steps:
+                [
+                    new ProductTourStep
+                    {
+                        TargetName = "DelayedTarget",
+                        Title = "Delayed",
+                        Description = "Appears next open",
+                        Timeout = TimeSpan.FromMilliseconds(500)
+                    }
+                ]);
+            fixture.SequenceRegistry.RegisterSequence(
+                "Page.Test",
+                ["Package.A", "Package.B"],
+                TutorialAutoRunStrategy.DrainSequence);
+
+            await RunAutoOnLoadedWithHostAsync(fixture, async owner =>
+            {
+                await InvokeRunPendingOnLoadedAsync(owner, "Page.Test");
+            });
+            var stateAfterFirstOpen = await fixture.StateStore.LoadAsync();
+            Assert.True(stateAfterFirstOpen.CompletedPackages.ContainsKey("Package.A"));
+            Assert.False(stateAfterFirstOpen.CompletedPackages.ContainsKey("Package.B"));
+
+            await RunAutoOnLoadedWithHostAsync(fixture, async owner =>
+            {
+                owner.Children.Add(new Border { Name = "DelayedTarget" });
+                await owner.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ContextIdle);
+                var runTask = InvokeRunPendingOnLoadedAsync(owner, "Page.Test");
+                var overlay = await WaitForOverlayAsync(owner);
+                var finishButton = FindButtonByContent(overlay, "完成");
+                Assert.NotNull(finishButton);
+                finishButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                await runTask;
+            });
+
+            var stateAfterSecondOpen = await fixture.StateStore.LoadAsync();
+            Assert.True(stateAfterSecondOpen.CompletedPackages.ContainsKey("Package.B"));
         });
     }
 
@@ -536,6 +661,37 @@ public sealed class ProductTourStateTest
         return (Task)method.Invoke(null, [owner, pageKey])!;
     }
 
+    private static async Task RunAutoOnLoadedWithHostAsync(Fixture fixture, Func<Grid, Task> action)
+    {
+        var previousHost = IAppHost.Host;
+        using var host = Host.CreateDefaultBuilder()
+            .ConfigureServices(services =>
+            {
+                services.AddSingleton<ITutorialService>(fixture.Service);
+                services.AddSingleton<ITutorialSequenceRegistry>(fixture.SequenceRegistry);
+            })
+            .Build();
+        IAppHost.Host = host;
+        try
+        {
+            var owner = CreateOwner();
+            var window = new Window { Content = owner, Width = 320, Height = 240 };
+            window.Show();
+            try
+            {
+                await action(owner);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }
+        finally
+        {
+            IAppHost.Host = previousHost;
+        }
+    }
+
     private static async Task<ProductTourOverlay> WaitForOverlayAsync(Panel owner)
     {
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
@@ -585,6 +741,7 @@ public sealed class ProductTourStateTest
                 new TutorialSignalService(),
                 new DefaultTutorialTextProvider(),
                 new NoOpTutorialAvatarProvider(),
+                new NoOpTutorialRunObserver(),
                 new ProductTourOptions(),
                 NullLogger<TutorialService>.Instance);
         }

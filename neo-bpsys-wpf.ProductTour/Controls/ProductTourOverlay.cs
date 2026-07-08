@@ -330,9 +330,10 @@ public sealed class ProductTourOverlay : Canvas
                 var point = target.TransformToAncestor(owner).Transform(new Point(0, 0));
                 targetRect = new Rect(point.X, point.Y, target.ActualWidth, target.ActualHeight);
             }
-            catch (InvalidOperationException)
+            catch (Exception)
             {
                 targetRect = new Rect(width / 2 - 1, height / 2 - 1, 2, 2);
+                placement = ProductTourPlacement.Center;
             }
         }
         else

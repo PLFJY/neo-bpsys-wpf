@@ -1318,6 +1318,21 @@ public partial class FrontedDesignerWindow : FluentWindow
         _validationDetailsWindow.Activate();
     }
 
+    private void BehaviorExpander_OnExpanded(object sender, RoutedEventArgs e)
+    {
+        Dispatcher.BeginInvoke(
+            DispatcherPriority.ContextIdle,
+            new Action(() =>
+            {
+                if (BehaviorPanelHost.IsVisible)
+                {
+                    TutorialPageLoader.RunPendingOnLoaded(
+                        BehaviorPanelHost,
+                        neo_bpsys_wpf.Views.FrontedDesigner.BehaviorPanelView.TutorialPageKey);
+                }
+            }));
+    }
+
     private void ZoomComboBox_OnKeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key == Key.Enter && sender is ComboBox comboBox)

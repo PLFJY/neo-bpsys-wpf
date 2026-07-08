@@ -12,6 +12,7 @@ namespace neo_bpsys_wpf.Tutorial;
 public static class TutorialPageLoader
 {
     private const int MaxSuppressedRetries = 20;
+    private const int MaxDrainSequencePackages = 32;
     private static readonly TimeSpan SuppressedRetryDelay = TimeSpan.FromMilliseconds(750);
 
     /// <summary>
@@ -34,7 +35,26 @@ public static class TutorialPageLoader
             }
 
             var service = IAppHost.Host.Services.GetRequiredService<ITutorialService>();
-            await RunOnePendingPackageAsync(service, owner, pageKey);
+            var sequenceRegistry = IAppHost.Host.Services.GetService<ITutorialSequenceRegistry>();
+            var strategy = sequenceRegistry
+                ?.GetSequenceDefinition(pageKey)
+                .AutoRunStrategy
+                ?? TutorialAutoRunStrategy.SinglePendingPackage;
+
+            if (strategy != TutorialAutoRunStrategy.DrainSequence)
+            {
+                await RunOnePendingPackageAsync(service, owner, pageKey);
+                return;
+            }
+
+            for (var completedPackages = 0; completedPackages < MaxDrainSequencePackages; completedPackages++)
+            {
+                var result = await RunOnePendingPackageAsync(service, owner, pageKey);
+                if (result != TutorialRunResult.Completed)
+                {
+                    return;
+                }
+            }
         }
         catch (Exception ex)
         {

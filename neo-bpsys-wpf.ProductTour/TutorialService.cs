@@ -70,6 +70,7 @@ public sealed class TutorialService : ITutorialService
     private readonly ITutorialSignalService _signalService;
     private readonly ITutorialTextProvider _textProvider;
     private readonly ITutorialAvatarProvider _avatarProvider;
+    private readonly ITutorialRunObserver _runObserver;
     private readonly ProductTourOptions _options;
     private readonly ILogger<TutorialService> _logger;
     private readonly SemaphoreSlim _runLock = new(1, 1);
@@ -86,6 +87,7 @@ public sealed class TutorialService : ITutorialService
     /// <param name="signalService">Signal service.</param>
     /// <param name="textProvider">Fixed UI text provider.</param>
     /// <param name="avatarProvider">Tutorial avatar provider.</param>
+    /// <param name="runObserver">Tutorial run observer.</param>
     /// <param name="options">Product tour display options.</param>
     /// <param name="logger">Logger.</param>
     public TutorialService(
@@ -97,6 +99,7 @@ public sealed class TutorialService : ITutorialService
         ITutorialSignalService signalService,
         ITutorialTextProvider textProvider,
         ITutorialAvatarProvider avatarProvider,
+        ITutorialRunObserver runObserver,
         ProductTourOptions options,
         ILogger<TutorialService> logger)
     {
@@ -108,6 +111,7 @@ public sealed class TutorialService : ITutorialService
         _signalService = signalService;
         _textProvider = textProvider;
         _avatarProvider = avatarProvider;
+        _runObserver = runObserver;
         _options = options;
         _logger = logger;
     }
@@ -121,6 +125,7 @@ public sealed class TutorialService : ITutorialService
     {
         if (_isFlowRunning && triggerMode == TutorialTriggerMode.AutoOnLoaded)
         {
+            _runObserver.OnPackageSuppressed(pageKey);
             return TutorialRunResult.Suppressed;
         }
 
@@ -136,9 +141,11 @@ public sealed class TutorialService : ITutorialService
             && CanRunPackage(package, owner));
         if (pending == null)
         {
+            _runObserver.OnPackageNotPending(pageKey);
             return TutorialRunResult.NotPending;
         }
 
+        _runObserver.OnPackageRunRequested(pending.PackageId, pageKey, triggerMode);
         return await RunPackageAsync(owner, pending.PackageId, triggerMode, null, cancellationToken);
     }
 
@@ -159,11 +166,13 @@ public sealed class TutorialService : ITutorialService
 
         if (!CanRunPackage(package, owner))
         {
+            _runObserver.OnPackageNotPending(package.PageKey);
             return TutorialRunResult.NotPending;
         }
 
         if (!_runLock.Wait(0))
         {
+            _runObserver.OnPackageSuppressed(package.PageKey);
             return triggerMode == TutorialTriggerMode.EmbeddedInFlow
                 ? TutorialRunResult.Suppressed
                 : TutorialRunResult.Suppressed;
@@ -171,7 +180,14 @@ public sealed class TutorialService : ITutorialService
 
         try
         {
+            _runObserver.OnPackageStarted(package.PackageId, package.PageKey, triggerMode);
             var result = await RunStepsAsync(owner, package.Steps, flowId, package.PackageId, cancellationToken);
+            if (result == TutorialRunResult.TargetMissing)
+            {
+                _runObserver.OnPackageTargetMissing(package.PackageId);
+            }
+
+            _runObserver.OnPackageCompleted(package.PackageId, result);
             if ((result == TutorialRunResult.Completed || result == TutorialRunResult.Skipped)
                 && triggerMode != TutorialTriggerMode.EmbeddedInFlow)
             {
@@ -297,10 +313,19 @@ public sealed class TutorialService : ITutorialService
 
         if (!CanRunPackage(package, owner))
         {
+            _runObserver.OnPackageNotPending(package.PageKey);
             return TutorialRunResult.NotPending;
         }
 
-        return await RunStepsAsync(owner, package.Steps, flowId, package.PackageId, cancellationToken);
+        _runObserver.OnPackageStarted(package.PackageId, package.PageKey, TutorialTriggerMode.EmbeddedInFlow);
+        var result = await RunStepsAsync(owner, package.Steps, flowId, package.PackageId, cancellationToken);
+        if (result == TutorialRunResult.TargetMissing)
+        {
+            _runObserver.OnPackageTargetMissing(package.PackageId);
+        }
+
+        _runObserver.OnPackageCompleted(package.PackageId, result);
+        return result;
     }
 
     private async Task<TutorialRunResult> RunStepsAsync(
@@ -352,6 +377,7 @@ public sealed class TutorialService : ITutorialService
             }
 
             shownStepCount++;
+            _runObserver.OnStepShown(packageId ?? string.Empty, step.TargetName, step.Title);
             var overlay = new ProductTourOverlay(_textProvider, _options, _avatarProvider);
             var context = new ProductTourStepContext
             {

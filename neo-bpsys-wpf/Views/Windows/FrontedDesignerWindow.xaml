@@ -1174,8 +1174,10 @@
                             </TextBlock>
                         </Grid>
                         <Expander
+                            x:Name="BehaviorExpander"
                             Grid.Row="3"
                             Margin="0,4,0,8"
+                            Expanded="BehaviorExpander_OnExpanded"
                             Header="{lex:Loc Designer.Behaviors.Header}">
                             <Expander.Style>
                                 <Style BasedOn="{StaticResource {x:Type Expander}}" TargetType="Expander">

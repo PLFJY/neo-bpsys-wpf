@@ -90,6 +90,18 @@ public enum TutorialTriggerMode
 }
 
 /// <summary>
+/// Defines how automatic page or window loading should advance pending tutorial packages.
+/// </summary>
+public enum TutorialAutoRunStrategy
+{
+    /// <summary>Runs only the first currently pending package for each automatic trigger.</summary>
+    SinglePendingPackage,
+
+    /// <summary>Continues running subsequent pending packages while each package completes normally.</summary>
+    DrainSequence
+}
+
+/// <summary>
 /// Represents the result of running a tutorial operation.
 /// </summary>
 public enum TutorialRunResult
@@ -183,6 +195,21 @@ public sealed class TutorialState
 
     /// <summary>Gets or sets completed package records keyed by package id.</summary>
     public Dictionary<string, TutorialCompletionRecord> CompletedPackages { get; set; } = [];
+}
+
+/// <summary>
+/// Defines the package order and automatic run strategy for a page, tab, or window.
+/// </summary>
+public sealed class TutorialSequenceDefinition
+{
+    /// <summary>Gets or sets the page, tab, or window key.</summary>
+    public required string PageKey { get; init; }
+
+    /// <summary>Gets or sets package ids in sequence order.</summary>
+    public IReadOnlyList<string> PackageIds { get; init; } = [];
+
+    /// <summary>Gets or sets the automatic run strategy.</summary>
+    public TutorialAutoRunStrategy AutoRunStrategy { get; init; } = TutorialAutoRunStrategy.SinglePendingPackage;
 }
 
 /// <summary>

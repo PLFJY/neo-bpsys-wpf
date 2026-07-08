@@ -47,10 +47,24 @@ public interface ITutorialSequenceRegistry
     /// <param name="packageIds">Package ids in sequence order.</param>
     void RegisterSequence(string pageKey, IEnumerable<string> packageIds);
 
+    /// <summary>Registers package ids and automatic run strategy for a page key.</summary>
+    /// <param name="pageKey">Page key.</param>
+    /// <param name="packageIds">Package ids in sequence order.</param>
+    /// <param name="autoRunStrategy">Automatic run strategy.</param>
+    void RegisterSequence(
+        string pageKey,
+        IEnumerable<string> packageIds,
+        TutorialAutoRunStrategy autoRunStrategy);
+
     /// <summary>Gets package ids for a page key.</summary>
     /// <param name="pageKey">Page key.</param>
     /// <returns>Package ids.</returns>
     IReadOnlyList<string> GetSequence(string pageKey);
+
+    /// <summary>Gets the sequence definition for a page key.</summary>
+    /// <param name="pageKey">Page key.</param>
+    /// <returns>The sequence definition.</returns>
+    TutorialSequenceDefinition GetSequenceDefinition(string pageKey);
 }
 
 /// <summary>
@@ -58,15 +72,33 @@ public interface ITutorialSequenceRegistry
 /// </summary>
 public sealed class TutorialSequenceRegistry : ITutorialSequenceRegistry
 {
-    private readonly Dictionary<string, List<string>> _sequences = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, TutorialSequenceDefinition> _sequences = new(StringComparer.Ordinal);
 
     /// <inheritdoc />
     public void RegisterSequence(string pageKey, IEnumerable<string> packageIds) =>
-        _sequences[pageKey] = packageIds.ToList();
+        RegisterSequence(pageKey, packageIds, TutorialAutoRunStrategy.SinglePendingPackage);
+
+    /// <inheritdoc />
+    public void RegisterSequence(
+        string pageKey,
+        IEnumerable<string> packageIds,
+        TutorialAutoRunStrategy autoRunStrategy) =>
+        _sequences[pageKey] = new TutorialSequenceDefinition
+        {
+            PageKey = pageKey,
+            PackageIds = packageIds.ToArray(),
+            AutoRunStrategy = autoRunStrategy
+        };
 
     /// <inheritdoc />
     public IReadOnlyList<string> GetSequence(string pageKey) =>
-        _sequences.TryGetValue(pageKey, out var ids) ? ids : [];
+        GetSequenceDefinition(pageKey).PackageIds;
+
+    /// <inheritdoc />
+    public TutorialSequenceDefinition GetSequenceDefinition(string pageKey) =>
+        _sequences.TryGetValue(pageKey, out var definition)
+            ? definition
+            : new TutorialSequenceDefinition { PageKey = pageKey };
 }
 
 /// <summary>
@@ -125,6 +157,17 @@ public interface ITutorialDefinitionRegistrar
     void RegisterSequence(string pageKey, IEnumerable<string> packageIds);
 
     /// <summary>
+    /// Registers package ids and automatic run strategy for a page or window key.
+    /// </summary>
+    /// <param name="pageKey">Page or window key.</param>
+    /// <param name="packageIds">Package ids in sequence order.</param>
+    /// <param name="autoRunStrategy">Automatic run strategy.</param>
+    void RegisterSequence(
+        string pageKey,
+        IEnumerable<string> packageIds,
+        TutorialAutoRunStrategy autoRunStrategy);
+
+    /// <summary>
     /// Registers a tutorial flow definition.
     /// </summary>
     /// <param name="flow">Flow definition to register.</param>
@@ -167,6 +210,13 @@ public sealed class TutorialDefinitionRegistrar : ITutorialDefinitionRegistrar
     /// <inheritdoc />
     public void RegisterSequence(string pageKey, IEnumerable<string> packageIds) =>
         SequenceRegistry.RegisterSequence(pageKey, packageIds);
+
+    /// <inheritdoc />
+    public void RegisterSequence(
+        string pageKey,
+        IEnumerable<string> packageIds,
+        TutorialAutoRunStrategy autoRunStrategy) =>
+        SequenceRegistry.RegisterSequence(pageKey, packageIds, autoRunStrategy);
 
     /// <inheritdoc />
     public void RegisterFlow(TutorialFlowDefinition flow) => FlowRegistry.Register(flow);

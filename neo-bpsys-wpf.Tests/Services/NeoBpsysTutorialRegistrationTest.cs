@@ -80,6 +80,9 @@ public sealed class NeoBpsysTutorialRegistrationTest
             ],
             sequenceRegistry.GetSequence(TutorialPageKeys.DesignerV3));
         Assert.Equal(
+            TutorialAutoRunStrategy.DrainSequence,
+            sequenceRegistry.GetSequenceDefinition(TutorialPageKeys.DesignerV3).AutoRunStrategy);
+        Assert.Equal(
             [
                 TutorialPackageIds.DesignerV3BehaviorPanelOverview,
                 TutorialPackageIds.DesignerV3BehaviorPanelTriggerBasic,
@@ -87,6 +90,9 @@ public sealed class NeoBpsysTutorialRegistrationTest
                 TutorialPackageIds.DesignerV3BehaviorPanelHelpBasic
             ],
             sequenceRegistry.GetSequence(TutorialPageKeys.DesignerV3BehaviorPanel));
+        Assert.Equal(
+            TutorialAutoRunStrategy.DrainSequence,
+            sequenceRegistry.GetSequenceDefinition(TutorialPageKeys.DesignerV3BehaviorPanel).AutoRunStrategy);
         Assert.Equal(
             [
                 TutorialPackageIds.DesignerV3AnimationEditorOverview,
@@ -97,6 +103,9 @@ public sealed class NeoBpsysTutorialRegistrationTest
             ],
             sequenceRegistry.GetSequence(TutorialPageKeys.DesignerV3AnimationEditor));
         Assert.Equal(
+            TutorialAutoRunStrategy.DrainSequence,
+            sequenceRegistry.GetSequenceDefinition(TutorialPageKeys.DesignerV3AnimationEditor).AutoRunStrategy);
+        Assert.Equal(
             [
                 TutorialPackageIds.SmartBpModuleShell,
                 TutorialPackageIds.SmartBpModuleContentOverview,
@@ -106,6 +115,18 @@ public sealed class NeoBpsysTutorialRegistrationTest
                 TutorialPackageIds.SmartBpPostGameAutoFill
             ],
             sequenceRegistry.GetSequence(TutorialPageKeys.SmartBp));
+        Assert.Equal(
+            TutorialAutoRunStrategy.SinglePendingPackage,
+            sequenceRegistry.GetSequenceDefinition(TutorialPageKeys.FrontManage).AutoRunStrategy);
+        Assert.Equal(
+            TutorialAutoRunStrategy.SinglePendingPackage,
+            sequenceRegistry.GetSequenceDefinition(FrontedWindowsView.TutorialPageKey).AutoRunStrategy);
+        Assert.Equal(
+            TutorialAutoRunStrategy.SinglePendingPackage,
+            sequenceRegistry.GetSequenceDefinition(FrontedLayoutPackagesView.TutorialPageKey).AutoRunStrategy);
+        Assert.Equal(
+            TutorialAutoRunStrategy.SinglePendingPackage,
+            sequenceRegistry.GetSequenceDefinition(TutorialPageKeys.SmartBp).AutoRunStrategy);
         Assert.Equal(55, packageRegistry.GetPackages().Count);
 
         var firstRun = flowRegistry.GetFlow(TutorialFlowIds.FirstRunStandardBp);
@@ -396,6 +417,34 @@ public sealed class NeoBpsysTutorialRegistrationTest
         Assert.Contains("v3 编辑器的详细说明", finalStep.Description, StringComparison.Ordinal);
         Assert.False(finalStep.AllowMissingTarget);
         Assert.NotNull(finalStep.BeforeShowAsync);
+    }
+
+    [Fact]
+    public void DesignerTutorial_ShouldNotContainImplementationTerms()
+    {
+        var packages = CreateRegisteredPackages()
+            .Where(package => package.PageKey is TutorialPageKeys.DesignerV3
+                or TutorialPageKeys.DesignerV3BehaviorPanel
+                or TutorialPageKeys.DesignerV3AnimationEditor)
+            .ToArray();
+        var forbiddenTerms = new[]
+        {
+            "交互层",
+            "InteractionLayer",
+            "ZoomHost",
+            "DropZone",
+            "LayerTopDropZone",
+            "LayerBottomDropZone"
+        };
+
+        foreach (var step in packages.SelectMany(package => package.Steps))
+        {
+            foreach (var term in forbiddenTerms)
+            {
+                Assert.DoesNotContain(term, step.Title, StringComparison.Ordinal);
+                Assert.DoesNotContain(term, step.Description, StringComparison.Ordinal);
+            }
+        }
     }
 
     [Fact]

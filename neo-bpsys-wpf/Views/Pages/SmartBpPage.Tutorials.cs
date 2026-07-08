@@ -105,6 +105,11 @@ public partial class SmartBpPage
             1,
             [
                 TutorialDefinitionHelpers.Step(
+                    null,
+                    "SmartBP 模块",
+                    "SmartBP 是独立模块。首次使用时需要先选择或导入模块，加载成功后这里会显示模块提供的识别工具。",
+                    ProductTourInteractionMode.BlockAll),
+                TutorialDefinitionHelpers.Step(
                     nameof(SmartBpModulePathTextBox),
                     "模块路径",
                     "SmartBP 是独立模块，需要先加载模块。这里显示当前模块路径。",

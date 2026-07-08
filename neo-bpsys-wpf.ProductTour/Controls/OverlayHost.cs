@@ -52,6 +52,12 @@ internal static class OverlayHost
             current = current is FrameworkElement element ? element.Parent : null;
         }
 
+        if (Window.GetWindow(owner) is { } ownerWindow
+            && !ReferenceEquals(ownerWindow, owner))
+        {
+            return GetHostPanel(ownerWindow);
+        }
+
         throw new InvalidOperationException("Unable to locate an overlay host panel.");
     }
 

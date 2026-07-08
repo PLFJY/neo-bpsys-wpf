@@ -27,6 +27,8 @@ public partial class MainWindow : FluentWindow, INavigationWindow
     private readonly IOnboardingCoordinator _onboardingCoordinator;
     private bool _firstRunWelcomeAttempted;
 
+    internal bool ForceCloseForTest { get; set; }
+
     public MainWindow(
         INavigationService navigationService,
         IInfoBarService infoBarService,
@@ -105,6 +107,11 @@ public partial class MainWindow : FluentWindow, INavigationWindow
     protected override void OnClosing(CancelEventArgs e)
     {
         base.OnClosing(e);
+        if (ForceCloseForTest)
+        {
+            return;
+        }
+
         e.Cancel = true;
         _ = ConfirmToExitAsync();
     }

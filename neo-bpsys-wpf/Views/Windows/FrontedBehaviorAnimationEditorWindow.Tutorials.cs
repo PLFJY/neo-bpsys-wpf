@@ -42,7 +42,8 @@ public partial class FrontedBehaviorAnimationEditorWindow
             TutorialPackages.KeyFrameBasic,
             TutorialPackages.PreviewBasic,
             TutorialPackages.HelpBasic
-        ]);
+        ],
+        TutorialAutoRunStrategy.DrainSequence);
 
         registrar.RegisterPackage(TutorialDefinitionHelpers.Package(
             TutorialPackages.Overview,
@@ -90,7 +91,7 @@ public partial class FrontedBehaviorAnimationEditorWindow
                 TutorialDefinitionHelpers.Step(
                     TutorialTargetNames.AnimationPreviewPanel,
                     "预览动画",
-                    "正式使用前建议预览动画效果，确认动作顺序和参数符合预期。",
+                    "正式使用前建议预览动画效果，确认动作顺序和参数符合预期。确认无误后，可以按当前窗口的保存提示保存或应用；本教程不强制保存。",
                     ProductTourInteractionMode.AllowTargetOnly,
                     allowMissing: true)
             ]));

@@ -39,7 +39,8 @@ public partial class BehaviorPanelView
             TutorialPackages.TriggerBasic,
             TutorialPackages.ActionBasic,
             TutorialPackages.HelpBasic
-        ]);
+        ],
+        TutorialAutoRunStrategy.DrainSequence);
 
         registrar.RegisterPackage(TutorialDefinitionHelpers.Package(
             TutorialPackages.Overview,

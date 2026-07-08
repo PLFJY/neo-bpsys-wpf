@@ -70,7 +70,8 @@ public partial class FrontedDesignerWindow
             TutorialPackages.PropertyPanelBasic,
             TutorialPackages.PackageImportExport,
             TutorialPackages.HelpBasic
-        ]);
+        ],
+        TutorialAutoRunStrategy.DrainSequence);
 
         registrar.RegisterPackage(CreateOverviewPackage());
         registrar.RegisterPackage(CreateLayoutEditPackage());
