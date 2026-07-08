@@ -26,8 +26,9 @@ public interface IFilePickerService
     /// <summary>
     /// 选择Json文件
     /// </summary>
+    /// <param name="initialDirectory">初始目录；为空时使用默认目录。</param>
     /// <returns>文件路径</returns>
-    public string? PickJsonFile();
+    public string? PickJsonFile(string? initialDirectory = null);
 
     /// <summary>
     /// 选择Zip文件

@@ -1,3 +1,5 @@
+using System.Windows;
+
 namespace neo_bpsys_wpf.ProductTour;
 
 /// <summary>
@@ -191,6 +193,33 @@ public sealed class ProductTourStepBuilder
     public ProductTourStepBuilder Placement(ProductTourPlacement placement)
     {
         _step.Placement = placement;
+        return this;
+    }
+
+    /// <summary>Sets the card offset applied after placement is calculated.</summary>
+    /// <param name="offset">Card offset.</param>
+    /// <returns>The same step builder.</returns>
+    public ProductTourStepBuilder CardOffset(Point offset)
+    {
+        _step.CardOffset = offset;
+        return this;
+    }
+
+    /// <summary>Sets the avatar placement.</summary>
+    /// <param name="placement">Avatar placement.</param>
+    /// <returns>The same step builder.</returns>
+    public ProductTourStepBuilder AvatarPlacement(ProductTourAvatarPlacement placement)
+    {
+        _step.AvatarPlacement = placement;
+        return this;
+    }
+
+    /// <summary>Sets the avatar pose.</summary>
+    /// <param name="pose">Avatar pose.</param>
+    /// <returns>The same step builder.</returns>
+    public ProductTourStepBuilder AvatarPose(TutorialAvatarPose pose)
+    {
+        _step.AvatarPose = pose;
         return this;
     }
 

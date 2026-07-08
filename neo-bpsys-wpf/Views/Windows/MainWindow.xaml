@@ -115,7 +115,10 @@
                 Margin="10,10,0,0"
                 Orientation="Horizontal">
                 <!--  current team  -->
-                <Border Width="360" Style="{StaticResource Card}">
+                <Border
+                    x:Name="TeamSummaryCard"
+                    Width="360"
+                    Style="{StaticResource Card}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -127,6 +130,7 @@
                             <TextBlock Margin="20,0,0,0" Text="{Binding CurrentGame.SurTeam.Name}" />
                         </StackPanel>
                         <ui:Button
+                            x:Name="TeamSwapButton"
                             Grid.Row="1"
                             Margin="0,10,0,10"
                             HorizontalAlignment="Center"
@@ -206,6 +210,7 @@
                     Content="{lex:Loc ImportGameInformation}"
                     Icon="{ui:SymbolIcon Symbol=FolderOpen24}" />
                 <ui:Button
+                    x:Name="NewGameButton"
                     Margin="0,0,10,10"
                     Command="{Binding NewGameCommand}"
                     Content="{lex:Loc NewGame}"
@@ -250,7 +255,7 @@
                     </ComboBox.ItemTemplate>
                 </ComboBox>
                 <ui:Button
-                    x:Name="NewGameButton"
+                    x:Name="NextGameButton"
                     Margin="0,0,10,10"
                     Command="{Binding NextGameCommand}"
                     Content="{lex:Loc Next}"

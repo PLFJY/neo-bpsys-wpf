@@ -13,18 +13,22 @@ public static class NeoBpsysTutorialFlows
     /// </summary>
     public static readonly string[] FirstRunIncludedPackages =
     [
-        TutorialPackageIds.MainNavigationBasic,
+        TutorialPackageIds.MainNavigationFrontManage,
         TutorialPackageIds.FrontManageBpWindowLaunchBasic,
-        TutorialPackageIds.GameManageBasic,
-        TutorialPackageIds.TeamInfoBasic,
-        TutorialPackageIds.TeamInfoJsonImport,
+        TutorialPackageIds.MainNavigationTeamInfo,
+        TutorialPackageIds.TeamInfoTeamNameBasic,
+        TutorialPackageIds.MainTeamSummaryBasic,
+        TutorialPackageIds.TeamInfoJsonImportPreset,
         TutorialPackageIds.TeamInfoPlayerManage,
-        TutorialPackageIds.BpGameGuidanceBasic,
-        TutorialPackageIds.BpGameGuidanceFlowBo1FirstHalf,
-        TutorialPackageIds.BpSharedBasic,
+        TutorialPackageIds.GameManageGameProgressBo1FirstHalf,
+        TutorialPackageIds.BpGameGuidanceStartBasic,
+        TutorialPackageIds.MapBpCompletionNextBasic,
         TutorialPackageIds.BpCharacterSelectorBasic,
+        TutorialPackageIds.BpPickCharacterBasic,
         TutorialPackageIds.BpGlobalBanRecordBasic,
+        TutorialPackageIds.MainNavigationScore,
         TutorialPackageIds.ScoreBasic,
+        TutorialPackageIds.GameManageNewGameBasic,
         TutorialPackageIds.GameManageGlobalBanCarryOver
     ];
 
@@ -53,13 +57,31 @@ public static class NeoBpsysTutorialFlows
             builder.Include(packageId);
         }
 
-        builder.Dialogue("neo-bpsys-wpf", NeoBpsysTutorialTexts.FirstRunOpeningDialogue());
-        foreach (var packageId in FirstRunIncludedPackages)
-        {
-            builder.Package(packageId);
-        }
+        builder
+            .Dialogue("neo-bpsys-wpf", NeoBpsysTutorialTexts.FirstRunOpeningDialogue())
+            .Package(TutorialPackageIds.MainNavigationFrontManage)
+            .Package(TutorialPackageIds.FrontManageBpWindowLaunchBasic)
+            .Item(CreateMainWindowActivateAction())
+            .Package(TutorialPackageIds.MainNavigationTeamInfo)
+            .Package(TutorialPackageIds.TeamInfoTeamNameBasic)
+            .Item(CreateMainWindowActivateAction())
+            .Package(TutorialPackageIds.MainTeamSummaryBasic)
+            .Package(TutorialPackageIds.TeamInfoJsonImportPreset)
+            .Package(TutorialPackageIds.TeamInfoPlayerManage)
+            .Item(CreateMainWindowActivateAction())
+            .Package(TutorialPackageIds.GameManageGameProgressBo1FirstHalf)
+            .Package(TutorialPackageIds.BpGameGuidanceStartBasic)
+            .Package(TutorialPackageIds.MapBpCompletionNextBasic)
+            .Package(TutorialPackageIds.BpCharacterSelectorBasic)
+            .Package(TutorialPackageIds.BpPickCharacterBasic)
+            .Package(TutorialPackageIds.BpGlobalBanRecordBasic)
+            .Package(TutorialPackageIds.MainNavigationScore)
+            .Package(TutorialPackageIds.ScoreBasic)
+            .Item(CreateMainWindowActivateAction())
+            .Package(TutorialPackageIds.GameManageNewGameBasic)
+            .Package(TutorialPackageIds.GameManageGlobalBanCarryOver)
+            .Dialogue("neo-bpsys-wpf", NeoBpsysTutorialTexts.FirstRunEndingDialogue());
 
-        builder.Dialogue("neo-bpsys-wpf", NeoBpsysTutorialTexts.FirstRunEndingDialogue());
         return builder.Build();
     }
 
@@ -71,7 +93,7 @@ public static class NeoBpsysTutorialFlows
         TutorialFlowBuilder.Create(TutorialFlowIds.Phase4ANavigationProbe)
             .Version(1)
             .Dialogue("neo-bpsys-wpf", "现在我们验证左侧导航栏的教程引导。")
-            .Package(TutorialPackageIds.MainNavigationBasic)
+            .Package(TutorialPackageIds.MainNavigationTeamInfo)
             .Dialogue("neo-bpsys-wpf", "导航引导验证完成。")
             .Build();
 
@@ -83,18 +105,25 @@ public static class NeoBpsysTutorialFlows
         TutorialFlowBuilder.Create(TutorialFlowIds.Phase4RealTargetProbe)
             .Version(1)
             .Dialogue("neo-bpsys-wpf", "现在开始验证真实页面目标和操作信号。")
-            .Package(TutorialPackageIds.MainNavigationBasic)
-            .Package(TutorialPackageIds.TeamInfoBasic)
-            .Item(new ActionFlowItem
-            {
-                ActionAsync = (_, _) =>
-                {
-                    Application.Current?.MainWindow?.Activate();
-                    return Task.CompletedTask;
-                }
-            })
-            .Package(TutorialPackageIds.GameManageBasic)
-            .Package(TutorialPackageIds.BpGameGuidanceBasic)
+            .Package(TutorialPackageIds.MainNavigationFrontManage)
+            .Package(TutorialPackageIds.FrontManageBpWindowLaunchBasic)
+            .Item(CreateMainWindowActivateAction())
+            .Package(TutorialPackageIds.MainNavigationTeamInfo)
+            .Package(TutorialPackageIds.TeamInfoTeamNameBasic)
+            .Item(CreateMainWindowActivateAction())
+            .Package(TutorialPackageIds.MainTeamSummaryBasic)
+            .Package(TutorialPackageIds.GameManageGameProgressBo1FirstHalf)
+            .Package(TutorialPackageIds.BpGameGuidanceStartBasic)
             .Dialogue("neo-bpsys-wpf", "真实目标验证完成。完整教学流程会在教学沙盒完成后接入。")
             .Build();
+
+    private static ActionFlowItem CreateMainWindowActivateAction() =>
+        new()
+        {
+            ActionAsync = (_, _) =>
+            {
+                Application.Current?.MainWindow?.Activate();
+                return Task.CompletedTask;
+            }
+        };
 }

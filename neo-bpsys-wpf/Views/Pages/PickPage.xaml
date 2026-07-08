@@ -129,7 +129,11 @@
                         Content="{lex:Loc AutoRecord}"
                         IsChecked="{Binding IsGlobalBanAutoRecord}" />
                 </StackPanel>
-                <Grid Grid.Row="2" Margin="0,10,0,0">
+                <Grid
+                    x:Name="HomeGlobalBanRecordPanel"
+                    Grid.Row="2"
+                    Margin="0,10,0,0"
+                    Tag="{Binding HomeSurGlobalBanRecordTargetTag}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
@@ -193,7 +197,11 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </Grid>
-                <Grid Grid.Row="3" Margin="0,20,0,0">
+                <Grid
+                    x:Name="AwayGlobalBanRecordPanel"
+                    Grid.Row="3"
+                    Margin="0,20,0,0"
+                    Tag="{Binding AwaySurGlobalBanRecordTargetTag}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />

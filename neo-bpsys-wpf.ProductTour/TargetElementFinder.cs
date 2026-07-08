@@ -40,7 +40,7 @@ internal static class TargetElementFinder
                 ?? FindVisualChild(owner, targetName);
             if (result != null && result.IsLoaded)
             {
-                result.BringIntoView();
+                await BringTargetIntoViewAsync(owner, result, cancellationToken);
                 return result;
             }
 
@@ -64,7 +64,7 @@ internal static class TargetElementFinder
             var result = FindElementByTag(owner, targetTag);
             if (result != null && result.IsLoaded)
             {
-                result.BringIntoView();
+                await BringTargetIntoViewAsync(owner, result, cancellationToken);
                 return result;
             }
 
@@ -98,7 +98,7 @@ internal static class TargetElementFinder
                 var result = FindDescendantByType(host, targetTypeFullName);
                 if (result != null && result.IsLoaded)
                 {
-                    result.BringIntoView();
+                    await BringTargetIntoViewAsync(owner, result, cancellationToken);
                     return result;
                 }
             }
@@ -123,7 +123,7 @@ internal static class TargetElementFinder
             var result = FindNavigationItem(owner, targetKey);
             if (result != null && result.IsLoaded)
             {
-                result.BringIntoView();
+                await BringTargetIntoViewAsync(owner, result, cancellationToken);
                 return result;
             }
 
@@ -159,6 +159,19 @@ internal static class TargetElementFinder
         }
 
         return null;
+    }
+
+    private static async Task BringTargetIntoViewAsync(
+        FrameworkElement owner,
+        FrameworkElement target,
+        CancellationToken cancellationToken)
+    {
+        target.BringIntoView();
+        target.UpdateLayout();
+        owner.UpdateLayout();
+        await owner.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Loaded, cancellationToken);
+        target.UpdateLayout();
+        owner.UpdateLayout();
     }
 
     private static FrameworkElement? FindVisualChild(DependencyObject root, string targetName)

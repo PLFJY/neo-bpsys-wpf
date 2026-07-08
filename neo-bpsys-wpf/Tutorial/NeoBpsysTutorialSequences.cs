@@ -27,24 +27,35 @@ public static class NeoBpsysTutorialSequences
     [
         (TutorialPageKeys.Main,
         [
+            TutorialPackageIds.MainNavigationFrontManage,
+            TutorialPackageIds.MainNavigationTeamInfo,
+            TutorialPackageIds.MainNavigationScore,
+            TutorialPackageIds.MainNavigationSmartBp,
+            TutorialPackageIds.MainNavigationDesignerV3,
+            TutorialPackageIds.MainTeamSummaryBasic,
             TutorialPackageIds.MainNavigationBasic
         ]),
         (TutorialPageKeys.TeamInfo,
         [
+            TutorialPackageIds.TeamInfoTeamNameBasic,
+            TutorialPackageIds.TeamInfoJsonImportPreset,
+            TutorialPackageIds.TeamInfoPlayerManage,
             TutorialPackageIds.TeamInfoBasic,
             TutorialPackageIds.TeamInfoJsonImport,
-            TutorialPackageIds.TeamInfoPlayerManage,
             TutorialPackageIds.TeamInfoAdvanced
         ]),
         (TutorialPageKeys.BpShared,
         [
             TutorialPackageIds.BpSharedBasic,
             TutorialPackageIds.BpCharacterSelectorBasic,
+            TutorialPackageIds.BpPickCharacterBasic,
             TutorialPackageIds.BpGlobalBanRecordBasic,
             TutorialPackageIds.BpCharacterSelectorAdvanced
         ]),
         (TutorialPageKeys.BpGameGuidance,
         [
+            TutorialPackageIds.BpGameGuidanceStartBasic,
+            TutorialPackageIds.MapBpCompletionNextBasic,
             TutorialPackageIds.BpGameGuidanceBasic,
             TutorialPackageIds.BpGameGuidanceFlowBo1FirstHalf
         ]),
@@ -56,9 +67,11 @@ public static class NeoBpsysTutorialSequences
         ]),
         (TutorialPageKeys.GameManage,
         [
+            TutorialPackageIds.GameManageGameProgressBo1FirstHalf,
+            TutorialPackageIds.GameManageNewGameBasic,
+            TutorialPackageIds.GameManageGlobalBanCarryOver,
             TutorialPackageIds.GameManageBasic,
-            TutorialPackageIds.GameManageImportExport,
-            TutorialPackageIds.GameManageGlobalBanCarryOver
+            TutorialPackageIds.GameManageImportExport
         ]),
         (TutorialPageKeys.FrontManage,
         [

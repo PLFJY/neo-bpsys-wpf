@@ -54,6 +54,9 @@ public sealed class ProductTourOverlay : Canvas
     private ProductTourPlacement _currentPlacement = ProductTourPlacement.Center;
     private ProductTourInteractionMode _currentInteractionMode = ProductTourInteractionMode.BlockAll;
     private ProductTourArrowKind _currentArrowKind = ProductTourArrowKind.Triangle;
+    private ProductTourAvatarPlacement _currentAvatarPlacement = ProductTourAvatarPlacement.Auto;
+    private TutorialAvatarPose? _currentAvatarPose;
+    private Point _currentCardOffset;
     private SkipTutorialConfirmDialog? _confirmDialog;
 
     /// <summary>Initializes a new instance of the <see cref="ProductTourOverlay"/> class.</summary>
@@ -207,11 +210,15 @@ public sealed class ProductTourOverlay : Canvas
         _currentTarget = target;
         _currentPlacement = step.Placement;
         _currentInteractionMode = step.InteractionMode;
+        _currentAvatarPlacement = step.AvatarPlacement;
+        _currentAvatarPose = step.AvatarPose;
+        _currentCardOffset = step.CardOffset;
         _title.Text = step.Title;
         _description.Text = step.Description;
         _progress.Text = $"{context.StepIndex + 1} / {context.StepCount}";
         _progress.Visibility = _options.ShowStepProgress ? Visibility.Visible : Visibility.Collapsed;
         _previousButton.IsEnabled = context.StepIndex > 0;
+        _previousButton.Visibility = context.StepIndex > 0 ? Visibility.Visible : Visibility.Collapsed;
         _nextButton.Content = context.StepIndex == context.StepCount - 1 ? _textProvider.Finish : _textProvider.Next;
         _nextButton.IsEnabled = _signalReceived;
         _nextButton.Visibility = _signalReceived ? Visibility.Visible : Visibility.Collapsed;
@@ -349,6 +356,15 @@ public sealed class ProductTourOverlay : Canvas
             ? ChooseAutoPlacement(width, height, targetRect)
             : placement;
         var cardPoint = CalculateCardPoint(width, height, targetRect, actualPlacement);
+        cardPoint = new Point(
+            Math.Clamp(
+                cardPoint.X + _currentCardOffset.X,
+                _options.CardMargin,
+                Math.Max(_options.CardMargin, width - _options.CardWidth - _options.CardMargin)),
+            Math.Clamp(
+                cardPoint.Y + _currentCardOffset.Y,
+                _options.CardMargin,
+                Math.Max(_options.CardMargin, height - _options.CardMaxHeight - _options.CardMargin)));
         SetLeft(_card, cardPoint.X);
         SetTop(_card, cardPoint.Y);
         LayoutArrow(targetRect, cardPoint, actualPlacement);
@@ -456,9 +472,10 @@ public sealed class ProductTourOverlay : Canvas
             return;
         }
 
-        var pose = placement == ProductTourPlacement.Center
-            ? TutorialAvatarPose.Idle
-            : ChooseAvatarPose(target, card);
+        var pose = _currentAvatarPose
+            ?? (placement == ProductTourPlacement.Center
+                ? TutorialAvatarPose.Idle
+                : ChooseAvatarPose(target, card));
         var avatar = _avatarProvider.GetAvatar(pose);
         if (avatar == null)
         {
@@ -471,6 +488,23 @@ public sealed class ProductTourOverlay : Canvas
         _avatarImage.Visibility = Visibility.Visible;
         _avatarImage.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
         var desired = _avatarImage.DesiredSize;
+        if (_currentAvatarPlacement == ProductTourAvatarPlacement.BottomRight)
+        {
+            SetLeft(
+                _avatarImage,
+                Math.Clamp(
+                    width - desired.Width - _options.CardMargin,
+                    _options.CardMargin,
+                    Math.Max(_options.CardMargin, width - desired.Width - _options.CardMargin)));
+            SetTop(
+                _avatarImage,
+                Math.Clamp(
+                    height - desired.Height - _options.CardMargin,
+                    _options.CardMargin,
+                    Math.Max(_options.CardMargin, height - desired.Height - _options.CardMargin)));
+            return;
+        }
+
         var avatarX = card.X + _options.CardWidth - desired.Width;
         var avatarY = card.Y - desired.Height - _options.AvatarMargin.Top;
         if (avatarY < _options.CardMargin)

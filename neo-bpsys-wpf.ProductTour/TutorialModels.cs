@@ -51,6 +51,17 @@ public enum ProductTourInteractionMode
 }
 
 /// <summary>
+/// Defines how the guide avatar is positioned for a product tour step.
+/// </summary>
+public enum ProductTourAvatarPlacement
+{
+    /// <summary>Uses the default placement near the product tour card.</summary>
+    Auto,
+    /// <summary>Places the avatar at the lower-right corner of the owner window.</summary>
+    BottomRight
+}
+
+/// <summary>
 /// Defines how a product tour step resolves its target element.
 /// </summary>
 public enum TutorialTargetKind
@@ -197,6 +208,9 @@ public sealed class ProductTourStep
     /// <summary>Gets or sets the preferred card placement.</summary>
     public ProductTourPlacement Placement { get; set; } = ProductTourPlacement.Auto;
 
+    /// <summary>Gets or sets the card offset applied after placement is calculated.</summary>
+    public Point CardOffset { get; set; }
+
     /// <summary>Gets or sets the interaction mode.</summary>
     public ProductTourInteractionMode InteractionMode { get; set; } = ProductTourInteractionMode.BlockAll;
 
@@ -214,6 +228,12 @@ public sealed class ProductTourStep
 
     /// <summary>Gets or sets the arrow kind, or <see langword="null" /> to use the configured default.</summary>
     public ProductTourArrowKind? ArrowKind { get; set; }
+
+    /// <summary>Gets or sets the avatar placement for this step.</summary>
+    public ProductTourAvatarPlacement AvatarPlacement { get; set; } = ProductTourAvatarPlacement.Auto;
+
+    /// <summary>Gets or sets the avatar pose, or <see langword="null" /> to choose the pose automatically.</summary>
+    public TutorialAvatarPose? AvatarPose { get; set; }
 
     /// <summary>Gets or sets an action invoked immediately before the step is displayed.</summary>
     public Func<IServiceProvider, CancellationToken, Task>? BeforeShowAsync { get; set; }

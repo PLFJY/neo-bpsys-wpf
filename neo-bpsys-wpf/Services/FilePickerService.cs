@@ -2,6 +2,7 @@ using Microsoft.Win32;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.Tutorial;
 using System.IO;
 
 namespace neo_bpsys_wpf.Services;
@@ -42,15 +43,34 @@ public class FilePickerService : IFilePickerService
     /// 选择JSON文件
     /// </summary>
     /// <returns>返回JSON文件路径</returns>
-    public string? PickJsonFile()
+    public string? PickJsonFile(string? initialDirectory = null)
     {
+        var tutorialHint = TutorialFilePickerHints.ConsumeNextJsonPickerHint();
+        var resolvedInitialDirectory = ResolveExistingDirectory(
+            initialDirectory
+            ?? tutorialHint.InitialDirectory
+            ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources"));
+
         OpenFileDialog openFileDialog = new()
         {
             Filter = $"{I18nHelper.GetLocalizedString("JSONFiles")} (*.json) | *.json",
-            DefaultDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources"),
+            DefaultDirectory = resolvedInitialDirectory,
+            InitialDirectory = resolvedInitialDirectory,
         };
 
+        if (!string.IsNullOrWhiteSpace(tutorialHint.Title))
+        {
+            openFileDialog.Title = tutorialHint.Title;
+        }
+
         return openFileDialog.ShowDialog() != true ? null : openFileDialog.FileName;
+    }
+
+    private static string ResolveExistingDirectory(string directory)
+    {
+        return Directory.Exists(directory)
+            ? directory
+            : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources");
     }
 
     /// <summary>

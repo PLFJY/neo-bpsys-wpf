@@ -70,6 +70,8 @@ public partial class PickPageViewModel : ViewModelBase
             .. Enumerable.Range(0, AppConstants.GlobalBanHunCount)
                 .Select(i => new AwayHunGlobalBanRecordViewModel(sharedDataService, i))
         ];
+        sharedDataService.TeamSwapped += (_, _) => RefreshCurrentSurvivorGlobalBanRecordTarget();
+        sharedDataService.CurrentGameChanged += (_, _) => RefreshCurrentSurvivorGlobalBanRecordTarget();
     }
 
     /// <summary>
@@ -92,6 +94,14 @@ public partial class PickPageViewModel : ViewModelBase
     /// <summary>客队数据。</summary>
     public Team AwayTeam => _sharedDataService.AwayTeam;
 
+    /// <summary>获取主队全局禁选记录区的教程目标标记。</summary>
+    public string HomeSurGlobalBanRecordTargetTag =>
+        HomeTeam.Camp == Camp.Sur ? TutorialTargetNames.CurrentSurvivorGlobalBanRecordPanel : string.Empty;
+
+    /// <summary>获取客队全局禁选记录区的教程目标标记。</summary>
+    public string AwaySurGlobalBanRecordTargetTag =>
+        AwayTeam.Camp == Camp.Sur ? TutorialTargetNames.CurrentSurvivorGlobalBanRecordPanel : string.Empty;
+
     /// <summary>求生者选择视图模型列表。</summary>
     public ObservableCollection<SurPickViewModel> SurPickViewModelList { get; set; }
     /// <summary>监管者选择视图模型。</summary>
@@ -104,6 +114,12 @@ public partial class PickPageViewModel : ViewModelBase
     public ObservableCollection<AwaySurGlobalBanRecordViewModel> AwaySurGlobalBanRecordViewModelList { get; set; }
     /// <summary>客队监管者全局禁用记录视图模型列表。</summary>
     public ObservableCollection<AwayHunGlobalBanRecordViewModel> AwayHunGlobalBanRecordViewModelList { get; set; }
+
+    private void RefreshCurrentSurvivorGlobalBanRecordTarget()
+    {
+        OnPropertyChanged(nameof(HomeSurGlobalBanRecordTargetTag));
+        OnPropertyChanged(nameof(AwaySurGlobalBanRecordTargetTag));
+    }
 
     //基于模板基类的VM实现
     /// <summary>

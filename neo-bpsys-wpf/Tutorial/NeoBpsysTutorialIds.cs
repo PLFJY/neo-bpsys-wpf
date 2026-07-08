@@ -56,11 +56,35 @@ public static class TutorialPackageIds
     /// <summary>Main navigation basic package id.</summary>
     public const string MainNavigationBasic = "Page.Main.Navigation.Basic";
 
+    /// <summary>Main navigation front management package id.</summary>
+    public const string MainNavigationFrontManage = "Page.Main.Navigation.FrontManage";
+
+    /// <summary>Main navigation team info package id.</summary>
+    public const string MainNavigationTeamInfo = "Page.Main.Navigation.TeamInfo";
+
+    /// <summary>Main navigation score package id.</summary>
+    public const string MainNavigationScore = "Page.Main.Navigation.Score";
+
+    /// <summary>Main navigation Smart BP package id.</summary>
+    public const string MainNavigationSmartBp = "Page.Main.Navigation.SmartBp";
+
+    /// <summary>Main navigation Designer v3 package id.</summary>
+    public const string MainNavigationDesignerV3 = "Page.Main.Navigation.DesignerV3";
+
+    /// <summary>Main team summary package id.</summary>
+    public const string MainTeamSummaryBasic = "Page.Main.TeamSummary.Basic";
+
     /// <summary>Team info basic package id.</summary>
     public const string TeamInfoBasic = "Page.TeamInfo.Basic";
 
+    /// <summary>Team name basic package id.</summary>
+    public const string TeamInfoTeamNameBasic = "Page.TeamInfo.TeamName.Basic";
+
     /// <summary>Team JSON import package id.</summary>
     public const string TeamInfoJsonImport = "Page.TeamInfo.JsonImport";
+
+    /// <summary>Preset team JSON import package id.</summary>
+    public const string TeamInfoJsonImportPreset = "Page.TeamInfo.JsonImport.Preset";
 
     /// <summary>Team player management package id.</summary>
     public const string TeamInfoPlayerManage = "Page.TeamInfo.PlayerManage";
@@ -83,8 +107,17 @@ public static class TutorialPackageIds
     /// <summary>Game guidance basic package id.</summary>
     public const string BpGameGuidanceBasic = "Page.Bp.GameGuidance.Basic";
 
+    /// <summary>Game guidance start package id.</summary>
+    public const string BpGameGuidanceStartBasic = "Page.Bp.GameGuidance.Start.Basic";
+
     /// <summary>BO1 first-half game guidance package id.</summary>
     public const string BpGameGuidanceFlowBo1FirstHalf = "Page.Bp.GameGuidance.FlowBo1FirstHalf";
+
+    /// <summary>Map BP completion next package id.</summary>
+    public const string MapBpCompletionNextBasic = "Page.MapBp.CompletionNext.Basic";
+
+    /// <summary>BP survivor pick character package id.</summary>
+    public const string BpPickCharacterBasic = "Page.Bp.PickCharacter.Basic";
 
     /// <summary>Score basic package id.</summary>
     public const string ScoreBasic = "Page.Score.Basic";
@@ -97,6 +130,12 @@ public static class TutorialPackageIds
 
     /// <summary>Game management basic package id.</summary>
     public const string GameManageBasic = "Page.GameManage.Basic";
+
+    /// <summary>BO1 first-half game progress package id.</summary>
+    public const string GameManageGameProgressBo1FirstHalf = "Page.GameManage.GameProgress.Bo1FirstHalf";
+
+    /// <summary>New game basic package id.</summary>
+    public const string GameManageNewGameBasic = "Page.GameManage.NewGame.Basic";
 
     /// <summary>Game management import/export package id.</summary>
     public const string GameManageImportExport = "Page.GameManage.ImportExport";
@@ -215,6 +254,12 @@ public static class TutorialSignalIds
     /// <summary>Character selector selection confirmed signal id.</summary>
     public const string CharacterSelectorSelectionConfirmed = "CharacterSelector.SelectionConfirmed";
 
+    /// <summary>First survivor pick character selected signal id.</summary>
+    public const string PickCharacterSelectedSurvivor1 = "PickCharacterSelected.Survivor1";
+
+    /// <summary>Second survivor pick character selected signal id.</summary>
+    public const string PickCharacterSelectedSurvivor2 = "PickCharacterSelected.Survivor2";
+
     /// <summary>Global ban record updated signal id.</summary>
     public const string GlobalBanRecordUpdated = "GlobalBanRecordUpdated";
 
@@ -230,6 +275,18 @@ public static class TutorialSignalIds
 /// </summary>
 public static class TutorialTargetNames
 {
+    /// <summary>Front management navigation item target name.</summary>
+    public const string FrontendManageNavigationItem = "FrontendManageNavigationItem";
+
+    /// <summary>Team info navigation item target name.</summary>
+    public const string TeamInfoNavigationItem = "TeamInfoNavigationItem";
+
+    /// <summary>Score navigation item target name.</summary>
+    public const string ScoreNavigationItem = "ScoreNavigationItem";
+
+    /// <summary>Smart BP navigation item target name.</summary>
+    public const string SmartBpNavigationItem = "SmartBpNavigationItem";
+
     /// <summary>Legacy BP window launch button target name.</summary>
     [Obsolete("Use the BP window id with TutorialTargetKind.ElementTag instead.")]
     public const string BpWindowLaunchButton = "BpWindowLaunchButton";
@@ -246,6 +303,9 @@ public static class TutorialTargetNames
     /// <summary>Home team name confirm button target name.</summary>
     public const string HomeTeamNameConfirmButton = "HomeTeamNameConfirmButton";
 
+    /// <summary>Home team logo button target name.</summary>
+    public const string HomeTeamLogoButton = "HomeTeamLogoButton";
+
     /// <summary>Home team JSON import button target name.</summary>
     public const string HomeTeamJsonImportButton = "HomeTeamJsonImportButton";
 
@@ -261,6 +321,9 @@ public static class TutorialTargetNames
     /// <summary>Away team name confirm button target name.</summary>
     public const string AwayTeamNameConfirmButton = "AwayTeamNameConfirmButton";
 
+    /// <summary>Away team logo button target name.</summary>
+    public const string AwayTeamLogoButton = "AwayTeamLogoButton";
+
     /// <summary>Away team JSON import button target name.</summary>
     public const string AwayTeamJsonImportButton = "AwayTeamJsonImportButton";
 
@@ -272,6 +335,9 @@ public static class TutorialTargetNames
 
     /// <summary>Team summary card target name.</summary>
     public const string TeamSummaryCard = "TeamSummaryCard";
+
+    /// <summary>Team swap button target name.</summary>
+    public const string TeamSwapButton = "TeamSwapButton";
 
     /// <summary>Import team JSON button target name.</summary>
     public const string ImportTeamJsonButton = "ImportTeamJsonButton";
@@ -324,11 +390,17 @@ public static class TutorialTargetNames
     /// <summary>Global ban record panel target name.</summary>
     public const string GlobalBanRecordPanel = "GlobalBanRecordPanel";
 
+    /// <summary>Current survivor team's global ban record panel target tag.</summary>
+    public const string CurrentSurvivorGlobalBanRecordPanel = "CurrentSurvivorGlobalBanRecordPanel";
+
     /// <summary>Global ban auto-record toggle target name.</summary>
     public const string GlobalBanAutoRecordToggle = "GlobalBanAutoRecordToggle";
 
     /// <summary>Map BP panel target name.</summary>
     public const string MapBpPanel = "MapBpPanel";
+
+    /// <summary>Map BP completed panel target name.</summary>
+    public const string MapBpCompletedPanel = "MapBpCompletedPanel";
 
     /// <summary>Map selector panel target name.</summary>
     public const string MapSelectorPanel = "MapSelectorPanel";

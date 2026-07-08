@@ -1733,7 +1733,7 @@ public class FrontedLayoutPackageManagerTest
 
         public string? PickFontFile() => null;
 
-        public string? PickJsonFile() => null;
+        public string? PickJsonFile(string? initialDirectory = null) => null;
 
         public string? PickZipFile() => null;
 

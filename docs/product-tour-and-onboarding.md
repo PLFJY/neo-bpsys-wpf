@@ -31,6 +31,8 @@
 
 页面教程包是单一来源。首次总导览通过 `PackageFlowItem` 引用已有 package，不复制同一份步骤。新增功能教学时应新增 package，并挂到对应 page sequence 后面；不要修改旧 package 来承载新功能。
 
+页面自己的 package sequence 只用于用户单独进入某页面时的 `AutoOnLoaded` 教程。总导览 flow 不得直接按页面 sequence 或 `IncludedPackageIds` 自动拼接；`Flow.FirstRun.StandardBp` 和验证 flow 的 `Items` 必须在 `TutorialFlowDefinition` 中显式声明顺序。
+
 ## 状态规则
 
 状态文件保存到：
@@ -168,7 +170,7 @@ Flow 内部引用 package 时使用 `TutorialTriggerMode.EmbeddedInFlow`，不�
 `neo-bpsys-wpf.ProductTour` 提供轻量 Builder API，生成的仍是普通 definition 对象：
 
 ```csharp
-TutorialPackageBuilder.Create(TutorialPackageIds.TeamInfoBasic)
+TutorialPackageBuilder.Create(TutorialPackageIds.TeamInfoTeamNameBasic)
     .ForPage(TutorialPageKeys.TeamInfo)
     .Version(1)
     .Sequence(100)
@@ -186,7 +188,7 @@ TutorialPackageBuilder.Create(TutorialPackageIds.TeamInfoBasic)
 动态导航项应使用 `StepNavigationItem(...)`，不要依赖菜单显示文本或给动态生成的 `NavigationViewItem` 写死 `x:Name`：
 
 ```csharp
-TutorialPackageBuilder.Create(TutorialPackageIds.MainNavigationBasic)
+TutorialPackageBuilder.Create(TutorialPackageIds.MainNavigationTeamInfo)
     .ForPage(TutorialPageKeys.Main)
     .StepNavigationItem(typeof(TeamInfoPage).FullName!)
         .Title("进入队伍管理")
@@ -203,7 +205,7 @@ DataTemplate 内的目标应使用 `StepDescendantType(...)` 指向稳定 host �
 TutorialPackageBuilder.Create(TutorialPackageIds.BpCharacterSelectorBasic)
     .ForPage(TutorialPageKeys.BpShared)
     .StepDescendantType(
-        TutorialTargetNames.SurvivorPickPanel,
+        TutorialTargetNames.FirstBanSurvivorSelectorHost,
         typeof(CharacterSelector).FullName!)
         .Title("角色选择器")
         .Description("输入后按空格可以搜索，按 Enter / Tab 或点击确认完成选择。")
@@ -220,11 +222,18 @@ Flow Builder 用于串联 dialogue 和 package 引用，不复制 package 内部
 ```csharp
 TutorialFlowBuilder.Create(TutorialFlowIds.FirstRunStandardBp)
     .Version(1)
+    .Include(TutorialPackageIds.MainNavigationFrontManage)
     .Include(TutorialPackageIds.FrontManageBpWindowLaunchBasic)
     .Dialogue("neo-bpsys-wpf", "欢迎来到 neo-bpsys-wpf。")
+    .Package(TutorialPackageIds.MainNavigationFrontManage)
     .Package(TutorialPackageIds.FrontManageBpWindowLaunchBasic)
+    .Item(MainWindowActivate)
+    .Package(TutorialPackageIds.MainNavigationTeamInfo)
+    .Package(TutorialPackageIds.TeamInfoTeamNameBasic)
     .Build();
 ```
+
+`IncludedPackageIds` 可以集中维护覆盖状态，但不能用 `foreach IncludedPackageIds` 自动生成 flow items。正式标准 BP 总导览当前顺序是：前台管理打开 BP Window、进入队伍管理、队名与 MainWindow 顶部队伍摘要、预设队伍导入与选手管理、BO1 上半与开启对局引导、Ban 求生角色选择器、Pick 与全局禁选、比分、新建对局与全局禁选继承，最后只简单说明 v3 编辑器和智慧 BP 的独立教程。
 
 ## 固定 UI 文案
 
@@ -312,11 +321,11 @@ Product Tour 只负责“告诉用户做什么”和“等待用户完成动作�
 | --- | --- |
 | 重新启动首次导览 | 二次确认后清除 `Flow.FirstRun.StandardBp` 状态，并重新显示首次导览 |
 | 重置全部教程状态 | 二次确认后清空 `CompletedFlows` 和 `CompletedPackages` |
-| 运行真实目标验证 | 强制运行 `Flow.Phase4.RealTargetProbe`，只验证真实导航、真实 TeamInfo 目标、BO1 上半选择和开始对局引导按钮 |
+| 运行真实目标验证 | 强制运行 `Flow.Phase4.RealTargetProbe`，按正式总导览顺序裁剪验证前台管理、BP Window、队伍管理、队名、顶部队伍摘要、BO1 上半选择和开始对局引导按钮 |
 
 危险操作不得使用系统默认 `MessageBox`。如果需要更强一致性，应优先复用 Product Tour 的确认 overlay 或 WPF-UI 风格确认控件。
 
-`Flow.Phase4.RealTargetProbe` 是手动验证 flow，不是默认首次启动导览。它不导入示例队伍、不创建新对局、不执行完整 BO1 BP 流程，也不实现教学沙盒。`Flow.FirstRun.StandardBp` 可以 include `Page.Main.Navigation.Basic` 以保持覆盖状态兼容，但真实验证 flow 不应自动标记大量 package 为 `CoveredByFlow`。
+`Flow.Phase4.RealTargetProbe` 是手动验证 flow，不是默认首次启动导览。它不导入示例队伍、不创建新对局、不执行完整 BO1 BP 流程，也不实现教学沙盒。验证顺序必须是正式总导览的裁剪版，不能按页面 sequence 或 package 注册顺序自动生成。
 
 ## 维护 checklist
 

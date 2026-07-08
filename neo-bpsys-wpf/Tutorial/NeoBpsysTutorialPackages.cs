@@ -3,6 +3,8 @@ using neo_bpsys_wpf.Controls;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Views.Pages;
+using System.IO;
+using System.Windows;
 
 namespace neo_bpsys_wpf.Tutorial;
 
@@ -70,7 +72,7 @@ public static class NeoBpsysTutorialPackages
                     ProductTourInteractionMode.AllowTargetOnly,
                     TutorialSignalIds.BpWindowOpened)
             ],
-            TutorialPackageIds.GameManageBasic =>
+            TutorialPackageIds.GameManageGameProgressBo1FirstHalf or TutorialPackageIds.GameManageBasic =>
             [
                 Step(
                     TutorialTargetNames.GameProgressComboBox,
@@ -78,6 +80,15 @@ public static class NeoBpsysTutorialPackages
                     "现在选择本次教学使用的场次。我们先从 BO1 上半开始。",
                     ProductTourInteractionMode.AllowTargetOnly,
                     TutorialSignalIds.GameProgressSelectedBo1FirstHalf)
+            ],
+            TutorialPackageIds.GameManageNewGameBasic =>
+            [
+                Step(
+                    TutorialTargetNames.NewGameButton,
+                    "新建对局",
+                    "新建对局会清空当前局的选择结果，但会保留全局禁选记录。",
+                    ProductTourInteractionMode.AllowTargetOnly,
+                    TutorialSignalIds.NewGameCreated)
             ],
             TutorialPackageIds.MainNavigationBasic =>
             [
@@ -88,7 +99,51 @@ public static class NeoBpsysTutorialPackages
                     ProductTourInteractionMode.AllowTargetOnly,
                     TutorialSignalIds.NavigationTeamInfoOpened)
             ],
-            TutorialPackageIds.TeamInfoBasic =>
+            TutorialPackageIds.MainNavigationFrontManage =>
+            [
+                NavigationStep(
+                    typeof(FrontManagePage).FullName!,
+                    "进入前台管理",
+                    "先进入前台管理页面，打开 BP 前台窗口供 OBS 捕获。",
+                    ProductTourInteractionMode.AllowTargetOnly,
+                    TutorialSignalIds.NavigationFrontManageOpened)
+            ],
+            TutorialPackageIds.MainNavigationTeamInfo =>
+            [
+                NavigationStep(
+                    typeof(TeamInfoPage).FullName!,
+                    "进入队伍管理",
+                    "进入队伍管理页面，设置教学使用的队伍信息。",
+                    ProductTourInteractionMode.AllowTargetOnly,
+                    TutorialSignalIds.NavigationTeamInfoOpened)
+            ],
+            TutorialPackageIds.MainNavigationScore =>
+            [
+                NavigationStep(
+                    typeof(ScorePage).FullName!,
+                    "进入比分页面",
+                    "进入比分页面，选择当前半场的比分结果。",
+                    ProductTourInteractionMode.AllowTargetOnly,
+                    TutorialSignalIds.NavigationScoreOpened)
+            ],
+            TutorialPackageIds.MainNavigationSmartBp =>
+            [
+                NavigationStep(
+                    typeof(SmartBpPage).FullName!,
+                    "进入智慧 BP",
+                    "智慧 BP 是独立模块，首次进入后会有单独教程。",
+                    ProductTourInteractionMode.AllowTargetOnly,
+                    TutorialSignalIds.NavigationSmartBpOpened)
+            ],
+            TutorialPackageIds.MainNavigationDesignerV3 =>
+            [
+                Step(
+                    null,
+                    "前台界面编辑",
+                    "前台界面编辑、布局编辑和动画行为编辑，会在首次打开 v3 编辑器时单独教学。",
+                    ProductTourInteractionMode.BlockAll)
+            ],
+            TutorialPackageIds.TeamInfoTeamNameBasic or TutorialPackageIds.TeamInfoBasic =>
             [
                 Step(
                     TutorialTargetNames.HomeTeamNameInput,
@@ -102,38 +157,74 @@ public static class NeoBpsysTutorialPackages
                     ProductTourInteractionMode.AllowTargetOnly,
                     TutorialSignalIds.TeamNameConfirmed),
                 Step(
-                    TutorialTargetNames.TeamSummaryCard,
-                    "确认队伍信息",
-                    "队伍名已经显示在这里。比赛中也可以在这里快速换边。",
-                    ProductTourInteractionMode.BlockAll,
+                    TutorialTargetNames.HomeTeamLogoButton,
+                    "设置队伍 Logo",
+                    "这里可以设置主队 Logo。本次导览可以直接点击下一步继续。",
+                    ProductTourInteractionMode.AllowTargetOnly,
                     allowMissing: true)
             ],
-            TutorialPackageIds.TeamInfoJsonImport =>
+            TutorialPackageIds.MainTeamSummaryBasic =>
+            [
+                Step(
+                    TutorialTargetNames.TeamSummaryCard,
+                    "确认队伍信息",
+                    "队伍名已经显示在 MainWindow 上方功能区。这里也可以进行换边。",
+                    ProductTourInteractionMode.AllowTargetOnly,
+                    allowMissing: true)
+            ],
+            TutorialPackageIds.TeamInfoJsonImportPreset or TutorialPackageIds.TeamInfoJsonImport =>
             [
                 Step(
                     TutorialTargetNames.HomeTeamJsonImportButton,
-                    "导入队伍 JSON",
-                    "如果已经准备好队伍 JSON，可以从这里导入。真实示例队伍会在教学沙盒完成后接入。",
+                    "导入狼队预设",
+                    "点击导入后，在打开的文件对话框中选择“队伍信息导入示例-Wolves.json”。",
                     ProductTourInteractionMode.AllowTargetOnly,
-                    TutorialSignalIds.TeamJsonImportedHome,
-                    allowMissing: true)
+                    allowMissing: true,
+                    beforeShowAsync: (_, _) =>
+                    {
+                        SetExamplesJsonPickerHint("请导入狼队信息：选择“队伍信息导入示例-Wolves.json”");
+                        return Task.CompletedTask;
+                    }),
+                Step(
+                    TutorialTargetNames.HomePlayerListPanel,
+                    "调整狼队上场下场",
+                    "导入后，在这里调整狼队成员的上场和下场状态。",
+                    ProductTourInteractionMode.AllowTargetOnly,
+                    allowMissing: true,
+                    avatarPlacement: ProductTourAvatarPlacement.BottomRight,
+                    avatarPose: TutorialAvatarPose.LeftTop),
+                Step(
+                    TutorialTargetNames.AwayTeamJsonImportButton,
+                    "导入 GR 预设",
+                    "点击导入后，在打开的文件对话框中选择“队伍信息导入示例-GR.json”。",
+                    ProductTourInteractionMode.AllowTargetOnly,
+                    allowMissing: true,
+                    beforeShowAsync: (_, _) =>
+                    {
+                        SetExamplesJsonPickerHint("请导入 GR 信息：选择“队伍信息导入示例-GR.json”");
+                        return Task.CompletedTask;
+                    }),
+                Step(
+                    TutorialTargetNames.AwayPlayerListPanel,
+                    "调整 GR 上场下场",
+                    "导入后，在这里调整 GR 成员的上场和下场状态。",
+                    ProductTourInteractionMode.AllowTargetOnly,
+                    allowMissing: true,
+                    avatarPlacement: ProductTourAvatarPlacement.BottomRight,
+                    avatarPose: TutorialAvatarPose.LeftTop)
             ],
             TutorialPackageIds.TeamInfoPlayerManage =>
             [
                 Step(
-                    TutorialTargetNames.HomePlayerListPanel,
-                    "管理选手",
-                    "这里可以管理主队选手信息和上下场状态。",
-                    ProductTourInteractionMode.BlockAll,
-                    allowMissing: true),
-                Step(
                     TutorialTargetNames.HomePlayerPositionPanel,
-                    "调整位置",
-                    "这里可以调整选手位置，前台和 BP 流程会使用这些信息。",
-                    ProductTourInteractionMode.BlockAll,
-                    allowMissing: true)
+                    "调整队伍成员顺序",
+                    "这里可以调整当前上场队员的顺序，前台和 BP 流程会使用这些信息。",
+                    ProductTourInteractionMode.AllowTargetOnly,
+                    allowMissing: true,
+                    avatarPlacement: ProductTourAvatarPlacement.BottomRight,
+                    avatarPose: TutorialAvatarPose.LeftTop)
             ],
-            TutorialPackageIds.BpGameGuidanceBasic =>
+            TutorialPackageIds.BpGameGuidanceStartBasic or TutorialPackageIds.BpGameGuidanceBasic =>
             [
                 Step(
                     TutorialTargetNames.StartGameGuidanceButton,
@@ -142,7 +233,7 @@ public static class NeoBpsysTutorialPackages
                     ProductTourInteractionMode.AllowTargetOnly,
                     TutorialSignalIds.GameGuidanceStarted)
             ],
-            TutorialPackageIds.BpGameGuidanceFlowBo1FirstHalf =>
+            TutorialPackageIds.MapBpCompletionNextBasic or TutorialPackageIds.BpGameGuidanceFlowBo1FirstHalf =>
             [
                 Step(
                     TutorialTargetNames.NextGuidanceStepButton,
@@ -154,23 +245,42 @@ public static class NeoBpsysTutorialPackages
             TutorialPackageIds.BpCharacterSelectorBasic =>
             [
                 DescendantTypeStep(
-                    TutorialTargetNames.SurvivorPickPanel,
+                    TutorialTargetNames.FirstBanSurvivorSelectorHost,
                     typeof(CharacterSelector).FullName!,
-                    "角色选择器",
-                    "这是角色选择器，不是普通下拉框。它支持角色名、拼音全拼和缩写搜索。输入后按空格可以搜索。按 Enter / Tab 或点击确认按钮完成选择。",
+                    "角色选择器搜索",
+                    "这是角色选择器，不是普通下拉框。它支持角色名、拼音全拼和缩写搜索。输入后按空格搜索。",
+                    ProductTourInteractionMode.AllowTargetOnly,
+                    TutorialSignalIds.CharacterSelectorSearchCommitted,
+                    allowMissing: true),
+                DescendantTypeStep(
+                    TutorialTargetNames.FirstBanSurvivorSelectorHost,
+                    typeof(CharacterSelector).FullName!,
+                    "确认角色选择",
+                    "按 Enter / Tab 或点击确认按钮完成选择。",
+                    ProductTourInteractionMode.AllowTargetOnly,
+                    TutorialSignalIds.CharacterSelectorSelectionConfirmed,
+                    allowMissing: true)
+            ],
+            TutorialPackageIds.BpPickCharacterBasic =>
+            [
+                DescendantTypeStep(
+                    TutorialTargetNames.FirstSurvivorPickSelectorHost,
+                    typeof(CharacterSelector).FullName!,
+                    "选择 1、2 号角色",
+                    "继续在 Pick 页面选择 1、2 号求生者角色，选择结果会记录到全局禁选中。",
                     ProductTourInteractionMode.AllowTargetOnly,
                     TutorialSignalIds.CharacterSelectorSelectionConfirmed,
                     allowMissing: true)
             ],
             TutorialPackageIds.BpGlobalBanRecordBasic =>
             [
-                Step(
-                    TutorialTargetNames.GlobalBanRecordPanel,
+                ElementTagStep(
+                    TutorialTargetNames.CurrentSurvivorGlobalBanRecordPanel,
                     "全局禁选记录",
-                    "全局禁选会影响后续场次。新建下一局时，当局选择会被清空，但这些全局记录会被保留。",
-                    ProductTourInteractionMode.BlockAll,
-                    TutorialSignalIds.GlobalBanRecordUpdated,
-                    allowMissing: true)
+                    "刚刚的选择已经被记录到全局禁选中。全局禁选会影响后续场次，新建对局会清空当局选择但保留这些记录。",
+                    ProductTourInteractionMode.AllowAll,
+                    allowMissing: true,
+                    cardOffset: new Point(80, 0))
             ],
             TutorialPackageIds.ScoreBasic =>
             [
@@ -184,12 +294,6 @@ public static class NeoBpsysTutorialPackages
             ],
             TutorialPackageIds.GameManageGlobalBanCarryOver =>
             [
-                Step(
-                    TutorialTargetNames.NewGameButton,
-                    "新建对局",
-                    "新建对局会清空当前局的选择结果，但会保留全局禁选。",
-                    ProductTourInteractionMode.AllowTargetOnly,
-                    TutorialSignalIds.NewGameCreated),
                 Step(
                     null,
                     "全局禁选继承",
@@ -234,7 +338,13 @@ public static class NeoBpsysTutorialPackages
             builder.AllowMissingTarget();
         }
 
-        return builder.EndStep().Build().Steps[0];
+        var step = builder.EndStep().Build().Steps[0];
+        if (signalId != null)
+        {
+            step.AfterCompleteAsync = DelayForNavigationTransitionAsync;
+        }
+
+        return step;
     }
 
     private static ProductTourStep Step(
@@ -243,7 +353,11 @@ public static class NeoBpsysTutorialPackages
         string description,
         ProductTourInteractionMode mode,
         string? signalId = null,
-        bool allowMissing = false)
+        bool allowMissing = false,
+        Func<IServiceProvider, CancellationToken, Task>? beforeShowAsync = null,
+        ProductTourAvatarPlacement avatarPlacement = ProductTourAvatarPlacement.Auto,
+        TutorialAvatarPose? avatarPose = null,
+        Point? cardOffset = null)
     {
         var builder = TutorialPackageBuilder.Create("Transient.Step")
             .ForPage("Transient.Page")
@@ -251,8 +365,15 @@ public static class NeoBpsysTutorialPackages
             .Title(title)
             .Description(description)
             .Placement(ProductTourPlacement.Auto)
+            .CardOffset(cardOffset ?? default)
+            .AvatarPlacement(avatarPlacement)
             .Interaction(mode)
             .Timeout(TimeSpan.FromSeconds(30));
+
+        if (avatarPose != null)
+        {
+            builder.AvatarPose(avatarPose.Value);
+        }
 
         if (signalId != null)
         {
@@ -264,7 +385,9 @@ public static class NeoBpsysTutorialPackages
             builder.AllowMissingTarget();
         }
 
-        return builder.EndStep().Build().Steps[0];
+        var step = builder.EndStep().Build().Steps[0];
+        step.BeforeShowAsync = beforeShowAsync;
+        return step;
     }
 
     private static ProductTourStep DescendantTypeStep(
@@ -304,7 +427,9 @@ public static class NeoBpsysTutorialPackages
         string description,
         ProductTourInteractionMode mode,
         string? signalId = null,
-        bool allowMissing = false)
+        bool allowMissing = false,
+        Point? cardOffset = null,
+        Func<IServiceProvider, CancellationToken, Task>? beforeShowAsync = null)
     {
         var builder = TutorialPackageBuilder.Create("Transient.Step")
             .ForPage("Transient.Page")
@@ -312,6 +437,7 @@ public static class NeoBpsysTutorialPackages
             .Title(title)
             .Description(description)
             .Placement(ProductTourPlacement.Auto)
+            .CardOffset(cardOffset ?? default)
             .Interaction(mode)
             .Timeout(TimeSpan.FromSeconds(30));
 
@@ -325,6 +451,18 @@ public static class NeoBpsysTutorialPackages
             builder.AllowMissingTarget();
         }
 
-        return builder.EndStep().Build().Steps[0];
+        var step = builder.EndStep().Build().Steps[0];
+        step.BeforeShowAsync = beforeShowAsync;
+        return step;
     }
+
+    private static void SetExamplesJsonPickerHint(string title)
+    {
+        TutorialFilePickerHints.SetNextJsonPickerHint(
+            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Examples"),
+            title);
+    }
+
+    private static Task DelayForNavigationTransitionAsync(IServiceProvider _, CancellationToken cancellationToken) =>
+        Task.Delay(450, cancellationToken);
 }

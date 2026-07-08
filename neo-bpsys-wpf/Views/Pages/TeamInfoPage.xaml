@@ -91,6 +91,7 @@
 
                 <StackPanel Orientation="Horizontal">
                     <ui:Button
+                        x:Name="HomeTeamLogoButton"
                         Command="{Binding SetTeamLogoCommand}"
                         Content="{lex:Loc SetTeamLogo}"
                         Icon="{ui:SymbolIcon Symbol=ImageEdit24}" />
@@ -330,6 +331,7 @@
 
                 <StackPanel Orientation="Horizontal">
                     <ui:Button
+                        x:Name="AwayTeamLogoButton"
                         Command="{Binding SetTeamLogoCommand}"
                         Content="{lex:Loc SetTeamLogo}"
                         Icon="{ui:SymbolIcon Symbol=ImageEdit24}" />
