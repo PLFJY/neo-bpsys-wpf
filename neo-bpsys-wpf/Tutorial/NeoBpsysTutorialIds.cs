@@ -44,6 +44,12 @@ public static class TutorialPageKeys
     /// <summary>Designer v3 window key.</summary>
     public const string DesignerV3 = "Window.DesignerV3";
 
+    /// <summary>Designer v3 behavior panel key.</summary>
+    public const string DesignerV3BehaviorPanel = "Window.DesignerV3.BehaviorPanel";
+
+    /// <summary>Designer v3 animation editor key.</summary>
+    public const string DesignerV3AnimationEditor = "Window.DesignerV3.AnimationEditor";
+
     /// <summary>Smart BP page key.</summary>
     public const string SmartBp = "Page.SmartBp";
 }
@@ -175,6 +181,36 @@ public static class TutorialPackageIds
 
     /// <summary>Designer v3 package import/export package id.</summary>
     public const string DesignerV3PackageImportExport = "Window.DesignerV3.PackageImportExport";
+
+    /// <summary>Designer v3 help package id.</summary>
+    public const string DesignerV3HelpBasic = "Window.DesignerV3.Help.Basic";
+
+    /// <summary>Designer v3 behavior panel overview package id.</summary>
+    public const string DesignerV3BehaviorPanelOverview = "Window.DesignerV3.BehaviorPanel.Overview";
+
+    /// <summary>Designer v3 behavior panel trigger package id.</summary>
+    public const string DesignerV3BehaviorPanelTriggerBasic = "Window.DesignerV3.BehaviorPanel.Trigger.Basic";
+
+    /// <summary>Designer v3 behavior panel action package id.</summary>
+    public const string DesignerV3BehaviorPanelActionBasic = "Window.DesignerV3.BehaviorPanel.Action.Basic";
+
+    /// <summary>Designer v3 behavior panel help package id.</summary>
+    public const string DesignerV3BehaviorPanelHelpBasic = "Window.DesignerV3.BehaviorPanel.Help.Basic";
+
+    /// <summary>Designer v3 animation editor overview package id.</summary>
+    public const string DesignerV3AnimationEditorOverview = "Window.DesignerV3.AnimationEditor.Overview";
+
+    /// <summary>Designer v3 animation editor timeline package id.</summary>
+    public const string DesignerV3AnimationEditorTimelineBasic = "Window.DesignerV3.AnimationEditor.Timeline.Basic";
+
+    /// <summary>Designer v3 animation editor key frame package id.</summary>
+    public const string DesignerV3AnimationEditorKeyFrameBasic = "Window.DesignerV3.AnimationEditor.KeyFrame.Basic";
+
+    /// <summary>Designer v3 animation editor preview package id.</summary>
+    public const string DesignerV3AnimationEditorPreviewBasic = "Window.DesignerV3.AnimationEditor.Preview.Basic";
+
+    /// <summary>Designer v3 animation editor help package id.</summary>
+    public const string DesignerV3AnimationEditorHelpBasic = "Window.DesignerV3.AnimationEditor.Help.Basic";
 
     /// <summary>Designer v3 advanced package id.</summary>
     public const string DesignerV3Advanced = "Window.DesignerV3.Advanced";
@@ -566,6 +602,24 @@ public static class TutorialTargetNames
 
     /// <summary>Designer help button target name.</summary>
     public const string DesignerHelpButton = "DesignerHelpButton";
+
+    /// <summary>Designer behavior help button target name.</summary>
+    public const string BehaviorHelpButton = "BehaviorHelpButton";
+
+    /// <summary>Designer animation editor tabs target name.</summary>
+    public const string AnimationTabs = "AnimationTabs";
+
+    /// <summary>Designer animation editor graph canvas target name.</summary>
+    public const string AnimationGraphCanvas = "GraphCanvas";
+
+    /// <summary>Designer animation editor selected node property panel target name.</summary>
+    public const string AnimationPropertyPanel = "AnimationPropertyPanel";
+
+    /// <summary>Designer animation editor preview panel target name.</summary>
+    public const string AnimationPreviewPanel = "PreviewBorder";
+
+    /// <summary>Designer animation editor help button target name.</summary>
+    public const string AnimationEditorHelpButton = "AnimationEditorHelpButton";
 
     /// <summary>Smart BP module content host target name.</summary>
     public const string SmartBpModuleContentHost = "SmartBpModuleContentHost";

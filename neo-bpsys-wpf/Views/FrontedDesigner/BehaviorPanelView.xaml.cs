@@ -3,6 +3,7 @@ using System.Windows;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.Tutorial;
 using neo_bpsys_wpf.ViewModels.FrontedDesigner;
 using neo_bpsys_wpf.Views.Windows;
 
@@ -10,10 +11,21 @@ namespace neo_bpsys_wpf.Views.FrontedDesigner;
 
 public partial class BehaviorPanelView : UserControl
 {
+    private FrontedBehaviorAnimationHelpWindow? _helpWindow;
+
     public BehaviorPanelView()
     {
         InitializeComponent();
+        Loaded += (_, _) => TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKey);
+        IsVisibleChanged += (_, e) =>
+        {
+            if (Equals(e.NewValue, true))
+            {
+                TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKey);
+            }
+        };
         DataContextChanged += OnDataContextChanged;
+        Unloaded += (_, _) => CloseHelpWindow();
     }
 
     private void OnDataContextChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
@@ -59,6 +71,28 @@ public partial class BehaviorPanelView : UserControl
         contextMenu.PlacementTarget = button;
         contextMenu.IsOpen = true;
         e.Handled = true;
+    }
+
+    private void OpenHelp_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (_helpWindow is null || !_helpWindow.IsVisible)
+        {
+            _helpWindow = new FrontedBehaviorAnimationHelpWindow
+            {
+                Owner = Window.GetWindow(this)
+            };
+            _helpWindow.Closed += (_, _) => _helpWindow = null;
+            _helpWindow.Show();
+            return;
+        }
+
+        _helpWindow.Activate();
+    }
+
+    private void CloseHelpWindow()
+    {
+        _helpWindow?.Close();
+        _helpWindow = null;
     }
 }
 

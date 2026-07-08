@@ -1,8 +1,10 @@
 using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Tests.Infrastructure;
 using neo_bpsys_wpf.Tutorial;
 using neo_bpsys_wpf.ViewModels.Pages;
+using neo_bpsys_wpf.Views.Pages.FrontManage;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -51,21 +53,47 @@ public sealed class NeoBpsysTutorialRegistrationTest
             sequenceRegistry.GetSequence(TutorialPageKeys.TeamInfo));
         Assert.Equal(
             [
-                TutorialPackageIds.FrontManageOverview,
-                TutorialPackageIds.FrontManageWindowsBasic,
-                TutorialPackageIds.FrontManageOpenDesigner,
-                TutorialPackageIds.FrontManageLayoutPackagesBasic
+                TutorialPackageIds.FrontManageOverview
             ],
             sequenceRegistry.GetSequence(TutorialPageKeys.FrontManage));
+        Assert.Equal(
+            [
+                TutorialPackageIds.FrontManageWindowsBasic,
+                TutorialPackageIds.FrontManageOpenDesigner,
+                TutorialPackageIds.FrontManageBpWindowLaunchBasic
+            ],
+            sequenceRegistry.GetSequence(FrontedWindowsView.TutorialPageKey));
+        Assert.Equal(
+            [
+                TutorialPackageIds.FrontManageLayoutPackagesBasic
+            ],
+            sequenceRegistry.GetSequence(FrontedLayoutPackagesView.TutorialPageKey));
         Assert.Equal(
             [
                 TutorialPackageIds.DesignerV3Overview,
                 TutorialPackageIds.DesignerV3LayoutEditBasic,
                 TutorialPackageIds.DesignerV3PropertyPanelBasic,
-                TutorialPackageIds.DesignerV3BehaviorEditBasic,
-                TutorialPackageIds.DesignerV3PackageImportExport
+                TutorialPackageIds.DesignerV3PackageImportExport,
+                TutorialPackageIds.DesignerV3HelpBasic
             ],
             sequenceRegistry.GetSequence(TutorialPageKeys.DesignerV3));
+        Assert.Equal(
+            [
+                TutorialPackageIds.DesignerV3BehaviorPanelOverview,
+                TutorialPackageIds.DesignerV3BehaviorPanelTriggerBasic,
+                TutorialPackageIds.DesignerV3BehaviorPanelActionBasic,
+                TutorialPackageIds.DesignerV3BehaviorPanelHelpBasic
+            ],
+            sequenceRegistry.GetSequence(TutorialPageKeys.DesignerV3BehaviorPanel));
+        Assert.Equal(
+            [
+                TutorialPackageIds.DesignerV3AnimationEditorOverview,
+                TutorialPackageIds.DesignerV3AnimationEditorTimelineBasic,
+                TutorialPackageIds.DesignerV3AnimationEditorKeyFrameBasic,
+                TutorialPackageIds.DesignerV3AnimationEditorPreviewBasic,
+                TutorialPackageIds.DesignerV3AnimationEditorHelpBasic
+            ],
+            sequenceRegistry.GetSequence(TutorialPageKeys.DesignerV3AnimationEditor));
         Assert.Equal(
             [
                 TutorialPackageIds.SmartBpModuleShell,
@@ -76,7 +104,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
                 TutorialPackageIds.SmartBpPostGameAutoFill
             ],
             sequenceRegistry.GetSequence(TutorialPageKeys.SmartBp));
-        Assert.Equal(46, packageRegistry.GetPackages().Count);
+        Assert.Equal(55, packageRegistry.GetPackages().Count);
 
         var firstRun = flowRegistry.GetFlow(TutorialFlowIds.FirstRunStandardBp);
         Assert.NotNull(firstRun);
@@ -113,6 +141,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
         Assert.DoesNotContain(TutorialPackageIds.DesignerV3PropertyPanelBasic, firstRun.IncludedPackageIds);
         Assert.DoesNotContain(TutorialPackageIds.DesignerV3BehaviorEditBasic, firstRun.IncludedPackageIds);
         Assert.DoesNotContain(TutorialPackageIds.DesignerV3PackageImportExport, firstRun.IncludedPackageIds);
+        Assert.DoesNotContain(TutorialPackageIds.DesignerV3HelpBasic, firstRun.IncludedPackageIds);
         Assert.DoesNotContain(TutorialPackageIds.FrontManageWindowsBasic, firstRun.IncludedPackageIds);
         Assert.DoesNotContain(TutorialPackageIds.FrontManageOpenDesigner, firstRun.IncludedPackageIds);
         Assert.DoesNotContain(TutorialPackageIds.FrontManageLayoutPackagesBasic, firstRun.IncludedPackageIds);
@@ -273,36 +302,48 @@ public sealed class NeoBpsysTutorialRegistrationTest
     }
 
     [Fact]
-    public void SmartBpPackageCanRunFollowsModuleLoadedState()
+    public async Task SmartBpPackageCanRunFollowsCurrentPageDataContextModuleLoadedState()
     {
-        var packages = CreateRegisteredPackages();
-        var shell = Assert.Single(packages, package => package.PackageId == TutorialPackageIds.SmartBpModuleShell);
-        var contentPackageIds = new[]
+        await WpfTestThread.RunAsync(() =>
         {
-            TutorialPackageIds.SmartBpModuleContentOverview,
-            TutorialPackageIds.SmartBpCaptureBasic,
-            TutorialPackageIds.SmartBpRegionEditorBasic,
-            TutorialPackageIds.SmartBpFullBpFlowBasic
-        };
-        var postGamePackage = Assert.Single(packages, package => package.PackageId == TutorialPackageIds.SmartBpPostGameAutoFill);
-        var unloadedProvider = new ViewModelServiceProvider(new SmartBpPageViewModel { IsModuleLoaded = false });
-        var loadedProvider = new ViewModelServiceProvider(new SmartBpPageViewModel { IsModuleLoaded = true });
+            var packages = CreateRegisteredPackages();
+            var shell = Assert.Single(packages, package => package.PackageId == TutorialPackageIds.SmartBpModuleShell);
+            var contentPackageIds = new[]
+            {
+                TutorialPackageIds.SmartBpModuleContentOverview,
+                TutorialPackageIds.SmartBpCaptureBasic,
+                TutorialPackageIds.SmartBpRegionEditorBasic,
+                TutorialPackageIds.SmartBpFullBpFlowBasic
+            };
+            var postGamePackage = Assert.Single(packages, package => package.PackageId == TutorialPackageIds.SmartBpPostGameAutoFill);
+            var provider = new ViewModelServiceProvider(new SmartBpPageViewModel { IsModuleLoaded = true });
+            var unloadedOwner = new System.Windows.Controls.Grid
+            {
+                DataContext = new SmartBpPageViewModel { IsModuleLoaded = false }
+            };
+            var loadedOwner = new System.Windows.Controls.Grid
+            {
+                DataContext = new SmartBpPageViewModel { IsModuleLoaded = true }
+            };
 
-        Assert.NotNull(shell.CanRun);
-        Assert.True(shell.CanRun!(unloadedProvider));
-        Assert.False(shell.CanRun!(loadedProvider));
+            Assert.NotNull(shell.CanRunWithOwner);
+            Assert.True(shell.CanRunWithOwner!(provider, unloadedOwner));
+            Assert.False(shell.CanRunWithOwner!(provider, loadedOwner));
 
-        foreach (var packageId in contentPackageIds)
-        {
-            var package = Assert.Single(packages, item => item.PackageId == packageId);
-            Assert.NotNull(package.CanRun);
-            Assert.False(package.CanRun!(unloadedProvider));
-            Assert.True(package.CanRun!(loadedProvider));
-        }
+            foreach (var packageId in contentPackageIds)
+            {
+                var package = Assert.Single(packages, item => item.PackageId == packageId);
+                Assert.NotNull(package.CanRunWithOwner);
+                Assert.False(package.CanRunWithOwner!(provider, unloadedOwner));
+                Assert.True(package.CanRunWithOwner!(provider, loadedOwner));
+            }
 
-        Assert.NotNull(postGamePackage.CanRun);
-        Assert.False(postGamePackage.CanRun!(unloadedProvider));
-        Assert.False(postGamePackage.CanRun!(loadedProvider));
+            Assert.NotNull(postGamePackage.CanRunWithOwner);
+            Assert.False(postGamePackage.CanRunWithOwner!(provider, unloadedOwner));
+            Assert.False(postGamePackage.CanRunWithOwner!(provider, loadedOwner));
+
+            return Task.CompletedTask;
+        });
     }
 
     [Fact]
@@ -322,7 +363,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
     {
         var packages = CreateRegisteredPackages();
         var overview = Assert.Single(packages, package => package.PackageId == TutorialPackageIds.DesignerV3Overview);
-        var importExport = Assert.Single(packages, package => package.PackageId == TutorialPackageIds.DesignerV3PackageImportExport);
+        var help = Assert.Single(packages, package => package.PackageId == TutorialPackageIds.DesignerV3HelpBasic);
 
         Assert.Null(overview.Steps[0].TargetName);
         Assert.Contains("欢迎来到 v3 编辑器", overview.Steps[0].Title, StringComparison.Ordinal);
@@ -333,9 +374,36 @@ public sealed class NeoBpsysTutorialRegistrationTest
             step => step.TargetName == TutorialTargetNames.PreviewZoomHost);
         Assert.Contains("点击画布上的一个控件", previewStep.Description, StringComparison.Ordinal);
 
-        var finalStep = importExport.Steps[^1];
+        var finalStep = Assert.Single(help.Steps);
         Assert.Equal(TutorialTargetNames.DesignerHelpButton, finalStep.TargetName);
         Assert.Contains("v3 编辑器的详细说明", finalStep.Description, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void BehaviorPanelAndAnimationEditorSequencesEndWithHelp()
+    {
+        var packageRegistry = new TutorialPackageRegistry();
+        var sequenceRegistry = new TutorialSequenceRegistry();
+        var flowRegistry = new TutorialFlowRegistry();
+
+        NeoBpsysTutorialRegistration.Register(packageRegistry, sequenceRegistry, flowRegistry);
+
+        Assert.Equal(
+            TutorialPackageIds.DesignerV3BehaviorPanelHelpBasic,
+            sequenceRegistry.GetSequence(TutorialPageKeys.DesignerV3BehaviorPanel)[^1]);
+        Assert.Equal(
+            TutorialPackageIds.DesignerV3AnimationEditorHelpBasic,
+            sequenceRegistry.GetSequence(TutorialPageKeys.DesignerV3AnimationEditor)[^1]);
+
+        var behaviorHelp = Assert.Single(
+            packageRegistry.GetPackages(),
+            package => package.PackageId == TutorialPackageIds.DesignerV3BehaviorPanelHelpBasic);
+        Assert.Equal(TutorialTargetNames.BehaviorHelpButton, Assert.Single(behaviorHelp.Steps).TargetName);
+
+        var animationHelp = Assert.Single(
+            packageRegistry.GetPackages(),
+            package => package.PackageId == TutorialPackageIds.DesignerV3AnimationEditorHelpBasic);
+        Assert.Equal(TutorialTargetNames.AnimationEditorHelpButton, Assert.Single(animationHelp.Steps).TargetName);
     }
 
     [Fact]

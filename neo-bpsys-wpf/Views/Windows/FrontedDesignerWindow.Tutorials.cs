@@ -25,6 +25,9 @@ public partial class FrontedDesignerWindow
 
         /// <summary>Designer v3 package import/export package id.</summary>
         public const string PackageImportExport = TutorialPackageIds.DesignerV3PackageImportExport;
+
+        /// <summary>Designer v3 help package id.</summary>
+        public const string HelpBasic = TutorialPackageIds.DesignerV3HelpBasic;
     }
 
     /// <summary>Designer v3 tutorial target names not owned by direct window fields.</summary>
@@ -63,15 +66,15 @@ public partial class FrontedDesignerWindow
             TutorialPackages.Overview,
             TutorialPackages.LayoutEditBasic,
             TutorialPackages.PropertyPanelBasic,
-            TutorialPackages.BehaviorEditBasic,
-            TutorialPackages.PackageImportExport
+            TutorialPackages.PackageImportExport,
+            TutorialPackages.HelpBasic
         ]);
 
         registrar.RegisterPackage(CreateOverviewPackage());
         registrar.RegisterPackage(CreateLayoutEditPackage());
         registrar.RegisterPackage(CreatePropertyPanelPackage());
-        registrar.RegisterPackage(CreateBehaviorEditPackage());
         registrar.RegisterPackage(CreatePackageImportExportPackage());
+        registrar.RegisterPackage(CreateHelpPackage());
     }
 
     private static TutorialPackageDefinition CreateOverviewPackage() =>
@@ -107,6 +110,12 @@ public partial class FrontedDesignerWindow
                     nameof(PropertyPanelHost),
                     "属性区域",
                     "右侧是属性编辑区域。稍后在预览区域选中控件后，这里会显示可编辑属性。",
+                    ProductTourInteractionMode.AllowTargetOnly,
+                    allowMissing: true),
+                TutorialDefinitionHelpers.Step(
+                    nameof(BehaviorPanelHost),
+                    "行为和动画区域",
+                    "选中控件后，右侧会出现行为和动画区域。这些高级编辑器会在进入对应区域时单独说明。",
                     ProductTourInteractionMode.AllowTargetOnly,
                     allowMissing: true)
             ]);
@@ -175,43 +184,11 @@ public partial class FrontedDesignerWindow
                     allowMissing: true)
             ]);
 
-    private static TutorialPackageDefinition CreateBehaviorEditPackage() =>
-        TutorialDefinitionHelpers.Package(
-            TutorialPackages.BehaviorEditBasic,
-            TutorialPageKey,
-            4,
-            [
-                TutorialDefinitionHelpers.Step(
-                    nameof(BehaviorPanelHost),
-                    "动画行为",
-                    "动画行为由“触发条件”和“动作”组成，可以让控件在特定状态下自动出现、隐藏、移动或循环。",
-                    ProductTourInteractionMode.AllowTargetOnly,
-                    allowMissing: true),
-                TutorialDefinitionHelpers.Step(
-                    TutorialTargets.AddBehaviorButton,
-                    "新增行为",
-                    "这里可以新增显示、隐藏、移动、透明度变化或循环动画。本教程不强制创建行为。",
-                    ProductTourInteractionMode.AllowTargetOnly,
-                    allowMissing: true),
-                TutorialDefinitionHelpers.Step(
-                    TutorialTargets.BehaviorTriggerEditor,
-                    "触发条件",
-                    "触发条件决定动画什么时候运行。",
-                    ProductTourInteractionMode.AllowTargetOnly,
-                    allowMissing: true),
-                TutorialDefinitionHelpers.Step(
-                    TutorialTargets.BehaviorActionEditor,
-                    "动作编辑",
-                    "动作决定控件如何变化。如果动画异常循环，可以回到前台管理页面停止所有循环动画。",
-                    ProductTourInteractionMode.AllowTargetOnly,
-                    allowMissing: true)
-            ]);
-
     private static TutorialPackageDefinition CreatePackageImportExportPackage() =>
         TutorialDefinitionHelpers.Package(
             TutorialPackages.PackageImportExport,
             TutorialPageKey,
-            5,
+            4,
             [
                 TutorialDefinitionHelpers.Step(
                     nameof(SaveLayoutButton),
@@ -231,11 +208,18 @@ public partial class FrontedDesignerWindow
                     "布局包也可以在前台管理页面导入和启用。如果布局包依赖插件，需要先安装对应插件。",
                     ProductTourInteractionMode.AllowTargetOnly,
                     allowMissing: true),
+            ]);
+
+    private static TutorialPackageDefinition CreateHelpPackage() =>
+        TutorialDefinitionHelpers.Package(
+            TutorialPackages.HelpBasic,
+            TutorialPageKey,
+            5,
+            [
                 TutorialDefinitionHelpers.Step(
                     nameof(DesignerHelpButton),
                     "查看详细说明",
-                    "右下角这个按钮可以打开 v3 编辑器的详细说明。遇到属性、行为或布局包规则不清楚时，可以点击这里查看。",
-                    ProductTourInteractionMode.AllowTargetOnly,
-                    allowMissing: true)
+                    "右下角这个帮助按钮可以打开 v3 编辑器的详细说明。遇到属性、行为、动画或布局包规则不清楚时，可以点击这里查看详细 / 进阶说明。",
+                    ProductTourInteractionMode.AllowTargetOnly)
             ]);
 }

@@ -133,7 +133,7 @@ public sealed class TutorialService : ITutorialService
             .ToList();
 
         var pending = packages.FirstOrDefault(package => IsPackagePending(package, state)
-            && (package.CanRun?.Invoke(_serviceProvider) ?? true));
+            && CanRunPackage(package, owner));
         if (pending == null)
         {
             return TutorialRunResult.NotPending;
@@ -155,6 +155,11 @@ public sealed class TutorialService : ITutorialService
         {
             _logger.LogWarning("Tutorial package {PackageId} is not registered.", packageId);
             return TutorialRunResult.Failed;
+        }
+
+        if (!CanRunPackage(package, owner))
+        {
+            return TutorialRunResult.NotPending;
         }
 
         if (!_runLock.Wait(0))
@@ -290,6 +295,11 @@ public sealed class TutorialService : ITutorialService
             return TutorialRunResult.Failed;
         }
 
+        if (!CanRunPackage(package, owner))
+        {
+            return TutorialRunResult.NotPending;
+        }
+
         return await RunStepsAsync(owner, package.Steps, flowId, package.PackageId, cancellationToken);
     }
 
@@ -302,6 +312,7 @@ public sealed class TutorialService : ITutorialService
     {
         var host = OverlayHost.GetHostPanel(owner);
         var index = 0;
+        var shownStepCount = 0;
         while (index < steps.Count)
         {
             var step = steps[index];
@@ -340,6 +351,7 @@ public sealed class TutorialService : ITutorialService
                 }
             }
 
+            shownStepCount++;
             var overlay = new ProductTourOverlay(_textProvider, _options, _avatarProvider);
             var context = new ProductTourStepContext
             {
@@ -400,6 +412,11 @@ public sealed class TutorialService : ITutorialService
 
             await (step.AfterCompleteAsync?.Invoke(_serviceProvider, cancellationToken) ?? Task.CompletedTask);
             index++;
+        }
+
+        if (steps.Count > 0 && shownStepCount == 0)
+        {
+            return TutorialRunResult.TargetMissing;
         }
 
         return TutorialRunResult.Completed;
@@ -475,6 +492,11 @@ public sealed class TutorialService : ITutorialService
 
         return record.Version < package.Version;
     }
+
+    private bool CanRunPackage(TutorialPackageDefinition package, FrameworkElement owner) =>
+        package.CanRunWithOwner?.Invoke(_serviceProvider, owner)
+        ?? package.CanRun?.Invoke(_serviceProvider)
+        ?? true;
 
     private static bool StepRequiresTarget(ProductTourStep step) =>
         step.TargetKind switch

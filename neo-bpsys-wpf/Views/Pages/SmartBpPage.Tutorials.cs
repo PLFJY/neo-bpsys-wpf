@@ -257,17 +257,24 @@ public partial class SmartBpPage
             ],
             IsSmartBpPostGameAutoFillVisible);
 
-    private static bool IsSmartBpModuleLoaded(IServiceProvider serviceProvider) =>
-        serviceProvider.GetService(typeof(SmartBpPageViewModel)) is SmartBpPageViewModel viewModel
-            && viewModel.IsModuleLoaded;
-
-    private static bool IsSmartBpModuleNotLoaded(IServiceProvider serviceProvider) =>
-        serviceProvider.GetService(typeof(SmartBpPageViewModel)) is not SmartBpPageViewModel viewModel
-            || !viewModel.IsModuleLoaded;
-
-    private static bool IsSmartBpPostGameAutoFillVisible(IServiceProvider serviceProvider)
+    private static bool IsSmartBpModuleLoaded(IServiceProvider serviceProvider, System.Windows.FrameworkElement? owner)
     {
         _ = serviceProvider;
+        return owner is System.Windows.FrameworkElement { DataContext: SmartBpPageViewModel viewModel }
+            && viewModel.IsModuleLoaded;
+    }
+
+    private static bool IsSmartBpModuleNotLoaded(IServiceProvider serviceProvider, System.Windows.FrameworkElement? owner)
+    {
+        _ = serviceProvider;
+        return owner is not System.Windows.FrameworkElement { DataContext: SmartBpPageViewModel viewModel }
+            || !viewModel.IsModuleLoaded;
+    }
+
+    private static bool IsSmartBpPostGameAutoFillVisible(IServiceProvider serviceProvider, System.Windows.FrameworkElement? owner)
+    {
+        _ = serviceProvider;
+        _ = owner;
         return false;
     }
 }

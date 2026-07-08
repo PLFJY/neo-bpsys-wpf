@@ -7,6 +7,9 @@ namespace neo_bpsys_wpf.Views.Pages.FrontManage;
 
 public partial class FrontedWindowsView
 {
+    /// <summary>Fronted windows view tutorial key.</summary>
+    public const string TutorialPageKey = "Page.FrontManage.Windows";
+
     /// <summary>Fronted windows view tutorial package ids.</summary>
     public static class TutorialPackages
     {
@@ -33,10 +36,17 @@ public partial class FrontedWindowsView
     /// <param name="registrar">Tutorial registrar.</param>
     public static void RegisterTutorials(ITutorialDefinitionRegistrar registrar)
     {
+        registrar.RegisterSequence(TutorialPageKey,
+        [
+            TutorialPackages.WindowsBasic,
+            TutorialPackages.OpenDesigner,
+            TutorialPackages.BpWindowLaunchBasic
+        ]);
+
         registrar.RegisterPackage(TutorialDefinitionHelpers.Package(
             TutorialPackages.BpWindowLaunchBasic,
-            FrontManagePage.TutorialPageKey,
-            0,
+            TutorialPageKey,
+            3,
             [
                 TutorialDefinitionHelpers.ElementTagStep(
                     FrontedWindowHelper.GetFrontedWindowGuid(FrontedWindowType.BpWindow),
@@ -48,8 +58,8 @@ public partial class FrontedWindowsView
 
         registrar.RegisterPackage(TutorialDefinitionHelpers.Package(
             TutorialPackages.WindowsBasic,
-            FrontManagePage.TutorialPageKey,
-            2,
+            TutorialPageKey,
+            1,
             [
                 TutorialDefinitionHelpers.Step(
                     "FrontedWindowsTab",
@@ -97,8 +107,8 @@ public partial class FrontedWindowsView
 
         registrar.RegisterPackage(TutorialDefinitionHelpers.Package(
             TutorialPackages.OpenDesigner,
-            FrontManagePage.TutorialPageKey,
-            3,
+            TutorialPageKey,
+            2,
             [
                 TutorialDefinitionHelpers.Step(
                     nameof(OpenFrontedDesignerButton),

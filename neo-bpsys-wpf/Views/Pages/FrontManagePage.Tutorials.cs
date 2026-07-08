@@ -1,7 +1,5 @@
 using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.Tutorial;
-using neo_bpsys_wpf.Views.Pages.FrontManage;
-
 namespace neo_bpsys_wpf.Views.Pages;
 
 public partial class FrontManagePage
@@ -24,10 +22,7 @@ public partial class FrontManagePage
     {
         registrar.RegisterSequence(TutorialPageKey,
         [
-            TutorialPackages.Overview,
-            FrontedWindowsView.TutorialPackages.WindowsBasic,
-            FrontedWindowsView.TutorialPackages.OpenDesigner,
-            FrontedLayoutPackagesView.TutorialPackages.LayoutPackagesBasic
+            TutorialPackages.Overview
         ]);
 
         registrar.RegisterPackage(TutorialDefinitionHelpers.Package(

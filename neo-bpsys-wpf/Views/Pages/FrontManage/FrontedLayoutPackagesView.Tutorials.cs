@@ -5,6 +5,9 @@ namespace neo_bpsys_wpf.Views.Pages.FrontManage;
 
 public partial class FrontedLayoutPackagesView
 {
+    /// <summary>Fronted layout packages view tutorial key.</summary>
+    public const string TutorialPageKey = "Page.FrontManage.LayoutPackages";
+
     /// <summary>Fronted layout package view tutorial package ids.</summary>
     public static class TutorialPackages
     {
@@ -18,10 +21,15 @@ public partial class FrontedLayoutPackagesView
     /// <param name="registrar">Tutorial registrar.</param>
     public static void RegisterTutorials(ITutorialDefinitionRegistrar registrar)
     {
+        registrar.RegisterSequence(TutorialPageKey,
+        [
+            TutorialPackages.LayoutPackagesBasic
+        ]);
+
         registrar.RegisterPackage(TutorialDefinitionHelpers.Package(
             TutorialPackages.LayoutPackagesBasic,
-            FrontManagePage.TutorialPageKey,
-            4,
+            TutorialPageKey,
+            1,
             [
                 TutorialDefinitionHelpers.Step(
                     "LayoutPackagesTab",

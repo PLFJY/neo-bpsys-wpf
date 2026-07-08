@@ -1,4 +1,5 @@
 using neo_bpsys_wpf.ProductTour;
+using neo_bpsys_wpf.Views.FrontedDesigner;
 using neo_bpsys_wpf.Views.Pages;
 using neo_bpsys_wpf.Views.Pages.FrontManage;
 using neo_bpsys_wpf.Views.Windows;
@@ -29,6 +30,8 @@ public static class NeoBpsysTutorialRegistration
         FrontedWindowsView.RegisterTutorials(registrar);
         FrontedLayoutPackagesView.RegisterTutorials(registrar);
         FrontedDesignerWindow.RegisterTutorials(registrar);
+        BehaviorPanelView.RegisterTutorials(registrar);
+        FrontedBehaviorAnimationEditorWindow.RegisterTutorials(registrar);
 
         TeamInfoPage.RegisterTutorials(registrar);
         BanSurPage.RegisterTutorials(registrar);

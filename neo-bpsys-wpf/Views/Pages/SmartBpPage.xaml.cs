@@ -3,6 +3,7 @@ using neo_bpsys_wpf.Tutorial;
 using neo_bpsys_wpf.ViewModels.Pages;
 using System.ComponentModel;
 using System.Windows.Controls;
+using System.Windows.Threading;
 
 namespace neo_bpsys_wpf.Views.Pages;
 
@@ -61,7 +62,9 @@ public partial class SmartBpPage : Page
         if (e.PropertyName == nameof(SmartBpPageViewModel.IsModuleLoaded)
             && sender is SmartBpPageViewModel { IsModuleLoaded: true })
         {
-            TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.SmartBp);
+            Dispatcher.BeginInvoke(
+                DispatcherPriority.ContextIdle,
+                new Action(() => TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.SmartBp)));
         }
     }
 }

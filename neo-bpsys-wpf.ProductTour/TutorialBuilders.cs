@@ -14,6 +14,7 @@ public sealed class TutorialPackageBuilder
     private int _sequence;
     private string _kind = "ProductTour";
     private Func<IServiceProvider, bool>? _canRun;
+    private Func<IServiceProvider, FrameworkElement?, bool>? _canRunWithOwner;
 
     private TutorialPackageBuilder(string packageId)
     {
@@ -67,6 +68,15 @@ public sealed class TutorialPackageBuilder
     public TutorialPackageBuilder CanRun(Func<IServiceProvider, bool> canRun)
     {
         _canRun = canRun;
+        return this;
+    }
+
+    /// <summary>Sets an optional owner-aware condition that determines whether the package can run.</summary>
+    /// <param name="canRun">Condition invoked with the application service provider and owner element.</param>
+    /// <returns>The same builder.</returns>
+    public TutorialPackageBuilder CanRun(Func<IServiceProvider, FrameworkElement?, bool> canRun)
+    {
+        _canRunWithOwner = canRun;
         return this;
     }
 
@@ -157,7 +167,8 @@ public sealed class TutorialPackageBuilder
             Sequence = _sequence,
             Kind = _kind,
             Steps = _steps.ToArray(),
-            CanRun = _canRun
+            CanRun = _canRun,
+            CanRunWithOwner = _canRunWithOwner
         };
 }
 

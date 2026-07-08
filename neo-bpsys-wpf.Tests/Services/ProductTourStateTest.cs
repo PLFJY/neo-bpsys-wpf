@@ -224,6 +224,109 @@ public sealed class ProductTourStateTest
     }
 
     [Fact]
+    public async Task AllMissingOptionalPackageDoesNotRecordCompleted()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var fixture = new Fixture();
+            fixture.RegisterPackage(
+                "Package.OptionalMissing",
+                version: 1,
+                pageKey: "Page.Test",
+                steps:
+                [
+                    new ProductTourStep
+                    {
+                        TargetName = "MissingOne",
+                        Title = "Missing one",
+                        Description = "Optional missing target",
+                        AllowMissingTarget = true,
+                        Timeout = TimeSpan.FromMilliseconds(20)
+                    },
+                    new ProductTourStep
+                    {
+                        TargetName = "MissingTwo",
+                        Title = "Missing two",
+                        Description = "Optional missing target",
+                        AllowMissingTarget = true,
+                        Timeout = TimeSpan.FromMilliseconds(20)
+                    }
+                ]);
+            fixture.SequenceRegistry.RegisterSequence("Page.Test", ["Package.OptionalMissing"]);
+
+            var result = await fixture.Service.RunPackageAsync(
+                CreateOwner(),
+                "Package.OptionalMissing",
+                TutorialTriggerMode.AutoOnLoaded);
+            var state = await fixture.StateStore.LoadAsync();
+
+            Assert.Equal(TutorialRunResult.TargetMissing, result);
+            Assert.False(state.CompletedPackages.ContainsKey("Package.OptionalMissing"));
+        });
+    }
+
+    [Fact]
+    public async Task AllMissingOptionalPackageRemainsPendingOnNextPageRun()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var fixture = new Fixture();
+            fixture.RegisterPackage(
+                "Package.OptionalMissing",
+                version: 1,
+                pageKey: "Page.Test",
+                steps:
+                [
+                    new ProductTourStep
+                    {
+                        TargetName = "MissingTarget",
+                        Title = "Missing",
+                        Description = "Optional missing target",
+                        AllowMissingTarget = true,
+                        Timeout = TimeSpan.FromMilliseconds(20)
+                    }
+                ]);
+            fixture.SequenceRegistry.RegisterSequence("Page.Test", ["Package.OptionalMissing"]);
+
+            var first = await fixture.Service.RunPendingPagePackagesAsync(CreateOwner(), "Page.Test");
+            var second = await fixture.Service.RunPendingPagePackagesAsync(CreateOwner(), "Page.Test");
+            var state = await fixture.StateStore.LoadAsync();
+
+            Assert.Equal(TutorialRunResult.TargetMissing, first);
+            Assert.Equal(TutorialRunResult.TargetMissing, second);
+            Assert.False(state.CompletedPackages.ContainsKey("Package.OptionalMissing"));
+        });
+    }
+
+    [Fact]
+    public async Task CanRunReceivesOwner()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var fixture = new Fixture();
+            var expectedOwner = CreateOwner();
+            FrameworkElement? receivedOwner = null;
+            fixture.PackageRegistry.Register(new TutorialPackageDefinition
+            {
+                PackageId = "Package.OwnerAware",
+                Version = 1,
+                PageKey = "Page.Test",
+                CanRunWithOwner = (_, owner) =>
+                {
+                    receivedOwner = owner;
+                    return ReferenceEquals(owner, expectedOwner);
+                }
+            });
+            fixture.SequenceRegistry.RegisterSequence("Page.Test", ["Package.OwnerAware"]);
+
+            var result = await fixture.Service.RunPendingPagePackagesAsync(expectedOwner, "Page.Test");
+
+            Assert.Equal(TutorialRunResult.Completed, result);
+            Assert.Same(expectedOwner, receivedOwner);
+        });
+    }
+
+    [Fact]
     public async Task SignalTimeoutDoesNotCompleteUntilUserContinues()
     {
         await WpfTestThread.RunAsync(async () =>

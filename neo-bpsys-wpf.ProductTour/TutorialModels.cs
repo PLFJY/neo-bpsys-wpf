@@ -270,6 +270,9 @@ public sealed class TutorialPackageDefinition
 
     /// <summary>Gets or sets an optional condition that determines whether the package can run.</summary>
     public Func<IServiceProvider, bool>? CanRun { get; init; }
+
+    /// <summary>Gets or sets an optional owner-aware condition that determines whether the package can run.</summary>
+    public Func<IServiceProvider, FrameworkElement?, bool>? CanRunWithOwner { get; init; }
 }
 
 /// <summary>

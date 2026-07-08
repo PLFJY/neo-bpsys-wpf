@@ -6,6 +6,7 @@ using System.Windows.Threading;
 using neo_bpsys_wpf.Controls.Modern.Scrolling;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.Tutorial;
 using neo_bpsys_wpf.ViewModels.FrontedDesigner;
 using neo_bpsys_wpf.Views.FrontedDesigner.GraphEditor;
 using Wpf.Ui.Controls;
@@ -35,7 +36,13 @@ public partial class FrontedBehaviorAnimationEditorWindow : FluentWindow
                 views[index]));
         }
 
-        Loaded += (_, _) => AnimationTabs.SelectFirstItemIfNoneSelected();
+        Loaded += (_, _) =>
+        {
+            AnimationTabs.SelectFirstItemIfNoneSelected();
+            Dispatcher.BeginInvoke(
+                DispatcherPriority.ContextIdle,
+                new Action(() => TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKey)));
+        };
         Closed += OnClosed;
     }
 

@@ -159,7 +159,17 @@
         </DataTemplate>
     </UserControl.Resources>
 
-    <StackPanel>
+    <DockPanel LastChildFill="True">
+        <ui:Button
+            x:Name="BehaviorHelpButton"
+            Margin="0,0,0,8"
+            Padding="6,4"
+            HorizontalAlignment="Right"
+            Click="OpenHelp_OnClick"
+            DockPanel.Dock="Bottom"
+            Icon="{ui:SymbolIcon Symbol=QuestionCircle24}"
+            ToolTip="{lex:Loc Designer.Graph.Help}" />
+        <StackPanel>
         <Border
             Padding="8"
             Background="{DynamicResource ControlFillColorSecondaryBrush}"
@@ -422,5 +432,6 @@
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
-    </StackPanel>
+        </StackPanel>
+    </DockPanel>
 </UserControl>

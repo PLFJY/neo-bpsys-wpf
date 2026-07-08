@@ -5,12 +5,56 @@ namespace neo_bpsys_wpf.Tutorial;
 
 internal static class TutorialDefinitionHelpers
 {
+    /// <summary>
+    /// Creates a package definition.
+    /// </summary>
+    /// <param name="packageId">Package id.</param>
+    /// <param name="pageKey">Page key.</param>
+    /// <param name="sequence">Package sequence.</param>
+    /// <param name="steps">Package steps.</param>
+    /// <param name="canRun">Optional run predicate.</param>
+    /// <returns>The package definition.</returns>
+    /// <summary>
+    /// Creates a package definition with an owner-aware run predicate.
+    /// </summary>
+    /// <param name="packageId">Package id.</param>
+    /// <param name="pageKey">Page key.</param>
+    /// <param name="sequence">Package sequence.</param>
+    /// <param name="steps">Package steps.</param>
+    /// <param name="canRun">Optional owner-aware run predicate.</param>
+    /// <returns>The package definition.</returns>
     public static TutorialPackageDefinition Package(
         string packageId,
         string pageKey,
         int sequence,
         IEnumerable<ProductTourStep> steps,
         Func<IServiceProvider, bool>? canRun = null)
+    {
+        var builder = TutorialPackageBuilder.Create(packageId)
+            .ForPage(pageKey)
+            .Version(1)
+            .Sequence(sequence)
+            .Kind("ProductTour");
+
+        if (canRun != null)
+        {
+            builder.CanRun(canRun);
+        }
+
+        foreach (var step in steps)
+        {
+            builder.AddStep(step);
+        }
+
+        return builder.Build();
+    }
+
+    public static TutorialPackageDefinition Package(
+        string packageId,
+        string pageKey,
+        int sequence,
+        IEnumerable<ProductTourStep> steps,
+        Func<IServiceProvider, FrameworkElement?, bool>? canRun)
     {
         var builder = TutorialPackageBuilder.Create(packageId)
             .ForPage(pageKey)
