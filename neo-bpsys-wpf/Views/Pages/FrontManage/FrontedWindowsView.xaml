@@ -48,7 +48,6 @@
                             Content="{lex:Loc OpenFrontedDesigner}"
                             Icon="{ui:SymbolIcon Symbol=Edit24}" />
                         <ui:Button
-                            x:Name="BpWindowLaunchButton"
                             Height="50"
                             Margin="10,0,0,0"
                             Command="{Binding ShowAllWindowsCommand}"
@@ -117,7 +116,8 @@
                                                     <ui:Button
                                                         Command="{Binding DataContext.ShowWindowCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                         CommandParameter="{Binding WindowId}"
-                                                        Content="{lex:Loc Open}" />
+                                                        Content="{lex:Loc Open}"
+                                                        Tag="{Binding WindowId}" />
                                                     <ui:Button
                                                         Margin="10,0,0,0"
                                                         Command="{Binding DataContext.HideWindowCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"

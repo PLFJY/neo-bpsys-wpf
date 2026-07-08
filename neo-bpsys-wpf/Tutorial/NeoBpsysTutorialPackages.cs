@@ -1,5 +1,7 @@
 using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.Controls;
+using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Views.Pages;
 
 namespace neo_bpsys_wpf.Tutorial;
@@ -59,21 +61,12 @@ public static class NeoBpsysTutorialPackages
     {
         return packageId switch
         {
-            TutorialPackageIds.MainNavigationBasic =>
-            [
-                NavigationStep(
-                    typeof(TeamInfoPage).FullName!,
-                    "进入队伍管理",
-                    "先进入队伍管理页面，我们会设置本次教学使用的队伍。",
-                    ProductTourInteractionMode.AllowTargetOnly,
-                    TutorialSignalIds.NavigationTeamInfoOpened)
-            ],
             TutorialPackageIds.FrontManageBpWindowLaunchBasic =>
             [
-                Step(
-                    TutorialTargetNames.BpWindowLaunchButton,
+                ElementTagStep(
+                    FrontedWindowHelper.GetFrontedWindowGuid(FrontedWindowType.BpWindow),
                     "启动 BP 前台窗口",
-                    "导播时，观众看到的是前台窗口。我们先启动 BP 前台页面。",
+                    "导播时，观众看到的是前台窗口。我们先只启动 BP 前台页面。",
                     ProductTourInteractionMode.AllowTargetOnly,
                     TutorialSignalIds.BpWindowOpened)
             ],
@@ -85,6 +78,15 @@ public static class NeoBpsysTutorialPackages
                     "现在选择本次教学使用的场次。我们先从 BO1 上半开始。",
                     ProductTourInteractionMode.AllowTargetOnly,
                     TutorialSignalIds.GameProgressSelectedBo1FirstHalf)
+            ],
+            TutorialPackageIds.MainNavigationBasic =>
+            [
+                NavigationStep(
+                    typeof(TeamInfoPage).FullName!,
+                    "进入队伍管理",
+                    "先进入队伍管理页面，我们会设置本次教学使用的队伍。",
+                    ProductTourInteractionMode.AllowTargetOnly,
+                    TutorialSignalIds.NavigationTeamInfoOpened)
             ],
             TutorialPackageIds.TeamInfoBasic =>
             [
@@ -277,6 +279,36 @@ public static class NeoBpsysTutorialPackages
         var builder = TutorialPackageBuilder.Create("Transient.Step")
             .ForPage("Transient.Page")
             .StepDescendantType(hostTargetName, targetTypeFullName)
+            .Title(title)
+            .Description(description)
+            .Placement(ProductTourPlacement.Auto)
+            .Interaction(mode)
+            .Timeout(TimeSpan.FromSeconds(30));
+
+        if (signalId != null)
+        {
+            builder.WaitForSignal(signalId);
+        }
+
+        if (allowMissing)
+        {
+            builder.AllowMissingTarget();
+        }
+
+        return builder.EndStep().Build().Steps[0];
+    }
+
+    private static ProductTourStep ElementTagStep(
+        string targetTag,
+        string title,
+        string description,
+        ProductTourInteractionMode mode,
+        string? signalId = null,
+        bool allowMissing = false)
+    {
+        var builder = TutorialPackageBuilder.Create("Transient.Step")
+            .ForPage("Transient.Page")
+            .StepElementTag(targetTag)
             .Title(title)
             .Description(description)
             .Placement(ProductTourPlacement.Auto)

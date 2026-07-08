@@ -77,6 +77,23 @@ public sealed class ProductTourBuilderTest
     }
 
     [Fact]
+    public void StepElementTagCreatesElementTagTargetStep()
+    {
+        var package = TutorialPackageBuilder.Create("Package.ElementTag")
+            .ForPage("Page.FrontManage")
+            .StepElementTag("BpWindowId")
+                .Title("Title")
+                .Description("Description")
+                .EndStep()
+            .Build();
+
+        var step = Assert.Single(package.Steps);
+        Assert.Equal(TutorialTargetKind.ElementTag, step.TargetKind);
+        Assert.Equal("BpWindowId", step.TargetKey);
+        Assert.Null(step.TargetName);
+    }
+
+    [Fact]
     public void FlowBuilderCreatesExpectedDefinition()
     {
         var flow = TutorialFlowBuilder.Create("Flow.Test")

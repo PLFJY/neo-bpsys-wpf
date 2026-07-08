@@ -104,6 +104,7 @@ Guide Character 通过 `ITutorialAvatarProvider` 注入。ProductTour 库只定�
 | `Name` | 使用 `TargetName`，优先 `owner.FindName(...)`，再递归 VisualTree |
 | `NavigationItem` | 使用 `TargetKey`，在真实 `ModernNavigationView` / `NavigationViewItem` 生成的 VisualTree 中匹配 `TargetPageType.FullName`、`Tag`、`TargetPageTag`、`Id`，最后才 fallback 到显示文本 |
 | `DescendantType` | 可选先用 `TargetName` 找 host，再在 host 下查找第一个 `GetType().FullName == TargetKey` 的 `FrameworkElement` |
+| `ElementTag` | 使用 `TargetKey` 匹配 `FrameworkElement.Tag` 字符串，适合 DataTemplate 内无法稳定命名但有稳定业务 ID 的按钮 |
 
 目标在 `ScrollViewer` 内时应尝试 `BringIntoView()`；找不到目标时，日志和超时信息要包含 `flowId`、`packageId`、步骤索引、`TargetKind`、`TargetName` 和 `TargetKey`。
 
@@ -211,6 +212,8 @@ TutorialPackageBuilder.Create(TutorialPackageIds.BpCharacterSelectorBasic)
         .EndStep()
     .Build();
 ```
+
+DataTemplate 内有稳定业务 ID 的控件可使用 `StepElementTag(...)`。例如前台管理页的卡片“打开”按钮把 `Tag` 绑定到前台窗口 `WindowId`；BP 前台窗口教程使用 `FrontedWindowHelper.GetFrontedWindowGuid(FrontedWindowType.BpWindow)` 定位单个 BP Window 按钮，不指向“打开全部”按钮。
 
 Flow Builder 用于串联 dialogue 和 package 引用，不复制 package 内部步骤：
 

@@ -189,7 +189,6 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
     private void ShowAllWindows()
     {
         _frontedWindowService.AllWindowShow();
-        TutorialSignalPublisher.Publish(TutorialSignalIds.BpWindowOpened, new { Scope = "All" });
     }
 
     [RelayCommand]
@@ -1032,13 +1031,48 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
         {
             case FrontedWindowType windowType:
                 _frontedWindowService.ShowWindow(windowType);
-                TutorialSignalPublisher.Publish(TutorialSignalIds.BpWindowOpened, new { Window = windowType.ToString() });
+                PublishBpWindowOpenedIfTarget(windowType);
                 break;
             case string id:
                 _frontedWindowService.ShowWindow(id);
-                TutorialSignalPublisher.Publish(TutorialSignalIds.BpWindowOpened, new { WindowId = id });
+                PublishBpWindowOpenedIfTarget(id);
                 break;
         }
+    }
+
+    private static void PublishBpWindowOpenedIfTarget(FrontedWindowType windowType)
+    {
+        if (windowType is FrontedWindowType.BpWindow)
+        {
+            TutorialSignalPublisher.Publish(TutorialSignalIds.BpWindowOpened, new { Window = windowType.ToString() });
+            ActivateMainWindow();
+        }
+    }
+
+    private static void PublishBpWindowOpenedIfTarget(string windowId)
+    {
+        var bpWindowId = FrontedWindowHelper.GetFrontedWindowGuid(FrontedWindowType.BpWindow);
+        if (string.Equals(windowId, bpWindowId, StringComparison.Ordinal))
+        {
+            TutorialSignalPublisher.Publish(TutorialSignalIds.BpWindowOpened, new { WindowId = windowId });
+            ActivateMainWindow();
+        }
+    }
+
+    private static void ActivateMainWindow()
+    {
+        var mainWindow = Application.Current?.MainWindow;
+        if (mainWindow is null)
+        {
+            return;
+        }
+
+        if (mainWindow.WindowState is WindowState.Minimized)
+        {
+            mainWindow.WindowState = WindowState.Normal;
+        }
+
+        mainWindow.Activate();
     }
 
     [RelayCommand]

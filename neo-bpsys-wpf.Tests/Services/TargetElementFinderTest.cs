@@ -202,6 +202,64 @@ public sealed class TargetElementFinderTest
         });
     }
 
+    [Fact]
+    public async Task ElementTagFinderFindsTaggedElement()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var target = new System.Windows.Controls.Button { Tag = "BpWindowId" };
+            var root = new System.Windows.Controls.Grid
+            {
+                Children =
+                {
+                    new System.Windows.Controls.Button { Tag = "OtherWindowId" },
+                    target
+                }
+            };
+            var window = CreateHiddenWindow(root);
+            try
+            {
+                window.Show();
+                window.UpdateLayout();
+
+                var result = await TargetElementFinder.FindByElementTagAsync(
+                    root,
+                    "BpWindowId",
+                    TimeSpan.FromSeconds(2),
+                    CancellationToken.None);
+
+                Assert.Same(target, result);
+            }
+            finally
+            {
+                window.Close();
+            }
+        });
+    }
+
+    [Fact]
+    public async Task ElementTagFinderReturnsNullWhenTargetIsMissing()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var root = new System.Windows.Controls.Grid
+            {
+                Children =
+                {
+                    new System.Windows.Controls.Button { Tag = "OtherWindowId" }
+                }
+            };
+
+            var result = await TargetElementFinder.FindByElementTagAsync(
+                root,
+                "BpWindowId",
+                TimeSpan.FromMilliseconds(20),
+                CancellationToken.None);
+
+            Assert.Null(result);
+        });
+    }
+
     private static Window CreateHiddenWindow(UIElement content) =>
         new()
         {

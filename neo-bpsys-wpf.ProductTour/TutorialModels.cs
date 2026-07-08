@@ -60,7 +60,9 @@ public enum TutorialTargetKind
     /// <summary>Resolves the target from a navigation item.</summary>
     NavigationItem,
     /// <summary>Resolves the first descendant element matching a type full name.</summary>
-    DescendantType
+    DescendantType,
+    /// <summary>Resolves the target by matching a framework element tag string.</summary>
+    ElementTag
 }
 
 /// <summary>

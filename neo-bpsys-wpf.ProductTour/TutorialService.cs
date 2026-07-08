@@ -482,6 +482,7 @@ public sealed class TutorialService : ITutorialService
             TutorialTargetKind.Name => !string.IsNullOrWhiteSpace(step.TargetName),
             TutorialTargetKind.NavigationItem => !string.IsNullOrWhiteSpace(step.TargetKey),
             TutorialTargetKind.DescendantType => !string.IsNullOrWhiteSpace(step.TargetKey),
+            TutorialTargetKind.ElementTag => !string.IsNullOrWhiteSpace(step.TargetKey),
             _ => false
         };
 

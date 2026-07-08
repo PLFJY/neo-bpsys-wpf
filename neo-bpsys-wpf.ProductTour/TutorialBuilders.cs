@@ -105,6 +105,26 @@ public sealed class TutorialPackageBuilder
             });
     }
 
+    /// <summary>Starts building a product tour step targeting an element tag.</summary>
+    /// <param name="targetTag">Target framework element tag.</param>
+    /// <returns>A step builder.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="targetTag"/> is empty.</exception>
+    public ProductTourStepBuilder StepElementTag(string targetTag)
+    {
+        if (string.IsNullOrWhiteSpace(targetTag))
+        {
+            throw new ArgumentException("Target element tag cannot be empty.", nameof(targetTag));
+        }
+
+        return new ProductTourStepBuilder(
+            this,
+            new ProductTourStep
+            {
+                TargetKind = TutorialTargetKind.ElementTag,
+                TargetKey = targetTag
+            });
+    }
+
     /// <summary>Adds a completed step to the package.</summary>
     /// <param name="step">Step to add.</param>
     /// <returns>The same builder.</returns>

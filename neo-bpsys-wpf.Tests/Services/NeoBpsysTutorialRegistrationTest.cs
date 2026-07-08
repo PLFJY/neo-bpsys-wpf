@@ -1,4 +1,6 @@
 using neo_bpsys_wpf.ProductTour;
+using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Tutorial;
 using Xunit;
 
@@ -77,5 +79,15 @@ public sealed class NeoBpsysTutorialRegistrationTest
             item => Assert.Equal(TutorialPackageIds.GameManageBasic, Assert.IsType<PackageFlowItem>(item).PackageId),
             item => Assert.Equal(TutorialPackageIds.BpGameGuidanceBasic, Assert.IsType<PackageFlowItem>(item).PackageId),
             item => Assert.IsType<DialogueFlowItem>(item));
+
+        var frontManagePackage = Assert.Single(
+            packageRegistry.GetPackages(),
+            package => package.PackageId == TutorialPackageIds.FrontManageBpWindowLaunchBasic);
+        var frontManageStep = Assert.Single(frontManagePackage.Steps);
+        Assert.Equal(TutorialTargetKind.ElementTag, frontManageStep.TargetKind);
+        Assert.Equal(
+            FrontedWindowHelper.GetFrontedWindowGuid(FrontedWindowType.BpWindow),
+            frontManageStep.TargetKey);
+        Assert.Null(frontManageStep.TargetName);
     }
 }

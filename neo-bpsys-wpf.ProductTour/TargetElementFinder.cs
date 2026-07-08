@@ -20,6 +20,8 @@ internal static class TargetElementFinder
                 FindNavigationItemAsync(owner, step.TargetKey, step.Timeout, cancellationToken),
             TutorialTargetKind.DescendantType when !string.IsNullOrWhiteSpace(step.TargetKey) =>
                 FindDescendantTypeAsync(owner, step.TargetName, step.TargetKey, step.Timeout, cancellationToken),
+            TutorialTargetKind.ElementTag when !string.IsNullOrWhiteSpace(step.TargetKey) =>
+                FindByElementTagAsync(owner, step.TargetKey, step.Timeout, cancellationToken),
             _ => Task.FromResult<FrameworkElement?>(null)
         };
     }
@@ -36,6 +38,30 @@ internal static class TargetElementFinder
             cancellationToken.ThrowIfCancellationRequested();
             var result = owner.FindName(targetName) as FrameworkElement
                 ?? FindVisualChild(owner, targetName);
+            if (result != null && result.IsLoaded)
+            {
+                result.BringIntoView();
+                return result;
+            }
+
+            await owner.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ContextIdle, cancellationToken);
+            await Task.Delay(80, cancellationToken);
+        }
+
+        return null;
+    }
+
+    public static async Task<FrameworkElement?> FindByElementTagAsync(
+        FrameworkElement owner,
+        string targetTag,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        var deadline = DateTimeOffset.UtcNow + timeout;
+        while (DateTimeOffset.UtcNow < deadline)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var result = FindElementByTag(owner, targetTag);
             if (result != null && result.IsLoaded)
             {
                 result.BringIntoView();
@@ -156,6 +182,34 @@ internal static class TargetElementFinder
         if (root is ContentControl { Content: DependencyObject content })
         {
             return FindVisualChild(content, targetName);
+        }
+
+        return null;
+    }
+
+    private static FrameworkElement? FindElementByTag(DependencyObject root, string targetTag)
+    {
+        if (root is FrameworkElement element
+            && element.Tag is string tag
+            && string.Equals(tag, targetTag, StringComparison.Ordinal))
+        {
+            return element;
+        }
+
+        var childCount = VisualTreeHelper.GetChildrenCount(root);
+        for (var i = 0; i < childCount; i++)
+        {
+            var child = VisualTreeHelper.GetChild(root, i);
+            var nested = FindElementByTag(child, targetTag);
+            if (nested != null)
+            {
+                return nested;
+            }
+        }
+
+        if (root is ContentControl { Content: DependencyObject content })
+        {
+            return FindElementByTag(content, targetTag);
         }
 
         return null;

@@ -230,7 +230,8 @@ public static class TutorialSignalIds
 /// </summary>
 public static class TutorialTargetNames
 {
-    /// <summary>BP window launch button target name.</summary>
+    /// <summary>Legacy BP window launch button target name.</summary>
+    [Obsolete("Use the BP window id with TutorialTargetKind.ElementTag instead.")]
     public const string BpWindowLaunchButton = "BpWindowLaunchButton";
 
     /// <summary>Game progress combo box target name.</summary>
