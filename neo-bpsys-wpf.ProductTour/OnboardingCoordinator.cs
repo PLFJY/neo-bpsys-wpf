@@ -73,19 +73,20 @@ public sealed class OnboardingCoordinator : IOnboardingCoordinator
         }
 
         var host = OverlayHost.GetHostPanel(owner);
-        var overlay = new FirstRunWelcomeOverlay(_textProvider, _options);
+        var languageOptions = await _languageService.GetLanguageOptionsAsync(cancellationToken);
+        var overlay = new FirstRunWelcomeOverlay(_textProvider, _options, languageOptions);
         host.Children.Add(overlay);
         overlay.SkipConfirmed += async (_, _) =>
         {
             await MarkFirstRunSkippedAsync(cancellationToken);
             host.Children.Remove(overlay);
         };
-        overlay.StartRequested += async (_, cultureName) =>
+        overlay.StartRequested += async (_, languageOptionId) =>
         {
             host.Children.Remove(overlay);
             try
             {
-                await _languageService.ApplyLanguageAsync(cultureName, cancellationToken);
+                await _languageService.ApplyLanguageAsync(languageOptionId, cancellationToken);
                 await _tutorialService.RunFlowAsync(owner, FirstRunFlowId, force: true, cancellationToken);
             }
             catch (Exception ex)

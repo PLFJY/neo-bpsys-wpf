@@ -1,3 +1,5 @@
+using System.Windows;
+
 namespace neo_bpsys_wpf.ProductTour;
 
 /// <summary>
@@ -67,4 +69,25 @@ public sealed class ProductTourOptions
 
     /// <summary>Gets or sets the default arrow kind.</summary>
     public ProductTourArrowKind DefaultArrowKind { get; set; } = ProductTourArrowKind.Triangle;
+
+    /// <summary>Gets or sets the default mask opacity.</summary>
+    public double MaskOpacity { get; set; } = 0.86;
+
+    /// <summary>Gets or sets the welcome overlay mask opacity.</summary>
+    public double WelcomeMaskOpacity { get; set; } = 0.90;
+
+    /// <summary>Gets or sets the dialogue overlay mask opacity.</summary>
+    public double DialogueMaskOpacity { get; set; } = 0.82;
+
+    /// <summary>Gets or sets the product tour overlay mask opacity.</summary>
+    public double ProductTourMaskOpacity { get; set; } = 0.84;
+
+    /// <summary>Gets or sets the dialogue box maximum width.</summary>
+    public double DialogueBoxMaxWidth { get; set; } = 760;
+
+    /// <summary>Gets or sets the minimum opacity expected for the dialogue box surface.</summary>
+    public double DialogueBoxMinOpacity { get; set; } = 0.94;
+
+    /// <summary>Gets or sets the dialogue box margin.</summary>
+    public Thickness DialogueBoxMargin { get; set; } = new(48);
 }

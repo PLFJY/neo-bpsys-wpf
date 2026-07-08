@@ -63,15 +63,27 @@
 3. 使用 WPF-UI / Fluent 动态资源，例如 `TextFillColorPrimaryBrush`、`TextFillColorSecondaryBrush`、`CardBackgroundFillColorDefaultBrush`、`ControlStrokeColorDefaultBrush`、`AccentFillColorDefaultBrush`。
 4. 显示和关闭都要播放淡入淡出动画；点击“开始导览”后必须等淡出完成再移除 overlay。
 5. “跳过”必须进入 `SkipTutorialConfirmDialog` 二次确认，不使用系统 `MessageBox`。
+6. Welcome 应表现为页面式 onboarding surface，而不是半透明浮在 HomePage 上的弹窗卡片；底层页面只作为被强遮罩压暗的背景。
 
-语言选择在点击“开始导览”时应用到：
+语言选择不由 ProductTour 控件硬编码。`FirstRunWelcomeOverlay` 使用页面式布局中的 `ComboBox` 渲染 `ITutorialLanguageService.GetLanguageOptionsAsync()` 提供的 `TutorialLanguageOption`，点击“开始导览”时传回 option id。主程序的 `NeoBpsysTutorialLanguageService` 负责把 option id 映射到真实 `LanguageKey`：
+
+| Option id | 主程序语言 |
+| --- | --- |
+| `System` | `LanguageKey.System` |
+| `zh_Hans` | `LanguageKey.zh_Hans` |
+| `en_US` | `LanguageKey.en_US` |
+| `ja_JP` | `LanguageKey.ja_JP` |
+
+语言应用仍走主程序设置链路：
 
 ```csharp
+_settingsHostService.Settings.Language
+_settingsHostService.SaveConfigAsync()
 LocalizeDictionary.Instance.Culture
 Application.Current.Resources["CurrentLanguage"]
 ```
 
-并同步保存设置。后续 dialogue 和 product tour 文案按当前语言取值。
+ProductTour 库不得引用主程序的 `LanguageKey`，也不得在控件中出现 `zh-CN / en-US` 这类独立 culture 列表。后续 dialogue 和 product tour 文案按当前语言取值。
 
 ## UI 组件
 
@@ -87,6 +99,8 @@ Application.Current.Resources["CurrentLanguage"]
 
 样式 key 至少覆盖 ProductTour overlay、spotlight、card、标题、正文、箭头、按钮、welcome、dialogue 和 confirm dialog。新增视觉元素时先考虑扩展样式资源，不要在控件代码中绑定主程序具体颜色。
 
+首次导览运行期间，所有可见教程层都必须有右上角固定“跳过”按钮，包括 Welcome、Dialogue 和 ProductTour step。点击跳过只显示 `SkipTutorialConfirmDialog`；取消确认后当前句子或当前步骤继续，确认后当前 overlay 淡出并返回 `Skipped`。Flow 收到 `Skipped` 后只标记 flow 为 `Skipped`，不得覆盖 `IncludedPackageIds`。
+
 ## UI 配置边界
 
 Phase 3 后，Product Tour UI 按三层边界维护：
@@ -100,6 +114,8 @@ ProductTour.xaml: 视觉样式、颜色、字体、边框、阴影
 `ITutorialTextProvider` 只负责控件固定文案，例如“上一步”“下一步”“等待操作...”和 Welcome 的固定说明。它不负责卡片宽度、动画时长，也不负责 package 的业务说明文案。
 
 `ProductTourOptions` 用于控制运行时结构参数和行为开关，例如 `CardWidth`、`CardMaxHeight`、`CardMargin`、`Gap`、`SpotlightPadding`、进入/退出动画时长、打字机间隔、是否显示步骤进度、是否显示跳过按钮、是否显示箭头。`AddProductTour()` 会注册默认 options；主程序可以在注册后覆盖 singleton，以统一调整导览 UI 的尺寸和动效节奏。
+
+遮罩强度也由 `ProductTourOptions` 控制：`WelcomeMaskOpacity` 默认强于普通 product tour，`DialogueMaskOpacity` 和 `ProductTourMaskOpacity` 保证背景界面不会和教程内容抢阅读焦点。Dialogue 还通过 `DialogueBoxMaxWidth`、`DialogueBoxMinOpacity`、`DialogueBoxMargin` 控制可读性。
 
 `ProductTour.xaml` 负责视觉样式。等待、错误、进度、确认框、Dialogue continue 等视觉元素都应通过 style key 配置；控件代码只保留结构、状态和运行逻辑。控件代码不应手动覆盖卡片背景、边框、阴影或错误文本颜色，否则主程序无法通过资源字典统一替换视觉表现。
 

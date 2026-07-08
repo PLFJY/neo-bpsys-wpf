@@ -40,6 +40,7 @@ public sealed class ProductTourOverlay : Canvas
     private readonly Button _previousButton;
     private readonly Button _nextButton;
     private readonly Button _skipButton;
+    private readonly Button _globalSkipButton;
     private readonly TextBlock _waitingText;
     private readonly TextBlock _errorText;
     private readonly ITutorialTextProvider _textProvider;
@@ -51,6 +52,7 @@ public sealed class ProductTourOverlay : Canvas
     private ProductTourPlacement _currentPlacement = ProductTourPlacement.Center;
     private ProductTourInteractionMode _currentInteractionMode = ProductTourInteractionMode.BlockAll;
     private ProductTourArrowKind _currentArrowKind = ProductTourArrowKind.Triangle;
+    private SkipTutorialConfirmDialog? _confirmDialog;
 
     /// <summary>Initializes a new instance of the <see cref="ProductTourOverlay"/> class.</summary>
     public ProductTourOverlay()
@@ -118,7 +120,20 @@ public sealed class ProductTourOverlay : Canvas
 
         _skipButton = new Button { Content = _textProvider.Skip, MinWidth = 70, Margin = new Thickness(8, 0, 0, 0) };
         _skipButton.Style = TryFindResource("ProductTourSkipButtonStyle") as Style;
-        _skipButton.Click += (_, _) => _completion?.TrySetResult(ProductTourStepAction.Skip);
+        _skipButton.Click += (_, _) => ShowConfirmDialog();
+
+        _globalSkipButton = new Button
+        {
+            Content = _textProvider.Skip,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            VerticalAlignment = VerticalAlignment.Top,
+            MinWidth = 70,
+            Margin = new Thickness(0, 20, 24, 0)
+        };
+        _globalSkipButton.Style = TryFindResource("ProductTourSkipButtonStyle") as Style;
+        _globalSkipButton.Click += (_, _) => ShowConfirmDialog();
+        Panel.SetZIndex(_globalSkipButton, 4);
+        Children.Add(_globalSkipButton);
 
         var buttons = new StackPanel
         {
@@ -238,15 +253,22 @@ public sealed class ProductTourOverlay : Canvas
         var mask = new Border
         {
             Name = name,
+            Background = CreateMaskBrush(_options.ProductTourMaskOpacity),
             IsHitTestVisible = true
         };
-        mask.SetResourceReference(Border.BackgroundProperty, "ProductTourFallbackMaskBrush");
-        if (mask.Background == null)
+        return mask;
+    }
+
+    private Brush CreateMaskBrush(double opacity)
+    {
+        if (TryFindResource("ProductTourFallbackMaskBrush") is Brush resourceBrush)
         {
-            mask.Background = new SolidColorBrush(Color.FromArgb(204, 32, 32, 32));
+            var clone = resourceBrush.Clone();
+            clone.Opacity = Math.Clamp(opacity, 0, 1);
+            return clone;
         }
 
-        return mask;
+        return new SolidColorBrush(Color.FromRgb(16, 16, 16)) { Opacity = Math.Clamp(opacity, 0, 1) };
     }
 
     private void LayoutCurrent(FrameworkElement? owner, FrameworkElement? target, ProductTourPlacement placement)
@@ -260,6 +282,9 @@ public sealed class ProductTourOverlay : Canvas
 
         Width = width;
         Height = height;
+        _globalSkipButton.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+        SetLeft(_globalSkipButton, Math.Max(0, width - _globalSkipButton.DesiredSize.Width - 24));
+        SetTop(_globalSkipButton, 20);
 
         Rect targetRect;
         if (owner != null && target != null)
@@ -298,6 +323,7 @@ public sealed class ProductTourOverlay : Canvas
         SetLeft(_card, cardPoint.X);
         SetTop(_card, cardPoint.Y);
         LayoutArrow(targetRect, cardPoint, actualPlacement);
+        LayoutConfirmDialog();
     }
 
     private void LayoutMasks(double width, double height, Rect spotlightRect)
@@ -390,5 +416,41 @@ public sealed class ProductTourOverlay : Canvas
         SetTop(_arrow, y);
         var angle = Math.Atan2(targetCenter.Y - cardCenter.Y, targetCenter.X - cardCenter.X) * 180 / Math.PI;
         _arrow.RenderTransform = new RotateTransform(angle, 8, 8);
+    }
+
+    private void ShowConfirmDialog()
+    {
+        if (_confirmDialog != null)
+        {
+            return;
+        }
+
+        _confirmDialog = new SkipTutorialConfirmDialog(_textProvider, _options);
+        Children.Add(_confirmDialog);
+        Panel.SetZIndex(_confirmDialog, 5);
+        _confirmDialog.Canceled += (_, _) =>
+        {
+            Children.Remove(_confirmDialog);
+            _confirmDialog = null;
+        };
+        _confirmDialog.Confirmed += (_, _) =>
+        {
+            Children.Remove(_confirmDialog);
+            _confirmDialog = null;
+            _completion?.TrySetResult(ProductTourStepAction.Skip);
+        };
+        LayoutConfirmDialog();
+    }
+
+    private void LayoutConfirmDialog()
+    {
+        if (_confirmDialog == null)
+        {
+            return;
+        }
+
+        _confirmDialog.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+        SetLeft(_confirmDialog, Math.Max(0, (ActualWidth > 0 ? ActualWidth : Width) / 2 - _confirmDialog.DesiredSize.Width / 2));
+        SetTop(_confirmDialog, Math.Max(0, (ActualHeight > 0 ? ActualHeight : Height) / 2 - _confirmDialog.DesiredSize.Height / 2));
     }
 }

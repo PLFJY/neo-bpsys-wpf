@@ -150,6 +150,10 @@ public sealed class ProductTourStateTest
             var skipButton = FindButtonByContent(overlay, "跳过");
             Assert.NotNull(skipButton);
             skipButton.RaiseEvent(new System.Windows.RoutedEventArgs(Button.ClickEvent));
+            await Task.Delay(50);
+            var confirmButton = FindButtonByContent(overlay, "确认跳过");
+            Assert.NotNull(confirmButton);
+            confirmButton.RaiseEvent(new System.Windows.RoutedEventArgs(Button.ClickEvent));
             var result = await runTask;
 
             Assert.Equal(TutorialRunResult.Skipped, result);

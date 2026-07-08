@@ -15,6 +15,7 @@ public sealed class DialogueOverlay : Grid
     private readonly TextBlock _textBlock;
     private readonly TextBlock _continueBlock;
     private readonly Border _dialogueBox;
+    private readonly Button _skipButton;
     private IReadOnlyList<string> _lines = [];
     private int _lineIndex;
     private int _charIndex;
@@ -22,6 +23,7 @@ public sealed class DialogueOverlay : Grid
     private TaskCompletionSource<TutorialRunResult>? _completion;
     private readonly ITutorialTextProvider _textProvider;
     private readonly ProductTourOptions _options;
+    private SkipTutorialConfirmDialog? _confirmDialog;
 
     /// <summary>Gets or sets the typewriter interval.</summary>
     public TimeSpan TypewriterInterval { get; set; } = TimeSpan.FromMilliseconds(28);
@@ -41,6 +43,7 @@ public sealed class DialogueOverlay : Grid
         _options = options;
         TypewriterInterval = _options.TypewriterInterval;
         Style = TryFindResource("ProductTourDialogueOverlayStyle") as Style;
+        Background = CreateMaskBrush(_options.DialogueMaskOpacity);
         Panel.SetZIndex(this, 10000);
         HorizontalAlignment = HorizontalAlignment.Stretch;
         VerticalAlignment = VerticalAlignment.Stretch;
@@ -71,14 +74,28 @@ public sealed class DialogueOverlay : Grid
         {
             Style = TryFindResource("ProductTourDialogueBoxStyle") as Style,
             Width = double.NaN,
+            MaxWidth = _options.DialogueBoxMaxWidth,
+            Opacity = Math.Max(_options.DialogueBoxMinOpacity, 0.94),
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Bottom,
-            Margin = new Thickness(_options.Gap * 3),
+            Margin = _options.DialogueBoxMargin,
             RenderTransform = new TranslateTransform(0, _options.DialogueInitialTranslateY),
             Child = new StackPanel { Children = { _speakerBlock, _textBlock, _continueBlock } }
         };
 
+        _skipButton = new Button
+        {
+            Content = _textProvider.Skip,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            VerticalAlignment = VerticalAlignment.Top,
+            Margin = new Thickness(0, 20, 24, 0)
+        };
+        _skipButton.Style = TryFindResource("ProductTourSkipButtonStyle") as Style;
+        _skipButton.Click += (_, _) => ShowConfirmDialog();
+        Panel.SetZIndex(_skipButton, 4);
+
         Children.Add(_dialogueBox);
+        Children.Add(_skipButton);
         MouseLeftButtonDown += (_, _) => Advance();
     }
 
@@ -132,6 +149,11 @@ public sealed class DialogueOverlay : Grid
 
     private void Advance()
     {
+        if (_confirmDialog != null)
+        {
+            return;
+        }
+
         if (_completion == null || _lineIndex >= _lines.Count)
         {
             return;
@@ -189,5 +211,44 @@ public sealed class DialogueOverlay : Grid
         storyboard.Completed += (_, _) => source.TrySetResult();
         storyboard.Begin();
         return source.Task;
+    }
+
+    private void ShowConfirmDialog()
+    {
+        if (_confirmDialog != null)
+        {
+            return;
+        }
+
+        _confirmDialog = new SkipTutorialConfirmDialog(_textProvider, _options)
+        {
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        _confirmDialog.Canceled += (_, _) =>
+        {
+            Children.Remove(_confirmDialog);
+            _confirmDialog = null;
+        };
+        _confirmDialog.Confirmed += (_, _) =>
+        {
+            Children.Remove(_confirmDialog);
+            _confirmDialog = null;
+            _completion?.TrySetResult(TutorialRunResult.Skipped);
+        };
+        Children.Add(_confirmDialog);
+        Panel.SetZIndex(_confirmDialog, 5);
+    }
+
+    private Brush CreateMaskBrush(double opacity)
+    {
+        if (TryFindResource("ProductTourFallbackMaskBrush") is Brush resourceBrush)
+        {
+            var clone = resourceBrush.Clone();
+            clone.Opacity = Math.Clamp(opacity, 0, 1);
+            return clone;
+        }
+
+        return new SolidColorBrush(Color.FromRgb(16, 16, 16)) { Opacity = Math.Clamp(opacity, 0, 1) };
     }
 }

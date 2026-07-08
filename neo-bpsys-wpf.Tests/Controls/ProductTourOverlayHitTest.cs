@@ -44,6 +44,13 @@ public sealed class ProductTourOverlayHitTest
         Assert.True(options.ShowSkipButton);
         Assert.True(options.ShowArrow);
         Assert.Equal(ProductTourArrowKind.Triangle, options.DefaultArrowKind);
+        Assert.Equal(0.86, options.MaskOpacity);
+        Assert.Equal(0.90, options.WelcomeMaskOpacity);
+        Assert.Equal(0.82, options.DialogueMaskOpacity);
+        Assert.Equal(0.84, options.ProductTourMaskOpacity);
+        Assert.Equal(760, options.DialogueBoxMaxWidth);
+        Assert.Equal(0.94, options.DialogueBoxMinOpacity);
+        Assert.Equal(new Thickness(48), options.DialogueBoxMargin);
     }
 
     [Fact]

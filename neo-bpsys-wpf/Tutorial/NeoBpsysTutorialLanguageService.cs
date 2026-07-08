@@ -13,6 +13,13 @@ namespace neo_bpsys_wpf.Tutorial;
 public sealed class NeoBpsysTutorialLanguageService : ITutorialLanguageService
 {
     private readonly ISettingsHostService _settingsHostService;
+    private static readonly IReadOnlyDictionary<string, LanguageKey> LanguageMap = new Dictionary<string, LanguageKey>
+    {
+        ["System"] = LanguageKey.System,
+        ["zh_Hans"] = LanguageKey.zh_Hans,
+        ["en_US"] = LanguageKey.en_US,
+        ["ja_JP"] = LanguageKey.ja_JP
+    };
 
     /// <summary>
     /// Initializes a new instance of the <see cref="NeoBpsysTutorialLanguageService"/> class.
@@ -24,15 +31,57 @@ public sealed class NeoBpsysTutorialLanguageService : ITutorialLanguageService
     }
 
     /// <inheritdoc />
-    public async Task ApplyLanguageAsync(string cultureName, CancellationToken cancellationToken = default)
+    public Task<IReadOnlyList<TutorialLanguageOption>> GetLanguageOptionsAsync(CancellationToken cancellationToken = default)
     {
-        _settingsHostService.Settings.Language =
-            string.Equals(cultureName, "en-US", StringComparison.OrdinalIgnoreCase)
-                ? LanguageKey.en_US
-                : LanguageKey.zh_Hans;
+        var selected = _settingsHostService.Settings.Language;
+        IReadOnlyList<TutorialLanguageOption> options =
+        [
+            new TutorialLanguageOption
+            {
+                Id = "System",
+                DisplayName = "跟随系统",
+                NativeName = "Follow system",
+                IsSystemDefault = true,
+                IsSelected = selected == LanguageKey.System
+            },
+            new TutorialLanguageOption
+            {
+                Id = "zh_Hans",
+                DisplayName = "简体中文",
+                NativeName = "简体中文",
+                IsSelected = selected == LanguageKey.zh_Hans
+            },
+            new TutorialLanguageOption
+            {
+                Id = "en_US",
+                DisplayName = "English",
+                NativeName = "English",
+                IsSelected = selected == LanguageKey.en_US
+            },
+            new TutorialLanguageOption
+            {
+                Id = "ja_JP",
+                DisplayName = "日本語",
+                NativeName = "日本語",
+                IsSelected = selected == LanguageKey.ja_JP
+            }
+        ];
+        return Task.FromResult(options);
+    }
+
+    /// <inheritdoc />
+    public async Task ApplyLanguageAsync(string languageOptionId, CancellationToken cancellationToken = default)
+    {
+        _settingsHostService.Settings.Language = LanguageMap.TryGetValue(languageOptionId, out var language)
+            ? language
+            : LanguageKey.System;
         LocalizeDictionary.Instance.Culture = _settingsHostService.Settings.CultureInfo;
-        Application.Current.Resources["CurrentLanguage"] =
-            XmlLanguage.GetLanguage(_settingsHostService.Settings.CultureInfo.Name);
+        if (Application.Current != null)
+        {
+            Application.Current.Resources["CurrentLanguage"] =
+                XmlLanguage.GetLanguage(_settingsHostService.Settings.CultureInfo.Name);
+        }
+
         await _settingsHostService.SaveConfigAsync();
     }
 }

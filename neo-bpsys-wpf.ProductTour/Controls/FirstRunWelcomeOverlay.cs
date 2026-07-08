@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Animation;
@@ -15,6 +14,7 @@ public sealed class FirstRunWelcomeOverlay : Grid
     private readonly ComboBox _languageComboBox;
     private readonly ITutorialTextProvider _textProvider;
     private readonly ProductTourOptions _options;
+    private string _selectedLanguageOptionId;
     private SkipTutorialConfirmDialog? _confirmDialog;
 
     /// <summary>Occurs when the user starts the tutorial.</summary>
@@ -25,18 +25,25 @@ public sealed class FirstRunWelcomeOverlay : Grid
 
     /// <summary>Initializes a new instance of the <see cref="FirstRunWelcomeOverlay"/> class.</summary>
     public FirstRunWelcomeOverlay()
-        : this(new DefaultTutorialTextProvider(), new ProductTourOptions())
+        : this(new DefaultTutorialTextProvider(), new ProductTourOptions(), NoOpLanguageOptions())
     {
     }
 
     /// <summary>Initializes a new instance of the <see cref="FirstRunWelcomeOverlay"/> class.</summary>
     /// <param name="textProvider">Fixed UI text provider.</param>
     /// <param name="options">Product tour display options.</param>
-    public FirstRunWelcomeOverlay(ITutorialTextProvider textProvider, ProductTourOptions options)
+    /// <param name="languageOptions">Language options supplied by the host application.</param>
+    public FirstRunWelcomeOverlay(
+        ITutorialTextProvider textProvider,
+        ProductTourOptions options,
+        IReadOnlyList<TutorialLanguageOption>? languageOptions = null)
     {
         _textProvider = textProvider;
         _options = options;
+        var optionsList = languageOptions is { Count: > 0 } ? languageOptions : NoOpLanguageOptions();
+        _selectedLanguageOptionId = optionsList.FirstOrDefault(option => option.IsSelected)?.Id ?? optionsList[0].Id;
         Style = TryFindResource("ProductTourWelcomeOverlayStyle") as Style;
+        Background = CreateMaskBrush(_options.WelcomeMaskOpacity);
         HorizontalAlignment = HorizontalAlignment.Stretch;
         VerticalAlignment = VerticalAlignment.Stretch;
         Opacity = 0;
@@ -50,6 +57,7 @@ public sealed class FirstRunWelcomeOverlay : Grid
             Margin = new Thickness(0, 20, 24, 0)
         };
         skipButton.Style = TryFindResource("ProductTourSkipButtonStyle") as Style;
+        Panel.SetZIndex(skipButton, 2);
         skipButton.Click += (_, _) => ShowConfirmDialog();
 
         var title = new TextBlock
@@ -70,31 +78,44 @@ public sealed class FirstRunWelcomeOverlay : Grid
         };
         description.Style = TryFindResource("ProductTourWelcomeDescriptionStyle") as Style;
 
-        _languageComboBox = new ComboBox
-        {
-            Width = 180,
-            ItemsSource = new[] { "zh-CN", "en-US" },
-            SelectedIndex = CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase) ? 1 : 0
-        };
-
-        var languagePanel = new Grid
-        {
-            Margin = new Thickness(0, 26, 0, 0),
-            HorizontalAlignment = HorizontalAlignment.Center
-        };
-        languagePanel.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        languagePanel.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         var languageLabel = new TextBlock
         {
             Text = _textProvider.LanguageLabel,
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(0, 0, 12, 0)
+            HorizontalAlignment = HorizontalAlignment.Center,
+            Margin = new Thickness(0, 28, 0, 0)
         };
         languageLabel.Style = TryFindResource("ProductTourWelcomeDescriptionStyle") as Style;
-        Grid.SetColumn(languageLabel, 0);
-        Grid.SetColumn(_languageComboBox, 1);
-        languagePanel.Children.Add(languageLabel);
-        languagePanel.Children.Add(_languageComboBox);
+
+        _languageComboBox = new ComboBox
+        {
+            Margin = new Thickness(0, 12, 0, 0),
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
+        _languageComboBox.Style = TryFindResource("ProductTourWelcomeLanguageComboBoxStyle") as Style;
+        foreach (var option in optionsList)
+        {
+            var item = new ComboBoxItem
+            {
+                Content = string.IsNullOrWhiteSpace(option.NativeName) || string.Equals(option.DisplayName, option.NativeName, StringComparison.Ordinal)
+                    ? option.DisplayName
+                    : $"{option.DisplayName} / {option.NativeName}",
+                Tag = option.Id
+            };
+
+            _languageComboBox.Items.Add(item);
+            if (option.Id == _selectedLanguageOptionId)
+            {
+                _languageComboBox.SelectedItem = item;
+            }
+        }
+
+        _languageComboBox.SelectionChanged += (_, _) =>
+        {
+            if (_languageComboBox.SelectedItem is ComboBoxItem { Tag: string optionId })
+            {
+                _selectedLanguageOptionId = optionId;
+            }
+        };
 
         var startButton = new Button
         {
@@ -108,7 +129,7 @@ public sealed class FirstRunWelcomeOverlay : Grid
         startButton.Click += async (_, _) =>
         {
             await FadeOutAsync();
-            StartRequested?.Invoke(this, _languageComboBox.SelectedItem?.ToString() ?? "zh-CN");
+            StartRequested?.Invoke(this, _selectedLanguageOptionId);
         };
 
         var footnote = new TextBlock
@@ -131,10 +152,9 @@ public sealed class FirstRunWelcomeOverlay : Grid
             Child = new StackPanel
             {
                 MaxWidth = 620,
-                Margin = new Thickness(0, 72, 0, 0),
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
-                Children = { title, description, languagePanel, startButton, footnote }
+                Children = { title, description, languageLabel, _languageComboBox, startButton, footnote }
             }
         };
 
@@ -202,4 +222,24 @@ public sealed class FirstRunWelcomeOverlay : Grid
         };
         Children.Add(_confirmDialog);
     }
+
+    private Brush CreateMaskBrush(double opacity)
+    {
+        if (TryFindResource("ProductTourFallbackMaskBrush") is Brush resourceBrush)
+        {
+            var clone = resourceBrush.Clone();
+            clone.Opacity = Math.Clamp(opacity, 0, 1);
+            return clone;
+        }
+
+        return new SolidColorBrush(Color.FromRgb(16, 16, 16)) { Opacity = Math.Clamp(opacity, 0, 1) };
+    }
+
+    private static IReadOnlyList<TutorialLanguageOption> NoOpLanguageOptions() =>
+    [
+        new TutorialLanguageOption { Id = "System", DisplayName = "跟随系统", NativeName = "Follow system", IsSystemDefault = true, IsSelected = true },
+        new TutorialLanguageOption { Id = "zh_Hans", DisplayName = "简体中文", NativeName = "简体中文" },
+        new TutorialLanguageOption { Id = "en_US", DisplayName = "English", NativeName = "English" },
+        new TutorialLanguageOption { Id = "ja_JP", DisplayName = "日本語", NativeName = "日本語" }
+    ];
 }
