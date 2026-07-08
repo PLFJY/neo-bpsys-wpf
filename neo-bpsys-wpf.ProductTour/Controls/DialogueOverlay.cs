@@ -16,6 +16,7 @@ public sealed class DialogueOverlay : Grid
     private readonly TextBlock _continueBlock;
     private readonly Border _dialogueBox;
     private readonly Button _skipButton;
+    private readonly Image _avatarImage;
     private IReadOnlyList<string> _lines = [];
     private int _lineIndex;
     private int _charIndex;
@@ -23,6 +24,7 @@ public sealed class DialogueOverlay : Grid
     private TaskCompletionSource<TutorialRunResult>? _completion;
     private readonly ITutorialTextProvider _textProvider;
     private readonly ProductTourOptions _options;
+    private readonly ITutorialAvatarProvider _avatarProvider;
     private SkipTutorialConfirmDialog? _confirmDialog;
 
     /// <summary>Gets or sets the typewriter interval.</summary>
@@ -30,7 +32,7 @@ public sealed class DialogueOverlay : Grid
 
     /// <summary>Initializes a new instance of the <see cref="DialogueOverlay"/> class.</summary>
     public DialogueOverlay()
-        : this(new DefaultTutorialTextProvider(), new ProductTourOptions())
+        : this(new DefaultTutorialTextProvider(), new ProductTourOptions(), new NoOpTutorialAvatarProvider())
     {
     }
 
@@ -38,9 +40,22 @@ public sealed class DialogueOverlay : Grid
     /// <param name="textProvider">Fixed UI text provider.</param>
     /// <param name="options">Product tour display options.</param>
     public DialogueOverlay(ITutorialTextProvider textProvider, ProductTourOptions options)
+        : this(textProvider, options, new NoOpTutorialAvatarProvider())
+    {
+    }
+
+    /// <summary>Initializes a new instance of the <see cref="DialogueOverlay"/> class.</summary>
+    /// <param name="textProvider">Fixed UI text provider.</param>
+    /// <param name="options">Product tour display options.</param>
+    /// <param name="avatarProvider">Tutorial avatar provider.</param>
+    public DialogueOverlay(
+        ITutorialTextProvider textProvider,
+        ProductTourOptions options,
+        ITutorialAvatarProvider avatarProvider)
     {
         _textProvider = textProvider;
         _options = options;
+        _avatarProvider = avatarProvider;
         TypewriterInterval = _options.TypewriterInterval;
         Style = TryFindResource("ProductTourDialogueOverlayStyle") as Style;
         Background = CreateMaskBrush(_options.DialogueMaskOpacity);
@@ -70,6 +85,19 @@ public sealed class DialogueOverlay : Grid
         };
         _continueBlock.BeginAnimation(OpacityProperty, blink);
 
+        _avatarImage = new Image
+        {
+            Width = _options.DialogueAvatarWidth,
+            Stretch = Stretch.Uniform,
+            IsHitTestVisible = false,
+            Margin = _options.AvatarMargin,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            Visibility = Visibility.Collapsed
+        };
+        _avatarImage.Style = TryFindResource("ProductTourDialogueAvatarImageStyle") as Style;
+        Panel.SetZIndex(_avatarImage, 1);
+
         _dialogueBox = new Border
         {
             Style = TryFindResource("ProductTourDialogueBoxStyle") as Style,
@@ -82,6 +110,7 @@ public sealed class DialogueOverlay : Grid
             RenderTransform = new TranslateTransform(0, _options.DialogueInitialTranslateY),
             Child = new StackPanel { Children = { _speakerBlock, _textBlock, _continueBlock } }
         };
+        Panel.SetZIndex(_dialogueBox, 2);
 
         _skipButton = new Button
         {
@@ -94,6 +123,7 @@ public sealed class DialogueOverlay : Grid
         _skipButton.Click += (_, _) => ShowConfirmDialog();
         Panel.SetZIndex(_skipButton, 4);
 
+        Children.Add(_avatarImage);
         Children.Add(_dialogueBox);
         Children.Add(_skipButton);
         MouseLeftButtonDown += (_, _) => Advance();
@@ -106,7 +136,21 @@ public sealed class DialogueOverlay : Grid
     /// <returns>The dialogue run result.</returns>
     public async Task<TutorialRunResult> ShowAsync(string speaker, IReadOnlyList<string> lines, CancellationToken cancellationToken)
     {
-        _speakerBlock.Text = speaker;
+        var avatar = _options.ShowAvatar ? _avatarProvider.GetAvatar(TutorialAvatarPose.Idle) : null;
+        if (avatar != null)
+        {
+            _avatarImage.Source = avatar.ImageSource;
+            _avatarImage.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            _avatarImage.Source = null;
+            _avatarImage.Visibility = Visibility.Collapsed;
+        }
+
+        _speakerBlock.Text = avatar != null && IsDefaultSpeaker(speaker)
+            ? avatar.DisplayName
+            : speaker;
         _lines = lines;
         _lineIndex = 0;
         _completion = new TaskCompletionSource<TutorialRunResult>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -116,6 +160,12 @@ public sealed class DialogueOverlay : Grid
         var result = await _completion.Task;
         await FadeOutAsync();
         return result;
+    }
+
+    private static bool IsDefaultSpeaker(string speaker)
+    {
+        return string.IsNullOrWhiteSpace(speaker)
+            || string.Equals(speaker, "neo-bpsys-wpf", StringComparison.Ordinal);
     }
 
     private void StartLine()

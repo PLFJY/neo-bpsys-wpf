@@ -394,6 +394,7 @@ public sealed class ProductTourStateTest
                 StateStore,
                 new TutorialSignalService(),
                 new DefaultTutorialTextProvider(),
+                new NoOpTutorialAvatarProvider(),
                 new ProductTourOptions(),
                 NullLogger<TutorialService>.Instance);
         }

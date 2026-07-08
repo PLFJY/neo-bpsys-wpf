@@ -14,6 +14,7 @@ public sealed class FirstRunWelcomeOverlay : Grid
     private readonly ComboBox _languageComboBox;
     private readonly ITutorialTextProvider _textProvider;
     private readonly ProductTourOptions _options;
+    private readonly ITutorialAvatarProvider _avatarProvider;
     private string _selectedLanguageOptionId;
     private SkipTutorialConfirmDialog? _confirmDialog;
 
@@ -25,7 +26,7 @@ public sealed class FirstRunWelcomeOverlay : Grid
 
     /// <summary>Initializes a new instance of the <see cref="FirstRunWelcomeOverlay"/> class.</summary>
     public FirstRunWelcomeOverlay()
-        : this(new DefaultTutorialTextProvider(), new ProductTourOptions(), NoOpLanguageOptions())
+        : this(new DefaultTutorialTextProvider(), new ProductTourOptions(), new NoOpTutorialAvatarProvider(), NoOpLanguageOptions())
     {
     }
 
@@ -37,9 +38,24 @@ public sealed class FirstRunWelcomeOverlay : Grid
         ITutorialTextProvider textProvider,
         ProductTourOptions options,
         IReadOnlyList<TutorialLanguageOption>? languageOptions = null)
+        : this(textProvider, options, new NoOpTutorialAvatarProvider(), languageOptions)
+    {
+    }
+
+    /// <summary>Initializes a new instance of the <see cref="FirstRunWelcomeOverlay"/> class.</summary>
+    /// <param name="textProvider">Fixed UI text provider.</param>
+    /// <param name="options">Product tour display options.</param>
+    /// <param name="avatarProvider">Tutorial avatar provider.</param>
+    /// <param name="languageOptions">Language options supplied by the host application.</param>
+    public FirstRunWelcomeOverlay(
+        ITutorialTextProvider textProvider,
+        ProductTourOptions options,
+        ITutorialAvatarProvider avatarProvider,
+        IReadOnlyList<TutorialLanguageOption>? languageOptions = null)
     {
         _textProvider = textProvider;
         _options = options;
+        _avatarProvider = avatarProvider;
         var optionsList = languageOptions is { Count: > 0 } ? languageOptions : NoOpLanguageOptions();
         _selectedLanguageOptionId = optionsList.FirstOrDefault(option => option.IsSelected)?.Id ?? optionsList[0].Id;
         Style = TryFindResource("ProductTourWelcomeOverlayStyle") as Style;
@@ -140,22 +156,49 @@ public sealed class FirstRunWelcomeOverlay : Grid
         };
         footnote.Style = TryFindResource("ProductTourWelcomeFootnoteStyle") as Style;
 
+        var contentPanel = new StackPanel
+        {
+            MaxWidth = 430,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            Children = { title, description, languageLabel, _languageComboBox, startButton, footnote }
+        };
+        UIElement cardChild = contentPanel;
+        var avatar = _options.ShowAvatar ? _avatarProvider.GetAvatar(TutorialAvatarPose.Idle) : null;
+        if (avatar != null)
+        {
+            var avatarImage = new Image
+            {
+                Source = avatar.ImageSource,
+                Width = _options.WelcomeAvatarWidth,
+                Stretch = Stretch.Uniform,
+                IsHitTestVisible = false,
+                Margin = _options.AvatarMargin,
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+            avatarImage.Style = TryFindResource("ProductTourWelcomeAvatarImageStyle") as Style;
+
+            var layout = new Grid();
+            layout.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            layout.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            Grid.SetColumn(contentPanel, 0);
+            Grid.SetColumn(avatarImage, 1);
+            layout.Children.Add(contentPanel);
+            layout.Children.Add(avatarImage);
+            cardChild = layout;
+        }
+
         _card = new Border
         {
             Name = "WelcomeCard",
             Style = TryFindResource("ProductTourWelcomeCardStyle") as Style,
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
-            MaxWidth = 620,
-            Width = 620,
+            MaxWidth = 760,
+            Width = avatar == null ? 620 : 760,
             RenderTransform = new TranslateTransform(0, _options.WelcomeCardInitialTranslateY),
-            Child = new StackPanel
-            {
-                MaxWidth = 620,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                Children = { title, description, languageLabel, _languageComboBox, startButton, footnote }
-            }
+            Child = cardChild
         };
 
         Children.Add(skipButton);

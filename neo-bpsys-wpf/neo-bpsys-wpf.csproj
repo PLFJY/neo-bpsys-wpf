@@ -213,6 +213,8 @@
         <None Include="Resources\**">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+        <None Remove="Resources\Alice\*.png" />
+        <Resource Include="Resources\Alice\*.png" />
     </ItemGroup>
 
     <ItemGroup>

@@ -95,6 +95,8 @@ ProductTour 库不得引用主程序的 `LanguageKey`，也不得在控件中出
 | `ProductTourOverlay` | 遮罩、高亮目标控件、说明卡片、箭头和步骤导航 |
 | `OverlayHost` | 把 overlay 附着到当前 owner 的可视树上 |
 
+Guide Character 通过 `ITutorialAvatarProvider` 注入。ProductTour 库只定义 `TutorialAvatarPose`、`TutorialAvatar` 和默认空实现，不引用主程序资源路径。主程序当前用 `AliceTutorialAvatarProvider` 从 `Resources/Alice/*.png` 加载 Alice Guide Character，并按当前语言返回显示名：简体中文“爱丽丝·德罗斯”、英文“Alice DeRoss”、日文“アリス・デロス”。没有 provider 或 provider 返回 `null` 时，Welcome、Dialogue 和 ProductTour 都必须隐藏头像区域并保持可用。
+
 `ProductTourOverlay` 通过 `TargetName` 查找目标控件，优先 `owner.FindName(...)`，再递归 VisualTree。目标在 `ScrollViewer` 内时应尝试 `BringIntoView()`；找不到目标时，错误信息要包含 `flowId`、`packageId`、步骤索引和 `targetName`。
 
 样式 key 至少覆盖 ProductTour overlay、spotlight、card、标题、正文、箭头、按钮、welcome、dialogue 和 confirm dialog。新增视觉元素时先考虑扩展样式资源，不要在控件代码中绑定主程序具体颜色。

@@ -90,4 +90,19 @@ public sealed class ProductTourOptions
 
     /// <summary>Gets or sets the dialogue box margin.</summary>
     public Thickness DialogueBoxMargin { get; set; } = new(48);
+
+    /// <summary>Gets or sets whether guide avatars are shown when available.</summary>
+    public bool ShowAvatar { get; set; } = true;
+
+    /// <summary>Gets or sets the welcome guide avatar width.</summary>
+    public double WelcomeAvatarWidth { get; set; } = 220;
+
+    /// <summary>Gets or sets the dialogue guide avatar width.</summary>
+    public double DialogueAvatarWidth { get; set; } = 260;
+
+    /// <summary>Gets or sets the product tour guide avatar width.</summary>
+    public double ProductTourAvatarWidth { get; set; } = 96;
+
+    /// <summary>Gets or sets the guide avatar margin.</summary>
+    public Thickness AvatarMargin { get; set; } = new(16);
 }

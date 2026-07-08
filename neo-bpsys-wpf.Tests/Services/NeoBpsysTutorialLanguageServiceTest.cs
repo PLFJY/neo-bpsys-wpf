@@ -65,6 +65,33 @@ public sealed class NeoBpsysTutorialLanguageServiceTest
         Assert.Equal(1, settingsHost.SaveCount);
     }
 
+    [Fact]
+    public void DefaultTutorialAvatarProviderReturnsNoAvatar()
+    {
+        var provider = new NoOpTutorialAvatarProvider();
+
+        var avatar = provider.GetAvatar(TutorialAvatarPose.Idle);
+
+        Assert.Null(avatar);
+    }
+
+    [Theory]
+    [InlineData(LanguageKey.zh_Hans, "爱丽丝·德罗斯")]
+    [InlineData(LanguageKey.en_US, "Alice DeRoss")]
+    [InlineData(LanguageKey.ja_JP, "アリス・デロス")]
+    public void AliceTutorialAvatarProviderReturnsLocalizedName(LanguageKey language, string expectedName)
+    {
+        var settingsHost = new FakeSettingsHostService();
+        settingsHost.Settings.Language = language;
+        var provider = new AliceTutorialAvatarProvider(settingsHost);
+
+        var avatar = provider.GetAvatar(TutorialAvatarPose.Idle);
+
+        Assert.NotNull(avatar);
+        Assert.Equal(expectedName, avatar.DisplayName);
+        Assert.NotNull(avatar.ImageSource);
+    }
+
     private sealed class FakeSettingsHostService : ISettingsHostService
     {
         public Settings Settings { get; set; } = new();

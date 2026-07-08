@@ -51,6 +51,11 @@ public sealed class ProductTourOverlayHitTest
         Assert.Equal(760, options.DialogueBoxMaxWidth);
         Assert.Equal(0.94, options.DialogueBoxMinOpacity);
         Assert.Equal(new Thickness(48), options.DialogueBoxMargin);
+        Assert.True(options.ShowAvatar);
+        Assert.Equal(220, options.WelcomeAvatarWidth);
+        Assert.Equal(260, options.DialogueAvatarWidth);
+        Assert.Equal(96, options.ProductTourAvatarWidth);
+        Assert.Equal(new Thickness(16), options.AvatarMargin);
     }
 
     [Fact]

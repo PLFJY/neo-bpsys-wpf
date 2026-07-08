@@ -229,6 +229,33 @@
         <Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}" />
     </Style>
 
+    <Style x:Key="ProductTourAvatarImageStyle" TargetType="{x:Type Image}">
+        <Setter Property="Stretch" Value="Uniform" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="IsHitTestVisible" Value="False" />
+    </Style>
+
+    <Style
+        x:Key="ProductTourWelcomeAvatarImageStyle"
+        BasedOn="{StaticResource ProductTourAvatarImageStyle}"
+        TargetType="{x:Type Image}">
+        <Setter Property="Opacity" Value="0.96" />
+    </Style>
+
+    <Style
+        x:Key="ProductTourDialogueAvatarImageStyle"
+        BasedOn="{StaticResource ProductTourAvatarImageStyle}"
+        TargetType="{x:Type Image}">
+        <Setter Property="Opacity" Value="0.98" />
+    </Style>
+
+    <Style
+        x:Key="ProductTourCardAvatarImageStyle"
+        BasedOn="{StaticResource ProductTourAvatarImageStyle}"
+        TargetType="{x:Type Image}">
+        <Setter Property="Opacity" Value="0.96" />
+    </Style>
+
     <Style x:Key="ProductTourDialogueOverlayStyle" TargetType="{x:Type Grid}">
         <Setter Property="Background" Value="{DynamicResource ProductTourFallbackMaskBrush}" />
     </Style>

@@ -33,6 +33,7 @@ public partial class App
         services.AddProductTour();
         services.AddSingleton<ITutorialLanguageService, NeoBpsysTutorialLanguageService>();
         services.AddSingleton<ITutorialTextProvider, NeoBpsysTutorialTextProvider>();
+        services.AddSingleton<ITutorialAvatarProvider, AliceTutorialAvatarProvider>();
 
         //App Host
         services.AddHostedService<ApplicationHostService>();

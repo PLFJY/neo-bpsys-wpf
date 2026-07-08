@@ -41,10 +41,12 @@ public sealed class ProductTourOverlay : Canvas
     private readonly Button _nextButton;
     private readonly Button _skipButton;
     private readonly Button _globalSkipButton;
+    private readonly Image _avatarImage;
     private readonly TextBlock _waitingText;
     private readonly TextBlock _errorText;
     private readonly ITutorialTextProvider _textProvider;
     private readonly ProductTourOptions _options;
+    private readonly ITutorialAvatarProvider _avatarProvider;
     private TaskCompletionSource<ProductTourStepAction>? _completion;
     private bool _signalReceived;
     private FrameworkElement? _currentOwner;
@@ -56,7 +58,7 @@ public sealed class ProductTourOverlay : Canvas
 
     /// <summary>Initializes a new instance of the <see cref="ProductTourOverlay"/> class.</summary>
     public ProductTourOverlay()
-        : this(new DefaultTutorialTextProvider(), new ProductTourOptions())
+        : this(new DefaultTutorialTextProvider(), new ProductTourOptions(), new NoOpTutorialAvatarProvider())
     {
     }
 
@@ -64,9 +66,22 @@ public sealed class ProductTourOverlay : Canvas
     /// <param name="textProvider">Fixed UI text provider.</param>
     /// <param name="options">Product tour display options.</param>
     public ProductTourOverlay(ITutorialTextProvider textProvider, ProductTourOptions options)
+        : this(textProvider, options, new NoOpTutorialAvatarProvider())
+    {
+    }
+
+    /// <summary>Initializes a new instance of the <see cref="ProductTourOverlay"/> class.</summary>
+    /// <param name="textProvider">Fixed UI text provider.</param>
+    /// <param name="options">Product tour display options.</param>
+    /// <param name="avatarProvider">Tutorial avatar provider.</param>
+    public ProductTourOverlay(
+        ITutorialTextProvider textProvider,
+        ProductTourOptions options,
+        ITutorialAvatarProvider avatarProvider)
     {
         _textProvider = textProvider;
         _options = options;
+        _avatarProvider = avatarProvider;
         Style = TryFindResource("ProductTourOverlayStyle") as Style;
         Panel.SetZIndex(this, 10000);
         HorizontalAlignment = HorizontalAlignment.Stretch;
@@ -152,6 +167,16 @@ public sealed class ProductTourOverlay : Canvas
             Child = new StackPanel { Children = { _title, _description, _progress, _waitingText, _errorText, buttons } }
         };
         Children.Add(_card);
+
+        _avatarImage = new Image
+        {
+            Width = _options.ProductTourAvatarWidth,
+            Stretch = Stretch.Uniform,
+            Visibility = Visibility.Collapsed,
+            IsHitTestVisible = false
+        };
+        _avatarImage.Style = TryFindResource("ProductTourCardAvatarImageStyle") as Style;
+        Children.Add(_avatarImage);
 
         _arrow = new Path
         {
@@ -323,6 +348,7 @@ public sealed class ProductTourOverlay : Canvas
         SetLeft(_card, cardPoint.X);
         SetTop(_card, cardPoint.Y);
         LayoutArrow(targetRect, cardPoint, actualPlacement);
+        LayoutAvatar(width, height, targetRect, cardPoint, actualPlacement);
         LayoutConfirmDialog();
     }
 
@@ -416,6 +442,59 @@ public sealed class ProductTourOverlay : Canvas
         SetTop(_arrow, y);
         var angle = Math.Atan2(targetCenter.Y - cardCenter.Y, targetCenter.X - cardCenter.X) * 180 / Math.PI;
         _arrow.RenderTransform = new RotateTransform(angle, 8, 8);
+    }
+
+    private void LayoutAvatar(double width, double height, Rect target, Point card, ProductTourPlacement placement)
+    {
+        if (!_options.ShowAvatar)
+        {
+            _avatarImage.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        var pose = placement == ProductTourPlacement.Center
+            ? TutorialAvatarPose.Idle
+            : ChooseAvatarPose(target, card);
+        var avatar = _avatarProvider.GetAvatar(pose);
+        if (avatar == null)
+        {
+            _avatarImage.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        _avatarImage.Source = avatar.ImageSource;
+        _avatarImage.Width = _options.ProductTourAvatarWidth;
+        _avatarImage.Visibility = Visibility.Visible;
+        _avatarImage.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+        var desired = _avatarImage.DesiredSize;
+        var avatarX = card.X + _options.CardWidth - desired.Width;
+        var avatarY = card.Y - desired.Height - _options.AvatarMargin.Top;
+        if (avatarY < _options.CardMargin)
+        {
+            avatarY = card.Y + _options.CardMaxHeight + _options.AvatarMargin.Bottom;
+        }
+
+        SetLeft(
+            _avatarImage,
+            Math.Clamp(avatarX, _options.CardMargin, Math.Max(_options.CardMargin, width - desired.Width - _options.CardMargin)));
+        SetTop(
+            _avatarImage,
+            Math.Clamp(avatarY, _options.CardMargin, Math.Max(_options.CardMargin, height - desired.Height - _options.CardMargin)));
+    }
+
+    private TutorialAvatarPose ChooseAvatarPose(Rect target, Point card)
+    {
+        var targetCenter = new Point(target.Left + target.Width / 2, target.Top + target.Height / 2);
+        var cardCenter = new Point(card.X + _options.CardWidth / 2, card.Y + _options.CardMaxHeight / 2);
+        var isLeft = targetCenter.X < cardCenter.X;
+        var isTop = targetCenter.Y < cardCenter.Y;
+        return (isLeft, isTop) switch
+        {
+            (true, true) => TutorialAvatarPose.LeftTop,
+            (true, false) => TutorialAvatarPose.LeftBottom,
+            (false, true) => TutorialAvatarPose.RightTop,
+            _ => TutorialAvatarPose.RightBottom
+        };
     }
 
     private void ShowConfirmDialog()

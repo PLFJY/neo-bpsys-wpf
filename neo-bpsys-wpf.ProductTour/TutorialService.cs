@@ -69,6 +69,7 @@ public sealed class TutorialService : ITutorialService
     private readonly ITutorialStateStore _stateStore;
     private readonly ITutorialSignalService _signalService;
     private readonly ITutorialTextProvider _textProvider;
+    private readonly ITutorialAvatarProvider _avatarProvider;
     private readonly ProductTourOptions _options;
     private readonly ILogger<TutorialService> _logger;
     private readonly SemaphoreSlim _runLock = new(1, 1);
@@ -84,6 +85,7 @@ public sealed class TutorialService : ITutorialService
     /// <param name="stateStore">State store.</param>
     /// <param name="signalService">Signal service.</param>
     /// <param name="textProvider">Fixed UI text provider.</param>
+    /// <param name="avatarProvider">Tutorial avatar provider.</param>
     /// <param name="options">Product tour display options.</param>
     /// <param name="logger">Logger.</param>
     public TutorialService(
@@ -94,6 +96,7 @@ public sealed class TutorialService : ITutorialService
         ITutorialStateStore stateStore,
         ITutorialSignalService signalService,
         ITutorialTextProvider textProvider,
+        ITutorialAvatarProvider avatarProvider,
         ProductTourOptions options,
         ILogger<TutorialService> logger)
     {
@@ -104,6 +107,7 @@ public sealed class TutorialService : ITutorialService
         _stateStore = stateStore;
         _signalService = signalService;
         _textProvider = textProvider;
+        _avatarProvider = avatarProvider;
         _options = options;
         _logger = logger;
     }
@@ -332,7 +336,7 @@ public sealed class TutorialService : ITutorialService
                 }
             }
 
-            var overlay = new ProductTourOverlay(_textProvider, _options);
+            var overlay = new ProductTourOverlay(_textProvider, _options, _avatarProvider);
             var context = new ProductTourStepContext
             {
                 FlowId = flowId,
@@ -438,7 +442,7 @@ public sealed class TutorialService : ITutorialService
         CancellationToken cancellationToken)
     {
         var host = OverlayHost.GetHostPanel(owner);
-        var overlay = new DialogueOverlay(_textProvider, _options);
+        var overlay = new DialogueOverlay(_textProvider, _options, _avatarProvider);
         host.Children.Add(overlay);
         try
         {

@@ -33,6 +33,7 @@ public sealed class OnboardingCoordinator : IOnboardingCoordinator
     private readonly ITutorialStateStore _stateStore;
     private readonly ITutorialLanguageService _languageService;
     private readonly ITutorialTextProvider _textProvider;
+    private readonly ITutorialAvatarProvider _avatarProvider;
     private readonly ProductTourOptions _options;
     private readonly ILogger<OnboardingCoordinator> _logger;
 
@@ -43,6 +44,7 @@ public sealed class OnboardingCoordinator : IOnboardingCoordinator
     /// <param name="stateStore">State store.</param>
     /// <param name="languageService">Tutorial language service.</param>
     /// <param name="textProvider">Fixed UI text provider.</param>
+    /// <param name="avatarProvider">Tutorial avatar provider.</param>
     /// <param name="options">Product tour display options.</param>
     /// <param name="logger">Logger.</param>
     public OnboardingCoordinator(
@@ -50,6 +52,7 @@ public sealed class OnboardingCoordinator : IOnboardingCoordinator
         ITutorialStateStore stateStore,
         ITutorialLanguageService languageService,
         ITutorialTextProvider textProvider,
+        ITutorialAvatarProvider avatarProvider,
         ProductTourOptions options,
         ILogger<OnboardingCoordinator> logger)
     {
@@ -57,6 +60,7 @@ public sealed class OnboardingCoordinator : IOnboardingCoordinator
         _stateStore = stateStore;
         _languageService = languageService;
         _textProvider = textProvider;
+        _avatarProvider = avatarProvider;
         _options = options;
         _logger = logger;
     }
@@ -74,7 +78,7 @@ public sealed class OnboardingCoordinator : IOnboardingCoordinator
 
         var host = OverlayHost.GetHostPanel(owner);
         var languageOptions = await _languageService.GetLanguageOptionsAsync(cancellationToken);
-        var overlay = new FirstRunWelcomeOverlay(_textProvider, _options, languageOptions);
+        var overlay = new FirstRunWelcomeOverlay(_textProvider, _options, _avatarProvider, languageOptions);
         host.Children.Add(overlay);
         overlay.SkipConfirmed += async (_, _) =>
         {

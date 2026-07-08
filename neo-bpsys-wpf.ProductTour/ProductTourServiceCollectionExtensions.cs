@@ -26,6 +26,7 @@ public static class ProductTourServiceCollectionExtensions
         services.TryAddSingleton<IOnboardingCoordinator, OnboardingCoordinator>();
         services.TryAddSingleton<IGameTutorialSandboxService, NoOpGameTutorialSandboxService>();
         services.TryAddSingleton<ITutorialLanguageService, NoOpTutorialLanguageService>();
+        services.TryAddSingleton<ITutorialAvatarProvider, NoOpTutorialAvatarProvider>();
         return services;
     }
 }
