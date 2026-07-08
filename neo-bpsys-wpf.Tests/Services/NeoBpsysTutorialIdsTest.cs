@@ -12,7 +12,9 @@ public sealed class NeoBpsysTutorialIdsTest
     public void ConstantsKeepPersistedStringValues()
     {
         Assert.Equal("Flow.FirstRun.StandardBp", TutorialFlowIds.FirstRunStandardBp);
+        Assert.Equal("Flow.Phase4A.NavigationProbe", TutorialFlowIds.Phase4ANavigationProbe);
 
+        Assert.Equal("Page.Main", TutorialPageKeys.Main);
         Assert.Equal("Page.TeamInfo", TutorialPageKeys.TeamInfo);
         Assert.Equal("Page.Bp.Shared", TutorialPageKeys.BpShared);
         Assert.Equal("Page.Bp.GameGuidance", TutorialPageKeys.BpGameGuidance);
@@ -22,6 +24,7 @@ public sealed class NeoBpsysTutorialIdsTest
         Assert.Equal("Window.DesignerV3", TutorialPageKeys.DesignerV3);
         Assert.Equal("Page.SmartBp", TutorialPageKeys.SmartBp);
 
+        Assert.Equal("Page.Main.Navigation.Basic", TutorialPackageIds.MainNavigationBasic);
         Assert.Equal("Page.TeamInfo.Basic", TutorialPackageIds.TeamInfoBasic);
         Assert.Equal("Page.TeamInfo.JsonImport", TutorialPackageIds.TeamInfoJsonImport);
         Assert.Equal("Page.TeamInfo.PlayerManage", TutorialPackageIds.TeamInfoPlayerManage);
@@ -52,6 +55,11 @@ public sealed class NeoBpsysTutorialIdsTest
         Assert.Equal("Page.SmartBp.FullBpFlow.Basic", TutorialPackageIds.SmartBpFullBpFlowBasic);
         Assert.Equal("Page.SmartBp.PostGameAutoFill", TutorialPackageIds.SmartBpPostGameAutoFill);
 
+        Assert.Equal("Navigation.TeamInfo.Opened", TutorialSignalIds.NavigationTeamInfoOpened);
+        Assert.Equal("Navigation.Home.Opened", TutorialSignalIds.NavigationHomeOpened);
+        Assert.Equal("Navigation.Score.Opened", TutorialSignalIds.NavigationScoreOpened);
+        Assert.Equal("Navigation.FrontManage.Opened", TutorialSignalIds.NavigationFrontManageOpened);
+        Assert.Equal("Navigation.SmartBp.Opened", TutorialSignalIds.NavigationSmartBpOpened);
         Assert.Equal("BpWindowOpened", TutorialSignalIds.BpWindowOpened);
         Assert.Equal("GameProgressSelected.Bo1FirstHalf", TutorialSignalIds.GameProgressSelectedBo1FirstHalf);
         Assert.Equal("TeamNameConfirmed", TutorialSignalIds.TeamNameConfirmed);
@@ -76,8 +84,11 @@ public sealed class NeoBpsysTutorialIdsTest
         Assert.Equal("ImportTeamJsonButton", TutorialTargetNames.ImportTeamJsonButton);
         Assert.Equal("PlayerList", TutorialTargetNames.PlayerList);
         Assert.Equal("PlayerPositionPanel", TutorialTargetNames.PlayerPositionPanel);
+        Assert.Equal("StopSmartBpAutoRecognitionButton", TutorialTargetNames.StopSmartBpAutoRecognitionButton);
         Assert.Equal("StartGameGuidanceButton", TutorialTargetNames.StartGameGuidanceButton);
+        Assert.Equal("PreviousGuidanceStepButton", TutorialTargetNames.PreviousGuidanceStepButton);
         Assert.Equal("NextGuidanceStepButton", TutorialTargetNames.NextGuidanceStepButton);
+        Assert.Equal("StopGameGuidanceButton", TutorialTargetNames.StopGameGuidanceButton);
         Assert.Equal("CharacterSelector", TutorialTargetNames.CharacterSelector);
         Assert.Equal("GlobalBanRecordPanel", TutorialTargetNames.GlobalBanRecordPanel);
         Assert.Equal("ScoreSelectorPanel", TutorialTargetNames.ScoreSelectorPanel);

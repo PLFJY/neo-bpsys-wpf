@@ -19,6 +19,9 @@ public sealed class NeoBpsysTutorialRegistrationTest
         NeoBpsysTutorialRegistration.Register(packageRegistry, sequenceRegistry, flowRegistry);
 
         Assert.Equal(
+            [TutorialPackageIds.MainNavigationBasic],
+            sequenceRegistry.GetSequence(TutorialPageKeys.Main));
+        Assert.Equal(
             [
                 TutorialPackageIds.TeamInfoBasic,
                 TutorialPackageIds.TeamInfoJsonImport,
@@ -26,7 +29,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
                 TutorialPackageIds.TeamInfoAdvanced
             ],
             sequenceRegistry.GetSequence(TutorialPageKeys.TeamInfo));
-        Assert.Equal(29, packageRegistry.GetPackages().Count);
+        Assert.Equal(30, packageRegistry.GetPackages().Count);
 
         var firstRun = flowRegistry.GetFlow(TutorialFlowIds.FirstRunStandardBp);
         Assert.NotNull(firstRun);
@@ -48,5 +51,14 @@ public sealed class NeoBpsysTutorialRegistrationTest
             ],
             firstRun.IncludedPackageIds);
         Assert.Equal(firstRun.IncludedPackageIds.Count + 2, firstRun.Items.Count);
+
+        var navigationProbe = flowRegistry.GetFlow(TutorialFlowIds.Phase4ANavigationProbe);
+        Assert.NotNull(navigationProbe);
+        Assert.Empty(navigationProbe.IncludedPackageIds);
+        Assert.Collection(
+            navigationProbe.Items,
+            item => Assert.IsType<DialogueFlowItem>(item),
+            item => Assert.Equal(TutorialPackageIds.MainNavigationBasic, Assert.IsType<PackageFlowItem>(item).PackageId),
+            item => Assert.IsType<DialogueFlowItem>(item));
     }
 }

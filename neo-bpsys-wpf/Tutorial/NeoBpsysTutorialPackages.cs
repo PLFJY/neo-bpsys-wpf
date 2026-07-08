@@ -1,4 +1,5 @@
 using neo_bpsys_wpf.ProductTour;
+using neo_bpsys_wpf.Views.Pages;
 
 namespace neo_bpsys_wpf.Tutorial;
 
@@ -57,6 +58,15 @@ public static class NeoBpsysTutorialPackages
     {
         return packageId switch
         {
+            TutorialPackageIds.MainNavigationBasic =>
+            [
+                NavigationStep(
+                    typeof(TeamInfoPage).FullName!,
+                    "进入队伍管理",
+                    "先进入队伍管理页面，我们会设置本次教学使用的队伍。",
+                    ProductTourInteractionMode.AllowTargetOnly,
+                    TutorialSignalIds.NavigationTeamInfoOpened)
+            ],
             TutorialPackageIds.FrontManageBpWindowLaunchBasic =>
             [
                 Step(
@@ -189,6 +199,36 @@ public static class NeoBpsysTutorialPackages
                     ProductTourInteractionMode.BlockAll)
             ]
         };
+    }
+
+    private static ProductTourStep NavigationStep(
+        string targetPageTypeFullName,
+        string title,
+        string description,
+        ProductTourInteractionMode mode,
+        string? signalId = null,
+        bool allowMissing = false)
+    {
+        var builder = TutorialPackageBuilder.Create("Transient.Step")
+            .ForPage("Transient.Page")
+            .StepNavigationItem(targetPageTypeFullName)
+            .Title(title)
+            .Description(description)
+            .Placement(ProductTourPlacement.Right)
+            .Interaction(mode)
+            .Timeout(TimeSpan.FromSeconds(30));
+
+        if (signalId != null)
+        {
+            builder.WaitForSignal(signalId);
+        }
+
+        if (allowMissing)
+        {
+            builder.AllowMissingTarget();
+        }
+
+        return builder.EndStep().Build().Steps[0];
     }
 
     private static ProductTourStep Step(

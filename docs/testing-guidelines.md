@@ -38,6 +38,10 @@ Designer v3、`PluginPage`、`FrontedDesignerWindow` 等 UI 会随交互体验�
 
 文档-only 改动通常不需要完整 build，但提交前仍应至少运行 `git diff --check` 和 `git diff --stat`。涉及服务、模型、导入导出或 Designer v3 行为时，应运行对应测试；发布前运行 `dotnet build` 和 `dotnet test`。
 
+## SmartBP / OpenCvSharp 本机依赖
+
+部分 SmartBP / OCR 测试会间接初始化 OpenCvSharp。如果开发机缺少 `OpenCvSharpExtern` 或出现 `DllNotFoundException: Unable to load DLL 'OpenCvSharpExtern'`，通常不需要为普通功能改动处理。当前可用的 OpenCvSharp native DLL 主要面向 x86/x64，部分开发机是 ARM64，完整 `dotnet test` 可能因此在 SmartBP/OCR 相关用例中失败。遇到这类失败时，应优先确认本次改动范围；非 SmartBP/OCR 改动可以记录为本机 native runtime 缺失，并运行相关的非 OCR 定向测试完成验证。
+
 ## WPF UI 测试稳定性
 
 WPF 控件测试应放入非并行 collection，避免多个 STA 窗口和 dispatcher pump 同时争用进程级 WPF 状态。测试里能关闭动画时应关闭，例如 `TransitionDuration=0`、滚动行为 `Duration=0`；窗口、事件订阅和附加行为必须在 `finally` 中关闭或解绑。

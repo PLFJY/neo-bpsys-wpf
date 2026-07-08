@@ -307,31 +307,35 @@ public sealed class TutorialService : ITutorialService
             var step = steps[index];
             await (step.BeforeShowAsync?.Invoke(_serviceProvider, cancellationToken) ?? Task.CompletedTask);
             FrameworkElement? target = null;
-            if (!string.IsNullOrWhiteSpace(step.TargetName))
+            if (StepRequiresTarget(step))
             {
-                target = await TargetElementFinder.FindByNameAsync(owner, step.TargetName, step.Timeout, cancellationToken);
+                target = await TargetElementFinder.FindAsync(owner, step, cancellationToken);
                 if (target == null)
                 {
                     if (step.AllowMissingTarget)
                     {
                         _logger.LogInformation(
-                            "Tutorial target missing; skipping optional step. FlowId={FlowId}, PackageId={PackageId}, StepIndex={StepIndex}, StepCount={StepCount}, TargetName={TargetName}",
+                            "Tutorial target missing; skipping optional step. FlowId={FlowId}, PackageId={PackageId}, StepIndex={StepIndex}, StepCount={StepCount}, TargetKind={TargetKind}, TargetName={TargetName}, TargetKey={TargetKey}",
                             flowId,
                             packageId,
                             index,
                             steps.Count,
-                            step.TargetName);
+                            step.TargetKind,
+                            step.TargetName,
+                            step.TargetKey);
                         index++;
                         continue;
                     }
 
                     _logger.LogWarning(
-                        "Tutorial target missing. FlowId={FlowId}, PackageId={PackageId}, StepIndex={StepIndex}, StepCount={StepCount}, TargetName={TargetName}",
+                        "Tutorial target missing. FlowId={FlowId}, PackageId={PackageId}, StepIndex={StepIndex}, StepCount={StepCount}, TargetKind={TargetKind}, TargetName={TargetName}, TargetKey={TargetKey}",
                         flowId,
                         packageId,
                         index,
                         steps.Count,
-                        step.TargetName);
+                        step.TargetKind,
+                        step.TargetName,
+                        step.TargetKey);
                     return TutorialRunResult.TargetMissing;
                 }
             }
@@ -423,14 +427,16 @@ public sealed class TutorialService : ITutorialService
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
             var message =
-                $"等待操作超时。FlowId={flowId ?? "(none)"}, PackageId={packageId ?? "(none)"}, StepIndex={stepIndex}, StepCount={stepCount}, TargetName={step.TargetName ?? "(none)"}, SignalId={step.WaitForSignalId}";
+                $"等待操作超时。FlowId={flowId ?? "(none)"}, PackageId={packageId ?? "(none)"}, StepIndex={stepIndex}, StepCount={stepCount}, TargetKind={step.TargetKind}, TargetName={step.TargetName ?? "(none)"}, TargetKey={step.TargetKey ?? "(none)"}, SignalId={step.WaitForSignalId}";
             _logger.LogWarning(
-                "Tutorial signal timeout. FlowId={FlowId}, PackageId={PackageId}, StepIndex={StepIndex}, StepCount={StepCount}, TargetName={TargetName}, SignalId={SignalId}",
+                "Tutorial signal timeout. FlowId={FlowId}, PackageId={PackageId}, StepIndex={StepIndex}, StepCount={StepCount}, TargetKind={TargetKind}, TargetName={TargetName}, TargetKey={TargetKey}, SignalId={SignalId}",
                 flowId,
                 packageId,
                 stepIndex,
                 stepCount,
+                step.TargetKind,
                 step.TargetName,
+                step.TargetKey,
                 step.WaitForSignalId);
             overlay.MarkSignalTimedOut(message);
         }
@@ -469,6 +475,14 @@ public sealed class TutorialService : ITutorialService
 
         return record.Version < package.Version;
     }
+
+    private static bool StepRequiresTarget(ProductTourStep step) =>
+        step.TargetKind switch
+        {
+            TutorialTargetKind.Name => !string.IsNullOrWhiteSpace(step.TargetName),
+            TutorialTargetKind.NavigationItem => !string.IsNullOrWhiteSpace(step.TargetKey),
+            _ => false
+        };
 
     private async Task MarkFlowAsync(
         TutorialFlowDefinition flow,

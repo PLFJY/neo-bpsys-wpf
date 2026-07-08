@@ -7,6 +7,9 @@ public static class TutorialFlowIds
 {
     /// <summary>The standard first-run BP tutorial flow id.</summary>
     public const string FirstRunStandardBp = "Flow.FirstRun.StandardBp";
+
+    /// <summary>Phase 4A navigation probe tutorial flow id.</summary>
+    public const string Phase4ANavigationProbe = "Flow.Phase4A.NavigationProbe";
 }
 
 /// <summary>
@@ -14,6 +17,9 @@ public static class TutorialFlowIds
 /// </summary>
 public static class TutorialPageKeys
 {
+    /// <summary>Main window page key.</summary>
+    public const string Main = "Page.Main";
+
     /// <summary>Team info page key.</summary>
     public const string TeamInfo = "Page.TeamInfo";
 
@@ -44,6 +50,9 @@ public static class TutorialPageKeys
 /// </summary>
 public static class TutorialPackageIds
 {
+    /// <summary>Main navigation basic package id.</summary>
+    public const string MainNavigationBasic = "Page.Main.Navigation.Basic";
+
     /// <summary>Team info basic package id.</summary>
     public const string TeamInfoBasic = "Page.TeamInfo.Basic";
 
@@ -137,6 +146,21 @@ public static class TutorialPackageIds
 /// </summary>
 public static class TutorialSignalIds
 {
+    /// <summary>Team info navigation opened signal id.</summary>
+    public const string NavigationTeamInfoOpened = "Navigation.TeamInfo.Opened";
+
+    /// <summary>Home navigation opened signal id.</summary>
+    public const string NavigationHomeOpened = "Navigation.Home.Opened";
+
+    /// <summary>Score navigation opened signal id.</summary>
+    public const string NavigationScoreOpened = "Navigation.Score.Opened";
+
+    /// <summary>Front management navigation opened signal id.</summary>
+    public const string NavigationFrontManageOpened = "Navigation.FrontManage.Opened";
+
+    /// <summary>Smart BP navigation opened signal id.</summary>
+    public const string NavigationSmartBpOpened = "Navigation.SmartBp.Opened";
+
     /// <summary>BP window opened signal id.</summary>
     public const string BpWindowOpened = "BpWindowOpened";
 
@@ -212,11 +236,32 @@ public static class TutorialTargetNames
     /// <summary>Player position panel target name.</summary>
     public const string PlayerPositionPanel = "PlayerPositionPanel";
 
+    /// <summary>Stop Smart BP automatic recognition button target name.</summary>
+    public const string StopSmartBpAutoRecognitionButton = "StopSmartBpAutoRecognitionButton";
+
     /// <summary>Start game guidance button target name.</summary>
     public const string StartGameGuidanceButton = "StartGameGuidanceButton";
 
+    /// <summary>Previous guidance step button target name.</summary>
+    public const string PreviousGuidanceStepButton = "PreviousGuidanceStepButton";
+
     /// <summary>Next guidance step button target name.</summary>
     public const string NextGuidanceStepButton = "NextGuidanceStepButton";
+
+    /// <summary>Stop game guidance button target name.</summary>
+    public const string StopGameGuidanceButton = "StopGameGuidanceButton";
+
+    /// <summary>Legacy incorrect start guidance target name.</summary>
+    [Obsolete("Use StopSmartBpAutoRecognitionButton for the Smart BP stop button or StartGameGuidanceButton for the game guidance start button.")]
+    public const string LegacyIncorrectStartGameGuidanceButton = "StartGameGuidanceButton";
+
+    /// <summary>Legacy incorrect previous guidance target name.</summary>
+    [Obsolete("Use StartGameGuidanceButton.")]
+    public const string LegacyIncorrectPreviousGuidanceStepButton = "PreviousGuidanceStepButton";
+
+    /// <summary>Legacy incorrect next guidance target name.</summary>
+    [Obsolete("Use PreviousGuidanceStepButton.")]
+    public const string LegacyIncorrectNextGuidanceStepButton = "NextGuidanceStepButton";
 
     /// <summary>Character selector target name.</summary>
     public const string CharacterSelector = "CharacterSelector";

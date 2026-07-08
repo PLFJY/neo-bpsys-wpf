@@ -33,6 +33,7 @@ public static class NeoBpsysTutorialFlows
     public static void Register(ITutorialFlowRegistry flowRegistry)
     {
         flowRegistry.Register(CreateFirstRunFlow());
+        flowRegistry.Register(CreatePhase4ANavigationProbeFlow());
     }
 
     /// <summary>
@@ -58,4 +59,16 @@ public static class NeoBpsysTutorialFlows
         builder.Dialogue("neo-bpsys-wpf", NeoBpsysTutorialTexts.FirstRunEndingDialogue());
         return builder.Build();
     }
+
+    /// <summary>
+    /// Creates the Phase 4A navigation probe flow definition.
+    /// </summary>
+    /// <returns>The Phase 4A navigation probe flow definition.</returns>
+    public static TutorialFlowDefinition CreatePhase4ANavigationProbeFlow() =>
+        TutorialFlowBuilder.Create(TutorialFlowIds.Phase4ANavigationProbe)
+            .Version(1)
+            .Dialogue("neo-bpsys-wpf", "现在我们验证左侧导航栏的教程引导。")
+            .Package(TutorialPackageIds.MainNavigationBasic)
+            .Dialogue("neo-bpsys-wpf", "导航引导验证完成。")
+            .Build();
 }

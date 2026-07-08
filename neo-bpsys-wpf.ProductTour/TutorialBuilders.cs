@@ -63,6 +63,26 @@ public sealed class TutorialPackageBuilder
     /// <returns>A step builder.</returns>
     public ProductTourStepBuilder Step(string? targetName = null) => new(this, targetName);
 
+    /// <summary>Starts building a product tour step targeting a navigation item.</summary>
+    /// <param name="targetPageTypeFullName">Target page type full name.</param>
+    /// <returns>A step builder.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="targetPageTypeFullName"/> is empty.</exception>
+    public ProductTourStepBuilder StepNavigationItem(string targetPageTypeFullName)
+    {
+        if (string.IsNullOrWhiteSpace(targetPageTypeFullName))
+        {
+            throw new ArgumentException("Target page type full name cannot be empty.", nameof(targetPageTypeFullName));
+        }
+
+        return new ProductTourStepBuilder(
+            this,
+            new ProductTourStep
+            {
+                TargetKind = TutorialTargetKind.NavigationItem,
+                TargetKey = targetPageTypeFullName
+            });
+    }
+
     /// <summary>Adds a completed step to the package.</summary>
     /// <param name="step">Step to add.</param>
     /// <returns>The same builder.</returns>
@@ -95,9 +115,14 @@ public sealed class ProductTourStepBuilder
     private readonly ProductTourStep _step;
 
     internal ProductTourStepBuilder(TutorialPackageBuilder packageBuilder, string? targetName)
+        : this(packageBuilder, new ProductTourStep { TargetName = targetName })
+    {
+    }
+
+    internal ProductTourStepBuilder(TutorialPackageBuilder packageBuilder, ProductTourStep step)
     {
         _packageBuilder = packageBuilder;
-        _step = new ProductTourStep { TargetName = targetName };
+        _step = step;
     }
 
     /// <summary>Sets the step title.</summary>

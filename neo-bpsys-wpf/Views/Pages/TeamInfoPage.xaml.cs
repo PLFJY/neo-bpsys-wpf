@@ -1,10 +1,13 @@
-﻿using System.Windows.Controls;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using Microsoft.Extensions.DependencyInjection;
+using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Attributes;
 using neo_bpsys_wpf.Core.Enums;
-using neo_bpsys_wpf.ViewModels.Pages;
+using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.Tutorial;
-using System.Windows;
-using System.Windows.Input;
+using neo_bpsys_wpf.ViewModels.Pages;
 using Wpf.Ui.Controls;
 
 namespace neo_bpsys_wpf.Views.Pages;
@@ -18,10 +21,18 @@ namespace neo_bpsys_wpf.Views.Pages;
     BackendPageCategory.Internal)]
 public partial class TeamInfoPage : Page
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TeamInfoPage"/> class.
+    /// </summary>
     public TeamInfoPage()
     {
         InitializeComponent();
-        Loaded += (_, _) => TutorialPageLoader.RunPendingOnLoaded(this, "Page.TeamInfo");
+        Loaded += (_, _) =>
+        {
+            IAppHost.Host?.Services.GetService<ITutorialSignalService>()
+                ?.Publish(TutorialSignalIds.NavigationTeamInfoOpened);
+            TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.TeamInfo);
+        };
     }
 
     private void TeamColorTextBox_OnKeyDown(object sender, KeyEventArgs e)

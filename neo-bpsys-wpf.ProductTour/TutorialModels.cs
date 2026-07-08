@@ -51,6 +51,17 @@ public enum ProductTourInteractionMode
 }
 
 /// <summary>
+/// Defines how a product tour step resolves its target element.
+/// </summary>
+public enum TutorialTargetKind
+{
+    /// <summary>Resolves the target by WPF element name.</summary>
+    Name,
+    /// <summary>Resolves the target from a navigation item.</summary>
+    NavigationItem
+}
+
+/// <summary>
 /// Defines why a tutorial package is being started.
 /// </summary>
 public enum TutorialTriggerMode
@@ -166,6 +177,12 @@ public sealed class ProductTourStep
 {
     /// <summary>Gets or sets the target element name.</summary>
     public string? TargetName { get; set; }
+
+    /// <summary>Gets or sets the target resolver kind.</summary>
+    public TutorialTargetKind TargetKind { get; set; } = TutorialTargetKind.Name;
+
+    /// <summary>Gets or sets the target key used by the selected target resolver.</summary>
+    public string? TargetKey { get; set; }
 
     /// <summary>Gets or sets the localized or literal title.</summary>
     public string Title { get; set; } = string.Empty;

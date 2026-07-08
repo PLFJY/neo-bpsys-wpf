@@ -25,6 +25,10 @@ public static class NeoBpsysTutorialSequences
     /// <returns>Page sequence definitions.</returns>
     public static IReadOnlyList<(string PageKey, string[] Packages)> GetSequences() =>
     [
+        (TutorialPageKeys.Main,
+        [
+            TutorialPackageIds.MainNavigationBasic
+        ]),
         (TutorialPageKeys.TeamInfo,
         [
             TutorialPackageIds.TeamInfoBasic,
