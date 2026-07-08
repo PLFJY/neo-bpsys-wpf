@@ -11,9 +11,7 @@ namespace neo_bpsys_wpf.Tutorial;
 /// </summary>
 public static class TutorialPageLoader
 {
-    private const int MaxSuppressedRetries = 20;
     private const int MaxDrainSequencePackages = 32;
-    private static readonly TimeSpan SuppressedRetryDelay = TimeSpan.FromMilliseconds(750);
 
     /// <summary>
     /// Runs the first pending package for the given page key.
@@ -69,28 +67,16 @@ public static class TutorialPageLoader
         FrameworkElement owner,
         string pageKey)
     {
-        for (var attempt = 0; attempt <= MaxSuppressedRetries; attempt++)
+        if (!owner.IsLoaded
+            || owner.Dispatcher.HasShutdownStarted
+            || owner.Dispatcher.HasShutdownFinished)
         {
-            if (!owner.IsLoaded
-                || owner.Dispatcher.HasShutdownStarted
-                || owner.Dispatcher.HasShutdownFinished)
-            {
-                return TutorialRunResult.Canceled;
-            }
-
-            var result = await service.RunPendingPagePackagesAsync(owner, pageKey, TutorialTriggerMode.AutoOnLoaded);
-            if (result != TutorialRunResult.Suppressed)
-            {
-                return result;
-            }
-
-            await Task.Delay(SuppressedRetryDelay);
-            if (!owner.IsVisible)
-            {
-                return TutorialRunResult.Canceled;
-            }
+            return TutorialRunResult.Canceled;
         }
 
-        return TutorialRunResult.Suppressed;
+        return await service.RunPendingPagePackagesAsync(
+            owner,
+            pageKey,
+            TutorialTriggerMode.AutoOnLoaded);
     }
 }

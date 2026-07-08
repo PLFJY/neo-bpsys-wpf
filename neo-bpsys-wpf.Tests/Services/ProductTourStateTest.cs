@@ -117,6 +117,106 @@ public sealed class ProductTourStateTest
     }
 
     [Fact]
+    public async Task AutoOnLoaded_Suppressed_ShouldNotRetry()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var observer = new RecordingTutorialRunObserver();
+            var fixture = new Fixture(observer);
+            fixture.RegisterPackage(
+                "Package.Blocking",
+                version: 1,
+                pageKey: "Page.Blocking",
+                steps:
+                [
+                    new ProductTourStep
+                    {
+                        Title = "Blocking",
+                        Description = "Keeps the run lock active",
+                        Placement = ProductTourPlacement.Center
+                    }
+                ]);
+            fixture.RegisterPackage("Package.Second", version: 1, pageKey: "Page.Second");
+            fixture.SequenceRegistry.RegisterSequence("Page.Blocking", ["Package.Blocking"]);
+            fixture.SequenceRegistry.RegisterSequence("Page.Second", ["Package.Second"]);
+
+            await RunAutoOnLoadedWithHostAsync(fixture, async owner =>
+            {
+                var firstRun = InvokeRunPendingOnLoadedAsync(owner, "Page.Blocking");
+                var overlay = await WaitForOverlayAsync(owner);
+
+                var suppressedRun = InvokeRunPendingOnLoadedAsync(owner, "Page.Second");
+                await AwaitWithTimeoutAsync(suppressedRun, TimeSpan.FromMilliseconds(250));
+
+                Assert.Contains("Page.Second", observer.SuppressedPageKeys);
+                Assert.DoesNotContain("Package.Second", observer.StartedPackageIds);
+
+                var finishButton = FindButtonByContent(overlay, "完成");
+                Assert.NotNull(finishButton);
+                finishButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                await firstRun;
+
+                await Task.Delay(1000);
+                var state = await fixture.StateStore.LoadAsync();
+                Assert.True(state.CompletedPackages.ContainsKey("Package.Blocking"));
+                Assert.False(state.CompletedPackages.ContainsKey("Package.Second"));
+                Assert.DoesNotContain("Package.Second", observer.StartedPackageIds);
+            });
+        });
+    }
+
+    [Fact]
+    public async Task AutoOnLoaded_Suppressed_ShouldRunOnNextRealTrigger()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var observer = new RecordingTutorialRunObserver();
+            var fixture = new Fixture(observer);
+            fixture.RegisterPackage(
+                "Package.Blocking",
+                version: 1,
+                pageKey: "Page.Blocking",
+                steps:
+                [
+                    new ProductTourStep
+                    {
+                        Title = "Blocking",
+                        Description = "Keeps the run lock active",
+                        Placement = ProductTourPlacement.Center
+                    }
+                ]);
+            fixture.RegisterPackage("Package.Second", version: 1, pageKey: "Page.Second");
+            fixture.SequenceRegistry.RegisterSequence("Page.Blocking", ["Package.Blocking"]);
+            fixture.SequenceRegistry.RegisterSequence("Page.Second", ["Package.Second"]);
+
+            await RunAutoOnLoadedWithHostAsync(fixture, async owner =>
+            {
+                var firstRun = InvokeRunPendingOnLoadedAsync(owner, "Page.Blocking");
+                var overlay = await WaitForOverlayAsync(owner);
+
+                await AwaitWithTimeoutAsync(
+                    InvokeRunPendingOnLoadedAsync(owner, "Page.Second"),
+                    TimeSpan.FromMilliseconds(250));
+                Assert.Contains("Page.Second", observer.SuppressedPageKeys);
+
+                var finishButton = FindButtonByContent(overlay, "完成");
+                Assert.NotNull(finishButton);
+                finishButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                await firstRun;
+
+                var stateAfterSuppressed = await fixture.StateStore.LoadAsync();
+                Assert.False(stateAfterSuppressed.CompletedPackages.ContainsKey("Package.Second"));
+
+                await InvokeRunPendingOnLoadedAsync(owner, "Page.Second");
+                var stateAfterNextTrigger = await fixture.StateStore.LoadAsync();
+
+                Assert.True(stateAfterNextTrigger.CompletedPackages.ContainsKey("Package.Second"));
+                Assert.Contains("Package.Second", observer.StartedPackageIds);
+            });
+        });
+    }
+
+    [Fact]
     public async Task DrainSequence_ShouldStopWhenUserSkips()
     {
         await WpfTestThread.RunAsync(async () =>
@@ -708,6 +808,13 @@ public sealed class ProductTourStateTest
         throw new TimeoutException("ProductTourOverlay was not added to the owner.");
     }
 
+    private static async Task AwaitWithTimeoutAsync(Task task, TimeSpan timeout)
+    {
+        var completed = await Task.WhenAny(task, Task.Delay(timeout));
+        Assert.Same(task, completed);
+        await task;
+    }
+
     private static Button? FindButtonByContent(DependencyObject root, string content)
     {
         if (root is Button button && Equals(button.Content, content))
@@ -730,7 +837,7 @@ public sealed class ProductTourStateTest
 
     private sealed class Fixture
     {
-        public Fixture()
+        public Fixture(ITutorialRunObserver? observer = null)
         {
             Service = new TutorialService(
                 new EmptyServiceProvider(),
@@ -741,7 +848,7 @@ public sealed class ProductTourStateTest
                 new TutorialSignalService(),
                 new DefaultTutorialTextProvider(),
                 new NoOpTutorialAvatarProvider(),
-                new NoOpTutorialRunObserver(),
+                observer ?? new NoOpTutorialRunObserver(),
                 new ProductTourOptions(),
                 NullLogger<TutorialService>.Instance);
         }
@@ -775,6 +882,43 @@ public sealed class ProductTourStateTest
     private sealed class EmptyServiceProvider : IServiceProvider
     {
         public object? GetService(Type serviceType) => null;
+    }
+
+    private sealed class RecordingTutorialRunObserver : ITutorialRunObserver
+    {
+        public List<string> StartedPackageIds { get; } = [];
+
+        public List<string> SuppressedPageKeys { get; } = [];
+
+        public void OnPackageRunRequested(string packageId, string pageKey, TutorialTriggerMode triggerMode)
+        {
+        }
+
+        public void OnPackageStarted(string packageId, string pageKey, TutorialTriggerMode triggerMode)
+        {
+            StartedPackageIds.Add(packageId);
+        }
+
+        public void OnStepShown(string packageId, string? targetName, string title)
+        {
+        }
+
+        public void OnPackageCompleted(string packageId, TutorialRunResult result)
+        {
+        }
+
+        public void OnPackageNotPending(string pageKey)
+        {
+        }
+
+        public void OnPackageSuppressed(string pageKey)
+        {
+            SuppressedPageKeys.Add(pageKey);
+        }
+
+        public void OnPackageTargetMissing(string packageId)
+        {
+        }
     }
 
     private sealed class InMemoryTutorialStateStore : ITutorialStateStore

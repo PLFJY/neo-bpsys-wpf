@@ -448,27 +448,51 @@ public sealed class NeoBpsysTutorialRegistrationTest
     }
 
     [Fact]
-    public async Task FrontManageChildTutorialHelperResolvesVisibleChildOwnerAndPageKey()
+    public void FrontManageChildTutorialHelperResolvesVisibleChildOwnerAndPageKey()
     {
-        await WpfTestThread.RunAsync(() =>
-        {
-            var windowsView = new FrontedWindowsView();
-            var root = new Grid { Children = { windowsView } };
-            var window = new Window { Content = root, Width = 320, Height = 240 };
-            window.Show();
-            try
-            {
-                Assert.True(FrontManagePage.TryResolveCurrentChildTutorial(root, out var owner, out var pageKey));
-                Assert.Same(windowsView, owner);
-                Assert.Equal(FrontedWindowsView.TutorialPageKey, pageKey);
-            }
-            finally
-            {
-                window.Close();
-            }
+        var source = File.ReadAllText(GetRepositoryPath(
+            "neo-bpsys-wpf",
+            "Views",
+            "Pages",
+            "FrontManagePage.xaml.cs"));
 
-            return Task.CompletedTask;
-        });
+        Assert.Contains("TryFindVisibleDescendant<FrontedWindowsView>", source);
+        Assert.Contains("pageKey = FrontedWindowsView.TutorialPageKey;", source);
+        Assert.Contains("TryFindVisibleDescendant<FrontedLayoutPackagesView>", source);
+        Assert.Contains("pageKey = FrontedLayoutPackagesView.TutorialPageKey;", source);
+    }
+
+    [Fact]
+    public void FrontManage_Loaded_ShouldNotImmediatelyScheduleChildTutorial()
+    {
+        var source = File.ReadAllText(GetRepositoryPath(
+            "neo-bpsys-wpf",
+            "Views",
+            "Pages",
+            "FrontManagePage.xaml.cs"));
+        var loadedBlockStart = source.IndexOf("Loaded += (_, _) =>", StringComparison.Ordinal);
+        Assert.True(loadedBlockStart >= 0);
+        var visibleChangedStart = source.IndexOf("IsVisibleChanged", loadedBlockStart, StringComparison.Ordinal);
+        Assert.True(visibleChangedStart > loadedBlockStart);
+        var loadedBlock = source[loadedBlockStart..visibleChangedStart];
+
+        Assert.Contains("TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.FrontManage)", loadedBlock);
+        Assert.DoesNotContain("ScheduleCurrentChildTutorial();", loadedBlock);
+    }
+
+    [Fact]
+    public void FrontManage_TabChanged_ShouldTriggerChildTutorial()
+    {
+        var source = File.ReadAllText(GetRepositoryPath(
+            "neo-bpsys-wpf",
+            "Views",
+            "Pages",
+            "FrontManagePage.xaml.cs"));
+
+        Assert.Contains("FrontManageTabs.Navigated += (_, _) => ScheduleCurrentChildTutorial();", source);
+        Assert.Contains("FrontManageTabs.SelectionChanged += (_, _) => ScheduleCurrentChildTutorial();", source);
+        Assert.Contains("FrontManageTabs.Navigate(typeof(FrontedLayoutPackagesView));", source);
+        Assert.Contains("ScheduleCurrentChildTutorial();", source);
     }
 
     [Fact]
@@ -551,6 +575,18 @@ public sealed class NeoBpsysTutorialRegistrationTest
         return packageRegistry.GetPackages();
     }
 
+    private static string GetRepositoryPath(params string[] parts)
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory != null && !File.Exists(Path.Combine(directory.FullName, "neo-bpsys-wpf.slnx")))
+        {
+            directory = directory.Parent;
+        }
+
+        Assert.NotNull(directory);
+        return Path.Combine([directory.FullName, .. parts]);
+    }
+
     private static Grid CreateSmartBpOwnerWithContent(string contentHostName, string? dynamicTargetName = null)
     {
         var moduleContent = new StackPanel();
@@ -583,4 +619,5 @@ public sealed class NeoBpsysTutorialRegistrationTest
         object? IServiceProvider.GetService(Type serviceType) =>
             serviceType == typeof(SmartBpPageViewModel) ? viewModel : null;
     }
+
 }

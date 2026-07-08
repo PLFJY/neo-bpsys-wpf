@@ -32,7 +32,10 @@ public interface ITutorialRunObserver
     /// <param name="pageKey">Page key.</param>
     void OnPackageNotPending(string pageKey);
 
-    /// <summary>Called when a package run is suppressed because another tutorial is active.</summary>
+    /// <summary>
+    /// Called when a package run is suppressed because another tutorial is active.
+    /// Suppressed is terminal for the current auto-run request and is not retried by TutorialPageLoader.
+    /// </summary>
     /// <param name="pageKey">Page key.</param>
     void OnPackageSuppressed(string pageKey);
 

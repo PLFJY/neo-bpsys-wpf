@@ -47,14 +47,12 @@ public partial class FrontManagePage : Page, IRecipient<FrontManageTabNavigation
         {
             TutorialSignalPublisher.Publish(TutorialSignalIds.NavigationFrontManageOpened);
             TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.FrontManage);
-            ScheduleCurrentChildTutorial();
         };
         IsVisibleChanged += (_, e) =>
         {
             if (Equals(e.NewValue, true))
             {
                 TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.FrontManage);
-                ScheduleCurrentChildTutorial();
             }
         };
         WeakReferenceMessenger.Default.Register(this);
