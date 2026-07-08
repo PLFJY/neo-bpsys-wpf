@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace neo_bpsys_wpf.ProductTour;
 
@@ -14,16 +15,17 @@ public static class ProductTourServiceCollectionExtensions
     /// <returns>The same service collection.</returns>
     public static IServiceCollection AddProductTour(this IServiceCollection services)
     {
-        services.AddSingleton<ITutorialPackageRegistry, TutorialPackageRegistry>();
-        services.AddSingleton<ITutorialSequenceRegistry, TutorialSequenceRegistry>();
-        services.AddSingleton<ITutorialFlowRegistry, TutorialFlowRegistry>();
-        services.AddSingleton<ITutorialSignalService, TutorialSignalService>();
-        services.AddSingleton<ITutorialStateStore, TutorialStateStore>();
-        services.AddSingleton<ITutorialTextProvider, DefaultTutorialTextProvider>();
-        services.AddSingleton<ITutorialService, TutorialService>();
-        services.AddSingleton<IOnboardingCoordinator, OnboardingCoordinator>();
-        services.AddSingleton<IGameTutorialSandboxService, NoOpGameTutorialSandboxService>();
-        services.AddSingleton<ITutorialLanguageService, NoOpTutorialLanguageService>();
+        services.TryAddSingleton<ProductTourOptions>();
+        services.TryAddSingleton<ITutorialPackageRegistry, TutorialPackageRegistry>();
+        services.TryAddSingleton<ITutorialSequenceRegistry, TutorialSequenceRegistry>();
+        services.TryAddSingleton<ITutorialFlowRegistry, TutorialFlowRegistry>();
+        services.TryAddSingleton<ITutorialSignalService, TutorialSignalService>();
+        services.TryAddSingleton<ITutorialStateStore, TutorialStateStore>();
+        services.TryAddSingleton<ITutorialTextProvider, DefaultTutorialTextProvider>();
+        services.TryAddSingleton<ITutorialService, TutorialService>();
+        services.TryAddSingleton<IOnboardingCoordinator, OnboardingCoordinator>();
+        services.TryAddSingleton<IGameTutorialSandboxService, NoOpGameTutorialSandboxService>();
+        services.TryAddSingleton<ITutorialLanguageService, NoOpTutorialLanguageService>();
         return services;
     }
 }

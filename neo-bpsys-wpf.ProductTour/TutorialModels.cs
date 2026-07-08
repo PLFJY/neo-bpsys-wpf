@@ -191,8 +191,8 @@ public sealed class ProductTourStep
     /// <summary>Gets or sets the expected user action.</summary>
     public TutorialExpectedAction ExpectedAction { get; set; }
 
-    /// <summary>Gets or sets the arrow kind.</summary>
-    public ProductTourArrowKind ArrowKind { get; set; } = ProductTourArrowKind.Triangle;
+    /// <summary>Gets or sets the arrow kind, or <see langword="null" /> to use the configured default.</summary>
+    public ProductTourArrowKind? ArrowKind { get; set; }
 
     /// <summary>Gets or sets an action invoked immediately before the step is displayed.</summary>
     public Func<IServiceProvider, CancellationToken, Task>? BeforeShowAsync { get; set; }

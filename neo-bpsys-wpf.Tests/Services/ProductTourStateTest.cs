@@ -390,6 +390,7 @@ public sealed class ProductTourStateTest
                 StateStore,
                 new TutorialSignalService(),
                 new DefaultTutorialTextProvider(),
+                new ProductTourOptions(),
                 NullLogger<TutorialService>.Instance);
         }
 

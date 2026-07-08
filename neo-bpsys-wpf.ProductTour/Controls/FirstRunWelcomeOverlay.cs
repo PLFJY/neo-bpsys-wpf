@@ -14,6 +14,7 @@ public sealed class FirstRunWelcomeOverlay : Grid
     private readonly Border _card;
     private readonly ComboBox _languageComboBox;
     private readonly ITutorialTextProvider _textProvider;
+    private readonly ProductTourOptions _options;
     private SkipTutorialConfirmDialog? _confirmDialog;
 
     /// <summary>Occurs when the user starts the tutorial.</summary>
@@ -24,15 +25,17 @@ public sealed class FirstRunWelcomeOverlay : Grid
 
     /// <summary>Initializes a new instance of the <see cref="FirstRunWelcomeOverlay"/> class.</summary>
     public FirstRunWelcomeOverlay()
-        : this(new DefaultTutorialTextProvider())
+        : this(new DefaultTutorialTextProvider(), new ProductTourOptions())
     {
     }
 
     /// <summary>Initializes a new instance of the <see cref="FirstRunWelcomeOverlay"/> class.</summary>
     /// <param name="textProvider">Fixed UI text provider.</param>
-    public FirstRunWelcomeOverlay(ITutorialTextProvider textProvider)
+    /// <param name="options">Product tour display options.</param>
+    public FirstRunWelcomeOverlay(ITutorialTextProvider textProvider, ProductTourOptions options)
     {
         _textProvider = textProvider;
+        _options = options;
         Style = TryFindResource("ProductTourWelcomeOverlayStyle") as Style;
         HorizontalAlignment = HorizontalAlignment.Stretch;
         VerticalAlignment = VerticalAlignment.Stretch;
@@ -87,6 +90,7 @@ public sealed class FirstRunWelcomeOverlay : Grid
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 12, 0)
         };
+        languageLabel.Style = TryFindResource("ProductTourWelcomeDescriptionStyle") as Style;
         Grid.SetColumn(languageLabel, 0);
         Grid.SetColumn(_languageComboBox, 1);
         languagePanel.Children.Add(languageLabel);
@@ -110,22 +114,20 @@ public sealed class FirstRunWelcomeOverlay : Grid
         var footnote = new TextBlock
         {
             Text = _textProvider.RestartAvailableHint,
-            Opacity = 0.72,
             HorizontalAlignment = HorizontalAlignment.Center,
             Margin = new Thickness(0, 16, 0, 0)
         };
+        footnote.Style = TryFindResource("ProductTourWelcomeFootnoteStyle") as Style;
 
         _card = new Border
         {
+            Name = "WelcomeCard",
             Style = TryFindResource("ProductTourWelcomeCardStyle") as Style,
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
             MaxWidth = 620,
             Width = 620,
-            Background = Brushes.Transparent,
-            BorderThickness = new Thickness(0),
-            Effect = null,
-            RenderTransform = new TranslateTransform(0, 16),
+            RenderTransform = new TranslateTransform(0, _options.WelcomeCardInitialTranslateY),
             Child = new StackPanel
             {
                 MaxWidth = 620,
@@ -146,17 +148,17 @@ public sealed class FirstRunWelcomeOverlay : Grid
     {
         var source = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var storyboard = new Storyboard();
-        var overlayOpacity = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(240));
+        var overlayOpacity = new DoubleAnimation(0, 1, _options.WelcomeFadeInDuration);
         Storyboard.SetTarget(overlayOpacity, this);
         Storyboard.SetTargetProperty(overlayOpacity, new PropertyPath(OpacityProperty));
         storyboard.Children.Add(overlayOpacity);
 
-        var cardOpacity = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(300));
+        var cardOpacity = new DoubleAnimation(0, 1, _options.WelcomeCardEnterDuration);
         Storyboard.SetTarget(cardOpacity, _card);
         Storyboard.SetTargetProperty(cardOpacity, new PropertyPath(OpacityProperty));
         storyboard.Children.Add(cardOpacity);
 
-        var cardY = new DoubleAnimation(16, 0, TimeSpan.FromMilliseconds(300));
+        var cardY = new DoubleAnimation(_options.WelcomeCardInitialTranslateY, 0, _options.WelcomeCardEnterDuration);
         Storyboard.SetTarget(cardY, _card);
         Storyboard.SetTargetProperty(cardY, new PropertyPath("(UIElement.RenderTransform).(TranslateTransform.Y)"));
         storyboard.Children.Add(cardY);
@@ -170,7 +172,7 @@ public sealed class FirstRunWelcomeOverlay : Grid
     public Task FadeOutAsync()
     {
         var source = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var animation = new DoubleAnimation(0, TimeSpan.FromMilliseconds(280)) { From = Opacity };
+        var animation = new DoubleAnimation(0, _options.WelcomeFadeOutDuration) { From = Opacity };
         animation.Completed += (_, _) => source.TrySetResult();
         BeginAnimation(OpacityProperty, animation);
         return source.Task;
@@ -183,7 +185,7 @@ public sealed class FirstRunWelcomeOverlay : Grid
             return;
         }
 
-        _confirmDialog = new SkipTutorialConfirmDialog(_textProvider)
+        _confirmDialog = new SkipTutorialConfirmDialog(_textProvider, _options)
         {
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center

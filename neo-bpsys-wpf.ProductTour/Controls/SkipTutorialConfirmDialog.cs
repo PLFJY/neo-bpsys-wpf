@@ -18,6 +18,7 @@ public sealed class SkipTutorialConfirmDialog : ContentControl
         nameof(Message), typeof(string), typeof(SkipTutorialConfirmDialog), new PropertyMetadata(new DefaultTutorialTextProvider().SkipConfirmDescription));
 
     private readonly ITutorialTextProvider _textProvider;
+    private readonly ProductTourOptions _options;
 
     /// <summary>Gets or sets the dialog title.</summary>
     public string Title
@@ -41,18 +42,26 @@ public sealed class SkipTutorialConfirmDialog : ContentControl
 
     /// <summary>Initializes a new instance of the <see cref="SkipTutorialConfirmDialog"/> class.</summary>
     public SkipTutorialConfirmDialog()
-        : this(new DefaultTutorialTextProvider())
+        : this(new DefaultTutorialTextProvider(), new ProductTourOptions())
     {
     }
 
     /// <summary>Initializes a new instance of the <see cref="SkipTutorialConfirmDialog"/> class.</summary>
     /// <param name="textProvider">Fixed UI text provider.</param>
     public SkipTutorialConfirmDialog(ITutorialTextProvider textProvider)
+        : this(textProvider, new ProductTourOptions())
+    {
+    }
+
+    /// <summary>Initializes a new instance of the <see cref="SkipTutorialConfirmDialog"/> class.</summary>
+    /// <param name="textProvider">Fixed UI text provider.</param>
+    /// <param name="options">Product tour display options.</param>
+    public SkipTutorialConfirmDialog(ITutorialTextProvider textProvider, ProductTourOptions options)
     {
         _textProvider = textProvider;
+        _options = options;
         Title = _textProvider.SkipConfirmTitle;
         Message = _textProvider.SkipConfirmDescription;
-        Style = TryFindResource("ProductTourConfirmDialogStyle") as Style;
         Focusable = true;
         KeyDown += (_, e) =>
         {
@@ -68,10 +77,12 @@ public sealed class SkipTutorialConfirmDialog : ContentControl
 
     private void BuildContent()
     {
-        var title = new TextBlock { FontSize = 22, FontWeight = FontWeights.SemiBold };
+        var title = new TextBlock();
+        title.Style = TryFindResource("ProductTourConfirmTitleStyle") as Style;
         title.SetBinding(TextBlock.TextProperty, new System.Windows.Data.Binding(nameof(Title)) { Source = this });
 
         var message = new TextBlock { Margin = new Thickness(0, 12, 0, 0), TextWrapping = TextWrapping.Wrap };
+        message.Style = TryFindResource("ProductTourConfirmMessageStyle") as Style;
         message.SetBinding(TextBlock.TextProperty, new System.Windows.Data.Binding(nameof(Message)) { Source = this });
 
         var continueButton = new Button { Content = _textProvider.SkipConfirmContinue, MinWidth = 110 };
@@ -92,8 +103,8 @@ public sealed class SkipTutorialConfirmDialog : ContentControl
 
         Content = new Border
         {
-            Style = TryFindResource("ProductTourWelcomeCardStyle") as Style,
-            MaxWidth = 520,
+            Style = TryFindResource("ProductTourConfirmDialogStyle") as Style,
+            MaxWidth = Math.Max(420, _options.CardWidth + 120),
             Child = new StackPanel { Children = { title, message, buttons } }
         };
     }

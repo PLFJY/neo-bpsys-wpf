@@ -26,10 +26,6 @@ public enum ProductTourStepAction
 /// </summary>
 public sealed class ProductTourOverlay : Canvas
 {
-    private const double CardWidth = 380;
-    private const double CardMaxHeight = 260;
-    private const double Gap = 16;
-    private const double SpotlightPadding = 8;
     private readonly Border _blockAllMask;
     private readonly Border _topMask;
     private readonly Border _leftMask;
@@ -47,24 +43,28 @@ public sealed class ProductTourOverlay : Canvas
     private readonly TextBlock _waitingText;
     private readonly TextBlock _errorText;
     private readonly ITutorialTextProvider _textProvider;
+    private readonly ProductTourOptions _options;
     private TaskCompletionSource<ProductTourStepAction>? _completion;
     private bool _signalReceived;
     private FrameworkElement? _currentOwner;
     private FrameworkElement? _currentTarget;
     private ProductTourPlacement _currentPlacement = ProductTourPlacement.Center;
     private ProductTourInteractionMode _currentInteractionMode = ProductTourInteractionMode.BlockAll;
+    private ProductTourArrowKind _currentArrowKind = ProductTourArrowKind.Triangle;
 
     /// <summary>Initializes a new instance of the <see cref="ProductTourOverlay"/> class.</summary>
     public ProductTourOverlay()
-        : this(new DefaultTutorialTextProvider())
+        : this(new DefaultTutorialTextProvider(), new ProductTourOptions())
     {
     }
 
     /// <summary>Initializes a new instance of the <see cref="ProductTourOverlay"/> class.</summary>
     /// <param name="textProvider">Fixed UI text provider.</param>
-    public ProductTourOverlay(ITutorialTextProvider textProvider)
+    /// <param name="options">Product tour display options.</param>
+    public ProductTourOverlay(ITutorialTextProvider textProvider, ProductTourOptions options)
     {
         _textProvider = textProvider;
+        _options = options;
         Style = TryFindResource("ProductTourOverlayStyle") as Style;
         Panel.SetZIndex(this, 10000);
         HorizontalAlignment = HorizontalAlignment.Stretch;
@@ -83,7 +83,13 @@ public sealed class ProductTourOverlay : Canvas
         Children.Add(_rightMask);
         Children.Add(_bottomMask);
 
-        _spotlight = new Border { Name = "Spotlight", Style = TryFindResource("ProductTourSpotlightStyle") as Style, IsHitTestVisible = false };
+        _spotlight = new Border
+        {
+            Name = "Spotlight",
+            Style = TryFindResource("ProductTourSpotlightStyle") as Style,
+            CornerRadius = new CornerRadius(_options.SpotlightCornerRadius),
+            IsHitTestVisible = false
+        };
         Children.Add(_spotlight);
 
         _title = new TextBlock();
@@ -91,14 +97,16 @@ public sealed class ProductTourOverlay : Canvas
         _description = new TextBlock { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 0) };
         _description.Style = TryFindResource("ProductTourCardDescriptionStyle") as Style;
         _progress = new TextBlock { Margin = new Thickness(0, 10, 0, 0), Opacity = 0.72 };
+        _progress.Style = TryFindResource("ProductTourCardProgressStyle") as Style;
         _waitingText = new TextBlock { Text = _textProvider.WaitingForAction, Margin = new Thickness(0, 8, 0, 0), Visibility = Visibility.Collapsed };
+        _waitingText.Style = TryFindResource("ProductTourCardWaitingStyle") as Style;
         _errorText = new TextBlock
         {
             TextWrapping = TextWrapping.Wrap,
             Margin = new Thickness(0, 8, 0, 0),
-            Visibility = Visibility.Collapsed,
-            Foreground = Brushes.OrangeRed
+            Visibility = Visibility.Collapsed
         };
+        _errorText.Style = TryFindResource("ProductTourCardErrorStyle") as Style;
 
         _previousButton = new Button { Content = _textProvider.Previous, MinWidth = 78 };
         _previousButton.Style = TryFindResource("ProductTourSecondaryButtonStyle") as Style;
@@ -124,8 +132,8 @@ public sealed class ProductTourOverlay : Canvas
         {
             Name = "Card",
             Style = TryFindResource("ProductTourCardStyle") as Style,
-            Width = CardWidth,
-            MaxHeight = CardMaxHeight,
+            Width = _options.CardWidth,
+            MaxHeight = _options.CardMaxHeight,
             Child = new StackPanel { Children = { _title, _description, _progress, _waitingText, _errorText, buttons } }
         };
         Children.Add(_card);
@@ -162,12 +170,16 @@ public sealed class ProductTourOverlay : Canvas
         _title.Text = step.Title;
         _description.Text = step.Description;
         _progress.Text = $"{context.StepIndex + 1} / {context.StepCount}";
+        _progress.Visibility = _options.ShowStepProgress ? Visibility.Visible : Visibility.Collapsed;
         _previousButton.IsEnabled = context.StepIndex > 0;
         _nextButton.Content = context.StepIndex == context.StepCount - 1 ? _textProvider.Finish : _textProvider.Next;
         _nextButton.IsEnabled = _signalReceived;
+        _skipButton.Visibility = _options.ShowSkipButton ? Visibility.Visible : Visibility.Collapsed;
         _waitingText.Visibility = _signalReceived ? Visibility.Collapsed : Visibility.Visible;
         _errorText.Visibility = Visibility.Collapsed;
         _errorText.Text = string.Empty;
+        var arrowKind = step.ArrowKind ?? _options.DefaultArrowKind;
+        _currentArrowKind = _options.ShowArrow ? arrowKind : ProductTourArrowKind.None;
 
         LayoutCurrent(context.Owner, target, step.Placement);
         await FadeInAsync();
@@ -202,12 +214,12 @@ public sealed class ProductTourOverlay : Canvas
     /// <returns>A task that completes when the animation finishes.</returns>
     public Task FadeOutAsync()
     {
-        return AnimateOpacityAsync(0, TimeSpan.FromMilliseconds(220));
+        return AnimateOpacityAsync(0, _options.OverlayFadeOutDuration);
     }
 
     private Task FadeInAsync()
     {
-        return AnimateOpacityAsync(1, TimeSpan.FromMilliseconds(240), 0);
+        return AnimateOpacityAsync(1, _options.OverlayFadeInDuration, 0);
     }
 
     private async Task AnimateOpacityAsync(double to, TimeSpan duration, double? from = null)
@@ -221,13 +233,21 @@ public sealed class ProductTourOverlay : Canvas
         Opacity = to;
     }
 
-    private static Border CreateMask(string name) =>
-        new()
+    private Border CreateMask(string name)
+    {
+        var mask = new Border
         {
             Name = name,
-            Background = new SolidColorBrush(Color.FromArgb(176, 0, 0, 0)),
             IsHitTestVisible = true
         };
+        mask.SetResourceReference(Border.BackgroundProperty, "ProductTourFallbackMaskBrush");
+        if (mask.Background == null)
+        {
+            mask.Background = new SolidColorBrush(Color.FromArgb(204, 32, 32, 32));
+        }
+
+        return mask;
+    }
 
     private void LayoutCurrent(FrameworkElement? owner, FrameworkElement? target, ProductTourPlacement placement)
     {
@@ -261,10 +281,10 @@ public sealed class ProductTourOverlay : Canvas
         }
 
         var spotlightRect = new Rect(
-            Math.Max(0, targetRect.X - SpotlightPadding),
-            Math.Max(0, targetRect.Y - SpotlightPadding),
-            Math.Min(width, targetRect.Width + SpotlightPadding * 2),
-            Math.Min(height, targetRect.Height + SpotlightPadding * 2));
+            Math.Max(0, targetRect.X - _options.SpotlightPadding),
+            Math.Max(0, targetRect.Y - _options.SpotlightPadding),
+            Math.Min(width, targetRect.Width + _options.SpotlightPadding * 2),
+            Math.Min(height, targetRect.Height + _options.SpotlightPadding * 2));
         SetLeft(_spotlight, spotlightRect.X);
         SetTop(_spotlight, spotlightRect.Y);
         _spotlight.Width = spotlightRect.Width;
@@ -319,43 +339,43 @@ public sealed class ProductTourOverlay : Canvas
         mask.IsHitTestVisible = isVisible;
     }
 
-    private static ProductTourPlacement ChooseAutoPlacement(double width, double height, Rect target)
+    private ProductTourPlacement ChooseAutoPlacement(double width, double height, Rect target)
     {
-        if (width - target.Right >= CardWidth + Gap) return ProductTourPlacement.Right;
-        if (height - target.Bottom >= CardMaxHeight + Gap) return ProductTourPlacement.Bottom;
-        if (target.Left >= CardWidth + Gap) return ProductTourPlacement.Left;
-        if (target.Top >= CardMaxHeight + Gap) return ProductTourPlacement.Top;
+        if (width - target.Right >= _options.CardWidth + _options.Gap) return ProductTourPlacement.Right;
+        if (height - target.Bottom >= _options.CardMaxHeight + _options.Gap) return ProductTourPlacement.Bottom;
+        if (target.Left >= _options.CardWidth + _options.Gap) return ProductTourPlacement.Left;
+        if (target.Top >= _options.CardMaxHeight + _options.Gap) return ProductTourPlacement.Top;
         return ProductTourPlacement.Center;
     }
 
-    private static Point CalculateCardPoint(double width, double height, Rect target, ProductTourPlacement placement)
+    private Point CalculateCardPoint(double width, double height, Rect target, ProductTourPlacement placement)
     {
         var x = placement switch
         {
-            ProductTourPlacement.Left or ProductTourPlacement.LeftTop or ProductTourPlacement.LeftBottom => target.Left - CardWidth - Gap,
-            ProductTourPlacement.Right or ProductTourPlacement.RightTop or ProductTourPlacement.RightBottom => target.Right + Gap,
+            ProductTourPlacement.Left or ProductTourPlacement.LeftTop or ProductTourPlacement.LeftBottom => target.Left - _options.CardWidth - _options.Gap,
+            ProductTourPlacement.Right or ProductTourPlacement.RightTop or ProductTourPlacement.RightBottom => target.Right + _options.Gap,
             ProductTourPlacement.TopLeft or ProductTourPlacement.BottomLeft => target.Left,
-            ProductTourPlacement.TopRight or ProductTourPlacement.BottomRight => target.Right - CardWidth,
-            ProductTourPlacement.Center => width / 2 - CardWidth / 2,
-            _ => target.Left + target.Width / 2 - CardWidth / 2
+            ProductTourPlacement.TopRight or ProductTourPlacement.BottomRight => target.Right - _options.CardWidth,
+            ProductTourPlacement.Center => width / 2 - _options.CardWidth / 2,
+            _ => target.Left + target.Width / 2 - _options.CardWidth / 2
         };
         var y = placement switch
         {
-            ProductTourPlacement.Top or ProductTourPlacement.TopLeft or ProductTourPlacement.TopRight => target.Top - CardMaxHeight - Gap,
-            ProductTourPlacement.Bottom or ProductTourPlacement.BottomLeft or ProductTourPlacement.BottomRight => target.Bottom + Gap,
+            ProductTourPlacement.Top or ProductTourPlacement.TopLeft or ProductTourPlacement.TopRight => target.Top - _options.CardMaxHeight - _options.Gap,
+            ProductTourPlacement.Bottom or ProductTourPlacement.BottomLeft or ProductTourPlacement.BottomRight => target.Bottom + _options.Gap,
             ProductTourPlacement.LeftTop or ProductTourPlacement.RightTop => target.Top,
-            ProductTourPlacement.LeftBottom or ProductTourPlacement.RightBottom => target.Bottom - CardMaxHeight,
-            ProductTourPlacement.Center => height / 2 - CardMaxHeight / 2,
-            _ => target.Top + target.Height / 2 - CardMaxHeight / 2
+            ProductTourPlacement.LeftBottom or ProductTourPlacement.RightBottom => target.Bottom - _options.CardMaxHeight,
+            ProductTourPlacement.Center => height / 2 - _options.CardMaxHeight / 2,
+            _ => target.Top + target.Height / 2 - _options.CardMaxHeight / 2
         };
         return new Point(
-            Math.Clamp(x, 12, Math.Max(12, width - CardWidth - 12)),
-            Math.Clamp(y, 12, Math.Max(12, height - CardMaxHeight - 12)));
+            Math.Clamp(x, _options.CardMargin, Math.Max(_options.CardMargin, width - _options.CardWidth - _options.CardMargin)),
+            Math.Clamp(y, _options.CardMargin, Math.Max(_options.CardMargin, height - _options.CardMaxHeight - _options.CardMargin)));
     }
 
     private void LayoutArrow(Rect target, Point card, ProductTourPlacement placement)
     {
-        if (placement == ProductTourPlacement.Center)
+        if (placement == ProductTourPlacement.Center || _currentArrowKind != ProductTourArrowKind.Triangle)
         {
             _arrow.Visibility = Visibility.Collapsed;
             return;
@@ -363,7 +383,7 @@ public sealed class ProductTourOverlay : Canvas
 
         _arrow.Visibility = Visibility.Visible;
         var targetCenter = new Point(target.Left + target.Width / 2, target.Top + target.Height / 2);
-        var cardCenter = new Point(card.X + CardWidth / 2, card.Y + CardMaxHeight / 2);
+        var cardCenter = new Point(card.X + _options.CardWidth / 2, card.Y + _options.CardMaxHeight / 2);
         var x = (targetCenter.X + cardCenter.X) / 2;
         var y = (targetCenter.Y + cardCenter.Y) / 2;
         SetLeft(_arrow, x);

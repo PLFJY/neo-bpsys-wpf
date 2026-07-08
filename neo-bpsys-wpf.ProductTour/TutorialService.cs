@@ -69,6 +69,7 @@ public sealed class TutorialService : ITutorialService
     private readonly ITutorialStateStore _stateStore;
     private readonly ITutorialSignalService _signalService;
     private readonly ITutorialTextProvider _textProvider;
+    private readonly ProductTourOptions _options;
     private readonly ILogger<TutorialService> _logger;
     private readonly SemaphoreSlim _runLock = new(1, 1);
     private bool _isFlowRunning;
@@ -83,6 +84,7 @@ public sealed class TutorialService : ITutorialService
     /// <param name="stateStore">State store.</param>
     /// <param name="signalService">Signal service.</param>
     /// <param name="textProvider">Fixed UI text provider.</param>
+    /// <param name="options">Product tour display options.</param>
     /// <param name="logger">Logger.</param>
     public TutorialService(
         IServiceProvider serviceProvider,
@@ -92,6 +94,7 @@ public sealed class TutorialService : ITutorialService
         ITutorialStateStore stateStore,
         ITutorialSignalService signalService,
         ITutorialTextProvider textProvider,
+        ProductTourOptions options,
         ILogger<TutorialService> logger)
     {
         _serviceProvider = serviceProvider;
@@ -101,6 +104,7 @@ public sealed class TutorialService : ITutorialService
         _stateStore = stateStore;
         _signalService = signalService;
         _textProvider = textProvider;
+        _options = options;
         _logger = logger;
     }
 
@@ -328,7 +332,7 @@ public sealed class TutorialService : ITutorialService
                 }
             }
 
-            var overlay = new ProductTourOverlay(_textProvider);
+            var overlay = new ProductTourOverlay(_textProvider, _options);
             var context = new ProductTourStepContext
             {
                 FlowId = flowId,
@@ -434,11 +438,16 @@ public sealed class TutorialService : ITutorialService
         CancellationToken cancellationToken)
     {
         var host = OverlayHost.GetHostPanel(owner);
-        var overlay = new DialogueOverlay(_textProvider);
+        var overlay = new DialogueOverlay(_textProvider, _options);
         host.Children.Add(overlay);
-        var result = await overlay.ShowAsync(dialogue.Speaker, dialogue.Lines, cancellationToken);
-        host.Children.Remove(overlay);
-        return result;
+        try
+        {
+            return await overlay.ShowAsync(dialogue.Speaker, dialogue.Lines, cancellationToken);
+        }
+        finally
+        {
+            host.Children.Remove(overlay);
+        }
     }
 
     private async Task<TutorialRunResult> RunActionAsync(ActionFlowItem action, CancellationToken cancellationToken)

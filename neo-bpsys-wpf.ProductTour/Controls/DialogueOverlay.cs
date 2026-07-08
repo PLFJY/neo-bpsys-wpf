@@ -21,21 +21,25 @@ public sealed class DialogueOverlay : Grid
     private DispatcherTimer? _timer;
     private TaskCompletionSource<TutorialRunResult>? _completion;
     private readonly ITutorialTextProvider _textProvider;
+    private readonly ProductTourOptions _options;
 
     /// <summary>Gets or sets the typewriter interval.</summary>
     public TimeSpan TypewriterInterval { get; set; } = TimeSpan.FromMilliseconds(28);
 
     /// <summary>Initializes a new instance of the <see cref="DialogueOverlay"/> class.</summary>
     public DialogueOverlay()
-        : this(new DefaultTutorialTextProvider())
+        : this(new DefaultTutorialTextProvider(), new ProductTourOptions())
     {
     }
 
     /// <summary>Initializes a new instance of the <see cref="DialogueOverlay"/> class.</summary>
     /// <param name="textProvider">Fixed UI text provider.</param>
-    public DialogueOverlay(ITutorialTextProvider textProvider)
+    /// <param name="options">Product tour display options.</param>
+    public DialogueOverlay(ITutorialTextProvider textProvider, ProductTourOptions options)
     {
         _textProvider = textProvider;
+        _options = options;
+        TypewriterInterval = _options.TypewriterInterval;
         Style = TryFindResource("ProductTourDialogueOverlayStyle") as Style;
         Panel.SetZIndex(this, 10000);
         HorizontalAlignment = HorizontalAlignment.Stretch;
@@ -54,6 +58,7 @@ public sealed class DialogueOverlay : Grid
             HorizontalAlignment = HorizontalAlignment.Right,
             Margin = new Thickness(0, 14, 0, 0)
         };
+        _continueBlock.Style = TryFindResource("ProductTourDialogueContinueStyle") as Style;
 
         var blink = new DoubleAnimation(0.35, 1, TimeSpan.FromMilliseconds(700))
         {
@@ -68,8 +73,8 @@ public sealed class DialogueOverlay : Grid
             Width = double.NaN,
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Bottom,
-            Margin = new Thickness(48),
-            RenderTransform = new TranslateTransform(0, 24),
+            Margin = new Thickness(_options.Gap * 3),
+            RenderTransform = new TranslateTransform(0, _options.DialogueInitialTranslateY),
             Child = new StackPanel { Children = { _speakerBlock, _textBlock, _continueBlock } }
         };
 
@@ -156,11 +161,11 @@ public sealed class DialogueOverlay : Grid
     {
         var source = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var storyboard = new Storyboard();
-        var opacity = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(280));
+        var opacity = new DoubleAnimation(0, 1, _options.DialogueFadeInDuration);
         Storyboard.SetTarget(opacity, this);
         Storyboard.SetTargetProperty(opacity, new PropertyPath(OpacityProperty));
         storyboard.Children.Add(opacity);
-        var y = new DoubleAnimation(24, 0, TimeSpan.FromMilliseconds(300));
+        var y = new DoubleAnimation(_options.DialogueInitialTranslateY, 0, _options.DialogueBoxEnterDuration);
         Storyboard.SetTarget(y, _dialogueBox);
         Storyboard.SetTargetProperty(y, new PropertyPath("(UIElement.RenderTransform).(TranslateTransform.Y)"));
         storyboard.Children.Add(y);
@@ -173,11 +178,11 @@ public sealed class DialogueOverlay : Grid
     {
         var source = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var storyboard = new Storyboard();
-        var opacity = new DoubleAnimation(0, TimeSpan.FromMilliseconds(240)) { From = Opacity };
+        var opacity = new DoubleAnimation(0, _options.DialogueFadeOutDuration) { From = Opacity };
         Storyboard.SetTarget(opacity, this);
         Storyboard.SetTargetProperty(opacity, new PropertyPath(OpacityProperty));
         storyboard.Children.Add(opacity);
-        var y = new DoubleAnimation(0, 12, TimeSpan.FromMilliseconds(240));
+        var y = new DoubleAnimation(0, Math.Max(0, _options.DialogueInitialTranslateY / 2), _options.DialogueFadeOutDuration);
         Storyboard.SetTarget(y, _dialogueBox);
         Storyboard.SetTargetProperty(y, new PropertyPath("(UIElement.RenderTransform).(TranslateTransform.Y)"));
         storyboard.Children.Add(y);

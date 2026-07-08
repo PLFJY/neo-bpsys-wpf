@@ -19,6 +19,34 @@ namespace neo_bpsys_wpf.Tests.Controls;
 public sealed class ProductTourOverlayHitTest
 {
     [Fact]
+    public void ProductTourOptionsHaveExpectedDefaults()
+    {
+        var options = new ProductTourOptions();
+
+        Assert.Equal(380, options.CardWidth);
+        Assert.Equal(280, options.CardMaxHeight);
+        Assert.Equal(12, options.CardMargin);
+        Assert.Equal(16, options.Gap);
+        Assert.Equal(8, options.SpotlightPadding);
+        Assert.Equal(8, options.SpotlightCornerRadius);
+        Assert.Equal(TimeSpan.FromMilliseconds(240), options.OverlayFadeInDuration);
+        Assert.Equal(TimeSpan.FromMilliseconds(220), options.OverlayFadeOutDuration);
+        Assert.Equal(TimeSpan.FromMilliseconds(240), options.WelcomeFadeInDuration);
+        Assert.Equal(TimeSpan.FromMilliseconds(280), options.WelcomeFadeOutDuration);
+        Assert.Equal(TimeSpan.FromMilliseconds(300), options.WelcomeCardEnterDuration);
+        Assert.Equal(16, options.WelcomeCardInitialTranslateY);
+        Assert.Equal(TimeSpan.FromMilliseconds(240), options.DialogueFadeInDuration);
+        Assert.Equal(TimeSpan.FromMilliseconds(200), options.DialogueFadeOutDuration);
+        Assert.Equal(TimeSpan.FromMilliseconds(280), options.DialogueBoxEnterDuration);
+        Assert.Equal(24, options.DialogueInitialTranslateY);
+        Assert.Equal(TimeSpan.FromMilliseconds(28), options.TypewriterInterval);
+        Assert.True(options.ShowStepProgress);
+        Assert.True(options.ShowSkipButton);
+        Assert.True(options.ShowArrow);
+        Assert.Equal(ProductTourArrowKind.Triangle, options.DefaultArrowKind);
+    }
+
+    [Fact]
     public async Task AllowTargetOnlyLeavesTargetHitTestReachable()
     {
         await WpfTestThread.RunAsync(async () =>
@@ -37,6 +65,82 @@ public sealed class ProductTourOverlayHitTest
                 Assert.True(
                     IsDescendantOf(hit, host.Target),
                     $"Expected target hit, got {DescribeHit(hit, host.Target, overlay.Overlay)}.");
+            }
+            finally
+            {
+                host.Window.Close();
+            }
+        });
+    }
+
+    [Fact]
+    public async Task OverlayUsesProvidedOptionsForCardLayout()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var host = CreateOwnerWithTarget(new Thickness(700, 40, 0, 0), 40, 40);
+            var options = new ProductTourOptions
+            {
+                CardWidth = 300,
+                CardMaxHeight = 180,
+                CardMargin = 37,
+                Gap = 40,
+                OverlayFadeInDuration = TimeSpan.FromMilliseconds(1),
+                OverlayFadeOutDuration = TimeSpan.FromMilliseconds(1)
+            };
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            try
+            {
+                var overlay = await ShowOverlayAsync(
+                    host.Owner,
+                    host.Target,
+                    ProductTourInteractionMode.BlockAll,
+                    cts.Token,
+                    options);
+
+                var card = FindByName<Border>(overlay.Overlay, "Card");
+
+                cts.Cancel();
+                await overlay.Task;
+                Assert.NotNull(card);
+                Assert.Equal(options.CardWidth, card.Width);
+                Assert.Equal(options.CardMaxHeight, card.MaxHeight);
+                Assert.Equal(800 - options.CardWidth - options.CardMargin, Canvas.GetLeft(card));
+            }
+            finally
+            {
+                host.Window.Close();
+            }
+        });
+    }
+
+    [Fact]
+    public async Task OverlayUsesTextProviderForButtonText()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var host = CreateOwnerWithTarget();
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            try
+            {
+                var overlay = await ShowOverlayAsync(
+                    host.Owner,
+                    host.Target,
+                    ProductTourInteractionMode.BlockAll,
+                    cts.Token,
+                    new ProductTourOptions
+                    {
+                        OverlayFadeInDuration = TimeSpan.FromMilliseconds(1),
+                        OverlayFadeOutDuration = TimeSpan.FromMilliseconds(1)
+                    },
+                    new FakeTutorialTextProvider());
+
+                cts.Cancel();
+                await overlay.Task;
+
+                Assert.NotNull(FindButtonByContent(overlay.Overlay, "FAKE_PREVIOUS"));
+                Assert.NotNull(FindButtonByContent(overlay.Overlay, "FAKE_FINISH"));
+                Assert.NotNull(FindButtonByContent(overlay.Overlay, "FAKE_SKIP"));
             }
             finally
             {
@@ -76,6 +180,9 @@ public sealed class ProductTourOverlayHitTest
     }
 
     private static TestHost CreateOwnerWithTarget()
+        => CreateOwnerWithTarget(new Thickness(40), 120, 40);
+
+    private static TestHost CreateOwnerWithTarget(Thickness targetMargin, double targetWidth, double targetHeight)
     {
         var owner = new Grid
         {
@@ -87,11 +194,11 @@ public sealed class ProductTourOverlayHitTest
         {
             Name = "TargetButton",
             Content = "Target",
-            Width = 120,
-            Height = 40,
+            Width = targetWidth,
+            Height = targetHeight,
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Top,
-            Margin = new Thickness(40)
+            Margin = targetMargin
         };
         owner.Children.Add(target);
 
@@ -114,9 +221,11 @@ public sealed class ProductTourOverlayHitTest
         Grid owner,
         Button target,
         ProductTourInteractionMode interactionMode,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        ProductTourOptions? options = null,
+        ITutorialTextProvider? textProvider = null)
     {
-        var overlay = new ProductTourOverlay();
+        var overlay = new ProductTourOverlay(textProvider ?? new DefaultTutorialTextProvider(), options ?? new ProductTourOptions());
         owner.Children.Add(overlay);
         owner.UpdateLayout();
         var runTask = overlay.ShowStepAsync(
@@ -138,6 +247,47 @@ public sealed class ProductTourOverlayHitTest
         await Task.Delay(350, cancellationToken);
         owner.UpdateLayout();
         return new ShownOverlay(overlay, runTask);
+    }
+
+    private static T? FindByName<T>(DependencyObject root, string name)
+        where T : FrameworkElement
+    {
+        if (root is T element && element.Name == name)
+        {
+            return element;
+        }
+
+        var childCount = VisualTreeHelper.GetChildrenCount(root);
+        for (var i = 0; i < childCount; i++)
+        {
+            var result = FindByName<T>(VisualTreeHelper.GetChild(root, i), name);
+            if (result != null)
+            {
+                return result;
+            }
+        }
+
+        return null;
+    }
+
+    private static Button? FindButtonByContent(DependencyObject root, string content)
+    {
+        if (root is Button button && Equals(button.Content, content))
+        {
+            return button;
+        }
+
+        var childCount = VisualTreeHelper.GetChildrenCount(root);
+        for (var i = 0; i < childCount; i++)
+        {
+            var result = FindButtonByContent(VisualTreeHelper.GetChild(root, i), content);
+            if (result != null)
+            {
+                return result;
+            }
+        }
+
+        return null;
     }
 
     private static DependencyObject? HitTestTargetCenter(Grid owner, Button target)
@@ -200,4 +350,39 @@ public sealed class ProductTourOverlayHitTest
     private sealed record ShownOverlay(ProductTourOverlay Overlay, Task<ProductTourStepAction> Task);
 
     private sealed record TestHost(Window Window, Grid Owner, Button Target);
+
+    private sealed class FakeTutorialTextProvider : ITutorialTextProvider
+    {
+        public string Previous => "FAKE_PREVIOUS";
+
+        public string Next => "FAKE_NEXT";
+
+        public string Finish => "FAKE_FINISH";
+
+        public string Skip => "FAKE_SKIP";
+
+        public string WaitingForAction => "FAKE_WAITING";
+
+        public string Continue => "FAKE_CONTINUE";
+
+        public string ClickToContinue => "FAKE_CLICK";
+
+        public string WelcomeTitle => "FAKE_WELCOME";
+
+        public string WelcomeDescription => "FAKE_DESCRIPTION";
+
+        public string LanguageLabel => "FAKE_LANGUAGE";
+
+        public string StartTour => "FAKE_START";
+
+        public string RestartAvailableHint => "FAKE_RESTART";
+
+        public string SkipConfirmTitle => "FAKE_SKIP_TITLE";
+
+        public string SkipConfirmDescription => "FAKE_SKIP_DESCRIPTION";
+
+        public string SkipConfirmContinue => "FAKE_SKIP_CONTINUE";
+
+        public string SkipConfirmConfirm => "FAKE_SKIP_CONFIRM";
+    }
 }

@@ -6,6 +6,7 @@
     <SolidColorBrush x:Key="ProductTourFallbackAccentBrush" Color="#FF60CDFF" />
     <SolidColorBrush x:Key="ProductTourFallbackSecondaryBrush" Color="#33FFFFFF" />
     <SolidColorBrush x:Key="ProductTourFallbackMaskBrush" Color="#CC202020" />
+    <SolidColorBrush x:Key="ProductTourFallbackErrorBrush" Color="#FFFFB4A8" />
 
     <Style x:Key="ProductTourOverlayStyle" TargetType="{x:Type Canvas}" />
 
@@ -43,6 +44,25 @@
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
         <Setter Property="FontSize" Value="14" />
         <Setter Property="LineHeight" Value="21" />
+    </Style>
+
+    <Style x:Key="ProductTourCardProgressStyle" TargetType="{x:Type TextBlock}">
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Opacity" Value="0.78" />
+    </Style>
+
+    <Style x:Key="ProductTourCardWaitingStyle" TargetType="{x:Type TextBlock}">
+        <Setter Property="Foreground" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style x:Key="ProductTourCardErrorStyle" TargetType="{x:Type TextBlock}">
+        <Setter Property="Foreground" Value="{DynamicResource ProductTourFallbackErrorBrush}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="LineHeight" Value="19" />
     </Style>
 
     <Style x:Key="ProductTourArrowPathStyle" TargetType="{x:Type Path}">
@@ -91,7 +111,7 @@
     </Style>
 
     <Style x:Key="ProductTourWelcomeOverlayStyle" TargetType="{x:Type Grid}">
-        <Setter Property="Background" Value="#202020" />
+        <Setter Property="Background" Value="{DynamicResource ProductTourFallbackMaskBrush}" />
     </Style>
 
     <Style x:Key="ProductTourWelcomeCardStyle"
@@ -114,8 +134,14 @@
         <Setter Property="LineHeight" Value="23" />
     </Style>
 
+    <Style x:Key="ProductTourWelcomeFootnoteStyle" TargetType="{x:Type TextBlock}">
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Opacity" Value="0.72" />
+    </Style>
+
     <Style x:Key="ProductTourDialogueOverlayStyle" TargetType="{x:Type Grid}">
-        <Setter Property="Background" Value="#66000000" />
+        <Setter Property="Background" Value="{DynamicResource ProductTourFallbackMaskBrush}" />
     </Style>
 
     <Style x:Key="ProductTourDialogueBoxStyle" TargetType="{x:Type Border}">
@@ -146,7 +172,29 @@
         <Setter Property="Margin" Value="0,8,0,0" />
     </Style>
 
-    <Style x:Key="ProductTourConfirmDialogStyle" TargetType="{x:Type ContentControl}">
+    <Style x:Key="ProductTourDialogueContinueStyle" TargetType="{x:Type TextBlock}">
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style x:Key="ProductTourConfirmDialogStyle"
+           TargetType="{x:Type Border}"
+           BasedOn="{StaticResource ProductTourCardStyle}">
+        <Setter Property="Padding" Value="28" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="MaxWidth" Value="520" />
+    </Style>
+
+    <Style x:Key="ProductTourConfirmTitleStyle" TargetType="{x:Type TextBlock}">
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+        <Setter Property="FontSize" Value="22" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style x:Key="ProductTourConfirmMessageStyle" TargetType="{x:Type TextBlock}">
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="LineHeight" Value="21" />
     </Style>
 </ResourceDictionary>

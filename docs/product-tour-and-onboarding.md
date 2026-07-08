@@ -87,6 +87,24 @@ Application.Current.Resources["CurrentLanguage"]
 
 样式 key 至少覆盖 ProductTour overlay、spotlight、card、标题、正文、箭头、按钮、welcome、dialogue 和 confirm dialog。新增视觉元素时先考虑扩展样式资源，不要在控件代码中绑定主程序具体颜色。
 
+## UI 配置边界
+
+Phase 3 后，Product Tour UI 按三层边界维护：
+
+```text
+TextProvider: 固定 UI 文案
+ProductTourOptions: 尺寸、动画、显示行为开关
+ProductTour.xaml: 视觉样式、颜色、字体、边框、阴影
+```
+
+`ITutorialTextProvider` 只负责控件固定文案，例如“上一步”“下一步”“等待操作...”和 Welcome 的固定说明。它不负责卡片宽度、动画时长，也不负责 package 的业务说明文案。
+
+`ProductTourOptions` 用于控制运行时结构参数和行为开关，例如 `CardWidth`、`CardMaxHeight`、`CardMargin`、`Gap`、`SpotlightPadding`、进入/退出动画时长、打字机间隔、是否显示步骤进度、是否显示跳过按钮、是否显示箭头。`AddProductTour()` 会注册默认 options；主程序可以在注册后覆盖 singleton，以统一调整导览 UI 的尺寸和动效节奏。
+
+`ProductTour.xaml` 负责视觉样式。等待、错误、进度、确认框、Dialogue continue 等视觉元素都应通过 style key 配置；控件代码只保留结构、状态和运行逻辑。控件代码不应手动覆盖卡片背景、边框、阴影或错误文本颜色，否则主程序无法通过资源字典统一替换视觉表现。
+
+当前阶段仍只整理 UI 表现和控件可维护性，没有接入真实 TeamInfo、CharacterSelector、SmartBP、DesignerV3 业务教程，也没有实现教学沙盒或扩写 `Flow.FirstRun.StandardBp` 的业务流程。
+
 ## Flow 与页面 package
 
 页面 `Loaded` 时调用：
