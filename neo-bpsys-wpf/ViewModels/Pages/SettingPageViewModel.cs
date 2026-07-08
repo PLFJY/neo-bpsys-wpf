@@ -13,6 +13,7 @@ using neo_bpsys_wpf.Models;
 using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.Services.SmartBpModule;
 using neo_bpsys_wpf.Services.Abstractions;
+using neo_bpsys_wpf.Tutorial;
 using neo_bpsys_wpf.Views.Windows;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -232,6 +233,21 @@ public partial class SettingPageViewModel : ViewModelBase
         }
 
         await _tutorialService.ResetStateAsync();
+    }
+
+    /// <summary>
+    /// 运行真实页面目标与操作信号验证导览。
+    /// </summary>
+    [RelayCommand]
+    private async Task RunRealTargetProbeTutorialAsync()
+    {
+        if (Application.Current.MainWindow is not Window owner)
+        {
+            return;
+        }
+
+        owner.Activate();
+        await _tutorialService.RunFlowAsync(owner, TutorialFlowIds.Phase4RealTargetProbe, force: true);
     }
 
     #endregion

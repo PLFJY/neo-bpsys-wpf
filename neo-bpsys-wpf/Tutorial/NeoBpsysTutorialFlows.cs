@@ -1,4 +1,5 @@
 using neo_bpsys_wpf.ProductTour;
+using System.Windows;
 
 namespace neo_bpsys_wpf.Tutorial;
 
@@ -12,6 +13,7 @@ public static class NeoBpsysTutorialFlows
     /// </summary>
     public static readonly string[] FirstRunIncludedPackages =
     [
+        TutorialPackageIds.MainNavigationBasic,
         TutorialPackageIds.FrontManageBpWindowLaunchBasic,
         TutorialPackageIds.GameManageBasic,
         TutorialPackageIds.TeamInfoBasic,
@@ -34,6 +36,7 @@ public static class NeoBpsysTutorialFlows
     {
         flowRegistry.Register(CreateFirstRunFlow());
         flowRegistry.Register(CreatePhase4ANavigationProbeFlow());
+        flowRegistry.Register(CreatePhase4RealTargetProbeFlow());
     }
 
     /// <summary>
@@ -70,5 +73,28 @@ public static class NeoBpsysTutorialFlows
             .Dialogue("neo-bpsys-wpf", "现在我们验证左侧导航栏的教程引导。")
             .Package(TutorialPackageIds.MainNavigationBasic)
             .Dialogue("neo-bpsys-wpf", "导航引导验证完成。")
+            .Build();
+
+    /// <summary>
+    /// Creates the Phase 4 real target probe flow definition.
+    /// </summary>
+    /// <returns>The Phase 4 real target probe flow definition.</returns>
+    public static TutorialFlowDefinition CreatePhase4RealTargetProbeFlow() =>
+        TutorialFlowBuilder.Create(TutorialFlowIds.Phase4RealTargetProbe)
+            .Version(1)
+            .Dialogue("neo-bpsys-wpf", "现在开始验证真实页面目标和操作信号。")
+            .Package(TutorialPackageIds.MainNavigationBasic)
+            .Package(TutorialPackageIds.TeamInfoBasic)
+            .Item(new ActionFlowItem
+            {
+                ActionAsync = (_, _) =>
+                {
+                    Application.Current?.MainWindow?.Activate();
+                    return Task.CompletedTask;
+                }
+            })
+            .Package(TutorialPackageIds.GameManageBasic)
+            .Package(TutorialPackageIds.BpGameGuidanceBasic)
+            .Dialogue("neo-bpsys-wpf", "真实目标验证完成。完整教学流程会在教学沙盒完成后接入。")
             .Build();
 }

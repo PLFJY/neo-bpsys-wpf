@@ -48,6 +48,7 @@
                             Content="{lex:Loc OpenFrontedDesigner}"
                             Icon="{ui:SymbolIcon Symbol=Edit24}" />
                         <ui:Button
+                            x:Name="BpWindowLaunchButton"
                             Height="50"
                             Margin="10,0,0,0"
                             Command="{Binding ShowAllWindowsCommand}"

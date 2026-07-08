@@ -16,6 +16,7 @@ using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Models.Plugins;
 using neo_bpsys_wpf.Services.Abstractions;
+using neo_bpsys_wpf.Tutorial;
 using neo_bpsys_wpf.Views.Windows;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -188,6 +189,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
     private void ShowAllWindows()
     {
         _frontedWindowService.AllWindowShow();
+        TutorialSignalPublisher.Publish(TutorialSignalIds.BpWindowOpened, new { Scope = "All" });
     }
 
     [RelayCommand]
@@ -1030,9 +1032,11 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
         {
             case FrontedWindowType windowType:
                 _frontedWindowService.ShowWindow(windowType);
+                TutorialSignalPublisher.Publish(TutorialSignalIds.BpWindowOpened, new { Window = windowType.ToString() });
                 break;
             case string id:
                 _frontedWindowService.ShowWindow(id);
+                TutorialSignalPublisher.Publish(TutorialSignalIds.BpWindowOpened, new { WindowId = id });
                 break;
         }
     }

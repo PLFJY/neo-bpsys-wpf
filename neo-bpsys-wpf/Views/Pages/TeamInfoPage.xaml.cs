@@ -1,11 +1,8 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Microsoft.Extensions.DependencyInjection;
-using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Attributes;
 using neo_bpsys_wpf.Core.Enums;
-using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.Tutorial;
 using neo_bpsys_wpf.ViewModels.Pages;
 using Wpf.Ui.Controls;
@@ -29,8 +26,7 @@ public partial class TeamInfoPage : Page
         InitializeComponent();
         Loaded += (_, _) =>
         {
-            IAppHost.Host?.Services.GetService<ITutorialSignalService>()
-                ?.Publish(TutorialSignalIds.NavigationTeamInfoOpened);
+            TutorialSignalPublisher.Publish(TutorialSignalIds.NavigationTeamInfoOpened);
             TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.TeamInfo);
         };
     }

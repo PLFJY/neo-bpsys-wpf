@@ -358,6 +358,11 @@
                         Command="{Binding ResetAllTutorialStateCommand}"
                         Content="重置全部教程状态"
                         Icon="{ui:SymbolIcon Symbol=Delete24}" />
+                    <ui:Button
+                        Margin="0,0,10,10"
+                        Command="{Binding RunRealTargetProbeTutorialCommand}"
+                        Content="运行真实目标验证"
+                        Icon="{ui:SymbolIcon Symbol=Play24}" />
                 </WrapPanel>
             </StackPanel>
         </Border>

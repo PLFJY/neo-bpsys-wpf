@@ -18,6 +18,10 @@ public partial class PickPage : Page
     public PickPage()
     {
         InitializeComponent();
-        Loaded += (_, _) => TutorialPageLoader.RunPendingOnLoaded(this, "Page.Bp.Shared");
+        Loaded += (_, _) =>
+        {
+            TutorialSignalPublisher.Publish(TutorialSignalIds.NavigationPickCharacterOpened);
+            TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.BpShared);
+        };
     }
 }

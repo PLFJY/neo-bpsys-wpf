@@ -18,6 +18,10 @@ public partial class BanSurPage : Page
     public BanSurPage()
     {
         InitializeComponent();
-        Loaded += (_, _) => TutorialPageLoader.RunPendingOnLoaded(this, "Page.Bp.Shared");
+        Loaded += (_, _) =>
+        {
+            TutorialSignalPublisher.Publish(TutorialSignalIds.NavigationBanSurvivorOpened);
+            TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.BpShared);
+        };
     }
 }

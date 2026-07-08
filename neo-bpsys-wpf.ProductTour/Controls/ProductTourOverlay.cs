@@ -214,6 +214,7 @@ public sealed class ProductTourOverlay : Canvas
         _previousButton.IsEnabled = context.StepIndex > 0;
         _nextButton.Content = context.StepIndex == context.StepCount - 1 ? _textProvider.Finish : _textProvider.Next;
         _nextButton.IsEnabled = _signalReceived;
+        _nextButton.Visibility = _signalReceived ? Visibility.Visible : Visibility.Collapsed;
         _skipButton.Visibility = _options.ShowSkipButton ? Visibility.Visible : Visibility.Collapsed;
         _waitingText.Visibility = _signalReceived ? Visibility.Collapsed : Visibility.Visible;
         _errorText.Visibility = Visibility.Collapsed;
@@ -233,9 +234,11 @@ public sealed class ProductTourOverlay : Canvas
     {
         _signalReceived = true;
         _nextButton.IsEnabled = true;
+        _nextButton.Visibility = Visibility.Collapsed;
         _waitingText.Visibility = Visibility.Collapsed;
         _errorText.Visibility = Visibility.Collapsed;
         _errorText.Text = string.Empty;
+        _completion?.TrySetResult(ProductTourStepAction.Next);
     }
 
     /// <summary>Marks the awaited step action as timed out and lets the user decide how to proceed.</summary>
@@ -244,6 +247,7 @@ public sealed class ProductTourOverlay : Canvas
     {
         _signalReceived = false;
         _nextButton.IsEnabled = true;
+        _nextButton.Visibility = Visibility.Visible;
         _nextButton.Content = _textProvider.Continue;
         _waitingText.Visibility = Visibility.Collapsed;
         _errorText.Text = message;

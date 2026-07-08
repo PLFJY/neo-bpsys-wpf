@@ -13,6 +13,7 @@ using neo_bpsys_wpf.Core.Messages;
 using neo_bpsys_wpf.Core.Services.Registry;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.ProductTour;
+using neo_bpsys_wpf.Tutorial;
 using neo_bpsys_wpf.Views.Pages;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -90,7 +91,7 @@ public partial class MainWindowViewModel :
             CurrentGame.GameProgress = _selectedGameProgress;
             if (_selectedGameProgress == GameProgress.Game1FirstHalf)
             {
-                _tutorialSignalService.Publish("GameProgressSelected.Bo1FirstHalf", _selectedGameProgress);
+                _tutorialSignalService.Publish(TutorialSignalIds.GameProgressSelectedBo1FirstHalf, _selectedGameProgress);
             }
 
             NextGameCommand.NotifyCanExecuteChanged();
@@ -138,6 +139,13 @@ public partial class MainWindowViewModel :
         _gameGuidanceService.GuidanceStepChanged += (_, args) =>
         {
             ActionName = GetGuidanceActionDisplayName(args.Action);
+            _tutorialSignalService.Publish(
+                TutorialSignalIds.GuidanceStepChanged,
+                new
+                {
+                    args.Action,
+                    ActionName
+                });
         };
 
         _gameGuidanceService.GuidanceHighlightChanged += (_, args) =>
@@ -182,7 +190,7 @@ public partial class MainWindowViewModel :
     private void NewGame()
     {
         _sharedDataService.NewGame();
-        _tutorialSignalService.Publish("NewGameCreated", CurrentGame);
+        _tutorialSignalService.Publish(TutorialSignalIds.NewGameCreated, CurrentGame);
     }
 
     [RelayCommand]
@@ -297,7 +305,7 @@ public partial class MainWindowViewModel :
         if (string.IsNullOrEmpty(result)) return;
         ActionName = result;
         IsGuidanceStarted = true;
-        _tutorialSignalService.Publish("GameGuidanceStarted", result);
+        _tutorialSignalService.Publish(TutorialSignalIds.GameGuidanceStarted, result);
     }
 
     [RelayCommand]
@@ -312,7 +320,7 @@ public partial class MainWindowViewModel :
     private async Task NavigateToNextStepAsync()
     {
         ActionName = await _gameGuidanceService.NextStepAsync() ?? string.Empty;
-        _tutorialSignalService.Publish("GuidanceNextClicked", ActionName);
+        _tutorialSignalService.Publish(TutorialSignalIds.GuidanceNextClicked, ActionName);
         await Task.Delay(250);
     }
 

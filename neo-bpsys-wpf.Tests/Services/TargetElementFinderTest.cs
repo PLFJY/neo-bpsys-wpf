@@ -139,6 +139,69 @@ public sealed class TargetElementFinderTest
         });
     }
 
+    [Fact]
+    public async Task DescendantTypeFinderFindsFirstMatchingElementUnderHost()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var target = new DescendantTargetControl();
+            var host = new System.Windows.Controls.StackPanel
+            {
+                Name = "HostPanel",
+                Children =
+                {
+                    new System.Windows.Controls.TextBlock(),
+                    target
+                }
+            };
+            var root = new System.Windows.Controls.Grid();
+            root.Children.Add(host);
+            var window = CreateHiddenWindow(root);
+            try
+            {
+                window.Show();
+                window.UpdateLayout();
+
+                var result = await TargetElementFinder.FindDescendantTypeAsync(
+                    root,
+                    "HostPanel",
+                    typeof(DescendantTargetControl).FullName!,
+                    TimeSpan.FromSeconds(2),
+                    CancellationToken.None);
+
+                Assert.Same(target, result);
+            }
+            finally
+            {
+                window.Close();
+            }
+        });
+    }
+
+    [Fact]
+    public async Task DescendantTypeFinderReturnsNullWhenTargetIsMissing()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var root = new System.Windows.Controls.Grid
+            {
+                Children =
+                {
+                    new System.Windows.Controls.StackPanel { Name = "HostPanel" }
+                }
+            };
+
+            var result = await TargetElementFinder.FindDescendantTypeAsync(
+                root,
+                "HostPanel",
+                typeof(DescendantTargetControl).FullName!,
+                TimeSpan.FromMilliseconds(20),
+                CancellationToken.None);
+
+            Assert.Null(result);
+        });
+    }
+
     private static Window CreateHiddenWindow(UIElement content) =>
         new()
         {
@@ -153,6 +216,10 @@ public sealed class TargetElementFinderTest
         };
 
     private sealed class TestPage : System.Windows.Controls.Page
+    {
+    }
+
+    private sealed class DescendantTargetControl : System.Windows.Controls.Control
     {
     }
 

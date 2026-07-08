@@ -1,4 +1,5 @@
 using neo_bpsys_wpf.Core.Models;
+using neo_bpsys_wpf.Tutorial;
 using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
@@ -180,10 +181,14 @@ public class CharacterSelector : Control
         DependencyProperty.Register(nameof(DisabledKeys), typeof(ISet<string>), typeof(CharacterSelector),
             new PropertyMetadata(null));
 
+    /// <summary>
+    /// 初始化角色选择器控件。
+    /// </summary>
     public CharacterSelector()
     {
         // 注册TextBox的OnTextBoxTextChanged事件处理程序，借助事件冒泡实现搜索
         AddHandler(TextBoxBase.TextChangedEvent, new TextChangedEventHandler(OnTextBoxTextChanged), true);
+        AddHandler(ButtonBase.ClickEvent, new RoutedEventHandler(OnTemplateButtonClick), true);
     }
 
     private void OnTextBoxTextChanged(object sender, TextChangedEventArgs e)
@@ -202,7 +207,16 @@ public class CharacterSelector : Control
                     return;
                 if (ItemsSource is SortedDictionary<string, Character> itemSource)
                     Text = itemSource.ElementAt(foundIndex).Key;
+                TutorialSignalPublisher.Publish(TutorialSignalIds.CharacterSelectorSearchCommitted, CreateSignalPayload());
             }
+        }
+    }
+
+    private void OnTemplateButtonClick(object sender, RoutedEventArgs e)
+    {
+        if (e.OriginalSource is Button)
+        {
+            TutorialSignalPublisher.Publish(TutorialSignalIds.CharacterSelectorSelectionConfirmed, CreateSignalPayload());
         }
     }
 
@@ -257,11 +271,23 @@ public class CharacterSelector : Control
         {
             e.Handled = true;
             if (Command != null && Command.CanExecute(null))
+            {
                 Command.Execute(null);
+                TutorialSignalPublisher.Publish(TutorialSignalIds.CharacterSelectorSelectionConfirmed, CreateSignalPayload());
+            }
 
             IsDropDownOpen = false;
             //change Focus on Tab click
             MoveFocus();
         }
     }
+
+    private object CreateSignalPayload() => new
+    {
+        Name,
+        Text,
+        SelectedIndex,
+        SelectedValue,
+        SelectedItem
+    };
 }

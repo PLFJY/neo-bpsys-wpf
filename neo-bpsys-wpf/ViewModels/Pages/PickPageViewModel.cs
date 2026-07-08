@@ -6,6 +6,7 @@ using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models;
+using neo_bpsys_wpf.Tutorial;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using Team = neo_bpsys_wpf.Core.Models.Team;
@@ -231,7 +232,10 @@ public partial class PickPageViewModel : ViewModelBase
                 _ =>
                 {
                     if (SharedDataService.HomeTeam.GlobalBannedSurRecordList[Index] != value)
+                    {
                         SharedDataService.HomeTeam.GlobalBannedSurRecordList[Index] = value;
+                        PublishGlobalBanRecordUpdated(TeamType.HomeTeam, Camp.Sur, Index, value);
+                    }
                 });
         }
 
@@ -269,7 +273,10 @@ public partial class PickPageViewModel : ViewModelBase
                 _ =>
                 {
                     if (SharedDataService.HomeTeam.GlobalBannedHunRecordList[Index] != value)
+                    {
                         SharedDataService.HomeTeam.GlobalBannedHunRecordList[Index] = value;
+                        PublishGlobalBanRecordUpdated(TeamType.HomeTeam, Camp.Hun, Index, value);
+                    }
                 });
         }
 
@@ -304,7 +311,10 @@ public partial class PickPageViewModel : ViewModelBase
                 _ =>
                 {
                     if (SharedDataService.AwayTeam.GlobalBannedSurRecordList[Index] != value)
+                    {
                         SharedDataService.AwayTeam.GlobalBannedSurRecordList[Index] = value;
+                        PublishGlobalBanRecordUpdated(TeamType.AwayTeam, Camp.Sur, Index, value);
+                    }
                 });
         }
 
@@ -339,7 +349,10 @@ public partial class PickPageViewModel : ViewModelBase
                 _ =>
                 {
                     if (SharedDataService.AwayTeam.GlobalBannedHunRecordList[Index] != value)
+                    {
                         SharedDataService.AwayTeam.GlobalBannedHunRecordList[Index] = value;
+                        PublishGlobalBanRecordUpdated(TeamType.AwayTeam, Camp.Hun, Index, value);
+                    }
                 });
         }
 
@@ -351,5 +364,22 @@ public partial class PickPageViewModel : ViewModelBase
         protected override void SyncIsEnabled() => throw new NotImplementedException();
 
         protected override bool IsActionNameCorrect(GameAction? action) => false;
+    }
+
+    private static void PublishGlobalBanRecordUpdated(
+        TeamType teamType,
+        Camp camp,
+        int index,
+        Character? character)
+    {
+        TutorialSignalPublisher.Publish(
+            TutorialSignalIds.GlobalBanRecordUpdated,
+            new
+            {
+                TeamType = teamType,
+                Camp = camp,
+                Index = index,
+                CharacterName = character?.Name
+            });
     }
 }

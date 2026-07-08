@@ -60,6 +60,23 @@ public sealed class ProductTourBuilderTest
     }
 
     [Fact]
+    public void StepDescendantTypeCreatesDescendantTypeTargetStep()
+    {
+        var package = TutorialPackageBuilder.Create("Package.Descendant")
+            .ForPage("Page.Pick")
+            .StepDescendantType("SurvivorPickPanel", "Example.CharacterSelector")
+                .Title("Title")
+                .Description("Description")
+                .EndStep()
+            .Build();
+
+        var step = Assert.Single(package.Steps);
+        Assert.Equal(TutorialTargetKind.DescendantType, step.TargetKind);
+        Assert.Equal("SurvivorPickPanel", step.TargetName);
+        Assert.Equal("Example.CharacterSelector", step.TargetKey);
+    }
+
+    [Fact]
     public void FlowBuilderCreatesExpectedDefinition()
     {
         var flow = TutorialFlowBuilder.Create("Flow.Test")

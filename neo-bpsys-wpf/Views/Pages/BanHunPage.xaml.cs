@@ -18,6 +18,10 @@ public partial class BanHunPage : Page
     public BanHunPage()
     {
         InitializeComponent();
-        Loaded += (_, _) => TutorialPageLoader.RunPendingOnLoaded(this, "Page.Bp.Shared");
+        Loaded += (_, _) =>
+        {
+            TutorialSignalPublisher.Publish(TutorialSignalIds.NavigationBanHunterOpened);
+            TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.BpShared);
+        };
     }
 }

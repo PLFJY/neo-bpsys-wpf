@@ -6,6 +6,8 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.ProductTour;
+using neo_bpsys_wpf.Tutorial;
 using System.ComponentModel;
 using System.IO;
 using System.Text.Json;
@@ -42,6 +44,7 @@ public partial class TeamInfoPageViewModel
         public Team CurrentTeam { get; private set; }
         private readonly IFilePickerService _filePickerService;
         private readonly IFrontedImageSafetyService _imageSafetyService;
+        private readonly ITutorialSignalService _tutorialSignalService;
 
         /// <summary>
         /// 初始化队伍信息视图模型。
@@ -53,10 +56,27 @@ public partial class TeamInfoPageViewModel
             Team team,
             IFilePickerService filePickerService,
             IFrontedImageSafetyService imageSafetyService)
+            : this(team, filePickerService, imageSafetyService, NoOpTutorialSignalService.Instance)
+        {
+        }
+
+        /// <summary>
+        /// 初始化队伍信息视图模型。
+        /// </summary>
+        /// <param name="team">队伍数据</param>
+        /// <param name="filePickerService">文件选择服务</param>
+        /// <param name="imageSafetyService">前台图片安全校验服务</param>
+        /// <param name="tutorialSignalService">教程信号服务</param>
+        public TeamInfoViewModel(
+            Team team,
+            IFilePickerService filePickerService,
+            IFrontedImageSafetyService imageSafetyService,
+            ITutorialSignalService tutorialSignalService)
         {
             CurrentTeam = team;
             _filePickerService = filePickerService;
             _imageSafetyService = imageSafetyService;
+            _tutorialSignalService = tutorialSignalService;
             TeamName = team.Name;
             SyncTeamColorEditor();
             CurrentTeam.PropertyChanged += CurrentTeamOnPropertyChanged;
@@ -94,6 +114,7 @@ public partial class TeamInfoPageViewModel
         private void ConfirmTeamName()
         {
             CurrentTeam.Name = TeamName;
+            _tutorialSignalService.Publish(TutorialSignalIds.TeamNameConfirmed, CreateTeamPayload());
         }
 
         [RelayCommand]
@@ -190,6 +211,7 @@ public partial class TeamInfoPageViewModel
                 TeamName = CurrentTeam.Name;
                 RefreshCanMemberOnFieldState(Camp.Sur);
                 RefreshCanMemberOnFieldState(Camp.Hun);
+                _tutorialSignalService.Publish(GetTeamJsonImportedSignalId(), CreateTeamPayload());
             }
             catch (JsonException ex)
             {
@@ -296,6 +318,44 @@ public partial class TeamInfoPageViewModel
                 CurrentTeam.MemberOffField(member);
             }
             RefreshCanMemberOnFieldState(member.Camp);
+            _tutorialSignalService.Publish(
+                TutorialSignalIds.MemberStateChanged,
+                new
+                {
+                    CurrentTeam.TeamType,
+                    CurrentTeam.Camp,
+                    MemberCamp = member.Camp,
+                    member.IsOnField,
+                    member.Name
+                });
+        }
+
+        private object CreateTeamPayload() => new
+        {
+            CurrentTeam.TeamType,
+            CurrentTeam.Camp,
+            CurrentTeam.Name
+        };
+
+        private string GetTeamJsonImportedSignalId() =>
+            CurrentTeam.TeamType == Core.Enums.TeamType.HomeTeam
+                ? TutorialSignalIds.TeamJsonImportedHome
+                : TutorialSignalIds.TeamJsonImportedAway;
+
+        private sealed class NoOpTutorialSignalService : ITutorialSignalService
+        {
+            public static NoOpTutorialSignalService Instance { get; } = new();
+
+            public void Publish(string signalId, object? payload = null)
+            {
+            }
+
+            public Task<object?> WaitAsync(
+                string signalId,
+                Func<object?, bool>? predicate,
+                TimeSpan timeout,
+                CancellationToken cancellationToken) =>
+                Task.FromResult<object?>(null);
         }
 
         private void RefreshCanMemberOnFieldState(Camp camp)

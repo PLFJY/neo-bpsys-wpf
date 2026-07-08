@@ -24,7 +24,10 @@
         <cv:IndexFormatConverter x:Key="IndexFormatConverter" />
     </Page.Resources>
     <WrapPanel modernScroll:GuidanceAutoScrollScope.IsEnabled="True" Orientation="Horizontal">
-        <Border Margin="0,0,10,10" Style="{StaticResource Card}">
+        <Border
+            x:Name="BanSurvivorSelectorPanel"
+            Margin="0,0,10,10"
+            Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -35,6 +38,7 @@
                     Style="{StaticResource Title}"
                     Text="{lex:Loc CurrentBan}" />
                 <ItemsControl
+                    x:Name="FirstBanSurvivorSelectorHost"
                     Grid.Row="1"
                     Margin="0,10,0,0"
                     Focusable="False"

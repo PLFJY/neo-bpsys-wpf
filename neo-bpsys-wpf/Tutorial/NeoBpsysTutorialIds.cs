@@ -10,6 +10,9 @@ public static class TutorialFlowIds
 
     /// <summary>Phase 4A navigation probe tutorial flow id.</summary>
     public const string Phase4ANavigationProbe = "Flow.Phase4A.NavigationProbe";
+
+    /// <summary>Phase 4 real target probe tutorial flow id.</summary>
+    public const string Phase4RealTargetProbe = "Flow.Phase4.RealTargetProbe";
 }
 
 /// <summary>
@@ -161,6 +164,18 @@ public static class TutorialSignalIds
     /// <summary>Smart BP navigation opened signal id.</summary>
     public const string NavigationSmartBpOpened = "Navigation.SmartBp.Opened";
 
+    /// <summary>Map BP navigation opened signal id.</summary>
+    public const string NavigationMapBpOpened = "Navigation.MapBp.Opened";
+
+    /// <summary>Survivor ban navigation opened signal id.</summary>
+    public const string NavigationBanSurvivorOpened = "Navigation.BanSurvivor.Opened";
+
+    /// <summary>Hunter ban navigation opened signal id.</summary>
+    public const string NavigationBanHunterOpened = "Navigation.BanHunter.Opened";
+
+    /// <summary>Character pick navigation opened signal id.</summary>
+    public const string NavigationPickCharacterOpened = "Navigation.PickCharacter.Opened";
+
     /// <summary>BP window opened signal id.</summary>
     public const string BpWindowOpened = "BpWindowOpened";
 
@@ -224,6 +239,36 @@ public static class TutorialTargetNames
     /// <summary>Team name input target name.</summary>
     public const string TeamNameInput = "TeamNameInput";
 
+    /// <summary>Home team name input target name.</summary>
+    public const string HomeTeamNameInput = "HomeTeamNameInput";
+
+    /// <summary>Home team name confirm button target name.</summary>
+    public const string HomeTeamNameConfirmButton = "HomeTeamNameConfirmButton";
+
+    /// <summary>Home team JSON import button target name.</summary>
+    public const string HomeTeamJsonImportButton = "HomeTeamJsonImportButton";
+
+    /// <summary>Home player list panel target name.</summary>
+    public const string HomePlayerListPanel = "HomePlayerListPanel";
+
+    /// <summary>Home player position panel target name.</summary>
+    public const string HomePlayerPositionPanel = "HomePlayerPositionPanel";
+
+    /// <summary>Away team name input target name.</summary>
+    public const string AwayTeamNameInput = "AwayTeamNameInput";
+
+    /// <summary>Away team name confirm button target name.</summary>
+    public const string AwayTeamNameConfirmButton = "AwayTeamNameConfirmButton";
+
+    /// <summary>Away team JSON import button target name.</summary>
+    public const string AwayTeamJsonImportButton = "AwayTeamJsonImportButton";
+
+    /// <summary>Away player list panel target name.</summary>
+    public const string AwayPlayerListPanel = "AwayPlayerListPanel";
+
+    /// <summary>Away player position panel target name.</summary>
+    public const string AwayPlayerPositionPanel = "AwayPlayerPositionPanel";
+
     /// <summary>Team summary card target name.</summary>
     public const string TeamSummaryCard = "TeamSummaryCard";
 
@@ -266,8 +311,38 @@ public static class TutorialTargetNames
     /// <summary>Character selector target name.</summary>
     public const string CharacterSelector = "CharacterSelector";
 
+    /// <summary>Survivor pick panel target name.</summary>
+    public const string SurvivorPickPanel = "SurvivorPickPanel";
+
+    /// <summary>First survivor pick selector host target name.</summary>
+    public const string FirstSurvivorPickSelectorHost = "FirstSurvivorPickSelectorHost";
+
+    /// <summary>Hunter pick selector host target name.</summary>
+    public const string HunterPickSelectorHost = "HunterPickSelectorHost";
+
     /// <summary>Global ban record panel target name.</summary>
     public const string GlobalBanRecordPanel = "GlobalBanRecordPanel";
+
+    /// <summary>Global ban auto-record toggle target name.</summary>
+    public const string GlobalBanAutoRecordToggle = "GlobalBanAutoRecordToggle";
+
+    /// <summary>Map BP panel target name.</summary>
+    public const string MapBpPanel = "MapBpPanel";
+
+    /// <summary>Map selector panel target name.</summary>
+    public const string MapSelectorPanel = "MapSelectorPanel";
+
+    /// <summary>Survivor ban selector panel target name.</summary>
+    public const string BanSurvivorSelectorPanel = "BanSurvivorSelectorPanel";
+
+    /// <summary>First survivor ban selector host target name.</summary>
+    public const string FirstBanSurvivorSelectorHost = "FirstBanSurvivorSelectorHost";
+
+    /// <summary>Hunter ban selector panel target name.</summary>
+    public const string BanHunterSelectorPanel = "BanHunterSelectorPanel";
+
+    /// <summary>First hunter ban selector host target name.</summary>
+    public const string FirstBanHunterSelectorHost = "FirstBanHunterSelectorHost";
 
     /// <summary>Score selector panel target name.</summary>
     public const string ScoreSelectorPanel = "ScoreSelectorPanel";

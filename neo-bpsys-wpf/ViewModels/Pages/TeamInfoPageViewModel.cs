@@ -3,6 +3,8 @@ using neo_bpsys_wpf.Controls;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using neo_bpsys_wpf.ProductTour;
+using neo_bpsys_wpf.Tutorial;
 using System.Collections.ObjectModel;
 using Player = neo_bpsys_wpf.Core.Models.Player;
 
@@ -29,18 +31,20 @@ public partial class TeamInfoPageViewModel : ViewModelBase
     /// <param name="sharedDataService">共享数据服务</param>
     /// <param name="filePickerService">文件选择服务</param>
     /// <param name="imageSafetyService">前台图片安全校验服务</param>
+    /// <param name="tutorialSignalService">教程信号服务</param>
     public TeamInfoPageViewModel(
         ISharedDataService sharedDataService,
         IFilePickerService filePickerService,
-        IFrontedImageSafetyService imageSafetyService)
+        IFrontedImageSafetyService imageSafetyService,
+        ITutorialSignalService tutorialSignalService)
     {
         var sharedDataService1 = sharedDataService;
         HomeTeamInfoViewModel =
-            new TeamInfoViewModel(sharedDataService1.HomeTeam, filePickerService, imageSafetyService);
+            new TeamInfoViewModel(sharedDataService1.HomeTeam, filePickerService, imageSafetyService, tutorialSignalService);
         AwayTeamInfoViewModel =
-            new TeamInfoViewModel(sharedDataService1.AwayTeam, filePickerService, imageSafetyService);
+            new TeamInfoViewModel(sharedDataService1.AwayTeam, filePickerService, imageSafetyService, tutorialSignalService);
         OnFieldSurPlayerViewModels =
-            [.. Enumerable.Range(0, 4).Select(i => new OnFieldSurPlayerViewModel(sharedDataService1, i))];
+            [.. Enumerable.Range(0, 4).Select(i => new OnFieldSurPlayerViewModel(sharedDataService1, tutorialSignalService, i))];
         OnFieldHunPlayerVm = new OnFieldHunPlayerViewModel(sharedDataService1);
     }
 
@@ -70,15 +74,21 @@ public partial class TeamInfoPageViewModel : ViewModelBase
     public partial class OnFieldSurPlayerViewModel : ObservableObjectBase
     {
         private readonly ISharedDataService _sharedDataService;
+        private readonly ITutorialSignalService _tutorialSignalService;
 
         /// <summary>
         /// 初始化在场求生者选手视图模型。
         /// </summary>
         /// <param name="sharedDataService">共享数据服务</param>
+        /// <param name="tutorialSignalService">教程信号服务</param>
         /// <param name="index">选手序号</param>
-        public OnFieldSurPlayerViewModel(ISharedDataService sharedDataService, int index)
+        public OnFieldSurPlayerViewModel(
+            ISharedDataService sharedDataService,
+            ITutorialSignalService tutorialSignalService,
+            int index)
         {
             _sharedDataService = sharedDataService;
+            _tutorialSignalService = tutorialSignalService;
             Index = index;
             sharedDataService.CurrentGameChanged += (_, _) => OnPropertyChanged(nameof(ThisPlayer));
             sharedDataService.TeamSwapped += (_, _) => OnPropertyChanged(nameof(ThisPlayer));
@@ -98,6 +108,14 @@ public partial class TeamInfoPageViewModel : ViewModelBase
         private void SwapMembersInPlayers(CharacterChangerCommandParameter parameter)
         {
             _sharedDataService.CurrentGame.SwapMembersInPlayers(parameter.Source, parameter.Target);
+            _tutorialSignalService.Publish(
+                TutorialSignalIds.MemberPositionSwapped,
+                new
+                {
+                    parameter.Source,
+                    parameter.Target,
+                    Index
+                });
         }
     }
 

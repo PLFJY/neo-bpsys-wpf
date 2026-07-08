@@ -83,6 +83,28 @@ public sealed class TutorialPackageBuilder
             });
     }
 
+    /// <summary>Starts building a product tour step targeting the first descendant of a type.</summary>
+    /// <param name="hostTargetName">Optional host target element name.</param>
+    /// <param name="targetTypeFullName">Target element type full name.</param>
+    /// <returns>A step builder.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="targetTypeFullName"/> is empty.</exception>
+    public ProductTourStepBuilder StepDescendantType(string? hostTargetName, string targetTypeFullName)
+    {
+        if (string.IsNullOrWhiteSpace(targetTypeFullName))
+        {
+            throw new ArgumentException("Target type full name cannot be empty.", nameof(targetTypeFullName));
+        }
+
+        return new ProductTourStepBuilder(
+            this,
+            new ProductTourStep
+            {
+                TargetKind = TutorialTargetKind.DescendantType,
+                TargetName = hostTargetName,
+                TargetKey = targetTypeFullName
+            });
+    }
+
     /// <summary>Adds a completed step to the package.</summary>
     /// <param name="step">Step to add.</param>
     /// <returns>The same builder.</returns>

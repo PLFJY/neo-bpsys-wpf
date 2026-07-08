@@ -18,6 +18,10 @@ public partial class MapBpPage : Page
     public MapBpPage()
     {
         InitializeComponent();
-        Loaded += (_, _) => TutorialPageLoader.RunPendingOnLoaded(this, "Page.Bp.GameGuidance");
+        Loaded += (_, _) =>
+        {
+            TutorialSignalPublisher.Publish(TutorialSignalIds.NavigationMapBpOpened);
+            TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.BpGameGuidance);
+        };
     }
 }

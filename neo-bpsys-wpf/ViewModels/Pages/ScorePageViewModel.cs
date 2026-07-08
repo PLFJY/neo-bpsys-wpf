@@ -5,6 +5,7 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Models.ScoreSystem;
 using neo_bpsys_wpf.Locales;
+using neo_bpsys_wpf.Tutorial;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
@@ -157,6 +158,7 @@ public partial class ScorePageViewModel : ViewModelBase
 
             _matchScoreService.SetCurrentHalfResult(value);
             RefreshScorePageState();
+            PublishScoreChanged(value);
         }
     }
 
@@ -230,6 +232,12 @@ public partial class ScorePageViewModel : ViewModelBase
 
         _matchScoreService.SetCurrentHalfResult(result);
         RefreshScorePageState();
+        PublishScoreChanged(result);
+    }
+
+    private static void PublishScoreChanged(GameResult? result)
+    {
+        TutorialSignalPublisher.Publish(TutorialSignalIds.ScoreChanged, new { Result = result });
     }
 
     private void RefreshScorePageState()

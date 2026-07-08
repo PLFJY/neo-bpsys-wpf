@@ -19,7 +19,11 @@ public partial class ScorePage : Page
     public ScorePage()
     {
         InitializeComponent();
-        Loaded += (_, _) => TutorialPageLoader.RunPendingOnLoaded(this, "Page.Score");
+        Loaded += (_, _) =>
+        {
+            TutorialSignalPublisher.Publish(TutorialSignalIds.NavigationScoreOpened);
+            TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.Score);
+        };
     }
 
     private void RestoreScorePreviewDefaultSort_Click(object sender, System.Windows.RoutedEventArgs e)

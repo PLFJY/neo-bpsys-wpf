@@ -16,6 +16,10 @@ public partial class SmartBpPage : Page
     public SmartBpPage()
     {
         InitializeComponent();
-        Loaded += (_, _) => TutorialPageLoader.RunPendingOnLoaded(this, "Page.SmartBp");
+        Loaded += (_, _) =>
+        {
+            TutorialSignalPublisher.Publish(TutorialSignalIds.NavigationSmartBpOpened);
+            TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.SmartBp);
+        };
     }
 }

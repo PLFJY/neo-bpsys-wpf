@@ -18,6 +18,8 @@ internal static class TargetElementFinder
                 FindByNameAsync(owner, step.TargetName, step.Timeout, cancellationToken),
             TutorialTargetKind.NavigationItem when !string.IsNullOrWhiteSpace(step.TargetKey) =>
                 FindNavigationItemAsync(owner, step.TargetKey, step.Timeout, cancellationToken),
+            TutorialTargetKind.DescendantType when !string.IsNullOrWhiteSpace(step.TargetKey) =>
+                FindDescendantTypeAsync(owner, step.TargetName, step.TargetKey, step.Timeout, cancellationToken),
             _ => Task.FromResult<FrameworkElement?>(null)
         };
     }
@@ -47,6 +49,41 @@ internal static class TargetElementFinder
         return null;
     }
 
+    public static async Task<FrameworkElement?> FindDescendantTypeAsync(
+        FrameworkElement owner,
+        string? hostTargetName,
+        string targetTypeFullName,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        var deadline = DateTimeOffset.UtcNow + timeout;
+        while (DateTimeOffset.UtcNow < deadline)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            FrameworkElement? host = owner;
+            if (!string.IsNullOrWhiteSpace(hostTargetName))
+            {
+                host = owner.FindName(hostTargetName) as FrameworkElement
+                    ?? FindVisualChild(owner, hostTargetName);
+            }
+
+            if (host != null)
+            {
+                var result = FindDescendantByType(host, targetTypeFullName);
+                if (result != null && result.IsLoaded)
+                {
+                    result.BringIntoView();
+                    return result;
+                }
+            }
+
+            await owner.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ContextIdle, cancellationToken);
+            await Task.Delay(80, cancellationToken);
+        }
+
+        return null;
+    }
+
     public static async Task<FrameworkElement?> FindNavigationItemAsync(
         FrameworkElement owner,
         string targetKey,
@@ -66,6 +103,33 @@ internal static class TargetElementFinder
 
             await owner.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ContextIdle, cancellationToken);
             await Task.Delay(80, cancellationToken);
+        }
+
+        return null;
+    }
+
+    private static FrameworkElement? FindDescendantByType(DependencyObject root, string targetTypeFullName)
+    {
+        if (root is FrameworkElement element
+            && string.Equals(element.GetType().FullName, targetTypeFullName, StringComparison.Ordinal))
+        {
+            return element;
+        }
+
+        var childCount = VisualTreeHelper.GetChildrenCount(root);
+        for (var i = 0; i < childCount; i++)
+        {
+            var child = VisualTreeHelper.GetChild(root, i);
+            var nested = FindDescendantByType(child, targetTypeFullName);
+            if (nested != null)
+            {
+                return nested;
+            }
+        }
+
+        if (root is ContentControl { Content: DependencyObject content })
+        {
+            return FindDescendantByType(content, targetTypeFullName);
         }
 
         return null;

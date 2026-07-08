@@ -36,6 +36,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
         Assert.Equal(1, firstRun.Version);
         Assert.Equal(
             [
+                TutorialPackageIds.MainNavigationBasic,
                 TutorialPackageIds.FrontManageBpWindowLaunchBasic,
                 TutorialPackageIds.GameManageBasic,
                 TutorialPackageIds.TeamInfoBasic,
@@ -51,6 +52,9 @@ public sealed class NeoBpsysTutorialRegistrationTest
             ],
             firstRun.IncludedPackageIds);
         Assert.Equal(firstRun.IncludedPackageIds.Count + 2, firstRun.Items.Count);
+        Assert.Equal(
+            TutorialPackageIds.MainNavigationBasic,
+            Assert.IsType<PackageFlowItem>(firstRun.Items[1]).PackageId);
 
         var navigationProbe = flowRegistry.GetFlow(TutorialFlowIds.Phase4ANavigationProbe);
         Assert.NotNull(navigationProbe);
@@ -59,6 +63,19 @@ public sealed class NeoBpsysTutorialRegistrationTest
             navigationProbe.Items,
             item => Assert.IsType<DialogueFlowItem>(item),
             item => Assert.Equal(TutorialPackageIds.MainNavigationBasic, Assert.IsType<PackageFlowItem>(item).PackageId),
+            item => Assert.IsType<DialogueFlowItem>(item));
+
+        var realTargetProbe = flowRegistry.GetFlow(TutorialFlowIds.Phase4RealTargetProbe);
+        Assert.NotNull(realTargetProbe);
+        Assert.Empty(realTargetProbe.IncludedPackageIds);
+        Assert.Collection(
+            realTargetProbe.Items,
+            item => Assert.IsType<DialogueFlowItem>(item),
+            item => Assert.Equal(TutorialPackageIds.MainNavigationBasic, Assert.IsType<PackageFlowItem>(item).PackageId),
+            item => Assert.Equal(TutorialPackageIds.TeamInfoBasic, Assert.IsType<PackageFlowItem>(item).PackageId),
+            item => Assert.IsType<ActionFlowItem>(item),
+            item => Assert.Equal(TutorialPackageIds.GameManageBasic, Assert.IsType<PackageFlowItem>(item).PackageId),
+            item => Assert.Equal(TutorialPackageIds.BpGameGuidanceBasic, Assert.IsType<PackageFlowItem>(item).PackageId),
             item => Assert.IsType<DialogueFlowItem>(item));
     }
 }

@@ -13,6 +13,7 @@ public sealed class NeoBpsysTutorialIdsTest
     {
         Assert.Equal("Flow.FirstRun.StandardBp", TutorialFlowIds.FirstRunStandardBp);
         Assert.Equal("Flow.Phase4A.NavigationProbe", TutorialFlowIds.Phase4ANavigationProbe);
+        Assert.Equal("Flow.Phase4.RealTargetProbe", TutorialFlowIds.Phase4RealTargetProbe);
 
         Assert.Equal("Page.Main", TutorialPageKeys.Main);
         Assert.Equal("Page.TeamInfo", TutorialPageKeys.TeamInfo);
@@ -60,6 +61,10 @@ public sealed class NeoBpsysTutorialIdsTest
         Assert.Equal("Navigation.Score.Opened", TutorialSignalIds.NavigationScoreOpened);
         Assert.Equal("Navigation.FrontManage.Opened", TutorialSignalIds.NavigationFrontManageOpened);
         Assert.Equal("Navigation.SmartBp.Opened", TutorialSignalIds.NavigationSmartBpOpened);
+        Assert.Equal("Navigation.MapBp.Opened", TutorialSignalIds.NavigationMapBpOpened);
+        Assert.Equal("Navigation.BanSurvivor.Opened", TutorialSignalIds.NavigationBanSurvivorOpened);
+        Assert.Equal("Navigation.BanHunter.Opened", TutorialSignalIds.NavigationBanHunterOpened);
+        Assert.Equal("Navigation.PickCharacter.Opened", TutorialSignalIds.NavigationPickCharacterOpened);
         Assert.Equal("BpWindowOpened", TutorialSignalIds.BpWindowOpened);
         Assert.Equal("GameProgressSelected.Bo1FirstHalf", TutorialSignalIds.GameProgressSelectedBo1FirstHalf);
         Assert.Equal("TeamNameConfirmed", TutorialSignalIds.TeamNameConfirmed);
@@ -80,6 +85,16 @@ public sealed class NeoBpsysTutorialIdsTest
         Assert.Equal("BpWindowLaunchButton", TutorialTargetNames.BpWindowLaunchButton);
         Assert.Equal("GameProgressComboBox", TutorialTargetNames.GameProgressComboBox);
         Assert.Equal("TeamNameInput", TutorialTargetNames.TeamNameInput);
+        Assert.Equal("HomeTeamNameInput", TutorialTargetNames.HomeTeamNameInput);
+        Assert.Equal("HomeTeamNameConfirmButton", TutorialTargetNames.HomeTeamNameConfirmButton);
+        Assert.Equal("HomeTeamJsonImportButton", TutorialTargetNames.HomeTeamJsonImportButton);
+        Assert.Equal("HomePlayerListPanel", TutorialTargetNames.HomePlayerListPanel);
+        Assert.Equal("HomePlayerPositionPanel", TutorialTargetNames.HomePlayerPositionPanel);
+        Assert.Equal("AwayTeamNameInput", TutorialTargetNames.AwayTeamNameInput);
+        Assert.Equal("AwayTeamNameConfirmButton", TutorialTargetNames.AwayTeamNameConfirmButton);
+        Assert.Equal("AwayTeamJsonImportButton", TutorialTargetNames.AwayTeamJsonImportButton);
+        Assert.Equal("AwayPlayerListPanel", TutorialTargetNames.AwayPlayerListPanel);
+        Assert.Equal("AwayPlayerPositionPanel", TutorialTargetNames.AwayPlayerPositionPanel);
         Assert.Equal("TeamSummaryCard", TutorialTargetNames.TeamSummaryCard);
         Assert.Equal("ImportTeamJsonButton", TutorialTargetNames.ImportTeamJsonButton);
         Assert.Equal("PlayerList", TutorialTargetNames.PlayerList);
@@ -90,7 +105,17 @@ public sealed class NeoBpsysTutorialIdsTest
         Assert.Equal("NextGuidanceStepButton", TutorialTargetNames.NextGuidanceStepButton);
         Assert.Equal("StopGameGuidanceButton", TutorialTargetNames.StopGameGuidanceButton);
         Assert.Equal("CharacterSelector", TutorialTargetNames.CharacterSelector);
+        Assert.Equal("SurvivorPickPanel", TutorialTargetNames.SurvivorPickPanel);
+        Assert.Equal("FirstSurvivorPickSelectorHost", TutorialTargetNames.FirstSurvivorPickSelectorHost);
+        Assert.Equal("HunterPickSelectorHost", TutorialTargetNames.HunterPickSelectorHost);
         Assert.Equal("GlobalBanRecordPanel", TutorialTargetNames.GlobalBanRecordPanel);
+        Assert.Equal("GlobalBanAutoRecordToggle", TutorialTargetNames.GlobalBanAutoRecordToggle);
+        Assert.Equal("MapBpPanel", TutorialTargetNames.MapBpPanel);
+        Assert.Equal("MapSelectorPanel", TutorialTargetNames.MapSelectorPanel);
+        Assert.Equal("BanSurvivorSelectorPanel", TutorialTargetNames.BanSurvivorSelectorPanel);
+        Assert.Equal("FirstBanSurvivorSelectorHost", TutorialTargetNames.FirstBanSurvivorSelectorHost);
+        Assert.Equal("BanHunterSelectorPanel", TutorialTargetNames.BanHunterSelectorPanel);
+        Assert.Equal("FirstBanHunterSelectorHost", TutorialTargetNames.FirstBanHunterSelectorHost);
         Assert.Equal("ScoreSelectorPanel", TutorialTargetNames.ScoreSelectorPanel);
         Assert.Equal("NewGameButton", TutorialTargetNames.NewGameButton);
     }

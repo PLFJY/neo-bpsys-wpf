@@ -97,7 +97,15 @@ ProductTour 库不得引用主程序的 `LanguageKey`，也不得在控件中出
 
 Guide Character 通过 `ITutorialAvatarProvider` 注入。ProductTour 库只定义 `TutorialAvatarPose`、`TutorialAvatar` 和默认空实现，不引用主程序资源路径。主程序当前用 `AliceTutorialAvatarProvider` 从 `Resources/Alice/*.png` 加载 Alice Guide Character，并按当前语言返回显示名：简体中文“爱丽丝·德罗斯”、英文“Alice DeRoss”、日文“アリス・デロス”。没有 provider 或 provider 返回 `null` 时，Welcome、Dialogue 和 ProductTour 都必须隐藏头像区域并保持可用。
 
-`ProductTourOverlay` 通过 `TargetName` 查找目标控件，优先 `owner.FindName(...)`，再递归 VisualTree。目标在 `ScrollViewer` 内时应尝试 `BringIntoView()`；找不到目标时，错误信息要包含 `flowId`、`packageId`、步骤索引和 `targetName`。
+`ProductTourOverlay` 通过 `ProductTourStep.TargetKind` 解析目标控件：
+
+| `TargetKind` | 解析方式 |
+| --- | --- |
+| `Name` | 使用 `TargetName`，优先 `owner.FindName(...)`，再递归 VisualTree |
+| `NavigationItem` | 使用 `TargetKey`，在真实 `ModernNavigationView` / `NavigationViewItem` 生成的 VisualTree 中匹配 `TargetPageType.FullName`、`Tag`、`TargetPageTag`、`Id`，最后才 fallback 到显示文本 |
+| `DescendantType` | 可选先用 `TargetName` 找 host，再在 host 下查找第一个 `GetType().FullName == TargetKey` 的 `FrameworkElement` |
+
+目标在 `ScrollViewer` 内时应尝试 `BringIntoView()`；找不到目标时，日志和超时信息要包含 `flowId`、`packageId`、步骤索引、`TargetKind`、`TargetName` 和 `TargetKey`。
 
 样式 key 至少覆盖 ProductTour overlay、spotlight、card、标题、正文、箭头、按钮、welcome、dialogue 和 confirm dialog。新增视觉元素时先考虑扩展样式资源，不要在控件代码中绑定主程序具体颜色。
 
@@ -121,7 +129,7 @@ ProductTour.xaml: 视觉样式、颜色、字体、边框、阴影
 
 `ProductTour.xaml` 负责视觉样式。等待、错误、进度、确认框、Dialogue continue 等视觉元素都应通过 style key 配置；控件代码只保留结构、状态和运行逻辑。控件代码不应手动覆盖卡片背景、边框、阴影或错误文本颜色，否则主程序无法通过资源字典统一替换视觉表现。
 
-当前阶段仍只整理 UI 表现和控件可维护性，没有接入真实 TeamInfo、CharacterSelector、SmartBP、DesignerV3 业务教程，也没有实现教学沙盒或扩写 `Flow.FirstRun.StandardBp` 的业务流程。
+当前已接入真实主程序中的部分目标和 signal，用于验证导航项、TeamInfo、对局管理按钮、角色选择器宿主和比分控件的最小导览闭环。完整教学沙盒、示例队伍导入、完整 BO1 BP 教学、SmartBP 和 DesignerV3 正式教程仍未接入。
 
 ## Flow 与页面 package
 
@@ -151,7 +159,7 @@ Flow 内部引用 package 时使用 `TutorialTriggerMode.EmbeddedInFlow`，不�
 | `NeoBpsysTutorialRegistration.cs` | 总入口，只调度 sequence、package、flow 注册 |
 | `NeoBpsysTutorialSequences.cs` | 注册 `PageKey -> package sequence` |
 | `NeoBpsysTutorialPackages.cs` | 注册 package definitions |
-| `NeoBpsysTutorialFlows.cs` | 注册 `Flow.FirstRun.StandardBp`，只引用 package id |
+| `NeoBpsysTutorialFlows.cs` | 注册 `Flow.FirstRun.StandardBp`、导航验证 flow 和真实目标验证 flow，只引用 package id |
 | `NeoBpsysTutorialTexts.cs` | 临时集中 package 标题、说明和 fallback 文案 |
 
 新增教程包时优先使用常量，不要在注册代码里继续散落裸字符串。已有 ID 的字符串值用于持久化状态兼容，不得随意改名。
@@ -170,6 +178,36 @@ TutorialPackageBuilder.Create(TutorialPackageIds.TeamInfoBasic)
         .Interaction(ProductTourInteractionMode.AllowTargetOnly)
         .WaitForSignal(TutorialSignalIds.TeamNameConfirmed)
         .AllowMissingTarget()
+        .EndStep()
+    .Build();
+```
+
+动态导航项应使用 `StepNavigationItem(...)`，不要依赖菜单显示文本或给动态生成的 `NavigationViewItem` 写死 `x:Name`：
+
+```csharp
+TutorialPackageBuilder.Create(TutorialPackageIds.MainNavigationBasic)
+    .ForPage(TutorialPageKeys.Main)
+    .StepNavigationItem(typeof(TeamInfoPage).FullName!)
+        .Title("进入队伍管理")
+        .Description("先进入队伍管理页面，我们会设置本次教学使用的队伍。")
+        .Interaction(ProductTourInteractionMode.AllowTargetOnly)
+        .WaitForSignal(TutorialSignalIds.NavigationTeamInfoOpened)
+        .EndStep()
+    .Build();
+```
+
+DataTemplate 内的目标应使用 `StepDescendantType(...)` 指向稳定 host 下的第一个指定类型控件：
+
+```csharp
+TutorialPackageBuilder.Create(TutorialPackageIds.BpCharacterSelectorBasic)
+    .ForPage(TutorialPageKeys.BpShared)
+    .StepDescendantType(
+        TutorialTargetNames.SurvivorPickPanel,
+        typeof(CharacterSelector).FullName!)
+        .Title("角色选择器")
+        .Description("输入后按空格可以搜索，按 Enter / Tab 或点击确认完成选择。")
+        .Interaction(ProductTourInteractionMode.AllowTargetOnly)
+        .WaitForSignal(TutorialSignalIds.CharacterSelectorSelectionConfirmed)
         .EndStep()
     .Build();
 ```
@@ -219,6 +257,15 @@ _tutorialSignalService.Publish("GameGuidanceStarted");
 当前约定的基础 signal 包括：
 
 ```text
+Navigation.Home.Opened
+Navigation.TeamInfo.Opened
+Navigation.Score.Opened
+Navigation.FrontManage.Opened
+Navigation.SmartBp.Opened
+Navigation.MapBp.Opened
+Navigation.BanSurvivor.Opened
+Navigation.BanHunter.Opened
+Navigation.PickCharacter.Opened
 BpWindowOpened
 GameProgressSelected.Bo1FirstHalf
 TeamNameConfirmed
@@ -238,6 +285,8 @@ NewGameCreated
 ```
 
 新增 package 时优先复用稳定 signal；如果确实需要新增 signal，应使用明确的业务事件名，不用临时 UI 标签。
+
+页面打开类 signal 不应根据导航项显示文本判断。优先在统一导航完成事件按 PageType 发布；没有统一事件时，可以在对应 Page 的 `Loaded` 中发布。
 
 ## 与 GameGuidanceService 的关系
 
@@ -260,8 +309,11 @@ Product Tour 只负责“告诉用户做什么”和“等待用户完成动作�
 | --- | --- |
 | 重新启动首次导览 | 二次确认后清除 `Flow.FirstRun.StandardBp` 状态，并重新显示首次导览 |
 | 重置全部教程状态 | 二次确认后清空 `CompletedFlows` 和 `CompletedPackages` |
+| 运行真实目标验证 | 强制运行 `Flow.Phase4.RealTargetProbe`，只验证真实导航、真实 TeamInfo 目标、BO1 上半选择和开始对局引导按钮 |
 
 危险操作不得使用系统默认 `MessageBox`。如果需要更强一致性，应优先复用 Product Tour 的确认 overlay 或 WPF-UI 风格确认控件。
+
+`Flow.Phase4.RealTargetProbe` 是手动验证 flow，不是默认首次启动导览。它不导入示例队伍、不创建新对局、不执行完整 BO1 BP 流程，也不实现教学沙盒。`Flow.FirstRun.StandardBp` 可以 include `Page.Main.Navigation.Basic` 以保持覆盖状态兼容，但真实验证 flow 不应自动标记大量 package 为 `CoveredByFlow`。
 
 ## 维护 checklist
 

@@ -33,7 +33,11 @@ public partial class FrontManagePage : Page, IRecipient<FrontManageTabNavigation
             typeof(FrontedLayoutPackagesView)));
 
         Loaded += OnLoaded;
-        Loaded += (_, _) => TutorialPageLoader.RunPendingOnLoaded(this, "Page.FrontManage");
+        Loaded += (_, _) =>
+        {
+            TutorialSignalPublisher.Publish(TutorialSignalIds.NavigationFrontManageOpened);
+            TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.FrontManage);
+        };
         WeakReferenceMessenger.Default.Register(this);
     }
 

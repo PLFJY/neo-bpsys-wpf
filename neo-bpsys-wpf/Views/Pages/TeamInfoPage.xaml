@@ -33,6 +33,7 @@
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Style="{StaticResource Title}" Text="{lex:Loc HomeTeamInformation}" />
                     <ui:Button
+                        x:Name="HomeTeamJsonImportButton"
                         Margin="10,0,0,0"
                         Command="{Binding ImportInfoFromJsonCommand}"
                         Content="{lex:Loc ImportFromJsonFile}"
@@ -44,10 +45,12 @@
 
                 <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
                     <ui:TextBox
+                        x:Name="HomeTeamNameInput"
                         Width="250"
                         PlaceholderText="{lex:Loc TeamName}"
                         Text="{Binding TeamName}" />
                     <ui:Button
+                        x:Name="HomeTeamNameConfirmButton"
                         Margin="10,0,0,0"
                         Command="{Binding ConfirmTeamNameCommand}"
                         Content="{lex:Loc Confirm}"
@@ -110,7 +113,7 @@
                 <!--  player edit  -->
 
                 <!--  sur  -->
-                <StackPanel>
+                <StackPanel x:Name="HomePlayerListPanel">
                     <TextBlock Text="{lex:Loc SurvivorPlayer}" />
                     <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding CurrentTeam.SurMemberList}">
                         <ItemsControl.ItemTemplate>
@@ -269,6 +272,7 @@
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Style="{StaticResource Title}" Text="{lex:Loc AwayTeamInformation}" />
                     <ui:Button
+                        x:Name="AwayTeamJsonImportButton"
                         Margin="10,0,0,0"
                         Command="{Binding ImportInfoFromJsonCommand}"
                         Content="{lex:Loc ImportFromJsonFile}"
@@ -280,10 +284,12 @@
 
                 <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
                     <ui:TextBox
+                        x:Name="AwayTeamNameInput"
                         Width="250"
                         PlaceholderText="{lex:Loc TeamName}"
                         Text="{Binding TeamName}" />
                     <ui:Button
+                        x:Name="AwayTeamNameConfirmButton"
                         Margin="10,0,0,0"
                         Command="{Binding ConfirmTeamNameCommand}"
                         Content="{lex:Loc Confirm}"
@@ -345,7 +351,7 @@
                 <!--  player edit  -->
 
                 <!--  sur  -->
-                <StackPanel>
+                <StackPanel x:Name="AwayPlayerListPanel">
                     <TextBlock Text="{lex:Loc SurvivorPlayer}" />
                     <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding CurrentTeam.SurMemberList}">
                         <ItemsControl.ItemTemplate>
@@ -502,7 +508,7 @@
         </Border>
 
         <!--  current  -->
-        <Border Style="{StaticResource Card}">
+        <Border x:Name="TeamSummaryCard" Style="{StaticResource Card}">
             <Border.Resources>
                 <Style BasedOn="{StaticResource {x:Type ui:TextBox}}" TargetType="ui:TextBox">
                     <!--<Setter Property="PlaceholderText" Value="选手名称" /> -->
@@ -518,7 +524,10 @@
             <StackPanel>
                 <TextBlock Style="{StaticResource Title}" Text="{lex:Loc CurrentPlayerOnStage}" />
                 <TextBlock Margin="0,10,0,0" Text="{lex:Loc Survivor}" />
-                <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding OnFieldSurPlayerViewModels}">
+                <ItemsControl
+                    x:Name="HomePlayerPositionPanel"
+                    Margin="0,10,0,0"
+                    ItemsSource="{Binding OnFieldSurPlayerViewModels}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
@@ -530,7 +539,10 @@
                 </ItemsControl>
 
                 <TextBlock Margin="0,10,0,10" Text="{lex:Loc Hunter}" />
-                <ui:TextBox PlaceholderText="{lex:Loc PlayerName}" Text="{Binding OnFieldHunPlayerVm.ThisPlayer.Member.Name}" />
+                <ui:TextBox
+                    x:Name="AwayPlayerPositionPanel"
+                    PlaceholderText="{lex:Loc PlayerName}"
+                    Text="{Binding OnFieldHunPlayerVm.ThisPlayer.Member.Name}" />
             </StackPanel>
         </Border>
     </WrapPanel>

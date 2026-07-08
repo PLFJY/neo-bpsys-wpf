@@ -1,4 +1,5 @@
 using neo_bpsys_wpf.ProductTour;
+using neo_bpsys_wpf.Controls;
 using neo_bpsys_wpf.Views.Pages;
 
 namespace neo_bpsys_wpf.Tutorial;
@@ -88,12 +89,16 @@ public static class NeoBpsysTutorialPackages
             TutorialPackageIds.TeamInfoBasic =>
             [
                 Step(
-                    TutorialTargetNames.TeamNameInput,
+                    TutorialTargetNames.HomeTeamNameInput,
                     "填写队伍名称",
                     "这里可以设置队伍名称。先试着输入一个队伍名。",
+                    ProductTourInteractionMode.AllowTargetOnly),
+                Step(
+                    TutorialTargetNames.HomeTeamNameConfirmButton,
+                    "确认队伍名称",
+                    "点击确认后，队伍名称会写入当前比赛数据。",
                     ProductTourInteractionMode.AllowTargetOnly,
-                    TutorialSignalIds.TeamNameConfirmed,
-                    allowMissing: true),
+                    TutorialSignalIds.TeamNameConfirmed),
                 Step(
                     TutorialTargetNames.TeamSummaryCard,
                     "确认队伍信息",
@@ -104,9 +109,9 @@ public static class NeoBpsysTutorialPackages
             TutorialPackageIds.TeamInfoJsonImport =>
             [
                 Step(
-                    TutorialTargetNames.ImportTeamJsonButton,
+                    TutorialTargetNames.HomeTeamJsonImportButton,
                     "导入队伍 JSON",
-                    "如果已经准备好队伍 JSON，可以直接导入。现在我们导入两支示例队伍。",
+                    "如果已经准备好队伍 JSON，可以从这里导入。真实示例队伍会在教学沙盒完成后接入。",
                     ProductTourInteractionMode.AllowTargetOnly,
                     TutorialSignalIds.TeamJsonImportedHome,
                     allowMissing: true)
@@ -114,18 +119,16 @@ public static class NeoBpsysTutorialPackages
             TutorialPackageIds.TeamInfoPlayerManage =>
             [
                 Step(
-                    TutorialTargetNames.PlayerList,
+                    TutorialTargetNames.HomePlayerListPanel,
                     "管理选手",
-                    "这里可以管理选手上下场。",
-                    ProductTourInteractionMode.AllowTargetOnly,
-                    TutorialSignalIds.MemberStateChanged,
+                    "这里可以管理主队选手信息和上下场状态。",
+                    ProductTourInteractionMode.BlockAll,
                     allowMissing: true),
                 Step(
-                    TutorialTargetNames.PlayerPositionPanel,
+                    TutorialTargetNames.HomePlayerPositionPanel,
                     "调整位置",
                     "这里可以调整选手位置，前台和 BP 流程会使用这些信息。",
-                    ProductTourInteractionMode.AllowTargetOnly,
-                    TutorialSignalIds.MemberPositionSwapped,
+                    ProductTourInteractionMode.BlockAll,
                     allowMissing: true)
             ],
             TutorialPackageIds.BpGameGuidanceBasic =>
@@ -148,8 +151,9 @@ public static class NeoBpsysTutorialPackages
             ],
             TutorialPackageIds.BpCharacterSelectorBasic =>
             [
-                Step(
-                    TutorialTargetNames.CharacterSelector,
+                DescendantTypeStep(
+                    TutorialTargetNames.SurvivorPickPanel,
+                    typeof(CharacterSelector).FullName!,
                     "角色选择器",
                     "这是角色选择器，不是普通下拉框。它支持角色名、拼音全拼和缩写搜索。输入后按空格可以搜索。按 Enter / Tab 或点击确认按钮完成选择。",
                     ProductTourInteractionMode.AllowTargetOnly,
@@ -242,6 +246,37 @@ public static class NeoBpsysTutorialPackages
         var builder = TutorialPackageBuilder.Create("Transient.Step")
             .ForPage("Transient.Page")
             .Step(targetName)
+            .Title(title)
+            .Description(description)
+            .Placement(ProductTourPlacement.Auto)
+            .Interaction(mode)
+            .Timeout(TimeSpan.FromSeconds(30));
+
+        if (signalId != null)
+        {
+            builder.WaitForSignal(signalId);
+        }
+
+        if (allowMissing)
+        {
+            builder.AllowMissingTarget();
+        }
+
+        return builder.EndStep().Build().Steps[0];
+    }
+
+    private static ProductTourStep DescendantTypeStep(
+        string? hostTargetName,
+        string targetTypeFullName,
+        string title,
+        string description,
+        ProductTourInteractionMode mode,
+        string? signalId = null,
+        bool allowMissing = false)
+    {
+        var builder = TutorialPackageBuilder.Create("Transient.Step")
+            .ForPage("Transient.Page")
+            .StepDescendantType(hostTargetName, targetTypeFullName)
             .Title(title)
             .Description(description)
             .Placement(ProductTourPlacement.Auto)

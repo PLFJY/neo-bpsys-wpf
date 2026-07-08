@@ -58,7 +58,9 @@ public enum TutorialTargetKind
     /// <summary>Resolves the target by WPF element name.</summary>
     Name,
     /// <summary>Resolves the target from a navigation item.</summary>
-    NavigationItem
+    NavigationItem,
+    /// <summary>Resolves the first descendant element matching a type full name.</summary>
+    DescendantType
 }
 
 /// <summary>
