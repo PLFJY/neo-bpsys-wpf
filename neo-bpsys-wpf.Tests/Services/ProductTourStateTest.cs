@@ -274,6 +274,67 @@ public sealed class ProductTourStateTest
         Assert.True(state.CompletedPackages.ContainsKey("Package.Completed"));
     }
 
+    [Fact]
+    public async Task FlowTargetMissingDoesNotRecordSkipped()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var fixture = new Fixture();
+            fixture.RegisterPackage(
+                "Package.MissingTarget",
+                version: 1,
+                pageKey: "Page.Test",
+                steps:
+                [
+                    new ProductTourStep
+                    {
+                        TargetName = "MissingTarget",
+                        Title = "Missing",
+                        Description = "Missing target",
+                        Timeout = TimeSpan.FromMilliseconds(20)
+                    }
+                ]);
+            fixture.FlowRegistry.Register(new TutorialFlowDefinition
+            {
+                FlowId = "Flow.MissingTarget",
+                Items = [new PackageFlowItem { PackageId = "Package.MissingTarget" }]
+            });
+
+            var result = await fixture.Service.RunFlowAsync(CreateOwner(), "Flow.MissingTarget");
+            var state = await fixture.StateStore.LoadAsync();
+
+            Assert.Equal(TutorialRunResult.TargetMissing, result);
+            Assert.False(state.CompletedFlows.ContainsKey("Flow.MissingTarget"));
+            Assert.False(state.CompletedPackages.ContainsKey("Package.MissingTarget"));
+        });
+    }
+
+    [Fact]
+    public async Task FlowCanceledDoesNotRecordSkipped()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var fixture = new Fixture();
+            fixture.FlowRegistry.Register(new TutorialFlowDefinition
+            {
+                FlowId = "Flow.Canceled",
+                Items =
+                [
+                    new ActionFlowItem
+                    {
+                        ActionAsync = (_, _) => throw new OperationCanceledException()
+                    }
+                ]
+            });
+
+            var result = await fixture.Service.RunFlowAsync(CreateOwner(), "Flow.Canceled");
+            var state = await fixture.StateStore.LoadAsync();
+
+            Assert.Equal(TutorialRunResult.Canceled, result);
+            Assert.False(state.CompletedFlows.ContainsKey("Flow.Canceled"));
+        });
+    }
+
     private static Grid CreateOwner() =>
         new()
         {
@@ -328,6 +389,7 @@ public sealed class ProductTourStateTest
                 FlowRegistry,
                 StateStore,
                 new TutorialSignalService(),
+                new DefaultTutorialTextProvider(),
                 NullLogger<TutorialService>.Instance);
         }
 

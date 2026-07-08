@@ -46,6 +46,7 @@ public sealed class ProductTourOverlay : Canvas
     private readonly Button _skipButton;
     private readonly TextBlock _waitingText;
     private readonly TextBlock _errorText;
+    private readonly ITutorialTextProvider _textProvider;
     private TaskCompletionSource<ProductTourStepAction>? _completion;
     private bool _signalReceived;
     private FrameworkElement? _currentOwner;
@@ -55,7 +56,15 @@ public sealed class ProductTourOverlay : Canvas
 
     /// <summary>Initializes a new instance of the <see cref="ProductTourOverlay"/> class.</summary>
     public ProductTourOverlay()
+        : this(new DefaultTutorialTextProvider())
     {
+    }
+
+    /// <summary>Initializes a new instance of the <see cref="ProductTourOverlay"/> class.</summary>
+    /// <param name="textProvider">Fixed UI text provider.</param>
+    public ProductTourOverlay(ITutorialTextProvider textProvider)
+    {
+        _textProvider = textProvider;
         Style = TryFindResource("ProductTourOverlayStyle") as Style;
         Panel.SetZIndex(this, 10000);
         HorizontalAlignment = HorizontalAlignment.Stretch;
@@ -82,7 +91,7 @@ public sealed class ProductTourOverlay : Canvas
         _description = new TextBlock { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 0) };
         _description.Style = TryFindResource("ProductTourCardDescriptionStyle") as Style;
         _progress = new TextBlock { Margin = new Thickness(0, 10, 0, 0), Opacity = 0.72 };
-        _waitingText = new TextBlock { Text = "等待操作...", Margin = new Thickness(0, 8, 0, 0), Visibility = Visibility.Collapsed };
+        _waitingText = new TextBlock { Text = _textProvider.WaitingForAction, Margin = new Thickness(0, 8, 0, 0), Visibility = Visibility.Collapsed };
         _errorText = new TextBlock
         {
             TextWrapping = TextWrapping.Wrap,
@@ -91,15 +100,15 @@ public sealed class ProductTourOverlay : Canvas
             Foreground = Brushes.OrangeRed
         };
 
-        _previousButton = new Button { Content = "上一步", MinWidth = 78 };
+        _previousButton = new Button { Content = _textProvider.Previous, MinWidth = 78 };
         _previousButton.Style = TryFindResource("ProductTourSecondaryButtonStyle") as Style;
         _previousButton.Click += (_, _) => _completion?.TrySetResult(ProductTourStepAction.Previous);
 
-        _nextButton = new Button { Content = "下一步", MinWidth = 78, Margin = new Thickness(8, 0, 0, 0) };
+        _nextButton = new Button { Content = _textProvider.Next, MinWidth = 78, Margin = new Thickness(8, 0, 0, 0) };
         _nextButton.Style = TryFindResource("ProductTourPrimaryButtonStyle") as Style;
         _nextButton.Click += (_, _) => _completion?.TrySetResult(ProductTourStepAction.Next);
 
-        _skipButton = new Button { Content = "跳过", MinWidth = 70, Margin = new Thickness(8, 0, 0, 0) };
+        _skipButton = new Button { Content = _textProvider.Skip, MinWidth = 70, Margin = new Thickness(8, 0, 0, 0) };
         _skipButton.Style = TryFindResource("ProductTourSkipButtonStyle") as Style;
         _skipButton.Click += (_, _) => _completion?.TrySetResult(ProductTourStepAction.Skip);
 
@@ -154,7 +163,7 @@ public sealed class ProductTourOverlay : Canvas
         _description.Text = step.Description;
         _progress.Text = $"{context.StepIndex + 1} / {context.StepCount}";
         _previousButton.IsEnabled = context.StepIndex > 0;
-        _nextButton.Content = context.StepIndex == context.StepCount - 1 ? "完成" : "下一步";
+        _nextButton.Content = context.StepIndex == context.StepCount - 1 ? _textProvider.Finish : _textProvider.Next;
         _nextButton.IsEnabled = _signalReceived;
         _waitingText.Visibility = _signalReceived ? Visibility.Collapsed : Visibility.Visible;
         _errorText.Visibility = Visibility.Collapsed;
@@ -183,7 +192,7 @@ public sealed class ProductTourOverlay : Canvas
     {
         _signalReceived = false;
         _nextButton.IsEnabled = true;
-        _nextButton.Content = "继续";
+        _nextButton.Content = _textProvider.Continue;
         _waitingText.Visibility = Visibility.Collapsed;
         _errorText.Text = message;
         _errorText.Visibility = Visibility.Visible;

@@ -11,11 +11,13 @@ public sealed class SkipTutorialConfirmDialog : ContentControl
 {
     /// <summary>Identifies the title dependency property.</summary>
     public static readonly DependencyProperty TitleProperty = DependencyProperty.Register(
-        nameof(Title), typeof(string), typeof(SkipTutorialConfirmDialog), new PropertyMetadata("跳过首次导览？"));
+        nameof(Title), typeof(string), typeof(SkipTutorialConfirmDialog), new PropertyMetadata(new DefaultTutorialTextProvider().SkipConfirmTitle));
 
     /// <summary>Identifies the message dependency property.</summary>
     public static readonly DependencyProperty MessageProperty = DependencyProperty.Register(
-        nameof(Message), typeof(string), typeof(SkipTutorialConfirmDialog), new PropertyMetadata("确定要跳过首次导览吗？之后可以在设置中重新启动。"));
+        nameof(Message), typeof(string), typeof(SkipTutorialConfirmDialog), new PropertyMetadata(new DefaultTutorialTextProvider().SkipConfirmDescription));
+
+    private readonly ITutorialTextProvider _textProvider;
 
     /// <summary>Gets or sets the dialog title.</summary>
     public string Title
@@ -39,7 +41,17 @@ public sealed class SkipTutorialConfirmDialog : ContentControl
 
     /// <summary>Initializes a new instance of the <see cref="SkipTutorialConfirmDialog"/> class.</summary>
     public SkipTutorialConfirmDialog()
+        : this(new DefaultTutorialTextProvider())
     {
+    }
+
+    /// <summary>Initializes a new instance of the <see cref="SkipTutorialConfirmDialog"/> class.</summary>
+    /// <param name="textProvider">Fixed UI text provider.</param>
+    public SkipTutorialConfirmDialog(ITutorialTextProvider textProvider)
+    {
+        _textProvider = textProvider;
+        Title = _textProvider.SkipConfirmTitle;
+        Message = _textProvider.SkipConfirmDescription;
         Style = TryFindResource("ProductTourConfirmDialogStyle") as Style;
         Focusable = true;
         KeyDown += (_, e) =>
@@ -62,11 +74,11 @@ public sealed class SkipTutorialConfirmDialog : ContentControl
         var message = new TextBlock { Margin = new Thickness(0, 12, 0, 0), TextWrapping = TextWrapping.Wrap };
         message.SetBinding(TextBlock.TextProperty, new System.Windows.Data.Binding(nameof(Message)) { Source = this });
 
-        var continueButton = new Button { Content = "继续导览", MinWidth = 110 };
+        var continueButton = new Button { Content = _textProvider.SkipConfirmContinue, MinWidth = 110 };
         continueButton.Style = TryFindResource("ProductTourSecondaryButtonStyle") as Style;
         continueButton.Click += (_, _) => Canceled?.Invoke(this, EventArgs.Empty);
 
-        var confirmButton = new Button { Content = "确认跳过", MinWidth = 110, Margin = new Thickness(12, 0, 0, 0) };
+        var confirmButton = new Button { Content = _textProvider.SkipConfirmConfirm, MinWidth = 110, Margin = new Thickness(12, 0, 0, 0) };
         confirmButton.Style = TryFindResource("ProductTourPrimaryButtonStyle") as Style;
         confirmButton.Click += (_, _) => Confirmed?.Invoke(this, EventArgs.Empty);
 

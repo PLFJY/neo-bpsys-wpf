@@ -105,6 +105,71 @@ RunPendingPagePackagesAsync(owner, pageKey, TutorialTriggerMode.AutoOnLoaded)
 
 Flow 内部引用 package 时使用 `TutorialTriggerMode.EmbeddedInFlow`，不受页面 auto loaded suppression 影响。Flow 运行中，页面切换产生的 auto loaded package 必须被 suppress，避免总导览过程中误弹页面教程。
 
+## 注册与 Builder
+
+主程序内置教程注册拆分在 `neo-bpsys-wpf/Tutorial` 下：
+
+| 文件 | 职责 |
+| --- | --- |
+| `NeoBpsysTutorialIds.cs` | 集中维护 flow、page、package、signal、target 的稳定字符串常量 |
+| `NeoBpsysTutorialRegistration.cs` | 总入口，只调度 sequence、package、flow 注册 |
+| `NeoBpsysTutorialSequences.cs` | 注册 `PageKey -> package sequence` |
+| `NeoBpsysTutorialPackages.cs` | 注册 package definitions |
+| `NeoBpsysTutorialFlows.cs` | 注册 `Flow.FirstRun.StandardBp`，只引用 package id |
+| `NeoBpsysTutorialTexts.cs` | 临时集中 package 标题、说明和 fallback 文案 |
+
+新增教程包时优先使用常量，不要在注册代码里继续散落裸字符串。已有 ID 的字符串值用于持久化状态兼容，不得随意改名。
+
+`neo-bpsys-wpf.ProductTour` 提供轻量 Builder API，生成的仍是普通 definition 对象：
+
+```csharp
+TutorialPackageBuilder.Create(TutorialPackageIds.TeamInfoBasic)
+    .ForPage(TutorialPageKeys.TeamInfo)
+    .Version(1)
+    .Sequence(100)
+    .Step(TutorialTargetNames.TeamNameInput)
+        .Title("填写队伍名称")
+        .Description("这里可以设置队伍名称。先试着输入一个队伍名。")
+        .Placement(ProductTourPlacement.Auto)
+        .Interaction(ProductTourInteractionMode.AllowTargetOnly)
+        .WaitForSignal(TutorialSignalIds.TeamNameConfirmed)
+        .AllowMissingTarget()
+        .EndStep()
+    .Build();
+```
+
+Flow Builder 用于串联 dialogue 和 package 引用，不复制 package 内部步骤：
+
+```csharp
+TutorialFlowBuilder.Create(TutorialFlowIds.FirstRunStandardBp)
+    .Version(1)
+    .Include(TutorialPackageIds.FrontManageBpWindowLaunchBasic)
+    .Dialogue("neo-bpsys-wpf", "欢迎来到 neo-bpsys-wpf。")
+    .Package(TutorialPackageIds.FrontManageBpWindowLaunchBasic)
+    .Build();
+```
+
+## 固定 UI 文案
+
+Product Tour 控件固定 UI 文案通过 `ITutorialTextProvider` 提供。`AddProductTour()` 注册 `DefaultTutorialTextProvider`，主程序在其后注册 `NeoBpsysTutorialTextProvider` 覆盖默认实现。当前 provider 先保留中文默认文本，后续接正式 resx 或 `WPFLocalizeExtension` 时应优先在 provider 内集中处理。
+
+package 的业务标题和说明暂时仍在 `NeoBpsysTutorialTexts.cs` 中维护；后续接入本地化 key 时，保持 `PackageId`、`FlowId`、`PageKey` 不变。
+
+## 页面接入
+
+旧的 code-behind 入口 `TutorialPageLoader.RunPendingOnLoaded(owner, pageKey)` 继续保留。新页面可以优先使用 attached property 声明：
+
+```xaml
+<Page
+    xmlns:tour="clr-namespace:neo_bpsys_wpf.Tutorial"
+    xmlns:tutorial="clr-namespace:neo_bpsys_wpf.Tutorial"
+    tour:Tutorial.PageKey="{x:Static tutorial:TutorialPageKeys.TeamInfo}"
+    tour:Tutorial.AutoRunOnLoaded="True">
+</Page>
+```
+
+attached property 内部仍通过 `IAppHost.Host` 获取 `ITutorialService`，避免每个页面 code-behind 重复写静态服务查找。不要为了接入教程把 WPF `Page` 嵌入普通 `ContentControl` 或 `Grid`；页面承载规则仍遵循仓库 WPF 页面约束。
+
 ## Signal 边界
 
 教程系统不应到处读取业务对象内部状态。业务关键动作发生时由 ViewModel command、控件 code-behind、service event 或 messenger 发布 signal：

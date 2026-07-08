@@ -20,13 +20,22 @@ public sealed class DialogueOverlay : Grid
     private int _charIndex;
     private DispatcherTimer? _timer;
     private TaskCompletionSource<TutorialRunResult>? _completion;
+    private readonly ITutorialTextProvider _textProvider;
 
     /// <summary>Gets or sets the typewriter interval.</summary>
     public TimeSpan TypewriterInterval { get; set; } = TimeSpan.FromMilliseconds(28);
 
     /// <summary>Initializes a new instance of the <see cref="DialogueOverlay"/> class.</summary>
     public DialogueOverlay()
+        : this(new DefaultTutorialTextProvider())
     {
+    }
+
+    /// <summary>Initializes a new instance of the <see cref="DialogueOverlay"/> class.</summary>
+    /// <param name="textProvider">Fixed UI text provider.</param>
+    public DialogueOverlay(ITutorialTextProvider textProvider)
+    {
+        _textProvider = textProvider;
         Style = TryFindResource("ProductTourDialogueOverlayStyle") as Style;
         Panel.SetZIndex(this, 10000);
         HorizontalAlignment = HorizontalAlignment.Stretch;
@@ -41,7 +50,7 @@ public sealed class DialogueOverlay : Grid
 
         _continueBlock = new TextBlock
         {
-            Text = "点击继续",
+            Text = _textProvider.ClickToContinue,
             HorizontalAlignment = HorizontalAlignment.Right,
             Margin = new Thickness(0, 14, 0, 0)
         };

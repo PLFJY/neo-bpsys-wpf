@@ -32,6 +32,7 @@ public partial class App
         services.AddNavigationViewPageProvider();
         services.AddProductTour();
         services.AddSingleton<ITutorialLanguageService, NeoBpsysTutorialLanguageService>();
+        services.AddSingleton<ITutorialTextProvider, NeoBpsysTutorialTextProvider>();
 
         //App Host
         services.AddHostedService<ApplicationHostService>();

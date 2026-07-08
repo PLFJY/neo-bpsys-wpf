@@ -13,6 +13,7 @@ public sealed class FirstRunWelcomeOverlay : Grid
 {
     private readonly Border _card;
     private readonly ComboBox _languageComboBox;
+    private readonly ITutorialTextProvider _textProvider;
     private SkipTutorialConfirmDialog? _confirmDialog;
 
     /// <summary>Occurs when the user starts the tutorial.</summary>
@@ -23,7 +24,15 @@ public sealed class FirstRunWelcomeOverlay : Grid
 
     /// <summary>Initializes a new instance of the <see cref="FirstRunWelcomeOverlay"/> class.</summary>
     public FirstRunWelcomeOverlay()
+        : this(new DefaultTutorialTextProvider())
     {
+    }
+
+    /// <summary>Initializes a new instance of the <see cref="FirstRunWelcomeOverlay"/> class.</summary>
+    /// <param name="textProvider">Fixed UI text provider.</param>
+    public FirstRunWelcomeOverlay(ITutorialTextProvider textProvider)
+    {
+        _textProvider = textProvider;
         Style = TryFindResource("ProductTourWelcomeOverlayStyle") as Style;
         HorizontalAlignment = HorizontalAlignment.Stretch;
         VerticalAlignment = VerticalAlignment.Stretch;
@@ -32,7 +41,7 @@ public sealed class FirstRunWelcomeOverlay : Grid
 
         var skipButton = new Button
         {
-            Content = "跳过",
+            Content = _textProvider.Skip,
             HorizontalAlignment = HorizontalAlignment.Right,
             VerticalAlignment = VerticalAlignment.Top,
             Margin = new Thickness(0, 20, 24, 0)
@@ -42,7 +51,7 @@ public sealed class FirstRunWelcomeOverlay : Grid
 
         var title = new TextBlock
         {
-            Text = "欢迎来到 neo-bpsys-wpf",
+            Text = _textProvider.WelcomeTitle,
             HorizontalAlignment = HorizontalAlignment.Center,
             TextAlignment = TextAlignment.Center
         };
@@ -50,7 +59,7 @@ public sealed class FirstRunWelcomeOverlay : Grid
 
         var description = new TextBlock
         {
-            Text = "在开始之前，请先完成一次简短的导播教学。",
+            Text = _textProvider.WelcomeDescription,
             TextWrapping = TextWrapping.Wrap,
             TextAlignment = TextAlignment.Center,
             HorizontalAlignment = HorizontalAlignment.Center,
@@ -74,7 +83,7 @@ public sealed class FirstRunWelcomeOverlay : Grid
         languagePanel.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         var languageLabel = new TextBlock
         {
-            Text = "界面语言",
+            Text = _textProvider.LanguageLabel,
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 12, 0)
         };
@@ -85,7 +94,7 @@ public sealed class FirstRunWelcomeOverlay : Grid
 
         var startButton = new Button
         {
-            Content = "开始导览",
+            Content = _textProvider.StartTour,
             MinWidth = 140,
             Height = 38,
             HorizontalAlignment = HorizontalAlignment.Center,
@@ -100,7 +109,7 @@ public sealed class FirstRunWelcomeOverlay : Grid
 
         var footnote = new TextBlock
         {
-            Text = "之后可以在设置中重新启动导览。",
+            Text = _textProvider.RestartAvailableHint,
             Opacity = 0.72,
             HorizontalAlignment = HorizontalAlignment.Center,
             Margin = new Thickness(0, 16, 0, 0)
@@ -174,7 +183,7 @@ public sealed class FirstRunWelcomeOverlay : Grid
             return;
         }
 
-        _confirmDialog = new SkipTutorialConfirmDialog
+        _confirmDialog = new SkipTutorialConfirmDialog(_textProvider)
         {
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center

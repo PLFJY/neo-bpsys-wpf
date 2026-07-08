@@ -68,6 +68,7 @@ public sealed class TutorialService : ITutorialService
     private readonly ITutorialFlowRegistry _flowRegistry;
     private readonly ITutorialStateStore _stateStore;
     private readonly ITutorialSignalService _signalService;
+    private readonly ITutorialTextProvider _textProvider;
     private readonly ILogger<TutorialService> _logger;
     private readonly SemaphoreSlim _runLock = new(1, 1);
     private bool _isFlowRunning;
@@ -81,6 +82,7 @@ public sealed class TutorialService : ITutorialService
     /// <param name="flowRegistry">Flow registry.</param>
     /// <param name="stateStore">State store.</param>
     /// <param name="signalService">Signal service.</param>
+    /// <param name="textProvider">Fixed UI text provider.</param>
     /// <param name="logger">Logger.</param>
     public TutorialService(
         IServiceProvider serviceProvider,
@@ -89,6 +91,7 @@ public sealed class TutorialService : ITutorialService
         ITutorialFlowRegistry flowRegistry,
         ITutorialStateStore stateStore,
         ITutorialSignalService signalService,
+        ITutorialTextProvider textProvider,
         ILogger<TutorialService> logger)
     {
         _serviceProvider = serviceProvider;
@@ -97,6 +100,7 @@ public sealed class TutorialService : ITutorialService
         _flowRegistry = flowRegistry;
         _stateStore = stateStore;
         _signalService = signalService;
+        _textProvider = textProvider;
         _logger = logger;
     }
 
@@ -220,7 +224,11 @@ public sealed class TutorialService : ITutorialService
 
                 if (result != TutorialRunResult.Completed && result != TutorialRunResult.NotPending)
                 {
-                    await MarkFlowAsync(flow, TutorialCompletionKind.Skipped, coverPackages: false, cancellationToken);
+                    if (result == TutorialRunResult.Skipped)
+                    {
+                        await MarkFlowAsync(flow, TutorialCompletionKind.Skipped, coverPackages: false, cancellationToken);
+                    }
+
                     return result;
                 }
             }
@@ -320,7 +328,7 @@ public sealed class TutorialService : ITutorialService
                 }
             }
 
-            var overlay = new ProductTourOverlay();
+            var overlay = new ProductTourOverlay(_textProvider);
             var context = new ProductTourStepContext
             {
                 FlowId = flowId,
@@ -426,7 +434,7 @@ public sealed class TutorialService : ITutorialService
         CancellationToken cancellationToken)
     {
         var host = OverlayHost.GetHostPanel(owner);
-        var overlay = new DialogueOverlay();
+        var overlay = new DialogueOverlay(_textProvider);
         host.Children.Add(overlay);
         var result = await overlay.ShowAsync(dialogue.Speaker, dialogue.Lines, cancellationToken);
         host.Children.Remove(overlay);

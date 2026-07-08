@@ -32,6 +32,7 @@ public sealed class OnboardingCoordinator : IOnboardingCoordinator
     private readonly ITutorialService _tutorialService;
     private readonly ITutorialStateStore _stateStore;
     private readonly ITutorialLanguageService _languageService;
+    private readonly ITutorialTextProvider _textProvider;
     private readonly ILogger<OnboardingCoordinator> _logger;
 
     /// <summary>
@@ -39,16 +40,20 @@ public sealed class OnboardingCoordinator : IOnboardingCoordinator
     /// </summary>
     /// <param name="tutorialService">Tutorial service.</param>
     /// <param name="stateStore">State store.</param>
+    /// <param name="languageService">Tutorial language service.</param>
+    /// <param name="textProvider">Fixed UI text provider.</param>
     /// <param name="logger">Logger.</param>
     public OnboardingCoordinator(
         ITutorialService tutorialService,
         ITutorialStateStore stateStore,
         ITutorialLanguageService languageService,
+        ITutorialTextProvider textProvider,
         ILogger<OnboardingCoordinator> logger)
     {
         _tutorialService = tutorialService;
         _stateStore = stateStore;
         _languageService = languageService;
+        _textProvider = textProvider;
         _logger = logger;
     }
 
@@ -64,7 +69,7 @@ public sealed class OnboardingCoordinator : IOnboardingCoordinator
         }
 
         var host = OverlayHost.GetHostPanel(owner);
-        var overlay = new FirstRunWelcomeOverlay();
+        var overlay = new FirstRunWelcomeOverlay(_textProvider);
         host.Children.Add(overlay);
         overlay.SkipConfirmed += async (_, _) =>
         {
