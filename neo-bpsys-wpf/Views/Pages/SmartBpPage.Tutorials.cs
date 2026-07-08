@@ -1,6 +1,9 @@
 using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.Tutorial;
 using neo_bpsys_wpf.ViewModels.Pages;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace neo_bpsys_wpf.Views.Pages;
 
@@ -147,7 +150,7 @@ public partial class SmartBpPage
                     ProductTourInteractionMode.AllowTargetOnly,
                     allowMissing: true)
             ],
-            IsSmartBpModuleLoaded);
+            IsSmartBpModuleContentReady);
 
     private static TutorialPackageDefinition CreateCapturePackage() =>
         TutorialDefinitionHelpers.Package(
@@ -180,7 +183,7 @@ public partial class SmartBpPage
                     ProductTourInteractionMode.AllowTargetOnly,
                     allowMissing: true)
             ],
-            IsSmartBpModuleLoaded);
+            IsSmartBpCaptureReady);
 
     private static TutorialPackageDefinition CreateRegionEditorPackage() =>
         TutorialDefinitionHelpers.Package(
@@ -213,7 +216,7 @@ public partial class SmartBpPage
                     ProductTourInteractionMode.AllowTargetOnly,
                     allowMissing: true)
             ],
-            IsSmartBpModuleLoaded);
+            IsSmartBpRegionEditorReady);
 
     private static TutorialPackageDefinition CreateFullBpFlowPackage() =>
         TutorialDefinitionHelpers.Package(
@@ -228,7 +231,7 @@ public partial class SmartBpPage
                     ProductTourInteractionMode.AllowTargetOnly,
                     allowMissing: true)
             ],
-            IsSmartBpModuleLoaded);
+            IsSmartBpFullBpFlowReady);
 
     private static TutorialPackageDefinition CreatePostGameAutoFillPackage() =>
         TutorialDefinitionHelpers.Package(
@@ -257,24 +260,104 @@ public partial class SmartBpPage
             ],
             IsSmartBpPostGameAutoFillVisible);
 
-    private static bool IsSmartBpModuleLoaded(IServiceProvider serviceProvider, System.Windows.FrameworkElement? owner)
+    private static bool IsSmartBpModuleLoaded(IServiceProvider serviceProvider, FrameworkElement? owner)
     {
         _ = serviceProvider;
-        return owner is System.Windows.FrameworkElement { DataContext: SmartBpPageViewModel viewModel }
+        return owner is FrameworkElement { DataContext: SmartBpPageViewModel viewModel }
             && viewModel.IsModuleLoaded;
     }
 
-    private static bool IsSmartBpModuleNotLoaded(IServiceProvider serviceProvider, System.Windows.FrameworkElement? owner)
+    private static bool IsSmartBpModuleNotLoaded(IServiceProvider serviceProvider, FrameworkElement? owner)
     {
         _ = serviceProvider;
-        return owner is not System.Windows.FrameworkElement { DataContext: SmartBpPageViewModel viewModel }
+        return owner is not FrameworkElement { DataContext: SmartBpPageViewModel viewModel }
             || !viewModel.IsModuleLoaded;
     }
 
-    private static bool IsSmartBpPostGameAutoFillVisible(IServiceProvider serviceProvider, System.Windows.FrameworkElement? owner)
+    private static bool IsSmartBpModuleContentReady(IServiceProvider serviceProvider, FrameworkElement? owner)
+    {
+        _ = serviceProvider;
+        return IsSmartBpModuleLoaded(serviceProvider, owner)
+            && HasContentHostContent(owner);
+    }
+
+    private static bool IsSmartBpCaptureReady(IServiceProvider serviceProvider, FrameworkElement? owner) =>
+        IsSmartBpModuleLoaded(serviceProvider, owner)
+        && HasAnyTarget(
+            owner,
+            TutorialTargets.WindowSelector,
+            TutorialTargets.StartCaptureButton,
+            TutorialTargets.PreviewPanel);
+
+    private static bool IsSmartBpRegionEditorReady(IServiceProvider serviceProvider, FrameworkElement? owner) =>
+        IsSmartBpModuleLoaded(serviceProvider, owner)
+        && HasAnyTarget(
+            owner,
+            TutorialTargets.RegionEditorButton,
+            TutorialTargets.RegionPreviewPanel,
+            TutorialTargets.RegionListPanel);
+
+    private static bool IsSmartBpFullBpFlowReady(IServiceProvider serviceProvider, FrameworkElement? owner) =>
+        IsSmartBpModuleLoaded(serviceProvider, owner)
+        && HasAnyTarget(owner, TutorialTargets.StartFullBpFlowButton);
+
+    private static bool IsSmartBpPostGameAutoFillVisible(IServiceProvider serviceProvider, FrameworkElement? owner)
     {
         _ = serviceProvider;
         _ = owner;
         return false;
+    }
+
+    private static bool HasContentHostContent(FrameworkElement? owner)
+    {
+        if (owner == null)
+        {
+            return false;
+        }
+
+        return FindNamedElement(owner, nameof(SmartBpModuleContentHost)) is ContentControl { Content: not null };
+    }
+
+    private static bool HasAnyTarget(FrameworkElement? owner, params string[] targetNames)
+    {
+        if (owner == null)
+        {
+            return false;
+        }
+
+        return targetNames.Any(targetName => FindNamedElement(owner, targetName) != null);
+    }
+
+    private static FrameworkElement? FindNamedElement(DependencyObject root, string targetName)
+    {
+        if (root is FrameworkElement element)
+        {
+            if (element.Name == targetName)
+            {
+                return element;
+            }
+
+            if (element.FindName(targetName) is FrameworkElement named)
+            {
+                return named;
+            }
+        }
+
+        var childCount = VisualTreeHelper.GetChildrenCount(root);
+        for (var i = 0; i < childCount; i++)
+        {
+            var nested = FindNamedElement(VisualTreeHelper.GetChild(root, i), targetName);
+            if (nested != null)
+            {
+                return nested;
+            }
+        }
+
+        if (root is ContentControl { Content: DependencyObject content })
+        {
+            return FindNamedElement(content, targetName);
+        }
+
+        return null;
     }
 }

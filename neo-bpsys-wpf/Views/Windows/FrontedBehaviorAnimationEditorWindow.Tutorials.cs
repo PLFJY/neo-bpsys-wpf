@@ -1,5 +1,7 @@
 using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.Tutorial;
+using System.Windows;
+using System.Windows.Threading;
 
 namespace neo_bpsys_wpf.Views.Windows;
 
@@ -50,7 +52,7 @@ public partial class FrontedBehaviorAnimationEditorWindow
                 TutorialDefinitionHelpers.Step(
                     nameof(AnimationTabs),
                     "动画编辑器",
-                    "这里编辑行为对应的动画动作。动画由目标、时间和属性变化组成。",
+                    "这里编辑行为对应的动画动作。动画由时间、步骤和参数变化组成。",
                     ProductTourInteractionMode.AllowTargetOnly)
             ]));
 
@@ -62,7 +64,7 @@ public partial class FrontedBehaviorAnimationEditorWindow
                 TutorialDefinitionHelpers.Step(
                     TutorialTargetNames.AnimationGraphCanvas,
                     "时间顺序",
-                    "动画按节点和连接的顺序执行。不同阶段可以分别编辑进入、循环和停止动作。",
+                    "动画按时间和步骤顺序执行。不同阶段可以分别编辑进入、循环和停止动作。",
                     ProductTourInteractionMode.AllowTargetOnly,
                     allowMissing: true)
             ]));
@@ -102,7 +104,35 @@ public partial class FrontedBehaviorAnimationEditorWindow
                     nameof(AnimationEditorHelpButton),
                     "动画进阶说明",
                     "右下角这个帮助按钮可以查看动画编辑器的详细 / 进阶说明。",
-                    ProductTourInteractionMode.AllowTargetOnly)
+                    ProductTourInteractionMode.AllowTargetOnly,
+                    beforeShowAsync: ScrollAnimationHelpButtonIntoViewAsync,
+                    scrollAnchorName: nameof(AnimationEditorHelpButton))
             ]));
+    }
+
+    private static async Task ScrollAnimationHelpButtonIntoViewAsync(
+        IServiceProvider serviceProvider,
+        CancellationToken cancellationToken)
+    {
+        _ = serviceProvider;
+        var window = Application.Current?.Windows
+            .OfType<FrontedBehaviorAnimationEditorWindow>()
+            .FirstOrDefault(item => item.IsActive)
+            ?? Application.Current?.Windows
+                .OfType<FrontedBehaviorAnimationEditorWindow>()
+                .FirstOrDefault(item => item.IsVisible);
+        if (window == null)
+        {
+            return;
+        }
+
+        await window.Dispatcher.InvokeAsync(
+            () =>
+            {
+                window.AnimationEditorHelpButton.BringIntoView();
+                window.UpdateLayout();
+            },
+            DispatcherPriority.ContextIdle,
+            cancellationToken);
     }
 }

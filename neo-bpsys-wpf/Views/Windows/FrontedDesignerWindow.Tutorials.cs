@@ -1,5 +1,7 @@
 using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.Tutorial;
+using System.Windows;
+using System.Windows.Threading;
 
 namespace neo_bpsys_wpf.Views.Windows;
 
@@ -111,12 +113,6 @@ public partial class FrontedDesignerWindow
                     "属性区域",
                     "右侧是属性编辑区域。稍后在预览区域选中控件后，这里会显示可编辑属性。",
                     ProductTourInteractionMode.AllowTargetOnly,
-                    allowMissing: true),
-                TutorialDefinitionHelpers.Step(
-                    nameof(BehaviorPanelHost),
-                    "行为和动画区域",
-                    "选中控件后，右侧会出现行为和动画区域。这些高级编辑器会在进入对应区域时单独说明。",
-                    ProductTourInteractionMode.AllowTargetOnly,
                     allowMissing: true)
             ]);
 
@@ -145,9 +141,9 @@ public partial class FrontedDesignerWindow
                     ProductTourInteractionMode.AllowTargetOnly,
                     allowMissing: true),
                 TutorialDefinitionHelpers.Step(
-                    nameof(InteractionLayer),
-                    "交互层",
-                    "交互层负责选中、拖动和缩放设计控件。",
+                    nameof(SaveLayoutButton),
+                    "保存布局",
+                    "调整布局后，可以在顶部工具区保存当前布局。",
                     ProductTourInteractionMode.AllowTargetOnly,
                     allowMissing: true)
             ]);
@@ -181,7 +177,21 @@ public partial class FrontedDesignerWindow
                     "应用属性",
                     "如果属性非法，会显示错误状态。本教程不强制你修改或应用属性。",
                     ProductTourInteractionMode.AllowTargetOnly,
-                    allowMissing: true)
+                    allowMissing: true),
+                TutorialDefinitionHelpers.Step(
+                    nameof(BehaviorPanelHost),
+                    "行为和动画入口",
+                    "选中控件后，属性面板下方会出现行为和动画区域。行为用于定义触发条件和动作；动画用于编辑具体变化效果。后续进入行为面板或动画编辑器时，会有单独详细说明。",
+                    ProductTourInteractionMode.AllowTargetOnly,
+                    allowMissing: true,
+                    beforeShowAsync: ScrollDesignerPropertyPanelToBehaviorAreaAsync,
+                    scrollAnchorName: nameof(BehaviorPanelHost)),
+                TutorialDefinitionHelpers.Step(
+                    null,
+                    "行为和动画入口",
+                    "如果当前没有选中控件，行为和动画区域会暂时隐藏。选中控件后，可以在属性面板下方找到行为和动画入口；这里不需要你创建行为或打开动画编辑器。",
+                    ProductTourInteractionMode.BlockAll,
+                    beforeShowAsync: ScrollDesignerPropertyPanelToBehaviorAreaAsync)
             ]);
 
     private static TutorialPackageDefinition CreatePackageImportExportPackage() =>
@@ -220,6 +230,68 @@ public partial class FrontedDesignerWindow
                     nameof(DesignerHelpButton),
                     "查看详细说明",
                     "右下角这个帮助按钮可以打开 v3 编辑器的详细说明。遇到属性、行为、动画或布局包规则不清楚时，可以点击这里查看详细 / 进阶说明。",
-                    ProductTourInteractionMode.AllowTargetOnly)
+                    ProductTourInteractionMode.AllowTargetOnly,
+                    beforeShowAsync: ScrollDesignerHelpButtonIntoViewAsync,
+                    scrollAnchorName: nameof(DesignerHelpButton))
             ]);
+
+    private static async Task ScrollDesignerPropertyPanelToBehaviorAreaAsync(
+        IServiceProvider serviceProvider,
+        CancellationToken cancellationToken)
+    {
+        _ = serviceProvider;
+        if (FindActiveDesignerWindow() is not { } window)
+        {
+            return;
+        }
+
+        await window.Dispatcher.InvokeAsync(
+            () =>
+            {
+                if (window.BehaviorPanelHost.IsVisible)
+                {
+                    window.BehaviorPanelHost.BringIntoView();
+                }
+                else if (window.AnimationPartsPanelHost.IsVisible)
+                {
+                    window.AnimationPartsPanelHost.BringIntoView();
+                }
+                else
+                {
+                    window.PropertyPanelScrollViewer.ScrollToBottom();
+                }
+
+                window.UpdateLayout();
+            },
+            DispatcherPriority.ContextIdle,
+            cancellationToken);
+    }
+
+    private static async Task ScrollDesignerHelpButtonIntoViewAsync(
+        IServiceProvider serviceProvider,
+        CancellationToken cancellationToken)
+    {
+        _ = serviceProvider;
+        if (FindActiveDesignerWindow() is not { } window)
+        {
+            return;
+        }
+
+        await window.Dispatcher.InvokeAsync(
+            () =>
+            {
+                window.DesignerHelpButton.BringIntoView();
+                window.UpdateLayout();
+            },
+            DispatcherPriority.ContextIdle,
+            cancellationToken);
+    }
+
+    private static FrontedDesignerWindow? FindActiveDesignerWindow() =>
+        Application.Current?.Windows
+            .OfType<FrontedDesignerWindow>()
+            .FirstOrDefault(window => window.IsActive)
+        ?? Application.Current?.Windows
+            .OfType<FrontedDesignerWindow>()
+            .FirstOrDefault(window => window.IsVisible);
 }

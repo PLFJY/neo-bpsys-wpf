@@ -5,10 +5,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Reflection;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.ProductTour.Controls;
 using neo_bpsys_wpf.Tests.Infrastructure;
+using neo_bpsys_wpf.Tutorial;
 using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Services;
@@ -33,6 +38,52 @@ public sealed class ProductTourStateTest
 
             Assert.Equal(TutorialRunResult.Completed, completed);
             Assert.Equal(TutorialRunResult.NotPending, pending);
+        });
+    }
+
+    [Fact]
+    public async Task AutoOnLoadedRunsOnlyOnePendingPackagePerInvocation()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var fixture = new Fixture();
+            fixture.RegisterPackage("Package.A", version: 1, pageKey: "Page.Test");
+            fixture.RegisterPackage("Package.B", version: 1, pageKey: "Page.Test");
+            fixture.SequenceRegistry.RegisterSequence("Page.Test", ["Package.A", "Package.B"]);
+
+            var previousHost = IAppHost.Host;
+            using var host = Host.CreateDefaultBuilder()
+                .ConfigureServices(services => services.AddSingleton<ITutorialService>(fixture.Service))
+                .Build();
+            IAppHost.Host = host;
+            try
+            {
+                var owner = CreateOwner();
+                var window = new Window { Content = owner, Width = 320, Height = 240 };
+                window.Show();
+                try
+                {
+                    await InvokeRunPendingOnLoadedAsync(owner, "Page.Test");
+                    var stateAfterFirstRun = await fixture.StateStore.LoadAsync();
+
+                    Assert.True(stateAfterFirstRun.CompletedPackages.ContainsKey("Package.A"));
+                    Assert.False(stateAfterFirstRun.CompletedPackages.ContainsKey("Package.B"));
+
+                    await InvokeRunPendingOnLoadedAsync(owner, "Page.Test");
+                    var stateAfterSecondRun = await fixture.StateStore.LoadAsync();
+
+                    Assert.True(stateAfterSecondRun.CompletedPackages.ContainsKey("Package.A"));
+                    Assert.True(stateAfterSecondRun.CompletedPackages.ContainsKey("Package.B"));
+                }
+                finally
+                {
+                    window.Close();
+                }
+            }
+            finally
+            {
+                IAppHost.Host = previousHost;
+            }
         });
     }
 
@@ -475,6 +526,15 @@ public sealed class ProductTourStateTest
             Width = 800,
             Height = 600
         };
+
+    private static Task InvokeRunPendingOnLoadedAsync(FrameworkElement owner, string pageKey)
+    {
+        var method = typeof(TutorialPageLoader).GetMethod(
+            "RunPendingOnLoadedAsync",
+            BindingFlags.NonPublic | BindingFlags.Static);
+        Assert.NotNull(method);
+        return (Task)method.Invoke(null, [owner, pageKey])!;
+    }
 
     private static async Task<ProductTourOverlay> WaitForOverlayAsync(Panel owner)
     {

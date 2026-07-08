@@ -6,6 +6,7 @@ using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Tutorial;
 using neo_bpsys_wpf.ViewModels.FrontedDesigner;
 using neo_bpsys_wpf.Views.Windows;
+using System.Windows.Threading;
 
 namespace neo_bpsys_wpf.Views.FrontedDesigner;
 
@@ -16,16 +17,22 @@ public partial class BehaviorPanelView : UserControl
     public BehaviorPanelView()
     {
         InitializeComponent();
-        Loaded += (_, _) => TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKey);
         IsVisibleChanged += (_, e) =>
         {
             if (Equals(e.NewValue, true))
             {
-                TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKey);
+                ScheduleTutorialRun();
             }
         };
         DataContextChanged += OnDataContextChanged;
         Unloaded += (_, _) => CloseHelpWindow();
+    }
+
+    private void ScheduleTutorialRun()
+    {
+        Dispatcher.BeginInvoke(
+            DispatcherPriority.ContextIdle,
+            new Action(() => TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKey)));
     }
 
     private void OnDataContextChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
@@ -40,6 +47,7 @@ public partial class BehaviorPanelView : UserControl
         {
             newViewModel.AnimationEditorRequested += OpenAnimationEditor;
             newViewModel.CopyBehaviorToRequested += OpenCopyBehaviorTo;
+            ScheduleTutorialRun();
         }
     }
 

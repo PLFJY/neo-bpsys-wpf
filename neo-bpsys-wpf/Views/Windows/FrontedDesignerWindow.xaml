@@ -888,7 +888,7 @@
                 BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
                 BorderThickness="1"
                 CornerRadius="4">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ScrollViewer x:Name="PropertyPanelScrollViewer" VerticalScrollBarVisibility="Auto">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -1193,6 +1193,7 @@
                                 DataContext="{Binding BehaviorPanel}" />
                         </Expander>
                         <Expander
+                            x:Name="AnimationPartsPanelHost"
                             Grid.Row="4"
                             Margin="0,4,0,8"
                             Header="{lex:Loc Designer.AnimationParts.Title}"

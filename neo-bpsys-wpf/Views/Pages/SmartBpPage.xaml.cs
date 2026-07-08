@@ -4,6 +4,7 @@ using neo_bpsys_wpf.ViewModels.Pages;
 using System.ComponentModel;
 using System.Windows.Controls;
 using System.Windows.Threading;
+using System.Windows;
 
 namespace neo_bpsys_wpf.Views.Pages;
 
@@ -16,11 +17,20 @@ namespace neo_bpsys_wpf.Views.Pages;
     Core.Enums.BackendPageCategory.External)]
 public partial class SmartBpPage : Page
 {
+    private readonly DependencyPropertyDescriptor? _moduleContentDescriptor;
+    private SmartBpPageViewModel? _attachedViewModel;
+    private bool _isModuleContentHandlerAttached;
+
     public SmartBpPage()
     {
         InitializeComponent();
+        _moduleContentDescriptor = DependencyPropertyDescriptor.FromProperty(
+            ContentControl.ContentProperty,
+            typeof(ContentControl));
         Loaded += (_, _) =>
         {
+            AttachViewModel(DataContext);
+            AttachModuleContentHandler();
             TutorialSignalPublisher.Publish(TutorialSignalIds.NavigationSmartBpOpened);
             TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.SmartBp);
         };
@@ -32,7 +42,11 @@ public partial class SmartBpPage : Page
             }
         };
         DataContextChanged += OnDataContextChanged;
-        Unloaded += (_, _) => DetachViewModel(DataContext);
+        Unloaded += (_, _) =>
+        {
+            DetachViewModel(DataContext);
+            DetachModuleContentHandler();
+        };
     }
 
     private void OnDataContextChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
@@ -43,17 +57,25 @@ public partial class SmartBpPage : Page
 
     private void AttachViewModel(object? value)
     {
+        if (ReferenceEquals(_attachedViewModel, value))
+        {
+            return;
+        }
+
+        DetachViewModel(_attachedViewModel);
         if (value is SmartBpPageViewModel viewModel)
         {
             viewModel.PropertyChanged += ViewModelOnPropertyChanged;
+            _attachedViewModel = viewModel;
         }
     }
 
     private void DetachViewModel(object? value)
     {
-        if (value is SmartBpPageViewModel viewModel)
+        if (value is SmartBpPageViewModel viewModel && ReferenceEquals(_attachedViewModel, viewModel))
         {
             viewModel.PropertyChanged -= ViewModelOnPropertyChanged;
+            _attachedViewModel = null;
         }
     }
 
@@ -66,5 +88,34 @@ public partial class SmartBpPage : Page
                 DispatcherPriority.ContextIdle,
                 new Action(() => TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.SmartBp)));
         }
+    }
+
+    private void OnModuleContentChanged(object? sender, EventArgs e)
+    {
+        Dispatcher.BeginInvoke(
+            DispatcherPriority.ContextIdle,
+            new Action(() => TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.SmartBp)));
+    }
+
+    private void AttachModuleContentHandler()
+    {
+        if (_isModuleContentHandlerAttached)
+        {
+            return;
+        }
+
+        _moduleContentDescriptor?.AddValueChanged(SmartBpModuleContentHost, OnModuleContentChanged);
+        _isModuleContentHandlerAttached = true;
+    }
+
+    private void DetachModuleContentHandler()
+    {
+        if (!_isModuleContentHandlerAttached)
+        {
+            return;
+        }
+
+        _moduleContentDescriptor?.RemoveValueChanged(SmartBpModuleContentHost, OnModuleContentChanged);
+        _isModuleContentHandlerAttached = false;
     }
 }

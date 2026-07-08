@@ -4,6 +4,7 @@ using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Tests.Infrastructure;
 using neo_bpsys_wpf.Tutorial;
 using neo_bpsys_wpf.ViewModels.Pages;
+using neo_bpsys_wpf.Views.Pages;
 using neo_bpsys_wpf.Views.Pages.FrontManage;
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Services;
@@ -308,13 +310,10 @@ public sealed class NeoBpsysTutorialRegistrationTest
         {
             var packages = CreateRegisteredPackages();
             var shell = Assert.Single(packages, package => package.PackageId == TutorialPackageIds.SmartBpModuleShell);
-            var contentPackageIds = new[]
-            {
-                TutorialPackageIds.SmartBpModuleContentOverview,
-                TutorialPackageIds.SmartBpCaptureBasic,
-                TutorialPackageIds.SmartBpRegionEditorBasic,
-                TutorialPackageIds.SmartBpFullBpFlowBasic
-            };
+            var overview = Assert.Single(packages, package => package.PackageId == TutorialPackageIds.SmartBpModuleContentOverview);
+            var capture = Assert.Single(packages, package => package.PackageId == TutorialPackageIds.SmartBpCaptureBasic);
+            var region = Assert.Single(packages, package => package.PackageId == TutorialPackageIds.SmartBpRegionEditorBasic);
+            var fullBpFlow = Assert.Single(packages, package => package.PackageId == TutorialPackageIds.SmartBpFullBpFlowBasic);
             var postGamePackage = Assert.Single(packages, package => package.PackageId == TutorialPackageIds.SmartBpPostGameAutoFill);
             var provider = new ViewModelServiceProvider(new SmartBpPageViewModel { IsModuleLoaded = true });
             var unloadedOwner = new System.Windows.Controls.Grid
@@ -325,18 +324,31 @@ public sealed class NeoBpsysTutorialRegistrationTest
             {
                 DataContext = new SmartBpPageViewModel { IsModuleLoaded = true }
             };
+            var loadedOwnerWithContent = CreateSmartBpOwnerWithContent("SmartBpModuleContentHost");
+            var captureOwner = CreateSmartBpOwnerWithContent("SmartBpModuleContentHost", SmartBpPage.TutorialTargets.StartCaptureButton);
+            var regionOwner = CreateSmartBpOwnerWithContent("SmartBpModuleContentHost", SmartBpPage.TutorialTargets.RegionListPanel);
+            var fullBpOwner = CreateSmartBpOwnerWithContent("SmartBpModuleContentHost", SmartBpPage.TutorialTargets.StartFullBpFlowButton);
 
             Assert.NotNull(shell.CanRunWithOwner);
             Assert.True(shell.CanRunWithOwner!(provider, unloadedOwner));
             Assert.False(shell.CanRunWithOwner!(provider, loadedOwner));
 
-            foreach (var packageId in contentPackageIds)
-            {
-                var package = Assert.Single(packages, item => item.PackageId == packageId);
-                Assert.NotNull(package.CanRunWithOwner);
-                Assert.False(package.CanRunWithOwner!(provider, unloadedOwner));
-                Assert.True(package.CanRunWithOwner!(provider, loadedOwner));
-            }
+            Assert.NotNull(overview.CanRunWithOwner);
+            Assert.False(overview.CanRunWithOwner!(provider, unloadedOwner));
+            Assert.False(overview.CanRunWithOwner!(provider, loadedOwner));
+            Assert.True(overview.CanRunWithOwner!(provider, loadedOwnerWithContent));
+
+            Assert.NotNull(capture.CanRunWithOwner);
+            Assert.False(capture.CanRunWithOwner!(provider, loadedOwner));
+            Assert.True(capture.CanRunWithOwner!(provider, captureOwner));
+
+            Assert.NotNull(region.CanRunWithOwner);
+            Assert.False(region.CanRunWithOwner!(provider, loadedOwner));
+            Assert.True(region.CanRunWithOwner!(provider, regionOwner));
+
+            Assert.NotNull(fullBpFlow.CanRunWithOwner);
+            Assert.False(fullBpFlow.CanRunWithOwner!(provider, loadedOwner));
+            Assert.True(fullBpFlow.CanRunWithOwner!(provider, fullBpOwner));
 
             Assert.NotNull(postGamePackage.CanRunWithOwner);
             Assert.False(postGamePackage.CanRunWithOwner!(provider, unloadedOwner));
@@ -368,15 +380,46 @@ public sealed class NeoBpsysTutorialRegistrationTest
         Assert.Null(overview.Steps[0].TargetName);
         Assert.Contains("欢迎来到 v3 编辑器", overview.Steps[0].Title, StringComparison.Ordinal);
         Assert.Contains("详细修改前台界面", overview.Steps[0].Description, StringComparison.Ordinal);
+        Assert.DoesNotContain(overview.Steps, step => step.TargetName == TutorialTargetNames.BehaviorPanelHost);
 
-        var previewStep = Assert.Single(
-            packages.Single(package => package.PackageId == TutorialPackageIds.DesignerV3LayoutEditBasic).Steps,
-            step => step.TargetName == TutorialTargetNames.PreviewZoomHost);
+        var layoutSteps = packages.Single(package => package.PackageId == TutorialPackageIds.DesignerV3LayoutEditBasic).Steps;
+        var previewStep = Assert.Single(layoutSteps, step => step.TargetName == TutorialTargetNames.PreviewZoomHost);
         Assert.Contains("点击画布上的一个控件", previewStep.Description, StringComparison.Ordinal);
+        Assert.DoesNotContain(layoutSteps, step => step.TargetName == TutorialTargetNames.InteractionLayer);
+        Assert.DoesNotContain(layoutSteps.Select(step => step.Title), title => title.Contains("交互层", StringComparison.Ordinal));
+
+        var propertySteps = packages.Single(package => package.PackageId == TutorialPackageIds.DesignerV3PropertyPanelBasic).Steps;
+        Assert.Contains(propertySteps, step => step.Title == "行为和动画入口");
 
         var finalStep = Assert.Single(help.Steps);
         Assert.Equal(TutorialTargetNames.DesignerHelpButton, finalStep.TargetName);
         Assert.Contains("v3 编辑器的详细说明", finalStep.Description, StringComparison.Ordinal);
+        Assert.False(finalStep.AllowMissingTarget);
+        Assert.NotNull(finalStep.BeforeShowAsync);
+    }
+
+    [Fact]
+    public async Task FrontManageChildTutorialHelperResolvesVisibleChildOwnerAndPageKey()
+    {
+        await WpfTestThread.RunAsync(() =>
+        {
+            var windowsView = new FrontedWindowsView();
+            var root = new Grid { Children = { windowsView } };
+            var window = new Window { Content = root, Width = 320, Height = 240 };
+            window.Show();
+            try
+            {
+                Assert.True(FrontManagePage.TryResolveCurrentChildTutorial(root, out var owner, out var pageKey));
+                Assert.Same(windowsView, owner);
+                Assert.Equal(FrontedWindowsView.TutorialPageKey, pageKey);
+            }
+            finally
+            {
+                window.Close();
+            }
+
+            return Task.CompletedTask;
+        });
     }
 
     [Fact]
@@ -457,6 +500,28 @@ public sealed class NeoBpsysTutorialRegistrationTest
         NeoBpsysTutorialRegistration.Register(packageRegistry, sequenceRegistry, flowRegistry);
 
         return packageRegistry.GetPackages();
+    }
+
+    private static Grid CreateSmartBpOwnerWithContent(string contentHostName, string? dynamicTargetName = null)
+    {
+        var moduleContent = new StackPanel();
+        if (!string.IsNullOrWhiteSpace(dynamicTargetName))
+        {
+            moduleContent.Children.Add(new Button { Name = dynamicTargetName });
+        }
+
+        return new Grid
+        {
+            DataContext = new SmartBpPageViewModel { IsModuleLoaded = true },
+            Children =
+            {
+                new ContentControl
+                {
+                    Name = contentHostName,
+                    Content = moduleContent
+                }
+            }
+        };
     }
 
     private sealed class EmptyServiceProvider : IServiceProvider

@@ -12,7 +12,6 @@ namespace neo_bpsys_wpf.Tutorial;
 public static class TutorialPageLoader
 {
     private const int MaxSuppressedRetries = 20;
-    private const int MaxSequentialPackages = 16;
     private static readonly TimeSpan SuppressedRetryDelay = TimeSpan.FromMilliseconds(750);
 
     /// <summary>
@@ -35,14 +34,7 @@ public static class TutorialPageLoader
             }
 
             var service = IAppHost.Host.Services.GetRequiredService<ITutorialService>();
-            for (var completedPackages = 0; completedPackages < MaxSequentialPackages; completedPackages++)
-            {
-                var result = await RunOnePendingPackageAsync(service, owner, pageKey);
-                if (result != TutorialRunResult.Completed)
-                {
-                    return;
-                }
-            }
+            await RunOnePendingPackageAsync(service, owner, pageKey);
         }
         catch (Exception ex)
         {
