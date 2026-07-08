@@ -51,10 +51,16 @@ public partial class FrontedBehaviorAnimationEditorWindow
             1,
             [
                 TutorialDefinitionHelpers.Step(
+                    null,
+                    "动画编辑器",
+                    "这里编辑行为对应的动画动作。动画由时间、步骤和参数变化组成。",
+                    ProductTourInteractionMode.BlockAll),
+                TutorialDefinitionHelpers.Step(
                     nameof(AnimationTabs),
                     "动画编辑器",
                     "这里编辑行为对应的动画动作。动画由时间、步骤和参数变化组成。",
-                    ProductTourInteractionMode.AllowTargetOnly)
+                    ProductTourInteractionMode.AllowTargetOnly,
+                    allowMissing: true)
             ]));
 
         registrar.RegisterPackage(TutorialDefinitionHelpers.Package(
@@ -62,6 +68,11 @@ public partial class FrontedBehaviorAnimationEditorWindow
             TutorialPageKey,
             2,
             [
+                TutorialDefinitionHelpers.Step(
+                    null,
+                    "时间和步骤",
+                    "动画会按时间和步骤顺序执行。你可以先理解结构，不需要为了完成教程创建关键帧。",
+                    ProductTourInteractionMode.BlockAll),
                 TutorialDefinitionHelpers.Step(
                     TutorialTargetNames.AnimationGraphCanvas,
                     "时间顺序",
@@ -76,6 +87,11 @@ public partial class FrontedBehaviorAnimationEditorWindow
             3,
             [
                 TutorialDefinitionHelpers.Step(
+                    null,
+                    "动作参数",
+                    "参数用于描述位置、透明度、大小、颜色等变化。本教程不要求你创建或保存参数。",
+                    ProductTourInteractionMode.BlockAll),
+                TutorialDefinitionHelpers.Step(
                     TutorialTargetNames.AnimationPropertyPanel,
                     "动作参数",
                     "选中节点后，可以在这里编辑位置、透明度、大小、颜色等变化参数。",
@@ -88,6 +104,11 @@ public partial class FrontedBehaviorAnimationEditorWindow
             TutorialPageKey,
             4,
             [
+                TutorialDefinitionHelpers.Step(
+                    null,
+                    "预览动画",
+                    "预览用于确认动作顺序和参数效果。本教程不强制保存动画。",
+                    ProductTourInteractionMode.BlockAll),
                 TutorialDefinitionHelpers.Step(
                     TutorialTargetNames.AnimationPreviewPanel,
                     "预览动画",

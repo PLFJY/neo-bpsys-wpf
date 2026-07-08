@@ -432,9 +432,14 @@ public sealed class NeoBpsysTutorialRegistrationTest
             "交互层",
             "InteractionLayer",
             "ZoomHost",
+            "PreviewZoomHost",
             "DropZone",
             "LayerTopDropZone",
-            "LayerBottomDropZone"
+            "LayerBottomDropZone",
+            "VisualTree",
+            "DataContext",
+            "Dispatcher",
+            "FrameworkElement"
         };
 
         foreach (var step in packages.SelectMany(package => package.Steps))
@@ -445,6 +450,25 @@ public sealed class NeoBpsysTutorialRegistrationTest
                 Assert.DoesNotContain(term, step.Description, StringComparison.Ordinal);
             }
         }
+    }
+
+    [Fact]
+    public void DesignerBaseSequence_ShouldNotStopBeforeHelpWhenOptionalTargetsMissing()
+    {
+        var packages = CreateRegisteredPackages();
+        var importExport = Assert.Single(
+            packages,
+            package => package.PackageId == TutorialPackageIds.DesignerV3PackageImportExport);
+        var help = Assert.Single(
+            packages,
+            package => package.PackageId == TutorialPackageIds.DesignerV3HelpBasic);
+
+        Assert.Contains(importExport.Steps, step => step.TargetName is null && step.TargetKind == TutorialTargetKind.Name);
+        Assert.Contains(importExport.Steps, step => step.Title == "保存、导入和导出");
+
+        var helpStep = Assert.Single(help.Steps);
+        Assert.Equal(TutorialTargetNames.DesignerHelpButton, helpStep.TargetName);
+        Assert.False(helpStep.AllowMissingTarget);
     }
 
     [Fact]
@@ -476,7 +500,8 @@ public sealed class NeoBpsysTutorialRegistrationTest
         Assert.True(visibleChangedStart > loadedBlockStart);
         var loadedBlock = source[loadedBlockStart..visibleChangedStart];
 
-        Assert.Contains("TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.FrontManage)", loadedBlock);
+        Assert.Contains("TutorialPageKeys.FrontManage", loadedBlock);
+        Assert.Contains("\"Loaded\"", loadedBlock);
         Assert.DoesNotContain("ScheduleCurrentChildTutorial();", loadedBlock);
     }
 

@@ -54,7 +54,10 @@ public partial class FrontedWindowsView
                     "导播时，观众看到的是前台窗口。我们先只启动 BP 前台页面。",
                     ProductTourInteractionMode.AllowTargetOnly,
                     TutorialSignalIds.BpWindowOpened)
-            ]));
+            ],
+            serviceProvider => TutorialDefinitionHelpers.IsPackageRecorded(
+                serviceProvider,
+                TutorialPackageIds.FrontManageOverview)));
 
         registrar.RegisterPackage(TutorialDefinitionHelpers.Package(
             TutorialPackages.WindowsBasic,
@@ -62,7 +65,7 @@ public partial class FrontedWindowsView
             1,
             [
                 TutorialDefinitionHelpers.Step(
-                    "FrontedWindowsTab",
+                    nameof(ManageableWindowGroupsPanel),
                     "前台窗口",
                     "这里管理所有前台窗口。导播排查和控制窗口时，可以在这里查看窗口列表。",
                     ProductTourInteractionMode.AllowTargetOnly,
@@ -103,7 +106,10 @@ public partial class FrontedWindowsView
                     "单个窗口卡片可以独立打开或关闭对应前台窗口。",
                     ProductTourInteractionMode.AllowTargetOnly,
                     allowMissing: true)
-            ]));
+            ],
+            serviceProvider => TutorialDefinitionHelpers.IsPackageRecorded(
+                serviceProvider,
+                TutorialPackageIds.FrontManageOverview)));
 
         registrar.RegisterPackage(TutorialDefinitionHelpers.Package(
             TutorialPackages.OpenDesigner,
@@ -117,6 +123,9 @@ public partial class FrontedWindowsView
                     ProductTourInteractionMode.AllowTargetOnly,
                     TutorialSignalIds.DesignerV3Opened,
                     allowMissing: true)
-            ]));
+            ],
+            serviceProvider => TutorialDefinitionHelpers.IsPackageRecorded(
+                serviceProvider,
+                TutorialPackageIds.FrontManageOverview)));
     }
 }

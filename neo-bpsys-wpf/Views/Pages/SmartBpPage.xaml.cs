@@ -32,13 +32,13 @@ public partial class SmartBpPage : Page
             AttachViewModel(DataContext);
             AttachModuleContentHandler();
             TutorialSignalPublisher.Publish(TutorialSignalIds.NavigationSmartBpOpened);
-            TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.SmartBp);
+            TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.SmartBp, "Loaded");
         };
         IsVisibleChanged += (_, e) =>
         {
             if (Equals(e.NewValue, true))
             {
-                TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.SmartBp);
+                TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.SmartBp, "Visible");
             }
         };
         DataContextChanged += OnDataContextChanged;
@@ -86,7 +86,10 @@ public partial class SmartBpPage : Page
         {
             Dispatcher.BeginInvoke(
                 DispatcherPriority.ContextIdle,
-                new Action(() => TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.SmartBp)));
+                new Action(() => TutorialPageLoader.RunPendingOnLoaded(
+                    this,
+                    TutorialPageKeys.SmartBp,
+                    "ModuleLoaded")));
         }
     }
 
@@ -94,7 +97,10 @@ public partial class SmartBpPage : Page
     {
         Dispatcher.BeginInvoke(
             DispatcherPriority.ContextIdle,
-            new Action(() => TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.SmartBp)));
+            new Action(() => TutorialPageLoader.RunPendingOnLoaded(
+                this,
+                TutorialPageKeys.SmartBp,
+                "ContentChanged")));
     }
 
     private void AttachModuleContentHandler()

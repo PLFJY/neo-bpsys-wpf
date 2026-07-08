@@ -130,15 +130,39 @@ public sealed class TutorialService : ITutorialService
         }
 
         var state = await _stateStore.LoadAsync(cancellationToken);
-        var sequence = _sequenceRegistry.GetSequence(pageKey);
+        var sequenceDefinition = _sequenceRegistry.GetSequenceDefinition(pageKey);
+        var sequence = sequenceDefinition.PackageIds;
+        _runObserver.OnSequenceResolved(pageKey, sequence, sequenceDefinition.AutoRunStrategy);
         var packages = sequence
             .Select(id => _packageRegistry.GetPackage(id))
             .OfType<TutorialPackageDefinition>()
             .OrderBy(package => package.Sequence)
             .ToList();
 
-        var pending = packages.FirstOrDefault(package => IsPackagePending(package, state)
-            && CanRunPackage(package, owner));
+        TutorialPackageDefinition? pending = null;
+        foreach (var package in packages)
+        {
+            if (state.CompletedPackages.TryGetValue(package.PackageId, out var record)
+                && record.Version >= package.Version)
+            {
+                _runObserver.OnPackageSkippedByState(
+                    package.PackageId,
+                    record.CompletionKind,
+                    record.Version,
+                    package.Version);
+                continue;
+            }
+
+            if (!CanRunPackage(package, owner))
+            {
+                _runObserver.OnPackageSkippedByCanRun(package.PackageId, pageKey);
+                continue;
+            }
+
+            pending = package;
+            break;
+        }
+
         if (pending == null)
         {
             _runObserver.OnPackageNotPending(pageKey);
@@ -166,6 +190,7 @@ public sealed class TutorialService : ITutorialService
 
         if (!CanRunPackage(package, owner))
         {
+            _runObserver.OnPackageSkippedByCanRun(package.PackageId, package.PageKey);
             _runObserver.OnPackageNotPending(package.PageKey);
             return TutorialRunResult.NotPending;
         }
@@ -313,6 +338,7 @@ public sealed class TutorialService : ITutorialService
 
         if (!CanRunPackage(package, owner))
         {
+            _runObserver.OnPackageSkippedByCanRun(package.PackageId, package.PageKey);
             _runObserver.OnPackageNotPending(package.PageKey);
             return TutorialRunResult.NotPending;
         }
@@ -335,7 +361,8 @@ public sealed class TutorialService : ITutorialService
         string? packageId,
         CancellationToken cancellationToken)
     {
-        var host = OverlayHost.GetHostPanel(owner);
+        var overlayOwner = ResolveOverlayOwner(owner);
+        var host = OverlayHost.GetHostPanel(overlayOwner);
         var index = 0;
         var shownStepCount = 0;
         while (index < steps.Count)
@@ -385,7 +412,7 @@ public sealed class TutorialService : ITutorialService
                 PackageId = packageId,
                 StepIndex = index,
                 StepCount = steps.Count,
-                Owner = owner
+                Owner = overlayOwner
             };
             host.Children.Add(overlay);
 
@@ -490,7 +517,8 @@ public sealed class TutorialService : ITutorialService
         DialogueFlowItem dialogue,
         CancellationToken cancellationToken)
     {
-        var host = OverlayHost.GetHostPanel(owner);
+        var overlayOwner = ResolveOverlayOwner(owner);
+        var host = OverlayHost.GetHostPanel(overlayOwner);
         var overlay = new DialogueOverlay(_textProvider, _options, _avatarProvider);
         host.Children.Add(overlay);
         try
@@ -509,20 +537,22 @@ public sealed class TutorialService : ITutorialService
         return TutorialRunResult.Completed;
     }
 
-    private static bool IsPackagePending(TutorialPackageDefinition package, TutorialState state)
-    {
-        if (!state.CompletedPackages.TryGetValue(package.PackageId, out var record))
-        {
-            return true;
-        }
-
-        return record.Version < package.Version;
-    }
-
     private bool CanRunPackage(TutorialPackageDefinition package, FrameworkElement owner) =>
         package.CanRunWithOwner?.Invoke(_serviceProvider, owner)
         ?? package.CanRun?.Invoke(_serviceProvider)
         ?? true;
+
+    private static FrameworkElement ResolveOverlayOwner(FrameworkElement owner)
+    {
+        if (owner is Window)
+        {
+            return owner;
+        }
+
+        return Window.GetWindow(owner) is { } window
+            ? window
+            : owner;
+    }
 
     private static bool StepRequiresTarget(ProductTourStep step) =>
         step.TargetKind switch

@@ -217,6 +217,61 @@ public sealed class ProductTourStateTest
     }
 
     [Fact]
+    public async Task PageOwnerCenterStep_ShouldAttachOverlayToWindowRoot()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var fixture = new Fixture();
+            fixture.RegisterPackage(
+                "Package.Page",
+                version: 1,
+                pageKey: "Page.Test",
+                steps:
+                [
+                    new ProductTourStep
+                    {
+                        Title = "Page step",
+                        Description = "Page-triggered overlays run on the window."
+                    }
+                ]);
+
+            var pagePanel = new Grid();
+            var target = new Button
+            {
+                Name = "PageTarget",
+                Width = 120,
+                Height = 32,
+                Content = "Target"
+            };
+            pagePanel.Children.Add(target);
+
+            var page = new Page { Content = pagePanel };
+            var frame = new Frame { Content = page };
+            var window = new Window { Content = frame, Width = 320, Height = 240 };
+            window.Show();
+            try
+            {
+                await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ContextIdle);
+                page.UpdateLayout();
+                pagePanel.UpdateLayout();
+                target.UpdateLayout();
+                var runTask = fixture.Service.RunPackageAsync(page, "Package.Page", TutorialTriggerMode.Manual);
+                var overlay = await WaitForWindowOverlayAsync(window);
+
+                Assert.Empty(pagePanel.Children.OfType<ProductTourOverlay>());
+
+                overlay.MarkSignalCompleted();
+                var result = await runTask.WaitAsync(TimeSpan.FromSeconds(5));
+                Assert.Equal(TutorialRunResult.Completed, result);
+            }
+            finally
+            {
+                window.Close();
+            }
+        });
+    }
+
+    [Fact]
     public async Task DrainSequence_ShouldStopWhenUserSkips()
     {
         await WpfTestThread.RunAsync(async () =>
@@ -309,6 +364,69 @@ public sealed class ProductTourStateTest
 
             var stateAfterSecondOpen = await fixture.StateStore.LoadAsync();
             Assert.True(stateAfterSecondOpen.CompletedPackages.ContainsKey("Package.B"));
+        });
+    }
+
+    [Fact]
+    public async Task FirstRunWelcomeSkip_ShouldMarkIncludedPackagesSkipped()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var fixture = new Fixture();
+            fixture.RegisterPackage("Package.First", version: 3, pageKey: "Page.First");
+            fixture.RegisterPackage("Package.Second", version: 4, pageKey: "Page.Second");
+            fixture.FlowRegistry.Register(new TutorialFlowDefinition
+            {
+                FlowId = OnboardingCoordinator.FirstRunFlowId,
+                Version = 7,
+                IncludedPackageIds = ["Package.First", "Package.Second"]
+            });
+            var coordinator = new OnboardingCoordinator(
+                fixture.Service,
+                fixture.StateStore,
+                fixture.FlowRegistry,
+                fixture.PackageRegistry,
+                new FakeTutorialLanguageService(),
+                new DefaultTutorialTextProvider(),
+                new NoOpTutorialAvatarProvider(),
+                new ProductTourOptions(),
+                NullLogger<OnboardingCoordinator>.Instance);
+            var window = new Window
+            {
+                Content = new Grid(),
+                Width = 320,
+                Height = 240
+            };
+            window.Show();
+            try
+            {
+                await coordinator.ShowFirstRunWelcomeAsync(window);
+                await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ContextIdle);
+
+                var skipButton = FindButtonByContent(window, "跳过");
+                Assert.NotNull(skipButton);
+                skipButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ContextIdle);
+
+                var confirmButton = FindButtonByContent(window, "确认跳过");
+                Assert.NotNull(confirmButton);
+                confirmButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ContextIdle);
+            }
+            finally
+            {
+                window.Close();
+            }
+
+            var state = await WaitForFirstRunSkippedStateAsync(fixture.StateStore);
+            Assert.Equal(TutorialCompletionKind.Skipped, state.CompletedFlows[OnboardingCoordinator.FirstRunFlowId].CompletionKind);
+            Assert.Equal(7, state.CompletedFlows[OnboardingCoordinator.FirstRunFlowId].Version);
+            Assert.Equal(TutorialCompletionKind.Skipped, state.CompletedPackages["Package.First"].CompletionKind);
+            Assert.Equal(3, state.CompletedPackages["Package.First"].Version);
+            Assert.Equal(OnboardingCoordinator.FirstRunFlowId, state.CompletedPackages["Package.First"].SourceFlowId);
+            Assert.Equal(TutorialCompletionKind.Skipped, state.CompletedPackages["Package.Second"].CompletionKind);
+            Assert.Equal(4, state.CompletedPackages["Package.Second"].Version);
+            Assert.Equal(OnboardingCoordinator.FirstRunFlowId, state.CompletedPackages["Package.Second"].SourceFlowId);
         });
     }
 
@@ -802,10 +920,56 @@ public sealed class ProductTourStateTest
                 return overlay;
             }
 
+            if (Window.GetWindow(owner) is { } window
+                && TryGetWindowOverlay(window) is { } windowOverlay)
+            {
+                return windowOverlay;
+            }
+
             await Task.Delay(20, cts.Token);
         }
 
         throw new TimeoutException("ProductTourOverlay was not added to the owner.");
+    }
+
+    private static async Task<ProductTourOverlay> WaitForWindowOverlayAsync(Window window)
+    {
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        while (!cts.IsCancellationRequested)
+        {
+            if (TryGetWindowOverlay(window) is { } overlay)
+            {
+                return overlay;
+            }
+
+            await Task.Delay(20, cts.Token);
+        }
+
+        throw new TimeoutException("ProductTourOverlay was not added to the window root.");
+    }
+
+    private static ProductTourOverlay? TryGetWindowOverlay(Window window)
+    {
+        return FindVisualChildren<ProductTourOverlay>(window).FirstOrDefault();
+    }
+
+    private static IEnumerable<T> FindVisualChildren<T>(DependencyObject root)
+        where T : DependencyObject
+    {
+        var childCount = System.Windows.Media.VisualTreeHelper.GetChildrenCount(root);
+        for (var i = 0; i < childCount; i++)
+        {
+            var child = System.Windows.Media.VisualTreeHelper.GetChild(root, i);
+            if (child is T typed)
+            {
+                yield return typed;
+            }
+
+            foreach (var nested in FindVisualChildren<T>(child))
+            {
+                yield return nested;
+            }
+        }
     }
 
     private static async Task AwaitWithTimeoutAsync(Task task, TimeSpan timeout)
@@ -813,6 +977,23 @@ public sealed class ProductTourStateTest
         var completed = await Task.WhenAny(task, Task.Delay(timeout));
         Assert.Same(task, completed);
         await task;
+    }
+
+    private static async Task<TutorialState> WaitForFirstRunSkippedStateAsync(ITutorialStateStore stateStore)
+    {
+        var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(2);
+        while (DateTime.UtcNow < deadline)
+        {
+            var state = await stateStore.LoadAsync();
+            if (state.CompletedFlows.ContainsKey(OnboardingCoordinator.FirstRunFlowId))
+            {
+                return state;
+            }
+
+            await Task.Delay(20);
+        }
+
+        return await stateStore.LoadAsync();
     }
 
     private static Button? FindButtonByContent(DependencyObject root, string content)
@@ -884,11 +1065,47 @@ public sealed class ProductTourStateTest
         public object? GetService(Type serviceType) => null;
     }
 
+    private sealed class FakeTutorialLanguageService : ITutorialLanguageService
+    {
+        public Task<IReadOnlyList<TutorialLanguageOption>> GetLanguageOptionsAsync(
+            CancellationToken cancellationToken = default)
+        {
+            _ = cancellationToken;
+            IReadOnlyList<TutorialLanguageOption> options =
+            [
+                new TutorialLanguageOption
+                {
+                    Id = "System",
+                    DisplayName = "跟随系统",
+                    NativeName = "Follow system",
+                    IsSystemDefault = true,
+                    IsSelected = true
+                }
+            ];
+            return Task.FromResult(options);
+        }
+
+        public Task ApplyLanguageAsync(string languageOptionId, CancellationToken cancellationToken = default)
+        {
+            _ = languageOptionId;
+            _ = cancellationToken;
+            return Task.CompletedTask;
+        }
+    }
+
     private sealed class RecordingTutorialRunObserver : ITutorialRunObserver
     {
         public List<string> StartedPackageIds { get; } = [];
 
         public List<string> SuppressedPageKeys { get; } = [];
+
+        public void OnAutoRunRequested(string ownerType, string pageKey, string reason)
+        {
+        }
+
+        public void OnAutoRunCompleted(string ownerType, string pageKey, TutorialRunResult result)
+        {
+        }
 
         public void OnPackageRunRequested(string packageId, string pageKey, TutorialTriggerMode triggerMode)
         {
@@ -908,6 +1125,25 @@ public sealed class ProductTourStateTest
         }
 
         public void OnPackageNotPending(string pageKey)
+        {
+        }
+
+        public void OnPackageSkippedByState(
+            string packageId,
+            TutorialCompletionKind completionKind,
+            int recordedVersion,
+            int currentVersion)
+        {
+        }
+
+        public void OnPackageSkippedByCanRun(string packageId, string pageKey)
+        {
+        }
+
+        public void OnSequenceResolved(
+            string pageKey,
+            IReadOnlyList<string> packageIds,
+            TutorialAutoRunStrategy strategy)
         {
         }
 

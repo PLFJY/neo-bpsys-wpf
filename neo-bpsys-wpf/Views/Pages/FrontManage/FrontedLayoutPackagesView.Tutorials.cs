@@ -32,7 +32,7 @@ public partial class FrontedLayoutPackagesView
             1,
             [
                 TutorialDefinitionHelpers.Step(
-                    "LayoutPackagesTab",
+                    nameof(LayoutPackageList),
                     "布局包",
                     "布局包是前台界面的打包格式。可以导入别人制作的布局包，也可以切换当前启用的布局包。",
                     ProductTourInteractionMode.AllowTargetOnly,
@@ -61,6 +61,9 @@ public partial class FrontedLayoutPackagesView
                     "这里显示当前启用的布局包和管理状态。如果你编辑内置布局，系统会自动切换到一个新的用户自定义布局，避免覆盖内置方案。",
                     ProductTourInteractionMode.AllowTargetOnly,
                     allowMissing: true)
-            ]));
+            ],
+            serviceProvider => TutorialDefinitionHelpers.IsPackageRecorded(
+                serviceProvider,
+                TutorialPackageIds.FrontManageOverview)));
     }
 }

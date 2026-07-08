@@ -161,7 +161,7 @@ public partial class FrontedDesignerWindow : FluentWindow
     {
         _isLoaded = true;
         TutorialSignalPublisher.Publish(TutorialSignalIds.DesignerV3Opened);
-        TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.DesignerV3);
+        TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.DesignerV3, "WindowLoaded");
         AttachViewModel();
         _ = LoadInitialLayoutAsync();
     }
@@ -1324,11 +1324,13 @@ public partial class FrontedDesignerWindow : FluentWindow
             DispatcherPriority.ContextIdle,
             new Action(() =>
             {
-                if (BehaviorPanelHost.IsVisible)
+                if (FindVisibleDescendant<neo_bpsys_wpf.Views.FrontedDesigner.BehaviorPanelView>(BehaviorExpander)
+                    is { } panel)
                 {
                     TutorialPageLoader.RunPendingOnLoaded(
-                        BehaviorPanelHost,
-                        neo_bpsys_wpf.Views.FrontedDesigner.BehaviorPanelView.TutorialPageKey);
+                        panel,
+                        neo_bpsys_wpf.Views.FrontedDesigner.BehaviorPanelView.TutorialPageKey,
+                        "Expanded");
                 }
             }));
     }
@@ -3369,6 +3371,32 @@ public partial class FrontedDesignerWindow : FluentWindow
             {
                 return nested;
             }
+        }
+
+        return null;
+    }
+
+    private static T? FindVisibleDescendant<T>(DependencyObject parent)
+        where T : FrameworkElement
+    {
+        if (parent is T { IsVisible: true } typed)
+        {
+            return typed;
+        }
+
+        var childCount = VisualTreeHelper.GetChildrenCount(parent);
+        for (var i = 0; i < childCount; i++)
+        {
+            var nested = FindVisibleDescendant<T>(VisualTreeHelper.GetChild(parent, i));
+            if (nested != null)
+            {
+                return nested;
+            }
+        }
+
+        if (parent is ContentControl { Content: DependencyObject content })
+        {
+            return FindVisibleDescendant<T>(content);
         }
 
         return null;

@@ -32,7 +32,7 @@ public partial class BehaviorPanelView : UserControl
     {
         Dispatcher.BeginInvoke(
             DispatcherPriority.ContextIdle,
-            new Action(() => TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKey)));
+            new Action(() => TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKey, "VisibleOrDataContextChanged")));
     }
 
     private void OnDataContextChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)

@@ -31,6 +31,8 @@ public sealed class OnboardingCoordinator : IOnboardingCoordinator
 
     private readonly ITutorialService _tutorialService;
     private readonly ITutorialStateStore _stateStore;
+    private readonly ITutorialFlowRegistry _flowRegistry;
+    private readonly ITutorialPackageRegistry _packageRegistry;
     private readonly ITutorialLanguageService _languageService;
     private readonly ITutorialTextProvider _textProvider;
     private readonly ITutorialAvatarProvider _avatarProvider;
@@ -42,6 +44,8 @@ public sealed class OnboardingCoordinator : IOnboardingCoordinator
     /// </summary>
     /// <param name="tutorialService">Tutorial service.</param>
     /// <param name="stateStore">State store.</param>
+    /// <param name="flowRegistry">Tutorial flow registry.</param>
+    /// <param name="packageRegistry">Tutorial package registry.</param>
     /// <param name="languageService">Tutorial language service.</param>
     /// <param name="textProvider">Fixed UI text provider.</param>
     /// <param name="avatarProvider">Tutorial avatar provider.</param>
@@ -50,6 +54,8 @@ public sealed class OnboardingCoordinator : IOnboardingCoordinator
     public OnboardingCoordinator(
         ITutorialService tutorialService,
         ITutorialStateStore stateStore,
+        ITutorialFlowRegistry flowRegistry,
+        ITutorialPackageRegistry packageRegistry,
         ITutorialLanguageService languageService,
         ITutorialTextProvider textProvider,
         ITutorialAvatarProvider avatarProvider,
@@ -58,6 +64,8 @@ public sealed class OnboardingCoordinator : IOnboardingCoordinator
     {
         _tutorialService = tutorialService;
         _stateStore = stateStore;
+        _flowRegistry = flowRegistry;
+        _packageRegistry = packageRegistry;
         _languageService = languageService;
         _textProvider = textProvider;
         _avatarProvider = avatarProvider;
@@ -111,11 +119,27 @@ public sealed class OnboardingCoordinator : IOnboardingCoordinator
     private async Task MarkFirstRunSkippedAsync(CancellationToken cancellationToken)
     {
         var state = await _stateStore.LoadAsync(cancellationToken);
+        var flow = _flowRegistry.GetFlow(FirstRunFlowId);
         state.CompletedFlows[FirstRunFlowId] = new TutorialCompletionRecord
         {
-            Version = 1,
+            Version = flow?.Version ?? 1,
             CompletionKind = TutorialCompletionKind.Skipped
         };
+
+        if (flow is not null)
+        {
+            foreach (var packageId in flow.IncludedPackageIds)
+            {
+                var package = _packageRegistry.GetPackage(packageId);
+                state.CompletedPackages[packageId] = new TutorialCompletionRecord
+                {
+                    Version = package?.Version ?? flow.Version,
+                    CompletionKind = TutorialCompletionKind.Skipped,
+                    SourceFlowId = flow.FlowId
+                };
+            }
+        }
+
         await _stateStore.SaveAsync(state, cancellationToken);
     }
 }

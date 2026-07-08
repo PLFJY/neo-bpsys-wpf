@@ -1,4 +1,5 @@
 using System.Windows;
+using Microsoft.Extensions.DependencyInjection;
 using neo_bpsys_wpf.ProductTour;
 
 namespace neo_bpsys_wpf.Tutorial;
@@ -228,4 +229,31 @@ internal static class TutorialDefinitionHelpers
 
     private static Task DelayForNavigationTransitionAsync(IServiceProvider _, CancellationToken cancellationToken) =>
         Task.Delay(450, cancellationToken);
+
+    /// <summary>
+    /// Determines whether a tutorial package has been completed in the current tutorial state.
+    /// </summary>
+    /// <param name="serviceProvider">Service provider used to resolve the tutorial state store.</param>
+    /// <param name="packageId">Package id to inspect.</param>
+    /// <returns><see langword="true"/> when the package is recorded as completed; otherwise, <see langword="false"/>.</returns>
+    public static bool IsPackageCompleted(IServiceProvider serviceProvider, string packageId)
+    {
+        var stateStore = serviceProvider.GetRequiredService<ITutorialStateStore>();
+        var state = stateStore.LoadAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+        return state.CompletedPackages.TryGetValue(packageId, out var record)
+            && record.CompletionKind == TutorialCompletionKind.Completed;
+    }
+
+    /// <summary>
+    /// Determines whether a tutorial package has any completion record in the current tutorial state.
+    /// </summary>
+    /// <param name="serviceProvider">Service provider used to resolve the tutorial state store.</param>
+    /// <param name="packageId">Package id to inspect.</param>
+    /// <returns><see langword="true"/> when the package is recorded; otherwise, <see langword="false"/>.</returns>
+    public static bool IsPackageRecorded(IServiceProvider serviceProvider, string packageId)
+    {
+        var stateStore = serviceProvider.GetRequiredService<ITutorialStateStore>();
+        var state = stateStore.LoadAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+        return state.CompletedPackages.ContainsKey(packageId);
+    }
 }

@@ -41,7 +41,7 @@ public partial class FrontedBehaviorAnimationEditorWindow : FluentWindow
             AnimationTabs.SelectFirstItemIfNoneSelected();
             Dispatcher.BeginInvoke(
                 DispatcherPriority.ContextIdle,
-                new Action(() => TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKey)));
+                new Action(() => TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKey, "WindowLoaded")));
         };
         Closed += OnClosed;
     }

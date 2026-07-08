@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Tutorial;
 using neo_bpsys_wpf.ViewModels.Pages;
 
@@ -14,14 +15,27 @@ public partial class FrontedLayoutPackagesView : UserControl
     public FrontedLayoutPackagesView()
     {
         InitializeComponent();
-        Loaded += (_, _) => TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKey);
+        Loaded += (_, _) => RunSelfTutorialIfFrontManageOverviewCompleted("Loaded");
         IsVisibleChanged += (_, e) =>
         {
             if (Equals(e.NewValue, true))
             {
-                TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKey);
+                RunSelfTutorialIfFrontManageOverviewCompleted("Visible");
             }
         };
+    }
+
+    private void RunSelfTutorialIfFrontManageOverviewCompleted(string reason)
+    {
+        if (IAppHost.Host is null
+            || !TutorialDefinitionHelpers.IsPackageRecorded(
+                IAppHost.Host.Services,
+                TutorialPackageIds.FrontManageOverview))
+        {
+            return;
+        }
+
+        TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKey, reason);
     }
 
     private void PackageListBox_OnMouseDoubleClick(object sender, MouseButtonEventArgs e)

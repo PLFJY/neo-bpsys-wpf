@@ -5,6 +5,18 @@ namespace neo_bpsys_wpf.ProductTour;
 /// </summary>
 public interface ITutorialRunObserver
 {
+    /// <summary>Called when an automatic page or window tutorial run is requested.</summary>
+    /// <param name="ownerType">Owner element type name.</param>
+    /// <param name="pageKey">Page key.</param>
+    /// <param name="reason">UI event or caller reason.</param>
+    void OnAutoRunRequested(string ownerType, string pageKey, string reason);
+
+    /// <summary>Called when an automatic page or window tutorial run finishes.</summary>
+    /// <param name="ownerType">Owner element type name.</param>
+    /// <param name="pageKey">Page key.</param>
+    /// <param name="result">Final run result.</param>
+    void OnAutoRunCompleted(string ownerType, string pageKey, TutorialRunResult result);
+
     /// <summary>Called when a pending package was selected for execution.</summary>
     /// <param name="packageId">Package id.</param>
     /// <param name="pageKey">Page key.</param>
@@ -32,6 +44,31 @@ public interface ITutorialRunObserver
     /// <param name="pageKey">Page key.</param>
     void OnPackageNotPending(string pageKey);
 
+    /// <summary>Called when a package is skipped because completion state already covers it.</summary>
+    /// <param name="packageId">Package id.</param>
+    /// <param name="completionKind">Recorded completion kind.</param>
+    /// <param name="recordedVersion">Recorded package version.</param>
+    /// <param name="currentVersion">Current package version.</param>
+    void OnPackageSkippedByState(
+        string packageId,
+        TutorialCompletionKind completionKind,
+        int recordedVersion,
+        int currentVersion);
+
+    /// <summary>Called when a package is skipped because its CanRun condition returned false.</summary>
+    /// <param name="packageId">Package id.</param>
+    /// <param name="pageKey">Page key.</param>
+    void OnPackageSkippedByCanRun(string packageId, string pageKey);
+
+    /// <summary>Called when a page sequence has been resolved for a run.</summary>
+    /// <param name="pageKey">Page key.</param>
+    /// <param name="packageIds">Resolved package ids.</param>
+    /// <param name="strategy">Automatic run strategy.</param>
+    void OnSequenceResolved(
+        string pageKey,
+        IReadOnlyList<string> packageIds,
+        TutorialAutoRunStrategy strategy);
+
     /// <summary>
     /// Called when a package run is suppressed because another tutorial is active.
     /// Suppressed is terminal for the current auto-run request and is not retried by TutorialPageLoader.
@@ -49,6 +86,16 @@ public interface ITutorialRunObserver
 /// </summary>
 public sealed class NoOpTutorialRunObserver : ITutorialRunObserver
 {
+    /// <inheritdoc />
+    public void OnAutoRunRequested(string ownerType, string pageKey, string reason)
+    {
+    }
+
+    /// <inheritdoc />
+    public void OnAutoRunCompleted(string ownerType, string pageKey, TutorialRunResult result)
+    {
+    }
+
     /// <inheritdoc />
     public void OnPackageRunRequested(string packageId, string pageKey, TutorialTriggerMode triggerMode)
     {
@@ -71,6 +118,28 @@ public sealed class NoOpTutorialRunObserver : ITutorialRunObserver
 
     /// <inheritdoc />
     public void OnPackageNotPending(string pageKey)
+    {
+    }
+
+    /// <inheritdoc />
+    public void OnPackageSkippedByState(
+        string packageId,
+        TutorialCompletionKind completionKind,
+        int recordedVersion,
+        int currentVersion)
+    {
+    }
+
+    /// <inheritdoc />
+    public void OnPackageSkippedByCanRun(string packageId, string pageKey)
+    {
+    }
+
+    /// <inheritdoc />
+    public void OnSequenceResolved(
+        string pageKey,
+        IReadOnlyList<string> packageIds,
+        TutorialAutoRunStrategy strategy)
     {
     }
 

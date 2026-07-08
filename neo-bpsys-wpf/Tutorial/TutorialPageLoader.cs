@@ -20,11 +20,27 @@ public static class TutorialPageLoader
     /// <param name="pageKey">Tutorial page key.</param>
     public static async void RunPendingOnLoaded(FrameworkElement owner, string pageKey)
     {
-        await RunPendingOnLoadedAsync(owner, pageKey);
+        await RunPendingOnLoadedCoreAsync(owner, pageKey, "AutoOnLoaded");
     }
 
-    private static async Task RunPendingOnLoadedAsync(FrameworkElement owner, string pageKey)
+    /// <summary>
+    /// Runs pending tutorial packages for a loaded owner and records the UI event reason for diagnostics.
+    /// </summary>
+    /// <param name="owner">Loaded page or owner element.</param>
+    /// <param name="pageKey">Tutorial page key.</param>
+    /// <param name="reason">UI event or caller reason.</param>
+    public static async void RunPendingOnLoaded(FrameworkElement owner, string pageKey, string reason)
     {
+        await RunPendingOnLoadedCoreAsync(owner, pageKey, reason);
+    }
+
+    private static async Task RunPendingOnLoadedAsync(FrameworkElement owner, string pageKey) =>
+        await RunPendingOnLoadedCoreAsync(owner, pageKey, "AutoOnLoaded");
+
+    private static async Task RunPendingOnLoadedCoreAsync(FrameworkElement owner, string pageKey, string reason)
+    {
+        var ownerType = owner.GetType().Name;
+        ITutorialRunObserver? observer = null;
         try
         {
             if (IAppHost.Host == null)
@@ -34,31 +50,40 @@ public static class TutorialPageLoader
 
             var service = IAppHost.Host.Services.GetRequiredService<ITutorialService>();
             var sequenceRegistry = IAppHost.Host.Services.GetService<ITutorialSequenceRegistry>();
-            var strategy = sequenceRegistry
-                ?.GetSequenceDefinition(pageKey)
-                .AutoRunStrategy
-                ?? TutorialAutoRunStrategy.SinglePendingPackage;
+            observer = IAppHost.Host.Services.GetService<ITutorialRunObserver>();
+            var sequenceDefinition = sequenceRegistry?.GetSequenceDefinition(pageKey)
+                ?? new TutorialSequenceDefinition { PageKey = pageKey };
+            var strategy = sequenceDefinition.AutoRunStrategy;
+            observer?.OnAutoRunRequested(ownerType, pageKey, reason);
+            observer?.OnSequenceResolved(pageKey, sequenceDefinition.PackageIds, strategy);
 
             if (strategy != TutorialAutoRunStrategy.DrainSequence)
             {
-                await RunOnePendingPackageAsync(service, owner, pageKey);
+                var result = await RunOnePendingPackageAsync(service, owner, pageKey);
+                observer?.OnAutoRunCompleted(ownerType, pageKey, result);
                 return;
             }
 
+            var finalResult = TutorialRunResult.NotPending;
             for (var completedPackages = 0; completedPackages < MaxDrainSequencePackages; completedPackages++)
             {
                 var result = await RunOnePendingPackageAsync(service, owner, pageKey);
+                finalResult = result;
                 if (result != TutorialRunResult.Completed)
                 {
+                    observer?.OnAutoRunCompleted(ownerType, pageKey, result);
                     return;
                 }
             }
+
+            observer?.OnAutoRunCompleted(ownerType, pageKey, finalResult);
         }
         catch (Exception ex)
         {
             IAppHost.Host?.Services.GetService<ILoggerFactory>()
                 ?.CreateLogger(nameof(TutorialPageLoader))
                 .LogWarning(ex, "Failed to run tutorial package for page {PageKey}.", pageKey);
+            observer?.OnAutoRunCompleted(ownerType, pageKey, TutorialRunResult.Failed);
         }
     }
 

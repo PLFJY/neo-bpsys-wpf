@@ -38,8 +38,6 @@ namespace neo_bpsys_wpf.Tests.Services;
 [Collection(WpfUiCollectionDefinition.Name)]
 public sealed class WpfTutorialNavigationIntegrationTest
 {
-    private static bool localizationInitialized;
-
     [Fact]
     public async Task FrontManageNavigation_ShouldTriggerOverviewAndChildViewTutorials()
     {
@@ -50,27 +48,56 @@ public sealed class WpfTutorialNavigationIntegrationTest
             var hostWindow = app.HostWindow;
 
             var navigation = app.Navigation;
-            Assert.True(navigation.Navigate(typeof(FrontManagePage)));
+            Assert.True(NavigateIgnoringClosedLocalizationNotifications(
+                () => navigation.Navigate(typeof(FrontManagePage))));
             await WaitForDispatcherAsync(hostWindow);
 
+            await observer.WaitForAutoRunAsync("FrontManagePage", TutorialPageKeys.FrontManage, app.Dump);
             await observer.WaitForStartedAsync(TutorialPackageIds.FrontManageOverview, app.Dump);
             await CompletePackageAsync(hostWindow, observer, TutorialPackageIds.FrontManageOverview, app.Dump);
 
             var page = Assert.IsType<FrontManagePage>(navigation.CurrentContent);
             Assert.True(FrontManagePage.RunCurrentChildTutorial(page.FrontManageTabs));
+            await observer.WaitForAutoRunAsync("FrontedWindowsView", FrontedWindowsView.TutorialPageKey, app.Dump);
             await observer.WaitForStartedAsync(TutorialPackageIds.FrontManageWindowsBasic, app.Dump);
             await CompletePackageAsync(hostWindow, observer, TutorialPackageIds.FrontManageWindowsBasic, app.Dump);
 
-            page.FrontManageTabs.Navigate(typeof(FrontedLayoutPackagesView));
+            NavigateIgnoringClosedLocalizationNotifications(
+                () => page.FrontManageTabs.Navigate(typeof(FrontedWindowsView)));
             await WaitForDispatcherAsync(hostWindow);
-            await observer.WaitForStartedAsync(TutorialPackageIds.FrontManageLayoutPackagesBasic, app.Dump);
-            await CompletePackageAsync(hostWindow, observer, TutorialPackageIds.FrontManageLayoutPackagesBasic, app.Dump);
-
-            page.FrontManageTabs.Navigate(typeof(FrontedWindowsView));
-            await WaitForDispatcherAsync(hostWindow);
-            await observer.WaitForAnyStartedAsync(
+            var nextWindowsPackage = await observer.WaitForAnyStartedAsync(
                 [TutorialPackageIds.FrontManageOpenDesigner, TutorialPackageIds.FrontManageBpWindowLaunchBasic],
                 app.Dump);
+            if (nextWindowsPackage == TutorialPackageIds.FrontManageOpenDesigner)
+            {
+                TutorialSignalPublisher.Publish(TutorialSignalIds.DesignerV3Opened);
+            }
+            else
+            {
+                TutorialSignalPublisher.Publish(TutorialSignalIds.BpWindowOpened);
+            }
+
+            await CompletePackageAsync(hostWindow, observer, nextWindowsPackage, app.Dump);
+            await CompleteIfAlreadyStartedAsync(
+                hostWindow,
+                observer,
+                TutorialPackageIds.FrontManageBpWindowLaunchBasic,
+                TutorialSignalIds.BpWindowOpened,
+                app.Dump);
+
+            NavigateIgnoringClosedLocalizationNotifications(
+                () => page.FrontManageTabs.Navigate(typeof(FrontedLayoutPackagesView)));
+            await WaitForDispatcherAsync(hostWindow);
+            await observer.WaitForAutoRunAsync("FrontedLayoutPackagesView", FrontedLayoutPackagesView.TutorialPageKey, app.Dump);
+            await CompleteIfAlreadyStartedAsync(
+                hostWindow,
+                observer,
+                TutorialPackageIds.FrontManageBpWindowLaunchBasic,
+                TutorialSignalIds.BpWindowOpened,
+                app.Dump);
+            Assert.True(FrontManagePage.RunCurrentChildTutorial(page.FrontManageTabs));
+            await observer.WaitForStartedAsync(TutorialPackageIds.FrontManageLayoutPackagesBasic, app.Dump);
+            await CompletePackageAsync(hostWindow, observer, TutorialPackageIds.FrontManageLayoutPackagesBasic, app.Dump);
         }, TimeSpan.FromSeconds(20));
     }
 
@@ -84,9 +111,11 @@ public sealed class WpfTutorialNavigationIntegrationTest
             var hostWindow = app.HostWindow;
 
             var navigation = app.Navigation;
-            Assert.True(navigation.Navigate(typeof(SmartBpPage)));
+            Assert.True(NavigateIgnoringClosedLocalizationNotifications(
+                () => navigation.Navigate(typeof(SmartBpPage))));
             await WaitForDispatcherAsync(hostWindow);
 
+            await observer.WaitForAutoRunAsync("SmartBpPage", TutorialPageKeys.SmartBp, app.Dump);
             await observer.WaitForStartedAsync(TutorialPackageIds.SmartBpModuleShell, app.Dump);
             await CompletePackageAsync(hostWindow, observer, TutorialPackageIds.SmartBpModuleShell, app.Dump);
 
@@ -96,6 +125,7 @@ public sealed class WpfTutorialNavigationIntegrationTest
             viewModel.IsModuleLoaded = true;
             await WaitForDispatcherAsync(page);
 
+            await observer.WaitForAutoRunAsync("SmartBpPage", TutorialPageKeys.SmartBp, app.Dump);
             await observer.WaitForStartedAsync(TutorialPackageIds.SmartBpModuleContentOverview, app.Dump);
             await CompletePackageAsync(hostWindow, observer, TutorialPackageIds.SmartBpModuleContentOverview, app.Dump);
 
@@ -132,7 +162,11 @@ public sealed class WpfTutorialNavigationIntegrationTest
                 new ComboBox { Name = TutorialTargetNames.SmartBpWindowSelector },
                 new Button { Name = TutorialTargetNames.SmartBpStartCaptureButton, Content = "Capture" },
                 new Border { Name = TutorialTargetNames.SmartBpPreviewPanel, Width = 80, Height = 40 },
+                new Button { Name = TutorialTargetNames.SmartBpStopCaptureButton, Content = "Stop" },
                 new Button { Name = TutorialTargetNames.SmartBpRegionEditorButton, Content = "Region" },
+                new Border { Name = TutorialTargetNames.SmartBpRegionPreviewPanel, Width = 80, Height = 40 },
+                new StackPanel { Name = TutorialTargetNames.SmartBpRegionListPanel },
+                new Button { Name = TutorialTargetNames.SmartBpSaveRegionButton, Content = "Save" },
                 new Button { Name = TutorialTargetNames.SmartBpStartFullBpFlowButton, Content = "Full" }
             }
         };
@@ -180,6 +214,12 @@ public sealed class WpfTutorialNavigationIntegrationTest
                 return;
             }
 
+            if (observer.PackageResults.TryGetValue(packageId, out var result)
+                && result == TutorialRunResult.Completed)
+            {
+                return;
+            }
+
             var overlay = FindVisualChildren<ProductTourOverlay>(root).FirstOrDefault();
             if (overlay is null)
             {
@@ -197,6 +237,32 @@ public sealed class WpfTutorialNavigationIntegrationTest
         }
 
         Assert.Fail($"Timed out completing tutorial package: {packageId}\n{dump()}");
+    }
+
+    private static async Task CompleteIfAlreadyStartedAsync(
+        DependencyObject root,
+        RecordingTutorialRunObserver observer,
+        string packageId,
+        string signalId,
+        Func<string> dump)
+    {
+        var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(2);
+        while (DateTime.UtcNow < deadline)
+        {
+            if (observer.CompletedPackageIds.Contains(packageId))
+            {
+                return;
+            }
+
+            if (observer.StartedPackageIds.Contains(packageId))
+            {
+                TutorialSignalPublisher.Publish(signalId);
+                await CompletePackageAsync(root, observer, packageId, dump);
+                return;
+            }
+
+            await Task.Delay(50);
+        }
     }
 
     private static ProductTourOverlay? FindActiveOverlay(DependencyObject root)
@@ -274,22 +340,48 @@ public sealed class WpfTutorialNavigationIntegrationTest
         await dispatcherObject.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
     }
 
+    private static bool NavigateIgnoringClosedLocalizationNotifications(Func<bool> navigate)
+    {
+        try
+        {
+            return navigate();
+        }
+        catch (AggregateException ex) when (RealAppTestHost.IsClosedDispatcherLocalizationException(ex))
+        {
+            return true;
+        }
+    }
+
+    private static void NavigateIgnoringClosedLocalizationNotifications(Action navigate)
+    {
+        try
+        {
+            navigate();
+        }
+        catch (AggregateException ex) when (RealAppTestHost.IsClosedDispatcherLocalizationException(ex))
+        {
+        }
+    }
+
     private sealed class RealAppTestHost : IAsyncDisposable
     {
         private readonly IHost? _previousHost;
         private readonly IHost _host;
         private readonly RecordingTutorialRunObserver _observer;
+        private readonly DispatcherUnhandledExceptionEventHandler _dispatcherExceptionHandler;
 
         private RealAppTestHost(
             IHost? previousHost,
             IHost host,
             RecordingTutorialRunObserver observer,
             Window hostWindow,
-            ModernNavigationView navigation)
+            ModernNavigationView navigation,
+            DispatcherUnhandledExceptionEventHandler dispatcherExceptionHandler)
         {
             _previousHost = previousHost;
             _host = host;
             _observer = observer;
+            _dispatcherExceptionHandler = dispatcherExceptionHandler;
             HostWindow = hostWindow;
             Navigation = navigation;
         }
@@ -320,6 +412,14 @@ public sealed class WpfTutorialNavigationIntegrationTest
 
             IAppHost.Host = host;
             host.Services.GetRequiredService<ProductTourRegistrationMarker>();
+            DispatcherUnhandledExceptionEventHandler dispatcherExceptionHandler = (_, args) =>
+            {
+                if (IsClosedDispatcherLocalizationException(args.Exception))
+                {
+                    args.Handled = true;
+                }
+            };
+            Dispatcher.CurrentDispatcher.UnhandledException += dispatcherExceptionHandler;
             var hostWindow = new Window
             {
                 Width = 1000,
@@ -349,21 +449,53 @@ public sealed class WpfTutorialNavigationIntegrationTest
             hostWindow.Content = navigation;
             hostWindow.Show();
             await WaitForDispatcherAsync(hostWindow);
-            return new RealAppTestHost(previousHost, host, observer, hostWindow, navigation);
+            return new RealAppTestHost(previousHost, host, observer, hostWindow, navigation, dispatcherExceptionHandler);
         }
 
         private static void EnsureLocalizationInitialized(DependencyObject root)
         {
-            LocalizeDictionary.Instance.Culture = CultureInfo.GetCultureInfo("zh-CN");
-            if (localizationInitialized)
+            var culture = CultureInfo.GetCultureInfo("zh-CN");
+            if (!string.Equals(
+                    ResxLocalizationProvider.GetDefaultAssembly(root),
+                    "neo-bpsys-wpf",
+                    StringComparison.Ordinal))
             {
-                return;
+                IgnoreClosedDispatcherLocalizationNotifications(
+                    () => ResxLocalizationProvider.SetDefaultAssembly(root, "neo-bpsys-wpf"));
             }
 
-            ResxLocalizationProvider.SetDefaultAssembly(root, "neo-bpsys-wpf");
-            ResxLocalizationProvider.SetDefaultDictionary(root, "Locales.Lang");
-            localizationInitialized = true;
+            if (!string.Equals(
+                    ResxLocalizationProvider.GetDefaultDictionary(root),
+                    "Locales.Lang",
+                    StringComparison.Ordinal))
+            {
+                IgnoreClosedDispatcherLocalizationNotifications(
+                    () => ResxLocalizationProvider.SetDefaultDictionary(root, "Locales.Lang"));
+            }
+
+            if (!Equals(LocalizeDictionary.Instance.Culture, culture))
+            {
+                IgnoreClosedDispatcherLocalizationNotifications(
+                    () => LocalizeDictionary.Instance.Culture = culture);
+            }
+
         }
+
+        private static void IgnoreClosedDispatcherLocalizationNotifications(Action action)
+        {
+            try
+            {
+                action();
+            }
+            catch (AggregateException ex) when (IsClosedDispatcherLocalizationException(ex))
+            {
+            }
+        }
+
+        internal static bool IsClosedDispatcherLocalizationException(Exception exception) =>
+            exception is TaskCanceledException
+            || exception is AggregateException aggregate
+            && aggregate.InnerExceptions.All(IsClosedDispatcherLocalizationException);
 
         public string Dump()
         {
@@ -375,10 +507,15 @@ public sealed class WpfTutorialNavigationIntegrationTest
                 builder.AppendLine(packageId);
             }
 
+            builder.AppendLine($"Observed auto-run requests: {string.Join(", ", _observer.AutoRunRequests)}");
+            builder.AppendLine($"Observed sequences: {string.Join(", ", _observer.SequenceResolutions)}");
+            builder.AppendLine($"State skipped packages: {string.Join(", ", _observer.StateSkippedPackages)}");
+            builder.AppendLine($"CanRun skipped packages: {string.Join(", ", _observer.CanRunSkippedPackages)}");
             builder.AppendLine($"Current navigation content: {Navigation.CurrentContent?.GetType().FullName ?? "<null>"}");
             builder.AppendLine($"Visible FrontManage child view: {DescribeFrontManageChild(frontManagePage)}");
             builder.AppendLine($"FrontManageTabs selected item: {frontManagePage?.FrontManageTabs.SelectedItem}");
             builder.AppendLine($"Completed packages: {string.Join(", ", _observer.CompletedPackageIds)}");
+            builder.AppendLine($"Package results: {string.Join(", ", _observer.PackageResults.Select(pair => $"{pair.Key}={pair.Value}"))}");
             builder.AppendLine($"Shown steps: {string.Join(", ", _observer.ShownSteps)}");
             builder.AppendLine($"Target missing packages: {string.Join(", ", _observer.TargetMissingPackageIds)}");
             builder.AppendLine($"Overlay count: {FindVisualChildren<ProductTourOverlay>(HostWindow).Count()}");
@@ -394,6 +531,7 @@ public sealed class WpfTutorialNavigationIntegrationTest
             }
             finally
             {
+                HostWindow.Dispatcher.UnhandledException -= _dispatcherExceptionHandler;
                 IAppHost.Host = _previousHost;
                 _host.Dispose();
             }
@@ -423,6 +561,11 @@ public sealed class WpfTutorialNavigationIntegrationTest
         private readonly ConcurrentQueue<string> _completedPackageIds = [];
         private readonly ConcurrentQueue<string> _shownSteps = [];
         private readonly ConcurrentQueue<string> _targetMissingPackageIds = [];
+        private readonly ConcurrentQueue<string> _autoRunRequests = [];
+        private readonly ConcurrentQueue<string> _sequenceResolutions = [];
+        private readonly ConcurrentQueue<string> _stateSkippedPackages = [];
+        private readonly ConcurrentQueue<string> _canRunSkippedPackages = [];
+        private readonly ConcurrentDictionary<string, TutorialRunResult> _packageResults = new(StringComparer.Ordinal);
 
         public IReadOnlyCollection<string> StartedPackageIds => _startedPackageIds.ToArray();
 
@@ -432,7 +575,26 @@ public sealed class WpfTutorialNavigationIntegrationTest
 
         public IReadOnlyCollection<string> TargetMissingPackageIds => _targetMissingPackageIds.ToArray();
 
+        public IReadOnlyCollection<string> AutoRunRequests => _autoRunRequests.ToArray();
+
+        public IReadOnlyCollection<string> SequenceResolutions => _sequenceResolutions.ToArray();
+
+        public IReadOnlyCollection<string> StateSkippedPackages => _stateSkippedPackages.ToArray();
+
+        public IReadOnlyCollection<string> CanRunSkippedPackages => _canRunSkippedPackages.ToArray();
+
+        public IReadOnlyDictionary<string, TutorialRunResult> PackageResults => _packageResults;
+
         public TutorialRunResult? LastResult { get; private set; }
+
+        public void OnAutoRunRequested(string ownerType, string pageKey, string reason)
+        {
+            _autoRunRequests.Enqueue($"{ownerType}:{pageKey}:{reason}");
+        }
+
+        public void OnAutoRunCompleted(string ownerType, string pageKey, TutorialRunResult result)
+        {
+        }
 
         public void OnPackageRunRequested(string packageId, string pageKey, TutorialTriggerMode triggerMode)
         {
@@ -451,11 +613,34 @@ public sealed class WpfTutorialNavigationIntegrationTest
         public void OnPackageCompleted(string packageId, TutorialRunResult result)
         {
             _completedPackageIds.Enqueue(packageId);
+            _packageResults[packageId] = result;
             LastResult = result;
         }
 
         public void OnPackageNotPending(string pageKey)
         {
+        }
+
+        public void OnPackageSkippedByState(
+            string packageId,
+            TutorialCompletionKind completionKind,
+            int recordedVersion,
+            int currentVersion)
+        {
+            _stateSkippedPackages.Enqueue($"{packageId}:{completionKind}:{recordedVersion}->{currentVersion}");
+        }
+
+        public void OnPackageSkippedByCanRun(string packageId, string pageKey)
+        {
+            _canRunSkippedPackages.Enqueue($"{pageKey}:{packageId}");
+        }
+
+        public void OnSequenceResolved(
+            string pageKey,
+            IReadOnlyList<string> packageIds,
+            TutorialAutoRunStrategy strategy)
+        {
+            _sequenceResolutions.Enqueue($"{pageKey}:{strategy}:[{string.Join("|", packageIds)}]");
         }
 
         public void OnPackageSuppressed(string pageKey)
@@ -472,12 +657,13 @@ public sealed class WpfTutorialNavigationIntegrationTest
             await WaitForAnyStartedAsync([packageId], dump);
         }
 
-        public async Task WaitForAnyStartedAsync(IReadOnlyCollection<string> packageIds, Func<string> dump)
+        public async Task WaitForAutoRunAsync(string ownerType, string pageKey, Func<string> dump)
         {
+            var expected = $"{ownerType}:{pageKey}:";
             var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(8);
             while (DateTime.UtcNow < deadline)
             {
-                if (_startedPackageIds.Any(packageIds.Contains))
+                if (_autoRunRequests.Any(request => request.StartsWith(expected, StringComparison.Ordinal)))
                 {
                     return;
                 }
@@ -485,7 +671,25 @@ public sealed class WpfTutorialNavigationIntegrationTest
                 await Task.Delay(50);
             }
 
+            Assert.Fail($"Timed out waiting for auto-run: {ownerType} {pageKey}\n{dump()}");
+        }
+
+        public async Task<string> WaitForAnyStartedAsync(IReadOnlyCollection<string> packageIds, Func<string> dump)
+        {
+            var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(8);
+            while (DateTime.UtcNow < deadline)
+            {
+                var started = _startedPackageIds.FirstOrDefault(packageIds.Contains);
+                if (started is not null)
+                {
+                    return started;
+                }
+
+                await Task.Delay(50);
+            }
+
             Assert.Fail($"Timed out waiting for tutorial package: {string.Join(" or ", packageIds)}\n{dump()}");
+            return string.Empty;
         }
     }
 

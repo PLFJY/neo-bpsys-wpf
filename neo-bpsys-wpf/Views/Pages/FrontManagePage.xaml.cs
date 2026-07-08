@@ -40,19 +40,19 @@ public partial class FrontManagePage : Page, IRecipient<FrontManageTabNavigation
             Name = "LayoutPackagesTab"
         });
 
-        Loaded += OnLoaded;
         FrontManageTabs.Navigated += (_, _) => ScheduleCurrentChildTutorial();
         FrontManageTabs.SelectionChanged += (_, _) => ScheduleCurrentChildTutorial();
         Loaded += (_, _) =>
         {
             TutorialSignalPublisher.Publish(TutorialSignalIds.NavigationFrontManageOpened);
-            TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.FrontManage);
+            TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.FrontManage, "Loaded");
         };
+        Loaded += OnLoaded;
         IsVisibleChanged += (_, e) =>
         {
             if (Equals(e.NewValue, true))
             {
-                TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.FrontManage);
+                TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.FrontManage, "Visible");
             }
         };
         WeakReferenceMessenger.Default.Register(this);
@@ -87,7 +87,7 @@ public partial class FrontManagePage : Page, IRecipient<FrontManageTabNavigation
             return false;
         }
 
-        TutorialPageLoader.RunPendingOnLoaded(owner, pageKey);
+        TutorialPageLoader.RunPendingOnLoaded(owner, pageKey, "TabChanged");
         return true;
     }
 

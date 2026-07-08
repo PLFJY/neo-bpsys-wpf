@@ -202,6 +202,11 @@ public partial class FrontedDesignerWindow
             4,
             [
                 TutorialDefinitionHelpers.Step(
+                    null,
+                    "保存、导入和导出",
+                    "这里集中说明布局保存、布局包导入导出和兼容性注意事项。部分入口可能位于前台管理页面，本教程不会要求你实际导入或导出。",
+                    ProductTourInteractionMode.BlockAll),
+                TutorialDefinitionHelpers.Step(
                     nameof(SaveLayoutButton),
                     "保存布局",
                     "修改布局后需要保存。",
@@ -214,11 +219,10 @@ public partial class FrontedDesignerWindow
                     ProductTourInteractionMode.AllowTargetOnly,
                     allowMissing: true),
                 TutorialDefinitionHelpers.Step(
-                    "ImportLayoutPackageButton",
+                    null,
                     "导入布局包",
                     "布局包也可以在前台管理页面导入和启用。如果布局包依赖插件，需要先安装对应插件。",
-                    ProductTourInteractionMode.AllowTargetOnly,
-                    allowMissing: true),
+                    ProductTourInteractionMode.BlockAll),
             ]);
 
     private static TutorialPackageDefinition CreateHelpPackage() =>

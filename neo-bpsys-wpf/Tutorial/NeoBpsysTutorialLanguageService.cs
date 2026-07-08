@@ -75,7 +75,7 @@ public sealed class NeoBpsysTutorialLanguageService : ITutorialLanguageService
         _settingsHostService.Settings.Language = LanguageMap.TryGetValue(languageOptionId, out var language)
             ? language
             : LanguageKey.System;
-        LocalizeDictionary.Instance.Culture = _settingsHostService.Settings.CultureInfo;
+        ApplyLocalizeDictionaryCulture();
         if (Application.Current != null)
         {
             Application.Current.Resources["CurrentLanguage"] =
@@ -85,4 +85,20 @@ public sealed class NeoBpsysTutorialLanguageService : ITutorialLanguageService
 
         await _settingsHostService.SaveConfigAsync();
     }
+
+    private void ApplyLocalizeDictionaryCulture()
+    {
+        try
+        {
+            LocalizeDictionary.Instance.Culture = _settingsHostService.Settings.CultureInfo;
+        }
+        catch (AggregateException ex) when (IsClosedDispatcherLocalizationException(ex))
+        {
+        }
+    }
+
+    private static bool IsClosedDispatcherLocalizationException(Exception exception) =>
+        exception is TaskCanceledException
+        || exception is AggregateException aggregate
+        && aggregate.InnerExceptions.All(IsClosedDispatcherLocalizationException);
 }
