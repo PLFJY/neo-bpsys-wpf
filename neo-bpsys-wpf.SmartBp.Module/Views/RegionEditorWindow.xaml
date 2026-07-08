@@ -33,7 +33,10 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <ui:TitleBar Grid.Row="0" Grid.ColumnSpan="2" />
-        <ui:DynamicScrollViewer Grid.Row="1" Grid.Column="0">
+        <ui:DynamicScrollViewer
+            x:Name="SmartBpRegionListPanel"
+            Grid.Row="1"
+            Grid.Column="0">
             <StackPanel Margin="10,0,10,10">
                 <TextBlock
                     x:Name="HeaderText"
@@ -95,6 +98,7 @@
 
                 <StackPanel Margin="0,20,0,0" Orientation="Horizontal">
                     <Button
+                        x:Name="SmartBpSaveRegionButton"
                         Width="100"
                         Height="32"
                         Click="SaveButton_OnClick"
@@ -110,6 +114,7 @@
         </ui:DynamicScrollViewer>
 
         <Border
+            x:Name="SmartBpRegionPreviewPanel"
             Grid.Row="1"
             Grid.Column="1"
             BorderBrush="#3F3F46"

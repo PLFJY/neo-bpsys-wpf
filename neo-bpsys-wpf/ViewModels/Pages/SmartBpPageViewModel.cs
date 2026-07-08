@@ -7,6 +7,7 @@ using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models.SmartBpModule;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Services.SmartBpModule;
+using neo_bpsys_wpf.Tutorial;
 using System.IO;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
@@ -49,6 +50,14 @@ public partial class SmartBpPageViewModel : ViewModelBase
     /// </summary>
     [ObservableProperty]
     public partial bool IsModuleLoaded { get; set; }
+
+    partial void OnIsModuleLoadedChanged(bool value)
+    {
+        if (value)
+        {
+            TutorialSignalPublisher.Publish(TutorialSignalIds.SmartBpModuleLoaded);
+        }
+    }
 
     /// <summary>
     /// 获取或设置已加载的模块内容。

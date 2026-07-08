@@ -17,8 +17,8 @@ public static class NeoBpsysTutorialTexts
     /// <returns>Ending dialogue lines.</returns>
     public static string[] FirstRunEndingDialogue() =>
     [
-        "前台界面编辑、布局包导入导出和动画行为编辑，会在你首次打开 v3 编辑器时单独教学。",
-        "智慧 BP 是独立模块，首次进入后会有窗口捕获、识别区域和自动识别教程。",
+        "前台界面编辑会在首次打开 v3 编辑器时单独教学。",
+        "智慧 BP 会在首次进入 SmartBP 页面时单独教学。",
         "开始你的导播之旅吧。"
     ];
 

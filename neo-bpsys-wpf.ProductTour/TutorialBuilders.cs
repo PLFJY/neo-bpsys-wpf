@@ -13,6 +13,7 @@ public sealed class TutorialPackageBuilder
     private int _version = 1;
     private int _sequence;
     private string _kind = "ProductTour";
+    private Func<IServiceProvider, bool>? _canRun;
 
     private TutorialPackageBuilder(string packageId)
     {
@@ -57,6 +58,15 @@ public sealed class TutorialPackageBuilder
     public TutorialPackageBuilder Kind(string kind)
     {
         _kind = kind;
+        return this;
+    }
+
+    /// <summary>Sets an optional condition that determines whether the package can run.</summary>
+    /// <param name="canRun">Condition invoked with the application service provider.</param>
+    /// <returns>The same builder.</returns>
+    public TutorialPackageBuilder CanRun(Func<IServiceProvider, bool> canRun)
+    {
+        _canRun = canRun;
         return this;
     }
 
@@ -146,7 +156,8 @@ public sealed class TutorialPackageBuilder
             Version = _version,
             Sequence = _sequence,
             Kind = _kind,
-            Steps = _steps.ToArray()
+            Steps = _steps.ToArray(),
+            CanRun = _canRun
         };
 }
 

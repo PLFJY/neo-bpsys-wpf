@@ -26,7 +26,7 @@ public partial class FrontedLayoutPackagesView : UserControl
 
     private void PackageListBox_OnRequestBringIntoView(object sender, RequestBringIntoViewEventArgs e)
     {
-        if (sender == PackageListBox && e.OriginalSource is ListBoxItem)
+        if (sender == LayoutPackageList && e.OriginalSource is ListBoxItem)
         {
             e.Handled = true;
         }

@@ -11,12 +11,21 @@ namespace neo_bpsys_wpf.Tutorial;
 /// </summary>
 public static class TutorialPageLoader
 {
+    private const int MaxSuppressedRetries = 20;
+    private const int MaxSequentialPackages = 16;
+    private static readonly TimeSpan SuppressedRetryDelay = TimeSpan.FromMilliseconds(750);
+
     /// <summary>
     /// Runs the first pending package for the given page key.
     /// </summary>
     /// <param name="owner">Loaded page or owner element.</param>
     /// <param name="pageKey">Tutorial page key.</param>
     public static async void RunPendingOnLoaded(FrameworkElement owner, string pageKey)
+    {
+        await RunPendingOnLoadedAsync(owner, pageKey);
+    }
+
+    private static async Task RunPendingOnLoadedAsync(FrameworkElement owner, string pageKey)
     {
         try
         {
@@ -26,7 +35,14 @@ public static class TutorialPageLoader
             }
 
             var service = IAppHost.Host.Services.GetRequiredService<ITutorialService>();
-            await service.RunPendingPagePackagesAsync(owner, pageKey, TutorialTriggerMode.AutoOnLoaded);
+            for (var completedPackages = 0; completedPackages < MaxSequentialPackages; completedPackages++)
+            {
+                var result = await RunOnePendingPackageAsync(service, owner, pageKey);
+                if (result != TutorialRunResult.Completed)
+                {
+                    return;
+                }
+            }
         }
         catch (Exception ex)
         {
@@ -34,5 +50,35 @@ public static class TutorialPageLoader
                 ?.CreateLogger(nameof(TutorialPageLoader))
                 .LogWarning(ex, "Failed to run tutorial package for page {PageKey}.", pageKey);
         }
+    }
+
+    private static async Task<TutorialRunResult> RunOnePendingPackageAsync(
+        ITutorialService service,
+        FrameworkElement owner,
+        string pageKey)
+    {
+        for (var attempt = 0; attempt <= MaxSuppressedRetries; attempt++)
+        {
+            if (!owner.IsLoaded
+                || owner.Dispatcher.HasShutdownStarted
+                || owner.Dispatcher.HasShutdownFinished)
+            {
+                return TutorialRunResult.Canceled;
+            }
+
+            var result = await service.RunPendingPagePackagesAsync(owner, pageKey, TutorialTriggerMode.AutoOnLoaded);
+            if (result != TutorialRunResult.Suppressed)
+            {
+                return result;
+            }
+
+            await Task.Delay(SuppressedRetryDelay);
+            if (!owner.IsVisible)
+            {
+                return TutorialRunResult.Canceled;
+            }
+        }
+
+        return TutorialRunResult.Suppressed;
     }
 }

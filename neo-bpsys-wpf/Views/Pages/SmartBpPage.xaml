@@ -66,10 +66,12 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <ui:TextBox
+                            x:Name="SmartBpModulePathTextBox"
                             Grid.Column="0"
                             MinWidth="440"
                             Text="{Binding SelectedModulePath, UpdateSourceTrigger=PropertyChanged}" />
                         <ui:Button
+                            x:Name="SmartBpModuleBrowseFolderButton"
                             Grid.Column="1"
                             Margin="10,0,0,0"
                             Command="{Binding BrowseModulePathCommand}"
@@ -77,6 +79,7 @@
                             Icon="{ui:SymbolIcon Symbol=Folder24}" />
                     </Grid>
                     <ui:Button
+                        x:Name="SmartBpLoadLocalModuleButton"
                         Margin="0,18,0,0"
                         HorizontalAlignment="Center"
                         Appearance="Primary"
@@ -84,6 +87,7 @@
                         Content="{Binding PrimaryActionText}"
                         Icon="{ui:SymbolIcon Symbol=ArrowDownload24}" />
                     <ui:Button
+                        x:Name="SmartBpSelectInstalledModulePathButton"
                         Margin="0,10,0,0"
                         HorizontalAlignment="Center"
                         Command="{Binding SelectInstalledModuleFolderCommand}"
@@ -91,6 +95,7 @@
                         Icon="{ui:SymbolIcon Symbol=FolderOpen24}"
                         Visibility="{Binding IsSelectInstalledModuleButtonVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
                     <ui:Button
+                        x:Name="SmartBpImportModuleArchiveButton"
                         Margin="0,10,0,0"
                         HorizontalAlignment="Center"
                         Command="{Binding ImportModuleZipCommand}"

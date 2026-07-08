@@ -26,17 +26,30 @@ public partial class FrontManagePage : Page, IRecipient<FrontManageTabNavigation
         FrontManageTabs.MenuItems.Add(new NavigationViewItem(
             "FrontendWindows",
             SymbolRegular.ShareScreenStart24,
-            typeof(FrontedWindowsView)));
+            typeof(FrontedWindowsView))
+        {
+            Name = TutorialTargetNames.FrontedWindowsTab
+        });
         FrontManageTabs.MenuItems.Add(new NavigationViewItem(
             "LayoutPackages",
             SymbolRegular.AppsList24,
-            typeof(FrontedLayoutPackagesView)));
+            typeof(FrontedLayoutPackagesView))
+        {
+            Name = TutorialTargetNames.LayoutPackagesTab
+        });
 
         Loaded += OnLoaded;
         Loaded += (_, _) =>
         {
             TutorialSignalPublisher.Publish(TutorialSignalIds.NavigationFrontManageOpened);
             TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.FrontManage);
+        };
+        IsVisibleChanged += (_, e) =>
+        {
+            if (Equals(e.NewValue, true))
+            {
+                TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.FrontManage);
+            }
         };
         WeakReferenceMessenger.Default.Register(this);
     }

@@ -175,6 +175,7 @@
 
         <WrapPanel Margin="0,10,0,0" Orientation="Horizontal">
             <ui:Button
+                x:Name="AddBehaviorButton"
                 Margin="0,0,4,4"
                 Command="{Binding AddOneShotBehaviorCommand}"
                 Content="{lex:Loc Designer.Behaviors.AddOneShot}" />
@@ -218,7 +219,7 @@
             </TextBlock.Style>
         </TextBlock>
 
-        <ItemsControl ItemsSource="{Binding Behaviors}">
+        <ItemsControl x:Name="BehaviorList" ItemsSource="{Binding Behaviors}">
             <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="{x:Type vm:BehaviorEditorViewModel}">
                     <Expander
@@ -312,7 +313,10 @@
                                     </Style>
                                 </StackPanel.Style>
                                 <TextBlock Style="{StaticResource SectionTitle}" Text="{lex:Loc Designer.Behaviors.Trigger}" />
-                                <ContentControl Content="{Binding Trigger}" ContentTemplate="{StaticResource TriggerEditorTemplate}" />
+                                <ContentControl
+                                    x:Name="BehaviorTriggerEditor"
+                                    Content="{Binding Trigger}"
+                                    ContentTemplate="{StaticResource TriggerEditorTemplate}" />
                             </StackPanel>
 
                             <StackPanel>
@@ -409,7 +413,10 @@
                                 Opacity="0.72"
                                 Text="{Binding GraphSummary}"
                                 TextWrapping="Wrap" />
-                            <ui:Button Command="{Binding OpenAnimationEditorCommand}" Content="{lex:Loc Designer.Behaviors.OpenAnimationEditor}" />
+                                <ui:Button
+                                    x:Name="BehaviorActionEditor"
+                                    Command="{Binding OpenAnimationEditorCommand}"
+                                    Content="{lex:Loc Designer.Behaviors.OpenAnimationEditor}" />
                         </StackPanel>
                     </Expander>
                 </DataTemplate>

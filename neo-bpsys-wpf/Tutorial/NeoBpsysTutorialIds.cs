@@ -146,8 +146,14 @@ public static class TutorialPackageIds
     /// <summary>Front management BP window launch package id.</summary>
     public const string FrontManageBpWindowLaunchBasic = "Page.FrontManage.BpWindowLaunch.Basic";
 
+    /// <summary>Front management overview package id.</summary>
+    public const string FrontManageOverview = "Page.FrontManage.Overview";
+
     /// <summary>Front management windows package id.</summary>
     public const string FrontManageWindowsBasic = "Page.FrontManage.Windows.Basic";
+
+    /// <summary>Front management open Designer v3 package id.</summary>
+    public const string FrontManageOpenDesigner = "Page.FrontManage.OpenDesigner";
 
     /// <summary>Front management layout packages package id.</summary>
     public const string FrontManageLayoutPackagesBasic = "Page.FrontManage.LayoutPackages.Basic";
@@ -155,8 +161,14 @@ public static class TutorialPackageIds
     /// <summary>Front management advanced package id.</summary>
     public const string FrontManageAdvanced = "Page.FrontManage.Advanced";
 
+    /// <summary>Designer v3 overview package id.</summary>
+    public const string DesignerV3Overview = "Window.DesignerV3.Overview";
+
     /// <summary>Designer v3 layout edit package id.</summary>
     public const string DesignerV3LayoutEditBasic = "Window.DesignerV3.LayoutEdit.Basic";
+
+    /// <summary>Designer v3 property panel package id.</summary>
+    public const string DesignerV3PropertyPanelBasic = "Window.DesignerV3.PropertyPanel.Basic";
 
     /// <summary>Designer v3 behavior edit package id.</summary>
     public const string DesignerV3BehaviorEditBasic = "Window.DesignerV3.BehaviorEdit.Basic";
@@ -169,6 +181,9 @@ public static class TutorialPackageIds
 
     /// <summary>Smart BP module shell package id.</summary>
     public const string SmartBpModuleShell = "Page.SmartBp.ModuleShell";
+
+    /// <summary>Smart BP module content overview package id.</summary>
+    public const string SmartBpModuleContentOverview = "Page.SmartBp.ModuleContent.Overview";
 
     /// <summary>Smart BP capture package id.</summary>
     public const string SmartBpCaptureBasic = "Page.SmartBp.Capture.Basic";
@@ -268,6 +283,27 @@ public static class TutorialSignalIds
 
     /// <summary>New game created signal id.</summary>
     public const string NewGameCreated = "NewGameCreated";
+
+    /// <summary>Designer v3 opened signal id.</summary>
+    public const string DesignerV3Opened = "DesignerV3.Opened";
+
+    /// <summary>Front management open designer clicked signal id.</summary>
+    public const string FrontManageOpenDesignerClicked = "FrontManage.OpenDesigner.Clicked";
+
+    /// <summary>Smart BP module loaded signal id.</summary>
+    public const string SmartBpModuleLoaded = "SmartBp.ModuleLoaded";
+
+    /// <summary>Smart BP capture started signal id.</summary>
+    public const string SmartBpCaptureStarted = "SmartBp.CaptureStarted";
+
+    /// <summary>Smart BP region editor opened signal id.</summary>
+    public const string SmartBpRegionEditorOpened = "SmartBp.RegionEditorOpened";
+
+    /// <summary>Smart BP full BP flow started signal id.</summary>
+    public const string SmartBpFullBpFlowStarted = "SmartBp.FullBpFlowStarted";
+
+    /// <summary>Smart BP post-game auto-fill started signal id.</summary>
+    public const string SmartBpPostGameAutoFillStarted = "SmartBp.PostGameAutoFillStarted";
 }
 
 /// <summary>
@@ -425,4 +461,163 @@ public static class TutorialTargetNames
 
     /// <summary>New game button target name.</summary>
     public const string NewGameButton = "NewGameButton";
+
+    /// <summary>Front management tabs target name.</summary>
+    public const string FrontManageTabs = "FrontManageTabs";
+
+    /// <summary>Fronted windows tab target name.</summary>
+    public const string FrontedWindowsTab = "FrontedWindowsTab";
+
+    /// <summary>Layout packages tab target name.</summary>
+    public const string LayoutPackagesTab = "LayoutPackagesTab";
+
+    /// <summary>Open fronted designer button target name.</summary>
+    public const string OpenFrontedDesignerButton = "OpenFrontedDesignerButton";
+
+    /// <summary>Open all fronted windows button target name.</summary>
+    public const string OpenAllFrontedWindowsButton = "OpenAllFrontedWindowsButton";
+
+    /// <summary>Close all fronted windows button target name.</summary>
+    public const string CloseAllFrontedWindowsButton = "CloseAllFrontedWindowsButton";
+
+    /// <summary>Stop all loop animations button target name.</summary>
+    public const string StopAllLoopAnimationsButton = "StopAllLoopAnimationsButton";
+
+    /// <summary>Manageable window groups panel target name.</summary>
+    public const string ManageableWindowGroupsPanel = "ManageableWindowGroupsPanel";
+
+    /// <summary>First manageable window card target name.</summary>
+    public const string FirstManageableWindowCard = "FirstManageableWindowCard";
+
+    /// <summary>Layout package list target name.</summary>
+    public const string LayoutPackageList = "LayoutPackageList";
+
+    /// <summary>Import layout package button target name.</summary>
+    public const string ImportLayoutPackageButton = "ImportLayoutPackageButton";
+
+    /// <summary>Activate layout package button target name.</summary>
+    public const string ActivateLayoutPackageButton = "ActivateLayoutPackageButton";
+
+    /// <summary>Active layout package panel target name.</summary>
+    public const string ActiveLayoutPackagePanel = "ActiveLayoutPackagePanel";
+
+    /// <summary>Designer toolbar host target name.</summary>
+    public const string DesignerToolbarHost = "DesignerToolbarHost";
+
+    /// <summary>Designer layer panel host target name.</summary>
+    public const string LayerPanelHostGrid = "LayerPanelHostGrid";
+
+    /// <summary>Designer layer panel scroll viewer target name.</summary>
+    public const string LayerPanelScrollViewer = "LayerPanelScrollViewer";
+
+    /// <summary>Designer preview workspace target name.</summary>
+    public const string PreviewWorkspace = "PreviewWorkspace";
+
+    /// <summary>Designer preview zoom host target name.</summary>
+    public const string PreviewZoomHost = "PreviewZoomHost";
+
+    /// <summary>Designer surface grid target name.</summary>
+    public const string DesignSurfaceGrid = "DesignSurfaceGrid";
+
+    /// <summary>Designer preview canvas target name.</summary>
+    public const string PreviewCanvas = "PreviewCanvas";
+
+    /// <summary>Designer interaction layer target name.</summary>
+    public const string InteractionLayer = "InteractionLayer";
+
+    /// <summary>Designer layer top drop zone target name.</summary>
+    public const string LayerTopDropZone = "LayerTopDropZone";
+
+    /// <summary>Designer layer bottom drop zone target name.</summary>
+    public const string LayerBottomDropZone = "LayerBottomDropZone";
+
+    /// <summary>Designer property panel host target name.</summary>
+    public const string PropertyPanelHost = "PropertyPanelHost";
+
+    /// <summary>Designer property search box target name.</summary>
+    public const string PropertySearchBox = "PropertySearchBox";
+
+    /// <summary>Designer first editable property editor target name.</summary>
+    public const string FirstEditablePropertyEditor = "FirstEditablePropertyEditor";
+
+    /// <summary>Designer property apply button target name.</summary>
+    public const string PropertyApplyButton = "PropertyApplyButton";
+
+    /// <summary>Designer behavior panel host target name.</summary>
+    public const string BehaviorPanelHost = "BehaviorPanelHost";
+
+    /// <summary>Designer behavior list target name.</summary>
+    public const string BehaviorList = "BehaviorList";
+
+    /// <summary>Designer add behavior button target name.</summary>
+    public const string AddBehaviorButton = "AddBehaviorButton";
+
+    /// <summary>Designer behavior trigger editor target name.</summary>
+    public const string BehaviorTriggerEditor = "BehaviorTriggerEditor";
+
+    /// <summary>Designer behavior action editor target name.</summary>
+    public const string BehaviorActionEditor = "BehaviorActionEditor";
+
+    /// <summary>Designer save layout button target name.</summary>
+    public const string SaveLayoutButton = "SaveLayoutButton";
+
+    /// <summary>Designer export layout package button target name.</summary>
+    public const string ExportLayoutPackageButton = "ExportLayoutPackageButton";
+
+    /// <summary>Designer help button target name.</summary>
+    public const string DesignerHelpButton = "DesignerHelpButton";
+
+    /// <summary>Smart BP module content host target name.</summary>
+    public const string SmartBpModuleContentHost = "SmartBpModuleContentHost";
+
+    /// <summary>Smart BP module path text box target name.</summary>
+    public const string SmartBpModulePathTextBox = "SmartBpModulePathTextBox";
+
+    /// <summary>Smart BP module browse folder button target name.</summary>
+    public const string SmartBpModuleBrowseFolderButton = "SmartBpModuleBrowseFolderButton";
+
+    /// <summary>Smart BP load local module button target name.</summary>
+    public const string SmartBpLoadLocalModuleButton = "SmartBpLoadLocalModuleButton";
+
+    /// <summary>Smart BP select installed module path button target name.</summary>
+    public const string SmartBpSelectInstalledModulePathButton = "SmartBpSelectInstalledModulePathButton";
+
+    /// <summary>Smart BP import module archive button target name.</summary>
+    public const string SmartBpImportModuleArchiveButton = "SmartBpImportModuleArchiveButton";
+
+    /// <summary>Smart BP window selector target name.</summary>
+    public const string SmartBpWindowSelector = "SmartBpWindowSelector";
+
+    /// <summary>Smart BP start capture button target name.</summary>
+    public const string SmartBpStartCaptureButton = "SmartBpStartCaptureButton";
+
+    /// <summary>Smart BP preview panel target name.</summary>
+    public const string SmartBpPreviewPanel = "SmartBpPreviewPanel";
+
+    /// <summary>Smart BP stop capture button target name.</summary>
+    public const string SmartBpStopCaptureButton = "SmartBpStopCaptureButton";
+
+    /// <summary>Smart BP region editor button target name.</summary>
+    public const string SmartBpRegionEditorButton = "SmartBpRegionEditorButton";
+
+    /// <summary>Smart BP region preview panel target name.</summary>
+    public const string SmartBpRegionPreviewPanel = "SmartBpRegionPreviewPanel";
+
+    /// <summary>Smart BP region list panel target name.</summary>
+    public const string SmartBpRegionListPanel = "SmartBpRegionListPanel";
+
+    /// <summary>Smart BP save region button target name.</summary>
+    public const string SmartBpSaveRegionButton = "SmartBpSaveRegionButton";
+
+    /// <summary>Smart BP start full BP flow button target name.</summary>
+    public const string SmartBpStartFullBpFlowButton = "SmartBpStartFullBpFlowButton";
+
+    /// <summary>Smart BP post-game data button target name.</summary>
+    public const string SmartBpPostGameDataButton = "SmartBpPostGameDataButton";
+
+    /// <summary>Smart BP post-game preview panel target name.</summary>
+    public const string SmartBpPostGamePreviewPanel = "SmartBpPostGamePreviewPanel";
+
+    /// <summary>Smart BP post-game apply button target name.</summary>
+    public const string SmartBpPostGameApplyButton = "SmartBpPostGameApplyButton";
 }

@@ -132,7 +132,7 @@ ProductTour.xaml: 视觉样式、颜色、字体、边框、阴影
 
 `ProductTour.xaml` 负责视觉样式。等待、错误、进度、确认框、Dialogue continue 等视觉元素都应通过 style key 配置；控件代码只保留结构、状态和运行逻辑。控件代码不应手动覆盖卡片背景、边框、阴影或错误文本颜色，否则主程序无法通过资源字典统一替换视觉表现。
 
-当前已接入真实主程序中的部分目标和 signal，用于验证导航项、TeamInfo、对局管理按钮、角色选择器宿主和比分控件的最小导览闭环。完整教学沙盒、示例队伍导入、完整 BO1 BP 教学、SmartBP 和 DesignerV3 正式教程仍未接入。
+当前已接入真实主程序中的目标和 signal，用于验证导航项、TeamInfo、对局管理按钮、角色选择器宿主、比分控件、前台管理、Designer v3 和 SmartBP 页面教程。教程系统不实现教学沙盒，复杂模块教程只介绍真实界面入口和风险，不要求用户完成文件选择、导入包、打开全部窗口、启动完整 SmartBP 流程或拖拽图层等重型操作。
 
 ## Flow 与页面 package
 
@@ -234,6 +234,14 @@ TutorialFlowBuilder.Create(TutorialFlowIds.FirstRunStandardBp)
 ```
 
 `IncludedPackageIds` 可以集中维护覆盖状态，但不能用 `foreach IncludedPackageIds` 自动生成 flow items。正式标准 BP 总导览当前顺序是：前台管理打开 BP Window、进入队伍管理、队名与 MainWindow 顶部队伍摘要、预设队伍导入与选手管理、BO1 上半与开启对局引导、Ban 求生角色选择器、Pick 与全局禁选、比分、新建对局与全局禁选继承，最后只简单说明 v3 编辑器和智慧 BP 的独立教程。
+
+前台管理、Designer v3 和 SmartBP 的复杂模块教程独立于首次标准 BP 主线：
+
+1. `Page.FrontManage` sequence 只在用户进入前台管理页时按 pending 状态运行，包含前台窗口管理、打开设计器和布局包管理。
+2. `Window.DesignerV3` sequence 只在用户首次打开 `FrontedDesignerWindow` 时运行；前台管理页的“打开设计器”步骤可以等待 `DesignerV3.Opened`，但用户仍可通过下一步继续。
+3. `Page.SmartBp` sequence 按 `SmartBpPageViewModel.IsModuleLoaded` 判断 pending。未加载模块时只运行模块壳教程；模块加载后运行模块内容、捕获、区域编辑和全流程 BP 入口教程。赛后自动回填教程只有在对应功能入口可见时才应 pending。
+4. 这些高级包不得加入 `Flow.FirstRun.StandardBp` 的 `IncludedPackageIds`，否则首次主线会错误地把未完整教学的功能标记为 `CoveredByFlow`。
+5. 复杂模块步骤默认使用 `ProductTourInteractionMode.AllowTargetOnly`，允许用户点击被高亮目标；文件选择、捕获、导入、保存、打开全部窗口和启动识别等动作不作为必须完成条件。
 
 ## 固定 UI 文案
 

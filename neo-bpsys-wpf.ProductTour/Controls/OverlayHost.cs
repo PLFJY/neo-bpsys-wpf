@@ -6,17 +6,26 @@ namespace neo_bpsys_wpf.ProductTour.Controls;
 
 internal static class OverlayHost
 {
+    private static readonly DependencyProperty IsWindowOverlayRootProperty =
+        DependencyProperty.RegisterAttached(
+            "IsWindowOverlayRoot",
+            typeof(bool),
+            typeof(OverlayHost),
+            new PropertyMetadata(false));
+
     public static Panel GetHostPanel(FrameworkElement owner)
     {
         if (owner is Window window)
         {
-            if (window.Content is Panel panel)
+            if (window.Content is Panel panel
+                && panel.GetValue(IsWindowOverlayRootProperty) is true)
             {
                 return panel;
             }
 
             var original = window.Content as UIElement;
             var grid = new Grid();
+            grid.SetValue(IsWindowOverlayRootProperty, true);
             window.Content = null;
             if (original != null)
             {

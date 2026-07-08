@@ -7,6 +7,7 @@ using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Events;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.Tutorial;
 using neo_bpsys_wpf.ViewModels.Windows;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -159,6 +160,8 @@ public partial class FrontedDesignerWindow : FluentWindow
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         _isLoaded = true;
+        TutorialSignalPublisher.Publish(TutorialSignalIds.DesignerV3Opened);
+        TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.DesignerV3);
         AttachViewModel();
         _ = LoadInitialLayoutAsync();
     }

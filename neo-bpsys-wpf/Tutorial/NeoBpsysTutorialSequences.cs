@@ -75,21 +75,23 @@ public static class NeoBpsysTutorialSequences
         ]),
         (TutorialPageKeys.FrontManage,
         [
-            TutorialPackageIds.FrontManageBpWindowLaunchBasic,
+            TutorialPackageIds.FrontManageOverview,
             TutorialPackageIds.FrontManageWindowsBasic,
-            TutorialPackageIds.FrontManageLayoutPackagesBasic,
-            TutorialPackageIds.FrontManageAdvanced
+            TutorialPackageIds.FrontManageOpenDesigner,
+            TutorialPackageIds.FrontManageLayoutPackagesBasic
         ]),
         (TutorialPageKeys.DesignerV3,
         [
+            TutorialPackageIds.DesignerV3Overview,
             TutorialPackageIds.DesignerV3LayoutEditBasic,
+            TutorialPackageIds.DesignerV3PropertyPanelBasic,
             TutorialPackageIds.DesignerV3BehaviorEditBasic,
-            TutorialPackageIds.DesignerV3PackageImportExport,
-            TutorialPackageIds.DesignerV3Advanced
+            TutorialPackageIds.DesignerV3PackageImportExport
         ]),
         (TutorialPageKeys.SmartBp,
         [
             TutorialPackageIds.SmartBpModuleShell,
+            TutorialPackageIds.SmartBpModuleContentOverview,
             TutorialPackageIds.SmartBpCaptureBasic,
             TutorialPackageIds.SmartBpRegionEditorBasic,
             TutorialPackageIds.SmartBpFullBpFlowBasic,

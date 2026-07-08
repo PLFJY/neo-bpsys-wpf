@@ -64,6 +64,7 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <ui:TextBox
+                    x:Name="FirstEditablePropertyEditor"
                     Grid.Column="0"
                     MinHeight="30"
                     KeyDown="PropertyTextBox_OnKeyDown"
@@ -118,6 +119,7 @@
                     </ui:Button.Style>
                 </ui:Button>
                 <ui:Button
+                    x:Name="PropertyApplyButton"
                     Grid.Column="3"
                     MinWidth="34"
                     Margin="6,0,0,0"
@@ -176,6 +178,7 @@
                     Style="{StaticResource DefaultColorPickerStyle}"
                     Unloaded="PropertyColorPicker_OnUnloaded" />
                 <ui:TextBox
+                    x:Name="FirstEditablePropertyEditor"
                     Grid.Column="1"
                     MinHeight="30"
                     KeyDown="PropertyTextBox_OnKeyDown"
@@ -198,6 +201,7 @@
                     </ui:TextBox.Style>
                 </ui:TextBox>
                 <ui:Button
+                    x:Name="PropertyApplyButton"
                     Grid.Column="2"
                     MinWidth="34"
                     Margin="6,0,0,0"
@@ -360,6 +364,7 @@
             IsTopMostVisible="False" />
 
         <Border
+            x:Name="DesignerToolbarHost"
             Grid.Row="1"
             Padding="12"
             BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
@@ -399,6 +404,7 @@
                         </ui:Button.ContextMenu>
                     </ui:Button>
                     <ui:Button
+                        x:Name="SaveLayoutButton"
                         Margin="0,0,8,8"
                         Click="SaveLayoutButton_OnClick"
                         Content="{lex:Loc SaveLayout}"
@@ -874,6 +880,7 @@
                 ResizeDirection="Columns" />
 
             <Border
+                x:Name="PropertyPanelHost"
                 Grid.Column="3"
                 Margin="0,12,12,12"
                 Padding="12"
@@ -1180,7 +1187,10 @@
                                     </Style.Triggers>
                                 </Style>
                             </Expander.Style>
-                            <frontedDesignerViews:BehaviorPanelView Margin="0,8,0,0" DataContext="{Binding BehaviorPanel}" />
+                            <frontedDesignerViews:BehaviorPanelView
+                                x:Name="BehaviorPanelHost"
+                                Margin="0,8,0,0"
+                                DataContext="{Binding BehaviorPanel}" />
                         </Expander>
                         <Expander
                             Grid.Row="4"
@@ -1877,6 +1887,7 @@
                     Orientation="Horizontal">
                     <TextBlock VerticalAlignment="Center" Text="{Binding CurrentWindowCanvasDisplay}" />
                     <ui:Button
+                        x:Name="DesignerHelpButton"
                         Margin="10,0,0,0"
                         Padding="6,4"
                         Click="OpenDesignerHelp_OnClick"

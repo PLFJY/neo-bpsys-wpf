@@ -240,6 +240,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
             _frontedDesignerWindow = window;
             window.Show();
             window.Activate();
+            TutorialSignalPublisher.Publish(TutorialSignalIds.FrontManageOpenDesignerClicked);
         }
         catch (Exception ex)
         {

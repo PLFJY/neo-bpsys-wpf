@@ -39,7 +39,10 @@
             FontWeight="SemiBold"
             Text="{lex:Loc SmartBp}" />
 
-        <Border Margin="0,0,0,10" Style="{StaticResource Card}">
+        <Border
+            x:Name="SmartBpPreviewPanel"
+            Margin="0,0,0,10"
+            Style="{StaticResource Card}">
             <StackPanel>
                 <TextBlock Style="{StaticResource Title}" Text="{lex:Loc SmartBpWindowCaptureSettings}" />
                 <WrapPanel Margin="0,10,0,0">
@@ -56,16 +59,19 @@
                         </ComboBox.ItemTemplate>
                     </ComboBox>
                     <ComboBox
+                        x:Name="SmartBpWindowSelector"
                         MinWidth="220"
                         Margin="0,0,8,8"
                         ItemsSource="{Binding ActiveWindows}"
                         SelectedValue="{Binding SelectedWindow}" />
                     <ui:Button
+                        x:Name="SmartBpStartCaptureButton"
                         Margin="0,0,8,8"
                         Command="{Binding RefreshActiveWindowsCommand}"
                         Content="{lex:Loc Refresh}"
                         Icon="{ui:SymbolIcon Symbol=ArrowSync24}" />
                     <ui:Button
+                        x:Name="SmartBpStopCaptureButton"
                         Margin="0,0,8,8"
                         Command="{Binding OpenWindowPickerCommand}"
                         Content="{lex:Loc SmartBpOpenWindowPickerOnlyWgc}"
@@ -310,6 +316,7 @@
                         Content="{lex:Loc SmartBpEnableDebugLog}"
                         IsChecked="{Binding IsDebugLogEnabled}" />
                     <ui:Button
+                        x:Name="SmartBpStartFullBpFlowButton"
                         Margin="0,0,8,0"
                         Command="{Binding StartAiPreviewLoopCommand}"
                         Content="{lex:Loc SmartBpStartAutomaticRecognition}"
@@ -337,7 +344,10 @@
             </StackPanel>
         </Border>
 
-        <Border Margin="0,0,0,10" Style="{StaticResource Card}">
+        <Border
+            x:Name="SmartBpPostGamePreviewPanel"
+            Margin="0,0,0,10"
+            Style="{StaticResource Card}">
             <StackPanel>
                 <TextBlock Style="{StaticResource Title}" Text="{lex:Loc SmartBpRecognitionAreaConfiguration}" />
                 <TextBlock
@@ -346,6 +356,7 @@
                     Text="{lex:Loc SmartBpBpRecognitionRegions}" />
                 <WrapPanel Margin="0,8,0,0">
                     <ui:Button
+                        x:Name="SmartBpRegionEditorButton"
                         Margin="0,0,8,8"
                         Command="{Binding OpenAiRecognitionRegionEditorCommand}"
                         Content="{lex:Loc SmartBpOpenBpRecognitionRegionEditor}"
