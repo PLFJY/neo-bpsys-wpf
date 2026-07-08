@@ -113,6 +113,7 @@ public sealed class NeoBpsysTutorialIdsTest
         Assert.Equal("AwayTeamNameInput", TutorialTargetNames.AwayTeamNameInput);
         Assert.Equal("AwayTeamNameConfirmButton", TutorialTargetNames.AwayTeamNameConfirmButton);
         Assert.Equal("AwayTeamLogoButton", TutorialTargetNames.AwayTeamLogoButton);
+        Assert.Equal("AwayTeamInfoCard", TutorialTargetNames.AwayTeamInfoCard);
         Assert.Equal("AwayTeamJsonImportButton", TutorialTargetNames.AwayTeamJsonImportButton);
         Assert.Equal("AwayPlayerListPanel", TutorialTargetNames.AwayPlayerListPanel);
         Assert.Equal("AwayPlayerPositionPanel", TutorialTargetNames.AwayPlayerPositionPanel);

@@ -80,6 +80,7 @@ public sealed class NeoBpsysTutorialLanguageService : ITutorialLanguageService
         {
             Application.Current.Resources["CurrentLanguage"] =
                 XmlLanguage.GetLanguage(_settingsHostService.Settings.CultureInfo.Name);
+            ProductTourFontResourceHelper.Apply(_settingsHostService.Settings.CultureInfo);
         }
 
         await _settingsHostService.SaveConfigAsync();

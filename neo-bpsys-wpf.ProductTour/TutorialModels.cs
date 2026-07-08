@@ -199,6 +199,9 @@ public sealed class ProductTourStep
     /// <summary>Gets or sets the target key used by the selected target resolver.</summary>
     public string? TargetKey { get; set; }
 
+    /// <summary>Gets or sets an optional element name that is brought into view before resolving the target.</summary>
+    public string? ScrollAnchorName { get; set; }
+
     /// <summary>Gets or sets the localized or literal title.</summary>
     public string Title { get; set; } = string.Empty;
 

@@ -12,6 +12,7 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.Tutorial;
 using neo_bpsys_wpf.Views.Windows;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -45,6 +46,7 @@ public partial class SettingPageViewModel : ViewModelBase
             LocalizeDictionary.Instance.Culture = _settingsHostService.Settings.CultureInfo;
             Application.Current.Resources["CurrentLanguage"] =
                 XmlLanguage.GetLanguage(_settingsHostService.Settings.CultureInfo.Name);
+            ProductTourFontResourceHelper.Apply(_settingsHostService.Settings.CultureInfo);
             SyncMirrorFromSettings();
         });
     }

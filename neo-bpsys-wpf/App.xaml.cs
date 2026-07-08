@@ -9,6 +9,7 @@ using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Services.Abstractions;
 using neo_bpsys_wpf.Themes;
+using neo_bpsys_wpf.Tutorial;
 using Serilog.Core;
 using Serilog.Events;
 using Serilog;
@@ -137,6 +138,7 @@ public partial class App : AppBase
         var settingService = IAppHost.Host.Services.GetRequiredService<ISettingsHostService>();
         LocalizeDictionary.Instance.Culture = settingService.Settings.CultureInfo;
         Application.Current.Resources["CurrentLanguage"] = XmlLanguage.GetLanguage(settingService.Settings.CultureInfo.Name);
+        ProductTourFontResourceHelper.Apply(settingService.Settings.CultureInfo);
 
         //启动host
         await IAppHost.Host.StartAsync();

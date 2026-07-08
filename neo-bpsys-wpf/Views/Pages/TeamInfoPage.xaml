@@ -267,7 +267,10 @@
         </Border>
 
         <!--  away team  -->
-        <Border DataContext="{Binding AwayTeamInfoViewModel}" Style="{StaticResource Card}">
+        <Border
+            x:Name="AwayTeamInfoCard"
+            DataContext="{Binding AwayTeamInfoViewModel}"
+            Style="{StaticResource Card}">
             <!--  basic info  -->
             <StackPanel>
                 <StackPanel Orientation="Horizontal">

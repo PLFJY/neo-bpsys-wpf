@@ -46,18 +46,21 @@
 
     <Style x:Key="ProductTourCardTitleStyle" TargetType="{x:Type TextBlock}">
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource ProductTourFontFamily}" />
         <Setter Property="FontSize" Value="18" />
         <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
 
     <Style x:Key="ProductTourCardDescriptionStyle" TargetType="{x:Type TextBlock}">
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource ProductTourFontFamily}" />
         <Setter Property="FontSize" Value="14" />
         <Setter Property="LineHeight" Value="21" />
     </Style>
 
     <Style x:Key="ProductTourCardProgressStyle" TargetType="{x:Type TextBlock}">
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource ProductTourFontFamily}" />
         <Setter Property="FontSize" Value="12" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Opacity" Value="0.78" />
@@ -65,12 +68,14 @@
 
     <Style x:Key="ProductTourCardWaitingStyle" TargetType="{x:Type TextBlock}">
         <Setter Property="Foreground" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource ProductTourFontFamily}" />
         <Setter Property="FontSize" Value="13" />
         <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
 
     <Style x:Key="ProductTourCardErrorStyle" TargetType="{x:Type TextBlock}">
         <Setter Property="Foreground" Value="{DynamicResource ProductTourFallbackErrorBrush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource ProductTourFontFamily}" />
         <Setter Property="FontSize" Value="13" />
         <Setter Property="LineHeight" Value="19" />
     </Style>
@@ -88,6 +93,7 @@
         <Setter Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource AccentFillColorDefaultBrush}" />
         <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="FontFamily" Value="{DynamicResource ProductTourFontFamily}" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Template">
             <Setter.Value>
@@ -148,18 +154,21 @@
 
     <Style x:Key="ProductTourWelcomeTitleStyle" TargetType="{x:Type TextBlock}">
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource ProductTourFontFamily}" />
         <Setter Property="FontSize" Value="28" />
         <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
 
     <Style x:Key="ProductTourWelcomeDescriptionStyle" TargetType="{x:Type TextBlock}">
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource ProductTourFontFamily}" />
         <Setter Property="FontSize" Value="15" />
         <Setter Property="LineHeight" Value="23" />
     </Style>
 
     <Style x:Key="ProductTourWelcomeFootnoteStyle" TargetType="{x:Type TextBlock}">
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource ProductTourFontFamily}" />
         <Setter Property="FontSize" Value="12" />
         <Setter Property="Opacity" Value="0.72" />
     </Style>
@@ -177,11 +186,13 @@
         <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
         <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="FontFamily" Value="{DynamicResource ProductTourFontFamily}" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="ItemContainerStyle">
             <Setter.Value>
                 <Style BasedOn="{StaticResource {x:Type ComboBoxItem}}" TargetType="{x:Type ComboBoxItem}">
+                    <Setter Property="FontFamily" Value="{DynamicResource ProductTourFontFamily}" />
                     <Setter Property="HorizontalContentAlignment" Value="Center" />
                     <Setter Property="VerticalContentAlignment" Value="Center" />
                 </Style>
@@ -197,6 +208,7 @@
         <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
         <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="FontFamily" Value="{DynamicResource ProductTourFontFamily}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ToggleButton}">
@@ -281,12 +293,14 @@
 
     <Style x:Key="ProductTourDialogueSpeakerStyle" TargetType="{x:Type TextBlock}">
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource ProductTourFontFamily}" />
         <Setter Property="FontSize" Value="13" />
         <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
 
     <Style x:Key="ProductTourDialogueTextStyle" TargetType="{x:Type TextBlock}">
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource ProductTourFontFamily}" />
         <Setter Property="FontSize" Value="20" />
         <Setter Property="LineHeight" Value="30" />
         <Setter Property="Margin" Value="0,8,0,0" />
@@ -294,6 +308,7 @@
 
     <Style x:Key="ProductTourDialogueContinueStyle" TargetType="{x:Type TextBlock}">
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource ProductTourFontFamily}" />
         <Setter Property="FontSize" Value="12" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Opacity" Value="0.72" />
@@ -312,12 +327,14 @@
 
     <Style x:Key="ProductTourConfirmTitleStyle" TargetType="{x:Type TextBlock}">
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource ProductTourFontFamily}" />
         <Setter Property="FontSize" Value="22" />
         <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
 
     <Style x:Key="ProductTourConfirmMessageStyle" TargetType="{x:Type TextBlock}">
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource ProductTourFontFamily}" />
         <Setter Property="FontSize" Value="14" />
         <Setter Property="LineHeight" Value="21" />
     </Style>

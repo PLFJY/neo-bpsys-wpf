@@ -205,6 +205,15 @@ public sealed class ProductTourStepBuilder
         return this;
     }
 
+    /// <summary>Sets an optional element name that is brought into view before resolving the target.</summary>
+    /// <param name="scrollAnchorName">Scroll anchor element name.</param>
+    /// <returns>The same step builder.</returns>
+    public ProductTourStepBuilder ScrollAnchor(string scrollAnchorName)
+    {
+        _step.ScrollAnchorName = scrollAnchorName;
+        return this;
+    }
+
     /// <summary>Sets the avatar placement.</summary>
     /// <param name="placement">Avatar placement.</param>
     /// <returns>The same step builder.</returns>

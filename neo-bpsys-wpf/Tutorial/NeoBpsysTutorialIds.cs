@@ -324,6 +324,9 @@ public static class TutorialTargetNames
     /// <summary>Away team logo button target name.</summary>
     public const string AwayTeamLogoButton = "AwayTeamLogoButton";
 
+    /// <summary>Away team information card target name.</summary>
+    public const string AwayTeamInfoCard = "AwayTeamInfoCard";
+
     /// <summary>Away team JSON import button target name.</summary>
     public const string AwayTeamJsonImportButton = "AwayTeamJsonImportButton";
 

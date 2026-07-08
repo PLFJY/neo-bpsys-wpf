@@ -220,6 +220,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
                 TutorialTargetNames.AwayPlayerListPanel
             ],
             jsonPresetPackage.Steps.Select(step => step.TargetName).ToArray());
+        Assert.Equal(TutorialTargetNames.AwayTeamInfoCard, jsonPresetPackage.Steps[2].ScrollAnchorName);
         Assert.All(
             jsonPresetPackage.Steps.Where(step => step.TargetName is TutorialTargetNames.HomePlayerListPanel or TutorialTargetNames.AwayPlayerListPanel),
             step =>

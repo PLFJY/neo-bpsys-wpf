@@ -199,6 +199,7 @@ public static class NeoBpsysTutorialPackages
                     "点击导入后，在打开的文件对话框中选择“队伍信息导入示例-GR.json”。",
                     ProductTourInteractionMode.AllowTargetOnly,
                     allowMissing: true,
+                    scrollAnchorName: TutorialTargetNames.AwayTeamInfoCard,
                     beforeShowAsync: (_, _) =>
                     {
                         SetExamplesJsonPickerHint("请导入 GR 信息：选择“队伍信息导入示例-GR.json”");
@@ -247,8 +248,8 @@ public static class NeoBpsysTutorialPackages
                 DescendantTypeStep(
                     TutorialTargetNames.FirstBanSurvivorSelectorHost,
                     typeof(CharacterSelector).FullName!,
-                    "角色选择器搜索",
-                    "这是角色选择器，不是普通下拉框。它支持角色名、拼音全拼和缩写搜索。输入后按空格搜索。",
+                    "先按空格匹配角色",
+                    "这是角色选择器，不是普通下拉框。请先输入一个角色的全称、拼音全拼或简拼，然后按空格触发匹配。这一步先不要点确认。",
                     ProductTourInteractionMode.AllowTargetOnly,
                     TutorialSignalIds.CharacterSelectorSearchCommitted,
                     allowMissing: true),
@@ -256,7 +257,7 @@ public static class NeoBpsysTutorialPackages
                     TutorialTargetNames.FirstBanSurvivorSelectorHost,
                     typeof(CharacterSelector).FullName!,
                     "确认角色选择",
-                    "按 Enter / Tab 或点击确认按钮完成选择。",
+                    "匹配到角色后，再按 Enter / Tab 或点击确认按钮完成选择。",
                     ProductTourInteractionMode.AllowTargetOnly,
                     TutorialSignalIds.CharacterSelectorSelectionConfirmed,
                     allowMissing: true)
@@ -357,7 +358,8 @@ public static class NeoBpsysTutorialPackages
         Func<IServiceProvider, CancellationToken, Task>? beforeShowAsync = null,
         ProductTourAvatarPlacement avatarPlacement = ProductTourAvatarPlacement.Auto,
         TutorialAvatarPose? avatarPose = null,
-        Point? cardOffset = null)
+        Point? cardOffset = null,
+        string? scrollAnchorName = null)
     {
         var builder = TutorialPackageBuilder.Create("Transient.Step")
             .ForPage("Transient.Page")
@@ -369,6 +371,11 @@ public static class NeoBpsysTutorialPackages
             .AvatarPlacement(avatarPlacement)
             .Interaction(mode)
             .Timeout(TimeSpan.FromSeconds(30));
+
+        if (!string.IsNullOrWhiteSpace(scrollAnchorName))
+        {
+            builder.ScrollAnchor(scrollAnchorName);
+        }
 
         if (avatarPose != null)
         {

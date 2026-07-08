@@ -12,7 +12,20 @@ internal static class TargetElementFinder
         ProductTourStep step,
         CancellationToken cancellationToken)
     {
-        return step.TargetKind switch
+        return FindCoreAsync(owner, step, cancellationToken);
+    }
+
+    private static async Task<FrameworkElement?> FindCoreAsync(
+        FrameworkElement owner,
+        ProductTourStep step,
+        CancellationToken cancellationToken)
+    {
+        if (!string.IsNullOrWhiteSpace(step.ScrollAnchorName))
+        {
+            await BringNamedElementIntoViewAsync(owner, step.ScrollAnchorName, step.Timeout, cancellationToken);
+        }
+
+        return await (step.TargetKind switch
         {
             TutorialTargetKind.Name when !string.IsNullOrWhiteSpace(step.TargetName) =>
                 FindByNameAsync(owner, step.TargetName, step.Timeout, cancellationToken),
@@ -23,7 +36,30 @@ internal static class TargetElementFinder
             TutorialTargetKind.ElementTag when !string.IsNullOrWhiteSpace(step.TargetKey) =>
                 FindByElementTagAsync(owner, step.TargetKey, step.Timeout, cancellationToken),
             _ => Task.FromResult<FrameworkElement?>(null)
-        };
+        });
+    }
+
+    private static async Task BringNamedElementIntoViewAsync(
+        FrameworkElement owner,
+        string targetName,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        var deadline = DateTimeOffset.UtcNow + timeout;
+        while (DateTimeOffset.UtcNow < deadline)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var result = owner.FindName(targetName) as FrameworkElement
+                ?? FindVisualChild(owner, targetName);
+            if (result != null && result.IsLoaded)
+            {
+                await BringTargetIntoViewAsync(owner, result, cancellationToken);
+                return;
+            }
+
+            await owner.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ContextIdle, cancellationToken);
+            await Task.Delay(80, cancellationToken);
+        }
     }
 
     public static async Task<FrameworkElement?> FindByNameAsync(
