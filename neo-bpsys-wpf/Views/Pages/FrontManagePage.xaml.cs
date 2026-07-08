@@ -8,6 +8,7 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Views.Pages.FrontManage;
 using neo_bpsys_wpf.Tutorial;
+using neo_bpsys_wpf.Core;
 using Wpf.Ui.Controls;
 
 namespace neo_bpsys_wpf.Views.Pages;
@@ -82,6 +83,14 @@ public partial class FrontManagePage : Page, IRecipient<FrontManageTabNavigation
 
     internal static bool RunCurrentChildTutorial(DependencyObject root)
     {
+        if (IAppHost.Host is null
+            || !TutorialDefinitionHelpers.IsPackageRecorded(
+                IAppHost.Host.Services,
+                TutorialPackageIds.FrontManageOverview))
+        {
+            return false;
+        }
+
         if (!TryResolveCurrentChildTutorial(root, out var owner, out var pageKey))
         {
             return false;

@@ -79,6 +79,7 @@ public sealed class OnboardingCoordinator : IOnboardingCoordinator
         var state = await _stateStore.LoadAsync(cancellationToken);
         if (!force
             && state.CompletedFlows.TryGetValue(FirstRunFlowId, out var record)
+            && record.Version >= (_flowRegistry.GetFlow(FirstRunFlowId)?.Version ?? 1)
             && record.CompletionKind == TutorialCompletionKind.Completed)
         {
             return;
@@ -90,7 +91,7 @@ public sealed class OnboardingCoordinator : IOnboardingCoordinator
         host.Children.Add(overlay);
         overlay.SkipConfirmed += async (_, _) =>
         {
-            await MarkFirstRunSkippedAsync(cancellationToken);
+            await MarkFirstRunHandledAsync(cancellationToken);
             host.Children.Remove(overlay);
         };
         overlay.StartRequested += async (_, languageOptionId) =>
@@ -116,14 +117,14 @@ public sealed class OnboardingCoordinator : IOnboardingCoordinator
         await ShowFirstRunWelcomeAsync(owner, force: true, cancellationToken);
     }
 
-    private async Task MarkFirstRunSkippedAsync(CancellationToken cancellationToken)
+    private async Task MarkFirstRunHandledAsync(CancellationToken cancellationToken)
     {
         var state = await _stateStore.LoadAsync(cancellationToken);
         var flow = _flowRegistry.GetFlow(FirstRunFlowId);
         state.CompletedFlows[FirstRunFlowId] = new TutorialCompletionRecord
         {
             Version = flow?.Version ?? 1,
-            CompletionKind = TutorialCompletionKind.Skipped
+            CompletionKind = TutorialCompletionKind.Completed
         };
 
         if (flow is not null)
@@ -134,7 +135,7 @@ public sealed class OnboardingCoordinator : IOnboardingCoordinator
                 state.CompletedPackages[packageId] = new TutorialCompletionRecord
                 {
                     Version = package?.Version ?? flow.Version,
-                    CompletionKind = TutorialCompletionKind.Skipped,
+                    CompletionKind = TutorialCompletionKind.Completed,
                     SourceFlowId = flow.FlowId
                 };
             }

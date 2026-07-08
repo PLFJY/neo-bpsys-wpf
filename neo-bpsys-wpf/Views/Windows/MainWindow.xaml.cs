@@ -4,10 +4,14 @@ using neo_bpsys_wpf.Controls;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.ProductTour;
+using neo_bpsys_wpf.Services;
+using neo_bpsys_wpf.Tutorial;
+using neo_bpsys_wpf.Views.Pages;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Animation;
+using System.Windows.Threading;
 using Wpf.Ui;
 using Wpf.Ui.Abstractions;
 using Wpf.Ui.Controls;
@@ -42,6 +46,11 @@ public partial class MainWindow : FluentWindow, INavigationWindow
         _onboardingCoordinator = onboardingCoordinator;
         InitializeComponent();
         navigationService.SetNavigationControl(RootNavigation);
+        if (navigationService is neo_bpsys_wpf.Services.NavigationService neoNavigationService)
+        {
+            neoNavigationService.PageChanged += OnNavigationPageChanged;
+        }
+
         infoBarService.SetInfoBarControl(InfoBar);
         snackbarService.SetSnackbarPresenter(SnbPre);
         if (settingsHostService.Settings.ShowAfterUpdateTip)
@@ -196,5 +205,84 @@ public partial class MainWindow : FluentWindow, INavigationWindow
     public void SetServiceProvider(IServiceProvider serviceProvider)
     {
         RootNavigation.SetServiceProvider(serviceProvider);
+    }
+
+    private static void OnNavigationPageChanged(object? sender, NavigationPageChangedEventArgs e)
+    {
+        if (e.PageType == typeof(FrontManagePage)
+            && e.PageContent is FrontManagePage frontManagePage)
+        {
+            ScheduleNavigationPageTutorial(
+                frontManagePage,
+                TutorialPageKeys.FrontManage,
+                "NavigationPageChanged");
+            return;
+        }
+
+        if (e.PageType == typeof(SmartBpPage)
+            && e.PageContent is SmartBpPage smartBpPage)
+        {
+            ScheduleNavigationPageTutorial(
+                smartBpPage,
+                TutorialPageKeys.SmartBp,
+                "NavigationPageChanged");
+            return;
+        }
+
+        if (e.PageType == typeof(TeamInfoPage)
+            && e.PageContent is TeamInfoPage teamInfoPage)
+        {
+            ScheduleNavigationPageTutorial(
+                teamInfoPage,
+                TutorialPageKeys.TeamInfo,
+                "NavigationPageChanged");
+            return;
+        }
+
+        if (e.PageType == typeof(ScorePage)
+            && e.PageContent is ScorePage scorePage)
+        {
+            ScheduleNavigationPageTutorial(
+                scorePage,
+                TutorialPageKeys.Score,
+                "NavigationPageChanged");
+            return;
+        }
+
+        if (e.PageType == typeof(PickPage)
+            && e.PageContent is PickPage pickPage)
+        {
+            ScheduleNavigationPageTutorial(
+                pickPage,
+                PickPage.TutorialPageKey,
+                "NavigationPageChanged");
+            return;
+        }
+
+        if (e.PageType == typeof(BanSurPage)
+            && e.PageContent is BanSurPage banSurPage)
+        {
+            ScheduleNavigationPageTutorial(
+                banSurPage,
+                BanSurPage.TutorialPageKey,
+                "NavigationPageChanged");
+            return;
+        }
+
+        if (e.PageType == typeof(BanHunPage)
+            && e.PageContent is BanHunPage banHunPage)
+        {
+            ScheduleNavigationPageTutorial(
+                banHunPage,
+                BanHunPage.TutorialPageKey,
+                "NavigationPageChanged");
+        }
+    }
+
+    private static void ScheduleNavigationPageTutorial(FrameworkElement owner, string pageKey, string reason)
+    {
+        owner.Dispatcher.BeginInvoke(
+            DispatcherPriority.ContextIdle,
+            new Action(() => TutorialPageLoader.RunPendingOnLoaded(owner, pageKey, reason)));
     }
 }

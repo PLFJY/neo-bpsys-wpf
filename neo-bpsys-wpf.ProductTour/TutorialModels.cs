@@ -97,6 +97,9 @@ public enum TutorialAutoRunStrategy
     /// <summary>Runs only the first currently pending package for each automatic trigger.</summary>
     SinglePendingPackage,
 
+    /// <summary>Continues running subsequent pending packages while the owner remains active.</summary>
+    ContinueWhileActive,
+
     /// <summary>Continues running subsequent pending packages while each package completes normally.</summary>
     DrainSequence
 }
@@ -129,8 +132,6 @@ public enum TutorialCompletionKind
 {
     /// <summary>The item was completed directly.</summary>
     Completed,
-    /// <summary>The item was skipped by the user.</summary>
-    Skipped,
     /// <summary>The package was covered by a completed tutorial flow.</summary>
     CoveredByFlow
 }

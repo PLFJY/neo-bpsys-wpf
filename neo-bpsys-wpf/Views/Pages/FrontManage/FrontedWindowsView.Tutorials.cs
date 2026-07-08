@@ -2,6 +2,9 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.Tutorial;
+using neo_bpsys_wpf.Views.Windows;
+using System.Windows;
+using System.Windows.Threading;
 
 namespace neo_bpsys_wpf.Views.Pages.FrontManage;
 
@@ -41,7 +44,8 @@ public partial class FrontedWindowsView
             TutorialPackages.WindowsBasic,
             TutorialPackages.OpenDesigner,
             TutorialPackages.BpWindowLaunchBasic
-        ]);
+        ],
+        TutorialAutoRunStrategy.ContinueWhileActive);
 
         registrar.RegisterPackage(TutorialDefinitionHelpers.Package(
             TutorialPackages.BpWindowLaunchBasic,
@@ -111,21 +115,50 @@ public partial class FrontedWindowsView
                 serviceProvider,
                 TutorialPackageIds.FrontManageOverview)));
 
+        var openDesignerStep = TutorialDefinitionHelpers.Step(
+            nameof(OpenFrontedDesignerButton),
+            "打开 v3 编辑器",
+            "v3 编辑器用于编辑前台布局、控件属性和动画行为。点击这里可以打开前台设计器。打开后会进入独立的 v3 编辑器教程。",
+            ProductTourInteractionMode.AllowTargetOnly,
+            TutorialSignalIds.DesignerV3Opened,
+            allowMissing: true);
+        openDesignerStep.AfterCompleteAsync = ScheduleDesignerTutorialAsync;
+
         registrar.RegisterPackage(TutorialDefinitionHelpers.Package(
             TutorialPackages.OpenDesigner,
             TutorialPageKey,
             2,
             [
-                TutorialDefinitionHelpers.Step(
-                    nameof(OpenFrontedDesignerButton),
-                    "打开 v3 编辑器",
-                    "v3 编辑器用于编辑前台布局、控件属性和动画行为。点击这里可以打开前台设计器。打开后会进入独立的 v3 编辑器教程。",
-                    ProductTourInteractionMode.AllowTargetOnly,
-                    TutorialSignalIds.DesignerV3Opened,
-                    allowMissing: true)
+                openDesignerStep
             ],
             serviceProvider => TutorialDefinitionHelpers.IsPackageRecorded(
                 serviceProvider,
                 TutorialPackageIds.FrontManageOverview)));
+    }
+
+    private static Task ScheduleDesignerTutorialAsync(IServiceProvider serviceProvider, CancellationToken cancellationToken)
+    {
+        _ = serviceProvider;
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return Task.CompletedTask;
+        }
+
+        Application.Current?.Dispatcher.BeginInvoke(
+            DispatcherPriority.ContextIdle,
+            new Action(() =>
+            {
+                var window = Application.Current.Windows
+                    .OfType<FrontedDesignerWindow>()
+                    .FirstOrDefault(candidate => candidate.IsVisible);
+                if (window is not null)
+                {
+                    TutorialPageLoader.RunPendingOnLoaded(
+                        window,
+                        TutorialPageKeys.DesignerV3,
+                        "OpenDesignerCompleted");
+                }
+            }));
+        return Task.CompletedTask;
     }
 }

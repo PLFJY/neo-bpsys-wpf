@@ -21,6 +21,16 @@ public interface ITutorialService
         TutorialTriggerMode triggerMode = TutorialTriggerMode.AutoOnLoaded,
         CancellationToken cancellationToken = default);
 
+    /// <summary>Gets the next pending package for a page without showing UI or writing state.</summary>
+    /// <param name="owner">Owner element.</param>
+    /// <param name="pageKey">Page key.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The next pending package definition, or <see langword="null" /> when no package can run.</returns>
+    Task<TutorialPackageDefinition?> GetNextPendingPackageAsync(
+        FrameworkElement owner,
+        string pageKey,
+        CancellationToken cancellationToken = default);
+
     /// <summary>Runs a package by id.</summary>
     /// <param name="owner">Owner element.</param>
     /// <param name="packageId">Package id.</param>
@@ -71,6 +81,7 @@ public sealed class TutorialService : ITutorialService
     private readonly ITutorialTextProvider _textProvider;
     private readonly ITutorialAvatarProvider _avatarProvider;
     private readonly ITutorialRunObserver _runObserver;
+    private readonly ITutorialOwnerActivationService _ownerActivationService;
     private readonly ProductTourOptions _options;
     private readonly ILogger<TutorialService> _logger;
     private readonly SemaphoreSlim _runLock = new(1, 1);
@@ -88,6 +99,7 @@ public sealed class TutorialService : ITutorialService
     /// <param name="textProvider">Fixed UI text provider.</param>
     /// <param name="avatarProvider">Tutorial avatar provider.</param>
     /// <param name="runObserver">Tutorial run observer.</param>
+    /// <param name="ownerActivationService">Tutorial owner activation service.</param>
     /// <param name="options">Product tour display options.</param>
     /// <param name="logger">Logger.</param>
     public TutorialService(
@@ -100,6 +112,7 @@ public sealed class TutorialService : ITutorialService
         ITutorialTextProvider textProvider,
         ITutorialAvatarProvider avatarProvider,
         ITutorialRunObserver runObserver,
+        ITutorialOwnerActivationService ownerActivationService,
         ProductTourOptions options,
         ILogger<TutorialService> logger)
     {
@@ -112,6 +125,7 @@ public sealed class TutorialService : ITutorialService
         _textProvider = textProvider;
         _avatarProvider = avatarProvider;
         _runObserver = runObserver;
+        _ownerActivationService = ownerActivationService;
         _options = options;
         _logger = logger;
     }
@@ -123,12 +137,36 @@ public sealed class TutorialService : ITutorialService
         TutorialTriggerMode triggerMode = TutorialTriggerMode.AutoOnLoaded,
         CancellationToken cancellationToken = default)
     {
+        if (triggerMode == TutorialTriggerMode.AutoOnLoaded
+            && !IsOwnerActive(owner, pageKey, "RunPendingPagePackagesAsync"))
+        {
+            return TutorialRunResult.Canceled;
+        }
+
         if (_isFlowRunning && triggerMode == TutorialTriggerMode.AutoOnLoaded)
         {
             _runObserver.OnPackageSuppressed(pageKey);
             return TutorialRunResult.Suppressed;
         }
 
+        var pending = await GetNextPendingPackageAsync(owner, pageKey, cancellationToken);
+
+        if (pending == null)
+        {
+            _runObserver.OnPackageNotPending(pageKey);
+            return TutorialRunResult.NotPending;
+        }
+
+        _runObserver.OnPackageRunRequested(pending.PackageId, pageKey, triggerMode);
+        return await RunPackageAsync(owner, pending.PackageId, triggerMode, null, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<TutorialPackageDefinition?> GetNextPendingPackageAsync(
+        FrameworkElement owner,
+        string pageKey,
+        CancellationToken cancellationToken = default)
+    {
         var state = await _stateStore.LoadAsync(cancellationToken);
         var sequenceDefinition = _sequenceRegistry.GetSequenceDefinition(pageKey);
         var sequence = sequenceDefinition.PackageIds;
@@ -139,7 +177,6 @@ public sealed class TutorialService : ITutorialService
             .OrderBy(package => package.Sequence)
             .ToList();
 
-        TutorialPackageDefinition? pending = null;
         foreach (var package in packages)
         {
             if (state.CompletedPackages.TryGetValue(package.PackageId, out var record)
@@ -159,18 +196,10 @@ public sealed class TutorialService : ITutorialService
                 continue;
             }
 
-            pending = package;
-            break;
+            return package;
         }
 
-        if (pending == null)
-        {
-            _runObserver.OnPackageNotPending(pageKey);
-            return TutorialRunResult.NotPending;
-        }
-
-        _runObserver.OnPackageRunRequested(pending.PackageId, pageKey, triggerMode);
-        return await RunPackageAsync(owner, pending.PackageId, triggerMode, null, cancellationToken);
+        return null;
     }
 
     /// <inheritdoc />
@@ -186,6 +215,12 @@ public sealed class TutorialService : ITutorialService
         {
             _logger.LogWarning("Tutorial package {PackageId} is not registered.", packageId);
             return TutorialRunResult.Failed;
+        }
+
+        if (triggerMode == TutorialTriggerMode.AutoOnLoaded
+            && !IsOwnerActive(owner, package.PageKey, "RunPackageAsync"))
+        {
+            return TutorialRunResult.Canceled;
         }
 
         if (!CanRunPackage(package, owner))
@@ -220,9 +255,7 @@ public sealed class TutorialService : ITutorialService
                 state.CompletedPackages[package.PackageId] = new TutorialCompletionRecord
                 {
                     Version = package.Version,
-                    CompletionKind = result == TutorialRunResult.Completed
-                        ? TutorialCompletionKind.Completed
-                        : TutorialCompletionKind.Skipped
+                    CompletionKind = TutorialCompletionKind.Completed
                 };
                 await _stateStore.SaveAsync(state, cancellationToken);
             }
@@ -280,7 +313,12 @@ public sealed class TutorialService : ITutorialService
                 {
                     if (result == TutorialRunResult.Skipped)
                     {
-                        await MarkFlowAsync(flow, TutorialCompletionKind.Skipped, coverPackages: false, cancellationToken);
+                        await MarkFlowAsync(
+                            flow,
+                            TutorialCompletionKind.Completed,
+                            coverPackages: true,
+                            cancellationToken,
+                            includedPackageCompletionKind: TutorialCompletionKind.Completed);
                     }
 
                     return result;
@@ -542,6 +580,17 @@ public sealed class TutorialService : ITutorialService
         ?? package.CanRun?.Invoke(_serviceProvider)
         ?? true;
 
+    private bool IsOwnerActive(FrameworkElement owner, string pageKey, string reason)
+    {
+        if (_ownerActivationService.IsOwnerActive(owner, pageKey))
+        {
+            return true;
+        }
+
+        _runObserver.OnAutoRunRejectedInactiveOwner(owner.GetType().Name, pageKey, reason);
+        return false;
+    }
+
     private static FrameworkElement ResolveOverlayOwner(FrameworkElement owner)
     {
         if (owner is Window)
@@ -568,7 +617,8 @@ public sealed class TutorialService : ITutorialService
         TutorialFlowDefinition flow,
         TutorialCompletionKind kind,
         bool coverPackages,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        TutorialCompletionKind includedPackageCompletionKind = TutorialCompletionKind.CoveredByFlow)
     {
         var state = await _stateStore.LoadAsync(cancellationToken);
         state.CompletedFlows[flow.FlowId] = new TutorialCompletionRecord
@@ -585,7 +635,7 @@ public sealed class TutorialService : ITutorialService
                 state.CompletedPackages[packageId] = new TutorialCompletionRecord
                 {
                     Version = package?.Version ?? flow.Version,
-                    CompletionKind = TutorialCompletionKind.CoveredByFlow,
+                    CompletionKind = includedPackageCompletionKind,
                     SourceFlowId = flow.FlowId
                 };
             }

@@ -23,6 +23,7 @@ public static class ProductTourServiceCollectionExtensions
         services.TryAddSingleton<ITutorialStateStore, TutorialStateStore>();
         services.TryAddSingleton<ITutorialTextProvider, DefaultTutorialTextProvider>();
         services.TryAddSingleton<ITutorialRunObserver, NoOpTutorialRunObserver>();
+        services.TryAddSingleton<ITutorialOwnerActivationService, AlwaysActiveTutorialOwnerActivationService>();
         services.TryAddSingleton<ITutorialService, TutorialService>();
         services.TryAddSingleton<IOnboardingCoordinator, OnboardingCoordinator>();
         services.TryAddSingleton<IGameTutorialSandboxService, NoOpGameTutorialSandboxService>();

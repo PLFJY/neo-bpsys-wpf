@@ -24,7 +24,8 @@ public partial class FrontedLayoutPackagesView
         registrar.RegisterSequence(TutorialPageKey,
         [
             TutorialPackages.LayoutPackagesBasic
-        ]);
+        ],
+        TutorialAutoRunStrategy.ContinueWhileActive);
 
         registrar.RegisterPackage(TutorialDefinitionHelpers.Package(
             TutorialPackages.LayoutPackagesBasic,

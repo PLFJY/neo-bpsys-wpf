@@ -117,6 +117,169 @@ public sealed class ProductTourStateTest
     }
 
     [Fact]
+    public async Task AutoRun_ShouldNotStartWhenOwnerIsInactive()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var observer = new RecordingTutorialRunObserver();
+            var activation = new FixedTutorialOwnerActivationService(false);
+            var fixture = new Fixture(observer, activation);
+            fixture.RegisterPackage("Package.Basic", version: 1, pageKey: "Page.Test");
+            fixture.SequenceRegistry.RegisterSequence("Page.Test", ["Package.Basic"]);
+
+            var result = await fixture.Service.RunPendingPagePackagesAsync(CreateOwner(), "Page.Test");
+            var state = await fixture.StateStore.LoadAsync();
+
+            Assert.Equal(TutorialRunResult.Canceled, result);
+            Assert.DoesNotContain("Package.Basic", observer.StartedPackageIds);
+            Assert.False(state.CompletedPackages.ContainsKey("Package.Basic"));
+            Assert.Contains("Page.Test", observer.InactivePageKeys);
+        });
+    }
+
+    [Fact]
+    public async Task ContinueWhileActive_ShouldRunNextPackageAfterCompleted()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var fixture = new Fixture();
+            fixture.RegisterPackage("Package.A", version: 1, pageKey: "Page.Test");
+            fixture.RegisterPackage("Package.B", version: 1, pageKey: "Page.Test");
+            fixture.SequenceRegistry.RegisterSequence(
+                "Page.Test",
+                ["Package.A", "Package.B"],
+                TutorialAutoRunStrategy.ContinueWhileActive);
+
+            await RunAutoOnLoadedWithHostAsync(fixture, async owner =>
+            {
+                await InvokeRunPendingOnLoadedAsync(owner, "Page.Test");
+            });
+
+            var state = await fixture.StateStore.LoadAsync();
+            Assert.True(state.CompletedPackages.ContainsKey("Package.A"));
+            Assert.True(state.CompletedPackages.ContainsKey("Package.B"));
+        });
+    }
+
+    [Fact]
+    public async Task ContinueWhileActive_ShouldStopWhenOwnerBecomesInactive()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var activation = new SequenceTutorialOwnerActivationService([true, true, false]);
+            var fixture = new Fixture(activationService: activation);
+            fixture.RegisterPackage("Package.A", version: 1, pageKey: "Page.Test");
+            fixture.RegisterPackage("Package.B", version: 1, pageKey: "Page.Test");
+            fixture.SequenceRegistry.RegisterSequence(
+                "Page.Test",
+                ["Package.A", "Package.B"],
+                TutorialAutoRunStrategy.ContinueWhileActive);
+
+            await RunAutoOnLoadedWithHostAsync(fixture, async owner =>
+            {
+                await InvokeRunPendingOnLoadedAsync(owner, "Page.Test");
+            });
+
+            var state = await fixture.StateStore.LoadAsync();
+            Assert.True(state.CompletedPackages.ContainsKey("Package.A"));
+            Assert.False(state.CompletedPackages.ContainsKey("Package.B"));
+        });
+    }
+
+    [Fact]
+    public async Task ContinueWhileActive_ShouldStopOnTargetMissing()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var observer = new RecordingTutorialRunObserver();
+            var fixture = new Fixture(observer);
+            fixture.RegisterPackage("Package.A", version: 1, pageKey: "Page.Test");
+            fixture.RegisterPackage(
+                "Package.B",
+                version: 1,
+                pageKey: "Page.Test",
+                steps:
+                [
+                    new ProductTourStep
+                    {
+                        TargetName = "MissingTarget",
+                        Title = "Missing",
+                        Description = "Missing",
+                        Timeout = TimeSpan.FromMilliseconds(20)
+                    }
+                ]);
+            fixture.RegisterPackage("Package.C", version: 1, pageKey: "Page.Test");
+            fixture.SequenceRegistry.RegisterSequence(
+                "Page.Test",
+                ["Package.A", "Package.B", "Package.C"],
+                TutorialAutoRunStrategy.ContinueWhileActive);
+
+            await RunAutoOnLoadedWithHostAsync(fixture, async owner =>
+            {
+                await InvokeRunPendingOnLoadedAsync(owner, "Page.Test");
+            });
+
+            var state = await fixture.StateStore.LoadAsync();
+            Assert.True(state.CompletedPackages.ContainsKey("Package.A"));
+            Assert.False(state.CompletedPackages.ContainsKey("Package.B"));
+            Assert.False(state.CompletedPackages.ContainsKey("Package.C"));
+            Assert.Contains("Package.B", observer.TargetMissingPackageIds);
+            Assert.DoesNotContain("Package.C", observer.StartedPackageIds);
+        });
+    }
+
+    [Fact]
+    public async Task ContinueWhileActive_ShouldNotRetrySuppressed()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var observer = new RecordingTutorialRunObserver();
+            var fixture = new Fixture(observer);
+            fixture.RegisterPackage(
+                "Package.Blocking",
+                version: 1,
+                pageKey: "Page.Blocking",
+                steps:
+                [
+                    new ProductTourStep
+                    {
+                        Title = "Blocking",
+                        Description = "Keeps the run lock active",
+                        Placement = ProductTourPlacement.Center
+                    }
+                ]);
+            fixture.RegisterPackage("Package.Second", version: 1, pageKey: "Page.Second");
+            fixture.SequenceRegistry.RegisterSequence("Page.Blocking", ["Package.Blocking"]);
+            fixture.SequenceRegistry.RegisterSequence(
+                "Page.Second",
+                ["Package.Second"],
+                TutorialAutoRunStrategy.ContinueWhileActive);
+
+            await RunAutoOnLoadedWithHostAsync(fixture, async owner =>
+            {
+                var firstRun = InvokeRunPendingOnLoadedAsync(owner, "Page.Blocking");
+                var overlay = await WaitForOverlayAsync(owner);
+
+                await AwaitWithTimeoutAsync(
+                    InvokeRunPendingOnLoadedAsync(owner, "Page.Second"),
+                    TimeSpan.FromMilliseconds(250));
+                Assert.Contains("Page.Second", observer.SuppressedPageKeys);
+                Assert.DoesNotContain("Package.Second", observer.StartedPackageIds);
+
+                var finishButton = FindButtonByContent(overlay, "完成");
+                Assert.NotNull(finishButton);
+                finishButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                await firstRun;
+
+                await Task.Delay(500);
+                var state = await fixture.StateStore.LoadAsync();
+                Assert.False(state.CompletedPackages.ContainsKey("Package.Second"));
+                Assert.DoesNotContain("Package.Second", observer.StartedPackageIds);
+            });
+        });
+    }
+
+    [Fact]
     public async Task AutoOnLoaded_Suppressed_ShouldNotRetry()
     {
         await WpfTestThread.RunAsync(async () =>
@@ -311,7 +474,7 @@ public sealed class ProductTourStateTest
             });
 
             var state = await fixture.StateStore.LoadAsync();
-            Assert.Equal(TutorialCompletionKind.Skipped, state.CompletedPackages["Package.Interactive"].CompletionKind);
+            Assert.Equal(TutorialCompletionKind.Completed, state.CompletedPackages["Package.Interactive"].CompletionKind);
             Assert.False(state.CompletedPackages.ContainsKey("Package.AfterSkip"));
         });
     }
@@ -368,7 +531,7 @@ public sealed class ProductTourStateTest
     }
 
     [Fact]
-    public async Task FirstRunWelcomeSkip_ShouldMarkIncludedPackagesSkipped()
+    public async Task FirstRunWelcomeSkip_ShouldMarkIncludedPackagesCompleted()
     {
         await WpfTestThread.RunAsync(async () =>
         {
@@ -418,15 +581,64 @@ public sealed class ProductTourStateTest
                 window.Close();
             }
 
-            var state = await WaitForFirstRunSkippedStateAsync(fixture.StateStore);
-            Assert.Equal(TutorialCompletionKind.Skipped, state.CompletedFlows[OnboardingCoordinator.FirstRunFlowId].CompletionKind);
+            var state = await WaitForFirstRunHandledStateAsync(fixture.StateStore);
+            Assert.Equal(TutorialCompletionKind.Completed, state.CompletedFlows[OnboardingCoordinator.FirstRunFlowId].CompletionKind);
             Assert.Equal(7, state.CompletedFlows[OnboardingCoordinator.FirstRunFlowId].Version);
-            Assert.Equal(TutorialCompletionKind.Skipped, state.CompletedPackages["Package.First"].CompletionKind);
+            Assert.Equal(TutorialCompletionKind.Completed, state.CompletedPackages["Package.First"].CompletionKind);
             Assert.Equal(3, state.CompletedPackages["Package.First"].Version);
             Assert.Equal(OnboardingCoordinator.FirstRunFlowId, state.CompletedPackages["Package.First"].SourceFlowId);
-            Assert.Equal(TutorialCompletionKind.Skipped, state.CompletedPackages["Package.Second"].CompletionKind);
+            Assert.Equal(TutorialCompletionKind.Completed, state.CompletedPackages["Package.Second"].CompletionKind);
             Assert.Equal(4, state.CompletedPackages["Package.Second"].Version);
             Assert.Equal(OnboardingCoordinator.FirstRunFlowId, state.CompletedPackages["Package.Second"].SourceFlowId);
+        });
+    }
+
+    [Fact]
+    public async Task FirstRunWelcomeHandled_ShouldNotShowAgain()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var fixture = new Fixture();
+            fixture.FlowRegistry.Register(new TutorialFlowDefinition
+            {
+                FlowId = OnboardingCoordinator.FirstRunFlowId,
+                Version = 7
+            });
+            var handledState = await fixture.StateStore.LoadAsync();
+            handledState.CompletedFlows[OnboardingCoordinator.FirstRunFlowId] = new TutorialCompletionRecord
+            {
+                Version = 7,
+                CompletionKind = TutorialCompletionKind.Completed
+            };
+            await fixture.StateStore.SaveAsync(handledState);
+            var coordinator = new OnboardingCoordinator(
+                fixture.Service,
+                fixture.StateStore,
+                fixture.FlowRegistry,
+                fixture.PackageRegistry,
+                new FakeTutorialLanguageService(),
+                new DefaultTutorialTextProvider(),
+                new NoOpTutorialAvatarProvider(),
+                new ProductTourOptions(),
+                NullLogger<OnboardingCoordinator>.Instance);
+            var window = new Window
+            {
+                Content = new Grid(),
+                Width = 320,
+                Height = 240
+            };
+            window.Show();
+            try
+            {
+                await coordinator.ShowFirstRunWelcomeAsync(window);
+                await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ContextIdle);
+
+                Assert.Null(FindVisualChildren<FirstRunWelcomeOverlay>(window).FirstOrDefault());
+            }
+            finally
+            {
+                window.Close();
+            }
         });
     }
 
@@ -511,7 +723,7 @@ public sealed class ProductTourStateTest
     }
 
     [Fact]
-    public async Task FlowCoveredPackageIsSkippedButUncoveredPagePackageRemainsPending()
+    public async Task FlowCoveredPackageIsSkippedByStateButUncoveredPagePackageRemainsPending()
     {
         await WpfTestThread.RunAsync(async () =>
         {
@@ -538,7 +750,7 @@ public sealed class ProductTourStateTest
     }
 
     [Fact]
-    public async Task FlowSkippedDoesNotCoverIncludedPackages()
+    public async Task FlowSkippedMarksFlowAndIncludedPackagesCompleted()
     {
         await WpfTestThread.RunAsync(async () =>
         {
@@ -579,8 +791,9 @@ public sealed class ProductTourStateTest
 
             Assert.Equal(TutorialRunResult.Skipped, result);
             var state = await fixture.StateStore.LoadAsync();
-            Assert.Equal(TutorialCompletionKind.Skipped, state.CompletedFlows["Flow.Test"].CompletionKind);
-            Assert.False(state.CompletedPackages.ContainsKey("Package.Interactive"));
+            Assert.Equal(TutorialCompletionKind.Completed, state.CompletedFlows["Flow.Test"].CompletionKind);
+            Assert.Equal(TutorialCompletionKind.Completed, state.CompletedPackages["Package.Interactive"].CompletionKind);
+            Assert.Equal("Flow.Test", state.CompletedPackages["Package.Interactive"].SourceFlowId);
         });
     }
 
@@ -803,7 +1016,7 @@ public sealed class ProductTourStateTest
     }
 
     [Fact]
-    public async Task FlowTargetMissingDoesNotRecordSkipped()
+    public async Task FlowTargetMissingDoesNotWriteCompletionState()
     {
         await WpfTestThread.RunAsync(async () =>
         {
@@ -838,7 +1051,7 @@ public sealed class ProductTourStateTest
     }
 
     [Fact]
-    public async Task FlowCanceledDoesNotRecordSkipped()
+    public async Task FlowCanceledDoesNotWriteCompletionState()
     {
         await WpfTestThread.RunAsync(async () =>
         {
@@ -979,7 +1192,7 @@ public sealed class ProductTourStateTest
         await task;
     }
 
-    private static async Task<TutorialState> WaitForFirstRunSkippedStateAsync(ITutorialStateStore stateStore)
+    private static async Task<TutorialState> WaitForFirstRunHandledStateAsync(ITutorialStateStore stateStore)
     {
         var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(2);
         while (DateTime.UtcNow < deadline)
@@ -1018,7 +1231,9 @@ public sealed class ProductTourStateTest
 
     private sealed class Fixture
     {
-        public Fixture(ITutorialRunObserver? observer = null)
+        public Fixture(
+            ITutorialRunObserver? observer = null,
+            ITutorialOwnerActivationService? activationService = null)
         {
             Service = new TutorialService(
                 new EmptyServiceProvider(),
@@ -1030,6 +1245,7 @@ public sealed class ProductTourStateTest
                 new DefaultTutorialTextProvider(),
                 new NoOpTutorialAvatarProvider(),
                 observer ?? new NoOpTutorialRunObserver(),
+                activationService ?? new AlwaysActiveTutorialOwnerActivationService(),
                 new ProductTourOptions(),
                 NullLogger<TutorialService>.Instance);
         }
@@ -1063,6 +1279,33 @@ public sealed class ProductTourStateTest
     private sealed class EmptyServiceProvider : IServiceProvider
     {
         public object? GetService(Type serviceType) => null;
+    }
+
+    private sealed class FixedTutorialOwnerActivationService(bool isActive) : ITutorialOwnerActivationService
+    {
+        public bool IsOwnerActive(FrameworkElement owner, string pageKey)
+        {
+            _ = owner;
+            _ = pageKey;
+            return isActive;
+        }
+    }
+
+    private sealed class SequenceTutorialOwnerActivationService(IReadOnlyList<bool> values) : ITutorialOwnerActivationService
+    {
+        private int _index;
+
+        public bool IsOwnerActive(FrameworkElement owner, string pageKey)
+        {
+            _ = owner;
+            _ = pageKey;
+            if (_index >= values.Count)
+            {
+                return values[^1];
+            }
+
+            return values[_index++];
+        }
     }
 
     private sealed class FakeTutorialLanguageService : ITutorialLanguageService
@@ -1099,12 +1342,21 @@ public sealed class ProductTourStateTest
 
         public List<string> SuppressedPageKeys { get; } = [];
 
+        public List<string> InactivePageKeys { get; } = [];
+
+        public List<string> TargetMissingPackageIds { get; } = [];
+
         public void OnAutoRunRequested(string ownerType, string pageKey, string reason)
         {
         }
 
         public void OnAutoRunCompleted(string ownerType, string pageKey, TutorialRunResult result)
         {
+        }
+
+        public void OnAutoRunRejectedInactiveOwner(string ownerType, string pageKey, string reason)
+        {
+            InactivePageKeys.Add(pageKey);
         }
 
         public void OnPackageRunRequested(string packageId, string pageKey, TutorialTriggerMode triggerMode)
@@ -1154,6 +1406,7 @@ public sealed class ProductTourStateTest
 
         public void OnPackageTargetMissing(string packageId)
         {
+            TargetMissingPackageIds.Add(packageId);
         }
     }
 

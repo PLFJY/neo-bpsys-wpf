@@ -21,6 +21,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Services.Registry;
 using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.ProductTour.Controls;
+using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.Tests.Controls;
 using neo_bpsys_wpf.Tests.Infrastructure;
 using neo_bpsys_wpf.Tutorial;
@@ -139,6 +140,62 @@ public sealed class WpfTutorialNavigationIntegrationTest
 
             TutorialPageLoader.RunPendingOnLoaded(page, TutorialPageKeys.SmartBp);
             await observer.WaitForStartedAsync(TutorialPackageIds.SmartBpFullBpFlowBasic, app.Dump);
+        }, TimeSpan.FromSeconds(20));
+    }
+
+    [Fact]
+    public async Task SmartBp_ContentChanged_WhenPageInactive_ShouldNotStartTutorial()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var observer = new RecordingTutorialRunObserver();
+            await using var app = await RealAppTestHost.StartAsync(observer);
+            var hostWindow = app.HostWindow;
+
+            Assert.True(NavigateIgnoringClosedLocalizationNotifications(
+                () => app.Navigation.Navigate(typeof(SmartBpPage))));
+            await WaitForDispatcherAsync(hostWindow);
+            await observer.WaitForStartedAsync(TutorialPackageIds.SmartBpModuleShell, app.Dump);
+            await CompletePackageAsync(hostWindow, observer, TutorialPackageIds.SmartBpModuleShell, app.Dump);
+            var page = Assert.IsType<SmartBpPage>(app.Navigation.CurrentContent);
+
+            Assert.True(NavigateIgnoringClosedLocalizationNotifications(
+                () => app.Navigation.Navigate(typeof(FrontManagePage))));
+            await WaitForDispatcherAsync(hostWindow);
+
+            TutorialPageLoader.RunPendingOnLoaded(page, TutorialPageKeys.SmartBp, "ContentChanged");
+            await Task.Delay(300);
+
+            Assert.DoesNotContain(TutorialPackageIds.SmartBpModuleContentOverview, observer.StartedPackageIds);
+        }, TimeSpan.FromSeconds(20));
+    }
+
+    [Fact]
+    public async Task FrontManageChild_Loaded_WhenParentPageInactive_ShouldNotStartTutorial()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var observer = new RecordingTutorialRunObserver();
+            await using var app = await RealAppTestHost.StartAsync(observer);
+            var hostWindow = app.HostWindow;
+
+            Assert.True(NavigateIgnoringClosedLocalizationNotifications(
+                () => app.Navigation.Navigate(typeof(FrontManagePage))));
+            await WaitForDispatcherAsync(hostWindow);
+            await observer.WaitForStartedAsync(TutorialPackageIds.FrontManageOverview, app.Dump);
+            await CompletePackageAsync(hostWindow, observer, TutorialPackageIds.FrontManageOverview, app.Dump);
+            var page = Assert.IsType<FrontManagePage>(app.Navigation.CurrentContent);
+            Assert.True(FrontManagePage.TryResolveCurrentChildTutorial(page.FrontManageTabs, out var childOwner, out var childPageKey));
+
+            Assert.True(NavigateIgnoringClosedLocalizationNotifications(
+                () => app.Navigation.Navigate(typeof(SmartBpPage))));
+            await WaitForDispatcherAsync(hostWindow);
+
+            TutorialPageLoader.RunPendingOnLoaded(childOwner, childPageKey, "Loaded");
+            await Task.Delay(300);
+
+            Assert.DoesNotContain(TutorialPackageIds.FrontManageWindowsBasic, observer.StartedPackageIds);
+            Assert.DoesNotContain(TutorialPackageIds.FrontManageLayoutPackagesBasic, observer.StartedPackageIds);
         }, TimeSpan.FromSeconds(20));
     }
 
@@ -369,6 +426,7 @@ public sealed class WpfTutorialNavigationIntegrationTest
         private readonly IHost _host;
         private readonly RecordingTutorialRunObserver _observer;
         private readonly DispatcherUnhandledExceptionEventHandler _dispatcherExceptionHandler;
+        private readonly EventHandler<NavigationPageChangedEventArgs> _pageChangedHandler;
 
         private RealAppTestHost(
             IHost? previousHost,
@@ -376,12 +434,14 @@ public sealed class WpfTutorialNavigationIntegrationTest
             RecordingTutorialRunObserver observer,
             Window hostWindow,
             ModernNavigationView navigation,
-            DispatcherUnhandledExceptionEventHandler dispatcherExceptionHandler)
+            DispatcherUnhandledExceptionEventHandler dispatcherExceptionHandler,
+            EventHandler<NavigationPageChangedEventArgs> pageChangedHandler)
         {
             _previousHost = previousHost;
             _host = host;
             _observer = observer;
             _dispatcherExceptionHandler = dispatcherExceptionHandler;
+            _pageChangedHandler = pageChangedHandler;
             HostWindow = hostWindow;
             Navigation = navigation;
         }
@@ -445,11 +505,26 @@ public sealed class WpfTutorialNavigationIntegrationTest
             };
             navigation.SetServiceProvider(host.Services);
             navigation.SetPageProviderService(host.Services.GetRequiredService<INavigationViewPageProvider>());
-            host.Services.GetRequiredService<INavigationService>().SetNavigationControl(navigation);
+            var navigationService = host.Services.GetRequiredService<neo_bpsys_wpf.Services.NavigationService>();
+            navigationService.SetNavigationControl(navigation);
+            EventHandler<NavigationPageChangedEventArgs> pageChangedHandler = (_, args) =>
+            {
+                if (args.PageType == typeof(FrontManagePage)
+                    && args.PageContent is FrontManagePage frontManagePage)
+                {
+                    ScheduleNavigationPageTutorial(frontManagePage, TutorialPageKeys.FrontManage);
+                }
+                else if (args.PageType == typeof(SmartBpPage)
+                    && args.PageContent is SmartBpPage smartBpPage)
+                {
+                    ScheduleNavigationPageTutorial(smartBpPage, TutorialPageKeys.SmartBp);
+                }
+            };
+            navigationService.PageChanged += pageChangedHandler;
             hostWindow.Content = navigation;
             hostWindow.Show();
             await WaitForDispatcherAsync(hostWindow);
-            return new RealAppTestHost(previousHost, host, observer, hostWindow, navigation, dispatcherExceptionHandler);
+            return new RealAppTestHost(previousHost, host, observer, hostWindow, navigation, dispatcherExceptionHandler, pageChangedHandler);
         }
 
         private static void EnsureLocalizationInitialized(DependencyObject root)
@@ -532,6 +607,7 @@ public sealed class WpfTutorialNavigationIntegrationTest
             finally
             {
                 HostWindow.Dispatcher.UnhandledException -= _dispatcherExceptionHandler;
+                _host.Services.GetRequiredService<neo_bpsys_wpf.Services.NavigationService>().PageChanged -= _pageChangedHandler;
                 IAppHost.Host = _previousHost;
                 _host.Dispose();
             }
@@ -552,6 +628,16 @@ public sealed class WpfTutorialNavigationIntegrationTest
             }
 
             return "<none>";
+        }
+
+        private static void ScheduleNavigationPageTutorial(FrameworkElement owner, string pageKey)
+        {
+            owner.Dispatcher.BeginInvoke(
+                DispatcherPriority.ContextIdle,
+                new Action(() => TutorialPageLoader.RunPendingOnLoaded(
+                    owner,
+                    pageKey,
+                    "NavigationPageChanged")));
         }
     }
 
@@ -593,6 +679,10 @@ public sealed class WpfTutorialNavigationIntegrationTest
         }
 
         public void OnAutoRunCompleted(string ownerType, string pageKey, TutorialRunResult result)
+        {
+        }
+
+        public void OnAutoRunRejectedInactiveOwner(string ownerType, string pageKey, string reason)
         {
         }
 

@@ -17,6 +17,12 @@ public interface ITutorialRunObserver
     /// <param name="result">Final run result.</param>
     void OnAutoRunCompleted(string ownerType, string pageKey, TutorialRunResult result);
 
+    /// <summary>Called when an automatic page or window tutorial run is rejected because the owner is inactive.</summary>
+    /// <param name="ownerType">Owner element type name.</param>
+    /// <param name="pageKey">Page key.</param>
+    /// <param name="reason">Diagnostic reason.</param>
+    void OnAutoRunRejectedInactiveOwner(string ownerType, string pageKey, string reason);
+
     /// <summary>Called when a pending package was selected for execution.</summary>
     /// <param name="packageId">Package id.</param>
     /// <param name="pageKey">Page key.</param>
@@ -93,6 +99,11 @@ public sealed class NoOpTutorialRunObserver : ITutorialRunObserver
 
     /// <inheritdoc />
     public void OnAutoRunCompleted(string ownerType, string pageKey, TutorialRunResult result)
+    {
+    }
+
+    /// <inheritdoc />
+    public void OnAutoRunRejectedInactiveOwner(string ownerType, string pageKey, string reason)
     {
     }
 

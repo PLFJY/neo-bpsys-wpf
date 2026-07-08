@@ -50,6 +50,8 @@ public static class TutorialPageLoader
 
             var service = IAppHost.Host.Services.GetRequiredService<ITutorialService>();
             var sequenceRegistry = IAppHost.Host.Services.GetService<ITutorialSequenceRegistry>();
+            var activationService = IAppHost.Host.Services.GetService<ITutorialOwnerActivationService>()
+                ?? new AlwaysActiveTutorialOwnerActivationService();
             observer = IAppHost.Host.Services.GetService<ITutorialRunObserver>();
             var sequenceDefinition = sequenceRegistry?.GetSequenceDefinition(pageKey)
                 ?? new TutorialSequenceDefinition { PageKey = pageKey };
@@ -57,7 +59,13 @@ public static class TutorialPageLoader
             observer?.OnAutoRunRequested(ownerType, pageKey, reason);
             observer?.OnSequenceResolved(pageKey, sequenceDefinition.PackageIds, strategy);
 
-            if (strategy != TutorialAutoRunStrategy.DrainSequence)
+            if (!IsOwnerActive(activationService, observer, owner, pageKey, ownerType, reason))
+            {
+                observer?.OnAutoRunCompleted(ownerType, pageKey, TutorialRunResult.Canceled);
+                return;
+            }
+
+            if (strategy == TutorialAutoRunStrategy.SinglePendingPackage)
             {
                 var result = await RunOnePendingPackageAsync(service, owner, pageKey);
                 observer?.OnAutoRunCompleted(ownerType, pageKey, result);
@@ -67,12 +75,38 @@ public static class TutorialPageLoader
             var finalResult = TutorialRunResult.NotPending;
             for (var completedPackages = 0; completedPackages < MaxDrainSequencePackages; completedPackages++)
             {
+                if (strategy == TutorialAutoRunStrategy.ContinueWhileActive
+                    && !IsOwnerActive(activationService, observer, owner, pageKey, ownerType, "Continuation"))
+                {
+                    observer?.OnAutoRunCompleted(ownerType, pageKey, TutorialRunResult.Canceled);
+                    return;
+                }
+
                 var result = await RunOnePendingPackageAsync(service, owner, pageKey);
                 finalResult = result;
                 if (result != TutorialRunResult.Completed)
                 {
                     observer?.OnAutoRunCompleted(ownerType, pageKey, result);
                     return;
+                }
+
+                if (strategy == TutorialAutoRunStrategy.ContinueWhileActive)
+                {
+                    await owner.Dispatcher.InvokeAsync(
+                        () => { },
+                        System.Windows.Threading.DispatcherPriority.ContextIdle);
+                    if (!IsOwnerActive(activationService, observer, owner, pageKey, ownerType, "Continuation"))
+                    {
+                        observer?.OnAutoRunCompleted(ownerType, pageKey, TutorialRunResult.Canceled);
+                        return;
+                    }
+
+                    var nextPending = await service.GetNextPendingPackageAsync(owner, pageKey);
+                    if (nextPending is null)
+                    {
+                        observer?.OnAutoRunCompleted(ownerType, pageKey, TutorialRunResult.NotPending);
+                        return;
+                    }
                 }
             }
 
@@ -103,5 +137,22 @@ public static class TutorialPageLoader
             owner,
             pageKey,
             TutorialTriggerMode.AutoOnLoaded);
+    }
+
+    private static bool IsOwnerActive(
+        ITutorialOwnerActivationService activationService,
+        ITutorialRunObserver? observer,
+        FrameworkElement owner,
+        string pageKey,
+        string ownerType,
+        string reason)
+    {
+        if (activationService.IsOwnerActive(owner, pageKey))
+        {
+            return true;
+        }
+
+        observer?.OnAutoRunRejectedInactiveOwner(ownerType, pageKey, reason);
+        return false;
     }
 }

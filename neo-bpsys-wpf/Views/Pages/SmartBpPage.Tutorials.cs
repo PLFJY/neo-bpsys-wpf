@@ -88,7 +88,8 @@ public partial class SmartBpPage
             TutorialPackages.RegionEditorBasic,
             TutorialPackages.FullBpFlowBasic,
             TutorialPackages.PostGameAutoFill
-        ]);
+        ],
+        TutorialAutoRunStrategy.ContinueWhileActive);
 
         registrar.RegisterPackage(CreateModuleShellPackage());
         registrar.RegisterPackage(CreateModuleContentOverviewPackage());

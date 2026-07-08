@@ -31,6 +31,7 @@ public partial class App
     {
         services.AddNavigationViewPageProvider();
         services.AddProductTour();
+        services.AddSingleton<ITutorialOwnerActivationService, NeoBpsysTutorialOwnerActivationService>();
         services.AddSingleton<ITutorialLanguageService, NeoBpsysTutorialLanguageService>();
         services.AddSingleton<ITutorialTextProvider, NeoBpsysTutorialTextProvider>();
         services.AddSingleton<ITutorialAvatarProvider, AliceTutorialAvatarProvider>();
@@ -48,7 +49,8 @@ public partial class App
         services.AddSingleton<IUpdaterService, UpdaterService>();
 
         // Service containing navigation, same as INavigationWindow... but without window
-        services.AddSingleton<INavigationService, Services.NavigationService>();
+        services.AddSingleton<Services.NavigationService>();
+        services.AddSingleton<INavigationService>(sp => sp.GetRequiredService<Services.NavigationService>());
 
         // SharedDataServices
         services.AddSingleton<ISharedDataService, SharedDataService>();

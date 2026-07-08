@@ -46,13 +46,13 @@
 | 字段 | 说明 |
 | --- | --- |
 | `Version` | 完成时的 package 或 flow 版本 |
-| `CompletionKind` | `Completed`、`Skipped` 或 `CoveredByFlow` |
+| `CompletionKind` | `Completed` 或 `CoveredByFlow` |
 | `SourceFlowId` | 被 flow 覆盖时记录来源 flow |
 | `CompletedAt` | 完成时间 |
 
 判断 pending 时必须比较版本。已完成或已被 flow 覆盖的 package，如果当前定义版本更高，仍应重新视为 pending。`Suppressed` 不写入状态，也不排队。
 
-首次总导览 `Flow.FirstRun.StandardBp` 完整完成后，会把 `IncludedPackageIds` 内的 package 标记为 `CoveredByFlow`。用户跳过 flow 时只标记 flow 为 `Skipped`，不得把 included package 标记为 `CoveredByFlow`。
+状态文件不保存“跳过”第三态。用户点击跳过只表示当前运行返回 `TutorialRunResult.Skipped` 并停止后续自动衔接；写入持久状态时按“已处理完成”归一。首次 Welcome 被跳过时，`Flow.FirstRun.StandardBp` 和 `IncludedPackageIds` 内的 package 都标记为 `Completed`，避免首次总导览包含的页面 package 后续再次弹出。普通 flow 完整完成时，会把 `IncludedPackageIds` 内的 package 标记为 `CoveredByFlow`；flow 运行中被用户跳过时，flow 和 included package 都标记为 `Completed`。
 
 ## 启动链路
 
@@ -112,7 +112,7 @@ Guide Character 通过 `ITutorialAvatarProvider` 注入。ProductTour 库只定�
 
 样式 key 至少覆盖 ProductTour overlay、spotlight、card、标题、正文、箭头、按钮、welcome、dialogue 和 confirm dialog。新增视觉元素时先考虑扩展样式资源，不要在控件代码中绑定主程序具体颜色。
 
-首次导览运行期间，所有可见教程层都必须有右上角固定“跳过”按钮，包括 Welcome、Dialogue 和 ProductTour step。点击跳过只显示 `SkipTutorialConfirmDialog`；取消确认后当前句子或当前步骤继续，确认后当前 overlay 淡出并返回 `Skipped`。Flow 收到 `Skipped` 后只标记 flow 为 `Skipped`，不得覆盖 `IncludedPackageIds`。
+首次导览运行期间，所有可见教程层都必须有右上角固定“跳过”按钮，包括 Welcome、Dialogue 和 ProductTour step。点击跳过只显示 `SkipTutorialConfirmDialog`；取消确认后当前句子或当前步骤继续，确认后当前 overlay 淡出并返回 `Skipped`。`Skipped` 只是运行结果，不写入 `TutorialCompletionRecord.CompletionKind`。
 
 ## UI 配置边界
 
@@ -136,7 +136,7 @@ ProductTour.xaml: 视觉样式、颜色、字体、边框、阴影
 
 ## Flow 与页面 package
 
-页面 `Loaded` 时调用：
+页面、Tab、窗口或子区域变成当前用户正在看的 active owner 后调用：
 
 ```csharp
 RunPendingPagePackagesAsync(owner, pageKey, TutorialTriggerMode.AutoOnLoaded)
@@ -144,11 +144,25 @@ RunPendingPagePackagesAsync(owner, pageKey, TutorialTriggerMode.AutoOnLoaded)
 
 运行规则：
 
-1. 按 `pageKey` 找到 package sequence。
-2. 按 `Sequence` 排序。
-3. 过滤已完成、已跳过或已被 flow 覆盖且版本已满足的 package。
-4. 找到第一个 pending package 后运行。
-5. 如果当前已有 flow、dialogue 或 product tour 正在运行，返回 `Suppressed`。
+1. 先通过 `ITutorialOwnerActivationService.IsOwnerActive(owner, pageKey)` 确认 owner 仍是 active owner。
+2. 按 `pageKey` 找到 package sequence。
+3. 按 `Sequence` 排序。
+4. 过滤已完成或已被 flow 覆盖且版本已满足的 package。
+5. 跳过当前 `CanRun=false` 的 package，找到第一个可运行 pending package 后运行。
+6. 如果当前已有 flow、dialogue 或 product tour 正在运行，返回 `Suppressed`。
+7. 如果 owner 已经 inactive，返回 `Canceled`，不显示 overlay，也不写完成状态。
+
+`Loaded` 和 `IsVisibleChanged` 只能作为辅助信号，不能代表用户正在看该 owner。主导航页应优先由 `NavigationService.PageChanged` 触发；FrontManage 子 view 应由当前 local tab 变更触发；SmartBP 的 `ModuleLoaded` 和 module content changed 只表示内容 ready，触发前仍必须通过 active owner 校验。
+
+ProductTour 项目只提供 `ITutorialOwnerActivationService` 和默认的 `AlwaysActiveTutorialOwnerActivationService`。主程序用 `NeoBpsysTutorialOwnerActivationService` 解释 neo-bpsys 的主导航页、FrontManage 当前 tab 和窗口可见性，ProductTour 项目不引用 `MainWindow`、`NavigationService` 或具体业务页面。
+
+自动运行策略：
+
+| 策略 | 语义 | 适用场景 |
+| --- | --- | --- |
+| `SinglePendingPackage` | 每次 active trigger 只运行一个 pending package。 | 主导航 overview，例如 `Page.FrontManage` |
+| `ContinueWhileActive` | package 正常 `Completed` 后，在同一个 owner 仍 active 且还有 pending package 时继续下一个；`Suppressed`、`Skipped`、`Canceled`、`TargetMissing`、`Failed` 都停止。 | 页面、Tab、模块，例如 FrontManage 子 view 和 SmartBP |
+| `DrainSequence` | 窗口打开后尽量跑完整个基础 sequence，直到没有 pending 或遇到非 Completed 结果。 | DesignerWindow、BehaviorPanel、AnimationEditor |
 
 Flow 内部引用 package 时使用 `TutorialTriggerMode.EmbeddedInFlow`，不受页面 auto loaded suppression 影响。Flow 运行中，页面切换产生的 auto loaded package 必须被 suppress，避免总导览过程中误弹页面教程。
 
@@ -237,11 +251,13 @@ TutorialFlowBuilder.Create(TutorialFlowIds.FirstRunStandardBp)
 
 前台管理、Designer v3 和 SmartBP 的复杂模块教程独立于首次标准 BP 主线：
 
-1. `Page.FrontManage` sequence 只在用户进入前台管理页时按 pending 状态运行，包含前台窗口管理、打开设计器和布局包管理。
-2. `Window.DesignerV3` sequence 只在用户首次打开 `FrontedDesignerWindow` 时运行；前台管理页的“打开设计器”步骤可以等待 `DesignerV3.Opened`，但用户仍可通过下一步继续。
-3. `Page.SmartBp` sequence 按 `SmartBpPageViewModel.IsModuleLoaded` 判断 pending。未加载模块时只运行模块壳教程；模块加载后运行模块内容、捕获、区域编辑和全流程 BP 入口教程。赛后自动回填教程只有在对应功能入口可见时才应 pending。
-4. 这些高级包不得加入 `Flow.FirstRun.StandardBp` 的 `IncludedPackageIds`，否则首次主线会错误地把未完整教学的功能标记为 `CoveredByFlow`。
-5. 复杂模块步骤默认使用 `ProductTourInteractionMode.AllowTargetOnly`，允许用户点击被高亮目标；文件选择、捕获、导入、保存、打开全部窗口和启动识别等动作不作为必须完成条件。
+1. `Page.FrontManage` sequence 只在用户进入前台管理页时运行 overview，策略为 `SinglePendingPackage`。
+2. `Page.FrontManage.Windows` 使用 `ContinueWhileActive`。FrontManage overview 已完成、跳过或被 flow 覆盖后，用户切到前台窗口 tab 时运行窗口基础教程；完成后如果仍停留在该 tab，会继续打开设计器和 BP 窗口启动教程。
+3. `Page.FrontManage.LayoutPackages` 使用 `ContinueWhileActive`。只有 FrontManage 仍是当前主导航页且布局包 tab 是当前 tab 时才运行。
+4. `Window.DesignerV3` sequence 只在用户首次打开 `FrontedDesignerWindow` 时运行，策略为 `DrainSequence`；前台管理页的“打开设计器”步骤可以等待 `DesignerV3.Opened`，但用户仍可通过下一步继续。
+5. `Page.SmartBp` 使用 `ContinueWhileActive`，按 `SmartBpPageViewModel.IsModuleLoaded` 判断 pending。未加载模块时只运行模块壳教程；模块加载后如果 SmartBP 仍是当前主导航页，继续运行模块内容、捕获、区域编辑和全流程 BP 入口教程。赛后自动回填教程只有在对应功能入口可见时才应 pending。
+6. 这些高级包不得加入 `Flow.FirstRun.StandardBp` 的 `IncludedPackageIds`，否则首次主线会错误地把未完整教学的功能标记为 `CoveredByFlow`。
+7. 复杂模块步骤默认使用 `ProductTourInteractionMode.AllowTargetOnly`，允许用户点击被高亮目标；文件选择、捕获、导入、保存、打开全部窗口和启动识别等动作不作为必须完成条件。
 
 ## 固定 UI 文案
 

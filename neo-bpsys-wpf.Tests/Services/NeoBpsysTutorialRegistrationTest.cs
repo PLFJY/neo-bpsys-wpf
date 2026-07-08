@@ -119,13 +119,13 @@ public sealed class NeoBpsysTutorialRegistrationTest
             TutorialAutoRunStrategy.SinglePendingPackage,
             sequenceRegistry.GetSequenceDefinition(TutorialPageKeys.FrontManage).AutoRunStrategy);
         Assert.Equal(
-            TutorialAutoRunStrategy.SinglePendingPackage,
+            TutorialAutoRunStrategy.ContinueWhileActive,
             sequenceRegistry.GetSequenceDefinition(FrontedWindowsView.TutorialPageKey).AutoRunStrategy);
         Assert.Equal(
-            TutorialAutoRunStrategy.SinglePendingPackage,
+            TutorialAutoRunStrategy.ContinueWhileActive,
             sequenceRegistry.GetSequenceDefinition(FrontedLayoutPackagesView.TutorialPageKey).AutoRunStrategy);
         Assert.Equal(
-            TutorialAutoRunStrategy.SinglePendingPackage,
+            TutorialAutoRunStrategy.ContinueWhileActive,
             sequenceRegistry.GetSequenceDefinition(TutorialPageKeys.SmartBp).AutoRunStrategy);
         Assert.Equal(55, packageRegistry.GetPackages().Count);
 

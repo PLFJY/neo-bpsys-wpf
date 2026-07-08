@@ -107,6 +107,7 @@ public sealed class TargetElementFinderTest
                 new DefaultTutorialTextProvider(),
                 new NoOpTutorialAvatarProvider(),
                 new NoOpTutorialRunObserver(),
+                new AlwaysActiveTutorialOwnerActivationService(),
                 new ProductTourOptions(),
                 logger);
             packageRegistry.Register(new TutorialPackageDefinition
