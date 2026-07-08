@@ -28,14 +28,14 @@ public partial class FrontManagePage : Page, IRecipient<FrontManageTabNavigation
             SymbolRegular.ShareScreenStart24,
             typeof(FrontedWindowsView))
         {
-            Name = TutorialTargetNames.FrontedWindowsTab
+            Name = "FrontedWindowsTab"
         });
         FrontManageTabs.MenuItems.Add(new NavigationViewItem(
             "LayoutPackages",
             SymbolRegular.AppsList24,
             typeof(FrontedLayoutPackagesView))
         {
-            Name = TutorialTargetNames.LayoutPackagesTab
+            Name = "LayoutPackagesTab"
         });
 
         Loaded += OnLoaded;

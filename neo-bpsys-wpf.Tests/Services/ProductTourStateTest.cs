@@ -117,6 +117,33 @@ public sealed class ProductTourStateTest
     }
 
     [Fact]
+    public async Task FlowCoveredPackageIsSkippedButUncoveredPagePackageRemainsPending()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var fixture = new Fixture();
+            fixture.RegisterPackage("Package.Basic", version: 1, pageKey: "Page.Test");
+            fixture.RegisterPackage("Package.Advanced", version: 1, pageKey: "Page.Test");
+            fixture.SequenceRegistry.RegisterSequence("Page.Test", ["Package.Basic", "Package.Advanced"]);
+            fixture.FlowRegistry.Register(new TutorialFlowDefinition
+            {
+                FlowId = "Flow.Test",
+                Version = 1,
+                IncludedPackageIds = ["Package.Basic"]
+            });
+
+            var flowResult = await fixture.Service.RunFlowAsync(CreateOwner(), "Flow.Test");
+            var pendingResult = await fixture.Service.RunPendingPagePackagesAsync(CreateOwner(), "Page.Test");
+            var state = await fixture.StateStore.LoadAsync();
+
+            Assert.Equal(TutorialRunResult.Completed, flowResult);
+            Assert.Equal(TutorialRunResult.Completed, pendingResult);
+            Assert.Equal(TutorialCompletionKind.CoveredByFlow, state.CompletedPackages["Package.Basic"].CompletionKind);
+            Assert.Equal(TutorialCompletionKind.Completed, state.CompletedPackages["Package.Advanced"].CompletionKind);
+        });
+    }
+
+    [Fact]
     public async Task FlowSkippedDoesNotCoverIncludedPackages()
     {
         await WpfTestThread.RunAsync(async () =>

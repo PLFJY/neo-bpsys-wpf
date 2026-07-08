@@ -314,7 +314,7 @@ public sealed class PackageFlowItem : TutorialFlowItem
 public sealed class DialogueFlowItem : TutorialFlowItem
 {
     /// <summary>Gets or sets the speaker name.</summary>
-    public string Speaker { get; init; } = "neo-bpsys-wpf";
+    public string Speaker { get; init; } = "Product tour";
 
     /// <summary>Gets or sets dialogue lines.</summary>
     public IReadOnlyList<string> Lines { get; init; } = [];

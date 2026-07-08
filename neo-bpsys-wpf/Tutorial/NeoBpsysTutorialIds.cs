@@ -8,10 +8,10 @@ public static class TutorialFlowIds
     /// <summary>The standard first-run BP tutorial flow id.</summary>
     public const string FirstRunStandardBp = "Flow.FirstRun.StandardBp";
 
-    /// <summary>Phase 4A navigation probe tutorial flow id.</summary>
+    /// <summary>Navigation probe tutorial flow id.</summary>
     public const string Phase4ANavigationProbe = "Flow.Phase4A.NavigationProbe";
 
-    /// <summary>Phase 4 real target probe tutorial flow id.</summary>
+    /// <summary>Real target probe tutorial flow id.</summary>
     public const string Phase4RealTargetProbe = "Flow.Phase4.RealTargetProbe";
 }
 

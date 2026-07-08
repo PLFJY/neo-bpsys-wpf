@@ -4,6 +4,7 @@ using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Tutorial;
 using neo_bpsys_wpf.ViewModels.Pages;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -274,7 +275,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
     [Fact]
     public void SmartBpPackageCanRunFollowsModuleLoadedState()
     {
-        var packages = NeoBpsysTutorialPackages.CreatePackages();
+        var packages = CreateRegisteredPackages();
         var shell = Assert.Single(packages, package => package.PackageId == TutorialPackageIds.SmartBpModuleShell);
         var contentPackageIds = new[]
         {
@@ -308,7 +309,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
     public void DesignerLayoutEditPreviewStepTargetsDesignerSurfaceFrame()
     {
         var package = Assert.Single(
-            NeoBpsysTutorialPackages.CreatePackages(),
+            CreateRegisteredPackages(),
             package => package.PackageId == TutorialPackageIds.DesignerV3LayoutEditBasic);
         var previewStep = Assert.Single(package.Steps, step => step.Title == "预览画布");
 
@@ -319,7 +320,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
     [Fact]
     public void DesignerTutorialStartsWithWelcomeAndEndsWithHelpButton()
     {
-        var packages = NeoBpsysTutorialPackages.CreatePackages();
+        var packages = CreateRegisteredPackages();
         var overview = Assert.Single(packages, package => package.PackageId == TutorialPackageIds.DesignerV3Overview);
         var importExport = Assert.Single(packages, package => package.PackageId == TutorialPackageIds.DesignerV3PackageImportExport);
 
@@ -341,7 +342,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
     public void FrontManageLayoutPackageTutorialExplainsBuiltInLayoutCopyBehavior()
     {
         var package = Assert.Single(
-            NeoBpsysTutorialPackages.CreatePackages(),
+            CreateRegisteredPackages(),
             package => package.PackageId == TutorialPackageIds.FrontManageLayoutPackagesBasic);
         var text = string.Join("\n", package.Steps.Select(step => step.Description));
 
@@ -353,7 +354,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
     public async Task TeamInfoJsonImportPresetUsesExamplesDirectoryForCommonJsonPicker()
     {
         var package = Assert.Single(
-            NeoBpsysTutorialPackages.CreatePackages(),
+            CreateRegisteredPackages(),
             package => package.PackageId == TutorialPackageIds.TeamInfoJsonImportPreset);
         Assert.Equal(4, package.Steps.Count);
 
@@ -378,6 +379,17 @@ public sealed class NeoBpsysTutorialRegistrationTest
 
     private static string[] GetPackageFlowItemIds(TutorialFlowDefinition flow) =>
         flow.Items.OfType<PackageFlowItem>().Select(item => item.PackageId).ToArray();
+
+    private static IReadOnlyCollection<TutorialPackageDefinition> CreateRegisteredPackages()
+    {
+        var packageRegistry = new TutorialPackageRegistry();
+        var sequenceRegistry = new TutorialSequenceRegistry();
+        var flowRegistry = new TutorialFlowRegistry();
+
+        NeoBpsysTutorialRegistration.Register(packageRegistry, sequenceRegistry, flowRegistry);
+
+        return packageRegistry.GetPackages();
+    }
 
     private sealed class EmptyServiceProvider : IServiceProvider
     {

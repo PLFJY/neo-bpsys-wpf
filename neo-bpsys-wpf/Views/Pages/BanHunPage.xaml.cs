@@ -21,7 +21,7 @@ public partial class BanHunPage : Page
         Loaded += (_, _) =>
         {
             TutorialSignalPublisher.Publish(TutorialSignalIds.NavigationBanHunterOpened);
-            TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.BpShared);
+            TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKey);
         };
     }
 }

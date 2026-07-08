@@ -96,11 +96,11 @@ public partial class PickPageViewModel : ViewModelBase
 
     /// <summary>获取主队全局禁选记录区的教程目标标记。</summary>
     public string HomeSurGlobalBanRecordTargetTag =>
-        HomeTeam.Camp == Camp.Sur ? TutorialTargetNames.CurrentSurvivorGlobalBanRecordPanel : string.Empty;
+        HomeTeam.Camp == Camp.Sur ? "CurrentSurvivorGlobalBanRecordPanel" : string.Empty;
 
     /// <summary>获取客队全局禁选记录区的教程目标标记。</summary>
     public string AwaySurGlobalBanRecordTargetTag =>
-        AwayTeam.Camp == Camp.Sur ? TutorialTargetNames.CurrentSurvivorGlobalBanRecordPanel : string.Empty;
+        AwayTeam.Camp == Camp.Sur ? "CurrentSurvivorGlobalBanRecordPanel" : string.Empty;
 
     /// <summary>求生者选择视图模型列表。</summary>
     public ObservableCollection<SurPickViewModel> SurPickViewModelList { get; set; }

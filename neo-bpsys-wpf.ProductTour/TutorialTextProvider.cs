@@ -81,10 +81,10 @@ public sealed class DefaultTutorialTextProvider : ITutorialTextProvider
     public string ClickToContinue => "点击继续";
 
     /// <inheritdoc />
-    public string WelcomeTitle => "欢迎来到 neo-bpsys-wpf";
+    public string WelcomeTitle => "欢迎使用应用";
 
     /// <inheritdoc />
-    public string WelcomeDescription => "在开始之前，请先完成一次简短的导播教学。";
+    public string WelcomeDescription => "在开始之前，请先完成一次简短的功能导览。";
 
     /// <inheritdoc />
     public string LanguageLabel => "界面语言";

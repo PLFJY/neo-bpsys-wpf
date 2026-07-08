@@ -21,7 +21,7 @@ public partial class PickPage : Page
         Loaded += (_, _) =>
         {
             TutorialSignalPublisher.Publish(TutorialSignalIds.NavigationPickCharacterOpened);
-            TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.BpShared);
+            TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKey);
         };
     }
 }

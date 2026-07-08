@@ -21,7 +21,7 @@ public partial class BanSurPage : Page
         Loaded += (_, _) =>
         {
             TutorialSignalPublisher.Publish(TutorialSignalIds.NavigationBanSurvivorOpened);
-            TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.BpShared);
+            TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKey);
         };
     }
 }

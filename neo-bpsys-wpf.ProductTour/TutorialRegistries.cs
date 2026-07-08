@@ -105,3 +105,69 @@ public sealed class TutorialFlowRegistry : ITutorialFlowRegistry
     /// <inheritdoc />
     public IReadOnlyCollection<TutorialFlowDefinition> GetFlows() => _flows.Values;
 }
+
+/// <summary>
+/// Provides a single registration surface for tutorial definitions.
+/// </summary>
+public interface ITutorialDefinitionRegistrar
+{
+    /// <summary>
+    /// Registers a tutorial package definition.
+    /// </summary>
+    /// <param name="package">Package definition to register.</param>
+    void RegisterPackage(TutorialPackageDefinition package);
+
+    /// <summary>
+    /// Registers package ids for a page or window key.
+    /// </summary>
+    /// <param name="pageKey">Page or window key.</param>
+    /// <param name="packageIds">Package ids in sequence order.</param>
+    void RegisterSequence(string pageKey, IEnumerable<string> packageIds);
+
+    /// <summary>
+    /// Registers a tutorial flow definition.
+    /// </summary>
+    /// <param name="flow">Flow definition to register.</param>
+    void RegisterFlow(TutorialFlowDefinition flow);
+}
+
+/// <summary>
+/// Default tutorial definition registrar backed by the package, sequence, and flow registries.
+/// </summary>
+public sealed class TutorialDefinitionRegistrar : ITutorialDefinitionRegistrar
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TutorialDefinitionRegistrar"/> class.
+    /// </summary>
+    /// <param name="packageRegistry">Package registry.</param>
+    /// <param name="sequenceRegistry">Sequence registry.</param>
+    /// <param name="flowRegistry">Flow registry.</param>
+    public TutorialDefinitionRegistrar(
+        ITutorialPackageRegistry packageRegistry,
+        ITutorialSequenceRegistry sequenceRegistry,
+        ITutorialFlowRegistry flowRegistry)
+    {
+        PackageRegistry = packageRegistry;
+        SequenceRegistry = sequenceRegistry;
+        FlowRegistry = flowRegistry;
+    }
+
+    /// <summary>Gets the package registry.</summary>
+    public ITutorialPackageRegistry PackageRegistry { get; }
+
+    /// <summary>Gets the page sequence registry.</summary>
+    public ITutorialSequenceRegistry SequenceRegistry { get; }
+
+    /// <summary>Gets the flow registry.</summary>
+    public ITutorialFlowRegistry FlowRegistry { get; }
+
+    /// <inheritdoc />
+    public void RegisterPackage(TutorialPackageDefinition package) => PackageRegistry.Register(package);
+
+    /// <inheritdoc />
+    public void RegisterSequence(string pageKey, IEnumerable<string> packageIds) =>
+        SequenceRegistry.RegisterSequence(pageKey, packageIds);
+
+    /// <inheritdoc />
+    public void RegisterFlow(TutorialFlowDefinition flow) => FlowRegistry.Register(flow);
+}

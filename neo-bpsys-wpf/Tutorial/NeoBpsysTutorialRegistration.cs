@@ -1,4 +1,7 @@
 using neo_bpsys_wpf.ProductTour;
+using neo_bpsys_wpf.Views.Pages;
+using neo_bpsys_wpf.Views.Pages.FrontManage;
+using neo_bpsys_wpf.Views.Windows;
 
 namespace neo_bpsys_wpf.Tutorial;
 
@@ -18,8 +21,23 @@ public static class NeoBpsysTutorialRegistration
         ITutorialSequenceRegistry sequenceRegistry,
         ITutorialFlowRegistry flowRegistry)
     {
-        NeoBpsysTutorialSequences.Register(sequenceRegistry);
-        NeoBpsysTutorialPackages.Register(packageRegistry);
+        var registrar = new TutorialDefinitionRegistrar(packageRegistry, sequenceRegistry, flowRegistry);
+
+        MainWindow.RegisterTutorials(registrar);
+
+        FrontManagePage.RegisterTutorials(registrar);
+        FrontedWindowsView.RegisterTutorials(registrar);
+        FrontedLayoutPackagesView.RegisterTutorials(registrar);
+        FrontedDesignerWindow.RegisterTutorials(registrar);
+
+        TeamInfoPage.RegisterTutorials(registrar);
+        BanSurPage.RegisterTutorials(registrar);
+        BanHunPage.RegisterTutorials(registrar);
+        PickPage.RegisterTutorials(registrar);
+        ScorePage.RegisterTutorials(registrar);
+        SmartBpPage.RegisterTutorials(registrar);
+
+        FirstRunStandardBpTour.RegisterTutorials(registrar);
         NeoBpsysTutorialFlows.Register(flowRegistry);
     }
 }
