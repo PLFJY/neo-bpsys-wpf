@@ -7,6 +7,7 @@ using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Events;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.Tutorial;
 using neo_bpsys_wpf.ViewModels.Windows;
 using System.Collections.Specialized;
@@ -38,6 +39,7 @@ public partial class FrontedDesignerWindow : FluentWindow
     private readonly FrontedBindingBrowserProvider? _bindingBrowserProvider;
     private readonly FrontedResourceBrowserProvider? _resourceBrowserProvider;
     private readonly FrontedPackageFontManagerWindowViewModel? _packageFontManagerViewModel;
+    private readonly ITutorialRunner? _tutorialRunner;
     private readonly ILogger<FrontedDesignerWindow>? _logger;
     private DispatcherTimer? _propertyAutoCommitTimer;
     private FrameworkElement? _pendingAutoCommitEditor;
@@ -108,6 +110,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         FrontedBindingBrowserProvider bindingBrowserProvider,
         FrontedResourceBrowserProvider resourceBrowserProvider,
         FrontedPackageFontManagerWindowViewModel packageFontManagerViewModel,
+        ITutorialRunner tutorialRunner,
         ILogger<FrontedDesignerWindow> logger,
         ISettingsHostService settingsHostService)
     {
@@ -117,6 +120,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         _bindingBrowserProvider = bindingBrowserProvider;
         _resourceBrowserProvider = resourceBrowserProvider;
         _packageFontManagerViewModel = packageFontManagerViewModel;
+        _tutorialRunner = tutorialRunner;
         _logger = logger;
 
         InitializeComponent();
@@ -161,7 +165,8 @@ public partial class FrontedDesignerWindow : FluentWindow
     {
         _isLoaded = true;
         TutorialSignalPublisher.Publish(TutorialSignalIds.DesignerV3Opened);
-        TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.DesignerV3, "WindowLoaded");
+        _ = (_tutorialRunner ?? IAppHost.Host?.Services.GetService(typeof(ITutorialRunner)) as ITutorialRunner)
+            ?.RunUntilBlockedAsync(this, TutorialPageKeys.DesignerV3);
         AttachViewModel();
         _ = LoadInitialLayoutAsync();
     }
@@ -1327,10 +1332,11 @@ public partial class FrontedDesignerWindow : FluentWindow
                 if (FindVisibleDescendant<neo_bpsys_wpf.Views.FrontedDesigner.BehaviorPanelView>(BehaviorExpander)
                     is { } panel)
                 {
-                    TutorialPageLoader.RunPendingOnLoaded(
+                    var runner = _tutorialRunner
+                        ?? IAppHost.Host?.Services.GetService(typeof(ITutorialRunner)) as ITutorialRunner;
+                    _ = runner?.RunUntilBlockedAsync(
                         panel,
-                        neo_bpsys_wpf.Views.FrontedDesigner.BehaviorPanelView.TutorialPageKey,
-                        "Expanded");
+                        neo_bpsys_wpf.Views.FrontedDesigner.BehaviorPanelView.TutorialPageKey);
                 }
             }));
     }

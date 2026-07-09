@@ -4,8 +4,10 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Threading;
 using neo_bpsys_wpf.Controls.Modern.Scrolling;
+using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.Tutorial;
 using neo_bpsys_wpf.ViewModels.FrontedDesigner;
 using neo_bpsys_wpf.Views.FrontedDesigner.GraphEditor;
@@ -16,13 +18,22 @@ namespace neo_bpsys_wpf.Views.Windows;
 
 public partial class FrontedBehaviorAnimationEditorWindow : FluentWindow
 {
+    private readonly ITutorialRunner? _tutorialRunner;
     private FrontedBehaviorAnimationHelpWindow? _helpWindow;
     private bool _forceClose;
     private bool _isClosePromptOpen;
     private bool _discardedBeforeClose;
 
-    public FrontedBehaviorAnimationEditorWindow(FrontedBehaviorAnimationEditorViewModel viewModel)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FrontedBehaviorAnimationEditorWindow"/> class.
+    /// </summary>
+    /// <param name="viewModel">Animation editor view model.</param>
+    /// <param name="tutorialRunner">Tutorial runner.</param>
+    public FrontedBehaviorAnimationEditorWindow(
+        FrontedBehaviorAnimationEditorViewModel viewModel,
+        ITutorialRunner? tutorialRunner = null)
     {
+        _tutorialRunner = tutorialRunner;
         InitializeComponent();
         DataContext = viewModel;
         Title = viewModel.Title;
@@ -41,7 +52,15 @@ public partial class FrontedBehaviorAnimationEditorWindow : FluentWindow
             AnimationTabs.SelectFirstItemIfNoneSelected();
             Dispatcher.BeginInvoke(
                 DispatcherPriority.ContextIdle,
-                new Action(() => TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKey, "WindowLoaded")));
+                new Action(async () =>
+                {
+                    var runner = _tutorialRunner
+                        ?? IAppHost.Host?.Services.GetService(typeof(ITutorialRunner)) as ITutorialRunner;
+                    if (runner != null)
+                    {
+                        await runner.RunUntilBlockedAsync(this, TutorialPageKey);
+                    }
+                }));
         };
         Closed += OnClosed;
     }

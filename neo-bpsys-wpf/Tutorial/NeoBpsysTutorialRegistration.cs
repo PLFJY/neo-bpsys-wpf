@@ -22,26 +22,26 @@ public static class NeoBpsysTutorialRegistration
         ITutorialSequenceRegistry sequenceRegistry,
         ITutorialFlowRegistry flowRegistry)
     {
-        var registrar = new TutorialDefinitionRegistrar(packageRegistry, sequenceRegistry, flowRegistry);
+        var builder = new TutorialBuilder(packageRegistry, sequenceRegistry, flowRegistry);
 
-        MainWindow.RegisterTutorials(registrar);
+        builder.RegisterOwner<MainWindow>();
 
-        FrontManagePage.RegisterTutorials(registrar);
-        FrontedWindowsView.RegisterTutorials(registrar);
-        FrontedLayoutPackagesView.RegisterTutorials(registrar);
-        FrontedDesignerWindow.RegisterTutorials(registrar);
-        BehaviorPanelView.RegisterTutorials(registrar);
-        FrontedBehaviorAnimationEditorWindow.RegisterTutorials(registrar);
+        builder.RegisterOwner<FrontManagePage>();
+        builder.RegisterOwner<FrontedWindowsView>();
+        builder.RegisterOwner<FrontedLayoutPackagesView>();
+        builder.RegisterOwner<FrontedDesignerWindow>();
+        builder.RegisterOwner<BehaviorPanelView>();
+        builder.RegisterOwner<FrontedBehaviorAnimationEditorWindow>();
 
-        TeamInfoPage.RegisterTutorials(registrar);
-        BanSurPage.RegisterTutorials(registrar);
-        BanHunPage.RegisterTutorials(registrar);
-        PickPage.RegisterTutorials(registrar);
-        TalentPage.RegisterTutorials(registrar);
-        ScorePage.RegisterTutorials(registrar);
-        SmartBpPage.RegisterTutorials(registrar);
+        builder.RegisterOwner<TeamInfoPage>();
+        builder.RegisterOwner<BanSurPage>();
+        builder.RegisterOwner<BanHunPage>();
+        builder.RegisterOwner<PickPage>();
+        builder.RegisterOwner<TalentPage>();
+        builder.RegisterOwner<ScorePage>();
+        builder.RegisterOwner<SmartBpPage>();
 
-        FirstRunStandardBpTour.RegisterTutorials(registrar);
-        NeoBpsysTutorialFlows.Register(flowRegistry);
+        builder.RegisterApp<App>();
+        NeoBpsysTutorialFlows.Register(builder);
     }
 }

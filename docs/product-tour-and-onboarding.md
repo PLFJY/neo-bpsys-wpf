@@ -136,118 +136,116 @@ ProductTour.xaml: 视觉样式、颜色、字体、边框、阴影
 
 ## Flow 与页面 package
 
-页面、Tab、窗口或子区域变成当前用户正在看的 active owner 后调用：
+页面、Tab、窗口或子区域确认自己仍是当前用户正在看的 active owner 后调用：
 
 ```csharp
-RunPendingPagePackagesAsync(owner, pageKey, TutorialTriggerMode.AutoOnLoaded)
+await tutorialRunner.TryRunNextPackageAsync(owner, pageKey);
 ```
 
 运行规则：
 
-1. 先通过 `ITutorialOwnerActivationService.IsOwnerActive(owner, pageKey)` 确认 owner 仍是 active owner。
+1. 调用方先判断 owner 是否仍是当前 active owner；ProductTour runtime 不判断主导航页、FrontManage tab、SmartBP 模块状态或其他业务 UI 状态。
 2. 按 `pageKey` 找到 package sequence。
 3. 按 `Sequence` 排序。
 4. 过滤已完成或已被 flow 覆盖且版本已满足的 package。
 5. 跳过当前 `CanRun=false` 的 package，找到第一个可运行 pending package 后运行。
 6. 如果当前已有 flow、dialogue 或 product tour 正在运行，返回 `Suppressed`。
-7. 如果 owner 已经 inactive，返回 `Canceled`，不显示 overlay，也不写完成状态。
+7. 不自动循环；需要连续运行时由调用方使用 `RunUntilBlockedAsync(owner, pageKey)`。
 
 `Loaded` 和 `IsVisibleChanged` 只能作为辅助信号，不能代表用户正在看该 owner。主导航页应优先由 `NavigationService.PageChanged` 触发；FrontManage 子 view 应由当前 local tab 变更触发；SmartBP 的 `ModuleLoaded` 和 module content changed 只表示内容 ready，触发前仍必须通过 active owner 校验。
 
-ProductTour 项目只提供 `ITutorialOwnerActivationService` 和默认的 `AlwaysActiveTutorialOwnerActivationService`。主程序用 `NeoBpsysTutorialOwnerActivationService` 解释 neo-bpsys 的主导航页、FrontManage 当前 tab 和窗口可见性，ProductTour 项目不引用 `MainWindow`、`NavigationService` 或具体业务页面。
+ProductTour 项目不提供 owner activation service。主程序页面、窗口或子 view 在各自 code-behind 内解释 neo-bpsys 的主导航页、FrontManage 当前 tab、窗口可见性和 SmartBP 内容状态；通过校验后才调用 `ITutorialRunner`。
 
 自动运行策略：
 
 | 策略 | 语义 | 适用场景 |
 | --- | --- | --- |
 | `SinglePendingPackage` | 每次 active trigger 只运行一个 pending package。 | 主导航 overview，例如 `Page.FrontManage` |
-| `ContinueWhileActive` | package 正常 `Completed` 后，在同一个 owner 仍 active 且还有 pending package 时继续下一个；`Suppressed`、`Skipped`、`Canceled`、`TargetMissing`、`Failed` 都停止。 | 页面、Tab、模块，例如 FrontManage 子 view 和 SmartBP |
+| `ContinueWhileActive` | 调用方确认 owner active 后使用 `RunUntilBlockedAsync` 连续运行；`Suppressed`、`Skipped`、`Canceled`、`TargetMissing`、`Failed` 都停止。 | 页面、Tab、模块，例如 FrontManage 子 view 和 SmartBP |
 | `DrainSequence` | 窗口打开后尽量跑完整个基础 sequence，直到没有 pending 或遇到非 Completed 结果。 | DesignerWindow、BehaviorPanel、AnimationEditor |
+
+`ITutorialRunner` 是页面、窗口和设置入口应使用的运行边界。它会在运行前检查 pending 状态，已完成的 package 或 flow 返回 `CompletedAlready`，不会重新弹出；`RunUntilBlockedAsync(owner, pageKey)` 用于 Designer、BehaviorPanel、AnimationEditor 这类需要在同一 active owner 内连续跑完基础 sequence 的窗口或区域。
 
 Flow 内部引用 package 时使用 `TutorialTriggerMode.EmbeddedInFlow`，不受页面 auto loaded suppression 影响。Flow 运行中，页面切换产生的 auto loaded package 必须被 suppress，避免总导览过程中误弹页面教程。
 
 ## 注册与 Builder
+
+主程序内置教程注册以 owner 为边界。页面、窗口或区域实现 `ITutorialOwner<TSelf>`，在静态 `RegisterTutorials(ITutorialBuilder builder)` 中注册自己的 package；应用级首次导览实现 `IAppTutorial<App>`，当前入口是 `App.Tour.xaml.cs`。`NeoBpsysTutorialRegistration.Register(...)` 只负责创建 `TutorialBuilder` 并调度 owner/app/flow 注册，不再保留旧 registrar、definition helper 或低层 builder 兼容入口。
 
 主程序内置教程注册拆分在 `neo-bpsys-wpf/Tutorial` 下：
 
 | 文件 | 职责 |
 | --- | --- |
 | `NeoBpsysTutorialIds.cs` | 集中维护 flow、page、package、signal、target 的稳定字符串常量 |
-| `NeoBpsysTutorialRegistration.cs` | 总入口，只调度 sequence、package、flow 注册 |
-| `NeoBpsysTutorialSequences.cs` | 注册 `PageKey -> package sequence` |
-| `NeoBpsysTutorialPackages.cs` | 注册 package definitions |
-| `NeoBpsysTutorialFlows.cs` | 注册 `Flow.FirstRun.StandardBp`、导航验证 flow 和真实目标验证 flow，只引用 package id |
+| `NeoBpsysTutorialRegistration.cs` | 总入口，只调度 owner、app、flow 注册 |
+| `*.Tutorials.cs` | 各 owner 自己声明 package refs、sequence 和步骤 |
+| `NeoBpsysTutorialFlows.cs` | 注册导航验证 flow 和真实目标验证 flow，只引用 `TutorialPackageRef`；标准首次导览 flow 由 `App.Tour.xaml.cs` 注册 |
 | `NeoBpsysTutorialTexts.cs` | 临时集中 package 标题、说明和 fallback 文案 |
 
-新增教程包时优先使用常量，不要在注册代码里继续散落裸字符串。已有 ID 的字符串值用于持久化状态兼容，不得随意改名。
+新增教程包时，owner 应公开 `Tours` 静态类，成员类型为 `TutorialPackageRef`。已有 ID 的字符串值用于持久化状态兼容，不得随意改名。
 
-`neo-bpsys-wpf.ProductTour` 提供轻量 Builder API，生成的仍是普通 definition 对象：
-
-```csharp
-TutorialPackageBuilder.Create(TutorialPackageIds.TeamInfoTeamNameBasic)
-    .ForPage(TutorialPageKeys.TeamInfo)
-    .Version(1)
-    .Sequence(100)
-    .Step(TutorialTargetNames.TeamNameInput)
-        .Title("填写队伍名称")
-        .Description("这里可以设置队伍名称。先试着输入一个队伍名。")
-        .Placement(ProductTourPlacement.Auto)
-        .Interaction(ProductTourInteractionMode.AllowTargetOnly)
-        .WaitForSignal(TutorialSignalIds.TeamNameConfirmed)
-        .AllowMissingTarget()
-        .EndStep()
-    .Build();
-```
-
-动态导航项应使用 `StepNavigationItem(...)`，不要依赖菜单显示文本或给动态生成的 `NavigationViewItem` 写死 `x:Name`：
+Owner package 示例：
 
 ```csharp
-TutorialPackageBuilder.Create(TutorialPackageIds.MainNavigationTeamInfo)
-    .ForPage(TutorialPageKeys.Main)
-    .StepNavigationItem(typeof(TeamInfoPage).FullName!)
-        .Title("进入队伍管理")
-        .Description("先进入队伍管理页面，我们会设置本次教学使用的队伍。")
-        .Interaction(ProductTourInteractionMode.AllowTargetOnly)
-        .WaitForSignal(TutorialSignalIds.NavigationTeamInfoOpened)
-        .EndStep()
-    .Build();
+public static class Tours
+{
+    public static readonly TutorialPackageRef TeamNameBasic =
+        new(TutorialPackageIds.TeamInfoTeamNameBasic);
+}
+
+public static void RegisterTutorials(ITutorialBuilder builder)
+{
+    builder.ForPage<TeamInfoPage>()
+        .Package(Tours.TeamNameBasic)
+            .Step(nameof(HomeTeamNameInput), "填写队伍名称", "这里可以设置队伍名称。")
+            .Action(nameof(HomeTeamNameConfirmButton), "确认队伍名称", "点击确认后写入当前比赛数据。")
+                .WaitFor(TutorialSignalIds.TeamNameConfirmed)
+            .Build();
+}
 ```
 
-DataTemplate 内的目标应使用 `StepDescendantType(...)` 指向稳定 host 下的第一个指定类型控件：
+动态导航项应使用 `.Navigation<TPage>(...)`，不要依赖菜单显示文本或给动态生成的 `NavigationViewItem` 写死 `x:Name`：
 
 ```csharp
-TutorialPackageBuilder.Create(TutorialPackageIds.BpCharacterSelectorBasic)
-    .ForPage(TutorialPageKeys.BpShared)
-    .StepDescendantType(
-        TutorialTargetNames.FirstBanSurvivorSelectorHost,
-        typeof(CharacterSelector).FullName!)
-        .Title("角色选择器")
-        .Description("输入后按空格可以搜索，按 Enter / Tab 或点击确认完成选择。")
-        .Interaction(ProductTourInteractionMode.AllowTargetOnly)
-        .WaitForSignal(TutorialSignalIds.CharacterSelectorSelectionConfirmed)
-        .EndStep()
-    .Build();
+builder.ForWindow<MainWindow>()
+    .Package(MainWindow.Tours.NavigationTeamInfo)
+        .Navigation<TeamInfoPage>("进入队伍管理", "先进入队伍管理页面，我们会设置本次教学使用的队伍。")
+            .WaitFor(TutorialSignalIds.NavigationTeamInfoOpened)
+        .Build();
 ```
 
-DataTemplate 内有稳定业务 ID 的控件可使用 `StepElementTag(...)`。例如前台管理页的卡片“打开”按钮把 `Tag` 绑定到前台窗口 `WindowId`；BP 前台窗口教程使用 `FrontedWindowHelper.GetFrontedWindowGuid(FrontedWindowType.BpWindow)` 定位单个 BP Window 按钮，不指向“打开全部”按钮。
+DataTemplate 内的目标应使用 `.Descendant<TControl>(...)` 或 `.DescendantAction<TControl>(...)` 指向稳定 host 下的第一个指定类型控件：
+
+```csharp
+builder.ForPage<BanSurPage>()
+    .Package(BanSurPage.Tours.CharacterSelectorBasic)
+        .DescendantAction<CharacterSelector>(
+            nameof(FirstBanSurvivorSelectorHost),
+            "角色选择器",
+            "输入后按空格可以搜索，按 Enter / Tab 或点击确认完成选择。")
+            .WaitFor(TutorialSignalIds.CharacterSelectorSelectionConfirmed)
+        .Build();
+```
+
+DataTemplate 内有稳定业务 ID 的控件可使用 `.Tag(...)` 或 `.TagAction(...)`。例如前台管理页的卡片“打开”按钮把 `Tag` 绑定到前台窗口 `WindowId`；BP 前台窗口教程使用 `FrontedWindowHelper.GetFrontedWindowGuid(FrontedWindowType.BpWindow)` 定位单个 BP Window 按钮，不指向“打开全部”按钮。
+
+Authoring API 使用 `TutorialPackageRef` 引用 package。`builder.Flow(...).Step(MainWindow.Tours.NavigationFrontManage)` 会自动维护 `IncludedPackageIds`，并在 build 时校验引用的 package 已注册、不是 fallback package。Owner builder 只在同一个 owner authoring 链条内拒绝重复主内容，低层 registry 不做全局重复判定，以免误伤合法的分段教学。
 
 Flow Builder 用于串联 dialogue 和 package 引用，不复制 package 内部步骤：
 
 ```csharp
-TutorialFlowBuilder.Create(TutorialFlowIds.FirstRunStandardBp)
+builder.Flow(TutorialFlowIds.FirstRunStandardBp)
     .Version(1)
-    .Include(TutorialPackageIds.MainNavigationFrontManage)
-    .Include(TutorialPackageIds.FrontManageBpWindowLaunchBasic)
-    .Dialogue("neo-bpsys-wpf", "欢迎来到 neo-bpsys-wpf。")
-    .Package(TutorialPackageIds.MainNavigationFrontManage)
-    .Package(TutorialPackageIds.FrontManageBpWindowLaunchBasic)
-    .Item(MainWindowActivate)
-    .Package(TutorialPackageIds.MainNavigationTeamInfo)
-    .Package(TutorialPackageIds.TeamInfoTeamNameBasic)
+    .Step(new DialogueFlowItem { Speaker = "neo-bpsys-wpf", Lines = ["欢迎来到 neo-bpsys-wpf。"] })
+    .Step(MainWindow.Tours.NavigationFrontManage)
+    .Step(FrontedWindowsView.Tours.BpWindowLaunchBasic)
+    .Step(MainWindowActivate)
+    .Step(MainWindow.Tours.NavigationTeamInfo)
+    .Step(TeamInfoPage.Tours.TeamNameBasic)
     .Build();
 ```
 
-`IncludedPackageIds` 可以集中维护覆盖状态，但不能用 `foreach IncludedPackageIds` 自动生成 flow items。正式标准 BP 总导览当前顺序是：前台管理打开 BP Window、进入队伍管理、队名与 MainWindow 顶部队伍摘要、预设队伍导入与选手管理、BO1 上半与开启对局引导、Ban 求生角色选择器、Pick 与全局禁选、比分、新建对局与全局禁选继承，最后只简单说明 v3 编辑器和智慧 BP 的独立教程。
+`IncludedPackageIds` 由 flow builder 根据 `TutorialPackageRef` 自动生成，用于覆盖状态；仍不能反过来用 `foreach IncludedPackageIds` 自动生成 flow items。正式标准 BP 总导览当前顺序是：前台管理打开 BP Window、进入队伍管理、队名与 MainWindow 顶部队伍摘要、预设队伍导入与选手管理、BO1 上半与开启对局引导、Ban 求生角色选择器、Pick 与全局禁选、比分、新建对局与全局禁选继承，最后只简单说明 v3 编辑器和智慧 BP 的独立教程。
 
 前台管理、Designer v3 和 SmartBP 的复杂模块教程独立于首次标准 BP 主线：
 
@@ -267,18 +265,9 @@ package 的业务标题和说明暂时仍在 `NeoBpsysTutorialTexts.cs` 中维�
 
 ## 页面接入
 
-旧的 code-behind 入口 `TutorialPageLoader.RunPendingOnLoaded(owner, pageKey)` 继续保留。新页面可以优先使用 attached property 声明：
+已迁移的主线页面、FrontManage 子 view、Designer v3、BehaviorPanel、AnimationEditor 和 SmartBP 都通过 DI 获取 `ITutorialRunner`，并在确认当前 owner 仍 active 后调用 runner。旧 `TutorialPageLoader` 和 attached property 入口已删除，不再保留兼容层。
 
-```xaml
-<Page
-    xmlns:tour="clr-namespace:neo_bpsys_wpf.Tutorial"
-    xmlns:tutorial="clr-namespace:neo_bpsys_wpf.Tutorial"
-    tour:Tutorial.PageKey="{x:Static tutorial:TutorialPageKeys.TeamInfo}"
-    tour:Tutorial.AutoRunOnLoaded="True">
-</Page>
-```
-
-attached property 内部仍通过 `IAppHost.Host` 获取 `ITutorialService`，避免每个页面 code-behind 重复写静态服务查找。不要为了接入教程把 WPF `Page` 嵌入普通 `ContentControl` 或 `Grid`；页面承载规则仍遵循仓库 WPF 页面约束。
+不要为了接入教程把 WPF `Page` 嵌入普通 `ContentControl` 或 `Grid`；页面承载规则仍遵循仓库 WPF 页面约束。
 
 ## Signal 边界
 
@@ -357,7 +346,7 @@ Product Tour 只负责“告诉用户做什么”和“等待用户完成动作�
 
 1. 添加新的 `TutorialPackageDefinition`，使用稳定 `PackageId` 和递增 `Version`。
 2. 注册到对应 `PageKey` 的 sequence。
-3. 页面 `Loaded` 调用 pending package 运行入口。
+3. 页面、窗口或区域在 active trigger 中调用 `ITutorialRunner.TryRunNextPackageAsync(...)` 或 `RunUntilBlockedAsync(...)`。
 4. 交互步骤所需的业务动作发布 signal。
 5. 如果首次总导览需要覆盖该教程，只把 package id 加入 `IncludedPackageIds` 并用 `PackageFlowItem` 引用。
 6. 不复制已有教程步骤到 flow。

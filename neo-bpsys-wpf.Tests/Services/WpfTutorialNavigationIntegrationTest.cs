@@ -59,7 +59,6 @@ public sealed class WpfTutorialNavigationIntegrationTest
 
             var page = Assert.IsType<FrontManagePage>(navigation.CurrentContent);
             Assert.True(FrontManagePage.RunCurrentChildTutorial(page.FrontManageTabs));
-            await observer.WaitForAutoRunAsync("FrontedWindowsView", FrontedWindowsView.TutorialPageKey, app.Dump);
             await observer.WaitForStartedAsync(TutorialPackageIds.FrontManageWindowsBasic, app.Dump);
             await CompletePackageAsync(hostWindow, observer, TutorialPackageIds.FrontManageWindowsBasic, app.Dump);
 
@@ -89,7 +88,6 @@ public sealed class WpfTutorialNavigationIntegrationTest
             NavigateIgnoringClosedLocalizationNotifications(
                 () => page.FrontManageTabs.Navigate(typeof(FrontedLayoutPackagesView)));
             await WaitForDispatcherAsync(hostWindow);
-            await observer.WaitForAutoRunAsync("FrontedLayoutPackagesView", FrontedLayoutPackagesView.TutorialPageKey, app.Dump);
             await CompleteIfAlreadyStartedAsync(
                 hostWindow,
                 observer,
@@ -130,15 +128,15 @@ public sealed class WpfTutorialNavigationIntegrationTest
             await observer.WaitForStartedAsync(TutorialPackageIds.SmartBpModuleContentOverview, app.Dump);
             await CompletePackageAsync(hostWindow, observer, TutorialPackageIds.SmartBpModuleContentOverview, app.Dump);
 
-            TutorialPageLoader.RunPendingOnLoaded(page, TutorialPageKeys.SmartBp);
+            _ = page.TryRunTutorialAsync();
             await observer.WaitForStartedAsync(TutorialPackageIds.SmartBpCaptureBasic, app.Dump);
             await CompletePackageAsync(hostWindow, observer, TutorialPackageIds.SmartBpCaptureBasic, app.Dump);
 
-            TutorialPageLoader.RunPendingOnLoaded(page, TutorialPageKeys.SmartBp);
+            _ = page.TryRunTutorialAsync();
             await observer.WaitForStartedAsync(TutorialPackageIds.SmartBpRegionEditorBasic, app.Dump);
             await CompletePackageAsync(hostWindow, observer, TutorialPackageIds.SmartBpRegionEditorBasic, app.Dump);
 
-            TutorialPageLoader.RunPendingOnLoaded(page, TutorialPageKeys.SmartBp);
+            _ = page.TryRunTutorialAsync();
             await observer.WaitForStartedAsync(TutorialPackageIds.SmartBpFullBpFlowBasic, app.Dump);
         }, TimeSpan.FromSeconds(20));
     }
@@ -156,12 +154,15 @@ public sealed class WpfTutorialNavigationIntegrationTest
                 () => app.Navigation.Navigate(typeof(SmartBpPage))));
             await WaitForDispatcherAsync(hostWindow);
             var page = Assert.IsType<SmartBpPage>(app.Navigation.CurrentContent);
+            var viewModel = Assert.IsType<SmartBpPageViewModel>(page.DataContext);
 
             Assert.True(NavigateIgnoringClosedLocalizationNotifications(
                 () => app.Navigation.Navigate(typeof(FrontManagePage))));
             await WaitForDispatcherAsync(hostWindow);
 
-            TutorialPageLoader.RunPendingOnLoaded(page, TutorialPageKeys.SmartBp, "ContentChanged");
+            viewModel.ModuleContent = CreateSmartBpModuleContent();
+            viewModel.IsModuleLoaded = true;
+            await WaitForDispatcherAsync(hostWindow);
             await Task.Delay(300);
 
             Assert.DoesNotContain(TutorialPackageIds.SmartBpModuleContentOverview, observer.StartedPackageIds);
@@ -183,13 +184,14 @@ public sealed class WpfTutorialNavigationIntegrationTest
             await observer.WaitForStartedAsync(TutorialPackageIds.FrontManageOverview, app.Dump);
             await CompletePackageAsync(hostWindow, observer, TutorialPackageIds.FrontManageOverview, app.Dump);
             var page = Assert.IsType<FrontManagePage>(app.Navigation.CurrentContent);
-            Assert.True(FrontManagePage.TryResolveCurrentChildTutorial(page.FrontManageTabs, out var childOwner, out var childPageKey));
+            Assert.True(FrontManagePage.TryResolveCurrentChildTutorial(page.FrontManageTabs, out var childOwner, out _));
 
             Assert.True(NavigateIgnoringClosedLocalizationNotifications(
                 () => app.Navigation.Navigate(typeof(SmartBpPage))));
             await WaitForDispatcherAsync(hostWindow);
 
-            TutorialPageLoader.RunPendingOnLoaded(childOwner, childPageKey, "Loaded");
+            childOwner.RaiseEvent(new RoutedEventArgs(FrameworkElement.LoadedEvent));
+            await WaitForDispatcherAsync(hostWindow);
             await Task.Delay(300);
 
             Assert.DoesNotContain(TutorialPackageIds.FrontManageWindowsBasic, observer.StartedPackageIds);
@@ -511,12 +513,12 @@ public sealed class WpfTutorialNavigationIntegrationTest
                 if (args.PageType == typeof(FrontManagePage)
                     && args.PageContent is FrontManagePage frontManagePage)
                 {
-                    ScheduleNavigationPageTutorial(frontManagePage, TutorialPageKeys.FrontManage);
+                    ScheduleNavigationPageTutorial(frontManagePage, TutorialPageKeys.FrontManage, observer);
                 }
                 else if (args.PageType == typeof(SmartBpPage)
                     && args.PageContent is SmartBpPage smartBpPage)
                 {
-                    ScheduleNavigationPageTutorial(smartBpPage, TutorialPageKeys.SmartBp);
+                    ScheduleNavigationPageTutorial(smartBpPage, TutorialPageKeys.SmartBp, observer);
                 }
             };
             navigationService.PageChanged += pageChangedHandler;
@@ -629,14 +631,22 @@ public sealed class WpfTutorialNavigationIntegrationTest
             return "<none>";
         }
 
-        private static void ScheduleNavigationPageTutorial(FrameworkElement owner, string pageKey)
+        private static void ScheduleNavigationPageTutorial(
+            FrameworkElement owner,
+            string pageKey,
+            ITutorialRunObserver observer)
         {
             owner.Dispatcher.BeginInvoke(
                 DispatcherPriority.ContextIdle,
-                new Action(() => TutorialPageLoader.RunPendingOnLoaded(
-                    owner,
-                    pageKey,
-                    "NavigationPageChanged")));
+                new Action(async () =>
+                {
+                    observer.OnAutoRunRequested(owner.GetType().Name, pageKey, "NavigationPageChanged");
+                    var runner = IAppHost.Host?.Services.GetService<ITutorialRunner>();
+                    var result = runner == null
+                        ? TutorialRunResult.Failed
+                        : await runner.TryRunNextPackageAsync(owner, pageKey);
+                    observer.OnAutoRunCompleted(owner.GetType().Name, pageKey, result);
+                }));
         }
     }
 
@@ -678,10 +688,6 @@ public sealed class WpfTutorialNavigationIntegrationTest
         }
 
         public void OnAutoRunCompleted(string ownerType, string pageKey, TutorialRunResult result)
-        {
-        }
-
-        public void OnAutoRunRejectedInactiveOwner(string ownerType, string pageKey, string reason)
         {
         }
 

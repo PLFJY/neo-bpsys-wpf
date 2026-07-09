@@ -1,19 +1,21 @@
 using neo_bpsys_wpf.ProductTour;
-using neo_bpsys_wpf.Tutorial;
-
 namespace neo_bpsys_wpf.Views.Pages;
 
-public partial class BanHunPage
+public partial class BanHunPage : ITutorialOwner<BanHunPage>
 {
     /// <summary>Hunter ban page tutorial key.</summary>
     public const string TutorialPageKey = "Page.Bp.BanHun";
 
+    /// <inheritdoc />
+    public static string TutorialKey => TutorialPageKey;
+
     /// <summary>
     /// Registers tutorials owned by the hunter ban page.
     /// </summary>
-    /// <param name="registrar">Tutorial registrar.</param>
-    public static void RegisterTutorials(ITutorialDefinitionRegistrar registrar)
+    /// <param name="builder">Tutorial builder.</param>
+    public static void RegisterTutorials(ITutorialBuilder builder)
     {
-        registrar.RegisterSequence(TutorialPageKey, [BanSurPage.TutorialPackages.CharacterSelectorBasic]);
+        builder.ForPage<BanHunPage>()
+            .Use(BanSurPage.Tours.CharacterSelectorBasic);
     }
 }

@@ -1,10 +1,13 @@
 using neo_bpsys_wpf.Core.Attributes;
+using neo_bpsys_wpf.Core;
+using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.Tutorial;
 using neo_bpsys_wpf.ViewModels.Pages;
 using System.ComponentModel;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using System.Windows;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace neo_bpsys_wpf.Views.Pages;
 
@@ -18,27 +21,41 @@ namespace neo_bpsys_wpf.Views.Pages;
 public partial class SmartBpPage : Page
 {
     private readonly DependencyPropertyDescriptor? _moduleContentDescriptor;
+    private readonly ITutorialRunner? _tutorialRunner;
+    private readonly global::neo_bpsys_wpf.Services.NavigationService? _navigationService;
     private SmartBpPageViewModel? _attachedViewModel;
     private bool _isModuleContentHandlerAttached;
 
-    public SmartBpPage()
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SmartBpPage"/> class.
+    /// </summary>
+    /// <param name="tutorialRunner">Tutorial runner.</param>
+    /// <param name="navigationService">Navigation service.</param>
+    public SmartBpPage(
+        ITutorialRunner? tutorialRunner = null,
+        global::neo_bpsys_wpf.Services.NavigationService? navigationService = null)
     {
+        _tutorialRunner = tutorialRunner;
+        _navigationService = navigationService;
         InitializeComponent();
         _moduleContentDescriptor = DependencyPropertyDescriptor.FromProperty(
             ContentControl.ContentProperty,
             typeof(ContentControl));
-        Loaded += (_, _) =>
+        Loaded += async (_, _) =>
         {
             AttachViewModel(DataContext);
             AttachModuleContentHandler();
             TutorialSignalPublisher.Publish(TutorialSignalIds.NavigationSmartBpOpened);
-            TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.SmartBp, "Loaded");
-        };
-        IsVisibleChanged += (_, e) =>
-        {
-            if (Equals(e.NewValue, true))
+            if (IsCurrentSmartBpPage())
             {
-                TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.SmartBp, "Visible");
+                await TryRunTutorialAsync();
+            }
+        };
+        IsVisibleChanged += async (_, e) =>
+        {
+            if (Equals(e.NewValue, true) && IsCurrentSmartBpPage())
+            {
+                await TryRunTutorialAsync();
             }
         };
         DataContextChanged += OnDataContextChanged;
@@ -86,10 +103,13 @@ public partial class SmartBpPage : Page
         {
             Dispatcher.BeginInvoke(
                 DispatcherPriority.ContextIdle,
-                new Action(() => TutorialPageLoader.RunPendingOnLoaded(
-                    this,
-                    TutorialPageKeys.SmartBp,
-                    "ModuleLoaded")));
+                new Action(async () =>
+                {
+                    if (IsCurrentSmartBpPage())
+                    {
+                        await TryRunTutorialAsync();
+                    }
+                }));
         }
     }
 
@@ -97,10 +117,32 @@ public partial class SmartBpPage : Page
     {
         Dispatcher.BeginInvoke(
             DispatcherPriority.ContextIdle,
-            new Action(() => TutorialPageLoader.RunPendingOnLoaded(
-                this,
-                TutorialPageKeys.SmartBp,
-                "ContentChanged")));
+            new Action(async () =>
+            {
+                if (IsCurrentSmartBpPage())
+                {
+                    await TryRunTutorialAsync();
+                }
+            }));
+    }
+
+    internal async Task TryRunTutorialAsync()
+    {
+        var runner = _tutorialRunner ?? IAppHost.Host?.Services.GetService<ITutorialRunner>();
+        if (runner == null)
+        {
+            return;
+        }
+
+        await runner.TryRunNextPackageAsync(this, TutorialPageKeys.SmartBp);
+    }
+
+    private bool IsCurrentSmartBpPage()
+    {
+        var navigationService = _navigationService
+            ?? IAppHost.Host?.Services.GetService<global::neo_bpsys_wpf.Services.NavigationService>();
+        return navigationService == null
+            || ReferenceEquals(navigationService.CurrentPageContent, this);
     }
 
     private void AttachModuleContentHandler()

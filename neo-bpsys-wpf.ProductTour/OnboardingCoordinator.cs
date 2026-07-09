@@ -29,7 +29,8 @@ public sealed class OnboardingCoordinator : IOnboardingCoordinator
     /// <summary>The standard first-run flow id.</summary>
     public const string FirstRunFlowId = "Flow.FirstRun.StandardBp";
 
-    private readonly ITutorialService _tutorialService;
+    private readonly ITutorialStateManager _tutorialStateManager;
+    private readonly ITutorialRunner _tutorialRunner;
     private readonly ITutorialStateStore _stateStore;
     private readonly ITutorialFlowRegistry _flowRegistry;
     private readonly ITutorialPackageRegistry _packageRegistry;
@@ -42,7 +43,8 @@ public sealed class OnboardingCoordinator : IOnboardingCoordinator
     /// <summary>
     /// Initializes a new instance of the <see cref="OnboardingCoordinator"/> class.
     /// </summary>
-    /// <param name="tutorialService">Tutorial service.</param>
+    /// <param name="tutorialStateManager">Tutorial state manager.</param>
+    /// <param name="tutorialRunner">Tutorial runner.</param>
     /// <param name="stateStore">State store.</param>
     /// <param name="flowRegistry">Tutorial flow registry.</param>
     /// <param name="packageRegistry">Tutorial package registry.</param>
@@ -52,7 +54,8 @@ public sealed class OnboardingCoordinator : IOnboardingCoordinator
     /// <param name="options">Product tour display options.</param>
     /// <param name="logger">Logger.</param>
     public OnboardingCoordinator(
-        ITutorialService tutorialService,
+        ITutorialStateManager tutorialStateManager,
+        ITutorialRunner tutorialRunner,
         ITutorialStateStore stateStore,
         ITutorialFlowRegistry flowRegistry,
         ITutorialPackageRegistry packageRegistry,
@@ -62,7 +65,8 @@ public sealed class OnboardingCoordinator : IOnboardingCoordinator
         ProductTourOptions options,
         ILogger<OnboardingCoordinator> logger)
     {
-        _tutorialService = tutorialService;
+        _tutorialStateManager = tutorialStateManager;
+        _tutorialRunner = tutorialRunner;
         _stateStore = stateStore;
         _flowRegistry = flowRegistry;
         _packageRegistry = packageRegistry;
@@ -100,7 +104,7 @@ public sealed class OnboardingCoordinator : IOnboardingCoordinator
             try
             {
                 await _languageService.ApplyLanguageAsync(languageOptionId, cancellationToken);
-                await _tutorialService.RunFlowAsync(owner, FirstRunFlowId, force: true, cancellationToken);
+                await _tutorialRunner.TryRunFlowAsync(owner, FirstRunFlowId, force: true, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -113,7 +117,7 @@ public sealed class OnboardingCoordinator : IOnboardingCoordinator
     /// <inheritdoc />
     public async Task RestartFirstRunFlowAsync(Window owner, CancellationToken cancellationToken = default)
     {
-        await _tutorialService.ClearFlowStateAsync(FirstRunFlowId, cancellationToken);
+        await _tutorialStateManager.ClearFlowStateAsync(FirstRunFlowId, cancellationToken);
         await ShowFirstRunWelcomeAsync(owner, force: true, cancellationToken);
     }
 

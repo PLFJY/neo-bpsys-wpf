@@ -18,7 +18,7 @@ public static class NeoBpsysTutorialTexts
     public static string[] FirstRunEndingDialogue() =>
     [
         "前台界面编辑会在首次打开 v3 编辑器时单独教学。",
-        "智慧 BP 会在首次进入 SmartBP 页面时单独教学。",
+        "智慧 BP 会在首次进入智慧 BP 页面时单独教学。",
         "开始你的导播之旅吧。"
     ];
 

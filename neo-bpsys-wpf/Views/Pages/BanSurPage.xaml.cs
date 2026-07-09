@@ -1,8 +1,11 @@
-﻿using System.Windows.Controls;
+using System.Windows.Controls;
+using Microsoft.Extensions.DependencyInjection;
+using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Attributes;
 using neo_bpsys_wpf.Core.Enums;
-using Wpf.Ui.Controls;
+using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.Tutorial;
+using Wpf.Ui.Controls;
 
 namespace neo_bpsys_wpf.Views.Pages;
 
@@ -15,13 +18,47 @@ namespace neo_bpsys_wpf.Views.Pages;
     BackendPageCategory.Internal)]
 public partial class BanSurPage : Page
 {
-    public BanSurPage()
+    private readonly ITutorialRunner? _tutorialRunner;
+    private readonly global::neo_bpsys_wpf.Services.NavigationService? _navigationService;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BanSurPage"/> class.
+    /// </summary>
+    /// <param name="tutorialRunner">Tutorial runner.</param>
+    /// <param name="navigationService">Navigation service.</param>
+    public BanSurPage(
+        ITutorialRunner? tutorialRunner = null,
+        global::neo_bpsys_wpf.Services.NavigationService? navigationService = null)
     {
+        _tutorialRunner = tutorialRunner;
+        _navigationService = navigationService;
         InitializeComponent();
-        Loaded += (_, _) =>
+        Loaded += async (_, _) =>
         {
             TutorialSignalPublisher.Publish(TutorialSignalIds.NavigationBanSurvivorOpened);
-            TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKey);
+            if (IsCurrentBanSurPage())
+            {
+                await TryRunTutorialAsync();
+            }
         };
+    }
+
+    internal async Task TryRunTutorialAsync()
+    {
+        var runner = _tutorialRunner ?? IAppHost.Host?.Services.GetService<ITutorialRunner>();
+        if (runner == null)
+        {
+            return;
+        }
+
+        await runner.TryRunNextPackageAsync(this, TutorialPageKey);
+    }
+
+    private bool IsCurrentBanSurPage()
+    {
+        var navigationService = _navigationService
+            ?? IAppHost.Host?.Services.GetService<global::neo_bpsys_wpf.Services.NavigationService>();
+        return navigationService == null
+            || ReferenceEquals(navigationService.CurrentPageContent, this);
     }
 }

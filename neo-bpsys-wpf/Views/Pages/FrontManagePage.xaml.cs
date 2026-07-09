@@ -3,9 +3,11 @@ using System.Windows.Media;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
+using Microsoft.Extensions.DependencyInjection;
 using neo_bpsys_wpf.Core.Attributes;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Messages;
+using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.Views.Pages.FrontManage;
 using neo_bpsys_wpf.Tutorial;
 using neo_bpsys_wpf.Core;
@@ -22,8 +24,20 @@ namespace neo_bpsys_wpf.Views.Pages;
     BackendPageCategory.External)]
 public partial class FrontManagePage : Page, IRecipient<FrontManageTabNavigationMessage>
 {
-    public FrontManagePage()
+    private readonly ITutorialRunner? _tutorialRunner;
+    private readonly global::neo_bpsys_wpf.Services.NavigationService? _navigationService;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FrontManagePage"/> class.
+    /// </summary>
+    /// <param name="tutorialRunner">Tutorial runner.</param>
+    /// <param name="navigationService">Navigation service.</param>
+    public FrontManagePage(
+        ITutorialRunner? tutorialRunner = null,
+        global::neo_bpsys_wpf.Services.NavigationService? navigationService = null)
     {
+        _tutorialRunner = tutorialRunner;
+        _navigationService = navigationService;
         InitializeComponent();
 
         FrontManageTabs.MenuItems.Add(new NavigationViewItem(
@@ -43,17 +57,20 @@ public partial class FrontManagePage : Page, IRecipient<FrontManageTabNavigation
 
         FrontManageTabs.Navigated += (_, _) => ScheduleCurrentChildTutorial();
         FrontManageTabs.SelectionChanged += (_, _) => ScheduleCurrentChildTutorial();
-        Loaded += (_, _) =>
+        Loaded += async (_, _) =>
         {
             TutorialSignalPublisher.Publish(TutorialSignalIds.NavigationFrontManageOpened);
-            TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.FrontManage, "Loaded");
+            if (IsCurrentFrontManagePage())
+            {
+                await TryRunTutorialAsync();
+            }
         };
         Loaded += OnLoaded;
-        IsVisibleChanged += (_, e) =>
+        IsVisibleChanged += async (_, e) =>
         {
-            if (Equals(e.NewValue, true))
+            if (Equals(e.NewValue, true) && IsCurrentFrontManagePage())
             {
-                TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKeys.FrontManage, "Visible");
+                await TryRunTutorialAsync();
             }
         };
         WeakReferenceMessenger.Default.Register(this);
@@ -78,7 +95,7 @@ public partial class FrontManagePage : Page, IRecipient<FrontManageTabNavigation
     {
         Dispatcher.BeginInvoke(
             DispatcherPriority.ContextIdle,
-            new Action(() => RunCurrentChildTutorial(FrontManageTabs)));
+            new Action(async () => await RunCurrentChildTutorialAsync()));
     }
 
     internal static bool RunCurrentChildTutorial(DependencyObject root)
@@ -93,8 +110,49 @@ public partial class FrontManagePage : Page, IRecipient<FrontManageTabNavigation
             return false;
         }
 
-        TutorialPageLoader.RunPendingOnLoaded(owner, pageKey, "TabChanged");
+        var runner = IAppHost.Host.Services.GetService<ITutorialRunner>();
+        _ = runner?.TryRunNextPackageAsync(owner, pageKey);
         return true;
+    }
+
+    private async Task RunCurrentChildTutorialAsync()
+    {
+        if (!IsCurrentFrontManagePage())
+        {
+            return;
+        }
+
+        if (!TryResolveCurrentChildTutorial(FrontManageTabs, out var owner, out var pageKey))
+        {
+            return;
+        }
+
+        var runner = _tutorialRunner ?? IAppHost.Host?.Services.GetService<ITutorialRunner>();
+        if (runner == null)
+        {
+            return;
+        }
+
+        await runner.TryRunNextPackageAsync(owner, pageKey);
+    }
+
+    private async Task TryRunTutorialAsync()
+    {
+        var runner = _tutorialRunner ?? IAppHost.Host?.Services.GetService<ITutorialRunner>();
+        if (runner == null)
+        {
+            return;
+        }
+
+        await runner.TryRunNextPackageAsync(this, TutorialPageKeys.FrontManage);
+    }
+
+    private bool IsCurrentFrontManagePage()
+    {
+        var navigationService = _navigationService
+            ?? IAppHost.Host?.Services.GetService<global::neo_bpsys_wpf.Services.NavigationService>();
+        return navigationService == null
+            || ReferenceEquals(navigationService.CurrentPageContent, this);
     }
 
     internal static bool TryResolveCurrentChildTutorial(

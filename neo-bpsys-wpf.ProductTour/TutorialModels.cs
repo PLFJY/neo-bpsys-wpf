@@ -70,6 +70,8 @@ public enum ProductTourAvatarPlacement
 /// </summary>
 public enum TutorialTargetKind
 {
+    /// <summary>No target is resolved for this step.</summary>
+    None,
     /// <summary>Resolves the target by WPF element name.</summary>
     Name,
     /// <summary>Resolves the target from a navigation item.</summary>
@@ -115,6 +117,8 @@ public enum TutorialRunResult
 {
     /// <summary>The tutorial completed normally.</summary>
     Completed,
+    /// <summary>The tutorial did not run because the target item was already completed.</summary>
+    CompletedAlready,
     /// <summary>The tutorial was skipped by the user.</summary>
     Skipped,
     /// <summary>The tutorial did not run because another tutorial was active.</summary>
@@ -127,6 +131,16 @@ public enum TutorialRunResult
     Canceled,
     /// <summary>The tutorial failed with an error.</summary>
     Failed
+}
+
+/// <summary>
+/// Identifies a tutorial package in public authoring APIs.
+/// </summary>
+/// <param name="Id">Stable package id.</param>
+public readonly record struct TutorialPackageRef(string Id)
+{
+    /// <inheritdoc />
+    public override string ToString() => Id;
 }
 
 /// <summary>
@@ -231,9 +245,6 @@ public sealed class ProductTourStep
     /// <summary>Gets or sets the target key used by the selected target resolver.</summary>
     public string? TargetKey { get; set; }
 
-    /// <summary>Gets or sets an optional element name that is brought into view before resolving the target.</summary>
-    public string? ScrollAnchorName { get; set; }
-
     /// <summary>Gets or sets the localized or literal title.</summary>
     public string Title { get; set; } = string.Empty;
 
@@ -270,11 +281,59 @@ public sealed class ProductTourStep
     /// <summary>Gets or sets the avatar pose, or <see langword="null" /> to choose the pose automatically.</summary>
     public TutorialAvatarPose? AvatarPose { get; set; }
 
-    /// <summary>Gets or sets an action invoked immediately before the step is displayed.</summary>
-    public Func<IServiceProvider, CancellationToken, Task>? BeforeShowAsync { get; set; }
+    /// <summary>Gets the actions invoked before target resolution and overlay display.</summary>
+    public IList<TutorialStepAction> PreStepActions { get; } = [];
 
-    /// <summary>Gets or sets an action invoked after the step completes.</summary>
-    public Func<IServiceProvider, CancellationToken, Task>? AfterCompleteAsync { get; set; }
+    /// <summary>Gets the actions invoked after the step completes and its overlay is closed.</summary>
+    public IList<TutorialStepAction> PostStepActions { get; } = [];
+}
+
+/// <summary>
+/// Describes reusable code executed before or after a tutorial step.
+/// </summary>
+public sealed class TutorialStepAction
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TutorialStepAction"/> class.
+    /// </summary>
+    /// <param name="name">Diagnostic action name.</param>
+    /// <param name="executeAsync">Action body.</param>
+    public TutorialStepAction(
+        string name,
+        Func<TutorialStepActionContext, CancellationToken, Task> executeAsync)
+    {
+        Name = string.IsNullOrWhiteSpace(name)
+            ? throw new ArgumentException("Action name cannot be empty.", nameof(name))
+            : name;
+        ExecuteAsync = executeAsync ?? throw new ArgumentNullException(nameof(executeAsync));
+    }
+
+    /// <summary>Gets the diagnostic action name.</summary>
+    public string Name { get; }
+
+    /// <summary>Gets the action body.</summary>
+    public Func<TutorialStepActionContext, CancellationToken, Task> ExecuteAsync { get; }
+
+    /// <summary>Gets or sets whether failures should be logged and ignored.</summary>
+    public bool IsOptional { get; init; }
+}
+
+/// <summary>
+/// Provides runtime information to a tutorial step action.
+/// </summary>
+public sealed class TutorialStepActionContext
+{
+    /// <summary>Gets the application service provider.</summary>
+    public required IServiceProvider Services { get; init; }
+
+    /// <summary>Gets the tutorial owner element.</summary>
+    public required FrameworkElement Owner { get; init; }
+
+    /// <summary>Gets the current step.</summary>
+    public required ProductTourStep Step { get; init; }
+
+    /// <summary>Gets the most recent resolved target element when one is available.</summary>
+    public FrameworkElement? LastResolvedTarget { get; init; }
 }
 
 /// <summary>

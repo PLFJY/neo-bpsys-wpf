@@ -1,8 +1,10 @@
 using System.Windows.Controls;
 using System.Windows;
+using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.Tutorial;
 using neo_bpsys_wpf.ViewModels.FrontedDesigner;
 using neo_bpsys_wpf.Views.Windows;
@@ -32,7 +34,14 @@ public partial class BehaviorPanelView : UserControl
     {
         Dispatcher.BeginInvoke(
             DispatcherPriority.ContextIdle,
-            new Action(() => TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKey, "VisibleOrDataContextChanged")));
+            new Action(async () =>
+            {
+                var runner = IAppHost.Host?.Services.GetService(typeof(ITutorialRunner)) as ITutorialRunner;
+                if (runner != null)
+                {
+                    await runner.RunUntilBlockedAsync(this, TutorialPageKey);
+                }
+            }));
     }
 
     private void OnDataContextChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)

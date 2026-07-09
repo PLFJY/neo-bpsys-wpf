@@ -29,6 +29,7 @@ public partial class MainWindow : FluentWindow, INavigationWindow
 {
     private readonly ILogger<MainWindow> _logger;
     private readonly IOnboardingCoordinator _onboardingCoordinator;
+    private readonly ITutorialRunner _tutorialRunner;
     private bool _firstRunWelcomeAttempted;
 
     internal bool ForceCloseForTest { get; set; }
@@ -39,11 +40,13 @@ public partial class MainWindow : FluentWindow, INavigationWindow
         ISnackbarService snackbarService,
         ISettingsHostService settingsHostService,
         IOnboardingCoordinator onboardingCoordinator,
+        ITutorialRunner tutorialRunner,
         ILogger<MainWindow> logger
     )
     {
         _logger = logger;
         _onboardingCoordinator = onboardingCoordinator;
+        _tutorialRunner = tutorialRunner;
         InitializeComponent();
         navigationService.SetNavigationControl(RootNavigation);
         if (navigationService is neo_bpsys_wpf.Services.NavigationService neoNavigationService)
@@ -207,7 +210,7 @@ public partial class MainWindow : FluentWindow, INavigationWindow
         RootNavigation.SetServiceProvider(serviceProvider);
     }
 
-    private static void OnNavigationPageChanged(object? sender, NavigationPageChangedEventArgs e)
+    private void OnNavigationPageChanged(object? sender, NavigationPageChangedEventArgs e)
     {
         if (e.PageType == typeof(FrontManagePage)
             && e.PageContent is FrontManagePage frontManagePage)
@@ -279,10 +282,11 @@ public partial class MainWindow : FluentWindow, INavigationWindow
         }
     }
 
-    private static void ScheduleNavigationPageTutorial(FrameworkElement owner, string pageKey, string reason)
+    private void ScheduleNavigationPageTutorial(FrameworkElement owner, string pageKey, string reason)
     {
+        _ = reason;
         owner.Dispatcher.BeginInvoke(
             DispatcherPriority.ContextIdle,
-            new Action(() => TutorialPageLoader.RunPendingOnLoaded(owner, pageKey, reason)));
+            new Action(async () => await _tutorialRunner.TryRunNextPackageAsync(owner, pageKey)));
     }
 }

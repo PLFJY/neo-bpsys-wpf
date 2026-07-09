@@ -43,7 +43,8 @@ public partial class SettingPageViewModel : ViewModelBase
     private readonly IBpuiFileAssociationService _bpuiFileAssociationService;
     private readonly IFilePickerService _filePickerService;
     private readonly SmartBpModuleManager _smartBpModuleManager;
-    private readonly ITutorialService _tutorialService;
+    private readonly ITutorialStateManager _tutorialStateManager;
+    private readonly ITutorialRunner _tutorialRunner;
     private readonly IOnboardingCoordinator _onboardingCoordinator;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<SettingPageViewModel> _logger;
@@ -76,7 +77,8 @@ public partial class SettingPageViewModel : ViewModelBase
     /// <param name="bpuiFileAssociationService">bpui 文件关联服务</param>
     /// <param name="filePickerService">文件选择服务</param>
     /// <param name="smartBpModuleManager">SmartBP 模块管理器</param>
-    /// <param name="tutorialService">教程服务</param>
+    /// <param name="tutorialStateManager">教程状态管理器</param>
+    /// <param name="tutorialRunner">教程运行器</param>
     /// <param name="onboardingCoordinator">首次导览协调器</param>
     /// <param name="serviceProvider">服务Provider</param>
     /// <param name="logger">日志记录器</param>
@@ -87,7 +89,8 @@ public partial class SettingPageViewModel : ViewModelBase
         IBpuiFileAssociationService bpuiFileAssociationService,
         IFilePickerService filePickerService,
         SmartBpModuleManager smartBpModuleManager,
-        ITutorialService tutorialService,
+        ITutorialStateManager tutorialStateManager,
+        ITutorialRunner tutorialRunner,
         IOnboardingCoordinator onboardingCoordinator,
         IServiceProvider serviceProvider,
         ILogger<SettingPageViewModel> logger)
@@ -99,7 +102,8 @@ public partial class SettingPageViewModel : ViewModelBase
         _bpuiFileAssociationService = bpuiFileAssociationService;
         _filePickerService = filePickerService;
         _smartBpModuleManager = smartBpModuleManager;
-        _tutorialService = tutorialService;
+        _tutorialStateManager = tutorialStateManager;
+        _tutorialRunner = tutorialRunner;
         _onboardingCoordinator = onboardingCoordinator;
         _serviceProvider = serviceProvider;
         _logger = logger;
@@ -232,7 +236,7 @@ public partial class SettingPageViewModel : ViewModelBase
             return;
         }
 
-        await _tutorialService.ResetStateAsync();
+        await _tutorialStateManager.ResetStateAsync();
     }
 
     /// <summary>
@@ -247,7 +251,7 @@ public partial class SettingPageViewModel : ViewModelBase
         }
 
         owner.Activate();
-        await _tutorialService.RunFlowAsync(owner, TutorialFlowIds.Phase4RealTargetProbe, force: true);
+        await _tutorialRunner.TryRunFlowAsync(owner, TutorialFlowIds.Phase4RealTargetProbe, force: true);
     }
 
     #endregion

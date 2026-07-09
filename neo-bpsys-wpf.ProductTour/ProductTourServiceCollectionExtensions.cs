@@ -23,8 +23,24 @@ public static class ProductTourServiceCollectionExtensions
         services.TryAddSingleton<ITutorialStateStore, TutorialStateStore>();
         services.TryAddSingleton<ITutorialTextProvider, DefaultTutorialTextProvider>();
         services.TryAddSingleton<ITutorialRunObserver, NoOpTutorialRunObserver>();
-        services.TryAddSingleton<ITutorialOwnerActivationService, AlwaysActiveTutorialOwnerActivationService>();
-        services.TryAddSingleton<ITutorialService, TutorialService>();
+        services.TryAddSingleton(sp => new TutorialService(
+            sp,
+            sp.GetRequiredService<ITutorialPackageRegistry>(),
+            sp.GetRequiredService<ITutorialSequenceRegistry>(),
+            sp.GetRequiredService<ITutorialFlowRegistry>(),
+            sp.GetRequiredService<ITutorialStateStore>(),
+            sp.GetRequiredService<ITutorialSignalService>(),
+            sp.GetRequiredService<ITutorialTextProvider>(),
+            sp.GetRequiredService<ITutorialAvatarProvider>(),
+            sp.GetRequiredService<ITutorialRunObserver>(),
+            sp.GetRequiredService<ProductTourOptions>(),
+            sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TutorialService>>()));
+        services.TryAddSingleton<ITutorialStateManager>(sp => sp.GetRequiredService<TutorialService>());
+        services.TryAddSingleton<ITutorialRunner>(sp => new TutorialRunner(
+            sp.GetRequiredService<TutorialService>(),
+            sp.GetRequiredService<ITutorialPackageRegistry>(),
+            sp.GetRequiredService<ITutorialFlowRegistry>(),
+            sp.GetRequiredService<ITutorialStateStore>()));
         services.TryAddSingleton<IOnboardingCoordinator, OnboardingCoordinator>();
         services.TryAddSingleton<IGameTutorialSandboxService, NoOpGameTutorialSandboxService>();
         services.TryAddSingleton<ITutorialLanguageService, NoOpTutorialLanguageService>();

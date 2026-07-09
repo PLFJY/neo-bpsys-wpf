@@ -1,28 +1,35 @@
+using Microsoft.Extensions.DependencyInjection;
 using neo_bpsys_wpf.Controls;
+using neo_bpsys_wpf.Core;
+using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.Tutorial;
+using System.Windows;
 
 namespace neo_bpsys_wpf.Views.Pages;
 
-public partial class PickPage
+public partial class PickPage : ITutorialOwner<PickPage>
 {
     /// <summary>Character pick page tutorial key.</summary>
     public const string TutorialPageKey = "Page.Bp.Pick";
 
-    /// <summary>Character pick tutorial package ids.</summary>
-    public static class TutorialPackages
+    /// <inheritdoc />
+    public static string TutorialKey => TutorialPageKey;
+
+    /// <summary>Character pick tutorial package references.</summary>
+    public static class Tours
     {
-        /// <summary>Pick character basic package id.</summary>
-        public const string PickCharacterBasic = TutorialPackageIds.BpPickCharacterBasic;
+        /// <summary>Pick character basic package reference.</summary>
+        public static readonly TutorialPackageRef PickCharacterBasic = new(TutorialPackageIds.BpPickCharacterBasic);
 
-        /// <summary>Global ban record package id.</summary>
-        public const string GlobalBanRecordBasic = TutorialPackageIds.BpGlobalBanRecordBasic;
+        /// <summary>Global ban record package reference.</summary>
+        public static readonly TutorialPackageRef GlobalBanRecordBasic = new(TutorialPackageIds.BpGlobalBanRecordBasic);
 
-        /// <summary>Select four survivors package id.</summary>
-        public const string SelectFourSurvivorsBasic = TutorialPackageIds.BpPickSelectFourSurvivorsBasic;
+        /// <summary>Select four survivors package reference.</summary>
+        public static readonly TutorialPackageRef SelectFourSurvivorsBasic = new(TutorialPackageIds.BpPickSelectFourSurvivorsBasic);
 
-        /// <summary>Character changer package id.</summary>
-        public const string CharacterChangerBasic = TutorialPackageIds.BpCharacterChangerBasic;
+        /// <summary>Character changer package reference.</summary>
+        public static readonly TutorialPackageRef CharacterChangerBasic = new(TutorialPackageIds.BpCharacterChangerBasic);
     }
 
     /// <summary>Pick page tutorial target names.</summary>
@@ -35,75 +42,52 @@ public partial class PickPage
     /// <summary>
     /// Registers tutorials owned by the pick page.
     /// </summary>
-    /// <param name="registrar">Tutorial registrar.</param>
-    public static void RegisterTutorials(ITutorialDefinitionRegistrar registrar)
+    /// <param name="builder">Tutorial builder.</param>
+    public static void RegisterTutorials(ITutorialBuilder builder)
     {
-        registrar.RegisterSequence(TutorialPageKey,
-        [
-            TutorialPackages.PickCharacterBasic,
-            TutorialPackages.SelectFourSurvivorsBasic,
-            TutorialPackages.GlobalBanRecordBasic,
-            TutorialPackages.CharacterChangerBasic
-        ]);
-
-        registrar.RegisterPackage(TutorialDefinitionHelpers.Package(
-            TutorialPackages.PickCharacterBasic,
-            TutorialPageKey,
-            1,
-            [
-                TutorialDefinitionHelpers.DescendantTypeStep(
-                    nameof(FirstSurvivorPickSelectorHost),
-                    typeof(CharacterSelector).FullName!,
-                    "选择 1、2 号角色",
-                    "先选择前两个求生者角色，选择结果会记录到全局禁选中。",
-                    ProductTourInteractionMode.AllowTargetOnly,
-                    TutorialSignalIds.PickCharacterSelectedSurvivor2,
-                    allowMissing: true)
-            ]));
-
-        registrar.RegisterPackage(TutorialDefinitionHelpers.Package(
-            TutorialPackages.SelectFourSurvivorsBasic,
-            TutorialPageKey,
-            2,
-            [
-                TutorialDefinitionHelpers.Step(
-                    nameof(SurvivorPickSelectorGroupBorder),
-                    "完成四个求生者选择",
-                    "继续选择剩余求生者角色。四个求生者都选完后，再进入角色调整教学。",
-                    ProductTourInteractionMode.AllowTargetOnly,
-                    TutorialSignalIds.PickSurvivorSlotsCompleted,
-                    allowMissing: true,
-                    avatarPlacement: ProductTourAvatarPlacement.TopLeft,
-                    avatarPose: TutorialAvatarPose.RightBottom,
-                    cardOffset: new System.Windows.Point(0, -24),
-                    placement: ProductTourPlacement.TopRight)
-            ]));
-
-        registrar.RegisterPackage(TutorialDefinitionHelpers.Package(
-            TutorialPackages.GlobalBanRecordBasic,
-            TutorialPageKey,
-            3,
-            [
-                TutorialDefinitionHelpers.Step(
-                    nameof(GlobalBanRecordPanel),
-                    "全局禁选记录",
-                    "刚刚选择的角色会记录到全局禁选中。后续新对局会清空当前局选择，但会保留这些全局禁选记录。",
-                    ProductTourInteractionMode.AllowTargetOnly,
-                    allowMissing: true)
-            ]));
-
-        registrar.RegisterPackage(TutorialDefinitionHelpers.Package(
-            TutorialPackages.CharacterChangerBasic,
-            TutorialPageKey,
-            4,
-            [
-                TutorialDefinitionHelpers.DescendantTypeStep(
-                    nameof(SurvivorPickSelectorGroupBorder),
-                    typeof(CharacterChanger).FullName!,
-                    "调整已选角色",
-                    "如果角色选择错误，或需要临时调整已选角色，可以在这里使用角色调整功能。调整后会同步更新当前 BP 状态。",
-                    ProductTourInteractionMode.AllowTargetOnly,
-                    allowMissing: true)
-            ]));
+        builder.ForPage<PickPage>()
+            .Package(Tours.SelectFourSurvivorsBasic)
+                .Step("完成四个求生者选择")
+                    .Text("继续选择剩余求生者角色。四个求生者都选完后，再进入角色调整教学。")
+                    .TargetName(nameof(SurvivorPickSelectorGroupBorder))
+                    .Interaction(ProductTourInteractionMode.AllowTargetOnly)
+                    .AllowMissingTarget()
+                    .AvatarPlacement(ProductTourAvatarPlacement.TopLeft)
+                    .AvatarPose(TutorialAvatarPose.RightBottom)
+                    .CardOffset(new Point(-100, -24))
+                    .Placement(ProductTourPlacement.TopRight)
+                    .WaitFor(TutorialSignalIds.PickSurvivorSlotsCompleted)
+            .Package(Tours.GlobalBanRecordBasic)
+                .Step("全局禁选记录")
+                    .Text("刚刚选择的角色会记录到全局禁选中。后续新对局会清空当前局选择，但会保留这些全局禁选记录。")
+                    .PreStepAction(TutorialStepActions.SmoothScrollTo(nameof(GlobalBanRecordPanel)))
+                    .PreStepAction(TutorialStepActions.Delay(250))
+                    .TargetName(nameof(GlobalBanRecordPanel))
+                    .Interaction(ProductTourInteractionMode.AllowTargetOnly)
+                    .AllowMissingTarget()
+                    .CardOffset(new Point(-100, -100))
+                    .PostStepAction((_, _) =>
+                    {
+                        var gameGuidanceService = IAppHost.Host!.Services.GetRequiredService<IGameGuidanceService>();
+                        gameGuidanceService.MoveToStepAsync(9);
+                        return Task.CompletedTask;
+                    })
+            .Package(Tours.CharacterChangerBasic)
+                .Step("调整已选角色顺序")
+                    .Text("在选择角色结束后，分配角色阶段，可以在这里使用角色调整功能。调整后会同步更新当前 BP 状态。\n点击数字按钮即可将当前玩家的求生者角色与对应位置的求生者角色进行互换")
+                    .TargetName(nameof(SurvivorPickSelectorGroupBorder))
+                    .Interaction(ProductTourInteractionMode.AllowTargetOnly)
+                    .AllowMissingTarget()
+                    .AvatarPlacement(ProductTourAvatarPlacement.TopLeft)
+                    .AvatarPose(TutorialAvatarPose.RightBottom)
+                    .CardOffset(new Point(-100, -24))
+                    .Placement(ProductTourPlacement.TopRight)
+                    .PostStepAction((_, _) =>
+                    {
+                        var gameGuidanceService = IAppHost.Host!.Services.GetRequiredService<IGameGuidanceService>();
+                        gameGuidanceService.MoveToStepAsync(10);
+                        return Task.CompletedTask;
+                    })
+                .Build();
     }
 }

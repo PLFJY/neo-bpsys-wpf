@@ -123,7 +123,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
         Assert.Equal(
             TutorialAutoRunStrategy.ContinueWhileActive,
             sequenceRegistry.GetSequenceDefinition(TutorialPageKeys.SmartBp).AutoRunStrategy);
-        Assert.Equal(52, packageRegistry.GetPackages().Count);
+        Assert.Equal(51, packageRegistry.GetPackages().Count);
 
         var firstRun = flowRegistry.GetFlow(TutorialFlowIds.FirstRunStandardBp);
         Assert.NotNull(firstRun);
@@ -204,7 +204,9 @@ public sealed class NeoBpsysTutorialRegistrationTest
 
         var navigationProbe = flowRegistry.GetFlow(TutorialFlowIds.Phase4ANavigationProbe);
         Assert.NotNull(navigationProbe);
-        Assert.Empty(navigationProbe.IncludedPackageIds);
+        Assert.Equal(
+            [TutorialPackageIds.MainNavigationTeamInfo],
+            navigationProbe.IncludedPackageIds);
         Assert.Collection(
             navigationProbe.Items,
             item => Assert.IsType<DialogueFlowItem>(item),
@@ -213,7 +215,17 @@ public sealed class NeoBpsysTutorialRegistrationTest
 
         var realTargetProbe = flowRegistry.GetFlow(TutorialFlowIds.Phase4RealTargetProbe);
         Assert.NotNull(realTargetProbe);
-        Assert.Empty(realTargetProbe.IncludedPackageIds);
+        Assert.Equal(
+            [
+                TutorialPackageIds.MainNavigationFrontManage,
+                TutorialPackageIds.FrontManageBpWindowLaunchBasic,
+                TutorialPackageIds.MainNavigationTeamInfo,
+                TutorialPackageIds.TeamInfoTeamNameBasic,
+                TutorialPackageIds.MainTeamSummaryBasic,
+                TutorialPackageIds.GameManageGameProgressBo1FirstHalf,
+                TutorialPackageIds.BpGameGuidanceStartBasic
+            ],
+            realTargetProbe.IncludedPackageIds);
         Assert.Collection(
             realTargetProbe.Items,
             item => Assert.IsType<DialogueFlowItem>(item),
@@ -287,7 +299,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
                 package => package.PackageId == packageId);
             var navigationStep = Assert.Single(navigationPackage.Steps);
             Assert.Equal(TutorialTargetKind.NavigationItem, navigationStep.TargetKind);
-            Assert.NotNull(navigationStep.AfterCompleteAsync);
+            Assert.Contains(navigationStep.PostStepActions, action => action.Name == "CompleteNavigationStep");
         }
 
         var globalBanPackage = Assert.Single(
@@ -331,7 +343,9 @@ public sealed class NeoBpsysTutorialRegistrationTest
                 TutorialTargetNames.AwayPlayerListPanel
             ],
             jsonPresetPackage.Steps.Select(step => step.TargetName).ToArray());
-        Assert.Equal(TutorialTargetNames.AwayTeamInfoCard, jsonPresetPackage.Steps[2].ScrollAnchorName);
+        Assert.Equal(
+            ["SmoothScrollTo(AwayTeamInfoCard)", "Delay(250ms)", "SetAwayTeamJsonPickerHint"],
+            jsonPresetPackage.Steps[2].PreStepActions.Select(action => action.Name).ToArray());
         Assert.All(
             jsonPresetPackage.Steps.Where(step => step.TargetName is TutorialTargetNames.HomePlayerListPanel or TutorialTargetNames.AwayPlayerListPanel),
             step =>
@@ -587,7 +601,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
         Assert.Equal(TutorialTargetNames.DesignerHelpButton, finalStep.TargetName);
         Assert.Contains("v3 编辑器的详细说明", finalStep.Description, StringComparison.Ordinal);
         Assert.False(finalStep.AllowMissingTarget);
-        Assert.NotNull(finalStep.BeforeShowAsync);
+        Assert.Contains(finalStep.PreStepActions, action => action.Name == "ScrollDesignerHelpButtonIntoView");
     }
 
     [Fact]
@@ -634,7 +648,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
             packages,
             package => package.PackageId == TutorialPackageIds.DesignerV3HelpBasic);
 
-        Assert.Contains(importExport.Steps, step => step.TargetName is null && step.TargetKind == TutorialTargetKind.Name);
+        Assert.Contains(importExport.Steps, step => step.TargetName is null && step.TargetKind == TutorialTargetKind.None);
         Assert.Contains(importExport.Steps, step => step.Title == "保存、导入和导出");
 
         var helpStep = Assert.Single(help.Steps);
@@ -665,15 +679,15 @@ public sealed class NeoBpsysTutorialRegistrationTest
             "Views",
             "Pages",
             "FrontManagePage.xaml.cs"));
-        var loadedBlockStart = source.IndexOf("Loaded += (_, _) =>", StringComparison.Ordinal);
+        var loadedBlockStart = source.IndexOf("Loaded += async (_, _) =>", StringComparison.Ordinal);
         Assert.True(loadedBlockStart >= 0);
         var visibleChangedStart = source.IndexOf("IsVisibleChanged", loadedBlockStart, StringComparison.Ordinal);
         Assert.True(visibleChangedStart > loadedBlockStart);
         var loadedBlock = source[loadedBlockStart..visibleChangedStart];
 
-        Assert.Contains("TutorialPageKeys.FrontManage", loadedBlock);
-        Assert.Contains("\"Loaded\"", loadedBlock);
+        Assert.Contains("TryRunTutorialAsync", loadedBlock);
         Assert.DoesNotContain("ScheduleCurrentChildTutorial();", loadedBlock);
+        Assert.Contains("TryRunNextPackageAsync(this, TutorialPageKeys.FrontManage)", source);
     }
 
     [Fact]
@@ -733,28 +747,47 @@ public sealed class NeoBpsysTutorialRegistrationTest
     [Fact]
     public async Task TeamInfoJsonImportPresetUsesExamplesDirectoryForCommonJsonPicker()
     {
-        var package = Assert.Single(
-            CreateRegisteredPackages(),
-            package => package.PackageId == TutorialPackageIds.TeamInfoJsonImportPreset);
-        Assert.Equal(4, package.Steps.Count);
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var package = Assert.Single(
+                CreateRegisteredPackages(),
+                package => package.PackageId == TutorialPackageIds.TeamInfoJsonImportPreset);
+            Assert.Equal(4, package.Steps.Count);
 
-        var expectedDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Examples");
+            var expectedDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Examples");
 
-        var homeImportStep = package.Steps[0];
-        Assert.NotNull(homeImportStep.BeforeShowAsync);
-        await homeImportStep.BeforeShowAsync!(new EmptyServiceProvider(), CancellationToken.None);
-        var homeHint = TutorialFilePickerHints.ConsumeNextJsonPickerHint();
-        Assert.Equal(expectedDirectory, homeHint.InitialDirectory);
-        Assert.Contains("队伍信息导入示例-Wolves.json", homeHint.Title);
+            var homeImportStep = package.Steps[0];
+            var homeImportAction = Assert.Single(homeImportStep.PreStepActions);
+            await homeImportAction.ExecuteAsync(
+                new TutorialStepActionContext
+                {
+                    Services = new EmptyServiceProvider(),
+                    Owner = new Grid(),
+                    Step = homeImportStep
+                },
+                CancellationToken.None);
+            var homeHint = TutorialFilePickerHints.ConsumeNextJsonPickerHint();
+            Assert.Equal(expectedDirectory, homeHint.InitialDirectory);
+            Assert.Contains("队伍信息导入示例-Wolves.json", homeHint.Title);
 
-        var awayImportStep = package.Steps[2];
-        Assert.NotNull(awayImportStep.BeforeShowAsync);
-        await awayImportStep.BeforeShowAsync!(new EmptyServiceProvider(), CancellationToken.None);
-        var awayHint = TutorialFilePickerHints.ConsumeNextJsonPickerHint();
-        Assert.Equal(expectedDirectory, awayHint.InitialDirectory);
-        Assert.Contains("队伍信息导入示例-GR.json", awayHint.Title);
+            var awayImportStep = package.Steps[2];
+            var awayImportAction = Assert.Single(
+                awayImportStep.PreStepActions,
+                action => action.Name == "SetAwayTeamJsonPickerHint");
+            await awayImportAction.ExecuteAsync(
+                new TutorialStepActionContext
+                {
+                    Services = new EmptyServiceProvider(),
+                    Owner = new Grid(),
+                    Step = awayImportStep
+                },
+                CancellationToken.None);
+            var awayHint = TutorialFilePickerHints.ConsumeNextJsonPickerHint();
+            Assert.Equal(expectedDirectory, awayHint.InitialDirectory);
+            Assert.Contains("队伍信息导入示例-GR.json", awayHint.Title);
 
-        Assert.Null(TutorialFilePickerHints.ConsumeNextJsonPickerHint().InitialDirectory);
+            Assert.Null(TutorialFilePickerHints.ConsumeNextJsonPickerHint().InitialDirectory);
+        });
     }
 
     private static string[] GetPackageFlowItemIds(TutorialFlowDefinition flow) =>

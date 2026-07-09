@@ -278,6 +278,7 @@ public partial class MainWindowViewModel :
     {
         var index = GameList.IndexOf(SelectedGameProgress);
         SelectedGameProgress = GameList.GetAt(index + 1).Key;
+        _tutorialSignalService.Publish(TutorialSignalIds.NextGameClicked);
     }
 
     private bool CanNextGameExecute() => GameList.IndexOf(SelectedGameProgress) < 8 && IsBo3Mode ||

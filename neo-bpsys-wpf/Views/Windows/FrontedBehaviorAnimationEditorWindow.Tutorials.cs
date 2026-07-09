@@ -5,132 +5,93 @@ using System.Windows.Threading;
 
 namespace neo_bpsys_wpf.Views.Windows;
 
-public partial class FrontedBehaviorAnimationEditorWindow
+public partial class FrontedBehaviorAnimationEditorWindow : ITutorialOwner<FrontedBehaviorAnimationEditorWindow>
 {
     /// <summary>Designer v3 animation editor tutorial key.</summary>
     public const string TutorialPageKey = TutorialPageKeys.DesignerV3AnimationEditor;
 
-    /// <summary>Designer v3 animation editor tutorial package ids.</summary>
-    public static class TutorialPackages
+    /// <inheritdoc />
+    public static string TutorialKey => TutorialPageKey;
+
+    /// <summary>Designer v3 animation editor tutorial package references.</summary>
+    public static class Tours
     {
-        /// <summary>Animation editor overview package id.</summary>
-        public const string Overview = TutorialPackageIds.DesignerV3AnimationEditorOverview;
+        /// <summary>Animation editor overview package reference.</summary>
+        public static readonly TutorialPackageRef Overview = new(TutorialPackageIds.DesignerV3AnimationEditorOverview);
 
-        /// <summary>Animation editor timeline package id.</summary>
-        public const string TimelineBasic = TutorialPackageIds.DesignerV3AnimationEditorTimelineBasic;
+        /// <summary>Animation editor timeline package reference.</summary>
+        public static readonly TutorialPackageRef TimelineBasic = new(TutorialPackageIds.DesignerV3AnimationEditorTimelineBasic);
 
-        /// <summary>Animation editor key frame package id.</summary>
-        public const string KeyFrameBasic = TutorialPackageIds.DesignerV3AnimationEditorKeyFrameBasic;
+        /// <summary>Animation editor key frame package reference.</summary>
+        public static readonly TutorialPackageRef KeyFrameBasic = new(TutorialPackageIds.DesignerV3AnimationEditorKeyFrameBasic);
 
-        /// <summary>Animation editor preview package id.</summary>
-        public const string PreviewBasic = TutorialPackageIds.DesignerV3AnimationEditorPreviewBasic;
+        /// <summary>Animation editor preview package reference.</summary>
+        public static readonly TutorialPackageRef PreviewBasic = new(TutorialPackageIds.DesignerV3AnimationEditorPreviewBasic);
 
-        /// <summary>Animation editor help package id.</summary>
-        public const string HelpBasic = TutorialPackageIds.DesignerV3AnimationEditorHelpBasic;
+        /// <summary>Animation editor help package reference.</summary>
+        public static readonly TutorialPackageRef HelpBasic = new(TutorialPackageIds.DesignerV3AnimationEditorHelpBasic);
     }
 
     /// <summary>
     /// Registers tutorials owned by the Designer v3 animation editor.
     /// </summary>
-    /// <param name="registrar">Tutorial registrar.</param>
-    public static void RegisterTutorials(ITutorialDefinitionRegistrar registrar)
+    /// <param name="builder">Tutorial builder.</param>
+    public static void RegisterTutorials(ITutorialBuilder builder)
     {
-        registrar.RegisterSequence(TutorialPageKey,
-        [
-            TutorialPackages.Overview,
-            TutorialPackages.TimelineBasic,
-            TutorialPackages.KeyFrameBasic,
-            TutorialPackages.PreviewBasic,
-            TutorialPackages.HelpBasic
-        ],
-        TutorialAutoRunStrategy.DrainSequence);
-
-        registrar.RegisterPackage(TutorialDefinitionHelpers.Package(
-            TutorialPackages.Overview,
-            TutorialPageKey,
-            1,
-            [
-                TutorialDefinitionHelpers.Step(
-                    null,
-                    "动画编辑器",
-                    "这里编辑行为对应的动画动作。动画由时间、步骤和参数变化组成。",
-                    ProductTourInteractionMode.BlockAll),
-                TutorialDefinitionHelpers.Step(
-                    nameof(AnimationTabs),
-                    "动画编辑器",
-                    "这里编辑行为对应的动画动作。动画由时间、步骤和参数变化组成。",
-                    ProductTourInteractionMode.AllowTargetOnly,
-                    allowMissing: true)
-            ]));
-
-        registrar.RegisterPackage(TutorialDefinitionHelpers.Package(
-            TutorialPackages.TimelineBasic,
-            TutorialPageKey,
-            2,
-            [
-                TutorialDefinitionHelpers.Step(
-                    null,
-                    "时间和步骤",
-                    "动画会按时间和步骤顺序执行。你可以先理解结构，不需要为了完成教程创建关键帧。",
-                    ProductTourInteractionMode.BlockAll),
-                TutorialDefinitionHelpers.Step(
-                    TutorialTargetNames.AnimationGraphCanvas,
-                    "时间顺序",
-                    "动画按时间和步骤顺序执行。不同阶段可以分别编辑进入、循环和停止动作。",
-                    ProductTourInteractionMode.AllowTargetOnly,
-                    allowMissing: true)
-            ]));
-
-        registrar.RegisterPackage(TutorialDefinitionHelpers.Package(
-            TutorialPackages.KeyFrameBasic,
-            TutorialPageKey,
-            3,
-            [
-                TutorialDefinitionHelpers.Step(
-                    null,
-                    "动作参数",
-                    "参数用于描述位置、透明度、大小、颜色等变化。本教程不要求你创建或保存参数。",
-                    ProductTourInteractionMode.BlockAll),
-                TutorialDefinitionHelpers.Step(
-                    TutorialTargetNames.AnimationPropertyPanel,
-                    "动作参数",
-                    "选中节点后，可以在这里编辑位置、透明度、大小、颜色等变化参数。",
-                    ProductTourInteractionMode.AllowTargetOnly,
-                    allowMissing: true)
-            ]));
-
-        registrar.RegisterPackage(TutorialDefinitionHelpers.Package(
-            TutorialPackages.PreviewBasic,
-            TutorialPageKey,
-            4,
-            [
-                TutorialDefinitionHelpers.Step(
-                    null,
-                    "预览动画",
-                    "预览用于确认动作顺序和参数效果。本教程不强制保存动画。",
-                    ProductTourInteractionMode.BlockAll),
-                TutorialDefinitionHelpers.Step(
-                    TutorialTargetNames.AnimationPreviewPanel,
-                    "预览动画",
-                    "正式使用前建议预览动画效果，确认动作顺序和参数符合预期。确认无误后，可以按当前窗口的保存提示保存或应用；本教程不强制保存。",
-                    ProductTourInteractionMode.AllowTargetOnly,
-                    allowMissing: true)
-            ]));
-
-        registrar.RegisterPackage(TutorialDefinitionHelpers.Package(
-            TutorialPackages.HelpBasic,
-            TutorialPageKey,
-            5,
-            [
-                TutorialDefinitionHelpers.Step(
-                    nameof(AnimationEditorHelpButton),
-                    "动画进阶说明",
-                    "右下角这个帮助按钮可以查看动画编辑器的详细 / 进阶说明。",
-                    ProductTourInteractionMode.AllowTargetOnly,
-                    beforeShowAsync: ScrollAnimationHelpButtonIntoViewAsync,
-                    scrollAnchorName: nameof(AnimationEditorHelpButton))
-            ]));
+        builder.ForWindow<FrontedBehaviorAnimationEditorWindow>()
+            .AutoRun(TutorialAutoRunStrategy.DrainSequence)
+            .Package(Tours.Overview)
+                .Step("动画编辑器")
+                    .Text("这里编辑行为对应的动画动作。动画由时间、步骤和参数变化组成。")
+                    .NoTarget()
+                    .Interaction(ProductTourInteractionMode.BlockAll)
+                .Step("动画编辑器")
+                    .Text("这里编辑行为对应的动画动作。动画由时间、步骤和参数变化组成。")
+                    .TargetName(nameof(AnimationTabs))
+                    .Interaction(ProductTourInteractionMode.AllowTargetOnly)
+                    .AllowMissingTarget()
+            .Package(Tours.TimelineBasic)
+                .Step("时间和步骤")
+                    .Text("动画会按时间和步骤顺序执行。你可以先理解结构，不需要为了完成教程创建关键帧。")
+                    .NoTarget()
+                    .Interaction(ProductTourInteractionMode.BlockAll)
+                .Step("时间顺序")
+                    .Text("动画按时间和步骤顺序执行。不同阶段可以分别编辑进入、循环和停止动作。")
+                    .TargetName(TutorialTargetNames.AnimationGraphCanvas)
+                    .Interaction(ProductTourInteractionMode.AllowTargetOnly)
+                    .AllowMissingTarget()
+            .Package(Tours.KeyFrameBasic)
+                .Step("动作参数")
+                    .Text("参数用于描述位置、透明度、大小、颜色等变化。本教程不要求你创建或保存参数。")
+                    .NoTarget()
+                    .Interaction(ProductTourInteractionMode.BlockAll)
+                .Step("动作参数")
+                    .Text("选中节点后，可以在这里编辑位置、透明度、大小、颜色等变化参数。")
+                    .TargetName(TutorialTargetNames.AnimationPropertyPanel)
+                    .Interaction(ProductTourInteractionMode.AllowTargetOnly)
+                    .AllowMissingTarget()
+            .Package(Tours.PreviewBasic)
+                .Step("预览动画")
+                    .Text("预览用于确认动作顺序和参数效果。本教程不强制保存动画。")
+                    .NoTarget()
+                    .Interaction(ProductTourInteractionMode.BlockAll)
+                .Step("预览动画")
+                    .Text("正式使用前建议预览动画效果，确认动作顺序和参数符合预期。确认无误后，可以按当前窗口的保存提示保存或应用；本教程不强制保存。")
+                    .TargetName(TutorialTargetNames.AnimationPreviewPanel)
+                    .Interaction(ProductTourInteractionMode.AllowTargetOnly)
+                    .AllowMissingTarget()
+            .Package(Tours.HelpBasic)
+                .Step("动画进阶说明")
+                    .Text("右下角这个帮助按钮可以查看动画编辑器的详细 / 进阶说明。")
+                    .PreStepAction(ScrollAnimationHelpButtonIntoViewAction())
+                    .TargetName(nameof(AnimationEditorHelpButton))
+                    .Interaction(ProductTourInteractionMode.AllowTargetOnly)
+                .Build();
     }
+
+    private static TutorialStepAction ScrollAnimationHelpButtonIntoViewAction() =>
+        new("ScrollAnimationHelpButtonIntoView", (context, cancellationToken) =>
+            ScrollAnimationHelpButtonIntoViewAsync(context.Services, cancellationToken));
 
     private static async Task ScrollAnimationHelpButtonIntoViewAsync(
         IServiceProvider serviceProvider,

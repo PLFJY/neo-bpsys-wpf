@@ -5,58 +5,10 @@ using neo_bpsys_wpf.ProductTour.Controls;
 namespace neo_bpsys_wpf.ProductTour;
 
 /// <summary>
-/// Runs tutorial packages and flows.
+/// Manages persisted tutorial state.
 /// </summary>
-public interface ITutorialService
+public interface ITutorialStateManager
 {
-    /// <summary>Runs the first pending package for a page.</summary>
-    /// <param name="owner">Owner element.</param>
-    /// <param name="pageKey">Page key.</param>
-    /// <param name="triggerMode">Trigger mode.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The run result.</returns>
-    Task<TutorialRunResult> RunPendingPagePackagesAsync(
-        FrameworkElement owner,
-        string pageKey,
-        TutorialTriggerMode triggerMode = TutorialTriggerMode.AutoOnLoaded,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>Gets the next pending package for a page without showing UI or writing state.</summary>
-    /// <param name="owner">Owner element.</param>
-    /// <param name="pageKey">Page key.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The next pending package definition, or <see langword="null" /> when no package can run.</returns>
-    Task<TutorialPackageDefinition?> GetNextPendingPackageAsync(
-        FrameworkElement owner,
-        string pageKey,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>Runs a package by id.</summary>
-    /// <param name="owner">Owner element.</param>
-    /// <param name="packageId">Package id.</param>
-    /// <param name="triggerMode">Trigger mode.</param>
-    /// <param name="flowId">Optional flow id.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The run result.</returns>
-    Task<TutorialRunResult> RunPackageAsync(
-        FrameworkElement owner,
-        string packageId,
-        TutorialTriggerMode triggerMode,
-        string? flowId = null,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>Runs a tutorial flow.</summary>
-    /// <param name="owner">Owner element.</param>
-    /// <param name="flowId">Flow id.</param>
-    /// <param name="force">Whether completion state should be ignored.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The run result.</returns>
-    Task<TutorialRunResult> RunFlowAsync(
-        FrameworkElement owner,
-        string flowId,
-        bool force = false,
-        CancellationToken cancellationToken = default);
-
     /// <summary>Resets all tutorial state.</summary>
     /// <param name="cancellationToken">Cancellation token.</param>
     Task ResetStateAsync(CancellationToken cancellationToken = default);
@@ -70,7 +22,7 @@ public interface ITutorialService
 /// <summary>
 /// Default tutorial service.
 /// </summary>
-public sealed class TutorialService : ITutorialService
+internal sealed class TutorialService : ITutorialStateManager
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ITutorialPackageRegistry _packageRegistry;
@@ -81,7 +33,6 @@ public sealed class TutorialService : ITutorialService
     private readonly ITutorialTextProvider _textProvider;
     private readonly ITutorialAvatarProvider _avatarProvider;
     private readonly ITutorialRunObserver _runObserver;
-    private readonly ITutorialOwnerActivationService _ownerActivationService;
     private readonly ProductTourOptions _options;
     private readonly ILogger<TutorialService> _logger;
     private readonly SemaphoreSlim _runLock = new(1, 1);
@@ -99,10 +50,9 @@ public sealed class TutorialService : ITutorialService
     /// <param name="textProvider">Fixed UI text provider.</param>
     /// <param name="avatarProvider">Tutorial avatar provider.</param>
     /// <param name="runObserver">Tutorial run observer.</param>
-    /// <param name="ownerActivationService">Tutorial owner activation service.</param>
     /// <param name="options">Product tour display options.</param>
     /// <param name="logger">Logger.</param>
-    public TutorialService(
+    internal TutorialService(
         IServiceProvider serviceProvider,
         ITutorialPackageRegistry packageRegistry,
         ITutorialSequenceRegistry sequenceRegistry,
@@ -112,7 +62,6 @@ public sealed class TutorialService : ITutorialService
         ITutorialTextProvider textProvider,
         ITutorialAvatarProvider avatarProvider,
         ITutorialRunObserver runObserver,
-        ITutorialOwnerActivationService ownerActivationService,
         ProductTourOptions options,
         ILogger<TutorialService> logger)
     {
@@ -125,7 +74,6 @@ public sealed class TutorialService : ITutorialService
         _textProvider = textProvider;
         _avatarProvider = avatarProvider;
         _runObserver = runObserver;
-        _ownerActivationService = ownerActivationService;
         _options = options;
         _logger = logger;
     }
@@ -137,12 +85,6 @@ public sealed class TutorialService : ITutorialService
         TutorialTriggerMode triggerMode = TutorialTriggerMode.AutoOnLoaded,
         CancellationToken cancellationToken = default)
     {
-        if (triggerMode == TutorialTriggerMode.AutoOnLoaded
-            && !IsOwnerActive(owner, pageKey, "RunPendingPagePackagesAsync"))
-        {
-            return TutorialRunResult.Canceled;
-        }
-
         if (_isFlowRunning && triggerMode == TutorialTriggerMode.AutoOnLoaded)
         {
             _runObserver.OnPackageSuppressed(pageKey);
@@ -215,12 +157,6 @@ public sealed class TutorialService : ITutorialService
         {
             _logger.LogWarning("Tutorial package {PackageId} is not registered.", packageId);
             return TutorialRunResult.Failed;
-        }
-
-        if (triggerMode == TutorialTriggerMode.AutoOnLoaded
-            && !IsOwnerActive(owner, package.PageKey, "RunPackageAsync"))
-        {
-            return TutorialRunResult.Canceled;
         }
 
         if (!CanRunPackage(package, owner))
@@ -406,7 +342,22 @@ public sealed class TutorialService : ITutorialService
         while (index < steps.Count)
         {
             var step = steps[index];
-            await (step.BeforeShowAsync?.Invoke(_serviceProvider, cancellationToken) ?? Task.CompletedTask);
+            var preActionResult = await ExecuteStepActionsAsync(
+                step.PreStepActions,
+                owner,
+                step,
+                null,
+                "pre-step",
+                flowId,
+                packageId,
+                index,
+                steps.Count,
+                cancellationToken);
+            if (preActionResult != TutorialRunResult.Completed)
+            {
+                return preActionResult;
+            }
+
             FrameworkElement? target = null;
             if (StepRequiresTarget(step))
             {
@@ -455,12 +406,19 @@ public sealed class TutorialService : ITutorialService
             host.Children.Add(overlay);
 
             ProductTourStepAction action;
-            using (var stepCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+            try
             {
+                using var stepCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 try
                 {
                     var stepTask = overlay.ShowStepAsync(step, target, context, stepCts.Token);
                     var waitTask = WaitForStepSignalAsync(step, overlay, flowId, packageId, index, steps.Count, stepCts.Token);
+                    var completedTask = await Task.WhenAny(stepTask, waitTask);
+                    if (completedTask == waitTask)
+                    {
+                        await waitTask;
+                    }
+
                     action = await stepTask;
                     await stepCts.CancelAsync();
 
@@ -484,6 +442,14 @@ public sealed class TutorialService : ITutorialService
                     }
                 }
             }
+            catch (TimeoutException)
+            {
+                return TutorialRunResult.Failed;
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                return TutorialRunResult.Canceled;
+            }
 
             if (action == ProductTourStepAction.Previous)
             {
@@ -501,13 +467,96 @@ public sealed class TutorialService : ITutorialService
                 return TutorialRunResult.Canceled;
             }
 
-            await (step.AfterCompleteAsync?.Invoke(_serviceProvider, cancellationToken) ?? Task.CompletedTask);
+            var postActionResult = await ExecuteStepActionsAsync(
+                step.PostStepActions,
+                owner,
+                step,
+                target,
+                "post-step",
+                flowId,
+                packageId,
+                index,
+                steps.Count,
+                cancellationToken);
+            if (postActionResult != TutorialRunResult.Completed)
+            {
+                return postActionResult;
+            }
+
             index++;
         }
 
         if (steps.Count > 0 && shownStepCount == 0)
         {
             return TutorialRunResult.TargetMissing;
+        }
+
+        return TutorialRunResult.Completed;
+    }
+
+    private async Task<TutorialRunResult> ExecuteStepActionsAsync(
+        IEnumerable<TutorialStepAction> actions,
+        FrameworkElement owner,
+        ProductTourStep step,
+        FrameworkElement? lastResolvedTarget,
+        string phase,
+        string? flowId,
+        string? packageId,
+        int stepIndex,
+        int stepCount,
+        CancellationToken cancellationToken)
+    {
+        var context = new TutorialStepActionContext
+        {
+            Services = _serviceProvider,
+            Owner = owner,
+            Step = step,
+            LastResolvedTarget = lastResolvedTarget
+        };
+
+        foreach (var action in actions)
+        {
+            try
+            {
+                await action.ExecuteAsync(context, cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                return TutorialRunResult.Canceled;
+            }
+            catch (Exception ex)
+            {
+                if (action.IsOptional)
+                {
+                    _logger.LogWarning(
+                        ex,
+                        "Optional tutorial {Phase} action {ActionName} failed. FlowId={FlowId}, PackageId={PackageId}, StepIndex={StepIndex}, StepCount={StepCount}, TargetKind={TargetKind}, TargetName={TargetName}, TargetKey={TargetKey}",
+                        phase,
+                        action.Name,
+                        flowId,
+                        packageId,
+                        stepIndex,
+                        stepCount,
+                        step.TargetKind,
+                        step.TargetName,
+                        step.TargetKey);
+                    continue;
+                }
+
+                _logger.LogError(
+                    ex,
+                    "Tutorial {Phase} action {ActionName} failed. FlowId={FlowId}, PackageId={PackageId}, StepIndex={StepIndex}, StepCount={StepCount}, TargetKind={TargetKind}, TargetName={TargetName}, TargetKey={TargetKey}",
+                    phase,
+                    action.Name,
+                    flowId,
+                    packageId,
+                    stepIndex,
+                    stepCount,
+                    step.TargetKind,
+                    step.TargetName,
+                    step.TargetKey);
+                return TutorialRunResult.Failed;
+            }
         }
 
         return TutorialRunResult.Completed;
@@ -546,10 +595,7 @@ public sealed class TutorialService : ITutorialService
                 step.TargetName,
                 step.TargetKey,
                 step.WaitForSignalId);
-            await overlay.Dispatcher.InvokeAsync(
-                () => overlay.MarkSignalTimedOut("还没有检测到操作完成，请确认是否点击了高亮区域。"),
-                System.Windows.Threading.DispatcherPriority.Normal,
-                cancellationToken);
+            throw new TimeoutException($"Tutorial signal '{step.WaitForSignalId}' timed out.");
         }
 
         await signalTask;
@@ -589,17 +635,6 @@ public sealed class TutorialService : ITutorialService
         ?? package.CanRun?.Invoke(_serviceProvider)
         ?? true;
 
-    private bool IsOwnerActive(FrameworkElement owner, string pageKey, string reason)
-    {
-        if (_ownerActivationService.IsOwnerActive(owner, pageKey))
-        {
-            return true;
-        }
-
-        _runObserver.OnAutoRunRejectedInactiveOwner(owner.GetType().Name, pageKey, reason);
-        return false;
-    }
-
     private static FrameworkElement ResolveOverlayOwner(FrameworkElement owner)
     {
         if (owner is Window)
@@ -615,6 +650,7 @@ public sealed class TutorialService : ITutorialService
     private static bool StepRequiresTarget(ProductTourStep step) =>
         step.TargetKind switch
         {
+            TutorialTargetKind.None => false,
             TutorialTargetKind.Name => !string.IsNullOrWhiteSpace(step.TargetName),
             TutorialTargetKind.NavigationItem => !string.IsNullOrWhiteSpace(step.TargetKey),
             TutorialTargetKind.DescendantType => !string.IsNullOrWhiteSpace(step.TargetKey),

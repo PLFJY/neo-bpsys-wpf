@@ -256,6 +256,8 @@ public static class TutorialPackageIds
 
     /// <summary>Smart BP post-game auto-fill package id.</summary>
     public const string SmartBpPostGameAutoFill = "Page.SmartBp.PostGameAutoFill";
+
+    public const string NextGameBasic = "Page.Bp.GameGuidance.NextGameBasic.Basic";
 }
 
 /// <summary>
@@ -382,6 +384,9 @@ public static class TutorialSignalIds
 
     /// <summary>Smart BP post-game auto-fill started signal id.</summary>
     public const string SmartBpPostGameAutoFillStarted = "SmartBp.PostGameAutoFillStarted";
+
+    /// <summary>next game button clicked signal id.</summary>
+    public const string NextGameClicked = "GameGuidance.NextGameClicked";
 }
 
 /// <summary>

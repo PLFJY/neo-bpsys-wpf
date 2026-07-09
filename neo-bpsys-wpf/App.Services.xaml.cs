@@ -31,7 +31,6 @@ public partial class App
     {
         services.AddNavigationViewPageProvider();
         services.AddProductTour();
-        services.AddSingleton<ITutorialOwnerActivationService, NeoBpsysTutorialOwnerActivationService>();
         services.AddSingleton<ITutorialLanguageService, NeoBpsysTutorialLanguageService>();
         services.AddSingleton<ITutorialTextProvider, NeoBpsysTutorialTextProvider>();
         services.AddSingleton<ITutorialAvatarProvider, AliceTutorialAvatarProvider>();
@@ -65,6 +64,7 @@ public partial class App
             sp.GetRequiredService<ISnackbarService>(),
             sp.GetRequiredService<ISettingsHostService>(),
             sp.GetRequiredService<IOnboardingCoordinator>(),
+            sp.GetRequiredService<ITutorialRunner>(),
             sp.GetRequiredService<ILogger<MainWindow>>()
         )
         {
