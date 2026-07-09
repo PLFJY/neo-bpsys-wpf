@@ -83,10 +83,7 @@ public partial class FrontManagePage : Page, IRecipient<FrontManageTabNavigation
 
     internal static bool RunCurrentChildTutorial(DependencyObject root)
     {
-        if (IAppHost.Host is null
-            || !TutorialDefinitionHelpers.IsPackageRecorded(
-                IAppHost.Host.Services,
-                TutorialPackageIds.FrontManageOverview))
+        if (IAppHost.Host is null)
         {
             return false;
         }

@@ -527,15 +527,15 @@ public sealed class TutorialService : ITutorialService
             return;
         }
 
-        try
+        var signalTask = _signalService.WaitAsync(
+            step.WaitForSignalId,
+            null,
+            Timeout.InfiniteTimeSpan,
+            cancellationToken);
+        var timeoutTask = Task.Delay(step.Timeout, cancellationToken);
+        var completed = await Task.WhenAny(signalTask, timeoutTask);
+        if (completed == timeoutTask)
         {
-            await _signalService.WaitAsync(step.WaitForSignalId, null, step.Timeout, cancellationToken);
-            overlay.MarkSignalCompleted();
-        }
-        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
-        {
-            var message =
-                $"等待操作超时。FlowId={flowId ?? "(none)"}, PackageId={packageId ?? "(none)"}, StepIndex={stepIndex}, StepCount={stepCount}, TargetKind={step.TargetKind}, TargetName={step.TargetName ?? "(none)"}, TargetKey={step.TargetKey ?? "(none)"}, SignalId={step.WaitForSignalId}";
             _logger.LogWarning(
                 "Tutorial signal timeout. FlowId={FlowId}, PackageId={PackageId}, StepIndex={StepIndex}, StepCount={StepCount}, TargetKind={TargetKind}, TargetName={TargetName}, TargetKey={TargetKey}, SignalId={SignalId}",
                 flowId,
@@ -546,8 +546,17 @@ public sealed class TutorialService : ITutorialService
                 step.TargetName,
                 step.TargetKey,
                 step.WaitForSignalId);
-            overlay.MarkSignalTimedOut(message);
+            await overlay.Dispatcher.InvokeAsync(
+                () => overlay.MarkSignalTimedOut("还没有检测到操作完成，请确认是否点击了高亮区域。"),
+                System.Windows.Threading.DispatcherPriority.Normal,
+                cancellationToken);
         }
+
+        await signalTask;
+        await overlay.Dispatcher.InvokeAsync(
+            overlay.MarkSignalCompleted,
+            System.Windows.Threading.DispatcherPriority.Normal,
+            cancellationToken);
     }
 
     private async Task<TutorialRunResult> ShowDialogueAsync(

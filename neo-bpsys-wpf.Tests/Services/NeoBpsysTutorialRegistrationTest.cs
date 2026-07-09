@@ -107,7 +107,6 @@ public sealed class NeoBpsysTutorialRegistrationTest
             sequenceRegistry.GetSequenceDefinition(TutorialPageKeys.DesignerV3AnimationEditor).AutoRunStrategy);
         Assert.Equal(
             [
-                TutorialPackageIds.SmartBpModuleShell,
                 TutorialPackageIds.SmartBpModuleContentOverview,
                 TutorialPackageIds.SmartBpCaptureBasic,
                 TutorialPackageIds.SmartBpRegionEditorBasic,
@@ -127,7 +126,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
         Assert.Equal(
             TutorialAutoRunStrategy.ContinueWhileActive,
             sequenceRegistry.GetSequenceDefinition(TutorialPageKeys.SmartBp).AutoRunStrategy);
-        Assert.Equal(55, packageRegistry.GetPackages().Count);
+        Assert.Equal(60, packageRegistry.GetPackages().Count);
 
         var firstRun = flowRegistry.GetFlow(TutorialFlowIds.FirstRunStandardBp);
         Assert.NotNull(firstRun);
@@ -143,10 +142,15 @@ public sealed class NeoBpsysTutorialRegistrationTest
                 TutorialPackageIds.TeamInfoPlayerManage,
                 TutorialPackageIds.GameManageGameProgressBo1FirstHalf,
                 TutorialPackageIds.BpGameGuidanceStartBasic,
+                TutorialPackageIds.BpGameGuidanceCurrentStepBasic,
+                TutorialPackageIds.MapBpCurrentOperationSpotlightBasic,
                 TutorialPackageIds.MapBpCompletionNextBasic,
                 TutorialPackageIds.BpCharacterSelectorBasic,
-                TutorialPackageIds.BpPickCharacterBasic,
+                TutorialPackageIds.BpPickSelectFourSurvivorsBasic,
                 TutorialPackageIds.BpGlobalBanRecordBasic,
+                TutorialPackageIds.BpCharacterChangerBasic,
+                TutorialPackageIds.BpTalentTraitBasic,
+                TutorialPackageIds.BpGameGuidanceEndBasic,
                 TutorialPackageIds.MainNavigationScore,
                 TutorialPackageIds.ScoreBasic,
                 TutorialPackageIds.GameManageNewGameBasic,
@@ -170,7 +174,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
         Assert.DoesNotContain(TutorialPackageIds.FrontManageLayoutPackagesBasic, firstRun.IncludedPackageIds);
         Assert.DoesNotContain(TutorialPackageIds.MainNavigationSmartBp, firstRun.IncludedPackageIds);
         Assert.DoesNotContain(TutorialPackageIds.MainNavigationDesignerV3, firstRun.IncludedPackageIds);
-        Assert.Equal(23, firstRun.Items.Count);
+        Assert.Equal(28, firstRun.Items.Count);
         Assert.Equal(
             TutorialPackageIds.MainNavigationFrontManage,
             Assert.IsType<PackageFlowItem>(firstRun.Items[1]).PackageId);
@@ -185,10 +189,15 @@ public sealed class NeoBpsysTutorialRegistrationTest
                 TutorialPackageIds.TeamInfoPlayerManage,
                 TutorialPackageIds.GameManageGameProgressBo1FirstHalf,
                 TutorialPackageIds.BpGameGuidanceStartBasic,
+                TutorialPackageIds.BpGameGuidanceCurrentStepBasic,
+                TutorialPackageIds.MapBpCurrentOperationSpotlightBasic,
                 TutorialPackageIds.MapBpCompletionNextBasic,
                 TutorialPackageIds.BpCharacterSelectorBasic,
-                TutorialPackageIds.BpPickCharacterBasic,
+                TutorialPackageIds.BpPickSelectFourSurvivorsBasic,
                 TutorialPackageIds.BpGlobalBanRecordBasic,
+                TutorialPackageIds.BpCharacterChangerBasic,
+                TutorialPackageIds.BpTalentTraitBasic,
+                TutorialPackageIds.BpGameGuidanceEndBasic,
                 TutorialPackageIds.MainNavigationScore,
                 TutorialPackageIds.ScoreBasic,
                 TutorialPackageIds.GameManageNewGameBasic,
@@ -242,8 +251,13 @@ public sealed class NeoBpsysTutorialRegistrationTest
         Assert.Contains(packageRegistry.GetPackages(), package => package.PackageId == TutorialPackageIds.GameManageGameProgressBo1FirstHalf);
         Assert.Contains(packageRegistry.GetPackages(), package => package.PackageId == TutorialPackageIds.GameManageNewGameBasic);
         Assert.Contains(packageRegistry.GetPackages(), package => package.PackageId == TutorialPackageIds.BpGameGuidanceStartBasic);
+        Assert.Contains(packageRegistry.GetPackages(), package => package.PackageId == TutorialPackageIds.BpGameGuidanceCurrentStepBasic);
+        Assert.Contains(packageRegistry.GetPackages(), package => package.PackageId == TutorialPackageIds.MapBpCurrentOperationSpotlightBasic);
         Assert.Contains(packageRegistry.GetPackages(), package => package.PackageId == TutorialPackageIds.MapBpCompletionNextBasic);
-        Assert.Contains(packageRegistry.GetPackages(), package => package.PackageId == TutorialPackageIds.BpPickCharacterBasic);
+        Assert.Contains(packageRegistry.GetPackages(), package => package.PackageId == TutorialPackageIds.BpPickSelectFourSurvivorsBasic);
+        Assert.Contains(packageRegistry.GetPackages(), package => package.PackageId == TutorialPackageIds.BpCharacterChangerBasic);
+        Assert.Contains(packageRegistry.GetPackages(), package => package.PackageId == TutorialPackageIds.BpTalentTraitBasic);
+        Assert.Contains(packageRegistry.GetPackages(), package => package.PackageId == TutorialPackageIds.BpGameGuidanceEndBasic);
         Assert.Contains(packageRegistry.GetPackages(), package => package.PackageId == TutorialPackageIds.TeamInfoBasic);
 
         var frontManagePackage = Assert.Single(
@@ -276,10 +290,10 @@ public sealed class NeoBpsysTutorialRegistrationTest
             packageRegistry.GetPackages(),
             package => package.PackageId == TutorialPackageIds.BpGlobalBanRecordBasic);
         var globalBanStep = Assert.Single(globalBanPackage.Steps);
-        Assert.Equal(TutorialTargetKind.ElementTag, globalBanStep.TargetKind);
-        Assert.Equal(TutorialTargetNames.CurrentSurvivorGlobalBanRecordPanel, globalBanStep.TargetKey);
-        Assert.Equal(ProductTourInteractionMode.AllowAll, globalBanStep.InteractionMode);
-        Assert.Equal(new Point(80, 0), globalBanStep.CardOffset);
+        Assert.Equal(TutorialTargetKind.Name, globalBanStep.TargetKind);
+        Assert.Equal(TutorialTargetNames.GlobalBanRecordPanel, globalBanStep.TargetName);
+        Assert.Equal(ProductTourInteractionMode.AllowTargetOnly, globalBanStep.InteractionMode);
+        Assert.Equal(default, globalBanStep.CardOffset);
         Assert.Null(globalBanStep.WaitForSignalId);
 
         var playerManagePackage = Assert.Single(
@@ -330,7 +344,6 @@ public sealed class NeoBpsysTutorialRegistrationTest
         await WpfTestThread.RunAsync(() =>
         {
             var packages = CreateRegisteredPackages();
-            var shell = Assert.Single(packages, package => package.PackageId == TutorialPackageIds.SmartBpModuleShell);
             var overview = Assert.Single(packages, package => package.PackageId == TutorialPackageIds.SmartBpModuleContentOverview);
             var capture = Assert.Single(packages, package => package.PackageId == TutorialPackageIds.SmartBpCaptureBasic);
             var region = Assert.Single(packages, package => package.PackageId == TutorialPackageIds.SmartBpRegionEditorBasic);
@@ -350,9 +363,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
             var regionOwner = CreateSmartBpOwnerWithContent("SmartBpModuleContentHost", SmartBpPage.TutorialTargets.RegionListPanel);
             var fullBpOwner = CreateSmartBpOwnerWithContent("SmartBpModuleContentHost", SmartBpPage.TutorialTargets.StartFullBpFlowButton);
 
-            Assert.NotNull(shell.CanRunWithOwner);
-            Assert.True(shell.CanRunWithOwner!(provider, unloadedOwner));
-            Assert.False(shell.CanRunWithOwner!(provider, loadedOwner));
+            Assert.DoesNotContain(packages, package => package.PackageId == TutorialPackageIds.SmartBpModuleShell);
 
             Assert.NotNull(overview.CanRunWithOwner);
             Assert.False(overview.CanRunWithOwner!(provider, unloadedOwner));

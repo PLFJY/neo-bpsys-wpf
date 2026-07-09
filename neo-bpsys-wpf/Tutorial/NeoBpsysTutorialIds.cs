@@ -116,14 +116,32 @@ public static class TutorialPackageIds
     /// <summary>Game guidance start package id.</summary>
     public const string BpGameGuidanceStartBasic = "Page.Bp.GameGuidance.Start.Basic";
 
+    /// <summary>Game guidance current-step package id.</summary>
+    public const string BpGameGuidanceCurrentStepBasic = "Page.Bp.GameGuidance.CurrentStep.Basic";
+
+    /// <summary>Game guidance end package id.</summary>
+    public const string BpGameGuidanceEndBasic = "Page.Bp.GameGuidance.End.Basic";
+
     /// <summary>BO1 first-half game guidance package id.</summary>
     public const string BpGameGuidanceFlowBo1FirstHalf = "Page.Bp.GameGuidance.FlowBo1FirstHalf";
 
     /// <summary>Map BP completion next package id.</summary>
     public const string MapBpCompletionNextBasic = "Page.MapBp.CompletionNext.Basic";
 
+    /// <summary>Map BP current operation spotlight package id.</summary>
+    public const string MapBpCurrentOperationSpotlightBasic = "Page.MapBp.CurrentOperationSpotlight.Basic";
+
     /// <summary>BP survivor pick character package id.</summary>
     public const string BpPickCharacterBasic = "Page.Bp.PickCharacter.Basic";
+
+    /// <summary>BP survivor four-character selection package id.</summary>
+    public const string BpPickSelectFourSurvivorsBasic = "Page.Bp.Pick.SelectFourSurvivors.Basic";
+
+    /// <summary>BP character changer package id.</summary>
+    public const string BpCharacterChangerBasic = "Page.Bp.CharacterChanger.Basic";
+
+    /// <summary>BP talent and trait package id.</summary>
+    public const string BpTalentTraitBasic = "Page.Bp.TalentTrait.Basic";
 
     /// <summary>Score basic package id.</summary>
     public const string ScoreBasic = "Page.Score.Basic";
@@ -311,6 +329,24 @@ public static class TutorialSignalIds
     /// <summary>Second survivor pick character selected signal id.</summary>
     public const string PickCharacterSelectedSurvivor2 = "PickCharacterSelected.Survivor2";
 
+    /// <summary>Third survivor pick character selected signal id.</summary>
+    public const string PickCharacterSelectedSurvivor3 = "PickCharacterSelected.Survivor3";
+
+    /// <summary>Fourth survivor pick character selected signal id.</summary>
+    public const string PickCharacterSelectedSurvivor4 = "PickCharacterSelected.Survivor4";
+
+    /// <summary>All survivor pick slots completed signal id.</summary>
+    public const string PickSurvivorSlotsCompleted = "PickSurvivorSlotsCompleted";
+
+    /// <summary>Character changer opened signal id.</summary>
+    public const string CharacterChangerOpened = "CharacterChangerOpened";
+
+    /// <summary>Character changer applied signal id.</summary>
+    public const string CharacterChangerApplied = "CharacterChangerApplied";
+
+    /// <summary>Game guidance stopped signal id.</summary>
+    public const string GameGuidanceStopped = "GameGuidanceStopped";
+
     /// <summary>Global ban record updated signal id.</summary>
     public const string GlobalBanRecordUpdated = "GlobalBanRecordUpdated";
 
@@ -435,6 +471,9 @@ public static class TutorialTargetNames
     /// <summary>Next guidance step button target name.</summary>
     public const string NextGuidanceStepButton = "NextGuidanceStepButton";
 
+    /// <summary>Current guidance step text target name.</summary>
+    public const string CurrentGuidanceStepTextBlock = "CurrentGuidanceStepTextBlock";
+
     /// <summary>Stop game guidance button target name.</summary>
     public const string StopGameGuidanceButton = "StopGameGuidanceButton";
 
@@ -462,6 +501,21 @@ public static class TutorialTargetNames
     /// <summary>Hunter pick selector host target name.</summary>
     public const string HunterPickSelectorHost = "HunterPickSelectorHost";
 
+    /// <summary>Survivor character changer panel target name.</summary>
+    public const string SurvivorCharacterChangerPanel = "SurvivorCharacterChangerPanel";
+
+    /// <summary>Talent and trait page target name.</summary>
+    public const string TalentTraitPage = "TalentTraitPage";
+
+    /// <summary>Talent and trait selector panel target name.</summary>
+    public const string TalentTraitSelectorPanel = "TalentTraitSelectorPanel";
+
+    /// <summary>Survivor talent selector target name.</summary>
+    public const string SurvivorTalentSelector = "SurvivorTalentSelector";
+
+    /// <summary>Hunter trait selector target name.</summary>
+    public const string HunterTraitSelector = "HunterTraitSelector";
+
     /// <summary>Global ban record panel target name.</summary>
     public const string GlobalBanRecordPanel = "GlobalBanRecordPanel";
 
@@ -473,6 +527,12 @@ public static class TutorialTargetNames
 
     /// <summary>Map BP panel target name.</summary>
     public const string MapBpPanel = "MapBpPanel";
+
+    /// <summary>Map BP current operation border target name.</summary>
+    public const string MapBpCurrentOperationBorder = "MapBpCurrentOperationBorder";
+
+    /// <summary>Map ban area border target name.</summary>
+    public const string MapBanAreaBorder = "MapBanAreaBorder";
 
     /// <summary>Map BP completed panel target name.</summary>
     public const string MapBpCompletedPanel = "MapBpCompletedPanel";

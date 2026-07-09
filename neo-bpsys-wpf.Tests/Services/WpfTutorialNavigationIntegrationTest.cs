@@ -103,7 +103,7 @@ public sealed class WpfTutorialNavigationIntegrationTest
     }
 
     [Fact]
-    public async Task SmartBpNavigation_ShouldTriggerModuleShellAndLoadedModuleTutorials()
+    public async Task SmartBpNavigation_ShouldTriggerOnlyLoadedModuleTutorials()
     {
         await WpfTestThread.RunAsync(async () =>
         {
@@ -117,8 +117,8 @@ public sealed class WpfTutorialNavigationIntegrationTest
             await WaitForDispatcherAsync(hostWindow);
 
             await observer.WaitForAutoRunAsync("SmartBpPage", TutorialPageKeys.SmartBp, app.Dump);
-            await observer.WaitForStartedAsync(TutorialPackageIds.SmartBpModuleShell, app.Dump);
-            await CompletePackageAsync(hostWindow, observer, TutorialPackageIds.SmartBpModuleShell, app.Dump);
+            Assert.DoesNotContain(TutorialPackageIds.SmartBpModuleShell, observer.StartedPackageIds);
+            Assert.DoesNotContain(TutorialPackageIds.SmartBpModuleContentOverview, observer.StartedPackageIds);
 
             var page = Assert.IsType<SmartBpPage>(navigation.CurrentContent);
             var viewModel = Assert.IsType<SmartBpPageViewModel>(page.DataContext);
@@ -155,8 +155,6 @@ public sealed class WpfTutorialNavigationIntegrationTest
             Assert.True(NavigateIgnoringClosedLocalizationNotifications(
                 () => app.Navigation.Navigate(typeof(SmartBpPage))));
             await WaitForDispatcherAsync(hostWindow);
-            await observer.WaitForStartedAsync(TutorialPackageIds.SmartBpModuleShell, app.Dump);
-            await CompletePackageAsync(hostWindow, observer, TutorialPackageIds.SmartBpModuleShell, app.Dump);
             var page = Assert.IsType<SmartBpPage>(app.Navigation.CurrentContent);
 
             Assert.True(NavigateIgnoringClosedLocalizationNotifications(

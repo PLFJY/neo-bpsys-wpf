@@ -76,7 +76,10 @@ public partial class MainWindow
         registrar.RegisterSequence(TutorialPageKeys.BpGameGuidance,
         [
             TutorialPackageIds.BpGameGuidanceStartBasic,
+            TutorialPackageIds.BpGameGuidanceCurrentStepBasic,
+            TutorialPackageIds.MapBpCurrentOperationSpotlightBasic,
             TutorialPackageIds.MapBpCompletionNextBasic,
+            TutorialPackageIds.BpGameGuidanceEndBasic,
             TutorialPackageIds.BpGameGuidanceBasic,
             TutorialPackageIds.BpGameGuidanceFlowBo1FirstHalf
         ]);
@@ -93,8 +96,11 @@ public partial class MainWindow
         registrar.RegisterPackage(CreateNewGamePackage());
         registrar.RegisterPackage(CreateGlobalBanCarryOverPackage());
         registrar.RegisterPackage(CreateGameGuidanceStartPackage(TutorialPackageIds.BpGameGuidanceStartBasic, 1));
-        registrar.RegisterPackage(CreateMapBpCompletionNextPackage(TutorialPackageIds.MapBpCompletionNextBasic, 2));
-        registrar.RegisterPackage(CreateGameGuidanceStartPackage(TutorialPackageIds.BpGameGuidanceBasic, 3));
+        registrar.RegisterPackage(CreateGameGuidanceCurrentStepPackage());
+        registrar.RegisterPackage(CreateMapBpCurrentOperationSpotlightPackage());
+        registrar.RegisterPackage(CreateMapBpCompletionNextPackage(TutorialPackageIds.MapBpCompletionNextBasic, 4));
+        registrar.RegisterPackage(CreateGameGuidanceEndPackage());
+        registrar.RegisterPackage(CreateGameGuidanceStartPackage(TutorialPackageIds.BpGameGuidanceBasic, 6));
         registrar.RegisterPackage(CreateMapBpCompletionNextPackage(TutorialPackageIds.BpGameGuidanceFlowBo1FirstHalf, 4));
         registrar.RegisterPackage(TutorialDefinitionHelpers.Package(
             TutorialPackageIds.GameManageImportExport,
@@ -212,6 +218,48 @@ public partial class MainWindow
                     "当前阶段已经完成，点击下一步进入角色 BP。",
                     ProductTourInteractionMode.AllowTargetOnly,
                     TutorialSignalIds.GuidanceNextClicked)
+            ]);
+
+    private static TutorialPackageDefinition CreateGameGuidanceCurrentStepPackage() =>
+        TutorialDefinitionHelpers.Package(
+            TutorialPackageIds.BpGameGuidanceCurrentStepBasic,
+            TutorialPageKeys.BpGameGuidance,
+            2,
+            [
+                TutorialDefinitionHelpers.Step(
+                    nameof(CurrentGuidanceStepTextBlock),
+                    "查看当前步骤",
+                    "这里会显示当前对局引导正在进行的步骤。每进入一个阶段，先看这里确认现在应该完成什么操作。",
+                    ProductTourInteractionMode.AllowTargetOnly,
+                    allowMissing: true)
+            ]);
+
+    private static TutorialPackageDefinition CreateMapBpCurrentOperationSpotlightPackage() =>
+        TutorialDefinitionHelpers.Package(
+            TutorialPackageIds.MapBpCurrentOperationSpotlightBasic,
+            TutorialPageKeys.BpGameGuidance,
+            3,
+            [
+                TutorialDefinitionHelpers.Step(
+                    TutorialTargetNames.MapBpCurrentOperationBorder,
+                    "当前操作区域",
+                    "对局引导会高亮当前需要操作的区域。现在这里是地图 BP 阶段的操作区域，按当前步骤完成地图选择或禁用。",
+                    ProductTourInteractionMode.AllowTargetOnly,
+                    allowMissing: true)
+            ]);
+
+    private static TutorialPackageDefinition CreateGameGuidanceEndPackage() =>
+        TutorialDefinitionHelpers.Package(
+            TutorialPackageIds.BpGameGuidanceEndBasic,
+            TutorialPageKeys.BpGameGuidance,
+            5,
+            [
+                TutorialDefinitionHelpers.Step(
+                    nameof(StopGameGuidanceButton),
+                    "结束对局引导",
+                    "当前对局引导已经完成。点击这里结束引导，之后可以进入比分页面记录结果。",
+                    ProductTourInteractionMode.AllowTargetOnly,
+                    TutorialSignalIds.GameGuidanceStopped)
             ]);
 
     private static TutorialPackageDefinition CreateTeamSummaryPackage() =>

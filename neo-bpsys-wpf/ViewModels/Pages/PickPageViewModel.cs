@@ -159,6 +159,11 @@ public partial class PickPageViewModel : ViewModelBase
         {
             await _characterSelectionService.SelectSurvivorAsync(Index, SelectedChara, true, _settingsHostService.Settings.IsRecordGlobalBan);
             PreviewImage = ThisPlayer.Character?.HeaderImage;
+            PublishPickSurvivorSelected(Index);
+            if (SharedDataService.CurrentGame.SurPlayerList.All(player => player.Character != null))
+            {
+                TutorialSignalPublisher.Publish(TutorialSignalIds.PickSurvivorSlotsCompleted);
+            }
         }
 
         protected override void SyncCharaFromSourceAsync()
@@ -171,11 +176,31 @@ public partial class PickPageViewModel : ViewModelBase
         private async Task SwapCharacterInPlayersAsync(CharacterChangerCommandParameter parameter)
         {
             await _characterSelectionService.SwapSurvivorsAsync(parameter.Source, parameter.Target);
+            TutorialSignalPublisher.Publish(
+                TutorialSignalIds.CharacterChangerApplied,
+                new { parameter.Source, parameter.Target });
         }
 
         protected override void SyncIsEnabled() => throw new NotImplementedException();
 
         protected override bool IsActionNameCorrect(GameAction? action) => action == GameAction.PickSur;
+
+        private static void PublishPickSurvivorSelected(int index)
+        {
+            var signalId = index switch
+            {
+                0 => TutorialSignalIds.PickCharacterSelectedSurvivor1,
+                1 => TutorialSignalIds.PickCharacterSelectedSurvivor2,
+                2 => TutorialSignalIds.PickCharacterSelectedSurvivor3,
+                3 => TutorialSignalIds.PickCharacterSelectedSurvivor4,
+                _ => null
+            };
+
+            if (signalId != null)
+            {
+                TutorialSignalPublisher.Publish(signalId, new { Index = index });
+            }
+        }
     }
 
     /// <summary>

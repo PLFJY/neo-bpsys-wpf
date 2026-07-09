@@ -314,6 +314,7 @@ public partial class MainWindowViewModel :
         _gameGuidanceService.StopGuidance();
         IsGuidanceStarted = false;
         ActionName = string.Empty;
+        _tutorialSignalService.Publish(TutorialSignalIds.GameGuidanceStopped);
     }
 
     [RelayCommand]

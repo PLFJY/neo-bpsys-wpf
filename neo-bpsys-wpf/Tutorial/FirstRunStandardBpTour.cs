@@ -26,10 +26,15 @@ public static class FirstRunStandardBpTour
         TeamInfoPage.TutorialPackages.PlayerManage,
         MainWindow.TutorialPackages.GameProgressBo1FirstHalf,
         TutorialPackageIds.BpGameGuidanceStartBasic,
+        TutorialPackageIds.BpGameGuidanceCurrentStepBasic,
+        TutorialPackageIds.MapBpCurrentOperationSpotlightBasic,
         TutorialPackageIds.MapBpCompletionNextBasic,
         BanSurPage.TutorialPackages.CharacterSelectorBasic,
-        PickPage.TutorialPackages.PickCharacterBasic,
+        PickPage.TutorialPackages.SelectFourSurvivorsBasic,
         PickPage.TutorialPackages.GlobalBanRecordBasic,
+        PickPage.TutorialPackages.CharacterChangerBasic,
+        TalentPage.TutorialPackages.Basic,
+        TutorialPackageIds.BpGameGuidanceEndBasic,
         MainWindow.TutorialPackages.NavigationScore,
         ScorePage.TutorialPackages.Basic,
         MainWindow.TutorialPackages.NewGameBasic,
@@ -64,10 +69,15 @@ public static class FirstRunStandardBpTour
             .Item(CreateMainWindowActivateAction())
             .Package(MainWindow.TutorialPackages.GameProgressBo1FirstHalf)
             .Package(TutorialPackageIds.BpGameGuidanceStartBasic)
+            .Package(TutorialPackageIds.BpGameGuidanceCurrentStepBasic)
+            .Package(TutorialPackageIds.MapBpCurrentOperationSpotlightBasic)
             .Package(TutorialPackageIds.MapBpCompletionNextBasic)
             .Package(BanSurPage.TutorialPackages.CharacterSelectorBasic)
-            .Package(PickPage.TutorialPackages.PickCharacterBasic)
+            .Package(PickPage.TutorialPackages.SelectFourSurvivorsBasic)
             .Package(PickPage.TutorialPackages.GlobalBanRecordBasic)
+            .Package(PickPage.TutorialPackages.CharacterChangerBasic)
+            .Package(TalentPage.TutorialPackages.Basic)
+            .Package(TutorialPackageIds.BpGameGuidanceEndBasic)
             .Package(MainWindow.TutorialPackages.NavigationScore)
             .Package(ScorePage.TutorialPackages.Basic)
             .Item(CreateMainWindowActivateAction())
@@ -81,10 +91,19 @@ public static class FirstRunStandardBpTour
     private static ActionFlowItem CreateMainWindowActivateAction() =>
         new()
         {
-            ActionAsync = (_, _) =>
+            ActionAsync = async (_, cancellationToken) =>
             {
-                Application.Current?.MainWindow?.Activate();
-                return Task.CompletedTask;
+                var window = Application.Current?.MainWindow;
+                window?.Activate();
+                if (window != null)
+                {
+                    await window.Dispatcher.InvokeAsync(
+                        () => { },
+                        System.Windows.Threading.DispatcherPriority.ContextIdle,
+                        cancellationToken);
+                }
+
+                await Task.Delay(TutorialTransitionDelays.WindowSwitchSettleDelay, cancellationToken);
             }
         };
 }

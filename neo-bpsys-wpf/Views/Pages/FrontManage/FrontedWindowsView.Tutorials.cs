@@ -58,10 +58,7 @@ public partial class FrontedWindowsView
                     "导播时，观众看到的是前台窗口。我们先只启动 BP 前台页面。",
                     ProductTourInteractionMode.AllowTargetOnly,
                     TutorialSignalIds.BpWindowOpened)
-            ],
-            serviceProvider => TutorialDefinitionHelpers.IsPackageRecorded(
-                serviceProvider,
-                TutorialPackageIds.FrontManageOverview)));
+            ]));
 
         registrar.RegisterPackage(TutorialDefinitionHelpers.Package(
             TutorialPackages.WindowsBasic,
@@ -110,10 +107,7 @@ public partial class FrontedWindowsView
                     "单个窗口卡片可以独立打开或关闭对应前台窗口。",
                     ProductTourInteractionMode.AllowTargetOnly,
                     allowMissing: true)
-            ],
-            serviceProvider => TutorialDefinitionHelpers.IsPackageRecorded(
-                serviceProvider,
-                TutorialPackageIds.FrontManageOverview)));
+            ]));
 
         var openDesignerStep = TutorialDefinitionHelpers.Step(
             nameof(OpenFrontedDesignerButton),
@@ -130,10 +124,7 @@ public partial class FrontedWindowsView
             2,
             [
                 openDesignerStep
-            ],
-            serviceProvider => TutorialDefinitionHelpers.IsPackageRecorded(
-                serviceProvider,
-                TutorialPackageIds.FrontManageOverview)));
+            ]));
     }
 
     private static Task ScheduleDesignerTutorialAsync(IServiceProvider serviceProvider, CancellationToken cancellationToken)

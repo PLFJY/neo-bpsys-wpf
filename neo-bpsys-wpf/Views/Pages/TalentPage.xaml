@@ -1,5 +1,6 @@
 ﻿<Page
     x:Class="neo_bpsys_wpf.Views.Pages.TalentPage"
+    x:Name="TalentTraitPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls"
@@ -21,8 +22,12 @@
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
-    <WrapPanel modernScroll:GuidanceAutoScrollScope.IsEnabled="True" Orientation="Horizontal">
+    <WrapPanel
+        x:Name="TalentTraitSelectorPanel"
+        modernScroll:GuidanceAutoScrollScope.IsEnabled="True"
+        Orientation="Horizontal">
         <Border
+            x:Name="SurvivorTalentSelector"
             Margin="0,0,10,10"
             modernScroll:GuidanceScrollTarget.Action="PickSurTalent"
             Style="{StaticResource Card}">
@@ -86,7 +91,10 @@
                     Player="{Binding CurrentGame.HunPlayer}" />
             </Grid>
         </Border>
-        <Border Margin="0,0,10,10" Style="{StaticResource Card}">
+        <Border
+            x:Name="HunterTraitSelector"
+            Margin="0,0,10,10"
+            Style="{StaticResource Card}">
             <Border.Resources>
                 <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
                 <cv:BooleanToEnumConverter x:Key="BooleanToEnumConverter" />

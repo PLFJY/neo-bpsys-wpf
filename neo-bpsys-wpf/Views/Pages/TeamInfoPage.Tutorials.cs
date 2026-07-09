@@ -95,6 +95,7 @@ public partial class TeamInfoPage
                     "导入狼队预设",
                     "点击导入后，在打开的文件对话框中选择“队伍信息导入示例-Wolves.json”。",
                     ProductTourInteractionMode.AllowTargetOnly,
+                    TutorialSignalIds.TeamJsonImportedHome,
                     allowMissing: true,
                     beforeShowAsync: (_, _) =>
                     {
@@ -114,6 +115,7 @@ public partial class TeamInfoPage
                     "导入 GR 预设",
                     "点击导入后，在打开的文件对话框中选择“队伍信息导入示例-GR.json”。",
                     ProductTourInteractionMode.AllowTargetOnly,
+                    TutorialSignalIds.TeamJsonImportedAway,
                     allowMissing: true,
                     scrollAnchorName: nameof(AwayTeamInfoCard),
                     beforeShowAsync: (_, _) =>

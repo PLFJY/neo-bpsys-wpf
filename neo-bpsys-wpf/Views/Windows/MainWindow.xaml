@@ -302,6 +302,7 @@
                     </i:Interaction.Triggers>
                 </ui:Button>
                 <TextBlock
+                    x:Name="CurrentGuidanceStepTextBlock"
                     Margin="0,0,10,10"
                     VerticalAlignment="Center"
                     Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}">

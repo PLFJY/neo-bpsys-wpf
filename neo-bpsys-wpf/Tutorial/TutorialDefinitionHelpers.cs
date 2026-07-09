@@ -228,7 +228,7 @@ internal static class TutorialDefinitionHelpers
     }
 
     private static Task DelayForNavigationTransitionAsync(IServiceProvider _, CancellationToken cancellationToken) =>
-        Task.Delay(450, cancellationToken);
+        Task.Delay(TutorialTransitionDelays.NavigationSettleDelay, cancellationToken);
 
     /// <summary>
     /// Determines whether a tutorial package has been completed in the current tutorial state.

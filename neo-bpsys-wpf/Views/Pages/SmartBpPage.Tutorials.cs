@@ -15,9 +15,6 @@ public partial class SmartBpPage
     /// <summary>Smart BP tutorial package ids.</summary>
     public static class TutorialPackages
     {
-        /// <summary>Smart BP module shell package id.</summary>
-        public const string ModuleShell = TutorialPackageIds.SmartBpModuleShell;
-
         /// <summary>Smart BP module content overview package id.</summary>
         public const string ModuleContentOverview = TutorialPackageIds.SmartBpModuleContentOverview;
 
@@ -82,7 +79,6 @@ public partial class SmartBpPage
     {
         registrar.RegisterSequence(TutorialPageKey,
         [
-            TutorialPackages.ModuleShell,
             TutorialPackages.ModuleContentOverview,
             TutorialPackages.CaptureBasic,
             TutorialPackages.RegionEditorBasic,
@@ -91,57 +87,12 @@ public partial class SmartBpPage
         ],
         TutorialAutoRunStrategy.ContinueWhileActive);
 
-        registrar.RegisterPackage(CreateModuleShellPackage());
         registrar.RegisterPackage(CreateModuleContentOverviewPackage());
         registrar.RegisterPackage(CreateCapturePackage());
         registrar.RegisterPackage(CreateRegionEditorPackage());
         registrar.RegisterPackage(CreateFullBpFlowPackage());
         registrar.RegisterPackage(CreatePostGameAutoFillPackage());
     }
-
-    private static TutorialPackageDefinition CreateModuleShellPackage() =>
-        TutorialDefinitionHelpers.Package(
-            TutorialPackages.ModuleShell,
-            TutorialPageKey,
-            1,
-            [
-                TutorialDefinitionHelpers.Step(
-                    null,
-                    "SmartBP 模块",
-                    "SmartBP 是独立模块。首次使用时需要先选择或导入模块，加载成功后这里会显示模块提供的识别工具。",
-                    ProductTourInteractionMode.BlockAll),
-                TutorialDefinitionHelpers.Step(
-                    nameof(SmartBpModulePathTextBox),
-                    "模块路径",
-                    "SmartBP 是独立模块，需要先加载模块。这里显示当前模块路径。",
-                    ProductTourInteractionMode.AllowTargetOnly,
-                    allowMissing: true),
-                TutorialDefinitionHelpers.Step(
-                    nameof(SmartBpModuleBrowseFolderButton),
-                    "浏览文件夹",
-                    "可以浏览文件夹选择模块路径。本教程不要求你完成文件选择。",
-                    ProductTourInteractionMode.AllowTargetOnly,
-                    allowMissing: true),
-                TutorialDefinitionHelpers.Step(
-                    nameof(SmartBpLoadLocalModuleButton),
-                    "加载本地模块",
-                    "可以加载本地模块。本教程不强制你真的加载模块。",
-                    ProductTourInteractionMode.AllowTargetOnly,
-                    allowMissing: true),
-                TutorialDefinitionHelpers.Step(
-                    nameof(SmartBpSelectInstalledModulePathButton),
-                    "选择安装目录",
-                    "如果已经安装模块，可以选择安装目录。",
-                    ProductTourInteractionMode.AllowTargetOnly,
-                    allowMissing: true),
-                TutorialDefinitionHelpers.Step(
-                    nameof(SmartBpImportModuleArchiveButton),
-                    "导入模块压缩包",
-                    "也可以导入 SmartBpModule.7z 或 .zip。本教程不等待文件选择器完成。",
-                    ProductTourInteractionMode.AllowTargetOnly,
-                    allowMissing: true)
-            ],
-            IsSmartBpModuleNotLoaded);
 
     private static TutorialPackageDefinition CreateModuleContentOverviewPackage() =>
         TutorialDefinitionHelpers.Package(
@@ -178,7 +129,7 @@ public partial class SmartBpPage
                     allowMissing: true),
                 TutorialDefinitionHelpers.Step(
                     TutorialTargets.PreviewPanel,
-                    "预览确认",
+                    "捕获预览画面",
                     "预览区域用于确认捕获是否正确。如果没有找到 dwrg.exe，也可以继续教程。",
                     ProductTourInteractionMode.AllowTargetOnly,
                     allowMissing: true),
@@ -273,13 +224,6 @@ public partial class SmartBpPage
             && viewModel.IsModuleLoaded;
     }
 
-    private static bool IsSmartBpModuleNotLoaded(IServiceProvider serviceProvider, FrameworkElement? owner)
-    {
-        _ = serviceProvider;
-        return owner is not FrameworkElement { DataContext: SmartBpPageViewModel viewModel }
-            || !viewModel.IsModuleLoaded;
-    }
-
     private static bool IsSmartBpModuleContentReady(IServiceProvider serviceProvider, FrameworkElement? owner)
     {
         _ = serviceProvider;
@@ -292,8 +236,7 @@ public partial class SmartBpPage
         && HasAnyTarget(
             owner,
             TutorialTargets.WindowSelector,
-            TutorialTargets.StartCaptureButton,
-            TutorialTargets.PreviewPanel);
+            TutorialTargets.StartCaptureButton);
 
     private static bool IsSmartBpRegionEditorReady(IServiceProvider serviceProvider, FrameworkElement? owner) =>
         IsSmartBpModuleLoaded(serviceProvider, owner)

@@ -37,6 +37,7 @@ public static class NeoBpsysTutorialRegistration
         BanSurPage.RegisterTutorials(registrar);
         BanHunPage.RegisterTutorials(registrar);
         PickPage.RegisterTutorials(registrar);
+        TalentPage.RegisterTutorials(registrar);
         ScorePage.RegisterTutorials(registrar);
         SmartBpPage.RegisterTutorials(registrar);
 

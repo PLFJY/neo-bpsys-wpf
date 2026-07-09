@@ -253,9 +253,8 @@ public sealed class ProductTourOverlay : Canvas
     public void MarkSignalTimedOut(string message)
     {
         _signalReceived = false;
-        _nextButton.IsEnabled = true;
-        _nextButton.Visibility = Visibility.Visible;
-        _nextButton.Content = _textProvider.Continue;
+        _nextButton.IsEnabled = false;
+        _nextButton.Visibility = Visibility.Collapsed;
         _waitingText.Visibility = Visibility.Collapsed;
         _errorText.Text = message;
         _errorText.Visibility = Visibility.Visible;

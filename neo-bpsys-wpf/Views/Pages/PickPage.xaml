@@ -69,6 +69,7 @@
                                     modernScroll:GuidanceScrollTarget.Index="{Binding Index}"
                                     SelectedValue="{Binding SelectedChara}" />
                                 <cc:CharacterChanger
+                                    x:Name="SurvivorCharacterChangerPanel"
                                     Command="{Binding SwapCharacterInPlayersCommand}"
                                     Index="{Binding Index}"
                                     IsHighlighted="{Binding IsCharaChangerHighlighted}"

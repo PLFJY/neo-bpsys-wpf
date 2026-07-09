@@ -53,7 +53,7 @@ internal static class TargetElementFinder
                 ?? FindVisualChild(owner, targetName);
             if (result != null && result.IsLoaded)
             {
-                await BringTargetIntoViewAsync(owner, result, cancellationToken);
+                await SmoothScrollIntoViewAsync(owner, result, TimeSpan.FromMilliseconds(350), TutorialTransitionDelays.ScrollSettleDelay, cancellationToken);
                 return;
             }
 
@@ -206,8 +206,105 @@ internal static class TargetElementFinder
         target.UpdateLayout();
         owner.UpdateLayout();
         await owner.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Loaded, cancellationToken);
+        await owner.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ContextIdle, cancellationToken);
+        await Task.Delay(TutorialTransitionDelays.NavigationSettleDelay, cancellationToken);
         target.UpdateLayout();
         owner.UpdateLayout();
+    }
+
+    private static async Task SmoothScrollIntoViewAsync(
+        FrameworkElement owner,
+        FrameworkElement target,
+        TimeSpan duration,
+        TimeSpan afterDelay,
+        CancellationToken cancellationToken)
+    {
+        var scrollViewer = FindAncestorOrDescendantScrollViewer(target) ?? FindAncestorOrDescendantScrollViewer(owner);
+        if (scrollViewer == null)
+        {
+            await BringTargetIntoViewAsync(owner, target, cancellationToken);
+            await Task.Delay(afterDelay, cancellationToken);
+            return;
+        }
+
+        await owner.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Loaded, cancellationToken);
+        owner.UpdateLayout();
+        target.UpdateLayout();
+
+        Point targetPoint;
+        try
+        {
+            targetPoint = target.TransformToAncestor(scrollViewer).Transform(new Point(0, 0));
+        }
+        catch (InvalidOperationException)
+        {
+            await BringTargetIntoViewAsync(owner, target, cancellationToken);
+            await Task.Delay(afterDelay, cancellationToken);
+            return;
+        }
+        var desiredOffset = Math.Clamp(
+            scrollViewer.VerticalOffset + targetPoint.Y - 24,
+            0,
+            scrollViewer.ScrollableHeight);
+        var startOffset = scrollViewer.VerticalOffset;
+        var frameCount = Math.Max(1, (int)Math.Ceiling(duration.TotalMilliseconds / 16));
+
+        for (var frame = 1; frame <= frameCount; frame++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var progress = (double)frame / frameCount;
+            var eased = 1 - Math.Pow(1 - progress, 3);
+            scrollViewer.ScrollToVerticalOffset(startOffset + (desiredOffset - startOffset) * eased);
+            await owner.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render, cancellationToken);
+            await Task.Delay(TimeSpan.FromMilliseconds(16), cancellationToken);
+        }
+
+        scrollViewer.ScrollToVerticalOffset(desiredOffset);
+        await owner.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ContextIdle, cancellationToken);
+        await Task.Delay(afterDelay, cancellationToken);
+        target.UpdateLayout();
+        owner.UpdateLayout();
+    }
+
+    private static ScrollViewer? FindAncestorOrDescendantScrollViewer(DependencyObject root)
+    {
+        var current = root;
+        while (current != null)
+        {
+            if (current is ScrollViewer scrollViewer)
+            {
+                return scrollViewer;
+            }
+
+            current = VisualTreeHelper.GetParent(current);
+        }
+
+        return FindDescendantScrollViewer(root);
+    }
+
+    private static ScrollViewer? FindDescendantScrollViewer(DependencyObject root)
+    {
+        if (root is ScrollViewer scrollViewer)
+        {
+            return scrollViewer;
+        }
+
+        var childCount = VisualTreeHelper.GetChildrenCount(root);
+        for (var i = 0; i < childCount; i++)
+        {
+            var nested = FindDescendantScrollViewer(VisualTreeHelper.GetChild(root, i));
+            if (nested != null)
+            {
+                return nested;
+            }
+        }
+
+        if (root is ContentControl { Content: DependencyObject content })
+        {
+            return FindDescendantScrollViewer(content);
+        }
+
+        return null;
     }
 
     private static FrameworkElement? FindVisualChild(DependencyObject root, string targetName)

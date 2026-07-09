@@ -934,7 +934,7 @@ public sealed class ProductTourStateTest
     }
 
     [Fact]
-    public async Task SignalTimeoutDoesNotCompleteUntilUserContinues()
+    public async Task SignalGatedStep_ShouldNotContinueBeforeSignal()
     {
         await WpfTestThread.RunAsync(async () =>
         {
@@ -961,10 +961,14 @@ public sealed class ProductTourStateTest
             await Task.Delay(500);
             Assert.False(runTask.IsCompleted);
 
-            var continueButton = FindButtonByContent(overlay, "继续");
-            Assert.NotNull(continueButton);
-            continueButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Assert.Null(FindButtonByContent(overlay, "继续"));
+            Assert.DoesNotContain(
+                FindVisualChildren<TextBlock>(overlay).Select(text => text.Text),
+                text => text.Contains("FlowId=", StringComparison.Ordinal)
+                    || text.Contains("PackageId=", StringComparison.Ordinal)
+                    || text.Contains("SignalId=", StringComparison.Ordinal));
 
+            fixture.SignalService.Publish("Signal.Missing");
             var result = await runTask;
             Assert.Equal(TutorialRunResult.Completed, result);
         });
@@ -1235,13 +1239,14 @@ public sealed class ProductTourStateTest
             ITutorialRunObserver? observer = null,
             ITutorialOwnerActivationService? activationService = null)
         {
+            SignalService = new TutorialSignalService();
             Service = new TutorialService(
                 new EmptyServiceProvider(),
                 PackageRegistry,
                 SequenceRegistry,
                 FlowRegistry,
                 StateStore,
-                new TutorialSignalService(),
+                SignalService,
                 new DefaultTutorialTextProvider(),
                 new NoOpTutorialAvatarProvider(),
                 observer ?? new NoOpTutorialRunObserver(),
@@ -1257,6 +1262,8 @@ public sealed class ProductTourStateTest
         public TutorialFlowRegistry FlowRegistry { get; } = new();
 
         public InMemoryTutorialStateStore StateStore { get; } = new();
+
+        public TutorialSignalService SignalService { get; }
 
         public TutorialService Service { get; }
 
