@@ -23,9 +23,7 @@ public partial class ScorePage
     {
         registrar.RegisterSequence(TutorialPageKey,
         [
-            TutorialPackages.Basic,
-            TutorialPackageIds.ScoreFrontedSync,
-            TutorialPackageIds.ScoreAdvanced
+            TutorialPackages.Basic
         ]);
 
         registrar.RegisterPackage(TutorialDefinitionHelpers.Package(
@@ -41,20 +39,5 @@ public partial class ScorePage
                     TutorialSignalIds.ScoreChanged,
                     allowMissing: true)
             ]));
-        registrar.RegisterPackage(CreateFallbackPackage(TutorialPackageIds.ScoreFrontedSync, 2));
-        registrar.RegisterPackage(CreateFallbackPackage(TutorialPackageIds.ScoreAdvanced, 3));
     }
-
-    private static TutorialPackageDefinition CreateFallbackPackage(string packageId, int sequence) =>
-        TutorialDefinitionHelpers.Package(
-            packageId,
-            TutorialPageKey,
-            sequence,
-            [
-                TutorialDefinitionHelpers.Step(
-                    null,
-                    "功能教学",
-                    NeoBpsysTutorialTexts.GetFallbackDescription(packageId),
-                    ProductTourInteractionMode.BlockAll)
-            ]);
 }

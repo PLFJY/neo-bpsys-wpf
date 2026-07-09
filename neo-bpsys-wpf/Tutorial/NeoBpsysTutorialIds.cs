@@ -131,6 +131,12 @@ public static class TutorialPackageIds
     /// <summary>Map BP current operation spotlight package id.</summary>
     public const string MapBpCurrentOperationSpotlightBasic = "Page.MapBp.CurrentOperationSpotlight.Basic";
 
+    /// <summary>Map BP ban-map operation package id.</summary>
+    public const string MapBpBanMapOperationBasic = "Page.MapBp.BanMapOperation.Basic";
+
+    /// <summary>Map BP next-to-pick-map package id.</summary>
+    public const string MapBpNextToPickMapBasic = "Page.MapBp.NextToPickMap.Basic";
+
     /// <summary>BP survivor pick character package id.</summary>
     public const string BpPickCharacterBasic = "Page.Bp.PickCharacter.Basic";
 
@@ -495,6 +501,12 @@ public static class TutorialTargetNames
     /// <summary>Survivor pick panel target name.</summary>
     public const string SurvivorPickPanel = "SurvivorPickPanel";
 
+    /// <summary>Survivor pick selector group border target name.</summary>
+    public const string SurvivorPickSelectorGroupBorder = "SurvivorPickSelectorGroupBorder";
+
+    /// <summary>Survivor pick selector panel target name.</summary>
+    public const string SurvivorPickSelectorPanel = "SurvivorPickSelectorPanel";
+
     /// <summary>First survivor pick selector host target name.</summary>
     public const string FirstSurvivorPickSelectorHost = "FirstSurvivorPickSelectorHost";
 
@@ -533,6 +545,9 @@ public static class TutorialTargetNames
 
     /// <summary>Map ban area border target name.</summary>
     public const string MapBanAreaBorder = "MapBanAreaBorder";
+
+    /// <summary>Map ban operation border target name.</summary>
+    public const string MapBanOperationBorder = "MapBanOperationBorder";
 
     /// <summary>Map BP completed panel target name.</summary>
     public const string MapBpCompletedPanel = "MapBpCompletedPanel";
@@ -704,6 +719,9 @@ public static class TutorialTargetNames
 
     /// <summary>Smart BP start capture button target name.</summary>
     public const string SmartBpStartCaptureButton = "SmartBpStartCaptureButton";
+
+    /// <summary>Smart BP preview button target name.</summary>
+    public const string SmartBpPreviewButton = "SmartBpPreviewButton";
 
     /// <summary>Smart BP preview panel target name.</summary>
     public const string SmartBpPreviewPanel = "SmartBpPreviewPanel";

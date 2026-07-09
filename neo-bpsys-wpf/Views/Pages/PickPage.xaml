@@ -29,10 +29,10 @@
     </Page.Resources>
     <WrapPanel modernScroll:GuidanceAutoScrollScope.IsEnabled="True" Orientation="Horizontal">
         <Border
-            x:Name="SurvivorPickPanel"
+            x:Name="SurvivorPickSelectorGroupBorder"
             Margin="0,0,10,10"
             Style="{StaticResource Card}">
-            <Grid>
+            <Grid x:Name="SurvivorPickSelectorPanel">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />

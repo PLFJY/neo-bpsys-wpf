@@ -47,10 +47,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
             [
                 TutorialPackageIds.TeamInfoTeamNameBasic,
                 TutorialPackageIds.TeamInfoJsonImportPreset,
-                TutorialPackageIds.TeamInfoPlayerManage,
-                TutorialPackageIds.TeamInfoBasic,
-                TutorialPackageIds.TeamInfoJsonImport,
-                TutorialPackageIds.TeamInfoAdvanced
+                TutorialPackageIds.TeamInfoPlayerManage
             ],
             sequenceRegistry.GetSequence(TutorialPageKeys.TeamInfo));
         Assert.Equal(
@@ -126,7 +123,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
         Assert.Equal(
             TutorialAutoRunStrategy.ContinueWhileActive,
             sequenceRegistry.GetSequenceDefinition(TutorialPageKeys.SmartBp).AutoRunStrategy);
-        Assert.Equal(60, packageRegistry.GetPackages().Count);
+        Assert.Equal(52, packageRegistry.GetPackages().Count);
 
         var firstRun = flowRegistry.GetFlow(TutorialFlowIds.FirstRunStandardBp);
         Assert.NotNull(firstRun);
@@ -143,8 +140,8 @@ public sealed class NeoBpsysTutorialRegistrationTest
                 TutorialPackageIds.GameManageGameProgressBo1FirstHalf,
                 TutorialPackageIds.BpGameGuidanceStartBasic,
                 TutorialPackageIds.BpGameGuidanceCurrentStepBasic,
-                TutorialPackageIds.MapBpCurrentOperationSpotlightBasic,
-                TutorialPackageIds.MapBpCompletionNextBasic,
+                TutorialPackageIds.MapBpBanMapOperationBasic,
+                TutorialPackageIds.MapBpNextToPickMapBasic,
                 TutorialPackageIds.BpCharacterSelectorBasic,
                 TutorialPackageIds.BpPickSelectFourSurvivorsBasic,
                 TutorialPackageIds.BpGlobalBanRecordBasic,
@@ -190,8 +187,8 @@ public sealed class NeoBpsysTutorialRegistrationTest
                 TutorialPackageIds.GameManageGameProgressBo1FirstHalf,
                 TutorialPackageIds.BpGameGuidanceStartBasic,
                 TutorialPackageIds.BpGameGuidanceCurrentStepBasic,
-                TutorialPackageIds.MapBpCurrentOperationSpotlightBasic,
-                TutorialPackageIds.MapBpCompletionNextBasic,
+                TutorialPackageIds.MapBpBanMapOperationBasic,
+                TutorialPackageIds.MapBpNextToPickMapBasic,
                 TutorialPackageIds.BpCharacterSelectorBasic,
                 TutorialPackageIds.BpPickSelectFourSurvivorsBasic,
                 TutorialPackageIds.BpGlobalBanRecordBasic,
@@ -252,13 +249,20 @@ public sealed class NeoBpsysTutorialRegistrationTest
         Assert.Contains(packageRegistry.GetPackages(), package => package.PackageId == TutorialPackageIds.GameManageNewGameBasic);
         Assert.Contains(packageRegistry.GetPackages(), package => package.PackageId == TutorialPackageIds.BpGameGuidanceStartBasic);
         Assert.Contains(packageRegistry.GetPackages(), package => package.PackageId == TutorialPackageIds.BpGameGuidanceCurrentStepBasic);
-        Assert.Contains(packageRegistry.GetPackages(), package => package.PackageId == TutorialPackageIds.MapBpCurrentOperationSpotlightBasic);
-        Assert.Contains(packageRegistry.GetPackages(), package => package.PackageId == TutorialPackageIds.MapBpCompletionNextBasic);
+        Assert.Contains(packageRegistry.GetPackages(), package => package.PackageId == TutorialPackageIds.MapBpBanMapOperationBasic);
+        Assert.Contains(packageRegistry.GetPackages(), package => package.PackageId == TutorialPackageIds.MapBpNextToPickMapBasic);
         Assert.Contains(packageRegistry.GetPackages(), package => package.PackageId == TutorialPackageIds.BpPickSelectFourSurvivorsBasic);
         Assert.Contains(packageRegistry.GetPackages(), package => package.PackageId == TutorialPackageIds.BpCharacterChangerBasic);
         Assert.Contains(packageRegistry.GetPackages(), package => package.PackageId == TutorialPackageIds.BpTalentTraitBasic);
         Assert.Contains(packageRegistry.GetPackages(), package => package.PackageId == TutorialPackageIds.BpGameGuidanceEndBasic);
-        Assert.Contains(packageRegistry.GetPackages(), package => package.PackageId == TutorialPackageIds.TeamInfoBasic);
+        Assert.DoesNotContain(packageRegistry.GetPackages(), package => package.PackageId == TutorialPackageIds.TeamInfoBasic);
+        Assert.DoesNotContain(packageRegistry.GetPackages(), package => package.PackageId == TutorialPackageIds.TeamInfoJsonImport);
+        Assert.DoesNotContain(packageRegistry.GetPackages(), package => package.PackageId == TutorialPackageIds.TeamInfoAdvanced);
+        Assert.DoesNotContain(packageRegistry.GetPackages(), package => package.PackageId == TutorialPackageIds.BpSharedBasic);
+        Assert.DoesNotContain(packageRegistry.GetPackages(), package => package.PackageId == TutorialPackageIds.BpCharacterSelectorAdvanced);
+        Assert.DoesNotContain(packageRegistry.GetPackages(), package => package.PackageId == TutorialPackageIds.GameManageImportExport);
+        Assert.DoesNotContain(packageRegistry.GetPackages(), package => package.PackageId == TutorialPackageIds.ScoreFrontedSync);
+        Assert.DoesNotContain(packageRegistry.GetPackages(), package => package.PackageId == TutorialPackageIds.ScoreAdvanced);
 
         var frontManagePackage = Assert.Single(
             packageRegistry.GetPackages(),
@@ -336,6 +340,45 @@ public sealed class NeoBpsysTutorialRegistrationTest
                 Assert.Equal(ProductTourAvatarPlacement.BottomRight, step.AvatarPlacement);
                 Assert.Equal(TutorialAvatarPose.LeftTop, step.AvatarPose);
             });
+
+        var banMapPackage = Assert.Single(
+            packageRegistry.GetPackages(),
+            package => package.PackageId == TutorialPackageIds.MapBpBanMapOperationBasic);
+        var banMapStep = Assert.Single(banMapPackage.Steps);
+        Assert.Equal(TutorialTargetNames.MapBanOperationBorder, banMapStep.TargetName);
+        Assert.Equal(ProductTourPlacement.TopRight, banMapStep.Placement);
+        Assert.Equal(ProductTourAvatarPlacement.TopLeft, banMapStep.AvatarPlacement);
+        Assert.Contains("Ban 地图", banMapStep.Description, StringComparison.Ordinal);
+
+        var nextMapPackage = Assert.Single(
+            packageRegistry.GetPackages(),
+            package => package.PackageId == TutorialPackageIds.MapBpNextToPickMapBasic);
+        var nextMapStep = Assert.Single(nextMapPackage.Steps);
+        Assert.Equal(TutorialTargetNames.NextGuidanceStepButton, nextMapStep.TargetName);
+        Assert.Contains("进入选择地图", nextMapStep.Description, StringComparison.Ordinal);
+        Assert.DoesNotContain("进入角色 BP", nextMapStep.Description, StringComparison.Ordinal);
+
+        var pickFourPackage = Assert.Single(
+            packageRegistry.GetPackages(),
+            package => package.PackageId == TutorialPackageIds.BpPickSelectFourSurvivorsBasic);
+        var pickFourStep = Assert.Single(pickFourPackage.Steps);
+        Assert.Equal(TutorialTargetKind.Name, pickFourStep.TargetKind);
+        Assert.Equal(TutorialTargetNames.SurvivorPickSelectorGroupBorder, pickFourStep.TargetName);
+        Assert.Equal(ProductTourPlacement.TopRight, pickFourStep.Placement);
+        Assert.Equal(ProductTourAvatarPlacement.TopLeft, pickFourStep.AvatarPlacement);
+        Assert.Equal(TutorialSignalIds.PickSurvivorSlotsCompleted, pickFourStep.WaitForSignalId);
+
+        Assert.Equal(
+            firstRun.IncludedPackageIds,
+            GetPackageFlowItemIds(firstRun));
+
+        var talentTraitPackage = Assert.Single(
+            packageRegistry.GetPackages(),
+            package => package.PackageId == TutorialPackageIds.BpTalentTraitBasic);
+        var talentTraitStep = talentTraitPackage.Steps[0];
+        Assert.Equal(TutorialTargetNames.TalentTraitSelectorPanel, talentTraitStep.TargetName);
+        Assert.Equal(ProductTourPlacement.TopRight, talentTraitStep.Placement);
+        Assert.Equal(ProductTourAvatarPlacement.TopLeft, talentTraitStep.AvatarPlacement);
     }
 
     [Fact]
@@ -388,6 +431,123 @@ public sealed class NeoBpsysTutorialRegistrationTest
 
             return Task.CompletedTask;
         });
+    }
+
+    [Fact]
+    public void TeamInfo_ShouldNotRegisterDuplicateTeamNamePackages()
+    {
+        var packages = CreateRegisteredPackages();
+        Assert.Single(packages, package => package.PackageId == TutorialPackageIds.TeamInfoTeamNameBasic);
+        Assert.DoesNotContain(packages, package => package.PackageId == TutorialPackageIds.TeamInfoBasic);
+        Assert.DoesNotContain(packages, package => package.PackageId == TutorialPackageIds.TeamInfoJsonImport);
+        Assert.DoesNotContain(packages, package => package.PackageId == TutorialPackageIds.TeamInfoAdvanced);
+    }
+
+    [Fact]
+    public void TutorialSequences_ShouldNotContainFallbackPackages()
+    {
+        var sequenceRegistry = CreateRegisteredSequences();
+        var forbiddenPackageIds = new[]
+        {
+            TutorialPackageIds.BpSharedBasic,
+            TutorialPackageIds.BpCharacterSelectorAdvanced,
+            TutorialPackageIds.TeamInfoAdvanced,
+            TutorialPackageIds.GameManageImportExport,
+            TutorialPackageIds.ScoreFrontedSync,
+            TutorialPackageIds.ScoreAdvanced
+        };
+
+        var builtInSequenceKeys = new[]
+        {
+            TutorialPageKeys.Main,
+            TutorialPageKeys.TeamInfo,
+            TutorialPageKeys.FrontManage,
+            FrontedWindowsView.TutorialPageKey,
+            FrontedLayoutPackagesView.TutorialPageKey,
+            TutorialPageKeys.DesignerV3,
+            TutorialPageKeys.DesignerV3BehaviorPanel,
+            TutorialPageKeys.DesignerV3AnimationEditor,
+            TutorialPageKeys.SmartBp,
+            TutorialPageKeys.GameManage,
+            TutorialPageKeys.BpGameGuidance,
+            BanSurPage.TutorialPageKey,
+            PickPage.TutorialPageKey,
+            ScorePage.TutorialPageKey
+        };
+
+        Assert.DoesNotContain(
+            builtInSequenceKeys.SelectMany(sequenceRegistry.GetSequence),
+            forbiddenPackageIds.Contains);
+    }
+
+    [Fact]
+    public void FirstRun_FlowItems_ShouldMatchExpectedOrderExactly()
+    {
+        var firstRun = CreateRegisteredFlow(TutorialFlowIds.FirstRunStandardBp);
+
+        Assert.Equal(
+            [
+                TutorialPackageIds.MainNavigationFrontManage,
+                TutorialPackageIds.FrontManageBpWindowLaunchBasic,
+                TutorialPackageIds.MainNavigationTeamInfo,
+                TutorialPackageIds.TeamInfoTeamNameBasic,
+                TutorialPackageIds.MainTeamSummaryBasic,
+                TutorialPackageIds.TeamInfoJsonImportPreset,
+                TutorialPackageIds.TeamInfoPlayerManage,
+                TutorialPackageIds.GameManageGameProgressBo1FirstHalf,
+                TutorialPackageIds.BpGameGuidanceStartBasic,
+                TutorialPackageIds.BpGameGuidanceCurrentStepBasic,
+                TutorialPackageIds.MapBpBanMapOperationBasic,
+                TutorialPackageIds.MapBpNextToPickMapBasic,
+                TutorialPackageIds.BpCharacterSelectorBasic,
+                TutorialPackageIds.BpPickSelectFourSurvivorsBasic,
+                TutorialPackageIds.BpGlobalBanRecordBasic,
+                TutorialPackageIds.BpCharacterChangerBasic,
+                TutorialPackageIds.BpTalentTraitBasic,
+                TutorialPackageIds.BpGameGuidanceEndBasic,
+                TutorialPackageIds.MainNavigationScore,
+                TutorialPackageIds.ScoreBasic,
+                TutorialPackageIds.GameManageNewGameBasic,
+                TutorialPackageIds.GameManageGlobalBanCarryOver
+            ],
+            GetPackageFlowItemIds(firstRun));
+    }
+
+    [Fact]
+    public void FirstRun_IncludedPackages_ShouldMatchActualPackageFlowItems()
+    {
+        var firstRun = CreateRegisteredFlow(TutorialFlowIds.FirstRunStandardBp);
+
+        Assert.Equal(firstRun.IncludedPackageIds, GetPackageFlowItemIds(firstRun));
+    }
+
+    [Fact]
+    public void PickFourSurvivorsTutorial_ShouldUseGroupTargetNotFirstSelector()
+    {
+        var package = Assert.Single(
+            CreateRegisteredPackages(),
+            package => package.PackageId == TutorialPackageIds.BpPickSelectFourSurvivorsBasic);
+        var step = Assert.Single(package.Steps);
+
+        Assert.Equal(TutorialTargetKind.Name, step.TargetKind);
+        Assert.Equal(TutorialTargetNames.SurvivorPickSelectorGroupBorder, step.TargetName);
+        Assert.NotEqual(TutorialTargetNames.FirstSurvivorPickSelectorHost, step.TargetName);
+        Assert.Equal(ProductTourPlacement.TopRight, step.Placement);
+        Assert.Equal(ProductTourAvatarPlacement.TopLeft, step.AvatarPlacement);
+        Assert.Equal(TutorialSignalIds.PickSurvivorSlotsCompleted, step.WaitForSignalId);
+    }
+
+    [Fact]
+    public void SmartBpTutorialTargets_ShouldResolveToCorrectControls()
+    {
+        var xaml = File.ReadAllText(GetRepositoryPath("neo-bpsys-wpf.SmartBp.Module", "Views", "SmartBpModuleContentView.xaml"));
+
+        Assert.Contains("x:Name=\"SmartBpWindowSelector\"", xaml);
+        Assert.Contains("x:Name=\"SmartBpStartCaptureButton\"", ExtractElementByCommand(xaml, "StartCaptureCommand"));
+        Assert.Contains("x:Name=\"SmartBpPreviewButton\"", ExtractElementByCommand(xaml, "OpenPreviewWindowCommand"));
+        Assert.Contains("x:Name=\"SmartBpStopCaptureButton\"", ExtractElementByCommand(xaml, "StopCaptureCommand"));
+        Assert.DoesNotContain("x:Name=\"SmartBpStartCaptureButton\"", ExtractElementByCommand(xaml, "RefreshActiveWindowsCommand"));
+        Assert.DoesNotContain("x:Name=\"SmartBpStopCaptureButton\"", ExtractElementByCommand(xaml, "OpenWindowPickerCommand"));
     }
 
     [Fact]
@@ -609,6 +769,41 @@ public sealed class NeoBpsysTutorialRegistrationTest
         NeoBpsysTutorialRegistration.Register(packageRegistry, sequenceRegistry, flowRegistry);
 
         return packageRegistry.GetPackages();
+    }
+
+    private static TutorialSequenceRegistry CreateRegisteredSequences()
+    {
+        var packageRegistry = new TutorialPackageRegistry();
+        var sequenceRegistry = new TutorialSequenceRegistry();
+        var flowRegistry = new TutorialFlowRegistry();
+
+        NeoBpsysTutorialRegistration.Register(packageRegistry, sequenceRegistry, flowRegistry);
+
+        return sequenceRegistry;
+    }
+
+    private static TutorialFlowDefinition CreateRegisteredFlow(string flowId)
+    {
+        var packageRegistry = new TutorialPackageRegistry();
+        var sequenceRegistry = new TutorialSequenceRegistry();
+        var flowRegistry = new TutorialFlowRegistry();
+
+        NeoBpsysTutorialRegistration.Register(packageRegistry, sequenceRegistry, flowRegistry);
+
+        var flow = flowRegistry.GetFlow(flowId);
+        Assert.NotNull(flow);
+        return flow;
+    }
+
+    private static string ExtractElementByCommand(string xaml, string commandName)
+    {
+        var commandIndex = xaml.IndexOf($"Command=\"{{Binding {commandName}}}\"", StringComparison.Ordinal);
+        Assert.True(commandIndex >= 0, $"Command not found: {commandName}");
+
+        var start = xaml.LastIndexOf("<ui:Button", commandIndex, StringComparison.Ordinal);
+        var end = xaml.IndexOf("/>", commandIndex, StringComparison.Ordinal);
+        Assert.True(start >= 0 && end > start, $"Button element not found for command: {commandName}");
+        return xaml[start..(end + 2)];
     }
 
     private static string GetRepositoryPath(params string[] parts)

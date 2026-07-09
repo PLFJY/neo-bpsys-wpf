@@ -41,22 +41,12 @@ public partial class TeamInfoPage
         [
             TutorialPackages.TeamNameBasic,
             TutorialPackages.JsonImportPreset,
-            TutorialPackages.PlayerManage,
-            TutorialPackages.Basic,
-            TutorialPackages.JsonImport,
-            TutorialPackages.Advanced
+            TutorialPackages.PlayerManage
         ]);
 
         registrar.RegisterPackage(CreateTeamNamePackage(TutorialPackages.TeamNameBasic, 1));
         registrar.RegisterPackage(CreateJsonImportPackage(TutorialPackages.JsonImportPreset, 2));
         registrar.RegisterPackage(CreatePlayerManagePackage());
-        registrar.RegisterPackage(CreateTeamNamePackage(TutorialPackages.Basic, 4));
-        registrar.RegisterPackage(CreateJsonImportPackage(TutorialPackages.JsonImport, 5));
-        registrar.RegisterPackage(TutorialDefinitionHelpers.Package(
-            TutorialPackages.Advanced,
-            TutorialPageKey,
-            6,
-            [CreateFallbackStep(TutorialPackages.Advanced)]));
     }
 
     private static TutorialPackageDefinition CreateTeamNamePackage(string packageId, int sequence) =>
@@ -148,13 +138,6 @@ public partial class TeamInfoPage
                     avatarPlacement: ProductTourAvatarPlacement.BottomRight,
                     avatarPose: TutorialAvatarPose.LeftTop)
             ]);
-
-    private static ProductTourStep CreateFallbackStep(string packageId) =>
-        TutorialDefinitionHelpers.Step(
-            null,
-            "功能教学",
-            NeoBpsysTutorialTexts.GetFallbackDescription(packageId),
-            ProductTourInteractionMode.BlockAll);
 
     private static void SetExamplesJsonPickerHint(string title)
     {

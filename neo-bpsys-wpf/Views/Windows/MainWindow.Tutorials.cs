@@ -69,16 +69,15 @@ public partial class MainWindow
             TutorialPackages.GameProgressBo1FirstHalf,
             TutorialPackages.NewGameBasic,
             TutorialPackages.GlobalBanCarryOver,
-            TutorialPackages.GameManageBasic,
-            TutorialPackageIds.GameManageImportExport
+            TutorialPackages.GameManageBasic
         ]);
 
         registrar.RegisterSequence(TutorialPageKeys.BpGameGuidance,
         [
             TutorialPackageIds.BpGameGuidanceStartBasic,
             TutorialPackageIds.BpGameGuidanceCurrentStepBasic,
-            TutorialPackageIds.MapBpCurrentOperationSpotlightBasic,
-            TutorialPackageIds.MapBpCompletionNextBasic,
+            TutorialPackageIds.MapBpBanMapOperationBasic,
+            TutorialPackageIds.MapBpNextToPickMapBasic,
             TutorialPackageIds.BpGameGuidanceEndBasic,
             TutorialPackageIds.BpGameGuidanceBasic,
             TutorialPackageIds.BpGameGuidanceFlowBo1FirstHalf
@@ -97,16 +96,11 @@ public partial class MainWindow
         registrar.RegisterPackage(CreateGlobalBanCarryOverPackage());
         registrar.RegisterPackage(CreateGameGuidanceStartPackage(TutorialPackageIds.BpGameGuidanceStartBasic, 1));
         registrar.RegisterPackage(CreateGameGuidanceCurrentStepPackage());
-        registrar.RegisterPackage(CreateMapBpCurrentOperationSpotlightPackage());
-        registrar.RegisterPackage(CreateMapBpCompletionNextPackage(TutorialPackageIds.MapBpCompletionNextBasic, 4));
+        registrar.RegisterPackage(CreateMapBpBanMapOperationPackage());
+        registrar.RegisterPackage(CreateMapBpNextToPickMapPackage(TutorialPackageIds.MapBpNextToPickMapBasic, 4));
         registrar.RegisterPackage(CreateGameGuidanceEndPackage());
         registrar.RegisterPackage(CreateGameGuidanceStartPackage(TutorialPackageIds.BpGameGuidanceBasic, 6));
-        registrar.RegisterPackage(CreateMapBpCompletionNextPackage(TutorialPackageIds.BpGameGuidanceFlowBo1FirstHalf, 4));
-        registrar.RegisterPackage(TutorialDefinitionHelpers.Package(
-            TutorialPackageIds.GameManageImportExport,
-            TutorialPageKeys.GameManage,
-            5,
-            [CreateFallbackStep(TutorialPackageIds.GameManageImportExport)]));
+        registrar.RegisterPackage(CreateMapBpNextToPickMapPackage(TutorialPackageIds.BpGameGuidanceFlowBo1FirstHalf, 7));
     }
 
     private static TutorialPackageDefinition CreateNavigationBasicPackage() =>
@@ -206,7 +200,7 @@ public partial class MainWindow
                     TutorialSignalIds.GameGuidanceStarted)
             ]);
 
-    private static TutorialPackageDefinition CreateMapBpCompletionNextPackage(string packageId, int sequence) =>
+    private static TutorialPackageDefinition CreateMapBpNextToPickMapPackage(string packageId, int sequence) =>
         TutorialDefinitionHelpers.Package(
             packageId,
             TutorialPageKeys.BpGameGuidance,
@@ -214,8 +208,8 @@ public partial class MainWindow
             [
                 TutorialDefinitionHelpers.Step(
                     nameof(NextGuidanceStepButton),
-                    "进入下一阶段",
-                    "当前阶段已经完成，点击下一步进入角色 BP。",
+                    "进入选择地图",
+                    "Ban 地图完成后，点击下一步进入选择地图。",
                     ProductTourInteractionMode.AllowTargetOnly,
                     TutorialSignalIds.GuidanceNextClicked)
             ]);
@@ -234,18 +228,22 @@ public partial class MainWindow
                     allowMissing: true)
             ]);
 
-    private static TutorialPackageDefinition CreateMapBpCurrentOperationSpotlightPackage() =>
+    private static TutorialPackageDefinition CreateMapBpBanMapOperationPackage() =>
         TutorialDefinitionHelpers.Package(
-            TutorialPackageIds.MapBpCurrentOperationSpotlightBasic,
+            TutorialPackageIds.MapBpBanMapOperationBasic,
             TutorialPageKeys.BpGameGuidance,
             3,
             [
                 TutorialDefinitionHelpers.Step(
-                    TutorialTargetNames.MapBpCurrentOperationBorder,
-                    "当前操作区域",
-                    "对局引导会高亮当前需要操作的区域。现在这里是地图 BP 阶段的操作区域，按当前步骤完成地图选择或禁用。",
+                    TutorialTargetNames.MapBanOperationBorder,
+                    "Ban 地图操作区域",
+                    "现在完成 Ban 地图。对局引导会高亮当前需要操作的区域。请在这里完成地图禁用。",
                     ProductTourInteractionMode.AllowTargetOnly,
-                    allowMissing: true)
+                    allowMissing: true,
+                    avatarPlacement: ProductTourAvatarPlacement.TopLeft,
+                    avatarPose: TutorialAvatarPose.RightBottom,
+                    cardOffset: new Point(0, -24),
+                    placement: ProductTourPlacement.TopRight)
             ]);
 
     private static TutorialPackageDefinition CreateGameGuidanceEndPackage() =>
@@ -317,10 +315,4 @@ public partial class MainWindow
                     ProductTourInteractionMode.BlockAll)
             ]);
 
-    private static ProductTourStep CreateFallbackStep(string packageId) =>
-        TutorialDefinitionHelpers.Step(
-            null,
-            "功能教学",
-            NeoBpsysTutorialTexts.GetFallbackDescription(packageId),
-            ProductTourInteractionMode.BlockAll);
 }

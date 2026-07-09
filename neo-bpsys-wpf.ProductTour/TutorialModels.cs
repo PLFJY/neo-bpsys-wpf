@@ -57,6 +57,10 @@ public enum ProductTourAvatarPlacement
 {
     /// <summary>Uses the default placement near the product tour card.</summary>
     Auto,
+    /// <summary>Places the avatar at the upper-left corner of the owner window.</summary>
+    TopLeft,
+    /// <summary>Places the avatar at the upper-right corner of the owner window.</summary>
+    TopRight,
     /// <summary>Places the avatar at the lower-right corner of the owner window.</summary>
     BottomRight
 }

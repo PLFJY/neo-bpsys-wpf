@@ -216,6 +216,7 @@ public sealed class WpfTutorialNavigationIntegrationTest
             {
                 new ComboBox { Name = TutorialTargetNames.SmartBpWindowSelector },
                 new Button { Name = TutorialTargetNames.SmartBpStartCaptureButton, Content = "Capture" },
+                new Button { Name = TutorialTargetNames.SmartBpPreviewButton, Content = "Preview" },
                 new Border { Name = TutorialTargetNames.SmartBpPreviewPanel, Width = 80, Height = 40 },
                 new Button { Name = TutorialTargetNames.SmartBpStopCaptureButton, Content = "Stop" },
                 new Button { Name = TutorialTargetNames.SmartBpRegionEditorButton, Content = "Region" },

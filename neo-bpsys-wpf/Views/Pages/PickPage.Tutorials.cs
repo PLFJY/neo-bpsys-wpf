@@ -66,14 +66,17 @@ public partial class PickPage
             TutorialPageKey,
             2,
             [
-                TutorialDefinitionHelpers.DescendantTypeStep(
-                    nameof(FirstSurvivorPickSelectorHost),
-                    typeof(CharacterSelector).FullName!,
+                TutorialDefinitionHelpers.Step(
+                    nameof(SurvivorPickSelectorGroupBorder),
                     "完成四个求生者选择",
                     "继续选择剩余求生者角色。四个求生者都选完后，再进入角色调整教学。",
                     ProductTourInteractionMode.AllowTargetOnly,
                     TutorialSignalIds.PickSurvivorSlotsCompleted,
-                    allowMissing: true)
+                    allowMissing: true,
+                    avatarPlacement: ProductTourAvatarPlacement.TopLeft,
+                    avatarPose: TutorialAvatarPose.RightBottom,
+                    cardOffset: new System.Windows.Point(0, -24),
+                    placement: ProductTourPlacement.TopRight)
             ]));
 
         registrar.RegisterPackage(TutorialDefinitionHelpers.Package(
@@ -95,10 +98,10 @@ public partial class PickPage
             4,
             [
                 TutorialDefinitionHelpers.DescendantTypeStep(
-                    nameof(FirstSurvivorPickSelectorHost),
+                    nameof(SurvivorPickSelectorGroupBorder),
                     typeof(CharacterChanger).FullName!,
                     "调整已选角色",
-                    "如果选择错误或需要临时调整角色，可以使用 CharacterChanger 修改已选角色。修改后会同步更新当前 BP 状态。",
+                    "如果角色选择错误，或需要临时调整已选角色，可以在这里使用角色调整功能。调整后会同步更新当前 BP 状态。",
                     ProductTourInteractionMode.AllowTargetOnly,
                     allowMissing: true)
             ]));

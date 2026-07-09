@@ -123,14 +123,15 @@ internal static class TutorialDefinitionHelpers
         ProductTourAvatarPlacement avatarPlacement = ProductTourAvatarPlacement.Auto,
         TutorialAvatarPose? avatarPose = null,
         Point? cardOffset = null,
-        string? scrollAnchorName = null)
+        string? scrollAnchorName = null,
+        ProductTourPlacement placement = ProductTourPlacement.Auto)
     {
         var builder = TutorialPackageBuilder.Create("Transient.Step")
             .ForPage("Transient.Page")
             .Step(targetName)
             .Title(title)
             .Description(description)
-            .Placement(ProductTourPlacement.Auto)
+            .Placement(placement)
             .CardOffset(cardOffset ?? default)
             .AvatarPlacement(avatarPlacement)
             .Interaction(mode)

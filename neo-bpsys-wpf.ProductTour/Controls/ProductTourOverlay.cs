@@ -488,20 +488,24 @@ public sealed class ProductTourOverlay : Canvas
         _avatarImage.Visibility = Visibility.Visible;
         _avatarImage.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
         var desired = _avatarImage.DesiredSize;
-        if (_currentAvatarPlacement == ProductTourAvatarPlacement.BottomRight)
+        if (_currentAvatarPlacement is ProductTourAvatarPlacement.TopLeft
+            or ProductTourAvatarPlacement.TopRight
+            or ProductTourAvatarPlacement.BottomRight)
         {
-            SetLeft(
-                _avatarImage,
-                Math.Clamp(
+            var fixedX = _currentAvatarPlacement == ProductTourAvatarPlacement.TopLeft
+                ? _options.CardMargin
+                : Math.Clamp(
                     width - desired.Width - _options.CardMargin,
                     _options.CardMargin,
-                    Math.Max(_options.CardMargin, width - desired.Width - _options.CardMargin)));
-            SetTop(
-                _avatarImage,
-                Math.Clamp(
+                    Math.Max(_options.CardMargin, width - desired.Width - _options.CardMargin));
+            var fixedY = _currentAvatarPlacement is ProductTourAvatarPlacement.TopLeft or ProductTourAvatarPlacement.TopRight
+                ? _options.CardMargin
+                : Math.Clamp(
                     height - desired.Height - _options.CardMargin,
                     _options.CardMargin,
-                    Math.Max(_options.CardMargin, height - desired.Height - _options.CardMargin)));
+                    Math.Max(_options.CardMargin, height - desired.Height - _options.CardMargin));
+            SetLeft(_avatarImage, fixedX);
+            SetTop(_avatarImage, fixedY);
             return;
         }
 

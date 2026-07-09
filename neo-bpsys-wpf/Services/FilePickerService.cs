@@ -49,7 +49,7 @@ public class FilePickerService : IFilePickerService
         var resolvedInitialDirectory = ResolveExistingDirectory(
             initialDirectory
             ?? tutorialHint.InitialDirectory
-            ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources"));
+            ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Examples"));
 
         OpenFileDialog openFileDialog = new()
         {

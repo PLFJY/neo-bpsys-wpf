@@ -32,19 +32,27 @@ public partial class TalentPage
                     "设置天赋和特质",
                     "这里用于设置本局角色的天赋和特质。这些信息会用于前台展示和赛后记录。按比赛实际情况选择后继续引导。",
                     ProductTourInteractionMode.AllowTargetOnly,
-                    allowMissing: true),
+                    allowMissing: true,
+                    avatarPlacement: ProductTourAvatarPlacement.TopLeft,
+                    avatarPose: TutorialAvatarPose.RightBottom,
+                    cardOffset: new System.Windows.Point(0, -24),
+                    placement: ProductTourPlacement.TopRight),
                 TutorialDefinitionHelpers.Step(
                     TutorialTargetNames.SurvivorTalentSelector,
                     "求生者天赋",
                     "这里设置四名求生者的天赋。本教程不强制完整填写。",
                     ProductTourInteractionMode.AllowTargetOnly,
-                    allowMissing: true),
+                    allowMissing: true,
+                    avatarPlacement: ProductTourAvatarPlacement.TopLeft,
+                    avatarPose: TutorialAvatarPose.RightBottom),
                 TutorialDefinitionHelpers.Step(
                     TutorialTargetNames.HunterTraitSelector,
                     "监管者特质",
                     "这里设置监管者天赋和辅助特质。确认实际比赛信息后继续对局引导。",
                     ProductTourInteractionMode.AllowTargetOnly,
-                    allowMissing: true)
+                    allowMissing: true,
+                    avatarPlacement: ProductTourAvatarPlacement.TopLeft,
+                    avatarPose: TutorialAvatarPose.RightBottom)
             ]));
     }
 }

@@ -27,8 +27,8 @@ public static class FirstRunStandardBpTour
         MainWindow.TutorialPackages.GameProgressBo1FirstHalf,
         TutorialPackageIds.BpGameGuidanceStartBasic,
         TutorialPackageIds.BpGameGuidanceCurrentStepBasic,
-        TutorialPackageIds.MapBpCurrentOperationSpotlightBasic,
-        TutorialPackageIds.MapBpCompletionNextBasic,
+        TutorialPackageIds.MapBpBanMapOperationBasic,
+        TutorialPackageIds.MapBpNextToPickMapBasic,
         BanSurPage.TutorialPackages.CharacterSelectorBasic,
         PickPage.TutorialPackages.SelectFourSurvivorsBasic,
         PickPage.TutorialPackages.GlobalBanRecordBasic,
@@ -70,8 +70,8 @@ public static class FirstRunStandardBpTour
             .Package(MainWindow.TutorialPackages.GameProgressBo1FirstHalf)
             .Package(TutorialPackageIds.BpGameGuidanceStartBasic)
             .Package(TutorialPackageIds.BpGameGuidanceCurrentStepBasic)
-            .Package(TutorialPackageIds.MapBpCurrentOperationSpotlightBasic)
-            .Package(TutorialPackageIds.MapBpCompletionNextBasic)
+            .Package(TutorialPackageIds.MapBpBanMapOperationBasic)
+            .Package(TutorialPackageIds.MapBpNextToPickMapBasic)
             .Package(BanSurPage.TutorialPackages.CharacterSelectorBasic)
             .Package(PickPage.TutorialPackages.SelectFourSurvivorsBasic)
             .Package(PickPage.TutorialPackages.GlobalBanRecordBasic)

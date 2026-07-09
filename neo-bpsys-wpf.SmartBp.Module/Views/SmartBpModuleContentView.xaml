@@ -65,28 +65,29 @@
                         ItemsSource="{Binding ActiveWindows}"
                         SelectedValue="{Binding SelectedWindow}" />
                     <ui:Button
-                        x:Name="SmartBpStartCaptureButton"
                         Margin="0,0,8,8"
                         Command="{Binding RefreshActiveWindowsCommand}"
                         Content="{lex:Loc Refresh}"
                         Icon="{ui:SymbolIcon Symbol=ArrowSync24}" />
                     <ui:Button
-                        x:Name="SmartBpStopCaptureButton"
                         Margin="0,0,8,8"
                         Command="{Binding OpenWindowPickerCommand}"
                         Content="{lex:Loc SmartBpOpenWindowPickerOnlyWgc}"
                         Icon="{ui:SymbolIcon Symbol=CursorClick24}" />
                     <ui:Button
+                        x:Name="SmartBpStartCaptureButton"
                         Margin="0,0,8,8"
                         Command="{Binding StartCaptureCommand}"
                         Content="{lex:Loc Start}"
                         Icon="{ui:SymbolIcon Symbol=Play24}" />
                     <ui:Button
+                        x:Name="SmartBpStopCaptureButton"
                         Margin="0,0,8,8"
                         Command="{Binding StopCaptureCommand}"
                         Content="{lex:Loc Stop}"
                         Icon="{ui:SymbolIcon Symbol=Stop24}" />
                     <ui:Button
+                        x:Name="SmartBpPreviewButton"
                         Margin="0,0,8,8"
                         Command="{Binding OpenPreviewWindowCommand}"
                         Content="{lex:Loc Preview}"

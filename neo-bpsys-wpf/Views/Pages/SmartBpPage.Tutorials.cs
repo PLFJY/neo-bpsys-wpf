@@ -43,6 +43,9 @@ public partial class SmartBpPage
         /// <summary>Smart BP preview panel target name.</summary>
         public const string PreviewPanel = "SmartBpPreviewPanel";
 
+        /// <summary>Smart BP preview button target name.</summary>
+        public const string PreviewButton = "SmartBpPreviewButton";
+
         /// <summary>Smart BP stop capture button target name.</summary>
         public const string StopCaptureButton = "SmartBpStopCaptureButton";
 
@@ -128,9 +131,9 @@ public partial class SmartBpPage
                     ProductTourInteractionMode.AllowTargetOnly,
                     allowMissing: true),
                 TutorialDefinitionHelpers.Step(
-                    TutorialTargets.PreviewPanel,
-                    "捕获预览画面",
-                    "预览区域用于确认捕获是否正确。如果没有找到 dwrg.exe，也可以继续教程。",
+                    TutorialTargets.PreviewButton,
+                    "预览捕获",
+                    "点击预览可以确认捕获画面是否正确。如果没有找到 dwrg.exe，也可以继续教程。",
                     ProductTourInteractionMode.AllowTargetOnly,
                     allowMissing: true),
                 TutorialDefinitionHelpers.Step(

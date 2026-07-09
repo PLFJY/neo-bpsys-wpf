@@ -24,9 +24,7 @@ public partial class BanSurPage
     {
         registrar.RegisterSequence(TutorialPageKey,
         [
-            TutorialPackages.CharacterSelectorBasic,
-            TutorialPackageIds.BpSharedBasic,
-            TutorialPackageIds.BpCharacterSelectorAdvanced
+            TutorialPackages.CharacterSelectorBasic
         ]);
 
         registrar.RegisterPackage(TutorialDefinitionHelpers.Package(
@@ -52,20 +50,5 @@ public partial class BanSurPage
                     allowMissing: true)
             ]));
 
-        registrar.RegisterPackage(CreateFallbackPackage(TutorialPackageIds.BpSharedBasic, 2));
-        registrar.RegisterPackage(CreateFallbackPackage(TutorialPackageIds.BpCharacterSelectorAdvanced, 3));
     }
-
-    private static TutorialPackageDefinition CreateFallbackPackage(string packageId, int sequence) =>
-        TutorialDefinitionHelpers.Package(
-            packageId,
-            TutorialPageKey,
-            sequence,
-            [
-                TutorialDefinitionHelpers.Step(
-                    null,
-                    "功能教学",
-                    NeoBpsysTutorialTexts.GetFallbackDescription(packageId),
-                    ProductTourInteractionMode.BlockAll)
-            ]);
 }

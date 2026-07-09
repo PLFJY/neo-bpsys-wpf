@@ -49,6 +49,8 @@ public sealed class NeoBpsysTutorialIdsTest
         Assert.Equal("Page.Bp.GameGuidance.FlowBo1FirstHalf", TutorialPackageIds.BpGameGuidanceFlowBo1FirstHalf);
         Assert.Equal("Page.MapBp.CompletionNext.Basic", TutorialPackageIds.MapBpCompletionNextBasic);
         Assert.Equal("Page.MapBp.CurrentOperationSpotlight.Basic", TutorialPackageIds.MapBpCurrentOperationSpotlightBasic);
+        Assert.Equal("Page.MapBp.BanMapOperation.Basic", TutorialPackageIds.MapBpBanMapOperationBasic);
+        Assert.Equal("Page.MapBp.NextToPickMap.Basic", TutorialPackageIds.MapBpNextToPickMapBasic);
         Assert.Equal("Page.Bp.PickCharacter.Basic", TutorialPackageIds.BpPickCharacterBasic);
         Assert.Equal("Page.Bp.Pick.SelectFourSurvivors.Basic", TutorialPackageIds.BpPickSelectFourSurvivorsBasic);
         Assert.Equal("Page.Bp.CharacterChanger.Basic", TutorialPackageIds.BpCharacterChangerBasic);
@@ -154,6 +156,8 @@ public sealed class NeoBpsysTutorialIdsTest
         Assert.Equal("StopGameGuidanceButton", TutorialTargetNames.StopGameGuidanceButton);
         Assert.Equal("CharacterSelector", TutorialTargetNames.CharacterSelector);
         Assert.Equal("SurvivorPickPanel", TutorialTargetNames.SurvivorPickPanel);
+        Assert.Equal("SurvivorPickSelectorGroupBorder", TutorialTargetNames.SurvivorPickSelectorGroupBorder);
+        Assert.Equal("SurvivorPickSelectorPanel", TutorialTargetNames.SurvivorPickSelectorPanel);
         Assert.Equal("FirstSurvivorPickSelectorHost", TutorialTargetNames.FirstSurvivorPickSelectorHost);
         Assert.Equal("HunterPickSelectorHost", TutorialTargetNames.HunterPickSelectorHost);
         Assert.Equal("SurvivorCharacterChangerPanel", TutorialTargetNames.SurvivorCharacterChangerPanel);
@@ -167,6 +171,7 @@ public sealed class NeoBpsysTutorialIdsTest
         Assert.Equal("MapBpPanel", TutorialTargetNames.MapBpPanel);
         Assert.Equal("MapBpCurrentOperationBorder", TutorialTargetNames.MapBpCurrentOperationBorder);
         Assert.Equal("MapBanAreaBorder", TutorialTargetNames.MapBanAreaBorder);
+        Assert.Equal("MapBanOperationBorder", TutorialTargetNames.MapBanOperationBorder);
         Assert.Equal("MapBpCompletedPanel", TutorialTargetNames.MapBpCompletedPanel);
         Assert.Equal("MapSelectorPanel", TutorialTargetNames.MapSelectorPanel);
         Assert.Equal("BanSurvivorSelectorPanel", TutorialTargetNames.BanSurvivorSelectorPanel);
@@ -218,6 +223,7 @@ public sealed class NeoBpsysTutorialIdsTest
         Assert.Equal("SmartBpImportModuleArchiveButton", TutorialTargetNames.SmartBpImportModuleArchiveButton);
         Assert.Equal("SmartBpWindowSelector", TutorialTargetNames.SmartBpWindowSelector);
         Assert.Equal("SmartBpStartCaptureButton", TutorialTargetNames.SmartBpStartCaptureButton);
+        Assert.Equal("SmartBpPreviewButton", TutorialTargetNames.SmartBpPreviewButton);
         Assert.Equal("SmartBpPreviewPanel", TutorialTargetNames.SmartBpPreviewPanel);
         Assert.Equal("SmartBpStopCaptureButton", TutorialTargetNames.SmartBpStopCaptureButton);
         Assert.Equal("SmartBpRegionEditorButton", TutorialTargetNames.SmartBpRegionEditorButton);

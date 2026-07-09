@@ -1,5 +1,4 @@
 using System.Windows.Controls;
-using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Tutorial;
 
 namespace neo_bpsys_wpf.Views.Pages.FrontManage;
@@ -12,26 +11,13 @@ public partial class FrontedWindowsView : UserControl
     public FrontedWindowsView()
     {
         InitializeComponent();
-        Loaded += (_, _) => RunSelfTutorialIfFrontManageOverviewCompleted("Loaded");
+        Loaded += (_, _) => TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKey, "Loaded");
         IsVisibleChanged += (_, e) =>
         {
             if (Equals(e.NewValue, true))
             {
-                RunSelfTutorialIfFrontManageOverviewCompleted("Visible");
+                TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKey, "Visible");
             }
         };
-    }
-
-    private void RunSelfTutorialIfFrontManageOverviewCompleted(string reason)
-    {
-        if (IAppHost.Host is null
-            || !TutorialDefinitionHelpers.IsPackageRecorded(
-                IAppHost.Host.Services,
-                TutorialPackageIds.FrontManageOverview))
-        {
-            return;
-        }
-
-        TutorialPageLoader.RunPendingOnLoaded(this, TutorialPageKey, reason);
     }
 }
