@@ -32,13 +32,13 @@
 1. **禁止新增样式/布局宽高类测试**：不要断言视觉样式、坐标、窗口宽高、Canvas 宽高、控件位置、Margin/Padding、精确行列结构等展示细节。唯一例外是为了验证 WPF/XAML 语法或运行时必需命名部件是否正确。已有此类测试失败时，应删除或改成行为/契约测试，不得为了测试回滚布局。
 1. **禁止未经用户明确同意执行有副作用的 Git 命令**：包括但不限于 `git stash`、`git stash pop`、`git stash drop`、`git checkout .`、`git restore .`、`git reset`、`git clean`、`git switch`、`git checkout <branch>`、`git merge`、`git rebase`。本仓库可能处于无 initial commit 的状态，此时 `git stash` 会把大量未跟踪文件异常处理，导致工作区状态被搅乱、用户修改丢失。需要对比"改动前/后"行为时，应改用：直接读文件内容对比、用 `git diff`（只读）、或先询问用户如何验证。只允许执行只读类 git 命令（`git status`、`git diff`、`git log`、`git show` 等）。
 
-## Naming rule: do not use generic IsActive
+## 命名规则：请勿使用通用的 IsActive
 
-`IsActive` is reserved for internal framework/runtime activation semantics, especially CommunityToolkit.Mvvm `ObservableRecipient.IsActive`.
+`IsActive` 专用于内部框架/运行时的激活语义，尤其是 CommunityToolkit.Mvvm 中的 `ObservableRecipient.IsActive`。
 
-Do not use `IsActive` for layout/package/settings/business data.
+请勿将 `IsActive` 用于布局/包/设置/业务数据。
 
-Use explicit names:
+请使用明确的名称：
 - `IsActivePackage`
 - `IsCurrentPackage`
 - `IsVisible`
@@ -48,11 +48,11 @@ Use explicit names:
 - `IsExpanded`
 - `IsVisibleInFrontManage`
 
-Legacy note:
-Old `.bpui` packages may contain `IsActive` inside `TextSettings` because old settings classes inherited `ObservableRecipient`.
-That field is serialization leakage and must be ignored by LegacyConverter.
+遗留说明：
+旧版 `.bpui` 包的 `TextSettings` 中可能包含 `IsActive`，这是因为旧版设置类继承了 `ObservableRecipient`。
+该字段属于序列化泄漏，`LegacyConverter` 必须将其忽略。
 
-Visibility bindings must use `IsVisible` or a specific visibility-oriented property. Do not bind `Visibility` to generic `IsActive`.
+可见性绑定必须使用 `IsVisible` 或特定的可见性相关属性。请勿将 `Visibility` 绑定到通用的 `IsActive`。
 
 ## 改动前必读
 
