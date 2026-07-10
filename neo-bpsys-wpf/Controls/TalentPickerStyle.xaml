@@ -4,9 +4,7 @@
     xmlns:control="clr-namespace:neo_bpsys_wpf.Controls"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
-    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-    lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell">
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
     <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
     <cv:BooleanToReverseVisibilityConverter x:Key="BooleanToReverseVisibilityConverter" />
     <Style TargetType="{x:Type control:TalentPicker}">
@@ -19,7 +17,9 @@
                             <Setter Property="Width" Value="50" />
                         </Style>
                     </ControlTemplate.Resources>
-                    <Grid>
+                    <Grid
+                        lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+                        lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />

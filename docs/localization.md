@@ -77,6 +77,29 @@
 
 模块 XAML 设置 `DefaultAssembly` 为模块程序集名（如 `neo-bpsys-wpf.ProductTour`）。
 
+### ResourceDictionary 样式文件
+
+`DefaultAssembly` / `DefaultDictionary` 是附加属性（attached property），只能设置在 `DependencyObject` 上。`ResourceDictionary` 是 `DispatcherObject` 而非 `DependencyObject`，因此**禁止**在 `<ResourceDictionary>` 根元素上设置这两个属性，否则会在 BAML 加载时抛出 `ArgumentException: Object of type 'System.Windows.ResourceDictionary' cannot be converted to type 'System.Windows.DependencyObject'`。
+
+纯样式 `ResourceDictionary` 文件（如 `Controls/*Style.xaml`）应将这两个属性设置到 `ControlTemplate` 内的根元素上（`Grid` / `StackPanel` 等 `DependencyObject`），附加属性以 `Inherits` 方式向子元素传播：
+
+```xaml
+<ResourceDictionary xmlns:lex="..." ...>
+    <Style TargetType="{x:Type local:MyControl}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type local:MyControl}">
+                    <Grid lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+                          lex:ResxLocalizationProvider.DefaultDictionary="Locales.Game">
+                        <TextBlock Text="{lex:Loc SomeKey}" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>
+```
+
 ## C# 引用模式
 
 已知归属字典的调用使用显式字典常量：

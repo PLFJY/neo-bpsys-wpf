@@ -19,18 +19,12 @@ public static class ImageHelper
     /// </summary>
     /// <param name="key">ui _image filename without filename extension</param>
     /// <returns></returns>
-    public static ImageBrush GetUiImageBrush(string key)
+    public static ImageBrush? GetUiImageBrush(string key)
     {
-        return new ImageBrush(
-            new BitmapImage(
-                new Uri(
-                    Path.Combine(
-                        AppConstants.ResourcesPath, nameof(ImageSourceKey.bpui),
-                        key + ".png"
-                    )
-                )
-            )
-        );
+        if (string.IsNullOrEmpty(key)) return null;
+        var image = GetUiImageSource(key);
+        if(image == null) return null;
+        return new ImageBrush(image);
     }
 
     /// <summary>
@@ -38,15 +32,14 @@ public static class ImageHelper
     /// </summary>
     /// <param name="key">ui _image filename without filename extension</param>
     /// <returns></returns>
-    public static ImageSource GetUiImageSource(string key)
+    public static ImageSource? GetUiImageSource(string key)
     {
-        return new BitmapImage(
-            new Uri(
-                Path.Combine(
-                    AppConstants.ResourcesPath, nameof(ImageSourceKey.bpui), key + ".png"
-                )
-            )
-        );
+        if (string.IsNullOrEmpty(key)) return null;
+        var fileFullName = Path.Combine(AppConstants.ResourcesPath, nameof(ImageSourceKey.bpui), key + ".png");
+        if (!File.Exists(fileFullName)) return null;
+        var image = new BitmapImage(new Uri(fileFullName));
+        image.Freeze();
+        return image;
     }
 
     /// <summary>
@@ -60,8 +53,29 @@ public static class ImageHelper
         if (string.IsNullOrEmpty(fileName)) return null;
 
         var fileFullName = Path.Combine(AppConstants.ResourcesPath, key.ToString(), fileName);
+        if (!File.Exists(fileFullName)) return null;
+        var image = new BitmapImage(new Uri(fileFullName));
+        image.Freeze();
 
-        return !File.Exists(fileFullName) ? null : new BitmapImage(new Uri(fileFullName));
+        return image;
+    }
+
+    /// <summary>
+    /// Get ImageSource from corresponding Resources folder
+    /// </summary>
+    /// <param name="key">ImageSourceKey</param>
+    /// <param name="fileName">file name</param>
+    /// <returns></returns>
+    public static ImageSource? GetImageSourceFromFileName(string key, string? fileName)
+    {
+        if (string.IsNullOrEmpty(fileName)) return null;
+
+        var fileFullName = Path.Combine(AppConstants.ResourcesPath, key, fileName);
+        if(!File.Exists(fileFullName)) return null;
+        var image = new BitmapImage(new Uri(fileFullName));
+        image.Freeze();
+
+        return image;
     }
 
     /// <summary>

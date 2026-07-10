@@ -1,7 +1,9 @@
 using System.Globalization;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.ProductTour;
 
 namespace neo_bpsys_wpf.Tutorial;
@@ -12,7 +14,7 @@ namespace neo_bpsys_wpf.Tutorial;
 public sealed class AliceTutorialAvatarProvider : ITutorialAvatarProvider
 {
     private readonly ISettingsHostService _settingsHostService;
-    private readonly IReadOnlyDictionary<TutorialAvatarPose, BitmapImage> _images;
+    private readonly IReadOnlyDictionary<TutorialAvatarPose, ImageSource?> _images;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AliceTutorialAvatarProvider"/> class.
@@ -21,7 +23,7 @@ public sealed class AliceTutorialAvatarProvider : ITutorialAvatarProvider
     public AliceTutorialAvatarProvider(ISettingsHostService settingsHostService)
     {
         _settingsHostService = settingsHostService;
-        _images = new Dictionary<TutorialAvatarPose, BitmapImage>
+        _images = new Dictionary<TutorialAvatarPose, ImageSource?>
         {
             [TutorialAvatarPose.Idle] = LoadImage("idle.png"),
             [TutorialAvatarPose.LeftTop] = LoadImage("lt.png"),
@@ -72,14 +74,15 @@ public sealed class AliceTutorialAvatarProvider : ITutorialAvatarProvider
         return "Alice DeRoss";
     }
 
-    private static BitmapImage LoadImage(string fileName)
+    private static ImageSource? LoadImage(string fileName)
     {
-        var image = new BitmapImage();
-        image.BeginInit();
-        image.UriSource = new Uri($"pack://application:,,,/neo-bpsys-wpf;component/Resources/Alice/{fileName}", UriKind.Absolute);
-        image.CacheOption = BitmapCacheOption.OnLoad;
-        image.EndInit();
-        image.Freeze();
+        //var image = new BitmapImage();
+        //image.BeginInit();
+        //image.UriSource = new Uri($"pack://application:,,,/neo-bpsys-wpf;component/Resources/Alice/{fileName}", UriKind.Absolute);
+        //image.CacheOption = BitmapCacheOption.OnLoad;
+        //image.EndInit();
+        //image.Freeze();
+        var image = ImageHelper.GetImageSourceFromFileName("Alice", fileName);
         return image;
     }
 }
