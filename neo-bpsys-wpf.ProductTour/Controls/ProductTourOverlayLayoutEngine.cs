@@ -236,7 +236,7 @@ public sealed class ProductTourOverlayLayoutEngine
         var valid = cardCandidates.Where(pair => pair.rect.Width > 0 && pair.rect.Height > 0).ToList();
         if (valid.Count == 0)
         {
-            return (ProductTourPlacement.Center, ClampToSafe(new Rect(safe.X, safe.Y, request.CardDesiredSize.Width, request.CardDesiredSize.Height), safe));
+            return (ProductTourPlacement.Center, new Rect(Math.Max(0, safe.X), Math.Max(0, safe.Y), request.CardDesiredSize.Width, request.CardDesiredSize.Height));
         }
 
         var nonOverlapping = valid.Where(pair => !Overlaps(pair.rect, spotInflated)).ToList();
@@ -424,15 +424,21 @@ public sealed class ProductTourOverlayLayoutEngine
 
     private static Rect ClampToSafe(Rect rect, Rect safe)
     {
-        var x = Math.Max(safe.X, rect.X);
-        var y = Math.Max(safe.Y, rect.Y);
-        var right = Math.Min(safe.Right, rect.Right);
-        var bottom = Math.Min(safe.Bottom, rect.Bottom);
-        if (right < x) right = x;
-        if (bottom < y) bottom = y;
-        var width = Math.Max(0, right - x);
-        var height = Math.Max(0, bottom - y);
-        return new Rect(Math.Max(0, x), Math.Max(0, y), width, height);
+        if (rect.Width > safe.Width || rect.Height > safe.Height)
+        {
+            return Rect.Empty;
+        }
+
+        var x = rect.X;
+        var y = rect.Y;
+
+        if (x < safe.X) x = safe.X;
+        if (x + rect.Width > safe.Right) x = safe.Right - rect.Width;
+
+        if (y < safe.Y) y = safe.Y;
+        if (y + rect.Height > safe.Bottom) y = safe.Bottom - rect.Height;
+
+        return new Rect(Math.Max(0, x), Math.Max(0, y), rect.Width, rect.Height);
     }
 
     private static bool Overlaps(Rect a, Rect b) =>

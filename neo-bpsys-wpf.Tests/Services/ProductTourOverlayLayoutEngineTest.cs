@@ -141,6 +141,20 @@ public sealed class ProductTourOverlayLayoutEngineTest
         Assert.True(result.CardRect.Height > 0, "Card rect should have positive height in fallback.");
     }
 
+    [Fact]
+    public void OverlayLayout_ShouldNotShrinkCandidateCausingSpotlightOverlap()
+    {
+        var safe = new Rect(12, 12, 956, 776);
+        var spot = new Rect(2, 42, 376, 120);
+        var result = Arrange(safe, spot, new Size(380, 200), new Size(96, 96));
+
+        var inflated = Rect.Inflate(spot, new Size(16, 16));
+        Assert.False(StrictlyOverlaps(result.CardRect, inflated),
+            "Card must not overlap spotlight when target is on the left side of the window.");
+        Assert.True(result.CardRect.Width >= 380,
+            "Card rect should preserve full width, not be shrunk by ClampToSafe.");
+    }
+
     private static bool StrictlyOverlaps(Rect a, Rect b) =>
         a.Left < b.Right && a.Right > b.Left && a.Top < b.Bottom && a.Bottom > b.Top;
 }
