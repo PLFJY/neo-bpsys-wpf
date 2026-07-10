@@ -2120,7 +2120,7 @@
     <value>已有插件正在下载。</value>
   </data>
   <data name="OpenFrontedDesigner" xml:space="preserve">
-    <value>打开前台编辑器</value>
+    <value>打开前台 v3 设计器</value>
   </data>
   <data name="FrontedDesigner" xml:space="preserve">
     <value>前台编辑器</value>
@@ -2885,7 +2885,7 @@
     <value>当前版本还没有该旧版窗口的转换映射，因此已跳过：{SourceWindow}/{SourceCanvas}</value>
   </data>
   <data name="LegacyConvert.ControlCreateFailed" xml:space="preserve">
-    <value>旧版控件无法创建对应的新控件：{SourceWindow}/{SourceCanvas}/{LegacyName} -> {TargetName}</value>
+    <value>旧版控件无法创建对应的新控件：{SourceWindow}/{SourceCanvas}/{LegacyName} -&gt; {TargetName}</value>
   </data>
   <data name="LegacyConvert.ControlNotInBlueprintMap" xml:space="preserve">
     <value>旧版控件没有出现在显式转换映射表中：{SourceWindow}/{SourceCanvas}/{ControlName}</value>
@@ -2897,10 +2897,10 @@
     <value>旧版加赛比分格已合并到新版总比分行控件中。</value>
   </data>
   <data name="LegacyConvert.LockOverlayFolded" xml:space="preserve">
-    <value>旧版锁定图层已合并到新版可锁定图片控件中：{LegacyName} -> {TargetName}</value>
+    <value>旧版锁定图层已合并到新版可锁定图片控件中：{LegacyName} -&gt; {TargetName}</value>
   </data>
   <data name="LegacyConvert.LockOverlayTargetMissing" xml:space="preserve">
-    <value>旧版锁定图层已识别，但目标图片控件不存在：{SourceWindow}/{SourceCanvas}/{LegacyName} -> {TargetName}</value>
+    <value>旧版锁定图层已识别，但目标图片控件不存在：{SourceWindow}/{SourceCanvas}/{LegacyName} -&gt; {TargetName}</value>
   </data>
   <data name="LegacyConvert.BpOverviewOutOfBounds" xml:space="preserve">
     <value>旧版 BP 概览窗口中有内容超出原始区域，转换后可能被裁切。</value>
@@ -2927,19 +2927,19 @@
     <value>旧版资源已复制：{FileName}</value>
   </data>
   <data name="LegacyConvert.GlobalScoreCellsAggregated" xml:space="preserve">
-    <value>旧版全局比分格已聚合：{Team} -> {TargetName}</value>
+    <value>旧版全局比分格已聚合：{Team} -&gt; {TargetName}</value>
   </data>
   <data name="LegacyConvert.IrregularCellSpacingApproximated" xml:space="preserve">
-    <value>旧版单元格间距不规则，已使用中位数近似计算：{Team} -> {TargetName}</value>
+    <value>旧版单元格间距不规则，已使用中位数近似计算：{Team} -&gt; {TargetName}</value>
   </data>
   <data name="LegacyConvert.ControlGeometryFuzzyMatched" xml:space="preserve">
     <value>旧版控件几何已模糊匹配到新版控件。</value>
   </data>
   <data name="LegacyConvert.LockOverlayGeometryConsumed" xml:space="preserve">
-    <value>旧版锁定图层几何已合并：{LegacyName} -> {TargetName}</value>
+    <value>旧版锁定图层几何已合并：{LegacyName} -&gt; {TargetName}</value>
   </data>
   <data name="LegacyConvert.FoldedControlConsumed" xml:space="preserve">
-    <value>旧版折叠控件已合并：{SourceWindow}/{SourceCanvas}/{LegacyName} -> {TargetName}</value>
+    <value>旧版折叠控件已合并：{SourceWindow}/{SourceCanvas}/{LegacyName} -&gt; {TargetName}</value>
   </data>
   <data name="LegacyConvert.FoldedControlNoTarget" xml:space="preserve">
     <value>旧版折叠控件没有对应的新版目标控件：{SourceWindow}/{SourceCanvas}/{LegacyName}</value>
@@ -4108,14 +4108,30 @@
   <data name="Designer.MapV2Display.ApplyStyleToAllDescription" xml:space="preserve">
     <value>复制当前地图卡片的大小、内部部件位置和尺寸、文字样式、地图外框、选图边框样式和行为；保留其他卡片的位置、文字内容、地图绑定和顶层布局属性。</value>
   </data>
-  <data name="Designer.MapV2Display.EditInternalStyle" xml:space="preserve"><value>编辑控件内部样式</value></data>
-  <data name="Designer.MapV2Display.InternalParts" xml:space="preserve"><value>内部部件</value></data>
-  <data name="Designer.MapV2Display.SelectedInternalPart" xml:space="preserve"><value>MapV2Display 内部部件</value></data>
-  <data name="Designer.MapV2Display.Part.TeamName" xml:space="preserve"><value>队伍名称</value></data>
-  <data name="Designer.MapV2Display.Part.MapCard" xml:space="preserve"><value>地图卡片</value></data>
-  <data name="Designer.MapV2Display.Part.MapName" xml:space="preserve"><value>地图名称</value></data>
-  <data name="Designer.MapV2Display.Part.CampName" xml:space="preserve"><value>阵营名称</value></data>
-  <data name="Designer.MapV2Display.Part.PickingBorder" xml:space="preserve"><value>选图边框</value></data>
+  <data name="Designer.MapV2Display.EditInternalStyle" xml:space="preserve">
+    <value>编辑控件内部样式</value>
+  </data>
+  <data name="Designer.MapV2Display.InternalParts" xml:space="preserve">
+    <value>内部部件</value>
+  </data>
+  <data name="Designer.MapV2Display.SelectedInternalPart" xml:space="preserve">
+    <value>MapV2Display 内部部件</value>
+  </data>
+  <data name="Designer.MapV2Display.Part.TeamName" xml:space="preserve">
+    <value>队伍名称</value>
+  </data>
+  <data name="Designer.MapV2Display.Part.MapCard" xml:space="preserve">
+    <value>地图卡片</value>
+  </data>
+  <data name="Designer.MapV2Display.Part.MapName" xml:space="preserve">
+    <value>地图名称</value>
+  </data>
+  <data name="Designer.MapV2Display.Part.CampName" xml:space="preserve">
+    <value>阵营名称</value>
+  </data>
+  <data name="Designer.MapV2Display.Part.PickingBorder" xml:space="preserve">
+    <value>选图边框</value>
+  </data>
   <data name="Designer.MapV2Display.StyleAppliedToAll" xml:space="preserve">
     <value>已将样式和行为应用到当前画布中的所有地图卡片。</value>
   </data>
@@ -4344,17 +4360,39 @@
   <data name="Designer.Behaviors.Duplicate" xml:space="preserve">
     <value>创建副本</value>
   </data>
-  <data name="Designer.Behaviors.Copy" xml:space="preserve"><value>复制行为</value></data>
-  <data name="Designer.Behaviors.CopyTo" xml:space="preserve"><value>复制行为到...</value></data>
-  <data name="Designer.Behaviors.Paste" xml:space="preserve"><value>粘贴行为</value></data>
-  <data name="Designer.Behaviors.CopyToTargets" xml:space="preserve"><value>选择要复制到的控件（可多选）</value></data>
-  <data name="Designer.Behaviors.RewriteTargets" xml:space="preserve"><value>重写动画目标</value></data>
-  <data name="Designer.Behaviors.RewriteTriggerIndexes" xml:space="preserve"><value>重写触发器索引</value></data>
-  <data name="Designer.Behaviors.SelectTargetForPreview" xml:space="preserve"><value>选择控件以查看兼容性和改写预览。</value></data>
-  <data name="Designer.Behaviors.Target" xml:space="preserve"><value>目标控件</value></data>
-  <data name="Designer.Behaviors.Compatible" xml:space="preserve"><value>兼容</value></data>
-  <data name="Designer.Behaviors.ExternalReference" xml:space="preserve"><value>保留的外部控件引用</value></data>
-  <data name="Designer.Behaviors.PasteSummary" xml:space="preserve"><value>已复制到 {0} 个控件，跳过 {1} 个不兼容控件。</value></data>
+  <data name="Designer.Behaviors.Copy" xml:space="preserve">
+    <value>复制行为</value>
+  </data>
+  <data name="Designer.Behaviors.CopyTo" xml:space="preserve">
+    <value>复制行为到...</value>
+  </data>
+  <data name="Designer.Behaviors.Paste" xml:space="preserve">
+    <value>粘贴行为</value>
+  </data>
+  <data name="Designer.Behaviors.CopyToTargets" xml:space="preserve">
+    <value>选择要复制到的控件（可多选）</value>
+  </data>
+  <data name="Designer.Behaviors.RewriteTargets" xml:space="preserve">
+    <value>重写动画目标</value>
+  </data>
+  <data name="Designer.Behaviors.RewriteTriggerIndexes" xml:space="preserve">
+    <value>重写触发器索引</value>
+  </data>
+  <data name="Designer.Behaviors.SelectTargetForPreview" xml:space="preserve">
+    <value>选择控件以查看兼容性和改写预览。</value>
+  </data>
+  <data name="Designer.Behaviors.Target" xml:space="preserve">
+    <value>目标控件</value>
+  </data>
+  <data name="Designer.Behaviors.Compatible" xml:space="preserve">
+    <value>兼容</value>
+  </data>
+  <data name="Designer.Behaviors.ExternalReference" xml:space="preserve">
+    <value>保留的外部控件引用</value>
+  </data>
+  <data name="Designer.Behaviors.PasteSummary" xml:space="preserve">
+    <value>已复制到 {0} 个控件，跳过 {1} 个不兼容控件。</value>
+  </data>
   <data name="Designer.Behaviors.Enabled" xml:space="preserve">
     <value>启用</value>
   </data>
@@ -4814,11 +4852,21 @@
   <data name="Designer.Graph.Target.Self" xml:space="preserve">
     <value>自身</value>
   </data>
-  <data name="Designer.Option.TargetLayer.Auto" xml:space="preserve"><value>自动</value></data>
-  <data name="Designer.Option.TargetLayer.Control" xml:space="preserve"><value>控件本体</value></data>
-  <data name="Designer.Option.TargetLayer.Content" xml:space="preserve"><value>内部内容</value></data>
-  <data name="Designer.Option.TargetLayer.OverlayAbove" xml:space="preserve"><value>上方矩形层</value></data>
-  <data name="Designer.Option.TargetLayer.OverlayBelow" xml:space="preserve"><value>下方矩形层</value></data>
+  <data name="Designer.Option.TargetLayer.Auto" xml:space="preserve">
+    <value>自动</value>
+  </data>
+  <data name="Designer.Option.TargetLayer.Control" xml:space="preserve">
+    <value>控件本体</value>
+  </data>
+  <data name="Designer.Option.TargetLayer.Content" xml:space="preserve">
+    <value>内部内容</value>
+  </data>
+  <data name="Designer.Option.TargetLayer.OverlayAbove" xml:space="preserve">
+    <value>上方矩形层</value>
+  </data>
+  <data name="Designer.Option.TargetLayer.OverlayBelow" xml:space="preserve">
+    <value>下方矩形层</value>
+  </data>
   <data name="Designer.Behaviors.Event.CharacterSelected.Description" xml:space="preserve">
     <value>角色被选择时触发（包含阵营和玩家索引）。</value>
   </data>
@@ -5078,26 +5126,66 @@
   <data name="Designer.Graph.Property.WaitForCompletion" xml:space="preserve">
     <value>等待动画完成</value>
   </data>
-  <data name="Designer.Graph.PropertyName.All" xml:space="preserve"><value>全部属性</value></data>
-  <data name="Designer.Option.Easing.Linear" xml:space="preserve"><value>线性</value></data>
-  <data name="Designer.Option.Easing.SineInOut" xml:space="preserve"><value>正弦缓入缓出</value></data>
-  <data name="Designer.Option.Easing.CubicOut" xml:space="preserve"><value>三次方缓出</value></data>
-  <data name="Designer.Option.Easing.CubicIn" xml:space="preserve"><value>三次方缓入</value></data>
-  <data name="Designer.Option.Easing.CubicInOut" xml:space="preserve"><value>三次方缓入缓出</value></data>
-  <data name="Designer.Option.Easing.BackOut" xml:space="preserve"><value>回弹缓出</value></data>
-  <data name="Designer.Property.Opacity" xml:space="preserve"><value>不透明度</value></data>
-  <data name="Designer.Property.VisualOffsetX" xml:space="preserve"><value>视觉偏移 X</value></data>
-  <data name="Designer.Property.VisualOffsetY" xml:space="preserve"><value>视觉偏移 Y</value></data>
-  <data name="Designer.Property.ClipInsetLeft" xml:space="preserve"><value>左侧裁剪内缩</value></data>
-  <data name="Designer.Property.ClipInsetTop" xml:space="preserve"><value>顶部裁剪内缩</value></data>
-  <data name="Designer.Property.ClipInsetRight" xml:space="preserve"><value>右侧裁剪内缩</value></data>
-  <data name="Designer.Property.ClipInsetBottom" xml:space="preserve"><value>底部裁剪内缩</value></data>
-  <data name="Designer.Property.ScaleX" xml:space="preserve"><value>水平缩放</value></data>
-  <data name="Designer.Property.ScaleY" xml:space="preserve"><value>垂直缩放</value></data>
-  <data name="Designer.Property.Rotation" xml:space="preserve"><value>旋转角度</value></data>
-  <data name="Designer.Property.TextColor" xml:space="preserve"><value>文本颜色</value></data>
-  <data name="Designer.Property.Foreground" xml:space="preserve"><value>前景色</value></data>
-  <data name="Designer.Property.Background" xml:space="preserve"><value>背景色</value></data>
+  <data name="Designer.Graph.PropertyName.All" xml:space="preserve">
+    <value>全部属性</value>
+  </data>
+  <data name="Designer.Option.Easing.Linear" xml:space="preserve">
+    <value>线性</value>
+  </data>
+  <data name="Designer.Option.Easing.SineInOut" xml:space="preserve">
+    <value>正弦缓入缓出</value>
+  </data>
+  <data name="Designer.Option.Easing.CubicOut" xml:space="preserve">
+    <value>三次方缓出</value>
+  </data>
+  <data name="Designer.Option.Easing.CubicIn" xml:space="preserve">
+    <value>三次方缓入</value>
+  </data>
+  <data name="Designer.Option.Easing.CubicInOut" xml:space="preserve">
+    <value>三次方缓入缓出</value>
+  </data>
+  <data name="Designer.Option.Easing.BackOut" xml:space="preserve">
+    <value>回弹缓出</value>
+  </data>
+  <data name="Designer.Property.Opacity" xml:space="preserve">
+    <value>不透明度</value>
+  </data>
+  <data name="Designer.Property.VisualOffsetX" xml:space="preserve">
+    <value>视觉偏移 X</value>
+  </data>
+  <data name="Designer.Property.VisualOffsetY" xml:space="preserve">
+    <value>视觉偏移 Y</value>
+  </data>
+  <data name="Designer.Property.ClipInsetLeft" xml:space="preserve">
+    <value>左侧裁剪内缩</value>
+  </data>
+  <data name="Designer.Property.ClipInsetTop" xml:space="preserve">
+    <value>顶部裁剪内缩</value>
+  </data>
+  <data name="Designer.Property.ClipInsetRight" xml:space="preserve">
+    <value>右侧裁剪内缩</value>
+  </data>
+  <data name="Designer.Property.ClipInsetBottom" xml:space="preserve">
+    <value>底部裁剪内缩</value>
+  </data>
+  <data name="Designer.Property.ScaleX" xml:space="preserve">
+    <value>水平缩放</value>
+  </data>
+  <data name="Designer.Property.ScaleY" xml:space="preserve">
+    <value>垂直缩放</value>
+  </data>
+  <data name="Designer.Property.Rotation" xml:space="preserve">
+    <value>旋转角度</value>
+  </data>
+  <data name="Designer.Property.TextColor" xml:space="preserve">
+    <value>文本颜色</value>
+  </data>
+  <data name="Designer.Property.Foreground" xml:space="preserve">
+    <value>前景色</value>
+  </data>
+  <data name="Designer.Property.Background" xml:space="preserve">
+    <value>背景色</value>
+  </data>
   <data name="Designer.Graph.Validation.Description" xml:space="preserve">
     <value>检查节点图中是否缺少入口、连线是否有效、必填属性是否为空。检查结果不会删除图数据，只用于帮你修正预览和保存前的问题。</value>
   </data>
@@ -5368,11 +5456,9 @@
   <data name="Designer.Option.DisplayLanguage.FollowApp" xml:space="preserve">
     <value>跟随应用</value>
   </data>
-
   <data name="Designer.Graph.Connection.IncompatibleTypes" xml:space="preserve">
     <value>端口类型不兼容，无法连接</value>
   </data>
-
   <data name="Designer.Graph.Help.Content" xml:space="preserve">
     <value>此编辑器仅用于编辑行为触发后运行的属性动画流程。请在“行为”面板中配置事件、触发器和过滤器。
 
@@ -5563,398 +5649,1186 @@
   <data name="Designer.Behaviors.CopyNameFormat" xml:space="preserve">
     <value>{0} 副本</value>
   </data>
-  <data name="Designer.AnimationParts.Title" xml:space="preserve"><value>动画部件</value></data>
-  <data name="Designer.AnimationParts.DefaultName" xml:space="preserve"><value>动画部件</value></data>
-  <data name="Designer.AnimationParts.Add" xml:space="preserve"><value>添加动画部件</value></data>
-  <data name="Designer.AnimationParts.Remove" xml:space="preserve"><value>移除动画部件</value></data>
-  <data name="Designer.AnimationParts.Apply" xml:space="preserve"><value>应用动画部件修改</value></data>
-  <data name="Designer.AnimationParts.InvalidName" xml:space="preserve"><value>动画部件名称不能为空，且必须在当前控件内唯一。</value></data>
-  <data name="Designer.AnimationParts.Description" xml:space="preserve"><value>动画部件是附着在当前控件内部的动画辅助部件，不会作为独立控件出现在画布中。</value></data>
-  <data name="Designer.AnimationParts.Empty" xml:space="preserve"><value>当前控件还没有动画部件</value></data>
-  <data name="Designer.AnimationParts.EditorTitle" xml:space="preserve"><value>部件设置</value></data>
-  <data name="Designer.AnimationParts.NamePlaceholder" xml:space="preserve"><value>例如 scanLine、shine 或 wipeBar</value></data>
-  <data name="Designer.AnimationParts.Kind" xml:space="preserve"><value>类型</value></data>
-  <data name="Designer.AnimationParts.Kind.Rectangle" xml:space="preserve"><value>矩形</value></data>
-  <data name="Designer.AnimationParts.Kind.Border" xml:space="preserve"><value>边框</value></data>
-  <data name="Designer.AnimationParts.Kind.Image" xml:space="preserve"><value>图片</value></data>
-  <data name="Designer.AnimationParts.Layer" xml:space="preserve"><value>渲染层级</value></data>
-  <data name="Designer.AnimationParts.Layer.AboveContent" xml:space="preserve"><value>内容上方</value></data>
-  <data name="Designer.AnimationParts.Layer.BelowContent" xml:space="preserve"><value>内容下方</value></data>
-  <data name="Designer.AnimationParts.LayoutSection" xml:space="preserve"><value>布局与初始状态</value></data>
-  <data name="Designer.AnimationParts.AppearanceSection" xml:space="preserve"><value>外观</value></data>
-  <data name="Designer.AnimationParts.SizePlaceholder" xml:space="preserve"><value>像素值或百分比，如 100%</value></data>
-  <data name="Designer.AnimationParts.Fill" xml:space="preserve"><value>填充颜色</value></data>
-  <data name="Designer.AnimationParts.Stroke" xml:space="preserve"><value>描边颜色</value></data>
-  <data name="Designer.AnimationParts.Background" xml:space="preserve"><value>背景颜色</value></data>
-  <data name="Designer.AnimationParts.BorderBrush" xml:space="preserve"><value>边框颜色</value></data>
-  <data name="Designer.AnimationParts.BorderThickness" xml:space="preserve"><value>边框宽度</value></data>
-  <data name="Designer.AnimationParts.StaticImage" xml:space="preserve"><value>静态图片</value></data>
-  <data name="Designer.AnimationParts.NoImageSelected" xml:space="preserve"><value>尚未选择图片</value></data>
-  <data name="Designer.AnimationParts.ImagePathPlaceholder" xml:space="preserve"><value>布局包内的图片资源路径</value></data>
-  <data name="Designer.AnimationParts.IsHitTestVisible" xml:space="preserve"><value>允许部件响应鼠标命中测试</value></data>
-  <data name="Designer.AnimationParts.Validation.FixErrors" xml:space="preserve"><value>请先修正动画部件设置中的输入错误。</value></data>
-  <data name="Designer.AnimationParts.Validation.Size" xml:space="preserve"><value>请输入非负像素值或百分比，例如 4 或 100%。</value></data>
-  <data name="Designer.AnimationParts.Validation.Number" xml:space="preserve"><value>请输入有效数字。</value></data>
-  <data name="Designer.AnimationParts.Validation.NonNegativeNumber" xml:space="preserve"><value>请输入大于或等于 0 的数字。</value></data>
-  <data name="Designer.AnimationParts.Validation.Opacity" xml:space="preserve"><value>不透明度必须是 0 到 1 之间的数字。</value></data>
-  <data name="Designer.AnimationParts.Validation.Integer" xml:space="preserve"><value>请输入有效整数。</value></data>
-  <data name="Designer.AnimationParts.Validation.Color" xml:space="preserve"><value>请输入有效颜色，例如 #FFFFFFFF 或 White。</value></data>
-  <data name="Designer.Behaviors.MissingAnimationPart" xml:space="preserve"><value>控件 {1} 缺少动画部件“{0}”。</value></data>
-  <data name="Designer.Behaviors.AddTransition" xml:space="preserve"><value>添加过渡行为</value></data>
-  <data name="Designer.Behaviors.Transition" xml:space="preserve"><value>过渡</value></data>
-  <data name="Designer.Behaviors.NewTransition" xml:space="preserve"><value>新过渡行为</value></data>
-  <data name="Designer.Behaviors.TransitionTrigger" xml:space="preserve"><value>过渡触发器</value></data>
-  <data name="Designer.Behaviors.TransitionHelp" xml:space="preserve"><value>ExitGraph 在数据变化前运行。EnterGraph 在数据变化后运行。</value></data>
-  <data name="Designer.Behaviors.ExitGraph" xml:space="preserve"><value>退出动画</value></data>
-  <data name="Designer.Behaviors.EnterGraph" xml:space="preserve"><value>进入动画</value></data>
-  <data name="Designer.Behaviors.Event.CharacterPick" xml:space="preserve"><value>角色选择过渡</value></data>
-  <data name="Designer.Behaviors.Event.CharacterPick.Description" xml:space="preserve"><value>角色选择提交前后运行过渡图。</value></data>
-  <data name="Designer.Behaviors.Event.CharacterSwap" xml:space="preserve"><value>求生者交换过渡</value></data>
-  <data name="Designer.Behaviors.Event.CharacterSwap.Description" xml:space="preserve"><value>求生者角色交换提交前后运行过渡图。</value></data>
-  <data name="Designer.Behaviors.Payload.TargetBehaviorGuid" xml:space="preserve"><value>目标行为标识</value></data>
-  <data name="Designer.Behaviors.Payload.OldCharacterId" xml:space="preserve"><value>旧角色标识</value></data>
-  <data name="Designer.Behaviors.Payload.NewCharacterId" xml:space="preserve"><value>新角色标识</value></data>
-  <data name="Designer.Behaviors.Payload.HasOldCharacter" xml:space="preserve"><value>是否存在上一个角色</value></data>
-  <data name="Designer.Behaviors.Payload.HasNewCharacter" xml:space="preserve"><value>是否存在新角色</value></data>
-  <data name="Designer.Behaviors.Payload.SourceIndex" xml:space="preserve"><value>来源索引</value></data>
-  <data name="Designer.Behaviors.Payload.TargetIndex" xml:space="preserve"><value>目标索引</value></data>
-  <data name="Designer.Behaviors.Payload.SourceBehaviorGuid" xml:space="preserve"><value>来源行为标识</value></data>
-  <data name="Designer.Behaviors.StopTriggers" xml:space="preserve"><value>停止条件</value></data>
-  <data name="Designer.Behaviors.StopTrigger" xml:space="preserve"><value>停止条件</value></data>
-  <data name="Designer.Behaviors.AddStopTrigger" xml:space="preserve"><value>添加停止条件</value></data>
-  <data name="Designer.Behaviors.StopTriggersHelp" xml:space="preserve"><value>任意一个停止条件满足时，循环动画会停止并执行 StopGraph。</value></data>
-  <data name="Designer.Behaviors.StopAnimation" xml:space="preserve"><value>停止动画</value></data>
-  <data name="Designer.Behaviors.Event.GuidanceCancelled" xml:space="preserve"><value>引导已取消</value></data>
-  <data name="Designer.Behaviors.Event.GuidanceCancelled.Description" xml:space="preserve"><value>引导被用户取消时触发。</value></data>
-  <data name="Designer.Behaviors.Payload.Reason" xml:space="preserve"><value>原因</value></data>
-  <data name="Designer.AnimationParts.EffectSection" xml:space="preserve"><value>视觉效果</value></data>
-  <data name="Designer.AnimationParts.EffectKind" xml:space="preserve"><value>效果类型</value></data>
-  <data name="Designer.AnimationParts.EffectKind.None" xml:space="preserve"><value>无</value></data>
-  <data name="Designer.AnimationParts.EffectKind.Glow" xml:space="preserve"><value>辉光</value></data>
-  <data name="Designer.AnimationParts.EffectKind.DropShadow" xml:space="preserve"><value>投影</value></data>
-  <data name="Designer.AnimationParts.EffectColor" xml:space="preserve"><value>效果颜色</value></data>
-  <data name="Designer.AnimationParts.EffectOpacity" xml:space="preserve"><value>效果不透明度</value></data>
-  <data name="Designer.AnimationParts.EffectBlurRadius" xml:space="preserve"><value>模糊半径</value></data>
-  <data name="Designer.AnimationParts.EffectShadowDepth" xml:space="preserve"><value>投影距离</value></data>
-  <data name="Designer.AnimationParts.EffectDirection" xml:space="preserve"><value>投影方向</value></data>
-  <data name="StopAllLoopAnimations" xml:space="preserve"><value>停止所有循环动画</value></data>
-  <data name="StoppedLoopAnimationsFormat" xml:space="preserve"><value>已停止 {0} 个循环动画。</value></data>
-  <data name="NoActiveLoopAnimations" xml:space="preserve"><value>当前没有正在播放的循环动画。</value></data>
-  <data name="Designer.Behaviors.Payload.Camp.Description" xml:space="preserve"><value>角色所属阵营。</value></data>
-  <data name="Designer.Behaviors.Payload.PlayerIndex.Description" xml:space="preserve"><value>角色选择对应的选手序号。</value></data>
-  <data name="Designer.Behaviors.Payload.TargetBehaviorGuid.Description" xml:space="preserve"><value>目标控件的稳定行为标识。</value></data>
-  <data name="Designer.Behaviors.Payload.OldCharacterId.Description" xml:space="preserve"><value>更改前的角色标识。</value></data>
-  <data name="Designer.Behaviors.Payload.NewCharacterId.Description" xml:space="preserve"><value>更改后的角色标识。</value></data>
-  <data name="Designer.Behaviors.Payload.HasOldCharacter.Description" xml:space="preserve"><value>更改前是否存在角色。</value></data>
-  <data name="Designer.Behaviors.Payload.HasNewCharacter.Description" xml:space="preserve"><value>更改后是否存在角色。</value></data>
-  <data name="Designer.Behaviors.Payload.SourceIndex.Description" xml:space="preserve"><value>交换来源选手的序号。</value></data>
-  <data name="Designer.Behaviors.Payload.TargetIndex.Description" xml:space="preserve"><value>交换目标选手的序号。</value></data>
-  <data name="Designer.Behaviors.Payload.SourceBehaviorGuid.Description" xml:space="preserve"><value>交换来源控件的稳定行为标识。</value></data>
-  <data name="Designer.Graph.Condition.If" xml:space="preserve"><value>如果</value></data>
-  <data name="Designer.Graph.Preview.MissingEventContext" xml:space="preserve"><value>当前预览没有事件上下文，{0} 将无法解析。</value></data>
-  <data name="ExecutableFiles" xml:space="preserve"><value>可执行文件</value></data>
-  <data name="SmartBpAiRecognitionTitle" xml:space="preserve"><value>AI BP 识别 / Qwen + llama.cpp</value></data>
-  <data name="SmartBpAiRecognitionPreviewNotice" xml:space="preserve"><value>识别结果仅供预览，不会自动修改当前 BP 数据。</value></data>
-  <data name="SmartBpAiManifestStatus" xml:space="preserve"><value>模型清单：</value></data>
-  <data name="SmartBpAiModelProfile" xml:space="preserve"><value>Qwen 模型：</value></data>
-  <data name="SmartBpCurrentQwenModelFormat" xml:space="preserve"><value>当前业务 AI 模型：{0}</value></data>
-  <data name="SmartBpAiMmprojProfile" xml:space="preserve"><value>视觉投影模型：</value></data>
-  <data name="SmartBpAiInstalled" xml:space="preserve"><value>已安装：</value></data>
-  <data name="SmartBpAiDownloadQwen" xml:space="preserve"><value>下载 Qwen 模型</value></data>
-  <data name="SmartBpAiDeleteQwen" xml:space="preserve"><value>删除 Qwen 模型</value></data>
-  <data name="SmartBpAiLlamaPath" xml:space="preserve"><value>llama-server.exe 路径</value></data>
-  <data name="SmartBpAiStartServer" xml:space="preserve"><value>启动 llama-server</value></data>
-  <data name="SmartBpAiStopServer" xml:space="preserve"><value>停止 llama-server</value></data>
-  <data name="SmartBpAiRecognizeTestFrame" xml:space="preserve"><value>识别所选测试图全图</value></data>
-  <data name="SmartBpAiRecognizeCapture" xml:space="preserve"><value>识别当前捕获帧</value></data>
-  <data name="SmartBpAiStartLoop" xml:space="preserve"><value>启动识别预览循环</value></data>
-  <data name="SmartBpAiStopLoop" xml:space="preserve"><value>停止识别预览循环</value></data>
-  <data name="SmartBpAiElapsed" xml:space="preserve"><value>耗时：</value></data>
-  <data name="SmartBpAiRecommendedInterval" xml:space="preserve"><value>推荐识别间隔：</value></data>
-  <data name="SmartBpAiRawJson" xml:space="preserve"><value>原始 JSON</value></data>
-  <data name="SmartBpAiNormalizedResult" xml:space="preserve"><value>规范化结果</value></data>
-  <data name="SmartBpAiLastError" xml:space="preserve"><value>最后错误</value></data>
-  <data name="SmartBpAiDebugConsole" xml:space="preserve"><value>运行调试控制台</value></data>
-  <data name="SmartBpAiPromptProfile" xml:space="preserve"><value>识别提示词语言</value></data>
-  <data name="SmartBpAiRuntimeProfile" xml:space="preserve"><value>llama.cpp 运行时版本</value></data>
-  <data name="SmartBpAiRuntimeInstalled" xml:space="preserve"><value>运行时已安装：</value></data>
-  <data name="SmartBpAiDownloadRuntime" xml:space="preserve"><value>下载运行时</value></data>
-  <data name="SmartBpAiDeleteRuntime" xml:space="preserve"><value>删除运行时</value></data>
-  <data name="SmartBpAiManagedRuntimePath" xml:space="preserve"><value>托管 llama-server.exe 路径</value></data>
-  <data name="SmartBpAiParsedVisualResult" xml:space="preserve"><value>业务状态快照摘要</value></data>
-  <data name="SmartBpAiRuntimeDownloading" xml:space="preserve"><value>正在下载并安装 llama.cpp 运行时</value></data>
-  <data name="SmartBpAiDebugConsoleHint" xml:space="preserve"><value>实时显示 llama-server 启动命令、标准输出、错误输出、健康检查与识别请求状态。</value></data>
-  <data name="SmartBpAiClearDebugConsole" xml:space="preserve"><value>清空</value></data>
-  <data name="SmartBpAiStatusLoading" xml:space="preserve"><value>正在加载</value></data>
-  <data name="SmartBpAiStatusStarting" xml:space="preserve"><value>正在启动 llama.cpp 服务…</value></data>
-  <data name="SmartBpAiStatusRestarting" xml:space="preserve"><value>正在重启 llama.cpp 服务…</value></data>
-  <data name="SmartBpAiStatusLoaded" xml:space="preserve"><value>已加载</value></data>
-  <data name="SmartBpAiStatusFailed" xml:space="preserve"><value>失败</value></data>
-  <data name="SmartBpAiStatusStopped" xml:space="preserve"><value>已停止</value></data>
-  <data name="SmartBpAiStatusNotInstalled" xml:space="preserve"><value>未安装</value></data>
-  <data name="SmartBpAiStatusDownloading" xml:space="preserve"><value>正在下载 AI 模型</value></data>
-  <data name="SmartBpAiStatusInstalled" xml:space="preserve"><value>已安装</value></data>
-  <data name="SmartBpAiStatusCancelled" xml:space="preserve"><value>已取消</value></data>
-  <data name="SmartBpAiStatusReady" xml:space="preserve"><value>已就绪</value></data>
-  <data name="SmartBpAiEnableGuidanceSync" xml:space="preserve"><value>启用自动同步对局引导</value></data>
-  <data name="SmartBpAiEnableAutoApply" xml:space="preserve"><value>自动应用识别结果</value></data>
-  <data name="SmartBpAiDetectStageTestFrame" xml:space="preserve"><value>识别测试图业务状态</value></data>
-  <data name="SmartBpAiDetectStageCapture" xml:space="preserve"><value>识别捕获帧业务状态</value></data>
-  <data name="SmartBpAiRunAutomaticTick" xml:space="preserve"><value>运行一次自动识别</value></data>
-  <data name="SmartBpAiStageDetectionResult" xml:space="preserve"><value>BP 业务状态快照</value></data>
-  <data name="SmartBpAiGuidanceSnapshot" xml:space="preserve"><value>当前对局引导快照</value></data>
-  <data name="SmartBpAiCandidateOperations" xml:space="preserve"><value>候选角色操作</value></data>
-  <data name="SmartBpAiCropDebug" xml:space="preserve"><value>裁剪调试预览</value></data>
-  <data name="SmartBpAiPhaseCropPreview" xml:space="preserve"><value>阶段识别裁剪图</value></data>
-  <data name="SmartBpAiFocusedCropPreview" xml:space="preserve"><value>内容识别裁剪图</value></data>
-  <data name="SmartBpAiRegionEditor" xml:space="preserve"><value>SmartBP OCR 识别区域编辑器</value></data>
-  <data name="SmartBpAiRegionWidth" xml:space="preserve"><value>宽</value></data>
-  <data name="SmartBpAiRegionHeight" xml:space="preserve"><value>高</value></data>
-  <data name="SmartBpAiSaveRegionProfile" xml:space="preserve"><value>保存区域配置</value></data>
-  <data name="SmartBpAiResetRegionProfile" xml:space="preserve"><value>重置默认区域</value></data>
-  <data name="SmartBpAiOpenVisualRegionEditor" xml:space="preserve"><value>编辑 BP 识别区域</value></data>
-  <data name="SmartBpAiRegionEditorRequireFrame" xml:space="preserve"><value>请先开启窗口捕获，等待画面可用后再编辑识别区域。</value></data>
-  <data name="SmartBpAiRegionProfileSaved" xml:space="preserve"><value>SmartBP OCR 识别区域配置已保存。</value></data>
-  <data name="SmartBpAiRegionProfileReset" xml:space="preserve"><value>SmartBP OCR 识别区域已恢复为内置默认值。</value></data>
-  <data name="SmartBpAiRegionPhaseTop" xml:space="preserve"><value>顶部阶段识别区域</value></data>
-  <data name="SmartBpAiRegionTopCenterStatus" xml:space="preserve"><value>顶部中央 BP 生命周期状态区域</value></data>
-  <data name="SmartBpAiRegionTopLeftStatus" xml:space="preserve"><value>左上角赛后状态区域</value></data>
-  <data name="SmartBpAiRegionLeftTop" xml:space="preserve"><value>左上：禁用监管者</value></data>
-  <data name="SmartBpAiRegionRightTop" xml:space="preserve"><value>右上：禁用求生者</value></data>
-  <data name="SmartBpAiRegionLeftBottom" xml:space="preserve"><value>左下：求生者选择与分配</value></data>
-  <data name="SmartBpAiRegionRightBottom" xml:space="preserve"><value>右下：监管者选择</value></data>
-  <data name="SmartBpAiPlayBackfillAnimations" xml:space="preserve"><value>补录上一阶段时播放动画</value></data>
-  <data name="SmartBpAiResetLedger" xml:space="preserve"><value>重置 SmartBP 识别记录</value></data>
-  <data name="SmartBpClearDebugLog" xml:space="preserve"><value>清空日志</value></data>
-  <data name="SmartBpEnableDebugLog" xml:space="preserve"><value>启用调试日志</value></data>
-  <data name="SmartBpAiAdvancedEngineSettings" xml:space="preserve"><value>高级引擎设置</value></data>
-  <data name="SmartBpAiAdvancedRecognitionSettings" xml:space="preserve"><value>高级识别设置</value></data>
-  <data name="SmartBpAiParallelSlots" xml:space="preserve"><value>llama.cpp 并行槽位</value></data>
-  <data name="SmartBpAiParallelSlotsHint" xml:space="preserve"><value>增加并行槽位可能提升并发吞吐，但会占用更多显存/内存。默认 1 更稳。</value></data>
-  <data name="SmartBpAiGpuLayers" xml:space="preserve"><value>GPU 层数（-1 为自动）</value></data>
-  <data name="SmartBpAiFlashAttention" xml:space="preserve"><value>启用 Flash Attention</value></data>
-  <data name="SmartBpAiBatchSize" xml:space="preserve"><value>Batch size</value></data>
-  <data name="SmartBpAiUBatchSize" xml:space="preserve"><value>UBatch size</value></data>
-  <data name="SmartBpAiForceStopLlama" xml:space="preserve"><value>强制停止托管 llama.cpp</value></data>
-  <data name="SmartBpAiUseMultiImageSnapshot" xml:space="preserve"><value>使用单次多图增量识别</value></data>
-  <data name="SmartBpAiAllowSequentialFallback" xml:space="preserve"><value>多图失败时允许顺序识别回退</value></data>
-  <data name="SmartBpAiUseStrictCandidateEnums" xml:space="preserve"><value>自动识别使用严格候选枚举</value></data>
-  <data name="SmartBpAiPhaseCropMaxWidth" xml:space="preserve"><value>阶段裁剪最大宽度</value></data>
-  <data name="SmartBpAiContentCropMaxWidth" xml:space="preserve"><value>内容裁剪最大宽度</value></data>
-  <data name="SmartBpAiPhaseMaxTokens" xml:space="preserve"><value>阶段识别 token 上限</value></data>
-  <data name="SmartBpAiSnapshotDeltaMaxTokens" xml:space="preserve"><value>增量识别 token 上限</value></data>
-  <data name="SmartBpAiCommitHoldMilliseconds" xml:space="preserve"><value>阶段切换提交等待毫秒</value></data>
-  <data name="SmartBpAiCommitHoldMaxMilliseconds" xml:space="preserve"><value>阶段切换最长等待毫秒</value></data>
-  <data name="SmartBpAiUnknownPhaseTalentInferenceFrames" xml:space="preserve"><value>未知阶段推断天赋帧数</value></data>
-  <data name="SmartBpAiBackfillLookBehindSteps" xml:space="preserve"><value>回看工作流步数</value></data>
-  <data name="SmartBpAiFieldStaleMilliseconds" xml:space="preserve"><value>字段陈旧刷新毫秒</value></data>
-  <data name="SmartBpAiVisualBufferMilliseconds" xml:space="preserve"><value>当前步骤动画缓冲毫秒</value></data>
-  <data name="SmartBpAiModelProfileHint" xml:space="preserve"><value>0.8B 更快、占用更低但准确率较低；2B 更慢但识别更稳。</value></data>
-  <data name="SmartBpAiStopServerBeforeSwitchModel" xml:space="preserve"><value>切换 Qwen 模型前请先停止 llama-server。</value></data>
-  <data name="SmartBpAiCheckRuntimeUpdate" xml:space="preserve"><value>检查 llama.cpp 更新</value></data>
-  <data name="SmartBpAiLedgerResetCompleted" xml:space="preserve"><value>已重置当前对局的 SmartBP AI 识别记录。</value></data>
-  <data name="SmartBpRecognitionTitle" xml:space="preserve"><value>SmartBP BP 识别</value></data>
-  <data name="SmartBpRecognitionPreviewNotice" xml:space="preserve"><value>OCR 会读取文字和位置，本地解析 BP 阶段、禁用与选择结果；AI / Qwen 识别仍可在实验模式中使用。</value></data>
-  <data name="SmartBpRecognitionEngine" xml:space="preserve"><value>识别引擎</value></data>
-  <data name="SmartBpRecognitionMethod" xml:space="preserve"><value>识别方式</value></data>
-  <data name="SmartBpRecognitionStrategyPureOcr" xml:space="preserve"><value>纯 OCR</value></data>
-  <data name="SmartBpRecognitionStrategyPureAi" xml:space="preserve"><value>纯 AI</value></data>
-  <data name="SmartBpRecognitionStrategyAiWithOcr" xml:space="preserve"><value>AI + OCR</value></data>
-  <data name="SmartBpRecognitionStrategyAiWithAiOcr" xml:space="preserve"><value>AI + AI OCR</value></data>
-  <data name="SmartBpBusinessAiModel" xml:space="preserve"><value>业务 AI 模型</value></data>
-  <data name="SmartBpAiOcrModel" xml:space="preserve"><value>AI OCR 模型</value></data>
-  <data name="SmartBpAiOcrModelHint" xml:space="preserve"><value>PaddleOCR-VL、GLM OCR 和实验 Qwen 模型用于读取可见文字；BP 业务映射由本地解释器负责。</value></data>
-  <data name="SmartBpLlamaRuntime" xml:space="preserve"><value>llama.cpp 运行时</value></data>
-  <data name="SmartBpBusinessAiServer" xml:space="preserve"><value>业务 AI 服务器</value></data>
-  <data name="SmartBpAiOcrServer" xml:space="preserve"><value>AI OCR 服务器</value></data>
-  <data name="SmartBpBusinessAiServerStarting" xml:space="preserve"><value>正在启动业务 AI 服务器...</value></data>
-  <data name="SmartBpAiOcrServerStarting" xml:space="preserve"><value>正在启动 AI OCR 服务器...</value></data>
-  <data name="SmartBpBusinessAiServerRestarting" xml:space="preserve"><value>正在重启业务 AI 服务器...</value></data>
-  <data name="SmartBpAiOcrServerRestarting" xml:space="preserve"><value>正在重启 AI OCR 服务器...</value></data>
-  <data name="SmartBpRequiredServersStarting" xml:space="preserve"><value>正在启动当前策略所需服务器...</value></data>
-  <data name="SmartBpServerModel" xml:space="preserve"><value>模型</value></data>
-  <data name="SmartBpServerPort" xml:space="preserve"><value>端口</value></data>
-  <data name="SmartBpServerStatus" xml:space="preserve"><value>状态</value></data>
-  <data name="SmartBpStartRequiredServers" xml:space="preserve"><value>启动所需服务器</value></data>
-  <data name="SmartBpStopAllServers" xml:space="preserve"><value>停止全部服务器</value></data>
-  <data name="SmartBpCheckRuntimeUpdate" xml:space="preserve"><value>检查运行时更新</value></data>
-  <data name="SmartBpRecognitionEngineOcrRecommended" xml:space="preserve"><value>OCR（推荐）</value></data>
-  <data name="SmartBpRecognitionEngineAiQwenExperimental" xml:space="preserve"><value>AI / Qwen（实验）</value></data>
-  <data name="SmartBpAiQwenEnginePanel" xml:space="preserve"><value>AI / Qwen 引擎设置</value></data>
-  <data name="SmartBpOcrModelStatus" xml:space="preserve"><value>OCR 模型</value></data>
-  <data name="SmartBpOcrContactSheet" xml:space="preserve"><value>合并识别图</value></data>
-  <data name="SmartBpOcrEnableBpRecognition" xml:space="preserve"><value>启用 OCR BP 识别</value></data>
-  <data name="SmartBpOcrUseContactSheet" xml:space="preserve"><value>使用 OCR 合并识别图</value></data>
-  <data name="SmartBpOcrDebugOverlay" xml:space="preserve"><value>启用 OCR 调试覆盖层</value></data>
-  <data name="SmartBpOcrIntervalMilliseconds" xml:space="preserve"><value>OCR 识别间隔毫秒</value></data>
-  <data name="SmartBpOcrFieldStaleMilliseconds" xml:space="preserve"><value>OCR 字段陈旧刷新毫秒</value></data>
-  <data name="SmartBpOcrBackfillLookBehindSteps" xml:space="preserve"><value>OCR 回看工作流步数</value></data>
-  <data name="SmartBpOcrProviderSection" xml:space="preserve"><value>OCR 提供程序</value></data>
-  <data name="SmartBpRecommendedProviderFormat" xml:space="preserve"><value>{0}（推荐）</value></data>
-  <data name="SmartBpOcrPaddleStatus" xml:space="preserve"><value>Paddle 状态</value></data>
-  <data name="SmartBpOcrTesseractStatus" xml:space="preserve"><value>Tesseract 数据状态</value></data>
-  <data name="SmartBpOcrStatusInstalled" xml:space="preserve"><value>已安装</value></data>
-  <data name="SmartBpOcrStatusMissing" xml:space="preserve"><value>缺失</value></data>
-  <data name="SmartBpOcrEnableTesseract" xml:space="preserve"><value>启用 Tesseract OCR</value></data>
-  <data name="SmartBpOcrTesseractLanguages" xml:space="preserve"><value>Tesseract 语言</value></data>
-  <data name="SmartBpOcrOpenTessdataFolder" xml:space="preserve"><value>打开 tessdata 文件夹</value></data>
-  <data name="SmartBpOcrTesseractPsm" xml:space="preserve"><value>Tesseract 页面分割模式（PSM）</value></data>
-  <data name="SmartBpOcrTesseractVariants" xml:space="preserve"><value>最大预处理变体数</value></data>
-  <data name="Download" xml:space="preserve"><value>下载</value></data>
-  <data name="Switch" xml:space="preserve"><value>切换</value></data>
-  <data name="SmartBpModelManagement" xml:space="preserve"><value>模型管理</value></data>
-  <data name="SmartBpFeatureSwitches" xml:space="preserve"><value>功能开关</value></data>
-  <data name="SmartBpAutomaticRecognitionAndApply" xml:space="preserve"><value>自动识别与应用</value></data>
-  <data name="SmartBpRecognitionAreaConfiguration" xml:space="preserve"><value>识别区域配置</value></data>
-  <data name="SmartBpBpRecognitionRegions" xml:space="preserve"><value>BP 自动识别区域</value></data>
-  <data name="SmartBpGameDataRecognitionRegions" xml:space="preserve"><value>赛后数据识别区域</value></data>
-  <data name="SmartBpOpenBpRecognitionRegionEditor" xml:space="preserve"><value>编辑 BP 识别区域</value></data>
-  <data name="SmartBpEditGameDataRegionConfig" xml:space="preserve"><value>编辑赛后数据区域</value></data>
-  <data name="SmartBpResetGameDataRegionConfig" xml:space="preserve"><value>重置为内置 16:9 默认</value></data>
-  <data name="SmartBpRegionConfigCurrentPath" xml:space="preserve"><value>当前配置路径</value></data>
-  <data name="SmartBpRegionConfigConfiguredAspectRatio" xml:space="preserve"><value>配置比例</value></data>
-  <data name="SmartBpRegionConfigCurrentCaptureAspectRatio" xml:space="preserve"><value>当前捕获比例</value></data>
-  <data name="SmartBpRegionConfigAspectStatus" xml:space="preserve"><value>比例匹配状态</value></data>
-  <data name="SmartBpAdvancedParameters" xml:space="preserve"><value>高级参数</value></data>
-  <data name="SmartBpAiWithOcrFusionMode" xml:space="preserve"><value>AI + OCR 融合模式</value></data>
-  <data name="SmartBpAiWithAiOcrFusionMode" xml:space="preserve"><value>AI + AI OCR 融合模式</value></data>
-  <data name="SmartBpDebugOptions" xml:space="preserve"><value>调试选项</value></data>
-  <data name="SmartBpFullRecognitionTest" xml:space="preserve"><value>识别全图</value></data>
-  <data name="SmartBpPhaseSceneOnlyTest" xml:space="preserve"><value>识别当前阶段</value></data>
-  <data name="SmartBpDebugTools" xml:space="preserve"><value>调试工具</value></data>
-  <data name="SmartBpAiRecognizeSelectedPhase" xml:space="preserve"><value>识别所选测试图阶段</value></data>
-  <data name="SmartBpAiRecognizeCurrentPhase" xml:space="preserve"><value>识别当前阶段</value></data>
-  <data name="SmartBpDebugStrategySummary" xml:space="preserve"><value>策略</value></data>
-  <data name="SmartBpDebugPhaseScene" xml:space="preserve"><value>阶段 / 场景</value></data>
-  <data name="SmartBpDebugBusinessAiRaw" xml:space="preserve"><value>业务 AI 原始输出</value></data>
-  <data name="SmartBpDebugPureAiFullRaw" xml:space="preserve"><value>纯 AI 完整原始输出</value></data>
-  <data name="SmartBpDebugOcrRawLines" xml:space="preserve"><value>OCR 原始行</value></data>
-  <data name="SmartBpDebugAiOcrTranscript" xml:space="preserve"><value>AI OCR 转写</value></data>
-  <data name="SmartBpDebugParsedState" xml:space="preserve"><value>解析状态</value></data>
-  <data name="SmartBpDebugMergeLog" xml:space="preserve"><value>合并诊断</value></data>
-  <data name="SmartBpDebugCandidateOperations" xml:space="preserve"><value>候选操作</value></data>
-  <data name="SmartBpDebugServerStatus" xml:space="preserve"><value>服务器状态</value></data>
-  <data name="SmartBpDebugTiming" xml:space="preserve"><value>耗时</value></data>
-  <data name="SmartBpRecognitionEnginePaddle" xml:space="preserve"><value>Paddle OCR</value></data>
-  <data name="SmartBpRecognitionEngineTesseract" xml:space="preserve"><value>Tesseract OCR</value></data>
-  <data name="SmartBpTesseractDownloadData" xml:space="preserve"><value>下载所选语言数据</value></data>
-  <data name="SmartBpTesseractDeleteData" xml:space="preserve"><value>删除所选语言数据</value></data>
-  <data name="SmartBpTesseractDataDownloading" xml:space="preserve"><value>正在下载 Tesseract 语言数据</value></data>
-  <data name="SmartBpTesseractDataInstalled" xml:space="preserve"><value>Tesseract 语言数据已安装</value></data>
-  <data name="SmartBpTesseractDataMissing" xml:space="preserve"><value>Tesseract 语言数据缺失</value></data>
-  <data name="SmartBpTesseractLanguageChineseSimplified" xml:space="preserve"><value>简体中文（chi_sim）</value></data>
-  <data name="SmartBpTesseractLanguageEnglish" xml:space="preserve"><value>英语（eng）</value></data>
-  <data name="SmartBpTesseractLanguageJapanese" xml:space="preserve"><value>日语（jpn）</value></data>
-  <data name="SmartBpTesseractLanguageInstalled" xml:space="preserve"><value>已安装</value></data>
-  <data name="SmartBpTesseractLanguageMissing" xml:space="preserve"><value>缺失</value></data>
-  <data name="SmartBpTesseractNoLanguageSelected" xml:space="preserve"><value>请至少选择一个 Tesseract 语言。</value></data>
-  <data name="SmartBpDownloadCancelled" xml:space="preserve"><value>下载已取消</value></data>
-  <data name="SmartBpDownloadFailedSimple" xml:space="preserve"><value>下载失败</value></data>
-  <data name="SmartBpGameDataAiRecognitionNotImplemented" xml:space="preserve"><value>赛后数据暂未接入 AI 识别，请先切换到 Paddle OCR 或 Tesseract OCR。</value></data>
-  <data name="SmartBpAiDownloadModel" xml:space="preserve"><value>下载所选模型</value></data>
-  <data name="SmartBpAiRollbackRuntime" xml:space="preserve"><value>回滚 llama.cpp 运行时</value></data>
-  <data name="SmartBpAiRuntimeRollbackComplete" xml:space="preserve"><value>llama.cpp 运行时回滚完成</value></data>
-  <data name="SmartBpEnableAutoGuidanceSync" xml:space="preserve"><value>启用 GameGuidance 自动同步</value></data>
-  <data name="SmartBpEnableAutoGuidancePageNavigation" xml:space="preserve"><value>同步步骤时跟随页面导航</value></data>
-  <data name="SmartBpProgressAutoCorrection" xml:space="preserve"><value>智能诊断并自动同步进度</value></data>
-  <data name="SmartBpProgressAutoCorrectionDescription" xml:space="preserve"><value>自动识别发现对局引导步骤与画面状态明显不一致时，使用全量 OCR 确认后自动向前同步。</value></data>
-  <data name="SmartBpForceSyncGameProgress" xml:space="preserve"><value>强制同步对局进度</value></data>
-  <data name="SmartBpForceSyncGameProgressDescription" xml:space="preserve"><value>根据当前识别到的禁选/选择槽位，推断并切换到最符合的对局引导步骤。</value></data>
-  <data name="SmartBpProgressDiagnosisAligned" xml:space="preserve"><value>最近进度诊断：已对齐</value></data>
-  <data name="SmartBpProgressDiagnosisInsufficient" xml:space="preserve"><value>最近进度诊断：证据不足</value></data>
-  <data name="SmartBpProgressDiagnosisMisalignedFormat" xml:space="preserve"><value>最近进度诊断：当前 Step {0} {1}[{2}]，画面更符合 Step {3} {4}[{5}]</value></data>
-  <data name="SmartBpProgressDiagnosisSyncedFormat" xml:space="preserve"><value>最近进度诊断：已同步到 Step {0} {1}[{2}]</value></data>
-  <data name="SmartBpProgressForceSyncNoSnapshot" xml:space="preserve"><value>未能识别完整 BP 快照，无法同步对局进度。</value></data>
-  <data name="SmartBpProgressForceSyncRecognitionBusy" xml:space="preserve"><value>当前识别任务尚未结束，暂时无法获取完整 BP 快照。请稍后再试。</value></data>
-  <data name="SmartBpProgressForceSyncGuidanceStartFailed" xml:space="preserve"><value>未能启动对局引导，无法同步对局进度。</value></data>
-  <data name="SmartBpProgressForceSyncForwardOnly" xml:space="preserve"><value>自动进度同步只会向前移动，已跳过本次同步。</value></data>
-  <data name="SmartBpProgressForceSyncFailedFormat" xml:space="preserve"><value>强制同步对局进度失败：{0}</value></data>
-  <data name="SmartBpOperationFailedFormat" xml:space="preserve"><value>操作失败：{0}</value></data>
-  <data name="SmartBpAlreadyRunning" xml:space="preserve"><value>SmartBP 已在运行，请勿重复启动。</value></data>
-  <data name="SmartBpFreeFullSyncWarning" xml:space="preserve"><value>自由全同步为实验功能，可能在没有工作流上下文时写入识别槽位。推荐使用引导工作流。</value></data>
-  <data name="SmartBpCaptureStopDisabledWhileRecognizing" xml:space="preserve"><value>自动识别运行时会保持窗口捕获；请先停止自动识别再停止捕获。</value></data>
-  <data name="SmartBpStopCaptureWhileRecognizing" xml:space="preserve"><value>自动识别正在运行。请先停止自动识别，再停止窗口捕获。</value></data>
-  <data name="SmartBpRecognitionPausedCaptureStopped" xml:space="preserve"><value>窗口捕获已停止，自动识别已暂停。</value></data>
-  <data name="SmartBpRecognitionPausedFrameUnavailable" xml:space="preserve"><value>无法获取当前捕获画面，自动识别已暂停。</value></data>
-  <data name="SmartBpStartAutomaticRecognition" xml:space="preserve"><value>启动自动识别</value></data>
-  <data name="SmartBpStopAutomaticRecognition" xml:space="preserve"><value>停止 SmartBP 识别</value></data>
-  <data name="SmartBpAutoRecognitionStartTitle" xml:space="preserve"><value>启动自动识别</value></data>
-  <data name="SmartBpAutoRecognitionStartConfirm" xml:space="preserve"><value>请确认当前对局进度和半场已正确设置。设置错误可能导致识别结果写入错误对局。</value></data>
-  <data name="SmartBpAiOneStepDelayedMode" xml:space="preserve"><value>AI 单步延迟模式</value></data>
-  <data name="SmartBpAiUseMultiImage" xml:space="preserve"><value>使用多图请求</value></data>
-  <data name="SmartBpAiRecognizeCurrentFrame" xml:space="preserve"><value>识别当前捕获画面全图</value></data>
-  <data name="SmartBpAiSwitchModelRestartConfirm" xml:space="preserve"><value>llama-server 正在运行。切换模型需要自动重启服务，是否继续？</value></data>
-  <data name="SmartBpAiSwitchModelTitle" xml:space="preserve"><value>切换 AI 模型</value></data>
-  <data name="SmartBpAiModelDownloadRequired" xml:space="preserve"><value>所选模型尚未安装，请先下载。</value></data>
-  <data name="SmartBpTooltipContactSheet" xml:space="preserve"><value>把多个 BP 裁剪区域拼成一次 OCR 输入，通常能减少调用开销。关闭后逐区域识别更容易排查映射问题，但一次 tick 更慢。普通用户建议开启；若文字被错误归到其他区域再关闭。</value></data>
-  <data name="SmartBpTooltipRecognitionInterval" xml:space="preserve"><value>控制 OCR 自动识别两次截图之间的间隔。间隔低于实际处理耗时时会造成结果滞后和界面卡顿。建议先运行“测试识别速度”，最低值会设为实测最大耗时 + 250ms。</value></data>
-  <data name="SmartBpTooltipFieldStale" xml:space="preserve"><value>字段超过此时间未刷新就重新 OCR。太短会重复识别并增加 CPU 占用，太长可能保留旧结果。建议 1000–3000ms，并应大于单次 OCR 耗时。</value></data>
-  <data name="SmartBpTooltipBackfill" xml:space="preserve"><value>允许回看并补录的工作流步骤数量。数值越大越能补快节奏遗漏，但也更可能把旧画面误配到更早步骤。通常建议 1–3；流程稳定时保持 2。</value></data>
-  <data name="SmartBpTooltipDebugOverlay" xml:space="preserve"><value>输出 OCR 区域、文字框和匹配调试信息，便于定位识别问题。会增加磁盘写入和少量处理开销；日常使用建议关闭，排障时临时开启。</value></data>
-  <data name="SmartBpTooltipTesseractLanguages" xml:space="preserve"><value>控制 Tesseract 加载的语言，例如 chi_sim+eng。缺少对应 traineddata 会识别失败；加载过多语言会更慢并增加误判。中文赛事建议 chi_sim+eng。</value></data>
-  <data name="SmartBpTooltipTesseractPsm" xml:space="preserve"><value>控制 Tesseract 页面分割模式。错误模式会漏字或把多行粘连。SmartBP 默认 6 适合统一文本块；除非根据调试图确认布局不同，否则保持 6。</value></data>
-  <data name="SmartBpTooltipTesseractVariants" xml:space="preserve"><value>每个区域尝试的预处理版本数量。更多版本可能提高复杂背景下的识别率，但耗时近似成倍增加。安全范围 1–3；自动识别卡顿时降低。</value></data>
-  <data name="SmartBpTooltipAiDelayed" xml:space="preserve"><value>让 AI 先确认并完成上一角色步骤，再移动 GameGuidance，可降低模型结果慢一拍造成的漏录。只在角色 BP/紧邻天赋阶段生效，绝不会跨入区域选择。建议开启；关闭会更快但更容易漏掉最后一步。</value></data>
-  <data name="SmartBpTooltipAiInferenceFrames" xml:space="preserve"><value>连续多少个未知阶段画面后，才可在“监管者已选择且账本完成”的严格条件下推断监管者天赋。太小可能误跳，太大会延迟引导；建议 2–4，区域选择后不会推断。</value></data>
-  <data name="SmartBpTooltipMultiImage" xml:space="preserve"><value>开启后会把 phase_top 和需要识别的 BP 区域合并到一次 llama.cpp 请求中，通常比多次请求更快。若当前 llama.cpp/模型不支持多图输入，可能返回错误；可关闭后使用顺序回退，但延迟会明显增加。</value></data>
-  <data name="SmartBpTooltipSequentialFallback" xml:space="preserve"><value>当多图 AI 请求失败时，允许退回到逐区域识别。优点是兼容性更好；缺点是一次 tick 可能变成多次模型请求，延迟和显存占用更高。出现卡顿时建议关闭并查看错误。</value></data>
-  <data name="SmartBpTooltipGpuLayers" xml:space="preserve"><value>控制模型有多少层放到 GPU。-1 表示自动。数值越高显存占用越高，速度可能更快；显存不足会导致 llama.cpp 启动失败或推理崩溃。</value></data>
-  <data name="SmartBpTooltipBatchSize" xml:space="preserve"><value>影响 llama.cpp prompt 处理吞吐和显存峰值。数值过大可能更快但更吃显存；数值过小更稳但慢。除非你了解 llama.cpp 的 batch 参数，否则保持默认 512。</value></data>
-  <data name="SmartBpTooltipUBatchSize" xml:space="preserve"><value>控制 llama.cpp 物理微批大小并影响显存峰值。过大可能显存不足，过小会降低速度。普通用户建议保持默认 512，遇到显存问题时再逐步降低。</value></data>
-  <data name="SmartBpTooltipFlashAttention" xml:space="preserve"><value>开启 llama.cpp Flash Attention。通常可降低显存或提升速度，但依赖当前 runtime 和显卡后端支持；如果启动失败或输出异常，可以关闭。</value></data>
-  <data name="SmartBpTestRecognitionSpeed" xml:space="preserve"><value>测试识别速度</value></data>
-  <data name="SmartBpAiGpuName" xml:space="preserve"><value>GPU 名称</value></data>
-  <data name="SmartBpAiGpuUtilization" xml:space="preserve"><value>GPU 利用率</value></data>
-  <data name="SmartBpAiVram" xml:space="preserve"><value>显存使用</value></data>
-  <data name="SmartBpAiProcessId" xml:space="preserve"><value>llama.cpp 进程 ID</value></data>
-  <data name="SmartBpAiLastUpdated" xml:space="preserve"><value>最后更新</value></data>
-  <data name="SmartBpGuidedWorkflowRecommended" xml:space="preserve"><value>引导工作流（推荐）</value></data>
-  <data name="SmartBpFreeFullSyncExperimental" xml:space="preserve"><value>自由全同步（实验性）</value></data>
-  <data name="SmartBpAutomaticRecognitionInterval" xml:space="preserve"><value>自动识别间隔</value></data>
-  <data name="SmartBpRecognizing" xml:space="preserve"><value>正在识别…</value></data>
-  <data name="SmartBpCurrentEngine" xml:space="preserve"><value>当前引擎</value></data>
-  <data name="SmartBpCurrentInterval" xml:space="preserve"><value>当前间隔</value></data>
-  <data name="SmartBpMinimumInterval" xml:space="preserve"><value>测速允许的最低间隔</value></data>
-  <data name="SmartBpAiIntervalMilliseconds" xml:space="preserve"><value>AI 自动识别间隔（毫秒）</value></data>
-  <data name="SmartBpRecognitionIntervalRequiresSpeedTest" xml:space="preserve"><value>请先运行识别速度测试。最低间隔将设为“实测最大耗时 + 250ms”。</value></data>
-  <data name="SmartBpRecognitionIntervalReady" xml:space="preserve"><value>测速结果与当前配置匹配，可以编辑识别间隔。</value></data>
-  <data name="SmartBpRecognitionPausedBpEnded" xml:space="preserve"><value>SmartBP 已因 BP 流程结束或进入区域选择而暂停自动识别。</value></data>
-  <data name="SmartBpTooltipAiRecognitionInterval" xml:space="preserve"><value>控制自动识别两次截图之间的间隔。AI/Qwen 每次识别可能耗时几秒，如果间隔低于模型实际耗时，会导致请求堆积、识别结果滞后、停止按钮响应变慢。建议先运行“测试识别速度”，系统会把最低间隔锁定为“实测最大耗时 + 250ms”。</value></data>
-  <data name="SmartBpTooltipPhaseCropWidth" xml:space="preserve"><value>限制送入 AI 的阶段裁剪图最大宽度。数值越小越快、显存占用越低，但阶段文字可能丢失。通常 480–768；修改后需要重新测试识别速度。</value></data>
-  <data name="SmartBpTooltipContentCropWidth" xml:space="preserve"><value>限制送入 AI 的 BP 内容裁剪图最大宽度。数值越小越快、显存占用越低，但文字和头像细节可能丢失。通常 640–1280；修改后需要重新测速。</value></data>
-  <data name="SmartBpTooltipPhaseTokens" xml:space="preserve"><value>限制阶段识别最多输出多少 token。太小会导致 JSON 被截断，太大会延长生成。阶段结果很短，建议 32–128，默认 48。</value></data>
-  <data name="SmartBpTooltipSnapshotTokens" xml:space="preserve"><value>限制增量快照最多输出多少 token。太小会截断 JSON，太大可能生成更久并增加卡顿。建议 256–1536，并确保能覆盖本次请求字段。</value></data>
-  <data name="SmartBpTooltipCommitHold" xml:space="preserve"><value>检测到阶段切换后，在同步对局引导前短暂等待上一步识别和应用完成。太小可能漏掉上一步，太大会让 UI 跟随变慢。AI 通常建议 250–1000ms，OCR 可更小。</value></data>
-  <data name="SmartBpTooltipVisualBuffer" xml:space="preserve"><value>当前步骤识别结果应用前的额外延迟，默认 0。只在希望动画更稳定、减少闪烁时使用；数值过大会让 BP 界面明显慢半拍，建议 0–500ms。</value></data>
-  <data name="SmartBpTooltipStrictCandidateEnums" xml:space="preserve"><value>把当前角色候选表写入 AI JSON schema，能减少模型输出不存在的角色名，但 schema 更大、prompt 处理更慢，部分模型兼容性较差。角色名幻觉较多时开启；出现 schema 错误或延迟增加时关闭。</value></data>
-  <data name="SmartBpRecognitionEngineRapid" xml:space="preserve"><value>RapidOCR</value></data>
-  <data name="SmartBpRapidOcrModelManagement" xml:space="preserve"><value>RapidOCR 中文模型</value></data>
-  <data name="SmartBpRapidOcrDownloading" xml:space="preserve"><value>正在下载 RapidOCR 模型</value></data>
-  <data name="SmartBpRapidOcrMaxSideLen" xml:space="preserve"><value>最大图像边长</value></data>
-  <data name="SmartBpRapidOcrPadding" xml:space="preserve"><value>检测边缘留白</value></data>
-  <data name="SmartBpRapidOcrBoxScoreThreshold" xml:space="preserve"><value>文本框评分阈值</value></data>
-  <data name="SmartBpRapidOcrBoxThreshold" xml:space="preserve"><value>文本框检测阈值</value></data>
-  <data name="SmartBpRapidOcrUnclipRatio" xml:space="preserve"><value>文本框扩张比例</value></data>
-  <data name="SmartBpRapidOcrAngleClassifier" xml:space="preserve"><value>启用文字方向分类</value></data>
-  <data name="SmartBpRapidOcrPreprocessingVariants" xml:space="preserve"><value>尝试对比度增强版本</value></data>
-  <data name="SmartBpTooltipRapidOcrMaxSideLen" xml:space="preserve"><value>较大的边长可能改善小字识别，但会增加内存和推理时间。建议保持 1024。</value></data>
-  <data name="SmartBpTooltipRapidOcrThresholds" xml:space="preserve"><value>提高阈值可减少误识别，但也可能漏掉较弱或较小的文字。</value></data>
-  <data name="SmartBpRapidOcrCheckUpdate" xml:space="preserve"><value>检查模型更新</value></data>
-  <data name="SmartBpRapidOcrUpdate" xml:space="preserve"><value>更新模型</value></data>
-  <data name="SmartBpRapidOcrInstalledVersion" xml:space="preserve"><value>已安装版本：</value></data>
-  <data name="SmartBpRapidOcrLatestVersion" xml:space="preserve"><value>清单版本：</value></data>
-  <data name="SmartBpRapidOcrVersionUnknown" xml:space="preserve"><value>未知（旧版安装）</value></data>
-  <data name="SmartBpRapidOcrUpdateAvailableFormat" xml:space="preserve"><value>RapidOCR 模型可更新：{0} → {1}</value></data>
-  <data name="SmartBpRapidOcrUpToDateFormat" xml:space="preserve"><value>RapidOCR 模型已是最新版本（{0}）</value></data>
-  <data name="SmartBpRapidOcrBundledManifestOutdatedFormat" xml:space="preserve"><value>官方模型清单已更新（内置 {0}，官方 {1}）。请先更新 SmartBP 模块，避免安装旧模型。</value></data>
-  <data name="SmartBpIncrementalRecognitionTest" xml:space="preserve"><value>识别当前阶段的增量</value></data>
-  <data name="SmartBpRecognizeSelectedIncremental" xml:space="preserve"><value>识别所选测试图增量</value></data>
-  <data name="SmartBpRecognizeCurrentIncremental" xml:space="preserve"><value>识别当前捕获画面增量</value></data>
-  <data name="SmartBpDebugFinalBusinessState" xml:space="preserve"><value>最终业务状态</value></data>
-  <data name="SmartBpDebugFusionSummary" xml:space="preserve"><value>融合摘要</value></data>
-  <data name="SmartBpDebugTimingServerSummary" xml:space="preserve"><value>时序与服务器摘要</value></data>
-  <data name="SmartBpOpenRecognitionDebugLogWindow" xml:space="preserve"><value>打开识别日志窗口</value></data>
-  <data name="SmartBpRecognitionDebugLogWindowTitle" xml:space="preserve"><value>SmartBP 识别调试日志</value></data>
-  <data name="SmartBpRecognitionDebugLogAutoScroll" xml:space="preserve"><value>自动滚动</value></data>
-  <data name="SmartBpCopyRecognitionDebugLog" xml:space="preserve"><value>复制日志</value></data>
+  <data name="Designer.AnimationParts.Title" xml:space="preserve">
+    <value>动画部件</value>
+  </data>
+  <data name="Designer.AnimationParts.DefaultName" xml:space="preserve">
+    <value>动画部件</value>
+  </data>
+  <data name="Designer.AnimationParts.Add" xml:space="preserve">
+    <value>添加动画部件</value>
+  </data>
+  <data name="Designer.AnimationParts.Remove" xml:space="preserve">
+    <value>移除动画部件</value>
+  </data>
+  <data name="Designer.AnimationParts.Apply" xml:space="preserve">
+    <value>应用动画部件修改</value>
+  </data>
+  <data name="Designer.AnimationParts.InvalidName" xml:space="preserve">
+    <value>动画部件名称不能为空，且必须在当前控件内唯一。</value>
+  </data>
+  <data name="Designer.AnimationParts.Description" xml:space="preserve">
+    <value>动画部件是附着在当前控件内部的动画辅助部件，不会作为独立控件出现在画布中。</value>
+  </data>
+  <data name="Designer.AnimationParts.Empty" xml:space="preserve">
+    <value>当前控件还没有动画部件</value>
+  </data>
+  <data name="Designer.AnimationParts.EditorTitle" xml:space="preserve">
+    <value>部件设置</value>
+  </data>
+  <data name="Designer.AnimationParts.NamePlaceholder" xml:space="preserve">
+    <value>例如 scanLine、shine 或 wipeBar</value>
+  </data>
+  <data name="Designer.AnimationParts.Kind" xml:space="preserve">
+    <value>类型</value>
+  </data>
+  <data name="Designer.AnimationParts.Kind.Rectangle" xml:space="preserve">
+    <value>矩形</value>
+  </data>
+  <data name="Designer.AnimationParts.Kind.Border" xml:space="preserve">
+    <value>边框</value>
+  </data>
+  <data name="Designer.AnimationParts.Kind.Image" xml:space="preserve">
+    <value>图片</value>
+  </data>
+  <data name="Designer.AnimationParts.Layer" xml:space="preserve">
+    <value>渲染层级</value>
+  </data>
+  <data name="Designer.AnimationParts.Layer.AboveContent" xml:space="preserve">
+    <value>内容上方</value>
+  </data>
+  <data name="Designer.AnimationParts.Layer.BelowContent" xml:space="preserve">
+    <value>内容下方</value>
+  </data>
+  <data name="Designer.AnimationParts.LayoutSection" xml:space="preserve">
+    <value>布局与初始状态</value>
+  </data>
+  <data name="Designer.AnimationParts.AppearanceSection" xml:space="preserve">
+    <value>外观</value>
+  </data>
+  <data name="Designer.AnimationParts.SizePlaceholder" xml:space="preserve">
+    <value>像素值或百分比，如 100%</value>
+  </data>
+  <data name="Designer.AnimationParts.Fill" xml:space="preserve">
+    <value>填充颜色</value>
+  </data>
+  <data name="Designer.AnimationParts.Stroke" xml:space="preserve">
+    <value>描边颜色</value>
+  </data>
+  <data name="Designer.AnimationParts.Background" xml:space="preserve">
+    <value>背景颜色</value>
+  </data>
+  <data name="Designer.AnimationParts.BorderBrush" xml:space="preserve">
+    <value>边框颜色</value>
+  </data>
+  <data name="Designer.AnimationParts.BorderThickness" xml:space="preserve">
+    <value>边框宽度</value>
+  </data>
+  <data name="Designer.AnimationParts.StaticImage" xml:space="preserve">
+    <value>静态图片</value>
+  </data>
+  <data name="Designer.AnimationParts.NoImageSelected" xml:space="preserve">
+    <value>尚未选择图片</value>
+  </data>
+  <data name="Designer.AnimationParts.ImagePathPlaceholder" xml:space="preserve">
+    <value>布局包内的图片资源路径</value>
+  </data>
+  <data name="Designer.AnimationParts.IsHitTestVisible" xml:space="preserve">
+    <value>允许部件响应鼠标命中测试</value>
+  </data>
+  <data name="Designer.AnimationParts.Validation.FixErrors" xml:space="preserve">
+    <value>请先修正动画部件设置中的输入错误。</value>
+  </data>
+  <data name="Designer.AnimationParts.Validation.Size" xml:space="preserve">
+    <value>请输入非负像素值或百分比，例如 4 或 100%。</value>
+  </data>
+  <data name="Designer.AnimationParts.Validation.Number" xml:space="preserve">
+    <value>请输入有效数字。</value>
+  </data>
+  <data name="Designer.AnimationParts.Validation.NonNegativeNumber" xml:space="preserve">
+    <value>请输入大于或等于 0 的数字。</value>
+  </data>
+  <data name="Designer.AnimationParts.Validation.Opacity" xml:space="preserve">
+    <value>不透明度必须是 0 到 1 之间的数字。</value>
+  </data>
+  <data name="Designer.AnimationParts.Validation.Integer" xml:space="preserve">
+    <value>请输入有效整数。</value>
+  </data>
+  <data name="Designer.AnimationParts.Validation.Color" xml:space="preserve">
+    <value>请输入有效颜色，例如 #FFFFFFFF 或 White。</value>
+  </data>
+  <data name="Designer.Behaviors.MissingAnimationPart" xml:space="preserve">
+    <value>控件 {1} 缺少动画部件“{0}”。</value>
+  </data>
+  <data name="Designer.Behaviors.AddTransition" xml:space="preserve">
+    <value>添加过渡行为</value>
+  </data>
+  <data name="Designer.Behaviors.Transition" xml:space="preserve">
+    <value>过渡</value>
+  </data>
+  <data name="Designer.Behaviors.NewTransition" xml:space="preserve">
+    <value>新过渡行为</value>
+  </data>
+  <data name="Designer.Behaviors.TransitionTrigger" xml:space="preserve">
+    <value>过渡触发器</value>
+  </data>
+  <data name="Designer.Behaviors.TransitionHelp" xml:space="preserve">
+    <value>ExitGraph 在数据变化前运行。EnterGraph 在数据变化后运行。</value>
+  </data>
+  <data name="Designer.Behaviors.ExitGraph" xml:space="preserve">
+    <value>退出动画</value>
+  </data>
+  <data name="Designer.Behaviors.EnterGraph" xml:space="preserve">
+    <value>进入动画</value>
+  </data>
+  <data name="Designer.Behaviors.Event.CharacterPick" xml:space="preserve">
+    <value>角色选择过渡</value>
+  </data>
+  <data name="Designer.Behaviors.Event.CharacterPick.Description" xml:space="preserve">
+    <value>角色选择提交前后运行过渡图。</value>
+  </data>
+  <data name="Designer.Behaviors.Event.CharacterSwap" xml:space="preserve">
+    <value>求生者交换过渡</value>
+  </data>
+  <data name="Designer.Behaviors.Event.CharacterSwap.Description" xml:space="preserve">
+    <value>求生者角色交换提交前后运行过渡图。</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.TargetBehaviorGuid" xml:space="preserve">
+    <value>目标行为标识</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.OldCharacterId" xml:space="preserve">
+    <value>旧角色标识</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.NewCharacterId" xml:space="preserve">
+    <value>新角色标识</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.HasOldCharacter" xml:space="preserve">
+    <value>是否存在上一个角色</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.HasNewCharacter" xml:space="preserve">
+    <value>是否存在新角色</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.SourceIndex" xml:space="preserve">
+    <value>来源索引</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.TargetIndex" xml:space="preserve">
+    <value>目标索引</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.SourceBehaviorGuid" xml:space="preserve">
+    <value>来源行为标识</value>
+  </data>
+  <data name="Designer.Behaviors.StopTriggers" xml:space="preserve">
+    <value>停止条件</value>
+  </data>
+  <data name="Designer.Behaviors.StopTrigger" xml:space="preserve">
+    <value>停止条件</value>
+  </data>
+  <data name="Designer.Behaviors.AddStopTrigger" xml:space="preserve">
+    <value>添加停止条件</value>
+  </data>
+  <data name="Designer.Behaviors.StopTriggersHelp" xml:space="preserve">
+    <value>任意一个停止条件满足时，循环动画会停止并执行 StopGraph。</value>
+  </data>
+  <data name="Designer.Behaviors.StopAnimation" xml:space="preserve">
+    <value>停止动画</value>
+  </data>
+  <data name="Designer.Behaviors.Event.GuidanceCancelled" xml:space="preserve">
+    <value>引导已取消</value>
+  </data>
+  <data name="Designer.Behaviors.Event.GuidanceCancelled.Description" xml:space="preserve">
+    <value>引导被用户取消时触发。</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.Reason" xml:space="preserve">
+    <value>原因</value>
+  </data>
+  <data name="Designer.AnimationParts.EffectSection" xml:space="preserve">
+    <value>视觉效果</value>
+  </data>
+  <data name="Designer.AnimationParts.EffectKind" xml:space="preserve">
+    <value>效果类型</value>
+  </data>
+  <data name="Designer.AnimationParts.EffectKind.None" xml:space="preserve">
+    <value>无</value>
+  </data>
+  <data name="Designer.AnimationParts.EffectKind.Glow" xml:space="preserve">
+    <value>辉光</value>
+  </data>
+  <data name="Designer.AnimationParts.EffectKind.DropShadow" xml:space="preserve">
+    <value>投影</value>
+  </data>
+  <data name="Designer.AnimationParts.EffectColor" xml:space="preserve">
+    <value>效果颜色</value>
+  </data>
+  <data name="Designer.AnimationParts.EffectOpacity" xml:space="preserve">
+    <value>效果不透明度</value>
+  </data>
+  <data name="Designer.AnimationParts.EffectBlurRadius" xml:space="preserve">
+    <value>模糊半径</value>
+  </data>
+  <data name="Designer.AnimationParts.EffectShadowDepth" xml:space="preserve">
+    <value>投影距离</value>
+  </data>
+  <data name="Designer.AnimationParts.EffectDirection" xml:space="preserve">
+    <value>投影方向</value>
+  </data>
+  <data name="StopAllLoopAnimations" xml:space="preserve">
+    <value>停止所有循环动画</value>
+  </data>
+  <data name="StoppedLoopAnimationsFormat" xml:space="preserve">
+    <value>已停止 {0} 个循环动画。</value>
+  </data>
+  <data name="NoActiveLoopAnimations" xml:space="preserve">
+    <value>当前没有正在播放的循环动画。</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.Camp.Description" xml:space="preserve">
+    <value>角色所属阵营。</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.PlayerIndex.Description" xml:space="preserve">
+    <value>角色选择对应的选手序号。</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.TargetBehaviorGuid.Description" xml:space="preserve">
+    <value>目标控件的稳定行为标识。</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.OldCharacterId.Description" xml:space="preserve">
+    <value>更改前的角色标识。</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.NewCharacterId.Description" xml:space="preserve">
+    <value>更改后的角色标识。</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.HasOldCharacter.Description" xml:space="preserve">
+    <value>更改前是否存在角色。</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.HasNewCharacter.Description" xml:space="preserve">
+    <value>更改后是否存在角色。</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.SourceIndex.Description" xml:space="preserve">
+    <value>交换来源选手的序号。</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.TargetIndex.Description" xml:space="preserve">
+    <value>交换目标选手的序号。</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.SourceBehaviorGuid.Description" xml:space="preserve">
+    <value>交换来源控件的稳定行为标识。</value>
+  </data>
+  <data name="Designer.Graph.Condition.If" xml:space="preserve">
+    <value>如果</value>
+  </data>
+  <data name="Designer.Graph.Preview.MissingEventContext" xml:space="preserve">
+    <value>当前预览没有事件上下文，{0} 将无法解析。</value>
+  </data>
+  <data name="ExecutableFiles" xml:space="preserve">
+    <value>可执行文件</value>
+  </data>
+  <data name="SmartBpAiRecognitionTitle" xml:space="preserve">
+    <value>AI BP 识别 / Qwen + llama.cpp</value>
+  </data>
+  <data name="SmartBpAiRecognitionPreviewNotice" xml:space="preserve">
+    <value>识别结果仅供预览，不会自动修改当前 BP 数据。</value>
+  </data>
+  <data name="SmartBpAiManifestStatus" xml:space="preserve">
+    <value>模型清单：</value>
+  </data>
+  <data name="SmartBpAiModelProfile" xml:space="preserve">
+    <value>Qwen 模型：</value>
+  </data>
+  <data name="SmartBpCurrentQwenModelFormat" xml:space="preserve">
+    <value>当前业务 AI 模型：{0}</value>
+  </data>
+  <data name="SmartBpAiMmprojProfile" xml:space="preserve">
+    <value>视觉投影模型：</value>
+  </data>
+  <data name="SmartBpAiInstalled" xml:space="preserve">
+    <value>已安装：</value>
+  </data>
+  <data name="SmartBpAiDownloadQwen" xml:space="preserve">
+    <value>下载 Qwen 模型</value>
+  </data>
+  <data name="SmartBpAiDeleteQwen" xml:space="preserve">
+    <value>删除 Qwen 模型</value>
+  </data>
+  <data name="SmartBpAiLlamaPath" xml:space="preserve">
+    <value>llama-server.exe 路径</value>
+  </data>
+  <data name="SmartBpAiStartServer" xml:space="preserve">
+    <value>启动 llama-server</value>
+  </data>
+  <data name="SmartBpAiStopServer" xml:space="preserve">
+    <value>停止 llama-server</value>
+  </data>
+  <data name="SmartBpAiRecognizeTestFrame" xml:space="preserve">
+    <value>识别所选测试图全图</value>
+  </data>
+  <data name="SmartBpAiRecognizeCapture" xml:space="preserve">
+    <value>识别当前捕获帧</value>
+  </data>
+  <data name="SmartBpAiStartLoop" xml:space="preserve">
+    <value>启动识别预览循环</value>
+  </data>
+  <data name="SmartBpAiStopLoop" xml:space="preserve">
+    <value>停止识别预览循环</value>
+  </data>
+  <data name="SmartBpAiElapsed" xml:space="preserve">
+    <value>耗时：</value>
+  </data>
+  <data name="SmartBpAiRecommendedInterval" xml:space="preserve">
+    <value>推荐识别间隔：</value>
+  </data>
+  <data name="SmartBpAiRawJson" xml:space="preserve">
+    <value>原始 JSON</value>
+  </data>
+  <data name="SmartBpAiNormalizedResult" xml:space="preserve">
+    <value>规范化结果</value>
+  </data>
+  <data name="SmartBpAiLastError" xml:space="preserve">
+    <value>最后错误</value>
+  </data>
+  <data name="SmartBpAiDebugConsole" xml:space="preserve">
+    <value>运行调试控制台</value>
+  </data>
+  <data name="SmartBpAiPromptProfile" xml:space="preserve">
+    <value>识别提示词语言</value>
+  </data>
+  <data name="SmartBpAiRuntimeProfile" xml:space="preserve">
+    <value>llama.cpp 运行时版本</value>
+  </data>
+  <data name="SmartBpAiRuntimeInstalled" xml:space="preserve">
+    <value>运行时已安装：</value>
+  </data>
+  <data name="SmartBpAiDownloadRuntime" xml:space="preserve">
+    <value>下载运行时</value>
+  </data>
+  <data name="SmartBpAiDeleteRuntime" xml:space="preserve">
+    <value>删除运行时</value>
+  </data>
+  <data name="SmartBpAiManagedRuntimePath" xml:space="preserve">
+    <value>托管 llama-server.exe 路径</value>
+  </data>
+  <data name="SmartBpAiParsedVisualResult" xml:space="preserve">
+    <value>业务状态快照摘要</value>
+  </data>
+  <data name="SmartBpAiRuntimeDownloading" xml:space="preserve">
+    <value>正在下载并安装 llama.cpp 运行时</value>
+  </data>
+  <data name="SmartBpAiDebugConsoleHint" xml:space="preserve">
+    <value>实时显示 llama-server 启动命令、标准输出、错误输出、健康检查与识别请求状态。</value>
+  </data>
+  <data name="SmartBpAiClearDebugConsole" xml:space="preserve">
+    <value>清空</value>
+  </data>
+  <data name="SmartBpAiStatusLoading" xml:space="preserve">
+    <value>正在加载</value>
+  </data>
+  <data name="SmartBpAiStatusStarting" xml:space="preserve">
+    <value>正在启动 llama.cpp 服务…</value>
+  </data>
+  <data name="SmartBpAiStatusRestarting" xml:space="preserve">
+    <value>正在重启 llama.cpp 服务…</value>
+  </data>
+  <data name="SmartBpAiStatusLoaded" xml:space="preserve">
+    <value>已加载</value>
+  </data>
+  <data name="SmartBpAiStatusFailed" xml:space="preserve">
+    <value>失败</value>
+  </data>
+  <data name="SmartBpAiStatusStopped" xml:space="preserve">
+    <value>已停止</value>
+  </data>
+  <data name="SmartBpAiStatusNotInstalled" xml:space="preserve">
+    <value>未安装</value>
+  </data>
+  <data name="SmartBpAiStatusDownloading" xml:space="preserve">
+    <value>正在下载 AI 模型</value>
+  </data>
+  <data name="SmartBpAiStatusInstalled" xml:space="preserve">
+    <value>已安装</value>
+  </data>
+  <data name="SmartBpAiStatusCancelled" xml:space="preserve">
+    <value>已取消</value>
+  </data>
+  <data name="SmartBpAiStatusReady" xml:space="preserve">
+    <value>已就绪</value>
+  </data>
+  <data name="SmartBpAiEnableGuidanceSync" xml:space="preserve">
+    <value>启用自动同步对局引导</value>
+  </data>
+  <data name="SmartBpAiEnableAutoApply" xml:space="preserve">
+    <value>自动应用识别结果</value>
+  </data>
+  <data name="SmartBpAiDetectStageTestFrame" xml:space="preserve">
+    <value>识别测试图业务状态</value>
+  </data>
+  <data name="SmartBpAiDetectStageCapture" xml:space="preserve">
+    <value>识别捕获帧业务状态</value>
+  </data>
+  <data name="SmartBpAiRunAutomaticTick" xml:space="preserve">
+    <value>运行一次自动识别</value>
+  </data>
+  <data name="SmartBpAiStageDetectionResult" xml:space="preserve">
+    <value>BP 业务状态快照</value>
+  </data>
+  <data name="SmartBpAiGuidanceSnapshot" xml:space="preserve">
+    <value>当前对局引导快照</value>
+  </data>
+  <data name="SmartBpAiCandidateOperations" xml:space="preserve">
+    <value>候选角色操作</value>
+  </data>
+  <data name="SmartBpAiCropDebug" xml:space="preserve">
+    <value>裁剪调试预览</value>
+  </data>
+  <data name="SmartBpAiPhaseCropPreview" xml:space="preserve">
+    <value>阶段识别裁剪图</value>
+  </data>
+  <data name="SmartBpAiFocusedCropPreview" xml:space="preserve">
+    <value>内容识别裁剪图</value>
+  </data>
+  <data name="SmartBpAiRegionEditor" xml:space="preserve">
+    <value>SmartBP OCR 识别区域编辑器</value>
+  </data>
+  <data name="SmartBpAiRegionWidth" xml:space="preserve">
+    <value>宽</value>
+  </data>
+  <data name="SmartBpAiRegionHeight" xml:space="preserve">
+    <value>高</value>
+  </data>
+  <data name="SmartBpAiSaveRegionProfile" xml:space="preserve">
+    <value>保存区域配置</value>
+  </data>
+  <data name="SmartBpAiResetRegionProfile" xml:space="preserve">
+    <value>重置默认区域</value>
+  </data>
+  <data name="SmartBpAiOpenVisualRegionEditor" xml:space="preserve">
+    <value>编辑 BP 识别区域</value>
+  </data>
+  <data name="SmartBpAiRegionEditorRequireFrame" xml:space="preserve">
+    <value>请先开启窗口捕获，等待画面可用后再编辑识别区域。</value>
+  </data>
+  <data name="SmartBpAiRegionProfileSaved" xml:space="preserve">
+    <value>SmartBP OCR 识别区域配置已保存。</value>
+  </data>
+  <data name="SmartBpAiRegionProfileReset" xml:space="preserve">
+    <value>SmartBP OCR 识别区域已恢复为内置默认值。</value>
+  </data>
+  <data name="SmartBpAiRegionPhaseTop" xml:space="preserve">
+    <value>顶部阶段识别区域</value>
+  </data>
+  <data name="SmartBpAiRegionTopCenterStatus" xml:space="preserve">
+    <value>顶部中央 BP 生命周期状态区域</value>
+  </data>
+  <data name="SmartBpAiRegionTopLeftStatus" xml:space="preserve">
+    <value>左上角赛后状态区域</value>
+  </data>
+  <data name="SmartBpAiRegionLeftTop" xml:space="preserve">
+    <value>左上：禁用监管者</value>
+  </data>
+  <data name="SmartBpAiRegionRightTop" xml:space="preserve">
+    <value>右上：禁用求生者</value>
+  </data>
+  <data name="SmartBpAiRegionLeftBottom" xml:space="preserve">
+    <value>左下：求生者选择与分配</value>
+  </data>
+  <data name="SmartBpAiRegionRightBottom" xml:space="preserve">
+    <value>右下：监管者选择</value>
+  </data>
+  <data name="SmartBpAiPlayBackfillAnimations" xml:space="preserve">
+    <value>补录上一阶段时播放动画</value>
+  </data>
+  <data name="SmartBpAiResetLedger" xml:space="preserve">
+    <value>重置 SmartBP 识别记录</value>
+  </data>
+  <data name="SmartBpClearDebugLog" xml:space="preserve">
+    <value>清空日志</value>
+  </data>
+  <data name="SmartBpEnableDebugLog" xml:space="preserve">
+    <value>启用调试日志</value>
+  </data>
+  <data name="SmartBpAiAdvancedEngineSettings" xml:space="preserve">
+    <value>高级引擎设置</value>
+  </data>
+  <data name="SmartBpAiAdvancedRecognitionSettings" xml:space="preserve">
+    <value>高级识别设置</value>
+  </data>
+  <data name="SmartBpAiParallelSlots" xml:space="preserve">
+    <value>llama.cpp 并行槽位</value>
+  </data>
+  <data name="SmartBpAiParallelSlotsHint" xml:space="preserve">
+    <value>增加并行槽位可能提升并发吞吐，但会占用更多显存/内存。默认 1 更稳。</value>
+  </data>
+  <data name="SmartBpAiGpuLayers" xml:space="preserve">
+    <value>GPU 层数（-1 为自动）</value>
+  </data>
+  <data name="SmartBpAiFlashAttention" xml:space="preserve">
+    <value>启用 Flash Attention</value>
+  </data>
+  <data name="SmartBpAiBatchSize" xml:space="preserve">
+    <value>Batch size</value>
+  </data>
+  <data name="SmartBpAiUBatchSize" xml:space="preserve">
+    <value>UBatch size</value>
+  </data>
+  <data name="SmartBpAiForceStopLlama" xml:space="preserve">
+    <value>强制停止托管 llama.cpp</value>
+  </data>
+  <data name="SmartBpAiUseMultiImageSnapshot" xml:space="preserve">
+    <value>使用单次多图增量识别</value>
+  </data>
+  <data name="SmartBpAiAllowSequentialFallback" xml:space="preserve">
+    <value>多图失败时允许顺序识别回退</value>
+  </data>
+  <data name="SmartBpAiUseStrictCandidateEnums" xml:space="preserve">
+    <value>自动识别使用严格候选枚举</value>
+  </data>
+  <data name="SmartBpAiPhaseCropMaxWidth" xml:space="preserve">
+    <value>阶段裁剪最大宽度</value>
+  </data>
+  <data name="SmartBpAiContentCropMaxWidth" xml:space="preserve">
+    <value>内容裁剪最大宽度</value>
+  </data>
+  <data name="SmartBpAiPhaseMaxTokens" xml:space="preserve">
+    <value>阶段识别 token 上限</value>
+  </data>
+  <data name="SmartBpAiSnapshotDeltaMaxTokens" xml:space="preserve">
+    <value>增量识别 token 上限</value>
+  </data>
+  <data name="SmartBpAiCommitHoldMilliseconds" xml:space="preserve">
+    <value>阶段切换提交等待毫秒</value>
+  </data>
+  <data name="SmartBpAiCommitHoldMaxMilliseconds" xml:space="preserve">
+    <value>阶段切换最长等待毫秒</value>
+  </data>
+  <data name="SmartBpAiUnknownPhaseTalentInferenceFrames" xml:space="preserve">
+    <value>未知阶段推断天赋帧数</value>
+  </data>
+  <data name="SmartBpAiBackfillLookBehindSteps" xml:space="preserve">
+    <value>回看工作流步数</value>
+  </data>
+  <data name="SmartBpAiFieldStaleMilliseconds" xml:space="preserve">
+    <value>字段陈旧刷新毫秒</value>
+  </data>
+  <data name="SmartBpAiVisualBufferMilliseconds" xml:space="preserve">
+    <value>当前步骤动画缓冲毫秒</value>
+  </data>
+  <data name="SmartBpAiModelProfileHint" xml:space="preserve">
+    <value>0.8B 更快、占用更低但准确率较低；2B 更慢但识别更稳。</value>
+  </data>
+  <data name="SmartBpAiStopServerBeforeSwitchModel" xml:space="preserve">
+    <value>切换 Qwen 模型前请先停止 llama-server。</value>
+  </data>
+  <data name="SmartBpAiCheckRuntimeUpdate" xml:space="preserve">
+    <value>检查 llama.cpp 更新</value>
+  </data>
+  <data name="SmartBpAiLedgerResetCompleted" xml:space="preserve">
+    <value>已重置当前对局的 SmartBP AI 识别记录。</value>
+  </data>
+  <data name="SmartBpRecognitionTitle" xml:space="preserve">
+    <value>SmartBP BP 识别</value>
+  </data>
+  <data name="SmartBpRecognitionPreviewNotice" xml:space="preserve">
+    <value>OCR 会读取文字和位置，本地解析 BP 阶段、禁用与选择结果；AI / Qwen 识别仍可在实验模式中使用。</value>
+  </data>
+  <data name="SmartBpRecognitionEngine" xml:space="preserve">
+    <value>识别引擎</value>
+  </data>
+  <data name="SmartBpRecognitionMethod" xml:space="preserve">
+    <value>识别方式</value>
+  </data>
+  <data name="SmartBpRecognitionStrategyPureOcr" xml:space="preserve">
+    <value>纯 OCR</value>
+  </data>
+  <data name="SmartBpRecognitionStrategyPureAi" xml:space="preserve">
+    <value>纯 AI</value>
+  </data>
+  <data name="SmartBpRecognitionStrategyAiWithOcr" xml:space="preserve">
+    <value>AI + OCR</value>
+  </data>
+  <data name="SmartBpRecognitionStrategyAiWithAiOcr" xml:space="preserve">
+    <value>AI + AI OCR</value>
+  </data>
+  <data name="SmartBpBusinessAiModel" xml:space="preserve">
+    <value>业务 AI 模型</value>
+  </data>
+  <data name="SmartBpAiOcrModel" xml:space="preserve">
+    <value>AI OCR 模型</value>
+  </data>
+  <data name="SmartBpAiOcrModelHint" xml:space="preserve">
+    <value>PaddleOCR-VL、GLM OCR 和实验 Qwen 模型用于读取可见文字；BP 业务映射由本地解释器负责。</value>
+  </data>
+  <data name="SmartBpLlamaRuntime" xml:space="preserve">
+    <value>llama.cpp 运行时</value>
+  </data>
+  <data name="SmartBpBusinessAiServer" xml:space="preserve">
+    <value>业务 AI 服务器</value>
+  </data>
+  <data name="SmartBpAiOcrServer" xml:space="preserve">
+    <value>AI OCR 服务器</value>
+  </data>
+  <data name="SmartBpBusinessAiServerStarting" xml:space="preserve">
+    <value>正在启动业务 AI 服务器...</value>
+  </data>
+  <data name="SmartBpAiOcrServerStarting" xml:space="preserve">
+    <value>正在启动 AI OCR 服务器...</value>
+  </data>
+  <data name="SmartBpBusinessAiServerRestarting" xml:space="preserve">
+    <value>正在重启业务 AI 服务器...</value>
+  </data>
+  <data name="SmartBpAiOcrServerRestarting" xml:space="preserve">
+    <value>正在重启 AI OCR 服务器...</value>
+  </data>
+  <data name="SmartBpRequiredServersStarting" xml:space="preserve">
+    <value>正在启动当前策略所需服务器...</value>
+  </data>
+  <data name="SmartBpServerModel" xml:space="preserve">
+    <value>模型</value>
+  </data>
+  <data name="SmartBpServerPort" xml:space="preserve">
+    <value>端口</value>
+  </data>
+  <data name="SmartBpServerStatus" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="SmartBpStartRequiredServers" xml:space="preserve">
+    <value>启动所需服务器</value>
+  </data>
+  <data name="SmartBpStopAllServers" xml:space="preserve">
+    <value>停止全部服务器</value>
+  </data>
+  <data name="SmartBpCheckRuntimeUpdate" xml:space="preserve">
+    <value>检查运行时更新</value>
+  </data>
+  <data name="SmartBpRecognitionEngineOcrRecommended" xml:space="preserve">
+    <value>OCR（推荐）</value>
+  </data>
+  <data name="SmartBpRecognitionEngineAiQwenExperimental" xml:space="preserve">
+    <value>AI / Qwen（实验）</value>
+  </data>
+  <data name="SmartBpAiQwenEnginePanel" xml:space="preserve">
+    <value>AI / Qwen 引擎设置</value>
+  </data>
+  <data name="SmartBpOcrModelStatus" xml:space="preserve">
+    <value>OCR 模型</value>
+  </data>
+  <data name="SmartBpOcrContactSheet" xml:space="preserve">
+    <value>合并识别图</value>
+  </data>
+  <data name="SmartBpOcrEnableBpRecognition" xml:space="preserve">
+    <value>启用 OCR BP 识别</value>
+  </data>
+  <data name="SmartBpOcrUseContactSheet" xml:space="preserve">
+    <value>使用 OCR 合并识别图</value>
+  </data>
+  <data name="SmartBpOcrDebugOverlay" xml:space="preserve">
+    <value>启用 OCR 调试覆盖层</value>
+  </data>
+  <data name="SmartBpOcrIntervalMilliseconds" xml:space="preserve">
+    <value>OCR 识别间隔毫秒</value>
+  </data>
+  <data name="SmartBpOcrFieldStaleMilliseconds" xml:space="preserve">
+    <value>OCR 字段陈旧刷新毫秒</value>
+  </data>
+  <data name="SmartBpOcrBackfillLookBehindSteps" xml:space="preserve">
+    <value>OCR 回看工作流步数</value>
+  </data>
+  <data name="SmartBpOcrProviderSection" xml:space="preserve">
+    <value>OCR 提供程序</value>
+  </data>
+  <data name="SmartBpRecommendedProviderFormat" xml:space="preserve">
+    <value>{0}（推荐）</value>
+  </data>
+  <data name="SmartBpOcrPaddleStatus" xml:space="preserve">
+    <value>Paddle 状态</value>
+  </data>
+  <data name="SmartBpOcrTesseractStatus" xml:space="preserve">
+    <value>Tesseract 数据状态</value>
+  </data>
+  <data name="SmartBpOcrStatusInstalled" xml:space="preserve">
+    <value>已安装</value>
+  </data>
+  <data name="SmartBpOcrStatusMissing" xml:space="preserve">
+    <value>缺失</value>
+  </data>
+  <data name="SmartBpOcrEnableTesseract" xml:space="preserve">
+    <value>启用 Tesseract OCR</value>
+  </data>
+  <data name="SmartBpOcrTesseractLanguages" xml:space="preserve">
+    <value>Tesseract 语言</value>
+  </data>
+  <data name="SmartBpOcrOpenTessdataFolder" xml:space="preserve">
+    <value>打开 tessdata 文件夹</value>
+  </data>
+  <data name="SmartBpOcrTesseractPsm" xml:space="preserve">
+    <value>Tesseract 页面分割模式（PSM）</value>
+  </data>
+  <data name="SmartBpOcrTesseractVariants" xml:space="preserve">
+    <value>最大预处理变体数</value>
+  </data>
+  <data name="Download" xml:space="preserve">
+    <value>下载</value>
+  </data>
+  <data name="Switch" xml:space="preserve">
+    <value>切换</value>
+  </data>
+  <data name="SmartBpModelManagement" xml:space="preserve">
+    <value>模型管理</value>
+  </data>
+  <data name="SmartBpFeatureSwitches" xml:space="preserve">
+    <value>功能开关</value>
+  </data>
+  <data name="SmartBpAutomaticRecognitionAndApply" xml:space="preserve">
+    <value>自动识别与应用</value>
+  </data>
+  <data name="SmartBpRecognitionAreaConfiguration" xml:space="preserve">
+    <value>识别区域配置</value>
+  </data>
+  <data name="SmartBpBpRecognitionRegions" xml:space="preserve">
+    <value>BP 自动识别区域</value>
+  </data>
+  <data name="SmartBpGameDataRecognitionRegions" xml:space="preserve">
+    <value>赛后数据识别区域</value>
+  </data>
+  <data name="SmartBpOpenBpRecognitionRegionEditor" xml:space="preserve">
+    <value>编辑 BP 识别区域</value>
+  </data>
+  <data name="SmartBpEditGameDataRegionConfig" xml:space="preserve">
+    <value>编辑赛后数据区域</value>
+  </data>
+  <data name="SmartBpResetGameDataRegionConfig" xml:space="preserve">
+    <value>重置为内置 16:9 默认</value>
+  </data>
+  <data name="SmartBpRegionConfigCurrentPath" xml:space="preserve">
+    <value>当前配置路径</value>
+  </data>
+  <data name="SmartBpRegionConfigConfiguredAspectRatio" xml:space="preserve">
+    <value>配置比例</value>
+  </data>
+  <data name="SmartBpRegionConfigCurrentCaptureAspectRatio" xml:space="preserve">
+    <value>当前捕获比例</value>
+  </data>
+  <data name="SmartBpRegionConfigAspectStatus" xml:space="preserve">
+    <value>比例匹配状态</value>
+  </data>
+  <data name="SmartBpAdvancedParameters" xml:space="preserve">
+    <value>高级参数</value>
+  </data>
+  <data name="SmartBpAiWithOcrFusionMode" xml:space="preserve">
+    <value>AI + OCR 融合模式</value>
+  </data>
+  <data name="SmartBpAiWithAiOcrFusionMode" xml:space="preserve">
+    <value>AI + AI OCR 融合模式</value>
+  </data>
+  <data name="SmartBpDebugOptions" xml:space="preserve">
+    <value>调试选项</value>
+  </data>
+  <data name="SmartBpFullRecognitionTest" xml:space="preserve">
+    <value>识别全图</value>
+  </data>
+  <data name="SmartBpPhaseSceneOnlyTest" xml:space="preserve">
+    <value>识别当前阶段</value>
+  </data>
+  <data name="SmartBpDebugTools" xml:space="preserve">
+    <value>调试工具</value>
+  </data>
+  <data name="SmartBpAiRecognizeSelectedPhase" xml:space="preserve">
+    <value>识别所选测试图阶段</value>
+  </data>
+  <data name="SmartBpAiRecognizeCurrentPhase" xml:space="preserve">
+    <value>识别当前阶段</value>
+  </data>
+  <data name="SmartBpDebugStrategySummary" xml:space="preserve">
+    <value>策略</value>
+  </data>
+  <data name="SmartBpDebugPhaseScene" xml:space="preserve">
+    <value>阶段 / 场景</value>
+  </data>
+  <data name="SmartBpDebugBusinessAiRaw" xml:space="preserve">
+    <value>业务 AI 原始输出</value>
+  </data>
+  <data name="SmartBpDebugPureAiFullRaw" xml:space="preserve">
+    <value>纯 AI 完整原始输出</value>
+  </data>
+  <data name="SmartBpDebugOcrRawLines" xml:space="preserve">
+    <value>OCR 原始行</value>
+  </data>
+  <data name="SmartBpDebugAiOcrTranscript" xml:space="preserve">
+    <value>AI OCR 转写</value>
+  </data>
+  <data name="SmartBpDebugParsedState" xml:space="preserve">
+    <value>解析状态</value>
+  </data>
+  <data name="SmartBpDebugMergeLog" xml:space="preserve">
+    <value>合并诊断</value>
+  </data>
+  <data name="SmartBpDebugCandidateOperations" xml:space="preserve">
+    <value>候选操作</value>
+  </data>
+  <data name="SmartBpDebugServerStatus" xml:space="preserve">
+    <value>服务器状态</value>
+  </data>
+  <data name="SmartBpDebugTiming" xml:space="preserve">
+    <value>耗时</value>
+  </data>
+  <data name="SmartBpRecognitionEnginePaddle" xml:space="preserve">
+    <value>Paddle OCR</value>
+  </data>
+  <data name="SmartBpRecognitionEngineTesseract" xml:space="preserve">
+    <value>Tesseract OCR</value>
+  </data>
+  <data name="SmartBpTesseractDownloadData" xml:space="preserve">
+    <value>下载所选语言数据</value>
+  </data>
+  <data name="SmartBpTesseractDeleteData" xml:space="preserve">
+    <value>删除所选语言数据</value>
+  </data>
+  <data name="SmartBpTesseractDataDownloading" xml:space="preserve">
+    <value>正在下载 Tesseract 语言数据</value>
+  </data>
+  <data name="SmartBpTesseractDataInstalled" xml:space="preserve">
+    <value>Tesseract 语言数据已安装</value>
+  </data>
+  <data name="SmartBpTesseractDataMissing" xml:space="preserve">
+    <value>Tesseract 语言数据缺失</value>
+  </data>
+  <data name="SmartBpTesseractLanguageChineseSimplified" xml:space="preserve">
+    <value>简体中文（chi_sim）</value>
+  </data>
+  <data name="SmartBpTesseractLanguageEnglish" xml:space="preserve">
+    <value>英语（eng）</value>
+  </data>
+  <data name="SmartBpTesseractLanguageJapanese" xml:space="preserve">
+    <value>日语（jpn）</value>
+  </data>
+  <data name="SmartBpTesseractLanguageInstalled" xml:space="preserve">
+    <value>已安装</value>
+  </data>
+  <data name="SmartBpTesseractLanguageMissing" xml:space="preserve">
+    <value>缺失</value>
+  </data>
+  <data name="SmartBpTesseractNoLanguageSelected" xml:space="preserve">
+    <value>请至少选择一个 Tesseract 语言。</value>
+  </data>
+  <data name="SmartBpDownloadCancelled" xml:space="preserve">
+    <value>下载已取消</value>
+  </data>
+  <data name="SmartBpDownloadFailedSimple" xml:space="preserve">
+    <value>下载失败</value>
+  </data>
+  <data name="SmartBpGameDataAiRecognitionNotImplemented" xml:space="preserve">
+    <value>赛后数据暂未接入 AI 识别，请先切换到 Paddle OCR 或 Tesseract OCR。</value>
+  </data>
+  <data name="SmartBpAiDownloadModel" xml:space="preserve">
+    <value>下载所选模型</value>
+  </data>
+  <data name="SmartBpAiRollbackRuntime" xml:space="preserve">
+    <value>回滚 llama.cpp 运行时</value>
+  </data>
+  <data name="SmartBpAiRuntimeRollbackComplete" xml:space="preserve">
+    <value>llama.cpp 运行时回滚完成</value>
+  </data>
+  <data name="SmartBpEnableAutoGuidanceSync" xml:space="preserve">
+    <value>启用 GameGuidance 自动同步</value>
+  </data>
+  <data name="SmartBpEnableAutoGuidancePageNavigation" xml:space="preserve">
+    <value>同步步骤时跟随页面导航</value>
+  </data>
+  <data name="SmartBpProgressAutoCorrection" xml:space="preserve">
+    <value>智能诊断并自动同步进度</value>
+  </data>
+  <data name="SmartBpProgressAutoCorrectionDescription" xml:space="preserve">
+    <value>自动识别发现对局引导步骤与画面状态明显不一致时，使用全量 OCR 确认后自动向前同步。</value>
+  </data>
+  <data name="SmartBpForceSyncGameProgress" xml:space="preserve">
+    <value>强制同步对局进度</value>
+  </data>
+  <data name="SmartBpForceSyncGameProgressDescription" xml:space="preserve">
+    <value>根据当前识别到的禁选/选择槽位，推断并切换到最符合的对局引导步骤。</value>
+  </data>
+  <data name="SmartBpProgressDiagnosisAligned" xml:space="preserve">
+    <value>最近进度诊断：已对齐</value>
+  </data>
+  <data name="SmartBpProgressDiagnosisInsufficient" xml:space="preserve">
+    <value>最近进度诊断：证据不足</value>
+  </data>
+  <data name="SmartBpProgressDiagnosisMisalignedFormat" xml:space="preserve">
+    <value>最近进度诊断：当前 Step {0} {1}[{2}]，画面更符合 Step {3} {4}[{5}]</value>
+  </data>
+  <data name="SmartBpProgressDiagnosisSyncedFormat" xml:space="preserve">
+    <value>最近进度诊断：已同步到 Step {0} {1}[{2}]</value>
+  </data>
+  <data name="SmartBpProgressForceSyncNoSnapshot" xml:space="preserve">
+    <value>未能识别完整 BP 快照，无法同步对局进度。</value>
+  </data>
+  <data name="SmartBpProgressForceSyncRecognitionBusy" xml:space="preserve">
+    <value>当前识别任务尚未结束，暂时无法获取完整 BP 快照。请稍后再试。</value>
+  </data>
+  <data name="SmartBpProgressForceSyncGuidanceStartFailed" xml:space="preserve">
+    <value>未能启动对局引导，无法同步对局进度。</value>
+  </data>
+  <data name="SmartBpProgressForceSyncForwardOnly" xml:space="preserve">
+    <value>自动进度同步只会向前移动，已跳过本次同步。</value>
+  </data>
+  <data name="SmartBpProgressForceSyncFailedFormat" xml:space="preserve">
+    <value>强制同步对局进度失败：{0}</value>
+  </data>
+  <data name="SmartBpOperationFailedFormat" xml:space="preserve">
+    <value>操作失败：{0}</value>
+  </data>
+  <data name="SmartBpAlreadyRunning" xml:space="preserve">
+    <value>SmartBP 已在运行，请勿重复启动。</value>
+  </data>
+  <data name="SmartBpFreeFullSyncWarning" xml:space="preserve">
+    <value>自由全同步为实验功能，可能在没有工作流上下文时写入识别槽位。推荐使用引导工作流。</value>
+  </data>
+  <data name="SmartBpCaptureStopDisabledWhileRecognizing" xml:space="preserve">
+    <value>自动识别运行时会保持窗口捕获；请先停止自动识别再停止捕获。</value>
+  </data>
+  <data name="SmartBpStopCaptureWhileRecognizing" xml:space="preserve">
+    <value>自动识别正在运行。请先停止自动识别，再停止窗口捕获。</value>
+  </data>
+  <data name="SmartBpRecognitionPausedCaptureStopped" xml:space="preserve">
+    <value>窗口捕获已停止，自动识别已暂停。</value>
+  </data>
+  <data name="SmartBpRecognitionPausedFrameUnavailable" xml:space="preserve">
+    <value>无法获取当前捕获画面，自动识别已暂停。</value>
+  </data>
+  <data name="SmartBpStartAutomaticRecognition" xml:space="preserve">
+    <value>启动自动识别</value>
+  </data>
+  <data name="SmartBpStopAutomaticRecognition" xml:space="preserve">
+    <value>停止 SmartBP 识别</value>
+  </data>
+  <data name="SmartBpAutoRecognitionStartTitle" xml:space="preserve">
+    <value>启动自动识别</value>
+  </data>
+  <data name="SmartBpAutoRecognitionStartConfirm" xml:space="preserve">
+    <value>请确认当前对局进度和半场已正确设置。设置错误可能导致识别结果写入错误对局。</value>
+  </data>
+  <data name="SmartBpAiOneStepDelayedMode" xml:space="preserve">
+    <value>AI 单步延迟模式</value>
+  </data>
+  <data name="SmartBpAiUseMultiImage" xml:space="preserve">
+    <value>使用多图请求</value>
+  </data>
+  <data name="SmartBpAiRecognizeCurrentFrame" xml:space="preserve">
+    <value>识别当前捕获画面全图</value>
+  </data>
+  <data name="SmartBpAiSwitchModelRestartConfirm" xml:space="preserve">
+    <value>llama-server 正在运行。切换模型需要自动重启服务，是否继续？</value>
+  </data>
+  <data name="SmartBpAiSwitchModelTitle" xml:space="preserve">
+    <value>切换 AI 模型</value>
+  </data>
+  <data name="SmartBpAiModelDownloadRequired" xml:space="preserve">
+    <value>所选模型尚未安装，请先下载。</value>
+  </data>
+  <data name="SmartBpTooltipContactSheet" xml:space="preserve">
+    <value>把多个 BP 裁剪区域拼成一次 OCR 输入，通常能减少调用开销。关闭后逐区域识别更容易排查映射问题，但一次 tick 更慢。普通用户建议开启；若文字被错误归到其他区域再关闭。</value>
+  </data>
+  <data name="SmartBpTooltipRecognitionInterval" xml:space="preserve">
+    <value>控制 OCR 自动识别两次截图之间的间隔。间隔低于实际处理耗时时会造成结果滞后和界面卡顿。建议先运行“测试识别速度”，最低值会设为实测最大耗时 + 250ms。</value>
+  </data>
+  <data name="SmartBpTooltipFieldStale" xml:space="preserve">
+    <value>字段超过此时间未刷新就重新 OCR。太短会重复识别并增加 CPU 占用，太长可能保留旧结果。建议 1000–3000ms，并应大于单次 OCR 耗时。</value>
+  </data>
+  <data name="SmartBpTooltipBackfill" xml:space="preserve">
+    <value>允许回看并补录的工作流步骤数量。数值越大越能补快节奏遗漏，但也更可能把旧画面误配到更早步骤。通常建议 1–3；流程稳定时保持 2。</value>
+  </data>
+  <data name="SmartBpTooltipDebugOverlay" xml:space="preserve">
+    <value>输出 OCR 区域、文字框和匹配调试信息，便于定位识别问题。会增加磁盘写入和少量处理开销；日常使用建议关闭，排障时临时开启。</value>
+  </data>
+  <data name="SmartBpTooltipTesseractLanguages" xml:space="preserve">
+    <value>控制 Tesseract 加载的语言，例如 chi_sim+eng。缺少对应 traineddata 会识别失败；加载过多语言会更慢并增加误判。中文赛事建议 chi_sim+eng。</value>
+  </data>
+  <data name="SmartBpTooltipTesseractPsm" xml:space="preserve">
+    <value>控制 Tesseract 页面分割模式。错误模式会漏字或把多行粘连。SmartBP 默认 6 适合统一文本块；除非根据调试图确认布局不同，否则保持 6。</value>
+  </data>
+  <data name="SmartBpTooltipTesseractVariants" xml:space="preserve">
+    <value>每个区域尝试的预处理版本数量。更多版本可能提高复杂背景下的识别率，但耗时近似成倍增加。安全范围 1–3；自动识别卡顿时降低。</value>
+  </data>
+  <data name="SmartBpTooltipAiDelayed" xml:space="preserve">
+    <value>让 AI 先确认并完成上一角色步骤，再移动 GameGuidance，可降低模型结果慢一拍造成的漏录。只在角色 BP/紧邻天赋阶段生效，绝不会跨入区域选择。建议开启；关闭会更快但更容易漏掉最后一步。</value>
+  </data>
+  <data name="SmartBpTooltipAiInferenceFrames" xml:space="preserve">
+    <value>连续多少个未知阶段画面后，才可在“监管者已选择且账本完成”的严格条件下推断监管者天赋。太小可能误跳，太大会延迟引导；建议 2–4，区域选择后不会推断。</value>
+  </data>
+  <data name="SmartBpTooltipMultiImage" xml:space="preserve">
+    <value>开启后会把 phase_top 和需要识别的 BP 区域合并到一次 llama.cpp 请求中，通常比多次请求更快。若当前 llama.cpp/模型不支持多图输入，可能返回错误；可关闭后使用顺序回退，但延迟会明显增加。</value>
+  </data>
+  <data name="SmartBpTooltipSequentialFallback" xml:space="preserve">
+    <value>当多图 AI 请求失败时，允许退回到逐区域识别。优点是兼容性更好；缺点是一次 tick 可能变成多次模型请求，延迟和显存占用更高。出现卡顿时建议关闭并查看错误。</value>
+  </data>
+  <data name="SmartBpTooltipGpuLayers" xml:space="preserve">
+    <value>控制模型有多少层放到 GPU。-1 表示自动。数值越高显存占用越高，速度可能更快；显存不足会导致 llama.cpp 启动失败或推理崩溃。</value>
+  </data>
+  <data name="SmartBpTooltipBatchSize" xml:space="preserve">
+    <value>影响 llama.cpp prompt 处理吞吐和显存峰值。数值过大可能更快但更吃显存；数值过小更稳但慢。除非你了解 llama.cpp 的 batch 参数，否则保持默认 512。</value>
+  </data>
+  <data name="SmartBpTooltipUBatchSize" xml:space="preserve">
+    <value>控制 llama.cpp 物理微批大小并影响显存峰值。过大可能显存不足，过小会降低速度。普通用户建议保持默认 512，遇到显存问题时再逐步降低。</value>
+  </data>
+  <data name="SmartBpTooltipFlashAttention" xml:space="preserve">
+    <value>开启 llama.cpp Flash Attention。通常可降低显存或提升速度，但依赖当前 runtime 和显卡后端支持；如果启动失败或输出异常，可以关闭。</value>
+  </data>
+  <data name="SmartBpTestRecognitionSpeed" xml:space="preserve">
+    <value>测试识别速度</value>
+  </data>
+  <data name="SmartBpAiGpuName" xml:space="preserve">
+    <value>GPU 名称</value>
+  </data>
+  <data name="SmartBpAiGpuUtilization" xml:space="preserve">
+    <value>GPU 利用率</value>
+  </data>
+  <data name="SmartBpAiVram" xml:space="preserve">
+    <value>显存使用</value>
+  </data>
+  <data name="SmartBpAiProcessId" xml:space="preserve">
+    <value>llama.cpp 进程 ID</value>
+  </data>
+  <data name="SmartBpAiLastUpdated" xml:space="preserve">
+    <value>最后更新</value>
+  </data>
+  <data name="SmartBpGuidedWorkflowRecommended" xml:space="preserve">
+    <value>引导工作流（推荐）</value>
+  </data>
+  <data name="SmartBpFreeFullSyncExperimental" xml:space="preserve">
+    <value>自由全同步（实验性）</value>
+  </data>
+  <data name="SmartBpAutomaticRecognitionInterval" xml:space="preserve">
+    <value>自动识别间隔</value>
+  </data>
+  <data name="SmartBpRecognizing" xml:space="preserve">
+    <value>正在识别…</value>
+  </data>
+  <data name="SmartBpCurrentEngine" xml:space="preserve">
+    <value>当前引擎</value>
+  </data>
+  <data name="SmartBpCurrentInterval" xml:space="preserve">
+    <value>当前间隔</value>
+  </data>
+  <data name="SmartBpMinimumInterval" xml:space="preserve">
+    <value>测速允许的最低间隔</value>
+  </data>
+  <data name="SmartBpAiIntervalMilliseconds" xml:space="preserve">
+    <value>AI 自动识别间隔（毫秒）</value>
+  </data>
+  <data name="SmartBpRecognitionIntervalRequiresSpeedTest" xml:space="preserve">
+    <value>请先运行识别速度测试。最低间隔将设为“实测最大耗时 + 250ms”。</value>
+  </data>
+  <data name="SmartBpRecognitionIntervalReady" xml:space="preserve">
+    <value>测速结果与当前配置匹配，可以编辑识别间隔。</value>
+  </data>
+  <data name="SmartBpRecognitionPausedBpEnded" xml:space="preserve">
+    <value>SmartBP 已因 BP 流程结束或进入区域选择而暂停自动识别。</value>
+  </data>
+  <data name="SmartBpTooltipAiRecognitionInterval" xml:space="preserve">
+    <value>控制自动识别两次截图之间的间隔。AI/Qwen 每次识别可能耗时几秒，如果间隔低于模型实际耗时，会导致请求堆积、识别结果滞后、停止按钮响应变慢。建议先运行“测试识别速度”，系统会把最低间隔锁定为“实测最大耗时 + 250ms”。</value>
+  </data>
+  <data name="SmartBpTooltipPhaseCropWidth" xml:space="preserve">
+    <value>限制送入 AI 的阶段裁剪图最大宽度。数值越小越快、显存占用越低，但阶段文字可能丢失。通常 480–768；修改后需要重新测试识别速度。</value>
+  </data>
+  <data name="SmartBpTooltipContentCropWidth" xml:space="preserve">
+    <value>限制送入 AI 的 BP 内容裁剪图最大宽度。数值越小越快、显存占用越低，但文字和头像细节可能丢失。通常 640–1280；修改后需要重新测速。</value>
+  </data>
+  <data name="SmartBpTooltipPhaseTokens" xml:space="preserve">
+    <value>限制阶段识别最多输出多少 token。太小会导致 JSON 被截断，太大会延长生成。阶段结果很短，建议 32–128，默认 48。</value>
+  </data>
+  <data name="SmartBpTooltipSnapshotTokens" xml:space="preserve">
+    <value>限制增量快照最多输出多少 token。太小会截断 JSON，太大可能生成更久并增加卡顿。建议 256–1536，并确保能覆盖本次请求字段。</value>
+  </data>
+  <data name="SmartBpTooltipCommitHold" xml:space="preserve">
+    <value>检测到阶段切换后，在同步对局引导前短暂等待上一步识别和应用完成。太小可能漏掉上一步，太大会让 UI 跟随变慢。AI 通常建议 250–1000ms，OCR 可更小。</value>
+  </data>
+  <data name="SmartBpTooltipVisualBuffer" xml:space="preserve">
+    <value>当前步骤识别结果应用前的额外延迟，默认 0。只在希望动画更稳定、减少闪烁时使用；数值过大会让 BP 界面明显慢半拍，建议 0–500ms。</value>
+  </data>
+  <data name="SmartBpTooltipStrictCandidateEnums" xml:space="preserve">
+    <value>把当前角色候选表写入 AI JSON schema，能减少模型输出不存在的角色名，但 schema 更大、prompt 处理更慢，部分模型兼容性较差。角色名幻觉较多时开启；出现 schema 错误或延迟增加时关闭。</value>
+  </data>
+  <data name="SmartBpRecognitionEngineRapid" xml:space="preserve">
+    <value>RapidOCR</value>
+  </data>
+  <data name="SmartBpRapidOcrModelManagement" xml:space="preserve">
+    <value>RapidOCR 中文模型</value>
+  </data>
+  <data name="SmartBpRapidOcrDownloading" xml:space="preserve">
+    <value>正在下载 RapidOCR 模型</value>
+  </data>
+  <data name="SmartBpRapidOcrMaxSideLen" xml:space="preserve">
+    <value>最大图像边长</value>
+  </data>
+  <data name="SmartBpRapidOcrPadding" xml:space="preserve">
+    <value>检测边缘留白</value>
+  </data>
+  <data name="SmartBpRapidOcrBoxScoreThreshold" xml:space="preserve">
+    <value>文本框评分阈值</value>
+  </data>
+  <data name="SmartBpRapidOcrBoxThreshold" xml:space="preserve">
+    <value>文本框检测阈值</value>
+  </data>
+  <data name="SmartBpRapidOcrUnclipRatio" xml:space="preserve">
+    <value>文本框扩张比例</value>
+  </data>
+  <data name="SmartBpRapidOcrAngleClassifier" xml:space="preserve">
+    <value>启用文字方向分类</value>
+  </data>
+  <data name="SmartBpRapidOcrPreprocessingVariants" xml:space="preserve">
+    <value>尝试对比度增强版本</value>
+  </data>
+  <data name="SmartBpTooltipRapidOcrMaxSideLen" xml:space="preserve">
+    <value>较大的边长可能改善小字识别，但会增加内存和推理时间。建议保持 1024。</value>
+  </data>
+  <data name="SmartBpTooltipRapidOcrThresholds" xml:space="preserve">
+    <value>提高阈值可减少误识别，但也可能漏掉较弱或较小的文字。</value>
+  </data>
+  <data name="SmartBpRapidOcrCheckUpdate" xml:space="preserve">
+    <value>检查模型更新</value>
+  </data>
+  <data name="SmartBpRapidOcrUpdate" xml:space="preserve">
+    <value>更新模型</value>
+  </data>
+  <data name="SmartBpRapidOcrInstalledVersion" xml:space="preserve">
+    <value>已安装版本：</value>
+  </data>
+  <data name="SmartBpRapidOcrLatestVersion" xml:space="preserve">
+    <value>清单版本：</value>
+  </data>
+  <data name="SmartBpRapidOcrVersionUnknown" xml:space="preserve">
+    <value>未知（旧版安装）</value>
+  </data>
+  <data name="SmartBpRapidOcrUpdateAvailableFormat" xml:space="preserve">
+    <value>RapidOCR 模型可更新：{0} → {1}</value>
+  </data>
+  <data name="SmartBpRapidOcrUpToDateFormat" xml:space="preserve">
+    <value>RapidOCR 模型已是最新版本（{0}）</value>
+  </data>
+  <data name="SmartBpRapidOcrBundledManifestOutdatedFormat" xml:space="preserve">
+    <value>官方模型清单已更新（内置 {0}，官方 {1}）。请先更新 SmartBP 模块，避免安装旧模型。</value>
+  </data>
+  <data name="SmartBpIncrementalRecognitionTest" xml:space="preserve">
+    <value>识别当前阶段的增量</value>
+  </data>
+  <data name="SmartBpRecognizeSelectedIncremental" xml:space="preserve">
+    <value>识别所选测试图增量</value>
+  </data>
+  <data name="SmartBpRecognizeCurrentIncremental" xml:space="preserve">
+    <value>识别当前捕获画面增量</value>
+  </data>
+  <data name="SmartBpDebugFinalBusinessState" xml:space="preserve">
+    <value>最终业务状态</value>
+  </data>
+  <data name="SmartBpDebugFusionSummary" xml:space="preserve">
+    <value>融合摘要</value>
+  </data>
+  <data name="SmartBpDebugTimingServerSummary" xml:space="preserve">
+    <value>时序与服务器摘要</value>
+  </data>
+  <data name="SmartBpOpenRecognitionDebugLogWindow" xml:space="preserve">
+    <value>打开识别日志窗口</value>
+  </data>
+  <data name="SmartBpRecognitionDebugLogWindowTitle" xml:space="preserve">
+    <value>SmartBP 识别调试日志</value>
+  </data>
+  <data name="SmartBpRecognitionDebugLogAutoScroll" xml:space="preserve">
+    <value>自动滚动</value>
+  </data>
+  <data name="SmartBpCopyRecognitionDebugLog" xml:space="preserve">
+    <value>复制日志</value>
+  </data>
 </root>
