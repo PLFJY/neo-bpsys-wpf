@@ -95,6 +95,9 @@ public partial class FrontedDesignerWindow : FluentWindow
     private Point? _lastLayerDragPosition;
     private FrontedDesignerPreviewRenderRequestedEventArgs? _pendingPreviewRenderArgs;
     private readonly CancellationTokenSource _tutorialLifetime = new();
+    private FrontedControlDesignItem? _lastSeenSelectedDesignItem;
+    private bool _propertyPanelTutorialTriggered;
+    private Task<TutorialRunResult>? _propertyPanelTutorialTask;
 
     public FrontedDesignerWindow()
     {
@@ -205,6 +208,46 @@ public partial class FrontedDesignerWindow : FluentWindow
         _validationDetailsWindow = null;
         CloseHelpWindowSafely();
         _helpWindow = null;
+        _propertyPanelTutorialTriggered = false;
+        _propertyPanelTutorialTask = null;
+        _lastSeenSelectedDesignItem = null;
+    }
+
+    private void TryQueuePropertyPanelTutorial()
+    {
+        if (_propertyPanelTutorialTriggered)
+        {
+            return;
+        }
+
+        if (_propertyPanelTutorialTask is { IsCompleted: false })
+        {
+            return;
+        }
+
+        _propertyPanelTutorialTriggered = true;
+        _propertyPanelTutorialTask = RunPropertyPanelTutorialAsync();
+    }
+
+    private async Task<TutorialRunResult> RunPropertyPanelTutorialAsync()
+    {
+        try
+        {
+            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.ContextIdle, _tutorialLifetime.Token);
+            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.Render, _tutorialLifetime.Token);
+            var runner = _tutorialRunner
+                ?? IAppHost.Host?.Services.GetService(typeof(ITutorialRunner)) as ITutorialRunner;
+            if (runner == null)
+            {
+                return TutorialRunResult.NotReady;
+            }
+
+            return await runner.RunPackageAsync(this, Tours.PropertyPanelBasic, _tutorialLifetime.Token);
+        }
+        catch (OperationCanceledException) when (_tutorialLifetime.IsCancellationRequested)
+        {
+            return TutorialRunResult.Canceled;
+        }
     }
 
     private async Task LoadInitialLayoutAsync()
@@ -1255,6 +1298,11 @@ public partial class FrontedDesignerWindow : FluentWindow
         if (e.PropertyName == nameof(FrontedDesignerWindowViewModel.SelectedDesignItem))
         {
             SuppressPropertyEditorCommitForLayoutPass();
+            var currentItem = _viewModel?.SelectedDesignItem;
+            var wasNull = _lastSeenSelectedDesignItem is null;
+            var isNowNonNull = currentItem is not null;
+            _lastSeenSelectedDesignItem = currentItem;
+
             if (_viewModel?.IsRestoringSnapshotVisuals == true)
             {
                 return;
@@ -1263,6 +1311,11 @@ public partial class FrontedDesignerWindow : FluentWindow
             RebuildInteractionLayer();
             _viewModel?.UpdateBehaviorPreviewAnimationScope(PreviewCanvas);
             FocusDesignSurface();
+
+            if (wasNull && isNowNonNull)
+            {
+                TryQueuePropertyPanelTutorial();
+            }
         }
 
         if (e.PropertyName == nameof(FrontedDesignerWindowViewModel.SelectedDesignItems))

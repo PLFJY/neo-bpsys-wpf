@@ -109,15 +109,14 @@ public sealed class WpfTutorialNavigationIntegrationTest
         NeoBpsysTutorialRegistration.Register(packageRegistry, sequenceRegistry, flowRegistry);
 
         Assert.Equal(
-            [
-                TutorialPackageIds.SmartBpModuleContentOverview,
-                TutorialPackageIds.SmartBpOcrModelDownloadBasic,
-                TutorialPackageIds.SmartBpCaptureBasic,
-                TutorialPackageIds.SmartBpRegionEditorBasic,
-                TutorialPackageIds.SmartBpFullBpFlowBasic,
-                TutorialPackageIds.SmartBpPostGameAutoFill
-            ],
+            [TutorialPackageIds.SmartBpModuleShell],
             sequenceRegistry.GetSequence(TutorialPageKeys.SmartBp));
+
+        Assert.DoesNotContain(TutorialPackageIds.SmartBpModuleContentOverview, sequenceRegistry.GetSequence(TutorialPageKeys.SmartBp));
+        Assert.DoesNotContain(TutorialPackageIds.SmartBpOcrModelDownloadBasic, sequenceRegistry.GetSequence(TutorialPageKeys.SmartBp));
+        Assert.DoesNotContain(TutorialPackageIds.SmartBpCaptureBasic, sequenceRegistry.GetSequence(TutorialPageKeys.SmartBp));
+        Assert.DoesNotContain(TutorialPackageIds.SmartBpFullBpFlowBasic, sequenceRegistry.GetSequence(TutorialPageKeys.SmartBp));
+        Assert.DoesNotContain(TutorialPackageIds.SmartBpPostGameAutoFill, sequenceRegistry.GetSequence(TutorialPageKeys.SmartBp));
     }
 
     [Fact]
@@ -196,7 +195,7 @@ public sealed class WpfTutorialNavigationIntegrationTest
             Children =
             {
                 new ComboBox { Name = TutorialTargetNames.SmartBpWindowSelector },
-                new Border { Name = SmartBpPage.TutorialTargets.OcrModelManagementCard, Width = 80, Height = 40 },
+                new Border { Name = "SmartBpOcrModelManagementCard", Width = 80, Height = 40 },
                 new Button { Name = TutorialTargetNames.SmartBpStartCaptureButton, Content = "Capture" },
                 new Button { Name = TutorialTargetNames.SmartBpPreviewButton, Content = "Preview" },
                 new Border { Name = TutorialTargetNames.SmartBpPreviewPanel, Width = 80, Height = 40 },

@@ -55,6 +55,11 @@ public partial class FrontedBehaviorAnimationEditorWindow : FluentWindow
                 AnimationTabs.SelectFirstItemIfNoneSelected();
                 await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.ContextIdle, _tutorialLifetime.Token);
                 await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.Render, _tutorialLifetime.Token);
+                if (!IsVisible || AnimationTabs.SelectedItem == null)
+                {
+                    return;
+                }
+
                 var runner = _tutorialRunner
                     ?? IAppHost.Host?.Services.GetService(typeof(ITutorialRunner)) as ITutorialRunner;
                 if (runner != null)

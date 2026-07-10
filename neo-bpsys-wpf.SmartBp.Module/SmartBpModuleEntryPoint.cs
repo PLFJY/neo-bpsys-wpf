@@ -2,9 +2,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.SmartBpModule;
+using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.ViewModels.Pages;
 using neo_bpsys_wpf.Views.Pages;
+using neo_bpsys_wpf.Views.Windows;
 using neo_bpsys_wpf.SmartBp.Module.Abstractions;
 using neo_bpsys_wpf.SmartBp.Module.Services.Recognition;
 
@@ -13,9 +15,19 @@ namespace neo_bpsys_wpf.SmartBp.Module;
 /// <summary>
 /// SmartBP 运行时模块入口。
 /// </summary>
-public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint
+public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint, ITutorialRegistrationContributor
 {
     private ServiceProvider? _serviceProvider;
+
+    /// <inheritdoc />
+    public string RegistrationId => "neo-bpsys-wpf.SmartBp.Module";
+
+    /// <inheritdoc />
+    public void RegisterTutorials(ITutorialBuilder builder)
+    {
+        builder.RegisterOwner<SmartBpModuleContentView>();
+        builder.RegisterOwner<RegionEditorWindow>();
+    }
 
     /// <inheritdoc />
     public object CreateSmartBpContent(IServiceProvider hostServices)
@@ -68,6 +80,7 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint
         services.AddSingleton(hostServices.GetRequiredService<IGitHubDownloadUrlResolver>());
         services.AddSingleton(hostServices.GetRequiredService<ISmartBpAutoRecognitionGlobalControl>());
         services.AddSingleton(hostServices.GetRequiredService<ISmartBpAutoRecognitionGlobalControlSink>());
+        services.AddSingleton(hostServices.GetRequiredService<ITutorialRunner>());
         services.AddSingleton(loggerFactory);
         services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
 

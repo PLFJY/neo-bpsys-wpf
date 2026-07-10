@@ -5,8 +5,11 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Models;
+using neo_bpsys_wpf.ProductTour;
 using Wpf.Ui.Controls;
 
 namespace neo_bpsys_wpf.Views.Windows;
@@ -42,6 +45,7 @@ public partial class RegionEditorWindow : FluentWindow
 
     private NodeRef? _selected;
     private double _canvasScale = 1.0;
+    private readonly CancellationTokenSource _tutorialLifetime = new();
 
     /// <summary>
     /// 用户点击“保存”后返回的布局结构；取消则保持 null。
@@ -80,6 +84,30 @@ public partial class RegionEditorWindow : FluentWindow
         var count = _nodeRefs.Count;
         RuleText.Text = string.Format(ResolveLocalizedOrRaw("SmartBpRegionEditorRuleRuntimeFormat"), count);
         RenderAllOverlays();
+        Loaded += OnLoaded;
+        Closed += OnClosed;
+    }
+
+    private async void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.ContextIdle, _tutorialLifetime.Token);
+            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.Render, _tutorialLifetime.Token);
+            var runner = IAppHost.Host?.Services.GetService(typeof(ITutorialRunner)) as ITutorialRunner;
+            if (runner != null)
+            {
+                await runner.RunSequenceAsync(this, TutorialPageKey, _tutorialLifetime.Token);
+            }
+        }
+        catch (OperationCanceledException) when (_tutorialLifetime.IsCancellationRequested)
+        {
+        }
+    }
+
+    private void OnClosed(object? sender, EventArgs e)
+    {
+        _tutorialLifetime.Cancel();
     }
 
     /// <summary>

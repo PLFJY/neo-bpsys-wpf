@@ -24,6 +24,7 @@ public static class ProductTourServiceCollectionExtensions
         services.TryAddSingleton<ITutorialTextProvider, DefaultTutorialTextProvider>();
         services.TryAddSingleton<ITutorialRunObserver, NoOpTutorialRunObserver>();
         services.TryAddSingleton<ITutorialPlaybackCoordinator, TutorialPlaybackCoordinator>();
+        services.TryAddSingleton<ITutorialRegistrationService, TutorialRegistrationService>();
         services.TryAddSingleton(sp => new TutorialService(
             sp,
             sp.GetRequiredService<ITutorialPackageRegistry>(),
@@ -37,6 +38,7 @@ public static class ProductTourServiceCollectionExtensions
             sp.GetRequiredService<ProductTourOptions>(),
             sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TutorialService>>()));
         services.TryAddSingleton<ITutorialStateManager>(sp => sp.GetRequiredService<TutorialService>());
+        services.TryAddSingleton<ITutorialStepCancellation>(sp => sp.GetRequiredService<TutorialService>());
         services.TryAddSingleton<ITutorialRunner>(sp => new TutorialRunner(
             sp.GetRequiredService<TutorialService>(),
             sp.GetRequiredService<ITutorialPlaybackCoordinator>(),

@@ -71,7 +71,6 @@ public sealed class NeoBpsysTutorialRegistrationTest
             [
                 TutorialPackageIds.DesignerV3Overview,
                 TutorialPackageIds.DesignerV3LayoutEditBasic,
-                TutorialPackageIds.DesignerV3PropertyPanelBasic,
                 TutorialPackageIds.DesignerV3BehaviorEditBasic,
                 TutorialPackageIds.DesignerV3PackageImportExport,
                 TutorialPackageIds.DesignerV3HelpBasic
@@ -96,15 +95,10 @@ public sealed class NeoBpsysTutorialRegistrationTest
             sequenceRegistry.GetSequence(TutorialPageKeys.DesignerV3AnimationEditor));
         Assert.Equal(
             [
-                TutorialPackageIds.SmartBpModuleContentOverview,
-                TutorialPackageIds.SmartBpOcrModelDownloadBasic,
-                TutorialPackageIds.SmartBpCaptureBasic,
-                TutorialPackageIds.SmartBpRegionEditorBasic,
-                TutorialPackageIds.SmartBpFullBpFlowBasic,
-                TutorialPackageIds.SmartBpPostGameAutoFill
+                TutorialPackageIds.SmartBpModuleShell
             ],
             sequenceRegistry.GetSequence(TutorialPageKeys.SmartBp));
-        Assert.Equal(54, packageRegistry.GetPackages().Count);
+        Assert.Equal(49, packageRegistry.GetPackages().Count);
 
         var firstRun = flowRegistry.GetFlow(TutorialFlowIds.FirstRunStandardBp);
         Assert.NotNull(firstRun);
@@ -376,22 +370,10 @@ public sealed class NeoBpsysTutorialRegistrationTest
         await WpfTestThread.RunAsync(() =>
         {
             var packages = CreateRegisteredPackages();
-            var overview = Assert.Single(packages, package => package.PackageId == TutorialPackageIds.SmartBpModuleContentOverview);
-            var capture = Assert.Single(packages, package => package.PackageId == TutorialPackageIds.SmartBpCaptureBasic);
-            var region = Assert.Single(packages, package => package.PackageId == TutorialPackageIds.SmartBpRegionEditorBasic);
-            var fullBpFlow = Assert.Single(packages, package => package.PackageId == TutorialPackageIds.SmartBpFullBpFlowBasic);
-            var postGamePackage = Assert.Single(packages, package => package.PackageId == TutorialPackageIds.SmartBpPostGameAutoFill);
+            var shell = Assert.Single(packages, package => package.PackageId == TutorialPackageIds.SmartBpModuleShell);
 
-            Assert.Null(overview.CanRunWithOwner);
-            Assert.Null(overview.CanRun);
-            Assert.Null(capture.CanRunWithOwner);
-            Assert.Null(capture.CanRun);
-            Assert.Null(region.CanRunWithOwner);
-            Assert.Null(region.CanRun);
-            Assert.Null(fullBpFlow.CanRunWithOwner);
-            Assert.Null(fullBpFlow.CanRun);
-            Assert.Null(postGamePackage.CanRunWithOwner);
-            Assert.Null(postGamePackage.CanRun);
+            Assert.Null(shell.CanRunWithOwner);
+            Assert.Null(shell.CanRun);
 
             return Task.CompletedTask;
         });

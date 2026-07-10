@@ -67,15 +67,36 @@ public sealed class TutorialRunner : ITutorialRunner
     }
 
     /// <inheritdoc />
-    public Task<TutorialRunResult> RunSequenceAsync(
+    public async Task<TutorialRunResult> RunSequenceAsync(
         FrameworkElement owner,
         string tutorialKey,
-        CancellationToken cancellationToken = default) =>
-        _playbackCoordinator.RunSequenceAsync(
-            owner,
-            tutorialKey,
-            token => RunSequenceCoreAsync(owner, tutorialKey, token),
-            cancellationToken);
+        CancellationToken cancellationToken = default)
+    {
+        var isModalChild = owner is Window { Owner: not null } childWindow;
+        var handoffRequested = false;
+        if (isModalChild)
+        {
+            handoffRequested = await _playbackCoordinator.RequestChildHandoffAsync(
+                (Window)owner,
+                cancellationToken);
+        }
+
+        try
+        {
+            return await _playbackCoordinator.RunSequenceAsync(
+                owner,
+                tutorialKey,
+                token => RunSequenceCoreAsync(owner, tutorialKey, token),
+                cancellationToken);
+        }
+        finally
+        {
+            if (handoffRequested)
+            {
+                _playbackCoordinator.NotifyChildSessionCompleted();
+            }
+        }
+    }
 
     /// <inheritdoc />
     public Task<TutorialRunResult> RunPackageAsync(

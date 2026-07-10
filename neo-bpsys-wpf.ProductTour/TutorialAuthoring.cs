@@ -119,6 +119,22 @@ public interface ITutorialOwnerBuilder<TOwner>
 }
 
 /// <summary>
+/// Internal extension of <see cref="ITutorialOwnerBuilder{TOwner}"/> that supports package registration
+/// with on-demand scheduling. Used by the authoring package builder and runtime contributor builder.
+/// </summary>
+/// <typeparam name="TOwner">Owner type.</typeparam>
+internal interface ITutorialOwnerBuilderInternal<TOwner> : ITutorialOwnerBuilder<TOwner>
+    where TOwner : FrameworkElement, ITutorialOwner<TOwner>
+{
+    /// <summary>
+    /// Registers a finalized package definition with the package registry and optionally adds it to the sequence.
+    /// </summary>
+    /// <param name="package">Finalized package definition.</param>
+    /// <param name="isOnDemand">Whether the package is on-demand and should not appear in the default sequence.</param>
+    void RegisterPackage(TutorialPackageDefinition package, bool isOnDemand);
+}
+
+/// <summary>
 /// High-level builder for one owner-local package.
 /// </summary>
 /// <typeparam name="TOwner">Owner type.</typeparam>
@@ -136,6 +152,14 @@ public interface ITutorialPackageBuilder<TOwner> : ITutorialOwnerBuilder<TOwner>
     /// <param name="dialogue">Dialogue to display.</param>
     /// <returns>The same package builder.</returns>
     ITutorialPackageBuilder<TOwner> Dialogue(DialogueFlowItem dialogue);
+
+    /// <summary>
+    /// Marks this package as on-demand: it is registered in the package registry
+    /// but excluded from the owner's default automatic sequence. It can be started
+    /// explicitly through <see cref="ITutorialRunner.RunPackageAsync"/>.
+    /// </summary>
+    /// <returns>The same package builder.</returns>
+    ITutorialPackageBuilder<TOwner> OnDemand();
 
     /// <summary>
     /// Completes and registers the current package.
@@ -448,7 +472,7 @@ public sealed class TutorialBuilder : ITutorialBuilder
         TApp.RegisterTutorials(this);
 }
 
-internal sealed class TutorialOwnerBuilder<TOwner> : ITutorialOwnerBuilder<TOwner>
+internal sealed class TutorialOwnerBuilder<TOwner> : ITutorialOwnerBuilderInternal<TOwner>
     where TOwner : FrameworkElement, ITutorialOwner<TOwner>
 {
     private readonly ITutorialPackageRegistry _packageRegistry;
@@ -476,12 +500,19 @@ internal sealed class TutorialOwnerBuilder<TOwner> : ITutorialOwnerBuilder<TOwne
         return this;
     }
 
-    internal void RegisterPackage(TutorialPackageDefinition package)
+    internal void RegisterPackage(TutorialPackageDefinition package) =>
+        RegisterPackage(package, isOnDemand: false);
+
+    /// <inheritdoc />
+    public void RegisterPackage(TutorialPackageDefinition package, bool isOnDemand)
     {
         ValidateDuplicateContent(package);
         _packageRegistry.Register(package);
         _packages.Add(package);
-        AddSequencePackage(new TutorialPackageRef(package.PackageId));
+        if (!isOnDemand)
+        {
+            AddSequencePackage(new TutorialPackageRef(package.PackageId));
+        }
     }
 
     private void AddSequencePackage(TutorialPackageRef package)
@@ -534,15 +565,16 @@ internal sealed class TutorialAuthoringPackageBuilder<TOwner> :
     ITutorialStepBuilder<TOwner>
     where TOwner : FrameworkElement, ITutorialOwner<TOwner>
 {
-    private readonly TutorialOwnerBuilder<TOwner> _ownerBuilder;
+    private readonly ITutorialOwnerBuilderInternal<TOwner> _ownerBuilder;
     private readonly string _tutorialKey;
     private readonly TutorialPackageRef _package;
     private readonly int _sequence;
     private readonly List<TutorialPackageItem> _items = [];
     private ProductTourStep? _currentStep;
+    private bool _isOnDemand;
 
     public TutorialAuthoringPackageBuilder(
-        TutorialOwnerBuilder<TOwner> ownerBuilder,
+        ITutorialOwnerBuilderInternal<TOwner> ownerBuilder,
         string tutorialKey,
         TutorialPackageRef package,
         int sequence)
@@ -575,6 +607,12 @@ internal sealed class TutorialAuthoringPackageBuilder<TOwner> :
         ArgumentNullException.ThrowIfNull(dialogue);
         _items.Add(new TutorialPackageDialogueItem { Dialogue = dialogue });
         _currentStep = null;
+        return this;
+    }
+
+    public ITutorialPackageBuilder<TOwner> OnDemand()
+    {
+        _isOnDemand = true;
         return this;
     }
 
@@ -792,7 +830,7 @@ internal sealed class TutorialAuthoringPackageBuilder<TOwner> :
             PageKey = _tutorialKey,
             Sequence = _sequence,
             Items = _items.ToArray()
-        });
+        }, _isOnDemand);
         return _ownerBuilder;
     }
 

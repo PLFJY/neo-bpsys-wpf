@@ -114,6 +114,7 @@ public partial class FrontedDesignerWindow : ITutorialOwner<FrontedDesignerWindo
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
                     .AllowMissingTarget()
             .Package(Tours.PropertyPanelBasic)
+                .OnDemand()
                 .Step("属性面板")
                     .Text("选中控件后，右侧会显示属性。文本、颜色、图片、字体等都在这里修改。")
                     .TargetName(nameof(PropertyPanelHost))

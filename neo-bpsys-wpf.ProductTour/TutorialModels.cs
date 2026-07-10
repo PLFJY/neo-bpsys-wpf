@@ -302,6 +302,19 @@ public sealed class TutorialStepAction
 }
 
 /// <summary>
+/// Provides a mechanism to cancel the currently visible tutorial step,
+/// used by the playback coordinator to yield a parent step during a modal child handoff.
+/// </summary>
+public interface ITutorialStepCancellation
+{
+    /// <summary>
+    /// Forces the currently visible tutorial step to complete with a Cancel action.
+    /// Does nothing if no step is currently visible.
+    /// </summary>
+    void CancelCurrentStep();
+}
+
+/// <summary>
 /// Provides runtime information to a tutorial step action.
 /// </summary>
 public sealed class TutorialStepActionContext

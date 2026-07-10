@@ -22,7 +22,7 @@ public interface ITutorialStateManager
 /// <summary>
 /// Default tutorial service.
 /// </summary>
-internal sealed class TutorialService : ITutorialStateManager
+internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCancellation
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ITutorialPackageRegistry _packageRegistry;
@@ -35,6 +35,7 @@ internal sealed class TutorialService : ITutorialStateManager
     private readonly ITutorialRunObserver _runObserver;
     private readonly ProductTourOptions _options;
     private readonly ILogger<TutorialService> _logger;
+    private ProductTourOverlay? _currentOverlay;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TutorialService"/> class.
@@ -140,6 +141,7 @@ internal sealed class TutorialService : ITutorialStateManager
         }
 
         _runObserver.OnPackageCompleted(package.PackageId, result);
+        var completionStateWritten = false;
         if ((result == TutorialRunResult.Completed || result == TutorialRunResult.Skipped)
             && triggerMode != TutorialTriggerMode.EmbeddedInFlow)
         {
@@ -150,7 +152,17 @@ internal sealed class TutorialService : ITutorialStateManager
                 CompletionKind = TutorialCompletionKind.Completed
             };
             await _stateStore.SaveAsync(state, cancellationToken);
+            completionStateWritten = true;
         }
+
+        _logger.LogInformation(
+            "Tutorial package finalized. PackageId={PackageId}, PageKey={PageKey}, OwnerType={OwnerType}, FinalResult={FinalResult}, CompletionStateWritten={CompletionStateWritten}, CancellationRequested={CancellationRequested}",
+            package.PackageId,
+            package.PageKey,
+            owner.GetType().FullName,
+            result,
+            completionStateWritten,
+            cancellationToken.IsCancellationRequested);
 
         return result;
     }
@@ -224,6 +236,9 @@ internal sealed class TutorialService : ITutorialStateManager
     public Task ResetStateAsync(CancellationToken cancellationToken = default) => _stateStore.ResetAsync(cancellationToken);
 
     /// <inheritdoc />
+    public void CancelCurrentStep() => _currentOverlay?.ForceComplete(ProductTourStepAction.Cancel);
+
+    /// <inheritdoc />
     public async Task ClearFlowStateAsync(string flowId, CancellationToken cancellationToken = default)
     {
         var state = await _stateStore.LoadAsync(cancellationToken);
@@ -277,9 +292,23 @@ internal sealed class TutorialService : ITutorialStateManager
         var index = 0;
         while (index < items.Count)
         {
+            _logger.LogInformation(
+                "Tutorial package item transitioning. PackageId={PackageId}, PackageItemIndex={PackageItemIndex}, ItemCount={ItemCount}, ItemType={ItemType}, OwnerType={OwnerType}, CancellationRequested={CancellationRequested}",
+                packageId,
+                index,
+                items.Count,
+                items[index].GetType().Name,
+                owner.GetType().FullName,
+                cancellationToken.IsCancellationRequested);
+
             if (items[index] is TutorialPackageDialogueItem dialogueItem)
             {
                 var dialogueResult = await ShowDialogueAsync(owner, dialogueItem.Dialogue, cancellationToken);
+                _logger.LogInformation(
+                    "Tutorial dialogue item resolved. PackageId={PackageId}, PackageItemIndex={PackageItemIndex}, Result={Result}",
+                    packageId,
+                    index,
+                    dialogueResult);
                 if (dialogueResult != TutorialRunResult.Completed)
                 {
                     return dialogueResult;
@@ -292,12 +321,18 @@ internal sealed class TutorialService : ITutorialStateManager
             if (items[index] is TutorialPackageStepItem)
             {
                 var steps = new List<ProductTourStep>();
+                var startIndex = index;
                 while (index < items.Count && items[index] is TutorialPackageStepItem stepItem)
                 {
                     steps.Add(stepItem.Step);
                     index++;
                 }
 
+                _logger.LogInformation(
+                    "Tutorial step group starting. PackageId={PackageId}, PackageItemIndex={PackageItemIndex}, StepCount={StepCount}",
+                    packageId,
+                    startIndex,
+                    steps.Count);
                 var stepResult = await RunStepsAsync(owner, steps, flowId, packageId, cancellationToken);
                 if (stepResult != TutorialRunResult.Completed)
                 {
@@ -378,10 +413,22 @@ internal sealed class TutorialService : ITutorialStateManager
                         step.TargetKey);
                     return TutorialRunResult.TargetMissing;
                 }
+
+                _logger.LogInformation(
+                    "Tutorial target lookup succeeded. FlowId={FlowId}, PackageId={PackageId}, StepIndex={StepIndex}, StepCount={StepCount}, TargetKind={TargetKind}, TargetName={TargetName}, TargetKey={TargetKey}, TargetType={TargetType}",
+                    flowId,
+                    packageId,
+                    index,
+                    steps.Count,
+                    step.TargetKind,
+                    step.TargetName,
+                    step.TargetKey,
+                    target.GetType().FullName);
             }
 
             _runObserver.OnStepShown(packageId ?? string.Empty, step.TargetName, step.Title);
             var overlay = new ProductTourOverlay(_textProvider, _options, _avatarProvider);
+            _currentOverlay = overlay;
             var context = new ProductTourStepContext
             {
                 FlowId = flowId,
@@ -407,6 +454,16 @@ internal sealed class TutorialService : ITutorialStateManager
                     }
 
                     action = await stepTask;
+                    _logger.LogInformation(
+                        "Tutorial step action resolved. FlowId={FlowId}, PackageId={PackageId}, StepIndex={StepIndex}, StepCount={StepCount}, TargetKind={TargetKind}, TargetName={TargetName}, Action={Action}, CancellationRequested={CancellationRequested}",
+                        flowId,
+                        packageId,
+                        index,
+                        steps.Count,
+                        step.TargetKind,
+                        step.TargetName,
+                        action,
+                        cancellationToken.IsCancellationRequested);
                     await stepCts.CancelAsync();
 
                     try
@@ -419,6 +476,7 @@ internal sealed class TutorialService : ITutorialStateManager
                 }
                 finally
                 {
+                    _currentOverlay = null;
                     try
                     {
                         await overlay.FadeOutAsync();

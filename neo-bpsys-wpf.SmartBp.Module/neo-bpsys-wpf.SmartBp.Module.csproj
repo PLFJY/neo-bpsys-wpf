@@ -32,6 +32,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\neo-bpsys-wpf.Core\neo-bpsys-wpf.Core.csproj" Private="false" />
+    <ProjectReference Include="..\neo-bpsys-wpf.ProductTour\neo-bpsys-wpf.ProductTour.csproj" Private="false" />
   </ItemGroup>
 
   <ItemGroup>

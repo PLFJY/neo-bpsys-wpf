@@ -237,6 +237,13 @@ public sealed class ProductTourOverlay : Canvas
         return await _completion.Task;
     }
 
+    /// <summary>
+    /// Forces the current step to complete with the specified action, bypassing normal user interaction.
+    /// Used by the playback coordinator to yield a parent step during a modal child handoff.
+    /// </summary>
+    /// <param name="action">The action to force-complete the step with.</param>
+    public void ForceComplete(ProductTourStepAction action) => _completion?.TrySetResult(action);
+
     /// <summary>Marks the awaited step action as completed.</summary>
     public void MarkSignalCompleted()
     {

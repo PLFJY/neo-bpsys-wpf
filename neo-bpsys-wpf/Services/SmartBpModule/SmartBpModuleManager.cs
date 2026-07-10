@@ -5,12 +5,14 @@ using System.Runtime.Loader;
 using System.Security.Cryptography;
 using System.Net.Http;
 using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Models.SmartBpModule;
+using neo_bpsys_wpf.ProductTour;
 
 namespace neo_bpsys_wpf.Services.SmartBpModule;
 
@@ -478,6 +480,22 @@ public sealed class SmartBpModuleManager
             _logger.LogInformation("Creating SmartBP module entry point. EntryType={EntryType}", entryType.FullName);
             _entryPoint = (ISmartBpModuleEntryPoint)Activator.CreateInstance(entryType)!;
             ModuleRoot = moduleRoot;
+
+            if (_entryPoint is ITutorialRegistrationContributor contributor)
+            {
+                _logger.LogInformation(
+                    "Registering SmartBP module tutorial contributor. RegistrationId={RegistrationId}",
+                    contributor.RegistrationId);
+                var registrationService = _serviceProvider.GetService<ITutorialRegistrationService>();
+                if (registrationService == null)
+                {
+                    throw new InvalidOperationException(
+                        "ITutorialRegistrationService is not available. Cannot register SmartBP module tutorials.");
+                }
+
+                registrationService.RegisterContributor(contributor);
+            }
+
             _logger.LogInformation("Creating SmartBP module content.");
             ModuleContent = _entryPoint.CreateSmartBpContent(_serviceProvider);
             _featureCommands = _entryPoint.GetFeatureCommands();

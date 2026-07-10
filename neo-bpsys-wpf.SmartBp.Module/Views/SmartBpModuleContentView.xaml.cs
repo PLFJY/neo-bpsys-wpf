@@ -2,6 +2,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
+using neo_bpsys_wpf.ProductTour;
 
 namespace neo_bpsys_wpf.Views.Pages;
 
@@ -10,12 +12,55 @@ namespace neo_bpsys_wpf.Views.Pages;
 /// </summary>
 public partial class SmartBpModuleContentView : UserControl
 {
+    private readonly ITutorialRunner? _tutorialRunner;
+    private CancellationTokenSource _tutorialLifetime = new();
+    private Task<TutorialRunResult>? _tutorialRun;
+
     /// <summary>
     /// 初始化 <see cref="SmartBpModuleContentView"/> 类的新实例。
     /// </summary>
-    public SmartBpModuleContentView()
+    /// <param name="tutorialRunner">Tutorial runner.</param>
+    public SmartBpModuleContentView(ITutorialRunner? tutorialRunner = null)
     {
         InitializeComponent();
+        _tutorialRunner = tutorialRunner;
+        Loaded += OnLoaded;
+        Unloaded += OnUnloaded;
+    }
+
+    private async void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        if (_tutorialLifetime.IsCancellationRequested)
+        {
+            _tutorialLifetime.Dispose();
+            _tutorialLifetime = new CancellationTokenSource();
+        }
+
+        try
+        {
+            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.ContextIdle, _tutorialLifetime.Token);
+            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.Render, _tutorialLifetime.Token);
+            var runner = _tutorialRunner;
+            if (runner == null)
+            {
+                return;
+            }
+
+            if (_tutorialRun is not { IsCompleted: false })
+            {
+                _tutorialRun = runner.RunSequenceAsync(this, TutorialPageKey, _tutorialLifetime.Token);
+            }
+
+            await _tutorialRun;
+        }
+        catch (OperationCanceledException) when (_tutorialLifetime.IsCancellationRequested)
+        {
+        }
+    }
+
+    private void OnUnloaded(object sender, RoutedEventArgs e)
+    {
+        _tutorialLifetime.Cancel();
     }
 
     /// <summary>
