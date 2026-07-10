@@ -64,12 +64,6 @@ public sealed class ProductTourOptions
     /// <summary>Gets or sets whether skip button is shown.</summary>
     public bool ShowSkipButton { get; set; } = true;
 
-    /// <summary>Gets or sets whether arrows are shown.</summary>
-    public bool ShowArrow { get; set; } = true;
-
-    /// <summary>Gets or sets the default arrow kind.</summary>
-    public ProductTourArrowKind DefaultArrowKind { get; set; } = ProductTourArrowKind.Triangle;
-
     /// <summary>Gets or sets the default mask opacity.</summary>
     public double MaskOpacity { get; set; } = 0.86;
 

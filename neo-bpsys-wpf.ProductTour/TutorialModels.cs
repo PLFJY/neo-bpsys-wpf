@@ -159,21 +159,6 @@ public enum TutorialExpectedAction
 }
 
 /// <summary>
-/// Defines the default arrow shape used by a product tour card.
-/// </summary>
-public enum ProductTourArrowKind
-{
-    /// <summary>No arrow is shown.</summary>
-    None,
-    /// <summary>A triangular arrow is shown.</summary>
-    Triangle,
-    /// <summary>A line arrow is reserved for future use.</summary>
-    Line,
-    /// <summary>A curved arrow is reserved for future use.</summary>
-    Curved
-}
-
-/// <summary>
 /// Stores completion information for one tutorial package or flow.
 /// </summary>
 public sealed class TutorialCompletionRecord
@@ -256,9 +241,6 @@ public sealed class ProductTourStep
 
     /// <summary>Gets or sets the expected user action.</summary>
     public TutorialExpectedAction ExpectedAction { get; set; }
-
-    /// <summary>Gets or sets the arrow kind, or <see langword="null" /> to use the configured default.</summary>
-    public ProductTourArrowKind? ArrowKind { get; set; }
 
     /// <summary>Gets or sets the avatar placement for this step.</summary>
     public ProductTourAvatarPlacement AvatarPlacement { get; set; } = ProductTourAvatarPlacement.Auto;

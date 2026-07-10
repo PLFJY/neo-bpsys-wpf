@@ -80,12 +80,6 @@
         <Setter Property="LineHeight" Value="19" />
     </Style>
 
-    <Style x:Key="ProductTourArrowPathStyle" TargetType="{x:Type Path}">
-        <Setter Property="Fill" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
-        <Setter Property="Stroke" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
-        <Setter Property="StrokeThickness" Value="1" />
-    </Style>
-
     <Style x:Key="ProductTourPrimaryButtonStyle" TargetType="{x:Type Button}">
         <Setter Property="MinHeight" Value="34" />
         <Setter Property="Padding" Value="16,7" />

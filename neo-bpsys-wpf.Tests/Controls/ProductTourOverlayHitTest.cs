@@ -42,8 +42,6 @@ public sealed class ProductTourOverlayHitTest
         Assert.Equal(TimeSpan.FromMilliseconds(28), options.TypewriterInterval);
         Assert.True(options.ShowStepProgress);
         Assert.True(options.ShowSkipButton);
-        Assert.True(options.ShowArrow);
-        Assert.Equal(ProductTourArrowKind.Triangle, options.DefaultArrowKind);
         Assert.Equal(0.86, options.MaskOpacity);
         Assert.Equal(0.90, options.WelcomeMaskOpacity);
         Assert.Equal(0.82, options.DialogueMaskOpacity);

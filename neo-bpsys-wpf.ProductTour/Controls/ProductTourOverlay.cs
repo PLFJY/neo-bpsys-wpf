@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
-using System.Windows.Shapes;
 
 namespace neo_bpsys_wpf.ProductTour.Controls;
 
@@ -35,7 +34,6 @@ public sealed class ProductTourOverlay : Canvas
     private readonly Border _bottomMask;
     private readonly Border _spotlight;
     private readonly Border _card;
-    private readonly Path _arrow;
     private readonly TextBlock _title;
     private readonly TextBlock _description;
     private readonly TextBlock _progress;
@@ -56,7 +54,6 @@ public sealed class ProductTourOverlay : Canvas
     private FrameworkElement? _currentTarget;
     private ProductTourPlacement _currentPlacement = ProductTourPlacement.Center;
     private ProductTourInteractionMode _currentInteractionMode = ProductTourInteractionMode.BlockAll;
-    private ProductTourArrowKind _currentArrowKind = ProductTourArrowKind.Triangle;
     private ProductTourAvatarPlacement _currentAvatarPlacement = ProductTourAvatarPlacement.Auto;
     private TutorialAvatarPose? _currentAvatarPose;
     private Point _currentCardOffset;
@@ -184,14 +181,6 @@ public sealed class ProductTourOverlay : Canvas
         _avatarImage.Style = TryFindResource("ProductTourCardAvatarImageStyle") as Style;
         Children.Add(_avatarImage);
 
-        _arrow = new Path
-        {
-            Data = Geometry.Parse("M 0 0 L 16 8 L 0 16 Z"),
-            Style = TryFindResource("ProductTourArrowPathStyle") as Style,
-            IsHitTestVisible = false
-        };
-        Children.Add(_arrow);
-
         SizeChanged += (_, _) => LayoutCurrent(_currentOwner, _currentTarget, _currentPlacement);
     }
 
@@ -229,8 +218,6 @@ public sealed class ProductTourOverlay : Canvas
         _waitingText.Visibility = _signalReceived ? Visibility.Collapsed : Visibility.Visible;
         _errorText.Visibility = Visibility.Collapsed;
         _errorText.Text = string.Empty;
-        var arrowKind = step.ArrowKind ?? _options.DefaultArrowKind;
-        _currentArrowKind = _options.ShowArrow ? arrowKind : ProductTourArrowKind.None;
 
         LayoutCurrent(context.Owner, target, step.Placement);
         await FadeInAsync();
@@ -413,7 +400,6 @@ public sealed class ProductTourOverlay : Canvas
         SetTop(_card, cardY);
 
         LayoutAvatarResult(layout);
-        LayoutArrow(spotlightRect, new Rect(cardX, cardY, cardDesired.Width, cardDesired.Height));
         LayoutConfirmDialog();
     }
 
@@ -454,31 +440,6 @@ public sealed class ProductTourOverlay : Canvas
         mask.Height = Math.Max(0, height);
         mask.Visibility = isVisible && width > 0 && height > 0 ? Visibility.Visible : Visibility.Collapsed;
         mask.IsHitTestVisible = isVisible;
-    }
-
-    private void LayoutArrow(Rect spotlight, Rect cardRect)
-    {
-        if (_currentArrowKind != ProductTourArrowKind.Triangle)
-        {
-            _arrow.Visibility = Visibility.Collapsed;
-            return;
-        }
-
-        if (cardRect.IntersectsWith(spotlight))
-        {
-            _arrow.Visibility = Visibility.Collapsed;
-            return;
-        }
-
-        _arrow.Visibility = Visibility.Visible;
-        var targetCenter = new Point(spotlight.Left + spotlight.Width / 2, spotlight.Top + spotlight.Height / 2);
-        var cardCenter = new Point(cardRect.Left + cardRect.Width / 2, cardRect.Top + cardRect.Height / 2);
-        var x = (targetCenter.X + cardCenter.X) / 2;
-        var y = (targetCenter.Y + cardCenter.Y) / 2;
-        SetLeft(_arrow, x);
-        SetTop(_arrow, y);
-        var angle = Math.Atan2(targetCenter.Y - cardCenter.Y, targetCenter.X - cardCenter.X) * 180 / Math.PI;
-        _arrow.RenderTransform = new RotateTransform(angle, 8, 8);
     }
 
     private void LayoutAvatarResult(ProductTourOverlayLayoutResult layout)

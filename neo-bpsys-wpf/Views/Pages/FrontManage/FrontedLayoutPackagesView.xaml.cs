@@ -16,6 +16,9 @@ namespace neo_bpsys_wpf.Views.Pages.FrontManage;
 /// </summary>
 public partial class FrontedLayoutPackagesView : UserControl
 {
+    /// <summary>Layout packages view tutorial key.</summary>
+    public const string TutorialPageKey = "Page.FrontManage.LayoutPackages";
+
     private CancellationTokenSource _tutorialLifetime = new();
     private Task<TutorialRunResult>? _tutorialTask;
 

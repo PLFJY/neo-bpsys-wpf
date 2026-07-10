@@ -55,9 +55,18 @@ public sealed class TutorialStateStore : ITutorialStateStore
             return new TutorialState();
         }
 
-        await using var stream = File.OpenRead(_statePath);
-        return await JsonSerializer.DeserializeAsync<TutorialState>(stream, _jsonOptions, cancellationToken)
-            .ConfigureAwait(false) ?? new TutorialState();
+        try
+        {
+            await using var stream = File.OpenRead(_statePath);
+            return await JsonSerializer.DeserializeAsync<TutorialState>(stream, _jsonOptions, cancellationToken)
+                .ConfigureAwait(false) ?? new TutorialState();
+        }
+        catch
+        {
+            // 文件损坏或格式不兼容时删除并返回空状态，避免阻塞教程流程。
+            TryDeleteStateFile();
+            return new TutorialState();
+        }
     }
 
     /// <inheritdoc />
@@ -76,11 +85,22 @@ public sealed class TutorialStateStore : ITutorialStateStore
     /// <inheritdoc />
     public Task ResetAsync(CancellationToken cancellationToken = default)
     {
-        if (File.Exists(_statePath))
-        {
-            File.Delete(_statePath);
-        }
-
+        TryDeleteStateFile();
         return Task.CompletedTask;
+    }
+
+    private void TryDeleteStateFile()
+    {
+        try
+        {
+            if (File.Exists(_statePath))
+            {
+                File.Delete(_statePath);
+            }
+        }
+        catch
+        {
+            // 删除失败不影响后续流程，下次保存会覆盖。
+        }
     }
 }
