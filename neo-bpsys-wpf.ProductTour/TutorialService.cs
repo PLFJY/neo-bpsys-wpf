@@ -35,8 +35,6 @@ internal sealed class TutorialService : ITutorialStateManager
     private readonly ITutorialRunObserver _runObserver;
     private readonly ProductTourOptions _options;
     private readonly ILogger<TutorialService> _logger;
-    private readonly SemaphoreSlim _runLock = new(1, 1);
-    private bool _isFlowRunning;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TutorialService"/> class.
@@ -79,31 +77,6 @@ internal sealed class TutorialService : ITutorialStateManager
     }
 
     /// <inheritdoc />
-    public async Task<TutorialRunResult> RunPendingPagePackagesAsync(
-        FrameworkElement owner,
-        string pageKey,
-        TutorialTriggerMode triggerMode = TutorialTriggerMode.AutoOnLoaded,
-        CancellationToken cancellationToken = default)
-    {
-        if (_isFlowRunning && triggerMode == TutorialTriggerMode.AutoOnLoaded)
-        {
-            _runObserver.OnPackageSuppressed(pageKey);
-            return TutorialRunResult.Suppressed;
-        }
-
-        var pending = await GetNextPendingPackageAsync(owner, pageKey, cancellationToken);
-
-        if (pending == null)
-        {
-            _runObserver.OnPackageNotPending(pageKey);
-            return TutorialRunResult.NotPending;
-        }
-
-        _runObserver.OnPackageRunRequested(pending.PackageId, pageKey, triggerMode);
-        return await RunPackageAsync(owner, pending.PackageId, triggerMode, null, cancellationToken);
-    }
-
-    /// <inheritdoc />
     public async Task<TutorialPackageDefinition?> GetNextPendingPackageAsync(
         FrameworkElement owner,
         string pageKey,
@@ -112,7 +85,7 @@ internal sealed class TutorialService : ITutorialStateManager
         var state = await _stateStore.LoadAsync(cancellationToken);
         var sequenceDefinition = _sequenceRegistry.GetSequenceDefinition(pageKey);
         var sequence = sequenceDefinition.PackageIds;
-        _runObserver.OnSequenceResolved(pageKey, sequence, sequenceDefinition.AutoRunStrategy);
+        _runObserver.OnSequenceResolved(pageKey, sequence);
         var packages = sequence
             .Select(id => _packageRegistry.GetPackage(id))
             .OfType<TutorialPackageDefinition>()
@@ -159,42 +132,27 @@ internal sealed class TutorialService : ITutorialStateManager
             return TutorialRunResult.NotReady;
         }
 
-        if (!_runLock.Wait(0))
+        _runObserver.OnPackageStarted(package.PackageId, package.PageKey, triggerMode);
+        var result = await RunPackageItemsAsync(owner, package.Items, flowId, package.PackageId, cancellationToken);
+        if (result == TutorialRunResult.TargetMissing)
         {
-            _runObserver.OnPackageSuppressed(package.PageKey);
-            return triggerMode == TutorialTriggerMode.EmbeddedInFlow
-                ? TutorialRunResult.Suppressed
-                : TutorialRunResult.Suppressed;
+            _runObserver.OnPackageTargetMissing(package.PackageId);
         }
 
-        try
+        _runObserver.OnPackageCompleted(package.PackageId, result);
+        if ((result == TutorialRunResult.Completed || result == TutorialRunResult.Skipped)
+            && triggerMode != TutorialTriggerMode.EmbeddedInFlow)
         {
-            _runObserver.OnPackageStarted(package.PackageId, package.PageKey, triggerMode);
-            var result = await RunStepsAsync(owner, package.Steps, flowId, package.PackageId, cancellationToken);
-            if (result == TutorialRunResult.TargetMissing)
+            var state = await _stateStore.LoadAsync(cancellationToken);
+            state.CompletedPackages[package.PackageId] = new TutorialCompletionRecord
             {
-                _runObserver.OnPackageTargetMissing(package.PackageId);
-            }
-
-            _runObserver.OnPackageCompleted(package.PackageId, result);
-            if ((result == TutorialRunResult.Completed || result == TutorialRunResult.Skipped)
-                && triggerMode != TutorialTriggerMode.EmbeddedInFlow)
-            {
-                var state = await _stateStore.LoadAsync(cancellationToken);
-                state.CompletedPackages[package.PackageId] = new TutorialCompletionRecord
-                {
-                    Version = package.Version,
-                    CompletionKind = TutorialCompletionKind.Completed
-                };
-                await _stateStore.SaveAsync(state, cancellationToken);
-            }
-
-            return result;
+                Version = package.Version,
+                CompletionKind = TutorialCompletionKind.Completed
+            };
+            await _stateStore.SaveAsync(state, cancellationToken);
         }
-        finally
-        {
-            _runLock.Release();
-        }
+
+        return result;
     }
 
     /// <inheritdoc />
@@ -219,12 +177,6 @@ internal sealed class TutorialService : ITutorialStateManager
             return TutorialRunResult.NotPending;
         }
 
-        if (!_runLock.Wait(0))
-        {
-            return TutorialRunResult.Suppressed;
-        }
-
-        _isFlowRunning = true;
         try
         {
             foreach (var item in flow.Items)
@@ -266,11 +218,6 @@ internal sealed class TutorialService : ITutorialStateManager
             _logger.LogError(ex, "Tutorial flow {FlowId} failed.", flowId);
             return TutorialRunResult.Failed;
         }
-        finally
-        {
-            _isFlowRunning = false;
-            _runLock.Release();
-        }
     }
 
     /// <inheritdoc />
@@ -310,7 +257,7 @@ internal sealed class TutorialService : ITutorialStateManager
         }
 
         _runObserver.OnPackageStarted(package.PackageId, package.PageKey, TutorialTriggerMode.EmbeddedInFlow);
-        var result = await RunStepsAsync(owner, package.Steps, flowId, package.PackageId, cancellationToken);
+        var result = await RunPackageItemsAsync(owner, package.Items, flowId, package.PackageId, cancellationToken);
         if (result == TutorialRunResult.TargetMissing)
         {
             _runObserver.OnPackageTargetMissing(package.PackageId);
@@ -318,6 +265,56 @@ internal sealed class TutorialService : ITutorialStateManager
 
         _runObserver.OnPackageCompleted(package.PackageId, result);
         return result;
+    }
+
+    private async Task<TutorialRunResult> RunPackageItemsAsync(
+        FrameworkElement owner,
+        IReadOnlyList<TutorialPackageItem> items,
+        string? flowId,
+        string packageId,
+        CancellationToken cancellationToken)
+    {
+        var index = 0;
+        while (index < items.Count)
+        {
+            if (items[index] is TutorialPackageDialogueItem dialogueItem)
+            {
+                var dialogueResult = await ShowDialogueAsync(owner, dialogueItem.Dialogue, cancellationToken);
+                if (dialogueResult != TutorialRunResult.Completed)
+                {
+                    return dialogueResult;
+                }
+
+                index++;
+                continue;
+            }
+
+            if (items[index] is TutorialPackageStepItem)
+            {
+                var steps = new List<ProductTourStep>();
+                while (index < items.Count && items[index] is TutorialPackageStepItem stepItem)
+                {
+                    steps.Add(stepItem.Step);
+                    index++;
+                }
+
+                var stepResult = await RunStepsAsync(owner, steps, flowId, packageId, cancellationToken);
+                if (stepResult != TutorialRunResult.Completed)
+                {
+                    return stepResult;
+                }
+
+                continue;
+            }
+
+            _logger.LogError(
+                "Unsupported tutorial package item {ItemType}. PackageId={PackageId}",
+                items[index].GetType().FullName,
+                packageId);
+            return TutorialRunResult.Failed;
+        }
+
+        return TutorialRunResult.Completed;
     }
 
     private async Task<TutorialRunResult> RunStepsAsync(
@@ -330,7 +327,6 @@ internal sealed class TutorialService : ITutorialStateManager
         var overlayOwner = ResolveOverlayOwner(owner);
         var host = OverlayHost.GetHostPanel(overlayOwner);
         var index = 0;
-        var shownStepCount = 0;
         while (index < steps.Count)
         {
             var step = steps[index];
@@ -384,7 +380,6 @@ internal sealed class TutorialService : ITutorialStateManager
                 }
             }
 
-            shownStepCount++;
             _runObserver.OnStepShown(packageId ?? string.Empty, step.TargetName, step.Title);
             var overlay = new ProductTourOverlay(_textProvider, _options, _avatarProvider);
             var context = new ProductTourStepContext
@@ -476,11 +471,6 @@ internal sealed class TutorialService : ITutorialStateManager
             }
 
             index++;
-        }
-
-        if (steps.Count > 0 && shownStepCount == 0)
-        {
-            return TutorialRunResult.TargetMissing;
         }
 
         return TutorialRunResult.Completed;

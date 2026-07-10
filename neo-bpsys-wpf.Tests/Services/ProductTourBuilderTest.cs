@@ -365,7 +365,6 @@ public sealed class ProductTourBuilderTest
             "Item",
             "Include",
             "Covers",
-            "Dialogue",
             "CanRun"
         };
         var packageMethodNames = typeof(ITutorialPackageBuilder<TestTutorialOwner>)
@@ -384,6 +383,28 @@ public sealed class ProductTourBuilderTest
         }
 
         Assert.Equal(["Step"], packageMethodNames.Where(name => name == "Step").Distinct().ToArray());
+        Assert.Contains("Dialogue", packageMethodNames);
+    }
+
+    [Fact]
+    public void Package_ShouldAllowDialogueAndStepItemsInOrder()
+    {
+        var fixture = new AuthoringFixture();
+        fixture.Builder.ForRegion<TestTutorialOwner>()
+            .Package(new TutorialPackageRef("Package.Mixed"))
+                .Step("First")
+                    .NoTarget()
+                .Dialogue(new DialogueFlowItem { Speaker = "Alice", Lines = ["Line"] })
+                .Step("Last")
+                    .NoTarget()
+                .Build();
+
+        var package = fixture.PackageRegistry.GetPackage("Package.Mixed")!;
+        Assert.Collection(
+            package.Items,
+            item => Assert.Equal("First", Assert.IsType<TutorialPackageStepItem>(item).Step.Title),
+            item => Assert.Equal("Alice", Assert.IsType<TutorialPackageDialogueItem>(item).Dialogue.Speaker),
+            item => Assert.Equal("Last", Assert.IsType<TutorialPackageStepItem>(item).Step.Title));
     }
 
     private sealed class TestTutorialOwner : FrameworkElement, ITutorialOwner<TestTutorialOwner>

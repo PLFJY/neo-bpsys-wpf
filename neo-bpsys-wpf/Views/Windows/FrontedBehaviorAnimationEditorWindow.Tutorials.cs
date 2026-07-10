@@ -39,7 +39,6 @@ public partial class FrontedBehaviorAnimationEditorWindow : ITutorialOwner<Front
     public static void RegisterTutorials(ITutorialBuilder builder)
     {
         builder.ForWindow<FrontedBehaviorAnimationEditorWindow>()
-            .AutoRun(TutorialAutoRunStrategy.DrainSequence)
             .Package(Tours.Overview)
                 .Step("动画编辑器")
                     .Text("这里编辑行为对应的动画动作。动画由时间、步骤和参数变化组成。")

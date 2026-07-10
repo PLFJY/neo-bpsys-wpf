@@ -26,6 +26,7 @@ public partial class FrontManagePage : Page, IRecipient<FrontManageTabNavigation
 {
     private readonly ITutorialRunner? _tutorialRunner;
     private readonly global::neo_bpsys_wpf.Services.NavigationService? _navigationService;
+    private CancellationTokenSource _tutorialLifetime = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FrontManagePage"/> class.
@@ -59,12 +60,19 @@ public partial class FrontManagePage : Page, IRecipient<FrontManageTabNavigation
         FrontManageTabs.SelectionChanged += (_, _) => ScheduleCurrentChildTutorial();
         Loaded += async (_, _) =>
         {
+            if (_tutorialLifetime.IsCancellationRequested)
+            {
+                _tutorialLifetime.Dispose();
+                _tutorialLifetime = new CancellationTokenSource();
+            }
+
             TutorialSignalPublisher.Publish(TutorialSignalIds.NavigationFrontManageOpened);
             if (IsCurrentFrontManagePage())
             {
                 await TryRunTutorialAsync();
             }
         };
+        Unloaded += (_, _) => _tutorialLifetime.Cancel();
         Loaded += OnLoaded;
         IsVisibleChanged += async (_, e) =>
         {
@@ -111,7 +119,7 @@ public partial class FrontManagePage : Page, IRecipient<FrontManageTabNavigation
         }
 
         var runner = IAppHost.Host.Services.GetService<ITutorialRunner>();
-        _ = runner?.TryRunNextPackageAsync(owner, pageKey);
+        _ = runner?.RunSequenceAsync(owner, pageKey, TutorialOwnerLifetime.GetToken(owner));
         return true;
     }
 
@@ -133,7 +141,13 @@ public partial class FrontManagePage : Page, IRecipient<FrontManageTabNavigation
             return;
         }
 
-        await runner.TryRunNextPackageAsync(owner, pageKey);
+        var token = owner switch
+        {
+            FrontedWindowsView windowsView => windowsView.TutorialLifetimeToken,
+            FrontedLayoutPackagesView packagesView => packagesView.TutorialLifetimeToken,
+            _ => _tutorialLifetime.Token
+        };
+        await runner.RunSequenceAsync(owner, pageKey, token);
     }
 
     private async Task TryRunTutorialAsync()
@@ -144,7 +158,11 @@ public partial class FrontManagePage : Page, IRecipient<FrontManageTabNavigation
             return;
         }
 
-        await runner.TryRunNextPackageAsync(this, TutorialPageKeys.FrontManage);
+        var result = await runner.RunSequenceAsync(this, TutorialPageKeys.FrontManage, _tutorialLifetime.Token);
+        if (result is TutorialRunResult.Completed or TutorialRunResult.NotPending)
+        {
+            await RunCurrentChildTutorialAsync();
+        }
     }
 
     private bool IsCurrentFrontManagePage()

@@ -23,6 +23,7 @@ public partial class FrontedBehaviorAnimationEditorWindow : FluentWindow
     private bool _forceClose;
     private bool _isClosePromptOpen;
     private bool _discardedBeforeClose;
+    private readonly CancellationTokenSource _tutorialLifetime = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FrontedBehaviorAnimationEditorWindow"/> class.
@@ -47,20 +48,23 @@ public partial class FrontedBehaviorAnimationEditorWindow : FluentWindow
                 views[index]));
         }
 
-        Loaded += (_, _) =>
+        Loaded += async (_, _) =>
         {
-            AnimationTabs.SelectFirstItemIfNoneSelected();
-            Dispatcher.BeginInvoke(
-                DispatcherPriority.ContextIdle,
-                new Action(async () =>
+            try
+            {
+                AnimationTabs.SelectFirstItemIfNoneSelected();
+                await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.ContextIdle, _tutorialLifetime.Token);
+                await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.Render, _tutorialLifetime.Token);
+                var runner = _tutorialRunner
+                    ?? IAppHost.Host?.Services.GetService(typeof(ITutorialRunner)) as ITutorialRunner;
+                if (runner != null)
                 {
-                    var runner = _tutorialRunner
-                        ?? IAppHost.Host?.Services.GetService(typeof(ITutorialRunner)) as ITutorialRunner;
-                    if (runner != null)
-                    {
-                        await runner.RunUntilBlockedAsync(this, TutorialPageKey);
-                    }
-                }));
+                    await runner.RunSequenceAsync(this, TutorialPageKey, _tutorialLifetime.Token);
+                }
+            }
+            catch (OperationCanceledException) when (_tutorialLifetime.IsCancellationRequested)
+            {
+            }
         };
         Closed += OnClosed;
     }
@@ -158,6 +162,7 @@ public partial class FrontedBehaviorAnimationEditorWindow : FluentWindow
 
     private void OnClosed(object? sender, EventArgs e)
     {
+        _tutorialLifetime.Cancel();
         if (!_discardedBeforeClose && DataContext is FrontedBehaviorAnimationEditorViewModel vm)
         {
             vm.DiscardAll();

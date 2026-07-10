@@ -39,7 +39,7 @@ public partial class BehaviorPanelView : UserControl
                 var runner = IAppHost.Host?.Services.GetService(typeof(ITutorialRunner)) as ITutorialRunner;
                 if (runner != null)
                 {
-                    await runner.RunUntilBlockedAsync(this, TutorialPageKey);
+                    await runner.RunSequenceAsync(this, TutorialPageKey, TutorialOwnerLifetime.GetToken(this));
                 }
             }));
     }

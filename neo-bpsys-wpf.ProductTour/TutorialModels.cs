@@ -96,21 +96,6 @@ public enum TutorialTriggerMode
 }
 
 /// <summary>
-/// Defines how automatic page or window loading should advance pending tutorial packages.
-/// </summary>
-public enum TutorialAutoRunStrategy
-{
-    /// <summary>Runs only the first currently pending package for each automatic trigger.</summary>
-    SinglePendingPackage,
-
-    /// <summary>Continues running subsequent pending packages while the owner remains active.</summary>
-    ContinueWhileActive,
-
-    /// <summary>Continues running subsequent pending packages while each package completes normally.</summary>
-    DrainSequence
-}
-
-/// <summary>
 /// Represents the result of running a tutorial operation.
 /// </summary>
 public enum TutorialRunResult
@@ -121,8 +106,6 @@ public enum TutorialRunResult
     CompletedAlready,
     /// <summary>The tutorial was skipped by the user.</summary>
     Skipped,
-    /// <summary>The tutorial did not run because another tutorial was active.</summary>
-    Suppressed,
     /// <summary>The requested target element could not be found.</summary>
     TargetMissing,
     /// <summary>The tutorial had no pending work.</summary>
@@ -219,7 +202,7 @@ public sealed class TutorialState
 }
 
 /// <summary>
-/// Defines the package order and automatic run strategy for a page, tab, or window.
+/// Defines the package order for a page, tab, or window.
 /// </summary>
 public sealed class TutorialSequenceDefinition
 {
@@ -229,8 +212,6 @@ public sealed class TutorialSequenceDefinition
     /// <summary>Gets or sets package ids in sequence order.</summary>
     public IReadOnlyList<string> PackageIds { get; init; } = [];
 
-    /// <summary>Gets or sets the automatic run strategy.</summary>
-    public TutorialAutoRunStrategy AutoRunStrategy { get; init; } = TutorialAutoRunStrategy.SinglePendingPackage;
 }
 
 /// <summary>
@@ -343,6 +324,7 @@ public sealed class TutorialStepActionContext
 /// </summary>
 public sealed class TutorialPackageDefinition
 {
+    private IReadOnlyList<TutorialPackageItem> _items = [];
     /// <summary>Gets or sets the stable package id.</summary>
     public required string PackageId { get; init; }
 
@@ -358,14 +340,47 @@ public sealed class TutorialPackageDefinition
     /// <summary>Gets or sets a package kind label.</summary>
     public string Kind { get; init; } = "ProductTour";
 
-    /// <summary>Gets or sets the package steps.</summary>
-    public IReadOnlyList<ProductTourStep> Steps { get; init; } = [];
+    /// <summary>Gets or sets the ordered package items.</summary>
+    public IReadOnlyList<TutorialPackageItem> Items
+    {
+        get => _items;
+        init => _items = value ?? [];
+    }
+
+    /// <summary>Gets the spotlight steps contained by this package.</summary>
+    public IReadOnlyList<ProductTourStep> Steps
+    {
+        get => Items
+            .OfType<TutorialPackageStepItem>()
+            .Select(item => item.Step)
+            .ToArray();
+        init => _items = (value ?? [])
+            .Select(step => (TutorialPackageItem)new TutorialPackageStepItem { Step = step })
+            .ToArray();
+    }
 
     /// <summary>Gets or sets an optional condition that determines whether the package can run.</summary>
     public Func<IServiceProvider, bool>? CanRun { get; init; }
 
     /// <summary>Gets or sets an optional owner-aware condition that determines whether the package can run.</summary>
     public Func<IServiceProvider, FrameworkElement?, bool>? CanRunWithOwner { get; init; }
+}
+
+/// <summary>Base type for the explicit items allowed inside a tutorial package.</summary>
+public abstract class TutorialPackageItem;
+
+/// <summary>A package item that displays a spotlight step.</summary>
+public sealed class TutorialPackageStepItem : TutorialPackageItem
+{
+    /// <summary>Gets the spotlight step.</summary>
+    public required ProductTourStep Step { get; init; }
+}
+
+/// <summary>A package item that displays dialogue through the dialogue overlay.</summary>
+public sealed class TutorialPackageDialogueItem : TutorialPackageItem
+{
+    /// <summary>Gets the dialogue definition.</summary>
+    public required DialogueFlowItem Dialogue { get; init; }
 }
 
 /// <summary>

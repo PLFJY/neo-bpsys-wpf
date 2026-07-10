@@ -37,7 +37,6 @@ public partial class BehaviorPanelView : ITutorialOwner<BehaviorPanelView>
     public static void RegisterTutorials(ITutorialBuilder builder)
     {
         builder.ForRegion<BehaviorPanelView>()
-            .AutoRun(TutorialAutoRunStrategy.DrainSequence)
             .Package(Tours.Overview)
                 .Step("行为面板")
                     .PreStepAction(TutorialStepActions.Delay(250))

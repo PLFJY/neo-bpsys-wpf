@@ -19,6 +19,9 @@ public partial class SmartBpPage : ITutorialOwner<SmartBpPage>
         /// <summary>Smart BP module content overview package reference.</summary>
         public static readonly TutorialPackageRef ModuleContentOverview = new(TutorialPackageIds.SmartBpModuleContentOverview);
 
+        /// <summary>Smart BP OCR model download and management package reference.</summary>
+        public static readonly TutorialPackageRef OcrModelDownloadBasic = new(TutorialPackageIds.SmartBpOcrModelDownloadBasic);
+
         /// <summary>Smart BP capture basic package reference.</summary>
         public static readonly TutorialPackageRef CaptureBasic = new(TutorialPackageIds.SmartBpCaptureBasic);
 
@@ -35,6 +38,9 @@ public partial class SmartBpPage : ITutorialOwner<SmartBpPage>
     /// <summary>Smart BP tutorial target names from dynamically loaded module content.</summary>
     public static class TutorialTargets
     {
+        /// <summary>OCR model management card in the dynamically loaded SmartBP module.</summary>
+        public const string OcrModelManagementCard = "SmartBpOcrModelManagementCard";
+
         /// <summary>Smart BP window selector target name.</summary>
         public const string WindowSelector = "SmartBpWindowSelector";
 
@@ -82,7 +88,6 @@ public partial class SmartBpPage : ITutorialOwner<SmartBpPage>
     public static void RegisterTutorials(ITutorialBuilder builder)
     {
         builder.ForPage<SmartBpPage>()
-            .AutoRun(TutorialAutoRunStrategy.ContinueWhileActive)
             .Package(Tours.ModuleContentOverview)
                 .Step("SmartBP 模块内容")
                     .PreStepAction(TutorialStepActions.Delay(250))
@@ -93,6 +98,21 @@ public partial class SmartBpPage : ITutorialOwner<SmartBpPage>
                         TimeSpan.FromSeconds(3)))
                     .Text("SmartBP 用于识别游戏画面并辅助填写 BP 和赛后数据。使用顺序是：捕获窗口 -> 配置识别区域 -> 预览确认 -> 启动识别。它不是替代人工导播，而是辅助减少重复操作。")
                     .TargetName(nameof(SmartBpModuleContentHost))
+                    .Interaction(ProductTourInteractionMode.AllowTargetOnly)
+                    .AllowMissingTarget()
+            .Package(Tours.OcrModelDownloadBasic)
+                .Dialogue(new DialogueFlowItem
+                {
+                    Speaker = "爱丽丝·德罗斯",
+                    Lines =
+                    [
+                        "SmartBP 的 OCR 识别需要本地模型。",
+                        "首次使用前请下载所选识别引擎需要的模型；已经安装时可以直接继续。"
+                    ]
+                })
+                .Step("识别模型管理")
+                    .Text("在这里选择识别引擎，并检查、下载、更新或切换 SmartBP 使用的 OCR 模型。")
+                    .TargetName(TutorialTargets.OcrModelManagementCard)
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
                     .AllowMissingTarget()
             .Package(Tours.CaptureBasic)

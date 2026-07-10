@@ -52,7 +52,7 @@ public partial class PickPage : Page
             return;
         }
 
-        await runner.TryRunNextPackageAsync(this, TutorialPageKey);
+        await runner.RunSequenceAsync(this, TutorialPageKey, TutorialOwnerLifetime.GetToken(this));
     }
 
     private bool IsCurrentPickPage()

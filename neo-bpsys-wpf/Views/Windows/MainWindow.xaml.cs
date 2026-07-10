@@ -287,6 +287,6 @@ public partial class MainWindow : FluentWindow, INavigationWindow
         _ = reason;
         owner.Dispatcher.BeginInvoke(
             DispatcherPriority.ContextIdle,
-            new Action(async () => await _tutorialRunner.TryRunNextPackageAsync(owner, pageKey)));
+            new Action(async () => await _tutorialRunner.RunSequenceAsync(owner, pageKey, TutorialOwnerLifetime.GetToken(owner))));
     }
 }

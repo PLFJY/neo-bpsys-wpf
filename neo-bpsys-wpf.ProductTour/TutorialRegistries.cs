@@ -51,15 +51,6 @@ public interface ITutorialSequenceRegistry
     /// <param name="packageIds">Package ids in sequence order.</param>
     void RegisterSequence(string pageKey, IEnumerable<string> packageIds);
 
-    /// <summary>Registers package ids and automatic run strategy for a page key.</summary>
-    /// <param name="pageKey">Page key.</param>
-    /// <param name="packageIds">Package ids in sequence order.</param>
-    /// <param name="autoRunStrategy">Automatic run strategy.</param>
-    void RegisterSequence(
-        string pageKey,
-        IEnumerable<string> packageIds,
-        TutorialAutoRunStrategy autoRunStrategy);
-
     /// <summary>Gets package ids for a page key.</summary>
     /// <param name="pageKey">Page key.</param>
     /// <returns>Package ids.</returns>
@@ -80,18 +71,10 @@ public sealed class TutorialSequenceRegistry : ITutorialSequenceRegistry
 
     /// <inheritdoc />
     public void RegisterSequence(string pageKey, IEnumerable<string> packageIds) =>
-        RegisterSequence(pageKey, packageIds, TutorialAutoRunStrategy.SinglePendingPackage);
-
-    /// <inheritdoc />
-    public void RegisterSequence(
-        string pageKey,
-        IEnumerable<string> packageIds,
-        TutorialAutoRunStrategy autoRunStrategy) =>
         _sequences[pageKey] = new TutorialSequenceDefinition
         {
             PageKey = pageKey,
-            PackageIds = packageIds.ToArray(),
-            AutoRunStrategy = autoRunStrategy
+            PackageIds = packageIds.ToArray()
         };
 
     /// <inheritdoc />

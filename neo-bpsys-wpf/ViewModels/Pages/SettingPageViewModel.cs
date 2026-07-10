@@ -251,7 +251,7 @@ public partial class SettingPageViewModel : ViewModelBase
         }
 
         owner.Activate();
-        await _tutorialRunner.TryRunFlowAsync(owner, TutorialFlowIds.Phase4RealTargetProbe, force: true);
+        await _tutorialRunner.RunFlowAsync(owner, TutorialFlowIds.Phase4RealTargetProbe, force: true);
     }
 
     #endregion

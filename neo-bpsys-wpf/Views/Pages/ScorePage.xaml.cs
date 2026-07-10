@@ -47,7 +47,7 @@ public partial class ScorePage : Page
             return;
         }
 
-        await runner.TryRunNextPackageAsync(this, TutorialPageKeys.Score);
+        await runner.RunSequenceAsync(this, TutorialPageKeys.Score, TutorialOwnerLifetime.GetToken(this));
     }
 
     private bool IsCurrentPage()

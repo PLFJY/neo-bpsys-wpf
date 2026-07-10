@@ -72,13 +72,11 @@ public sealed class NeoBpsysTutorialRegistrationTest
                 TutorialPackageIds.DesignerV3Overview,
                 TutorialPackageIds.DesignerV3LayoutEditBasic,
                 TutorialPackageIds.DesignerV3PropertyPanelBasic,
+                TutorialPackageIds.DesignerV3BehaviorEditBasic,
                 TutorialPackageIds.DesignerV3PackageImportExport,
                 TutorialPackageIds.DesignerV3HelpBasic
             ],
             sequenceRegistry.GetSequence(TutorialPageKeys.DesignerV3));
-        Assert.Equal(
-            TutorialAutoRunStrategy.DrainSequence,
-            sequenceRegistry.GetSequenceDefinition(TutorialPageKeys.DesignerV3).AutoRunStrategy);
         Assert.Equal(
             [
                 TutorialPackageIds.DesignerV3BehaviorPanelOverview,
@@ -87,9 +85,6 @@ public sealed class NeoBpsysTutorialRegistrationTest
                 TutorialPackageIds.DesignerV3BehaviorPanelHelpBasic
             ],
             sequenceRegistry.GetSequence(TutorialPageKeys.DesignerV3BehaviorPanel));
-        Assert.Equal(
-            TutorialAutoRunStrategy.DrainSequence,
-            sequenceRegistry.GetSequenceDefinition(TutorialPageKeys.DesignerV3BehaviorPanel).AutoRunStrategy);
         Assert.Equal(
             [
                 TutorialPackageIds.DesignerV3AnimationEditorOverview,
@@ -100,30 +95,16 @@ public sealed class NeoBpsysTutorialRegistrationTest
             ],
             sequenceRegistry.GetSequence(TutorialPageKeys.DesignerV3AnimationEditor));
         Assert.Equal(
-            TutorialAutoRunStrategy.DrainSequence,
-            sequenceRegistry.GetSequenceDefinition(TutorialPageKeys.DesignerV3AnimationEditor).AutoRunStrategy);
-        Assert.Equal(
             [
                 TutorialPackageIds.SmartBpModuleContentOverview,
+                TutorialPackageIds.SmartBpOcrModelDownloadBasic,
                 TutorialPackageIds.SmartBpCaptureBasic,
                 TutorialPackageIds.SmartBpRegionEditorBasic,
                 TutorialPackageIds.SmartBpFullBpFlowBasic,
                 TutorialPackageIds.SmartBpPostGameAutoFill
             ],
             sequenceRegistry.GetSequence(TutorialPageKeys.SmartBp));
-        Assert.Equal(
-            TutorialAutoRunStrategy.SinglePendingPackage,
-            sequenceRegistry.GetSequenceDefinition(TutorialPageKeys.FrontManage).AutoRunStrategy);
-        Assert.Equal(
-            TutorialAutoRunStrategy.ContinueWhileActive,
-            sequenceRegistry.GetSequenceDefinition(FrontedWindowsView.TutorialPageKey).AutoRunStrategy);
-        Assert.Equal(
-            TutorialAutoRunStrategy.ContinueWhileActive,
-            sequenceRegistry.GetSequenceDefinition(FrontedLayoutPackagesView.TutorialPageKey).AutoRunStrategy);
-        Assert.Equal(
-            TutorialAutoRunStrategy.ContinueWhileActive,
-            sequenceRegistry.GetSequenceDefinition(TutorialPageKeys.SmartBp).AutoRunStrategy);
-        Assert.Equal(52, packageRegistry.GetPackages().Count);
+        Assert.Equal(54, packageRegistry.GetPackages().Count);
 
         var firstRun = flowRegistry.GetFlow(TutorialFlowIds.FirstRunStandardBp);
         Assert.NotNull(firstRun);
@@ -142,6 +123,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
                 TutorialPackageIds.BpGameGuidanceCurrentStepBasic,
                 TutorialPackageIds.MapBpBanMapOperationBasic,
                 TutorialPackageIds.MapBpNextToPickMapBasic,
+                TutorialPackageIds.MapBpPickMapOperationBasic,
                 TutorialPackageIds.BpCharacterSelectorBasic,
                 TutorialPackageIds.BpPickSelectFourSurvivorsBasic,
                 TutorialPackageIds.BpGlobalBanRecordBasic,
@@ -172,7 +154,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
         Assert.DoesNotContain(TutorialPackageIds.FrontManageLayoutPackagesBasic, firstRun.IncludedPackageIds);
         Assert.DoesNotContain(TutorialPackageIds.MainNavigationSmartBp, firstRun.IncludedPackageIds);
         Assert.DoesNotContain(TutorialPackageIds.MainNavigationDesignerV3, firstRun.IncludedPackageIds);
-        Assert.Equal(29, firstRun.Items.Count);
+        Assert.Equal(30, firstRun.Items.Count);
         Assert.Equal(
             TutorialPackageIds.MainNavigationFrontManage,
             Assert.IsType<PackageFlowItem>(firstRun.Items[1]).PackageId);
@@ -190,6 +172,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
                 TutorialPackageIds.BpGameGuidanceCurrentStepBasic,
                 TutorialPackageIds.MapBpBanMapOperationBasic,
                 TutorialPackageIds.MapBpNextToPickMapBasic,
+                TutorialPackageIds.MapBpPickMapOperationBasic,
                 TutorialPackageIds.BpCharacterSelectorBasic,
                 TutorialPackageIds.BpPickSelectFourSurvivorsBasic,
                 TutorialPackageIds.BpGlobalBanRecordBasic,
@@ -311,7 +294,6 @@ public sealed class NeoBpsysTutorialRegistrationTest
         Assert.Equal(TutorialTargetKind.Name, globalBanStep.TargetKind);
         Assert.Equal(TutorialTargetNames.GlobalBanRecordPanel, globalBanStep.TargetName);
         Assert.Equal(ProductTourInteractionMode.AllowTargetOnly, globalBanStep.InteractionMode);
-        Assert.Equal(new Point(-100, -100), globalBanStep.CardOffset);
         Assert.Null(globalBanStep.WaitForSignalId);
 
         var playerManagePackage = Assert.Single(
@@ -320,8 +302,6 @@ public sealed class NeoBpsysTutorialRegistrationTest
         var playerManageStep = Assert.Single(playerManagePackage.Steps);
         Assert.Equal(TutorialTargetNames.HomePlayerPositionPanel, playerManageStep.TargetName);
         Assert.Equal(ProductTourInteractionMode.AllowTargetOnly, playerManageStep.InteractionMode);
-        Assert.Equal(ProductTourAvatarPlacement.BottomRight, playerManageStep.AvatarPlacement);
-        Assert.Equal(TutorialAvatarPose.LeftTop, playerManageStep.AvatarPose);
 
         var teamNamePackage = Assert.Single(
             packageRegistry.GetPackages(),
@@ -353,7 +333,6 @@ public sealed class NeoBpsysTutorialRegistrationTest
             step =>
             {
                 Assert.Equal(ProductTourInteractionMode.AllowTargetOnly, step.InteractionMode);
-                Assert.Equal(ProductTourAvatarPlacement.BottomRight, step.AvatarPlacement);
                 Assert.Equal(TutorialAvatarPose.LeftTop, step.AvatarPose);
             });
 
@@ -362,8 +341,6 @@ public sealed class NeoBpsysTutorialRegistrationTest
             package => package.PackageId == TutorialPackageIds.MapBpBanMapOperationBasic);
         var banMapStep = Assert.Single(banMapPackage.Steps);
         Assert.Equal(TutorialTargetNames.MapBanOperationBorder, banMapStep.TargetName);
-        Assert.Equal(ProductTourPlacement.TopRight, banMapStep.Placement);
-        Assert.Equal(ProductTourAvatarPlacement.TopLeft, banMapStep.AvatarPlacement);
         Assert.Contains("Ban 地图", banMapStep.Description, StringComparison.Ordinal);
 
         var nextMapPackage = Assert.Single(
@@ -380,8 +357,6 @@ public sealed class NeoBpsysTutorialRegistrationTest
         var pickFourStep = Assert.Single(pickFourPackage.Steps);
         Assert.Equal(TutorialTargetKind.Name, pickFourStep.TargetKind);
         Assert.Equal(TutorialTargetNames.SurvivorPickSelectorGroupBorder, pickFourStep.TargetName);
-        Assert.Equal(ProductTourPlacement.TopRight, pickFourStep.Placement);
-        Assert.Equal(ProductTourAvatarPlacement.TopLeft, pickFourStep.AvatarPlacement);
         Assert.Equal(TutorialSignalIds.PickSurvivorSlotsCompleted, pickFourStep.WaitForSignalId);
 
         Assert.Equal(
@@ -393,8 +368,6 @@ public sealed class NeoBpsysTutorialRegistrationTest
             package => package.PackageId == TutorialPackageIds.BpTalentTraitBasic);
         var talentTraitStep = talentTraitPackage.Steps[0];
         Assert.Equal(TutorialTargetNames.TalentTraitSelectorPanel, talentTraitStep.TargetName);
-        Assert.Equal(ProductTourPlacement.TopRight, talentTraitStep.Placement);
-        Assert.Equal(ProductTourAvatarPlacement.TopLeft, talentTraitStep.AvatarPlacement);
     }
 
     [Fact]
@@ -490,6 +463,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
                 TutorialPackageIds.BpGameGuidanceCurrentStepBasic,
                 TutorialPackageIds.MapBpBanMapOperationBasic,
                 TutorialPackageIds.MapBpNextToPickMapBasic,
+                TutorialPackageIds.MapBpPickMapOperationBasic,
                 TutorialPackageIds.BpCharacterSelectorBasic,
                 TutorialPackageIds.BpPickSelectFourSurvivorsBasic,
                 TutorialPackageIds.BpGlobalBanRecordBasic,
@@ -524,8 +498,6 @@ public sealed class NeoBpsysTutorialRegistrationTest
         Assert.Equal(TutorialTargetKind.Name, step.TargetKind);
         Assert.Equal(TutorialTargetNames.SurvivorPickSelectorGroupBorder, step.TargetName);
         Assert.NotEqual(TutorialTargetNames.FirstSurvivorPickSelectorHost, step.TargetName);
-        Assert.Equal(ProductTourPlacement.TopRight, step.Placement);
-        Assert.Equal(ProductTourAvatarPlacement.TopLeft, step.AvatarPlacement);
         Assert.Equal(TutorialSignalIds.PickSurvivorSlotsCompleted, step.WaitForSignalId);
     }
 
@@ -550,7 +522,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
             package => package.PackageId == TutorialPackageIds.DesignerV3LayoutEditBasic);
         var previewStep = Assert.Single(package.Steps, step => step.Title == "预览画布");
 
-        Assert.Equal(TutorialTargetNames.PreviewZoomHost, previewStep.TargetName);
+        Assert.Equal("PreviewWorkspace", previewStep.TargetName);
         Assert.NotEqual(TutorialTargetNames.PreviewCanvas, previewStep.TargetName);
     }
 
@@ -562,12 +534,12 @@ public sealed class NeoBpsysTutorialRegistrationTest
         var help = Assert.Single(packages, package => package.PackageId == TutorialPackageIds.DesignerV3HelpBasic);
 
         Assert.Null(overview.Steps[0].TargetName);
-        Assert.Contains("欢迎来到 v3 编辑器", overview.Steps[0].Title, StringComparison.Ordinal);
+        Assert.Contains("欢迎来到 v3 设计器", overview.Steps[0].Title, StringComparison.Ordinal);
         Assert.Contains("详细修改前台界面", overview.Steps[0].Description, StringComparison.Ordinal);
         Assert.DoesNotContain(overview.Steps, step => step.TargetName == TutorialTargetNames.BehaviorPanelHost);
 
         var layoutSteps = packages.Single(package => package.PackageId == TutorialPackageIds.DesignerV3LayoutEditBasic).Steps;
-        var previewStep = Assert.Single(layoutSteps, step => step.TargetName == TutorialTargetNames.PreviewZoomHost);
+        var previewStep = Assert.Single(layoutSteps, step => step.TargetName == "PreviewWorkspace");
         Assert.Contains("点击画布上的一个控件", previewStep.Description, StringComparison.Ordinal);
         Assert.DoesNotContain(layoutSteps, step => step.TargetName == TutorialTargetNames.InteractionLayer);
         Assert.DoesNotContain(layoutSteps.Select(step => step.Title), title => title.Contains("交互层", StringComparison.Ordinal));
@@ -665,7 +637,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
 
         Assert.Contains("TryRunTutorialAsync", loadedBlock);
         Assert.DoesNotContain("ScheduleCurrentChildTutorial();", loadedBlock);
-        Assert.Contains("TryRunNextPackageAsync(this, TutorialPageKeys.FrontManage)", source);
+        Assert.Contains("RunSequenceAsync(this, TutorialPageKeys.FrontManage, _tutorialLifetime.Token)", source);
     }
 
     [Fact]

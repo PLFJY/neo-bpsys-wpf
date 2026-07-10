@@ -25,6 +25,8 @@ public partial class SmartBpPage : Page
     private readonly global::neo_bpsys_wpf.Services.NavigationService? _navigationService;
     private SmartBpPageViewModel? _attachedViewModel;
     private bool _isModuleContentHandlerAttached;
+    private CancellationTokenSource _tutorialLifetime = new();
+    private Task<TutorialRunResult>? _tutorialRun;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SmartBpPage"/> class.
@@ -43,6 +45,12 @@ public partial class SmartBpPage : Page
             typeof(ContentControl));
         Loaded += async (_, _) =>
         {
+            if (_tutorialLifetime.IsCancellationRequested)
+            {
+                _tutorialLifetime.Dispose();
+                _tutorialLifetime = new CancellationTokenSource();
+            }
+
             AttachViewModel(DataContext);
             AttachModuleContentHandler();
             TutorialSignalPublisher.Publish(TutorialSignalIds.NavigationSmartBpOpened);
@@ -63,6 +71,7 @@ public partial class SmartBpPage : Page
         {
             DetachViewModel(DataContext);
             DetachModuleContentHandler();
+            _tutorialLifetime.Cancel();
         };
     }
 
@@ -134,7 +143,12 @@ public partial class SmartBpPage : Page
             return;
         }
 
-        await runner.TryRunNextPackageAsync(this, TutorialPageKeys.SmartBp);
+        if (_tutorialRun is not { IsCompleted: false })
+        {
+            _tutorialRun = runner.RunSequenceAsync(this, TutorialPageKey, _tutorialLifetime.Token);
+        }
+
+        await _tutorialRun;
     }
 
     private bool IsCurrentSmartBpPage()

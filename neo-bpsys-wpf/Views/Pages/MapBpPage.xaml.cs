@@ -46,7 +46,7 @@ public partial class MapBpPage : Page
             return;
         }
 
-        await runner.TryRunNextPackageAsync(this, TutorialPageKeys.BpGameGuidance);
+        await runner.RunSequenceAsync(this, TutorialPageKeys.BpGameGuidance, TutorialOwnerLifetime.GetToken(this));
     }
 
     private bool IsCurrentPage()

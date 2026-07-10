@@ -46,7 +46,6 @@ public partial class FrontedWindowsView : ITutorialOwner<FrontedWindowsView>
     public static void RegisterTutorials(ITutorialBuilder builder)
     {
         builder.ForRegion<FrontedWindowsView>()
-            .AutoRun(TutorialAutoRunStrategy.ContinueWhileActive)
             .Package(Tours.WindowsBasic)
                 .Step("前台窗口")
                     .PreStepAction(TutorialStepActions.Delay(250))
@@ -91,7 +90,6 @@ public partial class FrontedWindowsView : ITutorialOwner<FrontedWindowsView>
                     .TargetName(nameof(OpenFrontedDesignerButton))
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
                     .AllowMissingTarget()
-                    .PostStepAction(ScheduleDesignerTutorialAction())
                     .WaitFor(TutorialSignalIds.DesignerV3Opened)
             .Package(Tours.BpWindowLaunchBasic)
                 .Step("启动 BP 前台窗口")
@@ -107,27 +105,4 @@ public partial class FrontedWindowsView : ITutorialOwner<FrontedWindowsView>
             .Build();
     }
 
-    private static TutorialStepAction ScheduleDesignerTutorialAction() =>
-        new("ScheduleDesignerTutorial", (context, cancellationToken) =>
-        {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return Task.CompletedTask;
-            }
-
-            Application.Current?.Dispatcher.BeginInvoke(
-                DispatcherPriority.ContextIdle,
-                new Action(() =>
-                {
-                    var window = Application.Current.Windows
-                        .OfType<FrontedDesignerWindow>()
-                        .FirstOrDefault(candidate => candidate.IsVisible);
-                    if (window is not null)
-                    {
-                        var runner = context.Services.GetService<ITutorialRunner>();
-                        _ = runner?.RunUntilBlockedAsync(window, TutorialPageKeys.DesignerV3);
-                    }
-                }));
-            return Task.CompletedTask;
-        });
 }

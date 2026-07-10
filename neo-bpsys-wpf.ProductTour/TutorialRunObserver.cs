@@ -63,15 +63,9 @@ public interface ITutorialRunObserver
     /// <summary>Called when a page sequence has been resolved for a run.</summary>
     /// <param name="pageKey">Page key.</param>
     /// <param name="packageIds">Resolved package ids.</param>
-    /// <param name="strategy">Automatic run strategy.</param>
     void OnSequenceResolved(
         string pageKey,
-        IReadOnlyList<string> packageIds,
-        TutorialAutoRunStrategy strategy);
-
-    /// <summary>Called when a package run is suppressed because another tutorial is active.</summary>
-    /// <param name="pageKey">Page key.</param>
-    void OnPackageSuppressed(string pageKey);
+        IReadOnlyList<string> packageIds);
 
     /// <summary>Called when a package target is missing.</summary>
     /// <param name="packageId">Package id.</param>
@@ -135,13 +129,7 @@ public sealed class NoOpTutorialRunObserver : ITutorialRunObserver
     /// <inheritdoc />
     public void OnSequenceResolved(
         string pageKey,
-        IReadOnlyList<string> packageIds,
-        TutorialAutoRunStrategy strategy)
-    {
-    }
-
-    /// <inheritdoc />
-    public void OnPackageSuppressed(string pageKey)
+        IReadOnlyList<string> packageIds)
     {
     }
 

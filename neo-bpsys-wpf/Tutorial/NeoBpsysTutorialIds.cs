@@ -248,6 +248,9 @@ public static class TutorialPackageIds
     /// <summary>Smart BP module content overview package id.</summary>
     public const string SmartBpModuleContentOverview = "Page.SmartBp.ModuleContent.Overview";
 
+    /// <summary>Smart BP OCR model download and management package id.</summary>
+    public const string SmartBpOcrModelDownloadBasic = "Page.SmartBp.OcrModelDownload.Basic";
+
     /// <summary>Smart BP capture package id.</summary>
     public const string SmartBpCaptureBasic = "Page.SmartBp.Capture.Basic";
 

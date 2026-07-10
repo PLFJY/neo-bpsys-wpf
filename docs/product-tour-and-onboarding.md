@@ -139,7 +139,7 @@ ProductTour.xaml: 视觉样式、颜色、字体、边框、阴影
 页面、Tab、窗口或子区域确认自己仍是当前用户正在看的 active owner 后调用：
 
 ```csharp
-await tutorialRunner.TryRunNextPackageAsync(owner, pageKey);
+await tutorialRunner.RunSequenceAsync(owner, pageKey, ownerLifetimeToken);
 ```
 
 运行规则：
@@ -148,25 +148,20 @@ await tutorialRunner.TryRunNextPackageAsync(owner, pageKey);
 2. 按 `pageKey` 找到 package sequence。
 3. 按 `Sequence` 排序。
 4. 过滤已完成或已被 flow 覆盖且版本已满足的 package。
-5. 若当前 package `CanRun=false`，返回 `NotReady`（非终态：不写完成状态、不抑制后续尝试），由调用方稍后重新触发。
-6. 如果当前已有 flow、dialogue 或 product tour 正在运行，返回 `Suppressed`。
-7. 不自动循环；需要连续运行时由调用方使用 `RunUntilBlockedAsync(owner, pageKey)`。
+5. sequence 在同一个全局播放作业内逐个运行 package；每次完成后重新读取状态并解析下一个 pending package。
+6. 若当前 package `CanRun=false`，返回 `NotReady`（非终态：不写完成状态），由调用方稍后重新触发。
+7. 其他 sequence、直接 package 和 flow 共用 `ITutorialPlaybackCoordinator` 全局队列；忙时等待，不丢弃请求。
+8. 同一 owner 实例与 tutorial key 的重复请求共享已有 queued/running task；owner 卸载或窗口关闭时由调用方 lifetime token 取消陈旧请求。
 
 `Loaded` 和 `IsVisibleChanged` 只能作为辅助信号，不能代表用户正在看该 owner。主导航页应优先由 `NavigationService.PageChanged` 触发；FrontManage 子 view 应由当前 local tab 变更触发；SmartBP 的 `ModuleLoaded` 和 module content changed 只表示内容 ready，触发前仍必须通过 active owner 校验。
 
 ProductTour 项目不提供 owner activation service。主程序页面、窗口或子 view 在各自 code-behind 内解释 neo-bpsys 的主导航页、FrontManage 当前 tab、窗口可见性和 SmartBP 内容状态；通过校验后才调用 `ITutorialRunner`。
 
-自动运行策略：
+`ITutorialRunner` 是页面、窗口和设置入口应使用的运行边界。owner sequence 只有 `RunSequenceAsync` 一种语义：连续运行全部未完成 package，直到完成、用户跳过、取消，或遇到 `NotReady`、`TargetMissing`、`Failed`。直接 package 与 flow 也通过同一协调器排队。
 
-| 策略 | 语义 | 适用场景 |
-| --- | --- | --- |
-| `SinglePendingPackage` | 每次 active trigger 只运行一个 pending package。 | 主导航 overview，例如 `Page.FrontManage` |
-| `ContinueWhileActive` | 调用方确认 owner active 后使用 `RunUntilBlockedAsync` 连续运行；`Suppressed`、`Skipped`、`Canceled`、`TargetMissing`、`Failed` 都停止。 | 页面、Tab、模块，例如 FrontManage 子 view 和 SmartBP |
-| `DrainSequence` | 窗口打开后尽量跑完整个基础 sequence，直到没有 pending 或遇到非 Completed 结果。 | DesignerWindow、BehaviorPanel、AnimationEditor |
+Flow 内部引用 package 时使用 `TutorialTriggerMode.EmbeddedInFlow`，并保留 flow 对全局播放的所有权。Flow 运行期间产生的 owner sequence 请求会排在其后；flow 写入覆盖状态后，sequence 启动时重新解析 pending package，因此不会重复播放已覆盖内容。
 
-`ITutorialRunner` 是页面、窗口和设置入口应使用的运行边界。它会在运行前检查 pending 状态，已完成的 package 或 flow 返回 `CompletedAlready`，不会重新弹出；`RunUntilBlockedAsync(owner, pageKey)` 用于 Designer、BehaviorPanel、AnimationEditor 这类需要在同一 active owner 内连续跑完基础 sequence 的窗口或区域。
-
-Flow 内部引用 package 时使用 `TutorialTriggerMode.EmbeddedInFlow`，不受页面 auto loaded suppression 影响。Flow 运行中，页面切换产生的 auto loaded package 必须被 suppress，避免总导览过程中误弹页面教程。
+普通 package 的 `Items` 可以按作者顺序混合 `TutorialPackageStepItem` 与 `TutorialPackageDialogueItem`。Dialogue 直接复用 `DialogueOverlay`；package 内不允许嵌套 `PackageFlowItem`。
 
 ## 注册与 Builder
 
@@ -249,11 +244,11 @@ builder.Flow(TutorialFlowIds.FirstRunStandardBp)
 
 前台管理、Designer v3 和 SmartBP 的复杂模块教程独立于首次标准 BP 主线：
 
-1. `Page.FrontManage` sequence 只在用户进入前台管理页时运行 overview，策略为 `SinglePendingPackage`。
-2. `Page.FrontManage.Windows` 使用 `ContinueWhileActive`。FrontManage overview 已完成、跳过或被 flow 覆盖后，用户切到前台窗口 tab 时运行窗口基础教程；完成后如果仍停留在该 tab，会继续打开设计器和 BP 窗口启动教程。
-3. `Page.FrontManage.LayoutPackages` 使用 `ContinueWhileActive`。只有 FrontManage 仍是当前主导航页且布局包 tab 是当前 tab 时才运行。
-4. `Window.DesignerV3` sequence 只在用户首次打开 `FrontedDesignerWindow` 时运行，策略为 `DrainSequence`；前台管理页的“打开设计器”步骤可以等待 `DesignerV3.Opened`，但用户仍可通过下一步继续。
-5. `Page.SmartBp` 使用 `ContinueWhileActive`，按 `SmartBpPageViewModel.IsModuleLoaded` 判断 pending。未加载模块时只运行模块壳教程；模块加载后如果 SmartBP 仍是当前主导航页，继续运行模块内容、捕获、区域编辑和全流程 BP 入口教程。赛后自动回填教程只有在对应功能入口可见时才应 pending。
+1. `Page.FrontManage` 进入时先排父级 overview sequence；完成后由父级排当前可见子 owner。Tab 变化只由父级解析并触发子 sequence，子 view 的 Loaded 不自行抢跑。
+2. `Page.FrontManage.Windows` 和 `Page.FrontManage.LayoutPackages` 只有在 FrontManage 仍是当前主导航页且对应 tab 可见时运行。
+3. `Window.DesignerV3` 在 ViewModel 挂接、初始布局加载和 Dispatcher 空闲后运行完整 sequence；前台管理 package 只负责打开窗口，不在 `PostStepAction` 启动 Designer 教程。
+4. 动画编辑器在首个 tab、tab 内容和图编辑器渲染后运行自身完整 sequence。
+5. `Page.SmartBp` 按 `SmartBpPageViewModel.IsModuleLoaded` 判断 ready；首次有效进入依次运行模块内容、OCR 模型管理、捕获、区域编辑、全流程 BP 和赛后回填 package。
 6. 这些高级包不得加入 `Flow.FirstRun.StandardBp` 的 `IncludedPackageIds`，否则首次主线会错误地把未完整教学的功能标记为 `CoveredByFlow`。
 7. 复杂模块步骤默认使用 `ProductTourInteractionMode.AllowTargetOnly`，允许用户点击被高亮目标；文件选择、捕获、导入、保存、打开全部窗口和启动识别等动作不作为必须完成条件。
 
@@ -346,7 +341,7 @@ Product Tour 只负责“告诉用户做什么”和“等待用户完成动作�
 
 1. 添加新的 `TutorialPackageDefinition`，使用稳定 `PackageId` 和递增 `Version`。
 2. 注册到对应 `PageKey` 的 sequence。
-3. 页面、窗口或区域在 active trigger 中调用 `ITutorialRunner.TryRunNextPackageAsync(...)` 或 `RunUntilBlockedAsync(...)`。
+3. 页面、窗口或区域在 active trigger 中调用 `ITutorialRunner.RunSequenceAsync(...)`，并传入随 owner 卸载/关闭取消的 lifetime token。
 4. 交互步骤所需的业务动作发布 signal。
 5. 如果首次总导览需要覆盖该教程，只把 package id 加入 `IncludedPackageIds` 并用 `PackageFlowItem` 引用。
 6. 不复制已有教程步骤到 flow。

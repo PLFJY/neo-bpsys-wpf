@@ -25,7 +25,6 @@ public partial class FrontedLayoutPackagesView : ITutorialOwner<FrontedLayoutPac
     public static void RegisterTutorials(ITutorialBuilder builder)
     {
         builder.ForRegion<FrontedLayoutPackagesView>()
-            .AutoRun(TutorialAutoRunStrategy.ContinueWhileActive)
             .Package(Tours.LayoutPackagesBasic)
                 .Step("布局包")
                     .PreStepAction(TutorialStepActions.Delay(250))

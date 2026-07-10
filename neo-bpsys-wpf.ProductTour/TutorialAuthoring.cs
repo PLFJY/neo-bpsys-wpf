@@ -116,12 +116,6 @@ public interface ITutorialOwnerBuilder<TOwner>
     /// <returns>The same owner builder.</returns>
     ITutorialOwnerBuilder<TOwner> Use(TutorialPackageRef package);
 
-    /// <summary>
-    /// Sets the automatic run strategy for this owner's sequence.
-    /// </summary>
-    /// <param name="strategy">Automatic run strategy.</param>
-    /// <returns>The same owner builder.</returns>
-    ITutorialOwnerBuilder<TOwner> AutoRun(TutorialAutoRunStrategy strategy);
 }
 
 /// <summary>
@@ -137,6 +131,11 @@ public interface ITutorialPackageBuilder<TOwner> : ITutorialOwnerBuilder<TOwner>
     /// <param name="title">Step title.</param>
     /// <returns>Step builder.</returns>
     ITutorialStepBuilder<TOwner> Step(string title);
+
+    /// <summary>Adds dialogue at the current position in the package.</summary>
+    /// <param name="dialogue">Dialogue to display.</param>
+    /// <returns>The same package builder.</returns>
+    ITutorialPackageBuilder<TOwner> Dialogue(DialogueFlowItem dialogue);
 
     /// <summary>
     /// Completes and registers the current package.
@@ -457,7 +456,6 @@ internal sealed class TutorialOwnerBuilder<TOwner> : ITutorialOwnerBuilder<TOwne
     private readonly string _tutorialKey;
     private readonly List<string> _packageIds = [];
     private readonly List<TutorialPackageDefinition> _packages = [];
-    private TutorialAutoRunStrategy _autoRunStrategy = TutorialAutoRunStrategy.SinglePendingPackage;
 
     public TutorialOwnerBuilder(
         ITutorialPackageRegistry packageRegistry,
@@ -475,13 +473,6 @@ internal sealed class TutorialOwnerBuilder<TOwner> : ITutorialOwnerBuilder<TOwne
     public ITutorialOwnerBuilder<TOwner> Use(TutorialPackageRef package)
     {
         AddSequencePackage(package);
-        return this;
-    }
-
-    public ITutorialOwnerBuilder<TOwner> AutoRun(TutorialAutoRunStrategy strategy)
-    {
-        _autoRunStrategy = strategy;
-        RegisterSequence();
         return this;
     }
 
@@ -505,7 +496,7 @@ internal sealed class TutorialOwnerBuilder<TOwner> : ITutorialOwnerBuilder<TOwne
     }
 
     private void RegisterSequence() =>
-        _sequenceRegistry.RegisterSequence(_tutorialKey, _packageIds, _autoRunStrategy);
+        _sequenceRegistry.RegisterSequence(_tutorialKey, _packageIds);
 
     private void ValidateDuplicateContent(TutorialPackageDefinition package)
     {
@@ -547,7 +538,7 @@ internal sealed class TutorialAuthoringPackageBuilder<TOwner> :
     private readonly string _tutorialKey;
     private readonly TutorialPackageRef _package;
     private readonly int _sequence;
-    private readonly List<ProductTourStep> _steps = [];
+    private readonly List<TutorialPackageItem> _items = [];
     private ProductTourStep? _currentStep;
 
     public TutorialAuthoringPackageBuilder(
@@ -574,8 +565,16 @@ internal sealed class TutorialAuthoringPackageBuilder<TOwner> :
             Title = title,
             Timeout = TimeSpan.FromSeconds(30)
         };
-        _steps.Add(step);
+        _items.Add(new TutorialPackageStepItem { Step = step });
         _currentStep = step;
+        return this;
+    }
+
+    public ITutorialPackageBuilder<TOwner> Dialogue(DialogueFlowItem dialogue)
+    {
+        ArgumentNullException.ThrowIfNull(dialogue);
+        _items.Add(new TutorialPackageDialogueItem { Dialogue = dialogue });
+        _currentStep = null;
         return this;
     }
 
@@ -792,7 +791,7 @@ internal sealed class TutorialAuthoringPackageBuilder<TOwner> :
             PackageId = _package.Id,
             PageKey = _tutorialKey,
             Sequence = _sequence,
-            Steps = _steps.ToArray()
+            Items = _items.ToArray()
         });
         return _ownerBuilder;
     }
@@ -807,12 +806,6 @@ internal sealed class TutorialAuthoringPackageBuilder<TOwner> :
     {
         Build();
         return _ownerBuilder.Use(package);
-    }
-
-    public ITutorialOwnerBuilder<TOwner> AutoRun(TutorialAutoRunStrategy strategy)
-    {
-        Build();
-        return _ownerBuilder.AutoRun(strategy);
     }
 
     private ProductTourStep EnsureCurrentStep()

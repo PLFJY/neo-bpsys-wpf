@@ -45,7 +45,7 @@ public partial class GameDataPage : Page
             return;
         }
 
-        await runner.TryRunNextPackageAsync(this, TutorialPageKeys.GameManage);
+        await runner.RunSequenceAsync(this, TutorialPageKeys.GameManage, TutorialOwnerLifetime.GetToken(this));
     }
 
     private bool IsCurrentPage()

@@ -54,7 +54,7 @@ public partial class TeamInfoPage : Page
             return;
         }
 
-        await runner.TryRunNextPackageAsync(this, TutorialPageKey);
+        await runner.RunSequenceAsync(this, TutorialPageKey, TutorialOwnerLifetime.GetToken(this));
     }
 
     private bool IsCurrentTeamInfoPage()

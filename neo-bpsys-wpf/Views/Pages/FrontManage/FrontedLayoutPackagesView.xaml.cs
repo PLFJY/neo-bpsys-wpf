@@ -15,48 +15,26 @@ namespace neo_bpsys_wpf.Views.Pages.FrontManage;
 /// </summary>
 public partial class FrontedLayoutPackagesView : UserControl
 {
+    private CancellationTokenSource _tutorialLifetime = new();
+
+    /// <summary>Gets the lifetime token for this child tutorial owner.</summary>
+    internal CancellationToken TutorialLifetimeToken => _tutorialLifetime.Token;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="FrontedLayoutPackagesView"/> class.
     /// </summary>
     public FrontedLayoutPackagesView()
     {
         InitializeComponent();
-        Loaded += async (_, _) => await TryRunTutorialIfCurrentAsync();
-        IsVisibleChanged += async (_, e) =>
+        Loaded += (_, _) =>
         {
-            if (Equals(e.NewValue, true))
+            if (_tutorialLifetime.IsCancellationRequested)
             {
-                await TryRunTutorialIfCurrentAsync();
+                _tutorialLifetime.Dispose();
+                _tutorialLifetime = new CancellationTokenSource();
             }
         };
-    }
-
-    private async Task TryRunTutorialIfCurrentAsync()
-    {
-        if (!IsCurrentFrontManageChild())
-        {
-            return;
-        }
-
-        var runner = IAppHost.Host?.Services.GetService<ITutorialRunner>();
-        if (runner == null)
-        {
-            return;
-        }
-
-        await runner.TryRunNextPackageAsync(this, TutorialPageKey);
-    }
-
-    private bool IsCurrentFrontManageChild()
-    {
-        var navigationService = IAppHost.Host?.Services.GetService<global::neo_bpsys_wpf.Services.NavigationService>();
-        return navigationService?.CurrentPageContent is FrontManagePage frontManagePage
-            && FrontManagePage.TryResolveCurrentChildTutorial(
-                frontManagePage.FrontManageTabs,
-                out var owner,
-                out var pageKey)
-            && ReferenceEquals(owner, this)
-            && string.Equals(pageKey, TutorialPageKey, StringComparison.Ordinal);
+        Unloaded += (_, _) => _tutorialLifetime.Cancel();
     }
 
     private void PackageListBox_OnMouseDoubleClick(object sender, MouseButtonEventArgs e)

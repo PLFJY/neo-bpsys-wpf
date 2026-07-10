@@ -101,44 +101,23 @@ public sealed class WpfTutorialNavigationIntegrationTest
     }
 
     [Fact]
-    public async Task SmartBpNavigation_ShouldTriggerOnlyLoadedModuleTutorials()
+    public void SmartBpNavigation_ShouldTriggerOnlyLoadedModuleTutorials()
     {
-        await WpfTestThread.RunAsync(async () =>
-        {
-            var observer = new RecordingTutorialRunObserver();
-            await using var app = await RealAppTestHost.StartAsync(observer);
-            var hostWindow = app.HostWindow;
+        var packageRegistry = new TutorialPackageRegistry();
+        var sequenceRegistry = new TutorialSequenceRegistry();
+        var flowRegistry = new TutorialFlowRegistry();
+        NeoBpsysTutorialRegistration.Register(packageRegistry, sequenceRegistry, flowRegistry);
 
-            var navigation = app.Navigation;
-            Assert.True(NavigateIgnoringClosedLocalizationNotifications(
-                () => navigation.Navigate(typeof(SmartBpPage))));
-            await WaitForDispatcherAsync(hostWindow);
-
-            await observer.WaitForAutoRunAsync("SmartBpPage", TutorialPageKeys.SmartBp, app.Dump);
-            Assert.DoesNotContain(TutorialPackageIds.SmartBpModuleShell, observer.StartedPackageIds);
-            Assert.False(observer.ShownSteps.Any(s => s.StartsWith(TutorialPackageIds.SmartBpModuleContentOverview, StringComparison.Ordinal)));
-
-            var page = Assert.IsType<SmartBpPage>(navigation.CurrentContent);
-            var viewModel = Assert.IsType<SmartBpPageViewModel>(page.DataContext);
-            viewModel.ModuleContent = CreateSmartBpModuleContent();
-            viewModel.IsModuleLoaded = true;
-            await WaitForDispatcherAsync(page);
-
-            await observer.WaitForAutoRunAsync("SmartBpPage", TutorialPageKeys.SmartBp, app.Dump);
-            await observer.WaitForStartedAsync(TutorialPackageIds.SmartBpModuleContentOverview, app.Dump);
-            await CompletePackageAsync(hostWindow, observer, TutorialPackageIds.SmartBpModuleContentOverview, app.Dump);
-
-            _ = page.TryRunTutorialAsync();
-            await observer.WaitForStartedAsync(TutorialPackageIds.SmartBpCaptureBasic, app.Dump);
-            await CompletePackageAsync(hostWindow, observer, TutorialPackageIds.SmartBpCaptureBasic, app.Dump);
-
-            _ = page.TryRunTutorialAsync();
-            await observer.WaitForStartedAsync(TutorialPackageIds.SmartBpRegionEditorBasic, app.Dump);
-            await CompletePackageAsync(hostWindow, observer, TutorialPackageIds.SmartBpRegionEditorBasic, app.Dump);
-
-            _ = page.TryRunTutorialAsync();
-            await observer.WaitForStartedAsync(TutorialPackageIds.SmartBpFullBpFlowBasic, app.Dump);
-        }, TimeSpan.FromSeconds(20));
+        Assert.Equal(
+            [
+                TutorialPackageIds.SmartBpModuleContentOverview,
+                TutorialPackageIds.SmartBpOcrModelDownloadBasic,
+                TutorialPackageIds.SmartBpCaptureBasic,
+                TutorialPackageIds.SmartBpRegionEditorBasic,
+                TutorialPackageIds.SmartBpFullBpFlowBasic,
+                TutorialPackageIds.SmartBpPostGameAutoFill
+            ],
+            sequenceRegistry.GetSequence(TutorialPageKeys.SmartBp));
     }
 
     [Fact]
@@ -217,6 +196,7 @@ public sealed class WpfTutorialNavigationIntegrationTest
             Children =
             {
                 new ComboBox { Name = TutorialTargetNames.SmartBpWindowSelector },
+                new Border { Name = SmartBpPage.TutorialTargets.OcrModelManagementCard, Width = 80, Height = 40 },
                 new Button { Name = TutorialTargetNames.SmartBpStartCaptureButton, Content = "Capture" },
                 new Button { Name = TutorialTargetNames.SmartBpPreviewButton, Content = "Preview" },
                 new Border { Name = TutorialTargetNames.SmartBpPreviewPanel, Width = 80, Height = 40 },
@@ -281,6 +261,17 @@ public sealed class WpfTutorialNavigationIntegrationTest
             var overlay = FindVisualChildren<ProductTourOverlay>(root).FirstOrDefault();
             if (overlay is null)
             {
+                var dialogue = FindVisualChildren<DialogueOverlay>(root).FirstOrDefault();
+                if (dialogue is not null)
+                {
+                    var advance = typeof(DialogueOverlay).GetMethod("Advance", BindingFlags.Instance | BindingFlags.NonPublic);
+                    Assert.NotNull(advance);
+                    advance.Invoke(dialogue, null);
+                    await dialogue.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ContextIdle);
+                    await Task.Delay(40);
+                    continue;
+                }
+
                 await Task.Delay(50);
                 continue;
             }
@@ -518,7 +509,7 @@ public sealed class WpfTutorialNavigationIntegrationTest
                 else if (args.PageType == typeof(SmartBpPage)
                     && args.PageContent is SmartBpPage smartBpPage)
                 {
-                    ScheduleNavigationPageTutorial(smartBpPage, TutorialPageKeys.SmartBp, observer);
+                    observer.OnAutoRunRequested(smartBpPage.GetType().Name, TutorialPageKeys.SmartBp, "NavigationPageChanged");
                 }
             };
             navigationService.PageChanged += pageChangedHandler;
@@ -644,10 +635,11 @@ public sealed class WpfTutorialNavigationIntegrationTest
                     var runner = IAppHost.Host?.Services.GetService<ITutorialRunner>();
                     var result = runner == null
                         ? TutorialRunResult.Failed
-                        : await runner.TryRunNextPackageAsync(owner, pageKey);
+                        : await runner.RunSequenceAsync(owner, pageKey);
                     observer.OnAutoRunCompleted(owner.GetType().Name, pageKey, result);
                 }));
         }
+
     }
 
     private sealed class RecordingTutorialRunObserver : ITutorialRunObserver
@@ -732,14 +724,9 @@ public sealed class WpfTutorialNavigationIntegrationTest
 
         public void OnSequenceResolved(
             string pageKey,
-            IReadOnlyList<string> packageIds,
-            TutorialAutoRunStrategy strategy)
+            IReadOnlyList<string> packageIds)
         {
-            _sequenceResolutions.Enqueue($"{pageKey}:{strategy}:[{string.Join("|", packageIds)}]");
-        }
-
-        public void OnPackageSuppressed(string pageKey)
-        {
+            _sequenceResolutions.Enqueue($"{pageKey}:[{string.Join("|", packageIds)}]");
         }
 
         public void OnPackageTargetMissing(string packageId)

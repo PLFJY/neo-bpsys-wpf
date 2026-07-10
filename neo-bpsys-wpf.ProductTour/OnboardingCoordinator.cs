@@ -104,7 +104,7 @@ public sealed class OnboardingCoordinator : IOnboardingCoordinator
             try
             {
                 await _languageService.ApplyLanguageAsync(languageOptionId, cancellationToken);
-                await _tutorialRunner.TryRunFlowAsync(owner, FirstRunFlowId, force: true, cancellationToken);
+                await _tutorialRunner.RunFlowAsync(owner, FirstRunFlowId, force: true, cancellationToken);
             }
             catch (Exception ex)
             {

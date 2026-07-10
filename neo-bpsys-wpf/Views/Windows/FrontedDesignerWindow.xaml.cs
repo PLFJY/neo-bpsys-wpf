@@ -94,6 +94,7 @@ public partial class FrontedDesignerWindow : FluentWindow
     private double _layerAutoScrollVelocity;
     private Point? _lastLayerDragPosition;
     private FrontedDesignerPreviewRenderRequestedEventArgs? _pendingPreviewRenderArgs;
+    private readonly CancellationTokenSource _tutorialLifetime = new();
 
     public FrontedDesignerWindow()
     {
@@ -161,19 +162,31 @@ public partial class FrontedDesignerWindow : FluentWindow
         }
     }
 
-    private void OnLoaded(object sender, RoutedEventArgs e)
+    private async void OnLoaded(object sender, RoutedEventArgs e)
     {
-        _isLoaded = true;
-        TutorialSignalPublisher.Publish(TutorialSignalIds.DesignerV3Opened);
-        _ = (_tutorialRunner ?? IAppHost.Host?.Services.GetService(typeof(ITutorialRunner)) as ITutorialRunner)
-            ?.RunUntilBlockedAsync(this, TutorialPageKeys.DesignerV3);
-        AttachViewModel();
-        _ = LoadInitialLayoutAsync();
+        try
+        {
+            _isLoaded = true;
+            TutorialSignalPublisher.Publish(TutorialSignalIds.DesignerV3Opened);
+            AttachViewModel();
+            await LoadInitialLayoutAsync();
+            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.ContextIdle, _tutorialLifetime.Token);
+            var runner = _tutorialRunner
+                ?? IAppHost.Host?.Services.GetService(typeof(ITutorialRunner)) as ITutorialRunner;
+            if (runner != null)
+            {
+                await runner.RunSequenceAsync(this, TutorialPageKeys.DesignerV3, _tutorialLifetime.Token);
+            }
+        }
+        catch (OperationCanceledException) when (_tutorialLifetime.IsCancellationRequested)
+        {
+        }
     }
 
     private void OnClosed(object? sender, EventArgs e)
     {
         _isLoaded = false;
+        _tutorialLifetime.Cancel();
         _pendingPreviewRenderArgs = null;
         _previewRenderScheduled = false;
         _propertyAutoCommitTimer?.Stop();
@@ -1334,9 +1347,10 @@ public partial class FrontedDesignerWindow : FluentWindow
                 {
                     var runner = _tutorialRunner
                         ?? IAppHost.Host?.Services.GetService(typeof(ITutorialRunner)) as ITutorialRunner;
-                    _ = runner?.RunUntilBlockedAsync(
+                    _ = runner?.RunSequenceAsync(
                         panel,
-                        neo_bpsys_wpf.Views.FrontedDesigner.BehaviorPanelView.TutorialPageKey);
+                        neo_bpsys_wpf.Views.FrontedDesigner.BehaviorPanelView.TutorialPageKey,
+                        _tutorialLifetime.Token);
                 }
             }));
     }
