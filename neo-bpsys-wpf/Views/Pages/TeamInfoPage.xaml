@@ -20,7 +20,7 @@
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Team"
+    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Team"
     mc:Ignorable="d">
     <Page.Resources>
         <cv:CampToStringConverter x:Key="CampToStringConverter" />
@@ -55,7 +55,7 @@
                         x:Name="HomeTeamNameConfirmButton"
                         Margin="10,0,0,0"
                         Command="{Binding ConfirmTeamNameCommand}"
-                        lex:ResxLocalizationProvider.DefaultDictionary="Locales.Common"
+                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
                         Content="{lex:Loc Confirm}"
                         Icon="{ui:SymbolIcon Symbol=Checkmark24}" />
                 </StackPanel>
@@ -78,7 +78,7 @@
                         <ui:Button
                             Margin="10,0,0,0"
                             Command="{Binding ApplyTeamColorCommand}"
-                            lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell"
+                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell"
                             Content="{lex:Loc ApplyColor}"
                             Icon="{ui:SymbolIcon Symbol=Checkmark24}" />
                         <ui:Button
@@ -182,7 +182,7 @@
                                         Background="PaleVioletRed"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.RemoveSurMemberCommand}"
                                         CommandParameter="{Binding}"
-                                        lex:ResxLocalizationProvider.DefaultDictionary="Locales.Common"
+                                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
                                         Content="{lex:Loc Delete}"
                                         Icon="{ui:SymbolIcon Symbol=Delete24}" />
                                 </StackPanel>
@@ -257,7 +257,7 @@
                                         Background="PaleVioletRed"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.RemoveHunMemberCommand}"
                                         CommandParameter="{Binding}"
-                                        lex:ResxLocalizationProvider.DefaultDictionary="Locales.Common"
+                                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
                                         Content="{lex:Loc Delete}"
                                         Icon="{ui:SymbolIcon Symbol=Delete24}" />
                                 </StackPanel>
@@ -302,7 +302,7 @@
                         x:Name="AwayTeamNameConfirmButton"
                         Margin="10,0,0,0"
                         Command="{Binding ConfirmTeamNameCommand}"
-                        lex:ResxLocalizationProvider.DefaultDictionary="Locales.Common"
+                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
                         Content="{lex:Loc Confirm}"
                         Icon="{ui:SymbolIcon Symbol=Checkmark24}" />
                 </StackPanel>
@@ -325,7 +325,7 @@
                         <ui:Button
                             Margin="10,0,0,0"
                             Command="{Binding ApplyTeamColorCommand}"
-                            lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell"
+                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell"
                             Content="{lex:Loc ApplyColor}"
                             Icon="{ui:SymbolIcon Symbol=Checkmark24}" />
                         <ui:Button
@@ -427,7 +427,7 @@
                                         Background="PaleVioletRed"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.RemoveSurMemberCommand}"
                                         CommandParameter="{Binding}"
-                                        lex:ResxLocalizationProvider.DefaultDictionary="Locales.Common"
+                                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
                                         Content="{lex:Loc Delete}"
                                         Icon="{ui:SymbolIcon Symbol=Delete24}" />
                                 </StackPanel>
@@ -507,7 +507,7 @@
                                         Background="PaleVioletRed"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.RemoveHunMemberCommand}"
                                         CommandParameter="{Binding}"
-                                        lex:ResxLocalizationProvider.DefaultDictionary="Locales.Common"
+                                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
                                         Content="{lex:Loc Delete}"
                                         Icon="{ui:SymbolIcon Symbol=Delete24}" />
                                 </StackPanel>
@@ -540,7 +540,7 @@
                 <TextBlock Style="{StaticResource Title}" Text="{lex:Loc CurrentPlayerOnStage}" />
                 <TextBlock
                     Margin="0,10,0,0"
-                    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell"
+                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell"
                     Text="{lex:Loc Survivor}" />
                 <ItemsControl
                     x:Name="HomePlayerPositionPanel"
@@ -558,7 +558,7 @@
 
                 <TextBlock
                     Margin="0,10,0,10"
-                    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell"
+                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell"
                     Text="{lex:Loc Hunter}" />
                 <ui:TextBox
                     x:Name="AwayPlayerPositionPanel"

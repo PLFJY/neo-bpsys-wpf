@@ -14,7 +14,7 @@
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-    lex:ResxLocalizationProvider.DefaultDictionary="Locales.FrontManage"
+    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.FrontManage"
     mc:Ignorable="d">
 
     <UserControl.Resources>
@@ -128,7 +128,7 @@
                                                         Margin="10,0,0,0"
                                                         Command="{Binding DataContext.HideWindowCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                         CommandParameter="{Binding WindowId}"
-                                                        lex:ResxLocalizationProvider.DefaultDictionary="Locales.Common"
+                                                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
                                                         Content="{lex:Loc Close}" />
                                                 </StackPanel>
                                             </Grid>

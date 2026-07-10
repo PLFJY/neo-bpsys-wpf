@@ -13,7 +13,7 @@
     MinHeight="440"
     lex:LocalizeDictionary.DesignCulture="zh"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Designer"
+    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Designer"
     WindowStartupLocation="CenterOwner">
     <ui:FluentWindow.Resources>
         <Style BasedOn="{StaticResource {x:Type TextBox}}" TargetType="TextBox">
@@ -97,7 +97,7 @@
                                     Margin="8,0,0,0"
                                     Click="DeleteSource_OnClick"
                                     Content="{lex:Loc Delete}"
-                                    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Common" />
+                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
                             </Grid>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
@@ -178,7 +178,7 @@
                         FontWeight="Medium"
                         Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                         Text="{lex:Loc PreviewColon}"
-                        lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell" />
+                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell" />
                     <TextBlock
                         HorizontalAlignment="Center"
                         FontSize="14"
@@ -198,13 +198,13 @@
                     Click="Apply_OnClick"
                     Content="{lex:Loc SaveAndApply}"
                     IsDefault="True"
-                    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell" />
+                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell" />
                 <ui:Button
                     Margin="8,0,0,0"
                     Click="Cancel_OnClick"
                     Content="{lex:Loc Cancel}"
                     IsCancel="True"
-                    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Common" />
+                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
             </StackPanel>
         </Grid>
     </Grid>

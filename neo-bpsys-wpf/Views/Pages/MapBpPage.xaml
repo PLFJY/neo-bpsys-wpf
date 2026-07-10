@@ -20,7 +20,7 @@
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Bp"
+    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp"
     mc:Ignorable="d">
     <Page.Resources>
         <cv:BooleanToEnumConverter x:Key="BooleanToEnumConverter" />
@@ -32,7 +32,7 @@
         <Border Style="{StaticResource Card}" modernScroll:GuidanceScrollTarget.Action="PickCamp">
             <StackPanel
                 Orientation="Horizontal"
-                lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell">
+                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell">
                 <ui:ToggleSwitch Content="{lex:Loc ShowPickingBorder}" IsChecked="{Binding IsBreathing}" />
                 <ui:ToggleSwitch
                     Margin="10,0,0,0"

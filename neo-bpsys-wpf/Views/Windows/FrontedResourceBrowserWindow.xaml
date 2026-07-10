@@ -14,7 +14,7 @@
     MinHeight="420"
     lex:LocalizeDictionary.DesignCulture="zh"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Designer"
+    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Designer"
     Background="{DynamicResource ApplicationBackgroundBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     WindowStartupLocation="CenterOwner">
@@ -58,7 +58,7 @@
                 Margin="8,0,0,0"
                 Click="BrowseFile_OnClick"
                 Content="{lex:Loc BrowseFile}"
-                lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell" />
+                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell" />
         </Grid>
         <Grid Grid.Row="2" Margin="12,0,12,12">
             <ListBox

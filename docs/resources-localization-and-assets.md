@@ -129,7 +129,7 @@ XAML 常见写法（需指定 `DefaultAssembly` 和 `DefaultDictionary`）：
 
 ```xaml
 lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell"
+lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell"
 Text="{lex:Loc SomeKey}"
 ```
 

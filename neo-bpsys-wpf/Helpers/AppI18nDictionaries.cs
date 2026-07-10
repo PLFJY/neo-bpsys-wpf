@@ -5,7 +5,9 @@ namespace neo_bpsys_wpf.Helpers;
 /// 仅包含实际存在的非空资源族常量，避免在 C# 代码中散布原始字符串字面量。
 /// </summary>
 /// <remarks>
-/// 所有常量值遵循 WPFLocalizeExtension 的字典命名约定 <c>Locales.&lt;Family&gt;</c>。
+/// 所有常量值均为代码侧使用的短字典名 <c>Locales.&lt;Family&gt;</c>。
+/// XAML 的 <c>ResxLocalizationProvider.DefaultDictionary</c> 则必须使用程序集实际嵌入的
+/// 完整资源基名，例如 <c>neo_bpsys_wpf.Locales.Shell</c>。
 /// 调用 <see cref="I18nHelper.GetLocalizedString(string, string)"/> 时应传入此处的常量，
 /// 而非硬编码字典名。新增资源族时必须在此处补充常量。
 /// </remarks>

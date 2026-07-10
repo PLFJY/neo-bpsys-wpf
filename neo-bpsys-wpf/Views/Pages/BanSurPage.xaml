@@ -19,7 +19,7 @@
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell"
+    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell"
     mc:Ignorable="d">
     <Page.Resources>
         <cv:IntPlusOneConverter x:Key="IntPlusOneConverter" />
@@ -116,7 +116,7 @@
                 <TextBlock
                     Grid.Row="0"
                     Style="{StaticResource Title}"
-                    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Bp"
+                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp"
                     Text="{lex:Loc BanNumberControl}" />
                 <TextBlock
                     Grid.Row="1"
@@ -138,7 +138,7 @@
                                 <TextBlock
                                     Margin="10,0,0,0"
                                     VerticalAlignment="Center"
-                                    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Bp">
+                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp">
                                     <TextBlock.Text>
                                         <MultiBinding Converter="{StaticResource IndexFormatConverter}">
                                             <lex:BLoc Key="IndexFormat" />
@@ -170,7 +170,7 @@
                                 <TextBlock
                                     Margin="10,0,0,0"
                                     VerticalAlignment="Center"
-                                    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Bp">
+                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp">
                                     <TextBlock.Text>
                                         <MultiBinding Converter="{StaticResource IndexFormatConverter}">
                                             <lex:BLoc Key="IndexFormat" />

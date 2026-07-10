@@ -533,11 +533,11 @@ public sealed class WpfTutorialNavigationIntegrationTest
 
             if (!string.Equals(
                     ResxLocalizationProvider.GetDefaultDictionary(root),
-                    "Locales.Shell",
+                    "neo_bpsys_wpf.Locales.Shell",
                     StringComparison.Ordinal))
             {
                 IgnoreClosedDispatcherLocalizationNotifications(
-                    () => ResxLocalizationProvider.SetDefaultDictionary(root, "Locales.Shell"));
+                    () => ResxLocalizationProvider.SetDefaultDictionary(root, "neo_bpsys_wpf.Locales.Shell"));
             }
 
             if (!Equals(LocalizeDictionary.Instance.Culture, culture))

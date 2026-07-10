@@ -22,7 +22,7 @@
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell"
+    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell"
     mc:Ignorable="d">
     <WrapPanel
         x:Name="TalentTraitSelectorPanel"
@@ -127,7 +127,7 @@
                         x:Name="IsTraitVisible"
                         Margin="0,0,0,0"
                         d:IsChecked="True"
-                        lex:ResxLocalizationProvider.DefaultDictionary="Locales.Common"
+                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
                         Content="{lex:Loc Enable}"
                         IsChecked="{Binding IsTraitVisible}" />
                 </StackPanel>

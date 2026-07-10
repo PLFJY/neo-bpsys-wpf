@@ -7,9 +7,13 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Windows.Controls;
 using System.Text;
 using System.Xml.Linq;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.Tests.Infrastructure;
+using WPFLocalizeExtension.Engine;
+using WPFLocalizeExtension.Providers;
 using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Services;
@@ -357,6 +361,29 @@ public sealed class I18nResourceAuditTest
         Assert.True(resxKeys.ContainsKey("Zoom"), "Zoom key should exist in AnimationEditor.resx");
         Assert.False(string.IsNullOrWhiteSpace(resxKeys["Zoom"].Value),
             "Zoom value should not be empty in AnimationEditor.resx");
+    }
+
+    /// <summary>
+    /// Verifies that the WPF localization provider resolves a resource through
+    /// the dictionary base name emitted into the host assembly. This protects
+    /// XAML <c>lex:Loc</c> bindings from silently degrading to <c>Key: ...</c>.
+    /// </summary>
+    [Fact]
+    public void XamlProviderResolvesHostResource()
+    {
+        WpfTestThread.Run(() =>
+        {
+            var root = new Grid();
+            ResxLocalizationProvider.SetDefaultAssembly(root, HostAssembly);
+            ResxLocalizationProvider.SetDefaultDictionary(root, "neo_bpsys_wpf.Locales.Shell");
+
+            var value = LocalizeDictionary.Instance.GetLocalizedObject(
+                "Backend",
+                root,
+                CultureInfo.GetCultureInfo("zh-CN"));
+
+            Assert.Equal("后台管理", value);
+        });
     }
 
     /// <summary>

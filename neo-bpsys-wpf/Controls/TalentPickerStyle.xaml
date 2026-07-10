@@ -19,7 +19,7 @@
                     </ControlTemplate.Resources>
                     <Grid
                         lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-                        lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell">
+                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />

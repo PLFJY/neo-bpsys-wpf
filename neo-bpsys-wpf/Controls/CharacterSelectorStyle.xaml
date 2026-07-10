@@ -16,7 +16,7 @@
                     <StackPanel
                         Orientation="Horizontal"
                         lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-                        lex:ResxLocalizationProvider.DefaultDictionary="Locales.Common">
+                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common">
                         <StackPanel>
                             <ComboBox
                                 Width="150"

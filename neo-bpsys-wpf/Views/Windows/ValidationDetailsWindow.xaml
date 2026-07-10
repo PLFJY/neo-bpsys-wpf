@@ -12,7 +12,7 @@
     MinHeight="300"
     lex:LocalizeDictionary.DesignCulture="zh"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Designer"
+    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Designer"
     Background="{DynamicResource ApplicationBackgroundBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     WindowStartupLocation="CenterOwner">
@@ -78,6 +78,6 @@
             Click="Close_OnClick"
             Content="{lex:Loc Close}"
             Icon="{ui:SymbolIcon Symbol=Dismiss24}"
-            lex:ResxLocalizationProvider.DefaultDictionary="Locales.Common" />
+            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
     </Grid>
 </ui:FluentWindow>

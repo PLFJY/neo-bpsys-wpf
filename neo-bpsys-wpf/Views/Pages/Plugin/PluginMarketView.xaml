@@ -18,7 +18,7 @@
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-    lex:ResxLocalizationProvider.DefaultDictionary="Locales.PluginMarket"
+    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.PluginMarket"
     mc:Ignorable="d">
 
     <UserControl.Resources>
@@ -85,12 +85,12 @@
                     Command="{Binding RefreshMarketCommand}"
                     Content="{lex:Loc Refresh}"
                     Icon="{ui:SymbolIcon Symbol=ArrowSync24}"
-                    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Common" />
+                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
                 <ui:Button
                     Command="{Binding TogglePluginMarketSettingsCommand}"
                     Content="{lex:Loc Settings}"
                     Icon="{ui:SymbolIcon Symbol=Settings24}"
-                    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Settings" />
+                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Settings" />
             </StackPanel>
         </Grid>
 
@@ -270,7 +270,7 @@
                             Command="{Binding ToggleDownloadQueueCommand}"
                             Content="{lex:Loc Close}"
                             Icon="{ui:SymbolIcon Symbol=Dismiss24}"
-                            lex:ResxLocalizationProvider.DefaultDictionary="Locales.Common" />
+                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
                     </Grid>
 
                     <Grid Grid.Row="1" Margin="0,14,0,0">
@@ -435,7 +435,7 @@
                             Command="{Binding DataContext.CloseMarketPluginDetailsCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                             Content="{lex:Loc Close}"
                             Icon="{ui:SymbolIcon Symbol=Dismiss24}"
-                            lex:ResxLocalizationProvider.DefaultDictionary="Locales.Common" />
+                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
                     </Grid>
 
                     <StackPanel
@@ -572,7 +572,7 @@
                             Command="{Binding TogglePluginMarketSettingsCommand}"
                             Content="{lex:Loc Close}"
                             Icon="{ui:SymbolIcon Symbol=Dismiss24}"
-                            lex:ResxLocalizationProvider.DefaultDictionary="Locales.Common" />
+                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
                     </Grid>
 
                     <TextBlock

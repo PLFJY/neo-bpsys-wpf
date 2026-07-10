@@ -13,7 +13,7 @@
     MinHeight="520"
     lex:LocalizeDictionary.DesignCulture="zh"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-    lex:ResxLocalizationProvider.DefaultDictionary="Locales.FrontManage"
+    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.FrontManage"
     Background="{DynamicResource ApplicationBackgroundBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     WindowStartupLocation="CenterOwner">
@@ -105,13 +105,13 @@
                 MinWidth="96"
                 Click="Ok_OnClick"
                 Content="{lex:Loc Confirm}"
-                lex:ResxLocalizationProvider.DefaultDictionary="Locales.Common" />
+                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
             <ui:Button
                 MinWidth="96"
                 Margin="8,0,0,0"
                 Click="Cancel_OnClick"
                 Content="{lex:Loc Cancel}"
-                lex:ResxLocalizationProvider.DefaultDictionary="Locales.Common" />
+                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
         </StackPanel>
     </Grid>
 </ui:FluentWindow>

@@ -19,7 +19,7 @@
                                      IsDesignTimeCreatable=True}"
     lex:LocalizeDictionary.DesignCulture="zh"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell"
+    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell"
     ui:Design.Background="{DynamicResource ApplicationBackgroundBrush}"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     RenderOptions.BitmapScalingMode="HighQuality"
@@ -179,13 +179,13 @@
                                 Command="{Binding TimerStartCommand}"
                                 Content="{lex:Loc Start}"
                                 Icon="{ui:SymbolIcon Symbol=Play24}"
-                                lex:ResxLocalizationProvider.DefaultDictionary="Locales.Common" />
+                                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
                             <ui:Button
                                 Margin="10,0,0,0"
                                 Command="{Binding TimerStopCommand}"
                                 Content="{lex:Loc Stop}"
                                 Icon="{ui:SymbolIcon Symbol=Stop24}"
-                                lex:ResxLocalizationProvider.DefaultDictionary="Locales.Common" />
+                                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
                             <TextBlock
                                 Width="60"
                                 Margin="10,0,0,0"
@@ -217,7 +217,7 @@
                     Command="{Binding NewGameCommand}"
                     Content="{lex:Loc NewGame}"
                     Icon="{ui:SymbolIcon Symbol=Add24}"
-                    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Game" />
+                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Game" />
                 <Border Margin="0,0,10,10" Style="{StaticResource Card}">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock
@@ -241,7 +241,7 @@
                     Margin="0,0,10,10"
                     VerticalAlignment="Center"
                     Text="{lex:Loc GameProgressColon}"
-                    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Game" />
+                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Game" />
                 <ComboBox
                     x:Name="GameProgressComboBox"
                     Width="215"
@@ -272,7 +272,7 @@
                     Content="{lex:Loc SmartBpStopAutomaticRecognition}"
                     Icon="{ui:SymbolIcon Symbol=Stop24}"
                     Visibility="{Binding IsSmartBpAutoRecognitionRunning, Converter={StaticResource BoolToVisibilityConverter}}"
-                    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Settings" />
+                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Settings" />
                 <ui:Button
                     x:Name="StartGameGuidanceButton"
                     Margin="0,0,10,10"

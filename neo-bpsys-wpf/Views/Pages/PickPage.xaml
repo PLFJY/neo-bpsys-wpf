@@ -18,7 +18,7 @@
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Bp"
+    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp"
     mc:Ignorable="d">
     <Page.Resources>
         <Style BasedOn="{StaticResource {x:Type cc:CharacterChanger}}" TargetType="cc:CharacterChanger">
@@ -58,7 +58,7 @@
                             <StackPanel Margin="0,0,10,10">
                                 <ui:TextBox
                                     IsReadOnly="True"
-                                    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Team"
+                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Team"
                                     PlaceholderText="{lex:Loc PlayerName}"
                                     Text="{Binding ThisPlayer.Member.Name, Mode=OneWay}" />
                                 <cc:CharacterSelector
@@ -121,7 +121,7 @@
                 <TextBlock
                     Grid.Row="0"
                     Style="{StaticResource Title}"
-                    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell"
+                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell"
                     Text="{lex:Loc GlobalBanRecord}" />
                 <StackPanel
                     Grid.Row="1"
@@ -131,7 +131,7 @@
                         x:Name="GlobalBanAutoRecordToggle"
                         Margin="0,0,0,0"
                         VerticalAlignment="Center"
-                        lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell"
+                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell"
                         Content="{lex:Loc AutoRecord}"
                         IsChecked="{Binding IsGlobalBanAutoRecord}" />
                 </StackPanel>
@@ -151,7 +151,7 @@
                     <TextBlock
                         Grid.Row="0"
                         d:Text="主队: 主队名称"
-                        lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell">
+                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell">
                         <TextBlock.Text>
                             <MultiBinding StringFormat="{}{0}: {1}">
                                 <lex:BLoc Key="HomeTeam" />
@@ -222,7 +222,7 @@
                     <TextBlock
                         Grid.Row="0"
                         d:Text="客队: 主队名称"
-                        lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell">
+                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell">
                         <TextBlock.Text>
                             <MultiBinding StringFormat="{}{0}: {1}">
                                 <lex:BLoc Key="AwayTeam" />

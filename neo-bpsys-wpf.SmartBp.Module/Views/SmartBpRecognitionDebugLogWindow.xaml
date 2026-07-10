@@ -10,7 +10,7 @@
     MinWidth="760"
     MinHeight="480"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf.SmartBp.Module"
-    lex:ResxLocalizationProvider.DefaultDictionary="Locales.SmartBp"
+    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.SmartBp"
     ui:Design.Background="{DynamicResource ApplicationBackgroundBrush}"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Background="{DynamicResource ApplicationBackgroundBrush}"

@@ -19,7 +19,7 @@
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Score"
+    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Score"
     mc:Ignorable="d">
     <Page.Resources>
         <cv:BooleanToEnumConverter x:Key="BooleanToEnumConverter" />
@@ -41,7 +41,7 @@
                         Grid.Row="1"
                     Margin="0,10,0,0"
                     IsEnabled="{Binding IsScoreControlEnabled}"
-                    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell">
+                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
@@ -152,7 +152,7 @@
                         Margin="16,0,0,0"
                         Padding="12,4"
                         Click="RestoreScorePreviewDefaultSort_Click"
-                        lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell"
+                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell"
                         Content="{lex:Loc RestoreDefaultSort}" />
                 </StackPanel>
                 <ui:DataGrid

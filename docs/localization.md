@@ -63,10 +63,15 @@
 
 ```xaml
 <Window lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-        lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell">
+        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell">
     <TextBlock Text="{lex:Loc SomeKey}" />
 </Window>
 ```
+
+`DefaultDictionary` 必须是程序集嵌入资源的完整基名，而非代码侧的短字典常量。主程序资源使用
+`neo_bpsys_wpf.Locales.<Family>`；SmartBP 模块也使用 `neo_bpsys_wpf.Locales.SmartBp`，因为其
+项目根命名空间为 `neo_bpsys_wpf`。短名 `Locales.<Family>` 仅适用于 `I18nHelper`，直接用于
+`lex:Loc` 会导致界面显示 `Key: ...`。
 
 当某 key 归属不同字典时，在该元素上显式指定：
 
@@ -90,7 +95,7 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type local:MyControl}">
                     <Grid lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-                          lex:ResxLocalizationProvider.DefaultDictionary="Locales.Game">
+                          lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Game">
                         <TextBlock Text="{lex:Loc SomeKey}" />
                     </Grid>
                 </ControlTemplate>

@@ -23,7 +23,7 @@
                                      IsDesignTimeCreatable=True}"
     lex:LocalizeDictionary.DesignCulture="zh"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Designer"
+    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Designer"
     ui:Design.Background="{DynamicResource ApplicationBackgroundBrush}"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Background="{DynamicResource ApplicationBackgroundBrush}"
@@ -208,7 +208,7 @@
                     Click="PropertyTextApplyButton_OnClick"
                     Icon="{ui:SymbolIcon Symbol=Checkmark24}"
                     ToolTip="{lex:Loc ApplyColor}"
-                    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell">
+                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell">
                     <ui:Button.Style>
                         <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
                             <Style.Triggers>
@@ -422,7 +422,7 @@
                             <MenuItem
                                 Click="ResetToBuiltInButton_OnClick"
                                 Header="{lex:Loc ResetToBuiltIn}"
-                                lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell" />
+                                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell" />
                             <MenuItem Command="{Binding ValidateLayoutCommand}" Header="{lex:Loc ValidationDetails}" />
                         </MenuItem>
                         <MenuItem Header="{lex:Loc Edit}">
@@ -453,11 +453,11 @@
                             <MenuItem
                                 Command="{Binding ZoomInCommand}"
                                 Header="{lex:Loc ZoomIn}"
-                                lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell" />
+                                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell" />
                             <MenuItem
                                 Command="{Binding ZoomOutCommand}"
                                 Header="{lex:Loc ZoomOut}"
-                                lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell" />
+                                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell" />
                             <Separator />
                             <MenuItem
                                 Command="{Binding SetZoomPresetCommand}"
@@ -1828,7 +1828,7 @@
                                         Click="WindowBackgroundColorApplyButton_OnClick"
                                         Icon="{ui:SymbolIcon Symbol=Checkmark24}"
                                         ToolTip="{lex:Loc ApplyColor}"
-                                        lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell" />
+                                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell" />
                                 </Grid>
                                 <TextBlock
                                     Margin="0,6,0,0"

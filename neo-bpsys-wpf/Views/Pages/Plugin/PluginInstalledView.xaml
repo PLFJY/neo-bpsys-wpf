@@ -15,7 +15,7 @@
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-    lex:ResxLocalizationProvider.DefaultDictionary="Locales.PluginMarket"
+    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.PluginMarket"
     mc:Ignorable="d">
 
     <UserControl.Resources>
@@ -108,7 +108,7 @@
                                         Command="{Binding DataContext.ToggleEnableCommand, RelativeSource={RelativeSource AncestorType=ui:ListView}}"
                                         CommandParameter="{Binding}"
                                         IsChecked="{Binding IsEnabled, Mode=OneWay}"
-                                        lex:ResxLocalizationProvider.DefaultDictionary="Locales.Common"
+                                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
                                         ToolTip="{lex:Loc Enable}" />
 
                                     <ui:Button
