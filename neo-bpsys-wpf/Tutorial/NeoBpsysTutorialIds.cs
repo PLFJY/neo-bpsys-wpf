@@ -26,9 +26,6 @@ public static class TutorialPageKeys
     /// <summary>Team info page key.</summary>
     public const string TeamInfo = "Page.TeamInfo";
 
-    /// <summary>Shared BP page key.</summary>
-    public const string BpShared = "Page.Bp.Shared";
-
     /// <summary>BP game guidance page key.</summary>
     public const string BpGameGuidance = "Page.Bp.GameGuidance";
 
@@ -122,15 +119,6 @@ public static class TutorialPackageIds
     /// <summary>Game guidance end package id.</summary>
     public const string BpGameGuidanceEndBasic = "Page.Bp.GameGuidance.End.Basic";
 
-    /// <summary>BO1 first-half game guidance package id.</summary>
-    public const string BpGameGuidanceFlowBo1FirstHalf = "Page.Bp.GameGuidance.FlowBo1FirstHalf";
-
-    /// <summary>Map BP completion next package id.</summary>
-    public const string MapBpCompletionNextBasic = "Page.MapBp.CompletionNext.Basic";
-
-    /// <summary>Map BP current operation spotlight package id.</summary>
-    public const string MapBpCurrentOperationSpotlightBasic = "Page.MapBp.CurrentOperationSpotlight.Basic";
-
     /// <summary>Map BP ban-map operation package id.</summary>
     public const string MapBpBanMapOperationBasic = "Page.MapBp.BanMapOperation.Basic";
 
@@ -191,9 +179,6 @@ public static class TutorialPackageIds
     /// <summary>Front management layout packages package id.</summary>
     public const string FrontManageLayoutPackagesBasic = "Page.FrontManage.LayoutPackages.Basic";
 
-    /// <summary>Front management advanced package id.</summary>
-    public const string FrontManageAdvanced = "Page.FrontManage.Advanced";
-
     /// <summary>Designer v3 overview package id.</summary>
     public const string DesignerV3Overview = "Window.DesignerV3.Overview";
 
@@ -238,9 +223,6 @@ public static class TutorialPackageIds
 
     /// <summary>Designer v3 animation editor help package id.</summary>
     public const string DesignerV3AnimationEditorHelpBasic = "Window.DesignerV3.AnimationEditor.Help.Basic";
-
-    /// <summary>Designer v3 advanced package id.</summary>
-    public const string DesignerV3Advanced = "Window.DesignerV3.Advanced";
 
     /// <summary>Smart BP module shell package id.</summary>
     public const string SmartBpModuleShell = "Page.SmartBp.ModuleShell";
@@ -322,9 +304,6 @@ public static class TutorialSignalIds
     /// <summary>Game guidance started signal id.</summary>
     public const string GameGuidanceStarted = "GameGuidanceStarted";
 
-    /// <summary>Map BP completed signal id.</summary>
-    public const string MapBpCompleted = "MapBpCompleted";
-
     /// <summary>Guidance next clicked signal id.</summary>
     public const string GuidanceNextClicked = "GuidanceNextClicked";
 
@@ -352,9 +331,6 @@ public static class TutorialSignalIds
     /// <summary>All survivor pick slots completed signal id.</summary>
     public const string PickSurvivorSlotsCompleted = "PickSurvivorSlotsCompleted";
 
-    /// <summary>Character changer opened signal id.</summary>
-    public const string CharacterChangerOpened = "CharacterChangerOpened";
-
     /// <summary>Character changer applied signal id.</summary>
     public const string CharacterChangerApplied = "CharacterChangerApplied";
 
@@ -379,18 +355,6 @@ public static class TutorialSignalIds
     /// <summary>Smart BP module loaded signal id.</summary>
     public const string SmartBpModuleLoaded = "SmartBp.ModuleLoaded";
 
-    /// <summary>Smart BP capture started signal id.</summary>
-    public const string SmartBpCaptureStarted = "SmartBp.CaptureStarted";
-
-    /// <summary>Smart BP region editor opened signal id.</summary>
-    public const string SmartBpRegionEditorOpened = "SmartBp.RegionEditorOpened";
-
-    /// <summary>Smart BP full BP flow started signal id.</summary>
-    public const string SmartBpFullBpFlowStarted = "SmartBp.FullBpFlowStarted";
-
-    /// <summary>Smart BP post-game auto-fill started signal id.</summary>
-    public const string SmartBpPostGameAutoFillStarted = "SmartBp.PostGameAutoFillStarted";
-
     /// <summary>next game button clicked signal id.</summary>
     public const string NextGameClicked = "GameGuidance.NextGameClicked";
 
@@ -403,24 +367,6 @@ public static class TutorialSignalIds
 /// </summary>
 public static class TutorialTargetNames
 {
-    /// <summary>Front management navigation item target name.</summary>
-    public const string FrontendManageNavigationItem = "FrontendManageNavigationItem";
-
-    /// <summary>Team info navigation item target name.</summary>
-    public const string TeamInfoNavigationItem = "TeamInfoNavigationItem";
-
-    /// <summary>Score navigation item target name.</summary>
-    public const string ScoreNavigationItem = "ScoreNavigationItem";
-
-    /// <summary>Smart BP navigation item target name.</summary>
-    public const string SmartBpNavigationItem = "SmartBpNavigationItem";
-
-    /// <summary>Game progress combo box target name.</summary>
-    public const string GameProgressComboBox = "GameProgressComboBox";
-
-    /// <summary>Team name input target name.</summary>
-    public const string TeamNameInput = "TeamNameInput";
-
     /// <summary>Home team name input target name.</summary>
     public const string HomeTeamNameInput = "HomeTeamNameInput";
 
@@ -439,83 +385,20 @@ public static class TutorialTargetNames
     /// <summary>Home player position panel target name.</summary>
     public const string HomePlayerPositionPanel = "HomePlayerPositionPanel";
 
-    /// <summary>Away team name input target name.</summary>
-    public const string AwayTeamNameInput = "AwayTeamNameInput";
-
-    /// <summary>Away team name confirm button target name.</summary>
-    public const string AwayTeamNameConfirmButton = "AwayTeamNameConfirmButton";
-
-    /// <summary>Away team logo button target name.</summary>
-    public const string AwayTeamLogoButton = "AwayTeamLogoButton";
-
-    /// <summary>Away team information card target name.</summary>
-    public const string AwayTeamInfoCard = "AwayTeamInfoCard";
-
     /// <summary>Away team JSON import button target name.</summary>
     public const string AwayTeamJsonImportButton = "AwayTeamJsonImportButton";
 
     /// <summary>Away player list panel target name.</summary>
     public const string AwayPlayerListPanel = "AwayPlayerListPanel";
 
-    /// <summary>Away player position panel target name.</summary>
-    public const string AwayPlayerPositionPanel = "AwayPlayerPositionPanel";
-
-    /// <summary>Team summary card target name.</summary>
-    public const string TeamSummaryCard = "TeamSummaryCard";
-
-    /// <summary>Team swap button target name.</summary>
-    public const string TeamSwapButton = "TeamSwapButton";
-
-    /// <summary>Import team JSON button target name.</summary>
-    public const string ImportTeamJsonButton = "ImportTeamJsonButton";
-
-    /// <summary>Player list target name.</summary>
-    public const string PlayerList = "PlayerList";
-
-    /// <summary>Player position panel target name.</summary>
-    public const string PlayerPositionPanel = "PlayerPositionPanel";
-
-    /// <summary>Stop Smart BP automatic recognition button target name.</summary>
-    public const string StopSmartBpAutoRecognitionButton = "StopSmartBpAutoRecognitionButton";
-
-    /// <summary>Start game guidance button target name.</summary>
-    public const string StartGameGuidanceButton = "StartGameGuidanceButton";
-
-    /// <summary>Previous guidance step button target name.</summary>
-    public const string PreviousGuidanceStepButton = "PreviousGuidanceStepButton";
-
     /// <summary>Next guidance step button target name.</summary>
     public const string NextGuidanceStepButton = "NextGuidanceStepButton";
-
-    /// <summary>Current guidance step text target name.</summary>
-    public const string CurrentGuidanceStepTextBlock = "CurrentGuidanceStepTextBlock";
-
-    /// <summary>Stop game guidance button target name.</summary>
-    public const string StopGameGuidanceButton = "StopGameGuidanceButton";
-
-    /// <summary>Character selector target name.</summary>
-    public const string CharacterSelector = "CharacterSelector";
-
-    /// <summary>Survivor pick panel target name.</summary>
-    public const string SurvivorPickPanel = "SurvivorPickPanel";
 
     /// <summary>Survivor pick selector group border target name.</summary>
     public const string SurvivorPickSelectorGroupBorder = "SurvivorPickSelectorGroupBorder";
 
-    /// <summary>Survivor pick selector panel target name.</summary>
-    public const string SurvivorPickSelectorPanel = "SurvivorPickSelectorPanel";
-
     /// <summary>First survivor pick selector host target name.</summary>
     public const string FirstSurvivorPickSelectorHost = "FirstSurvivorPickSelectorHost";
-
-    /// <summary>Hunter pick selector host target name.</summary>
-    public const string HunterPickSelectorHost = "HunterPickSelectorHost";
-
-    /// <summary>Survivor character changer panel target name.</summary>
-    public const string SurvivorCharacterChangerPanel = "SurvivorCharacterChangerPanel";
-
-    /// <summary>Talent and trait page target name.</summary>
-    public const string TalentTraitPage = "TalentTraitPage";
 
     /// <summary>Talent and trait selector panel target name.</summary>
     public const string TalentTraitSelectorPanel = "TalentTraitSelectorPanel";
@@ -529,104 +412,11 @@ public static class TutorialTargetNames
     /// <summary>Global ban record panel target name.</summary>
     public const string GlobalBanRecordPanel = "GlobalBanRecordPanel";
 
-    /// <summary>Current survivor team's global ban record panel target tag.</summary>
-    public const string CurrentSurvivorGlobalBanRecordPanel = "CurrentSurvivorGlobalBanRecordPanel";
-
-    /// <summary>Global ban auto-record toggle target name.</summary>
-    public const string GlobalBanAutoRecordToggle = "GlobalBanAutoRecordToggle";
-
-    /// <summary>Map BP panel target name.</summary>
-    public const string MapBpPanel = "MapBpPanel";
-
-    /// <summary>Map BP current operation border target name.</summary>
-    public const string MapBpCurrentOperationBorder = "MapBpCurrentOperationBorder";
-
-    /// <summary>Map ban area border target name.</summary>
-    public const string MapBanAreaBorder = "MapBanAreaBorder";
-
     /// <summary>Map ban operation border target name.</summary>
     public const string MapBanOperationBorder = "MapBanOperationBorder";
 
-    /// <summary>Map BP completed panel target name.</summary>
-    public const string MapBpCompletedPanel = "MapBpCompletedPanel";
-
     /// <summary>Map selector panel target name.</summary>
     public const string MapSelectorPanel = "MapSelectorPanel";
-
-    /// <summary>Survivor ban selector panel target name.</summary>
-    public const string BanSurvivorSelectorPanel = "BanSurvivorSelectorPanel";
-
-    /// <summary>First survivor ban selector host target name.</summary>
-    public const string FirstBanSurvivorSelectorHost = "FirstBanSurvivorSelectorHost";
-
-    /// <summary>Hunter ban selector panel target name.</summary>
-    public const string BanHunterSelectorPanel = "BanHunterSelectorPanel";
-
-    /// <summary>First hunter ban selector host target name.</summary>
-    public const string FirstBanHunterSelectorHost = "FirstBanHunterSelectorHost";
-
-    /// <summary>Score selector panel target name.</summary>
-    public const string ScoreSelectorPanel = "ScoreSelectorPanel";
-
-    /// <summary>New game button target name.</summary>
-    public const string NewGameButton = "NewGameButton";
-
-    /// <summary>Front management tabs target name.</summary>
-    public const string FrontManageTabs = "FrontManageTabs";
-
-    /// <summary>Fronted windows tab target name.</summary>
-    public const string FrontedWindowsTab = "FrontedWindowsTab";
-
-    /// <summary>Layout packages tab target name.</summary>
-    public const string LayoutPackagesTab = "LayoutPackagesTab";
-
-    /// <summary>Open fronted designer button target name.</summary>
-    public const string OpenFrontedDesignerButton = "OpenFrontedDesignerButton";
-
-    /// <summary>Open all fronted windows button target name.</summary>
-    public const string OpenAllFrontedWindowsButton = "OpenAllFrontedWindowsButton";
-
-    /// <summary>Close all fronted windows button target name.</summary>
-    public const string CloseAllFrontedWindowsButton = "CloseAllFrontedWindowsButton";
-
-    /// <summary>Stop all loop animations button target name.</summary>
-    public const string StopAllLoopAnimationsButton = "StopAllLoopAnimationsButton";
-
-    /// <summary>Manageable window groups panel target name.</summary>
-    public const string ManageableWindowGroupsPanel = "ManageableWindowGroupsPanel";
-
-    /// <summary>First manageable window card target name.</summary>
-    public const string FirstManageableWindowCard = "FirstManageableWindowCard";
-
-    /// <summary>Layout package list target name.</summary>
-    public const string LayoutPackageList = "LayoutPackageList";
-
-    /// <summary>Import layout package button target name.</summary>
-    public const string ImportLayoutPackageButton = "ImportLayoutPackageButton";
-
-    /// <summary>Activate layout package button target name.</summary>
-    public const string ActivateLayoutPackageButton = "ActivateLayoutPackageButton";
-
-    /// <summary>Active layout package panel target name.</summary>
-    public const string ActiveLayoutPackagePanel = "ActiveLayoutPackagePanel";
-
-    /// <summary>Designer toolbar host target name.</summary>
-    public const string DesignerToolbarHost = "DesignerToolbarHost";
-
-    /// <summary>Designer layer panel host target name.</summary>
-    public const string LayerPanelHostGrid = "LayerPanelHostGrid";
-
-    /// <summary>Designer layer panel scroll viewer target name.</summary>
-    public const string LayerPanelScrollViewer = "LayerPanelScrollViewer";
-
-    /// <summary>Designer preview workspace target name.</summary>
-    public const string PreviewWorkspace = "PreviewWorkspace";
-
-    /// <summary>Designer preview zoom host target name.</summary>
-    public const string PreviewZoomHost = "PreviewZoomHost";
-
-    /// <summary>Designer surface grid target name.</summary>
-    public const string DesignSurfaceGrid = "DesignSurfaceGrid";
 
     /// <summary>Designer preview canvas target name.</summary>
     public const string PreviewCanvas = "PreviewCanvas";
@@ -634,53 +424,14 @@ public static class TutorialTargetNames
     /// <summary>Designer interaction layer target name.</summary>
     public const string InteractionLayer = "InteractionLayer";
 
-    /// <summary>Designer layer top drop zone target name.</summary>
-    public const string LayerTopDropZone = "LayerTopDropZone";
-
-    /// <summary>Designer layer bottom drop zone target name.</summary>
-    public const string LayerBottomDropZone = "LayerBottomDropZone";
-
-    /// <summary>Designer property panel host target name.</summary>
-    public const string PropertyPanelHost = "PropertyPanelHost";
-
-    /// <summary>Designer property search box target name.</summary>
-    public const string PropertySearchBox = "PropertySearchBox";
-
-    /// <summary>Designer first editable property editor target name.</summary>
-    public const string FirstEditablePropertyEditor = "FirstEditablePropertyEditor";
-
-    /// <summary>Designer property apply button target name.</summary>
-    public const string PropertyApplyButton = "PropertyApplyButton";
-
     /// <summary>Designer behavior panel host target name.</summary>
     public const string BehaviorPanelHost = "BehaviorPanelHost";
-
-    /// <summary>Designer behavior list target name.</summary>
-    public const string BehaviorList = "BehaviorList";
-
-    /// <summary>Designer add behavior button target name.</summary>
-    public const string AddBehaviorButton = "AddBehaviorButton";
-
-    /// <summary>Designer behavior trigger editor target name.</summary>
-    public const string BehaviorTriggerEditor = "BehaviorTriggerEditor";
-
-    /// <summary>Designer behavior action editor target name.</summary>
-    public const string BehaviorActionEditor = "BehaviorActionEditor";
-
-    /// <summary>Designer save layout button target name.</summary>
-    public const string SaveLayoutButton = "SaveLayoutButton";
-
-    /// <summary>Designer export layout package button target name.</summary>
-    public const string ExportLayoutPackageButton = "ExportLayoutPackageButton";
 
     /// <summary>Designer help button target name.</summary>
     public const string DesignerHelpButton = "DesignerHelpButton";
 
     /// <summary>Designer behavior help button target name.</summary>
     public const string BehaviorHelpButton = "BehaviorHelpButton";
-
-    /// <summary>Designer animation editor tabs target name.</summary>
-    public const string AnimationTabs = "AnimationTabs";
 
     /// <summary>Designer animation editor graph canvas target name.</summary>
     public const string AnimationGraphCanvas = "GraphCanvas";
@@ -693,24 +444,6 @@ public static class TutorialTargetNames
 
     /// <summary>Designer animation editor help button target name.</summary>
     public const string AnimationEditorHelpButton = "AnimationEditorHelpButton";
-
-    /// <summary>Smart BP module content host target name.</summary>
-    public const string SmartBpModuleContentHost = "SmartBpModuleContentHost";
-
-    /// <summary>Smart BP module path text box target name.</summary>
-    public const string SmartBpModulePathTextBox = "SmartBpModulePathTextBox";
-
-    /// <summary>Smart BP module browse folder button target name.</summary>
-    public const string SmartBpModuleBrowseFolderButton = "SmartBpModuleBrowseFolderButton";
-
-    /// <summary>Smart BP load local module button target name.</summary>
-    public const string SmartBpLoadLocalModuleButton = "SmartBpLoadLocalModuleButton";
-
-    /// <summary>Smart BP select installed module path button target name.</summary>
-    public const string SmartBpSelectInstalledModulePathButton = "SmartBpSelectInstalledModulePathButton";
-
-    /// <summary>Smart BP import module archive button target name.</summary>
-    public const string SmartBpImportModuleArchiveButton = "SmartBpImportModuleArchiveButton";
 
     /// <summary>Smart BP window selector target name.</summary>
     public const string SmartBpWindowSelector = "SmartBpWindowSelector";
@@ -741,13 +474,4 @@ public static class TutorialTargetNames
 
     /// <summary>Smart BP start full BP flow button target name.</summary>
     public const string SmartBpStartFullBpFlowButton = "SmartBpStartFullBpFlowButton";
-
-    /// <summary>Smart BP post-game data button target name.</summary>
-    public const string SmartBpPostGameDataButton = "SmartBpPostGameDataButton";
-
-    /// <summary>Smart BP post-game preview panel target name.</summary>
-    public const string SmartBpPostGamePreviewPanel = "SmartBpPostGamePreviewPanel";
-
-    /// <summary>Smart BP post-game apply button target name.</summary>
-    public const string SmartBpPostGameApplyButton = "SmartBpPostGameApplyButton";
 }
