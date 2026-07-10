@@ -10,6 +10,7 @@ using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using neo_bpsys_wpf.Tutorial;
 
 namespace neo_bpsys_wpf.ViewModels.FrontedDesigner.GraphEditor;
 
@@ -185,6 +186,20 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         : string.Empty;
 
     partial void OnCatalogSearchTextChanged(string value) => OnPropertyChanged(nameof(FilteredCatalog));
+
+    /// <summary>
+    /// 当选中节点变化时，若选中了动画属性节点则发布教程信号。
+    /// 信号在无教程等待时为空操作，因此可安全地在任意上下文触发。
+    /// </summary>
+    /// <param name="value">新选中的节点视图模型；为 <see langword="null"/> 时不发布信号。</param>
+    partial void OnSelectedNodeChanged(FrontedNodeEditorViewModel? value)
+    {
+        if (value is not null
+            && string.Equals(value.Model.NodeType, "action.animateProperty", StringComparison.Ordinal))
+        {
+            TutorialSignalPublisher.Publish(TutorialSignalIds.AnimationPropertyNodeSelected);
+        }
+    }
 
     /// <summary>
     /// 在默认插入位置附近添加目录中的节点。

@@ -71,12 +71,19 @@ public sealed class ProductTourOverlayLayoutResult
 /// </summary>
 public sealed class ProductTourOverlayLayoutEngine
 {
+    /// <summary>
+    /// All directional placements for which candidate rectangles are generated.
+    /// </summary>
     private static readonly ProductTourPlacement[] Directions =
     [
         ProductTourPlacement.Left,
         ProductTourPlacement.Right,
         ProductTourPlacement.Top,
         ProductTourPlacement.Bottom,
+        ProductTourPlacement.LeftTop,
+        ProductTourPlacement.LeftBottom,
+        ProductTourPlacement.RightTop,
+        ProductTourPlacement.RightBottom,
         ProductTourPlacement.TopLeft,
         ProductTourPlacement.TopRight,
         ProductTourPlacement.BottomLeft,
@@ -114,6 +121,15 @@ public sealed class ProductTourOverlayLayoutEngine
                 .ToList()
             : [];
 
+        // When the caller requests a specific card placement, treat it as a hard constraint:
+        // use that direction directly when its candidate is valid (fits inside the safe area
+        // and does not overlap the spotlight or obstacles). Only fall back to scoring when
+        // the preferred candidate is unavailable.
+        if (TryUsePreferredCard(request, cardCandidates, forbiddenZones, aliceCandidates, gap, spotlightCenter, out var preferredResult))
+        {
+            return preferredResult;
+        }
+
         var best = TryScorePairs(request, cardCandidates, aliceCandidates, forbiddenZones, gap, spotlightCenter, safeCenter);
         if (best is not null)
         {
@@ -121,6 +137,86 @@ public sealed class ProductTourOverlayLayoutEngine
         }
 
         return BuildFallback(request, cardCandidates, aliceCandidates, spot, forbiddenZones, gap, spotlightCenter, safe);
+    }
+
+    /// <summary>
+    /// Checks whether the preferred card placement can be used directly and, when so,
+    /// resolves the avatar position around the fixed card rectangle.
+    /// </summary>
+    private static bool TryUsePreferredCard(
+        ProductTourOverlayLayoutRequest request,
+        List<(ProductTourPlacement dir, Rect rect)> cardCandidates,
+        IReadOnlyList<Rect> forbiddenZones,
+        List<(ProductTourPlacement dir, Rect rect)> aliceCandidates,
+        double gap,
+        Point spotlightCenter,
+        out ProductTourOverlayLayoutResult result)
+    {
+        result = default!;
+        var preferred = request.PreferredCardPlacement;
+        if (!preferred.HasValue || preferred.Value is ProductTourPlacement.Auto or ProductTourPlacement.Center)
+        {
+            return false;
+        }
+
+        var match = cardCandidates.FirstOrDefault(c => c.dir == preferred.Value);
+        if (match.rect.Width <= 0 || match.rect.Height <= 0)
+        {
+            return false;
+        }
+
+        if (OverlapsAny(match.rect, forbiddenZones))
+        {
+            return false;
+        }
+
+        if (!request.SafeArea.Contains(match.rect))
+        {
+            return false;
+        }
+
+        // Preferred card is valid — resolve the avatar around it.
+        Rect aliceRect = Rect.Empty;
+        ProductTourPlacement? aliceDir = null;
+        var aliceVisible = false;
+
+        if (request.AliceVisible)
+        {
+            var bestAliceScore = double.NegativeInfinity;
+            foreach (var (dir, rect) in aliceCandidates)
+            {
+                if (rect.Width <= 0 || rect.Height <= 0)
+                {
+                    continue;
+                }
+
+                if (OverlapsAny(rect, forbiddenZones))
+                {
+                    continue;
+                }
+
+                if (Overlaps(match.rect, Rect.Inflate(rect, new Size(gap, gap))))
+                {
+                    continue;
+                }
+
+                var insideSafe = request.SafeArea.Contains(rect) ? 500 : 0;
+                var proximity = -(Center(rect) - spotlightCenter).Length * 0.04;
+                var diagonal = IsDiagonal(dir) ? 60 : 0;
+                var alicePref = PreferredAliceDirectionMatch(dir, request.PreferredAlicePlacement);
+                var score = insideSafe + proximity + diagonal + alicePref;
+                if (score > bestAliceScore)
+                {
+                    bestAliceScore = score;
+                    aliceRect = rect;
+                    aliceDir = dir;
+                    aliceVisible = true;
+                }
+            }
+        }
+
+        result = BuildResult(match.dir, match.rect, aliceDir, aliceRect, spotlightCenter, false, aliceVisible);
+        return true;
     }
 
     private static ScoredPair? TryScorePairs(
@@ -254,6 +350,21 @@ public sealed class ProductTourOverlayLayoutEngine
 
         var best = valid[0];
         var bestOverlap = double.PositiveInfinity;
+
+        // 当所有候选都与 spotlight/obstacles 重叠（无路可走）时，若用户指定了首选方向，
+        // 优先使用该方向。候选已由 ClampToSafe 处理，会贴着 safe area 对应边缘，
+        // 即使部分覆盖 spotlight 也尊重用户的 Placement 设置。
+        if (request.PreferredCardPlacement.HasValue
+            && request.PreferredCardPlacement.Value is not ProductTourPlacement.Auto
+                                               and not ProductTourPlacement.Center)
+        {
+            var preferredMatch = valid.FirstOrDefault(c => c.dir == request.PreferredCardPlacement.Value);
+            if (preferredMatch.rect.Width > 0 && preferredMatch.rect.Height > 0)
+            {
+                return preferredMatch;
+            }
+        }
+
         foreach (var (dir, rect) in valid)
         {
             var overlap = TotalOverlapArea(rect, spot, request.Obstacles);
@@ -360,6 +471,10 @@ public sealed class ProductTourOverlayLayoutEngine
             ProductTourPlacement.Right => new Rect(spot.Right + gap, cy - h / 2, w, h),
             ProductTourPlacement.Top => new Rect(cx - w / 2, spot.Top - gap - h, w, h),
             ProductTourPlacement.Bottom => new Rect(cx - w / 2, spot.Bottom + gap, w, h),
+            ProductTourPlacement.LeftTop => new Rect(spot.Left - gap - w, spot.Top, w, h),
+            ProductTourPlacement.LeftBottom => new Rect(spot.Left - gap - w, spot.Bottom - h, w, h),
+            ProductTourPlacement.RightTop => new Rect(spot.Right + gap, spot.Top, w, h),
+            ProductTourPlacement.RightBottom => new Rect(spot.Right + gap, spot.Bottom - h, w, h),
             ProductTourPlacement.TopLeft => new Rect(spot.Left - gap - w, spot.Top - gap - h, w, h),
             ProductTourPlacement.TopRight => new Rect(spot.Right + gap, spot.Top - gap - h, w, h),
             ProductTourPlacement.BottomLeft => new Rect(spot.Left - gap - w, spot.Bottom + gap, w, h),

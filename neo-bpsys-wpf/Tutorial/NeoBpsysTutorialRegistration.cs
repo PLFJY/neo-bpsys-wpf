@@ -28,7 +28,6 @@ public static class NeoBpsysTutorialRegistration
 
         builder.RegisterOwner<FrontManagePage>();
         builder.RegisterOwner<FrontedWindowsView>();
-        builder.RegisterOwner<FrontedLayoutPackagesView>();
         builder.RegisterOwner<FrontedDesignerWindow>();
         builder.RegisterOwner<BehaviorPanelView>();
         builder.RegisterOwner<FrontedBehaviorAnimationEditorWindow>();

@@ -393,6 +393,9 @@ public static class TutorialSignalIds
 
     /// <summary>next game button clicked signal id.</summary>
     public const string NextGameClicked = "GameGuidance.NextGameClicked";
+
+    /// <summary>Animation editor animateProperty node selected signal id.</summary>
+    public const string AnimationPropertyNodeSelected = "AnimationPropertyNodeSelected";
 }
 
 /// <summary>

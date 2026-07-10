@@ -8,10 +8,10 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     Width="1280"
     Height="760"
-    lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Lang"
     MinWidth="900"
     MinHeight="600"
+    lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Lang"
     Background="{DynamicResource ApplicationBackgroundBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     WindowStartupLocation="CenterOwner">
@@ -25,18 +25,37 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <controls:CustomTitleBar Icon="/Assets/icon.png" IsThemeChangeVisible="False" IsTopMostVisible="False" />
+        <controls:CustomTitleBar
+            Icon="/Assets/icon.png"
+            IsThemeChangeVisible="False"
+            IsTopMostVisible="False" />
         <StackPanel
+            x:Name="PreviewButtonsPanel"
             Grid.Row="1"
             Margin="12,8,12,0"
             Orientation="Horizontal"
             Visibility="{Binding IsLoop, Converter={StaticResource BooleanToVisibilityConverter}}">
             <ui:Button Command="{Binding PreviewStartCommand}" Content="{lex:Loc Designer.Graph.PreviewStart}" />
-            <ui:Button Margin="6,0,0,0" Command="{Binding PreviewLoopOnceCommand}" Content="{lex:Loc Designer.Graph.PreviewLoopOnce}" />
-            <ui:Button Margin="6,0,0,0" Command="{Binding StartLoopPreviewCommand}" Content="{lex:Loc Designer.Graph.StartLoopPreview}" />
-            <ui:Button Margin="6,0,0,0" Command="{Binding StopLoopPreviewCommand}" Content="{lex:Loc Designer.Graph.StopLoopPreview}" />
-            <ui:Button Margin="6,0,0,0" Command="{Binding PreviewStopCommand}" Content="{lex:Loc Designer.Graph.PreviewStop}" />
-            <ui:Button Margin="6,0,0,0" Command="{Binding ResetCommand}" Content="{lex:Loc Designer.Graph.ResetPreview}" />
+            <ui:Button
+                Margin="6,0,0,0"
+                Command="{Binding PreviewLoopOnceCommand}"
+                Content="{lex:Loc Designer.Graph.PreviewLoopOnce}" />
+            <ui:Button
+                Margin="6,0,0,0"
+                Command="{Binding StartLoopPreviewCommand}"
+                Content="{lex:Loc Designer.Graph.StartLoopPreview}" />
+            <ui:Button
+                Margin="6,0,0,0"
+                Command="{Binding StopLoopPreviewCommand}"
+                Content="{lex:Loc Designer.Graph.StopLoopPreview}" />
+            <ui:Button
+                Margin="6,0,0,0"
+                Command="{Binding PreviewStopCommand}"
+                Content="{lex:Loc Designer.Graph.PreviewStop}" />
+            <ui:Button
+                Margin="6,0,0,0"
+                Command="{Binding ResetCommand}"
+                Content="{lex:Loc Designer.Graph.ResetPreview}" />
         </StackPanel>
         <modernNavigation:ModernNavigationView
             x:Name="AnimationTabs"

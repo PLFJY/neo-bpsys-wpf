@@ -25,64 +25,6 @@ public partial class FrontedLayoutPackagesView : UserControl
     public FrontedLayoutPackagesView()
     {
         InitializeComponent();
-        Loaded += (_, _) =>
-        {
-            RecreateTutorialLifetimeIfNeeded();
-            QueueTutorialRun();
-        };
-        IsVisibleChanged += (_, e) =>
-        {
-            if (Equals(e.NewValue, true))
-            {
-                RecreateTutorialLifetimeIfNeeded();
-                QueueTutorialRun();
-            }
-        };
-        Unloaded += (_, _) => _tutorialLifetime.Cancel();
-    }
-
-    private void RecreateTutorialLifetimeIfNeeded()
-    {
-        if (!_tutorialLifetime.IsCancellationRequested)
-        {
-            return;
-        }
-
-        _tutorialLifetime.Dispose();
-        _tutorialLifetime = new CancellationTokenSource();
-        _tutorialTask = null;
-    }
-
-    private void QueueTutorialRun()
-    {
-        if (_tutorialTask is { IsCompleted: false })
-        {
-            return;
-        }
-
-        _tutorialTask = RunTutorialWhenVisibleAsync();
-    }
-
-    private async Task<TutorialRunResult> RunTutorialWhenVisibleAsync()
-    {
-        try
-        {
-            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.ContextIdle, _tutorialLifetime.Token);
-            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.Render, _tutorialLifetime.Token);
-            if (!IsLoaded || !IsVisible || Window.GetWindow(this) is not { IsVisible: true })
-            {
-                return TutorialRunResult.NotReady;
-            }
-
-            var runner = IAppHost.Host?.Services.GetService<ITutorialRunner>();
-            return runner == null
-                ? TutorialRunResult.NotReady
-                : await runner.RunSequenceAsync(this, TutorialPageKey, _tutorialLifetime.Token);
-        }
-        catch (OperationCanceledException) when (_tutorialLifetime.IsCancellationRequested)
-        {
-            return TutorialRunResult.Canceled;
-        }
     }
 
     private void PackageListBox_OnMouseDoubleClick(object sender, MouseButtonEventArgs e)
