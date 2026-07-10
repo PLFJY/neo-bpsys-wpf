@@ -1,4 +1,8 @@
+using System.Reflection.Metadata.Ecma335;
 using System.Windows;
+using Microsoft.Extensions.DependencyInjection;
+using neo_bpsys_wpf.Core;
+using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.Tutorial;
 using neo_bpsys_wpf.Views.Pages;
@@ -67,11 +71,11 @@ public partial class MainWindow : ITutorialOwner<MainWindow>
         /// <summary>BP guidance basic package reference.</summary>
         public static readonly TutorialPackageRef BpGameGuidanceBasic = new(TutorialPackageIds.BpGameGuidanceBasic);
 
-        /// <summary>BO1 first-half BP guidance flow package reference.</summary>
-        public static readonly TutorialPackageRef BpGameGuidanceFlowBo1FirstHalf = new(TutorialPackageIds.BpGameGuidanceFlowBo1FirstHalf);
-
         /// <summary>NextGame Tutorial reference.</summary>
         public static readonly TutorialPackageRef NextGameBasic = new(TutorialPackageIds.NextGameBasic);
+
+        /// <summary>Pick map Tutorial reference.</summary>
+        public static readonly TutorialPackageRef MapBpPickMapBasic = new(TutorialPackageIds.MapBpPickMapOperationBasic);
     }
 
     /// <summary>
@@ -174,16 +178,23 @@ public partial class MainWindow : ITutorialOwner<MainWindow>
                     .TargetName(TutorialTargetNames.MapBanOperationBorder)
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
                     .AllowMissingTarget()
-                    .Placement(ProductTourPlacement.TopRight)
-                    .AvatarPlacement(ProductTourAvatarPlacement.TopLeft)
-                    .AvatarPose(TutorialAvatarPose.RightBottom)
-                    .CardOffset(new Point(-100, -24))
             .Package(Tours.MapBpNextToPickMapBasic)
                 .Step("进入选择地图")
                     .Text("Ban 地图完成后，点击下一步进入选择地图。")
                     .TargetName(nameof(NextGuidanceStepButton))
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
                     .WaitFor(TutorialSignalIds.GuidanceNextClicked)
+            .Package(Tours.MapBpPickMapBasic)
+                .Step("选择地图")
+                    .Text("现在完成选择地图")
+                    .TargetName(TutorialTargetNames.MapSelectorPanel)
+                    .Interaction(ProductTourInteractionMode.AllowTargetOnly)
+                    .AllowMissingTarget()
+                    .PostStepAction((_, _) =>
+                    {
+                        IAppHost.Host!.Services.GetRequiredService<IGameGuidanceService>().MoveToStepAsync(3);
+                        return Task.CompletedTask;
+                    })
             .Package(Tours.BpGameGuidanceEndBasic)
                 .Step("结束对局引导")
                     .Text("当前对局引导已经完成。点击这里结束引导，之后可以进入比分页面记录结果。")
@@ -196,12 +207,6 @@ public partial class MainWindow : ITutorialOwner<MainWindow>
                     .TargetName(nameof(StartGameGuidanceButton))
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
                     .WaitFor(TutorialSignalIds.GameGuidanceStarted)
-            .Package(Tours.BpGameGuidanceFlowBo1FirstHalf)
-                .Step("进入地图选择流程")
-                    .Text("Ban 地图完成后，点击下一步进入选择地图。")
-                    .TargetName(nameof(NextGuidanceStepButton))
-                    .Interaction(ProductTourInteractionMode.AllowTargetOnly)
-                    .WaitFor(TutorialSignalIds.GuidanceNextClicked)
             .Package(Tours.NextGameBasic)
                 .Step("点击进入下一局")
                     .Text("当前对局结束后点击将场次切换到下一局")

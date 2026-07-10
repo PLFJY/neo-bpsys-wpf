@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Windows;
 using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.ProductTour.Controls;
@@ -32,6 +33,29 @@ public sealed class ProductTourOverlayLayoutEngineTest
             PreferredAlicePlacement = preferredAlice,
             MinimumGap = gap,
             AliceVisible = aliceVisible
+        });
+    }
+
+    private static ProductTourOverlayLayoutResult ArrangeWithObstacles(
+        Rect safeArea,
+        Rect spotlight,
+        Size cardSize,
+        Size aliceSize,
+        IReadOnlyList<Rect> obstacles,
+        ProductTourPlacement? preferredCard = null,
+        double gap = 16)
+    {
+        var engine = new ProductTourOverlayLayoutEngine();
+        return engine.Arrange(new ProductTourOverlayLayoutRequest
+        {
+            SafeArea = safeArea,
+            SpotlightRect = spotlight,
+            CardDesiredSize = cardSize,
+            AliceDesiredSize = aliceSize,
+            PreferredCardPlacement = preferredCard,
+            MinimumGap = gap,
+            AliceVisible = true,
+            Obstacles = obstacles
         });
     }
 
@@ -153,6 +177,25 @@ public sealed class ProductTourOverlayLayoutEngineTest
             "Card must not overlap spotlight when target is on the left side of the window.");
         Assert.True(result.CardRect.Width >= 380,
             "Card rect should preserve full width, not be shrunk by ClampToSafe.");
+    }
+
+    [Fact]
+    public void OverlayLayout_ShouldAvoidObstacleRectangles()
+    {
+        var safe = new Rect(12, 12, 956, 776);
+        var spot = new Rect(300, 50, 200, 48);
+        var skipButton = new Rect(866, 20, 94, 32);
+        var result = ArrangeWithObstacles(safe, spot, new Size(380, 200), new Size(96, 96), [skipButton]);
+
+        var skipInflated = Rect.Inflate(skipButton, new Size(16, 16));
+        Assert.False(StrictlyOverlaps(result.CardRect, skipInflated),
+            "Card must not overlap obstacle rectangles like the skip button.");
+        Assert.False(StrictlyOverlaps(result.AliceRect, skipInflated),
+            "Avatar must not overlap obstacle rectangles like the skip button.");
+
+        var spotInflated = Rect.Inflate(spot, new Size(16, 16));
+        Assert.False(StrictlyOverlaps(result.CardRect, spotInflated),
+            "Card must still avoid spotlight when obstacles are present.");
     }
 
     private static bool StrictlyOverlaps(Rect a, Rect b) =>

@@ -37,6 +37,7 @@ public partial class App : IAppTutorial<App>
             .Step(MainWindowType.Tours.BpGameGuidanceCurrentStepBasic)
             .Step(MainWindowType.Tours.MapBpBanMapOperationBasic)
             .Step(MainWindowType.Tours.MapBpNextToPickMapBasic)
+            .Step(MainWindowType.Tours.MapBpPickMapBasic)
             .Step(BanSurPage.Tours.CharacterSelectorBasic)
             .Step(PickPage.Tours.SelectFourSurvivorsBasic)
             .Step(PickPage.Tours.GlobalBanRecordBasic)

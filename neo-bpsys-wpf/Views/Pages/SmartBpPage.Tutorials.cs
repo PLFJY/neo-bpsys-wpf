@@ -130,7 +130,7 @@ public partial class SmartBpPage : ITutorialOwner<SmartBpPage>
                         "SmartBP module loaded",
                         context => context.Owner is FrameworkElement { IsVisible: true, DataContext: SmartBpPageViewModel vm } && vm.IsModuleLoaded,
                         TimeSpan.FromSeconds(3)))
-                    .Text("识别区域决定 AI / OCR 看哪里。不同阶段有不同区域，例如 Ban 求生、Ban 监管、Pick、赛后数据。")
+                    .Text("识别区域决定 OCR 看哪里。不同阶段有不同区域，例如 Ban 求生、Ban 监管、Pick、赛后数据。")
                     .TargetName(TutorialTargets.RegionEditorButton)
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
                     .AllowMissingTarget()

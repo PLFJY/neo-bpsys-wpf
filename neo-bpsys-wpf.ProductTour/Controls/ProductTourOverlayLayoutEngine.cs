@@ -33,6 +33,9 @@ public sealed class ProductTourOverlayLayoutRequest
 
     /// <summary>Gets a value indicating whether the guide avatar should be considered for placement.</summary>
     public bool AliceVisible { get; init; } = true;
+
+    /// <summary>Gets additional obstacle rectangles (e.g., overlay skip button) that the card and avatar must avoid.</summary>
+    public IReadOnlyList<Rect> Obstacles { get; init; } = [];
 }
 
 /// <summary>
@@ -98,6 +101,7 @@ public sealed class ProductTourOverlayLayoutEngine
         var aliceSize = ClampSize(request.AliceDesiredSize, safe.Size);
         var spot = request.SpotlightRect;
         var spotInflated = Rect.Inflate(spot, new Size(gap, gap));
+        var forbiddenZones = BuildForbiddenZones(spotInflated, request.Obstacles, gap);
         var spotlightCenter = Center(spot);
         var safeCenter = Center(safe);
 
@@ -110,20 +114,20 @@ public sealed class ProductTourOverlayLayoutEngine
                 .ToList()
             : [];
 
-        var best = TryScorePairs(request, cardCandidates, aliceCandidates, spotInflated, gap, spotlightCenter, safeCenter);
+        var best = TryScorePairs(request, cardCandidates, aliceCandidates, forbiddenZones, gap, spotlightCenter, safeCenter);
         if (best is not null)
         {
             return BuildResult(best.Value.cardDir, best.Value.cardRect, best.Value.aliceDir, best.Value.aliceRect, spotlightCenter, false, request.AliceVisible);
         }
 
-        return BuildFallback(request, cardCandidates, aliceCandidates, spot, spotInflated, gap, spotlightCenter, safe);
+        return BuildFallback(request, cardCandidates, aliceCandidates, spot, forbiddenZones, gap, spotlightCenter, safe);
     }
 
     private static ScoredPair? TryScorePairs(
         ProductTourOverlayLayoutRequest request,
         List<(ProductTourPlacement dir, Rect rect)> cardCandidates,
         List<(ProductTourPlacement dir, Rect rect)> aliceCandidates,
-        Rect spotInflated,
+        IReadOnlyList<Rect> forbiddenZones,
         double gap,
         Point spotlightCenter,
         Point safeCenter)
@@ -136,7 +140,7 @@ public sealed class ProductTourOverlayLayoutEngine
                 continue;
             }
 
-            var cardOverlapsSpot = Overlaps(cardRect, spotInflated);
+            var cardOverlapsSpot = OverlapsAny(cardRect, forbiddenZones);
             if (cardOverlapsSpot)
             {
                 continue;
@@ -152,7 +156,7 @@ public sealed class ProductTourOverlayLayoutEngine
                     continue;
                 }
 
-                if (Overlaps(aliceRect, spotInflated))
+                if (OverlapsAny(aliceRect, forbiddenZones))
                 {
                     continue;
                 }
@@ -188,12 +192,12 @@ public sealed class ProductTourOverlayLayoutEngine
         List<(ProductTourPlacement dir, Rect rect)> cardCandidates,
         List<(ProductTourPlacement dir, Rect rect)> aliceCandidates,
         Rect spot,
-        Rect spotInflated,
+        IReadOnlyList<Rect> forbiddenZones,
         double gap,
         Point spotlightCenter,
         Rect safe)
     {
-        var card = ChooseFallbackCard(cardCandidates, spot, spotInflated, request, spotlightCenter, safe);
+        var card = ChooseFallbackCard(cardCandidates, spot, forbiddenZones, request, spotlightCenter, safe);
         var aliceRect = Rect.Empty;
         ProductTourPlacement? aliceDir = null;
         var aliceVisible = false;
@@ -205,7 +209,7 @@ public sealed class ProductTourOverlayLayoutEngine
                          .OrderByDescending(pair => request.SafeArea.Contains(pair.rect))
                          .ThenBy(pair => (Center(pair.rect) - spotlightCenter).Length))
             {
-                if (Overlaps(rect, spotInflated))
+                if (OverlapsAny(rect, forbiddenZones))
                 {
                     continue;
                 }
@@ -228,7 +232,7 @@ public sealed class ProductTourOverlayLayoutEngine
     private static (ProductTourPlacement dir, Rect rect) ChooseFallbackCard(
         List<(ProductTourPlacement dir, Rect rect)> cardCandidates,
         Rect spot,
-        Rect spotInflated,
+        IReadOnlyList<Rect> forbiddenZones,
         ProductTourOverlayLayoutRequest request,
         Point spotlightCenter,
         Rect safe)
@@ -239,7 +243,7 @@ public sealed class ProductTourOverlayLayoutEngine
             return (ProductTourPlacement.Center, new Rect(Math.Max(0, safe.X), Math.Max(0, safe.Y), request.CardDesiredSize.Width, request.CardDesiredSize.Height));
         }
 
-        var nonOverlapping = valid.Where(pair => !Overlaps(pair.rect, spotInflated)).ToList();
+        var nonOverlapping = valid.Where(pair => !OverlapsAny(pair.rect, forbiddenZones)).ToList();
         var pool = nonOverlapping.Count > 0 ? nonOverlapping : valid;
         if (nonOverlapping.Count > 0)
         {
@@ -252,7 +256,7 @@ public sealed class ProductTourOverlayLayoutEngine
         var bestOverlap = double.PositiveInfinity;
         foreach (var (dir, rect) in valid)
         {
-            var overlap = IntersectionArea(rect, spot);
+            var overlap = TotalOverlapArea(rect, spot, request.Obstacles);
             var score = overlap - (request.SafeArea.Contains(rect) ? 1000 : 0);
             if (score < bestOverlap)
             {
@@ -443,6 +447,35 @@ public sealed class ProductTourOverlayLayoutEngine
 
     private static bool Overlaps(Rect a, Rect b) =>
         a.Left < b.Right && a.Right > b.Left && a.Top < b.Bottom && a.Bottom > b.Top;
+
+    private static List<Rect> BuildForbiddenZones(Rect spotInflated, IReadOnlyList<Rect> obstacles, double gap)
+    {
+        var zones = new List<Rect>(1 + obstacles.Count) { spotInflated };
+        foreach (var obs in obstacles)
+        {
+            zones.Add(Rect.Inflate(obs, new Size(gap, gap)));
+        }
+        return zones;
+    }
+
+    private static bool OverlapsAny(Rect rect, IReadOnlyList<Rect> zones)
+    {
+        foreach (var zone in zones)
+        {
+            if (Overlaps(rect, zone)) return true;
+        }
+        return false;
+    }
+
+    private static double TotalOverlapArea(Rect rect, Rect spot, IReadOnlyList<Rect> obstacles)
+    {
+        var total = IntersectionArea(rect, spot);
+        foreach (var obs in obstacles)
+        {
+            total += IntersectionArea(rect, obs);
+        }
+        return total;
+    }
 
     private static double IntersectionArea(Rect a, Rect b)
     {

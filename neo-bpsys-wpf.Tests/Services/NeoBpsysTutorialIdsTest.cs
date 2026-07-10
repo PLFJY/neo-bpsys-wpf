@@ -127,7 +127,6 @@ public sealed class NeoBpsysTutorialIdsTest
         Assert.Equal("TeamInfoNavigationItem", TutorialTargetNames.TeamInfoNavigationItem);
         Assert.Equal("ScoreNavigationItem", TutorialTargetNames.ScoreNavigationItem);
         Assert.Equal("SmartBpNavigationItem", TutorialTargetNames.SmartBpNavigationItem);
-        Assert.Equal("BpWindowLaunchButton", TutorialTargetNames.BpWindowLaunchButton);
         Assert.Equal("GameProgressComboBox", TutorialTargetNames.GameProgressComboBox);
         Assert.Equal("TeamNameInput", TutorialTargetNames.TeamNameInput);
         Assert.Equal("HomeTeamNameInput", TutorialTargetNames.HomeTeamNameInput);

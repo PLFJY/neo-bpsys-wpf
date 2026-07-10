@@ -53,9 +53,7 @@ public partial class PickPage : ITutorialOwner<PickPage>
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
                     .AllowMissingTarget()
                     .AvatarPlacement(ProductTourAvatarPlacement.TopLeft)
-                    .AvatarPose(TutorialAvatarPose.RightBottom)
-                    .CardOffset(new Point(-100, -24))
-                    .Placement(ProductTourPlacement.TopRight)
+                    .Placement(ProductTourPlacement.TopLeft)
                     .WaitFor(TutorialSignalIds.PickSurvivorSlotsCompleted)
             .Package(Tours.GlobalBanRecordBasic)
                 .Step("全局禁选记录")
@@ -65,7 +63,6 @@ public partial class PickPage : ITutorialOwner<PickPage>
                     .TargetName(nameof(GlobalBanRecordPanel))
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
                     .AllowMissingTarget()
-                    .CardOffset(new Point(-100, -100))
                     .PostStepAction((_, _) =>
                     {
                         var gameGuidanceService = IAppHost.Host!.Services.GetRequiredService<IGameGuidanceService>();
@@ -76,12 +73,10 @@ public partial class PickPage : ITutorialOwner<PickPage>
                 .Step("调整已选角色顺序")
                     .Text("在选择角色结束后，分配角色阶段，可以在这里使用角色调整功能。调整后会同步更新当前 BP 状态。\n点击数字按钮即可将当前玩家的求生者角色与对应位置的求生者角色进行互换")
                     .TargetName(nameof(SurvivorPickSelectorGroupBorder))
+                    .PreStepAction(TutorialStepActions.SmoothScrollTo(nameof(SurvivorPickSelectorGroupBorder)))
+                    .PreStepAction(TutorialStepActions.Delay(250))
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
                     .AllowMissingTarget()
-                    .AvatarPlacement(ProductTourAvatarPlacement.TopLeft)
-                    .AvatarPose(TutorialAvatarPose.RightBottom)
-                    .CardOffset(new Point(-100, -24))
-                    .Placement(ProductTourPlacement.TopRight)
                     .PostStepAction((_, _) =>
                     {
                         var gameGuidanceService = IAppHost.Host!.Services.GetRequiredService<IGameGuidanceService>();

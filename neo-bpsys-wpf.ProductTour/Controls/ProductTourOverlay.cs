@@ -370,6 +370,11 @@ public sealed class ProductTourOverlay : Canvas
         var preferredCard = placement is ProductTourPlacement.Auto or ProductTourPlacement.Center
             ? (ProductTourPlacement?)null
             : placement;
+        var skipButtonRect = new Rect(
+            Math.Max(0, width - _globalSkipButton.DesiredSize.Width - 24),
+            20,
+            _globalSkipButton.DesiredSize.Width,
+            _globalSkipButton.DesiredSize.Height);
         var request = new ProductTourOverlayLayoutRequest
         {
             SafeArea = new Rect(
@@ -384,7 +389,8 @@ public sealed class ProductTourOverlay : Canvas
             PreferredAlicePlacement = _currentAvatarPlacement,
             MinimumGap = _options.Gap,
             EdgePadding = _options.CardMargin,
-            AliceVisible = _options.ShowAvatar
+            AliceVisible = _options.ShowAvatar,
+            Obstacles = [skipButtonRect]
         };
         var layout = _layoutEngine.Arrange(request);
 

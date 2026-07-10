@@ -134,6 +134,9 @@ public static class TutorialPackageIds
     /// <summary>Map BP ban-map operation package id.</summary>
     public const string MapBpBanMapOperationBasic = "Page.MapBp.BanMapOperation.Basic";
 
+    /// <summary>Map BP pick-map operation package id.</summary>
+    public const string MapBpPickMapOperationBasic = "Page.MapBp.PickMapOperation.Basic";
+
     /// <summary>Map BP next-to-pick-map package id.</summary>
     public const string MapBpNextToPickMapBasic = "Page.MapBp.NextToPickMap.Basic";
 
@@ -406,10 +409,6 @@ public static class TutorialTargetNames
     /// <summary>Smart BP navigation item target name.</summary>
     public const string SmartBpNavigationItem = "SmartBpNavigationItem";
 
-    /// <summary>Legacy BP window launch button target name.</summary>
-    [Obsolete("Use the BP window id with TutorialTargetKind.ElementTag instead.")]
-    public const string BpWindowLaunchButton = "BpWindowLaunchButton";
-
     /// <summary>Game progress combo box target name.</summary>
     public const string GameProgressComboBox = "GameProgressComboBox";
 
@@ -487,18 +486,6 @@ public static class TutorialTargetNames
 
     /// <summary>Stop game guidance button target name.</summary>
     public const string StopGameGuidanceButton = "StopGameGuidanceButton";
-
-    /// <summary>Legacy incorrect start guidance target name.</summary>
-    [Obsolete("Use StopSmartBpAutoRecognitionButton for the Smart BP stop button or StartGameGuidanceButton for the game guidance start button.")]
-    public const string LegacyIncorrectStartGameGuidanceButton = "StartGameGuidanceButton";
-
-    /// <summary>Legacy incorrect previous guidance target name.</summary>
-    [Obsolete("Use StartGameGuidanceButton.")]
-    public const string LegacyIncorrectPreviousGuidanceStepButton = "PreviousGuidanceStepButton";
-
-    /// <summary>Legacy incorrect next guidance target name.</summary>
-    [Obsolete("Use PreviousGuidanceStepButton.")]
-    public const string LegacyIncorrectNextGuidanceStepButton = "NextGuidanceStepButton";
 
     /// <summary>Character selector target name.</summary>
     public const string CharacterSelector = "CharacterSelector";
