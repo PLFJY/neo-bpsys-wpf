@@ -61,24 +61,18 @@ public partial class SmartBpModuleContentView : ITutorialOwner<SmartBpModuleCont
     public static void RegisterTutorials(ITutorialBuilder builder)
     {
         builder.ForRegion<SmartBpModuleContentView>()
-            .Package(Tours.ModuleContentOverview)
-                .Step("SmartBP 模块内容")
-                    .Text("")
-                    .TargetName(nameof(SmartBpPreviewPanel))
-                    .Interaction(ProductTourInteractionMode.AllowTargetOnly)
-                    .AllowMissingTarget()
             .Package(Tours.OcrModelDownloadBasic)
                 .Dialogue(new DialogueFlowItem
                 {
                     Speaker = "爱丽丝·德罗斯",
                     Lines =
                     [
-                        "SmartBP 用于识别游戏画面并辅助填写 BP 和赛后数据。",
+                        "智慧BP 用于识别游戏画面并辅助填写 BP 和赛后数据。",
                         "使用顺序是：下载 OCR 模型 -> 捕获窗口 -> 配置识别区域 -> 开始使用相关功能"
                     ]
                 })
                 .Step("识别模型管理")
-                    .Text("SmartBP 的 OCR 识别需要本地模型。在这里选择识别引擎，并检查、下载、更新或切换 SmartBP 使用的 OCR 模型。")
+                    .Text("智慧 BP 的 OCR 识别需要本地模型。在这里选择识别引擎，并检查、下载、更新或切换智慧 BP 使用的 OCR 模型。")
                     .TargetName(nameof(SmartBpOcrModelManagementCard))
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
                     .AllowMissingTarget()
@@ -105,13 +99,17 @@ public partial class SmartBpModuleContentView : ITutorialOwner<SmartBpModuleCont
                     .AllowMissingTarget()
             .Package(Tours.RegionEditorEntryBasic)
                 .Step("识别区域")
-                    .Text("识别区域决定 OCR 或视觉模型读取画面的哪些位置。不同阶段有不同区域，例如 Ban 求生、Ban 监管、Pick、赛后数据。点击此按钮可以打开识别区域编辑器。")
-                    .TargetName(nameof(SmartBpRegionEditorButton))
+                    .PreStepAction(TutorialStepActions.SmoothScrollTo(nameof(SmartBpPostGamePreviewPanel)))
+                    .PreStepAction(TutorialStepActions.Delay(250))
+                    .Text("识别区域决定 OCR 或视觉模型读取画面的哪些位置。不同阶段有不同区域，例如 Ban 求生、Ban 监管、Pick、赛后数据。点击此按钮可以打开识别区域编辑器。\nBP环节的识别区域")
+                    .TargetName(nameof(SmartBpPostGamePreviewPanel))
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
                     .AllowMissingTarget()
             .Package(Tours.FullBpFlowBasic)
                 .Step("全流程 BP")
-                    .Text("全流程 BP 会根据当前比赛阶段自动识别。启动前请确认窗口捕获和识别区域正确。正式比赛中建议先预览确认，再启动。点击后会开始 SmartBP 的自动 BP 流程。")
+                    .PreStepAction(TutorialStepActions.SmoothScrollTo(nameof(SmartBpStartFullBpFlowBorder)))
+                    .PreStepAction(TutorialStepActions.Delay(250))
+                    .Text("全流程 BP 会根据当前比赛阶段自动识别。启动前请确认窗口捕获和识别区域正确。正式比赛中建议先预览确认，再启动。点击后会开始智慧 BP 的自动 BP 流程。")
                     .TargetName(nameof(SmartBpStartFullBpFlowButton))
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
                     .AllowMissingTarget()
@@ -121,17 +119,10 @@ public partial class SmartBpModuleContentView : ITutorialOwner<SmartBpModuleCont
                     Speaker = "爱丽丝·德罗斯",
                     Lines =
                     [
-                        "对局结束后，SmartBP 可以识别赛后数据并辅助填写。",
-                        "赛后数据识别使用与 BP 识别相同的捕获窗口和识别区域配置。",
-                        "目前赛后数据识别通过 SmartBP 功能命令触发，不在此界面单独展示。",
-                        "使用前请确认赛后数据区域已在识别区域编辑器中配置正确。"
+                        "对局结束后，智慧 BP 可以识别赛后数据并辅助填写。在赛后数据页面有“自动识别并填充赛后数据”的按钮",
+                        "识别的赛后数据会自动匹配角色"
                     ]
                 })
-                .Step("识别区域配置")
-                    .Text("这里是识别区域配置卡片。赛后数据识别依赖于正确的区域配置。如果识别不准，请先检查并调整识别区域。")
-                    .TargetName(nameof(SmartBpPostGamePreviewPanel))
-                    .Interaction(ProductTourInteractionMode.AllowTargetOnly)
-                    .AllowMissingTarget()
-                .Build();
+            .Build();
     }
 }

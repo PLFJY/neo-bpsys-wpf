@@ -39,7 +39,6 @@ public static class NeoBpsysTutorialRegistration
         builder.RegisterOwner<PickPage>();
         builder.RegisterOwner<TalentPage>();
         builder.RegisterOwner<ScorePage>();
-        builder.RegisterOwner<SmartBpPage>();
 
         builder.RegisterApp<App>();
         NeoBpsysTutorialFlows.Register(builder);

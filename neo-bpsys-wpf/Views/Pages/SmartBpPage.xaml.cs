@@ -45,39 +45,39 @@ public partial class SmartBpPage : Page
             }
 
             TutorialSignalPublisher.Publish(TutorialSignalIds.NavigationSmartBpOpened);
-            if (IsCurrentSmartBpPage())
-            {
-                await TryRunTutorialAsync();
-            }
+            //if (IsCurrentSmartBpPage())
+            //{
+            //    await TryRunTutorialAsync();
+            //}
         };
-        IsVisibleChanged += async (_, e) =>
-        {
-            if (Equals(e.NewValue, true) && IsCurrentSmartBpPage())
-            {
-                await TryRunTutorialAsync();
-            }
-        };
+        //IsVisibleChanged += async (_, e) =>
+        //{
+        //    if (Equals(e.NewValue, true) && IsCurrentSmartBpPage())
+        //    {
+        //        await TryRunTutorialAsync();
+        //    }
+        //};
         Unloaded += (_, _) =>
         {
             _tutorialLifetime.Cancel();
         };
     }
 
-    internal async Task TryRunTutorialAsync()
-    {
-        var runner = _tutorialRunner ?? IAppHost.Host?.Services.GetService<ITutorialRunner>();
-        if (runner == null)
-        {
-            return;
-        }
+    //internal async Task TryRunTutorialAsync()
+    //{
+    //    var runner = _tutorialRunner ?? IAppHost.Host?.Services.GetService<ITutorialRunner>();
+    //    if (runner == null)
+    //    {
+    //        return;
+    //    }
 
-        if (_tutorialRun is not { IsCompleted: false })
-        {
-            _tutorialRun = runner.RunSequenceAsync(this, TutorialPageKey, _tutorialLifetime.Token);
-        }
+    //    if (_tutorialRun is not { IsCompleted: false })
+    //    {
+    //        _tutorialRun = runner.RunSequenceAsync(this, TutorialPageKey, _tutorialLifetime.Token);
+    //    }
 
-        await _tutorialRun;
-    }
+    //    await _tutorialRun;
+    //}
 
     private bool IsCurrentSmartBpPage()
     {
