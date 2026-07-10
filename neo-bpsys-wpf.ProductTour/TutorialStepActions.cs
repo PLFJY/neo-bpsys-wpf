@@ -70,6 +70,39 @@ public static class TutorialStepActions
         });
 
     /// <summary>
+    /// Creates a soft wait action that polls a predicate until it returns true or the timeout expires.
+    /// Returns on timeout without throwing, so it pairs with <see cref="ProductTourStep.AllowMissingTarget"/>.
+    /// </summary>
+    /// <param name="name">Diagnostic name shown in logs.</param>
+    /// <param name="predicate">Predicate evaluated on the step action context. Returns true when the awaited condition is satisfied.</param>
+    /// <param name="timeout">Maximum wait duration.</param>
+    /// <param name="pollInterval">Interval between predicate checks. Defaults to 80ms.</param>
+    /// <returns>The action definition.</returns>
+    public static TutorialStepAction WaitUntil(
+        string name,
+        Func<TutorialStepActionContext, bool> predicate,
+        TimeSpan timeout,
+        TimeSpan? pollInterval = null)
+    {
+        ArgumentNullException.ThrowIfNull(predicate);
+        var interval = pollInterval ?? TimeSpan.FromMilliseconds(80);
+        return new TutorialStepAction($"WaitUntil({name})", async (context, cancellationToken) =>
+        {
+            var deadline = DateTime.UtcNow + timeout;
+            while (DateTime.UtcNow < deadline)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (predicate(context))
+                {
+                    return;
+                }
+
+                await Task.Delay(interval, cancellationToken);
+            }
+        });
+    }
+
+    /// <summary>
     /// Returns an optional copy of an action.
     /// </summary>
     /// <param name="action">Action to mark optional.</param>

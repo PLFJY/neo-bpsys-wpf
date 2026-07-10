@@ -148,7 +148,7 @@ await tutorialRunner.TryRunNextPackageAsync(owner, pageKey);
 2. 按 `pageKey` 找到 package sequence。
 3. 按 `Sequence` 排序。
 4. 过滤已完成或已被 flow 覆盖且版本已满足的 package。
-5. 跳过当前 `CanRun=false` 的 package，找到第一个可运行 pending package 后运行。
+5. 若当前 package `CanRun=false`，返回 `NotReady`（非终态：不写完成状态、不抑制后续尝试），由调用方稍后重新触发。
 6. 如果当前已有 flow、dialogue 或 product tour 正在运行，返回 `Suppressed`。
 7. 不自动循环；需要连续运行时由调用方使用 `RunUntilBlockedAsync(owner, pageKey)`。
 

@@ -132,12 +132,6 @@ internal sealed class TutorialService : ITutorialStateManager
                 continue;
             }
 
-            if (!CanRunPackage(package, owner))
-            {
-                _runObserver.OnPackageSkippedByCanRun(package.PackageId, pageKey);
-                continue;
-            }
-
             return package;
         }
 
@@ -161,9 +155,8 @@ internal sealed class TutorialService : ITutorialStateManager
 
         if (!CanRunPackage(package, owner))
         {
-            _runObserver.OnPackageSkippedByCanRun(package.PackageId, package.PageKey);
-            _runObserver.OnPackageNotPending(package.PageKey);
-            return TutorialRunResult.NotPending;
+            _runObserver.OnPackageNotReady(package.PackageId, package.PageKey);
+            return TutorialRunResult.NotReady;
         }
 
         if (!_runLock.Wait(0))
@@ -312,9 +305,8 @@ internal sealed class TutorialService : ITutorialStateManager
 
         if (!CanRunPackage(package, owner))
         {
-            _runObserver.OnPackageSkippedByCanRun(package.PackageId, package.PageKey);
-            _runObserver.OnPackageNotPending(package.PageKey);
-            return TutorialRunResult.NotPending;
+            _runObserver.OnPackageNotReady(package.PackageId, package.PageKey);
+            return TutorialRunResult.NotReady;
         }
 
         _runObserver.OnPackageStarted(package.PackageId, package.PageKey, TutorialTriggerMode.EmbeddedInFlow);

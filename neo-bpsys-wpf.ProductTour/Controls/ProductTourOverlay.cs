@@ -47,6 +47,7 @@ public sealed class ProductTourOverlay : Canvas
     private readonly ITutorialTextProvider _textProvider;
     private readonly ProductTourOptions _options;
     private readonly ITutorialAvatarProvider _avatarProvider;
+    private readonly ProductTourOverlayLayoutEngine _layoutEngine = new();
     private TaskCompletionSource<ProductTourStepAction>? _completion;
     private bool _signalReceived;
     private FrameworkElement? _currentOwner;
@@ -352,23 +353,54 @@ public sealed class ProductTourOverlay : Canvas
         _spotlight.Height = spotlightRect.Height;
         LayoutMasks(width, height, spotlightRect);
 
-        var actualPlacement = placement == ProductTourPlacement.Auto
-            ? ChooseAutoPlacement(width, height, targetRect)
+        _card.Measure(new Size(width, height));
+        _avatarImage.Measure(new Size(width, height));
+        var cardDesired = _card.DesiredSize;
+        if (cardDesired.Width <= 0 || cardDesired.Height <= 0)
+        {
+            cardDesired = new Size(_options.CardWidth, _options.CardMaxHeight);
+        }
+
+        var aliceDesired = _avatarImage.DesiredSize;
+        if (aliceDesired.Width <= 0 || aliceDesired.Height <= 0)
+        {
+            aliceDesired = new Size(_options.ProductTourAvatarWidth, _options.ProductTourAvatarWidth);
+        }
+
+        var preferredCard = placement is ProductTourPlacement.Auto or ProductTourPlacement.Center
+            ? (ProductTourPlacement?)null
             : placement;
-        var cardPoint = CalculateCardPoint(width, height, targetRect, actualPlacement);
-        cardPoint = new Point(
-            Math.Clamp(
-                cardPoint.X + _currentCardOffset.X,
+        var request = new ProductTourOverlayLayoutRequest
+        {
+            SafeArea = new Rect(
                 _options.CardMargin,
-                Math.Max(_options.CardMargin, width - _options.CardWidth - _options.CardMargin)),
-            Math.Clamp(
-                cardPoint.Y + _currentCardOffset.Y,
                 _options.CardMargin,
-                Math.Max(_options.CardMargin, height - _options.CardMaxHeight - _options.CardMargin)));
-        SetLeft(_card, cardPoint.X);
-        SetTop(_card, cardPoint.Y);
-        LayoutArrow(targetRect, cardPoint, actualPlacement);
-        LayoutAvatar(width, height, targetRect, cardPoint, actualPlacement);
+                Math.Max(0, width - 2 * _options.CardMargin),
+                Math.Max(0, height - 2 * _options.CardMargin)),
+            SpotlightRect = spotlightRect,
+            CardDesiredSize = cardDesired,
+            AliceDesiredSize = aliceDesired,
+            PreferredCardPlacement = preferredCard,
+            PreferredAlicePlacement = _currentAvatarPlacement,
+            MinimumGap = _options.Gap,
+            EdgePadding = _options.CardMargin,
+            AliceVisible = _options.ShowAvatar
+        };
+        var layout = _layoutEngine.Arrange(request);
+
+        var cardX = Math.Clamp(
+            layout.CardPosition.X + _currentCardOffset.X,
+            _options.CardMargin,
+            Math.Max(_options.CardMargin, width - cardDesired.Width - _options.CardMargin));
+        var cardY = Math.Clamp(
+            layout.CardPosition.Y + _currentCardOffset.Y,
+            _options.CardMargin,
+            Math.Max(_options.CardMargin, height - cardDesired.Height - _options.CardMargin));
+        SetLeft(_card, cardX);
+        SetTop(_card, cardY);
+
+        LayoutAvatarResult(layout);
+        LayoutArrow(spotlightRect, new Rect(cardX, cardY, cardDesired.Width, cardDesired.Height));
         LayoutConfirmDialog();
     }
 
@@ -411,51 +443,23 @@ public sealed class ProductTourOverlay : Canvas
         mask.IsHitTestVisible = isVisible;
     }
 
-    private ProductTourPlacement ChooseAutoPlacement(double width, double height, Rect target)
+    private void LayoutArrow(Rect spotlight, Rect cardRect)
     {
-        if (width - target.Right >= _options.CardWidth + _options.Gap) return ProductTourPlacement.Right;
-        if (height - target.Bottom >= _options.CardMaxHeight + _options.Gap) return ProductTourPlacement.Bottom;
-        if (target.Left >= _options.CardWidth + _options.Gap) return ProductTourPlacement.Left;
-        if (target.Top >= _options.CardMaxHeight + _options.Gap) return ProductTourPlacement.Top;
-        return ProductTourPlacement.Center;
-    }
-
-    private Point CalculateCardPoint(double width, double height, Rect target, ProductTourPlacement placement)
-    {
-        var x = placement switch
+        if (_currentArrowKind != ProductTourArrowKind.Triangle)
         {
-            ProductTourPlacement.Left or ProductTourPlacement.LeftTop or ProductTourPlacement.LeftBottom => target.Left - _options.CardWidth - _options.Gap,
-            ProductTourPlacement.Right or ProductTourPlacement.RightTop or ProductTourPlacement.RightBottom => target.Right + _options.Gap,
-            ProductTourPlacement.TopLeft or ProductTourPlacement.BottomLeft => target.Left,
-            ProductTourPlacement.TopRight or ProductTourPlacement.BottomRight => target.Right - _options.CardWidth,
-            ProductTourPlacement.Center => width / 2 - _options.CardWidth / 2,
-            _ => target.Left + target.Width / 2 - _options.CardWidth / 2
-        };
-        var y = placement switch
-        {
-            ProductTourPlacement.Top or ProductTourPlacement.TopLeft or ProductTourPlacement.TopRight => target.Top - _options.CardMaxHeight - _options.Gap,
-            ProductTourPlacement.Bottom or ProductTourPlacement.BottomLeft or ProductTourPlacement.BottomRight => target.Bottom + _options.Gap,
-            ProductTourPlacement.LeftTop or ProductTourPlacement.RightTop => target.Top,
-            ProductTourPlacement.LeftBottom or ProductTourPlacement.RightBottom => target.Bottom - _options.CardMaxHeight,
-            ProductTourPlacement.Center => height / 2 - _options.CardMaxHeight / 2,
-            _ => target.Top + target.Height / 2 - _options.CardMaxHeight / 2
-        };
-        return new Point(
-            Math.Clamp(x, _options.CardMargin, Math.Max(_options.CardMargin, width - _options.CardWidth - _options.CardMargin)),
-            Math.Clamp(y, _options.CardMargin, Math.Max(_options.CardMargin, height - _options.CardMaxHeight - _options.CardMargin)));
-    }
+            _arrow.Visibility = Visibility.Collapsed;
+            return;
+        }
 
-    private void LayoutArrow(Rect target, Point card, ProductTourPlacement placement)
-    {
-        if (placement == ProductTourPlacement.Center || _currentArrowKind != ProductTourArrowKind.Triangle)
+        if (cardRect.IntersectsWith(spotlight))
         {
             _arrow.Visibility = Visibility.Collapsed;
             return;
         }
 
         _arrow.Visibility = Visibility.Visible;
-        var targetCenter = new Point(target.Left + target.Width / 2, target.Top + target.Height / 2);
-        var cardCenter = new Point(card.X + _options.CardWidth / 2, card.Y + _options.CardMaxHeight / 2);
+        var targetCenter = new Point(spotlight.Left + spotlight.Width / 2, spotlight.Top + spotlight.Height / 2);
+        var cardCenter = new Point(cardRect.Left + cardRect.Width / 2, cardRect.Top + cardRect.Height / 2);
         var x = (targetCenter.X + cardCenter.X) / 2;
         var y = (targetCenter.Y + cardCenter.Y) / 2;
         SetLeft(_arrow, x);
@@ -464,18 +468,15 @@ public sealed class ProductTourOverlay : Canvas
         _arrow.RenderTransform = new RotateTransform(angle, 8, 8);
     }
 
-    private void LayoutAvatar(double width, double height, Rect target, Point card, ProductTourPlacement placement)
+    private void LayoutAvatarResult(ProductTourOverlayLayoutResult layout)
     {
-        if (!_options.ShowAvatar)
+        if (!layout.AliceVisible || !_options.ShowAvatar)
         {
             _avatarImage.Visibility = Visibility.Collapsed;
             return;
         }
 
-        var pose = _currentAvatarPose
-            ?? (placement == ProductTourPlacement.Center
-                ? TutorialAvatarPose.Idle
-                : ChooseAvatarPose(target, card));
+        var pose = _currentAvatarPose ?? layout.AlicePose;
         var avatar = _avatarProvider.GetAvatar(pose);
         if (avatar == null)
         {
@@ -486,57 +487,8 @@ public sealed class ProductTourOverlay : Canvas
         _avatarImage.Source = avatar.ImageSource;
         _avatarImage.Width = _options.ProductTourAvatarWidth;
         _avatarImage.Visibility = Visibility.Visible;
-        _avatarImage.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-        var desired = _avatarImage.DesiredSize;
-        if (_currentAvatarPlacement is ProductTourAvatarPlacement.TopLeft
-            or ProductTourAvatarPlacement.TopRight
-            or ProductTourAvatarPlacement.BottomRight)
-        {
-            var fixedX = _currentAvatarPlacement == ProductTourAvatarPlacement.TopLeft
-                ? _options.CardMargin
-                : Math.Clamp(
-                    width - desired.Width - _options.CardMargin,
-                    _options.CardMargin,
-                    Math.Max(_options.CardMargin, width - desired.Width - _options.CardMargin));
-            var fixedY = _currentAvatarPlacement is ProductTourAvatarPlacement.TopLeft or ProductTourAvatarPlacement.TopRight
-                ? _options.CardMargin
-                : Math.Clamp(
-                    height - desired.Height - _options.CardMargin,
-                    _options.CardMargin,
-                    Math.Max(_options.CardMargin, height - desired.Height - _options.CardMargin));
-            SetLeft(_avatarImage, fixedX);
-            SetTop(_avatarImage, fixedY);
-            return;
-        }
-
-        var avatarX = card.X + _options.CardWidth - desired.Width;
-        var avatarY = card.Y - desired.Height - _options.AvatarMargin.Top;
-        if (avatarY < _options.CardMargin)
-        {
-            avatarY = card.Y + _options.CardMaxHeight + _options.AvatarMargin.Bottom;
-        }
-
-        SetLeft(
-            _avatarImage,
-            Math.Clamp(avatarX, _options.CardMargin, Math.Max(_options.CardMargin, width - desired.Width - _options.CardMargin)));
-        SetTop(
-            _avatarImage,
-            Math.Clamp(avatarY, _options.CardMargin, Math.Max(_options.CardMargin, height - desired.Height - _options.CardMargin)));
-    }
-
-    private TutorialAvatarPose ChooseAvatarPose(Rect target, Point card)
-    {
-        var targetCenter = new Point(target.Left + target.Width / 2, target.Top + target.Height / 2);
-        var cardCenter = new Point(card.X + _options.CardWidth / 2, card.Y + _options.CardMaxHeight / 2);
-        var isLeft = targetCenter.X < cardCenter.X;
-        var isTop = targetCenter.Y < cardCenter.Y;
-        return (isLeft, isTop) switch
-        {
-            (true, true) => TutorialAvatarPose.LeftTop,
-            (true, false) => TutorialAvatarPose.LeftBottom,
-            (false, true) => TutorialAvatarPose.RightTop,
-            _ => TutorialAvatarPose.RightBottom
-        };
+        SetLeft(_avatarImage, layout.AlicePosition.X);
+        SetTop(_avatarImage, layout.AlicePosition.Y);
     }
 
     private void ShowConfirmDialog()

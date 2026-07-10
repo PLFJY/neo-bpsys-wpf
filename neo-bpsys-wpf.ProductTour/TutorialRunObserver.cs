@@ -55,10 +55,10 @@ public interface ITutorialRunObserver
         int recordedVersion,
         int currentVersion);
 
-    /// <summary>Called when a package is skipped because its CanRun condition returned false.</summary>
+    /// <summary>Called when a package cannot run because it is not currently ready.</summary>
     /// <param name="packageId">Package id.</param>
     /// <param name="pageKey">Page key.</param>
-    void OnPackageSkippedByCanRun(string packageId, string pageKey);
+    void OnPackageNotReady(string packageId, string pageKey);
 
     /// <summary>Called when a page sequence has been resolved for a run.</summary>
     /// <param name="pageKey">Page key.</param>
@@ -128,7 +128,7 @@ public sealed class NoOpTutorialRunObserver : ITutorialRunObserver
     }
 
     /// <inheritdoc />
-    public void OnPackageSkippedByCanRun(string packageId, string pageKey)
+    public void OnPackageNotReady(string packageId, string pageKey)
     {
     }
 

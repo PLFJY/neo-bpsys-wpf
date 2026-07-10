@@ -139,13 +139,6 @@ public interface ITutorialPackageBuilder<TOwner> : ITutorialOwnerBuilder<TOwner>
     ITutorialStepBuilder<TOwner> Step(string title);
 
     /// <summary>
-    /// Sets an owner-aware condition that determines whether the package can run.
-    /// </summary>
-    /// <param name="canRun">Condition invoked with the service provider and owner element.</param>
-    /// <returns>The same package builder.</returns>
-    ITutorialPackageBuilder<TOwner> CanRun(Func<IServiceProvider, FrameworkElement?, bool> canRun);
-
-    /// <summary>
     /// Completes and registers the current package.
     /// </summary>
     /// <returns>The owner builder.</returns>
@@ -556,7 +549,6 @@ internal sealed class TutorialAuthoringPackageBuilder<TOwner> :
     private readonly int _sequence;
     private readonly List<ProductTourStep> _steps = [];
     private ProductTourStep? _currentStep;
-    private Func<IServiceProvider, FrameworkElement?, bool>? _canRunWithOwner;
 
     public TutorialAuthoringPackageBuilder(
         TutorialOwnerBuilder<TOwner> ownerBuilder,
@@ -637,12 +629,6 @@ internal sealed class TutorialAuthoringPackageBuilder<TOwner> :
         step.TargetKind = TutorialTargetKind.None;
         step.TargetName = null;
         step.TargetKey = null;
-        return this;
-    }
-
-    public ITutorialPackageBuilder<TOwner> CanRun(Func<IServiceProvider, FrameworkElement?, bool> canRun)
-    {
-        _canRunWithOwner = canRun;
         return this;
     }
 
@@ -806,8 +792,7 @@ internal sealed class TutorialAuthoringPackageBuilder<TOwner> :
             PackageId = _package.Id,
             PageKey = _tutorialKey,
             Sequence = _sequence,
-            Steps = _steps.ToArray(),
-            CanRunWithOwner = _canRunWithOwner
+            Steps = _steps.ToArray()
         });
         return _ownerBuilder;
     }

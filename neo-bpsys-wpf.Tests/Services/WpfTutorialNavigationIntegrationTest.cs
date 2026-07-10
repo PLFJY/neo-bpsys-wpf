@@ -116,7 +116,7 @@ public sealed class WpfTutorialNavigationIntegrationTest
 
             await observer.WaitForAutoRunAsync("SmartBpPage", TutorialPageKeys.SmartBp, app.Dump);
             Assert.DoesNotContain(TutorialPackageIds.SmartBpModuleShell, observer.StartedPackageIds);
-            Assert.DoesNotContain(TutorialPackageIds.SmartBpModuleContentOverview, observer.StartedPackageIds);
+            Assert.False(observer.ShownSteps.Any(s => s.StartsWith(TutorialPackageIds.SmartBpModuleContentOverview, StringComparison.Ordinal)));
 
             var page = Assert.IsType<SmartBpPage>(navigation.CurrentContent);
             var viewModel = Assert.IsType<SmartBpPageViewModel>(page.DataContext);
@@ -165,7 +165,7 @@ public sealed class WpfTutorialNavigationIntegrationTest
             await WaitForDispatcherAsync(hostWindow);
             await Task.Delay(300);
 
-            Assert.DoesNotContain(TutorialPackageIds.SmartBpModuleContentOverview, observer.StartedPackageIds);
+            Assert.False(observer.ShownSteps.Any(s => s.StartsWith(TutorialPackageIds.SmartBpModuleContentOverview, StringComparison.Ordinal)));
         }, TimeSpan.FromSeconds(20));
     }
 
@@ -586,7 +586,7 @@ public sealed class WpfTutorialNavigationIntegrationTest
             builder.AppendLine($"Observed auto-run requests: {string.Join(", ", _observer.AutoRunRequests)}");
             builder.AppendLine($"Observed sequences: {string.Join(", ", _observer.SequenceResolutions)}");
             builder.AppendLine($"State skipped packages: {string.Join(", ", _observer.StateSkippedPackages)}");
-            builder.AppendLine($"CanRun skipped packages: {string.Join(", ", _observer.CanRunSkippedPackages)}");
+            builder.AppendLine($"Not ready packages: {string.Join(", ", _observer.NotReadyPackages)}");
             builder.AppendLine($"Current navigation content: {Navigation.CurrentContent?.GetType().FullName ?? "<null>"}");
             builder.AppendLine($"Visible FrontManage child view: {DescribeFrontManageChild(frontManagePage)}");
             builder.AppendLine($"FrontManageTabs selected item: {frontManagePage?.FrontManageTabs.SelectedItem}");
@@ -659,7 +659,7 @@ public sealed class WpfTutorialNavigationIntegrationTest
         private readonly ConcurrentQueue<string> _autoRunRequests = [];
         private readonly ConcurrentQueue<string> _sequenceResolutions = [];
         private readonly ConcurrentQueue<string> _stateSkippedPackages = [];
-        private readonly ConcurrentQueue<string> _canRunSkippedPackages = [];
+        private readonly ConcurrentQueue<string> _notReadyPackages = [];
         private readonly ConcurrentDictionary<string, TutorialRunResult> _packageResults = new(StringComparer.Ordinal);
 
         public IReadOnlyCollection<string> StartedPackageIds => _startedPackageIds.ToArray();
@@ -676,7 +676,7 @@ public sealed class WpfTutorialNavigationIntegrationTest
 
         public IReadOnlyCollection<string> StateSkippedPackages => _stateSkippedPackages.ToArray();
 
-        public IReadOnlyCollection<string> CanRunSkippedPackages => _canRunSkippedPackages.ToArray();
+        public IReadOnlyCollection<string> NotReadyPackages => _notReadyPackages.ToArray();
 
         public IReadOnlyDictionary<string, TutorialRunResult> PackageResults => _packageResults;
 
@@ -725,9 +725,9 @@ public sealed class WpfTutorialNavigationIntegrationTest
             _stateSkippedPackages.Enqueue($"{packageId}:{completionKind}:{recordedVersion}->{currentVersion}");
         }
 
-        public void OnPackageSkippedByCanRun(string packageId, string pageKey)
+        public void OnPackageNotReady(string packageId, string pageKey)
         {
-            _canRunSkippedPackages.Enqueue($"{pageKey}:{packageId}");
+            _notReadyPackages.Enqueue($"{pageKey}:{packageId}");
         }
 
         public void OnSequenceResolved(

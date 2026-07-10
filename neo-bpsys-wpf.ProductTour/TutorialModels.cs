@@ -127,6 +127,8 @@ public enum TutorialRunResult
     TargetMissing,
     /// <summary>The tutorial had no pending work.</summary>
     NotPending,
+    /// <summary>The tutorial did not run because the package is not currently ready. Non-terminal: no completion state is written and future attempts are not suppressed.</summary>
+    NotReady,
     /// <summary>The tutorial was canceled.</summary>
     Canceled,
     /// <summary>The tutorial failed with an error.</summary>

@@ -123,7 +123,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
         Assert.Equal(
             TutorialAutoRunStrategy.ContinueWhileActive,
             sequenceRegistry.GetSequenceDefinition(TutorialPageKeys.SmartBp).AutoRunStrategy);
-        Assert.Equal(51, packageRegistry.GetPackages().Count);
+        Assert.Equal(52, packageRegistry.GetPackages().Count);
 
         var firstRun = flowRegistry.GetFlow(TutorialFlowIds.FirstRunStandardBp);
         Assert.NotNull(firstRun);
@@ -151,6 +151,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
                 TutorialPackageIds.MainNavigationScore,
                 TutorialPackageIds.ScoreBasic,
                 TutorialPackageIds.GameManageNewGameBasic,
+                TutorialPackageIds.NextGameBasic,
                 TutorialPackageIds.GameManageGlobalBanCarryOver
             ],
             firstRun.IncludedPackageIds);
@@ -171,7 +172,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
         Assert.DoesNotContain(TutorialPackageIds.FrontManageLayoutPackagesBasic, firstRun.IncludedPackageIds);
         Assert.DoesNotContain(TutorialPackageIds.MainNavigationSmartBp, firstRun.IncludedPackageIds);
         Assert.DoesNotContain(TutorialPackageIds.MainNavigationDesignerV3, firstRun.IncludedPackageIds);
-        Assert.Equal(28, firstRun.Items.Count);
+        Assert.Equal(29, firstRun.Items.Count);
         Assert.Equal(
             TutorialPackageIds.MainNavigationFrontManage,
             Assert.IsType<PackageFlowItem>(firstRun.Items[1]).PackageId);
@@ -198,6 +199,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
                 TutorialPackageIds.MainNavigationScore,
                 TutorialPackageIds.ScoreBasic,
                 TutorialPackageIds.GameManageNewGameBasic,
+                TutorialPackageIds.NextGameBasic,
                 TutorialPackageIds.GameManageGlobalBanCarryOver
             ],
             GetPackageFlowItemIds(firstRun));
@@ -309,7 +311,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
         Assert.Equal(TutorialTargetKind.Name, globalBanStep.TargetKind);
         Assert.Equal(TutorialTargetNames.GlobalBanRecordPanel, globalBanStep.TargetName);
         Assert.Equal(ProductTourInteractionMode.AllowTargetOnly, globalBanStep.InteractionMode);
-        Assert.Equal(default, globalBanStep.CardOffset);
+        Assert.Equal(new Point(-100, -100), globalBanStep.CardOffset);
         Assert.Null(globalBanStep.WaitForSignalId);
 
         var playerManagePackage = Assert.Single(
@@ -396,7 +398,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
     }
 
     [Fact]
-    public async Task SmartBpPackageCanRunFollowsCurrentPageDataContextModuleLoadedState()
+    public async Task SmartBpPackagesDoNotUseCanRun()
     {
         await WpfTestThread.RunAsync(() =>
         {
@@ -406,42 +408,17 @@ public sealed class NeoBpsysTutorialRegistrationTest
             var region = Assert.Single(packages, package => package.PackageId == TutorialPackageIds.SmartBpRegionEditorBasic);
             var fullBpFlow = Assert.Single(packages, package => package.PackageId == TutorialPackageIds.SmartBpFullBpFlowBasic);
             var postGamePackage = Assert.Single(packages, package => package.PackageId == TutorialPackageIds.SmartBpPostGameAutoFill);
-            var provider = new ViewModelServiceProvider(new SmartBpPageViewModel { IsModuleLoaded = true });
-            var unloadedOwner = new System.Windows.Controls.Grid
-            {
-                DataContext = new SmartBpPageViewModel { IsModuleLoaded = false }
-            };
-            var loadedOwner = new System.Windows.Controls.Grid
-            {
-                DataContext = new SmartBpPageViewModel { IsModuleLoaded = true }
-            };
-            var loadedOwnerWithContent = CreateSmartBpOwnerWithContent("SmartBpModuleContentHost");
-            var captureOwner = CreateSmartBpOwnerWithContent("SmartBpModuleContentHost", SmartBpPage.TutorialTargets.StartCaptureButton);
-            var regionOwner = CreateSmartBpOwnerWithContent("SmartBpModuleContentHost", SmartBpPage.TutorialTargets.RegionListPanel);
-            var fullBpOwner = CreateSmartBpOwnerWithContent("SmartBpModuleContentHost", SmartBpPage.TutorialTargets.StartFullBpFlowButton);
 
-            Assert.DoesNotContain(packages, package => package.PackageId == TutorialPackageIds.SmartBpModuleShell);
-
-            Assert.NotNull(overview.CanRunWithOwner);
-            Assert.False(overview.CanRunWithOwner!(provider, unloadedOwner));
-            Assert.False(overview.CanRunWithOwner!(provider, loadedOwner));
-            Assert.True(overview.CanRunWithOwner!(provider, loadedOwnerWithContent));
-
-            Assert.NotNull(capture.CanRunWithOwner);
-            Assert.False(capture.CanRunWithOwner!(provider, loadedOwner));
-            Assert.True(capture.CanRunWithOwner!(provider, captureOwner));
-
-            Assert.NotNull(region.CanRunWithOwner);
-            Assert.False(region.CanRunWithOwner!(provider, loadedOwner));
-            Assert.True(region.CanRunWithOwner!(provider, regionOwner));
-
-            Assert.NotNull(fullBpFlow.CanRunWithOwner);
-            Assert.False(fullBpFlow.CanRunWithOwner!(provider, loadedOwner));
-            Assert.True(fullBpFlow.CanRunWithOwner!(provider, fullBpOwner));
-
-            Assert.NotNull(postGamePackage.CanRunWithOwner);
-            Assert.False(postGamePackage.CanRunWithOwner!(provider, unloadedOwner));
-            Assert.False(postGamePackage.CanRunWithOwner!(provider, loadedOwner));
+            Assert.Null(overview.CanRunWithOwner);
+            Assert.Null(overview.CanRun);
+            Assert.Null(capture.CanRunWithOwner);
+            Assert.Null(capture.CanRun);
+            Assert.Null(region.CanRunWithOwner);
+            Assert.Null(region.CanRun);
+            Assert.Null(fullBpFlow.CanRunWithOwner);
+            Assert.Null(fullBpFlow.CanRun);
+            Assert.Null(postGamePackage.CanRunWithOwner);
+            Assert.Null(postGamePackage.CanRun);
 
             return Task.CompletedTask;
         });
@@ -522,6 +499,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
                 TutorialPackageIds.MainNavigationScore,
                 TutorialPackageIds.ScoreBasic,
                 TutorialPackageIds.GameManageNewGameBasic,
+                TutorialPackageIds.NextGameBasic,
                 TutorialPackageIds.GameManageGlobalBanCarryOver
             ],
             GetPackageFlowItemIds(firstRun));
@@ -851,37 +829,9 @@ public sealed class NeoBpsysTutorialRegistrationTest
         return Path.Combine([directory.FullName, .. parts]);
     }
 
-    private static Grid CreateSmartBpOwnerWithContent(string contentHostName, string? dynamicTargetName = null)
-    {
-        var moduleContent = new StackPanel();
-        if (!string.IsNullOrWhiteSpace(dynamicTargetName))
-        {
-            moduleContent.Children.Add(new Button { Name = dynamicTargetName });
-        }
-
-        return new Grid
-        {
-            DataContext = new SmartBpPageViewModel { IsModuleLoaded = true },
-            Children =
-            {
-                new ContentControl
-                {
-                    Name = contentHostName,
-                    Content = moduleContent
-                }
-            }
-        };
-    }
-
     private sealed class EmptyServiceProvider : IServiceProvider
     {
         object? IServiceProvider.GetService(Type serviceType) => null;
-    }
-
-    private sealed class ViewModelServiceProvider(SmartBpPageViewModel viewModel) : IServiceProvider
-    {
-        object? IServiceProvider.GetService(Type serviceType) =>
-            serviceType == typeof(SmartBpPageViewModel) ? viewModel : null;
     }
 
 }

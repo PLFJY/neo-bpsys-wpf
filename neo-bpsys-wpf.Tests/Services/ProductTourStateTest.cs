@@ -860,7 +860,7 @@ public sealed class ProductTourStateTest
     }
 
     [Fact]
-    public async Task CanRunReceivesOwner()
+    public async Task CanRunReturnsNotReadyWhenFalse()
     {
         await WpfTestThread.RunAsync(async () =>
         {
@@ -880,9 +880,16 @@ public sealed class ProductTourStateTest
             });
             fixture.SequenceRegistry.RegisterSequence("Page.Test", ["Package.OwnerAware"]);
 
-            var result = await fixture.Service.RunPendingPagePackagesAsync(expectedOwner, "Page.Test");
+            var wrongOwner = CreateOwner();
+            var notReadyResult = await fixture.Service.RunPendingPagePackagesAsync(wrongOwner, "Page.Test");
+            Assert.Equal(TutorialRunResult.NotReady, notReadyResult);
+            Assert.Same(wrongOwner, receivedOwner);
 
-            Assert.Equal(TutorialRunResult.Completed, result);
+            var stateAfterNotReady = await fixture.StateStore.LoadAsync();
+            Assert.False(stateAfterNotReady.CompletedPackages.ContainsKey("Package.OwnerAware"));
+
+            var completedResult = await fixture.Service.RunPendingPagePackagesAsync(expectedOwner, "Page.Test");
+            Assert.Equal(TutorialRunResult.Completed, completedResult);
             Assert.Same(expectedOwner, receivedOwner);
         });
     }
@@ -1525,7 +1532,7 @@ public sealed class ProductTourStateTest
         {
         }
 
-        public void OnPackageSkippedByCanRun(string packageId, string pageKey)
+        public void OnPackageNotReady(string packageId, string pageKey)
         {
         }
 

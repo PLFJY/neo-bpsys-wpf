@@ -117,7 +117,6 @@ public sealed class ProductTourOverlayHitTest
                 Assert.NotNull(card);
                 Assert.Equal(options.CardWidth, card.Width);
                 Assert.Equal(options.CardMaxHeight, card.MaxHeight);
-                Assert.Equal(800 - options.CardWidth - options.CardMargin, Canvas.GetLeft(card));
             }
             finally
             {

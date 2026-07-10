@@ -2,8 +2,6 @@ using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.Tutorial;
 using neo_bpsys_wpf.ViewModels.Pages;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media;
 
 namespace neo_bpsys_wpf.Views.Pages;
 
@@ -86,15 +84,25 @@ public partial class SmartBpPage : ITutorialOwner<SmartBpPage>
         builder.ForPage<SmartBpPage>()
             .AutoRun(TutorialAutoRunStrategy.ContinueWhileActive)
             .Package(Tours.ModuleContentOverview)
-                .CanRun(IsSmartBpModuleContentReady)
                 .Step("SmartBP 模块内容")
+                    .PreStepAction(TutorialStepActions.Delay(250))
+                    .PreStepAction(TutorialStepActions.WaitForDispatcherIdle())
+                    .PreStepAction(TutorialStepActions.WaitUntil(
+                        "SmartBP module loaded",
+                        context => context.Owner is FrameworkElement { IsVisible: true, DataContext: SmartBpPageViewModel vm } && vm.IsModuleLoaded,
+                        TimeSpan.FromSeconds(3)))
                     .Text("SmartBP 用于识别游戏画面并辅助填写 BP 和赛后数据。使用顺序是：捕获窗口 -> 配置识别区域 -> 预览确认 -> 启动识别。它不是替代人工导播，而是辅助减少重复操作。")
                     .TargetName(nameof(SmartBpModuleContentHost))
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
                     .AllowMissingTarget()
             .Package(Tours.CaptureBasic)
-                .CanRun(IsSmartBpCaptureReady)
                 .Step("选择游戏窗口")
+                    .PreStepAction(TutorialStepActions.Delay(250))
+                    .PreStepAction(TutorialStepActions.WaitForDispatcherIdle())
+                    .PreStepAction(TutorialStepActions.WaitUntil(
+                        "SmartBP module loaded",
+                        context => context.Owner is FrameworkElement { IsVisible: true, DataContext: SmartBpPageViewModel vm } && vm.IsModuleLoaded,
+                        TimeSpan.FromSeconds(3)))
                     .Text("先选择第五人格游戏窗口。第五人格游戏进程通常是 dwrg.exe。")
                     .TargetName(TutorialTargets.WindowSelector)
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
@@ -115,8 +123,13 @@ public partial class SmartBpPage : ITutorialOwner<SmartBpPage>
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
                     .AllowMissingTarget()
             .Package(Tours.RegionEditorBasic)
-                .CanRun(IsSmartBpRegionEditorReady)
                 .Step("识别区域")
+                    .PreStepAction(TutorialStepActions.Delay(250))
+                    .PreStepAction(TutorialStepActions.WaitForDispatcherIdle())
+                    .PreStepAction(TutorialStepActions.WaitUntil(
+                        "SmartBP module loaded",
+                        context => context.Owner is FrameworkElement { IsVisible: true, DataContext: SmartBpPageViewModel vm } && vm.IsModuleLoaded,
+                        TimeSpan.FromSeconds(3)))
                     .Text("识别区域决定 AI / OCR 看哪里。不同阶段有不同区域，例如 Ban 求生、Ban 监管、Pick、赛后数据。")
                     .TargetName(TutorialTargets.RegionEditorButton)
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
@@ -137,15 +150,25 @@ public partial class SmartBpPage : ITutorialOwner<SmartBpPage>
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
                     .AllowMissingTarget()
             .Package(Tours.FullBpFlowBasic)
-                .CanRun(IsSmartBpFullBpFlowReady)
                 .Step("全流程 BP")
+                    .PreStepAction(TutorialStepActions.Delay(250))
+                    .PreStepAction(TutorialStepActions.WaitForDispatcherIdle())
+                    .PreStepAction(TutorialStepActions.WaitUntil(
+                        "SmartBP module loaded",
+                        context => context.Owner is FrameworkElement { IsVisible: true, DataContext: SmartBpPageViewModel vm } && vm.IsModuleLoaded,
+                        TimeSpan.FromSeconds(3)))
                     .Text("全流程 BP 会根据当前比赛阶段自动识别。启动前请确认窗口捕获和识别区域正确。正式比赛中建议先预览确认，再启动。点击后会开始 SmartBP 的自动 BP 流程。")
                     .TargetName(TutorialTargets.StartFullBpFlowButton)
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
                     .AllowMissingTarget()
             .Package(Tours.PostGameAutoFill)
-                .CanRun(IsSmartBpPostGameAutoFillVisible)
                 .Step("赛后数据识别")
+                    .PreStepAction(TutorialStepActions.Delay(250))
+                    .PreStepAction(TutorialStepActions.WaitForDispatcherIdle())
+                    .PreStepAction(TutorialStepActions.WaitUntil(
+                        "SmartBP module loaded",
+                        context => context.Owner is FrameworkElement { IsVisible: true, DataContext: SmartBpPageViewModel vm } && vm.IsModuleLoaded,
+                        TimeSpan.FromSeconds(3)))
                     .Text("对局结束后切到赛后数据页面。SmartBP 可以识别赛后数据。")
                     .TargetName(TutorialTargets.PostGameDataButton)
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
@@ -161,98 +184,5 @@ public partial class SmartBpPage : ITutorialOwner<SmartBpPage>
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
                     .AllowMissingTarget()
                 .Build();
-    }
-
-    private static bool IsSmartBpModuleLoaded(IServiceProvider serviceProvider, FrameworkElement? owner)
-    {
-        _ = serviceProvider;
-        return owner is FrameworkElement { DataContext: SmartBpPageViewModel viewModel }
-            && viewModel.IsModuleLoaded;
-    }
-
-    private static bool IsSmartBpModuleContentReady(IServiceProvider serviceProvider, FrameworkElement? owner)
-    {
-        _ = serviceProvider;
-        return IsSmartBpModuleLoaded(serviceProvider, owner)
-            && HasContentHostContent(owner);
-    }
-
-    private static bool IsSmartBpCaptureReady(IServiceProvider serviceProvider, FrameworkElement? owner) =>
-        IsSmartBpModuleLoaded(serviceProvider, owner)
-        && HasAnyTarget(
-            owner,
-            TutorialTargets.WindowSelector,
-            TutorialTargets.StartCaptureButton);
-
-    private static bool IsSmartBpRegionEditorReady(IServiceProvider serviceProvider, FrameworkElement? owner) =>
-        IsSmartBpModuleLoaded(serviceProvider, owner)
-        && HasAnyTarget(
-            owner,
-            TutorialTargets.RegionEditorButton,
-            TutorialTargets.RegionPreviewPanel,
-            TutorialTargets.RegionListPanel);
-
-    private static bool IsSmartBpFullBpFlowReady(IServiceProvider serviceProvider, FrameworkElement? owner) =>
-        IsSmartBpModuleLoaded(serviceProvider, owner)
-        && HasAnyTarget(owner, TutorialTargets.StartFullBpFlowButton);
-
-    private static bool IsSmartBpPostGameAutoFillVisible(IServiceProvider serviceProvider, FrameworkElement? owner)
-    {
-        _ = serviceProvider;
-        _ = owner;
-        return false;
-    }
-
-    private static bool HasContentHostContent(FrameworkElement? owner)
-    {
-        if (owner == null)
-        {
-            return false;
-        }
-
-        return FindNamedElement(owner, nameof(SmartBpModuleContentHost)) is ContentControl { Content: not null };
-    }
-
-    private static bool HasAnyTarget(FrameworkElement? owner, params string[] targetNames)
-    {
-        if (owner == null)
-        {
-            return false;
-        }
-
-        return targetNames.Any(targetName => FindNamedElement(owner, targetName) != null);
-    }
-
-    private static FrameworkElement? FindNamedElement(DependencyObject root, string targetName)
-    {
-        if (root is FrameworkElement element)
-        {
-            if (element.Name == targetName)
-            {
-                return element;
-            }
-
-            if (element.FindName(targetName) is FrameworkElement named)
-            {
-                return named;
-            }
-        }
-
-        var childCount = VisualTreeHelper.GetChildrenCount(root);
-        for (var i = 0; i < childCount; i++)
-        {
-            var nested = FindNamedElement(VisualTreeHelper.GetChild(root, i), targetName);
-            if (nested != null)
-            {
-                return nested;
-            }
-        }
-
-        if (root is ContentControl { Content: DependencyObject content })
-        {
-            return FindNamedElement(content, targetName);
-        }
-
-        return null;
     }
 }

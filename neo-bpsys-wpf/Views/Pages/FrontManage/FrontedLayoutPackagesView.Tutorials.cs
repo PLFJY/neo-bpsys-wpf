@@ -28,6 +28,8 @@ public partial class FrontedLayoutPackagesView : ITutorialOwner<FrontedLayoutPac
             .AutoRun(TutorialAutoRunStrategy.ContinueWhileActive)
             .Package(Tours.LayoutPackagesBasic)
                 .Step("布局包")
+                    .PreStepAction(TutorialStepActions.Delay(250))
+                    .PreStepAction(TutorialStepActions.WaitForDispatcherIdle())
                     .Text("布局包是前台界面的打包格式。可以导入别人制作的布局包，也可以切换当前启用的布局包。")
                     .TargetName(nameof(LayoutPackageList))
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)

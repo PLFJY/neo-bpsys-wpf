@@ -39,8 +39,13 @@ public partial class BehaviorPanelView : ITutorialOwner<BehaviorPanelView>
         builder.ForRegion<BehaviorPanelView>()
             .AutoRun(TutorialAutoRunStrategy.DrainSequence)
             .Package(Tours.Overview)
-                .CanRun(CanRunBehaviorPanelTutorial)
                 .Step("行为面板")
+                    .PreStepAction(TutorialStepActions.Delay(250))
+                    .PreStepAction(TutorialStepActions.WaitForDispatcherIdle())
+                    .PreStepAction(TutorialStepActions.WaitUntil(
+                        "Behavior panel has selected control",
+                        context => context.Owner is BehaviorPanelView { DataContext: BehaviorPanelViewModel { HasSelectedControl: true } },
+                        TimeSpan.FromSeconds(2)))
                     .Text("行为由“触发条件 + 动作”组成。一次性行为、循环行为、过渡行为用途不同，可以分别处理点击后动画、持续循环和状态切换过渡。")
                     .NoTarget()
                     .Interaction(ProductTourInteractionMode.BlockAll)
@@ -54,8 +59,13 @@ public partial class BehaviorPanelView : ITutorialOwner<BehaviorPanelView>
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
                     .AllowMissingTarget()
             .Package(Tours.TriggerBasic)
-                .CanRun(CanRunBehaviorPanelTutorial)
                 .Step("触发条件")
+                    .PreStepAction(TutorialStepActions.Delay(250))
+                    .PreStepAction(TutorialStepActions.WaitForDispatcherIdle())
+                    .PreStepAction(TutorialStepActions.WaitUntil(
+                        "Behavior panel has selected control",
+                        context => context.Owner is BehaviorPanelView { DataContext: BehaviorPanelViewModel { HasSelectedControl: true } },
+                        TimeSpan.FromSeconds(2)))
                     .Text("触发条件决定动画什么时候运行；没有创建行为时，可以先了解概念，之后展开具体行为再编辑。")
                     .NoTarget()
                     .Interaction(ProductTourInteractionMode.BlockAll)
@@ -65,8 +75,13 @@ public partial class BehaviorPanelView : ITutorialOwner<BehaviorPanelView>
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
                     .AllowMissingTarget()
             .Package(Tours.ActionBasic)
-                .CanRun(CanRunBehaviorPanelTutorial)
                 .Step("动作编辑")
+                    .PreStepAction(TutorialStepActions.Delay(250))
+                    .PreStepAction(TutorialStepActions.WaitForDispatcherIdle())
+                    .PreStepAction(TutorialStepActions.WaitUntil(
+                        "Behavior panel has selected control",
+                        context => context.Owner is BehaviorPanelView { DataContext: BehaviorPanelViewModel { HasSelectedControl: true } },
+                        TimeSpan.FromSeconds(2)))
                     .Text("动作决定控件如何变化。你可以在需要时进入动画编辑器，不需要为了完成教程而创建或保存动画。")
                     .NoTarget()
                     .Interaction(ProductTourInteractionMode.BlockAll)
@@ -76,10 +91,15 @@ public partial class BehaviorPanelView : ITutorialOwner<BehaviorPanelView>
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
                     .AllowMissingTarget()
             .Package(Tours.HelpBasic)
-                .CanRun(CanRunBehaviorPanelTutorial)
                 .Step("行为系统说明")
-                    .Text("右下角这个帮助按钮可以查看行为系统的详细 / 进阶说明。")
+                    .PreStepAction(TutorialStepActions.Delay(250))
+                    .PreStepAction(TutorialStepActions.WaitForDispatcherIdle())
+                    .PreStepAction(TutorialStepActions.WaitUntil(
+                        "Behavior panel has selected control",
+                        context => context.Owner is BehaviorPanelView { DataContext: BehaviorPanelViewModel { HasSelectedControl: true } },
+                        TimeSpan.FromSeconds(2)))
                     .PreStepAction(ScrollBehaviorHelpButtonIntoViewAction())
+                    .Text("右下角这个帮助按钮可以查看行为系统的详细 / 进阶说明。")
                     .TargetName(nameof(BehaviorHelpButton))
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
                 .Build();
@@ -88,16 +108,6 @@ public partial class BehaviorPanelView : ITutorialOwner<BehaviorPanelView>
     private static TutorialStepAction ScrollBehaviorHelpButtonIntoViewAction() =>
         new("ScrollBehaviorHelpButtonIntoView", (context, cancellationToken) =>
             ScrollBehaviorHelpButtonIntoViewAsync(context.Services, cancellationToken));
-
-    private static bool CanRunBehaviorPanelTutorial(IServiceProvider serviceProvider, FrameworkElement? owner)
-    {
-        _ = serviceProvider;
-        return owner is BehaviorPanelView
-        {
-            IsVisible: true,
-            DataContext: BehaviorPanelViewModel { HasSelectedControl: true }
-        };
-    }
 
     private static async Task ScrollBehaviorHelpButtonIntoViewAsync(
         IServiceProvider serviceProvider,

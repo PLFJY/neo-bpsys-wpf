@@ -365,7 +365,8 @@ public sealed class ProductTourBuilderTest
             "Item",
             "Include",
             "Covers",
-            "Dialogue"
+            "Dialogue",
+            "CanRun"
         };
         var packageMethodNames = typeof(ITutorialPackageBuilder<TestTutorialOwner>)
             .GetMethods()

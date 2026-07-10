@@ -49,6 +49,8 @@ public partial class FrontedWindowsView : ITutorialOwner<FrontedWindowsView>
             .AutoRun(TutorialAutoRunStrategy.ContinueWhileActive)
             .Package(Tours.WindowsBasic)
                 .Step("前台窗口")
+                    .PreStepAction(TutorialStepActions.Delay(250))
+                    .PreStepAction(TutorialStepActions.WaitForDispatcherIdle())
                     .Text("这里管理所有前台窗口。导播排查和控制窗口时，可以在这里查看窗口列表。")
                     .TargetName(nameof(ManageableWindowGroupsPanel))
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
