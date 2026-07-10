@@ -20,7 +20,7 @@ public partial class FrontedBehaviorAnimationEditorWindow : ITutorialOwner<Front
         public static readonly TutorialPackageRef Overview = new(TutorialPackageIds.DesignerV3AnimationEditorOverview);
 
         /// <summary>Animation editor timeline package reference.</summary>
-        public static readonly TutorialPackageRef TimelineBasic = new(TutorialPackageIds.DesignerV3AnimationEditorTimelineBasic);
+        public static readonly TutorialPackageRef NodeBasic = new(TutorialPackageIds.DesignerV3AnimationEditorTimelineBasic);
 
         /// <summary>Animation editor key frame package reference.</summary>
         public static readonly TutorialPackageRef KeyFrameBasic = new(TutorialPackageIds.DesignerV3AnimationEditorKeyFrameBasic);
@@ -40,22 +40,47 @@ public partial class FrontedBehaviorAnimationEditorWindow : ITutorialOwner<Front
     {
         builder.ForWindow<FrontedBehaviorAnimationEditorWindow>()
             .Package(Tours.Overview)
-                .Step("动画编辑器")
-                    .Text("这里编辑行为对应的动画动作。动画由时间、步骤和参数变化组成。")
-                    .NoTarget()
-                    .Interaction(ProductTourInteractionMode.BlockAll)
+                .Dialogue(new DialogueFlowItem
+                {
+                    Speaker = "爱丽丝·德罗斯",
+                    Lines =
+                    [
+                        "欢迎来到动画编辑器。",
+                        "在这里你可以为前台的控件设置动画"
+                    ]
+                })
                 .Step("动画编辑器")
                     .Text("这里编辑行为对应的动画动作。动画由时间、步骤和参数变化组成。")
                     .TargetName(nameof(AnimationTabs))
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
                     .AllowMissingTarget()
-            .Package(Tours.TimelineBasic)
-                .Step("时间和步骤")
-                    .Text("动画会按时间和步骤顺序执行。你可以先理解结构，不需要为了完成教程创建关键帧。")
+                .Step("动画编辑器")
+                    .Text("长按左键框选可以选择多个控件")
+                    .TargetName(nameof(AnimationTabs))
+                    .Interaction(ProductTourInteractionMode.AllowTargetOnly)
+                    .AllowMissingTarget()
+                .Step("动画编辑器")
+                    .Text("按住 Ctrl + 鼠标滚轮可以缩放画布")
+                    .TargetName(nameof(AnimationTabs))
+                    .Interaction(ProductTourInteractionMode.AllowTargetOnly)
+                    .AllowMissingTarget()
+                .Step("动画编辑器")
+                    .Text("按住 Ctrl + 鼠标滚轮可以缩放画布，按按住右键移动画布")
+                    .TargetName(nameof(AnimationTabs))
+                    .Interaction(ProductTourInteractionMode.AllowTargetOnly)
+                    .AllowMissingTarget()
+            .Package(Tours.NodeBasic)
+                .Step("节点步骤")
+                    .Text("动画会按节点步骤顺序执行。你可以先理解结构，不需要为了完成教程创建关键帧。")
                     .NoTarget()
                     .Interaction(ProductTourInteractionMode.BlockAll)
-                .Step("时间顺序")
-                    .Text("动画按时间和步骤顺序执行。不同阶段可以分别编辑进入、循环和停止动作。")
+                .Step("节点步骤")
+                    .Text("动画按步骤顺序执行。不同阶段可以分别编辑进入、循环和停止动作。")
+                    .TargetName(TutorialTargetNames.AnimationGraphCanvas)
+                    .Interaction(ProductTourInteractionMode.AllowTargetOnly)
+                    .AllowMissingTarget()
+                .Step("节点步骤")
+                    .Text("每个动画从“开始”节点开始，“结束”节点结束")
                     .TargetName(TutorialTargetNames.AnimationGraphCanvas)
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
                     .AllowMissingTarget()

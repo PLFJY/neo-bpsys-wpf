@@ -43,7 +43,7 @@ public sealed class TutorialRefactorTaskTest
 
         var targetNames = package.Steps.Select(s => s.TargetName).ToArray();
         Assert.Single(targetNames);
-        Assert.Equal(nameof(SmartBpModuleContentView.SmartBpRegionEditorButton), targetNames[0]);
+        Assert.Equal(nameof(SmartBpModuleContentView.SmartBpPostGamePreviewPanel), targetNames[0]);
     }
 
     [Fact]
@@ -179,7 +179,10 @@ public sealed class TutorialRefactorTaskTest
 
         Assert.Contains("nameof(FrontedDesignerWindowViewModel.SelectedDesignItem)", source);
         Assert.Contains("TryQueuePropertyPanelTutorial", source);
-        Assert.Contains("wasNull && isNowNonNull", source);
+        Assert.Contains("_initialLayoutLoaded", source);
+        Assert.Contains("isUserSelection", source);
+        Assert.Contains("currentItem is not null", source);
+        Assert.Contains("WaitForPropertyGridReadyAsync", source);
         Assert.Contains("RunPackageAsync(this, Tours.PropertyPanelBasic", source);
     }
 
@@ -216,7 +219,7 @@ public sealed class TutorialRefactorTaskTest
     }
 
     [Fact]
-    public async Task ModalChildTutorial_ShouldNotDeadlockBehindParentPlayback()
+    public async Task NonModalChildTutorial_ShouldRunBeforeParentResumes()
     {
         await WpfTestThread.RunAsync(async () =>
         {
@@ -251,7 +254,7 @@ public sealed class TutorialRefactorTaskTest
                             }
                             catch (OperationCanceledException) when (stepCancellation.Token.IsCancellationRequested)
                             {
-                                return TutorialRunResult.Canceled;
+                                return TutorialRunResult.ChildWindowHandoff;
                             }
                         }
 
@@ -261,9 +264,10 @@ public sealed class TutorialRefactorTaskTest
 
                 await parentStartedTcs.Task;
 
-                var handoffRequested = await coordinator.RequestChildHandoffAsync(childWindow);
-                Assert.True(handoffRequested, "Handoff should be requested when parent owns the gate.");
+                var childSession = await coordinator.BeginChildWindowSessionAsync(childWindow);
+                Assert.NotNull(childSession);
                 Assert.True(stepCancellation.CancelCalled, "Parent step should be cancelled to yield the gate.");
+                childWindow.Show();
 
                 var childTask = coordinator.RunAsync(
                     childWindow, "Child",
@@ -276,8 +280,9 @@ public sealed class TutorialRefactorTaskTest
 
                 await childStartedTcs.Task;
                 await childTask;
+                Assert.False(parentTask.IsCompleted);
 
-                coordinator.NotifyChildSessionCompleted();
+                childSession.Complete();
 
                 var parentResult = await parentTask;
                 Assert.Equal(TutorialRunResult.Completed, parentResult);
@@ -288,6 +293,45 @@ public sealed class TutorialRefactorTaskTest
                 parentWindow.Close();
             }
         }, TimeSpan.FromSeconds(15));
+    }
+
+    [Fact]
+    public void DesignerSequence_ShouldWaitForInitialPreviewRender()
+    {
+        var source = ReadRepoFile("neo-bpsys-wpf", "Views", "Windows", "FrontedDesignerWindow.xaml.cs");
+
+        Assert.Contains("_initialPreviewReady.Task.WaitAsync", source);
+        Assert.Contains("_initialPreviewReady.TrySetResult()", source);
+        Assert.Contains("Initial preview render started", source);
+        Assert.Contains("Initial preview render completed", source);
+        Assert.DoesNotContain("Task.Delay", source);
+    }
+
+    [Fact]
+    public void DesignerHelpBasic_ShouldRunOnFirstOpen()
+    {
+        var packageRegistry = new TutorialPackageRegistry();
+        var sequenceRegistry = new TutorialSequenceRegistry();
+        var flowRegistry = new TutorialFlowRegistry();
+        NeoBpsysTutorialRegistration.Register(packageRegistry, sequenceRegistry, flowRegistry);
+
+        var sequence = sequenceRegistry.GetSequence(TutorialPageKeys.DesignerV3);
+        Assert.Equal(TutorialPackageIds.DesignerV3HelpBasic, sequence[^1]);
+        Assert.DoesNotContain(TutorialPackageIds.DesignerV3BehaviorEditBasic, sequence);
+        Assert.NotNull(packageRegistry.GetPackage(TutorialPackageIds.DesignerV3HelpBasic));
+    }
+
+    [Fact]
+    public void AnimationEditorModalSession_ShouldReceivePlaybackHandoff()
+    {
+        var source = ReadRepoFile("neo-bpsys-wpf", "Views", "FrontedDesigner", "BehaviorPanelView.xaml.cs");
+        var beginIndex = source.IndexOf("BeginChildWindowSessionAsync", StringComparison.Ordinal);
+        var showIndex = source.IndexOf("window.ShowDialog()", StringComparison.Ordinal);
+        var completeIndex = source.IndexOf("childSession?.Complete()", StringComparison.Ordinal);
+
+        Assert.True(beginIndex >= 0 && beginIndex < showIndex);
+        Assert.True(showIndex < completeIndex);
+        Assert.Contains("finally", source);
     }
 
     [Fact]
@@ -320,7 +364,7 @@ public sealed class TutorialRefactorTaskTest
         var (packageRegistry, sequenceRegistry, _) = RegisterModuleTutorials();
 
         Assert.Contains(packageRegistry.GetPackages(),
-            p => p.PackageId == SmartBpModuleContentView.PackageIds.ModuleContentOverview);
+            p => p.PackageId == SmartBpModuleContentView.PackageIds.OcrModelDownloadBasic);
         Assert.Contains(packageRegistry.GetPackages(),
             p => p.PackageId == RegionEditorWindow.PackageIds.RegionEditorBasic);
 
@@ -438,7 +482,7 @@ public sealed class TutorialRefactorTaskTest
     [Fact]
     public void HostSmartBpPage_ShouldNotDeclareModuleViewTargets()
     {
-        var source = ReadRepoFile("neo-bpsys-wpf", "Views", "Pages", "SmartBpPage.Tutorials.cs");
+        var source = ReadRepoFile("neo-bpsys-wpf", "Views", "Pages", "SmartBpPage.xaml");
 
         Assert.DoesNotContain("SmartBpPreviewPanel", source);
         Assert.DoesNotContain("SmartBpWindowSelector", source);
@@ -511,7 +555,7 @@ public sealed class TutorialRefactorTaskTest
         private readonly CancellationTokenSource _cts = new();
         public bool CancelCalled { get; private set; }
         public CancellationToken Token => _cts.Token;
-        public void CancelCurrentStep()
+        public void YieldCurrentStepForChildWindow()
         {
             CancelCalled = true;
             _cts.Cancel();
@@ -525,7 +569,7 @@ public sealed class TutorialRefactorTaskTest
         public void RegisterTutorials(ITutorialBuilder builder)
         {
             builder.ForRegion<SmartBpModuleContentView>()
-                .Package(new TutorialPackageRef(SmartBpModuleContentView.PackageIds.ModuleContentOverview))
+                .Package(new TutorialPackageRef(SmartBpModuleContentView.PackageIds.OcrModelDownloadBasic))
                     .Step("Duplicate")
                         .Text("This should fail.")
                         .TargetName("AnyTarget")

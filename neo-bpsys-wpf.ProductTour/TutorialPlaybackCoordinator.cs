@@ -33,18 +33,22 @@ public interface ITutorialPlaybackCoordinator
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Requests the current gate holder to yield so a modal child window can run its own tutorial.
+    /// Begins a child-window session and requests the current gate holder to yield.
     /// If the gate is free or the holder is not an ancestor of <paramref name="child"/>, this is a no-op.
     /// </summary>
-    /// <param name="child">The modal child window requesting the handoff.</param>
+    /// <param name="child">The child window requesting the handoff.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns><see langword="true"/> if a handoff was requested; otherwise <see langword="false"/>.</returns>
-    Task<bool> RequestChildHandoffAsync(Window child, CancellationToken cancellationToken = default);
+    /// <returns>A scoped session when the active parent yielded; otherwise <see langword="null"/>.</returns>
+    Task<ITutorialChildWindowSession?> BeginChildWindowSessionAsync(
+        Window child,
+        CancellationToken cancellationToken = default);
+}
 
-    /// <summary>
-    /// Notifies the coordinator that a modal child session has completed and the parent may resume.
-    /// </summary>
-    void NotifyChildSessionCompleted();
+/// <summary>Represents one scoped child-window playback handoff.</summary>
+public interface ITutorialChildWindowSession : IDisposable
+{
+    /// <summary>Completes the session exactly once and allows the parent sequence to resume.</summary>
+    void Complete();
 }
 
 /// <summary>Default global tutorial playback coordinator.</summary>
@@ -55,9 +59,7 @@ public sealed class TutorialPlaybackCoordinator : ITutorialPlaybackCoordinator
     private readonly object _syncRoot = new();
     private readonly ILogger<TutorialPlaybackCoordinator> _logger;
     private readonly ITutorialStepCancellation? _stepCancellation;
-    private FrameworkElement? _currentOwner;
-    private TaskCompletionSource? _childHandoffTcs;
-    private int _childHandoffRequested;
+    private PlaybackExecution? _currentExecution;
 
     /// <summary>Initializes the coordinator.</summary>
     /// <param name="logger">Logger.</param>
@@ -112,33 +114,35 @@ public sealed class TutorialPlaybackCoordinator : ITutorialPlaybackCoordinator
     }
 
     /// <inheritdoc />
-    public Task<bool> RequestChildHandoffAsync(Window child, CancellationToken cancellationToken = default)
+    public Task<ITutorialChildWindowSession?> BeginChildWindowSessionAsync(
+        Window child,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(child);
+        cancellationToken.ThrowIfCancellationRequested();
 
-        FrameworkElement? holder;
+        ChildWindowSession? session;
         lock (_syncRoot)
         {
-            holder = _currentOwner;
-        }
+            var execution = _currentExecution;
+            if (execution == null
+                || execution.ChildSession != null
+                || !IsGateHolderAncestorOfChild(execution.Owner, child))
+            {
+                return Task.FromResult<ITutorialChildWindowSession?>(null);
+            }
 
-        if (holder == null || !IsGateHolderAncestorOfChild(holder, child))
-        {
-            return Task.FromResult(false);
+            session = new ChildWindowSession(
+                () => _logger.LogInformation(
+                    "Tutorial playback ChildWindowSessionCompleted. ChildType={ChildType}",
+                    child.GetType().FullName),
+                cancellationToken);
+            execution.ChildSession = session;
         }
 
         LogLifecycle("ChildHandoffRequested", child, child.GetType().Name);
-        Interlocked.Exchange(ref _childHandoffRequested, 1);
-        _childHandoffTcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        _stepCancellation?.CancelCurrentStep();
-        return Task.FromResult(true);
-    }
-
-    /// <inheritdoc />
-    public void NotifyChildSessionCompleted()
-    {
-        _childHandoffTcs?.TrySetResult();
-        _logger.LogInformation("Tutorial playback ChildHandoffCompleted.");
+        _stepCancellation?.YieldCurrentStepForChildWindow();
+        return Task.FromResult<ITutorialChildWindowSession?>(session);
     }
 
     private async Task<TutorialRunResult> RunSequenceJobAsync(
@@ -151,37 +155,32 @@ public sealed class TutorialPlaybackCoordinator : ITutorialPlaybackCoordinator
         {
             while (true)
             {
-                TutorialRunResult result;
+                PlaybackOutcome outcome;
                 try
                 {
-                    result = await RunJobAsync(key.Owner, key.TutorialKey, playbackAsync, cancellationToken);
+                    outcome = await RunJobCoreAsync(key.Owner, key.TutorialKey, playbackAsync, cancellationToken);
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
                     return TutorialRunResult.Canceled;
                 }
 
-                if (ConsumeChildHandoffFlag(result))
+                if (outcome is { Result: TutorialRunResult.ChildWindowHandoff, ChildSession: { } childSession })
                 {
                     LogLifecycle("Blocked behind child", key.Owner, key.TutorialKey);
-                    var tcs = _childHandoffTcs;
-                    if (tcs != null)
+                    try
                     {
-                        try
-                        {
-                            using var registration = cancellationToken.Register(() => tcs.TrySetCanceled());
-                            await tcs.Task;
-                        }
-                        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-                        {
-                            return TutorialRunResult.Canceled;
-                        }
+                        await childSession.Completion.WaitAsync(cancellationToken);
+                    }
+                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                    {
+                        return TutorialRunResult.Canceled;
                     }
 
                     continue;
                 }
 
-                return result;
+                return outcome.Result;
             }
         }
         finally
@@ -193,46 +192,101 @@ public sealed class TutorialPlaybackCoordinator : ITutorialPlaybackCoordinator
         }
     }
 
-    private bool ConsumeChildHandoffFlag(TutorialRunResult result)
-    {
-        return Interlocked.CompareExchange(ref _childHandoffRequested, 0, 1) == 1
-            && result == TutorialRunResult.Canceled;
-    }
-
     private async Task<TutorialRunResult> RunJobAsync(
+        FrameworkElement owner,
+        string tutorialKey,
+        Func<CancellationToken, Task<TutorialRunResult>> playbackAsync,
+        CancellationToken cancellationToken) =>
+        (await RunJobCoreAsync(owner, tutorialKey, playbackAsync, cancellationToken)).Result;
+
+    private async Task<PlaybackOutcome> RunJobCoreAsync(
         FrameworkElement owner,
         string tutorialKey,
         Func<CancellationToken, Task<TutorialRunResult>> playbackAsync,
         CancellationToken cancellationToken)
     {
         var acquired = false;
+        PlaybackExecution? execution = null;
         try
         {
             await _playbackGate.WaitAsync(cancellationToken);
             acquired = true;
+            execution = new PlaybackExecution(owner);
             lock (_syncRoot)
             {
-                _currentOwner = owner;
+                _currentExecution = execution;
             }
             LogLifecycle("Started", owner, tutorialKey);
-            return await playbackAsync(cancellationToken);
+            var result = await playbackAsync(cancellationToken);
+            return new PlaybackOutcome(result, execution.ChildSession);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             LogLifecycle(acquired ? "Canceled" : "Canceled before start", owner, tutorialKey);
-            return TutorialRunResult.Canceled;
+            return new PlaybackOutcome(TutorialRunResult.Canceled, execution?.ChildSession);
         }
         finally
         {
             lock (_syncRoot)
             {
-                _currentOwner = null;
+                if (ReferenceEquals(_currentExecution, execution))
+                {
+                    _currentExecution = null;
+                }
             }
             if (acquired)
             {
                 _playbackGate.Release();
             }
         }
+    }
+
+    private sealed class PlaybackExecution(FrameworkElement owner)
+    {
+        public FrameworkElement Owner { get; } = owner;
+
+        public ChildWindowSession? ChildSession { get; set; }
+    }
+
+    private readonly record struct PlaybackOutcome(
+        TutorialRunResult Result,
+        ChildWindowSession? ChildSession);
+
+    private sealed class ChildWindowSession : ITutorialChildWindowSession
+    {
+        private readonly TaskCompletionSource _completion =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly Action _completed;
+        private readonly CancellationTokenRegistration _cancellationRegistration;
+        private int _isCompleted;
+
+        public ChildWindowSession(Action completed, CancellationToken cancellationToken)
+        {
+            _completed = completed;
+            _cancellationRegistration = cancellationToken.CanBeCanceled
+                ? cancellationToken.Register(static state => ((ChildWindowSession)state!).Complete(), this)
+                : default;
+            if (Volatile.Read(ref _isCompleted) != 0)
+            {
+                _cancellationRegistration.Dispose();
+            }
+        }
+
+        public Task Completion => _completion.Task;
+
+        public void Complete()
+        {
+            if (Interlocked.Exchange(ref _isCompleted, 1) != 0)
+            {
+                return;
+            }
+
+            _cancellationRegistration.Dispose();
+            _completion.TrySetResult();
+            _completed();
+        }
+
+        public void Dispose() => Complete();
     }
 
     private static bool IsGateHolderAncestorOfChild(FrameworkElement gateHolder, Window child)

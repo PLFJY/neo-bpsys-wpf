@@ -25,9 +25,6 @@ public partial class FrontedDesignerWindow : ITutorialOwner<FrontedDesignerWindo
         /// <summary>Designer v3 property panel package reference.</summary>
         public static readonly TutorialPackageRef PropertyPanelBasic = new(TutorialPackageIds.DesignerV3PropertyPanelBasic);
 
-        /// <summary>Designer v3 behavior edit package reference.</summary>
-        public static readonly TutorialPackageRef BehaviorEditBasic = new(TutorialPackageIds.DesignerV3BehaviorEditBasic);
-
         /// <summary>Designer v3 package import/export package reference.</summary>
         public static readonly TutorialPackageRef PackageImportExport = new(TutorialPackageIds.DesignerV3PackageImportExport);
 
@@ -125,11 +122,6 @@ public partial class FrontedDesignerWindow : ITutorialOwner<FrontedDesignerWindo
                     .TargetName(nameof(PropertyPanelHost))
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
                     .AllowMissingTarget()
-                .Step("属性筛选")
-                    .Text("这里可以筛选属性。如果没有选中控件，属性面板可能为空。")
-                    .TargetName(TutorialTargets.PropertySearchBox)
-                    .Interaction(ProductTourInteractionMode.AllowTargetOnly)
-                    .AllowMissingTarget()
                 .Step("属性编辑器")
                     .Text("不同属性会显示不同编辑器。有些属性需要点击确认按钮才会应用。")
                     .TargetName(TutorialTargets.FirstEditablePropertyEditor)
@@ -144,18 +136,6 @@ public partial class FrontedDesignerWindow : ITutorialOwner<FrontedDesignerWindo
                     .Text("选中控件后，属性面板下方会出现行为和动画区域。行为用于定义触发条件和动作；动画用于编辑具体变化效果。后续进入行为面板或动画编辑器时，会有单独详细说明。")
                     .PreStepAction(ScrollDesignerPropertyPanelToBehaviorAreaAction())
                     .TargetName(nameof(BehaviorPanelHost))
-                    .Interaction(ProductTourInteractionMode.AllowTargetOnly)
-                    .AllowMissingTarget()
-                .Step("行为和动画入口")
-                    .Text("如果当前没有选中控件，行为和动画区域会暂时隐藏。选中控件后，可以在属性面板下方找到行为和动画入口；这里不需要你创建行为或打开动画编辑器。")
-                    .PreStepAction(ScrollDesignerPropertyPanelToBehaviorAreaAction())
-                    .NoTarget()
-                    .Interaction(ProductTourInteractionMode.BlockAll)
-            .Package(Tours.BehaviorEditBasic)
-                .Step("行为编辑")
-                    .Text("展开这里可以为当前控件配置触发条件、动作和动画。行为面板与动画编辑器会在各自界面继续介绍。")
-                    .PreStepAction(ScrollDesignerPropertyPanelToBehaviorAreaAction())
-                    .TargetName(nameof(BehaviorExpander))
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
                     .AllowMissingTarget()
             .Package(Tours.HelpBasic)

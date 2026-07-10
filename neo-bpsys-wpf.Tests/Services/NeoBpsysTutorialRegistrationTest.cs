@@ -71,7 +71,6 @@ public sealed class NeoBpsysTutorialRegistrationTest
             [
                 TutorialPackageIds.DesignerV3Overview,
                 TutorialPackageIds.DesignerV3LayoutEditBasic,
-                TutorialPackageIds.DesignerV3BehaviorEditBasic,
                 TutorialPackageIds.DesignerV3PackageImportExport,
                 TutorialPackageIds.DesignerV3HelpBasic
             ],
@@ -93,12 +92,8 @@ public sealed class NeoBpsysTutorialRegistrationTest
                 TutorialPackageIds.DesignerV3AnimationEditorHelpBasic
             ],
             sequenceRegistry.GetSequence(TutorialPageKeys.DesignerV3AnimationEditor));
-        Assert.Equal(
-            [
-                TutorialPackageIds.SmartBpModuleShell
-            ],
-            sequenceRegistry.GetSequence(TutorialPageKeys.SmartBp));
-        Assert.Equal(49, packageRegistry.GetPackages().Count);
+        Assert.Empty(sequenceRegistry.GetSequence(TutorialPageKeys.SmartBp));
+        Assert.Equal(47, packageRegistry.GetPackages().Count);
 
         var firstRun = flowRegistry.GetFlow(TutorialFlowIds.FirstRunStandardBp);
         Assert.NotNull(firstRun);
@@ -365,15 +360,12 @@ public sealed class NeoBpsysTutorialRegistrationTest
     }
 
     [Fact]
-    public async Task SmartBpPackagesDoNotUseCanRun()
+    public async Task HostRegistrationDoesNotOwnModuleTutorialPackages()
     {
         await WpfTestThread.RunAsync(() =>
         {
             var packages = CreateRegisteredPackages();
-            var shell = Assert.Single(packages, package => package.PackageId == TutorialPackageIds.SmartBpModuleShell);
-
-            Assert.Null(shell.CanRunWithOwner);
-            Assert.Null(shell.CanRun);
+            Assert.DoesNotContain(packages, package => package.PageKey == TutorialPageKeys.SmartBp);
 
             return Task.CompletedTask;
         });
@@ -502,7 +494,10 @@ public sealed class NeoBpsysTutorialRegistrationTest
         var package = Assert.Single(
             CreateRegisteredPackages(),
             package => package.PackageId == TutorialPackageIds.DesignerV3LayoutEditBasic);
-        var previewStep = Assert.Single(package.Steps, step => step.Title == "预览画布");
+        var previewStep = Assert.Single(
+            package.Steps,
+            step => step.Title == "预览画布"
+                && step.Description.Contains("点击画布上的一个控件", StringComparison.Ordinal));
 
         Assert.Equal("PreviewWorkspace", previewStep.TargetName);
         Assert.NotEqual(TutorialTargetNames.PreviewCanvas, previewStep.TargetName);
@@ -515,13 +510,16 @@ public sealed class NeoBpsysTutorialRegistrationTest
         var overview = Assert.Single(packages, package => package.PackageId == TutorialPackageIds.DesignerV3Overview);
         var help = Assert.Single(packages, package => package.PackageId == TutorialPackageIds.DesignerV3HelpBasic);
 
-        Assert.Null(overview.Steps[0].TargetName);
-        Assert.Contains("欢迎来到 v3 设计器", overview.Steps[0].Title, StringComparison.Ordinal);
-        Assert.Contains("详细修改前台界面", overview.Steps[0].Description, StringComparison.Ordinal);
+        var dialogue = Assert.IsType<TutorialPackageDialogueItem>(overview.Items[0]).Dialogue;
+        Assert.Contains(dialogue.Lines, line => line.Contains("欢迎来到 v3 设计器", StringComparison.Ordinal));
+        Assert.Contains(dialogue.Lines, line => line.Contains("详细修改前台界面", StringComparison.Ordinal));
         Assert.DoesNotContain(overview.Steps, step => step.TargetName == TutorialTargetNames.BehaviorPanelHost);
 
         var layoutSteps = packages.Single(package => package.PackageId == TutorialPackageIds.DesignerV3LayoutEditBasic).Steps;
-        var previewStep = Assert.Single(layoutSteps, step => step.TargetName == "PreviewWorkspace");
+        var previewStep = Assert.Single(
+            layoutSteps,
+            step => step.TargetName == "PreviewWorkspace"
+                && step.Description.Contains("点击画布上的一个控件", StringComparison.Ordinal));
         Assert.Contains("点击画布上的一个控件", previewStep.Description, StringComparison.Ordinal);
         Assert.DoesNotContain(layoutSteps, step => step.TargetName == TutorialTargetNames.InteractionLayer);
         Assert.DoesNotContain(layoutSteps.Select(step => step.Title), title => title.Contains("交互层", StringComparison.Ordinal));
@@ -589,7 +587,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
     }
 
     [Fact]
-    public void FrontManageChildTutorialHelperResolvesVisibleChildOwnerAndPageKey()
+    public void FrontManagePage_ShouldNotDiscoverChildTutorialOwners()
     {
         var source = File.ReadAllText(GetRepositoryPath(
             "neo-bpsys-wpf",
@@ -597,10 +595,9 @@ public sealed class NeoBpsysTutorialRegistrationTest
             "Pages",
             "FrontManagePage.xaml.cs"));
 
-        Assert.Contains("TryFindVisibleDescendant<FrontedWindowsView>", source);
-        Assert.Contains("pageKey = FrontedWindowsView.TutorialPageKey;", source);
-        Assert.Contains("TryFindVisibleDescendant<FrontedLayoutPackagesView>", source);
-        Assert.Contains("pageKey = FrontedLayoutPackagesView.TutorialPageKey;", source);
+        Assert.DoesNotContain("TryFindVisibleDescendant", source);
+        Assert.DoesNotContain("TryResolveCurrentChildTutorial", source);
+        Assert.DoesNotContain("RunCurrentChildTutorial", source);
     }
 
     [Fact]
@@ -623,18 +620,25 @@ public sealed class NeoBpsysTutorialRegistrationTest
     }
 
     [Fact]
-    public void FrontManage_TabChanged_ShouldTriggerChildTutorial()
+    public void LayoutPackagesView_ShouldNotDependOnParentVisualTreeScan()
     {
-        var source = File.ReadAllText(GetRepositoryPath(
+        var parentSource = File.ReadAllText(GetRepositoryPath(
             "neo-bpsys-wpf",
             "Views",
             "Pages",
             "FrontManagePage.xaml.cs"));
+        var childSource = File.ReadAllText(GetRepositoryPath(
+            "neo-bpsys-wpf",
+            "Views",
+            "Pages",
+            "FrontManage",
+            "FrontedLayoutPackagesView.xaml.cs"));
 
-        Assert.Contains("FrontManageTabs.Navigated += (_, _) => ScheduleCurrentChildTutorial();", source);
-        Assert.Contains("FrontManageTabs.SelectionChanged += (_, _) => ScheduleCurrentChildTutorial();", source);
-        Assert.Contains("FrontManageTabs.Navigate(typeof(FrontedLayoutPackagesView));", source);
-        Assert.Contains("ScheduleCurrentChildTutorial();", source);
+        Assert.DoesNotContain("FrontManageTabs.Navigated", parentSource);
+        Assert.DoesNotContain("FrontManageTabs.SelectionChanged", parentSource);
+        Assert.Contains("Loaded +=", childSource);
+        Assert.Contains("IsVisibleChanged +=", childSource);
+        Assert.Contains("RunSequenceAsync(this, TutorialPageKey", childSource);
     }
 
     [Fact]

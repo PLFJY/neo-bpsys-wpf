@@ -95,9 +95,16 @@ public partial class FrontedDesignerWindow : FluentWindow
     private Point? _lastLayerDragPosition;
     private FrontedDesignerPreviewRenderRequestedEventArgs? _pendingPreviewRenderArgs;
     private readonly CancellationTokenSource _tutorialLifetime = new();
+    private readonly TaskCompletionSource _initialPreviewReady =
+        new(TaskCreationOptions.RunContinuationsAsynchronously);
     private FrontedControlDesignItem? _lastSeenSelectedDesignItem;
+    private TaskCompletionSource? _propertyGridReady;
+    private Task<TutorialRunResult>? _designerTutorialTask;
     private bool _propertyPanelTutorialTriggered;
     private Task<TutorialRunResult>? _propertyPanelTutorialTask;
+    private Task<TutorialRunResult>? _behaviorPanelTutorialTask;
+    private bool _initialLayoutLoaded;
+    private int _userSelectionDepth;
 
     public FrontedDesignerWindow()
     {
@@ -170,16 +177,13 @@ public partial class FrontedDesignerWindow : FluentWindow
         try
         {
             _isLoaded = true;
+            _logger?.LogInformation("Designer loaded.");
             TutorialSignalPublisher.Publish(TutorialSignalIds.DesignerV3Opened);
             AttachViewModel();
             await LoadInitialLayoutAsync();
-            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.ContextIdle, _tutorialLifetime.Token);
-            var runner = _tutorialRunner
-                ?? IAppHost.Host?.Services.GetService(typeof(ITutorialRunner)) as ITutorialRunner;
-            if (runner != null)
-            {
-                await runner.RunSequenceAsync(this, TutorialPageKeys.DesignerV3, _tutorialLifetime.Token);
-            }
+            _logger?.LogInformation("Initial layout loaded.");
+            QueueDesignerTutorial();
+            await _designerTutorialTask!;
         }
         catch (OperationCanceledException) when (_tutorialLifetime.IsCancellationRequested)
         {
@@ -210,7 +214,52 @@ public partial class FrontedDesignerWindow : FluentWindow
         _helpWindow = null;
         _propertyPanelTutorialTriggered = false;
         _propertyPanelTutorialTask = null;
+        _behaviorPanelTutorialTask = null;
+        _designerTutorialTask = null;
+        _propertyGridReady?.TrySetCanceled();
+        _propertyGridReady = null;
         _lastSeenSelectedDesignItem = null;
+    }
+
+    private void QueueDesignerTutorial()
+    {
+        if (_designerTutorialTask is { IsCompleted: false })
+        {
+            return;
+        }
+
+        _logger?.LogInformation("Designer sequence queued.");
+        _designerTutorialTask = RunDesignerTutorialAsync();
+    }
+
+    private async Task<TutorialRunResult> RunDesignerTutorialAsync()
+    {
+        try
+        {
+            await _initialPreviewReady.Task.WaitAsync(_tutorialLifetime.Token);
+            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.ContextIdle, _tutorialLifetime.Token);
+            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.Render, _tutorialLifetime.Token);
+            if (!IsLoaded || !IsVisible)
+            {
+                return TutorialRunResult.NotReady;
+            }
+
+            var runner = _tutorialRunner
+                ?? IAppHost.Host?.Services.GetService(typeof(ITutorialRunner)) as ITutorialRunner;
+            if (runner == null)
+            {
+                return TutorialRunResult.NotReady;
+            }
+
+            _logger?.LogInformation("Designer sequence started.");
+            var result = await runner.RunSequenceAsync(this, TutorialPageKeys.DesignerV3, _tutorialLifetime.Token);
+            _logger?.LogInformation("Designer sequence result. Result={Result}", result);
+            return result;
+        }
+        catch (OperationCanceledException) when (_tutorialLifetime.IsCancellationRequested)
+        {
+            return TutorialRunResult.Canceled;
+        }
     }
 
     private void TryQueuePropertyPanelTutorial()
@@ -233,8 +282,14 @@ public partial class FrontedDesignerWindow : FluentWindow
     {
         try
         {
+            await WaitForPropertyGridReadyAsync(_tutorialLifetime.Token);
             await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.ContextIdle, _tutorialLifetime.Token);
             await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.Render, _tutorialLifetime.Token);
+            if (_viewModel?.SelectedDesignItem == null || !IsVisible)
+            {
+                return TutorialRunResult.NotReady;
+            }
+
             var runner = _tutorialRunner
                 ?? IAppHost.Host?.Services.GetService(typeof(ITutorialRunner)) as ITutorialRunner;
             if (runner == null)
@@ -259,6 +314,36 @@ public partial class FrontedDesignerWindow : FluentWindow
 
         await _viewModel.ReloadLayoutCoreAsync();
         _lastAcceptedWindow = _viewModel.SelectedWindow;
+        _initialLayoutLoaded = true;
+    }
+
+    private async Task WaitForPropertyGridReadyAsync(CancellationToken cancellationToken)
+    {
+        if (_viewModel?.IsRebuildingPropertyGrid != true)
+        {
+            return;
+        }
+
+        _propertyGridReady = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        if (_viewModel.IsRebuildingPropertyGrid)
+        {
+            await _propertyGridReady.Task.WaitAsync(cancellationToken);
+        }
+
+        _propertyGridReady = null;
+    }
+
+    private void RunUserSelection(Action selection)
+    {
+        _userSelectionDepth++;
+        try
+        {
+            selection();
+        }
+        finally
+        {
+            _userSelectionDepth--;
+        }
     }
 
     private void Selector_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -360,7 +445,17 @@ public partial class FrontedDesignerWindow : FluentWindow
 
         if (e.AddedItems[0] is FrontedControlDesignItem item)
         {
-            _viewModel.SelectDesignItem(item);
+            if (sender is FrameworkElement element
+                && (element.IsKeyboardFocusWithin
+                    || Mouse.LeftButton == MouseButtonState.Pressed
+                    || Mouse.RightButton == MouseButtonState.Pressed))
+            {
+                RunUserSelection(() => _viewModel.SelectDesignItem(item));
+            }
+            else
+            {
+                _viewModel.SelectDesignItem(item);
+            }
         }
     }
 
@@ -368,7 +463,7 @@ public partial class FrontedDesignerWindow : FluentWindow
     {
         if (sender is ListBoxItem { DataContext: FrontedControlDesignItem item })
         {
-            _viewModel?.SelectDesignItem(item);
+            RunUserSelection(() => _viewModel?.SelectDesignItem(item));
         }
     }
 
@@ -399,7 +494,7 @@ public partial class FrontedDesignerWindow : FluentWindow
             return;
         }
 
-        _viewModel?.SelectLayerNode(node);
+        RunUserSelection(() => _viewModel?.SelectLayerNode(node));
         _pendingLayerDragNode = node.CanReorder ? node : null;
         _layerDragStartPoint = e.GetPosition(this);
     }
@@ -452,7 +547,7 @@ public partial class FrontedDesignerWindow : FluentWindow
     {
         if (sender is FrameworkElement { DataContext: DesignerLayerNode node })
         {
-            _viewModel?.SelectLayerNode(node);
+            RunUserSelection(() => _viewModel?.SelectLayerNode(node));
         }
     }
 
@@ -468,7 +563,7 @@ public partial class FrontedDesignerWindow : FluentWindow
                 }
             })
         {
-            _viewModel?.SelectDesignItem(item);
+            RunUserSelection(() => _viewModel?.SelectDesignItem(item));
             _viewModel?.DeleteSelectedControlCommand.Execute(null);
         }
     }
@@ -1290,17 +1385,24 @@ public partial class FrontedDesignerWindow : FluentWindow
     private void ViewModel_OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(FrontedDesignerWindowViewModel.IsRebuildingPropertyGrid)
-            && _viewModel?.IsRebuildingPropertyGrid == true)
+            && _viewModel is { } propertyGridViewModel)
         {
-            SuppressPropertyEditorCommitForLayoutPass();
+            if (propertyGridViewModel.IsRebuildingPropertyGrid)
+            {
+                SuppressPropertyEditorCommitForLayoutPass();
+            }
+            else
+            {
+                _propertyGridReady?.TrySetResult();
+            }
         }
 
         if (e.PropertyName == nameof(FrontedDesignerWindowViewModel.SelectedDesignItem))
         {
             SuppressPropertyEditorCommitForLayoutPass();
             var currentItem = _viewModel?.SelectedDesignItem;
-            var wasNull = _lastSeenSelectedDesignItem is null;
-            var isNowNonNull = currentItem is not null;
+            var selectionChanged = !ReferenceEquals(_lastSeenSelectedDesignItem, currentItem);
+            var isUserSelection = _userSelectionDepth > 0;
             _lastSeenSelectedDesignItem = currentItem;
 
             if (_viewModel?.IsRestoringSnapshotVisuals == true)
@@ -1312,7 +1414,10 @@ public partial class FrontedDesignerWindow : FluentWindow
             _viewModel?.UpdateBehaviorPreviewAnimationScope(PreviewCanvas);
             FocusDesignSurface();
 
-            if (wasNull && isNowNonNull)
+            if (_initialLayoutLoaded
+                && selectionChanged
+                && currentItem is not null
+                && isUserSelection)
             {
                 TryQueuePropertyPanelTutorial();
             }
@@ -1391,21 +1496,49 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private void BehaviorExpander_OnExpanded(object sender, RoutedEventArgs e)
     {
-        Dispatcher.BeginInvoke(
-            DispatcherPriority.ContextIdle,
-            new Action(() =>
+        if (_behaviorPanelTutorialTask is { IsCompleted: false }
+            || _viewModel?.SelectedDesignItem == null
+            || !BehaviorExpander.IsExpanded)
+        {
+            return;
+        }
+
+        _behaviorPanelTutorialTask = RunBehaviorPanelTutorialAsync();
+    }
+
+    private bool CanRunBehaviorPanelTutorial() =>
+        _viewModel?.SelectedDesignItem != null
+        && BehaviorExpander.IsExpanded
+        && BehaviorPanelHost.IsVisible
+        && BehaviorPanelHost.DataContext is neo_bpsys_wpf.ViewModels.FrontedDesigner.BehaviorPanelViewModel
+        {
+            HasSelectedControl: true
+        };
+
+    private async Task<TutorialRunResult> RunBehaviorPanelTutorialAsync()
+    {
+        try
+        {
+            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.ContextIdle, _tutorialLifetime.Token);
+            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.Render, _tutorialLifetime.Token);
+            if (!CanRunBehaviorPanelTutorial())
             {
-                if (FindVisibleDescendant<neo_bpsys_wpf.Views.FrontedDesigner.BehaviorPanelView>(BehaviorExpander)
-                    is { } panel)
-                {
-                    var runner = _tutorialRunner
-                        ?? IAppHost.Host?.Services.GetService(typeof(ITutorialRunner)) as ITutorialRunner;
-                    _ = runner?.RunSequenceAsync(
-                        panel,
-                        neo_bpsys_wpf.Views.FrontedDesigner.BehaviorPanelView.TutorialPageKey,
-                        _tutorialLifetime.Token);
-                }
-            }));
+                return TutorialRunResult.NotReady;
+            }
+
+            var runner = _tutorialRunner
+                ?? IAppHost.Host?.Services.GetService(typeof(ITutorialRunner)) as ITutorialRunner;
+            return runner == null
+                ? TutorialRunResult.NotReady
+                : await runner.RunSequenceAsync(
+                    BehaviorPanelHost,
+                    neo_bpsys_wpf.Views.FrontedDesigner.BehaviorPanelView.TutorialPageKey,
+                    _tutorialLifetime.Token);
+        }
+        catch (OperationCanceledException) when (_tutorialLifetime.IsCancellationRequested)
+        {
+            return TutorialRunResult.Canceled;
+        }
     }
 
     private void ZoomComboBox_OnKeyDown(object sender, KeyEventArgs e)
@@ -1758,6 +1891,11 @@ public partial class FrontedDesignerWindow : FluentWindow
     private void RenderPreview(FrontedDesignerPreviewRenderRequestedEventArgs e)
     {
         var total = StartDesignerPerfTrace();
+        var isInitialPreview = !_initialPreviewReady.Task.IsCompleted;
+        if (isInitialPreview)
+        {
+            _logger?.LogInformation("Initial preview render started.");
+        }
         if (_renderer is null || e.Config is null || e.Context is null)
         {
             ClearPreviewCanvas();
@@ -1784,6 +1922,11 @@ public partial class FrontedDesignerWindow : FluentWindow
             ScheduleSelectedInteractionVisualRefresh();
             LogDesignerPerf("PreviewRender", "rebuild interaction layer", Elapsed(total));
             LogDesignerPerf("PreviewRender", "total", Elapsed(total));
+            if (isInitialPreview)
+            {
+                _logger?.LogInformation("Initial preview render completed.");
+                _initialPreviewReady.TrySetResult();
+            }
         }
         catch (Exception ex)
         {
@@ -2547,7 +2690,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         FocusDesignSurface();
         if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
         {
-            _viewModel.ToggleDesignItemSelection(item);
+            RunUserSelection(() => _viewModel.ToggleDesignItemSelection(item));
             e.Handled = true;
             return;
         }
@@ -2565,7 +2708,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         }
 
         FocusDesignSurface();
-        _viewModel.SelectGlobalScoreCell(target.Parent, target.Cell);
+        RunUserSelection(() => _viewModel.SelectGlobalScoreCell(target.Parent, target.Cell));
         BeginPendingGlobalScoreCellClick(target, e.GetPosition(InteractionLayer), hitbox);
         e.Handled = true;
     }
@@ -2780,7 +2923,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         {
             if (!_hasExceededClickThreshold)
             {
-                _viewModel?.SelectDesignItem(_pendingHitCandidate);
+                RunUserSelection(() => _viewModel?.SelectDesignItem(_pendingHitCandidate));
             }
             else if (_hasStartedDrag)
             {
@@ -2791,9 +2934,9 @@ public partial class FrontedDesignerWindow : FluentWindow
         {
             if (!_hasExceededClickThreshold)
             {
-                _viewModel?.SelectGlobalScoreCell(
+                RunUserSelection(() => _viewModel?.SelectGlobalScoreCell(
                     _pendingGlobalScoreCellHitCandidate.Parent,
-                    _pendingGlobalScoreCellHitCandidate.Cell);
+                    _pendingGlobalScoreCellHitCandidate.Cell));
             }
             else if (_hasStartedDrag)
             {
@@ -3178,7 +3321,7 @@ public partial class FrontedDesignerWindow : FluentWindow
                 pair.Value.Height)))
             .Select(pair => pair.Key)
             .ToList();
-        _viewModel.SelectDesignItems(selectedItems, selectedItems.LastOrDefault());
+        RunUserSelection(() => _viewModel.SelectDesignItems(selectedItems, selectedItems.LastOrDefault()));
     }
 
     private void CaptureOriginalSelectedBounds()

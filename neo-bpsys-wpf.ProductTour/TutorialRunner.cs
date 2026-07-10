@@ -72,30 +72,11 @@ public sealed class TutorialRunner : ITutorialRunner
         string tutorialKey,
         CancellationToken cancellationToken = default)
     {
-        var isModalChild = owner is Window { Owner: not null } childWindow;
-        var handoffRequested = false;
-        if (isModalChild)
-        {
-            handoffRequested = await _playbackCoordinator.RequestChildHandoffAsync(
-                (Window)owner,
-                cancellationToken);
-        }
-
-        try
-        {
-            return await _playbackCoordinator.RunSequenceAsync(
-                owner,
-                tutorialKey,
-                token => RunSequenceCoreAsync(owner, tutorialKey, token),
-                cancellationToken);
-        }
-        finally
-        {
-            if (handoffRequested)
-            {
-                _playbackCoordinator.NotifyChildSessionCompleted();
-            }
-        }
+        return await _playbackCoordinator.RunSequenceAsync(
+            owner,
+            tutorialKey,
+            token => RunSequenceCoreAsync(owner, tutorialKey, token),
+            cancellationToken);
     }
 
     /// <inheritdoc />

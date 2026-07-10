@@ -18,7 +18,9 @@ public enum ProductTourStepAction
     /// <summary>The user requested skipping the current tutorial.</summary>
     Skip,
     /// <summary>The step was canceled.</summary>
-    Cancel
+    Cancel,
+    /// <summary>The step opened a tutorial-owning child window and yielded playback.</summary>
+    ChildWindowHandoff
 }
 
 /// <summary>
@@ -239,7 +241,7 @@ public sealed class ProductTourOverlay : Canvas
 
     /// <summary>
     /// Forces the current step to complete with the specified action, bypassing normal user interaction.
-    /// Used by the playback coordinator to yield a parent step during a modal child handoff.
+    /// Used by the playback coordinator to yield a parent step during a child-window handoff.
     /// </summary>
     /// <param name="action">The action to force-complete the step with.</param>
     public void ForceComplete(ProductTourStepAction action) => _completion?.TrySetResult(action);
@@ -316,25 +318,23 @@ public sealed class ProductTourOverlay : Canvas
 
     private void LayoutCurrent(FrameworkElement? owner, FrameworkElement? target, ProductTourPlacement placement)
     {
-        var width = owner?.ActualWidth > 0 ? owner.ActualWidth : ActualWidth;
-        var height = owner?.ActualHeight > 0 ? owner.ActualHeight : ActualHeight;
+        var width = ActualWidth;
+        var height = ActualHeight;
         if (width <= 0 || height <= 0)
         {
             return;
         }
 
-        Width = width;
-        Height = height;
         _globalSkipButton.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
         SetLeft(_globalSkipButton, Math.Max(0, width - _globalSkipButton.DesiredSize.Width - 24));
         SetTop(_globalSkipButton, 20);
 
         Rect targetRect;
-        if (owner != null && target != null)
+        if (target != null)
         {
             try
             {
-                var point = target.TransformToAncestor(owner).Transform(new Point(0, 0));
+                var point = target.TransformToVisual(this).Transform(new Point(0, 0));
                 targetRect = new Rect(point.X, point.Y, target.ActualWidth, target.ActualHeight);
             }
             catch (Exception)
@@ -536,7 +536,7 @@ public sealed class ProductTourOverlay : Canvas
         }
 
         _confirmDialog.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-        SetLeft(_confirmDialog, Math.Max(0, (ActualWidth > 0 ? ActualWidth : Width) / 2 - _confirmDialog.DesiredSize.Width / 2));
-        SetTop(_confirmDialog, Math.Max(0, (ActualHeight > 0 ? ActualHeight : Height) / 2 - _confirmDialog.DesiredSize.Height / 2));
+        SetLeft(_confirmDialog, Math.Max(0, ActualWidth / 2 - _confirmDialog.DesiredSize.Width / 2));
+        SetTop(_confirmDialog, Math.Max(0, ActualHeight / 2 - _confirmDialog.DesiredSize.Height / 2));
     }
 }

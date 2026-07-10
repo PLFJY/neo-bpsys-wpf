@@ -114,6 +114,8 @@ public enum TutorialRunResult
     NotReady,
     /// <summary>The tutorial was canceled.</summary>
     Canceled,
+    /// <summary>The current package completed by opening a tutorial-owning child window.</summary>
+    ChildWindowHandoff,
     /// <summary>The tutorial failed with an error.</summary>
     Failed
 }
@@ -302,16 +304,16 @@ public sealed class TutorialStepAction
 }
 
 /// <summary>
-/// Provides a mechanism to cancel the currently visible tutorial step,
-/// used by the playback coordinator to yield a parent step during a modal child handoff.
+/// Provides a mechanism to yield the currently visible tutorial step
+/// when a tutorial-owning child window opens.
 /// </summary>
 public interface ITutorialStepCancellation
 {
     /// <summary>
-    /// Forces the currently visible tutorial step to complete with a Cancel action.
+    /// Forces the currently visible tutorial step to complete with a child-window handoff action.
     /// Does nothing if no step is currently visible.
     /// </summary>
-    void CancelCurrentStep();
+    void YieldCurrentStepForChildWindow();
 }
 
 /// <summary>

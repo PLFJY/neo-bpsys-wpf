@@ -142,7 +142,9 @@ internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCanc
 
         _runObserver.OnPackageCompleted(package.PackageId, result);
         var completionStateWritten = false;
-        if ((result == TutorialRunResult.Completed || result == TutorialRunResult.Skipped)
+        if ((result is TutorialRunResult.Completed
+                or TutorialRunResult.Skipped
+                or TutorialRunResult.ChildWindowHandoff)
             && triggerMode != TutorialTriggerMode.EmbeddedInFlow)
         {
             var state = await _stateStore.LoadAsync(cancellationToken);
@@ -236,7 +238,8 @@ internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCanc
     public Task ResetStateAsync(CancellationToken cancellationToken = default) => _stateStore.ResetAsync(cancellationToken);
 
     /// <inheritdoc />
-    public void CancelCurrentStep() => _currentOverlay?.ForceComplete(ProductTourStepAction.Cancel);
+    public void YieldCurrentStepForChildWindow() =>
+        _currentOverlay?.ForceComplete(ProductTourStepAction.ChildWindowHandoff);
 
     /// <inheritdoc />
     public async Task ClearFlowStateAsync(string flowId, CancellationToken cancellationToken = default)
@@ -510,6 +513,11 @@ internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCanc
             if (action == ProductTourStepAction.Cancel)
             {
                 return TutorialRunResult.Canceled;
+            }
+
+            if (action == ProductTourStepAction.ChildWindowHandoff)
+            {
+                return TutorialRunResult.ChildWindowHandoff;
             }
 
             var postActionResult = await ExecuteStepActionsAsync(

@@ -58,7 +58,6 @@ public sealed class WpfTutorialNavigationIntegrationTest
             await CompletePackageAsync(hostWindow, observer, TutorialPackageIds.FrontManageOverview, app.Dump);
 
             var page = Assert.IsType<FrontManagePage>(navigation.CurrentContent);
-            Assert.True(FrontManagePage.RunCurrentChildTutorial(page.FrontManageTabs));
             await observer.WaitForStartedAsync(TutorialPackageIds.FrontManageWindowsBasic, app.Dump);
             await CompletePackageAsync(hostWindow, observer, TutorialPackageIds.FrontManageWindowsBasic, app.Dump);
 
@@ -94,7 +93,6 @@ public sealed class WpfTutorialNavigationIntegrationTest
                 TutorialPackageIds.FrontManageBpWindowLaunchBasic,
                 TutorialSignalIds.BpWindowOpened,
                 app.Dump);
-            Assert.True(FrontManagePage.RunCurrentChildTutorial(page.FrontManageTabs));
             await observer.WaitForStartedAsync(TutorialPackageIds.FrontManageLayoutPackagesBasic, app.Dump);
             await CompletePackageAsync(hostWindow, observer, TutorialPackageIds.FrontManageLayoutPackagesBasic, app.Dump);
         }, TimeSpan.FromSeconds(20));
@@ -108,9 +106,7 @@ public sealed class WpfTutorialNavigationIntegrationTest
         var flowRegistry = new TutorialFlowRegistry();
         NeoBpsysTutorialRegistration.Register(packageRegistry, sequenceRegistry, flowRegistry);
 
-        Assert.Equal(
-            [TutorialPackageIds.SmartBpModuleShell],
-            sequenceRegistry.GetSequence(TutorialPageKeys.SmartBp));
+        Assert.Empty(sequenceRegistry.GetSequence(TutorialPageKeys.SmartBp));
 
         Assert.DoesNotContain(TutorialPackageIds.SmartBpModuleContentOverview, sequenceRegistry.GetSequence(TutorialPageKeys.SmartBp));
         Assert.DoesNotContain(TutorialPackageIds.SmartBpOcrModelDownloadBasic, sequenceRegistry.GetSequence(TutorialPageKeys.SmartBp));
@@ -162,7 +158,9 @@ public sealed class WpfTutorialNavigationIntegrationTest
             await observer.WaitForStartedAsync(TutorialPackageIds.FrontManageOverview, app.Dump);
             await CompletePackageAsync(hostWindow, observer, TutorialPackageIds.FrontManageOverview, app.Dump);
             var page = Assert.IsType<FrontManagePage>(app.Navigation.CurrentContent);
-            Assert.True(FrontManagePage.TryResolveCurrentChildTutorial(page.FrontManageTabs, out var childOwner, out _));
+            var childOwner = FindVisualChildren<FrontedWindowsView>(page).First(view => view.IsVisible);
+            var windowsStartsBeforeNavigation = observer.StartedPackageIds.Count(
+                packageId => packageId == TutorialPackageIds.FrontManageWindowsBasic);
 
             Assert.True(NavigateIgnoringClosedLocalizationNotifications(
                 () => app.Navigation.Navigate(typeof(SmartBpPage))));
@@ -172,7 +170,10 @@ public sealed class WpfTutorialNavigationIntegrationTest
             await WaitForDispatcherAsync(hostWindow);
             await Task.Delay(300);
 
-            Assert.DoesNotContain(TutorialPackageIds.FrontManageWindowsBasic, observer.StartedPackageIds);
+            Assert.Equal(
+                windowsStartsBeforeNavigation,
+                observer.StartedPackageIds.Count(
+                    packageId => packageId == TutorialPackageIds.FrontManageWindowsBasic));
             Assert.DoesNotContain(TutorialPackageIds.FrontManageLayoutPackagesBasic, observer.StartedPackageIds);
         }, TimeSpan.FromSeconds(20));
     }
@@ -613,12 +614,10 @@ public sealed class WpfTutorialNavigationIntegrationTest
                 return "<none>";
             }
 
-            if (FrontManagePage.TryResolveCurrentChildTutorial(page.FrontManageTabs, out var owner, out _))
-            {
-                return owner.GetType().FullName ?? owner.GetType().Name;
-            }
-
-            return "<none>";
+            return FindVisualChildren<FrameworkElement>(page)
+                .FirstOrDefault(element => element.IsVisible
+                    && element is FrontedWindowsView or FrontedLayoutPackagesView)
+                ?.GetType().FullName ?? "<none>";
         }
 
         private static void ScheduleNavigationPageTutorial(

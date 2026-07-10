@@ -11,48 +11,113 @@ namespace neo_bpsys_wpf.Controls;
 /// </summary>
 public partial class CustomTitleBar : UserControl
 {
+    private Window? _hostWindow;
+
     public CustomTitleBar()
     {
         InitializeComponent();
         Loaded += OnLoaded;
+        Unloaded += OnUnloaded;
         WindowIcon.MouseDown += WindowIcon_MouseDown;
+        TitleBar.MouseDown += TitleBar_MouseDown;
+        MaximizeButton.Click += MaximizeButton_OnClick;
+        MinimizeButton.Click += MinimizeButton_OnClick;
+        ExitButton.Click += ExitButton_OnClick;
     }
 
     private void WindowIcon_MouseDown(object sender, MouseButtonEventArgs e)
     {
         // 获取宿主窗口
-        var window = Window.GetWindow(this);
-        SystemCommands.ShowSystemMenu(window, window.PointToScreen(e.GetPosition(this)));
+        if (_hostWindow is { } window)
+        {
+            SystemCommands.ShowSystemMenu(window, window.PointToScreen(e.GetPosition(this)));
+        }
     }
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         // 获取宿主窗口
-        var window = Window.GetWindow(this);
-        if (window is FluentWindow fluentWindow)
+        AttachHostWindow(Window.GetWindow(this));
+    }
+
+    private void OnUnloaded(object sender, RoutedEventArgs e)
+    {
+        AttachHostWindow(null);
+    }
+
+    private void AttachHostWindow(Window? window)
+    {
+        if (ReferenceEquals(_hostWindow, window))
         {
-            // 绑定窗口状态变化
-            window.StateChanged += (_, _) => UpdateMaximizeButtonIcon(window);
+            return;
         }
 
-        // 事件绑定
-        TitleBar.MouseDown += (_, e) =>
+        if (_hostWindow is not null)
         {
-            if (e.ClickCount == 2 && e.ChangedButton == MouseButton.Left && IsMaximizeVisible)
-                ToggleWindowState(window);
+            _hostWindow.StateChanged -= HostWindow_OnStateChanged;
+        }
 
-            if (e.LeftButton == MouseButtonState.Pressed)
-                DragMoveWindow(window);
+        _hostWindow = window;
+        if (_hostWindow is not null)
+        {
+            _hostWindow.StateChanged += HostWindow_OnStateChanged;
+            UpdateMaximizeButtonIcon(_hostWindow);
+        }
+    }
 
-            if (e.ChangedButton == MouseButton.Right)
-            {
-                SystemCommands.ShowSystemMenu(window, window.PointToScreen(e.GetPosition(this)));
-            }
-        };
+    private void HostWindow_OnStateChanged(object? sender, EventArgs e)
+    {
+        if (sender is Window window)
+        {
+            UpdateMaximizeButtonIcon(window);
+        }
+    }
 
-        MaximizeButton.Click += (_, _) => ToggleWindowState(window);
-        MinimizeButton.Click += (_, _) => window.WindowState = WindowState.Minimized;
-        ExitButton.Click += (_, _) => ConfirmExit(window);
+    private void TitleBar_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (_hostWindow is not { } window)
+        {
+            return;
+        }
+
+        if (e.ClickCount == 2 && e.ChangedButton == MouseButton.Left && IsMaximizeVisible)
+        {
+            ToggleWindowState(window);
+        }
+
+        if (e.LeftButton == MouseButtonState.Pressed)
+        {
+            DragMoveWindow(window);
+        }
+
+        if (e.ChangedButton == MouseButton.Right)
+        {
+            SystemCommands.ShowSystemMenu(window, window.PointToScreen(e.GetPosition(this)));
+        }
+    }
+
+    private void MaximizeButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (_hostWindow is { } window)
+        {
+            ToggleWindowState(window);
+        }
+    }
+
+    private void MinimizeButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (_hostWindow is { } window)
+        {
+            window.WindowState = WindowState.Minimized;
+        }
+    }
+
+    private void ExitButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (_hostWindow is { } window)
+        {
+            ConfirmExit(window);
+        }
     }
 
     private static void DragMoveWindow(Window window)
@@ -63,9 +128,12 @@ public partial class CustomTitleBar : UserControl
 
     private void ToggleWindowState(Window window)
     {
-        window.WindowState = window.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+        window.WindowState = ToggleWindowStateOnce(window.WindowState);
         UpdateMaximizeButtonIcon(window);
     }
+
+    internal static WindowState ToggleWindowStateOnce(WindowState currentState) =>
+        currentState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
 
     private void UpdateMaximizeButtonIcon(Window window)
     {

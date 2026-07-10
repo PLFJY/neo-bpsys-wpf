@@ -1,39 +1,53 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
+using System.Windows.Media;
 using System.Windows.Media.Animation;
 
 namespace neo_bpsys_wpf.ProductTour.Controls;
 
 internal static class OverlayHost
 {
-    private static readonly DependencyProperty IsWindowOverlayRootProperty =
+    private static readonly DependencyProperty WindowOverlayRootProperty =
         DependencyProperty.RegisterAttached(
-            "IsWindowOverlayRoot",
-            typeof(bool),
+            "WindowOverlayRoot",
+            typeof(Panel),
             typeof(OverlayHost),
-            new PropertyMetadata(false));
+            new PropertyMetadata(null));
 
     public static Panel GetHostPanel(FrameworkElement owner)
     {
         if (owner is Window window)
         {
-            if (window.Content is Panel panel
-                && panel.GetValue(IsWindowOverlayRootProperty) is true)
+            if (window.GetValue(WindowOverlayRootProperty) is Panel existing
+                && VisualTreeHelper.GetParent(existing) != null)
             {
-                return panel;
+                return existing;
             }
 
-            var original = window.Content as UIElement;
-            var grid = new Grid();
-            grid.SetValue(IsWindowOverlayRootProperty, true);
-            window.Content = null;
-            if (original != null)
+            if (window.Content is Grid contentGrid)
             {
-                grid.Children.Add(original);
+                var overlayRoot = CreateOverlayRoot();
+                Grid.SetRow(overlayRoot, 0);
+                Grid.SetColumn(overlayRoot, 0);
+                Grid.SetRowSpan(overlayRoot, Math.Max(1, contentGrid.RowDefinitions.Count));
+                Grid.SetColumnSpan(overlayRoot, Math.Max(1, contentGrid.ColumnDefinitions.Count));
+                Panel.SetZIndex(overlayRoot, int.MaxValue);
+                contentGrid.Children.Add(overlayRoot);
+                window.SetValue(WindowOverlayRootProperty, overlayRoot);
+                return overlayRoot;
             }
 
-            window.Content = grid;
-            return grid;
+            if (window.Content is FrameworkElement content
+                && AdornerLayer.GetAdornerLayer(content) is { } adornerLayer)
+            {
+                var adorner = new OverlayAdorner(content);
+                adornerLayer.Add(adorner);
+                window.SetValue(WindowOverlayRootProperty, adorner.OverlayRoot);
+                return adorner.OverlayRoot;
+            }
+
+            throw new InvalidOperationException("Unable to locate a non-invasive window overlay host.");
         }
 
         if (owner is Panel ownerPanel)
@@ -61,6 +75,13 @@ internal static class OverlayHost
         throw new InvalidOperationException("Unable to locate an overlay host panel.");
     }
 
+    private static Grid CreateOverlayRoot() => new()
+    {
+        HorizontalAlignment = HorizontalAlignment.Stretch,
+        VerticalAlignment = VerticalAlignment.Stretch,
+        Background = null
+    };
+
     public static Task FadeOutAndRemoveAsync(Panel host, UIElement overlay, TimeSpan duration)
     {
         var source = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -76,5 +97,36 @@ internal static class OverlayHost
         };
         overlay.BeginAnimation(UIElement.OpacityProperty, animation);
         return source.Task;
+    }
+
+    private sealed class OverlayAdorner : Adorner
+    {
+        public OverlayAdorner(UIElement adornedElement)
+            : base(adornedElement)
+        {
+            OverlayRoot = CreateOverlayRoot();
+            AddVisualChild(OverlayRoot);
+            AddLogicalChild(OverlayRoot);
+        }
+
+        public Grid OverlayRoot { get; }
+
+        protected override int VisualChildrenCount => 1;
+
+        protected override Visual GetVisualChild(int index) => index == 0
+            ? OverlayRoot
+            : throw new ArgumentOutOfRangeException(nameof(index));
+
+        protected override Size MeasureOverride(Size constraint)
+        {
+            OverlayRoot.Measure(constraint);
+            return constraint;
+        }
+
+        protected override Size ArrangeOverride(Size finalSize)
+        {
+            OverlayRoot.Arrange(new Rect(finalSize));
+            return finalSize;
+        }
     }
 }

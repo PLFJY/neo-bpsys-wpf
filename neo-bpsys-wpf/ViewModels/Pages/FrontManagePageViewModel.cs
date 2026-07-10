@@ -15,6 +15,7 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Models.Plugins;
+using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.Services.Abstractions;
 using neo_bpsys_wpf.Tutorial;
 using neo_bpsys_wpf.Views.Windows;
@@ -220,7 +221,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
     }
 
     [RelayCommand]
-    private void OpenFrontedDesigner()
+    private async Task OpenFrontedDesignerAsync()
     {
         if (_serviceProvider is null)
         {
@@ -236,11 +237,33 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
         try
         {
             var window = ActivatorUtilities.CreateInstance<FrontedDesignerWindow>(_serviceProvider);
-            window.Closed += (_, _) => _frontedDesignerWindow = null;
+            window.Owner = Application.Current?.MainWindow;
+            var playbackCoordinator = _serviceProvider.GetService<ITutorialPlaybackCoordinator>();
+            var childSession = playbackCoordinator == null
+                ? null
+                : await playbackCoordinator.BeginChildWindowSessionAsync(window);
+            EventHandler? closedHandler = null;
+            closedHandler = (_, _) =>
+            {
+                window.Closed -= closedHandler;
+                childSession?.Complete();
+                _frontedDesignerWindow = null;
+            };
+            window.Closed += closedHandler;
             _frontedDesignerWindow = window;
-            window.Show();
-            window.Activate();
-            TutorialSignalPublisher.Publish(TutorialSignalIds.FrontManageOpenDesignerClicked);
+            try
+            {
+                window.Show();
+                window.Activate();
+                TutorialSignalPublisher.Publish(TutorialSignalIds.FrontManageOpenDesignerClicked);
+            }
+            catch
+            {
+                window.Closed -= closedHandler;
+                childSession?.Complete();
+                _frontedDesignerWindow = null;
+                throw;
+            }
         }
         catch (Exception ex)
         {

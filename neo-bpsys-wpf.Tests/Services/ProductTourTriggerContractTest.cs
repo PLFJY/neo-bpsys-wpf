@@ -1,0 +1,113 @@
+using System;
+using System.IO;
+using neo_bpsys_wpf.Tutorial;
+using Xunit;
+
+namespace neo_bpsys_wpf.Tests.Services;
+
+/// <summary>Tests ProductTour trigger ownership and explicit user-action gates.</summary>
+public sealed class ProductTourTriggerContractTest
+{
+    [Fact]
+    public void LayoutPackagesView_LoadedAndVisible_ShouldRunOwnSequence()
+    {
+        var source = ReadRepoFile("neo-bpsys-wpf", "Views", "Pages", "FrontManage", "FrontedLayoutPackagesView.xaml.cs");
+
+        Assert.Contains("Loaded +=", source);
+        Assert.Contains("IsVisibleChanged +=", source);
+        Assert.Contains("DispatcherPriority.ContextIdle", source);
+        Assert.Contains("DispatcherPriority.Render", source);
+        Assert.Contains("Window.GetWindow(this) is not { IsVisible: true }", source);
+        Assert.Contains("RunSequenceAsync(this, TutorialPageKey, _tutorialLifetime.Token)", source);
+        Assert.Contains("_tutorialTask is { IsCompleted: false }", source);
+    }
+
+    [Fact]
+    public void DesignerFirstOpen_ShouldReceivePlaybackHandoff()
+    {
+        var source = ReadRepoFile("neo-bpsys-wpf", "ViewModels", "Pages", "FrontManagePageViewModel.cs");
+        var ownerIndex = source.IndexOf("window.Owner = Application.Current?.MainWindow", StringComparison.Ordinal);
+        var handoffIndex = source.IndexOf("BeginChildWindowSessionAsync(window)", StringComparison.Ordinal);
+        var showIndex = source.IndexOf("window.Show()", StringComparison.Ordinal);
+
+        Assert.True(ownerIndex >= 0 && ownerIndex < handoffIndex);
+        Assert.True(handoffIndex < showIndex);
+        Assert.Contains("window.Closed += closedHandler", source);
+        Assert.Contains("childSession?.Complete()", source);
+    }
+
+    [Fact]
+    public void PropertyPanel_ShouldNotRunDuringInitialLayoutRestore()
+    {
+        var source = ReadRepoFile("neo-bpsys-wpf", "Views", "Windows", "FrontedDesignerWindow.xaml.cs");
+
+        Assert.Contains("_viewModel?.IsRestoringSnapshotVisuals == true", source);
+        Assert.Contains("_initialLayoutLoaded", source);
+        Assert.Contains("isUserSelection", source);
+        Assert.DoesNotContain("wasNull && isNowNonNull", source);
+    }
+
+    [Fact]
+    public void PropertyPanel_ShouldRunAfterFirstUserControlSelection()
+    {
+        var source = ReadRepoFile("neo-bpsys-wpf", "Views", "Windows", "FrontedDesignerWindow.xaml.cs");
+
+        Assert.Contains("RunUserSelection(() => _viewModel?.SelectLayerNode(node))", source);
+        Assert.Contains("RunUserSelection(() => _viewModel?.SelectDesignItem(_pendingHitCandidate))", source);
+        Assert.Contains("WaitForPropertyGridReadyAsync", source);
+        Assert.Contains("RunPackageAsync(this, Tours.PropertyPanelBasic", source);
+    }
+
+    [Fact]
+    public void BehaviorPanel_ShouldNotRunOnDataContextChangedOrVisibilityOnly()
+    {
+        var source = ReadRepoFile("neo-bpsys-wpf", "Views", "FrontedDesigner", "BehaviorPanelView.xaml.cs");
+
+        Assert.DoesNotContain("IsVisibleChanged +=", source);
+        Assert.DoesNotContain("ScheduleTutorialRun", source);
+        Assert.DoesNotContain("RunSequenceAsync(this, TutorialPageKey", source);
+        Assert.Contains("DataContextChanged += OnDataContextChanged", source);
+    }
+
+    [Fact]
+    public void BehaviorPanel_ShouldRequireSelectedControlAndOuterExpanderExpanded()
+    {
+        var source = ReadRepoFile("neo-bpsys-wpf", "Views", "Windows", "FrontedDesignerWindow.xaml.cs");
+
+        Assert.Contains("BehaviorExpander_OnExpanded", source);
+        Assert.Contains("_viewModel?.SelectedDesignItem != null", source);
+        Assert.Contains("BehaviorExpander.IsExpanded", source);
+        Assert.Contains("BehaviorPanelHost.IsVisible", source);
+        Assert.Contains("HasSelectedControl: true", source);
+        Assert.Contains("DispatcherPriority.ContextIdle", source);
+        Assert.Contains("DispatcherPriority.Render", source);
+    }
+
+    [Fact]
+    public void BehaviorPanelHelpBasic_ShouldRunAfterExplicitExpansion()
+    {
+        var packages = new neo_bpsys_wpf.ProductTour.TutorialPackageRegistry();
+        var sequences = new neo_bpsys_wpf.ProductTour.TutorialSequenceRegistry();
+        var flows = new neo_bpsys_wpf.ProductTour.TutorialFlowRegistry();
+        NeoBpsysTutorialRegistration.Register(packages, sequences, flows);
+
+        var sequence = sequences.GetSequence(TutorialPageKeys.DesignerV3BehaviorPanel);
+        Assert.Equal(TutorialPackageIds.DesignerV3BehaviorPanelHelpBasic, sequence[^1]);
+        var package = Assert.Single(
+            packages.GetPackages(),
+            definition => definition.PackageId == TutorialPackageIds.DesignerV3BehaviorPanelHelpBasic);
+        Assert.Equal(TutorialTargetNames.BehaviorHelpButton, Assert.Single(package.Steps).TargetName);
+    }
+
+    private static string ReadRepoFile(params string[] parts)
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory != null && !File.Exists(Path.Combine(directory.FullName, "neo-bpsys-wpf.slnx")))
+        {
+            directory = directory.Parent;
+        }
+
+        Assert.NotNull(directory);
+        return File.ReadAllText(Path.Combine([directory.FullName, .. parts]));
+    }
+}

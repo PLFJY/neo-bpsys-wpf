@@ -8,7 +8,6 @@ using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.Tutorial;
 using neo_bpsys_wpf.ViewModels.FrontedDesigner;
 using neo_bpsys_wpf.Views.Windows;
-using System.Windows.Threading;
 
 namespace neo_bpsys_wpf.Views.FrontedDesigner;
 
@@ -19,29 +18,8 @@ public partial class BehaviorPanelView : UserControl
     public BehaviorPanelView()
     {
         InitializeComponent();
-        IsVisibleChanged += (_, e) =>
-        {
-            if (Equals(e.NewValue, true))
-            {
-                ScheduleTutorialRun();
-            }
-        };
         DataContextChanged += OnDataContextChanged;
         Unloaded += (_, _) => CloseHelpWindow();
-    }
-
-    private void ScheduleTutorialRun()
-    {
-        Dispatcher.BeginInvoke(
-            DispatcherPriority.ContextIdle,
-            new Action(async () =>
-            {
-                var runner = IAppHost.Host?.Services.GetService(typeof(ITutorialRunner)) as ITutorialRunner;
-                if (runner != null)
-                {
-                    await runner.RunSequenceAsync(this, TutorialPageKey, TutorialOwnerLifetime.GetToken(this));
-                }
-            }));
     }
 
     private void OnDataContextChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
@@ -56,17 +34,30 @@ public partial class BehaviorPanelView : UserControl
         {
             newViewModel.AnimationEditorRequested += OpenAnimationEditor;
             newViewModel.CopyBehaviorToRequested += OpenCopyBehaviorTo;
-            ScheduleTutorialRun();
         }
     }
 
-    private void OpenAnimationEditor(FrontedBehaviorAnimationEditorViewModel viewModel)
+    private async void OpenAnimationEditor(FrontedBehaviorAnimationEditorViewModel viewModel)
     {
         var window = new FrontedBehaviorAnimationEditorWindow(viewModel)
         {
             Owner = System.Windows.Window.GetWindow(this)
         };
-        window.ShowDialog();
+        var coordinator = IAppHost.Host?.Services.GetService(typeof(ITutorialPlaybackCoordinator))
+            as ITutorialPlaybackCoordinator;
+        var childSession = coordinator == null
+            ? null
+            : await coordinator.BeginChildWindowSessionAsync(
+                window,
+                TutorialOwnerLifetime.GetToken(this));
+        try
+        {
+            window.ShowDialog();
+        }
+        finally
+        {
+            childSession?.Complete();
+        }
     }
 
     private void OpenCopyBehaviorTo(FrontedBehaviorCopyToRequest request)
