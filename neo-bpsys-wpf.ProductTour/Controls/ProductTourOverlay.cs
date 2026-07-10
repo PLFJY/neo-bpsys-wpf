@@ -39,7 +39,6 @@ public sealed class ProductTourOverlay : Canvas
     private readonly TextBlock _progress;
     private readonly Button _previousButton;
     private readonly Button _nextButton;
-    private readonly Button _skipButton;
     private readonly Button _globalSkipButton;
     private readonly Image _avatarImage;
     private readonly TextBlock _waitingText;
@@ -136,10 +135,6 @@ public sealed class ProductTourOverlay : Canvas
         _nextButton.Style = TryFindResource("ProductTourPrimaryButtonStyle") as Style;
         _nextButton.Click += (_, _) => _completion?.TrySetResult(ProductTourStepAction.Next);
 
-        _skipButton = new Button { Content = _textProvider.Skip, MinWidth = 70, Margin = new Thickness(8, 0, 0, 0) };
-        _skipButton.Style = TryFindResource("ProductTourSkipButtonStyle") as Style;
-        _skipButton.Click += (_, _) => ShowConfirmDialog();
-
         _globalSkipButton = new Button
         {
             Content = _textProvider.Skip,
@@ -158,7 +153,7 @@ public sealed class ProductTourOverlay : Canvas
             Orientation = Orientation.Horizontal,
             HorizontalAlignment = HorizontalAlignment.Right,
             Margin = new Thickness(0, 16, 0, 0),
-            Children = { _previousButton, _nextButton, _skipButton }
+            Children = { _previousButton, _nextButton }
         };
 
         _card = new Border
@@ -214,7 +209,6 @@ public sealed class ProductTourOverlay : Canvas
         _nextButton.Content = context.StepIndex == context.StepCount - 1 ? _textProvider.Finish : _textProvider.Next;
         _nextButton.IsEnabled = _signalReceived;
         _nextButton.Visibility = _signalReceived ? Visibility.Visible : Visibility.Collapsed;
-        _skipButton.Visibility = _options.ShowSkipButton ? Visibility.Visible : Visibility.Collapsed;
         _waitingText.Visibility = _signalReceived ? Visibility.Collapsed : Visibility.Visible;
         _errorText.Visibility = Visibility.Collapsed;
         _errorText.Text = string.Empty;

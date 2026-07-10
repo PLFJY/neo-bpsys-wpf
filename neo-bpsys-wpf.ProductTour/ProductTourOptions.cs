@@ -61,9 +61,6 @@ public sealed class ProductTourOptions
     /// <summary>Gets or sets whether step progress text is shown.</summary>
     public bool ShowStepProgress { get; set; } = true;
 
-    /// <summary>Gets or sets whether skip button is shown.</summary>
-    public bool ShowSkipButton { get; set; } = true;
-
     /// <summary>Gets or sets the default mask opacity.</summary>
     public double MaskOpacity { get; set; } = 0.86;
 
