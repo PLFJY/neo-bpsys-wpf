@@ -122,7 +122,7 @@ public partial class TeamInfoPageViewModel
         {
             if (!ColorHelper.TryNormalizeHex(TeamColorHexEditText, out var normalized))
             {
-                TeamColorStatus = I18nHelper.GetLocalizedString("InvalidTeamColorHex");
+                TeamColorStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "InvalidTeamColorHex");
                 return;
             }
 
@@ -168,7 +168,7 @@ public partial class TeamInfoPageViewModel
                 var validation = _imageSafetyService.ValidateFile(fileName, FrontedImagePurpose.UiElement);
                 if (!validation.IsValid)
                 {
-                    _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("LogoFileIsNotValid"));
+                    _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "LogoFileIsNotValid"));
                     return;
                 }
 
@@ -176,7 +176,7 @@ public partial class TeamInfoPageViewModel
             }
             catch
             {
-                _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("ImageMaybeDamagedOrUnsupported"));
+                _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "ImageMaybeDamagedOrUnsupported"));
             }
         }
 
@@ -216,11 +216,11 @@ public partial class TeamInfoPageViewModel
             catch (JsonException ex)
             {
                 _ = MessageBoxHelper.ShowErrorAsync(
-                    $"{I18nHelper.GetLocalizedString("JsonFileFormatError")}\n{ex.Message}");
+                    $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "JsonFileFormatError")}\n{ex.Message}");
             }
             catch
             {
-                _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("ImageMaybeDamagedOrUnsurpported"));
+                _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "ImageMaybeDamagedOrUnsurpported"));
             }
         }
 
@@ -281,12 +281,12 @@ public partial class TeamInfoPageViewModel
 
             var messageBox = new MessageBox()
             {
-                Title = I18nHelper.GetLocalizedString("DeleteConfirmation"),
-                Content = $"{I18nHelper.GetLocalizedString("AreYouSureToDelete")} {memberName}？",
-                PrimaryButtonText = I18nHelper.GetLocalizedString("Confirm"),
+                Title = I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "DeleteConfirmation"),
+                Content = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "AreYouSureToDelete")} {memberName}？",
+                PrimaryButtonText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"),
                 PrimaryButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Delete24 },
                 CloseButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Prohibited20 },
-                CloseButtonText = I18nHelper.GetLocalizedString("Cancel")
+                CloseButtonText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel")
             };
             var result = await messageBox.ShowDialogAsync();
 
@@ -394,14 +394,14 @@ public partial class TeamInfoPageViewModel
             }
             catch
             {
-                _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("ImageMaybeDamagedOrUnsurpported"));
+                _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "ImageMaybeDamagedOrUnsurpported"));
             }
         }
 
         [RelayCommand]
         private async Task ClearMemberImageAsync(Member member)
         {
-            if (await MessageBoxHelper.ShowConfirmAsync(I18nHelper.GetLocalizedString("AreYouSureToRemoveTheFileLookPhoto"), I18nHelper.GetLocalizedString("ClearTip"), I18nHelper.GetLocalizedString("Confirm"), I18nHelper.GetLocalizedString("Cancel")))
+            if (await MessageBoxHelper.ShowConfirmAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "AreYouSureToRemoveTheFileLookPhoto"), I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "ClearTip"), I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"), I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel")))
                 member.Image = null;
         }
     }

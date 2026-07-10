@@ -311,11 +311,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     /// </summary>
     public ObservableCollection<MapV2InternalStylePartOption> MapV2InternalStylePartOptions { get; } =
     [
-        new(MapV2InternalStylePart.TeamName, I18nHelper.GetLocalizedString("Designer.MapV2Display.Part.TeamName")),
-        new(MapV2InternalStylePart.MapCard, I18nHelper.GetLocalizedString("Designer.MapV2Display.Part.MapCard")),
-        new(MapV2InternalStylePart.MapName, I18nHelper.GetLocalizedString("Designer.MapV2Display.Part.MapName")),
-        new(MapV2InternalStylePart.CampName, I18nHelper.GetLocalizedString("Designer.MapV2Display.Part.CampName")),
-        new(MapV2InternalStylePart.PickingBorder, I18nHelper.GetLocalizedString("Designer.MapV2Display.Part.PickingBorder"))
+        new(MapV2InternalStylePart.TeamName, I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.MapV2Display.Part.TeamName")),
+        new(MapV2InternalStylePart.MapCard, I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.MapV2Display.Part.MapCard")),
+        new(MapV2InternalStylePart.MapName, I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.MapV2Display.Part.MapName")),
+        new(MapV2InternalStylePart.CampName, I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.MapV2Display.Part.CampName")),
+        new(MapV2InternalStylePart.PickingBorder, I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.MapV2Display.Part.PickingBorder"))
     ];
 
     public DesignerLayerNode? SelectedLayerNode
@@ -342,8 +342,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     public ObservableCollection<FrontedCanvasBoModeStateOption> BoModeStateOptions { get; } =
     [
-        new(FrontedCanvasBoModeState.Bo5, I18nHelper.GetLocalizedString("Designer.Canvas.Bo5State")),
-        new(FrontedCanvasBoModeState.Bo3, I18nHelper.GetLocalizedString("Designer.Canvas.Bo3State"))
+        new(FrontedCanvasBoModeState.Bo5, I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.Canvas.Bo5State")),
+        new(FrontedCanvasBoModeState.Bo3, I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.Canvas.Bo3State"))
     ];
 
     public bool IsRebuildingPropertyGrid => _isRebuildingPropertyGrid;
@@ -396,12 +396,12 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         {
             if (SnapEnabled)
             {
-                return I18nHelper.GetLocalizedString("SnapOn");
+                return I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "SnapOn");
             }
 
             return IsShiftSnapActive
-                ? I18nHelper.GetLocalizedString("TemporarySnap")
-                : I18nHelper.GetLocalizedString("SnapOff");
+                ? I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "TemporarySnap")
+                : I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "SnapOff");
         }
     }
 
@@ -640,7 +640,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     public string LayerReorderHint => CanReorderLayers
         ? string.Empty
-        : I18nHelper.GetLocalizedString("Designer.LayerPanel.ClearFilterToReorder");
+        : I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.LayerPanel.ClearFilterToReorder");
 
     [ObservableProperty]
     private string _selectedControlDisplay = string.Empty;
@@ -909,7 +909,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             .Select(item => item.Name)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
         var index = 1;
-        var defaultName = I18nHelper.GetLocalizedString("Designer.AnimationParts.DefaultName");
+        var defaultName = I18nHelper.GetLocalizedString(AppI18nDictionaries.AnimationEditor, "Designer.AnimationParts.DefaultName");
         var name = defaultName;
         while (names.Contains(name))
         {
@@ -976,7 +976,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         AnimationPartEditBuffer.ValidateAll();
         if (AnimationPartEditBuffer.HasErrors)
         {
-            StatusMessage = I18nHelper.GetLocalizedString("Designer.AnimationParts.Validation.FixErrors");
+            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.AnimationEditor, "Designer.AnimationParts.Validation.FixErrors");
             return;
         }
 
@@ -1071,7 +1071,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to store local animation part image.");
-            StatusMessage = $"{I18nHelper.GetLocalizedString("FailedToApplyPicture")}: {ex.Message}";
+            StatusMessage = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "FailedToApplyPicture")}: {ex.Message}";
             return false;
         }
     }
@@ -1113,7 +1113,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         if (!string.Equals(value, clamped, StringComparison.Ordinal))
         {
             ControlFilterText = clamped;
-            StatusMessage = I18nHelper.GetLocalizedString("InputTruncated");
+            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "InputTruncated");
             return;
         }
 
@@ -1177,8 +1177,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         var nextState = value ? CurrentDocument.EditingBoModeState : FrontedCanvasBoModeState.Bo5;
         RebuildDocumentFromConfig(config, nextState, preserveDirty: true, selectedControlName: SelectedDesignItem?.Name);
         CanvasPropertiesStatus = value
-            ? I18nHelper.GetLocalizedString("Designer.Canvas.BoModeStatesEnabled")
-            : I18nHelper.GetLocalizedString("Designer.Canvas.BoModeStatesDisabledConfirm");
+            ? I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.Canvas.BoModeStatesEnabled")
+            : I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.Canvas.BoModeStatesDisabledConfirm");
     }
 
     partial void OnSelectedBoModeStateOptionChanged(FrontedCanvasBoModeStateOption? value)
@@ -1339,7 +1339,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             ApplyValidationMessages(messages);
             if (messages.Any(message => message.Severity == FrontedLayoutValidationSeverity.Error))
             {
-                StatusMessage = I18nHelper.GetLocalizedString("CannotSaveInvalidLayout");
+                StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "CannotSaveInvalidLayout");
                 return false;
             }
 
@@ -1352,7 +1352,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             ApplyValidationMessages(messages);
             if (messages.Any(message => message.Severity == FrontedLayoutValidationSeverity.Error))
             {
-                StatusMessage = I18nHelper.GetLocalizedString("CannotSaveInvalidLayout");
+                StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "CannotSaveInvalidLayout");
                 return false;
             }
         }
@@ -1361,7 +1361,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         {
             var wasBuiltInSource = string.Equals(
                 LayoutSourceDisplay,
-                I18nHelper.GetLocalizedString("LayoutSourceBuiltIn"),
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "LayoutSourceBuiltIn"),
                 StringComparison.Ordinal);
 
             if (shouldSaveLayout)
@@ -1396,14 +1396,14 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 }
                 else
                 {
-                    LayoutSourceDisplay = I18nHelper.GetLocalizedString("LayoutSourceUser");
+                    LayoutSourceDisplay = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "LayoutSourceUser");
                     LayoutSourcePath = savedResult.Path ?? string.Empty;
                 }
             }
 
             StatusMessage = wasBuiltInSource
-                ? I18nHelper.GetLocalizedString("EditableLayoutSchemeCreated")
-                : I18nHelper.GetLocalizedString("LayoutSaved");
+                ? I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "EditableLayoutSchemeCreated")
+                : I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "LayoutSaved");
             if (wasBuiltInSource)
             {
                 WeakReferenceMessenger.Default.Send(new FrontedLayoutPackagesChangedMessage(this, null));
@@ -1425,7 +1425,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 ex,
                 "Failed to save fronted designer user layout. Window: {WindowTypeName}",
                 CurrentDocument.WindowTypeName);
-            StatusMessage = $"{I18nHelper.GetLocalizedString("LayoutSaveFailed")}: {ex.Message}";
+            StatusMessage = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "LayoutSaveFailed")}: {ex.Message}";
             return false;
         }
     }
@@ -1456,7 +1456,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         var config = await LoadBuiltInLayoutForResetAsync(windowTypeName, canvasName);
         if (config is null)
         {
-            StatusMessage = I18nHelper.GetLocalizedString("MissingLayout");
+            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "MissingLayout");
             return false;
         }
 
@@ -1477,9 +1477,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         SelectDesignItem(null);
         ApplyValidationMessages(_validator.Validate(document));
         RequestPreviewRender(config, _selectedCatalogEntry);
-        LayoutSourceDisplay = I18nHelper.GetLocalizedString("LayoutSourceBuiltIn");
+        LayoutSourceDisplay = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "LayoutSourceBuiltIn");
         LayoutSourcePath = GetBuiltInPackageLayoutPath(windowTypeName);
-        StatusMessage = I18nHelper.GetLocalizedString("LayoutReset");
+        StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "LayoutReset");
         ClearUndoRedo();
         CleanupPendingImportedResources(includeCurrentDocument: false);
         RefreshDirtyState();
@@ -1518,7 +1518,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     {
         if (CurrentDocument is null || _undoStack.Count == 0)
         {
-            StatusMessage = I18nHelper.GetLocalizedString("CannotUndo");
+            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "CannotUndo");
             return;
         }
 
@@ -1535,7 +1535,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             _undoStack.Pop(),
             FrontedDesignerSnapshotRestoreMode.PreferGeometryFastPathThenScheduledAtomicPreview,
             "Undo");
-        StatusMessage = I18nHelper.GetLocalizedString("Undo");
+        StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Undo");
         LogDesignerPerf("Undo", "total", Elapsed(total));
     }
 
@@ -1547,7 +1547,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     {
         if (CurrentDocument is null || _redoStack.Count == 0)
         {
-            StatusMessage = I18nHelper.GetLocalizedString("CannotRedo");
+            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "CannotRedo");
             return;
         }
 
@@ -1564,7 +1564,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             _redoStack.Pop(),
             FrontedDesignerSnapshotRestoreMode.PreferGeometryFastPathThenScheduledAtomicPreview,
             "Redo");
-        StatusMessage = I18nHelper.GetLocalizedString("Redo");
+        StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Redo");
         LogDesignerPerf("Redo", "total", Elapsed(total));
     }
 
@@ -1611,7 +1611,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     {
         if (CurrentDocument is null)
         {
-            StatusMessage = I18nHelper.GetLocalizedString("CannotAddControl");
+            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "CannotAddControl");
             return;
         }
 
@@ -1619,13 +1619,13 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         var controlType = request?.ControlType ?? Convert.ToString(parameter, CultureInfo.InvariantCulture);
         if (string.IsNullOrWhiteSpace(controlType) || !_defaultConfigFactory.CanCreate(controlType))
         {
-            StatusMessage = I18nHelper.GetLocalizedString("UnsupportedControlType");
+            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "UnsupportedControlType");
             return;
         }
 
         if (CurrentDocument.Controls.Count >= FrontedLayoutLimits.MaxControlsPerCanvas)
         {
-            StatusMessage = I18nHelper.GetLocalizedString("ControlCountLimitReached");
+            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "ControlCountLimitReached");
             return;
         }
 
@@ -1651,7 +1651,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         SelectDesignItem(item);
         ValidateCurrentDocument();
         RequestPreviewRenderCurrentDocument();
-        StatusMessage = $"{I18nHelper.GetLocalizedString("AddedControl")}: {item.Name}";
+        StatusMessage = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "AddedControl")}: {item.Name}";
     }
 
     /// <summary>
@@ -1663,13 +1663,13 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         var selected = SelectedDesignItem;
         if (selected is null || !CanCopyControl(selected))
         {
-            StatusMessage = I18nHelper.GetLocalizedString("CannotCopyControl");
+            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "CannotCopyControl");
             return;
         }
 
         _copiedControl = FrontedDesignerClipboardPayload.Create(selected);
         PasteControlCommand.NotifyCanExecuteChanged();
-        StatusMessage = I18nHelper.GetLocalizedString("CopyControl");
+        StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "CopyControl");
     }
 
     /// <summary>
@@ -1680,20 +1680,20 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     {
         if (CurrentDocument is null || _copiedControl is null)
         {
-            StatusMessage = I18nHelper.GetLocalizedString("CannotPasteControl");
+            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "CannotPasteControl");
             return;
         }
 
         if (CurrentDocument.Controls.Count + 1 > FrontedLayoutLimits.MaxControlsPerCanvas)
         {
-            StatusMessage = I18nHelper.GetLocalizedString("ControlCountLimitReached");
+            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "ControlCountLimitReached");
             return;
         }
 
         var copiedControl = _copiedControl;
         if (copiedControl is null)
         {
-            StatusMessage = I18nHelper.GetLocalizedString("CannotPasteControl");
+            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "CannotPasteControl");
             return;
         }
 
@@ -1730,7 +1730,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         ScheduleValidationAndPreviewRender("Paste");
         LogDesignerPerf("Paste", "validation scheduling", Elapsed(total));
         LogDesignerPerf("Paste", "preview render scheduling", Elapsed(total));
-        StatusMessage = $"{I18nHelper.GetLocalizedString("PasteControl")}: {item.Name}";
+        StatusMessage = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "PasteControl")}: {item.Name}";
         LogDesignerPerf("Paste", "total", Elapsed(total));
     }
 
@@ -1747,14 +1747,14 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         if (!SelectedDesignItem.IsEditableInEditor || !SelectedDesignItem.IsSelectableInEditor)
         {
-            StatusMessage = I18nHelper.GetLocalizedString("CannotDeleteReferencedControl");
+            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "CannotDeleteReferencedControl");
             return;
         }
 
         _referenceScanner.SetControls(CurrentDocument.Controls);
         if (_referenceScanner.GetIncomingReferences(SelectedDesignItem.Name).Count > 0)
         {
-            StatusMessage = I18nHelper.GetLocalizedString("CannotDeleteReferencedControl");
+            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "CannotDeleteReferencedControl");
             return;
         }
 
@@ -1783,7 +1783,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         ScheduleValidationAndPreviewRender("Delete");
         LogDesignerPerf("Delete", "validation scheduling", Elapsed(total));
         LogDesignerPerf("Delete", "preview render scheduling", Elapsed(total));
-        StatusMessage = $"{I18nHelper.GetLocalizedString("DeleteSelectedControl")}: {deletedName}";
+        StatusMessage = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "DeleteSelectedControl")}: {deletedName}";
         LogDesignerPerf("Delete", "total", Elapsed(total));
     }
 
@@ -1939,7 +1939,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         RefreshDirtyState();
         ValidateCurrentDocument();
         RequestPreviewRenderCurrentDocument();
-        StatusMessage = I18nHelper.GetLocalizedString("Designer.MapV2Display.StyleAppliedToAll");
+        StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.MapV2Display.StyleAppliedToAll");
     }
 
     private static void CopyMapV2DisplayStyle(MapV2DisplayControlConfig source, MapV2DisplayControlConfig target)
@@ -2161,7 +2161,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         if (!TryParsePositiveDouble(widthText, out var width)
             || !TryParsePositiveDouble(heightText, out var height))
         {
-            CanvasPropertiesStatus = I18nHelper.GetLocalizedString("CanvasSizeMustBePositive");
+            CanvasPropertiesStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "CanvasSizeMustBePositive");
             return false;
         }
 
@@ -2177,7 +2177,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         CurrentDocument.CanvasConfig.CanvasHeight = height;
         CurrentDocument.IsDirty = true;
         RefreshCanvasPropertyBuffers();
-        FinishCanvasConfigEdit(I18nHelper.GetLocalizedString("CanvasPropertiesApplied"));
+        FinishCanvasConfigEdit(I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "CanvasPropertiesApplied"));
         return true;
     }
 
@@ -2208,7 +2208,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         else if (!TryParseOptionalPositiveDouble(widthText).HasValue
                  || !TryParseOptionalPositiveDouble(heightText).HasValue)
         {
-            WindowOptionsStatus = I18nHelper.GetLocalizedString("WindowSizeMustBePositive");
+            WindowOptionsStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "WindowSizeMustBePositive");
             return false;
         }
 
@@ -2268,7 +2268,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             : FrontedTextLimitHelper.Clamp(rawValue, FrontedLayoutLimits.MaxResourcePathLength);
         if (!string.Equals(rawValue, normalizedValue, StringComparison.Ordinal))
         {
-            CanvasPropertiesStatus = I18nHelper.GetLocalizedString("InputTruncated");
+            CanvasPropertiesStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "InputTruncated");
         }
 
         if (string.Equals(GetEditingStateBackground(CurrentDocument), normalizedValue, StringComparison.Ordinal))
@@ -2281,7 +2281,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         SetEditingStateBackground(CurrentDocument, normalizedValue);
         CurrentDocument.IsDirty = true;
         BackgroundImageEditText = normalizedValue ?? string.Empty;
-        FinishCanvasConfigEdit(I18nHelper.GetLocalizedString("CanvasPropertiesApplied"));
+        FinishCanvasConfigEdit(I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "CanvasPropertiesApplied"));
         return true;
     }
 
@@ -2334,7 +2334,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to store local fronted canvas background image.");
-            CanvasPropertiesStatus = $"{I18nHelper.GetLocalizedString("FailedToApplyPicture")}: {ex.Message}";
+            CanvasPropertiesStatus = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "FailedToApplyPicture")}: {ex.Message}";
             return false;
         }
     }
@@ -2363,7 +2363,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             FrontedCanvasBoModeState.Bo3,
             preserveDirty: true,
             selectedControlName: SelectedDesignItem?.Name);
-        CanvasPropertiesStatus = I18nHelper.GetLocalizedString("Designer.Canvas.Bo3LayoutCopied");
+        CanvasPropertiesStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.Canvas.Bo3LayoutCopied");
     }
 
     /// <summary>
@@ -2396,7 +2396,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                     item.PropertyName);
                 SetPropertyEditError(
                     item,
-                    $"{I18nHelper.GetLocalizedString("FailedToApplyPicture")}: {ex.Message}",
+                    $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "FailedToApplyPicture")}: {ex.Message}",
                     selectedResourcePath);
                 return false;
             }
@@ -2450,7 +2450,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to import package font.");
-            SetPropertyEditError(item, $"{I18nHelper.GetLocalizedString("Designer.Editor.ImportFontFailed")}: {ex.Message}", sourcePath);
+            SetPropertyEditError(item, $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.Editor.ImportFontFailed")}: {ex.Message}", sourcePath);
             return false;
         }
     }
@@ -3540,13 +3540,13 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     {
         if (CurrentDocument is null || !CanReorderLayers || !IsLayerReorderable(source))
         {
-            StatusMessage = I18nHelper.GetLocalizedString("Designer.LayerPanel.ReorderBlocked");
+            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.LayerPanel.ReorderBlocked");
             return false;
         }
 
         if (targetItem is not null && !IsLayerReorderable(targetItem))
         {
-            StatusMessage = I18nHelper.GetLocalizedString("Designer.LayerPanel.ReorderBlocked");
+            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.LayerPanel.ReorderBlocked");
             return false;
         }
 
@@ -3555,7 +3555,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             .ToList();
         if (!reorderableItems.Contains(source))
         {
-            StatusMessage = I18nHelper.GetLocalizedString("Designer.LayerPanel.ReorderBlocked");
+            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.LayerPanel.ReorderBlocked");
             return false;
         }
 
@@ -3598,7 +3598,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         {
             RebuildFilteredDesignItems();
             SelectDesignItem(source);
-            StatusMessage = I18nHelper.GetLocalizedString("Designer.LayerPanel.ReorderBlocked");
+            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.LayerPanel.ReorderBlocked");
             return false;
         }
 
@@ -3618,7 +3618,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         RebuildFilteredDesignItems();
         SelectDesignItem(source);
         ScheduleValidationAndPreviewRender("LayerReorder");
-        StatusMessage = I18nHelper.GetLocalizedString("Designer.LayerPanel.Reordered");
+        StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.LayerPanel.Reordered");
         return true;
     }
 
@@ -3635,7 +3635,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             || sourceNode.ControlItem is null
             || targetNode is not null && (targetNode.Kind != DesignerLayerNodeKind.Control || targetNode.ControlItem is null))
         {
-            StatusMessage = I18nHelper.GetLocalizedString("Designer.LayerPanel.ReorderBlocked");
+            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.LayerPanel.ReorderBlocked");
             return false;
         }
 
@@ -3898,7 +3898,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         FinishPropertyEdit(item.PropertyName);
         if (wasClamped)
         {
-            StatusMessage = I18nHelper.GetLocalizedString("InputTruncated");
+            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "InputTruncated");
         }
 
         return true;
@@ -4012,7 +4012,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         {
             SetPropertyEditError(
                 item,
-                I18nHelper.GetLocalizedString("InvalidControlName"),
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "InvalidControlName"),
                 newValue);
             return false;
         }
@@ -4033,7 +4033,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         {
             SetPropertyEditError(
                 item,
-                I18nHelper.GetLocalizedString("InvalidControlName"),
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "InvalidControlName"),
                 newValue);
             return false;
         }
@@ -4047,7 +4047,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         {
             SetPropertyEditError(
                 item,
-                I18nHelper.GetLocalizedString("DuplicateControlName"),
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "DuplicateControlName"),
                 newValue);
             return false;
         }
@@ -4057,7 +4057,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         {
             SetPropertyEditError(
                 item,
-                I18nHelper.GetLocalizedString("ReferencedControlRenameBlocked"),
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "ReferencedControlRenameBlocked"),
                 newValue);
             return false;
         }
@@ -4070,7 +4070,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         FinishPropertyEdit(item.PropertyName);
         if (wasClamped)
         {
-            StatusMessage = I18nHelper.GetLocalizedString("InputTruncated");
+            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "InputTruncated");
         }
 
         return true;
@@ -4082,10 +4082,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     {
         LayoutSourceDisplay = loadResult.Source switch
         {
-            FrontedLayoutSource.User => I18nHelper.GetLocalizedString("LayoutSourceUser"),
-            FrontedLayoutSource.BuiltIn => I18nHelper.GetLocalizedString("LayoutSourceBuiltIn"),
-            FrontedLayoutSource.PluginDefault => I18nHelper.GetLocalizedString("LayoutSourceBuiltIn"),
-            _ => I18nHelper.GetLocalizedString("LayoutSourceError")
+            FrontedLayoutSource.User => I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "LayoutSourceUser"),
+            FrontedLayoutSource.BuiltIn => I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "LayoutSourceBuiltIn"),
+            FrontedLayoutSource.PluginDefault => I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "LayoutSourceBuiltIn"),
+            _ => I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "LayoutSourceError")
         };
         LayoutSourcePath = loadResult.Path
             ?? GetBuiltInPackageLayoutPath(entry.WindowTypeName);
@@ -4168,7 +4168,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 "ValidationMessagesTruncated",
                 string.Format(
                     CultureInfo.InvariantCulture,
-                    I18nHelper.GetLocalizedString("ValidationMessagesTruncated"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "ValidationMessagesTruncated"),
                     messages.Count - FrontedLayoutLimits.MaxValidationMessagesShown)));
         }
 
@@ -4176,9 +4176,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         WarningCount = messages.Count(message => message.Severity == FrontedLayoutValidationSeverity.Warning);
         InfoCount = messages.Count(message => message.Severity == FrontedLayoutValidationSeverity.Info);
         StatusMessage =
-            $"{I18nHelper.GetLocalizedString("Errors")}: {ErrorCount}  "
-            + $"{I18nHelper.GetLocalizedString("Warnings")}: {WarningCount}  "
-            + $"{I18nHelper.GetLocalizedString("Infos")}: {InfoCount}";
+            $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Errors")}: {ErrorCount}  "
+            + $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Warnings")}: {WarningCount}  "
+            + $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Infos")}: {InfoCount}";
         RefreshSelectedControlDisplay();
         if (refreshPropertyGrid)
         {
@@ -4958,7 +4958,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     {
         if (!FrontedPropertyColorHelper.TryParseArgbColor(WindowBackgroundColorEditText, out var color))
         {
-            WindowOptionsStatus = I18nHelper.GetLocalizedString("Designer.Validation.InvalidArgbColor");
+            WindowOptionsStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.Validation.InvalidArgbColor");
             return false;
         }
 
@@ -5003,10 +5003,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         property.SetValue(SelectedDesignItem.Config, expression);
         item.Value = expression;
         item.DisplayValue = expression.GetActiveSources().Count == 0
-            ? I18nHelper.GetLocalizedString("Designer.TextBinding.None")
+            ? I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.TextBinding.None")
             : string.Format(
                 CultureInfo.CurrentCulture,
-                I18nHelper.GetLocalizedString("Designer.TextBinding.SourceSummary"),
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.TextBinding.SourceSummary"),
                 expression.GetActiveSources().Count,
                 string.Join(", ", expression.GetActiveSources().Select(source => source.Path)));
         CurrentDocument.IsDirty = true;
@@ -5066,7 +5066,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                        ?? Task.FromResult(false));
             }
 
-            WindowOptionsStatus = I18nHelper.GetLocalizedString("WindowOptionsApplied");
+            WindowOptionsStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "WindowOptionsApplied");
         }
         catch (Exception ex)
         {
@@ -5099,7 +5099,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             LoadWindowOptions(SelectedWindow.WindowTypeName);
             await (_frontedWindowService?.RestartWindowForTransparencyChangeAsync(SelectedWindow.WindowTypeName)
                    ?? Task.FromResult(false));
-            WindowOptionsStatus = I18nHelper.GetLocalizedString("WindowOptionsApplied");
+            WindowOptionsStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "WindowOptionsApplied");
         }
         catch (Exception ex)
         {
@@ -5147,7 +5147,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private void RefreshDirtyState()
     {
         DirtyIndicatorText = CurrentDocument?.IsDirty == true || AreBehaviorsDirty
-            ? $"* {(CurrentDocument?.IsDirty == true ? I18nHelper.GetLocalizedString("Unsaved") : I18nHelper.GetLocalizedString("Designer.Behaviors.UnsavedBehaviorChanges"))}"
+            ? $"* {(CurrentDocument?.IsDirty == true ? I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Unsaved") : I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.Behaviors.UnsavedBehaviorChanges"))}"
             : string.Empty;
         OnPropertyChanged(nameof(HasUnsavedChanges));
         NotifyLayoutCommandState();
@@ -5392,7 +5392,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             var layerGroup = new FrontedLayerGroup
             {
                 ZIndex = group.Key,
-                DisplayName = $"{I18nHelper.GetLocalizedString("Designer.LayerPanel.Layer")} {group.Key}"
+                DisplayName = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.LayerPanel.Layer")} {group.Key}"
             };
 
             foreach (var item in group.OrderBy(item => CurrentDocument?.Controls.IndexOf(item) ?? 0))
@@ -5568,7 +5568,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 or nameof(GlobalScoreCellConfig.FontSize)
                 or nameof(GlobalScoreCellConfig.ShowCampIcon)
                 or nameof(GlobalScoreCellConfig.CampIconColor)
-                ? I18nHelper.GetLocalizedString("Designer.GlobalScoreRow.CellInheritsFromParent")
+                ? I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.GlobalScoreRow.CellInheritsFromParent")
                 : row.Description;
             row.IsGroupHeaderVisible = row.GroupName != currentGroup;
             row.GroupDisplayName = _localizationService.GetGroupDisplayName(row.GroupName ?? string.Empty);
@@ -5715,7 +5715,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     {
         if (SelectedDesignItem is null)
         {
-            SelectedControlDisplay = I18nHelper.GetLocalizedString("NoControlSelected");
+            SelectedControlDisplay = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "NoControlSelected");
             SelectedControlTypeDisplay = string.Empty;
             SelectedControlGeometryDisplay = string.Empty;
             SelectedControlValidationMessageCount = 0;
@@ -5726,7 +5726,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         if (TryGetSelectedGlobalScoreCell(out _, out _, out var cell))
         {
             SelectedControlDisplay = $"{SelectedDesignItem.Name} / {cell.Id}";
-            SelectedControlTypeDisplay = I18nHelper.GetLocalizedString("Designer.GlobalScoreRow.SelectedCell");
+            SelectedControlTypeDisplay = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.GlobalScoreRow.SelectedCell");
             SelectedControlGeometryDisplay =
                 $"X {cell.X:0.##}  Y {cell.Y:0.##}  "
                 + $"W {cell.Width:0.##}  H {cell.Height:0.##}";
@@ -5737,7 +5737,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         if (SelectedMapV2InternalStylePart is { } selectedPart)
         {
             SelectedControlDisplay = $"{SelectedDesignItem.Name} / {selectedPart.DisplayName}";
-            SelectedControlTypeDisplay = I18nHelper.GetLocalizedString("Designer.MapV2Display.SelectedInternalPart");
+            SelectedControlTypeDisplay = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.MapV2Display.SelectedInternalPart");
             var part = SelectedMapV2InternalPartLayout;
             SelectedControlGeometryDisplay = part is null
                 ? string.Empty
@@ -6388,7 +6388,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         if (canvas is null)
         {
             ZoomScale = 1D;
-            ZoomDisplay = I18nHelper.GetLocalizedString("Fit");
+            ZoomDisplay = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Fit");
             return;
         }
 
@@ -6406,7 +6406,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         double canvasHeight)
     {
         ZoomScale = CalculateFitZoom(viewportWidth, viewportHeight, canvasWidth, canvasHeight);
-        ZoomDisplay = $"{I18nHelper.GetLocalizedString("Fit")} ({ZoomScale:P0})";
+        ZoomDisplay = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Fit")} ({ZoomScale:P0})";
     }
 
     private void SetSelectedZoomPreset(FrontedDesignerZoomPreset? preset)
@@ -6426,7 +6426,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         text = text.Trim();
 
-        var fitKey = I18nHelper.GetLocalizedString("Fit");
+        var fitKey = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Fit");
         if (string.Equals(text, fitKey, StringComparison.OrdinalIgnoreCase)
             || string.Equals(text, "Fit", StringComparison.OrdinalIgnoreCase))
         {
@@ -6444,7 +6444,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             }
             else
             {
-                StatusMessage = I18nHelper.GetLocalizedString("Designer.ZoomInvalid");
+                StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.ZoomInvalid");
                 UpdateZoomEditTextFromCurrentZoom();
                 return false;
             }
@@ -6458,7 +6458,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             }
             else
             {
-                StatusMessage = I18nHelper.GetLocalizedString("Designer.ZoomInvalid");
+                StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.ZoomInvalid");
                 UpdateZoomEditTextFromCurrentZoom();
                 return false;
             }
@@ -6469,7 +6469,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
         else
         {
-            StatusMessage = I18nHelper.GetLocalizedString("Designer.ZoomInvalid");
+            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.ZoomInvalid");
             UpdateZoomEditTextFromCurrentZoom();
             return false;
         }
@@ -6487,7 +6487,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     {
         if (IsFitMode)
         {
-            ZoomEditText = I18nHelper.GetLocalizedString("Fit");
+            ZoomEditText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Fit");
         }
         else
         {
@@ -6546,7 +6546,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 {
                     if (!FrontedPropertyColorHelper.TryParseArgbColor(text, out var color))
                     {
-                        errorMessage = I18nHelper.GetLocalizedString("PropertyValidationErrors");
+                        errorMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "PropertyValidationErrors");
                         return false;
                     }
 
@@ -6590,7 +6590,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 var doubleValue = Convert.ToDouble(value, CultureInfo.InvariantCulture);
                 if (double.IsNaN(doubleValue) || double.IsInfinity(doubleValue))
                 {
-                    errorMessage = I18nHelper.GetLocalizedString("PropertyValidationErrors");
+                    errorMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "PropertyValidationErrors");
                     return false;
                 }
 
@@ -6598,7 +6598,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             }
             else
             {
-                errorMessage = I18nHelper.GetLocalizedString("PropertyValidationErrors");
+                errorMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "PropertyValidationErrors");
                 return false;
             }
 
@@ -6606,7 +6606,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
         catch (Exception)
         {
-            errorMessage = I18nHelper.GetLocalizedString("PropertyValidationErrors");
+            errorMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "PropertyValidationErrors");
             return false;
         }
     }

@@ -211,14 +211,14 @@ public partial class MainWindowViewModel :
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
             await File.WriteAllTextAsync(fullPath, json);
-            await MessageBoxHelper.ShowInfoAsync($"{I18nHelper.GetLocalizedString("SaveSuccessfullyTo")}\n{fullPath}",
-                I18nHelper.GetLocalizedString("SaveInfo"));
+            await MessageBoxHelper.ShowInfoAsync($"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "SaveSuccessfullyTo")}\n{fullPath}",
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "SaveInfo"));
             _logger.LogInformation("Save game {CurrentGameGuid} info successfully", CurrentGame.Guid);
         }
         catch (Exception ex)
         {
-            await MessageBoxHelper.ShowInfoAsync($"{I18nHelper.GetLocalizedString("SaveFailed")}\n{ex.Message}",
-                I18nHelper.GetLocalizedString("SaveInfo"));
+            await MessageBoxHelper.ShowInfoAsync($"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "SaveFailed")}\n{ex.Message}",
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "SaveInfo"));
             _logger.LogError("Save game {CurrentGameGuid} info failed\n{ExMessage}", CurrentGame.Guid, ex.Message);
         }
     }
@@ -235,19 +235,19 @@ public partial class MainWindowViewModel :
         {
             await _sharedDataService.ImportGameAsync(filePath);
             await MessageBoxHelper.ShowInfoAsync(
-                $"{I18nHelper.GetLocalizedString("ImportSuccessfullyFrom")}\n{filePath}",
-                I18nHelper.GetLocalizedString("ImportInfo"));
+                $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ImportSuccessfullyFrom")}\n{filePath}",
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ImportInfo"));
             _logger.LogInformation("Import game info successfully from {FilePath}", filePath);
         }
         catch (JsonException ex)
         {
             await MessageBoxHelper.ShowErrorAsync(
-                $"{I18nHelper.GetLocalizedString("JsonFileFormatError")}\n{ex.Message}");
+                $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "JsonFileFormatError")}\n{ex.Message}");
             _logger.LogError("Import game info failed: JSON format error\n{ExMessage}", ex.Message);
         }
         catch (Exception ex)
         {
-            await MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString("ImportFailed")}\n{ex.Message}");
+            await MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ImportFailed")}\n{ex.Message}");
             _logger.LogError("Import game info failed from {FilePath}\n{ExMessage}", filePath, ex.Message);
         }
     }
@@ -262,7 +262,7 @@ public partial class MainWindowViewModel :
         }
         else
         {
-            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("InvalidInput"));
+            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "InvalidInput"));
             _logger.LogError("Timer input is not valid");
         }
     }
@@ -286,16 +286,16 @@ public partial class MainWindowViewModel :
 
     private static string GetGuidanceActionDisplayName(GameAction action) => action switch
     {
-        GameAction.BanMap => I18nHelper.GetLocalizedString("BanMap"),
-        GameAction.PickMap => I18nHelper.GetLocalizedString("PickMap"),
-        GameAction.PickCamp => I18nHelper.GetLocalizedString("PickCamp"),
-        GameAction.BanSur => I18nHelper.GetLocalizedString("BanSurvivor"),
-        GameAction.BanHun => I18nHelper.GetLocalizedString("BanHunter"),
-        GameAction.PickSur => I18nHelper.GetLocalizedString("PickSurvivor"),
-        GameAction.DistributeChara => I18nHelper.GetLocalizedString("DistributeCharacters"),
-        GameAction.PickHun => I18nHelper.GetLocalizedString("PickHunter"),
-        GameAction.PickSurTalent => I18nHelper.GetLocalizedString("PickSurTalent"),
-        GameAction.PickHunTalent => I18nHelper.GetLocalizedString("PickHunTalent"),
+        GameAction.BanMap => I18nHelper.GetLocalizedString(AppI18nDictionaries.Bp, "BanMap"),
+        GameAction.PickMap => I18nHelper.GetLocalizedString(AppI18nDictionaries.Bp, "PickMap"),
+        GameAction.PickCamp => I18nHelper.GetLocalizedString(AppI18nDictionaries.Bp, "PickCamp"),
+        GameAction.BanSur => I18nHelper.GetLocalizedString(AppI18nDictionaries.Bp, "BanSurvivor"),
+        GameAction.BanHun => I18nHelper.GetLocalizedString(AppI18nDictionaries.Bp, "BanHunter"),
+        GameAction.PickSur => I18nHelper.GetLocalizedString(AppI18nDictionaries.Bp, "PickSurvivor"),
+        GameAction.DistributeChara => I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "DistributeCharacters"),
+        GameAction.PickHun => I18nHelper.GetLocalizedString(AppI18nDictionaries.Bp, "PickHunter"),
+        GameAction.PickSurTalent => I18nHelper.GetLocalizedString(AppI18nDictionaries.Bp, "PickSurTalent"),
+        GameAction.PickHunTalent => I18nHelper.GetLocalizedString(AppI18nDictionaries.Bp, "PickHunTalent"),
         _ => action.ToString()
     };
 

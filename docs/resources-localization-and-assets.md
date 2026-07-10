@@ -105,42 +105,59 @@ Designer v3 的字体属性下拉会把当前活动布局包 `resources/fonts/` 
 
 ## 本地化资源
 
-本地化文件：
+本地化资源已从单一 `Locales/Lang*.resx` 拆分为按功能域拥有的资源族。完整规则、字典选择、XAML/C# 引用模式、模块归属、文化与回退、审计方法等见 [localization.md](localization.md)。
+
+主程序本地化文件（每个族均包含 neutral + `.en-us` + `.ja-jp`）：
 
 ```text
-Locales/Lang.resx
-Locales/Lang.en-us.resx
-Locales/Lang.ja-jp.resx
-Locales/Lang.Designer.cs
+Locales/Common.resx        Locales/Shell.resx       Locales/Team.resx
+Locales/Game.resx          Locales/Bp.resx          Locales/Score.resx
+Locales/FrontManage.resx   Locales/Designer.resx    Locales/AnimationEditor.resx
+Locales/Settings.resx      Locales/PluginMarket.resx
 ```
 
-csproj 使用 `PublicResXFileCodeGenerator` 生成 designer，并把 resx 作为 `EmbeddedResource`。
+模块自有本地化文件：
 
-XAML 常见写法：
+```text
+neo-bpsys-wpf.ProductTour/Locales/Tour.resx (+ .en-us, .ja-jp)
+neo-bpsys-wpf.SmartBp.Module/Locales/SmartBp.resx (+ .en-us, .ja-jp)
+```
+
+所有 resx 作为 `EmbeddedResource` 嵌入各自程序集，不再使用 `PublicResXFileCodeGenerator` 或 `Lang.Designer.cs`。
+
+XAML 常见写法（需指定 `DefaultAssembly` 和 `DefaultDictionary`）：
 
 ```xaml
+lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell"
 Text="{lex:Loc SomeKey}"
 ```
 
-后台代码常见写法：
+后台代码常见写法（需指定字典常量）：
 
 ```csharp
-I18nHelper.GetLocalizedString("SomeKey")
+I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "SomeKey")
 ```
 
-`I18nHelper` 找不到 key 时返回原始 key，便于界面降级显示和定位缺失翻译。新增用户可见文本时至少添加默认 `Lang.resx`，并尽量补齐英文、日文资源，避免用户看到裸 key。
+前台布局控件等无法预先确定归属字典的场景使用全量查找：
+
+```csharp
+I18nHelper.GetLocalizedStringFromAnyHostDictionary("SomeKey")
+```
+
+`I18nHelper` 找不到 key 时返回原始 key，便于界面降级显示和定位缺失翻译。新增用户可见文本时至少添加对应功能族 neutral resx，并尽量补齐 `.en-us`、`.ja-jp`，避免用户看到裸 key。禁止重新引入单一 `Lang.resx`。
 
 SmartBP OCR 不维护模块内角色别名表；OCR 只解析区域和槽位，角色名匹配统一交给 `ICharacterSelectionService` / `CharacterSelectionService`，并且匹配时必须限定在传入阵营内，不得跨阵营查询。Tesseract traineddata 属于托管模型资产，固定下载到 SmartBP 模块目录的 `OCRModels/Tesseract/tessdata/`。RapidOCR profile 由 `Resources/SmartBp/RapidOcrModelManifest.json` 声明，安装到 `OCRModels/RapidOCR/Models/{profileId}/`。中、日、英模型及字典的完整 ModelScope 地址摘自 RapidOCR 官方 `python/rapidocr/default_models.yaml`；模型 SHA-256 使用官方值，字典则固定校验官方文件内容，不得在代码中拼接地址。下载统一使用 `SmartBpParallelDownload`。AppData 只保存 SmartBP 配置，不保存托管模型文件。
 
 RapidOCR manifest 的 `version` 和每个资产的下载契约共同生成安装指纹；安装目录内的 `.smartbp-install.json` 用于判断当前模型是否落后于随模块发布的 manifest。更新官方模型条目时必须同步提升版本或更新资产契约，并更新对应测试。
 
-Designer v3 的显示层本地化统一使用 `Designer.*` key 前缀。代码侧通过 `IFrontedDesignerLocalizationService` 访问，WPF 宿主实现再委托 `I18nHelper.GetLocalizedString(key)`；Core 中的默认实现只返回原始值，避免 Core 反向引用 WPF 项目。常用命名包括 `Designer.Property.*`、`Designer.PropertyGroup.*`、`Designer.ControlType.*`、`Designer.Option.{Property}.{Value}`、`Designer.Window.*`、`Designer.Canvas.*`、`Designer.Binding.*` 和 `Designer.BindingType.*`。
+Designer v3 的显示层本地化统一使用 `Designer.*` key 前缀，归属 `Locales.Designer` 字典。代码侧通过 `IFrontedDesignerLocalizationService` 访问，WPF 宿主实现再委托 `I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, key)`；Core 中的默认实现只返回原始值，避免 Core 反向引用 WPF 项目。常用命名包括 `Designer.Property.*`、`Designer.PropertyGroup.*`、`Designer.ControlType.*`、`Designer.Option.{Property}.{Value}`、`Designer.Window.*`、`Designer.Canvas.*`、`Designer.Binding.*` 和 `Designer.BindingType.*`。
 
 后，常用命名还包括 `Designer.Value.*`、`Designer.Editor.*` 和 `Designer.Validation.*`，用于只读布尔值、Binding Browser / Resource Browser 和属性校验提示。
 
 这些 key 只影响编辑器 UI 显示，不改变布局文件。`.bpui` / v3 JSON 中的 schema 字段名、控件 `Name`、`ControlType`、`BindingPath`、资源 URI 和 `FontFamily` 仍写入原始契约值；例如中文界面 ComboBox 显示“居中”，保存仍是 `"HorizontalAlignment": "Center"`。Binding Browser 可以显示本地化节点名，但界面必须保留原始路径，选择结果也必须写回原始 `BindingPath`。Resource Browser 可以显示本地化来源和类型，但选中区域必须保留原始资源 URI 或文件路径。
 
-`GameProgressText` 使用集中 helper 和资源 key 生成 `FREE GAME`、`GAME {n} FIRST HALF`、`GAME {n} OVERTIME SECOND HALF` 等文本，避免 BO3/BO5 进度文案散落在窗口 XAML 或 JSON 中。默认是单行文本（`DisplayMode = Inline`）；正式预设包括单行、双行、横排局数、横排半场、竖排、竖排双行、竖排局数、竖排半场。`DisplayLanguage = FollowApp` 时按 `WPFLocalizeExtension` 的当前应用语言生成文本，中文应用语言下应显示中文局数和半场文案。`MapNameText` 默认把 `CurrentGame.PickedMap` 枚举名作为本地化 key 查询地图名，也可以通过 `BindingPath` 指向其他地图字段，例如当前对局的 picked / banned map 数据；新增地图时要同步补齐地图资源 key。`LocalizedText` 用 `LocalizationKey` 查询普通 resx 文案，适合 GameData 表头等静态标签；如果 key 缺失会显示 `FallbackText` 或 key 本身。普通 `Text.Text` 仍是原样静态文本，不会自动本地化。
+`GameProgressText` 使用集中 helper 和资源 key 生成 `FREE GAME`、`GAME {n} FIRST HALF`、`GAME {n} OVERTIME SECOND HALF` 等文本，避免 BO3/BO5 进度文案散落在窗口 XAML 或 JSON 中。默认是单行文本（`DisplayMode = Inline`）；正式预设包括单行、双行、横排局数、横排半场、竖排、竖排双行、竖排局数、竖排半场。`DisplayLanguage = FollowApp` 时按 `WPFLocalizeExtension` 的当前应用语言生成文本，中文应用语言下应显示中文局数和半场文案。`MapNameText` 默认把 `CurrentGame.PickedMap` 枚举名作为本地化 key 查询地图名（地图 key 归属 `Locales.Game`），也可以通过 `BindingPath` 指向其他地图字段，例如当前对局的 picked / banned map 数据；新增地图时要同步补齐地图资源 key。`LocalizedText` 用 `LocalizationKey` 经 `I18nHelper.GetLocalizedStringFromAnyHostDictionary` 查询普通 resx 文案，适合 GameData 表头等静态标签；如果 key 缺失会显示 `FallbackText` 或 key 本身。普通 `Text.Text` 仍是原样静态文本，不会自动本地化。
 
 ## 添加新素材
 

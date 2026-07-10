@@ -28,7 +28,7 @@ public sealed class PluginInstallService(
         var manifestPath = Path.Combine(extractedDirectoryPath, "manifest.yml");
         if (!File.Exists(manifestPath))
         {
-            throw new Exception(I18nHelper.GetLocalizedString("CannotFindManifest"));
+            throw new Exception(I18nHelper.GetLocalizedString(AppI18nDictionaries.PluginMarket, "CannotFindManifest"));
         }
 
         var deserializer = new DeserializerBuilder()
@@ -40,14 +40,14 @@ public sealed class PluginInstallService(
         if (manifest == null)
         {
             logger.LogError("Manifest file is not valid at {Path}", manifestPath);
-            throw new Exception(I18nHelper.GetLocalizedString("ManifestNotValid"));
+            throw new Exception(I18nHelper.GetLocalizedString(AppI18nDictionaries.PluginMarket, "ManifestNotValid"));
         }
 
         var compatibility = PluginApiVersionHelper.Evaluate(manifest.ApiVersion);
         if (!compatibility.IsCompatible)
         {
             throw new InvalidOperationException(compatibility.IsTooHigh
-                ? I18nHelper.GetLocalizedString("PluginMarketInstallBlockedHostVersionTooLow")
+                ? I18nHelper.GetLocalizedString(AppI18nDictionaries.PluginMarket, "PluginMarketInstallBlockedHostVersionTooLow")
                 : compatibility.Message);
         }
 

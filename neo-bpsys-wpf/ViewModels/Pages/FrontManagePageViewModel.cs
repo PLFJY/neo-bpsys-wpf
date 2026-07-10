@@ -210,8 +210,8 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
         {
             var count = await _behaviorRuntime.StopAllLoopBehaviorsAsync(FrontedBehaviorStopReason.ManualClear);
             PackageManagerStatus = count > 0
-                ? string.Format(I18nHelper.GetLocalizedString("StoppedLoopAnimationsFormat"), count)
-                : I18nHelper.GetLocalizedString("NoActiveLoopAnimations");
+                ? string.Format(I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "StoppedLoopAnimationsFormat"), count)
+                : I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "NoActiveLoopAnimations");
         }
         catch (Exception ex)
         {
@@ -268,7 +268,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
         catch (Exception ex)
         {
             _logger?.LogError(ex, "Failed to open fronted designer window.");
-            _ = MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString("WindowLaunchError")}\n{ex.Message}");
+            _ = MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "WindowLaunchError")}\n{ex.Message}");
         }
     }
 
@@ -302,9 +302,9 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
                               ?? active
                               ?? LayoutPackages.FirstOrDefault();
             ActivePackageDisplay = active is null
-                ? I18nHelper.GetLocalizedString("SystemBuiltIn")
+                ? I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "SystemBuiltIn")
                 : $"{active.Name} ({active.PackageId})";
-            PackageManagerStatus = I18nHelper.GetLocalizedString("RefreshPackages");
+            PackageManagerStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "RefreshPackages");
         }
         catch (Exception ex)
         {
@@ -347,10 +347,10 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
             if (result.PackageAlreadyExists && !string.IsNullOrWhiteSpace(result.PackageId))
             {
                 var replace = await MessageBoxHelper.ShowConfirmAsync(
-                    I18nHelper.GetLocalizedString("ReplaceExistingPackage"),
-                    I18nHelper.GetLocalizedString("PackageAlreadyExists"),
-                    I18nHelper.GetLocalizedString("Confirm"),
-                    I18nHelper.GetLocalizedString("Cancel"));
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "ReplaceExistingPackage"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageAlreadyExists"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"));
                 if (!replace)
                 {
                     return;
@@ -369,15 +369,15 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
                 importedFromLegacy = true;
                 if (_legacyPackageConverter is null)
                 {
-                    PackageManagerStatus = I18nHelper.GetLocalizedString("LegacyPackageConvertFailed");
+                    PackageManagerStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "LegacyPackageConvertFailed");
                     return;
                 }
 
                 var convert = await MessageBoxHelper.ShowConfirmAsync(
-                    I18nHelper.GetLocalizedString("LegacyPackageConvertMessage"),
-                    I18nHelper.GetLocalizedString("LegacyPackageConvertTitle"),
-                    I18nHelper.GetLocalizedString("ConvertLegacyPackage"),
-                    I18nHelper.GetLocalizedString("Cancel"));
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "LegacyPackageConvertMessage"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "LegacyPackageConvertTitle"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "ConvertLegacyPackage"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"));
                 if (!convert)
                 {
                     return;
@@ -390,7 +390,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
                     LegacyPackagePath = path,
                     PackageId = packageId,
                     Name = string.IsNullOrWhiteSpace(packageName) ? packageId : packageName,
-                    Description = I18nHelper.GetLocalizedString("LegacyPackageDefaultDescription"),
+                    Description = I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "LegacyPackageDefaultDescription"),
                     Author = string.Empty,
                     MinVersion = string.Empty,
                     InstallAfterConvert = false,
@@ -400,7 +400,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
                 if (!convertResult.Success || string.IsNullOrWhiteSpace(convertResult.ConvertedPackagePath))
                 {
                     PackageManagerStatus =
-                        $"{I18nHelper.GetLocalizedString("LegacyPackageConvertFailed")}: {convertResult.ErrorMessage}";
+                        $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "LegacyPackageConvertFailed")}: {convertResult.ErrorMessage}";
                     await MessageBoxHelper.ShowErrorAsync(PackageManagerStatus);
                     return;
                 }
@@ -417,10 +417,10 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
                 if (result.PackageAlreadyExists && !string.IsNullOrWhiteSpace(result.PackageId))
                 {
                     var replace = await MessageBoxHelper.ShowConfirmAsync(
-                        I18nHelper.GetLocalizedString("ReplaceExistingPackage"),
-                        I18nHelper.GetLocalizedString("PackageAlreadyExists"),
-                        I18nHelper.GetLocalizedString("Confirm"),
-                        I18nHelper.GetLocalizedString("Cancel"));
+                        I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "ReplaceExistingPackage"),
+                        I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageAlreadyExists"),
+                        I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"),
+                        I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"));
                     if (!replace)
                     {
                         return;
@@ -451,17 +451,17 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
                 {
                     await MessageBoxHelper.ShowInfoAsync(
                         LegacyConversionMessageFormatter.BuildUserSummary(convertResult),
-                        I18nHelper.GetLocalizedString("LegacyPackageConvertWarnings"));
+                        I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "LegacyPackageConvertWarnings"));
                 }
 
                 PackageManagerStatus =
-                    $"{I18nHelper.GetLocalizedString("LegacyPackageConvertSucceeded")}: {packageId} "
-                    + $"{I18nHelper.GetLocalizedString("LayoutCount")}: {convertResult.LayoutCount}, "
-                    + $"{I18nHelper.GetLocalizedString("ResourceCount")}: {convertResult.ResourceCount}";
+                    $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "LegacyPackageConvertSucceeded")}: {packageId} "
+                    + $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "LayoutCount")}: {convertResult.LayoutCount}, "
+                    + $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "ResourceCount")}: {convertResult.ResourceCount}";
                 if (!result.Success)
                 {
                     PackageManagerStatus =
-                        $"{I18nHelper.GetLocalizedString("PackageImportFailed")}: {result.ErrorMessage}";
+                        $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageImportFailed")}: {result.ErrorMessage}";
                     return;
                 }
             }
@@ -473,27 +473,27 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
 
             if (result.RequiresNewerApp)
             {
-                PackageManagerStatus = I18nHelper.GetLocalizedString("PackageRequiresNewerVersion");
+                PackageManagerStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageRequiresNewerVersion");
                 return;
             }
 
             if (!result.Success)
             {
-                PackageManagerStatus = $"{I18nHelper.GetLocalizedString("PackageImportFailed")}: {result.ErrorMessage}";
+                PackageManagerStatus = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageImportFailed")}: {result.ErrorMessage}";
                 return;
             }
 
             await RefreshPackagesCoreAsync(result.PackageId);
             SelectedPackage = LayoutPackages.FirstOrDefault(package => package.PackageId == result.PackageId) ?? SelectedPackage;
             PackageManagerStatus =
-                $"{I18nHelper.GetLocalizedString("PackageImportSucceeded")}: {result.PackageId} "
-                + $"{I18nHelper.GetLocalizedString("LayoutCount")}: {result.LayoutCount}, "
-                + $"{I18nHelper.GetLocalizedString("ResourceCount")}: {result.ResourceCount}";
+                $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageImportSucceeded")}: {result.PackageId} "
+                + $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "LayoutCount")}: {result.LayoutCount}, "
+                + $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "ResourceCount")}: {result.ResourceCount}";
             if (await MessageBoxHelper.ShowConfirmAsync(
-                    I18nHelper.GetLocalizedString(importedFromLegacy ? "ActivateConvertedPackage" : "ActivateImportedPackage"),
-                    I18nHelper.GetLocalizedString("Tips"),
-                    I18nHelper.GetLocalizedString("Confirm"),
-                    I18nHelper.GetLocalizedString("Cancel"))
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, importedFromLegacy ? "ActivateConvertedPackage" : "ActivateImportedPackage"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "Tips"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"))
                 && !string.IsNullOrWhiteSpace(result.PackageId))
             {
                 if (_behaviorRuntime is not null)
@@ -505,13 +505,13 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
                 await _frontedWindowService.ReloadFrontedLayoutsAsync();
                 await RefreshPackagesCoreAsync(result.PackageId);
                 SelectedPackage = LayoutPackages.FirstOrDefault(package => package.PackageId == result.PackageId) ?? SelectedPackage;
-                PackageManagerStatus = $"{I18nHelper.GetLocalizedString("PackageActivatedInstalled")}: {result.PackageId}";
+                PackageManagerStatus = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageActivatedInstalled")}: {result.PackageId}";
             }
         }
         catch (Exception ex)
         {
             _logger?.LogWarning(ex, "Failed to import fronted layout package.");
-            PackageManagerStatus = $"{I18nHelper.GetLocalizedString("PackageImportFailed")}: {ex.Message}";
+            PackageManagerStatus = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageImportFailed")}: {ex.Message}";
         }
     }
 
@@ -547,29 +547,29 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
 
         if (installableItems.Count > 0 && _pluginMarketService is not null && _pluginInstallService is not null)
         {
-            var installMessage = I18nHelper.GetLocalizedString("MissingPluginImportMessage")
+            var installMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "MissingPluginImportMessage")
                                  + Environment.NewLine
                                  + Environment.NewLine
                                  + preview
                                  + Environment.NewLine
                                  + Environment.NewLine
-                                 + I18nHelper.GetLocalizedString("PluginDependencyInstallAvailableMessage")
+                                 + I18nHelper.GetLocalizedString(AppI18nDictionaries.PluginMarket, "PluginDependencyInstallAvailableMessage")
                                  + Environment.NewLine
-                                 + I18nHelper.GetLocalizedString("PluginDependencyInstallRestartNotice");
+                                 + I18nHelper.GetLocalizedString(AppI18nDictionaries.PluginMarket, "PluginDependencyInstallRestartNotice");
             var install = await MessageBoxHelper.ShowConfirmAsync(
                 installMessage,
-                I18nHelper.GetLocalizedString("MissingPluginImportTitle"),
-                I18nHelper.GetLocalizedString("PluginDependencyInstallButton"),
-                I18nHelper.GetLocalizedString("Cancel"));
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "MissingPluginImportTitle"),
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.PluginMarket, "PluginDependencyInstallButton"),
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"));
             if (install)
             {
                 try
                 {
                     await InstallMarketDependenciesAsync(installableItems);
                     await MessageBoxHelper.ShowInfoAsync(
-                        I18nHelper.GetLocalizedString("SomeSettingsRequireRestartingTheApplication"),
-                        I18nHelper.GetLocalizedString("RestartNeeded"),
-                        I18nHelper.GetLocalizedString("Confirm"));
+                        I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "SomeSettingsRequireRestartingTheApplication"),
+                        I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "RestartNeeded"),
+                        I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"));
                 }
                 catch (Exception ex)
                 {
@@ -585,8 +585,8 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
                       + preview;
         await MessageBoxHelper.ShowInfoAsync(
             message,
-            I18nHelper.GetLocalizedString("MissingPluginImportTitle"),
-            I18nHelper.GetLocalizedString("Close"));
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "MissingPluginImportTitle"),
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Close"));
         return result;
     }
 
@@ -664,18 +664,18 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
             .Select(dependency =>
             {
                 var status = dependency.IsMarketUnavailable
-                    ? I18nHelper.GetLocalizedString("PluginDependencyMarketOffline")
+                    ? I18nHelper.GetLocalizedString(AppI18nDictionaries.PluginMarket, "PluginDependencyMarketOffline")
                     : dependency.IsAvailableInMarket
-                        ? I18nHelper.GetLocalizedString("PluginDependencyMarketAvailable")
+                        ? I18nHelper.GetLocalizedString(AppI18nDictionaries.PluginMarket, "PluginDependencyMarketAvailable")
                         : dependency.IsInstalled && !dependency.IsVersionSatisfied
-                            ? I18nHelper.GetLocalizedString("PluginDependencyUpdateRequired")
-                            : I18nHelper.GetLocalizedString("PluginDependencyNotFoundInMarket");
+                            ? I18nHelper.GetLocalizedString(AppI18nDictionaries.PluginMarket, "PluginDependencyUpdateRequired")
+                            : I18nHelper.GetLocalizedString(AppI18nDictionaries.PluginMarket, "PluginDependencyNotFoundInMarket");
                 var controls = dependency.AffectedControls.Count > 0
                     ? string.Join(", ", dependency.AffectedControls.Take(3).Select(control => $"{control.Window} {control.ControlName}"))
                     : string.Join(", ", dependency.RequiredBy.Take(3));
                 return $"{dependency.DisplayName ?? dependency.PackageId} [{dependency.PackageId}] "
-                       + $"{I18nHelper.GetLocalizedString("PluginDependencyMinVersion")}={dependency.MinVersion ?? "-"} "
-                       + $"{I18nHelper.GetLocalizedString("PluginDependencyInstalledVersion")}={dependency.InstalledVersion ?? "-"} {status}"
+                       + $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.PluginMarket, "PluginDependencyMinVersion")}={dependency.MinVersion ?? "-"} "
+                       + $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.PluginMarket, "PluginDependencyInstalledVersion")}={dependency.InstalledVersion ?? "-"} {status}"
                        + (string.IsNullOrWhiteSpace(controls) ? string.Empty : $"{Environment.NewLine}  {controls}");
             })
             .ToList();
@@ -730,7 +730,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
                     }
 
                     throw new InvalidOperationException(
-                        $"{I18nHelper.GetLocalizedString("PluginDependencyInstallFailed")}: {pluginId} {ex.Message}",
+                        $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.PluginMarket, "PluginDependencyInstallFailed")}: {pluginId} {ex.Message}",
                         ex);
                 }
                 finally
@@ -745,7 +745,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
             if (failed != null)
             {
                 throw new InvalidOperationException(
-                    $"{I18nHelper.GetLocalizedString("PluginDependencyInstallFailed")}: {failed.PluginId} {failed.ErrorMessage}");
+                    $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.PluginMarket, "PluginDependencyInstallFailed")}: {failed.PluginId} {failed.ErrorMessage}");
             }
 
             if (!_pluginMarketService.IsDownloading
@@ -761,7 +761,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
         {
             _logger?.LogError("Plugin dependencies install incomplete: {Ids}", string.Join(", ", pendingIds.OrderBy(id => id, StringComparer.OrdinalIgnoreCase)));
             throw new InvalidOperationException(
-                $"{I18nHelper.GetLocalizedString("PluginDependencyInstallIncomplete")}: {string.Join(", ", pendingIds.OrderBy(id => id, StringComparer.OrdinalIgnoreCase))}");
+                $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.PluginMarket, "PluginDependencyInstallIncomplete")}: {string.Join(", ", pendingIds.OrderBy(id => id, StringComparer.OrdinalIgnoreCase))}");
         }
     }
 
@@ -836,10 +836,10 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
             var request = window.ExportRequest;
             if (File.Exists(request.OutputPath)
                 && !await MessageBoxHelper.ShowConfirmAsync(
-                    I18nHelper.GetLocalizedString("ConfirmOverwriteFile"),
-                    I18nHelper.GetLocalizedString("Tips"),
-                    I18nHelper.GetLocalizedString("Confirm"),
-                    I18nHelper.GetLocalizedString("Cancel")))
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "ConfirmOverwriteFile"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "Tips"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel")))
             {
                 return;
             }
@@ -848,19 +848,19 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
             if (result.Success)
             {
                 PackageManagerStatus =
-                    $"{I18nHelper.GetLocalizedString("PackageExportSucceeded")}: {result.OutputPath} "
-                    + $"{I18nHelper.GetLocalizedString("ExportedLayoutCount")}: {result.LayoutCount}, "
-                    + $"{I18nHelper.GetLocalizedString("ExportedResourceCount")}: {result.ResourceCount}";
+                    $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageExportSucceeded")}: {result.OutputPath} "
+                    + $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "ExportedLayoutCount")}: {result.LayoutCount}, "
+                    + $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "ExportedResourceCount")}: {result.ResourceCount}";
             }
             else
             {
-                PackageManagerStatus = $"{I18nHelper.GetLocalizedString("PackageExportFailed")}: {result.ErrorMessage}";
+                PackageManagerStatus = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageExportFailed")}: {result.ErrorMessage}";
             }
         }
         catch (Exception ex)
         {
             _logger?.LogWarning(ex, "Failed to export fronted layout package.");
-            PackageManagerStatus = $"{I18nHelper.GetLocalizedString("PackageExportFailed")}: {ex.Message}";
+            PackageManagerStatus = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageExportFailed")}: {ex.Message}";
         }
     }
 
@@ -903,7 +903,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
 
         if (SelectedPackage.IsLocal)
         {
-            PackageManagerStatus = I18nHelper.GetLocalizedString("PackageActivationNotImplemented");
+            PackageManagerStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageActivationNotImplemented");
             return;
         }
 
@@ -912,10 +912,10 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
             if (confirm
                 && !SelectedPackage.IsActivePackage
                 && !await MessageBoxHelper.ShowConfirmAsync(
-                    I18nHelper.GetLocalizedString("ConfirmActivatePackage"),
-                    I18nHelper.GetLocalizedString("Tips"),
-                    I18nHelper.GetLocalizedString("Confirm"),
-                    I18nHelper.GetLocalizedString("Cancel")))
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "ConfirmActivatePackage"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "Tips"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel")))
             {
                 return;
             }
@@ -931,8 +931,8 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
             await _frontedWindowService.ReloadFrontedLayoutsAsync();
             await RefreshPackagesCoreAsync(activatedPackageId);
             PackageManagerStatus = activatedIsBuiltin
-                ? I18nHelper.GetLocalizedString("PackageActivatedBuiltin")
-                : $"{I18nHelper.GetLocalizedString("PackageActivatedInstalled")}: {activatedPackageId}";
+                ? I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageActivatedBuiltin")
+                : $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageActivatedInstalled")}: {activatedPackageId}";
         }
         catch (Exception ex)
         {
@@ -951,7 +951,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
 
         if (SelectedPackage.IsLocal)
         {
-            PackageManagerStatus = I18nHelper.GetLocalizedString("CannotDuplicateLocalPackage");
+            PackageManagerStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "CannotDuplicateLocalPackage");
             return;
         }
 
@@ -961,12 +961,12 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
             await _frontedWindowService.ReloadFrontedLayoutsAsync();
             await RefreshPackagesCoreAsync(duplicated.PackageId);
             SelectedPackage = LayoutPackages.FirstOrDefault(package => package.PackageId == duplicated.PackageId) ?? SelectedPackage;
-            PackageManagerStatus = $"{I18nHelper.GetLocalizedString("LayoutPackageDuplicated")}: {duplicated.Name}";
+            PackageManagerStatus = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "LayoutPackageDuplicated")}: {duplicated.Name}";
         }
         catch (Exception ex)
         {
             _logger?.LogWarning(ex, "Failed to duplicate fronted layout package {PackageId}.", SelectedPackage.PackageId);
-            PackageManagerStatus = $"{I18nHelper.GetLocalizedString("DuplicateLayoutPackageFailed")}: {ex.Message}";
+            PackageManagerStatus = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "DuplicateLayoutPackageFailed")}: {ex.Message}";
         }
     }
 
@@ -980,13 +980,13 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
 
         if (SelectedPackage.IsBuiltin)
         {
-            PackageManagerStatus = I18nHelper.GetLocalizedString("CannotDeleteBuiltinPackage");
+            PackageManagerStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "CannotDeleteBuiltinPackage");
             return;
         }
 
         if (SelectedPackage.IsLocal)
         {
-            PackageManagerStatus = I18nHelper.GetLocalizedString("CannotDeleteLocalPackage");
+            PackageManagerStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "CannotDeleteLocalPackage");
             return;
         }
 
@@ -994,13 +994,13 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
         try
         {
             var confirmMessage = SelectedPackage.IsActivePackage
-                ? I18nHelper.GetLocalizedString("ConfirmDeleteActivePackage")
-                : I18nHelper.GetLocalizedString("ConfirmDeletePackage");
+                ? I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "ConfirmDeleteActivePackage")
+                : I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "ConfirmDeletePackage");
             if (!await MessageBoxHelper.ShowConfirmAsync(
                     confirmMessage,
-                    I18nHelper.GetLocalizedString("Tips"),
-                    I18nHelper.GetLocalizedString("Confirm"),
-                    I18nHelper.GetLocalizedString("Cancel")))
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "Tips"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel")))
             {
                 return;
             }
@@ -1012,14 +1012,14 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
             }
 
             await _frontedWindowService.ReloadFrontedLayoutsAsync();
-            PackageManagerStatus = I18nHelper.GetLocalizedString("PackageDeleted");
+            PackageManagerStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageDeleted");
             SelectedPackage = null;
             await RefreshPackagesAsync();
         }
         catch (Exception ex)
         {
             _logger?.LogWarning(ex, "Failed to delete fronted layout package {PackageId}.", packageId);
-            PackageManagerStatus = $"{I18nHelper.GetLocalizedString("PackageDeleteFailed")}: {ex.Message}";
+            PackageManagerStatus = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageDeleteFailed")}: {ex.Message}";
         }
     }
 
@@ -1200,8 +1200,8 @@ public sealed class FrontedWindowManageGroup
     {
         return groupKey switch
         {
-            "BuiltIn" => I18nHelper.GetLocalizedString("SystemBuiltIn"),
-            "Plugin" => I18nHelper.GetLocalizedString("Plugins"),
+            "BuiltIn" => I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "SystemBuiltIn"),
+            "Plugin" => I18nHelper.GetLocalizedString(AppI18nDictionaries.PluginMarket, "Plugins"),
             _ => groupKey
         };
     }
@@ -1254,9 +1254,9 @@ public sealed class FrontedWindowManageItem
             FullWindowType = descriptor.FullWindowType,
             KindDisplay = descriptor.Kind switch
             {
-                FrontedWindowKind.PluginXaml => I18nHelper.GetLocalizedString("FrontedWindowKind.PluginXaml"),
-                FrontedWindowKind.PluginLayout => I18nHelper.GetLocalizedString("FrontedWindowKind.PluginLayout"),
-                _ => I18nHelper.GetLocalizedString("FrontedWindowKind.BuiltIn")
+                FrontedWindowKind.PluginXaml => I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "FrontedWindowKind.PluginXaml"),
+                FrontedWindowKind.PluginLayout => I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "FrontedWindowKind.PluginLayout"),
+                _ => I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "FrontedWindowKind.BuiltIn")
             },
             CanCustomize = descriptor.IsV3LayoutWindow && descriptor.Customizable
         };

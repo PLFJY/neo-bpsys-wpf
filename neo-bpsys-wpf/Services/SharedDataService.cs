@@ -190,8 +190,8 @@ public partial class SharedDataService : ISharedDataService
             new Game(surTeam, hunTeam, gameProgress, pickedMap, bannedMap, mapV2Dictionary, matchScore: matchScore);
 
         _ = MessageBoxHelper.ShowInfoAsync(
-            $"{I18nHelper.GetLocalizedString("NewGameHasBeenCreated")}\n{CurrentGame.Guid}",
-            I18nHelper.GetLocalizedString("CreateTip"), I18nHelper.GetLocalizedString("Cancel"));
+            $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, "NewGameHasBeenCreated")}\n{CurrentGame.Guid}",
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "CreateTip"), I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"));
     }
 
     public async Task ImportGameAsync(string filePath)

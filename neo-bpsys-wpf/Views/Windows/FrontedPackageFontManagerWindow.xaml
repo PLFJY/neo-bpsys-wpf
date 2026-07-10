@@ -13,7 +13,7 @@
     MinHeight="380"
     lex:LocalizeDictionary.DesignCulture="zh"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Lang"
+    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Designer"
     Background="{DynamicResource ApplicationBackgroundBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Loaded="FrontedPackageFontManagerWindow_OnLoaded"
@@ -116,7 +116,8 @@
                 MinWidth="96"
                 Margin="8,0,0,0"
                 Click="Close_OnClick"
-                Content="{lex:Loc Close}" />
+                Content="{lex:Loc Close}"
+                lex:ResxLocalizationProvider.DefaultDictionary="Locales.Common" />
         </StackPanel>
     </Grid>
 </ui:FluentWindow>

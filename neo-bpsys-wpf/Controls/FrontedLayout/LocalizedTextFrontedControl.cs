@@ -70,8 +70,8 @@ public class LocalizedTextFrontedControl(ILogger<LocalizedTextFrontedControl>? l
         }
 
         var localizedText = culture is null
-            ? I18nHelper.GetLocalizedString(localizationKey)
-            : I18nHelper.GetLocalizedString(localizationKey, culture);
+            ? I18nHelper.GetLocalizedStringFromAnyHostDictionary(localizationKey)
+            : I18nHelper.GetLocalizedStringFromAnyHostDictionary(localizationKey, culture);
         return localizedText == localizationKey && fallbackText is not null
             ? fallbackText
             : localizedText;

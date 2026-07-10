@@ -451,7 +451,7 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     {
         var editor = (FrontedAnimationPartEditorViewModel)context.ObjectInstance;
         return string.IsNullOrWhiteSpace(value) || !editor._isNameAvailable(value.Trim())
-            ? new ValidationResult(I18nHelper.GetLocalizedString("Designer.AnimationParts.InvalidName"))
+            ? new ValidationResult(I18nHelper.GetLocalizedString(AppI18nDictionaries.AnimationEditor, "Designer.AnimationParts.InvalidName"))
             : ValidationResult.Success;
     }
 
@@ -476,7 +476,7 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
 
         return TryParseFiniteDouble(numericText, out var number) && number >= 0D
             ? ValidationResult.Success
-            : new ValidationResult(I18nHelper.GetLocalizedString("Designer.AnimationParts.Validation.Size"));
+            : new ValidationResult(I18nHelper.GetLocalizedString(AppI18nDictionaries.AnimationEditor, "Designer.AnimationParts.Validation.Size"));
     }
 
     /// <summary>
@@ -488,7 +488,7 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     public static ValidationResult? ValidateNumberValue(string value, ValidationContext context) =>
         TryParseFiniteDouble(value, out _)
             ? ValidationResult.Success
-            : new ValidationResult(I18nHelper.GetLocalizedString("Designer.AnimationParts.Validation.Number"));
+            : new ValidationResult(I18nHelper.GetLocalizedString(AppI18nDictionaries.AnimationEditor, "Designer.AnimationParts.Validation.Number"));
 
     /// <summary>
     /// Validates a non-negative finite number.
@@ -499,7 +499,7 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     public static ValidationResult? ValidateNonNegativeNumberValue(string value, ValidationContext context) =>
         TryParseFiniteDouble(value, out var number) && number >= 0D
             ? ValidationResult.Success
-            : new ValidationResult(I18nHelper.GetLocalizedString("Designer.AnimationParts.Validation.NonNegativeNumber"));
+            : new ValidationResult(I18nHelper.GetLocalizedString(AppI18nDictionaries.AnimationEditor, "Designer.AnimationParts.Validation.NonNegativeNumber"));
 
     /// <summary>
     /// Validates an opacity value.
@@ -510,7 +510,7 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     public static ValidationResult? ValidateOpacityValue(string value, ValidationContext context) =>
         TryParseFiniteDouble(value, out var number) && number is >= 0D and <= 1D
             ? ValidationResult.Success
-            : new ValidationResult(I18nHelper.GetLocalizedString("Designer.AnimationParts.Validation.Opacity"));
+            : new ValidationResult(I18nHelper.GetLocalizedString(AppI18nDictionaries.AnimationEditor, "Designer.AnimationParts.Validation.Opacity"));
 
     /// <summary>
     /// Validates an integer value.
@@ -521,7 +521,7 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     public static ValidationResult? ValidateIntegerValue(string value, ValidationContext context) =>
         int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out _)
             ? ValidationResult.Success
-            : new ValidationResult(I18nHelper.GetLocalizedString("Designer.AnimationParts.Validation.Integer"));
+            : new ValidationResult(I18nHelper.GetLocalizedString(AppI18nDictionaries.AnimationEditor, "Designer.AnimationParts.Validation.Integer"));
 
     /// <summary>
     /// Validates an optional WPF color.
@@ -532,7 +532,7 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     public static ValidationResult? ValidateColorValue(string value, ValidationContext context) =>
         string.IsNullOrWhiteSpace(value) || FrontedPropertyColorHelper.TryParseArgbColor(value, out _)
             ? ValidationResult.Success
-            : new ValidationResult(I18nHelper.GetLocalizedString("Designer.AnimationParts.Validation.Color"));
+            : new ValidationResult(I18nHelper.GetLocalizedString(AppI18nDictionaries.AnimationEditor, "Designer.AnimationParts.Validation.Color"));
 
     /// <summary>
     /// Validates a layout-package resource path.
@@ -543,7 +543,7 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     public static ValidationResult? ValidateResourcePathValue(string value, ValidationContext context) =>
         value.Length <= FrontedLayoutLimits.MaxResourcePathLength
             ? ValidationResult.Success
-            : new ValidationResult(I18nHelper.GetLocalizedString("ResourcePathTooLong"));
+            : new ValidationResult(I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ResourcePathTooLong"));
 
     private void SetColorFromPicker(
         ref Color storage,

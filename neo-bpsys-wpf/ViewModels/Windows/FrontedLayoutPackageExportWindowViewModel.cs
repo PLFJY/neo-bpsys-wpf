@@ -29,7 +29,7 @@ public partial class FrontedLayoutPackageExportWindowViewModel : ViewModelBase
         Author = GetDefaultAuthor();
         MinVersion = GetDefaultMinVersion();
         PackageId = CreateDefaultPackageId(Author);
-        PackageName = I18nHelper.GetLocalizedString("FrontendLayoutPackageDefaultName");
+        PackageName = I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "FrontendLayoutPackageDefaultName");
     }
 
     [ObservableProperty]
@@ -112,7 +112,7 @@ public partial class FrontedLayoutPackageExportWindowViewModel : ViewModelBase
         if (!string.Equals(value, clamped, StringComparison.Ordinal))
         {
             setValue(clamped);
-            ValidationMessage = I18nHelper.GetLocalizedString("InputTruncated");
+            ValidationMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "InputTruncated");
         }
     }
 
@@ -120,22 +120,22 @@ public partial class FrontedLayoutPackageExportWindowViewModel : ViewModelBase
     {
         if (!FrontedLayoutPackageExporter.IsSafePackageId(PackageId.Trim()))
         {
-            return I18nHelper.GetLocalizedString("InvalidPackageId");
+            return I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "InvalidPackageId");
         }
 
         if (string.IsNullOrWhiteSpace(PackageName))
         {
-            return I18nHelper.GetLocalizedString("PackageNameRequired");
+            return I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageNameRequired");
         }
 
         if (string.IsNullOrWhiteSpace(OutputPath))
         {
-            return I18nHelper.GetLocalizedString("OutputPathRequired");
+            return I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "OutputPathRequired");
         }
 
         if (FrontedTextLimitHelper.IsTooLong(OutputPath, FrontedLayoutLimits.MaxResourcePathLength))
         {
-            return I18nHelper.GetLocalizedString("ResourcePathTooLong");
+            return I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ResourcePathTooLong");
         }
 
         if (!string.Equals(Path.GetExtension(OutputPath), ".bpui", StringComparison.OrdinalIgnoreCase))

@@ -18,6 +18,8 @@
     d:DesignWidth="685"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Settings"
     mc:Ignorable="d">
     <Page.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
@@ -218,6 +220,7 @@
                                     Margin="10,10,0,0"
                                     HorizontalAlignment="Left"
                                     Command="{Binding CancelDownloadCommand}"
+                                    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Common"
                                     Content="{lex:Loc Stop}"
                                     Icon="{ui:SymbolIcon Symbol=Stop24}"
                                     Visibility="{Binding IsDownloading, Converter={StaticResource BooleanToVisibilityConverter}}" />
@@ -403,11 +406,13 @@
                     <ui:Button
                         Margin="0,0,10,0"
                         Command="{Binding SaveSmartBpModuleRootCommand}"
+                        lex:ResxLocalizationProvider.DefaultDictionary="Locales.Common"
                         Content="{lex:Loc Save}"
                         Icon="{ui:SymbolIcon Symbol=Save24}" />
                     <ui:Button
                         Margin="0,0,10,0"
                         Command="{Binding ResetSmartBpModuleRootCommand}"
+                        lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell"
                         Content="{lex:Loc ResetToBuiltIn}"
                         Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                     <ui:Button

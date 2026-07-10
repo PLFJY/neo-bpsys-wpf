@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <data name="BanNumberControl" xml:space="preserve">
+    <value>禁用数量控制</value>
+  </data>
+  <data name="PickingBorderImage" xml:space="preserve">
+    <value>待选框</value>
+  </data>
+  <data name="PickingBorderImageColor" xml:space="preserve">
+    <value>待选框边缘颜色（覆盖贴图颜色）</value>
+  </data>
+  <data name="MapBP" xml:space="preserve">
+    <value>地图禁选</value>
+  </data>
+  <data name="MapBPBackground" xml:space="preserve">
+    <value>地图BP背景</value>
+  </data>
+  <data name="MapBPV2Background" xml:space="preserve">
+    <value>地图BPV2背景</value>
+  </data>
+  <data name="PickingBorderOfMapBPV2" xml:space="preserve">
+    <value>待选框（地图BP V2）</value>
+  </data>
+  <data name="PickingBorderColorOfMapBPV2" xml:space="preserve">
+    <value>待选框颜色（地图BP V2）</value>
+  </data>
+  <data name="PickMap" xml:space="preserve">
+    <value>地图选择</value>
+  </data>
+  <data name="OperateTeam" xml:space="preserve">
+    <value>操作队伍：</value>
+  </data>
+  <data name="BanMap" xml:space="preserve">
+    <value>地图禁用</value>
+  </data>
+  <data name="PickSurvivor" xml:space="preserve">
+    <value>选择求生者</value>
+  </data>
+  <data name="PickHunter" xml:space="preserve">
+    <value>选择监管者</value>
+  </data>
+  <data name="GlobalBanSurvivor" xml:space="preserve">
+    <value>全局禁用求生者</value>
+  </data>
+  <data name="GlobalBanHunter" xml:space="preserve">
+    <value>全局禁用监管者</value>
+  </data>
+  <data name="BanHunter" xml:space="preserve">
+    <value>禁用监管者</value>
+  </data>
+  <data name="BanSurvivor" xml:space="preserve">
+    <value>禁用求生者</value>
+  </data>
+  <data name="PickCharacter" xml:space="preserve">
+    <value>选择角色</value>
+  </data>
+  <data name="TalentAndTrait" xml:space="preserve">
+    <value>天赋特质</value>
+  </data>
+  <data name="IndexFormat" xml:space="preserve">
+    <value> {0} 号位</value>
+    <comment>报错为正常现象</comment>
+  </data>
+  <data name="PickWordInMapBP" xml:space="preserve">
+    <value>“选用”文字（地图BP）</value>
+  </data>
+  <data name="BanWordInMapBP" xml:space="preserve">
+    <value>“禁用”文字（地图BP）</value>
+  </data>
+  <data name="Pick" xml:space="preserve">
+    <value>选择</value>
+  </data>
+  <data name="Ban" xml:space="preserve">
+    <value>禁用</value>
+  </data>
+  <data name="PickCamp" xml:space="preserve">
+    <value>选择阵营</value>
+  </data>
+  <data name="PickSurTalent" xml:space="preserve">
+    <value>选择求生者天赋</value>
+  </data>
+  <data name="PickHunTalent" xml:space="preserve">
+    <value>选择监管者天赋</value>
+  </data>
+  <data name="AreYouSureToResetMapBP" xml:space="preserve">
+    <value>是否重置地图BP？</value>
+  </data>
+  <data name="TalentBinding" xml:space="preserve">
+    <value>天赋绑定</value>
+  </data>
+  <data name="TraitBinding" xml:space="preserve">
+    <value>辅助特质绑定</value>
+  </data>
+  <data name="Talent" xml:space="preserve">
+    <value>天赋</value>
+  </data>
+</root>

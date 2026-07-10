@@ -725,7 +725,7 @@ public partial class PluginPageViewModel
 
     private static string FormatLocalized(string key, params object[] args)
     {
-        return string.Format(I18nHelper.GetLocalizedString(key), args);
+        return string.Format(I18nHelper.GetLocalizedString(AppI18nDictionaries.PluginMarket, key), args);
     }
 
     /// <summary>

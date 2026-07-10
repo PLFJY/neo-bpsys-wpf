@@ -12,7 +12,7 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using System.Windows;
 using System.Threading;
-using I18nHelper = neo_bpsys_wpf.Helpers.I18nHelper;
+using neo_bpsys_wpf.Helpers;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -123,7 +123,7 @@ public class UpdaterService : IUpdaterService
             || string.IsNullOrWhiteSpace(sha256Asset.BrowserDownloadUrl))
         {
             CleanupDownloadedUpdateFiles();
-            return MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("AppUpdateHashFileMissing"));
+            return MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "AppUpdateHashFileMissing"));
         }
 
         lock (_downloadLock)
@@ -154,7 +154,7 @@ public class UpdaterService : IUpdaterService
         {
             CleanupDownloadedUpdateFiles();
             ResetDownloadState(isDownloadFinished: false);
-            return MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString("DownloadFails")}: {ex.Message}");
+            return MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "DownloadFails")}: {ex.Message}");
         }
 
         return Task.CompletedTask;
@@ -187,7 +187,7 @@ public class UpdaterService : IUpdaterService
             await Application.Current.Dispatcher.InvokeAsync(async () =>
             {
                 await MessageBoxHelper.ShowErrorAsync(
-                    $"{I18nHelper.GetLocalizedString("DownloadFails")}: {e.Error.Message}");
+                    $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "DownloadFails")}: {e.Error.Message}");
             });
             return;
         }
@@ -214,7 +214,7 @@ public class UpdaterService : IUpdaterService
                 await Application.Current.Dispatcher.InvokeAsync(async () =>
                 {
                     await MessageBoxHelper.ShowErrorAsync(
-                        $"{I18nHelper.GetLocalizedString("DownloadFails")}: {ex.Message}");
+                        $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "DownloadFails")}: {ex.Message}");
                 });
             }
 
@@ -231,10 +231,10 @@ public class UpdaterService : IUpdaterService
                 ResetDownloadState(isDownloadFinished: true);
                 await Application.Current.Dispatcher.InvokeAsync(async () =>
                 {
-                    if (await MessageBoxHelper.ShowConfirmAsync(I18nHelper.GetLocalizedString("DownloadFinished"),
-                            I18nHelper.GetLocalizedString("DownloadTip"),
-                            I18nHelper.GetLocalizedString("Install"),
-                            I18nHelper.GetLocalizedString("Cancel")))
+                    if (await MessageBoxHelper.ShowConfirmAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "DownloadFinished"),
+                            I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "DownloadTip"),
+                            I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "Install"),
+                            I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel")))
                     {
                         _ = InstallUpdate();
                     }
@@ -247,7 +247,7 @@ public class UpdaterService : IUpdaterService
                 await Application.Current.Dispatcher.InvokeAsync(async () =>
                 {
                     await MessageBoxHelper.ShowErrorAsync(
-                        $"{I18nHelper.GetLocalizedString("DownloadFails")}: {ex.Message}");
+                        $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "DownloadFails")}: {ex.Message}");
                 });
             }
         }
@@ -277,7 +277,7 @@ public class UpdaterService : IUpdaterService
         await GetNewVersionInfoAsync();
         if (string.IsNullOrEmpty(NewVersionInfo.TagName))
         {
-            await MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("CheckForUpdatesFailed"));
+            await MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "CheckForUpdatesFailed"));
             return false;
         }
 
@@ -285,16 +285,16 @@ public class UpdaterService : IUpdaterService
         {
             if (!isInitial)
             {
-                var result = await MessageBoxHelper.ShowConfirmAsync(I18nHelper.GetLocalizedString("CheckForUpdates"),
-                    $"{I18nHelper.GetLocalizedString("NewUpdateFound")}: {NewVersionInfo.TagName}",
-                    I18nHelper.GetLocalizedString("Update"), I18nHelper.GetLocalizedString("Cancel"));
+                var result = await MessageBoxHelper.ShowConfirmAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "CheckForUpdates"),
+                    $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "NewUpdateFound")}: {NewVersionInfo.TagName}",
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "Update"), I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"));
                 if (result)
                     await DownloadUpdate(mirror);
             }
             else
             {
                 _infoBarService.ShowSuccessInfoBar(
-                    $"{I18nHelper.GetLocalizedString("NewUpdateFound")}：{NewVersionInfo.TagName}");
+                    $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "NewUpdateFound")}：{NewVersionInfo.TagName}");
             }
 
             NewVersionInfoChanged?.Invoke(this, EventArgs.Empty);
@@ -303,8 +303,8 @@ public class UpdaterService : IUpdaterService
 
         if (!isInitial)
         {
-            await MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString("NoUpdatesAvailable"),
-                I18nHelper.GetLocalizedString("CheckForUpdates"));
+            await MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "NoUpdatesAvailable"),
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "CheckForUpdates"));
         }
 
         NewVersionInfoChanged?.Invoke(this, EventArgs.Empty);
@@ -435,7 +435,7 @@ public class UpdaterService : IUpdaterService
         {
             CleanupFileIfExists(installerPath);
             CleanupFileIfExists(sha256FilePath);
-            throw new InvalidOperationException(I18nHelper.GetLocalizedString("AppUpdateSha256Mismatch"));
+            throw new InvalidOperationException(I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "AppUpdateSha256Mismatch"));
         }
     }
 
@@ -444,7 +444,7 @@ public class UpdaterService : IUpdaterService
         var content = File.ReadAllText(sha256FilePath).Trim();
         if (string.IsNullOrWhiteSpace(content))
         {
-            throw new InvalidOperationException(I18nHelper.GetLocalizedString("AppUpdateInvalidHashFile"));
+            throw new InvalidOperationException(I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "AppUpdateInvalidHashFile"));
         }
 
         var hash = content
@@ -452,7 +452,7 @@ public class UpdaterService : IUpdaterService
             .FirstOrDefault();
         if (string.IsNullOrWhiteSpace(hash))
         {
-            throw new InvalidOperationException(I18nHelper.GetLocalizedString("AppUpdateInvalidHashFile"));
+            throw new InvalidOperationException(I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "AppUpdateInvalidHashFile"));
         }
 
         return NormalizeSha256(hash);
@@ -471,7 +471,7 @@ public class UpdaterService : IUpdaterService
         if (normalized.Length != 64 || normalized.Any(c => !Uri.IsHexDigit(c)))
         {
             StaticLogger?.LogError("Invalid hash value: {Value}", value);
-            throw new InvalidOperationException(I18nHelper.GetLocalizedString("AppUpdateInvalidHashFile"));
+            throw new InvalidOperationException(I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "AppUpdateInvalidHashFile"));
         }
 
         return normalized;
@@ -502,7 +502,7 @@ public class UpdaterService : IUpdaterService
         catch (Exception ex)
         {
             _ = MessageBoxHelper.ShowErrorAsync(ex.Message,
-                I18nHelper.GetLocalizedString("ErrorWhenCleanUpResidualUpdateFiles"));
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "ErrorWhenCleanUpResidualUpdateFiles"));
         }
     }
 }

@@ -112,12 +112,12 @@ public partial class App
         services.AddSingleton<IFrontedWindowRegistry, neo_bpsys_wpf.Core.Services.Registry.FrontedWindowRegistryService>();
         services.AddSingleton<IFrontedLayoutPackageManager>(sp => new FrontedLayoutPackageManager(
             sp.GetRequiredService<ILogger<FrontedLayoutPackageManager>>(),
-            Helpers.I18nHelper.GetLocalizedString));
+            key => Helpers.I18nHelper.GetLocalizedString(Helpers.AppI18nDictionaries.FrontManage, key)));
         services.AddSingleton<IFrontedLayoutPackageExporter, FrontedLayoutPackageExporter>();
         services.AddSingleton<IFrontedLayoutPackageImporter, FrontedLayoutPackageImporter>();
         services.AddSingleton<IFrontedLayoutPackageLegacyConverter>(sp =>
             sp.GetRequiredService<FrontedLayoutPackageLegacyConverter>());
-        LegacyConvertMessageHelper.LocalizeTemplate = Helpers.I18nHelper.GetLocalizedString;
+        LegacyConvertMessageHelper.LocalizeTemplate = key => Helpers.I18nHelper.GetLocalizedString(Helpers.AppI18nDictionaries.FrontManage, key);
         services.AddSingleton<IFrontedPluginMetadataProvider, FrontedPluginMetadataProvider>();
         services.AddSingleton<FrontedBehaviorEventCatalog>();
         services.AddSingleton<IFrontedBehaviorService, FrontedBehaviorService>();

@@ -13,7 +13,7 @@
     MinHeight="480"
     lex:LocalizeDictionary.DesignCulture="zh"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Lang"
+    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Designer"
     Background="{DynamicResource ApplicationBackgroundBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     WindowStartupLocation="CenterOwner">

@@ -1,0 +1,2754 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <data name="Edit" xml:space="preserve">
+    <value>编辑</value>
+  </data>
+  <data name="FailedToApplyPicture" xml:space="preserve">
+    <value>应用图片失败</value>
+  </data>
+  <data name="BackgroundColor" xml:space="preserve">
+    <value>背景颜色</value>
+  </data>
+  <data name="FrontedDesigner" xml:space="preserve">
+    <value>前台编辑器</value>
+  </data>
+  <data name="Errors" xml:space="preserve">
+    <value>错误</value>
+  </data>
+  <data name="Warnings" xml:space="preserve">
+    <value>警告</value>
+  </data>
+  <data name="Infos" xml:space="preserve">
+    <value>信息</value>
+  </data>
+  <data name="ReloadLayout" xml:space="preserve">
+    <value>重新加载</value>
+  </data>
+  <data name="MissingLayout" xml:space="preserve">
+    <value>缺失布局</value>
+  </data>
+  <data name="Fit" xml:space="preserve">
+    <value>适应</value>
+  </data>
+  <data name="Designer.ZoomInvalid" xml:space="preserve">
+    <value>无效缩放值</value>
+  </data>
+  <data name="SelectedControl" xml:space="preserve">
+    <value>选中控件</value>
+  </data>
+  <data name="NoControlSelected" xml:space="preserve">
+    <value>未选中控件</value>
+  </data>
+  <data name="ValidationMessages" xml:space="preserve">
+    <value>校验消息</value>
+  </data>
+  <data name="ControlsList" xml:space="preserve">
+    <value>控件列表</value>
+  </data>
+  <data name="FilterControls" xml:space="preserve">
+    <value>按名称或类型筛选</value>
+  </data>
+  <data name="ZIndexShort" xml:space="preserve">
+    <value>Z</value>
+  </data>
+  <data name="NoControlsFound" xml:space="preserve">
+    <value>未找到控件</value>
+  </data>
+  <data name="Designer.LayerPanel.Layer" xml:space="preserve">
+    <value>层级</value>
+  </data>
+  <data name="Designer.LayerPanel.ControlsCount" xml:space="preserve">
+    <value>个控件</value>
+  </data>
+  <data name="Designer.LayerPanel.ClearFilterToReorder" xml:space="preserve">
+    <value>清空筛选后可调整图层顺序</value>
+  </data>
+  <data name="Designer.LayerPanel.MoveToNewTopLayer" xml:space="preserve">
+    <value>移动到新的顶层</value>
+  </data>
+  <data name="Designer.LayerPanel.MoveToNewBottomLayer" xml:space="preserve">
+    <value>移动到新的底层</value>
+  </data>
+  <data name="Designer.LayerPanel.DropHere" xml:space="preserve">
+    <value>拖放到此处</value>
+  </data>
+  <data name="Designer.LayerPanel.Reordered" xml:space="preserve">
+    <value>图层顺序已更新</value>
+  </data>
+  <data name="Designer.LayerPanel.ReorderBlocked" xml:space="preserve">
+    <value>当前控件不能调整图层顺序</value>
+  </data>
+  <data name="Properties" xml:space="preserve">
+    <value>属性</value>
+  </data>
+  <data name="Layout" xml:space="preserve">
+    <value>布局</value>
+  </data>
+  <data name="InvalidControlName" xml:space="preserve">
+    <value>控件名不能为空，且必须匹配 ^[A-Za-z_][A-Za-z0-9_]*$。</value>
+  </data>
+  <data name="DuplicateControlName" xml:space="preserve">
+    <value>同一画布中已存在该控件名。</value>
+  </data>
+  <data name="ReferencedControlRenameBlocked" xml:space="preserve">
+    <value>This control is referenced by another control. Reference-aware rename will be implemented later.</value>
+  </data>
+  <data name="PropertyValidationErrors" xml:space="preserve">
+    <value>属性值无效。</value>
+  </data>
+  <data name="NoSelectedControl" xml:space="preserve">
+    <value>未选中控件</value>
+  </data>
+  <data name="EditProperty" xml:space="preserve">
+    <value>编辑属性</value>
+  </data>
+  <data name="EditTextBindingSource" xml:space="preserve">
+    <value>编辑绑定源</value>
+  </data>
+  <data name="ValidationDetails" xml:space="preserve">
+    <value>验证详情</value>
+  </data>
+  <data name="OpenValidationDetails" xml:space="preserve">
+    <value>打开验证详情</value>
+  </data>
+  <data name="AddControl" xml:space="preserve">
+    <value>添加控件</value>
+  </data>
+  <data name="AddedControl" xml:space="preserve">
+    <value>已添加控件</value>
+  </data>
+  <data name="CannotAddControl" xml:space="preserve">
+    <value>当前无法添加控件。</value>
+  </data>
+  <data name="UnsupportedControlType" xml:space="preserve">
+    <value>不支持的控件类型。</value>
+  </data>
+  <data name="DeleteControl" xml:space="preserve">
+    <value>删除控件</value>
+  </data>
+  <data name="DeleteSelectedControl" xml:space="preserve">
+    <value>已删除控件</value>
+  </data>
+  <data name="CannotDeleteReferencedControl" xml:space="preserve">
+    <value>该控件仍被其他控件引用，不能删除。</value>
+  </data>
+  <data name="Undo" xml:space="preserve">
+    <value>撤销</value>
+  </data>
+  <data name="Redo" xml:space="preserve">
+    <value>重做</value>
+  </data>
+  <data name="CannotUndo" xml:space="preserve">
+    <value>没有可撤销的操作。</value>
+  </data>
+  <data name="CannotRedo" xml:space="preserve">
+    <value>没有可重做的操作。</value>
+  </data>
+  <data name="SaveLayout" xml:space="preserve">
+    <value>保存布局</value>
+  </data>
+  <data name="Unsaved" xml:space="preserve">
+    <value>未保存</value>
+  </data>
+  <data name="UnsavedChanges" xml:space="preserve">
+    <value>未保存的修改</value>
+  </data>
+  <data name="LayoutSourceUser" xml:space="preserve">
+    <value>用户布局</value>
+  </data>
+  <data name="LayoutSourceBuiltIn" xml:space="preserve">
+    <value>内置布局</value>
+  </data>
+  <data name="LayoutSourceError" xml:space="preserve">
+    <value>缺失/错误</value>
+  </data>
+  <data name="ResetLayoutConfirm" xml:space="preserve">
+    <value>是否重置为内置布局？当前自定义布局将被删除。</value>
+  </data>
+  <data name="LayoutSaved" xml:space="preserve">
+    <value>布局已保存</value>
+  </data>
+  <data name="LayoutSaveFailed" xml:space="preserve">
+    <value>布局保存失败</value>
+  </data>
+  <data name="CannotSaveInvalidLayout" xml:space="preserve">
+    <value>布局存在错误，无法保存</value>
+  </data>
+  <data name="Snap" xml:space="preserve">
+    <value>吸附</value>
+  </data>
+  <data name="SnapOn" xml:space="preserve">
+    <value>吸附开启</value>
+  </data>
+  <data name="SnapOff" xml:space="preserve">
+    <value>吸附关闭</value>
+  </data>
+  <data name="TemporarySnap" xml:space="preserve">
+    <value>临时吸附</value>
+  </data>
+  <data name="BrowseBinding" xml:space="preserve">
+    <value>浏览绑定</value>
+  </data>
+  <data name="BrowseResource" xml:space="preserve">
+    <value>浏览资源</value>
+  </data>
+  <data name="View" xml:space="preserve">
+    <value>视图</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>应用</value>
+  </data>
+  <data name="Reset" xml:space="preserve">
+    <value>重置</value>
+  </data>
+  <data name="CanvasProperties" xml:space="preserve">
+    <value>Canvas 属性</value>
+  </data>
+  <data name="WindowOptions" xml:space="preserve">
+    <value>窗口选项</value>
+  </data>
+  <data name="WindowWidth" xml:space="preserve">
+    <value>窗口宽度</value>
+  </data>
+  <data name="WindowHeight" xml:space="preserve">
+    <value>窗口高度</value>
+  </data>
+  <data name="AllowTransparency" xml:space="preserve">
+    <value>允许透明</value>
+  </data>
+  <data name="ChooseLocalImage" xml:space="preserve">
+    <value>选择本地图片</value>
+  </data>
+  <data name="ClearBackground" xml:space="preserve">
+    <value>清除背景</value>
+  </data>
+  <data name="BackgroundImage" xml:space="preserve">
+    <value>背景图片</value>
+  </data>
+  <data name="CanvasWidth" xml:space="preserve">
+    <value>Canvas 宽度</value>
+  </data>
+  <data name="CanvasHeight" xml:space="preserve">
+    <value>Canvas 高度</value>
+  </data>
+  <data name="CanvasSizeMustBePositive" xml:space="preserve">
+    <value>Canvas 宽度和高度必须大于 0</value>
+  </data>
+  <data name="WindowSizeMustBePositive" xml:space="preserve">
+    <value>窗口宽度和高度必须大于 0</value>
+  </data>
+  <data name="CanvasPropertiesApplied" xml:space="preserve">
+    <value>Canvas 属性已应用</value>
+  </data>
+  <data name="WindowOptionsApplied" xml:space="preserve">
+    <value>窗口选项已应用</value>
+  </data>
+  <data name="EditableLayoutSchemeCreated" xml:space="preserve">
+    <value>已从内置布局创建新的可编辑布局方案并保存。</value>
+  </data>
+  <data name="ShortcutUndo" xml:space="preserve">
+    <value>撤销 (Ctrl+Z)</value>
+  </data>
+  <data name="ShortcutRedo" xml:space="preserve">
+    <value>重做 (Ctrl+Y / Ctrl+Shift+Z)</value>
+  </data>
+  <data name="ShortcutSave" xml:space="preserve">
+    <value>保存布局 (Ctrl+S)</value>
+  </data>
+  <data name="ControlCountLimitReached" xml:space="preserve">
+    <value>已达到当前 Canvas 控件数量上限</value>
+  </data>
+  <data name="ValidationMessagesTruncated" xml:space="preserve">
+    <value>还有 {0} 条验证消息未显示</value>
+  </data>
+  <data name="CopyControl" xml:space="preserve">
+    <value>复制控件</value>
+  </data>
+  <data name="PasteControl" xml:space="preserve">
+    <value>粘贴控件</value>
+  </data>
+  <data name="CannotCopyControl" xml:space="preserve">
+    <value>无法复制该控件</value>
+  </data>
+  <data name="CannotPasteControl" xml:space="preserve">
+    <value>无法粘贴控件</value>
+  </data>
+  <data name="Designer.Property.Name" xml:space="preserve">
+    <value>控件名称</value>
+  </data>
+  <data name="Designer.Property.ControlType" xml:space="preserve">
+    <value>控件类型</value>
+  </data>
+  <data name="Designer.Property.Left" xml:space="preserve">
+    <value>X 坐标</value>
+  </data>
+  <data name="Designer.Property.Top" xml:space="preserve">
+    <value>Y 坐标</value>
+  </data>
+  <data name="Designer.Property.Width" xml:space="preserve">
+    <value>宽度</value>
+  </data>
+  <data name="Designer.Property.Height" xml:space="preserve">
+    <value>高度</value>
+  </data>
+  <data name="Designer.Property.ZIndex" xml:space="preserve">
+    <value>层级</value>
+  </data>
+  <data name="Designer.Property.BindingPath" xml:space="preserve">
+    <value>绑定路径</value>
+  </data>
+  <data name="Designer.Property.ImagePath" xml:space="preserve">
+    <value>静态图片路径</value>
+  </data>
+  <data name="Designer.PropertyDescription.BindingPath" xml:space="preserve">
+    <value>设置后会覆盖 ImagePath。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ImagePath" xml:space="preserve">
+    <value>静态图片路径，仅在 BindingPath 为空时使用。</value>
+  </data>
+  <data name="Designer.Property.HorizontalAlignment" xml:space="preserve">
+    <value>水平对齐</value>
+  </data>
+  <data name="Designer.Property.VerticalAlignment" xml:space="preserve">
+    <value>垂直对齐</value>
+  </data>
+  <data name="Designer.Property.TextAlignment" xml:space="preserve">
+    <value>文本对齐</value>
+  </data>
+  <data name="Designer.Property.TextWrapping" xml:space="preserve">
+    <value>文本换行</value>
+  </data>
+  <data name="Designer.Property.Stretch" xml:space="preserve">
+    <value>图片缩放</value>
+  </data>
+  <data name="Designer.Property.FontFamily" xml:space="preserve">
+    <value>字体</value>
+  </data>
+  <data name="Designer.Property.FontWeight" xml:space="preserve">
+    <value>字重</value>
+  </data>
+  <data name="Designer.Property.FontSize" xml:space="preserve">
+    <value>字号</value>
+  </data>
+  <data name="Designer.Property.Color" xml:space="preserve">
+    <value>颜色</value>
+  </data>
+  <data name="Designer.Property.ColorBindingPath" xml:space="preserve">
+    <value>颜色绑定路径</value>
+  </data>
+  <data name="Designer.Property.BackgroundImage" xml:space="preserve">
+    <value>背景图片</value>
+  </data>
+  <data name="Designer.Property.PickingBorder" xml:space="preserve">
+    <value>选择框</value>
+  </data>
+  <data name="Designer.Property.BanLockAvailable" xml:space="preserve">
+    <value>Ban 位锁可用</value>
+  </data>
+  <data name="Designer.Property.Text" xml:space="preserve">
+    <value>文本</value>
+  </data>
+  <data name="Designer.Property.TextBinding" xml:space="preserve">
+    <value>文本绑定</value>
+  </data>
+  <data name="Designer.PropertyDescription.TextBinding" xml:space="preserve">
+    <value>按顺序组合多个动态来源；存在有效来源时会覆盖静态文本或本地化键。</value>
+  </data>
+  <data name="Designer.Property.StringFormat" xml:space="preserve">
+    <value>文本格式</value>
+  </data>
+  <data name="Designer.Property.SizingMode" xml:space="preserve">
+    <value>尺寸模式</value>
+  </data>
+  <data name="Designer.Property.ClipToBounds" xml:space="preserve">
+    <value>裁剪溢出</value>
+  </data>
+  <data name="Designer.Property.CornerRadius" xml:space="preserve">
+    <value>圆角</value>
+  </data>
+  <data name="Designer.Property.ImageWidth" xml:space="preserve">
+    <value>内部图片宽度</value>
+  </data>
+  <data name="Designer.Property.ImageHeight" xml:space="preserve">
+    <value>内部图片高度</value>
+  </data>
+  <data name="Designer.Property.PickingBorderImagePath" xml:space="preserve">
+    <value>选择框图片</value>
+  </data>
+  <data name="Designer.Property.BanLockImagePath" xml:space="preserve">
+    <value>Ban 锁图片</value>
+  </data>
+  <data name="Designer.Property.Lockable" xml:space="preserve">
+    <value>锁定覆盖层</value>
+  </data>
+  <data name="Designer.Property.LockImagePath" xml:space="preserve">
+    <value>锁定图片</value>
+  </data>
+  <data name="Designer.Property.LockVisibilityBindingPath" xml:space="preserve">
+    <value>锁定可见绑定</value>
+  </data>
+  <data name="Designer.Property.LockVisibleWhen" xml:space="preserve">
+    <value>锁定显示条件</value>
+  </data>
+  <data name="Designer.Property.PickingBorderAvailable" xml:space="preserve">
+    <value>选择框覆盖层</value>
+  </data>
+  <data name="Designer.Property.PickingBorderName" xml:space="preserve">
+    <value>选择框名称</value>
+  </data>
+  <data name="Designer.Property.PickingBorderZIndexOffset" xml:space="preserve">
+    <value>选择框层级偏移</value>
+  </data>
+  <data name="Designer.Property.LocalizationKey" xml:space="preserve">
+    <value>本地化键</value>
+  </data>
+  <data name="Designer.Property.FallbackText" xml:space="preserve">
+    <value>备用文本</value>
+  </data>
+  <data name="Designer.Property.EmptyText" xml:space="preserve">
+    <value>空值文本</value>
+  </data>
+  <data name="Designer.Property.TeamType" xml:space="preserve">
+    <value>队伍</value>
+  </data>
+  <data name="Designer.Property.MajorGameGap" xml:space="preserve">
+    <value>大局间距</value>
+  </data>
+  <data name="Designer.Property.HalfGameGap" xml:space="preserve">
+    <value>半场间距</value>
+  </data>
+  <data name="Designer.Property.ShowCampIcon" xml:space="preserve">
+    <value>显示阵营图标</value>
+  </data>
+  <data name="Designer.Property.CampIconColor" xml:space="preserve">
+    <value>阵营图标颜色</value>
+  </data>
+  <data name="Designer.Property.MapKey" xml:space="preserve">
+    <value>地图键</value>
+  </data>
+  <data name="Designer.Property.DisplayKind" xml:space="preserve">
+    <value>显示类型</value>
+  </data>
+  <data name="Designer.Property.PlayerIndex" xml:space="preserve">
+    <value>选手序号</value>
+  </data>
+  <data name="Designer.Property.IconSize" xml:space="preserve">
+    <value>图标大小</value>
+  </data>
+  <data name="Designer.Property.IconGap" xml:space="preserve">
+    <value>图标间距</value>
+  </data>
+  <data name="Designer.Property.RespectTraitVisibility" xml:space="preserve">
+    <value>跟随辅助特质可见性</value>
+  </data>
+  <data name="Designer.Property.BorderImagePath" xml:space="preserve">
+    <value>边框图片</value>
+  </data>
+  <data name="Designer.Property.FillColor" xml:space="preserve">
+    <value>填充颜色</value>
+  </data>
+  <data name="Designer.Property.InitiallyHidden" xml:space="preserve">
+    <value>初始隐藏</value>
+  </data>
+  <data name="Designer.Property.SlotKind" xml:space="preserve">
+    <value>Ban 位类型</value>
+  </data>
+  <data name="Designer.Property.Camp" xml:space="preserve">
+    <value>阵营</value>
+  </data>
+  <data name="Designer.Property.Index" xml:space="preserve">
+    <value>索引</value>
+  </data>
+  <data name="Designer.Property.ShowLockOverlay" xml:space="preserve">
+    <value>显示锁定覆盖层</value>
+  </data>
+  <data name="Designer.Property.LockImageSource" xml:space="preserve">
+    <value>锁定图片</value>
+  </data>
+  <data name="Designer.Property.LockZIndexOffset" xml:space="preserve">
+    <value>锁定层级偏移</value>
+  </data>
+  <data name="Designer.PropertyGroup.Identity" xml:space="preserve">
+    <value>标识</value>
+  </data>
+  <data name="Designer.PropertyGroup.Layout" xml:space="preserve">
+    <value>布局</value>
+  </data>
+  <data name="Designer.PropertyGroup.Binding" xml:space="preserve">
+    <value>数据绑定</value>
+  </data>
+  <data name="Designer.PropertyGroup.Content" xml:space="preserve">
+    <value>内容</value>
+  </data>
+  <data name="Designer.PropertyGroup.Appearance" xml:space="preserve">
+    <value>外观</value>
+  </data>
+  <data name="Designer.PropertyGroup.Resource" xml:space="preserve">
+    <value>资源</value>
+  </data>
+  <data name="Designer.PropertyGroup.Behavior" xml:space="preserve">
+    <value>行为</value>
+  </data>
+  <data name="Designer.PropertyGroup.Advanced" xml:space="preserve">
+    <value>高级</value>
+  </data>
+  <data name="Designer.PropertyGroup.Validation" xml:space="preserve">
+    <value>校验</value>
+  </data>
+  <data name="Designer.PropertyGroup.ControlSpecific" xml:space="preserve">
+    <value>控件特定</value>
+  </data>
+  <data name="Designer.PropertyGroup.Border" xml:space="preserve">
+    <value>外框</value>
+  </data>
+  <data name="Designer.PropertyGroup.Image" xml:space="preserve">
+    <value>内部图片</value>
+  </data>
+  <data name="Designer.PluginControls" xml:space="preserve">
+    <value>插件控件</value>
+  </data>
+  <data name="Designer.MissingPluginControl" xml:space="preserve">
+    <value>缺失插件控件</value>
+  </data>
+  <data name="Designer.MissingPluginPackage" xml:space="preserve">
+    <value>插件包</value>
+  </data>
+  <data name="Designer.MissingPluginType" xml:space="preserve">
+    <value>插件控件类型</value>
+  </data>
+  <data name="Designer.PluginInstallGuidance" xml:space="preserve">
+    <value>此插件未安装。插件安装引导将在后续版本中提供。</value>
+  </data>
+  <data name="Designer.PluginControlUnavailable" xml:space="preserve">
+    <value>插件控件不可添加</value>
+  </data>
+  <data name="Designer.PropertyGroup.Plugin" xml:space="preserve">
+    <value>插件</value>
+  </data>
+  <data name="ResizeTarget" xml:space="preserve">
+    <value>缩放对象</value>
+  </data>
+  <data name="Designer.ControlType.Text" xml:space="preserve">
+    <value>文本</value>
+  </data>
+  <data name="Designer.ControlType.LocalizedText" xml:space="preserve">
+    <value>本地化文本</value>
+  </data>
+  <data name="Designer.ControlType.Image" xml:space="preserve">
+    <value>图片</value>
+  </data>
+  <data name="Designer.ControlType.BorderedImage" xml:space="preserve">
+    <value>带边框图片</value>
+  </data>
+  <data name="Designer.ControlType.GameProgressText" xml:space="preserve">
+    <value>对局进度</value>
+  </data>
+  <data name="Designer.ControlType.MapNameText" xml:space="preserve">
+    <value>地图名称</value>
+  </data>
+  <data name="Designer.ControlType.TalentTraitDisplay" xml:space="preserve">
+    <value>天赋 / 辅助特质</value>
+  </data>
+  <data name="Designer.ControlType.GlobalScoreRow" xml:space="preserve">
+    <value>全局比分</value>
+  </data>
+  <data name="Designer.ControlType.MapV2Display" xml:space="preserve">
+    <value>地图 v2</value>
+  </data>
+  <data name="Designer.Option.HorizontalAlignment.Left" xml:space="preserve">
+    <value>左</value>
+  </data>
+  <data name="Designer.Option.HorizontalAlignment.Center" xml:space="preserve">
+    <value>居中</value>
+  </data>
+  <data name="Designer.Option.HorizontalAlignment.Right" xml:space="preserve">
+    <value>右</value>
+  </data>
+  <data name="Designer.Option.HorizontalAlignment.Stretch" xml:space="preserve">
+    <value>拉伸</value>
+  </data>
+  <data name="Designer.Option.VerticalAlignment.Top" xml:space="preserve">
+    <value>上</value>
+  </data>
+  <data name="Designer.Option.VerticalAlignment.Center" xml:space="preserve">
+    <value>居中</value>
+  </data>
+  <data name="Designer.Option.VerticalAlignment.Bottom" xml:space="preserve">
+    <value>下</value>
+  </data>
+  <data name="Designer.Option.VerticalAlignment.Stretch" xml:space="preserve">
+    <value>拉伸</value>
+  </data>
+  <data name="Designer.Option.TextAlignment.Left" xml:space="preserve">
+    <value>左</value>
+  </data>
+  <data name="Designer.Option.TextAlignment.Center" xml:space="preserve">
+    <value>居中</value>
+  </data>
+  <data name="Designer.Option.TextAlignment.Right" xml:space="preserve">
+    <value>右</value>
+  </data>
+  <data name="Designer.Option.TextAlignment.Justify" xml:space="preserve">
+    <value>两端对齐</value>
+  </data>
+  <data name="Designer.Option.TextWrapping.NoWrap" xml:space="preserve">
+    <value>不换行</value>
+  </data>
+  <data name="Designer.Option.TextWrapping.Wrap" xml:space="preserve">
+    <value>自动换行</value>
+  </data>
+  <data name="Designer.Option.TextWrapping.WrapWithOverflow" xml:space="preserve">
+    <value>换行并允许溢出</value>
+  </data>
+  <data name="Designer.Option.Stretch.None" xml:space="preserve">
+    <value>原始大小</value>
+  </data>
+  <data name="Designer.Option.Stretch.Fill" xml:space="preserve">
+    <value>填充</value>
+  </data>
+  <data name="Designer.Option.Stretch.Uniform" xml:space="preserve">
+    <value>等比适应</value>
+  </data>
+  <data name="Designer.Option.Stretch.UniformToFill" xml:space="preserve">
+    <value>等比裁剪填充</value>
+  </data>
+  <data name="Designer.Option.FontWeight.Light" xml:space="preserve">
+    <value>细</value>
+  </data>
+  <data name="Designer.Option.FontWeight.Normal" xml:space="preserve">
+    <value>常规</value>
+  </data>
+  <data name="Designer.Option.FontWeight.Medium" xml:space="preserve">
+    <value>中等</value>
+  </data>
+  <data name="Designer.Option.FontWeight.SemiBold" xml:space="preserve">
+    <value>半粗</value>
+  </data>
+  <data name="Designer.Option.FontWeight.Bold" xml:space="preserve">
+    <value>粗</value>
+  </data>
+  <data name="Designer.Option.FontWeight.ExtraBold" xml:space="preserve">
+    <value>特粗</value>
+  </data>
+  <data name="Designer.Option.SizingMode.Auto" xml:space="preserve">
+    <value>自动</value>
+  </data>
+  <data name="Designer.Option.SizingMode.FillContainer" xml:space="preserve">
+    <value>填充容器</value>
+  </data>
+  <data name="Designer.Option.SizingMode.OverflowCrop" xml:space="preserve">
+    <value>溢出裁剪</value>
+  </data>
+  <data name="Designer.Option.LockVisibleWhen.VisibleWhenTrue" xml:space="preserve">
+    <value>为 true 时可见</value>
+  </data>
+  <data name="Designer.Option.LockVisibleWhen.VisibleWhenFalse" xml:space="preserve">
+    <value>为 false 时可见</value>
+  </data>
+  <data name="Designer.Option.LockVisibleWhen.Always" xml:space="preserve">
+    <value>始终可见</value>
+  </data>
+  <data name="Designer.Option.TeamType.HomeTeam" xml:space="preserve">
+    <value>主队</value>
+  </data>
+  <data name="Designer.Option.TeamType.AwayTeam" xml:space="preserve">
+    <value>客队</value>
+  </data>
+  <data name="Designer.Option.CampIconColor.White" xml:space="preserve">
+    <value>白色</value>
+  </data>
+  <data name="Designer.Option.CampIconColor.Black" xml:space="preserve">
+    <value>黑色</value>
+  </data>
+  <data name="Designer.Option.DisplayKind.SurvivorTalent" xml:space="preserve">
+    <value>求生者天赋</value>
+  </data>
+  <data name="Designer.Option.DisplayKind.HunterTalent" xml:space="preserve">
+    <value>监管者天赋</value>
+  </data>
+  <data name="Designer.Option.DisplayKind.HunterTrait" xml:space="preserve">
+    <value>监管者辅助特质</value>
+  </data>
+  <data name="Designer.Option.SlotKind.Current" xml:space="preserve">
+    <value>当前局 Ban</value>
+  </data>
+  <data name="Designer.Option.SlotKind.Global" xml:space="preserve">
+    <value>全局 Ban</value>
+  </data>
+  <data name="Designer.Option.Camp.Sur" xml:space="preserve">
+    <value>求生者</value>
+  </data>
+  <data name="Designer.Option.Camp.Hun" xml:space="preserve">
+    <value>监管者</value>
+  </data>
+  <data name="Designer.Window.BpWindow" xml:space="preserve">
+    <value>BP 主窗口</value>
+  </data>
+  <data name="Designer.Window.CutSceneWindow" xml:space="preserve">
+    <value>过场窗口</value>
+  </data>
+  <data name="Designer.Window.ScoreSurWindow" xml:space="preserve">
+    <value>求生者游戏内比分窗口</value>
+  </data>
+  <data name="Designer.Window.ScoreHunWindow" xml:space="preserve">
+    <value>监管者游戏内比分窗口</value>
+  </data>
+  <data name="Designer.Window.ScoreGlobalWindow" xml:space="preserve">
+    <value>全局比分窗口</value>
+  </data>
+  <data name="Designer.Window.GameDataWindow" xml:space="preserve">
+    <value>赛后数据窗口</value>
+  </data>
+  <data name="Designer.Window.BpOverviewWindow" xml:space="preserve">
+    <value>BP 总览窗口</value>
+  </data>
+  <data name="Designer.Window.MapV2Window" xml:space="preserve">
+    <value>地图 BP v2 窗口</value>
+  </data>
+  <data name="Designer.Window.WidgetsWindow" xml:space="preserve">
+    <value>组件窗口</value>
+  </data>
+  <data name="Designer.Canvas.BaseCanvas" xml:space="preserve">
+    <value>主画布</value>
+  </data>
+  <data name="Designer.Canvas.MapBpCanvas" xml:space="preserve">
+    <value>地图 BP 画布</value>
+  </data>
+  <data name="Designer.Canvas.BpOverViewCanvas" xml:space="preserve">
+    <value>BP 总览画布</value>
+  </data>
+  <data name="Designer.Canvas.MapV2Canvas" xml:space="preserve">
+    <value>地图 v2 画布</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.SurTeam.Name" xml:space="preserve">
+    <value>求生者队伍名称</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.HunTeam.Name" xml:space="preserve">
+    <value>监管者队伍名称</value>
+  </data>
+  <data name="Designer.Binding.Name" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="Designer.Binding.Logo" xml:space="preserve">
+    <value>队标</value>
+  </data>
+  <data name="Designer.Binding.Member" xml:space="preserve">
+    <value>选手</value>
+  </data>
+  <data name="Designer.Binding.Character" xml:space="preserve">
+    <value>角色</value>
+  </data>
+  <data name="Designer.Binding.GameProgress" xml:space="preserve">
+    <value>对局进度</value>
+  </data>
+  <data name="Designer.BindingType.String" xml:space="preserve">
+    <value>文本</value>
+  </data>
+  <data name="Designer.BindingType.String?" xml:space="preserve">
+    <value>文本</value>
+  </data>
+  <data name="Designer.BindingType.Int32" xml:space="preserve">
+    <value>数字</value>
+  </data>
+  <data name="Designer.BindingType.ImageSource" xml:space="preserve">
+    <value>图片源</value>
+  </data>
+  <data name="Designer.BindingType.GameProgress" xml:space="preserve">
+    <value>对局进度</value>
+  </data>
+  <data name="Designer.Value.True" xml:space="preserve">
+    <value>是</value>
+  </data>
+  <data name="Designer.Value.False" xml:space="preserve">
+    <value>否</value>
+  </data>
+  <data name="Designer.Editor.Search" xml:space="preserve">
+    <value>搜索</value>
+  </data>
+  <data name="Designer.Editor.Select" xml:space="preserve">
+    <value>选择</value>
+  </data>
+  <data name="Designer.Editor.Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Designer.Editor.NoResults" xml:space="preserve">
+    <value>没有结果</value>
+  </data>
+  <data name="Designer.Editor.RawPath" xml:space="preserve">
+    <value>原始路径</value>
+  </data>
+  <data name="Designer.Editor.RawUri" xml:space="preserve">
+    <value>原始 URI</value>
+  </data>
+  <data name="Designer.Editor.ExpectedType" xml:space="preserve">
+    <value>期望类型</value>
+  </data>
+  <data name="Designer.Editor.BindingBrowser" xml:space="preserve">
+    <value>绑定浏览器</value>
+  </data>
+  <data name="Designer.Editor.ResourceBrowser" xml:space="preserve">
+    <value>资源浏览器</value>
+  </data>
+  <data name="Designer.Editor.ImportFont" xml:space="preserve">
+    <value>导入字体</value>
+  </data>
+  <data name="Designer.Editor.ImportFontFailed" xml:space="preserve">
+    <value>导入字体失败</value>
+  </data>
+  <data name="Designer.Editor.ManagePackageFonts" xml:space="preserve">
+    <value>管理本包字体</value>
+  </data>
+  <data name="Designer.Editor.PackageFontsUnavailable" xml:space="preserve">
+    <value>当前布局包不可管理字体。</value>
+  </data>
+  <data name="Designer.Editor.PackageFontsEmpty" xml:space="preserve">
+    <value>当前布局包还没有导入字体。</value>
+  </data>
+  <data name="Designer.Editor.PackageFontFamilies" xml:space="preserve">
+    <value>字体族</value>
+  </data>
+  <data name="Designer.Editor.PackageFontFile" xml:space="preserve">
+    <value>文件</value>
+  </data>
+  <data name="Designer.Editor.PackageFontStatus" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="Designer.Editor.PackageFontAvailable" xml:space="preserve">
+    <value>可删除</value>
+  </data>
+  <data name="Designer.Editor.PackageFontInUse" xml:space="preserve">
+    <value>已被当前布局引用</value>
+  </data>
+  <data name="Designer.Editor.PackageFontDelete" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="Designer.Editor.PackageFontDeleteSucceeded" xml:space="preserve">
+    <value>字体文件已删除。</value>
+  </data>
+  <data name="Designer.Editor.PackageFontDeleteFailed" xml:space="preserve">
+    <value>删除字体失败</value>
+  </data>
+  <data name="Designer.Editor.Source.BuiltInResources" xml:space="preserve">
+    <value>内置资源</value>
+  </data>
+  <data name="Designer.Editor.Source.AbsoluteFile" xml:space="preserve">
+    <value>绝对路径文件</value>
+  </data>
+  <data name="Designer.Editor.Type.Image" xml:space="preserve">
+    <value>图片</value>
+  </data>
+  <data name="Designer.Validation.InvalidArgbColor" xml:space="preserve">
+    <value>颜色无效。请使用 #RRGGBB、#AARRGGBB 或 WPF 内置颜色名。</value>
+  </data>
+  <data name="Designer.PropertyGroup.Overlay" xml:space="preserve">
+    <value>覆盖层</value>
+  </data>
+  <data name="Designer.ControlType.GameProgress" xml:space="preserve">
+    <value>对局进度</value>
+  </data>
+  <data name="Designer.ControlType.MapName" xml:space="preserve">
+    <value>地图名称</value>
+  </data>
+  <data name="Designer.Help.Title" xml:space="preserve">
+    <value>设计器帮助</value>
+  </data>
+  <data name="Designer.Help.Open" xml:space="preserve">
+    <value>帮助</value>
+  </data>
+  <data name="Designer.Help.Close" xml:space="preserve">
+    <value>关闭</value>
+  </data>
+  <data name="Designer.Help.BasicWorkflow.Title" xml:space="preserve">
+    <value>基本操作流程</value>
+  </data>
+  <data name="Designer.Help.CanvasNavigation.Title" xml:space="preserve">
+    <value>画布导航</value>
+  </data>
+  <data name="Designer.Help.Selection.Title" xml:space="preserve">
+    <value>选择和编辑控件</value>
+  </data>
+  <data name="Designer.Help.Shortcuts.Title" xml:space="preserve">
+    <value>键盘快捷键</value>
+  </data>
+  <data name="Designer.Help.BuiltInControls.Title" xml:space="preserve">
+    <value>内置控件与用法</value>
+  </data>
+  <data name="Designer.Help.BuiltInControls.Column.Control" xml:space="preserve">
+    <value>控件</value>
+  </data>
+  <data name="Designer.Help.BuiltInControls.Column.Usage" xml:space="preserve">
+    <value>用途</value>
+  </data>
+  <data name="Designer.Help.BuiltInControls.Column.Notes" xml:space="preserve">
+    <value>注意事项</value>
+  </data>
+  <data name="Designer.Help.Snapping.Title" xml:space="preserve">
+    <value>吸附行为</value>
+  </data>
+  <data name="Designer.Help.LayerPanel.Title" xml:space="preserve">
+    <value>图层面板</value>
+  </data>
+  <data name="Designer.Help.PropertyGrid.Title" xml:space="preserve">
+    <value>属性面板</value>
+  </data>
+  <data name="Designer.Help.AddDeleteCopyPaste.Title" xml:space="preserve">
+    <value>添加 / 删除 / 复制 / 粘贴</value>
+  </data>
+  <data name="Designer.Help.CanvasWindowSettings.Title" xml:space="preserve">
+    <value>画布 / 窗口设置</value>
+  </data>
+  <data name="Designer.Help.Validation.Title" xml:space="preserve">
+    <value>验证</value>
+  </data>
+  <data name="Designer.Help.PluginControls.Title" xml:space="preserve">
+    <value>插件控件</value>
+  </data>
+  <data name="Designer.Help.LayoutPackages.Title" xml:space="preserve">
+    <value>布局包</value>
+  </data>
+  <data name="Designer.Help.Troubleshooting.Title" xml:space="preserve">
+    <value>提示与故障排除</value>
+  </data>
+  <data name="Designer.Help.Shortcut.Save" xml:space="preserve">
+    <value>Ctrl+S：保存布局</value>
+  </data>
+  <data name="Designer.Help.Shortcut.Copy" xml:space="preserve">
+    <value>Ctrl+C：复制选中的控件</value>
+  </data>
+  <data name="Designer.Help.Shortcut.Paste" xml:space="preserve">
+    <value>Ctrl+V：粘贴复制的控件</value>
+  </data>
+  <data name="Designer.Help.Shortcut.Delete" xml:space="preserve">
+    <value>Delete：删除选中的控件</value>
+  </data>
+  <data name="Designer.Help.Shortcut.Undo" xml:space="preserve">
+    <value>Ctrl+Z：撤销</value>
+  </data>
+  <data name="Designer.Help.Shortcut.Redo" xml:space="preserve">
+    <value>Ctrl+Y / Ctrl+Shift+Z：重做</value>
+  </data>
+  <data name="Designer.Help.Shortcut.Zoom" xml:space="preserve">
+    <value>Ctrl+鼠标滚轮：缩放</value>
+  </data>
+  <data name="Designer.Help.Shortcut.PanSpace" xml:space="preserve">
+    <value>Space+左键拖拽：平移画布</value>
+  </data>
+  <data name="Designer.Help.Shortcut.PanRight" xml:space="preserve">
+    <value>鼠标右键拖拽：平移画布</value>
+  </data>
+  <data name="Designer.Help.Shortcut.SnapShift" xml:space="preserve">
+    <value>Shift：临时启用吸附</value>
+  </data>
+  <data name="Designer.Help.BasicWorkflow.Content" xml:space="preserve">
+    <value>从顶部选择器选择窗口和画布；\n从"添加控件"按钮添加内置或插件控件；\n从画布或图层面板选择控件；\n从属性面板编辑属性；\n保存布局；\n验证布局；\n重置/重新加载布局。</value>
+  </data>
+  <data name="Designer.Help.CanvasNavigation.Content" xml:space="preserve">
+    <value>鼠标滚轮或滚动条导航画布；\n鼠标右键拖拽平移画布；\n按住 Space + 鼠标左键拖拽平移画布；\nCtrl + 鼠标滚轮缩放；\n底部缩放组合框支持输入 100、100%、1x、1.25x；\n滑块调整缩放比例；\n"适应"按钮将画布适配到当前视口。</value>
+  </data>
+  <data name="Designer.Help.Selection.Content" xml:space="preserve">
+    <value>点击画布上的控件进行选择；\n点击图层面板中的条目进行选择；\n拖拽选中的控件进行移动；\n通过拖拽手柄调整大小；\n选中控件名称标签显示在选中框上方；\n透明/空控件可通过点击框或图层面板选择。</value>
+  </data>
+  <data name="Designer.Help.Snapping.Content" xml:space="preserve">
+    <value>吸附开关启用网格和对象对齐吸附；\n按住 Shift 临时启用吸附，无需切换开关；\n移动或调整大小时，如果命中画布边缘、中心线或其他控件边缘/中心，会显示对齐辅助线；\n吸附不会直接改变存储值，除非操作已提交。</value>
+  </data>
+  <data name="Designer.Help.LayerPanel.Content" xml:space="preserve">
+    <value>控件按 ZIndex 分组；\n较高的 ZIndex 在视觉上位于较低 ZIndex 的上方；\n在同一图层内拖拽以更改同 ZIndex 顺序；\n拖拽到另一图层以更改 ZIndex；\n拖拽到顶部边缘创建新顶层；\n拖拽到底部边缘创建新底层；\n靠近顶部/底部边缘时自动滚动；\n筛选会禁用图层重新排序；清除筛选后可重新排序；\n链接的覆盖层控件不可独立编辑或拖拽。</value>
+  </data>
+  <data name="Designer.Help.PropertyGrid.Content" xml:space="preserve">
+    <value>名称和绑定路径需要按 Enter 或点击应用按钮提交；\n无效值会保留文本并显示红色边框；\n颜色选择器更新 Hex 文本；应用按钮提交；\n组合框属性在显示本地化名称的同时提交原始值；\n绑定浏览器帮助选择合适的绑定路径；\n资源浏览器帮助选择 bpui/资源 URI；\nBorderedImage 有独立的边框/图片属性；\nBorderedImage 的调整大小目标可在外边框和内图片之间切换。</value>
+  </data>
+  <data name="Designer.Help.BuiltInControls.Content" xml:space="preserve">
+    <value>Text|普通文本控件；TextBinding 可按顺序组合多个动态来源，没有来源时显示静态 Text。|来源顺序对应 {0}/{1}；StringFormat 为空时按 JoinSeparator 连接。\nLocalizedText|本地化文本控件；静态模式使用 LocalizationKey，TextBinding 模式先组合动态文本再尝试本地化。|动态结果找不到资源 key 时显示原始文本。\nImage|直接图片控件，根元素就是 Image；用于队标、地图、简单图片和旧 direct Image 语义。|BindingPath 绑定 ImageSource；BindingPath 为空时才使用 ImagePath 静态资源图；绑定优先，不会自动清空 ImagePath。\nBorderedImage|外层 Border + 内层 Image；用于需要外框、裁剪、圆角、内部图片尺寸或 resize 目标切换的图片区域。|BindingPath 与 ImagePath 优先级和 Image 一样；Width/Height 控制外框，ImageWidth/ImageHeight 控制内部图片。\nGameProgressText|按当前局数、半场、BO3/BO5 和加赛规则生成对局进度文本。|需要双行显示时设置 DisplayMode 为 TwoLine；不要把这类业务文案硬写进普通 Text。\nMapNameText|把地图枚举/key 转成本地化地图名；默认读取当前选图，也可以用 BindingPath 指向 picked/banned map 字段。|EmptyText 用于空地图兜底；BindingPath 应指向 Map/Map? 类型字段。\nGlobalScoreRow|全局比分行复合控件；父框内的 Cells 定义每个半场比分格，再读取 MatchScore 填充文本和阵营图标。|通常用于 ScoreGlobalWindow；编辑父行移动整行，编辑子格调整单个比分位置，不要拆成无父级的手写比分文本。\nTalentTraitDisplay|CutScene 天赋/辅助特质显示控件；按 DisplayKind 和 PlayerIndex 读取固定业务数据。|会跟随辅助特质可见性设置；不要在 JSON 中硬编码单个天赋图标。\nMapV2Display|Map BP v2 展示控件；通过 MapKey 复用 MapV2Presenter。|适合 MapV2Window 的地图 BP v2 布局；不要手写内部地图 BP v2 视觉元素。\n通用注意|BindingPath 用 Binding Browser 选择动态数据；ImagePath、BackgroundImage、LockImageSource 等资源路径用 Resource Browser 选择。|静态资源优先使用 Resources/xxx.png 或 bpui://...，不要长期依赖任意绝对路径；缺失或超限图片只应产生警告/空图，不应让前台崩溃。</value>
+  </data>
+  <data name="Designer.Help.AddDeleteCopyPaste.Content" xml:space="preserve">
+    <value>"添加控件"插入内置/插件控件；\n复制的控件在粘贴时获得唯一编号名称；\n粘贴时会偏移新控件的位置；\n生成的覆盖层或不可编辑控件可能不可复制/删除；\n撤销/重做可恢复添加、删除、粘贴、重新排序操作。</value>
+  </data>
+  <data name="Designer.Help.CanvasWindowSettings.Content" xml:space="preserve">
+    <value>画布宽/高可编辑画布设计尺寸；\n背景图片支持 bpui 资源 URI；\nAllowTransparency 是窗口级选项，已创建的前台窗口会静默重启实例；\n未创建的窗口会在下次显示时应用最新设置。</value>
+  </data>
+  <data name="Designer.Help.Validation.Content" xml:space="preserve">
+    <value>状态按钮打开验证详情；\n错误可能阻止保存/导入/导出；\n警告通常不阻止但应审查；\n缺失的插件控件在设计器中显示为警告。</value>
+  </data>
+  <data name="Designer.Help.PluginControls.Content" xml:space="preserve">
+    <value>安装插件后，插件控件出现在"添加控件"中；\n插件控件在设计器中的行为与内置控件类似；\n缺失的插件控件在设计器中显示占位符；\n运行时跳过缺失的插件控件而不是崩溃；\n.bpui 包声明所需的插件；\n导入包含缺失插件的包时会引导安装/更新或允许强制导入删除缺失控件。</value>
+  </data>
+  <data name="Designer.Help.LayoutPackages.Content" xml:space="preserve">
+    <value>导出写入布局包；\n.bpui 不包含插件二进制文件；\n导入检查插件依赖关系；\n强制导入会移除依赖缺失插件的控件；\n原始包文件保持不变。</value>
+  </data>
+  <data name="Designer.Help.Troubleshooting.Content" xml:space="preserve">
+    <value>如果无法在画布上视觉选择控件，请使用图层面板；\n如果拖拽重新排序不可用，请清除搜索筛选；\n如果属性显示无效，请检查验证详情；\n如果插件控件缺失，请安装/启用插件并根据需要重启；\n如果"适应"使标签过小，选中标签在经过优化后仍应保持可读。</value>
+  </data>
+  <data name="Designer.Property.MapNameFontFamily" xml:space="preserve">
+    <value>地图名字体</value>
+  </data>
+  <data name="Designer.Property.MapNameFontWeight" xml:space="preserve">
+    <value>地图名字重</value>
+  </data>
+  <data name="Designer.Property.MapNameColor" xml:space="preserve">
+    <value>地图名颜色</value>
+  </data>
+  <data name="Designer.Property.MapNameFontSize" xml:space="preserve">
+    <value>地图名字号</value>
+  </data>
+  <data name="Designer.Property.TeamNameFontFamily" xml:space="preserve">
+    <value>队名字体</value>
+  </data>
+  <data name="Designer.Property.TeamNameFontWeight" xml:space="preserve">
+    <value>队名字重</value>
+  </data>
+  <data name="Designer.Property.TeamNameColor" xml:space="preserve">
+    <value>队名颜色</value>
+  </data>
+  <data name="Designer.Property.TeamNameFontSize" xml:space="preserve">
+    <value>队名字号</value>
+  </data>
+  <data name="Designer.Property.CampNameFontFamily" xml:space="preserve">
+    <value>阵营文字字体</value>
+  </data>
+  <data name="Designer.Property.CampNameFontWeight" xml:space="preserve">
+    <value>阵营文字字重</value>
+  </data>
+  <data name="Designer.Property.CampNameColor" xml:space="preserve">
+    <value>阵营文字颜色</value>
+  </data>
+  <data name="Designer.Property.CampNameFontSize" xml:space="preserve">
+    <value>阵营文字字号</value>
+  </data>
+  <data name="Designer.Property.MapBorderNormalColor" xml:space="preserve">
+    <value>地图外框正常颜色</value>
+  </data>
+  <data name="Designer.Property.MapBorderBannedColor" xml:space="preserve">
+    <value>地图外框禁用颜色</value>
+  </data>
+  <data name="Designer.PropertyDescription.MapBorderNormalColor" xml:space="preserve">
+    <value>地图未禁用时的卡片外框颜色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.MapBorderBannedColor" xml:space="preserve">
+    <value>地图禁用时的卡片外框颜色。</value>
+  </data>
+  <data name="Designer.Property.PickingBorderFillColor" xml:space="preserve">
+    <value>选择框填充颜色</value>
+  </data>
+  <data name="Designer.Option.MapNameFontWeight.Light" xml:space="preserve">
+    <value>细</value>
+  </data>
+  <data name="Designer.Option.MapNameFontWeight.Normal" xml:space="preserve">
+    <value>常规</value>
+  </data>
+  <data name="Designer.Option.MapNameFontWeight.Medium" xml:space="preserve">
+    <value>中等</value>
+  </data>
+  <data name="Designer.Option.MapNameFontWeight.SemiBold" xml:space="preserve">
+    <value>半粗</value>
+  </data>
+  <data name="Designer.Option.MapNameFontWeight.Bold" xml:space="preserve">
+    <value>粗体</value>
+  </data>
+  <data name="Designer.Option.MapNameFontWeight.ExtraBold" xml:space="preserve">
+    <value>特粗</value>
+  </data>
+  <data name="Designer.Option.TeamNameFontWeight.Light" xml:space="preserve">
+    <value>细</value>
+  </data>
+  <data name="Designer.Option.TeamNameFontWeight.Normal" xml:space="preserve">
+    <value>常规</value>
+  </data>
+  <data name="Designer.Option.TeamNameFontWeight.Medium" xml:space="preserve">
+    <value>中等</value>
+  </data>
+  <data name="Designer.Option.TeamNameFontWeight.SemiBold" xml:space="preserve">
+    <value>半粗</value>
+  </data>
+  <data name="Designer.Option.TeamNameFontWeight.Bold" xml:space="preserve">
+    <value>粗体</value>
+  </data>
+  <data name="Designer.Option.TeamNameFontWeight.ExtraBold" xml:space="preserve">
+    <value>特粗</value>
+  </data>
+  <data name="Designer.Option.CampNameFontWeight.Light" xml:space="preserve">
+    <value>细</value>
+  </data>
+  <data name="Designer.Option.CampNameFontWeight.Normal" xml:space="preserve">
+    <value>常规</value>
+  </data>
+  <data name="Designer.Option.CampNameFontWeight.Medium" xml:space="preserve">
+    <value>中等</value>
+  </data>
+  <data name="Designer.Option.CampNameFontWeight.SemiBold" xml:space="preserve">
+    <value>半粗</value>
+  </data>
+  <data name="Designer.Option.CampNameFontWeight.Bold" xml:space="preserve">
+    <value>粗体</value>
+  </data>
+  <data name="Designer.Option.CampNameFontWeight.ExtraBold" xml:space="preserve">
+    <value>特粗</value>
+  </data>
+  <data name="Designer.Canvas.EnableBoModeStates" xml:space="preserve">
+    <value>启用 BO3/BO5 状态</value>
+  </data>
+  <data name="Designer.Canvas.CurrentBoModeState" xml:space="preserve">
+    <value>当前编辑状态</value>
+  </data>
+  <data name="Designer.Canvas.Bo5State" xml:space="preserve">
+    <value>BO5</value>
+  </data>
+  <data name="Designer.Canvas.Bo3State" xml:space="preserve">
+    <value>BO3</value>
+  </data>
+  <data name="Designer.Canvas.CopyBo5ToBo3" xml:space="preserve">
+    <value>复制 BO5 布局到 BO3</value>
+  </data>
+  <data name="Designer.Canvas.CopyBo5ToBo3Confirm" xml:space="preserve">
+    <value>BO3 状态已有内容，确认用 BO5 布局覆盖 BO3？</value>
+  </data>
+  <data name="Designer.Canvas.Bo3LayoutCopied" xml:space="preserve">
+    <value>已复制 BO5 布局到 BO3</value>
+  </data>
+  <data name="Designer.Canvas.BoModeStatesEnabled" xml:space="preserve">
+    <value>已启用 BO3/BO5 状态</value>
+  </data>
+  <data name="Designer.Canvas.BoModeStatesDisabledConfirm" xml:space="preserve">
+    <value>已禁用 BO3/BO5 状态；运行时将忽略 BO3 状态数据</value>
+  </data>
+  <data name="Designer.Property.Visibility" xml:space="preserve">
+    <value>可见性</value>
+  </data>
+  <data name="Designer.Visibility.Visible" xml:space="preserve">
+    <value>可见</value>
+  </data>
+  <data name="Designer.Visibility.Hidden" xml:space="preserve">
+    <value>隐藏</value>
+  </data>
+  <data name="Designer.Visibility.Collapsed" xml:space="preserve">
+    <value>折叠</value>
+  </data>
+  <data name="Designer.Option.Visibility.Visible" xml:space="preserve">
+    <value>可见</value>
+  </data>
+  <data name="Designer.Option.Visibility.Hidden" xml:space="preserve">
+    <value>隐藏</value>
+  </data>
+  <data name="Designer.Option.Visibility.Collapsed" xml:space="preserve">
+    <value>折叠</value>
+  </data>
+  <data name="Designer.Help.BoModeStates" xml:space="preserve">
+    <value>BO3/BO5 Canvas 状态</value>
+  </data>
+  <data name="Designer.Help.BoModeStatesDescription" xml:space="preserve">
+    <value>这是通用 Canvas 功能；启用后可分别编辑 BO5 与 BO3，运行时按当前 BO 模式选择状态。</value>
+  </data>
+  <data name="Designer.Help.CopyBo5ToBo3" xml:space="preserve">
+    <value>复制 BO5 到 BO3 可快速建立对齐布局，然后单独调整 BO3。</value>
+  </data>
+  <data name="Designer.Help.Visibility" xml:space="preserve">
+    <value>Visibility 支持 Visible、Hidden、Collapsed；隐藏或折叠的控件仍保留在图层面板中。</value>
+  </data>
+  <data name="Designer.GlobalScoreRow.Cells" xml:space="preserve">
+    <value>比分单元</value>
+  </data>
+  <data name="Designer.GlobalScoreRow.CellEditor" xml:space="preserve">
+    <value>子单元是固定内部比分格，不会出现在全局图层中；留空样式字段将继承父级。</value>
+  </data>
+  <data name="Designer.GlobalScoreRow.SelectedCell" xml:space="preserve">
+    <value>已选比分单元</value>
+  </data>
+  <data name="Designer.GlobalScoreRow.ParentProperties" xml:space="preserve">
+    <value>比分行属性</value>
+  </data>
+  <data name="Designer.GlobalScoreRow.CellProperties" xml:space="preserve">
+    <value>比分单元属性</value>
+  </data>
+  <data name="Designer.GlobalScoreRow.CellInheritsFromParent" xml:space="preserve">
+    <value>留空时继承父级 GlobalScoreRow 样式。</value>
+  </data>
+  <data name="Designer.Help.GlobalScoreRow.Title" xml:space="preserve">
+    <value>GlobalScoreRow 复合编辑</value>
+  </data>
+  <data name="Designer.Help.GlobalScoreRow.Content" xml:space="preserve">
+    <value>GlobalScoreRow 是父级比分行框，子格是固定内部比分格，不能删除，也不会出现在全局图层面板中。\n选中父行后，在专用 Score Cells 列表中选择子格；选择子格时 SelectedDesignItem 仍保持父行。\nVisibility 决定该 Canvas state 中子格显示、隐藏或折叠；BO3 与 BO5 state 拥有独立的行和子格布局。\n按间距自动编排使用 MajorGameGap / HalfGameGap 重新排列当前 state 的可见序列，之后仍可手动微调每个子格。\n应用父级样式到所有子格会把父行字体、字重、颜色、字号和阵营图标设置复制到所有子格覆盖值；留空样式字段表示继承父级。</value>
+  </data>
+  <data name="Designer.GlobalScoreRow.GenerateBo5Cells" xml:space="preserve">
+    <value>生成 BO5 单元</value>
+  </data>
+  <data name="Designer.GlobalScoreRow.GenerateBo3Cells" xml:space="preserve">
+    <value>生成 BO3 单元</value>
+  </data>
+  <data name="Designer.GlobalScoreRow.ResetCells" xml:space="preserve">
+    <value>重置比分单元</value>
+  </data>
+  <data name="Designer.GlobalScoreRow.AutoArrangeBySpacing" xml:space="preserve">
+    <value>按间距自动编排</value>
+  </data>
+  <data name="Designer.GlobalScoreRow.ApplyParentStyleToCells" xml:space="preserve">
+    <value>应用父级样式到所有子格</value>
+  </data>
+  <data name="Designer.GlobalScoreRow.ClearCellStyleOverrides" xml:space="preserve">
+    <value>清除子格样式覆盖</value>
+  </data>
+  <data name="Designer.GlobalScoreRow.FillMissingCells" xml:space="preserve">
+    <value>补齐缺失单元</value>
+  </data>
+  <data name="Designer.GlobalScoreRow.ApplyBo3VisibilityTemplate" xml:space="preserve">
+    <value>应用 BO3 可见性</value>
+  </data>
+  <data name="Designer.GlobalScoreRow.ApplyBo5VisibilityTemplate" xml:space="preserve">
+    <value>应用 BO5 可见性</value>
+  </data>
+  <data name="Designer.MapV2Display.ApplyStyleToAll" xml:space="preserve">
+    <value>将样式应用到所有地图卡片</value>
+  </data>
+  <data name="Designer.MapV2Display.ApplyStyleToAllDescription" xml:space="preserve">
+    <value>复制当前地图卡片的大小、内部部件位置和尺寸、文字样式、地图外框、选图边框样式和行为；保留其他卡片的位置、文字内容、地图绑定和顶层布局属性。</value>
+  </data>
+  <data name="Designer.MapV2Display.EditInternalStyle" xml:space="preserve">
+    <value>编辑控件内部样式</value>
+  </data>
+  <data name="Designer.MapV2Display.InternalParts" xml:space="preserve">
+    <value>内部部件</value>
+  </data>
+  <data name="Designer.MapV2Display.SelectedInternalPart" xml:space="preserve">
+    <value>MapV2Display 内部部件</value>
+  </data>
+  <data name="Designer.MapV2Display.Part.TeamName" xml:space="preserve">
+    <value>队伍名称</value>
+  </data>
+  <data name="Designer.MapV2Display.Part.MapCard" xml:space="preserve">
+    <value>地图卡片</value>
+  </data>
+  <data name="Designer.MapV2Display.Part.MapName" xml:space="preserve">
+    <value>地图名称</value>
+  </data>
+  <data name="Designer.MapV2Display.Part.CampName" xml:space="preserve">
+    <value>阵营名称</value>
+  </data>
+  <data name="Designer.MapV2Display.Part.PickingBorder" xml:space="preserve">
+    <value>选图边框</value>
+  </data>
+  <data name="Designer.MapV2Display.StyleAppliedToAll" xml:space="preserve">
+    <value>已将样式和行为应用到当前画布中的所有地图卡片。</value>
+  </data>
+  <data name="Designer.Property.CellId" xml:space="preserve">
+    <value>单元 ID</value>
+  </data>
+  <data name="Designer.Property.GameNumber" xml:space="preserve">
+    <value>局号</value>
+  </data>
+  <data name="Designer.Property.GameKind" xml:space="preserve">
+    <value>局类型</value>
+  </data>
+  <data name="Designer.Property.HalfKind" xml:space="preserve">
+    <value>半场</value>
+  </data>
+  <data name="Designer.Property.CellX" xml:space="preserve">
+    <value>单元 X</value>
+  </data>
+  <data name="Designer.Property.CellY" xml:space="preserve">
+    <value>单元 Y</value>
+  </data>
+  <data name="Designer.Property.ShowCampIconOverride" xml:space="preserve">
+    <value>阵营图标覆盖</value>
+  </data>
+  <data name="Designer.Property.CampIconColorOverride" xml:space="preserve">
+    <value>阵营图标颜色覆盖</value>
+  </data>
+  <data name="Designer.TextBinding.Title" xml:space="preserve">
+    <value>文本绑定编辑器</value>
+  </data>
+  <data name="Designer.TextBinding.AddSource" xml:space="preserve">
+    <value>添加来源</value>
+  </data>
+  <data name="Designer.TextBinding.MoveUp" xml:space="preserve">
+    <value>上移</value>
+  </data>
+  <data name="Designer.TextBinding.MoveDown" xml:space="preserve">
+    <value>下移</value>
+  </data>
+  <data name="Designer.TextBinding.StringFormat" xml:space="preserve">
+    <value>格式字符串</value>
+  </data>
+  <data name="Designer.TextBinding.JoinSeparator" xml:space="preserve">
+    <value>连接分隔符</value>
+  </data>
+  <data name="Designer.TextBinding.NullText" xml:space="preserve">
+    <value>空值文本</value>
+  </data>
+  <data name="Designer.TextBinding.FallbackText" xml:space="preserve">
+    <value>备用文本</value>
+  </data>
+  <data name="Designer.TextBinding.None" xml:space="preserve">
+    <value>无绑定来源</value>
+  </data>
+  <data name="Designer.TextBinding.SourceSummary" xml:space="preserve">
+    <value>{0} 个来源</value>
+  </data>
+  <data name="Designer.TextBinding.EmptyPath" xml:space="preserve">
+    <value>绑定来源路径不能为空。</value>
+  </data>
+  <data name="Designer.Validation.TextStaticIgnored" xml:space="preserve">
+    <value>存在有效文本绑定来源时，静态文本不会显示。</value>
+  </data>
+  <data name="Designer.Validation.LocalizationKeyIgnored" xml:space="preserve">
+    <value>存在有效文本绑定来源时，本地化键不会生效。</value>
+  </data>
+  <data name="Designer.Validation.ImagePathIgnored" xml:space="preserve">
+    <value>设置绑定路径后，静态图片路径不会生效。</value>
+  </data>
+  <data name="Designer.Validation.FillColorIgnored" xml:space="preserve">
+    <value>静态填充色在绑定激活时不会生效，将使用绑定的颜色值。</value>
+  </data>
+  <data name="Designer.Validation.GradientEndColorIgnored" xml:space="preserve">
+    <value>静态渐变结束色在绑定激活时不会生效，将使用绑定的颜色值。</value>
+  </data>
+  <data name="Designer.Validation.TextColorIgnored" xml:space="preserve">
+    <value>静态文本颜色在绑定激活时不会生效，将使用绑定的颜色值。</value>
+  </data>
+  <data name="Designer.Property.UseGradient" xml:space="preserve">
+    <value>启用渐变</value>
+  </data>
+  <data name="PolygonPoints" xml:space="preserve">
+    <value>多边形顶点</value>
+  </data>
+  <data name="AddVertex" xml:space="preserve">
+    <value>添加顶点</value>
+  </data>
+  <data name="RemoveVertex" xml:space="preserve">
+    <value>删除顶点</value>
+  </data>
+  <data name="SelectedVertex" xml:space="preserve">
+    <value>选中顶点</value>
+  </data>
+  <data name="Designer.ControlType.Rectangle" xml:space="preserve">
+    <value>矩形</value>
+  </data>
+  <data name="Designer.ControlType.Polygon" xml:space="preserve">
+    <value>多边形</value>
+  </data>
+  <data name="Designer.Property.FillMode" xml:space="preserve">
+    <value>填充模式</value>
+  </data>
+  <data name="Designer.Property.UseFillBinding" xml:space="preserve">
+    <value>使用填充绑定</value>
+  </data>
+  <data name="Designer.Property.FillBindingPath" xml:space="preserve">
+    <value>填充绑定路径</value>
+  </data>
+  <data name="Designer.Property.UseGradientStartBinding" xml:space="preserve">
+    <value>绑定渐变起始色</value>
+  </data>
+  <data name="Designer.Property.GradientStartColor" xml:space="preserve">
+    <value>渐变起始色</value>
+  </data>
+  <data name="Designer.Property.GradientStartBindingPath" xml:space="preserve">
+    <value>渐变起始色绑定路径</value>
+  </data>
+  <data name="Designer.Property.UseGradientEndBinding" xml:space="preserve">
+    <value>绑定渐变结束色</value>
+  </data>
+  <data name="Designer.Property.GradientEndColor" xml:space="preserve">
+    <value>渐变结束色</value>
+  </data>
+  <data name="Designer.Property.GradientEndBindingPath" xml:space="preserve">
+    <value>渐变结束色绑定路径</value>
+  </data>
+  <data name="Designer.Property.GradientAngle" xml:space="preserve">
+    <value>渐变角度</value>
+  </data>
+  <data name="Designer.Property.RadiusX" xml:space="preserve">
+    <value>水平圆角</value>
+  </data>
+  <data name="Designer.Property.RadiusY" xml:space="preserve">
+    <value>垂直圆角</value>
+  </data>
+  <data name="Designer.Property.StrokeColor" xml:space="preserve">
+    <value>描边颜色</value>
+  </data>
+  <data name="Designer.Property.StrokeThickness" xml:space="preserve">
+    <value>描边宽度</value>
+  </data>
+  <data name="Designer.Option.FillMode.Solid" xml:space="preserve">
+    <value>纯色</value>
+  </data>
+  <data name="Designer.Option.FillMode.LinearGradient" xml:space="preserve">
+    <value>线性渐变</value>
+  </data>
+  <data name="Designer.ControlType.BackgroundTintRectangle" xml:space="preserve">
+    <value>背景染色矩形</value>
+  </data>
+  <data name="Designer.ControlType.BackgroundTintPolygon" xml:space="preserve">
+    <value>背景染色多边形</value>
+  </data>
+  <data name="Designer.Property.TintColor" xml:space="preserve">
+    <value>染色颜色</value>
+  </data>
+  <data name="Designer.Property.TintBindingPath" xml:space="preserve">
+    <value>染色绑定路径</value>
+  </data>
+  <data name="Designer.Property.TintMode" xml:space="preserve">
+    <value>染色模式</value>
+  </data>
+  <data name="Designer.Property.TintStrength" xml:space="preserve">
+    <value>染色强度</value>
+  </data>
+  <data name="Designer.Property.TextureStrength" xml:space="preserve">
+    <value>纹理强度</value>
+  </data>
+  <data name="Designer.Property.ShowMissingBackgroundPlaceholder" xml:space="preserve">
+    <value>显示缺失背景占位符</value>
+  </data>
+  <data name="Designer.Option.TintMode.LuminanceColorize" xml:space="preserve">
+    <value>亮度着色</value>
+  </data>
+  <data name="Designer.Option.TintMode.Multiply" xml:space="preserve">
+    <value>正片叠底</value>
+  </data>
+  <data name="Designer.Option.TintMode.BaseColorWithTexture" xml:space="preserve">
+    <value>基色保留纹理</value>
+  </data>
+  <data name="Designer.Validation.MissingCanvasBackgroundImage" xml:space="preserve">
+    <value>Canvas 未设置背景图片</value>
+  </data>
+  <data name="Designer.Help.BackgroundTint.Title" xml:space="preserve">
+    <value>背景局部染色</value>
+  </data>
+  <data name="Designer.Help.BackgroundTint.Content" xml:space="preserve">
+    <value>BackgroundTintRectangle 和 BackgroundTintPolygon 自动使用当前 Canvas 的有效背景图片，无需重复选择素材。\n控件生成与背景对齐的静态染色副本，并按矩形或多边形区域裁剪，因此会保留原图纹理细节。\nBaseColorWithTexture 将 TintColor 作为目标基色，TextureStrength 控制原背景明暗细节的明显程度；LuminanceColorize 与 Multiply 保留原有偏暗效果。\nTintBindingPath 可绑定 HomeTeam.ColorHex 或 AwayTeam.ColorHex；队伍颜色变化时会重新生成染色图片。\n该效果使用偶发 CPU 重生成，不是实时 GPU 混合。</value>
+  </data>
+  <data name="Designer.Behaviors.Header" xml:space="preserve">
+    <value>动画 / 行为</value>
+  </data>
+  <data name="Designer.Behaviors.Empty" xml:space="preserve">
+    <value>当前控件还没有行为。</value>
+  </data>
+  <data name="Designer.Behaviors.SelectedControl" xml:space="preserve">
+    <value>当前控件</value>
+  </data>
+  <data name="Designer.Behaviors.List" xml:space="preserve">
+    <value>行为列表</value>
+  </data>
+  <data name="Designer.Behaviors.Details" xml:space="preserve">
+    <value>编辑所选行为</value>
+  </data>
+  <data name="Designer.Behaviors.SelectBehaviorToEdit" xml:space="preserve">
+    <value>从上方列表选择一个行为后，在这里编辑触发器和参数。</value>
+  </data>
+  <data name="Designer.Behaviors.GraphPlaceholders" xml:space="preserve">
+    <value>节点图占位</value>
+  </data>
+  <data name="Designer.Behaviors.AddOneShot" xml:space="preserve">
+    <value>添加单次行为</value>
+  </data>
+  <data name="Designer.Behaviors.AddLoop" xml:space="preserve">
+    <value>添加循环行为</value>
+  </data>
+  <data name="Designer.Behaviors.Delete" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="Designer.Behaviors.Duplicate" xml:space="preserve">
+    <value>创建副本</value>
+  </data>
+  <data name="Designer.Behaviors.Copy" xml:space="preserve">
+    <value>复制行为</value>
+  </data>
+  <data name="Designer.Behaviors.CopyTo" xml:space="preserve">
+    <value>复制行为到...</value>
+  </data>
+  <data name="Designer.Behaviors.Paste" xml:space="preserve">
+    <value>粘贴行为</value>
+  </data>
+  <data name="Designer.Behaviors.CopyToTargets" xml:space="preserve">
+    <value>选择要复制到的控件（可多选）</value>
+  </data>
+  <data name="Designer.Behaviors.RewriteTargets" xml:space="preserve">
+    <value>重写动画目标</value>
+  </data>
+  <data name="Designer.Behaviors.RewriteTriggerIndexes" xml:space="preserve">
+    <value>重写触发器索引</value>
+  </data>
+  <data name="Designer.Behaviors.SelectTargetForPreview" xml:space="preserve">
+    <value>选择控件以查看兼容性和改写预览。</value>
+  </data>
+  <data name="Designer.Behaviors.Target" xml:space="preserve">
+    <value>目标控件</value>
+  </data>
+  <data name="Designer.Behaviors.Compatible" xml:space="preserve">
+    <value>兼容</value>
+  </data>
+  <data name="Designer.Behaviors.ExternalReference" xml:space="preserve">
+    <value>保留的外部控件引用</value>
+  </data>
+  <data name="Designer.Behaviors.PasteSummary" xml:space="preserve">
+    <value>已复制到 {0} 个控件，跳过 {1} 个不兼容控件。</value>
+  </data>
+  <data name="Designer.Behaviors.Enabled" xml:space="preserve">
+    <value>启用</value>
+  </data>
+  <data name="Designer.Behaviors.Name" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="Designer.Behaviors.Kind" xml:space="preserve">
+    <value>类型</value>
+  </data>
+  <data name="Designer.Behaviors.OneShot" xml:space="preserve">
+    <value>单次</value>
+  </data>
+  <data name="Designer.Behaviors.Loop" xml:space="preserve">
+    <value>循环</value>
+  </data>
+  <data name="Designer.Behaviors.Trigger" xml:space="preserve">
+    <value>触发器</value>
+  </data>
+  <data name="Designer.Behaviors.StartTrigger" xml:space="preserve">
+    <value>开始触发器</value>
+  </data>
+  <data name="Designer.Behaviors.Filters" xml:space="preserve">
+    <value>过滤器</value>
+  </data>
+  <data name="Designer.Behaviors.AddFilter" xml:space="preserve">
+    <value>添加过滤器</value>
+  </data>
+  <data name="Designer.Behaviors.RemoveFilter" xml:space="preserve">
+    <value>移除过滤器</value>
+  </data>
+  <data name="Designer.Behaviors.EventType" xml:space="preserve">
+    <value>事件类型</value>
+  </data>
+  <data name="Designer.Behaviors.Source" xml:space="preserve">
+    <value>来源</value>
+  </data>
+  <data name="Designer.Behaviors.Operator" xml:space="preserve">
+    <value>运算符</value>
+  </data>
+  <data name="Designer.Behaviors.Left" xml:space="preserve">
+    <value>左值</value>
+  </data>
+  <data name="Designer.Behaviors.Right" xml:space="preserve">
+    <value>右值</value>
+  </data>
+  <data name="Designer.Behaviors.RightValueKind" xml:space="preserve">
+    <value>右值类型</value>
+  </data>
+  <data name="Designer.Behaviors.LoopPolicy" xml:space="preserve">
+    <value>循环策略</value>
+  </data>
+  <data name="Designer.Behaviors.RepeatCount" xml:space="preserve">
+    <value>重复次数</value>
+  </data>
+  <data name="Designer.Behaviors.AutoReverse" xml:space="preserve">
+    <value>自动反向</value>
+  </data>
+  <data name="Designer.Behaviors.IntervalMs" xml:space="preserve">
+    <value>间隔毫秒</value>
+  </data>
+  <data name="Designer.Behaviors.StopMode" xml:space="preserve">
+    <value>停止模式</value>
+  </data>
+  <data name="Designer.Behaviors.ResetOnStop" xml:space="preserve">
+    <value>停止时重置</value>
+  </data>
+  <data name="Designer.Behaviors.ReentryPolicy" xml:space="preserve">
+    <value>重入策略</value>
+  </data>
+  <data name="Designer.Behaviors.GraphPlaceholder" xml:space="preserve">
+    <value>节点图编辑器可从动画编辑器打开</value>
+  </data>
+  <data name="Designer.Behaviors.StartGraph" xml:space="preserve">
+    <value>开始图</value>
+  </data>
+  <data name="Designer.Behaviors.LoopGraph" xml:space="preserve">
+    <value>循环图</value>
+  </data>
+  <data name="Designer.Behaviors.StopGraph" xml:space="preserve">
+    <value>停止图</value>
+  </data>
+  <data name="Designer.Behaviors.UnsavedBehaviorChanges" xml:space="preserve">
+    <value>行为有未保存更改</value>
+  </data>
+  <data name="Designer.Behaviors.NewOneShot" xml:space="preserve">
+    <value>新单次行为</value>
+  </data>
+  <data name="Designer.Behaviors.NewLoop" xml:space="preserve">
+    <value>新循环行为</value>
+  </data>
+  <data name="Designer.Behaviors.CopyOfFormat" xml:space="preserve">
+    <value>{0} 的副本</value>
+  </data>
+  <data name="Designer.Behaviors.Operator.Equals" xml:space="preserve">
+    <value>等于</value>
+  </data>
+  <data name="Designer.Behaviors.Operator.NotEquals" xml:space="preserve">
+    <value>不等于</value>
+  </data>
+  <data name="Designer.Behaviors.Operator.GreaterThan" xml:space="preserve">
+    <value>大于</value>
+  </data>
+  <data name="Designer.Behaviors.Operator.GreaterThanOrEqual" xml:space="preserve">
+    <value>大于等于</value>
+  </data>
+  <data name="Designer.Behaviors.Operator.LessThan" xml:space="preserve">
+    <value>小于</value>
+  </data>
+  <data name="Designer.Behaviors.Operator.LessThanOrEqual" xml:space="preserve">
+    <value>小于等于</value>
+  </data>
+  <data name="Designer.Behaviors.Operator.Contains" xml:space="preserve">
+    <value>包含</value>
+  </data>
+  <data name="Designer.Behaviors.Operator.Exists" xml:space="preserve">
+    <value>存在</value>
+  </data>
+  <data name="Designer.Behaviors.RightValueKind.Literal" xml:space="preserve">
+    <value>字面量</value>
+  </data>
+  <data name="Designer.Behaviors.RightValueKind.EventPath" xml:space="preserve">
+    <value>事件路径</value>
+  </data>
+  <data name="Designer.Behaviors.RightValueKind.BindingPath" xml:space="preserve">
+    <value>绑定路径</value>
+  </data>
+  <data name="Designer.Behaviors.StopMode.StopImmediately" xml:space="preserve">
+    <value>立即停止</value>
+  </data>
+  <data name="Designer.Behaviors.StopMode.CompleteCurrentIteration" xml:space="preserve">
+    <value>完成当前轮</value>
+  </data>
+  <data name="Designer.Behaviors.StopMode.RunStopGraph" xml:space="preserve">
+    <value>运行停止图</value>
+  </data>
+  <data name="Designer.Behaviors.StopMode.HoldCurrentState" xml:space="preserve">
+    <value>保持当前状态</value>
+  </data>
+  <data name="Designer.Behaviors.ReentryPolicy.InterruptPrevious" xml:space="preserve">
+    <value>中断上一个</value>
+  </data>
+  <data name="Designer.Behaviors.ReentryPolicy.IgnoreIfRunning" xml:space="preserve">
+    <value>运行中忽略</value>
+  </data>
+  <data name="Designer.Behaviors.ReentryPolicy.Queue" xml:space="preserve">
+    <value>排队</value>
+  </data>
+  <data name="Designer.Behaviors.ReentryPolicy.AllowParallel" xml:space="preserve">
+    <value>允许并行</value>
+  </data>
+  <data name="Designer.Behaviors.Event.WindowShown" xml:space="preserve">
+    <value>窗口显示</value>
+  </data>
+  <data name="Designer.Behaviors.Event.WindowHidden" xml:space="preserve">
+    <value>窗口隐藏</value>
+  </data>
+  <data name="Designer.Behaviors.Event.CanvasLoaded" xml:space="preserve">
+    <value>Canvas 加载</value>
+  </data>
+  <data name="Designer.Behaviors.Event.CanvasStateChanged" xml:space="preserve">
+    <value>Canvas 状态改变</value>
+  </data>
+  <data name="Designer.Behaviors.Event.ControlLoaded" xml:space="preserve">
+    <value>控件加载</value>
+  </data>
+  <data name="Designer.Behaviors.Event.GameProgressChanged" xml:space="preserve">
+    <value>对局进度改变</value>
+  </data>
+  <data name="Designer.Behaviors.Event.CharacterPicked" xml:space="preserve">
+    <value>角色选择</value>
+  </data>
+  <data name="Designer.Behaviors.Event.CharacterBanned" xml:space="preserve">
+    <value>角色禁用</value>
+  </data>
+  <data name="Designer.Behaviors.Event.CharacterSelected" xml:space="preserve">
+    <value>角色选择</value>
+  </data>
+  <data name="Designer.Behaviors.Event.CurrentPickingSlotChanged" xml:space="preserve">
+    <value>当前选择位改变</value>
+  </data>
+  <data name="Designer.Behaviors.Event.ScoreChanged" xml:space="preserve">
+    <value>比分改变</value>
+  </data>
+  <data name="Designer.Behaviors.Event.TeamChanged" xml:space="preserve">
+    <value>队伍信息改变</value>
+  </data>
+  <data name="Designer.Behaviors.Event.TeamSwapped" xml:space="preserve">
+    <value>队伍换边</value>
+  </data>
+  <data name="Designer.Behaviors.Event.MapChanged" xml:space="preserve">
+    <value>地图改变</value>
+  </data>
+  <data name="Designer.Behaviors.Event.TimerStarted" xml:space="preserve">
+    <value>计时器开始</value>
+  </data>
+  <data name="Designer.Behaviors.Event.TimerStopped" xml:space="preserve">
+    <value>计时器停止</value>
+  </data>
+  <data name="Designer.Behaviors.Event.TimerReached" xml:space="preserve">
+    <value>计时器到达</value>
+  </data>
+  <data name="Designer.Behaviors.Event.ManualTrigger" xml:space="preserve">
+    <value>手动触发</value>
+  </data>
+  <data name="Designer.Behaviors.Event.PluginEvent" xml:space="preserve">
+    <value>插件事件</value>
+  </data>
+  <data name="Designer.Behaviors.Event.GuidanceHighlightChanged" xml:space="preserve">
+    <value>引导高亮改变</value>
+  </data>
+  <data name="Designer.Behaviors.Event.GuidanceHighlightCleared" xml:space="preserve">
+    <value>引导高亮清除</value>
+  </data>
+  <data name="Designer.Behaviors.Event.GuidanceStarted" xml:space="preserve">
+    <value>引导启动</value>
+  </data>
+  <data name="Designer.Behaviors.Event.GuidanceStateChanged" xml:space="preserve">
+    <value>引导状态改变</value>
+  </data>
+  <data name="Designer.Behaviors.Event.GuidanceStopped" xml:space="preserve">
+    <value>引导停止</value>
+  </data>
+  <data name="Designer.Behaviors.Event.GuidanceStepChanged" xml:space="preserve">
+    <value>引导步骤改变</value>
+  </data>
+  <data name="Designer.Behaviors.Category.Game" xml:space="preserve">
+    <value>对局</value>
+  </data>
+  <data name="Designer.Behaviors.Category.Guidance" xml:space="preserve">
+    <value>引导</value>
+  </data>
+  <data name="Designer.Behaviors.Category.Display" xml:space="preserve">
+    <value>显示</value>
+  </data>
+  <data name="Designer.Behaviors.Category.Score" xml:space="preserve">
+    <value>比分</value>
+  </data>
+  <data name="Designer.Behaviors.Category.Timer" xml:space="preserve">
+    <value>计时器</value>
+  </data>
+  <data name="Designer.Behaviors.Event.CurrentGameChanged" xml:space="preserve">
+    <value>当前对局改变</value>
+  </data>
+  <data name="Designer.Behaviors.Event.GlobalScoreTotalMarginChanged" xml:space="preserve">
+    <value>总分间距改变</value>
+  </data>
+  <data name="Designer.Behaviors.Event.BanCountChanged" xml:space="preserve">
+    <value>Ban 位数量改变</value>
+  </data>
+  <data name="Designer.Behaviors.Event.IsTraitVisibleChanged" xml:space="preserve">
+    <value>辅助特质可见性改变</value>
+  </data>
+  <data name="Designer.Behaviors.Event.IsBo3ModeChanged" xml:space="preserve">
+    <value>BO3 模式改变</value>
+  </data>
+  <data name="Designer.Behaviors.Event.CountDownValueChanged" xml:space="preserve">
+    <value>倒计时数值改变</value>
+  </data>
+  <data name="Designer.Behaviors.Event.IsMapV2BreathingChanged" xml:space="preserve">
+    <value>地图呼吸灯改变</value>
+  </data>
+  <data name="Designer.Behaviors.Event.MapV2PickingBorderStateChanged" xml:space="preserve">
+    <value>地图选图边框状态改变</value>
+  </data>
+  <data name="Designer.Behaviors.Event.IsMapV2CampVisibleChanged" xml:space="preserve">
+    <value>地图阵营可见性改变</value>
+  </data>
+  <data name="Designer.Behaviors.Event.PickedMapChanged" xml:space="preserve">
+    <value>选择地图改变</value>
+  </data>
+  <data name="Designer.Behaviors.Event.MapV2BannedChanged" xml:space="preserve">
+    <value>地图禁用状态改变</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.Game" xml:space="preserve">
+    <value>当前对局</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.Margin" xml:space="preserve">
+    <value>间距</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.ListName" xml:space="preserve">
+    <value>列表名称</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.Count" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.IsTraitVisible" xml:space="preserve">
+    <value>辅助特质可见</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.IsBo3Mode" xml:space="preserve">
+    <value>BO3 模式</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.RemainingSeconds" xml:space="preserve">
+    <value>剩余秒数</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.IsMapV2Breathing" xml:space="preserve">
+    <value>地图呼吸灯开启</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.MapKey" xml:space="preserve">
+    <value>地图 key</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.IsMapBanned" xml:space="preserve">
+    <value>地图已禁用</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.IsPickingBorderVisible" xml:space="preserve">
+    <value>选图边框可见</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.IsMapV2CampVisible" xml:space="preserve">
+    <value>地图阵营可见</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.PickedMap" xml:space="preserve">
+    <value>选择地图</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.Action" xml:space="preserve">
+    <value>操作</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.ActionName" xml:space="preserve">
+    <value>操作名称</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.Index" xml:space="preserve">
+    <value>索引</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.Indexes" xml:space="preserve">
+    <value>索引列表</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.IndexesText" xml:space="preserve">
+    <value>当前索引文本</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.Time" xml:space="preserve">
+    <value>时间</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.GameAction" xml:space="preserve">
+    <value>高亮操作</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.IsStarted" xml:space="preserve">
+    <value>是否启动</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.StepIndex" xml:space="preserve">
+    <value>步骤索引</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.PreviousStepIndex" xml:space="preserve">
+    <value>上一步骤序号</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.PreviousAction" xml:space="preserve">
+    <value>上一步操作</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.PreviousIndexes" xml:space="preserve">
+    <value>上一步索引列表</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.PreviousIndexesText" xml:space="preserve">
+    <value>上一步索引文本</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.PreviousIndex" xml:space="preserve">
+    <value>上一步首个索引</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.PreviousTime" xml:space="preserve">
+    <value>上一步计时</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.PreviousActionName" xml:space="preserve">
+    <value>上一步操作名称</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.Camp" xml:space="preserve">
+    <value>阵营</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.PlayerIndex" xml:space="preserve">
+    <value>玩家索引</value>
+  </data>
+  <data name="Designer.Behaviors.Operator.NotContains" xml:space="preserve">
+    <value>不包含</value>
+  </data>
+  <data name="Designer.Behaviors.When" xml:space="preserve">
+    <value>当</value>
+  </data>
+  <data name="Designer.Behaviors.Is" xml:space="preserve">
+    <value>为</value>
+  </data>
+  <data name="Designer.Behaviors.Value" xml:space="preserve">
+    <value>值</value>
+  </data>
+  <data name="Designer.Behaviors.UnknownParameterFormat" xml:space="preserve">
+    <value>未知参数：{0}</value>
+  </data>
+  <data name="Designer.Behaviors.OpenAnimationEditor" xml:space="preserve">
+    <value>打开动画编辑器</value>
+  </data>
+  <data name="Designer.Behaviors.StartAnimation" xml:space="preserve">
+    <value>开始动画</value>
+  </data>
+  <data name="Designer.Behaviors.LoopAnimation" xml:space="preserve">
+    <value>循环动画</value>
+  </data>
+  <data name="Designer.Behaviors.EndAnimation" xml:space="preserve">
+    <value>结束动画</value>
+  </data>
+  <data name="Designer.Behaviors.Animation" xml:space="preserve">
+    <value>动画</value>
+  </data>
+  <data name="Designer.Behaviors.AnimationEditorPlaceholder" xml:space="preserve">
+    <value>节点图动画编辑器将在后续版本中实现。</value>
+  </data>
+  <data name="Designer.Behaviors.Event.CurrentGameChanged.Description" xml:space="preserve">
+    <value>当前对局对象被替换时触发。</value>
+  </data>
+  <data name="Designer.Behaviors.Event.GlobalScoreTotalMarginChanged.Description" xml:space="preserve">
+    <value>总分展示间距改变时触发。</value>
+  </data>
+  <data name="Designer.Behaviors.Event.BanCountChanged.Description" xml:space="preserve">
+    <value>任一 Ban 位列表数量改变时触发。</value>
+  </data>
+  <data name="Designer.Behaviors.Event.IsTraitVisibleChanged.Description" xml:space="preserve">
+    <value>辅助特质可见性改变时触发。</value>
+  </data>
+  <data name="Designer.Behaviors.Event.IsBo3ModeChanged.Description" xml:space="preserve">
+    <value>BO3 模式状态改变时触发。</value>
+  </data>
+  <data name="Designer.Behaviors.Event.CountDownValueChanged.Description" xml:space="preserve">
+    <value>倒计时显示值改变时触发。</value>
+  </data>
+  <data name="Designer.Behaviors.Event.TeamSwapped.Description" xml:space="preserve">
+    <value>主客队换边时触发。</value>
+  </data>
+  <data name="Designer.Behaviors.Event.IsMapV2BreathingChanged.Description" xml:space="preserve">
+    <value>地图呼吸灯状态改变时触发。</value>
+  </data>
+  <data name="Designer.Behaviors.Event.MapV2PickingBorderStateChanged.Description" xml:space="preserve">
+    <value>地图选图边框应显示或隐藏时触发。</value>
+  </data>
+  <data name="Designer.Behaviors.Event.IsMapV2CampVisibleChanged.Description" xml:space="preserve">
+    <value>地图阵营可见性改变时触发。</value>
+  </data>
+  <data name="Designer.Behaviors.Event.PickedMapChanged.Description" xml:space="preserve">
+    <value>选择地图改变时触发。</value>
+  </data>
+  <data name="Designer.Behaviors.Event.MapV2BannedChanged.Description" xml:space="preserve">
+    <value>地图禁用状态改变时触发。</value>
+  </data>
+  <data name="Designer.Behaviors.Event.GuidanceHighlightChanged.Description" xml:space="preserve">
+    <value>对局引导页面高亮变化时触发。</value>
+  </data>
+  <data name="Designer.Behaviors.Event.GuidanceHighlightCleared.Description" xml:space="preserve">
+    <value>对局引导清除高亮时触发。</value>
+  </data>
+  <data name="Designer.Behaviors.Event.GuidanceStarted.Description" xml:space="preserve">
+    <value>对局引导启动时触发。</value>
+  </data>
+  <data name="Designer.Behaviors.Event.GuidanceStateChanged.Description" xml:space="preserve">
+    <value>对局引导启动或停止时触发。</value>
+  </data>
+  <data name="Designer.Behaviors.Event.GuidanceStopped.Description" xml:space="preserve">
+    <value>对局引导停止时触发。</value>
+  </data>
+  <data name="Designer.Behaviors.Event.GuidanceStepChanged.Description" xml:space="preserve">
+    <value>对局引导步骤切换时触发。</value>
+  </data>
+  <data name="Designer.Graph.Target.Self" xml:space="preserve">
+    <value>自身</value>
+  </data>
+  <data name="Designer.Option.TargetLayer.Auto" xml:space="preserve">
+    <value>自动</value>
+  </data>
+  <data name="Designer.Option.TargetLayer.Control" xml:space="preserve">
+    <value>控件本体</value>
+  </data>
+  <data name="Designer.Option.TargetLayer.Content" xml:space="preserve">
+    <value>内部内容</value>
+  </data>
+  <data name="Designer.Option.TargetLayer.OverlayAbove" xml:space="preserve">
+    <value>上方矩形层</value>
+  </data>
+  <data name="Designer.Option.TargetLayer.OverlayBelow" xml:space="preserve">
+    <value>下方矩形层</value>
+  </data>
+  <data name="Designer.Behaviors.Event.CharacterSelected.Description" xml:space="preserve">
+    <value>角色被选择时触发（包含阵营和玩家索引）。</value>
+  </data>
+  <data name="Designer.Behaviors.Event.CharacterBanned.Description" xml:space="preserve">
+    <value>角色被禁用时触发（包含阵营和禁用位索引）。</value>
+  </data>
+  <data name="Designer.Graph.NodeCatalog" xml:space="preserve">
+    <value>节点目录</value>
+  </data>
+  <data name="Designer.Graph.Properties" xml:space="preserve">
+    <value>节点属性</value>
+  </data>
+  <data name="Designer.Graph.Validation" xml:space="preserve">
+    <value>图检查</value>
+  </data>
+  <data name="Designer.Graph.DeleteNode" xml:space="preserve">
+    <value>删除节点</value>
+  </data>
+  <data name="Designer.Graph.DuplicateNode" xml:space="preserve">
+    <value>复制节点</value>
+  </data>
+  <data name="Designer.Graph.AddStartEnd" xml:space="preserve">
+    <value>添加 Start / End</value>
+  </data>
+  <data name="Designer.Graph.RunPreview" xml:space="preserve">
+    <value>运行预览</value>
+  </data>
+  <data name="Designer.Graph.StopPreview" xml:space="preserve">
+    <value>停止预览</value>
+  </data>
+  <data name="Designer.Graph.ResetCurrentTarget" xml:space="preserve">
+    <value>重置当前控件</value>
+  </data>
+  <data name="Designer.Graph.ResetAllPreview" xml:space="preserve">
+    <value>重置全部预览</value>
+  </data>
+  <data name="Designer.Graph.Validate" xml:space="preserve">
+    <value>检查图</value>
+  </data>
+  <data name="Designer.Graph.ClearLog" xml:space="preserve">
+    <value>清空日志</value>
+  </data>
+  <data name="Designer.Graph.ExecutionLog" xml:space="preserve">
+    <value>执行日志</value>
+  </data>
+  <data name="Designer.Graph.PreviewTitle" xml:space="preserve">
+    <value>预览</value>
+  </data>
+  <data name="Designer.Graph.PreviewPlaceholder" xml:space="preserve">
+    <value>动画预览视口
+从设计器中选择控件后在此预览动画效果</value>
+  </data>
+  <data name="Designer.Graph.PreviewStart" xml:space="preserve">
+    <value>预览开始动画</value>
+  </data>
+  <data name="Designer.Graph.PreviewLoopOnce" xml:space="preserve">
+    <value>预览一次循环动画</value>
+  </data>
+  <data name="Designer.Graph.StartLoopPreview" xml:space="preserve">
+    <value>开始循环动画预览</value>
+  </data>
+  <data name="Designer.Graph.StopLoopPreview" xml:space="preserve">
+    <value>停止循环动画预览</value>
+  </data>
+  <data name="Designer.Graph.PreviewStop" xml:space="preserve">
+    <value>预览停止动画</value>
+  </data>
+  <data name="Designer.Graph.ResetPreview" xml:space="preserve">
+    <value>重置预览</value>
+  </data>
+  <data name="Designer.Graph.Connection.SelectInput" xml:space="preserve">
+    <value>请选择输入端口。</value>
+  </data>
+  <data name="Designer.Graph.Preview.ValidationBlocked" xml:space="preserve">
+    <value>图检查发现问题，预览已阻止。</value>
+  </data>
+  <data name="Designer.Graph.Preview.AutoReverseStoredOnly" xml:space="preserve">
+    <value>自动反向设置会被保存，但预览暂不模拟反向图播放。</value>
+  </data>
+  <data name="Designer.Graph.Category.Flow" xml:space="preserve">
+    <value>流程</value>
+  </data>
+  <data name="Designer.Graph.Category.Action" xml:space="preserve">
+    <value>动作</value>
+  </data>
+  <data name="Designer.Graph.Category.Value" xml:space="preserve">
+    <value>值</value>
+  </data>
+  <data name="Designer.Graph.Node.FlowStart" xml:space="preserve">
+    <value>开始</value>
+  </data>
+  <data name="Designer.Graph.Node.FlowEnd" xml:space="preserve">
+    <value>结束</value>
+  </data>
+  <data name="Designer.Graph.Node.FlowDelay" xml:space="preserve">
+    <value>延迟</value>
+  </data>
+  <data name="Designer.Graph.Node.FlowParallel" xml:space="preserve">
+    <value>并行</value>
+  </data>
+  <data name="Designer.Graph.Node.FlowIf" xml:space="preserve">
+    <value>条件判断</value>
+  </data>
+  <data name="Designer.Graph.Node.ActionLog" xml:space="preserve">
+    <value>日志</value>
+  </data>
+  <data name="Designer.Graph.Node.ActionSetProperty" xml:space="preserve">
+    <value>设置属性</value>
+  </data>
+  <data name="Designer.Graph.Node.ActionResetProperty" xml:space="preserve">
+    <value>重置属性</value>
+  </data>
+  <data name="Designer.Graph.Node.ActionAnimateProperty" xml:space="preserve">
+    <value>动画属性</value>
+  </data>
+  <data name="Designer.Graph.Node.FlowStart.Description" xml:space="preserve">
+    <value>动画流程入口。每张图通常只放一个 Start，然后从 Out 连到第一个动作或流程节点。</value>
+  </data>
+  <data name="Designer.Graph.Node.FlowEnd.Description" xml:space="preserve">
+    <value>结束当前流程分支。每张图只能有一个 End；多个分支可以同时连到 End 的 In。</value>
+  </data>
+  <data name="Designer.Graph.Node.FlowDelay.Description" xml:space="preserve">
+    <value>等待一段时间后继续执行。用于让两个属性请求之间错开，比如先淡出再淡入。</value>
+  </data>
+  <data name="Designer.Graph.Node.FlowParallel.Description" xml:space="preserve">
+    <value>同时执行多个分支，等待所有分支完成后继续执行 Out。\nBranch 不连接 End 即视为完成。</value>
+  </data>
+  <data name="Designer.Graph.Node.FlowIf.Description" xml:space="preserve">
+    <value>高级分支节点：按文本比较结果走 True 或 False。属性动画里一般不需要，优先用简单顺序流程。</value>
+  </data>
+  <data name="Designer.Graph.Node.ActionLog.Description" xml:space="preserve">
+    <value>向预览日志写一行文字，用来确认图执行到了哪里，不会影响控件属性。</value>
+  </data>
+  <data name="Designer.Graph.Node.ActionSetProperty.Description" xml:space="preserve">
+    <value>发出"设置属性"请求，向目标控件写入属性值。</value>
+  </data>
+  <data name="Designer.Graph.Node.ActionResetProperty.Description" xml:space="preserve">
+    <value>发出“重置属性”请求。PropertyName 写具体属性，或写 All 表示全部重置。</value>
+  </data>
+  <data name="Designer.Graph.Node.ActionAnimateProperty.Description" xml:space="preserve">
+    <value>发出“动画改变属性”请求。填写目标、属性名、起止值、持续时间和缓动。</value>
+  </data>
+  <data name="Designer.Graph.Port.In" xml:space="preserve">
+    <value>In</value>
+  </data>
+  <data name="Designer.Graph.Port.Out" xml:space="preserve">
+    <value>下一步</value>
+  </data>
+  <data name="Designer.Graph.Port.True" xml:space="preserve">
+    <value>True</value>
+  </data>
+  <data name="Designer.Graph.Port.False" xml:space="preserve">
+    <value>False</value>
+  </data>
+  <data name="Designer.Graph.Port.Step1" xml:space="preserve">
+    <value>Step1</value>
+  </data>
+  <data name="Designer.Graph.Port.Step2" xml:space="preserve">
+    <value>Step2</value>
+  </data>
+  <data name="Designer.Graph.Port.Step3" xml:space="preserve">
+    <value>Step3</value>
+  </data>
+  <data name="Designer.Graph.Port.Branch1" xml:space="preserve">
+    <value>分支 1</value>
+  </data>
+  <data name="Designer.Graph.Port.Branch2" xml:space="preserve">
+    <value>分支 2</value>
+  </data>
+  <data name="Designer.Graph.Port.Branch3" xml:space="preserve">
+    <value>分支 3</value>
+  </data>
+  <data name="Designer.Graph.Port.ParallelOut" xml:space="preserve">
+    <value>全部完成后</value>
+  </data>
+  <data name="Designer.Graph.Port.ParallelBranch" xml:space="preserve">
+    <value>分支 {0}</value>
+  </data>
+  <data name="Designer.Graph.Port.ParallelBranch.Tooltip" xml:space="preserve">
+    <value>并行分支 {0}。此分支会和其他已连接分支同时执行。</value>
+  </data>
+  <data name="Designer.Graph.Connection.Meaning.ParallelBranch" xml:space="preserve">
+    <value>并行分支 {0}</value>
+  </data>
+  <data name="Designer.Graph.Port.Branch1.Tooltip" xml:space="preserve">
+    <value>并行分支 1。此分支会和其他分支同时执行。</value>
+  </data>
+  <data name="Designer.Graph.Port.Branch2.Tooltip" xml:space="preserve">
+    <value>并行分支 2。此分支会和其他分支同时执行。</value>
+  </data>
+  <data name="Designer.Graph.Port.Branch3.Tooltip" xml:space="preserve">
+    <value>并行分支 3。此分支会和其他分支同时执行。</value>
+  </data>
+  <data name="Designer.Graph.Port.ParallelOut.Tooltip" xml:space="preserve">
+    <value>所有已连接的并行分支执行完成后，从这里继续。</value>
+  </data>
+  <data name="Designer.Graph.Connection.Meaning.ParallelBranch1" xml:space="preserve">
+    <value>并行分支 1</value>
+  </data>
+  <data name="Designer.Graph.Connection.Meaning.ParallelBranch2" xml:space="preserve">
+    <value>并行分支 2</value>
+  </data>
+  <data name="Designer.Graph.Connection.Meaning.ParallelBranch3" xml:space="preserve">
+    <value>并行分支 3</value>
+  </data>
+  <data name="Designer.Graph.Connection.Meaning.ParallelOut" xml:space="preserve">
+    <value>所有并行分支完成后继续</value>
+  </data>
+  <data name="Designer.Graph.Connection.MeaningLabel" xml:space="preserve">
+    <value>含义</value>
+  </data>
+  <data name="Designer.Graph.Port.Completed" xml:space="preserve">
+    <value>完成</value>
+  </data>
+  <data name="Designer.Graph.Port.Value" xml:space="preserve">
+    <value>Value</value>
+  </data>
+  <data name="Designer.Graph.Property.DurationMs" xml:space="preserve">
+    <value>持续时间</value>
+  </data>
+  <data name="Designer.Graph.Property.BranchCount" xml:space="preserve">
+    <value>并行任务数</value>
+  </data>
+  <data name="Designer.Graph.Property.Message" xml:space="preserve">
+    <value>Message</value>
+  </data>
+  <data name="Designer.Graph.Property.Target" xml:space="preserve">
+    <value>目标</value>
+  </data>
+  <data name="Designer.Graph.Property.PropertyName" xml:space="preserve">
+    <value>属性名称</value>
+  </data>
+  <data name="Designer.Graph.Property.Value" xml:space="preserve">
+    <value>值</value>
+  </data>
+  <data name="Designer.Graph.Property.From" xml:space="preserve">
+    <value>起始值</value>
+  </data>
+  <data name="Designer.Graph.Property.To" xml:space="preserve">
+    <value>结束值</value>
+  </data>
+  <data name="Designer.Graph.Property.Easing" xml:space="preserve">
+    <value>缓动</value>
+  </data>
+  <data name="Designer.Graph.Property.Left" xml:space="preserve">
+    <value>Left</value>
+  </data>
+  <data name="Designer.Graph.Property.Operator" xml:space="preserve">
+    <value>Operator</value>
+  </data>
+  <data name="Designer.Graph.Property.Right" xml:space="preserve">
+    <value>Right</value>
+  </data>
+  <data name="Designer.Graph.Property.Path" xml:space="preserve">
+    <value>Path</value>
+  </data>
+  <data name="Designer.Graph.Property.WaitForCompletion" xml:space="preserve">
+    <value>等待动画完成</value>
+  </data>
+  <data name="Designer.Graph.PropertyName.All" xml:space="preserve">
+    <value>全部属性</value>
+  </data>
+  <data name="Designer.Option.Easing.Linear" xml:space="preserve">
+    <value>线性</value>
+  </data>
+  <data name="Designer.Option.Easing.SineInOut" xml:space="preserve">
+    <value>正弦缓入缓出</value>
+  </data>
+  <data name="Designer.Option.Easing.CubicOut" xml:space="preserve">
+    <value>三次方缓出</value>
+  </data>
+  <data name="Designer.Option.Easing.CubicIn" xml:space="preserve">
+    <value>三次方缓入</value>
+  </data>
+  <data name="Designer.Option.Easing.CubicInOut" xml:space="preserve">
+    <value>三次方缓入缓出</value>
+  </data>
+  <data name="Designer.Option.Easing.BackOut" xml:space="preserve">
+    <value>回弹缓出</value>
+  </data>
+  <data name="Designer.Property.Opacity" xml:space="preserve">
+    <value>不透明度</value>
+  </data>
+  <data name="Designer.Property.VisualOffsetX" xml:space="preserve">
+    <value>视觉偏移 X</value>
+  </data>
+  <data name="Designer.Property.VisualOffsetY" xml:space="preserve">
+    <value>视觉偏移 Y</value>
+  </data>
+  <data name="Designer.Property.ClipInsetLeft" xml:space="preserve">
+    <value>左侧裁剪内缩</value>
+  </data>
+  <data name="Designer.Property.ClipInsetTop" xml:space="preserve">
+    <value>顶部裁剪内缩</value>
+  </data>
+  <data name="Designer.Property.ClipInsetRight" xml:space="preserve">
+    <value>右侧裁剪内缩</value>
+  </data>
+  <data name="Designer.Property.ClipInsetBottom" xml:space="preserve">
+    <value>底部裁剪内缩</value>
+  </data>
+  <data name="Designer.Property.ScaleX" xml:space="preserve">
+    <value>水平缩放</value>
+  </data>
+  <data name="Designer.Property.ScaleY" xml:space="preserve">
+    <value>垂直缩放</value>
+  </data>
+  <data name="Designer.Property.Rotation" xml:space="preserve">
+    <value>旋转角度</value>
+  </data>
+  <data name="Designer.Property.TextColor" xml:space="preserve">
+    <value>文本颜色</value>
+  </data>
+  <data name="Designer.Property.Foreground" xml:space="preserve">
+    <value>前景色</value>
+  </data>
+  <data name="Designer.Property.Background" xml:space="preserve">
+    <value>背景色</value>
+  </data>
+  <data name="Designer.Graph.Validation.Description" xml:space="preserve">
+    <value>检查节点图中是否缺少入口、连线是否有效、必填属性是否为空。检查结果不会删除图数据，只用于帮你修正预览和保存前的问题。</value>
+  </data>
+  <data name="Designer.Graph.Validation.GraphNoEnd" xml:space="preserve">
+    <value>图没有 End 节点；当没有出边时执行停止。</value>
+  </data>
+  <data name="Designer.Graph.Validation.MultipleEnds" xml:space="preserve">
+    <value>图存在多个 End 节点；每张图只能有一个 End。</value>
+  </data>
+  <data name="Designer.Graph.Validation.ParallelNoBranches" xml:space="preserve">
+    <value>Parallel 没有已连接的分支；Out 将立即执行。</value>
+  </data>
+  <data name="Designer.Graph.Validation.NumberFinite" xml:space="preserve">
+    <value>请输入有限数值。</value>
+  </data>
+  <data name="Designer.Graph.Validation.NumberInteger" xml:space="preserve">
+    <value>请输入整数。</value>
+  </data>
+  <data name="Designer.Graph.Validation.NumberRange" xml:space="preserve">
+    <value>数值必须介于 {0} 和 {1} 之间。</value>
+  </data>
+  <data name="Designer.Graph.DeleteConnection" xml:space="preserve">
+    <value>断开连接</value>
+  </data>
+  <data name="Designer.Graph.Property.DurationMs.Description" xml:space="preserve">
+    <value>等待或动画持续时间，单位为毫秒。</value>
+  </data>
+  <data name="Designer.Graph.Property.BranchCount.Description" xml:space="preserve">
+    <value>并行执行端口的数量，可设置为 1 到 20。</value>
+  </data>
+  <data name="Designer.Graph.Property.Message.Description" xml:space="preserve">
+    <value>写入预览执行日志的文本。</value>
+  </data>
+  <data name="Designer.Graph.Property.Target.Description" xml:space="preserve">
+    <value>动作作用的目标控件。Self 表示行为绑定的控件本身。</value>
+  </data>
+  <data name="Designer.Graph.Property.TargetLayer" xml:space="preserve">
+    <value>作用层</value>
+  </data>
+  <data name="Designer.Graph.Property.TargetLayer.Description" xml:space="preserve">
+    <value>选择属性施加到控件本体、内部内容，还是运行时生成的上方/下方矩形承接层。</value>
+  </data>
+  <data name="Designer.Graph.Property.PropertyName.Description" xml:space="preserve">
+    <value>要设置、重置或动画化的属性名称。</value>
+  </data>
+  <data name="Designer.Graph.Property.Value.Description" xml:space="preserve">
+    <value>节点输出值或要写入属性的值。</value>
+  </data>
+  <data name="Designer.Graph.Property.From.Description" xml:space="preserve">
+    <value>动画起始值。例如 Opacity 动画填 0 表示从完全透明开始。</value>
+  </data>
+  <data name="Designer.Graph.Property.To.Description" xml:space="preserve">
+    <value>动画结束值。例如 Opacity 动画填 1 表示动画到完全不透明。</value>
+  </data>
+  <data name="Designer.Graph.Property.Easing.Description" xml:space="preserve">
+    <value>动画缓动名称，供后续真实动画运行时使用。</value>
+  </data>
+  <data name="Designer.Graph.Property.Left.Description" xml:space="preserve">
+    <value>比较左侧文本。动画编辑器里建议只做简单文本比较，复杂触发条件请放在行为面板。</value>
+  </data>
+  <data name="Designer.Graph.Property.Operator.Description" xml:space="preserve">
+    <value>文本比较方式，和行为触发条件使用同一套语义。</value>
+  </data>
+  <data name="Designer.Graph.Property.Right.Description" xml:space="preserve">
+    <value>比较右侧文本。</value>
+  </data>
+  <data name="Designer.Graph.Property.Path.Description" xml:space="preserve">
+    <value>路径值。动画编辑器通常不需要配置事件路径。</value>
+  </data>
+  <data name="Designer.Graph.Property.WaitForCompletion.Description" xml:space="preserve">
+    <value>启动动画后，等待动画完成再继续执行后续节点。</value>
+  </data>
+  <data name="Designer.Graph.Help" xml:space="preserve">
+    <value>帮助</value>
+  </data>
+  <data name="Designer.Graph.Help.Concepts.Title" xml:space="preserve">
+    <value>基本概念</value>
+  </data>
+  <data name="Designer.Graph.Help.Concepts.Content" xml:space="preserve">
+    <value>节点图编辑器是编排控件动画的可视化工具。每个图由"节点"和"连线"组成。\n节点表示动作（如设置属性、播放动画），连线决定执行顺序。\n图从 Start 节点开始执行，到 End 节点结束。\n\n节点分为三大类：流程控制节点（控制执行顺序）、动作节点（实际操作控件属性）、值节点（提供常量数据）。</value>
+  </data>
+  <data name="Designer.Graph.Help.Workflow.Title" xml:space="preserve">
+    <value>操作方式</value>
+  </data>
+  <data name="Designer.Graph.Help.Workflow.Content" xml:space="preserve">
+    <value>从左侧节点目录拖拽节点到画布，或双击目录项快速添加。\n按住一个节点的输出端口（右侧蓝色标记）拖到另一个节点的输入端口（左侧标记）来建立连线。\n点击节点卡片选中，右侧属性面板显示可编辑的属性。\n按 Delete 键删除选中节点或连线。使用顶部工具栏按钮可复制节点、自动创建 Start/End 节点。\n在目录搜索框中输入关键词快速定位节点类型。</value>
+  </data>
+  <data name="Designer.Graph.Help.NodeTypes.Title" xml:space="preserve">
+    <value>节点类型参考</value>
+  </data>
+  <data name="Designer.Graph.Help.NodeTypes.Content" xml:space="preserve">
+    <value>流程控制节点：\nStart — 图的入口，每个图只能有一个。\nEnd — 图的结束点，每个图只能有一个；多个分支可以连到同一个 End 的 In。\nDelay — 等待指定毫秒数后继续。\nSequence — 按 Step1 → Step2 → Step3 顺序依次执行。\nParallel — 同时执行 Branch1、Branch2、Branch3，全部完成后继续。\nIf — 文本比较分支节点，比较 Left 和 Right，相等走 True，不等走 False。\n\n动作节点：\nLog — 向执行日志输出一行文字，用于调试追踪。\nSetProperty — 设置目标控件属性值。例如 Target=Self、PropertyName=Opacity、Value=0.5。\nResetProperty — 重置目标控件属性。PropertyName 可写具体属性或 All。\nAnimateProperty — 向目标控件发送属性动画。填写 PropertyName、From、To、DurationMs 和 Easing（缓动函数）。\n\n值节点：\nNumber / String / Boolean / Color — 常量值节点，可在属性面板编辑值。\nControlReference — 目标控件引用，常用 Self 表示行为绑定的控件本身。</value>
+  </data>
+  <data name="Designer.Graph.Help.Preview.Title" xml:space="preserve">
+    <value>预览动画</value>
+  </data>
+  <data name="Designer.Graph.Help.Preview.Content" xml:space="preserve">
+    <value>确保图中有一个 Start 节点和一个 End 节点。\n点击工具栏"运行预览"执行当前图。动画会作用于设计器中的真实控件，并在底部左侧预览视口中同步显示。\n底部右侧执行日志显示每一步的执行结果，方便排查问题。\n点击"停止预览"中断执行。使用"重置当前目标"或"重置所有预览"恢复被动画修改过的控件属性。\n预览视口使用实时渲染，可直观看到控件的动画效果。</value>
+  </data>
+  <data name="Designer.Graph.Help.LoopPreview.Title" xml:space="preserve">
+    <value>循环预览</value>
+  </data>
+  <data name="Designer.Graph.Help.LoopPreview.Content" xml:space="preserve">
+    <value>循环（Loop）行为有三个阶段图：开始图、循环图、结束图。\n\n预览一次循环动画：先执行开始图 → 执行一次循环图 → 执行结束图。\n开始循环动画预览：反复执行循环图（受 RepeatCount 和 IntervalMs 控制），直到点击“停止循环动画预览”。\n预览停止动画：只执行结束图，用于检查停止阶段效果。\n重置预览：恢复所有被预览修改过的控件属性。\n\nRepeatCount 控制循环次数，设为负数表示无限循环直到手动停止。IntervalMs 控制两次循环之间的等待时间；为 0 时预览仍会保留一个短暂节拍，避免界面卡住。</value>
+  </data>
+  <data name="Designer.Graph.Help.Troubleshooting.Title" xml:space="preserve">
+    <value>常见问题</value>
+  </data>
+  <data name="Designer.Graph.Help.Troubleshooting.Content" xml:space="preserve">
+    <value>预览不执行：检查是否有 Start 节点，所有节点是否正确连线，是否有验证错误。\n动画效果不符预期：检查 AnimateProperty 的 From/To 值和 DurationMs，确认缓动函数选择是否正确。\n节点无法连线：确认输出端口（Flow/Value 类型）和输入端口类型匹配。Flow 端口只能连接 Flow 端口，Value 端口只能连接 Value 端口。\n图执行卡住：检查 Delay 节点是否设定了过大的毫秒数，或 Parallel 分支是否都有 End 节点。\n控件动画没反应：检查 Target 是否正确（常用 Self），PropertyName 是否拼写正确（如 Opacity、Width、Height 等）。</value>
+  </data>
+  <data name="Designer.Graph.Help.Shortcuts.Title" xml:space="preserve">
+    <value>键盘快捷键</value>
+  </data>
+  <data name="Designer.Graph.Help.Shortcut.Delete" xml:space="preserve">
+    <value>Delete: 删除选中的节点或连线</value>
+  </data>
+  <data name="Designer.Graph.Help.Shortcut.Duplicate" xml:space="preserve">
+    <value>Ctrl+D: 复制选中的节点</value>
+  </data>
+  <data name="Designer.Graph.Help.Shortcut.Connect" xml:space="preserve">
+    <value>拖拽输出端口到输入端口: 建立连线</value>
+  </data>
+  <data name="Designer.Graph.Help.Title" xml:space="preserve">
+    <value>动画编辑器使用说明</value>
+  </data>
+  <data name="Designer.Graph.Node.Shortcuts" xml:space="preserve">
+    <value>拖动标题移动节点；从右侧端口拖到左侧端口连线；右键或 Delete 删除节点。</value>
+  </data>
+  <data name="Designer.Graph.NodeCatalog.DragHint" xml:space="preserve">
+    <value>按住并拖到中间画布即可添加节点。</value>
+  </data>
+  <data name="Designer.Graph.Undo" xml:space="preserve">
+    <value>撤销</value>
+  </data>
+  <data name="Designer.Graph.Redo" xml:space="preserve">
+    <value>重做</value>
+  </data>
+  <data name="Designer.Graph.Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="Designer.Graph.ToolTipUndo" xml:space="preserve">
+    <value>撤销 (Ctrl+Z)</value>
+  </data>
+  <data name="Designer.Graph.ToolTipRedo" xml:space="preserve">
+    <value>重做 (Ctrl+Y)</value>
+  </data>
+  <data name="Designer.Graph.ToolTipSave" xml:space="preserve">
+    <value>保存 (Ctrl+S)</value>
+  </data>
+  <data name="Designer.Property.DisplayMode" xml:space="preserve">
+    <value>显示模式</value>
+  </data>
+  <data name="Designer.Property.VerticalLanguageMode" xml:space="preserve">
+    <value>竖排语言模式</value>
+  </data>
+  <data name="Designer.Property.LatinVerticalMode" xml:space="preserve">
+    <value>拉丁竖排模式</value>
+  </data>
+  <data name="Designer.Property.VerticalDirection" xml:space="preserve">
+    <value>朝向</value>
+  </data>
+  <data name="Designer.Property.NumberStyle" xml:space="preserve">
+    <value>数字风格</value>
+  </data>
+  <data name="Designer.Property.DisplayLanguage" xml:space="preserve">
+    <value>显示语言</value>
+  </data>
+  <data name="Designer.Property.VerticalTextSpacing" xml:space="preserve">
+    <value>字符间距</value>
+  </data>
+  <data name="Designer.Property.GroupSpacing" xml:space="preserve">
+    <value>组间距</value>
+  </data>
+  <data name="Designer.Property.ShowSeparator" xml:space="preserve">
+    <value>显示分隔线</value>
+  </data>
+  <data name="Designer.Property.SeparatorThickness" xml:space="preserve">
+    <value>分隔线粗细</value>
+  </data>
+  <data name="Designer.Property.SeparatorColor" xml:space="preserve">
+    <value>分隔线颜色</value>
+  </data>
+  <data name="Designer.Property.BackgroundColor" xml:space="preserve">
+    <value>背景颜色</value>
+  </data>
+  <data name="Designer.Property.PaddingLeft" xml:space="preserve">
+    <value>左内边距</value>
+  </data>
+  <data name="Designer.Property.PaddingTop" xml:space="preserve">
+    <value>上内边距</value>
+  </data>
+  <data name="Designer.Property.PaddingRight" xml:space="preserve">
+    <value>右内边距</value>
+  </data>
+  <data name="Designer.Property.PaddingBottom" xml:space="preserve">
+    <value>下内边距</value>
+  </data>
+  <data name="Designer.Option.DisplayMode.Inline" xml:space="preserve">
+    <value>单行</value>
+  </data>
+  <data name="Designer.Option.DisplayMode.TwoLine" xml:space="preserve">
+    <value>双行</value>
+  </data>
+  <data name="Designer.Option.DisplayMode.HorizontalGameOnly" xml:space="preserve">
+    <value>横排局数</value>
+  </data>
+  <data name="Designer.Option.DisplayMode.HorizontalHalfOnly" xml:space="preserve">
+    <value>横排半场</value>
+  </data>
+  <data name="Designer.Option.DisplayMode.Vertical" xml:space="preserve">
+    <value>竖排</value>
+  </data>
+  <data name="Designer.Option.DisplayMode.VerticalTwoLine" xml:space="preserve">
+    <value>竖排双行</value>
+  </data>
+  <data name="Designer.Option.DisplayMode.VerticalHalfOnly" xml:space="preserve">
+    <value>竖排半场</value>
+  </data>
+  <data name="Designer.Option.DisplayMode.VerticalGameOnly" xml:space="preserve">
+    <value>竖排局数</value>
+  </data>
+  <data name="Designer.Option.DisplayMode.VerticalGameAndHalf" xml:space="preserve">
+    <value>竖排局数+半场</value>
+  </data>
+  <data name="Designer.Option.DisplayMode.VerticalSeparatedGameAndHalf" xml:space="preserve">
+    <value>竖排分离局数+半场</value>
+  </data>
+  <data name="Designer.Option.DisplayMode.RibbonGameOnly" xml:space="preserve">
+    <value>Ribbon 竖条</value>
+  </data>
+  <data name="Designer.Option.VerticalLanguageMode.Auto" xml:space="preserve">
+    <value>自动</value>
+  </data>
+  <data name="Designer.Option.VerticalLanguageMode.Upright" xml:space="preserve">
+    <value>逐字竖排</value>
+  </data>
+  <data name="Designer.Option.VerticalLanguageMode.RotateBlock" xml:space="preserve">
+    <value>旋转整段</value>
+  </data>
+  <data name="Designer.Option.VerticalLanguageMode.StackCharacters" xml:space="preserve">
+    <value>逐字堆叠</value>
+  </data>
+  <data name="Designer.Option.LatinVerticalMode.RotateBlock" xml:space="preserve">
+    <value>旋转整段</value>
+  </data>
+  <data name="Designer.Option.LatinVerticalMode.StackCharacters" xml:space="preserve">
+    <value>逐字堆叠</value>
+  </data>
+  <data name="Designer.Option.NumberStyle.Auto" xml:space="preserve">
+    <value>自动</value>
+  </data>
+  <data name="Designer.Option.NumberStyle.Arabic" xml:space="preserve">
+    <value>阿拉伯数字</value>
+  </data>
+  <data name="Designer.Option.NumberStyle.CjkNumeral" xml:space="preserve">
+    <value>CJK 数字</value>
+  </data>
+  <data name="Designer.Option.VerticalDirection.Auto" xml:space="preserve">
+    <value>自动</value>
+  </data>
+  <data name="Designer.Option.VerticalDirection.FacingLeft" xml:space="preserve">
+    <value>朝左</value>
+  </data>
+  <data name="Designer.Option.VerticalDirection.FacingRight" xml:space="preserve">
+    <value>朝右</value>
+  </data>
+  <data name="Designer.Option.DisplayLanguage.FollowApp" xml:space="preserve">
+    <value>跟随应用</value>
+  </data>
+  <data name="Designer.Graph.Connection.IncompatibleTypes" xml:space="preserve">
+    <value>端口类型不兼容，无法连接</value>
+  </data>
+  <data name="Designer.Graph.Help.Content" xml:space="preserve">
+    <value>此编辑器仅用于编辑行为触发后运行的属性动画流程。请在“行为”面板中配置事件、触发器和过滤器。
+
+基础操作：从目录中将节点拖拽至画布；拖动节点标题可移动节点；从输出端口拖拽至输入端口进行连接；点击连接上的 × 按钮断开连接；用鼠标左键或右键拖动画布空白区域进行平移；选中节点并在右侧编辑其属性；右键点击节点或按 Delete 键将其删除。
+
+流程节点：Start 是入口点，通常每个流程图应包含一个。End 是唯一结束点，多个分支可以连到它的 In。Delay 等待指定毫秒数。Sequence 按顺序执行 Step1、Step2、Step3。Parallel 同时执行 Branch1、Branch2、Branch3，并等待所有分支完成。If 是一个高级文本分支，对于简单的属性动画通常不需要使用。
+
+操作节点：Log 写入预览日志。SetProperty 设置属性值，例如 Target=Self, PropertyName=Opacity, Value=0.5。ResetProperty 重置属性；PropertyName 可以是特定属性或 All。AnimateProperty 播放属性动画，例如 Target=Self, PropertyName=Opacity, From=0, To=1, DurationMs=300, Easing=Linear。预览存在目标范围时，这些动作会施加到设计器中的预览控件。
+
+值节点：Number/String/Boolean/Color 用于存储常量值，供后续值端口评估使用。ControlReference 用于存储目标引用；目前通常使用 Self 作为默认值。
+
+通过DeepL.com（免费版）翻译</value>
+  </data>
+  <data name="Designer.Graph.Port.ValueType.Boolean" xml:space="preserve">
+    <value>布尔</value>
+  </data>
+  <data name="Designer.Graph.Port.ValueType.Color" xml:space="preserve">
+    <value>颜色</value>
+  </data>
+  <data name="Designer.Graph.Port.ValueType.Control" xml:space="preserve">
+    <value>控件引用</value>
+  </data>
+  <data name="Designer.Graph.Port.ValueType.Number" xml:space="preserve">
+    <value>数字</value>
+  </data>
+  <data name="Designer.Graph.Port.ValueType.Object" xml:space="preserve">
+    <value>任意</value>
+  </data>
+  <data name="Designer.Graph.Port.ValueType.String" xml:space="preserve">
+    <value>文本</value>
+  </data>
+  <data name="Designer.Graph.PortKind.Flow" xml:space="preserve">
+    <value>流程</value>
+  </data>
+  <data name="Designer.Graph.PortKind.Value" xml:space="preserve">
+    <value>值</value>
+  </data>
+  <data name="Designer.Graph.Tooltip.CompatibleHint" xml:space="preserve">
+    <value>仅兼容同类型端口</value>
+  </data>
+  <data name="Designer.Graph.Tooltip.PortKind" xml:space="preserve">
+    <value>端口类型</value>
+  </data>
+  <data name="Designer.Graph.Tooltip.PortType" xml:space="preserve">
+    <value>值类型</value>
+  </data>
+  <data name="Designer.Graph.Target.LockOverlay" xml:space="preserve">
+    <value>LockOverlay</value>
+  </data>
+  <data name="Designer.Graph.Target.PickingBorder" xml:space="preserve">
+    <value>PickingBorder</value>
+  </data>
+  <data name="Designer.Graph.Target.FormatPart" xml:space="preserve">
+    <value>{0}.{1}</value>
+  </data>
+  <data name="Designer.Behaviors.FilterHint.Action" xml:space="preserve">
+    <value>使用 PickSur、PickHun、BanSur 等枚举值。</value>
+  </data>
+  <data name="Designer.Behaviors.FilterHint.Indexes" xml:space="preserve">
+    <value>字符串 contains 过滤建议使用 IndexesText / PreviousIndexesText。</value>
+  </data>
+  <data name="Designer.Behaviors.FilterHint.IndexesText" xml:space="preserve">
+    <value>格式为 [0] 或 [1, 2]。使用 Contains 0 匹配索引 0。</value>
+  </data>
+  <data name="Designer.Behaviors.MoreOptions" xml:space="preserve">
+    <value>更多行为操作</value>
+  </data>
+  <data name="Designer.Behaviors.TargetMissingPickingBorder" xml:space="preserve">
+    <value>目标控件未启用选中边框。</value>
+  </data>
+  <data name="Designer.Behaviors.TargetMissingLockOverlay" xml:space="preserve">
+    <value>目标控件未启用禁用锁定 / 锁定遮罩。</value>
+  </data>
+  <data name="Designer.Behaviors.TargetIndexUnavailable" xml:space="preserve">
+    <value>无法推断目标控件索引。</value>
+  </data>
+  <data name="Designer.Behaviors.SourceIndexUnavailable" xml:space="preserve">
+    <value>无法推断源控件索引。</value>
+  </data>
+  <data name="Designer.Behaviors.DefaultName" xml:space="preserve">
+    <value>行为</value>
+  </data>
+  <data name="Designer.Behaviors.CopyNameFormat" xml:space="preserve">
+    <value>{0} 副本</value>
+  </data>
+  <data name="Designer.Behaviors.MissingAnimationPart" xml:space="preserve">
+    <value>控件 {1} 缺少动画部件“{0}”。</value>
+  </data>
+  <data name="Designer.Behaviors.AddTransition" xml:space="preserve">
+    <value>添加过渡行为</value>
+  </data>
+  <data name="Designer.Behaviors.Transition" xml:space="preserve">
+    <value>过渡</value>
+  </data>
+  <data name="Designer.Behaviors.NewTransition" xml:space="preserve">
+    <value>新过渡行为</value>
+  </data>
+  <data name="Designer.Behaviors.TransitionTrigger" xml:space="preserve">
+    <value>过渡触发器</value>
+  </data>
+  <data name="Designer.Behaviors.TransitionHelp" xml:space="preserve">
+    <value>ExitGraph 在数据变化前运行。EnterGraph 在数据变化后运行。</value>
+  </data>
+  <data name="Designer.Behaviors.ExitGraph" xml:space="preserve">
+    <value>退出动画</value>
+  </data>
+  <data name="Designer.Behaviors.EnterGraph" xml:space="preserve">
+    <value>进入动画</value>
+  </data>
+  <data name="Designer.Behaviors.Event.CharacterPick" xml:space="preserve">
+    <value>角色选择过渡</value>
+  </data>
+  <data name="Designer.Behaviors.Event.CharacterPick.Description" xml:space="preserve">
+    <value>角色选择提交前后运行过渡图。</value>
+  </data>
+  <data name="Designer.Behaviors.Event.CharacterSwap" xml:space="preserve">
+    <value>求生者交换过渡</value>
+  </data>
+  <data name="Designer.Behaviors.Event.CharacterSwap.Description" xml:space="preserve">
+    <value>求生者角色交换提交前后运行过渡图。</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.TargetBehaviorGuid" xml:space="preserve">
+    <value>目标行为标识</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.OldCharacterId" xml:space="preserve">
+    <value>旧角色标识</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.NewCharacterId" xml:space="preserve">
+    <value>新角色标识</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.HasOldCharacter" xml:space="preserve">
+    <value>是否存在上一个角色</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.HasNewCharacter" xml:space="preserve">
+    <value>是否存在新角色</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.SourceIndex" xml:space="preserve">
+    <value>来源索引</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.TargetIndex" xml:space="preserve">
+    <value>目标索引</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.SourceBehaviorGuid" xml:space="preserve">
+    <value>来源行为标识</value>
+  </data>
+  <data name="Designer.Behaviors.StopTriggers" xml:space="preserve">
+    <value>停止条件</value>
+  </data>
+  <data name="Designer.Behaviors.StopTrigger" xml:space="preserve">
+    <value>停止条件</value>
+  </data>
+  <data name="Designer.Behaviors.AddStopTrigger" xml:space="preserve">
+    <value>添加停止条件</value>
+  </data>
+  <data name="Designer.Behaviors.StopTriggersHelp" xml:space="preserve">
+    <value>任意一个停止条件满足时，循环动画会停止并执行 StopGraph。</value>
+  </data>
+  <data name="Designer.Behaviors.StopAnimation" xml:space="preserve">
+    <value>停止动画</value>
+  </data>
+  <data name="Designer.Behaviors.Event.GuidanceCancelled" xml:space="preserve">
+    <value>引导已取消</value>
+  </data>
+  <data name="Designer.Behaviors.Event.GuidanceCancelled.Description" xml:space="preserve">
+    <value>引导被用户取消时触发。</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.Reason" xml:space="preserve">
+    <value>原因</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.Camp.Description" xml:space="preserve">
+    <value>角色所属阵营。</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.PlayerIndex.Description" xml:space="preserve">
+    <value>角色选择对应的选手序号。</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.TargetBehaviorGuid.Description" xml:space="preserve">
+    <value>目标控件的稳定行为标识。</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.OldCharacterId.Description" xml:space="preserve">
+    <value>更改前的角色标识。</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.NewCharacterId.Description" xml:space="preserve">
+    <value>更改后的角色标识。</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.HasOldCharacter.Description" xml:space="preserve">
+    <value>更改前是否存在角色。</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.HasNewCharacter.Description" xml:space="preserve">
+    <value>更改后是否存在角色。</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.SourceIndex.Description" xml:space="preserve">
+    <value>交换来源选手的序号。</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.TargetIndex.Description" xml:space="preserve">
+    <value>交换目标选手的序号。</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.SourceBehaviorGuid.Description" xml:space="preserve">
+    <value>交换来源控件的稳定行为标识。</value>
+  </data>
+  <data name="Designer.Graph.Condition.If" xml:space="preserve">
+    <value>如果</value>
+  </data>
+  <data name="Designer.Graph.Preview.MissingEventContext" xml:space="preserve">
+    <value>当前预览没有事件上下文，{0} 将无法解析。</value>
+  </data>
+</root>

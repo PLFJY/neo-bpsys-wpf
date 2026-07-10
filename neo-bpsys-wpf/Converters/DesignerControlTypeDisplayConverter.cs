@@ -26,7 +26,7 @@ public sealed class DesignerControlTypeDisplayConverter : IValueConverter
         }
 
         var key = $"Designer.ControlType.{controlType}";
-        var localized = I18nHelper.GetLocalizedString(key);
+        var localized = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, key);
         return string.Equals(localized, key, StringComparison.Ordinal) ? controlType : localized;
     }
 

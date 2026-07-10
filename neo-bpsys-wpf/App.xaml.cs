@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core;
@@ -196,7 +196,7 @@ public partial class App : AppBase
         logger.LogError("Application crashed unexpectedly");
         logger.LogError(e.Exception.Message);
 #if !DEBUG
-        await MessageBoxHelper.ShowInfoAsync($"{I18nHelper.GetLocalizedString("UnexpectedExceptionMessage")}\n\n{AppConstants.LogPath}\n ", "Error");
+        await MessageBoxHelper.ShowInfoAsync($"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "UnexpectedExceptionMessage")}\n\n{AppConstants.LogPath}\n ", "Error");
         Process.Start("explorer.exe", AppConstants.LogPath);
 #endif
         // For more info see https://docs.microsoft.com/en-us/dotnet/api/system.windows.application.dispatcherunhandledexception?view=windowsdesktop-6.0

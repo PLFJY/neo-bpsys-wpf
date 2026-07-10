@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <data name="Previous" xml:space="preserve">
+    <value>前へ</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>次へ</value>
+  </data>
+  <data name="Finish" xml:space="preserve">
+    <value>完了</value>
+  </data>
+  <data name="Skip" xml:space="preserve">
+    <value>スキップ</value>
+  </data>
+  <data name="WaitingForAction" xml:space="preserve">
+    <value>操作待ち...</value>
+  </data>
+  <data name="Continue" xml:space="preserve">
+    <value>続ける</value>
+  </data>
+  <data name="ClickToContinue" xml:space="preserve">
+    <value>クリックして続ける</value>
+  </data>
+  <data name="WelcomeTitle" xml:space="preserve">
+    <value>neo-bpsys-wpf へようこそ！</value>
+  </data>
+  <data name="WelcomeDescription" xml:space="preserve">
+    <value>開始する前に、簡単な機能ツアーを完了してください。</value>
+  </data>
+  <data name="LanguageLabel" xml:space="preserve">
+    <value>インターフェース言語</value>
+  </data>
+  <data name="StartTour" xml:space="preserve">
+    <value>ツアーを開始</value>
+  </data>
+  <data name="RestartAvailableHint" xml:space="preserve">
+    <value>後で設定でツアーを再開できます。</value>
+  </data>
+  <data name="SkipConfirmTitle" xml:space="preserve">
+    <value>初回ツアーをスキップしますか？</value>
+  </data>
+  <data name="SkipConfirmDescription" xml:space="preserve">
+    <value>初回ツアーをスキップしてもよろしいですか？後で設定で再開できます。</value>
+  </data>
+  <data name="SkipConfirmContinue" xml:space="preserve">
+    <value>ツアーを続ける</value>
+  </data>
+  <data name="SkipConfirmConfirm" xml:space="preserve">
+    <value>スキップを確認</value>
+  </data>
+</root>

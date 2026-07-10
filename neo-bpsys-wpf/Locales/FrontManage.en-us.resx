@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <data name="AllFrontendWindows" xml:space="preserve">
+    <value>All frontend windows</value>
+  </data>
+  <data name="OpenAll" xml:space="preserve">
+    <value>Open all</value>
+  </data>
+  <data name="CloseAll" xml:space="preserve">
+    <value>Close all</value>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>Open</value>
+  </data>
+  <data name="DesignerUnlockNote" xml:space="preserve">
+    <value>Use the independent Frontend Designer to edit layouts. Layout packages are managed in the Layout Packages tab.</value>
+  </data>
+  <data name="OpenFrontedDesigner" xml:space="preserve">
+    <value>Open Frontend v3 Designer</value>
+  </data>
+  <data name="UserLayout" xml:space="preserve">
+    <value>User Layout</value>
+  </data>
+  <data name="LayoutPackages" xml:space="preserve">
+    <value>Layout Packages</value>
+  </data>
+  <data name="LayoutPackageManager" xml:space="preserve">
+    <value>Layout Package Manager</value>
+  </data>
+  <data name="ActivePackage" xml:space="preserve">
+    <value>Active Package</value>
+  </data>
+  <data name="SystemBuiltIn" xml:space="preserve">
+    <value>Built-in Layout Scheme</value>
+  </data>
+  <data name="BuiltInLayoutSchemeName" xml:space="preserve">
+    <value>Built-in Layout Scheme</value>
+  </data>
+  <data name="BuiltInLayoutSchemeDescription" xml:space="preserve">
+    <value>Built-in Designer v3 frontend layouts.</value>
+  </data>
+  <data name="UserLayoutSchemeNameFormat" xml:space="preserve">
+    <value>User Layout Scheme {0}</value>
+  </data>
+  <data name="UserLayoutSchemeDescription" xml:space="preserve">
+    <value>User editable layout scheme.</value>
+  </data>
+  <data name="PackageId" xml:space="preserve">
+    <value>PackageId</value>
+  </data>
+  <data name="PackageName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="PackageAuthor" xml:space="preserve">
+    <value>Author</value>
+  </data>
+  <data name="PackageDescription" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="PackageMinVersion" xml:space="preserve">
+    <value>Min Version</value>
+  </data>
+  <data name="LayoutCount" xml:space="preserve">
+    <value>Layout Count</value>
+  </data>
+  <data name="ResourceCount" xml:space="preserve">
+    <value>Resource Count</value>
+  </data>
+  <data name="ImportPackage" xml:space="preserve">
+    <value>Import Package</value>
+  </data>
+  <data name="ExportPackage" xml:space="preserve">
+    <value>Export Package</value>
+  </data>
+  <data name="ActivatePackage" xml:space="preserve">
+    <value>Activate Package</value>
+  </data>
+  <data name="DuplicateLayoutPackage" xml:space="preserve">
+    <value>Duplicate Scheme</value>
+  </data>
+  <data name="DeletePackage" xml:space="preserve">
+    <value>Delete Package</value>
+  </data>
+  <data name="OpenPackageFolder" xml:space="preserve">
+    <value>Open Package Folder</value>
+  </data>
+  <data name="RefreshPackages" xml:space="preserve">
+    <value>Refresh Packages</value>
+  </data>
+  <data name="CannotDeleteBuiltinPackage" xml:space="preserve">
+    <value>Cannot delete the built-in package.</value>
+  </data>
+  <data name="CannotDeleteLocalPackage" xml:space="preserve">
+    <value>Cannot delete the local resource package.</value>
+  </data>
+  <data name="CannotDuplicateLocalPackage" xml:space="preserve">
+    <value>Cannot duplicate the local resource package.</value>
+  </data>
+  <data name="LayoutPackageDuplicated" xml:space="preserve">
+    <value>Layout scheme duplicated</value>
+  </data>
+  <data name="DuplicateLayoutPackageFailed" xml:space="preserve">
+    <value>Duplicate layout scheme failed</value>
+  </data>
+  <data name="PackageDeleted" xml:space="preserve">
+    <value>Package deleted.</value>
+  </data>
+  <data name="PackageDeleteFailed" xml:space="preserve">
+    <value>Package delete failed</value>
+  </data>
+  <data name="PackageActivationNotImplemented" xml:space="preserve">
+    <value>This package cannot be activated yet.</value>
+  </data>
+  <data name="ExportPackageDialogTitle" xml:space="preserve">
+    <value>Export Layout Package</value>
+  </data>
+  <data name="OutputPath" xml:space="preserve">
+    <value>Output Path</value>
+  </data>
+  <data name="BrowseOutputPath" xml:space="preserve">
+    <value>Browse Output Path</value>
+  </data>
+  <data name="PackageExportSucceeded" xml:space="preserve">
+    <value>Package export succeeded</value>
+  </data>
+  <data name="PackageExportFailed" xml:space="preserve">
+    <value>Package export failed</value>
+  </data>
+  <data name="InvalidPackageId" xml:space="preserve">
+    <value>PackageId may contain only lowercase letters, numbers, dot, dash, and underscore, with no whitespace, path separators, colon, or ...</value>
+  </data>
+  <data name="PackageNameRequired" xml:space="preserve">
+    <value>Package name is required.</value>
+  </data>
+  <data name="OutputPathRequired" xml:space="preserve">
+    <value>Output path is required.</value>
+  </data>
+  <data name="ConfirmOverwriteFile" xml:space="preserve">
+    <value>The output file already exists. Overwrite it?</value>
+  </data>
+  <data name="ExportedLayoutCount" xml:space="preserve">
+    <value>Exported layouts</value>
+  </data>
+  <data name="ExportedResourceCount" xml:space="preserve">
+    <value>Exported resources</value>
+  </data>
+  <data name="CompactPackageList" xml:space="preserve">
+    <value>Layout Packages</value>
+  </data>
+  <data name="PackageBasicInfo" xml:space="preserve">
+    <value>Basic</value>
+  </data>
+  <data name="PackageContents" xml:space="preserve">
+    <value>Contents</value>
+  </data>
+  <data name="PackageLocation" xml:space="preserve">
+    <value>Location</value>
+  </data>
+  <data name="PackageValidation" xml:space="preserve">
+    <value>Validation</value>
+  </data>
+  <data name="FrontendLayoutPackageDefaultName" xml:space="preserve">
+    <value>Frontend Layout Package</value>
+  </data>
+  <data name="PackageImportSucceeded" xml:space="preserve">
+    <value>Layout package imported</value>
+  </data>
+  <data name="PackageImportFailed" xml:space="preserve">
+    <value>Layout package import failed</value>
+  </data>
+  <data name="PackageAlreadyExists" xml:space="preserve">
+    <value>Package already exists</value>
+  </data>
+  <data name="ReplaceExistingPackage" xml:space="preserve">
+    <value>A package with the same PackageId already exists. Replace it?</value>
+  </data>
+  <data name="PackageRequiresNewerVersion" xml:space="preserve">
+    <value>This package requires a newer app version.</value>
+  </data>
+  <data name="ConfirmActivatePackage" xml:space="preserve">
+    <value>Switch to this layout scheme?</value>
+  </data>
+  <data name="ConfirmDeleteActivePackage" xml:space="preserve">
+    <value>This package is active. Delete it and switch to the built-in layout?</value>
+  </data>
+  <data name="ConfirmDeletePackage" xml:space="preserve">
+    <value>Delete this layout package?</value>
+  </data>
+  <data name="PackageActivatedBuiltin" xml:space="preserve">
+    <value>Switched to built-in layout</value>
+  </data>
+  <data name="PackageActivatedInstalled" xml:space="preserve">
+    <value>Layout package activated</value>
+  </data>
+  <data name="LegacyPackageConvertTitle" xml:space="preserve">
+    <value>Convert Legacy Layout Package</value>
+  </data>
+  <data name="LegacyPackageConvertMessage" xml:space="preserve">
+    <value>A legacy .bpui layout package was detected. Convert it to a Designer v3 package and import it? The legacy Config.json will not overwrite current app settings.</value>
+  </data>
+  <data name="ConvertLegacyPackage" xml:space="preserve">
+    <value>Convert Legacy Package</value>
+  </data>
+  <data name="LegacyPackageConvertSucceeded" xml:space="preserve">
+    <value>Legacy package converted</value>
+  </data>
+  <data name="LegacyPackageConvertFailed" xml:space="preserve">
+    <value>Legacy package conversion failed</value>
+  </data>
+  <data name="LegacyPackageConvertWarnings" xml:space="preserve">
+    <value>Legacy package conversion warnings</value>
+  </data>
+  <data name="LegacyPackageDefaultDescription" xml:space="preserve">
+    <value>Converted from a legacy .bpui package. Legacy fields without a safe mapping are ignored.</value>
+  </data>
+  <data name="LegacyConvert.FrontElementsFolderMissing" xml:space="preserve">
+    <value>The legacy package does not contain the FrontElementsConfig folder, so front-end window layouts could not be read.</value>
+  </data>
+  <data name="LegacyConvert.UnknownLayoutFileSkipped" xml:space="preserve">
+    <value>An unknown legacy layout file was found and skipped: {FileName}</value>
+  </data>
+  <data name="LegacyConvert.MapBpV1Skipped" xml:space="preserve">
+    <value>The legacy "Map BP V1" window has been removed in Designer v3, so it will not be converted. Other supported windows will continue to be converted.</value>
+  </data>
+  <data name="LegacyConvert.LayoutFileTooLargeSkipped" xml:space="preserve">
+    <value>The legacy layout file is too large and was skipped: {FileName}</value>
+  </data>
+  <data name="LegacyConvert.LayoutFileReadFailed" xml:space="preserve">
+    <value>The legacy layout file could not be read and was skipped: {FileName}. Reason: {Reason}</value>
+  </data>
+  <data name="LegacyConvert.NoBlueprintForLayout" xml:space="preserve">
+    <value>No conversion map exists for this legacy window yet, so it was skipped: {SourceWindow}/{SourceCanvas}</value>
+  </data>
+  <data name="LegacyConvert.ControlCreateFailed" xml:space="preserve">
+    <value>A target v3 control could not be created for the legacy control: {SourceWindow}/{SourceCanvas}/{LegacyName} -&gt; {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.ControlNotInBlueprintMap" xml:space="preserve">
+    <value>A legacy control is not listed in the explicit conversion map: {SourceWindow}/{SourceCanvas}/{ControlName}</value>
+  </data>
+  <data name="LegacyConvert.LayoutValidationError" xml:space="preserve">
+    <value>The converted layout has validation errors: {TargetWindow}/{CanvasName}. Details: {Details}</value>
+  </data>
+  <data name="LegacyConvert.OvertimeScoreCellsAggregated" xml:space="preserve">
+    <value>Legacy overtime score cells were merged into the v3 global score row control.</value>
+  </data>
+  <data name="LegacyConvert.LockOverlayFolded" xml:space="preserve">
+    <value>The legacy lock overlay was merged into the v3 lockable image control: {LegacyName} -&gt; {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.LockOverlayTargetMissing" xml:space="preserve">
+    <value>The legacy lock overlay was recognized, but the target image control does not exist: {SourceWindow}/{SourceCanvas}/{LegacyName} -&gt; {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.BpOverviewOutOfBounds" xml:space="preserve">
+    <value>Some content in the legacy BP overview window exceeds the original bounds and may be clipped after conversion.</value>
+  </data>
+  <data name="LegacyConvert.ResourceMissing" xml:space="preserve">
+    <value>A legacy resource was not found, so the default resource was kept: {Field} = {Value}</value>
+  </data>
+  <data name="LegacyConvert.Bo3GlobalScoreBackgroundMapped" xml:space="preserve">
+    <value>The legacy BO3 global score background was converted into the v3 BO3 canvas-state background.</value>
+  </data>
+  <data name="LegacyConvert.LockImageMapped" xml:space="preserve">
+    <value>The legacy lock image was merged into the v3 image control lock overlay: {Key}</value>
+  </data>
+  <data name="LegacyConvert.PickingBorderImageMapped" xml:space="preserve">
+    <value>The legacy picking-border image was merged into the v3 image control picking border: {Key}</value>
+  </data>
+  <data name="LegacyConvert.TextSettingsApplied" xml:space="preserve">
+    <value>Legacy text settings were applied: {SourceWindow}/{SourceCanvas}/{ControlName} &lt;- {TextStyleKey}</value>
+  </data>
+  <data name="LegacyConvert.MapV2PickingBorderMapped" xml:space="preserve">
+    <value>Legacy MapV2 picking border was mapped to the v3 control.</value>
+  </data>
+  <data name="LegacyConvert.ResourceCopied" xml:space="preserve">
+    <value>Legacy resource copied: {FileName}</value>
+  </data>
+  <data name="LegacyConvert.GlobalScoreCellsAggregated" xml:space="preserve">
+    <value>Legacy global score cells aggregated: {Team} -&gt; {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.IrregularCellSpacingApproximated" xml:space="preserve">
+    <value>Legacy cell spacing was irregular and approximated by median gaps: {Team} -&gt; {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.ControlGeometryFuzzyMatched" xml:space="preserve">
+    <value>Legacy control geometry was fuzzy-matched to the v3 control.</value>
+  </data>
+  <data name="LegacyConvert.LockOverlayGeometryConsumed" xml:space="preserve">
+    <value>Legacy lock overlay geometry was merged: {LegacyName} -&gt; {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.FoldedControlConsumed" xml:space="preserve">
+    <value>Legacy folded control was merged: {SourceWindow}/{SourceCanvas}/{LegacyName} -&gt; {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.FoldedControlNoTarget" xml:space="preserve">
+    <value>Legacy folded control has no v3 body control target: {SourceWindow}/{SourceCanvas}/{LegacyName}</value>
+  </data>
+  <data name="LegacyConvert.LegacyFieldIgnored" xml:space="preserve">
+    <value>Legacy field ignored: {Field}</value>
+  </data>
+  <data name="LegacyConvert.WindowSizeDiffersFromCanvas" xml:space="preserve">
+    <value>Legacy window size differs from converter canvas default: {TargetWindow} Window={WindowSize}, Canvas={CanvasSize}</value>
+  </data>
+  <data name="LegacyConvert.ConfigJsonTooLarge" xml:space="preserve">
+    <value>Legacy Config.json is too large and was skipped.</value>
+  </data>
+  <data name="LegacyConvert.ConfigJsonReadFailed" xml:space="preserve">
+    <value>Legacy Config.json could not be read. Reason: {Reason}</value>
+  </data>
+  <data name="LegacyConvert.TextSettingsReadFailed" xml:space="preserve">
+    <value>Legacy Config.json text settings could not be read. Reason: {Reason}</value>
+  </data>
+  <data name="LegacyConvert.WindowSettingsInspectFailed" xml:space="preserve">
+    <value>Legacy Config.json window settings could not be inspected. Reason: {Reason}</value>
+  </data>
+  <data name="LegacyConvert.FoldedGeometryNotRepresentable" xml:space="preserve">
+    <value>Legacy folded control geometry is represented by v3 control metadata; separate geometry is not representable.</value>
+  </data>
+  <data name="MissingPluginImportTitle" xml:space="preserve">
+    <value>Missing plugin controls</value>
+  </data>
+  <data name="MissingPluginImportMessage" xml:space="preserve">
+    <value>This layout package references plugin controls that are not registered in the current app. Missing controls will not render; cancel the import or force import and remove them.</value>
+  </data>
+  <data name="FrontedWindowKind.BuiltIn" xml:space="preserve">
+    <value>Built-in</value>
+  </data>
+  <data name="FrontedWindowKind.PluginXaml" xml:space="preserve">
+    <value>Plugin XAML</value>
+  </data>
+  <data name="FrontedWindowKind.PluginLayout" xml:space="preserve">
+    <value>Plugin v3</value>
+  </data>
+  <data name="StopAllLoopAnimations" xml:space="preserve">
+    <value>Stop all loop animations</value>
+  </data>
+  <data name="StoppedLoopAnimationsFormat" xml:space="preserve">
+    <value>Stopped {0} loop animations.</value>
+  </data>
+  <data name="NoActiveLoopAnimations" xml:space="preserve">
+    <value>No loop animations are currently playing.</value>
+  </data>
+</root>

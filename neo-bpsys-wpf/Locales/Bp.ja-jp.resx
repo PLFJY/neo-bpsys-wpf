@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <data name="BanNumberControl" xml:space="preserve">
+    <value>BAN数制御</value>
+  </data>
+  <data name="PickingBorderImage" xml:space="preserve">
+    <value>ピック枠画像</value>
+  </data>
+  <data name="PickingBorderImageColor" xml:space="preserve">
+    <value>ピック枠の境界色（画像の色を上書き）</value>
+  </data>
+  <data name="MapBP" xml:space="preserve">
+    <value>マップBP</value>
+  </data>
+  <data name="MapBPBackground" xml:space="preserve">
+    <value>マップBP背景</value>
+  </data>
+  <data name="MapBPV2Background" xml:space="preserve">
+    <value>マップBP V2背景</value>
+  </data>
+  <data name="PickingBorderOfMapBPV2" xml:space="preserve">
+    <value>ピック枠 (マップBP V2)</value>
+  </data>
+  <data name="PickingBorderColorOfMapBPV2" xml:space="preserve">
+    <value>ピック枠色 (マップBP V2)</value>
+  </data>
+  <data name="PickMap" xml:space="preserve">
+    <value>マップ選択</value>
+  </data>
+  <data name="OperateTeam" xml:space="preserve">
+    <value>操作チーム：</value>
+  </data>
+  <data name="BanMap" xml:space="preserve">
+    <value>マップBAN</value>
+  </data>
+  <data name="PickSurvivor" xml:space="preserve">
+    <value>サバイバー選択</value>
+  </data>
+  <data name="PickHunter" xml:space="preserve">
+    <value>ハンター選択</value>
+  </data>
+  <data name="GlobalBanSurvivor" xml:space="preserve">
+    <value>グローバルBANサバイバー</value>
+  </data>
+  <data name="GlobalBanHunter" xml:space="preserve">
+    <value>グローバルBANハンター</value>
+  </data>
+  <data name="BanHunter" xml:space="preserve">
+    <value>ハンターBAN</value>
+  </data>
+  <data name="BanSurvivor" xml:space="preserve">
+    <value>サバイバーBAN</value>
+  </data>
+  <data name="PickCharacter" xml:space="preserve">
+    <value>キャラクター選択</value>
+  </data>
+  <data name="TalentAndTrait" xml:space="preserve">
+    <value>人格と特質</value>
+  </data>
+  <data name="IndexFormat" xml:space="preserve">
+    <value> {0} 番</value>
+  </data>
+  <data name="PickWordInMapBP" xml:space="preserve">
+    <value>「選択」文字 (マップBP)</value>
+  </data>
+  <data name="BanWordInMapBP" xml:space="preserve">
+    <value>「BAN」文字 (マップBP)</value>
+  </data>
+  <data name="Pick" xml:space="preserve">
+    <value>ピック</value>
+  </data>
+  <data name="Ban" xml:space="preserve">
+    <value>BAN</value>
+  </data>
+  <data name="PickCamp" xml:space="preserve">
+    <value>陣営選択</value>
+  </data>
+  <data name="PickSurTalent" xml:space="preserve">
+    <value>サバイバー人格選択</value>
+  </data>
+  <data name="PickHunTalent" xml:space="preserve">
+    <value>ハンター人格選択</value>
+  </data>
+  <data name="AreYouSureToResetMapBP" xml:space="preserve">
+    <value>マップBPをリセットしてもよろしいですか？</value>
+  </data>
+  <data name="TalentBinding" xml:space="preserve">
+    <value>人格バインド</value>
+  </data>
+  <data name="TraitBinding" xml:space="preserve">
+    <value>補助特質バインド</value>
+  </data>
+  <data name="Talent" xml:space="preserve">
+    <value>人格</value>
+  </data>
+</root>

@@ -1,4 +1,4 @@
-﻿<Page
+<Page
     x:Class="neo_bpsys_wpf.Views.Pages.MapBpPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -19,6 +19,8 @@
     d:DesignWidth="685"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Bp"
     mc:Ignorable="d">
     <Page.Resources>
         <cv:BooleanToEnumConverter x:Key="BooleanToEnumConverter" />
@@ -28,7 +30,9 @@
         Margin="10,0,10,0"
         modernScroll:GuidanceAutoScrollScope.IsEnabled="True">
         <Border Style="{StaticResource Card}" modernScroll:GuidanceScrollTarget.Action="PickCamp">
-            <StackPanel Orientation="Horizontal">
+            <StackPanel
+                Orientation="Horizontal"
+                lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell">
                 <ui:ToggleSwitch Content="{lex:Loc ShowPickingBorder}" IsChecked="{Binding IsBreathing}" />
                 <ui:ToggleSwitch
                     Margin="10,0,0,0"

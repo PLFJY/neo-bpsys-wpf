@@ -22,7 +22,7 @@ public class LocalizationKeyToTextConverter : IValueConverter
         if (value is not string key || string.IsNullOrWhiteSpace(key))
             return string.Empty;
 
-        var localized = I18nHelper.GetLocalizedString(key);
+        var localized = I18nHelper.GetLocalizedStringFromAnyHostDictionary(key);
         return string.IsNullOrWhiteSpace(localized) ? key : localized;
     }
 

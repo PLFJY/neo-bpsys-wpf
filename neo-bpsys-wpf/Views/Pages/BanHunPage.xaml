@@ -18,6 +18,8 @@
     d:DesignWidth="685"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell"
     mc:Ignorable="d">
     <Page.Resources>
         <cv:IntPlusOneConverter x:Key="IntPlusOneConverter" />
@@ -114,6 +116,7 @@
                 <TextBlock
                     Grid.Row="0"
                     Style="{StaticResource Title}"
+                    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Bp"
                     Text="{lex:Loc BanNumberControl}" />
                 <TextBlock
                     Grid.Row="1"
@@ -132,7 +135,10 @@
                         <DataTemplate>
                             <StackPanel Margin="0,0,10,10" Orientation="Horizontal">
                                 <ui:ToggleSwitch IsChecked="{Binding IsEnabled}" />
-                                <TextBlock Margin="10,0,0,0" VerticalAlignment="Center">
+                                <TextBlock
+                                    Margin="10,0,0,0"
+                                    VerticalAlignment="Center"
+                                    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Bp">
                                     <TextBlock.Text>
                                         <MultiBinding Converter="{StaticResource IndexFormatConverter}">
                                             <lex:BLoc Key="IndexFormat" />
@@ -164,6 +170,7 @@
                                 <TextBlock
                                     Margin="10,0,0,0"
                                     VerticalAlignment="Center"
+                                    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Bp"
                                     Tag="{lex:Loc IndexFormat}">
                                     <TextBlock.Text>
                                         <MultiBinding Converter="{StaticResource IndexFormatConverter}">

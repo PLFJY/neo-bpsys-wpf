@@ -34,7 +34,7 @@ public static class MapNameDisplayHelper
         }
 
         return culture is null
-            ? I18nHelper.GetLocalizedString(map.Value.ToString())
-            : I18nHelper.GetLocalizedString(map.Value.ToString(), culture);
+            ? I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, map.Value.ToString())
+            : I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, map.Value.ToString(), culture);
     }
 }

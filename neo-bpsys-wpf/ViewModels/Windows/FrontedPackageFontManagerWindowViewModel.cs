@@ -67,7 +67,7 @@ public partial class FrontedPackageFontManagerWindowViewModel : ViewModelBase
         Fonts.Clear();
         if (_fontManager is null)
         {
-            StatusText = I18nHelper.GetLocalizedString("Designer.Editor.PackageFontsUnavailable");
+            StatusText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.Editor.PackageFontsUnavailable");
             OnPropertyChanged(nameof(HasNoFonts));
             return;
         }
@@ -79,7 +79,7 @@ public partial class FrontedPackageFontManagerWindowViewModel : ViewModelBase
 
         SelectedFont = Fonts.FirstOrDefault();
         StatusText = HasNoFonts
-            ? I18nHelper.GetLocalizedString("Designer.Editor.PackageFontsEmpty")
+            ? I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.Editor.PackageFontsEmpty")
             : string.Empty;
         OnPropertyChanged(nameof(HasNoFonts));
     }
@@ -93,7 +93,7 @@ public partial class FrontedPackageFontManagerWindowViewModel : ViewModelBase
     {
         if (SelectedFont is not { CanDelete: true } font || _fontManager is null)
         {
-            StatusText = I18nHelper.GetLocalizedString("Designer.Editor.PackageFontInUse");
+            StatusText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.Editor.PackageFontInUse");
             return false;
         }
 
@@ -102,12 +102,12 @@ public partial class FrontedPackageFontManagerWindowViewModel : ViewModelBase
             await _fontManager.DeleteActivePackageFontAsync(font.FileName, cancellationToken);
             _fontFamilyOptionProvider.ClearCache();
             await LoadAsync(cancellationToken);
-            StatusText = I18nHelper.GetLocalizedString("Designer.Editor.PackageFontDeleteSucceeded");
+            StatusText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.Editor.PackageFontDeleteSucceeded");
             return true;
         }
         catch (Exception ex)
         {
-            StatusText = $"{I18nHelper.GetLocalizedString("Designer.Editor.PackageFontDeleteFailed")}: {ex.Message}";
+            StatusText = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.Editor.PackageFontDeleteFailed")}: {ex.Message}";
             return false;
         }
     }

@@ -17,6 +17,8 @@
     d:DesignWidth="685"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Bp"
     mc:Ignorable="d">
     <Page.Resources>
         <Style BasedOn="{StaticResource {x:Type cc:CharacterChanger}}" TargetType="cc:CharacterChanger">
@@ -56,6 +58,7 @@
                             <StackPanel Margin="0,0,10,10">
                                 <ui:TextBox
                                     IsReadOnly="True"
+                                    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Team"
                                     PlaceholderText="{lex:Loc PlayerName}"
                                     Text="{Binding ThisPlayer.Member.Name, Mode=OneWay}" />
                                 <cc:CharacterSelector
@@ -118,6 +121,7 @@
                 <TextBlock
                     Grid.Row="0"
                     Style="{StaticResource Title}"
+                    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell"
                     Text="{lex:Loc GlobalBanRecord}" />
                 <StackPanel
                     Grid.Row="1"
@@ -127,6 +131,7 @@
                         x:Name="GlobalBanAutoRecordToggle"
                         Margin="0,0,0,0"
                         VerticalAlignment="Center"
+                        lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell"
                         Content="{lex:Loc AutoRecord}"
                         IsChecked="{Binding IsGlobalBanAutoRecord}" />
                 </StackPanel>
@@ -143,7 +148,10 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0" d:Text="主队: 主队名称">
+                    <TextBlock
+                        Grid.Row="0"
+                        d:Text="主队: 主队名称"
+                        lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell">
                         <TextBlock.Text>
                             <MultiBinding StringFormat="{}{0}: {1}">
                                 <lex:BLoc Key="HomeTeam" />
@@ -211,7 +219,10 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0" d:Text="客队: 主队名称">
+                    <TextBlock
+                        Grid.Row="0"
+                        d:Text="客队: 主队名称"
+                        lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell">
                         <TextBlock.Text>
                             <MultiBinding StringFormat="{}{0}: {1}">
                                 <lex:BLoc Key="AwayTeam" />

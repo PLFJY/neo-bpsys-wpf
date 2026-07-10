@@ -83,8 +83,8 @@ public partial class FrontedDesignerHelpWindow : FluentWindow
 
     private void AddSection(string titleKey, string contentKey)
     {
-        var title = I18nHelper.GetLocalizedString(titleKey);
-        var content = I18nHelper.GetLocalizedString(contentKey);
+        var title = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, titleKey);
+        var content = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, contentKey);
         var section = new HelpSection { Title = title };
 
         foreach (var line in content.Split(new[] { "\\n" }, StringSplitOptions.None))
@@ -101,10 +101,10 @@ public partial class FrontedDesignerHelpWindow : FluentWindow
 
     private void AddPostShortcutInlineSection(string titleKey, params string[] contentKeys)
     {
-        var section = new HelpSection { Title = I18nHelper.GetLocalizedString(titleKey) };
+        var section = new HelpSection { Title = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, titleKey) };
         foreach (var contentKey in contentKeys)
         {
-            var text = I18nHelper.GetLocalizedString(contentKey).Trim();
+            var text = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, contentKey).Trim();
             if (text.Length > 0)
             {
                 section.Items.Add($"• {text}");
@@ -116,8 +116,8 @@ public partial class FrontedDesignerHelpWindow : FluentWindow
 
     private void AddPostShortcutSection(string titleKey, string contentKey)
     {
-        var title = I18nHelper.GetLocalizedString(titleKey);
-        var content = I18nHelper.GetLocalizedString(contentKey);
+        var title = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, titleKey);
+        var content = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, contentKey);
         var section = new HelpSection { Title = title };
 
         foreach (var line in content.Split(new[] { "\\n" }, StringSplitOptions.None))
@@ -134,12 +134,12 @@ public partial class FrontedDesignerHelpWindow : FluentWindow
 
     private void AddBuiltInControls()
     {
-        BuiltInControlsTitle = I18nHelper.GetLocalizedString("Designer.Help.BuiltInControls.Title");
-        BuiltInControlsControlHeader = I18nHelper.GetLocalizedString("Designer.Help.BuiltInControls.Column.Control");
-        BuiltInControlsUsageHeader = I18nHelper.GetLocalizedString("Designer.Help.BuiltInControls.Column.Usage");
-        BuiltInControlsNotesHeader = I18nHelper.GetLocalizedString("Designer.Help.BuiltInControls.Column.Notes");
+        BuiltInControlsTitle = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.Help.BuiltInControls.Title");
+        BuiltInControlsControlHeader = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.Help.BuiltInControls.Column.Control");
+        BuiltInControlsUsageHeader = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.Help.BuiltInControls.Column.Usage");
+        BuiltInControlsNotesHeader = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.Help.BuiltInControls.Column.Notes");
 
-        var content = I18nHelper.GetLocalizedString("Designer.Help.BuiltInControls.Content");
+        var content = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.Help.BuiltInControls.Content");
         foreach (var line in content.Split(new[] { "\\n" }, StringSplitOptions.None))
         {
             var parts = line.Split('|', 3);
@@ -159,7 +159,7 @@ public partial class FrontedDesignerHelpWindow : FluentWindow
 
     private void AddShortcut(string key)
     {
-        var text = I18nHelper.GetLocalizedString(key);
+        var text = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, key);
         var colonIndex = text.IndexOf(':');
         if (colonIndex > 0 && colonIndex < text.Length - 1)
         {

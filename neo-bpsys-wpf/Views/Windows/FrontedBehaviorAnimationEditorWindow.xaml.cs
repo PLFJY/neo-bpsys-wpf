@@ -130,11 +130,11 @@ public partial class FrontedBehaviorAnimationEditorWindow : FluentWindow
 
     private Task<MessageBoxResult> ShowUnsavedChangesPromptAsync() =>
         MessageBoxHelper.ShowThreeOptionAsync(
-            I18nHelper.GetLocalizedString("Designer.AnimationEditor.UnsavedChangesMessage"),
-            I18nHelper.GetLocalizedString("Designer.AnimationEditor.Title"),
-            I18nHelper.GetLocalizedString("Save"),
-            I18nHelper.GetLocalizedString("DiscardChanges"),
-            I18nHelper.GetLocalizedString("Cancel"),
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.AnimationEditor, "Designer.AnimationEditor.UnsavedChangesMessage"),
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.AnimationEditor, "Designer.AnimationEditor.Title"),
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Save"),
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "DiscardChanges"),
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"),
             width: 500,
             minWidth: 460,
             primaryButtonIcon: SymbolRegular.Save24,
@@ -146,11 +146,11 @@ public partial class FrontedBehaviorAnimationEditorWindow : FluentWindow
         var errorBox = new Wpf.Ui.Controls.MessageBox
         {
             Owner = this,
-            Title = I18nHelper.GetLocalizedString("Designer.AnimationEditor.SaveFailedTitle"),
-            Content = I18nHelper.GetLocalizedString("Designer.AnimationEditor.SaveFailedMessage"),
-            PrimaryButtonText = I18nHelper.GetLocalizedString("Confirm"),
+            Title = I18nHelper.GetLocalizedString(AppI18nDictionaries.AnimationEditor, "Designer.AnimationEditor.SaveFailedTitle"),
+            Content = I18nHelper.GetLocalizedString(AppI18nDictionaries.AnimationEditor, "Designer.AnimationEditor.SaveFailedMessage"),
+            PrimaryButtonText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"),
             PrimaryButtonIcon = new SymbolIcon { Symbol = SymbolRegular.Checkmark24 },
-            CloseButtonText = I18nHelper.GetLocalizedString("Cancel"),
+            CloseButtonText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"),
             CloseButtonIcon = new SymbolIcon { Symbol = SymbolRegular.Dismiss24 },
             Width = 400,
             MinWidth = 360

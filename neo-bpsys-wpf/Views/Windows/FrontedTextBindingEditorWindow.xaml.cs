@@ -103,7 +103,7 @@ public partial class FrontedTextBindingEditorWindow : FluentWindow
     {
         if (_viewModel.Sources.Any(source => string.IsNullOrWhiteSpace(source.Path)))
         {
-            _viewModel.ValidationError = I18nHelper.GetLocalizedString("Designer.TextBinding.EmptyPath");
+            _viewModel.ValidationError = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.TextBinding.EmptyPath");
             return;
         }
 
@@ -252,7 +252,7 @@ public partial class FrontedTextBindingEditorWindow : FluentWindow
             var sources = Sources.ToList();
             if (sources.Count == 0)
             {
-                PreviewText = I18nHelper.GetLocalizedString("Designer.TextBinding.None");
+                PreviewText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.TextBinding.None");
                 return;
             }
 
@@ -276,7 +276,7 @@ public partial class FrontedTextBindingEditorWindow : FluentWindow
                 }
                 catch (FormatException)
                 {
-                    PreviewText = $"[{I18nHelper.GetLocalizedString("FormatError") ?? "格式无效"}]";
+                    PreviewText = $"[{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "FormatError")}]";
                     return;
                 }
             }

@@ -6,7 +6,7 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.FrontedDesigner"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Lang">
+    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Designer">
     <UserControl.Resources>
         <Style x:Key="SectionTitle" TargetType="TextBlock">
             <Setter Property="Margin" Value="0,10,0,6" />

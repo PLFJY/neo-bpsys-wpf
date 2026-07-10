@@ -280,24 +280,29 @@
         <ProjectReference Include="..\neo-bpsys-wpf.SmartBp.Module\neo-bpsys-wpf.SmartBp.Module.csproj" ReferenceOutputAssembly="false" OutputItemType="SmartBpModuleBuildOnly" PrivateAssets="all" Condition="'$(Configuration)'=='Debug'" />
     </ItemGroup>
 
+    <!-- Split feature-owned resource families: culture files nest under neutral for IDE. -->
     <ItemGroup>
-        <Compile Update="Locales\Lang.Designer.cs">
-            <DesignTime>True</DesignTime>
-            <AutoGen>True</AutoGen>
-            <DependentUpon>Lang.resx</DependentUpon>
-        </Compile>
-    </ItemGroup>
-
-    <ItemGroup>
-        <EmbeddedResource Update="Locales\Lang.resx">
-            <Generator>PublicResXFileCodeGenerator</Generator>
-            <LastGenOutput>Lang.Designer.cs</LastGenOutput>
-        </EmbeddedResource>
-        <EmbeddedResource Update="Locales\Lang.en-us.resx">
-          <DependentUpon>Lang.resx</DependentUpon>
-        </EmbeddedResource>
-        <EmbeddedResource Update="Locales\Lang.ja-jp.resx">
-          <DependentUpon>Lang.resx</DependentUpon>
-        </EmbeddedResource>
+        <EmbeddedResource Update="Locales\Common.en-us.resx"><DependentUpon>Common.resx</DependentUpon></EmbeddedResource>
+        <EmbeddedResource Update="Locales\Common.ja-jp.resx"><DependentUpon>Common.resx</DependentUpon></EmbeddedResource>
+        <EmbeddedResource Update="Locales\Shell.en-us.resx"><DependentUpon>Shell.resx</DependentUpon></EmbeddedResource>
+        <EmbeddedResource Update="Locales\Shell.ja-jp.resx"><DependentUpon>Shell.resx</DependentUpon></EmbeddedResource>
+        <EmbeddedResource Update="Locales\Team.en-us.resx"><DependentUpon>Team.resx</DependentUpon></EmbeddedResource>
+        <EmbeddedResource Update="Locales\Team.ja-jp.resx"><DependentUpon>Team.resx</DependentUpon></EmbeddedResource>
+        <EmbeddedResource Update="Locales\Game.en-us.resx"><DependentUpon>Game.resx</DependentUpon></EmbeddedResource>
+        <EmbeddedResource Update="Locales\Game.ja-jp.resx"><DependentUpon>Game.resx</DependentUpon></EmbeddedResource>
+        <EmbeddedResource Update="Locales\Bp.en-us.resx"><DependentUpon>Bp.resx</DependentUpon></EmbeddedResource>
+        <EmbeddedResource Update="Locales\Bp.ja-jp.resx"><DependentUpon>Bp.resx</DependentUpon></EmbeddedResource>
+        <EmbeddedResource Update="Locales\Score.en-us.resx"><DependentUpon>Score.resx</DependentUpon></EmbeddedResource>
+        <EmbeddedResource Update="Locales\Score.ja-jp.resx"><DependentUpon>Score.resx</DependentUpon></EmbeddedResource>
+        <EmbeddedResource Update="Locales\FrontManage.en-us.resx"><DependentUpon>FrontManage.resx</DependentUpon></EmbeddedResource>
+        <EmbeddedResource Update="Locales\FrontManage.ja-jp.resx"><DependentUpon>FrontManage.resx</DependentUpon></EmbeddedResource>
+        <EmbeddedResource Update="Locales\Designer.en-us.resx"><DependentUpon>Designer.resx</DependentUpon></EmbeddedResource>
+        <EmbeddedResource Update="Locales\Designer.ja-jp.resx"><DependentUpon>Designer.resx</DependentUpon></EmbeddedResource>
+        <EmbeddedResource Update="Locales\AnimationEditor.en-us.resx"><DependentUpon>AnimationEditor.resx</DependentUpon></EmbeddedResource>
+        <EmbeddedResource Update="Locales\AnimationEditor.ja-jp.resx"><DependentUpon>AnimationEditor.resx</DependentUpon></EmbeddedResource>
+        <EmbeddedResource Update="Locales\Settings.en-us.resx"><DependentUpon>Settings.resx</DependentUpon></EmbeddedResource>
+        <EmbeddedResource Update="Locales\Settings.ja-jp.resx"><DependentUpon>Settings.resx</DependentUpon></EmbeddedResource>
+        <EmbeddedResource Update="Locales\PluginMarket.en-us.resx"><DependentUpon>PluginMarket.resx</DependentUpon></EmbeddedResource>
+        <EmbeddedResource Update="Locales\PluginMarket.ja-jp.resx"><DependentUpon>PluginMarket.resx</DependentUpon></EmbeddedResource>
     </ItemGroup>
 </Project>

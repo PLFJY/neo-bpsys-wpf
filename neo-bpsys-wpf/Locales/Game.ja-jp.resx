@@ -1,0 +1,136 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <data name="NewGame" xml:space="preserve">
+    <value>新しい試合</value>
+  </data>
+  <data name="GameProgressColon" xml:space="preserve">
+    <value>試合進行：</value>
+  </data>
+  <data name="DecodingProgress" xml:space="preserve">
+    <value>暗号解読進捗</value>
+  </data>
+  <data name="PalletStrikes" xml:space="preserve">
+    <value>板命中回数</value>
+  </data>
+  <data name="Rescues" xml:space="preserve">
+    <value>救助回数</value>
+  </data>
+  <data name="Heals" xml:space="preserve">
+    <value>治療回数</value>
+  </data>
+  <data name="ContainmentTime" xml:space="preserve">
+    <value>牽制時間（秒）</value>
+  </data>
+  <data name="RemainingCiphers" xml:space="preserve">
+    <value>残り暗号機数</value>
+  </data>
+  <data name="PalletsDestroyed" xml:space="preserve">
+    <value>板破壊数</value>
+  </data>
+  <data name="SurvivorHits" xml:space="preserve">
+    <value>命中回数</value>
+  </data>
+  <data name="TerrorShocks" xml:space="preserve">
+    <value>恐怖の一撃回数</value>
+  </data>
+  <data name="Knockdowns" xml:space="preserve">
+    <value>ダウン回数</value>
+  </data>
+  <data name="GameProgress" xml:space="preserve">
+    <value>試合進行</value>
+  </data>
+  <data name="GameProgressInBPOverview" xml:space="preserve">
+    <value>試合進行 (BP概要)</value>
+  </data>
+  <data name="GameRuleFileNotFound" xml:space="preserve">
+    <value>ルールファイルが見つかりません</value>
+  </data>
+  <data name="GameAlreadyStarted" xml:space="preserve">
+    <value>試合は既に開始されています</value>
+  </data>
+  <data name="GuidanceNotAvailableInFree" xml:space="preserve">
+    <value>フリー対戦ではガイドは利用できません</value>
+  </data>
+  <data name="GameRuleFileError" xml:space="preserve">
+    <value>ルールファイルエラー</value>
+  </data>
+  <data name="PleaseStartGameFirst" xml:space="preserve">
+    <value>先に試合を開始してください</value>
+  </data>
+  <data name="AlreadyLastStep" xml:space="preserve">
+    <value>既に最後のステップです</value>
+  </data>
+  <data name="GameInfoError" xml:space="preserve">
+    <value>試合情報エラー</value>
+  </data>
+  <data name="AlreadyFirstStep" xml:space="preserve">
+    <value>既に最初のステップです</value>
+  </data>
+  <data name="GameRuleFileNotFoundError" xml:space="preserve">
+    <value>ルールファイルが見つかりません</value>
+  </data>
+  <data name="GameRuleFileStatusError" xml:space="preserve">
+    <value>ルールファイル状態異常</value>
+  </data>
+  <data name="NewGameHasBeenCreated" xml:space="preserve">
+    <value>新しい試合が作成されました</value>
+  </data>
+  <data name="GameProgressFree" xml:space="preserve">
+    <value>フリーマッチ</value>
+  </data>
+  <data name="GameProgressGameOnlyFormat" xml:space="preserve">
+    <value>第{0}試合</value>
+  </data>
+  <data name="GameProgressGameOvertimeOnlyFormat" xml:space="preserve">
+    <value>第{0}試合 延長</value>
+  </data>
+  <data name="GameProgressGameHalfFormat" xml:space="preserve">
+    <value>第{0}試合 {1}</value>
+  </data>
+  <data name="GameProgressGameOvertimeHalfFormat" xml:space="preserve">
+    <value>第{0}試合 延長 {1}</value>
+  </data>
+  <data name="GameProgressBinding" xml:space="preserve">
+    <value>ゲーム進行バインド</value>
+  </data>
+  <data name="NoBans" xml:space="preserve">
+    <value>BANなし</value>
+  </data>
+  <data name="ArmsFactory" xml:space="preserve">
+    <value>軍需工場</value>
+  </data>
+  <data name="TheRedChurch" xml:space="preserve">
+    <value>赤の教会</value>
+  </data>
+  <data name="SacredHeartHospital" xml:space="preserve">
+    <value>聖心病院</value>
+  </data>
+  <data name="LeosMemory" xml:space="preserve">
+    <value>レオの思い出</value>
+  </data>
+  <data name="MoonlitRiverPark" xml:space="preserve">
+    <value>月の河公園</value>
+  </data>
+  <data name="LakesideVillage" xml:space="preserve">
+    <value>湖景村</value>
+  </data>
+  <data name="EversleepingTown" xml:space="preserve">
+    <value>永眠町</value>
+  </data>
+  <data name="ChinaTown" xml:space="preserve">
+    <value>中華街</value>
+  </data>
+  <data name="Darkwoods" xml:space="preserve">
+    <value>罪の森</value>
+  </data>
+  <data name="FirstHalf" xml:space="preserve">
+    <value>前半</value>
+  </data>
+  <data name="SecondHalf" xml:space="preserve">
+    <value>後半</value>
+  </data>
+</root>

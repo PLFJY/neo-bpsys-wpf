@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <data name="Plugins" xml:space="preserve">
+    <value>プラグイン</value>
+  </data>
+  <data name="PluginManagement" xml:space="preserve">
+    <value>プラグイン管理</value>
+  </data>
+  <data name="PluginMarket" xml:space="preserve">
+    <value>プラグイン市場</value>
+  </data>
+  <data name="RestartToApplyChanges" xml:space="preserve">
+    <value>再起動して変更を適用</value>
+  </data>
+  <data name="Uninstall" xml:space="preserve">
+    <value>アンインストール</value>
+  </data>
+  <data name="CancelUninstall" xml:space="preserve">
+    <value>アンインストール取消</value>
+  </data>
+  <data name="ClickToRestart" xml:space="preserve">
+    <value>クリックして再起動</value>
+  </data>
+  <data name="ProjectUrl" xml:space="preserve">
+    <value>プロジェクトURL：</value>
+  </data>
+  <data name="InstallPluginFromFile" xml:space="preserve">
+    <value>ファイルからプラグインをインストール</value>
+  </data>
+  <data name="CannotFindManifest" xml:space="preserve">
+    <value>manifest.yml が見つかりません</value>
+  </data>
+  <data name="ManifestNotValid" xml:space="preserve">
+    <value>マニフェストが無効です</value>
+  </data>
+  <data name="PluginStatus" xml:space="preserve">
+    <value>プラグイン状態：</value>
+  </data>
+  <data name="PluginNotRemovable" xml:space="preserve">
+    <value>内蔵プラグインは削除不可</value>
+  </data>
+  <data name="PluginsThirdPartyWarning" xml:space="preserve">
+    <value>プラグインはサードパーティによって提供されています。可用性と完全性は保証されません。</value>
+  </data>
+  <data name="PluginPackageFiles" xml:space="preserve">
+    <value>プラグインパッケージ</value>
+  </data>
+  <data name="PluginMarketAuthorLabel" xml:space="preserve">
+    <value>作者: </value>
+  </data>
+  <data name="PluginMarketVersionLabel" xml:space="preserve">
+    <value>バージョン: </value>
+  </data>
+  <data name="PluginMarketSettingsTitle" xml:space="preserve">
+    <value>プラグインマーケット設定</value>
+  </data>
+  <data name="PluginMarketMirrorLabel" xml:space="preserve">
+    <value>Ghproxy</value>
+  </data>
+  <data name="PluginMarketSourceLabel" xml:space="preserve">
+    <value>プラグインソース</value>
+  </data>
+  <data name="PluginMarketMirrorSyncHint" xml:space="preserve">
+    <value>この設定はアプリ更新にも同期されます</value>
+  </data>
+  <data name="PluginMarketDownloadQueue" xml:space="preserve">
+    <value>ダウンロードキュー</value>
+  </data>
+  <data name="PluginMarketDownloadQueueTitle" xml:space="preserve">
+    <value>ダウンロードキュー</value>
+  </data>
+  <data name="PluginMarketDownloadQueueEmpty" xml:space="preserve">
+    <value>現在キューに入っているプラグインのダウンロードはありません</value>
+  </data>
+  <data name="PluginMarketCancelDownload" xml:space="preserve">
+    <value>ダウンロードをキャンセル</value>
+  </data>
+  <data name="PluginMarketDirectConnectionNoProxy" xml:space="preserve">
+    <value>直接接続（プロキシなし）</value>
+  </data>
+  <data name="PluginMarketVersionTooLow" xml:space="preserve">
+    <value>バージョンが低すぎます</value>
+  </data>
+  <data name="PluginMarketVersionIncompatible" xml:space="preserve">
+    <value>互換性のないバージョン</value>
+  </data>
+  <data name="PluginMarketHostVersionTooLow" xml:space="preserve">
+    <value>現在のソフトのバージョンが低すぎます</value>
+  </data>
+  <data name="PluginMarketApiIncompatible" xml:space="preserve">
+    <value>API に互換性がありません</value>
+  </data>
+  <data name="PluginMarketUpdateAvailable" xml:space="preserve">
+    <value>更新があります</value>
+  </data>
+  <data name="PluginMarketInstalledRestartRequired" xml:space="preserve">
+    <value>インストール済み、再起動して変更を適用</value>
+  </data>
+  <data name="PluginMarketPendingUninstall" xml:space="preserve">
+    <value>アンインストール待ち</value>
+  </data>
+  <data name="PluginMarketInstallBlockedHostVersionTooLow" xml:space="preserve">
+    <value>現在のソフトのバージョンではこのプラグインをインストールできません。</value>
+  </data>
+  <data name="PluginMarketSha256Mismatch" xml:space="preserve">
+    <value>{0} の整合性チェックに失敗しました。安全のためインストールを拒否しました。</value>
+  </data>
+  <data name="PluginMarketDownloadAlreadyInProgress" xml:space="preserve">
+    <value>他のプラグインのダウンロードが進行中です。</value>
+  </data>
+  <data name="PluginDependencyInstallAvailableMessage" xml:space="preserve">
+    <value>プラグインマーケットからインストールまたは更新できるプラグインは、ユーザーの確認が必要です。</value>
+  </data>
+  <data name="PluginDependencyInstallButton" xml:space="preserve">
+    <value>プラグインをインストール/更新</value>
+  </data>
+  <data name="PluginDependencyForceImportMessage" xml:space="preserve">
+    <value>強制インポートしてこれらのプラグインコントロールを削除できます。元の .bpui ファイルは変更されません。</value>
+  </data>
+  <data name="PluginDependencyMarketOffline" xml:space="preserve">
+    <value>マーケットはオフライン</value>
+  </data>
+  <data name="PluginDependencyMarketAvailable" xml:space="preserve">
+    <value>マーケットで利用可能</value>
+  </data>
+  <data name="PluginDependencyUpdateRequired" xml:space="preserve">
+    <value>更新が必要</value>
+  </data>
+  <data name="PluginDependencyNotFoundInMarket" xml:space="preserve">
+    <value>マーケットに見つかりません</value>
+  </data>
+  <data name="PluginDependencyInstalledVersion" xml:space="preserve">
+    <value>インストール済み</value>
+  </data>
+  <data name="PluginDependencyMinVersion" xml:space="preserve">
+    <value>最小バージョン</value>
+  </data>
+  <data name="PluginDependencyAffectedControls" xml:space="preserve">
+    <value>影響を受けるコントロール</value>
+  </data>
+  <data name="PluginDependencyInstallRestartNotice" xml:space="preserve">
+    <value>プラグインのインストールまたは更新後は通常再起動が必要で、現在のインポートは自動的には続行されません。</value>
+  </data>
+  <data name="PluginDependencyInstallIncomplete" xml:space="preserve">
+    <value>プラグインのインストールキューが終了しましたが、未完了の依存関係があります</value>
+  </data>
+  <data name="PluginDependencyInstallFailed" xml:space="preserve">
+    <value>プラグイン依存関係のインストールに失敗しました</value>
+  </data>
+</root>

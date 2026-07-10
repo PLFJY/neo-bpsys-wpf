@@ -261,7 +261,7 @@ public class FrontedWindowService : IFrontedWindowService
         {
             if (!_windowRegistry.TryGetByWindowId(windowId, out _))
             {
-                _ = MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString("UnregisteredWindowType")}: {windowId}", I18nHelper.GetLocalizedString("WindowCloseError"));
+                _ = MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "UnregisteredWindowType")}: {windowId}", I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "WindowCloseError"));
             }
 
             return;
@@ -296,7 +296,7 @@ public class FrontedWindowService : IFrontedWindowService
         var window = EnsureWindowCreated(windowId);
         if (window is null)
         {
-            _ = MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString("UnregisteredWindowType")}: {windowId}", I18nHelper.GetLocalizedString("WindowLaunchError"));
+            _ = MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "UnregisteredWindowType")}: {windowId}", I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "WindowLaunchError"));
             _logger.LogError("Unregistered window type {WindowId}", windowId);
             return;
         }

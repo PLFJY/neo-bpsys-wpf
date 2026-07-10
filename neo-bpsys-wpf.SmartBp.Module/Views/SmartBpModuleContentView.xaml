@@ -12,6 +12,8 @@
     d:DataContext="{d:DesignInstance Type=vm:SmartBpModuleContentViewModel,
                                      IsDesignTimeCreatable=True}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf.SmartBp.Module"
+    lex:ResxLocalizationProvider.DefaultDictionary="Locales.SmartBp"
     mc:Ignorable="d">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />

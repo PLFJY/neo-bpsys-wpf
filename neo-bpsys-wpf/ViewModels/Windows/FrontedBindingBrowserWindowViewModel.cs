@@ -42,8 +42,8 @@ public partial class FrontedBindingBrowserWindowViewModel : ViewModelBase
     public bool HasNoResults => HasSearchText && SearchResults.Count == 0;
 
     public string ExpectedBindingTypeDisplay =>
-        $"{I18nHelper.GetLocalizedString("Designer.Editor.ExpectedType")}: "
-        + I18nHelper.GetLocalizedString(_filter.DisplayNameKey);
+        $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.Editor.ExpectedType")}: "
+        + I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, _filter.DisplayNameKey);
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSearchText))]

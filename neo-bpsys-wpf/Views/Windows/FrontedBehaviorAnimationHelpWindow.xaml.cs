@@ -45,8 +45,8 @@ public partial class FrontedBehaviorAnimationHelpWindow : FluentWindow
 
     private void AddSection(string titleKey, string contentKey)
     {
-        var title = I18nHelper.GetLocalizedString(titleKey);
-        var content = I18nHelper.GetLocalizedString(contentKey);
+        var title = I18nHelper.GetLocalizedString(AppI18nDictionaries.AnimationEditor, titleKey);
+        var content = I18nHelper.GetLocalizedString(AppI18nDictionaries.AnimationEditor, contentKey);
         var section = new AnimationHelpSection { Title = title };
 
         foreach (var line in content.Split(new[] { "\\n" }, StringSplitOptions.None))
@@ -63,7 +63,7 @@ public partial class FrontedBehaviorAnimationHelpWindow : FluentWindow
 
     private void AddShortcut(string key)
     {
-        var text = I18nHelper.GetLocalizedString(key);
+        var text = I18nHelper.GetLocalizedString(AppI18nDictionaries.AnimationEditor, key);
         var colonIndex = text.IndexOf(':');
         if (colonIndex > 0 && colonIndex < text.Length - 1)
         {

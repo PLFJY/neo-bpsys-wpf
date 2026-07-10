@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <data name="BanNumberControl" xml:space="preserve">
+    <value>Ban number control</value>
+  </data>
+  <data name="PickingBorderImage" xml:space="preserve">
+    <value>Picking border image</value>
+  </data>
+  <data name="PickingBorderImageColor" xml:space="preserve">
+    <value>Picking border image color(It will cover the color of picking border itself)</value>
+  </data>
+  <data name="MapBP" xml:space="preserve">
+    <value>Map BP</value>
+  </data>
+  <data name="MapBPBackground" xml:space="preserve">
+    <value>Map BP background</value>
+  </data>
+  <data name="MapBPV2Background" xml:space="preserve">
+    <value>Map Bp V2 background</value>
+  </data>
+  <data name="PickingBorderOfMapBPV2" xml:space="preserve">
+    <value>Picking border(Map BP V2)</value>
+  </data>
+  <data name="PickingBorderColorOfMapBPV2" xml:space="preserve">
+    <value>Picking border color(MapBPV2)</value>
+  </data>
+  <data name="PickMap" xml:space="preserve">
+    <value>Pick map</value>
+  </data>
+  <data name="OperateTeam" xml:space="preserve">
+    <value>Operate team: </value>
+  </data>
+  <data name="BanMap" xml:space="preserve">
+    <value>Ban map</value>
+  </data>
+  <data name="PickSurvivor" xml:space="preserve">
+    <value>Pick survivor</value>
+  </data>
+  <data name="PickHunter" xml:space="preserve">
+    <value>Pick hunter</value>
+  </data>
+  <data name="GlobalBanSurvivor" xml:space="preserve">
+    <value>Global ban survivor</value>
+  </data>
+  <data name="GlobalBanHunter" xml:space="preserve">
+    <value>Global ban hunter</value>
+  </data>
+  <data name="BanHunter" xml:space="preserve">
+    <value>Ban Hunter</value>
+  </data>
+  <data name="BanSurvivor" xml:space="preserve">
+    <value>Ban Survivor</value>
+  </data>
+  <data name="PickCharacter" xml:space="preserve">
+    <value>Pick Character</value>
+  </data>
+  <data name="TalentAndTrait" xml:space="preserve">
+    <value>Talent &amp; Trait</value>
+  </data>
+  <data name="IndexFormat" xml:space="preserve">
+    <value> {0}{1}</value>
+  </data>
+  <data name="PickWordInMapBP" xml:space="preserve">
+    <value>The "Pick" word(Map BP)</value>
+  </data>
+  <data name="BanWordInMapBP" xml:space="preserve">
+    <value>The "Ban" word(Map BP)</value>
+  </data>
+  <data name="Pick" xml:space="preserve">
+    <value>Pick</value>
+  </data>
+  <data name="Ban" xml:space="preserve">
+    <value>Ban</value>
+  </data>
+  <data name="PickCamp" xml:space="preserve">
+    <value>Pick camp</value>
+  </data>
+  <data name="PickSurTalent" xml:space="preserve">
+    <value>Pick survivor talent</value>
+  </data>
+  <data name="PickHunTalent" xml:space="preserve">
+    <value>Pick hunter talent</value>
+  </data>
+  <data name="AreYouSureToResetMapBP" xml:space="preserve">
+    <value>Are you sure to reset map BP?</value>
+  </data>
+  <data name="TalentBinding" xml:space="preserve">
+    <value>Talent binding</value>
+  </data>
+  <data name="TraitBinding" xml:space="preserve">
+    <value>Trait binding</value>
+  </data>
+  <data name="Talent" xml:space="preserve">
+    <value>Talent</value>
+  </data>
+</root>

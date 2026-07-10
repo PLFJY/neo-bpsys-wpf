@@ -11,6 +11,9 @@
     Height="660"
     MinWidth="620"
     MinHeight="440"
+    lex:LocalizeDictionary.DesignCulture="zh"
+    lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Designer"
     WindowStartupLocation="CenterOwner">
     <ui:FluentWindow.Resources>
         <Style BasedOn="{StaticResource {x:Type TextBox}}" TargetType="TextBox">
@@ -93,7 +96,8 @@
                                     Grid.Column="5"
                                     Margin="8,0,0,0"
                                     Click="DeleteSource_OnClick"
-                                    Content="{lex:Loc Delete}" />
+                                    Content="{lex:Loc Delete}"
+                                    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Common" />
                             </Grid>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
@@ -173,7 +177,8 @@
                         FontSize="12"
                         FontWeight="Medium"
                         Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                        Text="{lex:Loc PreviewColon}" />
+                        Text="{lex:Loc PreviewColon}"
+                        lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell" />
                     <TextBlock
                         HorizontalAlignment="Center"
                         FontSize="14"
@@ -192,12 +197,14 @@
                 <ui:Button
                     Click="Apply_OnClick"
                     Content="{lex:Loc SaveAndApply}"
-                    IsDefault="True" />
+                    IsDefault="True"
+                    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell" />
                 <ui:Button
                     Margin="8,0,0,0"
                     Click="Cancel_OnClick"
                     Content="{lex:Loc Cancel}"
-                    IsCancel="True" />
+                    IsCancel="True"
+                    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Common" />
             </StackPanel>
         </Grid>
     </Grid>

@@ -1,0 +1,136 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <data name="NewGame" xml:space="preserve">
+    <value>新对局</value>
+  </data>
+  <data name="GameProgressColon" xml:space="preserve">
+    <value>对局进度：</value>
+  </data>
+  <data name="DecodingProgress" xml:space="preserve">
+    <value>破译进度</value>
+  </data>
+  <data name="PalletStrikes" xml:space="preserve">
+    <value>砸板命中次数</value>
+  </data>
+  <data name="Rescues" xml:space="preserve">
+    <value>救人次数</value>
+  </data>
+  <data name="Heals" xml:space="preserve">
+    <value>治疗次数</value>
+  </data>
+  <data name="ContainmentTime" xml:space="preserve">
+    <value>牵制时长 (秒)</value>
+  </data>
+  <data name="RemainingCiphers" xml:space="preserve">
+    <value>剩余密码机数量</value>
+  </data>
+  <data name="PalletsDestroyed" xml:space="preserve">
+    <value>破坏板子数</value>
+  </data>
+  <data name="SurvivorHits" xml:space="preserve">
+    <value>命中求生者次数</value>
+  </data>
+  <data name="TerrorShocks" xml:space="preserve">
+    <value>恐惧震慑次数</value>
+  </data>
+  <data name="Knockdowns" xml:space="preserve">
+    <value>击倒次数</value>
+  </data>
+  <data name="GameProgress" xml:space="preserve">
+    <value>对局进度</value>
+  </data>
+  <data name="GameProgressInBPOverview" xml:space="preserve">
+    <value>对局进度（BP总览）</value>
+  </data>
+  <data name="GameRuleFileNotFound" xml:space="preserve">
+    <value>对局规则文件不存在</value>
+  </data>
+  <data name="GameAlreadyStarted" xml:space="preserve">
+    <value>对局已开始</value>
+  </data>
+  <data name="GuidanceNotAvailableInFree" xml:space="preserve">
+    <value>自由对局不支持引导</value>
+  </data>
+  <data name="GameRuleFileError" xml:space="preserve">
+    <value>对局规则文件异常</value>
+  </data>
+  <data name="PleaseStartGameFirst" xml:space="preserve">
+    <value>请先开始对局</value>
+  </data>
+  <data name="AlreadyLastStep" xml:space="preserve">
+    <value>已经是最后一步</value>
+  </data>
+  <data name="GameInfoError" xml:space="preserve">
+    <value>对局信息状态异常</value>
+  </data>
+  <data name="AlreadyFirstStep" xml:space="preserve">
+    <value>已经是第一步</value>
+  </data>
+  <data name="GameRuleFileNotFoundError" xml:space="preserve">
+    <value>对局规则文件不存在</value>
+  </data>
+  <data name="GameRuleFileStatusError" xml:space="preserve">
+    <value>对局规则文件状态异常</value>
+  </data>
+  <data name="NewGameHasBeenCreated" xml:space="preserve">
+    <value>新对局已创建</value>
+  </data>
+  <data name="GameProgressFree" xml:space="preserve">
+    <value>自由对局</value>
+  </data>
+  <data name="GameProgressGameOnlyFormat" xml:space="preserve">
+    <value>第{0}局</value>
+  </data>
+  <data name="GameProgressGameOvertimeOnlyFormat" xml:space="preserve">
+    <value>第{0}局加赛</value>
+  </data>
+  <data name="GameProgressGameHalfFormat" xml:space="preserve">
+    <value>第{0}局 {1}</value>
+  </data>
+  <data name="GameProgressGameOvertimeHalfFormat" xml:space="preserve">
+    <value>第{0}局加赛 {1}</value>
+  </data>
+  <data name="GameProgressBinding" xml:space="preserve">
+    <value>对局进度绑定</value>
+  </data>
+  <data name="NoBans" xml:space="preserve">
+    <value>无禁用</value>
+  </data>
+  <data name="ArmsFactory" xml:space="preserve">
+    <value>军工厂</value>
+  </data>
+  <data name="TheRedChurch" xml:space="preserve">
+    <value>红教堂</value>
+  </data>
+  <data name="SacredHeartHospital" xml:space="preserve">
+    <value>圣心医院</value>
+  </data>
+  <data name="LeosMemory" xml:space="preserve">
+    <value>里奥的回忆</value>
+  </data>
+  <data name="MoonlitRiverPark" xml:space="preserve">
+    <value>月亮河公园</value>
+  </data>
+  <data name="LakesideVillage" xml:space="preserve">
+    <value>湖景村</value>
+  </data>
+  <data name="EversleepingTown" xml:space="preserve">
+    <value>永眠镇</value>
+  </data>
+  <data name="ChinaTown" xml:space="preserve">
+    <value>唐人街</value>
+  </data>
+  <data name="Darkwoods" xml:space="preserve">
+    <value>不归林</value>
+  </data>
+  <data name="FirstHalf" xml:space="preserve">
+    <value>上半场</value>
+  </data>
+  <data name="SecondHalf" xml:space="preserve">
+    <value>下半场</value>
+  </data>
+</root>

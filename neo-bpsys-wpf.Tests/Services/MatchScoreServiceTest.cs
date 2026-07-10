@@ -4,7 +4,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Models.ScoreSystem;
-using neo_bpsys_wpf.Locales;
+
 using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.ViewModels.Pages;
 using System;
@@ -394,7 +394,7 @@ public class MatchScoreServiceTest
     }
 
     private static string Loc(string key) =>
-        Lang.ResourceManager.GetString(key, CultureInfo.CurrentUICulture) ?? key;
+        neo_bpsys_wpf.Helpers.I18nHelper.GetLocalizedString(neo_bpsys_wpf.Helpers.AppI18nDictionaries.Score, key, CultureInfo.CurrentUICulture);
 
     private static string Loc(string key, int arg) =>
         string.Format(CultureInfo.CurrentUICulture, Loc(key), arg);

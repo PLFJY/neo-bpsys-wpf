@@ -52,7 +52,7 @@ public partial class SettingPageViewModel
             !Path.IsPathFullyQualified(SmartBpModuleRoot) ||
             SmartBpModuleManager.IsUnsafeInstallPath(SmartBpModuleRoot))
         {
-            SmartBpModulePathStatus = I18nHelper.GetLocalizedString("SmartBpModulePathInvalid");
+            SmartBpModulePathStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "SmartBpModulePathInvalid");
             _logger.LogWarning("Rejected invalid SmartBP module root from settings: {ModuleRoot}", SmartBpModuleRoot);
             return;
         }
@@ -63,24 +63,24 @@ public partial class SettingPageViewModel
         var migrationChoice = await ConfirmSmartBpModuleMigrationAsync(normalizedRoot);
         if (migrationChoice == null)
         {
-            SmartBpModulePathStatus = I18nHelper.GetLocalizedString("SmartBpModulePathSaveCanceled");
+            SmartBpModulePathStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "SmartBpModulePathSaveCanceled");
             return;
         }
 
         if (migrationChoice == false)
         {
             _smartBpModuleManager.PersistModuleRootPreference(normalizedRoot);
-            SmartBpModulePathStatus = I18nHelper.GetLocalizedString("SmartBpModulePathSavedWithoutMigration");
+            SmartBpModulePathStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "SmartBpModulePathSavedWithoutMigration");
             _logger.LogInformation(
                 "SmartBP module root saved from settings without migrating files: {ModuleRoot}",
                 normalizedRoot);
             return;
         }
 
-        SmartBpModulePathStatus = I18nHelper.GetLocalizedString("SmartBpModulePathMigrating");
+        SmartBpModulePathStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "SmartBpModulePathMigrating");
         if (await _smartBpModuleManager.MigrateModuleRootPreferenceAsync(normalizedRoot))
         {
-            SmartBpModulePathStatus = I18nHelper.GetLocalizedString("SmartBpModulePathMigrationPrepared");
+            SmartBpModulePathStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "SmartBpModulePathMigrationPrepared");
             _logger.LogInformation(
                 "SmartBP module root migration requested from settings: {ModuleRoot}",
                 normalizedRoot);
@@ -88,8 +88,8 @@ public partial class SettingPageViewModel
         }
 
         SmartBpModulePathStatus = string.IsNullOrWhiteSpace(_smartBpModuleManager.LastFailureMessage)
-            ? I18nHelper.GetLocalizedString("SmartBpModulePathMigrationFailed")
-            : $"{I18nHelper.GetLocalizedString("SmartBpModulePathMigrationFailed")}{_smartBpModuleManager.LastFailureMessage}";
+            ? I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "SmartBpModulePathMigrationFailed")
+            : $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "SmartBpModulePathMigrationFailed")}{_smartBpModuleManager.LastFailureMessage}";
         _logger.LogWarning(
             "SmartBP module root migration request failed from settings. ModuleRoot={ModuleRoot}, Error={Error}",
             normalizedRoot,
@@ -111,11 +111,11 @@ public partial class SettingPageViewModel
         }
 
         var result = await MessageBoxHelper.ShowThreeOptionAsync(
-            I18nHelper.GetLocalizedString("SmartBpModulePathMigrationChoiceMessage"),
-            I18nHelper.GetLocalizedString("SmartBpModulePathMigrationChoiceTitle"),
-            I18nHelper.GetLocalizedString("SmartBpModulePathMigrateFiles"),
-            I18nHelper.GetLocalizedString("SmartBpModulePathSaveOnly"),
-            I18nHelper.GetLocalizedString("Cancel"),
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "SmartBpModulePathMigrationChoiceMessage"),
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "SmartBpModulePathMigrationChoiceTitle"),
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "SmartBpModulePathMigrateFiles"),
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "SmartBpModulePathSaveOnly"),
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"),
             primaryButtonIcon: SymbolRegular.ArrowSync24,
             secondaryButtonIcon: SymbolRegular.Save24);
 
@@ -153,14 +153,14 @@ public partial class SettingPageViewModel
             !Path.IsPathFullyQualified(SmartBpModuleRoot) ||
             SmartBpModuleManager.IsUnsafeInstallPath(SmartBpModuleRoot))
         {
-            SmartBpModulePathStatus = I18nHelper.GetLocalizedString("SmartBpModulePathInvalid");
+            SmartBpModulePathStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "SmartBpModulePathInvalid");
             _logger.LogWarning("Rejected invalid SmartBP module import target from settings: {ModuleRoot}", SmartBpModuleRoot);
             return;
         }
 
         var normalizedRoot = Path.GetFullPath(SmartBpModuleRoot);
         SmartBpModuleRoot = normalizedRoot;
-        SmartBpModulePathStatus = I18nHelper.GetLocalizedString("SmartBpModuleArchiveImporting");
+        SmartBpModulePathStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "SmartBpModuleArchiveImporting");
         IsModuleExtracting = true;
         try
         {
@@ -168,12 +168,12 @@ public partial class SettingPageViewModel
             {
                 if (_smartBpModuleManager.IsRestartRequiredForPendingModuleImport)
                 {
-                    SmartBpModulePathStatus = I18nHelper.GetLocalizedString("SmartBpModuleArchiveImportRestartPrepared");
+                    SmartBpModulePathStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "SmartBpModuleArchiveImportRestartPrepared");
                     await OfferSmartBpModuleArchiveImportRestartAsync();
                     return;
                 }
 
-                SmartBpModulePathStatus = I18nHelper.GetLocalizedString("SmartBpModuleArchiveImportSucceeded");
+                SmartBpModulePathStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "SmartBpModuleArchiveImportSucceeded");
                 _logger.LogInformation(
                     "SmartBP module archive imported from settings. ArchivePath={ArchivePath}, ModuleRoot={ModuleRoot}",
                     archivePath,
@@ -182,8 +182,8 @@ public partial class SettingPageViewModel
             }
 
             SmartBpModulePathStatus = string.IsNullOrWhiteSpace(_smartBpModuleManager.LastFailureMessage)
-                ? I18nHelper.GetLocalizedString("SmartBpModuleArchiveImportFailed")
-                : $"{I18nHelper.GetLocalizedString("SmartBpModuleArchiveImportFailed")}{_smartBpModuleManager.LastFailureMessage}";
+                ? I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "SmartBpModuleArchiveImportFailed")
+                : $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "SmartBpModuleArchiveImportFailed")}{_smartBpModuleManager.LastFailureMessage}";
             _logger.LogWarning(
                 "SmartBP module archive import failed from settings. ArchivePath={ArchivePath}, ModuleRoot={ModuleRoot}, Error={Error}",
                 archivePath,
@@ -192,7 +192,7 @@ public partial class SettingPageViewModel
         }
         catch (Exception ex)
         {
-            SmartBpModulePathStatus = $"{I18nHelper.GetLocalizedString("SmartBpModuleArchiveImportFailed")}{ex.Message}";
+            SmartBpModulePathStatus = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "SmartBpModuleArchiveImportFailed")}{ex.Message}";
             _logger.LogWarning(
                 ex,
                 "SmartBP module archive import threw from settings. ArchivePath={ArchivePath}, ModuleRoot={ModuleRoot}",
@@ -208,10 +208,10 @@ public partial class SettingPageViewModel
     private static async Task OfferSmartBpModuleArchiveImportRestartAsync()
     {
         if (await MessageBoxHelper.ShowConfirmAsync(
-                I18nHelper.GetLocalizedString("SmartBpModuleArchiveImportRestartPrompt"),
-                I18nHelper.GetLocalizedString("RestartNeeded"),
-                I18nHelper.GetLocalizedString("RestartNow"),
-                I18nHelper.GetLocalizedString("Cancel")))
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "SmartBpModuleArchiveImportRestartPrompt"),
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "RestartNeeded"),
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "RestartNow"),
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel")))
         {
             AppBase.Current.Restart();
         }

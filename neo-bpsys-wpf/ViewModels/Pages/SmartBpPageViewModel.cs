@@ -433,7 +433,7 @@ public partial class SmartBpPageViewModel : ViewModelBase
     /// </summary>
     /// <param name="key">资源键。</param>
     /// <returns>本地化字符串；资源缺失时返回资源键本身。</returns>
-    private static string L(string key) => I18nHelper.GetLocalizedString(key);
+    private static string L(string key) => I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, key);
 
     /// <summary>
     /// 显示 SmartBP 模块压缩包暂存替换后的重启提示。

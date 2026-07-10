@@ -169,10 +169,10 @@ public partial class SettingPageViewModel : ViewModelBase
         await _settingsHostService.SaveConfigAsync();
 
         var shouldRestart = await MessageBoxHelper.ShowConfirmAsync(
-            I18nHelper.GetLocalizedString("ClassicModeRestartRequired"),
-            I18nHelper.GetLocalizedString("Warning"),
-            I18nHelper.GetLocalizedString("RestartNow"),
-            I18nHelper.GetLocalizedString("Cancel"));
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "ClassicModeRestartRequired"),
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Warning"),
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "RestartNow"),
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"));
 
         if (!shouldRestart)
         {
@@ -341,7 +341,7 @@ public partial class SettingPageViewModel : ViewModelBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to open behavior event debugger window.");
-            _ = MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString("WindowLaunchError")}\n{ex.Message}");
+            _ = MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "WindowLaunchError")}\n{ex.Message}");
         }
     }
 

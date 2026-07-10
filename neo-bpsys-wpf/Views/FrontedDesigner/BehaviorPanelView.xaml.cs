@@ -120,31 +120,31 @@ internal sealed class FrontedBehaviorCopyTargetWindow : Wpf.Ui.Controls.FluentWi
     {
         _request = request;
         _previews = request.Previews;
-        Title = I18nHelper.GetLocalizedString("Designer.Behaviors.CopyTo");
+        Title = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.Behaviors.CopyTo");
         Width = 760;
         Height = 620;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
 
-        _searchBox.PlaceholderText = I18nHelper.GetLocalizedString("Designer.Editor.Search");
+        _searchBox.PlaceholderText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.Editor.Search");
         _searchBox.Margin = new Thickness(0, 0, 0, 8);
         _searchBox.TextChanged += (_, _) => RefreshTargetList();
         _targetList.DisplayMemberPath = nameof(FrontedBehaviorCopyTargetItem.Display);
         _targetList.SelectionChanged += (_, _) => OnTargetSelectionChanged();
 
-        _rewriteTargets.Content = I18nHelper.GetLocalizedString("Designer.Behaviors.RewriteTargets");
-        _rewriteIndexes.Content = I18nHelper.GetLocalizedString("Designer.Behaviors.RewriteTriggerIndexes");
+        _rewriteTargets.Content = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.Behaviors.RewriteTargets");
+        _rewriteIndexes.Content = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.Behaviors.RewriteTriggerIndexes");
         _rewriteTargets.Click += (_, _) => RefreshPreviews();
         _rewriteIndexes.Click += (_, _) => RefreshPreviews();
 
         var confirm = new Wpf.Ui.Controls.Button
         {
-            Content = I18nHelper.GetLocalizedString("Confirm"),
+            Content = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"),
             MinWidth = 100
         };
         confirm.Click += (_, _) => PasteSelected();
         var cancel = new Wpf.Ui.Controls.Button
         {
-            Content = I18nHelper.GetLocalizedString("Cancel"),
+            Content = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"),
             MinWidth = 100,
             Margin = new Thickness(8, 0, 0, 0)
         };
@@ -172,7 +172,7 @@ internal sealed class FrontedBehaviorCopyTargetWindow : Wpf.Ui.Controls.FluentWi
         grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         grid.Children.Add(new TextBlock
         {
-            Text = I18nHelper.GetLocalizedString("Designer.Behaviors.CopyToTargets"),
+            Text = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.Behaviors.CopyToTargets"),
             FontWeight = FontWeights.SemiBold,
             Margin = new Thickness(0, 0, 0, 8)
         });
@@ -263,22 +263,22 @@ internal sealed class FrontedBehaviorCopyTargetWindow : Wpf.Ui.Controls.FluentWi
     {
         if (_targetList.SelectedItem is not FrontedBehaviorCopyTargetItem item)
         {
-            _previewText.Text = I18nHelper.GetLocalizedString("Designer.Behaviors.SelectTargetForPreview");
+            _previewText.Text = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.Behaviors.SelectTargetForPreview");
             return;
         }
 
         var preview = item.Preview;
         var lines = new List<string>
         {
-            $"{I18nHelper.GetLocalizedString("Designer.Behaviors.Target")}: {preview.Target.Name}",
+            $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.Behaviors.Target")}: {preview.Target.Name}",
             preview.IsCompatible
-                ? I18nHelper.GetLocalizedString("Designer.Behaviors.Compatible")
+                ? I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.Behaviors.Compatible")
                 : string.Join(Environment.NewLine, preview.CompatibilityErrors)
         };
         lines.AddRange(preview.TargetRewrites.Select(rewrite => $"{rewrite.Before}{Environment.NewLine} -> {rewrite.After}"));
         lines.AddRange(preview.TriggerRewrites.Select(rewrite => $"{rewrite.Before}{Environment.NewLine} -> {rewrite.After}"));
         lines.AddRange(preview.ExternalReferences.Select(reference =>
-            $"{I18nHelper.GetLocalizedString("Designer.Behaviors.ExternalReference")}: {reference}"));
+            $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.Behaviors.ExternalReference")}: {reference}"));
         if (!preview.IsTriggerIndexRemapAvailable)
         {
             lines.Add(preview.TriggerIndexRemapUnavailableReason ?? string.Empty);
@@ -313,7 +313,7 @@ internal sealed class FrontedBehaviorCopyTargetWindow : Wpf.Ui.Controls.FluentWi
         public FrontedBehaviorPastePreview Preview { get; }
 
         public string Display => Preview.IsCompatible
-            ? $"{Preview.Target.Name}    {I18nHelper.GetLocalizedString("Designer.Behaviors.Compatible")}"
+            ? $"{Preview.Target.Name}    {I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.Behaviors.Compatible")}"
             : $"{Preview.Target.Name}    {string.Join("; ", Preview.CompatibilityErrors)}";
     }
 }

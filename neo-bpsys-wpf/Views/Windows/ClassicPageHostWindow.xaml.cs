@@ -12,7 +12,7 @@ public partial class ClassicPageHostWindow : FluentWindow
     public ClassicPageHostWindow(string titleKey, Page page)
     {
         InitializeComponent();
-        Title = I18nHelper.GetLocalizedString(titleKey);
+        Title = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, titleKey);
         PageHost.Navigate(page);
     }
 

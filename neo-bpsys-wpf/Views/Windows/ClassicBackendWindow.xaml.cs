@@ -191,12 +191,12 @@ public partial class ClassicBackendWindow : FluentWindow
     {
         var messageBox = new MessageBox()
         {
-            Title = I18nHelper.GetLocalizedString("Warning"),
-            Content = I18nHelper.GetLocalizedString("AreYouSureYouWantToExit"),
-            PrimaryButtonText = I18nHelper.GetLocalizedString("Confirm"),
+            Title = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Warning"),
+            Content = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "AreYouSureYouWantToExit"),
+            PrimaryButtonText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"),
             PrimaryButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.ArrowExit20 },
             CloseButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Prohibited20 },
-            CloseButtonText = I18nHelper.GetLocalizedString("Cancel"),
+            CloseButtonText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"),
             Owner = this,
         };
         var result = await messageBox.ShowDialogAsync();

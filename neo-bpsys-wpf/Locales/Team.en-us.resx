@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <data name="PlayerName" xml:space="preserve">
+    <value>Player name</value>
+  </data>
+  <data name="HomeTeamInformation" xml:space="preserve">
+    <value>Home team information</value>
+  </data>
+  <data name="ImportFromJsonFile" xml:space="preserve">
+    <value>Import from json file</value>
+  </data>
+  <data name="JsonImportTip" xml:space="preserve">
+    <value>This is used for fast import. The example files are  neo-bpsys-wpf\Resources\队伍信息导入示例-xxx.json. Check the documentations for more details. </value>
+  </data>
+  <data name="TeamName" xml:space="preserve">
+    <value>Team name</value>
+  </data>
+  <data name="SetTeamLogo" xml:space="preserve">
+    <value>Set team logo</value>
+  </data>
+  <data name="CurrentStatusColon" xml:space="preserve">
+    <value>Current status: </value>
+  </data>
+  <data name="SurvivorPlayer" xml:space="preserve">
+    <value>Survivor player</value>
+  </data>
+  <data name="SetPhoto" xml:space="preserve">
+    <value>Set photo</value>
+  </data>
+  <data name="RemovePhoto" xml:space="preserve">
+    <value>Remove photo</value>
+  </data>
+  <data name="Enter" xml:space="preserve">
+    <value>Enter</value>
+  </data>
+  <data name="Exit" xml:space="preserve">
+    <value>Exit</value>
+  </data>
+  <data name="AddPlayer" xml:space="preserve">
+    <value>Add player</value>
+  </data>
+  <data name="HunterPlayer" xml:space="preserve">
+    <value>Hunter player</value>
+  </data>
+  <data name="AwayTeamInformation" xml:space="preserve">
+    <value>Away team information</value>
+  </data>
+  <data name="CurrentPlayerOnStage" xml:space="preserve">
+    <value>Current player on stage</value>
+  </data>
+  <data name="TeamInfo" xml:space="preserve">
+    <value>Team Information</value>
+  </data>
+  <data name="PlayerID" xml:space="preserve">
+    <value>Player ID</value>
+  </data>
+  <data name="TeamNameInScoreStatistics" xml:space="preserve">
+    <value>Team name(Score Statistics)</value>
+  </data>
+  <data name="TeamNameInMapBP" xml:space="preserve">
+    <value>Team name(MapBP)</value>
+  </data>
+  <data name="TeamNameInMapBPV2" xml:space="preserve">
+    <value>Team name(Map BP V2)</value>
+  </data>
+  <data name="TeamNameInBPOverview" xml:space="preserve">
+    <value>Team name(BP Overview)</value>
+  </data>
+  <data name="ImageMaybeDamagedOrUnsupported" xml:space="preserve">
+    <value>Image may be damaged or unsupported</value>
+  </data>
+  <data name="DeleteConfirmation" xml:space="preserve">
+    <value>Delete confirmation</value>
+  </data>
+  <data name="AreYouSureToDelete" xml:space="preserve">
+    <value>Are you sure to delete</value>
+  </data>
+  <data name="ClearTip" xml:space="preserve">
+    <value>Clear tip</value>
+  </data>
+  <data name="AreYouSureToRemoveTheFileLookPhoto" xml:space="preserve">
+    <value>Are you sure to remove the final look photo?</value>
+  </data>
+  <data name="LogoFileIsNotValid" xml:space="preserve">
+    <value>Logo file is not valid</value>
+  </data>
+  <data name="HexColor" xml:space="preserve">
+    <value>Hex Color</value>
+  </data>
+  <data name="TeamColor" xml:space="preserve">
+    <value>Team Color</value>
+  </data>
+  <data name="InvalidTeamColorHex" xml:space="preserve">
+    <value>Invalid color. Use #RRGGBB or #AARRGGBB.</value>
+  </data>
+</root>

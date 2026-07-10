@@ -111,8 +111,8 @@ public partial class PluginPageViewModel : ViewModelBase
     [RelayCommand]
     private static async Task RestartAppAsync()
     {
-        if (await MessageBoxHelper.ShowConfirmAsync(I18nHelper.GetLocalizedString("SomeSettingsRequireRestartingTheApplication"),
-            I18nHelper.GetLocalizedString("RestartNeeded"), I18nHelper.GetLocalizedString("Confirm"), I18nHelper.GetLocalizedString("Cancel")))
+        if (await MessageBoxHelper.ShowConfirmAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "SomeSettingsRequireRestartingTheApplication"),
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "RestartNeeded"), I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"), I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel")))
             AppBase.Current.Restart();
     }
 

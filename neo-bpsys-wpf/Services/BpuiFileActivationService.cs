@@ -177,7 +177,7 @@ public sealed class BpuiFileActivationService : IBpuiFileActivationService
             var result = await ImportPackageAsync(normalizedPath, cancellationToken);
             if (!result.Success)
             {
-                return Fail(result.ErrorMessage ?? I18nHelper.GetLocalizedString("PackageImportFailed"));
+                return Fail(result.ErrorMessage ?? I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageImportFailed"));
             }
 
             if (_behaviorRuntime is not null)
@@ -189,7 +189,7 @@ public sealed class BpuiFileActivationService : IBpuiFileActivationService
             WeakReferenceMessenger.Default.Send(new FrontedLayoutPackagesChangedMessage(this, result.PackageId));
             NavigateToLayoutPackageManager();
             _infoBarService.ShowSuccessInfoBar(
-                $"{I18nHelper.GetLocalizedString("PackageActivatedInstalled")}: {result.PackageId}");
+                $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageActivatedInstalled")}: {result.PackageId}");
             return new BpuiFileActivationResult(true, result.PackageId, null);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
@@ -227,7 +227,7 @@ public sealed class BpuiFileActivationService : IBpuiFileActivationService
             LegacyPackagePath = packagePath,
             PackageId = packageId,
             Name = string.IsNullOrWhiteSpace(packageName) ? packageId : packageName,
-            Description = I18nHelper.GetLocalizedString("LegacyPackageDefaultDescription"),
+            Description = I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "LegacyPackageDefaultDescription"),
             Author = string.Empty,
             MinVersion = string.Empty,
             InstallAfterConvert = false,
@@ -240,7 +240,7 @@ public sealed class BpuiFileActivationService : IBpuiFileActivationService
             return new FrontedLayoutPackageImportResult
             {
                 Success = false,
-                ErrorMessage = convertResult.ErrorMessage ?? I18nHelper.GetLocalizedString("LegacyPackageConvertFailed")
+                ErrorMessage = convertResult.ErrorMessage ?? I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "LegacyPackageConvertFailed")
             };
         }
 
@@ -269,7 +269,7 @@ public sealed class BpuiFileActivationService : IBpuiFileActivationService
     private BpuiFileActivationResult Fail(string message)
     {
         NavigateToLayoutPackageManager();
-        _infoBarService.ShowErrorInfoBar($"{I18nHelper.GetLocalizedString("PackageImportFailed")}: {message}");
+        _infoBarService.ShowErrorInfoBar($"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageImportFailed")}: {message}");
         return new BpuiFileActivationResult(false, null, message);
     }
 

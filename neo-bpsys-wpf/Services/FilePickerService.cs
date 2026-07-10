@@ -22,7 +22,7 @@ public class FilePickerService : IFilePickerService
         OpenFileDialog openFileDialog = new()
         {
             Filter =
-                $"{I18nHelper.GetLocalizedString("ImageFiles")} (*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.ico;*.tif;*.tiff;*.svg;*.webp)|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.ico;*.tif;*.tiff;*.svg;*.webp",
+                $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ImageFiles")} (*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.ico;*.tif;*.tiff;*.svg;*.webp)|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.ico;*.tif;*.tiff;*.svg;*.webp",
         };
 
         return openFileDialog.ShowDialog() != true ? null : openFileDialog.FileName;
@@ -33,7 +33,7 @@ public class FilePickerService : IFilePickerService
     {
         OpenFileDialog openFileDialog = new()
         {
-            Filter = $"{I18nHelper.GetLocalizedString("FontFiles")} (*.ttf;*.otf;*.ttc)|*.ttf;*.otf;*.ttc",
+            Filter = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "FontFiles")} (*.ttf;*.otf;*.ttc)|*.ttf;*.otf;*.ttc",
         };
 
         return openFileDialog.ShowDialog() != true ? null : openFileDialog.FileName;
@@ -53,7 +53,7 @@ public class FilePickerService : IFilePickerService
 
         OpenFileDialog openFileDialog = new()
         {
-            Filter = $"{I18nHelper.GetLocalizedString("JSONFiles")} (*.json) | *.json",
+            Filter = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "JSONFiles")} (*.json) | *.json",
             DefaultDirectory = resolvedInitialDirectory,
             InitialDirectory = resolvedInitialDirectory,
         };
@@ -81,7 +81,7 @@ public class FilePickerService : IFilePickerService
     {
         OpenFileDialog openFileDialog = new()
         {
-            Filter = $"{I18nHelper.GetLocalizedString("ZipFiles")} (*.zip) | *.zip",
+            Filter = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ZipFiles")} (*.zip) | *.zip",
         };
 
         return openFileDialog.ShowDialog() != true ? null : openFileDialog.FileName;
@@ -93,7 +93,7 @@ public class FilePickerService : IFilePickerService
         OpenFileDialog openFileDialog = new()
         {
             Filter =
-                $"{I18nHelper.GetLocalizedString("SmartBpModuleArchiveFiles")} (*.7z;*.zip)|*.7z;*.zip|{I18nHelper.GetLocalizedString("SevenZipArchiveFiles")} (*.7z)|*.7z|{I18nHelper.GetLocalizedString("ZipFiles")} (*.zip)|*.zip|{I18nHelper.GetLocalizedString("AllFiles")} (*.*)|*.*",
+                $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "SmartBpModuleArchiveFiles")} (*.7z;*.zip)|*.7z;*.zip|{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "SevenZipArchiveFiles")} (*.7z)|*.7z|{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ZipFiles")} (*.zip)|*.zip|{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "AllFiles")} (*.*)|*.*",
         };
 
         return openFileDialog.ShowDialog() != true ? null : openFileDialog.FileName;
@@ -105,7 +105,7 @@ public class FilePickerService : IFilePickerService
         OpenFileDialog openFileDialog = new()
         {
             Filter =
-                $"{I18nHelper.GetLocalizedString("PluginPackageFiles")} (*.7z;*.zip)|*.7z;*.zip|{I18nHelper.GetLocalizedString("SevenZipArchiveFiles")} (*.7z)|*.7z|{I18nHelper.GetLocalizedString("ZipFiles")} (*.zip)|*.zip|{I18nHelper.GetLocalizedString("AllFiles")} (*.*)|*.*",
+                $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.PluginMarket, "PluginPackageFiles")} (*.7z;*.zip)|*.7z;*.zip|{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "SevenZipArchiveFiles")} (*.7z)|*.7z|{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ZipFiles")} (*.zip)|*.zip|{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "AllFiles")} (*.*)|*.*",
         };
 
         return openFileDialog.ShowDialog() != true ? null : openFileDialog.FileName;
@@ -116,7 +116,7 @@ public class FilePickerService : IFilePickerService
     {
         var dialog = new OpenFileDialog
         {
-            Filter = $"{I18nHelper.GetLocalizedString("ExecutableFiles")} (*.exe)|*.exe|{I18nHelper.GetLocalizedString("AllFiles")} (*.*)|*.*"
+            Filter = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ExecutableFiles")} (*.exe)|*.exe|{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "AllFiles")} (*.*)|*.*"
         };
         return dialog.ShowDialog() == true ? dialog.FileName : null;
     }
@@ -136,7 +136,7 @@ public class FilePickerService : IFilePickerService
     {
         OpenFileDialog openFileDialog = new()
         {
-            Filter = $"{I18nHelper.GetLocalizedString("BpuiFiles")} (*.bpui) |*.bpui|{I18nHelper.GetLocalizedString("ZipFiles")} (*.zip) | *.zip|All Files(*.*)|*.*",
+            Filter = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "BpuiFiles")} (*.bpui) |*.bpui|{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ZipFiles")} (*.zip) | *.zip|All Files(*.*)|*.*",
         };
 
         return openFileDialog.ShowDialog() != true ? null : openFileDialog.FileName;
@@ -151,7 +151,7 @@ public class FilePickerService : IFilePickerService
     {
         var dialog = new SaveFileDialog
         {
-            Filter = $"{I18nHelper.GetLocalizedString("JSONFiles")} (*.json) | *.json",
+            Filter = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "JSONFiles")} (*.json) | *.json",
             FileName = string.IsNullOrWhiteSpace(defaultFileName) ? "config.json" : defaultFileName,
             DefaultExt = ".json",
             AddExtension = true
@@ -169,11 +169,11 @@ public class FilePickerService : IFilePickerService
     {
         var dialog = new SaveFileDialog
         {
-            Filter = $"{I18nHelper.GetLocalizedString("BpuiFiles")} (*.bpui) |*.bpui|All Files(*.*)|*.*",
+            Filter = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "BpuiFiles")} (*.bpui) |*.bpui|All Files(*.*)|*.*",
             DefaultExt = ".bpui",
             AddExtension = true,
             DefaultDirectory = AppConstants.AppOutputPath,
-            Title = I18nHelper.GetLocalizedString("SaveAs"),
+            Title = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "SaveAs"),
             FileName = string.IsNullOrWhiteSpace(defaultFileName) ? "saved_ui" : defaultFileName,
             OverwritePrompt = false
         };

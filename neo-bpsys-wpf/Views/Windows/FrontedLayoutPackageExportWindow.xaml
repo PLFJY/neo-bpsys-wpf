@@ -13,7 +13,7 @@
     MinHeight="520"
     lex:LocalizeDictionary.DesignCulture="zh"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Lang"
+    lex:ResxLocalizationProvider.DefaultDictionary="Locales.FrontManage"
     Background="{DynamicResource ApplicationBackgroundBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     WindowStartupLocation="CenterOwner">
@@ -101,8 +101,17 @@
             </Grid>
         </ui:DynamicScrollViewer>
         <StackPanel Grid.Row="2" Margin="18,0,18,18" HorizontalAlignment="Right" Orientation="Horizontal">
-            <ui:Button MinWidth="96" Click="Ok_OnClick" Content="{lex:Loc Confirm}" />
-            <ui:Button MinWidth="96" Margin="8,0,0,0" Click="Cancel_OnClick" Content="{lex:Loc Cancel}" />
+            <ui:Button
+                MinWidth="96"
+                Click="Ok_OnClick"
+                Content="{lex:Loc Confirm}"
+                lex:ResxLocalizationProvider.DefaultDictionary="Locales.Common" />
+            <ui:Button
+                MinWidth="96"
+                Margin="8,0,0,0"
+                Click="Cancel_OnClick"
+                Content="{lex:Loc Cancel}"
+                lex:ResxLocalizationProvider.DefaultDictionary="Locales.Common" />
         </StackPanel>
     </Grid>
 </ui:FluentWindow>

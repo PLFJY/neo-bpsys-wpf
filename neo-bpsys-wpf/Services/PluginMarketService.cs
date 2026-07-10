@@ -712,7 +712,7 @@ public class PluginMarketService : IPluginMarketService
             StaticLogger?.LogError("SHA-256 mismatch for plugin {PluginName}", FormatPluginDisplayName(item));
             throw new InvalidOperationException(
                 string.Format(
-                    I18nHelper.GetLocalizedString("PluginMarketSha256Mismatch"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.PluginMarket, "PluginMarketSha256Mismatch"),
                     FormatPluginDisplayName(item)));
         }
     }

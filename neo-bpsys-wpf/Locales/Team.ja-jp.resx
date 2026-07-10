@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <data name="PlayerName" xml:space="preserve">
+    <value>選手名</value>
+  </data>
+  <data name="HomeTeamInformation" xml:space="preserve">
+    <value>ホームチーム情報</value>
+  </data>
+  <data name="ImportFromJsonFile" xml:space="preserve">
+    <value>JSONからインポート</value>
+  </data>
+  <data name="JsonImportTip" xml:space="preserve">
+    <value>チーム情報を高速にインポートするための機能です。サンプルファイルは neo-bpsys-wpf\Resources\队伍信息导入示例-xxx.json にあります。詳細はドキュメントを参照してください。</value>
+  </data>
+  <data name="TeamName" xml:space="preserve">
+    <value>チーム名</value>
+  </data>
+  <data name="SetTeamLogo" xml:space="preserve">
+    <value>チームロゴを設定</value>
+  </data>
+  <data name="CurrentStatusColon" xml:space="preserve">
+    <value>現在のステータス：</value>
+  </data>
+  <data name="SurvivorPlayer" xml:space="preserve">
+    <value>サバイバー選手</value>
+  </data>
+  <data name="SetPhoto" xml:space="preserve">
+    <value>写真を設定</value>
+  </data>
+  <data name="RemovePhoto" xml:space="preserve">
+    <value>写真を削除</value>
+  </data>
+  <data name="Enter" xml:space="preserve">
+    <value>入場</value>
+  </data>
+  <data name="Exit" xml:space="preserve">
+    <value>退場</value>
+  </data>
+  <data name="AddPlayer" xml:space="preserve">
+    <value>選手を追加</value>
+  </data>
+  <data name="HunterPlayer" xml:space="preserve">
+    <value>ハンター選手</value>
+  </data>
+  <data name="AwayTeamInformation" xml:space="preserve">
+    <value>アウェイチーム情報</value>
+  </data>
+  <data name="CurrentPlayerOnStage" xml:space="preserve">
+    <value>現在出場中の選手</value>
+  </data>
+  <data name="TeamInfo" xml:space="preserve">
+    <value>チーム情報</value>
+  </data>
+  <data name="PlayerID" xml:space="preserve">
+    <value>選手 ID</value>
+  </data>
+  <data name="TeamNameInScoreStatistics" xml:space="preserve">
+    <value>チーム名 (スコア統計)</value>
+  </data>
+  <data name="TeamNameInMapBP" xml:space="preserve">
+    <value>チーム名 (マップBP)</value>
+  </data>
+  <data name="TeamNameInMapBPV2" xml:space="preserve">
+    <value>チーム名 (マップBP V2)</value>
+  </data>
+  <data name="TeamNameInBPOverview" xml:space="preserve">
+    <value>チーム名 (BP概要)</value>
+  </data>
+  <data name="ImageMaybeDamagedOrUnsupported" xml:space="preserve">
+    <value>画像が破損しているかサポートされていない可能性があります</value>
+  </data>
+  <data name="DeleteConfirmation" xml:space="preserve">
+    <value>削除確認</value>
+  </data>
+  <data name="AreYouSureToDelete" xml:space="preserve">
+    <value>削除してもよろしいですか</value>
+  </data>
+  <data name="ClearTip" xml:space="preserve">
+    <value>消去のヒント</value>
+  </data>
+  <data name="AreYouSureToRemoveTheFileLookPhoto" xml:space="preserve">
+    <value>選手の写真を消去してもよろしいですか？</value>
+  </data>
+  <data name="LogoFileIsNotValid" xml:space="preserve">
+    <value>ロゴファイルが無効です</value>
+  </data>
+  <data name="HexColor" xml:space="preserve">
+    <value>16進カラー</value>
+  </data>
+  <data name="TeamColor" xml:space="preserve">
+    <value>チームカラー</value>
+  </data>
+  <data name="InvalidTeamColorHex" xml:space="preserve">
+    <value>色の形式が無効です。#RRGGBB または #AARRGGBB を入力してください。</value>
+  </data>
+</root>

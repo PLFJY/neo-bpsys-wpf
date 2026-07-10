@@ -15,7 +15,7 @@ using System.Windows.Threading;
 using Wpf.Ui;
 using Wpf.Ui.Abstractions;
 using Wpf.Ui.Controls;
-using I18nHelper = neo_bpsys_wpf.Helpers.I18nHelper;
+using neo_bpsys_wpf.Helpers;
 using ISnackbarService = neo_bpsys_wpf.Core.Abstractions.Services.ISnackbarService;
 using MessageBox = Wpf.Ui.Controls.MessageBox;
 using MessageBoxResult = Wpf.Ui.Controls.MessageBoxResult;
@@ -60,10 +60,10 @@ public partial class MainWindow : FluentWindow, INavigationWindow
             Loaded += async (s, e) =>
             {
                 await Task.Delay(5500);
-                snackbarService.Show(I18nHelper.GetLocalizedString("Notification"),
+                snackbarService.Show(I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "Notification"),
                     new HyperLinkSnackbarContent(
-                        I18nHelper.GetLocalizedString("AfterUpdateTip"),
-                        I18nHelper.GetLocalizedString("DontRemindMeAgainUntilTheNextUpdate"),
+                        I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "AfterUpdateTip"),
+                        I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "DontRemindMeAgainUntilTheNextUpdate"),
                         () =>
                         {
                             settingsHostService.Settings.ShowAfterUpdateTip = false;
@@ -137,12 +137,12 @@ public partial class MainWindow : FluentWindow, INavigationWindow
     {
         var messageBox = new MessageBox()
         {
-            Title = I18nHelper.GetLocalizedString("Warning"),
-            Content = I18nHelper.GetLocalizedString("AreYouSureYouWantToExit"),
-            PrimaryButtonText = I18nHelper.GetLocalizedString("Confirm"),
+            Title = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Warning"),
+            Content = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "AreYouSureYouWantToExit"),
+            PrimaryButtonText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"),
             PrimaryButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.ArrowExit20 },
             CloseButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Prohibited20 },
-            CloseButtonText = I18nHelper.GetLocalizedString("Cancel"),
+            CloseButtonText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"),
             Owner = App.Current.MainWindow,
         };
         var result = await messageBox.ShowDialogAsync();

@@ -521,7 +521,7 @@ public partial class FrontedDesignerWindow : FluentWindow
             || _pendingLayerDragNode.ControlItem is null
             || !_viewModel.IsLayerReorderable(_pendingLayerDragNode.ControlItem))
         {
-            _viewModel.StatusMessage = I18nHelper.GetLocalizedString("Designer.LayerPanel.ReorderBlocked");
+            _viewModel.StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.LayerPanel.ReorderBlocked");
             _pendingLayerDragNode = null;
             return;
         }
@@ -769,7 +769,7 @@ public partial class FrontedDesignerWindow : FluentWindow
     private void ShowLayerDragGhost(DesignerLayerNode node, Point panelPosition)
     {
         LayerDragGhostNameText.Text = node.DisplayName;
-        LayerDragGhostMetaText.Text = $"{node.Metadata}  {I18nHelper.GetLocalizedString("ZIndexShort")} {node.ZIndex}";
+        LayerDragGhostMetaText.Text = $"{node.Metadata}  {I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "ZIndexShort")} {node.ZIndex}";
         LayerDragGhost.Visibility = Visibility.Visible;
         UpdateLayerDragGhost(panelPosition);
     }
@@ -819,7 +819,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         }
 
         var key = $"Designer.ControlType.{controlType}";
-        var localized = I18nHelper.GetLocalizedString(key);
+        var localized = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, key);
         return string.Equals(localized, key, StringComparison.Ordinal) ? controlType : localized;
     }
 
@@ -1826,11 +1826,11 @@ public partial class FrontedDesignerWindow : FluentWindow
     private Task<MessageBoxResult> ShowDirtyPromptAsync(string messageKey)
     {
         return MessageBoxHelper.ShowThreeOptionAsync(
-            I18nHelper.GetLocalizedString(messageKey),
-            I18nHelper.GetLocalizedString("UnsavedChanges"),
-            I18nHelper.GetLocalizedString("Save"),
-            I18nHelper.GetLocalizedString("DiscardChanges"),
-            I18nHelper.GetLocalizedString("Cancel"),
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, messageKey),
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "UnsavedChanges"),
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Save"),
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "DiscardChanges"),
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"),
             width: 600,
             minWidth: 560,
             primaryButtonIcon: SymbolRegular.Save24,
@@ -1843,11 +1843,11 @@ public partial class FrontedDesignerWindow : FluentWindow
         var messageBox = new Wpf.Ui.Controls.MessageBox
         {
             Owner = this,
-            Title = I18nHelper.GetLocalizedString("ResetToBuiltIn"),
-            Content = I18nHelper.GetLocalizedString("ResetLayoutConfirm"),
-            PrimaryButtonText = I18nHelper.GetLocalizedString("Confirm"),
+            Title = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ResetToBuiltIn"),
+            Content = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "ResetLayoutConfirm"),
+            PrimaryButtonText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"),
             PrimaryButtonIcon = new SymbolIcon { Symbol = SymbolRegular.ArrowClockwise24 },
-            CloseButtonText = I18nHelper.GetLocalizedString("Cancel"),
+            CloseButtonText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"),
             CloseButtonIcon = new SymbolIcon { Symbol = SymbolRegular.Dismiss24 }
         };
 

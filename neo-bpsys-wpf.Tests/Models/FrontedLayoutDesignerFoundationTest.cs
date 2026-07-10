@@ -2737,7 +2737,7 @@ public class FrontedLayoutDesignerFoundationTest
             }
         }
 
-        foreach (var fileName in new[] { "Lang.resx", "Lang.en-us.resx", "Lang.ja-jp.resx" })
+        foreach (var fileName in new[] { "Designer.resx", "Designer.en-us.resx", "Designer.ja-jp.resx" })
         {
             var names = LoadResxKeys(fileName);
             foreach (var key in requiredKeys.OrderBy(key => key, StringComparer.Ordinal))
@@ -4024,17 +4024,35 @@ public class FrontedLayoutDesignerFoundationTest
             "SnapGridSize"
         };
 
-        foreach (var fileName in new[] { "Lang.resx", "Lang.en-us.resx", "Lang.ja-jp.resx" })
+        var families = new[] { "Common", "Shell", "Team", "Game", "Bp", "Score", "FrontManage", "Designer", "AnimationEditor", "Settings", "PluginMarket" };
+        // "Preview" was migrated to the SmartBp module (single-domain usage), so include module files in the search.
+        var moduleFamilies = new[] { ("neo-bpsys-wpf.SmartBp.Module", "SmartBp") };
+        var cultureSuffixes = new[] { "", ".en-us", ".ja-jp" };
+
+        foreach (var suffix in cultureSuffixes)
         {
-            var names = XDocument.Load(GetRepositoryPath("neo-bpsys-wpf", "Locales", fileName))
-                .Root!
-                .Elements("data")
-                .Select(element => element.Attribute("name")?.Value)
-                .ToHashSet(StringComparer.Ordinal);
+            var allNames = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var family in families)
+            {
+                var path = GetRepositoryPath("neo-bpsys-wpf", "Locales", $"{family}{suffix}.resx");
+                if (!File.Exists(path)) continue;
+                var doc = XDocument.Load(path);
+                foreach (var name in doc.Root!.Elements("data").Select(e => e.Attribute("name")?.Value).Where(n => n is not null))
+                    allNames.Add(name!);
+            }
+
+            foreach (var (moduleAssembly, moduleFamily) in moduleFamilies)
+            {
+                var path = GetRepositoryPath(moduleAssembly, "Locales", $"{moduleFamily}{suffix}.resx");
+                if (!File.Exists(path)) continue;
+                var doc = XDocument.Load(path);
+                foreach (var name in doc.Root!.Elements("data").Select(e => e.Attribute("name")?.Value).Where(n => n is not null))
+                    allNames.Add(name!);
+            }
 
             foreach (var key in expectedKeys)
             {
-                Assert.Contains(key, names);
+                Assert.Contains(key, allNames);
             }
         }
     }
@@ -4511,14 +4529,14 @@ public class FrontedLayoutDesignerFoundationTest
 
         Assert.True(viewModel.EffectiveSnapEnabled);
         Assert.False(viewModel.SnapEnabled);
-        Assert.Equal(neo_bpsys_wpf.Helpers.I18nHelper.GetLocalizedString("TemporarySnap"), viewModel.SnapStatusText);
+        Assert.Equal(neo_bpsys_wpf.Helpers.I18nHelper.GetLocalizedString(neo_bpsys_wpf.Helpers.AppI18nDictionaries.Designer, "TemporarySnap"), viewModel.SnapStatusText);
 
         viewModel.SnapEnabled = true;
         viewModel.UpdateShiftSnapActive(false);
 
         Assert.True(viewModel.EffectiveSnapEnabled);
         Assert.True(viewModel.SnapEnabled);
-        Assert.Equal(neo_bpsys_wpf.Helpers.I18nHelper.GetLocalizedString("SnapOn"), viewModel.SnapStatusText);
+        Assert.Equal(neo_bpsys_wpf.Helpers.I18nHelper.GetLocalizedString(neo_bpsys_wpf.Helpers.AppI18nDictionaries.Designer, "SnapOn"), viewModel.SnapStatusText);
     }
 
     [Fact]

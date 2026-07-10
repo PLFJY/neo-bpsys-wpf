@@ -84,7 +84,7 @@ public static class GameProgressDisplayHelper
 
         if ((int)progress == -1)
         {
-            var freeText = I18nHelper.GetLocalizedString("GameProgressFree", culture);
+            var freeText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, "GameProgressFree", culture);
             return new GameProgressDisplayParts
             {
                 Progress = progress,
@@ -99,11 +99,11 @@ public static class GameProgressDisplayHelper
         var gameText = isOvertime
             ? string.Format(
                 culture,
-                I18nHelper.GetLocalizedString("GameProgressGameOvertimeOnlyFormat", culture),
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, "GameProgressGameOvertimeOnlyFormat", culture),
                 gameNumberStr)
             : string.Format(
                 culture,
-                I18nHelper.GetLocalizedString("GameProgressGameOnlyFormat", culture),
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, "GameProgressGameOnlyFormat", culture),
                 gameNumberStr);
 
         var halfKey = half == GameProgressHalf.First ? "FirstHalf" : "SecondHalf";
@@ -112,12 +112,12 @@ public static class GameProgressDisplayHelper
         var fullText = isOvertime
             ? string.Format(
                 culture,
-                I18nHelper.GetLocalizedString("GameProgressGameOvertimeHalfFormat", culture),
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, "GameProgressGameOvertimeHalfFormat", culture),
                 gameNumberStr,
                 halfText)
             : string.Format(
                 culture,
-                I18nHelper.GetLocalizedString("GameProgressGameHalfFormat", culture),
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, "GameProgressGameHalfFormat", culture),
                 gameNumberStr,
                 halfText);
 
@@ -159,7 +159,7 @@ public static class GameProgressDisplayHelper
 
     private static string GetHalfText(string halfKey, CultureInfo culture)
     {
-        var halfText = I18nHelper.GetLocalizedString(halfKey, culture);
+        var halfText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, halfKey, culture);
         if (halfText != halfKey)
         {
             return halfText;

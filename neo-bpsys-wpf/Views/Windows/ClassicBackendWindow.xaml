@@ -18,7 +18,7 @@
     MinHeight="760"
     lex:LocalizeDictionary.DesignCulture="zh"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Lang"
+    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell"
     ui:Design.Background="{DynamicResource ApplicationBackgroundBrush}"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
@@ -143,11 +143,13 @@
                             <ui:Button
                                 Command="{Binding TimerStartCommand}"
                                 Content="{lex:Loc Start}"
-                                Icon="{ui:SymbolIcon Symbol=Play24}" />
+                                Icon="{ui:SymbolIcon Symbol=Play24}"
+                                lex:ResxLocalizationProvider.DefaultDictionary="Locales.Common" />
                             <ui:Button
                                 Command="{Binding TimerStopCommand}"
                                 Content="{lex:Loc Stop}"
-                                Icon="{ui:SymbolIcon Symbol=Stop24}" />
+                                Icon="{ui:SymbolIcon Symbol=Stop24}"
+                                lex:ResxLocalizationProvider.DefaultDictionary="Locales.Common" />
                             <TextBlock
                                 Margin="0,5,8,8"
                                 VerticalAlignment="Center"
@@ -187,7 +189,8 @@
                         <TextBlock
                             Margin="0,0,8,8"
                             VerticalAlignment="Center"
-                            Text="{lex:Loc GameProgressColon}" />
+                            Text="{lex:Loc GameProgressColon}"
+                            lex:ResxLocalizationProvider.DefaultDictionary="Locales.Game" />
                         <ComboBox
                             Width="210"
                             IsEnabled="{Binding CanGameProgressChange}"
@@ -247,7 +250,8 @@
                         <ui:Button
                             Command="{Binding NewGameCommand}"
                             Content="{lex:Loc NewGame}"
-                            Icon="{ui:SymbolIcon Symbol=Add24}" />
+                            Icon="{ui:SymbolIcon Symbol=Add24}"
+                            lex:ResxLocalizationProvider.DefaultDictionary="Locales.Game" />
                     </StackPanel>
                 </WrapPanel>
             </Border>
@@ -284,11 +288,13 @@
                                     <ui:Button
                                         Click="OpenSmartBp_Click"
                                         Content="{lex:Loc SmartBP}"
-                                        Icon="{ui:SymbolIcon Symbol=BrainCircuit24}" />
+                                        Icon="{ui:SymbolIcon Symbol=BrainCircuit24}"
+                                        lex:ResxLocalizationProvider.DefaultDictionary="Locales.Settings" />
                                     <ui:Button
                                         Click="OpenTeamInfo_Click"
                                         Content="{lex:Loc TeamInfo}"
-                                        Icon="{ui:SymbolIcon Symbol=PeopleTeam24}" />
+                                        Icon="{ui:SymbolIcon Symbol=PeopleTeam24}"
+                                        lex:ResxLocalizationProvider.DefaultDictionary="Locales.Team" />
                                 </WrapPanel>
                             </StackPanel>
                         </Border>
@@ -298,7 +304,7 @@
                             Margin="{StaticResource ClassicCardMargin}"
                             Style="{StaticResource Card}">
                             <StackPanel>
-                                <TextBlock Style="{StaticResource Title}" Text="{lex:Loc MapBP}" />
+                                <TextBlock Style="{StaticResource Title}" Text="{lex:Loc MapBP}" lex:ResxLocalizationProvider.DefaultDictionary="Locales.Bp" />
                                 <WrapPanel Margin="{StaticResource ClassicSectionSpacing}">
                                     <ui:ToggleSwitch Content="{lex:Loc ShowPickingBorder}" IsChecked="{Binding IsBreathing}" />
                                     <ui:ToggleSwitch Content="{lex:Loc ShowCamp}" IsChecked="{Binding IsCampVisible}" />
@@ -310,7 +316,8 @@
                                 <TextBlock
                                     Margin="0,10,0,0"
                                     Style="{StaticResource Title}"
-                                    Text="{lex:Loc PickMap}" />
+                                    Text="{lex:Loc PickMap}"
+                                    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Bp" />
                                 <ComboBox
                                     Margin="0,8,0,0"
                                     ItemsSource="{Binding MapSelectTeamsList}"
@@ -357,7 +364,8 @@
                                 <TextBlock
                                     Margin="0,14,0,0"
                                     Style="{StaticResource Title}"
-                                    Text="{lex:Loc BanMap}" />
+                                    Text="{lex:Loc BanMap}"
+                                    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Bp" />
                                 <ComboBox
                                     Margin="0,8,0,0"
                                     ItemsSource="{Binding MapSelectTeamsList}"
@@ -411,7 +419,8 @@
                         <Expander
                             Margin="0,10,10,0"
                             Header="{lex:Loc BanNumberControl}"
-                            IsExpanded="False">
+                            IsExpanded="False"
+                            lex:ResxLocalizationProvider.DefaultDictionary="Locales.Bp">
                             <StackPanel>
                                 <Border
                                     x:Name="BanHunNumberRoot"
@@ -419,7 +428,7 @@
                                     Style="{StaticResource Card}">
                                     <StackPanel>
                                         <TextBlock Style="{StaticResource Title}" Text="{lex:Loc BanHunter}" />
-                                        <TextBlock Margin="0,10,0,0" Text="{lex:Loc CurrentBan}" />
+                                        <TextBlock Margin="0,10,0,0" Text="{lex:Loc CurrentBan}" lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell" />
                                         <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding BanHunCurrentViewModelList}">
                                             <ItemsControl.ItemsPanel>
                                                 <ItemsPanelTemplate>
@@ -442,7 +451,7 @@
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>
                                         </ItemsControl>
-                                        <TextBlock Margin="0,8,0,0" Text="{lex:Loc GlobalBan}" />
+                                        <TextBlock Margin="0,8,0,0" Text="{lex:Loc GlobalBan}" lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell" />
                                         <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding BanHunGlobalViewModelList}">
                                             <ItemsControl.ItemsPanel>
                                                 <ItemsPanelTemplate>
@@ -473,7 +482,7 @@
                                     Style="{StaticResource Card}">
                                     <StackPanel>
                                         <TextBlock Style="{StaticResource Title}" Text="{lex:Loc BanSurvivor}" />
-                                        <TextBlock Margin="0,10,0,0" Text="{lex:Loc CurrentBan}" />
+                                        <TextBlock Margin="0,10,0,0" Text="{lex:Loc CurrentBan}" lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell" />
                                         <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding BanSurCurrentViewModelList}">
                                             <ItemsControl.ItemsPanel>
                                                 <ItemsPanelTemplate>
@@ -496,7 +505,7 @@
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>
                                         </ItemsControl>
-                                        <TextBlock Margin="0,8,0,0" Text="{lex:Loc GlobalBan}" />
+                                        <TextBlock Margin="0,8,0,0" Text="{lex:Loc GlobalBan}" lex:ResxLocalizationProvider.DefaultDictionary="Locales.Shell" />
                                         <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding BanSurGlobalViewModelList}">
                                             <ItemsControl.ItemsPanel>
                                                 <ItemsPanelTemplate>
@@ -528,7 +537,7 @@
 
                 <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
                     <StackPanel>
-                        <Border x:Name="BanHunRoot" Style="{StaticResource Card}">
+                        <Border x:Name="BanHunRoot" Style="{StaticResource Card}" lex:ResxLocalizationProvider.DefaultDictionary="Locales.Bp">
                             <StackPanel>
                                 <TextBlock Style="{StaticResource Title}" Text="{lex:Loc BanHunter}" />
                                 <WrapPanel Margin="0,10,0,0">
@@ -579,7 +588,8 @@
                         <Border
                             x:Name="BanSurRoot"
                             Margin="0,0,10,0"
-                            Style="{StaticResource Card}">
+                            Style="{StaticResource Card}"
+                            lex:ResxLocalizationProvider.DefaultDictionary="Locales.Bp">
                             <StackPanel>
                                 <TextBlock Style="{StaticResource Title}" Text="{lex:Loc BanSurvivor}" />
                                 <WrapPanel Margin="0,10,0,0">
@@ -632,7 +642,7 @@
                             Margin="0,10,10,0"
                             Style="{StaticResource Card}">
                             <StackPanel>
-                                <TextBlock Style="{StaticResource Title}" Text="{lex:Loc PickSurvivor}" />
+                                <TextBlock Style="{StaticResource Title}" Text="{lex:Loc PickSurvivor}" lex:ResxLocalizationProvider.DefaultDictionary="Locales.Bp" />
                                 <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding SurPickViewModelList}">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
@@ -645,7 +655,8 @@
                                                 <ui:TextBox
                                                     IsReadOnly="True"
                                                     PlaceholderText="{lex:Loc PlayerName}"
-                                                    Text="{Binding ThisPlayer.Member.Name, Mode=OneWay}" />
+                                                    Text="{Binding ThisPlayer.Member.Name, Mode=OneWay}"
+                                                    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Team" />
                                                 <cc:CharacterSelector
                                                     Margin="0,8,0,0"
                                                     Command="{Binding ConfirmCommand}"
@@ -665,7 +676,8 @@
                                 <TextBlock
                                     Margin="0,12,0,0"
                                     Style="{StaticResource Title}"
-                                    Text="{lex:Loc PickHunter}" />
+                                    Text="{lex:Loc PickHunter}"
+                                    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Bp" />
                                 <cc:CharacterSelector
                                     Margin="0,10,0,0"
                                     Command="{Binding HunPickVm.ConfirmCommand}"
@@ -683,7 +695,7 @@
                     <StackPanel>
                         <Border x:Name="ScoreRoot" Style="{StaticResource Card}">
                             <StackPanel>
-                                <TextBlock Style="{StaticResource Title}" Text="{lex:Loc ScoreControl}" />
+                                <TextBlock Style="{StaticResource Title}" Text="{lex:Loc ScoreControl}" lex:ResxLocalizationProvider.DefaultDictionary="Locales.Score" />
                                 <Grid Margin="0,10,0,0" IsEnabled="{Binding IsScoreControlEnabled}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
@@ -747,16 +759,18 @@
                                             Command="{Binding ClearCurrentHalfScoreCommand}"
                                             Content="{lex:Loc ClearCurrentHalfScore}" />
                                         <ui:Button
-                                            Margin="8,0,0,0"
-                                            Click="ToggleScorePreviewDrawer_Click"
-                                            Content="{lex:Loc ScorePreviewTable}"
-                                            Icon="{ui:SymbolIcon Symbol=NumberRow24}" />
+                                        Margin="8,0,0,0"
+                                        Click="ToggleScorePreviewDrawer_Click"
+                                        Content="{lex:Loc ScorePreviewTable}"
+                                        Icon="{ui:SymbolIcon Symbol=NumberRow24}"
+                                        lex:ResxLocalizationProvider.DefaultDictionary="Locales.Score" />
                                     </StackPanel>
                                 </Grid>
                                 <TextBlock
                                     Margin="0,8,0,0"
                                     TextAlignment="Center"
-                                    TextWrapping="Wrap">
+                                    TextWrapping="Wrap"
+                                    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Score">
                                     <TextBlock.Text>
                                         <MultiBinding Converter="{lex:StringFormatConverter}">
                                             <lex:BLoc Key="ScorePreview" />
@@ -770,7 +784,8 @@
                                 <TextBlock
                                     Margin="0,4,0,0"
                                     TextAlignment="Center"
-                                    TextWrapping="Wrap">
+                                    TextWrapping="Wrap"
+                                    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Score">
                                     <TextBlock.Text>
                                         <MultiBinding Converter="{lex:StringFormatConverter}">
                                             <lex:BLoc Key="ScorePreview" />
@@ -786,7 +801,8 @@
                         <Expander
                             Margin="0,10,10,0"
                             Header="{lex:Loc Talent}"
-                            IsExpanded="True">
+                            IsExpanded="True"
+                            lex:ResxLocalizationProvider.DefaultDictionary="Locales.Bp">
                             <Border
                                 x:Name="TalentRoot"
                                 Margin="0,10,0,0"
@@ -834,7 +850,8 @@
                                         x:Name="IsTraitVisible"
                                         Margin="0,10,0,0"
                                         Content="{lex:Loc Enable}"
-                                        IsChecked="{Binding IsTraitVisible}" />
+                                        IsChecked="{Binding IsTraitVisible}"
+                                        lex:ResxLocalizationProvider.DefaultDictionary="Locales.Common" />
                                     <WrapPanel Margin="0,10,0,0" Visibility="{Binding ElementName=IsTraitVisible, Path=IsChecked, Converter={StaticResource BoolToVisibilityConverter}, Mode=TwoWay}">
                                         <controls:ToggleStyledRadioButton
                                             ImageHeight="50"
@@ -1055,7 +1072,8 @@
                         <TextBlock
                             VerticalAlignment="Center"
                             Style="{StaticResource Title}"
-                            Text="{lex:Loc ScorePreviewTable}" />
+                            Text="{lex:Loc ScorePreviewTable}"
+                            lex:ResxLocalizationProvider.DefaultDictionary="Locales.Score" />
                         <Button
                             Margin="16,0,0,0"
                             Padding="12,4"
@@ -1066,7 +1084,8 @@
                         Grid.Column="1"
                         Click="CloseScorePreviewDrawer_Click"
                         Content="{lex:Loc Close}"
-                        Icon="{ui:SymbolIcon Symbol=Dismiss24}" />
+                        Icon="{ui:SymbolIcon Symbol=Dismiss24}"
+                        lex:ResxLocalizationProvider.DefaultDictionary="Locales.Common" />
                 </Grid>
                 <ui:DataGrid
                     x:Name="ClassicScorePreviewDataGrid"
@@ -1080,7 +1099,8 @@
                     IsReadOnly="True"
                     ItemsSource="{Binding ScorePreviewRows}"
                     SelectionMode="Single"
-                    VerticalScrollBarVisibility="Auto">
+                    VerticalScrollBarVisibility="Auto"
+                    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Score">
                     <ui:DataGrid.RowStyle>
                         <Style TargetType="{x:Type DataGridRow}">
                             <Style.Triggers>

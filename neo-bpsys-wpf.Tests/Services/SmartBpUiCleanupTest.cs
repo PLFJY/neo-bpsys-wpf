@@ -54,7 +54,7 @@ public class SmartBpUiCleanupTest
     [Fact]
     public void MainAutoApplyCopyDoesNotUseCautionWording()
     {
-        var value = ReadResxValue("neo-bpsys-wpf/Locales/Lang.resx", "SmartBpAiEnableAutoApply");
+        var value = ReadResxValue("neo-bpsys-wpf.SmartBp.Module/Locales/SmartBp.resx", "SmartBpAiEnableAutoApply");
 
         Assert.DoesNotContain("慎用", value);
         Assert.DoesNotContain("谨慎", value);
@@ -64,7 +64,7 @@ public class SmartBpUiCleanupTest
     [Fact]
     public void PaddleOcrRecommendedMarkerIsLocalized()
     {
-        var value = ReadResxValue("neo-bpsys-wpf/Locales/Lang.resx", "SmartBpRecommendedProviderFormat");
+        var value = ReadResxValue("neo-bpsys-wpf/Locales/Settings.resx", "SmartBpRecommendedProviderFormat");
 
         Assert.Contains("推荐", value);
     }

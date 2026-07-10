@@ -162,9 +162,9 @@ public class FrontedDesignerHelpTest
 
         var resxFiles = new[]
         {
-            GetRepositoryPath("neo-bpsys-wpf", "Locales", "Lang.resx"),
-            GetRepositoryPath("neo-bpsys-wpf", "Locales", "Lang.en-us.resx"),
-            GetRepositoryPath("neo-bpsys-wpf", "Locales", "Lang.ja-jp.resx")
+            GetRepositoryPath("neo-bpsys-wpf", "Locales", "Designer.resx"),
+            GetRepositoryPath("neo-bpsys-wpf", "Locales", "Designer.en-us.resx"),
+            GetRepositoryPath("neo-bpsys-wpf", "Locales", "Designer.ja-jp.resx")
         };
 
         foreach (var resxPath in resxFiles)

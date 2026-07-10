@@ -14,7 +14,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Windows;
 using Wpf.Ui;
-using I18nHelper = neo_bpsys_wpf.Helpers.I18nHelper;
+using neo_bpsys_wpf.Helpers;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -60,16 +60,16 @@ public class GameGuidanceService(
 
     private Dictionary<GameAction, Func<string>> ActionName { get; } = new()
     {
-        { GameAction.BanMap, () => I18nHelper.GetLocalizedString("BanMap") },
-        { GameAction.PickMap, () => I18nHelper.GetLocalizedString("PickMap") },
-        { GameAction.PickCamp, () => I18nHelper.GetLocalizedString("PickCamp") },
-        { GameAction.BanSur, () => I18nHelper.GetLocalizedString("BanSurvivor") },
-        { GameAction.BanHun, () => I18nHelper.GetLocalizedString("BanHunter") },
-        { GameAction.PickSur, () => I18nHelper.GetLocalizedString("PickSurvivor") },
-        { GameAction.DistributeChara, () => I18nHelper.GetLocalizedString("DistributeCharacters") },
-        { GameAction.PickHun, () => I18nHelper.GetLocalizedString("PickHunter") },
-        { GameAction.PickSurTalent, () => I18nHelper.GetLocalizedString("PickSurTalent") },
-        { GameAction.PickHunTalent, () => I18nHelper.GetLocalizedString("PickHunTalent") }
+        { GameAction.BanMap, () => I18nHelper.GetLocalizedString(AppI18nDictionaries.Bp, "BanMap") },
+        { GameAction.PickMap, () => I18nHelper.GetLocalizedString(AppI18nDictionaries.Bp, "PickMap") },
+        { GameAction.PickCamp, () => I18nHelper.GetLocalizedString(AppI18nDictionaries.Bp, "PickCamp") },
+        { GameAction.BanSur, () => I18nHelper.GetLocalizedString(AppI18nDictionaries.Bp, "BanSurvivor") },
+        { GameAction.BanHun, () => I18nHelper.GetLocalizedString(AppI18nDictionaries.Bp, "BanHunter") },
+        { GameAction.PickSur, () => I18nHelper.GetLocalizedString(AppI18nDictionaries.Bp, "PickSurvivor") },
+        { GameAction.DistributeChara, () => I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "DistributeCharacters") },
+        { GameAction.PickHun, () => I18nHelper.GetLocalizedString(AppI18nDictionaries.Bp, "PickHunter") },
+        { GameAction.PickSurTalent, () => I18nHelper.GetLocalizedString(AppI18nDictionaries.Bp, "PickSurTalent") },
+        { GameAction.PickHunTalent, () => I18nHelper.GetLocalizedString(AppI18nDictionaries.Bp, "PickHunTalent") }
     };
 
     private int _currentStep = -1;
@@ -139,7 +139,7 @@ public class GameGuidanceService(
         if (!File.Exists(_guidanceFilePath))
         {
             _logger.LogWarning("Game rule file not found at {Path}", _guidanceFilePath);
-            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("GameRuleFileNotFound"));
+            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, "GameRuleFileNotFound"));
             throw new FileNotFoundException();
         }
 
@@ -166,7 +166,7 @@ public class GameGuidanceService(
 
         if (IsGuidanceStarted)
         {
-            _infoBarService.ShowWarningInfoBar(I18nHelper.GetLocalizedString("GameAlreadyStarted"));
+            _infoBarService.ShowWarningInfoBar(I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, "GameAlreadyStarted"));
         }
 
         try
@@ -175,12 +175,12 @@ public class GameGuidanceService(
         }
         catch (GuidanceNotSupportedException)
         {
-            _infoBarService.ShowWarningInfoBar(I18nHelper.GetLocalizedString("GuidanceNotAvailableInFree"));
+            _infoBarService.ShowWarningInfoBar(I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, "GuidanceNotAvailableInFree"));
             return null;
         }
         catch (Exception ex)
         {
-            await MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString("GameRuleFileError")}\n{ex}");
+            await MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, "GameRuleFileError")}\n{ex}");
             return null;
         }
 
@@ -198,7 +198,7 @@ public class GameGuidanceService(
             return nextStepResult;
         }
 
-        await MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("GameRuleFileError"));
+        await MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, "GameRuleFileError"));
 
         return null;
     }
@@ -214,7 +214,7 @@ public class GameGuidanceService(
 
         if (!IsGuidanceStarted)
         {
-            _infoBarService.ShowWarningInfoBar(I18nHelper.GetLocalizedString("PleaseStartGameFirst"));
+            _infoBarService.ShowWarningInfoBar(I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, "PleaseStartGameFirst"));
             return;
         }
 
@@ -274,7 +274,7 @@ public class GameGuidanceService(
 
         if (!IsGuidanceStarted)
         {
-            _infoBarService.ShowWarningInfoBar(I18nHelper.GetLocalizedString("PleaseStartGameFirst"));
+            _infoBarService.ShowWarningInfoBar(I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, "PleaseStartGameFirst"));
             return null;
         }
 
@@ -286,13 +286,13 @@ public class GameGuidanceService(
                 return result.Error ?? result.ActionName;
             }
 
-            _infoBarService.ShowWarningInfoBar(I18nHelper.GetLocalizedString("AlreadyLastStep"));
+            _infoBarService.ShowWarningInfoBar(I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, "AlreadyLastStep"));
             WeakReferenceMessenger.Default.Send(new HighlightMessage(GameAction.EndGuidance, null));
             PublishHighlight(GameAction.EndGuidance, null);
         }
         else
         {
-            await MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("GameInfoError"));
+            await MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, "GameInfoError"));
         }
 
         return null;
@@ -308,7 +308,7 @@ public class GameGuidanceService(
 
         if (!IsGuidanceStarted)
         {
-            _infoBarService.ShowWarningInfoBar(I18nHelper.GetLocalizedString("PleaseStartGameFirst"));
+            _infoBarService.ShowWarningInfoBar(I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, "PleaseStartGameFirst"));
             return null;
         }
 
@@ -320,11 +320,11 @@ public class GameGuidanceService(
                 return result.Error ?? result.ActionName;
             }
 
-            _infoBarService.ShowWarningInfoBar(I18nHelper.GetLocalizedString("AlreadyFirstStep"));
+            _infoBarService.ShowWarningInfoBar(I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, "AlreadyFirstStep"));
         }
         else
         {
-            await MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("GameInfoError"));
+            await MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, "GameInfoError"));
         }
 
         return null;
@@ -364,11 +364,11 @@ public class GameGuidanceService(
 
         if (!IsGuidanceStarted)
         {
-            _infoBarService.ShowWarningInfoBar(I18nHelper.GetLocalizedString("PleaseStartGameFirst"));
+            _infoBarService.ShowWarningInfoBar(I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, "PleaseStartGameFirst"));
             return null;
         }
         if (_currentGameProperty == null || stepIndex < 0 || stepIndex >= _currentGameProperty.WorkFlow.Count)
-            return I18nHelper.GetLocalizedString("GameInfoError");
+            return I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, "GameInfoError");
         var result = await HandleStepChange(stepIndex, isNavigatePageEnable);
         return result.Error;
     }

@@ -55,55 +55,65 @@ public interface ITutorialTextProvider
 }
 
 /// <summary>
-/// Default Chinese fixed UI text provider for Product Tour controls.
+/// 基于 WPFLocalizeExtension 的默认本地化文本提供器，解析 ProductTour 自身程序集的资源。
 /// </summary>
 public sealed class DefaultTutorialTextProvider : ITutorialTextProvider
 {
-    /// <inheritdoc />
-    public string Previous => "上一步";
+    private const string AssemblyName = "neo-bpsys-wpf.ProductTour";
+    private const string Dictionary = "Locales.Tour";
+
+    private static string Loc(string key)
+    {
+        var value = WPFLocalizeExtension.Engine.LocalizeDictionary.Instance.GetLocalizedObject(
+            AssemblyName, Dictionary, key, WPFLocalizeExtension.Engine.LocalizeDictionary.CurrentCulture);
+        return value?.ToString() ?? key;
+    }
 
     /// <inheritdoc />
-    public string Next => "下一步";
+    public string Previous => Loc(nameof(Previous));
 
     /// <inheritdoc />
-    public string Finish => "完成";
+    public string Next => Loc(nameof(Next));
 
     /// <inheritdoc />
-    public string Skip => "跳过";
+    public string Finish => Loc(nameof(Finish));
 
     /// <inheritdoc />
-    public string WaitingForAction => "等待操作...";
+    public string Skip => Loc(nameof(Skip));
 
     /// <inheritdoc />
-    public string Continue => "继续";
+    public string WaitingForAction => Loc(nameof(WaitingForAction));
 
     /// <inheritdoc />
-    public string ClickToContinue => "点击继续";
+    public string Continue => Loc(nameof(Continue));
 
     /// <inheritdoc />
-    public string WelcomeTitle => "欢迎使用 neo-bpsys-wpf！";
+    public string ClickToContinue => Loc(nameof(ClickToContinue));
 
     /// <inheritdoc />
-    public string WelcomeDescription => "在开始之前，请先完成一次简短的功能导览。";
+    public string WelcomeTitle => Loc(nameof(WelcomeTitle));
 
     /// <inheritdoc />
-    public string LanguageLabel => "界面语言";
+    public string WelcomeDescription => Loc(nameof(WelcomeDescription));
 
     /// <inheritdoc />
-    public string StartTour => "开始导览";
+    public string LanguageLabel => Loc(nameof(LanguageLabel));
 
     /// <inheritdoc />
-    public string RestartAvailableHint => "之后可以在设置中重新启动导览。";
+    public string StartTour => Loc(nameof(StartTour));
 
     /// <inheritdoc />
-    public string SkipConfirmTitle => "跳过首次导览？";
+    public string RestartAvailableHint => Loc(nameof(RestartAvailableHint));
 
     /// <inheritdoc />
-    public string SkipConfirmDescription => "确定要跳过首次导览吗？之后可以在设置中重新启动。";
+    public string SkipConfirmTitle => Loc(nameof(SkipConfirmTitle));
 
     /// <inheritdoc />
-    public string SkipConfirmContinue => "继续导览";
+    public string SkipConfirmDescription => Loc(nameof(SkipConfirmDescription));
 
     /// <inheritdoc />
-    public string SkipConfirmConfirm => "确认跳过";
+    public string SkipConfirmContinue => Loc(nameof(SkipConfirmContinue));
+
+    /// <inheritdoc />
+    public string SkipConfirmConfirm => Loc(nameof(SkipConfirmConfirm));
 }

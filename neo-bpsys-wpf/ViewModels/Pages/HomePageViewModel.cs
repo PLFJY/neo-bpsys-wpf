@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models;
@@ -37,11 +37,11 @@ public partial class HomePageViewModel : ViewModelBase
         updaterService.NewVersionInfoChanged += (sender, args) =>
         {
             ReleaseInfo = updaterService.NewVersionInfo;
-            if (string.IsNullOrEmpty(ReleaseInfo.TagName)) ReleaseNotes = I18nHelper.GetLocalizedString("LoadingFailed");
+            if (string.IsNullOrEmpty(ReleaseInfo.TagName)) ReleaseNotes = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "LoadingFailed");
             else ReleaseNotes = $"# {ReleaseInfo.Name}\r\n\r\n" + ReleaseInfo.Body;
         };
         IsExpanded = settingsHostService.Settings.ShowAfterUpdateTip;
-        ReleaseNotes = I18nHelper.GetLocalizedString("LoadingFailed");
+        ReleaseNotes = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "LoadingFailed");
     }
 
     /// <summary>

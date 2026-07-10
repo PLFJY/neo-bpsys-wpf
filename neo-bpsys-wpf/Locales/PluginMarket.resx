@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <data name="Plugins" xml:space="preserve">
+    <value>插件</value>
+  </data>
+  <data name="PluginManagement" xml:space="preserve">
+    <value>插件管理</value>
+  </data>
+  <data name="PluginMarket" xml:space="preserve">
+    <value>插件市场</value>
+  </data>
+  <data name="RestartToApplyChanges" xml:space="preserve">
+    <value>重启以应用更改</value>
+  </data>
+  <data name="Uninstall" xml:space="preserve">
+    <value>卸载</value>
+  </data>
+  <data name="CancelUninstall" xml:space="preserve">
+    <value>取消卸载</value>
+  </data>
+  <data name="ClickToRestart" xml:space="preserve">
+    <value>点击重启</value>
+  </data>
+  <data name="ProjectUrl" xml:space="preserve">
+    <value>项目URL：</value>
+  </data>
+  <data name="InstallPluginFromFile" xml:space="preserve">
+    <value>从文件安装插件</value>
+  </data>
+  <data name="CannotFindManifest" xml:space="preserve">
+    <value>找不到 manifest.yml</value>
+  </data>
+  <data name="ManifestNotValid" xml:space="preserve">
+    <value>清单内容无效</value>
+  </data>
+  <data name="PluginStatus" xml:space="preserve">
+    <value>插件状态：</value>
+  </data>
+  <data name="PluginNotRemovable" xml:space="preserve">
+    <value>内置插件无法卸载</value>
+  </data>
+  <data name="PluginsThirdPartyWarning" xml:space="preserve">
+    <value>插件由第三方提供，不保证其可用性和功能完整性</value>
+  </data>
+  <data name="PluginPackageFiles" xml:space="preserve">
+    <value>插件包</value>
+  </data>
+  <data name="PluginMarketAuthorLabel" xml:space="preserve">
+    <value>作者：</value>
+  </data>
+  <data name="PluginMarketVersionLabel" xml:space="preserve">
+    <value>版本：</value>
+  </data>
+  <data name="PluginMarketSettingsTitle" xml:space="preserve">
+    <value>插件市场设置</value>
+  </data>
+  <data name="PluginMarketMirrorLabel" xml:space="preserve">
+    <value>Ghproxy</value>
+  </data>
+  <data name="PluginMarketSourceLabel" xml:space="preserve">
+    <value>插件源</value>
+  </data>
+  <data name="PluginMarketMirrorSyncHint" xml:space="preserve">
+    <value>此设置将同步至应用更新</value>
+  </data>
+  <data name="PluginMarketDownloadQueue" xml:space="preserve">
+    <value>下载队列</value>
+  </data>
+  <data name="PluginMarketDownloadQueueTitle" xml:space="preserve">
+    <value>下载队列</value>
+  </data>
+  <data name="PluginMarketDownloadQueueEmpty" xml:space="preserve">
+    <value>当前没有排队中的插件下载任务</value>
+  </data>
+  <data name="PluginMarketCancelDownload" xml:space="preserve">
+    <value>取消下载</value>
+  </data>
+  <data name="PluginMarketDirectConnectionNoProxy" xml:space="preserve">
+    <value>直接连接（不使用代理）</value>
+  </data>
+  <data name="PluginMarketVersionTooLow" xml:space="preserve">
+    <value>版本过低</value>
+  </data>
+  <data name="PluginMarketVersionIncompatible" xml:space="preserve">
+    <value>版本不兼容</value>
+  </data>
+  <data name="PluginMarketHostVersionTooLow" xml:space="preserve">
+    <value>当前软件版本过低</value>
+  </data>
+  <data name="PluginMarketApiIncompatible" xml:space="preserve">
+    <value>API 不兼容</value>
+  </data>
+  <data name="PluginMarketUpdateAvailable" xml:space="preserve">
+    <value>有更新</value>
+  </data>
+  <data name="PluginMarketInstalledRestartRequired" xml:space="preserve">
+    <value>已安装，重启以应用更改</value>
+  </data>
+  <data name="PluginMarketPendingUninstall" xml:space="preserve">
+    <value>待卸载</value>
+  </data>
+  <data name="PluginMarketInstallBlockedHostVersionTooLow" xml:space="preserve">
+    <value>当前软件版本过低，无法安装此插件。</value>
+  </data>
+  <data name="PluginMarketSha256Mismatch" xml:space="preserve">
+    <value>{0} 完整性校验失败，为确保安全已拒绝安装。</value>
+  </data>
+  <data name="PluginMarketDownloadAlreadyInProgress" xml:space="preserve">
+    <value>已有插件正在下载。</value>
+  </data>
+  <data name="PluginDependencyInstallAvailableMessage" xml:space="preserve">
+    <value>可从插件市场安装或更新的插件需要用户确认。</value>
+  </data>
+  <data name="PluginDependencyInstallButton" xml:space="preserve">
+    <value>安装/更新插件</value>
+  </data>
+  <data name="PluginDependencyForceImportMessage" xml:space="preserve">
+    <value>可选择强制导入并删除这些插件控件，原始 .bpui 文件不会被修改。</value>
+  </data>
+  <data name="PluginDependencyMarketOffline" xml:space="preserve">
+    <value>插件市场离线</value>
+  </data>
+  <data name="PluginDependencyMarketAvailable" xml:space="preserve">
+    <value>插件市场可用</value>
+  </data>
+  <data name="PluginDependencyUpdateRequired" xml:space="preserve">
+    <value>需要更新</value>
+  </data>
+  <data name="PluginDependencyNotFoundInMarket" xml:space="preserve">
+    <value>市场中未找到</value>
+  </data>
+  <data name="PluginDependencyInstalledVersion" xml:space="preserve">
+    <value>已安装版本</value>
+  </data>
+  <data name="PluginDependencyMinVersion" xml:space="preserve">
+    <value>最低版本</value>
+  </data>
+  <data name="PluginDependencyAffectedControls" xml:space="preserve">
+    <value>受影响控件</value>
+  </data>
+  <data name="PluginDependencyInstallRestartNotice" xml:space="preserve">
+    <value>安装或更新插件后通常需要重启，当前导入不会自动继续。</value>
+  </data>
+  <data name="PluginDependencyInstallIncomplete" xml:space="preserve">
+    <value>插件安装队列结束，但仍有依赖未完成</value>
+  </data>
+  <data name="PluginDependencyInstallFailed" xml:space="preserve">
+    <value>插件安装失败</value>
+  </data>
+</root>
