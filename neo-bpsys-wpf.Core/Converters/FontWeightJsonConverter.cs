@@ -54,6 +54,7 @@ public sealed class FontWeightJsonConverter : JsonConverter<FontWeight>
         };
     }
 
+    /// <inheritdoc/>
     public override void Write(Utf8JsonWriter writer, FontWeight value, JsonSerializerOptions options)
     {
         var name = StringMap.FirstOrDefault(item => item.Value == value).Key;

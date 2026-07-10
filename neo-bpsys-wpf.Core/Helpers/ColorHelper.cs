@@ -10,6 +10,13 @@ public static class ColorHelper
 {
     public const string DefaultColorHex = "#FFFFFFFF";
 
+    
+    /// <summary>
+    /// 标准化颜色值，失败时返回默认值。
+    /// </summary>
+    /// <param name="value">输入的颜色字符串</param>
+    /// <param name="normalized">标准化后的颜色字符串</param>
+    /// <returns>标准化后的颜色字符串</returns>
     public static bool TryNormalizeHex(string? value, out string normalized)
     {
         normalized = DefaultColorHex;

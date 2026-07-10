@@ -2,6 +2,9 @@
 
 namespace neo_bpsys_wpf.Core;
 
+/// <summary>
+/// 应用宿主
+/// </summary>
 public interface IAppHost
 {
     /// <summary>
