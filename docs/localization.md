@@ -8,7 +8,7 @@
 
 ## 宿主资源族
 
-主程序（`neo-bpsys-wpf` 程序集）拥有以下 11 个资源族，均位于 `neo-bpsys-wpf/Locales/` 目录下，每个族包含 neutral + `.en-us` + `.ja-jp` 三个文件：
+主程序（`neo-bpsys-wpf` 程序集）拥有以下 12 个资源族，均位于 `neo-bpsys-wpf/Locales/` 目录下，每个族包含 neutral + `.en-us` + `.ja-jp` 三个文件：
 
 | 字典常量 (`AppI18nDictionaries`) | 文件前缀 | 覆盖域 |
 | --- | --- | --- |
@@ -23,6 +23,7 @@
 | `AnimationEditor` | `Locales.AnimationEditor` | 动画编辑器 |
 | `Settings` | `Locales.Settings` | 设置页 |
 | `PluginMarket` | `Locales.PluginMarket` | 插件市场 |
+| `TourContent` | `Locales.TourContent` | Tutorial 步骤内容（标题/描述/对话台词）；en-us/ja-jp 暂为中文占位；排除出迁移审计 |
 
 `AppI18nDictionaries` 类提供所有字典名常量和 `AllDictionaries` 数组。代码中引用字典名时必须使用常量，不得硬编码字符串。
 

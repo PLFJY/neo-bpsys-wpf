@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Markup;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Events;
 using neo_bpsys_wpf.ProductTour;
 using WPFLocalizeExtension.Engine;
 
@@ -21,6 +22,9 @@ public sealed class NeoBpsysTutorialLanguageService : ITutorialLanguageService
         ["ja_JP"] = LanguageKey.ja_JP
     };
 
+    /// <inheritdoc />
+    public event EventHandler? LanguageChanged;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="NeoBpsysTutorialLanguageService"/> class.
     /// </summary>
@@ -28,6 +32,12 @@ public sealed class NeoBpsysTutorialLanguageService : ITutorialLanguageService
     public NeoBpsysTutorialLanguageService(ISettingsHostService settingsHostService)
     {
         _settingsHostService = settingsHostService;
+        _settingsHostService.LanguageSettingChanged += OnExternalLanguageChanged;
+    }
+
+    private void OnExternalLanguageChanged(object? sender, LanguageChangedEventArgs e)
+    {
+        LanguageChanged?.Invoke(this, EventArgs.Empty);
     }
 
     /// <inheritdoc />
@@ -84,6 +94,7 @@ public sealed class NeoBpsysTutorialLanguageService : ITutorialLanguageService
         }
 
         await _settingsHostService.SaveConfigAsync();
+        LanguageChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private void ApplyLocalizeDictionaryCulture()

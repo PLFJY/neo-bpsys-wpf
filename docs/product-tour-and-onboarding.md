@@ -61,20 +61,19 @@
 维护 Welcome UI 时遵循以下约束：
 
 1. 背景应延续启动加载动画的 Fluent 深色面，不做网页落地页式渐变、夸张插画或营销卡片。
-2. 内容布局参考 SmartBP 模块未加载页：居中窄内容、标题、说明、语言选择和主操作垂直排布。
+2. 内容布局参考 SmartBP 模块未加载页：居中窄内容、标题、说明和主操作垂直排布。
 3. 使用 WPF-UI / Fluent 动态资源，例如 `TextFillColorPrimaryBrush`、`TextFillColorSecondaryBrush`、`CardBackgroundFillColorDefaultBrush`、`ControlStrokeColorDefaultBrush`、`AccentFillColorDefaultBrush`。
 4. 显示和关闭都要播放淡入淡出动画；点击“开始导览”后必须等淡出完成再移除 overlay。
 5. “跳过”必须进入 `SkipTutorialConfirmDialog` 二次确认，不使用系统 `MessageBox`。
 6. Welcome 应表现为页面式 onboarding surface，而不是半透明浮在 HomePage 上的弹窗卡片；底层页面只作为被强遮罩压暗的背景。
 
-语言选择不由 ProductTour 控件硬编码。`FirstRunWelcomeOverlay` 使用页面式布局中的 `ComboBox` 渲染 `ITutorialLanguageService.GetLanguageOptionsAsync()` 提供的 `TutorialLanguageOption`，点击“开始导览”时传回 option id。主程序的 `NeoBpsysTutorialLanguageService` 负责把 option id 映射到真实 `LanguageKey`：
+导览不提供独立语言选择入口，语言完全跟随主程序设置。`NeoBpsysTutorialLanguageService` 订阅 `ISettingsHostService.LanguageSettingChanged`，外部（如设置页）切换语言后通过 `LanguageChanged` 事件通知所有 overlay 刷新文本：
 
-| Option id | 主程序语言 |
+| 事件节点 | 行为 |
 | --- | --- |
-| `System` | `LanguageKey.System` |
-| `zh_Hans` | `LanguageKey.zh_Hans` |
-| `en_US` | `LanguageKey.en_US` |
-| `ja_JP` | `LanguageKey.ja_JP` |
+| `ISettingsHostService.LanguageSettingChanged` | 主程序设置页或其它入口切换语言时触发 |
+| `NeoBpsysTutorialLanguageService.OnExternalLanguageChanged` | 转发为 `LanguageChanged` 事件 |
+| overlay `OnLanguageChanged` → `RefreshLanguage()` / `RefreshDialogueLanguage()` / `RefreshWelcomeLanguage()` | 在 Dispatcher 上重读当前 Culture 对应的文本 |
 
 语言应用仍走主程序设置链路：
 
@@ -91,7 +90,7 @@ ProductTour 库不得引用主程序的 `LanguageKey`，也不得在控件中出
 
 | 控件 | 用途 |
 | --- | --- |
-| `FirstRunWelcomeOverlay` | 首次启动欢迎、语言选择、开始导览、跳过入口 |
+| `FirstRunWelcomeOverlay` | 首次启动欢迎、开始导览、跳过入口 |
 | `SkipTutorialConfirmDialog` | 跳过导览的 overlay 内二次确认 |
 | `DialogueOverlay` | 底部 NPC 对话框，支持打字机效果 |
 | `ProductTourOverlay` | 遮罩、高亮目标控件、说明卡片、箭头和步骤导航 |
@@ -177,7 +176,7 @@ Flow 内部引用 package 时使用 `TutorialTriggerMode.EmbeddedInFlow`，并�
 | `NeoBpsysTutorialRegistration.cs` | 总入口，只调度 owner、app、flow 注册 |
 | `*.Tutorials.cs` | 各 owner 自己声明 package refs、sequence 和步骤 |
 | `NeoBpsysTutorialFlows.cs` | 注册导航验证 flow 和真实目标验证 flow，只引用 `TutorialPackageRef`；标准首次导览 flow 由 `App.Tour.xaml.cs` 注册 |
-| `NeoBpsysTutorialTexts.cs` | 临时集中 package 标题、说明和 fallback 文案 |
+| `TourContent.resx` | Tutorial 步骤标题/描述/对话文案，通过 `ITutorialContentResolver` 解析（neutral + en-us + ja-jp） |
 
 新增教程包时，owner 应公开 `Tours` 静态类，成员类型为 `TutorialPackageRef`。已有 ID 的字符串值用于持久化状态兼容，不得随意改名。
 
@@ -258,7 +257,45 @@ builder.Flow(TutorialFlowIds.FirstRunStandardBp)
 
 Product Tour 控件固定 UI 文案通过 `ITutorialTextProvider` 提供。`AddProductTour()` 注册 `DefaultTutorialTextProvider`，主程序在其后注册 `NeoBpsysTutorialTextProvider` 覆盖默认实现。当前 provider 先保留中文默认文本，后续接正式 resx 或 `WPFLocalizeExtension` 时应优先在 provider 内集中处理。
 
-package 的业务标题和说明暂时仍在 `NeoBpsysTutorialTexts.cs` 中维护；后续接入本地化 key 时，保持 `PackageId`、`FlowId`、`PageKey` 不变。
+package 的业务标题和说明已迁移至 `TourContent.resx` 资源族（neutral + en-us + ja-jp），通过 `StepKey`/`TextKey`/`LinesKey` 引用键，由 `ITutorialContentResolver`（宿主实现 `NeoBpsysTutorialContentResolver`）在运行时解析。en-us/ja-jp 暂为中文占位，后续翻译时只需替换对应文件中的值。保持 `PackageId`、`FlowId`、`PageKey` 不变。
+
+## i18n 与语言热切换
+
+### 双层文本架构
+
+Tutorial 文本分为两层，分别由不同资源族承载：
+
+| 层 | 资源族 | 归属程序集 | 内容 |
+| --- | --- | --- | --- |
+| Layer A — 控件 UI | `Tour.resx` | `neo-bpsys-wpf.ProductTour` | 导览卡片的按钮、标签（Next/Previous/Skip/Finish 等） |
+| Layer B — 步骤内容 | `TourContent.resx` | `neo-bpsys-wpf`（主程序） | 步骤标题、描述、对话台词、提示文案 |
+
+Layer A 通过 `ITutorialTextProvider` 抽象提供，`NeoBpsysTutorialTextProvider` 读取 `Tour.resx`。
+Layer B 通过 `ITutorialContentResolver` 抽象提供，`NeoBpsysTutorialContentResolver` 读取 `TourContent.resx`（通过 `I18nHelper.GetLocalizedString(AppI18nDictionaries.TourContent, key)`）。
+
+### 资源键命名约定
+
+| 键模式 | 用途 |
+| --- | --- |
+| `Step.<PackageShortName>.<StepIndex>.Title` | 步骤标题 |
+| `Step.<PackageShortName>.<StepIndex>.Description` | 步骤描述 |
+| `Dialogue.<PackageShortName>.Lines` | 包内对话台词 |
+| `Dialogue.FirstRun.Opening` / `Dialogue.FirstRun.Ending` | 首次导览开场/结束台词 |
+| `Dialogue.Probe.Navigation.Opening.Lines` / `Dialogue.Probe.Navigation.Closing.Lines` | 导航探针开场/结束台词 |
+| `Dialogue.Probe.RealTarget.Opening.Lines` / `Dialogue.Probe.RealTarget.Closing.Lines` | 真实目标探针开场/结束台词 |
+| `Hint.<PackageShortName>.HomePickerTitle` / `Hint.<PackageShortName>.AwayPickerTitle` | 文件选择器提示标题 |
+
+### 语言热切换机制
+
+导览不提供卡片内语言选择入口，语言完全跟随主程序设置。用户在导览过程中离开导览去设置页切换语言后，导览 overlay 会自动刷新为对应语言。触发链路：
+
+`ISettingsHostService.LanguageSettingChanged` → `NeoBpsysTutorialLanguageService.LanguageChanged` 事件 → overlay 的 `RefreshLanguage()` / `RefreshDialogueLanguage()` / `RefreshWelcomeLanguage()` 方法在 Dispatcher 上重读当前 Culture 对应的文本。
+
+Layer A（`Tour.resx`）和 Layer B（`TourContent.resx`）均通过 `WPFLocalizeExtension` 的 `LocalizeDictionary.Instance.Culture` 变更触发自动刷新；`NeoBpsysTutorialContentResolver` 每次解析时读取当前 Culture，因此热切换后新显示的步骤内容立即使用新语言。
+
+### 迁移审计排除
+
+`TourContent` 资源族排除出 i18n 迁移审计：不更新 `key-map.csv`，不加入 `I18nResourceAuditTest` 的 `HostFamilyNames` / `HostDictionaryNames`。`AppI18nDictionaries.AllDictionaries` 包含 `TourContent`（用于全量查找回退），但审计范围以 `HostFamilyNames` 为准。
 
 ## 页面接入
 

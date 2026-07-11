@@ -302,5 +302,7 @@
         <EmbeddedResource Update="Locales\Settings.ja-jp.resx"><DependentUpon>Settings.resx</DependentUpon></EmbeddedResource>
         <EmbeddedResource Update="Locales\PluginMarket.en-us.resx"><DependentUpon>PluginMarket.resx</DependentUpon></EmbeddedResource>
         <EmbeddedResource Update="Locales\PluginMarket.ja-jp.resx"><DependentUpon>PluginMarket.resx</DependentUpon></EmbeddedResource>
+        <EmbeddedResource Update="Locales\TourContent.en-us.resx"><DependentUpon>TourContent.resx</DependentUpon></EmbeddedResource>
+        <EmbeddedResource Update="Locales\TourContent.ja-jp.resx"><DependentUpon>TourContent.resx</DependentUpon></EmbeddedResource>
     </ItemGroup>
 </Project>

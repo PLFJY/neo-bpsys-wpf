@@ -25,10 +25,10 @@ public partial class FrontManagePage : ITutorialOwner<FrontManagePage>
     {
         builder.ForPage<FrontManagePage>()
             .Package(Tours.Overview)
-                .Step("前台管理")
+                .StepKey("Step.FrontManageOverview.0.Title")
                     .PreStepAction(TutorialStepActions.Delay(250))
                     .PreStepAction(TutorialStepActions.WaitForDispatcherIdle())
-                    .Text("这里是前台管理页面。前台管理分为“前台窗口”和“布局包”两个区域。前台窗口负责打开、关闭观众看到的窗口。布局包负责导入、切换和管理前台界面方案。")
+                    .TextKey("Step.FrontManageOverview.0.Description")
                     .TargetName(nameof(FrontManageTabs))
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
                     .AllowMissingTarget()

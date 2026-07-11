@@ -1,0 +1,625 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <!-- MainWindow.Tutorials.cs -->
+  <data name="Step.MainNavigationFrontManage.0.Title">
+    <value>进入前台管理</value>
+  </data>
+  <data name="Step.MainNavigationFrontManage.0.Description">
+    <value>先进入前台管理页面，打开 BP 前台窗口供 OBS 捕获。</value>
+  </data>
+  <data name="Step.MainNavigationTeamInfo.0.Title">
+    <value>进入队伍管理</value>
+  </data>
+  <data name="Step.MainNavigationTeamInfo.0.Description">
+    <value>进入队伍管理页面，设置教学使用的队伍信息。</value>
+  </data>
+  <data name="Step.MainNavigationScore.0.Title">
+    <value>进入比分页面</value>
+  </data>
+  <data name="Step.MainNavigationScore.0.Description">
+    <value>进入比分页面，选择当前半场的比分结果。</value>
+  </data>
+  <data name="Step.MainNavigationSmartBp.0.Title">
+    <value>进入智慧 BP</value>
+  </data>
+  <data name="Step.MainNavigationSmartBp.0.Description">
+    <value>智慧 BP 是独立模块，首次进入后会有单独教程。</value>
+  </data>
+  <data name="Step.MainNavigationDesignerV3.0.Title">
+    <value>前台界面编辑</value>
+  </data>
+  <data name="Step.MainNavigationDesignerV3.0.Description">
+    <value>前台界面编辑、布局编辑和动画行为编辑，会在首次打开 v3 编辑器时单独教学。</value>
+  </data>
+  <data name="Step.MainTeamSummaryBasic.0.Title">
+    <value>确认队伍信息</value>
+  </data>
+  <data name="Step.MainTeamSummaryBasic.0.Description">
+    <value>队伍名已经显示在 MainWindow 上方功能区。这里也可以进行换边。</value>
+  </data>
+  <data name="Step.MainNavigationBasic.0.Title">
+    <value>进入队伍管理</value>
+  </data>
+  <data name="Step.MainNavigationBasic.0.Description">
+    <value>先进入队伍管理页面，我们会设置本次教学使用的队伍。</value>
+  </data>
+  <data name="Step.GameManageGameProgressBo1FirstHalf.0.Title">
+    <value>选择场次</value>
+  </data>
+  <data name="Step.GameManageGameProgressBo1FirstHalf.0.Description">
+    <value>现在选择本次教学使用的场次。我们先从 BO1 上半开始。</value>
+  </data>
+  <data name="Step.GameManageNewGameBasic.0.Title">
+    <value>新建对局</value>
+  </data>
+  <data name="Step.GameManageNewGameBasic.0.Description">
+    <value>新建对局会清空当前局的选择结果，但会保留全局禁选记录。</value>
+  </data>
+  <data name="Step.GameManageGlobalBanCarryOver.0.Title">
+    <value>全局禁选继承</value>
+  </data>
+  <data name="Step.GameManageGlobalBanCarryOver.0.Description">
+    <value>切换场次后，再次开启对局引导时，软件会自动导入之前的全局禁选记录，并设置对应 Ban 位。</value>
+  </data>
+  <data name="Step.GameManageBasic.0.Title">
+    <value>确认场次</value>
+  </data>
+  <data name="Step.GameManageBasic.0.Description">
+    <value>现在选择本次教学使用的场次。我们先从 BO1 上半开始。</value>
+  </data>
+  <data name="Step.BpGameGuidanceStartBasic.0.Title">
+    <value>开启对局引导</value>
+  </data>
+  <data name="Step.BpGameGuidanceStartBasic.0.Description">
+    <value>对局引导会按照当前场次，带你完成地图、Ban/Pick 和后续流程。</value>
+  </data>
+  <data name="Step.BpGameGuidanceCurrentStepBasic.0.Title">
+    <value>查看当前步骤</value>
+  </data>
+  <data name="Step.BpGameGuidanceCurrentStepBasic.0.Description">
+    <value>这里会显示当前对局引导正在进行的步骤。每进入一个阶段，先看这里确认现在应该完成什么操作。</value>
+  </data>
+  <data name="Step.MapBpBanMapOperationBasic.0.Title">
+    <value>Ban 地图操作区域</value>
+  </data>
+  <data name="Step.MapBpBanMapOperationBasic.0.Description">
+    <value>现在完成 Ban 地图。对局引导会高亮当前需要操作的区域。请在这里完成地图禁用。</value>
+  </data>
+  <data name="Step.MapBpNextToPickMapBasic.0.Title">
+    <value>进入选择地图</value>
+  </data>
+  <data name="Step.MapBpNextToPickMapBasic.0.Description">
+    <value>Ban 地图完成后，点击下一步进入选择地图。</value>
+  </data>
+  <data name="Step.MapBpPickMapOperationBasic.0.Title">
+    <value>选择地图</value>
+  </data>
+  <data name="Step.MapBpPickMapOperationBasic.0.Description">
+    <value>现在完成选择地图</value>
+  </data>
+  <data name="Step.BpGameGuidanceEndBasic.0.Title">
+    <value>结束对局引导</value>
+  </data>
+  <data name="Step.BpGameGuidanceEndBasic.0.Description">
+    <value>当前对局引导已经完成。点击这里结束引导，之后可以进入比分页面记录结果。</value>
+  </data>
+  <data name="Step.BpGameGuidanceBasic.0.Title">
+    <value>继续对局引导</value>
+  </data>
+  <data name="Step.BpGameGuidanceBasic.0.Description">
+    <value>对局引导会按照当前场次，带你完成地图、Ban/Pick 和后续流程。</value>
+  </data>
+  <data name="Step.NextGameBasic.0.Title">
+    <value>点击进入下一局</value>
+  </data>
+  <data name="Step.NextGameBasic.0.Description">
+    <value>当前对局结束后点击将场次切换到下一局</value>
+  </data>
+  <!-- FrontedDesignerWindow.Tutorials.cs -->
+  <data name="Step.DesignerV3LayoutEditBasic.0.Title">
+    <value>图层列表</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.0.Description">
+    <value>图层列表显示当前布局里的控件。图层顺序会影响控件显示层级。</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.1.Title">
+    <value>调整图层顺序</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.1.Description">
+    <value>可以通过拖拽调整图层顺序。本教程不强制你拖拽图层。</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.2.Title">
+    <value>预览画布</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.2.Description">
+    <value>中间画布显示最终前台效果。请试着点击画布上的一个控件来选中它并移动位置；也可以直接继续。</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.3.Title">
+    <value>预览画布</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.3.Description">
+    <value>按住 Ctrl / 长按左键框选可以选择多个控件</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.4.Title">
+    <value>预览画布</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.4.Description">
+    <value>按住 Shift 可以临时开启就近吸附和参考线</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.5.Title">
+    <value>预览画布</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.5.Description">
+    <value>按住 Ctrl + 鼠标滚轮可以缩放画布，按住右键移动画布</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.6.Title">
+    <value>保存布局</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.6.Description">
+    <value>调整布局后，可以在顶部工具区保存当前布局。或直接按 Ctrl+S 保存</value>
+  </data>
+  <data name="Step.DesignerV3PropertyPanelBasic.0.Title">
+    <value>属性面板</value>
+  </data>
+  <data name="Step.DesignerV3PropertyPanelBasic.0.Description">
+    <value>选中控件后，右侧会显示属性。文本、颜色、图片、字体等都在这里修改。</value>
+  </data>
+  <data name="Step.DesignerV3PropertyPanelBasic.1.Title">
+    <value>属性编辑器</value>
+  </data>
+  <data name="Step.DesignerV3PropertyPanelBasic.1.Description">
+    <value>不同属性会显示不同编辑器。有些属性需要点击确认按钮才会应用。</value>
+  </data>
+  <data name="Step.DesignerV3PropertyPanelBasic.2.Title">
+    <value>应用属性</value>
+  </data>
+  <data name="Step.DesignerV3PropertyPanelBasic.2.Description">
+    <value>如果属性非法，会显示错误状态。本教程不强制你修改或应用属性。</value>
+  </data>
+  <data name="Step.DesignerV3HelpBasic.0.Title">
+    <value>查看详细说明</value>
+  </data>
+  <data name="Step.DesignerV3HelpBasic.0.Description">
+    <value>右下角这个帮助按钮可以打开 v3 编辑器的详细说明。遇到属性、行为、动画或布局包规则不清楚时，可以点击这里查看详细 / 进阶说明。</value>
+  </data>
+  <data name="Dialogue.DesignerV3Overview.Lines">
+    <value>欢迎来到 v3 设计器。&#10;在这里你可以详细修改前台界面，包括布局位置、控件属性、图片资源和动画行为。</value>
+  </data>
+  <!-- FrontedBehaviorAnimationEditorWindow.Tutorials.cs -->
+  <data name="Step.DesignerV3AnimationEditorOverview.0.Title">
+    <value>动画编辑器</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorOverview.0.Description">
+    <value>这里编辑行为对应的动画动作。动画由时间、步骤和参数变化组成。</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorOverview.1.Title">
+    <value>动画编辑器</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorOverview.1.Description">
+    <value>长按左键框选可以选择多个节点</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorOverview.2.Title">
+    <value>动画编辑器</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorOverview.2.Description">
+    <value>按住 Ctrl + 鼠标滚轮可以缩放画布，按住右键移动画布</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorTimelineBasic.0.Title">
+    <value>节点步骤</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorTimelineBasic.0.Description">
+    <value>动画会按节点步骤顺序执行。你可以先理解结构，不需要为了完成教程创建关键帧。</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorTimelineBasic.1.Title">
+    <value>节点步骤</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorTimelineBasic.1.Description">
+    <value>动画按步骤顺序执行。不同阶段可以分别编辑进入、循环和停止动作。</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorTimelineBasic.2.Title">
+    <value>节点步骤</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorTimelineBasic.2.Description">
+    <value>每个动画从“开始”节点开始，“结束”节点结束</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorTimelineBasic.3.Title">
+    <value>动画属性节点</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorTimelineBasic.3.Description">
+    <value>现在试着从左侧节点目录中拖出一个“动画属性”节点到画布上并选中它。选中后教程会自动继续；如果你已经有该节点，直接点选它即可。</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorKeyFrameBasic.0.Title">
+    <value>动作参数</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorKeyFrameBasic.0.Description">
+    <value>参数用于描述位置、透明度、大小、颜色等变化。本教程不要求你创建或保存参数。</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorKeyFrameBasic.1.Title">
+    <value>动作参数</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorKeyFrameBasic.1.Description">
+    <value>选中节点后，可以在这里编辑位置、透明度、大小、颜色等变化参数。</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorPreviewBasic.0.Title">
+    <value>预览动画</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorPreviewBasic.0.Description">
+    <value>预览用于确认动作顺序和参数效果。本教程不强制保存动画。</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorPreviewBasic.1.Title">
+    <value>预览动画</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorPreviewBasic.1.Description">
+    <value>正式使用前建议预览动画效果，确认动作顺序和参数符合预期。确认无误后，可以按当前窗口的保存提示保存或应用；本教程不强制保存。</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorPreviewBasic.2.Title">
+    <value>预览动画</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorPreviewBasic.2.Description">
+    <value>按住 Ctrl + 鼠标滚轮可以缩放预览区域，按住右键移动画布</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorHelpBasic.0.Title">
+    <value>动画进阶说明</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorHelpBasic.0.Description">
+    <value>右下角这个帮助按钮可以查看动画编辑器的详细 / 进阶说明。</value>
+  </data>
+  <data name="Dialogue.DesignerV3AnimationEditorOverview.Lines">
+    <value>欢迎来到动画编辑器。&#10;在这里你可以为前台的控件设置动画</value>
+  </data>
+  <!-- SmartBpModuleContentView.Tutorials.cs -->
+  <data name="Step.SmartBpOcrModelDownloadBasic.0.Title">
+    <value>识别模型管理</value>
+  </data>
+  <data name="Step.SmartBpOcrModelDownloadBasic.0.Description">
+    <value>智慧 BP 的 OCR 识别需要本地模型。在这里选择识别引擎，并检查、下载、更新或切换智慧 BP 使用的 OCR 模型。</value>
+  </data>
+  <data name="Step.SmartBpCaptureBasic.0.Title">
+    <value>选择游戏窗口</value>
+  </data>
+  <data name="Step.SmartBpCaptureBasic.0.Description">
+    <value>先选择第五人格游戏窗口。第五人格游戏进程通常是 dwrg.exe。</value>
+  </data>
+  <data name="Step.SmartBpCaptureBasic.1.Title">
+    <value>开始捕获</value>
+  </data>
+  <data name="Step.SmartBpCaptureBasic.1.Description">
+    <value>选择窗口后，SmartBP 可以捕获游戏画面。本教程不强制开始捕获，也不会等待捕获成功。</value>
+  </data>
+  <data name="Step.SmartBpCaptureBasic.2.Title">
+    <value>预览捕获</value>
+  </data>
+  <data name="Step.SmartBpCaptureBasic.2.Description">
+    <value>点击预览可以确认捕获画面是否正确。如果没有找到 dwrg.exe，也可以继续教程。</value>
+  </data>
+  <data name="Step.SmartBpCaptureBasic.3.Title">
+    <value>停止捕获</value>
+  </data>
+  <data name="Step.SmartBpCaptureBasic.3.Description">
+    <value>如果捕获异常，可以停止捕获。</value>
+  </data>
+  <data name="Step.SmartBpRegionEditorEntryBasic.0.Title">
+    <value>识别区域</value>
+  </data>
+  <data name="Step.SmartBpRegionEditorEntryBasic.0.Description">
+    <value>识别区域决定 OCR 或视觉模型读取画面的哪些位置。不同阶段有不同区域，例如 Ban 求生、Ban 监管、Pick、赛后数据。点击此按钮可以打开识别区域编辑器。&#10;BP环节的识别区域</value>
+  </data>
+  <data name="Step.SmartBpFullBpFlowBasic.0.Title">
+    <value>全流程 BP</value>
+  </data>
+  <data name="Step.SmartBpFullBpFlowBasic.0.Description">
+    <value>全流程 BP 会根据当前比赛阶段自动识别。启动前请确认窗口捕获和识别区域正确。正式比赛中建议先预览确认，再启动。点击后会开始智慧 BP 的自动 BP 流程。</value>
+  </data>
+  <data name="Dialogue.SmartBpOcrModelDownloadBasic.Lines">
+    <value>智慧BP 用于识别游戏画面并辅助填写 BP 和赛后数据。&#10;使用顺序是：下载 OCR 模型 -&gt; 捕获窗口 -&gt; 配置识别区域 -&gt; 开始使用相关功能</value>
+  </data>
+  <data name="Dialogue.SmartBpPostGameAutoFill.Lines">
+    <value>对局结束后，智慧 BP 可以识别赛后数据并辅助填写。在赛后数据页面有“自动识别并填充赛后数据”的按钮&#10;识别的赛后数据会自动匹配角色</value>
+  </data>
+  <!-- RegionEditorWindow.Tutorials.cs -->
+  <data name="Step.SmartBpRegionEditorBasic.0.Title">
+    <value>区域预览</value>
+  </data>
+  <data name="Step.SmartBpRegionEditorBasic.0.Description">
+    <value>如果识别不准，优先检查识别区域是否对齐。可以通过预览画面调整区域。</value>
+  </data>
+  <data name="Step.SmartBpRegionEditorBasic.1.Title">
+    <value>区域列表</value>
+  </data>
+  <data name="Step.SmartBpRegionEditorBasic.1.Description">
+    <value>这里列出可配置的识别区域。本教程不强制拖拽区域。</value>
+  </data>
+  <data name="Step.SmartBpRegionEditorBasic.2.Title">
+    <value>保存区域</value>
+  </data>
+  <data name="Step.SmartBpRegionEditorBasic.2.Description">
+    <value>保存区域后再开始识别。本教程不强制保存，也不等待保存完成。</value>
+  </data>
+  <!-- FrontedWindowsView.Tutorials.cs -->
+  <data name="Step.FrontManageWindowsBasic.0.Title">
+    <value>前台窗口</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.0.Description">
+    <value>这里管理所有前台窗口。导播排查和控制窗口时，可以在这里查看窗口列表。</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.1.Title">
+    <value>打开设计器</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.1.Description">
+    <value>点击这里可以打开 v3 前台设计器，用来编辑前台布局、控件属性和动画行为。</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.2.Title">
+    <value>打开全部窗口</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.2.Description">
+    <value>“打开全部”会一次性打开所有前台窗口，适合导播开播前检查 OBS 捕获来源。它可能同时弹出多个窗口，本教程不会要求你必须点击。</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.3.Title">
+    <value>关闭全部窗口</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.3.Description">
+    <value>“关闭全部”会一次性关闭所有前台窗口，适合导播收尾或排查窗口状态。本教程不会等待关闭操作完成。</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.4.Title">
+    <value>停止循环动画</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.4.Description">
+    <value>如果前台循环动画异常，可以使用“停止所有循环动画”。这是导播排查动画状态时的控制功能。</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.5.Title">
+    <value>窗口分组</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.5.Description">
+    <value>这里按分组列出可管理的前台窗口。每个窗口都可以单独打开或关闭。</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.6.Title">
+    <value>单个窗口</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.6.Description">
+    <value>单个窗口卡片可以独立打开或关闭对应前台窗口。</value>
+  </data>
+  <data name="Step.FrontManageOpenDesigner.0.Title">
+    <value>打开 v3 编辑器</value>
+  </data>
+  <data name="Step.FrontManageOpenDesigner.0.Description">
+    <value>v3 编辑器用于编辑前台布局、控件属性和动画行为。点击这里可以打开前台设计器。打开后会进入独立的 v3 编辑器教程。</value>
+  </data>
+  <data name="Step.FrontManageBpWindowLaunchBasic.0.Title">
+    <value>启动 BP 前台窗口</value>
+  </data>
+  <data name="Step.FrontManageBpWindowLaunchBasic.0.Description">
+    <value>导播时，观众看到的是前台窗口。我们先只启动 BP 前台页面。</value>
+  </data>
+  <!-- TeamInfoPage.Tutorials.cs -->
+  <data name="Step.TeamInfoTeamNameBasic.0.Title">
+    <value>填写队伍名称</value>
+  </data>
+  <data name="Step.TeamInfoTeamNameBasic.0.Description">
+    <value>这里可以设置队伍名称。先试着输入一个队伍名。</value>
+  </data>
+  <data name="Step.TeamInfoTeamNameBasic.1.Title">
+    <value>确认队伍名称</value>
+  </data>
+  <data name="Step.TeamInfoTeamNameBasic.1.Description">
+    <value>点击确认后，队伍名称会写入当前比赛数据。</value>
+  </data>
+  <data name="Step.TeamInfoTeamNameBasic.2.Title">
+    <value>设置队伍 Logo</value>
+  </data>
+  <data name="Step.TeamInfoTeamNameBasic.2.Description">
+    <value>这里可以设置主队 Logo。本次导览可以直接点击下一步继续。</value>
+  </data>
+  <data name="Step.TeamInfoJsonImportPreset.0.Title">
+    <value>导入狼队预设</value>
+  </data>
+  <data name="Step.TeamInfoJsonImportPreset.0.Description">
+    <value>点击导入后，在打开的文件对话框中选择“队伍信息导入示例-Wolves.json”。</value>
+  </data>
+  <data name="Step.TeamInfoJsonImportPreset.1.Title">
+    <value>调整狼队上场下场</value>
+  </data>
+  <data name="Step.TeamInfoJsonImportPreset.1.Description">
+    <value>导入后，在这里调整狼队成员的上场和下场状态。</value>
+  </data>
+  <data name="Step.TeamInfoJsonImportPreset.2.Title">
+    <value>导入 GR 预设</value>
+  </data>
+  <data name="Step.TeamInfoJsonImportPreset.2.Description">
+    <value>点击导入后，在打开的文件对话框中选择“队伍信息导入示例-GR.json”。</value>
+  </data>
+  <data name="Step.TeamInfoJsonImportPreset.3.Title">
+    <value>调整 GR 上场下场</value>
+  </data>
+  <data name="Step.TeamInfoJsonImportPreset.3.Description">
+    <value>导入后，在这里调整 GR 成员的上场和下场状态。</value>
+  </data>
+  <data name="Step.TeamInfoPlayerManage.0.Title">
+    <value>调整队伍成员顺序</value>
+  </data>
+  <data name="Step.TeamInfoPlayerManage.0.Description">
+    <value>这里可以调整当前上场队员的顺序，前台和 BP 流程会使用这些信息。</value>
+  </data>
+  <data name="Hint.TeamInfoJsonImportPreset.HomePickerTitle">
+    <value>请导入狼队信息：选择“队伍信息导入示例-Wolves.json”</value>
+  </data>
+  <data name="Hint.TeamInfoJsonImportPreset.AwayPickerTitle">
+    <value>请导入 GR 信息：选择“队伍信息导入示例-GR.json”</value>
+  </data>
+  <!-- TalentPage.Tutorials.cs -->
+  <data name="Step.BpTalentTraitBasic.0.Title">
+    <value>设置天赋和特质</value>
+  </data>
+  <data name="Step.BpTalentTraitBasic.0.Description">
+    <value>这里用于设置本局角色的天赋和特质。这些信息会用于前台展示和赛后记录。按比赛实际情况选择后继续引导。</value>
+  </data>
+  <data name="Step.BpTalentTraitBasic.1.Title">
+    <value>求生者天赋</value>
+  </data>
+  <data name="Step.BpTalentTraitBasic.1.Description">
+    <value>这里设置四名求生者的天赋。本教程不强制完整填写。</value>
+  </data>
+  <data name="Step.BpTalentTraitBasic.2.Title">
+    <value>监管者特质</value>
+  </data>
+  <data name="Step.BpTalentTraitBasic.2.Description">
+    <value>这里设置监管者天赋和辅助特质。确认实际比赛信息后继续对局引导。</value>
+  </data>
+  <!-- ScorePage.Tutorials.cs -->
+  <data name="Step.ScoreBasic.0.Title">
+    <value>选择比分</value>
+  </data>
+  <data name="Step.ScoreBasic.0.Description">
+    <value>对局结束后，可以在这里选择比分。比分会同步到比赛状态和前台显示。</value>
+  </data>
+  <!-- PickPage.Tutorials.cs -->
+  <data name="Step.BpPickSelectFourSurvivorsBasic.0.Title">
+    <value>完成四个求生者选择</value>
+  </data>
+  <data name="Step.BpPickSelectFourSurvivorsBasic.0.Description">
+    <value>继续选择剩余求生者角色。四个求生者都选完后，再进入角色调整教学。</value>
+  </data>
+  <data name="Step.BpGlobalBanRecordBasic.0.Title">
+    <value>全局禁选记录</value>
+  </data>
+  <data name="Step.BpGlobalBanRecordBasic.0.Description">
+    <value>刚刚选择的角色会记录到全局禁选中。后续新对局会清空当前局选择，但会保留这些全局禁选记录。</value>
+  </data>
+  <data name="Step.BpCharacterChangerBasic.0.Title">
+    <value>调整已选角色顺序</value>
+  </data>
+  <data name="Step.BpCharacterChangerBasic.0.Description">
+    <value>在选择角色结束后，分配角色阶段，可以在这里使用角色调整功能。调整后会同步更新当前 BP 状态。&#10;点击数字按钮即可将当前玩家的求生者角色与对应位置的求生者角色进行互换</value>
+  </data>
+  <!-- FrontManagePage.Tutorials.cs -->
+  <data name="Step.FrontManageOverview.0.Title">
+    <value>前台管理</value>
+  </data>
+  <data name="Step.FrontManageOverview.0.Description">
+    <value>这里是前台管理页面。前台管理分为“前台窗口”和“布局包”两个区域。前台窗口负责打开、关闭观众看到的窗口。布局包负责导入、切换和管理前台界面方案。</value>
+  </data>
+  <!-- BanSurPage.Tutorials.cs -->
+  <data name="Step.BpCharacterSelectorBasic.0.Title">
+    <value>角色选择器教学</value>
+  </data>
+  <data name="Step.BpCharacterSelectorBasic.0.Description">
+    <value>现在我们来教学角色选择器的使用</value>
+  </data>
+  <data name="Step.BpCharacterSelectorBasic.1.Title">
+    <value>先按空格匹配角色</value>
+  </data>
+  <data name="Step.BpCharacterSelectorBasic.1.Description">
+    <value>这是角色选择器，不是普通下拉框。请先输入一个角色的全称、拼音全拼或简拼，然后按空格触发匹配。这一步先不要点确认。</value>
+  </data>
+  <data name="Step.BpCharacterSelectorBasic.2.Title">
+    <value>确认角色选择</value>
+  </data>
+  <data name="Step.BpCharacterSelectorBasic.2.Description">
+    <value>匹配到角色后，再按 Enter / Tab 或点击确认按钮完成选择。</value>
+  </data>
+  <!-- BehaviorPanelView.Tutorials.cs -->
+  <data name="Step.DesignerV3BehaviorPanelOverview.0.Title">
+    <value>行为面板</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelOverview.0.Description">
+    <value>展开行为区域后，可以为当前控件配置“触发条件 + 动作”。一次性行为、循环行为、过渡行为用途不同，可以分别处理点击后动画、持续循环和状态切换过渡。</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelOverview.1.Title">
+    <value>新增行为</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelOverview.1.Description">
+    <value>这里可以新增一次性 / 循环 / 过渡行为。本教程不强制创建行为。</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelOverview.2.Title">
+    <value>行为列表</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelOverview.2.Description">
+    <value>每个行为都可以启用、复制、删除，并展开查看触发条件和动作配置。</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelTriggerBasic.0.Title">
+    <value>触发条件</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelTriggerBasic.0.Description">
+    <value>触发条件决定动画什么时候运行；没有创建行为时，可以先了解概念，之后展开具体行为再编辑。</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelTriggerBasic.1.Title">
+    <value>触发条件</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelTriggerBasic.1.Description">
+    <value>触发条件决定动画什么时候运行，例如按状态、事件或 payload 字段过滤。</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelActionBasic.0.Title">
+    <value>动作编辑</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelActionBasic.0.Description">
+    <value>动作决定控件如何变化。你可以在需要时进入动画编辑器，不需要为了完成教程而创建或保存动画。</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelActionBasic.1.Title">
+    <value>动作编辑</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelActionBasic.1.Description">
+    <value>点击后会进入动画编辑器，编辑具体动作、关键帧和参数。本教程不强制打开动画编辑器。</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelHelpBasic.0.Title">
+    <value>行为系统说明</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelHelpBasic.0.Description">
+    <value>右下角这个帮助按钮可以查看行为系统的详细 / 进阶说明。</value>
+  </data>
+  <!-- FirstRun Dialogues (App.Tour.xaml.cs) -->
+  <data name="Dialogue.FirstRun.Opening">
+    <value>欢迎来到 neo-bpsys-wpf。&#10;现在我们来进行一下简单的导播教学。</value>
+  </data>
+  <data name="Dialogue.FirstRun.Ending">
+    <value>前台界面编辑会在首次打开 v3 编辑器时单独教学。&#10;智慧 BP 会在首次进入智慧 BP 页面时单独教学。&#10;开始你的导播之旅吧。</value>
+  </data>
+  <!-- Probe Dialogues (NeoBpsysTutorialFlows.cs) -->
+  <data name="Dialogue.Probe.Navigation.Opening.Lines">
+    <value>现在我们验证左侧导航栏的教程引导。</value>
+  </data>
+  <data name="Dialogue.Probe.Navigation.Closing.Lines">
+    <value>导航引导验证完成。</value>
+  </data>
+  <data name="Dialogue.Probe.RealTarget.Opening.Lines">
+    <value>现在开始验证真实页面目标和操作信号。</value>
+  </data>
+  <data name="Dialogue.Probe.RealTarget.Closing.Lines">
+    <value>真实目标验证完成。完整教学流程会在后续版本中提供。</value>
+  </data>
+  <!-- FrontedLayoutPackagesView.Tutorials.cs -->
+  <data name="Step.FrontManageLayoutPackagesBasic.0.Title">
+    <value>布局包列表</value>
+  </data>
+  <data name="Step.FrontManageLayoutPackagesBasic.0.Description">
+    <value>这里列出所有可用的布局包。内置布局无法被直接修改。</value>
+  </data>
+  <data name="Step.FrontManageLayoutPackagesBasic.1.Title">
+    <value>修改布局包</value>
+  </data>
+  <data name="Step.FrontManageLayoutPackagesBasic.1.Description">
+    <value>尝试修改内置布局时会自动切换到一个新的用户自定义布局。</value>
+  </data>
+  <!-- FrontedDesignerWindow.Tutorials.cs — PackageImportExport -->
+  <data name="Step.DesignerV3PackageImportExport.0.Title">
+    <value>保存、导入和导出</value>
+  </data>
+  <data name="Step.DesignerV3PackageImportExport.0.Description">
+    <value>在这里可以保存当前布局，也可以导入或导出布局包，方便在不同设备间共享。</value>
+  </data>
+  <data name="Step.DesignerV3PackageImportExport.1.Title">
+    <value>导出布局包</value>
+  </data>
+  <data name="Step.DesignerV3PackageImportExport.1.Description">
+    <value>点击此处可以导出当前布局包，分享给其他设备使用。</value>
+  </data>
+  <!-- FrontedDesignerWindow.Tutorials.cs — PropertyPanelBasic step 3 -->
+  <data name="Step.DesignerV3PropertyPanelBasic.3.Title">
+    <value>行为和动画入口</value>
+  </data>
+  <data name="Step.DesignerV3PropertyPanelBasic.3.Description">
+    <value>在属性面板下方可以找到行为和动画入口。点击添加行为按钮可以为控件添加行为和动画。</value>
+  </data>
+</root>

@@ -46,11 +46,16 @@ public sealed class ProductTourOverlay : Canvas
     private readonly ITutorialTextProvider _textProvider;
     private readonly ProductTourOptions _options;
     private readonly ITutorialAvatarProvider _avatarProvider;
+    private readonly ITutorialContentResolver _contentResolver;
+    private readonly ITutorialLanguageService _languageService;
     private readonly ProductTourOverlayLayoutEngine _layoutEngine = new();
     private TaskCompletionSource<ProductTourStepAction>? _completion;
     private bool _signalReceived;
     private FrameworkElement? _currentOwner;
     private FrameworkElement? _currentTarget;
+    private ProductTourStep? _currentStep;
+    private int _currentStepIndex;
+    private int _currentStepCount;
     private ProductTourPlacement _currentPlacement = ProductTourPlacement.Center;
     private ProductTourInteractionMode _currentInteractionMode = ProductTourInteractionMode.BlockAll;
     private ProductTourAvatarPlacement _currentAvatarPlacement = ProductTourAvatarPlacement.Auto;
@@ -60,7 +65,8 @@ public sealed class ProductTourOverlay : Canvas
 
     /// <summary>Initializes a new instance of the <see cref="ProductTourOverlay"/> class.</summary>
     public ProductTourOverlay()
-        : this(new DefaultTutorialTextProvider(), new ProductTourOptions(), new NoOpTutorialAvatarProvider())
+        : this(new DefaultTutorialTextProvider(), new ProductTourOptions(), new NoOpTutorialAvatarProvider(),
+             new DefaultTutorialContentResolver(), new NoOpTutorialLanguageService())
     {
     }
 
@@ -68,7 +74,8 @@ public sealed class ProductTourOverlay : Canvas
     /// <param name="textProvider">Fixed UI text provider.</param>
     /// <param name="options">Product tour display options.</param>
     public ProductTourOverlay(ITutorialTextProvider textProvider, ProductTourOptions options)
-        : this(textProvider, options, new NoOpTutorialAvatarProvider())
+        : this(textProvider, options, new NoOpTutorialAvatarProvider(),
+             new DefaultTutorialContentResolver(), new NoOpTutorialLanguageService())
     {
     }
 
@@ -76,14 +83,20 @@ public sealed class ProductTourOverlay : Canvas
     /// <param name="textProvider">Fixed UI text provider.</param>
     /// <param name="options">Product tour display options.</param>
     /// <param name="avatarProvider">Tutorial avatar provider.</param>
+    /// <param name="contentResolver">Tutorial content resolver for localized step text.</param>
+    /// <param name="languageService">Tutorial language service for hot-switching.</param>
     public ProductTourOverlay(
         ITutorialTextProvider textProvider,
         ProductTourOptions options,
-        ITutorialAvatarProvider avatarProvider)
+        ITutorialAvatarProvider avatarProvider,
+        ITutorialContentResolver? contentResolver = null,
+        ITutorialLanguageService? languageService = null)
     {
         _textProvider = textProvider;
         _options = options;
         _avatarProvider = avatarProvider;
+        _contentResolver = contentResolver ?? new DefaultTutorialContentResolver();
+        _languageService = languageService ?? new NoOpTutorialLanguageService();
         Style = TryFindResource("ProductTourOverlayStyle") as Style;
         Panel.SetZIndex(this, 10000);
         HorizontalAlignment = HorizontalAlignment.Stretch;
@@ -156,13 +169,16 @@ public sealed class ProductTourOverlay : Canvas
             Children = { _previousButton, _nextButton }
         };
 
+        var bottomBar = buttons;
+        bottomBar.Margin = new Thickness(0, 12, 0, 0);
+
         _card = new Border
         {
             Name = "Card",
             Style = TryFindResource("ProductTourCardStyle") as Style,
             Width = _options.CardWidth,
             MaxHeight = _options.CardMaxHeight,
-            Child = new StackPanel { Children = { _title, _description, _progress, _waitingText, _errorText, buttons } }
+            Child = new StackPanel { Children = { _title, _description, _progress, _waitingText, _errorText, bottomBar } }
         };
         Children.Add(_card);
 
@@ -176,7 +192,48 @@ public sealed class ProductTourOverlay : Canvas
         _avatarImage.Style = TryFindResource("ProductTourCardAvatarImageStyle") as Style;
         Children.Add(_avatarImage);
 
+        _languageService.LanguageChanged += OnLanguageChanged;
+
         SizeChanged += (_, _) => LayoutCurrent(_currentOwner, _currentTarget, _currentPlacement);
+        Unloaded += (_, _) => _languageService.LanguageChanged -= OnLanguageChanged;
+    }
+
+    private void OnLanguageChanged(object? sender, EventArgs e)
+    {
+        Dispatcher.BeginInvoke(new Action(RefreshLanguage));
+    }
+
+    /// <summary>
+    /// Re-resolves all displayed text from resource keys using the current culture,
+    /// refreshing title, description, progress, buttons and waiting text.
+    /// </summary>
+    private void RefreshLanguage()
+    {
+        if (_currentStep is null)
+        {
+            return;
+        }
+
+        var step = _currentStep;
+        _title.Text = !string.IsNullOrWhiteSpace(step.TitleKey)
+            ? _contentResolver.Resolve(step.TitleKey)
+            : step.Title;
+        _description.Text = !string.IsNullOrWhiteSpace(step.DescriptionKey)
+            ? _contentResolver.Resolve(step.DescriptionKey)
+            : step.Description;
+
+        _previousButton.Content = _textProvider.Previous;
+        _globalSkipButton.Content = _textProvider.Skip;
+        _nextButton.Content = _currentStepIndex == _currentStepCount - 1 ? _textProvider.Finish : _textProvider.Next;
+        _waitingText.Text = _textProvider.WaitingForAction;
+
+        if (_confirmDialog != null)
+        {
+            Children.Remove(_confirmDialog);
+            _confirmDialog = null;
+        }
+
+        LayoutCurrent(_currentOwner, _currentTarget, _currentPlacement);
     }
 
     /// <summary>Shows a product tour step.</summary>
@@ -195,13 +252,20 @@ public sealed class ProductTourOverlay : Canvas
         _signalReceived = string.IsNullOrWhiteSpace(step.WaitForSignalId);
         _currentOwner = context.Owner;
         _currentTarget = target;
+        _currentStep = step;
+        _currentStepIndex = context.StepIndex;
+        _currentStepCount = context.StepCount;
         _currentPlacement = step.Placement;
         _currentInteractionMode = step.InteractionMode;
         _currentAvatarPlacement = step.AvatarPlacement;
         _currentAvatarPose = step.AvatarPose;
         _currentCardOffset = step.CardOffset;
-        _title.Text = step.Title;
-        _description.Text = step.Description;
+        _title.Text = !string.IsNullOrWhiteSpace(step.TitleKey)
+            ? _contentResolver.Resolve(step.TitleKey)
+            : step.Title;
+        _description.Text = !string.IsNullOrWhiteSpace(step.DescriptionKey)
+            ? _contentResolver.Resolve(step.DescriptionKey)
+            : step.Description;
         _progress.Text = $"{context.StepIndex + 1} / {context.StepCount}";
         _progress.Visibility = _options.ShowStepProgress ? Visibility.Visible : Visibility.Collapsed;
         _previousButton.IsEnabled = context.StepIndex > 0;

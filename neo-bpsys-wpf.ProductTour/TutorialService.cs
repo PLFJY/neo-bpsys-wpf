@@ -33,6 +33,8 @@ internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCanc
     private readonly ITutorialTextProvider _textProvider;
     private readonly ITutorialAvatarProvider _avatarProvider;
     private readonly ITutorialRunObserver _runObserver;
+    private readonly ITutorialContentResolver _contentResolver;
+    private readonly ITutorialLanguageService _languageService;
     private readonly ProductTourOptions _options;
     private readonly ILogger<TutorialService> _logger;
     private ProductTourOverlay? _currentOverlay;
@@ -49,6 +51,8 @@ internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCanc
     /// <param name="textProvider">Fixed UI text provider.</param>
     /// <param name="avatarProvider">Tutorial avatar provider.</param>
     /// <param name="runObserver">Tutorial run observer.</param>
+    /// <param name="contentResolver">Tutorial content resolver for localized step text.</param>
+    /// <param name="languageService">Tutorial language service for hot-switching.</param>
     /// <param name="options">Product tour display options.</param>
     /// <param name="logger">Logger.</param>
     internal TutorialService(
@@ -61,6 +65,8 @@ internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCanc
         ITutorialTextProvider textProvider,
         ITutorialAvatarProvider avatarProvider,
         ITutorialRunObserver runObserver,
+        ITutorialContentResolver contentResolver,
+        ITutorialLanguageService languageService,
         ProductTourOptions options,
         ILogger<TutorialService> logger)
     {
@@ -73,6 +79,8 @@ internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCanc
         _textProvider = textProvider;
         _avatarProvider = avatarProvider;
         _runObserver = runObserver;
+        _contentResolver = contentResolver;
+        _languageService = languageService;
         _options = options;
         _logger = logger;
     }
@@ -430,7 +438,7 @@ internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCanc
             }
 
             _runObserver.OnStepShown(packageId ?? string.Empty, step.TargetName, step.Title);
-            var overlay = new ProductTourOverlay(_textProvider, _options, _avatarProvider);
+            var overlay = new ProductTourOverlay(_textProvider, _options, _avatarProvider, _contentResolver, _languageService);
             _currentOverlay = overlay;
             var context = new ProductTourStepContext
             {
@@ -660,11 +668,11 @@ internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCanc
     {
         var overlayOwner = ResolveOverlayOwner(owner);
         var host = OverlayHost.GetHostPanel(overlayOwner);
-        var overlay = new DialogueOverlay(_textProvider, _options, _avatarProvider);
+        var overlay = new DialogueOverlay(_textProvider, _options, _avatarProvider, _contentResolver, _languageService);
         host.Children.Add(overlay);
         try
         {
-            return await overlay.ShowAsync(dialogue.Speaker, dialogue.Lines, cancellationToken);
+            return await overlay.ShowAsync(dialogue.Speaker, dialogue.Lines, cancellationToken, linesKey: dialogue.LinesKey);
         }
         finally
         {

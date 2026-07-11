@@ -148,6 +148,13 @@ public interface ITutorialPackageBuilder<TOwner> : ITutorialOwnerBuilder<TOwner>
     /// <returns>Step builder.</returns>
     ITutorialStepBuilder<TOwner> Step(string title);
 
+    /// <summary>
+    /// Adds a tutorial step with a resource key for the title.
+    /// </summary>
+    /// <param name="titleKey">Resource key for the step title.</param>
+    /// <returns>Step builder.</returns>
+    ITutorialStepBuilder<TOwner> StepKey(string titleKey);
+
     /// <summary>Adds dialogue at the current position in the package.</summary>
     /// <param name="dialogue">Dialogue to display.</param>
     /// <returns>The same package builder.</returns>
@@ -181,6 +188,20 @@ public interface ITutorialStepBuilder<TOwner> : ITutorialPackageBuilder<TOwner>
     /// <param name="description">Step description.</param>
     /// <returns>The same step builder.</returns>
     ITutorialStepBuilder<TOwner> Text(string description);
+
+    /// <summary>
+    /// Sets the resource key used to resolve the step title at runtime.
+    /// </summary>
+    /// <param name="titleKey">Resource key for the title.</param>
+    /// <returns>The same step builder.</returns>
+    ITutorialStepBuilder<TOwner> StepKey(string titleKey);
+
+    /// <summary>
+    /// Sets the resource key used to resolve the step description at runtime.
+    /// </summary>
+    /// <param name="descriptionKey">Resource key for the description.</param>
+    /// <returns>The same step builder.</returns>
+    ITutorialStepBuilder<TOwner> TextKey(string descriptionKey);
 
     /// <summary>
     /// Targets a named element.
@@ -534,8 +555,15 @@ internal sealed class TutorialOwnerBuilder<TOwner> : ITutorialOwnerBuilderIntern
         var mainStep = package.Steps.FirstOrDefault();
         if (mainStep == null
             || mainStep.TargetKind == TutorialTargetKind.NavigationItem
-            || string.IsNullOrWhiteSpace(mainStep.TargetName)
-            || string.IsNullOrWhiteSpace(mainStep.Title))
+            || string.IsNullOrWhiteSpace(mainStep.TargetName))
+        {
+            return;
+        }
+
+        var mainStepIdentity = !string.IsNullOrWhiteSpace(mainStep.TitleKey)
+            ? mainStep.TitleKey
+            : mainStep.Title;
+        if (string.IsNullOrWhiteSpace(mainStepIdentity))
         {
             return;
         }
@@ -550,8 +578,16 @@ internal sealed class TutorialOwnerBuilder<TOwner> : ITutorialOwnerBuilderIntern
                 continue;
             }
 
+            var existingIdentity = !string.IsNullOrWhiteSpace(existingMainStep.TitleKey)
+                ? existingMainStep.TitleKey
+                : existingMainStep.Title;
+            if (string.IsNullOrWhiteSpace(existingIdentity))
+            {
+                continue;
+            }
+
             if (string.Equals(existingMainStep.TargetName, mainStep.TargetName, StringComparison.Ordinal)
-                && string.Equals(existingMainStep.Title, mainStep.Title, StringComparison.Ordinal))
+                && string.Equals(existingIdentity, mainStepIdentity, StringComparison.Ordinal))
             {
                 throw new InvalidOperationException(
                     $"Tutorial package '{package.PackageId}' duplicates the main content of '{existing.PackageId}'.");
@@ -619,6 +655,34 @@ internal sealed class TutorialAuthoringPackageBuilder<TOwner> :
     public ITutorialStepBuilder<TOwner> Text(string description)
     {
         EnsureCurrentStep().Description = description;
+        return this;
+    }
+
+    public ITutorialStepBuilder<TOwner> StepKey(string titleKey)
+    {
+        if (string.IsNullOrWhiteSpace(titleKey))
+        {
+            throw new ArgumentException("Step title key cannot be empty.", nameof(titleKey));
+        }
+
+        var step = new ProductTourStep
+        {
+            TitleKey = titleKey,
+            Timeout = TimeSpan.FromSeconds(30)
+        };
+        _items.Add(new TutorialPackageStepItem { Step = step });
+        _currentStep = step;
+        return this;
+    }
+
+    public ITutorialStepBuilder<TOwner> TextKey(string descriptionKey)
+    {
+        if (string.IsNullOrWhiteSpace(descriptionKey))
+        {
+            throw new ArgumentException("Step description key cannot be empty.", nameof(descriptionKey));
+        }
+
+        EnsureCurrentStep().DescriptionKey = descriptionKey;
         return this;
     }
 
@@ -928,12 +992,28 @@ internal sealed class TutorialAuthoringFlowBuilder : ITutorialFlowBuilder
                 throw new InvalidOperationException($"Tutorial flow '{_flowId}' references missing package '{packageId}'.");
             }
 
-            if (package.Steps.Any(step =>
-                    string.Equals(step.Title, "功能教学", StringComparison.Ordinal)
-                    || step.Description.Contains("详细教学将在", StringComparison.Ordinal)))
+            if (package.Steps.Any(step => IsFallbackStep(step)))
             {
                 throw new InvalidOperationException($"Tutorial flow '{_flowId}' references fallback package '{packageId}'.");
             }
         }
+    }
+
+    private static bool IsFallbackStep(ProductTourStep step)
+    {
+        if (!string.IsNullOrWhiteSpace(step.TitleKey)
+            && step.TitleKey.StartsWith("Fallback.", StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        if (!string.IsNullOrWhiteSpace(step.DescriptionKey)
+            && step.DescriptionKey.StartsWith("Fallback.", StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        return string.Equals(step.Title, "功能教学", StringComparison.Ordinal)
+            || step.Description.Contains("详细教学将在", StringComparison.Ordinal);
     }
 }

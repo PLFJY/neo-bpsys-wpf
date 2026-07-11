@@ -23,6 +23,8 @@ namespace neo_bpsys_wpf.Tests.Services;
 /// </summary>
 public sealed class NeoBpsysTutorialRegistrationTest
 {
+    private static readonly ITutorialContentResolver ContentResolver = new NeoBpsysTutorialContentResolver();
+
     [Fact]
     public void RegistrationKeepsBuiltInSequencesPackagesAndFirstRunIncludes()
     {
@@ -330,15 +332,15 @@ public sealed class NeoBpsysTutorialRegistrationTest
             package => package.PackageId == TutorialPackageIds.MapBpBanMapOperationBasic);
         var banMapStep = Assert.Single(banMapPackage.Steps);
         Assert.Equal(TutorialTargetNames.MapBanOperationBorder, banMapStep.TargetName);
-        Assert.Contains("Ban 地图", banMapStep.Description, StringComparison.Ordinal);
+        Assert.Contains("Ban 地图", ContentResolver.Resolve(banMapStep.DescriptionKey), StringComparison.Ordinal);
 
         var nextMapPackage = Assert.Single(
             packageRegistry.GetPackages(),
             package => package.PackageId == TutorialPackageIds.MapBpNextToPickMapBasic);
         var nextMapStep = Assert.Single(nextMapPackage.Steps);
         Assert.Equal(TutorialTargetNames.NextGuidanceStepButton, nextMapStep.TargetName);
-        Assert.Contains("进入选择地图", nextMapStep.Description, StringComparison.Ordinal);
-        Assert.DoesNotContain("进入角色 BP", nextMapStep.Description, StringComparison.Ordinal);
+        Assert.Contains("进入选择地图", ContentResolver.Resolve(nextMapStep.DescriptionKey), StringComparison.Ordinal);
+        Assert.DoesNotContain("进入角色 BP", ContentResolver.Resolve(nextMapStep.DescriptionKey), StringComparison.Ordinal);
 
         var pickFourPackage = Assert.Single(
             packageRegistry.GetPackages(),
@@ -496,8 +498,8 @@ public sealed class NeoBpsysTutorialRegistrationTest
             package => package.PackageId == TutorialPackageIds.DesignerV3LayoutEditBasic);
         var previewStep = Assert.Single(
             package.Steps,
-            step => step.Title == "预览画布"
-                && step.Description.Contains("点击画布上的一个控件", StringComparison.Ordinal));
+            step => step.TitleKey == "Step.DesignerV3LayoutEditBasic.2.Title"
+                && ContentResolver.Resolve(step.DescriptionKey).Contains("点击画布上的一个控件", StringComparison.Ordinal));
 
         Assert.Equal("PreviewWorkspace", previewStep.TargetName);
         Assert.NotEqual(TutorialTargetNames.PreviewCanvas, previewStep.TargetName);
@@ -511,25 +513,25 @@ public sealed class NeoBpsysTutorialRegistrationTest
         var help = Assert.Single(packages, package => package.PackageId == TutorialPackageIds.DesignerV3HelpBasic);
 
         var dialogue = Assert.IsType<TutorialPackageDialogueItem>(overview.Items[0]).Dialogue;
-        Assert.Contains(dialogue.Lines, line => line.Contains("欢迎来到 v3 设计器", StringComparison.Ordinal));
-        Assert.Contains(dialogue.Lines, line => line.Contains("详细修改前台界面", StringComparison.Ordinal));
+        Assert.Contains(ContentResolver.ResolveLines(dialogue.LinesKey), line => line.Contains("欢迎来到 v3 设计器", StringComparison.Ordinal));
+        Assert.Contains(ContentResolver.ResolveLines(dialogue.LinesKey), line => line.Contains("详细修改前台界面", StringComparison.Ordinal));
         Assert.DoesNotContain(overview.Steps, step => step.TargetName == TutorialTargetNames.BehaviorPanelHost);
 
         var layoutSteps = packages.Single(package => package.PackageId == TutorialPackageIds.DesignerV3LayoutEditBasic).Steps;
         var previewStep = Assert.Single(
             layoutSteps,
             step => step.TargetName == "PreviewWorkspace"
-                && step.Description.Contains("点击画布上的一个控件", StringComparison.Ordinal));
-        Assert.Contains("点击画布上的一个控件", previewStep.Description, StringComparison.Ordinal);
+                && ContentResolver.Resolve(step.DescriptionKey).Contains("点击画布上的一个控件", StringComparison.Ordinal));
+        Assert.Contains("点击画布上的一个控件", ContentResolver.Resolve(previewStep.DescriptionKey), StringComparison.Ordinal);
         Assert.DoesNotContain(layoutSteps, step => step.TargetName == TutorialTargetNames.InteractionLayer);
         Assert.DoesNotContain(layoutSteps.Select(step => step.Title), title => title.Contains("交互层", StringComparison.Ordinal));
 
         var propertySteps = packages.Single(package => package.PackageId == TutorialPackageIds.DesignerV3PropertyPanelBasic).Steps;
-        Assert.Contains(propertySteps, step => step.Title == "行为和动画入口");
+        Assert.Contains(propertySteps, step => step.TitleKey == "Step.DesignerV3PropertyPanelBasic.3.Title");
 
         var finalStep = Assert.Single(help.Steps);
         Assert.Equal(TutorialTargetNames.DesignerHelpButton, finalStep.TargetName);
-        Assert.Contains("v3 编辑器的详细说明", finalStep.Description, StringComparison.Ordinal);
+        Assert.Contains("v3 编辑器的详细说明", ContentResolver.Resolve(finalStep.DescriptionKey), StringComparison.Ordinal);
         Assert.False(finalStep.AllowMissingTarget);
         Assert.Contains(finalStep.PreStepActions, action => action.Name == "ScrollDesignerHelpButtonIntoView");
     }
@@ -579,7 +581,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
             package => package.PackageId == TutorialPackageIds.DesignerV3HelpBasic);
 
         Assert.Contains(importExport.Steps, step => step.TargetName is null && step.TargetKind == TutorialTargetKind.None);
-        Assert.Contains(importExport.Steps, step => step.Title == "保存、导入和导出");
+        Assert.Contains(importExport.Steps, step => step.TitleKey == "Step.DesignerV3PackageImportExport.0.Title");
 
         var helpStep = Assert.Single(help.Steps);
         Assert.Equal(TutorialTargetNames.DesignerHelpButton, helpStep.TargetName);
@@ -674,7 +676,7 @@ public sealed class NeoBpsysTutorialRegistrationTest
         var package = Assert.Single(
             CreateRegisteredPackages(),
             package => package.PackageId == TutorialPackageIds.FrontManageLayoutPackagesBasic);
-        var text = string.Join("\n", package.Steps.Select(step => step.Description));
+        var text = string.Join("\n", package.Steps.Select(step => ContentResolver.Resolve(step.DescriptionKey)));
 
         Assert.Contains("内置布局无法被直接修改", text, StringComparison.Ordinal);
         Assert.Contains("自动切换到一个新的用户自定义布局", text, StringComparison.Ordinal);

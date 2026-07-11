@@ -26,8 +26,8 @@ public partial class ScorePage : ITutorialOwner<ScorePage>
     {
         builder.ForPage<ScorePage>()
             .Package(Tours.Basic)
-                .Step("选择比分")
-                    .Text("对局结束后，可以在这里选择比分。比分会同步到比赛状态和前台显示。")
+                .StepKey("Step.ScoreBasic.0.Title")
+                    .TextKey("Step.ScoreBasic.0.Description")
                     .TargetName(nameof(ScoreSelectorPanel))
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
                     .AllowMissingTarget()

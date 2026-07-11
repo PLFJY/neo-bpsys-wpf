@@ -255,6 +255,8 @@ public sealed class ProductTourStateTest
                 new DefaultTutorialTextProvider(),
                 new NoOpTutorialAvatarProvider(),
                 Observer,
+                new DefaultTutorialContentResolver(),
+                new NoOpTutorialLanguageService(),
                 new ProductTourOptions(),
                 NullLogger<TutorialService>.Instance);
             Runner = new TutorialRunner(

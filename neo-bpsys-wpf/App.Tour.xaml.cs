@@ -20,7 +20,7 @@ public partial class App : IAppTutorial<App>
             .Step(new DialogueFlowItem
             {
                 Speaker = string.Empty,
-                Lines = NeoBpsysTutorialTexts.FirstRunOpeningDialogue()
+                LinesKey = "Dialogue.FirstRun.Opening"
             })
             .Step(MainWindowType.Tours.NavigationFrontManage)
             .Step(FrontedWindowsView.Tours.BpWindowLaunchBasic)
@@ -53,7 +53,7 @@ public partial class App : IAppTutorial<App>
             .Step(new DialogueFlowItem
             {
                 Speaker = string.Empty,
-                Lines = NeoBpsysTutorialTexts.FirstRunEndingDialogue()
+                LinesKey = "Dialogue.FirstRun.Ending"
             })
             .Build();
     }

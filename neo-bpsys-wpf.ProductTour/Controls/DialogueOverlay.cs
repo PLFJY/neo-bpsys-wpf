@@ -25,6 +25,9 @@ public sealed class DialogueOverlay : Grid
     private readonly ITutorialTextProvider _textProvider;
     private readonly ProductTourOptions _options;
     private readonly ITutorialAvatarProvider _avatarProvider;
+    private readonly ITutorialContentResolver _contentResolver;
+    private readonly ITutorialLanguageService _languageService;
+    private string? _currentLinesKey;
     private SkipTutorialConfirmDialog? _confirmDialog;
 
     /// <summary>Gets or sets the typewriter interval.</summary>
@@ -32,7 +35,8 @@ public sealed class DialogueOverlay : Grid
 
     /// <summary>Initializes a new instance of the <see cref="DialogueOverlay"/> class.</summary>
     public DialogueOverlay()
-        : this(new DefaultTutorialTextProvider(), new ProductTourOptions(), new NoOpTutorialAvatarProvider())
+        : this(new DefaultTutorialTextProvider(), new ProductTourOptions(), new NoOpTutorialAvatarProvider(),
+             new DefaultTutorialContentResolver(), new NoOpTutorialLanguageService())
     {
     }
 
@@ -40,7 +44,8 @@ public sealed class DialogueOverlay : Grid
     /// <param name="textProvider">Fixed UI text provider.</param>
     /// <param name="options">Product tour display options.</param>
     public DialogueOverlay(ITutorialTextProvider textProvider, ProductTourOptions options)
-        : this(textProvider, options, new NoOpTutorialAvatarProvider())
+        : this(textProvider, options, new NoOpTutorialAvatarProvider(),
+             new DefaultTutorialContentResolver(), new NoOpTutorialLanguageService())
     {
     }
 
@@ -48,14 +53,20 @@ public sealed class DialogueOverlay : Grid
     /// <param name="textProvider">Fixed UI text provider.</param>
     /// <param name="options">Product tour display options.</param>
     /// <param name="avatarProvider">Tutorial avatar provider.</param>
+    /// <param name="contentResolver">Tutorial content resolver for localized dialogue lines.</param>
+    /// <param name="languageService">Tutorial language service for hot-switching.</param>
     public DialogueOverlay(
         ITutorialTextProvider textProvider,
         ProductTourOptions options,
-        ITutorialAvatarProvider avatarProvider)
+        ITutorialAvatarProvider avatarProvider,
+        ITutorialContentResolver? contentResolver = null,
+        ITutorialLanguageService? languageService = null)
     {
         _textProvider = textProvider;
         _options = options;
         _avatarProvider = avatarProvider;
+        _contentResolver = contentResolver ?? new DefaultTutorialContentResolver();
+        _languageService = languageService ?? new NoOpTutorialLanguageService();
         TypewriterInterval = _options.TypewriterInterval;
         Style = TryFindResource("ProductTourDialogueOverlayStyle") as Style;
         Background = CreateMaskBrush(_options.DialogueMaskOpacity);
@@ -127,14 +138,47 @@ public sealed class DialogueOverlay : Grid
         Children.Add(_dialogueBox);
         Children.Add(_skipButton);
         MouseLeftButtonDown += (_, _) => Advance();
+
+        _languageService.LanguageChanged += OnLanguageChanged;
+        Unloaded += (_, _) => _languageService.LanguageChanged -= OnLanguageChanged;
+    }
+
+    private void OnLanguageChanged(object? sender, EventArgs e)
+    {
+        Dispatcher.BeginInvoke(new Action(RefreshDialogueLanguage));
+    }
+
+    /// <summary>
+    /// Re-resolves dialogue lines from the resource key and restarts the typewriter
+    /// for the current line using the newly resolved text.
+    /// </summary>
+    private void RefreshDialogueLanguage()
+    {
+        if (!string.IsNullOrWhiteSpace(_currentLinesKey))
+        {
+            _lines = _contentResolver.ResolveLines(_currentLinesKey);
+        }
+
+        if (_lineIndex >= _lines.Count)
+        {
+            _lineIndex = Math.Max(0, _lines.Count - 1);
+        }
+
+        _skipButton.Content = _textProvider.Skip;
+        StartLine();
     }
 
     /// <summary>Shows dialogue lines.</summary>
     /// <param name="speaker">Speaker name.</param>
     /// <param name="lines">Dialogue lines.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="linesKey">Optional resource key for resolving localized dialogue lines. When non-null, lines are resolved from the resource.</param>
     /// <returns>The dialogue run result.</returns>
-    public async Task<TutorialRunResult> ShowAsync(string speaker, IReadOnlyList<string> lines, CancellationToken cancellationToken)
+    public async Task<TutorialRunResult> ShowAsync(
+        string speaker,
+        IReadOnlyList<string> lines,
+        CancellationToken cancellationToken,
+        string? linesKey = null)
     {
         var avatar = _options.ShowAvatar ? _avatarProvider.GetAvatar(TutorialAvatarPose.Idle) : null;
         if (avatar != null)
@@ -151,7 +195,10 @@ public sealed class DialogueOverlay : Grid
         _speakerBlock.Text = avatar != null && IsDefaultSpeaker(speaker)
             ? avatar.DisplayName
             : speaker;
-        _lines = lines;
+        _currentLinesKey = linesKey;
+        _lines = !string.IsNullOrWhiteSpace(linesKey)
+            ? _contentResolver.ResolveLines(linesKey)
+            : lines;
         _lineIndex = 0;
         _completion = new TaskCompletionSource<TutorialRunResult>(TaskCreationOptions.RunContinuationsAsynchronously);
         StartLine();

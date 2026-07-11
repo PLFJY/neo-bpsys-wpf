@@ -51,6 +51,9 @@ public static class AppI18nDictionaries
     /// <summary>插件市场相关资源字典。</summary>
     public const string PluginMarket = "Locales.PluginMarket";
 
+    /// <summary>Tutorial 步骤内容资源字典。</summary>
+    public const string TourContent = "Locales.TourContent";
+
     /// <summary>
     /// 所有宿主资源族字典名的有序集合，用于在无法预先确定归属字典时进行全量查找
     /// （例如前台布局控件按配置中的 LocalizationKey 解析任意域的文本）。
@@ -58,6 +61,7 @@ public static class AppI18nDictionaries
     public static readonly string[] AllDictionaries =
     {
         Common, Shell, Team, Game, Bp, Score,
-        FrontManage, Designer, AnimationEditor, Settings, PluginMarket
+        FrontManage, Designer, AnimationEditor, Settings, PluginMarket,
+        TourContent
     };
 }

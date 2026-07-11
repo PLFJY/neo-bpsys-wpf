@@ -35,6 +35,13 @@ public interface ITutorialLanguageService
     /// <param name="languageOptionId">Language option id.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     Task ApplyLanguageAsync(string languageOptionId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Occurs when the tutorial language has changed, either through
+    /// <see cref="ApplyLanguageAsync"/> or from an external source (e.g. settings page).
+    /// Overlays subscribe to this event to hot-refresh displayed text.
+    /// </summary>
+    event EventHandler? LanguageChanged;
 }
 
 /// <summary>
@@ -42,6 +49,13 @@ public interface ITutorialLanguageService
 /// </summary>
 public sealed class NoOpTutorialLanguageService : ITutorialLanguageService
 {
+    /// <inheritdoc />
+    public event EventHandler? LanguageChanged
+    {
+        add { }
+        remove { }
+    }
+
     /// <inheritdoc />
     public Task<IReadOnlyList<TutorialLanguageOption>> GetLanguageOptionsAsync(CancellationToken cancellationToken = default)
         => Task.FromResult<IReadOnlyList<TutorialLanguageOption>>(

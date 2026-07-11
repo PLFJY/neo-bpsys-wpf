@@ -221,6 +221,20 @@ public sealed class ProductTourStep
     /// <summary>Gets or sets the localized or literal description.</summary>
     public string Description { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Gets or sets the resource key used to resolve the title at runtime.
+    /// When non-null, the overlay resolves the title via <see cref="ITutorialContentResolver"/>
+    /// instead of using <see cref="Title"/> directly.
+    /// </summary>
+    public string? TitleKey { get; set; }
+
+    /// <summary>
+    /// Gets or sets the resource key used to resolve the description at runtime.
+    /// When non-null, the overlay resolves the description via <see cref="ITutorialContentResolver"/>
+    /// instead of using <see cref="Description"/> directly.
+    /// </summary>
+    public string? DescriptionKey { get; set; }
+
     /// <summary>Gets or sets the preferred card placement.</summary>
     public ProductTourPlacement Placement { get; set; } = ProductTourPlacement.Auto;
 
@@ -426,6 +440,13 @@ public sealed class DialogueFlowItem : TutorialFlowItem
 
     /// <summary>Gets or sets dialogue lines.</summary>
     public IReadOnlyList<string> Lines { get; init; } = [];
+
+    /// <summary>
+    /// Gets or sets the resource key used to resolve dialogue lines at runtime via
+    /// <see cref="ITutorialContentResolver"/>. When non-null, lines are resolved from
+    /// the resource; <see cref="Lines"/> is used as a fallback when the key is null.
+    /// </summary>
+    public string? LinesKey { get; init; }
 }
 
 /// <summary>

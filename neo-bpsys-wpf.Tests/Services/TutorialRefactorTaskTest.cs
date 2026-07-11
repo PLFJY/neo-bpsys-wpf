@@ -73,8 +73,8 @@ public sealed class TutorialRefactorTaskTest
         Assert.All(windowPackage.Steps, step => Assert.True(step.AllowMissingTarget));
         Assert.NotEmpty(entryPackage.Steps);
         Assert.NotEmpty(windowPackage.Steps);
-        Assert.All(entryPackage.Steps, step => Assert.False(string.IsNullOrWhiteSpace(step.Title)));
-        Assert.All(windowPackage.Steps, step => Assert.False(string.IsNullOrWhiteSpace(step.Title)));
+        Assert.All(entryPackage.Steps, step => Assert.False(string.IsNullOrWhiteSpace(step.TitleKey)));
+        Assert.All(windowPackage.Steps, step => Assert.False(string.IsNullOrWhiteSpace(step.TitleKey)));
     }
 
     [Fact]

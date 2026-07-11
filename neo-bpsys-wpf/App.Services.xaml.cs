@@ -34,6 +34,7 @@ public partial class App
         services.AddSingleton<ITutorialLanguageService, NeoBpsysTutorialLanguageService>();
         services.AddSingleton<ITutorialTextProvider, NeoBpsysTutorialTextProvider>();
         services.AddSingleton<ITutorialAvatarProvider, AliceTutorialAvatarProvider>();
+        services.AddSingleton<ITutorialContentResolver, NeoBpsysTutorialContentResolver>();
 
         //App Host
         services.AddHostedService<ApplicationHostService>();
