@@ -48,6 +48,11 @@ public sealed class I18nResourceAuditTest
         "Refresh", "Start", "Stop", "Delete", "Cancel", "SmartBp", "SaveSuccessfullyTo"
     };
 
+    private static readonly HashSet<string> PostMigrationLocalizedKeys = new(StringComparer.Ordinal)
+    {
+        "ResetDefaultColor"
+    };
+
     private static readonly Dictionary<string, Dictionary<string, ResourceEntry>> ResxCache = new(StringComparer.Ordinal);
     private static readonly Dictionary<string, IReadOnlyList<ResourceEntry>> BaselineCache = new(StringComparer.Ordinal);
     private static List<KeyMapEntry>? _keyMapCache;
@@ -857,7 +862,9 @@ public sealed class I18nResourceAuditTest
         var localizedKeys = LoadBaseline(culture).Select(entry => entry.Key).ToHashSet(StringComparer.Ordinal);
         var maps = LoadKeyMap().ToDictionary(entry => entry.Key, StringComparer.Ordinal);
 
-        foreach (var key in neutralKeys.Except(localizedKeys, StringComparer.Ordinal))
+        foreach (var key in neutralKeys
+                     .Except(localizedKeys, StringComparer.Ordinal)
+                     .Except(PostMigrationLocalizedKeys, StringComparer.Ordinal))
         {
             var map = maps[key];
             var targetPath = GetTargetResxPath(map.TargetAssembly, map.TargetDictionary, culture);

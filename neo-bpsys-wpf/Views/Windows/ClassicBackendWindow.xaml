@@ -232,7 +232,7 @@
                         <TextBlock Margin="0,5,8,8" Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}">
                             <TextBlock.Text>
                                 <MultiBinding Converter="{lex:StringFormatConverter}">
-                                    <lex:BLoc Key="CurrentStepFormat" />
+                                    <lex:BLoc Key="neo-bpsys-wpf:neo_bpsys_wpf.Locales.Shell:CurrentStepFormat" />
                                     <Binding Path="ActionName" />
                                 </MultiBinding>
                             </TextBlock.Text>
@@ -446,7 +446,7 @@
                                                         <TextBlock Margin="8,0,0,0" VerticalAlignment="Center">
                                                             <TextBlock.Text>
                                                                 <MultiBinding Converter="{StaticResource IndexFormatConverter}">
-                                                                    <lex:BLoc Key="IndexFormat" />
+                                                                    <lex:BLoc Key="neo-bpsys-wpf:neo_bpsys_wpf.Locales.Bp:IndexFormat" />
                                                                     <Binding Converter="{StaticResource IntPlusOneConverter}" Path="Index" />
                                                                 </MultiBinding>
                                                             </TextBlock.Text>
@@ -469,7 +469,7 @@
                                                         <TextBlock Margin="8,0,0,0" VerticalAlignment="Center">
                                                             <TextBlock.Text>
                                                                 <MultiBinding Converter="{StaticResource IndexFormatConverter}">
-                                                                    <lex:BLoc Key="IndexFormat" />
+                                                                    <lex:BLoc Key="neo-bpsys-wpf:neo_bpsys_wpf.Locales.Bp:IndexFormat" />
                                                                     <Binding Converter="{StaticResource IntPlusOneConverter}" Path="Index" />
                                                                 </MultiBinding>
                                                             </TextBlock.Text>
@@ -500,7 +500,7 @@
                                                         <TextBlock Margin="8,0,0,0" VerticalAlignment="Center">
                                                             <TextBlock.Text>
                                                                 <MultiBinding Converter="{StaticResource IndexFormatConverter}">
-                                                                    <lex:BLoc Key="IndexFormat" />
+                                                                    <lex:BLoc Key="neo-bpsys-wpf:neo_bpsys_wpf.Locales.Bp:IndexFormat" />
                                                                     <Binding Converter="{StaticResource IntPlusOneConverter}" Path="Index" />
                                                                 </MultiBinding>
                                                             </TextBlock.Text>
@@ -523,7 +523,7 @@
                                                         <TextBlock Margin="8,0,0,0" VerticalAlignment="Center">
                                                             <TextBlock.Text>
                                                                 <MultiBinding Converter="{StaticResource IndexFormatConverter}">
-                                                                    <lex:BLoc Key="IndexFormat" />
+                                                                    <lex:BLoc Key="neo-bpsys-wpf:neo_bpsys_wpf.Locales.Bp:IndexFormat" />
                                                                     <Binding Converter="{StaticResource IntPlusOneConverter}" Path="Index" />
                                                                 </MultiBinding>
                                                             </TextBlock.Text>

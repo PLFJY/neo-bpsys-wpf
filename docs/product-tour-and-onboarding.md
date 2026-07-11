@@ -61,13 +61,13 @@
 维护 Welcome UI 时遵循以下约束：
 
 1. 背景应延续启动加载动画的 Fluent 深色面，不做网页落地页式渐变、夸张插画或营销卡片。
-2. 内容布局参考 SmartBP 模块未加载页：居中窄内容、标题、说明和主操作垂直排布。
+2. 内容布局参考 SmartBP 模块未加载页：居中窄内容、标题、说明、语言选择和主操作垂直排布。
 3. 使用 WPF-UI / Fluent 动态资源，例如 `TextFillColorPrimaryBrush`、`TextFillColorSecondaryBrush`、`CardBackgroundFillColorDefaultBrush`、`ControlStrokeColorDefaultBrush`、`AccentFillColorDefaultBrush`。
 4. 显示和关闭都要播放淡入淡出动画；点击“开始导览”后必须等淡出完成再移除 overlay。
 5. “跳过”必须进入 `SkipTutorialConfirmDialog` 二次确认，不使用系统 `MessageBox`。
 6. Welcome 应表现为页面式 onboarding surface，而不是半透明浮在 HomePage 上的弹窗卡片；底层页面只作为被强遮罩压暗的背景。
 
-导览不提供独立语言选择入口，语言完全跟随主程序设置。`NeoBpsysTutorialLanguageService` 订阅 `ISettingsHostService.LanguageSettingChanged`，外部（如设置页）切换语言后通过 `LanguageChanged` 事件通知所有 overlay 刷新文本：
+首次 Welcome 弹窗提供语言选择 ComboBox，用户可在开始导览前选择界面语言。`FirstRunWelcomeOverlay` 通过 `ITutorialLanguageService.GetLanguageOptionsAsync()` 获取语言列表，点击"开始导览"时传回选中的 option id，由 `OnboardingCoordinator` 调用 `ApplyLanguageAsync` 应用。导览过程中（`ProductTourOverlay` 和 `DialogueOverlay`）不提供语言选择入口，但所有 overlay 均订阅 `LanguageChanged` 事件实现被动热切换：用户离开导览去设置页切换语言后，导览文本自动刷新。`NeoBpsysTutorialLanguageService` 订阅 `ISettingsHostService.LanguageSettingChanged`，转发为 `LanguageChanged` 事件：
 
 | 事件节点 | 行为 |
 | --- | --- |
@@ -90,7 +90,7 @@ ProductTour 库不得引用主程序的 `LanguageKey`，也不得在控件中出
 
 | 控件 | 用途 |
 | --- | --- |
-| `FirstRunWelcomeOverlay` | 首次启动欢迎、开始导览、跳过入口 |
+| `FirstRunWelcomeOverlay` | 首次启动欢迎、语言选择、开始导览、跳过入口 |
 | `SkipTutorialConfirmDialog` | 跳过导览的 overlay 内二次确认 |
 | `DialogueOverlay` | 底部 NPC 对话框，支持打字机效果 |
 | `ProductTourOverlay` | 遮罩、高亮目标控件、说明卡片、箭头和步骤导航 |
@@ -287,7 +287,7 @@ Layer B 通过 `ITutorialContentResolver` 抽象提供，`NeoBpsysTutorialConten
 
 ### 语言热切换机制
 
-导览不提供卡片内语言选择入口，语言完全跟随主程序设置。用户在导览过程中离开导览去设置页切换语言后，导览 overlay 会自动刷新为对应语言。触发链路：
+初始 Welcome 弹窗提供语言选择 ComboBox，用户可在开始导览前选择界面语言；导览过程中不提供语言选择入口，但支持被动热切换——用户离开导览去设置页切换语言后，导览 overlay 会自动刷新为对应语言。触发链路：
 
 `ISettingsHostService.LanguageSettingChanged` → `NeoBpsysTutorialLanguageService.LanguageChanged` 事件 → overlay 的 `RefreshLanguage()` / `RefreshDialogueLanguage()` / `RefreshWelcomeLanguage()` 方法在 Dispatcher 上重读当前 Culture 对应的文本。
 

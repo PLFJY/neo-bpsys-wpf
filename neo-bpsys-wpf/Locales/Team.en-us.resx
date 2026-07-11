@@ -100,4 +100,7 @@
   <data name="JsonFileFormatError">
     <value>Json file format error</value>
   </data>
+  <data name="ResetDefaultColor">
+    <value>Reset to default</value>
+  </data>
 </root>

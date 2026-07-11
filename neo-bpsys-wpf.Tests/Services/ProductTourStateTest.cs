@@ -219,6 +219,20 @@ public sealed class ProductTourStateTest
         Assert.Contains("new DialogueOverlay(", source, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void SignalWaitCancellation_ShouldBeCheckedBeforeTimeoutClassification()
+    {
+        var root = FindRepositoryRoot();
+        var source = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.ProductTour", "TutorialService.cs"));
+        var waitResult = source.IndexOf("var completed = await Task.WhenAny(signalTask, timeoutTask);", StringComparison.Ordinal);
+        var cancellationCheck = source.IndexOf("cancellationToken.ThrowIfCancellationRequested();", waitResult, StringComparison.Ordinal);
+        var timeoutCheck = source.IndexOf("if (completed == timeoutTask)", waitResult, StringComparison.Ordinal);
+
+        Assert.True(waitResult >= 0);
+        Assert.True(cancellationCheck > waitResult);
+        Assert.True(timeoutCheck > cancellationCheck);
+    }
+
     private static string FindRepositoryRoot()
     {
         var current = new DirectoryInfo(AppContext.BaseDirectory);

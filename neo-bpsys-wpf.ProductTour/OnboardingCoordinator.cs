@@ -90,18 +90,20 @@ public sealed class OnboardingCoordinator : IOnboardingCoordinator
         }
 
         var host = OverlayHost.GetHostPanel(owner);
-        var overlay = new FirstRunWelcomeOverlay(_textProvider, _options, _avatarProvider, _languageService);
+        var languageOptions = await _languageService.GetLanguageOptionsAsync(cancellationToken);
+        var overlay = new FirstRunWelcomeOverlay(_textProvider, _options, _avatarProvider, languageOptions, _languageService);
         host.Children.Add(overlay);
         overlay.SkipConfirmed += async (_, _) =>
         {
             await MarkFirstRunHandledAsync(cancellationToken);
             host.Children.Remove(overlay);
         };
-        overlay.StartRequested += async (_, _) =>
+        overlay.StartRequested += async (_, languageOptionId) =>
         {
             host.Children.Remove(overlay);
             try
             {
+                await _languageService.ApplyLanguageAsync(languageOptionId, cancellationToken);
                 await _tutorialRunner.RunFlowAsync(owner, FirstRunFlowId, force: true, cancellationToken);
             }
             catch (Exception ex)

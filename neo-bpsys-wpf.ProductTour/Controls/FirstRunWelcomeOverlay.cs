@@ -13,6 +13,8 @@ public sealed class FirstRunWelcomeOverlay : Grid
     private readonly Border _card;
     private readonly TextBlock _title;
     private readonly TextBlock _description;
+    private readonly TextBlock _languageLabel;
+    private readonly ComboBox _languageComboBox;
     private readonly TextBlock _footnote;
     private readonly Button _startButton;
     private readonly Button _skipButton;
@@ -20,10 +22,11 @@ public sealed class FirstRunWelcomeOverlay : Grid
     private readonly ProductTourOptions _options;
     private readonly ITutorialAvatarProvider _avatarProvider;
     private readonly ITutorialLanguageService _languageService;
+    private string _selectedLanguageOptionId;
     private SkipTutorialConfirmDialog? _confirmDialog;
 
-    /// <summary>Occurs when the user starts the tutorial.</summary>
-    public event EventHandler? StartRequested;
+    /// <summary>Occurs when the user starts the tutorial, carrying the selected language option id.</summary>
+    public event EventHandler<string>? StartRequested;
 
     /// <summary>Occurs when the user confirms skipping the tutorial.</summary>
     public event EventHandler? SkipConfirmed;
@@ -31,17 +34,19 @@ public sealed class FirstRunWelcomeOverlay : Grid
     /// <summary>Initializes a new instance of the <see cref="FirstRunWelcomeOverlay"/> class.</summary>
     public FirstRunWelcomeOverlay()
         : this(new DefaultTutorialTextProvider(), new ProductTourOptions(), new NoOpTutorialAvatarProvider(),
-             new NoOpTutorialLanguageService())
+             NoOpLanguageOptions(), new NoOpTutorialLanguageService())
     {
     }
 
     /// <summary>Initializes a new instance of the <see cref="FirstRunWelcomeOverlay"/> class.</summary>
     /// <param name="textProvider">Fixed UI text provider.</param>
     /// <param name="options">Product tour display options.</param>
+    /// <param name="languageOptions">Language options supplied by the host application.</param>
     public FirstRunWelcomeOverlay(
         ITutorialTextProvider textProvider,
-        ProductTourOptions options)
-        : this(textProvider, options, new NoOpTutorialAvatarProvider(), new NoOpTutorialLanguageService())
+        ProductTourOptions options,
+        IReadOnlyList<TutorialLanguageOption>? languageOptions = null)
+        : this(textProvider, options, new NoOpTutorialAvatarProvider(), languageOptions, new NoOpTutorialLanguageService())
     {
     }
 
@@ -49,17 +54,21 @@ public sealed class FirstRunWelcomeOverlay : Grid
     /// <param name="textProvider">Fixed UI text provider.</param>
     /// <param name="options">Product tour display options.</param>
     /// <param name="avatarProvider">Tutorial avatar provider.</param>
+    /// <param name="languageOptions">Language options supplied by the host application.</param>
     /// <param name="languageService">Tutorial language service for hot-switching.</param>
     public FirstRunWelcomeOverlay(
         ITutorialTextProvider textProvider,
         ProductTourOptions options,
         ITutorialAvatarProvider avatarProvider,
+        IReadOnlyList<TutorialLanguageOption>? languageOptions = null,
         ITutorialLanguageService? languageService = null)
     {
         _textProvider = textProvider;
         _options = options;
         _avatarProvider = avatarProvider;
         _languageService = languageService ?? new NoOpTutorialLanguageService();
+        var optionsList = languageOptions is { Count: > 0 } ? languageOptions : NoOpLanguageOptions();
+        _selectedLanguageOptionId = optionsList.FirstOrDefault(option => option.IsSelected)?.Id ?? optionsList[0].Id;
         Style = TryFindResource("ProductTourWelcomeOverlayStyle") as Style;
         Background = CreateMaskBrush(_options.WelcomeMaskOpacity);
         HorizontalAlignment = HorizontalAlignment.Stretch;
@@ -96,6 +105,45 @@ public sealed class FirstRunWelcomeOverlay : Grid
         };
         _description.Style = TryFindResource("ProductTourWelcomeDescriptionStyle") as Style;
 
+        _languageLabel = new TextBlock
+        {
+            Text = _textProvider.LanguageLabel,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            Margin = new Thickness(0, 28, 0, 0)
+        };
+        _languageLabel.Style = TryFindResource("ProductTourWelcomeDescriptionStyle") as Style;
+
+        _languageComboBox = new ComboBox
+        {
+            Margin = new Thickness(0, 12, 0, 0),
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
+        _languageComboBox.Style = TryFindResource("ProductTourWelcomeLanguageComboBoxStyle") as Style;
+        foreach (var option in optionsList)
+        {
+            var item = new ComboBoxItem
+            {
+                Content = string.IsNullOrWhiteSpace(option.NativeName) || string.Equals(option.DisplayName, option.NativeName, StringComparison.Ordinal)
+                    ? option.DisplayName
+                    : $"{option.DisplayName} / {option.NativeName}",
+                Tag = option.Id
+            };
+
+            _languageComboBox.Items.Add(item);
+            if (option.Id == _selectedLanguageOptionId)
+            {
+                _languageComboBox.SelectedItem = item;
+            }
+        }
+
+        _languageComboBox.SelectionChanged += (_, _) =>
+        {
+            if (_languageComboBox.SelectedItem is ComboBoxItem { Tag: string optionId })
+            {
+                _selectedLanguageOptionId = optionId;
+            }
+        };
+
         _startButton = new Button
         {
             Content = _textProvider.StartTour,
@@ -108,7 +156,7 @@ public sealed class FirstRunWelcomeOverlay : Grid
         _startButton.Click += async (_, _) =>
         {
             await FadeOutAsync();
-            StartRequested?.Invoke(this, EventArgs.Empty);
+            StartRequested?.Invoke(this, _selectedLanguageOptionId);
         };
 
         _footnote = new TextBlock
@@ -124,7 +172,7 @@ public sealed class FirstRunWelcomeOverlay : Grid
             MaxWidth = 430,
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
-            Children = { _title, _description, _startButton, _footnote }
+            Children = { _title, _description, _languageLabel, _languageComboBox, _startButton, _footnote }
         };
         UIElement cardChild = contentPanel;
         var avatar = _options.ShowAvatar ? _avatarProvider.GetAvatar(TutorialAvatarPose.Idle) : null;
@@ -184,6 +232,7 @@ public sealed class FirstRunWelcomeOverlay : Grid
     {
         _title.Text = _textProvider.WelcomeTitle;
         _description.Text = _textProvider.WelcomeDescription;
+        _languageLabel.Text = _textProvider.LanguageLabel;
         _startButton.Content = _textProvider.StartTour;
         _footnote.Text = _textProvider.RestartAvailableHint;
         _skipButton.Content = _textProvider.Skip;
@@ -267,4 +316,12 @@ public sealed class FirstRunWelcomeOverlay : Grid
 
         return new SolidColorBrush(Color.FromRgb(16, 16, 16)) { Opacity = Math.Clamp(opacity, 0, 1) };
     }
+
+    private static IReadOnlyList<TutorialLanguageOption> NoOpLanguageOptions() =>
+    [
+        new TutorialLanguageOption { Id = "System", DisplayName = "跟随系统", NativeName = "Follow system", IsSystemDefault = true, IsSelected = true },
+        new TutorialLanguageOption { Id = "zh_Hans", DisplayName = "简体中文", NativeName = "简体中文" },
+        new TutorialLanguageOption { Id = "en_US", DisplayName = "English", NativeName = "English" },
+        new TutorialLanguageOption { Id = "ja_JP", DisplayName = "日本語", NativeName = "日本語" }
+    ];
 }

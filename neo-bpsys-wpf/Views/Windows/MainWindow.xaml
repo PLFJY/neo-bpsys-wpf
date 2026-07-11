@@ -316,7 +316,7 @@
                     Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}">
                     <TextBlock.Text>
                         <MultiBinding Converter="{lex:StringFormatConverter}">
-                            <lex:BLoc Key="CurrentStepFormat" />
+                            <lex:BLoc Key="neo-bpsys-wpf:neo_bpsys_wpf.Locales.Shell:CurrentStepFormat" />
                             <Binding Path="ActionName" />
                         </MultiBinding>
                     </TextBlock.Text>

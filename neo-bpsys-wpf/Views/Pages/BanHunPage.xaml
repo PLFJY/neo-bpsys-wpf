@@ -141,7 +141,7 @@
                                     lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp">
                                     <TextBlock.Text>
                                         <MultiBinding Converter="{StaticResource IndexFormatConverter}">
-                                            <lex:BLoc Key="IndexFormat" />
+                                            <lex:BLoc Key="neo-bpsys-wpf:neo_bpsys_wpf.Locales.Bp:IndexFormat" />
                                             <Binding Converter="{StaticResource IntPlusOneConverter}" Path="Index" />
                                         </MultiBinding>
                                     </TextBlock.Text>
@@ -174,7 +174,7 @@
                                     Tag="{lex:Loc IndexFormat}">
                                     <TextBlock.Text>
                                         <MultiBinding Converter="{StaticResource IndexFormatConverter}">
-                                            <lex:BLoc Key="IndexFormat" />
+                                            <lex:BLoc Key="neo-bpsys-wpf:neo_bpsys_wpf.Locales.Bp:IndexFormat" />
                                             <Binding Converter="{StaticResource IntPlusOneConverter}" Path="Index" />
                                         </MultiBinding>
                                     </TextBlock.Text>

@@ -158,7 +158,10 @@
                                                     <Setter.Value>
                                                         <StackPanel Orientation="Horizontal">
                                                             <ui:SymbolIcon Symbol="ArrowUpload24" />
-                                                            <TextBlock Margin="10,0,0,0" Text="{lex:Loc Enter}" />
+                                                            <TextBlock Margin="10,0,0,0"
+                                                                       lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+                                                                       lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Team"
+                                                                       Text="{lex:Loc Enter}" />
                                                         </StackPanel>
                                                     </Setter.Value>
                                                 </Setter>
@@ -169,7 +172,10 @@
                                                             <Setter.Value>
                                                                 <StackPanel Orientation="Horizontal">
                                                                     <ui:SymbolIcon Symbol="ArrowDownload24" />
-                                                                    <TextBlock Margin="10,0,0,0" Text="{lex:Loc Exit}" />
+                                                                    <TextBlock Margin="10,0,0,0"
+                                                                           lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+                                                                           lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Team"
+                                                                           Text="{lex:Loc Exit}" />
                                                                 </StackPanel>
                                                             </Setter.Value>
                                                         </Setter>
@@ -233,7 +239,10 @@
                                                     <Setter.Value>
                                                         <StackPanel Orientation="Horizontal">
                                                             <ui:SymbolIcon Symbol="ArrowUpload24" />
-                                                            <TextBlock Margin="10,0,0,0" Text="{lex:Loc Enter}" />
+                                                            <TextBlock Margin="10,0,0,0"
+                                                                       lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+                                                                       lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Team"
+                                                                       Text="{lex:Loc Enter}" />
                                                         </StackPanel>
                                                     </Setter.Value>
                                                 </Setter>
@@ -244,7 +253,10 @@
                                                             <Setter.Value>
                                                                 <StackPanel Orientation="Horizontal">
                                                                     <ui:SymbolIcon Symbol="ArrowDownload24" />
-                                                                    <TextBlock Margin="10,0,0,0" Text="{lex:Loc Exit}" />
+                                                                    <TextBlock Margin="10,0,0,0"
+                                                                           lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+                                                                           lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Team"
+                                                                           Text="{lex:Loc Exit}" />
                                                                 </StackPanel>
                                                             </Setter.Value>
                                                         </Setter>
@@ -403,7 +415,10 @@
                                                     <Setter.Value>
                                                         <StackPanel Orientation="Horizontal">
                                                             <ui:SymbolIcon Symbol="ArrowUpload24" />
-                                                            <TextBlock Margin="10,0,0,0" Text="{lex:Loc Enter}" />
+                                                            <TextBlock Margin="10,0,0,0"
+                                                                       lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+                                                                       lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Team"
+                                                                       Text="{lex:Loc Enter}" />
                                                         </StackPanel>
                                                     </Setter.Value>
                                                 </Setter>
@@ -414,7 +429,10 @@
                                                             <Setter.Value>
                                                                 <StackPanel Orientation="Horizontal">
                                                                     <ui:SymbolIcon Symbol="ArrowDownload24" />
-                                                                    <TextBlock Margin="10,0,0,0" Text="{lex:Loc Exit}" />
+                                                                    <TextBlock Margin="10,0,0,0"
+                                                                           lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+                                                                           lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Team"
+                                                                           Text="{lex:Loc Exit}" />
                                                                 </StackPanel>
                                                             </Setter.Value>
                                                         </Setter>
@@ -483,7 +501,10 @@
                                                     <Setter.Value>
                                                         <StackPanel Orientation="Horizontal">
                                                             <ui:SymbolIcon Symbol="ArrowUpload24" />
-                                                            <TextBlock Margin="10,0,0,0" Text="{lex:Loc Enter}" />
+                                                            <TextBlock Margin="10,0,0,0"
+                                                                       lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+                                                                       lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Team"
+                                                                       Text="{lex:Loc Enter}" />
                                                         </StackPanel>
                                                     </Setter.Value>
                                                 </Setter>
@@ -494,7 +515,10 @@
                                                             <Setter.Value>
                                                                 <StackPanel Orientation="Horizontal">
                                                                     <ui:SymbolIcon Symbol="ArrowDownload24" />
-                                                                    <TextBlock Margin="10,0,0,0" Text="{lex:Loc Exit}" />
+                                                                    <TextBlock Margin="10,0,0,0"
+                                                                           lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+                                                                           lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Team"
+                                                                           Text="{lex:Loc Exit}" />
                                                                 </StackPanel>
                                                             </Setter.Value>
                                                         </Setter>

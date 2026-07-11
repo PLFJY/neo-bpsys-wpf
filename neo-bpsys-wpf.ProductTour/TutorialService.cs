@@ -639,6 +639,7 @@ internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCanc
             cancellationToken);
         var timeoutTask = Task.Delay(step.Timeout, cancellationToken);
         var completed = await Task.WhenAny(signalTask, timeoutTask);
+        cancellationToken.ThrowIfCancellationRequested();
         if (completed == timeoutTask)
         {
             _logger.LogWarning(

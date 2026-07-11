@@ -405,6 +405,17 @@ public sealed class ProductTourOverlay : Canvas
         _spotlight.Height = spotlightRect.Height;
         LayoutMasks(width, height, spotlightRect);
 
+        // Resolve the avatar image before measuring so DesiredSize reflects the
+        // actual rendered dimensions (image aspect ratio × configured width).
+        // Without this, the Image has no Source during measure and DesiredSize
+        // collapses to (width, 0), causing the layout engine to plan for a
+        // square avatar that is shorter than the real non-square portrait.
+        if (_options.ShowAvatar)
+        {
+            var measurePose = _currentAvatarPose ?? TutorialAvatarPose.Idle;
+            _avatarImage.Source = _avatarProvider.GetAvatar(measurePose)?.ImageSource;
+        }
+
         _card.Measure(new Size(width, height));
         _avatarImage.Measure(new Size(width, height));
         var cardDesired = _card.DesiredSize;
