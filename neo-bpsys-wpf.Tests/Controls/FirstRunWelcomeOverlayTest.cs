@@ -73,7 +73,8 @@ public sealed class FirstRunWelcomeOverlayTest
             {
                 WelcomeFadeOutDuration = TimeSpan.FromMilliseconds(1)
             };
-            var overlay = new FirstRunWelcomeOverlay(new DefaultTutorialTextProvider(), options, CreateLanguageOptions());
+            var textProvider = new DefaultTutorialTextProvider();
+            var overlay = new FirstRunWelcomeOverlay(textProvider, options, CreateLanguageOptions());
             var window = new Window
             {
                 Width = 800,
@@ -98,7 +99,7 @@ public sealed class FirstRunWelcomeOverlayTest
                     .FirstOrDefault(item => Equals(item.Tag, "en_US"));
                 Assert.NotNull(english);
                 comboBox.SelectedItem = english;
-                var start = FindButtonByContent(overlay, "开始导览");
+                var start = FindButtonByContent(overlay, textProvider.StartTour);
                 Assert.NotNull(start);
                 start.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
 

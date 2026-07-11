@@ -15,8 +15,21 @@ using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Services;
 
-public sealed class LegacyFrontedLayoutConversionPolishTest
+public sealed class LegacyFrontedLayoutConversionPolishTest : IDisposable
 {
+    private readonly Func<string, string>? _previousLocalizeTemplate;
+
+    public LegacyFrontedLayoutConversionPolishTest()
+    {
+        _previousLocalizeTemplate = LegacyConvertMessageHelper.LocalizeTemplate;
+        LegacyConvertMessageHelper.LocalizeTemplate = null;
+    }
+
+    public void Dispose()
+    {
+        LegacyConvertMessageHelper.LocalizeTemplate = _previousLocalizeTemplate;
+    }
+
     private const string LegacyFont = "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简";
     private const string NotoSansFont = "pack://application:,,,/Assets/Fonts/#Noto Sans";
 

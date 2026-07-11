@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
+using WPFLocalizeExtension.Engine;
 
 namespace neo_bpsys_wpf.Tests.Infrastructure;
 
@@ -30,6 +33,7 @@ public static class WpfTestThread
             {
                 SynchronizationContext.SetSynchronizationContext(
                     new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher));
+                ClearOrphanedLocalizationEventSubscriptions();
                 action();
                 completion.TrySetResult();
             }
@@ -66,6 +70,7 @@ public static class WpfTestThread
             {
                 SynchronizationContext.SetSynchronizationContext(
                     new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher));
+                ClearOrphanedLocalizationEventSubscriptions();
 
                 var frame = new DispatcherFrame();
                 var task = action();
@@ -132,6 +137,81 @@ public static class WpfTestThread
         catch (TimeoutException)
         {
             throw new TimeoutException($"WPF test action did not finish within {timeout.TotalSeconds:N0} seconds.");
+        }
+    }
+
+    /// <summary>
+    /// Clears orphaned WPFLocalizeExtension <c>DictionaryEvent</c> listener subscriptions
+    /// left by prior tests whose STA dispatchers have shut down.  When a new test loads XAML
+    /// that sets <c>ResxLocalizationProvider.DefaultAssembly</c>, the setter raises
+    /// <c>DictionaryEvent.Invoke</c> which notifies every registered listener.  Orphaned
+    /// listeners from previous tests still reference dead dispatchers, causing
+    /// <c>TaskCanceledException</c> (wrapped in <c>XamlParseException</c>) during
+    /// <c>LoadBaml</c>.  Removing all listeners before each test ensures only the current
+    /// test's listeners are active.
+    /// </summary>
+    private static void ClearOrphanedLocalizationEventSubscriptions()
+    {
+        try
+        {
+            var dictEventType = typeof(LocalizeDictionary)
+                .GetNestedType("DictionaryEvent", BindingFlags.Public | BindingFlags.NonPublic);
+            if (dictEventType is null)
+            {
+                return;
+            }
+
+            var listenerInterfaceType = typeof(LocalizeDictionary).Assembly
+                .GetType("WPFLocalizeExtension.Engine.IDictionaryEventListener");
+            if (listenerInterfaceType is null)
+            {
+                return;
+            }
+
+            var enumerateMethod = dictEventType.GetMethod(
+                "EnumerateListeners",
+                BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+            var removeMethod = dictEventType.GetMethod(
+                "RemoveListener",
+                BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+
+            if (enumerateMethod is null || removeMethod is null)
+            {
+                return;
+            }
+
+            MethodInfo concreteEnumerate;
+            if (enumerateMethod.IsGenericMethod)
+            {
+                concreteEnumerate = enumerateMethod.MakeGenericMethod(listenerInterfaceType);
+            }
+            else
+            {
+                concreteEnumerate = enumerateMethod;
+            }
+
+            if (concreteEnumerate.Invoke(null, null) is not System.Collections.IEnumerable listeners)
+            {
+                return;
+            }
+
+            var toRemove = new List<object>();
+            foreach (var listener in listeners)
+            {
+                if (listener != null)
+                {
+                    toRemove.Add(listener);
+                }
+            }
+
+            foreach (var listener in toRemove)
+            {
+                removeMethod.Invoke(null, new[] { listener });
+            }
+        }
+        catch
+        {
+            // Best-effort cleanup; ignore if reflection fails.
         }
     }
 

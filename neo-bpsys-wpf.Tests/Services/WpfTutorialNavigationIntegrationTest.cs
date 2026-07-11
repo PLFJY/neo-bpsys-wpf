@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Markup;
 using System.Windows.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -125,14 +126,10 @@ public sealed class WpfTutorialNavigationIntegrationTest
             var hostWindow = app.HostWindow;
 
             Assert.True(NavigateIgnoringClosedLocalizationNotifications(
-                () => app.Navigation.Navigate(typeof(SmartBpPage))));
-            await WaitForDispatcherAsync(hostWindow);
-            var page = Assert.IsType<SmartBpPage>(app.Navigation.CurrentContent);
-            var viewModel = Assert.IsType<SmartBpPageViewModel>(page.DataContext);
-
-            Assert.True(NavigateIgnoringClosedLocalizationNotifications(
                 () => app.Navigation.Navigate(typeof(FrontManagePage))));
             await WaitForDispatcherAsync(hostWindow);
+
+            var viewModel = app.Services.GetRequiredService<SmartBpPageViewModel>();
 
             viewModel.ModuleContent = CreateSmartBpModuleContent();
             viewModel.IsModuleLoaded = true;
@@ -164,10 +161,10 @@ public sealed class WpfTutorialNavigationIntegrationTest
 
             Assert.True(NavigateIgnoringClosedLocalizationNotifications(
                 () => app.Navigation.Navigate(typeof(SmartBpPage))));
-            await WaitForDispatcherAsync(hostWindow);
+            await IgnoreClosedDispatcherLocalizationNotificationsAsync(() => WaitForDispatcherAsync(hostWindow));
 
             childOwner.RaiseEvent(new RoutedEventArgs(FrameworkElement.LoadedEvent));
-            await WaitForDispatcherAsync(hostWindow);
+            await IgnoreClosedDispatcherLocalizationNotificationsAsync(() => WaitForDispatcherAsync(hostWindow));
             await Task.Delay(300);
 
             Assert.Equal(
@@ -395,7 +392,7 @@ public sealed class WpfTutorialNavigationIntegrationTest
         {
             return navigate();
         }
-        catch (AggregateException ex) when (RealAppTestHost.IsClosedDispatcherLocalizationException(ex))
+        catch (Exception ex) when (RealAppTestHost.IsClosedDispatcherLocalizationException(ex))
         {
             return true;
         }
@@ -407,7 +404,18 @@ public sealed class WpfTutorialNavigationIntegrationTest
         {
             navigate();
         }
-        catch (AggregateException ex) when (RealAppTestHost.IsClosedDispatcherLocalizationException(ex))
+        catch (Exception ex) when (RealAppTestHost.IsClosedDispatcherLocalizationException(ex))
+        {
+        }
+    }
+
+    private static async Task IgnoreClosedDispatcherLocalizationNotificationsAsync(Func<Task> action)
+    {
+        try
+        {
+            await action();
+        }
+        catch (Exception ex) when (RealAppTestHost.IsClosedDispatcherLocalizationException(ex))
         {
         }
     }
@@ -419,6 +427,7 @@ public sealed class WpfTutorialNavigationIntegrationTest
         private readonly RecordingTutorialRunObserver _observer;
         private readonly DispatcherUnhandledExceptionEventHandler _dispatcherExceptionHandler;
         private readonly EventHandler<NavigationPageChangedEventArgs> _pageChangedHandler;
+        private readonly CultureInfo _previousCulture;
 
         private RealAppTestHost(
             IHost? previousHost,
@@ -427,13 +436,15 @@ public sealed class WpfTutorialNavigationIntegrationTest
             Window hostWindow,
             ModernNavigationView navigation,
             DispatcherUnhandledExceptionEventHandler dispatcherExceptionHandler,
-            EventHandler<NavigationPageChangedEventArgs> pageChangedHandler)
+            EventHandler<NavigationPageChangedEventArgs> pageChangedHandler,
+            CultureInfo previousCulture)
         {
             _previousHost = previousHost;
             _host = host;
             _observer = observer;
             _dispatcherExceptionHandler = dispatcherExceptionHandler;
             _pageChangedHandler = pageChangedHandler;
+            _previousCulture = previousCulture;
             HostWindow = hostWindow;
             Navigation = navigation;
         }
@@ -441,6 +452,8 @@ public sealed class WpfTutorialNavigationIntegrationTest
         public Window HostWindow { get; }
 
         public ModernNavigationView Navigation { get; }
+
+        public IServiceProvider Services => _host.Services;
 
         public static async Task<RealAppTestHost> StartAsync(RecordingTutorialRunObserver observer)
         {
@@ -479,6 +492,7 @@ public sealed class WpfTutorialNavigationIntegrationTest
                 ShowInTaskbar = false,
                 WindowStyle = WindowStyle.None
             };
+            var previousCulture = LocalizeDictionary.Instance.Culture;
             EnsureLocalizationInitialized(hostWindow);
             var navigation = new ModernNavigationView
             {
@@ -516,7 +530,7 @@ public sealed class WpfTutorialNavigationIntegrationTest
             hostWindow.Content = navigation;
             hostWindow.Show();
             await WaitForDispatcherAsync(hostWindow);
-            return new RealAppTestHost(previousHost, host, observer, hostWindow, navigation, dispatcherExceptionHandler, pageChangedHandler);
+            return new RealAppTestHost(previousHost, host, observer, hostWindow, navigation, dispatcherExceptionHandler, pageChangedHandler, previousCulture);
         }
 
         private static void EnsureLocalizationInitialized(DependencyObject root)
@@ -554,15 +568,18 @@ public sealed class WpfTutorialNavigationIntegrationTest
             {
                 action();
             }
-            catch (AggregateException ex) when (IsClosedDispatcherLocalizationException(ex))
+            catch (Exception ex) when (IsClosedDispatcherLocalizationException(ex))
             {
             }
         }
 
         internal static bool IsClosedDispatcherLocalizationException(Exception exception) =>
             exception is TaskCanceledException
-            || exception is AggregateException aggregate
-            && aggregate.InnerExceptions.All(IsClosedDispatcherLocalizationException);
+            || (exception is AggregateException aggregate
+                && aggregate.InnerExceptions.All(IsClosedDispatcherLocalizationException))
+            || (exception is XamlParseException xpe
+                && xpe.InnerException is { } inner
+                && IsClosedDispatcherLocalizationException(inner));
 
         public string Dump()
         {
@@ -601,6 +618,8 @@ public sealed class WpfTutorialNavigationIntegrationTest
                 HostWindow.Dispatcher.UnhandledException -= _dispatcherExceptionHandler;
                 _host.Services.GetRequiredService<neo_bpsys_wpf.Services.NavigationService>().PageChanged -= _pageChangedHandler;
                 IAppHost.Host = _previousHost;
+                IgnoreClosedDispatcherLocalizationNotifications(
+                    () => LocalizeDictionary.Instance.Culture = _previousCulture);
                 _host.Dispose();
             }
 

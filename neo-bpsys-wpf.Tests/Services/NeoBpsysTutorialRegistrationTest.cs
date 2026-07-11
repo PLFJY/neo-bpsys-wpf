@@ -8,12 +8,14 @@ using neo_bpsys_wpf.Views.Pages;
 using neo_bpsys_wpf.Views.Pages.FrontManage;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using WPFLocalizeExtension.Engine;
 using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Services;
@@ -21,9 +23,37 @@ namespace neo_bpsys_wpf.Tests.Services;
 /// <summary>
 /// Tests built-in neo-bpsys-wpf tutorial registration contracts.
 /// </summary>
-public sealed class NeoBpsysTutorialRegistrationTest
+public sealed class NeoBpsysTutorialRegistrationTest : IDisposable
 {
     private static readonly ITutorialContentResolver ContentResolver = new NeoBpsysTutorialContentResolver();
+    private readonly CultureInfo _previousCulture;
+
+    public NeoBpsysTutorialRegistrationTest()
+    {
+        _previousCulture = LocalizeDictionary.Instance.Culture;
+        TrySetCulture(CultureInfo.GetCultureInfo("zh-CN"));
+    }
+
+    public void Dispose()
+    {
+        TrySetCulture(_previousCulture);
+    }
+
+    private static void TrySetCulture(CultureInfo culture)
+    {
+        try
+        {
+            LocalizeDictionary.Instance.Culture = culture;
+        }
+        catch (Exception ex) when (IsClosedDispatcherLocalizationException(ex))
+        {
+        }
+    }
+
+    private static bool IsClosedDispatcherLocalizationException(Exception exception) =>
+        exception is TaskCanceledException
+        || (exception is AggregateException aggregate
+            && aggregate.InnerExceptions.All(IsClosedDispatcherLocalizationException));
 
     [Fact]
     public void RegistrationKeepsBuiltInSequencesPackagesAndFirstRunIncludes()

@@ -1,4 +1,6 @@
+using System;
 using neo_bpsys_wpf.ProductTour.Controls;
+using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Controls;
 

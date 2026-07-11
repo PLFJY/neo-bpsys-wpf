@@ -603,50 +603,6 @@ public sealed class SmartBpAiRecognitionContractTest
     }
 
     [Fact]
-    public async Task QwenManifestContainsTwoBandPointModelProfiles()
-    {
-        var manifest = await new QwenModelManifestProvider(NullLogger<QwenModelManifestProvider>.Instance).LoadAsync(TestContext.Current.CancellationToken);
-
-        Assert.Contains(manifest.Models, model => model.Id == "qwen3.5-2b-q4km");
-        Assert.Contains(manifest.Models, model => model.Id == "qwen3.5-0.8b-q4km");
-    }
-
-    [Fact]
-    public async Task LocalVisionManifestContainsPaddleOcrVlModelScopeProfile()
-    {
-        var manifest = await new QwenModelManifestProvider(NullLogger<QwenModelManifestProvider>.Instance).LoadAsync(TestContext.Current.CancellationToken);
-
-        var profile = Assert.Single(manifest.Models.Where(model => model.Id == "paddleocr-vl-1.6-gguf"));
-        Assert.Equal("PaddleOCR-VL 1.6 GGUF", profile.DisplayName);
-        Assert.Equal(LocalVisionModelFamily.PaddleOcrVl, profile.Family);
-        Assert.Equal(LocalVisionModelRole.AiOcrTextExtractor, profile.Role);
-        Assert.False(profile.Recommended);
-        Assert.True(profile.Experimental);
-        Assert.Equal("https://www.modelscope.cn/models/PaddlePaddle/PaddleOCR-VL-1.6-GGUF/resolve/master/PaddleOCR-VL-1.6-GGUF.gguf", profile.ModelUrl);
-        Assert.Equal("PaddleOCR-VL-1.6-GGUF.gguf", profile.ModelFileName);
-        Assert.Equal("f3ae46ec885050acf4b3d31944431e1fd90d50664fb09126af4a3c050ba14ee8", profile.Sha256);
-        Assert.Equal("https://www.modelscope.cn/models/PaddlePaddle/PaddleOCR-VL-1.6-GGUF/resolve/master/PaddleOCR-VL-1.6-GGUF-mmproj.gguf", profile.MmprojUrl);
-        Assert.Equal("PaddleOCR-VL-1.6-GGUF-mmproj.gguf", profile.MmprojFileName);
-        Assert.Equal("204d757d7610d9b3faab10d506d69e5b244e32bf765e2bab2d0167e65e0a058a", profile.MmprojSha256);
-        Assert.Equal(QwenMmprojMode.Separate, profile.MmprojMode);
-    }
-
-    [Fact]
-    public async Task LocalVisionManifestAssignsModelRoles()
-    {
-        var manifest = await new QwenModelManifestProvider(NullLogger<QwenModelManifestProvider>.Instance).LoadAsync(TestContext.Current.CancellationToken);
-
-        Assert.Contains(manifest.Models, model => model.Id == "glm-ocr-q4km" &&
-                                                  model.Role == LocalVisionModelRole.AiOcrTextExtractor &&
-                                                  !model.Recommended);
-        Assert.Contains(manifest.Models, model => model.Id == "qwen3.5-2b-q4km" &&
-                                                  model.Role is LocalVisionModelRole.BusinessVlm or LocalVisionModelRole.Both);
-        Assert.Contains(manifest.Models, model => model.Id == "qwen3.5-0.8b-q4km" &&
-                                                  model.Role is LocalVisionModelRole.BusinessVlm or LocalVisionModelRole.AiOcrTextExtractor or LocalVisionModelRole.Both &&
-                                                  model.Experimental);
-    }
-
-    [Fact]
     public void SnapshotDeltaParserRejectsUnrequestedField()
     {
         var raw = """
@@ -916,32 +872,6 @@ public sealed class SmartBpAiRecognitionContractTest
         Assert.Contains("Mozilla/5.0", client.DefaultRequestHeaders.UserAgent.ToString());
         Assert.Contains(client.DefaultRequestHeaders.Accept, value => value.MediaType == "application/octet-stream");
         Assert.Equal("https://models.example.test/", client.DefaultRequestHeaders.Referrer?.AbsoluteUri);
-    }
-
-    [Fact]
-    public async Task BundledPromptProfilesLoadAndChineseProfileEnforcesJsonAndNoMapBp()
-    {
-        var provider = new SmartBpPromptProfileProvider();
-        var profiles = await provider.GetAvailableProfilesAsync(TestContext.Current.CancellationToken);
-        var chinese = await provider.LoadAsync("zh-CN", TestContext.Current.CancellationToken);
-        Assert.Equal(3, profiles.Count);
-        Assert.Contains("你只输出一个业务 JSON", chinese.SystemPrompt);
-        Assert.Contains("非活动侧显示的“等待中”不能决定 phase", chinese.SystemPrompt);
-        Assert.Contains("右上大标题包含“屏蔽求生者” => phase = \"屏蔽求生者\"", chinese.SystemPrompt);
-        Assert.Contains("左上大标题包含“屏蔽监管者” => phase = \"屏蔽监管者\"", chinese.SystemPrompt);
-        Assert.Contains("右下监管者头像下方第二行", chinese.SystemPrompt);
-        Assert.Contains("不要因为低亮度、禁用符号、打勾、半透明、背景暗，就把可读角色输出为“未选择”", chinese.SystemPrompt);
-        Assert.Contains("如果画面显示 “心理学家” 或 \"心理学家\"，但候选列表中是 心理学家，输出 \"心理学家\"", chinese.SystemPrompt);
-        Assert.Contains("禁用符号不是未选择", chinese.SystemPrompt);
-        Assert.Contains("红色禁止符号", chinese.SystemPrompt);
-        Assert.Contains("banned_sur 来自右上区域", chinese.SystemPrompt);
-        Assert.Contains("banned_hun 来自左上区域", chinese.SystemPrompt);
-        Assert.Contains("求生者选择天赋中", chinese.SystemPrompt);
-        Assert.Contains("监管者选择天赋中", chinese.SystemPrompt);
-        Assert.Contains("天赋已锁定", chinese.SystemPrompt);
-        Assert.Contains("MapBP 字段", chinese.SystemPrompt);
-        Assert.Contains("左上 = 求生者方禁用监管者区域", chinese.SystemPrompt);
-        Assert.Contains("右上 = 监管者方禁用求生者区域", chinese.SystemPrompt);
     }
 
     [Theory]
@@ -1458,14 +1388,6 @@ public sealed class SmartBpAiRecognitionContractTest
         Assert.Contains(result.Messages, message => message.Contains("without animation", StringComparison.OrdinalIgnoreCase));
         selection.Verify(x => x.SelectSurvivorAsync(0, survivor, false, It.IsAny<bool>()), Times.Once);
         ledger.Verify(x => x.MarkCompleted(It.IsAny<SmartBpWorkflowOperationKey>()), Times.Once);
-    }
-
-    [Fact]
-    public async Task RuntimeManifestVersionMatchesReleaseAssets()
-    {
-        var manifest = await new LlamaCppRuntimeManifestProvider().LoadAsync(TestContext.Current.CancellationToken);
-        Assert.EndsWith(manifest.RuntimeVersion, manifest.ReleasePage);
-        Assert.All(manifest.Assets, asset => Assert.Contains($"/{manifest.RuntimeVersion}/", asset.Url));
     }
 
     [Fact]

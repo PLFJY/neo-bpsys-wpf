@@ -7,8 +7,21 @@ using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Services;
 
-public sealed class LegacyConvertMessageLocalizationTest
+public sealed class LegacyConvertMessageLocalizationTest : IDisposable
 {
+    private readonly Func<string, string>? _previousLocalizeTemplate;
+
+    public LegacyConvertMessageLocalizationTest()
+    {
+        _previousLocalizeTemplate = LegacyConvertMessageHelper.LocalizeTemplate;
+        LegacyConvertMessageHelper.LocalizeTemplate = null;
+    }
+
+    public void Dispose()
+    {
+        LegacyConvertMessageHelper.LocalizeTemplate = _previousLocalizeTemplate;
+    }
+
     [Fact]
     public void MapBpV1Skipped_HasCorrectCodeAndSeverity()
     {

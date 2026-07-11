@@ -23,8 +23,21 @@ using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Services;
 
-public class FrontedLayoutPackageManagerTest
+public class FrontedLayoutPackageManagerTest : IDisposable
 {
+    private readonly Func<string, string>? _previousLocalizeTemplate;
+
+    public FrontedLayoutPackageManagerTest()
+    {
+        _previousLocalizeTemplate = LegacyConvertMessageHelper.LocalizeTemplate;
+        LegacyConvertMessageHelper.LocalizeTemplate = null;
+    }
+
+    public void Dispose()
+    {
+        LegacyConvertMessageHelper.LocalizeTemplate = _previousLocalizeTemplate;
+    }
+
     [Fact]
     public async Task BuiltinPackageIsAlwaysListedAndActiveByDefault()
     {

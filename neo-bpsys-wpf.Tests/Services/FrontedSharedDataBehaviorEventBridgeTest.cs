@@ -226,7 +226,7 @@ public class FrontedSharedDataBehaviorEventBridgeTest
         Assert.Equal("Selection.CharacterSelected", received!.EventType);
         Assert.Equal("CharacterSelectionService", received.Source);
         Assert.Equal(Camp.Sur, received.Payload["Camp"]);
-        Assert.Equal(0, received.Payload["PlayerIndex"]);
+        Assert.Equal(0, received.Payload["Index"]);
     }
 
     [Fact]

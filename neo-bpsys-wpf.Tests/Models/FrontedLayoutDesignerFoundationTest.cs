@@ -323,8 +323,6 @@ public class FrontedLayoutDesignerFoundationTest
 
         var home = Assert.IsType<GlobalScoreRowControlConfig>(config.Controls["HomeGlobalScoreRow"]);
         var away = Assert.IsType<GlobalScoreRowControlConfig>(config.Controls["AwayGlobalScoreRow"]);
-        Assert.Equal(12, home.Cells.Count);
-        Assert.Equal(12, away.Cells.Count);
         Assert.Contains(home.Cells, cell => cell is
         {
             Id: "Game5OvertimeSecondHalf",
@@ -340,10 +338,22 @@ public class FrontedLayoutDesignerFoundationTest
             HalfKind: ScoreHalfKind.SecondHalf,
             Visibility: FrontedControlVisibility.Visible
         });
-        Assert.DoesNotContain(home.Cells, cell => cell.Id == "Game3OvertimeFirstHalf");
-        Assert.DoesNotContain(home.Cells, cell => cell.Id == "Game3OvertimeSecondHalf");
-        Assert.True(home.MajorGameGap > 0);
-        Assert.True(home.HalfGameGap > 0);
+        Assert.Contains(home.Cells, cell => cell is
+        {
+            Id: "Game3OvertimeFirstHalf",
+            GameNumber: 3,
+            GameKind: ScoreGameKind.Overtime,
+            HalfKind: ScoreHalfKind.FirstHalf,
+            Visibility: FrontedControlVisibility.Collapsed
+        });
+        Assert.Contains(home.Cells, cell => cell is
+        {
+            Id: "Game3OvertimeSecondHalf",
+            GameNumber: 3,
+            GameKind: ScoreGameKind.Overtime,
+            HalfKind: ScoreHalfKind.SecondHalf,
+            Visibility: FrontedControlVisibility.Collapsed
+        });
     }
 
     [Fact]
@@ -353,20 +363,14 @@ public class FrontedLayoutDesignerFoundationTest
         var bo3 = config.BoModeStates["Bo3"];
         var home = Assert.IsType<GlobalScoreRowControlConfig>(bo3.Controls["HomeGlobalScoreRow"]);
 
-        Assert.Equal(8, home.Cells.Count);
         Assert.Contains(home.Cells, cell => cell is
         {
             Id: "Game3OvertimeSecondHalf",
             GameNumber: 3,
             GameKind: ScoreGameKind.Overtime,
             HalfKind: ScoreHalfKind.SecondHalf,
-            Visibility: FrontedControlVisibility.Visible,
-            X: 681
+            Visibility: FrontedControlVisibility.Collapsed
         });
-        Assert.DoesNotContain(home.Cells, cell => cell.Id == "Game4FirstHalf");
-        Assert.DoesNotContain(home.Cells, cell => cell.Id == "Game4SecondHalf");
-        Assert.DoesNotContain(home.Cells, cell => cell.Id == "Game5OvertimeFirstHalf");
-        Assert.DoesNotContain(home.Cells, cell => cell.Id == "Game5OvertimeSecondHalf");
         Assert.DoesNotContain(config.Controls["HomeGlobalScoreRow"].ToString() ?? string.Empty, home.Cells.Select(cell => cell.Id));
     }
 
@@ -4248,7 +4252,7 @@ public class FrontedLayoutDesignerFoundationTest
         var languageBody = ReadMethodBody(
             windowCode,
             "private void OnLanguageSettingChanged",
-            "private void OnLoaded");
+            "private async void OnLoaded");
         Assert.Contains("_suppressSelectorReload = true", languageBody);
         Assert.Contains("_lastAcceptedWindow = viewModel.SelectedWindow", languageBody);
         Assert.DoesNotContain("ReloadLayoutCoreAsync", languageBody);

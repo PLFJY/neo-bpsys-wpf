@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using System.Threading.Tasks;
 using System.Windows.Markup;
 using System.Windows.Controls;
 using System.Windows.Threading;
@@ -486,8 +487,10 @@ public sealed class I18nResourceAuditTest
         WpfTestThread.Run(() =>
         {
             var root = new Grid();
-            ResxLocalizationProvider.SetDefaultAssembly(root, HostAssembly);
-            ResxLocalizationProvider.SetDefaultDictionary(root, "neo_bpsys_wpf.Locales.Shell");
+            IgnoreClosedDispatcherLocalizationNotifications(
+                () => ResxLocalizationProvider.SetDefaultAssembly(root, HostAssembly));
+            IgnoreClosedDispatcherLocalizationNotifications(
+                () => ResxLocalizationProvider.SetDefaultDictionary(root, "neo_bpsys_wpf.Locales.Shell"));
 
             var value = LocalizeDictionary.Instance.GetLocalizedObject(
                 "Backend",
@@ -513,11 +516,11 @@ public sealed class I18nResourceAuditTest
                     "lex:ResxLocalizationProvider.DefaultDictionary=\"neo_bpsys_wpf.Locales.Shell\" " +
                     "Text=\"{lex:Loc Backend}\" />");
 
-                LocalizeDictionary.Instance.Culture = CultureInfo.GetCultureInfo("zh-CN");
+                SetCultureSafely(CultureInfo.GetCultureInfo("zh-CN"));
                 Dispatcher.CurrentDispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
                 var chinese = text.Text;
 
-                LocalizeDictionary.Instance.Culture = CultureInfo.GetCultureInfo("en-US");
+                SetCultureSafely(CultureInfo.GetCultureInfo("en-US"));
                 Dispatcher.CurrentDispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
                 var english = text.Text;
 
@@ -527,11 +530,36 @@ public sealed class I18nResourceAuditTest
             }
             finally
             {
-                LocalizeDictionary.Instance.Culture = previousCulture;
+                SetCultureSafely(previousCulture);
                 Dispatcher.CurrentDispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
             }
         });
     }
+
+    private static void SetCultureSafely(CultureInfo culture)
+    {
+        IgnoreClosedDispatcherLocalizationNotifications(
+            () => LocalizeDictionary.Instance.Culture = culture);
+    }
+
+    private static void IgnoreClosedDispatcherLocalizationNotifications(Action action)
+    {
+        try
+        {
+            action();
+        }
+        catch (Exception ex) when (IsClosedDispatcherLocalizationException(ex))
+        {
+        }
+    }
+
+    private static bool IsClosedDispatcherLocalizationException(Exception exception) =>
+        exception is TaskCanceledException
+        || (exception is AggregateException aggregate
+            && aggregate.InnerExceptions.All(IsClosedDispatcherLocalizationException))
+        || (exception is XamlParseException xpe
+            && xpe.InnerException is { } inner
+            && IsClosedDispatcherLocalizationException(inner));
 
     /// <summary>
     /// Verifies that I18nHelper returns the key itself when the key does not

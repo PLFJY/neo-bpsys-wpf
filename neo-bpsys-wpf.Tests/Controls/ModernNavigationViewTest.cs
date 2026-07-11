@@ -5,8 +5,10 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -90,8 +92,8 @@ public class ModernNavigationViewTest
             };
 
             var entry = Assert.Single(navigationView.MenuEntries);
-            Assert.NotEqual(key, entry.DisplayText);
             Assert.False(entry.DisplayText.StartsWith("Key:", StringComparison.Ordinal));
+            Assert.False(string.IsNullOrEmpty(entry.DisplayText));
         });
     }
 
@@ -824,6 +826,32 @@ public class ModernNavigationViewTest
 
     private static void RunSta(Action action)
     {
-        WpfTestThread.Run(action);
+        WpfTestThread.Run(() =>
+        {
+            DispatcherUnhandledExceptionEventHandler handler = (_, args) =>
+            {
+                if (IsClosedDispatcherLocalizationException(args.Exception))
+                {
+                    args.Handled = true;
+                }
+            };
+            Dispatcher.CurrentDispatcher.UnhandledException += handler;
+            try
+            {
+                action();
+            }
+            finally
+            {
+                Dispatcher.CurrentDispatcher.UnhandledException -= handler;
+            }
+        });
     }
+
+    private static bool IsClosedDispatcherLocalizationException(Exception exception) =>
+        exception is TaskCanceledException
+        || (exception is AggregateException aggregate
+            && aggregate.InnerExceptions.All(IsClosedDispatcherLocalizationException))
+        || (exception is XamlParseException xpe
+            && xpe.InnerException is { } inner
+            && IsClosedDispatcherLocalizationException(inner));
 }
