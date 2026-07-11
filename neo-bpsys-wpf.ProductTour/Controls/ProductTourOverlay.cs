@@ -224,7 +224,7 @@ public sealed class ProductTourOverlay : Canvas
 
         _previousButton.Content = _textProvider.Previous;
         _globalSkipButton.Content = _textProvider.Skip;
-        _nextButton.Content = _currentStepIndex == _currentStepCount - 1 ? _textProvider.Finish : _textProvider.Next;
+        UpdateNextButtonPresentation();
         _waitingText.Text = _textProvider.WaitingForAction;
 
         if (_confirmDialog != null)
@@ -270,9 +270,9 @@ public sealed class ProductTourOverlay : Canvas
         _progress.Visibility = _options.ShowStepProgress ? Visibility.Visible : Visibility.Collapsed;
         _previousButton.IsEnabled = context.StepIndex > 0;
         _previousButton.Visibility = context.StepIndex > 0 ? Visibility.Visible : Visibility.Collapsed;
-        _nextButton.Content = context.StepIndex == context.StepCount - 1 ? _textProvider.Finish : _textProvider.Next;
         _nextButton.IsEnabled = _signalReceived;
-        _nextButton.Visibility = _signalReceived ? Visibility.Visible : Visibility.Collapsed;
+        _nextButton.Visibility = Visibility.Visible;
+        UpdateNextButtonPresentation();
         _waitingText.Visibility = _signalReceived ? Visibility.Collapsed : Visibility.Visible;
         _errorText.Visibility = Visibility.Collapsed;
         _errorText.Text = string.Empty;
@@ -296,7 +296,8 @@ public sealed class ProductTourOverlay : Canvas
     {
         _signalReceived = true;
         _nextButton.IsEnabled = true;
-        _nextButton.Visibility = Visibility.Collapsed;
+        _nextButton.Visibility = Visibility.Visible;
+        UpdateNextButtonPresentation();
         _waitingText.Visibility = Visibility.Collapsed;
         _errorText.Visibility = Visibility.Collapsed;
         _errorText.Text = string.Empty;
@@ -309,10 +310,21 @@ public sealed class ProductTourOverlay : Canvas
     {
         _signalReceived = false;
         _nextButton.IsEnabled = false;
-        _nextButton.Visibility = Visibility.Collapsed;
+        _nextButton.Visibility = Visibility.Visible;
+        UpdateNextButtonPresentation();
         _waitingText.Visibility = Visibility.Collapsed;
         _errorText.Text = message;
         _errorText.Visibility = Visibility.Visible;
+    }
+
+    private void UpdateNextButtonPresentation()
+    {
+        var isWaitingForSignal = !_signalReceived;
+        _nextButton.Content = isWaitingForSignal || _currentStepIndex < _currentStepCount - 1
+            ? _textProvider.Next
+            : _textProvider.Finish;
+        _nextButton.Style = TryFindResource(
+            isWaitingForSignal ? "ProductTourSecondaryButtonStyle" : "ProductTourPrimaryButtonStyle") as Style;
     }
 
     /// <summary>Plays the exit animation.</summary>

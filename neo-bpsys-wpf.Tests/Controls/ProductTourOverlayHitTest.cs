@@ -158,6 +158,38 @@ public sealed class ProductTourOverlayHitTest
     }
 
     [Fact]
+    public async Task WaitingForSignalKeepsNextButtonVisibleButDisabled()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var host = CreateOwnerWithTarget();
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            try
+            {
+                var overlay = await ShowOverlayAsync(
+                    host.Owner,
+                    host.Target,
+                    ProductTourInteractionMode.BlockAll,
+                    cts.Token,
+                    textProvider: new FakeTutorialTextProvider(),
+                    waitForSignalId: "Signal.Test");
+                var nextButton = FindButtonByContent(overlay.Overlay, "FAKE_NEXT");
+
+                Assert.NotNull(nextButton);
+                Assert.Equal(Visibility.Visible, nextButton.Visibility);
+                Assert.False(nextButton.IsEnabled);
+
+                cts.Cancel();
+                await overlay.Task;
+            }
+            finally
+            {
+                host.Window.Close();
+            }
+        });
+    }
+
+    [Fact]
     public async Task BlockAllInterceptsTargetHitTest()
     {
         await WpfTestThread.RunAsync(async () =>
@@ -231,7 +263,8 @@ public sealed class ProductTourOverlayHitTest
         ProductTourInteractionMode interactionMode,
         CancellationToken cancellationToken,
         ProductTourOptions? options = null,
-        ITutorialTextProvider? textProvider = null)
+        ITutorialTextProvider? textProvider = null,
+        string? waitForSignalId = null)
     {
         var overlay = new ProductTourOverlay(textProvider ?? new DefaultTutorialTextProvider(), options ?? new ProductTourOptions());
         owner.Children.Add(overlay);
@@ -242,7 +275,8 @@ public sealed class ProductTourOverlayHitTest
                 Title = "Title",
                 Description = "Description",
                 Placement = ProductTourPlacement.Right,
-                InteractionMode = interactionMode
+                InteractionMode = interactionMode,
+                WaitForSignalId = waitForSignalId
             },
             target,
             new ProductTourStepContext

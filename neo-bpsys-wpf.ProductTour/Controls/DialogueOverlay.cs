@@ -1,8 +1,8 @@
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
-using System.Windows.Threading;
 
 namespace neo_bpsys_wpf.ProductTour.Controls;
 
@@ -13,6 +13,7 @@ public sealed class DialogueOverlay : Grid
 {
     private readonly TextBlock _speakerBlock;
     private readonly TextBlock _textBlock;
+    private readonly TextBlock _textMeasureBlock;
     private readonly TextBlock _continueBlock;
     private readonly Border _dialogueBox;
     private readonly Button _skipButton;
@@ -20,7 +21,8 @@ public sealed class DialogueOverlay : Grid
     private IReadOnlyList<string> _lines = [];
     private int _lineIndex;
     private int _charIndex;
-    private DispatcherTimer? _timer;
+    private readonly Stopwatch _typewriterStopwatch = new();
+    private bool _isTypewriterRendering;
     private TaskCompletionSource<TutorialRunResult>? _completion;
     private readonly ITutorialTextProvider _textProvider;
     private readonly ProductTourOptions _options;
@@ -80,6 +82,18 @@ public sealed class DialogueOverlay : Grid
 
         _textBlock = new TextBlock { TextWrapping = TextWrapping.Wrap };
         _textBlock.Style = TryFindResource("ProductTourDialogueTextStyle") as Style;
+        _textMeasureBlock = new TextBlock
+        {
+            TextWrapping = TextWrapping.Wrap,
+            Visibility = Visibility.Hidden,
+            IsHitTestVisible = false
+        };
+        _textMeasureBlock.Style = TryFindResource("ProductTourDialogueTextStyle") as Style;
+
+        var dialogueTextHost = new Grid
+        {
+            Children = { _textMeasureBlock, _textBlock }
+        };
 
         _continueBlock = new TextBlock
         {
@@ -119,7 +133,7 @@ public sealed class DialogueOverlay : Grid
             VerticalAlignment = VerticalAlignment.Bottom,
             Margin = _options.DialogueBoxMargin,
             RenderTransform = new TranslateTransform(0, _options.DialogueInitialTranslateY),
-            Child = new StackPanel { Children = { _speakerBlock, _textBlock, _continueBlock } }
+            Child = new StackPanel { Children = { _speakerBlock, dialogueTextHost, _continueBlock } }
         };
         Panel.SetZIndex(_dialogueBox, 2);
 
@@ -140,7 +154,11 @@ public sealed class DialogueOverlay : Grid
         MouseLeftButtonDown += (_, _) => Advance();
 
         _languageService.LanguageChanged += OnLanguageChanged;
-        Unloaded += (_, _) => _languageService.LanguageChanged -= OnLanguageChanged;
+        Unloaded += (_, _) =>
+        {
+            StopTypewriter();
+            _languageService.LanguageChanged -= OnLanguageChanged;
+        };
     }
 
     private void OnLanguageChanged(object? sender, EventArgs e)
@@ -205,6 +223,7 @@ public sealed class DialogueOverlay : Grid
         await FadeInAsync();
         await using var registration = cancellationToken.Register(() => _completion.TrySetResult(TutorialRunResult.Canceled));
         var result = await _completion.Task;
+        StopTypewriter();
         await FadeOutAsync();
         return result;
     }
@@ -217,31 +236,93 @@ public sealed class DialogueOverlay : Grid
 
     private void StartLine()
     {
-        _timer?.Stop();
+        StopTypewriter();
         _charIndex = 0;
         _textBlock.Text = string.Empty;
         _continueBlock.Visibility = Visibility.Hidden;
-        _timer = new DispatcherTimer { Interval = TypewriterInterval };
-        _timer.Tick += (_, _) =>
+
+        if (_lineIndex >= _lines.Count)
         {
-            if (_lineIndex >= _lines.Count)
-            {
-                _timer.Stop();
-                return;
-            }
+            _textMeasureBlock.Text = string.Empty;
+            return;
+        }
 
-            var line = _lines[_lineIndex];
-            if (_charIndex >= line.Length)
-            {
-                _timer.Stop();
-                _continueBlock.Visibility = Visibility.Visible;
-                return;
-            }
+        var line = _lines[_lineIndex];
+        _textMeasureBlock.Text = line;
+        if (line.Length == 0 || TypewriterInterval <= TimeSpan.Zero)
+        {
+            CompleteCurrentLine(line);
+            return;
+        }
 
-            _textBlock.Text += line[_charIndex];
-            _charIndex++;
-        };
-        _timer.Start();
+        _typewriterStopwatch.Restart();
+        CompositionTarget.Rendering += OnTypewriterRendering;
+        _isTypewriterRendering = true;
+    }
+
+    private void OnTypewriterRendering(object? sender, EventArgs e)
+    {
+        if (_lineIndex >= _lines.Count)
+        {
+            StopTypewriter();
+            return;
+        }
+
+        var line = _lines[_lineIndex];
+        var targetCharIndex = CalculateVisibleCharacterCount(
+            line.Length,
+            _typewriterStopwatch.Elapsed,
+            TypewriterInterval);
+        if (targetCharIndex <= _charIndex)
+        {
+            return;
+        }
+
+        _charIndex = targetCharIndex;
+        _textBlock.Text = line[.._charIndex];
+        if (_charIndex >= line.Length)
+        {
+            CompleteCurrentLine(line);
+        }
+    }
+
+    internal static int CalculateVisibleCharacterCount(
+        int lineLength,
+        TimeSpan elapsed,
+        TimeSpan characterInterval)
+    {
+        if (lineLength <= 0)
+        {
+            return 0;
+        }
+
+        if (characterInterval <= TimeSpan.Zero)
+        {
+            return lineLength;
+        }
+
+        var elapsedIntervals = elapsed.Ticks / (double)characterInterval.Ticks;
+        return Math.Min(lineLength, Math.Max(0, (int)Math.Floor(elapsedIntervals)));
+    }
+
+    private void CompleteCurrentLine(string line)
+    {
+        StopTypewriter();
+        _textBlock.Text = line;
+        _charIndex = line.Length;
+        _continueBlock.Visibility = Visibility.Visible;
+    }
+
+    private void StopTypewriter()
+    {
+        _typewriterStopwatch.Stop();
+        if (!_isTypewriterRendering)
+        {
+            return;
+        }
+
+        CompositionTarget.Rendering -= OnTypewriterRendering;
+        _isTypewriterRendering = false;
     }
 
     private void Advance()
@@ -259,10 +340,7 @@ public sealed class DialogueOverlay : Grid
         var line = _lines[_lineIndex];
         if (_charIndex < line.Length)
         {
-            _timer?.Stop();
-            _textBlock.Text = line;
-            _charIndex = line.Length;
-            _continueBlock.Visibility = Visibility.Visible;
+            CompleteCurrentLine(line);
             return;
         }
 
