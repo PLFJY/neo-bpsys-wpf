@@ -1,136 +1,148 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype">text/microsoft-resx</resheader>
   <resheader name="version">2.0</resheader>
   <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
   <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
-  <data name="NewGame" xml:space="preserve">
+  <data name="NewGame">
     <value>新しい試合</value>
   </data>
-  <data name="GameProgressColon" xml:space="preserve">
+  <data name="GameProgressColon">
     <value>試合進行：</value>
   </data>
-  <data name="DecodingProgress" xml:space="preserve">
+  <data name="DecodingProgress">
     <value>暗号解読進捗</value>
   </data>
-  <data name="PalletStrikes" xml:space="preserve">
+  <data name="PalletStrikes">
     <value>板命中回数</value>
   </data>
-  <data name="Rescues" xml:space="preserve">
+  <data name="Rescues">
     <value>救助回数</value>
   </data>
-  <data name="Heals" xml:space="preserve">
+  <data name="Heals">
     <value>治療回数</value>
   </data>
-  <data name="ContainmentTime" xml:space="preserve">
+  <data name="ContainmentTime">
     <value>牽制時間（秒）</value>
   </data>
-  <data name="RemainingCiphers" xml:space="preserve">
+  <data name="RemainingCiphers">
     <value>残り暗号機数</value>
   </data>
-  <data name="PalletsDestroyed" xml:space="preserve">
+  <data name="PalletsDestroyed">
     <value>板破壊数</value>
   </data>
-  <data name="SurvivorHits" xml:space="preserve">
+  <data name="SurvivorHits">
     <value>命中回数</value>
   </data>
-  <data name="TerrorShocks" xml:space="preserve">
+  <data name="TerrorShocks">
     <value>恐怖の一撃回数</value>
   </data>
-  <data name="Knockdowns" xml:space="preserve">
+  <data name="Knockdowns">
     <value>ダウン回数</value>
   </data>
-  <data name="GameProgress" xml:space="preserve">
+  <data name="GameProgress">
     <value>試合進行</value>
   </data>
-  <data name="GameProgressInBPOverview" xml:space="preserve">
+  <data name="GameProgressInBPOverview">
     <value>試合進行 (BP概要)</value>
   </data>
-  <data name="GameRuleFileNotFound" xml:space="preserve">
+  <data name="GameRuleFileNotFound">
     <value>ルールファイルが見つかりません</value>
   </data>
-  <data name="GameAlreadyStarted" xml:space="preserve">
+  <data name="GameAlreadyStarted">
     <value>試合は既に開始されています</value>
   </data>
-  <data name="GuidanceNotAvailableInFree" xml:space="preserve">
+  <data name="GuidanceNotAvailableInFree">
     <value>フリー対戦ではガイドは利用できません</value>
   </data>
-  <data name="GameRuleFileError" xml:space="preserve">
+  <data name="GameRuleFileError">
     <value>ルールファイルエラー</value>
   </data>
-  <data name="PleaseStartGameFirst" xml:space="preserve">
+  <data name="PleaseStartGameFirst">
     <value>先に試合を開始してください</value>
   </data>
-  <data name="AlreadyLastStep" xml:space="preserve">
+  <data name="AlreadyLastStep">
     <value>既に最後のステップです</value>
   </data>
-  <data name="GameInfoError" xml:space="preserve">
+  <data name="GameInfoError">
     <value>試合情報エラー</value>
   </data>
-  <data name="AlreadyFirstStep" xml:space="preserve">
+  <data name="AlreadyFirstStep">
     <value>既に最初のステップです</value>
   </data>
-  <data name="GameRuleFileNotFoundError" xml:space="preserve">
+  <data name="GameRuleFileNotFoundError">
     <value>ルールファイルが見つかりません</value>
   </data>
-  <data name="GameRuleFileStatusError" xml:space="preserve">
+  <data name="GameRuleFileStatusError">
     <value>ルールファイル状態異常</value>
   </data>
-  <data name="NewGameHasBeenCreated" xml:space="preserve">
+  <data name="NewGameHasBeenCreated">
     <value>新しい試合が作成されました</value>
   </data>
-  <data name="GameProgressFree" xml:space="preserve">
+  <data name="GameProgressFree">
     <value>フリーマッチ</value>
   </data>
-  <data name="GameProgressGameOnlyFormat" xml:space="preserve">
+  <data name="GameProgressGameOnlyFormat">
     <value>第{0}試合</value>
   </data>
-  <data name="GameProgressGameOvertimeOnlyFormat" xml:space="preserve">
+  <data name="GameProgressGameOvertimeOnlyFormat">
     <value>第{0}試合 延長</value>
   </data>
-  <data name="GameProgressGameHalfFormat" xml:space="preserve">
+  <data name="GameProgressGameHalfFormat">
     <value>第{0}試合 {1}</value>
   </data>
-  <data name="GameProgressGameOvertimeHalfFormat" xml:space="preserve">
+  <data name="GameProgressGameOvertimeHalfFormat">
     <value>第{0}試合 延長 {1}</value>
   </data>
-  <data name="GameProgressBinding" xml:space="preserve">
+  <data name="GameProgressBinding">
     <value>ゲーム進行バインド</value>
   </data>
-  <data name="NoBans" xml:space="preserve">
+  <data name="NoBans">
     <value>BANなし</value>
   </data>
-  <data name="ArmsFactory" xml:space="preserve">
+  <data name="ArmsFactory">
     <value>軍需工場</value>
   </data>
-  <data name="TheRedChurch" xml:space="preserve">
+  <data name="TheRedChurch">
     <value>赤の教会</value>
   </data>
-  <data name="SacredHeartHospital" xml:space="preserve">
+  <data name="SacredHeartHospital">
     <value>聖心病院</value>
   </data>
-  <data name="LeosMemory" xml:space="preserve">
+  <data name="LeosMemory">
     <value>レオの思い出</value>
   </data>
-  <data name="MoonlitRiverPark" xml:space="preserve">
+  <data name="MoonlitRiverPark">
     <value>月の河公園</value>
   </data>
-  <data name="LakesideVillage" xml:space="preserve">
+  <data name="LakesideVillage">
     <value>湖景村</value>
   </data>
-  <data name="EversleepingTown" xml:space="preserve">
+  <data name="EversleepingTown">
     <value>永眠町</value>
   </data>
-  <data name="ChinaTown" xml:space="preserve">
+  <data name="ChinaTown">
     <value>中華街</value>
   </data>
-  <data name="Darkwoods" xml:space="preserve">
+  <data name="Darkwoods">
     <value>罪の森</value>
   </data>
-  <data name="FirstHalf" xml:space="preserve">
+  <data name="FirstHalf">
     <value>前半</value>
   </data>
-  <data name="SecondHalf" xml:space="preserve">
+  <data name="SecondHalf">
     <value>後半</value>
+  </data>
+  <data name="AutoDetectAndFillPostGameData">
+    <value>試合後データを自動検出して入力</value>
+  </data>
+  <data name="CharacterName">
+    <value>キャラクター名</value>
+  </data>
+  <data name="CreateTip">
+    <value>作成のヒント</value>
+  </data>
+  <data name="DistributeCharacters">
+    <value>キャラクター分配</value>
   </data>
 </root>

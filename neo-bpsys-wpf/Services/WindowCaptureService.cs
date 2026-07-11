@@ -174,7 +174,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
         // 没有选中窗口时直接失败，比后续空引用更可控、更易理解。
         if (window is null)
         {
-            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "WindowCapturePleaseSelectWindowFirst"));
+            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "WindowCapturePleaseSelectWindowFirst"));
             return false;
         }
 
@@ -199,13 +199,13 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
         // WGC 是系统能力，先判断支持性，避免后续调用抛平台异常。
         if (!IsWgcApiAvailable())
         {
-            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "WindowCaptureWgcRequires1803OrLater"));
+            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "WindowCaptureWgcRequires1803OrLater"));
             return false;
         }
 
         if (!IsWgcSupported())
         {
-            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "WindowCaptureWgcNotSupportedOnCurrentSystem"));
+            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "WindowCaptureWgcNotSupportedOnCurrentSystem"));
             return false;
         }
 
@@ -237,7 +237,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
             _logger.LogError(ex, "Failed to start capture from picker.");
             _ = MessageBoxHelper.ShowErrorAsync(
                 string.Format(
-                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "WindowCaptureFailedToStartPickerCaptureFormat"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "WindowCaptureFailedToStartPickerCaptureFormat"),
                     ex.Message));
             return false;
         }
@@ -262,7 +262,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
             _ = dispatcher.BeginInvoke(() =>
             {
                 _ = MessageBoxHelper.ShowErrorAsync(
-                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "PleaseStartWindowCaptureFirst"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "PleaseStartWindowCaptureFirst"),
                     I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Error"),
                     I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Close"));
                 _navigationService.Navigate(typeof(SmartBpPage));
@@ -284,7 +284,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
         // 预览依赖捕获源；未开始捕获时直接提示用户。
         if (!IsCapturing)
         {
-            _ = MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "WindowCaptureCaptureNotStarted"));
+            _ = MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "WindowCaptureCaptureNotStarted"));
             return;
         }
 
@@ -302,7 +302,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
 
         _previewWindow = new Window
         {
-            Title = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "WindowCapturePreviewWindowTitle"),
+            Title = I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "WindowCapturePreviewWindowTitle"),
             Width = 960,
             Height = 540,
             Content = _previewImage
@@ -387,7 +387,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
         // 验证窗口句柄有效性。
         if (!WindowEnumerationHelper.IsWindowValidForCapture(hwnd))
         {
-            _ = MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "WindowCaptureSelectedWindowInvalidForCapture"));
+            _ = MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "WindowCaptureSelectedWindowInvalidForCapture"));
             return false;
         }
 
@@ -401,7 +401,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
             // 先抓第一帧，确保目标窗口可被 BitBlt 实际采集到。
             if (!TryCaptureBitbltFrame(hwnd))
             {
-                _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "WindowCaptureFailedToCaptureFirstFrameWithBitblt"));
+                _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "WindowCaptureFailedToCaptureFirstFrameWithBitblt"));
                 StopCapture();
                 return false;
             }
@@ -423,7 +423,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
             _logger.LogError(ex, "Failed to start Bitblt capture.");
             _ = MessageBoxHelper.ShowErrorAsync(
                 string.Format(
-                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "WindowCaptureFailedToStartBitbltCaptureFormat"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "WindowCaptureFailedToStartBitbltCaptureFormat"),
                     ex.Message));
             StopCapture();
             return false;
@@ -616,20 +616,20 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
     {
         if (!IsWgcHwndInteropAvailable())
         {
-            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "WindowCaptureWgcWindowCaptureRequires1903OrLaterUsePickerOn1803Or1809"));
+            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "WindowCaptureWgcWindowCaptureRequires1903OrLaterUsePickerOn1803Or1809"));
             return false;
         }
 
         if (!IsWgcSupported())
         {
-            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "WindowCaptureWgcNotSupportedOnCurrentSystem"));
+            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "WindowCaptureWgcNotSupportedOnCurrentSystem"));
             return false;
         }
 
         // 再次校验句柄有效性，防止 UI 侧缓存了已失效窗口句柄。
         if (!WindowEnumerationHelper.IsWindowValidForCapture(hwnd))
         {
-            _ = MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "WindowCaptureSelectedWindowInvalidForCapture"));
+            _ = MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "WindowCaptureSelectedWindowInvalidForCapture"));
             return false;
         }
 
@@ -644,14 +644,14 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
             _logger.LogError(ex, "Failed to create GraphicsCaptureItem from HWND.");
             _ = MessageBoxHelper.ShowErrorAsync(
                 string.Format(
-                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "WindowCaptureFailedToCaptureSelectedWindowFormat"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "WindowCaptureFailedToCaptureSelectedWindowFormat"),
                     ex.Message));
             return false;
         }
 
         if (item is null)
         {
-            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "WindowCaptureGraphicsCaptureItemUnavailable"));
+            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "WindowCaptureGraphicsCaptureItemUnavailable"));
             return false;
         }
 
@@ -706,7 +706,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
             _logger.LogError(ex, "Failed to start WGC capture.");
             _ = MessageBoxHelper.ShowErrorAsync(
                 string.Format(
-                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "WindowCaptureFailedToStartCaptureFormat"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "WindowCaptureFailedToStartCaptureFormat"),
                     ex.Message));
             StopCapture();
             return false;

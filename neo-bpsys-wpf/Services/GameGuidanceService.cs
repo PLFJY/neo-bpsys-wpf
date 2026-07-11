@@ -66,7 +66,7 @@ public class GameGuidanceService(
         { GameAction.BanSur, () => I18nHelper.GetLocalizedString(AppI18nDictionaries.Bp, "BanSurvivor") },
         { GameAction.BanHun, () => I18nHelper.GetLocalizedString(AppI18nDictionaries.Bp, "BanHunter") },
         { GameAction.PickSur, () => I18nHelper.GetLocalizedString(AppI18nDictionaries.Bp, "PickSurvivor") },
-        { GameAction.DistributeChara, () => I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "DistributeCharacters") },
+        { GameAction.DistributeChara, () => I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, "DistributeCharacters") },
         { GameAction.PickHun, () => I18nHelper.GetLocalizedString(AppI18nDictionaries.Bp, "PickHunter") },
         { GameAction.PickSurTalent, () => I18nHelper.GetLocalizedString(AppI18nDictionaries.Bp, "PickSurTalent") },
         { GameAction.PickHunTalent, () => I18nHelper.GetLocalizedString(AppI18nDictionaries.Bp, "PickHunTalent") }

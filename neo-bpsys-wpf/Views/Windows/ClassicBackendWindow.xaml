@@ -27,6 +27,8 @@
     mc:Ignorable="d">
     <ui:FluentWindow.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <cv:DictionaryLocalizationConverter x:Key="ShellDictionaryLocalizationConverter" />
+        <cv:DictionaryLocalizationConverter x:Key="GameDictionaryLocalizationConverter" />
         <cv:ApplicationThemeToBooleanConverter x:Key="ApplicationThemeToBooleanConverter" />
         <cv:BooleanToReverseVisibilityConverter x:Key="BooleanToReverseVisibilityConverter" />
         <cv:BooleanToEnumConverter x:Key="BooleanToEnumConverter" />
@@ -153,7 +155,8 @@
                             <TextBlock
                                 Margin="0,5,8,8"
                                 VerticalAlignment="Center"
-                                Text="{lex:Loc PreviewColon}" />
+                                Text="{lex:Loc PreviewColon}"
+                                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
                             <TextBlock
                                 Margin="0,5,8,8"
                                 VerticalAlignment="Center"
@@ -201,7 +204,8 @@
                             SelectedValuePath="Key">
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{lex:Loc {Binding Value}}" />
+                                    <TextBlock
+                                        Text="{Binding Value, Mode=OneWay, Converter={StaticResource ShellDictionaryLocalizationConverter}, ConverterParameter=Locales.Game}" />
                                 </DataTemplate>
                             </ComboBox.ItemTemplate>
                         </ComboBox>
@@ -327,7 +331,7 @@
                                         <DataTemplate>
                                             <StackPanel Orientation="Horizontal">
                                                 <TextBlock>
-                                                    <Run Text="{lex:Loc {Binding TeamType}}" /><Run Text=" - " />
+                                                    <Run Text="{Binding TeamType, Mode=OneWay, Converter={StaticResource ShellDictionaryLocalizationConverter}, ConverterParameter=Locales.Common}" /><Run Text=" - " />
                                                 </TextBlock>
                                                 <TextBlock Text="{Binding Team.Name}" />
                                             </StackPanel>
@@ -356,7 +360,7 @@
                                                 <TextBlock
                                                     Margin="12,0,0,0"
                                                     VerticalAlignment="Center"
-                                                    Text="{lex:Loc {Binding Map.MapName, TargetNullValue=null}}" />
+                                                    Text="{Binding Map.MapName, Mode=OneWay, Converter={StaticResource GameDictionaryLocalizationConverter}, ConverterParameter=Locales.Game, TargetNullValue=null}" />
                                             </StackPanel>
                                         </DataTemplate>
                                     </ComboBox.ItemTemplate>
@@ -375,7 +379,7 @@
                                         <DataTemplate>
                                             <StackPanel Orientation="Horizontal">
                                                 <TextBlock>
-                                                    <Run Text="{lex:Loc {Binding TeamType}}" /><Run Text=" - " />
+                                                    <Run Text="{Binding TeamType, Mode=OneWay, Converter={StaticResource ShellDictionaryLocalizationConverter}, ConverterParameter=Locales.Common}" /><Run Text=" - " />
                                                 </TextBlock>
                                                 <TextBlock Text="{Binding Team.Name}" />
                                             </StackPanel>
@@ -407,7 +411,7 @@
                                                         Height="38"
                                                         Source="{Binding ImageSource}"
                                                         Stretch="UniformToFill" />
-                                                    <TextBlock HorizontalAlignment="Center" Text="{lex:Loc {Binding Map.MapName}}" />
+                                                    <TextBlock HorizontalAlignment="Center" Text="{Binding Map.MapName, Mode=OneWay, Converter={StaticResource GameDictionaryLocalizationConverter}, ConverterParameter=Locales.Game}" />
                                                 </StackPanel>
                                             </ToggleButton>
                                         </DataTemplate>
@@ -428,7 +432,7 @@
                                     Style="{StaticResource Card}">
                                     <StackPanel>
                                         <TextBlock Style="{StaticResource Title}" Text="{lex:Loc BanHunter}" />
-                                        <TextBlock Margin="0,10,0,0" Text="{lex:Loc CurrentBan}" lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell" />
+                                        <TextBlock Margin="0,10,0,0" Text="{lex:Loc CurrentBan}" />
                                         <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding BanHunCurrentViewModelList}">
                                             <ItemsControl.ItemsPanel>
                                                 <ItemsPanelTemplate>
@@ -451,7 +455,7 @@
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>
                                         </ItemsControl>
-                                        <TextBlock Margin="0,8,0,0" Text="{lex:Loc GlobalBan}" lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell" />
+                                        <TextBlock Margin="0,8,0,0" Text="{lex:Loc GlobalBan}" />
                                         <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding BanHunGlobalViewModelList}">
                                             <ItemsControl.ItemsPanel>
                                                 <ItemsPanelTemplate>
@@ -482,7 +486,7 @@
                                     Style="{StaticResource Card}">
                                     <StackPanel>
                                         <TextBlock Style="{StaticResource Title}" Text="{lex:Loc BanSurvivor}" />
-                                        <TextBlock Margin="0,10,0,0" Text="{lex:Loc CurrentBan}" lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell" />
+                                        <TextBlock Margin="0,10,0,0" Text="{lex:Loc CurrentBan}" />
                                         <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding BanSurCurrentViewModelList}">
                                             <ItemsControl.ItemsPanel>
                                                 <ItemsPanelTemplate>
@@ -505,7 +509,7 @@
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>
                                         </ItemsControl>
-                                        <TextBlock Margin="0,8,0,0" Text="{lex:Loc GlobalBan}" lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell" />
+                                        <TextBlock Margin="0,8,0,0" Text="{lex:Loc GlobalBan}" />
                                         <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding BanSurGlobalViewModelList}">
                                             <ItemsControl.ItemsPanel>
                                                 <ItemsPanelTemplate>
@@ -773,7 +777,7 @@
                                     lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Score">
                                     <TextBlock.Text>
                                         <MultiBinding Converter="{lex:StringFormatConverter}">
-                                            <lex:BLoc Key="ScorePreview" />
+                                <lex:BLoc Key="neo-bpsys-wpf:neo_bpsys_wpf.Locales.Score:ScorePreview" />
                                             <Binding Path="HomeTeam.Name" />
                                             <Binding Path="CurrentGame.MatchScore.HomeMajorWin" />
                                             <Binding Path="CurrentGame.MatchScore.HomeMajorTie" />
@@ -788,7 +792,7 @@
                                     lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Score">
                                     <TextBlock.Text>
                                         <MultiBinding Converter="{lex:StringFormatConverter}">
-                                            <lex:BLoc Key="ScorePreview" />
+                                <lex:BLoc Key="neo-bpsys-wpf:neo_bpsys_wpf.Locales.Score:ScorePreview" />
                                             <Binding Path="AwayTeam.Name" />
                                             <Binding Path="CurrentGame.MatchScore.AwayMajorWin" />
                                             <Binding Path="CurrentGame.MatchScore.AwayMajorTie" />
@@ -913,6 +917,7 @@
                             <Border
                                 x:Name="GameDataRoot"
                                 Margin="0,10,0,0"
+                                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Game"
                                 Style="{StaticResource Card}">
                                 <StackPanel>
                                     <ui:Button
@@ -922,7 +927,8 @@
                                     <TextBlock
                                         Margin="0,10,0,0"
                                         Style="{StaticResource Title}"
-                                        Text="{lex:Loc Survivor}" />
+                                        Text="{lex:Loc Survivor}"
+                                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
                                     <WrapPanel Margin="0,8,0,0">
                                         <controls:GameDataEditor Margin="0,0,10,10" PlayerData="{Binding SurPlayerList[0].Data}" />
                                         <controls:GameDataEditor Margin="0,0,10,10" PlayerData="{Binding SurPlayerList[1].Data}" />
@@ -932,7 +938,8 @@
                                     <TextBlock
                                         Margin="0,10,0,0"
                                         Style="{StaticResource Title}"
-                                        Text="{lex:Loc Hunter}" />
+                                        Text="{lex:Loc Hunter}"
+                                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
                                     <controls:GameDataEditor
                                         Margin="0,8,0,0"
                                         IsHunMode="True"
@@ -948,6 +955,7 @@
                             <Border
                                 x:Name="GlobalBanRecordRoot"
                                 Margin="0,10,10,0"
+                                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp"
                                 Style="{StaticResource Card}">
                                 <StackPanel>
                                     <ui:ToggleSwitch
@@ -957,12 +965,12 @@
                                     <TextBlock Margin="0,12,0,0">
                                         <TextBlock.Text>
                                             <MultiBinding StringFormat="{}{0}: {1}">
-                                                <lex:BLoc Key="HomeTeam" />
+                                                <lex:BLoc Key="neo-bpsys-wpf:neo_bpsys_wpf.Locales.Common:HomeTeam" />
                                                 <Binding Path="HomeTeam.Name" />
                                             </MultiBinding>
                                         </TextBlock.Text>
                                     </TextBlock>
-                                    <TextBlock Text="{lex:Loc Survivor}" />
+                                    <TextBlock Text="{lex:Loc Survivor}" lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
                                     <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding HomeSurGlobalBanRecordViewModelList}">
                                         <ItemsControl.ItemsPanel>
                                             <ItemsPanelTemplate>
@@ -979,7 +987,7 @@
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
-                                    <TextBlock Text="{lex:Loc Hunter}" />
+                                    <TextBlock Text="{lex:Loc Hunter}" lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
                                     <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding HomeHunGlobalBanRecordViewModelList}">
                                         <ItemsControl.ItemsPanel>
                                             <ItemsPanelTemplate>
@@ -999,12 +1007,12 @@
                                     <TextBlock Margin="0,12,0,0">
                                         <TextBlock.Text>
                                             <MultiBinding StringFormat="{}{0}: {1}">
-                                                <lex:BLoc Key="AwayTeam" />
+                                                <lex:BLoc Key="neo-bpsys-wpf:neo_bpsys_wpf.Locales.Common:AwayTeam" />
                                                 <Binding Path="AwayTeam.Name" />
                                             </MultiBinding>
                                         </TextBlock.Text>
                                     </TextBlock>
-                                    <TextBlock Text="{lex:Loc Survivor}" />
+                                    <TextBlock Text="{lex:Loc Survivor}" lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
                                     <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding AwaySurGlobalBanRecordViewModelList}">
                                         <ItemsControl.ItemsPanel>
                                             <ItemsPanelTemplate>
@@ -1021,7 +1029,7 @@
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
-                                    <TextBlock Text="{lex:Loc Hunter}" />
+                                    <TextBlock Text="{lex:Loc Hunter}" lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
                                     <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding AwayHunGlobalBanRecordViewModelList}">
                                         <ItemsControl.ItemsPanel>
                                             <ItemsPanelTemplate>
@@ -1115,35 +1123,35 @@
                         <DataGridTextColumn
                             Width="90"
                             Binding="{Binding GameLabel}"
-                            Header="{lex:Loc ScorePreviewGame}" />
+                            Header="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Score:ScorePreviewGame}" />
                         <DataGridTextColumn
                             Width="80"
                             Binding="{Binding HalfLabel}"
-                            Header="{lex:Loc ScorePreviewHalf}" />
+                            Header="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Score:ScorePreviewHalf}" />
                         <DataGridTextColumn
                             Width="80"
                             Binding="{Binding RowStatusText}"
-                            Header="{lex:Loc ScorePreviewStatus}" />
+                            Header="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Score:ScorePreviewStatus}" />
                         <DataGridTextColumn
                             Width="80"
                             Binding="{Binding ResultText}"
-                            Header="{lex:Loc ScorePreviewResult}" />
+                            Header="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Score:ScorePreviewResult}" />
                         <DataGridTextColumn
                             Width="110"
                             Binding="{Binding HomeCampText}"
-                            Header="{lex:Loc ScorePreviewHomeCamp}" />
+                            Header="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Score:ScorePreviewHomeCamp}" />
                         <DataGridTextColumn
                             Width="110"
                             Binding="{Binding AwayCampText}"
-                            Header="{lex:Loc ScorePreviewAwayCamp}" />
+                            Header="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Score:ScorePreviewAwayCamp}" />
                         <DataGridTextColumn
                             Width="120"
                             Binding="{Binding HomeMinorScoreText}"
-                            Header="{lex:Loc ScorePreviewHomeMinorScore}" />
+                            Header="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Score:ScorePreviewHomeMinorScore}" />
                         <DataGridTextColumn
                             Width="120"
                             Binding="{Binding AwayMinorScoreText}"
-                            Header="{lex:Loc ScorePreviewAwayMinorScore}" />
+                            Header="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Score:ScorePreviewAwayMinorScore}" />
                     </ui:DataGrid.Columns>
                 </ui:DataGrid>
             </Grid>

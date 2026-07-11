@@ -1,5 +1,7 @@
 namespace neo_bpsys_wpf.ProductTour;
 
+using System.Resources;
+
 /// <summary>
 /// Provides fixed UI text used by Product Tour controls.
 /// </summary>
@@ -61,12 +63,19 @@ public sealed class DefaultTutorialTextProvider : ITutorialTextProvider
 {
     private const string AssemblyName = "neo-bpsys-wpf.ProductTour";
     private const string Dictionary = "Locales.Tour";
+    private static readonly ResourceManager FallbackResourceManager = new(
+        "neo_bpsys_wpf.ProductTour.Locales.Tour",
+        typeof(DefaultTutorialTextProvider).Assembly);
 
     private static string Loc(string key)
     {
         var value = WPFLocalizeExtension.Engine.LocalizeDictionary.Instance.GetLocalizedObject(
             AssemblyName, Dictionary, key, WPFLocalizeExtension.Engine.LocalizeDictionary.CurrentCulture);
-        return value?.ToString() ?? key;
+        return value?.ToString()
+            ?? FallbackResourceManager.GetString(
+                key,
+                WPFLocalizeExtension.Engine.LocalizeDictionary.CurrentCulture)
+            ?? key;
     }
 
     /// <inheritdoc />

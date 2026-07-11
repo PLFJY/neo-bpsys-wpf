@@ -26,15 +26,18 @@ public static class I18nHelper
     /// 根据指定的字典和资源键返回当前文化对应的本地化字符串。
     /// </summary>
     /// <param name="dictionary">目标字典名称（例如 <see cref="AppI18nDictionaries.Shell"/>）。不能为空。</param>
-    /// <param name="key">资源键（例如 "MainWindow.Title"）。不能为空。</param>
-    /// <returns>若找到对应的本地化项，返回其字符串表示；否则返回传入的 <paramref name="key"/>。</returns>
+    /// <param name="key">资源键（例如 "MainWindow.Title"）；为空或空白时安全返回空字符串。</param>
+    /// <returns>若找到对应的本地化项，返回其字符串表示；key 为空时返回空字符串，否则返回原始 key。</returns>
     /// <example>
     /// var title = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "App.Title");
     /// </example>
     public static string GetLocalizedString(string dictionary, string key)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(dictionary);
-        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return string.Empty;
+        }
 
         return GetLocalizedStringCore(dictionary, key, LocalizeDictionary.CurrentCulture);
     }
@@ -44,40 +47,52 @@ public static class I18nHelper
     /// 通过 <see cref="LocalizeDictionary"/> 解析，不再依赖生成的 <c>Lang</c> 类。
     /// </summary>
     /// <param name="dictionary">目标字典名称（例如 <see cref="AppI18nDictionaries.Shell"/>）。不能为空。</param>
-    /// <param name="key">资源键（例如 "MainWindow.Title"）。不能为空。</param>
+    /// <param name="key">资源键（例如 "MainWindow.Title"）；为空或空白时安全返回空字符串。</param>
     /// <param name="culture">目标文化。</param>
     /// <returns>若找到对应的本地化项，返回其字符串表示；否则返回传入的 <paramref name="key"/>。</returns>
     public static string GetLocalizedString(string dictionary, string key, CultureInfo culture)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(dictionary);
-        ArgumentException.ThrowIfNullOrWhiteSpace(key);
         ArgumentNullException.ThrowIfNull(culture);
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return string.Empty;
+        }
 
         return GetLocalizedStringCore(dictionary, key, culture);
     }
 
     /// <summary>
     /// 在所有宿主资源族字典中按顺序查找指定资源键，返回首个命中的本地化字符串。
-    /// 适用于无法预先确定归属字典的场景（例如前台布局控件按配置键解析任意域文本）。
+    /// 仅用于已持久化的 v3 前台布局 <c>LocalizedText.LocalizationKey</c> 兼容解析；
+    /// 普通业务代码必须使用归属明确的字典。
     /// </summary>
-    /// <param name="key">资源键。不能为空。</param>
+    /// <param name="key">资源键；为空或空白时安全返回空字符串。</param>
     /// <returns>首个命中字典中的本地化字符串；若所有字典均未命中则返回 <paramref name="key"/>。</returns>
-    public static string GetLocalizedStringFromAnyHostDictionary(string key)
+    internal static string GetLocalizedStringFromAnyHostDictionary(string key)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return string.Empty;
+        }
+
         return GetLocalizedStringFromAnyHostDictionaryCore(key, LocalizeDictionary.CurrentCulture);
     }
 
     /// <summary>
     /// 在所有宿主资源族字典中按指定文化查找指定资源键，返回首个命中的本地化字符串。
     /// </summary>
-    /// <param name="key">资源键。不能为空。</param>
+    /// <param name="key">资源键；为空或空白时安全返回空字符串。</param>
     /// <param name="culture">目标文化。</param>
     /// <returns>首个命中字典中的本地化字符串；若所有字典均未命中则返回 <paramref name="key"/>。</returns>
-    public static string GetLocalizedStringFromAnyHostDictionary(string key, CultureInfo culture)
+    internal static string GetLocalizedStringFromAnyHostDictionary(string key, CultureInfo culture)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(key);
         ArgumentNullException.ThrowIfNull(culture);
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return string.Empty;
+        }
+
         return GetLocalizedStringFromAnyHostDictionaryCore(key, culture);
     }
 

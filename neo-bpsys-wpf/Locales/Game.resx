@@ -1,136 +1,148 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype">text/microsoft-resx</resheader>
   <resheader name="version">2.0</resheader>
   <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
   <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
-  <data name="NewGame" xml:space="preserve">
+  <data name="NewGame">
     <value>新对局</value>
   </data>
-  <data name="GameProgressColon" xml:space="preserve">
+  <data name="GameProgressColon">
     <value>对局进度：</value>
   </data>
-  <data name="DecodingProgress" xml:space="preserve">
+  <data name="DecodingProgress">
     <value>破译进度</value>
   </data>
-  <data name="PalletStrikes" xml:space="preserve">
+  <data name="PalletStrikes">
     <value>砸板命中次数</value>
   </data>
-  <data name="Rescues" xml:space="preserve">
+  <data name="Rescues">
     <value>救人次数</value>
   </data>
-  <data name="Heals" xml:space="preserve">
+  <data name="Heals">
     <value>治疗次数</value>
   </data>
-  <data name="ContainmentTime" xml:space="preserve">
+  <data name="ContainmentTime">
     <value>牵制时长 (秒)</value>
   </data>
-  <data name="RemainingCiphers" xml:space="preserve">
+  <data name="RemainingCiphers">
     <value>剩余密码机数量</value>
   </data>
-  <data name="PalletsDestroyed" xml:space="preserve">
+  <data name="PalletsDestroyed">
     <value>破坏板子数</value>
   </data>
-  <data name="SurvivorHits" xml:space="preserve">
+  <data name="SurvivorHits">
     <value>命中求生者次数</value>
   </data>
-  <data name="TerrorShocks" xml:space="preserve">
+  <data name="TerrorShocks">
     <value>恐惧震慑次数</value>
   </data>
-  <data name="Knockdowns" xml:space="preserve">
+  <data name="Knockdowns">
     <value>击倒次数</value>
   </data>
-  <data name="GameProgress" xml:space="preserve">
+  <data name="GameProgress">
     <value>对局进度</value>
   </data>
-  <data name="GameProgressInBPOverview" xml:space="preserve">
+  <data name="GameProgressInBPOverview">
     <value>对局进度（BP总览）</value>
   </data>
-  <data name="GameRuleFileNotFound" xml:space="preserve">
+  <data name="GameRuleFileNotFound">
     <value>对局规则文件不存在</value>
   </data>
-  <data name="GameAlreadyStarted" xml:space="preserve">
+  <data name="GameAlreadyStarted">
     <value>对局已开始</value>
   </data>
-  <data name="GuidanceNotAvailableInFree" xml:space="preserve">
+  <data name="GuidanceNotAvailableInFree">
     <value>自由对局不支持引导</value>
   </data>
-  <data name="GameRuleFileError" xml:space="preserve">
+  <data name="GameRuleFileError">
     <value>对局规则文件异常</value>
   </data>
-  <data name="PleaseStartGameFirst" xml:space="preserve">
+  <data name="PleaseStartGameFirst">
     <value>请先开始对局</value>
   </data>
-  <data name="AlreadyLastStep" xml:space="preserve">
+  <data name="AlreadyLastStep">
     <value>已经是最后一步</value>
   </data>
-  <data name="GameInfoError" xml:space="preserve">
+  <data name="GameInfoError">
     <value>对局信息状态异常</value>
   </data>
-  <data name="AlreadyFirstStep" xml:space="preserve">
+  <data name="AlreadyFirstStep">
     <value>已经是第一步</value>
   </data>
-  <data name="GameRuleFileNotFoundError" xml:space="preserve">
+  <data name="GameRuleFileNotFoundError">
     <value>对局规则文件不存在</value>
   </data>
-  <data name="GameRuleFileStatusError" xml:space="preserve">
+  <data name="GameRuleFileStatusError">
     <value>对局规则文件状态异常</value>
   </data>
-  <data name="NewGameHasBeenCreated" xml:space="preserve">
+  <data name="NewGameHasBeenCreated">
     <value>新对局已创建</value>
   </data>
-  <data name="GameProgressFree" xml:space="preserve">
+  <data name="GameProgressFree">
     <value>自由对局</value>
   </data>
-  <data name="GameProgressGameOnlyFormat" xml:space="preserve">
+  <data name="GameProgressGameOnlyFormat">
     <value>第{0}局</value>
   </data>
-  <data name="GameProgressGameOvertimeOnlyFormat" xml:space="preserve">
+  <data name="GameProgressGameOvertimeOnlyFormat">
     <value>第{0}局加赛</value>
   </data>
-  <data name="GameProgressGameHalfFormat" xml:space="preserve">
+  <data name="GameProgressGameHalfFormat">
     <value>第{0}局 {1}</value>
   </data>
-  <data name="GameProgressGameOvertimeHalfFormat" xml:space="preserve">
+  <data name="GameProgressGameOvertimeHalfFormat">
     <value>第{0}局加赛 {1}</value>
   </data>
-  <data name="GameProgressBinding" xml:space="preserve">
+  <data name="GameProgressBinding">
     <value>对局进度绑定</value>
   </data>
-  <data name="NoBans" xml:space="preserve">
+  <data name="NoBans">
     <value>无禁用</value>
   </data>
-  <data name="ArmsFactory" xml:space="preserve">
+  <data name="ArmsFactory">
     <value>军工厂</value>
   </data>
-  <data name="TheRedChurch" xml:space="preserve">
+  <data name="TheRedChurch">
     <value>红教堂</value>
   </data>
-  <data name="SacredHeartHospital" xml:space="preserve">
+  <data name="SacredHeartHospital">
     <value>圣心医院</value>
   </data>
-  <data name="LeosMemory" xml:space="preserve">
+  <data name="LeosMemory">
     <value>里奥的回忆</value>
   </data>
-  <data name="MoonlitRiverPark" xml:space="preserve">
+  <data name="MoonlitRiverPark">
     <value>月亮河公园</value>
   </data>
-  <data name="LakesideVillage" xml:space="preserve">
+  <data name="LakesideVillage">
     <value>湖景村</value>
   </data>
-  <data name="EversleepingTown" xml:space="preserve">
+  <data name="EversleepingTown">
     <value>永眠镇</value>
   </data>
-  <data name="ChinaTown" xml:space="preserve">
+  <data name="ChinaTown">
     <value>唐人街</value>
   </data>
-  <data name="Darkwoods" xml:space="preserve">
+  <data name="Darkwoods">
     <value>不归林</value>
   </data>
-  <data name="FirstHalf" xml:space="preserve">
+  <data name="FirstHalf">
     <value>上半场</value>
   </data>
-  <data name="SecondHalf" xml:space="preserve">
+  <data name="SecondHalf">
     <value>下半场</value>
+  </data>
+  <data name="AutoDetectAndFillPostGameData">
+    <value>自动识别并填充赛后数据</value>
+  </data>
+  <data name="CharacterName">
+    <value>角色名称</value>
+  </data>
+  <data name="CreateTip">
+    <value>创建提示</value>
+  </data>
+  <data name="DistributeCharacters">
+    <value>分配角色</value>
   </data>
 </root>

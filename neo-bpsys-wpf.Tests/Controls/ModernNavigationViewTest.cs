@@ -71,6 +71,30 @@ public class ModernNavigationViewTest
         });
     }
 
+    [Theory]
+    [InlineData("TeamInfo")]
+    [InlineData("MapBP")]
+    [InlineData("GameData")]
+    [InlineData("ScoreControl")]
+    [InlineData("PluginMarket")]
+    [InlineData("LayoutPackages")]
+    [InlineData("FrontendManagement")]
+    [InlineData("Settings")]
+    public void LocalizesFeatureOwnedNavigationKeys(string key)
+    {
+        RunSta(() =>
+        {
+            var navigationView = new ModernNavigationView
+            {
+                MenuItemsSource = new[] { new NavigationViewItem(key, SymbolRegular.Home24, typeof(TestPage)) }
+            };
+
+            var entry = Assert.Single(navigationView.MenuEntries);
+            Assert.NotEqual(key, entry.DisplayText);
+            Assert.False(entry.DisplayText.StartsWith("Key:", StringComparison.Ordinal));
+        });
+    }
+
     [Fact]
     public void MapsSymbolRegularIconsToSymbolIconPresenter()
     {

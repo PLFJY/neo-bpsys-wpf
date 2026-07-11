@@ -443,9 +443,9 @@ public partial class SmartBpPageViewModel : ViewModelBase
     {
         if (await MessageBoxHelper.ShowConfirmAsync(
                 L("SmartBpModuleArchiveImportRestartPrompt"),
-                L("RestartNeeded"),
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "RestartNeeded"),
                 L("RestartNow"),
-                L("Cancel")))
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel")))
         {
             AppBase.Current.Restart();
         }

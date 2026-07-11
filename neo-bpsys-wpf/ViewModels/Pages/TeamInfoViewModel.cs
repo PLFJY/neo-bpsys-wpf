@@ -216,11 +216,11 @@ public partial class TeamInfoPageViewModel
             catch (JsonException ex)
             {
                 _ = MessageBoxHelper.ShowErrorAsync(
-                    $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "JsonFileFormatError")}\n{ex.Message}");
+                    $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "JsonFileFormatError")}\n{ex.Message}");
             }
             catch
             {
-                _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "ImageMaybeDamagedOrUnsurpported"));
+                _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "ImageMaybeDamagedOrUnsupported"));
             }
         }
 
@@ -394,7 +394,7 @@ public partial class TeamInfoPageViewModel
             }
             catch
             {
-                _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "ImageMaybeDamagedOrUnsurpported"));
+                _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "ImageMaybeDamagedOrUnsupported"));
             }
         }
 

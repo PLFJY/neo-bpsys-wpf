@@ -7,7 +7,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
+using System.Windows.Markup;
 using System.Windows.Controls;
+using System.Windows.Threading;
 using System.Text;
 using System.Xml.Linq;
 using neo_bpsys_wpf.Helpers;
@@ -26,7 +29,6 @@ public sealed class I18nResourceAuditTest
 {
     private const string HostAssembly = "neo-bpsys-wpf";
     private const string SmartBpModuleAssembly = "neo-bpsys-wpf.SmartBp.Module";
-    private const int ExpectedKeyMapRowCount = 2231;
 
     private static readonly string[] HostFamilyNames =
     {
@@ -46,6 +48,10 @@ public sealed class I18nResourceAuditTest
         "Refresh", "Start", "Stop", "Delete", "Cancel", "SmartBp", "SaveSuccessfullyTo"
     };
 
+    private static readonly Dictionary<string, Dictionary<string, ResourceEntry>> ResxCache = new(StringComparer.Ordinal);
+    private static readonly Dictionary<string, IReadOnlyList<ResourceEntry>> BaselineCache = new(StringComparer.Ordinal);
+    private static List<KeyMapEntry>? _keyMapCache;
+
     // ---------------------------------------------------------------------
     // 9.1 Migration-integrity tests
     // ---------------------------------------------------------------------
@@ -61,7 +67,10 @@ public sealed class I18nResourceAuditTest
     {
         var keyMap = LoadKeyMap();
 
-        Assert.Equal(ExpectedKeyMapRowCount, keyMap.Count);
+        var baselineKeys = LoadBaseline("neutral").Select(entry => entry.Key).ToHashSet(StringComparer.Ordinal);
+        var addedKeys = keyMap.Where(entry => string.IsNullOrWhiteSpace(entry.SourceDictionary)).ToArray();
+        Assert.Equal(LoadBaseline("neutral").Count + addedKeys.Length, keyMap.Count);
+        Assert.All(addedKeys, entry => Assert.DoesNotContain(entry.Key, baselineKeys));
 
         var hostKeyMapEntryCount = keyMap.Count(e => e.TargetAssembly == HostAssembly);
         var hostNeutralKeySum = HostFamilyNames
@@ -339,14 +348,19 @@ public sealed class I18nResourceAuditTest
     }
 
     /// <summary>
-    /// Verifies that I18nHelper.GetLocalizedString throws ArgumentException
-    /// when the key argument is null or whitespace.
+    /// Verifies that an absent localization key safely degrades to empty text.
     /// </summary>
     [Fact]
-    public void HelperRejectsNullKey()
+    public void HelperReturnsEmptyForNullOrWhitespaceKey()
     {
-        Assert.ThrowsAny<ArgumentException>(() => I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, null!));
-        Assert.ThrowsAny<ArgumentException>(() => I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "   "));
+        Assert.Equal(string.Empty, I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, null!));
+        Assert.Equal(string.Empty, I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "   "));
+        Assert.Equal(
+            string.Empty,
+            I18nHelper.GetLocalizedString(
+                AppI18nDictionaries.Shell,
+                string.Empty,
+                CultureInfo.GetCultureInfo("en-US")));
     }
 
     /// <summary>
@@ -357,10 +371,103 @@ public sealed class I18nResourceAuditTest
     [Fact]
     public void HelperResolvesKnownFeatureKey()
     {
-        var resxKeys = LoadResxKeys(GetHostNeutralResxPath("AnimationEditor"));
-        Assert.True(resxKeys.ContainsKey("Zoom"), "Zoom key should exist in AnimationEditor.resx");
+        var resxKeys = LoadResxKeys(GetHostNeutralResxPath("Designer"));
+        Assert.True(resxKeys.ContainsKey("Zoom"), "Zoom key should exist in Designer.resx");
         Assert.False(string.IsNullOrWhiteSpace(resxKeys["Zoom"].Value),
-            "Zoom value should not be empty in AnimationEditor.resx");
+            "Zoom value should not be empty in Designer.resx");
+    }
+
+    /// <summary>
+    /// Verifies that every migration row documents an explicit ownership decision
+    /// instead of falling back to the shell for ambiguous or unreferenced keys.
+    /// </summary>
+    [Fact]
+    public void KeyMapDoesNotContainDefaultShellFallbackReasons()
+    {
+        var fallbackRows = LoadKeyMap()
+            .Where(entry => entry.MappingReason.Contains("ambiguous", StringComparison.OrdinalIgnoreCase)
+                            || entry.MappingReason.Contains("Shell default", StringComparison.OrdinalIgnoreCase))
+            .Select(entry => entry.Key)
+            .ToArray();
+
+        Assert.Empty(fallbackRows);
+    }
+
+    [Fact]
+    public void I18nMigration_EveryBaselineNeutralEntryShouldBePreservedExactly()
+    {
+        AssertBaselineCultureIsPreservedExactly("neutral");
+    }
+
+    [Fact]
+    public void I18nMigration_EveryBaselineEnglishEntryShouldBePreservedExactly()
+    {
+        AssertBaselineCultureIsPreservedExactly("en-us");
+    }
+
+    [Fact]
+    public void I18nMigration_EveryBaselineJapaneseEntryShouldBePreservedExactly()
+    {
+        AssertBaselineCultureIsPreservedExactly("ja-jp");
+    }
+
+    [Fact]
+    public void I18nMigration_ShouldPreserveComments()
+    {
+        Assert.All(LoadBaseline("neutral"), entry =>
+        {
+            var actual = LoadMappedTargetEntry(entry, "neutral");
+            Assert.Equal(entry.Comment, actual.Comment);
+        });
+    }
+
+    [Fact]
+    public void I18nMigration_ShouldPreserveXmlSpace()
+    {
+        Assert.All(LoadBaseline("neutral"), entry =>
+        {
+            var actual = LoadMappedTargetEntry(entry, "neutral");
+            Assert.Equal(entry.XmlSpacePreserve, actual.XmlSpacePreserve);
+        });
+    }
+
+    [Fact]
+    public void I18nMigration_ShouldNotInventLocalizedEntries()
+    {
+        AssertNoLocalizedCoverageWasInvented("en-us");
+        AssertNoLocalizedCoverageWasInvented("ja-jp");
+    }
+
+    [Fact]
+    public void I18nMigration_ShouldNotLoseLocalizedEntries()
+    {
+        AssertBaselineCultureIsPreservedExactly("en-us");
+        AssertBaselineCultureIsPreservedExactly("ja-jp");
+    }
+
+    [Fact]
+    public void I18nMigration_EveryKeyShouldHaveExactlyOneTargetOwner()
+    {
+        var duplicates = LoadKeyMap()
+            .GroupBy(entry => entry.Key, StringComparer.Ordinal)
+            .Where(group => group.Count() != 1)
+            .Select(group => $"{group.Key}: {group.Count()} owners")
+            .ToList();
+
+        Assert.Empty(duplicates);
+    }
+
+    [Fact]
+    public void I18nMigration_KeyMapShouldMatchBaselineKeys()
+    {
+        var baselineKeys = LoadBaseline("neutral").Select(entry => entry.Key).ToHashSet(StringComparer.Ordinal);
+        var keyMap = LoadKeyMap();
+        var migratedKeys = keyMap
+            .Where(entry => !string.IsNullOrWhiteSpace(entry.SourceDictionary))
+            .Select(entry => entry.Key)
+            .ToHashSet(StringComparer.Ordinal);
+        Assert.True(baselineKeys.SetEquals(migratedKeys),
+            "Tracked baseline keys must all have exactly one migration target; newly authored keys use an empty SourceDictionary.");
     }
 
     /// <summary>
@@ -383,6 +490,41 @@ public sealed class I18nResourceAuditTest
                 CultureInfo.GetCultureInfo("zh-CN"));
 
             Assert.Equal("后台管理", value);
+        });
+    }
+
+    [Fact]
+    public void WpfLocalization_SwitchingCultureShouldUpdateLiveLocalizedProperty()
+    {
+        WpfTestThread.Run(() =>
+        {
+            var previousCulture = LocalizeDictionary.Instance.Culture;
+            try
+            {
+                var text = (TextBlock)XamlReader.Parse(
+                    "<TextBlock xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" " +
+                    "xmlns:lex=\"http://wpflocalizeextension.codeplex.com\" " +
+                    "lex:ResxLocalizationProvider.DefaultAssembly=\"neo-bpsys-wpf\" " +
+                    "lex:ResxLocalizationProvider.DefaultDictionary=\"neo_bpsys_wpf.Locales.Shell\" " +
+                    "Text=\"{lex:Loc Backend}\" />");
+
+                LocalizeDictionary.Instance.Culture = CultureInfo.GetCultureInfo("zh-CN");
+                Dispatcher.CurrentDispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
+                var chinese = text.Text;
+
+                LocalizeDictionary.Instance.Culture = CultureInfo.GetCultureInfo("en-US");
+                Dispatcher.CurrentDispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
+                var english = text.Text;
+
+                Assert.Equal("后台管理", chinese);
+                Assert.Equal("Backend", english);
+                Assert.NotEqual(chinese, english);
+            }
+            finally
+            {
+                LocalizeDictionary.Instance.Culture = previousCulture;
+                Dispatcher.CurrentDispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
+            }
         });
     }
 
@@ -497,6 +639,22 @@ public sealed class I18nResourceAuditTest
             modifiers: null);
 
         Assert.Null(method);
+    }
+
+    [Fact]
+    public void AnyHostDictionaryLookup_ShouldOnlyBeUsedByFrontedLayoutLocalizationResolver()
+    {
+        var hostDir = GetRepositoryPath("neo-bpsys-wpf");
+        var usages = Directory.GetFiles(hostDir, "*.cs", SearchOption.AllDirectories)
+            .Where(path => !IsExcludedPath(path))
+            .Where(path => File.ReadAllText(path).Contains("GetLocalizedStringFromAnyHostDictionary", StringComparison.Ordinal))
+            .Select(path => Path.GetRelativePath(GetRepositoryRoot(), path).Replace('\\', '/'))
+            .Where(path => path is not "neo-bpsys-wpf/Helpers/I18nHelper.cs")
+            .ToArray();
+
+        Assert.Equal(
+            ["neo-bpsys-wpf/Controls/FrontedLayout/LocalizedTextFrontedControl.cs"],
+            usages);
     }
 
     // ---------------------------------------------------------------------
@@ -646,16 +804,85 @@ public sealed class I18nResourceAuditTest
         return Path.Combine(GetRepositoryRoot(), Path.Combine(parts));
     }
 
+    private static string GetMigrationTestDataPath(string fileName)
+    {
+        return GetRepositoryPath("neo-bpsys-wpf.Tests", "TestData", "I18nMigration", fileName);
+    }
+
+    private static IReadOnlyList<ResourceEntry> LoadBaseline(string culture)
+    {
+        if (BaselineCache.TryGetValue(culture, out var cached))
+        {
+            return cached;
+        }
+
+        var path = GetMigrationTestDataPath(culture + ".json");
+        var snapshot = JsonSerializer.Deserialize<BaselineSnapshot>(
+            File.ReadAllText(path),
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        Assert.NotNull(snapshot);
+        Assert.Equal(culture, snapshot!.Culture);
+        var entries = snapshot.Entries.OrderBy(entry => entry.Key, StringComparer.Ordinal).ToArray();
+        BaselineCache[culture] = entries;
+        return entries;
+    }
+
+    private static void AssertBaselineCultureIsPreservedExactly(string culture)
+    {
+        foreach (var expected in LoadBaseline(culture))
+        {
+            var actual = LoadMappedTargetEntry(expected, culture);
+            Assert.True(
+                expected.Equals(actual),
+                $"Migration mismatch. Culture={culture}; Key={expected.Key}; Expected='{expected.Value}'; " +
+                $"Actual='{actual.Value}'; ExpectedComment='{expected.Comment}'; ActualComment='{actual.Comment}'; " +
+                $"ExpectedXmlSpace={expected.XmlSpacePreserve}; ActualXmlSpace={actual.XmlSpacePreserve}.");
+        }
+    }
+
+    private static ResourceEntry LoadMappedTargetEntry(ResourceEntry expected, string culture)
+    {
+        var map = Assert.Single(LoadKeyMap().Where(entry => entry.Key == expected.Key));
+        var path = GetTargetResxPath(map.TargetAssembly, map.TargetDictionary, culture);
+        var targetEntries = LoadResxKeys(path);
+        Assert.True(
+            targetEntries.TryGetValue(expected.Key, out var actual),
+            $"Missing migrated entry. Culture={culture}; Key={expected.Key}; TargetAssembly={map.TargetAssembly}; TargetDictionary={map.TargetDictionary}; File={path}");
+        return actual!;
+    }
+
+    private static void AssertNoLocalizedCoverageWasInvented(string culture)
+    {
+        var neutralKeys = LoadBaseline("neutral").Select(entry => entry.Key).ToHashSet(StringComparer.Ordinal);
+        var localizedKeys = LoadBaseline(culture).Select(entry => entry.Key).ToHashSet(StringComparer.Ordinal);
+        var maps = LoadKeyMap().ToDictionary(entry => entry.Key, StringComparer.Ordinal);
+
+        foreach (var key in neutralKeys.Except(localizedKeys, StringComparer.Ordinal))
+        {
+            var map = maps[key];
+            var targetPath = GetTargetResxPath(map.TargetAssembly, map.TargetDictionary, culture);
+            var targetEntries = LoadResxKeys(targetPath);
+            Assert.False(
+                targetEntries.ContainsKey(key),
+                $"Migration invented localized entry. Culture={culture}; Key={key}; TargetAssembly={map.TargetAssembly}; TargetDictionary={map.TargetDictionary}");
+        }
+    }
+
     /// <summary>
     /// Loads all data entries from a resx file into a dictionary keyed by
     /// the data name attribute, with value and optional comment.
     /// </summary>
     /// <param name="path">Absolute path to the .resx file.</param>
     /// <returns>A dictionary of key to (value, comment) tuples.</returns>
-    private static Dictionary<string, (string Value, string? Comment)> LoadResxKeys(string path)
+    private static Dictionary<string, ResourceEntry> LoadResxKeys(string path)
     {
+        if (ResxCache.TryGetValue(path, out var cached))
+        {
+            return cached;
+        }
+
         var doc = XDocument.Load(path);
-        var result = new Dictionary<string, (string Value, string? Comment)>(StringComparer.Ordinal);
+        var result = new Dictionary<string, ResourceEntry>(StringComparer.Ordinal);
 
         foreach (var data in doc.Root!.Elements("data"))
         {
@@ -665,11 +892,14 @@ public sealed class I18nResourceAuditTest
                 continue;
             }
 
-            var value = data.Element("value")?.Value ?? string.Empty;
-            var comment = data.Element("comment")?.Value;
-            result[name] = (value, comment);
+            result[name] = new ResourceEntry(
+                name,
+                data.Element("value")?.Value ?? string.Empty,
+                data.Element("comment")?.Value,
+                string.Equals((string?)data.Attribute(XNamespace.Xml + "space"), "preserve", StringComparison.Ordinal));
         }
 
+        ResxCache[path] = result;
         return result;
     }
 
@@ -707,13 +937,28 @@ public sealed class I18nResourceAuditTest
         };
     }
 
+    private static string GetTargetResxPath(string targetAssembly, string targetDictionary, string culture)
+    {
+        var neutralPath = GetNeutralResxPath(targetAssembly, targetDictionary);
+        return culture == "neutral"
+            ? neutralPath
+            : Path.Combine(
+                Path.GetDirectoryName(neutralPath)!,
+                Path.GetFileNameWithoutExtension(neutralPath) + "." + culture + ".resx");
+    }
+
     /// <summary>
     /// Loads and parses the key-map.csv file from the i18n-migration artifacts.
     /// </summary>
     /// <returns>A list of parsed key-map entries.</returns>
     private static List<KeyMapEntry> LoadKeyMap()
     {
-        var path = GetRepositoryPath("artifacts", "i18n-migration", "key-map.csv");
+        if (_keyMapCache is not null)
+        {
+            return _keyMapCache;
+        }
+
+        var path = GetMigrationTestDataPath("key-map.csv");
         var lines = File.ReadAllLines(path);
         var entries = new List<KeyMapEntry>();
 
@@ -741,6 +986,7 @@ public sealed class I18nResourceAuditTest
                 bool.Parse(fields[7])));
         }
 
+        _keyMapCache = entries;
         return entries;
     }
 
@@ -873,4 +1119,12 @@ public sealed class I18nResourceAuditTest
         string ReferenceDomains,
         string MappingReason,
         bool IsDynamic);
+
+    private sealed record BaselineSnapshot(string Culture, List<ResourceEntry> Entries);
+
+    private sealed record ResourceEntry(
+        string Key,
+        string Value,
+        string? Comment,
+        bool XmlSpacePreserve);
 }

@@ -92,7 +92,7 @@ public class SettingsHostService : ISettingsHostService
         {
             _logger.LogError(e, "Configuration file save error");
             _ = MessageBoxHelper.ShowErrorAsync(
-                $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ConfigurationFileSaveError")}\n{e.Message}");
+                $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "ConfigurationFileSaveError")}\n{e.Message}");
         }
     }
 
@@ -139,7 +139,7 @@ public class SettingsHostService : ISettingsHostService
             }
             else
             {
-                _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ConfigurationFileEmpty"));
+                _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "ConfigurationFileEmpty"));
                 await ResetConfigAsync();
             }
         }
@@ -148,8 +148,8 @@ public class SettingsHostService : ISettingsHostService
             _logger.LogError(e, "Reading configuration file error");
 
             if (await MessageBoxHelper.ShowConfirmAsync(
-                    $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ResetConfigurationFileToSolveTheProblem")}?",
-                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "FailedToReadConfigurationFile"),
+                    $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "ResetConfigurationFileToSolveTheProblem")}?",
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "FailedToReadConfigurationFile"),
                     I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"), I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel")))
             {
                 await ResetConfigAsync();
@@ -190,7 +190,7 @@ public class SettingsHostService : ISettingsHostService
         {
             _logger.LogError(e, "Reset configuration file error");
             _ = MessageBoxHelper.ShowErrorAsync(
-                $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ResetConfigurationFileError")}\n{e.Message}");
+                $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "ResetConfigurationFileError")}\n{e.Message}");
         }
     }
 
@@ -235,7 +235,7 @@ public class SettingsHostService : ISettingsHostService
         {
             _logger.LogError(e, "Reset Configuration file error");
             _ = MessageBoxHelper.ShowErrorAsync(
-                $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ResetConfigurationFileError")}\n{e.Message}");
+                $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "ResetConfigurationFileError")}\n{e.Message}");
             throw;
         }
     }

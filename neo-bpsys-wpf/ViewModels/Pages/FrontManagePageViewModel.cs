@@ -491,7 +491,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
                 + $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "ResourceCount")}: {result.ResourceCount}";
             if (await MessageBoxHelper.ShowConfirmAsync(
                     I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, importedFromLegacy ? "ActivateConvertedPackage" : "ActivateImportedPackage"),
-                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "Tips"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Tips"),
                     I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"),
                     I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"))
                 && !string.IsNullOrWhiteSpace(result.PackageId))
@@ -837,7 +837,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
             if (File.Exists(request.OutputPath)
                 && !await MessageBoxHelper.ShowConfirmAsync(
                     I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "ConfirmOverwriteFile"),
-                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "Tips"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Tips"),
                     I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"),
                     I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel")))
             {
@@ -913,7 +913,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
                 && !SelectedPackage.IsActivePackage
                 && !await MessageBoxHelper.ShowConfirmAsync(
                     I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "ConfirmActivatePackage"),
-                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "Tips"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Tips"),
                     I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"),
                     I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel")))
             {
@@ -998,7 +998,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
                 : I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "ConfirmDeletePackage");
             if (!await MessageBoxHelper.ShowConfirmAsync(
                     confirmMessage,
-                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "Tips"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Tips"),
                     I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"),
                     I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel")))
             {

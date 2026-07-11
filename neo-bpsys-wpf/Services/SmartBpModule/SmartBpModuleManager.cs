@@ -426,7 +426,9 @@ public sealed class SmartBpModuleManager
                     // 对 SmartBP 自有依赖继续使用模块内探测。
                 }
 
-                var candidate = Path.Combine(moduleRoot, $"{name.Name}.dll");
+                var candidate = string.IsNullOrWhiteSpace(name.CultureName)
+                    ? Path.Combine(moduleRoot, $"{name.Name}.dll")
+                    : Path.Combine(moduleRoot, name.CultureName, $"{name.Name}.dll");
                 if (!File.Exists(candidate))
                 {
                     _logger.LogWarning("SmartBP module dependency was not found. AssemblyName={AssemblyName}, Candidate={Candidate}", name.FullName, candidate);

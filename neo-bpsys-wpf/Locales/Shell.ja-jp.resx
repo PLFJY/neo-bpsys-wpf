@@ -1,1306 +1,1012 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype">text/microsoft-resx</resheader>
   <resheader name="version">2.0</resheader>
   <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
   <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
-  <data name="CurrentBan" xml:space="preserve">
-    <value>現在のBAN</value>
-  </data>
-  <data name="GlobalBan" xml:space="preserve">
-    <value>グローバルBAN</value>
-  </data>
-  <data name="ExportUIConfig" xml:space="preserve">
+<data name="ExportUIConfig">
     <value>UI設定をエクスポート</value>
   </data>
-  <data name="ImportUIConfig" xml:space="preserve">
+  <data name="ImportUIConfig">
     <value>UI設定をインポート</value>
   </data>
-  <data name="EditImage" xml:space="preserve">
+  <data name="EditImage">
     <value>画像を編集</value>
   </data>
-  <data name="CurrentBanLock" xml:space="preserve">
+  <data name="CurrentBanLock">
     <value>現在のBANロック</value>
   </data>
-  <data name="GlobalBanLock" xml:space="preserve">
+  <data name="GlobalBanLock">
     <value>グローバルBANロック</value>
   </data>
-  <data name="BPWindowImages" xml:space="preserve">
+  <data name="BPWindowImages">
     <value>BP背景</value>
   </data>
-  <data name="SaveAndApply" xml:space="preserve">
-    <value>保存して適用</value>
-  </data>
-  <data name="EditTextProperty" xml:space="preserve">
+<data name="EditTextProperty">
     <value>テキスト属性の編集</value>
   </data>
-  <data name="ResetAllPersonalizationSettingsOfTheWindow" xml:space="preserve">
+  <data name="ResetAllPersonalizationSettingsOfTheWindow">
     <value>このウィンドウの全ての個人設定をリセット</value>
   </data>
-  <data name="CustomizeIntercludeWindow" xml:space="preserve">
+  <data name="CustomizeIntercludeWindow">
     <value>トランジション画面のカスタマイズ</value>
   </data>
-  <data name="ColorOfTalentAndTraitIcon" xml:space="preserve">
+  <data name="ColorOfTalentAndTraitIcon">
     <value>人格・特質アイコンの色</value>
   </data>
-  <data name="CustomizeScoreWindow" xml:space="preserve">
+  <data name="CustomizeScoreWindow">
     <value>スコア画面のカスタマイズ</value>
   </data>
-  <data name="SurvivorScoreInGame" xml:space="preserve">
+  <data name="SurvivorScoreInGame">
     <value>ゲーム内サバイバー得点</value>
   </data>
-  <data name="HunterScoreInGame" xml:space="preserve">
+  <data name="HunterScoreInGame">
     <value>ゲーム内ハンター得点</value>
   </data>
-  <data name="CampIconColorInScoreStatistics" xml:space="preserve">
+  <data name="CampIconColorInScoreStatistics">
     <value>スコア統計の陣営アイコン色</value>
   </data>
-  <data name="ShiftDistanceOfTotalScoreWhenSwitchingBetweenBO3AndBO5Mode" xml:space="preserve">
+  <data name="ShiftDistanceOfTotalScoreWhenSwitchingBetweenBO3AndBO5Mode">
     <value>BO3/BO5切替時の合計スコア位置調整</value>
   </data>
-  <data name="CustomizeGameDataWindow" xml:space="preserve">
+  <data name="CustomizeGameDataWindow">
     <value>戦績データ画面のカスタマイズ</value>
   </data>
-  <data name="EditIntercludeBackgroundImage" xml:space="preserve">
+  <data name="EditIntercludeBackgroundImage">
     <value>トランジション背景画像の編集</value>
   </data>
-  <data name="CustomizeFrontendUI" xml:space="preserve">
+  <data name="CustomizeFrontendUI">
     <value>フロントエンドUIのカスタマイズ</value>
   </data>
-  <data name="CustomizeBPWindow" xml:space="preserve">
+  <data name="CustomizeBPWindow">
     <value>BP画面のカスタマイズ</value>
   </data>
-  <data name="EditGameDataBackgroundImage" xml:space="preserve">
+  <data name="EditGameDataBackgroundImage">
     <value>戦績データ背景画像の編集</value>
   </data>
-  <data name="CustomizeWidgetWindow" xml:space="preserve">
+  <data name="CustomizeWidgetWindow">
     <value>ウィジェット画面のカスタマイズ</value>
   </data>
-  <data name="SurvivorIconOfMapBPV2" xml:space="preserve">
+  <data name="SurvivorIconOfMapBPV2">
     <value>サバイバーアイコン (マップBP V2)</value>
   </data>
-  <data name="HunterIconOfMapBPV2" xml:space="preserve">
+  <data name="HunterIconOfMapBPV2">
     <value>ハンターアイコン (マップBP V2)</value>
   </data>
-  <data name="BPOverview" xml:space="preserve">
+  <data name="BPOverview">
     <value>BP概要</value>
   </data>
-  <data name="CurrentBanLockOfBPOverview" xml:space="preserve">
+  <data name="CurrentBanLockOfBPOverview">
     <value>現在のBANロック (BP概要)</value>
   </data>
-  <data name="GlobalBanLockOfBPOverview" xml:space="preserve">
+  <data name="GlobalBanLockOfBPOverview">
     <value>グローバルBANロック (BP概要)</value>
   </data>
-  <data name="CampIconColorOfMapBPV2" xml:space="preserve">
+  <data name="CampIconColorOfMapBPV2">
     <value>陣営アイコン色 (マップBP V2)</value>
   </data>
-  <data name="ResetAllPersonalizationSettings" xml:space="preserve">
+  <data name="ResetAllPersonalizationSettings">
     <value>全ての個人設定をリセット</value>
   </data>
-  <data name="LogLevelVerbose" xml:space="preserve">
-    <value>Verbose</value>
-  </data>
-  <data name="LogLevelDebug" xml:space="preserve">
-    <value>Debug</value>
-  </data>
-  <data name="LogLevelInformation" xml:space="preserve">
-    <value>Information</value>
-  </data>
-  <data name="LogLevelWarning" xml:space="preserve">
-    <value>Warning</value>
-  </data>
-  <data name="LogLevelError" xml:space="preserve">
-    <value>Error</value>
-  </data>
-  <data name="LogLevelFatal" xml:space="preserve">
-    <value>Fatal</value>
-  </data>
-  <data name="BPWindow" xml:space="preserve">
+<data name="BPWindow">
     <value>BP画面</value>
   </data>
-  <data name="DesignerMode" xml:space="preserve">
+  <data name="DesignerMode">
     <value>デザイナーモード</value>
   </data>
-  <data name="ResetLayout" xml:space="preserve">
+  <data name="ResetLayout">
     <value>レイアウトをリセット</value>
   </data>
-  <data name="CutSceneWindow" xml:space="preserve">
+  <data name="CutSceneWindow">
     <value>トランジション画面</value>
   </data>
-  <data name="NoteScoreStatisticsNotSaveInBO3Mode" xml:space="preserve">
+  <data name="NoteScoreStatisticsNotSaveInBO3Mode">
     <value>注意：BO3モードではスコア統計のレイアウト変更は保存されません</value>
   </data>
-  <data name="ResetSurvivorScoreLayoutInGame" xml:space="preserve">
+  <data name="ResetSurvivorScoreLayoutInGame">
     <value>ゲーム内サバイバー得点のレイアウトをリセット</value>
   </data>
-  <data name="ResetHunterScoreLayoutInGame" xml:space="preserve">
+  <data name="ResetHunterScoreLayoutInGame">
     <value>ゲーム内ハンター得点のレイアウトをリセット</value>
   </data>
-  <data name="ResetScoreStatisticsLayout" xml:space="preserve">
+  <data name="ResetScoreStatisticsLayout">
     <value>スコア統計のレイアウトをリセット</value>
   </data>
-  <data name="GameStatisticsWindow" xml:space="preserve">
+  <data name="GameStatisticsWindow">
     <value>戦績データ画面</value>
   </data>
-  <data name="Widgets" xml:space="preserve">
+  <data name="Widgets">
     <value>ウィジェット (マップBP等)</value>
   </data>
-  <data name="ResetMapBPLayout" xml:space="preserve">
+  <data name="ResetMapBPLayout">
     <value>マップBPレイアウトをリセット</value>
   </data>
-  <data name="ResetBPOverviewLayout" xml:space="preserve">
+  <data name="ResetBPOverviewLayout">
     <value>BP概要レイアウトをリセット</value>
   </data>
-  <data name="ResetMapBPV2Layout" xml:space="preserve">
+  <data name="ResetMapBPV2Layout">
     <value>マップBP V2レイアウトをリセット</value>
   </data>
-  <data name="Survivor" xml:space="preserve">
-    <value>サバイバー</value>
-  </data>
-  <data name="CharacterName" xml:space="preserve">
-    <value>キャラクター名</value>
-  </data>
-  <data name="Hunter" xml:space="preserve">
-    <value>ハンター</value>
-  </data>
-  <data name="AModernIdentityVBPSoftware" xml:space="preserve">
+<data name="AModernIdentityVBPSoftware">
     <value>次世代 Identity V BP ソフトウェア</value>
   </data>
-  <data name="OfficialWebsite" xml:space="preserve">
+  <data name="OfficialWebsite">
     <value>公式サイトへ</value>
   </data>
-  <data name="Documentations" xml:space="preserve">
+  <data name="Documentations">
     <value>ドキュメントを見る</value>
   </data>
-  <data name="ShowPickingBorder" xml:space="preserve">
-    <value>ピック枠を表示</value>
-  </data>
-  <data name="ShowCamp" xml:space="preserve">
-    <value>陣営を表示</value>
-  </data>
-  <data name="ResetMapBP" xml:space="preserve">
-    <value>マップBPをリセット</value>
-  </data>
-  <data name="OpenPickingBorder" xml:space="preserve">
+<data name="OpenPickingBorder">
     <value>ピック枠を有効化</value>
   </data>
-  <data name="ControlFirst2PickingBorderSeparately" xml:space="preserve">
+  <data name="ControlFirst2PickingBorderSeparately">
     <value>最初の2つのピック枠を個別に制御</value>
   </data>
-  <data name="SurvivorPickingBorder1" xml:space="preserve">
+  <data name="SurvivorPickingBorder1">
     <value>サバイバーピック枠 1</value>
   </data>
-  <data name="SurvivorPickingBorder2" xml:space="preserve">
+  <data name="SurvivorPickingBorder2">
     <value>サバイバーピック枠 2</value>
   </data>
-  <data name="SurvivorPickingBorder1and2" xml:space="preserve">
+  <data name="SurvivorPickingBorder1and2">
     <value>サバイバーピック枠 1 &amp; 2</value>
   </data>
-  <data name="SurvivorPickingBorder3" xml:space="preserve">
+  <data name="SurvivorPickingBorder3">
     <value>サバイバーピック枠 3</value>
   </data>
-  <data name="SurvivorPickingBorder4" xml:space="preserve">
+  <data name="SurvivorPickingBorder4">
     <value>サバイバーピック枠 4</value>
   </data>
-  <data name="HunterPickingBorder" xml:space="preserve">
+  <data name="HunterPickingBorder">
     <value>ハンターピック枠</value>
   </data>
-  <data name="GlobalBanRecord" xml:space="preserve">
-    <value>グローバルBAN記録</value>
-  </data>
-  <data name="AwayTeam" xml:space="preserve">
-    <value>アウェイチーム</value>
-  </data>
-  <data name="FourEscape" xml:space="preserve">
-    <value>4逃げ</value>
-  </data>
-  <data name="ThreeEscape" xml:space="preserve">
-    <value>3逃げ</value>
-  </data>
-  <data name="Tie" xml:space="preserve">
-    <value>引き分け</value>
-  </data>
-  <data name="FourEliminate" xml:space="preserve">
-    <value>4吊り</value>
-  </data>
-  <data name="ThreeEliminate" xml:space="preserve">
-    <value>3吊り</value>
-  </data>
-  <data name="ResetAllScores" xml:space="preserve">
-    <value>全スコアリセット</value>
-  </data>
-  <data name="ResetGameScores" xml:space="preserve">
+<data name="ResetGameScores">
     <value>得点をリセット</value>
   </data>
-  <data name="ControlManually" xml:space="preserve">
+  <data name="ControlManually">
     <value>手動制御</value>
   </data>
-  <data name="HomeTeamName" xml:space="preserve">
+  <data name="HomeTeamName">
     <value>ホームチーム名</value>
   </data>
-  <data name="GameSelection" xml:space="preserve">
+  <data name="GameSelection">
     <value>試合選択</value>
   </data>
-  <data name="Next" xml:space="preserve">
+  <data name="Next">
     <value>次へ</value>
   </data>
-  <data name="IsGameFinished" xml:space="preserve">
+  <data name="IsGameFinished">
     <value>試合終了</value>
   </data>
-  <data name="SynchronizeToFrontend" xml:space="preserve">
+  <data name="SynchronizeToFrontend">
     <value>フロントエンドに同期</value>
   </data>
-  <data name="CampOfHomeTeam" xml:space="preserve">
+  <data name="CampOfHomeTeam">
     <value>ホームチーム陣営</value>
   </data>
-  <data name="CampOfAwayTeam" xml:space="preserve">
+  <data name="CampOfAwayTeam">
     <value>アウェイチーム陣営</value>
   </data>
-  <data name="GameResult" xml:space="preserve">
+  <data name="GameResult">
     <value>試合結果</value>
   </data>
-  <data name="ClearCurrentHalfScore" xml:space="preserve">
-    <value>現在のハーフスコアを消去</value>
-  </data>
-  <data name="SurvivorTalent" xml:space="preserve">
-    <value>サバイバーの内在人格</value>
-  </data>
-  <data name="HunterTalent" xml:space="preserve">
-    <value>ハンターの内在人格</value>
-  </data>
-  <data name="HunterTrait" xml:space="preserve">
-    <value>ハンターの補助特質</value>
-  </data>
-  <data name="IsVisible" xml:space="preserve">
+<data name="IsVisible">
     <value>表示する</value>
   </data>
-  <data name="Listen" xml:space="preserve">
-    <value>リッスン</value>
-  </data>
-  <data name="Abnormal" xml:space="preserve">
-    <value>異常</value>
-  </data>
-  <data name="Excitement" xml:space="preserve">
-    <value>興奮</value>
-  </data>
-  <data name="Patroller" xml:space="preserve">
-    <value>巡視者</value>
-  </data>
-  <data name="Teleport" xml:space="preserve">
-    <value>瞬間移動</value>
-  </data>
-  <data name="Peeper" xml:space="preserve">
-    <value>監視者</value>
-  </data>
-  <data name="Blink" xml:space="preserve">
-    <value>神出鬼没</value>
-  </data>
-  <data name="Warp" xml:space="preserve">
-    <value>移形</value>
-  </data>
-  <data name="Backend" xml:space="preserve">
+<data name="Backend">
     <value>バックエンド管理</value>
   </data>
-  <data name="CurrentSurvivorTeamColon" xml:space="preserve">
+  <data name="CurrentSurvivorTeamColon">
     <value>現在のサバイバーチーム：</value>
   </data>
-  <data name="Swap" xml:space="preserve">
+  <data name="Swap">
     <value>陣営交代</value>
   </data>
-  <data name="CurrentHunterTeamColon" xml:space="preserve">
+  <data name="CurrentHunterTeamColon">
     <value>現在のハンターチーム：</value>
   </data>
-  <data name="Countdown" xml:space="preserve">
+  <data name="Countdown">
     <value>カウントダウン</value>
   </data>
-  <data name="PreviewColon" xml:space="preserve">
-    <value>プレビュー：</value>
-  </data>
-  <data name="SaveGameInformation" xml:space="preserve">
+<data name="SaveGameInformation">
     <value>現在の試合進行状況を保存</value>
   </data>
-  <data name="FormatColon" xml:space="preserve">
+  <data name="FormatColon">
     <value>フォーマット：</value>
   </data>
-  <data name="StartGameGuidance" xml:space="preserve">
+  <data name="StartGameGuidance">
     <value>試合開始ガイド</value>
   </data>
-  <data name="LastStep" xml:space="preserve">
+  <data name="LastStep">
     <value>戻る</value>
   </data>
-  <data name="NextStep" xml:space="preserve">
+  <data name="NextStep">
     <value>次へ</value>
   </data>
-  <data name="EndGameGuidance" xml:space="preserve">
+  <data name="EndGameGuidance">
     <value>試合終了ガイド</value>
   </data>
-  <data name="MadeByZeroPLFJY" xml:space="preserve">
+  <data name="MadeByZeroPLFJY">
     <value>制作：ゼロ風 PLFJY</value>
   </data>
-  <data name="HomePage" xml:space="preserve">
+  <data name="HomePage">
     <value>ホーム</value>
   </data>
-  <data name="GameData" xml:space="preserve">
+  <data name="GameData">
     <value>戦績データ</value>
   </data>
-  <data name="FrontendManagement" xml:space="preserve">
+  <data name="FrontendManagement">
     <value>フロントエンド管理</value>
   </data>
-  <data name="Free" xml:space="preserve">
+  <data name="Free">
     <value>フリー対戦</value>
   </data>
-  <data name="Game1FirstHalf" xml:space="preserve">
+  <data name="Game1FirstHalf">
     <value>一回戦 前半</value>
   </data>
-  <data name="Game1SecondHalf" xml:space="preserve">
+  <data name="Game1SecondHalf">
     <value>一回戦 後半</value>
   </data>
-  <data name="Game2FirstHalf" xml:space="preserve">
+  <data name="Game2FirstHalf">
     <value>二回戦 前半</value>
   </data>
-  <data name="Game2SecondHalf" xml:space="preserve">
+  <data name="Game2SecondHalf">
     <value>二回戦 後半</value>
   </data>
-  <data name="Game3FirstHalf" xml:space="preserve">
+  <data name="Game3FirstHalf">
     <value>三回戦 前半</value>
   </data>
-  <data name="Game3SecondHalf" xml:space="preserve">
+  <data name="Game3SecondHalf">
     <value>三回戦 後半</value>
   </data>
-  <data name="Game3OvertimeFirstHalf" xml:space="preserve">
+  <data name="Game3OvertimeFirstHalf">
     <value>三回戦 延長戦前半</value>
   </data>
-  <data name="Game3OvertimeSecondHalf" xml:space="preserve">
+  <data name="Game3OvertimeSecondHalf">
     <value>三回戦 延長戦後半</value>
   </data>
-  <data name="Game4FirstHalf" xml:space="preserve">
+  <data name="Game4FirstHalf">
     <value>四回戦 前半</value>
   </data>
-  <data name="Game4SecondHalf" xml:space="preserve">
+  <data name="Game4SecondHalf">
     <value>四回戦 後半</value>
   </data>
-  <data name="Game5FirstHalf" xml:space="preserve">
+  <data name="Game5FirstHalf">
     <value>五回戦 前半</value>
   </data>
-  <data name="Game5SecondHalf" xml:space="preserve">
+  <data name="Game5SecondHalf">
     <value>五回戦 後半</value>
   </data>
-  <data name="Game5OvertimeFirstHalf" xml:space="preserve">
+  <data name="Game5OvertimeFirstHalf">
     <value>五回戦 延長戦前半</value>
   </data>
-  <data name="Game5OvertimeSecondHalf" xml:space="preserve">
+  <data name="Game5OvertimeSecondHalf">
     <value>五回戦 延長戦後半</value>
   </data>
-  <data name="AreYouSureYouWantToExit" xml:space="preserve">
+  <data name="AreYouSureYouWantToExit">
     <value>終了してもよろしいですか？</value>
   </data>
-  <data name="ComingSoon" xml:space="preserve">
+  <data name="ComingSoon">
     <value>この先のエリアはまた後で探索しましょう〜</value>
   </data>
-  <data name="GameScores" xml:space="preserve">
+  <data name="GameScores">
     <value>得点</value>
   </data>
-  <data name="FrontendBP" xml:space="preserve">
+  <data name="FrontendBP">
     <value>フロントエンド - BP</value>
   </data>
-  <data name="FrontendCutScene" xml:space="preserve">
+  <data name="FrontendCutScene">
     <value>フロントエンド - トランジション</value>
   </data>
-  <data name="HomeTeamWinPlus1" xml:space="preserve">
+  <data name="HomeTeamWinPlus1">
     <value>ホーム勝利+1</value>
   </data>
-  <data name="HomeTeamTiePlus1" xml:space="preserve">
+  <data name="HomeTeamTiePlus1">
     <value>ホーム引き分け+1</value>
   </data>
-  <data name="HomeTeamGameScorePlus1" xml:space="preserve">
+  <data name="HomeTeamGameScorePlus1">
     <value>ホーム得点+1</value>
   </data>
-  <data name="HomeTeamWinMinus1" xml:space="preserve">
+  <data name="HomeTeamWinMinus1">
     <value>ホーム勝利-1</value>
   </data>
-  <data name="HomeTeamTieMinus1" xml:space="preserve">
+  <data name="HomeTeamTieMinus1">
     <value>ホーム引き分け-1</value>
   </data>
-  <data name="HomeTeamGameScoreMinus1" xml:space="preserve">
+  <data name="HomeTeamGameScoreMinus1">
     <value>ホーム得点-1</value>
   </data>
-  <data name="AwayTeamWinPlus1" xml:space="preserve">
+  <data name="AwayTeamWinPlus1">
     <value>アウェイ勝利+1</value>
   </data>
-  <data name="AwayTeamTiePlus1" xml:space="preserve">
+  <data name="AwayTeamTiePlus1">
     <value>アウェイ引き分け+1</value>
   </data>
-  <data name="AwayTeamGameScorePlus1" xml:space="preserve">
+  <data name="AwayTeamGameScorePlus1">
     <value>アウェイ得点+1</value>
   </data>
-  <data name="AwayTeamWinMinus1" xml:space="preserve">
+  <data name="AwayTeamWinMinus1">
     <value>アウェイ勝利-1</value>
   </data>
-  <data name="AwayTeamTieMinus1" xml:space="preserve">
+  <data name="AwayTeamTieMinus1">
     <value>アウェイ引き分け-1</value>
   </data>
-  <data name="AwayTeamGameScoreMinus1" xml:space="preserve">
+  <data name="AwayTeamGameScoreMinus1">
     <value>アウェイ得点-1</value>
   </data>
-  <data name="FrontendWidgets" xml:space="preserve">
+  <data name="FrontendWidgets">
     <value>フロントエンド - ウィジェット</value>
   </data>
-  <data name="HomeTeam" xml:space="preserve">
-    <value>ホームチーム</value>
-  </data>
-  <data name="FollowSystem" xml:space="preserve">
+<data name="FollowSystem">
     <value>システムに従う</value>
   </data>
-  <data name="RestoreDefaultSort" xml:space="preserve">
-    <value>既定の並び順に戻す</value>
-  </data>
-  <data name="Timer" xml:space="preserve">
+<data name="Timer">
     <value>タイマー</value>
   </data>
-  <data name="MatchScore" xml:space="preserve">
+  <data name="MatchScore">
     <value>対戦スコア</value>
   </data>
-  <data name="MapName" xml:space="preserve">
+  <data name="MapName">
     <value>マップ名</value>
   </data>
-  <data name="SurvivorPlayerID" xml:space="preserve">
+  <data name="SurvivorPlayerID">
     <value>サバイバー選手 ID</value>
   </data>
-  <data name="HunterPlayerID" xml:space="preserve">
+  <data name="HunterPlayerID">
     <value>ハンター選手 ID</value>
   </data>
-  <data name="MatchScores" xml:space="preserve">
+  <data name="MatchScores">
     <value>対戦スコア</value>
   </data>
-  <data name="GameScoresInScoreStatistics" xml:space="preserve">
+  <data name="GameScoresInScoreStatistics">
     <value>得点 (スコア統計)</value>
   </data>
-  <data name="TotalGameScoresInScoreStatistics" xml:space="preserve">
+  <data name="TotalGameScoresInScoreStatistics">
     <value>総得点 (スコア統計)</value>
   </data>
-  <data name="SurvivorData" xml:space="preserve">
+  <data name="SurvivorData">
     <value>サバイバーデータ</value>
   </data>
-  <data name="HunterData" xml:space="preserve">
+  <data name="HunterData">
     <value>ハンターデータ</value>
   </data>
-  <data name="MapNameInMapBP" xml:space="preserve">
+  <data name="MapNameInMapBP">
     <value>マップ名 (マップBP)</value>
   </data>
-  <data name="MapNameInMapBPV2" xml:space="preserve">
+  <data name="MapNameInMapBPV2">
     <value>マップ名 (マップBP V2)</value>
   </data>
-  <data name="CampNameInMapBPV2" xml:space="preserve">
+  <data name="CampNameInMapBPV2">
     <value>陣営名 (マップBP V2)</value>
   </data>
-  <data name="GameScoresInBPOverview" xml:space="preserve">
+  <data name="GameScoresInBPOverview">
     <value>得点 (BP概要)</value>
   </data>
-  <data name="Sur" xml:space="preserve">
-    <value>サバイバー</value>
-  </data>
-  <data name="Hun" xml:space="preserve">
-    <value>ハンター</value>
-  </data>
-  <data name="null" xml:space="preserve">
+<data name="null">
     <value />
   </data>
-  <data name="DistributeCharacters" xml:space="preserve">
-    <value>キャラクター分配</value>
-  </data>
-  <data name="CurrentStepFormat" xml:space="preserve">
+<data name="CurrentStepFormat">
     <value>現在のステップ：{0}</value>
   </data>
-  <data name="Tip" xml:space="preserve">
+  <data name="Tip">
     <value>ヒント</value>
   </data>
-  <data name="FrontendSurvivorScoreInGame" xml:space="preserve">
+  <data name="FrontendSurvivorScoreInGame">
     <value>フロントエンド - ゲーム内サバイバー得点</value>
   </data>
-  <data name="FrontendHunterScoreInGame" xml:space="preserve">
+  <data name="FrontendHunterScoreInGame">
     <value>フロントエンド - ゲーム内ハンター得点</value>
   </data>
-  <data name="Installed" xml:space="preserve">
+  <data name="Installed">
     <value>インストール済み</value>
   </data>
-  <data name="Notification" xml:space="preserve">
+  <data name="Notification">
     <value>通知</value>
   </data>
-  <data name="AfterUpdateTip" xml:space="preserve">
+  <data name="AfterUpdateTip">
     <value>フロントエンドの表示が乱れる場合は、レイアウトとカスタム設定をリセットしてください</value>
   </data>
-  <data name="DontRemindMeAgainUntilTheNextUpdate" xml:space="preserve">
+  <data name="DontRemindMeAgainUntilTheNextUpdate">
     <value>次回の更新まで通知しない</value>
   </data>
-  <data name="GoToFolder" xml:space="preserve">
+  <data name="GoToFolder">
     <value>フォルダへ移動</value>
   </data>
-  <data name="RestartNeeded" xml:space="preserve">
+  <data name="RestartNeeded">
     <value>再起動が必要</value>
   </data>
-  <data name="SomeSettingsRequireRestartingTheApplication" xml:space="preserve">
+  <data name="SomeSettingsRequireRestartingTheApplication">
     <value>一部の設定はアプリケーションの再起動が必要です</value>
   </data>
-  <data name="ResetLayoutFormat" xml:space="preserve">
+  <data name="ResetLayoutFormat">
     <value>{0}レイアウトをリセット</value>
   </data>
-  <data name="SaveInfo" xml:space="preserve">
+  <data name="SaveInfo">
     <value>保存情報</value>
   </data>
-  <data name="SaveSuccessfullyTo" xml:space="preserve">
+  <data name="SaveSuccessfullyTo">
     <value>保存に成功しました：</value>
   </data>
-  <data name="SaveFailed" xml:space="preserve">
+  <data name="SaveFailed">
     <value>保存に失敗しました</value>
   </data>
-  <data name="InvalidInput" xml:space="preserve">
+  <data name="InvalidInput">
     <value>無効な入力</value>
   </data>
-  <data name="SaveFrontendConfigurationFileFailed" xml:space="preserve">
+  <data name="SaveFrontendConfigurationFileFailed">
     <value>フロントエンド設定ファイルの保存に失敗しました</value>
   </data>
-  <data name="UnregisteredWindowType" xml:space="preserve">
+  <data name="UnregisteredWindowType">
     <value>未登録のウィンドウタイプ</value>
   </data>
-  <data name="ConfigurationFileLoadingError" xml:space="preserve">
+  <data name="ConfigurationFileLoadingError">
     <value>設定ファイル読み込みエラー</value>
   </data>
-  <data name="FrontendDefaultConfigurationRestoreError" xml:space="preserve">
+  <data name="FrontendDefaultConfigurationRestoreError">
     <value>フロントエンドデフォルト設定復元エラー</value>
   </data>
-  <data name="ResetTip" xml:space="preserve">
+  <data name="ResetTip">
     <value>リセットのヒント</value>
   </data>
-  <data name="ConfigurationFileSaveError" xml:space="preserve">
-    <value>設定ファイル保存エラー</value>
-  </data>
-  <data name="WindowLaunchError" xml:space="preserve">
+<data name="WindowLaunchError">
     <value>ウィンドウ起動エラー</value>
   </data>
-  <data name="WindowCloseError" xml:space="preserve">
+  <data name="WindowCloseError">
     <value>ウィンドウ終了エラー</value>
   </data>
-  <data name="ErrorWhenGeneratingFrontendConfigurationFile" xml:space="preserve">
+  <data name="ErrorWhenGeneratingFrontendConfigurationFile">
     <value>フロントエンド設定ファイル生成中にエラーが発生しました</value>
   </data>
-  <data name="ConfigurationResetConfirmation" xml:space="preserve">
+  <data name="ConfigurationResetConfirmation">
     <value>設定リセット確認</value>
   </data>
-  <data name="UnknownWindowSource" xml:space="preserve">
+  <data name="UnknownWindowSource">
     <value>不明なウィンドウソース</value>
   </data>
-  <data name="ReadFrontendDefaultConfigurationError" xml:space="preserve">
+  <data name="ReadFrontendDefaultConfigurationError">
     <value>フロントエンドデフォルト設定読み込みエラー</value>
   </data>
-  <data name="CannotFindDefaultLayoutConfigurationFromWindowProvider" xml:space="preserve">
+  <data name="CannotFindDefaultLayoutConfigurationFromWindowProvider">
     <value>ウィンドウプロバイダーからデフォルトレイアウト設定が見つかりません</value>
   </data>
-  <data name="UIConfigurationHasBeenSavedTo" xml:space="preserve">
+  <data name="UIConfigurationHasBeenSavedTo">
     <value>UI設定は以下に保存されました：</value>
   </data>
-  <data name="UIPackingError" xml:space="preserve">
+  <data name="UIPackingError">
     <value>UIパッキングエラー</value>
   </data>
-  <data name="UIImportIsFinished" xml:space="preserve">
+  <data name="UIImportIsFinished">
     <value>UIインポート完了。アプリケーションは自動的に再起動します。</value>
   </data>
-  <data name="UIImportTip" xml:space="preserve">
+  <data name="UIImportTip">
     <value>UIインポートのヒント</value>
   </data>
-  <data name="UIPackLoadingError" xml:space="preserve">
+  <data name="UIPackLoadingError">
     <value>UIパック読み込みエラー</value>
   </data>
-  <data name="ConfigurationFileEmpty" xml:space="preserve">
-    <value>設定ファイルが空です</value>
-  </data>
-  <data name="FailedToReadConfigurationFile" xml:space="preserve">
-    <value>設定ファイルの読み込みに失敗しました</value>
-  </data>
-  <data name="ResetConfigurationFileToSolveTheProblem" xml:space="preserve">
-    <value>問題を解決するには設定ファイルをリセットしてください</value>
-  </data>
-  <data name="ResetConfigurationFileError" xml:space="preserve">
-    <value>設定ファイルリセットエラー</value>
-  </data>
-  <data name="JsonFileFormatError" xml:space="preserve">
-    <value>JSONファイル形式エラー</value>
-  </data>
-  <data name="CleanupUpdateResidueError" xml:space="preserve">
+<data name="CleanupUpdateResidueError">
     <value>更新残留ファイル削除エラー</value>
   </data>
-  <data name="DownloadFailed" xml:space="preserve">
+  <data name="DownloadFailed">
     <value>ダウンロード失敗</value>
   </data>
-  <data name="GettingUpdateError" xml:space="preserve">
+  <data name="GettingUpdateError">
     <value>更新取得エラー</value>
   </data>
-  <data name="NewVersionFound" xml:space="preserve">
+  <data name="NewVersionFound">
     <value>新バージョン発見</value>
   </data>
-  <data name="GoToSettingPageToUpdate" xml:space="preserve">
+  <data name="GoToSettingPageToUpdate">
     <value>設定ページで更新する</value>
   </data>
-  <data name="AlreadyTheLatestVersion" xml:space="preserve">
+  <data name="AlreadyTheLatestVersion">
     <value>既に最新バージョンです</value>
   </data>
-  <data name="HttpRequestError" xml:space="preserve">
+  <data name="HttpRequestError">
     <value>HTTPリクエストエラー</value>
   </data>
-  <data name="JsonParsingError" xml:space="preserve">
+  <data name="JsonParsingError">
     <value>JSON解析エラー</value>
   </data>
-  <data name="UnknownError" xml:space="preserve">
+  <data name="UnknownError">
     <value>不明なエラー</value>
   </data>
-  <data name="ImageFiles" xml:space="preserve">
+  <data name="ImageFiles">
     <value>画像ファイル</value>
   </data>
-  <data name="FontFiles" xml:space="preserve">
+  <data name="FontFiles">
     <value>フォントファイル</value>
   </data>
-  <data name="JSONFiles" xml:space="preserve">
+  <data name="JSONFiles">
     <value>JSONファイル</value>
   </data>
-  <data name="ZipFiles" xml:space="preserve">
+  <data name="ZipFiles">
     <value>Zip圧縮ファイル</value>
   </data>
-  <data name="TheProgramIsAlreadyRunning" xml:space="preserve">
+  <data name="TheProgramIsAlreadyRunning">
     <value>プログラムは既に実行中です</value>
   </data>
-  <data name="AlreadyTheLastStep" xml:space="preserve">
+  <data name="AlreadyTheLastStep">
     <value>既に最後のステップです</value>
   </data>
-  <data name="GameInfoStatusError" xml:space="preserve">
+  <data name="GameInfoStatusError">
     <value>試合情報状態異常</value>
   </data>
-  <data name="AlreadyTheFirstStep" xml:space="preserve">
+  <data name="AlreadyTheFirstStep">
     <value>既に最初のステップです</value>
   </data>
-  <data name="EmptyBan" xml:space="preserve">
+  <data name="EmptyBan">
     <value>BANなし</value>
   </data>
-  <data name="CurrentStep" xml:space="preserve">
+  <data name="CurrentStep">
     <value>現在のステップ</value>
   </data>
-  <data name="Tips" xml:space="preserve">
-    <value>ヒント</value>
-  </data>
-  <data name="RestartToApply" xml:space="preserve">
+<data name="RestartToApply">
     <value>再起動後に適用</value>
   </data>
-  <data name="AreYouSureToSaveTheShiftDistanceOfTotalScore" xml:space="preserve">
+  <data name="AreYouSureToSaveTheShiftDistanceOfTotalScore">
     <value>合計スコアの調整距離を保存しますか？</value>
   </data>
-  <data name="AreYouSureToSetCampIconTo" xml:space="preserve">
+  <data name="AreYouSureToSetCampIconTo">
     <value>陣営アイコンを以下に変更しますか：</value>
   </data>
-  <data name="AreYouSureToSetTalentAndTraitIconTo" xml:space="preserve">
+  <data name="AreYouSureToSetTalentAndTraitIconTo">
     <value>人格・特質アイコンの色を以下に設定しますか：</value>
   </data>
-  <data name="AreYouSureToResetAllPersonalSettingsOfThisWindow" xml:space="preserve">
+  <data name="AreYouSureToResetAllPersonalSettingsOfThisWindow">
     <value>このウィンドウの全ての個人設定をリセットしてもよろしいですか？</value>
   </data>
-  <data name="AreYouSureToResetPersonalSettingsOfAllWindows" xml:space="preserve">
+  <data name="AreYouSureToResetPersonalSettingsOfAllWindows">
     <value>全てのウィンドウの個人設定をリセットしてもよろしいですか？</value>
   </data>
-  <data name="CoverTip" xml:space="preserve">
+  <data name="CoverTip">
     <value>上書きのヒント</value>
   </data>
-  <data name="PathHasAlreadyExistAreYouSureToCoverIt" xml:space="preserve">
+  <data name="PathHasAlreadyExistAreYouSureToCoverIt">
     <value>は既に存在します。上書きしますか？</value>
   </data>
-  <data name="CreateTip" xml:space="preserve">
-    <value>作成のヒント</value>
-  </data>
-  <data name="Restart" xml:space="preserve">
+<data name="Restart">
     <value>再起動</value>
   </data>
-  <data name="NotNow" xml:space="preserve">
+  <data name="NotNow">
     <value>今はしない</value>
   </data>
-  <data name="Loaded" xml:space="preserve">
+  <data name="Loaded">
     <value>ロード済み</value>
   </data>
-  <data name="Disabled" xml:space="preserve">
+  <data name="Disabled">
     <value>無効</value>
   </data>
-  <data name="Character" xml:space="preserve">
+  <data name="Character">
     <value>キャラクター</value>
   </data>
-  <data name="FrontedScoreStatistics" xml:space="preserve">
+  <data name="FrontedScoreStatistics">
     <value>フロントエンド - スコア統計</value>
   </data>
-  <data name="FrontedGameStatistics" xml:space="preserve">
+  <data name="FrontedGameStatistics">
     <value>フロントエンド - 戦績データ</value>
   </data>
-  <data name="ImportGameInformation" xml:space="preserve">
+  <data name="ImportGameInformation">
     <value>試合情報をインポート</value>
   </data>
-  <data name="ImportSuccessfullyFrom" xml:space="preserve">
+  <data name="ImportSuccessfullyFrom">
     <value>以下から正常にインポートしました：</value>
   </data>
-  <data name="ImportInfo" xml:space="preserve">
+  <data name="ImportInfo">
     <value>インポート情報</value>
   </data>
-  <data name="ImportFailed" xml:space="preserve">
+  <data name="ImportFailed">
     <value>インポート失敗：</value>
   </data>
-  <data name="ReleaseNotes" xml:space="preserve">
+  <data name="ReleaseNotes">
     <value>更新履歴（中国語のみ）</value>
   </data>
-  <data name="LoadingFailed" xml:space="preserve">
+  <data name="LoadingFailed">
     <value>読み込み失敗</value>
   </data>
-  <data name="BpuiFiles" xml:space="preserve">
+  <data name="BpuiFiles">
     <value>bpuiファイル</value>
   </data>
-  <data name="AllowsWindowTransparency" xml:space="preserve">
+  <data name="AllowsWindowTransparency">
     <value>ウィンドウの透明化を許可</value>
   </data>
-  <data name="AllowsScoreGlobalWindowTransparency" xml:space="preserve">
+  <data name="AllowsScoreGlobalWindowTransparency">
     <value>スコア統計ウィンドウの透明化を許可</value>
   </data>
-  <data name="WindowSize" xml:space="preserve">
+  <data name="WindowSize">
     <value>ウィンドウサイズ</value>
   </data>
-  <data name="AutoRecord" xml:space="preserve">
-    <value>自動記録</value>
-  </data>
-  <data name="UnexpectedExceptionMessage" xml:space="preserve">
+<data name="UnexpectedExceptionMessage">
     <value>予期しないエラーが発生しました。下記のアドレスにあるログファイルを添えて、開発者までお問い合わせください。</value>
   </data>
-  <data name="AutoDetectAndFillPostGameData" xml:space="preserve">
-    <value>試合後データを自動検出して入力</value>
-  </data>
-  <data name="SevenZipArchiveFiles" xml:space="preserve">
+<data name="SevenZipArchiveFiles">
     <value>7z アーカイブ</value>
   </data>
-  <data name="AllFiles" xml:space="preserve">
+  <data name="AllFiles">
     <value>すべてのファイル</value>
   </data>
-  <data name="PleaseStartWindowCaptureFirst" xml:space="preserve">
-    <value>先にウィンドウキャプチャを開始してください。</value>
-  </data>
-  <data name="WindowCapturePleaseSelectWindowFirst" xml:space="preserve">
-    <value>先にウィンドウを選択してください。</value>
-  </data>
-  <data name="WindowCaptureWgcRequires1803OrLater" xml:space="preserve">
-    <value>Windows Graphics Capture を使用するには Windows 10 1803 以降が必要です。</value>
-  </data>
-  <data name="WindowCaptureWgcNotSupportedOnCurrentSystem" xml:space="preserve">
-    <value>現在のシステムでは Windows Graphics Capture をサポートしていません。</value>
-  </data>
-  <data name="WindowCaptureFailedToStartPickerCaptureFormat" xml:space="preserve">
-    <value>ウィンドウ選択からのキャプチャ開始に失敗しました：{0}</value>
-  </data>
-  <data name="WindowCaptureCaptureNotStarted" xml:space="preserve">
-    <value>キャプチャはまだ開始されていません。</value>
-  </data>
-  <data name="WindowCapturePreviewWindowTitle" xml:space="preserve">
-    <value>プレビューウィンドウ</value>
-  </data>
-  <data name="WindowCaptureSelectedWindowInvalidForCapture" xml:space="preserve">
-    <value>選択したウィンドウはキャプチャできません。</value>
-  </data>
-  <data name="WindowCaptureFailedToCaptureFirstFrameWithBitblt" xml:space="preserve">
-    <value>Bitblt で最初のフレーム取得に失敗しました。</value>
-  </data>
-  <data name="WindowCaptureFailedToStartBitbltCaptureFormat" xml:space="preserve">
-    <value>Bitblt キャプチャの開始に失敗しました：{0}</value>
-  </data>
-  <data name="WindowCaptureWgcWindowCaptureRequires1903OrLaterUsePickerOn1803Or1809" xml:space="preserve">
-    <value>選択したウィンドウのキャプチャには Windows 10 1903 以降が必要です。1803/1809 ではウィンドウ選択キャプチャを使用してください。</value>
-  </data>
-  <data name="WindowCaptureFailedToCaptureSelectedWindowFormat" xml:space="preserve">
-    <value>選択したウィンドウのキャプチャに失敗しました：{0}</value>
-  </data>
-  <data name="WindowCaptureGraphicsCaptureItemUnavailable" xml:space="preserve">
-    <value>選択したウィンドウのキャプチャに失敗しました：GraphicsCaptureItem を利用できません。</value>
-  </data>
-  <data name="WindowCaptureFailedToStartCaptureFormat" xml:space="preserve">
-    <value>キャプチャの開始に失敗しました：{0}</value>
-  </data>
-  <data name="SaveAs" xml:space="preserve">
+<data name="SaveAs">
     <value>名前を付けて保存</value>
   </data>
-  <data name="QueuePending" xml:space="preserve">
+  <data name="QueuePending">
     <value>待機中</value>
   </data>
-  <data name="QueueDownloading" xml:space="preserve">
+  <data name="QueueDownloading">
     <value>ダウンロード中</value>
   </data>
-  <data name="QueueDownloaded" xml:space="preserve">
+  <data name="QueueDownloaded">
     <value>ダウンロード済み、インストール待ち</value>
   </data>
-  <data name="QueueInstalledRestartRequired" xml:space="preserve">
+  <data name="QueueInstalledRestartRequired">
     <value>インストール済み、再起動して変更を適用</value>
   </data>
-  <data name="QueueFailed" xml:space="preserve">
+  <data name="QueueFailed">
     <value>ダウンロード失敗</value>
   </data>
-  <data name="QueueCanceled" xml:space="preserve">
+  <data name="QueueCanceled">
     <value>キャンセル済み</value>
   </data>
-  <data name="FrontedDesignerWindow" xml:space="preserve">
+  <data name="FrontedDesignerWindow">
     <value>フロントエンドデザイナー</value>
   </data>
-  <data name="Canvas" xml:space="preserve">
+  <data name="Canvas">
     <value>キャンバス</value>
   </data>
-  <data name="LayoutSource" xml:space="preserve">
+  <data name="LayoutSource">
     <value>レイアウト元</value>
   </data>
-  <data name="Validation" xml:space="preserve">
+  <data name="Validation">
     <value>検証</value>
   </data>
-  <data name="ValidateLayout" xml:space="preserve">
+  <data name="ValidateLayout">
     <value>検証</value>
   </data>
-  <data name="BuiltInLayout" xml:space="preserve">
+  <data name="BuiltInLayout">
     <value>組み込みレイアウト</value>
   </data>
-  <data name="ZoomIn" xml:space="preserve">
-    <value>拡大</value>
-  </data>
-  <data name="ZoomOut" xml:space="preserve">
-    <value>縮小</value>
-  </data>
-  <data name="FitToWindow" xml:space="preserve">
+<data name="FitToWindow">
     <value>ウィンドウに合わせる</value>
   </data>
-  <data name="ControlType" xml:space="preserve">
+  <data name="ControlType">
     <value>コントロール種別</value>
   </data>
-  <data name="Property" xml:space="preserve">
+  <data name="Property">
     <value>プロパティ</value>
   </data>
-  <data name="Value" xml:space="preserve">
+  <data name="Value">
     <value>値</value>
   </data>
-  <data name="Identity" xml:space="preserve">
+  <data name="Identity">
     <value>識別情報</value>
   </data>
-  <data name="Binding" xml:space="preserve">
+  <data name="Binding">
     <value>バインド</value>
   </data>
-  <data name="Appearance" xml:space="preserve">
+  <data name="Appearance">
     <value>外観</value>
   </data>
-  <data name="ControlSpecific" xml:space="preserve">
+  <data name="ControlSpecific">
     <value>コントロール固有</value>
   </data>
-  <data name="ReadOnly" xml:space="preserve">
+  <data name="ReadOnly">
     <value>読み取り専用</value>
   </data>
-  <data name="Color" xml:space="preserve">
+  <data name="Color">
     <value>色</value>
   </data>
-  <data name="BasicControls" xml:space="preserve">
+  <data name="BasicControls">
     <value>基本コントロール</value>
   </data>
-  <data name="BusinessControls" xml:space="preserve">
+  <data name="BusinessControls">
     <value>業務コントロール</value>
   </data>
-  <data name="FontFamily" xml:space="preserve">
+  <data name="FontFamily">
     <value>フォント</value>
   </data>
-  <data name="BuiltInFont" xml:space="preserve">
+  <data name="BuiltInFont">
     <value>組み込みフォント</value>
   </data>
-  <data name="SystemFont" xml:space="preserve">
+  <data name="SystemFont">
     <value>システムフォント</value>
   </data>
-  <data name="Placeholder" xml:space="preserve">
+  <data name="Placeholder">
     <value>プレースホルダー</value>
   </data>
-  <data name="ConfirmDeleteControl" xml:space="preserve">
+  <data name="ConfirmDeleteControl">
     <value>選択中のコントロールを削除しますか？</value>
   </data>
-  <data name="PlaceholderPreview" xml:space="preserve">
+  <data name="PlaceholderPreview">
     <value>プレースホルダープレビュー</value>
   </data>
-  <data name="DesignerPlaceholderData" xml:space="preserve">
+  <data name="DesignerPlaceholderData">
     <value>デザイナープレースホルダーデータ</value>
   </data>
-  <data name="ApplyColor" xml:space="preserve">
-    <value>色を適用</value>
-  </data>
-  <data name="ResetToBuiltIn" xml:space="preserve">
-    <value>組み込みにリセット</value>
-  </data>
-  <data name="UnsavedChangesMessage" xml:space="preserve">
+<data name="UnsavedChangesMessage">
     <value>現在のレイアウトに未保存の変更があります。</value>
   </data>
-  <data name="SaveBeforeSwitch" xml:space="preserve">
+  <data name="SaveBeforeSwitch">
     <value>現在のレイアウトに未保存の変更があります。続行する前に保存しますか？</value>
   </data>
-  <data name="SaveBeforeClose" xml:space="preserve">
+  <data name="SaveBeforeClose">
     <value>現在のレイアウトに未保存の変更があります。閉じる前に保存しますか？</value>
   </data>
-  <data name="DiscardChanges" xml:space="preserve">
-    <value>変更を破棄</value>
-  </data>
-  <data name="SnapGridSize" xml:space="preserve">
+<data name="SnapGridSize">
     <value>スナップグリッドサイズ</value>
   </data>
-  <data name="BindingBrowser" xml:space="preserve">
+  <data name="BindingBrowser">
     <value>バインドブラウザー</value>
   </data>
-  <data name="ResourceBrowser" xml:space="preserve">
+  <data name="ResourceBrowser">
     <value>リソースブラウザー</value>
   </data>
-  <data name="SelectBindingPath" xml:space="preserve">
+  <data name="SelectBindingPath">
     <value>バインドパスを選択</value>
   </data>
-  <data name="SelectResource" xml:space="preserve">
+  <data name="SelectResource">
     <value>リソースを選択</value>
   </data>
-  <data name="SearchBindings" xml:space="preserve">
+  <data name="SearchBindings">
     <value>バインドを検索</value>
   </data>
-  <data name="SearchResources" xml:space="preserve">
+  <data name="SearchResources">
     <value>リソースを検索</value>
   </data>
-  <data name="SelectedPath" xml:space="preserve">
+  <data name="SelectedPath">
     <value>選択中のパス</value>
   </data>
-  <data name="BuiltInResources" xml:space="preserve">
+  <data name="BuiltInResources">
     <value>組み込みリソース</value>
   </data>
-  <data name="AppAssets" xml:space="preserve">
+  <data name="AppAssets">
     <value>アプリ素材</value>
   </data>
-  <data name="AbsoluteFile" xml:space="preserve">
+  <data name="AbsoluteFile">
     <value>絶対パスのファイル</value>
   </data>
-  <data name="BrowseFile" xml:space="preserve">
-    <value>ファイルを参照</value>
-  </data>
-  <data name="NoBindingResults" xml:space="preserve">
+<data name="NoBindingResults">
     <value>一致するバインドはありません。</value>
   </data>
-  <data name="NoResourceResults" xml:space="preserve">
+  <data name="NoResourceResults">
     <value>一致するリソースはありません。</value>
   </data>
-  <data name="ExpectedBindingType" xml:space="preserve">
+  <data name="ExpectedBindingType">
     <value>想定バインド型</value>
   </data>
-  <data name="AnyBinding" xml:space="preserve">
+  <data name="AnyBinding">
     <value>任意のバインド</value>
   </data>
-  <data name="TextBinding" xml:space="preserve">
+  <data name="TextBinding">
     <value>テキストバインド</value>
   </data>
-  <data name="ImageBinding" xml:space="preserve">
+  <data name="ImageBinding">
     <value>画像バインド</value>
   </data>
-  <data name="MapBinding" xml:space="preserve">
+  <data name="MapBinding">
     <value>マップバインド</value>
   </data>
-  <data name="BooleanBinding" xml:space="preserve">
+  <data name="BooleanBinding">
     <value>真偽値バインド</value>
   </data>
-  <data name="NumberBinding" xml:space="preserve">
+  <data name="NumberBinding">
     <value>数値バインド</value>
   </data>
-  <data name="StringBinding" xml:space="preserve">
+  <data name="StringBinding">
     <value>文字列バインド</value>
   </data>
-  <data name="UseSelected" xml:space="preserve">
+  <data name="UseSelected">
     <value>選択を使用</value>
   </data>
-  <data name="Window" xml:space="preserve">
+  <data name="Window">
     <value>ウィンドウ</value>
   </data>
-  <data name="RestartRequired" xml:space="preserve">
+  <data name="RestartRequired">
     <value>再起動が必要です</value>
   </data>
-  <data name="SaveBeforeRestart" xml:space="preserve">
+  <data name="SaveBeforeRestart">
     <value>再起動前に現在のレイアウトを保存しますか？</value>
   </data>
-  <data name="FrontendWindows" xml:space="preserve">
+  <data name="FrontendWindows">
     <value>フロントウィンドウ</value>
   </data>
-  <data name="FrontendDesigner" xml:space="preserve">
+  <data name="FrontendDesigner">
     <value>フロントデザイナー</value>
   </data>
-  <data name="InstalledPackages" xml:space="preserve">
+  <data name="InstalledPackages">
     <value>インストール済みパッケージ</value>
   </data>
-  <data name="BuiltInPackage" xml:space="preserve">
+  <data name="BuiltInPackage">
     <value>内蔵パッケージ</value>
   </data>
-  <data name="PackageCreatedAt" xml:space="preserve">
+  <data name="PackageCreatedAt">
     <value>作成日時</value>
   </data>
-  <data name="PackageSource" xml:space="preserve">
+  <data name="PackageSource">
     <value>ソース</value>
   </data>
-  <data name="PackageValidationStatus" xml:space="preserve">
+  <data name="PackageValidationStatus">
     <value>検証状態</value>
   </data>
-  <data name="PackageInstallPath" xml:space="preserve">
+  <data name="PackageInstallPath">
     <value>インストール先</value>
   </data>
-  <data name="PackageNotImplemented" xml:space="preserve">
+  <data name="PackageNotImplemented">
     <value>v3 パッケージのインポートは今後のバージョンで実装予定です。</value>
   </data>
-  <data name="PackageActivated" xml:space="preserve">
+  <data name="PackageActivated">
     <value>パッケージを有効化しました。</value>
   </data>
-  <data name="ShortcutDelete" xml:space="preserve">
+  <data name="ShortcutDelete">
     <value>削除 (Del)</value>
   </data>
-  <data name="ExportScope" xml:space="preserve">
+  <data name="ExportScope">
     <value>エクスポート範囲</value>
   </data>
-  <data name="ExportCurrentCanvas" xml:space="preserve">
+  <data name="ExportCurrentCanvas">
     <value>現在の Canvas</value>
   </data>
-  <data name="ExportCurrentWindow" xml:space="preserve">
+  <data name="ExportCurrentWindow">
     <value>現在のウィンドウ</value>
   </data>
-  <data name="ExportAllFrontendLayouts" xml:space="preserve">
+  <data name="ExportAllFrontendLayouts">
     <value>すべてのフロントレイアウト</value>
   </data>
-  <data name="ActivateImportedPackage" xml:space="preserve">
+  <data name="ActivateImportedPackage">
     <value>パッケージをインポートしました。今すぐ有効化しますか？</value>
   </data>
-  <data name="LegacyPackageDetected" xml:space="preserve">
+  <data name="LegacyPackageDetected">
     <value>旧形式の .bpui パッケージを検出しました</value>
   </data>
-  <data name="LegacyPackageConversionNotImplemented" xml:space="preserve">
+  <data name="LegacyPackageConversionNotImplemented">
     <value>旧形式 .bpui の変換はまだ実装されていません。</value>
   </data>
-  <data name="InvalidPackageManifest" xml:space="preserve">
+  <data name="InvalidPackageManifest">
     <value>パッケージ manifest が無効です。</value>
   </data>
-  <data name="InvalidPackageArchive" xml:space="preserve">
+  <data name="InvalidPackageArchive">
     <value>パッケージアーカイブが無効です。</value>
   </data>
-  <data name="CrossPackageResourceReference" xml:space="preserve">
+  <data name="CrossPackageResourceReference">
     <value>パッケージに別パッケージへのリソース参照があります。</value>
   </data>
-  <data name="MissingPackageResource" xml:space="preserve">
+  <data name="MissingPackageResource">
     <value>パッケージのリソースファイルが不足しています。</value>
   </data>
-  <data name="SwitchToBuiltIn" xml:space="preserve">
+  <data name="SwitchToBuiltIn">
     <value>組み込みに切り替え</value>
   </data>
-  <data name="UnknownLegacyLayoutFile" xml:space="preserve">
+  <data name="UnknownLegacyLayoutFile">
     <value>不明な旧形式レイアウトファイル</value>
   </data>
-  <data name="LegacyFieldIgnored" xml:space="preserve">
+  <data name="LegacyFieldIgnored">
     <value>旧形式フィールドを無視しました</value>
   </data>
-  <data name="LegacyResourceCopied" xml:space="preserve">
+  <data name="LegacyResourceCopied">
     <value>旧形式リソースをコピーしました</value>
   </data>
-  <data name="LegacyResourceMissing" xml:space="preserve">
+  <data name="LegacyResourceMissing">
     <value>旧形式リソースが見つかりません</value>
   </data>
-  <data name="ActivateConvertedPackage" xml:space="preserve">
+  <data name="ActivateConvertedPackage">
     <value>変換したパッケージを今すぐ有効化しますか？</value>
   </data>
-  <data name="InputTruncated" xml:space="preserve">
-    <value>入力は長さの上限で切り詰められました</value>
-  </data>
-  <data name="InputTooLong" xml:space="preserve">
+<data name="InputTooLong">
     <value>入力が長すぎます</value>
   </data>
-  <data name="ImageTooLarge" xml:space="preserve">
+  <data name="ImageTooLarge">
     <value>画像ファイルが大きすぎます</value>
   </data>
-  <data name="ImageTooManyPixels" xml:space="preserve">
+  <data name="ImageTooManyPixels">
     <value>画像サイズが大きすぎます</value>
   </data>
-  <data name="UnsupportedImageFormat" xml:space="preserve">
+  <data name="UnsupportedImageFormat">
     <value>対応していない画像形式です</value>
   </data>
-  <data name="PackageTooLarge" xml:space="preserve">
+  <data name="PackageTooLarge">
     <value>レイアウトパッケージが大きすぎます</value>
   </data>
-  <data name="PackageExtractedTooLarge" xml:space="preserve">
+  <data name="PackageExtractedTooLarge">
     <value>展開後のパッケージ内容が大きすぎます</value>
   </data>
-  <data name="PackageTooManyEntries" xml:space="preserve">
+  <data name="PackageTooManyEntries">
     <value>パッケージ内のファイル数が多すぎます</value>
   </data>
-  <data name="PackageEntryTooLarge" xml:space="preserve">
+  <data name="PackageEntryTooLarge">
     <value>パッケージ内の単一ファイルが大きすぎます</value>
   </data>
-  <data name="ManifestTooLarge" xml:space="preserve">
+  <data name="ManifestTooLarge">
     <value>manifest.json が大きすぎます</value>
   </data>
-  <data name="LayoutJsonTooLarge" xml:space="preserve">
+  <data name="LayoutJsonTooLarge">
     <value>レイアウト JSON が大きすぎます</value>
   </data>
-  <data name="WindowOptionsTooLarge" xml:space="preserve">
+  <data name="WindowOptionsTooLarge">
     <value>ウィンドウオプション JSON が大きすぎます</value>
   </data>
-  <data name="TooManyControls" xml:space="preserve">
+  <data name="TooManyControls">
     <value>この Canvas のコントロールが多すぎます</value>
   </data>
-  <data name="ControlCountWarning" xml:space="preserve">
+  <data name="ControlCountWarning">
     <value>この Canvas には多くのコントロールがあります</value>
   </data>
-  <data name="MaxControlsPerCanvas" xml:space="preserve">
+  <data name="MaxControlsPerCanvas">
     <value>Canvas ごとの最大コントロール数</value>
   </data>
-  <data name="ResourcePathTooLong" xml:space="preserve">
-    <value>リソースパスが長すぎます</value>
-  </data>
-  <data name="TextTooLong" xml:space="preserve">
+<data name="TextTooLong">
     <value>テキストが長すぎます</value>
   </data>
-  <data name="BindingPathTooLong" xml:space="preserve">
+  <data name="BindingPathTooLong">
     <value>バインドパスが長すぎます</value>
   </data>
-  <data name="MissingPluginMarketLater" xml:space="preserve">
+  <data name="MissingPluginMarketLater">
     <value>プラグインマーケットからのインストール/更新案内は今後のバージョンで対応します。</value>
   </data>
-  <data name="ForceImportRemoveMissingControls" xml:space="preserve">
+  <data name="ForceImportRemoveMissingControls">
     <value>強制インポートして不足コントロールを削除</value>
   </data>
-  <data name="RemovedPluginControlCount" xml:space="preserve">
+  <data name="RemovedPluginControlCount">
     <value>削除されたプラグインコントロール</value>
   </data>
-  <data name="RemovedPluginControlsReport" xml:space="preserve">
+  <data name="RemovedPluginControlsReport">
     <value>強制インポートで削除されたプラグインコントロール</value>
   </data>
-  <data name="ExamplePlugin.TeamCard.DisplayName" xml:space="preserve">
+  <data name="ExamplePlugin.TeamCard.DisplayName">
     <value>Example Team Card</value>
   </data>
-  <data name="ExamplePlugin.TeamCard.Description" xml:space="preserve">
+  <data name="ExamplePlugin.TeamCard.Description">
     <value>共有データのバインディングからチーム名とロゴを表示する DEBUG 用サンプルプラグインコントロール。</value>
   </data>
-  <data name="ExamplePlugin.TeamCard.TeamNameBindingPath" xml:space="preserve">
+  <data name="ExamplePlugin.TeamCard.TeamNameBindingPath">
     <value>チーム名バインディング</value>
   </data>
-  <data name="ExamplePlugin.TeamCard.LogoBindingPath" xml:space="preserve">
+  <data name="ExamplePlugin.TeamCard.LogoBindingPath">
     <value>ロゴバインディング</value>
   </data>
-  <data name="ExamplePlugin.TeamCard.BackgroundColor" xml:space="preserve">
+  <data name="ExamplePlugin.TeamCard.BackgroundColor">
     <value>背景色</value>
   </data>
-  <data name="ExamplePlugin.TeamCard.ForegroundColor" xml:space="preserve">
+  <data name="ExamplePlugin.TeamCard.ForegroundColor">
     <value>文字色</value>
   </data>
-  <data name="ExamplePlugin.TeamCard.CornerRadius" xml:space="preserve">
+  <data name="ExamplePlugin.TeamCard.CornerRadius">
     <value>角丸</value>
   </data>
-  <data name="ExamplePlugin.TeamCard.LogoSize" xml:space="preserve">
+  <data name="ExamplePlugin.TeamCard.LogoSize">
     <value>ロゴサイズ</value>
   </data>
-  <data name="ExamplePlugin.TeamCard.FontSize" xml:space="preserve">
+  <data name="ExamplePlugin.TeamCard.FontSize">
     <value>フォントサイズ</value>
   </data>
-  <data name="ExamplePlugin.TeamCard.FontWeight" xml:space="preserve">
+  <data name="ExamplePlugin.TeamCard.FontWeight">
     <value>フォントウェイト</value>
   </data>
-  <data name="ClassicBackendShell" xml:space="preserve">
+  <data name="ClassicBackendShell">
     <value>クラシック導播台</value>
   </data>
-  <data name="ModernBackendShell" xml:space="preserve">
+  <data name="ModernBackendShell">
     <value>モダンバックエンド</value>
   </data>
-  <data name="FrontendQuickControls" xml:space="preserve">
+  <data name="FrontendQuickControls">
     <value>フロントエンド簡易操作</value>
   </data>
-  <data name="ClassicManagementEntries" xml:space="preserve">
+  <data name="ClassicManagementEntries">
     <value>管理入口</value>
   </data>
-  <data name="OpenFrontendManagement" xml:space="preserve">
+  <data name="OpenFrontendManagement">
     <value>フロントエンド管理</value>
   </data>
-  <data name="OpenSettings" xml:space="preserve">
+  <data name="OpenSettings">
     <value>設定</value>
   </data>
-  <data name="OpenPlugins" xml:space="preserve">
+  <data name="OpenPlugins">
     <value>プラグイン</value>
   </data>
-  <data name="GameDataWindow" xml:space="preserve">
+  <data name="GameDataWindow">
     <value>試合データウィンドウ</value>
   </data>
-  <data name="WidgetsWindow" xml:space="preserve">
+  <data name="WidgetsWindow">
     <value>ウィジェットウィンドウ</value>
   </data>
-  <data name="BehaviorEventDebugger" xml:space="preserve">
-    <value>動作イベントデバッガー</value>
-  </data>
-  <data name="EnableListening" xml:space="preserve">
-    <value>リスニングを有効化</value>
-  </data>
-  <data name="Pause" xml:space="preserve">
-    <value>一時停止</value>
-  </data>
-  <data name="CopyEventJson" xml:space="preserve">
-    <value>イベント JSON をコピー</value>
-  </data>
-  <data name="ExportJson" xml:space="preserve">
-    <value>JSON をエクスポート</value>
-  </data>
-  <data name="MaxRecords" xml:space="preserve">
-    <value>最大レコード数</value>
-  </data>
-  <data name="Filter" xml:space="preserve">
-    <value>フィルター</value>
-  </data>
-  <data name="EventType" xml:space="preserve">
-    <value>イベントタイプ</value>
-  </data>
-  <data name="WindowType" xml:space="preserve">
-    <value>ウィンドウタイプ</value>
-  </data>
-  <data name="WindowId" xml:space="preserve">
-    <value>ウィンドウ ID</value>
-  </data>
-  <data name="CanvasName" xml:space="preserve">
-    <value>キャンバス名</value>
-  </data>
-  <data name="PayloadSummary" xml:space="preserve">
-    <value>Payload 概要</value>
-  </data>
-  <data name="Source" xml:space="preserve">
-    <value>ソース</value>
-  </data>
-  <data name="Time" xml:space="preserve">
-    <value>時刻</value>
-  </data>
-  <data name="Key" xml:space="preserve">
-    <value>キー</value>
-  </data>
-  <data name="Path" xml:space="preserve">
-    <value>パス</value>
-  </data>
-  <data name="Type" xml:space="preserve">
-    <value>タイプ</value>
-  </data>
-  <data name="RawValue" xml:space="preserve">
-    <value>Raw 値</value>
-  </data>
-  <data name="DisplayValue" xml:space="preserve">
-    <value>表示値</value>
-  </data>
-  <data name="FilterText" xml:space="preserve">
-    <value>フィルター値</value>
-  </data>
-  <data name="CopyPath" xml:space="preserve">
-    <value>パスをコピー</value>
-  </data>
-  <data name="CopyConditionPath" xml:space="preserve">
-    <value>条件パスをコピー</value>
-  </data>
-  <data name="CopyEqualsFilter" xml:space="preserve">
-    <value>Equals フィルターをコピー</value>
-  </data>
-  <data name="CopyIfCondition" xml:space="preserve">
-    <value>IF 条件をコピー</value>
-  </data>
-  <data name="CopyContainsFilter" xml:space="preserve">
-    <value>Contains フィルターをコピー</value>
-  </data>
-  <data name="CopyValue" xml:space="preserve">
-    <value>値をコピー</value>
+  <data name="SmartBp">
+    <value>スマート BP</value>
   </data>
 </root>

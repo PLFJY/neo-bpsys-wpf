@@ -4,157 +4,16 @@
   <resheader name="version">2.0</resheader>
   <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
   <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
-  <data name="Zoom" xml:space="preserve">
-    <value>ズーム</value>
-  </data>
-  <data name="Designer.AnimationEditor.Title" xml:space="preserve">
+<data name="Designer.AnimationEditor.Title">
     <value>アニメーションエディター</value>
   </data>
-  <data name="Designer.AnimationEditor.UnsavedChangesMessage" xml:space="preserve">
+  <data name="Designer.AnimationEditor.UnsavedChangesMessage">
     <value>未保存の変更があります。閉じる前に保存しますか？</value>
   </data>
-  <data name="Designer.AnimationEditor.SaveFailedTitle" xml:space="preserve">
+  <data name="Designer.AnimationEditor.SaveFailedTitle">
     <value>保存に失敗しました</value>
   </data>
-  <data name="Designer.AnimationEditor.SaveFailedMessage" xml:space="preserve">
+  <data name="Designer.AnimationEditor.SaveFailedMessage">
     <value>保存に失敗しました。もう一度お試しください。</value>
-  </data>
-  <data name="Designer.AnimationParts.Title" xml:space="preserve">
-    <value>アニメーション部品</value>
-  </data>
-  <data name="Designer.AnimationParts.DefaultName" xml:space="preserve">
-    <value>アニメーション部品</value>
-  </data>
-  <data name="Designer.AnimationParts.Add" xml:space="preserve">
-    <value>アニメーション部品を追加</value>
-  </data>
-  <data name="Designer.AnimationParts.Remove" xml:space="preserve">
-    <value>アニメーション部品を削除</value>
-  </data>
-  <data name="Designer.AnimationParts.Apply" xml:space="preserve">
-    <value>アニメーション部品の変更を適用</value>
-  </data>
-  <data name="Designer.AnimationParts.InvalidName" xml:space="preserve">
-    <value>アニメーション部品名は必須で、コントロール内で一意である必要があります。</value>
-  </data>
-  <data name="Designer.AnimationParts.Description" xml:space="preserve">
-    <value>アニメーション部品は選択中のコントロール内部に付属するアニメーション補助部品です。独立したキャンバスコントロールとしては表示されません。</value>
-  </data>
-  <data name="Designer.AnimationParts.Empty" xml:space="preserve">
-    <value>このコントロールにはまだアニメーション部品がありません</value>
-  </data>
-  <data name="Designer.AnimationParts.EditorTitle" xml:space="preserve">
-    <value>部品設定</value>
-  </data>
-  <data name="Designer.AnimationParts.NamePlaceholder" xml:space="preserve">
-    <value>例: scanLine、shine、wipeBar</value>
-  </data>
-  <data name="Designer.AnimationParts.Kind" xml:space="preserve">
-    <value>種類</value>
-  </data>
-  <data name="Designer.AnimationParts.Kind.Rectangle" xml:space="preserve">
-    <value>長方形</value>
-  </data>
-  <data name="Designer.AnimationParts.Kind.Border" xml:space="preserve">
-    <value>枠線</value>
-  </data>
-  <data name="Designer.AnimationParts.Kind.Image" xml:space="preserve">
-    <value>画像</value>
-  </data>
-  <data name="Designer.AnimationParts.Layer" xml:space="preserve">
-    <value>描画レイヤー</value>
-  </data>
-  <data name="Designer.AnimationParts.Layer.AboveContent" xml:space="preserve">
-    <value>コンテンツの上</value>
-  </data>
-  <data name="Designer.AnimationParts.Layer.BelowContent" xml:space="preserve">
-    <value>コンテンツの下</value>
-  </data>
-  <data name="Designer.AnimationParts.LayoutSection" xml:space="preserve">
-    <value>レイアウトと初期状態</value>
-  </data>
-  <data name="Designer.AnimationParts.AppearanceSection" xml:space="preserve">
-    <value>外観</value>
-  </data>
-  <data name="Designer.AnimationParts.SizePlaceholder" xml:space="preserve">
-    <value>ピクセル値または割合（例: 100%）</value>
-  </data>
-  <data name="Designer.AnimationParts.Fill" xml:space="preserve">
-    <value>塗りつぶし色</value>
-  </data>
-  <data name="Designer.AnimationParts.Stroke" xml:space="preserve">
-    <value>線の色</value>
-  </data>
-  <data name="Designer.AnimationParts.Background" xml:space="preserve">
-    <value>背景色</value>
-  </data>
-  <data name="Designer.AnimationParts.BorderBrush" xml:space="preserve">
-    <value>枠線の色</value>
-  </data>
-  <data name="Designer.AnimationParts.BorderThickness" xml:space="preserve">
-    <value>枠線の太さ</value>
-  </data>
-  <data name="Designer.AnimationParts.StaticImage" xml:space="preserve">
-    <value>静止画像</value>
-  </data>
-  <data name="Designer.AnimationParts.NoImageSelected" xml:space="preserve">
-    <value>画像が選択されていません</value>
-  </data>
-  <data name="Designer.AnimationParts.ImagePathPlaceholder" xml:space="preserve">
-    <value>レイアウトパッケージ内の画像リソースパス</value>
-  </data>
-  <data name="Designer.AnimationParts.IsHitTestVisible" xml:space="preserve">
-    <value>部品をマウスのヒットテスト対象にする</value>
-  </data>
-  <data name="Designer.AnimationParts.Validation.FixErrors" xml:space="preserve">
-    <value>適用する前に、アニメーション部品設定の入力エラーを修正してください。</value>
-  </data>
-  <data name="Designer.AnimationParts.Validation.Size" xml:space="preserve">
-    <value>4 または 100% のような、0 以上のピクセル値または割合を入力してください。</value>
-  </data>
-  <data name="Designer.AnimationParts.Validation.Number" xml:space="preserve">
-    <value>有効な数値を入力してください。</value>
-  </data>
-  <data name="Designer.AnimationParts.Validation.NonNegativeNumber" xml:space="preserve">
-    <value>0 以上の数値を入力してください。</value>
-  </data>
-  <data name="Designer.AnimationParts.Validation.Opacity" xml:space="preserve">
-    <value>不透明度には 0 から 1 の数値を入力してください。</value>
-  </data>
-  <data name="Designer.AnimationParts.Validation.Integer" xml:space="preserve">
-    <value>有効な整数を入力してください。</value>
-  </data>
-  <data name="Designer.AnimationParts.Validation.Color" xml:space="preserve">
-    <value>#FFFFFFFF または White のような有効な色を入力してください。</value>
-  </data>
-  <data name="Designer.AnimationParts.EffectSection" xml:space="preserve">
-    <value>視覚効果</value>
-  </data>
-  <data name="Designer.AnimationParts.EffectKind" xml:space="preserve">
-    <value>効果タイプ</value>
-  </data>
-  <data name="Designer.AnimationParts.EffectKind.None" xml:space="preserve">
-    <value>なし</value>
-  </data>
-  <data name="Designer.AnimationParts.EffectKind.Glow" xml:space="preserve">
-    <value>グロー</value>
-  </data>
-  <data name="Designer.AnimationParts.EffectKind.DropShadow" xml:space="preserve">
-    <value>ドロップシャドウ</value>
-  </data>
-  <data name="Designer.AnimationParts.EffectColor" xml:space="preserve">
-    <value>効果色</value>
-  </data>
-  <data name="Designer.AnimationParts.EffectOpacity" xml:space="preserve">
-    <value>効果の不透明度</value>
-  </data>
-  <data name="Designer.AnimationParts.EffectBlurRadius" xml:space="preserve">
-    <value>ぼかし半径</value>
-  </data>
-  <data name="Designer.AnimationParts.EffectShadowDepth" xml:space="preserve">
-    <value>影の距離</value>
-  </data>
-  <data name="Designer.AnimationParts.EffectDirection" xml:space="preserve">
-    <value>方向</value>
   </data>
 </root>

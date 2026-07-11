@@ -191,7 +191,7 @@ public partial class SharedDataService : ISharedDataService
 
         _ = MessageBoxHelper.ShowInfoAsync(
             $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, "NewGameHasBeenCreated")}\n{CurrentGame.Guid}",
-            I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "CreateTip"), I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"));
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, "CreateTip"), I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"));
     }
 
     public async Task ImportGameAsync(string filePath)

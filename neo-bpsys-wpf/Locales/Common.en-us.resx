@@ -4,49 +4,109 @@
   <resheader name="version">2.0</resheader>
   <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
   <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
-  <data name="Stop" xml:space="preserve">
+  <data name="Stop">
     <value>Stop</value>
   </data>
-  <data name="Black" xml:space="preserve">
+  <data name="Black">
     <value>Black</value>
   </data>
-  <data name="White" xml:space="preserve">
+  <data name="White">
     <value>White</value>
   </data>
-  <data name="Distance" xml:space="preserve">
+  <data name="Distance">
     <value>Distance</value>
   </data>
-  <data name="Confirm" xml:space="preserve">
+  <data name="Confirm">
     <value>Confirm</value>
   </data>
-  <data name="Save" xml:space="preserve">
+  <data name="Save">
     <value>Save</value>
   </data>
-  <data name="Close" xml:space="preserve">
+  <data name="Close">
     <value>Close</value>
   </data>
-  <data name="Delete" xml:space="preserve">
+  <data name="Delete">
     <value>Delete</value>
   </data>
-  <data name="Start" xml:space="preserve">
+  <data name="Start">
     <value>Start</value>
   </data>
-  <data name="Warning" xml:space="preserve">
+  <data name="Warning">
     <value>Warning</value>
   </data>
-  <data name="Cancel" xml:space="preserve">
+  <data name="Cancel">
     <value>Cancel</value>
   </data>
-  <data name="No" xml:space="preserve">
+  <data name="No">
     <value>No</value>
   </data>
-  <data name="Enable" xml:space="preserve">
+  <data name="Enable">
     <value>Enable</value>
   </data>
-  <data name="Error" xml:space="preserve">
+  <data name="Error">
     <value>Error</value>
   </data>
-  <data name="Refresh" xml:space="preserve">
+  <data name="Refresh">
     <value>Refresh</value>
+  </data>
+  <data name="ApplyColor">
+    <value>Apply Color</value>
+  </data>
+  <data name="ResetToBuiltIn">
+    <value>Reset to built-in</value>
+  </data>
+  <data name="PreviewColon">
+    <value>Preview: </value>
+  </data>
+  <data name="HomeTeam">
+    <value>Home Team</value>
+  </data>
+  <data name="AwayTeam">
+    <value>Away team</value>
+  </data>
+  <data name="Hunter">
+    <value>Hunter</value>
+  </data>
+  <data name="Survivor">
+    <value>Survivor</value>
+  </data>
+  <data name="Settings">
+    <value>Settings</value>
+  </data>
+<data name="Source">
+    <value>Source</value>
+  </data>
+  <data name="Type">
+    <value>Type</value>
+  </data>
+  <data name="Key">
+    <value>Key</value>
+  </data>
+  <data name="Path">
+    <value>Path</value>
+  </data>
+  <data name="Time">
+    <value>Time</value>
+  </data>
+  <data name="Clear">
+    <value>Clear</value>
+  </data>
+  <data name="PluginMarketDirectConnectionNoProxy">
+    <value>Direct Connection (No Proxy)</value>
+  </data>
+  <data name="InputTruncated">
+    <value>Input was truncated to the length limit</value>
+  </data>
+  <data name="ResourcePathTooLong">
+    <value>Resource path is too long</value>
+  </data>
+  <data name="Tips">
+    <value>Tips</value>
+  </data>
+  <data name="Sur">
+    <value>Survivor</value>
+  </data>
+  <data name="Hun">
+    <value>Hunter</value>
   </data>
 </root>

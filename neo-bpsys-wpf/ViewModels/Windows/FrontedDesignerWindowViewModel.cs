@@ -909,7 +909,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             .Select(item => item.Name)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
         var index = 1;
-        var defaultName = I18nHelper.GetLocalizedString(AppI18nDictionaries.AnimationEditor, "Designer.AnimationParts.DefaultName");
+        var defaultName = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.AnimationParts.DefaultName");
         var name = defaultName;
         while (names.Contains(name))
         {
@@ -976,7 +976,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         AnimationPartEditBuffer.ValidateAll();
         if (AnimationPartEditBuffer.HasErrors)
         {
-            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.AnimationEditor, "Designer.AnimationParts.Validation.FixErrors");
+            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.AnimationParts.Validation.FixErrors");
             return;
         }
 
@@ -1113,7 +1113,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         if (!string.Equals(value, clamped, StringComparison.Ordinal))
         {
             ControlFilterText = clamped;
-            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "InputTruncated");
+            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "InputTruncated");
             return;
         }
 
@@ -2268,7 +2268,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             : FrontedTextLimitHelper.Clamp(rawValue, FrontedLayoutLimits.MaxResourcePathLength);
         if (!string.Equals(rawValue, normalizedValue, StringComparison.Ordinal))
         {
-            CanvasPropertiesStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "InputTruncated");
+            CanvasPropertiesStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "InputTruncated");
         }
 
         if (string.Equals(GetEditingStateBackground(CurrentDocument), normalizedValue, StringComparison.Ordinal))
@@ -3898,7 +3898,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         FinishPropertyEdit(item.PropertyName);
         if (wasClamped)
         {
-            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "InputTruncated");
+            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "InputTruncated");
         }
 
         return true;
@@ -4070,7 +4070,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         FinishPropertyEdit(item.PropertyName);
         if (wasClamped)
         {
-            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "InputTruncated");
+            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "InputTruncated");
         }
 
         return true;

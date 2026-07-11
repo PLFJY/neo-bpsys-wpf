@@ -4,157 +4,16 @@
   <resheader name="version">2.0</resheader>
   <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
   <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
-  <data name="Zoom" xml:space="preserve">
-    <value>缩放</value>
-  </data>
-  <data name="Designer.AnimationEditor.Title" xml:space="preserve">
+<data name="Designer.AnimationEditor.Title">
     <value>动画编辑器</value>
   </data>
-  <data name="Designer.AnimationEditor.UnsavedChangesMessage" xml:space="preserve">
+  <data name="Designer.AnimationEditor.UnsavedChangesMessage">
     <value>有未保存的更改，是否保存？</value>
   </data>
-  <data name="Designer.AnimationEditor.SaveFailedTitle" xml:space="preserve">
+  <data name="Designer.AnimationEditor.SaveFailedTitle">
     <value>保存失败</value>
   </data>
-  <data name="Designer.AnimationEditor.SaveFailedMessage" xml:space="preserve">
+  <data name="Designer.AnimationEditor.SaveFailedMessage">
     <value>保存失败，请重试。</value>
-  </data>
-  <data name="Designer.AnimationParts.Title" xml:space="preserve">
-    <value>动画部件</value>
-  </data>
-  <data name="Designer.AnimationParts.DefaultName" xml:space="preserve">
-    <value>动画部件</value>
-  </data>
-  <data name="Designer.AnimationParts.Add" xml:space="preserve">
-    <value>添加动画部件</value>
-  </data>
-  <data name="Designer.AnimationParts.Remove" xml:space="preserve">
-    <value>移除动画部件</value>
-  </data>
-  <data name="Designer.AnimationParts.Apply" xml:space="preserve">
-    <value>应用动画部件修改</value>
-  </data>
-  <data name="Designer.AnimationParts.InvalidName" xml:space="preserve">
-    <value>动画部件名称不能为空，且必须在当前控件内唯一。</value>
-  </data>
-  <data name="Designer.AnimationParts.Description" xml:space="preserve">
-    <value>动画部件是附着在当前控件内部的动画辅助部件，不会作为独立控件出现在画布中。</value>
-  </data>
-  <data name="Designer.AnimationParts.Empty" xml:space="preserve">
-    <value>当前控件还没有动画部件</value>
-  </data>
-  <data name="Designer.AnimationParts.EditorTitle" xml:space="preserve">
-    <value>部件设置</value>
-  </data>
-  <data name="Designer.AnimationParts.NamePlaceholder" xml:space="preserve">
-    <value>例如 scanLine、shine 或 wipeBar</value>
-  </data>
-  <data name="Designer.AnimationParts.Kind" xml:space="preserve">
-    <value>类型</value>
-  </data>
-  <data name="Designer.AnimationParts.Kind.Rectangle" xml:space="preserve">
-    <value>矩形</value>
-  </data>
-  <data name="Designer.AnimationParts.Kind.Border" xml:space="preserve">
-    <value>边框</value>
-  </data>
-  <data name="Designer.AnimationParts.Kind.Image" xml:space="preserve">
-    <value>图片</value>
-  </data>
-  <data name="Designer.AnimationParts.Layer" xml:space="preserve">
-    <value>渲染层级</value>
-  </data>
-  <data name="Designer.AnimationParts.Layer.AboveContent" xml:space="preserve">
-    <value>内容上方</value>
-  </data>
-  <data name="Designer.AnimationParts.Layer.BelowContent" xml:space="preserve">
-    <value>内容下方</value>
-  </data>
-  <data name="Designer.AnimationParts.LayoutSection" xml:space="preserve">
-    <value>布局与初始状态</value>
-  </data>
-  <data name="Designer.AnimationParts.AppearanceSection" xml:space="preserve">
-    <value>外观</value>
-  </data>
-  <data name="Designer.AnimationParts.SizePlaceholder" xml:space="preserve">
-    <value>像素值或百分比，如 100%</value>
-  </data>
-  <data name="Designer.AnimationParts.Fill" xml:space="preserve">
-    <value>填充颜色</value>
-  </data>
-  <data name="Designer.AnimationParts.Stroke" xml:space="preserve">
-    <value>描边颜色</value>
-  </data>
-  <data name="Designer.AnimationParts.Background" xml:space="preserve">
-    <value>背景颜色</value>
-  </data>
-  <data name="Designer.AnimationParts.BorderBrush" xml:space="preserve">
-    <value>边框颜色</value>
-  </data>
-  <data name="Designer.AnimationParts.BorderThickness" xml:space="preserve">
-    <value>边框宽度</value>
-  </data>
-  <data name="Designer.AnimationParts.StaticImage" xml:space="preserve">
-    <value>静态图片</value>
-  </data>
-  <data name="Designer.AnimationParts.NoImageSelected" xml:space="preserve">
-    <value>尚未选择图片</value>
-  </data>
-  <data name="Designer.AnimationParts.ImagePathPlaceholder" xml:space="preserve">
-    <value>布局包内的图片资源路径</value>
-  </data>
-  <data name="Designer.AnimationParts.IsHitTestVisible" xml:space="preserve">
-    <value>允许部件响应鼠标命中测试</value>
-  </data>
-  <data name="Designer.AnimationParts.Validation.FixErrors" xml:space="preserve">
-    <value>请先修正动画部件设置中的输入错误。</value>
-  </data>
-  <data name="Designer.AnimationParts.Validation.Size" xml:space="preserve">
-    <value>请输入非负像素值或百分比，例如 4 或 100%。</value>
-  </data>
-  <data name="Designer.AnimationParts.Validation.Number" xml:space="preserve">
-    <value>请输入有效数字。</value>
-  </data>
-  <data name="Designer.AnimationParts.Validation.NonNegativeNumber" xml:space="preserve">
-    <value>请输入大于或等于 0 的数字。</value>
-  </data>
-  <data name="Designer.AnimationParts.Validation.Opacity" xml:space="preserve">
-    <value>不透明度必须是 0 到 1 之间的数字。</value>
-  </data>
-  <data name="Designer.AnimationParts.Validation.Integer" xml:space="preserve">
-    <value>请输入有效整数。</value>
-  </data>
-  <data name="Designer.AnimationParts.Validation.Color" xml:space="preserve">
-    <value>请输入有效颜色，例如 #FFFFFFFF 或 White。</value>
-  </data>
-  <data name="Designer.AnimationParts.EffectSection" xml:space="preserve">
-    <value>视觉效果</value>
-  </data>
-  <data name="Designer.AnimationParts.EffectKind" xml:space="preserve">
-    <value>效果类型</value>
-  </data>
-  <data name="Designer.AnimationParts.EffectKind.None" xml:space="preserve">
-    <value>无</value>
-  </data>
-  <data name="Designer.AnimationParts.EffectKind.Glow" xml:space="preserve">
-    <value>辉光</value>
-  </data>
-  <data name="Designer.AnimationParts.EffectKind.DropShadow" xml:space="preserve">
-    <value>投影</value>
-  </data>
-  <data name="Designer.AnimationParts.EffectColor" xml:space="preserve">
-    <value>效果颜色</value>
-  </data>
-  <data name="Designer.AnimationParts.EffectOpacity" xml:space="preserve">
-    <value>效果不透明度</value>
-  </data>
-  <data name="Designer.AnimationParts.EffectBlurRadius" xml:space="preserve">
-    <value>模糊半径</value>
-  </data>
-  <data name="Designer.AnimationParts.EffectShadowDepth" xml:space="preserve">
-    <value>投影距离</value>
-  </data>
-  <data name="Designer.AnimationParts.EffectDirection" xml:space="preserve">
-    <value>投影方向</value>
   </data>
 </root>

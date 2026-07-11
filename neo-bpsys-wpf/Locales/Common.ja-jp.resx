@@ -4,49 +4,109 @@
   <resheader name="version">2.0</resheader>
   <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
   <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
-  <data name="Stop" xml:space="preserve">
+  <data name="Stop">
     <value>停止</value>
   </data>
-  <data name="Black" xml:space="preserve">
+  <data name="Black">
     <value>黒</value>
   </data>
-  <data name="White" xml:space="preserve">
+  <data name="White">
     <value>白</value>
   </data>
-  <data name="Distance" xml:space="preserve">
+  <data name="Distance">
     <value>単位距離</value>
   </data>
-  <data name="Confirm" xml:space="preserve">
+  <data name="Confirm">
     <value>確認</value>
   </data>
-  <data name="Save" xml:space="preserve">
+  <data name="Save">
     <value>保存</value>
   </data>
-  <data name="Close" xml:space="preserve">
+  <data name="Close">
     <value>閉じる</value>
   </data>
-  <data name="Delete" xml:space="preserve">
+  <data name="Delete">
     <value>削除</value>
   </data>
-  <data name="Start" xml:space="preserve">
+  <data name="Start">
     <value>開始</value>
   </data>
-  <data name="Warning" xml:space="preserve">
+  <data name="Warning">
     <value>警告</value>
   </data>
-  <data name="Cancel" xml:space="preserve">
+  <data name="Cancel">
     <value>キャンセル</value>
   </data>
-  <data name="No" xml:space="preserve">
+  <data name="No">
     <value>いいえ</value>
   </data>
-  <data name="Enable" xml:space="preserve">
+  <data name="Enable">
     <value>有効にする</value>
   </data>
-  <data name="Error" xml:space="preserve">
+  <data name="Error">
     <value>エラー</value>
   </data>
-  <data name="Refresh" xml:space="preserve">
+  <data name="Refresh">
     <value>更新</value>
+  </data>
+  <data name="ApplyColor">
+    <value>色を適用</value>
+  </data>
+  <data name="ResetToBuiltIn">
+    <value>組み込みにリセット</value>
+  </data>
+  <data name="PreviewColon">
+    <value>プレビュー：</value>
+  </data>
+  <data name="HomeTeam">
+    <value>ホームチーム</value>
+  </data>
+  <data name="AwayTeam">
+    <value>アウェイチーム</value>
+  </data>
+  <data name="Hunter">
+    <value>ハンター</value>
+  </data>
+  <data name="Survivor">
+    <value>サバイバー</value>
+  </data>
+  <data name="Settings">
+    <value>設定</value>
+  </data>
+<data name="Source">
+    <value>ソース</value>
+  </data>
+  <data name="Type">
+    <value>タイプ</value>
+  </data>
+  <data name="Key">
+    <value>キー</value>
+  </data>
+  <data name="Path">
+    <value>パス</value>
+  </data>
+  <data name="Time">
+    <value>時刻</value>
+  </data>
+  <data name="Clear">
+    <value>クリア</value>
+  </data>
+  <data name="PluginMarketDirectConnectionNoProxy">
+    <value>直接接続（プロキシなし）</value>
+  </data>
+  <data name="InputTruncated">
+    <value>入力は長さの上限で切り詰められました</value>
+  </data>
+  <data name="ResourcePathTooLong">
+    <value>リソースパスが長すぎます</value>
+  </data>
+  <data name="Tips">
+    <value>ヒント</value>
+  </data>
+  <data name="Sur">
+    <value>サバイバー</value>
+  </data>
+  <data name="Hun">
+    <value>ハンター</value>
   </data>
 </root>

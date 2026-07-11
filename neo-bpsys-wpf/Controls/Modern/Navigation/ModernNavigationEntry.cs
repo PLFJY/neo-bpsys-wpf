@@ -140,7 +140,7 @@ public sealed class ModernNavigationEntry : INotifyPropertyChanged
         if (Content is string key)
         {
             LocalizationKey = key;
-            var localized = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, key);
+            var localized = I18nHelper.GetLocalizedString(GetNavigationDictionary(key), key);
             DisplayText = string.IsNullOrWhiteSpace(localized) ? key : localized;
             return;
         }
@@ -215,6 +215,21 @@ public sealed class ModernNavigationEntry : INotifyPropertyChanged
         }
 
         return item.Content?.ToString();
+    }
+
+    private static string GetNavigationDictionary(string key)
+    {
+        return key switch
+        {
+            "TeamInfo" => AppI18nDictionaries.Team,
+            "MapBP" or "BanHunter" or "BanSurvivor" or "PickCharacter" or "TalentAndTrait" => AppI18nDictionaries.Bp,
+            "ScoreControl" => AppI18nDictionaries.Score,
+            "PluginMarket" or "Plugins" => AppI18nDictionaries.PluginMarket,
+            "LayoutPackages" => AppI18nDictionaries.FrontManage,
+            "Settings" => AppI18nDictionaries.Common,
+            "SmartBp" => AppI18nDictionaries.Shell,
+            _ => AppI18nDictionaries.Shell
+        };
     }
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null) =>

@@ -1,1306 +1,1012 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype">text/microsoft-resx</resheader>
   <resheader name="version">2.0</resheader>
   <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
   <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
-  <data name="CurrentBan" xml:space="preserve">
-    <value>Current ban</value>
-  </data>
-  <data name="GlobalBan" xml:space="preserve">
-    <value>Global ban</value>
-  </data>
-  <data name="ExportUIConfig" xml:space="preserve">
+<data name="ExportUIConfig">
     <value>Export UI configuration</value>
   </data>
-  <data name="ImportUIConfig" xml:space="preserve">
+  <data name="ImportUIConfig">
     <value>Import UI configuration</value>
   </data>
-  <data name="EditImage" xml:space="preserve">
+  <data name="EditImage">
     <value>Edit image</value>
   </data>
-  <data name="CurrentBanLock" xml:space="preserve">
+  <data name="CurrentBanLock">
     <value>Current ban lock</value>
   </data>
-  <data name="GlobalBanLock" xml:space="preserve">
+  <data name="GlobalBanLock">
     <value>Global ban lock</value>
   </data>
-  <data name="BPWindowImages" xml:space="preserve">
+  <data name="BPWindowImages">
     <value>BP background</value>
   </data>
-  <data name="SaveAndApply" xml:space="preserve">
-    <value>Save and apply</value>
-  </data>
-  <data name="EditTextProperty" xml:space="preserve">
+<data name="EditTextProperty">
     <value>Edit text property</value>
   </data>
-  <data name="ResetAllPersonalizationSettingsOfTheWindow" xml:space="preserve">
+  <data name="ResetAllPersonalizationSettingsOfTheWindow">
     <value>Reset all personalization settings of the window</value>
   </data>
-  <data name="CustomizeIntercludeWindow" xml:space="preserve">
+  <data name="CustomizeIntercludeWindow">
     <value>Customize interclude window</value>
   </data>
-  <data name="ColorOfTalentAndTraitIcon" xml:space="preserve">
+  <data name="ColorOfTalentAndTraitIcon">
     <value>Color of talent and trait icon</value>
   </data>
-  <data name="CustomizeScoreWindow" xml:space="preserve">
+  <data name="CustomizeScoreWindow">
     <value>Customize score window</value>
   </data>
-  <data name="SurvivorScoreInGame" xml:space="preserve">
+  <data name="SurvivorScoreInGame">
     <value>Survivor score in game</value>
   </data>
-  <data name="HunterScoreInGame" xml:space="preserve">
+  <data name="HunterScoreInGame">
     <value>Hunter score in game</value>
   </data>
-  <data name="CampIconColorInScoreStatistics" xml:space="preserve">
+  <data name="CampIconColorInScoreStatistics">
     <value>Camp icon color in score statistics</value>
   </data>
-  <data name="ShiftDistanceOfTotalScoreWhenSwitchingBetweenBO3AndBO5Mode" xml:space="preserve">
+  <data name="ShiftDistanceOfTotalScoreWhenSwitchingBetweenBO3AndBO5Mode">
     <value>Shift distance of total score when switching between BO3 and BO5 mode</value>
   </data>
-  <data name="CustomizeGameDataWindow" xml:space="preserve">
+  <data name="CustomizeGameDataWindow">
     <value>Customize game data window</value>
   </data>
-  <data name="EditIntercludeBackgroundImage" xml:space="preserve">
+  <data name="EditIntercludeBackgroundImage">
     <value>Edit interclude background image</value>
   </data>
-  <data name="CustomizeFrontendUI" xml:space="preserve">
+  <data name="CustomizeFrontendUI">
     <value>Customize frontend UI</value>
   </data>
-  <data name="CustomizeBPWindow" xml:space="preserve">
+  <data name="CustomizeBPWindow">
     <value>Customize BP window</value>
   </data>
-  <data name="EditGameDataBackgroundImage" xml:space="preserve">
+  <data name="EditGameDataBackgroundImage">
     <value>Edit game data background image</value>
   </data>
-  <data name="CustomizeWidgetWindow" xml:space="preserve">
+  <data name="CustomizeWidgetWindow">
     <value>Cutsomize widget window</value>
   </data>
-  <data name="SurvivorIconOfMapBPV2" xml:space="preserve">
+  <data name="SurvivorIconOfMapBPV2">
     <value>Survivor icon(Map BP V2)</value>
   </data>
-  <data name="HunterIconOfMapBPV2" xml:space="preserve">
+  <data name="HunterIconOfMapBPV2">
     <value>Hunter icon(Map BP V2)</value>
   </data>
-  <data name="BPOverview" xml:space="preserve">
+  <data name="BPOverview">
     <value>BP overview</value>
   </data>
-  <data name="CurrentBanLockOfBPOverview" xml:space="preserve">
+  <data name="CurrentBanLockOfBPOverview">
     <value>Current ban lock(BP overview)</value>
   </data>
-  <data name="GlobalBanLockOfBPOverview" xml:space="preserve">
+  <data name="GlobalBanLockOfBPOverview">
     <value>Global ban lock(BP overview)</value>
   </data>
-  <data name="CampIconColorOfMapBPV2" xml:space="preserve">
+  <data name="CampIconColorOfMapBPV2">
     <value>Camp icon color(MapBPV2)</value>
   </data>
-  <data name="ResetAllPersonalizationSettings" xml:space="preserve">
+  <data name="ResetAllPersonalizationSettings">
     <value>Reset all personalization settings</value>
   </data>
-  <data name="LogLevelVerbose" xml:space="preserve">
-    <value>Verbose</value>
-  </data>
-  <data name="LogLevelDebug" xml:space="preserve">
-    <value>Debug</value>
-  </data>
-  <data name="LogLevelInformation" xml:space="preserve">
-    <value>Information</value>
-  </data>
-  <data name="LogLevelWarning" xml:space="preserve">
-    <value>Warning</value>
-  </data>
-  <data name="LogLevelError" xml:space="preserve">
-    <value>Error</value>
-  </data>
-  <data name="LogLevelFatal" xml:space="preserve">
-    <value>Fatal</value>
-  </data>
-  <data name="BPWindow" xml:space="preserve">
+<data name="BPWindow">
     <value>BP window</value>
   </data>
-  <data name="DesignerMode" xml:space="preserve">
+  <data name="DesignerMode">
     <value>Designer mode</value>
   </data>
-  <data name="ResetLayout" xml:space="preserve">
+  <data name="ResetLayout">
     <value>Reset layout</value>
   </data>
-  <data name="CutSceneWindow" xml:space="preserve">
+  <data name="CutSceneWindow">
     <value>Cut Scene window</value>
   </data>
-  <data name="NoteScoreStatisticsNotSaveInBO3Mode" xml:space="preserve">
+  <data name="NoteScoreStatisticsNotSaveInBO3Mode">
     <value>Note: All layout changes of score statistics will NOT be saved in BO3 mode</value>
   </data>
-  <data name="ResetSurvivorScoreLayoutInGame" xml:space="preserve">
+  <data name="ResetSurvivorScoreLayoutInGame">
     <value>Reset survivor score layout in game</value>
   </data>
-  <data name="ResetHunterScoreLayoutInGame" xml:space="preserve">
+  <data name="ResetHunterScoreLayoutInGame">
     <value>Reset hunter score layout in game</value>
   </data>
-  <data name="ResetScoreStatisticsLayout" xml:space="preserve">
+  <data name="ResetScoreStatisticsLayout">
     <value>Reset score statistics layout</value>
   </data>
-  <data name="GameStatisticsWindow" xml:space="preserve">
+  <data name="GameStatisticsWindow">
     <value>Game statistics window</value>
   </data>
-  <data name="Widgets" xml:space="preserve">
+  <data name="Widgets">
     <value>Widgets(e.g. map BP)</value>
   </data>
-  <data name="ResetMapBPLayout" xml:space="preserve">
+  <data name="ResetMapBPLayout">
     <value>Reset map BP layout</value>
   </data>
-  <data name="ResetBPOverviewLayout" xml:space="preserve">
+  <data name="ResetBPOverviewLayout">
     <value>Reset BP Overview Layout</value>
   </data>
-  <data name="ResetMapBPV2Layout" xml:space="preserve">
+  <data name="ResetMapBPV2Layout">
     <value>Reset map BP V2 layout</value>
   </data>
-  <data name="Survivor" xml:space="preserve">
-    <value>Survivor</value>
-  </data>
-  <data name="CharacterName" xml:space="preserve">
-    <value>Character name</value>
-  </data>
-  <data name="Hunter" xml:space="preserve">
-    <value>Hunter</value>
-  </data>
-  <data name="AModernIdentityVBPSoftware" xml:space="preserve">
+<data name="AModernIdentityVBPSoftware">
     <value>A modern Identity V BP Software</value>
   </data>
-  <data name="OfficialWebsite" xml:space="preserve">
+  <data name="OfficialWebsite">
     <value>Official website</value>
   </data>
-  <data name="Documentations" xml:space="preserve">
+  <data name="Documentations">
     <value>Documentations</value>
   </data>
-  <data name="ShowPickingBorder" xml:space="preserve">
-    <value>Show picking border</value>
-  </data>
-  <data name="ShowCamp" xml:space="preserve">
-    <value>Show camp</value>
-  </data>
-  <data name="ResetMapBP" xml:space="preserve">
-    <value>Reset map BP</value>
-  </data>
-  <data name="OpenPickingBorder" xml:space="preserve">
+<data name="OpenPickingBorder">
     <value>Open picking border | </value>
   </data>
-  <data name="ControlFirst2PickingBorderSeparately" xml:space="preserve">
+  <data name="ControlFirst2PickingBorderSeparately">
     <value>Control first 2 picking border separately</value>
   </data>
-  <data name="SurvivorPickingBorder1" xml:space="preserve">
+  <data name="SurvivorPickingBorder1">
     <value>Survivor picking border 1st</value>
   </data>
-  <data name="SurvivorPickingBorder2" xml:space="preserve">
+  <data name="SurvivorPickingBorder2">
     <value>Survivor picking border 2nd</value>
   </data>
-  <data name="SurvivorPickingBorder1and2" xml:space="preserve">
+  <data name="SurvivorPickingBorder1and2">
     <value>Survivor picking border 1st &amp; 2nd</value>
   </data>
-  <data name="SurvivorPickingBorder3" xml:space="preserve">
+  <data name="SurvivorPickingBorder3">
     <value>Survivor picking border 3rd</value>
   </data>
-  <data name="SurvivorPickingBorder4" xml:space="preserve">
+  <data name="SurvivorPickingBorder4">
     <value>Survivor picking border 4th</value>
   </data>
-  <data name="HunterPickingBorder" xml:space="preserve">
+  <data name="HunterPickingBorder">
     <value>Hunter picking border</value>
   </data>
-  <data name="GlobalBanRecord" xml:space="preserve">
-    <value>Global ban record</value>
-  </data>
-  <data name="AwayTeam" xml:space="preserve">
-    <value>Away team</value>
-  </data>
-  <data name="FourEscape" xml:space="preserve">
-    <value>4 Escape</value>
-  </data>
-  <data name="ThreeEscape" xml:space="preserve">
-    <value>3 Escape</value>
-  </data>
-  <data name="Tie" xml:space="preserve">
-    <value>Tie</value>
-  </data>
-  <data name="FourEliminate" xml:space="preserve">
-    <value>4 Eliminate</value>
-  </data>
-  <data name="ThreeEliminate" xml:space="preserve">
-    <value>3 Eliminate</value>
-  </data>
-  <data name="ResetAllScores" xml:space="preserve">
-    <value>Reset all scores</value>
-  </data>
-  <data name="ResetGameScores" xml:space="preserve">
+<data name="ResetGameScores">
     <value>Reset game scores</value>
   </data>
-  <data name="ControlManually" xml:space="preserve">
+  <data name="ControlManually">
     <value>Control manually</value>
   </data>
-  <data name="HomeTeamName" xml:space="preserve">
+  <data name="HomeTeamName">
     <value>Home team name</value>
   </data>
-  <data name="GameSelection" xml:space="preserve">
+  <data name="GameSelection">
     <value>Game selection</value>
   </data>
-  <data name="Next" xml:space="preserve">
+  <data name="Next">
     <value>Next</value>
   </data>
-  <data name="IsGameFinished" xml:space="preserve">
+  <data name="IsGameFinished">
     <value>Is game finished</value>
   </data>
-  <data name="SynchronizeToFrontend" xml:space="preserve">
+  <data name="SynchronizeToFrontend">
     <value>Synchronize to frontend</value>
   </data>
-  <data name="CampOfHomeTeam" xml:space="preserve">
+  <data name="CampOfHomeTeam">
     <value>Camp of home team</value>
   </data>
-  <data name="CampOfAwayTeam" xml:space="preserve">
+  <data name="CampOfAwayTeam">
     <value>Camp of away team</value>
   </data>
-  <data name="GameResult" xml:space="preserve">
+  <data name="GameResult">
     <value>Game result</value>
   </data>
-  <data name="ClearCurrentHalfScore" xml:space="preserve">
-    <value>Clear current half score</value>
-  </data>
-  <data name="SurvivorTalent" xml:space="preserve">
-    <value>Survivor talent</value>
-  </data>
-  <data name="HunterTalent" xml:space="preserve">
-    <value>Hunter talent</value>
-  </data>
-  <data name="HunterTrait" xml:space="preserve">
-    <value>Hunter trait</value>
-  </data>
-  <data name="IsVisible" xml:space="preserve">
+<data name="IsVisible">
     <value>Is visible</value>
   </data>
-  <data name="Listen" xml:space="preserve">
-    <value>Listen</value>
-  </data>
-  <data name="Abnormal" xml:space="preserve">
-    <value>Abnormal</value>
-  </data>
-  <data name="Excitement" xml:space="preserve">
-    <value>Excitement</value>
-  </data>
-  <data name="Patroller" xml:space="preserve">
-    <value>Patroller</value>
-  </data>
-  <data name="Teleport" xml:space="preserve">
-    <value>Teleport</value>
-  </data>
-  <data name="Peeper" xml:space="preserve">
-    <value>Peeper</value>
-  </data>
-  <data name="Blink" xml:space="preserve">
-    <value>Blink</value>
-  </data>
-  <data name="Warp" xml:space="preserve">
-    <value>Warp</value>
-  </data>
-  <data name="Backend" xml:space="preserve">
+<data name="Backend">
     <value>Backend</value>
   </data>
-  <data name="CurrentSurvivorTeamColon" xml:space="preserve">
+  <data name="CurrentSurvivorTeamColon">
     <value>Current survivor team: </value>
   </data>
-  <data name="Swap" xml:space="preserve">
+  <data name="Swap">
     <value>Swap</value>
   </data>
-  <data name="CurrentHunterTeamColon" xml:space="preserve">
+  <data name="CurrentHunterTeamColon">
     <value>Current hunter team:   </value>
   </data>
-  <data name="Countdown" xml:space="preserve">
+  <data name="Countdown">
     <value>Countdown</value>
   </data>
-  <data name="PreviewColon" xml:space="preserve">
-    <value>Preview: </value>
-  </data>
-  <data name="SaveGameInformation" xml:space="preserve">
+<data name="SaveGameInformation">
     <value>Save game information</value>
   </data>
-  <data name="FormatColon" xml:space="preserve">
+  <data name="FormatColon">
     <value>Format: </value>
   </data>
-  <data name="StartGameGuidance" xml:space="preserve">
+  <data name="StartGameGuidance">
     <value>Start game guidance</value>
   </data>
-  <data name="LastStep" xml:space="preserve">
+  <data name="LastStep">
     <value>Last step</value>
   </data>
-  <data name="NextStep" xml:space="preserve">
+  <data name="NextStep">
     <value>Next step</value>
   </data>
-  <data name="EndGameGuidance" xml:space="preserve">
+  <data name="EndGameGuidance">
     <value>End game guidance</value>
   </data>
-  <data name="MadeByZeroPLFJY" xml:space="preserve">
+  <data name="MadeByZeroPLFJY">
     <value>Made by Zero PLFJY</value>
   </data>
-  <data name="HomePage" xml:space="preserve">
+  <data name="HomePage">
     <value>Home</value>
   </data>
-  <data name="GameData" xml:space="preserve">
+  <data name="GameData">
     <value>Game statistics</value>
   </data>
-  <data name="FrontendManagement" xml:space="preserve">
+  <data name="FrontendManagement">
     <value>Frontend Management</value>
   </data>
-  <data name="Free" xml:space="preserve">
+  <data name="Free">
     <value>Free Game</value>
   </data>
-  <data name="Game1FirstHalf" xml:space="preserve">
+  <data name="Game1FirstHalf">
     <value>Game 1 First Half</value>
   </data>
-  <data name="Game1SecondHalf" xml:space="preserve">
+  <data name="Game1SecondHalf">
     <value>Game 1 Second Half</value>
   </data>
-  <data name="Game2FirstHalf" xml:space="preserve">
+  <data name="Game2FirstHalf">
     <value>Game 2 First Half</value>
   </data>
-  <data name="Game2SecondHalf" xml:space="preserve">
+  <data name="Game2SecondHalf">
     <value>Game 2 Second Half</value>
   </data>
-  <data name="Game3FirstHalf" xml:space="preserve">
+  <data name="Game3FirstHalf">
     <value>Game 3 First Half</value>
   </data>
-  <data name="Game3SecondHalf" xml:space="preserve">
+  <data name="Game3SecondHalf">
     <value>Game 3 Second Half</value>
   </data>
-  <data name="Game3OvertimeFirstHalf" xml:space="preserve">
+  <data name="Game3OvertimeFirstHalf">
     <value>Game 3 Overtime First Half</value>
   </data>
-  <data name="Game3OvertimeSecondHalf" xml:space="preserve">
+  <data name="Game3OvertimeSecondHalf">
     <value>Game 3 Overtime Second Half</value>
   </data>
-  <data name="Game4FirstHalf" xml:space="preserve">
+  <data name="Game4FirstHalf">
     <value>Game 4 First Half</value>
   </data>
-  <data name="Game4SecondHalf" xml:space="preserve">
+  <data name="Game4SecondHalf">
     <value>Game 4 Second Half</value>
   </data>
-  <data name="Game5FirstHalf" xml:space="preserve">
+  <data name="Game5FirstHalf">
     <value>Game 5 First Half</value>
   </data>
-  <data name="Game5SecondHalf" xml:space="preserve">
+  <data name="Game5SecondHalf">
     <value>Game 5 Second Half</value>
   </data>
-  <data name="Game5OvertimeFirstHalf" xml:space="preserve">
+  <data name="Game5OvertimeFirstHalf">
     <value>Game 5 Overtime First Half</value>
   </data>
-  <data name="Game5OvertimeSecondHalf" xml:space="preserve">
+  <data name="Game5OvertimeSecondHalf">
     <value>Game 5 Overtime Second Half</value>
   </data>
-  <data name="AreYouSureYouWantToExit" xml:space="preserve">
+  <data name="AreYouSureYouWantToExit">
     <value>Are you sure you want to exit?</value>
   </data>
-  <data name="ComingSoon" xml:space="preserve">
+  <data name="ComingSoon">
     <value>How about we explore the area ahead of us later~</value>
   </data>
-  <data name="GameScores" xml:space="preserve">
+  <data name="GameScores">
     <value>Game scores</value>
   </data>
-  <data name="FrontendBP" xml:space="preserve">
+  <data name="FrontendBP">
     <value>Frontend - BP</value>
   </data>
-  <data name="FrontendCutScene" xml:space="preserve">
+  <data name="FrontendCutScene">
     <value>Frontend - Cut Scene Window</value>
   </data>
-  <data name="HomeTeamWinPlus1" xml:space="preserve">
+  <data name="HomeTeamWinPlus1">
     <value>Home team win+1</value>
   </data>
-  <data name="HomeTeamTiePlus1" xml:space="preserve">
+  <data name="HomeTeamTiePlus1">
     <value>Home team tie+1</value>
   </data>
-  <data name="HomeTeamGameScorePlus1" xml:space="preserve">
+  <data name="HomeTeamGameScorePlus1">
     <value>Home team game score+1</value>
   </data>
-  <data name="HomeTeamWinMinus1" xml:space="preserve">
+  <data name="HomeTeamWinMinus1">
     <value>Home team win-1</value>
   </data>
-  <data name="HomeTeamTieMinus1" xml:space="preserve">
+  <data name="HomeTeamTieMinus1">
     <value>Home team tie-1</value>
   </data>
-  <data name="HomeTeamGameScoreMinus1" xml:space="preserve">
+  <data name="HomeTeamGameScoreMinus1">
     <value>Home team game score-1</value>
   </data>
-  <data name="AwayTeamWinPlus1" xml:space="preserve">
+  <data name="AwayTeamWinPlus1">
     <value>Away team win+1</value>
   </data>
-  <data name="AwayTeamTiePlus1" xml:space="preserve">
+  <data name="AwayTeamTiePlus1">
     <value>Away team tie+1</value>
   </data>
-  <data name="AwayTeamGameScorePlus1" xml:space="preserve">
+  <data name="AwayTeamGameScorePlus1">
     <value>Away team game score+1</value>
   </data>
-  <data name="AwayTeamWinMinus1" xml:space="preserve">
+  <data name="AwayTeamWinMinus1">
     <value>Away team win-1</value>
   </data>
-  <data name="AwayTeamTieMinus1" xml:space="preserve">
+  <data name="AwayTeamTieMinus1">
     <value>Away team tie-1</value>
   </data>
-  <data name="AwayTeamGameScoreMinus1" xml:space="preserve">
+  <data name="AwayTeamGameScoreMinus1">
     <value>Away team game score-1</value>
   </data>
-  <data name="FrontendWidgets" xml:space="preserve">
+  <data name="FrontendWidgets">
     <value>Frontend - Widgets</value>
   </data>
-  <data name="HomeTeam" xml:space="preserve">
-    <value>Home Team</value>
-  </data>
-  <data name="FollowSystem" xml:space="preserve">
+<data name="FollowSystem">
     <value>Follow system</value>
   </data>
-  <data name="RestoreDefaultSort" xml:space="preserve">
-    <value>Restore Default Sort</value>
-  </data>
-  <data name="Timer" xml:space="preserve">
+<data name="Timer">
     <value>Timer</value>
   </data>
-  <data name="MatchScore" xml:space="preserve">
+  <data name="MatchScore">
     <value>Match score</value>
   </data>
-  <data name="MapName" xml:space="preserve">
+  <data name="MapName">
     <value>Map Name</value>
   </data>
-  <data name="SurvivorPlayerID" xml:space="preserve">
+  <data name="SurvivorPlayerID">
     <value>Survivor player ID</value>
   </data>
-  <data name="HunterPlayerID" xml:space="preserve">
+  <data name="HunterPlayerID">
     <value>Hunter player ID</value>
   </data>
-  <data name="MatchScores" xml:space="preserve">
+  <data name="MatchScores">
     <value>Match scores</value>
   </data>
-  <data name="GameScoresInScoreStatistics" xml:space="preserve">
+  <data name="GameScoresInScoreStatistics">
     <value>Game scores(Score Statistics)</value>
   </data>
-  <data name="TotalGameScoresInScoreStatistics" xml:space="preserve">
+  <data name="TotalGameScoresInScoreStatistics">
     <value>Total game scores(Score Statistics)</value>
   </data>
-  <data name="SurvivorData" xml:space="preserve">
+  <data name="SurvivorData">
     <value>Survivor data</value>
   </data>
-  <data name="HunterData" xml:space="preserve">
+  <data name="HunterData">
     <value>Hunter data</value>
   </data>
-  <data name="MapNameInMapBP" xml:space="preserve">
+  <data name="MapNameInMapBP">
     <value>Map name(Map BP)</value>
   </data>
-  <data name="MapNameInMapBPV2" xml:space="preserve">
+  <data name="MapNameInMapBPV2">
     <value>Map name(Map BP V2)</value>
   </data>
-  <data name="CampNameInMapBPV2" xml:space="preserve">
+  <data name="CampNameInMapBPV2">
     <value>Camp name(Map BP V2)</value>
   </data>
-  <data name="GameScoresInBPOverview" xml:space="preserve">
+  <data name="GameScoresInBPOverview">
     <value>Game scores(BP Overview)</value>
   </data>
-  <data name="Sur" xml:space="preserve">
-    <value>Survivor</value>
-  </data>
-  <data name="Hun" xml:space="preserve">
-    <value>Hunter</value>
-  </data>
-  <data name="DistributeCharacters" xml:space="preserve">
-    <value>Distribute Characters</value>
-  </data>
-  <data name="CurrentStepFormat" xml:space="preserve">
+<data name="CurrentStepFormat">
     <value>Current step: {0}</value>
   </data>
-  <data name="Tip" xml:space="preserve">
+  <data name="Tip">
     <value>Tip</value>
   </data>
-  <data name="FrontendSurvivorScoreInGame" xml:space="preserve">
+  <data name="FrontendSurvivorScoreInGame">
     <value>Frontend - Survivor Score in Game</value>
   </data>
-  <data name="FrontendHunterScoreInGame" xml:space="preserve">
+  <data name="FrontendHunterScoreInGame">
     <value>Frontend - Hunter Score in Game</value>
   </data>
-  <data name="Installed" xml:space="preserve">
+  <data name="Installed">
     <value>Installed</value>
   </data>
-  <data name="Notification" xml:space="preserve">
+  <data name="Notification">
     <value>Notification</value>
   </data>
-  <data name="AfterUpdateTip" xml:space="preserve">
+  <data name="AfterUpdateTip">
     <value>If the fronted windows become disordered, please reset the layout and custom settings.</value>
   </data>
-  <data name="DontRemindMeAgainUntilTheNextUpdate" xml:space="preserve">
+  <data name="DontRemindMeAgainUntilTheNextUpdate">
     <value>Don’t remind me again until the next update</value>
   </data>
-  <data name="GoToFolder" xml:space="preserve">
+  <data name="GoToFolder">
     <value>Go to folder</value>
   </data>
-  <data name="RestartNeeded" xml:space="preserve">
+  <data name="RestartNeeded">
     <value>Restart Needed</value>
   </data>
-  <data name="SomeSettingsRequireRestartingTheApplication" xml:space="preserve">
+  <data name="SomeSettingsRequireRestartingTheApplication">
     <value>Some settings require restarting the application</value>
   </data>
-  <data name="ResetLayoutFormat" xml:space="preserve">
+  <data name="ResetLayoutFormat">
     <value>Reset {0}layout</value>
   </data>
-  <data name="SaveInfo" xml:space="preserve">
+  <data name="SaveInfo">
     <value>Save Information</value>
   </data>
-  <data name="SaveSuccessfullyTo" xml:space="preserve">
+  <data name="SaveSuccessfullyTo">
     <value>Save successfully to</value>
   </data>
-  <data name="SaveFailed" xml:space="preserve">
+  <data name="SaveFailed">
     <value>Save failed</value>
   </data>
-  <data name="InvalidInput" xml:space="preserve">
+  <data name="InvalidInput">
     <value>Invalid input</value>
   </data>
-  <data name="SaveFrontendConfigurationFileFailed" xml:space="preserve">
+  <data name="SaveFrontendConfigurationFileFailed">
     <value>Save Frontend configuration file failed</value>
   </data>
-  <data name="UnregisteredWindowType" xml:space="preserve">
+  <data name="UnregisteredWindowType">
     <value>Unregistered window type</value>
   </data>
-  <data name="ConfigurationFileLoadingError" xml:space="preserve">
+  <data name="ConfigurationFileLoadingError">
     <value>Configuration file loading error</value>
   </data>
-  <data name="FrontendDefaultConfigurationRestoreError" xml:space="preserve">
+  <data name="FrontendDefaultConfigurationRestoreError">
     <value>Frontend default configuration restore error</value>
   </data>
-  <data name="ResetTip" xml:space="preserve">
+  <data name="ResetTip">
     <value>Reset tip</value>
   </data>
-  <data name="ConfigurationFileSaveError" xml:space="preserve">
-    <value>ConfigurationFileSaveError</value>
-  </data>
-  <data name="WindowLaunchError" xml:space="preserve">
+<data name="WindowLaunchError">
     <value>Window launch error</value>
   </data>
-  <data name="WindowCloseError" xml:space="preserve">
+  <data name="WindowCloseError">
     <value>Window close error</value>
   </data>
-  <data name="ErrorWhenGeneratingFrontendConfigurationFile" xml:space="preserve">
+  <data name="ErrorWhenGeneratingFrontendConfigurationFile">
     <value>Error when generating frontend configuration file</value>
   </data>
-  <data name="ConfigurationResetConfirmation" xml:space="preserve">
+  <data name="ConfigurationResetConfirmation">
     <value>Configuration reset confirmation</value>
   </data>
-  <data name="UnknownWindowSource" xml:space="preserve">
+  <data name="UnknownWindowSource">
     <value>Unknown windows source</value>
   </data>
-  <data name="ReadFrontendDefaultConfigurationError" xml:space="preserve">
+  <data name="ReadFrontendDefaultConfigurationError">
     <value>Read frontend default configuration error</value>
   </data>
-  <data name="CannotFindDefaultLayoutConfigurationFromWindowProvider" xml:space="preserve">
+  <data name="CannotFindDefaultLayoutConfigurationFromWindowProvider">
     <value>Cannot find the default layout configuration from window provider</value>
   </data>
-  <data name="UIConfigurationHasBeenSavedTo" xml:space="preserve">
+  <data name="UIConfigurationHasBeenSavedTo">
     <value>UI configuration has been saved to</value>
   </data>
-  <data name="UIPackingError" xml:space="preserve">
+  <data name="UIPackingError">
     <value>UI packing error</value>
   </data>
-  <data name="UIImportIsFinished" xml:space="preserve">
+  <data name="UIImportIsFinished">
     <value>UI import is finished. Application will restart automatically</value>
   </data>
-  <data name="UIImportTip" xml:space="preserve">
+  <data name="UIImportTip">
     <value>UI import tip</value>
   </data>
-  <data name="UIPackLoadingError" xml:space="preserve">
+  <data name="UIPackLoadingError">
     <value>UI pack loading error</value>
   </data>
-  <data name="ConfigurationFileEmpty" xml:space="preserve">
-    <value>Configuration file is empty</value>
-  </data>
-  <data name="FailedToReadConfigurationFile" xml:space="preserve">
-    <value>Failed to read configuration file</value>
-  </data>
-  <data name="ResetConfigurationFileToSolveTheProblem" xml:space="preserve">
-    <value>Reset configuration file to solve the problem</value>
-  </data>
-  <data name="ResetConfigurationFileError" xml:space="preserve">
-    <value>Reset configuration file error</value>
-  </data>
-  <data name="JsonFileFormatError" xml:space="preserve">
-    <value>Json file format error</value>
-  </data>
-  <data name="CleanupUpdateResidueError" xml:space="preserve">
+<data name="CleanupUpdateResidueError">
     <value>Cleanup update residue error</value>
   </data>
-  <data name="DownloadFailed" xml:space="preserve">
+  <data name="DownloadFailed">
     <value>Download failed</value>
   </data>
-  <data name="GettingUpdateError" xml:space="preserve">
+  <data name="GettingUpdateError">
     <value>Getting update error</value>
   </data>
-  <data name="NewVersionFound" xml:space="preserve">
+  <data name="NewVersionFound">
     <value>New version found</value>
   </data>
-  <data name="GoToSettingPageToUpdate" xml:space="preserve">
+  <data name="GoToSettingPageToUpdate">
     <value>Go to setting page to update</value>
   </data>
-  <data name="AlreadyTheLatestVersion" xml:space="preserve">
+  <data name="AlreadyTheLatestVersion">
     <value>Already the latest version</value>
   </data>
-  <data name="HttpRequestError" xml:space="preserve">
+  <data name="HttpRequestError">
     <value>Http request error</value>
   </data>
-  <data name="JsonParsingError" xml:space="preserve">
+  <data name="JsonParsingError">
     <value>Json parsing error</value>
   </data>
-  <data name="UnknownError" xml:space="preserve">
+  <data name="UnknownError">
     <value>Unknown error</value>
   </data>
-  <data name="ImageFiles" xml:space="preserve">
+  <data name="ImageFiles">
     <value>Image files</value>
   </data>
-  <data name="FontFiles" xml:space="preserve">
+  <data name="FontFiles">
     <value>Font files</value>
   </data>
-  <data name="JSONFiles" xml:space="preserve">
+  <data name="JSONFiles">
     <value>JSON Files</value>
   </data>
-  <data name="ZipFiles" xml:space="preserve">
+  <data name="ZipFiles">
     <value>Zip files</value>
   </data>
-  <data name="TheProgramIsAlreadyRunning" xml:space="preserve">
+  <data name="TheProgramIsAlreadyRunning">
     <value>The program is already running</value>
   </data>
-  <data name="AlreadyTheLastStep" xml:space="preserve">
+  <data name="AlreadyTheLastStep">
     <value>Already the last step</value>
   </data>
-  <data name="GameInfoStatusError" xml:space="preserve">
+  <data name="GameInfoStatusError">
     <value>Game info status error</value>
   </data>
-  <data name="AlreadyTheFirstStep" xml:space="preserve">
+  <data name="AlreadyTheFirstStep">
     <value>Already the first step</value>
   </data>
-  <data name="EmptyBan" xml:space="preserve">
+  <data name="EmptyBan">
     <value>Empty ban</value>
   </data>
-  <data name="CurrentStep" xml:space="preserve">
+  <data name="CurrentStep">
     <value>Current step</value>
   </data>
-  <data name="Tips" xml:space="preserve">
-    <value>Tips</value>
-  </data>
-  <data name="RestartToApply" xml:space="preserve">
+<data name="RestartToApply">
     <value>Restart to apply</value>
   </data>
-  <data name="AreYouSureToSaveTheShiftDistanceOfTotalScore" xml:space="preserve">
+  <data name="AreYouSureToSaveTheShiftDistanceOfTotalScore">
     <value>Are you sure to save the shift distance of Total Score</value>
   </data>
-  <data name="AreYouSureToSetCampIconTo" xml:space="preserve">
+  <data name="AreYouSureToSetCampIconTo">
     <value>Are you sure to set camp icon to</value>
   </data>
-  <data name="AreYouSureToSetTalentAndTraitIconTo" xml:space="preserve">
+  <data name="AreYouSureToSetTalentAndTraitIconTo">
     <value>Are you sure to set talent and trait icon to</value>
   </data>
-  <data name="AreYouSureToResetAllPersonalSettingsOfThisWindow" xml:space="preserve">
+  <data name="AreYouSureToResetAllPersonalSettingsOfThisWindow">
     <value>Are you sure to reset all personal settings of this window?</value>
   </data>
-  <data name="AreYouSureToResetPersonalSettingsOfAllWindows" xml:space="preserve">
+  <data name="AreYouSureToResetPersonalSettingsOfAllWindows">
     <value>Are you sure to reset personal settings of all windows?</value>
   </data>
-  <data name="CoverTip" xml:space="preserve">
+  <data name="CoverTip">
     <value>Cover tip</value>
   </data>
-  <data name="PathHasAlreadyExistAreYouSureToCoverIt" xml:space="preserve">
+  <data name="PathHasAlreadyExistAreYouSureToCoverIt">
     <value>has already exist. Are you sure to cover it?</value>
   </data>
-  <data name="CreateTip" xml:space="preserve">
-    <value>Create tip</value>
-  </data>
-  <data name="Restart" xml:space="preserve">
+<data name="Restart">
     <value>Restart</value>
   </data>
-  <data name="NotNow" xml:space="preserve">
+  <data name="NotNow">
     <value>Not now</value>
   </data>
-  <data name="Loaded" xml:space="preserve">
+  <data name="Loaded">
     <value>Loaded</value>
   </data>
-  <data name="Disabled" xml:space="preserve">
+  <data name="Disabled">
     <value>Disabled</value>
   </data>
-  <data name="Character" xml:space="preserve">
+  <data name="Character">
     <value>Character</value>
   </data>
-  <data name="FrontedScoreStatistics" xml:space="preserve">
+  <data name="FrontedScoreStatistics">
     <value>Fronted - Score statistics</value>
   </data>
-  <data name="FrontedGameStatistics" xml:space="preserve">
+  <data name="FrontedGameStatistics">
     <value>Fronted - Game statistics</value>
   </data>
-  <data name="ImportGameInformation" xml:space="preserve">
+  <data name="ImportGameInformation">
     <value>Import Game Information</value>
   </data>
-  <data name="ImportSuccessfullyFrom" xml:space="preserve">
+  <data name="ImportSuccessfullyFrom">
     <value>Successfully imported from: </value>
   </data>
-  <data name="ImportInfo" xml:space="preserve">
+  <data name="ImportInfo">
     <value>Import Info</value>
   </data>
-  <data name="ImportFailed" xml:space="preserve">
+  <data name="ImportFailed">
     <value>Import Failed: </value>
   </data>
-  <data name="ReleaseNotes" xml:space="preserve">
+  <data name="ReleaseNotes">
     <value>Release Notes (Chinese Only)</value>
   </data>
-  <data name="LoadingFailed" xml:space="preserve">
+  <data name="LoadingFailed">
     <value>Loading Failed</value>
   </data>
-  <data name="BpuiFiles" xml:space="preserve">
+  <data name="BpuiFiles">
     <value>bpui Files</value>
   </data>
-  <data name="AllowsWindowTransparency" xml:space="preserve">
+  <data name="AllowsWindowTransparency">
     <value>Allows window transparency</value>
   </data>
-  <data name="AllowsScoreGlobalWindowTransparency" xml:space="preserve">
+  <data name="AllowsScoreGlobalWindowTransparency">
     <value>Allow score statistics window transparency</value>
   </data>
-  <data name="WindowSize" xml:space="preserve">
+  <data name="WindowSize">
     <value>Window size</value>
   </data>
-  <data name="AutoRecord" xml:space="preserve">
-    <value>Auto Record</value>
-  </data>
-  <data name="UnexpectedExceptionMessage" xml:space="preserve">
+<data name="UnexpectedExceptionMessage">
     <value>Some unexpected errors have occurred. Please contact the developer with the log file below for solutions</value>
   </data>
-  <data name="AutoDetectAndFillPostGameData" xml:space="preserve">
-    <value>Auto-Detect and Fill Post-Game Data</value>
-  </data>
-  <data name="SevenZipArchiveFiles" xml:space="preserve">
+<data name="SevenZipArchiveFiles">
     <value>7z archives</value>
   </data>
-  <data name="AllFiles" xml:space="preserve">
+  <data name="AllFiles">
     <value>All files</value>
   </data>
-  <data name="PleaseStartWindowCaptureFirst" xml:space="preserve">
-    <value>Please start window capture first.</value>
-  </data>
-  <data name="WindowCapturePleaseSelectWindowFirst" xml:space="preserve">
-    <value>Please select a window first.</value>
-  </data>
-  <data name="WindowCaptureWgcRequires1803OrLater" xml:space="preserve">
-    <value>Windows Graphics Capture requires Windows 10 1803 or later.</value>
-  </data>
-  <data name="WindowCaptureWgcNotSupportedOnCurrentSystem" xml:space="preserve">
-    <value>Windows Graphics Capture is not supported on this system.</value>
-  </data>
-  <data name="WindowCaptureFailedToStartPickerCaptureFormat" xml:space="preserve">
-    <value>Failed to start picker capture: {0}</value>
-  </data>
-  <data name="WindowCaptureCaptureNotStarted" xml:space="preserve">
-    <value>Capture has not started.</value>
-  </data>
-  <data name="WindowCapturePreviewWindowTitle" xml:space="preserve">
-    <value>Preview Window</value>
-  </data>
-  <data name="WindowCaptureSelectedWindowInvalidForCapture" xml:space="preserve">
-    <value>The selected window is not valid for capture.</value>
-  </data>
-  <data name="WindowCaptureFailedToCaptureFirstFrameWithBitblt" xml:space="preserve">
-    <value>Failed to capture the first frame with Bitblt.</value>
-  </data>
-  <data name="WindowCaptureFailedToStartBitbltCaptureFormat" xml:space="preserve">
-    <value>Failed to start Bitblt capture: {0}</value>
-  </data>
-  <data name="WindowCaptureWgcWindowCaptureRequires1903OrLaterUsePickerOn1803Or1809" xml:space="preserve">
-    <value>Capturing by selected window requires Windows 10 1903 or later. On 1803/1809, use picker capture.</value>
-  </data>
-  <data name="WindowCaptureFailedToCaptureSelectedWindowFormat" xml:space="preserve">
-    <value>Failed to capture selected window: {0}</value>
-  </data>
-  <data name="WindowCaptureGraphicsCaptureItemUnavailable" xml:space="preserve">
-    <value>Failed to capture selected window: GraphicsCaptureItem is unavailable.</value>
-  </data>
-  <data name="WindowCaptureFailedToStartCaptureFormat" xml:space="preserve">
-    <value>Failed to start capture: {0}</value>
-  </data>
-  <data name="SaveAs" xml:space="preserve">
+<data name="SaveAs">
     <value>Save As</value>
   </data>
-  <data name="QueuePending" xml:space="preserve">
+  <data name="QueuePending">
     <value>Queued</value>
   </data>
-  <data name="QueueDownloading" xml:space="preserve">
+  <data name="QueueDownloading">
     <value>Downloading</value>
   </data>
-  <data name="QueueDownloaded" xml:space="preserve">
+  <data name="QueueDownloaded">
     <value>Downloaded, waiting to install</value>
   </data>
-  <data name="QueueInstalledRestartRequired" xml:space="preserve">
+  <data name="QueueInstalledRestartRequired">
     <value>Installed, restart to apply changes</value>
   </data>
-  <data name="QueueFailed" xml:space="preserve">
+  <data name="QueueFailed">
     <value>Download failed</value>
   </data>
-  <data name="QueueCanceled" xml:space="preserve">
+  <data name="QueueCanceled">
     <value>Canceled</value>
   </data>
-  <data name="FrontedDesignerWindow" xml:space="preserve">
+  <data name="FrontedDesignerWindow">
     <value>Frontend Designer</value>
   </data>
-  <data name="Canvas" xml:space="preserve">
+  <data name="Canvas">
     <value>Canvas</value>
   </data>
-  <data name="LayoutSource" xml:space="preserve">
+  <data name="LayoutSource">
     <value>Layout Source</value>
   </data>
-  <data name="Validation" xml:space="preserve">
+  <data name="Validation">
     <value>Validation</value>
   </data>
-  <data name="ValidateLayout" xml:space="preserve">
+  <data name="ValidateLayout">
     <value>Validate</value>
   </data>
-  <data name="BuiltInLayout" xml:space="preserve">
+  <data name="BuiltInLayout">
     <value>Built-in Layout</value>
   </data>
-  <data name="ZoomIn" xml:space="preserve">
-    <value>Zoom In</value>
-  </data>
-  <data name="ZoomOut" xml:space="preserve">
-    <value>Zoom Out</value>
-  </data>
-  <data name="FitToWindow" xml:space="preserve">
+<data name="FitToWindow">
     <value>Fit to Window</value>
   </data>
-  <data name="ControlType" xml:space="preserve">
+  <data name="ControlType">
     <value>Control Type</value>
   </data>
-  <data name="Property" xml:space="preserve">
+  <data name="Property">
     <value>Property</value>
   </data>
-  <data name="Value" xml:space="preserve">
+  <data name="Value">
     <value>Value</value>
   </data>
-  <data name="Identity" xml:space="preserve">
+  <data name="Identity">
     <value>Identity</value>
   </data>
-  <data name="Binding" xml:space="preserve">
+  <data name="Binding">
     <value>Binding</value>
   </data>
-  <data name="Appearance" xml:space="preserve">
+  <data name="Appearance">
     <value>Appearance</value>
   </data>
-  <data name="ControlSpecific" xml:space="preserve">
+  <data name="ControlSpecific">
     <value>Control-specific</value>
   </data>
-  <data name="ReadOnly" xml:space="preserve">
+  <data name="ReadOnly">
     <value>Read-only</value>
   </data>
-  <data name="Color" xml:space="preserve">
+  <data name="Color">
     <value>Color</value>
   </data>
-  <data name="BasicControls" xml:space="preserve">
+  <data name="BasicControls">
     <value>Basic controls</value>
   </data>
-  <data name="BusinessControls" xml:space="preserve">
+  <data name="BusinessControls">
     <value>Business controls</value>
   </data>
-  <data name="FontFamily" xml:space="preserve">
+  <data name="FontFamily">
     <value>Font family</value>
   </data>
-  <data name="BuiltInFont" xml:space="preserve">
+  <data name="BuiltInFont">
     <value>Built-in font</value>
   </data>
-  <data name="SystemFont" xml:space="preserve">
+  <data name="SystemFont">
     <value>System font</value>
   </data>
-  <data name="Placeholder" xml:space="preserve">
+  <data name="Placeholder">
     <value>Placeholder</value>
   </data>
-  <data name="ConfirmDeleteControl" xml:space="preserve">
+  <data name="ConfirmDeleteControl">
     <value>Delete the selected control?</value>
   </data>
-  <data name="PlaceholderPreview" xml:space="preserve">
+  <data name="PlaceholderPreview">
     <value>Placeholder Preview</value>
   </data>
-  <data name="DesignerPlaceholderData" xml:space="preserve">
+  <data name="DesignerPlaceholderData">
     <value>Designer Placeholder Data</value>
   </data>
-  <data name="ApplyColor" xml:space="preserve">
-    <value>Apply Color</value>
-  </data>
-  <data name="ResetToBuiltIn" xml:space="preserve">
-    <value>Reset to built-in</value>
-  </data>
-  <data name="UnsavedChangesMessage" xml:space="preserve">
+<data name="UnsavedChangesMessage">
     <value>The current layout has unsaved changes.</value>
   </data>
-  <data name="SaveBeforeSwitch" xml:space="preserve">
+  <data name="SaveBeforeSwitch">
     <value>The current layout has unsaved changes. Save before continuing?</value>
   </data>
-  <data name="SaveBeforeClose" xml:space="preserve">
+  <data name="SaveBeforeClose">
     <value>The current layout has unsaved changes. Save before closing?</value>
   </data>
-  <data name="DiscardChanges" xml:space="preserve">
-    <value>Discard changes</value>
-  </data>
-  <data name="SnapGridSize" xml:space="preserve">
+<data name="SnapGridSize">
     <value>Snap grid size</value>
   </data>
-  <data name="BindingBrowser" xml:space="preserve">
+  <data name="BindingBrowser">
     <value>Binding Browser</value>
   </data>
-  <data name="ResourceBrowser" xml:space="preserve">
+  <data name="ResourceBrowser">
     <value>Resource Browser</value>
   </data>
-  <data name="SelectBindingPath" xml:space="preserve">
+  <data name="SelectBindingPath">
     <value>Select Binding Path</value>
   </data>
-  <data name="SelectResource" xml:space="preserve">
+  <data name="SelectResource">
     <value>Select Resource</value>
   </data>
-  <data name="SearchBindings" xml:space="preserve">
+  <data name="SearchBindings">
     <value>Search bindings</value>
   </data>
-  <data name="SearchResources" xml:space="preserve">
+  <data name="SearchResources">
     <value>Search resources</value>
   </data>
-  <data name="SelectedPath" xml:space="preserve">
+  <data name="SelectedPath">
     <value>Selected Path</value>
   </data>
-  <data name="BuiltInResources" xml:space="preserve">
+  <data name="BuiltInResources">
     <value>Built-in Resources</value>
   </data>
-  <data name="AppAssets" xml:space="preserve">
+  <data name="AppAssets">
     <value>App Assets</value>
   </data>
-  <data name="AbsoluteFile" xml:space="preserve">
+  <data name="AbsoluteFile">
     <value>Absolute File</value>
   </data>
-  <data name="BrowseFile" xml:space="preserve">
-    <value>Browse file</value>
-  </data>
-  <data name="NoBindingResults" xml:space="preserve">
+<data name="NoBindingResults">
     <value>No matching bindings.</value>
   </data>
-  <data name="NoResourceResults" xml:space="preserve">
+  <data name="NoResourceResults">
     <value>No matching resources.</value>
   </data>
-  <data name="ExpectedBindingType" xml:space="preserve">
+  <data name="ExpectedBindingType">
     <value>Expected binding type</value>
   </data>
-  <data name="AnyBinding" xml:space="preserve">
+  <data name="AnyBinding">
     <value>Any binding</value>
   </data>
-  <data name="TextBinding" xml:space="preserve">
+  <data name="TextBinding">
     <value>Text binding</value>
   </data>
-  <data name="ImageBinding" xml:space="preserve">
+  <data name="ImageBinding">
     <value>Image binding</value>
   </data>
-  <data name="MapBinding" xml:space="preserve">
+  <data name="MapBinding">
     <value>Map binding</value>
   </data>
-  <data name="BooleanBinding" xml:space="preserve">
+  <data name="BooleanBinding">
     <value>Boolean binding</value>
   </data>
-  <data name="NumberBinding" xml:space="preserve">
+  <data name="NumberBinding">
     <value>Number binding</value>
   </data>
-  <data name="StringBinding" xml:space="preserve">
+  <data name="StringBinding">
     <value>String binding</value>
   </data>
-  <data name="UseSelected" xml:space="preserve">
+  <data name="UseSelected">
     <value>Use Selected</value>
   </data>
-  <data name="Window" xml:space="preserve">
+  <data name="Window">
     <value>Window</value>
   </data>
-  <data name="RestartRequired" xml:space="preserve">
+  <data name="RestartRequired">
     <value>Restart required</value>
   </data>
-  <data name="SaveBeforeRestart" xml:space="preserve">
+  <data name="SaveBeforeRestart">
     <value>Save the current layout before restarting?</value>
   </data>
-  <data name="FrontendWindows" xml:space="preserve">
+  <data name="FrontendWindows">
     <value>Frontend Windows</value>
   </data>
-  <data name="FrontendDesigner" xml:space="preserve">
+  <data name="FrontendDesigner">
     <value>Frontend Designer</value>
   </data>
-  <data name="InstalledPackages" xml:space="preserve">
+  <data name="InstalledPackages">
     <value>Installed Packages</value>
   </data>
-  <data name="BuiltInPackage" xml:space="preserve">
+  <data name="BuiltInPackage">
     <value>Built-in Package</value>
   </data>
-  <data name="PackageCreatedAt" xml:space="preserve">
+  <data name="PackageCreatedAt">
     <value>Created At</value>
   </data>
-  <data name="PackageSource" xml:space="preserve">
+  <data name="PackageSource">
     <value>Source</value>
   </data>
-  <data name="PackageValidationStatus" xml:space="preserve">
+  <data name="PackageValidationStatus">
     <value>Validation</value>
   </data>
-  <data name="PackageInstallPath" xml:space="preserve">
+  <data name="PackageInstallPath">
     <value>Install Path</value>
   </data>
-  <data name="PackageNotImplemented" xml:space="preserve">
+  <data name="PackageNotImplemented">
     <value>v3 package import will be implemented in a future version.</value>
   </data>
-  <data name="PackageActivated" xml:space="preserve">
+  <data name="PackageActivated">
     <value>Package activated.</value>
   </data>
-  <data name="ShortcutDelete" xml:space="preserve">
+  <data name="ShortcutDelete">
     <value>Delete (Del)</value>
   </data>
-  <data name="ExportScope" xml:space="preserve">
+  <data name="ExportScope">
     <value>Export Scope</value>
   </data>
-  <data name="ExportCurrentCanvas" xml:space="preserve">
+  <data name="ExportCurrentCanvas">
     <value>Current Canvas</value>
   </data>
-  <data name="ExportCurrentWindow" xml:space="preserve">
+  <data name="ExportCurrentWindow">
     <value>Current Window</value>
   </data>
-  <data name="ExportAllFrontendLayouts" xml:space="preserve">
+  <data name="ExportAllFrontendLayouts">
     <value>All Frontend Layouts</value>
   </data>
-  <data name="ActivateImportedPackage" xml:space="preserve">
+  <data name="ActivateImportedPackage">
     <value>The package was imported. Activate it now?</value>
   </data>
-  <data name="LegacyPackageDetected" xml:space="preserve">
+  <data name="LegacyPackageDetected">
     <value>Legacy .bpui package detected</value>
   </data>
-  <data name="LegacyPackageConversionNotImplemented" xml:space="preserve">
+  <data name="LegacyPackageConversionNotImplemented">
     <value>Legacy .bpui conversion is not implemented yet.</value>
   </data>
-  <data name="InvalidPackageManifest" xml:space="preserve">
+  <data name="InvalidPackageManifest">
     <value>Invalid package manifest.</value>
   </data>
-  <data name="InvalidPackageArchive" xml:space="preserve">
+  <data name="InvalidPackageArchive">
     <value>Invalid package archive.</value>
   </data>
-  <data name="CrossPackageResourceReference" xml:space="preserve">
+  <data name="CrossPackageResourceReference">
     <value>The package contains a cross-package resource reference.</value>
   </data>
-  <data name="MissingPackageResource" xml:space="preserve">
+  <data name="MissingPackageResource">
     <value>The package is missing a resource file.</value>
   </data>
-  <data name="SwitchToBuiltIn" xml:space="preserve">
+  <data name="SwitchToBuiltIn">
     <value>Switch to built-in</value>
   </data>
-  <data name="UnknownLegacyLayoutFile" xml:space="preserve">
+  <data name="UnknownLegacyLayoutFile">
     <value>Unknown legacy layout file</value>
   </data>
-  <data name="LegacyFieldIgnored" xml:space="preserve">
+  <data name="LegacyFieldIgnored">
     <value>Legacy field ignored</value>
   </data>
-  <data name="LegacyResourceCopied" xml:space="preserve">
+  <data name="LegacyResourceCopied">
     <value>Legacy resource copied</value>
   </data>
-  <data name="LegacyResourceMissing" xml:space="preserve">
+  <data name="LegacyResourceMissing">
     <value>Legacy resource missing</value>
   </data>
-  <data name="ActivateConvertedPackage" xml:space="preserve">
+  <data name="ActivateConvertedPackage">
     <value>Activate the converted package now?</value>
   </data>
-  <data name="InputTruncated" xml:space="preserve">
-    <value>Input was truncated to the length limit</value>
-  </data>
-  <data name="InputTooLong" xml:space="preserve">
+<data name="InputTooLong">
     <value>Input is too long</value>
   </data>
-  <data name="ImageTooLarge" xml:space="preserve">
+  <data name="ImageTooLarge">
     <value>Image file is too large</value>
   </data>
-  <data name="ImageTooManyPixels" xml:space="preserve">
+  <data name="ImageTooManyPixels">
     <value>Image dimensions are too large</value>
   </data>
-  <data name="UnsupportedImageFormat" xml:space="preserve">
+  <data name="UnsupportedImageFormat">
     <value>Unsupported image format</value>
   </data>
-  <data name="PackageTooLarge" xml:space="preserve">
+  <data name="PackageTooLarge">
     <value>Package archive is too large</value>
   </data>
-  <data name="PackageExtractedTooLarge" xml:space="preserve">
+  <data name="PackageExtractedTooLarge">
     <value>Extracted package content is too large</value>
   </data>
-  <data name="PackageTooManyEntries" xml:space="preserve">
+  <data name="PackageTooManyEntries">
     <value>Package contains too many entries</value>
   </data>
-  <data name="PackageEntryTooLarge" xml:space="preserve">
+  <data name="PackageEntryTooLarge">
     <value>Package entry is too large</value>
   </data>
-  <data name="ManifestTooLarge" xml:space="preserve">
+  <data name="ManifestTooLarge">
     <value>manifest.json is too large</value>
   </data>
-  <data name="LayoutJsonTooLarge" xml:space="preserve">
+  <data name="LayoutJsonTooLarge">
     <value>Layout JSON is too large</value>
   </data>
-  <data name="WindowOptionsTooLarge" xml:space="preserve">
+  <data name="WindowOptionsTooLarge">
     <value>Window options JSON is too large</value>
   </data>
-  <data name="TooManyControls" xml:space="preserve">
+  <data name="TooManyControls">
     <value>Too many controls on this canvas</value>
   </data>
-  <data name="ControlCountWarning" xml:space="preserve">
+  <data name="ControlCountWarning">
     <value>This canvas has many controls</value>
   </data>
-  <data name="MaxControlsPerCanvas" xml:space="preserve">
+  <data name="MaxControlsPerCanvas">
     <value>Max controls per canvas</value>
   </data>
-  <data name="ResourcePathTooLong" xml:space="preserve">
-    <value>Resource path is too long</value>
-  </data>
-  <data name="TextTooLong" xml:space="preserve">
+<data name="TextTooLong">
     <value>Text is too long</value>
   </data>
-  <data name="BindingPathTooLong" xml:space="preserve">
+  <data name="BindingPathTooLong">
     <value>Binding path is too long</value>
   </data>
-  <data name="MissingPluginMarketLater" xml:space="preserve">
+  <data name="MissingPluginMarketLater">
     <value>Plugin marketplace install/update guidance will be available in a future version.</value>
   </data>
-  <data name="ForceImportRemoveMissingControls" xml:space="preserve">
+  <data name="ForceImportRemoveMissingControls">
     <value>Force import and remove missing controls</value>
   </data>
-  <data name="RemovedPluginControlCount" xml:space="preserve">
+  <data name="RemovedPluginControlCount">
     <value>Removed plugin controls</value>
   </data>
-  <data name="RemovedPluginControlsReport" xml:space="preserve">
+  <data name="RemovedPluginControlsReport">
     <value>Plugin controls removed by force import</value>
   </data>
-  <data name="ExamplePlugin.TeamCard.DisplayName" xml:space="preserve">
+  <data name="ExamplePlugin.TeamCard.DisplayName">
     <value>Example Team Card</value>
   </data>
-  <data name="ExamplePlugin.TeamCard.Description" xml:space="preserve">
+  <data name="ExamplePlugin.TeamCard.Description">
     <value>DEBUG example plugin control that displays a team name and logo from shared data bindings.</value>
   </data>
-  <data name="ExamplePlugin.TeamCard.TeamNameBindingPath" xml:space="preserve">
+  <data name="ExamplePlugin.TeamCard.TeamNameBindingPath">
     <value>Team name binding</value>
   </data>
-  <data name="ExamplePlugin.TeamCard.LogoBindingPath" xml:space="preserve">
+  <data name="ExamplePlugin.TeamCard.LogoBindingPath">
     <value>Logo binding</value>
   </data>
-  <data name="ExamplePlugin.TeamCard.BackgroundColor" xml:space="preserve">
+  <data name="ExamplePlugin.TeamCard.BackgroundColor">
     <value>Background color</value>
   </data>
-  <data name="ExamplePlugin.TeamCard.ForegroundColor" xml:space="preserve">
+  <data name="ExamplePlugin.TeamCard.ForegroundColor">
     <value>Foreground color</value>
   </data>
-  <data name="ExamplePlugin.TeamCard.CornerRadius" xml:space="preserve">
+  <data name="ExamplePlugin.TeamCard.CornerRadius">
     <value>Corner radius</value>
   </data>
-  <data name="ExamplePlugin.TeamCard.LogoSize" xml:space="preserve">
+  <data name="ExamplePlugin.TeamCard.LogoSize">
     <value>Logo size</value>
   </data>
-  <data name="ExamplePlugin.TeamCard.FontSize" xml:space="preserve">
+  <data name="ExamplePlugin.TeamCard.FontSize">
     <value>Font size</value>
   </data>
-  <data name="ExamplePlugin.TeamCard.FontWeight" xml:space="preserve">
+  <data name="ExamplePlugin.TeamCard.FontWeight">
     <value>Font weight</value>
   </data>
-  <data name="ClassicBackendShell" xml:space="preserve">
+  <data name="ClassicBackendShell">
     <value>Classic Backend Shell</value>
   </data>
-  <data name="ModernBackendShell" xml:space="preserve">
+  <data name="ModernBackendShell">
     <value>Modern Backend Shell</value>
   </data>
-  <data name="FrontendQuickControls" xml:space="preserve">
+  <data name="FrontendQuickControls">
     <value>Frontend quick controls</value>
   </data>
-  <data name="ClassicManagementEntries" xml:space="preserve">
+  <data name="ClassicManagementEntries">
     <value>Management entries</value>
   </data>
-  <data name="OpenFrontendManagement" xml:space="preserve">
+  <data name="OpenFrontendManagement">
     <value>Frontend Management</value>
   </data>
-  <data name="OpenSettings" xml:space="preserve">
+  <data name="OpenSettings">
     <value>Settings</value>
   </data>
-  <data name="OpenPlugins" xml:space="preserve">
+  <data name="OpenPlugins">
     <value>Plugins</value>
   </data>
-  <data name="GameDataWindow" xml:space="preserve">
+  <data name="GameDataWindow">
     <value>Game data window</value>
   </data>
-  <data name="WidgetsWindow" xml:space="preserve">
+  <data name="WidgetsWindow">
     <value>Widgets window</value>
   </data>
-  <data name="BehaviorEventDebugger" xml:space="preserve">
-    <value>Behavior Event Debugger</value>
-  </data>
-  <data name="EnableListening" xml:space="preserve">
-    <value>Enable Listening</value>
-  </data>
-  <data name="Pause" xml:space="preserve">
-    <value>Pause</value>
-  </data>
-  <data name="CopyEventJson" xml:space="preserve">
-    <value>Copy Event JSON</value>
-  </data>
-  <data name="ExportJson" xml:space="preserve">
-    <value>Export JSON</value>
-  </data>
-  <data name="MaxRecords" xml:space="preserve">
-    <value>Max Records</value>
-  </data>
-  <data name="Filter" xml:space="preserve">
-    <value>Filter</value>
-  </data>
-  <data name="EventType" xml:space="preserve">
-    <value>EventType</value>
-  </data>
-  <data name="WindowType" xml:space="preserve">
-    <value>WindowType</value>
-  </data>
-  <data name="WindowId" xml:space="preserve">
-    <value>WindowId</value>
-  </data>
-  <data name="CanvasName" xml:space="preserve">
-    <value>CanvasName</value>
-  </data>
-  <data name="PayloadSummary" xml:space="preserve">
-    <value>Payload Summary</value>
-  </data>
-  <data name="Source" xml:space="preserve">
-    <value>Source</value>
-  </data>
-  <data name="Time" xml:space="preserve">
-    <value>Time</value>
-  </data>
-  <data name="Key" xml:space="preserve">
-    <value>Key</value>
-  </data>
-  <data name="Path" xml:space="preserve">
-    <value>Path</value>
-  </data>
-  <data name="Type" xml:space="preserve">
-    <value>Type</value>
-  </data>
-  <data name="RawValue" xml:space="preserve">
-    <value>Raw Value</value>
-  </data>
-  <data name="DisplayValue" xml:space="preserve">
-    <value>Display Value</value>
-  </data>
-  <data name="FilterText" xml:space="preserve">
-    <value>Filter Text</value>
-  </data>
-  <data name="CopyPath" xml:space="preserve">
-    <value>Copy Path</value>
-  </data>
-  <data name="CopyConditionPath" xml:space="preserve">
-    <value>Copy Condition Path</value>
-  </data>
-  <data name="CopyEqualsFilter" xml:space="preserve">
-    <value>Copy Equals Filter</value>
-  </data>
-  <data name="CopyIfCondition" xml:space="preserve">
-    <value>Copy IF Condition</value>
-  </data>
-  <data name="CopyContainsFilter" xml:space="preserve">
-    <value>Copy Contains Filter</value>
-  </data>
-  <data name="CopyValue" xml:space="preserve">
-    <value>Copy Value</value>
-  </data>
-  <data name="ExecutableFiles" xml:space="preserve">
+<data name="ExecutableFiles">
     <value>Executable files</value>
+  </data>
+  <data name="SmartBp">
+    <value>Smart BP</value>
   </data>
 </root>

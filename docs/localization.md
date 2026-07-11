@@ -77,10 +77,12 @@
 
 ```xaml
 <TextBlock Text="{lex:Loc CommonKey}"
-           lex:ResxLocalizationProvider.DefaultDictionary="Locales.Common" />
+           lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
 ```
 
-模块 XAML 设置 `DefaultAssembly` 为模块程序集名（如 `neo-bpsys-wpf.ProductTour`）。
+模块 XAML 设置 `DefaultAssembly` 为模块程序集名（如 `neo-bpsys-wpf.ProductTour`）。SmartBP 模块通过
+`SmartBpLocalizationProvider` 将模块程序集中的资源暴露为模块内短字典名 `Locales.SmartBp`；该短名是
+专用 Provider 的契约，不适用于宿主 `ResxLocalizationProvider`，也不得替换为宿主功能字典。
 
 ### ResourceDictionary 样式文件
 
@@ -167,7 +169,7 @@ I18nHelper.GetLocalizedStringFromAnyHostDictionary("SomeKey", culture)
 
 ### key-map.csv
 
-`artifacts/i18n-migration/key-map.csv` 记录每个 key 的迁移映射（Key, SourceDictionary, TargetAssembly, TargetDictionary, ReferenceCount, ReferenceDomains, MappingReason, IsDynamic），是归属决策的权威记录。
+`neo-bpsys-wpf.Tests/TestData/I18nMigration/key-map.csv` 记录每个 key 的迁移映射（Key, SourceDictionary, TargetAssembly, TargetDictionary, ReferenceCount, ReferenceDomains, MappingReason, IsDynamic），是可从干净检出独立验证的归属决策基线。
 
 ### 运行审计
 

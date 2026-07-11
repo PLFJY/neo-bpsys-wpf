@@ -178,7 +178,7 @@
                         FontWeight="Medium"
                         Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                         Text="{lex:Loc PreviewColon}"
-                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell" />
+                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
                     <TextBlock
                         HorizontalAlignment="Center"
                         FontSize="14"

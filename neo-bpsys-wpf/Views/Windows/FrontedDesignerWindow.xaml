@@ -208,7 +208,7 @@
                     Click="PropertyTextApplyButton_OnClick"
                     Icon="{ui:SymbolIcon Symbol=Checkmark24}"
                     ToolTip="{lex:Loc ApplyColor}"
-                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell">
+                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common">
                     <ui:Button.Style>
                         <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
                             <Style.Triggers>
@@ -422,7 +422,7 @@
                             <MenuItem
                                 Click="ResetToBuiltInButton_OnClick"
                                 Header="{lex:Loc ResetToBuiltIn}"
-                                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell" />
+                                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
                             <MenuItem Command="{Binding ValidateLayoutCommand}" Header="{lex:Loc ValidationDetails}" />
                         </MenuItem>
                         <MenuItem Header="{lex:Loc Edit}">
@@ -1828,7 +1828,7 @@
                                         Click="WindowBackgroundColorApplyButton_OnClick"
                                         Icon="{ui:SymbolIcon Symbol=Checkmark24}"
                                         ToolTip="{lex:Loc ApplyColor}"
-                                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell" />
+                                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
                                 </Grid>
                                 <TextBlock
                                     Margin="0,6,0,0"

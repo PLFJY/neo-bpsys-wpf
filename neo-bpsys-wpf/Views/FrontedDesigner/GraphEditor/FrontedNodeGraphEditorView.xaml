@@ -575,7 +575,7 @@
                             Height="26"
                             Padding="0"
                             Click="EditorZoomIn_OnClick"
-                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell"
+                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Designer"
                             ToolTip="{lex:Loc ZoomIn}">
                             <ui:SymbolIcon Symbol="Add24" />
                         </ui:Button>
@@ -586,7 +586,7 @@
                             Margin="4,0,0,0"
                             Padding="0"
                             Click="EditorZoomOut_OnClick"
-                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell"
+                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Designer"
                             ToolTip="{lex:Loc ZoomOut}">
                             <ui:SymbolIcon Symbol="Subtract24" />
                         </ui:Button>
@@ -597,7 +597,7 @@
                             Margin="4,0,0,0"
                             Padding="0"
                             Click="EditorZoomReset_OnClick"
-                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.AnimationEditor"
+                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Designer"
                             ToolTip="{lex:Loc Zoom}">
                             <ui:SymbolIcon Symbol="ArrowReset24" />
                         </ui:Button>
@@ -908,7 +908,7 @@
                             Height="26"
                             Padding="0"
                             Click="PreviewZoomIn_OnClick"
-                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell"
+                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Designer"
                             ToolTip="{lex:Loc ZoomIn}">
                             <ui:SymbolIcon Symbol="Add24" />
                         </ui:Button>
@@ -919,7 +919,7 @@
                             Margin="4,0,0,0"
                             Padding="0"
                             Click="PreviewZoomOut_OnClick"
-                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell"
+                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Designer"
                             ToolTip="{lex:Loc ZoomOut}">
                             <ui:SymbolIcon Symbol="Subtract24" />
                         </ui:Button>
@@ -930,7 +930,7 @@
                             Margin="4,0,0,0"
                             Padding="0"
                             Click="PreviewZoomReset_OnClick"
-                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.AnimationEditor"
+                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Designer"
                             ToolTip="{lex:Loc Zoom}">
                             <ui:SymbolIcon Symbol="ArrowReset24" />
                         </ui:Button>

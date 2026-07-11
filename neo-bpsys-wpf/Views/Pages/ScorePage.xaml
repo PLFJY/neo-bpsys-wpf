@@ -41,7 +41,7 @@
                         Grid.Row="1"
                     Margin="0,10,0,0"
                     IsEnabled="{Binding IsScoreControlEnabled}"
-                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell">
+                    >
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
@@ -109,7 +109,7 @@
                     <TextBlock Margin="0,0,20,10" d:Text="主队名称  W:0 D:0  小比分: 0">
                         <TextBlock.Text>
                             <MultiBinding Converter="{lex:StringFormatConverter}">
-                                <lex:BLoc Key="ScorePreview" />
+                                <lex:BLoc Key="neo-bpsys-wpf:neo_bpsys_wpf.Locales.Score:ScorePreview" />
                                 <Binding Path="HomeTeam.Name" />
                                 <Binding Path="CurrentGame.MatchScore.HomeMajorWin" />
                                 <Binding Path="CurrentGame.MatchScore.HomeMajorTie" />
@@ -120,7 +120,7 @@
                     <TextBlock d:Text="客队名称  W:0 D:0  小比分: 0">
                         <TextBlock.Text>
                             <MultiBinding Converter="{lex:StringFormatConverter}">
-                                <lex:BLoc Key="ScorePreview" />
+                                <lex:BLoc Key="neo-bpsys-wpf:neo_bpsys_wpf.Locales.Score:ScorePreview" />
                                 <Binding Path="AwayTeam.Name" />
                                 <Binding Path="CurrentGame.MatchScore.AwayMajorWin" />
                                 <Binding Path="CurrentGame.MatchScore.AwayMajorTie" />
@@ -152,7 +152,6 @@
                         Margin="16,0,0,0"
                         Padding="12,4"
                         Click="RestoreScorePreviewDefaultSort_Click"
-                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell"
                         Content="{lex:Loc RestoreDefaultSort}" />
                 </StackPanel>
                 <ui:DataGrid
@@ -183,35 +182,35 @@
                         <DataGridTextColumn
                             Width="90"
                             Binding="{Binding GameLabel}"
-                            Header="{lex:Loc ScorePreviewGame}" />
+                            Header="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Score:ScorePreviewGame}" />
                         <DataGridTextColumn
                             Width="80"
                             Binding="{Binding HalfLabel}"
-                            Header="{lex:Loc ScorePreviewHalf}" />
+                            Header="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Score:ScorePreviewHalf}" />
                         <DataGridTextColumn
                             Width="80"
                             Binding="{Binding RowStatusText}"
-                            Header="{lex:Loc ScorePreviewStatus}" />
+                            Header="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Score:ScorePreviewStatus}" />
                         <DataGridTextColumn
                             Width="80"
                             Binding="{Binding ResultText}"
-                            Header="{lex:Loc ScorePreviewResult}" />
+                            Header="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Score:ScorePreviewResult}" />
                         <DataGridTextColumn
                             Width="110"
                             Binding="{Binding HomeCampText}"
-                            Header="{lex:Loc ScorePreviewHomeCamp}" />
+                            Header="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Score:ScorePreviewHomeCamp}" />
                         <DataGridTextColumn
                             Width="110"
                             Binding="{Binding AwayCampText}"
-                            Header="{lex:Loc ScorePreviewAwayCamp}" />
+                            Header="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Score:ScorePreviewAwayCamp}" />
                         <DataGridTextColumn
                             Width="120"
                             Binding="{Binding HomeMinorScoreText}"
-                            Header="{lex:Loc ScorePreviewHomeMinorScore}" />
+                            Header="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Score:ScorePreviewHomeMinorScore}" />
                         <DataGridTextColumn
                             Width="120"
                             Binding="{Binding AwayMinorScoreText}"
-                            Header="{lex:Loc ScorePreviewAwayMinorScore}" />
+                            Header="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Score:ScorePreviewAwayMinorScore}" />
                     </ui:DataGrid.Columns>
                 </ui:DataGrid>
             </Grid>

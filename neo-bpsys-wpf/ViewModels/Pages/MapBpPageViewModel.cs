@@ -185,7 +185,7 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
     private async Task ResetMapBpAsync()
     {
         if (!await MessageBoxHelper.ShowConfirmAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Bp, "AreYouSureToResetMapBP"),
-                I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "Tips"),
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Tips"),
                 I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"),
                 I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"))) return;
         _sharedDataService.CurrentGame.ResetMapBp();

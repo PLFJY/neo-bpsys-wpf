@@ -123,7 +123,7 @@ neo-bpsys-wpf.ProductTour/Locales/Tour.resx (+ .en-us, .ja-jp)
 neo-bpsys-wpf.SmartBp.Module/Locales/SmartBp.resx (+ .en-us, .ja-jp)
 ```
 
-所有 resx 作为 `EmbeddedResource` 嵌入各自程序集，不再使用 `PublicResXFileCodeGenerator` 或 `Lang.Designer.cs`。
+所有 resx 作为 `EmbeddedResource` 嵌入各自程序集，不再使用 `PublicResXFileCodeGenerator` 或 `Lang.Designer.cs`。迁移前的三种文化快照与 key map 由 `neo-bpsys-wpf.Tests/TestData/I18nMigration/` 追踪，测试不得依赖被忽略的 `artifacts/` 目录。
 
 XAML 常见写法（需指定 `DefaultAssembly` 和 `DefaultDictionary`）：
 

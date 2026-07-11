@@ -133,7 +133,7 @@ public partial class FrontedBehaviorAnimationEditorWindow : FluentWindow
             I18nHelper.GetLocalizedString(AppI18nDictionaries.AnimationEditor, "Designer.AnimationEditor.UnsavedChangesMessage"),
             I18nHelper.GetLocalizedString(AppI18nDictionaries.AnimationEditor, "Designer.AnimationEditor.Title"),
             I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Save"),
-            I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "DiscardChanges"),
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "DiscardChanges"),
             I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"),
             width: 500,
             minWidth: 460,

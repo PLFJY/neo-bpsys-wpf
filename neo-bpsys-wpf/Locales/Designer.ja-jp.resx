@@ -4,2749 +4,2965 @@
   <resheader name="version">2.0</resheader>
   <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
   <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
-  <data name="Edit" xml:space="preserve">
+  <data name="Edit">
     <value>編集</value>
   </data>
-  <data name="FailedToApplyPicture" xml:space="preserve">
+  <data name="FailedToApplyPicture">
     <value>画像の適用に失敗しました</value>
   </data>
-  <data name="BackgroundColor" xml:space="preserve">
+  <data name="BackgroundColor">
     <value>背景色</value>
   </data>
-  <data name="FrontedDesigner" xml:space="preserve">
+  <data name="FrontedDesigner">
     <value>フロントエンドデザイナー</value>
   </data>
-  <data name="Errors" xml:space="preserve">
+  <data name="Errors">
     <value>エラー</value>
   </data>
-  <data name="Warnings" xml:space="preserve">
+  <data name="Warnings">
     <value>警告</value>
   </data>
-  <data name="Infos" xml:space="preserve">
+  <data name="Infos">
     <value>情報</value>
   </data>
-  <data name="ReloadLayout" xml:space="preserve">
+  <data name="ReloadLayout">
     <value>再読み込み</value>
   </data>
-  <data name="MissingLayout" xml:space="preserve">
+  <data name="MissingLayout">
     <value>レイアウトなし</value>
   </data>
-  <data name="Fit" xml:space="preserve">
+  <data name="Fit">
     <value>合わせる</value>
   </data>
-  <data name="Designer.ZoomInvalid" xml:space="preserve">
+  <data name="Designer.ZoomInvalid">
     <value>無効なズーム値</value>
   </data>
-  <data name="SelectedControl" xml:space="preserve">
+  <data name="SelectedControl">
     <value>選択中のコントロール</value>
   </data>
-  <data name="NoControlSelected" xml:space="preserve">
+  <data name="NoControlSelected">
     <value>コントロール未選択</value>
   </data>
-  <data name="ValidationMessages" xml:space="preserve">
+  <data name="ValidationMessages">
     <value>検証メッセージ</value>
   </data>
-  <data name="ControlsList" xml:space="preserve">
+  <data name="ControlsList">
     <value>コントロール</value>
   </data>
-  <data name="FilterControls" xml:space="preserve">
+  <data name="FilterControls">
     <value>名前または種類で絞り込み</value>
   </data>
-  <data name="ZIndexShort" xml:space="preserve">
+  <data name="ZIndexShort">
     <value>Z</value>
   </data>
-  <data name="NoControlsFound" xml:space="preserve">
+  <data name="NoControlsFound">
     <value>コントロールが見つかりません</value>
   </data>
-  <data name="Designer.LayerPanel.Layer" xml:space="preserve">
+  <data name="Designer.LayerPanel.Layer">
     <value>レイヤー</value>
   </data>
-  <data name="Designer.LayerPanel.ControlsCount" xml:space="preserve">
+  <data name="Designer.LayerPanel.ControlsCount">
     <value>個のコントロール</value>
   </data>
-  <data name="Designer.LayerPanel.ClearFilterToReorder" xml:space="preserve">
+  <data name="Designer.LayerPanel.ClearFilterToReorder">
     <value>レイヤー順を変更するには絞り込みを解除してください</value>
   </data>
-  <data name="Designer.LayerPanel.MoveToNewTopLayer" xml:space="preserve">
+  <data name="Designer.LayerPanel.MoveToNewTopLayer">
     <value>新しい最前面レイヤーへ移動</value>
   </data>
-  <data name="Designer.LayerPanel.MoveToNewBottomLayer" xml:space="preserve">
+  <data name="Designer.LayerPanel.MoveToNewBottomLayer">
     <value>新しい最背面レイヤーへ移動</value>
   </data>
-  <data name="Designer.LayerPanel.DropHere" xml:space="preserve">
+  <data name="Designer.LayerPanel.DropHere">
     <value>ここにドロップ</value>
   </data>
-  <data name="Designer.LayerPanel.Reordered" xml:space="preserve">
+  <data name="Designer.LayerPanel.Reordered">
     <value>レイヤー順を更新しました</value>
   </data>
-  <data name="Designer.LayerPanel.ReorderBlocked" xml:space="preserve">
+  <data name="Designer.LayerPanel.ReorderBlocked">
     <value>このコントロールはレイヤー順を変更できません</value>
   </data>
-  <data name="Properties" xml:space="preserve">
+  <data name="Properties">
     <value>プロパティ</value>
   </data>
-  <data name="Layout" xml:space="preserve">
+  <data name="Layout">
     <value>レイアウト</value>
   </data>
-  <data name="InvalidControlName" xml:space="preserve">
+  <data name="InvalidControlName">
     <value>コントロール名は空にできず、^[A-Za-z_][A-Za-z0-9_]*$ に一致する必要があります。</value>
   </data>
-  <data name="DuplicateControlName" xml:space="preserve">
+  <data name="DuplicateControlName">
     <value>このキャンバスには同じ名前のコントロールが既に存在します。</value>
   </data>
-  <data name="ReferencedControlRenameBlocked" xml:space="preserve">
+  <data name="ReferencedControlRenameBlocked">
     <value>This control is referenced by another control. Reference-aware rename will be implemented later.</value>
   </data>
-  <data name="PropertyValidationErrors" xml:space="preserve">
+  <data name="PropertyValidationErrors">
     <value>プロパティ値が無効です。</value>
   </data>
-  <data name="NoSelectedControl" xml:space="preserve">
+  <data name="NoSelectedControl">
     <value>コントロール未選択</value>
   </data>
-  <data name="EditProperty" xml:space="preserve">
+  <data name="EditProperty">
     <value>プロパティを編集</value>
   </data>
-  <data name="EditTextBindingSource" xml:space="preserve">
+  <data name="EditTextBindingSource">
     <value>バインド元を編集</value>
   </data>
-  <data name="ValidationDetails" xml:space="preserve">
+  <data name="ValidationDetails">
     <value>検証詳細</value>
   </data>
-  <data name="OpenValidationDetails" xml:space="preserve">
+  <data name="OpenValidationDetails">
     <value>検証詳細を開く</value>
   </data>
-  <data name="AddControl" xml:space="preserve">
+  <data name="AddControl">
     <value>コントロールを追加</value>
   </data>
-  <data name="AddedControl" xml:space="preserve">
+  <data name="AddedControl">
     <value>コントロールを追加しました</value>
   </data>
-  <data name="CannotAddControl" xml:space="preserve">
+  <data name="CannotAddControl">
     <value>現在コントロールを追加できません。</value>
   </data>
-  <data name="UnsupportedControlType" xml:space="preserve">
+  <data name="UnsupportedControlType">
     <value>未対応のコントロール種類です。</value>
   </data>
-  <data name="DeleteControl" xml:space="preserve">
+  <data name="DeleteControl">
     <value>コントロールを削除</value>
   </data>
-  <data name="DeleteSelectedControl" xml:space="preserve">
+  <data name="DeleteSelectedControl">
     <value>コントロールを削除しました</value>
   </data>
-  <data name="CannotDeleteReferencedControl" xml:space="preserve">
+  <data name="CannotDeleteReferencedControl">
     <value>このコントロールは他のコントロールから参照されているため削除できません。</value>
   </data>
-  <data name="Undo" xml:space="preserve">
+  <data name="Undo">
     <value>元に戻す</value>
   </data>
-  <data name="Redo" xml:space="preserve">
+  <data name="Redo">
     <value>やり直し</value>
   </data>
-  <data name="CannotUndo" xml:space="preserve">
+  <data name="CannotUndo">
     <value>元に戻せる操作がありません。</value>
   </data>
-  <data name="CannotRedo" xml:space="preserve">
+  <data name="CannotRedo">
     <value>やり直せる操作がありません。</value>
   </data>
-  <data name="SaveLayout" xml:space="preserve">
+  <data name="SaveLayout">
     <value>レイアウトを保存</value>
   </data>
-  <data name="Unsaved" xml:space="preserve">
+  <data name="Unsaved">
     <value>未保存</value>
   </data>
-  <data name="UnsavedChanges" xml:space="preserve">
+  <data name="UnsavedChanges">
     <value>未保存の変更</value>
   </data>
-  <data name="LayoutSourceUser" xml:space="preserve">
+  <data name="LayoutSourceUser">
     <value>ユーザー</value>
   </data>
-  <data name="LayoutSourceBuiltIn" xml:space="preserve">
+  <data name="LayoutSourceBuiltIn">
     <value>組み込み</value>
   </data>
-  <data name="LayoutSourceError" xml:space="preserve">
+  <data name="LayoutSourceError">
     <value>欠落/エラー</value>
   </data>
-  <data name="ResetLayoutConfirm" xml:space="preserve">
+  <data name="ResetLayoutConfirm">
     <value>組み込みレイアウトにリセットしますか？現在のカスタムレイアウトは削除されます。</value>
   </data>
-  <data name="LayoutSaved" xml:space="preserve">
+  <data name="LayoutSaved">
     <value>レイアウトを保存しました</value>
   </data>
-  <data name="LayoutSaveFailed" xml:space="preserve">
+  <data name="LayoutSaveFailed">
     <value>レイアウトの保存に失敗しました</value>
   </data>
-  <data name="CannotSaveInvalidLayout" xml:space="preserve">
+  <data name="CannotSaveInvalidLayout">
     <value>無効なレイアウトは保存できません</value>
   </data>
-  <data name="Snap" xml:space="preserve">
+  <data name="Snap">
     <value>スナップ</value>
   </data>
-  <data name="SnapOn" xml:space="preserve">
+  <data name="SnapOn">
     <value>スナップオン</value>
   </data>
-  <data name="SnapOff" xml:space="preserve">
+  <data name="SnapOff">
     <value>スナップオフ</value>
   </data>
-  <data name="TemporarySnap" xml:space="preserve">
+  <data name="TemporarySnap">
     <value>一時スナップ</value>
   </data>
-  <data name="BrowseBinding" xml:space="preserve">
+  <data name="BrowseBinding">
     <value>バインドを参照</value>
   </data>
-  <data name="BrowseResource" xml:space="preserve">
+  <data name="BrowseResource">
     <value>リソースを参照</value>
   </data>
-  <data name="View" xml:space="preserve">
+  <data name="View">
     <value>表示</value>
   </data>
-  <data name="Apply" xml:space="preserve">
+  <data name="Apply">
     <value>適用</value>
   </data>
-  <data name="Reset" xml:space="preserve">
+  <data name="Reset">
     <value>リセット</value>
   </data>
-  <data name="CanvasProperties" xml:space="preserve">
+  <data name="CanvasProperties">
     <value>Canvas プロパティ</value>
   </data>
-  <data name="WindowOptions" xml:space="preserve">
+  <data name="WindowOptions">
     <value>ウィンドウオプション</value>
   </data>
-  <data name="WindowWidth" xml:space="preserve">
+  <data name="WindowWidth">
     <value>ウィンドウ幅</value>
   </data>
-  <data name="WindowHeight" xml:space="preserve">
+  <data name="WindowHeight">
     <value>ウィンドウ高さ</value>
   </data>
-  <data name="AllowTransparency" xml:space="preserve">
+  <data name="AllowTransparency">
     <value>透過を許可</value>
   </data>
-  <data name="ChooseLocalImage" xml:space="preserve">
+  <data name="ChooseLocalImage">
     <value>ローカル画像を選択</value>
   </data>
-  <data name="ClearBackground" xml:space="preserve">
+  <data name="ClearBackground">
     <value>背景をクリア</value>
   </data>
-  <data name="BackgroundImage" xml:space="preserve">
+  <data name="BackgroundImage">
     <value>背景画像</value>
   </data>
-  <data name="CanvasWidth" xml:space="preserve">
+  <data name="CanvasWidth">
     <value>Canvas 幅</value>
   </data>
-  <data name="CanvasHeight" xml:space="preserve">
+  <data name="CanvasHeight">
     <value>Canvas 高さ</value>
   </data>
-  <data name="CanvasSizeMustBePositive" xml:space="preserve">
+  <data name="CanvasSizeMustBePositive">
     <value>Canvas の幅と高さは 0 より大きい必要があります</value>
   </data>
-  <data name="WindowSizeMustBePositive" xml:space="preserve">
+  <data name="WindowSizeMustBePositive">
     <value>ウィンドウの幅と高さは 0 より大きい必要があります</value>
   </data>
-  <data name="CanvasPropertiesApplied" xml:space="preserve">
+  <data name="CanvasPropertiesApplied">
     <value>Canvas プロパティを適用しました</value>
   </data>
-  <data name="WindowOptionsApplied" xml:space="preserve">
+  <data name="WindowOptionsApplied">
     <value>ウィンドウオプションを適用しました</value>
   </data>
-  <data name="EditableLayoutSchemeCreated" xml:space="preserve">
+  <data name="EditableLayoutSchemeCreated">
     <value>内蔵レイアウトから編集可能な新しいレイアウト方案を作成して保存しました。</value>
   </data>
-  <data name="ShortcutUndo" xml:space="preserve">
+  <data name="ShortcutUndo">
     <value>元に戻す (Ctrl+Z)</value>
   </data>
-  <data name="ShortcutRedo" xml:space="preserve">
+  <data name="ShortcutRedo">
     <value>やり直し (Ctrl+Y / Ctrl+Shift+Z)</value>
   </data>
-  <data name="ShortcutSave" xml:space="preserve">
+  <data name="ShortcutSave">
     <value>レイアウトを保存 (Ctrl+S)</value>
   </data>
-  <data name="ControlCountLimitReached" xml:space="preserve">
+  <data name="ControlCountLimitReached">
     <value>この Canvas のコントロール数上限に達しました</value>
   </data>
-  <data name="ValidationMessagesTruncated" xml:space="preserve">
+  <data name="ValidationMessagesTruncated">
     <value>他 {0} 件...</value>
   </data>
-  <data name="CopyControl" xml:space="preserve">
+  <data name="CopyControl">
     <value>コントロールをコピー</value>
   </data>
-  <data name="PasteControl" xml:space="preserve">
+  <data name="PasteControl">
     <value>コントロールを貼り付け</value>
   </data>
-  <data name="CannotCopyControl" xml:space="preserve">
+  <data name="CannotCopyControl">
     <value>このコントロールはコピーできません</value>
   </data>
-  <data name="CannotPasteControl" xml:space="preserve">
+  <data name="CannotPasteControl">
     <value>コントロールを貼り付けできません</value>
   </data>
-  <data name="Designer.Property.Name" xml:space="preserve">
+  <data name="Designer.Property.Name">
     <value>コントロール名</value>
   </data>
-  <data name="Designer.Property.ControlType" xml:space="preserve">
+  <data name="Designer.Property.ControlType">
     <value>コントロールタイプ</value>
   </data>
-  <data name="Designer.Property.Left" xml:space="preserve">
+  <data name="Designer.Property.Left">
     <value>X 座標</value>
   </data>
-  <data name="Designer.Property.Top" xml:space="preserve">
+  <data name="Designer.Property.Top">
     <value>Y 座標</value>
   </data>
-  <data name="Designer.Property.Width" xml:space="preserve">
+  <data name="Designer.Property.Width">
     <value>幅</value>
   </data>
-  <data name="Designer.Property.Height" xml:space="preserve">
+  <data name="Designer.Property.Height">
     <value>高さ</value>
   </data>
-  <data name="Designer.Property.ZIndex" xml:space="preserve">
+  <data name="Designer.Property.ZIndex">
     <value>レイヤー</value>
   </data>
-  <data name="Designer.Property.BindingPath" xml:space="preserve">
+  <data name="Designer.Property.BindingPath">
     <value>バインドパス</value>
   </data>
-  <data name="Designer.Property.ImagePath" xml:space="preserve">
+  <data name="Designer.Property.ImagePath">
     <value>静的画像パス</value>
   </data>
-  <data name="Designer.PropertyDescription.BindingPath" xml:space="preserve">
+  <data name="Designer.PropertyDescription.BindingPath">
     <value>設定すると ImagePath より優先されます。</value>
   </data>
-  <data name="Designer.PropertyDescription.ImagePath" xml:space="preserve">
+  <data name="Designer.PropertyDescription.ImagePath">
     <value>静的画像パス。BindingPath が空の場合のみ使用されます。</value>
   </data>
-  <data name="Designer.Property.HorizontalAlignment" xml:space="preserve">
+  <data name="Designer.Property.HorizontalAlignment">
     <value>水平配置</value>
   </data>
-  <data name="Designer.Property.VerticalAlignment" xml:space="preserve">
+  <data name="Designer.Property.VerticalAlignment">
     <value>垂直配置</value>
   </data>
-  <data name="Designer.Property.TextAlignment" xml:space="preserve">
+  <data name="Designer.Property.TextAlignment">
     <value>テキスト配置</value>
   </data>
-  <data name="Designer.Property.TextWrapping" xml:space="preserve">
+  <data name="Designer.Property.TextWrapping">
     <value>テキスト折り返し</value>
   </data>
-  <data name="Designer.Property.Stretch" xml:space="preserve">
+  <data name="Designer.Property.Stretch">
     <value>画像の伸縮</value>
   </data>
-  <data name="Designer.Property.FontFamily" xml:space="preserve">
+  <data name="Designer.Property.FontFamily">
     <value>フォント</value>
   </data>
-  <data name="Designer.Property.FontWeight" xml:space="preserve">
+  <data name="Designer.Property.FontWeight">
     <value>フォントウェイト</value>
   </data>
-  <data name="Designer.Property.FontSize" xml:space="preserve">
+  <data name="Designer.Property.FontSize">
     <value>フォントサイズ</value>
   </data>
-  <data name="Designer.Property.Color" xml:space="preserve">
+  <data name="Designer.Property.Color">
     <value>色</value>
   </data>
-  <data name="Designer.Property.ColorBindingPath" xml:space="preserve">
+  <data name="Designer.Property.ColorBindingPath">
     <value>色バインディング パス</value>
   </data>
-  <data name="Designer.Property.BackgroundImage" xml:space="preserve">
+  <data name="Designer.Property.BackgroundImage">
     <value>背景画像</value>
   </data>
-  <data name="Designer.Property.PickingBorder" xml:space="preserve">
+  <data name="Designer.Property.PickingBorder">
     <value>選択枠</value>
   </data>
-  <data name="Designer.Property.BanLockAvailable" xml:space="preserve">
+  <data name="Designer.Property.BanLockAvailable">
     <value>Ban ロック使用可</value>
   </data>
-  <data name="Designer.Property.Text" xml:space="preserve">
+  <data name="Designer.Property.Text">
     <value>テキスト</value>
   </data>
-  <data name="Designer.Property.TextBinding" xml:space="preserve">
+  <data name="Designer.Property.TextBinding">
     <value>テキストバインディング</value>
   </data>
-  <data name="Designer.PropertyDescription.TextBinding" xml:space="preserve">
+  <data name="Designer.PropertyDescription.TextBinding">
     <value>順序付きの動的ソースを結合します。有効なソースがある場合、静的テキストまたはローカライズキーより優先されます。</value>
   </data>
-  <data name="Designer.Property.StringFormat" xml:space="preserve">
+  <data name="Designer.Property.StringFormat">
     <value>テキスト形式</value>
   </data>
-  <data name="Designer.Property.SizingMode" xml:space="preserve">
+  <data name="Designer.Property.SizingMode">
     <value>サイズモード</value>
   </data>
-  <data name="Designer.Property.ClipToBounds" xml:space="preserve">
+  <data name="Designer.Property.ClipToBounds">
     <value>範囲外をクリップ</value>
   </data>
-  <data name="Designer.Property.CornerRadius" xml:space="preserve">
+  <data name="Designer.Property.CornerRadius">
     <value>角丸</value>
   </data>
-  <data name="Designer.Property.ImageWidth" xml:space="preserve">
+  <data name="Designer.Property.ImageWidth">
     <value>内部画像の幅</value>
   </data>
-  <data name="Designer.Property.ImageHeight" xml:space="preserve">
+  <data name="Designer.Property.ImageHeight">
     <value>内部画像の高さ</value>
   </data>
-  <data name="Designer.Property.PickingBorderImagePath" xml:space="preserve">
+  <data name="Designer.Property.PickingBorderImagePath">
     <value>選択枠画像</value>
   </data>
-  <data name="Designer.Property.BanLockImagePath" xml:space="preserve">
+  <data name="Designer.Property.BanLockImagePath">
     <value>Ban ロック画像</value>
   </data>
-  <data name="Designer.Property.Lockable" xml:space="preserve">
+  <data name="Designer.Property.Lockable">
     <value>ロックオーバーレイ</value>
   </data>
-  <data name="Designer.Property.LockImagePath" xml:space="preserve">
+  <data name="Designer.Property.LockImagePath">
     <value>ロック画像</value>
   </data>
-  <data name="Designer.Property.LockVisibilityBindingPath" xml:space="preserve">
+  <data name="Designer.Property.LockVisibilityBindingPath">
     <value>ロック表示バインド</value>
   </data>
-  <data name="Designer.Property.LockVisibleWhen" xml:space="preserve">
+  <data name="Designer.Property.LockVisibleWhen">
     <value>ロック表示条件</value>
   </data>
-  <data name="Designer.Property.PickingBorderAvailable" xml:space="preserve">
+  <data name="Designer.Property.PickingBorderAvailable">
     <value>選択枠オーバーレイ</value>
   </data>
-  <data name="Designer.Property.PickingBorderName" xml:space="preserve">
+  <data name="Designer.Property.PickingBorderName">
     <value>選択枠名</value>
   </data>
-  <data name="Designer.Property.PickingBorderZIndexOffset" xml:space="preserve">
+  <data name="Designer.Property.PickingBorderZIndexOffset">
     <value>選択枠レイヤーのオフセット</value>
   </data>
-  <data name="Designer.Property.LocalizationKey" xml:space="preserve">
+  <data name="Designer.Property.LocalizationKey">
     <value>ローカライズキー</value>
   </data>
-  <data name="Designer.Property.FallbackText" xml:space="preserve">
+  <data name="Designer.Property.FallbackText">
     <value>代替テキスト</value>
   </data>
-  <data name="Designer.Property.EmptyText" xml:space="preserve">
+  <data name="Designer.Property.EmptyText">
     <value>空表示テキスト</value>
   </data>
-  <data name="Designer.Property.TeamType" xml:space="preserve">
+  <data name="Designer.Property.TeamType">
     <value>チーム</value>
   </data>
-  <data name="Designer.Property.MajorGameGap" xml:space="preserve">
+  <data name="Designer.Property.MajorGameGap">
     <value>ゲーム間隔</value>
   </data>
-  <data name="Designer.Property.HalfGameGap" xml:space="preserve">
+  <data name="Designer.Property.HalfGameGap">
     <value>ハーフ間隔</value>
   </data>
-  <data name="Designer.Property.ShowCampIcon" xml:space="preserve">
+  <data name="Designer.Property.ShowCampIcon">
     <value>陣営アイコンを表示</value>
   </data>
-  <data name="Designer.Property.CampIconColor" xml:space="preserve">
+  <data name="Designer.Property.CampIconColor">
     <value>陣営アイコン色</value>
   </data>
-  <data name="Designer.Property.MapKey" xml:space="preserve">
+  <data name="Designer.Property.MapKey">
     <value>マップキー</value>
   </data>
-  <data name="Designer.Property.DisplayKind" xml:space="preserve">
+  <data name="Designer.Property.DisplayKind">
     <value>表示タイプ</value>
   </data>
-  <data name="Designer.Property.PlayerIndex" xml:space="preserve">
+  <data name="Designer.Property.PlayerIndex">
     <value>プレイヤー番号</value>
   </data>
-  <data name="Designer.Property.IconSize" xml:space="preserve">
+  <data name="Designer.Property.IconSize">
     <value>アイコンサイズ</value>
   </data>
-  <data name="Designer.Property.IconGap" xml:space="preserve">
+  <data name="Designer.Property.IconGap">
     <value>アイコン間隔</value>
   </data>
-  <data name="Designer.Property.RespectTraitVisibility" xml:space="preserve">
+  <data name="Designer.Property.RespectTraitVisibility">
     <value>補助特質の表示状態に従う</value>
   </data>
-  <data name="Designer.Property.BorderImagePath" xml:space="preserve">
+  <data name="Designer.Property.BorderImagePath">
     <value>枠画像</value>
   </data>
-  <data name="Designer.Property.FillColor" xml:space="preserve">
+  <data name="Designer.Property.FillColor">
     <value>塗りつぶし色</value>
   </data>
-  <data name="Designer.Property.InitiallyHidden" xml:space="preserve">
+  <data name="Designer.Property.InitiallyHidden">
     <value>初期状態で非表示</value>
   </data>
-  <data name="Designer.Property.SlotKind" xml:space="preserve">
+  <data name="Designer.Property.SlotKind">
     <value>Ban 枠タイプ</value>
   </data>
-  <data name="Designer.Property.Camp" xml:space="preserve">
+  <data name="Designer.Property.Camp">
     <value>陣営</value>
   </data>
-  <data name="Designer.Property.Index" xml:space="preserve">
+  <data name="Designer.Property.Index">
     <value>インデックス</value>
   </data>
-  <data name="Designer.Property.ShowLockOverlay" xml:space="preserve">
+  <data name="Designer.Property.ShowLockOverlay">
     <value>ロック表示を重ねる</value>
   </data>
-  <data name="Designer.Property.LockImageSource" xml:space="preserve">
+  <data name="Designer.Property.LockImageSource">
     <value>ロック画像</value>
   </data>
-  <data name="Designer.Property.LockZIndexOffset" xml:space="preserve">
+  <data name="Designer.Property.LockZIndexOffset">
     <value>ロックレイヤーのオフセット</value>
   </data>
-  <data name="Designer.PropertyGroup.Identity" xml:space="preserve">
+  <data name="Designer.PropertyGroup.Identity">
     <value>識別</value>
   </data>
-  <data name="Designer.PropertyGroup.Layout" xml:space="preserve">
+  <data name="Designer.PropertyGroup.Layout">
     <value>レイアウト</value>
   </data>
-  <data name="Designer.PropertyGroup.Binding" xml:space="preserve">
+  <data name="Designer.PropertyGroup.Binding">
     <value>データバインド</value>
   </data>
-  <data name="Designer.PropertyGroup.Content" xml:space="preserve">
+  <data name="Designer.PropertyGroup.Content">
     <value>コンテンツ</value>
   </data>
-  <data name="Designer.PropertyGroup.Appearance" xml:space="preserve">
+  <data name="Designer.PropertyGroup.Appearance">
     <value>外観</value>
   </data>
-  <data name="Designer.PropertyGroup.Resource" xml:space="preserve">
+  <data name="Designer.PropertyGroup.Resource">
     <value>リソース</value>
   </data>
-  <data name="Designer.PropertyGroup.Behavior" xml:space="preserve">
+  <data name="Designer.PropertyGroup.Behavior">
     <value>動作</value>
   </data>
-  <data name="Designer.PropertyGroup.Advanced" xml:space="preserve">
+  <data name="Designer.PropertyGroup.Advanced">
     <value>詳細</value>
   </data>
-  <data name="Designer.PropertyGroup.Validation" xml:space="preserve">
+  <data name="Designer.PropertyGroup.Validation">
     <value>検証</value>
   </data>
-  <data name="Designer.PropertyGroup.ControlSpecific" xml:space="preserve">
+  <data name="Designer.PropertyGroup.ControlSpecific">
     <value>コントロール固有</value>
   </data>
-  <data name="Designer.PropertyGroup.Border" xml:space="preserve">
+  <data name="Designer.PropertyGroup.Border">
     <value>外枠</value>
   </data>
-  <data name="Designer.PropertyGroup.Image" xml:space="preserve">
+  <data name="Designer.PropertyGroup.Image">
     <value>内部画像</value>
   </data>
-  <data name="Designer.PluginControls" xml:space="preserve">
+  <data name="Designer.PluginControls">
     <value>プラグインコントロール</value>
   </data>
-  <data name="Designer.MissingPluginControl" xml:space="preserve">
+  <data name="Designer.MissingPluginControl">
     <value>不足しているプラグイン</value>
   </data>
-  <data name="Designer.MissingPluginPackage" xml:space="preserve">
+  <data name="Designer.MissingPluginPackage">
     <value>パッケージ</value>
   </data>
-  <data name="Designer.MissingPluginType" xml:space="preserve">
+  <data name="Designer.MissingPluginType">
     <value>プラグインコントロールタイプ</value>
   </data>
-  <data name="Designer.PluginInstallGuidance" xml:space="preserve">
+  <data name="Designer.PluginInstallGuidance">
     <value>このプラグインはインストールされていません。インストール案内は今後のバージョンで提供予定です。</value>
   </data>
-  <data name="Designer.PluginControlUnavailable" xml:space="preserve">
+  <data name="Designer.PluginControlUnavailable">
     <value>プラグインコントロールを追加できません</value>
   </data>
-  <data name="Designer.PropertyGroup.Plugin" xml:space="preserve">
+  <data name="Designer.PropertyGroup.Plugin">
     <value>プラグイン</value>
   </data>
-  <data name="ResizeTarget" xml:space="preserve">
+  <data name="ResizeTarget">
     <value>リサイズ対象</value>
   </data>
-  <data name="Designer.ControlType.Text" xml:space="preserve">
+  <data name="Designer.ControlType.Text">
     <value>テキスト</value>
   </data>
-  <data name="Designer.ControlType.LocalizedText" xml:space="preserve">
+  <data name="Designer.ControlType.LocalizedText">
     <value>ローカライズ済みテキスト</value>
   </data>
-  <data name="Designer.ControlType.Image" xml:space="preserve">
+  <data name="Designer.ControlType.Image">
     <value>画像</value>
   </data>
-  <data name="Designer.ControlType.BorderedImage" xml:space="preserve">
+  <data name="Designer.ControlType.BorderedImage">
     <value>枠付き画像</value>
   </data>
-  <data name="Designer.ControlType.GameProgressText" xml:space="preserve">
+  <data name="Designer.ControlType.GameProgressText">
     <value>ゲーム進行</value>
   </data>
-  <data name="Designer.ControlType.MapNameText" xml:space="preserve">
+  <data name="Designer.ControlType.MapNameText">
     <value>マップ名</value>
   </data>
-  <data name="Designer.ControlType.TalentTraitDisplay" xml:space="preserve">
+  <data name="Designer.ControlType.TalentTraitDisplay">
     <value>人格 / 補助特質</value>
   </data>
-  <data name="Designer.ControlType.GlobalScoreRow" xml:space="preserve">
+  <data name="Designer.ControlType.GlobalScoreRow">
     <value>全体スコア</value>
   </data>
-  <data name="Designer.ControlType.MapV2Display" xml:space="preserve">
+  <data name="Designer.ControlType.MapV2Display">
     <value>マップ v2</value>
   </data>
-  <data name="Designer.Option.HorizontalAlignment.Left" xml:space="preserve">
+  <data name="Designer.Option.HorizontalAlignment.Left">
     <value>左</value>
   </data>
-  <data name="Designer.Option.HorizontalAlignment.Center" xml:space="preserve">
+  <data name="Designer.Option.HorizontalAlignment.Center">
     <value>中央</value>
   </data>
-  <data name="Designer.Option.HorizontalAlignment.Right" xml:space="preserve">
+  <data name="Designer.Option.HorizontalAlignment.Right">
     <value>右</value>
   </data>
-  <data name="Designer.Option.HorizontalAlignment.Stretch" xml:space="preserve">
+  <data name="Designer.Option.HorizontalAlignment.Stretch">
     <value>引き伸ばし</value>
   </data>
-  <data name="Designer.Option.VerticalAlignment.Top" xml:space="preserve">
+  <data name="Designer.Option.VerticalAlignment.Top">
     <value>上</value>
   </data>
-  <data name="Designer.Option.VerticalAlignment.Center" xml:space="preserve">
+  <data name="Designer.Option.VerticalAlignment.Center">
     <value>中央</value>
   </data>
-  <data name="Designer.Option.VerticalAlignment.Bottom" xml:space="preserve">
+  <data name="Designer.Option.VerticalAlignment.Bottom">
     <value>下</value>
   </data>
-  <data name="Designer.Option.VerticalAlignment.Stretch" xml:space="preserve">
+  <data name="Designer.Option.VerticalAlignment.Stretch">
     <value>引き伸ばし</value>
   </data>
-  <data name="Designer.Option.TextAlignment.Left" xml:space="preserve">
+  <data name="Designer.Option.TextAlignment.Left">
     <value>左</value>
   </data>
-  <data name="Designer.Option.TextAlignment.Center" xml:space="preserve">
+  <data name="Designer.Option.TextAlignment.Center">
     <value>中央</value>
   </data>
-  <data name="Designer.Option.TextAlignment.Right" xml:space="preserve">
+  <data name="Designer.Option.TextAlignment.Right">
     <value>右</value>
   </data>
-  <data name="Designer.Option.TextAlignment.Justify" xml:space="preserve">
+  <data name="Designer.Option.TextAlignment.Justify">
     <value>両端揃え</value>
   </data>
-  <data name="Designer.Option.TextWrapping.NoWrap" xml:space="preserve">
+  <data name="Designer.Option.TextWrapping.NoWrap">
     <value>折り返さない</value>
   </data>
-  <data name="Designer.Option.TextWrapping.Wrap" xml:space="preserve">
+  <data name="Designer.Option.TextWrapping.Wrap">
     <value>折り返し</value>
   </data>
-  <data name="Designer.Option.TextWrapping.WrapWithOverflow" xml:space="preserve">
+  <data name="Designer.Option.TextWrapping.WrapWithOverflow">
     <value>折り返しとオーバーフロー許可</value>
   </data>
-  <data name="Designer.Option.Stretch.None" xml:space="preserve">
+  <data name="Designer.Option.Stretch.None">
     <value>元のサイズ</value>
   </data>
-  <data name="Designer.Option.Stretch.Fill" xml:space="preserve">
+  <data name="Designer.Option.Stretch.Fill">
     <value>塗りつぶし</value>
   </data>
-  <data name="Designer.Option.Stretch.Uniform" xml:space="preserve">
+  <data name="Designer.Option.Stretch.Uniform">
     <value>縦横比を維持して収める</value>
   </data>
-  <data name="Designer.Option.Stretch.UniformToFill" xml:space="preserve">
+  <data name="Designer.Option.Stretch.UniformToFill">
     <value>縦横比を維持して切り抜き</value>
   </data>
-  <data name="Designer.Option.FontWeight.Light" xml:space="preserve">
+  <data name="Designer.Option.FontWeight.Light">
     <value>細字</value>
   </data>
-  <data name="Designer.Option.FontWeight.Normal" xml:space="preserve">
+  <data name="Designer.Option.FontWeight.Normal">
     <value>標準</value>
   </data>
-  <data name="Designer.Option.FontWeight.Medium" xml:space="preserve">
+  <data name="Designer.Option.FontWeight.Medium">
     <value>中</value>
   </data>
-  <data name="Designer.Option.FontWeight.SemiBold" xml:space="preserve">
+  <data name="Designer.Option.FontWeight.SemiBold">
     <value>やや太字</value>
   </data>
-  <data name="Designer.Option.FontWeight.Bold" xml:space="preserve">
+  <data name="Designer.Option.FontWeight.Bold">
     <value>太字</value>
   </data>
-  <data name="Designer.Option.FontWeight.ExtraBold" xml:space="preserve">
+  <data name="Designer.Option.FontWeight.ExtraBold">
     <value>極太</value>
   </data>
-  <data name="Designer.Option.SizingMode.Auto" xml:space="preserve">
+  <data name="Designer.Option.SizingMode.Auto">
     <value>自動</value>
   </data>
-  <data name="Designer.Option.SizingMode.FillContainer" xml:space="preserve">
+  <data name="Designer.Option.SizingMode.FillContainer">
     <value>コンテナに合わせる</value>
   </data>
-  <data name="Designer.Option.SizingMode.OverflowCrop" xml:space="preserve">
+  <data name="Designer.Option.SizingMode.OverflowCrop">
     <value>はみ出しを切り抜き</value>
   </data>
-  <data name="Designer.Option.LockVisibleWhen.VisibleWhenTrue" xml:space="preserve">
+  <data name="Designer.Option.LockVisibleWhen.VisibleWhenTrue">
     <value>true の時に表示</value>
   </data>
-  <data name="Designer.Option.LockVisibleWhen.VisibleWhenFalse" xml:space="preserve">
+  <data name="Designer.Option.LockVisibleWhen.VisibleWhenFalse">
     <value>false の時に表示</value>
   </data>
-  <data name="Designer.Option.LockVisibleWhen.Always" xml:space="preserve">
+  <data name="Designer.Option.LockVisibleWhen.Always">
     <value>常に表示</value>
   </data>
-  <data name="Designer.Option.TeamType.HomeTeam" xml:space="preserve">
+  <data name="Designer.Option.TeamType.HomeTeam">
     <value>ホームチーム</value>
   </data>
-  <data name="Designer.Option.TeamType.AwayTeam" xml:space="preserve">
+  <data name="Designer.Option.TeamType.AwayTeam">
     <value>アウェイチーム</value>
   </data>
-  <data name="Designer.Option.CampIconColor.White" xml:space="preserve">
+  <data name="Designer.Option.CampIconColor.White">
     <value>白</value>
   </data>
-  <data name="Designer.Option.CampIconColor.Black" xml:space="preserve">
+  <data name="Designer.Option.CampIconColor.Black">
     <value>黒</value>
   </data>
-  <data name="Designer.Option.DisplayKind.SurvivorTalent" xml:space="preserve">
+  <data name="Designer.Option.DisplayKind.SurvivorTalent">
     <value>サバイバー人格</value>
   </data>
-  <data name="Designer.Option.DisplayKind.HunterTalent" xml:space="preserve">
+  <data name="Designer.Option.DisplayKind.HunterTalent">
     <value>ハンター人格</value>
   </data>
-  <data name="Designer.Option.DisplayKind.HunterTrait" xml:space="preserve">
+  <data name="Designer.Option.DisplayKind.HunterTrait">
     <value>ハンター補助特質</value>
   </data>
-  <data name="Designer.Option.SlotKind.Current" xml:space="preserve">
+  <data name="Designer.Option.SlotKind.Current">
     <value>現在の Ban</value>
   </data>
-  <data name="Designer.Option.SlotKind.Global" xml:space="preserve">
+  <data name="Designer.Option.SlotKind.Global">
     <value>グローバル Ban</value>
   </data>
-  <data name="Designer.Option.Camp.Sur" xml:space="preserve">
+  <data name="Designer.Option.Camp.Sur">
     <value>サバイバー</value>
   </data>
-  <data name="Designer.Option.Camp.Hun" xml:space="preserve">
+  <data name="Designer.Option.Camp.Hun">
     <value>ハンター</value>
   </data>
-  <data name="Designer.Window.BpWindow" xml:space="preserve">
+  <data name="Designer.Window.BpWindow">
     <value>BP メインウィンドウ</value>
   </data>
-  <data name="Designer.Window.CutSceneWindow" xml:space="preserve">
+  <data name="Designer.Window.CutSceneWindow">
     <value>カットシーンウィンドウ</value>
   </data>
-  <data name="Designer.Window.ScoreSurWindow" xml:space="preserve">
+  <data name="Designer.Window.ScoreSurWindow">
     <value>サバイバー小スコアウィンドウ</value>
   </data>
-  <data name="Designer.Window.ScoreHunWindow" xml:space="preserve">
+  <data name="Designer.Window.ScoreHunWindow">
     <value>ハンター小スコアウィンドウ</value>
   </data>
-  <data name="Designer.Window.ScoreGlobalWindow" xml:space="preserve">
+  <data name="Designer.Window.ScoreGlobalWindow">
     <value>全体スコアウィンドウ</value>
   </data>
-  <data name="Designer.Window.GameDataWindow" xml:space="preserve">
+  <data name="Designer.Window.GameDataWindow">
     <value>試合後データウィンドウ</value>
   </data>
-  <data name="Designer.Window.BpOverviewWindow" xml:space="preserve">
+  <data name="Designer.Window.BpOverviewWindow">
     <value>BP 概要ウィンドウ</value>
   </data>
-  <data name="Designer.Window.MapV2Window" xml:space="preserve">
+  <data name="Designer.Window.MapV2Window">
     <value>マップ BP v2 ウィンドウ</value>
   </data>
-  <data name="Designer.Window.WidgetsWindow" xml:space="preserve">
+  <data name="Designer.Window.WidgetsWindow">
     <value>ウィジェットウィンドウ</value>
   </data>
-  <data name="Designer.Canvas.BaseCanvas" xml:space="preserve">
+  <data name="Designer.Canvas.BaseCanvas">
     <value>メイン Canvas</value>
   </data>
-  <data name="Designer.Canvas.MapBpCanvas" xml:space="preserve">
+  <data name="Designer.Canvas.MapBpCanvas">
     <value>マップ BP Canvas</value>
   </data>
-  <data name="Designer.Canvas.BpOverViewCanvas" xml:space="preserve">
+  <data name="Designer.Canvas.BpOverViewCanvas">
     <value>BP 概要 Canvas</value>
   </data>
-  <data name="Designer.Canvas.MapV2Canvas" xml:space="preserve">
+  <data name="Designer.Canvas.MapV2Canvas">
     <value>マップ v2 Canvas</value>
   </data>
-  <data name="Designer.Binding.CurrentGame.SurTeam.Name" xml:space="preserve">
+  <data name="Designer.Binding.CurrentGame.SurTeam.Name">
     <value>サバイバーチーム名</value>
   </data>
-  <data name="Designer.Binding.CurrentGame.HunTeam.Name" xml:space="preserve">
+  <data name="Designer.Binding.CurrentGame.HunTeam.Name">
     <value>ハンターチーム名</value>
   </data>
-  <data name="Designer.Binding.Name" xml:space="preserve">
+  <data name="Designer.Binding.Name">
     <value>名前</value>
   </data>
-  <data name="Designer.Binding.Logo" xml:space="preserve">
+  <data name="Designer.Binding.Logo">
     <value>ロゴ</value>
   </data>
-  <data name="Designer.Binding.Member" xml:space="preserve">
+  <data name="Designer.Binding.Member">
     <value>メンバー</value>
   </data>
-  <data name="Designer.Binding.Character" xml:space="preserve">
+  <data name="Designer.Binding.Character">
     <value>キャラクター</value>
   </data>
-  <data name="Designer.Binding.GameProgress" xml:space="preserve">
+  <data name="Designer.Binding.GameProgress">
     <value>ゲーム進行</value>
   </data>
-  <data name="Designer.BindingType.String" xml:space="preserve">
+  <data name="Designer.BindingType.String">
     <value>テキスト</value>
   </data>
-  <data name="Designer.BindingType.String?" xml:space="preserve">
+  <data name="Designer.BindingType.String?">
     <value>テキスト</value>
   </data>
-  <data name="Designer.BindingType.Int32" xml:space="preserve">
+  <data name="Designer.BindingType.Int32">
     <value>数値</value>
   </data>
-  <data name="Designer.BindingType.ImageSource" xml:space="preserve">
+  <data name="Designer.BindingType.ImageSource">
     <value>画像ソース</value>
   </data>
-  <data name="Designer.BindingType.GameProgress" xml:space="preserve">
+  <data name="Designer.BindingType.GameProgress">
     <value>ゲーム進行</value>
   </data>
-  <data name="Designer.Value.True" xml:space="preserve">
+  <data name="Designer.Value.True">
     <value>はい</value>
   </data>
-  <data name="Designer.Value.False" xml:space="preserve">
+  <data name="Designer.Value.False">
     <value>いいえ</value>
   </data>
-  <data name="Designer.Editor.Search" xml:space="preserve">
+  <data name="Designer.Editor.Search">
     <value>検索</value>
   </data>
-  <data name="Designer.Editor.Select" xml:space="preserve">
+  <data name="Designer.Editor.Select">
     <value>選択</value>
   </data>
-  <data name="Designer.Editor.Cancel" xml:space="preserve">
+  <data name="Designer.Editor.Cancel">
     <value>キャンセル</value>
   </data>
-  <data name="Designer.Editor.NoResults" xml:space="preserve">
+  <data name="Designer.Editor.NoResults">
     <value>結果がありません</value>
   </data>
-  <data name="Designer.Editor.RawPath" xml:space="preserve">
+  <data name="Designer.Editor.RawPath">
     <value>元のパス</value>
   </data>
-  <data name="Designer.Editor.RawUri" xml:space="preserve">
+  <data name="Designer.Editor.RawUri">
     <value>元の URI</value>
   </data>
-  <data name="Designer.Editor.ExpectedType" xml:space="preserve">
+  <data name="Designer.Editor.ExpectedType">
     <value>想定タイプ</value>
   </data>
-  <data name="Designer.Editor.BindingBrowser" xml:space="preserve">
+  <data name="Designer.Editor.BindingBrowser">
     <value>バインドブラウザー</value>
   </data>
-  <data name="Designer.Editor.ResourceBrowser" xml:space="preserve">
+  <data name="Designer.Editor.ResourceBrowser">
     <value>リソースブラウザー</value>
   </data>
-  <data name="Designer.Editor.ImportFont" xml:space="preserve">
+  <data name="Designer.Editor.ImportFont">
     <value>フォントをインポート</value>
   </data>
-  <data name="Designer.Editor.ImportFontFailed" xml:space="preserve">
+  <data name="Designer.Editor.ImportFontFailed">
     <value>フォントのインポートに失敗しました</value>
   </data>
-  <data name="Designer.Editor.ManagePackageFonts" xml:space="preserve">
+  <data name="Designer.Editor.ManagePackageFonts">
     <value>パッケージ内フォントを管理</value>
   </data>
-  <data name="Designer.Editor.PackageFontsUnavailable" xml:space="preserve">
+  <data name="Designer.Editor.PackageFontsUnavailable">
     <value>現在のレイアウトパッケージではフォントを管理できません。</value>
   </data>
-  <data name="Designer.Editor.PackageFontsEmpty" xml:space="preserve">
+  <data name="Designer.Editor.PackageFontsEmpty">
     <value>現在のレイアウトパッケージにはインポート済みフォントがありません。</value>
   </data>
-  <data name="Designer.Editor.PackageFontFamilies" xml:space="preserve">
+  <data name="Designer.Editor.PackageFontFamilies">
     <value>フォントファミリー</value>
   </data>
-  <data name="Designer.Editor.PackageFontFile" xml:space="preserve">
+  <data name="Designer.Editor.PackageFontFile">
     <value>ファイル</value>
   </data>
-  <data name="Designer.Editor.PackageFontStatus" xml:space="preserve">
+  <data name="Designer.Editor.PackageFontStatus">
     <value>状態</value>
   </data>
-  <data name="Designer.Editor.PackageFontAvailable" xml:space="preserve">
+  <data name="Designer.Editor.PackageFontAvailable">
     <value>削除可能</value>
   </data>
-  <data name="Designer.Editor.PackageFontInUse" xml:space="preserve">
+  <data name="Designer.Editor.PackageFontInUse">
     <value>現在のレイアウトで使用中</value>
   </data>
-  <data name="Designer.Editor.PackageFontDelete" xml:space="preserve">
+  <data name="Designer.Editor.PackageFontDelete">
     <value>削除</value>
   </data>
-  <data name="Designer.Editor.PackageFontDeleteSucceeded" xml:space="preserve">
+  <data name="Designer.Editor.PackageFontDeleteSucceeded">
     <value>フォントファイルを削除しました。</value>
   </data>
-  <data name="Designer.Editor.PackageFontDeleteFailed" xml:space="preserve">
+  <data name="Designer.Editor.PackageFontDeleteFailed">
     <value>フォントの削除に失敗しました</value>
   </data>
-  <data name="Designer.Editor.Source.BuiltInResources" xml:space="preserve">
+  <data name="Designer.Editor.Source.BuiltInResources">
     <value>組み込みリソース</value>
   </data>
-  <data name="Designer.Editor.Source.AbsoluteFile" xml:space="preserve">
+  <data name="Designer.Editor.Source.AbsoluteFile">
     <value>絶対パスファイル</value>
   </data>
-  <data name="Designer.Editor.Type.Image" xml:space="preserve">
+  <data name="Designer.Editor.Type.Image">
     <value>画像</value>
   </data>
-  <data name="Designer.Validation.InvalidArgbColor" xml:space="preserve">
+  <data name="Designer.Validation.InvalidArgbColor">
     <value>色が無効です。#RRGGBB、#AARRGGBB、または WPF の色名を使用してください。</value>
   </data>
-  <data name="Designer.PropertyGroup.Overlay" xml:space="preserve">
+  <data name="Designer.PropertyGroup.Overlay">
     <value>オーバーレイ</value>
   </data>
-  <data name="Designer.ControlType.GameProgress" xml:space="preserve">
+  <data name="Designer.ControlType.GameProgress">
     <value>ゲーム進行</value>
   </data>
-  <data name="Designer.ControlType.MapName" xml:space="preserve">
+  <data name="Designer.ControlType.MapName">
     <value>マップ名</value>
   </data>
-  <data name="Designer.Help.Title" xml:space="preserve">
+  <data name="Designer.Help.Title">
     <value>デザイナーヘルプ</value>
   </data>
-  <data name="Designer.Help.Open" xml:space="preserve">
+  <data name="Designer.Help.Open">
     <value>ヘルプ</value>
   </data>
-  <data name="Designer.Help.Close" xml:space="preserve">
+  <data name="Designer.Help.Close">
     <value>閉じる</value>
   </data>
-  <data name="Designer.Help.BasicWorkflow.Title" xml:space="preserve">
+  <data name="Designer.Help.BasicWorkflow.Title">
     <value>基本操作</value>
   </data>
-  <data name="Designer.Help.CanvasNavigation.Title" xml:space="preserve">
+  <data name="Designer.Help.CanvasNavigation.Title">
     <value>キャンバス操作</value>
   </data>
-  <data name="Designer.Help.Selection.Title" xml:space="preserve">
+  <data name="Designer.Help.Selection.Title">
     <value>コントロールの選択と編集</value>
   </data>
-  <data name="Designer.Help.Shortcuts.Title" xml:space="preserve">
+  <data name="Designer.Help.Shortcuts.Title">
     <value>キーボードショートカット</value>
   </data>
-  <data name="Designer.Help.BuiltInControls.Title" xml:space="preserve">
+  <data name="Designer.Help.BuiltInControls.Title">
     <value>組み込みコントロールと使い方</value>
   </data>
-  <data name="Designer.Help.BuiltInControls.Column.Control" xml:space="preserve">
+  <data name="Designer.Help.BuiltInControls.Column.Control">
     <value>コントロール</value>
   </data>
-  <data name="Designer.Help.BuiltInControls.Column.Usage" xml:space="preserve">
+  <data name="Designer.Help.BuiltInControls.Column.Usage">
     <value>用途</value>
   </data>
-  <data name="Designer.Help.BuiltInControls.Column.Notes" xml:space="preserve">
+  <data name="Designer.Help.BuiltInControls.Column.Notes">
     <value>注意事項</value>
   </data>
-  <data name="Designer.Help.Snapping.Title" xml:space="preserve">
+  <data name="Designer.Help.Snapping.Title">
     <value>スナップ動作</value>
   </data>
-  <data name="Designer.Help.LayerPanel.Title" xml:space="preserve">
+  <data name="Designer.Help.LayerPanel.Title">
     <value>レイヤーパネル</value>
   </data>
-  <data name="Designer.Help.PropertyGrid.Title" xml:space="preserve">
+  <data name="Designer.Help.PropertyGrid.Title">
     <value>プロパティグリッド</value>
   </data>
-  <data name="Designer.Help.AddDeleteCopyPaste.Title" xml:space="preserve">
+  <data name="Designer.Help.AddDeleteCopyPaste.Title">
     <value>追加 / 削除 / コピー / ペースト</value>
   </data>
-  <data name="Designer.Help.CanvasWindowSettings.Title" xml:space="preserve">
+  <data name="Designer.Help.CanvasWindowSettings.Title">
     <value>キャンバス / ウィンドウ設定</value>
   </data>
-  <data name="Designer.Help.Validation.Title" xml:space="preserve">
+  <data name="Designer.Help.Validation.Title">
     <value>検証</value>
   </data>
-  <data name="Designer.Help.PluginControls.Title" xml:space="preserve">
+  <data name="Designer.Help.PluginControls.Title">
     <value>プラグインコントロール</value>
   </data>
-  <data name="Designer.Help.LayoutPackages.Title" xml:space="preserve">
+  <data name="Designer.Help.LayoutPackages.Title">
     <value>レイアウトパッケージ</value>
   </data>
-  <data name="Designer.Help.Troubleshooting.Title" xml:space="preserve">
+  <data name="Designer.Help.Troubleshooting.Title">
     <value>ヒントとトラブルシューティング</value>
   </data>
-  <data name="Designer.Help.Shortcut.Save" xml:space="preserve">
+  <data name="Designer.Help.Shortcut.Save">
     <value>Ctrl+S: Save layout</value>
   </data>
-  <data name="Designer.Help.Shortcut.Copy" xml:space="preserve">
+  <data name="Designer.Help.Shortcut.Copy">
     <value>Ctrl+C: Copy selected control</value>
   </data>
-  <data name="Designer.Help.Shortcut.Paste" xml:space="preserve">
+  <data name="Designer.Help.Shortcut.Paste">
     <value>Ctrl+V: Paste copied control</value>
   </data>
-  <data name="Designer.Help.Shortcut.Delete" xml:space="preserve">
+  <data name="Designer.Help.Shortcut.Delete">
     <value>Delete: Delete selected control</value>
   </data>
-  <data name="Designer.Help.Shortcut.Undo" xml:space="preserve">
+  <data name="Designer.Help.Shortcut.Undo">
     <value>Ctrl+Z: Undo</value>
   </data>
-  <data name="Designer.Help.Shortcut.Redo" xml:space="preserve">
+  <data name="Designer.Help.Shortcut.Redo">
     <value>Ctrl+Y / Ctrl+Shift+Z: Redo</value>
   </data>
-  <data name="Designer.Help.Shortcut.Zoom" xml:space="preserve">
+  <data name="Designer.Help.Shortcut.Zoom">
     <value>Ctrl+Mouse Wheel: Zoom</value>
   </data>
-  <data name="Designer.Help.Shortcut.PanSpace" xml:space="preserve">
+  <data name="Designer.Help.Shortcut.PanSpace">
     <value>Space+Left Drag: Pan canvas</value>
   </data>
-  <data name="Designer.Help.Shortcut.PanRight" xml:space="preserve">
+  <data name="Designer.Help.Shortcut.PanRight">
     <value>Right Drag: Pan canvas</value>
   </data>
-  <data name="Designer.Help.Shortcut.SnapShift" xml:space="preserve">
+  <data name="Designer.Help.Shortcut.SnapShift">
     <value>Shift: Temporary snap</value>
   </data>
-  <data name="Designer.Help.BasicWorkflow.Content" xml:space="preserve">
+  <data name="Designer.Help.BasicWorkflow.Content">
     <value>Choose window and canvas from top selectors;\nAdd built-in or plugin controls from Add Control;\nSelect controls from canvas or layer panel;\nEdit properties from PropertyGrid;\nSave layout;\nValidate layout;\nReset/reload layout.</value>
   </data>
-  <data name="Designer.Help.CanvasNavigation.Content" xml:space="preserve">
+  <data name="Designer.Help.CanvasNavigation.Content">
     <value>Mouse wheel / scrollbars to navigate;\nRight mouse drag pans the canvas;\nHold Space + left mouse drag pans the canvas;\nCtrl + mouse wheel zooms;\nBottom Zoom ComboBox accepts 100, 100%, 1x, 1.25x;\nSlider changes zoom;\nFit button fits canvas to current viewport.</value>
   </data>
-  <data name="Designer.Help.Selection.Content" xml:space="preserve">
+  <data name="Designer.Help.Selection.Content">
     <value>Click control on canvas to select;\nClick item in layer panel to select;\nDrag selected control on canvas to move;\nResize with handles;\nSelected control name label appears above selection;\nTransparent/empty controls may be selected through hitbox or layer panel.</value>
   </data>
-  <data name="Designer.Help.Snapping.Content" xml:space="preserve">
+  <data name="Designer.Help.Snapping.Content">
     <value>Snap switch enables grid and object alignment snapping;\nHolding Shift temporarily enables snapping without toggling the switch;\nMoving or resizing near canvas edges, centers, or other control edges/centers shows alignment guide lines;\nSnap does not directly change stored values unless operation is committed.</value>
   </data>
-  <data name="Designer.Help.LayerPanel.Content" xml:space="preserve">
+  <data name="Designer.Help.LayerPanel.Content">
     <value>Controls are grouped by ZIndex;\nHigher ZIndex is visually above lower ZIndex;\nDrag within same layer to change same-ZIndex order;\nDrag into another layer to change ZIndex;\nDrag to top edge to create new top layer;\nDrag to bottom edge to create new bottom layer;\nNear top/bottom edge auto-scrolls;\nFiltering disables layer reorder; clear filter to reorder;\nLinked overlay controls are not independently editable or draggable.</value>
   </data>
-  <data name="Designer.Help.PropertyGrid.Content" xml:space="preserve">
+  <data name="Designer.Help.PropertyGrid.Content">
     <value>Name and BindingPath require Enter or apply button to commit;\nInvalid values keep the text and show red border;\nColorPicker updates Hex text; apply button commits;\nComboBox properties commit raw values while displaying localized names;\nBinding browser helps choose valid BindingPath;\nResource browser helps choose bpui/resource URI;\nBorderedImage has separate Border/Image properties;\nBorderedImage resize target can switch between outer border and inner image.</value>
   </data>
-  <data name="Designer.Help.BuiltInControls.Content" xml:space="preserve">
+  <data name="Designer.Help.BuiltInControls.Content">
     <value>Text|通常のテキストコントロール。TextBinding は順序付きの複数ソースを結合し、ソースがない場合は静的 Text を表示します。|ソース順は {0}/{1} に対応し、StringFormat が空なら JoinSeparator で結合します。\nLocalizedText|ローカライズテキストコントロール。静的モードは LocalizationKey、TextBinding モードは動的テキストを結合してからローカライズを試みます。|動的結果がリソース key でない場合は元のテキストを表示します。\nImage|ルート要素が Image の直接画像コントロール。チームロゴ、マップ、単純な画像、旧 direct Image の意味を保つ場合に使います。|BindingPath は ImageSource をバインドします。ImagePath は BindingPath が空の時だけ使われます。バインドが優先され、ImagePath は自動削除されません。\nBorderedImage|外側 Border + 内側 Image。枠、クリップ、角丸、内部画像サイズ、リサイズ対象の切り替えが必要な画像領域に使います。|BindingPath と ImagePath の優先順位は Image と同じです。Width/Height は外枠、ImageWidth/ImageHeight は内部画像に作用します。\nGameProgressText|現在のゲーム、ハーフ、BO3/BO5、延長ルールから対局進行テキストを生成します。|2 行表示が必要な場合は DisplayMode を TwoLine に設定します。この種の業務文言を通常の Text に直接書かないでください。\nMapNameText|マップ enum/key をローカライズ済みマップ名に変換します。既定では選択マップを読み、BindingPath で picked/banned map フィールドを指定できます。|EmptyText はマップが空の時の表示です。BindingPath は Map/Map? フィールドを指すべきです。\nGlobalScoreRow|全体スコア行の複合コントロール。親フレーム内の Cells が各ハーフスコアセルを定義し、MatchScore からテキストと陣営アイコンを表示します。|通常は ScoreGlobalWindow で使います。親は行全体、子セルは個別スコア位置の編集に使います。\nTalentTraitDisplay|CutScene の天賦/補助特質表示。DisplayKind と PlayerIndex に応じて固定の業務データを読みます。|補助特質の表示設定にも従えます。JSON に個別の天賦アイコンを直接書かないでください。\nMapV2Display|Map BP v2 表示。MapKey を使い、MapV2Presenter を再利用します。|MapV2Window のレイアウト向けです。内部の Map BP v2 表示要素を手作りしないでください。\n共通注意|動的データの BindingPath は Binding Browser で選びます。ImagePath、BackgroundImage、LockImageSource などのリソースパスは Resource Browser で選びます。|静的リソースは Resources/xxx.png または bpui://... を優先し、任意の絶対パスへ長期依存しないでください。画像が欠落または上限超過しても警告または空表示に留め、前台ウィンドウをクラッシュさせない設計です。</value>
   </data>
-  <data name="Designer.Help.AddDeleteCopyPaste.Content" xml:space="preserve">
+  <data name="Designer.Help.AddDeleteCopyPaste.Content">
     <value>Add Control inserts built-in/plugin controls;\nCopied control gets unique numbered name on paste;\nPaste offsets the new control;\nGenerated overlays or non-editable controls may not be copyable/deletable;\nUndo/Redo can restore add, delete, paste, reorder operations.</value>
   </data>
-  <data name="Designer.Help.CanvasWindowSettings.Content" xml:space="preserve">
+  <data name="Designer.Help.CanvasWindowSettings.Content">
     <value>Canvas Width/Height edit canvas design size;\nBackground image supports bpui resource URI;\nAllowTransparency is a window-level option; created fronted windows silently restart their instance;\nNever-created windows apply the latest setting on next show.</value>
   </data>
-  <data name="Designer.Help.Validation.Content" xml:space="preserve">
+  <data name="Designer.Help.Validation.Content">
     <value>Status button opens validation details;\nErrors may block saving/import/export where appropriate;\nWarnings do not always block but should be reviewed;\nMissing plugin controls are shown as warnings in Designer.</value>
   </data>
-  <data name="Designer.Help.PluginControls.Content" xml:space="preserve">
+  <data name="Designer.Help.PluginControls.Content">
     <value>Plugin controls appear in Add Control when plugin is installed;\nPlugin controls behave like built-in controls in Designer;\nMissing plugin controls show placeholder in Designer;\nRuntime skips missing plugin controls instead of crashing;\n.bpui packages declare required plugins;\nImporting a package with missing plugins will guide install/update or allow force import that removes missing controls.</value>
   </data>
-  <data name="Designer.Help.LayoutPackages.Content" xml:space="preserve">
+  <data name="Designer.Help.LayoutPackages.Content">
     <value>Export writes layout package;\n.bpui does not include plugin binaries;\nImport checks plugin dependencies;\nForce import removes controls that depend on missing plugins;\nOriginal package file remains unchanged.</value>
   </data>
-  <data name="Designer.Help.Troubleshooting.Content" xml:space="preserve">
+  <data name="Designer.Help.Troubleshooting.Content">
     <value>If a control cannot be selected visually, use the layer panel;\nIf drag reorder is unavailable, clear search filter;\nIf a property appears invalid, check validation details;\nIf plugin control is missing, install/enable the plugin and restart if required;\nIf Fit makes labels too small, selected label should still stay readable after recent polish.</value>
   </data>
-  <data name="Designer.Property.MapNameFontFamily" xml:space="preserve">
+  <data name="Designer.Property.MapNameFontFamily">
     <value>マップ名フォント</value>
   </data>
-  <data name="Designer.Property.MapNameFontWeight" xml:space="preserve">
+  <data name="Designer.Property.MapNameFontWeight">
     <value>マップ名フォントウェイト</value>
   </data>
-  <data name="Designer.Property.MapNameColor" xml:space="preserve">
+  <data name="Designer.Property.MapNameColor">
     <value>マップ名の色</value>
   </data>
-  <data name="Designer.Property.MapNameFontSize" xml:space="preserve">
+  <data name="Designer.Property.MapNameFontSize">
     <value>マップ名フォントサイズ</value>
   </data>
-  <data name="Designer.Property.TeamNameFontFamily" xml:space="preserve">
+  <data name="Designer.Property.TeamNameFontFamily">
     <value>チーム名フォント</value>
   </data>
-  <data name="Designer.Property.TeamNameFontWeight" xml:space="preserve">
+  <data name="Designer.Property.TeamNameFontWeight">
     <value>チーム名フォントウェイト</value>
   </data>
-  <data name="Designer.Property.TeamNameColor" xml:space="preserve">
+  <data name="Designer.Property.TeamNameColor">
     <value>チーム名の色</value>
   </data>
-  <data name="Designer.Property.TeamNameFontSize" xml:space="preserve">
+  <data name="Designer.Property.TeamNameFontSize">
     <value>チーム名フォントサイズ</value>
   </data>
-  <data name="Designer.Property.CampNameFontFamily" xml:space="preserve">
+  <data name="Designer.Property.CampNameFontFamily">
     <value>陣営テキストフォント</value>
   </data>
-  <data name="Designer.Property.CampNameFontWeight" xml:space="preserve">
+  <data name="Designer.Property.CampNameFontWeight">
     <value>陣営テキストフォントウェイト</value>
   </data>
-  <data name="Designer.Property.CampNameColor" xml:space="preserve">
+  <data name="Designer.Property.CampNameColor">
     <value>陣営テキストの色</value>
   </data>
-  <data name="Designer.Property.CampNameFontSize" xml:space="preserve">
+  <data name="Designer.Property.CampNameFontSize">
     <value>陣営テキストフォントサイズ</value>
   </data>
-  <data name="Designer.Property.MapBorderNormalColor" xml:space="preserve">
+  <data name="Designer.Property.MapBorderNormalColor">
     <value>マップ枠の通常色</value>
   </data>
-  <data name="Designer.Property.MapBorderBannedColor" xml:space="preserve">
+  <data name="Designer.Property.MapBorderBannedColor">
     <value>マップ枠の禁止色</value>
   </data>
-  <data name="Designer.PropertyDescription.MapBorderNormalColor" xml:space="preserve">
+  <data name="Designer.PropertyDescription.MapBorderNormalColor">
     <value>マップが禁止されていない時のカード外枠色です。</value>
   </data>
-  <data name="Designer.PropertyDescription.MapBorderBannedColor" xml:space="preserve">
+  <data name="Designer.PropertyDescription.MapBorderBannedColor">
     <value>マップが禁止されている時のカード外枠色です。</value>
   </data>
-  <data name="Designer.Property.PickingBorderFillColor" xml:space="preserve">
+  <data name="Designer.Property.PickingBorderFillColor">
     <value>選択枠の塗りつぶし色</value>
   </data>
-  <data name="Designer.Option.MapNameFontWeight.Light" xml:space="preserve">
+  <data name="Designer.Option.MapNameFontWeight.Light">
     <value>細字</value>
   </data>
-  <data name="Designer.Option.MapNameFontWeight.Normal" xml:space="preserve">
+  <data name="Designer.Option.MapNameFontWeight.Normal">
     <value>標準</value>
   </data>
-  <data name="Designer.Option.MapNameFontWeight.Medium" xml:space="preserve">
+  <data name="Designer.Option.MapNameFontWeight.Medium">
     <value>中</value>
   </data>
-  <data name="Designer.Option.MapNameFontWeight.SemiBold" xml:space="preserve">
+  <data name="Designer.Option.MapNameFontWeight.SemiBold">
     <value>やや太字</value>
   </data>
-  <data name="Designer.Option.MapNameFontWeight.Bold" xml:space="preserve">
+  <data name="Designer.Option.MapNameFontWeight.Bold">
     <value>太字</value>
   </data>
-  <data name="Designer.Option.MapNameFontWeight.ExtraBold" xml:space="preserve">
+  <data name="Designer.Option.MapNameFontWeight.ExtraBold">
     <value>極太</value>
   </data>
-  <data name="Designer.Option.TeamNameFontWeight.Light" xml:space="preserve">
+  <data name="Designer.Option.TeamNameFontWeight.Light">
     <value>細字</value>
   </data>
-  <data name="Designer.Option.TeamNameFontWeight.Normal" xml:space="preserve">
+  <data name="Designer.Option.TeamNameFontWeight.Normal">
     <value>標準</value>
   </data>
-  <data name="Designer.Option.TeamNameFontWeight.Medium" xml:space="preserve">
+  <data name="Designer.Option.TeamNameFontWeight.Medium">
     <value>中</value>
   </data>
-  <data name="Designer.Option.TeamNameFontWeight.SemiBold" xml:space="preserve">
+  <data name="Designer.Option.TeamNameFontWeight.SemiBold">
     <value>やや太字</value>
   </data>
-  <data name="Designer.Option.TeamNameFontWeight.Bold" xml:space="preserve">
+  <data name="Designer.Option.TeamNameFontWeight.Bold">
     <value>太字</value>
   </data>
-  <data name="Designer.Option.TeamNameFontWeight.ExtraBold" xml:space="preserve">
+  <data name="Designer.Option.TeamNameFontWeight.ExtraBold">
     <value>極太</value>
   </data>
-  <data name="Designer.Option.CampNameFontWeight.Light" xml:space="preserve">
+  <data name="Designer.Option.CampNameFontWeight.Light">
     <value>細字</value>
   </data>
-  <data name="Designer.Option.CampNameFontWeight.Normal" xml:space="preserve">
+  <data name="Designer.Option.CampNameFontWeight.Normal">
     <value>標準</value>
   </data>
-  <data name="Designer.Option.CampNameFontWeight.Medium" xml:space="preserve">
+  <data name="Designer.Option.CampNameFontWeight.Medium">
     <value>中</value>
   </data>
-  <data name="Designer.Option.CampNameFontWeight.SemiBold" xml:space="preserve">
+  <data name="Designer.Option.CampNameFontWeight.SemiBold">
     <value>やや太字</value>
   </data>
-  <data name="Designer.Option.CampNameFontWeight.Bold" xml:space="preserve">
+  <data name="Designer.Option.CampNameFontWeight.Bold">
     <value>太字</value>
   </data>
-  <data name="Designer.Option.CampNameFontWeight.ExtraBold" xml:space="preserve">
+  <data name="Designer.Option.CampNameFontWeight.ExtraBold">
     <value>極太</value>
   </data>
-  <data name="Designer.Canvas.EnableBoModeStates" xml:space="preserve">
+  <data name="Designer.Canvas.EnableBoModeStates">
     <value>BO3/BO5 状態を有効化</value>
   </data>
-  <data name="Designer.Canvas.CurrentBoModeState" xml:space="preserve">
+  <data name="Designer.Canvas.CurrentBoModeState">
     <value>現在の編集状態</value>
   </data>
-  <data name="Designer.Canvas.Bo5State" xml:space="preserve">
+  <data name="Designer.Canvas.Bo5State">
     <value>BO5</value>
   </data>
-  <data name="Designer.Canvas.Bo3State" xml:space="preserve">
+  <data name="Designer.Canvas.Bo3State">
     <value>BO3</value>
   </data>
-  <data name="Designer.Canvas.CopyBo5ToBo3" xml:space="preserve">
+  <data name="Designer.Canvas.CopyBo5ToBo3">
     <value>BO5 レイアウトを BO3 にコピー</value>
   </data>
-  <data name="Designer.Canvas.CopyBo5ToBo3Confirm" xml:space="preserve">
+  <data name="Designer.Canvas.CopyBo5ToBo3Confirm">
     <value>BO3 状態には既に内容があります。BO5 レイアウトで置き換えますか？</value>
   </data>
-  <data name="Designer.Canvas.Bo3LayoutCopied" xml:space="preserve">
+  <data name="Designer.Canvas.Bo3LayoutCopied">
     <value>BO5 レイアウトを BO3 にコピーしました</value>
   </data>
-  <data name="Designer.Canvas.BoModeStatesEnabled" xml:space="preserve">
+  <data name="Designer.Canvas.BoModeStatesEnabled">
     <value>BO3/BO5 状態を有効化しました</value>
   </data>
-  <data name="Designer.Canvas.BoModeStatesDisabledConfirm" xml:space="preserve">
+  <data name="Designer.Canvas.BoModeStatesDisabledConfirm">
     <value>BO3/BO5 状態を無効化しました。実行時は BO3 状態データを無視します</value>
   </data>
-  <data name="Designer.Property.Visibility" xml:space="preserve">
+  <data name="Designer.Property.Visibility">
     <value>表示状態</value>
   </data>
-  <data name="Designer.Visibility.Visible" xml:space="preserve">
+  <data name="Designer.Visibility.Visible">
     <value>表示</value>
   </data>
-  <data name="Designer.Visibility.Hidden" xml:space="preserve">
+  <data name="Designer.Visibility.Hidden">
     <value>非表示</value>
   </data>
-  <data name="Designer.Visibility.Collapsed" xml:space="preserve">
+  <data name="Designer.Visibility.Collapsed">
     <value>折りたたみ</value>
   </data>
-  <data name="Designer.Option.Visibility.Visible" xml:space="preserve">
+  <data name="Designer.Option.Visibility.Visible">
     <value>表示</value>
   </data>
-  <data name="Designer.Option.Visibility.Hidden" xml:space="preserve">
+  <data name="Designer.Option.Visibility.Hidden">
     <value>非表示</value>
   </data>
-  <data name="Designer.Option.Visibility.Collapsed" xml:space="preserve">
+  <data name="Designer.Option.Visibility.Collapsed">
     <value>折りたたみ</value>
   </data>
-  <data name="Designer.Help.BoModeStates" xml:space="preserve">
+  <data name="Designer.Help.BoModeStates">
     <value>BO3/BO5 Canvas 状態</value>
   </data>
-  <data name="Designer.Help.BoModeStatesDescription" xml:space="preserve">
+  <data name="Designer.Help.BoModeStatesDescription">
     <value>これは汎用 Canvas 機能です。有効化すると BO5 と BO3 を別々に編集でき、実行時は現在の BO モードで状態を選択します。</value>
   </data>
-  <data name="Designer.Help.CopyBo5ToBo3" xml:space="preserve">
+  <data name="Designer.Help.CopyBo5ToBo3">
     <value>BO5 を BO3 にコピーすると、揃った BO3 レイアウトを作成してから個別に調整できます。</value>
   </data>
-  <data name="Designer.Help.Visibility" xml:space="preserve">
+  <data name="Designer.Help.Visibility">
     <value>Visibility は Visible、Hidden、Collapsed に対応します。非表示または折りたたみのコントロールもレイヤーパネルに残ります。</value>
   </data>
-  <data name="Designer.GlobalScoreRow.Cells" xml:space="preserve">
+  <data name="Designer.GlobalScoreRow.Cells">
     <value>スコアセル</value>
   </data>
-  <data name="Designer.GlobalScoreRow.CellEditor" xml:space="preserve">
+  <data name="Designer.GlobalScoreRow.CellEditor">
     <value>セルは固定の内部スコアセルで、グローバルレイヤーではありません。空欄のスタイルは親行を継承します。</value>
   </data>
-  <data name="Designer.GlobalScoreRow.SelectedCell" xml:space="preserve">
+  <data name="Designer.GlobalScoreRow.SelectedCell">
     <value>選択中のスコアセル</value>
   </data>
-  <data name="Designer.GlobalScoreRow.ParentProperties" xml:space="preserve">
+  <data name="Designer.GlobalScoreRow.ParentProperties">
     <value>スコア行プロパティ</value>
   </data>
-  <data name="Designer.GlobalScoreRow.CellProperties" xml:space="preserve">
+  <data name="Designer.GlobalScoreRow.CellProperties">
     <value>スコアセルプロパティ</value>
   </data>
-  <data name="Designer.GlobalScoreRow.CellInheritsFromParent" xml:space="preserve">
+  <data name="Designer.GlobalScoreRow.CellInheritsFromParent">
     <value>空欄の場合は親 GlobalScoreRow のスタイルを継承します。</value>
   </data>
-  <data name="Designer.Help.GlobalScoreRow.Title" xml:space="preserve">
+  <data name="Designer.Help.GlobalScoreRow.Title">
     <value>GlobalScoreRow 複合編集</value>
   </data>
-  <data name="Designer.Help.GlobalScoreRow.Content" xml:space="preserve">
+  <data name="Designer.Help.GlobalScoreRow.Content">
     <value>GlobalScoreRow は親のスコア行フレームです。セルは固定の内部スコアセルで、削除できず、グローバルレイヤーではありません。\n親行を選択したあと、専用の Score Cells リストで子セルを選択します。子セル選択中も SelectedDesignItem は親行のままです。\nVisibility は現在の Canvas state で各セルを表示、非表示、折りたたみにします。BO3 と BO5 state は独立した行とセルレイアウトを持ちます。\n間隔で自動配置は MajorGameGap / HalfGameGap を使って現在 state の表示順を並べ、その後に各セルを手動で微調整できます。\n親スタイルを全セルに適用すると、親行のフォント、太さ、色、サイズ、陣営アイコン設定を全セルの上書き値へコピーします。空欄のスタイルは親を継承します。</value>
   </data>
-  <data name="Designer.GlobalScoreRow.GenerateBo5Cells" xml:space="preserve">
+  <data name="Designer.GlobalScoreRow.GenerateBo5Cells">
     <value>BO5 セルを生成</value>
   </data>
-  <data name="Designer.GlobalScoreRow.GenerateBo3Cells" xml:space="preserve">
+  <data name="Designer.GlobalScoreRow.GenerateBo3Cells">
     <value>BO3 セルを生成</value>
   </data>
-  <data name="Designer.GlobalScoreRow.ResetCells" xml:space="preserve">
+  <data name="Designer.GlobalScoreRow.ResetCells">
     <value>セルをリセット</value>
   </data>
-  <data name="Designer.GlobalScoreRow.AutoArrangeBySpacing" xml:space="preserve">
+  <data name="Designer.GlobalScoreRow.AutoArrangeBySpacing">
     <value>間隔で自動配置</value>
   </data>
-  <data name="Designer.GlobalScoreRow.ApplyParentStyleToCells" xml:space="preserve">
+  <data name="Designer.GlobalScoreRow.ApplyParentStyleToCells">
     <value>親スタイルを全セルに適用</value>
   </data>
-  <data name="Designer.GlobalScoreRow.ClearCellStyleOverrides" xml:space="preserve">
+  <data name="Designer.GlobalScoreRow.ClearCellStyleOverrides">
     <value>セルのスタイル上書きをクリア</value>
   </data>
-  <data name="Designer.GlobalScoreRow.FillMissingCells" xml:space="preserve">
+  <data name="Designer.GlobalScoreRow.FillMissingCells">
     <value>不足セルを補完</value>
   </data>
-  <data name="Designer.GlobalScoreRow.ApplyBo3VisibilityTemplate" xml:space="preserve">
+  <data name="Designer.GlobalScoreRow.ApplyBo3VisibilityTemplate">
     <value>BO3 表示設定を適用</value>
   </data>
-  <data name="Designer.GlobalScoreRow.ApplyBo5VisibilityTemplate" xml:space="preserve">
+  <data name="Designer.GlobalScoreRow.ApplyBo5VisibilityTemplate">
     <value>BO5 表示設定を適用</value>
   </data>
-  <data name="Designer.MapV2Display.ApplyStyleToAll" xml:space="preserve">
+  <data name="Designer.MapV2Display.ApplyStyleToAll">
     <value>スタイルをすべてのマップカードに適用</value>
   </data>
-  <data name="Designer.MapV2Display.ApplyStyleToAllDescription" xml:space="preserve">
+  <data name="Designer.MapV2Display.ApplyStyleToAllDescription">
     <value>サイズ、内部パーツの位置とサイズ、テキストスタイル、マップ枠、選択枠のスタイル、動作をコピーし、各カードの位置、テキスト内容、マップ割り当て、最上位レイアウト属性は保持します。</value>
   </data>
-  <data name="Designer.MapV2Display.EditInternalStyle" xml:space="preserve">
+  <data name="Designer.MapV2Display.EditInternalStyle">
     <value>内部スタイルを編集</value>
   </data>
-  <data name="Designer.MapV2Display.InternalParts" xml:space="preserve">
+  <data name="Designer.MapV2Display.InternalParts">
     <value>内部パーツ</value>
   </data>
-  <data name="Designer.MapV2Display.SelectedInternalPart" xml:space="preserve">
+  <data name="Designer.MapV2Display.SelectedInternalPart">
     <value>MapV2Display 内部パーツ</value>
   </data>
-  <data name="Designer.MapV2Display.Part.TeamName" xml:space="preserve">
+  <data name="Designer.MapV2Display.Part.TeamName">
     <value>チーム名</value>
   </data>
-  <data name="Designer.MapV2Display.Part.MapCard" xml:space="preserve">
+  <data name="Designer.MapV2Display.Part.MapCard">
     <value>マップカード</value>
   </data>
-  <data name="Designer.MapV2Display.Part.MapName" xml:space="preserve">
+  <data name="Designer.MapV2Display.Part.MapName">
     <value>マップ名</value>
   </data>
-  <data name="Designer.MapV2Display.Part.CampName" xml:space="preserve">
+  <data name="Designer.MapV2Display.Part.CampName">
     <value>陣営名</value>
   </data>
-  <data name="Designer.MapV2Display.Part.PickingBorder" xml:space="preserve">
+  <data name="Designer.MapV2Display.Part.PickingBorder">
     <value>選択枠</value>
   </data>
-  <data name="Designer.MapV2Display.StyleAppliedToAll" xml:space="preserve">
+  <data name="Designer.MapV2Display.StyleAppliedToAll">
     <value>現在のキャンバス内のすべてのマップカードにスタイルと動作を適用しました。</value>
   </data>
-  <data name="Designer.Property.CellId" xml:space="preserve">
+  <data name="Designer.Property.CellId">
     <value>セル ID</value>
   </data>
-  <data name="Designer.Property.GameNumber" xml:space="preserve">
+  <data name="Designer.Property.GameNumber">
     <value>ゲーム番号</value>
   </data>
-  <data name="Designer.Property.GameKind" xml:space="preserve">
+  <data name="Designer.Property.GameKind">
     <value>ゲーム種別</value>
   </data>
-  <data name="Designer.Property.HalfKind" xml:space="preserve">
+  <data name="Designer.Property.HalfKind">
     <value>ハーフ</value>
   </data>
-  <data name="Designer.Property.CellX" xml:space="preserve">
+  <data name="Designer.Property.CellX">
     <value>セル X</value>
   </data>
-  <data name="Designer.Property.CellY" xml:space="preserve">
+  <data name="Designer.Property.CellY">
     <value>セル Y</value>
   </data>
-  <data name="Designer.Property.ShowCampIconOverride" xml:space="preserve">
+  <data name="Designer.Property.ShowCampIconOverride">
     <value>陣営アイコン上書き</value>
   </data>
-  <data name="Designer.Property.CampIconColorOverride" xml:space="preserve">
+  <data name="Designer.Property.CampIconColorOverride">
     <value>陣営アイコン色上書き</value>
   </data>
-  <data name="Designer.TextBinding.Title" xml:space="preserve">
+  <data name="Designer.TextBinding.Title">
     <value>テキストバインディングエディター</value>
   </data>
-  <data name="Designer.TextBinding.AddSource" xml:space="preserve">
+  <data name="Designer.TextBinding.AddSource">
     <value>ソースを追加</value>
   </data>
-  <data name="Designer.TextBinding.MoveUp" xml:space="preserve">
+  <data name="Designer.TextBinding.MoveUp">
     <value>上へ</value>
   </data>
-  <data name="Designer.TextBinding.MoveDown" xml:space="preserve">
+  <data name="Designer.TextBinding.MoveDown">
     <value>下へ</value>
   </data>
-  <data name="Designer.TextBinding.StringFormat" xml:space="preserve">
+  <data name="Designer.TextBinding.StringFormat">
     <value>書式文字列</value>
   </data>
-  <data name="Designer.TextBinding.JoinSeparator" xml:space="preserve">
+  <data name="Designer.TextBinding.JoinSeparator">
     <value>結合区切り文字</value>
   </data>
-  <data name="Designer.TextBinding.NullText" xml:space="preserve">
+  <data name="Designer.TextBinding.NullText">
     <value>Null テキスト</value>
   </data>
-  <data name="Designer.TextBinding.FallbackText" xml:space="preserve">
+  <data name="Designer.TextBinding.FallbackText">
     <value>フォールバックテキスト</value>
   </data>
-  <data name="Designer.TextBinding.None" xml:space="preserve">
+  <data name="Designer.TextBinding.None">
     <value>バインディングソースなし</value>
   </data>
-  <data name="Designer.TextBinding.SourceSummary" xml:space="preserve">
+  <data name="Designer.TextBinding.SourceSummary">
     <value>{0} 件のソース: {1}</value>
   </data>
-  <data name="Designer.TextBinding.EmptyPath" xml:space="preserve">
+  <data name="Designer.TextBinding.EmptyPath">
     <value>バインディングソースの Path は空にできません。</value>
   </data>
-  <data name="Designer.Validation.TextStaticIgnored" xml:space="preserve">
+  <data name="Designer.Validation.TextStaticIgnored">
     <value>有効な TextBinding ソースがある間、静的 Text は表示されません。</value>
   </data>
-  <data name="Designer.Validation.LocalizationKeyIgnored" xml:space="preserve">
+  <data name="Designer.Validation.LocalizationKeyIgnored">
     <value>有効な TextBinding ソースがある間、LocalizationKey は使用されません。</value>
   </data>
-  <data name="Designer.Validation.ImagePathIgnored" xml:space="preserve">
+  <data name="Designer.Validation.ImagePathIgnored">
     <value>BindingPath が設定されている間、ImagePath は使用されません。</value>
   </data>
-  <data name="Designer.Validation.FillColorIgnored" xml:space="preserve">
+  <data name="Designer.Validation.FillColorIgnored">
     <value>静的塗りつぶし色はバインディングが有効な間は無視され、バインドされた色の値が使用されます。</value>
   </data>
-  <data name="Designer.Validation.GradientEndColorIgnored" xml:space="preserve">
+  <data name="Designer.Validation.GradientEndColorIgnored">
     <value>静的グラデーション終了色はバインディングが有効な間は無視され、バインドされた色の値が使用されます。</value>
   </data>
-  <data name="Designer.Validation.TextColorIgnored" xml:space="preserve">
+  <data name="Designer.Validation.TextColorIgnored">
     <value>静的テキスト色はバインディングが有効な間は無視され、バインドされた色の値が使用されます。</value>
   </data>
-  <data name="Designer.Property.UseGradient" xml:space="preserve">
+  <data name="Designer.Property.UseGradient">
     <value>グラデーションを有効にする</value>
   </data>
-  <data name="PolygonPoints" xml:space="preserve">
+  <data name="PolygonPoints">
     <value>ポリゴン頂点</value>
   </data>
-  <data name="AddVertex" xml:space="preserve">
+  <data name="AddVertex">
     <value>頂点を追加</value>
   </data>
-  <data name="RemoveVertex" xml:space="preserve">
+  <data name="RemoveVertex">
     <value>頂点を削除</value>
   </data>
-  <data name="SelectedVertex" xml:space="preserve">
+  <data name="SelectedVertex">
     <value>選択中の頂点</value>
   </data>
-  <data name="Designer.ControlType.Rectangle" xml:space="preserve">
+  <data name="Designer.ControlType.Rectangle">
     <value>長方形</value>
   </data>
-  <data name="Designer.ControlType.Polygon" xml:space="preserve">
+  <data name="Designer.ControlType.Polygon">
     <value>ポリゴン</value>
   </data>
-  <data name="Designer.Property.FillMode" xml:space="preserve">
+  <data name="Designer.Property.FillMode">
     <value>塗りつぶしモード</value>
   </data>
-  <data name="Designer.Property.UseFillBinding" xml:space="preserve">
+  <data name="Designer.Property.UseFillBinding">
     <value>塗りつぶしバインドを使用</value>
   </data>
-  <data name="Designer.Property.FillBindingPath" xml:space="preserve">
+  <data name="Designer.Property.FillBindingPath">
     <value>塗りつぶしバインドパス</value>
   </data>
-  <data name="Designer.Property.UseGradientStartBinding" xml:space="preserve">
+  <data name="Designer.Property.UseGradientStartBinding">
     <value>グラデーション開始色をバインド</value>
   </data>
-  <data name="Designer.Property.GradientStartColor" xml:space="preserve">
+  <data name="Designer.Property.GradientStartColor">
     <value>グラデーション開始色</value>
   </data>
-  <data name="Designer.Property.GradientStartBindingPath" xml:space="preserve">
+  <data name="Designer.Property.GradientStartBindingPath">
     <value>開始色バインドパス</value>
   </data>
-  <data name="Designer.Property.UseGradientEndBinding" xml:space="preserve">
+  <data name="Designer.Property.UseGradientEndBinding">
     <value>グラデーション終了色をバインド</value>
   </data>
-  <data name="Designer.Property.GradientEndColor" xml:space="preserve">
+  <data name="Designer.Property.GradientEndColor">
     <value>グラデーション終了色</value>
   </data>
-  <data name="Designer.Property.GradientEndBindingPath" xml:space="preserve">
+  <data name="Designer.Property.GradientEndBindingPath">
     <value>終了色バインドパス</value>
   </data>
-  <data name="Designer.Property.GradientAngle" xml:space="preserve">
+  <data name="Designer.Property.GradientAngle">
     <value>グラデーション角度</value>
   </data>
-  <data name="Designer.Property.RadiusX" xml:space="preserve">
+  <data name="Designer.Property.RadiusX">
     <value>水平角丸</value>
   </data>
-  <data name="Designer.Property.RadiusY" xml:space="preserve">
+  <data name="Designer.Property.RadiusY">
     <value>垂直角丸</value>
   </data>
-  <data name="Designer.Property.StrokeColor" xml:space="preserve">
+  <data name="Designer.Property.StrokeColor">
     <value>線の色</value>
   </data>
-  <data name="Designer.Property.StrokeThickness" xml:space="preserve">
+  <data name="Designer.Property.StrokeThickness">
     <value>線の太さ</value>
   </data>
-  <data name="Designer.Option.FillMode.Solid" xml:space="preserve">
+  <data name="Designer.Option.FillMode.Solid">
     <value>単色</value>
   </data>
-  <data name="Designer.Option.FillMode.LinearGradient" xml:space="preserve">
+  <data name="Designer.Option.FillMode.LinearGradient">
     <value>線形グラデーション</value>
   </data>
-  <data name="Designer.ControlType.BackgroundTintRectangle" xml:space="preserve">
+  <data name="Designer.ControlType.BackgroundTintRectangle">
     <value>背景色付け長方形</value>
   </data>
-  <data name="Designer.ControlType.BackgroundTintPolygon" xml:space="preserve">
+  <data name="Designer.ControlType.BackgroundTintPolygon">
     <value>背景色付けポリゴン</value>
   </data>
-  <data name="Designer.Property.TintColor" xml:space="preserve">
+  <data name="Designer.Property.TintColor">
     <value>色付けカラー</value>
   </data>
-  <data name="Designer.Property.TintBindingPath" xml:space="preserve">
+  <data name="Designer.Property.TintBindingPath">
     <value>色付けバインドパス</value>
   </data>
-  <data name="Designer.Property.TintMode" xml:space="preserve">
+  <data name="Designer.Property.TintMode">
     <value>色付けモード</value>
   </data>
-  <data name="Designer.Property.TintStrength" xml:space="preserve">
+  <data name="Designer.Property.TintStrength">
     <value>色付け強度</value>
   </data>
-  <data name="Designer.Property.TextureStrength" xml:space="preserve">
+  <data name="Designer.Property.TextureStrength">
     <value>テクスチャ強度</value>
   </data>
-  <data name="Designer.Property.ShowMissingBackgroundPlaceholder" xml:space="preserve">
+  <data name="Designer.Property.ShowMissingBackgroundPlaceholder">
     <value>背景未設定プレースホルダーを表示</value>
   </data>
-  <data name="Designer.Option.TintMode.LuminanceColorize" xml:space="preserve">
+  <data name="Designer.Option.TintMode.LuminanceColorize">
     <value>輝度カラー化</value>
   </data>
-  <data name="Designer.Option.TintMode.Multiply" xml:space="preserve">
+  <data name="Designer.Option.TintMode.Multiply">
     <value>乗算</value>
   </data>
-  <data name="Designer.Option.TintMode.BaseColorWithTexture" xml:space="preserve">
+  <data name="Designer.Option.TintMode.BaseColorWithTexture">
     <value>テクスチャ付きベースカラー</value>
   </data>
-  <data name="Designer.Validation.MissingCanvasBackgroundImage" xml:space="preserve">
+  <data name="Designer.Validation.MissingCanvasBackgroundImage">
     <value>Canvas の背景画像が設定されていません</value>
   </data>
-  <data name="Designer.Help.BackgroundTint.Title" xml:space="preserve">
+  <data name="Designer.Help.BackgroundTint.Title">
     <value>背景の部分色付け</value>
   </data>
-  <data name="Designer.Help.BackgroundTint.Content" xml:space="preserve">
+  <data name="Designer.Help.BackgroundTint.Content">
     <value>BackgroundTintRectangle と BackgroundTintPolygon は現在の有効な Canvas 背景を自動的に使用し、画像の再選択は不要です。\n背景に整列した静的な色付きコピーを長方形またはポリゴンでクリップし、背景のテクスチャを保持します。\nBaseColorWithTexture は TintColor を目標ベースカラーとして扱い、TextureStrength で元背景の明暗ディテールを調整します。LuminanceColorize と Multiply は従来の暗めの効果を維持します。\nTintBindingPath は HomeTeam.ColorHex または AwayTeam.ColorHex にバインドでき、チームカラー変更時に再生成されます。\nリアルタイム GPU 合成ではなく、必要時の CPU 再生成を使用します。</value>
   </data>
-  <data name="Designer.Behaviors.Header" xml:space="preserve">
+  <data name="Designer.Behaviors.Header">
     <value>アニメーション / ビヘイビア</value>
   </data>
-  <data name="Designer.Behaviors.Empty" xml:space="preserve">
+  <data name="Designer.Behaviors.Empty">
     <value>このコントロールにはまだビヘイビアがありません。</value>
   </data>
-  <data name="Designer.Behaviors.SelectedControl" xml:space="preserve">
+  <data name="Designer.Behaviors.SelectedControl">
     <value>選択中のコントロール</value>
   </data>
-  <data name="Designer.Behaviors.List" xml:space="preserve">
+  <data name="Designer.Behaviors.List">
     <value>ビヘイビア一覧</value>
   </data>
-  <data name="Designer.Behaviors.Details" xml:space="preserve">
+  <data name="Designer.Behaviors.Details">
     <value>選択したビヘイビアを編集</value>
   </data>
-  <data name="Designer.Behaviors.SelectBehaviorToEdit" xml:space="preserve">
+  <data name="Designer.Behaviors.SelectBehaviorToEdit">
     <value>上の一覧からビヘイビアを選択すると、ここでトリガーとパラメーターを編集できます。</value>
   </data>
-  <data name="Designer.Behaviors.GraphPlaceholders" xml:space="preserve">
+  <data name="Designer.Behaviors.GraphPlaceholders">
     <value>ノードグラフのプレースホルダー</value>
   </data>
-  <data name="Designer.Behaviors.AddOneShot" xml:space="preserve">
+  <data name="Designer.Behaviors.AddOneShot">
     <value>OneShot を追加</value>
   </data>
-  <data name="Designer.Behaviors.AddLoop" xml:space="preserve">
+  <data name="Designer.Behaviors.AddLoop">
     <value>Loop を追加</value>
   </data>
-  <data name="Designer.Behaviors.Delete" xml:space="preserve">
+  <data name="Designer.Behaviors.Delete">
     <value>削除</value>
   </data>
-  <data name="Designer.Behaviors.Duplicate" xml:space="preserve">
+  <data name="Designer.Behaviors.Duplicate">
     <value>コピーを作成</value>
   </data>
-  <data name="Designer.Behaviors.Copy" xml:space="preserve">
+  <data name="Designer.Behaviors.Copy">
     <value>ビヘイビアをコピー</value>
   </data>
-  <data name="Designer.Behaviors.CopyTo" xml:space="preserve">
+  <data name="Designer.Behaviors.CopyTo">
     <value>ビヘイビアをコピー先...</value>
   </data>
-  <data name="Designer.Behaviors.Paste" xml:space="preserve">
+  <data name="Designer.Behaviors.Paste">
     <value>ビヘイビアを貼り付け</value>
   </data>
-  <data name="Designer.Behaviors.CopyToTargets" xml:space="preserve">
+  <data name="Designer.Behaviors.CopyToTargets">
     <value>コピー先のコントロールを選択（複数選択可）</value>
   </data>
-  <data name="Designer.Behaviors.RewriteTargets" xml:space="preserve">
+  <data name="Designer.Behaviors.RewriteTargets">
     <value>アニメーション対象を書き換える</value>
   </data>
-  <data name="Designer.Behaviors.RewriteTriggerIndexes" xml:space="preserve">
+  <data name="Designer.Behaviors.RewriteTriggerIndexes">
     <value>トリガーインデックスを書き換える</value>
   </data>
-  <data name="Designer.Behaviors.SelectTargetForPreview" xml:space="preserve">
+  <data name="Designer.Behaviors.SelectTargetForPreview">
     <value>互換性と書き換え内容を確認するコントロールを選択してください。</value>
   </data>
-  <data name="Designer.Behaviors.Target" xml:space="preserve">
+  <data name="Designer.Behaviors.Target">
     <value>対象コントロール</value>
   </data>
-  <data name="Designer.Behaviors.Compatible" xml:space="preserve">
+  <data name="Designer.Behaviors.Compatible">
     <value>互換</value>
   </data>
-  <data name="Designer.Behaviors.ExternalReference" xml:space="preserve">
+  <data name="Designer.Behaviors.ExternalReference">
     <value>保持される外部コントロール参照</value>
   </data>
-  <data name="Designer.Behaviors.PasteSummary" xml:space="preserve">
+  <data name="Designer.Behaviors.PasteSummary">
     <value>{0} 個のコントロールにコピーし、互換性のない {1} 個をスキップしました。</value>
   </data>
-  <data name="Designer.Behaviors.Enabled" xml:space="preserve">
+  <data name="Designer.Behaviors.Enabled">
     <value>有効</value>
   </data>
-  <data name="Designer.Behaviors.Name" xml:space="preserve">
+  <data name="Designer.Behaviors.Name">
     <value>名前</value>
   </data>
-  <data name="Designer.Behaviors.Kind" xml:space="preserve">
+  <data name="Designer.Behaviors.Kind">
     <value>種類</value>
   </data>
-  <data name="Designer.Behaviors.OneShot" xml:space="preserve">
+  <data name="Designer.Behaviors.OneShot">
     <value>OneShot</value>
   </data>
-  <data name="Designer.Behaviors.Loop" xml:space="preserve">
+  <data name="Designer.Behaviors.Loop">
     <value>Loop</value>
   </data>
-  <data name="Designer.Behaviors.Trigger" xml:space="preserve">
+  <data name="Designer.Behaviors.Trigger">
     <value>トリガー</value>
   </data>
-  <data name="Designer.Behaviors.StartTrigger" xml:space="preserve">
+  <data name="Designer.Behaviors.StartTrigger">
     <value>開始トリガー</value>
   </data>
-  <data name="Designer.Behaviors.Filters" xml:space="preserve">
+  <data name="Designer.Behaviors.Filters">
     <value>フィルター</value>
   </data>
-  <data name="Designer.Behaviors.AddFilter" xml:space="preserve">
+  <data name="Designer.Behaviors.AddFilter">
     <value>フィルターを追加</value>
   </data>
-  <data name="Designer.Behaviors.RemoveFilter" xml:space="preserve">
+  <data name="Designer.Behaviors.RemoveFilter">
     <value>フィルターを削除</value>
   </data>
-  <data name="Designer.Behaviors.EventType" xml:space="preserve">
+  <data name="Designer.Behaviors.EventType">
     <value>イベント種類</value>
   </data>
-  <data name="Designer.Behaviors.Source" xml:space="preserve">
+  <data name="Designer.Behaviors.Source">
     <value>ソース</value>
   </data>
-  <data name="Designer.Behaviors.Operator" xml:space="preserve">
+  <data name="Designer.Behaviors.Operator">
     <value>演算子</value>
   </data>
-  <data name="Designer.Behaviors.Left" xml:space="preserve">
+  <data name="Designer.Behaviors.Left">
     <value>左辺</value>
   </data>
-  <data name="Designer.Behaviors.Right" xml:space="preserve">
+  <data name="Designer.Behaviors.Right">
     <value>右辺</value>
   </data>
-  <data name="Designer.Behaviors.RightValueKind" xml:space="preserve">
+  <data name="Designer.Behaviors.RightValueKind">
     <value>右辺の種類</value>
   </data>
-  <data name="Designer.Behaviors.LoopPolicy" xml:space="preserve">
+  <data name="Designer.Behaviors.LoopPolicy">
     <value>ループポリシー</value>
   </data>
-  <data name="Designer.Behaviors.RepeatCount" xml:space="preserve">
+  <data name="Designer.Behaviors.RepeatCount">
     <value>繰り返し回数</value>
   </data>
-  <data name="Designer.Behaviors.AutoReverse" xml:space="preserve">
+  <data name="Designer.Behaviors.AutoReverse">
     <value>自動反転</value>
   </data>
-  <data name="Designer.Behaviors.IntervalMs" xml:space="preserve">
+  <data name="Designer.Behaviors.IntervalMs">
     <value>間隔 ms</value>
   </data>
-  <data name="Designer.Behaviors.StopMode" xml:space="preserve">
+  <data name="Designer.Behaviors.StopMode">
     <value>停止モード</value>
   </data>
-  <data name="Designer.Behaviors.ResetOnStop" xml:space="preserve">
+  <data name="Designer.Behaviors.ResetOnStop">
     <value>停止時にリセット</value>
   </data>
-  <data name="Designer.Behaviors.ReentryPolicy" xml:space="preserve">
+  <data name="Designer.Behaviors.ReentryPolicy">
     <value>再入ポリシー</value>
   </data>
-  <data name="Designer.Behaviors.GraphPlaceholder" xml:space="preserve">
+  <data name="Designer.Behaviors.GraphPlaceholder">
     <value>ノードグラフエディターはアニメーションエディターから開けます</value>
   </data>
-  <data name="Designer.Behaviors.StartGraph" xml:space="preserve">
+  <data name="Designer.Behaviors.StartGraph">
     <value>開始グラフ</value>
   </data>
-  <data name="Designer.Behaviors.LoopGraph" xml:space="preserve">
+  <data name="Designer.Behaviors.LoopGraph">
     <value>ループグラフ</value>
   </data>
-  <data name="Designer.Behaviors.StopGraph" xml:space="preserve">
+  <data name="Designer.Behaviors.StopGraph">
     <value>停止グラフ</value>
   </data>
-  <data name="Designer.Behaviors.UnsavedBehaviorChanges" xml:space="preserve">
+  <data name="Designer.Behaviors.UnsavedBehaviorChanges">
     <value>未保存のビヘイビア変更</value>
   </data>
-  <data name="Designer.Behaviors.NewOneShot" xml:space="preserve">
+  <data name="Designer.Behaviors.NewOneShot">
     <value>新しい OneShot ビヘイビア</value>
   </data>
-  <data name="Designer.Behaviors.NewLoop" xml:space="preserve">
+  <data name="Designer.Behaviors.NewLoop">
     <value>新しい Loop ビヘイビア</value>
   </data>
-  <data name="Designer.Behaviors.CopyOfFormat" xml:space="preserve">
+  <data name="Designer.Behaviors.CopyOfFormat">
     <value>{0} のコピー</value>
   </data>
-  <data name="Designer.Behaviors.Operator.Equals" xml:space="preserve">
+  <data name="Designer.Behaviors.Operator.Equals">
     <value>等しい</value>
   </data>
-  <data name="Designer.Behaviors.Operator.NotEquals" xml:space="preserve">
+  <data name="Designer.Behaviors.Operator.NotEquals">
     <value>等しくない</value>
   </data>
-  <data name="Designer.Behaviors.Operator.GreaterThan" xml:space="preserve">
+  <data name="Designer.Behaviors.Operator.GreaterThan">
     <value>より大きい</value>
   </data>
-  <data name="Designer.Behaviors.Operator.GreaterThanOrEqual" xml:space="preserve">
+  <data name="Designer.Behaviors.Operator.GreaterThanOrEqual">
     <value>以上</value>
   </data>
-  <data name="Designer.Behaviors.Operator.LessThan" xml:space="preserve">
+  <data name="Designer.Behaviors.Operator.LessThan">
     <value>より小さい</value>
   </data>
-  <data name="Designer.Behaviors.Operator.LessThanOrEqual" xml:space="preserve">
+  <data name="Designer.Behaviors.Operator.LessThanOrEqual">
     <value>以下</value>
   </data>
-  <data name="Designer.Behaviors.Operator.Contains" xml:space="preserve">
+  <data name="Designer.Behaviors.Operator.Contains">
     <value>含む</value>
   </data>
-  <data name="Designer.Behaviors.Operator.Exists" xml:space="preserve">
+  <data name="Designer.Behaviors.Operator.Exists">
     <value>存在する</value>
   </data>
-  <data name="Designer.Behaviors.RightValueKind.Literal" xml:space="preserve">
+  <data name="Designer.Behaviors.RightValueKind.Literal">
     <value>リテラル</value>
   </data>
-  <data name="Designer.Behaviors.RightValueKind.EventPath" xml:space="preserve">
+  <data name="Designer.Behaviors.RightValueKind.EventPath">
     <value>イベントパス</value>
   </data>
-  <data name="Designer.Behaviors.RightValueKind.BindingPath" xml:space="preserve">
+  <data name="Designer.Behaviors.RightValueKind.BindingPath">
     <value>バインドパス</value>
   </data>
-  <data name="Designer.Behaviors.StopMode.StopImmediately" xml:space="preserve">
+  <data name="Designer.Behaviors.StopMode.StopImmediately">
     <value>すぐ停止</value>
   </data>
-  <data name="Designer.Behaviors.StopMode.CompleteCurrentIteration" xml:space="preserve">
+  <data name="Designer.Behaviors.StopMode.CompleteCurrentIteration">
     <value>現在の反復を完了</value>
   </data>
-  <data name="Designer.Behaviors.StopMode.RunStopGraph" xml:space="preserve">
+  <data name="Designer.Behaviors.StopMode.RunStopGraph">
     <value>停止グラフを実行</value>
   </data>
-  <data name="Designer.Behaviors.StopMode.HoldCurrentState" xml:space="preserve">
+  <data name="Designer.Behaviors.StopMode.HoldCurrentState">
     <value>現在状態を保持</value>
   </data>
-  <data name="Designer.Behaviors.ReentryPolicy.InterruptPrevious" xml:space="preserve">
+  <data name="Designer.Behaviors.ReentryPolicy.InterruptPrevious">
     <value>前回を中断</value>
   </data>
-  <data name="Designer.Behaviors.ReentryPolicy.IgnoreIfRunning" xml:space="preserve">
+  <data name="Designer.Behaviors.ReentryPolicy.IgnoreIfRunning">
     <value>実行中は無視</value>
   </data>
-  <data name="Designer.Behaviors.ReentryPolicy.Queue" xml:space="preserve">
+  <data name="Designer.Behaviors.ReentryPolicy.Queue">
     <value>キュー</value>
   </data>
-  <data name="Designer.Behaviors.ReentryPolicy.AllowParallel" xml:space="preserve">
+  <data name="Designer.Behaviors.ReentryPolicy.AllowParallel">
     <value>並列を許可</value>
   </data>
-  <data name="Designer.Behaviors.Event.WindowShown" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.WindowShown">
     <value>ウィンドウ表示</value>
   </data>
-  <data name="Designer.Behaviors.Event.WindowHidden" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.WindowHidden">
     <value>ウィンドウ非表示</value>
   </data>
-  <data name="Designer.Behaviors.Event.CanvasLoaded" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.CanvasLoaded">
     <value>Canvas 読み込み</value>
   </data>
-  <data name="Designer.Behaviors.Event.CanvasStateChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.CanvasStateChanged">
     <value>Canvas 状態変更</value>
   </data>
-  <data name="Designer.Behaviors.Event.ControlLoaded" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.ControlLoaded">
     <value>コントロール読み込み</value>
   </data>
-  <data name="Designer.Behaviors.Event.GameProgressChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.GameProgressChanged">
     <value>対局進行変更</value>
   </data>
-  <data name="Designer.Behaviors.Event.CharacterPicked" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.CharacterPicked">
     <value>キャラクター選択</value>
   </data>
-  <data name="Designer.Behaviors.Event.CharacterBanned" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.CharacterBanned">
     <value>キャラクター禁止</value>
   </data>
-  <data name="Designer.Behaviors.Event.CharacterSelected" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.CharacterSelected">
     <value>キャラクター選択</value>
   </data>
-  <data name="Designer.Behaviors.Event.CurrentPickingSlotChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.CurrentPickingSlotChanged">
     <value>現在選択枠変更</value>
   </data>
-  <data name="Designer.Behaviors.Event.ScoreChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.ScoreChanged">
     <value>スコア変更</value>
   </data>
-  <data name="Designer.Behaviors.Event.TeamChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.TeamChanged">
     <value>チーム変更</value>
   </data>
-  <data name="Designer.Behaviors.Event.TeamSwapped" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.TeamSwapped">
     <value>チーム交代</value>
   </data>
-  <data name="Designer.Behaviors.Event.MapChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.MapChanged">
     <value>マップ変更</value>
   </data>
-  <data name="Designer.Behaviors.Event.TimerStarted" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.TimerStarted">
     <value>タイマー開始</value>
   </data>
-  <data name="Designer.Behaviors.Event.TimerStopped" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.TimerStopped">
     <value>タイマー停止</value>
   </data>
-  <data name="Designer.Behaviors.Event.TimerReached" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.TimerReached">
     <value>タイマー到達</value>
   </data>
-  <data name="Designer.Behaviors.Event.ManualTrigger" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.ManualTrigger">
     <value>手動トリガー</value>
   </data>
-  <data name="Designer.Behaviors.Event.PluginEvent" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.PluginEvent">
     <value>プラグインイベント</value>
   </data>
-  <data name="Designer.Behaviors.Event.GuidanceHighlightChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.GuidanceHighlightChanged">
     <value>ガイダンスハイライト変更</value>
   </data>
-  <data name="Designer.Behaviors.Event.GuidanceHighlightCleared" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.GuidanceHighlightCleared">
     <value>ガイダンスハイライト解除</value>
   </data>
-  <data name="Designer.Behaviors.Event.GuidanceStarted" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.GuidanceStarted">
     <value>ガイダンス開始</value>
   </data>
-  <data name="Designer.Behaviors.Event.GuidanceStateChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.GuidanceStateChanged">
     <value>ガイダンス状態変更</value>
   </data>
-  <data name="Designer.Behaviors.Event.GuidanceStopped" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.GuidanceStopped">
     <value>ガイダンス停止</value>
   </data>
-  <data name="Designer.Behaviors.Event.GuidanceStepChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.GuidanceStepChanged">
     <value>ガイダンスステップ変更</value>
   </data>
-  <data name="Designer.Behaviors.Category.Game" xml:space="preserve">
+  <data name="Designer.Behaviors.Category.Game">
     <value>対局</value>
   </data>
-  <data name="Designer.Behaviors.Category.Guidance" xml:space="preserve">
+  <data name="Designer.Behaviors.Category.Guidance">
     <value>ガイダンス</value>
   </data>
-  <data name="Designer.Behaviors.Category.Display" xml:space="preserve">
+  <data name="Designer.Behaviors.Category.Display">
     <value>表示</value>
   </data>
-  <data name="Designer.Behaviors.Category.Score" xml:space="preserve">
+  <data name="Designer.Behaviors.Category.Score">
     <value>スコア</value>
   </data>
-  <data name="Designer.Behaviors.Category.Timer" xml:space="preserve">
+  <data name="Designer.Behaviors.Category.Timer">
     <value>タイマー</value>
   </data>
-  <data name="Designer.Behaviors.Event.CurrentGameChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.CurrentGameChanged">
     <value>現在の対局変更</value>
   </data>
-  <data name="Designer.Behaviors.Event.GlobalScoreTotalMarginChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.GlobalScoreTotalMarginChanged">
     <value>合計スコア余白変更</value>
   </data>
-  <data name="Designer.Behaviors.Event.BanCountChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.BanCountChanged">
     <value>Ban 数変更</value>
   </data>
-  <data name="Designer.Behaviors.Event.IsTraitVisibleChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.IsTraitVisibleChanged">
     <value>補助特質表示変更</value>
   </data>
-  <data name="Designer.Behaviors.Event.IsBo3ModeChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.IsBo3ModeChanged">
     <value>BO3 モード変更</value>
   </data>
-  <data name="Designer.Behaviors.Event.CountDownValueChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.CountDownValueChanged">
     <value>カウントダウン値変更</value>
   </data>
-  <data name="Designer.Behaviors.Event.IsMapV2BreathingChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.IsMapV2BreathingChanged">
     <value>マップ呼吸表示変更</value>
   </data>
-  <data name="Designer.Behaviors.Event.MapV2PickingBorderStateChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.MapV2PickingBorderStateChanged">
     <value>マップ選択枠状態変更</value>
   </data>
-  <data name="Designer.Behaviors.Event.IsMapV2CampVisibleChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.IsMapV2CampVisibleChanged">
     <value>マップ陣営表示変更</value>
   </data>
-  <data name="Designer.Behaviors.Event.PickedMapChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.PickedMapChanged">
     <value>選択マップ変更</value>
   </data>
-  <data name="Designer.Behaviors.Event.MapV2BannedChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.MapV2BannedChanged">
     <value>マップ Ban 状態変更</value>
   </data>
-  <data name="Designer.Behaviors.Payload.Game" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.Game">
     <value>現在の対局</value>
   </data>
-  <data name="Designer.Behaviors.Payload.Margin" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.Margin">
     <value>余白</value>
   </data>
-  <data name="Designer.Behaviors.Payload.ListName" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.ListName">
     <value>リスト名</value>
   </data>
-  <data name="Designer.Behaviors.Payload.Count" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.Count">
     <value>数</value>
   </data>
-  <data name="Designer.Behaviors.Payload.IsTraitVisible" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.IsTraitVisible">
     <value>補助特質表示</value>
   </data>
-  <data name="Designer.Behaviors.Payload.IsBo3Mode" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.IsBo3Mode">
     <value>BO3 モード</value>
   </data>
-  <data name="Designer.Behaviors.Payload.RemainingSeconds" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.RemainingSeconds">
     <value>残り秒数</value>
   </data>
-  <data name="Designer.Behaviors.Payload.IsMapV2Breathing" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.IsMapV2Breathing">
     <value>マップ呼吸表示</value>
   </data>
-  <data name="Designer.Behaviors.Payload.MapKey" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.MapKey">
     <value>マップキー</value>
   </data>
-  <data name="Designer.Behaviors.Payload.IsMapBanned" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.IsMapBanned">
     <value>マップ禁止済み</value>
   </data>
-  <data name="Designer.Behaviors.Payload.IsPickingBorderVisible" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.IsPickingBorderVisible">
     <value>選択枠表示</value>
   </data>
-  <data name="Designer.Behaviors.Payload.IsMapV2CampVisible" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.IsMapV2CampVisible">
     <value>マップ陣営表示</value>
   </data>
-  <data name="Designer.Behaviors.Payload.PickedMap" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.PickedMap">
     <value>選択マップ</value>
   </data>
-  <data name="Designer.Behaviors.Payload.Action" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.Action">
     <value>アクション</value>
   </data>
-  <data name="Designer.Behaviors.Payload.ActionName" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.ActionName">
     <value>アクション名</value>
   </data>
-  <data name="Designer.Behaviors.Payload.Index" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.Index">
     <value>インデックス</value>
   </data>
-  <data name="Designer.Behaviors.Payload.Indexes" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.Indexes">
     <value>インデックス一覧</value>
   </data>
-  <data name="Designer.Behaviors.Payload.IndexesText" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.IndexesText">
     <value>現在のインデックステキスト</value>
   </data>
-  <data name="Designer.Behaviors.Payload.Time" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.Time">
     <value>時間</value>
   </data>
-  <data name="Designer.Behaviors.Payload.GameAction" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.GameAction">
     <value>ハイライトアクション</value>
   </data>
-  <data name="Designer.Behaviors.Payload.IsStarted" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.IsStarted">
     <value>開始済み</value>
   </data>
-  <data name="Designer.Behaviors.Payload.StepIndex" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.StepIndex">
     <value>ステップインデックス</value>
   </data>
-  <data name="Designer.Behaviors.Payload.PreviousStepIndex" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.PreviousStepIndex">
     <value>前のステップインデックス</value>
   </data>
-  <data name="Designer.Behaviors.Payload.PreviousAction" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.PreviousAction">
     <value>前のアクション</value>
   </data>
-  <data name="Designer.Behaviors.Payload.PreviousIndexes" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.PreviousIndexes">
     <value>前のインデックス一覧</value>
   </data>
-  <data name="Designer.Behaviors.Payload.PreviousIndexesText" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.PreviousIndexesText">
     <value>前のインデックステキスト</value>
   </data>
-  <data name="Designer.Behaviors.Payload.PreviousIndex" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.PreviousIndex">
     <value>前の最初のインデックス</value>
   </data>
-  <data name="Designer.Behaviors.Payload.PreviousTime" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.PreviousTime">
     <value>前のタイマー</value>
   </data>
-  <data name="Designer.Behaviors.Payload.PreviousActionName" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.PreviousActionName">
     <value>前のアクション名</value>
   </data>
-  <data name="Designer.Behaviors.Payload.Camp" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.Camp">
     <value>陣営</value>
   </data>
-  <data name="Designer.Behaviors.Payload.PlayerIndex" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.PlayerIndex">
     <value>プレイヤーインデックス</value>
   </data>
-  <data name="Designer.Behaviors.Operator.NotContains" xml:space="preserve">
+  <data name="Designer.Behaviors.Operator.NotContains">
     <value>含まない</value>
   </data>
-  <data name="Designer.Behaviors.When" xml:space="preserve">
+  <data name="Designer.Behaviors.When">
     <value>条件</value>
   </data>
-  <data name="Designer.Behaviors.Is" xml:space="preserve">
+  <data name="Designer.Behaviors.Is">
     <value>が</value>
   </data>
-  <data name="Designer.Behaviors.Value" xml:space="preserve">
+  <data name="Designer.Behaviors.Value">
     <value>値</value>
   </data>
-  <data name="Designer.Behaviors.UnknownParameterFormat" xml:space="preserve">
+  <data name="Designer.Behaviors.UnknownParameterFormat">
     <value>不明なパラメーター: {0}</value>
   </data>
-  <data name="Designer.Behaviors.OpenAnimationEditor" xml:space="preserve">
+  <data name="Designer.Behaviors.OpenAnimationEditor">
     <value>アニメーションエディターを開く</value>
   </data>
-  <data name="Designer.Behaviors.StartAnimation" xml:space="preserve">
+  <data name="Designer.Behaviors.StartAnimation">
     <value>開始アニメーション</value>
   </data>
-  <data name="Designer.Behaviors.LoopAnimation" xml:space="preserve">
+  <data name="Designer.Behaviors.LoopAnimation">
     <value>ループアニメーション</value>
   </data>
-  <data name="Designer.Behaviors.EndAnimation" xml:space="preserve">
+  <data name="Designer.Behaviors.EndAnimation">
     <value>終了アニメーション</value>
   </data>
-  <data name="Designer.Behaviors.Animation" xml:space="preserve">
+  <data name="Designer.Behaviors.Animation">
     <value>アニメーション</value>
   </data>
-  <data name="Designer.Behaviors.AnimationEditorPlaceholder" xml:space="preserve">
+  <data name="Designer.Behaviors.AnimationEditorPlaceholder">
     <value>ノードグラフアニメーションエディターは今後のバージョンで実装予定です。</value>
   </data>
-  <data name="Designer.Behaviors.Event.CurrentGameChanged.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.CurrentGameChanged.Description">
     <value>現在の対局が変更された時に発生します。</value>
   </data>
-  <data name="Designer.Behaviors.Event.GlobalScoreTotalMarginChanged.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.GlobalScoreTotalMarginChanged.Description">
     <value>合計スコア余白が変更された時に発生します。</value>
   </data>
-  <data name="Designer.Behaviors.Event.BanCountChanged.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.BanCountChanged.Description">
     <value>Ban リスト数が変更された時に発生します。</value>
   </data>
-  <data name="Designer.Behaviors.Event.IsTraitVisibleChanged.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.IsTraitVisibleChanged.Description">
     <value>補助特質表示が変更された時に発生します。</value>
   </data>
-  <data name="Designer.Behaviors.Event.IsBo3ModeChanged.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.IsBo3ModeChanged.Description">
     <value>BO3 モードが変更された時に発生します。</value>
   </data>
-  <data name="Designer.Behaviors.Event.CountDownValueChanged.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.CountDownValueChanged.Description">
     <value>カウントダウン値が変更された時に発生します。</value>
   </data>
-  <data name="Designer.Behaviors.Event.TeamSwapped.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.TeamSwapped.Description">
     <value>チームが交代した時に発生します。</value>
   </data>
-  <data name="Designer.Behaviors.Event.IsMapV2BreathingChanged.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.IsMapV2BreathingChanged.Description">
     <value>マップ呼吸表示が変更された時に発生します。</value>
   </data>
-  <data name="Designer.Behaviors.Event.MapV2PickingBorderStateChanged.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.MapV2PickingBorderStateChanged.Description">
     <value>マップ選択枠を表示または非表示にする時に発生します。</value>
   </data>
-  <data name="Designer.Behaviors.Event.IsMapV2CampVisibleChanged.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.IsMapV2CampVisibleChanged.Description">
     <value>マップ陣営表示が変更された時に発生します。</value>
   </data>
-  <data name="Designer.Behaviors.Event.PickedMapChanged.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.PickedMapChanged.Description">
     <value>選択マップが変更された時に発生します。</value>
   </data>
-  <data name="Designer.Behaviors.Event.MapV2BannedChanged.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.MapV2BannedChanged.Description">
     <value>マップ Ban 状態が変更された時に発生します。</value>
   </data>
-  <data name="Designer.Behaviors.Event.GuidanceHighlightChanged.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.GuidanceHighlightChanged.Description">
     <value>ガイダンスハイライトが変更された時に発生します。</value>
   </data>
-  <data name="Designer.Behaviors.Event.GuidanceHighlightCleared.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.GuidanceHighlightCleared.Description">
     <value>ガイダンスのハイライトが解除された時に発生します。</value>
   </data>
-  <data name="Designer.Behaviors.Event.GuidanceStarted.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.GuidanceStarted.Description">
     <value>ガイダンスが開始された時に発生します。</value>
   </data>
-  <data name="Designer.Behaviors.Event.GuidanceStateChanged.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.GuidanceStateChanged.Description">
     <value>ガイダンスの開始または停止時に発生します。</value>
   </data>
-  <data name="Designer.Behaviors.Event.GuidanceStopped.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.GuidanceStopped.Description">
     <value>ガイダンスが停止された時に発生します。</value>
   </data>
-  <data name="Designer.Behaviors.Event.GuidanceStepChanged.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.GuidanceStepChanged.Description">
     <value>ガイダンスステップが切り替わった時に発生します。</value>
   </data>
-  <data name="Designer.Graph.Target.Self" xml:space="preserve">
+  <data name="Designer.Graph.Target.Self">
     <value>自身</value>
   </data>
-  <data name="Designer.Option.TargetLayer.Auto" xml:space="preserve">
+  <data name="Designer.Option.TargetLayer.Auto">
     <value>自動</value>
   </data>
-  <data name="Designer.Option.TargetLayer.Control" xml:space="preserve">
+  <data name="Designer.Option.TargetLayer.Control">
     <value>コントロール本体</value>
   </data>
-  <data name="Designer.Option.TargetLayer.Content" xml:space="preserve">
+  <data name="Designer.Option.TargetLayer.Content">
     <value>内部コンテンツ</value>
   </data>
-  <data name="Designer.Option.TargetLayer.OverlayAbove" xml:space="preserve">
+  <data name="Designer.Option.TargetLayer.OverlayAbove">
     <value>上側 Rectangle レイヤー</value>
   </data>
-  <data name="Designer.Option.TargetLayer.OverlayBelow" xml:space="preserve">
+  <data name="Designer.Option.TargetLayer.OverlayBelow">
     <value>下側 Rectangle レイヤー</value>
   </data>
-  <data name="Designer.Behaviors.Event.CharacterSelected.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.CharacterSelected.Description">
     <value>キャラクターが選択された時に発生します（陣営とプレイヤーインデックスを含む）。</value>
   </data>
-  <data name="Designer.Behaviors.Event.CharacterBanned.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.CharacterBanned.Description">
     <value>キャラクターが禁止された時に発生します（陣営と禁止インデックスを含む）。</value>
   </data>
-  <data name="Designer.Graph.NodeCatalog" xml:space="preserve">
+  <data name="Designer.Graph.NodeCatalog">
     <value>ノードカタログ</value>
   </data>
-  <data name="Designer.Graph.Properties" xml:space="preserve">
+  <data name="Designer.Graph.Properties">
     <value>ノードプロパティ</value>
   </data>
-  <data name="Designer.Graph.Validation" xml:space="preserve">
+  <data name="Designer.Graph.Validation">
     <value>グラフチェック</value>
   </data>
-  <data name="Designer.Graph.DeleteNode" xml:space="preserve">
+  <data name="Designer.Graph.DeleteNode">
     <value>ノードを削除</value>
   </data>
-  <data name="Designer.Graph.DuplicateNode" xml:space="preserve">
+  <data name="Designer.Graph.DuplicateNode">
     <value>ノードを複製</value>
   </data>
-  <data name="Designer.Graph.AddStartEnd" xml:space="preserve">
+  <data name="Designer.Graph.AddStartEnd">
     <value>Start / End を追加</value>
   </data>
-  <data name="Designer.Graph.RunPreview" xml:space="preserve">
+  <data name="Designer.Graph.RunPreview">
     <value>プレビュー実行</value>
   </data>
-  <data name="Designer.Graph.StopPreview" xml:space="preserve">
+  <data name="Designer.Graph.StopPreview">
     <value>プレビュー停止</value>
   </data>
-  <data name="Designer.Graph.ResetCurrentTarget" xml:space="preserve">
+  <data name="Designer.Graph.ResetCurrentTarget">
     <value>現在の対象をリセット</value>
   </data>
-  <data name="Designer.Graph.ResetAllPreview" xml:space="preserve">
+  <data name="Designer.Graph.ResetAllPreview">
     <value>プレビューをすべてリセット</value>
   </data>
-  <data name="Designer.Graph.Validate" xml:space="preserve">
+  <data name="Designer.Graph.Validate">
     <value>グラフをチェック</value>
   </data>
-  <data name="Designer.Graph.ClearLog" xml:space="preserve">
+  <data name="Designer.Graph.ClearLog">
     <value>ログをクリア</value>
   </data>
-  <data name="Designer.Graph.ExecutionLog" xml:space="preserve">
+  <data name="Designer.Graph.ExecutionLog">
     <value>実行ログ</value>
   </data>
-  <data name="Designer.Graph.PreviewTitle" xml:space="preserve">
+  <data name="Designer.Graph.PreviewTitle">
     <value>プレビュー</value>
   </data>
-  <data name="Designer.Graph.PreviewPlaceholder" xml:space="preserve">
-    <value>アニメーションプレビュー
-デザイナーでコントロールを選択するとここに表示されます</value>
+  <data name="Designer.Graph.PreviewPlaceholder">
+    <value>アニメーションプレビュー デザイナーでコントロールを選択するとここに表示されます</value>
   </data>
-  <data name="Designer.Graph.PreviewStart" xml:space="preserve">
+  <data name="Designer.Graph.PreviewStart">
     <value>開始アニメーションをプレビュー</value>
   </data>
-  <data name="Designer.Graph.PreviewLoopOnce" xml:space="preserve">
+  <data name="Designer.Graph.PreviewLoopOnce">
     <value>ループアニメーションを1回プレビュー</value>
   </data>
-  <data name="Designer.Graph.StartLoopPreview" xml:space="preserve">
+  <data name="Designer.Graph.StartLoopPreview">
     <value>ループアニメーションプレビュー開始</value>
   </data>
-  <data name="Designer.Graph.StopLoopPreview" xml:space="preserve">
+  <data name="Designer.Graph.StopLoopPreview">
     <value>ループアニメーションプレビュー停止</value>
   </data>
-  <data name="Designer.Graph.PreviewStop" xml:space="preserve">
+  <data name="Designer.Graph.PreviewStop">
     <value>停止アニメーションをプレビュー</value>
   </data>
-  <data name="Designer.Graph.ResetPreview" xml:space="preserve">
+  <data name="Designer.Graph.ResetPreview">
     <value>プレビューをリセット</value>
   </data>
-  <data name="Designer.Graph.Connection.SelectInput" xml:space="preserve">
+  <data name="Designer.Graph.Connection.SelectInput">
     <value>入力ポートを選択してください。</value>
   </data>
-  <data name="Designer.Graph.Preview.ValidationBlocked" xml:space="preserve">
+  <data name="Designer.Graph.Preview.ValidationBlocked">
     <value>グラフチェックで問題が見つかったため、プレビューを開始しませんでした。</value>
   </data>
-  <data name="Designer.Graph.Preview.AutoReverseStoredOnly" xml:space="preserve">
+  <data name="Designer.Graph.Preview.AutoReverseStoredOnly">
     <value>自動反転設定は保存されますが、プレビューでは反転グラフ再生をシミュレートしません。</value>
   </data>
-  <data name="Designer.Graph.Category.Flow" xml:space="preserve">
+  <data name="Designer.Graph.Category.Flow">
     <value>フロー</value>
   </data>
-  <data name="Designer.Graph.Category.Action" xml:space="preserve">
+  <data name="Designer.Graph.Category.Action">
     <value>アクション</value>
   </data>
-  <data name="Designer.Graph.Category.Value" xml:space="preserve">
+  <data name="Designer.Graph.Category.Value">
     <value>値</value>
   </data>
-  <data name="Designer.Graph.Node.FlowStart" xml:space="preserve">
+  <data name="Designer.Graph.Node.FlowStart">
     <value>Start</value>
   </data>
-  <data name="Designer.Graph.Node.FlowEnd" xml:space="preserve">
+  <data name="Designer.Graph.Node.FlowEnd">
     <value>End</value>
   </data>
-  <data name="Designer.Graph.Node.FlowDelay" xml:space="preserve">
+  <data name="Designer.Graph.Node.FlowDelay">
     <value>Delay</value>
   </data>
-  <data name="Designer.Graph.Node.FlowParallel" xml:space="preserve">
+  <data name="Designer.Graph.Node.FlowParallel">
     <value>Parallel</value>
   </data>
-  <data name="Designer.Graph.Node.FlowIf" xml:space="preserve">
+  <data name="Designer.Graph.Node.FlowIf">
     <value>If</value>
   </data>
-  <data name="Designer.Graph.Node.ActionLog" xml:space="preserve">
+  <data name="Designer.Graph.Node.ActionLog">
     <value>Log</value>
   </data>
-  <data name="Designer.Graph.Node.ActionSetProperty" xml:space="preserve">
+  <data name="Designer.Graph.Node.ActionSetProperty">
     <value>SetProperty</value>
   </data>
-  <data name="Designer.Graph.Node.ActionResetProperty" xml:space="preserve">
+  <data name="Designer.Graph.Node.ActionResetProperty">
     <value>ResetProperty</value>
   </data>
-  <data name="Designer.Graph.Node.ActionAnimateProperty" xml:space="preserve">
+  <data name="Designer.Graph.Node.ActionAnimateProperty">
     <value>AnimateProperty</value>
   </data>
-  <data name="Designer.Graph.Node.FlowStart.Description" xml:space="preserve">
+  <data name="Designer.Graph.Node.FlowStart.Description">
     <value>アニメーションフローの入口です。通常は 1 つだけ置き、Out から最初のノードへ接続します。</value>
   </data>
-  <data name="Designer.Graph.Node.FlowEnd.Description" xml:space="preserve">
+  <data name="Designer.Graph.Node.FlowEnd.Description">
     <value>現在の分岐を終了します。各グラフに置ける End は 1 つだけで、複数の分岐を End.In に接続できます。</value>
   </data>
-  <data name="Designer.Graph.Node.FlowDelay.Description" xml:space="preserve">
+  <data name="Designer.Graph.Node.FlowDelay.Description">
     <value>続行前に待機します。フェードアウト後にフェードインするような間隔づけに使います。</value>
   </data>
-  <data name="Designer.Graph.Node.FlowParallel.Description" xml:space="preserve">
+  <data name="Designer.Graph.Node.FlowParallel.Description">
     <value>接続されたすべてのブランチを同時に実行し、すべての完了後に Out に進みます。\nブランチは次の接続がない時点で完了とみなされます。</value>
   </data>
-  <data name="Designer.Graph.Node.FlowIf.Description" xml:space="preserve">
+  <data name="Designer.Graph.Node.FlowIf.Description">
     <value>テキスト比較を使う高度な分岐です。単純なプロパティアニメーションでは通常不要です。</value>
   </data>
-  <data name="Designer.Graph.Node.ActionLog.Description" xml:space="preserve">
+  <data name="Designer.Graph.Node.ActionLog.Description">
     <value>ここまで実行されたことを確認するため、プレビューログに 1 行出力します。</value>
   </data>
-  <data name="Designer.Graph.Node.ActionSetProperty.Description" xml:space="preserve">
+  <data name="Designer.Graph.Node.ActionSetProperty.Description">
     <value>対象のプロパティ値を設定します。プレビューでは対象スコープがある場合、デザイナー上のプレビューコントロールへ適用されます。</value>
   </data>
-  <data name="Designer.Graph.Node.ActionResetProperty.Description" xml:space="preserve">
+  <data name="Designer.Graph.Node.ActionResetProperty.Description">
     <value>プロパティリセット要求を出します。PropertyName は具体的なプロパティ、または All を指定できます。</value>
   </data>
-  <data name="Designer.Graph.Node.ActionAnimateProperty.Description" xml:space="preserve">
+  <data name="Designer.Graph.Node.ActionAnimateProperty.Description">
     <value>プロパティアニメーション要求を出します。対象、プロパティ名、開始/終了値、時間、イージングを設定します。</value>
   </data>
-  <data name="Designer.Graph.Port.In" xml:space="preserve">
+  <data name="Designer.Graph.Port.In">
     <value>In</value>
   </data>
-  <data name="Designer.Graph.Port.Out" xml:space="preserve">
+  <data name="Designer.Graph.Port.Out">
     <value>次へ</value>
   </data>
-  <data name="Designer.Graph.Port.True" xml:space="preserve">
+  <data name="Designer.Graph.Port.True">
     <value>True</value>
   </data>
-  <data name="Designer.Graph.Port.False" xml:space="preserve">
+  <data name="Designer.Graph.Port.False">
     <value>False</value>
   </data>
-  <data name="Designer.Graph.Port.Step1" xml:space="preserve">
+  <data name="Designer.Graph.Port.Step1">
     <value>Step1</value>
   </data>
-  <data name="Designer.Graph.Port.Step2" xml:space="preserve">
+  <data name="Designer.Graph.Port.Step2">
     <value>Step2</value>
   </data>
-  <data name="Designer.Graph.Port.Step3" xml:space="preserve">
+  <data name="Designer.Graph.Port.Step3">
     <value>Step3</value>
   </data>
-  <data name="Designer.Graph.Port.Branch1" xml:space="preserve">
+  <data name="Designer.Graph.Port.Branch1">
     <value>分岐 1</value>
   </data>
-  <data name="Designer.Graph.Port.Branch2" xml:space="preserve">
+  <data name="Designer.Graph.Port.Branch2">
     <value>分岐 2</value>
   </data>
-  <data name="Designer.Graph.Port.Branch3" xml:space="preserve">
+  <data name="Designer.Graph.Port.Branch3">
     <value>分岐 3</value>
   </data>
-  <data name="Designer.Graph.Port.ParallelOut" xml:space="preserve">
+  <data name="Designer.Graph.Port.ParallelOut">
     <value>すべて完了後</value>
   </data>
-  <data name="Designer.Graph.Port.ParallelBranch" xml:space="preserve">
+  <data name="Designer.Graph.Port.ParallelBranch">
     <value>分岐 {0}</value>
   </data>
-  <data name="Designer.Graph.Port.ParallelBranch.Tooltip" xml:space="preserve">
+  <data name="Designer.Graph.Port.ParallelBranch.Tooltip">
     <value>並列分岐 {0}。他の接続済み分岐と同時に実行されます。</value>
   </data>
-  <data name="Designer.Graph.Connection.Meaning.ParallelBranch" xml:space="preserve">
+  <data name="Designer.Graph.Connection.Meaning.ParallelBranch">
     <value>並列分岐 {0}</value>
   </data>
-  <data name="Designer.Graph.Port.Branch1.Tooltip" xml:space="preserve">
+  <data name="Designer.Graph.Port.Branch1.Tooltip">
     <value>並列分岐 1。他の接続済み分岐と同時に実行されます。</value>
   </data>
-  <data name="Designer.Graph.Port.Branch2.Tooltip" xml:space="preserve">
+  <data name="Designer.Graph.Port.Branch2.Tooltip">
     <value>並列分岐 2。他の接続済み分岐と同時に実行されます。</value>
   </data>
-  <data name="Designer.Graph.Port.Branch3.Tooltip" xml:space="preserve">
+  <data name="Designer.Graph.Port.Branch3.Tooltip">
     <value>並列分岐 3。他の接続済み分岐と同時に実行されます。</value>
   </data>
-  <data name="Designer.Graph.Port.ParallelOut.Tooltip" xml:space="preserve">
+  <data name="Designer.Graph.Port.ParallelOut.Tooltip">
     <value>接続済みのすべての並列分岐が完了した後、ここから続行します。</value>
   </data>
-  <data name="Designer.Graph.Connection.Meaning.ParallelBranch1" xml:space="preserve">
+  <data name="Designer.Graph.Connection.Meaning.ParallelBranch1">
     <value>並列分岐 1</value>
   </data>
-  <data name="Designer.Graph.Connection.Meaning.ParallelBranch2" xml:space="preserve">
+  <data name="Designer.Graph.Connection.Meaning.ParallelBranch2">
     <value>並列分岐 2</value>
   </data>
-  <data name="Designer.Graph.Connection.Meaning.ParallelBranch3" xml:space="preserve">
+  <data name="Designer.Graph.Connection.Meaning.ParallelBranch3">
     <value>並列分岐 3</value>
   </data>
-  <data name="Designer.Graph.Connection.Meaning.ParallelOut" xml:space="preserve">
+  <data name="Designer.Graph.Connection.Meaning.ParallelOut">
     <value>すべての並列分岐完了後に続行</value>
   </data>
-  <data name="Designer.Graph.Connection.MeaningLabel" xml:space="preserve">
+  <data name="Designer.Graph.Connection.MeaningLabel">
     <value>意味</value>
   </data>
-  <data name="Designer.Graph.Port.Completed" xml:space="preserve">
+  <data name="Designer.Graph.Port.Completed">
     <value>完了</value>
   </data>
-  <data name="Designer.Graph.Port.Value" xml:space="preserve">
+  <data name="Designer.Graph.Port.Value">
     <value>Value</value>
   </data>
-  <data name="Designer.Graph.Property.DurationMs" xml:space="preserve">
+  <data name="Designer.Graph.Property.DurationMs">
     <value>時間</value>
   </data>
-  <data name="Designer.Graph.Property.BranchCount" xml:space="preserve">
+  <data name="Designer.Graph.Property.BranchCount">
     <value>並列タスク数</value>
   </data>
-  <data name="Designer.Graph.Property.Message" xml:space="preserve">
+  <data name="Designer.Graph.Property.Message">
     <value>Message</value>
   </data>
-  <data name="Designer.Graph.Property.Target" xml:space="preserve">
+  <data name="Designer.Graph.Property.Target">
     <value>対象</value>
   </data>
-  <data name="Designer.Graph.Property.PropertyName" xml:space="preserve">
+  <data name="Designer.Graph.Property.PropertyName">
     <value>プロパティ名</value>
   </data>
-  <data name="Designer.Graph.Property.Value" xml:space="preserve">
+  <data name="Designer.Graph.Property.Value">
     <value>値</value>
   </data>
-  <data name="Designer.Graph.Property.From" xml:space="preserve">
+  <data name="Designer.Graph.Property.From">
     <value>開始値</value>
   </data>
-  <data name="Designer.Graph.Property.To" xml:space="preserve">
+  <data name="Designer.Graph.Property.To">
     <value>終了値</value>
   </data>
-  <data name="Designer.Graph.Property.Easing" xml:space="preserve">
+  <data name="Designer.Graph.Property.Easing">
     <value>イージング</value>
   </data>
-  <data name="Designer.Graph.Property.Left" xml:space="preserve">
+  <data name="Designer.Graph.Property.Left">
     <value>Left</value>
   </data>
-  <data name="Designer.Graph.Property.Operator" xml:space="preserve">
+  <data name="Designer.Graph.Property.Operator">
     <value>Operator</value>
   </data>
-  <data name="Designer.Graph.Property.Right" xml:space="preserve">
+  <data name="Designer.Graph.Property.Right">
     <value>Right</value>
   </data>
-  <data name="Designer.Graph.Property.Path" xml:space="preserve">
+  <data name="Designer.Graph.Property.Path">
     <value>Path</value>
   </data>
-  <data name="Designer.Graph.Property.WaitForCompletion" xml:space="preserve">
+  <data name="Designer.Graph.Property.WaitForCompletion">
     <value>アニメーション完了を待つ</value>
   </data>
-  <data name="Designer.Graph.PropertyName.All" xml:space="preserve">
+  <data name="Designer.Graph.PropertyName.All">
     <value>すべてのプロパティ</value>
   </data>
-  <data name="Designer.Option.Easing.Linear" xml:space="preserve">
+  <data name="Designer.Option.Easing.Linear">
     <value>線形</value>
   </data>
-  <data name="Designer.Option.Easing.SineInOut" xml:space="preserve">
+  <data name="Designer.Option.Easing.SineInOut">
     <value>サイン イン/アウト</value>
   </data>
-  <data name="Designer.Option.Easing.CubicOut" xml:space="preserve">
+  <data name="Designer.Option.Easing.CubicOut">
     <value>キュービック アウト</value>
   </data>
-  <data name="Designer.Option.Easing.CubicIn" xml:space="preserve">
+  <data name="Designer.Option.Easing.CubicIn">
     <value>キュービック イン</value>
   </data>
-  <data name="Designer.Option.Easing.CubicInOut" xml:space="preserve">
+  <data name="Designer.Option.Easing.CubicInOut">
     <value>キュービック イン/アウト</value>
   </data>
-  <data name="Designer.Option.Easing.BackOut" xml:space="preserve">
+  <data name="Designer.Option.Easing.BackOut">
     <value>バック アウト</value>
   </data>
-  <data name="Designer.Property.Opacity" xml:space="preserve">
+  <data name="Designer.Property.Opacity">
     <value>不透明度</value>
   </data>
-  <data name="Designer.Property.VisualOffsetX" xml:space="preserve">
+  <data name="Designer.Property.VisualOffsetX">
     <value>表示オフセット X</value>
   </data>
-  <data name="Designer.Property.VisualOffsetY" xml:space="preserve">
+  <data name="Designer.Property.VisualOffsetY">
     <value>表示オフセット Y</value>
   </data>
-  <data name="Designer.Property.ClipInsetLeft" xml:space="preserve">
+  <data name="Designer.Property.ClipInsetLeft">
     <value>左クリップインセット</value>
   </data>
-  <data name="Designer.Property.ClipInsetTop" xml:space="preserve">
+  <data name="Designer.Property.ClipInsetTop">
     <value>上クリップインセット</value>
   </data>
-  <data name="Designer.Property.ClipInsetRight" xml:space="preserve">
+  <data name="Designer.Property.ClipInsetRight">
     <value>右クリップインセット</value>
   </data>
-  <data name="Designer.Property.ClipInsetBottom" xml:space="preserve">
+  <data name="Designer.Property.ClipInsetBottom">
     <value>下クリップインセット</value>
   </data>
-  <data name="Designer.Property.ScaleX" xml:space="preserve">
+  <data name="Designer.Property.ScaleX">
     <value>横スケール</value>
   </data>
-  <data name="Designer.Property.ScaleY" xml:space="preserve">
+  <data name="Designer.Property.ScaleY">
     <value>縦スケール</value>
   </data>
-  <data name="Designer.Property.Rotation" xml:space="preserve">
+  <data name="Designer.Property.Rotation">
     <value>回転</value>
   </data>
-  <data name="Designer.Property.TextColor" xml:space="preserve">
+  <data name="Designer.Property.TextColor">
     <value>テキスト色</value>
   </data>
-  <data name="Designer.Property.Foreground" xml:space="preserve">
+  <data name="Designer.Property.Foreground">
     <value>前景色</value>
   </data>
-  <data name="Designer.Property.Background" xml:space="preserve">
+  <data name="Designer.Property.Background">
     <value>背景色</value>
   </data>
-  <data name="Designer.Graph.Validation.Description" xml:space="preserve">
+  <data name="Designer.Graph.Validation.Description">
     <value>開始ノード、接続、必須プロパティを確認します。グラフデータは削除せず、プレビューや保存前の修正を助けるための表示です。</value>
   </data>
-  <data name="Designer.Graph.Validation.GraphNoEnd" xml:space="preserve">
+  <data name="Designer.Graph.Validation.GraphNoEnd">
     <value>グラフに End ノードがありません。出力接続がない場合に実行が停止します。</value>
   </data>
-  <data name="Designer.Graph.Validation.MultipleEnds" xml:space="preserve">
+  <data name="Designer.Graph.Validation.MultipleEnds">
     <value>グラフに複数の End ノードがあります。各グラフに置ける End は 1 つだけです。</value>
   </data>
-  <data name="Designer.Graph.Validation.ParallelNoBranches" xml:space="preserve">
+  <data name="Designer.Graph.Validation.ParallelNoBranches">
     <value>Parallel に接続されたブランチがありません。Out が直ちに実行されます。</value>
   </data>
-  <data name="Designer.Graph.Validation.NumberFinite" xml:space="preserve">
+  <data name="Designer.Graph.Validation.NumberFinite">
     <value>有限の数値を入力してください。</value>
   </data>
-  <data name="Designer.Graph.Validation.NumberInteger" xml:space="preserve">
+  <data name="Designer.Graph.Validation.NumberInteger">
     <value>整数を入力してください。</value>
   </data>
-  <data name="Designer.Graph.Validation.NumberRange" xml:space="preserve">
+  <data name="Designer.Graph.Validation.NumberRange">
     <value>値は {0} から {1} の範囲で指定してください。</value>
   </data>
-  <data name="Designer.Graph.DeleteConnection" xml:space="preserve">
+  <data name="Designer.Graph.DeleteConnection">
     <value>接続を解除</value>
   </data>
-  <data name="Designer.Graph.Property.DurationMs.Description" xml:space="preserve">
+  <data name="Designer.Graph.Property.DurationMs.Description">
     <value>待機またはアニメーションの時間です。単位はミリ秒です。</value>
   </data>
-  <data name="Designer.Graph.Property.BranchCount.Description" xml:space="preserve">
+  <data name="Designer.Graph.Property.BranchCount.Description">
     <value>並列分岐ポートの数です。1 から 20 まで設定できます。</value>
   </data>
-  <data name="Designer.Graph.Property.Message.Description" xml:space="preserve">
+  <data name="Designer.Graph.Property.Message.Description">
     <value>プレビュー実行ログに出力するテキストです。</value>
   </data>
-  <data name="Designer.Graph.Property.Target.Description" xml:space="preserve">
+  <data name="Designer.Graph.Property.Target.Description">
     <value>アクションの対象です。Self はこのビヘイビアがバインドされているコントロール自身です。</value>
   </data>
-  <data name="Designer.Graph.Property.TargetLayer" xml:space="preserve">
+  <data name="Designer.Graph.Property.TargetLayer">
     <value>対象レイヤー</value>
   </data>
-  <data name="Designer.Graph.Property.TargetLayer.Description" xml:space="preserve">
+  <data name="Designer.Graph.Property.TargetLayer.Description">
     <value>プロパティをコントロール本体、内部コンテンツ、またはコントロールの上/下に生成する実行時 Rectangle レイヤーへ適用するかを選択します。</value>
   </data>
-  <data name="Designer.Graph.Property.PropertyName.Description" xml:space="preserve">
+  <data name="Designer.Graph.Property.PropertyName.Description">
     <value>設定、リセット、またはアニメーションするプロパティ名です。</value>
   </data>
-  <data name="Designer.Graph.Property.Value.Description" xml:space="preserve">
+  <data name="Designer.Graph.Property.Value.Description">
     <value>ノードの出力値、またはプロパティへ書き込む値です。</value>
   </data>
-  <data name="Designer.Graph.Property.From.Description" xml:space="preserve">
+  <data name="Designer.Graph.Property.From.Description">
     <value>アニメーション開始値です。Opacity の場合、0 は完全に透明な状態を表します。</value>
   </data>
-  <data name="Designer.Graph.Property.To.Description" xml:space="preserve">
+  <data name="Designer.Graph.Property.To.Description">
     <value>アニメーション終了値です。例えば Opacity の場合 1 で完全不透明にアニメーションします。</value>
   </data>
-  <data name="Designer.Graph.Property.Easing.Description" xml:space="preserve">
+  <data name="Designer.Graph.Property.Easing.Description">
     <value>後続のアニメーション実行時に使うイージング名です。</value>
   </data>
-  <data name="Designer.Graph.Property.Left.Description" xml:space="preserve">
+  <data name="Designer.Graph.Property.Left.Description">
     <value>比較の左側テキストです。複雑な発火条件は動作パネルで設定してください。</value>
   </data>
-  <data name="Designer.Graph.Property.Operator.Description" xml:space="preserve">
+  <data name="Designer.Graph.Property.Operator.Description">
     <value>動作トリガーフィルターと同じ意味のテキスト比較方法です。</value>
   </data>
-  <data name="Designer.Graph.Property.Right.Description" xml:space="preserve">
+  <data name="Designer.Graph.Property.Right.Description">
     <value>比較の右辺テキストです。</value>
   </data>
-  <data name="Designer.Graph.Property.Path.Description" xml:space="preserve">
+  <data name="Designer.Graph.Property.Path.Description">
     <value>パス値です。アニメーショングラフでは通常、イベントパスは不要です。</value>
   </data>
-  <data name="Designer.Graph.Property.WaitForCompletion.Description" xml:space="preserve">
+  <data name="Designer.Graph.Property.WaitForCompletion.Description">
     <value>有効にすると、アニメーションが完了してから次のノードを実行します。</value>
   </data>
-  <data name="Designer.Graph.Help" xml:space="preserve">
+  <data name="Designer.Graph.Help">
     <value>ヘルプ</value>
   </data>
-  <data name="Designer.Graph.Help.Concepts.Title" xml:space="preserve">
+  <data name="Designer.Graph.Help.Concepts.Title">
     <value>基本概念</value>
   </data>
-  <data name="Designer.Graph.Help.Concepts.Content" xml:space="preserve">
+  <data name="Designer.Graph.Help.Concepts.Content">
     <value>ノードグラフエディターは、コントロールアニメーションを組み立てるビジュアルツールです。各グラフはノードと接続で構成されます。\nノードはアクション（例：プロパティ設定、アニメーション再生）を表し、接続は実行順序を決定します。\nグラフは Start ノードから実行を開始し、End ノードで終了します。\n\nノードは 3 つのカテゴリに分類されます：フロー制御ノード（実行順序の制御）、アクションノード（コントロールプロパティの操作）、値ノード（定数データの提供）。</value>
   </data>
-  <data name="Designer.Graph.Help.Workflow.Title" xml:space="preserve">
+  <data name="Designer.Graph.Help.Workflow.Title">
     <value>操作方法</value>
   </data>
-  <data name="Designer.Graph.Help.Workflow.Content" xml:space="preserve">
+  <data name="Designer.Graph.Help.Workflow.Content">
     <value>左側のノードカタログからキャンバスにノードをドラッグするか、カタログ項目をダブルクリックして素早く追加します。\nノードの出力ポート（右側の青いマーク）から別のノードの入力ポート（左側のマーク）にドラッグして接続を作成します。\nノードカードをクリックして選択すると、右側のプロパティパネルに編集可能なプロパティが表示されます。\nDelete キーで選択中のノードや接続を削除します。ツールバーボタンでノードの複製や Start/End ノードの自動作成が可能です。\nカタログの検索ボックスにキーワードを入力してノードタイプを素早く見つけます。</value>
   </data>
-  <data name="Designer.Graph.Help.NodeTypes.Title" xml:space="preserve">
+  <data name="Designer.Graph.Help.NodeTypes.Title">
     <value>ノードタイプリファレンス</value>
   </data>
-  <data name="Designer.Graph.Help.NodeTypes.Content" xml:space="preserve">
+  <data name="Designer.Graph.Help.NodeTypes.Content">
     <value>フロー制御ノード：\nStart — グラフのエントリポイント。各グラフに 1 つだけ必要です。\nEnd — グラフ唯一の終了点です。複数の分岐を同じ End.In に接続できます。\nDelay — 指定ミリ秒数待機します。\nSequence — Step1 → Step2 → Step3 の順に実行します。\nParallel — Branch1、Branch2、Branch3 を同時に実行し、すべて完了すると続行します。\nIf — テキスト比較分岐ノード。Left と Right を比較し、一致する場合は True、そうでない場合は False に進みます。\n\nアクションノード：\nLog — 実行ログに 1 行出力します（デバッグ用）。\nSetProperty — コントロールのプロパティ値を設定します。例：Target=Self、PropertyName=Opacity、Value=0.5。\nResetProperty — コントロールのプロパティをリセットします。PropertyName には特定のプロパティ名または All を指定します。\nAnimateProperty — 対象コントロールにプロパティアニメーションを送信します。PropertyName、From、To、DurationMs、Easing を入力します。\n\n値ノード：\nNumber / String / Boolean / Color — 定数値ノード。プロパティパネルで編集可能です。\nControlReference — 対象コントロールの参照。Self はこのビヘイビアがバインドされているコントロール自身です。</value>
   </data>
-  <data name="Designer.Graph.Help.Preview.Title" xml:space="preserve">
+  <data name="Designer.Graph.Help.Preview.Title">
     <value>アニメーションのプレビュー</value>
   </data>
-  <data name="Designer.Graph.Help.Preview.Content" xml:space="preserve">
+  <data name="Designer.Graph.Help.Preview.Content">
     <value>グラフに 1 つの Start ノードと 1 つの End ノードがあることを確認します。\nツールバーの「プレビュー実行」をクリックして現在のグラフを実行します。アニメーションはデザイナー内の実際のコントロールに適用され、左下のプレビュービューポートにリアルタイム表示されます。\n右下の実行ログには各ステップの結果が表示され、問題の特定に役立ちます。\n「プレビュー停止」で実行を中断します。「現在のターゲットをリセット」または「すべてのプレビューをリセット」で変更されたコントロールプロパティを復元します。\nプレビュービューポートはリアルタイムレンダリングを使用するため、アニメーション効果を直接確認できます。</value>
   </data>
-  <data name="Designer.Graph.Help.LoopPreview.Title" xml:space="preserve">
+  <data name="Designer.Graph.Help.LoopPreview.Title">
     <value>ループプレビュー</value>
   </data>
-  <data name="Designer.Graph.Help.LoopPreview.Content" xml:space="preserve">
+  <data name="Designer.Graph.Help.LoopPreview.Content">
     <value>ループビヘイビアには 3 つのステージグラフがあります：開始グラフ、ループグラフ、終了グラフ。\n\nループアニメーションを1回プレビュー：開始グラフを実行 → ループグラフを1回実行 → 終了グラフを実行します。\nループアニメーションプレビュー開始：「ループアニメーションプレビュー停止」をクリックするまでループグラフを繰り返し実行します（RepeatCount と IntervalMs で制御）。\n停止アニメーションをプレビュー：終了グラフだけを実行し、停止段階の効果を確認します。\nプレビューをリセット：プレビューで変更されたすべてのコントロールプロパティを復元します。\n\nRepeatCount はループ回数を制御します。負の値にすると手動で停止するまで無限ループします。IntervalMs はループ間の待機時間を制御します。0 の場合でも、エディターが固まらないよう短い間隔を保ちます。</value>
   </data>
-  <data name="Designer.Graph.Help.Troubleshooting.Title" xml:space="preserve">
+  <data name="Designer.Graph.Help.Troubleshooting.Title">
     <value>よくある問題</value>
   </data>
-  <data name="Designer.Graph.Help.Troubleshooting.Content" xml:space="preserve">
+  <data name="Designer.Graph.Help.Troubleshooting.Content">
     <value>プレビューが実行されない：Start ノードがあるか、すべてのノードが正しく接続されているか、検証エラーがないかを確認してください。\nアニメーション効果が期待と異なる：AnimateProperty の From/To 値と DurationMs を確認し、イージング関数が正しく選択されているか確認してください。\nノードを接続できない：出力ポートタイプ（Flow/Value）が入力ポートタイプと一致していることを確認してください。Flow ポートは Flow ポートにのみ、Value ポートは Value ポートにのみ接続できます。\nグラフの実行が停止する：Delay ノードの待機時間が長すぎないか、Parallel の全ブランチに End ノードがあるかを確認してください。\nコントロールアニメーションが効かない：Target が正しいか（通常は Self）、PropertyName の綴りが正しいか（例：Opacity、Width、Height）を確認してください。</value>
   </data>
-  <data name="Designer.Graph.Help.Shortcuts.Title" xml:space="preserve">
+  <data name="Designer.Graph.Help.Shortcuts.Title">
     <value>キーボードショートカット</value>
   </data>
-  <data name="Designer.Graph.Help.Shortcut.Delete" xml:space="preserve">
+  <data name="Designer.Graph.Help.Shortcut.Delete">
     <value>Delete: 選択したノードまたは接続を削除</value>
   </data>
-  <data name="Designer.Graph.Help.Shortcut.Duplicate" xml:space="preserve">
+  <data name="Designer.Graph.Help.Shortcut.Duplicate">
     <value>Ctrl+D: 選択したノードを複製</value>
   </data>
-  <data name="Designer.Graph.Help.Shortcut.Connect" xml:space="preserve">
+  <data name="Designer.Graph.Help.Shortcut.Connect">
     <value>出力ポートから入力ポートへドラッグ: 接続を作成</value>
   </data>
-  <data name="Designer.Graph.Help.Title" xml:space="preserve">
+  <data name="Designer.Graph.Help.Title">
     <value>アニメーション編集の使い方</value>
   </data>
-  <data name="Designer.Graph.Node.Shortcuts" xml:space="preserve">
+  <data name="Designer.Graph.Node.Shortcuts">
     <value>ヘッダーをドラッグして移動。出力ポートから入力ポートへドラッグして接続。右クリックまたは Delete で削除。</value>
   </data>
-  <data name="Designer.Graph.NodeCatalog.DragHint" xml:space="preserve">
+  <data name="Designer.Graph.NodeCatalog.DragHint">
     <value>このノードを中央のキャンバスへドラッグして追加します。</value>
   </data>
-  <data name="Designer.Graph.Undo" xml:space="preserve">
+  <data name="Designer.Graph.Undo">
     <value>元に戻す</value>
   </data>
-  <data name="Designer.Graph.Redo" xml:space="preserve">
+  <data name="Designer.Graph.Redo">
     <value>やり直す</value>
   </data>
-  <data name="Designer.Graph.Save" xml:space="preserve">
+  <data name="Designer.Graph.Save">
     <value>保存</value>
   </data>
-  <data name="Designer.Graph.ToolTipUndo" xml:space="preserve">
+  <data name="Designer.Graph.ToolTipUndo">
     <value>元に戻す (Ctrl+Z)</value>
   </data>
-  <data name="Designer.Graph.ToolTipRedo" xml:space="preserve">
+  <data name="Designer.Graph.ToolTipRedo">
     <value>やり直す (Ctrl+Y)</value>
   </data>
-  <data name="Designer.Graph.ToolTipSave" xml:space="preserve">
+  <data name="Designer.Graph.ToolTipSave">
     <value>保存 (Ctrl+S)</value>
   </data>
-  <data name="Designer.Property.DisplayMode" xml:space="preserve">
+  <data name="Designer.Property.DisplayMode">
     <value>表示モード</value>
   </data>
-  <data name="Designer.Property.VerticalLanguageMode" xml:space="preserve">
+  <data name="Designer.Property.VerticalLanguageMode">
     <value>縦書き言語モード</value>
   </data>
-  <data name="Designer.Property.LatinVerticalMode" xml:space="preserve">
+  <data name="Designer.Property.LatinVerticalMode">
     <value>ラテン縦書きモード</value>
   </data>
-  <data name="Designer.Property.VerticalDirection" xml:space="preserve">
+  <data name="Designer.Property.VerticalDirection">
     <value>方向</value>
   </data>
-  <data name="Designer.Property.NumberStyle" xml:space="preserve">
+  <data name="Designer.Property.NumberStyle">
     <value>数字スタイル</value>
   </data>
-  <data name="Designer.Property.DisplayLanguage" xml:space="preserve">
+  <data name="Designer.Property.DisplayLanguage">
     <value>表示言語</value>
   </data>
-  <data name="Designer.Property.VerticalTextSpacing" xml:space="preserve">
+  <data name="Designer.Property.VerticalTextSpacing">
     <value>文字間隔</value>
   </data>
-  <data name="Designer.Property.GroupSpacing" xml:space="preserve">
+  <data name="Designer.Property.GroupSpacing">
     <value>グループ間隔</value>
   </data>
-  <data name="Designer.Property.ShowSeparator" xml:space="preserve">
+  <data name="Designer.Property.ShowSeparator">
     <value>区切り線を表示</value>
   </data>
-  <data name="Designer.Property.SeparatorThickness" xml:space="preserve">
+  <data name="Designer.Property.SeparatorThickness">
     <value>区切り線の太さ</value>
   </data>
-  <data name="Designer.Property.SeparatorColor" xml:space="preserve">
+  <data name="Designer.Property.SeparatorColor">
     <value>区切り線の色</value>
   </data>
-  <data name="Designer.Property.BackgroundColor" xml:space="preserve">
+  <data name="Designer.Property.BackgroundColor">
     <value>背景色</value>
   </data>
-  <data name="Designer.Property.PaddingLeft" xml:space="preserve">
+  <data name="Designer.Property.PaddingLeft">
     <value>左パディング</value>
   </data>
-  <data name="Designer.Property.PaddingTop" xml:space="preserve">
+  <data name="Designer.Property.PaddingTop">
     <value>上パディング</value>
   </data>
-  <data name="Designer.Property.PaddingRight" xml:space="preserve">
+  <data name="Designer.Property.PaddingRight">
     <value>右パディング</value>
   </data>
-  <data name="Designer.Property.PaddingBottom" xml:space="preserve">
+  <data name="Designer.Property.PaddingBottom">
     <value>下パディング</value>
   </data>
-  <data name="Designer.Option.DisplayMode.Inline" xml:space="preserve">
+  <data name="Designer.Option.DisplayMode.Inline">
     <value>一行</value>
   </data>
-  <data name="Designer.Option.DisplayMode.TwoLine" xml:space="preserve">
+  <data name="Designer.Option.DisplayMode.TwoLine">
     <value>二行</value>
   </data>
-  <data name="Designer.Option.DisplayMode.HorizontalGameOnly" xml:space="preserve">
+  <data name="Designer.Option.DisplayMode.HorizontalGameOnly">
     <value>横組みゲーム数</value>
   </data>
-  <data name="Designer.Option.DisplayMode.HorizontalHalfOnly" xml:space="preserve">
+  <data name="Designer.Option.DisplayMode.HorizontalHalfOnly">
     <value>横組みハーフ</value>
   </data>
-  <data name="Designer.Option.DisplayMode.Vertical" xml:space="preserve">
+  <data name="Designer.Option.DisplayMode.Vertical">
     <value>縦書き</value>
   </data>
-  <data name="Designer.Option.DisplayMode.VerticalTwoLine" xml:space="preserve">
+  <data name="Designer.Option.DisplayMode.VerticalTwoLine">
     <value>縦書き二行</value>
   </data>
-  <data name="Designer.Option.DisplayMode.VerticalHalfOnly" xml:space="preserve">
+  <data name="Designer.Option.DisplayMode.VerticalHalfOnly">
     <value>縦書き前半/後半のみ</value>
   </data>
-  <data name="Designer.Option.DisplayMode.VerticalGameOnly" xml:space="preserve">
+  <data name="Designer.Option.DisplayMode.VerticalGameOnly">
     <value>縦書きゲームのみ</value>
   </data>
-  <data name="Designer.Option.DisplayMode.VerticalGameAndHalf" xml:space="preserve">
+  <data name="Designer.Option.DisplayMode.VerticalGameAndHalf">
     <value>縦書きゲーム+前半/後半</value>
   </data>
-  <data name="Designer.Option.DisplayMode.VerticalSeparatedGameAndHalf" xml:space="preserve">
+  <data name="Designer.Option.DisplayMode.VerticalSeparatedGameAndHalf">
     <value>縦書き分離ゲーム+前半/後半</value>
   </data>
-  <data name="Designer.Option.DisplayMode.RibbonGameOnly" xml:space="preserve">
+  <data name="Designer.Option.DisplayMode.RibbonGameOnly">
     <value>Ribbon ゲームのみ</value>
   </data>
-  <data name="Designer.Option.VerticalLanguageMode.Auto" xml:space="preserve">
+  <data name="Designer.Option.VerticalLanguageMode.Auto">
     <value>自動</value>
   </data>
-  <data name="Designer.Option.VerticalLanguageMode.Upright" xml:space="preserve">
+  <data name="Designer.Option.VerticalLanguageMode.Upright">
     <value>縦書き正立</value>
   </data>
-  <data name="Designer.Option.VerticalLanguageMode.RotateBlock" xml:space="preserve">
+  <data name="Designer.Option.VerticalLanguageMode.RotateBlock">
     <value>ブロック回転</value>
   </data>
-  <data name="Designer.Option.VerticalLanguageMode.StackCharacters" xml:space="preserve">
+  <data name="Designer.Option.VerticalLanguageMode.StackCharacters">
     <value>文字積み重ね</value>
   </data>
-  <data name="Designer.Option.LatinVerticalMode.RotateBlock" xml:space="preserve">
+  <data name="Designer.Option.LatinVerticalMode.RotateBlock">
     <value>ブロック回転</value>
   </data>
-  <data name="Designer.Option.LatinVerticalMode.StackCharacters" xml:space="preserve">
+  <data name="Designer.Option.LatinVerticalMode.StackCharacters">
     <value>文字積み重ね</value>
   </data>
-  <data name="Designer.Option.NumberStyle.Auto" xml:space="preserve">
+  <data name="Designer.Option.NumberStyle.Auto">
     <value>自動</value>
   </data>
-  <data name="Designer.Option.NumberStyle.Arabic" xml:space="preserve">
+  <data name="Designer.Option.NumberStyle.Arabic">
     <value>アラビア数字</value>
   </data>
-  <data name="Designer.Option.NumberStyle.CjkNumeral" xml:space="preserve">
+  <data name="Designer.Option.NumberStyle.CjkNumeral">
     <value>CJK 数字</value>
   </data>
-  <data name="Designer.Option.VerticalDirection.Auto" xml:space="preserve">
+  <data name="Designer.Option.VerticalDirection.Auto">
     <value>自動</value>
   </data>
-  <data name="Designer.Option.VerticalDirection.FacingLeft" xml:space="preserve">
+  <data name="Designer.Option.VerticalDirection.FacingLeft">
     <value>左向き</value>
   </data>
-  <data name="Designer.Option.VerticalDirection.FacingRight" xml:space="preserve">
+  <data name="Designer.Option.VerticalDirection.FacingRight">
     <value>右向き</value>
   </data>
-  <data name="Designer.Option.DisplayLanguage.FollowApp" xml:space="preserve">
+  <data name="Designer.Option.DisplayLanguage.FollowApp">
     <value>アプリに従う</value>
   </data>
-  <data name="Designer.Graph.Connection.IncompatibleTypes" xml:space="preserve">
+  <data name="Designer.Graph.Connection.IncompatibleTypes">
     <value>ポートタイプが互換性がありません</value>
   </data>
-  <data name="Designer.Graph.Help.Content" xml:space="preserve">
-    <value>この編集器は、動作が発火した後に実行するプロパティアニメーションの流れだけを編集します。イベント、トリガー、条件は動作パネルで設定してください。
-
-基本操作：左のノード一覧からキャンバスへドラッグして追加します。ノードのヘッダーをドラッグして移動します。出力ポートから入力ポートへドラッグして接続します。接続中央の × で解除します。空白キャンバスを左ボタンまたは右ボタンでドラッグすると表示位置を移動できます。ノードを選択すると右側でプロパティを編集できます。右クリックまたは Delete でノードを削除します。
-
-フロー：Start は入口で、通常 1 つだけ置きます。End は唯一の終了点で、複数の分岐を End.In に接続できます。Delay は指定ミリ秒待機します。Sequence は Step1、Step2、Step3 を順番に実行します。Parallel は Branch1、Branch2、Branch3 を同時に実行し、すべての完了を待ちます。If はテキスト比較の高度な分岐で、単純なプロパティアニメーションでは通常不要です。
-
-アクション：Log はプレビューログに出力します。SetProperty はプロパティ値を設定します。例：Target=Self、PropertyName=Opacity、Value=0.5。ResetProperty はプロパティをリセットします。PropertyName は具体的なプロパティまたは All です。AnimateProperty はプロパティアニメーションを再生します。例：Target=Self、PropertyName=Opacity、From=0、To=1、DurationMs=300、Easing=Linear。プレビューでは対象スコープがある場合、これらのアクションがデザイナー上のプレビューコントロールへ適用されます。
-
-値ノード：Number/String/Boolean/Color は定数値を保存します。ControlReference は対象参照で、現在は Self が主な値です。</value>
+  <data name="Designer.Graph.Help.Content">
+    <value>この編集器は、動作が発火した後に実行するプロパティアニメーションの流れだけを編集します。イベント、トリガー、条件は動作パネルで設定してください。  基本操作：左のノード一覧からキャンバスへドラッグして追加します。ノードのヘッダーをドラッグして移動します。出力ポートから入力ポートへドラッグして接続します。接続中央の × で解除します。空白キャンバスを左ボタンまたは右ボタンでドラッグすると表示位置を移動できます。ノードを選択すると右側でプロパティを編集できます。右クリックまたは Delete でノードを削除します。  フロー：Start は入口で、通常 1 つだけ置きます。End は唯一の終了点で、複数の分岐を End.In に接続できます。Delay は指定ミリ秒待機します。Sequence は Step1、Step2、Step3 を順番に実行します。Parallel は Branch1、Branch2、Branch3 を同時に実行し、すべての完了を待ちます。If はテキスト比較の高度な分岐で、単純なプロパティアニメーションでは通常不要です。  アクション：Log はプレビューログに出力します。SetProperty はプロパティ値を設定します。例：Target=Self、PropertyName=Opacity、Value=0.5。ResetProperty はプロパティをリセットします。PropertyName は具体的なプロパティまたは All です。AnimateProperty はプロパティアニメーションを再生します。例：Target=Self、PropertyName=Opacity、From=0、To=1、DurationMs=300、Easing=Linear。プレビューでは対象スコープがある場合、これらのアクションがデザイナー上のプレビューコントロールへ適用されます。  値ノード：Number/String/Boolean/Color は定数値を保存します。ControlReference は対象参照で、現在は Self が主な値です。</value>
   </data>
-  <data name="Designer.Graph.Port.ValueType.Boolean" xml:space="preserve">
+  <data name="Designer.Graph.Port.ValueType.Boolean">
     <value>真偽値</value>
   </data>
-  <data name="Designer.Graph.Port.ValueType.Color" xml:space="preserve">
+  <data name="Designer.Graph.Port.ValueType.Color">
     <value>色</value>
   </data>
-  <data name="Designer.Graph.Port.ValueType.Control" xml:space="preserve">
+  <data name="Designer.Graph.Port.ValueType.Control">
     <value>コントロール参照</value>
   </data>
-  <data name="Designer.Graph.Port.ValueType.Number" xml:space="preserve">
+  <data name="Designer.Graph.Port.ValueType.Number">
     <value>数値</value>
   </data>
-  <data name="Designer.Graph.Port.ValueType.Object" xml:space="preserve">
+  <data name="Designer.Graph.Port.ValueType.Object">
     <value>任意</value>
   </data>
-  <data name="Designer.Graph.Port.ValueType.String" xml:space="preserve">
+  <data name="Designer.Graph.Port.ValueType.String">
     <value>テキスト</value>
   </data>
-  <data name="Designer.Graph.PortKind.Flow" xml:space="preserve">
+  <data name="Designer.Graph.PortKind.Flow">
     <value>フロー</value>
   </data>
-  <data name="Designer.Graph.PortKind.Value" xml:space="preserve">
+  <data name="Designer.Graph.PortKind.Value">
     <value>値</value>
   </data>
-  <data name="Designer.Graph.Tooltip.CompatibleHint" xml:space="preserve">
+  <data name="Designer.Graph.Tooltip.CompatibleHint">
     <value>同じタイプのポートのみ接続可能</value>
   </data>
-  <data name="Designer.Graph.Tooltip.PortKind" xml:space="preserve">
+  <data name="Designer.Graph.Tooltip.PortKind">
     <value>ポート種類</value>
   </data>
-  <data name="Designer.Graph.Tooltip.PortType" xml:space="preserve">
+  <data name="Designer.Graph.Tooltip.PortType">
     <value>値タイプ</value>
   </data>
-  <data name="Designer.Graph.Target.LockOverlay" xml:space="preserve">
+  <data name="Designer.Graph.Target.LockOverlay">
     <value>LockOverlay</value>
   </data>
-  <data name="Designer.Graph.Target.PickingBorder" xml:space="preserve">
+  <data name="Designer.Graph.Target.PickingBorder">
     <value>PickingBorder</value>
   </data>
-  <data name="Designer.Graph.Target.FormatPart" xml:space="preserve">
+  <data name="Designer.Graph.Target.FormatPart">
     <value>{0}.{1}</value>
   </data>
-  <data name="Designer.Behaviors.FilterHint.Action" xml:space="preserve">
+  <data name="Designer.Behaviors.FilterHint.Action">
     <value>PickSur、PickHun、BanSur などの enum 値を使用してください。</value>
   </data>
-  <data name="Designer.Behaviors.FilterHint.Indexes" xml:space="preserve">
+  <data name="Designer.Behaviors.FilterHint.Indexes">
     <value>文字列 Contains フィルターには IndexesText / PreviousIndexesText を推奨します。</value>
   </data>
-  <data name="Designer.Behaviors.FilterHint.IndexesText" xml:space="preserve">
+  <data name="Designer.Behaviors.FilterHint.IndexesText">
     <value>[0] または [1, 2] 形式です。索引 0 の一致には Contains 0 を使います。</value>
   </data>
-  <data name="Designer.Behaviors.MoreOptions" xml:space="preserve">
+  <data name="Designer.Behaviors.MoreOptions">
     <value>その他の動作操作</value>
   </data>
-  <data name="Designer.Behaviors.TargetMissingPickingBorder" xml:space="preserve">
+  <data name="Designer.Behaviors.TargetMissingPickingBorder">
     <value>対象コントロールで選択枠が有効になっていません。</value>
   </data>
-  <data name="Designer.Behaviors.TargetMissingLockOverlay" xml:space="preserve">
+  <data name="Designer.Behaviors.TargetMissingLockOverlay">
     <value>対象コントロールで禁止ロック / ロックオーバーレイが有効になっていません。</value>
   </data>
-  <data name="Designer.Behaviors.TargetIndexUnavailable" xml:space="preserve">
+  <data name="Designer.Behaviors.TargetIndexUnavailable">
     <value>対象コントロールのインデックスを推測できません。</value>
   </data>
-  <data name="Designer.Behaviors.SourceIndexUnavailable" xml:space="preserve">
+  <data name="Designer.Behaviors.SourceIndexUnavailable">
     <value>コピー元コントロールのインデックスを推測できません。</value>
   </data>
-  <data name="Designer.Behaviors.DefaultName" xml:space="preserve">
+  <data name="Designer.Behaviors.DefaultName">
     <value>動作</value>
   </data>
-  <data name="Designer.Behaviors.CopyNameFormat" xml:space="preserve">
+  <data name="Designer.Behaviors.CopyNameFormat">
     <value>{0} のコピー</value>
   </data>
-  <data name="Designer.Behaviors.MissingAnimationPart" xml:space="preserve">
+  <data name="Designer.Behaviors.MissingAnimationPart">
     <value>コントロール {1} にアニメーション部品「{0}」がありません。</value>
   </data>
-  <data name="Designer.Behaviors.AddTransition" xml:space="preserve">
+  <data name="Designer.Behaviors.AddTransition">
     <value>トランジションを追加</value>
   </data>
-  <data name="Designer.Behaviors.Transition" xml:space="preserve">
+  <data name="Designer.Behaviors.Transition">
     <value>トランジション</value>
   </data>
-  <data name="Designer.Behaviors.NewTransition" xml:space="preserve">
+  <data name="Designer.Behaviors.NewTransition">
     <value>新しいトランジション動作</value>
   </data>
-  <data name="Designer.Behaviors.TransitionTrigger" xml:space="preserve">
+  <data name="Designer.Behaviors.TransitionTrigger">
     <value>トランジショントリガー</value>
   </data>
-  <data name="Designer.Behaviors.TransitionHelp" xml:space="preserve">
+  <data name="Designer.Behaviors.TransitionHelp">
     <value>ExitGraph はデータ変更前に実行されます。EnterGraph はデータ変更後に実行されます。</value>
   </data>
-  <data name="Designer.Behaviors.ExitGraph" xml:space="preserve">
+  <data name="Designer.Behaviors.ExitGraph">
     <value>退場アニメーション</value>
   </data>
-  <data name="Designer.Behaviors.EnterGraph" xml:space="preserve">
+  <data name="Designer.Behaviors.EnterGraph">
     <value>登場アニメーション</value>
   </data>
-  <data name="Designer.Behaviors.Event.CharacterPick" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.CharacterPick">
     <value>キャラクター選択トランジション</value>
   </data>
-  <data name="Designer.Behaviors.Event.CharacterPick.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.CharacterPick.Description">
     <value>キャラクター選択の確定前後にトランジショングラフを実行します。</value>
   </data>
-  <data name="Designer.Behaviors.Event.CharacterSwap" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.CharacterSwap">
     <value>サバイバー交換トランジション</value>
   </data>
-  <data name="Designer.Behaviors.Event.CharacterSwap.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.CharacterSwap.Description">
     <value>サバイバーのキャラクター交換確定前後にトランジショングラフを実行します。</value>
   </data>
-  <data name="Designer.Behaviors.Payload.TargetBehaviorGuid" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.TargetBehaviorGuid">
     <value>対象動作 ID</value>
   </data>
-  <data name="Designer.Behaviors.Payload.OldCharacterId" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.OldCharacterId">
     <value>旧キャラクター ID</value>
   </data>
-  <data name="Designer.Behaviors.Payload.NewCharacterId" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.NewCharacterId">
     <value>新キャラクター ID</value>
   </data>
-  <data name="Designer.Behaviors.Payload.HasOldCharacter" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.HasOldCharacter">
     <value>旧キャラクターあり</value>
   </data>
-  <data name="Designer.Behaviors.Payload.HasNewCharacter" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.HasNewCharacter">
     <value>新キャラクターあり</value>
   </data>
-  <data name="Designer.Behaviors.Payload.SourceIndex" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.SourceIndex">
     <value>交換元インデックス</value>
   </data>
-  <data name="Designer.Behaviors.Payload.TargetIndex" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.TargetIndex">
     <value>交換先インデックス</value>
   </data>
-  <data name="Designer.Behaviors.Payload.SourceBehaviorGuid" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.SourceBehaviorGuid">
     <value>交換元動作 ID</value>
   </data>
-  <data name="Designer.Behaviors.StopTriggers" xml:space="preserve">
+  <data name="Designer.Behaviors.StopTriggers">
     <value>停止トリガー</value>
   </data>
-  <data name="Designer.Behaviors.StopTrigger" xml:space="preserve">
+  <data name="Designer.Behaviors.StopTrigger">
     <value>停止トリガー</value>
   </data>
-  <data name="Designer.Behaviors.AddStopTrigger" xml:space="preserve">
+  <data name="Designer.Behaviors.AddStopTrigger">
     <value>停止トリガーを追加</value>
   </data>
-  <data name="Designer.Behaviors.StopTriggersHelp" xml:space="preserve">
+  <data name="Designer.Behaviors.StopTriggersHelp">
     <value>いずれかの停止トリガーが一致するとループが停止し、StopGraph が実行されます。</value>
   </data>
-  <data name="Designer.Behaviors.StopAnimation" xml:space="preserve">
+  <data name="Designer.Behaviors.StopAnimation">
     <value>停止アニメーション</value>
   </data>
-  <data name="Designer.Behaviors.Event.GuidanceCancelled" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.GuidanceCancelled">
     <value>ガイダンス取消</value>
   </data>
-  <data name="Designer.Behaviors.Event.GuidanceCancelled.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.GuidanceCancelled.Description">
     <value>ガイダンスがユーザーにより取り消された時に発生します。</value>
   </data>
-  <data name="Designer.Behaviors.Payload.Reason" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.Reason">
     <value>理由</value>
   </data>
-  <data name="Designer.Behaviors.Payload.Camp.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.Camp.Description">
     <value>キャラクターの陣営です。</value>
   </data>
-  <data name="Designer.Behaviors.Payload.PlayerIndex.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.PlayerIndex.Description">
     <value>選択に対応するプレイヤーインデックスです。</value>
   </data>
-  <data name="Designer.Behaviors.Payload.TargetBehaviorGuid.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.TargetBehaviorGuid.Description">
     <value>対象コントロールの安定した動作 ID です。</value>
   </data>
-  <data name="Designer.Behaviors.Payload.OldCharacterId.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.OldCharacterId.Description">
     <value>変更前のキャラクター ID です。</value>
   </data>
-  <data name="Designer.Behaviors.Payload.NewCharacterId.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.NewCharacterId.Description">
     <value>変更後のキャラクター ID です。</value>
   </data>
-  <data name="Designer.Behaviors.Payload.HasOldCharacter.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.HasOldCharacter.Description">
     <value>変更前にキャラクターが存在したかどうかです。</value>
   </data>
-  <data name="Designer.Behaviors.Payload.HasNewCharacter.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.HasNewCharacter.Description">
     <value>変更後にキャラクターが存在するかどうかです。</value>
   </data>
-  <data name="Designer.Behaviors.Payload.SourceIndex.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.SourceIndex.Description">
     <value>交換元プレイヤーのインデックスです。</value>
   </data>
-  <data name="Designer.Behaviors.Payload.TargetIndex.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.TargetIndex.Description">
     <value>交換先プレイヤーのインデックスです。</value>
   </data>
-  <data name="Designer.Behaviors.Payload.SourceBehaviorGuid.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.SourceBehaviorGuid.Description">
     <value>交換元コントロールの安定した動作 ID です。</value>
   </data>
-  <data name="Designer.Graph.Condition.If" xml:space="preserve">
+  <data name="Designer.Graph.Condition.If">
     <value>もし</value>
   </data>
-  <data name="Designer.Graph.Preview.MissingEventContext" xml:space="preserve">
+  <data name="Designer.Graph.Preview.MissingEventContext">
     <value>現在のプレビューにはイベントコンテキストがないため、{0} を解決できません。</value>
+  </data>
+  <data name="Designer.AnimationParts.Title">
+    <value>アニメーション部品</value>
+  </data>
+  <data name="Designer.AnimationParts.DefaultName">
+    <value>アニメーション部品</value>
+  </data>
+  <data name="Designer.AnimationParts.Add">
+    <value>アニメーション部品を追加</value>
+  </data>
+  <data name="Designer.AnimationParts.Remove">
+    <value>アニメーション部品を削除</value>
+  </data>
+  <data name="Designer.AnimationParts.Apply">
+    <value>アニメーション部品の変更を適用</value>
+  </data>
+  <data name="Designer.AnimationParts.InvalidName">
+    <value>アニメーション部品名は必須で、コントロール内で一意である必要があります。</value>
+  </data>
+  <data name="Designer.AnimationParts.Description">
+    <value>アニメーション部品は選択中のコントロール内部に付属するアニメーション補助部品です。独立したキャンバスコントロールとしては表示されません。</value>
+  </data>
+  <data name="Designer.AnimationParts.Empty">
+    <value>このコントロールにはまだアニメーション部品がありません</value>
+  </data>
+  <data name="Designer.AnimationParts.EditorTitle">
+    <value>部品設定</value>
+  </data>
+  <data name="Designer.AnimationParts.NamePlaceholder">
+    <value>例: scanLine、shine、wipeBar</value>
+  </data>
+  <data name="Designer.AnimationParts.Kind">
+    <value>種類</value>
+  </data>
+  <data name="Designer.AnimationParts.Kind.Rectangle">
+    <value>長方形</value>
+  </data>
+  <data name="Designer.AnimationParts.Kind.Border">
+    <value>枠線</value>
+  </data>
+  <data name="Designer.AnimationParts.Kind.Image">
+    <value>画像</value>
+  </data>
+  <data name="Designer.AnimationParts.Layer">
+    <value>描画レイヤー</value>
+  </data>
+  <data name="Designer.AnimationParts.Layer.AboveContent">
+    <value>コンテンツの上</value>
+  </data>
+  <data name="Designer.AnimationParts.Layer.BelowContent">
+    <value>コンテンツの下</value>
+  </data>
+  <data name="Designer.AnimationParts.LayoutSection">
+    <value>レイアウトと初期状態</value>
+  </data>
+  <data name="Designer.AnimationParts.AppearanceSection">
+    <value>外観</value>
+  </data>
+  <data name="Designer.AnimationParts.SizePlaceholder">
+    <value>ピクセル値または割合（例: 100%）</value>
+  </data>
+  <data name="Designer.AnimationParts.Fill">
+    <value>塗りつぶし色</value>
+  </data>
+  <data name="Designer.AnimationParts.Stroke">
+    <value>線の色</value>
+  </data>
+  <data name="Designer.AnimationParts.Background">
+    <value>背景色</value>
+  </data>
+  <data name="Designer.AnimationParts.BorderBrush">
+    <value>枠線の色</value>
+  </data>
+  <data name="Designer.AnimationParts.BorderThickness">
+    <value>枠線の太さ</value>
+  </data>
+  <data name="Designer.AnimationParts.StaticImage">
+    <value>静止画像</value>
+  </data>
+  <data name="Designer.AnimationParts.NoImageSelected">
+    <value>画像が選択されていません</value>
+  </data>
+  <data name="Designer.AnimationParts.ImagePathPlaceholder">
+    <value>レイアウトパッケージ内の画像リソースパス</value>
+  </data>
+  <data name="Designer.AnimationParts.IsHitTestVisible">
+    <value>部品をマウスのヒットテスト対象にする</value>
+  </data>
+  <data name="Designer.AnimationParts.Validation.FixErrors">
+    <value>適用する前に、アニメーション部品設定の入力エラーを修正してください。</value>
+  </data>
+  <data name="Designer.AnimationParts.Validation.Size">
+    <value>4 または 100% のような、0 以上のピクセル値または割合を入力してください。</value>
+  </data>
+  <data name="Designer.AnimationParts.Validation.Number">
+    <value>有効な数値を入力してください。</value>
+  </data>
+  <data name="Designer.AnimationParts.Validation.NonNegativeNumber">
+    <value>0 以上の数値を入力してください。</value>
+  </data>
+  <data name="Designer.AnimationParts.Validation.Opacity">
+    <value>不透明度には 0 から 1 の数値を入力してください。</value>
+  </data>
+  <data name="Designer.AnimationParts.Validation.Integer">
+    <value>有効な整数を入力してください。</value>
+  </data>
+  <data name="Designer.AnimationParts.Validation.Color">
+    <value>#FFFFFFFF または White のような有効な色を入力してください。</value>
+  </data>
+  <data name="Designer.AnimationParts.EffectSection">
+    <value>視覚効果</value>
+  </data>
+  <data name="Designer.AnimationParts.EffectKind">
+    <value>効果タイプ</value>
+  </data>
+  <data name="Designer.AnimationParts.EffectKind.None">
+    <value>なし</value>
+  </data>
+  <data name="Designer.AnimationParts.EffectKind.Glow">
+    <value>グロー</value>
+  </data>
+  <data name="Designer.AnimationParts.EffectKind.DropShadow">
+    <value>ドロップシャドウ</value>
+  </data>
+  <data name="Designer.AnimationParts.EffectColor">
+    <value>効果色</value>
+  </data>
+  <data name="Designer.AnimationParts.EffectOpacity">
+    <value>効果の不透明度</value>
+  </data>
+  <data name="Designer.AnimationParts.EffectBlurRadius">
+    <value>ぼかし半径</value>
+  </data>
+  <data name="Designer.AnimationParts.EffectShadowDepth">
+    <value>影の距離</value>
+  </data>
+  <data name="Designer.AnimationParts.EffectDirection">
+    <value>方向</value>
+  </data>
+  <data name="Zoom">
+    <value>ズーム</value>
+  </data>
+  <data name="ZoomIn">
+    <value>拡大</value>
+  </data>
+  <data name="ZoomOut">
+    <value>縮小</value>
+  </data>
+  <data name="BrowseFile">
+    <value>ファイルを参照</value>
+  </data>
+  <data name="SaveAndApply">
+    <value>保存して適用</value>
+  </data>
+  <data name="BehaviorEventDebugger">
+    <value>動作イベントデバッガー</value>
+  </data>
+  <data name="CanvasName">
+    <value>キャンバス名</value>
+  </data>
+  <data name="CopyConditionPath">
+    <value>条件パスをコピー</value>
+  </data>
+  <data name="CopyContainsFilter">
+    <value>Contains フィルターをコピー</value>
+  </data>
+  <data name="CopyEqualsFilter">
+    <value>Equals フィルターをコピー</value>
+  </data>
+  <data name="CopyEventJson">
+    <value>イベント JSON をコピー</value>
+  </data>
+  <data name="CopyIfCondition">
+    <value>IF 条件をコピー</value>
+  </data>
+  <data name="CopyPath">
+    <value>パスをコピー</value>
+  </data>
+  <data name="CopyValue">
+    <value>値をコピー</value>
+  </data>
+  <data name="DisplayValue">
+    <value>表示値</value>
+  </data>
+  <data name="EnableListening">
+    <value>リスニングを有効化</value>
+  </data>
+  <data name="EventType">
+    <value>イベントタイプ</value>
+  </data>
+  <data name="ExportJson">
+    <value>JSON をエクスポート</value>
+  </data>
+  <data name="Filter">
+    <value>フィルター</value>
+  </data>
+  <data name="FilterText">
+    <value>フィルター値</value>
+  </data>
+  <data name="MaxRecords">
+    <value>最大レコード数</value>
+  </data>
+  <data name="Pause">
+    <value>一時停止</value>
+  </data>
+  <data name="PayloadSummary">
+    <value>Payload 概要</value>
+  </data>
+  <data name="RawValue">
+    <value>Raw 値</value>
+  </data>
+  <data name="WindowId">
+    <value>ウィンドウ ID</value>
+  </data>
+  <data name="WindowType">
+    <value>ウィンドウタイプ</value>
+  </data>
+  <data name="Designer.LayoutReset" xml:space="preserve">
+    <value>レイアウトを組み込みの既定値に戻しました。</value>
+  </data>
+  <data name="Designer.FormatError" xml:space="preserve">
+    <value>形式エラー</value>
+  </data>
+  <data name="DiscardChanges">
+    <value>変更を破棄</value>
   </data>
 </root>

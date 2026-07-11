@@ -1,1323 +1,1016 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype">text/microsoft-resx</resheader>
   <resheader name="version">2.0</resheader>
   <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
   <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
-  <data name="CurrentBan" xml:space="preserve">
-    <value>当局禁用</value>
-  </data>
-  <data name="GlobalBan" xml:space="preserve">
-    <value>全局禁用</value>
-  </data>
-  <data name="ExportUIConfig" xml:space="preserve">
+<data name="ExportUIConfig">
     <value>导出UI配置</value>
   </data>
-  <data name="ImportUIConfig" xml:space="preserve">
+  <data name="ImportUIConfig">
     <value>导入UI配置</value>
   </data>
-  <data name="EditImage" xml:space="preserve">
+  <data name="EditImage">
     <value>修改图片</value>
   </data>
-  <data name="CurrentBanLock" xml:space="preserve">
+  <data name="CurrentBanLock">
     <value>当局禁用锁</value>
   </data>
-  <data name="GlobalBanLock" xml:space="preserve">
+  <data name="GlobalBanLock">
     <value>全局禁用锁</value>
   </data>
-  <data name="BPWindowImages" xml:space="preserve">
+  <data name="BPWindowImages">
     <value>BP背景</value>
   </data>
-  <data name="SaveAndApply" xml:space="preserve">
-    <value>保存并应用</value>
-  </data>
-  <data name="EditTextProperty" xml:space="preserve">
+<data name="EditTextProperty">
     <value>编辑文字属性</value>
   </data>
-  <data name="ResetAllPersonalizationSettingsOfTheWindow" xml:space="preserve">
+  <data name="ResetAllPersonalizationSettingsOfTheWindow">
     <value>重置该窗口全部个性化设置</value>
   </data>
-  <data name="CustomizeIntercludeWindow" xml:space="preserve">
+  <data name="CustomizeIntercludeWindow">
     <value>自定义过场画面窗口</value>
   </data>
-  <data name="ColorOfTalentAndTraitIcon" xml:space="preserve">
+  <data name="ColorOfTalentAndTraitIcon">
     <value>天赋与辅助特质图标颜色</value>
   </data>
-  <data name="CustomizeScoreWindow" xml:space="preserve">
+  <data name="CustomizeScoreWindow">
     <value>自定义比分窗口</value>
   </data>
-  <data name="SurvivorScoreInGame" xml:space="preserve">
+  <data name="SurvivorScoreInGame">
     <value>游戏内求生者比分</value>
   </data>
-  <data name="HunterScoreInGame" xml:space="preserve">
+  <data name="HunterScoreInGame">
     <value>游戏内监管者比分</value>
   </data>
-  <data name="CampIconColorInScoreStatistics" xml:space="preserve">
+  <data name="CampIconColorInScoreStatistics">
     <value>分数统计的阵营图标颜色</value>
   </data>
-  <data name="ShiftDistanceOfTotalScoreWhenSwitchingBetweenBO3AndBO5Mode" xml:space="preserve">
+  <data name="ShiftDistanceOfTotalScoreWhenSwitchingBetweenBO3AndBO5Mode">
     <value>BO3 和 BO5 模式切换时总分组件平移距离</value>
   </data>
-  <data name="CustomizeGameDataWindow" xml:space="preserve">
+  <data name="CustomizeGameDataWindow">
     <value>自定义赛后数据窗口</value>
   </data>
-  <data name="EditIntercludeBackgroundImage" xml:space="preserve">
+  <data name="EditIntercludeBackgroundImage">
     <value>修改过场画面背景图片</value>
   </data>
-  <data name="CustomizeFrontendUI" xml:space="preserve">
+  <data name="CustomizeFrontendUI">
     <value>自定义前台UI</value>
   </data>
-  <data name="CustomizeBPWindow" xml:space="preserve">
+  <data name="CustomizeBPWindow">
     <value>自定义BP窗口</value>
   </data>
-  <data name="EditGameDataBackgroundImage" xml:space="preserve">
+  <data name="EditGameDataBackgroundImage">
     <value>修改赛后数据背景图片</value>
   </data>
-  <data name="CustomizeWidgetWindow" xml:space="preserve">
+  <data name="CustomizeWidgetWindow">
     <value>自定义小组件窗口</value>
   </data>
-  <data name="SurvivorIconOfMapBPV2" xml:space="preserve">
+  <data name="SurvivorIconOfMapBPV2">
     <value>求生者图标（地图BP V2）</value>
   </data>
-  <data name="HunterIconOfMapBPV2" xml:space="preserve">
+  <data name="HunterIconOfMapBPV2">
     <value>监管者图标（地图BP V2）</value>
   </data>
-  <data name="BPOverview" xml:space="preserve">
+  <data name="BPOverview">
     <value>BP总览</value>
   </data>
-  <data name="CurrentBanLockOfBPOverview" xml:space="preserve">
+  <data name="CurrentBanLockOfBPOverview">
     <value>当局禁用锁（BP总览）</value>
   </data>
-  <data name="GlobalBanLockOfBPOverview" xml:space="preserve">
+  <data name="GlobalBanLockOfBPOverview">
     <value>全局禁用锁（BP总览）</value>
   </data>
-  <data name="CampIconColorOfMapBPV2" xml:space="preserve">
+  <data name="CampIconColorOfMapBPV2">
     <value>阵营图标颜色（地图BPV2）</value>
   </data>
-  <data name="ResetAllPersonalizationSettings" xml:space="preserve">
+  <data name="ResetAllPersonalizationSettings">
     <value>重置全部个性化设置</value>
   </data>
-  <data name="LogLevelVerbose" xml:space="preserve">
-    <value>Verbose</value>
-  </data>
-  <data name="LogLevelDebug" xml:space="preserve">
-    <value>Debug</value>
-  </data>
-  <data name="LogLevelInformation" xml:space="preserve">
-    <value>Information</value>
-  </data>
-  <data name="LogLevelWarning" xml:space="preserve">
-    <value>Warning</value>
-  </data>
-  <data name="LogLevelError" xml:space="preserve">
-    <value>Error</value>
-  </data>
-  <data name="LogLevelFatal" xml:space="preserve">
-    <value>Fatal</value>
-  </data>
-  <data name="BPWindow" xml:space="preserve">
+<data name="BPWindow">
     <value>BP窗口</value>
   </data>
-  <data name="DesignerMode" xml:space="preserve">
+  <data name="DesignerMode">
     <value>设计模式</value>
   </data>
-  <data name="ResetLayout" xml:space="preserve">
+  <data name="ResetLayout">
     <value>重置布局</value>
   </data>
-  <data name="CutSceneWindow" xml:space="preserve">
+  <data name="CutSceneWindow">
     <value>过场画面</value>
   </data>
-  <data name="NoteScoreStatisticsNotSaveInBO3Mode" xml:space="preserve">
+  <data name="NoteScoreStatisticsNotSaveInBO3Mode">
     <value>备注：在 BO3 模式下，所有分数统计的布局修改将【不会】被保存</value>
   </data>
-  <data name="ResetSurvivorScoreLayoutInGame" xml:space="preserve">
+  <data name="ResetSurvivorScoreLayoutInGame">
     <value>重置游戏内求生者比分布局</value>
   </data>
-  <data name="ResetHunterScoreLayoutInGame" xml:space="preserve">
+  <data name="ResetHunterScoreLayoutInGame">
     <value>重置游戏内监管者比分布局</value>
   </data>
-  <data name="ResetScoreStatisticsLayout" xml:space="preserve">
+  <data name="ResetScoreStatisticsLayout">
     <value>重置分数统计布局</value>
   </data>
-  <data name="GameStatisticsWindow" xml:space="preserve">
+  <data name="GameStatisticsWindow">
     <value>赛后数据窗口</value>
   </data>
-  <data name="Widgets" xml:space="preserve">
+  <data name="Widgets">
     <value>小组件（地图BP等）</value>
   </data>
-  <data name="ResetMapBPLayout" xml:space="preserve">
+  <data name="ResetMapBPLayout">
     <value>重置地图BP布局</value>
   </data>
-  <data name="ResetBPOverviewLayout" xml:space="preserve">
+  <data name="ResetBPOverviewLayout">
     <value>重置BP总览布局</value>
   </data>
-  <data name="ResetMapBPV2Layout" xml:space="preserve">
+  <data name="ResetMapBPV2Layout">
     <value>重置地图BP V2布局</value>
   </data>
-  <data name="Survivor" xml:space="preserve">
-    <value>求生者</value>
-  </data>
-  <data name="CharacterName" xml:space="preserve">
-    <value>角色名称</value>
-  </data>
-  <data name="Hunter" xml:space="preserve">
-    <value>监管者</value>
-  </data>
-  <data name="AModernIdentityVBPSoftware" xml:space="preserve">
+<data name="AModernIdentityVBPSoftware">
     <value>新一代的第五人格BP软件</value>
   </data>
-  <data name="OfficialWebsite" xml:space="preserve">
+  <data name="OfficialWebsite">
     <value>前往官网</value>
   </data>
-  <data name="Documentations" xml:space="preserve">
+  <data name="Documentations">
     <value>查看文档</value>
   </data>
-  <data name="ShowPickingBorder" xml:space="preserve">
-    <value>待选框开关</value>
-  </data>
-  <data name="ShowCamp" xml:space="preserve">
-    <value>显示阵营</value>
-  </data>
-  <data name="ResetMapBP" xml:space="preserve">
-    <value>重置地图BP</value>
-  </data>
-  <data name="OpenPickingBorder" xml:space="preserve">
+<data name="OpenPickingBorder">
     <value>启用待选框 | </value>
   </data>
-  <data name="ControlFirst2PickingBorderSeparately" xml:space="preserve">
+  <data name="ControlFirst2PickingBorderSeparately">
     <value>分别控制前两个待选框</value>
   </data>
-  <data name="SurvivorPickingBorder1" xml:space="preserve">
+  <data name="SurvivorPickingBorder1">
     <value>求生者待选框1</value>
   </data>
-  <data name="SurvivorPickingBorder2" xml:space="preserve">
+  <data name="SurvivorPickingBorder2">
     <value>求生者待选框2</value>
   </data>
-  <data name="SurvivorPickingBorder1and2" xml:space="preserve">
+  <data name="SurvivorPickingBorder1and2">
     <value>求生者待选框1 &amp; 2</value>
   </data>
-  <data name="SurvivorPickingBorder3" xml:space="preserve">
+  <data name="SurvivorPickingBorder3">
     <value>求生者待选框3</value>
   </data>
-  <data name="SurvivorPickingBorder4" xml:space="preserve">
+  <data name="SurvivorPickingBorder4">
     <value>求生者待选框4</value>
   </data>
-  <data name="HunterPickingBorder" xml:space="preserve">
+  <data name="HunterPickingBorder">
     <value>监管者待选框</value>
   </data>
-  <data name="GlobalBanRecord" xml:space="preserve">
-    <value>全局禁选记录</value>
-  </data>
-  <data name="AwayTeam" xml:space="preserve">
-    <value>客队</value>
-  </data>
-  <data name="FourEscape" xml:space="preserve">
-    <value>4跑</value>
-  </data>
-  <data name="ThreeEscape" xml:space="preserve">
-    <value>3跑</value>
-  </data>
-  <data name="Tie" xml:space="preserve">
-    <value>平局</value>
-  </data>
-  <data name="FourEliminate" xml:space="preserve">
-    <value>4抓</value>
-  </data>
-  <data name="ThreeEliminate" xml:space="preserve">
-    <value>3抓</value>
-  </data>
-  <data name="ResetAllScores" xml:space="preserve">
-    <value>总清零</value>
-  </data>
-  <data name="ResetGameScores" xml:space="preserve">
+<data name="ResetGameScores">
     <value>小比分清零</value>
   </data>
-  <data name="ControlManually" xml:space="preserve">
+  <data name="ControlManually">
     <value>手动控制</value>
   </data>
-  <data name="HomeTeamName" xml:space="preserve">
+  <data name="HomeTeamName">
     <value>主队名称</value>
   </data>
-  <data name="GameSelection" xml:space="preserve">
+  <data name="GameSelection">
     <value>场次选择</value>
   </data>
-  <data name="Next" xml:space="preserve">
+  <data name="Next">
     <value>下一局</value>
   </data>
-  <data name="IsGameFinished" xml:space="preserve">
+  <data name="IsGameFinished">
     <value>对局已完成</value>
   </data>
-  <data name="SynchronizeToFrontend" xml:space="preserve">
+  <data name="SynchronizeToFrontend">
     <value>同步至前台</value>
   </data>
-  <data name="CampOfHomeTeam" xml:space="preserve">
+  <data name="CampOfHomeTeam">
     <value>主场队伍阵营</value>
   </data>
-  <data name="CampOfAwayTeam" xml:space="preserve">
+  <data name="CampOfAwayTeam">
     <value>客场队伍阵营</value>
   </data>
-  <data name="GameResult" xml:space="preserve">
+  <data name="GameResult">
     <value>对局结果</value>
   </data>
-  <data name="ClearCurrentHalfScore" xml:space="preserve">
-    <value>清除当前半场比分</value>
-  </data>
-  <data name="SurvivorTalent" xml:space="preserve">
-    <value>求生者天赋</value>
-  </data>
-  <data name="HunterTalent" xml:space="preserve">
-    <value>监管者天赋</value>
-  </data>
-  <data name="HunterTrait" xml:space="preserve">
-    <value>监管者辅助特质</value>
-  </data>
-  <data name="IsVisible" xml:space="preserve">
+<data name="IsVisible">
     <value>是否显示</value>
   </data>
-  <data name="Listen" xml:space="preserve">
-    <value>聆听</value>
-  </data>
-  <data name="Abnormal" xml:space="preserve">
-    <value>失常</value>
-  </data>
-  <data name="Excitement" xml:space="preserve">
-    <value>兴奋</value>
-  </data>
-  <data name="Patroller" xml:space="preserve">
-    <value>巡视者</value>
-  </data>
-  <data name="Teleport" xml:space="preserve">
-    <value>传送</value>
-  </data>
-  <data name="Peeper" xml:space="preserve">
-    <value>窥视者</value>
-  </data>
-  <data name="Blink" xml:space="preserve">
-    <value>闪现</value>
-  </data>
-  <data name="Warp" xml:space="preserve">
-    <value>移形</value>
-  </data>
-  <data name="Backend" xml:space="preserve">
+<data name="Backend">
     <value>后台管理</value>
   </data>
-  <data name="CurrentSurvivorTeamColon" xml:space="preserve">
+  <data name="CurrentSurvivorTeamColon">
     <value>当前求生者队伍：</value>
   </data>
-  <data name="Swap" xml:space="preserve">
+  <data name="Swap">
     <value>交换阵营</value>
   </data>
-  <data name="CurrentHunterTeamColon" xml:space="preserve">
+  <data name="CurrentHunterTeamColon">
     <value>当前监管者队伍：</value>
   </data>
-  <data name="Countdown" xml:space="preserve">
+  <data name="Countdown">
     <value>倒计时</value>
   </data>
-  <data name="PreviewColon" xml:space="preserve">
-    <value>预览：</value>
-  </data>
-  <data name="SaveGameInformation" xml:space="preserve">
+<data name="SaveGameInformation">
     <value>保存当前对局进度</value>
   </data>
-  <data name="FormatColon" xml:space="preserve">
+  <data name="FormatColon">
     <value>赛制：</value>
   </data>
-  <data name="StartGameGuidance" xml:space="preserve">
+  <data name="StartGameGuidance">
     <value>开始对局引导</value>
   </data>
-  <data name="LastStep" xml:space="preserve">
+  <data name="LastStep">
     <value>上一步</value>
   </data>
-  <data name="NextStep" xml:space="preserve">
+  <data name="NextStep">
     <value>下一步</value>
   </data>
-  <data name="EndGameGuidance" xml:space="preserve">
+  <data name="EndGameGuidance">
     <value>结束对局引导</value>
   </data>
-  <data name="MadeByZeroPLFJY" xml:space="preserve">
+  <data name="MadeByZeroPLFJY">
     <value>Made by 零风PLFJY</value>
   </data>
-  <data name="HomePage" xml:space="preserve">
+  <data name="HomePage">
     <value>启动页</value>
   </data>
-  <data name="GameData" xml:space="preserve">
+  <data name="GameData">
     <value>赛后数据</value>
   </data>
-  <data name="FrontendManagement" xml:space="preserve">
+  <data name="FrontendManagement">
     <value>前台管理</value>
   </data>
-  <data name="Free" xml:space="preserve">
+  <data name="Free">
     <value>自由对局</value>
   </data>
-  <data name="Game1FirstHalf" xml:space="preserve">
+  <data name="Game1FirstHalf">
     <value>第1局上半</value>
   </data>
-  <data name="Game1SecondHalf" xml:space="preserve">
+  <data name="Game1SecondHalf">
     <value>第1局下半</value>
   </data>
-  <data name="Game2FirstHalf" xml:space="preserve">
+  <data name="Game2FirstHalf">
     <value>第2局上半</value>
   </data>
-  <data name="Game2SecondHalf" xml:space="preserve">
+  <data name="Game2SecondHalf">
     <value>第2局下半</value>
   </data>
-  <data name="Game3FirstHalf" xml:space="preserve">
+  <data name="Game3FirstHalf">
     <value>第3局上半</value>
   </data>
-  <data name="Game3SecondHalf" xml:space="preserve">
+  <data name="Game3SecondHalf">
     <value>第3局下半</value>
   </data>
-  <data name="Game3OvertimeFirstHalf" xml:space="preserve">
+  <data name="Game3OvertimeFirstHalf">
     <value>第3局加赛上半</value>
   </data>
-  <data name="Game3OvertimeSecondHalf" xml:space="preserve">
+  <data name="Game3OvertimeSecondHalf">
     <value>第3局加赛下半</value>
   </data>
-  <data name="Game4FirstHalf" xml:space="preserve">
+  <data name="Game4FirstHalf">
     <value>第4局上半</value>
   </data>
-  <data name="Game4SecondHalf" xml:space="preserve">
+  <data name="Game4SecondHalf">
     <value>第4局下半</value>
   </data>
-  <data name="Game5FirstHalf" xml:space="preserve">
+  <data name="Game5FirstHalf">
     <value>第5局上半</value>
   </data>
-  <data name="Game5SecondHalf" xml:space="preserve">
+  <data name="Game5SecondHalf">
     <value>第5局下半</value>
   </data>
-  <data name="Game5OvertimeFirstHalf" xml:space="preserve">
+  <data name="Game5OvertimeFirstHalf">
     <value>第5局加赛上半</value>
   </data>
-  <data name="Game5OvertimeSecondHalf" xml:space="preserve">
+  <data name="Game5OvertimeSecondHalf">
     <value>第5局加赛下半</value>
   </data>
-  <data name="AreYouSureYouWantToExit" xml:space="preserve">
+  <data name="AreYouSureYouWantToExit">
     <value>是否确认退出</value>
   </data>
-  <data name="ComingSoon" xml:space="preserve">
+  <data name="ComingSoon">
     <value>前面的区域以后再来探索吧~</value>
   </data>
-  <data name="GameScores" xml:space="preserve">
+  <data name="GameScores">
     <value>小比分</value>
   </data>
-  <data name="FrontendBP" xml:space="preserve">
+  <data name="FrontendBP">
     <value>前台-BP</value>
   </data>
-  <data name="FrontendCutScene" xml:space="preserve">
+  <data name="FrontendCutScene">
     <value>前台-过场画面</value>
   </data>
-  <data name="HomeTeamWinPlus1" xml:space="preserve">
+  <data name="HomeTeamWinPlus1">
     <value>主场胜+1</value>
   </data>
-  <data name="HomeTeamTiePlus1" xml:space="preserve">
+  <data name="HomeTeamTiePlus1">
     <value>主场平+1</value>
   </data>
-  <data name="HomeTeamGameScorePlus1" xml:space="preserve">
+  <data name="HomeTeamGameScorePlus1">
     <value>主场小比分+1</value>
   </data>
-  <data name="HomeTeamWinMinus1" xml:space="preserve">
+  <data name="HomeTeamWinMinus1">
     <value>主场胜-1</value>
   </data>
-  <data name="HomeTeamTieMinus1" xml:space="preserve">
+  <data name="HomeTeamTieMinus1">
     <value>主场平-1</value>
   </data>
-  <data name="HomeTeamGameScoreMinus1" xml:space="preserve">
+  <data name="HomeTeamGameScoreMinus1">
     <value>主场小比分-1</value>
   </data>
-  <data name="AwayTeamWinPlus1" xml:space="preserve">
+  <data name="AwayTeamWinPlus1">
     <value>客场胜+1</value>
   </data>
-  <data name="AwayTeamTiePlus1" xml:space="preserve">
+  <data name="AwayTeamTiePlus1">
     <value>客场平+1</value>
   </data>
-  <data name="AwayTeamGameScorePlus1" xml:space="preserve">
+  <data name="AwayTeamGameScorePlus1">
     <value>客场小比分+1</value>
   </data>
-  <data name="AwayTeamWinMinus1" xml:space="preserve">
+  <data name="AwayTeamWinMinus1">
     <value>客场胜-1</value>
   </data>
-  <data name="AwayTeamTieMinus1" xml:space="preserve">
+  <data name="AwayTeamTieMinus1">
     <value>客场平-1</value>
   </data>
-  <data name="AwayTeamGameScoreMinus1" xml:space="preserve">
+  <data name="AwayTeamGameScoreMinus1">
     <value>客场小比分-1</value>
   </data>
-  <data name="FrontendWidgets" xml:space="preserve">
+  <data name="FrontendWidgets">
     <value>前台-小组件</value>
   </data>
-  <data name="HomeTeam" xml:space="preserve">
-    <value>主队</value>
-  </data>
-  <data name="FollowSystem" xml:space="preserve">
+<data name="FollowSystem">
     <value>跟随系统</value>
   </data>
-  <data name="RestoreDefaultSort" xml:space="preserve">
-    <value>恢复默认排序</value>
-  </data>
-  <data name="Timer" xml:space="preserve">
+<data name="Timer">
     <value>计时器</value>
   </data>
-  <data name="MatchScore" xml:space="preserve">
+  <data name="MatchScore">
     <value>大比分</value>
   </data>
-  <data name="MapName" xml:space="preserve">
+  <data name="MapName">
     <value>地图名称</value>
   </data>
-  <data name="SurvivorPlayerID" xml:space="preserve">
+  <data name="SurvivorPlayerID">
     <value>求生者选手 ID</value>
   </data>
-  <data name="HunterPlayerID" xml:space="preserve">
+  <data name="HunterPlayerID">
     <value>监管者选手 ID</value>
   </data>
-  <data name="MatchScores" xml:space="preserve">
+  <data name="MatchScores">
     <value>大比分</value>
   </data>
-  <data name="GameScoresInScoreStatistics" xml:space="preserve">
+  <data name="GameScoresInScoreStatistics">
     <value>小比分（分数统计）</value>
   </data>
-  <data name="TotalGameScoresInScoreStatistics" xml:space="preserve">
+  <data name="TotalGameScoresInScoreStatistics">
     <value>总小比分（分数统计）</value>
   </data>
-  <data name="SurvivorData" xml:space="preserve">
+  <data name="SurvivorData">
     <value>求生者数据</value>
   </data>
-  <data name="HunterData" xml:space="preserve">
+  <data name="HunterData">
     <value>监管者数据</value>
   </data>
-  <data name="MapNameInMapBP" xml:space="preserve">
+  <data name="MapNameInMapBP">
     <value>地图名称（地图BP）</value>
   </data>
-  <data name="MapNameInMapBPV2" xml:space="preserve">
+  <data name="MapNameInMapBPV2">
     <value>地图名称（地图BP V2）</value>
   </data>
-  <data name="CampNameInMapBPV2" xml:space="preserve">
+  <data name="CampNameInMapBPV2">
     <value>阵营名称（地图BP V2）</value>
   </data>
-  <data name="GameScoresInBPOverview" xml:space="preserve">
+  <data name="GameScoresInBPOverview">
     <value>小比分（BP总览）</value>
   </data>
-  <data name="Sur" xml:space="preserve">
-    <value>求生者</value>
-    <comment>简写</comment>
-  </data>
-  <data name="Hun" xml:space="preserve">
-    <value>监管者</value>
-    <comment>简写</comment>
-  </data>
-  <data name="zh_Hans" xml:space="preserve">
-    <value>简体中文</value>
-    <comment>此处en-US空着为正常现象</comment>
-  </data>
-  <data name="en_US" xml:space="preserve">
-    <value>English (United States)</value>
-  </data>
-  <data name="ja_JP" xml:space="preserve">
-    <value>日本語（正確性は100%保証されません）</value>
-    <comment>en-US栏空着为正常现象</comment>
-  </data>
-  <data name="null" xml:space="preserve">
+<data name="null">
     <value />
     <comment>空着，这个是给地图显示的FallBack的值</comment>
   </data>
-  <data name="DistributeCharacters" xml:space="preserve">
-    <value>分配角色</value>
-  </data>
-  <data name="CurrentStepFormat" xml:space="preserve">
+<data name="CurrentStepFormat">
     <value>当前步骤：{0}</value>
   </data>
-  <data name="Tip" xml:space="preserve">
+  <data name="Tip">
     <value>提示</value>
   </data>
-  <data name="FrontendSurvivorScoreInGame" xml:space="preserve">
+  <data name="FrontendSurvivorScoreInGame">
     <value>前台-求生者游戏内比分</value>
   </data>
-  <data name="FrontendHunterScoreInGame" xml:space="preserve">
+  <data name="FrontendHunterScoreInGame">
     <value>前台-监管者游戏内比分</value>
   </data>
-  <data name="Installed" xml:space="preserve">
+  <data name="Installed">
     <value>已安装</value>
   </data>
-  <data name="Notification" xml:space="preserve">
+  <data name="Notification">
     <value>提示</value>
   </data>
-  <data name="AfterUpdateTip" xml:space="preserve">
+  <data name="AfterUpdateTip">
     <value>如果遇到前台界面错乱，请重置布局和自定义设置</value>
   </data>
-  <data name="DontRemindMeAgainUntilTheNextUpdate" xml:space="preserve">
+  <data name="DontRemindMeAgainUntilTheNextUpdate">
     <value>在下次更新前不再提醒我</value>
   </data>
-  <data name="GoToFolder" xml:space="preserve">
+  <data name="GoToFolder">
     <value>前往目录</value>
   </data>
-  <data name="RestartNeeded" xml:space="preserve">
+  <data name="RestartNeeded">
     <value>需要重启</value>
   </data>
-  <data name="SomeSettingsRequireRestartingTheApplication" xml:space="preserve">
+  <data name="SomeSettingsRequireRestartingTheApplication">
     <value>部分设置需要重新启动应用</value>
   </data>
-  <data name="ResetLayoutFormat" xml:space="preserve">
+  <data name="ResetLayoutFormat">
     <value>重置 {0}布局</value>
   </data>
-  <data name="SaveInfo" xml:space="preserve">
+  <data name="SaveInfo">
     <value>保存提示</value>
   </data>
-  <data name="SaveSuccessfullyTo" xml:space="preserve">
+  <data name="SaveSuccessfullyTo">
     <value>成功保存到</value>
   </data>
-  <data name="SaveFailed" xml:space="preserve">
+  <data name="SaveFailed">
     <value>保存失败</value>
   </data>
-  <data name="InvalidInput" xml:space="preserve">
+  <data name="InvalidInput">
     <value>输入不合法</value>
   </data>
-  <data name="SaveFrontendConfigurationFileFailed" xml:space="preserve">
+  <data name="SaveFrontendConfigurationFileFailed">
     <value>保存前台配置文件失败</value>
   </data>
-  <data name="UnregisteredWindowType" xml:space="preserve">
+  <data name="UnregisteredWindowType">
     <value>未注册的窗口类型</value>
   </data>
-  <data name="ConfigurationFileLoadingError" xml:space="preserve">
+  <data name="ConfigurationFileLoadingError">
     <value>配置文件加载错误</value>
   </data>
-  <data name="FrontendDefaultConfigurationRestoreError" xml:space="preserve">
+  <data name="FrontendDefaultConfigurationRestoreError">
     <value>前台默认配置恢复错误</value>
   </data>
-  <data name="ResetTip" xml:space="preserve">
+  <data name="ResetTip">
     <value>重置提示</value>
   </data>
-  <data name="ConfigurationFileSaveError" xml:space="preserve">
-    <value>配置文件保存错误</value>
-  </data>
-  <data name="WindowLaunchError" xml:space="preserve">
+<data name="WindowLaunchError">
     <value>窗口启动错误</value>
   </data>
-  <data name="WindowCloseError" xml:space="preserve">
+  <data name="WindowCloseError">
     <value>窗口关闭错误</value>
   </data>
-  <data name="ErrorWhenGeneratingFrontendConfigurationFile" xml:space="preserve">
+  <data name="ErrorWhenGeneratingFrontendConfigurationFile">
     <value>生成前台配置文件发生错误</value>
   </data>
-  <data name="ConfigurationResetConfirmation" xml:space="preserve">
+  <data name="ConfigurationResetConfirmation">
     <value>重置配置确认</value>
   </data>
-  <data name="UnknownWindowSource" xml:space="preserve">
+  <data name="UnknownWindowSource">
     <value>未知窗口来源</value>
   </data>
-  <data name="ReadFrontendDefaultConfigurationError" xml:space="preserve">
+  <data name="ReadFrontendDefaultConfigurationError">
     <value>读取前台默认配置错误</value>
   </data>
-  <data name="CannotFindDefaultLayoutConfigurationFromWindowProvider" xml:space="preserve">
+  <data name="CannotFindDefaultLayoutConfigurationFromWindowProvider">
     <value>无法找到窗口提供方提供的默认布局配置</value>
   </data>
-  <data name="UIConfigurationHasBeenSavedTo" xml:space="preserve">
+  <data name="UIConfigurationHasBeenSavedTo">
     <value>UI配置已被保存于</value>
   </data>
-  <data name="UIPackingError" xml:space="preserve">
+  <data name="UIPackingError">
     <value>UI打包错误</value>
   </data>
-  <data name="UIImportIsFinished" xml:space="preserve">
+  <data name="UIImportIsFinished">
     <value>UI导入完成，应用将自动重启</value>
   </data>
-  <data name="UIImportTip" xml:space="preserve">
+  <data name="UIImportTip">
     <value>UI导入提示</value>
   </data>
-  <data name="UIPackLoadingError" xml:space="preserve">
+  <data name="UIPackLoadingError">
     <value>UI包加载失败</value>
   </data>
-  <data name="ConfigurationFileEmpty" xml:space="preserve">
-    <value>配置文件为空</value>
-  </data>
-  <data name="FailedToReadConfigurationFile" xml:space="preserve">
-    <value>配置文件读取失败</value>
-  </data>
-  <data name="ResetConfigurationFileToSolveTheProblem" xml:space="preserve">
-    <value>重置配置文件以解决问题</value>
-  </data>
-  <data name="ResetConfigurationFileError" xml:space="preserve">
-    <value>重置配置文件错误</value>
-  </data>
-  <data name="JsonFileFormatError" xml:space="preserve">
-    <value>JSON 文件格式错误</value>
-  </data>
-  <data name="CleanupUpdateResidueError" xml:space="preserve">
+<data name="CleanupUpdateResidueError">
     <value>清理更新残留异常</value>
   </data>
-  <data name="DownloadFailed" xml:space="preserve">
+  <data name="DownloadFailed">
     <value>下载失败</value>
   </data>
-  <data name="GettingUpdateError" xml:space="preserve">
+  <data name="GettingUpdateError">
     <value>获取更新异常</value>
   </data>
-  <data name="NewVersionFound" xml:space="preserve">
+  <data name="NewVersionFound">
     <value>发现新版本</value>
   </data>
-  <data name="GoToSettingPageToUpdate" xml:space="preserve">
+  <data name="GoToSettingPageToUpdate">
     <value>前往设置页更新</value>
   </data>
-  <data name="AlreadyTheLatestVersion" xml:space="preserve">
+  <data name="AlreadyTheLatestVersion">
     <value>当前已是最新版本</value>
   </data>
-  <data name="HttpRequestError" xml:space="preserve">
+  <data name="HttpRequestError">
     <value>Http请求错误</value>
   </data>
-  <data name="JsonParsingError" xml:space="preserve">
+  <data name="JsonParsingError">
     <value>JSON 解析错误</value>
   </data>
-  <data name="UnknownError" xml:space="preserve">
+  <data name="UnknownError">
     <value>未知错误</value>
   </data>
-  <data name="ImageFiles" xml:space="preserve">
+  <data name="ImageFiles">
     <value>图片文件</value>
   </data>
-  <data name="FontFiles" xml:space="preserve">
+  <data name="FontFiles">
     <value>字体文件</value>
   </data>
-  <data name="JSONFiles" xml:space="preserve">
+  <data name="JSONFiles">
     <value>JSON 文件</value>
   </data>
-  <data name="ZipFiles" xml:space="preserve">
+  <data name="ZipFiles">
     <value>Zip 压缩文件</value>
   </data>
-  <data name="TheProgramIsAlreadyRunning" xml:space="preserve">
+  <data name="TheProgramIsAlreadyRunning">
     <value>程序已在运行</value>
   </data>
-  <data name="AlreadyTheLastStep" xml:space="preserve">
+  <data name="AlreadyTheLastStep">
     <value>已经是最后一步</value>
   </data>
-  <data name="GameInfoStatusError" xml:space="preserve">
+  <data name="GameInfoStatusError">
     <value>对局信息状态异常</value>
   </data>
-  <data name="AlreadyTheFirstStep" xml:space="preserve">
+  <data name="AlreadyTheFirstStep">
     <value>已经是第一步</value>
   </data>
-  <data name="EmptyBan" xml:space="preserve">
+  <data name="EmptyBan">
     <value>无禁用</value>
   </data>
-  <data name="CurrentStep" xml:space="preserve">
+  <data name="CurrentStep">
     <value>当前步骤</value>
   </data>
-  <data name="Tips" xml:space="preserve">
-    <value>提示</value>
-  </data>
-  <data name="RestartToApply" xml:space="preserve">
+<data name="RestartToApply">
     <value>重启后生效</value>
   </data>
-  <data name="AreYouSureToSaveTheShiftDistanceOfTotalScore" xml:space="preserve">
+  <data name="AreYouSureToSaveTheShiftDistanceOfTotalScore">
     <value>是否保存总分组件平移距离</value>
   </data>
-  <data name="AreYouSureToSetCampIconTo" xml:space="preserve">
+  <data name="AreYouSureToSetCampIconTo">
     <value>是否切换阵营图标为</value>
   </data>
-  <data name="AreYouSureToSetTalentAndTraitIconTo" xml:space="preserve">
+  <data name="AreYouSureToSetTalentAndTraitIconTo">
     <value>是否将天赋与辅助特质的图标颜色设置为</value>
   </data>
-  <data name="AreYouSureToResetAllPersonalSettingsOfThisWindow" xml:space="preserve">
+  <data name="AreYouSureToResetAllPersonalSettingsOfThisWindow">
     <value>是否重置当前窗口所有个性化设置？</value>
   </data>
-  <data name="AreYouSureToResetPersonalSettingsOfAllWindows" xml:space="preserve">
+  <data name="AreYouSureToResetPersonalSettingsOfAllWindows">
     <value>是否重置所有窗口的个性化设置？</value>
   </data>
-  <data name="CoverTip" xml:space="preserve">
+  <data name="CoverTip">
     <value>覆盖提示</value>
   </data>
-  <data name="PathHasAlreadyExistAreYouSureToCoverIt" xml:space="preserve">
+  <data name="PathHasAlreadyExistAreYouSureToCoverIt">
     <value>已存在，是否覆盖？</value>
   </data>
-  <data name="CreateTip" xml:space="preserve">
-    <value>创建提示</value>
-  </data>
-  <data name="Restart" xml:space="preserve">
+<data name="Restart">
     <value>重启</value>
   </data>
-  <data name="NotNow" xml:space="preserve">
+  <data name="NotNow">
     <value>不是现在</value>
   </data>
-  <data name="Loaded" xml:space="preserve">
+  <data name="Loaded">
     <value>已加载</value>
   </data>
-  <data name="Disabled" xml:space="preserve">
+  <data name="Disabled">
     <value>已禁用</value>
   </data>
-  <data name="Character" xml:space="preserve">
+  <data name="Character">
     <value>角色</value>
   </data>
-  <data name="FrontedScoreStatistics" xml:space="preserve">
+  <data name="FrontedScoreStatistics">
     <value>前台 - 分数统计</value>
   </data>
-  <data name="FrontedGameStatistics" xml:space="preserve">
+  <data name="FrontedGameStatistics">
     <value>前台 - 赛后数据</value>
   </data>
-  <data name="ImportGameInformation" xml:space="preserve">
+  <data name="ImportGameInformation">
     <value>导入对局信息</value>
   </data>
-  <data name="ImportSuccessfullyFrom" xml:space="preserve">
+  <data name="ImportSuccessfullyFrom">
     <value>成功从以下路径导入：</value>
   </data>
-  <data name="ImportInfo" xml:space="preserve">
+  <data name="ImportInfo">
     <value>导入信息</value>
   </data>
-  <data name="ImportFailed" xml:space="preserve">
+  <data name="ImportFailed">
     <value>导入失败：</value>
   </data>
-  <data name="ReleaseNotes" xml:space="preserve">
+  <data name="ReleaseNotes">
     <value>更新公告</value>
   </data>
-  <data name="LoadingFailed" xml:space="preserve">
+  <data name="LoadingFailed">
     <value>加载失败</value>
   </data>
-  <data name="BpuiFiles" xml:space="preserve">
+  <data name="BpuiFiles">
     <value>bpui 文件</value>
   </data>
-  <data name="AllowsWindowTransparency" xml:space="preserve">
+  <data name="AllowsWindowTransparency">
     <value>允许窗口透明</value>
   </data>
-  <data name="AllowsScoreGlobalWindowTransparency" xml:space="preserve">
+  <data name="AllowsScoreGlobalWindowTransparency">
     <value>允许分数统计窗口透明</value>
   </data>
-  <data name="WindowSize" xml:space="preserve">
+  <data name="WindowSize">
     <value>窗口大小</value>
   </data>
-  <data name="AutoRecord" xml:space="preserve">
-    <value>是否自动记录</value>
-  </data>
-  <data name="UnexpectedExceptionMessage" xml:space="preserve">
+<data name="UnexpectedExceptionMessage">
     <value>出现了些在意料之外的错误，请带着下方地址处的日志文件联系开发者解决</value>
   </data>
-  <data name="AutoDetectAndFillPostGameData" xml:space="preserve">
-    <value>自动识别并填充赛后数据</value>
-  </data>
-  <data name="SevenZipArchiveFiles" xml:space="preserve">
+<data name="SevenZipArchiveFiles">
     <value>7z 归档</value>
   </data>
-  <data name="AllFiles" xml:space="preserve">
+  <data name="AllFiles">
     <value>所有文件</value>
   </data>
-  <data name="PleaseStartWindowCaptureFirst" xml:space="preserve">
-    <value>请先启动窗口捕获</value>
-  </data>
-  <data name="WindowCapturePleaseSelectWindowFirst" xml:space="preserve">
-    <value>请先选择窗口。</value>
-  </data>
-  <data name="WindowCaptureWgcRequires1803OrLater" xml:space="preserve">
-    <value>Windows Graphics Capture 需要 Windows 10 1803 或更高版本。</value>
-  </data>
-  <data name="WindowCaptureWgcNotSupportedOnCurrentSystem" xml:space="preserve">
-    <value>当前系统不支持 Windows Graphics Capture。</value>
-  </data>
-  <data name="WindowCaptureFailedToStartPickerCaptureFormat" xml:space="preserve">
-    <value>通过窗口选择器启动捕获失败：{0}</value>
-  </data>
-  <data name="WindowCaptureCaptureNotStarted" xml:space="preserve">
-    <value>尚未开始捕获。</value>
-  </data>
-  <data name="WindowCapturePreviewWindowTitle" xml:space="preserve">
-    <value>预览窗口</value>
-  </data>
-  <data name="WindowCaptureSelectedWindowInvalidForCapture" xml:space="preserve">
-    <value>所选窗口无法用于捕获。</value>
-  </data>
-  <data name="WindowCaptureFailedToCaptureFirstFrameWithBitblt" xml:space="preserve">
-    <value>使用 Bitblt 捕获首帧失败。</value>
-  </data>
-  <data name="WindowCaptureFailedToStartBitbltCaptureFormat" xml:space="preserve">
-    <value>启动 Bitblt 捕获失败：{0}</value>
-  </data>
-  <data name="WindowCaptureWgcWindowCaptureRequires1903OrLaterUsePickerOn1803Or1809" xml:space="preserve">
-    <value>按窗口句柄捕获需要 Windows 10 1903 或更高版本。在 1803/1809 上请使用窗口选择器捕获。</value>
-  </data>
-  <data name="WindowCaptureFailedToCaptureSelectedWindowFormat" xml:space="preserve">
-    <value>捕获所选窗口失败：{0}</value>
-  </data>
-  <data name="WindowCaptureGraphicsCaptureItemUnavailable" xml:space="preserve">
-    <value>捕获所选窗口失败：无法创建 GraphicsCaptureItem。</value>
-  </data>
-  <data name="WindowCaptureFailedToStartCaptureFormat" xml:space="preserve">
-    <value>启动捕获失败：{0}</value>
-  </data>
-  <data name="SaveAs" xml:space="preserve">
+<data name="SaveAs">
     <value>保存为</value>
   </data>
-  <data name="QueuePending" xml:space="preserve">
+  <data name="QueuePending">
     <value>等待下载</value>
   </data>
-  <data name="QueueDownloading" xml:space="preserve">
+  <data name="QueueDownloading">
     <value>下载中</value>
   </data>
-  <data name="QueueDownloaded" xml:space="preserve">
+  <data name="QueueDownloaded">
     <value>已下载，等待安装</value>
   </data>
-  <data name="QueueInstalledRestartRequired" xml:space="preserve">
+  <data name="QueueInstalledRestartRequired">
     <value>已安装，重启以应用更改</value>
   </data>
-  <data name="QueueFailed" xml:space="preserve">
+  <data name="QueueFailed">
     <value>下载失败</value>
   </data>
-  <data name="QueueCanceled" xml:space="preserve">
+  <data name="QueueCanceled">
     <value>已取消</value>
   </data>
-  <data name="FrontedDesignerWindow" xml:space="preserve">
+  <data name="FrontedDesignerWindow">
     <value>前台编辑器</value>
   </data>
-  <data name="Canvas" xml:space="preserve">
+  <data name="Canvas">
     <value>画布</value>
   </data>
-  <data name="LayoutSource" xml:space="preserve">
+  <data name="LayoutSource">
     <value>布局来源</value>
   </data>
-  <data name="Validation" xml:space="preserve">
+  <data name="Validation">
     <value>校验</value>
   </data>
-  <data name="ValidateLayout" xml:space="preserve">
+  <data name="ValidateLayout">
     <value>校验布局</value>
   </data>
-  <data name="BuiltInLayout" xml:space="preserve">
+  <data name="BuiltInLayout">
     <value>内置布局</value>
   </data>
-  <data name="ZoomIn" xml:space="preserve">
-    <value>放大</value>
-  </data>
-  <data name="ZoomOut" xml:space="preserve">
-    <value>缩小</value>
-  </data>
-  <data name="FitToWindow" xml:space="preserve">
+<data name="FitToWindow">
     <value>适应窗口</value>
   </data>
-  <data name="ControlType" xml:space="preserve">
+  <data name="ControlType">
     <value>控件类型</value>
   </data>
-  <data name="Property" xml:space="preserve">
+  <data name="Property">
     <value>属性</value>
   </data>
-  <data name="Value" xml:space="preserve">
+  <data name="Value">
     <value>值</value>
   </data>
-  <data name="Identity" xml:space="preserve">
+  <data name="Identity">
     <value>身份</value>
   </data>
-  <data name="Binding" xml:space="preserve">
+  <data name="Binding">
     <value>绑定</value>
   </data>
-  <data name="Appearance" xml:space="preserve">
+  <data name="Appearance">
     <value>外观</value>
   </data>
-  <data name="ControlSpecific" xml:space="preserve">
+  <data name="ControlSpecific">
     <value>控件专属</value>
   </data>
-  <data name="ReadOnly" xml:space="preserve">
+  <data name="ReadOnly">
     <value>只读</value>
   </data>
-  <data name="Color" xml:space="preserve">
+  <data name="Color">
     <value>颜色</value>
   </data>
-  <data name="BasicControls" xml:space="preserve">
+  <data name="BasicControls">
     <value>基础控件</value>
   </data>
-  <data name="BusinessControls" xml:space="preserve">
+  <data name="BusinessControls">
     <value>业务控件</value>
   </data>
-  <data name="FontFamily" xml:space="preserve">
+  <data name="FontFamily">
     <value>字体</value>
   </data>
-  <data name="BuiltInFont" xml:space="preserve">
+  <data name="BuiltInFont">
     <value>内置字体</value>
   </data>
-  <data name="SystemFont" xml:space="preserve">
+  <data name="SystemFont">
     <value>系统字体</value>
   </data>
-  <data name="Placeholder" xml:space="preserve">
+  <data name="Placeholder">
     <value>占位符</value>
   </data>
-  <data name="ConfirmDeleteControl" xml:space="preserve">
+  <data name="ConfirmDeleteControl">
     <value>确认删除选中控件？</value>
   </data>
-  <data name="PlaceholderPreview" xml:space="preserve">
+  <data name="PlaceholderPreview">
     <value>占位预览</value>
   </data>
-  <data name="DesignerPlaceholderData" xml:space="preserve">
+  <data name="DesignerPlaceholderData">
     <value>设计器占位数据</value>
   </data>
-  <data name="ApplyColor" xml:space="preserve">
-    <value>应用颜色</value>
-  </data>
-  <data name="ResetToBuiltIn" xml:space="preserve">
-    <value>重置为内置</value>
-  </data>
-  <data name="UnsavedChangesMessage" xml:space="preserve">
+<data name="UnsavedChangesMessage">
     <value>当前布局有未保存修改。</value>
   </data>
-  <data name="SaveBeforeSwitch" xml:space="preserve">
+  <data name="SaveBeforeSwitch">
     <value>当前布局有未保存修改。是否保存后继续？</value>
   </data>
-  <data name="SaveBeforeClose" xml:space="preserve">
+  <data name="SaveBeforeClose">
     <value>当前布局有未保存修改。是否保存后关闭？</value>
   </data>
-  <data name="DiscardChanges" xml:space="preserve">
-    <value>放弃修改</value>
-  </data>
-  <data name="SnapGridSize" xml:space="preserve">
+<data name="SnapGridSize">
     <value>吸附网格大小</value>
   </data>
-  <data name="BindingBrowser" xml:space="preserve">
+  <data name="BindingBrowser">
     <value>绑定浏览器</value>
   </data>
-  <data name="ResourceBrowser" xml:space="preserve">
+  <data name="ResourceBrowser">
     <value>资源浏览器</value>
   </data>
-  <data name="SelectBindingPath" xml:space="preserve">
+  <data name="SelectBindingPath">
     <value>选择绑定路径</value>
   </data>
-  <data name="SelectResource" xml:space="preserve">
+  <data name="SelectResource">
     <value>选择资源</value>
   </data>
-  <data name="SearchBindings" xml:space="preserve">
+  <data name="SearchBindings">
     <value>搜索绑定</value>
   </data>
-  <data name="SearchResources" xml:space="preserve">
+  <data name="SearchResources">
     <value>搜索资源</value>
   </data>
-  <data name="SelectedPath" xml:space="preserve">
+  <data name="SelectedPath">
     <value>已选路径</value>
   </data>
-  <data name="BuiltInResources" xml:space="preserve">
+  <data name="BuiltInResources">
     <value>内置资源</value>
   </data>
-  <data name="AppAssets" xml:space="preserve">
+  <data name="AppAssets">
     <value>应用资产</value>
   </data>
-  <data name="AbsoluteFile" xml:space="preserve">
+  <data name="AbsoluteFile">
     <value>绝对路径文件</value>
   </data>
-  <data name="BrowseFile" xml:space="preserve">
-    <value>浏览文件</value>
-  </data>
-  <data name="NoBindingResults" xml:space="preserve">
+<data name="NoBindingResults">
     <value>没有匹配的绑定。</value>
   </data>
-  <data name="NoResourceResults" xml:space="preserve">
+  <data name="NoResourceResults">
     <value>没有匹配的资源。</value>
   </data>
-  <data name="ExpectedBindingType" xml:space="preserve">
+  <data name="ExpectedBindingType">
     <value>期望绑定类型</value>
   </data>
-  <data name="AnyBinding" xml:space="preserve">
+  <data name="AnyBinding">
     <value>任意绑定</value>
   </data>
-  <data name="TextBinding" xml:space="preserve">
+  <data name="TextBinding">
     <value>文本绑定</value>
   </data>
-  <data name="ImageBinding" xml:space="preserve">
+  <data name="ImageBinding">
     <value>图片绑定</value>
   </data>
-  <data name="MapBinding" xml:space="preserve">
+  <data name="MapBinding">
     <value>地图绑定</value>
   </data>
-  <data name="BooleanBinding" xml:space="preserve">
+  <data name="BooleanBinding">
     <value>布尔绑定</value>
   </data>
-  <data name="NumberBinding" xml:space="preserve">
+  <data name="NumberBinding">
     <value>数字绑定</value>
   </data>
-  <data name="StringBinding" xml:space="preserve">
+  <data name="StringBinding">
     <value>字符串绑定</value>
   </data>
-  <data name="UseSelected" xml:space="preserve">
+  <data name="UseSelected">
     <value>使用所选</value>
   </data>
-  <data name="Window" xml:space="preserve">
+  <data name="Window">
     <value>窗口</value>
   </data>
-  <data name="RestartRequired" xml:space="preserve">
+  <data name="RestartRequired">
     <value>需要重启后生效</value>
   </data>
-  <data name="SaveBeforeRestart" xml:space="preserve">
+  <data name="SaveBeforeRestart">
     <value>重启前是否保存当前布局？</value>
   </data>
-  <data name="FrontendWindows" xml:space="preserve">
+  <data name="FrontendWindows">
     <value>前台窗口</value>
   </data>
-  <data name="FrontendDesigner" xml:space="preserve">
+  <data name="FrontendDesigner">
     <value>前台编辑器</value>
   </data>
-  <data name="InstalledPackages" xml:space="preserve">
+  <data name="InstalledPackages">
     <value>已安装布局包</value>
   </data>
-  <data name="BuiltInPackage" xml:space="preserve">
+  <data name="BuiltInPackage">
     <value>内置包</value>
   </data>
-  <data name="PackageCreatedAt" xml:space="preserve">
+  <data name="PackageCreatedAt">
     <value>创建时间</value>
   </data>
-  <data name="PackageSource" xml:space="preserve">
+  <data name="PackageSource">
     <value>来源</value>
   </data>
-  <data name="PackageValidationStatus" xml:space="preserve">
+  <data name="PackageValidationStatus">
     <value>校验状态</value>
   </data>
-  <data name="PackageInstallPath" xml:space="preserve">
+  <data name="PackageInstallPath">
     <value>安装路径</value>
   </data>
-  <data name="PackageNotImplemented" xml:space="preserve">
+  <data name="PackageNotImplemented">
     <value>v3 布局包导入将在后续版本中实现。</value>
   </data>
-  <data name="PackageActivated" xml:space="preserve">
+  <data name="PackageActivated">
     <value>布局包已激活。</value>
   </data>
-  <data name="ShortcutDelete" xml:space="preserve">
+  <data name="ShortcutDelete">
     <value>删除 (Del)</value>
   </data>
-  <data name="ExportScope" xml:space="preserve">
+  <data name="ExportScope">
     <value>导出范围</value>
   </data>
-  <data name="ExportCurrentCanvas" xml:space="preserve">
+  <data name="ExportCurrentCanvas">
     <value>当前 Canvas</value>
   </data>
-  <data name="ExportCurrentWindow" xml:space="preserve">
+  <data name="ExportCurrentWindow">
     <value>当前窗口</value>
   </data>
-  <data name="ExportAllFrontendLayouts" xml:space="preserve">
+  <data name="ExportAllFrontendLayouts">
     <value>全部前台布局</value>
   </data>
-  <data name="ActivateImportedPackage" xml:space="preserve">
+  <data name="ActivateImportedPackage">
     <value>布局包已导入，是否立即激活？</value>
   </data>
-  <data name="LegacyPackageDetected" xml:space="preserve">
+  <data name="LegacyPackageDetected">
     <value>检测到旧版 .bpui 包</value>
   </data>
-  <data name="LegacyPackageConversionNotImplemented" xml:space="preserve">
+  <data name="LegacyPackageConversionNotImplemented">
     <value>旧版 .bpui 转换尚未实现。</value>
   </data>
-  <data name="InvalidPackageManifest" xml:space="preserve">
+  <data name="InvalidPackageManifest">
     <value>无效的布局包 manifest。</value>
   </data>
-  <data name="InvalidPackageArchive" xml:space="preserve">
+  <data name="InvalidPackageArchive">
     <value>无效的布局包归档。</value>
   </data>
-  <data name="CrossPackageResourceReference" xml:space="preserve">
+  <data name="CrossPackageResourceReference">
     <value>布局包包含跨包资源引用。</value>
   </data>
-  <data name="MissingPackageResource" xml:space="preserve">
+  <data name="MissingPackageResource">
     <value>布局包缺少资源文件。</value>
   </data>
-  <data name="SwitchToBuiltIn" xml:space="preserve">
+  <data name="SwitchToBuiltIn">
     <value>切换到内置布局</value>
   </data>
-  <data name="UnknownLegacyLayoutFile" xml:space="preserve">
+  <data name="UnknownLegacyLayoutFile">
     <value>未知旧版布局文件</value>
   </data>
-  <data name="LegacyFieldIgnored" xml:space="preserve">
+  <data name="LegacyFieldIgnored">
     <value>旧版字段已忽略</value>
   </data>
-  <data name="LegacyResourceCopied" xml:space="preserve">
+  <data name="LegacyResourceCopied">
     <value>旧版资源已复制</value>
   </data>
-  <data name="LegacyResourceMissing" xml:space="preserve">
+  <data name="LegacyResourceMissing">
     <value>旧版资源缺失</value>
   </data>
-  <data name="ActivateConvertedPackage" xml:space="preserve">
+  <data name="ActivateConvertedPackage">
     <value>是否立即激活转换后的布局包？</value>
   </data>
-  <data name="InputTruncated" xml:space="preserve">
-    <value>输入已按长度上限截断</value>
-  </data>
-  <data name="InputTooLong" xml:space="preserve">
+<data name="InputTooLong">
     <value>输入内容过长</value>
   </data>
-  <data name="ImageTooLarge" xml:space="preserve">
+  <data name="ImageTooLarge">
     <value>图片文件过大</value>
   </data>
-  <data name="ImageTooManyPixels" xml:space="preserve">
+  <data name="ImageTooManyPixels">
     <value>图片尺寸过大</value>
   </data>
-  <data name="UnsupportedImageFormat" xml:space="preserve">
+  <data name="UnsupportedImageFormat">
     <value>不支持的图片格式</value>
   </data>
-  <data name="PackageTooLarge" xml:space="preserve">
+  <data name="PackageTooLarge">
     <value>布局包文件过大</value>
   </data>
-  <data name="PackageExtractedTooLarge" xml:space="preserve">
+  <data name="PackageExtractedTooLarge">
     <value>布局包解压后内容过大</value>
   </data>
-  <data name="PackageTooManyEntries" xml:space="preserve">
+  <data name="PackageTooManyEntries">
     <value>布局包文件数量过多</value>
   </data>
-  <data name="PackageEntryTooLarge" xml:space="preserve">
+  <data name="PackageEntryTooLarge">
     <value>布局包单个文件过大</value>
   </data>
-  <data name="ManifestTooLarge" xml:space="preserve">
+  <data name="ManifestTooLarge">
     <value>manifest.json 过大</value>
   </data>
-  <data name="LayoutJsonTooLarge" xml:space="preserve">
+  <data name="LayoutJsonTooLarge">
     <value>布局 JSON 过大</value>
   </data>
-  <data name="WindowOptionsTooLarge" xml:space="preserve">
+  <data name="WindowOptionsTooLarge">
     <value>窗口选项 JSON 过大</value>
   </data>
-  <data name="TooManyControls" xml:space="preserve">
+  <data name="TooManyControls">
     <value>Canvas 控件过多</value>
   </data>
-  <data name="ControlCountWarning" xml:space="preserve">
+  <data name="ControlCountWarning">
     <value>当前 Canvas 控件数量较多</value>
   </data>
-  <data name="MaxControlsPerCanvas" xml:space="preserve">
+  <data name="MaxControlsPerCanvas">
     <value>每个 Canvas 最大控件数</value>
   </data>
-  <data name="ResourcePathTooLong" xml:space="preserve">
-    <value>资源路径过长</value>
-  </data>
-  <data name="TextTooLong" xml:space="preserve">
+<data name="TextTooLong">
     <value>文本过长</value>
   </data>
-  <data name="BindingPathTooLong" xml:space="preserve">
+  <data name="BindingPathTooLong">
     <value>绑定路径过长</value>
   </data>
-  <data name="MissingPluginMarketLater" xml:space="preserve">
+  <data name="MissingPluginMarketLater">
     <value>插件市场安装/更新引导会在后续版本中实现。</value>
   </data>
-  <data name="ForceImportRemoveMissingControls" xml:space="preserve">
+  <data name="ForceImportRemoveMissingControls">
     <value>强制导入并删除缺失控件</value>
   </data>
-  <data name="RemovedPluginControlCount" xml:space="preserve">
+  <data name="RemovedPluginControlCount">
     <value>已删除插件控件</value>
   </data>
-  <data name="RemovedPluginControlsReport" xml:space="preserve">
+  <data name="RemovedPluginControlsReport">
     <value>强制导入已删除的插件控件</value>
   </data>
-  <data name="ExamplePlugin.TeamCard.DisplayName" xml:space="preserve">
+  <data name="ExamplePlugin.TeamCard.DisplayName">
     <value>示例队伍卡片</value>
   </data>
-  <data name="ExamplePlugin.TeamCard.Description" xml:space="preserve">
+  <data name="ExamplePlugin.TeamCard.Description">
     <value>DEBUG 示例插件控件，用绑定数据显示队伍名称和队标。</value>
   </data>
-  <data name="ExamplePlugin.TeamCard.TeamNameBindingPath" xml:space="preserve">
+  <data name="ExamplePlugin.TeamCard.TeamNameBindingPath">
     <value>队名绑定</value>
   </data>
-  <data name="ExamplePlugin.TeamCard.LogoBindingPath" xml:space="preserve">
+  <data name="ExamplePlugin.TeamCard.LogoBindingPath">
     <value>队标绑定</value>
   </data>
-  <data name="ExamplePlugin.TeamCard.BackgroundColor" xml:space="preserve">
+  <data name="ExamplePlugin.TeamCard.BackgroundColor">
     <value>背景颜色</value>
   </data>
-  <data name="ExamplePlugin.TeamCard.ForegroundColor" xml:space="preserve">
+  <data name="ExamplePlugin.TeamCard.ForegroundColor">
     <value>文字颜色</value>
   </data>
-  <data name="ExamplePlugin.TeamCard.CornerRadius" xml:space="preserve">
+  <data name="ExamplePlugin.TeamCard.CornerRadius">
     <value>圆角</value>
   </data>
-  <data name="ExamplePlugin.TeamCard.LogoSize" xml:space="preserve">
+  <data name="ExamplePlugin.TeamCard.LogoSize">
     <value>队标尺寸</value>
   </data>
-  <data name="ExamplePlugin.TeamCard.FontSize" xml:space="preserve">
+  <data name="ExamplePlugin.TeamCard.FontSize">
     <value>字体大小</value>
   </data>
-  <data name="ExamplePlugin.TeamCard.FontWeight" xml:space="preserve">
+  <data name="ExamplePlugin.TeamCard.FontWeight">
     <value>字重</value>
   </data>
-  <data name="ClassicBackendShell" xml:space="preserve">
+  <data name="ClassicBackendShell">
     <value>经典导播台</value>
   </data>
-  <data name="ModernBackendShell" xml:space="preserve">
+  <data name="ModernBackendShell">
     <value>现代后台</value>
   </data>
-  <data name="FrontendQuickControls" xml:space="preserve">
+  <data name="FrontendQuickControls">
     <value>前台窗口快捷控制</value>
   </data>
-  <data name="ClassicManagementEntries" xml:space="preserve">
+  <data name="ClassicManagementEntries">
     <value>管理入口</value>
   </data>
-  <data name="OpenFrontendManagement" xml:space="preserve">
+  <data name="OpenFrontendManagement">
     <value>前台管理</value>
   </data>
-  <data name="OpenSettings" xml:space="preserve">
+  <data name="OpenSettings">
     <value>设置</value>
   </data>
-  <data name="OpenPlugins" xml:space="preserve">
+  <data name="OpenPlugins">
     <value>插件</value>
   </data>
-  <data name="GameDataWindow" xml:space="preserve">
+  <data name="GameDataWindow">
     <value>赛后数据窗口</value>
   </data>
-  <data name="WidgetsWindow" xml:space="preserve">
+  <data name="WidgetsWindow">
     <value>小组件窗口</value>
   </data>
-  <data name="BehaviorEventDebugger" xml:space="preserve">
-    <value>行为事件调试器</value>
-  </data>
-  <data name="EnableListening" xml:space="preserve">
-    <value>启用监听</value>
-  </data>
-  <data name="Pause" xml:space="preserve">
-    <value>暂停</value>
-  </data>
-  <data name="CopyEventJson" xml:space="preserve">
-    <value>复制事件 JSON</value>
-  </data>
-  <data name="ExportJson" xml:space="preserve">
-    <value>导出 JSON</value>
-  </data>
-  <data name="MaxRecords" xml:space="preserve">
-    <value>最大记录数</value>
-  </data>
-  <data name="Filter" xml:space="preserve">
-    <value>筛选</value>
-  </data>
-  <data name="EventType" xml:space="preserve">
-    <value>事件类型</value>
-  </data>
-  <data name="WindowType" xml:space="preserve">
-    <value>窗口类型</value>
-  </data>
-  <data name="WindowId" xml:space="preserve">
-    <value>窗口 ID</value>
-  </data>
-  <data name="CanvasName" xml:space="preserve">
-    <value>画布名称</value>
-  </data>
-  <data name="PayloadSummary" xml:space="preserve">
-    <value>Payload 摘要</value>
-  </data>
-  <data name="Source" xml:space="preserve">
-    <value>来源</value>
-  </data>
-  <data name="Time" xml:space="preserve">
-    <value>时间</value>
-  </data>
-  <data name="Key" xml:space="preserve">
-    <value>键</value>
-  </data>
-  <data name="Path" xml:space="preserve">
-    <value>路径</value>
-  </data>
-  <data name="Type" xml:space="preserve">
-    <value>类型</value>
-  </data>
-  <data name="RawValue" xml:space="preserve">
-    <value>原始值</value>
-  </data>
-  <data name="DisplayValue" xml:space="preserve">
-    <value>显示值</value>
-  </data>
-  <data name="FilterText" xml:space="preserve">
-    <value>过滤值</value>
-  </data>
-  <data name="CopyPath" xml:space="preserve">
-    <value>复制路径</value>
-  </data>
-  <data name="CopyConditionPath" xml:space="preserve">
-    <value>复制条件路径</value>
-  </data>
-  <data name="CopyEqualsFilter" xml:space="preserve">
-    <value>复制 Equals 过滤器</value>
-  </data>
-  <data name="CopyIfCondition" xml:space="preserve">
-    <value>复制 IF 条件</value>
-  </data>
-  <data name="CopyContainsFilter" xml:space="preserve">
-    <value>复制 Contains 过滤器</value>
-  </data>
-  <data name="CopyValue" xml:space="preserve">
-    <value>复制值</value>
-  </data>
-  <data name="ExecutableFiles" xml:space="preserve">
+<data name="ExecutableFiles">
     <value>可执行文件</value>
+  </data>
+  <data name="SmartBp">
+    <value>智慧 BP</value>
   </data>
 </root>

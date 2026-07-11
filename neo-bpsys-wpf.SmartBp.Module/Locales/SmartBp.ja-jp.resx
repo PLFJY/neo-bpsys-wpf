@@ -4,485 +4,481 @@
   <resheader name="version">2.0</resheader>
   <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
   <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
-  <data name="SmartBpWindowCaptureSettings" xml:space="preserve">
+  <data name="SmartBpWindowCaptureSettings">
     <value>ウィンドウキャプチャ設定</value>
   </data>
-  <data name="SmartBpOpenWindowPickerOnlyWgc" xml:space="preserve">
+  <data name="SmartBpOpenWindowPickerOnlyWgc">
     <value>ウィンドウ選択を開く（WGCのみ）</value>
   </data>
-  <data name="SmartBpCancelDownload" xml:space="preserve">
+  <data name="SmartBpCancelDownload">
     <value>ダウンロードをキャンセル</value>
   </data>
-  <data name="SmartBpOcrModelDownloadFailed" xml:space="preserve">
+  <data name="SmartBpOcrModelDownloadFailed">
     <value>OCRモデルのダウンロードに失敗しました：{0}</value>
   </data>
-  <data name="SmartBpDeleteOcrModelConfirmFormat" xml:space="preserve">
+  <data name="SmartBpDeleteOcrModelConfirmFormat">
     <value>OCRモデル「{0}」を削除しますか？</value>
   </data>
-  <data name="SmartBpDeleteOcrModelTitle" xml:space="preserve">
+  <data name="SmartBpDeleteOcrModelTitle">
     <value>モデル削除</value>
   </data>
-  <data name="SmartBpOcrNotReadyFirstDownloadAndSwitchModel" xml:space="preserve">
+  <data name="SmartBpOcrNotReadyFirstDownloadAndSwitchModel">
     <value>OCR機能の準備ができていません。先にOCRモデルをダウンロードして切り替えてください。</value>
   </data>
-  <data name="SmartBpValidationCaptureNotRunning" xml:space="preserve">
+  <data name="SmartBpValidationCaptureNotRunning">
     <value>認識を開始する前にウィンドウキャプチャを開始してください。</value>
   </data>
-  <data name="SmartBpValidationCaptureFrameUnavailable" xml:space="preserve">
+  <data name="SmartBpValidationCaptureFrameUnavailable">
     <value>利用可能なキャプチャ画像がありません。キャプチャ対象のウィンドウが存在するか確認してください。</value>
   </data>
-  <data name="SmartBpValidationRegionProfileInvalid" xml:space="preserve">
+  <data name="SmartBpValidationRegionProfileInvalid">
     <value>試合後データ認識領域の設定が無効です。内蔵既定値に戻すか、有効な設定をインポートしてください。</value>
   </data>
-  <data name="SmartBpValidationGameDataRecognitionNoResult" xml:space="preserve">
+  <data name="SmartBpValidationGameDataRecognitionNoResult">
     <value>現在のキャプチャ画像から試合後データを認識できませんでした。画像と領域設定を確認してください。</value>
   </data>
-  <data name="SmartBpRegionConfigInvalidCellCountFormat" xml:space="preserve">
+  <data name="SmartBpRegionConfigInvalidCellCountFormat">
     <value>設定無効：{0} 行目は子領域6個が必要です。</value>
   </data>
-  <data name="SmartBpRegionConfigInvalidBigRectFormat" xml:space="preserve">
+  <data name="SmartBpRegionConfigInvalidBigRectFormat">
     <value>設定無効：{0} 行目の親領域が範囲外です。</value>
   </data>
-  <data name="SmartBpRegionConfigResetFailedFormat" xml:space="preserve">
+  <data name="SmartBpRegionConfigResetFailedFormat">
     <value>リセット失敗：{0}</value>
   </data>
-  <data name="SmartBpRegionEditorWindowTitle" xml:space="preserve">
+  <data name="SmartBpRegionEditorWindowTitle">
     <value>認識領域エディター</value>
   </data>
-  <data name="SmartBpRegionEditorTemplateNotInGroup" xml:space="preserve">
+  <data name="SmartBpRegionEditorTemplateNotInGroup">
     <value>現在のノードはテンプレートグループに属していません。</value>
   </data>
-  <data name="SmartBpRegionEditorApplyTemplate" xml:space="preserve">
+  <data name="SmartBpRegionEditorApplyTemplate">
     <value>同テンプレートへ一括適用</value>
   </data>
-  <data name="SmartBpRegionEditorOperationHelp" xml:space="preserve">
-    <value>操作説明：
-1. 枠内部ドラッグで移動
-2. 8つのハンドルでサイズ変更
-3. 子領域は親領域内に制限
-4. プレビューは現在フレーム固定</value>
+  <data name="SmartBpRegionEditorOperationHelp">
+    <value>操作説明： 1. 枠内部ドラッグで移動 2. 8つのハンドルでサイズ変更 3. 子領域は親領域内に制限 4. プレビューは現在フレーム固定</value>
   </data>
-  <data name="SmartBpRegionConfigInvalidCellRectFormat" xml:space="preserve">
+  <data name="SmartBpRegionConfigInvalidCellRectFormat">
     <value>設定無効：{0} 行目 {1} 列目の子領域が親領域外です。</value>
   </data>
-  <data name="SmartBpRegionConfigSaveFailedFormat" xml:space="preserve">
+  <data name="SmartBpRegionConfigSaveFailedFormat">
     <value>設定の保存に失敗しました：{0}</value>
   </data>
-  <data name="SmartBpRegionEditorCurrentRect" xml:space="preserve">
+  <data name="SmartBpRegionEditorCurrentRect">
     <value>現在の相対座標</value>
   </data>
-  <data name="SmartBpRegionEditorNodeSelection" xml:space="preserve">
+  <data name="SmartBpRegionEditorNodeSelection">
     <value>ノード選択</value>
   </data>
-  <data name="SmartBpRegionEditorRuleDefault" xml:space="preserve">
+  <data name="SmartBpRegionEditorRuleDefault">
     <value>現在のルール：各行に親領域1つ + 子領域6つ</value>
   </data>
-  <data name="SmartBpRegionConfigInvalidScene" xml:space="preserve">
+  <data name="SmartBpRegionConfigInvalidScene">
     <value>設定無効：scene は GameData である必要があります。</value>
   </data>
-  <data name="SmartBpRegionConfigImportFileNotFound" xml:space="preserve">
+  <data name="SmartBpRegionConfigImportFileNotFound">
     <value>インポート失敗：設定ファイルが存在しません。</value>
   </data>
-  <data name="SmartBpRegionConfigImportFailedFormat" xml:space="preserve">
+  <data name="SmartBpRegionConfigImportFailedFormat">
     <value>インポート失敗：{0}</value>
   </data>
-  <data name="SmartBpRegionConfigInvalidRowCount" xml:space="preserve">
+  <data name="SmartBpRegionConfigInvalidRowCount">
     <value>設定無効：親領域は5個必要です。</value>
   </data>
-  <data name="SmartBpImportGameDataRegionConfig" xml:space="preserve">
+  <data name="SmartBpImportGameDataRegionConfig">
     <value>試合後領域設定をインポート</value>
   </data>
-  <data name="SmartBpRegionConfigImportEmpty" xml:space="preserve">
+  <data name="SmartBpRegionConfigImportEmpty">
     <value>インポート失敗：設定ファイルの内容が空です。</value>
   </data>
-  <data name="SmartBpRegionConfigExportFailedFormat" xml:space="preserve">
+  <data name="SmartBpRegionConfigExportFailedFormat">
     <value>設定のエクスポートに失敗しました：{0}</value>
   </data>
-  <data name="SmartBpExportGameDataRegionConfig" xml:space="preserve">
+  <data name="SmartBpExportGameDataRegionConfig">
     <value>試合後領域設定をエクスポート</value>
   </data>
-  <data name="SmartBpRegionConfigExportPathEmpty" xml:space="preserve">
+  <data name="SmartBpRegionConfigExportPathEmpty">
     <value>エクスポート失敗：出力先パスが空です。</value>
   </data>
-  <data name="Preview" xml:space="preserve">
+  <data name="Preview">
     <value>プレビュー</value>
   </data>
-  <data name="Clear" xml:space="preserve">
+  <data name="Clear">
     <value>クリア</value>
   </data>
-  <data name="SmartBpAiEnableAutoApply" xml:space="preserve">
+  <data name="SmartBpAiEnableAutoApply">
     <value>認識結果を自動適用</value>
   </data>
-  <data name="SmartBpAiResetLedger" xml:space="preserve">
+  <data name="SmartBpAiResetLedger">
     <value>SmartBP 認識履歴をリセット</value>
   </data>
-  <data name="SmartBpEnableDebugLog" xml:space="preserve">
+  <data name="SmartBpEnableDebugLog">
     <value>デバッグログを有効にする</value>
   </data>
-  <data name="SmartBpAiParallelSlots" xml:space="preserve">
+  <data name="SmartBpAiParallelSlots">
     <value>llama.cpp 並列スロット</value>
   </data>
-  <data name="SmartBpAiParallelSlotsHint" xml:space="preserve">
+  <data name="SmartBpAiParallelSlotsHint">
     <value>並列スロットを増やすと同時処理性能が上がる場合がありますが、VRAM/RAM を多く使います。既定値 1 が安全です。</value>
   </data>
-  <data name="SmartBpAiGpuLayers" xml:space="preserve">
+  <data name="SmartBpAiGpuLayers">
     <value>GPU レイヤー（-1 は自動）</value>
   </data>
-  <data name="SmartBpAiFlashAttention" xml:space="preserve">
+  <data name="SmartBpAiFlashAttention">
     <value>Flash Attention を有効化</value>
   </data>
-  <data name="SmartBpAiBatchSize" xml:space="preserve">
+  <data name="SmartBpAiBatchSize">
     <value>Batch size</value>
   </data>
-  <data name="SmartBpAiUBatchSize" xml:space="preserve">
+  <data name="SmartBpAiUBatchSize">
     <value>UBatch size</value>
   </data>
-  <data name="SmartBpAiAllowSequentialFallback" xml:space="preserve">
+  <data name="SmartBpAiAllowSequentialFallback">
     <value>複数画像失敗時に順次認識へフォールバック</value>
   </data>
-  <data name="SmartBpAiUseStrictCandidateEnums" xml:space="preserve">
+  <data name="SmartBpAiUseStrictCandidateEnums">
     <value>自動認識で厳密な候補 enum を使用</value>
   </data>
-  <data name="SmartBpAiPhaseCropMaxWidth" xml:space="preserve">
+  <data name="SmartBpAiPhaseCropMaxWidth">
     <value>フェーズ裁剪の最大幅</value>
   </data>
-  <data name="SmartBpAiContentCropMaxWidth" xml:space="preserve">
+  <data name="SmartBpAiContentCropMaxWidth">
     <value>内容裁剪の最大幅</value>
   </data>
-  <data name="SmartBpAiPhaseMaxTokens" xml:space="preserve">
+  <data name="SmartBpAiPhaseMaxTokens">
     <value>フェーズ認識 token 上限</value>
   </data>
-  <data name="SmartBpAiSnapshotDeltaMaxTokens" xml:space="preserve">
+  <data name="SmartBpAiSnapshotDeltaMaxTokens">
     <value>差分認識 token 上限</value>
   </data>
-  <data name="SmartBpAiCommitHoldMilliseconds" xml:space="preserve">
+  <data name="SmartBpAiCommitHoldMilliseconds">
     <value>フェーズ遷移コミット待機ミリ秒</value>
   </data>
-  <data name="SmartBpAiCommitHoldMaxMilliseconds" xml:space="preserve">
+  <data name="SmartBpAiCommitHoldMaxMilliseconds">
     <value>フェーズ遷移最大待機ミリ秒</value>
   </data>
-  <data name="SmartBpAiUnknownPhaseTalentInferenceFrames" xml:space="preserve">
+  <data name="SmartBpAiUnknownPhaseTalentInferenceFrames">
     <value>未知フェーズから天賦を推定するフレーム数</value>
   </data>
-  <data name="SmartBpAiVisualBufferMilliseconds" xml:space="preserve">
+  <data name="SmartBpAiVisualBufferMilliseconds">
     <value>現在手順アニメーションのバッファミリ秒</value>
   </data>
-  <data name="SmartBpOcrUseContactSheet" xml:space="preserve">
+  <data name="SmartBpOcrUseContactSheet">
     <value>OCR 結合認識画像を使用</value>
   </data>
-  <data name="SmartBpOcrDebugOverlay" xml:space="preserve">
+  <data name="SmartBpOcrDebugOverlay">
     <value>OCR デバッグオーバーレイを有効化</value>
   </data>
-  <data name="SmartBpOcrIntervalMilliseconds" xml:space="preserve">
+  <data name="SmartBpOcrIntervalMilliseconds">
     <value>OCR 認識間隔ミリ秒</value>
   </data>
-  <data name="SmartBpOcrFieldStaleMilliseconds" xml:space="preserve">
+  <data name="SmartBpOcrFieldStaleMilliseconds">
     <value>OCR フィールド再更新までのミリ秒</value>
   </data>
-  <data name="SmartBpOcrBackfillLookBehindSteps" xml:space="preserve">
+  <data name="SmartBpOcrBackfillLookBehindSteps">
     <value>OCR ワークフロー振り返り手順数</value>
   </data>
-  <data name="SmartBpOcrProviderSection" xml:space="preserve">
+  <data name="SmartBpOcrProviderSection">
     <value>OCR プロバイダー</value>
   </data>
-  <data name="SmartBpOcrTesseractLanguages" xml:space="preserve">
+  <data name="SmartBpOcrTesseractLanguages">
     <value>Tesseract 言語</value>
   </data>
-  <data name="SmartBpOcrOpenTessdataFolder" xml:space="preserve">
+  <data name="SmartBpOcrOpenTessdataFolder">
     <value>tessdata フォルダーを開く</value>
   </data>
-  <data name="SmartBpOcrTesseractPsm" xml:space="preserve">
+  <data name="SmartBpOcrTesseractPsm">
     <value>Tesseract ページ分割モード（PSM）</value>
   </data>
-  <data name="SmartBpOcrTesseractVariants" xml:space="preserve">
+  <data name="SmartBpOcrTesseractVariants">
     <value>前処理バリアントの最大数</value>
   </data>
-  <data name="Download" xml:space="preserve">
+  <data name="Download">
     <value>Download</value>
   </data>
-  <data name="Switch" xml:space="preserve">
+  <data name="Switch">
     <value>Switch</value>
   </data>
-  <data name="SmartBpAutomaticRecognitionAndApply" xml:space="preserve">
+  <data name="SmartBpAutomaticRecognitionAndApply">
     <value>自動認識と適用</value>
   </data>
-  <data name="SmartBpRecognitionAreaConfiguration" xml:space="preserve">
+  <data name="SmartBpRecognitionAreaConfiguration">
     <value>認識領域設定</value>
   </data>
-  <data name="SmartBpBpRecognitionRegions" xml:space="preserve">
+  <data name="SmartBpBpRecognitionRegions">
     <value>BP 自動認識領域</value>
   </data>
-  <data name="SmartBpGameDataRecognitionRegions" xml:space="preserve">
+  <data name="SmartBpGameDataRecognitionRegions">
     <value>試合後データ認識領域</value>
   </data>
-  <data name="SmartBpOpenBpRecognitionRegionEditor" xml:space="preserve">
+  <data name="SmartBpOpenBpRecognitionRegionEditor">
     <value>BP 認識領域を編集</value>
   </data>
-  <data name="SmartBpEditGameDataRegionConfig" xml:space="preserve">
+  <data name="SmartBpEditGameDataRegionConfig">
     <value>試合後データ領域を編集</value>
   </data>
-  <data name="SmartBpResetGameDataRegionConfig" xml:space="preserve">
+  <data name="SmartBpResetGameDataRegionConfig">
     <value>内蔵 16:9 既定値に戻す</value>
   </data>
-  <data name="SmartBpRegionConfigCurrentPath" xml:space="preserve">
+  <data name="SmartBpRegionConfigCurrentPath">
     <value>現在の設定パス</value>
   </data>
-  <data name="SmartBpRegionConfigConfiguredAspectRatio" xml:space="preserve">
+  <data name="SmartBpRegionConfigConfiguredAspectRatio">
     <value>設定のアスペクト比</value>
   </data>
-  <data name="SmartBpRegionConfigCurrentCaptureAspectRatio" xml:space="preserve">
+  <data name="SmartBpRegionConfigCurrentCaptureAspectRatio">
     <value>現在のキャプチャ比率</value>
   </data>
-  <data name="SmartBpRegionConfigAspectStatus" xml:space="preserve">
+  <data name="SmartBpRegionConfigAspectStatus">
     <value>比率一致状態</value>
   </data>
-  <data name="SmartBpAdvancedParameters" xml:space="preserve">
+  <data name="SmartBpAdvancedParameters">
     <value>高度なパラメーター</value>
   </data>
-  <data name="SmartBpDebugOptions" xml:space="preserve">
+  <data name="SmartBpDebugOptions">
     <value>Debug options</value>
   </data>
-  <data name="SmartBpFullRecognitionTest" xml:space="preserve">
+  <data name="SmartBpFullRecognitionTest">
     <value>画像全体を認識</value>
   </data>
-  <data name="SmartBpPhaseSceneOnlyTest" xml:space="preserve">
+  <data name="SmartBpPhaseSceneOnlyTest">
     <value>現在のフェーズを認識</value>
   </data>
-  <data name="SmartBpDebugTools" xml:space="preserve">
+  <data name="SmartBpDebugTools">
     <value>Debug tools</value>
   </data>
-  <data name="SmartBpAiRecognizeSelectedPhase" xml:space="preserve">
+  <data name="SmartBpAiRecognizeSelectedPhase">
     <value>選択したテスト画像のフェーズを認識</value>
   </data>
-  <data name="SmartBpAiRecognizeCurrentPhase" xml:space="preserve">
+  <data name="SmartBpAiRecognizeCurrentPhase">
     <value>現在のフェーズを認識</value>
   </data>
-  <data name="SmartBpDebugStrategySummary" xml:space="preserve">
+  <data name="SmartBpDebugStrategySummary">
     <value>Strategy</value>
   </data>
-  <data name="SmartBpDebugPhaseScene" xml:space="preserve">
+  <data name="SmartBpDebugPhaseScene">
     <value>Phase / scene</value>
   </data>
-  <data name="SmartBpDebugCandidateOperations" xml:space="preserve">
+  <data name="SmartBpDebugCandidateOperations">
     <value>Candidate operations</value>
   </data>
-  <data name="SmartBpTesseractDownloadData" xml:space="preserve">
+  <data name="SmartBpTesseractDownloadData">
     <value>選択した言語データをダウンロード</value>
   </data>
-  <data name="SmartBpTesseractDeleteData" xml:space="preserve">
+  <data name="SmartBpTesseractDeleteData">
     <value>選択した言語データを削除</value>
   </data>
-  <data name="SmartBpGameDataAiRecognitionNotImplemented" xml:space="preserve">
+  <data name="SmartBpGameDataAiRecognitionNotImplemented">
     <value>試合後データ認識はまだ AI 認識に対応していません。Paddle OCR または Tesseract OCR に切り替えてください。</value>
   </data>
-  <data name="SmartBpEnableAutoGuidanceSync" xml:space="preserve">
+  <data name="SmartBpEnableAutoGuidanceSync">
     <value>Enable automatic GameGuidance sync</value>
   </data>
-  <data name="SmartBpEnableAutoGuidancePageNavigation" xml:space="preserve">
+  <data name="SmartBpEnableAutoGuidancePageNavigation">
     <value>Follow page navigation when sync moves step</value>
   </data>
-  <data name="SmartBpProgressAutoCorrection" xml:space="preserve">
+  <data name="SmartBpProgressAutoCorrection">
     <value>進行状況を診断して自動同期</value>
   </data>
-  <data name="SmartBpProgressAutoCorrectionDescription" xml:space="preserve">
+  <data name="SmartBpProgressAutoCorrectionDescription">
     <value>自動認識で GameGuidance と画面状態の明確なずれを検出した場合、全量 OCR で確認してから前方へ同期します。</value>
   </data>
-  <data name="SmartBpForceSyncGameProgress" xml:space="preserve">
+  <data name="SmartBpForceSyncGameProgress">
     <value>対局進行を強制同期</value>
   </data>
-  <data name="SmartBpForceSyncGameProgressDescription" xml:space="preserve">
+  <data name="SmartBpForceSyncGameProgressDescription">
     <value>現在認識された ban / pick スロットから、最も一致する GameGuidance ステップを推定して切り替えます。</value>
   </data>
-  <data name="SmartBpOperationFailedFormat" xml:space="preserve">
+  <data name="SmartBpOperationFailedFormat">
     <value>操作に失敗しました：{0}</value>
   </data>
-  <data name="SmartBpAlreadyRunning" xml:space="preserve">
+  <data name="SmartBpAlreadyRunning">
     <value>SmartBP はすでに実行中です。重複して起動しないでください。</value>
   </data>
-  <data name="SmartBpFreeFullSyncWarning" xml:space="preserve">
+  <data name="SmartBpFreeFullSyncWarning">
     <value>Free full sync is experimental and may write slots without workflow context. Guided workflow is recommended.</value>
   </data>
-  <data name="SmartBpCaptureStopDisabledWhileRecognizing" xml:space="preserve">
+  <data name="SmartBpCaptureStopDisabledWhileRecognizing">
     <value>自動認識中はウィンドウキャプチャを維持します。キャプチャを停止する前に自動認識を停止してください。</value>
   </data>
-  <data name="SmartBpStartAutomaticRecognition" xml:space="preserve">
+  <data name="SmartBpStartAutomaticRecognition">
     <value>Start automatic recognition</value>
   </data>
-  <data name="SmartBpAiOneStepDelayedMode" xml:space="preserve">
+  <data name="SmartBpAiOneStepDelayedMode">
     <value>AI one-step-delayed mode</value>
   </data>
-  <data name="SmartBpAiUseMultiImage" xml:space="preserve">
+  <data name="SmartBpAiUseMultiImage">
     <value>Use multi-image request</value>
   </data>
-  <data name="SmartBpAiRecognizeCurrentFrame" xml:space="preserve">
+  <data name="SmartBpAiRecognizeCurrentFrame">
     <value>現在のキャプチャ全体を認識</value>
   </data>
-  <data name="SmartBpTooltipContactSheet" xml:space="preserve">
+  <data name="SmartBpTooltipContactSheet">
     <value>Combines recognition regions into one OCR input.</value>
   </data>
-  <data name="SmartBpTooltipRecognitionInterval" xml:space="preserve">
+  <data name="SmartBpTooltipRecognitionInterval">
     <value>Minimum delay between automatic recognition runs in milliseconds.</value>
   </data>
-  <data name="SmartBpTooltipFieldStale" xml:space="preserve">
+  <data name="SmartBpTooltipFieldStale">
     <value>Refresh a field after it has remained stale for this duration.</value>
   </data>
-  <data name="SmartBpTooltipBackfill" xml:space="preserve">
+  <data name="SmartBpTooltipBackfill">
     <value>Number of workflow steps eligible for late backfill.</value>
   </data>
-  <data name="SmartBpTooltipDebugOverlay" xml:space="preserve">
+  <data name="SmartBpTooltipDebugOverlay">
     <value>Outputs OCR region and text-position diagnostics.</value>
   </data>
-  <data name="SmartBpTooltipTesseractLanguages" xml:space="preserve">
+  <data name="SmartBpTooltipTesseractLanguages">
     <value>Tesseract language expression, for example chi_sim+eng.</value>
   </data>
-  <data name="SmartBpTooltipTesseractPsm" xml:space="preserve">
+  <data name="SmartBpTooltipTesseractPsm">
     <value>Tesseract page segmentation mode.</value>
   </data>
-  <data name="SmartBpTooltipTesseractVariants" xml:space="preserve">
+  <data name="SmartBpTooltipTesseractVariants">
     <value>Number of preprocessed image variants tried per region.</value>
   </data>
-  <data name="SmartBpTooltipAiDelayed" xml:space="preserve">
+  <data name="SmartBpTooltipAiDelayed">
     <value>Completes the preceding recognition step before moving GameGuidance.</value>
   </data>
-  <data name="SmartBpTooltipAiInferenceFrames" xml:space="preserve">
+  <data name="SmartBpTooltipAiInferenceFrames">
     <value>Consecutive unknown-phase frames required before hunter-talent inference.</value>
   </data>
-  <data name="SmartBpTooltipMultiImage" xml:space="preserve">
+  <data name="SmartBpTooltipMultiImage">
     <value>Sends phase and content regions in one AI request.</value>
   </data>
-  <data name="SmartBpTooltipSequentialFallback" xml:space="preserve">
+  <data name="SmartBpTooltipSequentialFallback">
     <value>Retries regions separately when a multi-image request fails.</value>
   </data>
-  <data name="SmartBpTooltipGpuLayers" xml:space="preserve">
+  <data name="SmartBpTooltipGpuLayers">
     <value>llama.cpp layers offloaded to GPU; -1 selects automatically.</value>
   </data>
-  <data name="SmartBpTooltipBatchSize" xml:space="preserve">
+  <data name="SmartBpTooltipBatchSize">
     <value>llama.cpp logical batch size.</value>
   </data>
-  <data name="SmartBpTooltipUBatchSize" xml:space="preserve">
+  <data name="SmartBpTooltipUBatchSize">
     <value>llama.cpp physical micro-batch size.</value>
   </data>
-  <data name="SmartBpTooltipFlashAttention" xml:space="preserve">
+  <data name="SmartBpTooltipFlashAttention">
     <value>Enables llama.cpp Flash Attention.</value>
   </data>
-  <data name="SmartBpTestRecognitionSpeed" xml:space="preserve">
+  <data name="SmartBpTestRecognitionSpeed">
     <value>Test recognition speed</value>
   </data>
-  <data name="SmartBpGuidedWorkflowRecommended" xml:space="preserve">
+  <data name="SmartBpGuidedWorkflowRecommended">
     <value>Guided workflow (recommended)</value>
   </data>
-  <data name="SmartBpFreeFullSyncExperimental" xml:space="preserve">
+  <data name="SmartBpFreeFullSyncExperimental">
     <value>Free full sync (experimental)</value>
   </data>
-  <data name="SmartBpAutomaticRecognitionInterval" xml:space="preserve">
+  <data name="SmartBpAutomaticRecognitionInterval">
     <value>自動認識間隔</value>
   </data>
-  <data name="SmartBpRecognizing" xml:space="preserve">
+  <data name="SmartBpRecognizing">
     <value>認識中…</value>
   </data>
-  <data name="SmartBpCurrentEngine" xml:space="preserve">
+  <data name="SmartBpCurrentEngine">
     <value>現在のエンジン</value>
   </data>
-  <data name="SmartBpCurrentInterval" xml:space="preserve">
+  <data name="SmartBpCurrentInterval">
     <value>現在の間隔</value>
   </data>
-  <data name="SmartBpMinimumInterval" xml:space="preserve">
+  <data name="SmartBpMinimumInterval">
     <value>速度テストの最小間隔</value>
   </data>
-  <data name="SmartBpAiIntervalMilliseconds" xml:space="preserve">
+  <data name="SmartBpAiIntervalMilliseconds">
     <value>AI 自動認識間隔（ms）</value>
   </data>
-  <data name="SmartBpTooltipAiRecognitionInterval" xml:space="preserve">
+  <data name="SmartBpTooltipAiRecognitionInterval">
     <value>AI スクリーンショット間隔を制御します。実際の推論時間より短いと古い結果が滞留し停止も遅くなります。速度テスト後、最大実測時間 + 250ms が最小値になります。</value>
   </data>
-  <data name="SmartBpTooltipPhaseCropWidth" xml:space="preserve">
+  <data name="SmartBpTooltipPhaseCropWidth">
     <value>段階画像の最大幅です。小さいほど高速ですが文字を失う場合があります。推奨 480–768。変更後は再測定してください。</value>
   </data>
-  <data name="SmartBpTooltipContentCropWidth" xml:space="preserve">
+  <data name="SmartBpTooltipContentCropWidth">
     <value>BP 内容画像の最大幅です。小さいほど高速ですが文字やアイコン詳細を失う場合があります。推奨 640–1280。</value>
   </data>
-  <data name="SmartBpTooltipPhaseTokens" xml:space="preserve">
+  <data name="SmartBpTooltipPhaseTokens">
     <value>段階出力 token 上限です。小さすぎると JSON が切れ、大きすぎると生成が長引きます。推奨 32–128。</value>
   </data>
-  <data name="SmartBpTooltipSnapshotTokens" xml:space="preserve">
+  <data name="SmartBpTooltipSnapshotTokens">
     <value>差分出力 token 上限です。小さすぎると JSON が切れます。要求フィールドに応じて 256–1536 を推奨します。</value>
   </data>
-  <data name="SmartBpTooltipCommitHold" xml:space="preserve">
+  <data name="SmartBpTooltipCommitHold">
     <value>案内移動前に直前の認識・適用を待つ時間です。短すぎると前段を失い、長すぎると UI が遅れます。AI は通常 250–1000ms。</value>
   </data>
-  <data name="SmartBpTooltipVisualBuffer" xml:space="preserve">
+  <data name="SmartBpTooltipVisualBuffer">
     <value>現在ステップ適用前の追加遅延です。既定値 0。アニメーション安定化時のみ使用し、推奨 0–500ms。</value>
   </data>
-  <data name="SmartBpTooltipStrictCandidateEnums" xml:space="preserve">
+  <data name="SmartBpTooltipStrictCandidateEnums">
     <value>キャラクター候補を AI JSON schema に追加し架空名を減らしますが、処理時間と互換性リスクが増えます。schema エラー時は無効にしてください。</value>
   </data>
-  <data name="SmartBpRapidOcrModelManagement" xml:space="preserve">
+  <data name="SmartBpRapidOcrModelManagement">
     <value>RapidOCR 中国語モデル</value>
   </data>
-  <data name="SmartBpRapidOcrMaxSideLen" xml:space="preserve">
+  <data name="SmartBpRapidOcrMaxSideLen">
     <value>画像の最大辺</value>
   </data>
-  <data name="SmartBpRapidOcrPadding" xml:space="preserve">
+  <data name="SmartBpRapidOcrPadding">
     <value>検出パディング</value>
   </data>
-  <data name="SmartBpRapidOcrBoxScoreThreshold" xml:space="preserve">
+  <data name="SmartBpRapidOcrBoxScoreThreshold">
     <value>テキスト枠スコア閾値</value>
   </data>
-  <data name="SmartBpRapidOcrBoxThreshold" xml:space="preserve">
+  <data name="SmartBpRapidOcrBoxThreshold">
     <value>テキスト枠検出閾値</value>
   </data>
-  <data name="SmartBpRapidOcrUnclipRatio" xml:space="preserve">
+  <data name="SmartBpRapidOcrUnclipRatio">
     <value>テキスト枠拡張率</value>
   </data>
-  <data name="SmartBpRapidOcrAngleClassifier" xml:space="preserve">
+  <data name="SmartBpRapidOcrAngleClassifier">
     <value>文字方向分類を有効化</value>
   </data>
-  <data name="SmartBpRapidOcrPreprocessingVariants" xml:space="preserve">
+  <data name="SmartBpRapidOcrPreprocessingVariants">
     <value>コントラスト強調版も試す</value>
   </data>
-  <data name="SmartBpTooltipRapidOcrMaxSideLen" xml:space="preserve">
+  <data name="SmartBpTooltipRapidOcrMaxSideLen">
     <value>値を大きくすると小さい文字が改善する場合がありますが、速度とメモリを消費します。</value>
   </data>
-  <data name="SmartBpTooltipRapidOcrThresholds" xml:space="preserve">
+  <data name="SmartBpTooltipRapidOcrThresholds">
     <value>閾値を上げると誤検出は減りますが、弱い文字を見落とす場合があります。</value>
   </data>
-  <data name="SmartBpRapidOcrCheckUpdate" xml:space="preserve">
+  <data name="SmartBpRapidOcrCheckUpdate">
     <value>モデル更新を確認</value>
   </data>
-  <data name="SmartBpRapidOcrInstalledVersion" xml:space="preserve">
+  <data name="SmartBpRapidOcrInstalledVersion">
     <value>インストール済み：</value>
   </data>
-  <data name="SmartBpRapidOcrLatestVersion" xml:space="preserve">
+  <data name="SmartBpRapidOcrLatestVersion">
     <value>マニフェスト：</value>
   </data>
-  <data name="SmartBpIncrementalRecognitionTest" xml:space="preserve">
+  <data name="SmartBpIncrementalRecognitionTest">
     <value>現在ステージの差分認識</value>
   </data>
-  <data name="SmartBpRecognizeSelectedIncremental" xml:space="preserve">
+  <data name="SmartBpRecognizeSelectedIncremental">
     <value>テスト画像の差分認識</value>
   </data>
-  <data name="SmartBpRecognizeCurrentIncremental" xml:space="preserve">
+  <data name="SmartBpRecognizeCurrentIncremental">
     <value>現在画像の差分認識</value>
   </data>
-  <data name="SmartBpDebugFinalBusinessState" xml:space="preserve">
+  <data name="SmartBpDebugFinalBusinessState">
     <value>最終ビジネス状態</value>
   </data>
-  <data name="SmartBpDebugFusionSummary" xml:space="preserve">
+  <data name="SmartBpDebugFusionSummary">
     <value>融合サマリー</value>
   </data>
-  <data name="SmartBpDebugTimingServerSummary" xml:space="preserve">
+  <data name="SmartBpDebugTimingServerSummary">
     <value>時間とサーバーのサマリー</value>
   </data>
-  <data name="SmartBpOpenRecognitionDebugLogWindow" xml:space="preserve">
+  <data name="SmartBpOpenRecognitionDebugLogWindow">
     <value>認識ログウィンドウを開く</value>
   </data>
-  <data name="SmartBpRecognitionDebugLogWindowTitle" xml:space="preserve">
+  <data name="SmartBpRecognitionDebugLogWindowTitle">
     <value>SmartBP 認識デバッグログ</value>
   </data>
-  <data name="SmartBpRecognitionDebugLogAutoScroll" xml:space="preserve">
+  <data name="SmartBpRecognitionDebugLogAutoScroll">
     <value>自動スクロール</value>
   </data>
-  <data name="SmartBpCopyRecognitionDebugLog" xml:space="preserve">
+  <data name="SmartBpCopyRecognitionDebugLog">
     <value>ログをコピー</value>
   </data>
   <data name="Refresh" xml:space="preserve">
@@ -505,5 +501,428 @@
   </data>
   <data name="SaveSuccessfullyTo" xml:space="preserve">
     <value>保存に成功しました：</value>
+  </data>
+  <data name="SmartBpAiLedgerResetCompleted">
+    <value>現在の試合の SmartBP AI 認識履歴をリセットしました。</value>
+  </data>
+  <data name="SmartBpAiModelDownloadRequired">
+    <value>The selected model must be downloaded first.</value>
+  </data>
+  <data name="SmartBpAiOcrServerRestarting">
+    <value>AI OCR サーバーを再起動しています...</value>
+  </data>
+  <data name="SmartBpAiOcrServerStarting">
+    <value>Starting AI OCR server...</value>
+  </data>
+  <data name="SmartBpAiRegionEditor">
+    <value>SmartBP OCR 認識領域エディター</value>
+  </data>
+  <data name="SmartBpAiRegionLeftBottom">
+    <value>左下：サバイバー選択・割り当て</value>
+  </data>
+  <data name="SmartBpAiRegionLeftTop">
+    <value>左上：ハンターBAN</value>
+  </data>
+  <data name="SmartBpAiRegionPhaseTop">
+    <value>上部フェーズ認識領域</value>
+  </data>
+  <data name="SmartBpAiRegionProfileReset">
+    <value>SmartBP OCR 認識領域を組み込みの既定値に戻しました。</value>
+  </data>
+  <data name="SmartBpAiRegionProfileSaved">
+    <value>SmartBP OCR 認識領域設定を保存しました。</value>
+  </data>
+  <data name="SmartBpAiRegionRightBottom">
+    <value>右下：ハンター選択</value>
+  </data>
+  <data name="SmartBpAiRegionRightTop">
+    <value>右上：サバイバーBAN</value>
+  </data>
+  <data name="SmartBpAiRegionTopCenterStatus">
+    <value>上部中央のBPライフサイクル状態領域</value>
+  </data>
+  <data name="SmartBpAiRegionTopLeftStatus">
+    <value>左上のBP終了後ステータス領域</value>
+  </data>
+  <data name="SmartBpAiRuntimeRollbackComplete">
+    <value>llama.cpp runtime rollback completed</value>
+  </data>
+  <data name="SmartBpAiStatusRestarting">
+    <value>llama.cpp サーバーを再起動しています…</value>
+  </data>
+  <data name="SmartBpAiStatusStarting">
+    <value>llama.cpp サーバーを起動しています…</value>
+  </data>
+  <data name="SmartBpAiSwitchModelRestartConfirm">
+    <value>llama-server is running. Switching models will restart it automatically. Continue?</value>
+  </data>
+  <data name="SmartBpAiSwitchModelTitle">
+    <value>AI モデルを切り替え</value>
+  </data>
+  <data name="SmartBpAutoRecognitionStartConfirm">
+    <value>Please confirm that the current game progress and half are set correctly. Incorrect settings may write recognition results to the wrong game.</value>
+  </data>
+  <data name="SmartBpAutoRecognitionStartTitle">
+    <value>Start automatic recognition</value>
+  </data>
+  <data name="SmartBpBusinessAiServerRestarting">
+    <value>Business AI サーバーを再起動しています...</value>
+  </data>
+  <data name="SmartBpBusinessAiServerStarting">
+    <value>Starting Business AI server...</value>
+  </data>
+  <data name="SmartBpCaptureMethodBitblt">
+    <value>Bitblt</value>
+  </data>
+  <data name="SmartBpCaptureMethodWgc">
+    <value>Windows Graphics Capture（Windows 10 1903 以降）</value>
+  </data>
+  <data name="SmartBpCurrentOcrModelDisabled">
+    <value>現在のOCRモデル：未有効</value>
+  </data>
+  <data name="SmartBpCurrentOcrModelFormat">
+    <value>現在のOCRモデル：{0}</value>
+  </data>
+  <data name="SmartBpCurrentQwenModelFormat">
+    <value>Current Business AI model: {0}</value>
+  </data>
+  <data name="SmartBpDownloadCancelled">
+    <value>Download cancelled</value>
+  </data>
+  <data name="SmartBpDownloadFailedSimple">
+    <value>ダウンロードに失敗しました</value>
+  </data>
+  <data name="SmartBpOcrArchiveMissingModelFilesFormat">
+    <value>モデルアーカイブ内に使用可能なモデルファイルが見つかりません（inference.pdiparams と inference.pdmodel または inference.json が必要）。サンプルファイル：{0}</value>
+  </data>
+  <data name="SmartBpOcrClsModelMetadataEmpty">
+    <value>OCR分類モデルのメタデータが空です。</value>
+  </data>
+  <data name="SmartBpOcrContactSheet">
+    <value>結合認識画像</value>
+  </data>
+  <data name="SmartBpOcrDeleteBlockedByDownloading">
+    <value>ダウンロード中のため、モデルを削除できません。</value>
+  </data>
+  <data name="SmartBpOcrDeleteFailedFormat">
+    <value>OCRモデルの削除に失敗しました：{0}</value>
+  </data>
+  <data name="SmartBpOcrDetModelMetadataEmpty">
+    <value>OCR検出モデルのメタデータが空です。</value>
+  </data>
+  <data name="SmartBpOcrDictNameEmpty">
+    <value>OCR辞書名が空です。</value>
+  </data>
+  <data name="SmartBpOcrDownloadAlreadyInProgress">
+    <value>OCRモデルのダウンロードはすでに実行中です。</value>
+  </data>
+  <data name="SmartBpOcrDownloadCanceled">
+    <value>ダウンロードはキャンセルされました。</value>
+  </data>
+  <data name="SmartBpOcrDownloadCompleted">
+    <value>OCRモデルのダウンロードが完了しました。</value>
+  </data>
+  <data name="SmartBpOcrDownloadFailedSimple">
+    <value>ダウンロードに失敗しました。</value>
+  </data>
+  <data name="SmartBpOcrDownloadPreparing">
+    <value>OCRモデルのダウンロードを準備中...</value>
+  </data>
+  <data name="SmartBpOcrDownloadStageCls">
+    <value>方向分類モデルをダウンロード中...</value>
+  </data>
+  <data name="SmartBpOcrDownloadStageDet">
+    <value>検出モデルをダウンロード中...</value>
+  </data>
+  <data name="SmartBpOcrDownloadStageRec">
+    <value>認識モデルをダウンロード中...</value>
+  </data>
+  <data name="SmartBpOcrLoadFailedFormat">
+    <value>OCRモデルの読み込みに失敗しました：{0}</value>
+  </data>
+  <data name="SmartBpOcrModelEnV4MobileDescription">
+    <value>英語環境向けに最適化され、英語と数字の認識に適しています。</value>
+  </data>
+  <data name="SmartBpOcrModelEnV4MobileDisplayName">
+    <value>英語 V4 Mobile</value>
+  </data>
+  <data name="SmartBpOcrModelFilesIncomplete">
+    <value>モデルファイルが完全ではありません。先にモデルをダウンロードしてください。</value>
+  </data>
+  <data name="SmartBpOcrModelJaV4MobileDescription">
+    <value>日本語環境向けに最適化され、日本語と数字の認識に適しています。日本語 UI では推奨です。</value>
+  </data>
+  <data name="SmartBpOcrModelJaV4MobileDisplayName">
+    <value>日本語 V4 Mobile（推奨）</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV3SlimDescription">
+    <value>サイズが小さく、低スペック環境に適しています。</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV3SlimDisplayName">
+    <value>中国語 V3 Slim（軽量）</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV4Description">
+    <value>互換性が安定しており、配備サイズも適度です。</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV4DisplayName">
+    <value>中国語 V4</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV5MobileDescription">
+    <value>精度と速度のバランスが良いモデルです。</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV5MobileDisplayName">
+    <value>中国語 V5 Mobile</value>
+  </data>
+  <data name="SmartBpOcrRecModelMetadataEmpty">
+    <value>OCR認識モデルのメタデータが空です。</value>
+  </data>
+  <data name="SmartBpOcrStatusInstalled">
+    <value>インストール済み</value>
+  </data>
+  <data name="SmartBpOcrStatusMissing">
+    <value>不足</value>
+  </data>
+  <data name="SmartBpOcrUnsupportedModelFormat">
+    <value>サポートされていないOCRモデルです：{0}</value>
+  </data>
+  <data name="SmartBpProgressDiagnosisAligned">
+    <value>最近の進行診断：一致</value>
+  </data>
+  <data name="SmartBpProgressDiagnosisInsufficient">
+    <value>最近の進行診断：証拠不足</value>
+  </data>
+  <data name="SmartBpProgressDiagnosisMisalignedFormat">
+    <value>最近の進行診断：現在は Step {0} {1}[{2}]、画面は Step {3} {4}[{5}] により一致しています</value>
+  </data>
+  <data name="SmartBpProgressDiagnosisSyncedFormat">
+    <value>最近の進行診断：Step {0} {1}[{2}] に同期済み</value>
+  </data>
+  <data name="SmartBpProgressForceSyncFailedFormat">
+    <value>対局進行の強制同期に失敗しました：{0}</value>
+  </data>
+  <data name="SmartBpProgressForceSyncForwardOnly">
+    <value>自動進行同期は前方への移動のみ行うため、今回の同期はスキップされました。</value>
+  </data>
+  <data name="SmartBpProgressForceSyncGuidanceStartFailed">
+    <value>対局ガイダンスを開始できなかったため、対局進行は同期されませんでした。</value>
+  </data>
+  <data name="SmartBpProgressForceSyncNoSnapshot">
+    <value>完全な BP スナップショットを認識できなかったため、対局進行は同期されませんでした。</value>
+  </data>
+  <data name="SmartBpProgressForceSyncRecognitionBusy">
+    <value>現在の認識タスクがまだ完了していないため、完全な BP スナップショットを取得できません。少し待ってから再試行してください。</value>
+  </data>
+  <data name="SmartBpRapidOcrBundledManifestOutdatedFormat">
+    <value>公式モデルマニフェストが更新されています（内蔵 {0}、公式 {1}）。古いモデルを防ぐため、先に SmartBP モジュールを更新してください。</value>
+  </data>
+  <data name="SmartBpRapidOcrDownloading">
+    <value>RapidOCR モデルをダウンロード中</value>
+  </data>
+  <data name="SmartBpRapidOcrUpdate">
+    <value>モデルを更新</value>
+  </data>
+  <data name="SmartBpRapidOcrUpdateAvailableFormat">
+    <value>RapidOCR モデルを更新できます：{0} → {1}</value>
+  </data>
+  <data name="SmartBpRapidOcrUpToDateFormat">
+    <value>RapidOCR モデルは最新です（{0}）</value>
+  </data>
+  <data name="SmartBpRapidOcrVersionUnknown">
+    <value>不明（旧形式）</value>
+  </data>
+  <data name="SmartBpRecognitionEngine">
+    <value>認識エンジン</value>
+  </data>
+  <data name="SmartBpRecognitionIntervalReady">
+    <value>速度テストは現在の設定と一致しています。間隔を編集できます。</value>
+  </data>
+  <data name="SmartBpRecognitionIntervalRequiresSpeedTest">
+    <value>先に認識速度テストを実行してください。最小間隔は最大実測時間 + 250ms です。</value>
+  </data>
+  <data name="SmartBpRecognitionPausedBpEnded">
+    <value>BP 終了またはエリア選択開始のため SmartBP 自動認識を一時停止しました。</value>
+  </data>
+  <data name="SmartBpRecognitionPausedCaptureStopped">
+    <value>ウィンドウキャプチャが停止したため、自動認識を一時停止しました。</value>
+  </data>
+  <data name="SmartBpRecognitionPausedFrameUnavailable">
+    <value>現在のキャプチャ画像を取得できないため、自動認識を一時停止しました。</value>
+  </data>
+  <data name="SmartBpRecommendedProviderFormat">
+    <value>{0}（推奨）</value>
+  </data>
+  <data name="SmartBpRefreshStatus">
+    <value>状態を更新</value>
+  </data>
+  <data name="SmartBpRegionAspectHintMatched">
+    <value>現在の比率は一致しています。このまま利用できます。</value>
+  </data>
+  <data name="SmartBpRegionAspectHintMismatched">
+    <value>現在のキャプチャ比率と設定が一致していません。「認識領域を編集（GameData）」で手動調整してください。</value>
+  </data>
+  <data name="SmartBpRegionAspectHintNotStarted">
+    <value>先にキャプチャを開始してから比率を確認してください。</value>
+  </data>
+  <data name="SmartBpRegionAspectHintWaitingFirstFrame">
+    <value>キャプチャは開始済みです。比率判定用の初回フレームを待機しています。</value>
+  </data>
+  <data name="SmartBpRegionAspectStatusMatched">
+    <value>一致</value>
+  </data>
+  <data name="SmartBpRegionAspectStatusMismatched">
+    <value>不一致</value>
+  </data>
+  <data name="SmartBpRegionAspectStatusNotStarted">
+    <value>キャプチャ未開始</value>
+  </data>
+  <data name="SmartBpRegionAspectStatusWaitingFirstFrame">
+    <value>初回フレーム待機中</value>
+  </data>
+  <data name="SmartBpRegionCellHunterKnockdowns">
+    <value>ダウン回数</value>
+  </data>
+  <data name="SmartBpRegionCellHunterPalletsDestroyed">
+    <value>板破壊数</value>
+  </data>
+  <data name="SmartBpRegionCellHunterRemainingCipher">
+    <value>残り暗号機</value>
+  </data>
+  <data name="SmartBpRegionCellHunterSurvivorHits">
+    <value>攻撃命中</value>
+  </data>
+  <data name="SmartBpRegionCellHunterTerrorShocks">
+    <value>恐怖の一撃</value>
+  </data>
+  <data name="SmartBpRegionCellName">
+    <value>名前欄</value>
+  </data>
+  <data name="SmartBpRegionCellSurvivorContainmentTime">
+    <value>チェイス時間</value>
+  </data>
+  <data name="SmartBpRegionCellSurvivorDecodingProgress">
+    <value>解読進捗</value>
+  </data>
+  <data name="SmartBpRegionCellSurvivorHeals">
+    <value>治療回数</value>
+  </data>
+  <data name="SmartBpRegionCellSurvivorPalletStrikes">
+    <value>板当て回数</value>
+  </data>
+  <data name="SmartBpRegionCellSurvivorRescues">
+    <value>救助回数</value>
+  </data>
+  <data name="SmartBpRegionConfigImported">
+    <value>設定ファイルをインポートしました。</value>
+  </data>
+  <data name="SmartBpRegionConfigResetConfirm">
+    <value>内蔵の16:9既定設定にリセットしますか？現在の設定は上書きされます。</value>
+  </data>
+  <data name="SmartBpRegionConfigResetDone">
+    <value>内蔵の16:9既定設定にリセットしました。</value>
+  </data>
+  <data name="SmartBpRegionConfigResetTitle">
+    <value>設定リセット</value>
+  </data>
+  <data name="SmartBpRegionConfigSaved">
+    <value>認識領域設定を保存しました。</value>
+  </data>
+  <data name="SmartBpRegionEditorNodeRectChildFormat">
+    <value>ノード：{0}`n相対座標（親基準）`nX={1:F6}, Y={2:F6}, W={3:F6}, H={4:F6}</value>
+  </data>
+  <data name="SmartBpRegionEditorNodeRectRootFormat">
+    <value>ノード：{0}`n相対座標（フレーム基準）`nX={1:F6}, Y={2:F6}, W={3:F6}, H={4:F6}</value>
+  </data>
+  <data name="SmartBpRegionEditorRequireCaptureFirst">
+    <value>認識領域を編集する前にキャプチャを開始してください。</value>
+  </data>
+  <data name="SmartBpRegionEditorRuleRuntimeFormat">
+    <value>現在の構造：編集可能ノード {0} 個（任意階層・任意個数対応）</value>
+  </data>
+  <data name="SmartBpRegionEditorSceneTitleFormat">
+    <value>認識領域エディター（{0}）</value>
+  </data>
+  <data name="SmartBpRegionEditorSelectNodeFirst">
+    <value>先にノードを選択してください</value>
+  </data>
+  <data name="SmartBpRegionEditorTemplateAppliedFormat">
+    <value>{0} 個の同テンプレート要素に適用しました（親要素の位置は維持）。</value>
+  </data>
+  <data name="SmartBpRegionEditorTemplateGroupSummaryFormat">
+    <value>現在のテンプレートグループ：{0}、要素数：{1}。</value>
+  </data>
+  <data name="SmartBpRegionEditorTemplateMarkFormat">
+    <value> [テンプレート:{0}]</value>
+  </data>
+  <data name="SmartBpRegionHunterRow">
+    <value>ハンター行</value>
+  </data>
+  <data name="SmartBpRegionLayoutMismatchCellCountFormat">
+    <value>構造不一致：{0} 行目は子領域 {1} 個が必要ですが、実際は {2} 個です。</value>
+  </data>
+  <data name="SmartBpRegionLayoutMismatchRootCountFormat">
+    <value>構造不一致：親領域は {0} 個必要ですが、実際は {1} 個です。</value>
+  </data>
+  <data name="SmartBpRegionLayoutMismatchRootIdFormat">
+    <value>構造不一致：{0} 番目の親要素は {1} である必要がありますが、実際は {2} です。</value>
+  </data>
+  <data name="SmartBpRegionSurvivorRow1">
+    <value>サバイバー行1</value>
+  </data>
+  <data name="SmartBpRegionSurvivorRow2">
+    <value>サバイバー行2</value>
+  </data>
+  <data name="SmartBpRegionSurvivorRow3">
+    <value>サバイバー行3</value>
+  </data>
+  <data name="SmartBpRegionSurvivorRow4">
+    <value>サバイバー行4</value>
+  </data>
+  <data name="SmartBpSceneGameData">
+    <value>GameData</value>
+  </data>
+  <data name="SmartBpStopAutomaticRecognition">
+    <value>Stop SmartBP recognition</value>
+  </data>
+  <data name="SmartBpStopCaptureWhileRecognizing">
+    <value>自動認識が実行中です。先に自動認識を停止してからウィンドウキャプチャを停止してください。</value>
+  </data>
+  <data name="SmartBpTesseractDataDownloading">
+    <value>Downloading Tesseract language data</value>
+  </data>
+  <data name="SmartBpTesseractDataInstalled">
+    <value>Tesseract language data installed</value>
+  </data>
+  <data name="SmartBpTesseractDataMissing">
+    <value>Tesseract language data missing</value>
+  </data>
+  <data name="SmartBpTesseractLanguageChineseSimplified">
+    <value>簡体字中国語（chi_sim）</value>
+  </data>
+  <data name="SmartBpTesseractLanguageEnglish">
+    <value>英語（eng）</value>
+  </data>
+  <data name="SmartBpTesseractLanguageInstalled">
+    <value>インストール済み</value>
+  </data>
+  <data name="SmartBpTesseractLanguageJapanese">
+    <value>日本語（jpn）</value>
+  </data>
+  <data name="SmartBpTesseractLanguageMissing">
+    <value>未インストール</value>
+  </data>
+  <data name="SmartBpTesseractNoLanguageSelected">
+    <value>Tesseract 言語を 1 つ以上選択してください。</value>
+  </data>
+  <data name="SmartBpValidationOcrNotReady">
+    <value>認識を開始する前に、利用可能な OCR モデルをダウンロードして切り替えてください。</value>
+  </data>
+  <data name="QueueCanceled">
+    <value>キャンセル済み</value>
+  </data>
+  <data name="Confirm">
+    <value>確認</value>
+  </data>
+  <data name="UnknownError">
+    <value>不明なエラー</value>
   </data>
 </root>

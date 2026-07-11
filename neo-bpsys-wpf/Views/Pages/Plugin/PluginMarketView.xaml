@@ -90,7 +90,7 @@
                     Command="{Binding TogglePluginMarketSettingsCommand}"
                     Content="{lex:Loc Settings}"
                     Icon="{ui:SymbolIcon Symbol=Settings24}"
-                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Settings" />
+                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
             </StackPanel>
         </Grid>
 
@@ -615,7 +615,10 @@
                                             <ColumnDefinition Width="Auto" />
                                             <ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0" Text="{lex:Loc {Binding DisplayNameKey}, FallbackBehavior=Key}" />
+                                        <TextBlock
+                                            Grid.Column="0"
+                                            Text="{lex:Loc {Binding DisplayNameKey}, FallbackBehavior=Key}"
+                                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
                                         <TextBlock
                                             Grid.Column="1"
                                             Margin="8,0,0,0"

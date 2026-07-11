@@ -5,6 +5,7 @@
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
+    xmlns:helpers="clr-namespace:neo_bpsys_wpf.Helpers"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:rec="clr-namespace:neo_bpsys_wpf.SmartBp.Module.Models.Recognition"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
@@ -12,8 +13,9 @@
     d:DataContext="{d:DesignInstance Type=vm:SmartBpModuleContentViewModel,
                                      IsDesignTimeCreatable=True}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    lex:LocalizeDictionary.Provider="{x:Static helpers:SmartBpLocalizationProvider.Instance}"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf.SmartBp.Module"
-    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.SmartBp"
+    lex:ResxLocalizationProvider.DefaultDictionary="Locales.SmartBp"
     mc:Ignorable="d">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
@@ -56,7 +58,7 @@
                         SelectedValuePath="Method">
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{lex:Loc {Binding DisplayNameKey}}" />
+                                <TextBlock Text="{Binding DisplayNameKey, Converter={StaticResource LocalizationKeyToTextConverter}}" />
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                     </ComboBox>
@@ -223,14 +225,12 @@
                                         <TextBlock
                                             Margin="4,0,0,0"
                                             VerticalAlignment="Center"
-                                            Text="{lex:Loc {Binding DisplayNameKey},
-                                                           FallbackBehavior=Key}" />
+                                            Text="{Binding DisplayNameKey, Converter={StaticResource LocalizationKeyToTextConverter}}" />
                                         <TextBlock
                                             Margin="6,0,0,0"
                                             VerticalAlignment="Center"
                                             Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                            Text="{lex:Loc {Binding StatusKey},
-                                                           FallbackBehavior=Key}" />
+                                            Text="{Binding StatusKey, Converter={StaticResource LocalizationKeyToTextConverter}}" />
                                     </StackPanel>
                                 </Border>
                             </DataTemplate>

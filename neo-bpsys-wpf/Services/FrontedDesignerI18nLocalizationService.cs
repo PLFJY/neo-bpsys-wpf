@@ -11,6 +11,11 @@ public sealed class FrontedDesignerI18nLocalizationService : FrontedDesignerLoca
 {
     protected override string GetLocalizedOrFallback(string key, string fallback)
     {
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return fallback;
+        }
+
         var localized = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, key);
         return string.Equals(localized, key, StringComparison.Ordinal) ? fallback : localized;
     }
@@ -31,7 +36,10 @@ public sealed class FrontedDesignerI18nLocalizationService : FrontedDesignerLoca
                 LanguageKey.System or LanguageKey.FollowApp => $"Designer.Option.{propertyName}.FollowApp",
                 _ => $"Designer.Option.{propertyName}.{lang}"
             };
-            var localized = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, key);
+            var dictionary = lang is LanguageKey.System or LanguageKey.FollowApp
+                ? AppI18nDictionaries.Designer
+                : AppI18nDictionaries.Common;
+            var localized = I18nHelper.GetLocalizedString(dictionary, key);
             return string.Equals(localized, key, StringComparison.Ordinal) ? key : localized;
         }
 

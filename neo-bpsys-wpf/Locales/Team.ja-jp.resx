@@ -4,97 +4,100 @@
   <resheader name="version">2.0</resheader>
   <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
   <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
-  <data name="PlayerName" xml:space="preserve">
+  <data name="PlayerName">
     <value>選手名</value>
   </data>
-  <data name="HomeTeamInformation" xml:space="preserve">
+  <data name="HomeTeamInformation">
     <value>ホームチーム情報</value>
   </data>
-  <data name="ImportFromJsonFile" xml:space="preserve">
+  <data name="ImportFromJsonFile">
     <value>JSONからインポート</value>
   </data>
-  <data name="JsonImportTip" xml:space="preserve">
+  <data name="JsonImportTip">
     <value>チーム情報を高速にインポートするための機能です。サンプルファイルは neo-bpsys-wpf\Resources\队伍信息导入示例-xxx.json にあります。詳細はドキュメントを参照してください。</value>
   </data>
-  <data name="TeamName" xml:space="preserve">
+  <data name="TeamName">
     <value>チーム名</value>
   </data>
-  <data name="SetTeamLogo" xml:space="preserve">
+  <data name="SetTeamLogo">
     <value>チームロゴを設定</value>
   </data>
-  <data name="CurrentStatusColon" xml:space="preserve">
+  <data name="CurrentStatusColon">
     <value>現在のステータス：</value>
   </data>
-  <data name="SurvivorPlayer" xml:space="preserve">
+  <data name="SurvivorPlayer">
     <value>サバイバー選手</value>
   </data>
-  <data name="SetPhoto" xml:space="preserve">
+  <data name="SetPhoto">
     <value>写真を設定</value>
   </data>
-  <data name="RemovePhoto" xml:space="preserve">
+  <data name="RemovePhoto">
     <value>写真を削除</value>
   </data>
-  <data name="Enter" xml:space="preserve">
+  <data name="Enter">
     <value>入場</value>
   </data>
-  <data name="Exit" xml:space="preserve">
+  <data name="Exit">
     <value>退場</value>
   </data>
-  <data name="AddPlayer" xml:space="preserve">
+  <data name="AddPlayer">
     <value>選手を追加</value>
   </data>
-  <data name="HunterPlayer" xml:space="preserve">
+  <data name="HunterPlayer">
     <value>ハンター選手</value>
   </data>
-  <data name="AwayTeamInformation" xml:space="preserve">
+  <data name="AwayTeamInformation">
     <value>アウェイチーム情報</value>
   </data>
-  <data name="CurrentPlayerOnStage" xml:space="preserve">
+  <data name="CurrentPlayerOnStage">
     <value>現在出場中の選手</value>
   </data>
-  <data name="TeamInfo" xml:space="preserve">
+  <data name="TeamInfo">
     <value>チーム情報</value>
   </data>
-  <data name="PlayerID" xml:space="preserve">
+  <data name="PlayerID">
     <value>選手 ID</value>
   </data>
-  <data name="TeamNameInScoreStatistics" xml:space="preserve">
+  <data name="TeamNameInScoreStatistics">
     <value>チーム名 (スコア統計)</value>
   </data>
-  <data name="TeamNameInMapBP" xml:space="preserve">
+  <data name="TeamNameInMapBP">
     <value>チーム名 (マップBP)</value>
   </data>
-  <data name="TeamNameInMapBPV2" xml:space="preserve">
+  <data name="TeamNameInMapBPV2">
     <value>チーム名 (マップBP V2)</value>
   </data>
-  <data name="TeamNameInBPOverview" xml:space="preserve">
+  <data name="TeamNameInBPOverview">
     <value>チーム名 (BP概要)</value>
   </data>
-  <data name="ImageMaybeDamagedOrUnsupported" xml:space="preserve">
+  <data name="ImageMaybeDamagedOrUnsupported">
     <value>画像が破損しているかサポートされていない可能性があります</value>
   </data>
-  <data name="DeleteConfirmation" xml:space="preserve">
+  <data name="DeleteConfirmation">
     <value>削除確認</value>
   </data>
-  <data name="AreYouSureToDelete" xml:space="preserve">
+  <data name="AreYouSureToDelete">
     <value>削除してもよろしいですか</value>
   </data>
-  <data name="ClearTip" xml:space="preserve">
+  <data name="ClearTip">
     <value>消去のヒント</value>
   </data>
-  <data name="AreYouSureToRemoveTheFileLookPhoto" xml:space="preserve">
+  <data name="AreYouSureToRemoveTheFileLookPhoto">
     <value>選手の写真を消去してもよろしいですか？</value>
   </data>
-  <data name="LogoFileIsNotValid" xml:space="preserve">
+  <data name="LogoFileIsNotValid">
     <value>ロゴファイルが無効です</value>
   </data>
-  <data name="HexColor" xml:space="preserve">
+  <data name="HexColor">
     <value>16進カラー</value>
   </data>
-  <data name="TeamColor" xml:space="preserve">
+  <data name="TeamColor">
     <value>チームカラー</value>
   </data>
-  <data name="InvalidTeamColorHex" xml:space="preserve">
+  <data name="InvalidTeamColorHex">
     <value>色の形式が無効です。#RRGGBB または #AARRGGBB を入力してください。</value>
+  </data>
+  <data name="JsonFileFormatError">
+    <value>JSONファイル形式エラー</value>
   </data>
 </root>

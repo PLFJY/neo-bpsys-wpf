@@ -22,7 +22,7 @@
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell"
+    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp"
     mc:Ignorable="d">
     <WrapPanel
         x:Name="TalentTraitSelectorPanel"

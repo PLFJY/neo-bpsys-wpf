@@ -11,7 +11,7 @@
     MinWidth="900"
     MinHeight="560"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell"
+    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Designer"
     Background="{DynamicResource ApplicationBackgroundBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     WindowStartupLocation="CenterOwner">
@@ -58,6 +58,7 @@
                     Margin="0,0,8,8"
                     Command="{Binding ClearCommand}"
                     Content="{lex:Loc Clear}"
+                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
                     Icon="{ui:SymbolIcon Symbol=Delete24}" />
                 <ui:Button
                     Margin="0,0,8,8"
@@ -113,13 +114,13 @@
                 SelectionMode="Single">
                 <DataGrid.Columns>
                     <DataGridTextColumn Width="60" Binding="{Binding Sequence}" Header="#" />
-                    <DataGridTextColumn Width="110" Binding="{Binding TimeText}" Header="{lex:Loc Time}" />
-                    <DataGridTextColumn Width="180" Binding="{Binding EventType}" Header="{lex:Loc EventType}" />
-                    <DataGridTextColumn Width="130" Binding="{Binding WindowType}" Header="{lex:Loc WindowType}" />
-                    <DataGridTextColumn Width="150" Binding="{Binding WindowId}" Header="{lex:Loc WindowId}" />
-                    <DataGridTextColumn Width="120" Binding="{Binding CanvasName}" Header="{lex:Loc CanvasName}" />
-                    <DataGridTextColumn Width="130" Binding="{Binding Source}" Header="{lex:Loc Source}" />
-                    <DataGridTextColumn Width="*" Binding="{Binding PayloadSummary}" Header="{lex:Loc PayloadSummary}" />
+                    <DataGridTextColumn Width="110" Binding="{Binding TimeText}" Header="{lex:BLoc Key=neo-bpsys-wpf:neo_bpsys_wpf.Locales.Common:Time}" />
+                    <DataGridTextColumn Width="180" Binding="{Binding EventType}" Header="{lex:BLoc Key=neo-bpsys-wpf:neo_bpsys_wpf.Locales.Designer:EventType}" />
+                    <DataGridTextColumn Width="130" Binding="{Binding WindowType}" Header="{lex:BLoc Key=neo-bpsys-wpf:neo_bpsys_wpf.Locales.Designer:WindowType}" />
+                    <DataGridTextColumn Width="150" Binding="{Binding WindowId}" Header="{lex:BLoc Key=neo-bpsys-wpf:neo_bpsys_wpf.Locales.Designer:WindowId}" />
+                    <DataGridTextColumn Width="120" Binding="{Binding CanvasName}" Header="{lex:BLoc Key=neo-bpsys-wpf:neo_bpsys_wpf.Locales.Designer:CanvasName}" />
+                    <DataGridTextColumn Width="130" Binding="{Binding Source}" Header="{lex:BLoc Key=neo-bpsys-wpf:neo_bpsys_wpf.Locales.Common:Source}" />
+                    <DataGridTextColumn Width="*" Binding="{Binding PayloadSummary}" Header="{lex:BLoc Key=neo-bpsys-wpf:neo_bpsys_wpf.Locales.Designer:PayloadSummary}" />
                 </DataGrid.Columns>
             </DataGrid>
 
@@ -138,12 +139,12 @@
                 SelectedItem="{Binding SelectedPayloadEntry, Mode=TwoWay}"
                 SelectionMode="Single">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Width="120" Binding="{Binding Key}" Header="{lex:Loc Key}" />
-                    <DataGridTextColumn Width="160" Binding="{Binding Path}" Header="{lex:Loc Path}" />
-                    <DataGridTextColumn Width="110" Binding="{Binding TypeName}" Header="{lex:Loc Type}" />
-                    <DataGridTextColumn Width="*" Binding="{Binding RawValue}" Header="{lex:Loc RawValue}" />
-                    <DataGridTextColumn Width="*" Binding="{Binding DisplayValue}" Header="{lex:Loc DisplayValue}" />
-                    <DataGridTextColumn Width="*" Binding="{Binding FilterText}" Header="{lex:Loc FilterText}" />
+                    <DataGridTextColumn Width="120" Binding="{Binding Key}" Header="{lex:BLoc Key=neo-bpsys-wpf:neo_bpsys_wpf.Locales.Common:Key}" />
+                    <DataGridTextColumn Width="160" Binding="{Binding Path}" Header="{lex:BLoc Key=neo-bpsys-wpf:neo_bpsys_wpf.Locales.Common:Path}" />
+                    <DataGridTextColumn Width="110" Binding="{Binding TypeName}" Header="{lex:BLoc Key=neo-bpsys-wpf:neo_bpsys_wpf.Locales.Common:Type}" />
+                    <DataGridTextColumn Width="*" Binding="{Binding RawValue}" Header="{lex:BLoc Key=neo-bpsys-wpf:neo_bpsys_wpf.Locales.Designer:RawValue}" />
+                    <DataGridTextColumn Width="*" Binding="{Binding DisplayValue}" Header="{lex:BLoc Key=neo-bpsys-wpf:neo_bpsys_wpf.Locales.Designer:DisplayValue}" />
+                    <DataGridTextColumn Width="*" Binding="{Binding FilterText}" Header="{lex:BLoc Key=neo-bpsys-wpf:neo_bpsys_wpf.Locales.Designer:FilterText}" />
                 </DataGrid.Columns>
             </DataGrid>
 

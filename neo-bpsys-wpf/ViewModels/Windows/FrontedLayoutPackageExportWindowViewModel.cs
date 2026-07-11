@@ -112,7 +112,7 @@ public partial class FrontedLayoutPackageExportWindowViewModel : ViewModelBase
         if (!string.Equals(value, clamped, StringComparison.Ordinal))
         {
             setValue(clamped);
-            ValidationMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "InputTruncated");
+            ValidationMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "InputTruncated");
         }
     }
 
@@ -135,7 +135,7 @@ public partial class FrontedLayoutPackageExportWindowViewModel : ViewModelBase
 
         if (FrontedTextLimitHelper.IsTooLong(OutputPath, FrontedLayoutLimits.MaxResourcePathLength))
         {
-            return I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ResourcePathTooLong");
+            return I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "ResourcePathTooLong");
         }
 
         if (!string.Equals(Path.GetExtension(OutputPath), ".bpui", StringComparison.OrdinalIgnoreCase))

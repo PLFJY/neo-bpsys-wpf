@@ -4,49 +4,122 @@
   <resheader name="version">2.0</resheader>
   <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
   <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
-  <data name="Stop" xml:space="preserve">
+  <data name="Stop">
     <value>停止</value>
   </data>
-  <data name="Black" xml:space="preserve">
+  <data name="Black">
     <value>黑色</value>
   </data>
-  <data name="White" xml:space="preserve">
+  <data name="White">
     <value>白色</value>
   </data>
-  <data name="Distance" xml:space="preserve">
+  <data name="Distance">
     <value>单位距离</value>
   </data>
-  <data name="Confirm" xml:space="preserve">
+  <data name="Confirm">
     <value>确认</value>
   </data>
-  <data name="Save" xml:space="preserve">
+  <data name="Save">
     <value>保存</value>
   </data>
-  <data name="Close" xml:space="preserve">
+  <data name="Close">
     <value>关闭</value>
   </data>
-  <data name="Delete" xml:space="preserve">
+  <data name="Delete">
     <value>删除</value>
   </data>
-  <data name="Start" xml:space="preserve">
+  <data name="Start">
     <value>开始</value>
   </data>
-  <data name="Warning" xml:space="preserve">
+  <data name="Warning">
     <value>警告</value>
   </data>
-  <data name="Cancel" xml:space="preserve">
+  <data name="Cancel">
     <value>取消</value>
   </data>
-  <data name="No" xml:space="preserve">
+  <data name="No">
     <value>否</value>
   </data>
-  <data name="Enable" xml:space="preserve">
+  <data name="Enable">
     <value>启用</value>
   </data>
-  <data name="Error" xml:space="preserve">
+  <data name="Error">
     <value>错误</value>
   </data>
-  <data name="Refresh" xml:space="preserve">
+  <data name="Refresh">
     <value>刷新</value>
+  </data>
+  <data name="ApplyColor">
+    <value>应用颜色</value>
+  </data>
+  <data name="ResetToBuiltIn">
+    <value>重置为内置</value>
+  </data>
+  <data name="PreviewColon">
+    <value>预览：</value>
+  </data>
+  <data name="HomeTeam">
+    <value>主队</value>
+  </data>
+  <data name="AwayTeam">
+    <value>客队</value>
+  </data>
+  <data name="Hunter">
+    <value>监管者</value>
+  </data>
+  <data name="Survivor">
+    <value>求生者</value>
+  </data>
+  <data name="Settings">
+    <value>设置</value>
+  </data>
+  <data name="zh_Hans">
+    <value>简体中文</value>
+    <comment>此处en-US空着为正常现象</comment>
+  </data>
+  <data name="en_US">
+    <value>English (United States)</value>
+  </data>
+  <data name="ja_JP">
+    <value>日本語（正確性は100%保証されません）</value>
+    <comment>en-US栏空着为正常现象</comment>
+  </data>
+  <data name="Source">
+    <value>来源</value>
+  </data>
+  <data name="Type">
+    <value>类型</value>
+  </data>
+  <data name="Key">
+    <value>键</value>
+  </data>
+  <data name="Path">
+    <value>路径</value>
+  </data>
+  <data name="Time">
+    <value>时间</value>
+  </data>
+  <data name="Clear">
+    <value>清空</value>
+  </data>
+  <data name="PluginMarketDirectConnectionNoProxy">
+    <value>直接连接（不使用代理）</value>
+  </data>
+  <data name="InputTruncated">
+    <value>输入已按长度上限截断</value>
+  </data>
+  <data name="ResourcePathTooLong">
+    <value>资源路径过长</value>
+  </data>
+  <data name="Tips">
+    <value>提示</value>
+  </data>
+  <data name="Sur">
+    <value>求生者</value>
+    <comment>简写</comment>
+  </data>
+  <data name="Hun">
+    <value>监管者</value>
+    <comment>简写</comment>
   </data>
 </root>

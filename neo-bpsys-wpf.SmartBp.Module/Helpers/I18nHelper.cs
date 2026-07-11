@@ -7,9 +7,6 @@ namespace neo_bpsys_wpf.Helpers;
 /// </summary>
 public static class I18nHelper
 {
-    private const string ModuleAssembly = "neo-bpsys-wpf.SmartBp.Module";
-    private const string ModuleDictionary = "Locales.SmartBp";
-
     /// <summary>
     /// 按资源键解析模块自身程序集的本地化文本。
     /// </summary>
@@ -20,8 +17,6 @@ public static class I18nHelper
         if (string.IsNullOrWhiteSpace(key))
             return key;
 
-        var value = LocalizeDictionary.Instance.GetLocalizedObject(
-            ModuleAssembly, ModuleDictionary, key, LocalizeDictionary.CurrentCulture);
-        return value?.ToString() ?? key;
+        return SmartBpLocalizationProvider.GetString(key, LocalizeDictionary.CurrentCulture) ?? key;
     }
 }

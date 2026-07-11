@@ -28,6 +28,7 @@
     mc:Ignorable="d">
     <ui:FluentWindow.Resources>
         <ResourceDictionary>
+            <cv:DictionaryLocalizationConverter x:Key="ShellDictionaryLocalizationConverter" />
             <cv:ApplicationThemeToBooleanConverter x:Key="ApplicationThemeToBooleanConverter" />
             <!--  Theme Change Animation  -->
             <Storyboard x:Key="LightToDark">
@@ -190,7 +191,8 @@
                                 Width="60"
                                 Margin="10,0,0,0"
                                 VerticalAlignment="Center"
-                                Text="{lex:Loc PreviewColon}" />
+                                Text="{lex:Loc PreviewColon}"
+                                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
                             <TextBlock
                                 Width="30"
                                 Margin="10,0,0,0"
@@ -254,7 +256,8 @@
                     SelectedValuePath="Key">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{lex:Loc {Binding Value}}" />
+                            <TextBlock
+                                Text="{Binding Value, Mode=OneWay, Converter={StaticResource ShellDictionaryLocalizationConverter}, ConverterParameter=Locales.Game}" />
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>

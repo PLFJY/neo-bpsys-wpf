@@ -4,103 +4,127 @@
   <resheader name="version">2.0</resheader>
   <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
   <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
-  <data name="ScoreStatisticsBO5" xml:space="preserve">
+  <data name="ScoreStatisticsBO5">
     <value>Score statistics(BO5 mode)</value>
   </data>
-  <data name="ScoreStatisticsBO3" xml:space="preserve">
+  <data name="ScoreStatisticsBO3">
     <value>Score statistics(BO3 mode)</value>
   </data>
-  <data name="ScoreComponent" xml:space="preserve">
+  <data name="ScoreComponent">
     <value>Score component</value>
   </data>
-  <data name="ScoreStatistics" xml:space="preserve">
+  <data name="ScoreStatistics">
     <value>Score statistics</value>
   </data>
-  <data name="ScoreInBPWindowAndGame" xml:space="preserve">
+  <data name="ScoreInBPWindowAndGame">
     <value>Score in BP window and game</value>
   </data>
-  <data name="ScoreSettlement" xml:space="preserve">
+  <data name="ScoreSettlement">
     <value>Score settlement</value>
   </data>
-  <data name="ScoreControl" xml:space="preserve">
+  <data name="ScoreControl">
     <value>Score Control</value>
   </data>
-  <data name="ScorePreview" xml:space="preserve">
+  <data name="ScorePreview">
     <value>{0}  W:{1} D:{2}  Game score: {3}</value>
   </data>
-  <data name="ScorePreviewTable" xml:space="preserve">
+  <data name="ScorePreviewTable">
     <value>Score Preview</value>
   </data>
-  <data name="ScorePreviewCurrent" xml:space="preserve">
+  <data name="ScorePreviewCurrent">
     <value>Current</value>
   </data>
-  <data name="ScorePreviewRecorded" xml:space="preserve">
+  <data name="ScorePreviewRecorded">
     <value>Recorded</value>
   </data>
-  <data name="ScorePreviewEmpty" xml:space="preserve">
+  <data name="ScorePreviewEmpty">
     <value>Empty</value>
   </data>
-  <data name="ScorePreviewGame" xml:space="preserve">
+  <data name="ScorePreviewGame">
     <value>Game</value>
   </data>
-  <data name="ScorePreviewHalf" xml:space="preserve">
+  <data name="ScorePreviewHalf">
     <value>Half</value>
   </data>
-  <data name="ScorePreviewStatus" xml:space="preserve">
+  <data name="ScorePreviewStatus">
     <value>Status</value>
   </data>
-  <data name="ScorePreviewResult" xml:space="preserve">
+  <data name="ScorePreviewResult">
     <value>Result</value>
   </data>
-  <data name="ScorePreviewHomeCamp" xml:space="preserve">
+  <data name="ScorePreviewHomeCamp">
     <value>Home Camp</value>
   </data>
-  <data name="ScorePreviewAwayCamp" xml:space="preserve">
+  <data name="ScorePreviewAwayCamp">
     <value>Away Camp</value>
   </data>
-  <data name="ScorePreviewHomeMinorScore" xml:space="preserve">
+  <data name="ScorePreviewHomeMinorScore">
     <value>Home Minor Score</value>
   </data>
-  <data name="ScorePreviewAwayMinorScore" xml:space="preserve">
+  <data name="ScorePreviewAwayMinorScore">
     <value>Away Minor Score</value>
   </data>
-  <data name="ScorePreviewFirstHalf" xml:space="preserve">
+  <data name="ScorePreviewFirstHalf">
     <value>First Half</value>
   </data>
-  <data name="ScorePreviewSecondHalf" xml:space="preserve">
+  <data name="ScorePreviewSecondHalf">
     <value>Second Half</value>
   </data>
-  <data name="ScorePreviewGameFormat" xml:space="preserve">
+  <data name="ScorePreviewGameFormat">
     <value>Game {0}</value>
   </data>
-  <data name="ScorePreviewGameOvertimeFormat" xml:space="preserve">
+  <data name="ScorePreviewGameOvertimeFormat">
     <value>Game {0} Overtime</value>
   </data>
-  <data name="ScorePreviewProgressFormat" xml:space="preserve">
+  <data name="ScorePreviewProgressFormat">
     <value>{0} {1}</value>
   </data>
-  <data name="ScoresInScoreStatistics" xml:space="preserve">
+  <data name="ScoresInScoreStatistics">
     <value>Scores(ScoreStatistics)</value>
   </data>
-  <data name="ScoreGlobalWindowBackgroundColor" xml:space="preserve">
+  <data name="ScoreGlobalWindowBackgroundColor">
     <value>Score statistics background color</value>
   </data>
-  <data name="ScoreInGameWindowSize" xml:space="preserve">
+  <data name="ScoreInGameWindowSize">
     <value>Score (in-game) window size</value>
   </data>
-  <data name="ScoreGlobalWindowSize" xml:space="preserve">
+  <data name="ScoreGlobalWindowSize">
     <value>Score statistics window size</value>
   </data>
-  <data name="ScoreBpControls" xml:space="preserve">
+  <data name="ScoreBpControls">
     <value>Score/BP controls</value>
   </data>
-  <data name="ScoreSurWindow" xml:space="preserve">
+  <data name="ScoreSurWindow">
     <value>Survivor score</value>
   </data>
-  <data name="ScoreHunWindow" xml:space="preserve">
+  <data name="ScoreHunWindow">
     <value>Hunter score</value>
   </data>
-  <data name="ScoreGlobalWindow" xml:space="preserve">
+  <data name="ScoreGlobalWindow">
     <value>Score statistics</value>
+  </data>
+  <data name="ClearCurrentHalfScore">
+    <value>Clear current half score</value>
+  </data>
+  <data name="FourEliminate">
+    <value>4 Eliminate</value>
+  </data>
+  <data name="FourEscape">
+    <value>4 Escape</value>
+  </data>
+  <data name="ResetAllScores">
+    <value>Reset all scores</value>
+  </data>
+  <data name="RestoreDefaultSort">
+    <value>Restore Default Sort</value>
+  </data>
+  <data name="ThreeEliminate">
+    <value>3 Eliminate</value>
+  </data>
+  <data name="ThreeEscape">
+    <value>3 Escape</value>
+  </data>
+  <data name="Tie">
+    <value>Tie</value>
   </data>
 </root>

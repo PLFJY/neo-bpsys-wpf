@@ -4,2749 +4,2965 @@
   <resheader name="version">2.0</resheader>
   <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
   <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
-  <data name="Edit" xml:space="preserve">
+  <data name="Edit">
     <value>Edit</value>
   </data>
-  <data name="FailedToApplyPicture" xml:space="preserve">
+  <data name="FailedToApplyPicture">
     <value>Failed to apply picture</value>
   </data>
-  <data name="BackgroundColor" xml:space="preserve">
+  <data name="BackgroundColor">
     <value>Background Color</value>
   </data>
-  <data name="FrontedDesigner" xml:space="preserve">
+  <data name="FrontedDesigner">
     <value>Frontend Designer</value>
   </data>
-  <data name="Errors" xml:space="preserve">
+  <data name="Errors">
     <value>Errors</value>
   </data>
-  <data name="Warnings" xml:space="preserve">
+  <data name="Warnings">
     <value>Warnings</value>
   </data>
-  <data name="Infos" xml:space="preserve">
+  <data name="Infos">
     <value>Infos</value>
   </data>
-  <data name="ReloadLayout" xml:space="preserve">
+  <data name="ReloadLayout">
     <value>Reload</value>
   </data>
-  <data name="MissingLayout" xml:space="preserve">
+  <data name="MissingLayout">
     <value>Missing Layout</value>
   </data>
-  <data name="Fit" xml:space="preserve">
+  <data name="Fit">
     <value>Fit</value>
   </data>
-  <data name="Designer.ZoomInvalid" xml:space="preserve">
+  <data name="Designer.ZoomInvalid">
     <value>Invalid zoom value</value>
   </data>
-  <data name="SelectedControl" xml:space="preserve">
+  <data name="SelectedControl">
     <value>Selected Control</value>
   </data>
-  <data name="NoControlSelected" xml:space="preserve">
+  <data name="NoControlSelected">
     <value>No control selected</value>
   </data>
-  <data name="ValidationMessages" xml:space="preserve">
+  <data name="ValidationMessages">
     <value>Validation messages</value>
   </data>
-  <data name="ControlsList" xml:space="preserve">
+  <data name="ControlsList">
     <value>Controls</value>
   </data>
-  <data name="FilterControls" xml:space="preserve">
+  <data name="FilterControls">
     <value>Filter by name or type</value>
   </data>
-  <data name="ZIndexShort" xml:space="preserve">
+  <data name="ZIndexShort">
     <value>Z</value>
   </data>
-  <data name="NoControlsFound" xml:space="preserve">
+  <data name="NoControlsFound">
     <value>No controls found</value>
   </data>
-  <data name="Designer.LayerPanel.Layer" xml:space="preserve">
+  <data name="Designer.LayerPanel.Layer">
     <value>Layer</value>
   </data>
-  <data name="Designer.LayerPanel.ControlsCount" xml:space="preserve">
+  <data name="Designer.LayerPanel.ControlsCount">
     <value>controls</value>
   </data>
-  <data name="Designer.LayerPanel.ClearFilterToReorder" xml:space="preserve">
+  <data name="Designer.LayerPanel.ClearFilterToReorder">
     <value>Clear filter to reorder layers</value>
   </data>
-  <data name="Designer.LayerPanel.MoveToNewTopLayer" xml:space="preserve">
+  <data name="Designer.LayerPanel.MoveToNewTopLayer">
     <value>Move to new top layer</value>
   </data>
-  <data name="Designer.LayerPanel.MoveToNewBottomLayer" xml:space="preserve">
+  <data name="Designer.LayerPanel.MoveToNewBottomLayer">
     <value>Move to new bottom layer</value>
   </data>
-  <data name="Designer.LayerPanel.DropHere" xml:space="preserve">
+  <data name="Designer.LayerPanel.DropHere">
     <value>Drop here</value>
   </data>
-  <data name="Designer.LayerPanel.Reordered" xml:space="preserve">
+  <data name="Designer.LayerPanel.Reordered">
     <value>Layer order updated</value>
   </data>
-  <data name="Designer.LayerPanel.ReorderBlocked" xml:space="preserve">
+  <data name="Designer.LayerPanel.ReorderBlocked">
     <value>This control cannot be reordered</value>
   </data>
-  <data name="Properties" xml:space="preserve">
+  <data name="Properties">
     <value>Properties</value>
   </data>
-  <data name="Layout" xml:space="preserve">
+  <data name="Layout">
     <value>Layout</value>
   </data>
-  <data name="InvalidControlName" xml:space="preserve">
+  <data name="InvalidControlName">
     <value>Control name cannot be empty and must match ^[A-Za-z_][A-Za-z0-9_]*$.</value>
   </data>
-  <data name="DuplicateControlName" xml:space="preserve">
+  <data name="DuplicateControlName">
     <value>A control with this name already exists in this canvas.</value>
   </data>
-  <data name="ReferencedControlRenameBlocked" xml:space="preserve">
+  <data name="ReferencedControlRenameBlocked">
     <value>This control is referenced by another control. Reference-aware rename will be implemented later.</value>
   </data>
-  <data name="PropertyValidationErrors" xml:space="preserve">
+  <data name="PropertyValidationErrors">
     <value>The property value is invalid.</value>
   </data>
-  <data name="NoSelectedControl" xml:space="preserve">
+  <data name="NoSelectedControl">
     <value>No control selected</value>
   </data>
-  <data name="EditProperty" xml:space="preserve">
+  <data name="EditProperty">
     <value>Edit property</value>
   </data>
-  <data name="EditTextBindingSource" xml:space="preserve">
+  <data name="EditTextBindingSource">
     <value>Edit binding source</value>
   </data>
-  <data name="ValidationDetails" xml:space="preserve">
+  <data name="ValidationDetails">
     <value>Validation details</value>
   </data>
-  <data name="OpenValidationDetails" xml:space="preserve">
+  <data name="OpenValidationDetails">
     <value>Open validation details</value>
   </data>
-  <data name="AddControl" xml:space="preserve">
+  <data name="AddControl">
     <value>Add control</value>
   </data>
-  <data name="AddedControl" xml:space="preserve">
+  <data name="AddedControl">
     <value>Added control</value>
   </data>
-  <data name="CannotAddControl" xml:space="preserve">
+  <data name="CannotAddControl">
     <value>Cannot add a control right now.</value>
   </data>
-  <data name="UnsupportedControlType" xml:space="preserve">
+  <data name="UnsupportedControlType">
     <value>Unsupported control type.</value>
   </data>
-  <data name="DeleteControl" xml:space="preserve">
+  <data name="DeleteControl">
     <value>Delete Control</value>
   </data>
-  <data name="DeleteSelectedControl" xml:space="preserve">
+  <data name="DeleteSelectedControl">
     <value>Deleted control</value>
   </data>
-  <data name="CannotDeleteReferencedControl" xml:space="preserve">
+  <data name="CannotDeleteReferencedControl">
     <value>This control is still referenced by another control and cannot be deleted.</value>
   </data>
-  <data name="Undo" xml:space="preserve">
+  <data name="Undo">
     <value>Undo</value>
   </data>
-  <data name="Redo" xml:space="preserve">
+  <data name="Redo">
     <value>Redo</value>
   </data>
-  <data name="CannotUndo" xml:space="preserve">
+  <data name="CannotUndo">
     <value>Nothing to undo.</value>
   </data>
-  <data name="CannotRedo" xml:space="preserve">
+  <data name="CannotRedo">
     <value>Nothing to redo.</value>
   </data>
-  <data name="SaveLayout" xml:space="preserve">
+  <data name="SaveLayout">
     <value>Save layout</value>
   </data>
-  <data name="Unsaved" xml:space="preserve">
+  <data name="Unsaved">
     <value>Unsaved</value>
   </data>
-  <data name="UnsavedChanges" xml:space="preserve">
+  <data name="UnsavedChanges">
     <value>Unsaved changes</value>
   </data>
-  <data name="LayoutSourceUser" xml:space="preserve">
+  <data name="LayoutSourceUser">
     <value>User</value>
   </data>
-  <data name="LayoutSourceBuiltIn" xml:space="preserve">
+  <data name="LayoutSourceBuiltIn">
     <value>Built-in</value>
   </data>
-  <data name="LayoutSourceError" xml:space="preserve">
+  <data name="LayoutSourceError">
     <value>Missing/Error</value>
   </data>
-  <data name="ResetLayoutConfirm" xml:space="preserve">
+  <data name="ResetLayoutConfirm">
     <value>Reset to built-in layout? Current custom layout will be removed.</value>
   </data>
-  <data name="LayoutSaved" xml:space="preserve">
+  <data name="LayoutSaved">
     <value>Layout saved</value>
   </data>
-  <data name="LayoutSaveFailed" xml:space="preserve">
+  <data name="LayoutSaveFailed">
     <value>Layout save failed</value>
   </data>
-  <data name="CannotSaveInvalidLayout" xml:space="preserve">
+  <data name="CannotSaveInvalidLayout">
     <value>Cannot save an invalid layout</value>
   </data>
-  <data name="Snap" xml:space="preserve">
+  <data name="Snap">
     <value>Snap</value>
   </data>
-  <data name="SnapOn" xml:space="preserve">
+  <data name="SnapOn">
     <value>Snap on</value>
   </data>
-  <data name="SnapOff" xml:space="preserve">
+  <data name="SnapOff">
     <value>Snap off</value>
   </data>
-  <data name="TemporarySnap" xml:space="preserve">
+  <data name="TemporarySnap">
     <value>Temporary snap</value>
   </data>
-  <data name="BrowseBinding" xml:space="preserve">
+  <data name="BrowseBinding">
     <value>Browse Binding</value>
   </data>
-  <data name="BrowseResource" xml:space="preserve">
+  <data name="BrowseResource">
     <value>Browse Resource</value>
   </data>
-  <data name="View" xml:space="preserve">
+  <data name="View">
     <value>View</value>
   </data>
-  <data name="Apply" xml:space="preserve">
+  <data name="Apply">
     <value>Apply</value>
   </data>
-  <data name="Reset" xml:space="preserve">
+  <data name="Reset">
     <value>Reset</value>
   </data>
-  <data name="CanvasProperties" xml:space="preserve">
+  <data name="CanvasProperties">
     <value>Canvas Properties</value>
   </data>
-  <data name="WindowOptions" xml:space="preserve">
+  <data name="WindowOptions">
     <value>Window Options</value>
   </data>
-  <data name="WindowWidth" xml:space="preserve">
+  <data name="WindowWidth">
     <value>Window Width</value>
   </data>
-  <data name="WindowHeight" xml:space="preserve">
+  <data name="WindowHeight">
     <value>Window Height</value>
   </data>
-  <data name="AllowTransparency" xml:space="preserve">
+  <data name="AllowTransparency">
     <value>Allow Transparency</value>
   </data>
-  <data name="ChooseLocalImage" xml:space="preserve">
+  <data name="ChooseLocalImage">
     <value>Choose Local Image</value>
   </data>
-  <data name="ClearBackground" xml:space="preserve">
+  <data name="ClearBackground">
     <value>Clear Background</value>
   </data>
-  <data name="BackgroundImage" xml:space="preserve">
+  <data name="BackgroundImage">
     <value>Background Image</value>
   </data>
-  <data name="CanvasWidth" xml:space="preserve">
+  <data name="CanvasWidth">
     <value>Canvas Width</value>
   </data>
-  <data name="CanvasHeight" xml:space="preserve">
+  <data name="CanvasHeight">
     <value>Canvas Height</value>
   </data>
-  <data name="CanvasSizeMustBePositive" xml:space="preserve">
+  <data name="CanvasSizeMustBePositive">
     <value>Canvas width and height must be greater than 0</value>
   </data>
-  <data name="WindowSizeMustBePositive" xml:space="preserve">
+  <data name="WindowSizeMustBePositive">
     <value>Window width and height must be greater than 0</value>
   </data>
-  <data name="CanvasPropertiesApplied" xml:space="preserve">
+  <data name="CanvasPropertiesApplied">
     <value>Canvas properties applied</value>
   </data>
-  <data name="WindowOptionsApplied" xml:space="preserve">
+  <data name="WindowOptionsApplied">
     <value>Window options applied</value>
   </data>
-  <data name="EditableLayoutSchemeCreated" xml:space="preserve">
+  <data name="EditableLayoutSchemeCreated">
     <value>Created a new editable layout scheme from Built-in and saved it.</value>
   </data>
-  <data name="ShortcutUndo" xml:space="preserve">
+  <data name="ShortcutUndo">
     <value>Undo (Ctrl+Z)</value>
   </data>
-  <data name="ShortcutRedo" xml:space="preserve">
+  <data name="ShortcutRedo">
     <value>Redo (Ctrl+Y / Ctrl+Shift+Z)</value>
   </data>
-  <data name="ShortcutSave" xml:space="preserve">
+  <data name="ShortcutSave">
     <value>Save Layout (Ctrl+S)</value>
   </data>
-  <data name="ControlCountLimitReached" xml:space="preserve">
+  <data name="ControlCountLimitReached">
     <value>Control count limit reached for this canvas</value>
   </data>
-  <data name="ValidationMessagesTruncated" xml:space="preserve">
+  <data name="ValidationMessagesTruncated">
     <value>and {0} more...</value>
   </data>
-  <data name="CopyControl" xml:space="preserve">
+  <data name="CopyControl">
     <value>Copy Control</value>
   </data>
-  <data name="PasteControl" xml:space="preserve">
+  <data name="PasteControl">
     <value>Paste Control</value>
   </data>
-  <data name="CannotCopyControl" xml:space="preserve">
+  <data name="CannotCopyControl">
     <value>Cannot copy this control</value>
   </data>
-  <data name="CannotPasteControl" xml:space="preserve">
+  <data name="CannotPasteControl">
     <value>Cannot paste control</value>
   </data>
-  <data name="Designer.Property.Name" xml:space="preserve">
+  <data name="Designer.Property.Name">
     <value>Control Name</value>
   </data>
-  <data name="Designer.Property.ControlType" xml:space="preserve">
+  <data name="Designer.Property.ControlType">
     <value>Control Type</value>
   </data>
-  <data name="Designer.Property.Left" xml:space="preserve">
+  <data name="Designer.Property.Left">
     <value>X</value>
   </data>
-  <data name="Designer.Property.Top" xml:space="preserve">
+  <data name="Designer.Property.Top">
     <value>Y</value>
   </data>
-  <data name="Designer.Property.Width" xml:space="preserve">
+  <data name="Designer.Property.Width">
     <value>Width</value>
   </data>
-  <data name="Designer.Property.Height" xml:space="preserve">
+  <data name="Designer.Property.Height">
     <value>Height</value>
   </data>
-  <data name="Designer.Property.ZIndex" xml:space="preserve">
+  <data name="Designer.Property.ZIndex">
     <value>Layer</value>
   </data>
-  <data name="Designer.Property.BindingPath" xml:space="preserve">
+  <data name="Designer.Property.BindingPath">
     <value>Binding Path</value>
   </data>
-  <data name="Designer.Property.ImagePath" xml:space="preserve">
+  <data name="Designer.Property.ImagePath">
     <value>Static Image Path</value>
   </data>
-  <data name="Designer.PropertyDescription.BindingPath" xml:space="preserve">
+  <data name="Designer.PropertyDescription.BindingPath">
     <value>When set, BindingPath overrides ImagePath.</value>
   </data>
-  <data name="Designer.PropertyDescription.ImagePath" xml:space="preserve">
+  <data name="Designer.PropertyDescription.ImagePath">
     <value>Static image path. Used only when BindingPath is empty.</value>
   </data>
-  <data name="Designer.Property.HorizontalAlignment" xml:space="preserve">
+  <data name="Designer.Property.HorizontalAlignment">
     <value>Horizontal Alignment</value>
   </data>
-  <data name="Designer.Property.VerticalAlignment" xml:space="preserve">
+  <data name="Designer.Property.VerticalAlignment">
     <value>Vertical Alignment</value>
   </data>
-  <data name="Designer.Property.TextAlignment" xml:space="preserve">
+  <data name="Designer.Property.TextAlignment">
     <value>Text Alignment</value>
   </data>
-  <data name="Designer.Property.TextWrapping" xml:space="preserve">
+  <data name="Designer.Property.TextWrapping">
     <value>Text Wrapping</value>
   </data>
-  <data name="Designer.Property.Stretch" xml:space="preserve">
+  <data name="Designer.Property.Stretch">
     <value>Image Stretch</value>
   </data>
-  <data name="Designer.Property.FontFamily" xml:space="preserve">
+  <data name="Designer.Property.FontFamily">
     <value>Font</value>
   </data>
-  <data name="Designer.Property.FontWeight" xml:space="preserve">
+  <data name="Designer.Property.FontWeight">
     <value>Font Weight</value>
   </data>
-  <data name="Designer.Property.FontSize" xml:space="preserve">
+  <data name="Designer.Property.FontSize">
     <value>Font Size</value>
   </data>
-  <data name="Designer.Property.Color" xml:space="preserve">
+  <data name="Designer.Property.Color">
     <value>Color</value>
   </data>
-  <data name="Designer.Property.ColorBindingPath" xml:space="preserve">
+  <data name="Designer.Property.ColorBindingPath">
     <value>Color Binding Path</value>
   </data>
-  <data name="Designer.Property.BackgroundImage" xml:space="preserve">
+  <data name="Designer.Property.BackgroundImage">
     <value>Background Image</value>
   </data>
-  <data name="Designer.Property.PickingBorder" xml:space="preserve">
+  <data name="Designer.Property.PickingBorder">
     <value>Picking Border</value>
   </data>
-  <data name="Designer.Property.BanLockAvailable" xml:space="preserve">
+  <data name="Designer.Property.BanLockAvailable">
     <value>Ban Lock Available</value>
   </data>
-  <data name="Designer.Property.Text" xml:space="preserve">
+  <data name="Designer.Property.Text">
     <value>Text</value>
   </data>
-  <data name="Designer.Property.TextBinding" xml:space="preserve">
+  <data name="Designer.Property.TextBinding">
     <value>Text Binding</value>
   </data>
-  <data name="Designer.PropertyDescription.TextBinding" xml:space="preserve">
+  <data name="Designer.PropertyDescription.TextBinding">
     <value>Combines ordered dynamic sources; active sources override static text or the localization key.</value>
   </data>
-  <data name="Designer.Property.StringFormat" xml:space="preserve">
+  <data name="Designer.Property.StringFormat">
     <value>Text Format</value>
   </data>
-  <data name="Designer.Property.SizingMode" xml:space="preserve">
+  <data name="Designer.Property.SizingMode">
     <value>Sizing Mode</value>
   </data>
-  <data name="Designer.Property.ClipToBounds" xml:space="preserve">
+  <data name="Designer.Property.ClipToBounds">
     <value>Clip to Bounds</value>
   </data>
-  <data name="Designer.Property.CornerRadius" xml:space="preserve">
+  <data name="Designer.Property.CornerRadius">
     <value>Corner Radius</value>
   </data>
-  <data name="Designer.Property.ImageWidth" xml:space="preserve">
+  <data name="Designer.Property.ImageWidth">
     <value>Inner Image Width</value>
   </data>
-  <data name="Designer.Property.ImageHeight" xml:space="preserve">
+  <data name="Designer.Property.ImageHeight">
     <value>Inner Image Height</value>
   </data>
-  <data name="Designer.Property.PickingBorderImagePath" xml:space="preserve">
+  <data name="Designer.Property.PickingBorderImagePath">
     <value>Picking Border Image</value>
   </data>
-  <data name="Designer.Property.BanLockImagePath" xml:space="preserve">
+  <data name="Designer.Property.BanLockImagePath">
     <value>Ban Lock Image</value>
   </data>
-  <data name="Designer.Property.Lockable" xml:space="preserve">
+  <data name="Designer.Property.Lockable">
     <value>Lock Overlay</value>
   </data>
-  <data name="Designer.Property.LockImagePath" xml:space="preserve">
+  <data name="Designer.Property.LockImagePath">
     <value>Lock Image</value>
   </data>
-  <data name="Designer.Property.LockVisibilityBindingPath" xml:space="preserve">
+  <data name="Designer.Property.LockVisibilityBindingPath">
     <value>Lock Visibility Binding</value>
   </data>
-  <data name="Designer.Property.LockVisibleWhen" xml:space="preserve">
+  <data name="Designer.Property.LockVisibleWhen">
     <value>Lock Visible When</value>
   </data>
-  <data name="Designer.Property.PickingBorderAvailable" xml:space="preserve">
+  <data name="Designer.Property.PickingBorderAvailable">
     <value>Picking Border Overlay</value>
   </data>
-  <data name="Designer.Property.PickingBorderName" xml:space="preserve">
+  <data name="Designer.Property.PickingBorderName">
     <value>Picking Border Name</value>
   </data>
-  <data name="Designer.Property.PickingBorderZIndexOffset" xml:space="preserve">
+  <data name="Designer.Property.PickingBorderZIndexOffset">
     <value>Picking Border Layer Offset</value>
   </data>
-  <data name="Designer.Property.LocalizationKey" xml:space="preserve">
+  <data name="Designer.Property.LocalizationKey">
     <value>Localization Key</value>
   </data>
-  <data name="Designer.Property.FallbackText" xml:space="preserve">
+  <data name="Designer.Property.FallbackText">
     <value>Fallback Text</value>
   </data>
-  <data name="Designer.Property.EmptyText" xml:space="preserve">
+  <data name="Designer.Property.EmptyText">
     <value>Empty Text</value>
   </data>
-  <data name="Designer.Property.TeamType" xml:space="preserve">
+  <data name="Designer.Property.TeamType">
     <value>Team</value>
   </data>
-  <data name="Designer.Property.MajorGameGap" xml:space="preserve">
+  <data name="Designer.Property.MajorGameGap">
     <value>Major Game Gap</value>
   </data>
-  <data name="Designer.Property.HalfGameGap" xml:space="preserve">
+  <data name="Designer.Property.HalfGameGap">
     <value>Half Game Gap</value>
   </data>
-  <data name="Designer.Property.ShowCampIcon" xml:space="preserve">
+  <data name="Designer.Property.ShowCampIcon">
     <value>Show Camp Icon</value>
   </data>
-  <data name="Designer.Property.CampIconColor" xml:space="preserve">
+  <data name="Designer.Property.CampIconColor">
     <value>Camp Icon Color</value>
   </data>
-  <data name="Designer.Property.MapKey" xml:space="preserve">
+  <data name="Designer.Property.MapKey">
     <value>Map Key</value>
   </data>
-  <data name="Designer.Property.DisplayKind" xml:space="preserve">
+  <data name="Designer.Property.DisplayKind">
     <value>Display Kind</value>
   </data>
-  <data name="Designer.Property.PlayerIndex" xml:space="preserve">
+  <data name="Designer.Property.PlayerIndex">
     <value>Player Index</value>
   </data>
-  <data name="Designer.Property.IconSize" xml:space="preserve">
+  <data name="Designer.Property.IconSize">
     <value>Icon Size</value>
   </data>
-  <data name="Designer.Property.IconGap" xml:space="preserve">
+  <data name="Designer.Property.IconGap">
     <value>Icon Gap</value>
   </data>
-  <data name="Designer.Property.RespectTraitVisibility" xml:space="preserve">
+  <data name="Designer.Property.RespectTraitVisibility">
     <value>Respect Trait Visibility</value>
   </data>
-  <data name="Designer.Property.BorderImagePath" xml:space="preserve">
+  <data name="Designer.Property.BorderImagePath">
     <value>Border Image</value>
   </data>
-  <data name="Designer.Property.FillColor" xml:space="preserve">
+  <data name="Designer.Property.FillColor">
     <value>Fill Color</value>
   </data>
-  <data name="Designer.Property.InitiallyHidden" xml:space="preserve">
+  <data name="Designer.Property.InitiallyHidden">
     <value>Initially Hidden</value>
   </data>
-  <data name="Designer.Property.SlotKind" xml:space="preserve">
+  <data name="Designer.Property.SlotKind">
     <value>Ban Slot Kind</value>
   </data>
-  <data name="Designer.Property.Camp" xml:space="preserve">
+  <data name="Designer.Property.Camp">
     <value>Camp</value>
   </data>
-  <data name="Designer.Property.Index" xml:space="preserve">
+  <data name="Designer.Property.Index">
     <value>Index</value>
   </data>
-  <data name="Designer.Property.ShowLockOverlay" xml:space="preserve">
+  <data name="Designer.Property.ShowLockOverlay">
     <value>Show Lock Overlay</value>
   </data>
-  <data name="Designer.Property.LockImageSource" xml:space="preserve">
+  <data name="Designer.Property.LockImageSource">
     <value>Lock Image</value>
   </data>
-  <data name="Designer.Property.LockZIndexOffset" xml:space="preserve">
+  <data name="Designer.Property.LockZIndexOffset">
     <value>Lock Layer Offset</value>
   </data>
-  <data name="Designer.PropertyGroup.Identity" xml:space="preserve">
+  <data name="Designer.PropertyGroup.Identity">
     <value>Identity</value>
   </data>
-  <data name="Designer.PropertyGroup.Layout" xml:space="preserve">
+  <data name="Designer.PropertyGroup.Layout">
     <value>Layout</value>
   </data>
-  <data name="Designer.PropertyGroup.Binding" xml:space="preserve">
+  <data name="Designer.PropertyGroup.Binding">
     <value>Data Binding</value>
   </data>
-  <data name="Designer.PropertyGroup.Content" xml:space="preserve">
+  <data name="Designer.PropertyGroup.Content">
     <value>Content</value>
   </data>
-  <data name="Designer.PropertyGroup.Appearance" xml:space="preserve">
+  <data name="Designer.PropertyGroup.Appearance">
     <value>Appearance</value>
   </data>
-  <data name="Designer.PropertyGroup.Resource" xml:space="preserve">
+  <data name="Designer.PropertyGroup.Resource">
     <value>Resource</value>
   </data>
-  <data name="Designer.PropertyGroup.Behavior" xml:space="preserve">
+  <data name="Designer.PropertyGroup.Behavior">
     <value>Behavior</value>
   </data>
-  <data name="Designer.PropertyGroup.Advanced" xml:space="preserve">
+  <data name="Designer.PropertyGroup.Advanced">
     <value>Advanced</value>
   </data>
-  <data name="Designer.PropertyGroup.Validation" xml:space="preserve">
+  <data name="Designer.PropertyGroup.Validation">
     <value>Validation</value>
   </data>
-  <data name="Designer.PropertyGroup.ControlSpecific" xml:space="preserve">
+  <data name="Designer.PropertyGroup.ControlSpecific">
     <value>Control Specific</value>
   </data>
-  <data name="Designer.PropertyGroup.Border" xml:space="preserve">
+  <data name="Designer.PropertyGroup.Border">
     <value>Border</value>
   </data>
-  <data name="Designer.PropertyGroup.Image" xml:space="preserve">
+  <data name="Designer.PropertyGroup.Image">
     <value>Inner Image</value>
   </data>
-  <data name="Designer.PluginControls" xml:space="preserve">
+  <data name="Designer.PluginControls">
     <value>Plugin Controls</value>
   </data>
-  <data name="Designer.MissingPluginControl" xml:space="preserve">
+  <data name="Designer.MissingPluginControl">
     <value>Missing Plugin</value>
   </data>
-  <data name="Designer.MissingPluginPackage" xml:space="preserve">
+  <data name="Designer.MissingPluginPackage">
     <value>Package</value>
   </data>
-  <data name="Designer.MissingPluginType" xml:space="preserve">
+  <data name="Designer.MissingPluginType">
     <value>Plugin Control Type</value>
   </data>
-  <data name="Designer.PluginInstallGuidance" xml:space="preserve">
+  <data name="Designer.PluginInstallGuidance">
     <value>This plugin is not installed. Install guidance will be available in a future version.</value>
   </data>
-  <data name="Designer.PluginControlUnavailable" xml:space="preserve">
+  <data name="Designer.PluginControlUnavailable">
     <value>Plugin control unavailable</value>
   </data>
-  <data name="Designer.PropertyGroup.Plugin" xml:space="preserve">
+  <data name="Designer.PropertyGroup.Plugin">
     <value>Plugin</value>
   </data>
-  <data name="ResizeTarget" xml:space="preserve">
+  <data name="ResizeTarget">
     <value>Resize Target</value>
   </data>
-  <data name="Designer.ControlType.Text" xml:space="preserve">
+  <data name="Designer.ControlType.Text">
     <value>Text</value>
   </data>
-  <data name="Designer.ControlType.LocalizedText" xml:space="preserve">
+  <data name="Designer.ControlType.LocalizedText">
     <value>Localized Text</value>
   </data>
-  <data name="Designer.ControlType.Image" xml:space="preserve">
+  <data name="Designer.ControlType.Image">
     <value>Image</value>
   </data>
-  <data name="Designer.ControlType.BorderedImage" xml:space="preserve">
+  <data name="Designer.ControlType.BorderedImage">
     <value>Bordered Image</value>
   </data>
-  <data name="Designer.ControlType.GameProgressText" xml:space="preserve">
+  <data name="Designer.ControlType.GameProgressText">
     <value>Game Progress</value>
   </data>
-  <data name="Designer.ControlType.MapNameText" xml:space="preserve">
+  <data name="Designer.ControlType.MapNameText">
     <value>Map Name</value>
   </data>
-  <data name="Designer.ControlType.TalentTraitDisplay" xml:space="preserve">
+  <data name="Designer.ControlType.TalentTraitDisplay">
     <value>Talent / Trait</value>
   </data>
-  <data name="Designer.ControlType.GlobalScoreRow" xml:space="preserve">
+  <data name="Designer.ControlType.GlobalScoreRow">
     <value>Global Score</value>
   </data>
-  <data name="Designer.ControlType.MapV2Display" xml:space="preserve">
+  <data name="Designer.ControlType.MapV2Display">
     <value>Map v2</value>
   </data>
-  <data name="Designer.Option.HorizontalAlignment.Left" xml:space="preserve">
+  <data name="Designer.Option.HorizontalAlignment.Left">
     <value>Left</value>
   </data>
-  <data name="Designer.Option.HorizontalAlignment.Center" xml:space="preserve">
+  <data name="Designer.Option.HorizontalAlignment.Center">
     <value>Center</value>
   </data>
-  <data name="Designer.Option.HorizontalAlignment.Right" xml:space="preserve">
+  <data name="Designer.Option.HorizontalAlignment.Right">
     <value>Right</value>
   </data>
-  <data name="Designer.Option.HorizontalAlignment.Stretch" xml:space="preserve">
+  <data name="Designer.Option.HorizontalAlignment.Stretch">
     <value>Stretch</value>
   </data>
-  <data name="Designer.Option.VerticalAlignment.Top" xml:space="preserve">
+  <data name="Designer.Option.VerticalAlignment.Top">
     <value>Top</value>
   </data>
-  <data name="Designer.Option.VerticalAlignment.Center" xml:space="preserve">
+  <data name="Designer.Option.VerticalAlignment.Center">
     <value>Center</value>
   </data>
-  <data name="Designer.Option.VerticalAlignment.Bottom" xml:space="preserve">
+  <data name="Designer.Option.VerticalAlignment.Bottom">
     <value>Bottom</value>
   </data>
-  <data name="Designer.Option.VerticalAlignment.Stretch" xml:space="preserve">
+  <data name="Designer.Option.VerticalAlignment.Stretch">
     <value>Stretch</value>
   </data>
-  <data name="Designer.Option.TextAlignment.Left" xml:space="preserve">
+  <data name="Designer.Option.TextAlignment.Left">
     <value>Left</value>
   </data>
-  <data name="Designer.Option.TextAlignment.Center" xml:space="preserve">
+  <data name="Designer.Option.TextAlignment.Center">
     <value>Center</value>
   </data>
-  <data name="Designer.Option.TextAlignment.Right" xml:space="preserve">
+  <data name="Designer.Option.TextAlignment.Right">
     <value>Right</value>
   </data>
-  <data name="Designer.Option.TextAlignment.Justify" xml:space="preserve">
+  <data name="Designer.Option.TextAlignment.Justify">
     <value>Justify</value>
   </data>
-  <data name="Designer.Option.TextWrapping.NoWrap" xml:space="preserve">
+  <data name="Designer.Option.TextWrapping.NoWrap">
     <value>No Wrap</value>
   </data>
-  <data name="Designer.Option.TextWrapping.Wrap" xml:space="preserve">
+  <data name="Designer.Option.TextWrapping.Wrap">
     <value>Wrap</value>
   </data>
-  <data name="Designer.Option.TextWrapping.WrapWithOverflow" xml:space="preserve">
+  <data name="Designer.Option.TextWrapping.WrapWithOverflow">
     <value>Wrap With Overflow</value>
   </data>
-  <data name="Designer.Option.Stretch.None" xml:space="preserve">
+  <data name="Designer.Option.Stretch.None">
     <value>Original Size</value>
   </data>
-  <data name="Designer.Option.Stretch.Fill" xml:space="preserve">
+  <data name="Designer.Option.Stretch.Fill">
     <value>Fill</value>
   </data>
-  <data name="Designer.Option.Stretch.Uniform" xml:space="preserve">
+  <data name="Designer.Option.Stretch.Uniform">
     <value>Uniform</value>
   </data>
-  <data name="Designer.Option.Stretch.UniformToFill" xml:space="preserve">
+  <data name="Designer.Option.Stretch.UniformToFill">
     <value>Uniform to Fill</value>
   </data>
-  <data name="Designer.Option.FontWeight.Light" xml:space="preserve">
+  <data name="Designer.Option.FontWeight.Light">
     <value>Light</value>
   </data>
-  <data name="Designer.Option.FontWeight.Normal" xml:space="preserve">
+  <data name="Designer.Option.FontWeight.Normal">
     <value>Normal</value>
   </data>
-  <data name="Designer.Option.FontWeight.Medium" xml:space="preserve">
+  <data name="Designer.Option.FontWeight.Medium">
     <value>Medium</value>
   </data>
-  <data name="Designer.Option.FontWeight.SemiBold" xml:space="preserve">
+  <data name="Designer.Option.FontWeight.SemiBold">
     <value>Semi Bold</value>
   </data>
-  <data name="Designer.Option.FontWeight.Bold" xml:space="preserve">
+  <data name="Designer.Option.FontWeight.Bold">
     <value>Bold</value>
   </data>
-  <data name="Designer.Option.FontWeight.ExtraBold" xml:space="preserve">
+  <data name="Designer.Option.FontWeight.ExtraBold">
     <value>Extra Bold</value>
   </data>
-  <data name="Designer.Option.SizingMode.Auto" xml:space="preserve">
+  <data name="Designer.Option.SizingMode.Auto">
     <value>Auto</value>
   </data>
-  <data name="Designer.Option.SizingMode.FillContainer" xml:space="preserve">
+  <data name="Designer.Option.SizingMode.FillContainer">
     <value>Fill Container</value>
   </data>
-  <data name="Designer.Option.SizingMode.OverflowCrop" xml:space="preserve">
+  <data name="Designer.Option.SizingMode.OverflowCrop">
     <value>Overflow Crop</value>
   </data>
-  <data name="Designer.Option.LockVisibleWhen.VisibleWhenTrue" xml:space="preserve">
+  <data name="Designer.Option.LockVisibleWhen.VisibleWhenTrue">
     <value>Visible when true</value>
   </data>
-  <data name="Designer.Option.LockVisibleWhen.VisibleWhenFalse" xml:space="preserve">
+  <data name="Designer.Option.LockVisibleWhen.VisibleWhenFalse">
     <value>Visible when false</value>
   </data>
-  <data name="Designer.Option.LockVisibleWhen.Always" xml:space="preserve">
+  <data name="Designer.Option.LockVisibleWhen.Always">
     <value>Always</value>
   </data>
-  <data name="Designer.Option.TeamType.HomeTeam" xml:space="preserve">
+  <data name="Designer.Option.TeamType.HomeTeam">
     <value>Home Team</value>
   </data>
-  <data name="Designer.Option.TeamType.AwayTeam" xml:space="preserve">
+  <data name="Designer.Option.TeamType.AwayTeam">
     <value>Away Team</value>
   </data>
-  <data name="Designer.Option.CampIconColor.White" xml:space="preserve">
+  <data name="Designer.Option.CampIconColor.White">
     <value>White</value>
   </data>
-  <data name="Designer.Option.CampIconColor.Black" xml:space="preserve">
+  <data name="Designer.Option.CampIconColor.Black">
     <value>Black</value>
   </data>
-  <data name="Designer.Option.DisplayKind.SurvivorTalent" xml:space="preserve">
+  <data name="Designer.Option.DisplayKind.SurvivorTalent">
     <value>Survivor Talent</value>
   </data>
-  <data name="Designer.Option.DisplayKind.HunterTalent" xml:space="preserve">
+  <data name="Designer.Option.DisplayKind.HunterTalent">
     <value>Hunter Talent</value>
   </data>
-  <data name="Designer.Option.DisplayKind.HunterTrait" xml:space="preserve">
+  <data name="Designer.Option.DisplayKind.HunterTrait">
     <value>Hunter Trait</value>
   </data>
-  <data name="Designer.Option.SlotKind.Current" xml:space="preserve">
+  <data name="Designer.Option.SlotKind.Current">
     <value>Current Ban</value>
   </data>
-  <data name="Designer.Option.SlotKind.Global" xml:space="preserve">
+  <data name="Designer.Option.SlotKind.Global">
     <value>Global Ban</value>
   </data>
-  <data name="Designer.Option.Camp.Sur" xml:space="preserve">
+  <data name="Designer.Option.Camp.Sur">
     <value>Survivor</value>
   </data>
-  <data name="Designer.Option.Camp.Hun" xml:space="preserve">
+  <data name="Designer.Option.Camp.Hun">
     <value>Hunter</value>
   </data>
-  <data name="Designer.Window.BpWindow" xml:space="preserve">
+  <data name="Designer.Window.BpWindow">
     <value>BP Main Window</value>
   </data>
-  <data name="Designer.Window.CutSceneWindow" xml:space="preserve">
+  <data name="Designer.Window.CutSceneWindow">
     <value>Cut Scene Window</value>
   </data>
-  <data name="Designer.Window.ScoreSurWindow" xml:space="preserve">
+  <data name="Designer.Window.ScoreSurWindow">
     <value>Survivor Score in Gane Window</value>
   </data>
-  <data name="Designer.Window.ScoreHunWindow" xml:space="preserve">
+  <data name="Designer.Window.ScoreHunWindow">
     <value>Hunter Score in Gane Window</value>
   </data>
-  <data name="Designer.Window.ScoreGlobalWindow" xml:space="preserve">
+  <data name="Designer.Window.ScoreGlobalWindow">
     <value>Global Score Window</value>
   </data>
-  <data name="Designer.Window.GameDataWindow" xml:space="preserve">
+  <data name="Designer.Window.GameDataWindow">
     <value>Post-match Data Window</value>
   </data>
-  <data name="Designer.Window.BpOverviewWindow" xml:space="preserve">
+  <data name="Designer.Window.BpOverviewWindow">
     <value>BP Overview Window</value>
   </data>
-  <data name="Designer.Window.MapV2Window" xml:space="preserve">
+  <data name="Designer.Window.MapV2Window">
     <value>Map BP v2 Window</value>
   </data>
-  <data name="Designer.Window.WidgetsWindow" xml:space="preserve">
+  <data name="Designer.Window.WidgetsWindow">
     <value>Widgets Window</value>
   </data>
-  <data name="Designer.Canvas.BaseCanvas" xml:space="preserve">
+  <data name="Designer.Canvas.BaseCanvas">
     <value>Main Canvas</value>
   </data>
-  <data name="Designer.Canvas.MapBpCanvas" xml:space="preserve">
+  <data name="Designer.Canvas.MapBpCanvas">
     <value>Map BP Canvas</value>
   </data>
-  <data name="Designer.Canvas.BpOverViewCanvas" xml:space="preserve">
+  <data name="Designer.Canvas.BpOverViewCanvas">
     <value>BP Overview Canvas</value>
   </data>
-  <data name="Designer.Canvas.MapV2Canvas" xml:space="preserve">
+  <data name="Designer.Canvas.MapV2Canvas">
     <value>Map v2 Canvas</value>
   </data>
-  <data name="Designer.Binding.CurrentGame.SurTeam.Name" xml:space="preserve">
+  <data name="Designer.Binding.CurrentGame.SurTeam.Name">
     <value>Survivor Team Name</value>
   </data>
-  <data name="Designer.Binding.CurrentGame.HunTeam.Name" xml:space="preserve">
+  <data name="Designer.Binding.CurrentGame.HunTeam.Name">
     <value>Hunter Team Name</value>
   </data>
-  <data name="Designer.Binding.Name" xml:space="preserve">
+  <data name="Designer.Binding.Name">
     <value>Name</value>
   </data>
-  <data name="Designer.Binding.Logo" xml:space="preserve">
+  <data name="Designer.Binding.Logo">
     <value>Logo</value>
   </data>
-  <data name="Designer.Binding.Member" xml:space="preserve">
+  <data name="Designer.Binding.Member">
     <value>Member</value>
   </data>
-  <data name="Designer.Binding.Character" xml:space="preserve">
+  <data name="Designer.Binding.Character">
     <value>Character</value>
   </data>
-  <data name="Designer.Binding.GameProgress" xml:space="preserve">
+  <data name="Designer.Binding.GameProgress">
     <value>Game Progress</value>
   </data>
-  <data name="Designer.BindingType.String" xml:space="preserve">
+  <data name="Designer.BindingType.String">
     <value>Text</value>
   </data>
-  <data name="Designer.BindingType.String?" xml:space="preserve">
+  <data name="Designer.BindingType.String?">
     <value>Text</value>
   </data>
-  <data name="Designer.BindingType.Int32" xml:space="preserve">
+  <data name="Designer.BindingType.Int32">
     <value>Number</value>
   </data>
-  <data name="Designer.BindingType.ImageSource" xml:space="preserve">
+  <data name="Designer.BindingType.ImageSource">
     <value>Image Source</value>
   </data>
-  <data name="Designer.BindingType.GameProgress" xml:space="preserve">
+  <data name="Designer.BindingType.GameProgress">
     <value>Game Progress</value>
   </data>
-  <data name="Designer.Value.True" xml:space="preserve">
+  <data name="Designer.Value.True">
     <value>Yes</value>
   </data>
-  <data name="Designer.Value.False" xml:space="preserve">
+  <data name="Designer.Value.False">
     <value>No</value>
   </data>
-  <data name="Designer.Editor.Search" xml:space="preserve">
+  <data name="Designer.Editor.Search">
     <value>Search</value>
   </data>
-  <data name="Designer.Editor.Select" xml:space="preserve">
+  <data name="Designer.Editor.Select">
     <value>Select</value>
   </data>
-  <data name="Designer.Editor.Cancel" xml:space="preserve">
+  <data name="Designer.Editor.Cancel">
     <value>Cancel</value>
   </data>
-  <data name="Designer.Editor.NoResults" xml:space="preserve">
+  <data name="Designer.Editor.NoResults">
     <value>No results</value>
   </data>
-  <data name="Designer.Editor.RawPath" xml:space="preserve">
+  <data name="Designer.Editor.RawPath">
     <value>Raw path</value>
   </data>
-  <data name="Designer.Editor.RawUri" xml:space="preserve">
+  <data name="Designer.Editor.RawUri">
     <value>Raw URI</value>
   </data>
-  <data name="Designer.Editor.ExpectedType" xml:space="preserve">
+  <data name="Designer.Editor.ExpectedType">
     <value>Expected type</value>
   </data>
-  <data name="Designer.Editor.BindingBrowser" xml:space="preserve">
+  <data name="Designer.Editor.BindingBrowser">
     <value>Binding Browser</value>
   </data>
-  <data name="Designer.Editor.ResourceBrowser" xml:space="preserve">
+  <data name="Designer.Editor.ResourceBrowser">
     <value>Resource Browser</value>
   </data>
-  <data name="Designer.Editor.ImportFont" xml:space="preserve">
+  <data name="Designer.Editor.ImportFont">
     <value>Import font</value>
   </data>
-  <data name="Designer.Editor.ImportFontFailed" xml:space="preserve">
+  <data name="Designer.Editor.ImportFontFailed">
     <value>Failed to import font</value>
   </data>
-  <data name="Designer.Editor.ManagePackageFonts" xml:space="preserve">
+  <data name="Designer.Editor.ManagePackageFonts">
     <value>Manage package fonts</value>
   </data>
-  <data name="Designer.Editor.PackageFontsUnavailable" xml:space="preserve">
+  <data name="Designer.Editor.PackageFontsUnavailable">
     <value>The current layout package cannot manage fonts.</value>
   </data>
-  <data name="Designer.Editor.PackageFontsEmpty" xml:space="preserve">
+  <data name="Designer.Editor.PackageFontsEmpty">
     <value>The current layout package has no imported fonts.</value>
   </data>
-  <data name="Designer.Editor.PackageFontFamilies" xml:space="preserve">
+  <data name="Designer.Editor.PackageFontFamilies">
     <value>Font families</value>
   </data>
-  <data name="Designer.Editor.PackageFontFile" xml:space="preserve">
+  <data name="Designer.Editor.PackageFontFile">
     <value>File</value>
   </data>
-  <data name="Designer.Editor.PackageFontStatus" xml:space="preserve">
+  <data name="Designer.Editor.PackageFontStatus">
     <value>Status</value>
   </data>
-  <data name="Designer.Editor.PackageFontAvailable" xml:space="preserve">
+  <data name="Designer.Editor.PackageFontAvailable">
     <value>Can delete</value>
   </data>
-  <data name="Designer.Editor.PackageFontInUse" xml:space="preserve">
+  <data name="Designer.Editor.PackageFontInUse">
     <value>Used by current layout</value>
   </data>
-  <data name="Designer.Editor.PackageFontDelete" xml:space="preserve">
+  <data name="Designer.Editor.PackageFontDelete">
     <value>Delete</value>
   </data>
-  <data name="Designer.Editor.PackageFontDeleteSucceeded" xml:space="preserve">
+  <data name="Designer.Editor.PackageFontDeleteSucceeded">
     <value>Font file deleted.</value>
   </data>
-  <data name="Designer.Editor.PackageFontDeleteFailed" xml:space="preserve">
+  <data name="Designer.Editor.PackageFontDeleteFailed">
     <value>Failed to delete font</value>
   </data>
-  <data name="Designer.Editor.Source.BuiltInResources" xml:space="preserve">
+  <data name="Designer.Editor.Source.BuiltInResources">
     <value>Built-in resources</value>
   </data>
-  <data name="Designer.Editor.Source.AbsoluteFile" xml:space="preserve">
+  <data name="Designer.Editor.Source.AbsoluteFile">
     <value>Absolute file</value>
   </data>
-  <data name="Designer.Editor.Type.Image" xml:space="preserve">
+  <data name="Designer.Editor.Type.Image">
     <value>Image</value>
   </data>
-  <data name="Designer.Validation.InvalidArgbColor" xml:space="preserve">
+  <data name="Designer.Validation.InvalidArgbColor">
     <value>Invalid color. Use #RRGGBB, #AARRGGBB, or a WPF color name.</value>
   </data>
-  <data name="Designer.PropertyGroup.Overlay" xml:space="preserve">
+  <data name="Designer.PropertyGroup.Overlay">
     <value>Overlay</value>
   </data>
-  <data name="Designer.ControlType.GameProgress" xml:space="preserve">
+  <data name="Designer.ControlType.GameProgress">
     <value>Game Progress</value>
   </data>
-  <data name="Designer.ControlType.MapName" xml:space="preserve">
+  <data name="Designer.ControlType.MapName">
     <value>Map Name</value>
   </data>
-  <data name="Designer.Help.Title" xml:space="preserve">
+  <data name="Designer.Help.Title">
     <value>Designer Help</value>
   </data>
-  <data name="Designer.Help.Open" xml:space="preserve">
+  <data name="Designer.Help.Open">
     <value>Help</value>
   </data>
-  <data name="Designer.Help.Close" xml:space="preserve">
+  <data name="Designer.Help.Close">
     <value>Close</value>
   </data>
-  <data name="Designer.Help.BasicWorkflow.Title" xml:space="preserve">
+  <data name="Designer.Help.BasicWorkflow.Title">
     <value>Basic Workflow</value>
   </data>
-  <data name="Designer.Help.CanvasNavigation.Title" xml:space="preserve">
+  <data name="Designer.Help.CanvasNavigation.Title">
     <value>Canvas Navigation</value>
   </data>
-  <data name="Designer.Help.Selection.Title" xml:space="preserve">
+  <data name="Designer.Help.Selection.Title">
     <value>Selecting and Editing Controls</value>
   </data>
-  <data name="Designer.Help.Shortcuts.Title" xml:space="preserve">
+  <data name="Designer.Help.Shortcuts.Title">
     <value>Keyboard Shortcuts</value>
   </data>
-  <data name="Designer.Help.BuiltInControls.Title" xml:space="preserve">
+  <data name="Designer.Help.BuiltInControls.Title">
     <value>Built-in Controls and Usage</value>
   </data>
-  <data name="Designer.Help.BuiltInControls.Column.Control" xml:space="preserve">
+  <data name="Designer.Help.BuiltInControls.Column.Control">
     <value>Control</value>
   </data>
-  <data name="Designer.Help.BuiltInControls.Column.Usage" xml:space="preserve">
+  <data name="Designer.Help.BuiltInControls.Column.Usage">
     <value>Usage</value>
   </data>
-  <data name="Designer.Help.BuiltInControls.Column.Notes" xml:space="preserve">
+  <data name="Designer.Help.BuiltInControls.Column.Notes">
     <value>Notes</value>
   </data>
-  <data name="Designer.Help.Snapping.Title" xml:space="preserve">
+  <data name="Designer.Help.Snapping.Title">
     <value>Snap Behavior</value>
   </data>
-  <data name="Designer.Help.LayerPanel.Title" xml:space="preserve">
+  <data name="Designer.Help.LayerPanel.Title">
     <value>Layer Panel</value>
   </data>
-  <data name="Designer.Help.PropertyGrid.Title" xml:space="preserve">
+  <data name="Designer.Help.PropertyGrid.Title">
     <value>PropertyGrid</value>
   </data>
-  <data name="Designer.Help.AddDeleteCopyPaste.Title" xml:space="preserve">
+  <data name="Designer.Help.AddDeleteCopyPaste.Title">
     <value>Add / Delete / Copy / Paste</value>
   </data>
-  <data name="Designer.Help.CanvasWindowSettings.Title" xml:space="preserve">
+  <data name="Designer.Help.CanvasWindowSettings.Title">
     <value>Canvas / Window Settings</value>
   </data>
-  <data name="Designer.Help.Validation.Title" xml:space="preserve">
+  <data name="Designer.Help.Validation.Title">
     <value>Validation</value>
   </data>
-  <data name="Designer.Help.PluginControls.Title" xml:space="preserve">
+  <data name="Designer.Help.PluginControls.Title">
     <value>Plugin Controls</value>
   </data>
-  <data name="Designer.Help.LayoutPackages.Title" xml:space="preserve">
+  <data name="Designer.Help.LayoutPackages.Title">
     <value>Layout Packages</value>
   </data>
-  <data name="Designer.Help.Troubleshooting.Title" xml:space="preserve">
+  <data name="Designer.Help.Troubleshooting.Title">
     <value>Tips &amp; Troubleshooting</value>
   </data>
-  <data name="Designer.Help.Shortcut.Save" xml:space="preserve">
+  <data name="Designer.Help.Shortcut.Save">
     <value>Ctrl+S: Save layout</value>
   </data>
-  <data name="Designer.Help.Shortcut.Copy" xml:space="preserve">
+  <data name="Designer.Help.Shortcut.Copy">
     <value>Ctrl+C: Copy selected control</value>
   </data>
-  <data name="Designer.Help.Shortcut.Paste" xml:space="preserve">
+  <data name="Designer.Help.Shortcut.Paste">
     <value>Ctrl+V: Paste copied control</value>
   </data>
-  <data name="Designer.Help.Shortcut.Delete" xml:space="preserve">
+  <data name="Designer.Help.Shortcut.Delete">
     <value>Delete: Delete selected control</value>
   </data>
-  <data name="Designer.Help.Shortcut.Undo" xml:space="preserve">
+  <data name="Designer.Help.Shortcut.Undo">
     <value>Ctrl+Z: Undo</value>
   </data>
-  <data name="Designer.Help.Shortcut.Redo" xml:space="preserve">
+  <data name="Designer.Help.Shortcut.Redo">
     <value>Ctrl+Y / Ctrl+Shift+Z: Redo</value>
   </data>
-  <data name="Designer.Help.Shortcut.Zoom" xml:space="preserve">
+  <data name="Designer.Help.Shortcut.Zoom">
     <value>Ctrl+Mouse Wheel: Zoom</value>
   </data>
-  <data name="Designer.Help.Shortcut.PanSpace" xml:space="preserve">
+  <data name="Designer.Help.Shortcut.PanSpace">
     <value>Space+Left Drag: Pan canvas</value>
   </data>
-  <data name="Designer.Help.Shortcut.PanRight" xml:space="preserve">
+  <data name="Designer.Help.Shortcut.PanRight">
     <value>Right Drag: Pan canvas</value>
   </data>
-  <data name="Designer.Help.Shortcut.SnapShift" xml:space="preserve">
+  <data name="Designer.Help.Shortcut.SnapShift">
     <value>Shift: Temporary snap</value>
   </data>
-  <data name="Designer.Help.BasicWorkflow.Content" xml:space="preserve">
+  <data name="Designer.Help.BasicWorkflow.Content">
     <value>Choose window and canvas from top selectors;\nAdd built-in or plugin controls from Add Control;\nSelect controls from canvas or layer panel;\nEdit properties from PropertyGrid;\nSave layout;\nValidate layout;\nReset/reload layout.</value>
   </data>
-  <data name="Designer.Help.CanvasNavigation.Content" xml:space="preserve">
+  <data name="Designer.Help.CanvasNavigation.Content">
     <value>Mouse wheel / scrollbars to navigate;\nRight mouse drag pans the canvas;\nHold Space + left mouse drag pans the canvas;\nCtrl + mouse wheel zooms;\nBottom Zoom ComboBox accepts 100, 100%, 1x, 1.25x;\nSlider changes zoom;\nFit button fits canvas to current viewport.</value>
   </data>
-  <data name="Designer.Help.Selection.Content" xml:space="preserve">
+  <data name="Designer.Help.Selection.Content">
     <value>Click control on canvas to select;\nClick item in layer panel to select;\nDrag selected control on canvas to move;\nResize with handles;\nSelected control name label appears above selection;\nTransparent/empty controls may be selected through hitbox or layer panel.</value>
   </data>
-  <data name="Designer.Help.Snapping.Content" xml:space="preserve">
+  <data name="Designer.Help.Snapping.Content">
     <value>Snap switch enables grid and object alignment snapping;\nHolding Shift temporarily enables snapping without toggling the switch;\nMoving or resizing near canvas edges, centers, or other control edges/centers shows alignment guide lines;\nSnap does not directly change stored values unless operation is committed.</value>
   </data>
-  <data name="Designer.Help.LayerPanel.Content" xml:space="preserve">
+  <data name="Designer.Help.LayerPanel.Content">
     <value>Controls are grouped by ZIndex;\nHigher ZIndex is visually above lower ZIndex;\nDrag within same layer to change same-ZIndex order;\nDrag into another layer to change ZIndex;\nDrag to top edge to create new top layer;\nDrag to bottom edge to create new bottom layer;\nNear top/bottom edge auto-scrolls;\nFiltering disables layer reorder; clear filter to reorder;\nLinked overlay controls are not independently editable or draggable.</value>
   </data>
-  <data name="Designer.Help.PropertyGrid.Content" xml:space="preserve">
+  <data name="Designer.Help.PropertyGrid.Content">
     <value>Name and BindingPath require Enter or apply button to commit;\nInvalid values keep the text and show red border;\nColorPicker updates Hex text; apply button commits;\nComboBox properties commit raw values while displaying localized names;\nBinding browser helps choose valid BindingPath;\nResource browser helps choose bpui/resource URI;\nBorderedImage has separate Border/Image properties;\nBorderedImage resize target can switch between outer border and inner image.</value>
   </data>
-  <data name="Designer.Help.BuiltInControls.Content" xml:space="preserve">
+  <data name="Designer.Help.BuiltInControls.Content">
     <value>Text|Normal text control; TextBinding combines ordered dynamic sources and static Text is used when there are no sources.|Source order maps to {0}/{1}; an empty StringFormat joins with JoinSeparator.\nLocalizedText|Localized text control; static mode uses LocalizationKey, while TextBinding mode combines dynamic text before localization lookup.|A dynamic result that is not a resource key is displayed as raw text.\nImage|Direct image control whose root element is Image; use it for team logos, maps, simple images, and legacy direct Image semantics.|BindingPath binds an ImageSource; ImagePath is used only when BindingPath is empty; binding wins and ImagePath is not cleared automatically.\nBorderedImage|Outer Border plus inner Image; use it for framed, clipped, rounded, inner-sized, or resize-target-switchable image regions.|BindingPath and ImagePath follow the same priority as Image; Width/Height affect the border, ImageWidth/ImageHeight affect the inner image.\nGameProgressText|Generates game progress text from current game, half, BO3/BO5, and overtime rules.|Set DisplayMode to TwoLine when the layout needs two lines; do not hard-code this business text into a normal Text control.\nMapNameText|Converts map enum/key values to localized map names; reads the picked map by default, or BindingPath can point to picked/banned map fields.|EmptyText is the fallback for no map; BindingPath should point to a Map/Map? field.\nGlobalScoreRow|Composite global score row; Cells define each half-score cell inside the parent frame, then MatchScore fills text and camp icons.|Normally used by ScoreGlobalWindow; move the parent for the whole row and edit child cells for individual score positions.\nTalentTraitDisplay|CutScene talent/trait display; reads fixed business data by DisplayKind and PlayerIndex.|Can follow trait visibility settings; do not hard-code individual talent icons in JSON.\nMapV2Display|Map BP v2 display; uses MapKey and reuses MapV2Presenter.|Suitable for MapV2Window layouts; do not hand-build the internal Map BP v2 visuals.\nGeneral notes|Choose dynamic data BindingPath from Binding Browser; choose ImagePath, BackgroundImage, LockImageSource, and similar resource paths from Resource Browser.|Prefer Resources/xxx.png or bpui://... for static resources and avoid long-term arbitrary absolute paths; missing or oversized images should warn or render empty, not crash the frontend window.</value>
   </data>
-  <data name="Designer.Help.AddDeleteCopyPaste.Content" xml:space="preserve">
+  <data name="Designer.Help.AddDeleteCopyPaste.Content">
     <value>Add Control inserts built-in/plugin controls;\nCopied control gets unique numbered name on paste;\nPaste offsets the new control;\nGenerated overlays or non-editable controls may not be copyable/deletable;\nUndo/Redo can restore add, delete, paste, reorder operations.</value>
   </data>
-  <data name="Designer.Help.CanvasWindowSettings.Content" xml:space="preserve">
+  <data name="Designer.Help.CanvasWindowSettings.Content">
     <value>Canvas Width/Height edit canvas design size;\nBackground image supports bpui resource URI;\nAllowTransparency is a window-level option; created fronted windows silently restart their instance;\nNever-created windows apply the latest setting on next show.</value>
   </data>
-  <data name="Designer.Help.Validation.Content" xml:space="preserve">
+  <data name="Designer.Help.Validation.Content">
     <value>Status button opens validation details;\nErrors may block saving/import/export where appropriate;\nWarnings do not always block but should be reviewed;\nMissing plugin controls are shown as warnings in Designer.</value>
   </data>
-  <data name="Designer.Help.PluginControls.Content" xml:space="preserve">
+  <data name="Designer.Help.PluginControls.Content">
     <value>Plugin controls appear in Add Control when plugin is installed;\nPlugin controls behave like built-in controls in Designer;\nMissing plugin controls show placeholder in Designer;\nRuntime skips missing plugin controls instead of crashing;\n.bpui packages declare required plugins;\nImporting a package with missing plugins will guide install/update or allow force import that removes missing controls.</value>
   </data>
-  <data name="Designer.Help.LayoutPackages.Content" xml:space="preserve">
+  <data name="Designer.Help.LayoutPackages.Content">
     <value>Export writes layout package;\n.bpui does not include plugin binaries;\nImport checks plugin dependencies;\nForce import removes controls that depend on missing plugins;\nOriginal package file remains unchanged.</value>
   </data>
-  <data name="Designer.Help.Troubleshooting.Content" xml:space="preserve">
+  <data name="Designer.Help.Troubleshooting.Content">
     <value>If a control cannot be selected visually, use the layer panel;\nIf drag reorder is unavailable, clear search filter;\nIf a property appears invalid, check validation details;\nIf plugin control is missing, install/enable the plugin and restart if required;\nIf Fit makes labels too small, selected label should still stay readable after recent polish.</value>
   </data>
-  <data name="Designer.Property.MapNameFontFamily" xml:space="preserve">
+  <data name="Designer.Property.MapNameFontFamily">
     <value>Map Name Font</value>
   </data>
-  <data name="Designer.Property.MapNameFontWeight" xml:space="preserve">
+  <data name="Designer.Property.MapNameFontWeight">
     <value>Map Name Font Weight</value>
   </data>
-  <data name="Designer.Property.MapNameColor" xml:space="preserve">
+  <data name="Designer.Property.MapNameColor">
     <value>Map Name Color</value>
   </data>
-  <data name="Designer.Property.MapNameFontSize" xml:space="preserve">
+  <data name="Designer.Property.MapNameFontSize">
     <value>Map Name Font Size</value>
   </data>
-  <data name="Designer.Property.TeamNameFontFamily" xml:space="preserve">
+  <data name="Designer.Property.TeamNameFontFamily">
     <value>Team Name Font</value>
   </data>
-  <data name="Designer.Property.TeamNameFontWeight" xml:space="preserve">
+  <data name="Designer.Property.TeamNameFontWeight">
     <value>Team Name Font Weight</value>
   </data>
-  <data name="Designer.Property.TeamNameColor" xml:space="preserve">
+  <data name="Designer.Property.TeamNameColor">
     <value>Team Name Color</value>
   </data>
-  <data name="Designer.Property.TeamNameFontSize" xml:space="preserve">
+  <data name="Designer.Property.TeamNameFontSize">
     <value>Team Name Font Size</value>
   </data>
-  <data name="Designer.Property.CampNameFontFamily" xml:space="preserve">
+  <data name="Designer.Property.CampNameFontFamily">
     <value>Camp Text Font</value>
   </data>
-  <data name="Designer.Property.CampNameFontWeight" xml:space="preserve">
+  <data name="Designer.Property.CampNameFontWeight">
     <value>Camp Text Font Weight</value>
   </data>
-  <data name="Designer.Property.CampNameColor" xml:space="preserve">
+  <data name="Designer.Property.CampNameColor">
     <value>Camp Text Color</value>
   </data>
-  <data name="Designer.Property.CampNameFontSize" xml:space="preserve">
+  <data name="Designer.Property.CampNameFontSize">
     <value>Camp Text Font Size</value>
   </data>
-  <data name="Designer.Property.MapBorderNormalColor" xml:space="preserve">
+  <data name="Designer.Property.MapBorderNormalColor">
     <value>Map Border Normal Color</value>
   </data>
-  <data name="Designer.Property.MapBorderBannedColor" xml:space="preserve">
+  <data name="Designer.Property.MapBorderBannedColor">
     <value>Map Border Banned Color</value>
   </data>
-  <data name="Designer.PropertyDescription.MapBorderNormalColor" xml:space="preserve">
+  <data name="Designer.PropertyDescription.MapBorderNormalColor">
     <value>Map card outer border color when the map is not banned.</value>
   </data>
-  <data name="Designer.PropertyDescription.MapBorderBannedColor" xml:space="preserve">
+  <data name="Designer.PropertyDescription.MapBorderBannedColor">
     <value>Map card outer border color when the map is banned.</value>
   </data>
-  <data name="Designer.Property.PickingBorderFillColor" xml:space="preserve">
+  <data name="Designer.Property.PickingBorderFillColor">
     <value>Picking Border Fill Color</value>
   </data>
-  <data name="Designer.Option.MapNameFontWeight.Light" xml:space="preserve">
+  <data name="Designer.Option.MapNameFontWeight.Light">
     <value>Light</value>
   </data>
-  <data name="Designer.Option.MapNameFontWeight.Normal" xml:space="preserve">
+  <data name="Designer.Option.MapNameFontWeight.Normal">
     <value>Normal</value>
   </data>
-  <data name="Designer.Option.MapNameFontWeight.Medium" xml:space="preserve">
+  <data name="Designer.Option.MapNameFontWeight.Medium">
     <value>Medium</value>
   </data>
-  <data name="Designer.Option.MapNameFontWeight.SemiBold" xml:space="preserve">
+  <data name="Designer.Option.MapNameFontWeight.SemiBold">
     <value>Semi Bold</value>
   </data>
-  <data name="Designer.Option.MapNameFontWeight.Bold" xml:space="preserve">
+  <data name="Designer.Option.MapNameFontWeight.Bold">
     <value>Bold</value>
   </data>
-  <data name="Designer.Option.MapNameFontWeight.ExtraBold" xml:space="preserve">
+  <data name="Designer.Option.MapNameFontWeight.ExtraBold">
     <value>Extra Bold</value>
   </data>
-  <data name="Designer.Option.TeamNameFontWeight.Light" xml:space="preserve">
+  <data name="Designer.Option.TeamNameFontWeight.Light">
     <value>Light</value>
   </data>
-  <data name="Designer.Option.TeamNameFontWeight.Normal" xml:space="preserve">
+  <data name="Designer.Option.TeamNameFontWeight.Normal">
     <value>Normal</value>
   </data>
-  <data name="Designer.Option.TeamNameFontWeight.Medium" xml:space="preserve">
+  <data name="Designer.Option.TeamNameFontWeight.Medium">
     <value>Medium</value>
   </data>
-  <data name="Designer.Option.TeamNameFontWeight.SemiBold" xml:space="preserve">
+  <data name="Designer.Option.TeamNameFontWeight.SemiBold">
     <value>Semi Bold</value>
   </data>
-  <data name="Designer.Option.TeamNameFontWeight.Bold" xml:space="preserve">
+  <data name="Designer.Option.TeamNameFontWeight.Bold">
     <value>Bold</value>
   </data>
-  <data name="Designer.Option.TeamNameFontWeight.ExtraBold" xml:space="preserve">
+  <data name="Designer.Option.TeamNameFontWeight.ExtraBold">
     <value>Extra Bold</value>
   </data>
-  <data name="Designer.Option.CampNameFontWeight.Light" xml:space="preserve">
+  <data name="Designer.Option.CampNameFontWeight.Light">
     <value>Light</value>
   </data>
-  <data name="Designer.Option.CampNameFontWeight.Normal" xml:space="preserve">
+  <data name="Designer.Option.CampNameFontWeight.Normal">
     <value>Normal</value>
   </data>
-  <data name="Designer.Option.CampNameFontWeight.Medium" xml:space="preserve">
+  <data name="Designer.Option.CampNameFontWeight.Medium">
     <value>Medium</value>
   </data>
-  <data name="Designer.Option.CampNameFontWeight.SemiBold" xml:space="preserve">
+  <data name="Designer.Option.CampNameFontWeight.SemiBold">
     <value>Semi Bold</value>
   </data>
-  <data name="Designer.Option.CampNameFontWeight.Bold" xml:space="preserve">
+  <data name="Designer.Option.CampNameFontWeight.Bold">
     <value>Bold</value>
   </data>
-  <data name="Designer.Option.CampNameFontWeight.ExtraBold" xml:space="preserve">
+  <data name="Designer.Option.CampNameFontWeight.ExtraBold">
     <value>Extra Bold</value>
   </data>
-  <data name="Designer.Canvas.EnableBoModeStates" xml:space="preserve">
+  <data name="Designer.Canvas.EnableBoModeStates">
     <value>Enable BO3/BO5 states</value>
   </data>
-  <data name="Designer.Canvas.CurrentBoModeState" xml:space="preserve">
+  <data name="Designer.Canvas.CurrentBoModeState">
     <value>Current editing state</value>
   </data>
-  <data name="Designer.Canvas.Bo5State" xml:space="preserve">
+  <data name="Designer.Canvas.Bo5State">
     <value>BO5</value>
   </data>
-  <data name="Designer.Canvas.Bo3State" xml:space="preserve">
+  <data name="Designer.Canvas.Bo3State">
     <value>BO3</value>
   </data>
-  <data name="Designer.Canvas.CopyBo5ToBo3" xml:space="preserve">
+  <data name="Designer.Canvas.CopyBo5ToBo3">
     <value>Copy BO5 layout to BO3</value>
   </data>
-  <data name="Designer.Canvas.CopyBo5ToBo3Confirm" xml:space="preserve">
+  <data name="Designer.Canvas.CopyBo5ToBo3Confirm">
     <value>BO3 already has content. Replace it with the BO5 layout?</value>
   </data>
-  <data name="Designer.Canvas.Bo3LayoutCopied" xml:space="preserve">
+  <data name="Designer.Canvas.Bo3LayoutCopied">
     <value>BO5 layout copied to BO3</value>
   </data>
-  <data name="Designer.Canvas.BoModeStatesEnabled" xml:space="preserve">
+  <data name="Designer.Canvas.BoModeStatesEnabled">
     <value>BO3/BO5 states enabled</value>
   </data>
-  <data name="Designer.Canvas.BoModeStatesDisabledConfirm" xml:space="preserve">
+  <data name="Designer.Canvas.BoModeStatesDisabledConfirm">
     <value>BO3/BO5 states disabled; runtime will ignore BO3 state data</value>
   </data>
-  <data name="Designer.Property.Visibility" xml:space="preserve">
+  <data name="Designer.Property.Visibility">
     <value>Visibility</value>
   </data>
-  <data name="Designer.Visibility.Visible" xml:space="preserve">
+  <data name="Designer.Visibility.Visible">
     <value>Visible</value>
   </data>
-  <data name="Designer.Visibility.Hidden" xml:space="preserve">
+  <data name="Designer.Visibility.Hidden">
     <value>Hidden</value>
   </data>
-  <data name="Designer.Visibility.Collapsed" xml:space="preserve">
+  <data name="Designer.Visibility.Collapsed">
     <value>Collapsed</value>
   </data>
-  <data name="Designer.Option.Visibility.Visible" xml:space="preserve">
+  <data name="Designer.Option.Visibility.Visible">
     <value>Visible</value>
   </data>
-  <data name="Designer.Option.Visibility.Hidden" xml:space="preserve">
+  <data name="Designer.Option.Visibility.Hidden">
     <value>Hidden</value>
   </data>
-  <data name="Designer.Option.Visibility.Collapsed" xml:space="preserve">
+  <data name="Designer.Option.Visibility.Collapsed">
     <value>Collapsed</value>
   </data>
-  <data name="Designer.Help.BoModeStates" xml:space="preserve">
+  <data name="Designer.Help.BoModeStates">
     <value>BO3/BO5 Canvas States</value>
   </data>
-  <data name="Designer.Help.BoModeStatesDescription" xml:space="preserve">
+  <data name="Designer.Help.BoModeStatesDescription">
     <value>This is a generic Canvas feature. Enable it to edit BO5 and BO3 separately; runtime selects the state from the current BO mode.</value>
   </data>
-  <data name="Designer.Help.CopyBo5ToBo3" xml:space="preserve">
+  <data name="Designer.Help.CopyBo5ToBo3">
     <value>Copy BO5 to BO3 to create an aligned BO3 layout, then adjust BO3 independently.</value>
   </data>
-  <data name="Designer.Help.Visibility" xml:space="preserve">
+  <data name="Designer.Help.Visibility">
     <value>Visibility supports Visible, Hidden, and Collapsed. Hidden or collapsed controls remain in the layer panel.</value>
   </data>
-  <data name="Designer.GlobalScoreRow.Cells" xml:space="preserve">
+  <data name="Designer.GlobalScoreRow.Cells">
     <value>Score Cells</value>
   </data>
-  <data name="Designer.GlobalScoreRow.CellEditor" xml:space="preserve">
+  <data name="Designer.GlobalScoreRow.CellEditor">
     <value>Cells are fixed internal score cells, not global layers. Blank style fields inherit from the parent row.</value>
   </data>
-  <data name="Designer.GlobalScoreRow.SelectedCell" xml:space="preserve">
+  <data name="Designer.GlobalScoreRow.SelectedCell">
     <value>Selected Score Cell</value>
   </data>
-  <data name="Designer.GlobalScoreRow.ParentProperties" xml:space="preserve">
+  <data name="Designer.GlobalScoreRow.ParentProperties">
     <value>Score Row Properties</value>
   </data>
-  <data name="Designer.GlobalScoreRow.CellProperties" xml:space="preserve">
+  <data name="Designer.GlobalScoreRow.CellProperties">
     <value>Score Cell Properties</value>
   </data>
-  <data name="Designer.GlobalScoreRow.CellInheritsFromParent" xml:space="preserve">
+  <data name="Designer.GlobalScoreRow.CellInheritsFromParent">
     <value>Leave blank to inherit the parent GlobalScoreRow style.</value>
   </data>
-  <data name="Designer.Help.GlobalScoreRow.Title" xml:space="preserve">
+  <data name="Designer.Help.GlobalScoreRow.Title">
     <value>GlobalScoreRow Composite Editing</value>
   </data>
-  <data name="Designer.Help.GlobalScoreRow.Content" xml:space="preserve">
+  <data name="Designer.Help.GlobalScoreRow.Content">
     <value>GlobalScoreRow is a parent score-row frame. Its cells are fixed internal score cells: they cannot be deleted and they are not global layers.\nAfter selecting the parent row, choose a child in the dedicated Score Cells list; while a child is selected, SelectedDesignItem remains the parent row.\nVisibility controls whether each cell is shown, hidden, or collapsed in the current Canvas state; BO3 and BO5 states own independent row and cell layouts.\nAuto Arrange by Spacing uses MajorGameGap / HalfGameGap to arrange the visible sequence for the current state, then each cell can be fine-tuned manually.\nApply Parent Style to All Cells copies the parent font family, weight, color, size, and camp icon settings into all child overrides; blank style fields inherit from the parent.</value>
   </data>
-  <data name="Designer.GlobalScoreRow.GenerateBo5Cells" xml:space="preserve">
+  <data name="Designer.GlobalScoreRow.GenerateBo5Cells">
     <value>Generate BO5 Cells</value>
   </data>
-  <data name="Designer.GlobalScoreRow.GenerateBo3Cells" xml:space="preserve">
+  <data name="Designer.GlobalScoreRow.GenerateBo3Cells">
     <value>Generate BO3 Cells</value>
   </data>
-  <data name="Designer.GlobalScoreRow.ResetCells" xml:space="preserve">
+  <data name="Designer.GlobalScoreRow.ResetCells">
     <value>Reset Cells</value>
   </data>
-  <data name="Designer.GlobalScoreRow.AutoArrangeBySpacing" xml:space="preserve">
+  <data name="Designer.GlobalScoreRow.AutoArrangeBySpacing">
     <value>Auto Arrange by Spacing</value>
   </data>
-  <data name="Designer.GlobalScoreRow.ApplyParentStyleToCells" xml:space="preserve">
+  <data name="Designer.GlobalScoreRow.ApplyParentStyleToCells">
     <value>Apply Parent Style to All Cells</value>
   </data>
-  <data name="Designer.GlobalScoreRow.ClearCellStyleOverrides" xml:space="preserve">
+  <data name="Designer.GlobalScoreRow.ClearCellStyleOverrides">
     <value>Clear Cell Style Overrides</value>
   </data>
-  <data name="Designer.GlobalScoreRow.FillMissingCells" xml:space="preserve">
+  <data name="Designer.GlobalScoreRow.FillMissingCells">
     <value>Fill Missing Cells</value>
   </data>
-  <data name="Designer.GlobalScoreRow.ApplyBo3VisibilityTemplate" xml:space="preserve">
+  <data name="Designer.GlobalScoreRow.ApplyBo3VisibilityTemplate">
     <value>Apply BO3 Visibility</value>
   </data>
-  <data name="Designer.GlobalScoreRow.ApplyBo5VisibilityTemplate" xml:space="preserve">
+  <data name="Designer.GlobalScoreRow.ApplyBo5VisibilityTemplate">
     <value>Apply BO5 Visibility</value>
   </data>
-  <data name="Designer.MapV2Display.ApplyStyleToAll" xml:space="preserve">
+  <data name="Designer.MapV2Display.ApplyStyleToAll">
     <value>Apply Style to All Map Cards</value>
   </data>
-  <data name="Designer.MapV2Display.ApplyStyleToAllDescription" xml:space="preserve">
+  <data name="Designer.MapV2Display.ApplyStyleToAllDescription">
     <value>Copies size, internal part positions and sizes, text styles, map border, picking border styles, and behaviors while preserving each card's position, text content, map binding, and top-level layout properties.</value>
   </data>
-  <data name="Designer.MapV2Display.EditInternalStyle" xml:space="preserve">
+  <data name="Designer.MapV2Display.EditInternalStyle">
     <value>Edit Internal Styles</value>
   </data>
-  <data name="Designer.MapV2Display.InternalParts" xml:space="preserve">
+  <data name="Designer.MapV2Display.InternalParts">
     <value>Internal Parts</value>
   </data>
-  <data name="Designer.MapV2Display.SelectedInternalPart" xml:space="preserve">
+  <data name="Designer.MapV2Display.SelectedInternalPart">
     <value>MapV2Display Internal Part</value>
   </data>
-  <data name="Designer.MapV2Display.Part.TeamName" xml:space="preserve">
+  <data name="Designer.MapV2Display.Part.TeamName">
     <value>Team Name</value>
   </data>
-  <data name="Designer.MapV2Display.Part.MapCard" xml:space="preserve">
+  <data name="Designer.MapV2Display.Part.MapCard">
     <value>Map Card</value>
   </data>
-  <data name="Designer.MapV2Display.Part.MapName" xml:space="preserve">
+  <data name="Designer.MapV2Display.Part.MapName">
     <value>Map Name</value>
   </data>
-  <data name="Designer.MapV2Display.Part.CampName" xml:space="preserve">
+  <data name="Designer.MapV2Display.Part.CampName">
     <value>Camp Name</value>
   </data>
-  <data name="Designer.MapV2Display.Part.PickingBorder" xml:space="preserve">
+  <data name="Designer.MapV2Display.Part.PickingBorder">
     <value>Picking Border</value>
   </data>
-  <data name="Designer.MapV2Display.StyleAppliedToAll" xml:space="preserve">
+  <data name="Designer.MapV2Display.StyleAppliedToAll">
     <value>Applied the style and behaviors to all map cards on the current canvas.</value>
   </data>
-  <data name="Designer.Property.CellId" xml:space="preserve">
+  <data name="Designer.Property.CellId">
     <value>Cell ID</value>
   </data>
-  <data name="Designer.Property.GameNumber" xml:space="preserve">
+  <data name="Designer.Property.GameNumber">
     <value>Game Number</value>
   </data>
-  <data name="Designer.Property.GameKind" xml:space="preserve">
+  <data name="Designer.Property.GameKind">
     <value>Game Kind</value>
   </data>
-  <data name="Designer.Property.HalfKind" xml:space="preserve">
+  <data name="Designer.Property.HalfKind">
     <value>Half</value>
   </data>
-  <data name="Designer.Property.CellX" xml:space="preserve">
+  <data name="Designer.Property.CellX">
     <value>Cell X</value>
   </data>
-  <data name="Designer.Property.CellY" xml:space="preserve">
+  <data name="Designer.Property.CellY">
     <value>Cell Y</value>
   </data>
-  <data name="Designer.Property.ShowCampIconOverride" xml:space="preserve">
+  <data name="Designer.Property.ShowCampIconOverride">
     <value>Camp Icon Override</value>
   </data>
-  <data name="Designer.Property.CampIconColorOverride" xml:space="preserve">
+  <data name="Designer.Property.CampIconColorOverride">
     <value>Camp Icon Color Override</value>
   </data>
-  <data name="Designer.TextBinding.Title" xml:space="preserve">
+  <data name="Designer.TextBinding.Title">
     <value>Text Binding Editor</value>
   </data>
-  <data name="Designer.TextBinding.AddSource" xml:space="preserve">
+  <data name="Designer.TextBinding.AddSource">
     <value>Add Source</value>
   </data>
-  <data name="Designer.TextBinding.MoveUp" xml:space="preserve">
+  <data name="Designer.TextBinding.MoveUp">
     <value>Move Up</value>
   </data>
-  <data name="Designer.TextBinding.MoveDown" xml:space="preserve">
+  <data name="Designer.TextBinding.MoveDown">
     <value>Move Down</value>
   </data>
-  <data name="Designer.TextBinding.StringFormat" xml:space="preserve">
+  <data name="Designer.TextBinding.StringFormat">
     <value>String Format</value>
   </data>
-  <data name="Designer.TextBinding.JoinSeparator" xml:space="preserve">
+  <data name="Designer.TextBinding.JoinSeparator">
     <value>Join Separator</value>
   </data>
-  <data name="Designer.TextBinding.NullText" xml:space="preserve">
+  <data name="Designer.TextBinding.NullText">
     <value>Null Text</value>
   </data>
-  <data name="Designer.TextBinding.FallbackText" xml:space="preserve">
+  <data name="Designer.TextBinding.FallbackText">
     <value>Fallback Text</value>
   </data>
-  <data name="Designer.TextBinding.None" xml:space="preserve">
+  <data name="Designer.TextBinding.None">
     <value>No binding sources</value>
   </data>
-  <data name="Designer.TextBinding.SourceSummary" xml:space="preserve">
+  <data name="Designer.TextBinding.SourceSummary">
     <value>{0} source(s): {1}</value>
   </data>
-  <data name="Designer.TextBinding.EmptyPath" xml:space="preserve">
+  <data name="Designer.TextBinding.EmptyPath">
     <value>Binding source Path cannot be empty.</value>
   </data>
-  <data name="Designer.Validation.TextStaticIgnored" xml:space="preserve">
+  <data name="Designer.Validation.TextStaticIgnored">
     <value>Static Text is ignored while TextBinding has active sources.</value>
   </data>
-  <data name="Designer.Validation.LocalizationKeyIgnored" xml:space="preserve">
+  <data name="Designer.Validation.LocalizationKeyIgnored">
     <value>LocalizationKey is ignored while TextBinding has active sources.</value>
   </data>
-  <data name="Designer.Validation.ImagePathIgnored" xml:space="preserve">
+  <data name="Designer.Validation.ImagePathIgnored">
     <value>ImagePath is ignored while BindingPath is set.</value>
   </data>
-  <data name="Designer.Validation.FillColorIgnored" xml:space="preserve">
+  <data name="Designer.Validation.FillColorIgnored">
     <value>Static fill color is ignored while binding is active. The bound color value is used instead.</value>
   </data>
-  <data name="Designer.Validation.GradientEndColorIgnored" xml:space="preserve">
+  <data name="Designer.Validation.GradientEndColorIgnored">
     <value>Static gradient end color is ignored while binding is active. The bound color value is used instead.</value>
   </data>
-  <data name="Designer.Validation.TextColorIgnored" xml:space="preserve">
+  <data name="Designer.Validation.TextColorIgnored">
     <value>Static text color is ignored while binding is active. The bound color value is used instead.</value>
   </data>
-  <data name="Designer.Property.UseGradient" xml:space="preserve">
+  <data name="Designer.Property.UseGradient">
     <value>Enable Gradient</value>
   </data>
-  <data name="PolygonPoints" xml:space="preserve">
+  <data name="PolygonPoints">
     <value>Polygon Vertices</value>
   </data>
-  <data name="AddVertex" xml:space="preserve">
+  <data name="AddVertex">
     <value>Add Vertex</value>
   </data>
-  <data name="RemoveVertex" xml:space="preserve">
+  <data name="RemoveVertex">
     <value>Remove Vertex</value>
   </data>
-  <data name="SelectedVertex" xml:space="preserve">
+  <data name="SelectedVertex">
     <value>Selected Vertex</value>
   </data>
-  <data name="Designer.ControlType.Rectangle" xml:space="preserve">
+  <data name="Designer.ControlType.Rectangle">
     <value>Rectangle</value>
   </data>
-  <data name="Designer.ControlType.Polygon" xml:space="preserve">
+  <data name="Designer.ControlType.Polygon">
     <value>Polygon</value>
   </data>
-  <data name="Designer.Property.FillMode" xml:space="preserve">
+  <data name="Designer.Property.FillMode">
     <value>Fill Mode</value>
   </data>
-  <data name="Designer.Property.UseFillBinding" xml:space="preserve">
+  <data name="Designer.Property.UseFillBinding">
     <value>Use Fill Binding</value>
   </data>
-  <data name="Designer.Property.FillBindingPath" xml:space="preserve">
+  <data name="Designer.Property.FillBindingPath">
     <value>Fill Binding Path</value>
   </data>
-  <data name="Designer.Property.UseGradientStartBinding" xml:space="preserve">
+  <data name="Designer.Property.UseGradientStartBinding">
     <value>Bind Gradient Start</value>
   </data>
-  <data name="Designer.Property.GradientStartColor" xml:space="preserve">
+  <data name="Designer.Property.GradientStartColor">
     <value>Gradient Start Color</value>
   </data>
-  <data name="Designer.Property.GradientStartBindingPath" xml:space="preserve">
+  <data name="Designer.Property.GradientStartBindingPath">
     <value>Gradient Start Binding Path</value>
   </data>
-  <data name="Designer.Property.UseGradientEndBinding" xml:space="preserve">
+  <data name="Designer.Property.UseGradientEndBinding">
     <value>Bind Gradient End</value>
   </data>
-  <data name="Designer.Property.GradientEndColor" xml:space="preserve">
+  <data name="Designer.Property.GradientEndColor">
     <value>Gradient End Color</value>
   </data>
-  <data name="Designer.Property.GradientEndBindingPath" xml:space="preserve">
+  <data name="Designer.Property.GradientEndBindingPath">
     <value>Gradient End Binding Path</value>
   </data>
-  <data name="Designer.Property.GradientAngle" xml:space="preserve">
+  <data name="Designer.Property.GradientAngle">
     <value>Gradient Angle</value>
   </data>
-  <data name="Designer.Property.RadiusX" xml:space="preserve">
+  <data name="Designer.Property.RadiusX">
     <value>Horizontal Radius</value>
   </data>
-  <data name="Designer.Property.RadiusY" xml:space="preserve">
+  <data name="Designer.Property.RadiusY">
     <value>Vertical Radius</value>
   </data>
-  <data name="Designer.Property.StrokeColor" xml:space="preserve">
+  <data name="Designer.Property.StrokeColor">
     <value>Stroke Color</value>
   </data>
-  <data name="Designer.Property.StrokeThickness" xml:space="preserve">
+  <data name="Designer.Property.StrokeThickness">
     <value>Stroke Thickness</value>
   </data>
-  <data name="Designer.Option.FillMode.Solid" xml:space="preserve">
+  <data name="Designer.Option.FillMode.Solid">
     <value>Solid</value>
   </data>
-  <data name="Designer.Option.FillMode.LinearGradient" xml:space="preserve">
+  <data name="Designer.Option.FillMode.LinearGradient">
     <value>Linear Gradient</value>
   </data>
-  <data name="Designer.ControlType.BackgroundTintRectangle" xml:space="preserve">
+  <data name="Designer.ControlType.BackgroundTintRectangle">
     <value>Background Tint Rectangle</value>
   </data>
-  <data name="Designer.ControlType.BackgroundTintPolygon" xml:space="preserve">
+  <data name="Designer.ControlType.BackgroundTintPolygon">
     <value>Background Tint Polygon</value>
   </data>
-  <data name="Designer.Property.TintColor" xml:space="preserve">
+  <data name="Designer.Property.TintColor">
     <value>Tint Color</value>
   </data>
-  <data name="Designer.Property.TintBindingPath" xml:space="preserve">
+  <data name="Designer.Property.TintBindingPath">
     <value>Tint Binding Path</value>
   </data>
-  <data name="Designer.Property.TintMode" xml:space="preserve">
+  <data name="Designer.Property.TintMode">
     <value>Tint Mode</value>
   </data>
-  <data name="Designer.Property.TintStrength" xml:space="preserve">
+  <data name="Designer.Property.TintStrength">
     <value>Tint Strength</value>
   </data>
-  <data name="Designer.Property.TextureStrength" xml:space="preserve">
+  <data name="Designer.Property.TextureStrength">
     <value>Texture Strength</value>
   </data>
-  <data name="Designer.Property.ShowMissingBackgroundPlaceholder" xml:space="preserve">
+  <data name="Designer.Property.ShowMissingBackgroundPlaceholder">
     <value>Show Missing Background Placeholder</value>
   </data>
-  <data name="Designer.Option.TintMode.LuminanceColorize" xml:space="preserve">
+  <data name="Designer.Option.TintMode.LuminanceColorize">
     <value>Luminance Colorize</value>
   </data>
-  <data name="Designer.Option.TintMode.Multiply" xml:space="preserve">
+  <data name="Designer.Option.TintMode.Multiply">
     <value>Multiply</value>
   </data>
-  <data name="Designer.Option.TintMode.BaseColorWithTexture" xml:space="preserve">
+  <data name="Designer.Option.TintMode.BaseColorWithTexture">
     <value>Base Color with Texture</value>
   </data>
-  <data name="Designer.Validation.MissingCanvasBackgroundImage" xml:space="preserve">
+  <data name="Designer.Validation.MissingCanvasBackgroundImage">
     <value>Canvas background image is missing</value>
   </data>
-  <data name="Designer.Help.BackgroundTint.Title" xml:space="preserve">
+  <data name="Designer.Help.BackgroundTint.Title">
     <value>Local Background Tint</value>
   </data>
-  <data name="Designer.Help.BackgroundTint.Content" xml:space="preserve">
+  <data name="Designer.Help.BackgroundTint.Content">
     <value>BackgroundTintRectangle and BackgroundTintPolygon automatically use the effective Canvas background; no duplicate image selection is needed.\nThey generate an aligned static tinted copy and clip it to the rectangle or polygon, preserving the background texture.\nBaseColorWithTexture treats TintColor as the target base color and TextureStrength controls the visible source detail; LuminanceColorize and Multiply keep their existing darker behavior.\nTintBindingPath can bind to HomeTeam.ColorHex or AwayTeam.ColorHex and regenerates when the team color changes.\nThis uses occasional CPU regeneration, not real-time GPU blending.</value>
   </data>
-  <data name="Designer.Behaviors.Header" xml:space="preserve">
+  <data name="Designer.Behaviors.Header">
     <value>Animations / Behaviors</value>
   </data>
-  <data name="Designer.Behaviors.Empty" xml:space="preserve">
+  <data name="Designer.Behaviors.Empty">
     <value>This control has no behaviors yet.</value>
   </data>
-  <data name="Designer.Behaviors.SelectedControl" xml:space="preserve">
+  <data name="Designer.Behaviors.SelectedControl">
     <value>Selected control</value>
   </data>
-  <data name="Designer.Behaviors.List" xml:space="preserve">
+  <data name="Designer.Behaviors.List">
     <value>Behavior list</value>
   </data>
-  <data name="Designer.Behaviors.Details" xml:space="preserve">
+  <data name="Designer.Behaviors.Details">
     <value>Edit selected behavior</value>
   </data>
-  <data name="Designer.Behaviors.SelectBehaviorToEdit" xml:space="preserve">
+  <data name="Designer.Behaviors.SelectBehaviorToEdit">
     <value>Select a behavior above, then edit its trigger and parameters here.</value>
   </data>
-  <data name="Designer.Behaviors.GraphPlaceholders" xml:space="preserve">
+  <data name="Designer.Behaviors.GraphPlaceholders">
     <value>Node graph placeholders</value>
   </data>
-  <data name="Designer.Behaviors.AddOneShot" xml:space="preserve">
+  <data name="Designer.Behaviors.AddOneShot">
     <value>Add OneShot</value>
   </data>
-  <data name="Designer.Behaviors.AddLoop" xml:space="preserve">
+  <data name="Designer.Behaviors.AddLoop">
     <value>Add Loop</value>
   </data>
-  <data name="Designer.Behaviors.Delete" xml:space="preserve">
+  <data name="Designer.Behaviors.Delete">
     <value>Delete</value>
   </data>
-  <data name="Designer.Behaviors.Duplicate" xml:space="preserve">
+  <data name="Designer.Behaviors.Duplicate">
     <value>Create copy</value>
   </data>
-  <data name="Designer.Behaviors.Copy" xml:space="preserve">
+  <data name="Designer.Behaviors.Copy">
     <value>Copy behavior</value>
   </data>
-  <data name="Designer.Behaviors.CopyTo" xml:space="preserve">
+  <data name="Designer.Behaviors.CopyTo">
     <value>Copy behavior to...</value>
   </data>
-  <data name="Designer.Behaviors.Paste" xml:space="preserve">
+  <data name="Designer.Behaviors.Paste">
     <value>Paste behavior</value>
   </data>
-  <data name="Designer.Behaviors.CopyToTargets" xml:space="preserve">
+  <data name="Designer.Behaviors.CopyToTargets">
     <value>Select target controls (multi-select)</value>
   </data>
-  <data name="Designer.Behaviors.RewriteTargets" xml:space="preserve">
+  <data name="Designer.Behaviors.RewriteTargets">
     <value>Rewrite animation targets</value>
   </data>
-  <data name="Designer.Behaviors.RewriteTriggerIndexes" xml:space="preserve">
+  <data name="Designer.Behaviors.RewriteTriggerIndexes">
     <value>Rewrite trigger indexes</value>
   </data>
-  <data name="Designer.Behaviors.SelectTargetForPreview" xml:space="preserve">
+  <data name="Designer.Behaviors.SelectTargetForPreview">
     <value>Select a control to preview compatibility and rewrites.</value>
   </data>
-  <data name="Designer.Behaviors.Target" xml:space="preserve">
+  <data name="Designer.Behaviors.Target">
     <value>Target control</value>
   </data>
-  <data name="Designer.Behaviors.Compatible" xml:space="preserve">
+  <data name="Designer.Behaviors.Compatible">
     <value>Compatible</value>
   </data>
-  <data name="Designer.Behaviors.ExternalReference" xml:space="preserve">
+  <data name="Designer.Behaviors.ExternalReference">
     <value>Preserved external control reference</value>
   </data>
-  <data name="Designer.Behaviors.PasteSummary" xml:space="preserve">
+  <data name="Designer.Behaviors.PasteSummary">
     <value>Copied to {0} controls. Skipped {1} incompatible controls.</value>
   </data>
-  <data name="Designer.Behaviors.Enabled" xml:space="preserve">
+  <data name="Designer.Behaviors.Enabled">
     <value>Enabled</value>
   </data>
-  <data name="Designer.Behaviors.Name" xml:space="preserve">
+  <data name="Designer.Behaviors.Name">
     <value>Name</value>
   </data>
-  <data name="Designer.Behaviors.Kind" xml:space="preserve">
+  <data name="Designer.Behaviors.Kind">
     <value>Kind</value>
   </data>
-  <data name="Designer.Behaviors.OneShot" xml:space="preserve">
+  <data name="Designer.Behaviors.OneShot">
     <value>OneShot</value>
   </data>
-  <data name="Designer.Behaviors.Loop" xml:space="preserve">
+  <data name="Designer.Behaviors.Loop">
     <value>Loop</value>
   </data>
-  <data name="Designer.Behaviors.Trigger" xml:space="preserve">
+  <data name="Designer.Behaviors.Trigger">
     <value>Trigger</value>
   </data>
-  <data name="Designer.Behaviors.StartTrigger" xml:space="preserve">
+  <data name="Designer.Behaviors.StartTrigger">
     <value>Start trigger</value>
   </data>
-  <data name="Designer.Behaviors.Filters" xml:space="preserve">
+  <data name="Designer.Behaviors.Filters">
     <value>Filters</value>
   </data>
-  <data name="Designer.Behaviors.AddFilter" xml:space="preserve">
+  <data name="Designer.Behaviors.AddFilter">
     <value>Add filter</value>
   </data>
-  <data name="Designer.Behaviors.RemoveFilter" xml:space="preserve">
+  <data name="Designer.Behaviors.RemoveFilter">
     <value>Remove filter</value>
   </data>
-  <data name="Designer.Behaviors.EventType" xml:space="preserve">
+  <data name="Designer.Behaviors.EventType">
     <value>Event type</value>
   </data>
-  <data name="Designer.Behaviors.Source" xml:space="preserve">
+  <data name="Designer.Behaviors.Source">
     <value>Source</value>
   </data>
-  <data name="Designer.Behaviors.Operator" xml:space="preserve">
+  <data name="Designer.Behaviors.Operator">
     <value>Operator</value>
   </data>
-  <data name="Designer.Behaviors.Left" xml:space="preserve">
+  <data name="Designer.Behaviors.Left">
     <value>Left</value>
   </data>
-  <data name="Designer.Behaviors.Right" xml:space="preserve">
+  <data name="Designer.Behaviors.Right">
     <value>Right</value>
   </data>
-  <data name="Designer.Behaviors.RightValueKind" xml:space="preserve">
+  <data name="Designer.Behaviors.RightValueKind">
     <value>Right value kind</value>
   </data>
-  <data name="Designer.Behaviors.LoopPolicy" xml:space="preserve">
+  <data name="Designer.Behaviors.LoopPolicy">
     <value>Loop policy</value>
   </data>
-  <data name="Designer.Behaviors.RepeatCount" xml:space="preserve">
+  <data name="Designer.Behaviors.RepeatCount">
     <value>Repeat count</value>
   </data>
-  <data name="Designer.Behaviors.AutoReverse" xml:space="preserve">
+  <data name="Designer.Behaviors.AutoReverse">
     <value>Auto reverse</value>
   </data>
-  <data name="Designer.Behaviors.IntervalMs" xml:space="preserve">
+  <data name="Designer.Behaviors.IntervalMs">
     <value>Interval ms</value>
   </data>
-  <data name="Designer.Behaviors.StopMode" xml:space="preserve">
+  <data name="Designer.Behaviors.StopMode">
     <value>Stop mode</value>
   </data>
-  <data name="Designer.Behaviors.ResetOnStop" xml:space="preserve">
+  <data name="Designer.Behaviors.ResetOnStop">
     <value>Reset on stop</value>
   </data>
-  <data name="Designer.Behaviors.ReentryPolicy" xml:space="preserve">
+  <data name="Designer.Behaviors.ReentryPolicy">
     <value>Reentry policy</value>
   </data>
-  <data name="Designer.Behaviors.GraphPlaceholder" xml:space="preserve">
+  <data name="Designer.Behaviors.GraphPlaceholder">
     <value>Node graph editor is available from the animation editor</value>
   </data>
-  <data name="Designer.Behaviors.StartGraph" xml:space="preserve">
+  <data name="Designer.Behaviors.StartGraph">
     <value>StartGraph</value>
   </data>
-  <data name="Designer.Behaviors.LoopGraph" xml:space="preserve">
+  <data name="Designer.Behaviors.LoopGraph">
     <value>LoopGraph</value>
   </data>
-  <data name="Designer.Behaviors.StopGraph" xml:space="preserve">
+  <data name="Designer.Behaviors.StopGraph">
     <value>StopGraph</value>
   </data>
-  <data name="Designer.Behaviors.UnsavedBehaviorChanges" xml:space="preserve">
+  <data name="Designer.Behaviors.UnsavedBehaviorChanges">
     <value>Unsaved behavior changes</value>
   </data>
-  <data name="Designer.Behaviors.NewOneShot" xml:space="preserve">
+  <data name="Designer.Behaviors.NewOneShot">
     <value>New OneShot Behavior</value>
   </data>
-  <data name="Designer.Behaviors.NewLoop" xml:space="preserve">
+  <data name="Designer.Behaviors.NewLoop">
     <value>New Loop Behavior</value>
   </data>
-  <data name="Designer.Behaviors.CopyOfFormat" xml:space="preserve">
+  <data name="Designer.Behaviors.CopyOfFormat">
     <value>Copy of {0}</value>
   </data>
-  <data name="Designer.Behaviors.Operator.Equals" xml:space="preserve">
+  <data name="Designer.Behaviors.Operator.Equals">
     <value>Equals</value>
   </data>
-  <data name="Designer.Behaviors.Operator.NotEquals" xml:space="preserve">
+  <data name="Designer.Behaviors.Operator.NotEquals">
     <value>Not equals</value>
   </data>
-  <data name="Designer.Behaviors.Operator.GreaterThan" xml:space="preserve">
+  <data name="Designer.Behaviors.Operator.GreaterThan">
     <value>Greater than</value>
   </data>
-  <data name="Designer.Behaviors.Operator.GreaterThanOrEqual" xml:space="preserve">
+  <data name="Designer.Behaviors.Operator.GreaterThanOrEqual">
     <value>Greater than or equal</value>
   </data>
-  <data name="Designer.Behaviors.Operator.LessThan" xml:space="preserve">
+  <data name="Designer.Behaviors.Operator.LessThan">
     <value>Less than</value>
   </data>
-  <data name="Designer.Behaviors.Operator.LessThanOrEqual" xml:space="preserve">
+  <data name="Designer.Behaviors.Operator.LessThanOrEqual">
     <value>Less than or equal</value>
   </data>
-  <data name="Designer.Behaviors.Operator.Contains" xml:space="preserve">
+  <data name="Designer.Behaviors.Operator.Contains">
     <value>Contains</value>
   </data>
-  <data name="Designer.Behaviors.Operator.Exists" xml:space="preserve">
+  <data name="Designer.Behaviors.Operator.Exists">
     <value>Exists</value>
   </data>
-  <data name="Designer.Behaviors.RightValueKind.Literal" xml:space="preserve">
+  <data name="Designer.Behaviors.RightValueKind.Literal">
     <value>Literal</value>
   </data>
-  <data name="Designer.Behaviors.RightValueKind.EventPath" xml:space="preserve">
+  <data name="Designer.Behaviors.RightValueKind.EventPath">
     <value>Event path</value>
   </data>
-  <data name="Designer.Behaviors.RightValueKind.BindingPath" xml:space="preserve">
+  <data name="Designer.Behaviors.RightValueKind.BindingPath">
     <value>Binding path</value>
   </data>
-  <data name="Designer.Behaviors.StopMode.StopImmediately" xml:space="preserve">
+  <data name="Designer.Behaviors.StopMode.StopImmediately">
     <value>Stop immediately</value>
   </data>
-  <data name="Designer.Behaviors.StopMode.CompleteCurrentIteration" xml:space="preserve">
+  <data name="Designer.Behaviors.StopMode.CompleteCurrentIteration">
     <value>Complete current iteration</value>
   </data>
-  <data name="Designer.Behaviors.StopMode.RunStopGraph" xml:space="preserve">
+  <data name="Designer.Behaviors.StopMode.RunStopGraph">
     <value>Run stop graph</value>
   </data>
-  <data name="Designer.Behaviors.StopMode.HoldCurrentState" xml:space="preserve">
+  <data name="Designer.Behaviors.StopMode.HoldCurrentState">
     <value>Hold current state</value>
   </data>
-  <data name="Designer.Behaviors.ReentryPolicy.InterruptPrevious" xml:space="preserve">
+  <data name="Designer.Behaviors.ReentryPolicy.InterruptPrevious">
     <value>Interrupt previous</value>
   </data>
-  <data name="Designer.Behaviors.ReentryPolicy.IgnoreIfRunning" xml:space="preserve">
+  <data name="Designer.Behaviors.ReentryPolicy.IgnoreIfRunning">
     <value>Ignore if running</value>
   </data>
-  <data name="Designer.Behaviors.ReentryPolicy.Queue" xml:space="preserve">
+  <data name="Designer.Behaviors.ReentryPolicy.Queue">
     <value>Queue</value>
   </data>
-  <data name="Designer.Behaviors.ReentryPolicy.AllowParallel" xml:space="preserve">
+  <data name="Designer.Behaviors.ReentryPolicy.AllowParallel">
     <value>Allow parallel</value>
   </data>
-  <data name="Designer.Behaviors.Event.WindowShown" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.WindowShown">
     <value>Window shown</value>
   </data>
-  <data name="Designer.Behaviors.Event.WindowHidden" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.WindowHidden">
     <value>Window hidden</value>
   </data>
-  <data name="Designer.Behaviors.Event.CanvasLoaded" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.CanvasLoaded">
     <value>Canvas loaded</value>
   </data>
-  <data name="Designer.Behaviors.Event.CanvasStateChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.CanvasStateChanged">
     <value>Canvas state changed</value>
   </data>
-  <data name="Designer.Behaviors.Event.ControlLoaded" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.ControlLoaded">
     <value>Control loaded</value>
   </data>
-  <data name="Designer.Behaviors.Event.GameProgressChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.GameProgressChanged">
     <value>Game progress changed</value>
   </data>
-  <data name="Designer.Behaviors.Event.CharacterPicked" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.CharacterPicked">
     <value>Character picked</value>
   </data>
-  <data name="Designer.Behaviors.Event.CharacterBanned" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.CharacterBanned">
     <value>Character banned</value>
   </data>
-  <data name="Designer.Behaviors.Event.CharacterSelected" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.CharacterSelected">
     <value>Character selected</value>
   </data>
-  <data name="Designer.Behaviors.Event.CurrentPickingSlotChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.CurrentPickingSlotChanged">
     <value>Current picking slot changed</value>
   </data>
-  <data name="Designer.Behaviors.Event.ScoreChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.ScoreChanged">
     <value>Score changed</value>
   </data>
-  <data name="Designer.Behaviors.Event.TeamChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.TeamChanged">
     <value>Team changed</value>
   </data>
-  <data name="Designer.Behaviors.Event.TeamSwapped" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.TeamSwapped">
     <value>Team swapped</value>
   </data>
-  <data name="Designer.Behaviors.Event.MapChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.MapChanged">
     <value>Map changed</value>
   </data>
-  <data name="Designer.Behaviors.Event.TimerStarted" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.TimerStarted">
     <value>Timer started</value>
   </data>
-  <data name="Designer.Behaviors.Event.TimerStopped" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.TimerStopped">
     <value>Timer stopped</value>
   </data>
-  <data name="Designer.Behaviors.Event.TimerReached" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.TimerReached">
     <value>Timer reached</value>
   </data>
-  <data name="Designer.Behaviors.Event.ManualTrigger" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.ManualTrigger">
     <value>Manual trigger</value>
   </data>
-  <data name="Designer.Behaviors.Event.PluginEvent" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.PluginEvent">
     <value>Plugin event</value>
   </data>
-  <data name="Designer.Behaviors.Event.GuidanceHighlightChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.GuidanceHighlightChanged">
     <value>Guidance highlight changed</value>
   </data>
-  <data name="Designer.Behaviors.Event.GuidanceHighlightCleared" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.GuidanceHighlightCleared">
     <value>Guidance highlight cleared</value>
   </data>
-  <data name="Designer.Behaviors.Event.GuidanceStarted" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.GuidanceStarted">
     <value>Guidance started</value>
   </data>
-  <data name="Designer.Behaviors.Event.GuidanceStateChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.GuidanceStateChanged">
     <value>Guidance state changed</value>
   </data>
-  <data name="Designer.Behaviors.Event.GuidanceStopped" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.GuidanceStopped">
     <value>Guidance stopped</value>
   </data>
-  <data name="Designer.Behaviors.Event.GuidanceStepChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.GuidanceStepChanged">
     <value>Guidance step changed</value>
   </data>
-  <data name="Designer.Behaviors.Category.Game" xml:space="preserve">
+  <data name="Designer.Behaviors.Category.Game">
     <value>Game</value>
   </data>
-  <data name="Designer.Behaviors.Category.Guidance" xml:space="preserve">
+  <data name="Designer.Behaviors.Category.Guidance">
     <value>Guidance</value>
   </data>
-  <data name="Designer.Behaviors.Category.Display" xml:space="preserve">
+  <data name="Designer.Behaviors.Category.Display">
     <value>Display</value>
   </data>
-  <data name="Designer.Behaviors.Category.Score" xml:space="preserve">
+  <data name="Designer.Behaviors.Category.Score">
     <value>Score</value>
   </data>
-  <data name="Designer.Behaviors.Category.Timer" xml:space="preserve">
+  <data name="Designer.Behaviors.Category.Timer">
     <value>Timer</value>
   </data>
-  <data name="Designer.Behaviors.Event.CurrentGameChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.CurrentGameChanged">
     <value>Current game changed</value>
   </data>
-  <data name="Designer.Behaviors.Event.GlobalScoreTotalMarginChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.GlobalScoreTotalMarginChanged">
     <value>Total score margin changed</value>
   </data>
-  <data name="Designer.Behaviors.Event.BanCountChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.BanCountChanged">
     <value>Ban count changed</value>
   </data>
-  <data name="Designer.Behaviors.Event.IsTraitVisibleChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.IsTraitVisibleChanged">
     <value>Trait visibility changed</value>
   </data>
-  <data name="Designer.Behaviors.Event.IsBo3ModeChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.IsBo3ModeChanged">
     <value>BO3 mode changed</value>
   </data>
-  <data name="Designer.Behaviors.Event.CountDownValueChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.CountDownValueChanged">
     <value>Countdown value changed</value>
   </data>
-  <data name="Designer.Behaviors.Event.IsMapV2BreathingChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.IsMapV2BreathingChanged">
     <value>Map breathing changed</value>
   </data>
-  <data name="Designer.Behaviors.Event.MapV2PickingBorderStateChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.MapV2PickingBorderStateChanged">
     <value>Map picking border state changed</value>
   </data>
-  <data name="Designer.Behaviors.Event.IsMapV2CampVisibleChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.IsMapV2CampVisibleChanged">
     <value>Map camp visibility changed</value>
   </data>
-  <data name="Designer.Behaviors.Event.PickedMapChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.PickedMapChanged">
     <value>Picked map changed</value>
   </data>
-  <data name="Designer.Behaviors.Event.MapV2BannedChanged" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.MapV2BannedChanged">
     <value>Map ban state changed</value>
   </data>
-  <data name="Designer.Behaviors.Payload.Game" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.Game">
     <value>Current game</value>
   </data>
-  <data name="Designer.Behaviors.Payload.Margin" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.Margin">
     <value>Margin</value>
   </data>
-  <data name="Designer.Behaviors.Payload.ListName" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.ListName">
     <value>List name</value>
   </data>
-  <data name="Designer.Behaviors.Payload.Count" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.Count">
     <value>Count</value>
   </data>
-  <data name="Designer.Behaviors.Payload.IsTraitVisible" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.IsTraitVisible">
     <value>Trait visible</value>
   </data>
-  <data name="Designer.Behaviors.Payload.IsBo3Mode" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.IsBo3Mode">
     <value>BO3 mode</value>
   </data>
-  <data name="Designer.Behaviors.Payload.RemainingSeconds" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.RemainingSeconds">
     <value>Remaining seconds</value>
   </data>
-  <data name="Designer.Behaviors.Payload.IsMapV2Breathing" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.IsMapV2Breathing">
     <value>Map breathing enabled</value>
   </data>
-  <data name="Designer.Behaviors.Payload.MapKey" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.MapKey">
     <value>Map key</value>
   </data>
-  <data name="Designer.Behaviors.Payload.IsMapBanned" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.IsMapBanned">
     <value>Map banned</value>
   </data>
-  <data name="Designer.Behaviors.Payload.IsPickingBorderVisible" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.IsPickingBorderVisible">
     <value>Picking border visible</value>
   </data>
-  <data name="Designer.Behaviors.Payload.IsMapV2CampVisible" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.IsMapV2CampVisible">
     <value>Map camp visible</value>
   </data>
-  <data name="Designer.Behaviors.Payload.PickedMap" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.PickedMap">
     <value>Picked map</value>
   </data>
-  <data name="Designer.Behaviors.Payload.Action" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.Action">
     <value>Action</value>
   </data>
-  <data name="Designer.Behaviors.Payload.ActionName" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.ActionName">
     <value>Action name</value>
   </data>
-  <data name="Designer.Behaviors.Payload.Index" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.Index">
     <value>Index</value>
   </data>
-  <data name="Designer.Behaviors.Payload.Indexes" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.Indexes">
     <value>Indexes</value>
   </data>
-  <data name="Designer.Behaviors.Payload.IndexesText" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.IndexesText">
     <value>Current indexes text</value>
   </data>
-  <data name="Designer.Behaviors.Payload.Time" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.Time">
     <value>Time</value>
   </data>
-  <data name="Designer.Behaviors.Payload.GameAction" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.GameAction">
     <value>Highlighted action</value>
   </data>
-  <data name="Designer.Behaviors.Payload.IsStarted" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.IsStarted">
     <value>Is started</value>
   </data>
-  <data name="Designer.Behaviors.Payload.StepIndex" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.StepIndex">
     <value>Step index</value>
   </data>
-  <data name="Designer.Behaviors.Payload.PreviousStepIndex" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.PreviousStepIndex">
     <value>Previous step index</value>
   </data>
-  <data name="Designer.Behaviors.Payload.PreviousAction" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.PreviousAction">
     <value>Previous action</value>
   </data>
-  <data name="Designer.Behaviors.Payload.PreviousIndexes" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.PreviousIndexes">
     <value>Previous indexes</value>
   </data>
-  <data name="Designer.Behaviors.Payload.PreviousIndexesText" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.PreviousIndexesText">
     <value>Previous indexes text</value>
   </data>
-  <data name="Designer.Behaviors.Payload.PreviousIndex" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.PreviousIndex">
     <value>Previous first index</value>
   </data>
-  <data name="Designer.Behaviors.Payload.PreviousTime" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.PreviousTime">
     <value>Previous timer</value>
   </data>
-  <data name="Designer.Behaviors.Payload.PreviousActionName" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.PreviousActionName">
     <value>Previous action name</value>
   </data>
-  <data name="Designer.Behaviors.Payload.Camp" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.Camp">
     <value>Camp</value>
   </data>
-  <data name="Designer.Behaviors.Payload.PlayerIndex" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.PlayerIndex">
     <value>Player index</value>
   </data>
-  <data name="Designer.Behaviors.Operator.NotContains" xml:space="preserve">
+  <data name="Designer.Behaviors.Operator.NotContains">
     <value>does not contain</value>
   </data>
-  <data name="Designer.Behaviors.When" xml:space="preserve">
+  <data name="Designer.Behaviors.When">
     <value>When</value>
   </data>
-  <data name="Designer.Behaviors.Is" xml:space="preserve">
+  <data name="Designer.Behaviors.Is">
     <value>is</value>
   </data>
-  <data name="Designer.Behaviors.Value" xml:space="preserve">
+  <data name="Designer.Behaviors.Value">
     <value>Value</value>
   </data>
-  <data name="Designer.Behaviors.UnknownParameterFormat" xml:space="preserve">
+  <data name="Designer.Behaviors.UnknownParameterFormat">
     <value>Unknown parameter: {0}</value>
   </data>
-  <data name="Designer.Behaviors.OpenAnimationEditor" xml:space="preserve">
+  <data name="Designer.Behaviors.OpenAnimationEditor">
     <value>Open animation editor</value>
   </data>
-  <data name="Designer.Behaviors.StartAnimation" xml:space="preserve">
+  <data name="Designer.Behaviors.StartAnimation">
     <value>Start animation</value>
   </data>
-  <data name="Designer.Behaviors.LoopAnimation" xml:space="preserve">
+  <data name="Designer.Behaviors.LoopAnimation">
     <value>Loop animation</value>
   </data>
-  <data name="Designer.Behaviors.EndAnimation" xml:space="preserve">
+  <data name="Designer.Behaviors.EndAnimation">
     <value>End animation</value>
   </data>
-  <data name="Designer.Behaviors.Animation" xml:space="preserve">
+  <data name="Designer.Behaviors.Animation">
     <value>Animation</value>
   </data>
-  <data name="Designer.Behaviors.AnimationEditorPlaceholder" xml:space="preserve">
+  <data name="Designer.Behaviors.AnimationEditorPlaceholder">
     <value>Node graph animation editor will be implemented in a future version.</value>
   </data>
-  <data name="Designer.Behaviors.Event.CurrentGameChanged.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.CurrentGameChanged.Description">
     <value>Fires when the current game object changes.</value>
   </data>
-  <data name="Designer.Behaviors.Event.GlobalScoreTotalMarginChanged.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.GlobalScoreTotalMarginChanged.Description">
     <value>Fires when the total score display margin changes.</value>
   </data>
-  <data name="Designer.Behaviors.Event.BanCountChanged.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.BanCountChanged.Description">
     <value>Fires when a ban list count changes.</value>
   </data>
-  <data name="Designer.Behaviors.Event.IsTraitVisibleChanged.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.IsTraitVisibleChanged.Description">
     <value>Fires when trait visibility changes.</value>
   </data>
-  <data name="Designer.Behaviors.Event.IsBo3ModeChanged.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.IsBo3ModeChanged.Description">
     <value>Fires when BO3 mode changes.</value>
   </data>
-  <data name="Designer.Behaviors.Event.CountDownValueChanged.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.CountDownValueChanged.Description">
     <value>Fires when the countdown display value changes.</value>
   </data>
-  <data name="Designer.Behaviors.Event.TeamSwapped.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.TeamSwapped.Description">
     <value>Fires when home and away teams swap.</value>
   </data>
-  <data name="Designer.Behaviors.Event.IsMapV2BreathingChanged.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.IsMapV2BreathingChanged.Description">
     <value>Fires when map breathing changes.</value>
   </data>
-  <data name="Designer.Behaviors.Event.MapV2PickingBorderStateChanged.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.MapV2PickingBorderStateChanged.Description">
     <value>Fires when a map picking border should show or hide.</value>
   </data>
-  <data name="Designer.Behaviors.Event.IsMapV2CampVisibleChanged.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.IsMapV2CampVisibleChanged.Description">
     <value>Fires when map camp visibility changes.</value>
   </data>
-  <data name="Designer.Behaviors.Event.PickedMapChanged.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.PickedMapChanged.Description">
     <value>Fires when the picked map changes.</value>
   </data>
-  <data name="Designer.Behaviors.Event.MapV2BannedChanged.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.MapV2BannedChanged.Description">
     <value>Fires when map ban state changes.</value>
   </data>
-  <data name="Designer.Behaviors.Event.GuidanceHighlightChanged.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.GuidanceHighlightChanged.Description">
     <value>Fires when the guidance highlight changes.</value>
   </data>
-  <data name="Designer.Behaviors.Event.GuidanceHighlightCleared.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.GuidanceHighlightCleared.Description">
     <value>Fires when guidance clears the current highlight.</value>
   </data>
-  <data name="Designer.Behaviors.Event.GuidanceStarted.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.GuidanceStarted.Description">
     <value>Fires when guidance starts.</value>
   </data>
-  <data name="Designer.Behaviors.Event.GuidanceStateChanged.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.GuidanceStateChanged.Description">
     <value>Fires when guidance starts or stops.</value>
   </data>
-  <data name="Designer.Behaviors.Event.GuidanceStopped.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.GuidanceStopped.Description">
     <value>Fires when guidance stops.</value>
   </data>
-  <data name="Designer.Behaviors.Event.GuidanceStepChanged.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.GuidanceStepChanged.Description">
     <value>Fires when the guidance step changes.</value>
   </data>
-  <data name="Designer.Graph.Target.Self" xml:space="preserve">
+  <data name="Designer.Graph.Target.Self">
     <value>Self</value>
   </data>
-  <data name="Designer.Option.TargetLayer.Auto" xml:space="preserve">
+  <data name="Designer.Option.TargetLayer.Auto">
     <value>Auto</value>
   </data>
-  <data name="Designer.Option.TargetLayer.Control" xml:space="preserve">
+  <data name="Designer.Option.TargetLayer.Control">
     <value>Control Root</value>
   </data>
-  <data name="Designer.Option.TargetLayer.Content" xml:space="preserve">
+  <data name="Designer.Option.TargetLayer.Content">
     <value>Inner Content</value>
   </data>
-  <data name="Designer.Option.TargetLayer.OverlayAbove" xml:space="preserve">
+  <data name="Designer.Option.TargetLayer.OverlayAbove">
     <value>Rectangle Above</value>
   </data>
-  <data name="Designer.Option.TargetLayer.OverlayBelow" xml:space="preserve">
+  <data name="Designer.Option.TargetLayer.OverlayBelow">
     <value>Rectangle Below</value>
   </data>
-  <data name="Designer.Behaviors.Event.CharacterSelected.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.CharacterSelected.Description">
     <value>Fires when a character is selected (includes camp and player index).</value>
   </data>
-  <data name="Designer.Behaviors.Event.CharacterBanned.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.CharacterBanned.Description">
     <value>Fires when a character is banned (includes camp and ban index).</value>
   </data>
-  <data name="Designer.Graph.NodeCatalog" xml:space="preserve">
+  <data name="Designer.Graph.NodeCatalog">
     <value>Node catalog</value>
   </data>
-  <data name="Designer.Graph.Properties" xml:space="preserve">
+  <data name="Designer.Graph.Properties">
     <value>Node properties</value>
   </data>
-  <data name="Designer.Graph.Validation" xml:space="preserve">
+  <data name="Designer.Graph.Validation">
     <value>Graph checks</value>
   </data>
-  <data name="Designer.Graph.DeleteNode" xml:space="preserve">
+  <data name="Designer.Graph.DeleteNode">
     <value>Delete node</value>
   </data>
-  <data name="Designer.Graph.DuplicateNode" xml:space="preserve">
+  <data name="Designer.Graph.DuplicateNode">
     <value>Duplicate node</value>
   </data>
-  <data name="Designer.Graph.AddStartEnd" xml:space="preserve">
+  <data name="Designer.Graph.AddStartEnd">
     <value>Add Start / End</value>
   </data>
-  <data name="Designer.Graph.RunPreview" xml:space="preserve">
+  <data name="Designer.Graph.RunPreview">
     <value>Run preview</value>
   </data>
-  <data name="Designer.Graph.StopPreview" xml:space="preserve">
+  <data name="Designer.Graph.StopPreview">
     <value>Stop preview</value>
   </data>
-  <data name="Designer.Graph.ResetCurrentTarget" xml:space="preserve">
+  <data name="Designer.Graph.ResetCurrentTarget">
     <value>Reset current target</value>
   </data>
-  <data name="Designer.Graph.ResetAllPreview" xml:space="preserve">
+  <data name="Designer.Graph.ResetAllPreview">
     <value>Reset all preview</value>
   </data>
-  <data name="Designer.Graph.Validate" xml:space="preserve">
+  <data name="Designer.Graph.Validate">
     <value>Check graph</value>
   </data>
-  <data name="Designer.Graph.ClearLog" xml:space="preserve">
+  <data name="Designer.Graph.ClearLog">
     <value>Clear log</value>
   </data>
-  <data name="Designer.Graph.ExecutionLog" xml:space="preserve">
+  <data name="Designer.Graph.ExecutionLog">
     <value>Execution log</value>
   </data>
-  <data name="Designer.Graph.PreviewTitle" xml:space="preserve">
+  <data name="Designer.Graph.PreviewTitle">
     <value>Preview</value>
   </data>
-  <data name="Designer.Graph.PreviewPlaceholder" xml:space="preserve">
-    <value>Animation preview viewport
-Select a control in the designer to preview animation here</value>
+  <data name="Designer.Graph.PreviewPlaceholder">
+    <value>Animation preview viewport Select a control in the designer to preview animation here</value>
   </data>
-  <data name="Designer.Graph.PreviewStart" xml:space="preserve">
+  <data name="Designer.Graph.PreviewStart">
     <value>Preview start animation</value>
   </data>
-  <data name="Designer.Graph.PreviewLoopOnce" xml:space="preserve">
+  <data name="Designer.Graph.PreviewLoopOnce">
     <value>Preview one loop animation</value>
   </data>
-  <data name="Designer.Graph.StartLoopPreview" xml:space="preserve">
+  <data name="Designer.Graph.StartLoopPreview">
     <value>Start loop animation preview</value>
   </data>
-  <data name="Designer.Graph.StopLoopPreview" xml:space="preserve">
+  <data name="Designer.Graph.StopLoopPreview">
     <value>Stop loop animation preview</value>
   </data>
-  <data name="Designer.Graph.PreviewStop" xml:space="preserve">
+  <data name="Designer.Graph.PreviewStop">
     <value>Preview stop animation</value>
   </data>
-  <data name="Designer.Graph.ResetPreview" xml:space="preserve">
+  <data name="Designer.Graph.ResetPreview">
     <value>Reset preview</value>
   </data>
-  <data name="Designer.Graph.Connection.SelectInput" xml:space="preserve">
+  <data name="Designer.Graph.Connection.SelectInput">
     <value>Select an input port.</value>
   </data>
-  <data name="Designer.Graph.Preview.ValidationBlocked" xml:space="preserve">
+  <data name="Designer.Graph.Preview.ValidationBlocked">
     <value>Graph checks found issues, so preview was blocked.</value>
   </data>
-  <data name="Designer.Graph.Preview.AutoReverseStoredOnly" xml:space="preserve">
+  <data name="Designer.Graph.Preview.AutoReverseStoredOnly">
     <value>Auto reverse is saved, but reverse graph playback is not simulated during preview.</value>
   </data>
-  <data name="Designer.Graph.Category.Flow" xml:space="preserve">
+  <data name="Designer.Graph.Category.Flow">
     <value>Flow</value>
   </data>
-  <data name="Designer.Graph.Category.Action" xml:space="preserve">
+  <data name="Designer.Graph.Category.Action">
     <value>Action</value>
   </data>
-  <data name="Designer.Graph.Category.Value" xml:space="preserve">
+  <data name="Designer.Graph.Category.Value">
     <value>Value</value>
   </data>
-  <data name="Designer.Graph.Node.FlowStart" xml:space="preserve">
+  <data name="Designer.Graph.Node.FlowStart">
     <value>Start</value>
   </data>
-  <data name="Designer.Graph.Node.FlowEnd" xml:space="preserve">
+  <data name="Designer.Graph.Node.FlowEnd">
     <value>End</value>
   </data>
-  <data name="Designer.Graph.Node.FlowDelay" xml:space="preserve">
+  <data name="Designer.Graph.Node.FlowDelay">
     <value>Delay</value>
   </data>
-  <data name="Designer.Graph.Node.FlowParallel" xml:space="preserve">
+  <data name="Designer.Graph.Node.FlowParallel">
     <value>Parallel</value>
   </data>
-  <data name="Designer.Graph.Node.FlowIf" xml:space="preserve">
+  <data name="Designer.Graph.Node.FlowIf">
     <value>If</value>
   </data>
-  <data name="Designer.Graph.Node.ActionLog" xml:space="preserve">
+  <data name="Designer.Graph.Node.ActionLog">
     <value>Log</value>
   </data>
-  <data name="Designer.Graph.Node.ActionSetProperty" xml:space="preserve">
+  <data name="Designer.Graph.Node.ActionSetProperty">
     <value>SetProperty</value>
   </data>
-  <data name="Designer.Graph.Node.ActionResetProperty" xml:space="preserve">
+  <data name="Designer.Graph.Node.ActionResetProperty">
     <value>ResetProperty</value>
   </data>
-  <data name="Designer.Graph.Node.ActionAnimateProperty" xml:space="preserve">
+  <data name="Designer.Graph.Node.ActionAnimateProperty">
     <value>AnimateProperty</value>
   </data>
-  <data name="Designer.Graph.Node.FlowStart.Description" xml:space="preserve">
+  <data name="Designer.Graph.Node.FlowStart.Description">
     <value>Animation flow entry. A graph normally has one Start, connected from Out to the first flow or action node.</value>
   </data>
-  <data name="Designer.Graph.Node.FlowEnd.Description" xml:space="preserve">
+  <data name="Designer.Graph.Node.FlowEnd.Description">
     <value>Finishes the current branch. Each graph can have only one End; multiple branches can connect to End.In.</value>
   </data>
-  <data name="Designer.Graph.Node.FlowDelay.Description" xml:space="preserve">
+  <data name="Designer.Graph.Node.FlowDelay.Description">
     <value>Waits before continuing. Use it to space out property requests, such as fade out and then fade in.</value>
   </data>
-  <data name="Designer.Graph.Node.FlowParallel.Description" xml:space="preserve">
+  <data name="Designer.Graph.Node.FlowParallel.Description">
     <value>Executes all connected branches concurrently, then continues via Out.\nBranches are considered complete when they have no further outgoing connection.</value>
   </data>
-  <data name="Designer.Graph.Node.FlowIf.Description" xml:space="preserve">
+  <data name="Designer.Graph.Node.FlowIf.Description">
     <value>Advanced branch node using text comparison. Simple property animations usually do not need it.</value>
   </data>
-  <data name="Designer.Graph.Node.ActionLog.Description" xml:space="preserve">
+  <data name="Designer.Graph.Node.ActionLog.Description">
     <value>Writes a line to the preview log so you can see that execution reached this point.</value>
   </data>
-  <data name="Designer.Graph.Node.ActionSetProperty.Description" xml:space="preserve">
+  <data name="Designer.Graph.Node.ActionSetProperty.Description">
     <value>Emits a set-property request that writes a value to the target control's property.</value>
   </data>
-  <data name="Designer.Graph.Node.ActionResetProperty.Description" xml:space="preserve">
+  <data name="Designer.Graph.Node.ActionResetProperty.Description">
     <value>Emits a reset-property request. PropertyName can be a specific property or All.</value>
   </data>
-  <data name="Designer.Graph.Node.ActionAnimateProperty.Description" xml:space="preserve">
+  <data name="Designer.Graph.Node.ActionAnimateProperty.Description">
     <value>Emits an animate-property request. Fill target, property, from/to values, duration, and easing.</value>
   </data>
-  <data name="Designer.Graph.Port.In" xml:space="preserve">
+  <data name="Designer.Graph.Port.In">
     <value>In</value>
   </data>
-  <data name="Designer.Graph.Port.Out" xml:space="preserve">
+  <data name="Designer.Graph.Port.Out">
     <value>Next</value>
   </data>
-  <data name="Designer.Graph.Port.True" xml:space="preserve">
+  <data name="Designer.Graph.Port.True">
     <value>True</value>
   </data>
-  <data name="Designer.Graph.Port.False" xml:space="preserve">
+  <data name="Designer.Graph.Port.False">
     <value>False</value>
   </data>
-  <data name="Designer.Graph.Port.Step1" xml:space="preserve">
+  <data name="Designer.Graph.Port.Step1">
     <value>Step1</value>
   </data>
-  <data name="Designer.Graph.Port.Step2" xml:space="preserve">
+  <data name="Designer.Graph.Port.Step2">
     <value>Step2</value>
   </data>
-  <data name="Designer.Graph.Port.Step3" xml:space="preserve">
+  <data name="Designer.Graph.Port.Step3">
     <value>Step3</value>
   </data>
-  <data name="Designer.Graph.Port.Branch1" xml:space="preserve">
+  <data name="Designer.Graph.Port.Branch1">
     <value>Branch 1</value>
   </data>
-  <data name="Designer.Graph.Port.Branch2" xml:space="preserve">
+  <data name="Designer.Graph.Port.Branch2">
     <value>Branch 2</value>
   </data>
-  <data name="Designer.Graph.Port.Branch3" xml:space="preserve">
+  <data name="Designer.Graph.Port.Branch3">
     <value>Branch 3</value>
   </data>
-  <data name="Designer.Graph.Port.ParallelOut" xml:space="preserve">
+  <data name="Designer.Graph.Port.ParallelOut">
     <value>After all complete</value>
   </data>
-  <data name="Designer.Graph.Port.ParallelBranch" xml:space="preserve">
+  <data name="Designer.Graph.Port.ParallelBranch">
     <value>Branch {0}</value>
   </data>
-  <data name="Designer.Graph.Port.ParallelBranch.Tooltip" xml:space="preserve">
+  <data name="Designer.Graph.Port.ParallelBranch.Tooltip">
     <value>Parallel branch {0}. Runs concurrently with other connected branches.</value>
   </data>
-  <data name="Designer.Graph.Connection.Meaning.ParallelBranch" xml:space="preserve">
+  <data name="Designer.Graph.Connection.Meaning.ParallelBranch">
     <value>Parallel branch {0}</value>
   </data>
-  <data name="Designer.Graph.Port.Branch1.Tooltip" xml:space="preserve">
+  <data name="Designer.Graph.Port.Branch1.Tooltip">
     <value>Parallel branch 1. Runs concurrently with other connected branches.</value>
   </data>
-  <data name="Designer.Graph.Port.Branch2.Tooltip" xml:space="preserve">
+  <data name="Designer.Graph.Port.Branch2.Tooltip">
     <value>Parallel branch 2. Runs concurrently with other connected branches.</value>
   </data>
-  <data name="Designer.Graph.Port.Branch3.Tooltip" xml:space="preserve">
+  <data name="Designer.Graph.Port.Branch3.Tooltip">
     <value>Parallel branch 3. Runs concurrently with other connected branches.</value>
   </data>
-  <data name="Designer.Graph.Port.ParallelOut.Tooltip" xml:space="preserve">
+  <data name="Designer.Graph.Port.ParallelOut.Tooltip">
     <value>Continues after all connected parallel branches have completed.</value>
   </data>
-  <data name="Designer.Graph.Connection.Meaning.ParallelBranch1" xml:space="preserve">
+  <data name="Designer.Graph.Connection.Meaning.ParallelBranch1">
     <value>Parallel branch 1</value>
   </data>
-  <data name="Designer.Graph.Connection.Meaning.ParallelBranch2" xml:space="preserve">
+  <data name="Designer.Graph.Connection.Meaning.ParallelBranch2">
     <value>Parallel branch 2</value>
   </data>
-  <data name="Designer.Graph.Connection.Meaning.ParallelBranch3" xml:space="preserve">
+  <data name="Designer.Graph.Connection.Meaning.ParallelBranch3">
     <value>Parallel branch 3</value>
   </data>
-  <data name="Designer.Graph.Connection.Meaning.ParallelOut" xml:space="preserve">
+  <data name="Designer.Graph.Connection.Meaning.ParallelOut">
     <value>Continue after all parallel branches complete</value>
   </data>
-  <data name="Designer.Graph.Connection.MeaningLabel" xml:space="preserve">
+  <data name="Designer.Graph.Connection.MeaningLabel">
     <value>Meaning</value>
   </data>
-  <data name="Designer.Graph.Port.Completed" xml:space="preserve">
+  <data name="Designer.Graph.Port.Completed">
     <value>Completed</value>
   </data>
-  <data name="Designer.Graph.Port.Value" xml:space="preserve">
+  <data name="Designer.Graph.Port.Value">
     <value>Value</value>
   </data>
-  <data name="Designer.Graph.Property.DurationMs" xml:space="preserve">
+  <data name="Designer.Graph.Property.DurationMs">
     <value>Duration</value>
   </data>
-  <data name="Designer.Graph.Property.BranchCount" xml:space="preserve">
+  <data name="Designer.Graph.Property.BranchCount">
     <value>Parallel task count</value>
   </data>
-  <data name="Designer.Graph.Property.Message" xml:space="preserve">
+  <data name="Designer.Graph.Property.Message">
     <value>Message</value>
   </data>
-  <data name="Designer.Graph.Property.Target" xml:space="preserve">
+  <data name="Designer.Graph.Property.Target">
     <value>Target Control</value>
   </data>
-  <data name="Designer.Graph.Property.PropertyName" xml:space="preserve">
+  <data name="Designer.Graph.Property.PropertyName">
     <value>Property Name</value>
   </data>
-  <data name="Designer.Graph.Property.Value" xml:space="preserve">
+  <data name="Designer.Graph.Property.Value">
     <value>Value</value>
   </data>
-  <data name="Designer.Graph.Property.From" xml:space="preserve">
+  <data name="Designer.Graph.Property.From">
     <value>From Value</value>
   </data>
-  <data name="Designer.Graph.Property.To" xml:space="preserve">
+  <data name="Designer.Graph.Property.To">
     <value>To Value</value>
   </data>
-  <data name="Designer.Graph.Property.Easing" xml:space="preserve">
+  <data name="Designer.Graph.Property.Easing">
     <value>Easing Function</value>
   </data>
-  <data name="Designer.Graph.Property.Left" xml:space="preserve">
+  <data name="Designer.Graph.Property.Left">
     <value>Left</value>
   </data>
-  <data name="Designer.Graph.Property.Operator" xml:space="preserve">
+  <data name="Designer.Graph.Property.Operator">
     <value>Operator</value>
   </data>
-  <data name="Designer.Graph.Property.Right" xml:space="preserve">
+  <data name="Designer.Graph.Property.Right">
     <value>Right</value>
   </data>
-  <data name="Designer.Graph.Property.Path" xml:space="preserve">
+  <data name="Designer.Graph.Property.Path">
     <value>Path</value>
   </data>
-  <data name="Designer.Graph.Property.WaitForCompletion" xml:space="preserve">
+  <data name="Designer.Graph.Property.WaitForCompletion">
     <value>Wait for completion</value>
   </data>
-  <data name="Designer.Graph.PropertyName.All" xml:space="preserve">
+  <data name="Designer.Graph.PropertyName.All">
     <value>All Properties</value>
   </data>
-  <data name="Designer.Option.Easing.Linear" xml:space="preserve">
+  <data name="Designer.Option.Easing.Linear">
     <value>Linear</value>
   </data>
-  <data name="Designer.Option.Easing.SineInOut" xml:space="preserve">
+  <data name="Designer.Option.Easing.SineInOut">
     <value>Sine In/Out</value>
   </data>
-  <data name="Designer.Option.Easing.CubicOut" xml:space="preserve">
+  <data name="Designer.Option.Easing.CubicOut">
     <value>Cubic Out</value>
   </data>
-  <data name="Designer.Option.Easing.CubicIn" xml:space="preserve">
+  <data name="Designer.Option.Easing.CubicIn">
     <value>Cubic In</value>
   </data>
-  <data name="Designer.Option.Easing.CubicInOut" xml:space="preserve">
+  <data name="Designer.Option.Easing.CubicInOut">
     <value>Cubic In/Out</value>
   </data>
-  <data name="Designer.Option.Easing.BackOut" xml:space="preserve">
+  <data name="Designer.Option.Easing.BackOut">
     <value>Back Out</value>
   </data>
-  <data name="Designer.Property.Opacity" xml:space="preserve">
+  <data name="Designer.Property.Opacity">
     <value>Opacity</value>
   </data>
-  <data name="Designer.Property.VisualOffsetX" xml:space="preserve">
+  <data name="Designer.Property.VisualOffsetX">
     <value>Visual Offset X</value>
   </data>
-  <data name="Designer.Property.VisualOffsetY" xml:space="preserve">
+  <data name="Designer.Property.VisualOffsetY">
     <value>Visual Offset Y</value>
   </data>
-  <data name="Designer.Property.ClipInsetLeft" xml:space="preserve">
+  <data name="Designer.Property.ClipInsetLeft">
     <value>Clip Inset Left</value>
   </data>
-  <data name="Designer.Property.ClipInsetTop" xml:space="preserve">
+  <data name="Designer.Property.ClipInsetTop">
     <value>Clip Inset Top</value>
   </data>
-  <data name="Designer.Property.ClipInsetRight" xml:space="preserve">
+  <data name="Designer.Property.ClipInsetRight">
     <value>Clip Inset Right</value>
   </data>
-  <data name="Designer.Property.ClipInsetBottom" xml:space="preserve">
+  <data name="Designer.Property.ClipInsetBottom">
     <value>Clip Inset Bottom</value>
   </data>
-  <data name="Designer.Property.ScaleX" xml:space="preserve">
+  <data name="Designer.Property.ScaleX">
     <value>Scale X</value>
   </data>
-  <data name="Designer.Property.ScaleY" xml:space="preserve">
+  <data name="Designer.Property.ScaleY">
     <value>Scale Y</value>
   </data>
-  <data name="Designer.Property.Rotation" xml:space="preserve">
+  <data name="Designer.Property.Rotation">
     <value>Rotation</value>
   </data>
-  <data name="Designer.Property.TextColor" xml:space="preserve">
+  <data name="Designer.Property.TextColor">
     <value>Text Color</value>
   </data>
-  <data name="Designer.Property.Foreground" xml:space="preserve">
+  <data name="Designer.Property.Foreground">
     <value>Foreground</value>
   </data>
-  <data name="Designer.Property.Background" xml:space="preserve">
+  <data name="Designer.Property.Background">
     <value>Background</value>
   </data>
-  <data name="Designer.Graph.Validation.Description" xml:space="preserve">
+  <data name="Designer.Graph.Validation.Description">
     <value>Checks whether the graph has an entry node, valid connections, and required properties. It never deletes graph data; it only helps you fix preview and save-time issues.</value>
   </data>
-  <data name="Designer.Graph.Validation.GraphNoEnd" xml:space="preserve">
+  <data name="Designer.Graph.Validation.GraphNoEnd">
     <value>Graph has no End node; execution will stop when no outgoing connection exists.</value>
   </data>
-  <data name="Designer.Graph.Validation.MultipleEnds" xml:space="preserve">
+  <data name="Designer.Graph.Validation.MultipleEnds">
     <value>Graph has multiple End nodes; each graph can have only one End.</value>
   </data>
-  <data name="Designer.Graph.Validation.ParallelNoBranches" xml:space="preserve">
+  <data name="Designer.Graph.Validation.ParallelNoBranches">
     <value>Parallel node has no connected branches; Out will execute immediately.</value>
   </data>
-  <data name="Designer.Graph.Validation.NumberFinite" xml:space="preserve">
+  <data name="Designer.Graph.Validation.NumberFinite">
     <value>Enter a finite number.</value>
   </data>
-  <data name="Designer.Graph.Validation.NumberInteger" xml:space="preserve">
+  <data name="Designer.Graph.Validation.NumberInteger">
     <value>Enter an integer.</value>
   </data>
-  <data name="Designer.Graph.Validation.NumberRange" xml:space="preserve">
+  <data name="Designer.Graph.Validation.NumberRange">
     <value>Value must be between {0} and {1}.</value>
   </data>
-  <data name="Designer.Graph.DeleteConnection" xml:space="preserve">
+  <data name="Designer.Graph.DeleteConnection">
     <value>Disconnect</value>
   </data>
-  <data name="Designer.Graph.Property.DurationMs.Description" xml:space="preserve">
+  <data name="Designer.Graph.Property.DurationMs.Description">
     <value>Delay or animation duration in milliseconds.</value>
   </data>
-  <data name="Designer.Graph.Property.BranchCount.Description" xml:space="preserve">
+  <data name="Designer.Graph.Property.BranchCount.Description">
     <value>Number of parallel branch ports, from 1 to 20.</value>
   </data>
-  <data name="Designer.Graph.Property.Message.Description" xml:space="preserve">
+  <data name="Designer.Graph.Property.Message.Description">
     <value>Text written to the preview execution log.</value>
   </data>
-  <data name="Designer.Graph.Property.Target.Description" xml:space="preserve">
+  <data name="Designer.Graph.Property.Target.Description">
     <value>Target control for the action. Self means the control this behavior is bound to.</value>
   </data>
-  <data name="Designer.Graph.Property.TargetLayer" xml:space="preserve">
+  <data name="Designer.Graph.Property.TargetLayer">
     <value>Target Layer</value>
   </data>
-  <data name="Designer.Graph.Property.TargetLayer.Description" xml:space="preserve">
+  <data name="Designer.Graph.Property.TargetLayer.Description">
     <value>Choose whether the property applies to the control root, inner content, or a runtime rectangle layer above or below the control.</value>
   </data>
-  <data name="Designer.Graph.Property.PropertyName.Description" xml:space="preserve">
+  <data name="Designer.Graph.Property.PropertyName.Description">
     <value>Name of the property to set, reset, or animate.</value>
   </data>
-  <data name="Designer.Graph.Property.Value.Description" xml:space="preserve">
+  <data name="Designer.Graph.Property.Value.Description">
     <value>Node output value or value to write to a property.</value>
   </data>
-  <data name="Designer.Graph.Property.From.Description" xml:space="preserve">
+  <data name="Designer.Graph.Property.From.Description">
     <value>Animation start value. For example, use 0 for Opacity to start from fully transparent.</value>
   </data>
-  <data name="Designer.Graph.Property.To.Description" xml:space="preserve">
+  <data name="Designer.Graph.Property.To.Description">
     <value>Animation end value. For example, use 1 for Opacity to animate to fully opaque.</value>
   </data>
-  <data name="Designer.Graph.Property.Easing.Description" xml:space="preserve">
+  <data name="Designer.Graph.Property.Easing.Description">
     <value>Easing name reserved for the later animation runtime.</value>
   </data>
-  <data name="Designer.Graph.Property.Left.Description" xml:space="preserve">
+  <data name="Designer.Graph.Property.Left.Description">
     <value>Left comparison text. Put complex trigger conditions in the behavior panel instead.</value>
   </data>
-  <data name="Designer.Graph.Property.Operator.Description" xml:space="preserve">
+  <data name="Designer.Graph.Property.Operator.Description">
     <value>Text comparison operator, using the same semantics as behavior trigger filters.</value>
   </data>
-  <data name="Designer.Graph.Property.Right.Description" xml:space="preserve">
+  <data name="Designer.Graph.Property.Right.Description">
     <value>Right side comparison text.</value>
   </data>
-  <data name="Designer.Graph.Property.Path.Description" xml:space="preserve">
+  <data name="Designer.Graph.Property.Path.Description">
     <value>Path value. Animation graphs usually do not need event paths.</value>
   </data>
-  <data name="Designer.Graph.Property.WaitForCompletion.Description" xml:space="preserve">
+  <data name="Designer.Graph.Property.WaitForCompletion.Description">
     <value>When enabled, execution waits for the animation to finish before continuing.</value>
   </data>
-  <data name="Designer.Graph.Help" xml:space="preserve">
+  <data name="Designer.Graph.Help">
     <value>Help</value>
   </data>
-  <data name="Designer.Graph.Help.Concepts.Title" xml:space="preserve">
+  <data name="Designer.Graph.Help.Concepts.Title">
     <value>Basic Concepts</value>
   </data>
-  <data name="Designer.Graph.Help.Concepts.Content" xml:space="preserve">
+  <data name="Designer.Graph.Help.Concepts.Content">
     <value>The node graph editor is a visual tool for composing control animations. Each graph consists of nodes and connections.\nNodes represent actions (e.g. set a property, play an animation); connections define execution order.\nA graph starts at the Start node and ends at an End node.\n\nNodes fall into three categories: flow control nodes (control execution order), action nodes (manipulate control properties), and value nodes (provide constant data).</value>
   </data>
-  <data name="Designer.Graph.Help.Workflow.Title" xml:space="preserve">
+  <data name="Designer.Graph.Help.Workflow.Title">
     <value>Workflow</value>
   </data>
-  <data name="Designer.Graph.Help.Workflow.Content" xml:space="preserve">
+  <data name="Designer.Graph.Help.Workflow.Content">
     <value>Drag nodes from the catalog on the left onto the canvas, or double-click a catalog item to quickly add it.\nDrag from a node's output port (blue marker on the right) to another node's input port (marker on the left) to create a connection.\nClick a node card to select it; the property panel on the right shows editable properties.\nPress Delete to remove the selected node or connection. Use the toolbar buttons to duplicate a node or auto-create Start/End nodes.\nType keywords in the catalog search box to quickly find node types.</value>
   </data>
-  <data name="Designer.Graph.Help.NodeTypes.Title" xml:space="preserve">
+  <data name="Designer.Graph.Help.NodeTypes.Title">
     <value>Node Type Reference</value>
   </data>
-  <data name="Designer.Graph.Help.NodeTypes.Content" xml:space="preserve">
+  <data name="Designer.Graph.Help.NodeTypes.Content">
     <value>Flow Control Nodes:\nStart — Entry point; each graph must have exactly one.\nEnd — The single graph ending point; multiple branches can connect to the same End.In.\nDelay — Waits for the specified number of milliseconds.\nSequence — Runs Step1 → Step2 → Step3 in order.\nParallel — Runs Branch1, Branch2, Branch3 simultaneously; continues when all complete.\nIf — Text comparison branch. Compares Left and Right, goes to True on match, False otherwise.\n\nAction Nodes:\nLog — Writes a line to the execution log for debugging.\nSetProperty — Sets a control property value, e.g. Target=Self, PropertyName=Opacity, Value=0.5.\nResetProperty — Resets a control property. Use a specific property name or All.\nAnimateProperty — Sends a property animation to the target control. Fill in PropertyName, From, To, DurationMs and Easing.\n\nValue Nodes:\nNumber / String / Boolean / Color — Constant value nodes, editable in the property panel.\nControlReference — Target control reference; Self means the control this behavior is bound to.</value>
   </data>
-  <data name="Designer.Graph.Help.Preview.Title" xml:space="preserve">
+  <data name="Designer.Graph.Help.Preview.Title">
     <value>Previewing Animation</value>
   </data>
-  <data name="Designer.Graph.Help.Preview.Content" xml:space="preserve">
+  <data name="Designer.Graph.Help.Preview.Content">
     <value>Make sure the graph has one Start node and one End node.\nClick Run Preview in the toolbar to execute the current graph. The animation runs on the real controls in the designer and is shown live in the preview viewport (bottom-left).\nThe execution log (bottom-right) shows the result of each step, helping you troubleshoot.\nClick Stop Preview to interrupt execution. Use Reset Current Target or Reset All Preview to restore modified control properties.\nThe preview viewport uses real-time rendering so you can see animation effects directly.</value>
   </data>
-  <data name="Designer.Graph.Help.LoopPreview.Title" xml:space="preserve">
+  <data name="Designer.Graph.Help.LoopPreview.Title">
     <value>Loop Preview</value>
   </data>
-  <data name="Designer.Graph.Help.LoopPreview.Content" xml:space="preserve">
+  <data name="Designer.Graph.Help.LoopPreview.Content">
     <value>Loop behaviors have three stage graphs: Start Graph, Loop Graph, and End Graph.\n\nPreview one loop animation: runs Start Graph → runs Loop Graph once → runs End Graph.\nStart loop animation preview: runs the Loop Graph repeatedly (controlled by RepeatCount and IntervalMs) until you click Stop loop animation preview.\nPreview stop animation: runs only the End Graph so you can check the stop-stage effect.\nReset preview: restores all control properties modified by preview.\n\nRepeatCount controls the number of loops; use a negative value for infinite looping until manually stopped. IntervalMs controls the wait time between loops; when it is 0, preview still keeps a short UI-friendly tick to avoid freezing the editor.</value>
   </data>
-  <data name="Designer.Graph.Help.Troubleshooting.Title" xml:space="preserve">
+  <data name="Designer.Graph.Help.Troubleshooting.Title">
     <value>Troubleshooting</value>
   </data>
-  <data name="Designer.Graph.Help.Troubleshooting.Content" xml:space="preserve">
+  <data name="Designer.Graph.Help.Troubleshooting.Content">
     <value>Preview does not run: check for a Start node, verify all nodes are connected, and look for validation errors.\nAnimation effect is unexpected: check AnimateProperty's From/To values and DurationMs, and verify the easing function.\nCannot connect nodes: make sure output port type (Flow/Value) matches input port type. Flow ports only connect to Flow ports; Value ports only connect to Value ports.\nGraph execution hangs: check if a Delay node has an extremely large duration, or if all Parallel branches have End nodes.\nControl animation has no effect: check that Target is correct (commonly Self) and PropertyName is spelled correctly (e.g. Opacity, Width, Height).</value>
   </data>
-  <data name="Designer.Graph.Help.Shortcuts.Title" xml:space="preserve">
+  <data name="Designer.Graph.Help.Shortcuts.Title">
     <value>Keyboard Shortcuts</value>
   </data>
-  <data name="Designer.Graph.Help.Shortcut.Delete" xml:space="preserve">
+  <data name="Designer.Graph.Help.Shortcut.Delete">
     <value>Delete: Delete selected node or connection</value>
   </data>
-  <data name="Designer.Graph.Help.Shortcut.Duplicate" xml:space="preserve">
+  <data name="Designer.Graph.Help.Shortcut.Duplicate">
     <value>Ctrl+D: Duplicate selected node</value>
   </data>
-  <data name="Designer.Graph.Help.Shortcut.Connect" xml:space="preserve">
+  <data name="Designer.Graph.Help.Shortcut.Connect">
     <value>Drag output port to input port: Create connection</value>
   </data>
-  <data name="Designer.Graph.Help.Title" xml:space="preserve">
+  <data name="Designer.Graph.Help.Title">
     <value>Animation editor help</value>
   </data>
-  <data name="Designer.Graph.Node.Shortcuts" xml:space="preserve">
+  <data name="Designer.Graph.Node.Shortcuts">
     <value>Drag the header to move; drag output ports to input ports to connect; right-click or press Delete to remove.</value>
   </data>
-  <data name="Designer.Graph.NodeCatalog.DragHint" xml:space="preserve">
+  <data name="Designer.Graph.NodeCatalog.DragHint">
     <value>Drag this node onto the canvas to add it.</value>
   </data>
-  <data name="Designer.Graph.Undo" xml:space="preserve">
+  <data name="Designer.Graph.Undo">
     <value>Undo</value>
   </data>
-  <data name="Designer.Graph.Redo" xml:space="preserve">
+  <data name="Designer.Graph.Redo">
     <value>Redo</value>
   </data>
-  <data name="Designer.Graph.Save" xml:space="preserve">
+  <data name="Designer.Graph.Save">
     <value>Save</value>
   </data>
-  <data name="Designer.Graph.ToolTipUndo" xml:space="preserve">
+  <data name="Designer.Graph.ToolTipUndo">
     <value>Undo (Ctrl+Z)</value>
   </data>
-  <data name="Designer.Graph.ToolTipRedo" xml:space="preserve">
+  <data name="Designer.Graph.ToolTipRedo">
     <value>Redo (Ctrl+Y)</value>
   </data>
-  <data name="Designer.Graph.ToolTipSave" xml:space="preserve">
+  <data name="Designer.Graph.ToolTipSave">
     <value>Save (Ctrl+S)</value>
   </data>
-  <data name="Designer.Property.DisplayMode" xml:space="preserve">
+  <data name="Designer.Property.DisplayMode">
     <value>Display Mode</value>
   </data>
-  <data name="Designer.Property.VerticalLanguageMode" xml:space="preserve">
+  <data name="Designer.Property.VerticalLanguageMode">
     <value>Vertical Language Mode</value>
   </data>
-  <data name="Designer.Property.LatinVerticalMode" xml:space="preserve">
+  <data name="Designer.Property.LatinVerticalMode">
     <value>Latin Vertical Mode</value>
   </data>
-  <data name="Designer.Property.VerticalDirection" xml:space="preserve">
+  <data name="Designer.Property.VerticalDirection">
     <value>Direction</value>
   </data>
-  <data name="Designer.Property.NumberStyle" xml:space="preserve">
+  <data name="Designer.Property.NumberStyle">
     <value>Number Style</value>
   </data>
-  <data name="Designer.Property.DisplayLanguage" xml:space="preserve">
+  <data name="Designer.Property.DisplayLanguage">
     <value>Display Language</value>
   </data>
-  <data name="Designer.Property.VerticalTextSpacing" xml:space="preserve">
+  <data name="Designer.Property.VerticalTextSpacing">
     <value>Char Spacing</value>
   </data>
-  <data name="Designer.Property.GroupSpacing" xml:space="preserve">
+  <data name="Designer.Property.GroupSpacing">
     <value>Group Spacing</value>
   </data>
-  <data name="Designer.Property.ShowSeparator" xml:space="preserve">
+  <data name="Designer.Property.ShowSeparator">
     <value>Show Separator</value>
   </data>
-  <data name="Designer.Property.SeparatorThickness" xml:space="preserve">
+  <data name="Designer.Property.SeparatorThickness">
     <value>Separator Thickness</value>
   </data>
-  <data name="Designer.Property.SeparatorColor" xml:space="preserve">
+  <data name="Designer.Property.SeparatorColor">
     <value>Separator Color</value>
   </data>
-  <data name="Designer.Property.BackgroundColor" xml:space="preserve">
+  <data name="Designer.Property.BackgroundColor">
     <value>Background Color</value>
   </data>
-  <data name="Designer.Property.PaddingLeft" xml:space="preserve">
+  <data name="Designer.Property.PaddingLeft">
     <value>Padding Left</value>
   </data>
-  <data name="Designer.Property.PaddingTop" xml:space="preserve">
+  <data name="Designer.Property.PaddingTop">
     <value>Padding Top</value>
   </data>
-  <data name="Designer.Property.PaddingRight" xml:space="preserve">
+  <data name="Designer.Property.PaddingRight">
     <value>Padding Right</value>
   </data>
-  <data name="Designer.Property.PaddingBottom" xml:space="preserve">
+  <data name="Designer.Property.PaddingBottom">
     <value>Padding Bottom</value>
   </data>
-  <data name="Designer.Option.DisplayMode.Inline" xml:space="preserve">
+  <data name="Designer.Option.DisplayMode.Inline">
     <value>Inline</value>
   </data>
-  <data name="Designer.Option.DisplayMode.TwoLine" xml:space="preserve">
+  <data name="Designer.Option.DisplayMode.TwoLine">
     <value>Two Line</value>
   </data>
-  <data name="Designer.Option.DisplayMode.HorizontalGameOnly" xml:space="preserve">
+  <data name="Designer.Option.DisplayMode.HorizontalGameOnly">
     <value>Horizontal Game</value>
   </data>
-  <data name="Designer.Option.DisplayMode.HorizontalHalfOnly" xml:space="preserve">
+  <data name="Designer.Option.DisplayMode.HorizontalHalfOnly">
     <value>Horizontal Half</value>
   </data>
-  <data name="Designer.Option.DisplayMode.Vertical" xml:space="preserve">
+  <data name="Designer.Option.DisplayMode.Vertical">
     <value>Vertical</value>
   </data>
-  <data name="Designer.Option.DisplayMode.VerticalTwoLine" xml:space="preserve">
+  <data name="Designer.Option.DisplayMode.VerticalTwoLine">
     <value>Vertical Two Line</value>
   </data>
-  <data name="Designer.Option.DisplayMode.VerticalHalfOnly" xml:space="preserve">
+  <data name="Designer.Option.DisplayMode.VerticalHalfOnly">
     <value>Vertical Half Only</value>
   </data>
-  <data name="Designer.Option.DisplayMode.VerticalGameOnly" xml:space="preserve">
+  <data name="Designer.Option.DisplayMode.VerticalGameOnly">
     <value>Vertical Game Only</value>
   </data>
-  <data name="Designer.Option.DisplayMode.VerticalGameAndHalf" xml:space="preserve">
+  <data name="Designer.Option.DisplayMode.VerticalGameAndHalf">
     <value>Vertical Game + Half</value>
   </data>
-  <data name="Designer.Option.DisplayMode.VerticalSeparatedGameAndHalf" xml:space="preserve">
+  <data name="Designer.Option.DisplayMode.VerticalSeparatedGameAndHalf">
     <value>Vertical Separated Game + Half</value>
   </data>
-  <data name="Designer.Option.DisplayMode.RibbonGameOnly" xml:space="preserve">
+  <data name="Designer.Option.DisplayMode.RibbonGameOnly">
     <value>Ribbon Game Only</value>
   </data>
-  <data name="Designer.Option.VerticalLanguageMode.Auto" xml:space="preserve">
+  <data name="Designer.Option.VerticalLanguageMode.Auto">
     <value>Auto</value>
   </data>
-  <data name="Designer.Option.VerticalLanguageMode.Upright" xml:space="preserve">
+  <data name="Designer.Option.VerticalLanguageMode.Upright">
     <value>Upright</value>
   </data>
-  <data name="Designer.Option.VerticalLanguageMode.RotateBlock" xml:space="preserve">
+  <data name="Designer.Option.VerticalLanguageMode.RotateBlock">
     <value>Rotate Block</value>
   </data>
-  <data name="Designer.Option.VerticalLanguageMode.StackCharacters" xml:space="preserve">
+  <data name="Designer.Option.VerticalLanguageMode.StackCharacters">
     <value>Stack Characters</value>
   </data>
-  <data name="Designer.Option.LatinVerticalMode.RotateBlock" xml:space="preserve">
+  <data name="Designer.Option.LatinVerticalMode.RotateBlock">
     <value>Rotate Block</value>
   </data>
-  <data name="Designer.Option.LatinVerticalMode.StackCharacters" xml:space="preserve">
+  <data name="Designer.Option.LatinVerticalMode.StackCharacters">
     <value>Stack Characters</value>
   </data>
-  <data name="Designer.Option.NumberStyle.Auto" xml:space="preserve">
+  <data name="Designer.Option.NumberStyle.Auto">
     <value>Auto</value>
   </data>
-  <data name="Designer.Option.NumberStyle.Arabic" xml:space="preserve">
+  <data name="Designer.Option.NumberStyle.Arabic">
     <value>Arabic</value>
   </data>
-  <data name="Designer.Option.NumberStyle.CjkNumeral" xml:space="preserve">
+  <data name="Designer.Option.NumberStyle.CjkNumeral">
     <value>CJK Numeral</value>
   </data>
-  <data name="Designer.Option.VerticalDirection.Auto" xml:space="preserve">
+  <data name="Designer.Option.VerticalDirection.Auto">
     <value>Auto</value>
   </data>
-  <data name="Designer.Option.VerticalDirection.FacingLeft" xml:space="preserve">
+  <data name="Designer.Option.VerticalDirection.FacingLeft">
     <value>Facing Left</value>
   </data>
-  <data name="Designer.Option.VerticalDirection.FacingRight" xml:space="preserve">
+  <data name="Designer.Option.VerticalDirection.FacingRight">
     <value>Facing Right</value>
   </data>
-  <data name="Designer.Option.DisplayLanguage.FollowApp" xml:space="preserve">
+  <data name="Designer.Option.DisplayLanguage.FollowApp">
     <value>Follow App</value>
   </data>
-  <data name="Designer.Graph.Connection.IncompatibleTypes" xml:space="preserve">
+  <data name="Designer.Graph.Connection.IncompatibleTypes">
     <value>Incompatible port types, cannot connect</value>
   </data>
-  <data name="Designer.Graph.Help.Content" xml:space="preserve">
-    <value>This editor only edits the property animation flow that runs after a behavior is triggered. Configure events, triggers, and filters in the behavior panel.
-
-Basics: drag nodes from the catalog onto the canvas; drag a node header to move it; drag from an output port to an input port to connect; use the × button on a connection to disconnect; drag empty canvas space with the left or right mouse button to pan; select a node and edit its properties on the right; right-click a node or press Delete to remove it.
-
-Flow nodes: Start is the entry point and a graph should normally have one. End is the single ending point, and multiple branches can connect to End.In. Delay waits for a number of milliseconds. Sequence runs Step1, Step2, Step3 in order. Parallel runs Branch1, Branch2, Branch3 together and waits for all of them. If is an advanced text branch and is usually not needed for simple property animation.
-
-Action nodes: Log writes preview text. SetProperty writes a property value, for example Target=Self, PropertyName=Opacity, Value=0.5. ResetProperty resets a property; PropertyName can be a specific property or All. AnimateProperty plays a property animation, for example Target=Self, PropertyName=Opacity, From=0, To=1, DurationMs=300, Easing=Linear. In preview, these actions are applied to the designer preview controls when a target scope is available.
-
-Value nodes: Number/String/Boolean/Color store constant values for later value-port evaluation. ControlReference stores a target reference; Self is the common value today.</value>
+  <data name="Designer.Graph.Help.Content">
+    <value>This editor only edits the property animation flow that runs after a behavior is triggered. Configure events, triggers, and filters in the behavior panel.  Basics: drag nodes from the catalog onto the canvas; drag a node header to move it; drag from an output port to an input port to connect; use the × button on a connection to disconnect; drag empty canvas space with the left or right mouse button to pan; select a node and edit its properties on the right; right-click a node or press Delete to remove it.  Flow nodes: Start is the entry point and a graph should normally have one. End is the single ending point, and multiple branches can connect to End.In. Delay waits for a number of milliseconds. Sequence runs Step1, Step2, Step3 in order. Parallel runs Branch1, Branch2, Branch3 together and waits for all of them. If is an advanced text branch and is usually not needed for simple property animation.  Action nodes: Log writes preview text. SetProperty writes a property value, for example Target=Self, PropertyName=Opacity, Value=0.5. ResetProperty resets a property; PropertyName can be a specific property or All. AnimateProperty plays a property animation, for example Target=Self, PropertyName=Opacity, From=0, To=1, DurationMs=300, Easing=Linear. In preview, these actions are applied to the designer preview controls when a target scope is available.  Value nodes: Number/String/Boolean/Color store constant values for later value-port evaluation. ControlReference stores a target reference; Self is the common value today.</value>
   </data>
-  <data name="Designer.Graph.Port.ValueType.Boolean" xml:space="preserve">
+  <data name="Designer.Graph.Port.ValueType.Boolean">
     <value>Boolean</value>
   </data>
-  <data name="Designer.Graph.Port.ValueType.Color" xml:space="preserve">
+  <data name="Designer.Graph.Port.ValueType.Color">
     <value>Color</value>
   </data>
-  <data name="Designer.Graph.Port.ValueType.Control" xml:space="preserve">
+  <data name="Designer.Graph.Port.ValueType.Control">
     <value>Control Reference</value>
   </data>
-  <data name="Designer.Graph.Port.ValueType.Number" xml:space="preserve">
+  <data name="Designer.Graph.Port.ValueType.Number">
     <value>Number</value>
   </data>
-  <data name="Designer.Graph.Port.ValueType.Object" xml:space="preserve">
+  <data name="Designer.Graph.Port.ValueType.Object">
     <value>Any</value>
   </data>
-  <data name="Designer.Graph.Port.ValueType.String" xml:space="preserve">
+  <data name="Designer.Graph.Port.ValueType.String">
     <value>String</value>
   </data>
-  <data name="Designer.Graph.PortKind.Flow" xml:space="preserve">
+  <data name="Designer.Graph.PortKind.Flow">
     <value>Flow</value>
   </data>
-  <data name="Designer.Graph.PortKind.Value" xml:space="preserve">
+  <data name="Designer.Graph.PortKind.Value">
     <value>Value</value>
   </data>
-  <data name="Designer.Graph.Tooltip.CompatibleHint" xml:space="preserve">
+  <data name="Designer.Graph.Tooltip.CompatibleHint">
     <value>Only compatible with same type ports</value>
   </data>
-  <data name="Designer.Graph.Tooltip.PortKind" xml:space="preserve">
+  <data name="Designer.Graph.Tooltip.PortKind">
     <value>Port Kind</value>
   </data>
-  <data name="Designer.Graph.Tooltip.PortType" xml:space="preserve">
+  <data name="Designer.Graph.Tooltip.PortType">
     <value>Value Type</value>
   </data>
-  <data name="Designer.Graph.Target.LockOverlay" xml:space="preserve">
+  <data name="Designer.Graph.Target.LockOverlay">
     <value>LockOverlay</value>
   </data>
-  <data name="Designer.Graph.Target.PickingBorder" xml:space="preserve">
+  <data name="Designer.Graph.Target.PickingBorder">
     <value>PickingBorder</value>
   </data>
-  <data name="Designer.Graph.Target.FormatPart" xml:space="preserve">
+  <data name="Designer.Graph.Target.FormatPart">
     <value>{0}.{1}</value>
   </data>
-  <data name="Designer.Behaviors.FilterHint.Action" xml:space="preserve">
+  <data name="Designer.Behaviors.FilterHint.Action">
     <value>Use enum values such as PickSur, PickHun, BanSur.</value>
   </data>
-  <data name="Designer.Behaviors.FilterHint.Indexes" xml:space="preserve">
+  <data name="Designer.Behaviors.FilterHint.Indexes">
     <value>For string contains filters, prefer IndexesText / PreviousIndexesText.</value>
   </data>
-  <data name="Designer.Behaviors.FilterHint.IndexesText" xml:space="preserve">
+  <data name="Designer.Behaviors.FilterHint.IndexesText">
     <value>Formatted as [0] or [1, 2]. Use Contains 0 to match index 0.</value>
   </data>
-  <data name="Designer.Behaviors.MoreOptions" xml:space="preserve">
+  <data name="Designer.Behaviors.MoreOptions">
     <value>More behavior actions</value>
   </data>
-  <data name="Designer.Behaviors.TargetMissingPickingBorder" xml:space="preserve">
+  <data name="Designer.Behaviors.TargetMissingPickingBorder">
     <value>Target control does not have Picking Border enabled.</value>
   </data>
-  <data name="Designer.Behaviors.TargetMissingLockOverlay" xml:space="preserve">
+  <data name="Designer.Behaviors.TargetMissingLockOverlay">
     <value>Target control does not have Ban Lock / Lock Overlay enabled.</value>
   </data>
-  <data name="Designer.Behaviors.TargetIndexUnavailable" xml:space="preserve">
+  <data name="Designer.Behaviors.TargetIndexUnavailable">
     <value>Target control index cannot be inferred.</value>
   </data>
-  <data name="Designer.Behaviors.SourceIndexUnavailable" xml:space="preserve">
+  <data name="Designer.Behaviors.SourceIndexUnavailable">
     <value>Source control index cannot be inferred.</value>
   </data>
-  <data name="Designer.Behaviors.DefaultName" xml:space="preserve">
+  <data name="Designer.Behaviors.DefaultName">
     <value>Behavior</value>
   </data>
-  <data name="Designer.Behaviors.CopyNameFormat" xml:space="preserve">
+  <data name="Designer.Behaviors.CopyNameFormat">
     <value>{0} Copy</value>
   </data>
-  <data name="Designer.Behaviors.MissingAnimationPart" xml:space="preserve">
+  <data name="Designer.Behaviors.MissingAnimationPart">
     <value>Animation part '{0}' is missing for control {1}.</value>
   </data>
-  <data name="Designer.Behaviors.AddTransition" xml:space="preserve">
+  <data name="Designer.Behaviors.AddTransition">
     <value>Add transition</value>
   </data>
-  <data name="Designer.Behaviors.Transition" xml:space="preserve">
+  <data name="Designer.Behaviors.Transition">
     <value>Transition</value>
   </data>
-  <data name="Designer.Behaviors.NewTransition" xml:space="preserve">
+  <data name="Designer.Behaviors.NewTransition">
     <value>New Transition Behavior</value>
   </data>
-  <data name="Designer.Behaviors.TransitionTrigger" xml:space="preserve">
+  <data name="Designer.Behaviors.TransitionTrigger">
     <value>Transition trigger</value>
   </data>
-  <data name="Designer.Behaviors.TransitionHelp" xml:space="preserve">
+  <data name="Designer.Behaviors.TransitionHelp">
     <value>ExitGraph runs before data changes. EnterGraph runs after data changes.</value>
   </data>
-  <data name="Designer.Behaviors.ExitGraph" xml:space="preserve">
+  <data name="Designer.Behaviors.ExitGraph">
     <value>Exit animation</value>
   </data>
-  <data name="Designer.Behaviors.EnterGraph" xml:space="preserve">
+  <data name="Designer.Behaviors.EnterGraph">
     <value>Enter animation</value>
   </data>
-  <data name="Designer.Behaviors.Event.CharacterPick" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.CharacterPick">
     <value>Character pick transition</value>
   </data>
-  <data name="Designer.Behaviors.Event.CharacterPick.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.CharacterPick.Description">
     <value>Runs transition graphs before and after a character pick commit.</value>
   </data>
-  <data name="Designer.Behaviors.Event.CharacterSwap" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.CharacterSwap">
     <value>Survivor swap transition</value>
   </data>
-  <data name="Designer.Behaviors.Event.CharacterSwap.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.CharacterSwap.Description">
     <value>Runs transition graphs before and after a survivor character swap commit.</value>
   </data>
-  <data name="Designer.Behaviors.Payload.TargetBehaviorGuid" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.TargetBehaviorGuid">
     <value>Target behavior ID</value>
   </data>
-  <data name="Designer.Behaviors.Payload.OldCharacterId" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.OldCharacterId">
     <value>Old character ID</value>
   </data>
-  <data name="Designer.Behaviors.Payload.NewCharacterId" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.NewCharacterId">
     <value>New character ID</value>
   </data>
-  <data name="Designer.Behaviors.Payload.HasOldCharacter" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.HasOldCharacter">
     <value>Has old character</value>
   </data>
-  <data name="Designer.Behaviors.Payload.HasNewCharacter" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.HasNewCharacter">
     <value>Has new character</value>
   </data>
-  <data name="Designer.Behaviors.Payload.SourceIndex" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.SourceIndex">
     <value>Source index</value>
   </data>
-  <data name="Designer.Behaviors.Payload.TargetIndex" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.TargetIndex">
     <value>Target index</value>
   </data>
-  <data name="Designer.Behaviors.Payload.SourceBehaviorGuid" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.SourceBehaviorGuid">
     <value>Source behavior ID</value>
   </data>
-  <data name="Designer.Behaviors.StopTriggers" xml:space="preserve">
+  <data name="Designer.Behaviors.StopTriggers">
     <value>Stop triggers</value>
   </data>
-  <data name="Designer.Behaviors.StopTrigger" xml:space="preserve">
+  <data name="Designer.Behaviors.StopTrigger">
     <value>Stop trigger</value>
   </data>
-  <data name="Designer.Behaviors.AddStopTrigger" xml:space="preserve">
+  <data name="Designer.Behaviors.AddStopTrigger">
     <value>Add stop trigger</value>
   </data>
-  <data name="Designer.Behaviors.StopTriggersHelp" xml:space="preserve">
+  <data name="Designer.Behaviors.StopTriggersHelp">
     <value>The loop stops when any stop trigger matches, then StopGraph runs.</value>
   </data>
-  <data name="Designer.Behaviors.StopAnimation" xml:space="preserve">
+  <data name="Designer.Behaviors.StopAnimation">
     <value>Stop animation</value>
   </data>
-  <data name="Designer.Behaviors.Event.GuidanceCancelled" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.GuidanceCancelled">
     <value>Guidance cancelled</value>
   </data>
-  <data name="Designer.Behaviors.Event.GuidanceCancelled.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Event.GuidanceCancelled.Description">
     <value>Fires when guidance is cancelled by the user.</value>
   </data>
-  <data name="Designer.Behaviors.Payload.Reason" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.Reason">
     <value>Reason</value>
   </data>
-  <data name="Designer.Behaviors.Payload.Camp.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.Camp.Description">
     <value>The character's camp.</value>
   </data>
-  <data name="Designer.Behaviors.Payload.PlayerIndex.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.PlayerIndex.Description">
     <value>The player index associated with the selection.</value>
   </data>
-  <data name="Designer.Behaviors.Payload.TargetBehaviorGuid.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.TargetBehaviorGuid.Description">
     <value>The stable behavior ID of the target control.</value>
   </data>
-  <data name="Designer.Behaviors.Payload.OldCharacterId.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.OldCharacterId.Description">
     <value>The character ID before the change.</value>
   </data>
-  <data name="Designer.Behaviors.Payload.NewCharacterId.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.NewCharacterId.Description">
     <value>The character ID after the change.</value>
   </data>
-  <data name="Designer.Behaviors.Payload.HasOldCharacter.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.HasOldCharacter.Description">
     <value>Whether a character existed before the change.</value>
   </data>
-  <data name="Designer.Behaviors.Payload.HasNewCharacter.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.HasNewCharacter.Description">
     <value>Whether a character exists after the change.</value>
   </data>
-  <data name="Designer.Behaviors.Payload.SourceIndex.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.SourceIndex.Description">
     <value>The source player index of the swap.</value>
   </data>
-  <data name="Designer.Behaviors.Payload.TargetIndex.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.TargetIndex.Description">
     <value>The target player index of the swap.</value>
   </data>
-  <data name="Designer.Behaviors.Payload.SourceBehaviorGuid.Description" xml:space="preserve">
+  <data name="Designer.Behaviors.Payload.SourceBehaviorGuid.Description">
     <value>The stable behavior ID of the source control.</value>
   </data>
-  <data name="Designer.Graph.Condition.If" xml:space="preserve">
+  <data name="Designer.Graph.Condition.If">
     <value>IF</value>
   </data>
-  <data name="Designer.Graph.Preview.MissingEventContext" xml:space="preserve">
+  <data name="Designer.Graph.Preview.MissingEventContext">
     <value>The current preview has no event context, so {0} cannot be resolved.</value>
+  </data>
+  <data name="Designer.AnimationParts.Title">
+    <value>Animation Parts</value>
+  </data>
+  <data name="Designer.AnimationParts.DefaultName">
+    <value>AnimationPart</value>
+  </data>
+  <data name="Designer.AnimationParts.Add">
+    <value>Add part</value>
+  </data>
+  <data name="Designer.AnimationParts.Remove">
+    <value>Remove part</value>
+  </data>
+  <data name="Designer.AnimationParts.Apply">
+    <value>Apply animation part changes</value>
+  </data>
+  <data name="Designer.AnimationParts.InvalidName">
+    <value>Animation part name is required and must be unique within the control.</value>
+  </data>
+  <data name="Designer.AnimationParts.Description">
+    <value>Animation parts are helper visuals attached inside the selected control. They do not appear as independent canvas controls.</value>
+  </data>
+  <data name="Designer.AnimationParts.Empty">
+    <value>This control has no animation parts yet</value>
+  </data>
+  <data name="Designer.AnimationParts.EditorTitle">
+    <value>Part settings</value>
+  </data>
+  <data name="Designer.AnimationParts.NamePlaceholder">
+    <value>For example: scanLine, shine, or wipeBar</value>
+  </data>
+  <data name="Designer.AnimationParts.Kind">
+    <value>Type</value>
+  </data>
+  <data name="Designer.AnimationParts.Kind.Rectangle">
+    <value>Rectangle</value>
+  </data>
+  <data name="Designer.AnimationParts.Kind.Border">
+    <value>Border</value>
+  </data>
+  <data name="Designer.AnimationParts.Kind.Image">
+    <value>Image</value>
+  </data>
+  <data name="Designer.AnimationParts.Layer">
+    <value>Render layer</value>
+  </data>
+  <data name="Designer.AnimationParts.Layer.AboveContent">
+    <value>Above content</value>
+  </data>
+  <data name="Designer.AnimationParts.Layer.BelowContent">
+    <value>Below content</value>
+  </data>
+  <data name="Designer.AnimationParts.LayoutSection">
+    <value>Layout and initial state</value>
+  </data>
+  <data name="Designer.AnimationParts.AppearanceSection">
+    <value>Appearance</value>
+  </data>
+  <data name="Designer.AnimationParts.SizePlaceholder">
+    <value>Pixels or percentage, such as 100%</value>
+  </data>
+  <data name="Designer.AnimationParts.Fill">
+    <value>Fill color</value>
+  </data>
+  <data name="Designer.AnimationParts.Stroke">
+    <value>Stroke color</value>
+  </data>
+  <data name="Designer.AnimationParts.Background">
+    <value>Background color</value>
+  </data>
+  <data name="Designer.AnimationParts.BorderBrush">
+    <value>Border color</value>
+  </data>
+  <data name="Designer.AnimationParts.BorderThickness">
+    <value>Border thickness</value>
+  </data>
+  <data name="Designer.AnimationParts.StaticImage">
+    <value>Static image</value>
+  </data>
+  <data name="Designer.AnimationParts.NoImageSelected">
+    <value>No image selected</value>
+  </data>
+  <data name="Designer.AnimationParts.ImagePathPlaceholder">
+    <value>Image resource path inside the layout package</value>
+  </data>
+  <data name="Designer.AnimationParts.IsHitTestVisible">
+    <value>Allow the part to participate in mouse hit testing</value>
+  </data>
+  <data name="Designer.AnimationParts.Validation.FixErrors">
+    <value>Fix the input errors in the animation part settings before applying.</value>
+  </data>
+  <data name="Designer.AnimationParts.Validation.Size">
+    <value>Enter a non-negative pixel value or percentage, such as 4 or 100%.</value>
+  </data>
+  <data name="Designer.AnimationParts.Validation.Number">
+    <value>Enter a valid number.</value>
+  </data>
+  <data name="Designer.AnimationParts.Validation.NonNegativeNumber">
+    <value>Enter a number greater than or equal to 0.</value>
+  </data>
+  <data name="Designer.AnimationParts.Validation.Opacity">
+    <value>Opacity must be a number from 0 to 1.</value>
+  </data>
+  <data name="Designer.AnimationParts.Validation.Integer">
+    <value>Enter a valid integer.</value>
+  </data>
+  <data name="Designer.AnimationParts.Validation.Color">
+    <value>Enter a valid color, such as #FFFFFFFF or White.</value>
+  </data>
+  <data name="Designer.AnimationParts.EffectSection">
+    <value>Visual effect</value>
+  </data>
+  <data name="Designer.AnimationParts.EffectKind">
+    <value>Effect kind</value>
+  </data>
+  <data name="Designer.AnimationParts.EffectKind.None">
+    <value>None</value>
+  </data>
+  <data name="Designer.AnimationParts.EffectKind.Glow">
+    <value>Glow</value>
+  </data>
+  <data name="Designer.AnimationParts.EffectKind.DropShadow">
+    <value>Drop shadow</value>
+  </data>
+  <data name="Designer.AnimationParts.EffectColor">
+    <value>Effect color</value>
+  </data>
+  <data name="Designer.AnimationParts.EffectOpacity">
+    <value>Effect opacity</value>
+  </data>
+  <data name="Designer.AnimationParts.EffectBlurRadius">
+    <value>Blur radius</value>
+  </data>
+  <data name="Designer.AnimationParts.EffectShadowDepth">
+    <value>Shadow depth</value>
+  </data>
+  <data name="Designer.AnimationParts.EffectDirection">
+    <value>Direction</value>
+  </data>
+  <data name="Zoom">
+    <value>Zoom</value>
+  </data>
+  <data name="ZoomIn">
+    <value>Zoom In</value>
+  </data>
+  <data name="ZoomOut">
+    <value>Zoom Out</value>
+  </data>
+  <data name="BrowseFile">
+    <value>Browse file</value>
+  </data>
+  <data name="SaveAndApply">
+    <value>Save and apply</value>
+  </data>
+  <data name="BehaviorEventDebugger">
+    <value>Behavior Event Debugger</value>
+  </data>
+  <data name="CanvasName">
+    <value>CanvasName</value>
+  </data>
+  <data name="CopyConditionPath">
+    <value>Copy Condition Path</value>
+  </data>
+  <data name="CopyContainsFilter">
+    <value>Copy Contains Filter</value>
+  </data>
+  <data name="CopyEqualsFilter">
+    <value>Copy Equals Filter</value>
+  </data>
+  <data name="CopyEventJson">
+    <value>Copy Event JSON</value>
+  </data>
+  <data name="CopyIfCondition">
+    <value>Copy IF Condition</value>
+  </data>
+  <data name="CopyPath">
+    <value>Copy Path</value>
+  </data>
+  <data name="CopyValue">
+    <value>Copy Value</value>
+  </data>
+  <data name="DisplayValue">
+    <value>Display Value</value>
+  </data>
+  <data name="EnableListening">
+    <value>Enable Listening</value>
+  </data>
+  <data name="EventType">
+    <value>EventType</value>
+  </data>
+  <data name="ExportJson">
+    <value>Export JSON</value>
+  </data>
+  <data name="Filter">
+    <value>Filter</value>
+  </data>
+  <data name="FilterText">
+    <value>Filter Text</value>
+  </data>
+  <data name="MaxRecords">
+    <value>Max Records</value>
+  </data>
+  <data name="Pause">
+    <value>Pause</value>
+  </data>
+  <data name="PayloadSummary">
+    <value>Payload Summary</value>
+  </data>
+  <data name="RawValue">
+    <value>Raw Value</value>
+  </data>
+  <data name="WindowId">
+    <value>WindowId</value>
+  </data>
+  <data name="WindowType">
+    <value>WindowType</value>
+  </data>
+  <data name="Designer.LayoutReset" xml:space="preserve">
+    <value>The layout has been reset to the built-in defaults.</value>
+  </data>
+  <data name="Designer.FormatError" xml:space="preserve">
+    <value>Format error</value>
+  </data>
+  <data name="DiscardChanges">
+    <value>Discard changes</value>
   </data>
 </root>

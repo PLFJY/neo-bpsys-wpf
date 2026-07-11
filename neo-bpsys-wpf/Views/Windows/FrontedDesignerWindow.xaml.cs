@@ -1829,7 +1829,7 @@ public partial class FrontedDesignerWindow : FluentWindow
             I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, messageKey),
             I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "UnsavedChanges"),
             I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Save"),
-            I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "DiscardChanges"),
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "DiscardChanges"),
             I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"),
             width: 600,
             minWidth: 560,
@@ -1843,7 +1843,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         var messageBox = new Wpf.Ui.Controls.MessageBox
         {
             Owner = this,
-            Title = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ResetToBuiltIn"),
+            Title = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "ResetToBuiltIn"),
             Content = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "ResetLayoutConfirm"),
             PrimaryButtonText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"),
             PrimaryButtonIcon = new SymbolIcon { Symbol = SymbolRegular.ArrowClockwise24 },

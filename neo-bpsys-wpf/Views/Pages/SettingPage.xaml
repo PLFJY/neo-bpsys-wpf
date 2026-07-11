@@ -46,7 +46,9 @@
                 SelectedValuePath="Value">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
-                        <TextBlock Text="{lex:Loc {Binding Key}}" />
+                        <TextBlock
+                            Text="{lex:Loc {Binding Key}}"
+                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
@@ -158,7 +160,10 @@
                                                     <ColumnDefinition Width="Auto" />
                                                     <ColumnDefinition Width="*" />
                                                 </Grid.ColumnDefinitions>
-                                                <TextBlock Grid.Column="0" Text="{lex:Loc {Binding DisplayNameKey}, FallbackBehavior=Key}" />
+                                                <TextBlock
+                                                    Grid.Column="0"
+                                                    Text="{lex:Loc {Binding DisplayNameKey}, FallbackBehavior=Key}"
+                                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
                                                 <TextBlock
                                                     Grid.Column="1"
                                                     Margin="8,0,0,0"
@@ -412,7 +417,7 @@
                     <ui:Button
                         Margin="0,0,10,0"
                         Command="{Binding ResetSmartBpModuleRootCommand}"
-                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell"
+                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
                         Content="{lex:Loc ResetToBuiltIn}"
                         Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                     <ui:Button
@@ -575,7 +580,9 @@
                         SelectedValuePath="Value">
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{lex:Loc {Binding Key}}" />
+                                <TextBlock
+                                    Text="{lex:Loc {Binding Key}}"
+                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Settings" />
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                     </ComboBox>

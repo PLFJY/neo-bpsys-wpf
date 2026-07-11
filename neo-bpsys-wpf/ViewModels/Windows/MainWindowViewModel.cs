@@ -242,7 +242,7 @@ public partial class MainWindowViewModel :
         catch (JsonException ex)
         {
             await MessageBoxHelper.ShowErrorAsync(
-                $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "JsonFileFormatError")}\n{ex.Message}");
+                $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "JsonFileFormatError")}\n{ex.Message}");
             _logger.LogError("Import game info failed: JSON format error\n{ExMessage}", ex.Message);
         }
         catch (Exception ex)
@@ -292,7 +292,7 @@ public partial class MainWindowViewModel :
         GameAction.BanSur => I18nHelper.GetLocalizedString(AppI18nDictionaries.Bp, "BanSurvivor"),
         GameAction.BanHun => I18nHelper.GetLocalizedString(AppI18nDictionaries.Bp, "BanHunter"),
         GameAction.PickSur => I18nHelper.GetLocalizedString(AppI18nDictionaries.Bp, "PickSurvivor"),
-        GameAction.DistributeChara => I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "DistributeCharacters"),
+        GameAction.DistributeChara => I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, "DistributeCharacters"),
         GameAction.PickHun => I18nHelper.GetLocalizedString(AppI18nDictionaries.Bp, "PickHunter"),
         GameAction.PickSurTalent => I18nHelper.GetLocalizedString(AppI18nDictionaries.Bp, "PickSurTalent"),
         GameAction.PickHunTalent => I18nHelper.GetLocalizedString(AppI18nDictionaries.Bp, "PickHunTalent"),
