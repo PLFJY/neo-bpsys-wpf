@@ -6,620 +6,620 @@
   <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
   <!-- MainWindow.Tutorials.cs -->
   <data name="Step.MainNavigationFrontManage.0.Title">
-    <value>进入前台管理</value>
+    <value>Enter Frontend Management</value>
   </data>
   <data name="Step.MainNavigationFrontManage.0.Description">
-    <value>先进入前台管理页面，打开 BP 前台窗口供 OBS 捕获。</value>
+    <value>First enter the Frontend Management page, then open the BP frontend window for OBS to capture.</value>
   </data>
   <data name="Step.MainNavigationTeamInfo.0.Title">
-    <value>进入队伍管理</value>
+    <value>Enter Team Management</value>
   </data>
   <data name="Step.MainNavigationTeamInfo.0.Description">
-    <value>进入队伍管理页面，设置教学使用的队伍信息。</value>
+    <value>Enter the Team Management page to set up the Team Information used for this tutorial.</value>
   </data>
   <data name="Step.MainNavigationScore.0.Title">
-    <value>进入比分页面</value>
+    <value>Enter the Score page</value>
   </data>
   <data name="Step.MainNavigationScore.0.Description">
-    <value>进入比分页面，选择当前半场的比分结果。</value>
+    <value>Enter the Score page to select the Score result for the current Half.</value>
   </data>
   <data name="Step.MainNavigationSmartBp.0.Title">
-    <value>进入智慧 BP</value>
+    <value>Enter Smart BP</value>
   </data>
   <data name="Step.MainNavigationSmartBp.0.Description">
-    <value>智慧 BP 是独立模块，首次进入后会有单独教程。</value>
+    <value>Smart BP is a standalone module; a separate tutorial will start when you enter it for the first time.</value>
   </data>
   <data name="Step.MainNavigationDesignerV3.0.Title">
-    <value>前台界面编辑</value>
+    <value>Frontend interface editing</value>
   </data>
   <data name="Step.MainNavigationDesignerV3.0.Description">
-    <value>前台界面编辑、布局编辑和动画行为编辑，会在首次打开 v3 编辑器时单独教学。</value>
+    <value>Frontend interface editing, layout editing, and animation behavior editing will be covered in a separate tutorial when you first open the v3 editor.</value>
   </data>
   <data name="Step.MainTeamSummaryBasic.0.Title">
-    <value>确认队伍信息</value>
+    <value>Confirm Team Information</value>
   </data>
   <data name="Step.MainTeamSummaryBasic.0.Description">
-    <value>队伍名已经显示在 MainWindow 上方功能区。这里也可以进行换边。</value>
+    <value>The team name is already shown in the function area at the top of the MainWindow. You can also Swap here.</value>
   </data>
   <data name="Step.MainNavigationBasic.0.Title">
-    <value>进入队伍管理</value>
+    <value>Enter Team Management</value>
   </data>
   <data name="Step.MainNavigationBasic.0.Description">
-    <value>先进入队伍管理页面，我们会设置本次教学使用的队伍。</value>
+    <value>First enter the Team Management page, then we will set up the team used for this tutorial.</value>
   </data>
   <data name="Step.GameManageGameProgressBo1FirstHalf.0.Title">
-    <value>选择场次</value>
+    <value>Select Game</value>
   </data>
   <data name="Step.GameManageGameProgressBo1FirstHalf.0.Description">
-    <value>现在选择本次教学使用的场次。我们先从 BO1 上半开始。</value>
+    <value>Now select the Game used for this tutorial. Let's start with BO1 first half.</value>
   </data>
   <data name="Step.GameManageNewGameBasic.0.Title">
-    <value>新建对局</value>
+    <value>New game</value>
   </data>
   <data name="Step.GameManageNewGameBasic.0.Description">
-    <value>新建对局会清空当前局的选择结果，但会保留全局禁选记录。</value>
+    <value>A New game will clear the selection results of the current game, but will keep the Global ban records.</value>
   </data>
   <data name="Step.GameManageGlobalBanCarryOver.0.Title">
-    <value>全局禁选继承</value>
+    <value>Global ban carry over</value>
   </data>
   <data name="Step.GameManageGlobalBanCarryOver.0.Description">
-    <value>切换场次后，再次开启对局引导时，软件会自动导入之前的全局禁选记录，并设置对应 Ban 位。</value>
+    <value>After switching Games, when you start Game guidance again, the software will automatically import the previous Global ban records and set the corresponding Ban slots.</value>
   </data>
   <data name="Step.GameManageBasic.0.Title">
-    <value>确认场次</value>
+    <value>Confirm Game</value>
   </data>
   <data name="Step.GameManageBasic.0.Description">
-    <value>现在选择本次教学使用的场次。我们先从 BO1 上半开始。</value>
+    <value>Now select the Game used for this tutorial. Let's start with BO1 first half.</value>
   </data>
   <data name="Step.BpGameGuidanceStartBasic.0.Title">
-    <value>开启对局引导</value>
+    <value>Start Game guidance</value>
   </data>
   <data name="Step.BpGameGuidanceStartBasic.0.Description">
-    <value>对局引导会按照当前场次，带你完成地图、Ban/Pick 和后续流程。</value>
+    <value>Game guidance will walk you through the Map, Ban/Pick and subsequent steps based on the current Game.</value>
   </data>
   <data name="Step.BpGameGuidanceCurrentStepBasic.0.Title">
-    <value>查看当前步骤</value>
+    <value>View current step</value>
   </data>
   <data name="Step.BpGameGuidanceCurrentStepBasic.0.Description">
-    <value>这里会显示当前对局引导正在进行的步骤。每进入一个阶段，先看这里确认现在应该完成什么操作。</value>
+    <value>The current step of Game guidance is shown here. Each time you enter a stage, first check here to confirm what action you should complete now.</value>
   </data>
   <data name="Step.MapBpBanMapOperationBasic.0.Title">
-    <value>Ban 地图操作区域</value>
+    <value>Ban map operation area</value>
   </data>
   <data name="Step.MapBpBanMapOperationBasic.0.Description">
-    <value>现在完成 Ban 地图。对局引导会高亮当前需要操作的区域。请在这里完成地图禁用。</value>
+    <value>Now complete the Ban map. Game guidance will highlight the area that needs to be operated. Please complete the map ban here.</value>
   </data>
   <data name="Step.MapBpNextToPickMapBasic.0.Title">
-    <value>进入选择地图</value>
+    <value>Enter Pick map</value>
   </data>
   <data name="Step.MapBpNextToPickMapBasic.0.Description">
-    <value>Ban 地图完成后，点击下一步进入选择地图。</value>
+    <value>After Ban map is complete, click Next to enter Pick map.</value>
   </data>
   <data name="Step.MapBpPickMapOperationBasic.0.Title">
-    <value>选择地图</value>
+    <value>Pick map</value>
   </data>
   <data name="Step.MapBpPickMapOperationBasic.0.Description">
-    <value>现在完成选择地图</value>
+    <value>Now complete Pick map</value>
   </data>
   <data name="Step.BpGameGuidanceEndBasic.0.Title">
-    <value>结束对局引导</value>
+    <value>End Game guidance</value>
   </data>
   <data name="Step.BpGameGuidanceEndBasic.0.Description">
-    <value>当前对局引导已经完成。点击这里结束引导，之后可以进入比分页面记录结果。</value>
+    <value>Current Game guidance is complete. Click here to end the guidance, then you can enter the Score page to record the result.</value>
   </data>
   <data name="Step.BpGameGuidanceBasic.0.Title">
-    <value>继续对局引导</value>
+    <value>Continue Game guidance</value>
   </data>
   <data name="Step.BpGameGuidanceBasic.0.Description">
-    <value>对局引导会按照当前场次，带你完成地图、Ban/Pick 和后续流程。</value>
+    <value>Game guidance will walk you through the Map, Ban/Pick and subsequent steps based on the current Game.</value>
   </data>
   <data name="Step.NextGameBasic.0.Title">
-    <value>点击进入下一局</value>
+    <value>Click to enter the next game</value>
   </data>
   <data name="Step.NextGameBasic.0.Description">
-    <value>当前对局结束后点击将场次切换到下一局</value>
+    <value>After the current game ends, click to switch the Game to the next one</value>
   </data>
   <!-- FrontedDesignerWindow.Tutorials.cs -->
   <data name="Step.DesignerV3LayoutEditBasic.0.Title">
-    <value>图层列表</value>
+    <value>Layer list</value>
   </data>
   <data name="Step.DesignerV3LayoutEditBasic.0.Description">
-    <value>图层列表显示当前布局里的控件。图层顺序会影响控件显示层级。</value>
+    <value>The Layer list shows the controls in the current Layout. The Layer Order affects the display Z-order of controls.</value>
   </data>
   <data name="Step.DesignerV3LayoutEditBasic.1.Title">
-    <value>调整图层顺序</value>
+    <value>Adjust Layer Order</value>
   </data>
   <data name="Step.DesignerV3LayoutEditBasic.1.Description">
-    <value>可以通过拖拽调整图层顺序。本教程不强制你拖拽图层。</value>
+    <value>You can adjust the Layer Order by dragging. This tutorial does not require you to drag Layers.</value>
   </data>
   <data name="Step.DesignerV3LayoutEditBasic.2.Title">
-    <value>预览画布</value>
+    <value>Preview Canvas</value>
   </data>
   <data name="Step.DesignerV3LayoutEditBasic.2.Description">
-    <value>中间画布显示最终前台效果。请试着点击画布上的一个控件来选中它并移动位置；也可以直接继续。</value>
+    <value>The middle Canvas shows the final Frontend result. Try clicking a control on the Canvas to select it and move its Position; you can also just continue.</value>
   </data>
   <data name="Step.DesignerV3LayoutEditBasic.3.Title">
-    <value>预览画布</value>
+    <value>Preview Canvas</value>
   </data>
   <data name="Step.DesignerV3LayoutEditBasic.3.Description">
-    <value>按住 Ctrl / 长按左键框选可以选择多个控件</value>
+    <value>Hold Ctrl / long-press left button to drag-select multiple controls</value>
   </data>
   <data name="Step.DesignerV3LayoutEditBasic.4.Title">
-    <value>预览画布</value>
+    <value>Preview Canvas</value>
   </data>
   <data name="Step.DesignerV3LayoutEditBasic.4.Description">
-    <value>按住 Shift 可以临时开启就近吸附和参考线</value>
+    <value>Hold Shift to temporarily enable nearby Snapping and Guides</value>
   </data>
   <data name="Step.DesignerV3LayoutEditBasic.5.Title">
-    <value>预览画布</value>
+    <value>Preview Canvas</value>
   </data>
   <data name="Step.DesignerV3LayoutEditBasic.5.Description">
-    <value>按住 Ctrl + 鼠标滚轮可以缩放画布，按住右键移动画布</value>
+    <value>Hold Ctrl + mouse wheel to Zoom the Canvas, hold the right button to move the Canvas</value>
   </data>
   <data name="Step.DesignerV3LayoutEditBasic.6.Title">
-    <value>保存布局</value>
+    <value>Save layout</value>
   </data>
   <data name="Step.DesignerV3LayoutEditBasic.6.Description">
-    <value>调整布局后，可以在顶部工具区保存当前布局。或直接按 Ctrl+S 保存</value>
+    <value>After adjusting the layout, you can save the current layout in the Top toolbar. Or press Ctrl+S directly to save</value>
   </data>
   <data name="Step.DesignerV3PropertyPanelBasic.0.Title">
-    <value>属性面板</value>
+    <value>PropertyGrid</value>
   </data>
   <data name="Step.DesignerV3PropertyPanelBasic.0.Description">
-    <value>选中控件后，右侧会显示属性。文本、颜色、图片、字体等都在这里修改。</value>
+    <value>After selecting a control, the properties are shown on the right. Text, Color, Image, Font, etc. can all be modified here.</value>
   </data>
   <data name="Step.DesignerV3PropertyPanelBasic.1.Title">
-    <value>属性编辑器</value>
+    <value>Property editor</value>
   </data>
   <data name="Step.DesignerV3PropertyPanelBasic.1.Description">
-    <value>不同属性会显示不同编辑器。有些属性需要点击确认按钮才会应用。</value>
+    <value>Different properties show different editors. Some properties require clicking the Confirm button to be applied.</value>
   </data>
   <data name="Step.DesignerV3PropertyPanelBasic.2.Title">
-    <value>应用属性</value>
+    <value>Apply Property</value>
   </data>
   <data name="Step.DesignerV3PropertyPanelBasic.2.Description">
-    <value>如果属性非法，会显示错误状态。本教程不强制你修改或应用属性。</value>
+    <value>If a property is invalid, an Error state will be shown. This tutorial does not require you to modify or apply properties.</value>
   </data>
   <data name="Step.DesignerV3HelpBasic.0.Title">
-    <value>查看详细说明</value>
+    <value>View detailed guide</value>
   </data>
   <data name="Step.DesignerV3HelpBasic.0.Description">
-    <value>右下角这个帮助按钮可以打开 v3 编辑器的详细说明。遇到属性、行为、动画或布局包规则不清楚时，可以点击这里查看详细 / 进阶说明。</value>
+    <value>This Help button in the bottom right can open the detailed guide for the v3 editor. When you are unclear about Property, Behavior, Animation, or Layout Packages rules, click here to view the detailed / Advanced guide.</value>
   </data>
   <data name="Dialogue.DesignerV3Overview.Lines">
-    <value>欢迎来到 v3 设计器。&#10;在这里你可以详细修改前台界面，包括布局位置、控件属性、图片资源和动画行为。</value>
+    <value>Welcome to the v3 designer.&#10;Here you can modify the Frontend interface in detail, including layout positions, control properties, image resources, and animation behaviors.</value>
   </data>
   <!-- FrontedBehaviorAnimationEditorWindow.Tutorials.cs -->
   <data name="Step.DesignerV3AnimationEditorOverview.0.Title">
-    <value>动画编辑器</value>
+    <value>Animation editor</value>
   </data>
   <data name="Step.DesignerV3AnimationEditorOverview.0.Description">
-    <value>这里编辑行为对应的动画动作。动画由时间、步骤和参数变化组成。</value>
+    <value>Here you edit the Animation actions for behaviors. An Animation consists of time, steps, and Parameter changes.</value>
   </data>
   <data name="Step.DesignerV3AnimationEditorOverview.1.Title">
-    <value>动画编辑器</value>
+    <value>Animation editor</value>
   </data>
   <data name="Step.DesignerV3AnimationEditorOverview.1.Description">
-    <value>长按左键框选可以选择多个节点</value>
+    <value>Long-press left button to drag-select multiple nodes</value>
   </data>
   <data name="Step.DesignerV3AnimationEditorOverview.2.Title">
-    <value>动画编辑器</value>
+    <value>Animation editor</value>
   </data>
   <data name="Step.DesignerV3AnimationEditorOverview.2.Description">
-    <value>按住 Ctrl + 鼠标滚轮可以缩放画布，按住右键移动画布</value>
+    <value>Hold Ctrl + mouse wheel to Zoom the Canvas, hold the right button to move the Canvas</value>
   </data>
   <data name="Step.DesignerV3AnimationEditorTimelineBasic.0.Title">
-    <value>节点步骤</value>
+    <value>Node steps</value>
   </data>
   <data name="Step.DesignerV3AnimationEditorTimelineBasic.0.Description">
-    <value>动画会按节点步骤顺序执行。你可以先理解结构，不需要为了完成教程创建关键帧。</value>
+    <value>Animations execute in Node step Order. You can first understand the Structure; you don't need to create Keyframes to complete the tutorial.</value>
   </data>
   <data name="Step.DesignerV3AnimationEditorTimelineBasic.1.Title">
-    <value>节点步骤</value>
+    <value>Node steps</value>
   </data>
   <data name="Step.DesignerV3AnimationEditorTimelineBasic.1.Description">
-    <value>动画按步骤顺序执行。不同阶段可以分别编辑进入、循环和停止动作。</value>
+    <value>Animations execute in step Order. Different stages can separately edit Enter, Loop, and stop actions.</value>
   </data>
   <data name="Step.DesignerV3AnimationEditorTimelineBasic.2.Title">
-    <value>节点步骤</value>
+    <value>Node steps</value>
   </data>
   <data name="Step.DesignerV3AnimationEditorTimelineBasic.2.Description">
-    <value>每个动画从“开始”节点开始，“结束”节点结束</value>
+    <value>Each Animation starts from the "Start node" and ends at the "End node"</value>
   </data>
   <data name="Step.DesignerV3AnimationEditorTimelineBasic.3.Title">
-    <value>动画属性节点</value>
+    <value>Animation property node</value>
   </data>
   <data name="Step.DesignerV3AnimationEditorTimelineBasic.3.Description">
-    <value>现在试着从左侧节点目录中拖出一个“动画属性”节点到画布上并选中它。选中后教程会自动继续；如果你已经有该节点，直接点选它即可。</value>
+    <value>Now try dragging an "Animation property" node from the Node catalog on the left onto the Canvas and select it. The tutorial will continue automatically after selection; if you already have this node, just click to select it.</value>
   </data>
   <data name="Step.DesignerV3AnimationEditorKeyFrameBasic.0.Title">
-    <value>动作参数</value>
+    <value>Action Parameter</value>
   </data>
   <data name="Step.DesignerV3AnimationEditorKeyFrameBasic.0.Description">
-    <value>参数用于描述位置、透明度、大小、颜色等变化。本教程不要求你创建或保存参数。</value>
+    <value>Parameters describe changes such as Position, Opacity, Size, and Color. This tutorial does not require you to create or save Parameters.</value>
   </data>
   <data name="Step.DesignerV3AnimationEditorKeyFrameBasic.1.Title">
-    <value>动作参数</value>
+    <value>Action Parameter</value>
   </data>
   <data name="Step.DesignerV3AnimationEditorKeyFrameBasic.1.Description">
-    <value>选中节点后，可以在这里编辑位置、透明度、大小、颜色等变化参数。</value>
+    <value>After selecting a node, you can edit the change Parameters for Position, Opacity, Size, Color, etc. here.</value>
   </data>
   <data name="Step.DesignerV3AnimationEditorPreviewBasic.0.Title">
-    <value>预览动画</value>
+    <value>Preview Animation</value>
   </data>
   <data name="Step.DesignerV3AnimationEditorPreviewBasic.0.Description">
-    <value>预览用于确认动作顺序和参数效果。本教程不强制保存动画。</value>
+    <value>Preview is used to confirm the Action Order and Parameter effects. This tutorial does not require you to save the Animation.</value>
   </data>
   <data name="Step.DesignerV3AnimationEditorPreviewBasic.1.Title">
-    <value>预览动画</value>
+    <value>Preview Animation</value>
   </data>
   <data name="Step.DesignerV3AnimationEditorPreviewBasic.1.Description">
-    <value>正式使用前建议预览动画效果，确认动作顺序和参数符合预期。确认无误后，可以按当前窗口的保存提示保存或应用；本教程不强制保存。</value>
+    <value>Before formal use, it is recommended to Preview the Animation effect to confirm that the Action Order and Parameters meet expectations. After confirming, you can save or apply according to the save prompt in the current window; this tutorial does not require you to save.</value>
   </data>
   <data name="Step.DesignerV3AnimationEditorPreviewBasic.2.Title">
-    <value>预览动画</value>
+    <value>Preview Animation</value>
   </data>
   <data name="Step.DesignerV3AnimationEditorPreviewBasic.2.Description">
-    <value>按住 Ctrl + 鼠标滚轮可以缩放预览区域，按住右键移动画布</value>
+    <value>Hold Ctrl + mouse wheel to Zoom the preview area, hold the right button to move the Canvas</value>
   </data>
   <data name="Step.DesignerV3AnimationEditorHelpBasic.0.Title">
-    <value>动画进阶说明</value>
+    <value>Animation Advanced guide</value>
   </data>
   <data name="Step.DesignerV3AnimationEditorHelpBasic.0.Description">
-    <value>右下角这个帮助按钮可以查看动画编辑器的详细 / 进阶说明。</value>
+    <value>This Help button in the bottom right can view the detailed / Advanced guide for the Animation editor.</value>
   </data>
   <data name="Dialogue.DesignerV3AnimationEditorOverview.Lines">
-    <value>欢迎来到动画编辑器。&#10;在这里你可以为前台的控件设置动画</value>
+    <value>Welcome to the Animation editor.&#10;Here you can set up Animations for Frontend controls</value>
   </data>
   <!-- SmartBpModuleContentView.Tutorials.cs -->
   <data name="Step.SmartBpOcrModelDownloadBasic.0.Title">
-    <value>识别模型管理</value>
+    <value>Recognition model management</value>
   </data>
   <data name="Step.SmartBpOcrModelDownloadBasic.0.Description">
-    <value>智慧 BP 的 OCR 识别需要本地模型。在这里选择识别引擎，并检查、下载、更新或切换智慧 BP 使用的 OCR 模型。</value>
+    <value>Smart BP OCR recognition requires a local model. Here you can select the Recognition engine, and check, Download, Update, or Switch the OCR model used by Smart BP.</value>
   </data>
   <data name="Step.SmartBpCaptureBasic.0.Title">
-    <value>选择游戏窗口</value>
+    <value>Select game window</value>
   </data>
   <data name="Step.SmartBpCaptureBasic.0.Description">
-    <value>先选择第五人格游戏窗口。第五人格游戏进程通常是 dwrg.exe。</value>
+    <value>First select the Identity V game window. The Identity V game process is usually dwrg.exe.</value>
   </data>
   <data name="Step.SmartBpCaptureBasic.1.Title">
-    <value>开始捕获</value>
+    <value>Start Capture</value>
   </data>
   <data name="Step.SmartBpCaptureBasic.1.Description">
-    <value>选择窗口后，SmartBP 可以捕获游戏画面。本教程不强制开始捕获，也不会等待捕获成功。</value>
+    <value>After selecting the window, SmartBP can Capture the game screen. This tutorial does not require you to start Capture, and will not wait for Capture to succeed.</value>
   </data>
   <data name="Step.SmartBpCaptureBasic.2.Title">
-    <value>预览捕获</value>
+    <value>Preview Capture</value>
   </data>
   <data name="Step.SmartBpCaptureBasic.2.Description">
-    <value>点击预览可以确认捕获画面是否正确。如果没有找到 dwrg.exe，也可以继续教程。</value>
+    <value>Click Preview to confirm whether the captured screen is correct. If dwrg.exe is not found, you can still continue the tutorial.</value>
   </data>
   <data name="Step.SmartBpCaptureBasic.3.Title">
-    <value>停止捕获</value>
+    <value>Stop Capture</value>
   </data>
   <data name="Step.SmartBpCaptureBasic.3.Description">
-    <value>如果捕获异常，可以停止捕获。</value>
+    <value>If Capture is abnormal, you can stop Capture.</value>
   </data>
   <data name="Step.SmartBpRegionEditorEntryBasic.0.Title">
-    <value>识别区域</value>
+    <value>Recognition Area</value>
   </data>
   <data name="Step.SmartBpRegionEditorEntryBasic.0.Description">
-    <value>识别区域决定 OCR 或视觉模型读取画面的哪些位置。不同阶段有不同区域，例如 Ban 求生、Ban 监管、Pick、赛后数据。点击此按钮可以打开识别区域编辑器。&#10;BP环节的识别区域</value>
+    <value>Recognition Area determines which positions on the screen the OCR or Vision model reads. Different stages have different areas, such as Ban Survivor, Ban Hunter, Pick, and Game statistics. Click this button to open the Recognition Area editor.&#10;Recognition Area for the BP stage</value>
   </data>
   <data name="Step.SmartBpFullBpFlowBasic.0.Title">
-    <value>全流程 BP</value>
+    <value>Full-flow BP</value>
   </data>
   <data name="Step.SmartBpFullBpFlowBasic.0.Description">
-    <value>全流程 BP 会根据当前比赛阶段自动识别。启动前请确认窗口捕获和识别区域正确。正式比赛中建议先预览确认，再启动。点击后会开始智慧 BP 的自动 BP 流程。</value>
+    <value>Full-flow BP will automatically recognize based on the current Match stage. Before starting, please confirm that window Capture and Recognition Area are correct. In formal matches, it is recommended to Preview and confirm first, then start. After clicking, the Smart BP automatic BP flow will begin.</value>
   </data>
   <data name="Dialogue.SmartBpOcrModelDownloadBasic.Lines">
-    <value>智慧BP 用于识别游戏画面并辅助填写 BP 和赛后数据。&#10;使用顺序是：下载 OCR 模型 -&gt; 捕获窗口 -&gt; 配置识别区域 -&gt; 开始使用相关功能</value>
+    <value>Smart BP is used to recognize the game screen and assist in filling in BP and Game statistics.&#10;The usage order is: Download OCR model -&gt; Capture window -&gt; configure Recognition Area -&gt; start using related features</value>
   </data>
   <data name="Dialogue.SmartBpPostGameAutoFill.Lines">
-    <value>对局结束后，智慧 BP 可以识别赛后数据并辅助填写。在赛后数据页面有“自动识别并填充赛后数据”的按钮&#10;识别的赛后数据会自动匹配角色</value>
+    <value>After the game ends, Smart BP can recognize Game statistics and assist in filling them in. On the Game statistics page there is an "Auto recognize and fill Game statistics" button&#10;Recognized Game statistics will automatically match Characters</value>
   </data>
   <!-- RegionEditorWindow.Tutorials.cs -->
   <data name="Step.SmartBpRegionEditorBasic.0.Title">
-    <value>区域预览</value>
+    <value>Area Preview</value>
   </data>
   <data name="Step.SmartBpRegionEditorBasic.0.Description">
-    <value>如果识别不准，优先检查识别区域是否对齐。可以通过预览画面调整区域。</value>
+    <value>If recognition is inaccurate, first check whether the Recognition Area is Aligned. You can adjust the area through the Preview screen.</value>
   </data>
   <data name="Step.SmartBpRegionEditorBasic.1.Title">
-    <value>区域列表</value>
+    <value>Area list</value>
   </data>
   <data name="Step.SmartBpRegionEditorBasic.1.Description">
-    <value>这里列出可配置的识别区域。本教程不强制拖拽区域。</value>
+    <value>The configurable Recognition Areas are listed here. This tutorial does not require you to drag areas.</value>
   </data>
   <data name="Step.SmartBpRegionEditorBasic.2.Title">
-    <value>保存区域</value>
+    <value>Save area</value>
   </data>
   <data name="Step.SmartBpRegionEditorBasic.2.Description">
-    <value>保存区域后再开始识别。本教程不强制保存，也不等待保存完成。</value>
+    <value>Save the area before starting recognition. This tutorial does not require you to save, and will not wait for saving to complete.</value>
   </data>
   <!-- FrontedWindowsView.Tutorials.cs -->
   <data name="Step.FrontManageWindowsBasic.0.Title">
-    <value>前台窗口</value>
+    <value>Frontend Windows</value>
   </data>
   <data name="Step.FrontManageWindowsBasic.0.Description">
-    <value>这里管理所有前台窗口。导播排查和控制窗口时，可以在这里查看窗口列表。</value>
+    <value>All Frontend Windows are managed here. When Broadcast troubleshoots and controls windows, you can view the window list here.</value>
   </data>
   <data name="Step.FrontManageWindowsBasic.1.Title">
-    <value>打开设计器</value>
+    <value>Open Designer</value>
   </data>
   <data name="Step.FrontManageWindowsBasic.1.Description">
-    <value>点击这里可以打开 v3 前台设计器，用来编辑前台布局、控件属性和动画行为。</value>
+    <value>Click here to open the v3 Frontend Designer, used to edit Frontend layout, control properties, and Animation behaviors.</value>
   </data>
   <data name="Step.FrontManageWindowsBasic.2.Title">
-    <value>打开全部窗口</value>
+    <value>Open all windows</value>
   </data>
   <data name="Step.FrontManageWindowsBasic.2.Description">
-    <value>“打开全部”会一次性打开所有前台窗口，适合导播开播前检查 OBS 捕获来源。它可能同时弹出多个窗口，本教程不会要求你必须点击。</value>
+    <value>"Open all" will open all Frontend Windows at once, suitable for Broadcast to check OBS Capture sources before going live. It may pop up multiple windows at the same time, and this tutorial will not require you to click it.</value>
   </data>
   <data name="Step.FrontManageWindowsBasic.3.Title">
-    <value>关闭全部窗口</value>
+    <value>Close all windows</value>
   </data>
   <data name="Step.FrontManageWindowsBasic.3.Description">
-    <value>“关闭全部”会一次性关闭所有前台窗口，适合导播收尾或排查窗口状态。本教程不会等待关闭操作完成。</value>
+    <value>"Close all" will close all Frontend Windows at once, suitable for Broadcast to wrap up or troubleshoot window states. This tutorial will not wait for the close operation to complete.</value>
   </data>
   <data name="Step.FrontManageWindowsBasic.4.Title">
-    <value>停止循环动画</value>
+    <value>Stop Loop Animation</value>
   </data>
   <data name="Step.FrontManageWindowsBasic.4.Description">
-    <value>如果前台循环动画异常，可以使用“停止所有循环动画”。这是导播排查动画状态时的控制功能。</value>
+    <value>If the Frontend Loop Animation is abnormal, you can use "Stop all Loop Animations". This is a control function for Broadcast to troubleshoot Animation states.</value>
   </data>
   <data name="Step.FrontManageWindowsBasic.5.Title">
-    <value>窗口分组</value>
+    <value>Window groups</value>
   </data>
   <data name="Step.FrontManageWindowsBasic.5.Description">
-    <value>这里按分组列出可管理的前台窗口。每个窗口都可以单独打开或关闭。</value>
+    <value>The manageable Frontend Windows are listed here by Window groups. Each window can be opened or closed individually.</value>
   </data>
   <data name="Step.FrontManageWindowsBasic.6.Title">
-    <value>单个窗口</value>
+    <value>Single window</value>
   </data>
   <data name="Step.FrontManageWindowsBasic.6.Description">
-    <value>单个窗口卡片可以独立打开或关闭对应前台窗口。</value>
+    <value>A single window card can independently open or close the corresponding Frontend window.</value>
   </data>
   <data name="Step.FrontManageOpenDesigner.0.Title">
-    <value>打开 v3 编辑器</value>
+    <value>Open v3 editor</value>
   </data>
   <data name="Step.FrontManageOpenDesigner.0.Description">
-    <value>v3 编辑器用于编辑前台布局、控件属性和动画行为。点击这里可以打开前台设计器。打开后会进入独立的 v3 编辑器教程。</value>
+    <value>The v3 editor is used to edit Frontend layout, control properties, and Animation behaviors. Click here to open the Frontend Designer. After opening, a separate v3 editor tutorial will start.</value>
   </data>
   <data name="Step.FrontManageBpWindowLaunchBasic.0.Title">
-    <value>启动 BP 前台窗口</value>
+    <value>Launch BP frontend window</value>
   </data>
   <data name="Step.FrontManageBpWindowLaunchBasic.0.Description">
-    <value>导播时，观众看到的是前台窗口。我们先只启动 BP 前台页面。</value>
+    <value>During Broadcast, what the audience sees is the Frontend window. Let's only launch the BP Frontend page first.</value>
   </data>
   <!-- TeamInfoPage.Tutorials.cs -->
   <data name="Step.TeamInfoTeamNameBasic.0.Title">
-    <value>填写队伍名称</value>
+    <value>Fill in Team name</value>
   </data>
   <data name="Step.TeamInfoTeamNameBasic.0.Description">
-    <value>这里可以设置队伍名称。先试着输入一个队伍名。</value>
+    <value>You can set the Team name here. First try entering a team name.</value>
   </data>
   <data name="Step.TeamInfoTeamNameBasic.1.Title">
-    <value>确认队伍名称</value>
+    <value>Confirm Team name</value>
   </data>
   <data name="Step.TeamInfoTeamNameBasic.1.Description">
-    <value>点击确认后，队伍名称会写入当前比赛数据。</value>
+    <value>After clicking Confirm, the Team name will be written into the current match data.</value>
   </data>
   <data name="Step.TeamInfoTeamNameBasic.2.Title">
-    <value>设置队伍 Logo</value>
+    <value>Set Team Logo</value>
   </data>
   <data name="Step.TeamInfoTeamNameBasic.2.Description">
-    <value>这里可以设置主队 Logo。本次导览可以直接点击下一步继续。</value>
+    <value>You can set the Home Team Logo here. For this tour, you can just click Next to continue.</value>
   </data>
   <data name="Step.TeamInfoJsonImportPreset.0.Title">
-    <value>导入狼队预设</value>
+    <value>Import Wolves Preset</value>
   </data>
   <data name="Step.TeamInfoJsonImportPreset.0.Description">
-    <value>点击导入后，在打开的文件对话框中选择“队伍信息导入示例-Wolves.json”。</value>
+    <value>After clicking Import, select "队伍信息导入示例-Wolves.json" in the opened File dialog.</value>
   </data>
   <data name="Step.TeamInfoJsonImportPreset.1.Title">
-    <value>调整狼队上场下场</value>
+    <value>Adjust Wolves Enter and Exit</value>
   </data>
   <data name="Step.TeamInfoJsonImportPreset.1.Description">
-    <value>导入后，在这里调整狼队成员的上场和下场状态。</value>
+    <value>After importing, adjust the Enter and Exit status of Wolves members here.</value>
   </data>
   <data name="Step.TeamInfoJsonImportPreset.2.Title">
-    <value>导入 GR 预设</value>
+    <value>Import GR Preset</value>
   </data>
   <data name="Step.TeamInfoJsonImportPreset.2.Description">
-    <value>点击导入后，在打开的文件对话框中选择“队伍信息导入示例-GR.json”。</value>
+    <value>After clicking Import, select "队伍信息导入示例-GR.json" in the opened File dialog.</value>
   </data>
   <data name="Step.TeamInfoJsonImportPreset.3.Title">
-    <value>调整 GR 上场下场</value>
+    <value>Adjust GR Enter and Exit</value>
   </data>
   <data name="Step.TeamInfoJsonImportPreset.3.Description">
-    <value>导入后，在这里调整 GR 成员的上场和下场状态。</value>
+    <value>After importing, adjust the Enter and Exit status of GR members here.</value>
   </data>
   <data name="Step.TeamInfoPlayerManage.0.Title">
-    <value>调整队伍成员顺序</value>
+    <value>Adjust Team member Order</value>
   </data>
   <data name="Step.TeamInfoPlayerManage.0.Description">
-    <value>这里可以调整当前上场队员的顺序，前台和 BP 流程会使用这些信息。</value>
+    <value>You can adjust the Order of the Players currently on the field here; the Frontend and BP flow will use this information.</value>
   </data>
   <data name="Hint.TeamInfoJsonImportPreset.HomePickerTitle">
-    <value>请导入狼队信息：选择“队伍信息导入示例-Wolves.json”</value>
+    <value>Please import Wolves information: select "队伍信息导入示例-Wolves.json"</value>
   </data>
   <data name="Hint.TeamInfoJsonImportPreset.AwayPickerTitle">
-    <value>请导入 GR 信息：选择“队伍信息导入示例-GR.json”</value>
+    <value>Please import GR information: select "队伍信息导入示例-GR.json"</value>
   </data>
   <!-- TalentPage.Tutorials.cs -->
   <data name="Step.BpTalentTraitBasic.0.Title">
-    <value>设置天赋和特质</value>
+    <value>Set Talent and Trait</value>
   </data>
   <data name="Step.BpTalentTraitBasic.0.Description">
-    <value>这里用于设置本局角色的天赋和特质。这些信息会用于前台展示和赛后记录。按比赛实际情况选择后继续引导。</value>
+    <value>This is used to set the Talent and Trait of the Characters in this game. This information will be used for Frontend display and post-game records. Select according to the actual match situation, then continue the guidance.</value>
   </data>
   <data name="Step.BpTalentTraitBasic.1.Title">
-    <value>求生者天赋</value>
+    <value>Survivor Talent</value>
   </data>
   <data name="Step.BpTalentTraitBasic.1.Description">
-    <value>这里设置四名求生者的天赋。本教程不强制完整填写。</value>
+    <value>Here you set the Talents of the four Survivors. This tutorial does not require you to fill them in completely.</value>
   </data>
   <data name="Step.BpTalentTraitBasic.2.Title">
-    <value>监管者特质</value>
+    <value>Hunter Trait</value>
   </data>
   <data name="Step.BpTalentTraitBasic.2.Description">
-    <value>这里设置监管者天赋和辅助特质。确认实际比赛信息后继续对局引导。</value>
+    <value>Here you set the Hunter Talent and Hunter trait. After confirming the actual match information, continue the Game guidance.</value>
   </data>
   <!-- ScorePage.Tutorials.cs -->
   <data name="Step.ScoreBasic.0.Title">
-    <value>选择比分</value>
+    <value>Select Score</value>
   </data>
   <data name="Step.ScoreBasic.0.Description">
-    <value>对局结束后，可以在这里选择比分。比分会同步到比赛状态和前台显示。</value>
+    <value>After the game ends, you can select the Score here. The Score will sync to the match state and Frontend display.</value>
   </data>
   <!-- PickPage.Tutorials.cs -->
   <data name="Step.BpPickSelectFourSurvivorsBasic.0.Title">
-    <value>完成四个求生者选择</value>
+    <value>Complete four Survivor selections</value>
   </data>
   <data name="Step.BpPickSelectFourSurvivorsBasic.0.Description">
-    <value>继续选择剩余求生者角色。四个求生者都选完后，再进入角色调整教学。</value>
+    <value>Continue selecting the remaining Survivor Characters. After all four Survivors are selected, enter the Character adjustment tutorial.</value>
   </data>
   <data name="Step.BpGlobalBanRecordBasic.0.Title">
-    <value>全局禁选记录</value>
+    <value>Global ban record</value>
   </data>
   <data name="Step.BpGlobalBanRecordBasic.0.Description">
-    <value>刚刚选择的角色会记录到全局禁选中。后续新对局会清空当前局选择，但会保留这些全局禁选记录。</value>
+    <value>The Characters just selected will be recorded in the Global ban. Subsequent New games will clear the current game selection, but will keep these Global ban records.</value>
   </data>
   <data name="Step.BpCharacterChangerBasic.0.Title">
-    <value>调整已选角色顺序</value>
+    <value>Adjust selected Character Order</value>
   </data>
   <data name="Step.BpCharacterChangerBasic.0.Description">
-    <value>在选择角色结束后，分配角色阶段，可以在这里使用角色调整功能。调整后会同步更新当前 BP 状态。&#10;点击数字按钮即可将当前玩家的求生者角色与对应位置的求生者角色进行互换</value>
+    <value>After selecting Characters, in the Distribute Characters stage, you can use the Character adjustment function here. After adjustment, the current BP state will be updated synchronously.&#10;Click the Number button to Swap the current Player's Survivor Character with the Survivor Character at the corresponding position</value>
   </data>
   <!-- FrontManagePage.Tutorials.cs -->
   <data name="Step.FrontManageOverview.0.Title">
-    <value>前台管理</value>
+    <value>Frontend Management</value>
   </data>
   <data name="Step.FrontManageOverview.0.Description">
-    <value>这里是前台管理页面。前台管理分为“前台窗口”和“布局包”两个区域。前台窗口负责打开、关闭观众看到的窗口。布局包负责导入、切换和管理前台界面方案。</value>
+    <value>This is the Frontend Management page. Frontend Management is divided into two areas: "Frontend Windows" and "Layout Packages". Frontend Windows is responsible for opening and closing the windows that the audience sees. Layout Packages is responsible for importing, switching, and managing Frontend interface schemes.</value>
   </data>
   <!-- BanSurPage.Tutorials.cs -->
   <data name="Step.BpCharacterSelectorBasic.0.Title">
-    <value>角色选择器教学</value>
+    <value>Character selector tutorial</value>
   </data>
   <data name="Step.BpCharacterSelectorBasic.0.Description">
-    <value>现在我们来教学角色选择器的使用</value>
+    <value>Now let's learn how to use the Character selector</value>
   </data>
   <data name="Step.BpCharacterSelectorBasic.1.Title">
-    <value>先按空格匹配角色</value>
+    <value>First press space to match Character</value>
   </data>
   <data name="Step.BpCharacterSelectorBasic.1.Description">
-    <value>这是角色选择器，不是普通下拉框。请先输入一个角色的全称、拼音全拼或简拼，然后按空格触发匹配。这一步先不要点确认。</value>
+    <value>This is a Character selector, not an ordinary Dropdown. First enter the full name, Full pinyin, or Abbreviated pinyin of a Character, then press space to trigger matching. Do not click Confirm in this step.</value>
   </data>
   <data name="Step.BpCharacterSelectorBasic.2.Title">
-    <value>确认角色选择</value>
+    <value>Confirm Character selection</value>
   </data>
   <data name="Step.BpCharacterSelectorBasic.2.Description">
-    <value>匹配到角色后，再按 Enter / Tab 或点击确认按钮完成选择。</value>
+    <value>After a Character is matched, press Enter / Tab or click the Confirm button to complete the selection.</value>
   </data>
   <!-- BehaviorPanelView.Tutorials.cs -->
   <data name="Step.DesignerV3BehaviorPanelOverview.0.Title">
-    <value>行为面板</value>
+    <value>Behavior panel</value>
   </data>
   <data name="Step.DesignerV3BehaviorPanelOverview.0.Description">
-    <value>展开行为区域后，可以为当前控件配置“触发条件 + 动作”。一次性行为、循环行为、过渡行为用途不同，可以分别处理点击后动画、持续循环和状态切换过渡。</value>
+    <value>After expanding the Behavior area, you can configure "Trigger + Action" for the current control. One-shot behaviors, Loop behaviors, and Transition behaviors have different purposes, and can respectively handle post-click Animation, continuous Loop, and State transition Transition.</value>
   </data>
   <data name="Step.DesignerV3BehaviorPanelOverview.1.Title">
-    <value>新增行为</value>
+    <value>Add Behavior</value>
   </data>
   <data name="Step.DesignerV3BehaviorPanelOverview.1.Description">
-    <value>这里可以新增一次性 / 循环 / 过渡行为。本教程不强制创建行为。</value>
+    <value>You can add One-shot / Loop / Transition behaviors here. This tutorial does not require you to create behaviors.</value>
   </data>
   <data name="Step.DesignerV3BehaviorPanelOverview.2.Title">
-    <value>行为列表</value>
+    <value>Behavior list</value>
   </data>
   <data name="Step.DesignerV3BehaviorPanelOverview.2.Description">
-    <value>每个行为都可以启用、复制、删除，并展开查看触发条件和动作配置。</value>
+    <value>Each Behavior can be enabled, Duplicated, Deleted, and Expanded to view the Trigger and Action configuration.</value>
   </data>
   <data name="Step.DesignerV3BehaviorPanelTriggerBasic.0.Title">
-    <value>触发条件</value>
+    <value>Trigger</value>
   </data>
   <data name="Step.DesignerV3BehaviorPanelTriggerBasic.0.Description">
-    <value>触发条件决定动画什么时候运行；没有创建行为时，可以先了解概念，之后展开具体行为再编辑。</value>
+    <value>The Trigger determines when the Animation runs; when no behavior is created, you can first understand the Concept, then Expand the specific behavior to edit later.</value>
   </data>
   <data name="Step.DesignerV3BehaviorPanelTriggerBasic.1.Title">
-    <value>触发条件</value>
+    <value>Trigger</value>
   </data>
   <data name="Step.DesignerV3BehaviorPanelTriggerBasic.1.Description">
-    <value>触发条件决定动画什么时候运行，例如按状态、事件或 payload 字段过滤。</value>
+    <value>The Trigger determines when the Animation runs, for example filtering by state, Event, or payload field.</value>
   </data>
   <data name="Step.DesignerV3BehaviorPanelActionBasic.0.Title">
-    <value>动作编辑</value>
+    <value>Action editing</value>
   </data>
   <data name="Step.DesignerV3BehaviorPanelActionBasic.0.Description">
-    <value>动作决定控件如何变化。你可以在需要时进入动画编辑器，不需要为了完成教程而创建或保存动画。</value>
+    <value>The Action determines how the control changes. You can enter the Animation editor when needed; you don't need to create or save Animations to complete the tutorial.</value>
   </data>
   <data name="Step.DesignerV3BehaviorPanelActionBasic.1.Title">
-    <value>动作编辑</value>
+    <value>Action editing</value>
   </data>
   <data name="Step.DesignerV3BehaviorPanelActionBasic.1.Description">
-    <value>点击后会进入动画编辑器，编辑具体动作、关键帧和参数。本教程不强制打开动画编辑器。</value>
+    <value>After clicking, you will enter the Animation editor to edit specific actions, Keyframes, and Parameters. This tutorial does not require you to open the Animation editor.</value>
   </data>
   <data name="Step.DesignerV3BehaviorPanelHelpBasic.0.Title">
-    <value>行为系统说明</value>
+    <value>Behavior system guide</value>
   </data>
   <data name="Step.DesignerV3BehaviorPanelHelpBasic.0.Description">
-    <value>右下角这个帮助按钮可以查看行为系统的详细 / 进阶说明。</value>
+    <value>This Help button in the bottom right can view the detailed / Advanced guide of the Behavior system.</value>
   </data>
   <!-- FirstRun Dialogues (App.Tour.xaml.cs) -->
   <data name="Dialogue.FirstRun.Opening">
-    <value>欢迎来到 neo-bpsys-wpf。&#10;现在我们来进行一下简单的导播教学。</value>
+    <value>Welcome to neo-bpsys-wpf.&#10;Now let's go through a simple Broadcast tutorial.</value>
   </data>
   <data name="Dialogue.FirstRun.Ending">
-    <value>前台界面编辑会在首次打开 v3 编辑器时单独教学。&#10;智慧 BP 会在首次进入智慧 BP 页面时单独教学。&#10;开始你的导播之旅吧。</value>
+    <value>Frontend interface editing will be covered in a separate tutorial when you first open the v3 editor.&#10;Smart BP will be covered in a separate tutorial when you first enter the Smart BP page.&#10;Start your Broadcast journey.</value>
   </data>
   <!-- Probe Dialogues (NeoBpsysTutorialFlows.cs) -->
   <data name="Dialogue.Probe.Navigation.Opening.Lines">
-    <value>现在我们验证左侧导航栏的教程引导。</value>
+    <value>Now let's verify the tutorial guidance of the left navigation bar.</value>
   </data>
   <data name="Dialogue.Probe.Navigation.Closing.Lines">
-    <value>导航引导验证完成。</value>
+    <value>Navigation guidance verification complete.</value>
   </data>
   <data name="Dialogue.Probe.RealTarget.Opening.Lines">
-    <value>现在开始验证真实页面目标和操作信号。</value>
+    <value>Now let's start verifying real page targets and operation signals.</value>
   </data>
   <data name="Dialogue.Probe.RealTarget.Closing.Lines">
-    <value>真实目标验证完成。完整教学流程会在后续版本中提供。</value>
+    <value>Real target verification complete. The full tutorial flow will be provided in subsequent versions.</value>
   </data>
   <!-- FrontedLayoutPackagesView.Tutorials.cs -->
   <data name="Step.FrontManageLayoutPackagesBasic.0.Title">
-    <value>布局包列表</value>
+    <value>Layout Packages list</value>
   </data>
   <data name="Step.FrontManageLayoutPackagesBasic.0.Description">
-    <value>这里列出所有可用的布局包。内置布局无法被直接修改。</value>
+    <value>All available Layout Packages are listed here. The Built-in layout cannot be modified directly.</value>
   </data>
   <data name="Step.FrontManageLayoutPackagesBasic.1.Title">
-    <value>修改布局包</value>
+    <value>Modify Layout Packages</value>
   </data>
   <data name="Step.FrontManageLayoutPackagesBasic.1.Description">
-    <value>尝试修改内置布局时会自动切换到一个新的用户自定义布局。</value>
+    <value>When you try to modify a Built-in layout, it will automatically Switch to a new User custom layout.</value>
   </data>
   <!-- FrontedDesignerWindow.Tutorials.cs — PackageImportExport -->
   <data name="Step.DesignerV3PackageImportExport.0.Title">
-    <value>保存、导入和导出</value>
+    <value>Save, Import, and Export</value>
   </data>
   <data name="Step.DesignerV3PackageImportExport.0.Description">
-    <value>在这里可以保存当前布局，也可以导入或导出布局包，方便在不同设备间共享。</value>
+    <value>Here you can save the current layout, and also Import or Export Layout Packages, making it easy to Share between different Devices.</value>
   </data>
   <data name="Step.DesignerV3PackageImportExport.1.Title">
-    <value>导出布局包</value>
+    <value>Export Layout Packages</value>
   </data>
   <data name="Step.DesignerV3PackageImportExport.1.Description">
-    <value>点击此处可以导出当前布局包，分享给其他设备使用。</value>
+    <value>Click here to Export the current Layout Packages and Share it for use on other Devices.</value>
   </data>
   <!-- FrontedDesignerWindow.Tutorials.cs — PropertyPanelBasic step 3 -->
   <data name="Step.DesignerV3PropertyPanelBasic.3.Title">
-    <value>行为和动画入口</value>
+    <value>Behavior and Animation entry</value>
   </data>
   <data name="Step.DesignerV3PropertyPanelBasic.3.Description">
-    <value>在属性面板下方可以找到行为和动画入口。点击添加行为按钮可以为控件添加行为和动画。</value>
+    <value>Below the PropertyGrid you can find the Behavior and Animation entry. Click the Add Behavior button to add behaviors and animations for the control.</value>
   </data>
 </root>
