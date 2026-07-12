@@ -337,9 +337,6 @@
   <data name="FrontendWidgets">
     <value>フロントエンド - ウィジェット</value>
   </data>
-<data name="FollowSystem">
-    <value>システムに従う</value>
-  </data>
 <data name="Timer">
     <value>タイマー</value>
   </data>

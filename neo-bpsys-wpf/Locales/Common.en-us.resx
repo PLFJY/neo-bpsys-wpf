@@ -73,6 +73,9 @@
   <data name="Settings">
     <value>Settings</value>
   </data>
+  <data name="FollowSystem">
+    <value>Follow system</value>
+  </data>
 <data name="Source">
     <value>Source</value>
   </data>

@@ -73,6 +73,9 @@
   <data name="Settings">
     <value>设置</value>
   </data>
+  <data name="FollowSystem">
+    <value>跟随系统</value>
+  </data>
   <data name="zh_Hans">
     <value>简体中文</value>
     <comment>此处en-US空着为正常现象</comment>

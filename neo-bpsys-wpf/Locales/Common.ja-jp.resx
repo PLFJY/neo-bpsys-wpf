@@ -73,6 +73,9 @@
   <data name="Settings">
     <value>設定</value>
   </data>
+  <data name="FollowSystem">
+    <value>システムに従う</value>
+  </data>
 <data name="Source">
     <value>ソース</value>
   </data>

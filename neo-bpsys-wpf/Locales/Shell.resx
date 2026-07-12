@@ -337,9 +337,6 @@
   <data name="FrontendWidgets">
     <value>前台-小组件</value>
   </data>
-<data name="FollowSystem">
-    <value>跟随系统</value>
-  </data>
 <data name="Timer">
     <value>计时器</value>
   </data>
