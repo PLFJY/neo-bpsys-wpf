@@ -2233,3 +2233,4 @@
 "Designer.LayoutReset","","neo-bpsys-wpf","Locales.Designer","1","Designer","objective UI ownership: Designer","False"
 "Designer.FormatError","","neo-bpsys-wpf","Locales.Designer","1","Designer","objective UI ownership: Designer","False"
 "Designer.Behaviors.Payload.GameProgress","","neo-bpsys-wpf","Locales.Designer","1","Designer","objective UI ownership: Designer","False"
+"CharacterSelectorSearchNoMatch","","neo-bpsys-wpf","Locales.Bp","1","CharacterSelectorStyle.xaml","single-domain usage: Bp (CharacterSelector search hint)","false"

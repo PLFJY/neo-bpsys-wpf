@@ -151,4 +151,7 @@
   <data name="Warp">
     <value>移形</value>
   </data>
+  <data name="CharacterSelectorSearchNoMatch">
+    <value>一致するキャラクターがないか、無効化されています</value>
+  </data>
 </root>

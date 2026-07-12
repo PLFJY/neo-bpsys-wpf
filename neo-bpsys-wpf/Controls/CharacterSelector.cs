@@ -118,7 +118,19 @@ public class CharacterSelector : Control
     /// <see cref="SelectedIndex"/> 依赖属性的标识符。
     /// </summary>
     public static readonly DependencyProperty SelectedIndexProperty =
-        DependencyProperty.Register(nameof(SelectedIndex), typeof(int), typeof(CharacterSelector), new FrameworkPropertyMetadata(-1, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+        DependencyProperty.Register(nameof(SelectedIndex), typeof(int), typeof(CharacterSelector), new FrameworkPropertyMetadata(-1, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnSelectedIndexChanged));
+
+    /// <summary>
+    /// 当 <see cref="SelectedIndex"/> 变为有效值（&gt;= 0）时清除搜索错误状态，
+    /// 覆盖下拉点选、外部绑定同步等成功选中场景。
+    /// </summary>
+    private static void OnSelectedIndexChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is CharacterSelector selector && (int)e.NewValue >= 0)
+        {
+            selector.IsSearchError = false;
+        }
+    }
 
     /// <summary>
     /// 获取或设置当前选中的项。
@@ -182,6 +194,22 @@ public class CharacterSelector : Control
             new PropertyMetadata(null));
 
     /// <summary>
+    /// 获取或设置一个值，指示当前搜索是否匹配失败（无匹配角色或匹配角色已被禁选）。
+    /// 为 true 时控件会显示黄色错误边框与提示文字；成功选中角色后自动清除。
+    /// </summary>
+    public bool IsSearchError
+    {
+        get => (bool)GetValue(IsSearchErrorProperty);
+        set => SetValue(IsSearchErrorProperty, value);
+    }
+
+    /// <summary>
+    /// <see cref="IsSearchError"/> 依赖属性的标识符。
+    /// </summary>
+    public static readonly DependencyProperty IsSearchErrorProperty =
+        DependencyProperty.Register(nameof(IsSearchError), typeof(bool), typeof(CharacterSelector), new PropertyMetadata(false));
+
+    /// <summary>
     /// 初始化角色选择器控件。
     /// </summary>
     public CharacterSelector()
@@ -201,10 +229,14 @@ public class CharacterSelector : Control
             {
                 var currentText = Text[..^1];
                 var foundIndex = FindIndex(currentText);
-                
+
                 SelectedIndex = foundIndex;
                 if (foundIndex == -1)
+                {
+                    IsSearchError = true;
                     return;
+                }
+                IsSearchError = false;
                 if (ItemsSource is SortedDictionary<string, Character> itemSource)
                     Text = itemSource.ElementAt(foundIndex).Key;
                 TutorialSignalPublisher.Publish(TutorialSignalIds.CharacterSelectorSearchCommitted, CreateSignalPayload());
@@ -223,6 +255,7 @@ public class CharacterSelector : Control
 
     /// <summary>
     /// 查找待匹配选项的索引。
+    /// 跳过 <see cref="DisabledKeys"/> 中已禁用的角色，确保搜索（简称/全称）不能绕过排斥机制。
     /// </summary>
     /// <param name="inputText"></param>
     /// <returns></returns>
@@ -232,6 +265,7 @@ public class CharacterSelector : Control
         if (ItemsSource is not SortedDictionary<string, Character> itemSource)
             return -1;
 
+        var disabled = DisabledKeys;
         var index = 0;
 
         foreach (var item in itemSource)
@@ -242,7 +276,11 @@ public class CharacterSelector : Control
             // Check whether the full prefix matches or the short prefix matches
             if (fullSpell.StartsWith(inputLower) || abbrev.StartsWith(inputLower) || fullName.StartsWith(inputText))
             {
-                return index;
+                // 跳过已禁用（被排斥）的角色，继续查找下一个未禁用的匹配项
+                if (disabled is null || !disabled.Contains(item.Key))
+                {
+                    return index;
+                }
             }
             index++;
         }

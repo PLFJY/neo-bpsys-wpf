@@ -152,4 +152,7 @@
   <data name="Warp">
     <value>移形</value>
   </data>
+  <data name="CharacterSelectorSearchNoMatch">
+    <value>未找到匹配角色或该角色已被禁选</value>
+  </data>
 </root>
