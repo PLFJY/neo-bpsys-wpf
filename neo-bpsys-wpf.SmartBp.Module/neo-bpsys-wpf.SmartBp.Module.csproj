@@ -16,9 +16,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Downloader" Version="5.9.0" ExcludeAssets="runtime" />
-    <PackageReference Include="OpenCvSharp4.Windows.Slim" Version="4.13.0.20260602" />
-    <PackageReference Include="OpenCvSharp4.WpfExtensions" Version="4.13.0.20260602" />
+    <PackageReference Include="Downloader" Version="5.9.4" ExcludeAssets="runtime" />
+    <PackageReference Include="OpenCvSharp4.Windows.Slim" Version="4.13.0.20260627" />
+    <PackageReference Include="OpenCvSharp4.WpfExtensions" Version="4.13.0.20260627" />
     <PackageReference Include="RapidOcrNet" Version="2.0.0" />
     <PackageReference Include="Sdcb.PaddleInference.runtime.win64.mkl" Version="3.3.1.70" />
     <PackageReference Include="Sdcb.PaddleOCR" Version="3.3.1" />

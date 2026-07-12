@@ -61,6 +61,19 @@ public sealed class OcrService : IOcrService
     }
 
     /// <inheritdoc />
+    public bool IsModelLoading => _paddle.IsModelLoading;
+
+    /// <inheritdoc />
+    public event EventHandler? ModelLoadStateChanged
+    {
+        add => _paddle.ModelLoadStateChanged += value;
+        remove => _paddle.ModelLoadStateChanged -= value;
+    }
+
+    /// <inheritdoc />
+    public void StartLoadingPreferredModel() => _paddle.StartLoadingPreferredModel();
+
+    /// <inheritdoc />
     public SmartBpOcrProviderStatus GetProviderStatus(SmartBpOcrProviderKind kind)
     {
         if (kind == SmartBpOcrProviderKind.Paddle)

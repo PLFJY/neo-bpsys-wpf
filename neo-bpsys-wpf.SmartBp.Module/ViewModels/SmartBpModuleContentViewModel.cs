@@ -146,8 +146,9 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         _smartBpModuleStorage = smartBpModuleStorage;
         InitializeAiRecognition();
         _ocrService.DownloadStateChanged += OcrService_DownloadStateChanged;
+        _ocrService.ModelLoadStateChanged += OcrService_ModelLoadStateChanged;
         // 配置被保存/导入/重置时同步刷新比例状态展示。
-        _regionConfigService.GameDataProfileChanged += (_, _) => RunOnUiThread(RefreshRegionAspectInfo);
+        _regionConfigService.GameDataProfileChanged += (_, _) => BeginOnUiThread(RefreshRegionAspectInfo);
         _captureAspectRefreshTimer = new DispatcherTimer
         {
             Interval = TimeSpan.FromMilliseconds(300)
@@ -173,7 +174,13 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
 
         RefreshOcrModelStatus();
         SyncDownloadStateFromService();
+        IsOcrModelLoading = _ocrService.IsModelLoading;
         RefreshRegionAspectInfo();
+
+        // 在 UI 空闲后触发后台模型加载，避免与 View 渲染竞争 loader lock。
+        Application.Current?.Dispatcher?.BeginInvoke(
+            new Action(() => _ocrService.StartLoadingPreferredModel()),
+            DispatcherPriority.ApplicationIdle);
     }
 
     /// <summary>
@@ -205,6 +212,12 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     [NotifyCanExecuteChangedFor(nameof(DeleteSelectedOcrModelCommand))]
     [NotifyCanExecuteChangedFor(nameof(SwitchSelectedOcrModelCommand))]
     public partial bool IsModelDownloading { get; set; }
+
+    /// <summary>
+    /// OCR 首选模型是否正在后台加载。
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsOcrModelLoading { get; set; }
 
     /// <summary>
     /// 是否有精确下载进度（区别于不确定进度条）。
@@ -758,11 +771,21 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 处理 OCR 下载状态变化，并切回 UI 线程同步绑定属性。
+    /// 处理 OCR 下载状态变化，并异步切回 UI 线程同步绑定属性。
     /// </summary>
     private void OcrService_DownloadStateChanged(object? sender, EventArgs e)
     {
-        RunOnUiThread(SyncDownloadStateFromService);
+        BeginOnUiThread(SyncDownloadStateFromService);
+    }
+
+    private void OcrService_ModelLoadStateChanged(object? sender, EventArgs e)
+    {
+        BeginOnUiThread(() =>
+        {
+            IsOcrModelLoading = _ocrService.IsModelLoading;
+            if (!IsOcrModelLoading)
+                RefreshOcrModelStatus();
+        });
     }
 
     /// <summary>
@@ -800,6 +823,29 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         }
 
         Application.Current.Dispatcher.Invoke(action);
+    }
+
+    /// <summary>
+    /// 异步在 WPF UI 线程执行操作，不阻塞调用线程。
+    /// 用于从非 UI 线程触发的事件处理器，避免 <see cref="Dispatcher.Invoke"/> 同步阻塞
+    /// 导致与 Windows loader lock 死锁。
+    /// </summary>
+    /// <param name="action">要执行的 UI 更新。</param>
+    private static void BeginOnUiThread(Action action)
+    {
+        if (Application.Current?.Dispatcher == null)
+        {
+            action();
+            return;
+        }
+
+        if (Application.Current.Dispatcher.CheckAccess())
+        {
+            action();
+            return;
+        }
+
+        Application.Current.Dispatcher.BeginInvoke(action);
     }
 
     partial void OnSelectedOcrModelChanged(OcrModelSelection? value)

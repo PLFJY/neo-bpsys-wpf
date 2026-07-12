@@ -367,7 +367,8 @@ public sealed class SmartBpModuleManager
             "Loading persisted SmartBP module. ModuleRoot={ModuleRoot}, InstallKind={InstallKind}",
             moduleRoot,
             installKind);
-        return await LoadModuleFromDirectoryAsync(moduleRoot, installKind);
+        var loaded = await LoadModuleFromDirectoryAsync(moduleRoot, installKind);
+        return loaded;
     }
 
     /// <summary>
@@ -400,24 +401,35 @@ public sealed class SmartBpModuleManager
             loadContext.Resolving += (_, name) =>
             {
                 _logger.LogDebug("Resolving SmartBP module assembly: {AssemblyName}", name.FullName);
-                var sharedAssembly = AssemblyLoadContext.Default.Assemblies.FirstOrDefault(assembly =>
-                    AssemblyName.ReferenceMatchesDefinition(assembly.GetName(), name));
-                if (sharedAssembly != null)
-                {
-                    _logger.LogDebug("Resolved SmartBP module assembly from host context: {AssemblyName}", name.FullName);
-                    return sharedAssembly;
-                }
 
-                try
+                // 卫星资源程序集（.resources）的 culture 回退探测会遍历数百种
+                // culture，每次都会触发 Resolving 回调。对这类程序集直接走文件探测，
+                // 跳过 LoadFromAssemblyName 调用——后者必然抛出 FileNotFoundException
+                // 并被 catch 吞掉，但 first-chance exception 会被调试器输出，在
+                // Visual Studio 中造成严重卡顿。
+                var isResourceSatellite = name.Name.EndsWith(".resources", StringComparison.OrdinalIgnoreCase);
+
+                if (!isResourceSatellite)
                 {
-                    var hostAssembly = AssemblyLoadContext.Default.LoadFromAssemblyName(name);
-                    _logger.LogDebug("Loaded SmartBP module assembly from default context: {AssemblyName}", name.FullName);
-                    return hostAssembly;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogDebug(ex, "SmartBP module assembly was not available from default context: {AssemblyName}", name.FullName);
-                    // 对 SmartBP 自有依赖继续使用模块内探测。
+                    var sharedAssembly = AssemblyLoadContext.Default.Assemblies.FirstOrDefault(assembly =>
+                        AssemblyName.ReferenceMatchesDefinition(assembly.GetName(), name));
+                    if (sharedAssembly != null)
+                    {
+                        _logger.LogDebug("Resolved SmartBP module assembly from host context: {AssemblyName}", name.FullName);
+                        return sharedAssembly;
+                    }
+
+                    try
+                    {
+                        var hostAssembly = AssemblyLoadContext.Default.LoadFromAssemblyName(name);
+                        _logger.LogDebug("Loaded SmartBP module assembly from default context: {AssemblyName}", name.FullName);
+                        return hostAssembly;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogDebug(ex, "SmartBP module assembly was not available from default context: {AssemblyName}", name.FullName);
+                        // 对 SmartBP 自有依赖继续使用模块内探测。
+                    }
                 }
 
                 var candidate = string.IsNullOrWhiteSpace(name.CultureName)
@@ -425,7 +437,8 @@ public sealed class SmartBpModuleManager
                     : Path.Combine(moduleRoot, name.CultureName, $"{name.Name}.dll");
                 if (!File.Exists(candidate))
                 {
-                    _logger.LogWarning("SmartBP module dependency was not found. AssemblyName={AssemblyName}, Candidate={Candidate}", name.FullName, candidate);
+                    if (!isResourceSatellite)
+                        _logger.LogWarning("SmartBP module dependency was not found. AssemblyName={AssemblyName}, Candidate={Candidate}", name.FullName, candidate);
                     return null;
                 }
 
@@ -463,35 +476,50 @@ public sealed class SmartBpModuleManager
                 }
             };
             _logger.LogInformation("Loading SmartBP module entry assembly: {EntryAssembly}", entryAssembly);
-            var assembly = loadContext.LoadFromAssemblyPath(entryAssembly);
-            var entryType = assembly.GetTypes()
-                .FirstOrDefault(t => typeof(ISmartBpModuleEntryPoint).IsAssignableFrom(t) && !t.IsAbstract);
-            if (entryType == null)
+            // 程序集加载、类型查找、入口点实例化和教程注册不依赖 UI 线程，
+            // 放到后台线程执行避免阻塞 UI；同时这些步骤会触发大量程序集解析
+            // 的 first-chance FileNotFoundException，在 VS 调试器中输出会拖
+            // 慢 UI 线程响应。后台执行让 UI 保持响应。
+            var entryPoint = await Task.Run(() =>
             {
-                LastFailureMessage = "Module entry type was not found.";
-                _logger.LogWarning("SmartBP module entry type was not found in assembly: {EntryAssembly}", entryAssembly);
-                return false;
-            }
-
-            _logger.LogInformation("Creating SmartBP module entry point. EntryType={EntryType}", entryType.FullName);
-            _entryPoint = (ISmartBpModuleEntryPoint)Activator.CreateInstance(entryType)!;
-            ModuleRoot = moduleRoot;
-
-            if (_entryPoint is ITutorialRegistrationContributor contributor)
-            {
-                _logger.LogInformation(
-                    "Registering SmartBP module tutorial contributor. RegistrationId={RegistrationId}",
-                    contributor.RegistrationId);
-                var registrationService = _serviceProvider.GetService<ITutorialRegistrationService>();
-                if (registrationService == null)
+                var assembly = loadContext.LoadFromAssemblyPath(entryAssembly);
+                var entryType = assembly.GetTypes()
+                    .FirstOrDefault(t => typeof(ISmartBpModuleEntryPoint).IsAssignableFrom(t) && !t.IsAbstract);
+                if (entryType == null)
                 {
-                    throw new InvalidOperationException(
-                        "ITutorialRegistrationService is not available. Cannot register SmartBP module tutorials.");
+                    LastFailureMessage = "Module entry type was not found.";
+                    _logger.LogWarning("SmartBP module entry type was not found in assembly: {EntryAssembly}", entryAssembly);
+                    return (ISmartBpModuleEntryPoint?)null;
                 }
 
-                registrationService.RegisterContributor(contributor);
-            }
+                _logger.LogInformation("Creating SmartBP module entry point. EntryType={EntryType}", entryType.FullName);
+                var ep = (ISmartBpModuleEntryPoint)Activator.CreateInstance(entryType)!;
+                ModuleRoot = moduleRoot;
 
+                if (ep is ITutorialRegistrationContributor contributor)
+                {
+                    _logger.LogInformation(
+                        "Registering SmartBP module tutorial contributor. RegistrationId={RegistrationId}",
+                        contributor.RegistrationId);
+                    var registrationService = _serviceProvider.GetService<ITutorialRegistrationService>();
+                    if (registrationService == null)
+                    {
+                        throw new InvalidOperationException(
+                            "ITutorialRegistrationService is not available. Cannot register SmartBP module tutorials.");
+                    }
+
+                    registrationService.RegisterContributor(contributor);
+                }
+                return ep;
+            }).ConfigureAwait(true);
+
+            if (entryPoint == null)
+                return false;
+
+            _entryPoint = entryPoint;
+
+            // CreateSmartBpContent 创建 WPF UI 元素（InitializeComponent/BAML 解析），
+            // 必须在 UI 线程执行。
             _logger.LogInformation("Creating SmartBP module content.");
             ModuleContent = _entryPoint.CreateSmartBpContent(_serviceProvider);
             _featureCommands = _entryPoint.GetFeatureCommands();

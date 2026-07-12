@@ -7,12 +7,10 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.Logging;
 using neo_bpsys_wpf.Services.Abstractions;
 using neo_bpsys_wpf.Themes;
 using neo_bpsys_wpf.Tutorial;
-using Serilog.Core;
-using Serilog.Events;
-using Serilog;
 using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
@@ -31,9 +29,6 @@ namespace neo_bpsys_wpf;
 /// </summary>
 public partial class App : AppBase
 {
-    private static readonly LoggingLevelSwitch AppLogLevelSwitch =
-        new(GetInitialLogEventLevel());
-
     /// <summary>
     /// 互斥锁
     /// </summary>
@@ -67,28 +62,14 @@ public partial class App : AppBase
 
         IAppHost.Host = Host
             .CreateDefaultBuilder()
-            .UseSerilog((_, loggerConfiguration) =>
+            .ConfigureLogging(loggingBuilder =>
             {
                 if (!Directory.Exists(AppConstants.LogPath))
                     Directory.CreateDirectory(AppConstants.LogPath);
 
-                loggerConfiguration
-                    .WriteTo.Console()
-                    .WriteTo.File(
-                        path: Path.Combine(AppConstants.LogPath, "log-.txt"), // 使用日期滚动的文件名格式
-                        rollingInterval: RollingInterval.Hour, // 小时创建一个新文件
-                        retainedFileCountLimit: 3, // 只保留最近3天的日志文件
-                        outputTemplate:
-                        "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message:lj}{NewLine}{Exception}",
-                        encoding: Encoding.UTF8
-                    )
-                    .Enrich.FromLogContext()
-                    .MinimumLevel.ControlledBy(AppLogLevelSwitch);
-            })
-            .ConfigureLogging(loggingBuilder =>
-            {
                 loggingBuilder.ClearProviders();
-                loggingBuilder.AddSerilog(dispose: true);
+                // 自定义文件日志：每次启动创建带时间戳的新文件，保留最近 10 次运行
+                loggingBuilder.AddProvider(new FileLoggerProvider(AppConstants.LogPath, GetInitialAppLogLevel()));
             })
             .ConfigureServices(ConfigureServices)
             .Build();
@@ -219,51 +200,37 @@ public partial class App : AppBase
     /// </summary>
     public static void ApplyLogLevel(AppLogLevel logLevel)
     {
-        AppLogLevelSwitch.MinimumLevel = logLevel switch
-        {
-            AppLogLevel.Verbose => LogEventLevel.Verbose,
-            AppLogLevel.Debug => LogEventLevel.Debug,
-            AppLogLevel.Information => LogEventLevel.Information,
-            AppLogLevel.Warning => LogEventLevel.Warning,
-            AppLogLevel.Error => LogEventLevel.Error,
-            AppLogLevel.Fatal => LogEventLevel.Fatal,
-            _ => LogEventLevel.Information
-        };
+        FileLoggerProvider.SetLevel(logLevel);
     }
 
-    private static LogEventLevel GetInitialLogEventLevel()
+    /// <summary>
+    /// 从 <see cref="AppConstants.ConfigFilePath"/> 读取持久化的日志级别；读取失败时返回 <see cref="AppLogLevel.Information"/>。
+    /// </summary>
+    /// <returns>持久化的应用日志级别。</returns>
+    private static AppLogLevel GetInitialAppLogLevel()
     {
         try
         {
             if (!File.Exists(AppConstants.ConfigFilePath))
             {
-                return LogEventLevel.Information;
+                return AppLogLevel.Information;
             }
 
             using var stream = File.OpenRead(AppConstants.ConfigFilePath);
             using var document = JsonDocument.Parse(stream);
             if (!document.RootElement.TryGetProperty("LogLevel", out var levelElement))
             {
-                return LogEventLevel.Information;
+                return AppLogLevel.Information;
             }
 
             var levelText = levelElement.GetString();
             return Enum.TryParse<AppLogLevel>(levelText, ignoreCase: true, out var logLevel)
-                ? logLevel switch
-                {
-                    AppLogLevel.Verbose => LogEventLevel.Verbose,
-                    AppLogLevel.Debug => LogEventLevel.Debug,
-                    AppLogLevel.Information => LogEventLevel.Information,
-                    AppLogLevel.Warning => LogEventLevel.Warning,
-                    AppLogLevel.Error => LogEventLevel.Error,
-                    AppLogLevel.Fatal => LogEventLevel.Fatal,
-                    _ => LogEventLevel.Information
-                }
-                : LogEventLevel.Information;
+                ? logLevel
+                : AppLogLevel.Information;
         }
         catch
         {
-            return LogEventLevel.Information;
+            return AppLogLevel.Information;
         }
     }
 

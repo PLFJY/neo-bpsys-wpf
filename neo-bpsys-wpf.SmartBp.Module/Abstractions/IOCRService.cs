@@ -144,6 +144,21 @@ public interface IOcrService
     event EventHandler? DownloadStateChanged;
 
     /// <summary>
+    /// OCR 模型初始化（加载首选模型）是否正在后台进行。
+    /// </summary>
+    bool IsModelLoading { get; }
+
+    /// <summary>
+    /// 模型加载状态变化时触发（加载开始或结束）。
+    /// </summary>
+    event EventHandler? ModelLoadStateChanged;
+
+    /// <summary>
+    /// 在后台线程加载用户偏好 OCR 模型。应在页面显示完毕后调用。
+    /// </summary>
+    void StartLoadingPreferredModel();
+
+    /// <summary>
     /// 获取可用 OCR 模型列表。
     /// </summary>
     /// <returns>模型定义列表。</returns>

@@ -32,6 +32,7 @@ public sealed class PaddleOcrProvider : IOcrProvider
     private int _currentDownloadStep = 1;
     private int _totalDownloadSteps = 1;
     private int _missingModelWarningShown;
+    private volatile bool _isModelLoading;
 
     /// <summary>
     /// 当前正在使用的 OCR 模型键。
@@ -59,7 +60,21 @@ public sealed class PaddleOcrProvider : IOcrProvider
     public event EventHandler? DownloadStateChanged;
 
     /// <summary>
-    /// 初始化 OCR 服务并尝试加载用户偏好模型。
+    /// 获取 OCR 模型是否正在后台加载。
+    /// </summary>
+    public bool IsModelLoading => _isModelLoading;
+
+    /// <summary>
+    /// 模型加载状态变化时触发。
+    /// </summary>
+    public event EventHandler? ModelLoadStateChanged;
+
+    private void RaiseModelLoadStateChanged() => ModelLoadStateChanged?.Invoke(this, EventArgs.Empty);
+
+    /// <summary>
+    /// 初始化 OCR 服务。构造函数仅注册路径，不加载模型——模型加载由
+    /// <see cref="StartLoadingPreferredModel"/> 在页面空闲后触发，避免阻塞 DI 解析
+    /// 和引发原生 DLL loader lock 死锁。
     /// </summary>
     /// <param name="settingsHostService">设置服务。</param>
     /// <param name="logger">日志记录器。</param>
@@ -72,8 +87,17 @@ public sealed class PaddleOcrProvider : IOcrProvider
         _settingsHostService = settingsHostService;
         _logger = logger;
         SmartBpOcrModelRegistry.ConfigurePathProvider(modelPathProvider);
+    }
 
-        TryLoadPreferredModel();
+    /// <summary>
+    /// 在后台线程加载用户偏好 OCR 模型。应在页面显示完毕后调用，避免与 UI 线程
+    /// 的渲染/DLL 加载竞争 Windows loader lock。
+    /// </summary>
+    public void StartLoadingPreferredModel()
+    {
+        if (_isModelLoading || _ocr != null)
+            return;
+        _ = Task.Run(TryLoadPreferredModel);
     }
 
     /// <inheritdoc />
@@ -755,7 +779,17 @@ public sealed class PaddleOcrProvider : IOcrProvider
         if (string.IsNullOrWhiteSpace(preferredModel))
             return;
 
-        _ = TrySwitchOcrModel(preferredModel, out _);
+        _isModelLoading = true;
+        RaiseModelLoadStateChanged();
+        try
+        {
+            _ = TrySwitchOcrModel(preferredModel, out _);
+        }
+        finally
+        {
+            _isModelLoading = false;
+            RaiseModelLoadStateChanged();
+        }
     }
 
     /// <summary>

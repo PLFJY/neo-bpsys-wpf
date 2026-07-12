@@ -2,7 +2,7 @@
 
 ## 技术栈
 
-主应用是 .NET 10 WPF 应用，目标框架为 `net10.0-windows10.0.20348`。当前代码使用 WPF-UI、Generic Host、Microsoft DI、Serilog、WPFLocalizeExtension、YamlDotNet 和自定义插件 SDK。OpenCvSharp、PaddleOCR、PaddleInference 等 SmartBP 重型依赖位于 `neo-bpsys-wpf.SmartBp.Module`，不由 lite 主应用直接引用。
+主应用是 .NET 10 WPF 应用，目标框架为 `net10.0-windows10.0.20348`。当前代码使用 WPF-UI、Generic Host、Microsoft DI、自定义文件日志（`FileLoggerProvider`）、WPFLocalizeExtension、YamlDotNet 和自定义插件 SDK。OpenCvSharp、PaddleOCR、PaddleInference 等 SmartBP 重型依赖位于 `neo-bpsys-wpf.SmartBp.Module`，不由 lite 主应用直接引用。
 
 ## 启动流程
 
@@ -13,8 +13,7 @@
 3. 以 `AppConstants.AppName` 创建单实例 `Mutex`；如果已有实例，弹窗提示并关闭。
 4. 创建 `IAppHost.Host`：
    - `Host.CreateDefaultBuilder()`
-   - `UseSerilog(...)`
-   - `ConfigureLogging(...)`
+   - `ConfigureLogging(...)`（含 `FileLoggerProvider` 注册）
    - `ConfigureServices(ConfigureServices)`
    - `Build()`
 5. 调用 `base.OnStartup(e)`。
@@ -35,7 +34,7 @@
 flowchart TD
     A[WPF OnStartup] --> B[单实例 Mutex]
     B --> C[CreateDefaultBuilder]
-    C --> D[Serilog 和 Microsoft Logging]
+    C --> D[FileLoggerProvider 和 Microsoft Logging]
     D --> E[ConfigureServices]
     E --> F[注册宿主服务/页面/前台窗口]
     F --> G[PluginService.InitializePlugins]
@@ -57,7 +56,7 @@ flowchart TD
 
 SmartBP 是特殊边界：宿主 DI 只注册页面壳、`SmartBpModuleManager`、`ISmartBpFeatureService` 和 OCR 模型路径提供器。真实 SmartBP 页面内容由模块程序集在成功加载后通过 `ISmartBpModuleEntryPoint` 创建，宿主不直接引用模块实现类型。
 
-## Serilog
+## 日志
 
 日志目录来自 `AppConstants.LogPath`：
 
@@ -65,9 +64,7 @@ SmartBP 是特殊边界：宿主 DI 只注册页面壳、`SmartBpModuleManager`�
 %APPDATA%\neo-bpsys-wpf\Log
 ```
 
-Serilog 同时写 Console 和文件。文件名为 `log-.txt` 的滚动格式，按小时滚动，`retainedFileCountLimit` 当前为 3。初始日志级别会在 Host 构建前尝试从 `Config.json` 的 `LogLevel` 字段读取，配置加载后再通过 `App.ApplyLogLevel(...)` 动态应用。
-
-注意：代码注释写“只保留最近3天”，但 Serilog 参数实际是 `retainedFileCountLimit: 3`，更准确地说是保留 3 个滚动文件。文档按代码行为描述。
+日志由自定义 `FileLoggerProvider`（`neo-bpsys-wpf/Logging/FileLoggerProvider.cs`）实现，通过 `Microsoft.Extensions.Logging` 的 `ILogger<T>` 抽象向全应用提供。每次程序启动创建带时间戳的新文件 `log-YYYYMMDD_HHMMSS.txt`，并清理旧文件只保留最近 10 次运行的日志。初始日志级别在 Host 构建前从 `Config.json` 的 `LogLevel` 字段读取，设置加载后通过 `App.ApplyLogLevel(...)` → `FileLoggerProvider.SetLevel(...)` 动态应用。
 
 ## 设置、主题与语言
 

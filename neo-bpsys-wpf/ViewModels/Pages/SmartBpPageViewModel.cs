@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
@@ -21,6 +22,7 @@ public partial class SmartBpPageViewModel : ViewModelBase
     private readonly SmartBpModuleManager _moduleManager = null!;
     private readonly IFilePickerService _filePickerService = null!;
     private readonly IInfoBarService? _infoBarService;
+    private readonly ILogger<SmartBpPageViewModel>? _logger;
 
     /// <summary>
     /// 初始化 <see cref="SmartBpPageViewModel"/> 类的设计时实例。
@@ -37,14 +39,17 @@ public partial class SmartBpPageViewModel : ViewModelBase
     /// <param name="moduleManager">SmartBP 模块管理器。</param>
     /// <param name="filePickerService">文件选择服务。</param>
     /// <param name="infoBarService">信息提示条服务，用于在模块版本过时等情况下向用户展示提示。</param>
+    /// <param name="logger">日志记录器。</param>
     public SmartBpPageViewModel(
         SmartBpModuleManager moduleManager,
         IFilePickerService filePickerService,
-        IInfoBarService infoBarService)
+        IInfoBarService infoBarService,
+        ILogger<SmartBpPageViewModel> logger)
     {
         _moduleManager = moduleManager;
         _filePickerService = filePickerService;
         _infoBarService = infoBarService;
+        _logger = logger;
         SelectedModulePath = _moduleManager.GetPreferredModuleRoot();
         ConfigureLocalOnlyOverlayForDebugOrPreview();
         _moduleManager.ModuleStateChanged += (_, _) => SyncModuleState();
@@ -157,22 +162,32 @@ public partial class SmartBpPageViewModel : ViewModelBase
     /// <returns>启动加载尝试完成后结束的任务。</returns>
     private async Task InitializeAsync()
     {
-        if (await _moduleManager.TryLoadPersistedModuleAsync())
+        IsProgressVisible = true;
+        try
         {
-            return;
-        }
-
-        if (IsDebugMode && !_moduleManager.HasPersistedModuleRoot())
-        {
-            var debugPath = Path.GetFullPath(Path.Combine(
-                AppContext.BaseDirectory,
-                "..", "..", "..", "..",
-                "neo-bpsys-wpf.SmartBp.Module",
-                "bin",
-                "Debug",
-                "net10.0-windows10.0.20348"));
-            if (Directory.Exists(debugPath) && await _moduleManager.LoadModuleFromDirectoryAsync(debugPath, "DevelopmentDirectory"))
+            if (await _moduleManager.TryLoadPersistedModuleAsync())
+            {
                 return;
+            }
+
+            if (IsDebugMode && !_moduleManager.HasPersistedModuleRoot())
+            {
+                var debugPath = Path.GetFullPath(Path.Combine(
+                    AppContext.BaseDirectory,
+                    "..", "..", "..", "..",
+                    "neo-bpsys-wpf.SmartBp.Module",
+                    "bin",
+                    "Debug",
+                    "net10.0-windows10.0.20348"));
+                if (Directory.Exists(debugPath) && await _moduleManager.LoadModuleFromDirectoryAsync(debugPath, "DevelopmentDirectory"))
+                {
+                    return;
+                }
+            }
+        }
+        finally
+        {
+            IsProgressVisible = false;
         }
     }
 
