@@ -205,7 +205,7 @@
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
                                     <TextBlock
-                                        Text="{Binding Value, Mode=OneWay, Converter={StaticResource ShellDictionaryLocalizationConverter}, ConverterParameter=Locales.Game}" />
+                                        Text="{Binding Value, Mode=OneWay, Converter={StaticResource ShellDictionaryLocalizationConverter}, ConverterParameter=Locales.Shell}" />
                                 </DataTemplate>
                             </ComboBox.ItemTemplate>
                         </ComboBox>

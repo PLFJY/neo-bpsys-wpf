@@ -575,6 +575,59 @@ public sealed class I18nResourceAuditTest
     }
 
     /// <summary>
+    /// Verifies that MainWindow game progress dropdown resource keys are owned by Shell.resx.
+    /// </summary>
+    [Fact]
+    public void GameProgressDropdownKeysResolveFromShellDictionary()
+    {
+        var shellKeys = LoadResxKeys(GetHostNeutralResxPath("Shell"));
+        var gameKeys = LoadResxKeys(GetHostNeutralResxPath("Game"));
+        var progressKeys = new[]
+        {
+            "Free",
+            "Game1FirstHalf",
+            "Game1SecondHalf",
+            "Game2FirstHalf",
+            "Game2SecondHalf",
+            "Game3FirstHalf",
+            "Game3SecondHalf",
+            "Game3OvertimeFirstHalf",
+            "Game3OvertimeSecondHalf",
+            "Game4FirstHalf",
+            "Game4SecondHalf",
+            "Game5FirstHalf",
+            "Game5SecondHalf",
+            "Game5OvertimeFirstHalf",
+            "Game5OvertimeSecondHalf",
+        };
+
+        foreach (var key in progressKeys)
+        {
+            Assert.True(shellKeys.ContainsKey(key), $"Shell.resx should contain game progress key '{key}'.");
+            Assert.False(gameKeys.ContainsKey(key), $"Game progress key '{key}' is owned by Shell.resx.");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that XAML bindings for dynamic game progress key values do not resolve them from Game.resx.
+    /// </summary>
+    [Fact]
+    public void XamlDynamicValueLocalizationDoesNotPointGameProgressKeysAtGameDictionary()
+    {
+        var hostDir = GetRepositoryPath("neo-bpsys-wpf");
+        var violations = Directory.GetFiles(hostDir, "*.xaml", SearchOption.AllDirectories)
+            .Where(path => !IsExcludedPath(path))
+            .SelectMany(path => File.ReadLines(path)
+                .Select((line, index) => new { Path = path, Line = line, LineNumber = index + 1 }))
+            .Where(entry => entry.Line.Contains("Binding Value", StringComparison.Ordinal)
+                && entry.Line.Contains("ConverterParameter=Locales.Game", StringComparison.Ordinal))
+            .Select(entry => $"{Path.GetRelativePath(GetRepositoryRoot(), entry.Path).Replace('\\', '/')}:{entry.LineNumber}")
+            .ToArray();
+
+        Assert.Empty(violations);
+    }
+
+    /// <summary>
     /// Verifies that the neutral resx file provides a fallback for cultures
     /// without a culture-specific resx file: a key exists in the neutral
     /// Shell.resx, and no Shell.fr-FR.resx file exists, so the neutral file
