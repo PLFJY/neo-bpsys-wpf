@@ -9,6 +9,7 @@ using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Services.SmartBpModule;
 using neo_bpsys_wpf.Tutorial;
 using System.IO;
+using System.Windows;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -19,6 +20,7 @@ public partial class SmartBpPageViewModel : ViewModelBase
 {
     private readonly SmartBpModuleManager _moduleManager = null!;
     private readonly IFilePickerService _filePickerService = null!;
+    private readonly IInfoBarService? _infoBarService;
 
     /// <summary>
     /// 初始化 <see cref="SmartBpPageViewModel"/> 类的设计时实例。
@@ -34,13 +36,19 @@ public partial class SmartBpPageViewModel : ViewModelBase
     /// </summary>
     /// <param name="moduleManager">SmartBP 模块管理器。</param>
     /// <param name="filePickerService">文件选择服务。</param>
-    public SmartBpPageViewModel(SmartBpModuleManager moduleManager, IFilePickerService filePickerService)
+    /// <param name="infoBarService">信息提示条服务，用于在模块版本过时等情况下向用户展示提示。</param>
+    public SmartBpPageViewModel(
+        SmartBpModuleManager moduleManager,
+        IFilePickerService filePickerService,
+        IInfoBarService infoBarService)
     {
         _moduleManager = moduleManager;
         _filePickerService = filePickerService;
+        _infoBarService = infoBarService;
         SelectedModulePath = _moduleManager.GetPreferredModuleRoot();
         ConfigureLocalOnlyOverlayForDebugOrPreview();
         _moduleManager.ModuleStateChanged += (_, _) => SyncModuleState();
+        _moduleManager.ModuleVersionOutdated += OnModuleVersionOutdated;
         _ = InitializeAsync();
         _ = InspectSelectedPathAsync();
     }
@@ -339,6 +347,30 @@ public partial class SmartBpPageViewModel : ViewModelBase
             ? L("SmartBpModuleRequired")
             : string.Format(L("SmartBpModulePathModuleInvalidFormat"), error);
         IsSelectInstalledModuleButtonVisible = true;
+    }
+
+    /// <summary>
+    /// 模块版本过时事件处理：在 UI 线程上通过 InfoBar 提示用户更新 SmartBP 模块。
+    /// </summary>
+    /// <param name="sender">事件发送者。</param>
+    /// <param name="args">包含本地版本与要求版本的事件参数。</param>
+    private void OnModuleVersionOutdated(object? sender, ModuleVersionOutdatedEventArgs args)
+    {
+        if (_infoBarService == null)
+            return;
+
+        var message = string.Format(L("SmartBpModuleOutdatedFormat"), args.RequiredVersion);
+        if (Application.Current?.Dispatcher is { } dispatcher)
+        {
+            if (dispatcher.CheckAccess())
+                _infoBarService.ShowWarningInfoBar(message);
+            else
+                dispatcher.Invoke(() => _infoBarService.ShowWarningInfoBar(message));
+        }
+        else
+        {
+            _infoBarService.ShowWarningInfoBar(message);
+        }
     }
 
     /// <summary>

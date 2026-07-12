@@ -85,6 +85,12 @@ public sealed class SmartBpModuleManager
     public event EventHandler? ModuleStateChanged;
 
     /// <summary>
+    /// 已加载模块的本地版本低于远程发布标签要求的版本时触发。
+    /// 该检查在模块加载成功后异步进行，不会阻塞加载流程。
+    /// </summary>
+    public event EventHandler<ModuleVersionOutdatedEventArgs>? ModuleVersionOutdated;
+
+    /// <summary>
     /// 获取已加载的模块内容对象。
     /// </summary>
     public object? ModuleContent { get; private set; }
@@ -384,20 +390,8 @@ public sealed class SmartBpModuleManager
             return false;
         }
 
-        if (!IsDebugBuild() && !IsPreviewBuild() && manifest != null)
-        {
-            var requiredManifest = await TryFetchRequiredModuleManifestAsync();
-            if (requiredManifest != null &&
-                !IsModuleVersionAllowed(manifest.ModuleVersion, requiredManifest.ModuleVersion))
-            {
-                _logger.LogWarning(
-                    "SmartBP module version is too old. Local={LocalVersion}, Required={RequiredVersion}",
-                    manifest.ModuleVersion,
-                    requiredManifest.ModuleVersion);
-                return false;
-            }
-        }
-
+        // 远程版本检查不再阻塞加载流程：ABI 兼容性已由 ValidateModuleDirectory 硬性校验，
+        // 本地模块版本是否过时只作为更新提示，在加载成功后异步通知。
         var entryAssembly = Path.Combine(moduleRoot, SmartBpModuleConstants.EntryAssemblyName);
         try
         {
@@ -517,6 +511,8 @@ public sealed class SmartBpModuleManager
             });
             CompletePendingModuleRootMigration(moduleRoot);
             ModuleStateChanged?.Invoke(this, EventArgs.Empty);
+            // 加载成功后异步检查远程版本是否过时；不阻塞加载流程，结果通过事件通知。
+            _ = NotifyModuleVersionOutdatedIfNeededAsync(manifest?.ModuleVersion);
             return true;
         }
         catch (Exception ex)
@@ -524,6 +520,33 @@ public sealed class SmartBpModuleManager
             LastFailureMessage = FormatExceptionForUser(ex);
             _logger.LogError(ex, "Failed to load SmartBP module from {ModuleRoot}", moduleRoot);
             return false;
+        }
+    }
+
+    /// <summary>
+    /// 异步比较本地模块版本与远程发布标签要求的版本，过时时触发 <see cref="ModuleVersionOutdated"/> 事件。
+    /// </summary>
+    /// <param name="localVersion">已加载模块的本地版本号；为空时跳过检查。</param>
+    /// <returns>异步检查完成后结束的任务。</returns>
+    private async Task NotifyModuleVersionOutdatedIfNeededAsync(string? localVersion)
+    {
+        if (string.IsNullOrWhiteSpace(localVersion))
+            return;
+
+        if (IsDebugBuild() || IsPreviewBuild())
+            return;
+
+        var requiredManifest = await TryFetchRequiredModuleManifestAsync();
+        if (requiredManifest == null)
+            return;
+
+        if (!IsModuleVersionAllowed(localVersion, requiredManifest.ModuleVersion))
+        {
+            _logger.LogWarning(
+                "SmartBP module version is too old. Local={LocalVersion}, Required={RequiredVersion}",
+                localVersion,
+                requiredManifest.ModuleVersion);
+            ModuleVersionOutdated?.Invoke(this, new ModuleVersionOutdatedEventArgs(localVersion, requiredManifest.ModuleVersion));
         }
     }
 
