@@ -7,7 +7,7 @@ using SharpCompress.Common;
 namespace neo_bpsys_wpf.Core.Services.Archives;
 
 /// <summary>
-/// SharpCompress-backed runtime archive service supporting ZIP and 7z packages.
+/// 基于 SharpCompress 的运行时归档服务，支持 ZIP 和 7z 包。
 /// </summary>
 public sealed class SharpCompressArchiveService : IArchiveService
 {

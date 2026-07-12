@@ -8,7 +8,7 @@ using System.IO;
 namespace neo_bpsys_wpf.Services;
 
 /// <summary>
-/// Registry-backed Windows file association manager for <c>.bpui</c> files.
+/// 基于注册表的 <c>.bpui</c> 文件 Windows 文件关联管理器。
 /// </summary>
 public sealed class BpuiFileAssociationService : IBpuiFileAssociationService
 {
@@ -20,9 +20,9 @@ public sealed class BpuiFileAssociationService : IBpuiFileAssociationService
     private readonly ILogger<BpuiFileAssociationService> _logger;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="BpuiFileAssociationService"/> class.
+    /// 初始化 <see cref="BpuiFileAssociationService"/> 类的新实例。
     /// </summary>
-    /// <param name="logger">Logger.</param>
+    /// <param name="logger">日志记录器。</param>
     public BpuiFileAssociationService(ILogger<BpuiFileAssociationService> logger)
     {
         _logger = logger;

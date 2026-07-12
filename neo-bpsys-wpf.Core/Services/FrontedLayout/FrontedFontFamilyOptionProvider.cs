@@ -8,7 +8,7 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Provides system and built-in font choices for Designer v3.
+/// 为设计器 v3 提供系统和内置字体选择。
 /// </summary>
 public class FrontedFontFamilyOptionProvider
 {
@@ -18,14 +18,14 @@ public class FrontedFontFamilyOptionProvider
     private IReadOnlyList<FrontedFontFamilyOption>? _cachedOptions;
 
     /// <summary>
-    /// Initializes a provider that discovers bundled fonts from known app/source paths.
+    /// 初始化从已知应用/源路径发现捆绑字体的提供程序。
     /// </summary>
     public FrontedFontFamilyOptionProvider()
     {
     }
 
     /// <summary>
-    /// Initializes a provider with an explicit bundled font directory.
+    /// 使用显式捆绑字体目录初始化提供程序。
     /// </summary>
     public FrontedFontFamilyOptionProvider(string? fontDirectory)
     {
@@ -33,16 +33,16 @@ public class FrontedFontFamilyOptionProvider
     }
 
     /// <summary>
-    /// Initializes a provider with an active package manager.
+    /// 使用活动包管理器初始化提供程序。
     /// </summary>
-    /// <param name="packageManager">Layout package manager.</param>
+    /// <param name="packageManager">布局包管理器。</param>
     public FrontedFontFamilyOptionProvider(IFrontedLayoutPackageManager packageManager)
     {
         _packageManager = packageManager;
     }
 
     /// <summary>
-    /// Gets built-in and system font options.
+    /// 获取内置和系统字体选项。
     /// </summary>
     public IReadOnlyList<FrontedFontFamilyOption> GetFontFamilyOptions()
     {
@@ -50,7 +50,7 @@ public class FrontedFontFamilyOptionProvider
     }
 
     /// <summary>
-    /// Clears cached options so package font changes are visible.
+    /// 清除缓存选项，使包字体更改可见。
     /// </summary>
     public void ClearCache()
     {
@@ -58,7 +58,7 @@ public class FrontedFontFamilyOptionProvider
     }
 
     /// <summary>
-    /// Creates a safe preview FontFamily for a stored layout value.
+    /// 为存储的布局值创建安全的预览 FontFamily。
     /// </summary>
     public FontFamily CreatePreviewFontFamily(string? storedValue)
     {
@@ -78,7 +78,7 @@ public class FrontedFontFamilyOptionProvider
     }
 
     /// <summary>
-    /// Gets a display name for a stored layout value.
+    /// 获取存储布局值的显示名称。
     /// </summary>
     public string GetDisplayName(string? storedValue)
     {

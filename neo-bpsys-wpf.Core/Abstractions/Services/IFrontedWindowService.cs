@@ -59,45 +59,45 @@ public interface IFrontedWindowService
     void ShowWindow(string windowId);
 
     /// <summary>
-    /// Reloads v3 layouts in currently registered frontend windows when they support it.
+    /// 在当前已注册的前台窗口支持时，重新加载其 v3 布局。
     /// </summary>
     Task ReloadFrontedLayoutsAsync();
 
     /// <summary>
-    /// Marks an existing v3 fronted window layout dirty without creating the window.
+    /// 将已存在的 v3 前台窗口布局标记为脏，但不创建该窗口。
     /// </summary>
-    /// <param name="windowIdOrFullWindowType">The runtime window id or full layout window type.</param>
+    /// <param name="windowIdOrFullWindowType">运行时窗口 ID 或完整的布局窗口类型。</param>
     void MarkWindowLayoutDirty(string windowIdOrFullWindowType);
 
     /// <summary>
-    /// Applies the stored window background color to a registered fronted window immediately.
+    /// 将存储的窗口背景色立即应用到已注册的前台窗口。
     /// </summary>
-    /// <param name="fullWindowType">Window layout identity, such as <c>BpWindow</c>.</param>
-    /// <returns><see langword="true"/> when a registered window was found and updated.</returns>
+    /// <param name="fullWindowType">窗口布局标识，例如 <c>BpWindow</c>。</param>
+    /// <returns>找到并更新已注册窗口时返回 <see langword="true"/>。</returns>
     Task<bool> ApplyWindowBackgroundColorAsync(string fullWindowType);
 
     /// <summary>
-    /// Applies the stored window width and height to a registered fronted window immediately.
+    /// 将存储的窗口宽高立即应用到已注册的前台窗口。
     /// </summary>
-    /// <param name="fullWindowType">Window layout identity, such as <c>BpWindow</c>.</param>
-    /// <returns><see langword="true"/> when a registered window was found and updated.</returns>
+    /// <param name="fullWindowType">窗口布局标识，例如 <c>BpWindow</c>。</param>
+    /// <returns>找到并更新已注册窗口时返回 <see langword="true"/>。</returns>
     Task<bool> ApplyWindowSizeAsync(string fullWindowType);
 
     /// <summary>
-    /// Restarts an already-created fronted window so source-affecting transparency settings can take effect.
+    /// 重启已创建的前台窗口，以便影响源的透明度设置生效。
     /// </summary>
-    /// <param name="fullWindowType">Window layout identity, such as <c>BpWindow</c>.</param>
+    /// <param name="fullWindowType">窗口布局标识，例如 <c>BpWindow</c>。</param>
     /// <returns>
-    /// <see langword="true"/> when an existing window instance was removed or restarted;
-    /// <see langword="false"/> when the window is not registered or has not been created.
+    /// 当已存在的窗口实例被移除或重启时返回 <see langword="true"/>；
+    /// 当窗口未注册或尚未创建时返回 <see langword="false"/>。
     /// </returns>
     Task<bool> RestartWindowForTransparencyChangeAsync(string fullWindowType);
 
     /// <summary>
-    /// Gets the current width and height of a registered fronted window, or <c>null</c> if the window is not open.
+    /// 获取已注册前台窗口的当前宽高，窗口未打开时返回 <c>null</c>。
     /// </summary>
-    /// <param name="fullWindowType">Window layout identity, such as <c>BpWindow</c>.</param>
-    /// <returns>A tuple of (Width, Height), or <c>null</c> when the window is not found.</returns>
+    /// <param name="fullWindowType">窗口布局标识，例如 <c>BpWindow</c>。</param>
+    /// <returns>由 (Width, Height) 组成的元组，窗口未找到时返回 <c>null</c>。</returns>
     (double Width, double Height)? GetWindowSize(string fullWindowType);
 
     #endregion
@@ -105,10 +105,10 @@ public interface IFrontedWindowService
     #region Window Registration
 
     /// <summary>
-    /// Ensures one fronted window instance exists without creating any other fronted windows.
+    /// 确保存在一个前台窗口实例，且不创建任何其他前台窗口。
     /// </summary>
     /// <param name="windowId">窗口 GUID</param>
-    /// <returns>The existing or newly created window, or <see langword="null"/> when the id is not registered.</returns>
+    /// <returns>已存在或新建的窗口；当 ID 未注册时返回 <see langword="null"/>。</returns>
     Window? EnsureWindowCreated(string windowId);
 
     #endregion

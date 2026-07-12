@@ -27,8 +27,7 @@ using SmartBpRecognizedPlayerCharacterSlot = smartbp::neo_bpsys_wpf.SmartBp.Modu
 namespace neo_bpsys_wpf.Tests.Services;
 
 /// <summary>
-/// Tests for the field-snapshot and phase-only recognition paths introduced to replace
-/// the legacy model-side SnapshotDelta mechanism with simple field-snapshot recognition.
+/// 测试字段快照与仅阶段识别路径，这些路径用于以简单的字段快照识别替代旧版模型侧的 SnapshotDelta 机制。
 /// </summary>
 public sealed class SmartBpFieldSnapshotRecognitionTest
 {

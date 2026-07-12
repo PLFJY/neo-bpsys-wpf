@@ -16,14 +16,14 @@ namespace neo_bpsys_wpf.Views.Pages.FrontManage;
 /// </summary>
 public partial class FrontedLayoutPackagesView : UserControl
 {
-    /// <summary>Layout packages view tutorial key.</summary>
+    /// <summary>布局包视图教程 Key。</summary>
     public const string TutorialPageKey = "Page.FrontManage.LayoutPackages";
 
     private CancellationTokenSource _tutorialLifetime = new();
     private Task<TutorialRunResult>? _tutorialTask;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="FrontedLayoutPackagesView"/> class.
+    /// 初始化 <see cref="FrontedLayoutPackagesView"/> 类的新实例。
     /// </summary>
     public FrontedLayoutPackagesView()
     {

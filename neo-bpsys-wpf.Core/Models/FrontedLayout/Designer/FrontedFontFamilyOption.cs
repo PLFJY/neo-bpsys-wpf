@@ -3,37 +3,37 @@ using System.Windows.Media;
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 
 /// <summary>
-/// Font option displayed by Designer v3 property grid.
+/// 设计器 v3 属性网格显示的字体选项。
 /// </summary>
 public sealed class FrontedFontFamilyOption
 {
     /// <summary>
-    /// Name shown in the ComboBox.
+    /// 在下拉框中显示的名称。
     /// </summary>
     public string DisplayName { get; init; } = string.Empty;
 
     /// <summary>
-    /// Stored layout value written back to FontFamily.
+    /// 写回到 FontFamily 的存储布局值。
     /// </summary>
     public string Value { get; init; } = string.Empty;
 
     /// <summary>
-    /// WPF font used to preview this option.
+    /// 用于预览此选项的 WPF 字体。
     /// </summary>
     public FontFamily PreviewFontFamily { get; init; } = new("Arial");
 
     /// <summary>
-    /// Whether this option comes from the bundled Assets/Fonts resources.
+    /// 指示此选项是否来自内置的 Assets/Fonts 资源。
     /// </summary>
     public bool IsBuiltIn { get; init; }
 
     /// <summary>
-    /// Whether this option comes from the active layout package.
+    /// 指示此选项是否来自活动布局包。
     /// </summary>
     public bool IsPackageFont { get; init; }
 
     /// <summary>
-    /// Optional short badge shown next to the font name.
+    /// 在字体名称旁显示的可选短徽章文本。
     /// </summary>
     public string BadgeText { get; init; } = string.Empty;
 }

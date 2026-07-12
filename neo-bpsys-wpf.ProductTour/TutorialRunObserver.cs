@@ -1,79 +1,79 @@
 namespace neo_bpsys_wpf.ProductTour;
 
 /// <summary>
-/// Observes tutorial package and step execution for diagnostics and integration tests.
+/// 观察教程包和步骤的执行情况，用于诊断和集成测试。
 /// </summary>
 public interface ITutorialRunObserver
 {
-    /// <summary>Called when an automatic page or window tutorial run is requested.</summary>
-    /// <param name="ownerType">Owner element type name.</param>
-    /// <param name="pageKey">Page key.</param>
-    /// <param name="reason">UI event or caller reason.</param>
+    /// <summary>当请求自动运行页面或窗口教程时调用。</summary>
+    /// <param name="ownerType">宿主元素类型名称。</param>
+    /// <param name="pageKey">页面键。</param>
+    /// <param name="reason">UI 事件或调用方原因。</param>
     void OnAutoRunRequested(string ownerType, string pageKey, string reason);
 
-    /// <summary>Called when an automatic page or window tutorial run finishes.</summary>
-    /// <param name="ownerType">Owner element type name.</param>
-    /// <param name="pageKey">Page key.</param>
-    /// <param name="result">Final run result.</param>
+    /// <summary>当自动运行页面或窗口教程完成时调用。</summary>
+    /// <param name="ownerType">宿主元素类型名称。</param>
+    /// <param name="pageKey">页面键。</param>
+    /// <param name="result">最终运行结果。</param>
     void OnAutoRunCompleted(string ownerType, string pageKey, TutorialRunResult result);
 
-    /// <summary>Called when a pending package was selected for execution.</summary>
-    /// <param name="packageId">Package id.</param>
-    /// <param name="pageKey">Page key.</param>
-    /// <param name="triggerMode">Trigger mode.</param>
+    /// <summary>当某个待执行的包被选中执行时调用。</summary>
+    /// <param name="packageId">包 id。</param>
+    /// <param name="pageKey">页面键。</param>
+    /// <param name="triggerMode">触发模式。</param>
     void OnPackageRunRequested(string packageId, string pageKey, TutorialTriggerMode triggerMode);
 
-    /// <summary>Called when a package starts running.</summary>
-    /// <param name="packageId">Package id.</param>
-    /// <param name="pageKey">Page key.</param>
-    /// <param name="triggerMode">Trigger mode.</param>
+    /// <summary>当某个包开始运行时调用。</summary>
+    /// <param name="packageId">包 id。</param>
+    /// <param name="pageKey">页面键。</param>
+    /// <param name="triggerMode">触发模式。</param>
     void OnPackageStarted(string packageId, string pageKey, TutorialTriggerMode triggerMode);
 
-    /// <summary>Called when a step is actually shown.</summary>
-    /// <param name="packageId">Package id.</param>
-    /// <param name="targetName">Target name, if any.</param>
-    /// <param name="title">Step title.</param>
+    /// <summary>当某个步骤实际显示时调用。</summary>
+    /// <param name="packageId">包 id。</param>
+    /// <param name="targetName">目标名称（如有）。</param>
+    /// <param name="title">步骤标题。</param>
     void OnStepShown(string packageId, string? targetName, string title);
 
-    /// <summary>Called when a package finishes.</summary>
-    /// <param name="packageId">Package id.</param>
-    /// <param name="result">Run result.</param>
+    /// <summary>当某个包完成时调用。</summary>
+    /// <param name="packageId">包 id。</param>
+    /// <param name="result">运行结果。</param>
     void OnPackageCompleted(string packageId, TutorialRunResult result);
 
-    /// <summary>Called when no package is pending for a page key.</summary>
-    /// <param name="pageKey">Page key.</param>
+    /// <summary>当某个页面键没有待执行的包时调用。</summary>
+    /// <param name="pageKey">页面键。</param>
     void OnPackageNotPending(string pageKey);
 
-    /// <summary>Called when a package is skipped because completion state already covers it.</summary>
-    /// <param name="packageId">Package id.</param>
-    /// <param name="completionKind">Recorded completion kind.</param>
-    /// <param name="recordedVersion">Recorded package version.</param>
-    /// <param name="currentVersion">Current package version.</param>
+    /// <summary>当某个包因完成状态已覆盖而跳过时调用。</summary>
+    /// <param name="packageId">包 id。</param>
+    /// <param name="completionKind">已记录的完成类型。</param>
+    /// <param name="recordedVersion">已记录的包版本。</param>
+    /// <param name="currentVersion">当前包版本。</param>
     void OnPackageSkippedByState(
         string packageId,
         TutorialCompletionKind completionKind,
         int recordedVersion,
         int currentVersion);
 
-    /// <summary>Called when a package cannot run because it is not currently ready.</summary>
-    /// <param name="packageId">Package id.</param>
-    /// <param name="pageKey">Page key.</param>
+    /// <summary>当某个包因当前未就绪而无法运行时调用。</summary>
+    /// <param name="packageId">包 id。</param>
+    /// <param name="pageKey">页面键。</param>
     void OnPackageNotReady(string packageId, string pageKey);
 
-    /// <summary>Called when a page sequence has been resolved for a run.</summary>
-    /// <param name="pageKey">Page key.</param>
-    /// <param name="packageIds">Resolved package ids.</param>
+    /// <summary>当为某次运行解析出页面序列时调用。</summary>
+    /// <param name="pageKey">页面键。</param>
+    /// <param name="packageIds">解析得到的包 id 列表。</param>
     void OnSequenceResolved(
         string pageKey,
         IReadOnlyList<string> packageIds);
 
-    /// <summary>Called when a package target is missing.</summary>
-    /// <param name="packageId">Package id.</param>
+    /// <summary>当某个包的目标缺失时调用。</summary>
+    /// <param name="packageId">包 id。</param>
     void OnPackageTargetMissing(string packageId);
 }
 
 /// <summary>
-/// Default no-op tutorial run observer.
+/// 默认的空实现教程运行观察器。
 /// </summary>
 public sealed class NoOpTutorialRunObserver : ITutorialRunObserver
 {

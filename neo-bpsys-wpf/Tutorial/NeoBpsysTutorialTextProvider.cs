@@ -3,7 +3,7 @@ using neo_bpsys_wpf.ProductTour;
 namespace neo_bpsys_wpf.Tutorial;
 
 /// <summary>
-/// Provides neo-bpsys-wpf fixed tutorial UI text.
+/// 提供 neo-bpsys-wpf 固定的教程 UI 文本。
 /// </summary>
 public sealed class NeoBpsysTutorialTextProvider : ITutorialTextProvider
 {

@@ -4,15 +4,15 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 namespace neo_bpsys_wpf.ProductTour;
 
 /// <summary>
-/// Service collection extensions for Product Tour.
+/// 产品导览的服务集合扩展。
 /// </summary>
 public static class ProductTourServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers Product Tour services.
+    /// 注册产品导览服务。
     /// </summary>
-    /// <param name="services">Service collection.</param>
-    /// <returns>The same service collection.</returns>
+    /// <param name="services">服务集合。</param>
+    /// <returns>同一服务集合。</returns>
     public static IServiceCollection AddProductTour(this IServiceCollection services)
     {
         services.TryAddSingleton<ProductTourOptions>();

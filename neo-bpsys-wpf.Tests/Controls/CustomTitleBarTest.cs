@@ -6,7 +6,7 @@ using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Controls;
 
-/// <summary>Tests custom title-bar event subscription behavior.</summary>
+/// <summary>测试自定义标题栏的事件订阅行为。</summary>
 public sealed class CustomTitleBarTest
 {
     [Fact]

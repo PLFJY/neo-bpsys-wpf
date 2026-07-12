@@ -1,7 +1,7 @@
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 
 /// <summary>
-/// Node displayed by Designer v3 Binding Browser.
+/// 设计器 v3 绑定浏览器显示的节点。
 /// </summary>
 public sealed class FrontedBindingTreeNode
 {

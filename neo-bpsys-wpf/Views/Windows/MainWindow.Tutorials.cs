@@ -11,77 +11,77 @@ namespace neo_bpsys_wpf.Views.Windows;
 
 public partial class MainWindow : ITutorialOwner<MainWindow>
 {
-    /// <summary>Main window tutorial page key.</summary>
+    /// <summary>主窗口教程页面 Key。</summary>
     public const string TutorialPageKey = TutorialPageKeys.Main;
 
     /// <inheritdoc />
     public static string TutorialKey => TutorialPageKey;
 
-    /// <summary>Main window tutorial package references.</summary>
+    /// <summary>主窗口教程包引用。</summary>
     public static class Tours
     {
-        /// <summary>Main navigation basic package reference.</summary>
+        /// <summary>主导航基础包引用。</summary>
         public static readonly TutorialPackageRef NavigationBasic = new(TutorialPackageIds.MainNavigationBasic);
 
-        /// <summary>Main navigation front management package reference.</summary>
+        /// <summary>主导航前台管理包引用。</summary>
         public static readonly TutorialPackageRef NavigationFrontManage = new(TutorialPackageIds.MainNavigationFrontManage);
 
-        /// <summary>Main navigation team info package reference.</summary>
+        /// <summary>主导航队伍信息包引用。</summary>
         public static readonly TutorialPackageRef NavigationTeamInfo = new(TutorialPackageIds.MainNavigationTeamInfo);
 
-        /// <summary>Main navigation score package reference.</summary>
+        /// <summary>主导航比分包引用。</summary>
         public static readonly TutorialPackageRef NavigationScore = new(TutorialPackageIds.MainNavigationScore);
 
-        /// <summary>Main navigation Smart BP package reference.</summary>
+        /// <summary>主导航 Smart BP 包引用。</summary>
         public static readonly TutorialPackageRef NavigationSmartBp = new(TutorialPackageIds.MainNavigationSmartBp);
 
-        /// <summary>Main navigation Designer v3 package reference.</summary>
+        /// <summary>主导航设计器 v3 包引用。</summary>
         public static readonly TutorialPackageRef NavigationDesignerV3 = new(TutorialPackageIds.MainNavigationDesignerV3);
 
-        /// <summary>Main team summary package reference.</summary>
+        /// <summary>主队伍摘要包引用。</summary>
         public static readonly TutorialPackageRef TeamSummaryBasic = new(TutorialPackageIds.MainTeamSummaryBasic);
 
-        /// <summary>BO1 first-half game progress package reference.</summary>
+        /// <summary>BO1 上半场对局进度包引用。</summary>
         public static readonly TutorialPackageRef GameProgressBo1FirstHalf = new(TutorialPackageIds.GameManageGameProgressBo1FirstHalf);
 
-        /// <summary>New game basic package reference.</summary>
+        /// <summary>新建对局基础包引用。</summary>
         public static readonly TutorialPackageRef NewGameBasic = new(TutorialPackageIds.GameManageNewGameBasic);
 
-        /// <summary>Global ban carry-over package reference.</summary>
+        /// <summary>全局 Ban 结转包引用。</summary>
         public static readonly TutorialPackageRef GlobalBanCarryOver = new(TutorialPackageIds.GameManageGlobalBanCarryOver);
 
-        /// <summary>Game management basic package reference.</summary>
+        /// <summary>对局管理基础包引用。</summary>
         public static readonly TutorialPackageRef GameManageBasic = new(TutorialPackageIds.GameManageBasic);
 
-        /// <summary>BP guidance start package reference.</summary>
+        /// <summary>BP 引导开始包引用。</summary>
         public static readonly TutorialPackageRef BpGameGuidanceStartBasic = new(TutorialPackageIds.BpGameGuidanceStartBasic);
 
-        /// <summary>BP guidance current step package reference.</summary>
+        /// <summary>BP 引导当前步骤包引用。</summary>
         public static readonly TutorialPackageRef BpGameGuidanceCurrentStepBasic = new(TutorialPackageIds.BpGameGuidanceCurrentStepBasic);
 
-        /// <summary>Map BP ban map operation package reference.</summary>
+        /// <summary>地图 BP Ban 地图操作包引用。</summary>
         public static readonly TutorialPackageRef MapBpBanMapOperationBasic = new(TutorialPackageIds.MapBpBanMapOperationBasic);
 
-        /// <summary>Map BP next-to-pick-map package reference.</summary>
+        /// <summary>地图 BP 下一个 Pick 地图包引用。</summary>
         public static readonly TutorialPackageRef MapBpNextToPickMapBasic = new(TutorialPackageIds.MapBpNextToPickMapBasic);
 
-        /// <summary>BP guidance end package reference.</summary>
+        /// <summary>BP 引导结束包引用。</summary>
         public static readonly TutorialPackageRef BpGameGuidanceEndBasic = new(TutorialPackageIds.BpGameGuidanceEndBasic);
 
-        /// <summary>BP guidance basic package reference.</summary>
+        /// <summary>BP 引导基础包引用。</summary>
         public static readonly TutorialPackageRef BpGameGuidanceBasic = new(TutorialPackageIds.BpGameGuidanceBasic);
 
-        /// <summary>NextGame Tutorial reference.</summary>
+        /// <summary>下一局教程引用。</summary>
         public static readonly TutorialPackageRef NextGameBasic = new(TutorialPackageIds.NextGameBasic);
 
-        /// <summary>Pick map Tutorial reference.</summary>
+        /// <summary>Pick 地图教程引用。</summary>
         public static readonly TutorialPackageRef MapBpPickMapBasic = new(TutorialPackageIds.MapBpPickMapOperationBasic);
     }
 
     /// <summary>
-    /// Registers tutorials owned by the main window.
+    /// 注册主窗口所拥有的教程。
     /// </summary>
-    /// <param name="builder">Tutorial builder.</param>
+    /// <param name="builder">教程构建器。</param>
     public static void RegisterTutorials(ITutorialBuilder builder)
     {
         builder.ForWindow<MainWindow>()

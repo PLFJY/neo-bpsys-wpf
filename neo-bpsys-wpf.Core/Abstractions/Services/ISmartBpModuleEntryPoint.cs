@@ -3,20 +3,20 @@ using neo_bpsys_wpf.Core.Models.SmartBpModule;
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
 /// <summary>
-/// Entry point implemented by the SmartBP runtime module.
+/// 由 SmartBP 运行时模块实现的入口点。
 /// </summary>
 public interface ISmartBpModuleEntryPoint
 {
     /// <summary>
-    /// Creates the real SmartBP page content.
+    /// 创建实际的 SmartBP 页面内容。
     /// </summary>
-    /// <param name="hostServices">Host service provider.</param>
-    /// <returns>WPF content object.</returns>
+    /// <param name="hostServices">宿主服务提供程序。</param>
+    /// <returns>WPF 内容对象。</returns>
     object CreateSmartBpContent(IServiceProvider hostServices);
 
     /// <summary>
-    /// Gets feature commands exposed by this module.
+    /// 获取该模块公开的功能命令。
     /// </summary>
-    /// <returns>Feature command list.</returns>
+    /// <returns>功能命令列表。</returns>
     IReadOnlyList<SmartBpFeatureCommand> GetFeatureCommands();
 }

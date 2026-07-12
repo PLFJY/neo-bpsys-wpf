@@ -89,20 +89,20 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
     }
 
     /// <summary>
-    /// Initializes a fronted management page view model without a behavior runtime.
+    /// 初始化不带行为运行时的前台管理页视图模型。
     /// </summary>
-    /// <param name="frontedWindowService">Fronted window service.</param>
-    /// <param name="sharedDataService">Shared data service.</param>
-    /// <param name="filePickerService">File picker service.</param>
-    /// <param name="packageManager">Layout package manager.</param>
-    /// <param name="packageExporter">Layout package exporter.</param>
-    /// <param name="packageImporter">Layout package importer.</param>
-    /// <param name="legacyPackageConverter">Legacy package converter.</param>
-    /// <param name="pluginMarketService">Plugin market service.</param>
-    /// <param name="pluginInstallService">Plugin install service.</param>
-    /// <param name="frontedWindowRegistry">Fronted window registry.</param>
-    /// <param name="serviceProvider">Application service provider.</param>
-    /// <param name="logger">Logger.</param>
+    /// <param name="frontedWindowService">前台窗口服务。</param>
+    /// <param name="sharedDataService">共享数据服务。</param>
+    /// <param name="filePickerService">文件选择服务。</param>
+    /// <param name="packageManager">布局包管理器。</param>
+    /// <param name="packageExporter">布局包导出器。</param>
+    /// <param name="packageImporter">布局包导入器。</param>
+    /// <param name="legacyPackageConverter">旧版包转换器。</param>
+    /// <param name="pluginMarketService">插件市场服务。</param>
+    /// <param name="pluginInstallService">插件安装服务。</param>
+    /// <param name="frontedWindowRegistry">前台窗口注册表。</param>
+    /// <param name="serviceProvider">应用程序服务提供程序。</param>
+    /// <param name="logger">日志记录器。</param>
     public FrontManagePageViewModel(
         IFrontedWindowService frontedWindowService,
         ISharedDataService sharedDataService,
@@ -138,7 +138,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
     public ObservableCollection<FrontedWindowManageItem> ManageableWindows { get; } = [];
 
     /// <summary>
-    /// Manageable fronted windows grouped by descriptor group key.
+    /// 按描述符分组键分组后的可管理前台窗口。
     /// </summary>
     public ObservableCollection<FrontedWindowManageGroup> ManageableWindowGroups { get; } = [];
 
@@ -1132,31 +1132,31 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
 }
 
 /// <summary>
-/// Fronted window group displayed by FrontManagePage.
+/// 前台管理页显示的前台窗口分组。
 /// </summary>
 public sealed class FrontedWindowManageGroup
 {
     /// <summary>
-    /// Stable group key provided by the window descriptor or fallback rules.
+    /// 由窗口描述符或回退规则提供的稳定分组键。
     /// </summary>
     public string GroupKey { get; init; } = string.Empty;
 
     /// <summary>
-    /// User-facing group display name.
+    /// 面向用户的分组显示名称。
     /// </summary>
     public string DisplayName { get; init; } = string.Empty;
 
     /// <summary>
-    /// Window cards in this group.
+    /// 此分组中的窗口卡片。
     /// </summary>
     public ObservableCollection<FrontedWindowManageItem> Windows { get; } = [];
 
     /// <summary>
-    /// Builds grouped FrontManagePage items from window descriptors.
+    /// 根据窗口描述符构建分组后的前台管理页条目。
     /// </summary>
-    /// <param name="descriptors">Window descriptors to group.</param>
-    /// <param name="settingsHostService">Optional settings service used to resolve localized window display names.</param>
-    /// <returns>Grouped fronted window manage items.</returns>
+    /// <param name="descriptors">要分组的窗口描述符。</param>
+    /// <param name="settingsHostService">可选的设置服务，用于解析本地化的窗口显示名称。</param>
+    /// <returns>分组后的前台窗口管理条目。</returns>
     public static IReadOnlyList<FrontedWindowManageGroup> FromDescriptors(
         IEnumerable<IFrontedWindowDescriptor> descriptors,
         ISettingsHostService? settingsHostService = null)
@@ -1208,41 +1208,41 @@ public sealed class FrontedWindowManageGroup
 }
 
 /// <summary>
-/// Fronted window card displayed by FrontManagePage.
+/// 前台管理页显示的前台窗口卡片。
 /// </summary>
 public sealed class FrontedWindowManageItem
 {
     /// <summary>
-    /// Stable runtime window id.
+    /// 稳定的运行时窗口 ID。
     /// </summary>
     public string WindowId { get; init; } = string.Empty;
 
     /// <summary>
-    /// User-facing window display name.
+    /// 面向用户的窗口显示名称。
     /// </summary>
     public string DisplayName { get; init; } = string.Empty;
 
     /// <summary>
-    /// User-facing descriptor kind label.
+    /// 面向用户的描述符类型标签。
     /// </summary>
     public string KindDisplay { get; init; } = string.Empty;
 
     /// <summary>
-    /// Full window type name used by layout paths.
+    /// 布局路径使用的完整窗口类型名。
     /// </summary>
     public string FullWindowType { get; init; } = string.Empty;
 
     /// <summary>
-    /// Whether this window can be customized by Designer v3.
+    /// 此窗口是否可由设计器 v3 自定义。
     /// </summary>
     public bool CanCustomize { get; init; }
 
     /// <summary>
-    /// Creates a card item from a registry descriptor.
+    /// 根据注册表描述符创建卡片条目。
     /// </summary>
-    /// <param name="descriptor">Window descriptor.</param>
-    /// <param name="settingsHostService">Optional settings service used to resolve localized window display names.</param>
-    /// <returns>A card item for FrontManagePage.</returns>
+    /// <param name="descriptor">窗口描述符。</param>
+    /// <param name="settingsHostService">可选的设置服务，用于解析本地化的窗口显示名称。</param>
+    /// <returns>用于前台管理页的卡片条目。</returns>
     public static FrontedWindowManageItem FromDescriptor(
         IFrontedWindowDescriptor descriptor,
         ISettingsHostService? settingsHostService = null)

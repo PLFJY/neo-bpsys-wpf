@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// File-backed editor-local bpui resource store.
+/// 基于文件的编辑器本地 bpui 资源存储。
 /// </summary>
 public class FrontedLocalResourceStore : IFrontedLocalResourceStore
 {

@@ -4,14 +4,14 @@ using neo_bpsys_wpf.Core.Models.Legacy;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Applies legacy frontend TextSettings to Designer v3 control configs.
+/// 将旧版前台 TextSettings 应用于设计器 v3 控件配置。
 /// </summary>
 public static class LegacyFrontedTextStyleMigrator
 {
     private const string BundledFontPrefix = "pack://application:,,,/Assets/Fonts/";
 
     /// <summary>
-    /// Returns whether a window has any legacy text styles.
+    /// 返回窗口是否有任何旧版文本样式。
     /// </summary>
     public static bool HasLegacyTextStyles(string window, LegacySettings legacySettings)
     {
@@ -27,7 +27,7 @@ public static class LegacyFrontedTextStyleMigrator
     }
 
     /// <summary>
-    /// Normalizes legacy font family references into Designer v3 font family strings.
+    /// 将旧版字体系列引用规范化为设计器 v3 字体系列字符串。
     /// </summary>
     public static string? NormalizeLegacyFontFamilySite(string? value)
     {
@@ -62,7 +62,7 @@ public static class LegacyFrontedTextStyleMigrator
     }
 
     /// <summary>
-    /// Applies legacy TextSettings to one v3 canvas config.
+    /// 将旧版 TextSettings 应用于一个 v3 画布配置。
     /// </summary>
     public static void Apply(
         FrontedCanvasConfig config,

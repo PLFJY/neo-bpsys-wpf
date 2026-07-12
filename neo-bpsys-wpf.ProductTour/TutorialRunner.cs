@@ -4,35 +4,35 @@ using Microsoft.Extensions.Logging;
 
 namespace neo_bpsys_wpf.ProductTour;
 
-/// <summary>Public runtime entry point for tutorial execution.</summary>
+/// <summary>教程执行的公共运行时入口点。</summary>
 public interface ITutorialRunner
 {
-    /// <summary>Runs every unfinished package registered for an owner tutorial key.</summary>
-    /// <param name="owner">Tutorial owner element.</param>
-    /// <param name="tutorialKey">Owner tutorial key.</param>
-    /// <param name="cancellationToken">Owner lifetime cancellation token.</param>
-    /// <returns>The sequence result.</returns>
+    /// <summary>运行为所有者教程键注册的每个未完成包。</summary>
+    /// <param name="owner">教程所有者元素。</param>
+    /// <param name="tutorialKey">所有者教程键。</param>
+    /// <param name="cancellationToken">所有者生命周期的取消令牌。</param>
+    /// <returns>序列运行结果。</returns>
     Task<TutorialRunResult> RunSequenceAsync(
         FrameworkElement owner,
         string tutorialKey,
         CancellationToken cancellationToken = default);
 
-    /// <summary>Runs one directly requested package through global serialization.</summary>
-    /// <param name="owner">Tutorial owner element.</param>
-    /// <param name="package">Package reference.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The run result.</returns>
+    /// <summary>通过全局序列化运行一个直接请求的包。</summary>
+    /// <param name="owner">教程所有者元素。</param>
+    /// <param name="package">包引用。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>运行结果。</returns>
     Task<TutorialRunResult> RunPackageAsync(
         FrameworkElement owner,
         TutorialPackageRef package,
         CancellationToken cancellationToken = default);
 
-    /// <summary>Runs one tutorial flow through global serialization.</summary>
-    /// <param name="owner">Owner window.</param>
-    /// <param name="flowId">Flow id.</param>
-    /// <param name="force">Whether existing completion state should be ignored.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The run result.</returns>
+    /// <summary>通过全局序列化运行一个教程流程。</summary>
+    /// <param name="owner">所有者窗口。</param>
+    /// <param name="flowId">流程 id。</param>
+    /// <param name="force">是否忽略已有的完成状态。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>运行结果。</returns>
     Task<TutorialRunResult> RunFlowAsync(
         Window owner,
         string flowId,
@@ -40,7 +40,7 @@ public interface ITutorialRunner
         CancellationToken cancellationToken = default);
 }
 
-/// <summary>Default tutorial runner.</summary>
+/// <summary>默认教程运行器。</summary>
 public sealed class TutorialRunner : ITutorialRunner
 {
     private readonly TutorialService _tutorialService;

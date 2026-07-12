@@ -44,9 +44,9 @@ public interface IFrontedAnimationRuntime
     void ResetAll(FrontedAnimationExecutionContext context);
 
     /// <summary>
-    /// Releases the runtime session associated with the specified root element.
-    /// Cancels any in-flight animations for that session and removes it from internal tracking.
+    /// 释放与指定根元素关联的运行时会话。
+    /// 取消该会话中所有进行中的动画，并将其从内部跟踪中移除。
     /// </summary>
-    /// <param name="root">The root <see cref="FrameworkElement"/> whose session to release.</param>
+    /// <param name="root">要释放会话的根 <see cref="FrameworkElement"/>。</param>
     void Release(FrameworkElement root);
 }

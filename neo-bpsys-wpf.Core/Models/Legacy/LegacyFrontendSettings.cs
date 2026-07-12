@@ -5,7 +5,7 @@ using System.Windows.Media;
 namespace neo_bpsys_wpf.Core.Models.Legacy;
 
 /// <summary>
-/// Legacy Config.json frontend settings DTO. These types exist only for migration.
+/// 旧版 Config.json 前台窗口设置 DTO。这些类型仅用于迁移。
 /// </summary>
 public sealed class LegacySettings
 {

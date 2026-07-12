@@ -7,7 +7,7 @@ using System.Text.Json;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// File-backed Designer v3 user layout store.
+/// 文件支持的设计器 v3 用户布局存储。
 /// </summary>
 public class FrontedUserLayoutStore : IFrontedUserLayoutStore
 {
@@ -20,7 +20,7 @@ public class FrontedUserLayoutStore : IFrontedUserLayoutStore
     };
 
     /// <summary>
-    /// Initializes a user layout store under the default application data layout folder.
+    /// 在默认应用数据布局文件夹下初始化用户布局存储。
     /// </summary>
     public FrontedUserLayoutStore()
         : this(AppConstants.FrontedLayoutsPath)
@@ -28,9 +28,9 @@ public class FrontedUserLayoutStore : IFrontedUserLayoutStore
     }
 
     /// <summary>
-    /// Initializes a user layout store under a custom layout root folder.
+    /// 在自定义布局根文件夹下初始化用户布局存储。
     /// </summary>
-    /// <param name="rootFolder">Root folder for user window layout JSON files.</param>
+    /// <param name="rootFolder">用户窗口布局 JSON 文件的根文件夹。</param>
     public FrontedUserLayoutStore(string rootFolder)
     {
         _rootFolder = rootFolder;

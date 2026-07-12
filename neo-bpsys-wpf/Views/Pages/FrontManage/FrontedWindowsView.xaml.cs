@@ -18,7 +18,7 @@ public partial class FrontedWindowsView : UserControl
     private Task<TutorialRunResult>? _tutorialTask;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="FrontedWindowsView"/> class.
+    /// 初始化 <see cref="FrontedWindowsView"/> 类的新实例。
     /// </summary>
     public FrontedWindowsView()
     {

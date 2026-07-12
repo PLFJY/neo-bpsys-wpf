@@ -53,7 +53,7 @@ public sealed class FrontedBehavior
     public FrontedNodeGraph LoopGraph { get; set; } = new();
 
     /// <summary>
-    /// Gets or sets the stop triggers for loop behaviors. Any matching trigger stops the loop.
+    /// 获取或设置循环行为的停止触发条件。任一匹配的触发条件都会停止循环。
     /// </summary>
     public List<TriggerDescriptor> StopTriggers { get; set; } = [];
 
@@ -63,17 +63,17 @@ public sealed class FrontedBehavior
     public FrontedNodeGraph StopGraph { get; set; } = new();
 
     /// <summary>
-    /// Gets or sets the trigger descriptor used by transition behavior matching.
+    /// 获取或设置过渡行为匹配使用的触发条件描述符。
     /// </summary>
     public TriggerDescriptor? TransitionTrigger { get; set; }
 
     /// <summary>
-    /// Gets or sets the graph that runs before the business state change is committed.
+    /// 获取或设置在业务状态变更提交前运行的节点图。
     /// </summary>
     public FrontedNodeGraph ExitGraph { get; set; } = new();
 
     /// <summary>
-    /// Gets or sets the graph that runs after the business state change is committed.
+    /// 获取或设置在业务状态变更提交后运行的节点图。
     /// </summary>
     public FrontedNodeGraph EnterGraph { get; set; } = new();
 

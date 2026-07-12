@@ -4,37 +4,37 @@ using System.Windows.Media;
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 
 /// <summary>
-/// Type compatibility filter used by Designer v3 Binding Browser.
+/// 设计器 v3 绑定浏览器使用的类型兼容性过滤器。
 /// </summary>
 public sealed class FrontedBindingTypeFilter
 {
     /// <summary>
-    /// Filter accepting any selectable value.
+    /// 接受任何可选值的过滤器。
     /// </summary>
     public static FrontedBindingTypeFilter Any { get; } = new(FrontedBindingTargetKind.Any);
 
     /// <summary>
-    /// Filter accepting text-compatible values.
+    /// 接受文本兼容值的过滤器。
     /// </summary>
     public static FrontedBindingTypeFilter Text { get; } = new(FrontedBindingTargetKind.Text);
 
     /// <summary>
-    /// Filter accepting image-compatible values.
+    /// 接受图像兼容值的过滤器。
     /// </summary>
     public static FrontedBindingTypeFilter Image { get; } = new(FrontedBindingTargetKind.Image);
 
     /// <summary>
-    /// Filter accepting game progress values.
+    /// 接受对局进度值的过滤器。
     /// </summary>
     public static FrontedBindingTypeFilter GameProgress { get; } = new(FrontedBindingTargetKind.GameProgress);
 
     /// <summary>
-    /// Filter accepting map values.
+    /// 接受地图值的过滤器。
     /// </summary>
     public static FrontedBindingTypeFilter Map { get; } = new(FrontedBindingTargetKind.Map);
 
     /// <summary>
-    /// Initializes a type filter for the specified target kind.
+    /// 为指定目标类别初始化类型过滤器。
     /// </summary>
     public FrontedBindingTypeFilter(FrontedBindingTargetKind kind)
     {
@@ -42,12 +42,12 @@ public sealed class FrontedBindingTypeFilter
     }
 
     /// <summary>
-    /// Expected binding target kind.
+    /// 预期的绑定目标类别。
     /// </summary>
     public FrontedBindingTargetKind Kind { get; }
 
     /// <summary>
-    /// Localization key for the target kind display name.
+    /// 目标类别显示名称的本地化键。
     /// </summary>
     public string DisplayNameKey => Kind switch
     {
@@ -64,7 +64,7 @@ public sealed class FrontedBindingTypeFilter
     };
 
     /// <summary>
-    /// Returns whether a source value type is compatible with this target.
+    /// 返回源值类型是否与此目标兼容。
     /// </summary>
     public bool IsAllowed(Type? valueType)
     {

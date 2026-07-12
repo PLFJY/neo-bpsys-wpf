@@ -1,21 +1,21 @@
 namespace neo_bpsys_wpf.ProductTour;
 
 /// <summary>
-/// Prepares and cleans the isolated game tutorial sandbox.
+/// 准备并清理隔离的游戏教程沙箱。
 /// </summary>
 public interface IGameTutorialSandboxService
 {
-    /// <summary>Prepares sandbox state before a guided flow starts.</summary>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <summary>在引导流程开始前准备沙箱状态。</summary>
+    /// <param name="cancellationToken">取消令牌。</param>
     Task PrepareAsync(CancellationToken cancellationToken = default);
 
-    /// <summary>Cleans sandbox state after completion, skip, or failure.</summary>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <summary>在完成、跳过或失败后清理沙箱状态。</summary>
+    /// <param name="cancellationToken">取消令牌。</param>
     Task CleanupAsync(CancellationToken cancellationToken = default);
 }
 
 /// <summary>
-/// No-op sandbox implementation used until the host supplies game-specific behavior.
+/// 空实现的沙箱，在宿主提供游戏特定行为之前使用。
 /// </summary>
 public sealed class NoOpGameTutorialSandboxService : IGameTutorialSandboxService
 {

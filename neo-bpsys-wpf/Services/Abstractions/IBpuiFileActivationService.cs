@@ -1,42 +1,42 @@
 namespace neo_bpsys_wpf.Services.Abstractions;
 
 /// <summary>
-/// Handles operating-system activation requests for <c>.bpui</c> layout package files.
+/// 处理操作系统对 <c>.bpui</c> 布局包文件的激活请求。
 /// </summary>
 public interface IBpuiFileActivationService
 {
     /// <summary>
-    /// Starts listening for <c>.bpui</c> file paths forwarded by later application instances.
+    /// 开始监听由后续应用程序实例转发的 <c>.bpui</c> 文件路径。
     /// </summary>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="cancellationToken">取消令牌。</param>
     void StartListening(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Stops listening for forwarded <c>.bpui</c> file paths.
+    /// 停止监听转发的 <c>.bpui</c> 文件路径。
     /// </summary>
     void StopListening();
 
     /// <summary>
-    /// Forwards a <c>.bpui</c> path to the already running application instance.
+    /// 将 <c>.bpui</c> 路径转发给已经在运行的应用程序实例。
     /// </summary>
-    /// <param name="packagePath">Package file path.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns><see langword="true"/> when the path was forwarded successfully.</returns>
+    /// <param name="packagePath">包文件路径。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>路径成功转发时返回 <see langword="true"/>。</returns>
     Task<bool> TryForwardToRunningInstanceAsync(string packagePath, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Imports and activates a <c>.bpui</c> layout package.
+    /// 导入并激活 <c>.bpui</c> 布局包。
     /// </summary>
-    /// <param name="packagePath">Package file path.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The import and activation result.</returns>
+    /// <param name="packagePath">包文件路径。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>导入与激活结果。</returns>
     Task<BpuiFileActivationResult> OpenPackageAsync(string packagePath, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
-/// Result produced when opening a <c>.bpui</c> package from the operating system.
+/// 从操作系统打开 <c>.bpui</c> 包时产生的结果。
 /// </summary>
-/// <param name="Success">Whether the package was imported and activated.</param>
-/// <param name="PackageId">Imported package id.</param>
-/// <param name="ErrorMessage">Failure reason, if any.</param>
+/// <param name="Success">是否已导入并激活该包。</param>
+/// <param name="PackageId">导入的包 ID。</param>
+/// <param name="ErrorMessage">失败原因（若有）。</param>
 public sealed record BpuiFileActivationResult(bool Success, string? PackageId, string? ErrorMessage);

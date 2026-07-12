@@ -5,22 +5,22 @@ using neo_bpsys_wpf.ProductTour.Controls;
 namespace neo_bpsys_wpf.ProductTour;
 
 /// <summary>
-/// Manages persisted tutorial state.
+/// 管理持久化的教程状态。
 /// </summary>
 public interface ITutorialStateManager
 {
-    /// <summary>Resets all tutorial state.</summary>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <summary>重置所有教程状态。</summary>
+    /// <param name="cancellationToken">取消令牌。</param>
     Task ResetStateAsync(CancellationToken cancellationToken = default);
 
-    /// <summary>Clears a flow completion record.</summary>
-    /// <param name="flowId">Flow id.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <summary>清除流程完成记录。</summary>
+    /// <param name="flowId">流程 id。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
     Task ClearFlowStateAsync(string flowId, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
-/// Default tutorial service.
+/// 默认教程服务。
 /// </summary>
 internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCancellation
 {
@@ -40,21 +40,21 @@ internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCanc
     private ProductTourOverlay? _currentOverlay;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="TutorialService"/> class.
+    /// 初始化 <see cref="TutorialService"/> 类的新实例。
     /// </summary>
-    /// <param name="serviceProvider">Application service provider.</param>
-    /// <param name="packageRegistry">Package registry.</param>
-    /// <param name="sequenceRegistry">Sequence registry.</param>
-    /// <param name="flowRegistry">Flow registry.</param>
-    /// <param name="stateStore">State store.</param>
-    /// <param name="signalService">Signal service.</param>
-    /// <param name="textProvider">Fixed UI text provider.</param>
-    /// <param name="avatarProvider">Tutorial avatar provider.</param>
-    /// <param name="runObserver">Tutorial run observer.</param>
-    /// <param name="contentResolver">Tutorial content resolver for localized step text.</param>
-    /// <param name="languageService">Tutorial language service for hot-switching.</param>
-    /// <param name="options">Product tour display options.</param>
-    /// <param name="logger">Logger.</param>
+    /// <param name="serviceProvider">应用服务提供程序。</param>
+    /// <param name="packageRegistry">包注册表。</param>
+    /// <param name="sequenceRegistry">序列注册表。</param>
+    /// <param name="flowRegistry">流程注册表。</param>
+    /// <param name="stateStore">状态存储。</param>
+    /// <param name="signalService">信号服务。</param>
+    /// <param name="textProvider">固定 UI 文本提供程序。</param>
+    /// <param name="avatarProvider">教程头像提供程序。</param>
+    /// <param name="runObserver">教程运行观察器。</param>
+    /// <param name="contentResolver">用于本地化步骤文本的教程内容解析器。</param>
+    /// <param name="languageService">用于热切换的教程语言服务。</param>
+    /// <param name="options">产品导览显示选项。</param>
+    /// <param name="logger">日志记录器。</param>
     internal TutorialService(
         IServiceProvider serviceProvider,
         ITutorialPackageRegistry packageRegistry,

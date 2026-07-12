@@ -3,7 +3,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Fallback Designer v3 localization service used when the host does not provide i18n resources.
+/// 宿主未提供 i18n 资源时使用的回退设计器 v3 本地化服务。
 /// </summary>
 public class FrontedDesignerLocalizationService : IFrontedDesignerLocalizationService
 {

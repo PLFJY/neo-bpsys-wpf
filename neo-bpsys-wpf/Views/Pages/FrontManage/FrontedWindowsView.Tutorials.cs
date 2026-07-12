@@ -13,36 +13,36 @@ namespace neo_bpsys_wpf.Views.Pages.FrontManage;
 
 public partial class FrontedWindowsView : ITutorialOwner<FrontedWindowsView>
 {
-    /// <summary>Fronted windows view tutorial key.</summary>
+    /// <summary>前台窗口视图教程 Key。</summary>
     public const string TutorialPageKey = "Page.FrontManage.Windows";
 
     /// <inheritdoc />
     public static string TutorialKey => TutorialPageKey;
 
-    /// <summary>Fronted windows view tutorial package references.</summary>
+    /// <summary>前台窗口视图教程包引用。</summary>
     public static class Tours
     {
-        /// <summary>Front management BP window launch package reference.</summary>
+        /// <summary>前台管理 BP 窗口启动包引用。</summary>
         public static readonly TutorialPackageRef BpWindowLaunchBasic = new(TutorialPackageIds.FrontManageBpWindowLaunchBasic);
 
-        /// <summary>Window management basic package reference.</summary>
+        /// <summary>窗口管理基础包引用。</summary>
         public static readonly TutorialPackageRef WindowsBasic = new(TutorialPackageIds.FrontManageWindowsBasic);
 
-        /// <summary>Open Designer v3 package reference.</summary>
+        /// <summary>打开设计器 v3 包引用。</summary>
         public static readonly TutorialPackageRef OpenDesigner = new(TutorialPackageIds.FrontManageOpenDesigner);
     }
 
-    /// <summary>Fronted windows view tutorial target names.</summary>
+    /// <summary>前台窗口视图教程目标名称。</summary>
     public static class TutorialTargets
     {
-        /// <summary>First manageable window card target name from the item template.</summary>
+        /// <summary>来自项模板的首个可管理窗口卡片目标名称。</summary>
         public const string FirstManageableWindowCard = "FirstManageableWindowCard";
     }
 
     /// <summary>
-    /// Registers tutorials owned by the fronted windows view.
+    /// 注册前台窗口视图所拥有的教程。
     /// </summary>
-    /// <param name="builder">Tutorial builder.</param>
+    /// <param name="builder">教程构建器。</param>
     public static void RegisterTutorials(ITutorialBuilder builder)
     {
         builder.ForRegion<FrontedWindowsView>()

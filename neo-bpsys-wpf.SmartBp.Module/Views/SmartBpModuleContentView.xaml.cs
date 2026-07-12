@@ -19,7 +19,7 @@ public partial class SmartBpModuleContentView : UserControl
     /// <summary>
     /// 初始化 <see cref="SmartBpModuleContentView"/> 类的新实例。
     /// </summary>
-    /// <param name="tutorialRunner">Tutorial runner.</param>
+    /// <param name="tutorialRunner">教程运行器。</param>
     public SmartBpModuleContentView(ITutorialRunner? tutorialRunner = null)
     {
         InitializeComponent();

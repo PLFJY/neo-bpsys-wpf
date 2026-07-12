@@ -4,16 +4,16 @@ using System.IO;
 namespace neo_bpsys_wpf.Services.SmartBpModule;
 
 /// <summary>
-/// Provides the SmartBP OCR model root from the loaded module state.
+/// 从已加载的模块状态提供 SmartBP OCR 模型根目录。
 /// </summary>
 public sealed class SmartBpOcrModelPathProvider : ISmartBpOcrModelPathProvider
 {
     private readonly ISmartBpModuleStorageProvider _storageProvider;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SmartBpOcrModelPathProvider"/> class.
+    /// 初始化 <see cref="SmartBpOcrModelPathProvider"/> 类的新实例。
     /// </summary>
-    /// <param name="moduleManager">Module manager.</param>
+    /// <param name="moduleManager">模块管理器。</param>
     public SmartBpOcrModelPathProvider(ISmartBpModuleStorageProvider storageProvider)
     {
         _storageProvider = storageProvider;

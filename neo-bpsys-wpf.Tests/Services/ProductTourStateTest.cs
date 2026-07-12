@@ -15,7 +15,7 @@ using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Services;
 
-/// <summary>Tests serialized Product Tour playback and persisted sequence state.</summary>
+/// <summary>测试序列化的产品导览回放与持久化的序列状态。</summary>
 public sealed class ProductTourStateTest
 {
     [Fact]
@@ -59,7 +59,7 @@ public sealed class ProductTourStateTest
     }
 
     /// <summary>
-    /// Verifies flow-embedded packages execute pre-step actions before showing the tour step.
+    /// 验证流程内嵌的包在显示导览步骤之前执行 pre-step 动作。
     /// </summary>
     [Fact]
     public async Task RunFlow_ShouldExecuteEmbeddedPackagePreStepActions()

@@ -6,32 +6,32 @@ using System.Windows.Threading;
 namespace neo_bpsys_wpf.ProductTour;
 
 /// <summary>
-/// Provides generic tutorial step action helpers.
+/// 提供通用的教程步骤动作辅助方法。
 /// </summary>
 public static class TutorialStepActions
 {
     /// <summary>
-    /// Creates a delay action.
+    /// 创建一个延迟动作。
     /// </summary>
-    /// <param name="milliseconds">Delay duration in milliseconds.</param>
-    /// <returns>The action definition.</returns>
+    /// <param name="milliseconds">延迟时长（毫秒）。</param>
+    /// <returns>动作定义。</returns>
     public static TutorialStepAction Delay(int milliseconds) =>
         Delay(TimeSpan.FromMilliseconds(milliseconds));
 
     /// <summary>
-    /// Creates a delay action.
+    /// 创建一个延迟动作。
     /// </summary>
-    /// <param name="duration">Delay duration.</param>
-    /// <returns>The action definition.</returns>
+    /// <param name="duration">延迟时长。</param>
+    /// <returns>动作定义。</returns>
     public static TutorialStepAction Delay(TimeSpan duration) =>
         new($"Delay({duration.TotalMilliseconds:0}ms)", (_, cancellationToken) => Task.Delay(duration, cancellationToken));
 
     /// <summary>
-    /// Creates an action that scrolls a named element into view with a simple smooth vertical animation.
+    /// 创建一个将命名元素滚动到可视区域、带有简单平滑垂直动画的动作。
     /// </summary>
-    /// <param name="targetName">Target element name.</param>
-    /// <param name="durationMs">Scroll animation duration in milliseconds.</param>
-    /// <returns>The action definition.</returns>
+    /// <param name="targetName">目标元素名称。</param>
+    /// <param name="durationMs">滚动动画时长（毫秒）。</param>
+    /// <returns>动作定义。</returns>
     public static TutorialStepAction SmoothScrollTo(string targetName, int durationMs = 350) =>
         new($"SmoothScrollTo({targetName})", async (context, cancellationToken) =>
         {
@@ -45,9 +45,9 @@ public static class TutorialStepActions
         });
 
     /// <summary>
-    /// Creates an action that waits until the owner dispatcher reaches idle priority.
+    /// 创建一个等待宿主 dispatcher 到达空闲优先级的动作。
     /// </summary>
-    /// <returns>The action definition.</returns>
+    /// <returns>动作定义。</returns>
     public static TutorialStepAction WaitForDispatcherIdle() =>
         new("WaitForDispatcherIdle", async (context, cancellationToken) =>
         {
@@ -58,9 +58,9 @@ public static class TutorialStepActions
         });
 
     /// <summary>
-    /// Creates an action that activates the owner window.
+    /// 创建一个激活宿主窗口的动作。
     /// </summary>
-    /// <returns>The action definition.</returns>
+    /// <returns>动作定义。</returns>
     public static TutorialStepAction ActivateOwnerWindow() =>
         new("ActivateOwnerWindow", (context, _) =>
         {
@@ -70,14 +70,14 @@ public static class TutorialStepActions
         });
 
     /// <summary>
-    /// Creates a soft wait action that polls a predicate until it returns true or the timeout expires.
-    /// Returns on timeout without throwing, so it pairs with <see cref="ProductTourStep.AllowMissingTarget"/>.
+    /// 创建一个软等待动作，轮询断言直到其返回 true 或超时。
+    /// 超时后直接返回而不抛出异常，因此可与 <see cref="ProductTourStep.AllowMissingTarget"/> 配合使用。
     /// </summary>
-    /// <param name="name">Diagnostic name shown in logs.</param>
-    /// <param name="predicate">Predicate evaluated on the step action context. Returns true when the awaited condition is satisfied.</param>
-    /// <param name="timeout">Maximum wait duration.</param>
-    /// <param name="pollInterval">Interval between predicate checks. Defaults to 80ms.</param>
-    /// <returns>The action definition.</returns>
+    /// <param name="name">在日志中显示的诊断名称。</param>
+    /// <param name="predicate">在步骤动作上下文上求值的断言。当等待的条件满足时返回 true。</param>
+    /// <param name="timeout">最大等待时长。</param>
+    /// <param name="pollInterval">断言检查之间的间隔。默认为 80 毫秒。</param>
+    /// <returns>动作定义。</returns>
     public static TutorialStepAction WaitUntil(
         string name,
         Func<TutorialStepActionContext, bool> predicate,
@@ -103,10 +103,10 @@ public static class TutorialStepActions
     }
 
     /// <summary>
-    /// Returns an optional copy of an action.
+    /// 返回某个动作的可选副本。
     /// </summary>
-    /// <param name="action">Action to mark optional.</param>
-    /// <returns>The optional action definition.</returns>
+    /// <param name="action">要标记为可选的动作。</param>
+    /// <returns>可选动作定义。</returns>
     public static TutorialStepAction Optional(TutorialStepAction action)
     {
         ArgumentNullException.ThrowIfNull(action);

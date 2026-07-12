@@ -5,18 +5,18 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout;
 namespace neo_bpsys_wpf.Core.Helpers;
 
 /// <summary>
-/// Resolves fronted window display names from descriptor-local i18n dictionaries.
+/// 从描述符本地化的国际化字典中解析前台窗口显示名称。
 /// </summary>
 public static class FrontedWindowDisplayNameResolver
 {
     /// <summary>
-    /// Resolves the user-facing display name for a fronted window descriptor.
+    /// 解析前台窗口描述符面向用户的显示名称。
     /// </summary>
-    /// <param name="descriptor">Window descriptor.</param>
-    /// <param name="language">Requested language setting.</param>
-    /// <param name="cultureInfo">Effective UI culture used when <paramref name="language"/> is not concrete.</param>
-    /// <returns>The localized display name, or the descriptor fallback display name.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="descriptor"/> is <see langword="null"/>.</exception>
+    /// <param name="descriptor">窗口描述符。</param>
+    /// <param name="language">请求的语言设置。</param>
+    /// <param name="cultureInfo">当 <paramref name="language"/> 不是具体语言时使用的有效 UI 区域信息。</param>
+    /// <returns>本地化的显示名称，或描述符的回退显示名称。</returns>
+    /// <exception cref="ArgumentNullException">当 <paramref name="descriptor"/> 为 <see langword="null"/> 时抛出。</exception>
     public static string ResolveDisplayName(
         IFrontedWindowDescriptor descriptor,
         LanguageKey language,
@@ -37,11 +37,11 @@ public static class FrontedWindowDisplayNameResolver
     }
 
     /// <summary>
-    /// Resolves a concrete supported language from a language setting and effective culture.
+    /// 根据语言设置和有效区域信息解析具体的受支持语言。
     /// </summary>
-    /// <param name="language">Requested language setting.</param>
-    /// <param name="cultureInfo">Effective UI culture.</param>
-    /// <returns>A concrete language key, or <see langword="null"/> when no supported language matches.</returns>
+    /// <param name="language">请求的语言设置。</param>
+    /// <param name="cultureInfo">有效的 UI 区域信息。</param>
+    /// <returns>具体的语言键；当没有匹配的受支持语言时返回 <see langword="null"/>。</returns>
     public static LanguageKey? ResolveConcreteLanguage(LanguageKey language, CultureInfo? cultureInfo = null)
     {
         if (language is not LanguageKey.System and not LanguageKey.FollowApp)
@@ -69,11 +69,11 @@ public static class FrontedWindowDisplayNameResolver
     }
 
     /// <summary>
-    /// Gets the non-localized fallback display name for a fronted window descriptor.
+    /// 获取前台窗口描述符的非本地化回退显示名称。
     /// </summary>
-    /// <param name="descriptor">Window descriptor.</param>
-    /// <returns>The descriptor display name, or its window type name when no display name is configured.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="descriptor"/> is <see langword="null"/>.</exception>
+    /// <param name="descriptor">窗口描述符。</param>
+    /// <returns>描述符的显示名称；未配置显示名称时返回其窗口类型名称。</returns>
+    /// <exception cref="ArgumentNullException">当 <paramref name="descriptor"/> 为 <see langword="null"/> 时抛出。</exception>
     public static string GetFallbackDisplayName(IFrontedWindowDescriptor descriptor)
     {
         ArgumentNullException.ThrowIfNull(descriptor);

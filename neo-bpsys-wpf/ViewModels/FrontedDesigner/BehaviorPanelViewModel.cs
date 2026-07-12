@@ -15,7 +15,7 @@ using System.Windows;
 namespace neo_bpsys_wpf.ViewModels.FrontedDesigner;
 
 /// <summary>
-/// Designer v3 行为面板视图模型，绑定到当前选中的布局控件。
+/// 设计器 v3 行为面板视图模型，绑定到当前选中的布局控件。
 /// </summary>
 public sealed partial class BehaviorPanelViewModel : ViewModelBase
 {
@@ -55,19 +55,19 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
     /// <summary>
     /// 初始化新的行为面板视图模型。
     /// </summary>
-    /// <param name="localizationService">Designer 本地化服务。</param>
-    /// <param name="eventCatalog">Catalog of supported behavior trigger events.</param>
-    /// <param name="markLayoutDirty">Callback used when behavior edits also change layout-owned control metadata.</param>
-    /// <param name="markBehaviorsDirty">Callback used when the behavior document changes.</param>
-    /// <param name="nodeCatalog">Optional node catalog override.</param>
-    /// <param name="graphValidator">Optional graph validator override.</param>
-    /// <param name="graphRuntime">Optional graph runtime override.</param>
-    /// <param name="animationRuntime">Optional animation runtime used by preview actions.</param>
-    /// <param name="previewAnimationScope">Optional preview scope that supplies the current preview root.</param>
-    /// <param name="saveBehaviorAsync">Optional save callback for animation editor save-all.</param>
-    /// <param name="behaviorClipboard">Optional shared behavior clipboard.</param>
-    /// <param name="copyPasteService">Optional behavior copy/paste service.</param>
-    /// <param name="captureUndoSnapshot">用于捕获外层 Designer 撤销快照的可选回调。</param>
+    /// <param name="localizationService">设计器本地化服务。</param>
+    /// <param name="eventCatalog">支持的行为触发事件目录。</param>
+    /// <param name="markLayoutDirty">当行为编辑同时修改布局拥有的控件元数据时使用的回调。</param>
+    /// <param name="markBehaviorsDirty">当行为文档变化时使用的回调。</param>
+    /// <param name="nodeCatalog">可选的节点目录覆盖。</param>
+    /// <param name="graphValidator">可选的图校验器覆盖。</param>
+    /// <param name="graphRuntime">可选的图运行时覆盖。</param>
+    /// <param name="animationRuntime">预览操作使用的可选动画运行时。</param>
+    /// <param name="previewAnimationScope">提供当前预览根的可选预览作用域。</param>
+    /// <param name="saveBehaviorAsync">动画编辑器全部保存时使用的可选保存回调。</param>
+    /// <param name="behaviorClipboard">可选的共享行为剪贴板。</param>
+    /// <param name="copyPasteService">可选的行为复制/粘贴服务。</param>
+    /// <param name="captureUndoSnapshot">用于捕获外层设计器撤销快照的可选回调。</param>
     public BehaviorPanelViewModel(
         IFrontedDesignerLocalizationService localizationService,
         FrontedBehaviorEventCatalog eventCatalog,
@@ -155,7 +155,7 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
     public partial string PasteStatus { get; set; } = string.Empty;
 
     /// <summary>
-    /// 获取是否已选中 Designer 控件。
+    /// 获取是否已选中设计器控件。
     /// </summary>
     public bool HasSelectedControl => SelectedControl is not null;
 
@@ -201,7 +201,7 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
     /// <summary>
     /// 更新选中的布局控件并重新加载其行为集合。
     /// </summary>
-    /// <param name="selectedControl">选中的 Designer 控件；没有选中控件时为 <see langword="null"/>。</param>
+    /// <param name="selectedControl">选中的设计器控件；没有选中控件时为 <see langword="null"/>。</param>
     public void SetSelectedControl(FrontedControlDesignItem? selectedControl)
     {
         SelectedControl = selectedControl;
@@ -445,7 +445,7 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 将行为复制到共享 Designer 行为剪贴板。
+    /// 将行为复制到共享设计器行为剪贴板。
     /// </summary>
     /// <param name="behavior">要复制到剪贴板的行为行。</param>
     [RelayCommand]
@@ -552,7 +552,7 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
     /// </summary>
     /// <param name="targets">要预览的控件。</param>
     /// <param name="options">粘贴选项。</param>
-    /// <returns>Compatibility and rewrite previews.</returns>
+    /// <returns>兼容性与重写预览。</returns>
     public IReadOnlyList<FrontedBehaviorPastePreview> PreviewBehaviorTargets(
         IEnumerable<FrontedControlDesignItem> targets,
         FrontedBehaviorPasteOptions options)
@@ -745,7 +745,7 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
     /// <summary>
     /// 创建本地化触发过滤运算符选项。
     /// </summary>
-    /// <returns>Operator options.</returns>
+    /// <returns>运算符选项。</returns>
     private IReadOnlyList<BehaviorOptionViewModel> CreateOperatorOptions() =>
     [
         new(TriggerFilterOperator.Equals, "="),
@@ -781,7 +781,7 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 在修改行为数据前捕获外层 Designer 撤销快照。
+    /// 在修改行为数据前捕获外层设计器撤销快照。
     /// </summary>
     private void CaptureUndoSnapshot()
     {
@@ -789,10 +789,10 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 解析 Designer 本地化字符串，并为仅加载 Core 的测试上下文提供兜底。
+    /// 解析设计器本地化字符串，并为仅加载 Core 的测试上下文提供兜底。
     /// </summary>
-    /// <param name="key">Localization key.</param>
-    /// <param name="fallback">Fallback text.</param>
+    /// <param name="key">本地化键。</param>
+    /// <param name="fallback">兜底文本。</param>
     /// <returns>本地化文本或兜底文本。</returns>
     private string Localize(string key, string fallback) =>
         _localizationService.GetDesignerText(key, fallback);
@@ -2199,7 +2199,7 @@ public sealed record FrontedBehaviorAnimationStageViewModel(
 /// 请求行为面板视图显示多目标行为粘贴选择器。
 /// </summary>
 /// <param name="Panel">拥有本次粘贴操作的行为面板。</param>
-/// <param name="Previews">Compatibility and rewrite previews for available targets.</param>
+/// <param name="Previews">可用目标的兼容性与重写预览。</param>
 public sealed record FrontedBehaviorCopyToRequest(
     BehaviorPanelViewModel Panel,
     IReadOnlyList<FrontedBehaviorPastePreview> Previews);

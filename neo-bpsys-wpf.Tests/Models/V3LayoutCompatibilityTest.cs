@@ -13,7 +13,7 @@ using Xunit;
 namespace neo_bpsys_wpf.Tests.Models;
 
 /// <summary>
-/// Locks compatibility of repository-owned window-centric v3 layout fixtures.
+/// 锁定仓库持有的以窗口为中心的 v3 布局固定数据的兼容性。
 /// </summary>
 public sealed class V3LayoutCompatibilityTest
 {

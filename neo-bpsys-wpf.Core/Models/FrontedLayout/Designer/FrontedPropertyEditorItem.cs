@@ -5,7 +5,7 @@ using System.Windows.Media;
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 
 /// <summary>
-/// Single editable row in Designer v3 property grid.
+/// 设计器 v3 属性网格中的单个可编辑行。
 /// </summary>
 public class FrontedPropertyEditorItem : ObservableObject
 {
@@ -40,7 +40,7 @@ public class FrontedPropertyEditorItem : ObservableObject
     private IReadOnlyList<string> _allowedBindingTypeNames = [];
 
     /// <summary>
-    /// User-facing row label.
+    /// 面向用户的行标签。
     /// </summary>
     public string DisplayName
     {
@@ -49,7 +49,7 @@ public class FrontedPropertyEditorItem : ObservableObject
     }
 
     /// <summary>
-    /// Underlying design item or config property name.
+    /// 底层设计项或配置属性名称。
     /// </summary>
     public string PropertyName
     {
@@ -58,7 +58,7 @@ public class FrontedPropertyEditorItem : ObservableObject
     }
 
     /// <summary>
-    /// Optional help text for the property.
+    /// 属性的可选帮助文本。
     /// </summary>
     public string? Description
     {
@@ -67,7 +67,7 @@ public class FrontedPropertyEditorItem : ObservableObject
     }
 
     /// <summary>
-    /// Underlying CLR property type.
+    /// 底层 CLR 属性类型。
     /// </summary>
     public Type PropertyType
     {
@@ -76,7 +76,7 @@ public class FrontedPropertyEditorItem : ObservableObject
     }
 
     /// <summary>
-    /// Editor kind selected for the property.
+    /// 为该属性选择的编辑器类型。
     /// </summary>
     public FrontedPropertyEditorKind EditorKind
     {
@@ -85,7 +85,7 @@ public class FrontedPropertyEditorItem : ObservableObject
     }
 
     /// <summary>
-    /// Current property value.
+    /// 当前属性值。
     /// </summary>
     public object? Value
     {
@@ -110,7 +110,7 @@ public class FrontedPropertyEditorItem : ObservableObject
     }
 
     /// <summary>
-    /// Optional user-facing display text for read-only values.
+    /// 只读值的可选面向用户显示文本。
     /// </summary>
     public string? DisplayValue
     {
@@ -119,7 +119,7 @@ public class FrontedPropertyEditorItem : ObservableObject
     }
 
     /// <summary>
-    /// User edit buffer for explicit-commit text-like rows.
+    /// 显式提交类文本行的用户编辑缓冲区。
     /// </summary>
     public string? EditText
     {
@@ -141,7 +141,7 @@ public class FrontedPropertyEditorItem : ObservableObject
     }
 
     /// <summary>
-    /// ColorPicker-friendly value for color string rows.
+    /// 颜色字符串行的 ColorPicker 友好值。
     /// </summary>
     public Color ColorValue
     {
@@ -160,7 +160,7 @@ public class FrontedPropertyEditorItem : ObservableObject
     }
 
     /// <summary>
-    /// Whether the row is read-only.
+    /// 指示该行是否为只读。
     /// </summary>
     public bool IsReadOnly
     {
@@ -169,7 +169,7 @@ public class FrontedPropertyEditorItem : ObservableObject
     }
 
     /// <summary>
-    /// Whether the property is required.
+    /// 指示该属性是否为必需。
     /// </summary>
     public bool IsRequired
     {
@@ -178,7 +178,7 @@ public class FrontedPropertyEditorItem : ObservableObject
     }
 
     /// <summary>
-    /// Whether the latest explicit text commit failed validation.
+    /// 指示最近一次显式文本提交是否未通过验证。
     /// </summary>
     public bool HasEditError
     {
@@ -187,7 +187,7 @@ public class FrontedPropertyEditorItem : ObservableObject
     }
 
     /// <summary>
-    /// Validation message for the latest failed explicit text commit.
+    /// 最近一次失败的显式文本提交的验证消息。
     /// </summary>
     public string? EditError
     {
@@ -196,7 +196,7 @@ public class FrontedPropertyEditorItem : ObservableObject
     }
 
     /// <summary>
-    /// Validation messages attached to this property row.
+    /// 附加到此属性行的验证消息列表。
     /// </summary>
     public IReadOnlyList<string> ValidationErrors
     {
@@ -205,7 +205,7 @@ public class FrontedPropertyEditorItem : ObservableObject
     }
 
     /// <summary>
-    /// Severity-aware validation messages attached to this property row.
+    /// 附加到此属性行的、带有严重级别的验证消息列表。
     /// </summary>
     public IReadOnlyList<FrontedLayoutValidationMessage> ValidationMessages
     {
@@ -214,7 +214,7 @@ public class FrontedPropertyEditorItem : ObservableObject
     }
 
     /// <summary>
-    /// Available values for enum-like editors.
+    /// 枚举类编辑器的可选值列表。
     /// </summary>
     public IReadOnlyList<object>? Options
     {
@@ -223,7 +223,7 @@ public class FrontedPropertyEditorItem : ObservableObject
     }
 
     /// <summary>
-    /// Logical group name.
+    /// 逻辑分组名称。
     /// </summary>
     public string? GroupName
     {
@@ -232,7 +232,7 @@ public class FrontedPropertyEditorItem : ObservableObject
     }
 
     /// <summary>
-    /// Localized group label for display.
+    /// 用于显示的本地化分组标签。
     /// </summary>
     public string? GroupDisplayName
     {
@@ -241,7 +241,7 @@ public class FrontedPropertyEditorItem : ObservableObject
     }
 
     /// <summary>
-    /// Whether this row should display its group header.
+    /// 指示此行是否应显示其分组标题。
     /// </summary>
     public bool IsGroupHeaderVisible
     {
@@ -250,7 +250,7 @@ public class FrontedPropertyEditorItem : ObservableObject
     }
 
     /// <summary>
-    /// Whether this text-like row can open the Binding Browser.
+    /// 指示此文本类行是否能打开绑定浏览器。
     /// </summary>
     public bool CanBrowseBinding
     {
@@ -259,7 +259,7 @@ public class FrontedPropertyEditorItem : ObservableObject
     }
 
     /// <summary>
-    /// Whether this text-like row can open the Resource Browser.
+    /// 指示此文本类行是否能打开资源浏览器。
     /// </summary>
     public bool CanBrowseResource
     {
@@ -268,7 +268,7 @@ public class FrontedPropertyEditorItem : ObservableObject
     }
 
     /// <summary>
-    /// Gets or sets whether the row represents selected controls with different current values.
+    /// 获取或设置指示该行是否表示具有不同当前值的选中控件的值。
     /// </summary>
     public bool IsMultiSelectionMixedValue
     {
@@ -277,7 +277,7 @@ public class FrontedPropertyEditorItem : ObservableObject
     }
 
     /// <summary>
-    /// Gets or sets whether this row can be batch-edited for the current multi-selection.
+    /// 获取或设置指示此行是否可对当前多选进行批量编辑的值。
     /// </summary>
     public bool IsMultiSelectionBatchEditable
     {
@@ -286,7 +286,7 @@ public class FrontedPropertyEditorItem : ObservableObject
     }
 
     /// <summary>
-    /// Gets or sets whether the row should wait for Enter, Apply, or a browser selection before writing to config.
+    /// 获取或设置指示该行是否在写入配置前等待 Enter、应用或浏览器选择的值。
     /// </summary>
     public bool RequiresExplicitCommit
     {
@@ -295,7 +295,7 @@ public class FrontedPropertyEditorItem : ObservableObject
     }
 
     /// <summary>
-    /// Optional short browse button text.
+    /// 可选的短浏览按钮文本。
     /// </summary>
     public string? BrowseButtonText
     {
@@ -304,7 +304,7 @@ public class FrontedPropertyEditorItem : ObservableObject
     }
 
     /// <summary>
-    /// Optional browse dialog title key.
+    /// 可选的浏览对话框标题键。
     /// </summary>
     public string? BrowseDialogTitle
     {
@@ -313,7 +313,7 @@ public class FrontedPropertyEditorItem : ObservableObject
     }
 
     /// <summary>
-    /// Expected binding target kind used by Binding Browser filtering.
+    /// 绑定浏览器过滤使用的预期绑定目标类别。
     /// </summary>
     public FrontedBindingTargetKind BindingTargetKind
     {
@@ -322,7 +322,7 @@ public class FrontedPropertyEditorItem : ObservableObject
     }
 
     /// <summary>
-    /// Short display name for the expected binding type.
+    /// 预期绑定类型的短显示名称。
     /// </summary>
     public string? ExpectedBindingTypeName
     {
@@ -331,7 +331,7 @@ public class FrontedPropertyEditorItem : ObservableObject
     }
 
     /// <summary>
-    /// Type names accepted by the Binding Browser for this row.
+    /// 绑定浏览器为此行接受的类型名称列表。
     /// </summary>
     public IReadOnlyList<string> AllowedBindingTypeNames
     {
@@ -340,7 +340,7 @@ public class FrontedPropertyEditorItem : ObservableObject
     }
 
     /// <summary>
-    /// Applies a failed edit state without discarding the user's edit buffer.
+    /// 应用失败的编辑状态，不丢弃用户的编辑缓冲区。
     /// </summary>
     public void SetEditError(string message)
     {

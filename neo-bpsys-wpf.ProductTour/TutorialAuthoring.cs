@@ -5,437 +5,436 @@ using System.Windows.Controls;
 namespace neo_bpsys_wpf.ProductTour;
 
 /// <summary>
-/// Declares tutorials owned by a WPF element type.
+/// 声明由 WPF 元素类型拥有的教程。
 /// </summary>
-/// <typeparam name="TSelf">Owner element type.</typeparam>
+/// <typeparam name="TSelf">所有者元素类型。</typeparam>
 public interface ITutorialOwner<TSelf>
     where TSelf : FrameworkElement, ITutorialOwner<TSelf>
 {
-    /// <summary>Gets the stable tutorial key for this owner.</summary>
+    /// <summary>获取此所有者的稳定教程键。</summary>
     static abstract string TutorialKey { get; }
 
     /// <summary>
-    /// Registers tutorials owned by this type.
+    /// 注册此类型拥有的教程。
     /// </summary>
-    /// <param name="builder">Tutorial authoring builder.</param>
+    /// <param name="builder">教程创作构建器。</param>
     static abstract void RegisterTutorials(ITutorialBuilder builder);
 }
 
 /// <summary>
-/// Declares application-level tutorial flows.
+/// 声明应用级教程流程。
 /// </summary>
-/// <typeparam name="TSelf">Application type.</typeparam>
+/// <typeparam name="TSelf">应用类型。</typeparam>
 public interface IAppTutorial<TSelf>
     where TSelf : Application, IAppTutorial<TSelf>
 {
     /// <summary>
-    /// Registers application-level tutorials.
+    /// 注册应用级教程。
     /// </summary>
-    /// <param name="builder">Tutorial authoring builder.</param>
+    /// <param name="builder">教程创作构建器。</param>
     static abstract void RegisterTutorials(ITutorialBuilder builder);
 }
 
 /// <summary>
-/// High-level tutorial authoring entry point.
+/// 高级教程创作入口点。
 /// </summary>
 public interface ITutorialBuilder
 {
     /// <summary>
-    /// Starts page-local tutorial authoring.
+    /// 开始页面级教程创作。
     /// </summary>
-    /// <typeparam name="TOwner">Page owner type.</typeparam>
-    /// <returns>Owner tutorial builder.</returns>
+    /// <typeparam name="TOwner">页面所有者类型。</typeparam>
+    /// <returns>所有者教程构建器。</returns>
     ITutorialOwnerBuilder<TOwner> ForPage<TOwner>()
         where TOwner : Page, ITutorialOwner<TOwner>;
 
     /// <summary>
-    /// Starts window-local tutorial authoring.
+    /// 开始窗口级教程创作。
     /// </summary>
-    /// <typeparam name="TOwner">Window owner type.</typeparam>
-    /// <returns>Owner tutorial builder.</returns>
+    /// <typeparam name="TOwner">窗口所有者类型。</typeparam>
+    /// <returns>所有者教程构建器。</returns>
     ITutorialOwnerBuilder<TOwner> ForWindow<TOwner>()
         where TOwner : Window, ITutorialOwner<TOwner>;
 
     /// <summary>
-    /// Starts region-local tutorial authoring.
+    /// 开始区域级教程创作。
     /// </summary>
-    /// <typeparam name="TOwner">Region owner type.</typeparam>
-    /// <returns>Owner tutorial builder.</returns>
+    /// <typeparam name="TOwner">区域所有者类型。</typeparam>
+    /// <returns>所有者教程构建器。</returns>
     ITutorialOwnerBuilder<TOwner> ForRegion<TOwner>()
         where TOwner : FrameworkElement, ITutorialOwner<TOwner>;
 
     /// <summary>
-    /// Starts authoring for a specific tutorial key owned by an element type.
+    /// 开始为某个元素类型拥有的特定教程键进行创作。
     /// </summary>
-    /// <typeparam name="TOwner">Owner type.</typeparam>
-    /// <param name="tutorialKey">Tutorial key to register.</param>
-    /// <returns>Owner tutorial builder.</returns>
+    /// <typeparam name="TOwner">所有者类型。</typeparam>
+    /// <param name="tutorialKey">要注册的教程键。</param>
+    /// <returns>所有者教程构建器。</returns>
     ITutorialOwnerBuilder<TOwner> ForKey<TOwner>(string tutorialKey)
         where TOwner : FrameworkElement, ITutorialOwner<TOwner>;
 
     /// <summary>
-    /// Starts flow authoring.
+    /// 开始流程创作。
     /// </summary>
-    /// <param name="flowId">Stable flow id.</param>
-    /// <returns>Flow builder.</returns>
+    /// <param name="flowId">稳定的流程 id。</param>
+    /// <returns>流程构建器。</returns>
     ITutorialFlowBuilder Flow(string flowId);
 
     /// <summary>
-    /// Registers tutorials declared by an owner type.
+    /// 注册由所有者类型声明的教程。
     /// </summary>
-    /// <typeparam name="TOwner">Owner type.</typeparam>
+    /// <typeparam name="TOwner">所有者类型。</typeparam>
     void RegisterOwner<TOwner>()
         where TOwner : FrameworkElement, ITutorialOwner<TOwner>;
 
     /// <summary>
-    /// Registers tutorials declared by the application.
+    /// 注册由应用声明的教程。
     /// </summary>
-    /// <typeparam name="TApp">Application type.</typeparam>
+    /// <typeparam name="TApp">应用类型。</typeparam>
     void RegisterApp<TApp>()
         where TApp : Application, IAppTutorial<TApp>;
 }
 
 /// <summary>
-/// High-level builder for one tutorial owner.
+/// 用于一个教程所有者的高级构建器。
 /// </summary>
-/// <typeparam name="TOwner">Owner type.</typeparam>
+/// <typeparam name="TOwner">所有者类型。</typeparam>
 public interface ITutorialOwnerBuilder<TOwner>
     where TOwner : FrameworkElement, ITutorialOwner<TOwner>
 {
     /// <summary>
-    /// Starts a package owned by the current owner.
+    /// 开始一个由当前所有者拥有的包。
     /// </summary>
-    /// <param name="package">Package reference.</param>
-    /// <returns>Package builder.</returns>
+    /// <param name="package">包引用。</param>
+    /// <returns>包构建器。</returns>
     ITutorialPackageBuilder<TOwner> Package(TutorialPackageRef package);
 
     /// <summary>
-    /// Adds an existing package reference to this owner's run sequence.
+    /// 将已有的包引用添加到此所有者的运行序列。
     /// </summary>
-    /// <param name="package">Existing package reference.</param>
-    /// <returns>The same owner builder.</returns>
+    /// <param name="package">已有的包引用。</param>
+    /// <returns>同一所有者构建器。</returns>
     ITutorialOwnerBuilder<TOwner> Use(TutorialPackageRef package);
 
 }
 
 /// <summary>
-/// Internal extension of <see cref="ITutorialOwnerBuilder{TOwner}"/> that supports package registration
-/// with on-demand scheduling. Used by the authoring package builder and runtime contributor builder.
+/// <see cref="ITutorialOwnerBuilder{TOwner}"/> 的内部扩展，支持按需调度的包注册。
+/// 由创作包构建器和运行时贡献者构建器使用。
 /// </summary>
-/// <typeparam name="TOwner">Owner type.</typeparam>
+/// <typeparam name="TOwner">所有者类型。</typeparam>
 internal interface ITutorialOwnerBuilderInternal<TOwner> : ITutorialOwnerBuilder<TOwner>
     where TOwner : FrameworkElement, ITutorialOwner<TOwner>
 {
     /// <summary>
-    /// Registers a finalized package definition with the package registry and optionally adds it to the sequence.
+    /// 向包注册表注册最终化的包定义，并可选地将其添加到序列。
     /// </summary>
-    /// <param name="package">Finalized package definition.</param>
-    /// <param name="isOnDemand">Whether the package is on-demand and should not appear in the default sequence.</param>
+    /// <param name="package">最终化的包定义。</param>
+    /// <param name="isOnDemand">该包是否按需，不应出现在默认序列中。</param>
     void RegisterPackage(TutorialPackageDefinition package, bool isOnDemand);
 }
 
 /// <summary>
-/// High-level builder for one owner-local package.
+/// 用于一个所有者级包的高级构建器。
 /// </summary>
-/// <typeparam name="TOwner">Owner type.</typeparam>
+/// <typeparam name="TOwner">所有者类型。</typeparam>
 public interface ITutorialPackageBuilder<TOwner> : ITutorialOwnerBuilder<TOwner>
     where TOwner : FrameworkElement, ITutorialOwner<TOwner>
 {
     /// <summary>
-    /// Adds a tutorial step.
+    /// 添加一个教程步骤。
     /// </summary>
-    /// <param name="title">Step title.</param>
-    /// <returns>Step builder.</returns>
+    /// <param name="title">步骤标题。</param>
+    /// <returns>步骤构建器。</returns>
     ITutorialStepBuilder<TOwner> Step(string title);
 
     /// <summary>
-    /// Adds a tutorial step with a resource key for the title.
+    /// 添加一个使用资源键作为标题的教程步骤。
     /// </summary>
-    /// <param name="titleKey">Resource key for the step title.</param>
-    /// <returns>Step builder.</returns>
+    /// <param name="titleKey">步骤标题的资源键。</param>
+    /// <returns>步骤构建器。</returns>
     ITutorialStepBuilder<TOwner> StepKey(string titleKey);
 
-    /// <summary>Adds dialogue at the current position in the package.</summary>
-    /// <param name="dialogue">Dialogue to display.</param>
-    /// <returns>The same package builder.</returns>
+    /// <summary>在包的当前位置添加对话。</summary>
+    /// <param name="dialogue">要显示的对话。</param>
+    /// <returns>同一包构建器。</returns>
     ITutorialPackageBuilder<TOwner> Dialogue(DialogueFlowItem dialogue);
 
     /// <summary>
-    /// Marks this package as on-demand: it is registered in the package registry
-    /// but excluded from the owner's default automatic sequence. It can be started
-    /// explicitly through <see cref="ITutorialRunner.RunPackageAsync"/>.
+    /// 将此包标记为按需：它注册在包注册表中，但排除在所有者的默认自动序列之外。
+    /// 可以通过 <see cref="ITutorialRunner.RunPackageAsync"/> 显式启动。
     /// </summary>
-    /// <returns>The same package builder.</returns>
+    /// <returns>同一包构建器。</returns>
     ITutorialPackageBuilder<TOwner> OnDemand();
 
     /// <summary>
-    /// Completes and registers the current package.
+    /// 完成并注册当前包。
     /// </summary>
-    /// <returns>The owner builder.</returns>
+    /// <returns>所有者构建器。</returns>
     ITutorialOwnerBuilder<TOwner> Build();
 }
 
 /// <summary>
-/// Fluent builder for a tutorial step.
+/// 教程步骤的流畅构建器。
 /// </summary>
-/// <typeparam name="TOwner">Owner type.</typeparam>
+/// <typeparam name="TOwner">所有者类型。</typeparam>
 public interface ITutorialStepBuilder<TOwner> : ITutorialPackageBuilder<TOwner>
     where TOwner : FrameworkElement, ITutorialOwner<TOwner>
 {
     /// <summary>
-    /// Sets the step description text.
+    /// 设置步骤描述文本。
     /// </summary>
-    /// <param name="description">Step description.</param>
-    /// <returns>The same step builder.</returns>
+    /// <param name="description">步骤描述。</param>
+    /// <returns>同一步骤构建器。</returns>
     ITutorialStepBuilder<TOwner> Text(string description);
 
     /// <summary>
-    /// Sets the resource key used to resolve the step title at runtime.
+    /// 设置用于在运行时解析步骤标题的资源键。
     /// </summary>
-    /// <param name="titleKey">Resource key for the title.</param>
-    /// <returns>The same step builder.</returns>
+    /// <param name="titleKey">标题的资源键。</param>
+    /// <returns>同一步骤构建器。</returns>
     ITutorialStepBuilder<TOwner> StepKey(string titleKey);
 
     /// <summary>
-    /// Sets the resource key used to resolve the step description at runtime.
+    /// 设置用于在运行时解析步骤描述的资源键。
     /// </summary>
-    /// <param name="descriptionKey">Resource key for the description.</param>
-    /// <returns>The same step builder.</returns>
+    /// <param name="descriptionKey">描述的资源键。</param>
+    /// <returns>同一步骤构建器。</returns>
     ITutorialStepBuilder<TOwner> TextKey(string descriptionKey);
 
     /// <summary>
-    /// Targets a named element.
+    /// 以名称定位元素。
     /// </summary>
-    /// <param name="targetName">Target element name.</param>
-    /// <returns>The same step builder.</returns>
+    /// <param name="targetName">目标元素名称。</param>
+    /// <returns>同一步骤构建器。</returns>
     ITutorialStepBuilder<TOwner> TargetName(string targetName);
 
     /// <summary>
-    /// Targets an element by tag.
+    /// 以标签定位元素。
     /// </summary>
-    /// <param name="targetTag">Target tag.</param>
-    /// <returns>The same step builder.</returns>
+    /// <param name="targetTag">目标标签。</param>
+    /// <returns>同一步骤构建器。</returns>
     ITutorialStepBuilder<TOwner> TargetTag(string targetTag);
 
     /// <summary>
-    /// Targets a navigation item for a page.
+    /// 定位页面的导航项。
     /// </summary>
-    /// <typeparam name="TPage">Target page type.</typeparam>
-    /// <returns>The same step builder.</returns>
+    /// <typeparam name="TPage">目标页面类型。</typeparam>
+    /// <returns>同一步骤构建器。</returns>
     ITutorialStepBuilder<TOwner> TargetNavigation<TPage>()
         where TPage : Page;
 
     /// <summary>
-    /// Targets the first descendant of a type under an optional host.
+    /// 定位可选宿主下某类型的第一后代。
     /// </summary>
-    /// <param name="hostTargetName">Optional host target element name.</param>
-    /// <param name="targetType">Target descendant type.</param>
-    /// <returns>The same step builder.</returns>
+    /// <param name="hostTargetName">可选的宿主目标元素名称。</param>
+    /// <param name="targetType">目标后代类型。</param>
+    /// <returns>同一步骤构建器。</returns>
     ITutorialStepBuilder<TOwner> TargetDescendantType(string? hostTargetName, Type targetType);
 
     /// <summary>
-    /// Clears target resolution and shows the step as a centered card.
+    /// 清除目标解析，并将步骤显示为居中卡片。
     /// </summary>
-    /// <returns>The same step builder.</returns>
+    /// <returns>同一步骤构建器。</returns>
     ITutorialStepBuilder<TOwner> NoTarget();
 
     /// <summary>
-    /// Sets the interaction mode.
+    /// 设置交互模式。
     /// </summary>
-    /// <param name="interactionMode">Interaction mode.</param>
-    /// <returns>The same step builder.</returns>
+    /// <param name="interactionMode">交互模式。</param>
+    /// <returns>同一步骤构建器。</returns>
     ITutorialStepBuilder<TOwner> Interaction(ProductTourInteractionMode interactionMode);
 
     /// <summary>
-    /// Sets the card placement.
+    /// 设置卡片放置位置。
     /// </summary>
-    /// <param name="placement">Card placement.</param>
-    /// <returns>The same step builder.</returns>
+    /// <param name="placement">卡片放置位置。</param>
+    /// <returns>同一步骤构建器。</returns>
     ITutorialStepBuilder<TOwner> Placement(ProductTourPlacement placement);
 
     /// <summary>
-    /// Sets the card offset.
+    /// 设置卡片偏移量。
     /// </summary>
-    /// <param name="offset">Card offset.</param>
-    /// <returns>The same step builder.</returns>
+    /// <param name="offset">卡片偏移量。</param>
+    /// <returns>同一步骤构建器。</returns>
     ITutorialStepBuilder<TOwner> CardOffset(Point offset);
 
     /// <summary>
-    /// Sets the avatar placement.
+    /// 设置头像放置位置。
     /// </summary>
-    /// <param name="placement">Avatar placement.</param>
-    /// <returns>The same step builder.</returns>
+    /// <param name="placement">头像放置位置。</param>
+    /// <returns>同一步骤构建器。</returns>
     ITutorialStepBuilder<TOwner> AvatarPlacement(ProductTourAvatarPlacement placement);
 
     /// <summary>
-    /// Sets the avatar pose.
+    /// 设置头像姿势。
     /// </summary>
-    /// <param name="pose">Avatar pose.</param>
-    /// <returns>The same step builder.</returns>
+    /// <param name="pose">头像姿势。</param>
+    /// <returns>同一步骤构建器。</returns>
     ITutorialStepBuilder<TOwner> AvatarPose(TutorialAvatarPose pose);
 
     /// <summary>
-    /// Requires a signal before the step can complete.
+    /// 要求步骤完成前接收一个信号。
     /// </summary>
-    /// <param name="signalId">Signal id.</param>
-    /// <returns>The same step builder.</returns>
+    /// <param name="signalId">信号 id。</param>
+    /// <returns>同一步骤构建器。</returns>
     ITutorialStepBuilder<TOwner> WaitFor(string signalId);
 
     /// <summary>
-    /// Sets the target lookup and signal wait timeout.
+    /// 设置目标查找和信号等待的超时时间。
     /// </summary>
-    /// <param name="timeout">Timeout duration.</param>
-    /// <returns>The same step builder.</returns>
+    /// <param name="timeout">超时时长。</param>
+    /// <returns>同一步骤构建器。</returns>
     ITutorialStepBuilder<TOwner> Timeout(TimeSpan timeout);
 
     /// <summary>
-    /// Allows this step to be skipped when the target is missing.
+    /// 允许目标缺失时跳过此步骤。
     /// </summary>
-    /// <returns>The same step builder.</returns>
+    /// <returns>同一步骤构建器。</returns>
     ITutorialStepBuilder<TOwner> AllowMissingTarget();
 
     /// <summary>
-    /// Appends an action invoked before target resolution and overlay display.
+    /// 追加在目标解析和覆盖层显示之前调用的操作。
     /// </summary>
-    /// <param name="action">Action to append.</param>
-    /// <returns>The same step builder.</returns>
+    /// <param name="action">要追加的操作。</param>
+    /// <returns>同一步骤构建器。</returns>
     ITutorialStepBuilder<TOwner> PreStepAction(TutorialStepAction action);
 
     /// <summary>
-    /// Appends a named asynchronous action invoked before target resolution and overlay display.
+    /// 追加一个命名的异步操作，在目标解析和覆盖层显示之前调用。
     /// </summary>
-    /// <param name="name">Diagnostic action name.</param>
-    /// <param name="executeAsync">Asynchronous action body.</param>
-    /// <returns>The same step builder.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="executeAsync"/> is <see langword="null"/>.</exception>
-    /// <exception cref="ArgumentException"><paramref name="name"/> is empty.</exception>
+    /// <param name="name">诊断操作名称。</param>
+    /// <param name="executeAsync">异步操作体。</param>
+    /// <returns>同一步骤构建器。</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="executeAsync"/> 为 <see langword="null"/>。</exception>
+    /// <exception cref="ArgumentException"><paramref name="name"/> 为空。</exception>
     ITutorialStepBuilder<TOwner> PreStepAction(
         string name,
         Func<TutorialStepActionContext, CancellationToken, Task> executeAsync);
 
     /// <summary>
-    /// Appends an asynchronous action invoked before target resolution and overlay display.
-    /// The diagnostic name is captured automatically from the supplied lambda expression.
+    /// 追加一个异步操作，在目标解析和覆盖层显示之前调用。
+    /// 诊断名称从提供的 lambda 表达式自动捕获。
     /// </summary>
-    /// <param name="executeAsync">Asynchronous action body.</param>
-    /// <param name="name">Diagnostic action name, captured from <paramref name="executeAsync"/> by the compiler.</param>
-    /// <returns>The same step builder.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="executeAsync"/> is <see langword="null"/>.</exception>
+    /// <param name="executeAsync">异步操作体。</param>
+    /// <param name="name">诊断操作名称，由编译器从 <paramref name="executeAsync"/> 捕获。</param>
+    /// <returns>同一步骤构建器。</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="executeAsync"/> 为 <see langword="null"/>。</exception>
     ITutorialStepBuilder<TOwner> PreStepAction(
         Func<TutorialStepActionContext, CancellationToken, Task> executeAsync,
         [CallerArgumentExpression(nameof(executeAsync))] string name = "");
 
     /// <summary>
-    /// Appends a named synchronous action invoked before target resolution and overlay display.
+    /// 追加一个命名的同步操作，在目标解析和覆盖层显示之前调用。
     /// </summary>
-    /// <param name="name">Diagnostic action name.</param>
-    /// <param name="action">Synchronous action body.</param>
-    /// <returns>The same step builder.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="action"/> is <see langword="null"/>.</exception>
-    /// <exception cref="ArgumentException"><paramref name="name"/> is empty.</exception>
+    /// <param name="name">诊断操作名称。</param>
+    /// <param name="action">同步操作体。</param>
+    /// <returns>同一步骤构建器。</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="action"/> 为 <see langword="null"/>。</exception>
+    /// <exception cref="ArgumentException"><paramref name="name"/> 为空。</exception>
     ITutorialStepBuilder<TOwner> PreStepAction(string name, Action<TutorialStepActionContext> action);
 
     /// <summary>
-    /// Appends a synchronous action invoked before target resolution and overlay display.
-    /// The diagnostic name is captured automatically from the supplied lambda expression.
+    /// 追加一个同步操作，在目标解析和覆盖层显示之前调用。
+    /// 诊断名称从提供的 lambda 表达式自动捕获。
     /// </summary>
-    /// <param name="action">Synchronous action body.</param>
-    /// <param name="name">Diagnostic action name, captured from <paramref name="action"/> by the compiler.</param>
-    /// <returns>The same step builder.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="action"/> is <see langword="null"/>.</exception>
+    /// <param name="action">同步操作体。</param>
+    /// <param name="name">诊断操作名称，由编译器从 <paramref name="action"/> 捕获。</param>
+    /// <returns>同一步骤构建器。</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="action"/> 为 <see langword="null"/>。</exception>
     ITutorialStepBuilder<TOwner> PreStepAction(
         Action<TutorialStepActionContext> action,
         [CallerArgumentExpression(nameof(action))] string name = "");
 
     /// <summary>
-    /// Appends an action invoked after step completion and overlay close.
+    /// 追加在步骤完成且覆盖层关闭后调用的操作。
     /// </summary>
-    /// <param name="action">Action to append.</param>
-    /// <returns>The same step builder.</returns>
+    /// <param name="action">要追加的操作。</param>
+    /// <returns>同一步骤构建器。</returns>
     ITutorialStepBuilder<TOwner> PostStepAction(TutorialStepAction action);
 
     /// <summary>
-    /// Appends a named asynchronous action invoked after step completion and overlay close.
+    /// 追加一个命名的异步操作，在步骤完成且覆盖层关闭后调用。
     /// </summary>
-    /// <param name="name">Diagnostic action name.</param>
-    /// <param name="executeAsync">Asynchronous action body.</param>
-    /// <returns>The same step builder.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="executeAsync"/> is <see langword="null"/>.</exception>
-    /// <exception cref="ArgumentException"><paramref name="name"/> is empty.</exception>
+    /// <param name="name">诊断操作名称。</param>
+    /// <param name="executeAsync">异步操作体。</param>
+    /// <returns>同一步骤构建器。</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="executeAsync"/> 为 <see langword="null"/>。</exception>
+    /// <exception cref="ArgumentException"><paramref name="name"/> 为空。</exception>
     ITutorialStepBuilder<TOwner> PostStepAction(
         string name,
         Func<TutorialStepActionContext, CancellationToken, Task> executeAsync);
 
     /// <summary>
-    /// Appends an asynchronous action invoked after step completion and overlay close.
-    /// The diagnostic name is captured automatically from the supplied lambda expression.
+    /// 追加一个异步操作，在步骤完成且覆盖层关闭后调用。
+    /// 诊断名称从提供的 lambda 表达式自动捕获。
     /// </summary>
-    /// <param name="executeAsync">Asynchronous action body.</param>
-    /// <param name="name">Diagnostic action name, captured from <paramref name="executeAsync"/> by the compiler.</param>
-    /// <returns>The same step builder.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="executeAsync"/> is <see langword="null"/>.</exception>
+    /// <param name="executeAsync">异步操作体。</param>
+    /// <param name="name">诊断操作名称，由编译器从 <paramref name="executeAsync"/> 捕获。</param>
+    /// <returns>同一步骤构建器。</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="executeAsync"/> 为 <see langword="null"/>。</exception>
     ITutorialStepBuilder<TOwner> PostStepAction(
         Func<TutorialStepActionContext, CancellationToken, Task> executeAsync,
         [CallerArgumentExpression(nameof(executeAsync))] string name = "");
 
     /// <summary>
-    /// Appends a named synchronous action invoked after step completion and overlay close.
+    /// 追加一个命名的同步操作，在步骤完成且覆盖层关闭后调用。
     /// </summary>
-    /// <param name="name">Diagnostic action name.</param>
-    /// <param name="action">Synchronous action body.</param>
-    /// <returns>The same step builder.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="action"/> is <see langword="null"/>.</exception>
-    /// <exception cref="ArgumentException"><paramref name="name"/> is empty.</exception>
+    /// <param name="name">诊断操作名称。</param>
+    /// <param name="action">同步操作体。</param>
+    /// <returns>同一步骤构建器。</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="action"/> 为 <see langword="null"/>。</exception>
+    /// <exception cref="ArgumentException"><paramref name="name"/> 为空。</exception>
     ITutorialStepBuilder<TOwner> PostStepAction(string name, Action<TutorialStepActionContext> action);
 
     /// <summary>
-    /// Appends a synchronous action invoked after step completion and overlay close.
-    /// The diagnostic name is captured automatically from the supplied lambda expression.
+    /// 追加一个同步操作，在步骤完成且覆盖层关闭后调用。
+    /// 诊断名称从提供的 lambda 表达式自动捕获。
     /// </summary>
-    /// <param name="action">Synchronous action body.</param>
-    /// <param name="name">Diagnostic action name, captured from <paramref name="action"/> by the compiler.</param>
-    /// <returns>The same step builder.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="action"/> is <see langword="null"/>.</exception>
+    /// <param name="action">同步操作体。</param>
+    /// <param name="name">诊断操作名称，由编译器从 <paramref name="action"/> 捕获。</param>
+    /// <returns>同一步骤构建器。</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="action"/> 为 <see langword="null"/>。</exception>
     ITutorialStepBuilder<TOwner> PostStepAction(
         Action<TutorialStepActionContext> action,
         [CallerArgumentExpression(nameof(action))] string name = "");
 }
 
 /// <summary>
-/// High-level builder for tutorial flows.
+/// 用于教程流程的高级构建器。
 /// </summary>
 public interface ITutorialFlowBuilder
 {
     /// <summary>
-    /// Sets the flow version.
+    /// 设置流程版本。
     /// </summary>
-    /// <param name="version">Flow version.</param>
-    /// <returns>The same flow builder.</returns>
+    /// <param name="version">流程版本。</param>
+    /// <returns>同一流程构建器。</returns>
     ITutorialFlowBuilder Version(int version);
 
     /// <summary>
-    /// Adds a package step and automatically covers the package.
+    /// 添加一个包步骤并自动覆盖该包。
     /// </summary>
-    /// <param name="package">Package reference.</param>
-    /// <returns>The same flow builder.</returns>
+    /// <param name="package">包引用。</param>
+    /// <returns>同一流程构建器。</returns>
     ITutorialFlowBuilder Step(TutorialPackageRef package);
 
     /// <summary>
-    /// Adds a flow item.
+    /// 添加一个流程项。
     /// </summary>
-    /// <param name="item">Flow item.</param>
-    /// <returns>The same flow builder.</returns>
+    /// <param name="item">流程项。</param>
+    /// <returns>同一流程构建器。</returns>
     ITutorialFlowBuilder Step(TutorialFlowItem item);
 
     /// <summary>
-    /// Builds and registers the flow.
+    /// 构建并注册流程。
     /// </summary>
-    /// <returns>The flow definition.</returns>
+    /// <returns>流程定义。</returns>
     TutorialFlowDefinition Build();
 }
 
 /// <summary>
-/// Default high-level tutorial authoring builder.
+/// 默认的高级教程创作构建器。
 /// </summary>
 public sealed class TutorialBuilder : ITutorialBuilder
 {
@@ -444,11 +443,11 @@ public sealed class TutorialBuilder : ITutorialBuilder
     private readonly ITutorialFlowRegistry _flowRegistry;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="TutorialBuilder"/> class.
+    /// 初始化 <see cref="TutorialBuilder"/> 类的新实例。
     /// </summary>
-    /// <param name="packageRegistry">Package registry.</param>
-    /// <param name="sequenceRegistry">Sequence registry.</param>
-    /// <param name="flowRegistry">Flow registry.</param>
+    /// <param name="packageRegistry">包注册表。</param>
+    /// <param name="sequenceRegistry">序列注册表。</param>
+    /// <param name="flowRegistry">流程注册表。</param>
     public TutorialBuilder(
         ITutorialPackageRegistry packageRegistry,
         ITutorialSequenceRegistry sequenceRegistry,

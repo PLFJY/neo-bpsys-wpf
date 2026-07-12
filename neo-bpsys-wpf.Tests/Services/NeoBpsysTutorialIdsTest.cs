@@ -4,7 +4,7 @@ using Xunit;
 namespace neo_bpsys_wpf.Tests.Services;
 
 /// <summary>
-/// Tests built-in neo-bpsys-wpf tutorial id constants.
+/// 测试内置 neo-bpsys-wpf 教程 id 常量。
 /// </summary>
 public sealed class NeoBpsysTutorialIdsTest
 {

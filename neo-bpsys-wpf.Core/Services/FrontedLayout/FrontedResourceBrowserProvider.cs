@@ -8,7 +8,7 @@ using System.Windows.Media.Imaging;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Lists image resources for Designer v3 Resource Browser.
+/// 列出设计器 v3 资源浏览器的图像资源。
 /// </summary>
 public sealed class FrontedResourceBrowserProvider
 {

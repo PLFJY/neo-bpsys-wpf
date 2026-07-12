@@ -13,22 +13,22 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 namespace neo_bpsys_wpf.Services;
 
 /// <summary>
-/// Provides data for completed main navigation page changes.
+/// 为主导航页面变更完成提供数据。
 /// </summary>
 public sealed class NavigationPageChangedEventArgs : EventArgs
 {
-    /// <summary>Gets the page type that is now displayed.</summary>
+    /// <summary>获取当前显示的页面类型。</summary>
     public required Type PageType { get; init; }
 
-    /// <summary>Gets the page content instance that is now displayed.</summary>
+    /// <summary>获取当前显示的页面内容实例。</summary>
     public object? PageContent { get; init; }
 
-    /// <summary>Gets the page change reason.</summary>
+    /// <summary>获取页面变更原因。</summary>
     public string Reason { get; init; } = "Navigate";
 }
 
 /// <summary>
-/// A service that provides methods related to navigation.
+/// 提供导航相关方法的服务。
 /// </summary>
 public partial class NavigationService(
     INavigationViewPageProvider pageProvider,
@@ -38,17 +38,17 @@ public partial class NavigationService(
     private readonly ILogger<NavigationService> _logger = logger;
 
     /// <summary>
-    /// Gets or sets the control representing navigation.
+    /// 获取或设置表示导航的控件。
     /// </summary>
     protected INavigationView? NavigationControl { get; set; }
 
-    /// <summary>Gets the type of the currently displayed main navigation page.</summary>
+    /// <summary>获取当前显示的主导航页面类型。</summary>
     public Type? CurrentPageType { get; private set; }
 
-    /// <summary>Gets the currently displayed main navigation page instance.</summary>
+    /// <summary>获取当前显示的主导航页面实例。</summary>
     public object? CurrentPageContent { get; private set; }
 
-    /// <summary>Occurs after the main navigation page has changed.</summary>
+    /// <summary>主导航页面变更后触发。</summary>
     public event EventHandler<NavigationPageChangedEventArgs>? PageChanged;
 
     /// <inheritdoc />
@@ -240,7 +240,7 @@ public partial class NavigationService(
     }
 
     /// <summary>
-    /// Checks whether the specified <paramref name="pageType"/> is the currently displayed page.
+    /// 检查指定的 <paramref name="pageType"/> 是否为当前显示的页面。
     /// </summary>
     private bool IsCurrentPage(Type pageType)
     {

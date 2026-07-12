@@ -10,7 +10,7 @@ using System.Windows.Media;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Shared helpers for Designer v3 font resources.
+/// 设计器 v3 字体资源的共享帮助程序。
 /// </summary>
 public static class FrontedFontResourceHelper
 {
@@ -23,21 +23,21 @@ public static class FrontedFontResourceHelper
     };
 
     /// <summary>
-    /// Determines whether the file extension is supported as a layout package font.
+    /// 确定文件扩展名是否作为布局包字体受支持。
     /// </summary>
-    /// <param name="extension">File extension including the leading dot.</param>
-    /// <returns>Whether the extension is supported.</returns>
+    /// <param name="extension">包含前导点的文件扩展名。</param>
+    /// <returns>扩展名是否受支持。</returns>
     public static bool IsSupportedFontExtension(string? extension)
     {
         return !string.IsNullOrWhiteSpace(extension) && SupportedFontExtensions.Contains(extension);
     }
 
     /// <summary>
-    /// Creates a safe stored file name for a copied font.
+    /// 为复制的字体创建安全的存储文件名。
     /// </summary>
-    /// <param name="sourcePath">Original source path.</param>
-    /// <param name="sha256">Source file SHA-256 hash.</param>
-    /// <returns>Safe file name with a short hash suffix.</returns>
+    /// <param name="sourcePath">原始源路径。</param>
+    /// <param name="sha256">源文件 SHA-256 哈希。</param>
+    /// <returns>带短哈希后缀的安全文件名。</returns>
     public static string CreateFontFileName(string sourcePath, string sha256)
     {
         var extension = Path.GetExtension(sourcePath).ToLowerInvariant();
@@ -53,10 +53,10 @@ public static class FrontedFontResourceHelper
     }
 
     /// <summary>
-    /// Computes the SHA-256 hash for a file.
+    /// 计算文件的 SHA-256 哈希。
     /// </summary>
-    /// <param name="path">File path.</param>
-    /// <returns>Lowercase hex SHA-256 hash.</returns>
+    /// <param name="path">文件路径。</param>
+    /// <returns>小写十六进制 SHA-256 哈希。</returns>
     public static string ComputeSha256(string path)
     {
         using var stream = File.OpenRead(path);
@@ -71,10 +71,10 @@ public static class FrontedFontResourceHelper
     }
 
     /// <summary>
-    /// Reads WPF font family names from a font file.
+    /// 从字体文件读取 WPF 字体系列名称。
     /// </summary>
-    /// <param name="path">Font file path.</param>
-    /// <returns>Distinct family names discoverable by WPF.</returns>
+    /// <param name="path">字体文件路径。</param>
+    /// <returns>WPF 可发现的去重系列名称。</returns>
     public static IReadOnlyList<string> ReadFontFamilyNames(string path)
     {
         if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
@@ -124,12 +124,12 @@ public static class FrontedFontResourceHelper
     }
 
     /// <summary>
-    /// Creates a WPF <see cref="FontFamily"/> from a stored layout font value.
+    /// 从存储的布局字体值创建 WPF <see cref="FontFamily"/>。
     /// </summary>
-    /// <param name="storedValue">Stored layout font value.</param>
-    /// <param name="resourceResolver">Optional resource resolver used for bpui font paths.</param>
-    /// <param name="logger">Optional logger for invalid values.</param>
-    /// <returns>A safe WPF font family.</returns>
+    /// <param name="storedValue">存储的布局字体值。</param>
+    /// <param name="resourceResolver">用于 bpui 字体路径的可选资源解析器。</param>
+    /// <param name="logger">用于无效值的可选日志记录器。</param>
+    /// <returns>安全的 WPF 字体系列。</returns>
     public static FontFamily CreateFontFamily(
         string? storedValue,
         IFrontedResourceResolver? resourceResolver = null,
@@ -166,10 +166,10 @@ public static class FrontedFontResourceHelper
     }
 
     /// <summary>
-    /// Gets a display name from a stored font value.
+    /// 从存储的字体值获取显示名称。
     /// </summary>
-    /// <param name="storedValue">Stored font value.</param>
-    /// <returns>Display name.</returns>
+    /// <param name="storedValue">存储的字体值。</param>
+    /// <returns>显示名称。</returns>
     public static string ExtractFontName(string? storedValue)
     {
         if (string.IsNullOrWhiteSpace(storedValue))

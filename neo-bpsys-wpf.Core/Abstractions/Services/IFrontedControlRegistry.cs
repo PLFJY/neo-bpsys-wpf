@@ -18,17 +18,17 @@ public interface IFrontedControlRegistry
     IReadOnlyCollection<IFrontedControl> GetControls();
 
     /// <summary>
-    /// Returns whether a plugin control descriptor has been registered.
+    /// 返回是否已注册插件控件描述符。
     /// </summary>
     bool IsPluginControlRegistered(string fullControlType) => GetPluginDescriptor(fullControlType) is not null;
 
     /// <summary>
-    /// Gets plugin control descriptor metadata.
+    /// 获取插件控件描述符元数据。
     /// </summary>
     IFrontedPluginControlDescriptor? GetPluginDescriptor(string fullControlType) => null;
 
     /// <summary>
-    /// Gets all registered plugin control descriptors.
+    /// 获取所有已注册的插件控件描述符。
     /// </summary>
     IReadOnlyCollection<IFrontedPluginControlDescriptor> GetPluginDescriptors() => [];
 }

@@ -7,60 +7,60 @@ namespace neo_bpsys_wpf.Views.Windows;
 
 public partial class FrontedDesignerWindow : ITutorialOwner<FrontedDesignerWindow>
 {
-    /// <summary>Designer v3 window tutorial key.</summary>
+    /// <summary>设计器 v3 窗口教程 Key。</summary>
     public const string TutorialPageKey = TutorialPageKeys.DesignerV3;
 
     /// <inheritdoc />
     public static string TutorialKey => TutorialPageKey;
 
-    /// <summary>Designer v3 tutorial package references.</summary>
+    /// <summary>设计器 v3 教程包引用。</summary>
     public static class Tours
     {
-        /// <summary>Designer v3 overview package reference.</summary>
+        /// <summary>设计器 v3 概览包引用。</summary>
         public static readonly TutorialPackageRef Overview = new(TutorialPackageIds.DesignerV3Overview);
 
-        /// <summary>Designer v3 layout edit package reference.</summary>
+        /// <summary>设计器 v3 布局编辑包引用。</summary>
         public static readonly TutorialPackageRef LayoutEditBasic = new(TutorialPackageIds.DesignerV3LayoutEditBasic);
 
-        /// <summary>Designer v3 property panel package reference.</summary>
+        /// <summary>设计器 v3 属性面板包引用。</summary>
         public static readonly TutorialPackageRef PropertyPanelBasic = new(TutorialPackageIds.DesignerV3PropertyPanelBasic);
 
-        /// <summary>Designer v3 package import/export package reference.</summary>
+        /// <summary>设计器 v3 包导入/导出包引用。</summary>
         public static readonly TutorialPackageRef PackageImportExport = new(TutorialPackageIds.DesignerV3PackageImportExport);
 
-        /// <summary>Designer v3 help package reference.</summary>
+        /// <summary>设计器 v3 帮助包引用。</summary>
         public static readonly TutorialPackageRef HelpBasic = new(TutorialPackageIds.DesignerV3HelpBasic);
     }
 
-    /// <summary>Designer v3 tutorial target names not owned by direct window fields.</summary>
+    /// <summary>设计器 v3 教程目标名称，不属于窗口直接字段。</summary>
     public static class TutorialTargets
     {
-        /// <summary>Property search box target name.</summary>
+        /// <summary>属性搜索框目标名称。</summary>
         public const string PropertySearchBox = "PropertySearchBox";
 
-        /// <summary>First editable property editor target name.</summary>
+        /// <summary>首个可编辑属性编辑器目标名称。</summary>
         public const string FirstEditablePropertyEditor = "FirstEditablePropertyEditor";
 
-        /// <summary>Property apply button target name.</summary>
+        /// <summary>属性应用按钮目标名称。</summary>
         public const string PropertyApplyButton = "PropertyApplyButton";
 
-        /// <summary>Behavior add button target name.</summary>
+        /// <summary>行为添加按钮目标名称。</summary>
         public const string AddBehaviorButton = "AddBehaviorButton";
 
-        /// <summary>Behavior trigger editor target name.</summary>
+        /// <summary>行为触发器编辑器目标名称。</summary>
         public const string BehaviorTriggerEditor = "BehaviorTriggerEditor";
 
-        /// <summary>Behavior action editor target name.</summary>
+        /// <summary>行为动作编辑器目标名称。</summary>
         public const string BehaviorActionEditor = "BehaviorActionEditor";
 
-        /// <summary>Layout package export button target name.</summary>
+        /// <summary>布局包导出按钮目标名称。</summary>
         public const string ExportLayoutPackageButton = "ExportLayoutPackageButton";
     }
 
     /// <summary>
-    /// Registers tutorials owned by the Designer v3 window.
+    /// 注册设计器 v3 窗口所拥有的教程。
     /// </summary>
-    /// <param name="builder">Tutorial builder.</param>
+    /// <param name="builder">教程构建器。</param>
     public static void RegisterTutorials(ITutorialBuilder builder)
     {
         builder.ForWindow<FrontedDesignerWindow>()

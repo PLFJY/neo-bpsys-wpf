@@ -1,22 +1,22 @@
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
-/// <summary>Provides all persistent large-file locations owned by the SmartBP module.</summary>
+/// <summary>提供 SmartBP 模块拥有的所有持久化大文件存储位置。</summary>
 public interface ISmartBpModuleStorageProvider
 {
-    /// <summary>Gets the module root.</summary>
+    /// <summary>获取模块根目录。</summary>
     string ModuleRoot { get; }
-    /// <summary>Gets the PaddleOCR model root.</summary>
+    /// <summary>获取 PaddleOCR 模型根目录。</summary>
     string OcrModelsRoot { get; }
-    /// <summary>Gets the managed Tesseract tessdata root.</summary>
+    /// <summary>获取受管理的 Tesseract tessdata 根目录。</summary>
     string TesseractDataRoot { get; }
-    /// <summary>Gets the managed RapidOCR model profiles root.</summary>
+    /// <summary>获取受管理的 RapidOCR 模型配置根目录。</summary>
     string RapidOcrModelsRoot { get; }
-    /// <summary>Gets the AI data root.</summary>
+    /// <summary>获取 AI 数据根目录。</summary>
     string AiRoot { get; }
-    /// <summary>Gets the Qwen model root.</summary>
+    /// <summary>获取 Qwen 模型根目录。</summary>
     string QwenModelsRoot { get; }
-    /// <summary>Gets the llama.cpp runtime root.</summary>
+    /// <summary>获取 llama.cpp 运行时根目录。</summary>
     string LlamaCppRoot { get; }
-    /// <summary>Gets the recognition log root.</summary>
+    /// <summary>获取识别日志根目录。</summary>
     string RecognitionLogsRoot { get; }
 }

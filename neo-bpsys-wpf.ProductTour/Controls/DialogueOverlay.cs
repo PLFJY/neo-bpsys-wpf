@@ -7,7 +7,7 @@ using System.Windows.Media.Animation;
 namespace neo_bpsys_wpf.ProductTour.Controls;
 
 /// <summary>
-/// NPC-style bottom dialogue overlay with a typewriter effect.
+/// 带有打字机效果的 NPC 风格底部对话遮罩。
 /// </summary>
 public sealed class DialogueOverlay : Grid
 {
@@ -32,31 +32,31 @@ public sealed class DialogueOverlay : Grid
     private string? _currentLinesKey;
     private SkipTutorialConfirmDialog? _confirmDialog;
 
-    /// <summary>Gets or sets the typewriter interval.</summary>
+    /// <summary>获取或设置打字机间隔。</summary>
     public TimeSpan TypewriterInterval { get; set; } = TimeSpan.FromMilliseconds(28);
 
-    /// <summary>Initializes a new instance of the <see cref="DialogueOverlay"/> class.</summary>
+    /// <summary>初始化 <see cref="DialogueOverlay"/> 类的新实例。</summary>
     public DialogueOverlay()
         : this(new DefaultTutorialTextProvider(), new ProductTourOptions(), new NoOpTutorialAvatarProvider(),
              new DefaultTutorialContentResolver(), new NoOpTutorialLanguageService())
     {
     }
 
-    /// <summary>Initializes a new instance of the <see cref="DialogueOverlay"/> class.</summary>
-    /// <param name="textProvider">Fixed UI text provider.</param>
-    /// <param name="options">Product tour display options.</param>
+    /// <summary>初始化 <see cref="DialogueOverlay"/> 类的新实例。</summary>
+    /// <param name="textProvider">固定 UI 文本提供器。</param>
+    /// <param name="options">Product Tour 显示选项。</param>
     public DialogueOverlay(ITutorialTextProvider textProvider, ProductTourOptions options)
         : this(textProvider, options, new NoOpTutorialAvatarProvider(),
              new DefaultTutorialContentResolver(), new NoOpTutorialLanguageService())
     {
     }
 
-    /// <summary>Initializes a new instance of the <see cref="DialogueOverlay"/> class.</summary>
-    /// <param name="textProvider">Fixed UI text provider.</param>
-    /// <param name="options">Product tour display options.</param>
-    /// <param name="avatarProvider">Tutorial avatar provider.</param>
-    /// <param name="contentResolver">Tutorial content resolver for localized dialogue lines.</param>
-    /// <param name="languageService">Tutorial language service for hot-switching.</param>
+    /// <summary>初始化 <see cref="DialogueOverlay"/> 类的新实例。</summary>
+    /// <param name="textProvider">固定 UI 文本提供器。</param>
+    /// <param name="options">Product Tour 显示选项。</param>
+    /// <param name="avatarProvider">教程头像提供器。</param>
+    /// <param name="contentResolver">用于本地化对话台词的教程内容解析器。</param>
+    /// <param name="languageService">用于热切换的教程语言服务。</param>
     public DialogueOverlay(
         ITutorialTextProvider textProvider,
         ProductTourOptions options,
@@ -167,8 +167,7 @@ public sealed class DialogueOverlay : Grid
     }
 
     /// <summary>
-    /// Re-resolves dialogue lines from the resource key and restarts the typewriter
-    /// for the current line using the newly resolved text.
+    /// 从资源键重新解析对话台词，并使用新解析的文本为当前行重启打字机。
     /// </summary>
     private void RefreshDialogueLanguage()
     {
@@ -186,12 +185,12 @@ public sealed class DialogueOverlay : Grid
         StartLine();
     }
 
-    /// <summary>Shows dialogue lines.</summary>
-    /// <param name="speaker">Speaker name.</param>
-    /// <param name="lines">Dialogue lines.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <param name="linesKey">Optional resource key for resolving localized dialogue lines. When non-null, lines are resolved from the resource.</param>
-    /// <returns>The dialogue run result.</returns>
+    /// <summary>显示对话台词。</summary>
+    /// <param name="speaker">说话者名称。</param>
+    /// <param name="lines">对话台词。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <param name="linesKey">用于解析本地化对话台词的可选资源键。非 null 时，台词从资源中解析。</param>
+    /// <returns>对话运行结果。</returns>
     public async Task<TutorialRunResult> ShowAsync(
         string speaker,
         IReadOnlyList<string> lines,

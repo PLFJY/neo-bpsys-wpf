@@ -15,7 +15,7 @@ using System.Text.Json.Nodes;
 namespace neo_bpsys_wpf.Services;
 
 /// <summary>
-/// Startup-only migration from legacy v2 <c>Config.json</c> frontend settings to a normal v3 package.
+/// 仅在启动时将旧版 v2 <c>Config.json</c> 前台设置迁移到普通 v3 包。
 /// </summary>
 public sealed class LegacyV2StartupMigrationService : ILegacyV2StartupMigrationService
 {
@@ -45,12 +45,12 @@ public sealed class LegacyV2StartupMigrationService : ILegacyV2StartupMigrationS
     };
 
     /// <summary>
-    /// Initializes a legacy v2 startup migration service.
+    /// 初始化旧版 v2 启动迁移服务。
     /// </summary>
-    /// <param name="detector">Legacy config detector.</param>
-    /// <param name="packageManager">Fronted layout package manager.</param>
-    /// <param name="legacyConverter">Legacy layout converter.</param>
-    /// <param name="logger">Logger.</param>
+    /// <param name="detector">旧版配置检测器。</param>
+    /// <param name="packageManager">前台布局包管理器。</param>
+    /// <param name="legacyConverter">旧版布局转换器。</param>
+    /// <param name="logger">日志记录器。</param>
     public LegacyV2StartupMigrationService(
         ILegacyV2ConfigDetector detector,
         IFrontedLayoutPackageManager packageManager,

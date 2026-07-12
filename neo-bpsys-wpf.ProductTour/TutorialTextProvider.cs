@@ -3,56 +3,56 @@ namespace neo_bpsys_wpf.ProductTour;
 using System.Resources;
 
 /// <summary>
-/// Provides fixed UI text used by Product Tour controls.
+/// 提供 Product Tour 控件使用的固定 UI 文本。
 /// </summary>
 public interface ITutorialTextProvider
 {
-    /// <summary>Gets the previous step button text.</summary>
+    /// <summary>获取上一步按钮文本。</summary>
     string Previous { get; }
 
-    /// <summary>Gets the next step button text.</summary>
+    /// <summary>获取下一步按钮文本。</summary>
     string Next { get; }
 
-    /// <summary>Gets the finish button text.</summary>
+    /// <summary>获取完成按钮文本。</summary>
     string Finish { get; }
 
-    /// <summary>Gets the skip button text.</summary>
+    /// <summary>获取跳过按钮文本。</summary>
     string Skip { get; }
 
-    /// <summary>Gets the waiting text shown while an expected action is pending.</summary>
+    /// <summary>获取在等待预期操作完成时显示的等待文本。</summary>
     string WaitingForAction { get; }
 
-    /// <summary>Gets the continue button text.</summary>
+    /// <summary>获取继续按钮文本。</summary>
     string Continue { get; }
 
-    /// <summary>Gets the dialogue continue hint text.</summary>
+    /// <summary>获取对话继续提示文本。</summary>
     string ClickToContinue { get; }
 
-    /// <summary>Gets the first-run welcome title.</summary>
+    /// <summary>获取首次运行欢迎标题。</summary>
     string WelcomeTitle { get; }
 
-    /// <summary>Gets the first-run welcome description.</summary>
+    /// <summary>获取首次运行欢迎描述。</summary>
     string WelcomeDescription { get; }
 
-    /// <summary>Gets the language selector label.</summary>
+    /// <summary>获取语言选择器标签。</summary>
     string LanguageLabel { get; }
 
-    /// <summary>Gets the start tour button text.</summary>
+    /// <summary>获取开始教程按钮文本。</summary>
     string StartTour { get; }
 
-    /// <summary>Gets the hint explaining where the tour can be restarted.</summary>
+    /// <summary>获取说明可在何处重新开始教程的提示文本。</summary>
     string RestartAvailableHint { get; }
 
-    /// <summary>Gets the skip confirmation title.</summary>
+    /// <summary>获取跳过确认标题。</summary>
     string SkipConfirmTitle { get; }
 
-    /// <summary>Gets the skip confirmation description.</summary>
+    /// <summary>获取跳过确认描述。</summary>
     string SkipConfirmDescription { get; }
 
-    /// <summary>Gets the skip confirmation continue button text.</summary>
+    /// <summary>获取跳过确认继续按钮文本。</summary>
     string SkipConfirmContinue { get; }
 
-    /// <summary>Gets the skip confirmation confirm button text.</summary>
+    /// <summary>获取跳过确认按钮文本。</summary>
     string SkipConfirmConfirm { get; }
 }
 

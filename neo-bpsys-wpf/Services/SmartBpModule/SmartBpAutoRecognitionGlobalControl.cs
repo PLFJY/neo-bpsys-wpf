@@ -2,7 +2,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 
 namespace neo_bpsys_wpf.Services.SmartBpModule;
 
-/// <summary>Bridges SmartBP module running state into the host process.</summary>
+/// <summary>将 SmartBP 模块的运行状态桥接到宿主进程。</summary>
 public sealed class SmartBpAutoRecognitionGlobalControl : ISmartBpAutoRecognitionGlobalControl, ISmartBpAutoRecognitionGlobalControlSink
 {
     private readonly Lock _sync = new();
@@ -23,9 +23,9 @@ public sealed class SmartBpAutoRecognitionGlobalControl : ISmartBpAutoRecognitio
         return stop?.Invoke(cancellationToken) ?? Task.CompletedTask;
     }
 
-    /// <summary>Updates the module-owned stop callback and running state.</summary>
-    /// <param name="isRunning">Whether recognition is running.</param>
-    /// <param name="stop">Callback used to stop recognition.</param>
+    /// <summary>更新模块拥有的停止回调和运行状态。</summary>
+    /// <param name="isRunning">识别是否正在运行。</param>
+    /// <param name="stop">用于停止识别的回调。</param>
     public void Update(bool isRunning, Func<CancellationToken, Task>? stop = null)
     {
         var changed = false;

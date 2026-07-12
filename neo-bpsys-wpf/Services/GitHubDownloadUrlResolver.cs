@@ -5,7 +5,7 @@ using neo_bpsys_wpf.Helpers;
 
 namespace neo_bpsys_wpf.Services;
 
-/// <summary>Shared GitHub release download mirror resolver.</summary>
+/// <summary>共享的 GitHub 发布下载镜像解析器。</summary>
 public sealed class GitHubDownloadUrlResolver(
     ISettingsHostService settingsHostService,
     ILogger<GitHubDownloadUrlResolver> logger) : IGitHubDownloadUrlResolver

@@ -4,16 +4,16 @@ using neo_bpsys_wpf.Core.Models.SmartBpModule;
 namespace neo_bpsys_wpf.Services.SmartBpModule;
 
 /// <summary>
-/// Host-facing SmartBP feature proxy.
+/// 面向宿主的 SmartBP 功能代理。
 /// </summary>
 public sealed class SmartBpFeatureService : ISmartBpFeatureService
 {
     private readonly SmartBpModuleManager _moduleManager;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SmartBpFeatureService"/> class.
+    /// 初始化 <see cref="SmartBpFeatureService"/> 类的新实例。
     /// </summary>
-    /// <param name="moduleManager">Module manager.</param>
+    /// <param name="moduleManager">模块管理器。</param>
     public SmartBpFeatureService(SmartBpModuleManager moduleManager)
     {
         _moduleManager = moduleManager;

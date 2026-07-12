@@ -655,10 +655,10 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Validates that a capture session is running and returns the current frozen frame.
+    /// 验证捕获会话是否正在运行，并返回当前冻结的帧。
     /// </summary>
-    /// <param name="requireOcrReady">Whether the selected OCR provider must be ready.</param>
-    /// <returns>The current capture frame, or <see langword="null"/> when validation failed.</returns>
+    /// <param name="requireOcrReady">所选择的 OCR 提供程序是否必须就绪。</param>
+    /// <returns>当前捕获帧；验证失败时返回 <see langword="null"/>。</returns>
     private async Task<System.Windows.Media.Imaging.BitmapSource?> GetValidatedCurrentFrameAsync(bool requireOcrReady, bool useInfoBar = false)
     {
         if (!_windowCaptureService.IsCapturing)
@@ -703,9 +703,9 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Checks whether the currently selected OCR provider can run recognition.
+    /// 检查当前所选 OCR 提供程序是否可以执行识别。
     /// </summary>
-    /// <returns><see langword="true"/> when OCR is ready.</returns>
+    /// <returns>OCR 就绪时返回 <see langword="true"/>。</returns>
     private bool IsSelectedOcrProviderReady() => _ocrService.GetProviderStatus(_ocrService.SelectedProvider).IsReady;
 
     /// <summary>

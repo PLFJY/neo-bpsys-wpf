@@ -19,7 +19,7 @@ using Wpf.Ui;
 namespace neo_bpsys_wpf.Services;
 
 /// <summary>
-/// Imports and activates <c>.bpui</c> files opened through Windows file association.
+/// 导入并激活通过 Windows 文件关联打开的 <c>.bpui</c> 文件。
 /// </summary>
 public sealed class BpuiFileActivationService : IBpuiFileActivationService
 {
@@ -37,15 +37,15 @@ public sealed class BpuiFileActivationService : IBpuiFileActivationService
     private Task? _listenTask;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="BpuiFileActivationService"/> class.
+    /// 初始化 <see cref="BpuiFileActivationService"/> 类的新实例。
     /// </summary>
-    /// <param name="packageImporter">Layout package importer.</param>
-    /// <param name="legacyPackageConverter">Legacy package converter.</param>
-    /// <param name="frontedWindowService">Fronted window service.</param>
-    /// <param name="behaviorRuntime">Behavior runtime.</param>
-    /// <param name="navigationService">Navigation service.</param>
-    /// <param name="infoBarService">InfoBar service.</param>
-    /// <param name="logger">Logger.</param>
+    /// <param name="packageImporter">布局包导入器。</param>
+    /// <param name="legacyPackageConverter">旧版包转换器。</param>
+    /// <param name="frontedWindowService">前台窗口服务。</param>
+    /// <param name="behaviorRuntime">行为运行时。</param>
+    /// <param name="navigationService">导航服务。</param>
+    /// <param name="infoBarService">信息栏服务。</param>
+    /// <param name="logger">日志记录器。</param>
     public BpuiFileActivationService(
         IFrontedLayoutPackageImporter packageImporter,
         IFrontedLayoutPackageLegacyConverter legacyPackageConverter,

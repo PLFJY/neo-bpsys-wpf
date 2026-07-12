@@ -1,7 +1,7 @@
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 
 /// <summary>
-/// Result of a designer move/resize snap calculation.
+/// 设计器移动/缩放吸附计算的结果。
 /// </summary>
 public sealed class FrontedDesignerSnapResult
 {

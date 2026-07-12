@@ -50,11 +50,11 @@ public static class ColorHelper
     }
 
     /// <summary>
-    /// Tries to parse a color from <c>#RRGGBB</c>, <c>#AARRGGBB</c>, or a WPF named color.
+    /// 尝试从 <c>#RRGGBB</c>、<c>#AARRGGBB</c> 或 WPF 命名颜色解析颜色。
     /// </summary>
-    /// <param name="value">The color text to parse.</param>
-    /// <param name="color">The parsed color when parsing succeeds.</param>
-    /// <returns><c>true</c> when the value is a supported color; otherwise <c>false</c>.</returns>
+    /// <param name="value">要解析的颜色文本。</param>
+    /// <param name="color">解析成功时输出的颜色。</param>
+    /// <returns>当值为受支持的颜色时返回 <c>true</c>；否则返回 <c>false</c>。</returns>
     public static bool TryParseColor(string? value, out Color color)
     {
         color = Colors.White;

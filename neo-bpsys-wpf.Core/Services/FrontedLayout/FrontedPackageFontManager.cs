@@ -6,26 +6,26 @@ using System.Text.Json.Nodes;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Lists and deletes fonts stored in the active fronted layout package.
+/// 列出和删除存储在活动前台布局包中的字体。
 /// </summary>
 public sealed class FrontedPackageFontManager
 {
     private readonly IFrontedLayoutPackageManager _packageManager;
 
     /// <summary>
-    /// Initializes a new package font manager.
+    /// 初始化新的包字体管理器。
     /// </summary>
-    /// <param name="packageManager">Layout package manager.</param>
+    /// <param name="packageManager">布局包管理器。</param>
     public FrontedPackageFontManager(IFrontedLayoutPackageManager packageManager)
     {
         _packageManager = packageManager;
     }
 
     /// <summary>
-    /// Lists font files stored in the active writable package.
+    /// 列出存储在活动可写包中的字体文件。
     /// </summary>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Package font items.</returns>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>包字体项。</returns>
     public async Task<IReadOnlyList<FrontedPackageFontItem>> ListActivePackageFontsAsync(
         CancellationToken cancellationToken = default)
     {
@@ -67,13 +67,13 @@ public sealed class FrontedPackageFontManager
     }
 
     /// <summary>
-    /// Deletes an unreferenced font file from the active writable package.
+    /// 从活动可写包中删除未引用的字体文件。
     /// </summary>
-    /// <param name="fileName">Font file name under <c>resources/fonts</c>.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <exception cref="ArgumentException">Thrown when the file name is unsafe or has an unsupported extension.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when the active package is not manageable or the font is still referenced.</exception>
-    /// <exception cref="FileNotFoundException">Thrown when the font file does not exist.</exception>
+    /// <param name="fileName"><c>resources/fonts</c> 下的字体文件名。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <exception cref="ArgumentException">当文件名不安全或扩展名不受支持时抛出。</exception>
+    /// <exception cref="InvalidOperationException">当活动包不可管理或字体仍被引用时抛出。</exception>
+    /// <exception cref="FileNotFoundException">当字体文件不存在时抛出。</exception>
     public async Task DeleteActivePackageFontAsync(string fileName, CancellationToken cancellationToken = default)
     {
         ValidateFontFileName(fileName);

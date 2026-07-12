@@ -1,47 +1,47 @@
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 
 /// <summary>
-/// Designer v3 resize handle direction.
+/// 设计器 v3 缩放手柄方向。
 /// </summary>
 public enum FrontedDesignerResizeHandleKind
 {
     /// <summary>
-    /// Top-left corner handle.
+    /// 左上角手柄。
     /// </summary>
     TopLeft,
 
     /// <summary>
-    /// Top edge handle.
+    /// 顶部边缘手柄。
     /// </summary>
     Top,
 
     /// <summary>
-    /// Top-right corner handle.
+    /// 右上角手柄。
     /// </summary>
     TopRight,
 
     /// <summary>
-    /// Left edge handle.
+    /// 左侧边缘手柄。
     /// </summary>
     Left,
 
     /// <summary>
-    /// Right edge handle.
+    /// 右侧边缘手柄。
     /// </summary>
     Right,
 
     /// <summary>
-    /// Bottom-left corner handle.
+    /// 左下角手柄。
     /// </summary>
     BottomLeft,
 
     /// <summary>
-    /// Bottom edge handle.
+    /// 底部边缘手柄。
     /// </summary>
     Bottom,
 
     /// <summary>
-    /// Bottom-right corner handle.
+    /// 右下角手柄。
     /// </summary>
     BottomRight
 }

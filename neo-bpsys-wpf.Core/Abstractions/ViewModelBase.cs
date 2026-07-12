@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 namespace neo_bpsys_wpf.Core.Abstractions;
 
 /// <summary>
-/// Base class that implements INotifyPropertyChanged with Recipient
+/// 实现 INotifyPropertyChanged 并支持 Recipient 的基类。
 /// </summary>
 public abstract class ViewModelBase : ObservableRecipient
 {

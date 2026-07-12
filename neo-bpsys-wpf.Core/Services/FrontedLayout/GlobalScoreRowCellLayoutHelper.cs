@@ -4,7 +4,7 @@ using neo_bpsys_wpf.Core.Models.ScoreSystem;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Design-time helper for materializing and arranging GlobalScoreRow child cells.
+/// 用于实例化和排列 GlobalScoreRow 子单元格的设计时帮助程序。
 /// </summary>
 public static class GlobalScoreRowCellLayoutHelper
 {
@@ -40,7 +40,7 @@ public static class GlobalScoreRowCellLayoutHelper
     ];
 
     /// <summary>
-    /// Gets all built-in cell IDs across BO3 and BO5 templates.
+    /// 获取 BO3 和 BO5 模板中的所有内置单元格标识。
     /// </summary>
     public static IReadOnlyList<string> CompleteCellIds =>
         Bo3Template.Concat(Bo5Template)
@@ -49,7 +49,7 @@ public static class GlobalScoreRowCellLayoutHelper
             .ToArray();
 
     /// <summary>
-    /// Creates the built-in cell template for the selected BO mode.
+    /// 为选中的 BO 模式创建内置单元格模板。
     /// </summary>
     public static List<GlobalScoreCellConfig> CreateCompleteCellTemplate(
         double majorGameGap = 180D,
@@ -82,7 +82,7 @@ public static class GlobalScoreRowCellLayoutHelper
     }
 
     /// <summary>
-    /// Ensures the row contains every cell required by the selected BO mode.
+    /// 确保行包含所选 BO 模式所需的每个单元格。
     /// </summary>
     public static bool EnsureCompleteCells(GlobalScoreRowControlConfig row, bool isBo3Mode = false)
     {

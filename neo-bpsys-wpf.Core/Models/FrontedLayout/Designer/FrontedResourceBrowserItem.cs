@@ -3,7 +3,7 @@ using System.Windows.Media;
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 
 /// <summary>
-/// Resource item displayed by Designer v3 Resource Browser.
+/// 设计器 v3 资源浏览器显示的资源项。
 /// </summary>
 public sealed class FrontedResourceBrowserItem
 {

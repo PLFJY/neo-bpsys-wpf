@@ -14,7 +14,7 @@ using Xunit;
 namespace neo_bpsys_wpf.Tests.Services;
 
 /// <summary>
-/// Tests Product Tour target element resolution.
+/// 测试产品导览目标元素解析。
 /// </summary>
 public sealed class TargetElementFinderTest
 {

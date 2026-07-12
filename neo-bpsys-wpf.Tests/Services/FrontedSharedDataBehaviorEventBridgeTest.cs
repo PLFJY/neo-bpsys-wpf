@@ -316,32 +316,32 @@ public class FrontedSharedDataBehaviorEventBridgeTest
     }
 
     /// <summary>
-    /// Test event args for the CharacterPicked event on <see cref="MockSharedDataService"/>.
+    /// <see cref="MockSharedDataService"/> 上 CharacterPicked 事件的测试事件参数。
     /// </summary>
     public sealed class CharacterPickedEventArgs(string characterName) : EventArgs
     {
         /// <summary>
-        /// Gets the picked character name.
+        /// 获取被选中的角色名称。
         /// </summary>
         public string CharacterName { get; } = characterName;
     }
 
     /// <summary>
-    /// Mock implementation of <see cref="ISharedDataService"/> for testing the behavior event bridge.
-    /// Includes attributed test events (CharacterPicked) and unmarked events (UnmarkedEvent)
-    /// to verify bridge subscription filtering.
+    /// 用于测试行为事件桥接的 <see cref="ISharedDataService"/> 模拟实现。
+    /// 包含带特性标注的测试事件（CharacterPicked）与未标注的事件（UnmarkedEvent），
+    /// 用于验证桥接的订阅过滤。
     /// </summary>
     private sealed class MockSharedDataService : ISharedDataService
     {
         /// <summary>
-        /// Attributed test event — should be bridged.
+        /// 带特性标注的测试事件 — 应被桥接。
         /// </summary>
         [FrontedBehaviorEvent("Test.CharacterPicked")]
         [FrontedBehaviorEventPayload("Event.CharacterName", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(CharacterPickedEventArgs.CharacterName))]
         public event EventHandler<CharacterPickedEventArgs>? CharacterPicked;
 
         /// <summary>
-        /// Unmarked test event — should NOT be bridged.
+        /// 未标注的测试事件 — 不应被桥接。
         /// </summary>
         public event EventHandler<EventArgs>? UnmarkedEvent;
 
@@ -492,7 +492,7 @@ public class FrontedSharedDataBehaviorEventBridgeTest
     }
 
     /// <summary>
-    /// Mock implementation of <see cref="IFrontedEventBus"/> that captures published events.
+    /// 捕获已发布事件的 <see cref="IFrontedEventBus"/> 模拟实现。
     /// </summary>
     private sealed class MockEventBus : IFrontedEventBus
     {

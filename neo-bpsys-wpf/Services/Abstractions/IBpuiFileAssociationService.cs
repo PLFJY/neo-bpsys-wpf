@@ -1,29 +1,29 @@
 namespace neo_bpsys_wpf.Services.Abstractions;
 
 /// <summary>
-/// Manages Windows file association for <c>.bpui</c> layout package files.
+/// 管理 <c>.bpui</c> 布局包文件的 Windows 文件关联。
 /// </summary>
 public interface IBpuiFileAssociationService
 {
     /// <summary>
-    /// Determines whether <c>.bpui</c> files are currently associated with this application.
+    /// 判断 <c>.bpui</c> 文件当前是否与本应用程序关联。
     /// </summary>
-    /// <returns><see langword="true"/> when the current effective association points to this application.</returns>
+    /// <returns>当前有效的关联指向本应用程序时返回 <see langword="true"/>。</returns>
     bool IsAssociated();
 
     /// <summary>
-    /// Ensures the current-user <c>.bpui</c> file association points to this application.
+    /// 确保当前用户的 <c>.bpui</c> 文件关联指向本应用程序。
     /// </summary>
     void Associate();
 
     /// <summary>
-    /// Removes the current-user <c>.bpui</c> file association if it points to this application.
+    /// 如果当前用户的 <c>.bpui</c> 文件关联指向本应用程序，则移除该关联。
     /// </summary>
     void RemoveAssociation();
 
     /// <summary>
-    /// Silently checks and repairs the file association according to user settings.
+    /// 根据用户设置静默检查并修复文件关联。
     /// </summary>
-    /// <param name="shouldAssociate">Whether the association should be enabled.</param>
+    /// <param name="shouldAssociate">是否应启用关联。</param>
     void EnsureAssociationState(bool shouldAssociate);
 }

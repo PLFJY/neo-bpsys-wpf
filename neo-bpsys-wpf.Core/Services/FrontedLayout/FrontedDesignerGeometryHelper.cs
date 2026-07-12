@@ -4,42 +4,42 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Pure geometry operations for Designer v3 in-memory editing.
+/// 设计器 v3 内存编辑的纯几何操作。
 /// </summary>
 public static class FrontedDesignerGeometryHelper
 {
     /// <summary>
-    /// Default coordinate snap step.
+    /// 默认坐标吸附步长。
     /// </summary>
     public const double CoordinateStep = 0.5D;
 
     /// <summary>
-    /// Default grid size used when snap-to-grid is enabled.
+    /// 启用网格吸附时使用的默认网格大小。
     /// </summary>
     public const double DefaultSnapGridSize = 10D;
 
     /// <summary>
-    /// Fallback hitbox width when a config has no width.
+    /// 配置无宽度时的回退命中框宽度。
     /// </summary>
     public const double MinHitWidth = 40D;
 
     /// <summary>
-    /// Fallback hitbox height when a config has no height.
+    /// 配置无高度时的回退命中框高度。
     /// </summary>
     public const double MinHitHeight = 24D;
 
     /// <summary>
-    /// Minimum persisted width after resize.
+    /// 调整大小后持久化的最小宽度。
     /// </summary>
     public const double MinResizeWidth = 1D;
 
     /// <summary>
-    /// Minimum persisted height after resize.
+    /// 调整大小后持久化的最小高度。
     /// </summary>
     public const double MinResizeHeight = 1D;
 
     /// <summary>
-    /// Snaps a coordinate to the nearest half step.
+    /// 将坐标吸附到最近的半步。
     /// </summary>
     public static double Snap(double value)
     {
@@ -47,7 +47,7 @@ public static class FrontedDesignerGeometryHelper
     }
 
     /// <summary>
-    /// Normalizes a coordinate for free movement or grid snapping.
+    /// 为自由移动或网格吸附规范化坐标。
     /// </summary>
     public static double NormalizeCoordinate(
         double value,
@@ -64,7 +64,7 @@ public static class FrontedDesignerGeometryHelper
     }
 
     /// <summary>
-    /// Gets the editable hitbox width for a config.
+    /// 获取配置的可编辑命中框宽度。
     /// </summary>
     public static double GetEditableWidth(FrontedControlConfigBase config)
     {
@@ -72,7 +72,7 @@ public static class FrontedDesignerGeometryHelper
     }
 
     /// <summary>
-    /// Gets the editable hitbox height for a config.
+    /// 获取配置的可编辑命中框高度。
     /// </summary>
     public static double GetEditableHeight(FrontedControlConfigBase config)
     {
@@ -80,7 +80,7 @@ public static class FrontedDesignerGeometryHelper
     }
 
     /// <summary>
-    /// Moves an item from an original position by a logical delta.
+    /// 通过逻辑增量从原始位置移动项。
     /// </summary>
     public static void Move(
         FrontedControlDesignItem item,
@@ -98,7 +98,7 @@ public static class FrontedDesignerGeometryHelper
     }
 
     /// <summary>
-    /// Moves an item from its current position by a logical delta.
+    /// 通过逻辑增量从当前位置移动项。
     /// </summary>
     public static void MoveBy(
         FrontedControlDesignItem item,
@@ -120,7 +120,7 @@ public static class FrontedDesignerGeometryHelper
     }
 
     /// <summary>
-    /// Resizes an item from an original rectangle by a logical delta.
+    /// 通过逻辑增量从原始矩形调整项大小。
     /// </summary>
     public static void Resize(
         FrontedControlDesignItem item,
@@ -184,7 +184,7 @@ public static class FrontedDesignerGeometryHelper
     }
 
     /// <summary>
-    /// Resizes an item from its current editable rectangle by a logical delta.
+    /// 通过逻辑增量从当前可编辑矩形调整项大小。
     /// </summary>
     public static void ResizeBy(
         FrontedControlDesignItem item,

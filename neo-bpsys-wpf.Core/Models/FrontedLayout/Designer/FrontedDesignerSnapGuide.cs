@@ -1,44 +1,44 @@
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 
 /// <summary>
-/// Visual orientation for a designer snap guide.
+/// 设计器对齐线的视觉方向。
 /// </summary>
 public enum FrontedDesignerSnapGuideOrientation
 {
     /// <summary>
-    /// Vertical alignment guide.
+    /// 垂直对齐线。
     /// </summary>
     Vertical,
 
     /// <summary>
-    /// Horizontal alignment guide.
+    /// 水平对齐线。
     /// </summary>
     Horizontal
 }
 
 /// <summary>
-/// Source type that produced a designer snap guide.
+/// 产生设计器对齐线的来源类型。
 /// </summary>
 public enum FrontedDesignerSnapGuideSource
 {
     /// <summary>
-    /// Canvas edge or center.
+    /// 画布边缘或中心。
     /// </summary>
     Canvas,
 
     /// <summary>
-    /// Another editable control.
+    /// 另一个可编辑控件。
     /// </summary>
     Control,
 
     /// <summary>
-    /// Coordinate grid.
+    /// 坐标网格。
     /// </summary>
     Grid
 }
 
 /// <summary>
-/// Pure model for a transient designer snap guide line.
+/// 临时设计器对齐线的纯模型。
 /// </summary>
 public sealed class FrontedDesignerSnapGuide
 {

@@ -6,7 +6,7 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Cached Designer metadata built from explicitly attributed shared-data events.
+/// 从显式标注的共享数据事件构建的缓存设计器元数据。
 /// </summary>
 public sealed class FrontedBehaviorEventCatalog
 {

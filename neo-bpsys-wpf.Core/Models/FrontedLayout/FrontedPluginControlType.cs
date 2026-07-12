@@ -1,14 +1,14 @@
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
 
 /// <summary>
-/// Parsed Designer v3 plugin fronted control type.
+/// 已解析的设计器 v3 插件前台控件类型。
 /// </summary>
 public readonly record struct FrontedPluginControlType(string PackageId, string ControlTypeName)
 {
     public const string Prefix = "plugin:";
 
     /// <summary>
-    /// Returns whether the raw control type uses the plugin prefix.
+    /// 返回原始控件类型是否使用了插件前缀。
     /// </summary>
     public static bool IsPluginControlType(string? controlType)
     {
@@ -16,7 +16,7 @@ public readonly record struct FrontedPluginControlType(string PackageId, string 
     }
 
     /// <summary>
-    /// Attempts to parse a plugin control type.
+    /// 尝试解析插件控件类型。
     /// </summary>
     public static bool TryParse(string? controlType, out FrontedPluginControlType parsed)
     {
@@ -45,7 +45,7 @@ public readonly record struct FrontedPluginControlType(string PackageId, string 
     }
 
     /// <summary>
-    /// Parses a plugin control type or throws when it is invalid.
+    /// 解析插件控件类型，无效时抛出异常。
     /// </summary>
     public static FrontedPluginControlType Parse(string controlType)
     {
@@ -59,7 +59,7 @@ public readonly record struct FrontedPluginControlType(string PackageId, string 
     }
 
     /// <summary>
-    /// Returns whether a package ID or plugin control type name is valid.
+    /// 返回包 ID 或插件控件类型名是否有效。
     /// </summary>
     public static bool IsValidPart(string? value)
     {

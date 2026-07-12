@@ -8,7 +8,7 @@ using System.Collections.ObjectModel;
 namespace neo_bpsys_wpf.ViewModels.Windows;
 
 /// <summary>
-/// ViewModel for the active layout package font manager window.
+/// 活动布局包字体管理器窗口的 ViewModel。
 /// </summary>
 public partial class FrontedPackageFontManagerWindowViewModel : ViewModelBase
 {
@@ -16,7 +16,7 @@ public partial class FrontedPackageFontManagerWindowViewModel : ViewModelBase
     private readonly FrontedFontFamilyOptionProvider _fontFamilyOptionProvider;
 
     /// <summary>
-    /// Initializes a design-time package font manager view model.
+    /// 初始化设计时包字体管理器视图模型。
     /// </summary>
     public FrontedPackageFontManagerWindowViewModel()
         : this(null!, new FrontedFontFamilyOptionProvider())
@@ -24,10 +24,10 @@ public partial class FrontedPackageFontManagerWindowViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Initializes a package font manager view model.
+    /// 初始化包字体管理器视图模型。
     /// </summary>
-    /// <param name="fontManager">Package font manager.</param>
-    /// <param name="fontFamilyOptionProvider">Font family option provider.</param>
+    /// <param name="fontManager">包字体管理器。</param>
+    /// <param name="fontFamilyOptionProvider">字体族选项提供程序。</param>
     public FrontedPackageFontManagerWindowViewModel(
         FrontedPackageFontManager fontManager,
         FrontedFontFamilyOptionProvider fontFamilyOptionProvider)
@@ -37,17 +37,17 @@ public partial class FrontedPackageFontManagerWindowViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Gets the active package font files.
+    /// 获取活动包字体文件集合。
     /// </summary>
     public ObservableCollection<FrontedPackageFontItem> Fonts { get; } = [];
 
     /// <summary>
-    /// Gets whether the active package has no imported fonts.
+    /// 获取活动包是否没有已导入的字体。
     /// </summary>
     public bool HasNoFonts => Fonts.Count == 0;
 
     /// <summary>
-    /// Gets whether the selected font can be deleted.
+    /// 获取当前选中的字体是否可被删除。
     /// </summary>
     public bool CanDeleteSelectedFont => SelectedFont?.CanDelete == true;
 
@@ -59,9 +59,9 @@ public partial class FrontedPackageFontManagerWindowViewModel : ViewModelBase
     public partial string StatusText { get; set; } = string.Empty;
 
     /// <summary>
-    /// Loads the current active package font list.
+    /// 加载当前活动包字体列表。
     /// </summary>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="cancellationToken">取消令牌。</param>
     public async Task LoadAsync(CancellationToken cancellationToken = default)
     {
         Fonts.Clear();
@@ -85,10 +85,10 @@ public partial class FrontedPackageFontManagerWindowViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Deletes the selected unreferenced package font file.
+    /// 删除选中的未被引用的包字体文件。
     /// </summary>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Whether a font was deleted.</returns>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>是否删除了字体。</returns>
     public async Task<bool> DeleteSelectedFontAsync(CancellationToken cancellationToken = default)
     {
         if (SelectedFont is not { CanDelete: true } font || _fontManager is null)

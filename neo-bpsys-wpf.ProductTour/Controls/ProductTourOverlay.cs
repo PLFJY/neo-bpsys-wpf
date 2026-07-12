@@ -6,24 +6,24 @@ using System.Windows.Media.Animation;
 namespace neo_bpsys_wpf.ProductTour.Controls;
 
 /// <summary>
-/// Represents the user action that ended a product tour step.
+/// 表示结束某个产品导览步骤的用户操作。
 /// </summary>
 public enum ProductTourStepAction
 {
-    /// <summary>The user requested the next step or finished the last step.</summary>
+    /// <summary>用户请求下一步或完成了最后一步。</summary>
     Next,
-    /// <summary>The user requested the previous step.</summary>
+    /// <summary>用户请求上一步。</summary>
     Previous,
-    /// <summary>The user requested skipping the current tutorial.</summary>
+    /// <summary>用户请求跳过当前教程。</summary>
     Skip,
-    /// <summary>The step was canceled.</summary>
+    /// <summary>步骤被取消。</summary>
     Cancel,
-    /// <summary>The step opened a tutorial-owning child window and yielded playback.</summary>
+    /// <summary>步骤打开了一个拥有教程的子窗口并让出回放控制。</summary>
     ChildWindowHandoff
 }
 
 /// <summary>
-/// Spotlight product tour overlay that points at a target control.
+/// 指向目标控件的聚光灯式产品导览遮罩。
 /// </summary>
 public sealed class ProductTourOverlay : Canvas
 {
@@ -63,28 +63,28 @@ public sealed class ProductTourOverlay : Canvas
     private Point _currentCardOffset;
     private SkipTutorialConfirmDialog? _confirmDialog;
 
-    /// <summary>Initializes a new instance of the <see cref="ProductTourOverlay"/> class.</summary>
+    /// <summary>初始化 <see cref="ProductTourOverlay"/> 类的新实例。</summary>
     public ProductTourOverlay()
         : this(new DefaultTutorialTextProvider(), new ProductTourOptions(), new NoOpTutorialAvatarProvider(),
              new DefaultTutorialContentResolver(), new NoOpTutorialLanguageService())
     {
     }
 
-    /// <summary>Initializes a new instance of the <see cref="ProductTourOverlay"/> class.</summary>
-    /// <param name="textProvider">Fixed UI text provider.</param>
-    /// <param name="options">Product tour display options.</param>
+    /// <summary>初始化 <see cref="ProductTourOverlay"/> 类的新实例。</summary>
+    /// <param name="textProvider">固定 UI 文本提供器。</param>
+    /// <param name="options">Product Tour 显示选项。</param>
     public ProductTourOverlay(ITutorialTextProvider textProvider, ProductTourOptions options)
         : this(textProvider, options, new NoOpTutorialAvatarProvider(),
              new DefaultTutorialContentResolver(), new NoOpTutorialLanguageService())
     {
     }
 
-    /// <summary>Initializes a new instance of the <see cref="ProductTourOverlay"/> class.</summary>
-    /// <param name="textProvider">Fixed UI text provider.</param>
-    /// <param name="options">Product tour display options.</param>
-    /// <param name="avatarProvider">Tutorial avatar provider.</param>
-    /// <param name="contentResolver">Tutorial content resolver for localized step text.</param>
-    /// <param name="languageService">Tutorial language service for hot-switching.</param>
+    /// <summary>初始化 <see cref="ProductTourOverlay"/> 类的新实例。</summary>
+    /// <param name="textProvider">固定 UI 文本提供器。</param>
+    /// <param name="options">Product Tour 显示选项。</param>
+    /// <param name="avatarProvider">教程头像提供器。</param>
+    /// <param name="contentResolver">用于本地化步骤文本的教程内容解析器。</param>
+    /// <param name="languageService">用于热切换的教程语言服务。</param>
     public ProductTourOverlay(
         ITutorialTextProvider textProvider,
         ProductTourOptions options,
@@ -204,8 +204,8 @@ public sealed class ProductTourOverlay : Canvas
     }
 
     /// <summary>
-    /// Re-resolves all displayed text from resource keys using the current culture,
-    /// refreshing title, description, progress, buttons and waiting text.
+    /// 使用当前区域性从资源键重新解析所有已显示的文本，
+    /// 刷新标题、描述、进度、按钮和等待文本。
     /// </summary>
     private void RefreshLanguage()
     {
@@ -236,12 +236,12 @@ public sealed class ProductTourOverlay : Canvas
         LayoutCurrent(_currentOwner, _currentTarget, _currentPlacement);
     }
 
-    /// <summary>Shows a product tour step.</summary>
-    /// <param name="step">Step definition.</param>
-    /// <param name="target">Target element.</param>
-    /// <param name="context">Step context.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The user action that ended the step.</returns>
+    /// <summary>显示一个产品导览步骤。</summary>
+    /// <param name="step">步骤定义。</param>
+    /// <param name="target">目标元素。</param>
+    /// <param name="context">步骤上下文。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>结束该步骤的用户操作。</returns>
     public async Task<ProductTourStepAction> ShowStepAsync(
         ProductTourStep step,
         FrameworkElement? target,
@@ -285,13 +285,13 @@ public sealed class ProductTourOverlay : Canvas
     }
 
     /// <summary>
-    /// Forces the current step to complete with the specified action, bypassing normal user interaction.
-    /// Used by the playback coordinator to yield a parent step during a child-window handoff.
+    /// 强制以指定操作完成当前步骤，绕过正常的用户交互。
+    /// 由回放协调器在子窗口交接期间让出父步骤时使用。
     /// </summary>
-    /// <param name="action">The action to force-complete the step with.</param>
+    /// <param name="action">用于强制完成该步骤的操作。</param>
     public void ForceComplete(ProductTourStepAction action) => _completion?.TrySetResult(action);
 
-    /// <summary>Marks the awaited step action as completed.</summary>
+    /// <summary>标记所等待的步骤动作已完成。</summary>
     public void MarkSignalCompleted()
     {
         _signalReceived = true;
@@ -304,8 +304,8 @@ public sealed class ProductTourOverlay : Canvas
         _completion?.TrySetResult(ProductTourStepAction.Next);
     }
 
-    /// <summary>Marks the awaited step action as timed out and lets the user decide how to proceed.</summary>
-    /// <param name="message">Readable timeout message.</param>
+    /// <summary>标记所等待的步骤动作已超时，并让用户决定如何继续。</summary>
+    /// <param name="message">可读的超时消息。</param>
     public void MarkSignalTimedOut(string message)
     {
         _signalReceived = false;
@@ -327,8 +327,8 @@ public sealed class ProductTourOverlay : Canvas
             isWaitingForSignal ? "ProductTourSecondaryButtonStyle" : "ProductTourPrimaryButtonStyle") as Style;
     }
 
-    /// <summary>Plays the exit animation.</summary>
-    /// <returns>A task that completes when the animation finishes.</returns>
+    /// <summary>播放退出动画。</summary>
+    /// <returns>在动画完成时完成的任务。</returns>
     public Task FadeOutAsync()
     {
         return AnimateOpacityAsync(0, _options.OverlayFadeOutDuration);

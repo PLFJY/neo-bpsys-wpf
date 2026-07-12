@@ -7,12 +7,12 @@ using WPFLocalizeExtension.Providers;
 namespace neo_bpsys_wpf.Helpers;
 
 /// <summary>
-/// Resolves SmartBP resources from the exact runtime module assembly.
+/// 从精确的运行时模块程序集解析 SmartBP 资源。
 /// </summary>
 /// <remarks>
-/// The module is loaded in its own <see cref="System.Runtime.Loader.AssemblyLoadContext"/>.
-/// The standard RESX provider resolves assemblies by name and can select or cache the wrong
-/// context, so module views use this provider instead.
+/// 该模块加载在自身的 <see cref="System.Runtime.Loader.AssemblyLoadContext"/> 中。
+/// 标准 RESX 提供程序按名称解析程序集，可能选择或缓存错误的上下文，
+/// 因此模块视图改用此提供程序。
 /// </remarks>
 public sealed class SmartBpLocalizationProvider : ILocalizationProvider
 {

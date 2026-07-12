@@ -1,17 +1,17 @@
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 
 /// <summary>
-/// Editable geometry target for controls with nested resize surfaces.
+/// 具有嵌套缩放表面的控件的可编辑几何目标。
 /// </summary>
 public enum FrontedDesignerResizeTarget
 {
     /// <summary>
-    /// Resize the root control frame.
+    /// 缩放根控件边框。
     /// </summary>
     Border,
 
     /// <summary>
-    /// Resize the inner image element.
+    /// 缩放内部图像元素。
     /// </summary>
     Image
 }

@@ -11,7 +11,7 @@ public class FrontedRenderContext
     public required string WindowId { get; init; }
 
     /// <summary>
-    /// Fronted window type name, when known.
+    /// 前台窗口类型名（已知时）。
     /// </summary>
     public string? WindowTypeName { get; init; }
 
@@ -21,17 +21,17 @@ public class FrontedRenderContext
     public required string CanvasName { get; init; }
 
     /// <summary>
-    /// Optional shared data override for isolated preview rendering.
+    /// 可选的共享数据覆盖，用于隔离的预览渲染。
     /// </summary>
     public ISharedDataService? SharedDataServiceOverride { get; init; }
 
     /// <summary>
-    /// Whether missing plugin controls should render Designer-only placeholders.
+    /// 指示缺失的插件控件是否应渲染为仅设计器可用的占位符。
     /// </summary>
     public bool RenderMissingPluginPlaceholders { get; init; }
 
     /// <summary>
-    /// Whether this render is hosted by the Designer preview.
+    /// 指示本次渲染是否由设计器预览承载。
     /// </summary>
     public bool IsDesignerPreview { get; init; }
 }

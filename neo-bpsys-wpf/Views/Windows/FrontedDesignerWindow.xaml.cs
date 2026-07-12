@@ -25,7 +25,7 @@ using MessageBoxResult = Wpf.Ui.Controls.MessageBoxResult;
 namespace neo_bpsys_wpf.Views.Windows;
 
 /// <summary>
-/// Interaction logic for FrontedDesignerWindow.xaml.
+/// FrontedDesignerWindow.xaml 的交互逻辑。
 /// </summary>
 public partial class FrontedDesignerWindow : FluentWindow
 {

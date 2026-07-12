@@ -4,30 +4,30 @@ namespace neo_bpsys_wpf.Views.Windows;
 
 public partial class RegionEditorWindow : ITutorialOwner<RegionEditorWindow>
 {
-    /// <summary>Region editor window tutorial key.</summary>
+    /// <summary>区域编辑器窗口教程键。</summary>
     public const string TutorialPageKey = "Window.SmartBp.RegionEditor";
 
     /// <inheritdoc />
     public static string TutorialKey => TutorialPageKey;
 
-    /// <summary>Region editor window tutorial package ids.</summary>
+    /// <summary>区域编辑器窗口教程包 id。</summary>
     public static class PackageIds
     {
-        /// <summary>Smart BP region editor package id.</summary>
+        /// <summary>SmartBP 区域编辑器包 id。</summary>
         public const string RegionEditorBasic = "Page.SmartBp.RegionEditor.Basic";
     }
 
-    /// <summary>Region editor window tutorial package references.</summary>
+    /// <summary>区域编辑器窗口教程包引用。</summary>
     public static class Tours
     {
-        /// <summary>Smart BP region editor package reference.</summary>
+        /// <summary>SmartBP 区域编辑器包引用。</summary>
         public static readonly TutorialPackageRef RegionEditorBasic = new(PackageIds.RegionEditorBasic);
     }
 
     /// <summary>
-    /// Registers tutorials owned by the RegionEditorWindow.
+    /// 注册由 RegionEditorWindow 拥有的教程。
     /// </summary>
-    /// <param name="builder">Tutorial builder.</param>
+    /// <param name="builder">教程构建器。</param>
     public static void RegisterTutorials(ITutorialBuilder builder)
     {
         builder.ForWindow<RegionEditorWindow>()

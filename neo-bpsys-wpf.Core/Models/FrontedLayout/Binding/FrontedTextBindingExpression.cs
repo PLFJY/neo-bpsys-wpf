@@ -1,37 +1,37 @@
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
 
 /// <summary>
-/// Ordered multi-source binding expression used by Text and LocalizedText controls.
+/// 文本和本地化文本控件使用的有序多源绑定表达式。
 /// </summary>
 public sealed class FrontedTextBindingExpression
 {
     /// <summary>
-    /// Ordered binding sources. Their indexes map to composite format placeholders.
+    /// 有序的绑定源列表。其索引映射到复合格式的占位符。
     /// </summary>
     public List<FrontedBindingSourceConfig> Sources { get; set; } = [];
 
     /// <summary>
-    /// Composite format, for example "{0} : {1}".
+    /// 复合格式，例如 "{0} : {1}"。
     /// </summary>
     public string? StringFormat { get; set; }
 
     /// <summary>
-    /// Separator used when <see cref="StringFormat"/> is empty.
+    /// 当 <see cref="StringFormat"/> 为空时使用的分隔符。
     /// </summary>
     public string JoinSeparator { get; set; } = string.Empty;
 
     /// <summary>
-    /// Text substituted for null source values.
+    /// 用于替换 null 源值的文本。
     /// </summary>
     public string? NullText { get; set; } = string.Empty;
 
     /// <summary>
-    /// Text returned when a source is unavailable or formatting fails.
+    /// 当源不可用或格式化失败时返回的文本。
     /// </summary>
     public string? FallbackText { get; set; } = string.Empty;
 
     /// <summary>
-    /// Returns the non-empty sources used by the runtime.
+    /// 返回运行时使用的非空源列表。
     /// </summary>
     public IReadOnlyList<FrontedBindingSourceConfig> GetActiveSources() =>
         Sources.Where(source => !string.IsNullOrWhiteSpace(source.Path)).ToArray();

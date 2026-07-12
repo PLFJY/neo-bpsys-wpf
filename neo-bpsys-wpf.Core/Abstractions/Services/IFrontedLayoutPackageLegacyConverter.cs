@@ -3,7 +3,7 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
 /// <summary>
-/// Converts legacy .bpui packages into Designer v3 .bpui packages.
+/// 将旧版 .bpui 包转换为设计器 v3 .bpui 包。
 /// </summary>
 public interface IFrontedLayoutPackageLegacyConverter
 {

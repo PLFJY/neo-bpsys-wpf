@@ -1,7 +1,7 @@
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 
 /// <summary>
-/// Display option for enum-like Designer v3 property editors.
+/// 枚举类设计器 v3 属性编辑器的显示选项。
 /// </summary>
 public sealed class FrontedPropertyEditorOption
 {

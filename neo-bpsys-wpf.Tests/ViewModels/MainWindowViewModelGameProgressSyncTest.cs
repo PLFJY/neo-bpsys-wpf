@@ -17,7 +17,7 @@ using Xunit;
 namespace neo_bpsys_wpf.Tests.ViewModels;
 
 /// <summary>
-/// Tests MainWindow game progress synchronization behavior.
+/// 测试主窗口对局进度同步行为。
 /// </summary>
 public sealed class MainWindowViewModelGameProgressSyncTest
 {

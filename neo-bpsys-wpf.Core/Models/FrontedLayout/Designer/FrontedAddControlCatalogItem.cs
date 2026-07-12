@@ -1,52 +1,52 @@
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 
 /// <summary>
-/// Add Control catalog entry for a built-in or plugin fronted control.
+/// 内置或插件前台控件的添加控件目录条目。
 /// </summary>
 public sealed class FrontedAddControlCatalogItem
 {
     /// <summary>
-    /// Control type identifier.
+    /// 控件类型标识。
     /// </summary>
     public string ControlType { get; init; } = string.Empty;
 
     /// <summary>
-    /// User-facing display name.
+    /// 面向用户的显示名称。
     /// </summary>
     public string DisplayName { get; init; } = string.Empty;
 
     /// <summary>
-    /// User-facing description.
+    /// 面向用户的描述。
     /// </summary>
     public string Description { get; init; } = string.Empty;
 
     /// <summary>
-    /// Optional icon key.
+    /// 可选的图标键。
     /// </summary>
     public string? Icon { get; init; }
 
     /// <summary>
-    /// Whether this control comes from a plugin.
+    /// 指示此控件是否来自插件。
     /// </summary>
     public bool IsPlugin { get; init; }
 
     /// <summary>
-    /// Plugin package id when <see cref="IsPlugin"/> is true.
+    /// 当 <see cref="IsPlugin"/> 为 true 时的插件包标识。
     /// </summary>
     public string? PackageId { get; init; }
 
     /// <summary>
-    /// Plugin display name when <see cref="IsPlugin"/> is true.
+    /// 当 <see cref="IsPlugin"/> 为 true 时的插件显示名称。
     /// </summary>
     public string? PluginDisplayName { get; init; }
 
     /// <summary>
-    /// Whether the control is currently available to add.
+    /// 指示该控件当前是否可添加。
     /// </summary>
     public bool IsAvailable { get; init; } = true;
 
     /// <summary>
-    /// Human-readable reason when the control is unavailable.
+    /// 控件不可用时的人类可读原因。
     /// </summary>
     public string? UnavailableReason { get; init; }
 }

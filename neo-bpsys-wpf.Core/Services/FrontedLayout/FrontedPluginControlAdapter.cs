@@ -5,7 +5,7 @@ using System.Windows;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Adapts a plugin descriptor to the existing fronted control factory abstraction.
+/// 将插件描述符适配到现有的前台控件工厂抽象。
 /// </summary>
 public sealed class FrontedPluginControlAdapter<TConfig>(
     FrontedPluginControlDescriptor<TConfig> descriptor) : IFrontedControl
@@ -18,7 +18,7 @@ public sealed class FrontedPluginControlAdapter<TConfig>(
     public Type ConfigType => descriptor.ConfigType;
 
     /// <summary>
-    /// Plugin descriptor represented by this adapter.
+    /// 此适配器表示的插件描述符。
     /// </summary>
     public IFrontedPluginControlDescriptor Descriptor => descriptor;
 

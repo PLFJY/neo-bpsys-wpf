@@ -3,27 +3,27 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
 /// <summary>
-/// Semantic event bus for fronted behavior events.
-/// Thread-safe. Publish should not crash the application on handler exceptions.
+/// 用于前台行为事件的语义化事件总线。
+/// 线程安全。Publish 不应因处理器异常导致应用崩溃。
 /// </summary>
 public interface IFrontedEventBus
 {
     /// <summary>
-    /// Raised when any event is published to the bus.
+    /// 当任意事件发布到总线时触发。
     /// </summary>
     event EventHandler<FrontedBehaviorEvent>? EventPublished;
 
     /// <summary>
-    /// Publishes a <see cref="FrontedBehaviorEvent" /> to all matching subscribers.
+    /// 向所有匹配的订阅者发布 <see cref="FrontedBehaviorEvent" />。
     /// </summary>
     void Publish(FrontedBehaviorEvent behaviorEvent);
 
     /// <summary>
-    /// Subscribes to events of the specified <paramref name="eventType" />.
-    /// When <paramref name="eventType" /> is null, subscribes to all events.
+    /// 订阅指定 <paramref name="eventType" /> 的事件。
+    /// 当 <paramref name="eventType" /> 为 null 时，订阅所有事件。
     /// </summary>
-    /// <param name="eventType">Event type to filter, or null for all.</param>
-    /// <param name="handler">Async handler called when a matching event is published.</param>
-    /// <returns>An <see cref="IDisposable" /> that unsubscribes when disposed.</returns>
+    /// <param name="eventType">要过滤的事件类型，为 null 时订阅全部。</param>
+    /// <param name="handler">在匹配事件发布时调用的异步处理器。</param>
+    /// <returns>一个 <see cref="IDisposable" />，释放时取消订阅。</returns>
     IDisposable Subscribe(string? eventType, Func<FrontedBehaviorEvent, Task> handler);
 }

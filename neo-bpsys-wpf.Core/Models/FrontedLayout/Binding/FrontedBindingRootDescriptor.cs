@@ -1,7 +1,7 @@
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
 
 /// <summary>
-/// Declares a binding root scanned by Designer v3.
+/// 声明由设计器 v3 扫描的绑定根。
 /// </summary>
 /// <param name="Name">绑定根的名称。</param>
 /// <param name="ValueType">绑定根的值类型。</param>

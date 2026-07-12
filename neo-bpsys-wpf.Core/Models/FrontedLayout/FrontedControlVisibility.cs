@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
 
 /// <summary>
-/// Designer v3 control visibility.
+/// 设计器 v3 控件可见性。
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum FrontedControlVisibility

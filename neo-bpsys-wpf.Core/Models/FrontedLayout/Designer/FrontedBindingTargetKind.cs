@@ -1,57 +1,57 @@
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 
 /// <summary>
-/// Expected value category for a Designer v3 binding target.
+/// 设计器 v3 绑定目标的预期值类别。
 /// </summary>
 public enum FrontedBindingTargetKind
 {
     /// <summary>
-    /// Accept any selectable binding value.
+    /// 接受任何可选的绑定值。
     /// </summary>
     Any,
 
     /// <summary>
-    /// Accept string and numeric values suitable for text display.
+    /// 接受适合文本显示的字符串和数值。
     /// </summary>
     Text,
 
     /// <summary>
-    /// Accept image source values.
+    /// 接受图像源值。
     /// </summary>
     Image,
 
     /// <summary>
-    /// Accept game progress enum values.
+    /// 接受对局进度枚举值。
     /// </summary>
     GameProgress,
 
     /// <summary>
-    /// Accept map enum values.
+    /// 接受地图枚举值。
     /// </summary>
     Map,
 
     /// <summary>
-    /// Accept boolean values.
+    /// 接受布尔值。
     /// </summary>
     Boolean,
 
     /// <summary>
-    /// Accept numeric values.
+    /// 接受数值。
     /// </summary>
     Number,
 
     /// <summary>
-    /// Accept string values.
+    /// 接受字符串值。
     /// </summary>
     String,
 
     /// <summary>
-    /// Accept talent model values.
+    /// 接受天赋模型值。
     /// </summary>
     Talent,
 
     /// <summary>
-    /// Accept trait model values.
+    /// 接受特质模型值。
     /// </summary>
     Trait
 }

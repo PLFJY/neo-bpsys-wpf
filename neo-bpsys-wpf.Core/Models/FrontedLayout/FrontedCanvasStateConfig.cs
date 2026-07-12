@@ -1,22 +1,22 @@
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
 
 /// <summary>
-/// Optional Canvas state used by Designer v3 runtime state selection.
+/// 设计器 v3 运行时状态选择所使用的可选画布状态。
 /// </summary>
 public class FrontedCanvasStateConfig
 {
     /// <summary>
-    /// State-specific background image path.
+    /// 状态专属背景图片路径。
     /// </summary>
     public string? BackgroundImage { get; set; }
 
     /// <summary>
-    /// State-specific plugin dependencies.
+    /// 状态专属插件依赖。
     /// </summary>
     public List<FrontedPluginDependency> RequiredPlugins { get; set; } = [];
 
     /// <summary>
-    /// State-specific controls keyed by control name.
+    /// 状态专属控件，以控件名为键。
     /// </summary>
     public Dictionary<string, FrontedControlConfigBase> Controls { get; set; } = [];
 }

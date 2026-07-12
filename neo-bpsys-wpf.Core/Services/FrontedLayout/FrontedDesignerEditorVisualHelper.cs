@@ -1,77 +1,77 @@
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Editor-only visual constants for designer interaction chrome.
+/// 用于设计器交互装饰的仅编辑器视觉常量。
 /// </summary>
 public static class FrontedDesignerEditorVisualHelper
 {
     /// <summary>
-    /// Base editor ZIndex for normal transparent hitboxes.
+    /// 普通透明命中框的基础编辑器 ZIndex。
     /// </summary>
     public const int NormalHitboxZIndexBase = 10_000;
 
     /// <summary>
-    /// Editor ZIndex for the selected control hitbox.
+    /// 选中控件命中框的编辑器 ZIndex。
     /// </summary>
     public const int SelectedHitboxZIndex = 20_000;
 
     /// <summary>
-    /// Editor ZIndex for the selected control outline and label.
+    /// 选中控件轮廓和标签的编辑器 ZIndex。
     /// </summary>
     public const int SelectedOutlineZIndex = 20_100;
 
     /// <summary>
-    /// Editor ZIndex for selected control resize handles.
+    /// 选中控件调整大小手柄的编辑器 ZIndex。
     /// </summary>
     public const int SelectedHandleZIndex = 20_200;
 
     /// <summary>
-    /// Selection outline thickness.
+    /// 选中轮廓的线宽。
     /// </summary>
     public const double SelectionBorderThickness = 1D;
 
     /// <summary>
-    /// Visible handle square size.
+    /// 可见手柄方形大小。
     /// </summary>
     public const double HandleVisualSize = 6D;
 
     /// <summary>
-    /// Transparent hit target size around each handle.
+    /// 每个手柄周围的透明命中目标大小。
     /// </summary>
     public const double HandleHitTargetSize = 12D;
 
     /// <summary>
-    /// Visible handle border thickness.
+    /// 可见手柄边框线宽。
     /// </summary>
     public const double HandleBorderThickness = 1D;
 
     /// <summary>
-    /// Base selection label font size in canvas coordinates.
+    /// 画布坐标中选中标签的基础字体大小。
     /// </summary>
     public const double SelectionLabelBaseFontSize = 11D;
 
     /// <summary>
-    /// Minimum on-screen selection label font size after zoom scaling.
+    /// 缩放后屏幕上选中标签的最小字体大小。
     /// </summary>
     public const double SelectionLabelMinScreenFontSize = 11D;
 
     /// <summary>
-    /// Base vertical offset above the selected control bounds in canvas coordinates.
+    /// 画布坐标中选中控件边界上方的基础垂直偏移。
     /// </summary>
     public const double SelectionLabelBaseOffset = 18D;
 
     /// <summary>
-    /// Maximum selection label font size in canvas coordinates.
+    /// 画布坐标中选中标签的最大字体大小。
     /// </summary>
     public const double SelectionLabelMaxCanvasFontSize = 64D;
 
     /// <summary>
-    /// Minimum valid zoom scale used when normalizing selection label metrics.
+    /// 规范化选中标签度量时使用的最小有效缩放比例。
     /// </summary>
     public const double MinValidZoomScale = 0.01D;
 
     /// <summary>
-    /// Normalizes an invalid zoom scale to a safe positive value.
+    /// 将无效的缩放比例规范化为安全的正值。
     /// </summary>
     public static double NormalizeZoomScale(double zoomScale)
     {
@@ -86,7 +86,7 @@ public static class FrontedDesignerEditorVisualHelper
     }
 
     /// <summary>
-    /// Returns the canvas-space font size that keeps the selection label readable at the given zoom.
+    /// 返回在给定缩放比例下保持选中标签可读性的画布空间字体大小。
     /// </summary>
     public static double GetEffectiveSelectionLabelFontSize(double zoomScale)
     {
@@ -98,7 +98,7 @@ public static class FrontedDesignerEditorVisualHelper
     }
 
     /// <summary>
-    /// Returns the canvas-space top offset above the selected control bounds at the given zoom.
+    /// 返回在给定缩放比例下选中控件边界上方的画布空间顶部偏移。
     /// </summary>
     public static double GetEffectiveSelectionLabelTopOffset(double zoomScale)
     {
@@ -107,7 +107,7 @@ public static class FrontedDesignerEditorVisualHelper
     }
 
     /// <summary>
-    /// Returns an editor-only hitbox ZIndex without modifying runtime layout ZIndex.
+    /// 返回仅用于编辑器的命中框 ZIndex，不修改运行时布局 ZIndex。
     /// </summary>
     public static int GetHitboxZIndex(int zIndex, int layoutOrder, bool isSelected)
     {

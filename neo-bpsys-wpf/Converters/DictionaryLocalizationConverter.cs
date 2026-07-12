@@ -5,22 +5,21 @@ using neo_bpsys_wpf.Helpers;
 namespace neo_bpsys_wpf.Converters;
 
 /// <summary>
-/// Resolves a dynamic localization key against an explicitly selected host resource dictionary.
+/// 根据显式选择的宿主资源字典解析动态本地化键。
 /// </summary>
 /// <remarks>
-/// This converter is intended for WPF data templates, where <c>lex:Loc</c> cannot reliably
-/// inherit provider context while its dynamic key binding is being created.
+/// 此转换器适用于 WPF 数据模板，因为在创建动态键绑定时，<c>lex:Loc</c> 无法可靠地继承提供程序上下文。
 /// </remarks>
 public sealed class DictionaryLocalizationConverter : IValueConverter
 {
     /// <summary>
-    /// Resolves the supplied key using the dictionary supplied through <paramref name="parameter"/>.
+    /// 使用通过 <paramref name="parameter"/> 传入的字典解析给定键。
     /// </summary>
-    /// <param name="value">The dynamic localization key.</param>
-    /// <param name="targetType">The target property type.</param>
-    /// <param name="parameter">An <see cref="AppI18nDictionaries"/> dictionary name.</param>
-    /// <param name="culture">The culture requested by the WPF binding engine.</param>
-    /// <returns>The localized value, or the original key when it cannot be resolved.</returns>
+    /// <param name="value">动态本地化键。</param>
+    /// <param name="targetType">目标属性类型。</param>
+    /// <param name="parameter"><see cref="AppI18nDictionaries"/> 字典名称。</param>
+    /// <param name="culture">WPF 绑定引擎请求的区域性。</param>
+    /// <returns>本地化后的值；无法解析时返回原始键。</returns>
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         var key = value as string ?? System.Convert.ToString(value, CultureInfo.InvariantCulture);
@@ -38,14 +37,14 @@ public sealed class DictionaryLocalizationConverter : IValueConverter
     }
 
     /// <summary>
-    /// Does not support reverse conversion.
+    /// 不支持反向转换。
     /// </summary>
-    /// <param name="value">The value to convert back.</param>
-    /// <param name="targetType">The requested source type.</param>
-    /// <param name="parameter">The converter parameter.</param>
-    /// <param name="culture">The requested culture.</param>
-    /// <returns>This member never returns.</returns>
-    /// <exception cref="NotSupportedException">Always thrown because localization keys cannot be inferred from display text.</exception>
+    /// <param name="value">要反向转换的值。</param>
+    /// <param name="targetType">请求的源类型。</param>
+    /// <param name="parameter">转换器参数。</param>
+    /// <param name="culture">请求的区域性。</param>
+    /// <returns>此成员永远不会返回。</returns>
+    /// <exception cref="NotSupportedException">始终抛出，因为无法从显示文本推断本地化键。</exception>
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
     {
         throw new NotSupportedException();

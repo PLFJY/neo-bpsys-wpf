@@ -23,10 +23,10 @@ public partial class PickPage : Page
     private readonly global::neo_bpsys_wpf.Services.NavigationService? _navigationService;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="PickPage"/> class.
+    /// 初始化 <see cref="PickPage"/> 类的新实例。
     /// </summary>
-    /// <param name="tutorialRunner">Tutorial runner.</param>
-    /// <param name="navigationService">Navigation service.</param>
+    /// <param name="tutorialRunner">教程运行器。</param>
+    /// <param name="navigationService">导航服务。</param>
     public PickPage(
         ITutorialRunner? tutorialRunner = null,
         global::neo_bpsys_wpf.Services.NavigationService? navigationService = null)

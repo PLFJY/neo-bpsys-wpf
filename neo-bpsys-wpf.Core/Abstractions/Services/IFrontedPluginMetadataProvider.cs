@@ -1,7 +1,7 @@
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
 /// <summary>
-/// Provides loaded plugin metadata for fronted layout dependency synchronization.
+/// 为前台布局依赖同步提供已加载插件的元数据。
 /// </summary>
 public interface IFrontedPluginMetadataProvider
 {

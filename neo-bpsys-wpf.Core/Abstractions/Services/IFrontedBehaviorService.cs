@@ -3,32 +3,32 @@ namespace neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 
 /// <summary>
-/// Handles fronted behavior data owned by a fronted window identity.
+/// 处理由前台窗口标识拥有的前台行为数据。
 /// </summary>
 public interface IFrontedBehaviorService
 {
     /// <summary>
-    /// Loads the behavior document for the specified fronted window.
+    /// 加载指定前台窗口的行为文档。
     /// </summary>
-    /// <param name="windowType">The full window type name.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The behavior document.</returns>
+    /// <param name="windowType">完整的窗口类型名。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>行为文档。</returns>
     Task<FrontedBehaviorDocument> LoadDocumentAsync(
         string windowType,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Saves a behavior document for its <see cref="FrontedBehaviorDocument.WindowType" />.
+    /// 保存行为文档，对应其 <see cref="FrontedBehaviorDocument.WindowType" />。
     /// </summary>
-    /// <param name="document">The behavior document to save.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="document">要保存的行为文档。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
     Task SaveDocumentAsync(
         FrontedBehaviorDocument document,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Removes behavior data attached directly to the specified behavior target.
+    /// 移除直接附加到指定行为目标上的行为数据。
     /// </summary>
-    /// <param name="behaviorGuid">The behavior target GUID.</param>
+    /// <param name="behaviorGuid">行为目标 GUID。</param>
     void RemoveBehaviors(Guid behaviorGuid);
 }

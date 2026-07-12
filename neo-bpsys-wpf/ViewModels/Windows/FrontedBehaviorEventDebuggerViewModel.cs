@@ -15,7 +15,7 @@ using System.Windows.Data;
 namespace neo_bpsys_wpf.ViewModels.Windows;
 
 /// <summary>
-/// View model for the independent global behavior event debugger window.
+/// 独立全局行为事件调试器窗口的视图模型。
 /// </summary>
 public sealed partial class FrontedBehaviorEventDebuggerViewModel : ViewModelBase, IDisposable
 {
@@ -28,9 +28,9 @@ public sealed partial class FrontedBehaviorEventDebuggerViewModel : ViewModelBas
     private bool _disposed;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="FrontedBehaviorEventDebuggerViewModel" />.
+    /// 初始化 <see cref="FrontedBehaviorEventDebuggerViewModel" /> 的新实例。
     /// </summary>
-    /// <param name="debugService">Global behavior event debug service.</param>
+    /// <param name="debugService">全局行为事件调试服务。</param>
     public FrontedBehaviorEventDebuggerViewModel(IFrontedBehaviorEventDebugService debugService)
     {
         _debugService = debugService;
@@ -50,59 +50,59 @@ public sealed partial class FrontedBehaviorEventDebuggerViewModel : ViewModelBas
     }
 
     /// <summary>
-    /// Captured records shown by the debugger.
+    /// 调试器显示的已捕获记录。
     /// </summary>
     public ObservableCollection<FrontedBehaviorEventDebugRecordViewModel> Records { get; } = [];
 
     /// <summary>
-    /// Filtered record view for the event list.
+    /// 事件列表的已筛选记录视图。
     /// </summary>
     public ICollectionView RecordsView { get; }
 
     /// <summary>
-    /// Selected event record in the event list.
+    /// 事件列表中选中的事件记录。
     /// </summary>
     [ObservableProperty]
     public partial FrontedBehaviorEventDebugRecordViewModel? SelectedRecord { get; set; }
 
     /// <summary>
-    /// Selected payload entry for copy helper commands.
+    /// 当前选中的、用于复制辅助命令的负载条目。
     /// </summary>
     [ObservableProperty]
     public partial FrontedBehaviorPayloadDebugEntry? SelectedPayloadEntry { get; set; }
 
     /// <summary>
-    /// Gets or sets whether the debugger records incoming behavior events.
+    /// 获取或设置调试器是否记录传入的行为事件。
     /// </summary>
     [ObservableProperty]
     public partial bool IsEnabled { get; set; }
 
     /// <summary>
-    /// Gets or sets whether the debugger keeps existing records but ignores new events.
+    /// 获取或设置调试器是否保留已有记录但忽略新事件。
     /// </summary>
     [ObservableProperty]
     public partial bool IsPaused { get; set; }
 
     /// <summary>
-    /// Gets or sets the maximum number of records retained by the debugger.
+    /// 获取或设置调试器保留的最大记录数。
     /// </summary>
     [ObservableProperty]
     public partial int MaxRecords { get; set; }
 
     /// <summary>
-    /// Gets or sets the free-text filter used by the event list.
+    /// 获取或设置事件列表使用的自由文本筛选条件。
     /// </summary>
     [ObservableProperty]
     public partial string FilterText { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the event type filter.
+    /// 获取或设置事件类型筛选条件。
     /// </summary>
     [ObservableProperty]
     public partial string EventTypeFilter { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the window type filter.
+    /// 获取或设置窗口类型筛选条件。
     /// </summary>
     [ObservableProperty]
     public partial string WindowTypeFilter { get; set; } = string.Empty;
@@ -130,9 +130,9 @@ public sealed partial class FrontedBehaviorEventDebuggerViewModel : ViewModelBas
     partial void OnWindowTypeFilterChanged(string value) => RecordsView.Refresh();
 
     /// <summary>
-    /// Copies a payload path to the clipboard.
+    /// 将负载路径复制到剪贴板。
     /// </summary>
-    /// <param name="entry">Payload entry to copy.</param>
+    /// <param name="entry">要复制的负载条目。</param>
     [RelayCommand]
     public void CopyPath(FrontedBehaviorPayloadDebugEntry? entry)
     {
@@ -140,9 +140,9 @@ public sealed partial class FrontedBehaviorEventDebuggerViewModel : ViewModelBas
     }
 
     /// <summary>
-    /// Copies a payload path compatible with graph condition nodes.
+    /// 复制与图条件节点兼容的负载路径。
     /// </summary>
-    /// <param name="entry">Payload entry to copy.</param>
+    /// <param name="entry">要复制的负载条目。</param>
     [RelayCommand]
     public void CopyConditionPath(FrontedBehaviorPayloadDebugEntry? entry)
     {
@@ -150,9 +150,9 @@ public sealed partial class FrontedBehaviorEventDebuggerViewModel : ViewModelBas
     }
 
     /// <summary>
-    /// Copies an Equals filter expression for a payload entry.
+    /// 复制负载条目的 Equals 筛选表达式。
     /// </summary>
-    /// <param name="entry">Payload entry to copy.</param>
+    /// <param name="entry">要复制的负载条目。</param>
     [RelayCommand]
     public void CopyEqualsFilter(FrontedBehaviorPayloadDebugEntry? entry)
     {
@@ -160,9 +160,9 @@ public sealed partial class FrontedBehaviorEventDebuggerViewModel : ViewModelBas
     }
 
     /// <summary>
-    /// Copies an IF condition expression for a payload entry.
+    /// 复制负载条目的 IF 条件表达式。
     /// </summary>
-    /// <param name="entry">Payload entry to copy.</param>
+    /// <param name="entry">要复制的负载条目。</param>
     [RelayCommand]
     public void CopyIfCondition(FrontedBehaviorPayloadDebugEntry? entry)
     {
@@ -170,9 +170,9 @@ public sealed partial class FrontedBehaviorEventDebuggerViewModel : ViewModelBas
     }
 
     /// <summary>
-    /// Copies a Contains filter expression for a payload entry.
+    /// 复制负载条目的 Contains 筛选表达式。
     /// </summary>
-    /// <param name="entry">Payload entry to copy.</param>
+    /// <param name="entry">要复制的负载条目。</param>
     [RelayCommand]
     public void CopyContainsFilter(FrontedBehaviorPayloadDebugEntry? entry)
     {
@@ -180,9 +180,9 @@ public sealed partial class FrontedBehaviorEventDebuggerViewModel : ViewModelBas
     }
 
     /// <summary>
-    /// Copies a payload filter value to the clipboard.
+    /// 将负载筛选值复制到剪贴板。
     /// </summary>
-    /// <param name="entry">Payload entry to copy.</param>
+    /// <param name="entry">要复制的负载条目。</param>
     [RelayCommand]
     public void CopyValue(FrontedBehaviorPayloadDebugEntry? entry)
     {
@@ -190,7 +190,7 @@ public sealed partial class FrontedBehaviorEventDebuggerViewModel : ViewModelBas
     }
 
     /// <summary>
-    /// Clears all captured event records.
+    /// 清除所有已捕获的事件记录。
     /// </summary>
     [RelayCommand]
     public void Clear()
@@ -199,7 +199,7 @@ public sealed partial class FrontedBehaviorEventDebuggerViewModel : ViewModelBas
     }
 
     /// <summary>
-    /// Copies the selected event record as JSON.
+    /// 将选中的事件记录以 JSON 格式复制。
     /// </summary>
     [RelayCommand]
     public void CopyEventJson()
@@ -213,7 +213,7 @@ public sealed partial class FrontedBehaviorEventDebuggerViewModel : ViewModelBas
     }
 
     /// <summary>
-    /// Exports all current event records as JSON.
+    /// 将当前所有事件记录导出为 JSON。
     /// </summary>
     [RelayCommand]
     public void ExportJson()
@@ -233,26 +233,26 @@ public sealed partial class FrontedBehaviorEventDebuggerViewModel : ViewModelBas
     }
 
     /// <summary>
-    /// Creates an Equals filter expression for a payload entry.
+    /// 为负载条目创建 Equals 筛选表达式。
     /// </summary>
-    /// <param name="entry">Payload entry.</param>
-    /// <returns>Filter expression, or an empty string when no entry is supplied.</returns>
+    /// <param name="entry">负载条目。</param>
+    /// <returns>筛选表达式；未提供条目时返回空字符串。</returns>
     public static string CreateEqualsFilter(FrontedBehaviorPayloadDebugEntry? entry) =>
         entry is null ? string.Empty : $"{entry.Path} Equals {entry.FilterText}";
 
     /// <summary>
-    /// Creates a condition-node-compatible IF expression for a payload entry.
+    /// 为负载条目创建与条件节点兼容的 IF 表达式。
     /// </summary>
-    /// <param name="entry">Payload entry.</param>
-    /// <returns>IF condition expression, or an empty string when no entry is supplied.</returns>
+    /// <param name="entry">负载条目。</param>
+    /// <returns>IF 条件表达式；未提供条目时返回空字符串。</returns>
     public static string CreateIfCondition(FrontedBehaviorPayloadDebugEntry? entry) =>
         CreateEqualsFilter(entry);
 
     /// <summary>
-    /// Creates a Contains filter expression for a payload entry.
+    /// 为负载条目创建 Contains 筛选表达式。
     /// </summary>
-    /// <param name="entry">Payload entry.</param>
-    /// <returns>Filter expression, or an empty string when no entry is supplied.</returns>
+    /// <param name="entry">负载条目。</param>
+    /// <returns>筛选表达式；未提供条目时返回空字符串。</returns>
     public static string CreateContainsFilter(FrontedBehaviorPayloadDebugEntry? entry)
     {
         if (entry is null)
@@ -362,14 +362,14 @@ public sealed partial class FrontedBehaviorEventDebuggerViewModel : ViewModelBas
 }
 
 /// <summary>
-/// UI wrapper for a captured behavior event record.
+/// 已捕获行为事件记录的 UI 包装器。
 /// </summary>
 public sealed class FrontedBehaviorEventDebugRecordViewModel
 {
     /// <summary>
-    /// Initializes a new instance of <see cref="FrontedBehaviorEventDebugRecordViewModel" />.
+    /// 初始化 <see cref="FrontedBehaviorEventDebugRecordViewModel" /> 的新实例。
     /// </summary>
-    /// <param name="record">Captured debug record.</param>
+    /// <param name="record">已捕获的调试记录。</param>
     public FrontedBehaviorEventDebugRecordViewModel(FrontedBehaviorEventDebugRecord record)
     {
         Record = record;
@@ -377,57 +377,57 @@ public sealed class FrontedBehaviorEventDebugRecordViewModel
     }
 
     /// <summary>
-    /// Source debug record.
+    /// 源调试记录。
     /// </summary>
     public FrontedBehaviorEventDebugRecord Record { get; }
 
     /// <summary>
-    /// Monotonic sequence number.
+    /// 单调递增的序列号。
     /// </summary>
     public long Sequence => Record.Sequence;
 
     /// <summary>
-    /// Local display time.
+    /// 本地显示时间。
     /// </summary>
     public string TimeText => Record.Timestamp.ToLocalTime().ToString("HH:mm:ss.fff");
 
     /// <summary>
-    /// Behavior event type.
+    /// 行为事件类型。
     /// </summary>
     public string EventType => Record.EventType;
 
     /// <summary>
-    /// Optional runtime window identifier.
+    /// 可选的运行时窗口标识符。
     /// </summary>
     public string? WindowId => Record.WindowId;
 
     /// <summary>
-    /// Optional window type name.
+    /// 可选的窗口类型名称。
     /// </summary>
     public string? WindowType => Record.WindowType;
 
     /// <summary>
-    /// Optional canvas name.
+    /// 可选的 Canvas 名称。
     /// </summary>
     public string? CanvasName => Record.CanvasName;
 
     /// <summary>
-    /// Optional event source name.
+    /// 可选的事件源名称。
     /// </summary>
     public string? Source => Record.Source;
 
     /// <summary>
-    /// Whether this event came from Designer preview.
+    /// 此事件是否来自设计器预览。
     /// </summary>
     public bool IsPreview => Record.IsPreview;
 
     /// <summary>
-    /// Payload entries.
+    /// 负载条目。
     /// </summary>
     public IReadOnlyList<FrontedBehaviorPayloadDebugEntry> Payload => Record.Payload;
 
     /// <summary>
-    /// Compact event payload summary.
+    /// 紧凑的事件负载摘要。
     /// </summary>
     public string PayloadSummary { get; }
 

@@ -5,7 +5,7 @@ using neo_bpsys_wpf.Helpers;
 namespace neo_bpsys_wpf.Services;
 
 /// <summary>
-/// I18n-backed Designer v3 localization service for the WPF host.
+/// 面向 WPF 宿主的、基于 I18n 的设计器 v3 本地化服务。
 /// </summary>
 public sealed class FrontedDesignerI18nLocalizationService : FrontedDesignerLocalizationService
 {

@@ -3,44 +3,44 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout;
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
 /// <summary>
-/// Provides built-in and plugin WPF fronted window descriptors to services and Designer v3.
+/// 为服务和设计器 v3 提供内置和插件 WPF 前台窗口描述符。
 /// </summary>
 public interface IFrontedWindowRegistry
 {
     /// <summary>
-    /// Gets all accepted descriptors, including built-in, plugin XAML, and plugin layout windows.
+    /// 获取所有已接受的描述符，包括内置窗口、插件 XAML 窗口和插件布局窗口。
     /// </summary>
     IReadOnlyList<IFrontedWindowDescriptor> GetWindows();
 
     /// <summary>
-    /// Gets windows whose layouts can be managed by Designer v3.
+    /// 获取其布局可由设计器 v3 管理的窗口。
     /// </summary>
     IReadOnlyList<IFrontedWindowDescriptor> GetCustomizableLayoutWindows();
 
     /// <summary>
-    /// Gets windows visible in the frontend management page, with stable fallback grouping and ordering.
+    /// 获取在前台管理页可见的窗口，使用稳定的回退分组和排序。
     /// </summary>
-    /// <returns>The manageable window descriptors.</returns>
+    /// <returns>可管理的窗口描述符。</returns>
     IReadOnlyList<IFrontedWindowDescriptor> GetManageableWindows();
 
     /// <summary>
-    /// Looks up a descriptor by stable runtime <see cref="IFrontedWindowDescriptor.WindowId"/>.
+    /// 按稳定的运行时 <see cref="IFrontedWindowDescriptor.WindowId"/> 查找描述符。
     /// </summary>
     bool TryGetByWindowId(string windowId, out IFrontedWindowDescriptor descriptor);
 
     /// <summary>
-    /// Looks up a descriptor by layout/package identity, including plugin identities such as
-    /// <c>plugin:top.plfjy.example/Overlay</c>.
+    /// 按布局/包标识查找描述符，包括插件标识，例如
+    /// <c>plugin:top.plfjy.example/Overlay</c>。
     /// </summary>
     bool TryGetByFullWindowType(string fullWindowType, out IFrontedWindowDescriptor descriptor);
 
     /// <summary>
-    /// Gets accepted plugin window descriptors.
+    /// 获取已接受的插件窗口描述符。
     /// </summary>
     IReadOnlyList<FrontedPluginWindowDescriptor> GetPluginWindows();
 
     /// <summary>
-    /// Gets built-in fronted window descriptors.
+    /// 获取内置前台窗口描述符。
     /// </summary>
     IReadOnlyList<FrontedBuiltInWindowDescriptor> GetBuiltInWindows();
 }

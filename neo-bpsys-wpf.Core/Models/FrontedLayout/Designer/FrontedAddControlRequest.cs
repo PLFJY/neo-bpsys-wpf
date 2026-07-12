@@ -1,22 +1,22 @@
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 
 /// <summary>
-/// Designer v3 add-control command input.
+/// 设计器 v3 添加控件命令输入。
 /// </summary>
 public sealed class FrontedAddControlRequest
 {
     /// <summary>
-    /// Built-in v3 ControlType to add.
+    /// 要添加的内置 v3 控件类型。
     /// </summary>
     public string ControlType { get; init; } = string.Empty;
 
     /// <summary>
-    /// Optional logical Canvas X coordinate for the new control center.
+    /// 可选的逻辑画布 X 坐标，用于新控件的中心点。
     /// </summary>
     public double? CenterX { get; init; }
 
     /// <summary>
-    /// Optional logical Canvas Y coordinate for the new control center.
+    /// 可选的逻辑画布 Y 坐标，用于新控件的中心点。
     /// </summary>
     public double? CenterY { get; init; }
 }

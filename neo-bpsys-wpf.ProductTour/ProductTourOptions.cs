@@ -3,97 +3,97 @@ using System.Windows;
 namespace neo_bpsys_wpf.ProductTour;
 
 /// <summary>
-/// Configures Product Tour layout, animation, and display behavior.
+/// 配置 Product Tour 的布局、动画和显示行为。
 /// </summary>
 public sealed class ProductTourOptions
 {
-    /// <summary>Gets or sets the product tour card width.</summary>
+    /// <summary>获取或设置产品导览卡片宽度。</summary>
     public double CardWidth { get; set; } = 380;
 
-    /// <summary>Gets or sets the product tour card maximum height.</summary>
+    /// <summary>获取或设置产品导览卡片最大高度。</summary>
     public double CardMaxHeight { get; set; } = 280;
 
-    /// <summary>Gets or sets the minimum card margin from owner bounds.</summary>
+    /// <summary>获取或设置卡片相对宿主边界的最小边距。</summary>
     public double CardMargin { get; set; } = 12;
 
-    /// <summary>Gets or sets the gap between target and card.</summary>
+    /// <summary>获取或设置目标与卡片之间的间距。</summary>
     public double Gap { get; set; } = 16;
 
-    /// <summary>Gets or sets the spotlight padding around the target.</summary>
+    /// <summary>获取或设置目标周围的聚光灯内边距。</summary>
     public double SpotlightPadding { get; set; } = 8;
 
-    /// <summary>Gets or sets the spotlight corner radius.</summary>
+    /// <summary>获取或设置聚光灯圆角半径。</summary>
     public double SpotlightCornerRadius { get; set; } = 8;
 
-    /// <summary>Gets or sets the overlay fade-in duration.</summary>
+    /// <summary>获取或设置遮罩淡入持续时间。</summary>
     public TimeSpan OverlayFadeInDuration { get; set; } = TimeSpan.FromMilliseconds(240);
 
-    /// <summary>Gets or sets the overlay fade-out duration.</summary>
+    /// <summary>获取或设置遮罩淡出持续时间。</summary>
     public TimeSpan OverlayFadeOutDuration { get; set; } = TimeSpan.FromMilliseconds(220);
 
-    /// <summary>Gets or sets the welcome overlay fade-in duration.</summary>
+    /// <summary>获取或设置欢迎遮罩淡入持续时间。</summary>
     public TimeSpan WelcomeFadeInDuration { get; set; } = TimeSpan.FromMilliseconds(240);
 
-    /// <summary>Gets or sets the welcome overlay fade-out duration.</summary>
+    /// <summary>获取或设置欢迎遮罩淡出持续时间。</summary>
     public TimeSpan WelcomeFadeOutDuration { get; set; } = TimeSpan.FromMilliseconds(280);
 
-    /// <summary>Gets or sets the welcome card enter animation duration.</summary>
+    /// <summary>获取或设置欢迎卡片进入动画持续时间。</summary>
     public TimeSpan WelcomeCardEnterDuration { get; set; } = TimeSpan.FromMilliseconds(300);
 
-    /// <summary>Gets or sets the welcome card initial vertical translation.</summary>
+    /// <summary>获取或设置欢迎卡片初始垂直位移。</summary>
     public double WelcomeCardInitialTranslateY { get; set; } = 16;
 
-    /// <summary>Gets or sets the dialogue overlay fade-in duration.</summary>
+    /// <summary>获取或设置对话遮罩淡入持续时间。</summary>
     public TimeSpan DialogueFadeInDuration { get; set; } = TimeSpan.FromMilliseconds(240);
 
-    /// <summary>Gets or sets the dialogue overlay fade-out duration.</summary>
+    /// <summary>获取或设置对话遮罩淡出持续时间。</summary>
     public TimeSpan DialogueFadeOutDuration { get; set; } = TimeSpan.FromMilliseconds(200);
 
-    /// <summary>Gets or sets the dialogue box enter animation duration.</summary>
+    /// <summary>获取或设置对话框进入动画持续时间。</summary>
     public TimeSpan DialogueBoxEnterDuration { get; set; } = TimeSpan.FromMilliseconds(280);
 
-    /// <summary>Gets or sets the dialogue box initial vertical translation.</summary>
+    /// <summary>获取或设置对话框初始垂直位移。</summary>
     public double DialogueInitialTranslateY { get; set; } = 24;
 
-    /// <summary>Gets or sets the dialogue typewriter interval.</summary>
+    /// <summary>获取或设置对话打字机间隔。</summary>
     public TimeSpan TypewriterInterval { get; set; } = TimeSpan.FromMilliseconds(28);
 
-    /// <summary>Gets or sets whether step progress text is shown.</summary>
+    /// <summary>获取或设置是否显示步骤进度文本。</summary>
     public bool ShowStepProgress { get; set; } = true;
 
-    /// <summary>Gets or sets the default mask opacity.</summary>
+    /// <summary>获取或设置默认遮罩不透明度。</summary>
     public double MaskOpacity { get; set; } = 0.86;
 
-    /// <summary>Gets or sets the welcome overlay mask opacity.</summary>
+    /// <summary>获取或设置欢迎遮罩不透明度。</summary>
     public double WelcomeMaskOpacity { get; set; } = 0.90;
 
-    /// <summary>Gets or sets the dialogue overlay mask opacity.</summary>
+    /// <summary>获取或设置对话遮罩不透明度。</summary>
     public double DialogueMaskOpacity { get; set; } = 0.82;
 
-    /// <summary>Gets or sets the product tour overlay mask opacity.</summary>
+    /// <summary>获取或设置产品导览遮罩不透明度。</summary>
     public double ProductTourMaskOpacity { get; set; } = 0.84;
 
-    /// <summary>Gets or sets the dialogue box maximum width.</summary>
+    /// <summary>获取或设置对话框最大宽度。</summary>
     public double DialogueBoxMaxWidth { get; set; } = 760;
 
-    /// <summary>Gets or sets the minimum opacity expected for the dialogue box surface.</summary>
+    /// <summary>获取或设置对话框表面期望的最小不透明度。</summary>
     public double DialogueBoxMinOpacity { get; set; } = 0.94;
 
-    /// <summary>Gets or sets the dialogue box margin.</summary>
+    /// <summary>获取或设置对话框边距。</summary>
     public Thickness DialogueBoxMargin { get; set; } = new(48);
 
-    /// <summary>Gets or sets whether guide avatars are shown when available.</summary>
+    /// <summary>获取或设置在可用时是否显示引导头像。</summary>
     public bool ShowAvatar { get; set; } = true;
 
-    /// <summary>Gets or sets the welcome guide avatar width.</summary>
+    /// <summary>获取或设置欢迎引导头像宽度。</summary>
     public double WelcomeAvatarWidth { get; set; } = 220;
 
-    /// <summary>Gets or sets the dialogue guide avatar width.</summary>
+    /// <summary>获取或设置对话引导头像宽度。</summary>
     public double DialogueAvatarWidth { get; set; } = 260;
 
-    /// <summary>Gets or sets the product tour guide avatar width.</summary>
+    /// <summary>获取或设置产品导览引导头像宽度。</summary>
     public double ProductTourAvatarWidth { get; set; } = 96;
 
-    /// <summary>Gets or sets the guide avatar margin.</summary>
+    /// <summary>获取或设置引导头像边距。</summary>
     public Thickness AvatarMargin { get; set; } = new(16);
 }

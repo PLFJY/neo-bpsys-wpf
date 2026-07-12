@@ -9,18 +9,18 @@ using System.Windows.Media;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Applies static or shared-data-bound foreground colors to Designer v3 text elements.
+/// 将静态或共享数据绑定的前景色应用于设计器 v3 文本元素。
 /// </summary>
 public static class FrontedTextForegroundBindingHelper
 {
     /// <summary>
-    /// Applies foreground color to a text block, using <paramref name="colorBindingPath"/> when it has a value.
+    /// 将前景色应用于文本块，当 <paramref name="colorBindingPath"/> 有值时使用它。
     /// </summary>
-    /// <param name="textBlock">The text block to style.</param>
-    /// <param name="staticColor">The static foreground color used when no binding path is set.</param>
-    /// <param name="colorBindingPath">The shared data binding path that supplies a color string.</param>
-    /// <param name="context">The fronted control build context.</param>
-    /// <param name="propertyName">The static color property name used in diagnostics.</param>
+    /// <param name="textBlock">要设置样式的文本块。</param>
+    /// <param name="staticColor">未设置绑定路径时使用的静态前景色。</param>
+    /// <param name="colorBindingPath">提供颜色字符串的共享数据绑定路径。</param>
+    /// <param name="context">前台控件构建上下文。</param>
+    /// <param name="propertyName">诊断中使用的静态颜色属性名称。</param>
     public static void ApplyForeground(
         TextBlock textBlock,
         string? staticColor,
@@ -38,14 +38,14 @@ public static class FrontedTextForegroundBindingHelper
     }
 
     /// <summary>
-    /// Applies foreground color to a text block, using <paramref name="colorBindingPath"/> when it has a value.
+    /// 将前景色应用于文本块，当 <paramref name="colorBindingPath"/> 有值时使用它。
     /// </summary>
-    /// <param name="textBlock">The text block to style.</param>
-    /// <param name="staticColor">The static foreground color used when no binding path is set.</param>
-    /// <param name="colorBindingPath">The shared data binding path that supplies a color string.</param>
-    /// <param name="sharedDataService">The source object for shared data binding.</param>
-    /// <param name="logger">Optional logger for invalid color diagnostics.</param>
-    /// <param name="propertyName">The static color property name used in diagnostics.</param>
+    /// <param name="textBlock">要设置样式的文本块。</param>
+    /// <param name="staticColor">未设置绑定路径时使用的静态前景色。</param>
+    /// <param name="colorBindingPath">提供颜色字符串的共享数据绑定路径。</param>
+    /// <param name="sharedDataService">共享数据绑定的源对象。</param>
+    /// <param name="logger">用于无效颜色诊断的可选日志记录器。</param>
+    /// <param name="propertyName">诊断中使用的静态颜色属性名称。</param>
     public static void ApplyForeground(
         TextBlock textBlock,
         string? staticColor,

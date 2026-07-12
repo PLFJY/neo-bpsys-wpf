@@ -8,8 +8,8 @@ using System.Windows.Controls;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Wraps <see cref="IFrontedAnimationRuntime" /> as an <see cref="IFrontedGraphActionExecutor" />
-/// for use by <see cref="FrontedNodeGraphRuntime" /> during graph execution.
+/// 将 <see cref="IFrontedAnimationRuntime" /> 包装为 <see cref="IFrontedGraphActionExecutor" />，
+/// 供 <see cref="FrontedNodeGraphRuntime" /> 在图执行期间使用。
 /// </summary>
 public sealed class FrontedAnimationRuntimeActionExecutor : IFrontedGraphActionExecutor
 {
@@ -22,7 +22,7 @@ public sealed class FrontedAnimationRuntimeActionExecutor : IFrontedGraphActionE
     private readonly ILogger? _logger;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="FrontedAnimationRuntimeActionExecutor" />.
+    /// 初始化 <see cref="FrontedAnimationRuntimeActionExecutor" /> 的新实例。
     /// </summary>
     public FrontedAnimationRuntimeActionExecutor(
         IFrontedAnimationRuntime animationRuntime,

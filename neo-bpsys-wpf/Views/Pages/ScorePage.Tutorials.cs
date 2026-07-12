@@ -5,23 +5,23 @@ namespace neo_bpsys_wpf.Views.Pages;
 
 public partial class ScorePage : ITutorialOwner<ScorePage>
 {
-    /// <summary>Score page tutorial key.</summary>
+    /// <summary>比分页面教程 Key。</summary>
     public const string TutorialPageKey = TutorialPageKeys.Score;
 
     /// <inheritdoc />
     public static string TutorialKey => TutorialPageKey;
 
-    /// <summary>Score page tutorial package references.</summary>
+    /// <summary>比分页面教程包引用。</summary>
     public static class Tours
     {
-        /// <summary>Score basic package reference.</summary>
+        /// <summary>比分基础包引用。</summary>
         public static readonly TutorialPackageRef Basic = new(TutorialPackageIds.ScoreBasic);
     }
 
     /// <summary>
-    /// Registers tutorials owned by the score page.
+    /// 注册比分页面所拥有的教程。
     /// </summary>
-    /// <param name="builder">Tutorial builder.</param>
+    /// <param name="builder">教程构建器。</param>
     public static void RegisterTutorials(ITutorialBuilder builder)
     {
         builder.ForPage<ScorePage>()

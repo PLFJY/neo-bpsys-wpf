@@ -7,35 +7,35 @@ namespace neo_bpsys_wpf.Views.Windows;
 
 public partial class FrontedBehaviorAnimationEditorWindow : ITutorialOwner<FrontedBehaviorAnimationEditorWindow>
 {
-    /// <summary>Designer v3 animation editor tutorial key.</summary>
+    /// <summary>设计器 v3 动画编辑器教程键。</summary>
     public const string TutorialPageKey = TutorialPageKeys.DesignerV3AnimationEditor;
 
     /// <inheritdoc />
     public static string TutorialKey => TutorialPageKey;
 
-    /// <summary>Designer v3 animation editor tutorial package references.</summary>
+    /// <summary>设计器 v3 动画编辑器教程包引用。</summary>
     public static class Tours
     {
-        /// <summary>Animation editor overview package reference.</summary>
+        /// <summary>动画编辑器概览包引用。</summary>
         public static readonly TutorialPackageRef Overview = new(TutorialPackageIds.DesignerV3AnimationEditorOverview);
 
-        /// <summary>Animation editor timeline package reference.</summary>
+        /// <summary>动画编辑器时间轴包引用。</summary>
         public static readonly TutorialPackageRef NodeBasic = new(TutorialPackageIds.DesignerV3AnimationEditorTimelineBasic);
 
-        /// <summary>Animation editor key frame package reference.</summary>
+        /// <summary>动画编辑器关键帧包引用。</summary>
         public static readonly TutorialPackageRef KeyFrameBasic = new(TutorialPackageIds.DesignerV3AnimationEditorKeyFrameBasic);
 
-        /// <summary>Animation editor preview package reference.</summary>
+        /// <summary>动画编辑器预览包引用。</summary>
         public static readonly TutorialPackageRef PreviewBasic = new(TutorialPackageIds.DesignerV3AnimationEditorPreviewBasic);
 
-        /// <summary>Animation editor help package reference.</summary>
+        /// <summary>动画编辑器帮助包引用。</summary>
         public static readonly TutorialPackageRef HelpBasic = new(TutorialPackageIds.DesignerV3AnimationEditorHelpBasic);
     }
 
     /// <summary>
-    /// Registers tutorials owned by the Designer v3 animation editor.
+    /// 注册设计器 v3 动画编辑器拥有的教程。
     /// </summary>
-    /// <param name="builder">Tutorial builder.</param>
+    /// <param name="builder">教程构建器。</param>
     public static void RegisterTutorials(ITutorialBuilder builder)
     {
         builder.ForWindow<FrontedBehaviorAnimationEditorWindow>()

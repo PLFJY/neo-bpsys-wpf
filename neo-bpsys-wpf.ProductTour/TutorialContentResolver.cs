@@ -1,34 +1,34 @@
 namespace neo_bpsys_wpf.ProductTour;
 
 /// <summary>
-/// Resolves localized step content (titles, descriptions, dialogue lines) from resource keys.
+/// 从资源键解析本地化的步骤内容（标题、描述、对话台词）。
 /// </summary>
 /// <remarks>
-/// The Product Tour library defines this abstraction so the host application can supply
-/// a resolver backed by its own resource family (e.g. <c>TourContent.resx</c>).
-/// The default implementation returns the key verbatim and is intended for tests and
-/// design-time contexts where no host resource family is available.
+/// Product Tour 库定义此抽象，以便宿主应用可以提供
+/// 由其自身资源族（如 <c>TourContent.resx</c>）支持的解析器。
+/// 默认实现原样返回键，适用于测试以及
+/// 没有宿主资源族可用的设计时上下文。
 /// </remarks>
 public interface ITutorialContentResolver
 {
     /// <summary>
-    /// Resolves a single localized string from the specified resource key.
+    /// 从指定资源键解析单个本地化字符串。
     /// </summary>
-    /// <param name="key">Resource key. If null or empty, an empty string is returned.</param>
-    /// <returns>The localized string, or the key itself when no translation is found.</returns>
+    /// <param name="key">资源键。如果为 null 或空，则返回空字符串。</param>
+    /// <returns>本地化字符串；若未找到翻译则返回键本身。</returns>
     string Resolve(string? key);
 
     /// <summary>
-    /// Resolves multiple dialogue lines from a single resource key.
-    /// The value is split on newline characters.
+    /// 从单个资源键解析多行对话台词。
+    /// 值会按换行符拆分。
     /// </summary>
-    /// <param name="key">Resource key. If null or empty, an empty list is returned.</param>
-    /// <returns>The resolved dialogue lines, or a list containing only the key when no translation is found.</returns>
+    /// <param name="key">资源键。如果为 null 或空，则返回空列表。</param>
+    /// <returns>解析得到的对话台词；若未找到翻译则返回仅包含键本身的列表。</returns>
     IReadOnlyList<string> ResolveLines(string? key);
 }
 
 /// <summary>
-/// Default content resolver that returns keys verbatim without localization.
+/// 默认内容解析器，原样返回键，不进行本地化。
 /// </summary>
 public sealed class DefaultTutorialContentResolver : ITutorialContentResolver
 {

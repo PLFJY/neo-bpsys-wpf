@@ -1,7 +1,7 @@
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Normalizes numeric values imported from legacy layout sources.
+/// 规范化从旧布局源导入的数值。
 /// </summary>
 public static class FrontedLayoutNumberNormalizer
 {

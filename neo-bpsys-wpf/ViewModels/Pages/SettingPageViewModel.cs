@@ -319,7 +319,7 @@ public partial class SettingPageViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Opens the global behavior event debugger window.
+    /// 打开全局行为事件调试器窗口。
     /// </summary>
     [RelayCommand]
     private void OpenBehaviorEventDebugger()

@@ -31,7 +31,7 @@ public interface IFrontedResourceResolver
         FrontedImagePurpose purpose = FrontedImagePurpose.PackageResource);
 
     /// <summary>
-    /// Clears cached resolved resources after the active layout package changes.
+    /// 在活动布局包变更后清除已缓存的解析资源。
     /// </summary>
     void ClearCache()
     {

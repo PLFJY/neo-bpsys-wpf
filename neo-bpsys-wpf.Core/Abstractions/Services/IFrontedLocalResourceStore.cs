@@ -1,32 +1,32 @@
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
 /// <summary>
-/// Stores editor-local resources for Designer v3 layouts.
+/// 为设计器 v3 布局存储编辑器本地资源。
 /// </summary>
 public interface IFrontedLocalResourceStore
 {
     /// <summary>
-    /// Copies a local image into the editor-local bpui resource store and returns a bpui URI.
+    /// 将本地图片复制到编辑器本地的 bpui 资源存储中，并返回 bpui URI。
     /// </summary>
     string StoreImage(string sourcePath);
 
     /// <summary>
-    /// Copies a local image and returns details useful for editor session cleanup.
+    /// 复制本地图片并返回便于编辑器会话清理的详细信息。
     /// </summary>
     FrontedLocalResourceStoreResult StoreImageWithResult(string sourcePath);
 
     /// <summary>
-    /// Resolves a local bpui resource URI to its physical file path.
+    /// 将本地 bpui 资源 URI 解析为其物理文件路径。
     /// </summary>
     bool TryGetPhysicalPath(string resourceUri, out string physicalPath);
 
     /// <summary>
-    /// Copies a local font into a layout package resource store and returns font options for the copied file.
+    /// 将本地字体复制到布局包资源存储中，并返回所复制文件的字体选项。
     /// </summary>
-    /// <param name="sourcePath">Source font path.</param>
-    /// <param name="packageId">Target package id.</param>
-    /// <param name="packageRoot">Target package root.</param>
-    /// <returns>Stored font results, one per discovered font family.</returns>
+    /// <param name="sourcePath">源字体路径。</param>
+    /// <param name="packageId">目标包 ID。</param>
+    /// <param name="packageRoot">目标包根目录。</param>
+    /// <returns>存储字体的结果，每个发现的字体系列对应一项。</returns>
     IReadOnlyList<FrontedLocalFontResourceStoreResult> StorePackageFontWithResult(
         string sourcePath,
         string packageId,
@@ -34,16 +34,16 @@ public interface IFrontedLocalResourceStore
 }
 
 /// <summary>
-/// Result of storing an editor-local resource.
+/// 存储编辑器本地资源的结果。
 /// </summary>
 public sealed record FrontedLocalResourceStoreResult
 {
     /// <summary>
-    /// Initializes a local resource store result.
+    /// 初始化本地资源存储结果。
     /// </summary>
-    /// <param name="resourceUri">Stored bpui resource URI.</param>
-    /// <param name="physicalPath">Physical copied file path.</param>
-    /// <param name="wasNewlyCreated">Whether the file was newly copied.</param>
+    /// <param name="resourceUri">存储后的 bpui 资源 URI。</param>
+    /// <param name="physicalPath">物理复制文件路径。</param>
+    /// <param name="wasNewlyCreated">是否为新复制的文件。</param>
     public FrontedLocalResourceStoreResult(string resourceUri, string physicalPath, bool wasNewlyCreated)
     {
         ResourceUri = resourceUri;
@@ -52,33 +52,33 @@ public sealed record FrontedLocalResourceStoreResult
     }
 
     /// <summary>
-    /// Stored bpui resource URI.
+    /// 存储后的 bpui 资源 URI。
     /// </summary>
     public string ResourceUri { get; }
 
     /// <summary>
-    /// Physical copied file path.
+    /// 物理复制文件路径。
     /// </summary>
     public string PhysicalPath { get; }
 
     /// <summary>
-    /// Whether the file was newly copied.
+    /// 是否为新复制的文件。
     /// </summary>
     public bool WasNewlyCreated { get; }
 }
 
 /// <summary>
-/// Result of storing a package font resource.
+/// 存储包字体资源的结果。
 /// </summary>
 public sealed record FrontedLocalFontResourceStoreResult
 {
     /// <summary>
-    /// Initializes a package font store result.
+    /// 初始化包字体存储结果。
     /// </summary>
-    /// <param name="resourceUri">Stored bpui font URI including the family fragment.</param>
-    /// <param name="physicalPath">Physical copied font path.</param>
-    /// <param name="wasNewlyCreated">Whether the file was newly copied.</param>
-    /// <param name="fontFamilyName">Discovered font family name.</param>
+    /// <param name="resourceUri">存储后的 bpui 字体 URI，包含字体系列片段。</param>
+    /// <param name="physicalPath">物理复制字体路径。</param>
+    /// <param name="wasNewlyCreated">是否为新复制的文件。</param>
+    /// <param name="fontFamilyName">发现的字体系列名称。</param>
     public FrontedLocalFontResourceStoreResult(
         string resourceUri,
         string physicalPath,
@@ -92,22 +92,22 @@ public sealed record FrontedLocalFontResourceStoreResult
     }
 
     /// <summary>
-    /// Stored bpui font URI including the family fragment.
+    /// 存储后的 bpui 字体 URI，包含字体系列片段。
     /// </summary>
     public string ResourceUri { get; }
 
     /// <summary>
-    /// Physical copied font path.
+    /// 物理复制字体路径。
     /// </summary>
     public string PhysicalPath { get; }
 
     /// <summary>
-    /// Whether the file was newly copied.
+    /// 是否为新复制的文件。
     /// </summary>
     public bool WasNewlyCreated { get; }
 
     /// <summary>
-    /// Discovered font family name.
+    /// 发现的字体系列名称。
     /// </summary>
     public string FontFamilyName { get; }
 }

@@ -16,7 +16,7 @@ using Xunit;
 namespace neo_bpsys_wpf.Tests.Controls;
 
 /// <summary>
-/// Tests first-run welcome overlay styling boundaries.
+/// 测试首次运行欢迎覆盖层的样式边界。
 /// </summary>
 public sealed class FirstRunWelcomeOverlayTest
 {

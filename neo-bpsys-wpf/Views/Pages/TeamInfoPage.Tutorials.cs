@@ -7,38 +7,38 @@ namespace neo_bpsys_wpf.Views.Pages;
 
 public partial class TeamInfoPage : ITutorialOwner<TeamInfoPage>
 {
-    /// <summary>Team info page tutorial key.</summary>
+    /// <summary>队伍信息页面教程 Key。</summary>
     public const string TutorialPageKey = TutorialPageKeys.TeamInfo;
 
     /// <inheritdoc />
     public static string TutorialKey => TutorialPageKey;
 
-    /// <summary>Team info tutorial package references.</summary>
+    /// <summary>队伍信息教程包引用。</summary>
     public static class Tours
     {
-        /// <summary>Team info basic package reference.</summary>
+        /// <summary>队伍信息基础包引用。</summary>
         public static readonly TutorialPackageRef Basic = new(TutorialPackageIds.TeamInfoBasic);
 
-        /// <summary>Team name basic package reference.</summary>
+        /// <summary>队伍名称基础包引用。</summary>
         public static readonly TutorialPackageRef TeamNameBasic = new(TutorialPackageIds.TeamInfoTeamNameBasic);
 
-        /// <summary>Team JSON import package reference.</summary>
+        /// <summary>队伍 JSON 导入包引用。</summary>
         public static readonly TutorialPackageRef JsonImport = new(TutorialPackageIds.TeamInfoJsonImport);
 
-        /// <summary>Preset team JSON import package reference.</summary>
+        /// <summary>预设队伍 JSON 导入包引用。</summary>
         public static readonly TutorialPackageRef JsonImportPreset = new(TutorialPackageIds.TeamInfoJsonImportPreset);
 
-        /// <summary>Team player management package reference.</summary>
+        /// <summary>队伍选手管理包引用。</summary>
         public static readonly TutorialPackageRef PlayerManage = new(TutorialPackageIds.TeamInfoPlayerManage);
 
-        /// <summary>Team info advanced package reference.</summary>
+        /// <summary>队伍信息进阶包引用。</summary>
         public static readonly TutorialPackageRef Advanced = new(TutorialPackageIds.TeamInfoAdvanced);
     }
 
     /// <summary>
-    /// Registers tutorials owned by the team info page.
+    /// 注册队伍信息页面所拥有的教程。
     /// </summary>
-    /// <param name="builder">Tutorial builder.</param>
+    /// <param name="builder">教程构建器。</param>
     public static void RegisterTutorials(ITutorialBuilder builder)
     {
         builder.ForPage<TeamInfoPage>()

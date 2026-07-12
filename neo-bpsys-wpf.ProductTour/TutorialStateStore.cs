@@ -5,27 +5,27 @@ using System.Text.Json.Serialization;
 namespace neo_bpsys_wpf.ProductTour;
 
 /// <summary>
-/// Persists tutorial state.
+/// 持久化教程状态。
 /// </summary>
 public interface ITutorialStateStore
 {
-    /// <summary>Loads tutorial state.</summary>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The loaded tutorial state.</returns>
+    /// <summary>加载教程状态。</summary>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>加载到的教程状态。</returns>
     Task<TutorialState> LoadAsync(CancellationToken cancellationToken = default);
 
-    /// <summary>Saves tutorial state.</summary>
-    /// <param name="state">State to save.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <summary>保存教程状态。</summary>
+    /// <param name="state">要保存的状态。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
     Task SaveAsync(TutorialState state, CancellationToken cancellationToken = default);
 
-    /// <summary>Clears all tutorial state.</summary>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <summary>清除所有教程状态。</summary>
+    /// <param name="cancellationToken">取消令牌。</param>
     Task ResetAsync(CancellationToken cancellationToken = default);
 }
 
 /// <summary>
-/// JSON file based tutorial state store.
+/// 基于 JSON 文件的教程状态存储。
 /// </summary>
 public sealed class TutorialStateStore : ITutorialStateStore
 {
@@ -37,7 +37,7 @@ public sealed class TutorialStateStore : ITutorialStateStore
     };
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="TutorialStateStore"/> class.
+    /// 初始化 <see cref="TutorialStateStore"/> 类的新实例。
     /// </summary>
     public TutorialStateStore()
     {

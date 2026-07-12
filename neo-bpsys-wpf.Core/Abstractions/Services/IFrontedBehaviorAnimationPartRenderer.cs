@@ -4,14 +4,14 @@ using System.Windows;
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
 /// <summary>
-/// Renders behavior-owned generated animation parts into already-rendered fronted controls.
+/// 将行为拥有的生成动画部分渲染到已渲染的前台控件中。
 /// </summary>
 public interface IFrontedBehaviorAnimationPartRenderer
 {
     /// <summary>
-    /// Applies animation parts from a behavior document to the rendered visual tree.
+    /// 将行为文档中的动画部分应用到已渲染的可视化树。
     /// </summary>
-    /// <param name="root">The rendered fronted root element.</param>
-    /// <param name="behaviorDocument">The behavior document containing per-control animation parts.</param>
+    /// <param name="root">已渲染的前台根元素。</param>
+    /// <param name="behaviorDocument">包含各控件动画部分的行为文档。</param>
     void ApplyAnimationParts(FrameworkElement root, FrontedBehaviorDocument behaviorDocument);
 }

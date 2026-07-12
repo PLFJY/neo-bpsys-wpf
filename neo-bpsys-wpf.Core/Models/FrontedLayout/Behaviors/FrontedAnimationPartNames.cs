@@ -1,17 +1,17 @@
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 
 /// <summary>
-/// Provides stable names for generated animation target parts.
+/// 为生成的动画目标部件提供稳定名称。
 /// </summary>
 public static class FrontedAnimationPartNames
 {
     /// <summary>
-    /// Gets the generated lock overlay part name.
+    /// 获取生成的锁定覆盖层部件名称。
     /// </summary>
     public const string LockOverlay = "LockOverlay";
 
     /// <summary>
-    /// Gets the generated picking border part name.
+    /// 获取生成的选择边框部件名称。
     /// </summary>
     public const string PickingBorder = "PickingBorder";
 }

@@ -1,17 +1,17 @@
 namespace neo_bpsys_wpf.Core.Models.Archives;
 
 /// <summary>
-/// Supported archive formats for runtime package extraction.
+/// 运行时包解压支持的归档格式。
 /// </summary>
 public enum ArchiveFormat
 {
     /// <summary>
-    /// ZIP archive format.
+    /// ZIP 归档格式。
     /// </summary>
     Zip,
 
     /// <summary>
-    /// 7z archive format.
+    /// 7z 归档格式。
     /// </summary>
     SevenZip
 }

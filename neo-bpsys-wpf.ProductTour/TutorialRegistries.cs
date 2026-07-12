@@ -1,26 +1,26 @@
 namespace neo_bpsys_wpf.ProductTour;
 
 /// <summary>
-/// Registry for tutorial package definitions.
+/// 教程包定义的注册表。
 /// </summary>
 public interface ITutorialPackageRegistry
 {
-    /// <summary>Registers a tutorial package.</summary>
-    /// <param name="definition">Package definition to register.</param>
+    /// <summary>注册一个教程包。</summary>
+    /// <param name="definition">要注册的包定义。</param>
     void Register(TutorialPackageDefinition definition);
 
-    /// <summary>Gets a package by id.</summary>
-    /// <param name="packageId">Package id.</param>
-    /// <returns>The package definition, or null when missing.</returns>
+    /// <summary>按 id 获取包。</summary>
+    /// <param name="packageId">包 id。</param>
+    /// <returns>包定义；若不存在则返回 null。</returns>
     TutorialPackageDefinition? GetPackage(string packageId);
 
-    /// <summary>Gets all registered packages.</summary>
-    /// <returns>Registered packages.</returns>
+    /// <summary>获取所有已注册的包。</summary>
+    /// <returns>已注册的包。</returns>
     IReadOnlyCollection<TutorialPackageDefinition> GetPackages();
 }
 
 /// <summary>
-/// Default tutorial package registry.
+/// 默认的教程包注册表。
 /// </summary>
 public sealed class TutorialPackageRegistry : ITutorialPackageRegistry
 {
@@ -42,28 +42,28 @@ public sealed class TutorialPackageRegistry : ITutorialPackageRegistry
 }
 
 /// <summary>
-/// Registry for page package sequences.
+/// 页面包序列的注册表。
 /// </summary>
 public interface ITutorialSequenceRegistry
 {
-    /// <summary>Registers package ids for a page key.</summary>
-    /// <param name="pageKey">Page key.</param>
-    /// <param name="packageIds">Package ids in sequence order.</param>
+    /// <summary>为指定页面键注册包 id 序列。</summary>
+    /// <param name="pageKey">页面键。</param>
+    /// <param name="packageIds">按顺序排列的包 id。</param>
     void RegisterSequence(string pageKey, IEnumerable<string> packageIds);
 
-    /// <summary>Gets package ids for a page key.</summary>
-    /// <param name="pageKey">Page key.</param>
-    /// <returns>Package ids.</returns>
+    /// <summary>获取指定页面键的包 id 序列。</summary>
+    /// <param name="pageKey">页面键。</param>
+    /// <returns>包 id 列表。</returns>
     IReadOnlyList<string> GetSequence(string pageKey);
 
-    /// <summary>Gets the sequence definition for a page key.</summary>
-    /// <param name="pageKey">Page key.</param>
-    /// <returns>The sequence definition.</returns>
+    /// <summary>获取指定页面键的序列定义。</summary>
+    /// <param name="pageKey">页面键。</param>
+    /// <returns>序列定义。</returns>
     TutorialSequenceDefinition GetSequenceDefinition(string pageKey);
 }
 
 /// <summary>
-/// Default page sequence registry.
+/// 默认的页面序列注册表。
 /// </summary>
 public sealed class TutorialSequenceRegistry : ITutorialSequenceRegistry
 {
@@ -89,26 +89,26 @@ public sealed class TutorialSequenceRegistry : ITutorialSequenceRegistry
 }
 
 /// <summary>
-/// Registry for tutorial flows.
+/// 教程流程的注册表。
 /// </summary>
 public interface ITutorialFlowRegistry
 {
-    /// <summary>Registers a tutorial flow.</summary>
-    /// <param name="definition">Flow definition.</param>
+    /// <summary>注册一个教程流程。</summary>
+    /// <param name="definition">流程定义。</param>
     void Register(TutorialFlowDefinition definition);
 
-    /// <summary>Gets a flow by id.</summary>
-    /// <param name="flowId">Flow id.</param>
-    /// <returns>The flow definition, or null when missing.</returns>
+    /// <summary>按 id 获取流程。</summary>
+    /// <param name="flowId">流程 id。</param>
+    /// <returns>流程定义；若不存在则返回 null。</returns>
     TutorialFlowDefinition? GetFlow(string flowId);
 
-    /// <summary>Gets all registered flows.</summary>
-    /// <returns>Registered flow definitions.</returns>
+    /// <summary>获取所有已注册的流程。</summary>
+    /// <returns>已注册的流程定义。</returns>
     IReadOnlyCollection<TutorialFlowDefinition> GetFlows();
 }
 
 /// <summary>
-/// Default flow registry.
+/// 默认的流程注册表。
 /// </summary>
 public sealed class TutorialFlowRegistry : ITutorialFlowRegistry
 {

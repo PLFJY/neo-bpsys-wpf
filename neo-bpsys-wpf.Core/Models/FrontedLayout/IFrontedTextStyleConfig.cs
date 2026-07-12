@@ -1,27 +1,27 @@
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
 
 /// <summary>
-/// v3 text-like control configuration that can receive legacy text styles.
+/// 可接收旧版文本样式的 v3 类文本控件配置。
 /// </summary>
 public interface IFrontedTextStyleConfig
 {
     /// <summary>
-    /// Font family.
+    /// 字体族。
     /// </summary>
     string? FontFamily { get; set; }
 
     /// <summary>
-    /// Font weight.
+    /// 字重。
     /// </summary>
     string? FontWeight { get; set; }
 
     /// <summary>
-    /// Text color.
+    /// 文本颜色。
     /// </summary>
     string? Color { get; set; }
 
     /// <summary>
-    /// Font size.
+    /// 字号。
     /// </summary>
     double FontSize { get; set; }
 }

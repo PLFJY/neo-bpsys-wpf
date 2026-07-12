@@ -1,13 +1,13 @@
 namespace neo_bpsys_wpf.Messages;
 
 /// <summary>
-/// Requests the fronted management page to switch its local tab.
+/// 请求前台管理页切换其本地选项卡。
 /// </summary>
-/// <param name="TabKey">Target local tab key.</param>
+/// <param name="TabKey">目标本地选项卡键。</param>
 public sealed record FrontManageTabNavigationMessage(string TabKey)
 {
     /// <summary>
-    /// Key for the layout package management tab.
+    /// 布局包管理选项卡的键。
     /// </summary>
     public const string LayoutPackagesTabKey = "LayoutPackages";
 }

@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 namespace neo_bpsys_wpf.Services.FrontedDesigner;
 
 /// <summary>
-/// Isolated placeholder state for the Fronted Designer preview.
+/// 前台设计器预览的隔离占位状态。
 /// </summary>
 public sealed class DesignerPreviewSharedDataService : ISharedDataService
 {
@@ -295,7 +295,7 @@ public sealed class DesignerPreviewSharedDataService : ISharedDataService
     public event EventHandler? IsMapV2BreathingChanged;
 
     /// <summary>
-    /// Raised when a Map BP v2 picking border display state changes.
+    /// 地图 BP v2 选图边框显示状态改变时触发。
     /// </summary>
     public event EventHandler<MapV2PickingBorderStateChangedEventArgs>? MapV2PickingBorderStateChanged;
 

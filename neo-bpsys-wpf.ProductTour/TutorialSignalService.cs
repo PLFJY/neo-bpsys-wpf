@@ -3,21 +3,21 @@ using System.Collections.Concurrent;
 namespace neo_bpsys_wpf.ProductTour;
 
 /// <summary>
-/// Publishes and awaits tutorial signals.
+/// 发布并等待教程信号。
 /// </summary>
 public interface ITutorialSignalService
 {
-    /// <summary>Publishes a tutorial signal.</summary>
-    /// <param name="signalId">Signal id.</param>
-    /// <param name="payload">Optional payload.</param>
+    /// <summary>发布一个教程信号。</summary>
+    /// <param name="signalId">信号 id。</param>
+    /// <param name="payload">可选的负载。</param>
     void Publish(string signalId, object? payload = null);
 
-    /// <summary>Waits for a tutorial signal.</summary>
-    /// <param name="signalId">Signal id.</param>
-    /// <param name="predicate">Optional payload predicate.</param>
-    /// <param name="timeout">Wait timeout.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The received payload, or null when no payload was published.</returns>
+    /// <summary>等待一个教程信号。</summary>
+    /// <param name="signalId">信号 id。</param>
+    /// <param name="predicate">可选的负载断言。</param>
+    /// <param name="timeout">等待超时时间。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>接收到的负载；若未发布任何负载则返回 null。</returns>
     Task<object?> WaitAsync(
         string signalId,
         Func<object?, bool>? predicate,
@@ -26,7 +26,7 @@ public interface ITutorialSignalService
 }
 
 /// <summary>
-/// Default in-memory tutorial signal service.
+/// 默认的内存内教程信号服务。
 /// </summary>
 public sealed class TutorialSignalService : ITutorialSignalService
 {

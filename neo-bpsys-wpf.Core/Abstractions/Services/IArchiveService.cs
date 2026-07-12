@@ -4,30 +4,30 @@ using neo_bpsys_wpf.Core.Models.Archives;
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
 /// <summary>
-/// Provides archive format probing and safe extraction for runtime package files.
+/// 提供运行时包文件的归档格式探测和安全解压。
 /// </summary>
 public interface IArchiveService
 {
     /// <summary>
-    /// Detects the archive format by probing archive content.
+    /// 通过探测归档内容检测归档格式。
     /// </summary>
-    /// <param name="archivePath">Archive file path.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The detected archive format.</returns>
-    /// <exception cref="FileNotFoundException">Thrown when the archive file does not exist.</exception>
-    /// <exception cref="InvalidDataException">Thrown when the file is not a supported archive.</exception>
+    /// <param name="archivePath">归档文件路径。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>检测到的归档格式。</returns>
+    /// <exception cref="FileNotFoundException">当归档文件不存在时抛出。</exception>
+    /// <exception cref="InvalidDataException">当文件不是受支持的归档时抛出。</exception>
     Task<ArchiveFormat> DetectFormatAsync(string archivePath, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Safely extracts an archive into the destination directory.
+    /// 将归档安全地解压到目标目录。
     /// </summary>
-    /// <param name="archivePath">Archive file path.</param>
-    /// <param name="destinationDirectory">Destination directory.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The detected archive format.</returns>
-    /// <exception cref="FileNotFoundException">Thrown when the archive file does not exist.</exception>
-    /// <exception cref="InvalidDataException">Thrown when the file is not a supported archive.</exception>
-    /// <exception cref="IOException">Thrown when an archive entry path is unsafe or extraction fails.</exception>
+    /// <param name="archivePath">归档文件路径。</param>
+    /// <param name="destinationDirectory">目标目录。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>检测到的归档格式。</returns>
+    /// <exception cref="FileNotFoundException">当归档文件不存在时抛出。</exception>
+    /// <exception cref="InvalidDataException">当文件不是受支持的归档时抛出。</exception>
+    /// <exception cref="IOException">当归档条目路径不安全或解压失败时抛出。</exception>
     Task<ArchiveFormat> ExtractToDirectoryAsync(
         string archivePath,
         string destinationDirectory,

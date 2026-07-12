@@ -1,7 +1,7 @@
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
 
 /// <summary>
-/// Source used when loading a v3 fronted layout.
+/// 加载 v3 前台布局时使用的来源。
 /// </summary>
 public enum FrontedLayoutSource
 {
@@ -12,27 +12,27 @@ public enum FrontedLayoutSource
 }
 
 /// <summary>
-/// Result metadata for loading a v3 fronted layout.
+/// 加载 v3 前台布局的结果元数据。
 /// </summary>
 public sealed class FrontedLayoutLoadResult
 {
     /// <summary>
-    /// Loaded window-centric layout config.
+    /// 已加载的以窗口为中心的布局配置。
     /// </summary>
     public FrontedWindowConfig? Config { get; init; }
 
     /// <summary>
-    /// Source that provided the loaded config.
+    /// 提供已加载配置的来源。
     /// </summary>
     public FrontedLayoutSource Source { get; init; }
 
     /// <summary>
-    /// Path used to load the config, when available.
+    /// 用于加载配置的路径（若可用）。
     /// </summary>
     public string? Path { get; init; }
 
     /// <summary>
-    /// Load error details collected before fallback, when available.
+    /// 回退之前收集的加载错误详情（若可用）。
     /// </summary>
     public string? Error { get; init; }
 }

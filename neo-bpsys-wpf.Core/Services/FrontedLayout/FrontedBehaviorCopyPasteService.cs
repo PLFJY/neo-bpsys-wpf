@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Default in-memory app-level behavior clipboard.
+/// 默认的内存中应用级行为剪贴板。
 /// </summary>
 public sealed class FrontedBehaviorClipboard : IFrontedBehaviorClipboard
 {
@@ -25,7 +25,7 @@ public sealed class FrontedBehaviorClipboard : IFrontedBehaviorClipboard
 }
 
 /// <summary>
-/// Conservatively infers semantic control indexes from explicit config, bindings, and names.
+/// 从显式配置、绑定和名称中保守推断控件的语义索引。
 /// </summary>
 public sealed partial class FrontedBehaviorControlSemanticResolver : IFrontedBehaviorControlSemanticResolver
 {
@@ -75,7 +75,7 @@ public sealed partial class FrontedBehaviorControlSemanticResolver : IFrontedBeh
 }
 
 /// <summary>
-/// Copies, previews, validates, and pastes fronted behaviors between controls.
+/// 在控件之间复制、预览、验证和粘贴前台行为。
 /// </summary>
 public sealed class FrontedBehaviorCopyPasteService
 {
@@ -105,10 +105,10 @@ public sealed class FrontedBehaviorCopyPasteService
     };
 
     /// <summary>
-    /// Initializes a behavior copy/paste service.
+    /// 初始化行为复制/粘贴服务。
     /// </summary>
-    /// <param name="semanticResolver">The semantic resolver used for trigger index remapping.</param>
-    /// <param name="localizationService">The localization service used for user-visible paste messages.</param>
+    /// <param name="semanticResolver">用于触发器索引重映射的语义解析器。</param>
+    /// <param name="localizationService">用于用户可见的粘贴消息的本地化服务。</param>
     public FrontedBehaviorCopyPasteService(
         IFrontedBehaviorControlSemanticResolver semanticResolver,
         IFrontedDesignerLocalizationService? localizationService = null)
@@ -118,12 +118,12 @@ public sealed class FrontedBehaviorCopyPasteService
     }
 
     /// <summary>
-    /// Creates a deep-cloned clipboard payload.
+    /// 创建深拷贝的剪贴板负载。
     /// </summary>
-    /// <param name="windowType">The source window type.</param>
-    /// <param name="source">The source control.</param>
-    /// <param name="behavior">The source behavior.</param>
-    /// <returns>The clipboard payload.</returns>
+    /// <param name="windowType">源窗口类型。</param>
+    /// <param name="source">源控件。</param>
+    /// <param name="behavior">源行为。</param>
+    /// <returns>剪贴板负载。</returns>
     public FrontedBehaviorClipboardPayload Copy(
         string windowType,
         FrontedControlDesignItem source,
@@ -155,12 +155,12 @@ public sealed class FrontedBehaviorCopyPasteService
     }
 
     /// <summary>
-    /// Previews compatibility and rewrites for one target control.
+    /// 预览单个目标控件的兼容性和重写。
     /// </summary>
-    /// <param name="payload">The copied behavior payload.</param>
-    /// <param name="target">The target control.</param>
-    /// <param name="options">The paste options.</param>
-    /// <returns>The paste preview.</returns>
+    /// <param name="payload">已复制的行为负载。</param>
+    /// <param name="target">目标控件。</param>
+    /// <param name="options">粘贴选项。</param>
+    /// <returns>粘贴预览。</returns>
     public FrontedBehaviorPastePreview Preview(
         FrontedBehaviorClipboardPayload payload,
         FrontedControlDesignItem target,
@@ -240,13 +240,13 @@ public sealed class FrontedBehaviorCopyPasteService
     }
 
     /// <summary>
-    /// Pastes a deep-cloned behavior into one target behavior document.
+    /// 将深拷贝的行为粘贴到一个目标行为文档中。
     /// </summary>
-    /// <param name="payload">The copied behavior payload.</param>
-    /// <param name="target">The target control.</param>
-    /// <param name="document">The destination behavior document.</param>
-    /// <param name="options">The paste options.</param>
-    /// <returns>The paste result.</returns>
+    /// <param name="payload">已复制的行为负载。</param>
+    /// <param name="target">目标控件。</param>
+    /// <param name="document">目标行为文档。</param>
+    /// <param name="options">粘贴选项。</param>
+    /// <returns>粘贴结果。</returns>
     public FrontedBehaviorPasteResult Paste(
         FrontedBehaviorClipboardPayload payload,
         FrontedControlDesignItem target,

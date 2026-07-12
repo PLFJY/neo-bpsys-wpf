@@ -5,28 +5,28 @@ using neo_bpsys_wpf.ProductTour.Controls;
 namespace neo_bpsys_wpf.ProductTour;
 
 /// <summary>
-/// Coordinates first-run onboarding entry points.
+/// 协调首次运行新手引导入口点。
 /// </summary>
 public interface IOnboardingCoordinator
 {
-    /// <summary>Shows first-run welcome when needed.</summary>
-    /// <param name="owner">Owner window.</param>
-    /// <param name="force">Whether the welcome should be forced.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <summary>在需要时显示首次运行欢迎界面。</summary>
+    /// <param name="owner">所有者窗口。</param>
+    /// <param name="force">是否强制显示欢迎界面。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
     Task ShowFirstRunWelcomeAsync(Window owner, bool force = false, CancellationToken cancellationToken = default);
 
-    /// <summary>Restarts the first-run flow.</summary>
-    /// <param name="owner">Owner window.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <summary>重新开始首次运行流程。</summary>
+    /// <param name="owner">所有者窗口。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
     Task RestartFirstRunFlowAsync(Window owner, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
-/// Default first-run onboarding coordinator.
+/// 默认的首次运行新手引导协调器。
 /// </summary>
 public sealed class OnboardingCoordinator : IOnboardingCoordinator
 {
-    /// <summary>The standard first-run flow id.</summary>
+    /// <summary>标准首次运行流程 id。</summary>
     public const string FirstRunFlowId = "Flow.FirstRun.StandardBp";
 
     private readonly ITutorialStateManager _tutorialStateManager;
@@ -41,18 +41,18 @@ public sealed class OnboardingCoordinator : IOnboardingCoordinator
     private readonly ILogger<OnboardingCoordinator> _logger;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="OnboardingCoordinator"/> class.
+    /// 初始化 <see cref="OnboardingCoordinator"/> 类的新实例。
     /// </summary>
-    /// <param name="tutorialStateManager">Tutorial state manager.</param>
-    /// <param name="tutorialRunner">Tutorial runner.</param>
-    /// <param name="stateStore">State store.</param>
-    /// <param name="flowRegistry">Tutorial flow registry.</param>
-    /// <param name="packageRegistry">Tutorial package registry.</param>
-    /// <param name="languageService">Tutorial language service.</param>
-    /// <param name="textProvider">Fixed UI text provider.</param>
-    /// <param name="avatarProvider">Tutorial avatar provider.</param>
-    /// <param name="options">Product tour display options.</param>
-    /// <param name="logger">Logger.</param>
+    /// <param name="tutorialStateManager">教程状态管理器。</param>
+    /// <param name="tutorialRunner">教程运行器。</param>
+    /// <param name="stateStore">状态存储。</param>
+    /// <param name="flowRegistry">教程流程注册表。</param>
+    /// <param name="packageRegistry">教程包注册表。</param>
+    /// <param name="languageService">教程语言服务。</param>
+    /// <param name="textProvider">固定 UI 文本提供程序。</param>
+    /// <param name="avatarProvider">教程头像提供程序。</param>
+    /// <param name="options">产品导览显示选项。</param>
+    /// <param name="logger">日志记录器。</param>
     public OnboardingCoordinator(
         ITutorialStateManager tutorialStateManager,
         ITutorialRunner tutorialRunner,

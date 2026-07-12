@@ -5,98 +5,98 @@ using System.Windows;
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 
 /// <summary>
-/// Describes the visual layer that receives an animation action.
+/// 描述接收动画动作的可视化层。
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum FrontedAnimationTargetLayer
 {
     /// <summary>
-    /// Chooses a target layer from the property name and the target control shape.
+    /// 根据属性名和目标控件形状自动选择目标层。
     /// </summary>
     Auto,
 
     /// <summary>
-    /// Applies the action to the generated control root element.
+    /// 将动作应用于生成的控件根元素。
     /// </summary>
     Control,
 
     /// <summary>
-    /// Applies the action to the target control's primary content element.
+    /// 将动作应用于目标控件的主要内容元素。
     /// </summary>
     Content,
 
     /// <summary>
-    /// Applies the action to a runtime rectangle overlay above the target control.
+    /// 将动作应用于目标控件上方的运行时矩形覆盖层。
     /// </summary>
     OverlayAbove,
 
     /// <summary>
-    /// Applies the action to a runtime rectangle overlay below the target control.
+    /// 将动作应用于目标控件下方的运行时矩形覆盖层。
     /// </summary>
     OverlayBelow
 }
 
 /// <summary>
-/// Identifies the kind of persisted animation target reference.
+/// 标识持久化动画目标引用的类型。
 /// </summary>
 public enum FrontedAnimationTargetReferenceKind
 {
     /// <summary>
-    /// The control that owns the behavior being executed.
+    /// 拥有正在执行的行为的控件。
     /// </summary>
     Self,
 
     /// <summary>
-    /// A generated control identified by its behavior GUID.
+    /// 由行为 GUID 标识的生成控件。
     /// </summary>
     BehaviorGuid,
 
     /// <summary>
-    /// A generated control identified by its registered name.
+    /// 由注册名称标识的生成控件。
     /// </summary>
     RegisteredName,
 
     /// <summary>
-    /// A generated auxiliary part identified by its owning behavior GUID and stable part name.
+    /// 由所属行为 GUID 和稳定部件名标识的生成辅助部件。
     /// </summary>
     GeneratedPart
 }
 
 /// <summary>
-/// Persisted animation target reference parsed from behavior graph action nodes.
+/// 从行为图动作节点解析的持久化动画目标引用。
 /// </summary>
 public sealed class FrontedAnimationTargetReference
 {
     /// <summary>
-    /// Gets the target reference kind.
+    /// 获取目标引用类型。
     /// </summary>
     public FrontedAnimationTargetReferenceKind Kind { get; init; } = FrontedAnimationTargetReferenceKind.Self;
 
     /// <summary>
-    /// Gets the behavior GUID when <see cref="Kind" /> is <see cref="FrontedAnimationTargetReferenceKind.BehaviorGuid" />.
+    /// 当 <see cref="Kind" /> 为 <see cref="FrontedAnimationTargetReferenceKind.BehaviorGuid" /> 时获取行为 GUID。
     /// </summary>
     public Guid? BehaviorGuid { get; init; }
 
     /// <summary>
-    /// Gets the registered element name when <see cref="Kind" /> is <see cref="FrontedAnimationTargetReferenceKind.RegisteredName" />.
+    /// 当 <see cref="Kind" /> 为 <see cref="FrontedAnimationTargetReferenceKind.RegisteredName" /> 时获取注册元素名称。
     /// </summary>
     public string? Name { get; init; }
 
     /// <summary>
-    /// Gets the stable generated part name when <see cref="Kind" /> is <see cref="FrontedAnimationTargetReferenceKind.GeneratedPart" />.
+    /// 当 <see cref="Kind" /> 为 <see cref="FrontedAnimationTargetReferenceKind.GeneratedPart" /> 时获取稳定的生成部件名称。
     /// </summary>
     public string? PartName { get; init; }
 
     /// <summary>
-    /// Gets the user-facing display name, when available.
+    /// 获取用户可见的显示名称（若可用）。
     /// </summary>
     public string? DisplayName { get; init; }
 
     /// <summary>
-    /// Parses a stored target reference string.
+    /// 解析存储的目标引用字符串。
     /// </summary>
-    /// <param name="value">The stored target reference.</param>
-    /// <returns>The parsed target reference.</returns>
+    /// <param name="value">存储的目标引用。</param>
+    /// <returns>解析后的目标引用。</returns>
     public static FrontedAnimationTargetReference Parse(string? value)
     {
         if (string.IsNullOrWhiteSpace(value)
@@ -163,91 +163,91 @@ public sealed class FrontedAnimationTargetReference
 }
 
 /// <summary>
-/// Runtime animation target after resolving a persisted target reference and visual layer.
+/// 解析持久化目标引用和可视化层后的运行时动画目标。
 /// </summary>
 public sealed class FrontedAnimationTarget
 {
     /// <summary>
-    /// Gets the WPF element that receives the animation action.
+    /// 获取接收动画动作的 WPF 元素。
     /// </summary>
     public required FrameworkElement Element { get; init; }
 
     /// <summary>
-    /// Gets the behavior GUID of the owning generated control.
+    /// 获取所属生成控件的行为 GUID。
     /// </summary>
     public Guid BehaviorGuid { get; init; }
 
     /// <summary>
-    /// Gets the resolved target name.
+    /// 获取解析后的目标名称。
     /// </summary>
     public string? Name { get; init; }
 
     /// <summary>
-    /// Gets the user-facing display name, when available.
+    /// 获取用户可见的显示名称（若可用）。
     /// </summary>
     public string? DisplayName { get; init; }
 
     /// <summary>
-    /// Gets the resolved visual target layer.
+    /// 获取解析后的可视化目标层。
     /// </summary>
     public FrontedAnimationTargetLayer TargetLayer { get; init; } = FrontedAnimationTargetLayer.Control;
 
     /// <summary>
-    /// Gets the generated control root used before layer resolution.
+    /// 获取层解析前使用的生成控件根元素。
     /// </summary>
     public FrameworkElement? ControlElement { get; init; }
 }
 
 /// <summary>
-/// Runtime context used while applying WPF animation actions.
+/// 应用 WPF 动画动作时使用的运行时上下文。
 /// </summary>
 public sealed class FrontedAnimationExecutionContext
 {
     /// <summary>
-    /// Gets the root element that scopes target lookup and runtime sessions.
+    /// 获取限定目标查找和运行时会话的根元素。
     /// </summary>
     public required FrameworkElement Root { get; init; }
 
     /// <summary>
-    /// Gets the behavior GUID of the control that owns the executing behavior.
+    /// 获取拥有正在执行行为的控件的行为 GUID。
     /// </summary>
     public Guid SelfBehaviorGuid { get; init; }
 
     /// <summary>
-    /// Gets the user-facing name of the control that owns the executing behavior.
+    /// 获取拥有正在执行行为的控件的用户可见名称。
     /// </summary>
     public string? SelfDisplayName { get; init; }
 
     /// <summary>
-    /// Gets the current fronted window identifier.
+    /// 获取当前前台窗口标识符。
     /// </summary>
     public string WindowId { get; init; } = string.Empty;
 
     /// <summary>
-    /// Gets the current canvas name.
+    /// 获取当前画布名称。
     /// </summary>
     public string CanvasName { get; init; } = string.Empty;
 
     /// <summary>
-    /// Gets a value indicating whether the action runs in designer preview.
+    /// 获取一个值，指示动作是否在设计器预览中运行。
     /// </summary>
     public bool IsDesignerPreview { get; init; }
 
     /// <summary>
-    /// Gets the optional logger used for runtime warnings.
+    /// 获取用于运行时警告的可选日志记录器。
     /// </summary>
     public ILogger? Logger { get; init; }
 
     /// <summary>
-    /// Gets the cancellation token for the current animation action.
+    /// 获取当前动画动作的取消令牌。
     /// </summary>
     public CancellationToken CancellationToken { get; init; }
 
     /// <summary>
-    /// Creates a copy of the context with a replacement cancellation token.
+    /// 创建使用替换取消令牌的上下文副本。
     /// </summary>
-    /// <param name="cancellationToken">The replacement cancellation token.</param>
-    /// <returns>A copied context using the replacement token.</returns>
+    /// <param name="cancellationToken">替换的取消令牌。</param>
+    /// <returns>使用替换令牌的上下文副本。</returns>
     public FrontedAnimationExecutionContext WithCancellationToken(CancellationToken cancellationToken) =>
         new()
         {

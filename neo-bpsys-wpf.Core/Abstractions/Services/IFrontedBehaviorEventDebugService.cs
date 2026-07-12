@@ -3,43 +3,43 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
 /// <summary>
-/// Global debug recorder for fronted behavior events.
+/// 前台行为事件的全局调试记录器。
 /// </summary>
 public interface IFrontedBehaviorEventDebugService : IDisposable
 {
     /// <summary>
-    /// Gets or sets whether incoming events should be recorded.
+    /// 获取或设置是否记录传入的事件。
     /// </summary>
     bool IsEnabled { get; set; }
 
     /// <summary>
-    /// Gets or sets whether new incoming events should be ignored while preserving existing records.
+    /// 获取或设置是否忽略新传入的事件，同时保留已有记录。
     /// </summary>
     bool IsPaused { get; set; }
 
     /// <summary>
-    /// Gets or sets the maximum number of retained records.
+    /// 获取或设置保留的最大记录数。
     /// </summary>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown when the value is less than one.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">当值小于 1 时抛出。</exception>
     int MaxRecords { get; set; }
 
     /// <summary>
-    /// Gets the current captured records in ascending sequence order.
+    /// 获取当前捕获的记录，按序列号升序排列。
     /// </summary>
     IReadOnlyList<FrontedBehaviorEventDebugRecord> Records { get; }
 
     /// <summary>
-    /// Raised after a behavior event debug record is added.
+    /// 在添加行为事件调试记录后触发。
     /// </summary>
     event EventHandler<FrontedBehaviorEventDebugRecord>? RecordAdded;
 
     /// <summary>
-    /// Raised after all records are cleared.
+    /// 在清除所有记录后触发。
     /// </summary>
     event EventHandler? RecordsCleared;
 
     /// <summary>
-    /// Removes all captured records.
+    /// 移除所有已捕获的记录。
     /// </summary>
     void Clear();
 }

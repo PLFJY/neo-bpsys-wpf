@@ -3,12 +3,12 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Resolves editor bounds for designer hitboxes and adorners.
+/// 解析设计器命中框和装饰器的编辑器边界。
 /// </summary>
 public static class FrontedDesignerBoundsResolver
 {
     /// <summary>
-    /// Resolves width and height for a rendered design item.
+    /// 解析已渲染设计项的宽度和高度。
     /// </summary>
     public static FrontedDesignerResolvedBounds Resolve(
         FrontedControlConfigBase config,
@@ -34,12 +34,12 @@ public static class FrontedDesignerBoundsResolver
 }
 
 /// <summary>
-/// Resolved editor bounds in logical Canvas coordinates.
+/// 逻辑画布坐标中已解析的编辑器边界。
 /// </summary>
-/// <param name="Left">Canvas left.</param>
-/// <param name="Top">Canvas top.</param>
-/// <param name="Width">Resolved width.</param>
-/// <param name="Height">Resolved height.</param>
+/// <param name="Left">画布左侧。</param>
+/// <param name="Top">画布顶部。</param>
+/// <param name="Width">已解析的宽度。</param>
+/// <param name="Height">已解析的高度。</param>
 public readonly record struct FrontedDesignerResolvedBounds(
     double Left,
     double Top,

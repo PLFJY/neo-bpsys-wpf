@@ -5,15 +5,15 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Evaluates whether a <see cref="FrontedBehaviorEvent" /> matches a <see cref="TriggerDescriptor" />,
-/// including all filter conditions against event payload.
+/// 评估 <see cref="FrontedBehaviorEvent" /> 是否匹配 <see cref="TriggerDescriptor" />，
+/// 包括对事件负载的所有过滤条件。
 /// </summary>
 public sealed class FrontedBehaviorTriggerEvaluator
 {
     private readonly ILogger<FrontedBehaviorTriggerEvaluator> _logger;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="FrontedBehaviorTriggerEvaluator" />.
+    /// 初始化 <see cref="FrontedBehaviorTriggerEvaluator" /> 的新实例。
     /// </summary>
     public FrontedBehaviorTriggerEvaluator(ILogger<FrontedBehaviorTriggerEvaluator>? logger = null)
     {
@@ -21,11 +21,11 @@ public sealed class FrontedBehaviorTriggerEvaluator
     }
 
     /// <summary>
-    /// Evaluates whether the given <paramref name="trigger" /> matches the <paramref name="behaviorEvent" />.
+    /// 评估给定的 <paramref name="trigger" /> 是否匹配 <paramref name="behaviorEvent" />。
     /// </summary>
-    /// <param name="trigger">The trigger descriptor with event type and optional filters.</param>
-    /// <param name="behaviorEvent">The published behavior event.</param>
-    /// <returns>True if the event type matches and all filters pass; otherwise false.</returns>
+    /// <param name="trigger">包含事件类型和可选过滤条件的触发器描述符。</param>
+    /// <param name="behaviorEvent">已发布的行为事件。</param>
+    /// <returns>当事件类型匹配且所有过滤条件通过时返回 true；否则返回 false。</returns>
     public bool Evaluate(
         TriggerDescriptor trigger,
         FrontedBehaviorEvent behaviorEvent)

@@ -17,7 +17,7 @@ using MessageBoxResult = Wpf.Ui.Controls.MessageBoxResult;
 namespace neo_bpsys_wpf.Views.Windows;
 
 /// <summary>
-/// Classic backend shell. It only rearranges existing backend operations.
+/// 经典后台外壳。仅重新编排现有后台操作。
 /// </summary>
 public partial class ClassicBackendWindow : FluentWindow
 {

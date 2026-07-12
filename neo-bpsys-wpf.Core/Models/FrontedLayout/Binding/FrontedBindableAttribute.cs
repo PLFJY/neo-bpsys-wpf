@@ -1,7 +1,7 @@
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
 
 /// <summary>
-/// Includes or customizes a property in the Designer v3 binding catalog.
+/// 在设计器 v3 绑定目录中包含或自定义某个属性。
 /// </summary>
 [AttributeUsage(AttributeTargets.Property)]
 public sealed class FrontedBindableAttribute : Attribute

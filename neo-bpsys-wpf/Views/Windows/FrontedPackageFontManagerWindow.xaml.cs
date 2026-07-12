@@ -5,12 +5,12 @@ using Wpf.Ui.Controls;
 namespace neo_bpsys_wpf.Views.Windows;
 
 /// <summary>
-/// Interaction logic for FrontedPackageFontManagerWindow.xaml.
+/// FrontedPackageFontManagerWindow.xaml 的交互逻辑。
 /// </summary>
 public partial class FrontedPackageFontManagerWindow : FluentWindow
 {
     /// <summary>
-    /// Initializes a new package font manager window.
+    /// 初始化新的包字体管理器窗口。
     /// </summary>
     public FrontedPackageFontManagerWindow()
     {
@@ -18,9 +18,9 @@ public partial class FrontedPackageFontManagerWindow : FluentWindow
     }
 
     /// <summary>
-    /// Initializes a new package font manager window with its view model.
+    /// 使用其视图模型初始化新的包字体管理器窗口。
     /// </summary>
-    /// <param name="viewModel">Window view model.</param>
+    /// <param name="viewModel">窗口视图模型。</param>
     public FrontedPackageFontManagerWindow(FrontedPackageFontManagerWindowViewModel viewModel)
         : this()
     {

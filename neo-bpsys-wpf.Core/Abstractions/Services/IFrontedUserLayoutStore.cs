@@ -3,57 +3,57 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout;
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
 /// <summary>
-/// Stores Designer v3 user layout files under the application data directory.
+/// 在应用数据目录下存储设计器 v3 用户布局文件。
 /// </summary>
 public interface IFrontedUserLayoutStore
 {
     /// <summary>
-    /// Returns whether a user window layout exists.
+    /// 返回用户窗口布局是否存在。
     /// </summary>
-    /// <param name="windowTypeName">The full window type name.</param>
-    /// <returns><see langword="true"/> when the user layout exists.</returns>
+    /// <param name="windowTypeName">完整的窗口类型名。</param>
+    /// <returns>当用户布局存在时返回 <see langword="true"/>。</returns>
     bool Exists(string windowTypeName);
 
     /// <summary>
-    /// Loads a user window layout.
+    /// 加载用户窗口布局。
     /// </summary>
-    /// <param name="windowTypeName">The full window type name.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The loaded config, or <see langword="null"/> when no file exists.</returns>
+    /// <param name="windowTypeName">完整的窗口类型名。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>加载的配置，文件不存在时返回 <see langword="null"/>。</returns>
     Task<FrontedWindowConfig?> LoadAsync(
         string windowTypeName,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Saves a user window layout.
+    /// 保存用户窗口布局。
     /// </summary>
-    /// <param name="windowTypeName">The full window type name.</param>
-    /// <param name="config">The config to save.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="windowTypeName">完整的窗口类型名。</param>
+    /// <param name="config">要保存的配置。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
     Task SaveAsync(
         string windowTypeName,
         FrontedWindowConfig config,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Deletes a user window layout.
+    /// 删除用户窗口布局。
     /// </summary>
-    /// <param name="windowTypeName">The full window type name.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="windowTypeName">完整的窗口类型名。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
     Task DeleteAsync(
         string windowTypeName,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets the user window layout path.
+    /// 获取用户窗口布局路径。
     /// </summary>
-    /// <param name="windowTypeName">The full window type name.</param>
-    /// <returns>The layout JSON path.</returns>
+    /// <param name="windowTypeName">完整的窗口类型名。</param>
+    /// <returns>布局 JSON 路径。</returns>
     string GetLayoutPath(string windowTypeName);
 
     /// <summary>
-    /// Gets the user layout root folder.
+    /// 获取用户布局根目录。
     /// </summary>
-    /// <returns>The user layout root folder.</returns>
+    /// <returns>用户布局根目录。</returns>
     string GetRootFolder();
 }

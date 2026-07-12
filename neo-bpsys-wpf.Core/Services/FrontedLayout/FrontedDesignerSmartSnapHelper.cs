@@ -4,7 +4,7 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Pure smart alignment snapping for Designer v3 move/resize interactions.
+/// 设计器 v3 移动/调整大小交互的纯智能对齐吸附。
 /// </summary>
 public static class FrontedDesignerSmartSnapHelper
 {

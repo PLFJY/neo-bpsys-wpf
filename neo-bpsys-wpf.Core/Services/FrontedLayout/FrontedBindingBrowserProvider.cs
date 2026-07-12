@@ -4,7 +4,7 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Builds the curated binding tree used by Designer v3 Binding Browser.
+/// 构建 Designer v3 绑定浏览器使用的精选绑定树。
 /// </summary>
 public sealed class FrontedBindingBrowserProvider
 {
@@ -30,13 +30,13 @@ public sealed class FrontedBindingBrowserProvider
     }
 
     /// <summary>
-    /// Builds the complete binding tree without target-type filtering.
+    /// 构建完整绑定树，不进行目标类型筛选。
     /// </summary>
     public IReadOnlyList<FrontedBindingTreeNode> BuildTree() =>
         BuildTree(FrontedBindingTypeFilter.Any);
 
     /// <summary>
-    /// Builds the binding tree filtered for the expected binding target.
+    /// 构建按预期绑定目标筛选的绑定树。
     /// </summary>
     public IReadOnlyList<FrontedBindingTreeNode> BuildTree(FrontedBindingTypeFilter filter)
     {
@@ -49,13 +49,13 @@ public sealed class FrontedBindingBrowserProvider
     }
 
     /// <summary>
-    /// Searches the complete binding tree without target-type filtering.
+    /// 搜索完整绑定树，不进行目标类型筛选。
     /// </summary>
     public IReadOnlyList<FrontedBindingTreeNode> Search(string? query) =>
         Search(query, FrontedBindingTypeFilter.Any);
 
     /// <summary>
-    /// Searches selectable binding paths filtered for the expected binding target.
+    /// 搜索按预期绑定目标筛选的可选绑定路径。
     /// </summary>
     public IReadOnlyList<FrontedBindingTreeNode> Search(string? query, FrontedBindingTypeFilter filter)
     {

@@ -4,7 +4,7 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Collects plugin control descriptors contributed during startup.
+/// 收集启动期间提供的插件控件描述符。
 /// </summary>
 public sealed class FrontedControlPluginRegistry(
     IReadOnlySet<string> builtInControlTypes) : IFrontedControlPluginRegistry

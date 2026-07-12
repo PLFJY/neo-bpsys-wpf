@@ -24,8 +24,7 @@ using RegionEditorWindow = smartbp::neo_bpsys_wpf.Views.Windows.RegionEditorWind
 namespace neo_bpsys_wpf.Tests.Services;
 
 /// <summary>
-/// Tests for the tutorial refactor task: RegionEditor owner boundaries,
-/// on-demand packages, modal child handoff, dynamic contributors, and module tutorial ownership.
+/// 测试教程重构任务：区域编辑器所有者边界、按需包、模态子窗口移交、动态贡献者以及模块教程所有权。
 /// </summary>
 public sealed class TutorialRefactorTaskTest
 {

@@ -4,18 +4,18 @@ using System.Windows.Media;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Color conversion helpers for Designer v3 property rows.
+/// 设计器 v3 属性行的颜色转换帮助程序。
 /// </summary>
 public static class FrontedPropertyColorHelper
 {
     /// <summary>
-    /// Picker fallback when a stored color string cannot be parsed.
+    /// 存储的颜色字符串无法解析时选择器的回退。
     /// </summary>
     public static Color FallbackColor { get; } = Colors.White;
 
     /// <summary>
-    /// Parses a <c>#RRGGBB</c>, <c>#AARRGGBB</c>, or WPF named color string without throwing.
-    /// RGB input is treated as fully opaque.
+    /// 解析 <c>#RRGGBB</c>、<c>#AARRGGBB</c> 或 WPF 命名颜色字符串而不抛出异常。
+    /// RGB 输入被视为完全不透明。
     /// </summary>
     public static bool TryParseArgbColor(string? value, out Color color)
     {
@@ -29,7 +29,7 @@ public static class FrontedPropertyColorHelper
     }
 
     /// <summary>
-    /// Formats a WPF color as <c>#AARRGGBB</c>.
+    /// 将 WPF 颜色格式化为 <c>#AARRGGBB</c>。
     /// </summary>
     public static string ToArgbString(Color color) => color.ToArgbHexString();
 }

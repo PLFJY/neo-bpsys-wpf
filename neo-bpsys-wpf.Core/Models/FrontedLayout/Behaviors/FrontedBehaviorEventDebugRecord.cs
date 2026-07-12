@@ -1,88 +1,88 @@
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 
 /// <summary>
-/// Captured behavior event record for the global behavior event debugger.
+/// 为全局行为事件调试器捕获的行为事件记录。
 /// </summary>
 public sealed class FrontedBehaviorEventDebugRecord
 {
     /// <summary>
-    /// Monotonic sequence number assigned by the debug service.
+    /// 由调试服务分配的单调递增序列号。
     /// </summary>
     public long Sequence { get; init; }
 
     /// <summary>
-    /// Timestamp copied from the published behavior event.
+    /// 从已发布的行为事件复制的时间戳。
     /// </summary>
     public DateTimeOffset Timestamp { get; init; }
 
     /// <summary>
-    /// Behavior event type.
+    /// 行为事件类型。
     /// </summary>
     public string EventType { get; init; } = string.Empty;
 
     /// <summary>
-    /// Optional runtime window identifier.
+    /// 可选的运行时窗口标识。
     /// </summary>
     public string? WindowId { get; init; }
 
     /// <summary>
-    /// Optional window type name.
+    /// 可选的窗口类型名称。
     /// </summary>
     public string? WindowType { get; init; }
 
     /// <summary>
-    /// Optional canvas name.
+    /// 可选的画布名称。
     /// </summary>
     public string? CanvasName { get; init; }
 
     /// <summary>
-    /// Optional event source name.
+    /// 可选的事件来源名称。
     /// </summary>
     public string? Source { get; init; }
 
     /// <summary>
-    /// Whether this event came from Designer preview.
+    /// 指示此事件是否来自设计器预览。
     /// </summary>
     public bool IsPreview { get; init; }
 
     /// <summary>
-    /// Formatted payload entries.
+    /// 已格式化的负载条目。
     /// </summary>
     public IReadOnlyList<FrontedBehaviorPayloadDebugEntry> Payload { get; init; } = [];
 }
 
 /// <summary>
-/// Captured behavior event payload entry for debugger display and filter copy helpers.
+/// 为调试器显示和过滤器复制助手捕获的行为事件负载条目。
 /// </summary>
 public sealed class FrontedBehaviorPayloadDebugEntry
 {
     /// <summary>
-    /// Payload key without the Event prefix.
+    /// 不带 Event 前缀的负载键。
     /// </summary>
     public string Key { get; init; } = string.Empty;
 
     /// <summary>
-    /// Full filter path for this payload value.
+    /// 此负载值的完整过滤器路径。
     /// </summary>
     public string Path => $"Event.{Key}";
 
     /// <summary>
-    /// Runtime value type name.
+    /// 运行时值类型名称。
     /// </summary>
     public string TypeName { get; init; } = string.Empty;
 
     /// <summary>
-    /// Original unformatted payload value.
+    /// 原始未格式化的负载值。
     /// </summary>
     public object? RawValue { get; init; }
 
     /// <summary>
-    /// Stable display text for the payload value.
+    /// 负载值的稳定显示文本。
     /// </summary>
     public string DisplayValue { get; init; } = string.Empty;
 
     /// <summary>
-    /// Stable text to paste into behavior filter values.
+    /// 用于粘贴到行为过滤器值中的稳定文本。
     /// </summary>
     public string FilterText { get; init; } = string.Empty;
 }

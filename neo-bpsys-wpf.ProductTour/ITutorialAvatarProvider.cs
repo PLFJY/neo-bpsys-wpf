@@ -3,53 +3,53 @@ using System.Windows.Media;
 namespace neo_bpsys_wpf.ProductTour;
 
 /// <summary>
-/// Describes the pose requested for a tutorial guide avatar.
+/// 描述教程引导头像所请求的姿态。
 /// </summary>
 public enum TutorialAvatarPose
 {
-    /// <summary>Neutral idle pose.</summary>
+    /// <summary>中性待机姿态。</summary>
     Idle,
 
-    /// <summary>Pose pointing toward the upper-left direction.</summary>
+    /// <summary>指向左上方向的姿态。</summary>
     LeftTop,
 
-    /// <summary>Pose pointing toward the lower-left direction.</summary>
+    /// <summary>指向左下方向的姿态。</summary>
     LeftBottom,
 
-    /// <summary>Pose pointing toward the upper-right direction.</summary>
+    /// <summary>指向右上方向的姿态。</summary>
     RightTop,
 
-    /// <summary>Pose pointing toward the lower-right direction.</summary>
+    /// <summary>指向右下方向的姿态。</summary>
     RightBottom
 }
 
 /// <summary>
-/// Represents a tutorial guide avatar image and localized display name.
+/// 表示一个教程引导头像图像及其本地化显示名称。
 /// </summary>
 public sealed class TutorialAvatar
 {
-    /// <summary>Gets the localized avatar display name.</summary>
+    /// <summary>获取头像的本地化显示名称。</summary>
     public required string DisplayName { get; init; }
 
-    /// <summary>Gets the avatar image source.</summary>
+    /// <summary>获取头像图像源。</summary>
     public required ImageSource ImageSource { get; init; }
 }
 
 /// <summary>
-/// Provides tutorial guide avatars for overlay UI.
+/// 为遮罩 UI 提供教程引导头像。
 /// </summary>
 public interface ITutorialAvatarProvider
 {
     /// <summary>
-    /// Gets an avatar for the requested pose.
+    /// 获取所请求姿态对应的头像。
     /// </summary>
-    /// <param name="pose">Requested avatar pose.</param>
-    /// <returns>The avatar, or <see langword="null" /> when no avatar is available.</returns>
+    /// <param name="pose">所请求的头像姿态。</param>
+    /// <returns>头像；若没有可用头像则返回 <see langword="null" />。</returns>
     TutorialAvatar? GetAvatar(TutorialAvatarPose pose);
 }
 
 /// <summary>
-/// Empty tutorial avatar provider used when the host application does not provide guide assets.
+/// 空的教程头像提供器，在宿主应用未提供引导素材时使用。
 /// </summary>
 public sealed class NoOpTutorialAvatarProvider : ITutorialAvatarProvider
 {

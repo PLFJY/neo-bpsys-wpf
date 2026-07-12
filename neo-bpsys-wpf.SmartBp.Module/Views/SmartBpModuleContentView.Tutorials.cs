@@ -4,60 +4,60 @@ namespace neo_bpsys_wpf.Views.Pages;
 
 public partial class SmartBpModuleContentView : ITutorialOwner<SmartBpModuleContentView>
 {
-    /// <summary>SmartBP module content tutorial key.</summary>
+    /// <summary>SmartBP 模块内容教程键。</summary>
     public const string TutorialPageKey = "Page.SmartBp.ModuleContent";
 
     /// <inheritdoc />
     public static string TutorialKey => TutorialPageKey;
 
-    /// <summary>SmartBP module content tutorial package ids.</summary>
+    /// <summary>SmartBP 模块内容教程包 id。</summary>
     public static class PackageIds
     {
-        /// <summary>Smart BP module content overview package id.</summary>
+        /// <summary>SmartBP 模块内容概览包 id。</summary>
         public const string ModuleContentOverview = "Page.SmartBp.ModuleContent.Overview";
 
-        /// <summary>Smart BP OCR model download and management package id.</summary>
+        /// <summary>SmartBP OCR 模型下载与管理包 id。</summary>
         public const string OcrModelDownloadBasic = "Page.SmartBp.OcrModelDownload.Basic";
 
-        /// <summary>Smart BP capture package id.</summary>
+        /// <summary>SmartBP 捕获包 id。</summary>
         public const string CaptureBasic = "Page.SmartBp.Capture.Basic";
 
-        /// <summary>Smart BP region editor entry package id.</summary>
+        /// <summary>SmartBP 区域编辑器入口包 id。</summary>
         public const string RegionEditorEntryBasic = "Page.SmartBp.RegionEditorEntry.Basic";
 
-        /// <summary>Smart BP full BP flow package id.</summary>
+        /// <summary>SmartBP 完整 BP 流程包 id。</summary>
         public const string FullBpFlowBasic = "Page.SmartBp.FullBpFlow.Basic";
 
-        /// <summary>Smart BP post-game auto-fill package id.</summary>
+        /// <summary>SmartBP 赛后自动回填包 id。</summary>
         public const string PostGameAutoFill = "Page.SmartBp.PostGameAutoFill";
     }
 
-    /// <summary>SmartBP module content tutorial package references.</summary>
+    /// <summary>SmartBP 模块内容教程包引用。</summary>
     public static class Tours
     {
-        /// <summary>Smart BP module content overview package reference.</summary>
+        /// <summary>SmartBP 模块内容概览包引用。</summary>
         public static readonly TutorialPackageRef ModuleContentOverview = new(PackageIds.ModuleContentOverview);
 
-        /// <summary>Smart BP OCR model download and management package reference.</summary>
+        /// <summary>SmartBP OCR 模型下载与管理包引用。</summary>
         public static readonly TutorialPackageRef OcrModelDownloadBasic = new(PackageIds.OcrModelDownloadBasic);
 
-        /// <summary>Smart BP capture basic package reference.</summary>
+        /// <summary>SmartBP 捕获基础包引用。</summary>
         public static readonly TutorialPackageRef CaptureBasic = new(PackageIds.CaptureBasic);
 
-        /// <summary>Smart BP region editor entry package reference.</summary>
+        /// <summary>SmartBP 区域编辑器入口包引用。</summary>
         public static readonly TutorialPackageRef RegionEditorEntryBasic = new(PackageIds.RegionEditorEntryBasic);
 
-        /// <summary>Smart BP full BP flow package reference.</summary>
+        /// <summary>SmartBP 完整 BP 流程包引用。</summary>
         public static readonly TutorialPackageRef FullBpFlowBasic = new(PackageIds.FullBpFlowBasic);
 
-        /// <summary>Smart BP post-game auto-fill package reference.</summary>
+        /// <summary>SmartBP 赛后自动回填包引用。</summary>
         public static readonly TutorialPackageRef PostGameAutoFill = new(PackageIds.PostGameAutoFill);
     }
 
     /// <summary>
-    /// Registers tutorials owned by the SmartBP module content view.
+    /// 注册由 SmartBP 模块内容视图拥有的教程。
     /// </summary>
-    /// <param name="builder">Tutorial builder.</param>
+    /// <param name="builder">教程构建器。</param>
     public static void RegisterTutorials(ITutorialBuilder builder)
     {
         builder.ForRegion<SmartBpModuleContentView>()

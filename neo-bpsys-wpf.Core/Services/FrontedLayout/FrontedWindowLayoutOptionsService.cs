@@ -7,7 +7,7 @@ using System.Text.Json;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// File-backed window-level Designer v3 options store.
+/// 文件支持的窗口级设计器 v3 选项存储。
 /// </summary>
 public class FrontedWindowLayoutOptionsService : IFrontedWindowLayoutOptionsService
 {

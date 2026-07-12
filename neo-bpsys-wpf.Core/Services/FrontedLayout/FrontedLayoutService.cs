@@ -26,7 +26,7 @@ public class FrontedLayoutService : IFrontedLayoutService
     };
 
     /// <summary>
-    /// Initializes the layout service with the default user store and built-in layout root.
+    /// 使用默认用户存储和内置布局根初始化布局服务。
     /// </summary>
     public FrontedLayoutService()
         : this(
@@ -37,10 +37,10 @@ public class FrontedLayoutService : IFrontedLayoutService
     }
 
     /// <summary>
-    /// Initializes the layout service with a user store and logger.
+    /// 使用用户存储和记录器初始化布局服务。
     /// </summary>
-    /// <param name="userLayoutStore">User layout store used for editable layouts.</param>
-    /// <param name="logger">Logger for layout load and save diagnostics.</param>
+    /// <param name="userLayoutStore">用于可编辑布局的用户布局存储。</param>
+    /// <param name="logger">用于布局加载和保存诊断的记录器。</param>
     public FrontedLayoutService(
         IFrontedUserLayoutStore userLayoutStore,
         ILogger<FrontedLayoutService> logger)
@@ -52,11 +52,11 @@ public class FrontedLayoutService : IFrontedLayoutService
     }
 
     /// <summary>
-    /// Initializes the layout service with a user store, window registry, and logger.
+    /// 使用用户存储、窗口注册表和记录器初始化布局服务。
     /// </summary>
-    /// <param name="userLayoutStore">User layout store used for editable layouts.</param>
-    /// <param name="windowRegistry">Registry used to resolve plugin default layout descriptors.</param>
-    /// <param name="logger">Logger for layout load and save diagnostics.</param>
+    /// <param name="userLayoutStore">用于可编辑布局的用户布局存储。</param>
+    /// <param name="windowRegistry">用于解析插件默认布局描述符的注册表。</param>
+    /// <param name="logger">用于布局加载和保存诊断的记录器。</param>
     public FrontedLayoutService(
         IFrontedUserLayoutStore userLayoutStore,
         IFrontedWindowRegistry windowRegistry,
@@ -69,11 +69,11 @@ public class FrontedLayoutService : IFrontedLayoutService
     }
 
     /// <summary>
-    /// Initializes the layout service with a custom built-in layout root.
+    /// 使用自定义内置布局根初始化布局服务。
     /// </summary>
-    /// <param name="userLayoutStore">User layout store used for editable layouts.</param>
-    /// <param name="builtInLayoutRoot">Root folder for built-in window-centric layouts.</param>
-    /// <param name="logger">Logger for layout load and save diagnostics.</param>
+    /// <param name="userLayoutStore">用于可编辑布局的用户布局存储。</param>
+    /// <param name="builtInLayoutRoot">内置以窗口为中心的布局的根文件夹。</param>
+    /// <param name="logger">用于布局加载和保存诊断的记录器。</param>
     public FrontedLayoutService(
         IFrontedUserLayoutStore userLayoutStore,
         string builtInLayoutRoot,
@@ -88,12 +88,12 @@ public class FrontedLayoutService : IFrontedLayoutService
     }
 
     /// <summary>
-    /// Initializes the layout service with a custom built-in layout root and registry.
+    /// 使用自定义内置布局根和注册表初始化布局服务。
     /// </summary>
-    /// <param name="userLayoutStore">User layout store used for editable layouts.</param>
-    /// <param name="builtInLayoutRoot">Root folder for built-in window-centric layouts.</param>
-    /// <param name="windowRegistry">Registry used to resolve plugin default layout descriptors.</param>
-    /// <param name="logger">Logger for layout load and save diagnostics.</param>
+    /// <param name="userLayoutStore">用于可编辑布局的用户布局存储。</param>
+    /// <param name="builtInLayoutRoot">内置以窗口为中心的布局的根文件夹。</param>
+    /// <param name="windowRegistry">用于解析插件默认布局描述符的注册表。</param>
+    /// <param name="logger">用于布局加载和保存诊断的记录器。</param>
     public FrontedLayoutService(
         IFrontedUserLayoutStore userLayoutStore,
         string builtInLayoutRoot,
@@ -109,12 +109,12 @@ public class FrontedLayoutService : IFrontedLayoutService
     }
 
     /// <summary>
-    /// Initializes the layout service with a package manager and the default built-in layout root.
+    /// 使用包管理器和默认内置布局根初始化布局服务。
     /// </summary>
-    /// <param name="userLayoutStore">User layout store used when no editable package is active.</param>
-    /// <param name="packageManager">Package manager used for active layout package reads and writes.</param>
-    /// <param name="windowRegistry">Registry used to resolve plugin default layout descriptors.</param>
-    /// <param name="logger">Logger for layout load and save diagnostics.</param>
+    /// <param name="userLayoutStore">在没有活动可编辑包时使用的用户布局存储。</param>
+    /// <param name="packageManager">用于活动布局包读取和写入的包管理器。</param>
+    /// <param name="windowRegistry">用于解析插件默认布局描述符的注册表。</param>
+    /// <param name="logger">用于布局加载和保存诊断的记录器。</param>
     public FrontedLayoutService(
         IFrontedUserLayoutStore userLayoutStore,
         IFrontedLayoutPackageManager packageManager,
@@ -125,13 +125,13 @@ public class FrontedLayoutService : IFrontedLayoutService
     }
 
     /// <summary>
-    /// Initializes the layout service with all explicit dependencies.
+    /// 使用所有显式依赖项初始化布局服务。
     /// </summary>
-    /// <param name="userLayoutStore">User layout store used when no editable package is active.</param>
-    /// <param name="builtInLayoutRoot">Root folder for built-in window-centric layouts.</param>
-    /// <param name="packageManager">Optional package manager used for active package reads and writes.</param>
-    /// <param name="windowRegistry">Optional registry used to resolve plugin default layout descriptors.</param>
-    /// <param name="logger">Logger for layout load and save diagnostics.</param>
+    /// <param name="userLayoutStore">在没有活动可编辑包时使用的用户布局存储。</param>
+    /// <param name="builtInLayoutRoot">内置以窗口为中心的布局的根文件夹。</param>
+    /// <param name="packageManager">用于活动包读取和写入的可选包管理器。</param>
+    /// <param name="windowRegistry">用于解析插件默认布局描述符的可选注册表。</param>
+    /// <param name="logger">用于布局加载和保存诊断的记录器。</param>
     public FrontedLayoutService(
         IFrontedUserLayoutStore userLayoutStore,
         string builtInLayoutRoot,
@@ -148,11 +148,11 @@ public class FrontedLayoutService : IFrontedLayoutService
     }
 
     /// <summary>
-    /// Initializes the layout service with a package manager.
+    /// 使用包管理器初始化布局服务。
     /// </summary>
-    /// <param name="userLayoutStore">User layout store retained for editable package creation compatibility.</param>
-    /// <param name="packageManager">Package manager used for active layout package reads and writes.</param>
-    /// <param name="logger">Logger for layout load and save diagnostics.</param>
+    /// <param name="userLayoutStore">为可编辑包创建兼容性而保留的用户布局存储。</param>
+    /// <param name="packageManager">用于活动布局包读取和写入的包管理器。</param>
+    /// <param name="logger">用于布局加载和保存诊断的记录器。</param>
     public FrontedLayoutService(
         IFrontedUserLayoutStore userLayoutStore,
         IFrontedLayoutPackageManager packageManager,

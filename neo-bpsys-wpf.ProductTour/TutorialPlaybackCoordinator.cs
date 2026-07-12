@@ -5,27 +5,27 @@ using Microsoft.Extensions.Logging;
 
 namespace neo_bpsys_wpf.ProductTour;
 
-/// <summary>Serializes all tutorial playback jobs and coalesces owner-sequence requests.</summary>
+/// <summary>序列化所有教程播放任务并合并所有者序列请求。</summary>
 public interface ITutorialPlaybackCoordinator
 {
-    /// <summary>Queues or joins an owner-sequence playback job.</summary>
-    /// <param name="owner">Live tutorial owner instance.</param>
-    /// <param name="tutorialKey">Stable tutorial key.</param>
-    /// <param name="playbackAsync">Playback body executed while global ownership is retained.</param>
-    /// <param name="cancellationToken">Owner lifetime cancellation token.</param>
-    /// <returns>The shared playback result.</returns>
+    /// <summary>排队或加入一个所有者序列播放任务。</summary>
+    /// <param name="owner">活跃的教程所有者实例。</param>
+    /// <param name="tutorialKey">稳定的教程键。</param>
+    /// <param name="playbackAsync">在持有全局所有权期间执行的播放体。</param>
+    /// <param name="cancellationToken">所有者生命周期的取消令牌。</param>
+    /// <returns>共享的播放结果。</returns>
     Task<TutorialRunResult> RunSequenceAsync(
         FrameworkElement owner,
         string tutorialKey,
         Func<CancellationToken, Task<TutorialRunResult>> playbackAsync,
         CancellationToken cancellationToken = default);
 
-    /// <summary>Queues a globally serialized playback job.</summary>
-    /// <param name="owner">Tutorial owner.</param>
-    /// <param name="tutorialKey">Diagnostic tutorial or flow key.</param>
-    /// <param name="playbackAsync">Playback body.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The playback result.</returns>
+    /// <summary>排队一个全局序列化的播放任务。</summary>
+    /// <param name="owner">教程所有者。</param>
+    /// <param name="tutorialKey">用于诊断的教程或流程键。</param>
+    /// <param name="playbackAsync">播放体。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>播放结果。</returns>
     Task<TutorialRunResult> RunAsync(
         FrameworkElement owner,
         string tutorialKey,
@@ -33,25 +33,25 @@ public interface ITutorialPlaybackCoordinator
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Begins a child-window session and requests the current gate holder to yield.
-    /// If the gate is free or the holder is not an ancestor of <paramref name="child"/>, this is a no-op.
+    /// 开始一个子窗口会话并请求当前门持有者让出。
+    /// 如果门空闲或持有者不是 <paramref name="child"/> 的祖先，则不执行任何操作。
     /// </summary>
-    /// <param name="child">The child window requesting the handoff.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A scoped session when the active parent yielded; otherwise <see langword="null"/>.</returns>
+    /// <param name="child">请求交接的子窗口。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>当活跃父级已让出时返回作用域会话；否则返回 <see langword="null"/>。</returns>
     Task<ITutorialChildWindowSession?> BeginChildWindowSessionAsync(
         Window child,
         CancellationToken cancellationToken = default);
 }
 
-/// <summary>Represents one scoped child-window playback handoff.</summary>
+/// <summary>表示一个作用域内的子窗口播放交接。</summary>
 public interface ITutorialChildWindowSession : IDisposable
 {
-    /// <summary>Completes the session exactly once and allows the parent sequence to resume.</summary>
+    /// <summary>仅完成一次会话并允许父序列恢复。</summary>
     void Complete();
 }
 
-/// <summary>Default global tutorial playback coordinator.</summary>
+/// <summary>默认全局教程播放协调器。</summary>
 public sealed class TutorialPlaybackCoordinator : ITutorialPlaybackCoordinator
 {
     private readonly SemaphoreSlim _playbackGate = new(1, 1);
@@ -61,9 +61,9 @@ public sealed class TutorialPlaybackCoordinator : ITutorialPlaybackCoordinator
     private readonly ITutorialStepCancellation? _stepCancellation;
     private PlaybackExecution? _currentExecution;
 
-    /// <summary>Initializes the coordinator.</summary>
-    /// <param name="logger">Logger.</param>
-    /// <param name="stepCancellation">Optional step cancellation service for modal child handoff.</param>
+    /// <summary>初始化协调器。</summary>
+    /// <param name="logger">日志记录器。</param>
+    /// <param name="stepCancellation">用于模态子窗口交接的可选步骤取消服务。</param>
     public TutorialPlaybackCoordinator(
         ILogger<TutorialPlaybackCoordinator> logger,
         ITutorialStepCancellation? stepCancellation = null)

@@ -6,7 +6,7 @@ using System.Windows.Media;
 namespace neo_bpsys_wpf.ProductTour.Controls;
 
 /// <summary>
-/// Full-screen first-run welcome overlay.
+/// 全屏首次运行欢迎遮罩。
 /// </summary>
 public sealed class FirstRunWelcomeOverlay : Grid
 {
@@ -25,23 +25,23 @@ public sealed class FirstRunWelcomeOverlay : Grid
     private string _selectedLanguageOptionId;
     private SkipTutorialConfirmDialog? _confirmDialog;
 
-    /// <summary>Occurs when the user starts the tutorial, carrying the selected language option id.</summary>
+    /// <summary>当用户开始教程时发生，携带所选的语言选项 id。</summary>
     public event EventHandler<string>? StartRequested;
 
-    /// <summary>Occurs when the user confirms skipping the tutorial.</summary>
+    /// <summary>当用户确认跳过教程时发生。</summary>
     public event EventHandler? SkipConfirmed;
 
-    /// <summary>Initializes a new instance of the <see cref="FirstRunWelcomeOverlay"/> class.</summary>
+    /// <summary>初始化 <see cref="FirstRunWelcomeOverlay"/> 类的新实例。</summary>
     public FirstRunWelcomeOverlay()
         : this(new DefaultTutorialTextProvider(), new ProductTourOptions(), new NoOpTutorialAvatarProvider(),
              NoOpLanguageOptions(), new NoOpTutorialLanguageService())
     {
     }
 
-    /// <summary>Initializes a new instance of the <see cref="FirstRunWelcomeOverlay"/> class.</summary>
-    /// <param name="textProvider">Fixed UI text provider.</param>
-    /// <param name="options">Product tour display options.</param>
-    /// <param name="languageOptions">Language options supplied by the host application.</param>
+    /// <summary>初始化 <see cref="FirstRunWelcomeOverlay"/> 类的新实例。</summary>
+    /// <param name="textProvider">固定 UI 文本提供器。</param>
+    /// <param name="options">Product Tour 显示选项。</param>
+    /// <param name="languageOptions">由宿主应用提供的语言选项。</param>
     public FirstRunWelcomeOverlay(
         ITutorialTextProvider textProvider,
         ProductTourOptions options,
@@ -50,12 +50,12 @@ public sealed class FirstRunWelcomeOverlay : Grid
     {
     }
 
-    /// <summary>Initializes a new instance of the <see cref="FirstRunWelcomeOverlay"/> class.</summary>
-    /// <param name="textProvider">Fixed UI text provider.</param>
-    /// <param name="options">Product tour display options.</param>
-    /// <param name="avatarProvider">Tutorial avatar provider.</param>
-    /// <param name="languageOptions">Language options supplied by the host application.</param>
-    /// <param name="languageService">Tutorial language service for hot-switching.</param>
+    /// <summary>初始化 <see cref="FirstRunWelcomeOverlay"/> 类的新实例。</summary>
+    /// <param name="textProvider">固定 UI 文本提供器。</param>
+    /// <param name="options">Product Tour 显示选项。</param>
+    /// <param name="avatarProvider">教程头像提供器。</param>
+    /// <param name="languageOptions">由宿主应用提供的语言选项。</param>
+    /// <param name="languageService">用于热切换的教程语言服务。</param>
     public FirstRunWelcomeOverlay(
         ITutorialTextProvider textProvider,
         ProductTourOptions options,
@@ -225,8 +225,8 @@ public sealed class FirstRunWelcomeOverlay : Grid
     }
 
     /// <summary>
-    /// Re-reads all welcome overlay text from the text provider so it reflects
-    /// the current culture after a language hot-switch.
+    /// 从文本提供器重新读取所有欢迎遮罩文本，使其在语言热切换后
+    /// 反映当前区域性。
     /// </summary>
     private void RefreshWelcomeLanguage()
     {
@@ -244,8 +244,8 @@ public sealed class FirstRunWelcomeOverlay : Grid
         }
     }
 
-    /// <summary>Plays the entrance animation.</summary>
-    /// <returns>A task that completes when the animation finishes.</returns>
+    /// <summary>播放进入动画。</summary>
+    /// <returns>在动画完成时完成的任务。</returns>
     public Task FadeInAsync()
     {
         var source = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -269,8 +269,8 @@ public sealed class FirstRunWelcomeOverlay : Grid
         return source.Task;
     }
 
-    /// <summary>Plays the exit animation.</summary>
-    /// <returns>A task that completes when the animation finishes.</returns>
+    /// <summary>播放退出动画。</summary>
+    /// <returns>在动画完成时完成的任务。</returns>
     public Task FadeOutAsync()
     {
         var source = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);

@@ -13,7 +13,7 @@ using Xunit;
 namespace neo_bpsys_wpf.Tests.Services;
 
 /// <summary>
-/// Tests neo-bpsys tutorial language integration.
+/// 测试 neo-bpsys 教程语言的集成。
 /// </summary>
 public sealed class NeoBpsysTutorialLanguageServiceTest
 {

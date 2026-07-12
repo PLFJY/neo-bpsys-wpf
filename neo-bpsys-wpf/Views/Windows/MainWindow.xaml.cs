@@ -23,7 +23,7 @@ using MessageBoxResult = Wpf.Ui.Controls.MessageBoxResult;
 namespace neo_bpsys_wpf.Views.Windows;
 
 /// <summary>
-/// Interaction logic for MainWindow.xaml
+/// MainWindow.xaml 的交互逻辑
 /// </summary>
 public partial class MainWindow : FluentWindow, INavigationWindow
 {

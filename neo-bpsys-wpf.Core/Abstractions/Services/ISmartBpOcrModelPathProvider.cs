@@ -1,12 +1,12 @@
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
 /// <summary>
-/// Provides the OCR model root directory for the loaded SmartBP module.
+/// 提供已加载 SmartBP 模块的 OCR 模型根目录。
 /// </summary>
 public interface ISmartBpOcrModelPathProvider
 {
     /// <summary>
-    /// OCR model root directory.
+    /// OCR 模型根目录。
     /// </summary>
     string RootDirectory { get; }
 }

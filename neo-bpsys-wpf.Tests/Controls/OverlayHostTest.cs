@@ -11,7 +11,7 @@ using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Controls;
 
-/// <summary>Tests non-invasive overlay host behavior.</summary>
+/// <summary>测试非侵入式覆盖层宿主行为。</summary>
 public sealed class OverlayHostTest
 {
     [Fact]

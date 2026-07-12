@@ -4,14 +4,14 @@ using Wpf.Ui.Controls;
 namespace neo_bpsys_wpf.Views.Windows;
 
 /// <summary>
-/// Independent global behavior event debugger window.
+/// 独立的全局行为事件调试器窗口。
 /// </summary>
 public partial class FrontedBehaviorEventDebuggerWindow : FluentWindow
 {
     /// <summary>
-    /// Initializes a new instance of <see cref="FrontedBehaviorEventDebuggerWindow" />.
+    /// 初始化 <see cref="FrontedBehaviorEventDebuggerWindow" /> 的新实例。
     /// </summary>
-    /// <param name="viewModel">Debugger window view model.</param>
+    /// <param name="viewModel">调试器窗口视图模型。</param>
     public FrontedBehaviorEventDebuggerWindow(FrontedBehaviorEventDebuggerViewModel viewModel)
     {
         InitializeComponent();

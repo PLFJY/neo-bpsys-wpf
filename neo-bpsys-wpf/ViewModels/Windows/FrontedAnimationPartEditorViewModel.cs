@@ -10,7 +10,7 @@ using System.Windows.Media;
 namespace neo_bpsys_wpf.ViewModels.Windows;
 
 /// <summary>
-/// Provides validated edit buffers for one generated animation part.
+/// 为单个生成的动画部件提供经过校验的编辑缓冲区。
 /// </summary>
 public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
 {
@@ -42,10 +42,10 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     private bool _isSynchronizingColor;
 
     /// <summary>
-    /// Initializes a validated animation part editor.
+    /// 初始化经过校验的动画部件编辑器。
     /// </summary>
-    /// <param name="source">Source animation part configuration.</param>
-    /// <param name="isNameAvailable">Checks whether an edited name is unique within its parent control.</param>
+    /// <param name="source">源动画部件配置。</param>
+    /// <param name="isNameAvailable">用于检查编辑后的名称在其父控件内是否唯一的回调。</param>
     public FrontedAnimationPartEditorViewModel(
         FrontedAnimationPartConfig source,
         Func<string, bool> isNameAvailable)
@@ -56,7 +56,7 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     }
 
     /// <summary>
-    /// Gets or sets the user-defined animation part name.
+    /// 获取或设置用户定义的动画部件名称。
     /// </summary>
     [CustomValidation(typeof(FrontedAnimationPartEditorViewModel), nameof(ValidateNameValue))]
     public string Name
@@ -66,7 +66,7 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     }
 
     /// <summary>
-    /// Gets or sets the generated element kind.
+    /// 获取或设置生成的元素类型。
     /// </summary>
     public FrontedAnimationPartKind Kind
     {
@@ -86,27 +86,27 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     }
 
     /// <summary>
-    /// Gets a value indicating whether the edited part is a rectangle.
+    /// 获取一个值，指示正在编辑的部件是否为矩形。
     /// </summary>
     public bool IsRectangle => Kind == FrontedAnimationPartKind.Rectangle;
 
     /// <summary>
-    /// Gets a value indicating whether the edited part is a border.
+    /// 获取一个值，指示正在编辑的部件是否为边框。
     /// </summary>
     public bool IsBorder => Kind == FrontedAnimationPartKind.Border;
 
     /// <summary>
-    /// Gets a value indicating whether the edited part is an image.
+    /// 获取一个值，指示正在编辑的部件是否为图片。
     /// </summary>
     public bool IsImage => Kind == FrontedAnimationPartKind.Image;
 
     /// <summary>
-    /// Gets a value indicating whether the edited part supports fill and stroke brushes.
+    /// 获取一个值，指示正在编辑的部件是否支持填充和描边画刷。
     /// </summary>
     public bool IsShape => Kind is FrontedAnimationPartKind.Rectangle or FrontedAnimationPartKind.Border;
 
     /// <summary>
-    /// Gets or sets the generated element layer.
+    /// 获取或设置生成的元素层。
     /// </summary>
     public FrontedAnimationPartLayer Layer
     {
@@ -115,7 +115,7 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     }
 
     /// <summary>
-    /// Gets or sets the width expression.
+    /// 获取或设置宽度表达式。
     /// </summary>
     [CustomValidation(typeof(FrontedAnimationPartEditorViewModel), nameof(ValidateSizeValue))]
     public string WidthText
@@ -125,7 +125,7 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     }
 
     /// <summary>
-    /// Gets or sets the height expression.
+    /// 获取或设置高度表达式。
     /// </summary>
     [CustomValidation(typeof(FrontedAnimationPartEditorViewModel), nameof(ValidateSizeValue))]
     public string HeightText
@@ -135,7 +135,7 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     }
 
     /// <summary>
-    /// Gets or sets the left offset text.
+    /// 获取或设置左侧偏移文本。
     /// </summary>
     [CustomValidation(typeof(FrontedAnimationPartEditorViewModel), nameof(ValidateNumberValue))]
     public string LeftText
@@ -145,7 +145,7 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     }
 
     /// <summary>
-    /// Gets or sets the top offset text.
+    /// 获取或设置顶部偏移文本。
     /// </summary>
     [CustomValidation(typeof(FrontedAnimationPartEditorViewModel), nameof(ValidateNumberValue))]
     public string TopText
@@ -155,7 +155,7 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     }
 
     /// <summary>
-    /// Gets or sets the fill color text.
+    /// 获取或设置填充颜色文本。
     /// </summary>
     [CustomValidation(typeof(FrontedAnimationPartEditorViewModel), nameof(ValidateColorValue))]
     public string Fill
@@ -175,7 +175,7 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     }
 
     /// <summary>
-    /// Gets or sets the color-picker value for the fill.
+    /// 获取或设置填充颜色的取色器值。
     /// </summary>
     public Color FillColor
     {
@@ -184,7 +184,7 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     }
 
     /// <summary>
-    /// Gets or sets the stroke color text.
+    /// 获取或设置描边颜色文本。
     /// </summary>
     [CustomValidation(typeof(FrontedAnimationPartEditorViewModel), nameof(ValidateColorValue))]
     public string Stroke
@@ -204,7 +204,7 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     }
 
     /// <summary>
-    /// Gets or sets the color-picker value for the stroke.
+    /// 获取或设置描边颜色的取色器值。
     /// </summary>
     public Color StrokeColor
     {
@@ -213,7 +213,7 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     }
 
     /// <summary>
-    /// Gets or sets the stroke thickness text.
+    /// 获取或设置描边粗细文本。
     /// </summary>
     [CustomValidation(typeof(FrontedAnimationPartEditorViewModel), nameof(ValidateNonNegativeNumberValue))]
     public string StrokeThicknessText
@@ -223,7 +223,7 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     }
 
     /// <summary>
-    /// Gets or sets the image resource path.
+    /// 获取或设置图片资源路径。
     /// </summary>
     [CustomValidation(typeof(FrontedAnimationPartEditorViewModel), nameof(ValidateResourcePathValue))]
     public string ImagePath
@@ -233,7 +233,7 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     }
 
     /// <summary>
-    /// Gets or sets the opacity text.
+    /// 获取或设置不透明度文本。
     /// </summary>
     [CustomValidation(typeof(FrontedAnimationPartEditorViewModel), nameof(ValidateOpacityValue))]
     public string OpacityText
@@ -243,7 +243,7 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     }
 
     /// <summary>
-    /// Gets or sets the initial WPF visibility name.
+    /// 获取或设置初始 WPF 可见性名称。
     /// </summary>
     public string Visibility
     {
@@ -252,7 +252,7 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     }
 
     /// <summary>
-    /// Gets or sets the layer-local z-index text.
+    /// 获取或设置层内 z-index 文本。
     /// </summary>
     [CustomValidation(typeof(FrontedAnimationPartEditorViewModel), nameof(ValidateIntegerValue))]
     public string ZIndexText
@@ -262,7 +262,7 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     }
 
     /// <summary>
-    /// Gets or sets whether the generated part participates in hit testing.
+    /// 获取或设置生成的部件是否参与命中测试。
     /// </summary>
     public bool IsHitTestVisible
     {
@@ -271,7 +271,7 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     }
 
     /// <summary>
-    /// Gets or sets the visual effect kind.
+    /// 获取或设置视觉效果类型。
     /// </summary>
     public FrontedVisualEffectKind EffectKind
     {
@@ -280,7 +280,7 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     }
 
     /// <summary>
-    /// Gets or sets the visual effect color text.
+    /// 获取或设置视觉效果颜色文本。
     /// </summary>
     [CustomValidation(typeof(FrontedAnimationPartEditorViewModel), nameof(ValidateColorValue))]
     public string EffectColor
@@ -300,7 +300,7 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     }
 
     /// <summary>
-    /// Gets or sets the color-picker value for the visual effect.
+    /// 获取或设置视觉效果的取色器值。
     /// </summary>
     public Color EffectPickerColor
     {
@@ -309,7 +309,7 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     }
 
     /// <summary>
-    /// Gets or sets the visual effect opacity text.
+    /// 获取或设置视觉效果不透明度文本。
     /// </summary>
     [CustomValidation(typeof(FrontedAnimationPartEditorViewModel), nameof(ValidateOpacityValue))]
     public string EffectOpacityText
@@ -319,7 +319,7 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     }
 
     /// <summary>
-    /// Gets or sets the visual effect blur radius text.
+    /// 获取或设置视觉效果模糊半径文本。
     /// </summary>
     [CustomValidation(typeof(FrontedAnimationPartEditorViewModel), nameof(ValidateNonNegativeNumberValue))]
     public string EffectBlurRadiusText
@@ -329,7 +329,7 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     }
 
     /// <summary>
-    /// Gets or sets the visual effect shadow depth text.
+    /// 获取或设置视觉效果阴影深度文本。
     /// </summary>
     [CustomValidation(typeof(FrontedAnimationPartEditorViewModel), nameof(ValidateNonNegativeNumberValue))]
     public string EffectShadowDepthText
@@ -339,7 +339,7 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     }
 
     /// <summary>
-    /// Gets or sets the visual effect direction text.
+    /// 获取或设置视觉效果方向文本。
     /// </summary>
     [CustomValidation(typeof(FrontedAnimationPartEditorViewModel), nameof(ValidateNumberValue))]
     public string EffectDirectionText
@@ -349,7 +349,7 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     }
 
     /// <summary>
-    /// Validates every editable text field.
+    /// 校验所有可编辑文本字段。
     /// </summary>
     public void ValidateAll()
     {
@@ -357,10 +357,10 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     }
 
     /// <summary>
-    /// Copies the validated editor values to a animation part configuration.
+    /// 将经过校验的编辑器值复制到动画部件配置。
     /// </summary>
-    /// <param name="target">Target animation part configuration.</param>
-    /// <exception cref="InvalidOperationException">Thrown when the editor contains validation errors.</exception>
+    /// <param name="target">目标动画部件配置。</param>
+    /// <exception cref="InvalidOperationException">编辑器存在校验错误时抛出。</exception>
     public void ApplyTo(FrontedAnimationPartConfig target)
     {
         ValidateAll();
@@ -442,11 +442,11 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     }
 
     /// <summary>
-    /// Validates a animation part name.
+    /// 校验动画部件名称。
     /// </summary>
-    /// <param name="value">Candidate name.</param>
-    /// <param name="context">Validation context.</param>
-    /// <returns>The validation result.</returns>
+    /// <param name="value">候选名称。</param>
+    /// <param name="context">校验上下文。</param>
+    /// <returns>校验结果。</returns>
     public static ValidationResult? ValidateNameValue(string value, ValidationContext context)
     {
         var editor = (FrontedAnimationPartEditorViewModel)context.ObjectInstance;
@@ -456,11 +456,11 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     }
 
     /// <summary>
-    /// Validates a pixel or percentage size expression.
+    /// 校验像素或百分比尺寸表达式。
     /// </summary>
-    /// <param name="value">Candidate expression.</param>
-    /// <param name="context">Validation context.</param>
-    /// <returns>The validation result.</returns>
+    /// <param name="value">候选表达式。</param>
+    /// <param name="context">校验上下文。</param>
+    /// <returns>校验结果。</returns>
     public static ValidationResult? ValidateSizeValue(string value, ValidationContext context)
     {
         if (string.IsNullOrWhiteSpace(value))
@@ -480,66 +480,66 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     }
 
     /// <summary>
-    /// Validates a finite number.
+    /// 校验有限数值。
     /// </summary>
-    /// <param name="value">Candidate number.</param>
-    /// <param name="context">Validation context.</param>
-    /// <returns>The validation result.</returns>
+    /// <param name="value">候选数值。</param>
+    /// <param name="context">校验上下文。</param>
+    /// <returns>校验结果。</returns>
     public static ValidationResult? ValidateNumberValue(string value, ValidationContext context) =>
         TryParseFiniteDouble(value, out _)
             ? ValidationResult.Success
             : new ValidationResult(I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.AnimationParts.Validation.Number"));
 
     /// <summary>
-    /// Validates a non-negative finite number.
+    /// 校验非负有限数值。
     /// </summary>
-    /// <param name="value">Candidate number.</param>
-    /// <param name="context">Validation context.</param>
-    /// <returns>The validation result.</returns>
+    /// <param name="value">候选数值。</param>
+    /// <param name="context">校验上下文。</param>
+    /// <returns>校验结果。</returns>
     public static ValidationResult? ValidateNonNegativeNumberValue(string value, ValidationContext context) =>
         TryParseFiniteDouble(value, out var number) && number >= 0D
             ? ValidationResult.Success
             : new ValidationResult(I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.AnimationParts.Validation.NonNegativeNumber"));
 
     /// <summary>
-    /// Validates an opacity value.
+    /// 校验不透明度值。
     /// </summary>
-    /// <param name="value">Candidate opacity.</param>
-    /// <param name="context">Validation context.</param>
-    /// <returns>The validation result.</returns>
+    /// <param name="value">候选不透明度。</param>
+    /// <param name="context">校验上下文。</param>
+    /// <returns>校验结果。</returns>
     public static ValidationResult? ValidateOpacityValue(string value, ValidationContext context) =>
         TryParseFiniteDouble(value, out var number) && number is >= 0D and <= 1D
             ? ValidationResult.Success
             : new ValidationResult(I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.AnimationParts.Validation.Opacity"));
 
     /// <summary>
-    /// Validates an integer value.
+    /// 校验整数值。
     /// </summary>
-    /// <param name="value">Candidate integer.</param>
-    /// <param name="context">Validation context.</param>
-    /// <returns>The validation result.</returns>
+    /// <param name="value">候选整数。</param>
+    /// <param name="context">校验上下文。</param>
+    /// <returns>校验结果。</returns>
     public static ValidationResult? ValidateIntegerValue(string value, ValidationContext context) =>
         int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out _)
             ? ValidationResult.Success
             : new ValidationResult(I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.AnimationParts.Validation.Integer"));
 
     /// <summary>
-    /// Validates an optional WPF color.
+    /// 校验可选的 WPF 颜色。
     /// </summary>
-    /// <param name="value">Candidate color.</param>
-    /// <param name="context">Validation context.</param>
-    /// <returns>The validation result.</returns>
+    /// <param name="value">候选颜色。</param>
+    /// <param name="context">校验上下文。</param>
+    /// <returns>校验结果。</returns>
     public static ValidationResult? ValidateColorValue(string value, ValidationContext context) =>
         string.IsNullOrWhiteSpace(value) || FrontedPropertyColorHelper.TryParseArgbColor(value, out _)
             ? ValidationResult.Success
             : new ValidationResult(I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.AnimationParts.Validation.Color"));
 
     /// <summary>
-    /// Validates a layout-package resource path.
+    /// 校验布局包资源路径。
     /// </summary>
-    /// <param name="value">Candidate resource path.</param>
-    /// <param name="context">Validation context.</param>
-    /// <returns>The validation result.</returns>
+    /// <param name="value">候选资源路径。</param>
+    /// <param name="context">校验上下文。</param>
+    /// <returns>校验结果。</returns>
     public static ValidationResult? ValidateResourcePathValue(string value, ValidationContext context) =>
         value.Length <= FrontedLayoutLimits.MaxResourcePathLength
             ? ValidationResult.Success

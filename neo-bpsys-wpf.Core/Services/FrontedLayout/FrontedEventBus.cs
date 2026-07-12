@@ -7,9 +7,9 @@ using System.Collections.Concurrent;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Thread-safe semantic event bus for fronted behavior events.
-/// Supports both typed and wildcard (null) subscriptions.
-/// Handler exceptions are caught and logged; they never crash the publisher.
+/// 前台行为事件的线程安全语义事件总线。
+/// 支持类型化和通配符（null）订阅。
+/// 处理程序异常会被捕获并记录；它们不会导致发布者崩溃。
 /// </summary>
 public sealed class FrontedEventBus : IFrontedEventBus, IDisposable
 {
@@ -19,7 +19,7 @@ public sealed class FrontedEventBus : IFrontedEventBus, IDisposable
     private bool _disposed;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="FrontedEventBus" />.
+    /// 初始化 <see cref="FrontedEventBus" /> 的新实例。
     /// </summary>
     public FrontedEventBus(ILogger<FrontedEventBus>? logger = null)
     {
@@ -162,7 +162,7 @@ public sealed class FrontedEventBus : IFrontedEventBus, IDisposable
     }
 
     /// <summary>
-    /// Disposes all subscriptions. No further events will be delivered.
+    /// 释放所有订阅。不再传递任何事件。
     /// </summary>
     public void Dispose()
     {
@@ -188,7 +188,7 @@ public sealed class FrontedEventBus : IFrontedEventBus, IDisposable
         private bool _disposed;
 
         /// <summary>
-        /// Removes this subscription from the event bus.
+        /// 从事件总线中移除此订阅。
         /// </summary>
         public void Dispose()
         {

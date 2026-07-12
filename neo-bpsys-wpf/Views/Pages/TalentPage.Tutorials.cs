@@ -6,23 +6,23 @@ namespace neo_bpsys_wpf.Views.Pages;
 
 public partial class TalentPage : ITutorialOwner<TalentPage>
 {
-    /// <summary>Talent and trait page tutorial key.</summary>
+    /// <summary>天赋与特质页面教程 Key。</summary>
     public const string TutorialPageKey = "Page.Bp.TalentTrait";
 
     /// <inheritdoc />
     public static string TutorialKey => TutorialPageKey;
 
-    /// <summary>Talent and trait tutorial package references.</summary>
+    /// <summary>天赋与特质教程包引用。</summary>
     public static class Tours
     {
-        /// <summary>Talent and trait basic package reference.</summary>
+        /// <summary>天赋与特质基础包引用。</summary>
         public static readonly TutorialPackageRef Basic = new(TutorialPackageIds.BpTalentTraitBasic);
     }
 
     /// <summary>
-    /// Registers tutorials owned by the talent and trait page.
+    /// 注册天赋与特质页面所拥有的教程。
     /// </summary>
-    /// <param name="builder">Tutorial builder.</param>
+    /// <param name="builder">教程构建器。</param>
     public static void RegisterTutorials(ITutorialBuilder builder)
     {
         builder.ForPage<TalentPage>()

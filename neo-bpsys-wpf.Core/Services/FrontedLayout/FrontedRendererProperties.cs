@@ -112,7 +112,7 @@ public static class FrontedRendererProperties
     }
 
     /// <summary>
-    /// Marks the element that represents the primary visual content of a generated control.
+    /// 标记表示生成控件主要视觉内容的元素。
     /// </summary>
     public static readonly DependencyProperty IsPrimaryContentElementProperty =
         DependencyProperty.RegisterAttached(
@@ -122,27 +122,27 @@ public static class FrontedRendererProperties
             new PropertyMetadata(false));
 
     /// <summary>
-    /// Gets whether the element represents the primary visual content of a generated control.
+    /// 获取元素是否表示生成控件的主要视觉内容。
     /// </summary>
-    /// <param name="element">The element to read.</param>
-    /// <returns><c>true</c> when the element is the primary content element; otherwise <c>false</c>.</returns>
+    /// <param name="element">要读取的元素。</param>
+    /// <returns>当元素是主要内容元素时为 <c>true</c>;否则为 <c>false</c>。</returns>
     public static bool GetIsPrimaryContentElement(DependencyObject element)
     {
         return (bool)element.GetValue(IsPrimaryContentElementProperty);
     }
 
     /// <summary>
-    /// Sets whether the element represents the primary visual content of a generated control.
+    /// 设置元素是否表示生成控件的主要视觉内容。
     /// </summary>
-    /// <param name="element">The element to update.</param>
-    /// <param name="value">Whether the element is the primary content element.</param>
+    /// <param name="element">要更新的元素。</param>
+    /// <param name="value">元素是否是主要内容元素。</param>
     public static void SetIsPrimaryContentElement(DependencyObject element, bool value)
     {
         element.SetValue(IsPrimaryContentElementProperty, value);
     }
 
     /// <summary>
-    /// Identifies the behavior GUID of the generated control that owns an animation part.
+    /// 标识拥有动画部分的生成控件的行为 GUID。
     /// </summary>
     public static readonly DependencyProperty ParentBehaviorGuidProperty =
         DependencyProperty.RegisterAttached(
@@ -152,27 +152,27 @@ public static class FrontedRendererProperties
             new PropertyMetadata(Guid.Empty));
 
     /// <summary>
-    /// Gets the behavior GUID of the generated control that owns an animation part.
+    /// 获取拥有动画部分的生成控件的行为 GUID。
     /// </summary>
-    /// <param name="element">The element to read.</param>
-    /// <returns>The owning control behavior GUID.</returns>
+    /// <param name="element">要读取的元素。</param>
+    /// <returns>所属控件的行为 GUID。</returns>
     public static Guid GetParentBehaviorGuid(DependencyObject element)
     {
         return (Guid)element.GetValue(ParentBehaviorGuidProperty);
     }
 
     /// <summary>
-    /// Sets the behavior GUID of the generated control that owns an animation part.
+    /// 设置拥有动画部分的生成控件的行为 GUID。
     /// </summary>
-    /// <param name="element">The element to update.</param>
-    /// <param name="value">The owning control behavior GUID.</param>
+    /// <param name="element">要更新的元素。</param>
+    /// <param name="value">所属控件的行为 GUID。</param>
     public static void SetParentBehaviorGuid(DependencyObject element, Guid value)
     {
         element.SetValue(ParentBehaviorGuidProperty, value);
     }
 
     /// <summary>
-    /// Identifies the registered name of the generated control that owns an animation part.
+    /// 标识拥有动画部分的生成控件的已注册名称。
     /// </summary>
     public static readonly DependencyProperty ParentRegisteredNameProperty =
         DependencyProperty.RegisterAttached(
@@ -182,27 +182,27 @@ public static class FrontedRendererProperties
             new PropertyMetadata(string.Empty));
 
     /// <summary>
-    /// Gets the registered name of the generated control that owns an animation part.
+    /// 获取拥有动画部分的生成控件的已注册名称。
     /// </summary>
-    /// <param name="element">The element to read.</param>
-    /// <returns>The owning control registered name.</returns>
+    /// <param name="element">要读取的元素。</param>
+    /// <returns>所属控件的已注册名称。</returns>
     public static string GetParentRegisteredName(DependencyObject element)
     {
         return (string)element.GetValue(ParentRegisteredNameProperty);
     }
 
     /// <summary>
-    /// Sets the registered name of the generated control that owns an animation part.
+    /// 设置拥有动画部分的生成控件的已注册名称。
     /// </summary>
-    /// <param name="element">The element to update.</param>
-    /// <param name="value">The owning control registered name.</param>
+    /// <param name="element">要更新的元素。</param>
+    /// <param name="value">所属控件的已注册名称。</param>
     public static void SetParentRegisteredName(DependencyObject element, string value)
     {
         element.SetValue(ParentRegisteredNameProperty, value);
     }
 
     /// <summary>
-    /// Identifies the stable animation part name of a generated auxiliary element.
+    /// 标识生成辅助元素的稳定动画部分名称。
     /// </summary>
     public static readonly DependencyProperty AnimationPartNameProperty =
         DependencyProperty.RegisterAttached(
@@ -212,27 +212,27 @@ public static class FrontedRendererProperties
             new PropertyMetadata(string.Empty));
 
     /// <summary>
-    /// Gets the stable animation part name of a generated auxiliary element.
+    /// 获取生成辅助元素的稳定动画部分名称。
     /// </summary>
-    /// <param name="element">The element to read.</param>
-    /// <returns>The stable animation part name.</returns>
+    /// <param name="element">要读取的元素。</param>
+    /// <returns>稳定的动画部分名称。</returns>
     public static string GetAnimationPartName(DependencyObject element)
     {
         return (string)element.GetValue(AnimationPartNameProperty);
     }
 
     /// <summary>
-    /// Sets the stable animation part name of a generated auxiliary element.
+    /// 设置生成辅助元素的稳定动画部分名称。
     /// </summary>
-    /// <param name="element">The element to update.</param>
-    /// <param name="value">The stable animation part name.</param>
+    /// <param name="element">要更新的元素。</param>
+    /// <param name="value">稳定的动画部分名称。</param>
     public static void SetAnimationPartName(DependencyObject element, string value)
     {
         element.SetValue(AnimationPartNameProperty, value);
     }
 
     /// <summary>
-    /// Identifies the parent control used to resolve percentage sizes and offsets for a generated part.
+    /// 标识用于解析生成部分的百分比尺寸和偏移的父控件。
     /// </summary>
     public static readonly DependencyProperty AnimationPartParentProperty =
         DependencyProperty.RegisterAttached(
@@ -242,20 +242,20 @@ public static class FrontedRendererProperties
             new PropertyMetadata(null));
 
     /// <summary>
-    /// Gets the parent control used by a generated animation part.
+    /// 获取生成动画部分所使用的父控件。
     /// </summary>
-    /// <param name="element">The element to read.</param>
-    /// <returns>The owning control root, or <c>null</c>.</returns>
+    /// <param name="element">要读取的元素。</param>
+    /// <returns>所属控件根,或 <c>null</c>。</returns>
     public static FrameworkElement? GetAnimationPartParent(DependencyObject element)
     {
         return (FrameworkElement?)element.GetValue(AnimationPartParentProperty);
     }
 
     /// <summary>
-    /// Sets the parent control used by a generated animation part.
+    /// 设置生成动画部分所使用的父控件。
     /// </summary>
-    /// <param name="element">The element to update.</param>
-    /// <param name="value">The owning control root.</param>
+    /// <param name="element">要更新的元素。</param>
+    /// <param name="value">所属控件根。</param>
     public static void SetAnimationPartParent(DependencyObject element, FrameworkElement? value)
     {
         element.SetValue(AnimationPartParentProperty, value);

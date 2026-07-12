@@ -42,18 +42,18 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     /// 为已有图模型初始化新的节点图编辑器。
     /// </summary>
     /// <param name="graph">正在编辑的图模型。</param>
-    /// <param name="catalog">Optional node catalog override.</param>
-    /// <param name="validator">Optional graph validator override.</param>
-    /// <param name="runtime">Optional graph runtime override.</param>
-    /// <param name="animationRuntime">Optional animation runtime for preview actions.</param>
-    /// <param name="createAnimationContext">Factory for animation preview context.</param>
-    /// <param name="markDirty">Callback invoked when the graph changes.</param>
-    /// <param name="localize">Localization callback.</param>
-    /// <param name="save">Synchronous save fallback.</param>
-    /// <param name="saveAsync">Asynchronous save callback.</param>
-    /// <param name="captureUndoSnapshot">捕获父级 Designer 撤销快照的回调。</param>
+    /// <param name="catalog">可选的节点目录覆盖。</param>
+    /// <param name="validator">可选的图校验器覆盖。</param>
+    /// <param name="runtime">可选的图运行时覆盖。</param>
+    /// <param name="animationRuntime">预览操作使用的可选动画运行时。</param>
+    /// <param name="createAnimationContext">动画预览上下文工厂。</param>
+    /// <param name="markDirty">图变化时调用的回调。</param>
+    /// <param name="localize">本地化回调。</param>
+    /// <param name="save">同步保存兜底。</param>
+    /// <param name="saveAsync">异步保存回调。</param>
+    /// <param name="captureUndoSnapshot">捕获父级设计器撤销快照的回调。</param>
     /// <param name="targetOptions">动作节点可用的动画目标选项。</param>
-    /// <param name="conditionFieldOptions">Condition field options available to branch nodes.</param>
+    /// <param name="conditionFieldOptions">分支节点可用的条件字段选项。</param>
     public FrontedNodeGraphEditorViewModel(
         FrontedNodeGraph graph,
         FrontedNodeCatalog? catalog = null,
@@ -504,7 +504,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     /// <summary>
     /// 通过更新可视选中标记预览框选结果，但不提交到 <see cref="SelectedNodes"/>。
     /// </summary>
-    /// <param name="selectionRect">Selection rectangle in graph canvas coordinates.</param>
+    /// <param name="selectionRect">图画布坐标系中的选择矩形。</param>
     public void UpdateSelectionPreview(Rect selectionRect)
     {
         ClearIsSelected();
@@ -521,7 +521,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     /// <summary>
     /// 选中与选择矩形相交的所有节点。
     /// </summary>
-    /// <param name="selectionRect">Selection rectangle in graph canvas coordinates.</param>
+    /// <param name="selectionRect">图画布坐标系中的选择矩形。</param>
     public void SelectNodes(Rect selectionRect)
     {
         ClearIsSelected();
@@ -573,8 +573,8 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     /// 移动节点；当被移动节点处于选中状态时移动整个多选集合。
     /// </summary>
     /// <param name="node">正在拖拽的节点。</param>
-    /// <param name="x">New X coordinate for the dragged node.</param>
-    /// <param name="y">New Y coordinate for the dragged node.</param>
+    /// <param name="x">拖拽节点的新 X 坐标。</param>
+    /// <param name="y">拖拽节点的新 Y 坐标。</param>
     public void MoveNode(FrontedNodeEditorViewModel node, double x, double y)
     {
         var dx = x - node.X;
@@ -971,7 +971,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     /// <summary>
     /// 并行节点分支数变化后重建该节点，并移除指向已删除分支端口的连接。
     /// </summary>
-    /// <param name="node">Parallel node model that changed.</param>
+    /// <param name="node">发生变化的并行节点模型。</param>
     private void RefreshParallelNode(FrontedNode node)
     {
         var branchCount = FrontedParallelNodePorts.GetBranchCount(node);
@@ -2282,7 +2282,7 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableValid
     /// <summary>
     /// 根据图属性元数据校验 NumberBox 值。
     /// </summary>
-    /// <param name="value">Candidate numeric value.</param>
+    /// <param name="value">候选数值。</param>
     /// <param name="context">包含属性编辑器的校验上下文。</param>
     /// <returns>校验结果。</returns>
     public static ValidationResult? ValidateNumberBoxValue(double? value, ValidationContext context)
@@ -2328,13 +2328,13 @@ public sealed record FrontedNodeTargetOptionViewModel(string Value, string Displ
 /// <summary>
 /// 上下文感知图条件编辑器可用的事件 payload 字段。
 /// </summary>
-/// <param name="ValuePath">Stable condition path persisted in the graph.</param>
-/// <param name="DisplayText">User-facing localized field label plus stable path.</param>
-/// <param name="Description">Localized field description.</param>
-/// <param name="TypeName">Payload value type name.</param>
-/// <param name="EnumValues">Stable enum names accepted by the field.</param>
-/// <param name="EventType">Event type that contributes the field, when useful for disambiguation.</param>
-/// <param name="LocalizedDisplayName">Localized field label without the stable path.</param>
+/// <param name="ValuePath">图中持久化的稳定条件路径。</param>
+/// <param name="DisplayText">面向用户的本地化字段标签加稳定路径。</param>
+/// <param name="Description">本地化字段描述。</param>
+/// <param name="TypeName">负载值类型名称。</param>
+/// <param name="EnumValues">字段接受的稳定枚举名称。</param>
+/// <param name="EventType">贡献该字段的事件类型（用于消歧）。</param>
+/// <param name="LocalizedDisplayName">不含稳定路径的本地化字段标签。</param>
 public sealed record FrontedGraphConditionFieldOptionViewModel(
     string ValuePath,
     string DisplayText,

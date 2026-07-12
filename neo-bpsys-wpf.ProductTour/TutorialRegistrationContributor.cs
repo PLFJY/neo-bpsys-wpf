@@ -5,37 +5,37 @@ using Microsoft.Extensions.Logging;
 namespace neo_bpsys_wpf.ProductTour;
 
 /// <summary>
-/// Runtime contributor that registers tutorials owned by a dynamically loaded assembly.
+/// 注册由动态加载程序集拥有的教程的运行时贡献者。
 /// </summary>
 public interface ITutorialRegistrationContributor
 {
-    /// <summary>Gets the stable registration id used for idempotent registration.</summary>
+    /// <summary>获取用于幂等注册的稳定注册 id。</summary>
     string RegistrationId { get; }
 
     /// <summary>
-    /// Registers tutorials owned by this contributor using the supplied builder.
+    /// 使用提供的构建器注册该贡献者拥有的教程。
     /// </summary>
-    /// <param name="builder">Tutorial builder.</param>
+    /// <param name="builder">教程构建器。</param>
     void RegisterTutorials(ITutorialBuilder builder);
 }
 
 /// <summary>
-/// Host-side service that accepts runtime tutorial registrations from dynamically loaded contributors.
+/// 宿主侧服务，接受来自动态加载贡献者的运行时教程注册。
 /// </summary>
 public interface ITutorialRegistrationService
 {
     /// <summary>
-    /// Registers a contributor's tutorials. Idempotent by <see cref="ITutorialRegistrationContributor.RegistrationId"/>.
+    /// 注册贡献者的教程。通过 <see cref="ITutorialRegistrationContributor.RegistrationId"/> 保证幂等。
     /// </summary>
-    /// <param name="contributor">Contributor to register.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="contributor"/> is <see langword="null"/>.</exception>
-    /// <exception cref="ArgumentException"><paramref name="contributor.RegistrationId"/> is empty.</exception>
-    /// <exception cref="InvalidOperationException">A different contributor already registered a duplicate PackageId.</exception>
+    /// <param name="contributor">要注册的贡献者。</param>
+    /// <exception cref="ArgumentNullException"><paramref name="contributor"/> 为 <see langword="null"/>。</exception>
+    /// <exception cref="ArgumentException"><paramref name="contributor.RegistrationId"/> 为空。</exception>
+    /// <exception cref="InvalidOperationException">不同的贡献者已注册了重复的 PackageId。</exception>
     void RegisterContributor(ITutorialRegistrationContributor contributor);
 }
 
 /// <summary>
-/// Default implementation of <see cref="ITutorialRegistrationService"/>.
+/// <see cref="ITutorialRegistrationService"/> 的默认实现。
 /// </summary>
 public sealed class TutorialRegistrationService : ITutorialRegistrationService
 {
@@ -48,12 +48,12 @@ public sealed class TutorialRegistrationService : ITutorialRegistrationService
     private readonly object _syncRoot = new();
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="TutorialRegistrationService"/> class.
+    /// 初始化 <see cref="TutorialRegistrationService"/> 类的新实例。
     /// </summary>
-    /// <param name="packageRegistry">Package registry.</param>
-    /// <param name="sequenceRegistry">Sequence registry.</param>
-    /// <param name="flowRegistry">Flow registry.</param>
-    /// <param name="logger">Logger.</param>
+    /// <param name="packageRegistry">包注册表。</param>
+    /// <param name="sequenceRegistry">序列注册表。</param>
+    /// <param name="flowRegistry">流程注册表。</param>
+    /// <param name="logger">日志记录器。</param>
     public TutorialRegistrationService(
         ITutorialPackageRegistry packageRegistry,
         ITutorialSequenceRegistry sequenceRegistry,

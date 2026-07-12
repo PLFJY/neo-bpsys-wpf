@@ -1,51 +1,51 @@
 namespace neo_bpsys_wpf.ProductTour;
 
 /// <summary>
-/// Describes one language option shown by tutorial onboarding UI.
+/// 描述教程新手引导 UI 中显示的一个语言选项。
 /// </summary>
 public sealed class TutorialLanguageOption
 {
-    /// <summary>Gets the stable language option id.</summary>
+    /// <summary>获取稳定的语言选项 id。</summary>
     public required string Id { get; init; }
 
-    /// <summary>Gets the display name.</summary>
+    /// <summary>获取显示名称。</summary>
     public required string DisplayName { get; init; }
 
-    /// <summary>Gets the native language name, when available.</summary>
+    /// <summary>获取该语言的原生名称（如有）。</summary>
     public string? NativeName { get; init; }
 
-    /// <summary>Gets a value indicating whether this option follows the system language.</summary>
+    /// <summary>获取一个值，指示该选项是否跟随系统语言。</summary>
     public bool IsSystemDefault { get; init; }
 
-    /// <summary>Gets a value indicating whether this option is currently selected.</summary>
+    /// <summary>获取一个值，指示该选项当前是否被选中。</summary>
     public bool IsSelected { get; init; }
 }
 
 /// <summary>
-/// Applies the language selected from a tutorial welcome overlay.
+/// 应用从教程欢迎遮罩中选择的语言。
 /// </summary>
 public interface ITutorialLanguageService
 {
-    /// <summary>Gets language options that can be selected from the tutorial welcome overlay.</summary>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Available language options.</returns>
+    /// <summary>获取可从教程欢迎遮罩中选择的语言选项。</summary>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>可用的语言选项。</returns>
     Task<IReadOnlyList<TutorialLanguageOption>> GetLanguageOptionsAsync(CancellationToken cancellationToken = default);
 
-    /// <summary>Applies and persists the selected language.</summary>
-    /// <param name="languageOptionId">Language option id.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <summary>应用并持久化所选语言。</summary>
+    /// <param name="languageOptionId">语言选项 id。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
     Task ApplyLanguageAsync(string languageOptionId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Occurs when the tutorial language has changed, either through
-    /// <see cref="ApplyLanguageAsync"/> or from an external source (e.g. settings page).
-    /// Overlays subscribe to this event to hot-refresh displayed text.
+    /// 当教程语言发生更改时发生，更改可能来自
+    /// <see cref="ApplyLanguageAsync"/> 或外部来源（如设置页）。
+    /// 遮罩订阅此事件以热刷新所显示的文本。
     /// </summary>
     event EventHandler? LanguageChanged;
 }
 
 /// <summary>
-/// No-op tutorial language service.
+/// 空实现的教程语言服务。
 /// </summary>
 public sealed class NoOpTutorialLanguageService : ITutorialLanguageService
 {

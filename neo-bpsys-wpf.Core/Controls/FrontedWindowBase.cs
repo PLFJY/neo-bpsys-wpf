@@ -38,17 +38,17 @@ public class FrontedWindowBase : Window
     private bool _isInternalContentChange = false;
 
     /// <summary>
-    /// Gets whether the v3 content controls have been rendered at least once.
+    /// 获取 v3 内容控件是否已至少渲染过一次。
     /// </summary>
     public bool IsContentRendered { get; private set; }
 
     /// <summary>
-    /// Gets whether the loaded v3 layout should be re-rendered before reuse.
+    /// 获取已加载的 v3 布局在复用前是否需要重新渲染。
     /// </summary>
     public bool IsLayoutDirty { get; private set; }
 
     /// <summary>
-    /// Gets whether the behavior runtime is currently attached to this window.
+    /// 获取行为运行时是否已附加到此窗口。
     /// </summary>
     public bool IsBehaviorAttached { get; private set; }
 
@@ -125,16 +125,16 @@ public class FrontedWindowBase : Window
     }
 
     /// <summary>
-    /// Initializes this window as a configuration-driven v3 layout host.
+    /// 将此窗口初始化为由配置驱动的 v3 布局宿主。
     /// </summary>
-    /// <param name="descriptor">The fronted window descriptor.</param>
-    /// <param name="layoutService">The layout service.</param>
-    /// <param name="renderer">The fronted renderer.</param>
-    /// <param name="sharedDataService">The shared data service.</param>
-    /// <param name="behaviorRuntime">The optional behavior runtime.</param>
-    /// <param name="logger">The optional logger.</param>
-    /// <param name="settingsHostService">The optional settings host service used to refresh localized window titles.</param>
-    /// <exception cref="ArgumentNullException">Thrown when a required argument is null.</exception>
+    /// <param name="descriptor">前台窗口描述符。</param>
+    /// <param name="layoutService">布局服务。</param>
+    /// <param name="renderer">前台渲染器。</param>
+    /// <param name="sharedDataService">共享数据服务。</param>
+    /// <param name="behaviorRuntime">可选的行为运行时。</param>
+    /// <param name="logger">可选的日志记录器。</param>
+    /// <param name="settingsHostService">可选的设置宿主服务，用于刷新本地化的窗口标题。</param>
+    /// <exception cref="ArgumentNullException">当必选参数为 null 时抛出。</exception>
     public void InitializeV3LayoutHost(
         IFrontedWindowDescriptor descriptor,
         IFrontedLayoutService layoutService,
@@ -187,9 +187,9 @@ public class FrontedWindowBase : Window
     }
 
     /// <summary>
-    /// Reloads the window-centric v3 layout and behavior runtime.
+    /// 重新加载以窗口为中心的 v3 布局和行为运行时。
     /// </summary>
-    /// <returns>A task that completes when the layout has reloaded.</returns>
+    /// <returns>布局重新加载完成后完成的任务。</returns>
     public async Task ReloadFrontedLayoutAsync()
     {
         await ReloadWindowSettingsAsync();
@@ -197,9 +197,9 @@ public class FrontedWindowBase : Window
     }
 
     /// <summary>
-    /// Gets the transparency value requested by the currently active v3 layout.
+    /// 获取当前活动 v3 布局所请求的透明度值。
     /// </summary>
-    /// <returns>The requested transparency value, or <c>null</c> when no v3 layout is available.</returns>
+    /// <returns>请求的透明度值；当没有可用的 v3 布局时返回 <c>null</c>。</returns>
     public async Task<bool?> GetRequestedAllowsTransparencyAsync()
     {
         if (!_isV3LayoutHost || _v3Descriptor is null || _layoutService is null)
@@ -212,9 +212,9 @@ public class FrontedWindowBase : Window
     }
 
     /// <summary>
-    /// Reloads window settings that can safely change after WPF source creation.
+    /// 重新加载在 WPF 源创建后可安全更改的窗口设置。
     /// </summary>
-    /// <returns>A task that completes when the settings have been applied.</returns>
+    /// <returns>设置应用完成后完成的任务。</returns>
     public async Task ReloadWindowSettingsAsync()
     {
         if (!_isV3LayoutHost || _v3Descriptor is null || _layoutService is null)
@@ -236,9 +236,9 @@ public class FrontedWindowBase : Window
     }
 
     /// <summary>
-    /// Applies only the v3 window settings required before a WPF source is created.
+    /// 仅应用在 WPF 源创建前所需的 v3 窗口设置。
     /// </summary>
-    /// <returns>A task that completes when the initial window settings are applied.</returns>
+    /// <returns>初始窗口设置应用完成后完成的任务。</returns>
     public async Task EnsureInitialWindowSettingsAppliedAsync()
     {
         if (!_isV3LayoutHost
@@ -277,10 +277,10 @@ public class FrontedWindowBase : Window
     }
 
     /// <summary>
-    /// Loads and renders the v3 layout content, or reuses rendered controls when they are still clean.
+    /// 加载并渲染 v3 布局内容，或在已渲染控件仍然可用时复用它们。
     /// </summary>
-    /// <param name="force">Whether to force a full reload even when the rendered content is clean.</param>
-    /// <returns>A task that completes when content is rendered or reused.</returns>
+    /// <param name="force">是否强制完整重新加载，即使已渲染内容仍然可用。</param>
+    /// <returns>内容渲染或复用完成后完成的任务。</returns>
     public async Task LoadOrReloadContentAsync(bool force = false)
     {
         if (!_isV3LayoutHost
@@ -346,7 +346,7 @@ public class FrontedWindowBase : Window
     }
 
     /// <summary>
-    /// Marks the rendered v3 layout content dirty so the next load refreshes controls.
+    /// 将已渲染的 v3 布局内容标记为脏，以便下次加载时刷新控件。
     /// </summary>
     public void MarkLayoutDirty()
     {
@@ -354,7 +354,7 @@ public class FrontedWindowBase : Window
     }
 
     /// <summary>
-    /// Requests a real close from the owning window service, bypassing the normal close-to-hide behavior.
+    /// 请求所属窗口服务执行真正的关闭，绕过正常的关闭即隐藏行为。
     /// </summary>
     public void RequestServiceClose()
     {
@@ -363,9 +363,9 @@ public class FrontedWindowBase : Window
     }
 
     /// <summary>
-    /// Attaches the behavior runtime to already rendered v3 content.
+    /// 将行为运行时附加到已渲染的 v3 内容。
     /// </summary>
-    /// <returns>A task that completes when the behavior runtime is attached.</returns>
+    /// <returns>行为运行时附加完成后完成的任务。</returns>
     public async Task AttachBehaviorRuntimeAsync()
     {
         if (!_isV3LayoutHost

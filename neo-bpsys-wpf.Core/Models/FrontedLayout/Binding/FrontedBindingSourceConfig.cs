@@ -4,14 +4,14 @@ using System.Runtime.CompilerServices;
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
 
 /// <summary>
-/// One ordered source in a text binding expression.
+/// 文本绑定表达式中的一个有序源。
 /// </summary>
 public sealed class FrontedBindingSourceConfig : INotifyPropertyChanged
 {
     private string _path = string.Empty;
 
     /// <summary>
-    /// Binding path relative to <see cref="Abstractions.Services.ISharedDataService"/>.
+    /// 相对于 <see cref="Abstractions.Services.ISharedDataService"/> 的绑定路径。
     /// </summary>
     public string Path
     {
@@ -27,12 +27,12 @@ public sealed class FrontedBindingSourceConfig : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Optional designer-only display name.
+    /// 可选的、仅供设计器使用的显示名称。
     /// </summary>
     public string? DisplayName { get; set; }
 
     /// <summary>
-    /// Reserved per-source format.
+    /// 保留的按源格式。
     /// </summary>
     public string? Format { get; set; }
 

@@ -20,7 +20,7 @@ namespace neo_bpsys_wpf.Tests.Services;
 public class GameGuidanceEventPayloadTest
 {
     /// <summary>
-    /// Verifies stable bracketed index text for step and highlight event payloads.
+    /// 验证 step 与 highlight 事件负载的稳定括号索引文本。
     /// </summary>
     [Fact]
     public void IndexesText_UsesStableBracketedFormatting()
@@ -33,7 +33,7 @@ public class GameGuidanceEventPayloadTest
     }
 
     /// <summary>
-    /// Verifies step changed args can be constructed without localized action display names.
+    /// 验证 step changed 参数可以在不带本地化动作显示名的情况下构造。
     /// </summary>
     [Fact]
     public void StepChangedArgs_DoNotExposeLocalizedActionNames()
@@ -57,7 +57,7 @@ public class GameGuidanceEventPayloadTest
     }
 
     /// <summary>
-    /// Verifies the first guidance step does not report a previous step.
+    /// 验证首个引导步骤不会上报前一个步骤。
     /// </summary>
     [Fact]
     public async Task NextStepAsync_FirstStep_HasNoPreviousStep()
@@ -80,7 +80,7 @@ public class GameGuidanceEventPayloadTest
     }
 
     /// <summary>
-    /// Verifies moving forward reports the step that was active before navigation.
+    /// 验证向前导航时会上报导航前处于活动状态的步骤。
     /// </summary>
     [Fact]
     public async Task NextStepAsync_ReportsPreviousStep()
@@ -106,7 +106,7 @@ public class GameGuidanceEventPayloadTest
     }
 
     /// <summary>
-    /// Verifies moving backward reports the step that was active before navigation.
+    /// 验证向后导航时会上报导航前处于活动状态的步骤。
     /// </summary>
     [Fact]
     public async Task PrevStepAsync_ReportsStepBeforeMovingBackward()
@@ -133,7 +133,7 @@ public class GameGuidanceEventPayloadTest
     }
 
     /// <summary>
-    /// Verifies authoritative step events are published before backend highlight messages.
+    /// 验证权威步骤事件先于后台高亮消息发布。
     /// </summary>
     [Fact]
     public async Task MoveToStepAsync_PublishesStepChangedBeforeHighlightMessage()
@@ -169,7 +169,7 @@ public class GameGuidanceEventPayloadTest
     }
 
     /// <summary>
-    /// Verifies a failed authoritative step event does not leave backend highlight ahead of it.
+    /// 验证失败的权威步骤事件不会让后台高亮超前于它。
     /// </summary>
     [Fact]
     public async Task MoveToStepAsync_WhenStepChangedThrows_DoesNotSendHighlightMessage()

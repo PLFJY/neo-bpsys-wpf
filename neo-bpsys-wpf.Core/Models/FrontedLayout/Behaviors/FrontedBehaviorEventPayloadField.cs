@@ -41,7 +41,7 @@ public sealed class FrontedBehaviorEventPayloadField
     public bool IsCommonFilterTarget { get; set; }
 
     /// <summary>
-    /// Gets or sets the stable enum names accepted by this payload field.
+    /// 获取或设置此负载字段接受的稳定枚举名称列表。
     /// </summary>
     public List<string> EnumValues { get; set; } = [];
 }

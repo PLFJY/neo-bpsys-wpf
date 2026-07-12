@@ -26,7 +26,7 @@ public class LocalizedTextControlConfig : FrontedControlConfigBase, IFrontedText
     public string? FallbackText { get; set; }
 
     /// <summary>
-    /// Ordered multi-source binding whose result is resolved as a localization key when possible.
+    /// 有序多源绑定，其结果在可能时解析为本地化键。
     /// </summary>
     public FrontedTextBindingExpression? TextBinding { get; set; }
 

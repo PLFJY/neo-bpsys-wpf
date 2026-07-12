@@ -33,7 +33,7 @@ public class FrontedControlBuildContext
     public required string CanvasName { get; init; }
 
     /// <summary>
-    /// Effective Canvas background image after runtime state resolution.
+    /// 经过运行时状态解析后生效的画布背景图片。
     /// </summary>
     public string? CanvasBackgroundImage { get; init; }
 
@@ -48,7 +48,7 @@ public class FrontedControlBuildContext
     public double CanvasHeight { get; init; }
 
     /// <summary>
-    /// Whether the control is being built for the Designer preview.
+    /// 指示控件是否为设计器预览而构建。
     /// </summary>
     public bool IsDesignerPreview { get; init; }
 

@@ -3,136 +3,136 @@ using System.Text.Json.Serialization;
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
 
 /// <summary>
-/// Describes a generated visual part rendered inside a fronted control.
+/// 描述在前台控件内部渲染的生成可视化部件。
 /// </summary>
 public sealed class FrontedAnimationPartConfig
 {
     /// <summary>
-    /// Gets or sets the stable user-defined animation part name.
+    /// 获取或设置稳定的用户自定义动画部件名称。
     /// </summary>
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the generated element kind.
+    /// 获取或设置生成的元素类型。
     /// </summary>
     public FrontedAnimationPartKind Kind { get; set; } = FrontedAnimationPartKind.Rectangle;
 
     /// <summary>
-    /// Gets or sets whether the part is rendered below or above the main content.
+    /// 获取或设置部件是渲染在主内容下方还是上方。
     /// </summary>
     public FrontedAnimationPartLayer Layer { get; set; } = FrontedAnimationPartLayer.AboveContent;
 
     /// <summary>
-    /// Gets or sets the fixed width in pixels.
+    /// 获取或设置固定宽度（像素）。
     /// </summary>
     public double? Width { get; set; }
 
     /// <summary>
-    /// Gets or sets the fixed height in pixels.
+    /// 获取或设置固定高度（像素）。
     /// </summary>
     public double? Height { get; set; }
 
     /// <summary>
-    /// Gets or sets an optional width expression such as <c>100%</c>.
+    /// 获取或设置可选的宽度表达式，例如 <c>100%</c>。
     /// </summary>
     public string? WidthText { get; set; }
 
     /// <summary>
-    /// Gets or sets an optional height expression such as <c>100%</c>.
+    /// 获取或设置可选的高度表达式，例如 <c>100%</c>。
     /// </summary>
     public string? HeightText { get; set; }
 
     /// <summary>
-    /// Gets or sets the left offset relative to the parent control.
+    /// 获取或设置相对父控件的左侧偏移。
     /// </summary>
     public double Left { get; set; }
 
     /// <summary>
-    /// Gets or sets the top offset relative to the parent control.
+    /// 获取或设置相对父控件的顶部偏移。
     /// </summary>
     public double Top { get; set; }
 
     /// <summary>
-    /// Gets or sets the fill brush text.
+    /// 获取或设置填充画刷文本。
     /// </summary>
     public string? Fill { get; set; }
 
     /// <summary>
-    /// Gets or sets the stroke or border brush text.
+    /// 获取或设置描边或边框画刷文本。
     /// </summary>
     public string? Stroke { get; set; }
 
     /// <summary>
-    /// Gets or sets the stroke or border thickness.
+    /// 获取或设置描边或边框粗细。
     /// </summary>
     public double StrokeThickness { get; set; }
 
     /// <summary>
-    /// Gets or sets the image resource path used by image parts.
+    /// 获取或设置图片部件使用的图片资源路径。
     /// </summary>
     public string? ImagePath { get; set; }
 
     /// <summary>
-    /// Gets or sets the initial opacity.
+    /// 获取或设置初始不透明度。
     /// </summary>
     public double Opacity { get; set; } = 1D;
 
     /// <summary>
-    /// Gets or sets the initial WPF visibility name.
+    /// 获取或设置初始 WPF 可见性名称。
     /// </summary>
     public string Visibility { get; set; } = "Hidden";
 
     /// <summary>
-    /// Gets or sets the layer-local z-index.
+    /// 获取或设置图层局部 Z 索引。
     /// </summary>
     public int ZIndex { get; set; }
 
     /// <summary>
-    /// Gets or sets whether the generated part participates in hit testing.
+    /// 获取或设置生成的部件是否参与命中测试。
     /// </summary>
     public bool IsHitTestVisible { get; set; }
 
     /// <summary>
-    /// Gets or sets the optional visual effect applied to the generated part.
+    /// 获取或设置应用于生成部件的可选视觉效果。
     /// </summary>
     public FrontedVisualEffectConfig Effect { get; set; } = new();
 }
 
 /// <summary>
-/// Supported generated animation part kinds.
+/// 支持的生成动画部件类型。
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum FrontedAnimationPartKind
 {
     /// <summary>
-    /// A filled and optionally stroked rectangle.
+    /// 填充且可选描边的矩形。
     /// </summary>
     Rectangle,
 
     /// <summary>
-    /// A border element.
+    /// 边框元素。
     /// </summary>
     Border,
 
     /// <summary>
-    /// An image element.
+    /// 图片元素。
     /// </summary>
     Image
 }
 
 /// <summary>
-/// Visual layer used by a generated animation part.
+/// 生成动画部件使用的可视化层。
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum FrontedAnimationPartLayer
 {
     /// <summary>
-    /// Renders behind the main control content.
+    /// 渲染在主控件内容后方。
     /// </summary>
     BelowContent,
 
     /// <summary>
-    /// Renders above the main control content.
+    /// 渲染在主控件内容前方。
     /// </summary>
     AboveContent
 }

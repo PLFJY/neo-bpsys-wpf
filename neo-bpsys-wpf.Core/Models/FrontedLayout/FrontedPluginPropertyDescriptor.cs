@@ -3,7 +3,7 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
 
 /// <summary>
-/// Declarative Designer property metadata for a plugin fronted control config.
+/// 插件前台控件配置的声明式设计器属性元数据。
 /// </summary>
 public sealed class FrontedPluginPropertyDescriptor
 {

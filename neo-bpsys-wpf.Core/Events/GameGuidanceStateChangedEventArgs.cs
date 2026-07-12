@@ -4,11 +4,11 @@ namespace neo_bpsys_wpf.Core.Events;
 /// 对局引导状态变化事件参数
 /// </summary>
 /// <param name="isStarted">引导是否已启动</param>
-/// <param name="reason">Stable machine-readable reason.</param>
-/// <param name="time">Current or previous step timer value.</param>
-/// <param name="previousStepIndex">Previous guidance step index.</param>
-/// <param name="previousAction">Previous guidance action.</param>
-/// <param name="previousIndex">Previous guidance indexes.</param>
+/// <param name="reason">稳定的机器可读原因。</param>
+/// <param name="time">当前或上一步的计时器值。</param>
+/// <param name="previousStepIndex">上一步引导步骤索引。</param>
+/// <param name="previousAction">上一步引导操作。</param>
+/// <param name="previousIndex">上一步引导索引列表。</param>
 public class GameGuidanceStateChangedEventArgs(
     bool isStarted,
     string? reason = null,
@@ -23,37 +23,37 @@ public class GameGuidanceStateChangedEventArgs(
     public bool IsStarted { get; } = isStarted;
 
     /// <summary>
-    /// Stable machine-readable reason.
+    /// 稳定的机器可读原因。
     /// </summary>
     public string? Reason { get; } = reason;
 
     /// <summary>
-    /// Current or previous step timer value.
+    /// 当前或上一步的计时器值。
     /// </summary>
     public int? Time { get; } = time;
 
     /// <summary>
-    /// Previous guidance step index.
+    /// 上一步引导步骤索引。
     /// </summary>
     public int? PreviousStepIndex { get; } = previousStepIndex;
 
     /// <summary>
-    /// Previous guidance action.
+    /// 上一步引导操作。
     /// </summary>
     public Enums.GameAction? PreviousAction { get; } = previousAction;
 
     /// <summary>
-    /// Previous guidance indexes.
+    /// 上一步引导索引列表。
     /// </summary>
     public List<int>? PreviousIndex { get; } = previousIndex;
 
     /// <summary>
-    /// Previous guidance indexes.
+    /// 上一步引导索引列表。
     /// </summary>
     public List<int>? PreviousIndexes => PreviousIndex;
 
     /// <summary>
-    /// Stable text representation of previous guidance indexes.
+    /// 上一步引导索引列表的稳定文本表示。
     /// </summary>
     public string PreviousIndexesText { get; } = GameGuidanceIndexFormatter.FormatIndexes(previousIndex);
 }

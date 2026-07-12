@@ -26,10 +26,10 @@ public partial class FrontedBehaviorAnimationEditorWindow : FluentWindow
     private readonly CancellationTokenSource _tutorialLifetime = new();
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="FrontedBehaviorAnimationEditorWindow"/> class.
+    /// 初始化 <see cref="FrontedBehaviorAnimationEditorWindow"/> 类的新实例。
     /// </summary>
-    /// <param name="viewModel">Animation editor view model.</param>
-    /// <param name="tutorialRunner">Tutorial runner.</param>
+    /// <param name="viewModel">动画编辑器视图模型。</param>
+    /// <param name="tutorialRunner">教程运行器。</param>
     public FrontedBehaviorAnimationEditorWindow(
         FrontedBehaviorAnimationEditorViewModel viewModel,
         ITutorialRunner? tutorialRunner = null)

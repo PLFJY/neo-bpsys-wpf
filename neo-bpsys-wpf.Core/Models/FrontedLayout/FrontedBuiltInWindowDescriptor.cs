@@ -4,11 +4,11 @@ using neo_bpsys_wpf.Core.Enums;
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
 
 /// <summary>
-/// Descriptor wrapper for an existing built-in WPF fronted window.
+/// 现有内置 WPF 前台窗口的描述符包装。
 /// </summary>
 /// <remarks>
-/// Built-in <see cref="IFrontedWindowDescriptor.FullWindowType"/> values are the window type names,
-/// for example <c>BpWindow</c>, <c>BpOverviewWindow</c>, or <c>ScoreGlobalWindow</c>.
+/// 内置 <see cref="IFrontedWindowDescriptor.FullWindowType"/> 值为窗口类型名称，
+/// 例如 <c>BpWindow</c>、<c>BpOverviewWindow</c> 或 <c>ScoreGlobalWindow</c>。
 /// </remarks>
 public sealed class FrontedBuiltInWindowDescriptor : IFrontedWindowDescriptor
 {
@@ -61,13 +61,13 @@ public sealed class FrontedBuiltInWindowDescriptor : IFrontedWindowDescriptor
     public string? PackageId => null;
 
     /// <summary>
-    /// Concrete WPF window type registered by <see cref="Attributes.FrontedWindowInfo"/>.
-    /// Used only for future built-in XAML fronted windows (when <see cref="IsV3LayoutWindow"/> is <see langword="false"/>).
+    /// 由 <see cref="Attributes.FrontedWindowInfo"/> 注册的具体 WPF 窗口类型。
+    /// 仅用于未来的内置 XAML 前台窗口（当 <see cref="IsV3LayoutWindow"/> 为 <see langword="false"/> 时）。
     /// </summary>
     public Type? WindowType { get; init; }
 
     /// <summary>
-    /// Creates a descriptor from the existing built-in window attribute metadata.
+    /// 从现有内置窗口属性元数据创建描述符。
     /// </summary>
     public static FrontedBuiltInWindowDescriptor FromInfo(FrontedWindowInfo info)
     {

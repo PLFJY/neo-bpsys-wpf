@@ -1,32 +1,32 @@
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 
 /// <summary>
-/// Snapshot of an active loop behavior tracked by the runtime registry.
+/// 运行时注册表跟踪的活动循环行为的快照。
 /// </summary>
 public sealed class ActiveLoopBehaviorState
 {
     /// <summary>
-    /// Gets or sets the behavior document identifier.
+    /// 获取或设置行为文档标识符。
     /// </summary>
     public Guid BehaviorId { get; set; }
 
     /// <summary>
-    /// Gets or sets the owning control behavior guid.
+    /// 获取或设置所属控件的行为 GUID。
     /// </summary>
     public Guid BehaviorGuid { get; set; }
 
     /// <summary>
-    /// Gets or sets the fronted window type.
+    /// 获取或设置前台窗口类型。
     /// </summary>
     public string? WindowType { get; set; }
 
     /// <summary>
-    /// Gets or sets the owning control display name.
+    /// 获取或设置所属控件的显示名称。
     /// </summary>
     public string? DisplayName { get; set; }
 
     /// <summary>
-    /// Gets or sets the active behavior model.
+    /// 获取或设置活动行为模型。
     /// </summary>
     public FrontedBehavior Behavior { get; set; } = new();
 }

@@ -71,42 +71,42 @@ public sealed class FrontedNodePortDescriptor
 public sealed class FrontedNodePropertyDescriptor
 {
     /// <summary>
-    /// Gets the stable property name stored in node JSON.
+    /// 获取存储在节点 JSON 中的稳定属性名称。
     /// </summary>
     public required string Name { get; init; }
 
     /// <summary>
-    /// Gets the localization key for the property label.
+    /// 获取属性标签的本地化键。
     /// </summary>
     public required string DisplayNameKey { get; init; }
 
     /// <summary>
-    /// Gets the high-level persisted value type.
+    /// 获取高级别持久化值类型。
     /// </summary>
     public FrontedNodePropertyType PropertyType { get; init; }
 
     /// <summary>
-    /// Gets the default JSON value for newly created nodes.
+    /// 获取新建节点的默认 JSON 值。
     /// </summary>
     public JsonElement DefaultValue { get; init; }
 
     /// <summary>
-    /// Gets the editor kind used by the Designer UI.
+    /// 获取设计器 UI 使用的编辑器类型。
     /// </summary>
     public FrontedNodePropertyEditorKind EditorKind { get; init; }
 
     /// <summary>
-    /// Gets a value indicating whether the property is required.
+    /// 获取指示该属性是否为必需的值。
     /// </summary>
     public bool IsRequired { get; init; }
 
     /// <summary>
-    /// Gets the available editor options.
+    /// 获取可用的编辑器选项。
     /// </summary>
     public IReadOnlyList<string> Options { get; init; } = [];
 
     /// <summary>
-    /// Gets an optional display unit for numeric values.
+    /// 获取数值的可选显示单位。
     /// </summary>
     public string? Unit { get; init; }
 }

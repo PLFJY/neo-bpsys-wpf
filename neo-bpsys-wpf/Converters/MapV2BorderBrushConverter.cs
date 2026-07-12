@@ -5,7 +5,7 @@ using System.Windows.Media;
 namespace neo_bpsys_wpf.Converters;
 
 /// <summary>
-/// Selects the map card border brush for the current banned state.
+/// 根据当前 Ban 状态选择地图卡片边框画刷。
 /// </summary>
 public sealed class MapV2BorderBrushConverter : IMultiValueConverter
 {

@@ -1,7 +1,7 @@
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
 
 /// <summary>
-/// Marks a type as a Designer v3 binding catalog object.
+/// 将某个类型标记为设计器 v3 绑定目录对象。
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface)]
 public sealed class FrontedBindingObjectAttribute : Attribute

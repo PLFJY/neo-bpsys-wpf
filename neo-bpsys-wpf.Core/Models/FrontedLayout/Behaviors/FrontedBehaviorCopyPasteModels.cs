@@ -4,223 +4,223 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 
 /// <summary>
-/// App-level clipboard payload for copying one fronted behavior between controls.
+/// 在控件间复制单个前台行为时使用的应用级剪贴板负载。
 /// </summary>
 public sealed class FrontedBehaviorClipboardPayload
 {
     /// <summary>
-    /// Gets or sets the clipboard payload version.
+    /// 获取或设置剪贴板负载版本。
     /// </summary>
     public int Version { get; set; } = 1;
 
     /// <summary>
-    /// Gets or sets the source window type.
+    /// 获取或设置源窗口类型。
     /// </summary>
     public string SourceWindowType { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the source control name.
+    /// 获取或设置源控件名称。
     /// </summary>
     public string SourceControlName { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the source control behavior GUID.
+    /// 获取或设置源控件的行为 GUID。
     /// </summary>
     public Guid SourceControlBehaviorGuid { get; set; }
 
     /// <summary>
-    /// Gets or sets the inferred semantic index of the source control.
+    /// 获取或设置源控件的推断语义索引。
     /// </summary>
     public int? SourceSemanticIndex { get; set; }
 
     /// <summary>
-    /// Gets or sets the copied behavior snapshot.
+    /// 获取或设置复制的行为快照。
     /// </summary>
     public FrontedBehavior Behavior { get; set; } = new();
 
     /// <summary>
-    /// Gets or sets generated-part and control-kind requirements.
+    /// 获取或设置生成部件和控件类型要求。
     /// </summary>
     public List<FrontedBehaviorCopyRequirement> Requirements { get; set; } = [];
 
     /// <summary>
-    /// Gets or sets source animation part definitions required by the copied behavior.
+    /// 获取或设置所复制行为需要的源动画部件定义。
     /// </summary>
     public List<FrontedAnimationPartConfig> AnimationParts { get; set; } = [];
 }
 
 /// <summary>
-/// Describes one compatibility requirement discovered while copying a behavior.
+/// 描述复制行为时发现的一项兼容性要求。
 /// </summary>
 public sealed class FrontedBehaviorCopyRequirement
 {
     /// <summary>
-    /// Gets or sets the requirement kind.
+    /// 获取或设置要求类型。
     /// </summary>
     public string Kind { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the target reference that caused the requirement.
+    /// 获取或设置导致该要求的目标引用。
     /// </summary>
     public string? Source { get; set; }
 }
 
 /// <summary>
-/// Options applied while pasting a copied behavior.
+/// 粘贴已复制行为时应用的选项。
 /// </summary>
 public sealed class FrontedBehaviorPasteOptions
 {
     /// <summary>
-    /// Gets or sets whether source-control animation targets are rewritten.
+    /// 获取或设置是否重写源控件动画目标。
     /// </summary>
     public bool RewriteAnimationTargets { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets whether supported trigger index filters are rewritten.
+    /// 获取或设置是否重写支持的触发条件索引过滤器。
     /// </summary>
     public bool RewriteTriggerIndexes { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets whether the pasted behavior receives a new behavior identifier.
+    /// 获取或设置粘贴的行为是否获得新的行为标识符。
     /// </summary>
     public bool GenerateNewBehaviorId { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets whether the copied behavior name is retained.
+    /// 获取或设置是否保留复制的行为名称。
     /// </summary>
     public bool KeepBehaviorName { get; set; } = true;
 }
 
 /// <summary>
-/// Semantic information inferred from a fronted control.
+/// 从前台控件推断的语义信息。
 /// </summary>
 public sealed class FrontedBehaviorControlSemanticInfo
 {
     /// <summary>
-    /// Gets or sets the control-specific semantic index.
+    /// 获取或设置控件特定的语义索引。
     /// </summary>
     public int? Index { get; set; }
 
     /// <summary>
-    /// Gets or sets the inferred semantic role.
+    /// 获取或设置推断的语义角色。
     /// </summary>
     public string? Role { get; set; }
 
     /// <summary>
-    /// Gets or sets the inferred semantic group.
+    /// 获取或设置推断的语义分组。
     /// </summary>
     public string? Group { get; set; }
 }
 
 /// <summary>
-/// Resolves semantic information used when copying behaviors between controls.
+/// 解析在控件间复制行为时使用的语义信息。
 /// </summary>
 public interface IFrontedBehaviorControlSemanticResolver
 {
     /// <summary>
-    /// Resolves semantic information for a design control.
+    /// 解析设计控件的语义信息。
     /// </summary>
-    /// <param name="control">The design control to inspect.</param>
-    /// <returns>The inferred semantic information.</returns>
+    /// <param name="control">要检查的设计控件。</param>
+    /// <returns>推断出的语义信息。</returns>
     FrontedBehaviorControlSemanticInfo Resolve(FrontedControlDesignItem control);
 }
 
 /// <summary>
-/// Describes one value rewrite shown in a behavior paste preview.
+/// 描述行为粘贴预览中显示的一项值重写。
 /// </summary>
 public sealed class FrontedBehaviorPasteRewrite
 {
     /// <summary>
-    /// Gets or sets the original value.
+    /// 获取或设置原始值。
     /// </summary>
     public string Before { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the rewritten value.
+    /// 获取或设置重写后的值。
     /// </summary>
     public string After { get; set; } = string.Empty;
 }
 
 /// <summary>
-/// Describes compatibility and rewrites for one behavior paste target.
+/// 描述单个行为粘贴目标的兼容性和重写。
 /// </summary>
 public sealed class FrontedBehaviorPastePreview
 {
     /// <summary>
-    /// Gets or sets the target control.
+    /// 获取或设置目标控件。
     /// </summary>
     public required FrontedControlDesignItem Target { get; set; }
 
     /// <summary>
-    /// Gets or sets whether the target is compatible.
+    /// 获取或设置目标是否兼容。
     /// </summary>
     public bool IsCompatible { get; set; }
 
     /// <summary>
-    /// Gets or sets compatibility errors.
+    /// 获取或设置兼容性错误。
     /// </summary>
     public List<string> CompatibilityErrors { get; set; } = [];
 
     /// <summary>
-    /// Gets or sets animation target rewrites.
+    /// 获取或设置动画目标重写。
     /// </summary>
     public List<FrontedBehaviorPasteRewrite> TargetRewrites { get; set; } = [];
 
     /// <summary>
-    /// Gets or sets trigger filter rewrites.
+    /// 获取或设置触发条件过滤器重写。
     /// </summary>
     public List<FrontedBehaviorPasteRewrite> TriggerRewrites { get; set; } = [];
 
     /// <summary>
-    /// Gets or sets external target references that are intentionally left unchanged.
+    /// 获取或设置有意保持不变的外部目标引用。
     /// </summary>
     public List<string> ExternalReferences { get; set; } = [];
 
     /// <summary>
-    /// Gets or sets whether trigger index remapping is available.
+    /// 获取或设置触发条件索引重映射是否可用。
     /// </summary>
     public bool IsTriggerIndexRemapAvailable { get; set; }
 
     /// <summary>
-    /// Gets or sets the trigger remap unavailable reason.
+    /// 获取或设置触发条件重映射不可用的原因。
     /// </summary>
     public string? TriggerIndexRemapUnavailableReason { get; set; }
 }
 
 /// <summary>
-/// Result returned after pasting one copied behavior.
+/// 粘贴一个已复制行为后返回的结果。
 /// </summary>
 public sealed class FrontedBehaviorPasteResult
 {
     /// <summary>
-    /// Gets or sets whether the behavior was pasted.
+    /// 获取或设置行为是否已粘贴。
     /// </summary>
     public bool Succeeded { get; set; }
 
     /// <summary>
-    /// Gets or sets the paste preview and compatibility result.
+    /// 获取或设置粘贴预览和兼容性结果。
     /// </summary>
     public required FrontedBehaviorPastePreview Preview { get; set; }
 
     /// <summary>
-    /// Gets or sets the pasted behavior when successful.
+    /// 获取或设置成功时粘贴的行为。
     /// </summary>
     public FrontedBehavior? Behavior { get; set; }
 }
 
 /// <summary>
-/// Stores the current app-level behavior clipboard payload.
+/// 存储当前应用级行为剪贴板负载。
 /// </summary>
 public interface IFrontedBehaviorClipboard
 {
     /// <summary>
-    /// Gets the current clipboard payload.
+    /// 获取当前剪贴板负载。
     /// </summary>
     FrontedBehaviorClipboardPayload? Payload { get; }
 
     /// <summary>
-    /// Replaces the current clipboard payload.
+    /// 替换当前剪贴板负载。
     /// </summary>
-    /// <param name="payload">The payload to store.</param>
+    /// <param name="payload">要存储的负载。</param>
     void Set(FrontedBehaviorClipboardPayload payload);
 }

@@ -4,7 +4,7 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Thread-safe global recorder for all events published to <see cref="IFrontedEventBus" />.
+/// 线程安全的全局记录器，记录发布到 <see cref="IFrontedEventBus" /> 的所有事件。
 /// </summary>
 public sealed class FrontedBehaviorEventDebugService : IFrontedBehaviorEventDebugService
 {
@@ -18,9 +18,9 @@ public sealed class FrontedBehaviorEventDebugService : IFrontedBehaviorEventDebu
     private bool _disposed;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="FrontedBehaviorEventDebugService" />.
+    /// 初始化 <see cref="FrontedBehaviorEventDebugService" /> 的新实例。
     /// </summary>
-    /// <param name="eventBus">Global fronted behavior event bus.</param>
+    /// <param name="eventBus">全局前台行为事件总线。</param>
     public FrontedBehaviorEventDebugService(IFrontedEventBus eventBus)
     {
         _subscription = eventBus.Subscribe(null, OnEventAsync);

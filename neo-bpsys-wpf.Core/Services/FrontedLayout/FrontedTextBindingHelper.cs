@@ -7,12 +7,12 @@ using System.Windows.Data;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Shared runtime and validation helpers for text binding expressions.
+/// 文本绑定表达式的共享运行时和验证帮助程序。
 /// </summary>
 public static class FrontedTextBindingHelper
 {
     /// <summary>
-    /// Creates the MultiBinding used by Text and LocalizedText controls.
+    /// 创建 Text 和 LocalizedText 控件使用的 MultiBinding。
     /// </summary>
     public static MultiBinding CreateMultiBinding(
         FrontedTextBindingExpression expression,
@@ -38,7 +38,7 @@ public static class FrontedTextBindingHelper
     }
 
     /// <summary>
-    /// Checks composite format syntax and placeholder indexes for the source count.
+    /// 检查源数量的复合格式语法和占位符索引。
     /// </summary>
     public static bool TryValidateStringFormat(string? format, int sourceCount, out string? error)
     {

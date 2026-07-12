@@ -306,7 +306,7 @@ public class FrontedBehaviorRuntimeHostTest
     }
 
     /// <summary>
-    /// Runs the given async action on an STA thread, required for WPF control creation.
+    /// 在 STA 线程上运行给定的异步操作，WPF 控件创建需要这样做。
     /// </summary>
     private static async Task RunOnStaThreadAsync(Func<Task> action)
     {

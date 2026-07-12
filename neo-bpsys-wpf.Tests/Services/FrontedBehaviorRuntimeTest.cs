@@ -17,11 +17,11 @@ using Xunit;
 namespace neo_bpsys_wpf.Tests.Services;
 
 /// <summary>
-/// Tests for <see cref="FrontedBehaviorRuntimeHost" />.
+/// 针对 <see cref="FrontedBehaviorRuntimeHost" /> 的测试。
 ///
-/// FrontedBehaviorRuntimeHost is internal sealed in neo-bpsys-wpf.Core
-/// (InternalsVisibleTo only grants access to neo-bpsys-wpf, not the test project),
-/// so these tests use reflection via <see cref="FrontedBehaviorRuntimeHostProxy" />.
+/// FrontedBehaviorRuntimeHost 在 neo-bpsys-wpf.Core 中是 internal sealed
+/// （InternalsVisibleTo 仅授予 neo-bpsys-wpf 访问权限，不包括测试项目），
+/// 因此这些测试通过 <see cref="FrontedBehaviorRuntimeHostProxy" /> 使用反射。
 /// </summary>
 public class FrontedBehaviorRuntimeTest
 {
@@ -222,8 +222,8 @@ public class FrontedBehaviorRuntimeTest
     }
 
     /// <summary>
-    /// Builds a minimal graph start -> action.setProperty("Target" = "NonExistent") -> end
-    /// to verify the runtime doesn't throw for missing targets.
+    /// 构建一个最小图 start -> action.setProperty("Target" = "NonExistent") -> end，
+    /// 用于验证运行时在目标不存在时不会抛出异常。
     /// </summary>
     private static FrontedNodeGraph CreateGraphWithMissingTarget()
     {
@@ -252,8 +252,8 @@ public class FrontedBehaviorRuntimeTest
     // ---------------------------------------------------------------
 
     /// <summary>
-    /// Creates a host with mocked graph runtime. Returns a proxy, the captured event handler,
-    /// and the mock so the caller can verify calls.
+    /// 创建一个使用模拟图运行时的宿主。返回代理、捕获的事件处理器，
+    /// 以及 mock，调用方可以据此验证调用情况。
     /// </summary>
     private static FrontedBehaviorRuntimeHostProxy CreateHostWithMocks(
         FrontedBehaviorDocument document,
@@ -290,8 +290,8 @@ public class FrontedBehaviorRuntimeTest
     }
 
     /// <summary>
-    /// Creates a host with a <see cref="BlockableGraphRuntimeMock" /> that lets the test
-    /// control when the first execution completes.
+    /// 创建一个使用 <see cref="BlockableGraphRuntimeMock" /> 的宿主，让测试可以
+    /// 控制首次执行何时完成。
     /// </summary>
     private static FrontedBehaviorRuntimeHostProxy CreateHostWithBlockingMocks(
         FrontedBehaviorDocument document,
@@ -320,8 +320,8 @@ public class FrontedBehaviorRuntimeTest
     }
 
     /// <summary>
-    /// Creates a host with a real <see cref="FrontedNodeGraphRuntime" /> so the graph
-    /// actually gets processed (used for the MissingTarget test).
+    /// 创建一个使用真实 <see cref="FrontedNodeGraphRuntime" /> 的宿主，使图能被实际处理
+    /// （用于 MissingTarget 测试）。
     /// </summary>
     private static FrontedBehaviorRuntimeHostProxy CreateHostWithRealGraphRuntime(
         FrontedBehaviorDocument document,
@@ -351,7 +351,7 @@ public class FrontedBehaviorRuntimeTest
     }
 
     /// <summary>
-    /// Runs the given async action on an STA thread, required for WPF control creation.
+    /// 在 STA 线程上运行给定的异步操作，WPF 控件创建需要这样做。
     /// </summary>
     private static async Task RunOnStaThreadAsync(Func<Task> action)
     {
@@ -363,7 +363,7 @@ public class FrontedBehaviorRuntimeTest
     // ---------------------------------------------------------------
 
     /// <summary>
-    /// Proxy that uses reflection to access the internal <c>FrontedBehaviorRuntimeHost</c>.
+    /// 通过反射访问 internal <c>FrontedBehaviorRuntimeHost</c> 的代理。
     /// </summary>
     internal sealed class FrontedBehaviorRuntimeHostProxy : IDisposable
     {
@@ -381,7 +381,7 @@ public class FrontedBehaviorRuntimeTest
         private readonly object _instance;
 
         /// <summary>
-        /// Initializes a new instance via the reflection proxy.
+        /// 通过反射代理初始化一个新实例。
         /// </summary>
         public FrontedBehaviorRuntimeHostProxy(
             FrontedBehaviorRuntimeContext context,
@@ -394,7 +394,7 @@ public class FrontedBehaviorRuntimeTest
         }
 
         /// <summary>
-        /// Calls <c>AttachAsync</c> on the internal host.
+        /// 调用 internal 宿主上的 <c>AttachAsync</c>。
         /// </summary>
         public Task AttachAsync(FrontedBehaviorDocument document)
         {
@@ -413,24 +413,24 @@ public class FrontedBehaviorRuntimeTest
     // ---------------------------------------------------------------
 
     /// <summary>
-    /// Graph runtime that blocks on the first call until the test signals,
-    /// allowing concurrency tests (InterruptPrevious / IgnoreIfRunning).
+    /// 图运行时，在测试发出信号前会阻塞首次调用，
+    /// 用于支持并发测试（InterruptPrevious / IgnoreIfRunning）。
     /// </summary>
     internal sealed class BlockableGraphRuntimeMock : IFrontedNodeGraphRuntime
     {
         private int _callCount;
 
-        /// <summary>Number of times <see cref="ExecuteAsync" /> has been called.</summary>
+        /// <summary><see cref="ExecuteAsync" /> 被调用的次数。</summary>
         public int CallCount => _callCount;
 
-        /// <summary>Signalled when the first call has entered the method body.</summary>
+        /// <summary>首次调用进入方法体时发出的信号。</summary>
         public Task FirstCallStarted => FirstCallStartedTcs.Task;
 
         internal TaskCompletionSource FirstCallStartedTcs { get; } = new();
         internal TaskCompletionSource FirstCallBlockedTcs { get; } = new();
         internal CancellationToken? FirstToken { get; private set; }
 
-        /// <summary>Whether the token from the first call was cancelled.</summary>
+        /// <summary>首次调用的令牌是否已被取消。</summary>
         public bool FirstTokenCancelled => FirstToken is { IsCancellationRequested: true };
 
         /// <inheritdoc />

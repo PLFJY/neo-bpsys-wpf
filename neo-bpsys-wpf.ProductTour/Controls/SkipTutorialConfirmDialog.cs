@@ -5,57 +5,57 @@ using System.Windows.Input;
 namespace neo_bpsys_wpf.ProductTour.Controls;
 
 /// <summary>
-/// In-overlay confirmation card used before skipping a tutorial.
+/// 在跳过教程之前使用的遮罩内确认卡片。
 /// </summary>
 public sealed class SkipTutorialConfirmDialog : ContentControl
 {
-    /// <summary>Identifies the title dependency property.</summary>
+    /// <summary>标识 Title 依赖属性。</summary>
     public static readonly DependencyProperty TitleProperty = DependencyProperty.Register(
         nameof(Title), typeof(string), typeof(SkipTutorialConfirmDialog), new PropertyMetadata(new DefaultTutorialTextProvider().SkipConfirmTitle));
 
-    /// <summary>Identifies the message dependency property.</summary>
+    /// <summary>标识 Message 依赖属性。</summary>
     public static readonly DependencyProperty MessageProperty = DependencyProperty.Register(
         nameof(Message), typeof(string), typeof(SkipTutorialConfirmDialog), new PropertyMetadata(new DefaultTutorialTextProvider().SkipConfirmDescription));
 
     private readonly ITutorialTextProvider _textProvider;
     private readonly ProductTourOptions _options;
 
-    /// <summary>Gets or sets the dialog title.</summary>
+    /// <summary>获取或设置对话框标题。</summary>
     public string Title
     {
         get => (string)GetValue(TitleProperty);
         set => SetValue(TitleProperty, value);
     }
 
-    /// <summary>Gets or sets the dialog message.</summary>
+    /// <summary>获取或设置对话框消息。</summary>
     public string Message
     {
         get => (string)GetValue(MessageProperty);
         set => SetValue(MessageProperty, value);
     }
 
-    /// <summary>Occurs when the user confirms the skip action.</summary>
+    /// <summary>当用户确认跳过操作时发生。</summary>
     public event EventHandler? Confirmed;
 
-    /// <summary>Occurs when the user cancels the skip action.</summary>
+    /// <summary>当用户取消跳过操作时发生。</summary>
     public event EventHandler? Canceled;
 
-    /// <summary>Initializes a new instance of the <see cref="SkipTutorialConfirmDialog"/> class.</summary>
+    /// <summary>初始化 <see cref="SkipTutorialConfirmDialog"/> 类的新实例。</summary>
     public SkipTutorialConfirmDialog()
         : this(new DefaultTutorialTextProvider(), new ProductTourOptions())
     {
     }
 
-    /// <summary>Initializes a new instance of the <see cref="SkipTutorialConfirmDialog"/> class.</summary>
-    /// <param name="textProvider">Fixed UI text provider.</param>
+    /// <summary>初始化 <see cref="SkipTutorialConfirmDialog"/> 类的新实例。</summary>
+    /// <param name="textProvider">固定 UI 文本提供器。</param>
     public SkipTutorialConfirmDialog(ITutorialTextProvider textProvider)
         : this(textProvider, new ProductTourOptions())
     {
     }
 
-    /// <summary>Initializes a new instance of the <see cref="SkipTutorialConfirmDialog"/> class.</summary>
-    /// <param name="textProvider">Fixed UI text provider.</param>
-    /// <param name="options">Product tour display options.</param>
+    /// <summary>初始化 <see cref="SkipTutorialConfirmDialog"/> 类的新实例。</summary>
+    /// <param name="textProvider">固定 UI 文本提供器。</param>
+    /// <param name="options">Product Tour 显示选项。</param>
     public SkipTutorialConfirmDialog(ITutorialTextProvider textProvider, ProductTourOptions options)
     {
         _textProvider = textProvider;

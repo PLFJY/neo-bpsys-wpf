@@ -4,26 +4,26 @@ using System.IO;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Converts v3 <c>FullWindowType</c> identities to filesystem-safe layout paths.
+/// 将 v3 <c>FullWindowType</c> 标识转换为文件系统安全的布局路径。
 /// </summary>
 /// <remarks>
-/// Built-in identities map directly, for example <c>BpWindow</c> to <c>FrontedLayouts/BpWindow.json</c>.
-/// Plugin identities map from <c>plugin:{PackageId}/{WindowTypeName}</c> to
-/// <c>FrontedLayouts/plugin/{PackageId}/{WindowTypeName}.json</c>.
+/// 内置标识直接映射，例如 <c>BpWindow</c> 映射到 <c>FrontedLayouts/BpWindow.json</c>。
+/// 插件标识从 <c>plugin:{PackageId}/{WindowTypeName}</c> 映射到
+/// <c>FrontedLayouts/plugin/{PackageId}/{WindowTypeName}.json</c>。
 /// </remarks>
 public static partial class FrontedLayoutWindowPathHelper
 {
     /// <summary>
-    /// Prefix used by plugin fronted window layout identities.
+    /// 插件前台窗口布局标识使用的前缀。
     /// </summary>
     public const string PluginPrefix = "plugin:";
 
     /// <summary>
-    /// Gets the safe folder path relative to the fronted layout root for a full window type.
+    /// 获取完整窗口类型相对于前台布局根目录的安全文件夹路径。
     /// </summary>
-    /// <param name="fullWindowType">Built-in window type name or plugin full window type.</param>
-    /// <returns>Safe relative folder path without the layout JSON filename.</returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="fullWindowType"/> is not path-safe.</exception>
+    /// <param name="fullWindowType">内置窗口类型名称或插件完整窗口类型。</param>
+    /// <returns>不含布局 JSON 文件名的安全相对文件夹路径。</returns>
+    /// <exception cref="ArgumentException">当 <paramref name="fullWindowType"/> 不是路径安全时抛出。</exception>
     public static string GetLayoutFolderRelativePath(string fullWindowType)
     {
         if (TryParsePluginFullWindowType(fullWindowType, out var packageId, out var windowTypeName))
@@ -38,11 +38,11 @@ public static partial class FrontedLayoutWindowPathHelper
     }
 
     /// <summary>
-    /// Gets the safe window layout JSON path relative to the fronted layout root.
+    /// 获取相对于前台布局根目录的安全窗口布局 JSON 路径。
     /// </summary>
-    /// <param name="fullWindowType">Built-in window type name or plugin full window type.</param>
-    /// <returns>Safe relative layout JSON path.</returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="fullWindowType"/> is not path-safe.</exception>
+    /// <param name="fullWindowType">内置窗口类型名称或插件完整窗口类型。</param>
+    /// <returns>安全的相对布局 JSON 路径。</returns>
+    /// <exception cref="ArgumentException">当 <paramref name="fullWindowType"/> 不是路径安全时抛出。</exception>
     public static string GetLayoutRelativePath(string fullWindowType)
     {
         if (TryParsePluginFullWindowType(fullWindowType, out var packageId, out var windowTypeName))
@@ -57,22 +57,22 @@ public static partial class FrontedLayoutWindowPathHelper
     }
 
     /// <summary>
-    /// Gets the safe window options JSON path relative to the fronted layout root.
+    /// 获取相对于前台布局根目录的安全窗口选项 JSON 路径。
     /// </summary>
-    /// <param name="fullWindowType">Built-in window type name or plugin full window type.</param>
-    /// <returns>Safe relative window options JSON path.</returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="fullWindowType"/> is not path-safe.</exception>
+    /// <param name="fullWindowType">内置窗口类型名称或插件完整窗口类型。</param>
+    /// <returns>安全的相对窗口选项 JSON 路径。</returns>
+    /// <exception cref="ArgumentException">当 <paramref name="fullWindowType"/> 不是路径安全时抛出。</exception>
     public static string GetWindowOptionsRelativePath(string fullWindowType)
     {
         return Path.Combine(GetLayoutFolderRelativePath(fullWindowType), "window.json");
     }
 
     /// <summary>
-    /// Converts a safe relative layout folder back to the corresponding full window type.
+    /// 将安全的相对布局文件夹转换回对应的完整窗口类型。
     /// </summary>
-    /// <param name="relativeFolder">Relative folder created by <see cref="GetLayoutFolderRelativePath"/>.</param>
-    /// <returns>The full window type represented by the folder.</returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="relativeFolder"/> is not a valid layout folder.</exception>
+    /// <param name="relativeFolder">由 <see cref="GetLayoutFolderRelativePath"/> 创建的相对文件夹。</param>
+    /// <returns>该文件夹表示的完整窗口类型。</returns>
+    /// <exception cref="ArgumentException">当 <paramref name="relativeFolder"/> 不是有效的布局文件夹时抛出。</exception>
     public static string ToFullWindowTypeFromRelativeFolder(string relativeFolder)
     {
         var parts = relativeFolder
@@ -95,10 +95,10 @@ public static partial class FrontedLayoutWindowPathHelper
     }
 
     /// <summary>
-    /// Returns whether a full window type can be safely mapped to a layout path.
+    /// 返回完整窗口类型是否可以安全映射到布局路径。
     /// </summary>
-    /// <param name="fullWindowType">Built-in window type name or plugin full window type.</param>
-    /// <returns><see langword="true"/> when the value can be mapped to a safe layout path.</returns>
+    /// <param name="fullWindowType">内置窗口类型名称或插件完整窗口类型。</param>
+    /// <returns>当值可以映射到安全布局路径时为 <see langword="true"/>。</returns>
     public static bool IsSafeFullWindowType(string fullWindowType)
     {
         try
@@ -113,12 +113,12 @@ public static partial class FrontedLayoutWindowPathHelper
     }
 
     /// <summary>
-    /// Parses a plugin full window type in the form <c>plugin:{PackageId}/{WindowTypeName}</c>.
+    /// 解析格式为 <c>plugin:{PackageId}/{WindowTypeName}</c> 的插件完整窗口类型。
     /// </summary>
-    /// <param name="fullWindowType">Full window type to parse.</param>
-    /// <param name="packageId">Parsed package id when parsing succeeds.</param>
-    /// <param name="windowTypeName">Parsed plugin window type name when parsing succeeds.</param>
-    /// <returns><see langword="true"/> when <paramref name="fullWindowType"/> is a valid plugin full window type.</returns>
+    /// <param name="fullWindowType">要解析的完整窗口类型。</param>
+    /// <param name="packageId">解析成功时得到的包标识。</param>
+    /// <param name="windowTypeName">解析成功时得到的插件窗口类型名称。</param>
+    /// <returns>当 <paramref name="fullWindowType"/> 是有效的插件完整窗口类型时为 <see langword="true"/>。</returns>
     public static bool TryParsePluginFullWindowType(
         string fullWindowType,
         out string packageId,
@@ -145,10 +145,10 @@ public static partial class FrontedLayoutWindowPathHelper
     }
 
     /// <summary>
-    /// Returns whether a value is safe for one layout path segment.
+    /// 返回值对于一个布局路径段是否安全。
     /// </summary>
-    /// <param name="value">Path segment value to validate.</param>
-    /// <returns><see langword="true"/> when the value is safe for a single layout path segment.</returns>
+    /// <param name="value">要验证的路径段值。</param>
+    /// <returns>当值对于单个布局路径段安全时为 <see langword="true"/>。</returns>
     public static bool IsSafePathSegment(string value)
     {
         return !string.IsNullOrWhiteSpace(value)

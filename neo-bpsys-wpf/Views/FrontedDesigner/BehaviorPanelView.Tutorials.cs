@@ -8,42 +8,42 @@ namespace neo_bpsys_wpf.Views.FrontedDesigner;
 
 public partial class BehaviorPanelView : ITutorialOwner<BehaviorPanelView>
 {
-    /// <summary>Designer v3 behavior panel tutorial key.</summary>
+    /// <summary>设计器 v3 行为面板教程键。</summary>
     public const string TutorialPageKey = TutorialPageKeys.DesignerV3BehaviorPanel;
 
     /// <inheritdoc />
     public static string TutorialKey => TutorialPageKey;
 
-    /// <summary>Designer v3 behavior panel tutorial package references.</summary>
+    /// <summary>设计器 v3 行为面板教程包引用。</summary>
     public static class Tours
     {
-        /// <summary>Behavior panel overview package reference.</summary>
+        /// <summary>行为面板概览包引用。</summary>
         public static readonly TutorialPackageRef Overview = new(TutorialPackageIds.DesignerV3BehaviorPanelOverview);
 
-        /// <summary>Behavior panel trigger package reference.</summary>
+        /// <summary>行为面板触发器包引用。</summary>
         public static readonly TutorialPackageRef TriggerBasic = new(TutorialPackageIds.DesignerV3BehaviorPanelTriggerBasic);
 
-        /// <summary>Behavior panel action package reference.</summary>
+        /// <summary>行为面板动作包引用。</summary>
         public static readonly TutorialPackageRef ActionBasic = new(TutorialPackageIds.DesignerV3BehaviorPanelActionBasic);
 
-        /// <summary>Behavior panel help package reference.</summary>
+        /// <summary>行为面板帮助包引用。</summary>
         public static readonly TutorialPackageRef HelpBasic = new(TutorialPackageIds.DesignerV3BehaviorPanelHelpBasic);
     }
 
-    /// <summary>Stable target names declared inside behavior item data templates.</summary>
+    /// <summary>行为项数据模板内声明的稳定目标名称。</summary>
     public static class TutorialTargets
     {
-        /// <summary>Behavior trigger editor target.</summary>
+        /// <summary>行为触发器编辑器目标。</summary>
         public const string BehaviorTriggerEditor = "BehaviorTriggerEditor";
 
-        /// <summary>Behavior action editor target.</summary>
+        /// <summary>行为动作编辑器目标。</summary>
         public const string BehaviorActionEditor = "BehaviorActionEditor";
     }
 
     /// <summary>
-    /// Registers tutorials owned by the Designer v3 behavior panel.
+    /// 注册设计器 v3 行为面板拥有的教程。
     /// </summary>
-    /// <param name="builder">Tutorial builder.</param>
+    /// <param name="builder">教程构建器。</param>
     public static void RegisterTutorials(ITutorialBuilder builder)
     {
         builder.ForRegion<BehaviorPanelView>()

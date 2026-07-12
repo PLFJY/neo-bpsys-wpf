@@ -1,7 +1,7 @@
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
 
 /// <summary>
-/// Canvas BO mode state names.
+/// 画布 BO 模式状态名称。
 /// </summary>
 public enum FrontedCanvasBoModeState
 {

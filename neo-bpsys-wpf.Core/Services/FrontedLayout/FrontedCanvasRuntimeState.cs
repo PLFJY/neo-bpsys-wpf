@@ -3,7 +3,7 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Resolved runtime view of a Designer v3 Canvas state.
+/// Designer v3 Canvas 状态已解析的运行时视图。
 /// </summary>
 public sealed class FrontedCanvasRuntimeState
 {

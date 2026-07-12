@@ -5,124 +5,124 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Json;
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
 
 /// <summary>
-/// Window-centric Designer v3 fronted layout configuration.
+/// 以窗口为中心的设计器 v3 前台布局配置。
 /// </summary>
 public sealed class FrontedWindowConfig
 {
     /// <summary>
-    /// Layout schema version.
+    /// 布局架构版本。
     /// </summary>
     public int Version { get; set; } = 3;
 
     /// <summary>
-    /// Settings applied to the WPF output window.
+    /// 应用于 WPF 输出窗口的设置。
     /// </summary>
     public FrontedWindowSettings WindowSettings { get; set; } = new();
 
     /// <summary>
-    /// Settings applied to the internal <c>BaseCanvas</c>.
+    /// 应用于内部 <c>BaseCanvas</c> 的设置。
     /// </summary>
     public FrontedCanvasSettings CanvasSettings { get; set; } = new();
 
     /// <summary>
-    /// Control dependencies and control configurations rendered by the fronted renderer.
+    /// 由前台渲染器渲染的控件依赖和控件配置。
     /// </summary>
     public FrontedControlLayout ControlLayout { get; set; } = new();
 
 }
 
 /// <summary>
-/// Window-level settings for a window-centric Designer v3 layout.
+/// 以窗口为中心的设计器 v3 布局的窗口级设置。
 /// </summary>
 public sealed class FrontedWindowSettings
 {
     /// <summary>
-    /// WPF window width.
+    /// WPF 窗口宽度。
     /// </summary>
     public double WindowWidth { get; set; } = 1440D;
 
     /// <summary>
-    /// WPF window height.
+    /// WPF 窗口高度。
     /// </summary>
     public double WindowHeight { get; set; } = 810D;
 
     /// <summary>
-    /// Optional WPF window left coordinate.
+    /// 可选的 WPF 窗口左侧坐标。
     /// </summary>
     public double? WindowLeft { get; set; }
 
     /// <summary>
-    /// Optional WPF window top coordinate.
+    /// 可选的 WPF 窗口顶部坐标。
     /// </summary>
     public double? WindowTop { get; set; }
 
     /// <summary>
-    /// Whether the WPF window allows transparency.
+    /// WPF 窗口是否允许透明。
     /// </summary>
     public bool AllowsTransparency { get; set; } = true;
 
     /// <summary>
-    /// Window background color in <c>#AARRGGBB</c> format.
+    /// 窗口背景色，格式为 <c>#AARRGGBB</c>。
     /// </summary>
     public string? BackgroundColor { get; set; } = "#00000000";
 
     /// <summary>
-    /// Whether the WPF window is topmost.
+    /// WPF 窗口是否置顶。
     /// </summary>
     public bool Topmost { get; set; }
 
     /// <summary>
-    /// Stretch mode used by the internal ViewBox. Serialized as a string enum name.
+    /// 内部 ViewBox 使用的拉伸模式。序列化为字符串枚举名。
     /// </summary>
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public Stretch ViewboxStretch { get; set; } = Stretch.Fill;
 }
 
 /// <summary>
-/// Settings applied to the internal <c>BaseCanvas</c> of a window-centric layout.
+/// 应用于以窗口为中心的布局内部 <c>BaseCanvas</c> 的设置。
 /// </summary>
 [JsonConverter(typeof(FrontedCanvasSettingsJsonConverter))]
 public sealed class FrontedCanvasSettings
 {
     /// <summary>
-    /// Internal canvas width.
+    /// 内部画布宽度。
     /// </summary>
     public double CanvasWidth { get; set; } = 1440D;
 
     /// <summary>
-    /// Internal canvas height.
+    /// 内部画布高度。
     /// </summary>
     public double CanvasHeight { get; set; } = 810D;
 
     /// <summary>
-    /// Internal canvas background image path.
+    /// 内部画布背景图片路径。
     /// </summary>
     public string? BackgroundImage { get; set; }
 
     /// <summary>
-    /// Whether BO mode canvas states are enabled.
+    /// 是否启用 BO 模式画布状态。
     /// </summary>
     public bool EnableBoModeStates { get; set; }
 
     /// <summary>
-    /// BO mode states. Current runtime uses <c>Bo3</c>; root values represent default/BO5.
+    /// BO 模式状态。当前运行时使用 <c>Bo3</c>；根值表示默认/BO5。
     /// </summary>
     public Dictionary<string, FrontedCanvasStateConfig> BoModeStates { get; set; } = [];
 }
 
 /// <summary>
-/// Control dependencies and control configs rendered inside a window-centric layout.
+/// 以窗口为中心的布局内部渲染的控件依赖和控件配置。
 /// </summary>
 [JsonConverter(typeof(FrontedControlLayoutJsonConverter))]
 public sealed class FrontedControlLayout
 {
     /// <summary>
-    /// Plugin dependencies required by this control layout.
+    /// 此控件布局所需的插件依赖。
     /// </summary>
     public List<FrontedPluginDependency> RequiredPlugins { get; set; } = [];
 
     /// <summary>
-    /// Control configs keyed by control name.
+    /// 控件配置，以控件名为键。
     /// </summary>
     public Dictionary<string, FrontedControlConfigBase> Controls { get; set; } = [];
 }

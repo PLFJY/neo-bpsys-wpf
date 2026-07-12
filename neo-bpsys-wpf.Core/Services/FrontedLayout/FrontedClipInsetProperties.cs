@@ -4,27 +4,27 @@ using System.Windows.Media;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Stores animation-friendly clip inset values on fronted elements.
+/// 在前台元素上存储支持动画的裁剪内边距值。
 /// </summary>
 public static class FrontedClipInsetProperties
 {
     /// <summary>
-    /// Clip inset from the left edge.
+    /// 距左边缘的裁剪内边距。
     /// </summary>
     public static readonly DependencyProperty LeftProperty = Register("Left");
 
     /// <summary>
-    /// Clip inset from the top edge.
+    /// 距上边缘的裁剪内边距。
     /// </summary>
     public static readonly DependencyProperty TopProperty = Register("Top");
 
     /// <summary>
-    /// Clip inset from the right edge.
+    /// 距右边缘的裁剪内边距。
     /// </summary>
     public static readonly DependencyProperty RightProperty = Register("Right");
 
     /// <summary>
-    /// Clip inset from the bottom edge.
+    /// 距下边缘的裁剪内边距。
     /// </summary>
     public static readonly DependencyProperty BottomProperty = Register("Bottom");
 

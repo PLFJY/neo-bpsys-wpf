@@ -1,17 +1,17 @@
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Pure interaction rules for click-vs-drag selection behavior.
+/// 点击与拖拽选择行为的纯交互规则。
 /// </summary>
 public static class FrontedDesignerInteractionHelper
 {
     /// <summary>
-    /// Maximum logical-pixel movement that is still treated as a click.
+    /// 仍被视为点击的最大逻辑像素移动量。
     /// </summary>
     public const double ClickThreshold = 4D;
 
     /// <summary>
-    /// Returns whether a pointer delta should be treated as a drag.
+    /// 返回指针增量是否应被视为拖拽。
     /// </summary>
     public static bool ExceedsClickThreshold(double deltaX, double deltaY)
     {
@@ -19,7 +19,7 @@ public static class FrontedDesignerInteractionHelper
     }
 
     /// <summary>
-    /// Resolves the editor action for the current pointer state.
+    /// 解析当前指针状态对应的编辑器操作。
     /// </summary>
     public static FrontedDesignerPointerAction ResolvePointerAction(
         bool thresholdExceeded,
@@ -43,27 +43,27 @@ public static class FrontedDesignerInteractionHelper
 }
 
 /// <summary>
-/// Pointer action chosen by designer click-vs-drag semantics.
+/// 由设计器点击与拖拽语义选择的指针操作。
 /// </summary>
 public enum FrontedDesignerPointerAction
 {
     /// <summary>
-    /// Movement is still within click threshold.
+    /// 移动仍在点击阈值内。
     /// </summary>
     WaitForClick,
 
     /// <summary>
-    /// Movement crossed the threshold on the selected control.
+    /// 移动超过了选中控件的阈值。
     /// </summary>
     BeginDragSelected,
 
     /// <summary>
-    /// Continue dragging the selected control.
+    /// 继续拖拽选中控件。
     /// </summary>
     DragSelected,
 
     /// <summary>
-    /// Movement crossed the threshold on an unselected control.
+    /// 移动超过了未选中控件的阈值。
     /// </summary>
     IgnoreUnselectedDrag
 }

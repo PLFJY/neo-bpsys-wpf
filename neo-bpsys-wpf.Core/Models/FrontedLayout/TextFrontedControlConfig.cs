@@ -21,7 +21,7 @@ public class TextFrontedControlConfig : FrontedControlConfigBase, IFrontedTextSt
     public string? Text { get; set; }
 
     /// <summary>
-    /// Ordered multi-source text binding.
+    /// 有序多源文本绑定。
     /// </summary>
     public FrontedTextBindingExpression? TextBinding { get; set; }
 

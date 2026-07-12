@@ -1,37 +1,37 @@
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 
 /// <summary>
-/// Describes why an active loop behavior was requested to stop.
+/// 描述活动循环行为被请求停止的原因。
 /// </summary>
 public enum FrontedBehaviorStopReason
 {
     /// <summary>
-    /// The user manually cleared active loop animations.
+    /// 用户手动清除了活动循环动画。
     /// </summary>
     ManualClear,
 
     /// <summary>
-    /// Game guidance was cancelled.
+    /// 对局引导被取消。
     /// </summary>
     GuidanceCancelled,
 
     /// <summary>
-    /// Game guidance was stopped or completed.
+    /// 对局引导被停止或完成。
     /// </summary>
     GuidanceStopped,
 
     /// <summary>
-    /// The fronted window was hidden or closed.
+    /// 前台窗口被隐藏或关闭。
     /// </summary>
     WindowHidden,
 
     /// <summary>
-    /// The active layout package was switched.
+    /// 活动布局包被切换。
     /// </summary>
     PackageSwitched,
 
     /// <summary>
-    /// The fronted layout was reloaded.
+    /// 前台布局被重新加载。
     /// </summary>
     LayoutReloaded
 }

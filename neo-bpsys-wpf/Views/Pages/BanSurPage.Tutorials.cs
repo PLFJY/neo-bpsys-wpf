@@ -9,23 +9,23 @@ namespace neo_bpsys_wpf.Views.Pages;
 
 public partial class BanSurPage : ITutorialOwner<BanSurPage>
 {
-    /// <summary>Survivor ban page tutorial key.</summary>
+    /// <summary>求生者 Ban 页面教程键。</summary>
     public const string TutorialPageKey = "Page.Bp.BanSur";
 
     /// <inheritdoc />
     public static string TutorialKey => TutorialPageKey;
 
-    /// <summary>Survivor ban tutorial package references.</summary>
+    /// <summary>求生者 Ban 教程包引用。</summary>
     public static class Tours
     {
-        /// <summary>Character selector basic package reference.</summary>
+        /// <summary>角色选择器基础包引用。</summary>
         public static readonly TutorialPackageRef CharacterSelectorBasic = new(TutorialPackageIds.BpCharacterSelectorBasic);
     }
 
     /// <summary>
-    /// Registers tutorials owned by the survivor ban page.
+    /// 注册求生者 Ban 页面拥有的教程。
     /// </summary>
-    /// <param name="builder">Tutorial builder.</param>
+    /// <param name="builder">教程构建器。</param>
     public static void RegisterTutorials(ITutorialBuilder builder)
     {
         builder.ForPage<BanSurPage>()

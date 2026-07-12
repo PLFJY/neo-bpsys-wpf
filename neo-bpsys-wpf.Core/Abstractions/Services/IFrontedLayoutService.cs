@@ -8,31 +8,31 @@ namespace neo_bpsys_wpf.Core.Abstractions.Services;
 public interface IFrontedLayoutService
 {
     /// <summary>
-    /// Loads a window-centric v3 layout config.
+    /// 加载以窗口为中心的 v3 布局配置。
     /// </summary>
-    /// <param name="windowTypeName">The full window type name.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The loaded config, or <see langword="null"/> when missing.</returns>
+    /// <param name="windowTypeName">完整的窗口类型名。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>加载的配置，缺失时返回 <see langword="null"/>。</returns>
     Task<FrontedWindowConfig?> LoadWindowConfigAsync(
         string windowTypeName,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Loads a window-centric v3 layout config and returns source metadata.
+    /// 加载以窗口为中心的 v3 布局配置并返回来源元数据。
     /// </summary>
-    /// <param name="windowTypeName">The full window type name.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The load result.</returns>
+    /// <param name="windowTypeName">完整的窗口类型名。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>加载结果。</returns>
     Task<FrontedLayoutLoadResult> LoadWindowConfigWithMetadataAsync(
         string windowTypeName,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Saves a window-centric v3 layout config.
+    /// 保存以窗口为中心的 v3 布局配置。
     /// </summary>
-    /// <param name="windowTypeName">The full window type name.</param>
-    /// <param name="config">The config to save.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="windowTypeName">完整的窗口类型名。</param>
+    /// <param name="config">要保存的配置。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
     Task SaveWindowConfigAsync(
         string windowTypeName,
         FrontedWindowConfig config,

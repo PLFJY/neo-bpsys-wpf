@@ -23,11 +23,11 @@ using Xunit;
 namespace neo_bpsys_wpf.Tests.Services;
 
 /// <summary>
-/// Tests for the Loop behavior lifecycle in <see cref="FrontedBehaviorRuntimeHost" />.
+/// 针对 <see cref="FrontedBehaviorRuntimeHost" /> 中 Loop 行为生命周期的测试。
 ///
-/// <see cref="FrontedBehaviorRuntimeHost" /> is internal in neo-bpsys-wpf.Core and the
-/// test assembly does not have InternalsVisibleTo for that project, so we use reflection
-/// to create the host and invoke its methods.
+/// <see cref="FrontedBehaviorRuntimeHost" /> 在 neo-bpsys-wpf.Core 中是 internal，
+/// 测试程序集对该项目没有 InternalsVisibleTo，
+/// 因此我们通过反射来创建宿主并调用其方法。
 /// </summary>
 public class FrontedBehaviorRuntimeLoopTest
 {
@@ -1143,9 +1143,9 @@ public class FrontedBehaviorRuntimeLoopTest
     // ---------------------------------------------------------------
 
     /// <summary>
-    /// Polls until <paramref name="graph"/> appears in <paramref name="runtime"/>.<see cref="ControlledGraphRuntime.ExecutedGraphs"/>.
-    /// Used to detect StopGraph execution in the unified lifecycle where StopGraph
-    /// runs in the same task (not a separate StopTask).
+    /// 轮询等待，直到 <paramref name="graph"/> 出现在 <paramref name="runtime"/>.<see cref="ControlledGraphRuntime.ExecutedGraphs"/> 中。
+    /// 用于在统一生命周期中检测 StopGraph 的执行，在该生命周期中 StopGraph
+    /// 在同一任务内运行（而非单独的 StopTask）。
     /// </summary>
     private static async Task WaitForGraphAsync(
         ControlledGraphRuntime runtime,
@@ -1169,7 +1169,7 @@ public class FrontedBehaviorRuntimeLoopTest
     // ---------------------------------------------------------------
 
     /// <summary>
-    /// Runs the given async action on an STA thread, required for WPF control creation.
+    /// 在 STA 线程上运行给定的异步操作，WPF 控件创建需要这样做。
     /// </summary>
     private static async Task RunOnStaThreadAsync(Func<Task> action)
     {
@@ -1406,38 +1406,38 @@ public class FrontedBehaviorRuntimeLoopTest
     }
 
     /// <summary>
-    /// Controlled implementation of <see cref="IFrontedNodeGraphRuntime" /> for loop behavior tests.
-    /// Tracks which graphs were executed and supports blocking on LoopGraph for StopTrigger tests.
+    /// 用于 Loop 行为测试的 <see cref="IFrontedNodeGraphRuntime" /> 受控实现。
+    /// 跟踪执行过的图，并支持在 LoopGraph 上阻塞以进行 StopTrigger 测试。
     /// </summary>
     private sealed class ControlledGraphRuntime : IFrontedNodeGraphRuntime
     {
-        /// <summary>Graphs that have been executed, in order.</summary>
+        /// <summary>已执行的图，按顺序排列。</summary>
         public List<FrontedNodeGraph> ExecutedGraphs { get; } = [];
 
-        /// <summary>Graph executions and the contexts supplied to them.</summary>
+        /// <summary>图执行记录以及提供给它们的上下文。</summary>
         public List<(FrontedNodeGraph Graph, FrontedGraphExecutionContext Context)> Executions { get; } = [];
 
         /// <summary>
-        /// When non-null, execution of any graph will block on this gate.
-        /// Used by <see cref="FrontedBehaviorRuntimeHost.ExecuteLoopLifecycleAsync" /> to keep
-        /// the LoopGraph "running" so that StopTrigger tests can fire.
+        /// 非 null 时，任意图的执行都会在此门控上阻塞。
+        /// 由 <see cref="FrontedBehaviorRuntimeHost.ExecuteLoopLifecycleAsync" /> 使用，
+        /// 用于保持 LoopGraph 处于"运行中"状态，以便触发 StopTrigger 测试。
         /// </summary>
         public TaskCompletionSource? LoopGate { get; set; }
 
         /// <summary>
-        /// When non-null, the first graph execution (StartGraph) will block on this gate.
-        /// Used to test StopTrigger arriving during StartGraph execution.
+        /// 非 null 时，首次图执行（StartGraph）会在此门控上阻塞。
+        /// 用于测试 StopTrigger 在 StartGraph 执行期间到达的场景。
         /// </summary>
         public TaskCompletionSource? StartGate { get; set; }
 
         /// <summary>
-        /// When non-null, signals completion after an execution is recorded.
-        /// Set to a new TCS before triggering an event; complete after assertions are done.
+        /// 非 null 时，在记录一次执行后发出完成信号。
+        /// 在触发事件之前设置为一个新 TCS；断言完成后再让其完成。
         /// </summary>
         public TaskCompletionSource? ExecutionCompleted { get; set; }
 
         /// <summary>
-        /// When non-null, is set when any graph is first executed.
+        /// 非 null 时，在任意图首次执行时被设置。
         /// </summary>
         public TaskCompletionSource? StartGraphExecuted { get; set; }
 
@@ -1503,7 +1503,7 @@ public class FrontedBehaviorRuntimeLoopTest
         }
 
         /// <summary>
-        /// Waits until a graph has been executed at least once.
+        /// 等待，直到某个图至少被执行过一次。
         /// </summary>
         public async Task WaitForStartGraphAsync(TimeSpan timeout)
         {
@@ -1561,7 +1561,7 @@ public class FrontedBehaviorRuntimeLoopTest
     }
 
     /// <summary>
-    /// Records <see cref="IFrontedAnimationRuntime.ResetTarget" /> calls.
+    /// 记录 <see cref="IFrontedAnimationRuntime.ResetTarget" /> 的调用。
     /// </summary>
     private sealed class RecordingAnimationRuntime : IFrontedAnimationRuntime
     {
@@ -1588,7 +1588,7 @@ public class FrontedBehaviorRuntimeLoopTest
     }
 
     /// <summary>
-    /// Simple <see cref="ILogger"/> implementation that captures log entries for test assertions.
+    /// 简单的 <see cref="ILogger"/> 实现，捕获日志条目用于测试断言。
     /// </summary>
     private sealed class TestLogger : ILogger
     {

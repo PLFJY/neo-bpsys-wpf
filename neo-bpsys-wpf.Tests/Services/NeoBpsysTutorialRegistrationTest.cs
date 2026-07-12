@@ -25,7 +25,7 @@ using Xunit;
 namespace neo_bpsys_wpf.Tests.Services;
 
 /// <summary>
-/// Tests built-in neo-bpsys-wpf tutorial registration contracts.
+/// 测试内置 neo-bpsys-wpf 教程注册契约。
 /// </summary>
 public sealed class NeoBpsysTutorialRegistrationTest : IDisposable
 {
@@ -408,7 +408,7 @@ public sealed class NeoBpsysTutorialRegistrationTest : IDisposable
     }
 
     /// <summary>
-    /// Verifies the first-run game progress step resets the game before asking the user to pick BO1 first half.
+    /// 验证首次运行的对局进度步骤会在要求用户选择 BO1 上半场之前重置对局。
     /// </summary>
     [Fact]
     public async Task MainWindowGameProgressPreStepActionResetsProgressAndStopsGuidance()
@@ -430,7 +430,7 @@ public sealed class NeoBpsysTutorialRegistrationTest : IDisposable
     }
 
     /// <summary>
-    /// Verifies the BP guidance start step prepares BO1 first half before starting guidance.
+    /// 验证 BP 引导开始步骤会在启动引导之前准备 BO1 上半场。
     /// </summary>
     [Fact]
     public async Task MainWindowBpGuidancePreStepActionSelectsFirstHalfAndStopsGuidance()
@@ -452,10 +452,10 @@ public sealed class NeoBpsysTutorialRegistrationTest : IDisposable
     }
 
     /// <summary>
-    /// Verifies guidance post-step actions resolve the guidance service from the tutorial action context.
+    /// 验证引导 post-step 动作会从教程动作上下文中解析引导服务。
     /// </summary>
-    /// <param name="packageId">Tutorial package id containing the post-step action.</param>
-    /// <param name="stepIndex">Expected guidance step index.</param>
+    /// <param name="packageId">包含 post-step 动作的教程包 id。</param>
+    /// <param name="stepIndex">期望的引导步骤索引。</param>
     [Theory]
     [InlineData(TutorialPackageIds.MapBpPickMapOperationBasic, 3)]
     [InlineData(TutorialPackageIds.BpCharacterSelectorBasic, 4)]
@@ -481,7 +481,7 @@ public sealed class NeoBpsysTutorialRegistrationTest : IDisposable
     }
 
     /// <summary>
-    /// Verifies tutorial definitions do not bypass the action context through the global application host.
+    /// 验证教程定义不会通过全局应用宿主绕过动作上下文。
     /// </summary>
     [Fact]
     public void TutorialDefinitionFiles_ShouldNotUseIAppHost()

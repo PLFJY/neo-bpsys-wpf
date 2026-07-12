@@ -3,16 +3,16 @@ namespace neo_bpsys_wpf.Views.Pages;
 
 public partial class BanHunPage : ITutorialOwner<BanHunPage>
 {
-    /// <summary>Hunter ban page tutorial key.</summary>
+    /// <summary>监管者 Ban 页面教程键。</summary>
     public const string TutorialPageKey = "Page.Bp.BanHun";
 
     /// <inheritdoc />
     public static string TutorialKey => TutorialPageKey;
 
     /// <summary>
-    /// Registers tutorials owned by the hunter ban page.
+    /// 注册监管者 Ban 页面拥有的教程。
     /// </summary>
-    /// <param name="builder">Tutorial builder.</param>
+    /// <param name="builder">教程构建器。</param>
     public static void RegisterTutorials(ITutorialBuilder builder)
     {
         builder.ForPage<BanHunPage>()

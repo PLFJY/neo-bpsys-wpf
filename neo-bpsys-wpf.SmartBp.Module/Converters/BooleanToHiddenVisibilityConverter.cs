@@ -5,7 +5,7 @@ using System.Windows.Data;
 namespace neo_bpsys_wpf.Converters;
 
 /// <summary>
-/// Converts a Boolean value to <see cref="Visibility.Visible"/> or <see cref="Visibility.Hidden"/>.
+/// 将布尔值转换为 <see cref="Visibility.Visible"/> 或 <see cref="Visibility.Hidden"/>。
 /// </summary>
 public sealed class BooleanToHiddenVisibilityConverter : IValueConverter
 {

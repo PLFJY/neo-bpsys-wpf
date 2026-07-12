@@ -9,11 +9,11 @@ using System.Windows.Threading;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Bridges attributed events from shared-data and gameplay services
-/// to <see cref="IFrontedEventBus" />.
-/// Subscribes to each event on the service interfaces that is annotated with
-/// <see cref="FrontedBehaviorEventAttribute" /> and publishes <see cref="FrontedBehaviorEvent" />
-/// instances with payload resolved from attributes.
+/// 将共享数据和游戏服务上带属性的事件桥接
+/// 到 <see cref="IFrontedEventBus" />。
+/// 订阅服务接口上每个标注了
+/// <see cref="FrontedBehaviorEventAttribute" /> 的事件，并发布
+/// 从属性解析负载的 <see cref="FrontedBehaviorEvent" /> 实例。
 /// </summary>
 public sealed class FrontedSharedDataBehaviorEventBridge : IDisposable
 {
@@ -27,7 +27,7 @@ public sealed class FrontedSharedDataBehaviorEventBridge : IDisposable
     private bool _disposed;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="FrontedSharedDataBehaviorEventBridge" />.
+    /// 初始化 <see cref="FrontedSharedDataBehaviorEventBridge" /> 的新实例。
     /// </summary>
     public FrontedSharedDataBehaviorEventBridge(
         ISharedDataService sharedDataService,
@@ -44,9 +44,8 @@ public sealed class FrontedSharedDataBehaviorEventBridge : IDisposable
     }
 
     /// <summary>
-    /// Starts the bridge by reflecting and subscribing to all attributed events on
-    /// ISharedDataService and IGameGuidanceService.
-    /// Safe to call multiple times — subsequent calls are no-ops.
+    /// 通过反射订阅 ISharedDataService 和 IGameGuidanceService 上所有带属性的事件来启动桥接。
+    /// 可安全多次调用——后续调用为空操作。
     /// </summary>
     public void Start()
     {
@@ -140,8 +139,8 @@ public sealed class FrontedSharedDataBehaviorEventBridge : IDisposable
     }
 
     /// <summary>
-    /// Creates a delegate of the correct type for the event, wrapping our publish logic.
-    /// Supports both <see cref="EventHandler" /> and <see cref="EventHandler{TEventArgs}" />.
+    /// 为事件创建正确类型的委托，包装发布逻辑。
+    /// 支持 <see cref="EventHandler" /> 和 <see cref="EventHandler{TEventArgs}" />。
     /// </summary>
     private Delegate? CreateMatchingDelegate(
         EventInfo eventInfo,
@@ -180,7 +179,7 @@ public sealed class FrontedSharedDataBehaviorEventBridge : IDisposable
     }
 
     /// <summary>
-    /// Factory for a closed generic handler delegate.
+    /// 封闭泛型处理程序委托的工厂。
     /// </summary>
     private Delegate CreateGenericHandler<TEventArgs>(
         FrontedBehaviorEventAttribute metadata,

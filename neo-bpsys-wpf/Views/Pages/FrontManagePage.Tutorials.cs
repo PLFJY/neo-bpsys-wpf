@@ -4,23 +4,23 @@ namespace neo_bpsys_wpf.Views.Pages;
 
 public partial class FrontManagePage : ITutorialOwner<FrontManagePage>
 {
-    /// <summary>Front management page tutorial key.</summary>
+    /// <summary>前台管理页面教程键。</summary>
     public const string TutorialPageKey = TutorialPageKeys.FrontManage;
 
     /// <inheritdoc />
     public static string TutorialKey => TutorialPageKey;
 
-    /// <summary>Front management tutorial package references.</summary>
+    /// <summary>前台管理教程包引用。</summary>
     public static class Tours
     {
-        /// <summary>Front management overview package reference.</summary>
+        /// <summary>前台管理概览包引用。</summary>
         public static readonly TutorialPackageRef Overview = new(TutorialPackageIds.FrontManageOverview);
     }
 
     /// <summary>
-    /// Registers tutorials owned by the front management page.
+    /// 注册前台管理页面拥有的教程。
     /// </summary>
-    /// <param name="builder">Tutorial builder.</param>
+    /// <param name="builder">教程构建器。</param>
     public static void RegisterTutorials(ITutorialBuilder builder)
     {
         builder.ForPage<FrontManagePage>()

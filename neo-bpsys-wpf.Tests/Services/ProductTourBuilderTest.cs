@@ -9,7 +9,7 @@ using Xunit;
 namespace neo_bpsys_wpf.Tests.Services;
 
 /// <summary>
-/// Tests Product Tour builder APIs.
+/// 测试产品导览构建器 API。
 /// </summary>
 public sealed class ProductTourBuilderTest
 {

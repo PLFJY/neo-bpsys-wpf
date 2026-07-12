@@ -1,47 +1,47 @@
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 
 /// <summary>
-/// Designer v3 property grid editor kind.
+/// 设计器 v3 属性网格编辑器类型。
 /// </summary>
 public enum FrontedPropertyEditorKind
 {
     /// <summary>
-    /// Plain text editor.
+    /// 纯文本编辑器。
     /// </summary>
     Text,
 
     /// <summary>
-    /// Numeric text editor.
+    /// 数值文本编辑器。
     /// </summary>
     Number,
 
     /// <summary>
-    /// Boolean editor.
+    /// 布尔编辑器。
     /// </summary>
     Boolean,
 
     /// <summary>
-    /// Enum option editor.
+    /// 枚举选项编辑器。
     /// </summary>
     Enum,
 
     /// <summary>
-    /// Color string editor.
+    /// 颜色字符串编辑器。
     /// </summary>
     Color,
 
     /// <summary>
-    /// Font family ComboBox editor.
+    /// 字体族下拉框编辑器。
     /// </summary>
     FontFamily,
 
     /// <summary>
-    /// Modal editor for a TextBinding expression.
+    /// 文本绑定表达式的模态编辑器。
     /// </summary>
     TextBinding,
 
     /// <summary>
-    /// Read-only display row.
+    /// 只读显示行。
     /// </summary>
     ReadOnly
 }

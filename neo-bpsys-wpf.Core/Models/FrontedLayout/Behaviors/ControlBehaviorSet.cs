@@ -3,27 +3,27 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout;
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 
 /// <summary>
-/// Stores behaviors and generated animation parts for one fronted control.
+/// 存储一个前台控件的行为和生成的动画部件。
 /// </summary>
 public sealed class ControlBehaviorSet
 {
     /// <summary>
-    /// Gets or sets the stable behavior identifier of the owning fronted control.
+    /// 获取或设置所属前台控件的稳定行为标识符。
     /// </summary>
     public Guid BehaviorGuid { get; set; }
 
     /// <summary>
-    /// Gets or sets the user-facing name of the owning fronted control.
+    /// 获取或设置所属前台控件的用户可见名称。
     /// </summary>
     public string DisplayName { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets generated animation helper visuals owned by this behavior set.
+    /// 获取或设置此行为集合拥有的生成动画辅助可视化元素。
     /// </summary>
     public List<FrontedAnimationPartConfig> AnimationParts { get; set; } = [];
 
     /// <summary>
-    /// Gets or sets behavior graphs owned by this fronted control.
+    /// 获取或设置此前台控件拥有的行为图。
     /// </summary>
     public List<FrontedBehavior> Behaviors { get; set; } = [];
 }

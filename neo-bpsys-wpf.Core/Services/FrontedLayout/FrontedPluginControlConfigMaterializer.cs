@@ -5,12 +5,12 @@ using System.Text.Json;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Converts generic plugin configs loaded from JSON into typed plugin configs when the plugin is installed.
+/// 当插件已安装时，将从 JSON 加载的通用插件配置转换为类型化插件配置。
 /// </summary>
 public static class FrontedPluginControlConfigMaterializer
 {
     /// <summary>
-    /// Materializes a generic plugin config using the registered descriptor when possible.
+    /// 尽可能使用已注册的描述符实例化通用插件配置。
     /// </summary>
     public static FrontedControlConfigBase Materialize(
         string controlName,
@@ -27,7 +27,7 @@ public static class FrontedPluginControlConfigMaterializer
     }
 
     /// <summary>
-    /// Materializes a generic plugin config using the supplied descriptor.
+    /// 使用提供的描述符实例化通用插件配置。
     /// </summary>
     public static FrontedControlConfigBase Materialize(
         string controlName,

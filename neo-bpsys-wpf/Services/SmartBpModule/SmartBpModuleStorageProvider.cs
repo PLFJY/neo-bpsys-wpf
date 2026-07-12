@@ -3,7 +3,7 @@ using System.IO;
 
 namespace neo_bpsys_wpf.Services.SmartBpModule;
 
-/// <summary>Resolves SmartBP-owned storage from the currently loaded module root.</summary>
+/// <summary>从当前已加载的模块根目录解析 SmartBP 拥有的存储路径。</summary>
 public sealed class SmartBpModuleStorageProvider(SmartBpModuleManager moduleManager) : ISmartBpModuleStorageProvider
 {
     /// <inheritdoc />

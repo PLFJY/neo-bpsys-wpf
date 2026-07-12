@@ -8,8 +8,8 @@ using Xunit;
 namespace neo_bpsys_wpf.Tests.Services;
 
 /// <summary>
-/// Pure unit tests for <see cref="ProductTourOverlayLayoutEngine"/> that verify
-/// non-overlap, pose selection, preference handling and fallback behavior.
+/// 针对 <see cref="ProductTourOverlayLayoutEngine"/> 的纯单元测试，验证
+/// 非重叠、姿势选择、偏好处理与回退行为。
 /// </summary>
 public sealed class ProductTourOverlayLayoutEngineTest
 {

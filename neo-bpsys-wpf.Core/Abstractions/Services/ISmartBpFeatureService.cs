@@ -1,24 +1,24 @@
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
 /// <summary>
-/// Host-facing SmartBP feature service.
+/// 面向宿主的 SmartBP 功能服务。
 /// </summary>
 public interface ISmartBpFeatureService
 {
     /// <summary>
-    /// Raised when module load state changes.
+    /// 模块加载状态变化时触发。
     /// </summary>
     event EventHandler? ModuleStateChanged;
 
     /// <summary>
-    /// Whether the SmartBP module is currently loaded.
+    /// SmartBP 模块当前是否已加载。
     /// </summary>
     bool IsModuleLoaded { get; }
 
     /// <summary>
-    /// Runs SmartBP post-game data autofill if the module is loaded.
+    /// 当 SmartBP 模块已加载时，运行赛后数据自动回填。
     /// </summary>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Asynchronous task.</returns>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>异步任务。</returns>
     Task AutoFillGameDataAsync(CancellationToken cancellationToken = default);
 }

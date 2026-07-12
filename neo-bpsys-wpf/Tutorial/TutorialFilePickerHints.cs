@@ -1,7 +1,7 @@
 namespace neo_bpsys_wpf.Tutorial;
 
 /// <summary>
-/// Provides one-shot file picker hints for tutorial-guided actions.
+/// 为教程引导的动作提供一次性文件选择器提示。
 /// </summary>
 public static class TutorialFilePickerHints
 {
@@ -9,10 +9,10 @@ public static class TutorialFilePickerHints
     private static string? _nextJsonTitle;
 
     /// <summary>
-    /// Sets the initial directory and title for the next JSON file picker.
+    /// 设置下一次 JSON 文件选择器的初始目录和标题。
     /// </summary>
-    /// <param name="initialDirectory">Initial directory for the next JSON picker.</param>
-    /// <param name="title">Optional picker title.</param>
+    /// <param name="initialDirectory">下一次 JSON 选择器的初始目录。</param>
+    /// <param name="title">可选的选择器标题。</param>
     public static void SetNextJsonPickerHint(string initialDirectory, string? title = null)
     {
         _nextJsonInitialDirectory = initialDirectory;
@@ -20,9 +20,9 @@ public static class TutorialFilePickerHints
     }
 
     /// <summary>
-    /// Consumes the next JSON picker hint.
+    /// 消费下一次 JSON 选择器提示。
     /// </summary>
-    /// <returns>The next JSON picker hint.</returns>
+    /// <returns>下一次 JSON 选择器提示。</returns>
     public static TutorialJsonFilePickerHint ConsumeNextJsonPickerHint()
     {
         var hint = new TutorialJsonFilePickerHint(_nextJsonInitialDirectory, _nextJsonTitle);
@@ -33,8 +33,8 @@ public static class TutorialFilePickerHints
 }
 
 /// <summary>
-/// Describes a one-shot tutorial JSON file picker hint.
+/// 描述一次性教程 JSON 文件选择器提示。
 /// </summary>
-/// <param name="InitialDirectory">Initial directory for the JSON picker.</param>
-/// <param name="Title">Optional picker title.</param>
+/// <param name="InitialDirectory">JSON 选择器的初始目录。</param>
+/// <param name="Title">可选的选择器标题。</param>
 public sealed record TutorialJsonFilePickerHint(string? InitialDirectory, string? Title);

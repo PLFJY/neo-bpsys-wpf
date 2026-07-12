@@ -3,23 +3,23 @@ using System.Text.Json.Serialization;
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
 
 /// <summary>
-/// Controls when an image overlay is visible.
+/// 控制图片覆盖层何时可见。
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum FrontedOverlayVisibilityMode
 {
     /// <summary>
-    /// Visible when the bound value is true.
+    /// 绑定值为 true 时可见。
     /// </summary>
     VisibleWhenTrue,
 
     /// <summary>
-    /// Visible when the bound value is false.
+    /// 绑定值为 false 时可见。
     /// </summary>
     VisibleWhenFalse,
 
     /// <summary>
-    /// Always visible.
+    /// 始终可见。
     /// </summary>
     Always
 }

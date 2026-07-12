@@ -1,4 +1,4 @@
-﻿namespace neo_bpsys_wpf.Core.Abstractions.Services;
+namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
 /// <summary>
 /// 文件选择服务接口
@@ -48,8 +48,8 @@ public interface IFilePickerService
     /// <returns>文件路径。</returns>
     public string? PickPluginPackageFile();
 
-    /// <summary>Selects a Windows executable file.</summary>
-    /// <returns>The selected path, or <see langword="null"/> when cancelled.</returns>
+    /// <summary>选择 Windows 可执行文件。</summary>
+    /// <returns>选中的路径；取消选择时返回 <see langword="null"/>。</returns>
     public string? PickExecutableFile();
 
     /// <summary>

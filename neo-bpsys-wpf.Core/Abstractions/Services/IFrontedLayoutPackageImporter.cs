@@ -3,28 +3,28 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
 /// <summary>
-/// Imports Designer v3 fronted layout .bpui packages.
+/// 导入设计器 v3 前台布局 .bpui 包。
 /// </summary>
 public interface IFrontedLayoutPackageImporter
 {
     /// <summary>
-    /// Imports a Designer v3 package archive.
+    /// 导入设计器 v3 包归档。
     /// </summary>
-    /// <param name="request">Import request.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The import result.</returns>
+    /// <param name="request">导入请求。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>导入结果。</returns>
     Task<FrontedLayoutPackageImportResult> ImportAsync(
         FrontedLayoutPackageImportRequest request,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Imports a prepared Designer v3 package directory.
+    /// 导入已准备好的设计器 v3 包目录。
     /// </summary>
-    /// <param name="packageDirectory">Directory containing a normal v3 package.</param>
-    /// <param name="replaceExisting">Whether an installed package with the same id may be replaced.</param>
-    /// <param name="activateAfterImport">Whether to activate the package after installation.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The import result.</returns>
+    /// <param name="packageDirectory">包含普通 v3 包的目录。</param>
+    /// <param name="replaceExisting">是否允许替换同 ID 的已安装包。</param>
+    /// <param name="activateAfterImport">是否在安装后激活该包。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>导入结果。</returns>
     Task<FrontedLayoutPackageImportResult> ImportDirectoryAsync(
         string packageDirectory,
         bool replaceExisting,

@@ -71,7 +71,7 @@ public sealed class FrontedDesignerPreviewAnimationScope
     }
 
     /// <summary>
-    /// Rebuilds animation target options from the current control configurations and preview visual tree.
+    /// 根据当前控件配置和预览可视化树重新生成动画目标选项。
     /// </summary>
     public void RefreshTargets()
     {
@@ -190,16 +190,16 @@ public sealed class FrontedDesignerPreviewAnimationScope
 }
 
 /// <summary>
-/// Describes an animation target shown by the Designer preview editor.
+/// 描述设计器预览编辑器显示的动画目标。
 /// </summary>
 public sealed record FrontedDesignerAnimationTargetOption
 {
     /// <summary>
-    /// Initializes a Designer preview animation target option.
+    /// 初始化设计器预览动画目标选项。
     /// </summary>
-    /// <param name="displayName">The owning control display name.</param>
-    /// <param name="targetReference">The stable persisted target reference.</param>
-    /// <param name="partName">The optional stable generated part name.</param>
+    /// <param name="displayName">所属控件的显示名称。</param>
+    /// <param name="targetReference">稳定的持久化目标引用。</param>
+    /// <param name="partName">可选的稳定生成部件名称。</param>
     public FrontedDesignerAnimationTargetOption(
         string displayName,
         string targetReference,
@@ -211,17 +211,17 @@ public sealed record FrontedDesignerAnimationTargetOption
     }
 
     /// <summary>
-    /// Gets the owning control display name.
+    /// 获取所属控件的显示名称。
     /// </summary>
     public string DisplayName { get; }
 
     /// <summary>
-    /// Gets the stable persisted target reference.
+    /// 获取稳定的持久化目标引用。
     /// </summary>
     public string TargetReference { get; }
 
     /// <summary>
-    /// Gets the optional stable generated part name.
+    /// 获取可选的稳定生成部件名称。
     /// </summary>
     public string? PartName { get; }
 }

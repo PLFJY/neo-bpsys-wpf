@@ -1,68 +1,68 @@
 namespace neo_bpsys_wpf.Core.Models.SmartBpModule;
 
 /// <summary>
-/// SmartBP module package manifest.
+/// SmartBP 模块包清单。
 /// </summary>
 public sealed class SmartBpModuleManifest
 {
     /// <summary>
-    /// Component identifier.
+    /// 组件标识符。
     /// </summary>
     public string ComponentId { get; set; } = SmartBpModuleConstants.ComponentId;
 
     /// <summary>
-    /// Module package version.
+    /// 模块包版本。
     /// </summary>
     public string ModuleVersion { get; set; } = string.Empty;
 
     /// <summary>
-    /// Runtime ABI version.
+    /// 运行时 ABI 版本。
     /// </summary>
     public int RuntimeAbiVersion { get; set; } = SmartBpModuleConstants.RuntimeAbiVersion;
 
     /// <summary>
-    /// Runtime identifier.
+    /// 运行时标识符。
     /// </summary>
     public string Rid { get; set; } = SmartBpModuleConstants.Rid;
 
     /// <summary>
-    /// Required app version range.
+    /// 要求的应用版本范围。
     /// </summary>
     public string RequiredAppVersion { get; set; } = ">=3.0.0";
 
     /// <summary>
-    /// Package versions included in the module.
+    /// 模块中包含的包版本。
     /// </summary>
     public Dictionary<string, string> PackageVersions { get; set; } = [];
 
     /// <summary>
-    /// Packaged asset metadata.
+    /// 打包素材元数据。
     /// </summary>
     public SmartBpModuleAsset Asset { get; set; } = new();
 }
 
 /// <summary>
-/// SmartBP module asset metadata.
+/// SmartBP 模块素材元数据。
 /// </summary>
 public sealed class SmartBpModuleAsset
 {
     /// <summary>
-    /// Asset file name.
+    /// 素材文件名。
     /// </summary>
     public string Name { get; set; } = "SmartBpModule.7z";
 
     /// <summary>
-    /// Asset download URL.
+    /// 素材下载 URL。
     /// </summary>
     public string Url { get; set; } = string.Empty;
 
     /// <summary>
-    /// Asset size in bytes.
+    /// 素材大小（字节）。
     /// </summary>
     public long Size { get; set; }
 
     /// <summary>
-    /// Asset SHA-256 hash.
+    /// 素材 SHA-256 哈希值。
     /// </summary>
     public string Sha256 { get; set; } = string.Empty;
 }

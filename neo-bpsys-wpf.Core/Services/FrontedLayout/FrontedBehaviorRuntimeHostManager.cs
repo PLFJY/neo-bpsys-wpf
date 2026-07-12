@@ -6,8 +6,8 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Singleton manager that creates and tracks <see cref="FrontedBehaviorRuntimeHost" /> instances
-/// keyed by window id. Ensures proper cleanup on detach.
+/// 单例管理器，按窗口 ID 创建和跟踪 <see cref="FrontedBehaviorRuntimeHost" /> 实例。
+/// 确保在分离时正确清理。
 /// </summary>
 public sealed class FrontedBehaviorRuntimeHostManager : IDisposable
 {
@@ -23,7 +23,7 @@ public sealed class FrontedBehaviorRuntimeHostManager : IDisposable
     private bool _disposed;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="FrontedBehaviorRuntimeHostManager" />.
+    /// 初始化 <see cref="FrontedBehaviorRuntimeHostManager" /> 的新实例。
     /// </summary>
     public FrontedBehaviorRuntimeHostManager(
         IFrontedBehaviorService behaviorService,
@@ -44,8 +44,8 @@ public sealed class FrontedBehaviorRuntimeHostManager : IDisposable
     }
 
     /// <summary>
-    /// Attaches a behavior runtime host for the given context.
-    /// If a host already exists for the same window id, it is detached first.
+    /// 为给定上下文附加行为运行时宿主。
+    /// 如果同一窗口 ID 的宿主已存在，则先将其分离。
     /// </summary>
     public async Task AttachHostAsync(FrontedBehaviorRuntimeContext context, CancellationToken cancellationToken = default)
     {
@@ -108,8 +108,8 @@ public sealed class FrontedBehaviorRuntimeHostManager : IDisposable
     }
 
     /// <summary>
-    /// Detaches and disposes the host for the given window id.
-    /// Cancels all running behaviors, releases the event subscription and animation session.
+    /// 分离并释放给定窗口 ID 的宿主。
+    /// 取消所有正在运行的行为，释放事件订阅和动画会话。
     /// </summary>
     public void DetachHost(string windowId)
     {
@@ -129,7 +129,7 @@ public sealed class FrontedBehaviorRuntimeHostManager : IDisposable
     }
 
     /// <summary>
-    /// Publishes a ManualTrigger event to the event bus.
+    /// 向事件总线发布 ManualTrigger 事件。
     /// </summary>
     public void PublishManualTrigger(string triggerName, string? windowId = null)
     {
@@ -151,11 +151,11 @@ public sealed class FrontedBehaviorRuntimeHostManager : IDisposable
     }
 
     /// <summary>
-    /// Stops all active loop behaviors across all attached hosts.
+    /// 停止所有已附加宿主中的活动循环行为。
     /// </summary>
-    /// <param name="reason">The reason for stopping active loops.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The number of loops that were requested to stop.</returns>
+    /// <param name="reason">停止活动循环的原因。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>请求停止的循环数量。</returns>
     public async Task<int> StopAllLoopBehaviorsAsync(
         FrontedBehaviorStopReason reason,
         CancellationToken cancellationToken = default)
@@ -180,12 +180,12 @@ public sealed class FrontedBehaviorRuntimeHostManager : IDisposable
     }
 
     /// <summary>
-    /// Stops active loop behaviors for one attached fronted window host.
+    /// 停止单个已附加前台窗口宿主的活动循环行为。
     /// </summary>
-    /// <param name="windowId">The fronted window identifier.</param>
-    /// <param name="reason">The reason for stopping active loops.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The number of loops that were requested to stop.</returns>
+    /// <param name="windowId">前台窗口标识符。</param>
+    /// <param name="reason">停止活动循环的原因。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>请求停止的循环数量。</returns>
     public async Task<int> StopLoopBehaviorsAsync(
         string windowId,
         FrontedBehaviorStopReason reason,
@@ -204,11 +204,11 @@ public sealed class FrontedBehaviorRuntimeHostManager : IDisposable
     }
 
     /// <summary>
-    /// Creates transition execution matches for a transition request.
+    /// 为转场请求创建转场执行匹配。
     /// </summary>
-    /// <param name="request">Transition request to match against attached hosts.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Matched transition executions.</returns>
+    /// <param name="request">要与已附加宿主匹配的转场请求。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>匹配的转场执行。</returns>
     internal IReadOnlyList<FrontedTransitionExecution> CreateTransitionExecutions(
         FrontedTransitionRequest request,
         CancellationToken cancellationToken)
@@ -229,7 +229,7 @@ public sealed class FrontedBehaviorRuntimeHostManager : IDisposable
     }
 
     /// <summary>
-    /// Detaches all hosts and releases all resources.
+    /// 分离所有宿主并释放所有资源。
     /// </summary>
     public void Dispose()
     {
@@ -259,7 +259,7 @@ public sealed class FrontedBehaviorRuntimeHostManager : IDisposable
     }
 
     /// <summary>
-    /// Gets the host for the given window id, or null if not attached.
+    /// 获取给定窗口 ID 的宿主，未附加时返回 null。
     /// </summary>
     internal FrontedBehaviorRuntimeHost? GetHost(string windowId)
     {

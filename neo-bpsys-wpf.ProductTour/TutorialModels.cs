@@ -3,127 +3,127 @@ using System.Windows;
 namespace neo_bpsys_wpf.ProductTour;
 
 /// <summary>
-/// Defines where a product tour card is placed relative to its target element.
+/// 定义产品导览卡片相对于其目标元素的放置位置。
 /// </summary>
 public enum ProductTourPlacement
 {
-    /// <summary>Automatically chooses a placement based on available space.</summary>
+    /// <summary>根据可用空间自动选择放置位置。</summary>
     Auto,
-    /// <summary>Places the card on the left side of the target.</summary>
+    /// <summary>将卡片放置在目标左侧。</summary>
     Left,
-    /// <summary>Places the card on the right side of the target.</summary>
+    /// <summary>将卡片放置在目标右侧。</summary>
     Right,
-    /// <summary>Places the card above the target.</summary>
+    /// <summary>将卡片放置在目标上方。</summary>
     Top,
-    /// <summary>Places the card below the target.</summary>
+    /// <summary>将卡片放置在目标下方。</summary>
     Bottom,
-    /// <summary>Places the card on the left side aligned to the target top.</summary>
+    /// <summary>将卡片放置在目标左侧并与目标顶部对齐。</summary>
     LeftTop,
-    /// <summary>Places the card on the left side aligned to the target bottom.</summary>
+    /// <summary>将卡片放置在目标左侧并与目标底部对齐。</summary>
     LeftBottom,
-    /// <summary>Places the card on the right side aligned to the target top.</summary>
+    /// <summary>将卡片放置在目标右侧并与目标顶部对齐。</summary>
     RightTop,
-    /// <summary>Places the card on the right side aligned to the target bottom.</summary>
+    /// <summary>将卡片放置在目标右侧并与目标底部对齐。</summary>
     RightBottom,
-    /// <summary>Places the card above the target aligned to the target left.</summary>
+    /// <summary>将卡片放置在目标上方并与目标左侧对齐。</summary>
     TopLeft,
-    /// <summary>Places the card above the target aligned to the target right.</summary>
+    /// <summary>将卡片放置在目标上方并与目标右侧对齐。</summary>
     TopRight,
-    /// <summary>Places the card below the target aligned to the target left.</summary>
+    /// <summary>将卡片放置在目标下方并与目标左侧对齐。</summary>
     BottomLeft,
-    /// <summary>Places the card below the target aligned to the target right.</summary>
+    /// <summary>将卡片放置在目标下方并与目标右侧对齐。</summary>
     BottomRight,
-    /// <summary>Places the card in the center of the owner window.</summary>
+    /// <summary>将卡片放置在所有者窗口的中心。</summary>
     Center
 }
 
 /// <summary>
-/// Defines how user input is handled while a product tour step is visible.
+/// 定义产品导览步骤可见时用户输入的处理方式。
 /// </summary>
 public enum ProductTourInteractionMode
 {
-    /// <summary>Blocks all content interaction except the tour controls.</summary>
+    /// <summary>阻止除导览控件以外的所有内容交互。</summary>
     BlockAll,
-    /// <summary>Allows interaction with the highlighted target only.</summary>
+    /// <summary>仅允许与高亮目标交互。</summary>
     AllowTargetOnly,
-    /// <summary>Allows interaction with the entire owner window.</summary>
+    /// <summary>允许与整个所有者窗口交互。</summary>
     AllowAll
 }
 
 /// <summary>
-/// Defines how the guide avatar is positioned for a product tour step.
+/// 定义产品导览步骤中引导头像的定位方式。
 /// </summary>
 public enum ProductTourAvatarPlacement
 {
-    /// <summary>Uses the default placement near the product tour card.</summary>
+    /// <summary>使用产品导览卡片附近的默认放置位置。</summary>
     Auto,
-    /// <summary>Places the avatar at the upper-left corner of the owner window.</summary>
+    /// <summary>将头像放置在所有者窗口的左上角。</summary>
     TopLeft,
-    /// <summary>Places the avatar at the upper-right corner of the owner window.</summary>
+    /// <summary>将头像放置在所有者窗口的右上角。</summary>
     TopRight,
-    /// <summary>Places the avatar at the lower-right corner of the owner window.</summary>
+    /// <summary>将头像放置在所有者窗口的右下角。</summary>
     BottomRight
 }
 
 /// <summary>
-/// Defines how a product tour step resolves its target element.
+/// 定义产品导览步骤解析其目标元素的方式。
 /// </summary>
 public enum TutorialTargetKind
 {
-    /// <summary>No target is resolved for this step.</summary>
+    /// <summary>此步骤不解析目标。</summary>
     None,
-    /// <summary>Resolves the target by WPF element name.</summary>
+    /// <summary>通过 WPF 元素名称解析目标。</summary>
     Name,
-    /// <summary>Resolves the target from a navigation item.</summary>
+    /// <summary>从导航项解析目标。</summary>
     NavigationItem,
-    /// <summary>Resolves the first descendant element matching a type full name.</summary>
+    /// <summary>解析匹配类型全名的第一个后代元素。</summary>
     DescendantType,
-    /// <summary>Resolves the target by matching a framework element tag string.</summary>
+    /// <summary>通过匹配框架元素标签字符串解析目标。</summary>
     ElementTag
 }
 
 /// <summary>
-/// Defines why a tutorial package is being started.
+/// 定义教程包启动的原因。
 /// </summary>
 public enum TutorialTriggerMode
 {
-    /// <summary>The package is automatically attempted when a page is loaded.</summary>
+    /// <summary>页面加载时自动尝试该包。</summary>
     AutoOnLoaded,
-    /// <summary>The package is embedded inside a flow.</summary>
+    /// <summary>该包嵌入在流程中。</summary>
     EmbeddedInFlow,
-    /// <summary>The package is explicitly requested by a user or developer action.</summary>
+    /// <summary>该包由用户或开发者操作显式请求。</summary>
     Manual
 }
 
 /// <summary>
-/// Represents the result of running a tutorial operation.
+/// 表示教程操作的运行结果。
 /// </summary>
 public enum TutorialRunResult
 {
-    /// <summary>The tutorial completed normally.</summary>
+    /// <summary>教程正常完成。</summary>
     Completed,
-    /// <summary>The tutorial did not run because the target item was already completed.</summary>
+    /// <summary>教程未运行，因为目标项已完成。</summary>
     CompletedAlready,
-    /// <summary>The tutorial was skipped by the user.</summary>
+    /// <summary>教程被用户跳过。</summary>
     Skipped,
-    /// <summary>The requested target element could not be found.</summary>
+    /// <summary>找不到请求的目标元素。</summary>
     TargetMissing,
-    /// <summary>The tutorial had no pending work.</summary>
+    /// <summary>教程没有待处理的工作。</summary>
     NotPending,
-    /// <summary>The tutorial did not run because the package is not currently ready. Non-terminal: no completion state is written and future attempts are not suppressed.</summary>
+    /// <summary>教程未运行，因为该包当前未就绪。非终止状态：不写入完成状态，且不抑制后续尝试。</summary>
     NotReady,
-    /// <summary>The tutorial was canceled.</summary>
+    /// <summary>教程已被取消。</summary>
     Canceled,
-    /// <summary>The current package completed by opening a tutorial-owning child window.</summary>
+    /// <summary>当前包通过打开拥有教程的子窗口完成。</summary>
     ChildWindowHandoff,
-    /// <summary>The tutorial failed with an error.</summary>
+    /// <summary>教程因错误失败。</summary>
     Failed
 }
 
 /// <summary>
-/// Identifies a tutorial package in public authoring APIs.
+/// 在公共创作 API 中标识一个教程包。
 /// </summary>
-/// <param name="Id">Stable package id.</param>
+/// <param name="Id">稳定的包 id。</param>
 public readonly record struct TutorialPackageRef(string Id)
 {
     /// <inheritdoc />
@@ -131,154 +131,154 @@ public readonly record struct TutorialPackageRef(string Id)
 }
 
 /// <summary>
-/// Represents how a tutorial or package completion was recorded.
+/// 表示教程或包完成记录的方式。
 /// </summary>
 public enum TutorialCompletionKind
 {
-    /// <summary>The item was completed directly.</summary>
+    /// <summary>该项已直接完成。</summary>
     Completed,
-    /// <summary>The package was covered by a completed tutorial flow.</summary>
+    /// <summary>该包由已完成的教程流程覆盖。</summary>
     CoveredByFlow
 }
 
 /// <summary>
-/// Defines the expected user action for an interactive tour step.
+/// 定义交互式导览步骤的预期用户操作。
 /// </summary>
 public enum TutorialExpectedAction
 {
-    /// <summary>No explicit action is required.</summary>
+    /// <summary>不需要显式操作。</summary>
     None,
-    /// <summary>The user is expected to click the target element.</summary>
+    /// <summary>预期用户点击目标元素。</summary>
     Click,
-    /// <summary>The user is expected to enter text.</summary>
+    /// <summary>预期用户输入文本。</summary>
     TextInput,
-    /// <summary>The user is expected to execute a command.</summary>
+    /// <summary>预期用户执行命令。</summary>
     CommandExecuted,
-    /// <summary>The step waits for a tutorial signal.</summary>
+    /// <summary>该步骤等待教程信号。</summary>
     SignalReceived
 }
 
 /// <summary>
-/// Stores completion information for one tutorial package or flow.
+/// 存储一个教程包或流程的完成信息。
 /// </summary>
 public sealed class TutorialCompletionRecord
 {
-    /// <summary>Gets or sets the completed item version.</summary>
+    /// <summary>获取或设置已完成项的版本。</summary>
     public int Version { get; set; }
 
-    /// <summary>Gets or sets the completion kind.</summary>
+    /// <summary>获取或设置完成类型。</summary>
     public TutorialCompletionKind CompletionKind { get; set; }
 
-    /// <summary>Gets or sets the flow id that covered the package, when applicable.</summary>
+    /// <summary>获取或设置覆盖该包的流程 id（如适用）。</summary>
     public string? SourceFlowId { get; set; }
 
-    /// <summary>Gets or sets the UTC completion time.</summary>
+    /// <summary>获取或设置 UTC 完成时间。</summary>
     public DateTimeOffset CompletedAt { get; set; } = DateTimeOffset.UtcNow;
 }
 
 /// <summary>
-/// Stores persistent tutorial state.
+/// 存储持久化的教程状态。
 /// </summary>
 public sealed class TutorialState
 {
-    /// <summary>Gets or sets completed flow records keyed by flow id.</summary>
+    /// <summary>获取或设置按流程 id 索引的已完成流程记录。</summary>
     public Dictionary<string, TutorialCompletionRecord> CompletedFlows { get; set; } = [];
 
-    /// <summary>Gets or sets completed package records keyed by package id.</summary>
+    /// <summary>获取或设置按包 id 索引的已完成包记录。</summary>
     public Dictionary<string, TutorialCompletionRecord> CompletedPackages { get; set; } = [];
 }
 
 /// <summary>
-/// Defines the package order for a page, tab, or window.
+/// 定义页面、标签页或窗口的包顺序。
 /// </summary>
 public sealed class TutorialSequenceDefinition
 {
-    /// <summary>Gets or sets the page, tab, or window key.</summary>
+    /// <summary>获取或设置页面、标签页或窗口键。</summary>
     public required string PageKey { get; init; }
 
-    /// <summary>Gets or sets package ids in sequence order.</summary>
+    /// <summary>获取或设置按顺序排列的包 id。</summary>
     public IReadOnlyList<string> PackageIds { get; init; } = [];
 
 }
 
 /// <summary>
-/// Describes one product tour step.
+/// 描述一个产品导览步骤。
 /// </summary>
 public sealed class ProductTourStep
 {
-    /// <summary>Gets or sets the target element name.</summary>
+    /// <summary>获取或设置目标元素名称。</summary>
     public string? TargetName { get; set; }
 
-    /// <summary>Gets or sets the target resolver kind.</summary>
+    /// <summary>获取或设置目标解析器类型。</summary>
     public TutorialTargetKind TargetKind { get; set; } = TutorialTargetKind.Name;
 
-    /// <summary>Gets or sets the target key used by the selected target resolver.</summary>
+    /// <summary>获取或设置所选目标解析器使用的目标键。</summary>
     public string? TargetKey { get; set; }
 
-    /// <summary>Gets or sets the localized or literal title.</summary>
+    /// <summary>获取或设置本地化或字面标题。</summary>
     public string Title { get; set; } = string.Empty;
 
-    /// <summary>Gets or sets the localized or literal description.</summary>
+    /// <summary>获取或设置本地化或字面描述。</summary>
     public string Description { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the resource key used to resolve the title at runtime.
-    /// When non-null, the overlay resolves the title via <see cref="ITutorialContentResolver"/>
-    /// instead of using <see cref="Title"/> directly.
+    /// 获取或设置用于在运行时解析标题的资源键。
+    /// 非 null 时，覆盖层通过 <see cref="ITutorialContentResolver"/> 解析标题，
+    /// 而非直接使用 <see cref="Title"/>。
     /// </summary>
     public string? TitleKey { get; set; }
 
     /// <summary>
-    /// Gets or sets the resource key used to resolve the description at runtime.
-    /// When non-null, the overlay resolves the description via <see cref="ITutorialContentResolver"/>
-    /// instead of using <see cref="Description"/> directly.
+    /// 获取或设置用于在运行时解析描述的资源键。
+    /// 非 null 时，覆盖层通过 <see cref="ITutorialContentResolver"/> 解析描述，
+    /// 而非直接使用 <see cref="Description"/>。
     /// </summary>
     public string? DescriptionKey { get; set; }
 
-    /// <summary>Gets or sets the preferred card placement.</summary>
+    /// <summary>获取或设置首选卡片放置位置。</summary>
     public ProductTourPlacement Placement { get; set; } = ProductTourPlacement.Auto;
 
-    /// <summary>Gets or sets the card offset applied after placement is calculated.</summary>
+    /// <summary>获取或设置在放置位置计算后应用的卡片偏移量。</summary>
     public Point CardOffset { get; set; }
 
-    /// <summary>Gets or sets the interaction mode.</summary>
+    /// <summary>获取或设置交互模式。</summary>
     public ProductTourInteractionMode InteractionMode { get; set; } = ProductTourInteractionMode.BlockAll;
 
-    /// <summary>Gets or sets whether a missing target should skip this step.</summary>
+    /// <summary>获取或设置目标缺失时是否跳过此步骤。</summary>
     public bool AllowMissingTarget { get; set; }
 
-    /// <summary>Gets or sets the signal required before the step can continue.</summary>
+    /// <summary>获取或设置步骤继续前所需的信号。</summary>
     public string? WaitForSignalId { get; set; }
 
-    /// <summary>Gets or sets the timeout for target lookup and signal waits.</summary>
+    /// <summary>获取或设置目标查找和信号等待的超时时间。</summary>
     public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(20);
 
-    /// <summary>Gets or sets the expected user action.</summary>
+    /// <summary>获取或设置预期用户操作。</summary>
     public TutorialExpectedAction ExpectedAction { get; set; }
 
-    /// <summary>Gets or sets the avatar placement for this step.</summary>
+    /// <summary>获取或设置此步骤的头像放置位置。</summary>
     public ProductTourAvatarPlacement AvatarPlacement { get; set; } = ProductTourAvatarPlacement.Auto;
 
-    /// <summary>Gets or sets the avatar pose, or <see langword="null" /> to choose the pose automatically.</summary>
+    /// <summary>获取或设置头像姿势，或 <see langword="null" /> 以自动选择姿势。</summary>
     public TutorialAvatarPose? AvatarPose { get; set; }
 
-    /// <summary>Gets the actions invoked before target resolution and overlay display.</summary>
+    /// <summary>获取在目标解析和覆盖层显示之前调用的操作。</summary>
     public IList<TutorialStepAction> PreStepActions { get; } = [];
 
-    /// <summary>Gets the actions invoked after the step completes and its overlay is closed.</summary>
+    /// <summary>获取在步骤完成且其覆盖层关闭后调用的操作。</summary>
     public IList<TutorialStepAction> PostStepActions { get; } = [];
 }
 
 /// <summary>
-/// Describes reusable code executed before or after a tutorial step.
+/// 描述在教程步骤之前或之后执行的可复用代码。
 /// </summary>
 public sealed class TutorialStepAction
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="TutorialStepAction"/> class.
+    /// 初始化 <see cref="TutorialStepAction"/> 类的新实例。
     /// </summary>
-    /// <param name="name">Diagnostic action name.</param>
-    /// <param name="executeAsync">Action body.</param>
+    /// <param name="name">诊断操作名称。</param>
+    /// <param name="executeAsync">操作体。</param>
     public TutorialStepAction(
         string name,
         Func<TutorialStepActionContext, CancellationToken, Task> executeAsync)
@@ -289,76 +289,75 @@ public sealed class TutorialStepAction
         ExecuteAsync = executeAsync ?? throw new ArgumentNullException(nameof(executeAsync));
     }
 
-    /// <summary>Gets the diagnostic action name.</summary>
+    /// <summary>获取诊断操作名称。</summary>
     public string Name { get; }
 
-    /// <summary>Gets the action body.</summary>
+    /// <summary>获取操作体。</summary>
     public Func<TutorialStepActionContext, CancellationToken, Task> ExecuteAsync { get; }
 
-    /// <summary>Gets or sets whether failures should be logged and ignored.</summary>
+    /// <summary>获取或设置是否记录失败并忽略。</summary>
     public bool IsOptional { get; init; }
 }
 
 /// <summary>
-/// Provides a mechanism to yield the currently visible tutorial step
-/// when a tutorial-owning child window opens.
+/// 提供在拥有教程的子窗口打开时让出当前可见教程步骤的机制。
 /// </summary>
 public interface ITutorialStepCancellation
 {
     /// <summary>
-    /// Forces the currently visible tutorial step to complete with a child-window handoff action.
-    /// Does nothing if no step is currently visible.
+    /// 强制当前可见教程步骤以子窗口交接操作完成。
+    /// 如果当前没有可见步骤，则不执行任何操作。
     /// </summary>
     void YieldCurrentStepForChildWindow();
 }
 
 /// <summary>
-/// Provides runtime information to a tutorial step action.
+/// 向教程步骤操作提供运行时信息。
 /// </summary>
 public sealed class TutorialStepActionContext
 {
-    /// <summary>Gets the application service provider.</summary>
+    /// <summary>获取应用服务提供程序。</summary>
     public required IServiceProvider Services { get; init; }
 
-    /// <summary>Gets the tutorial owner element.</summary>
+    /// <summary>获取教程所有者元素。</summary>
     public required FrameworkElement Owner { get; init; }
 
-    /// <summary>Gets the current step.</summary>
+    /// <summary>获取当前步骤。</summary>
     public required ProductTourStep Step { get; init; }
 
-    /// <summary>Gets the most recent resolved target element when one is available.</summary>
+    /// <summary>获取最近解析的目标元素（如可用）。</summary>
     public FrameworkElement? LastResolvedTarget { get; init; }
 }
 
 /// <summary>
-/// Defines a tutorial package registered for a page, window, or feature.
+/// 定义为页面、窗口或功能注册的教程包。
 /// </summary>
 public sealed class TutorialPackageDefinition
 {
     private IReadOnlyList<TutorialPackageItem> _items = [];
-    /// <summary>Gets or sets the stable package id.</summary>
+    /// <summary>获取或设置稳定的包 id。</summary>
     public required string PackageId { get; init; }
 
-    /// <summary>Gets or sets the package version.</summary>
+    /// <summary>获取或设置包版本。</summary>
     public int Version { get; init; } = 1;
 
-    /// <summary>Gets or sets the page or feature key.</summary>
+    /// <summary>获取或设置页面或功能键。</summary>
     public required string PageKey { get; init; }
 
-    /// <summary>Gets or sets the sequence value within its page.</summary>
+    /// <summary>获取或设置在其页面内的序列值。</summary>
     public int Sequence { get; init; }
 
-    /// <summary>Gets or sets a package kind label.</summary>
+    /// <summary>获取或设置包类型标签。</summary>
     public string Kind { get; init; } = "ProductTour";
 
-    /// <summary>Gets or sets the ordered package items.</summary>
+    /// <summary>获取或设置有序的包项。</summary>
     public IReadOnlyList<TutorialPackageItem> Items
     {
         get => _items;
         init => _items = value ?? [];
     }
 
-    /// <summary>Gets the spotlight steps contained by this package.</summary>
+    /// <summary>获取此包包含的聚光灯步骤。</summary>
     public IReadOnlyList<ProductTourStep> Steps
     {
         get => Items
@@ -370,120 +369,119 @@ public sealed class TutorialPackageDefinition
             .ToArray();
     }
 
-    /// <summary>Gets or sets an optional condition that determines whether the package can run.</summary>
+    /// <summary>获取或设置决定该包是否可运行的可选条件。</summary>
     public Func<IServiceProvider, bool>? CanRun { get; init; }
 
-    /// <summary>Gets or sets an optional owner-aware condition that determines whether the package can run.</summary>
+    /// <summary>获取或设置决定该包是否可运行的可选所有者感知条件。</summary>
     public Func<IServiceProvider, FrameworkElement?, bool>? CanRunWithOwner { get; init; }
 }
 
-/// <summary>Base type for the explicit items allowed inside a tutorial package.</summary>
+/// <summary>教程包内允许的显式项的基类型。</summary>
 public abstract class TutorialPackageItem;
 
-/// <summary>A package item that displays a spotlight step.</summary>
+/// <summary>显示聚光灯步骤的包项。</summary>
 public sealed class TutorialPackageStepItem : TutorialPackageItem
 {
-    /// <summary>Gets the spotlight step.</summary>
+    /// <summary>获取聚光灯步骤。</summary>
     public required ProductTourStep Step { get; init; }
 }
 
-/// <summary>A package item that displays dialogue through the dialogue overlay.</summary>
+/// <summary>通过对话覆盖层显示对话的包项。</summary>
 public sealed class TutorialPackageDialogueItem : TutorialPackageItem
 {
-    /// <summary>Gets the dialogue definition.</summary>
+    /// <summary>获取对话定义。</summary>
     public required DialogueFlowItem Dialogue { get; init; }
 }
 
 /// <summary>
-/// Defines a tutorial flow.
+/// 定义一个教程流程。
 /// </summary>
 public sealed class TutorialFlowDefinition
 {
-    /// <summary>Gets or sets the stable flow id.</summary>
+    /// <summary>获取或设置稳定的流程 id。</summary>
     public required string FlowId { get; init; }
 
-    /// <summary>Gets or sets the flow version.</summary>
+    /// <summary>获取或设置流程版本。</summary>
     public int Version { get; init; } = 1;
 
-    /// <summary>Gets or sets package ids covered when this flow completes.</summary>
+    /// <summary>获取或设置此流程完成时覆盖的包 id。</summary>
     public IReadOnlyList<string> IncludedPackageIds { get; init; } = [];
 
-    /// <summary>Gets or sets flow items.</summary>
+    /// <summary>获取或设置流程项。</summary>
     public IReadOnlyList<TutorialFlowItem> Items { get; init; } = [];
 }
 
 /// <summary>
-/// Base type for tutorial flow items.
+/// 教程流程项的基类型。
 /// </summary>
 public abstract class TutorialFlowItem
 {
-    /// <summary>Gets or sets an optional item id.</summary>
+    /// <summary>获取或设置可选的项 id。</summary>
     public string? ItemId { get; init; }
 }
 
 /// <summary>
-/// A flow item that runs a registered package.
+/// 运行已注册包的流程项。
 /// </summary>
 public sealed class PackageFlowItem : TutorialFlowItem
 {
-    /// <summary>Gets or sets the referenced package id.</summary>
+    /// <summary>获取或设置引用的包 id。</summary>
     public required string PackageId { get; init; }
 }
 
 /// <summary>
-/// A flow item that shows dialogue lines.
+/// 显示对话台词的流程项。
 /// </summary>
 public sealed class DialogueFlowItem : TutorialFlowItem
 {
-    /// <summary>Gets or sets the speaker name.</summary>
+    /// <summary>获取或设置说话者名称。</summary>
     public string Speaker { get; init; } = "Product tour";
 
-    /// <summary>Gets or sets dialogue lines.</summary>
+    /// <summary>获取或设置对话台词。</summary>
     public IReadOnlyList<string> Lines { get; init; } = [];
 
     /// <summary>
-    /// Gets or sets the resource key used to resolve dialogue lines at runtime via
-    /// <see cref="ITutorialContentResolver"/>. When non-null, lines are resolved from
-    /// the resource; <see cref="Lines"/> is used as a fallback when the key is null.
+    /// 获取或设置用于在运行时通过 <see cref="ITutorialContentResolver"/> 解析对话台词的资源键。
+    /// 非 null 时，从资源解析台词；键为 null 时使用 <see cref="Lines"/> 作为回退。
     /// </summary>
     public string? LinesKey { get; init; }
 }
 
 /// <summary>
-/// A flow item that invokes custom code.
+/// 调用自定义代码的流程项。
 /// </summary>
 public sealed class ActionFlowItem : TutorialFlowItem
 {
-    /// <summary>Gets or sets the action to invoke.</summary>
+    /// <summary>获取或设置要调用的操作。</summary>
     public Func<IServiceProvider, CancellationToken, Task>? ActionAsync { get; init; }
 }
 
 /// <summary>
-/// A flow item that shows ad hoc product tour steps.
+/// 显示临时产品导览步骤的流程项。
 /// </summary>
 public sealed class CustomStepFlowItem : TutorialFlowItem
 {
-    /// <summary>Gets or sets the steps shown by this item.</summary>
+    /// <summary>获取或设置此项显示的步骤。</summary>
     public IReadOnlyList<ProductTourStep> Steps { get; init; } = [];
 }
 
 /// <summary>
-/// Provides context about a running tutorial step.
+/// 提供有关正在运行的教程步骤的上下文。
 /// </summary>
 public sealed class ProductTourStepContext
 {
-    /// <summary>Gets or sets the current flow id.</summary>
+    /// <summary>获取或设置当前流程 id。</summary>
     public string? FlowId { get; init; }
 
-    /// <summary>Gets or sets the current package id.</summary>
+    /// <summary>获取或设置当前包 id。</summary>
     public string? PackageId { get; init; }
 
-    /// <summary>Gets or sets the zero-based step index.</summary>
+    /// <summary>获取或设置从零开始的步骤索引。</summary>
     public int StepIndex { get; init; }
 
-    /// <summary>Gets or sets the total step count.</summary>
+    /// <summary>获取或设置总步骤数。</summary>
     public int StepCount { get; init; }
 
-    /// <summary>Gets or sets the owner element.</summary>
+    /// <summary>获取或设置所有者元素。</summary>
     public required FrameworkElement Owner { get; init; }
 }

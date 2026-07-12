@@ -11,7 +11,7 @@ using System.Reflection;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Builds Designer v3 property grid rows for the selected design item.
+/// 为选中的设计项构建设计器 v3 属性网格行。
 /// </summary>
 public class FrontedPropertyGridBuilder
 {
@@ -20,7 +20,7 @@ public class FrontedPropertyGridBuilder
     private readonly IFrontedControlRegistry? _controlRegistry;
 
     /// <summary>
-    /// Initializes a property grid builder with default font options.
+    /// 使用默认字体选项初始化属性网格构建器。
     /// </summary>
     public FrontedPropertyGridBuilder()
         : this(new FrontedFontFamilyOptionProvider(), new FrontedDesignerLocalizationService(), null)
@@ -28,7 +28,7 @@ public class FrontedPropertyGridBuilder
     }
 
     /// <summary>
-    /// Initializes a property grid builder with a custom font option provider.
+    /// 使用自定义字体选项提供程序初始化属性网格构建器。
     /// </summary>
     public FrontedPropertyGridBuilder(FrontedFontFamilyOptionProvider fontFamilyOptionProvider)
         : this(fontFamilyOptionProvider, new FrontedDesignerLocalizationService(), null)
@@ -36,7 +36,7 @@ public class FrontedPropertyGridBuilder
     }
 
     /// <summary>
-    /// Initializes a property grid builder with custom font options and localization.
+    /// 使用自定义字体选项和本地化初始化属性网格构建器。
     /// </summary>
     public FrontedPropertyGridBuilder(
         FrontedFontFamilyOptionProvider fontFamilyOptionProvider,
@@ -125,7 +125,7 @@ public class FrontedPropertyGridBuilder
     ];
 
     /// <summary>
-    /// Builds property editor rows for the selected design item.
+    /// 为选中的设计项构建属性编辑器行。
     /// </summary>
     public ObservableCollection<FrontedPropertyEditorItem> Build(
         FrontedCanvasDesignDocument document,
@@ -144,16 +144,16 @@ public class FrontedPropertyGridBuilder
     }
 
     /// <summary>
-    /// Gets current font family options for font editors.
+    /// 获取字体编辑器的当前字体系列选项。
     /// </summary>
-    /// <returns>Font family options.</returns>
+    /// <returns>字体系列选项。</returns>
     public IReadOnlyList<object> GetFontFamilyOptions()
     {
         return _fontFamilyOptionProvider.GetFontFamilyOptions().Cast<object>().ToArray();
     }
 
     /// <summary>
-    /// Clears cached font family options.
+    /// 清除缓存的字体系列选项。
     /// </summary>
     public void ClearFontFamilyOptionCache()
     {

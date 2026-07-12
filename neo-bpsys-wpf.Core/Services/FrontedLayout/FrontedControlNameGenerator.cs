@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Generates v3 designer control names that are unique within a Canvas.
+/// 生成在画布内唯一的 v3 设计器控件名称。
 /// </summary>
 public class FrontedControlNameGenerator
 {
@@ -13,7 +13,7 @@ public class FrontedControlNameGenerator
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     /// <summary>
-    /// Generates the first available name using the ControlType as prefix.
+    /// 使用 ControlType 作为前缀生成第一个可用名称。
     /// </summary>
     public string Generate(string controlType, FrontedCanvasDesignDocument document)
     {

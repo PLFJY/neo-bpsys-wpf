@@ -222,7 +222,7 @@ public class CharacterSelector : Control
 
 
     /// <summary>
-    /// Find the index of ths option waiting to be found
+    /// 查找待匹配选项的索引。
     /// </summary>
     /// <param name="inputText"></param>
     /// <returns></returns>

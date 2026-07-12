@@ -4,15 +4,15 @@ using System.Globalization;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Formats behavior payload values as stable invariant text for filters and debugging.
+/// 将行为负载值格式化为用于过滤器和调试的稳定不变文本。
 /// </summary>
 public static class FrontedBehaviorPayloadValueFormatter
 {
     /// <summary>
-    /// Formats a payload value using invariant, machine-readable behavior filter semantics.
+    /// 使用不变、机器可读的行为过滤语义格式化负载值。
     /// </summary>
-    /// <param name="value">Payload value to format.</param>
-    /// <returns>Stable text suitable for filter comparisons.</returns>
+    /// <param name="value">要格式化的负载值。</param>
+    /// <returns>适合过滤器比较的稳定文本。</returns>
     public static string Format(object? value)
     {
         if (value is null)

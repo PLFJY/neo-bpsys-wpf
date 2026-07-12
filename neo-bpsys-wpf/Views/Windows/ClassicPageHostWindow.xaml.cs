@@ -5,7 +5,7 @@ using Wpf.Ui.Controls;
 namespace neo_bpsys_wpf.Views.Windows;
 
 /// <summary>
-/// Hosts existing backend pages in Classic Mode pop-up windows.
+/// 在经典模式弹窗中承载现有后台页面。
 /// </summary>
 public partial class ClassicPageHostWindow : FluentWindow
 {

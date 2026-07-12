@@ -25,7 +25,7 @@ using WPFLocalizeExtension.Engine;
 namespace neo_bpsys_wpf;
 
 /// <summary>
-/// Interaction logic for App.xaml
+/// App.xaml 的交互逻辑。
 /// </summary>
 public partial class App : AppBase
 {
@@ -166,7 +166,7 @@ public partial class App : AppBase
     }
 
     /// <summary>
-    /// Occurs when an exception is thrown by an application but not handled.
+    /// 当应用抛出异常但未被处理时发生。
     /// </summary>
     private async void OnDispatcherUnhandledException(
         object sender,

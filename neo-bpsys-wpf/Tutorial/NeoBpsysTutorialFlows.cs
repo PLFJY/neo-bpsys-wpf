@@ -7,14 +7,14 @@ using System.Windows;
 namespace neo_bpsys_wpf.Tutorial;
 
 /// <summary>
-/// Registers built-in tutorial flows.
+/// 注册内置教程流程。
 /// </summary>
 public static class NeoBpsysTutorialFlows
 {
     /// <summary>
-    /// Registers flow definitions.
+    /// 注册流程定义。
     /// </summary>
-    /// <param name="builder">Tutorial builder.</param>
+    /// <param name="builder">教程构建器。</param>
     public static void Register(ITutorialBuilder builder)
     {
         builder.Flow(TutorialFlowIds.Phase4ANavigationProbe)

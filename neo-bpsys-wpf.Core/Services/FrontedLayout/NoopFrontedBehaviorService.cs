@@ -5,7 +5,7 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// No-op behavior service used when behavior persistence is unavailable.
+/// 行为持久化不可用时使用的空操作行为服务。
 /// </summary>
 public sealed class NoopFrontedBehaviorService : IFrontedBehaviorService
 {

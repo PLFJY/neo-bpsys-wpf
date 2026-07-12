@@ -5,7 +5,7 @@ using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Services;
 
-/// <summary>Tests ProductTour trigger ownership and explicit user-action gates.</summary>
+/// <summary>测试产品导览的触发器所有权和显式用户动作门控。</summary>
 public sealed class ProductTourTriggerContractTest
 {
     [Fact]

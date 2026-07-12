@@ -9,19 +9,19 @@ using WPFLocalizeExtension.Engine;
 namespace neo_bpsys_wpf.Tests.Infrastructure;
 
 /// <summary>
-/// Provides bounded STA-thread execution helpers for WPF tests.
+/// 为 WPF 测试提供有边界的 STA 线程执行助手。
 /// </summary>
 public static class WpfTestThread
 {
     private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(15);
 
     /// <summary>
-    /// Runs a synchronous WPF test action on a background STA thread and fails quickly if it does not finish.
+    /// 在后台 STA 线程上运行同步 WPF 测试操作，若未在限定时间内完成则快速失败。
     /// </summary>
-    /// <param name="action">The action to execute on the STA thread.</param>
-    /// <param name="timeout">The maximum time to wait before failing the test.</param>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="action"/> is null.</exception>
-    /// <exception cref="TimeoutException">Thrown when the action does not finish before <paramref name="timeout"/>.</exception>
+    /// <param name="action">要在 STA 线程上执行的操作。</param>
+    /// <param name="timeout">在判定测试失败前等待的最长时间。</param>
+    /// <exception cref="ArgumentNullException">当 <paramref name="action"/> 为 null 时抛出。</exception>
+    /// <exception cref="TimeoutException">当操作未在 <paramref name="timeout"/> 之前完成时抛出。</exception>
     public static void Run(Action action, TimeSpan? timeout = null)
     {
         ArgumentNullException.ThrowIfNull(action);
@@ -52,13 +52,13 @@ public static class WpfTestThread
     }
 
     /// <summary>
-    /// Runs an asynchronous WPF test action on a background STA thread with a Dispatcher message pump.
+    /// 在带 Dispatcher 消息泵的后台 STA 线程上运行异步 WPF 测试操作。
     /// </summary>
-    /// <param name="action">The asynchronous action to execute on the STA thread.</param>
-    /// <param name="timeout">The maximum time to wait before failing the test.</param>
-    /// <returns>A task that completes when the action finishes.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="action"/> is null.</exception>
-    /// <exception cref="TimeoutException">Thrown when the action does not finish before <paramref name="timeout"/>.</exception>
+    /// <param name="action">要在 STA 线程上执行的异步操作。</param>
+    /// <param name="timeout">在判定测试失败前等待的最长时间。</param>
+    /// <returns>在操作完成时完成的任务。</returns>
+    /// <exception cref="ArgumentNullException">当 <paramref name="action"/> 为 null 时抛出。</exception>
+    /// <exception cref="TimeoutException">当操作未在 <paramref name="timeout"/> 之前完成时抛出。</exception>
     public static async Task RunAsync(Func<Task> action, TimeSpan? timeout = null)
     {
         ArgumentNullException.ThrowIfNull(action);
@@ -141,14 +141,13 @@ public static class WpfTestThread
     }
 
     /// <summary>
-    /// Clears orphaned WPFLocalizeExtension <c>DictionaryEvent</c> listener subscriptions
-    /// left by prior tests whose STA dispatchers have shut down.  When a new test loads XAML
-    /// that sets <c>ResxLocalizationProvider.DefaultAssembly</c>, the setter raises
-    /// <c>DictionaryEvent.Invoke</c> which notifies every registered listener.  Orphaned
-    /// listeners from previous tests still reference dead dispatchers, causing
-    /// <c>TaskCanceledException</c> (wrapped in <c>XamlParseException</c>) during
-    /// <c>LoadBaml</c>.  Removing all listeners before each test ensures only the current
-    /// test's listeners are active.
+    /// 清理由先前测试遗留的孤立 WPFLocalizeExtension <c>DictionaryEvent</c> 监听器订阅，
+    /// 这些订阅所属的 STA dispatcher 已经关闭。当新测试加载 XAML 并设置
+    /// <c>ResxLocalizationProvider.DefaultAssembly</c> 时，该 setter 会触发
+    /// <c>DictionaryEvent.Invoke</c>，通知所有已注册的监听器。来自先前测试的孤立
+    /// 监听器仍引用已死亡的 dispatcher，会在 <c>LoadBaml</c> 期间引发
+    /// <c>TaskCanceledException</c>（被包装为 <c>XamlParseException</c>）。
+    /// 在每次测试之前移除所有监听器可确保只有当前测试的监听器处于活动状态。
     /// </summary>
     private static void ClearOrphanedLocalizationEventSubscriptions()
     {

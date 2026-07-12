@@ -12,7 +12,7 @@ using System.Windows.Shapes;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Default renderer for behavior-owned generated animation parts.
+/// 行为拥有的生成动画部件的默认渲染器。
 /// </summary>
 public sealed class FrontedBehaviorAnimationPartRenderer(
     IFrontedResourceResolver resourceResolver) : IFrontedBehaviorAnimationPartRenderer

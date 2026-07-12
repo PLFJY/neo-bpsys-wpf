@@ -4,7 +4,7 @@ using Wpf.Ui.Controls;
 namespace neo_bpsys_wpf.Views.Windows;
 
 /// <summary>
-/// Non-modal validation detail table for Designer v3.
+/// 设计器 v3 的非模态校验详情表格。
 /// </summary>
 public partial class ValidationDetailsWindow : FluentWindow
 {

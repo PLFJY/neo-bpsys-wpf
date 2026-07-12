@@ -3,7 +3,7 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
 
 /// <summary>
-/// Non-generic metadata view for a Designer v3 plugin fronted control descriptor.
+/// 设计器 v3 插件前台控件描述符的非泛型元数据视图。
 /// </summary>
 public interface IFrontedPluginControlDescriptor
 {

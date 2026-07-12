@@ -3,93 +3,93 @@ using neo_bpsys_wpf.Core.Enums;
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
 
 /// <summary>
-/// Describes a WPF fronted output window known to the v3 fronted window registry.
+/// 描述 v3 前台窗口注册表已知的 WPF 前台输出窗口。
 /// </summary>
 /// <remarks>
-/// <see cref="WindowId"/> is the runtime identity and should be a stable GUID.
-/// <see cref="FullWindowType"/> is the layout/package identity. Built-in windows use names such as
-/// <c>BpWindow</c> or <c>ScoreGlobalWindow</c>; plugin windows use
-/// <c>plugin:{PackageId}/{WindowTypeName}</c>.
+/// <see cref="WindowId"/> 是运行时标识，应为稳定的 GUID。
+/// <see cref="FullWindowType"/> 是布局/包标识。内置窗口使用如
+/// <c>BpWindow</c> 或 <c>ScoreGlobalWindow</c> 的名称；插件窗口使用
+/// <c>plugin:{PackageId}/{WindowTypeName}</c>。
 /// </remarks>
 public interface IFrontedWindowDescriptor
 {
     /// <summary>
-    /// Stable runtime window identity. Plugin authors should generate one GUID and keep it unchanged.
+    /// 稳定的运行时窗口标识。插件作者应生成一个 GUID 并保持不变。
     /// </summary>
     string WindowId { get; }
 
     /// <summary>
-    /// Short window type name inside its provider, such as <c>BpWindow</c> or a plugin's local window name.
+    /// 提供方内部的短窗口类型名，例如 <c>BpWindow</c> 或插件的本地窗口名。
     /// </summary>
     string WindowTypeName { get; }
 
     /// <summary>
-    /// Layout and package identity. Plugin values use <c>plugin:{PackageId}/{WindowTypeName}</c>.
+    /// 布局和包标识。插件值使用 <c>plugin:{PackageId}/{WindowTypeName}</c>。
     /// </summary>
     string FullWindowType { get; }
 
     /// <summary>
-    /// Fallback display name used when <see cref="DisplayNameKey"/> is not localized by the host.
+    /// 当 <see cref="DisplayNameKey"/> 未被宿主本地化时使用的回退显示名称。
     /// </summary>
     string DisplayName { get; }
 
     /// <summary>
-    /// Optional localized display names keyed by concrete application language.
+    /// 可选的本地化显示名称，以具体应用语言为键。
     /// </summary>
     IReadOnlyDictionary<LanguageKey, string>? I18nDisplayNames { get; }
 
     /// <summary>
-    /// Optional localization key for the window display name.
+    /// 窗口显示名称的可选本地化键。
     /// </summary>
     string? DisplayNameKey { get; }
 
     /// <summary>
-    /// Fallback human-readable description.
+    /// 回退的可读描述。
     /// </summary>
     string? Description { get; }
 
     /// <summary>
-    /// Optional localization key for the window description.
+    /// 窗口描述的可选本地化键。
     /// </summary>
     string? DescriptionKey { get; }
 
     /// <summary>
-    /// Stable management group key.
+    /// 稳定的管理分组键。
     /// </summary>
     string? GroupKey { get; }
 
     /// <summary>
-    /// Stable display order inside the management group.
+    /// 管理分组内稳定的显示顺序。
     /// </summary>
     int? DisplayOrder { get; }
 
     /// <summary>
-    /// Whether this window is visible in the frontend management page.
+    /// 此窗口是否在前台管理页面可见。
     /// </summary>
     bool IsVisibleInFrontManage { get; }
 
     /// <summary>
-    /// Whether this window is rendered by the window-centric v3 layout host.
+    /// 此窗口是否由以窗口为中心的 v3 布局宿主渲染。
     /// </summary>
     bool IsV3LayoutWindow { get; }
 
     /// <summary>
-    /// Whether the window layout can be customized.
+    /// 窗口布局是否可定制。
     /// </summary>
     bool Customizable { get; }
 
     /// <summary>
-    /// Provider and editing mode for this fronted window.
+    /// 此前台窗口的提供方和编辑模式。
     /// </summary>
     FrontedWindowKind Kind { get; }
 
     /// <summary>
-    /// Whether the descriptor came from a plugin contributor.
+    /// 描述符是否来自插件贡献者。
     /// </summary>
     bool IsPlugin { get; }
 
     /// <summary>
-    /// Plugin package id when <see cref="IsPlugin"/> is true; otherwise <see langword="null"/>.
+    /// 当 <see cref="IsPlugin"/> 为 true 时的插件包 ID；否则为 <see langword="null"/>。
     /// </summary>
     string? PackageId { get; }
 

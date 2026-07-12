@@ -4,7 +4,7 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Provides common behavior graph property metadata for editors and validators.
+/// 为编辑器和验证器提供通用的行为图属性元数据。
 /// </summary>
 public static class FrontedBehaviorPropertyMetadata
 {
@@ -12,7 +12,7 @@ public static class FrontedBehaviorPropertyMetadata
         CreateMetadata().ToDictionary(item => item.PropertyName, StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
-    /// Common animatable property names exposed by the built-in behavior editor.
+    /// 内置行为编辑器公开的通用可动画属性名称。
     /// </summary>
     public static IReadOnlyList<string> CommonPropertyNames { get; } =
     [
@@ -41,7 +41,7 @@ public static class FrontedBehaviorPropertyMetadata
     ];
 
     /// <summary>
-    /// Property names that apply to the generated control root.
+    /// 应用于生成的控件根的属性名称。
     /// </summary>
     public static IReadOnlyList<string> ControlLayerPropertyNames { get; } =
     [
@@ -64,7 +64,7 @@ public static class FrontedBehaviorPropertyMetadata
     ];
 
     /// <summary>
-    /// Property names that usually apply to the target control's main content.
+    /// 通常应用于目标控件主要内容的属性名称。
     /// </summary>
     public static IReadOnlyList<string> ContentLayerPropertyNames { get; } =
     [
@@ -90,7 +90,7 @@ public static class FrontedBehaviorPropertyMetadata
     ];
 
     /// <summary>
-    /// Property names that apply to runtime rectangle overlay layers.
+    /// 应用于运行时矩形覆盖层的属性名称。
     /// </summary>
     public static IReadOnlyList<string> OverlayLayerPropertyNames { get; } =
     [
@@ -109,11 +109,11 @@ public static class FrontedBehaviorPropertyMetadata
     ];
 
     /// <summary>
-    /// Gets property names recommended for a target layer.
+    /// 获取为目标图层推荐的属性名称。
     /// </summary>
-    /// <param name="targetLayer">The target layer.</param>
-    /// <param name="includeAll">Whether to include the reset-all sentinel value.</param>
-    /// <returns>The recommended property names for the layer.</returns>
+    /// <param name="targetLayer">目标图层。</param>
+    /// <param name="includeAll">是否包含全部重置的哨兵值。</param>
+    /// <returns>该图层推荐的属性名称。</returns>
     public static IReadOnlyList<string> GetPropertyNamesForLayer(FrontedAnimationTargetLayer targetLayer, bool includeAll = false)
     {
         var properties = targetLayer switch
@@ -128,23 +128,23 @@ public static class FrontedBehaviorPropertyMetadata
     }
 
     /// <summary>
-    /// Visibility values supported by WPF behavior animation.
+    /// WPF 行为动画支持的可见性值。
     /// </summary>
     public static IReadOnlyList<string> VisibilityOptions { get; } = ["Visible", "Hidden", "Collapsed"];
 
     /// <summary>
-    /// Gets metadata for a supported animatable property.
+    /// 获取受支持的可动画属性的元数据。
     /// </summary>
-    /// <param name="propertyName">The stable property name.</param>
-    /// <returns>The property metadata, or <c>null</c> when the property is unknown.</returns>
+    /// <param name="propertyName">稳定的属性名称。</param>
+    /// <returns>属性元数据；当属性未知时返回 <c>null</c>。</returns>
     public static FrontedAnimatablePropertyMetadata? Find(string? propertyName) =>
         string.IsNullOrWhiteSpace(propertyName) ? null : Metadata.GetValueOrDefault(propertyName);
 
     /// <summary>
-    /// Determines whether a property name represents a numeric behavior value.
+    /// 确定属性名称是否表示数值型行为值。
     /// </summary>
-    /// <param name="propertyName">The property name to inspect.</param>
-    /// <returns><c>true</c> when the property is numeric; otherwise <c>false</c>.</returns>
+    /// <param name="propertyName">要检查的属性名称。</param>
+    /// <returns>当属性为数值型时返回 <c>true</c>；否则返回 <c>false</c>。</returns>
     public static bool IsNumericProperty(string? propertyName) =>
         Is(propertyName,
             "Opacity",
@@ -166,27 +166,27 @@ public static class FrontedBehaviorPropertyMetadata
             "DurationMs");
 
     /// <summary>
-    /// Determines whether a property name represents a color behavior value.
+    /// 确定属性名称是否表示颜色型行为值。
     /// </summary>
-    /// <param name="propertyName">The property name to inspect.</param>
-    /// <returns><c>true</c> when the property is color-like; otherwise <c>false</c>.</returns>
+    /// <param name="propertyName">要检查的属性名称。</param>
+    /// <returns>当属性为颜色型时返回 <c>true</c>；否则返回 <c>false</c>。</returns>
     public static bool IsColorProperty(string? propertyName) =>
         Is(propertyName, "FillColor", "StrokeColor", "TextColor", "TintColor", "Foreground", "Background");
 
     /// <summary>
-    /// Determines whether a property name represents a visibility value.
+    /// 确定属性名称是否表示可见性值。
     /// </summary>
-    /// <param name="propertyName">The property name to inspect.</param>
-    /// <returns><c>true</c> when the property is Visibility; otherwise <c>false</c>.</returns>
+    /// <param name="propertyName">要检查的属性名称。</param>
+    /// <returns>当属性为 Visibility 时返回 <c>true</c>；否则返回 <c>false</c>。</returns>
     public static bool IsVisibilityProperty(string? propertyName) => Is(propertyName, "Visibility");
 
     /// <summary>
-    /// Validates a value according to the named behavior property.
+    /// 根据指定的行为属性名称验证值。
     /// </summary>
-    /// <param name="propertyName">The behavior property name.</param>
-    /// <param name="value">The text value to validate.</param>
-    /// <param name="message">The validation message when validation fails.</param>
-    /// <returns><c>true</c> when the value is valid for the property; otherwise <c>false</c>.</returns>
+    /// <param name="propertyName">行为属性名称。</param>
+    /// <param name="value">要验证的文本值。</param>
+    /// <param name="message">验证失败时的验证消息。</param>
+    /// <returns>当值对该属性有效时返回 <c>true</c>；否则返回 <c>false</c>。</returns>
     public static bool TryValidateValue(string? propertyName, string? value, out string message)
     {
         message = string.Empty;
@@ -293,10 +293,10 @@ public static class FrontedBehaviorPropertyMetadata
         new(name, "color", "#AARRGGBB or #RRGGBB", "#FFFFFFFF", $"Designer.Graph.PropertyHint.{name}");
 
     /// <summary>
-    /// Determines whether the named property accepts percentage values such as <c>100%</c>.
+    /// 确定指定属性是否接受百分比值，如 <c>100%</c>。
     /// </summary>
-    /// <param name="propertyName">The property name to inspect.</param>
-    /// <returns><c>true</c> when percentage values are supported; otherwise <c>false</c>.</returns>
+    /// <param name="propertyName">要检查的属性名称。</param>
+    /// <returns>当支持百分比值时返回 <c>true</c>；否则返回 <c>false</c>。</returns>
     public static bool SupportsPercentage(string? propertyName) =>
         Is(
             propertyName,
@@ -309,21 +309,21 @@ public static class FrontedBehaviorPropertyMetadata
 }
 
 /// <summary>
-/// Describes editor guidance and constraints for an animatable property.
+/// 描述可动画属性的编辑器指导和约束。
 /// </summary>
 public sealed class FrontedAnimatablePropertyMetadata
 {
     /// <summary>
-    /// Initializes a new property metadata instance.
+    /// 初始化新的属性元数据实例。
     /// </summary>
-    /// <param name="propertyName">The stable property name.</param>
-    /// <param name="typeName">The stable value type name.</param>
-    /// <param name="placeholder">The fallback input placeholder.</param>
-    /// <param name="example">An example value.</param>
-    /// <param name="descriptionKey">The localization key for contextual help.</param>
-    /// <param name="min">The optional minimum numeric value.</param>
-    /// <param name="max">The optional maximum numeric value.</param>
-    /// <param name="allowedValues">The optional stable allowed values.</param>
+    /// <param name="propertyName">稳定的属性名称。</param>
+    /// <param name="typeName">稳定的值类型名称。</param>
+    /// <param name="placeholder">回退输入占位符。</param>
+    /// <param name="example">示例值。</param>
+    /// <param name="descriptionKey">上下文帮助的本地化键。</param>
+    /// <param name="min">可选的最小数值。</param>
+    /// <param name="max">可选的最大数值。</param>
+    /// <param name="allowedValues">可选的稳定允许值。</param>
     public FrontedAnimatablePropertyMetadata(
         string propertyName,
         string typeName,
@@ -344,27 +344,27 @@ public sealed class FrontedAnimatablePropertyMetadata
         AllowedValues = allowedValues;
     }
 
-    /// <summary>Gets the stable property name.</summary>
+    /// <summary>获取稳定的属性名称。</summary>
     public string PropertyName { get; }
 
-    /// <summary>Gets the stable value type name.</summary>
+    /// <summary>获取稳定的值类型名称。</summary>
     public string TypeName { get; }
 
-    /// <summary>Gets the fallback editor placeholder.</summary>
+    /// <summary>获取编辑器回退占位符。</summary>
     public string Placeholder { get; }
 
-    /// <summary>Gets an example value.</summary>
+    /// <summary>获取示例值。</summary>
     public string Example { get; }
 
-    /// <summary>Gets the localization key for contextual help.</summary>
+    /// <summary>获取上下文帮助的本地化键。</summary>
     public string DescriptionKey { get; }
 
-    /// <summary>Gets the optional minimum numeric value.</summary>
+    /// <summary>获取可选的最小数值。</summary>
     public double? Min { get; }
 
-    /// <summary>Gets the optional maximum numeric value.</summary>
+    /// <summary>获取可选的最大数值。</summary>
     public double? Max { get; }
 
-    /// <summary>Gets the optional stable allowed values.</summary>
+    /// <summary>获取可选的稳定允许值。</summary>
     public IReadOnlyList<string>? AllowedValues { get; }
 }

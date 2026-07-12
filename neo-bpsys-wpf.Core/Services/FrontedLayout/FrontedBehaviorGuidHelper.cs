@@ -1,12 +1,12 @@
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Creates stable identifiers for Designer v3 behavior targets.
+/// 为设计器 v3 行为目标创建稳定的标识符。
 /// </summary>
 public static class FrontedBehaviorGuidHelper
 {
     /// <summary>
-    /// Creates a non-empty GUID for behavior-system identities.
+    /// 为行为系统标识创建非空 GUID。
     /// </summary>
     public static Guid NewGuid()
     {

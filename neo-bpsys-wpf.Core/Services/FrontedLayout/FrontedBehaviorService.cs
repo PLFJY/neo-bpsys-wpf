@@ -10,7 +10,7 @@ using System.Text.Json;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// File-backed behavior document service for Designer v3 fronted layouts.
+/// Designer v3 前台布局的基于文件的行为文档服务。
 /// </summary>
 public sealed class FrontedBehaviorService : IFrontedBehaviorService
 {

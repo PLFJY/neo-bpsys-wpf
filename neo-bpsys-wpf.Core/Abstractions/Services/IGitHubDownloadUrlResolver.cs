@@ -1,13 +1,13 @@
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
-/// <summary>Resolves GitHub asset URLs through the application's configured mirror chain.</summary>
+/// <summary>通过应用配置的镜像链解析 GitHub 资产 URL。</summary>
 public interface IGitHubDownloadUrlResolver
 {
-    /// <summary>Resolves a URL, returning the original URL when no mirror is applicable.</summary>
-    /// <param name="url">Original GitHub URL.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The URL to download.</returns>
+    /// <summary>解析 URL，当无适用镜像时返回原始 URL。</summary>
+    /// <param name="url">原始 GitHub URL。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>用于下载的 URL。</returns>
     Task<string> ResolveAsync(string url, CancellationToken cancellationToken = default);
-    /// <summary>Clears the cached mirror probe result.</summary>
+    /// <summary>清除缓存的镜像探测结果。</summary>
     void ResetCache();
 }

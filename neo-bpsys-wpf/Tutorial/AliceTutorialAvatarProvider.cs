@@ -9,7 +9,7 @@ using neo_bpsys_wpf.ProductTour;
 namespace neo_bpsys_wpf.Tutorial;
 
 /// <summary>
-/// Provides Alice DeRoss guide avatar assets for the built-in Product Tour.
+/// 为内置 Product Tour 提供爱丽丝·德罗斯引导头像素材。
 /// </summary>
 public sealed class AliceTutorialAvatarProvider : ITutorialAvatarProvider
 {
@@ -17,9 +17,9 @@ public sealed class AliceTutorialAvatarProvider : ITutorialAvatarProvider
     private readonly IReadOnlyDictionary<TutorialAvatarPose, ImageSource?> _images;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="AliceTutorialAvatarProvider"/> class.
+    /// 初始化 <see cref="AliceTutorialAvatarProvider"/> 类的新实例。
     /// </summary>
-    /// <param name="settingsHostService">Settings host service used to resolve the current language.</param>
+    /// <param name="settingsHostService">用于解析当前语言的设置宿主服务。</param>
     public AliceTutorialAvatarProvider(ISettingsHostService settingsHostService)
     {
         _settingsHostService = settingsHostService;

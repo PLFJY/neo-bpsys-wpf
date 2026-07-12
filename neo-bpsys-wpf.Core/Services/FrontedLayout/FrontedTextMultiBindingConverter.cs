@@ -6,7 +6,7 @@ using System.Windows.Data;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Formats the ordered values of a Designer v3 text MultiBinding.
+/// 格式化设计器 v3 文本 MultiBinding 的有序值。
 /// </summary>
 public sealed class FrontedTextMultiBindingConverter : IMultiValueConverter
 {

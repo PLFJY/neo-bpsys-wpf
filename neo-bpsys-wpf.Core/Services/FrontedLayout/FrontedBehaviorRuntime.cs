@@ -5,15 +5,15 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Facade over <see cref="FrontedBehaviorRuntimeHostManager" /> that implements
-/// <see cref="IFrontedBehaviorRuntime" /> for DI consumers.
+/// <see cref="FrontedBehaviorRuntimeHostManager" /> 的外观，为 DI 使用者实现
+/// <see cref="IFrontedBehaviorRuntime" />。
 /// </summary>
 public sealed class FrontedBehaviorRuntime : IFrontedBehaviorRuntime
 {
     private readonly FrontedBehaviorRuntimeHostManager _hostManager;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="FrontedBehaviorRuntime" />.
+    /// 初始化 <see cref="FrontedBehaviorRuntime" /> 的新实例。
     /// </summary>
     public FrontedBehaviorRuntime(FrontedBehaviorRuntimeHostManager hostManager)
     {

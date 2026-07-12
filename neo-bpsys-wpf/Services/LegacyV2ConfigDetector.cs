@@ -4,7 +4,7 @@ using neo_bpsys_wpf.Core.Helpers;
 namespace neo_bpsys_wpf.Services;
 
 /// <summary>
-/// Default legacy v2 config detector.
+/// 默认的旧版 v2 配置检测器。
 /// </summary>
 public sealed class LegacyV2ConfigDetector : ILegacyV2ConfigDetector
 {

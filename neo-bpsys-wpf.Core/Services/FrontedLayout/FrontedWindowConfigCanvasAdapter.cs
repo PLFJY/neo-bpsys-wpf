@@ -3,16 +3,16 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Internal conversion helpers for legacy canvas-centric migration code.
+/// 旧版以画布为中心的迁移代码的内部转换帮助程序。
 /// </summary>
 public static class FrontedWindowConfigCanvasAdapter
 {
     /// <summary>
-    /// Creates a window-centric config from a legacy canvas-centric config.
+    /// 从旧版以画布为中心的配置创建以窗口为中心的配置。
     /// </summary>
-    /// <param name="canvasConfig">Legacy canvas-centric config.</param>
-    /// <returns>Window-centric config containing the same canvas and control data.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="canvasConfig"/> is <see langword="null"/>.</exception>
+    /// <param name="canvasConfig">旧版以画布为中心的配置。</param>
+    /// <returns>包含相同画布和控件数据的以窗口为中心的配置。</returns>
+    /// <exception cref="ArgumentNullException">当 <paramref name="canvasConfig"/> 为 <see langword="null"/> 时抛出。</exception>
     public static FrontedWindowConfig FromCanvasConfig(FrontedCanvasConfig canvasConfig)
     {
         ArgumentNullException.ThrowIfNull(canvasConfig);
@@ -42,11 +42,11 @@ public static class FrontedWindowConfigCanvasAdapter
     }
 
     /// <summary>
-    /// Converts a window-centric config to the legacy canvas-centric model.
+    /// 将以窗口为中心的配置转换为旧版以画布为中心的模型。
     /// </summary>
-    /// <param name="windowConfig">Window-centric config.</param>
-    /// <returns>Legacy canvas-centric config containing the same canvas and control data.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="windowConfig"/> is <see langword="null"/>.</exception>
+    /// <param name="windowConfig">以窗口为中心的配置。</param>
+    /// <returns>包含相同画布和控件数据的旧版以画布为中心的配置。</returns>
+    /// <exception cref="ArgumentNullException">当 <paramref name="windowConfig"/> 为 <see langword="null"/> 时抛出。</exception>
     public static FrontedCanvasConfig ToCanvasConfig(FrontedWindowConfig windowConfig)
     {
         ArgumentNullException.ThrowIfNull(windowConfig);

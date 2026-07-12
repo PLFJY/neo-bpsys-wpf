@@ -3,76 +3,76 @@ using System.Windows;
 namespace neo_bpsys_wpf.ProductTour.Controls;
 
 /// <summary>
-/// Describes one overlay layout attempt supplied to <see cref="ProductTourOverlayLayoutEngine"/>.
+/// 描述一次提供给 <see cref="ProductTourOverlayLayoutEngine"/> 的遮罩布局尝试。
 /// </summary>
 public sealed class ProductTourOverlayLayoutRequest
 {
-    /// <summary>Gets the overlay safe area in overlay coordinates.</summary>
+    /// <summary>获取遮罩坐标系下的安全区域。</summary>
     public required Rect SafeArea { get; init; }
 
-    /// <summary>Gets the resolved spotlight rectangle after spotlight padding was applied.</summary>
+    /// <summary>获取应用聚光灯内边距后解析得到的聚光灯矩形。</summary>
     public required Rect SpotlightRect { get; init; }
 
-    /// <summary>Gets the desired card size.</summary>
+    /// <summary>获取期望的卡片尺寸。</summary>
     public required Size CardDesiredSize { get; init; }
 
-    /// <summary>Gets the desired guide avatar size.</summary>
+    /// <summary>获取期望的引导头像尺寸。</summary>
     public required Size AliceDesiredSize { get; init; }
 
-    /// <summary>Gets the preferred card placement, treated as a preference rather than a command.</summary>
+    /// <summary>获取首选的卡片放置位置，作为偏好而非强制约束处理。</summary>
     public ProductTourPlacement? PreferredCardPlacement { get; init; }
 
-    /// <summary>Gets the preferred guide avatar placement, treated as a preference.</summary>
+    /// <summary>获取首选的引导头像放置位置，作为偏好处理。</summary>
     public ProductTourAvatarPlacement? PreferredAlicePlacement { get; init; }
 
-    /// <summary>Gets the minimum gap between spotlight, card, and avatar.</summary>
+    /// <summary>获取聚光灯、卡片和头像之间的最小间距。</summary>
     public double MinimumGap { get; init; } = 16;
 
-    /// <summary>Gets the padding kept between placed elements and the safe area edge.</summary>
+    /// <summary>获取已放置元素与安全区域边缘之间保留的内边距。</summary>
     public double EdgePadding { get; init; } = 16;
 
-    /// <summary>Gets a value indicating whether the guide avatar should be considered for placement.</summary>
+    /// <summary>获取一个值，指示是否应将引导头像纳入放置考虑。</summary>
     public bool AliceVisible { get; init; } = true;
 
-    /// <summary>Gets additional obstacle rectangles (e.g., overlay skip button) that the card and avatar must avoid.</summary>
+    /// <summary>获取额外的障碍物矩形（如遮罩跳过按钮），卡片和头像必须避开这些区域。</summary>
     public IReadOnlyList<Rect> Obstacles { get; init; } = [];
 }
 
 /// <summary>
-/// Describes the resolved card and guide avatar layout for one spotlight step.
+/// 描述某个聚光灯步骤中解析得到的卡片和引导头像布局。
 /// </summary>
 public sealed class ProductTourOverlayLayoutResult
 {
-    /// <summary>Gets the resolved card position.</summary>
+    /// <summary>获取解析得到的卡片位置。</summary>
     public required Point CardPosition { get; init; }
 
-    /// <summary>Gets the resolved guide avatar position.</summary>
+    /// <summary>获取解析得到的引导头像位置。</summary>
     public required Point AlicePosition { get; init; }
 
-    /// <summary>Gets the guide avatar pose that points toward the spotlight region.</summary>
+    /// <summary>获取指向聚光灯区域的引导头像姿态。</summary>
     public required TutorialAvatarPose AlicePose { get; init; }
 
-    /// <summary>Gets the resolved card rectangle.</summary>
+    /// <summary>获取解析得到的卡片矩形。</summary>
     public required Rect CardRect { get; init; }
 
-    /// <summary>Gets the resolved guide avatar rectangle.</summary>
+    /// <summary>获取解析得到的引导头像矩形。</summary>
     public required Rect AliceRect { get; init; }
 
-    /// <summary>Gets a value indicating whether the result is a degraded fallback placement.</summary>
+    /// <summary>获取一个值，指示该结果是否为降级的回退放置。</summary>
     public required bool IsFallback { get; init; }
 
-    /// <summary>Gets a value indicating whether the guide avatar is visible for this step.</summary>
+    /// <summary>获取一个值，指示该步骤中引导头像是否可见。</summary>
     public required bool AliceVisible { get; init; }
 }
 
 /// <summary>
-/// Resolves product tour card and guide avatar placement using candidate scoring so that the card
-/// and avatar avoid the spotlight region and each other while the avatar points toward the spotlight.
+/// 使用候选评分方式解析产品导览卡片和引导头像的放置位置，使卡片
+/// 和头像避开聚光灯区域及彼此，同时让头像指向聚光灯。
 /// </summary>
 public sealed class ProductTourOverlayLayoutEngine
 {
     /// <summary>
-    /// All directional placements for which candidate rectangles are generated.
+    /// 所有用于生成候选矩形的方向性放置位置。
     /// </summary>
     private static readonly ProductTourPlacement[] Directions =
     [
@@ -91,10 +91,10 @@ public sealed class ProductTourOverlayLayoutEngine
     ];
 
     /// <summary>
-    /// Arranges the card and guide avatar for the supplied request.
+    /// 为给定请求布置卡片和引导头像。
     /// </summary>
-    /// <param name="request">Layout request.</param>
-    /// <returns>The resolved layout result. Never produces negative coordinates and never throws on small safe areas.</returns>
+    /// <param name="request">布局请求。</param>
+    /// <returns>解析得到的布局结果。不会产生负坐标，在安全区域过小时也不会抛出异常。</returns>
     public ProductTourOverlayLayoutResult Arrange(ProductTourOverlayLayoutRequest request)
     {
         var safe = request.SafeArea;
@@ -140,8 +140,8 @@ public sealed class ProductTourOverlayLayoutEngine
     }
 
     /// <summary>
-    /// Checks whether the preferred card placement can be used directly and, when so,
-    /// resolves the avatar position around the fixed card rectangle.
+    /// 检查首选卡片放置位置是否可直接使用，若可以，
+    /// 则在固定的卡片矩形周围解析头像位置。
     /// </summary>
     private static bool TryUsePreferredCard(
         ProductTourOverlayLayoutRequest request,
@@ -506,11 +506,11 @@ public sealed class ProductTourOverlayLayoutEngine
     }
 
     /// <summary>
-    /// Chooses a guide avatar pose that points toward the spotlight center.
+    /// 选择一个指向聚光灯中心的引导头像姿态。
     /// </summary>
-    /// <param name="aliceCenter">Guide avatar center in overlay coordinates.</param>
-    /// <param name="spotlightCenter">Spotlight center in overlay coordinates.</param>
-    /// <returns>The pose whose pointing direction best matches the spotlight direction.</returns>
+    /// <param name="aliceCenter">遮罩坐标系下的引导头像中心点。</param>
+    /// <param name="spotlightCenter">遮罩坐标系下的聚光灯中心点。</param>
+    /// <returns>指向方向最匹配聚光灯方向的姿态。</returns>
     public static TutorialAvatarPose ChooseAlicePose(Point aliceCenter, Point spotlightCenter)
     {
         var dx = spotlightCenter.X - aliceCenter.X;

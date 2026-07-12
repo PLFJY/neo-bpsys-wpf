@@ -4,24 +4,24 @@ using neo_bpsys_wpf.Tutorial;
 namespace neo_bpsys_wpf.Views.Pages.FrontManage;
 
 /// <summary>
-/// Tutorial registration partial for <see cref="FrontedLayoutPackagesView"/>.
+/// <see cref="FrontedLayoutPackagesView"/> 的教程注册分部类。
 /// </summary>
 public partial class FrontedLayoutPackagesView : ITutorialOwner<FrontedLayoutPackagesView>
 {
     /// <inheritdoc />
     public static string TutorialKey => TutorialPageKey;
 
-    /// <summary>Layout packages view tutorial package references.</summary>
+    /// <summary>布局包视图教程包引用。</summary>
     public static class Tours
     {
-        /// <summary>Layout packages basic package reference.</summary>
+        /// <summary>布局包基础包引用。</summary>
         public static readonly TutorialPackageRef LayoutPackagesBasic = new(TutorialPackageIds.FrontManageLayoutPackagesBasic);
     }
 
     /// <summary>
-    /// Registers tutorials owned by the layout packages view.
+    /// 注册布局包视图所拥有的教程。
     /// </summary>
-    /// <param name="builder">Tutorial builder.</param>
+    /// <param name="builder">教程构建器。</param>
     public static void RegisterTutorials(ITutorialBuilder builder)
     {
         builder.ForRegion<FrontedLayoutPackagesView>()

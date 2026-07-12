@@ -14,7 +14,7 @@ public enum DesignerLayerNodeKind
 }
 
 /// <summary>
-/// Layer panel node used by Designer v3. Nodes represent top-level controls only.
+/// 设计器 v3 使用的图层面板节点。节点仅表示顶层控件。
 /// </summary>
 public class DesignerLayerNode : ObservableObject
 {

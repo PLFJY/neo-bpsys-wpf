@@ -3,7 +3,7 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout;
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
 /// <summary>
-/// Stores window-level Designer v3 layout options.
+/// 存储窗口级的设计器 v3 布局选项。
 /// </summary>
 public interface IFrontedWindowLayoutOptionsService
 {

@@ -6,47 +6,47 @@ using System.Windows.Controls;
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 
 /// <summary>
-/// Context for attaching a behavior runtime to a fronted window.
+/// 用于将行为运行时附加到前台窗口的上下文。
 /// </summary>
 public sealed class FrontedBehaviorRuntimeContext
 {
     /// <summary>
-    /// Fronted window identifier.
+    /// 前台窗口标识。
     /// </summary>
     public required string WindowId { get; init; }
 
     /// <summary>
-    /// Fronted window type name, e.g. "BpWindow".
+    /// 前台窗口类型名称，例如 "BpWindow"。
     /// </summary>
     public required string WindowType { get; init; }
 
     /// <summary>
-    /// Internal canvas name within the window. Window-centric v3 layouts always use <c>BaseCanvas</c>.
+    /// 窗口内部的画布名称。以窗口为中心的 v3 布局始终使用 <c>BaseCanvas</c>。
     /// </summary>
     public string CanvasName { get; init; } = FrontedLayoutConstants.BaseCanvasName;
 
     /// <summary>
-    /// The rendered Canvas root element.
+    /// 已渲染的 Canvas 根元素。
     /// </summary>
     public required Canvas RootCanvas { get; init; }
 
     /// <summary>
-    /// Window layout configuration used for the current render.
+    /// 当前渲染所使用的窗口布局配置。
     /// </summary>
     public required FrontedWindowConfig WindowConfig { get; init; }
 
     /// <summary>
-    /// Shared data service instance for the application.
+    /// 应用程序的共享数据服务实例。
     /// </summary>
     public required ISharedDataService SharedDataService { get; init; }
 
     /// <summary>
-    /// Whether this is a Designer preview context (not a real fronted window).
+    /// 指示此是否为设计器预览上下文（而非真实前台窗口）。
     /// </summary>
     public bool IsDesignerPreview { get; init; }
 
     /// <summary>
-    /// Optional logger.
+    /// 可选的日志记录器。
     /// </summary>
     public Microsoft.Extensions.Logging.ILogger? Logger { get; init; }
 }

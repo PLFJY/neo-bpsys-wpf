@@ -1,22 +1,22 @@
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
 
 /// <summary>
-/// Describes how a fronted window is provided.
+/// 描述前台窗口的提供方式。
 /// </summary>
 public enum FrontedWindowKind
 {
     /// <summary>
-    /// Built-in WPF fronted window shipped by the host app, with layouts stored by built-in window type name.
+    /// 宿主应用自带的内置 WPF 前台窗口，布局按内置窗口类型名存储。
     /// </summary>
     BuiltIn,
 
     /// <summary>
-    /// Plugin-owned WPF XAML window. It is launched by the host but is not Designer-editable by default.
+    /// 插件拥有的 WPF XAML 窗口。由宿主启动，但默认不可在设计器中编辑。
     /// </summary>
     PluginXaml,
 
     /// <summary>
-    /// Plugin fronted window rendered by the host v3 layout renderer and editable when its canvases are customizable.
+    /// 由宿主 v3 布局渲染器渲染的插件前台窗口，当其画布可定制时可编辑。
     /// </summary>
     PluginLayout
 }

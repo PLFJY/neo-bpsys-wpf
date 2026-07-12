@@ -1,7 +1,7 @@
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
 /// <summary>
-/// Provides display-layer localization for Designer v3 without changing layout contracts.
+/// 为设计器 v3 提供显示层的本地化，且不改变布局契约。
 /// </summary>
 public interface IFrontedDesignerLocalizationService
 {

@@ -102,13 +102,13 @@ public interface IGameGuidanceService
     /// <returns>错误信息，如果执行成功则返回 <c>null</c></returns>
     Task<string?> PrevStepAsync(bool isNavigatePageEnable = true);
 
-    /// <summary>Gets an immutable snapshot of the active workflow and current step.</summary>
+    /// <summary>获取活动工作流和当前步骤的不可变快照。</summary>
     GameGuidanceRuntimeSnapshot GetRuntimeSnapshot() => new(false, -1, null, [], null, []);
 
-    /// <summary>Moves to a validated workflow step through the normal guidance transition path.</summary>
-    /// <param name="stepIndex">Target workflow step index.</param>
-    /// <param name="isNavigatePageEnable">Is enable page switch</param>
-    /// <returns>Error/display text following the existing guidance command convention.</returns>
+    /// <summary>通过常规引导过渡路径移动到已校验的工作流步骤。</summary>
+    /// <param name="stepIndex">目标工作流步骤索引。</param>
+    /// <param name="isNavigatePageEnable">是否启用页面切换。</param>
+    /// <returns>遵循现有引导命令约定的错误/显示文本。</returns>
     Task<string?> MoveToStepAsync(int stepIndex, bool isNavigatePageEnable = true) => Task.FromResult<string?>(null);
 
     /// <summary>
@@ -117,8 +117,8 @@ public interface IGameGuidanceService
     void StopGuidance();
 
     /// <summary>
-    /// Completes the active game guidance workflow without treating it as a user cancellation.
+    /// 完成活动对局引导工作流，不将其视为用户取消。
     /// </summary>
-    /// <param name="reason">Completion reason published with the stopped event.</param>
+    /// <param name="reason">随停止事件发布的完成原因。</param>
     void CompleteGuidance(string reason = "SmartBpCharacterBpEnded") => StopGuidance();
 }

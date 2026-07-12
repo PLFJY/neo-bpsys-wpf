@@ -9,7 +9,7 @@ using WPFLocalizeExtension.Engine;
 namespace neo_bpsys_wpf.Tutorial;
 
 /// <summary>
-/// Applies tutorial language choices to the application settings and WPF resources.
+/// 将教程语言选择应用到应用设置和 WPF 资源。
 /// </summary>
 public sealed class NeoBpsysTutorialLanguageService : ITutorialLanguageService
 {
@@ -26,9 +26,9 @@ public sealed class NeoBpsysTutorialLanguageService : ITutorialLanguageService
     public event EventHandler? LanguageChanged;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="NeoBpsysTutorialLanguageService"/> class.
+    /// 初始化 <see cref="NeoBpsysTutorialLanguageService"/> 类的新实例。
     /// </summary>
-    /// <param name="settingsHostService">Settings host service.</param>
+    /// <param name="settingsHostService">设置宿主服务。</param>
     public NeoBpsysTutorialLanguageService(ISettingsHostService settingsHostService)
     {
         _settingsHostService = settingsHostService;

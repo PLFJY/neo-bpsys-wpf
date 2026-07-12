@@ -7,7 +7,7 @@ using System.Windows.Threading;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Default transition orchestrator that wraps business commits with fronted behavior graphs.
+/// 用前台行为图包装业务提交的默认转换编排器。
 /// </summary>
 public sealed class FrontedTransitionOrchestrator : IFrontedTransitionOrchestrator
 {
@@ -16,10 +16,10 @@ public sealed class FrontedTransitionOrchestrator : IFrontedTransitionOrchestrat
     private readonly Dispatcher _uiDispatcher;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="FrontedTransitionOrchestrator"/>.
+    /// 初始化 <see cref="FrontedTransitionOrchestrator"/> 的新实例。
     /// </summary>
-    /// <param name="hostManager">Runtime host manager containing attached fronted behavior hosts.</param>
-    /// <param name="logger">Logger for transition diagnostics.</param>
+    /// <param name="hostManager">包含已附加前台行为宿主的运行时宿主管理器。</param>
+    /// <param name="logger">用于转换诊断的日志记录器。</param>
     public FrontedTransitionOrchestrator(
         FrontedBehaviorRuntimeHostManager hostManager,
         ILogger<FrontedTransitionOrchestrator> logger)

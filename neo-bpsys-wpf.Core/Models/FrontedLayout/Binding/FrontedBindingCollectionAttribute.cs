@@ -1,7 +1,7 @@
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
 
 /// <summary>
-/// Describes collection expansion without reading runtime collection values.
+/// 描述集合扩展方式，无需读取运行时集合值。
 /// </summary>
 [AttributeUsage(AttributeTargets.Property)]
 public sealed class FrontedBindingCollectionAttribute : Attribute

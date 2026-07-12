@@ -10,39 +10,39 @@ namespace neo_bpsys_wpf.Views.Pages;
 
 public partial class PickPage : ITutorialOwner<PickPage>
 {
-    /// <summary>Character pick page tutorial key.</summary>
+    /// <summary>角色 Pick 页面教程 Key。</summary>
     public const string TutorialPageKey = "Page.Bp.Pick";
 
     /// <inheritdoc />
     public static string TutorialKey => TutorialPageKey;
 
-    /// <summary>Character pick tutorial package references.</summary>
+    /// <summary>角色 Pick 教程包引用。</summary>
     public static class Tours
     {
-        /// <summary>Pick character basic package reference.</summary>
+        /// <summary>Pick 角色基础包引用。</summary>
         public static readonly TutorialPackageRef PickCharacterBasic = new(TutorialPackageIds.BpPickCharacterBasic);
 
-        /// <summary>Global ban record package reference.</summary>
+        /// <summary>全局 Ban 记录包引用。</summary>
         public static readonly TutorialPackageRef GlobalBanRecordBasic = new(TutorialPackageIds.BpGlobalBanRecordBasic);
 
-        /// <summary>Select four survivors package reference.</summary>
+        /// <summary>选择四名求生者包引用。</summary>
         public static readonly TutorialPackageRef SelectFourSurvivorsBasic = new(TutorialPackageIds.BpPickSelectFourSurvivorsBasic);
 
-        /// <summary>Character changer package reference.</summary>
+        /// <summary>角色更换包引用。</summary>
         public static readonly TutorialPackageRef CharacterChangerBasic = new(TutorialPackageIds.BpCharacterChangerBasic);
     }
 
-    /// <summary>Pick page tutorial target names.</summary>
+    /// <summary>Pick 页面教程目标名称。</summary>
     public static class TutorialTargets
     {
-        /// <summary>Current survivor team's global ban record panel target tag.</summary>
+        /// <summary>当前求生者队伍的全局 Ban 记录面板目标标签。</summary>
         public const string CurrentSurvivorGlobalBanRecordPanel = "CurrentSurvivorGlobalBanRecordPanel";
     }
 
     /// <summary>
-    /// Registers tutorials owned by the pick page.
+    /// 注册 Pick 页面所拥有的教程。
     /// </summary>
-    /// <param name="builder">Tutorial builder.</param>
+    /// <param name="builder">教程构建器。</param>
     public static void RegisterTutorials(ITutorialBuilder builder)
     {
         builder.ForPage<PickPage>()

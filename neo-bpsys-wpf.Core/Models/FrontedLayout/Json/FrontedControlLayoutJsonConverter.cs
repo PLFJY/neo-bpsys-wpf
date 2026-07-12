@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Json;
 
 /// <summary>
-/// Reads and writes the window-centric v3 control layout object.
+/// 读取和写入以窗口为中心的 v3 控件布局对象。
 /// </summary>
 public sealed class FrontedControlLayoutJsonConverter : JsonConverter<FrontedControlLayout>
 {

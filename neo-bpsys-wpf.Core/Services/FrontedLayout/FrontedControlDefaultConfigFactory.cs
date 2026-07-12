@@ -7,7 +7,7 @@ using System.Reflection;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Creates safe in-memory defaults for Designer v3 Add Control.
+/// 为设计器 v3 添加控件创建安全的内存默认配置。
 /// </summary>
 public class FrontedControlDefaultConfigFactory
 {
@@ -46,12 +46,12 @@ public class FrontedControlDefaultConfigFactory
     }
 
     /// <summary>
-    /// Gets built-in control types exposed by normal Add Control.
+    /// 获取普通添加控件公开的内置控件类型。
     /// </summary>
     public IReadOnlySet<string> GetAddableControlTypes() => AddableControlTypes;
 
     /// <summary>
-    /// Returns whether a ControlType can be created by normal Add Control.
+    /// 返回 ControlType 是否可通过普通添加控件创建。
     /// </summary>
     public bool CanCreate(string controlType) =>
         AddableControlTypes.Contains(controlType)
@@ -90,7 +90,7 @@ public class FrontedControlDefaultConfigFactory
     }
 
     /// <summary>
-    /// Creates a default config and places it around the requested logical center.
+    /// 创建默认配置并将其放置在请求的逻辑中心周围。
     /// </summary>
     public FrontedControlConfigBase Create(
         string controlType,

@@ -3,7 +3,7 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
 /// <summary>
-/// Exports Designer v3 fronted layouts as .bpui packages.
+/// 将设计器 v3 前台布局导出为 .bpui 包。
 /// </summary>
 public interface IFrontedLayoutPackageExporter
 {

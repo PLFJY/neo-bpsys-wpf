@@ -1,11 +1,11 @@
-﻿using System.Configuration;
+using System.Configuration;
 using System.Data;
 using System.Windows;
 
 namespace neo_bpsys_wpf.CropDebugger;
 
 /// <summary>
-/// Interaction logic for App.xaml
+/// App.xaml 的交互逻辑。
 /// </summary>
 public partial class App : Application
 {

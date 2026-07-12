@@ -5,7 +5,7 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Selects the runtime state for a Designer v3 Canvas without window-specific branching.
+/// 为 Designer v3 Canvas 选择运行时状态，不进行窗口特定的分支处理。
 /// </summary>
 public static class FrontedCanvasRuntimeStateResolver
 {

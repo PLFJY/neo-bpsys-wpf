@@ -5,35 +5,35 @@ using neo_bpsys_wpf.Core.Enums;
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
 
 /// <summary>
-/// Descriptor for a plugin-provided WPF fronted window.
+/// 插件提供的 WPF 前台窗口的描述符。
 /// </summary>
 /// <remarks>
-/// <see cref="FullWindowType"/> is always <c>plugin:{PackageId}/{WindowTypeName}</c>.
-/// User layouts for that identity are stored under the safe path
-/// <c>FrontedLayouts/plugin/{PackageId}/{WindowTypeName}</c>.
-/// <see cref="FrontedWindowKind.PluginXaml"/> windows are normal plugin WPF windows and are not
-/// Designer-editable by default. <see cref="FrontedWindowKind.PluginLayout"/> windows use the host
-/// layout renderer. Each v3 layout window has exactly one internal BaseCanvas.
+/// <see cref="FullWindowType"/> 始终为 <c>plugin:{PackageId}/{WindowTypeName}</c>。
+/// 该标识对应的用户布局存储在安全路径
+/// <c>FrontedLayouts/plugin/{PackageId}/{WindowTypeName}</c> 下。
+/// <see cref="FrontedWindowKind.PluginXaml"/> 窗口是普通插件 WPF 窗口，默认不可在设计器中编辑。
+/// <see cref="FrontedWindowKind.PluginLayout"/> 窗口使用宿主布局渲染器。
+/// 每个 v3 布局窗口内部固定一个 BaseCanvas。
 /// </remarks>
 public sealed class FrontedPluginWindowDescriptor : IFrontedWindowDescriptor
 {
     /// <summary>
-    /// Plugin package id from the plugin manifest.
+    /// 来自插件清单的插件包 ID。
     /// </summary>
     public required string PackageId { get; init; }
 
     /// <summary>
-    /// Stable runtime window identity. Generate a GUID once and keep it unchanged between plugin releases.
+    /// 稳定的运行时窗口标识。生成一次 GUID 后在插件版本间保持不变。
     /// </summary>
     public required string WindowId { get; init; }
 
     /// <summary>
-    /// Plugin-local window type name, used in <see cref="FullWindowType"/> and default layout paths.
+    /// 插件内部的窗口类型名，用于 <see cref="FullWindowType"/> 和默认布局路径。
     /// </summary>
     public required string WindowTypeName { get; init; }
 
     /// <summary>
-    /// Layout/package identity in the form <c>plugin:{PackageId}/{WindowTypeName}</c>.
+    /// 布局/包标识，格式为 <c>plugin:{PackageId}/{WindowTypeName}</c>。
     /// </summary>
     public string FullWindowType => $"plugin:{PackageId}/{WindowTypeName}";
 
@@ -68,7 +68,7 @@ public sealed class FrontedPluginWindowDescriptor : IFrontedWindowDescriptor
     public bool Customizable { get; init; } = true;
 
     /// <summary>
-    /// Selects whether the plugin contributes a raw XAML window or a host-rendered Designer v3 layout window.
+    /// 选择插件提供的是原始 XAML 窗口还是宿主渲染的设计器 v3 布局窗口。
     /// </summary>
     public required FrontedWindowKind Kind { get; init; }
 
@@ -76,39 +76,39 @@ public sealed class FrontedPluginWindowDescriptor : IFrontedWindowDescriptor
     public bool IsPlugin => true;
 
     /// <summary>
-    /// WPF window type required for <see cref="FrontedWindowKind.PluginXaml"/>.
+    /// <see cref="FrontedWindowKind.PluginXaml"/> 所要求的 WPF 窗口类型。
     /// </summary>
     public Type? WindowType { get; init; }
 
     /// <summary>
-    /// Optional ViewModel type used by plugin XAML windows.
+    /// 插件 XAML 窗口使用的可选 ViewModel 类型。
     /// </summary>
     public Type? ViewModelType { get; init; }
 
     /// <summary>
-    /// Folder under the plugin directory that contains default Designer v3 layouts.
+    /// 插件目录下包含默认设计器 v3 布局的文件夹。
     /// </summary>
     public string DefaultLayoutRoot { get; init; } = "FrontedLayouts";
 
     /// <summary>
-    /// Resolved plugin installation folder, set by the host before validation and rendering.
+    /// 已解析的插件安装目录，由宿主在验证和渲染前设置。
     /// </summary>
     public string? PluginFolder { get; set; }
 
     /// <summary>
-    /// Allows a plugin layout window to start without bundled default layout JSON.
+    /// 允许插件布局窗口在没有内置默认布局 JSON 的情况下启动。
     /// </summary>
     public bool AllowBlankDefaultLayout { get; init; }
 
     /// <summary>
-    /// Default WPF window options for plugin layout windows.
+    /// 插件布局窗口的默认 WPF 窗口选项。
     /// </summary>
     public FrontedWindowLayoutOptions DefaultOptions { get; init; } = new();
 
     /// <summary>
-    /// Validates the descriptor before it is accepted by the host registry.
+    /// 在描述符被宿主注册表接受前进行验证。
     /// </summary>
-    /// <param name="pluginFolder">Optional plugin folder override used for default layout checks.</param>
+    /// <param name="pluginFolder">用于默认布局检查的可选插件目录覆盖值。</param>
     public void Validate(string? pluginFolder = null)
     {
         if (string.IsNullOrWhiteSpace(PackageId))

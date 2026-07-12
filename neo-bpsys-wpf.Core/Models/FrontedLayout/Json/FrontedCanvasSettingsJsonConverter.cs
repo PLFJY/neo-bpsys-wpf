@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Json;
 
 /// <summary>
-/// Reads and writes window-centric canvas settings, including typed BO state controls.
+/// 读取和写入以窗口为中心的画布设置，包括类型化的 BO 状态控件。
 /// </summary>
 public sealed class FrontedCanvasSettingsJsonConverter : JsonConverter<FrontedCanvasSettings>
 {

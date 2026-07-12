@@ -8,7 +8,7 @@ using MainWindowType = neo_bpsys_wpf.Views.Windows.MainWindow;
 namespace neo_bpsys_wpf;
 
 /// <summary>
-/// Application-level Product Tour definitions.
+/// 应用级产品导览定义。
 /// </summary>
 public partial class App : IAppTutorial<App>
 {

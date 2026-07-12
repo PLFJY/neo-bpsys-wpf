@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
 
 /// <summary>
-/// Generic config used when a plugin control is present in layout JSON before its plugin factory is available.
+/// 当布局 JSON 中存在插件控件但其插件工厂尚未可用时使用的通用配置。
 /// </summary>
 public class PluginFrontedControlConfig : FrontedControlConfigBase
 {

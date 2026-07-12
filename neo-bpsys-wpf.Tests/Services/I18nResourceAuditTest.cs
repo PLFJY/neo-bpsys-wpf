@@ -23,8 +23,8 @@ using Xunit;
 namespace neo_bpsys_wpf.Tests.Services;
 
 /// <summary>
-/// Audit tests validating the post-migration state of the i18n resource split
-/// from the monolithic Locales/Lang*.resx family into feature-owned resource families.
+/// 审计测试，验证 i18n 资源拆分（从单一的 Locales/Lang*.resx 系列拆分为功能拥有的资源系列）
+/// 迁移后的状态。
 /// </summary>
 public sealed class I18nResourceAuditTest
 {
@@ -63,10 +63,8 @@ public sealed class I18nResourceAuditTest
     // ---------------------------------------------------------------------
 
     /// <summary>
-    /// Verifies that the total number of data rows in key-map.csv equals the
-    /// documented original Lang.resx neutral key count, and that the sum of
-    /// host family neutral keys equals the number of key-map entries whose
-    /// TargetAssembly is the host assembly.
+    /// 验证 key-map.csv 中的数据行总数等于文档中记录的原始 Lang.resx 中性键数量，
+    /// 并且宿主系列中性键的总和等于 key-map 中 TargetAssembly 为宿主程序集的条目数。
     /// </summary>
     [Fact]
     public void TotalNeutralKeyCountMatchesKeyMap()
@@ -86,8 +84,7 @@ public sealed class I18nResourceAuditTest
     }
 
     /// <summary>
-    /// Verifies that every key listed in key-map.csv exists in its target
-    /// dictionary's neutral resx file.
+    /// 验证 key-map.csv 中列出的每个键都存在于其目标字典的中性 resx 文件中。
     /// </summary>
     [Fact]
     public void EveryKeyMapEntryExistsInTargetDictionary()
@@ -112,8 +109,7 @@ public sealed class I18nResourceAuditTest
     }
 
     /// <summary>
-    /// Verifies that every key present in a host family's en-us or ja-jp resx
-    /// file has a corresponding neutral key in the same family.
+    /// 验证宿主系列 en-us 或 ja-jp resx 文件中存在的每个键在同一系列中都有对应的中性键。
     /// </summary>
     [Fact]
     public void NoLocalizedOnlyKeysInHostFamilies()
@@ -150,9 +146,8 @@ public sealed class I18nResourceAuditTest
     }
 
     /// <summary>
-    /// Verifies that the union of all host family neutral keys equals the set
-    /// of keys in key-map.csv whose TargetAssembly is the host assembly,
-    /// ensuring no host key was lost during migration.
+    /// 验证所有宿主系列中性键的并集等于 key-map.csv 中 TargetAssembly 为宿主程序集的
+    /// 键集合，确保迁移过程中没有丢失任何宿主键。
     /// </summary>
     [Fact]
     public void NoHostKeyLostInMigration()
@@ -181,8 +176,8 @@ public sealed class I18nResourceAuditTest
     // ---------------------------------------------------------------------
 
     /// <summary>
-    /// Verifies that no key appears in two different host family neutral
-    /// resx files (each host key has exactly one owning dictionary).
+    /// 验证没有键同时出现在两个不同的宿主系列中性 resx 文件中
+    /// （每个宿主键都恰好由一个字典拥有）。
     /// </summary>
     [Fact]
     public void EachHostNeutralKeyHasExactlyOneOwner()
@@ -211,8 +206,7 @@ public sealed class I18nResourceAuditTest
     }
 
     /// <summary>
-    /// Verifies that every host family neutral resx file contains at least
-    /// one key (no empty host dictionaries).
+    /// 验证每个宿主系列中性 resx 文件至少包含一个键（没有空的宿主字典）。
     /// </summary>
     [Fact]
     public void NoEmptyHostDictionary()
@@ -225,8 +219,7 @@ public sealed class I18nResourceAuditTest
     }
 
     /// <summary>
-    /// Verifies that no key in Common.resx appears in any other host family
-    /// neutral resx file.
+    /// 验证 Common.resx 中的键不会出现在任何其他宿主系列中性 resx 文件中。
     /// </summary>
     [Fact]
     public void CommonKeysNotDuplicatedInFeatureDicts()
@@ -259,8 +252,8 @@ public sealed class I18nResourceAuditTest
     // ---------------------------------------------------------------------
 
     /// <summary>
-    /// Verifies that for every *.en-us.resx or *.ja-jp.resx file in the host
-    /// Locales directory, the corresponding neutral *.resx file exists.
+    /// 验证宿主 Locales 目录中每个 *.en-us.resx 或 *.ja-jp.resx 文件
+    /// 都有对应的中性 *.resx 文件存在。
     /// </summary>
     [Fact]
     public void EveryCultureFileHasNeutralCounterpart()
@@ -293,8 +286,8 @@ public sealed class I18nResourceAuditTest
     }
 
     /// <summary>
-    /// Verifies that no resx file in the host Locales directory has an
-    /// unexpected culture suffix (only neutral, .en-us, .ja-jp are allowed).
+    /// 验证宿主 Locales 目录中没有 resx 文件包含非预期的区域后缀
+    /// （仅允许中性、.en-us、.ja-jp）。
     /// </summary>
     [Fact]
     public void OnlySupportedCultureSuffixes()
@@ -318,8 +311,8 @@ public sealed class I18nResourceAuditTest
     }
 
     /// <summary>
-    /// Verifies that all resx files in the host Locales directory parse as
-    /// valid XML with a root element and at least one data child element.
+    /// 验证宿主 Locales 目录中所有 resx 文件都可以解析为
+    /// 有效的 XML，且具有根元素和至少一个 data 子元素。
     /// </summary>
     [Fact]
     public void AllHostResxFilesAreValidXml()
@@ -343,8 +336,7 @@ public sealed class I18nResourceAuditTest
     // ---------------------------------------------------------------------
 
     /// <summary>
-    /// Verifies that I18nHelper.GetLocalizedString throws ArgumentException
-    /// when the dictionary argument is null or whitespace.
+    /// 验证 I18nHelper.GetLocalizedString 在字典参数为 null 或空白时抛出 ArgumentException。
     /// </summary>
     [Fact]
     public void HelperRejectsNullDictionary()
@@ -354,7 +346,7 @@ public sealed class I18nResourceAuditTest
     }
 
     /// <summary>
-    /// Verifies that an absent localization key safely degrades to empty text.
+    /// 验证不存在的本地化键会安全降级为空文本。
     /// </summary>
     [Fact]
     public void HelperReturnsEmptyForNullOrWhitespaceKey()
@@ -370,9 +362,8 @@ public sealed class I18nResourceAuditTest
     }
 
     /// <summary>
-    /// Verifies that a known feature key exists with a non-empty value in the
-    /// corresponding feature dictionary's neutral resx file, confirming the
-    /// migration placed the key in the correct dictionary.
+    /// 验证已知的特性键在对应特性字典的中性 resx 文件中存在且值非空，
+    /// 以确认迁移将该键放置在正确的字典中。
     /// </summary>
     [Fact]
     public void HelperResolvesKnownFeatureKey()
@@ -384,8 +375,8 @@ public sealed class I18nResourceAuditTest
     }
 
     /// <summary>
-    /// Verifies that every migration row documents an explicit ownership decision
-    /// instead of falling back to the shell for ambiguous or unreferenced keys.
+    /// 验证每一行迁移记录都文档化了显式的归属决策，
+    /// 而不是对不明确或未被引用的键回退到 shell。
     /// </summary>
     [Fact]
     public void KeyMapDoesNotContainDefaultShellFallbackReasons()
@@ -477,9 +468,8 @@ public sealed class I18nResourceAuditTest
     }
 
     /// <summary>
-    /// Verifies that the WPF localization provider resolves a resource through
-    /// the dictionary base name emitted into the host assembly. This protects
-    /// XAML <c>lex:Loc</c> bindings from silently degrading to <c>Key: ...</c>.
+    /// 验证 WPF 本地化提供程序能通过宿主程序集中发出的字典基名解析资源。
+    /// 这可以防止 XAML <c>lex:Loc</c> 绑定静默退化为 <c>Key: ...</c>。
     /// </summary>
     [Fact]
     public void XamlProviderResolvesHostResource()
@@ -562,8 +552,7 @@ public sealed class I18nResourceAuditTest
             && IsClosedDispatcherLocalizationException(inner));
 
     /// <summary>
-    /// Verifies that I18nHelper returns the key itself when the key does not
-    /// exist in the specified dictionary.
+    /// 验证当键在指定字典中不存在时，I18nHelper 返回键本身。
     /// </summary>
     [Fact]
     public void HelperReturnsKeyForUnknownKey()
@@ -575,7 +564,7 @@ public sealed class I18nResourceAuditTest
     }
 
     /// <summary>
-    /// Verifies that MainWindow game progress dropdown resource keys are owned by Shell.resx.
+    /// 验证主窗口对局进度下拉菜单的资源键由 Shell.resx 拥有。
     /// </summary>
     [Fact]
     public void GameProgressDropdownKeysResolveFromShellDictionary()
@@ -609,7 +598,7 @@ public sealed class I18nResourceAuditTest
     }
 
     /// <summary>
-    /// Verifies that XAML bindings for dynamic game progress key values do not resolve them from Game.resx.
+    /// 验证动态对局进度键值的 XAML 绑定不会从 Game.resx 解析这些键。
     /// </summary>
     [Fact]
     public void XamlDynamicValueLocalizationDoesNotPointGameProgressKeysAtGameDictionary()
@@ -628,10 +617,9 @@ public sealed class I18nResourceAuditTest
     }
 
     /// <summary>
-    /// Verifies that the neutral resx file provides a fallback for cultures
-    /// without a culture-specific resx file: a key exists in the neutral
-    /// Shell.resx, and no Shell.fr-FR.resx file exists, so the neutral file
-    /// serves as the fallback source.
+    /// 验证中性 resx 文件为没有区域特定 resx 文件的区域提供回退：
+    /// 某个键存在于中性 Shell.resx 中，且不存在 Shell.fr-FR.resx 文件，
+    /// 因此中性文件作为回退来源。
     /// </summary>
     [Fact]
     public void HelperFallsBackToNeutralCulture()
@@ -649,8 +637,7 @@ public sealed class I18nResourceAuditTest
     // ---------------------------------------------------------------------
 
     /// <summary>
-    /// Verifies that no XAML file in the host project (excluding tests and
-    /// tools) contains a reference to the old Locales.Lang dictionary.
+    /// 验证宿主项目（排除测试和工具）中没有 XAML 文件引用旧的 Locales.Lang 字典。
     /// </summary>
     [Fact]
     public void NoXamlReferencesLocalesLang()
@@ -661,8 +648,8 @@ public sealed class I18nResourceAuditTest
     }
 
     /// <summary>
-    /// Verifies that no C# file in the host project (excluding tests and
-    /// tools) contains a reference to Locales.Lang or Lang.ResourceManager.
+    /// 验证宿主项目（排除测试和工具）中没有 C# 文件引用
+    /// Locales.Lang 或 Lang.ResourceManager。
     /// </summary>
     [Fact]
     public void NoCSharpReferencesLocalesLangOrResourceManager()
@@ -677,8 +664,8 @@ public sealed class I18nResourceAuditTest
     }
 
     /// <summary>
-    /// Verifies that no .csproj file in the repository (excluding tools)
-    /// contains references to Lang.Designer or PublicResXFileCodeGenerator.
+    /// 验证仓库中（排除工具）没有 .csproj 文件包含对
+    /// Lang.Designer 或 PublicResXFileCodeGenerator 的引用。
     /// </summary>
     [Fact]
     public void NoLangDesignerInCsproj()
@@ -710,9 +697,8 @@ public sealed class I18nResourceAuditTest
     }
 
     /// <summary>
-    /// Verifies via reflection that the host I18nHelper does not expose a
-    /// single-argument GetLocalizedString(string) overload (only the 2-arg
-    /// and 3-arg overloads should exist after migration).
+    /// 通过反射验证宿主 I18nHelper 不暴露单参数 GetLocalizedString(string) 重载
+    /// （迁移后只应存在 2 参数和 3 参数重载）。
     /// </summary>
     [Fact]
     public void OldSingleArgHelperOverloadAbsent()
@@ -748,9 +734,8 @@ public sealed class I18nResourceAuditTest
     // ---------------------------------------------------------------------
 
     /// <summary>
-    /// Verifies that no C# or XAML file in the ProductTour project references
-    /// Locales.Lang or any host dictionary name (it should only reference
-    /// Locales.Tour).
+    /// 验证 ProductTour 项目中没有 C# 或 XAML 文件引用
+    /// Locales.Lang 或任何宿主字典名（应只引用 Locales.Tour）。
     /// </summary>
     [Fact]
     public void ProductTourHasNoHostLocalesDependency()
@@ -783,9 +768,9 @@ public sealed class I18nResourceAuditTest
     }
 
     /// <summary>
-    /// Verifies that SmartBp.resx exists in the SmartBp module's Locales
-    /// directory, contains keys, and includes all shared self-containment
-    /// keys (Refresh, Start, Stop, Delete, Cancel, SmartBp, SaveSuccessfullyTo).
+    /// 验证 SmartBp.resx 存在于 SmartBp 模块的 Locales 目录中，包含键，
+    /// 并且包含所有共享的自包含键
+    /// （Refresh、Start、Stop、Delete、Cancel、SmartBp、SaveSuccessfullyTo）。
     /// </summary>
     [Fact]
     public void SmartBpModuleOwnsResources()
@@ -805,9 +790,8 @@ public sealed class I18nResourceAuditTest
     }
 
     /// <summary>
-    /// Verifies that no C# or XAML file in the SmartBp module project
-    /// references host dictionary names (it should only reference
-    /// Locales.SmartBp).
+    /// 验证 SmartBp 模块项目中没有 C# 或 XAML 文件引用
+    /// 宿主字典名（应只引用 Locales.SmartBp）。
     /// </summary>
     [Fact]
     public void SmartBpModuleDoesNotReferenceHostDicts()
@@ -844,10 +828,8 @@ public sealed class I18nResourceAuditTest
     // ---------------------------------------------------------------------
 
     /// <summary>
-    /// Verifies that the neutral (zh-CN) and en-us resx files for the Shell
-    /// dictionary contain at least one key with differing values, proving
-    /// that a culture-switch from zh-CN to en-us would produce different
-    /// localized text for XAML bindings.
+    /// 验证 Shell 字典的中性（zh-CN）和 en-us resx 文件至少包含一个值不同的键，
+    /// 证明从 zh-CN 切换到 en-us 后 XAML 绑定会产生不同的本地化文本。
     /// </summary>
     [Fact]
     public void LocalizedValueChangesOnCultureSwitch()
@@ -869,22 +851,22 @@ public sealed class I18nResourceAuditTest
     // ---------------------------------------------------------------------
 
     /// <summary>
-    /// Resolves the repository root from the test file location using
-    /// CallerFilePath. The test file is in neo-bpsys-wpf.Tests/Services/,
-    /// so going up two directories yields the repository root.
+    /// 从测试文件位置使用 CallerFilePath 解析仓库根目录。
+    /// 测试文件位于 neo-bpsys-wpf.Tests/Services/，
+    /// 因此向上回溯两级即可得到仓库根目录。
     /// </summary>
-    /// <param name="sourceFilePath">Automatically supplied by the compiler.</param>
-    /// <returns>The absolute path to the repository root.</returns>
+    /// <param name="sourceFilePath">由编译器自动提供。</param>
+    /// <returns>仓库根目录的绝对路径。</returns>
     private static string GetRepositoryRoot([CallerFilePath] string sourceFilePath = "")
     {
         return Path.GetFullPath(Path.Combine(Path.GetDirectoryName(sourceFilePath)!, "..", ".."));
     }
 
     /// <summary>
-    /// Combines the repository root with the provided relative path parts.
+    /// 将仓库根目录与提供的相对路径部分组合。
     /// </summary>
-    /// <param name="parts">Relative path segments to combine under the repository root.</param>
-    /// <returns>The absolute path within the repository.</returns>
+    /// <param name="parts">要在仓库根目录下组合的相对路径段。</param>
+    /// <returns>仓库内的绝对路径。</returns>
     private static string GetRepositoryPath(params string[] parts)
     {
         return Path.Combine(GetRepositoryRoot(), Path.Combine(parts));
@@ -957,11 +939,11 @@ public sealed class I18nResourceAuditTest
     }
 
     /// <summary>
-    /// Loads all data entries from a resx file into a dictionary keyed by
-    /// the data name attribute, with value and optional comment.
+    /// 将 resx 文件中的所有 data 项加载到以 data 名称属性为键的字典中，
+    /// 包含值和可选的注释。
     /// </summary>
-    /// <param name="path">Absolute path to the .resx file.</param>
-    /// <returns>A dictionary of key to (value, comment) tuples.</returns>
+    /// <param name="path">.resx 文件的绝对路径。</param>
+    /// <returns>键到（值, 注释）元组的字典。</returns>
     private static Dictionary<string, ResourceEntry> LoadResxKeys(string path)
     {
         if (ResxCache.TryGetValue(path, out var cached))
@@ -992,23 +974,22 @@ public sealed class I18nResourceAuditTest
     }
 
     /// <summary>
-    /// Gets the absolute path to a host family's neutral resx file.
+    /// 获取宿主系列中性 resx 文件的绝对路径。
     /// </summary>
-    /// <param name="family">The host family name (e.g. "Shell").</param>
-    /// <returns>The absolute path to the neutral .resx file.</returns>
+    /// <param name="family">宿主系列名（例如 "Shell"）。</param>
+    /// <returns>中性 .resx 文件的绝对路径。</returns>
     private static string GetHostNeutralResxPath(string family)
     {
         return GetRepositoryPath("neo-bpsys-wpf", "Locales", family + ".resx");
     }
 
     /// <summary>
-    /// Resolves the neutral resx file path for a key-map entry's target
-    /// assembly and target dictionary.
+    /// 根据 key-map 条目的目标程序集和目标字典解析中性 resx 文件路径。
     /// </summary>
-    /// <param name="targetAssembly">The target assembly name.</param>
-    /// <param name="targetDictionary">The target dictionary (e.g. "Locales.AnimationEditor").</param>
-    /// <returns>The absolute path to the neutral .resx file.</returns>
-    /// <exception cref="ArgumentException">Thrown when the target assembly is unknown.</exception>
+    /// <param name="targetAssembly">目标程序集名。</param>
+    /// <param name="targetDictionary">目标字典（例如 "Locales.AnimationEditor"）。</param>
+    /// <returns>中性 .resx 文件的绝对路径。</returns>
+    /// <exception cref="ArgumentException">当目标程序集未知时抛出。</exception>
     private static string GetNeutralResxPath(string targetAssembly, string targetDictionary)
     {
         const string dictionaryPrefix = "Locales.";
@@ -1036,9 +1017,9 @@ public sealed class I18nResourceAuditTest
     }
 
     /// <summary>
-    /// Loads and parses the key-map.csv file from the i18n-migration artifacts.
+    /// 从 i18n-migration 制品中加载并解析 key-map.csv 文件。
     /// </summary>
-    /// <returns>A list of parsed key-map entries.</returns>
+    /// <returns>解析后的 key-map 条目列表。</returns>
     private static List<KeyMapEntry> LoadKeyMap()
     {
         if (_keyMapCache is not null)
@@ -1079,11 +1060,10 @@ public sealed class I18nResourceAuditTest
     }
 
     /// <summary>
-    /// Parses a single CSV line into fields, handling quoted fields that may
-    /// contain embedded commas.
+    /// 将单行 CSV 解析为字段数组，处理可能包含嵌入逗号的带引号字段。
     /// </summary>
-    /// <param name="line">The CSV line to parse.</param>
-    /// <returns>An array of field values.</returns>
+    /// <param name="line">要解析的 CSV 行。</param>
+    /// <returns>字段值数组。</returns>
     private static string[] ParseCsvLine(string line)
     {
         var fields = new List<string>();
@@ -1135,13 +1115,13 @@ public sealed class I18nResourceAuditTest
     }
 
     /// <summary>
-    /// Scans files matching the given pattern in a directory tree for
-    /// forbidden string content, excluding build output and tool directories.
+    /// 在目录树中扫描匹配指定模式的文件，查找禁止出现的字符串内容，
+    /// 排除构建输出和工具目录。
     /// </summary>
-    /// <param name="rootDir">The root directory to scan.</param>
-    /// <param name="pattern">The file search pattern (e.g. "*.cs").</param>
-    /// <param name="forbiddenStrings">Strings that must not appear in file contents.</param>
-    /// <returns>A list of violation descriptions (file path and the forbidden string found).</returns>
+    /// <param name="rootDir">要扫描的根目录。</param>
+    /// <param name="pattern">文件搜索模式（例如 "*.cs"）。</param>
+    /// <param name="forbiddenStrings">不得出现在文件内容中的字符串。</param>
+    /// <returns>违规描述列表（文件路径和找到的禁止字符串）。</returns>
     private static List<string> ScanFilesForForbiddenStrings(
         string rootDir,
         string pattern,
@@ -1171,11 +1151,11 @@ public sealed class I18nResourceAuditTest
     }
 
     /// <summary>
-    /// Determines whether a file path falls within an excluded directory
-    /// (bin, obj, tools, artifacts).
+    /// 判断文件路径是否落在被排除的目录
+    /// （bin、obj、tools、artifacts）内。
     /// </summary>
-    /// <param name="path">The file path to check.</param>
-    /// <returns>True if the path is within an excluded directory; otherwise false.</returns>
+    /// <param name="path">要检查的文件路径。</param>
+    /// <returns>若路径位于被排除的目录内则为 true；否则为 false。</returns>
     private static bool IsExcludedPath(string path)
     {
         var normalized = path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
@@ -1188,16 +1168,16 @@ public sealed class I18nResourceAuditTest
     }
 
     /// <summary>
-    /// Represents a single row in the key-map.csv migration artifact.
+    /// 表示 key-map.csv 迁移制品中的单行记录。
     /// </summary>
-    /// <param name="Key">The resource key.</param>
-    /// <param name="SourceDictionary">The original source dictionary (e.g. "Locales.Lang").</param>
-    /// <param name="TargetAssembly">The target assembly name.</param>
-    /// <param name="TargetDictionary">The target dictionary (e.g. "Locales.AnimationEditor").</param>
-    /// <param name="ReferenceCount">The number of code references to this key.</param>
-    /// <param name="ReferenceDomains">Semicolon-separated list of referencing files.</param>
-    /// <param name="MappingReason">Human-readable reason for the mapping decision.</param>
-    /// <param name="IsDynamic">Whether the key is resolved dynamically at runtime.</param>
+    /// <param name="Key">资源键。</param>
+    /// <param name="SourceDictionary">原始源字典（例如 "Locales.Lang"）。</param>
+    /// <param name="TargetAssembly">目标程序集名。</param>
+    /// <param name="TargetDictionary">目标字典（例如 "Locales.AnimationEditor"）。</param>
+    /// <param name="ReferenceCount">该键的代码引用数量。</param>
+    /// <param name="ReferenceDomains">以分号分隔的引用文件列表。</param>
+    /// <param name="MappingReason">该映射决策的人类可读原因。</param>
+    /// <param name="IsDynamic">该键是否在运行时动态解析。</param>
     private sealed record KeyMapEntry(
         string Key,
         string SourceDictionary,

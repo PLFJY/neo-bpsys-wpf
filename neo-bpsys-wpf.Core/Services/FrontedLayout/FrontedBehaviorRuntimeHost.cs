@@ -9,9 +9,8 @@ using System.Windows.Threading;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Holds the runtime state for a single fronted window: the behavior document,
-/// the event bus subscription, and all running behavior instances.
-/// Disposing the host cancels all running behaviors and releases resources.
+/// 持有单个前台窗口的运行时状态：行为文档、事件总线订阅和所有正在运行的行为实例。
+/// 释放该宿主会取消所有正在运行的行为并释放资源。
 /// </summary>
 internal sealed class FrontedBehaviorRuntimeHost : IDisposable
 {
@@ -30,7 +29,7 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
     private bool _disposed;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="FrontedBehaviorRuntimeHost" />.
+    /// 初始化 <see cref="FrontedBehaviorRuntimeHost" /> 的新实例。
     /// </summary>
     public FrontedBehaviorRuntimeHost(
         FrontedBehaviorRuntimeContext context,
@@ -49,17 +48,17 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
     }
 
     /// <summary>
-    /// Gets the context for this host.
+    /// 获取此宿主的上下文。
     /// </summary>
     public FrontedBehaviorRuntimeContext Context => _context;
 
     /// <summary>
-    /// Gets the loaded behavior document.
+    /// 获取已加载的行为文档。
     /// </summary>
     public FrontedBehaviorDocument? Document => _document;
 
     /// <summary>
-    /// Attaches this host: loads the behavior document and subscribes to the event bus.
+    /// 附加此宿主：加载行为文档并订阅事件总线。
     /// </summary>
     public async Task AttachAsync(FrontedBehaviorDocument document)
     {
@@ -75,7 +74,7 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
     }
 
     /// <summary>
-    /// Handles an incoming event from the event bus.
+    /// 处理来自事件总线的传入事件。
     /// </summary>
     private Task OnEventAsync(FrontedBehaviorEvent behaviorEvent)
     {
@@ -163,7 +162,7 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
     }
 
     /// <summary>
-    /// Creates runnable transition executions matching the supplied request.
+    /// 创建与所提供请求匹配的可运行转场执行。
     /// </summary>
     internal IReadOnlyList<FrontedTransitionExecution> CreateTransitionExecutions(
         FrontedTransitionRequest request,
@@ -929,7 +928,7 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
     }
 
     /// <summary>
-    /// Cancels all running behaviors for this host.
+    /// 取消此宿主的所有正在运行的行为。
     /// </summary>
     public void CancelAllRunningBehaviors()
     {
@@ -959,12 +958,12 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
     }
 
     /// <summary>
-    /// Stops all active loop behaviors in this host and waits up to the supplied timeout for cleanup.
+    /// 停止此宿主中所有活动的循环行为，并等待最多指定的超时时间完成清理。
     /// </summary>
-    /// <param name="reason">The reason for stopping loops.</param>
-    /// <param name="timeout">Maximum time to wait for each loop StopGraph.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The number of loops requested to stop.</returns>
+    /// <param name="reason">停止循环的原因。</param>
+    /// <param name="timeout">等待每个循环 StopGraph 的最长时间。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>请求停止的循环数量。</returns>
     public async Task<int> StopAllLoopBehaviorsAsync(
         FrontedBehaviorStopReason reason,
         TimeSpan timeout,
@@ -1053,8 +1052,8 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
     }
 
     /// <summary>
-    /// Reads a boolean property from a <see cref="FrontedNode"/>'s properties dict,
-    /// returning <paramref name="fallback"/> if the property is missing or not a valid boolean.
+    /// 从 <see cref="FrontedNode"/> 的属性字典中读取布尔属性，
+    /// 当属性缺失或不是有效布尔值时返回 <paramref name="fallback"/>。
     /// </summary>
     private static bool GetBoolSafe(FrontedNode node, string name, bool fallback = true)
     {
@@ -1104,25 +1103,25 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
     internal sealed class RunningBehaviorState
     {
         /// <summary>
-        /// CTS for the entire lifecycle. Cancelled only by Dispose/Detach/InterruptPrevious.
-        /// Never cancelled by stop triggers.
+        /// 整个生命周期的 CTS。仅由 Dispose/Detach/InterruptPrevious 取消。
+        /// 不会被停止触发器取消。
         /// </summary>
         public CancellationTokenSource LifecycleCts { get; }
 
         /// <summary>
-        /// CTS for cancelling the LoopGraph iteration only.
-        /// Cancelled by stop triggers during Looping phase for RunStopGraph/StopImmediately.
+        /// 仅用于取消 LoopGraph 迭代的 CTS。
+        /// 在 Looping 阶段由停止触发器取消（RunStopGraph/StopImmediately 模式）。
         /// </summary>
         public CancellationTokenSource LoopCts { get; } = new();
 
         /// <summary>
-        /// CTS for cancelling StartGraph only.
-        /// Cancelled by stop triggers during Starting phase for RunStopGraph/StopImmediately.
+        /// 仅用于取消 StartGraph 的 CTS。
+        /// 在 Starting 阶段由停止触发器取消（RunStopGraph/StopImmediately 模式）。
         /// </summary>
         public CancellationTokenSource StartCts { get; } = new();
 
         /// <summary>
-        /// CTS for cancelling StopGraph when a bounded external stop operation times out.
+        /// 当有界的外部停止操作超时时，用于取消 StopGraph 的 CTS。
         /// </summary>
         public CancellationTokenSource StopGraphCts { get; } = new();
 
@@ -1135,18 +1134,18 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
         public ControlBehaviorSet? Set { get; }
 
         /// <summary>
-        /// Gets the event that matched the loop start trigger.
+        /// 获取匹配循环启动触发器的事件。
         /// </summary>
         public FrontedBehaviorEvent? StartEvent { get; }
 
         /// <summary>
-        /// Gets or sets the event that matched a loop stop trigger.
+        /// 获取或设置匹配循环停止触发器的事件。
         /// </summary>
         public FrontedBehaviorEvent? StopEvent { get; set; }
 
         /// <summary>
-        /// When true, Phase 4 Reset is skipped. Set when StopGraph executed successfully
-        /// or failed validation, to prevent Reset from overriding the StopGraph visual result.
+        /// 为 true 时跳过第 4 阶段 Reset。在 StopGraph 成功执行或验证失败时设置，
+        /// 以防止 Reset 覆盖 StopGraph 的视觉效果。
         /// </summary>
         public bool SuppressReset { get; set; }
 
@@ -1167,7 +1166,7 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
 }
 
 /// <summary>
-/// Runtime handle for one matched transition behavior execution.
+/// 一次匹配的转场行为执行的运行时句柄。
 /// </summary>
 internal sealed class FrontedTransitionExecution
 {
@@ -1176,7 +1175,7 @@ internal sealed class FrontedTransitionExecution
     private bool _isCancellationRequested;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="FrontedTransitionExecution"/>.
+    /// 初始化 <see cref="FrontedTransitionExecution"/> 的新实例。
     /// </summary>
     public FrontedTransitionExecution(
         FrontedBehaviorRuntimeHost host,
@@ -1195,32 +1194,32 @@ internal sealed class FrontedTransitionExecution
     }
 
     /// <summary>
-    /// Gets the matched behavior.
+    /// 获取匹配的行为。
     /// </summary>
     public FrontedBehavior Behavior { get; }
 
     /// <summary>
-    /// Gets the matched control behavior set.
+    /// 获取匹配的控件行为集合。
     /// </summary>
     public ControlBehaviorSet Set { get; }
 
     /// <summary>
-    /// Gets the synthetic transition event used for trigger and graph payload context.
+    /// 获取用于触发器和图负载上下文的合成转场事件。
     /// </summary>
     public FrontedBehaviorEvent Event { get; }
 
     /// <summary>
-    /// Gets the running state reserved for this transition.
+    /// 获取为此转场保留的运行状态。
     /// </summary>
     public FrontedBehaviorRuntimeHost.RunningBehaviorState State { get; }
 
     /// <summary>
-    /// Gets whether this transition was interrupted or cancelled.
+    /// 获取此转场是否被中断或取消。
     /// </summary>
     public bool IsCancellationRequested => _isCancellationRequested || _lifecycleToken.IsCancellationRequested;
 
     /// <summary>
-    /// Marks this execution as cancelled.
+    /// 标记此执行为已取消。
     /// </summary>
     public void MarkCancellationRequested()
     {
@@ -1228,25 +1227,25 @@ internal sealed class FrontedTransitionExecution
     }
 
     /// <summary>
-    /// Runs the exit graph.
+    /// 运行退出图。
     /// </summary>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A task that completes when the exit graph finishes or is suppressed.</returns>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>退出图完成或被抑制后完成的任务。</returns>
     public Task RunExitGraphAsync(CancellationToken cancellationToken) =>
         _host.RunTransitionGraphAsync(this, Behavior.ExitGraph, "ExitGraph", Link(cancellationToken));
 
     /// <summary>
-    /// Runs the enter graph.
+    /// 运行进入图。
     /// </summary>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A task that completes when the enter graph finishes or is suppressed.</returns>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>进入图完成或被抑制后完成的任务。</returns>
     public Task RunEnterGraphAsync(CancellationToken cancellationToken) =>
         IsCancellationRequested
             ? Task.CompletedTask
             : _host.RunTransitionGraphAsync(this, Behavior.EnterGraph, "EnterGraph", Link(cancellationToken));
 
     /// <summary>
-    /// Completes this transition and releases its reserved running state.
+    /// 完成此转场并释放其保留的运行状态。
     /// </summary>
     public void Complete()
     {

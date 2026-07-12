@@ -3,28 +3,28 @@ using System.Text.Json.Serialization;
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
 
 /// <summary>
-/// Why a .bpui layout depends on a plugin.
+/// .bpui 布局依赖某插件的原因。
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum FrontedPluginDependencyReason
 {
     /// <summary>
-    /// The dependency source is unknown or was not provided by the package.
+    /// 依赖来源未知，或包未提供。
     /// </summary>
     Unknown,
 
     /// <summary>
-    /// The package contains one or more controls whose <c>ControlType</c> belongs to this plugin.
+    /// 包含一个或多个 <c>ControlType</c> 属于该插件的控件。
     /// </summary>
     FrontedControl,
 
     /// <summary>
-    /// The package contains one or more plugin window layouts for this plugin.
+    /// 包含一个或多个该插件的插件窗口布局。
     /// </summary>
     FrontedWindow,
 
     /// <summary>
-    /// The package needs this plugin for both plugin controls and plugin window layouts.
+    /// 包同时因插件控件和插件窗口布局而需要该插件。
     /// </summary>
     Both
 }
