@@ -255,8 +255,7 @@ internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCanc
         var state = await _stateStore.LoadAsync(cancellationToken);
         state.CompletedFlows.Remove(flowId);
         foreach (var package in state.CompletedPackages.Where(pair =>
-                     pair.Value.CompletionKind == TutorialCompletionKind.CoveredByFlow
-                     && pair.Value.SourceFlowId == flowId).Select(pair => pair.Key).ToList())
+                     pair.Value.SourceFlowId == flowId).Select(pair => pair.Key).ToList())
         {
             state.CompletedPackages.Remove(package);
         }
