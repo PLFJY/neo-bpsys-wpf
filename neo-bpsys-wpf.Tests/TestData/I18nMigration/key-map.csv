@@ -2232,3 +2232,4 @@
 "TeamNameInScoreStatistics","Locales.Lang","neo-bpsys-wpf","Locales.Team","0","","prefix Team* -> Team","false"
 "Designer.LayoutReset","","neo-bpsys-wpf","Locales.Designer","1","Designer","objective UI ownership: Designer","False"
 "Designer.FormatError","","neo-bpsys-wpf","Locales.Designer","1","Designer","objective UI ownership: Designer","False"
+"Designer.Behaviors.Payload.GameProgress","","neo-bpsys-wpf","Locales.Designer","1","Designer","objective UI ownership: Designer","False"

@@ -1358,6 +1358,11 @@ public class FrontedBehaviorRuntimeLoopTest
     private sealed class MockSharedDataService : ISharedDataService
     {
         public event EventHandler? CurrentGameChanged;
+
+        /// <summary>
+        /// 当前对局进度改变事件。
+        /// </summary>
+        public event EventHandler? GameProgressChanged;
         public event EventHandler<BanCountChangedEventArgs>? BanCountChanged;
         public event EventHandler? IsTraitVisibleChanged;
         public event EventHandler? IsBo3ModeChanged;

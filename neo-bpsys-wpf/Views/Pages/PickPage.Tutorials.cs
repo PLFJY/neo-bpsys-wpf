@@ -63,11 +63,10 @@ public partial class PickPage : ITutorialOwner<PickPage>
                     .TargetName(nameof(GlobalBanRecordPanel))
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
                     .AllowMissingTarget()
-                    .PostStepAction((_, _) =>
+                    .PostStepAction((context, _) =>
                     {
-                        var gameGuidanceService = IAppHost.Host!.Services.GetRequiredService<IGameGuidanceService>();
-                        gameGuidanceService.MoveToStepAsync(9);
-                        return Task.CompletedTask;
+                        var gameGuidanceService = context.Services.GetRequiredService<IGameGuidanceService>();
+                        return gameGuidanceService.MoveToStepAsync(9);
                     })
             .Package(Tours.CharacterChangerBasic)
                 .StepKey("Step.BpCharacterChangerBasic.0.Title")
@@ -77,11 +76,10 @@ public partial class PickPage : ITutorialOwner<PickPage>
                     .PreStepAction(TutorialStepActions.Delay(250))
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
                     .AllowMissingTarget()
-                    .PostStepAction((_, _) =>
+                    .PostStepAction((context, _) =>
                     {
-                        var gameGuidanceService = IAppHost.Host!.Services.GetRequiredService<IGameGuidanceService>();
-                        gameGuidanceService.MoveToStepAsync(10);
-                        return Task.CompletedTask;
+                        var gameGuidanceService = context.Services.GetRequiredService<IGameGuidanceService>();
+                        return gameGuidanceService.MoveToStepAsync(10);
                     })
                 .Build();
     }

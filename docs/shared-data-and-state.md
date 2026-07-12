@@ -177,6 +177,7 @@ Score System v2 的设计方向见 [score-system-v2.md](score-system-v2.md)。�
 | 事件 | 常见用途 |
 | --- | --- |
 | `CurrentGameChanged` | 页面/前台窗口刷新 `CurrentGame` |
+| `GameProgressChanged` | 当前 `CurrentGame.GameProgress` 改变或导入/替换为不同进度的对局后刷新进度相关 UI |
 | `BanCountChanged` | Ban 页或前台控件刷新可用位 |
 | `CountDownValueChanged` | 倒计时显示刷新 |
 | `TeamSwapped` | 队伍换边后刷新阵营相关 UI |

@@ -1759,6 +1759,9 @@
   <data name="Designer.Behaviors.Payload.Game">
     <value>現在の対局</value>
   </data>
+  <data name="Designer.Behaviors.Payload.GameProgress">
+    <value>対局進行</value>
+  </data>
   <data name="Designer.Behaviors.Payload.Margin">
     <value>余白</value>
   </data>

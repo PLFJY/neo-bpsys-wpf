@@ -145,6 +145,7 @@ public partial class SharedDataService : ISharedDataService
         {
             if (_currentGame == value) return;
             var oldPickedMap = _currentGame.PickedMap;
+            var oldGameProgress = _currentGame.GameProgress;
             var isMapV2BannedChanged = IsMapV2BannedChanged(_currentGame, value);
             UnsubscribeCurrentGameRelatedEvents(_currentGame);
             _currentGame = value;
@@ -154,6 +155,11 @@ public partial class SharedDataService : ISharedDataService
             if (oldPickedMap != CurrentGame.PickedMap)
             {
                 PickedMapChanged?.Invoke(this, EventArgs.Empty);
+            }
+
+            if (oldGameProgress != CurrentGame.GameProgress)
+            {
+                GameProgressChanged?.Invoke(this, EventArgs.Empty);
             }
 
             if (isMapV2BannedChanged)
@@ -316,6 +322,11 @@ public partial class SharedDataService : ISharedDataService
         if (args.PropertyName == nameof(Game.PickedMap))
         {
             PickedMapChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        if (args.PropertyName == nameof(Game.GameProgress))
+        {
+            GameProgressChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 
@@ -681,6 +692,11 @@ public partial class SharedDataService : ISharedDataService
     /// 当前对局改变事件
     /// </summary>
     public event EventHandler? CurrentGameChanged;
+
+    /// <summary>
+    /// 当前对局进度改变事件
+    /// </summary>
+    public event EventHandler? GameProgressChanged;
 
     /// <inheritdoc />
     public event PropertyChangedEventHandler? PropertyChanged;

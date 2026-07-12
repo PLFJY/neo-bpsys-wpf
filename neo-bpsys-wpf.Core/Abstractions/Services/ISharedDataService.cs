@@ -122,6 +122,13 @@ public interface ISharedDataService : INotifyPropertyChanged
     event EventHandler? CurrentGameChanged;
 
     /// <summary>
+    /// 当前对局进度改变事件。
+    /// </summary>
+    [FrontedBehaviorEvent("SharedData.GameProgressChanged", DisplayNameKey = "Designer.Behaviors.Event.GameProgressChanged", DescriptionKey = "Designer.Behaviors.Event.GameProgressChanged", Category = "Game", CategoryKey = "Designer.Behaviors.Category.Game")]
+    [FrontedBehaviorEventPayload("Event.GameProgress", DisplayNameKey = "Designer.Behaviors.Payload.GameProgress", Source = FrontedBehaviorPayloadSource.ServiceProperty, SourcePath = "CurrentGame.GameProgress", TypeName = "GameProgress")]
+    event EventHandler? GameProgressChanged;
+
+    /// <summary>
     /// Ban位数量改变事件
     /// </summary>
     [FrontedBehaviorEvent("SharedData.BanCountChanged", DisplayNameKey = "Designer.Behaviors.Event.BanCountChanged", DescriptionKey = "Designer.Behaviors.Event.BanCountChanged.Description", Category = "Game", CategoryKey = "Designer.Behaviors.Category.Game")]

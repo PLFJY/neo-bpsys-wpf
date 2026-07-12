@@ -51,11 +51,10 @@ public partial class BanSurPage : ITutorialOwner<BanSurPage>
                     .AvatarPlacement(ProductTourAvatarPlacement.TopLeft)
                     .Placement(ProductTourPlacement.RightTop)
                     .WaitFor(TutorialSignalIds.CharacterSelectorSelectionConfirmed)
-                    .PostStepAction((_, _) =>
+                    .PostStepAction((context, _) =>
                     {
-                        var gameGuidanceService = IAppHost.Host!.Services.GetRequiredService<IGameGuidanceService>();
-                        gameGuidanceService.MoveToStepAsync(4);
-                        return Task.CompletedTask;
+                        var gameGuidanceService = context.Services.GetRequiredService<IGameGuidanceService>();
+                        return gameGuidanceService.MoveToStepAsync(4);
                     })
                 .Build();
     }

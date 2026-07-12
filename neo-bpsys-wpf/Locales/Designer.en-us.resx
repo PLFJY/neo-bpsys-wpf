@@ -1759,6 +1759,9 @@
   <data name="Designer.Behaviors.Payload.Game">
     <value>Current game</value>
   </data>
+  <data name="Designer.Behaviors.Payload.GameProgress">
+    <value>Game progress</value>
+  </data>
   <data name="Designer.Behaviors.Payload.Margin">
     <value>Margin</value>
   </data>

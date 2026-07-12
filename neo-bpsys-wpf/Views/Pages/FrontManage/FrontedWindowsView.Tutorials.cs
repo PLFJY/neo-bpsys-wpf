@@ -97,9 +97,9 @@ public partial class FrontedWindowsView : ITutorialOwner<FrontedWindowsView>
                     .TargetTag(FrontedWindowHelper.GetFrontedWindowGuid(FrontedWindowType.BpWindow))
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
                     .WaitFor(TutorialSignalIds.BpWindowOpened)
-                    .PostStepAction((_, _) =>
+                    .PostStepAction((context, _) =>
                     {
-                        ((MainWindow)IAppHost.Host!.Services.GetRequiredService<INavigationWindow>()).Activate();
+                        ((MainWindow)context.Services.GetRequiredService<INavigationWindow>()).Activate();
                         return Task.CompletedTask;
                     })
             .Build();

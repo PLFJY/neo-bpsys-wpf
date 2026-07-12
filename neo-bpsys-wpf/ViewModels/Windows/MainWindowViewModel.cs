@@ -153,9 +153,26 @@ public partial class MainWindowViewModel :
             IsSwapHighlighted = args.GameAction == GameAction.PickCamp;
             IsEndGuidanceHighlighted = args.GameAction == GameAction.EndGuidance;
         };
+
+        _sharedDataService.GameProgressChanged += (_, _) =>
+        {
+            SyncSelectedGameProgressFromCurrentGame();
+        };
     }
 
     private bool CanStopSmartBpAutoRecognition() => IsSmartBpAutoRecognitionRunning;
+
+    private void SyncSelectedGameProgressFromCurrentGame()
+    {
+        if (_selectedGameProgress == CurrentGame.GameProgress)
+        {
+            return;
+        }
+
+        _selectedGameProgress = CurrentGame.GameProgress;
+        OnPropertyChanged(nameof(SelectedGameProgress));
+        NextGameCommand.NotifyCanExecuteChanged();
+    }
 
     [RelayCommand(CanExecute = nameof(CanStopSmartBpAutoRecognition))]
     private Task StopSmartBpAutoRecognitionAsync() => _smartBpAutoRecognitionGlobalControl.StopAsync();

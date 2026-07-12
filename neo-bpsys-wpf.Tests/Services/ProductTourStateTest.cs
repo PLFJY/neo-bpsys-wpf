@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using neo_bpsys_wpf.ProductTour;
@@ -54,6 +55,61 @@ public sealed class ProductTourStateTest
             await fixture.Runner.RunSequenceAsync(new FrameworkElement(), "Page.Test");
 
             Assert.Equal(["Package.Two"], fixture.Observer.StartedPackageIds);
+        });
+    }
+
+    /// <summary>
+    /// Verifies flow-embedded packages execute pre-step actions before showing the tour step.
+    /// </summary>
+    [Fact]
+    public async Task RunFlow_ShouldExecuteEmbeddedPackagePreStepActions()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var fixture = new Fixture();
+            var preStepExecuted = false;
+            fixture.PackageRegistry.Register(new TutorialPackageDefinition
+            {
+                PackageId = "Package.Flow.PreStep",
+                PageKey = "Page.Test",
+                Steps =
+                [
+                    new ProductTourStep
+                    {
+                        Title = "Flow pre-step",
+                        TargetKind = TutorialTargetKind.None,
+                        PreStepActions =
+                        {
+                            new TutorialStepAction("FailAfterPreStep", (_, _) =>
+                            {
+                                preStepExecuted = true;
+                                throw new InvalidOperationException("Pre-step executed.");
+                            })
+                        }
+                    }
+                ]
+            });
+            fixture.FlowRegistry.Register(new TutorialFlowDefinition
+            {
+                FlowId = "Flow.PreStep",
+                IncludedPackageIds = ["Package.Flow.PreStep"],
+                Items =
+                [
+                    new PackageFlowItem
+                    {
+                        PackageId = "Package.Flow.PreStep"
+                    }
+                ]
+            });
+            var owner = new Window
+            {
+                Content = new Grid()
+            };
+
+            var result = await fixture.Runner.RunFlowAsync(owner, "Flow.PreStep", force: true);
+
+            Assert.True(preStepExecuted);
+            Assert.Equal(TutorialRunResult.Failed, result);
         });
     }
 
