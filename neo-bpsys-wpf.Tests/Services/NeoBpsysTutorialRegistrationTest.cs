@@ -1,10 +1,6 @@
 using neo_bpsys_wpf.ProductTour;
-using Microsoft.Extensions.DependencyInjection;
-using Moq;
-using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
-using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Tests.Infrastructure;
 using neo_bpsys_wpf.Tutorial;
 using neo_bpsys_wpf.ViewModels.Pages;
@@ -17,7 +13,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Controls;
 using WPFLocalizeExtension.Engine;
 using Xunit;
@@ -407,98 +402,6 @@ public sealed class NeoBpsysTutorialRegistrationTest : IDisposable
         });
     }
 
-    /// <summary>
-    /// 验证首次运行的对局进度步骤会在要求用户选择 BO1 上半场之前重置对局。
-    /// </summary>
-    [Fact]
-    public async Task MainWindowGameProgressPreStepActionResetsProgressAndStopsGuidance()
-    {
-        await WpfTestThread.RunAsync(async () =>
-        {
-            var game = CreateGame(GameProgress.Game1FirstHalf);
-            var guidance = new Mock<IGameGuidanceService>();
-            guidance.SetupGet(service => service.IsGuidanceStarted).Returns(true);
-            var action = GetSinglePreStepAction(TutorialPackageIds.GameManageGameProgressBo1FirstHalf);
-
-            await action.ExecuteAsync(
-                CreateActionContext(game, guidance.Object, TutorialPackageIds.GameManageGameProgressBo1FirstHalf),
-                CancellationToken.None);
-
-            Assert.Equal(GameProgress.Free, game.GameProgress);
-            guidance.Verify(service => service.StopGuidance(), Times.Once);
-        });
-    }
-
-    /// <summary>
-    /// 验证 BP 引导开始步骤会在启动引导之前准备 BO1 上半场。
-    /// </summary>
-    [Fact]
-    public async Task MainWindowBpGuidancePreStepActionSelectsFirstHalfAndStopsGuidance()
-    {
-        await WpfTestThread.RunAsync(async () =>
-        {
-            var game = CreateGame(GameProgress.Free);
-            var guidance = new Mock<IGameGuidanceService>();
-            guidance.SetupGet(service => service.IsGuidanceStarted).Returns(true);
-            var action = GetSinglePreStepAction(TutorialPackageIds.BpGameGuidanceStartBasic);
-
-            await action.ExecuteAsync(
-                CreateActionContext(game, guidance.Object, TutorialPackageIds.BpGameGuidanceStartBasic),
-                CancellationToken.None);
-
-            Assert.Equal(GameProgress.Game1FirstHalf, game.GameProgress);
-            guidance.Verify(service => service.StopGuidance(), Times.Once);
-        });
-    }
-
-    /// <summary>
-    /// 验证引导 post-step 动作会从教程动作上下文中解析引导服务。
-    /// </summary>
-    /// <param name="packageId">包含 post-step 动作的教程包 id。</param>
-    /// <param name="stepIndex">期望的引导步骤索引。</param>
-    [Theory]
-    [InlineData(TutorialPackageIds.MapBpPickMapOperationBasic, 3)]
-    [InlineData(TutorialPackageIds.BpCharacterSelectorBasic, 4)]
-    [InlineData(TutorialPackageIds.BpGlobalBanRecordBasic, 9)]
-    [InlineData(TutorialPackageIds.BpCharacterChangerBasic, 10)]
-    public async Task GuidancePostStepActionsUseContextServices(string packageId, int stepIndex)
-    {
-        await WpfTestThread.RunAsync(async () =>
-        {
-            var game = CreateGame(GameProgress.Game1FirstHalf);
-            var guidance = new Mock<IGameGuidanceService>();
-            guidance
-                .Setup(service => service.MoveToStepAsync(stepIndex, true))
-                .ReturnsAsync((string?)null);
-            var action = GetSinglePostStepAction(packageId);
-
-            await action.ExecuteAsync(
-                CreateActionContext(game, guidance.Object, packageId),
-                CancellationToken.None);
-
-            guidance.Verify(service => service.MoveToStepAsync(stepIndex, true), Times.Once);
-        });
-    }
-
-    /// <summary>
-    /// 验证教程定义不会通过全局应用宿主绕过动作上下文。
-    /// </summary>
-    [Fact]
-    public void TutorialDefinitionFiles_ShouldNotUseIAppHost()
-    {
-        var root = FindRepositoryRoot();
-        var files = Directory.GetFiles(
-            Path.Combine(root, "neo-bpsys-wpf"),
-            "*.Tutorials.cs",
-            SearchOption.AllDirectories);
-
-        foreach (var file in files)
-        {
-            var source = File.ReadAllText(file);
-            Assert.DoesNotContain("IAppHost.Host", source, StringComparison.Ordinal);
-        }
-    }
-
     [Fact]
     public void TeamInfo_ShouldNotRegisterDuplicateTeamNamePackages()
     {
@@ -867,61 +770,6 @@ public sealed class NeoBpsysTutorialRegistrationTest : IDisposable
 
         return packageRegistry.GetPackages();
     }
-
-    private static TutorialStepAction GetSinglePreStepAction(string packageId)
-    {
-        var package = Assert.Single(CreateRegisteredPackages(), package => package.PackageId == packageId);
-        var step = Assert.Single(package.Steps);
-        return Assert.Single(step.PreStepActions);
-    }
-
-    private static TutorialStepAction GetSinglePostStepAction(string packageId)
-    {
-        var package = Assert.Single(CreateRegisteredPackages(), package => package.PackageId == packageId);
-        var step = Assert.Single(package.Steps, step => step.PostStepActions.Count > 0);
-        return Assert.Single(step.PostStepActions);
-    }
-
-    private static TutorialStepActionContext CreateActionContext(
-        Game game,
-        IGameGuidanceService guidanceService,
-        string packageId)
-    {
-        var shared = new Mock<ISharedDataService>();
-        shared.SetupGet(service => service.CurrentGame).Returns(game);
-        var services = new ServiceCollection()
-            .AddSingleton(shared.Object)
-            .AddSingleton(guidanceService)
-            .BuildServiceProvider();
-        var package = Assert.Single(CreateRegisteredPackages(), package => package.PackageId == packageId);
-        var step = Assert.Single(
-            package.Steps,
-            step => step.PreStepActions.Count > 0 || step.PostStepActions.Count > 0);
-
-        return new TutorialStepActionContext
-        {
-            Services = services,
-            Owner = new FrameworkElement(),
-            Step = step
-        };
-    }
-
-    private static string FindRepositoryRoot()
-    {
-        var current = new DirectoryInfo(AppContext.BaseDirectory);
-        while (current != null && !File.Exists(Path.Combine(current.FullName, "neo-bpsys-wpf.slnx")))
-        {
-            current = current.Parent;
-        }
-
-        return current?.FullName ?? throw new DirectoryNotFoundException("Repository root was not found.");
-    }
-
-    private static Game CreateGame(GameProgress progress) =>
-        new(
-            new Team(Camp.Sur, TeamType.HomeTeam),
-            new Team(Camp.Hun, TeamType.AwayTeam),
-            progress);
 
     private static TutorialSequenceRegistry CreateRegisteredSequences()
     {

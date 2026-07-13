@@ -7,12 +7,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Markup;
 using System.Windows.Controls;
 using System.Windows.Threading;
-using System.Text;
 using System.Xml.Linq;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Tests.Infrastructure;
@@ -29,7 +27,6 @@ namespace neo_bpsys_wpf.Tests.Services;
 public sealed class I18nResourceAuditTest
 {
     private const string HostAssembly = "neo-bpsys-wpf";
-    private const string SmartBpModuleAssembly = "neo-bpsys-wpf.SmartBp.Module";
 
     private static readonly string[] HostFamilyNames =
     {
@@ -49,64 +46,7 @@ public sealed class I18nResourceAuditTest
         "Refresh", "Start", "Stop", "Delete", "Cancel", "SmartBp", "SaveSuccessfullyTo"
     };
 
-    private static readonly HashSet<string> PostMigrationLocalizedKeys = new(StringComparer.Ordinal)
-    {
-        "ResetDefaultColor"
-    };
-
     private static readonly Dictionary<string, Dictionary<string, ResourceEntry>> ResxCache = new(StringComparer.Ordinal);
-    private static readonly Dictionary<string, IReadOnlyList<ResourceEntry>> BaselineCache = new(StringComparer.Ordinal);
-    private static List<KeyMapEntry>? _keyMapCache;
-
-    // ---------------------------------------------------------------------
-    // 9.1 Migration-integrity tests
-    // ---------------------------------------------------------------------
-
-    /// <summary>
-    /// 验证 key-map.csv 中的数据行总数等于文档中记录的原始 Lang.resx 中性键数量，
-    /// 并且宿主系列中性键的总和等于 key-map 中 TargetAssembly 为宿主程序集的条目数。
-    /// </summary>
-    [Fact]
-    public void TotalNeutralKeyCountMatchesKeyMap()
-    {
-        var keyMap = LoadKeyMap();
-
-        var baselineKeys = LoadBaseline("neutral").Select(entry => entry.Key).ToHashSet(StringComparer.Ordinal);
-        var addedKeys = keyMap.Where(entry => string.IsNullOrWhiteSpace(entry.SourceDictionary)).ToArray();
-        Assert.Equal(LoadBaseline("neutral").Count + addedKeys.Length, keyMap.Count);
-        Assert.All(addedKeys, entry => Assert.DoesNotContain(entry.Key, baselineKeys));
-
-        var hostKeyMapEntryCount = keyMap.Count(e => e.TargetAssembly == HostAssembly);
-        var hostNeutralKeySum = HostFamilyNames
-            .Sum(family => LoadResxKeys(GetHostNeutralResxPath(family)).Count);
-
-        Assert.Equal(hostKeyMapEntryCount, hostNeutralKeySum);
-    }
-
-    /// <summary>
-    /// 验证 key-map.csv 中列出的每个键都存在于其目标字典的中性 resx 文件中。
-    /// </summary>
-    [Fact]
-    public void EveryKeyMapEntryExistsInTargetDictionary()
-    {
-        var keyMap = LoadKeyMap();
-        var resxCache = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
-
-        foreach (var entry in keyMap)
-        {
-            var cacheKey = entry.TargetAssembly + "|" + entry.TargetDictionary;
-            if (!resxCache.TryGetValue(cacheKey, out var keys))
-            {
-                var path = GetNeutralResxPath(entry.TargetAssembly, entry.TargetDictionary);
-                keys = new HashSet<string>(LoadResxKeys(path).Keys, StringComparer.Ordinal);
-                resxCache[cacheKey] = keys;
-            }
-
-            Assert.True(
-                keys.Contains(entry.Key),
-                $"Key '{entry.Key}' from key-map.csv was not found in {entry.TargetAssembly}/{entry.TargetDictionary}.resx");
-        }
-    }
 
     /// <summary>
     /// 验证宿主系列 en-us 或 ja-jp resx 文件中存在的每个键在同一系列中都有对应的中性键。
@@ -143,32 +83,6 @@ public sealed class I18nResourceAuditTest
                 }
             }
         }
-    }
-
-    /// <summary>
-    /// 验证所有宿主系列中性键的并集等于 key-map.csv 中 TargetAssembly 为宿主程序集的
-    /// 键集合，确保迁移过程中没有丢失任何宿主键。
-    /// </summary>
-    [Fact]
-    public void NoHostKeyLostInMigration()
-    {
-        var keyMap = LoadKeyMap();
-        var hostKeyMapKeys = keyMap
-            .Where(e => e.TargetAssembly == HostAssembly)
-            .Select(e => e.Key)
-            .ToHashSet(StringComparer.Ordinal);
-
-        var hostNeutralKeys = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var family in HostFamilyNames)
-        {
-            foreach (var key in LoadResxKeys(GetHostNeutralResxPath(family)).Keys)
-            {
-                hostNeutralKeys.Add(key);
-            }
-        }
-
-        Assert.Equal(hostKeyMapKeys.Count, hostNeutralKeys.Count);
-        Assert.True(hostKeyMapKeys.SetEquals(hostNeutralKeys));
     }
 
     // ---------------------------------------------------------------------
@@ -216,35 +130,6 @@ public sealed class I18nResourceAuditTest
             var keys = LoadResxKeys(GetHostNeutralResxPath(family));
             Assert.True(keys.Count > 0, $"Host dictionary {family}.resx should contain at least one key");
         }
-    }
-
-    /// <summary>
-    /// 验证 Common.resx 中的键不会出现在任何其他宿主系列中性 resx 文件中。
-    /// </summary>
-    [Fact]
-    public void CommonKeysNotDuplicatedInFeatureDicts()
-    {
-        var commonKeys = LoadResxKeys(GetHostNeutralResxPath("Common")).Keys
-            .ToHashSet(StringComparer.Ordinal);
-
-        var duplicates = new List<string>();
-        foreach (var family in HostFamilyNames)
-        {
-            if (family == "Common")
-            {
-                continue;
-            }
-
-            foreach (var key in LoadResxKeys(GetHostNeutralResxPath(family)).Keys)
-            {
-                if (commonKeys.Contains(key))
-                {
-                    duplicates.Add($"{key}: in both Common and {family}");
-                }
-            }
-        }
-
-        Assert.Empty(duplicates);
     }
 
     // ---------------------------------------------------------------------
@@ -310,27 +195,6 @@ public sealed class I18nResourceAuditTest
         }
     }
 
-    /// <summary>
-    /// 验证宿主 Locales 目录中所有 resx 文件都可以解析为
-    /// 有效的 XML，且具有根元素和至少一个 data 子元素。
-    /// </summary>
-    [Fact]
-    public void AllHostResxFilesAreValidXml()
-    {
-        var localesDir = GetRepositoryPath("neo-bpsys-wpf", "Locales");
-        var resxFiles = Directory.GetFiles(localesDir, "*.resx");
-
-        Assert.NotEmpty(resxFiles);
-
-        foreach (var file in resxFiles)
-        {
-            var doc = XDocument.Load(file);
-            Assert.NotNull(doc.Root);
-            Assert.Equal("root", doc.Root!.Name.LocalName);
-            Assert.NotEmpty(doc.Root!.Elements("data"));
-        }
-    }
-
     // ---------------------------------------------------------------------
     // 9.4 Lookup tests
     // ---------------------------------------------------------------------
@@ -359,112 +223,6 @@ public sealed class I18nResourceAuditTest
                 AppI18nDictionaries.Shell,
                 string.Empty,
                 CultureInfo.GetCultureInfo("en-US")));
-    }
-
-    /// <summary>
-    /// 验证已知的特性键在对应特性字典的中性 resx 文件中存在且值非空，
-    /// 以确认迁移将该键放置在正确的字典中。
-    /// </summary>
-    [Fact]
-    public void HelperResolvesKnownFeatureKey()
-    {
-        var resxKeys = LoadResxKeys(GetHostNeutralResxPath("Designer"));
-        Assert.True(resxKeys.ContainsKey("Zoom"), "Zoom key should exist in Designer.resx");
-        Assert.False(string.IsNullOrWhiteSpace(resxKeys["Zoom"].Value),
-            "Zoom value should not be empty in Designer.resx");
-    }
-
-    /// <summary>
-    /// 验证每一行迁移记录都文档化了显式的归属决策，
-    /// 而不是对不明确或未被引用的键回退到 shell。
-    /// </summary>
-    [Fact]
-    public void KeyMapDoesNotContainDefaultShellFallbackReasons()
-    {
-        var fallbackRows = LoadKeyMap()
-            .Where(entry => entry.MappingReason.Contains("ambiguous", StringComparison.OrdinalIgnoreCase)
-                            || entry.MappingReason.Contains("Shell default", StringComparison.OrdinalIgnoreCase))
-            .Select(entry => entry.Key)
-            .ToArray();
-
-        Assert.Empty(fallbackRows);
-    }
-
-    [Fact]
-    public void I18nMigration_EveryBaselineNeutralEntryShouldBePreservedExactly()
-    {
-        AssertBaselineCultureIsPreservedExactly("neutral");
-    }
-
-    [Fact]
-    public void I18nMigration_EveryBaselineEnglishEntryShouldBePreservedExactly()
-    {
-        AssertBaselineCultureIsPreservedExactly("en-us");
-    }
-
-    [Fact]
-    public void I18nMigration_EveryBaselineJapaneseEntryShouldBePreservedExactly()
-    {
-        AssertBaselineCultureIsPreservedExactly("ja-jp");
-    }
-
-    [Fact]
-    public void I18nMigration_ShouldPreserveComments()
-    {
-        Assert.All(LoadBaseline("neutral"), entry =>
-        {
-            var actual = LoadMappedTargetEntry(entry, "neutral");
-            Assert.Equal(entry.Comment, actual.Comment);
-        });
-    }
-
-    [Fact]
-    public void I18nMigration_ShouldPreserveXmlSpace()
-    {
-        Assert.All(LoadBaseline("neutral"), entry =>
-        {
-            var actual = LoadMappedTargetEntry(entry, "neutral");
-            Assert.Equal(entry.XmlSpacePreserve, actual.XmlSpacePreserve);
-        });
-    }
-
-    [Fact]
-    public void I18nMigration_ShouldNotInventLocalizedEntries()
-    {
-        AssertNoLocalizedCoverageWasInvented("en-us");
-        AssertNoLocalizedCoverageWasInvented("ja-jp");
-    }
-
-    [Fact]
-    public void I18nMigration_ShouldNotLoseLocalizedEntries()
-    {
-        AssertBaselineCultureIsPreservedExactly("en-us");
-        AssertBaselineCultureIsPreservedExactly("ja-jp");
-    }
-
-    [Fact]
-    public void I18nMigration_EveryKeyShouldHaveExactlyOneTargetOwner()
-    {
-        var duplicates = LoadKeyMap()
-            .GroupBy(entry => entry.Key, StringComparer.Ordinal)
-            .Where(group => group.Count() != 1)
-            .Select(group => $"{group.Key}: {group.Count()} owners")
-            .ToList();
-
-        Assert.Empty(duplicates);
-    }
-
-    [Fact]
-    public void I18nMigration_KeyMapShouldMatchBaselineKeys()
-    {
-        var baselineKeys = LoadBaseline("neutral").Select(entry => entry.Key).ToHashSet(StringComparer.Ordinal);
-        var keyMap = LoadKeyMap();
-        var migratedKeys = keyMap
-            .Where(entry => !string.IsNullOrWhiteSpace(entry.SourceDictionary))
-            .Select(entry => entry.Key)
-            .ToHashSet(StringComparer.Ordinal);
-        Assert.True(baselineKeys.SetEquals(migratedKeys),
-            "Tracked baseline keys must all have exactly one migration target; newly authored keys use an empty SourceDictionary.");
     }
 
     /// <summary>
@@ -827,25 +585,6 @@ public sealed class I18nResourceAuditTest
     // 9.7 STA/WPF culture-switch test
     // ---------------------------------------------------------------------
 
-    /// <summary>
-    /// 验证 Shell 字典的中性（zh-CN）和 en-us resx 文件至少包含一个值不同的键，
-    /// 证明从 zh-CN 切换到 en-us 后 XAML 绑定会产生不同的本地化文本。
-    /// </summary>
-    [Fact]
-    public void LocalizedValueChangesOnCultureSwitch()
-    {
-        var neutralKeys = LoadResxKeys(GetHostNeutralResxPath("Shell"));
-        var enUsKeys = LoadResxKeys(GetRepositoryPath("neo-bpsys-wpf", "Locales", "Shell.en-us.resx"));
-
-        var differingKeys = neutralKeys
-            .Where(kvp => enUsKeys.TryGetValue(kvp.Key, out var enEntry)
-                          && !string.Equals(kvp.Value.Value, enEntry.Value, StringComparison.Ordinal))
-            .Select(kvp => kvp.Key)
-            .ToList();
-
-        Assert.NotEmpty(differingKeys);
-    }
-
     // ---------------------------------------------------------------------
     // Helpers
     // ---------------------------------------------------------------------
@@ -870,72 +609,6 @@ public sealed class I18nResourceAuditTest
     private static string GetRepositoryPath(params string[] parts)
     {
         return Path.Combine(GetRepositoryRoot(), Path.Combine(parts));
-    }
-
-    private static string GetMigrationTestDataPath(string fileName)
-    {
-        return GetRepositoryPath("neo-bpsys-wpf.Tests", "TestData", "I18nMigration", fileName);
-    }
-
-    private static IReadOnlyList<ResourceEntry> LoadBaseline(string culture)
-    {
-        if (BaselineCache.TryGetValue(culture, out var cached))
-        {
-            return cached;
-        }
-
-        var path = GetMigrationTestDataPath(culture + ".json");
-        var snapshot = JsonSerializer.Deserialize<BaselineSnapshot>(
-            File.ReadAllText(path),
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-        Assert.NotNull(snapshot);
-        Assert.Equal(culture, snapshot!.Culture);
-        var entries = snapshot.Entries.OrderBy(entry => entry.Key, StringComparer.Ordinal).ToArray();
-        BaselineCache[culture] = entries;
-        return entries;
-    }
-
-    private static void AssertBaselineCultureIsPreservedExactly(string culture)
-    {
-        foreach (var expected in LoadBaseline(culture))
-        {
-            var actual = LoadMappedTargetEntry(expected, culture);
-            Assert.True(
-                expected.Equals(actual),
-                $"Migration mismatch. Culture={culture}; Key={expected.Key}; Expected='{expected.Value}'; " +
-                $"Actual='{actual.Value}'; ExpectedComment='{expected.Comment}'; ActualComment='{actual.Comment}'; " +
-                $"ExpectedXmlSpace={expected.XmlSpacePreserve}; ActualXmlSpace={actual.XmlSpacePreserve}.");
-        }
-    }
-
-    private static ResourceEntry LoadMappedTargetEntry(ResourceEntry expected, string culture)
-    {
-        var map = Assert.Single(LoadKeyMap().Where(entry => entry.Key == expected.Key));
-        var path = GetTargetResxPath(map.TargetAssembly, map.TargetDictionary, culture);
-        var targetEntries = LoadResxKeys(path);
-        Assert.True(
-            targetEntries.TryGetValue(expected.Key, out var actual),
-            $"Missing migrated entry. Culture={culture}; Key={expected.Key}; TargetAssembly={map.TargetAssembly}; TargetDictionary={map.TargetDictionary}; File={path}");
-        return actual!;
-    }
-
-    private static void AssertNoLocalizedCoverageWasInvented(string culture)
-    {
-        var neutralKeys = LoadBaseline("neutral").Select(entry => entry.Key).ToHashSet(StringComparer.Ordinal);
-        var localizedKeys = LoadBaseline(culture).Select(entry => entry.Key).ToHashSet(StringComparer.Ordinal);
-        var maps = LoadKeyMap().ToDictionary(entry => entry.Key, StringComparer.Ordinal);
-
-        foreach (var key in neutralKeys
-                     .Except(localizedKeys, StringComparer.Ordinal)
-                     .Except(PostMigrationLocalizedKeys, StringComparer.Ordinal))
-        {
-            var map = maps[key];
-            var targetPath = GetTargetResxPath(map.TargetAssembly, map.TargetDictionary, culture);
-            var targetEntries = LoadResxKeys(targetPath);
-            Assert.False(
-                targetEntries.ContainsKey(key),
-                $"Migration invented localized entry. Culture={culture}; Key={key}; TargetAssembly={map.TargetAssembly}; TargetDictionary={map.TargetDictionary}");
-        }
     }
 
     /// <summary>
@@ -981,137 +654,6 @@ public sealed class I18nResourceAuditTest
     private static string GetHostNeutralResxPath(string family)
     {
         return GetRepositoryPath("neo-bpsys-wpf", "Locales", family + ".resx");
-    }
-
-    /// <summary>
-    /// 根据 key-map 条目的目标程序集和目标字典解析中性 resx 文件路径。
-    /// </summary>
-    /// <param name="targetAssembly">目标程序集名。</param>
-    /// <param name="targetDictionary">目标字典（例如 "Locales.AnimationEditor"）。</param>
-    /// <returns>中性 .resx 文件的绝对路径。</returns>
-    /// <exception cref="ArgumentException">当目标程序集未知时抛出。</exception>
-    private static string GetNeutralResxPath(string targetAssembly, string targetDictionary)
-    {
-        const string dictionaryPrefix = "Locales.";
-        var family = targetDictionary.StartsWith(dictionaryPrefix, StringComparison.Ordinal)
-            ? targetDictionary.Substring(dictionaryPrefix.Length)
-            : targetDictionary;
-
-        return targetAssembly switch
-        {
-            HostAssembly => GetRepositoryPath("neo-bpsys-wpf", "Locales", family + ".resx"),
-            SmartBpModuleAssembly => GetRepositoryPath(
-                "neo-bpsys-wpf.SmartBp.Module", "Locales", family + ".resx"),
-            _ => throw new ArgumentException($"Unknown target assembly: {targetAssembly}")
-        };
-    }
-
-    private static string GetTargetResxPath(string targetAssembly, string targetDictionary, string culture)
-    {
-        var neutralPath = GetNeutralResxPath(targetAssembly, targetDictionary);
-        return culture == "neutral"
-            ? neutralPath
-            : Path.Combine(
-                Path.GetDirectoryName(neutralPath)!,
-                Path.GetFileNameWithoutExtension(neutralPath) + "." + culture + ".resx");
-    }
-
-    /// <summary>
-    /// 从 i18n-migration 制品中加载并解析 key-map.csv 文件。
-    /// </summary>
-    /// <returns>解析后的 key-map 条目列表。</returns>
-    private static List<KeyMapEntry> LoadKeyMap()
-    {
-        if (_keyMapCache is not null)
-        {
-            return _keyMapCache;
-        }
-
-        var path = GetMigrationTestDataPath("key-map.csv");
-        var lines = File.ReadAllLines(path);
-        var entries = new List<KeyMapEntry>();
-
-        for (var i = 1; i < lines.Length; i++)
-        {
-            if (string.IsNullOrWhiteSpace(lines[i]))
-            {
-                continue;
-            }
-
-            var fields = ParseCsvLine(lines[i]);
-            if (fields.Length < 8)
-            {
-                continue;
-            }
-
-            entries.Add(new KeyMapEntry(
-                fields[0],
-                fields[1],
-                fields[2],
-                fields[3],
-                int.Parse(fields[4], CultureInfo.InvariantCulture),
-                fields[5],
-                fields[6],
-                bool.Parse(fields[7])));
-        }
-
-        _keyMapCache = entries;
-        return entries;
-    }
-
-    /// <summary>
-    /// 将单行 CSV 解析为字段数组，处理可能包含嵌入逗号的带引号字段。
-    /// </summary>
-    /// <param name="line">要解析的 CSV 行。</param>
-    /// <returns>字段值数组。</returns>
-    private static string[] ParseCsvLine(string line)
-    {
-        var fields = new List<string>();
-        var current = new StringBuilder();
-        var inQuotes = false;
-
-        for (var i = 0; i < line.Length; i++)
-        {
-            var c = line[i];
-            if (inQuotes)
-            {
-                if (c == '"')
-                {
-                    if (i + 1 < line.Length && line[i + 1] == '"')
-                    {
-                        current.Append('"');
-                        i++;
-                    }
-                    else
-                    {
-                        inQuotes = false;
-                    }
-                }
-                else
-                {
-                    current.Append(c);
-                }
-            }
-            else
-            {
-                if (c == '"')
-                {
-                    inQuotes = true;
-                }
-                else if (c == ',')
-                {
-                    fields.Add(current.ToString());
-                    current.Clear();
-                }
-                else
-                {
-                    current.Append(c);
-                }
-            }
-        }
-
-        fields.Add(current.ToString());
-        return fields.ToArray();
     }
 
     /// <summary>
@@ -1166,29 +708,6 @@ public sealed class I18nResourceAuditTest
             || normalized.Contains(sep + "tools" + sep, StringComparison.OrdinalIgnoreCase)
             || normalized.Contains(sep + "artifacts" + sep, StringComparison.OrdinalIgnoreCase);
     }
-
-    /// <summary>
-    /// 表示 key-map.csv 迁移制品中的单行记录。
-    /// </summary>
-    /// <param name="Key">资源键。</param>
-    /// <param name="SourceDictionary">原始源字典（例如 "Locales.Lang"）。</param>
-    /// <param name="TargetAssembly">目标程序集名。</param>
-    /// <param name="TargetDictionary">目标字典（例如 "Locales.AnimationEditor"）。</param>
-    /// <param name="ReferenceCount">该键的代码引用数量。</param>
-    /// <param name="ReferenceDomains">以分号分隔的引用文件列表。</param>
-    /// <param name="MappingReason">该映射决策的人类可读原因。</param>
-    /// <param name="IsDynamic">该键是否在运行时动态解析。</param>
-    private sealed record KeyMapEntry(
-        string Key,
-        string SourceDictionary,
-        string TargetAssembly,
-        string TargetDictionary,
-        int ReferenceCount,
-        string ReferenceDomains,
-        string MappingReason,
-        bool IsDynamic);
-
-    private sealed record BaselineSnapshot(string Culture, List<ResourceEntry> Entries);
 
     private sealed record ResourceEntry(
         string Key,

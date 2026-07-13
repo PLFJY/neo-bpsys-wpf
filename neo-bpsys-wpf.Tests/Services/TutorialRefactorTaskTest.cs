@@ -77,21 +77,6 @@ public sealed class TutorialRefactorTaskTest
     }
 
     [Fact]
-    public void RegionEditorCompletion_ShouldAllowLaterSmartBpPackages()
-    {
-        var (packageRegistry, sequenceRegistry, _) = RegisterModuleTutorials();
-        var moduleSequence = sequenceRegistry.GetSequence(SmartBpModuleContentView.TutorialPageKey).ToArray();
-
-        var entryIndex = Array.IndexOf(moduleSequence, SmartBpModuleContentView.PackageIds.RegionEditorEntryBasic);
-        var fullBpFlowIndex = Array.IndexOf(moduleSequence, SmartBpModuleContentView.PackageIds.FullBpFlowBasic);
-
-        Assert.True(entryIndex >= 0, "RegionEditorEntryBasic should be in the module content sequence.");
-        Assert.True(fullBpFlowIndex >= 0, "FullBpFlowBasic should be in the module content sequence.");
-        Assert.True(entryIndex < fullBpFlowIndex,
-            "FullBpFlowBasic should come after RegionEditorEntryBasic in the sequence.");
-    }
-
-    [Fact]
     public void SmartBpFullFlowPackage_ShouldRunAfterRegionEntryPackage()
     {
         var (_, sequenceRegistry, _) = RegisterModuleTutorials();

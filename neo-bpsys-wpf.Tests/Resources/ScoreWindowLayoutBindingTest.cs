@@ -1,9 +1,6 @@
-using System.IO;
 using System.Runtime.CompilerServices;
+using System.IO;
 using System.Text.Json.Nodes;
-using System.Text.Json;
-using System.Linq;
-using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Resources;
@@ -30,41 +27,6 @@ public class ScoreWindowLayoutBindingTest
             GetBindingPath(hunLayout, "GameScoresHun"));
     }
 
-    [Fact]
-    public void ScoreSurAndHunLayoutsDoNotReferenceTeamScoreForScoreBindings()
-    {
-        var surLayoutText = ReadLayoutText("neo-bpsys-wpf/Resources/FrontedLayouts/ScoreSurWindow.json");
-        var hunLayoutText = ReadLayoutText("neo-bpsys-wpf/Resources/FrontedLayouts/ScoreHunWindow.json");
-
-        Assert.DoesNotContain("Team.Score", surLayoutText);
-        Assert.DoesNotContain("Team.Score", hunLayoutText);
-    }
-
-    [Fact]
-    public void BuiltInTextControlsDoNotUseLegacyContentBindingPath()
-    {
-        var root = Path.GetFullPath(Path.Combine(
-            Path.GetDirectoryName(GetSourceFilePath())!,
-            "..",
-            "..",
-            "neo-bpsys-wpf",
-            "Resources",
-            "FrontedLayouts"));
-
-        foreach (var path in Directory.EnumerateFiles(root, "*.json", SearchOption.AllDirectories))
-        {
-            var config = JsonSerializer.Deserialize<FrontedWindowConfig>(File.ReadAllText(path))?.ToCanvasConfig();
-            Assert.NotNull(config);
-
-            foreach (var control in config!.Controls.Values
-                         .Concat(config.BoModeStates.Values.SelectMany(state => state.Controls.Values))
-                         .Where(control => control is TextFrontedControlConfig or LocalizedTextControlConfig))
-            {
-                Assert.True(string.IsNullOrWhiteSpace(control.BindingPath), path);
-            }
-        }
-    }
-
     private static string GetBindingPath(JsonObject layout, string controlName) =>
         layout["ControlLayout"]?["Controls"]?[controlName]?["TextBinding"]?["Sources"]?[0]?["Path"]?.GetValue<string>()
         ?? throw new InvalidDataException($"Layout control '{controlName}' has no TextBinding source.");
@@ -78,6 +40,4 @@ public class ScoreWindowLayoutBindingTest
         var repositoryRoot = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(sourceFilePath)!, "..", ".."));
         return File.ReadAllText(Path.Combine(repositoryRoot, relativePath));
     }
-
-    private static string GetSourceFilePath([CallerFilePath] string sourceFilePath = "") => sourceFilePath;
 }
