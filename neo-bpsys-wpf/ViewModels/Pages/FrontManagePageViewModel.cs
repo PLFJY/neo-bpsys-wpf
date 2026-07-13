@@ -490,7 +490,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
                 + $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "LayoutCount")}: {result.LayoutCount}, "
                 + $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "ResourceCount")}: {result.ResourceCount}";
             if (await MessageBoxHelper.ShowConfirmAsync(
-                    I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, importedFromLegacy ? "ActivateConvertedPackage" : "ActivateImportedPackage"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, importedFromLegacy ? "ActivateConvertedPackage" : "ActivateImportedPackage"),
                     I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Tips"),
                     I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"),
                     I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"))

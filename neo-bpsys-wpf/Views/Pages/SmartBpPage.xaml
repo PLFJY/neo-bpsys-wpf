@@ -55,7 +55,8 @@
                         HorizontalAlignment="Center"
                         FontSize="28"
                         FontWeight="SemiBold"
-                        Text="{lex:Loc SmartBp}" />
+                        Text="{lex:Loc SmartBp}"
+                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell" />
                     <TextBlock
                         Margin="0,16,0,0"
                         HorizontalAlignment="Center"

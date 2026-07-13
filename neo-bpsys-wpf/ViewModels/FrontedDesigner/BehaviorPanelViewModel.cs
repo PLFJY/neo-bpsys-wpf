@@ -5,6 +5,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Services.FrontedDesigner;
 using neo_bpsys_wpf.ViewModels.FrontedDesigner.GraphEditor;
 using System.Collections.ObjectModel;
@@ -1719,10 +1720,20 @@ public sealed partial class TriggerFilterEditorViewModel : ObservableObject
     private string FormatEnumDisplay(string value)
     {
         var enumType = SelectedPayloadField?.TypeName.TrimEnd('?');
-        var localized = _localize(
-            string.Equals(enumType, "GameAction", StringComparison.Ordinal) ? GameActionLocalizationKey(value) : $"Designer.Enum.{enumType}.{value}",
-            value);
-        return string.Equals(localized, value, StringComparison.Ordinal) ? value : $"{value} — {localized}";
+        if (string.Equals(enumType, "GameAction", StringComparison.Ordinal))
+        {
+            // GameAction 枚举值对应的本地化键分散在 Bp 字典（BanMap/PickMap 等）
+            // 与 Game 字典（DistributeCharacters），不能走 Designer 字典的 _localize 通道。
+            var key = GameActionLocalizationKey(value);
+            var dictionary = string.Equals(key, "DistributeCharacters", StringComparison.Ordinal)
+                ? AppI18nDictionaries.Game
+                : AppI18nDictionaries.Bp;
+            var localized = I18nHelper.GetLocalizedString(dictionary, key);
+            return string.Equals(localized, value, StringComparison.Ordinal) ? value : $"{value} — {localized}";
+        }
+
+        var designerLocalized = _localize($"Designer.Enum.{enumType}.{value}", value);
+        return string.Equals(designerLocalized, value, StringComparison.Ordinal) ? value : $"{value} — {designerLocalized}";
     }
 
     private static string GameActionLocalizationKey(string value) => value switch

@@ -68,30 +68,30 @@ public partial class ClassicBackendWindow : FluentWindow
 
     private void OpenFrontendManagement_Click(object sender, RoutedEventArgs e)
     {
-        OpenPageHost<FrontManagePage>("FrontendManagement");
+        OpenPageHost<FrontManagePage>(AppI18nDictionaries.Shell, "FrontendManagement");
     }
 
     private void OpenSettings_Click(object sender, RoutedEventArgs e)
     {
-        OpenPageHost<SettingPage>("Settings");
+        OpenPageHost<SettingPage>(AppI18nDictionaries.Common, "Settings");
     }
 
     private void OpenPlugins_Click(object sender, RoutedEventArgs e)
     {
-        OpenPageHost<PluginPage>("Plugins");
+        OpenPageHost<PluginPage>(AppI18nDictionaries.PluginMarket, "Plugins");
     }
 
     private void OpenSmartBp_Click(object sender, RoutedEventArgs e)
     {
-        OpenPageHost<SmartBpPage>("SmartBP");
+        OpenPageHost<SmartBpPage>(AppI18nDictionaries.Shell, "SmartBp");
     }
 
     private void OpenTeamInfo_Click(object sender, RoutedEventArgs e)
     {
-        OpenPageHost<TeamInfoPage>("TeamInfo");
+        OpenPageHost<TeamInfoPage>(AppI18nDictionaries.Team, "TeamInfo");
     }
 
-    private void OpenPageHost<TPage>(string titleKey)
+    private void OpenPageHost<TPage>(string dictionary, string titleKey)
         where TPage : Page
     {
         var pageType = typeof(TPage);
@@ -105,7 +105,7 @@ public partial class ClassicBackendWindow : FluentWindow
         var page = _serviceProvider.GetRequiredService<TPage>();
         DetachPageFromCurrentParent(page);
 
-        var window = new ClassicPageHostWindow(titleKey, page)
+        var window = new ClassicPageHostWindow(dictionary, titleKey, page)
         {
             Owner = this
         };

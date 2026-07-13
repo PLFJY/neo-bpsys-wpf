@@ -197,8 +197,7 @@
                 <ui:Button
                     Click="Apply_OnClick"
                     Content="{lex:Loc SaveAndApply}"
-                    IsDefault="True"
-                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell" />
+                    IsDefault="True" />
                 <ui:Button
                     Margin="8,0,0,0"
                     Click="Cancel_OnClick"

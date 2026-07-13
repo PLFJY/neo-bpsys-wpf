@@ -560,7 +560,7 @@ public partial class PluginPageViewModel
 
         if (localPlugin?.IsRestartRequired == true)
         {
-            item.PrimaryActionKey = "Installed";
+            item.PrimaryActionKey = "MarketInstalled";
             item.CanExecutePrimaryAction = false;
             item.MarketStatusKey = localPlugin.IsUninstalling
                 ? "PluginMarketPendingUninstall"
@@ -571,7 +571,7 @@ public partial class PluginPageViewModel
 
         if (item.HasUpdateAvailable)
         {
-            item.PrimaryActionKey = "Update";
+            item.PrimaryActionKey = "MarketUpdate";
             item.CanExecutePrimaryAction = true;
             item.MarketStatusKey = "PluginMarketUpdateAvailable";
             item.IsStatusVisible = true;
@@ -580,18 +580,18 @@ public partial class PluginPageViewModel
 
         if (item.IsInstalled)
         {
-            item.PrimaryActionKey = "Installed";
+            item.PrimaryActionKey = "MarketInstalled";
             item.CanExecutePrimaryAction = false;
             item.MarketStatusKey = localPlugin?.IsUninstalling == true
                 ? "PluginMarketPendingUninstall"
                 : item.IsRestartRequired
                     ? "PluginMarketInstalledRestartRequired"
-                    : "Installed";
+                    : "MarketInstalled";
             item.IsStatusVisible = true;
             return;
         }
 
-        item.PrimaryActionKey = "Install";
+        item.PrimaryActionKey = "MarketInstall";
         item.CanExecutePrimaryAction = true;
         item.MarketStatusKey = string.Empty;
         item.IsStatusVisible = false;

@@ -291,9 +291,8 @@
                                         Icon="{ui:SymbolIcon Symbol=Cube24}" />
                                     <ui:Button
                                         Click="OpenSmartBp_Click"
-                                        Content="{lex:Loc SmartBP}"
-                                        Icon="{ui:SymbolIcon Symbol=BrainCircuit24}"
-                                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Settings" />
+                                        Content="{lex:Loc SmartBp}"
+                                        Icon="{ui:SymbolIcon Symbol=BrainCircuit24}" />
                                     <ui:Button
                                         Click="OpenTeamInfo_Click"
                                         Content="{lex:Loc TeamInfo}"
@@ -309,7 +308,9 @@
                             Style="{StaticResource Card}">
                             <StackPanel>
                                 <TextBlock Style="{StaticResource Title}" Text="{lex:Loc MapBP}" lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp" />
-                                <WrapPanel Margin="{StaticResource ClassicSectionSpacing}">
+                                <WrapPanel
+                                    Margin="{StaticResource ClassicSectionSpacing}"
+                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp">
                                     <ui:ToggleSwitch Content="{lex:Loc ShowPickingBorder}" IsChecked="{Binding IsBreathing}" />
                                     <ui:ToggleSwitch Content="{lex:Loc ShowCamp}" IsChecked="{Binding IsCampVisible}" />
                                     <ui:Button
@@ -700,7 +701,10 @@
                         <Border x:Name="ScoreRoot" Style="{StaticResource Card}">
                             <StackPanel>
                                 <TextBlock Style="{StaticResource Title}" Text="{lex:Loc ScoreControl}" lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Score" />
-                                <Grid Margin="0,10,0,0" IsEnabled="{Binding IsScoreControlEnabled}">
+                                <Grid
+                                    Margin="0,10,0,0"
+                                    IsEnabled="{Binding IsScoreControlEnabled}"
+                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Score">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="Auto" />
@@ -951,7 +955,8 @@
                         <Expander
                             Margin="0,10,10,0"
                             Header="{lex:Loc GlobalBanRecord}"
-                            IsExpanded="False">
+                            IsExpanded="False"
+                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp">
                             <Border
                                 x:Name="GlobalBanRecordRoot"
                                 Margin="0,10,10,0"
@@ -1086,7 +1091,8 @@
                             Margin="16,0,0,0"
                             Padding="12,4"
                             Click="RestoreClassicScorePreviewDefaultSort_Click"
-                            Content="{lex:Loc RestoreDefaultSort}" />
+                            Content="{lex:Loc RestoreDefaultSort}"
+                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Score" />
                     </StackPanel>
                     <ui:Button
                         Grid.Column="1"

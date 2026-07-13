@@ -148,4 +148,13 @@
   <data name="PluginDependencyInstallFailed">
     <value>Plugin dependency install failed</value>
   </data>
+  <data name="MarketInstall">
+    <value>Install</value>
+  </data>
+  <data name="MarketUpdate">
+    <value>Update</value>
+  </data>
+  <data name="MarketInstalled">
+    <value>Installed</value>
+  </data>
 </root>

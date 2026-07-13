@@ -9,10 +9,10 @@ namespace neo_bpsys_wpf.Views.Windows;
 /// </summary>
 public partial class ClassicPageHostWindow : FluentWindow
 {
-    public ClassicPageHostWindow(string titleKey, Page page)
+    public ClassicPageHostWindow(string dictionary, string titleKey, Page page)
     {
         InitializeComponent();
-        Title = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, titleKey);
+        Title = I18nHelper.GetLocalizedString(dictionary, titleKey);
         PageHost.Navigate(page);
     }
 

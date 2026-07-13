@@ -322,6 +322,7 @@
                                                 <TextBlock
                                                     Margin="0,6,0,0"
                                                     Foreground="DarkOrange"
+                                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell"
                                                     Text="{lex:Loc {Binding Status}}" />
                                                 <ProgressBar
                                                     Height="8"

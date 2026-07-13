@@ -148,4 +148,13 @@
   <data name="PluginDependencyInstallFailed">
     <value>插件安装失败</value>
   </data>
+  <data name="MarketInstall">
+    <value>安装</value>
+  </data>
+  <data name="MarketUpdate">
+    <value>更新</value>
+  </data>
+  <data name="MarketInstalled">
+    <value>已安装</value>
+  </data>
 </root>

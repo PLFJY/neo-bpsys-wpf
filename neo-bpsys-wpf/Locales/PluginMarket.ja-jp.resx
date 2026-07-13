@@ -148,4 +148,13 @@
   <data name="PluginDependencyInstallFailed">
     <value>プラグイン依存関係のインストールに失敗しました</value>
   </data>
+  <data name="MarketInstall">
+    <value>インストール</value>
+  </data>
+  <data name="MarketUpdate">
+    <value>更新</value>
+  </data>
+  <data name="MarketInstalled">
+    <value>インストール済み</value>
+  </data>
 </root>
