@@ -452,12 +452,10 @@
                             <MenuItem Command="{Binding FitToWindowCommand}" Header="{lex:Loc Fit}" />
                             <MenuItem
                                 Command="{Binding ZoomInCommand}"
-                                Header="{lex:Loc ZoomIn}"
-                                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell" />
+                                Header="{lex:Loc ZoomIn}" />
                             <MenuItem
                                 Command="{Binding ZoomOutCommand}"
-                                Header="{lex:Loc ZoomOut}"
-                                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell" />
+                                Header="{lex:Loc ZoomOut}" />
                             <Separator />
                             <MenuItem
                                 Command="{Binding SetZoomPresetCommand}"

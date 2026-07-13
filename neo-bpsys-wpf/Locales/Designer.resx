@@ -157,6 +157,12 @@
   <data name="UnsavedChanges">
     <value>未保存的修改</value>
   </data>
+  <data name="SaveBeforeSwitch">
+    <value>当前布局有未保存修改。是否保存后继续？</value>
+  </data>
+  <data name="SaveBeforeClose">
+    <value>当前布局有未保存修改。是否保存后关闭？</value>
+  </data>
   <data name="LayoutSourceUser">
     <value>用户布局</value>
   </data>

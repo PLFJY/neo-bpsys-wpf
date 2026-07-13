@@ -157,6 +157,12 @@
   <data name="UnsavedChanges">
     <value>Unsaved changes</value>
   </data>
+  <data name="SaveBeforeSwitch">
+    <value>The current layout has unsaved changes. Save before continuing?</value>
+  </data>
+  <data name="SaveBeforeClose">
+    <value>The current layout has unsaved changes. Save before closing?</value>
+  </data>
   <data name="LayoutSourceUser">
     <value>User</value>
   </data>

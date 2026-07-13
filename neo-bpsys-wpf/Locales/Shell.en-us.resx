@@ -718,12 +718,6 @@
 <data name="UnsavedChangesMessage">
     <value>The current layout has unsaved changes.</value>
   </data>
-  <data name="SaveBeforeSwitch">
-    <value>The current layout has unsaved changes. Save before continuing?</value>
-  </data>
-  <data name="SaveBeforeClose">
-    <value>The current layout has unsaved changes. Save before closing?</value>
-  </data>
 <data name="SnapGridSize">
     <value>Snap grid size</value>
   </data>

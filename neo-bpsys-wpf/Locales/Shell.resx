@@ -722,12 +722,6 @@
 <data name="UnsavedChangesMessage">
     <value>当前布局有未保存修改。</value>
   </data>
-  <data name="SaveBeforeSwitch">
-    <value>当前布局有未保存修改。是否保存后继续？</value>
-  </data>
-  <data name="SaveBeforeClose">
-    <value>当前布局有未保存修改。是否保存后关闭？</value>
-  </data>
 <data name="SnapGridSize">
     <value>吸附网格大小</value>
   </data>

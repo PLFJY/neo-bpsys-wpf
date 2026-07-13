@@ -1,4 +1,4 @@
-﻿<UserControl
+<UserControl
     x:Class="neo_bpsys_wpf.Controls.MapV2Presenter"
     x:Name="Root"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -109,6 +109,8 @@
                 FontSize="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=MapNameFontSize}"
                 FontWeight="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=MapNameFontWeight}"
                 Foreground="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=MapNameForeground}"
+                lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Game"
                 Text="{lex:Loc {Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.MapName, TargetNullValue=null}}" />
         </Border>
 

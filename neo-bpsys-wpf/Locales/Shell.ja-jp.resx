@@ -721,12 +721,6 @@
 <data name="UnsavedChangesMessage">
     <value>現在のレイアウトに未保存の変更があります。</value>
   </data>
-  <data name="SaveBeforeSwitch">
-    <value>現在のレイアウトに未保存の変更があります。続行する前に保存しますか？</value>
-  </data>
-  <data name="SaveBeforeClose">
-    <value>現在のレイアウトに未保存の変更があります。閉じる前に保存しますか？</value>
-  </data>
 <data name="SnapGridSize">
     <value>スナップグリッドサイズ</value>
   </data>
