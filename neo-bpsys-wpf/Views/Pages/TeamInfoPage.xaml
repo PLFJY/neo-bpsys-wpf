@@ -130,6 +130,11 @@
                                         Margin="10,0,0,0"
                                         PlaceholderText="{lex:Loc PlayerName}"
                                         Text="{Binding Name}" />
+                                    <ui:TextBox
+                                        MinWidth="200"
+                                        Margin="10,0,0,0"
+                                        PlaceholderText="{lex:Loc InGameName}"
+                                        Text="{Binding GameId}" />
                                     <ui:Button
                                         Margin="10,0,0,0"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.SetMemberImageCommand}"
@@ -212,6 +217,11 @@
                                         MinWidth="250"
                                         PlaceholderText="{lex:Loc PlayerName}"
                                         Text="{Binding Name}" />
+                                    <ui:TextBox
+                                        MinWidth="200"
+                                        Margin="10,0,0,0"
+                                        PlaceholderText="{lex:Loc InGameName}"
+                                        Text="{Binding GameId}" />
                                     <ui:Button
                                         Margin="10,0,0,0"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.SetMemberImageCommand}"
@@ -388,6 +398,11 @@
                                         Margin="10,0,0,0"
                                         PlaceholderText="{lex:Loc PlayerName}"
                                         Text="{Binding Name}" />
+                                    <ui:TextBox
+                                        MinWidth="200"
+                                        Margin="10,0,0,0"
+                                        PlaceholderText="{lex:Loc InGameName}"
+                                        Text="{Binding GameId}" />
                                     <ui:Button
                                         Margin="10,0,0,0"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.SetMemberImageCommand}"
@@ -474,6 +489,11 @@
                                         MinWidth="250"
                                         PlaceholderText="{lex:Loc PlayerName}"
                                         Text="{Binding Name}" />
+                                    <ui:TextBox
+                                        MinWidth="200"
+                                        Margin="10,0,0,0"
+                                        PlaceholderText="{lex:Loc InGameName}"
+                                        Text="{Binding GameId}" />
                                     <ui:Button
                                         Margin="10,0,0,0"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.SetMemberImageCommand}"

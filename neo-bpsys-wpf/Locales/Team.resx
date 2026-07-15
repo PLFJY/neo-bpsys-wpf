@@ -7,6 +7,9 @@
   <data name="PlayerName">
     <value>选手名称</value>
   </data>
+  <data name="InGameName">
+    <value>游戏内名称</value>
+  </data>
   <data name="HomeTeamInformation">
     <value>主场队伍信息</value>
   </data>

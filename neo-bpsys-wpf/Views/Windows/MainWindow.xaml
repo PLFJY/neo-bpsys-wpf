@@ -13,7 +13,7 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
     Title="{lex:Loc Backend}"
-    Width="980"
+    Width="1010"
     Height="800"
     d:DataContext="{d:DesignInstance Type=vm:MainWindowViewModel,
                                      IsDesignTimeCreatable=True}"

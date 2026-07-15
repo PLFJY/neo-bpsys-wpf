@@ -24,16 +24,17 @@ public partial class Member : ObservableObjectBase
         Camp = camp;
     }
 
-    private string _name = Empty;
-
     /// <summary>
     /// 选手名称
     /// </summary>
-    public string Name
-    {
-        get => _name;
-        set => SetProperty(ref _name, value);
-    }
+    [ObservableProperty]
+    public partial string Name {get; set;} = Empty;
+
+    /// <summary>
+    /// 选手游戏内名称，用于 SmartBP 角色分配阶段识别匹配；为空时回退使用 <see cref="Name"/>。
+    /// </summary>
+    [ObservableProperty]
+    public partial string GameId {get; set;} = Empty;
 
     /// <summary>
     /// 选手所属阵营

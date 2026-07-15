@@ -3568,7 +3568,7 @@ public class FrontedLayoutDesignerFoundationTest
 
         Assert.Contains(results, node => node.FullPath == "CurrentGame.SurTeam.Name");
         Assert.Equal(allPaths.Length, allPaths.Distinct(StringComparer.Ordinal).Count());
-        Assert.True(allPaths.Length < 800);
+        Assert.True(allPaths.Length < 900);
     }
 
     [Fact]

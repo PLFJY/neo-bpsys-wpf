@@ -7,6 +7,9 @@
   <data name="PlayerName">
     <value>Player name</value>
   </data>
+  <data name="InGameName">
+    <value>In-game name</value>
+  </data>
   <data name="HomeTeamInformation">
     <value>Home team information</value>
   </data>

@@ -869,16 +869,18 @@ internal sealed class SmartBpPlayerIdentityMatcher(ISharedDataService shared) : 
         var raw = rawPlayerId.Trim();
         var normalizedRaw = Normalize(raw);
 
-        var scored = new List<(int Index, string Name, double Score, string Mode)>();
+        var scored = new List<(int Index, string MatchText, double Score, string Mode)>();
         for (var i = 0; i < players.Count; i++)
         {
-            var name = players[i].Member?.Name;
-            if (string.IsNullOrWhiteSpace(name))
+            var member = players[i].Member;
+            // 优先使用 GameId 匹配；GameId 为空时回退 Name
+            var matchText = !string.IsNullOrWhiteSpace(member?.GameId) ? member.GameId : member?.Name;
+            if (string.IsNullOrWhiteSpace(matchText))
                 continue;
-            var trimmedName = name.Trim();
-            var (score, mode) = ScoreMatch(normalizedRaw, Normalize(trimmedName), raw, trimmedName);
+            var trimmedMatchText = matchText.Trim();
+            var (score, mode) = ScoreMatch(normalizedRaw, Normalize(trimmedMatchText), raw, trimmedMatchText);
             if (score > 0)
-                scored.Add((i, trimmedName, score, mode));
+                scored.Add((i, trimmedMatchText, score, mode));
         }
 
         if (scored.Count == 0)
@@ -887,17 +889,17 @@ internal sealed class SmartBpPlayerIdentityMatcher(ISharedDataService shared) : 
         scored.Sort((a, b) => b.Score.CompareTo(a.Score));
         var best = scored[0];
         if (best.Score < SafeThreshold)
-            return SmartBpPlayerIdentityMatchResult.Unmatched($"best match '{best.Name}' score={best.Score:0.00} below safe threshold {SafeThreshold:0.00}; mode={best.Mode}.");
+            return SmartBpPlayerIdentityMatchResult.Unmatched($"best match '{best.MatchText}' score={best.Score:0.00} below safe threshold {SafeThreshold:0.00}; mode={best.Mode}.");
 
         if (scored.Count > 1)
         {
             var second = scored[1];
             if (second.Score >= SafeThreshold && best.Score - second.Score < AmbiguityMargin)
                 return SmartBpPlayerIdentityMatchResult.Unmatched(
-                    $"ambiguous match: '{best.Name}' score={best.Score:0.00} vs '{second.Name}' score={second.Score:0.00}; rejected.");
+                    $"ambiguous match: '{best.MatchText}' score={best.Score:0.00} vs '{second.MatchText}' score={second.Score:0.00}; rejected.");
         }
 
-        return new(true, best.Index, best.Name, best.Score, true, $"matched mode={best.Mode}; score={best.Score:0.00}.");
+        return new(true, best.Index, best.MatchText, best.Score, true, $"matched mode={best.Mode}; score={best.Score:0.00}.");
     }
 
     private static string Normalize(string value)
