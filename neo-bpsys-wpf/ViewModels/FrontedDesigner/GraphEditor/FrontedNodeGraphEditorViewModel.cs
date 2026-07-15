@@ -724,6 +724,11 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
                     c.SourceNodeId == node.Model.NodeId && c.SourcePort == port.Name);
             }
         }
+
+        foreach (var node in Nodes)
+        {
+            node.RefreshExternalInputStates();
+        }
     }
 
     /// <summary>
@@ -966,7 +971,8 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     /// <param name="node">图节点模型。</param>
     /// <returns>节点编辑器视图模型。</returns>
     private FrontedNodeEditorViewModel CreateNode(FrontedNode node) =>
-        new(node, _catalog.Find(node.NodeType), MarkDirtyAndSetIsDirty, ValidateGraph, RefreshParallelNode, _localize, _targetOptions, _conditionFieldOptions);
+        new(node, _catalog.Find(node.NodeType), MarkDirtyAndSetIsDirty, ValidateGraph, RefreshParallelNode, _localize, _targetOptions, _conditionFieldOptions,
+            (targetNode, port) => Graph.Connections.Any(connection => connection.TargetNodeId == targetNode.NodeId && connection.TargetPort == port));
 
     /// <summary>
     /// 并行节点分支数变化后重建该节点，并移除指向已删除分支端口的连接。
@@ -1278,7 +1284,8 @@ public sealed partial class FrontedNodeEditorViewModel : ObservableObject
         Action<FrontedNode> refreshParallelNode,
         Func<string, string, string> localize,
         IReadOnlyList<FrontedNodeTargetOptionViewModel> targetOptions,
-        IReadOnlyList<FrontedGraphConditionFieldOptionViewModel> conditionFieldOptions)
+        IReadOnlyList<FrontedGraphConditionFieldOptionViewModel> conditionFieldOptions,
+        Func<FrontedNode, string, bool> hasIncomingConnection)
     {
         Model = model;
         Descriptor = descriptor;
@@ -1298,7 +1305,7 @@ public sealed partial class FrontedNodeEditorViewModel : ObservableObject
         }
         OutputPorts = CreatePorts(outputDescriptors, localize);
         var properties = descriptor?.Properties
-            .Select(property => new FrontedNodePropertyEditorViewModel(model, property, markDirty, validate, localize, targetOptions, conditionFieldOptions))
+            .Select(property => new FrontedNodePropertyEditorViewModel(model, property, markDirty, validate, localize, targetOptions, conditionFieldOptions, hasIncomingConnection))
             .ToArray() ?? [];
         Properties = properties;
         ConditionFieldOptions = conditionFieldOptions;
@@ -1349,6 +1356,15 @@ public sealed partial class FrontedNodeEditorViewModel : ObservableObject
     public IReadOnlyList<FrontedNodePortViewModel> InputPorts { get; }
     public IReadOnlyList<FrontedNodePortViewModel> OutputPorts { get; }
     public IReadOnlyList<FrontedNodePropertyEditorViewModel> Properties { get; }
+
+    /// <summary>刷新属性编辑器的外部值输入状态。</summary>
+    public void RefreshExternalInputStates()
+    {
+        foreach (var property in Properties)
+        {
+            property.RefreshExternalInputState();
+        }
+    }
 
     public double X
     {
@@ -1722,6 +1738,7 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableValid
     private readonly IReadOnlyList<FrontedNodeTargetOptionViewModel> _targetOptions;
     private readonly IReadOnlyList<FrontedGraphConditionFieldOptionViewModel> _conditionFieldOptions;
     private readonly Func<string, string, string> _localize;
+    private readonly Func<FrontedNode, string, bool> _hasIncomingConnection;
     private readonly IReadOnlyList<FrontedNodePropertyOptionViewModel> _localizedOptions;
     private readonly IReadOnlyList<FrontedNodePropertyOptionViewModel> _booleanOptions;
     private readonly IReadOnlyList<FrontedNodePropertyOptionViewModel> _visibilityOptions;
@@ -1737,7 +1754,8 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableValid
         Action validate,
         Func<string, string, string> localize,
         IReadOnlyList<FrontedNodeTargetOptionViewModel> targetOptions,
-        IReadOnlyList<FrontedGraphConditionFieldOptionViewModel>? conditionFieldOptions = null)
+        IReadOnlyList<FrontedGraphConditionFieldOptionViewModel>? conditionFieldOptions = null,
+        Func<FrontedNode, string, bool>? hasIncomingConnection = null)
     {
         _node = node;
         Descriptor = descriptor;
@@ -1746,6 +1764,7 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableValid
         _targetOptions = targetOptions;
         _conditionFieldOptions = conditionFieldOptions ?? [];
         _localize = localize;
+        _hasIncomingConnection = hasIncomingConnection ?? ((_, _) => false);
         DisplayName = localize(descriptor.DisplayNameKey, descriptor.Name);
         Description = localize($"{descriptor.DisplayNameKey}.Description", descriptor.Name);
         _localizedOptions = descriptor.Options
@@ -1778,6 +1797,12 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableValid
     public FrontedNodePropertyDescriptor Descriptor { get; }
     public string DisplayName { get; }
     public string Description { get; }
+    /// <summary>获取指示当前手动值是否可编辑的值。</summary>
+    public bool IsManualValueEnabled => !HasExternalValueInput;
+    /// <summary>获取指示当前属性是否由外部数值输入提供的值。</summary>
+    public bool HasExternalValueInput => ResolveExternalInputPort() is { } port && _hasIncomingConnection(_node, port);
+    /// <summary>获取外部数值输入说明。</summary>
+    public string ExternalValueInputNotice => _localize("Designer.Graph.ExternalValueInput", "An external numeric input is connected; the manual value is disabled.");
     /// <summary>获取当前属性的上下文输入提示。</summary>
     public string Placeholder => DynamicMetadata?.Placeholder ?? string.Empty;
     /// <summary>获取当前属性的上下文帮助。</summary>
@@ -1799,6 +1824,8 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableValid
     public bool IsText => !IsConditionProperty && !IsBoolean && !IsEnum && !IsNumber && !IsColor && !IsControlReference && !IsPropertyName && !HasTextSuggestions && !IsVisibilityValue;
     /// <summary>获取该属性是否选择左侧条件字段。</summary>
     public bool IsConditionField => _node.NodeType == "flow.if" && Descriptor.Name == "Left";
+    /// <summary>获取该属性是否选择数值事件上下文字段。</summary>
+    public bool IsEventContextField => _node.NodeType == "value.eventContext" && Descriptor.Name == "Path";
     /// <summary>获取该属性是否选择条件运算符。</summary>
     public bool IsConditionOperator => _node.NodeType == "flow.if" && Descriptor.Name == "Operator";
     /// <summary>获取该属性是否编辑右侧条件值。</summary>
@@ -1813,6 +1840,9 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableValid
     public bool IsTextConditionValue => IsConditionValue && !IsBooleanConditionValue && !IsEnumConditionValue && !IsNumericConditionValue;
     /// <summary>获取该条件可用的上下文感知事件字段。</summary>
     public IReadOnlyList<FrontedGraphConditionFieldOptionViewModel> ConditionFieldOptions => EnsureCurrentConditionFieldOption();
+    /// <summary>获取当前阶段可用于数值计算的事件上下文字段。</summary>
+    public IReadOnlyList<FrontedGraphConditionFieldOptionViewModel> EventContextFieldOptions =>
+        EnsureCurrentConditionFieldOption();
     /// <summary>获取选中字段类型可用的上下文感知运算符。</summary>
     public IReadOnlyList<FrontedNodePropertyOptionViewModel> ConditionOperatorOptions => ResolveConditionOperatorOptions();
     /// <summary>获取选中字段可用的稳定布尔值或枚举值。</summary>
@@ -1950,6 +1980,13 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableValid
         }
     }
 
+    /// <summary>获取或设置数值事件上下文的稳定字段路径。</summary>
+    public string EventContextFieldValue
+    {
+        get => TextValue;
+        set => TextValue = value;
+    }
+
     /// <summary>获取或设置稳定的条件运算符名称。</summary>
     public string ConditionOperatorValue
     {
@@ -2027,6 +2064,12 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableValid
             OnPropertyChanged(nameof(ConditionOperatorValue));
             OnPropertyChanged(nameof(ConditionChoiceValue));
         }
+        if (_node.NodeType == "value.eventContext")
+        {
+            OnPropertyChanged(nameof(IsEventContextField));
+            OnPropertyChanged(nameof(EventContextFieldOptions));
+            OnPropertyChanged(nameof(EventContextFieldValue));
+        }
         OnPropertyChanged(nameof(PropertyNameText));
         OnPropertyChanged(nameof(Placeholder));
         OnPropertyChanged(nameof(HelpText));
@@ -2075,6 +2118,10 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableValid
             OnPropertyChanged(nameof(ConditionFieldValue));
             OnPropertyChanged(nameof(ConditionOperatorValue));
             OnPropertyChanged(nameof(ConditionChoiceValue));
+        }
+        if (_node.NodeType == "value.eventContext")
+        {
+            OnPropertyChanged(nameof(EventContextFieldValue));
         }
         _refreshRelatedProperties?.Invoke();
     }
@@ -2146,7 +2193,7 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableValid
 
     private IReadOnlyList<FrontedGraphConditionFieldOptionViewModel> EnsureCurrentConditionFieldOption()
     {
-        var current = IsConditionField ? TextValue : ReadNodeString("Left");
+        var current = IsConditionField || IsEventContextField ? TextValue : ReadNodeString("Left");
         if (string.IsNullOrWhiteSpace(current)
             || _conditionFieldOptions.Any(option => string.Equals(option.ValuePath, current, StringComparison.Ordinal)))
         {
@@ -2234,7 +2281,23 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableValid
         EnsureCurrentConditionFieldOption().FirstOrDefault(option =>
             string.Equals(option.ValuePath, ReadNodeString("Left"), StringComparison.Ordinal));
 
-    private bool IsConditionProperty => IsConditionField || IsConditionOperator || IsConditionValue;
+    private bool IsConditionProperty => IsConditionField || IsEventContextField || IsConditionOperator || IsConditionValue;
+
+    /// <summary>刷新外部值输入连接导致的可编辑状态。</summary>
+    public void RefreshExternalInputState()
+    {
+        OnPropertyChanged(nameof(HasExternalValueInput));
+        OnPropertyChanged(nameof(IsManualValueEnabled));
+        OnPropertyChanged(nameof(ExternalValueInputNotice));
+    }
+
+    private string? ResolveExternalInputPort() => (_node.NodeType, Descriptor.Name) switch
+    {
+        ("action.setProperty", "Value") => "ValueInput",
+        ("action.animateProperty", "From") => "FromInput",
+        ("action.animateProperty", "To") => "ToInput",
+        _ => null
+    };
 
     private string ReadNodeString(string name) =>
         _node.Properties.TryGetValue(name, out var value)

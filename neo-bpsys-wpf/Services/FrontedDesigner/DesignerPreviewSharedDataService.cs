@@ -138,9 +138,16 @@ public sealed class DesignerPreviewSharedDataService : ISharedDataService
 
             _remainingSeconds = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RemainingSeconds)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CountDownRemainingSeconds)));
             CountDownValueChanged?.Invoke(this, EventArgs.Empty);
         }
     }
+
+    /// <inheritdoc />
+    public int CountDownRemainingSeconds => int.TryParse(RemainingSeconds, out var seconds) ? Math.Max(0, seconds) : 0;
+
+    /// <inheritdoc />
+    public int CountDownTotalSeconds { get; private set; }
 
     public bool IsBo3Mode
     {
@@ -263,12 +270,15 @@ public sealed class DesignerPreviewSharedDataService : ISharedDataService
     {
         if (seconds.HasValue)
         {
+            CountDownTotalSeconds = Math.Max(0, seconds.Value);
             RemainingSeconds = seconds.Value.ToString();
         }
     }
 
     public void TimerStop()
     {
+        CountDownTotalSeconds = 0;
+        RemainingSeconds = "VS";
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

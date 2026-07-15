@@ -485,6 +485,13 @@ public partial class SharedDataService : ISharedDataService
     private readonly DispatcherTimer _timer = new();
 
     private int _remainingSeconds = -1;
+    private int _countDownTotalSeconds;
+
+    /// <inheritdoc />
+    public int CountDownTotalSeconds => _countDownTotalSeconds;
+
+    /// <inheritdoc />
+    public int CountDownRemainingSeconds => Math.Max(0, _remainingSeconds);
 
     /// <summary>
     /// 倒计时剩余时间
@@ -589,6 +596,7 @@ public partial class SharedDataService : ISharedDataService
     {
         if (seconds == null) return;
         _remainingSeconds = (int)seconds;
+        _countDownTotalSeconds = Math.Max(0, (int)seconds);
         _timer.Start();
         NotifyCountDownValueChanged();
     }
@@ -596,6 +604,7 @@ public partial class SharedDataService : ISharedDataService
     public void TimerStop()
     {
         _remainingSeconds = -1;
+        _countDownTotalSeconds = 0;
         _timer.Stop();
         NotifyCountDownValueChanged();
     }
@@ -603,6 +612,8 @@ public partial class SharedDataService : ISharedDataService
     private void NotifyCountDownValueChanged()
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RemainingSeconds)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CountDownRemainingSeconds)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CountDownTotalSeconds)));
         CountDownValueChanged?.Invoke(this, EventArgs.Empty);
     }
 

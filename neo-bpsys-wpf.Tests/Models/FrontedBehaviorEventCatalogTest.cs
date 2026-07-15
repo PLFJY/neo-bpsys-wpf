@@ -76,16 +76,24 @@ public class FrontedBehaviorEventCatalogTest
     }
 
     [Fact]
-    public void EventCatalog_CountDownValueChanged_HasRemainingSecondsPayload()
+    public void EventCatalog_CountDownValueChanged_HasRemainingAndTotalSecondsPayloads()
     {
         var descriptor = new FrontedBehaviorEventCatalog().Find("SharedData.CountDownValueChanged");
         Assert.NotNull(descriptor);
-        var field = Assert.Single(descriptor.PayloadFields);
+        var field = Assert.Single(descriptor.PayloadFields, field => field.Path == "Event.RemainingSeconds");
 
         Assert.Equal("Event.RemainingSeconds", field.Path);
         Assert.False(string.IsNullOrWhiteSpace(field.DisplayNameKey));
         Assert.Equal(FrontedBehaviorPayloadSource.ServiceProperty, field.Source);
         Assert.Equal(nameof(ISharedDataService.RemainingSeconds), field.SourcePath);
+
+        var remainingNumberField = Assert.Single(descriptor.PayloadFields, field => field.Path == "Event.CountDownRemainingSeconds");
+        Assert.Equal(FrontedBehaviorPayloadSource.ServiceProperty, remainingNumberField.Source);
+        Assert.Equal(nameof(ISharedDataService.CountDownRemainingSeconds), remainingNumberField.SourcePath);
+
+        var totalField = Assert.Single(descriptor.PayloadFields, field => field.Path == "Event.CountDownTotalSeconds");
+        Assert.Equal(FrontedBehaviorPayloadSource.ServiceProperty, totalField.Source);
+        Assert.Equal(nameof(ISharedDataService.CountDownTotalSeconds), totalField.SourcePath);
     }
 
     [Fact]

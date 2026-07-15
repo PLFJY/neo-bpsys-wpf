@@ -157,13 +157,44 @@ public sealed class FrontedNodeGraphRuntime(
         int? durationMs = null,
         bool waitForCompletion = true)
     {
+        var resolvedValues = new Dictionary<string, string?>();
+        var numericResolver = new FrontedNumericGraphValueResolver(state.Graph, state.Context);
+        foreach (var name in valueNames)
+        {
+            var portName = name switch { "Value" => "ValueInput", "From" => "FromInput", "To" => "ToInput", _ => string.Empty };
+            var literal = GetString(node, name);
+            var usesNumericValue = !string.IsNullOrEmpty(portName)
+                                   && (literal.TrimStart().StartsWith('=')
+                                       || state.Graph.Connections.Any(connection => connection.TargetNodeId == node.NodeId && connection.TargetPort == portName));
+            if (usesNumericValue && !FrontedBehaviorPropertyMetadata.IsNumericProperty(GetString(node, "PropertyName")))
+            {
+                Log(state.Logs, FrontedGraphExecutionLogLevel.Warning, $"{requestType} skipped: numeric value '{name}' requires a numeric target property.", node.NodeId);
+                return;
+            }
+            var resolvedValue = literal;
+            if (!string.IsNullOrEmpty(portName) && !numericResolver.TryResolveActionValue(node, portName, literal, out resolvedValue, out var error))
+            {
+                Log(state.Logs, FrontedGraphExecutionLogLevel.Warning, $"{requestType} skipped: {name} could not be resolved: {error}", node.NodeId);
+                return;
+            }
+            if (usesNumericValue && string.Equals(GetString(node, $"{name}InputUnit", "Absolute"), "Percent", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!FrontedBehaviorPropertyMetadata.SupportsPercentage(GetString(node, "PropertyName")))
+                {
+                    Log(state.Logs, FrontedGraphExecutionLogLevel.Warning, $"{requestType} skipped: percent input '{name}' requires a relative-length target property.", node.NodeId);
+                    return;
+                }
+                resolvedValue += "%";
+            }
+            resolvedValues[name] = string.IsNullOrEmpty(portName) ? literal : resolvedValue;
+        }
         var request = new FrontedGraphActionRequest
         {
             RequestType = requestType,
             Target = GetString(node, "Target", "Self"),
             TargetLayer = GetTargetLayer(node),
             PropertyName = GetString(node, "PropertyName"),
-            Values = valueNames.ToDictionary(name => name, name => (string?)GetString(node, name)),
+            Values = resolvedValues,
             DurationMs = durationMs,
             WaitForCompletion = waitForCompletion
         };

@@ -1786,6 +1786,12 @@
   <data name="Designer.Behaviors.Payload.RemainingSeconds">
     <value>剩余秒数</value>
   </data>
+  <data name="Designer.Behaviors.Payload.CountDownRemainingSeconds">
+    <value>倒计时剩余秒数</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.CountDownTotalSeconds">
+    <value>倒计时总秒数</value>
+  </data>
   <data name="Designer.Behaviors.Payload.IsMapV2Breathing">
     <value>地图呼吸灯开启</value>
   </data>
@@ -2974,4 +2980,12 @@
   <data name="DiscardChanges">
     <value>放弃修改</value>
   </data>
+  <data name="Designer.Graph.Node.ValueNumber"><value>数值常量</value></data>
+  <data name="Designer.Graph.Node.ValueEventContext"><value>事件上下文</value></data>
+  <data name="Designer.Graph.Node.MathAdd"><value>加法</value></data><data name="Designer.Graph.Node.MathSubtract"><value>减法</value></data><data name="Designer.Graph.Node.MathMultiply"><value>乘法</value></data><data name="Designer.Graph.Node.MathDivide"><value>除法</value></data><data name="Designer.Graph.Node.MathModulo"><value>取模</value></data><data name="Designer.Graph.Node.MathNegate"><value>取负</value></data><data name="Designer.Graph.Node.MathAbs"><value>绝对值</value></data><data name="Designer.Graph.Node.MathMin"><value>最小值</value></data><data name="Designer.Graph.Node.MathMax"><value>最大值</value></data><data name="Designer.Graph.Node.MathClamp"><value>限制范围</value></data><data name="Designer.Graph.Node.MathRound"><value>四舍五入</value></data><data name="Designer.Graph.Node.MathFloor"><value>向下取整</value></data><data name="Designer.Graph.Node.MathCeil"><value>向上取整</value></data>
+  <data name="Designer.Graph.Node.ValueNumber.Description"><value>输出固定数值。</value></data><data name="Designer.Graph.Node.ValueEventContext.Description"><value>从当前事件上下文读取数值字段。</value></data><data name="Designer.Graph.Node.MathAdd.Description"><value>计算两个数值之和。</value></data><data name="Designer.Graph.Node.MathSubtract.Description"><value>计算两个数值之差。</value></data><data name="Designer.Graph.Node.MathMultiply.Description"><value>计算两个数值之积。</value></data><data name="Designer.Graph.Node.MathDivide.Description"><value>计算两个数值之商。</value></data><data name="Designer.Graph.Node.MathModulo.Description"><value>计算两个数值的余数。</value></data><data name="Designer.Graph.Node.MathNegate.Description"><value>反转数值符号。</value></data><data name="Designer.Graph.Node.MathAbs.Description"><value>计算数值的绝对值。</value></data><data name="Designer.Graph.Node.MathMin.Description"><value>选择两个数值中的较小值。</value></data><data name="Designer.Graph.Node.MathMax.Description"><value>选择两个数值中的较大值。</value></data><data name="Designer.Graph.Node.MathClamp.Description"><value>将数值限制在最小值与最大值之间。</value></data><data name="Designer.Graph.Node.MathRound.Description"><value>将数值四舍五入到整数。</value></data><data name="Designer.Graph.Node.MathFloor.Description"><value>将数值向下取整。</value></data><data name="Designer.Graph.Node.MathCeil.Description"><value>将数值向上取整。</value></data>
+  <data name="Designer.Graph.Port.ValueInput"><value>数值输入</value></data><data name="Designer.Graph.Port.FromInput"><value>起始数值</value></data><data name="Designer.Graph.Port.ToInput"><value>目标数值</value></data><data name="Designer.Graph.Port.Left"><value>左值</value></data><data name="Designer.Graph.Port.Right"><value>右值</value></data><data name="Designer.Graph.Port.Min"><value>最小值</value></data><data name="Designer.Graph.Port.Max"><value>最大值</value></data>
+  <data name="Designer.Graph.Property.FallbackValue"><value>回退数值</value></data><data name="Designer.Graph.Property.FallbackValue.Description"><value>事件字段缺失或无法转换为数值时使用的值。</value></data>
+  <data name="Designer.Graph.ExternalValueInput"><value>已连接外部数值输入，手动值已禁用。</value></data>
+  <data name="Designer.Graph.Property.ValueInputUnit"><value>外部数值单位</value></data><data name="Designer.Graph.Property.FromInputUnit"><value>起始外部数值单位</value></data><data name="Designer.Graph.Property.ToInputUnit"><value>目标外部数值单位</value></data><data name="Designer.Graph.Property.ValueInputUnit.Description"><value>决定外部数值按像素还是百分比应用。</value></data><data name="Designer.Option.ValueInputUnit.Absolute"><value>绝对值（像素）</value></data><data name="Designer.Option.ValueInputUnit.Percent"><value>百分比</value></data><data name="Designer.Option.FromInputUnit.Absolute"><value>绝对值（像素）</value></data><data name="Designer.Option.FromInputUnit.Percent"><value>百分比</value></data><data name="Designer.Option.ToInputUnit.Absolute"><value>绝对值（像素）</value></data><data name="Designer.Option.ToInputUnit.Percent"><value>百分比</value></data>
 </root>

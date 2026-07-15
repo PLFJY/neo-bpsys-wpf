@@ -196,6 +196,19 @@ public static class FrontedBehaviorPropertyMetadata
             return true;
         }
 
+        if (value?.TrimStart().StartsWith('=') == true)
+        {
+            if (!IsNumericProperty(propertyName))
+            {
+                message = $"{propertyName} does not accept a numeric expression.";
+                return false;
+            }
+
+            // Runtime validates expressions with the real event context. Keeping malformed
+            // expressions non-fatal here lets the graph continue after skipping only that action.
+            return true;
+        }
+
         if (IsVisibilityProperty(propertyName))
         {
             if (VisibilityOptions.Any(option => string.Equals(option, value, StringComparison.OrdinalIgnoreCase)))

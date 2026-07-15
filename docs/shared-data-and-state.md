@@ -148,9 +148,11 @@ SharedDataService.HomeTeam/AwayTeam.GlobalBannedSur(Hun)List 变化
 
 | 方法/属性 | 行为 |
 | --- | --- |
-| `TimerStart(int? seconds)` | `null` 时不启动；否则设置秒数并启动计时器 |
-| `TimerStop()` | 设置为 `-1`，停止计时器 |
+| `TimerStart(int? seconds)` | `null` 时不启动；否则设置剩余秒数、总秒数并启动计时器 |
+| `TimerStop()` | 设置剩余秒数为 `-1`、总秒数为 `0`，停止计时器 |
 | `RemainingSeconds` | 小于 0 显示 `VS`，否则显示数字 |
+| `CountDownRemainingSeconds` | 供数值计算使用的剩余秒数；未运行时为 `0`，不返回 `VS` |
+| `CountDownTotalSeconds` | 当前轮倒计时启动时设置的总秒数；未运行时为 `0` |
 | `CountDownValueChanged` | 每次变化后触发 |
 
 后台页面和前台窗口不要自己创建独立倒计时，否则会和全局状态不同步。

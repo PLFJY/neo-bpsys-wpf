@@ -13,6 +13,8 @@ public sealed class DefaultFrontedBindingRootProvider : IFrontedBindingRootProvi
         new("HomeTeam", typeof(Team)),
         new("AwayTeam", typeof(Team)),
         new("RemainingSeconds", typeof(string)),
+        new("CountDownRemainingSeconds", typeof(int)),
+        new("CountDownTotalSeconds", typeof(int)),
         new("CanCurrentSurBannedList", typeof(ObservableCollection<bool>), FixedCount: AppConstants.CurrentBanSurCount),
         new("CanCurrentHunBannedList", typeof(ObservableCollection<bool>), FixedCount: AppConstants.CurrentBanHunCount),
         new("CanGlobalSurBannedList", typeof(ObservableCollection<bool>), FixedCount: AppConstants.GlobalBanSurCount),

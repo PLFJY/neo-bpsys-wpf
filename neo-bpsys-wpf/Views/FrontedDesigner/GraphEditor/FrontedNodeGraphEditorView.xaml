@@ -691,7 +691,14 @@
                                             Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                                             Text="{Binding HelpText}"
                                             TextWrapping="Wrap" />
+                                        <TextBlock
+                                            Margin="0,0,0,4"
+                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                            Text="{Binding ExternalValueInputNotice}"
+                                            TextWrapping="Wrap"
+                                            Visibility="{Binding HasExternalValueInput, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                         <ui:TextBox
+                                            IsEnabled="{Binding IsManualValueEnabled}"
                                             PlaceholderText="{Binding Placeholder}"
                                             Text="{Binding TextValue, UpdateSourceTrigger=LostFocus}"
                                             Visibility="{Binding IsText, Converter={StaticResource BooleanToVisibilityConverter}}" />
@@ -702,6 +709,13 @@
                                             SelectedValuePath="ValuePath"
                                             ToolTip="{Binding SelectedItem.Description, RelativeSource={RelativeSource Self}}"
                                             Visibility="{Binding IsConditionField, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                        <ComboBox
+                                            DisplayMemberPath="DisplayText"
+                                            ItemsSource="{Binding EventContextFieldOptions}"
+                                            SelectedValue="{Binding EventContextFieldValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            SelectedValuePath="ValuePath"
+                                            ToolTip="{Binding SelectedItem.Description, RelativeSource={RelativeSource Self}}"
+                                            Visibility="{Binding IsEventContextField, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                         <ComboBox
                                             DisplayMemberPath="DisplayName"
                                             ItemsSource="{Binding ConditionOperatorOptions}"
@@ -738,6 +752,7 @@
                                             </Grid.ColumnDefinitions>
                                             <ui:NumberBox
                                                 AcceptsExpression="False"
+                                                IsEnabled="{Binding IsManualValueEnabled}"
                                                 LargeChange="10"
                                                 MaxDecimalPlaces="{Binding NumberMaxDecimalPlaces}"
                                                 Maximum="{Binding NumberMaximum}"
@@ -759,7 +774,7 @@
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
-                                            <ui:TextBox PlaceholderText="{Binding Placeholder}" Text="{Binding TextValue, UpdateSourceTrigger=LostFocus}" />
+                                            <ui:TextBox IsEnabled="{Binding IsManualValueEnabled}" PlaceholderText="{Binding Placeholder}" Text="{Binding TextValue, UpdateSourceTrigger=LostFocus}" />
                                             <TextBlock
                                                 Grid.Column="1"
                                                 Margin="6,0,0,0"

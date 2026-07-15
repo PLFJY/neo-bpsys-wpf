@@ -630,6 +630,7 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Equal("HomeTeam", service.CurrentGame.SurTeam.Name);
         Assert.Equal("AwayTeam", service.CurrentGame.HunTeam.Name);
         Assert.Equal("30", service.RemainingSeconds);
+        Assert.Equal(30, service.CountDownRemainingSeconds);
         Assert.Equal(GameProgress.Game1FirstHalf, service.CurrentGame.GameProgress);
         Assert.Equal(Map.EversleepingTown, service.CurrentGame.PickedMap);
         Assert.Equal(Map.TheRedChurch, service.CurrentGame.BannedMap);
@@ -3445,6 +3446,8 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Contains("CurrentGame.HunPlayer.PictureShownHeader", paths);
         Assert.Contains("CurrentGame.MatchScore.CurrentSurTeamMajorText", paths);
         Assert.Contains("RemainingSeconds", paths);
+        Assert.Contains("CountDownRemainingSeconds", paths);
+        Assert.Contains("CountDownTotalSeconds", paths);
     }
 
     [Fact]

@@ -46,7 +46,8 @@ public sealed class FrontedNodeGraphValidator(FrontedNodeCatalog? catalog = null
             }
         }
 
-        foreach (var port in graph.Connections.GroupBy(connection => (connection.SourceNodeId, connection.SourcePort)).Where(group => group.Count() > 1))
+        foreach (var port in graph.Connections.GroupBy(connection => (connection.SourceNodeId, connection.SourcePort))
+                     .Where(group => IsFlowOutputPort(graph, group.Key.SourceNodeId, group.Key.SourcePort) && group.Count() > 1))
         {
             messages.Add(Message(FrontedNodeGraphValidationSeverity.Error, "FlowOutputMultipleConnections", "A flow output port can only have one connection.", nodeId: port.Key.SourceNodeId));
         }
@@ -211,6 +212,7 @@ public sealed class FrontedNodeGraphValidator(FrontedNodeCatalog? catalog = null
         {
             ValidatePropertyValue(node, propertyName, "Value", messages, allowEmpty: false);
         }
+
     }
 
     private static void ValidatePropertyValue(
@@ -328,6 +330,10 @@ public sealed class FrontedNodeGraphValidator(FrontedNodeCatalog? catalog = null
     private static bool IsEndInputPort(FrontedNodeGraph graph, Guid nodeId, string port) =>
         string.Equals(port, "In", StringComparison.Ordinal)
         && graph.FindNode(nodeId)?.NodeType == "flow.end";
+
+    private bool IsFlowOutputPort(FrontedNodeGraph graph, Guid nodeId, string port) =>
+        _catalog.Find(graph.FindNode(nodeId)?.NodeType ?? string.Empty)?.OutputPorts
+            .Any(descriptor => descriptor.Name == port && descriptor.PortKind == FrontedNodePortKind.FlowOut) == true;
 
     private static FrontedNodeGraphValidationMessage Message(
         FrontedNodeGraphValidationSeverity severity,

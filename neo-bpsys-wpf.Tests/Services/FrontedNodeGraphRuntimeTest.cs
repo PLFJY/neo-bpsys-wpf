@@ -191,6 +191,90 @@ public class FrontedNodeGraphRuntimeTest
     }
 
     [Fact]
+    public async Task Runtime_SetProperty_ResolvesNumericExpressionFromEventPayload()
+    {
+        var graph = Connect(_catalog.CreateNode("flow.start"), _catalog.CreateNode("action.setProperty"), _catalog.CreateNode("flow.end"));
+        var node = graph.Nodes.Single(item => item.NodeType == "action.setProperty");
+        node.Properties["PropertyName"] = JsonSerializer.SerializeToElement("Opacity");
+        node.Properties["Value"] = JsonSerializer.SerializeToElement("=clamp(Event.Value / 10, 0, 1)");
+
+        var result = await CreateRuntime().ExecuteAsync(graph, new FrontedGraphExecutionContext
+        {
+            EventPayload = new Dictionary<string, object?> { ["Value"] = 5 }
+        }, TestContext.Current.CancellationToken);
+
+        Assert.Equal("0.5", Assert.Single(result.ActionRequests).Values["Value"]);
+    }
+
+    [Fact]
+    public async Task Runtime_SetProperty_ValueConnectionOverridesLiteral()
+    {
+        var start = _catalog.CreateNode("flow.start");
+        var constant = _catalog.CreateNode("value.number");
+        constant.Properties["Value"] = JsonSerializer.SerializeToElement(0.75D);
+        var set = _catalog.CreateNode("action.setProperty");
+        set.Properties["PropertyName"] = JsonSerializer.SerializeToElement("Opacity");
+        set.Properties["Value"] = JsonSerializer.SerializeToElement("0.1");
+        var end = _catalog.CreateNode("flow.end");
+        var graph = new FrontedNodeGraph { Nodes = [start, constant, set, end], Connections = [Link(start, "Out", set, "In"), Link(constant, "Value", set, "ValueInput"), Link(set, "Out", end, "In")] };
+
+        var result = await CreateRuntime().ExecuteAsync(graph, new FrontedGraphExecutionContext(), TestContext.Current.CancellationToken);
+
+        Assert.Equal("0.75", Assert.Single(result.ActionRequests).Values["Value"]);
+    }
+
+    [Fact]
+    public async Task Runtime_SetProperty_PercentValueInput_AppendsPercentUnit()
+    {
+        var start = _catalog.CreateNode("flow.start");
+        var constant = _catalog.CreateNode("value.number");
+        constant.Properties["Value"] = JsonSerializer.SerializeToElement(25D);
+        var set = _catalog.CreateNode("action.setProperty");
+        set.Properties["PropertyName"] = JsonSerializer.SerializeToElement("ClipInsetRight");
+        set.Properties["ValueInputUnit"] = JsonSerializer.SerializeToElement("Percent");
+        var graph = new FrontedNodeGraph { Nodes = [start, constant, set], Connections = [Link(start, "Out", set, "In"), Link(constant, "Value", set, "ValueInput")] };
+
+        var result = await CreateRuntime().ExecuteAsync(graph, new FrontedGraphExecutionContext(), TestContext.Current.CancellationToken);
+
+        Assert.Equal("25%", Assert.Single(result.ActionRequests).Values["Value"]);
+    }
+
+    [Fact]
+    public async Task Runtime_EventContext_ParsesStringPayloadAndUsesFallbackForNonNumericPayload()
+    {
+        var start = _catalog.CreateNode("flow.start");
+        var context = _catalog.CreateNode("value.eventContext");
+        context.Properties["Path"] = JsonSerializer.SerializeToElement("Event.Value");
+        context.Properties["FallbackValue"] = JsonSerializer.SerializeToElement(0.25D);
+        var set = _catalog.CreateNode("action.setProperty");
+        set.Properties["PropertyName"] = JsonSerializer.SerializeToElement("Opacity");
+        var graph = new FrontedNodeGraph { Nodes = [start, context, set], Connections = [Link(start, "Out", set, "In"), Link(context, "Value", set, "ValueInput")] };
+
+        var parsed = await CreateRuntime().ExecuteAsync(graph, new FrontedGraphExecutionContext { EventPayload = new Dictionary<string, object?> { ["Value"] = "0.75" } }, TestContext.Current.CancellationToken);
+        var fallback = await CreateRuntime().ExecuteAsync(graph, new FrontedGraphExecutionContext { EventPayload = new Dictionary<string, object?> { ["Value"] = "not-a-number" } }, TestContext.Current.CancellationToken);
+
+        Assert.Equal("0.75", Assert.Single(parsed.ActionRequests).Values["Value"]);
+        Assert.Equal("0.25", Assert.Single(fallback.ActionRequests).Values["Value"]);
+    }
+
+    [Fact]
+    public async Task Runtime_InvalidNumericExpression_SkipsOnlyTheAction()
+    {
+        var start = _catalog.CreateNode("flow.start");
+        var set = _catalog.CreateNode("action.setProperty");
+        set.Properties["PropertyName"] = JsonSerializer.SerializeToElement("Opacity");
+        set.Properties["Value"] = JsonSerializer.SerializeToElement("=1 / 0");
+        var log = LogNode("after");
+        var graph = new FrontedNodeGraph { Nodes = [start, set, log], Connections = [Link(start, "Out", set, "In"), Link(set, "Out", log, "In")] };
+
+        var result = await CreateRuntime().ExecuteAsync(graph, new FrontedGraphExecutionContext(), TestContext.Current.CancellationToken);
+
+        Assert.Empty(result.ActionRequests);
+        Assert.Contains(result.LogItems, item => item.Message.Contains("skipped", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(result.LogItems, item => item.Message == "after");
+    }
+
+    [Fact]
     public async Task Runtime_AnimateProperty_EmitsActionRequest()
     {
         var graph = Connect(_catalog.CreateNode("flow.start"), _catalog.CreateNode("action.animateProperty"), _catalog.CreateNode("flow.end"));

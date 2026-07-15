@@ -82,6 +82,16 @@ public interface ISharedDataService : INotifyPropertyChanged
     string RemainingSeconds { get; set; }
 
     /// <summary>
+    /// 获取供数值计算使用的倒计时剩余秒数；未运行倒计时时为 <c>0</c>。
+    /// </summary>
+    int CountDownRemainingSeconds => 0;
+
+    /// <summary>
+    /// 获取当前倒计时启动时设置的总秒数；未运行倒计时时为 <c>0</c>。
+    /// </summary>
+    int CountDownTotalSeconds => 0;
+
+    /// <summary>
     /// 是否是Bo3模式
     /// </summary>
     bool IsBo3Mode { get; set; }
@@ -155,6 +165,8 @@ public interface ISharedDataService : INotifyPropertyChanged
     /// </summary>
     [FrontedBehaviorEvent("SharedData.CountDownValueChanged", DisplayNameKey = "Designer.Behaviors.Event.CountDownValueChanged", DescriptionKey = "Designer.Behaviors.Event.CountDownValueChanged.Description", Category = "Timer", CategoryKey = "Designer.Behaviors.Category.Timer")]
     [FrontedBehaviorEventPayload("Event.RemainingSeconds", DisplayNameKey = "Designer.Behaviors.Payload.RemainingSeconds", Source = FrontedBehaviorPayloadSource.ServiceProperty, SourcePath = nameof(RemainingSeconds), TypeName = "string")]
+    [FrontedBehaviorEventPayload("Event.CountDownRemainingSeconds", DisplayNameKey = "Designer.Behaviors.Payload.CountDownRemainingSeconds", Source = FrontedBehaviorPayloadSource.ServiceProperty, SourcePath = nameof(CountDownRemainingSeconds), TypeName = "int")]
+    [FrontedBehaviorEventPayload("Event.CountDownTotalSeconds", DisplayNameKey = "Designer.Behaviors.Payload.CountDownTotalSeconds", Source = FrontedBehaviorPayloadSource.ServiceProperty, SourcePath = nameof(CountDownTotalSeconds), TypeName = "int")]
     event EventHandler? CountDownValueChanged;
 
     /// <summary>

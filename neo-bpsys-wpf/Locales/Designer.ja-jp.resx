@@ -1786,6 +1786,12 @@
   <data name="Designer.Behaviors.Payload.RemainingSeconds">
     <value>残り秒数</value>
   </data>
+  <data name="Designer.Behaviors.Payload.CountDownRemainingSeconds">
+    <value>カウントダウン残り秒数</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.CountDownTotalSeconds">
+    <value>カウントダウンの合計秒数</value>
+  </data>
   <data name="Designer.Behaviors.Payload.IsMapV2Breathing">
     <value>マップ呼吸表示</value>
   </data>
@@ -2974,4 +2980,10 @@
   <data name="DiscardChanges">
     <value>変更を破棄</value>
   </data>
+  <data name="Designer.Graph.Node.ValueNumber"><value>数値</value></data><data name="Designer.Graph.Node.ValueEventContext"><value>イベント コンテキスト</value></data><data name="Designer.Graph.Node.MathAdd"><value>加算</value></data><data name="Designer.Graph.Node.MathSubtract"><value>減算</value></data><data name="Designer.Graph.Node.MathMultiply"><value>乗算</value></data><data name="Designer.Graph.Node.MathDivide"><value>除算</value></data><data name="Designer.Graph.Node.MathModulo"><value>剰余</value></data><data name="Designer.Graph.Node.MathNegate"><value>符号反転</value></data><data name="Designer.Graph.Node.MathAbs"><value>絶対値</value></data><data name="Designer.Graph.Node.MathMin"><value>最小値</value></data><data name="Designer.Graph.Node.MathMax"><value>最大値</value></data><data name="Designer.Graph.Node.MathClamp"><value>範囲制限</value></data><data name="Designer.Graph.Node.MathRound"><value>四捨五入</value></data><data name="Designer.Graph.Node.MathFloor"><value>切り捨て</value></data><data name="Designer.Graph.Node.MathCeil"><value>切り上げ</value></data>
+  <data name="Designer.Graph.Node.ValueNumber.Description"><value>固定数値を出力します。</value></data><data name="Designer.Graph.Node.ValueEventContext.Description"><value>現在のイベント コンテキストから数値フィールドを読み取ります。</value></data><data name="Designer.Graph.Node.MathAdd.Description"><value>二つの数値を加算します。</value></data><data name="Designer.Graph.Node.MathSubtract.Description"><value>二つの数値を減算します。</value></data><data name="Designer.Graph.Node.MathMultiply.Description"><value>二つの数値を乗算します。</value></data><data name="Designer.Graph.Node.MathDivide.Description"><value>二つの数値を除算します。</value></data><data name="Designer.Graph.Node.MathModulo.Description"><value>二つの数値の剰余を計算します。</value></data><data name="Designer.Graph.Node.MathNegate.Description"><value>数値の符号を反転します。</value></data><data name="Designer.Graph.Node.MathAbs.Description"><value>絶対値を計算します。</value></data><data name="Designer.Graph.Node.MathMin.Description"><value>小さい方の数値を選択します。</value></data><data name="Designer.Graph.Node.MathMax.Description"><value>大きい方の数値を選択します。</value></data><data name="Designer.Graph.Node.MathClamp.Description"><value>最小値と最大値の間に制限します。</value></data><data name="Designer.Graph.Node.MathRound.Description"><value>整数に四捨五入します。</value></data><data name="Designer.Graph.Node.MathFloor.Description"><value>数値を切り捨てます。</value></data><data name="Designer.Graph.Node.MathCeil.Description"><value>数値を切り上げます。</value></data>
+  <data name="Designer.Graph.Port.ValueInput"><value>数値入力</value></data><data name="Designer.Graph.Port.FromInput"><value>開始値</value></data><data name="Designer.Graph.Port.ToInput"><value>終了値</value></data><data name="Designer.Graph.Port.Left"><value>左辺</value></data><data name="Designer.Graph.Port.Right"><value>右辺</value></data><data name="Designer.Graph.Port.Min"><value>最小値</value></data><data name="Designer.Graph.Port.Max"><value>最大値</value></data>
+  <data name="Designer.Graph.Property.FallbackValue"><value>フォールバック値</value></data><data name="Designer.Graph.Property.FallbackValue.Description"><value>イベント フィールドが存在しない、または数値に変換できない場合に使用します。</value></data>
+  <data name="Designer.Graph.ExternalValueInput"><value>外部数値入力が接続されているため、手動値は無効です。</value></data>
+  <data name="Designer.Graph.Property.ValueInputUnit"><value>外部数値の単位</value></data><data name="Designer.Graph.Property.FromInputUnit"><value>開始外部数値の単位</value></data><data name="Designer.Graph.Property.ToInputUnit"><value>終了外部数値の単位</value></data><data name="Designer.Graph.Property.ValueInputUnit.Description"><value>外部数値をピクセルまたはパーセントとして適用します。</value></data><data name="Designer.Option.ValueInputUnit.Absolute"><value>絶対値（ピクセル）</value></data><data name="Designer.Option.ValueInputUnit.Percent"><value>パーセント</value></data><data name="Designer.Option.FromInputUnit.Absolute"><value>絶対値（ピクセル）</value></data><data name="Designer.Option.FromInputUnit.Percent"><value>パーセント</value></data><data name="Designer.Option.ToInputUnit.Absolute"><value>絶対値（ピクセル）</value></data><data name="Designer.Option.ToInputUnit.Percent"><value>パーセント</value></data>
 </root>

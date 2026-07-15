@@ -54,7 +54,7 @@ public class FrontedSharedDataBehaviorEventBridgeTest
     {
         using var semaphore = new SemaphoreSlim(0, 1);
         FrontedBehaviorEvent? received = null;
-        var service = new MockSharedDataService { RemainingSeconds = "42" };
+        var service = new MockSharedDataService { RemainingSeconds = "42", CountDownRemainingSeconds = 42 };
         var bus = new MockEventBus();
 
         using (bus.Subscribe(null, ev =>
@@ -75,6 +75,8 @@ public class FrontedSharedDataBehaviorEventBridgeTest
         Assert.NotNull(received);
         Assert.True(received!.Payload.TryGetValue("RemainingSeconds", out var value));
         Assert.Equal("42", value);
+        Assert.True(received.Payload.TryGetValue("CountDownRemainingSeconds", out var numericValue));
+        Assert.Equal(42, numericValue);
     }
 
     [Fact]
@@ -371,6 +373,7 @@ public class FrontedSharedDataBehaviorEventBridgeTest
         // Properties
 
         public string RemainingSeconds { get; set; } = string.Empty;
+        public int CountDownRemainingSeconds { get; set; }
 
         public Team HomeTeam => throw new System.NotImplementedException();
 

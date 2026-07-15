@@ -87,7 +87,13 @@ ExitGraph / EnterGraph 使用 `TransitionTrigger.EventType`，Loop 的 StartGrap
 
 `flow.parallel` 使用 `BranchCount` 保存并行任务数，默认值为 `3`，允许范围为 `1` 到 `20`。分支输出使用稳定端口名 `Branch1` 到 `Branch20`；运行时仅执行当前数量范围内已连接的分支，并在全部完成后从 `Out` 继续。旧图未保存 `BranchCount` 时继续按 3 个分支处理。设计器减小任务数时会移除超出新范围的分支连接，避免保存不可见连线。
 
-节点图属性面板中的普通数字字段使用 WPF-UI `NumberBox`。数值范围、整数要求和动画属性元数据约束由基于 CommunityToolkit.Mvvm `ObservableValidator` 的属性编辑 ViewModel 校验，验证通过后才写回节点 JSON。允许百分比表达式的动画字段继续使用文本输入。
+## 数值事件值与运算
+
+动作节点的 `Value`、`From` 和 `To` 保持原有字面量写法，同时可接收 `number` 值端口。值节点包含数值常量、事件数值，以及四则、取模、取负、`abs`、`min`、`max`、`clamp`、`round`、`floor`、`ceil`；值图按动作执行时需求值，不参与 flow。已连接值端口优先于字面量。
+
+数值属性也可写受限表达式，例如 `=clamp(Event.PlayerIndex / 10, 0, 1)`。表达式只支持数值、括号、上述数值函数与 `Event.*` / `StartEvent.*` / `StopEvent.*` 变量，使用 invariant culture，绝不执行脚本或任意 .NET 代码。表达式或数值图无法解析、除零或得到非有限数值时，runtime 记录 warning、跳过当前动作并继续后续 flow；旧字面量行为文件不会被转换或改写。
+
+节点图属性面板中的普通数字字段使用 WPF-UI `NumberBox`。数值范围、整数要求和动画属性元数据约束由基于 CommunityToolkit.Mvvm `ObservableValidator` 的属性编辑 ViewModel 校验，验证通过后才写回节点 JSON。允许百分比表达式的动画字段继续使用文本输入。连接数值端口后，可在 `ValueInputUnit`、`FromInputUnit` 或 `ToInputUnit` 选择绝对值或百分比；百分比仅适用于支持相对长度的属性（如 `ClipInsetRight`），运行时会把计算结果写成 `%` 值。此时对应手填值会禁用，避免与外部输入产生歧义。
 
 ## Runtime services
 
