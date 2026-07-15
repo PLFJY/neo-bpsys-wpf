@@ -80,7 +80,7 @@ v3 插件项目应手动包含 SDK 源码，而不是引用 NuGet 包。参考 `
 | 能力 | API |
 | --- | --- |
 | 后台页面 | `services.AddBackendPage<TPage,TViewModel>()` |
-| 插件前台窗口 | `services.AddFrontedWindowPluginContributor<TContributor>()` |
+| 插件前台窗口 | XAML 窗口可用兼容 API `services.AddFrontedWindow<TWindow,TViewModel>()`；需要 v3 layout host 时使用 `services.AddFrontedWindowPluginContributor<TContributor>()` |
 | Designer v3 插件控件 | `services.AddFrontedPluginControlContributor<TContributor>()` |
 | 自定义服务 | 常规 `services.AddSingleton/AddTransient/...` |
 | 配置文件 | `PluginBase.PluginConfigFolder` + `ConfigureFileHelper` |
@@ -207,7 +207,7 @@ Visibility bindings must use `IsVisible` or a specific visibility-oriented prope
 | `FullWindowType` | 布局 / `.bpui` 身份；内置为 `BpWindow`，插件为 `plugin:{PackageId}/{WindowTypeName}` |
 | `PackageId` | 插件 `manifest.yml` 的 `id` |
 
-Plugin XAML Window 由插件提供 WPF `Window` 类型，出现在 FrontManage，不默认进入 Designer。Plugin v3 Layout Window 由宿主标准 `FrontedWindowBase` layout host 渲染，默认布局来自 `Plugins/{PackageId}/FrontedLayouts/{WindowTypeName}.json`；`Customizable=true` 的 v3 layout window 会进入 Designer。Canvas/BaseCanvas 只是运行时实现细节，不出现在插件默认布局路径或 manifest 中。
+Plugin XAML Window 由插件提供 WPF `Window` 类型，出现在 FrontManage，不默认进入 Designer。`FrontedPluginWindowDescriptor.Kind` 缺失时默认按 `PluginXaml` 创建，且必须提供 `WindowType`；只有显式设置为 `PluginLayout` 才会使用宿主标准 `FrontedWindowBase` layout host。后者的默认布局来自 `Plugins/{PackageId}/FrontedLayouts/{WindowTypeName}.json`，`Customizable=true` 时会进入 Designer。该选择不由 `manifest.yml` 指定。Canvas/BaseCanvas 只是运行时实现细节，不出现在插件默认布局路径或 manifest 中。
 
 示例：
 

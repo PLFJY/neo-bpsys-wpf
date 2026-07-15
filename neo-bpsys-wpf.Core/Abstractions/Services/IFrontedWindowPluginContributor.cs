@@ -3,7 +3,9 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout;
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
 /// <summary>
-/// 由贡献 v3 前台窗口的插件实现。
+/// 由贡献前台窗口的插件实现。
+/// 未显式指定窗口类型的描述符默认创建插件自己的 XAML 窗口；
+/// v3 layout host 必须由描述符显式声明。
 /// </summary>
 public interface IFrontedWindowPluginContributor
 {

@@ -69,8 +69,10 @@ public sealed class FrontedPluginWindowDescriptor : IFrontedWindowDescriptor
 
     /// <summary>
     /// 选择插件提供的是原始 XAML 窗口还是宿主渲染的设计器 v3 布局窗口。
+    /// 默认值为 <see cref="FrontedWindowKind.PluginXaml"/>；只有显式指定
+    /// <see cref="FrontedWindowKind.PluginLayout"/> 才会使用宿主的 v3 layout host。
     /// </summary>
-    public required FrontedWindowKind Kind { get; init; }
+    public FrontedWindowKind Kind { get; init; } = FrontedWindowKind.PluginXaml;
 
     /// <inheritdoc />
     public bool IsPlugin => true;

@@ -87,7 +87,7 @@ plugin:{PackageId}/{ControlTypeName}
 
 ## 插件前台窗口
 
-v3 提供两类插件前台窗口，均通过 `IFrontedWindowPluginContributor` 暴露 descriptor。
+v3 提供两类插件前台窗口，均通过 `IFrontedWindowPluginContributor` 暴露 descriptor。descriptor 未写 `Kind` 时默认是 `PluginXaml`；只有明确写出 `Kind = FrontedWindowKind.PluginLayout` 才会创建宿主的 v3 layout window。这个选择不在 `manifest.yml` 中配置。
 
 ### Plugin XAML Window
 
@@ -161,7 +161,7 @@ FrontedLayouts/plugin/plfjy.ExamplePlugin/ExampleLayoutOverlay/BaseCanvas.json
 
 ## 迁移说明
 
-旧的"把 WPF 控件直接塞进现有前台窗口"能力已经移除，不提供 Obsolete shim。旧插件应迁移为：
+旧的“把 WPF 控件直接塞进现有前台窗口”能力已经移除，不提供 Obsolete shim。旧插件自己的 XAML 前台窗口仍可继续用 `AddFrontedWindow<TWindow, TViewModel>()` 注册；`FrontedWindowInfo` 的旧 canvas 参数会被忽略。需要迁移旧插件的控件注入能力时，可选择：
 
 1. Designer v3 插件控件，用于可编辑 overlay 元素。
 2. Plugin XAML Window，用于插件完全控制 XAML/行为的前台窗口。

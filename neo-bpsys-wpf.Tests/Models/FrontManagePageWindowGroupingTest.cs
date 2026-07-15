@@ -96,6 +96,20 @@ public class FrontManagePageWindowGroupingTest
         Assert.Equal(["BuiltIn", "Plugin"], groups.Select(group => group.GroupKey));
     }
 
+    [Fact]
+    public void PluginWindowDescriptorDefaultsToXamlWindow()
+    {
+        var descriptor = new FrontedPluginWindowDescriptor
+        {
+            PackageId = "top.plfjy.test",
+            WindowId = Guid.NewGuid().ToString(),
+            WindowTypeName = "LegacyWindow"
+        };
+
+        Assert.Equal(FrontedWindowKind.PluginXaml, descriptor.Kind);
+        Assert.False(descriptor.IsV3LayoutWindow);
+    }
+
     private static FrontedBuiltInWindowDescriptor CreateDescriptor(
         string windowId,
         string windowTypeName,

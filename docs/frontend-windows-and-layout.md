@@ -19,7 +19,7 @@ services.AddFrontedWindow<TView, TViewModel>();
 
 v3 layout 已改为 Window-centric。新的 v3 layout window 只以 Window 为管理单位，运行时固定由 `FrontedWindowBase` 创建 `ViewBox -> Canvas BaseCanvas`，不再向用户、包管理或 FrontManagePage 暴露 Canvas。传统固定 XAML window 可继续使用原有注册方式，但不强制 BaseCanvas。
 
-插件前台窗口不再通过 `FrontedWindowInfo` 反射扫描。v3 插件应实现 `IFrontedWindowPluginContributor`，通过 `FrontedPluginWindowDescriptor` 声明窗口：
+新式插件前台窗口通过 `IFrontedWindowPluginContributor` 和 `FrontedPluginWindowDescriptor` 声明。descriptor 默认创建插件自己的 XAML `Window`；仅显式指定 `Kind = PluginLayout` 时才使用 v3 layout host。现有插件仍可使用 `FrontedWindowInfo` + `AddFrontedWindow<TWindow,TViewModel>()` 注册自己的 XAML 窗口；旧 canvas 元数据被忽略。窗口类型不在 `manifest.yml` 中指定：
 
 ```csharp
 services.AddFrontedWindowPluginContributor<MyFrontedWindowContributor>();
