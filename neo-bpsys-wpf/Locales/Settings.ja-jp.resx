@@ -526,6 +526,15 @@
   <data name="BpuiFileAssociationDescription">
     <value>有効にすると、.bpui レイアウトパッケージをダブルクリックして本ツールで開き、現在の有効なレイアウト方案としてインストールします。</value>
   </data>
+  <data name="PageTransitionAnimation">
+    <value>ページ切替アニメーション</value>
+  </data>
+  <data name="PageTransitionAnimationDescription">
+    <value>オフにすると、バックエンドページ間の切替でトランジションアニメーションを再生せず、即時に切替えます。変更を反映するにはアプリの再起動が必要です。</value>
+  </data>
+  <data name="PageTransitionAnimationRestart">
+    <value>再起動して反映</value>
+  </data>
   <data name="ClassicModeRestartRequired">
     <value>バックエンド画面モードの変更を反映するにはアプリの再起動が必要です。今すぐ再起動しますか？</value>
   </data>

@@ -30,6 +30,7 @@ public partial class MainWindow : FluentWindow, INavigationWindow
     private readonly ILogger<MainWindow> _logger;
     private readonly IOnboardingCoordinator _onboardingCoordinator;
     private readonly ITutorialRunner _tutorialRunner;
+    private readonly ISettingsHostService _settingsHostService;
     private bool _firstRunWelcomeAttempted;
 
     internal bool ForceCloseForTest { get; set; }
@@ -47,12 +48,15 @@ public partial class MainWindow : FluentWindow, INavigationWindow
         _logger = logger;
         _onboardingCoordinator = onboardingCoordinator;
         _tutorialRunner = tutorialRunner;
+        _settingsHostService = settingsHostService;
         InitializeComponent();
         navigationService.SetNavigationControl(RootNavigation);
         if (navigationService is neo_bpsys_wpf.Services.NavigationService neoNavigationService)
         {
             neoNavigationService.PageChanged += OnNavigationPageChanged;
         }
+
+        RootNavigation.IsAnimationEnabled = _settingsHostService.Settings.IsPageTransitionAnimationEnabled;
 
         infoBarService.SetInfoBarControl(InfoBar);
         snackbarService.SetSnackbarPresenter(SnbPre);

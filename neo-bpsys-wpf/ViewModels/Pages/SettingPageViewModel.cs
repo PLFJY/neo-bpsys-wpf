@@ -28,6 +28,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 public partial class SettingPageViewModel : ViewModelBase
 {
     private bool _isSyncingLogLevel;
+    private bool _initialIsPageTransitionAnimationEnabled;
 
     /// <summary>
     /// 用于设计时预览的无参构造函数。
@@ -118,6 +119,7 @@ public partial class SettingPageViewModel : ViewModelBase
         _isSyncingLogLevel = true;
         SelectedLogLevel = _settingsHostService.Settings.LogLevel;
         _isSyncingLogLevel = false;
+        _initialIsPageTransitionAnimationEnabled = _settingsHostService.Settings.IsPageTransitionAnimationEnabled;
 
         var columns = SplitIntoColumns(CreateOpenSourceRepos(), 3);
         OpenSourceRepoColumn1 = columns[0];
@@ -162,6 +164,41 @@ public partial class SettingPageViewModel : ViewModelBase
             OnPropertyChanged();
             _ = SaveClassicModeAndOfferRestartAsync();
         }
+    }
+
+    /// <summary>
+    /// 获取或设置是否启用后台页面切换过渡动画。关闭后页面切换将立即完成，修改后需要重启生效。
+    /// </summary>
+    public bool IsPageTransitionAnimationEnabled
+    {
+        get => _settingsHostService.Settings.IsPageTransitionAnimationEnabled;
+        set
+        {
+            if (_settingsHostService.Settings.IsPageTransitionAnimationEnabled == value)
+            {
+                return;
+            }
+
+            _settingsHostService.Settings.IsPageTransitionAnimationEnabled = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsPageTransitionAnimationRestartRequired));
+            _ = _settingsHostService.SaveConfigAsync();
+        }
+    }
+
+    /// <summary>
+    /// 获取一个值，指示页面切换动画设置是否已相对于本次启动的初始值发生改变，需要重启才能生效。
+    /// </summary>
+    public bool IsPageTransitionAnimationRestartRequired
+        => _settingsHostService.Settings.IsPageTransitionAnimationEnabled != _initialIsPageTransitionAnimationEnabled;
+
+    /// <summary>
+    /// 立即重启应用以使页面切换动画设置生效。
+    /// </summary>
+    [RelayCommand]
+    private void RestartForPageTransitionAnimation()
+    {
+        AppBase.Current.Restart();
     }
 
     private async Task SaveClassicModeAndOfferRestartAsync()

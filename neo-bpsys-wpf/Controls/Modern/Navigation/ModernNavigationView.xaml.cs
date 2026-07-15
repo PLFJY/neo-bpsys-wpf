@@ -187,6 +187,12 @@ public partial class ModernNavigationView : UserControl, INavigationView
         DependencyProperty.Register(nameof(TransitionDuration), typeof(int), typeof(ModernNavigationView), new PropertyMetadata(240, OnTransitionDurationChanged));
 
     /// <summary>
+    /// <see cref="IsAnimationEnabled"/> 依赖属性的标识符。
+    /// </summary>
+    public static readonly DependencyProperty IsAnimationEnabledProperty =
+        DependencyProperty.Register(nameof(IsAnimationEnabled), typeof(bool), typeof(ModernNavigationView), new PropertyMetadata(true, OnIsAnimationEnabledChanged));
+
+    /// <summary>
     /// <see cref="Transition"/> 依赖属性的标识符。
     /// </summary>
     public static readonly DependencyProperty TransitionProperty =
@@ -233,6 +239,7 @@ public partial class ModernNavigationView : UserControl, INavigationView
 
         SetCurrentValue(ActualPaneLengthProperty, GetTargetPaneLength());
         PART_Frame.TransitionDuration = TimeSpan.FromMilliseconds(Math.Max(0, TransitionDuration));
+        PART_Frame.IsAnimationEnabled = IsAnimationEnabled;
         UpdateFrameScrollHostMode();
 
         Loaded += OnLoaded;
@@ -516,6 +523,15 @@ public partial class ModernNavigationView : UserControl, INavigationView
     }
 
     /// <summary>
+    /// 获取或设置一个值，指示是否启用页面切换过渡动画。关闭后页面切换将立即完成。
+    /// </summary>
+    public bool IsAnimationEnabled
+    {
+        get => (bool)GetValue(IsAnimationEnabledProperty);
+        set => SetValue(IsAnimationEnabledProperty, value);
+    }
+
+    /// <summary>
     /// 获取或设置过渡动画类型。
     /// </summary>
     public Transition Transition
@@ -786,6 +802,15 @@ public partial class ModernNavigationView : UserControl, INavigationView
         if (navigationView.PART_Frame is not null)
         {
             navigationView.PART_Frame.TransitionDuration = TimeSpan.FromMilliseconds(Math.Max(0, (int)e.NewValue));
+        }
+    }
+
+    private static void OnIsAnimationEnabledChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        var navigationView = (ModernNavigationView)d;
+        if (navigationView.PART_Frame is not null)
+        {
+            navigationView.PART_Frame.IsAnimationEnabled = (bool)e.NewValue;
         }
     }
 

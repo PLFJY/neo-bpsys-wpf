@@ -526,6 +526,15 @@
   <data name="BpuiFileAssociationDescription">
     <value>When enabled, double-clicking a .bpui layout package opens this tool and installs it as the active layout scheme.</value>
   </data>
+  <data name="PageTransitionAnimation">
+    <value>Page transition animation</value>
+  </data>
+  <data name="PageTransitionAnimationDescription">
+    <value>When disabled, switching between backend pages skips the transition animation and switches instantly. Restart the app for changes to take effect.</value>
+  </data>
+  <data name="PageTransitionAnimationRestart">
+    <value>Restart to apply</value>
+  </data>
   <data name="ClassicModeRestartRequired">
     <value>Restart the app for backend shell mode changes to take effect. Restart now?</value>
   </data>

@@ -526,6 +526,15 @@
   <data name="BpuiFileAssociationDescription">
     <value>启用后，双击 .bpui 布局包会打开本工具并安装为当前激活布局方案。</value>
   </data>
+  <data name="PageTransitionAnimation">
+    <value>页面切换动画</value>
+  </data>
+  <data name="PageTransitionAnimationDescription">
+    <value>关闭后，后台页面之间的切换将不再播放过渡动画，改为立即切换。修改后需要重启应用生效。</value>
+  </data>
+  <data name="PageTransitionAnimationRestart">
+    <value>重启生效</value>
+  </data>
   <data name="ClassicModeRestartRequired">
     <value>切换后台界面模式后需要重启应用生效。是否立即重启？</value>
   </data>

@@ -39,6 +39,11 @@ public partial class Settings : ObservableObjectBase
     public bool AssociateBpuiFiles { get; set; } = true;
 
     /// <summary>
+    /// 是否启用后台页面切换时的过渡动画。关闭后页面切换将立即完成。
+    /// </summary>
+    public bool IsPageTransitionAnimationEnabled { get; set; } = true;
+
+    /// <summary>
     /// 当前选择的 OCR 模型标识键。
     /// </summary>
     public string? OcrModelKey { get; set; }
