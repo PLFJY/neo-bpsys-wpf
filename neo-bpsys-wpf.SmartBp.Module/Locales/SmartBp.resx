@@ -499,6 +499,9 @@
   <data name="Cancel" xml:space="preserve">
     <value>取消</value>
   </data>
+  <data name="Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
   <data name="SmartBp" xml:space="preserve">
     <value>智慧 BP</value>
   </data>
