@@ -36,13 +36,14 @@ public partial class TeamInfoPageViewModel : ViewModelBase
         ISharedDataService sharedDataService,
         IFilePickerService filePickerService,
         IFrontedImageSafetyService imageSafetyService,
-        ITutorialSignalService tutorialSignalService)
+        ITutorialSignalService tutorialSignalService,
+        IContentDialogService contentDialogService)
     {
         var sharedDataService1 = sharedDataService;
         HomeTeamInfoViewModel =
-            new TeamInfoViewModel(sharedDataService1.HomeTeam, filePickerService, imageSafetyService, tutorialSignalService);
+            new TeamInfoViewModel(sharedDataService1.HomeTeam, filePickerService, imageSafetyService, tutorialSignalService, contentDialogService);
         AwayTeamInfoViewModel =
-            new TeamInfoViewModel(sharedDataService1.AwayTeam, filePickerService, imageSafetyService, tutorialSignalService);
+            new TeamInfoViewModel(sharedDataService1.AwayTeam, filePickerService, imageSafetyService, tutorialSignalService, contentDialogService);
         OnFieldSurPlayerViewModels =
             [.. Enumerable.Range(0, 4).Select(i => new OnFieldSurPlayerViewModel(sharedDataService1, tutorialSignalService, i))];
         OnFieldHunPlayerVm = new OnFieldHunPlayerViewModel(sharedDataService1);

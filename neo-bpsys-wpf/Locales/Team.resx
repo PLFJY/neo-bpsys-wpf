@@ -10,6 +10,18 @@
   <data name="InGameName">
     <value>游戏内名称</value>
   </data>
+  <data name="More">
+    <value>更多</value>
+  </data>
+  <data name="PlayerDetails">
+    <value>选手详情</value>
+  </data>
+  <data name="ChangePhoto">
+    <value>更换定妆照</value>
+  </data>
+  <data name="PhotoPreview">
+    <value>预览：</value>
+  </data>
   <data name="HomeTeamInformation">
     <value>主场队伍信息</value>
   </data>

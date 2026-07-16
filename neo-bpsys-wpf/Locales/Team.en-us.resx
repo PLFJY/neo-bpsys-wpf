@@ -10,6 +10,18 @@
   <data name="InGameName">
     <value>In-game name</value>
   </data>
+  <data name="More">
+    <value>More</value>
+  </data>
+  <data name="PlayerDetails">
+    <value>Player details</value>
+  </data>
+  <data name="ChangePhoto">
+    <value>Change photo</value>
+  </data>
+  <data name="PhotoPreview">
+    <value>Preview:</value>
+  </data>
   <data name="HomeTeamInformation">
     <value>Home team information</value>
   </data>

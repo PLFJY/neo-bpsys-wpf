@@ -16,10 +16,10 @@
                                      IsDesignTimeCreatable=True}"
     d:DesignHeight="1500"
     d:DesignWidth="900"
-    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
     lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Score"
+    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
     <Page.Resources>
         <cv:BooleanToEnumConverter x:Key="BooleanToEnumConverter" />
@@ -36,12 +36,11 @@
                     Grid.Row="0"
                     Style="{StaticResource Title}"
                     Text="{lex:Loc ScoreControl}" />
-                    <Grid
-                        x:Name="ScoreSelectorPanel"
-                        Grid.Row="1"
+                <Grid
+                    x:Name="ScoreSelectorPanel"
+                    Grid.Row="1"
                     Margin="0,10,0,0"
-                    IsEnabled="{Binding IsScoreControlEnabled}"
-                    >
+                    IsEnabled="{Binding IsScoreControlEnabled}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
@@ -93,12 +92,8 @@
                             TagName="{lex:Loc ThreeEliminate}" />
                     </StackPanel>
                     <StackPanel Grid.Column="3">
-                        <Button
-                            Command="{Binding ResetCommand}"
-                            Content="{lex:Loc ResetAllScores}" />
-                        <Button
-                            Command="{Binding ClearCurrentHalfScoreCommand}"
-                            Content="{lex:Loc ClearCurrentHalfScore}" />
+                        <Button Command="{Binding ResetCommand}" Content="{lex:Loc ResetAllScores}" />
+                        <Button Command="{Binding ClearCurrentHalfScoreCommand}" Content="{lex:Loc ClearCurrentHalfScore}" />
                     </StackPanel>
                 </Grid>
                 <StackPanel
@@ -159,14 +154,14 @@
                     Grid.Row="1"
                     MinHeight="320"
                     Margin="0,10,0,0"
+                    scrolling:ModernScroll.Ownership="Self"
+                    scrolling:NestedSmoothScrollBehavior.IsEnabled="True"
                     AutoGenerateColumns="False"
                     CanUserAddRows="False"
                     CanUserDeleteRows="False"
                     HeadersVisibility="Column"
                     IsReadOnly="True"
                     ItemsSource="{Binding ScorePreviewRows}"
-                    scrolling:ModernScroll.Ownership="Self"
-                    scrolling:NestedSmoothScrollBehavior.IsEnabled="True"
                     SelectionMode="Single">
                     <ui:DataGrid.RowStyle>
                         <Style TargetType="{x:Type DataGridRow}">

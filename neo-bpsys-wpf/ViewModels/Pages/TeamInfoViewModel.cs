@@ -13,10 +13,16 @@ using System.IO;
 using System.Text.Json;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Data;
 using Wpf.Ui.Controls;
 using Member = neo_bpsys_wpf.Core.Models.Member;
 using MessageBox = Wpf.Ui.Controls.MessageBox;
 using MessageBoxResult = Wpf.Ui.Controls.MessageBoxResult;
+using Image = System.Windows.Controls.Image;
+using Orientation = System.Windows.Controls.Orientation;
+using StackPanel = System.Windows.Controls.StackPanel;
+using TextBlock = System.Windows.Controls.TextBlock;
+using WrapPanel = System.Windows.Controls.WrapPanel;
 using Team = neo_bpsys_wpf.Core.Models.Team;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
@@ -45,6 +51,7 @@ public partial class TeamInfoPageViewModel
         private readonly IFilePickerService _filePickerService;
         private readonly IFrontedImageSafetyService _imageSafetyService;
         private readonly ITutorialSignalService _tutorialSignalService;
+        private readonly IContentDialogService? _contentDialogService;
 
         /// <summary>
         /// 初始化队伍信息视图模型。
@@ -72,11 +79,30 @@ public partial class TeamInfoPageViewModel
             IFilePickerService filePickerService,
             IFrontedImageSafetyService imageSafetyService,
             ITutorialSignalService tutorialSignalService)
+            : this(team, filePickerService, imageSafetyService, tutorialSignalService, null)
+        {
+        }
+
+        /// <summary>
+        /// 初始化队伍信息视图模型。
+        /// </summary>
+        /// <param name="team">队伍数据</param>
+        /// <param name="filePickerService">文件选择服务</param>
+        /// <param name="imageSafetyService">前台图片安全校验服务</param>
+        /// <param name="tutorialSignalService">教程信号服务</param>
+        /// <param name="contentDialogService">内容对话框服务。</param>
+        public TeamInfoViewModel(
+            Team team,
+            IFilePickerService filePickerService,
+            IFrontedImageSafetyService imageSafetyService,
+            ITutorialSignalService tutorialSignalService,
+            IContentDialogService? contentDialogService)
         {
             CurrentTeam = team;
             _filePickerService = filePickerService;
             _imageSafetyService = imageSafetyService;
             _tutorialSignalService = tutorialSignalService;
+            _contentDialogService = contentDialogService;
             TeamName = team.Name;
             SyncTeamColorEditor();
             CurrentTeam.PropertyChanged += CurrentTeamOnPropertyChanged;
@@ -330,6 +356,113 @@ public partial class TeamInfoPageViewModel
                 });
         }
 
+        [RelayCommand]
+        private async Task EditMemberDetailsAsync(Member member)
+        {
+            ArgumentNullException.ThrowIfNull(member);
+
+            var contentDialogService = _contentDialogService
+                ?? throw new InvalidOperationException("The content dialog service is unavailable.");
+            var gameIdTextBox = new TextBox
+            {
+                PlaceholderText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "InGameName"),
+                Text = member.GameId,
+                VerticalAlignment = System.Windows.VerticalAlignment.Center
+            };
+            var photoPreview = new Image
+            {
+                Width = 120,
+                Height = 120,
+                Source = member.Image,
+                Stretch = Stretch.Uniform
+            };
+            photoPreview.SetBinding(
+                Image.SourceProperty,
+                new Binding(nameof(Member.Image)) { Source = member });
+            var photoActions = new WrapPanel
+            {
+                Margin = new System.Windows.Thickness(0, 0, 0, 8)
+            };
+            var setPhotoButton = new Button
+            {
+                Margin = new System.Windows.Thickness(0, 0, 8, 0),
+                Command = SetMemberImageCommand,
+                CommandParameter = member,
+                Icon = new SymbolIcon(SymbolRegular.ImageAdd24)
+            };
+            void RefreshPhotoActions()
+            {
+                setPhotoButton.Content = I18nHelper.GetLocalizedString(
+                    AppI18nDictionaries.Team,
+                    member.IsImageValid ? "ChangePhoto" : "SetPhoto");
+                ClearMemberImageCommand.NotifyCanExecuteChanged();
+            }
+
+            RefreshPhotoActions();
+            photoActions.Children.Add(setPhotoButton);
+            photoActions.Children.Add(new Button
+            {
+                Command = ClearMemberImageCommand,
+                CommandParameter = member,
+                Content = I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "RemovePhoto"),
+                Icon = new SymbolIcon(SymbolRegular.ImageOff24)
+            });
+            var photoPreviewPanel = new StackPanel
+            {
+                Children =
+                {
+                    new TextBlock
+                    {
+                        Margin = new System.Windows.Thickness(0, 0, 0, 4),
+                        Text = I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "PhotoPreview")
+                    },
+                    photoPreview
+                }
+            };
+
+            var dialog = new ContentDialog
+            {
+                Title = I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "PlayerDetails"),
+                Content = new StackPanel
+                {
+                    Orientation = Orientation.Horizontal,
+                    Children =
+                    {
+                        new StackPanel
+                        {
+                            Width = 220,
+                            VerticalAlignment = System.Windows.VerticalAlignment.Top,
+                            Children = { gameIdTextBox }
+                        },
+                        new StackPanel
+                        {
+                            Margin = new System.Windows.Thickness(16, 0, 0, 0),
+                            Children = { photoActions, photoPreviewPanel }
+                        }
+                    }
+                },
+                PrimaryButtonText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"),
+                PrimaryButtonIcon = new SymbolIcon(SymbolRegular.Checkmark24),
+                CloseButtonText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"),
+                CloseButtonIcon = new SymbolIcon(SymbolRegular.Dismiss24)
+            };
+            PropertyChangedEventHandler memberPropertyChanged = (_, e) =>
+            {
+                if (e.PropertyName == nameof(Member.IsImageValid))
+                    RefreshPhotoActions();
+            };
+            member.PropertyChanged += memberPropertyChanged;
+            try
+            {
+                if (await contentDialogService.ShowAsync(dialog) is ContentDialogResult.Primary)
+                    member.GameId = gameIdTextBox.Text;
+            }
+            finally
+            {
+                member.PropertyChanged -= memberPropertyChanged;
+            }
+        }
+
         private object CreateTeamPayload() => new
         {
             CurrentTeam.TeamType,
@@ -391,6 +524,7 @@ public partial class TeamInfoPageViewModel
             try
             {
                 member.Image = new BitmapImage(new Uri(imagePath));
+                ClearMemberImageCommand.NotifyCanExecuteChanged();
             }
             catch
             {
@@ -398,11 +532,16 @@ public partial class TeamInfoPageViewModel
             }
         }
 
-        [RelayCommand]
+        [RelayCommand(CanExecute = nameof(CanClearMemberImage))]
         private async Task ClearMemberImageAsync(Member member)
         {
             if (await MessageBoxHelper.ShowConfirmAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "AreYouSureToRemoveTheFileLookPhoto"), I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "ClearTip"), I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"), I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel")))
+            {
                 member.Image = null;
+                ClearMemberImageCommand.NotifyCanExecuteChanged();
+            }
         }
+
+        private static bool CanClearMemberImage(Member? member) => member?.IsImageValid == true;
     }
 }

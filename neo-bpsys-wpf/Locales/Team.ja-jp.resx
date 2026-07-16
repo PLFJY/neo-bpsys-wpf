@@ -10,6 +10,18 @@
   <data name="InGameName">
     <value>ゲーム内名前</value>
   </data>
+  <data name="More">
+    <value>詳細</value>
+  </data>
+  <data name="PlayerDetails">
+    <value>選手の詳細</value>
+  </data>
+  <data name="ChangePhoto">
+    <value>写真を変更</value>
+  </data>
+  <data name="PhotoPreview">
+    <value>プレビュー：</value>
+  </data>
   <data name="HomeTeamInformation">
     <value>ホームチーム情報</value>
   </data>
