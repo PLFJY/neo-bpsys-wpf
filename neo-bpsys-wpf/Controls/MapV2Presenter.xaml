@@ -131,7 +131,9 @@
                 FontSize="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=CampNameFontSize}"
                 FontWeight="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=CampNameFontWeight}"
                 Foreground="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=CampNameForeground}"
-                Text="{lex:Loc {Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.OperationTeam.Camp}}" />
+                Text="{lex:Loc {Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.OperationTeam.Camp}}"
+                lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
             <Grid HorizontalAlignment="Right" VerticalAlignment="Center">
                 <Image
                     Width="30"
