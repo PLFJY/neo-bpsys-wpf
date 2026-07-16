@@ -623,6 +623,19 @@ public interface ISmartBpDetectedOperationApplier
     Task<SmartBpOperationApplyResult> ApplyAsync(IReadOnlyList<SmartBpDetectedOperation> operations, CancellationToken cancellationToken = default);
 }
 
+/// <summary>在阶段切换时从帧缓冲构建上一角色步骤的高置信回看纠正计划。</summary>
+public interface ISmartBpTransitionReplayService
+{
+    /// <summary>构建一次不修改状态的回看计划。</summary>
+    /// <param name="sourceGuidance">切换前的引导快照。</param>
+    /// <param name="targetAction">当前识别到的目标动作。</param>
+    /// <param name="currentFrameSequence">当前帧序号；该帧不会被作为历史帧回看。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>有序候选与诊断。</returns>
+    Task<SmartBpTransitionReplayResult?> BuildAsync(GameGuidanceRuntimeSnapshot sourceGuidance,
+        Core.Enums.GameAction targetAction, long currentFrameSequence, CancellationToken cancellationToken = default);
+}
+
 /// <summary>根据完整合并后的 BP 快照构建有序工作流回填候选。</summary>
 public interface ISmartBpWorkflowBackfillService
 {

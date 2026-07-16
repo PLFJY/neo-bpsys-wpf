@@ -324,6 +324,12 @@ public partial class SmartBpModuleContentViewModel
     public partial int OcrBackfillLookBehindSteps { get; set; }
 
     [ObservableProperty]
+    public partial int RecognitionTransitionLookBehindMilliseconds { get; set; }
+
+    [ObservableProperty]
+    public partial double RecognitionTransitionReplayMinimumConfidence { get; set; }
+
+    [ObservableProperty]
     public partial bool UseOcrContactSheet { get; set; } = true;
 
     [ObservableProperty]
@@ -678,6 +684,8 @@ public partial class SmartBpModuleContentViewModel
         OcrRecognitionIntervalMs = _recognitionSettingsService.Settings.OcrRecognitionIntervalMs;
         OcrFieldStaleMilliseconds = _recognitionSettingsService.Settings.OcrFieldStaleMilliseconds;
         OcrBackfillLookBehindSteps = _recognitionSettingsService.Settings.OcrBackfillLookBehindSteps;
+        RecognitionTransitionLookBehindMilliseconds = _recognitionSettingsService.Settings.RecognitionTransitionLookBehindMilliseconds;
+        RecognitionTransitionReplayMinimumConfidence = _recognitionSettingsService.Settings.RecognitionTransitionReplayMinimumConfidence;
         UseOcrContactSheet = _recognitionSettingsService.Settings.UseOcrContactSheet;
         EnableOcrDebugOverlay = _recognitionSettingsService.Settings.EnableOcrDebugOverlay;
         OcrProviders =
@@ -2822,6 +2830,18 @@ public partial class SmartBpModuleContentViewModel
     partial void OnOcrBackfillLookBehindStepsChanged(int value)
     {
         _recognitionSettingsService.Settings.OcrBackfillLookBehindSteps = Math.Clamp(value, 0, 20);
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnRecognitionTransitionLookBehindMillisecondsChanged(int value)
+    {
+        _recognitionSettingsService.Settings.RecognitionTransitionLookBehindMilliseconds = Math.Clamp(value, 100, 5000);
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnRecognitionTransitionReplayMinimumConfidenceChanged(double value)
+    {
+        _recognitionSettingsService.Settings.RecognitionTransitionReplayMinimumConfidence = Math.Clamp(value, 0, 1);
         _ = _recognitionSettingsService.SaveAsync();
     }
 

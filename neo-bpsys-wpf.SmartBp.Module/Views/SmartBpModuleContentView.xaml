@@ -509,6 +509,14 @@
                         <TextBlock Text="{lex:Loc SmartBpOcrBackfillLookBehindSteps}" />
                         <TextBox Text="{Binding OcrBackfillLookBehindSteps}" ToolTip="{lex:Loc SmartBpTooltipBackfill}" />
                     </StackPanel>
+                    <StackPanel Margin="0,6,0,0">
+                        <TextBlock Text="{lex:Loc SmartBpTransitionReplayWindow}" />
+                        <TextBox Text="{Binding RecognitionTransitionLookBehindMilliseconds}" />
+                    </StackPanel>
+                    <StackPanel Margin="0,6,0,0">
+                        <TextBlock Text="{lex:Loc SmartBpTransitionReplayMinimumConfidence}" />
+                        <TextBox Text="{Binding RecognitionTransitionReplayMinimumConfidence}" />
+                    </StackPanel>
                     <ui:ToggleSwitch
                         Content="{lex:Loc SmartBpOcrDebugOverlay}"
                         IsChecked="{Binding EnableOcrDebugOverlay}"

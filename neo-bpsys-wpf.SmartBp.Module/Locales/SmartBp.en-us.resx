@@ -181,6 +181,12 @@
   <data name="SmartBpOcrBackfillLookBehindSteps">
     <value>OCR workflow look-behind steps</value>
   </data>
+  <data name="SmartBpTransitionReplayWindow">
+    <value>Transition replay window (ms)</value>
+  </data>
+  <data name="SmartBpTransitionReplayMinimumConfidence">
+    <value>Transition replay correction minimum confidence</value>
+  </data>
   <data name="SmartBpOcrProviderSection">
     <value>OCR provider</value>
   </data>

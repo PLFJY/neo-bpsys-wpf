@@ -209,12 +209,13 @@ BP 状态自动识别的完整循环由 `SmartBpAutoRecognitionCoordinator` 协�
   │     ├── TalentLocked → 仅允许同步引导
   │     ├── 其他 → 阻断写入，可能暂停循环
   │
-  ├─ 7. SmartBpCandidateOperationBuilder ← 从识别状态构建候选操作
-  ├─ 8. SmartBpWorkflowBackfillService   ← 按工作流顺序补录未完成步骤
-  ├─ 9. SmartBpDetectedOperationApplier  ← 应用高置信度操作（需用户启用）
+  ├─ 7. SmartBpTransitionReplayService   ← 仅在阶段切换时回看最近历史帧，补识别刚结束的 Ban/Pick
+  ├─ 8. SmartBpCandidateOperationBuilder ← 从识别状态构建候选操作
+  ├─ 9. SmartBpWorkflowBackfillService   ← 按工作流顺序补录未完成步骤
+  ├─ 10. SmartBpDetectedOperationApplier ← 先应用回看补救，再应用当前步骤的高置信度操作（需用户启用）
   │     └── ICharacterSelectionService   ← 实际执行角色选择
   │
-  └─ 10. SmartBpGuidanceSyncService      ← 同步 GameGuidance 步骤（需用户启用）
+  └─ 11. SmartBpGuidanceSyncService      ← 同步 GameGuidance 步骤（需用户启用）
         └── SmartBpRecognitionLedger     ← 记录已完成操作，防止重复应用
 ```
 
@@ -250,6 +251,10 @@ BP 状态自动识别的完整循环由 `SmartBpAutoRecognitionCoordinator` 协�
    - `FreeSync`：无动画同步（不依赖 GameGuidance）
 4. **`SmartBpRecognitionLedger`**：内存 ledger 记录已完成的操作 key，与当前状态 no-op 检查共同防止重复应用
 5. **`SmartBpGuidanceSyncService`**：当识别到的阶段与当前 GameGuidance 步骤不一致时，尝试同步引导步骤。阶段快速进入天赋选择后，仍可利用画面中保留的角色结果补录上一选择步骤（通过短暂阶段切换提交屏障）
+
+阶段切换时，`SmartBpTransitionReplayService` 会仅一次性读取帧缓冲中最近 `RecognitionTransitionLookBehindMilliseconds`（默认 800ms）的历史帧，并只 OCR 刚结束步骤所对应的 Ban/Pick 区域。它不改变正常 tick 的当前阶段字段过滤，也不会在非切换时扫描历史帧。只有角色解析成功、槽位合法、与当前本地状态不同且置信度不低于 `RecognitionTransitionReplayMinimumConfidence`（默认 0.95）的候选才会作为 `Backfill` 操作进入同一串行应用队列，且始终排在当前步骤操作之前。
+
+在角色分配画面中，视觉槽位永远不直接覆盖 `SurPlayerList`。普通分配只交换已选择角色；若四个分配槽均提供高置信、唯一且可安全匹配的玩家 ID 与角色，系统才会把遗漏的角色依画面顺序填入当前空位，再按玩家 ID 逐项交换角色到固定内部玩家位。该恢复组任一前置操作失败即停止后续依赖操作，玩家对象、成员和内部玩家位不移动。
 
 ### OCR Provider
 
@@ -293,7 +298,7 @@ SmartBP 自动识别曾提供 Pure AI、AI+OCR、AI+AI OCR、业务 AI 融合和
 | 补录 | `PlayBackfillAnimations`, `AllowLateBackfillAfterPhaseMoved` | false / true |
 | 状态管理 | `OcrFieldStaleMilliseconds`, `OcrBackfillLookBehindSteps`, `RequiredStableSnapshots` | 1500ms / 2 / 1 |
 | 图像编码 | `MaxImageWidth`, `PhaseCropMaxImageWidth`, `ContentCropMaxImageWidth` | 1280 / 640 / 768 |
-| 帧缓冲 | `RecognitionFrameBufferMilliseconds`, `RecognitionCropChangeThreshold` | 1500ms / 0.035 |
+| 帧缓冲与切换回看 | `RecognitionFrameBufferMilliseconds`, `RecognitionTransitionLookBehindMilliseconds`, `RecognitionTransitionReplayMinimumConfidence`, `RecognitionCropChangeThreshold` | 1500ms / 800ms / 0.95 / 0.035 |
 
 ## 区域配置
 

@@ -1869,6 +1869,33 @@ public sealed class SmartBpAiRecognitionContractTest
     }
 
     [Fact]
+    public void DistributeCharaWithCompleteHighConfidenceEvidenceFillsMissingPicksBeforeSwappingRoles()
+    {
+        var prophet = new Character("先知", Camp.Sur, "prophet.png");
+        var cheerleader = new Character("拉拉队员", Camp.Sur, "cheerleader.png");
+        var magician = new Character("魔术师", Camp.Sur, "magician.png");
+        var gravekeeper = new Character("守墓人", Camp.Sur, "gravekeeper.png");
+        var game = CreateGameWithNamedSurvivors(["A", "B", "C", "D"], [prophet, cheerleader, null, null]);
+        var shared = CreateShared(game, prophet, cheerleader, magician, gravekeeper);
+        var builder = new SmartBpCandidateOperationBuilder(CreateResolverFromShared(shared.Object), shared.Object, CreateMatcher(shared.Object));
+        var state = Business("求生者选择角色中");
+        state.DistributionEvidence =
+        [
+            new() { Index = 0, CharacterName = "守墓人", PlayerId = "A", RecognitionConfidence = .99, IsAutoApplySafe = true },
+            new() { Index = 1, CharacterName = "魔术师", PlayerId = "B", RecognitionConfidence = .99, IsAutoApplySafe = true },
+            new() { Index = 2, CharacterName = "拉拉队员", PlayerId = "C", RecognitionConfidence = .99, IsAutoApplySafe = true },
+            new() { Index = 3, CharacterName = "先知", PlayerId = "D", RecognitionConfidence = .99, IsAutoApplySafe = true }
+        ];
+
+        var result = builder.BuildWithDiagnostics(state, GameAction.DistributeChara, []);
+
+        Assert.Equal(2, result.Operations.Count(op => op.Kind == SmartBpDetectedOperationKind.PickSurvivor));
+        Assert.Contains(result.Operations, op => op.Kind == SmartBpDetectedOperationKind.SwapSurvivors);
+        Assert.All(result.Operations, op => Assert.False(string.IsNullOrWhiteSpace(op.DependencyGroup)));
+        Assert.All(result.Operations.Where(op => op.Kind == SmartBpDetectedOperationKind.PickSurvivor), op => Assert.True(op.RequireEmptySurvivorSlot));
+    }
+
+    [Fact]
     public void DistributeCharaSkipsWhenPlayerIdMissing()
     {
         var prophet = new Character("先知", Camp.Sur, "prophet.png");

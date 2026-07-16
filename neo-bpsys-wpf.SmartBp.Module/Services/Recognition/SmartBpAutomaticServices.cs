@@ -1365,8 +1365,12 @@ internal sealed class SmartBpCandidateOperationBuilder(
     {
         var operations = new List<SmartBpDetectedOperation>();
         var messages = new List<string>();
-        var simulated = shared.CurrentGame.SurPlayerList.Select(x => x.Character?.Name).ToArray();
-        foreach (var slot in slots.Where(x => !SmartBpBusinessStateParser.IsUnselected(x.CharacterName) && x.Index is >= 0 and < 4).OrderBy(x => x.Index))
+        var evidence = slots
+            .Where(x => !SmartBpBusinessStateParser.IsUnselected(x.CharacterName) && x.Index is >= 0 and < 4)
+            .OrderBy(x => x.Index)
+            .ToArray();
+        var resolvedSlots = new List<(SmartBpRecognizedPlayerCharacterSlot Slot, int Target, SmartBpNormalizedCharacter Character, string DisplayName, double Confidence)>();
+        foreach (var slot in evidence)
         {
             var playerIdText = string.IsNullOrWhiteSpace(slot.PlayerId) ? "<missing>" : slot.PlayerId;
             messages.Add($"Distribution visual slot {slot.Index}: char={slot.CharacterName}, player_id={playerIdText}.");
@@ -1392,16 +1396,55 @@ internal sealed class SmartBpCandidateOperationBuilder(
                 messages.Add($"Skipped distribution for player {playerMatch.DisplayName}: unresolved character '{slot.CharacterName}'.");
                 continue;
             }
+            resolvedSlots.Add((slot, target, resolved, playerMatch.DisplayName ?? slot.PlayerId!, confidence));
+        }
+
+        var canRecoverMissingPicks = evidence.Length == 4 &&
+                                      resolvedSlots.Count == 4 &&
+                                      resolvedSlots.Select(item => item.Target).Distinct().Count() == 4 &&
+                                      resolvedSlots.Select(item => item.Character.ResolvedCharacterName).Distinct(StringComparer.Ordinal).Count() == 4 &&
+                                      resolvedSlots.All(item => item.Confidence >= .95);
+        if (evidence.Length == 4 && !canRecoverMissingPicks)
+            messages.Add("Distribution recovery skipped: full player-ID assignment evidence is incomplete, ambiguous, duplicated, unresolved, or below 0.95 confidence; local survivor picks are preserved.");
+
+        var simulated = shared.CurrentGame.SurPlayerList.Select(x => x.Character?.Name).ToArray();
+        var recoveryGroup = canRecoverMissingPicks ? $"distribution-recovery:{Guid.NewGuid():N}" : null;
+        if (canRecoverMissingPicks)
+        {
+            foreach (var item in resolvedSlots.OrderBy(x => x.Slot.Index))
+            {
+                if (Array.FindIndex(simulated, name => string.Equals(name, item.Character.ResolvedCharacterName, StringComparison.Ordinal)) >= 0)
+                    continue;
+                var emptySlot = Array.FindIndex(simulated, string.IsNullOrWhiteSpace);
+                if (emptySlot < 0)
+                {
+                    messages.Add("Distribution recovery skipped: no empty survivor slot remains for a missing Pick; local state is preserved.");
+                    return new([], messages);
+                }
+                operations.Add(new(SmartBpDetectedOperationKind.PickSurvivor, GameAction.DistributeChara,
+                    guidanceIndexes.ToArray(), Camp.Sur, emptySlot, item.Slot.CharacterName,
+                    item.Character.ResolvedCharacterKey, item.Character.ResolvedCharacterName, item.Slot.PlayerId,
+                    item.Confidence, $"Distribution recovery: fill empty survivor slot {emptySlot} with {item.Character.ResolvedCharacterName} before player-ID assignment.",
+                    DependencyGroup: recoveryGroup, RequireEmptySurvivorSlot: true));
+                simulated[emptySlot] = item.Character.ResolvedCharacterName;
+            }
+        }
+
+        foreach (var item in resolvedSlots)
+        {
+            var slot = item.Slot;
+            var target = item.Target;
+            var resolved = item.Character;
 
             var source = Array.FindIndex(simulated, x => x == resolved.ResolvedCharacterName);
             if (source < 0)
             {
-                messages.Add($"Skipped distribution for player {playerMatch.DisplayName}: character {resolved.ResolvedCharacterName} is not among currently selected survivors; distribution cannot introduce new characters.");
+                messages.Add($"Skipped distribution for player {item.DisplayName}: character {resolved.ResolvedCharacterName} is not among currently selected survivors; distribution cannot introduce new characters.");
                 continue;
             }
             if (source == target)
             {
-                messages.Add($"Skipped distribution no-op: player {playerMatch.DisplayName} already has {resolved.ResolvedCharacterName}.");
+                messages.Add($"Skipped distribution no-op: player {item.DisplayName} already has {resolved.ResolvedCharacterName}.");
                 continue;
             }
 
@@ -1409,7 +1452,8 @@ internal sealed class SmartBpCandidateOperationBuilder(
             operations.Add(new(SmartBpDetectedOperationKind.SwapSurvivors, GameAction.DistributeChara,
                 guidanceIndexes.ToArray(), Camp.Sur, target, slot.CharacterName,
                 resolved.ResolvedCharacterKey, resolved.ResolvedCharacterName, slot.PlayerId,
-                confidence, $"Distribution: place existing character {resolved.ResolvedCharacterName} onto player {playerMatch.DisplayName} internal slot {target}."));
+                item.Confidence, $"Distribution: place existing character {resolved.ResolvedCharacterName} onto player {item.DisplayName} internal slot {target}.",
+                DependencyGroup: recoveryGroup));
             (simulated[source], simulated[target]) = (simulated[target], simulated[source]);
         }
         return new(operations, messages);
@@ -1444,19 +1488,26 @@ internal sealed class SmartBpDetectedOperationApplier(
         var messages = new List<string>();
         var applied = 0;
         var skipped = 0;
+        var failedDependencyGroups = new HashSet<string>(StringComparer.Ordinal);
         if (operations.Count == 0)
             return new(0, 0, ["No candidate operations to apply."]);
         foreach (var operation in operations)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            if (operation.DependencyGroup is { } dependencyGroup && failedDependencyGroups.Contains(dependencyGroup))
+            {
+                skipped++;
+                messages.Add($"Skipped: dependency group {dependencyGroup} was stopped by an earlier unsafe operation for {Describe(operation)}.");
+                continue;
+            }
             var snapshot = guidance.GetRuntimeSnapshot();
             var key = SmartBpWorkflowBackfillService.CreateKey(shared.CurrentGame.GameProgress, operation);
             if (key != null && ledger.IsStepOperationCompleted(key)) { skipped++; messages.Add($"Skipped: recognition ledger already completed {Describe(operation)}."); continue; }
-            if (!ValidateWorkflowSource(operation, snapshot, out var workflowError)) { skipped++; MarkSkipped(key, workflowError); messages.Add($"Skipped: {workflowError} for {Describe(operation)}."); continue; }
-            if (operation.Confidence < 0.90) { skipped++; MarkSkipped(key, "low confidence"); messages.Add($"Skipped: low confidence for {Describe(operation)}."); continue; }
-            if (operation.ResolvedCharacterKey == null) { skipped++; MarkSkipped(key, "unresolved character"); messages.Add($"Skipped: unresolved character for {Describe(operation)}."); continue; }
+            if (!ValidateWorkflowSource(operation, snapshot, out var workflowError)) { skipped++; MarkSkipped(key, workflowError); MarkDependencyFailed(operation, failedDependencyGroups); messages.Add($"Skipped: {workflowError} for {Describe(operation)}."); continue; }
+            if (operation.Confidence < 0.90) { skipped++; MarkSkipped(key, "low confidence"); MarkDependencyFailed(operation, failedDependencyGroups); messages.Add($"Skipped: low confidence for {Describe(operation)}."); continue; }
+            if (operation.ResolvedCharacterKey == null) { skipped++; MarkSkipped(key, "unresolved character"); MarkDependencyFailed(operation, failedDependencyGroups); messages.Add($"Skipped: unresolved character for {Describe(operation)}."); continue; }
             var dictionary = operation.Camp == Camp.Sur ? shared.SurCharaDict : shared.HunCharaDict;
-            if (!dictionary.TryGetValue(operation.ResolvedCharacterKey, out var character)) { skipped++; MarkSkipped(key, "resolved key missing"); messages.Add($"Skipped: resolved character key no longer exists: {operation.ResolvedCharacterKey}."); continue; }
+            if (!dictionary.TryGetValue(operation.ResolvedCharacterKey, out var character)) { skipped++; MarkSkipped(key, "resolved key missing"); MarkDependencyFailed(operation, failedDependencyGroups); messages.Add($"Skipped: resolved character key no longer exists: {operation.ResolvedCharacterKey}."); continue; }
             var playAnimation = operation.ApplyMode == SmartBpDetectedOperationApplyMode.CurrentStep ||
                                 operation.ApplyMode == SmartBpDetectedOperationApplyMode.Backfill &&
                                 settings.Settings.RecognitionEngine != SmartBpRecognitionEngine.AiQwen &&
@@ -1489,7 +1540,16 @@ internal sealed class SmartBpDetectedOperationApplier(
                     {
                         skipped++;
                         MarkSkipped(key, "invalid survivor slot");
+                        MarkDependencyFailed(operation, failedDependencyGroups);
                         messages.Add($"Skipped: invalid survivor slot for {Describe(operation)}.");
+                        continue;
+                    }
+                    if (operation.RequireEmptySurvivorSlot && shared.CurrentGame.SurPlayerList[operation.SlotIndex].Character != null)
+                    {
+                        skipped++;
+                        MarkSkipped(key, "survivor recovery target is no longer empty");
+                        MarkDependencyFailed(operation, failedDependencyGroups);
+                        messages.Add($"Skipped: survivor recovery target is no longer empty for {Describe(operation)}.");
                         continue;
                     }
                     if (IsSameCharacter(shared.CurrentGame.SurPlayerList[operation.SlotIndex].Character, character))
@@ -1518,6 +1578,7 @@ internal sealed class SmartBpDetectedOperationApplier(
                     {
                         skipped++;
                         MarkSkipped(key, "invalid survivor swap target");
+                        MarkDependencyFailed(operation, failedDependencyGroups);
                         messages.Add($"Skipped: invalid survivor swap target for {Describe(operation)}.");
                         continue;
                     }
@@ -1531,7 +1592,7 @@ internal sealed class SmartBpDetectedOperationApplier(
                     var sourceMatch = shared.CurrentGame.SurPlayerList
                         .Select((player, index) => (player, index))
                         .FirstOrDefault(x => IsSameCharacter(x.player.Character, character));
-                    if (sourceMatch.player == null) { skipped++; MarkSkipped(key, "no source slot contains target character"); messages.Add($"Skipped: no source slot contains target character for {Describe(operation)}."); continue; }
+                    if (sourceMatch.player == null) { skipped++; MarkSkipped(key, "no source slot contains target character"); MarkDependencyFailed(operation, failedDependencyGroups); messages.Add($"Skipped: no source slot contains target character for {Describe(operation)}."); continue; }
                     var source = sourceMatch.index;
                     if (source == operation.SlotIndex)
                     {
@@ -1628,6 +1689,12 @@ internal sealed class SmartBpDetectedOperationApplier(
 
     private static string Describe(SmartBpDetectedOperation operation) =>
         $"{operation.Kind} {operation.Camp}[{operation.SlotIndex}] {operation.RawCharacterName ?? "null"}";
+
+    private static void MarkDependencyFailed(SmartBpDetectedOperation operation, ISet<string> failedDependencyGroups)
+    {
+        if (!string.IsNullOrWhiteSpace(operation.DependencyGroup))
+            failedDependencyGroups.Add(operation.DependencyGroup);
+    }
 }
 
 internal enum SmartBpRecognitionDebugMode
@@ -1650,7 +1717,8 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
     SmartBpCandidateOperationBuilder candidateBuilder,
     ISmartBpDetectedOperationApplier applier,
     ISmartBpSceneGateService sceneGate,
-    ISmartBpOcrBpRecognitionService ocrRecognition) : ISmartBpAutoRecognitionCoordinator, ISmartBpStepCommitScheduler
+    ISmartBpOcrBpRecognitionService ocrRecognition,
+    ISmartBpTransitionReplayService? transitionReplay = null) : ISmartBpAutoRecognitionCoordinator, ISmartBpStepCommitScheduler
 {
     private readonly SemaphoreSlim _tickGate = new(1, 1);
     private readonly object _cancellationLock = new();
@@ -1667,6 +1735,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
     private int? _progressMismatchTargetStepIndex;
     private int _progressMismatchConsecutiveCount;
     private DateTimeOffset _progressAutoCorrectionCooldownUntil = DateTimeOffset.MinValue;
+    private string? _lastTransitionReplayKey;
     public bool IsRunning => _runCancellation is { IsCancellationRequested: false };
 
     public Task StartAsync(CancellationToken cancellationToken = default)
@@ -1679,6 +1748,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
         }
         _lastSnapshotFingerprint = null;
         _stableSnapshotCount = 0;
+        _lastTransitionReplayKey = null;
         ClearPostBpLatch();
         return Task.CompletedTask;
     }
@@ -1976,16 +2046,42 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
             }
 
             var isFreeSync = settings.Settings.RecognitionApplyMode == SmartBpRecognitionApplyMode.FreeFullSync;
+            SmartBpTransitionReplayResult? replay = null;
+            if (!isDebugPreview && !isFreeSync && gate.IsCharacterOperationAllowed &&
+                SmartBpAutomaticMapping.TryMapPhase(phaseResult.Phase, out var targetAction) &&
+                guidanceSnapshot.CurrentAction is { } currentAction && currentAction != targetAction)
+            {
+                var replayKey = $"{guidanceSnapshot.CurrentStepIndex}:{currentAction}:{targetAction}";
+                if (!string.Equals(_lastTransitionReplayKey, replayKey, StringComparison.Ordinal))
+                {
+                    replay = transitionReplay == null
+                        ? null
+                        : await transitionReplay.BuildAsync(guidanceSnapshot, targetAction, sequence, tickToken).ConfigureAwait(false);
+                    _lastTransitionReplayKey = replayKey;
+                    if (replay != null)
+                    {
+                        messages.AddRange(replay.Diagnostics);
+                        messages.AddRange(replay.Frames.Select(item =>
+                            $"Transition replay frame={item.FrameSequence} field={item.Field} candidates={item.CandidateCount}: {string.Join(" ", item.Diagnostics)}"));
+                    }
+                }
+            }
+            else
+            {
+                _lastTransitionReplayKey = null;
+            }
             var plan = !gate.IsCharacterOperationAllowed
                 ? new SmartBpWorkflowBackfillPlan([], [$"Character operations blocked by scene gate: {gate.Reason}."])
                 : isFreeSync
                 ? new SmartBpWorkflowBackfillPlan([], ["Free full sync bypasses GameGuidance workflow planning."])
                 : backfill.BuildPlan(state, guidanceSnapshot);
-            var operations = !gate.IsCharacterOperationAllowed
+            var plannedOperations = !gate.IsCharacterOperationAllowed
                 ? []
                 : isFreeSync
                 ? BuildFreeSyncOperations(state, candidateBuilder)
                 : plan.StepCandidates.SelectMany(item => item.Operations).ToArray();
+            var replayOperations = replay?.Operations ?? [];
+            var operations = replayOperations.Concat(plannedOperations).ToArray();
             messages.AddRange(plan.Diagnostics);
             messages.AddRange(plan.StepCandidates.Select(item => $"Step {item.StepIndex} {item.Action} [{string.Join(",", item.Indexes)}]: {item.Reason} Candidates={item.Operations.Count}."));
             var fingerprint = JsonSerializer.Serialize(state);
@@ -1999,7 +2095,9 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                 : settings.Settings.EnableAutoApplyRecognition && _stableSnapshotCount >= requiredStable
                 ? await applier.ApplyAsync(operations, tickToken)
                 : settings.Settings.EnableAutoApplyRecognition
-                    ? new(0, operations.Length, [$"Skipped: waiting for stable BP snapshots ({_stableSnapshotCount}/{requiredStable})."])
+                    ? replayOperations.Count > 0
+                        ? await applier.ApplyAsync(replayOperations, tickToken)
+                        : new(0, operations.Length, [$"Skipped: waiting for stable BP snapshots ({_stableSnapshotCount}/{requiredStable})."])
                     : new(0, operations.Length, operations.Length == 0
                     ? ["Skipped: auto apply disabled; no candidate operations were generated."]
                     : operations.Select(x => $"Skipped: auto apply disabled for step {x.SourceWorkflowStepIndex} {x.Kind} {x.Camp}[{x.SlotIndex}] {x.RawCharacterName ?? "null"}.").ToArray());

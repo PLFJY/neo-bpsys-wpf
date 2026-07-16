@@ -181,6 +181,12 @@
   <data name="SmartBpOcrBackfillLookBehindSteps">
     <value>OCR 回看工作流步数</value>
   </data>
+  <data name="SmartBpTransitionReplayWindow">
+    <value>阶段切换回看窗口（毫秒）</value>
+  </data>
+  <data name="SmartBpTransitionReplayMinimumConfidence">
+    <value>阶段切换回看纠正最低置信度</value>
+  </data>
   <data name="SmartBpOcrProviderSection">
     <value>OCR 提供程序</value>
   </data>

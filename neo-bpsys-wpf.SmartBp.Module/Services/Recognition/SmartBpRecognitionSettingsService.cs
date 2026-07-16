@@ -51,6 +51,7 @@ internal sealed class SmartBpRecognitionSettingsService : ISmartBpRecognitionSet
         Settings.RecognitionFieldStaleMilliseconds = Math.Clamp(Settings.RecognitionFieldStaleMilliseconds, 250, 30000);
         Settings.RecognitionFrameBufferMilliseconds = Math.Clamp(Settings.RecognitionFrameBufferMilliseconds, 250, 5000);
         Settings.RecognitionTransitionLookBehindMilliseconds = Math.Clamp(Settings.RecognitionTransitionLookBehindMilliseconds, 100, 5000);
+        Settings.RecognitionTransitionReplayMinimumConfidence = Math.Clamp(Settings.RecognitionTransitionReplayMinimumConfidence, 0, 1);
         Settings.RecognitionCropChangeThreshold = Math.Clamp(Settings.RecognitionCropChangeThreshold, .001, 1);
         Settings.RecognitionCropStableFrames = Math.Clamp(Settings.RecognitionCropStableFrames, 1, 10);
         Settings.RequiredStableSnapshots = Math.Clamp(Settings.RequiredStableSnapshots, 1, 5);

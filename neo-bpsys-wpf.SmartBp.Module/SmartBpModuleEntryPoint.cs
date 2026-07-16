@@ -119,6 +119,7 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint, ITutoria
         services.AddSingleton<ISmartBpProgressSyncService, SmartBpProgressSyncService>();
         services.AddSingleton<ISmartBpGameStateSyncService, SmartBpGameStateSyncService>();
         services.AddSingleton<SmartBpCandidateOperationBuilder>();
+        services.AddSingleton<ISmartBpTransitionReplayService, SmartBpTransitionReplayService>();
         services.AddSingleton<ISmartBpBusinessStateMerger, SmartBpBusinessStateMerger>();
         services.AddSingleton<ISmartBpRecognitionStateStore, SmartBpRecognitionStateStore>();
         services.AddSingleton<ISmartBpSnapshotRecognitionPlanner, SmartBpSnapshotRecognitionPlanner>();

@@ -178,6 +178,12 @@
   <data name="SmartBpOcrBackfillLookBehindSteps">
     <value>OCR ワークフロー振り返り手順数</value>
   </data>
+  <data name="SmartBpTransitionReplayWindow">
+    <value>フェーズ切替リプレイ時間（ミリ秒）</value>
+  </data>
+  <data name="SmartBpTransitionReplayMinimumConfidence">
+    <value>フェーズ切替リプレイ訂正の最低信頼度</value>
+  </data>
   <data name="SmartBpOcrProviderSection">
     <value>OCR プロバイダー</value>
   </data>

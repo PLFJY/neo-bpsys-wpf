@@ -699,6 +699,8 @@ public sealed class SmartBpRecognitionSettings
     public int RecognitionFrameBufferMilliseconds { get; set; } = 1500;
     /// <summary>获取或设置转场最终确认可向前回看画面帧的时长。</summary>
     public int RecognitionTransitionLookBehindMilliseconds { get; set; } = 800;
+    /// <summary>获取或设置阶段切换回看纠正所需的最低角色识别置信度。</summary>
+    public double RecognitionTransitionReplayMinimumConfidence { get; set; } = .95;
     /// <summary>获取或设置裁剪图变化阈值。</summary>
     public double RecognitionCropChangeThreshold { get; set; } = 0.035;
     /// <summary>获取或设置优先要求的稳定裁剪观测帧数。</summary>
@@ -993,7 +995,29 @@ public sealed record SmartBpDetectedOperation(SmartBpDetectedOperationKind Kind,
     IReadOnlyList<int> SourceGuidanceIndexes, Camp Camp, int SlotIndex, string? RawCharacterName,
     string? ResolvedCharacterKey, string? ResolvedCharacterName, string? PlayerId, double Confidence, string Reason,
     int? SourceWorkflowStepIndex = null,
-    SmartBpDetectedOperationApplyMode ApplyMode = SmartBpDetectedOperationApplyMode.CurrentStep);
+    SmartBpDetectedOperationApplyMode ApplyMode = SmartBpDetectedOperationApplyMode.CurrentStep,
+    string? DependencyGroup = null,
+    bool RequireEmptySurvivorSlot = false);
+
+/// <summary>阶段切换回看所使用的历史帧诊断。</summary>
+/// <param name="FrameSequence">历史帧序号。</param>
+/// <param name="Timestamp">历史帧时间。</param>
+/// <param name="Field">回看的业务字段。</param>
+/// <param name="CandidateCount">该帧保留的高置信候选数量。</param>
+/// <param name="Diagnostics">候选或跳过原因。</param>
+public sealed record SmartBpTransitionReplayFrameResult(long FrameSequence, DateTimeOffset Timestamp,
+    string Field, int CandidateCount, IReadOnlyList<string> Diagnostics);
+
+/// <summary>一次阶段切换回看的有序操作计划。</summary>
+/// <param name="SourceStepIndex">刚结束的来源步骤。</param>
+/// <param name="SourceAction">刚结束的来源动作。</param>
+/// <param name="TargetAction">当前识别到的目标动作。</param>
+/// <param name="Frames">逐帧诊断。</param>
+/// <param name="Operations">先于当前步骤应用的回看操作。</param>
+/// <param name="Diagnostics">计划汇总诊断。</param>
+public sealed record SmartBpTransitionReplayResult(int SourceStepIndex, GameAction SourceAction,
+    GameAction TargetAction, IReadOnlyList<SmartBpTransitionReplayFrameResult> Frames,
+    IReadOnlyList<SmartBpDetectedOperation> Operations, IReadOnlyList<string> Diagnostics);
 
 /// <summary>一个工作流派生角色操作的稳定台账身份。</summary>
 public sealed record SmartBpWorkflowOperationKey(GameProgress GameProgress, int StepIndex, GameAction Action,
