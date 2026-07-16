@@ -93,7 +93,7 @@ ExitGraph / EnterGraph 使用 `TransitionTrigger.EventType`，Loop 的 StartGrap
 
 数值属性也可写受限表达式，例如 `=clamp(Event.PlayerIndex / 10, 0, 1)`。表达式只支持数值、括号、上述数值函数与 `Event.*` / `StartEvent.*` / `StopEvent.*` 变量，使用 invariant culture，绝不执行脚本或任意 .NET 代码。表达式或数值图无法解析、除零或得到非有限数值时，runtime 记录 warning、跳过当前动作并继续后续 flow；旧字面量行为文件不会被转换或改写。
 
-节点图属性面板中的普通数字字段使用 WPF-UI `NumberBox`。数值范围、整数要求和动画属性元数据约束由基于 CommunityToolkit.Mvvm `ObservableValidator` 的属性编辑 ViewModel 校验，验证通过后才写回节点 JSON。允许百分比表达式的动画字段继续使用文本输入。连接数值端口后，可在 `ValueInputUnit`、`FromInputUnit` 或 `ToInputUnit` 选择绝对值或百分比；百分比仅适用于支持相对长度的属性（如 `ClipInsetRight`），运行时会把计算结果写成 `%` 值。此时对应手填值会禁用，避免与外部输入产生歧义。
+节点图属性面板中的普通数字字段使用 WPF-UI `NumberBox`。数值范围、整数要求和动画属性元数据约束由基于 CommunityToolkit.Mvvm `ObservableValidator` 的属性编辑 ViewModel 校验，验证通过后才写回节点 JSON。允许百分比表达式的动画字段继续使用文本输入。连接数值端口后，可在行为节点的 `ValueInputUnit`、`FromInputUnit` 或 `ToInputUnit` 选择绝对值或百分比；数据节点只输出无单位数值。百分比仅适用于支持相对长度的属性（如 `ClipInsetRight`），运行时会把计算结果写成 `%` 值。此时对应手填值会禁用，避免与外部输入产生歧义。行为文档加载时会将旧节点缺少的单位字段迁移为显式 `Absolute`，运行时不提供缺失字段的兼容推断。
 
 ## Runtime services
 

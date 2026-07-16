@@ -19,7 +19,7 @@ public sealed class FileLoggerProvider : ILoggerProvider
 
     private static readonly object SyncRoot = new();
     private static string? s_currentFilePath;
-    private static AppLogLevel s_currentLevel = AppLogLevel.Information;
+    private static AppLogLevel s_currentLevel = AppLogLevel.Warning;
     private static bool s_initialized;
 
     /// <summary>

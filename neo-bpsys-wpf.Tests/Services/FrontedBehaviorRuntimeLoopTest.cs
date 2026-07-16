@@ -14,6 +14,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -31,6 +32,142 @@ namespace neo_bpsys_wpf.Tests.Services;
 /// </summary>
 public class FrontedBehaviorRuntimeLoopTest
 {
+    /// <summary>
+    /// StartGraph 失败时不应继续执行无限 LoopGraph，以免同步失败造成 Dispatcher 忙等。
+    /// </summary>
+    [Fact]
+    public async Task BehaviorRuntime_Loop_FailedStartGraph_DoesNotRunLoopGraph()
+    {
+        await RunOnStaThreadAsync(async () =>
+        {
+            var runtime = new ControlledGraphRuntime { FirstExecutionStatus = FrontedGraphExecutionStatus.Failed };
+            var behavior = new FrontedBehavior
+            {
+                Kind = FrontedBehaviorKind.Loop,
+                StartTrigger = new TriggerDescriptor { EventType = "start" },
+                StartGraph = new FrontedNodeGraph(),
+                LoopGraph = new FrontedNodeGraph(),
+                LoopPolicy = new FrontedLoopPolicy { RepeatCount = -1 }
+            };
+
+            using var host = CreateHost(runtime);
+            await AttachHost(host, CreateDocument(behavior));
+            RunEvent(host, new FrontedBehaviorEvent { EventType = "start" });
+
+            await WaitForConditionAsync(() => CountRunningBehaviors(host) == 0, TimeSpan.FromSeconds(3));
+            Assert.Single(runtime.ExecutedGraphs);
+            Assert.Same(behavior.StartGraph, runtime.ExecutedGraphs[0]);
+        });
+    }
+
+    /// <summary>
+    /// 使用真实窗口、节点图运行时和动画运行时执行旧 PickingBorder 的 Loop 启动图，
+    /// 确认行为宿主不会在启动链上同步阻塞 Dispatcher。
+    /// </summary>
+    [Fact]
+    public async Task BehaviorRuntime_Loop_PickingBorderStartGraph_WithWindow_CompletesWithoutBlocking()
+    {
+        await RunOnStaThreadAsync(async () =>
+        {
+            var behaviorGuid = Guid.NewGuid();
+            var controlGuid = Guid.NewGuid();
+            var root = new Canvas { Width = 160, Height = 90 };
+            var pickingBorder = new Border
+            {
+                Width = 120,
+                Height = 60,
+                Opacity = 0,
+                Visibility = Visibility.Hidden
+            };
+            FrontedRendererProperties.SetIsGeneratedControl(pickingBorder, true);
+            FrontedRendererProperties.SetIsAnimationAuxiliaryElement(pickingBorder, true);
+            FrontedRendererProperties.SetParentBehaviorGuid(pickingBorder, controlGuid);
+            FrontedRendererProperties.SetParentRegisteredName(pickingBorder, "SurPick0");
+            FrontedRendererProperties.SetAnimationPartName(pickingBorder, "PickingBorder");
+            FrontedRendererProperties.SetRegisteredName(pickingBorder, "SurPick0PickingBorder");
+            root.Children.Add(pickingBorder);
+
+            var window = new Window
+            {
+                Width = 180,
+                Height = 120,
+                Content = root,
+                ShowInTaskbar = false,
+                WindowStyle = WindowStyle.None
+            };
+            window.Show();
+
+            try
+            {
+                var catalog = new FrontedNodeCatalog();
+                var start = catalog.CreateNode("flow.start");
+                var show = catalog.CreateNode("action.setProperty");
+                show.Properties["Target"] = JsonSerializer.SerializeToElement($"part:{controlGuid}:PickingBorder");
+                show.Properties["TargetLayer"] = JsonSerializer.SerializeToElement("Control");
+                show.Properties["PropertyName"] = JsonSerializer.SerializeToElement("Visibility");
+                show.Properties["Value"] = JsonSerializer.SerializeToElement("Visible");
+                var resetOpacity = catalog.CreateNode("action.setProperty");
+                resetOpacity.Properties["Target"] = JsonSerializer.SerializeToElement($"part:{controlGuid}:PickingBorder");
+                resetOpacity.Properties["TargetLayer"] = JsonSerializer.SerializeToElement("Control");
+                resetOpacity.Properties["PropertyName"] = JsonSerializer.SerializeToElement("Opacity");
+                resetOpacity.Properties["Value"] = JsonSerializer.SerializeToElement("0");
+                var fadeIn = catalog.CreateNode("action.animateProperty");
+                fadeIn.Properties["Target"] = JsonSerializer.SerializeToElement($"part:{controlGuid}:PickingBorder");
+                fadeIn.Properties["TargetLayer"] = JsonSerializer.SerializeToElement("Control");
+                fadeIn.Properties["PropertyName"] = JsonSerializer.SerializeToElement("Opacity");
+                fadeIn.Properties["From"] = JsonSerializer.SerializeToElement("0");
+                fadeIn.Properties["To"] = JsonSerializer.SerializeToElement("1");
+                fadeIn.Properties["DurationMs"] = JsonSerializer.SerializeToElement(50);
+                fadeIn.Properties["WaitForCompletion"] = JsonSerializer.SerializeToElement(true);
+                var end = catalog.CreateNode("flow.end");
+                var startGraph = new FrontedNodeGraph
+                {
+                    Nodes = [start, show, resetOpacity, fadeIn, end],
+                    Connections =
+                    [
+                        Connect(start, "Out", show, "In"),
+                        Connect(show, "Out", resetOpacity, "In"),
+                        Connect(resetOpacity, "Out", fadeIn, "In"),
+                        Connect(fadeIn, "Out", end, "In")
+                    ]
+                };
+                var loopStart = catalog.CreateNode("flow.start");
+                var loopEnd = catalog.CreateNode("flow.end");
+                var behavior = new FrontedBehavior
+                {
+                    BehaviorId = behaviorGuid,
+                    Kind = FrontedBehaviorKind.Loop,
+                    StartTrigger = new TriggerDescriptor { EventType = "start" },
+                    StartGraph = startGraph,
+                    LoopGraph = new FrontedNodeGraph
+                    {
+                        Nodes = [loopStart, loopEnd],
+                        Connections = [Connect(loopStart, "Out", loopEnd, "In")]
+                    },
+                    LoopPolicy = new FrontedLoopPolicy { RepeatCount = 1 }
+                };
+
+                using var host = CreateHost(
+                    new FrontedNodeGraphRuntime(),
+                    new FrontedAnimationRuntime(),
+                    root);
+                var document = CreateDocument(behavior);
+                document.ControlBehaviorSets[0].BehaviorGuid = controlGuid;
+                await AttachHost(host, document);
+
+                RunEvent(host, new FrontedBehaviorEvent { EventType = "start" });
+
+                await WaitForConditionAsync(
+                    () => pickingBorder.Visibility == Visibility.Visible && Math.Abs(pickingBorder.Opacity - 1) < 0.001,
+                    TimeSpan.FromSeconds(3));
+            }
+            finally
+            {
+                window.Close();
+            }
+        });
+    }
+
     /// <summary>
     /// StartTrigger 发布后，先执行 StartGraph，然后 LoopGraph 开始循环。
     /// </summary>
@@ -1164,6 +1301,33 @@ public class FrontedBehaviorRuntimeLoopTest
         await tcs.Task.WaitAsync(timeout);
     }
 
+    private static async Task WaitForConditionAsync(Func<bool> condition, TimeSpan timeout)
+    {
+        var startedAt = DateTime.UtcNow;
+        while (!condition())
+        {
+            if (DateTime.UtcNow - startedAt >= timeout)
+            {
+                throw new TimeoutException("The expected WPF behavior state was not reached in time.");
+            }
+
+            await Task.Delay(20);
+        }
+    }
+
+    private static FrontedNodeConnection Connect(
+        FrontedNode source,
+        string sourcePort,
+        FrontedNode target,
+        string targetPort) =>
+        new()
+        {
+            SourceNodeId = source.NodeId,
+            SourcePort = sourcePort,
+            TargetNodeId = target.NodeId,
+            TargetPort = targetPort
+        };
+
     // ---------------------------------------------------------------
     // STA thread helper
     // ---------------------------------------------------------------
@@ -1185,14 +1349,15 @@ public class FrontedBehaviorRuntimeLoopTest
 
     private static IDisposable CreateHost(
         IFrontedNodeGraphRuntime graphRuntime,
-        RecordingAnimationRuntime? animationRuntime = null)
+        IFrontedAnimationRuntime? animationRuntime = null,
+        Canvas? rootCanvas = null)
     {
         var context = new FrontedBehaviorRuntimeContext
         {
             WindowId = "TestWindow",
             WindowType = "BpWindow",
             CanvasName = "BaseCanvas",
-            RootCanvas = new Canvas(),
+            RootCanvas = rootCanvas ?? new Canvas(),
             WindowConfig = neo_bpsys_wpf.Core.Services.FrontedLayout.FrontedWindowConfigCanvasAdapter.FromCanvasConfig(new FrontedCanvasConfig()),
             SharedDataService = new MockSharedDataService(),
             Logger = NullLogger.Instance,
@@ -1441,6 +1606,11 @@ public class FrontedBehaviorRuntimeLoopTest
         /// </summary>
         public TaskCompletionSource? StartGraphExecuted { get; set; }
 
+        /// <summary>
+        /// 首次执行返回的状态，默认成功。
+        /// </summary>
+        public FrontedGraphExecutionStatus FirstExecutionStatus { get; set; } = FrontedGraphExecutionStatus.Success;
+
         public async Task<FrontedGraphExecutionResult> ExecuteAsync(
             FrontedNodeGraph graph,
             FrontedGraphExecutionContext context,
@@ -1499,7 +1669,12 @@ public class FrontedBehaviorRuntimeLoopTest
                 return new FrontedGraphExecutionResult { Status = FrontedGraphExecutionStatus.Cancelled };
             }
 
-            return new FrontedGraphExecutionResult { Status = FrontedGraphExecutionStatus.Success };
+            return new FrontedGraphExecutionResult
+            {
+                Status = ExecutedGraphs.Count == 1
+                    ? FirstExecutionStatus
+                    : FrontedGraphExecutionStatus.Success
+            };
         }
 
         /// <summary>

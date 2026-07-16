@@ -1978,6 +1978,12 @@
   <data name="Designer.Graph.NodeCatalog">
     <value>ノードカタログ</value>
   </data>
+  <data name="Designer.Graph.Group.Behavior">
+    <value>動作ノード</value>
+  </data>
+  <data name="Designer.Graph.Group.Data">
+    <value>データノード</value>
+  </data>
   <data name="Designer.Graph.Properties">
     <value>ノードプロパティ</value>
   </data>

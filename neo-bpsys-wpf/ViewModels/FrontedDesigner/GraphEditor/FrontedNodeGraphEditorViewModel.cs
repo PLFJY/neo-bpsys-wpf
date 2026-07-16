@@ -179,13 +179,47 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
                                     || item.Category.Contains(CatalogSearchText, StringComparison.OrdinalIgnoreCase));
 
     /// <summary>
+    /// 获取按行为与数据用途分组、且已应用搜索条件的节点目录。
+    /// </summary>
+    public IEnumerable<FrontedNodeCatalogGroupViewModel> GroupedCatalog
+    {
+        get
+        {
+            var items = FilteredCatalog.ToArray();
+            var behaviorNodes = items
+                .Where(item => !string.Equals(item.Descriptor.Category, "Value", StringComparison.Ordinal))
+                .ToArray();
+            if (behaviorNodes.Length > 0)
+            {
+                yield return new FrontedNodeCatalogGroupViewModel(
+                    _localize("Designer.Graph.Group.Behavior", "Behavior nodes"),
+                    behaviorNodes);
+            }
+
+            var dataNodes = items
+                .Where(item => string.Equals(item.Descriptor.Category, "Value", StringComparison.Ordinal))
+                .ToArray();
+            if (dataNodes.Length > 0)
+            {
+                yield return new FrontedNodeCatalogGroupViewModel(
+                    _localize("Designer.Graph.Group.Data", "Data nodes"),
+                    dataNodes);
+            }
+        }
+    }
+
+    /// <summary>
     /// 获取当前连接模式状态文本。
     /// </summary>
     public string ConnectionStatus => IsConnecting
         ? _localize("Designer.Graph.Connection.SelectInput", "Select an input port.")
         : string.Empty;
 
-    partial void OnCatalogSearchTextChanged(string value) => OnPropertyChanged(nameof(FilteredCatalog));
+    partial void OnCatalogSearchTextChanged(string value)
+    {
+        OnPropertyChanged(nameof(FilteredCatalog));
+        OnPropertyChanged(nameof(GroupedCatalog));
+    }
 
     /// <summary>
     /// 当选中节点变化时，若选中了动画属性节点则发布教程信号。
@@ -2433,4 +2467,33 @@ public sealed class FrontedNodeCatalogItemViewModel
     public string DisplayName { get; }
     public string Description { get; }
     public string Category { get; }
+}
+
+/// <summary>
+/// 节点目录中的一个用途分组。
+/// </summary>
+public sealed class FrontedNodeCatalogGroupViewModel
+{
+    /// <summary>
+    /// 初始化节点目录分组。
+    /// </summary>
+    /// <param name="displayName">显示给用户的分组名称。</param>
+    /// <param name="items">分组内的节点目录项。</param>
+    public FrontedNodeCatalogGroupViewModel(
+        string displayName,
+        IReadOnlyList<FrontedNodeCatalogItemViewModel> items)
+    {
+        DisplayName = displayName;
+        Items = items;
+    }
+
+    /// <summary>
+    /// 获取显示给用户的分组名称。
+    /// </summary>
+    public string DisplayName { get; }
+
+    /// <summary>
+    /// 获取分组内的节点目录项。
+    /// </summary>
+    public IReadOnlyList<FrontedNodeCatalogItemViewModel> Items { get; }
 }

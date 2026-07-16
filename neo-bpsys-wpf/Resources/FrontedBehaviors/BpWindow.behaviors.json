@@ -145,7 +145,7 @@
                 "NodeType": "flow.end",
                 "DisplayName": "",
                 "X": 1595,
-                "Y": 803,
+                "Y": 989,
                 "Properties": {}
               },
               {
@@ -166,7 +166,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1612,
-                "Y": 519,
+                "Y": 533,
                 "Properties": {
                   "Target": "guid:401bd114-82fe-4997-aa2f-61d95bb2ba16",
                   "TargetLayer": "Content",
@@ -183,7 +183,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1609,
-                "Y": 607,
+                "Y": 685,
                 "Properties": {
                   "Target": "guid:401bd114-82fe-4997-aa2f-61d95bb2ba16",
                   "TargetLayer": "Content",
@@ -200,7 +200,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1597,
-                "Y": 700,
+                "Y": 837,
                 "Properties": {
                   "Target": "part:401bd114-82fe-4997-aa2f-61d95bb2ba16:Swipe",
                   "TargetLayer": "Auto",
@@ -341,7 +341,7 @@
                 "NodeType": "flow.end",
                 "DisplayName": "",
                 "X": 1263.3333333333076,
-                "Y": 897.9999999999771,
+                "Y": 1066,
                 "Properties": {}
               },
               {
@@ -362,7 +362,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1271.3333333333053,
-                "Y": 589.999999999981,
+                "Y": 610,
                 "Properties": {
                   "Target": "Self",
                   "TargetLayer": "Content",
@@ -391,7 +391,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1261.3333333333053,
-                "Y": 690.999999999981,
+                "Y": 762,
                 "Properties": {
                   "Target": "Self",
                   "TargetLayer": "Content",
@@ -408,7 +408,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1264.3333333333053,
-                "Y": 776.999999999981,
+                "Y": 914,
                 "Properties": {
                   "Target": "part:401bd114-82fe-4997-aa2f-61d95bb2ba16:Swipe",
                   "TargetLayer": "Auto",
@@ -650,7 +650,7 @@
                 "NodeType": "flow.end",
                 "DisplayName": "",
                 "X": 1595,
-                "Y": 803,
+                "Y": 989,
                 "Properties": {}
               },
               {
@@ -671,7 +671,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1612,
-                "Y": 519,
+                "Y": 533,
                 "Properties": {
                   "Target": "guid:401bd114-82fe-4997-aa2f-61d95bb2ba16",
                   "TargetLayer": "Content",
@@ -688,7 +688,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1609,
-                "Y": 607,
+                "Y": 685,
                 "Properties": {
                   "Target": "guid:401bd114-82fe-4997-aa2f-61d95bb2ba16",
                   "TargetLayer": "Content",
@@ -705,7 +705,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1597,
-                "Y": 700,
+                "Y": 837,
                 "Properties": {
                   "Target": "part:401bd114-82fe-4997-aa2f-61d95bb2ba16:Swipe",
                   "TargetLayer": "Auto",
@@ -832,7 +832,7 @@
                 "NodeType": "flow.end",
                 "DisplayName": "",
                 "X": 1263.3333333333076,
-                "Y": 897.9999999999771,
+                "Y": 1066,
                 "Properties": {}
               },
               {
@@ -853,7 +853,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1271.3333333333053,
-                "Y": 589.999999999981,
+                "Y": 610,
                 "Properties": {
                   "Target": "Self",
                   "TargetLayer": "Content",
@@ -882,7 +882,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1261.3333333333053,
-                "Y": 690.999999999981,
+                "Y": 762,
                 "Properties": {
                   "Target": "Self",
                   "TargetLayer": "Content",
@@ -899,7 +899,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1264.3333333333053,
-                "Y": 776.999999999981,
+                "Y": 914,
                 "Properties": {
                   "Target": "part:401bd114-82fe-4997-aa2f-61d95bb2ba16:Swipe",
                   "TargetLayer": "Auto",
@@ -1115,7 +1115,7 @@
                 "NodeType": "flow.end",
                 "DisplayName": "",
                 "X": 1595,
-                "Y": 803,
+                "Y": 989,
                 "Properties": {}
               },
               {
@@ -1136,7 +1136,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1612,
-                "Y": 519,
+                "Y": 533,
                 "Properties": {
                   "Target": "guid:401bd114-82fe-4997-aa2f-61d95bb2ba16",
                   "TargetLayer": "Content",
@@ -1153,7 +1153,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1609,
-                "Y": 607,
+                "Y": 685,
                 "Properties": {
                   "Target": "guid:401bd114-82fe-4997-aa2f-61d95bb2ba16",
                   "TargetLayer": "Content",
@@ -1170,7 +1170,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1597,
-                "Y": 700,
+                "Y": 837,
                 "Properties": {
                   "Target": "part:401bd114-82fe-4997-aa2f-61d95bb2ba16:Swipe",
                   "TargetLayer": "Auto",
@@ -1297,7 +1297,7 @@
                 "NodeType": "flow.end",
                 "DisplayName": "",
                 "X": 1263.3333333333076,
-                "Y": 897.9999999999771,
+                "Y": 1066,
                 "Properties": {}
               },
               {
@@ -1318,7 +1318,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1271.3333333333053,
-                "Y": 589.999999999981,
+                "Y": 610,
                 "Properties": {
                   "Target": "Self",
                   "TargetLayer": "Content",
@@ -1347,7 +1347,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1261.3333333333053,
-                "Y": 690.999999999981,
+                "Y": 762,
                 "Properties": {
                   "Target": "Self",
                   "TargetLayer": "Content",
@@ -1364,7 +1364,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1264.3333333333053,
-                "Y": 776.999999999981,
+                "Y": 914,
                 "Properties": {
                   "Target": "part:401bd114-82fe-4997-aa2f-61d95bb2ba16:Swipe",
                   "TargetLayer": "Auto",
@@ -2295,7 +2295,7 @@
                 "NodeType": "flow.end",
                 "DisplayName": "",
                 "X": 1595,
-                "Y": 803,
+                "Y": 989,
                 "Properties": {}
               },
               {
@@ -2316,7 +2316,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1612,
-                "Y": 519,
+                "Y": 533,
                 "Properties": {
                   "Target": "guid:dc0b9afb-938a-4b59-84e1-50a2302310d9",
                   "TargetLayer": "Content",
@@ -2333,7 +2333,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1609,
-                "Y": 607,
+                "Y": 685,
                 "Properties": {
                   "Target": "guid:dc0b9afb-938a-4b59-84e1-50a2302310d9",
                   "TargetLayer": "Content",
@@ -2350,7 +2350,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1597,
-                "Y": 700,
+                "Y": 837,
                 "Properties": {
                   "Target": "part:dc0b9afb-938a-4b59-84e1-50a2302310d9:Swipe",
                   "TargetLayer": "Auto",
@@ -2491,7 +2491,7 @@
                 "NodeType": "flow.end",
                 "DisplayName": "",
                 "X": 1263.3333333333076,
-                "Y": 897.9999999999771,
+                "Y": 1066,
                 "Properties": {}
               },
               {
@@ -2512,7 +2512,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1271.3333333333053,
-                "Y": 589.999999999981,
+                "Y": 610,
                 "Properties": {
                   "Target": "Self",
                   "TargetLayer": "Content",
@@ -2541,7 +2541,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1261.3333333333053,
-                "Y": 690.999999999981,
+                "Y": 762,
                 "Properties": {
                   "Target": "Self",
                   "TargetLayer": "Content",
@@ -2558,7 +2558,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1264.3333333333053,
-                "Y": 776.999999999981,
+                "Y": 914,
                 "Properties": {
                   "Target": "part:dc0b9afb-938a-4b59-84e1-50a2302310d9:Swipe",
                   "TargetLayer": "Auto",
@@ -3193,7 +3193,7 @@
                 "NodeType": "flow.end",
                 "DisplayName": "",
                 "X": 1595,
-                "Y": 803,
+                "Y": 989,
                 "Properties": {}
               },
               {
@@ -3214,7 +3214,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1612,
-                "Y": 519,
+                "Y": 533,
                 "Properties": {
                   "Target": "guid:a6b2ddab-a795-4d22-93fd-ba695d856159",
                   "TargetLayer": "Content",
@@ -3231,7 +3231,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1609,
-                "Y": 607,
+                "Y": 685,
                 "Properties": {
                   "Target": "guid:a6b2ddab-a795-4d22-93fd-ba695d856159",
                   "TargetLayer": "Content",
@@ -3248,7 +3248,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1597,
-                "Y": 700,
+                "Y": 837,
                 "Properties": {
                   "Target": "part:a6b2ddab-a795-4d22-93fd-ba695d856159:Swipe",
                   "TargetLayer": "Auto",
@@ -3389,7 +3389,7 @@
                 "NodeType": "flow.end",
                 "DisplayName": "",
                 "X": 1263.3333333333076,
-                "Y": 897.9999999999771,
+                "Y": 1066,
                 "Properties": {}
               },
               {
@@ -3410,7 +3410,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1271.3333333333053,
-                "Y": 589.999999999981,
+                "Y": 610,
                 "Properties": {
                   "Target": "Self",
                   "TargetLayer": "Content",
@@ -3439,7 +3439,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1261.3333333333053,
-                "Y": 690.999999999981,
+                "Y": 762,
                 "Properties": {
                   "Target": "Self",
                   "TargetLayer": "Content",
@@ -3456,7 +3456,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1264.3333333333053,
-                "Y": 776.999999999981,
+                "Y": 914,
                 "Properties": {
                   "Target": "part:a6b2ddab-a795-4d22-93fd-ba695d856159:Swipe",
                   "TargetLayer": "Auto",
@@ -3698,7 +3698,7 @@
                 "NodeType": "flow.end",
                 "DisplayName": "",
                 "X": 1595,
-                "Y": 803,
+                "Y": 989,
                 "Properties": {}
               },
               {
@@ -3719,7 +3719,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1612,
-                "Y": 519,
+                "Y": 533,
                 "Properties": {
                   "Target": "guid:a6b2ddab-a795-4d22-93fd-ba695d856159",
                   "TargetLayer": "Content",
@@ -3736,7 +3736,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1609,
-                "Y": 607,
+                "Y": 685,
                 "Properties": {
                   "Target": "guid:a6b2ddab-a795-4d22-93fd-ba695d856159",
                   "TargetLayer": "Content",
@@ -3753,7 +3753,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1597,
-                "Y": 700,
+                "Y": 837,
                 "Properties": {
                   "Target": "part:a6b2ddab-a795-4d22-93fd-ba695d856159:Swipe",
                   "TargetLayer": "Auto",
@@ -3880,7 +3880,7 @@
                 "NodeType": "flow.end",
                 "DisplayName": "",
                 "X": 1263.3333333333076,
-                "Y": 897.9999999999771,
+                "Y": 1066,
                 "Properties": {}
               },
               {
@@ -3901,7 +3901,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1271.3333333333053,
-                "Y": 589.999999999981,
+                "Y": 610,
                 "Properties": {
                   "Target": "Self",
                   "TargetLayer": "Content",
@@ -3930,7 +3930,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1261.3333333333053,
-                "Y": 690.999999999981,
+                "Y": 762,
                 "Properties": {
                   "Target": "Self",
                   "TargetLayer": "Content",
@@ -3947,7 +3947,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1264.3333333333053,
-                "Y": 776.999999999981,
+                "Y": 914,
                 "Properties": {
                   "Target": "part:a6b2ddab-a795-4d22-93fd-ba695d856159:Swipe",
                   "TargetLayer": "Auto",
@@ -4163,7 +4163,7 @@
                 "NodeType": "flow.end",
                 "DisplayName": "",
                 "X": 1595,
-                "Y": 803,
+                "Y": 989,
                 "Properties": {}
               },
               {
@@ -4184,7 +4184,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1612,
-                "Y": 519,
+                "Y": 533,
                 "Properties": {
                   "Target": "guid:a6b2ddab-a795-4d22-93fd-ba695d856159",
                   "TargetLayer": "Content",
@@ -4201,7 +4201,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1609,
-                "Y": 607,
+                "Y": 685,
                 "Properties": {
                   "Target": "guid:a6b2ddab-a795-4d22-93fd-ba695d856159",
                   "TargetLayer": "Content",
@@ -4218,7 +4218,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1597,
-                "Y": 700,
+                "Y": 837,
                 "Properties": {
                   "Target": "part:a6b2ddab-a795-4d22-93fd-ba695d856159:Swipe",
                   "TargetLayer": "Auto",
@@ -4345,7 +4345,7 @@
                 "NodeType": "flow.end",
                 "DisplayName": "",
                 "X": 1263.3333333333076,
-                "Y": 897.9999999999771,
+                "Y": 1066,
                 "Properties": {}
               },
               {
@@ -4366,7 +4366,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1271.3333333333053,
-                "Y": 589.999999999981,
+                "Y": 610,
                 "Properties": {
                   "Target": "Self",
                   "TargetLayer": "Content",
@@ -4395,7 +4395,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1261.3333333333053,
-                "Y": 690.999999999981,
+                "Y": 762,
                 "Properties": {
                   "Target": "Self",
                   "TargetLayer": "Content",
@@ -4412,7 +4412,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1264.3333333333053,
-                "Y": 776.999999999981,
+                "Y": 914,
                 "Properties": {
                   "Target": "part:a6b2ddab-a795-4d22-93fd-ba695d856159:Swipe",
                   "TargetLayer": "Auto",
@@ -5021,7 +5021,7 @@
                 "NodeType": "flow.end",
                 "DisplayName": "",
                 "X": 1595,
-                "Y": 803,
+                "Y": 989,
                 "Properties": {}
               },
               {
@@ -5042,7 +5042,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1612,
-                "Y": 519,
+                "Y": 533,
                 "Properties": {
                   "Target": "guid:6a9ff519-af7e-4259-894f-f3cbe58e8201",
                   "TargetLayer": "Content",
@@ -5059,7 +5059,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1609,
-                "Y": 607,
+                "Y": 685,
                 "Properties": {
                   "Target": "guid:6a9ff519-af7e-4259-894f-f3cbe58e8201",
                   "TargetLayer": "Content",
@@ -5076,7 +5076,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1597,
-                "Y": 700,
+                "Y": 837,
                 "Properties": {
                   "Target": "part:6a9ff519-af7e-4259-894f-f3cbe58e8201:Swipe",
                   "TargetLayer": "Auto",
@@ -5217,7 +5217,7 @@
                 "NodeType": "flow.end",
                 "DisplayName": "",
                 "X": 1263.3333333333076,
-                "Y": 897.9999999999771,
+                "Y": 1066,
                 "Properties": {}
               },
               {
@@ -5238,7 +5238,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1271.3333333333053,
-                "Y": 589.999999999981,
+                "Y": 610,
                 "Properties": {
                   "Target": "Self",
                   "TargetLayer": "Content",
@@ -5267,7 +5267,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1261.3333333333053,
-                "Y": 690.999999999981,
+                "Y": 762,
                 "Properties": {
                   "Target": "Self",
                   "TargetLayer": "Content",
@@ -5284,7 +5284,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1264.3333333333053,
-                "Y": 776.999999999981,
+                "Y": 914,
                 "Properties": {
                   "Target": "part:6a9ff519-af7e-4259-894f-f3cbe58e8201:Swipe",
                   "TargetLayer": "Auto",
@@ -5526,7 +5526,7 @@
                 "NodeType": "flow.end",
                 "DisplayName": "",
                 "X": 1595,
-                "Y": 803,
+                "Y": 989,
                 "Properties": {}
               },
               {
@@ -5547,7 +5547,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1612,
-                "Y": 519,
+                "Y": 533,
                 "Properties": {
                   "Target": "guid:6a9ff519-af7e-4259-894f-f3cbe58e8201",
                   "TargetLayer": "Content",
@@ -5564,7 +5564,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1609,
-                "Y": 607,
+                "Y": 685,
                 "Properties": {
                   "Target": "guid:6a9ff519-af7e-4259-894f-f3cbe58e8201",
                   "TargetLayer": "Content",
@@ -5581,7 +5581,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1597,
-                "Y": 700,
+                "Y": 837,
                 "Properties": {
                   "Target": "part:6a9ff519-af7e-4259-894f-f3cbe58e8201:Swipe",
                   "TargetLayer": "Auto",
@@ -5708,7 +5708,7 @@
                 "NodeType": "flow.end",
                 "DisplayName": "",
                 "X": 1263.3333333333076,
-                "Y": 897.9999999999771,
+                "Y": 1066,
                 "Properties": {}
               },
               {
@@ -5729,7 +5729,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1271.3333333333053,
-                "Y": 589.999999999981,
+                "Y": 610,
                 "Properties": {
                   "Target": "Self",
                   "TargetLayer": "Content",
@@ -5758,7 +5758,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1261.3333333333053,
-                "Y": 690.999999999981,
+                "Y": 762,
                 "Properties": {
                   "Target": "Self",
                   "TargetLayer": "Content",
@@ -5775,7 +5775,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1264.3333333333053,
-                "Y": 776.999999999981,
+                "Y": 914,
                 "Properties": {
                   "Target": "part:6a9ff519-af7e-4259-894f-f3cbe58e8201:Swipe",
                   "TargetLayer": "Auto",
@@ -5991,7 +5991,7 @@
                 "NodeType": "flow.end",
                 "DisplayName": "",
                 "X": 1595,
-                "Y": 803,
+                "Y": 989,
                 "Properties": {}
               },
               {
@@ -6012,7 +6012,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1612,
-                "Y": 519,
+                "Y": 533,
                 "Properties": {
                   "Target": "guid:6a9ff519-af7e-4259-894f-f3cbe58e8201",
                   "TargetLayer": "Content",
@@ -6029,7 +6029,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1609,
-                "Y": 607,
+                "Y": 685,
                 "Properties": {
                   "Target": "guid:6a9ff519-af7e-4259-894f-f3cbe58e8201",
                   "TargetLayer": "Content",
@@ -6046,7 +6046,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1597,
-                "Y": 700,
+                "Y": 837,
                 "Properties": {
                   "Target": "part:6a9ff519-af7e-4259-894f-f3cbe58e8201:Swipe",
                   "TargetLayer": "Auto",
@@ -6173,7 +6173,7 @@
                 "NodeType": "flow.end",
                 "DisplayName": "",
                 "X": 1263.3333333333076,
-                "Y": 897.9999999999771,
+                "Y": 1066,
                 "Properties": {}
               },
               {
@@ -6194,7 +6194,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1271.3333333333053,
-                "Y": 589.999999999981,
+                "Y": 610,
                 "Properties": {
                   "Target": "Self",
                   "TargetLayer": "Content",
@@ -6223,7 +6223,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1261.3333333333053,
-                "Y": 690.999999999981,
+                "Y": 762,
                 "Properties": {
                   "Target": "Self",
                   "TargetLayer": "Content",
@@ -6240,7 +6240,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1264.3333333333053,
-                "Y": 776.999999999981,
+                "Y": 914,
                 "Properties": {
                   "Target": "part:6a9ff519-af7e-4259-894f-f3cbe58e8201:Swipe",
                   "TargetLayer": "Auto",
@@ -6849,7 +6849,7 @@
                 "NodeType": "flow.end",
                 "DisplayName": "",
                 "X": 1595,
-                "Y": 803,
+                "Y": 989,
                 "Properties": {}
               },
               {
@@ -6870,7 +6870,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1612,
-                "Y": 519,
+                "Y": 533,
                 "Properties": {
                   "Target": "guid:303e717c-1a0f-4c31-b001-4077c2590536",
                   "TargetLayer": "Content",
@@ -6887,7 +6887,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1609,
-                "Y": 607,
+                "Y": 685,
                 "Properties": {
                   "Target": "guid:303e717c-1a0f-4c31-b001-4077c2590536",
                   "TargetLayer": "Content",
@@ -6904,7 +6904,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1597,
-                "Y": 700,
+                "Y": 837,
                 "Properties": {
                   "Target": "part:303e717c-1a0f-4c31-b001-4077c2590536:Swipe",
                   "TargetLayer": "Auto",
@@ -7045,7 +7045,7 @@
                 "NodeType": "flow.end",
                 "DisplayName": "",
                 "X": 1263.3333333333076,
-                "Y": 897.9999999999771,
+                "Y": 1066,
                 "Properties": {}
               },
               {
@@ -7066,7 +7066,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1271.3333333333053,
-                "Y": 589.999999999981,
+                "Y": 610,
                 "Properties": {
                   "Target": "Self",
                   "TargetLayer": "Content",
@@ -7095,7 +7095,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1261.3333333333053,
-                "Y": 690.999999999981,
+                "Y": 762,
                 "Properties": {
                   "Target": "Self",
                   "TargetLayer": "Content",
@@ -7112,7 +7112,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1264.3333333333053,
-                "Y": 776.999999999981,
+                "Y": 914,
                 "Properties": {
                   "Target": "part:303e717c-1a0f-4c31-b001-4077c2590536:Swipe",
                   "TargetLayer": "Auto",
@@ -7354,7 +7354,7 @@
                 "NodeType": "flow.end",
                 "DisplayName": "",
                 "X": 1595,
-                "Y": 803,
+                "Y": 989,
                 "Properties": {}
               },
               {
@@ -7375,7 +7375,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1612,
-                "Y": 519,
+                "Y": 533,
                 "Properties": {
                   "Target": "guid:303e717c-1a0f-4c31-b001-4077c2590536",
                   "TargetLayer": "Content",
@@ -7392,7 +7392,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1609,
-                "Y": 607,
+                "Y": 685,
                 "Properties": {
                   "Target": "guid:303e717c-1a0f-4c31-b001-4077c2590536",
                   "TargetLayer": "Content",
@@ -7409,7 +7409,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1597,
-                "Y": 700,
+                "Y": 837,
                 "Properties": {
                   "Target": "part:303e717c-1a0f-4c31-b001-4077c2590536:Swipe",
                   "TargetLayer": "Auto",
@@ -7536,7 +7536,7 @@
                 "NodeType": "flow.end",
                 "DisplayName": "",
                 "X": 1263.3333333333076,
-                "Y": 897.9999999999771,
+                "Y": 1066,
                 "Properties": {}
               },
               {
@@ -7557,7 +7557,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1271.3333333333053,
-                "Y": 589.999999999981,
+                "Y": 610,
                 "Properties": {
                   "Target": "Self",
                   "TargetLayer": "Content",
@@ -7586,7 +7586,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1261.3333333333053,
-                "Y": 690.999999999981,
+                "Y": 762,
                 "Properties": {
                   "Target": "Self",
                   "TargetLayer": "Content",
@@ -7603,7 +7603,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1264.3333333333053,
-                "Y": 776.999999999981,
+                "Y": 914,
                 "Properties": {
                   "Target": "part:303e717c-1a0f-4c31-b001-4077c2590536:Swipe",
                   "TargetLayer": "Auto",
@@ -7819,7 +7819,7 @@
                 "NodeType": "flow.end",
                 "DisplayName": "",
                 "X": 1595,
-                "Y": 803,
+                "Y": 989,
                 "Properties": {}
               },
               {
@@ -7840,7 +7840,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1612,
-                "Y": 519,
+                "Y": 533,
                 "Properties": {
                   "Target": "guid:303e717c-1a0f-4c31-b001-4077c2590536",
                   "TargetLayer": "Content",
@@ -7857,7 +7857,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1609,
-                "Y": 607,
+                "Y": 685,
                 "Properties": {
                   "Target": "guid:303e717c-1a0f-4c31-b001-4077c2590536",
                   "TargetLayer": "Content",
@@ -7874,7 +7874,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1597,
-                "Y": 700,
+                "Y": 837,
                 "Properties": {
                   "Target": "part:303e717c-1a0f-4c31-b001-4077c2590536:Swipe",
                   "TargetLayer": "Auto",
@@ -8001,7 +8001,7 @@
                 "NodeType": "flow.end",
                 "DisplayName": "",
                 "X": 1263.3333333333076,
-                "Y": 897.9999999999771,
+                "Y": 1066,
                 "Properties": {}
               },
               {
@@ -8022,7 +8022,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1271.3333333333053,
-                "Y": 589.999999999981,
+                "Y": 610,
                 "Properties": {
                   "Target": "Self",
                   "TargetLayer": "Content",
@@ -8051,7 +8051,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1261.3333333333053,
-                "Y": 690.999999999981,
+                "Y": 762,
                 "Properties": {
                   "Target": "Self",
                   "TargetLayer": "Content",
@@ -8068,7 +8068,7 @@
                 "NodeType": "action.animateProperty",
                 "DisplayName": "Designer.Graph.Node.ActionAnimateProperty",
                 "X": 1264.3333333333053,
-                "Y": 776.999999999981,
+                "Y": 914,
                 "Properties": {
                   "Target": "part:303e717c-1a0f-4c31-b001-4077c2590536:Swipe",
                   "TargetLayer": "Auto",

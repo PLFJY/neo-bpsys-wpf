@@ -35,7 +35,7 @@
 | `GhProxyMirror` | GitHub 镜像前缀 |
 | `PluginMarketSource` | 插件市场索引源 |
 | `IsFindPreRelease` | 是否查找预发布版本，Beta 构建默认 true |
-| `LogLevel` | `FileLoggerProvider` 动态日志级别 |
+| `LogLevel` | 正式构建的 `FileLoggerProvider` 动态日志级别，默认 `Warning`；Debug 与 Preview 构建固定为 `Information`，设置页不可修改 |
 | `Language` | `System` 或具体语言枚举 |
 | `CultureInfo` | 由 `Language` 推导，JSON 忽略 |
 

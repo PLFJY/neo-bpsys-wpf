@@ -120,7 +120,7 @@ public partial class SettingPageViewModel : ViewModelBase
         SelectedLanguage = _settingsHostService.Settings.Language;
         SmartBpModuleRoot = _smartBpModuleManager.GetPreferredModuleRoot();
         _isSyncingLogLevel = true;
-        SelectedLogLevel = _settingsHostService.Settings.LogLevel;
+        SelectedLogLevel = App.GetEffectiveLogLevel(_settingsHostService.Settings.LogLevel);
         _isSyncingLogLevel = false;
 
         var columns = SplitIntoColumns(CreateOpenSourceRepos(), 3);
@@ -289,6 +289,11 @@ public partial class SettingPageViewModel : ViewModelBase
         { "LogLevelFatal", AppLogLevel.Fatal }
     };
 
+    /// <summary>
+    /// 获取当前构建是否允许用户调整日志级别。
+    /// </summary>
+    public bool IsLogLevelConfigurable => App.IsLogLevelUserConfigurable;
+
     partial void OnSelectedLogLevelChanged(AppLogLevel value)
     {
         if (_isSyncingLogLevel || _settingsHostService == null)
@@ -296,7 +301,7 @@ public partial class SettingPageViewModel : ViewModelBase
             return;
         }
 
-        _settingsHostService.Settings.LogLevel = value;
+        _settingsHostService.Settings.LogLevel = App.GetEffectiveLogLevel(value);
         App.ApplyLogLevel(value);
         _ = _settingsHostService.SaveConfigAsync();
     }
@@ -345,6 +350,7 @@ public partial class SettingPageViewModel : ViewModelBase
         try
         {
             var window = ActivatorUtilities.CreateInstance<FrontedBehaviorEventDebuggerWindow>(_serviceProvider);
+            window.Owner = Application.Current?.MainWindow;
             window.Closed += (_, _) => _behaviorEventDebuggerWindow = null;
             _behaviorEventDebuggerWindow = window;
             window.Show();
@@ -352,6 +358,16 @@ public partial class SettingPageViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
+            try
+            {
+                _behaviorEventDebuggerWindow?.Close();
+            }
+            catch (Exception closeException)
+            {
+                _logger.LogWarning(closeException, "Failed to close behavior event debugger window after opening failed.");
+            }
+
+            _behaviorEventDebuggerWindow = null;
             _logger.LogError(ex, "Failed to open behavior event debugger window.");
             _ = MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "WindowLaunchError")}\n{ex.Message}");
         }

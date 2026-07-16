@@ -546,6 +546,76 @@ public class FrontedAnimationRuntimeTest
         });
     }
 
+    /// <summary>
+    /// 验证带有真实 HwndSource 的生成 PickingBorder 部件可完成旧版呼吸灯的首段透明度动画。
+    /// </summary>
+    [Fact]
+    public async Task AnimationRuntime_PickingBorderWithWindow_CompletesOpacityAnimation()
+    {
+        await RunOnStaThreadAsync(async () =>
+        {
+            var guid = Guid.NewGuid();
+            var root = new Canvas { Width = 160, Height = 160 };
+            var part = GeneratedPart(
+                new Border { Width = 160, Height = 160, Opacity = 0, Visibility = Visibility.Hidden },
+                guid,
+                "SurPick0PickingBorder",
+                "PickingBorder");
+            root.Children.Add(part);
+
+            var window = new Window
+            {
+                Content = root,
+                Width = 200,
+                Height = 200,
+                ShowInTaskbar = false,
+                WindowStyle = WindowStyle.None
+            };
+            window.Show();
+
+            try
+            {
+                var runtime = new FrontedAnimationRuntime();
+                var context = Context(root, guid);
+                var target = $"part:{guid}:PickingBorder";
+
+                await runtime.ExecuteAsync(new FrontedGraphActionRequest
+                {
+                    RequestType = FrontedGraphActionRequestType.SetProperty,
+                    Target = target,
+                    TargetLayer = FrontedAnimationTargetLayer.Control,
+                    PropertyName = "Visibility",
+                    Values = new Dictionary<string, string?> { ["Value"] = "Visible" }
+                }, context);
+                await runtime.ExecuteAsync(new FrontedGraphActionRequest
+                {
+                    RequestType = FrontedGraphActionRequestType.SetProperty,
+                    Target = target,
+                    TargetLayer = FrontedAnimationTargetLayer.Control,
+                    PropertyName = "Opacity",
+                    Values = new Dictionary<string, string?> { ["Value"] = "0" }
+                }, context);
+                await runtime.ExecuteAsync(new FrontedGraphActionRequest
+                {
+                    RequestType = FrontedGraphActionRequestType.AnimateProperty,
+                    Target = target,
+                    TargetLayer = FrontedAnimationTargetLayer.Control,
+                    PropertyName = "Opacity",
+                    Values = new Dictionary<string, string?> { ["From"] = "0", ["To"] = "1" },
+                    DurationMs = 250,
+                    WaitForCompletion = true
+                }, context).WaitAsync(TimeSpan.FromSeconds(3));
+
+                Assert.Equal(Visibility.Visible, part.Visibility);
+                Assert.Equal(1, part.Opacity, 3);
+            }
+            finally
+            {
+                window.Close();
+            }
+        });
+    }
+
     [Fact]
     public async Task AnimationRuntime_ImageContentLayer_ChangesPrimaryContentHostOnly()
     {

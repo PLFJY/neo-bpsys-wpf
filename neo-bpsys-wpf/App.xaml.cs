@@ -200,11 +200,40 @@ public partial class App : AppBase
     /// </summary>
     public static void ApplyLogLevel(AppLogLevel logLevel)
     {
-        FileLoggerProvider.SetLevel(logLevel);
+        FileLoggerProvider.SetLevel(GetEffectiveLogLevel(logLevel));
     }
 
     /// <summary>
-    /// 从 <see cref="AppConstants.ConfigFilePath"/> 读取持久化的日志级别；读取失败时返回 <see cref="AppLogLevel.Information"/>。
+    /// 获取当前构建实际使用的日志级别。
+    /// </summary>
+    /// <param name="configuredLevel">用户配置的日志级别。</param>
+    /// <returns>当前构建实际生效的日志级别。</returns>
+    public static AppLogLevel GetEffectiveLogLevel(AppLogLevel configuredLevel)
+    {
+#if DEBUG || PREVIEW
+        return AppLogLevel.Information;
+#else
+        return configuredLevel;
+#endif
+    }
+
+    /// <summary>
+    /// 获取当前构建是否允许用户修改日志级别。
+    /// </summary>
+    public static bool IsLogLevelUserConfigurable
+    {
+        get
+        {
+#if DEBUG || PREVIEW
+            return false;
+#else
+            return true;
+#endif
+        }
+    }
+
+    /// <summary>
+    /// 从 <see cref="AppConstants.ConfigFilePath"/> 读取持久化的日志级别；读取失败时返回 <see cref="AppLogLevel.Warning"/>。
     /// </summary>
     /// <returns>持久化的应用日志级别。</returns>
     private static AppLogLevel GetInitialAppLogLevel()
@@ -213,24 +242,25 @@ public partial class App : AppBase
         {
             if (!File.Exists(AppConstants.ConfigFilePath))
             {
-                return AppLogLevel.Information;
+                return GetEffectiveLogLevel(AppLogLevel.Warning);
             }
 
             using var stream = File.OpenRead(AppConstants.ConfigFilePath);
             using var document = JsonDocument.Parse(stream);
             if (!document.RootElement.TryGetProperty("LogLevel", out var levelElement))
             {
-                return AppLogLevel.Information;
+                return GetEffectiveLogLevel(AppLogLevel.Warning);
             }
 
             var levelText = levelElement.GetString();
-            return Enum.TryParse<AppLogLevel>(levelText, ignoreCase: true, out var logLevel)
-                ? logLevel
-                : AppLogLevel.Information;
+            return GetEffectiveLogLevel(
+                Enum.TryParse<AppLogLevel>(levelText, ignoreCase: true, out var logLevel)
+                    ? logLevel
+                    : AppLogLevel.Warning);
         }
         catch
         {
-            return AppLogLevel.Information;
+            return GetEffectiveLogLevel(AppLogLevel.Warning);
         }
     }
 

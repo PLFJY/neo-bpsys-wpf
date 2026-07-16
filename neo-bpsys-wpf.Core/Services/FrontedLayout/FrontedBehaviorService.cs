@@ -193,7 +193,37 @@ public sealed class FrontedBehaviorService : IFrontedBehaviorService
                 behavior.LoopGraph ??= new FrontedNodeGraph();
                 behavior.StopGraph ??= new FrontedNodeGraph();
                 behavior.LoopPolicy ??= new FrontedLoopPolicy();
+                NormalizeNumericInputUnits(behavior.Graph);
+                NormalizeNumericInputUnits(behavior.StartGraph);
+                NormalizeNumericInputUnits(behavior.LoopGraph);
+                NormalizeNumericInputUnits(behavior.StopGraph);
             }
+        }
+    }
+
+    private static void NormalizeNumericInputUnits(FrontedNodeGraph graph)
+    {
+        foreach (var node in graph.Nodes)
+        {
+            switch (node.NodeType)
+            {
+                case "action.setProperty":
+                    EnsureProperty(node, "ValueInputUnit", "Absolute");
+                    break;
+                case "action.animateProperty":
+                    EnsureProperty(node, "FromInputUnit", "Absolute");
+                    EnsureProperty(node, "ToInputUnit", "Absolute");
+                    break;
+            }
+        }
+    }
+
+    private static void EnsureProperty(FrontedNode node, string propertyName, string value)
+    {
+        node.Properties ??= [];
+        if (!node.Properties.ContainsKey(propertyName))
+        {
+            node.Properties[propertyName] = JsonSerializer.SerializeToElement(value);
         }
     }
 

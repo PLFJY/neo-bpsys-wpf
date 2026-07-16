@@ -599,6 +599,7 @@
                     <ComboBox
                         Width="220"
                         Margin="10,0,0,0"
+                        IsEnabled="{Binding IsLogLevelConfigurable}"
                         ItemsSource="{Binding LogLevelOptions}"
                         SelectedValue="{Binding SelectedLogLevel, Mode=TwoWay}"
                         SelectedValuePath="Value">

@@ -1978,6 +1978,12 @@
   <data name="Designer.Graph.NodeCatalog">
     <value>Node catalog</value>
   </data>
+  <data name="Designer.Graph.Group.Behavior">
+    <value>Behavior nodes</value>
+  </data>
+  <data name="Designer.Graph.Group.Data">
+    <value>Data nodes</value>
+  </data>
   <data name="Designer.Graph.Properties">
     <value>Node properties</value>
   </data>

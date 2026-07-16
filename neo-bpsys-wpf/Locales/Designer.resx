@@ -1978,6 +1978,12 @@
   <data name="Designer.Graph.NodeCatalog">
     <value>节点目录</value>
   </data>
+  <data name="Designer.Graph.Group.Behavior">
+    <value>行为节点</value>
+  </data>
+  <data name="Designer.Graph.Group.Data">
+    <value>数据节点</value>
+  </data>
   <data name="Designer.Graph.Properties">
     <value>节点属性</value>
   </data>

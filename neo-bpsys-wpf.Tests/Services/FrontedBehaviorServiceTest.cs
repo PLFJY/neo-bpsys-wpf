@@ -81,6 +81,62 @@ public class FrontedBehaviorServiceTest
         }
     }
 
+    /// <summary>
+    /// 加载旧行为文档时，应将缺少的数值输入单位迁移成显式 Absolute，
+    /// 使运行时不需要根据缺失字段推断单位。
+    /// </summary>
+    [Fact]
+    public async Task BehaviorService_LoadLegacyDocument_MigratesNumericInputUnits()
+    {
+        var root = CreateTempRoot();
+        try
+        {
+            var behaviorsRoot = Path.Combine(root, "Resources", "FrontedBehaviors");
+            Directory.CreateDirectory(behaviorsRoot);
+            await File.WriteAllTextAsync(
+                Path.Combine(behaviorsRoot, "BpWindow.behaviors.json"),
+                """
+                {
+                  "Version": 1,
+                  "WindowType": "BpWindow",
+                  "CanvasName": "BaseCanvas",
+                  "ControlBehaviorSets": [
+                    {
+                      "BehaviorGuid": "a0000000-0000-0000-0000-000000000001",
+                      "Behaviors": [
+                        {
+                          "Graph": {
+                            "Nodes": [
+                              { "NodeType": "action.setProperty", "Properties": { "Target": "Self", "TargetLayer": "Control", "PropertyName": "Opacity", "Value": "0" } },
+                              { "NodeType": "action.animateProperty", "Properties": { "Target": "Self", "TargetLayer": "Control", "PropertyName": "Opacity", "From": "0", "To": "1", "DurationMs": 250 } }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+                """,
+                TestContext.Current.CancellationToken);
+
+            var document = await CreateService(root).LoadDocumentAsync("BpWindow", TestContext.Current.CancellationToken);
+            var nodes = Assert.Single(document.ControlBehaviorSets).Behaviors.Single().Graph.Nodes;
+            var set = Assert.Single(nodes, node => node.NodeType == "action.setProperty");
+            var animate = Assert.Single(nodes, node => node.NodeType == "action.animateProperty");
+
+            Assert.Equal("Absolute", set.Properties["ValueInputUnit"].GetString());
+            Assert.Equal("Absolute", animate.Properties["FromInputUnit"].GetString());
+            Assert.Equal("Absolute", animate.Properties["ToInputUnit"].GetString());
+            Assert.DoesNotContain(
+                new FrontedNodeGraphValidator().Validate(document.ControlBehaviorSets[0].Behaviors[0].Graph),
+                message => message.Severity == FrontedNodeGraphValidationSeverity.Error);
+        }
+        finally
+        {
+            DeleteTempRoot(root);
+        }
+    }
+
     [Fact]
     public async Task BehaviorService_RemoveBehaviors_RemovesSet()
     {

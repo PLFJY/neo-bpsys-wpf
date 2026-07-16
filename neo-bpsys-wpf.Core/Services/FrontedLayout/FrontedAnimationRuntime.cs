@@ -116,6 +116,13 @@ public sealed class FrontedAnimationRuntime(
         FrontedAnimationExecutionContext context,
         CancellationToken cancellationToken)
     {
+        // Temporary diagnostic logging for a startup hang in legacy picking-border loops.
+        context.Logger?.LogInformation(
+            "Animation action begins. RequestType={RequestType}, Target={Target}, Layer={TargetLayer}, Property={PropertyName}.",
+            action.RequestType,
+            action.Target,
+            action.TargetLayer,
+            action.PropertyName);
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(context.CancellationToken, cancellationToken);
         var effectiveContext = context.WithCancellationToken(linkedCts.Token);
         var controlTarget = targetResolver.Resolve(FrontedAnimationTargetReference.Parse(action.Target), effectiveContext);
@@ -125,6 +132,10 @@ public sealed class FrontedAnimationRuntime(
             return;
         }
 
+        effectiveContext.Logger?.LogInformation(
+            "Animation action target resolved. Target={Target}, ElementType={ElementType}.",
+            action.Target,
+            controlTarget.Element.GetType().Name);
         var target = ResolveTargetLayer(controlTarget, action.TargetLayer, action.PropertyName, effectiveContext);
         if (target is null)
         {

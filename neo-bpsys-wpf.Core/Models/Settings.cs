@@ -63,7 +63,7 @@ public partial class Settings : ObservableObjectBase
 #endif
 
     [ObservableProperty]
-    public partial AppLogLevel LogLevel { get; set; } = AppLogLevel.Information;
+    public partial AppLogLevel LogLevel { get; set; } = AppLogLevel.Warning;
 
     private LanguageKey _language = LanguageKey.System;
 

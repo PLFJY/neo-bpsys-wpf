@@ -177,7 +177,7 @@ public sealed class FrontedNodeGraphRuntime(
                 Log(state.Logs, FrontedGraphExecutionLogLevel.Warning, $"{requestType} skipped: {name} could not be resolved: {error}", node.NodeId);
                 return;
             }
-            if (usesNumericValue && string.Equals(GetString(node, $"{name}InputUnit", "Absolute"), "Percent", StringComparison.OrdinalIgnoreCase))
+            if (usesNumericValue && string.Equals(GetString(node, $"{name}InputUnit"), "Percent", StringComparison.OrdinalIgnoreCase))
             {
                 if (!FrontedBehaviorPropertyMetadata.SupportsPercentage(GetString(node, "PropertyName")))
                 {

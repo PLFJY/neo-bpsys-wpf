@@ -50,6 +50,32 @@ public class FrontedNodeGraphEditorViewModelTest
         Assert.Single(graph.Nodes);
     }
 
+    /// <summary>
+    /// 节点目录应将 flow/action 节点归入行为组，将 value/math 节点归入数据组。
+    /// </summary>
+    [Fact]
+    public void GraphEditor_Catalog_GroupsBehaviorAndDataNodes()
+    {
+        var editor = new FrontedNodeGraphEditorViewModel(
+            new FrontedNodeGraph(),
+            localize: static (_, fallback) => fallback);
+
+        var groups = editor.GroupedCatalog.ToArray();
+
+        Assert.Equal(2, groups.Length);
+        Assert.Contains(groups[0].Items, item => item.NodeType == "flow.start");
+        Assert.Contains(groups[0].Items, item => item.NodeType == "action.animateProperty");
+        Assert.DoesNotContain(groups[0].Items, item => item.NodeType == "value.number");
+        Assert.Contains(groups[1].Items, item => item.NodeType == "value.number");
+        Assert.Contains(groups[1].Items, item => item.NodeType == "math.add");
+
+        editor.CatalogSearchText = "Add";
+
+        var filteredGroups = editor.GroupedCatalog.ToArray();
+        var dataGroup = Assert.Single(filteredGroups);
+        Assert.All(dataGroup.Items, item => Assert.StartsWith("math.", item.NodeType));
+    }
+
     [Fact]
     public void BooleanNodeProperty_ExposesComboBoxChoices()
     {

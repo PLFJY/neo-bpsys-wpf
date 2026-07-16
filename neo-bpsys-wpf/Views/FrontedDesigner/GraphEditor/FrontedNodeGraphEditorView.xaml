@@ -113,39 +113,52 @@
                         scrolling:ModernScroll.Ownership="Self"
                         scrolling:NestedSmoothScrollBehavior.IsEnabled="True"
                         VerticalScrollBarVisibility="Auto">
-                        <ItemsControl ItemsSource="{Binding FilteredCatalog}">
+                        <ItemsControl ItemsSource="{Binding GroupedCatalog}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <ui:Button
-                                        Width="188"
-                                        Margin="0,0,0,5"
-                                        HorizontalAlignment="Stretch"
-                                        HorizontalContentAlignment="Left"
-                                        PreviewMouseLeftButtonDown="CatalogItem_OnPreviewMouseLeftButtonDown"
-                                        PreviewMouseLeftButtonUp="CatalogItem_OnPreviewMouseLeftButtonUp"
-                                        PreviewMouseMove="CatalogItem_OnPreviewMouseMove">
-                                        <ui:Button.ToolTip>
-                                            <StackPanel MaxWidth="260">
-                                                <TextBlock FontWeight="SemiBold" Text="{Binding DisplayName}" />
-                                                <TextBlock Text="{Binding Description}" TextWrapping="Wrap" />
-                                                <TextBlock
-                                                    Margin="0,6,0,0"
-                                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                                    Text="{lex:Loc Designer.Graph.NodeCatalog.DragHint}"
-                                                    TextWrapping="Wrap" />
-                                            </StackPanel>
-                                        </ui:Button.ToolTip>
-                                        <StackPanel>
-                                            <TextBlock
-                                                FontWeight="SemiBold"
-                                                Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                                                Text="{Binding DisplayName}" />
-                                            <TextBlock
-                                                FontSize="11"
-                                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                                Text="{Binding Category}" />
-                                        </StackPanel>
-                                    </ui:Button>
+                                    <StackPanel Margin="0,0,0,8">
+                                        <TextBlock
+                                            Margin="0,0,0,4"
+                                            FontWeight="SemiBold"
+                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                            Text="{Binding DisplayName}" />
+                                        <ItemsControl ItemsSource="{Binding Items}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <ui:Button
+                                                        Width="188"
+                                                        Margin="0,0,0,5"
+                                                        HorizontalAlignment="Stretch"
+                                                        HorizontalContentAlignment="Left"
+                                                        PreviewMouseLeftButtonDown="CatalogItem_OnPreviewMouseLeftButtonDown"
+                                                        PreviewMouseLeftButtonUp="CatalogItem_OnPreviewMouseLeftButtonUp"
+                                                        PreviewMouseMove="CatalogItem_OnPreviewMouseMove">
+                                                        <ui:Button.ToolTip>
+                                                            <StackPanel MaxWidth="260">
+                                                                <TextBlock FontWeight="SemiBold" Text="{Binding DisplayName}" />
+                                                                <TextBlock Text="{Binding Description}" TextWrapping="Wrap" />
+                                                                <TextBlock
+                                                                    Margin="0,6,0,0"
+                                                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                                    Text="{lex:Loc Designer.Graph.NodeCatalog.DragHint}"
+                                                                    TextWrapping="Wrap" />
+                                                            </StackPanel>
+                                                        </ui:Button.ToolTip>
+                                                        <StackPanel>
+                                                            <TextBlock
+                                                                FontWeight="SemiBold"
+                                                                Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                                                Text="{Binding DisplayName}" />
+                                                            <TextBlock
+                                                                FontSize="11"
+                                                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                                Text="{Binding Category}" />
+                                                        </StackPanel>
+                                                    </ui:Button>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
