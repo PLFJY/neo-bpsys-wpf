@@ -106,6 +106,8 @@ public enum TutorialRunResult
     CompletedAlready,
     /// <summary>教程被用户跳过。</summary>
     Skipped,
+    /// <summary>用户选择永久跳过教程。</summary>
+    SkippedPermanently,
     /// <summary>找不到请求的目标元素。</summary>
     TargetMissing,
     /// <summary>教程没有待处理的工作。</summary>
@@ -118,6 +120,26 @@ public enum TutorialRunResult
     ChildWindowHandoff,
     /// <summary>教程因错误失败。</summary>
     Failed
+}
+
+/// <summary>维护当前进程内的新手教程显示抑制状态。</summary>
+public interface ITutorialSessionSuppression
+{
+    /// <summary>获取当前进程是否禁止自动显示新手教程。</summary>
+    bool IsTutorialDisplaySuppressed { get; }
+
+    /// <summary>禁止自动显示新手教程，直到下次应用启动。</summary>
+    void SuppressUntilNextStartup();
+}
+
+/// <summary>默认的进程内新手教程显示抑制器。</summary>
+public sealed class TutorialSessionSuppression : ITutorialSessionSuppression
+{
+    /// <inheritdoc />
+    public bool IsTutorialDisplaySuppressed { get; private set; }
+
+    /// <inheritdoc />
+    public void SuppressUntilNextStartup() => IsTutorialDisplaySuppressed = true;
 }
 
 /// <summary>

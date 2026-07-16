@@ -56,4 +56,19 @@ public sealed class NeoBpsysTutorialTextProvider : ITutorialTextProvider
 
     /// <inheritdoc />
     public string SkipConfirmConfirm => _fallback.SkipConfirmConfirm;
+
+    /// <inheritdoc />
+    public string SkipForCurrentSession => _fallback.SkipForCurrentSession;
+
+    /// <inheritdoc />
+    public string SkipPermanently => _fallback.SkipPermanently;
+
+    /// <inheritdoc />
+    public string SuppressUntilNextStartup => _fallback.SuppressUntilNextStartup;
+
+    /// <inheritdoc />
+    public string FirstRunSkipConfirmDescription => _fallback.FirstRunSkipConfirmDescription;
+
+    /// <inheritdoc />
+    public string SequenceSkipConfirmDescription => _fallback.SequenceSkipConfirmDescription;
 }

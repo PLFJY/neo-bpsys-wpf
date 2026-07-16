@@ -426,5 +426,15 @@ public sealed class ProductTourOverlayHitTest
         public string SkipConfirmContinue => "FAKE_SKIP_CONTINUE";
 
         public string SkipConfirmConfirm => "FAKE_SKIP_CONFIRM";
+
+        public string SkipForCurrentSession => "FAKE_SKIP_CURRENT";
+
+        public string SkipPermanently => "FAKE_SKIP_PERMANENT";
+
+        public string SuppressUntilNextStartup => "FAKE_SUPPRESS";
+
+        public string FirstRunSkipConfirmDescription => "FAKE_FIRST_RUN_SKIP";
+
+        public string SequenceSkipConfirmDescription => "FAKE_SEQUENCE_SKIP";
     }
 }

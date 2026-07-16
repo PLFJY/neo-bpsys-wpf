@@ -21,6 +21,7 @@ public static class ProductTourServiceCollectionExtensions
         services.TryAddSingleton<ITutorialFlowRegistry, TutorialFlowRegistry>();
         services.TryAddSingleton<ITutorialSignalService, TutorialSignalService>();
         services.TryAddSingleton<ITutorialStateStore, TutorialStateStore>();
+        services.TryAddSingleton<ITutorialSessionSuppression, TutorialSessionSuppression>();
         services.TryAddSingleton<ITutorialTextProvider, DefaultTutorialTextProvider>();
         services.TryAddSingleton<ITutorialRunObserver, NoOpTutorialRunObserver>();
         services.TryAddSingleton<ITutorialPlaybackCoordinator, TutorialPlaybackCoordinator>();
@@ -39,6 +40,7 @@ public static class ProductTourServiceCollectionExtensions
             sp.GetRequiredService<ITutorialContentResolver>(),
             sp.GetRequiredService<ITutorialLanguageService>(),
             sp.GetRequiredService<ProductTourOptions>(),
+            sp.GetRequiredService<ITutorialSessionSuppression>(),
             sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TutorialService>>()));
         services.TryAddSingleton<ITutorialStateManager>(sp => sp.GetRequiredService<TutorialService>());
         services.TryAddSingleton<ITutorialStepCancellation>(sp => sp.GetRequiredService<TutorialService>());
@@ -48,6 +50,7 @@ public static class ProductTourServiceCollectionExtensions
             sp.GetRequiredService<ITutorialPackageRegistry>(),
             sp.GetRequiredService<ITutorialFlowRegistry>(),
             sp.GetRequiredService<ITutorialStateStore>(),
+            sp.GetRequiredService<ITutorialSessionSuppression>(),
             sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TutorialRunner>>()));
         services.TryAddSingleton<IOnboardingCoordinator, OnboardingCoordinator>();
         services.TryAddSingleton<IGameTutorialSandboxService, NoOpGameTutorialSandboxService>();

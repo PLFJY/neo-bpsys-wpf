@@ -54,6 +54,21 @@ public interface ITutorialTextProvider
 
     /// <summary>获取跳过确认按钮文本。</summary>
     string SkipConfirmConfirm { get; }
+
+    /// <summary>获取本次跳过按钮文本。</summary>
+    string SkipForCurrentSession { get; }
+
+    /// <summary>获取永久跳过按钮文本。</summary>
+    string SkipPermanently { get; }
+
+    /// <summary>获取本次启动期间不再显示教程复选框文本。</summary>
+    string SuppressUntilNextStartup { get; }
+
+    /// <summary>获取总导览跳过说明。</summary>
+    string FirstRunSkipConfirmDescription { get; }
+
+    /// <summary>获取独立导览跳过说明。</summary>
+    string SequenceSkipConfirmDescription { get; }
 }
 
 /// <summary>
@@ -125,4 +140,19 @@ public sealed class DefaultTutorialTextProvider : ITutorialTextProvider
 
     /// <inheritdoc />
     public string SkipConfirmConfirm => Loc(nameof(SkipConfirmConfirm));
+
+    /// <inheritdoc />
+    public string SkipForCurrentSession => Loc(nameof(SkipForCurrentSession));
+
+    /// <inheritdoc />
+    public string SkipPermanently => Loc(nameof(SkipPermanently));
+
+    /// <inheritdoc />
+    public string SuppressUntilNextStartup => Loc(nameof(SuppressUntilNextStartup));
+
+    /// <inheritdoc />
+    public string FirstRunSkipConfirmDescription => Loc(nameof(FirstRunSkipConfirmDescription));
+
+    /// <inheritdoc />
+    public string SequenceSkipConfirmDescription => Loc(nameof(SequenceSkipConfirmDescription));
 }

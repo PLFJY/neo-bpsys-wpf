@@ -52,4 +52,19 @@
   <data name="SkipConfirmConfirm" xml:space="preserve">
     <value>Confirm Skip</value>
   </data>
+  <data name="SkipForCurrentSession" xml:space="preserve">
+    <value>Skip This Time</value>
+  </data>
+  <data name="SkipPermanently" xml:space="preserve">
+    <value>Skip Permanently</value>
+  </data>
+  <data name="SuppressUntilNextStartup" xml:space="preserve">
+    <value>Do not show new-user tutorials until the next launch</value>
+  </data>
+  <data name="FirstRunSkipConfirmDescription" xml:space="preserve">
+    <value>Skipping this time is not saved. Skipping permanently disables the standard first-run BP tour.</value>
+  </data>
+  <data name="SequenceSkipConfirmDescription" xml:space="preserve">
+    <value>Skipping this time is not saved. Skipping permanently marks every remaining tutorial in this page queue as completed.</value>
+  </data>
 </root>

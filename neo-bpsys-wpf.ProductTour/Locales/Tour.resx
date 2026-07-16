@@ -52,4 +52,19 @@
   <data name="SkipConfirmConfirm" xml:space="preserve">
     <value>确认跳过</value>
   </data>
+  <data name="SkipForCurrentSession" xml:space="preserve">
+    <value>本次跳过</value>
+  </data>
+  <data name="SkipPermanently" xml:space="preserve">
+    <value>永久跳过</value>
+  </data>
+  <data name="SuppressUntilNextStartup" xml:space="preserve">
+    <value>下次启动前不再展示新手教程</value>
+  </data>
+  <data name="FirstRunSkipConfirmDescription" xml:space="preserve">
+    <value>本次跳过不会保存选择；永久跳过会关闭首次标准 BP 导览。</value>
+  </data>
+  <data name="SequenceSkipConfirmDescription" xml:space="preserve">
+    <value>本次跳过不会保存选择；永久跳过会将本页面队列中后续的教程全部标记为已完成。</value>
+  </data>
 </root>

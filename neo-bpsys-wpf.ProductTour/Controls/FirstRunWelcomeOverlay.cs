@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Animation;
 using System.Windows.Media;
+using ContentDialogHost = Wpf.Ui.Controls.ContentDialogHost;
 
 namespace neo_bpsys_wpf.ProductTour.Controls;
 
@@ -23,13 +24,13 @@ public sealed class FirstRunWelcomeOverlay : Grid
     private readonly ITutorialAvatarProvider _avatarProvider;
     private readonly ITutorialLanguageService _languageService;
     private string _selectedLanguageOptionId;
-    private SkipTutorialConfirmDialog? _confirmDialog;
+    private readonly ITutorialSessionSuppression _sessionSuppression;
 
     /// <summary>当用户开始教程时发生，携带所选的语言选项 id。</summary>
     public event EventHandler<string>? StartRequested;
 
     /// <summary>当用户确认跳过教程时发生。</summary>
-    public event EventHandler? SkipConfirmed;
+    public event EventHandler<TutorialSkipChoice>? SkipConfirmed;
 
     /// <summary>初始化 <see cref="FirstRunWelcomeOverlay"/> 类的新实例。</summary>
     public FirstRunWelcomeOverlay()
@@ -61,12 +62,14 @@ public sealed class FirstRunWelcomeOverlay : Grid
         ProductTourOptions options,
         ITutorialAvatarProvider avatarProvider,
         IReadOnlyList<TutorialLanguageOption>? languageOptions = null,
-        ITutorialLanguageService? languageService = null)
+        ITutorialLanguageService? languageService = null,
+        ITutorialSessionSuppression? sessionSuppression = null)
     {
         _textProvider = textProvider;
         _options = options;
         _avatarProvider = avatarProvider;
         _languageService = languageService ?? new NoOpTutorialLanguageService();
+        _sessionSuppression = sessionSuppression ?? new TutorialSessionSuppression();
         var optionsList = languageOptions is { Count: > 0 } ? languageOptions : NoOpLanguageOptions();
         _selectedLanguageOptionId = optionsList.FirstOrDefault(option => option.IsSelected)?.Id ?? optionsList[0].Id;
         Style = TryFindResource("ProductTourWelcomeOverlayStyle") as Style;
@@ -237,11 +240,6 @@ public sealed class FirstRunWelcomeOverlay : Grid
         _footnote.Text = _textProvider.RestartAvailableHint;
         _skipButton.Content = _textProvider.Skip;
 
-        if (_confirmDialog != null)
-        {
-            Children.Remove(_confirmDialog);
-            _confirmDialog = null;
-        }
     }
 
     /// <summary>播放进入动画。</summary>
@@ -280,29 +278,20 @@ public sealed class FirstRunWelcomeOverlay : Grid
         return source.Task;
     }
 
-    private void ShowConfirmDialog()
+    private async void ShowConfirmDialog()
     {
-        if (_confirmDialog != null)
+        var choice = await TutorialSkipContentDialog.ShowAsync(
+            OverlayHost.GetContentDialogHost(this),
+            _textProvider,
+            _textProvider.FirstRunSkipConfirmDescription,
+            _sessionSuppression);
+        if (choice == TutorialSkipChoice.Continue)
         {
             return;
         }
 
-        _confirmDialog = new SkipTutorialConfirmDialog(_textProvider, _options)
-        {
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        _confirmDialog.Canceled += (_, _) =>
-        {
-            Children.Remove(_confirmDialog);
-            _confirmDialog = null;
-        };
-        _confirmDialog.Confirmed += async (_, _) =>
-        {
-            await FadeOutAsync();
-            SkipConfirmed?.Invoke(this, EventArgs.Empty);
-        };
-        Children.Add(_confirmDialog);
+        await FadeOutAsync();
+        SkipConfirmed?.Invoke(this, choice);
     }
 
     private Brush CreateMaskBrush(double opacity)

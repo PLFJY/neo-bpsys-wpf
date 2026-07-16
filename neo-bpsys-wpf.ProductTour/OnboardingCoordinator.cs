@@ -38,6 +38,7 @@ public sealed class OnboardingCoordinator : IOnboardingCoordinator
     private readonly ITutorialTextProvider _textProvider;
     private readonly ITutorialAvatarProvider _avatarProvider;
     private readonly ProductTourOptions _options;
+    private readonly ITutorialSessionSuppression _sessionSuppression;
     private readonly ILogger<OnboardingCoordinator> _logger;
 
     /// <summary>
@@ -63,6 +64,7 @@ public sealed class OnboardingCoordinator : IOnboardingCoordinator
         ITutorialTextProvider textProvider,
         ITutorialAvatarProvider avatarProvider,
         ProductTourOptions options,
+        ITutorialSessionSuppression sessionSuppression,
         ILogger<OnboardingCoordinator> logger)
     {
         _tutorialStateManager = tutorialStateManager;
@@ -74,12 +76,18 @@ public sealed class OnboardingCoordinator : IOnboardingCoordinator
         _textProvider = textProvider;
         _avatarProvider = avatarProvider;
         _options = options;
+        _sessionSuppression = sessionSuppression;
         _logger = logger;
     }
 
     /// <inheritdoc />
     public async Task ShowFirstRunWelcomeAsync(Window owner, bool force = false, CancellationToken cancellationToken = default)
     {
+        if (!force && _sessionSuppression.IsTutorialDisplaySuppressed)
+        {
+            return;
+        }
+
         var state = await _stateStore.LoadAsync(cancellationToken);
         if (!force
             && state.CompletedFlows.TryGetValue(FirstRunFlowId, out var record)
@@ -91,11 +99,15 @@ public sealed class OnboardingCoordinator : IOnboardingCoordinator
 
         var host = OverlayHost.GetHostPanel(owner);
         var languageOptions = await _languageService.GetLanguageOptionsAsync(cancellationToken);
-        var overlay = new FirstRunWelcomeOverlay(_textProvider, _options, _avatarProvider, languageOptions, _languageService);
+        var overlay = new FirstRunWelcomeOverlay(_textProvider, _options, _avatarProvider, languageOptions, _languageService, _sessionSuppression);
         host.Children.Add(overlay);
-        overlay.SkipConfirmed += async (_, _) =>
+        overlay.SkipConfirmed += async (_, choice) =>
         {
-            await MarkFirstRunHandledAsync(cancellationToken);
+            if (choice == TutorialSkipChoice.SkipPermanently)
+            {
+                await MarkFirstRunHandledAsync(cancellationToken);
+            }
+
             host.Children.Remove(overlay);
         };
         overlay.StartRequested += async (_, languageOptionId) =>
@@ -139,7 +151,7 @@ public sealed class OnboardingCoordinator : IOnboardingCoordinator
                 state.CompletedPackages[packageId] = new TutorialCompletionRecord
                 {
                     Version = package?.Version ?? flow.Version,
-                    CompletionKind = TutorialCompletionKind.Completed,
+                    CompletionKind = TutorialCompletionKind.CoveredByFlow,
                     SourceFlowId = flow.FlowId
                 };
             }

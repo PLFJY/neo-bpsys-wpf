@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using Wpf.Ui.Controls;
 
 namespace neo_bpsys_wpf.ProductTour.Controls;
 
@@ -14,6 +15,35 @@ internal static class OverlayHost
             typeof(Panel),
             typeof(OverlayHost),
             new PropertyMetadata(null));
+
+    private static readonly DependencyProperty WindowContentDialogHostProperty =
+        DependencyProperty.RegisterAttached(
+            "WindowContentDialogHost",
+            typeof(ContentDialogHost),
+            typeof(OverlayHost),
+            new PropertyMetadata(null));
+
+    public static ContentDialogHost GetContentDialogHost(FrameworkElement owner)
+    {
+        var window = owner as Window ?? Window.GetWindow(owner)
+            ?? throw new InvalidOperationException("Unable to locate a window for the content dialog host.");
+        if (ContentDialogHost.GetForWindow(window) is { } registeredHost)
+        {
+            return registeredHost;
+        }
+
+        if (window.GetValue(WindowContentDialogHostProperty) is ContentDialogHost existingHost
+            && VisualTreeHelper.GetParent(existingHost) != null)
+        {
+            return existingHost;
+        }
+
+        var host = new ContentDialogHost();
+        Panel.SetZIndex(host, int.MaxValue);
+        GetHostPanel(window).Children.Add(host);
+        window.SetValue(WindowContentDialogHostProperty, host);
+        return host;
+    }
 
     public static Panel GetHostPanel(FrameworkElement owner)
     {

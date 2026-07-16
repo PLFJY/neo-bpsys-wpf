@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using ContentDialogHost = Wpf.Ui.Controls.ContentDialogHost;
 
 namespace neo_bpsys_wpf.ProductTour.Controls;
 
@@ -30,7 +31,7 @@ public sealed class DialogueOverlay : Grid
     private readonly ITutorialContentResolver _contentResolver;
     private readonly ITutorialLanguageService _languageService;
     private string? _currentLinesKey;
-    private SkipTutorialConfirmDialog? _confirmDialog;
+    private readonly ITutorialSessionSuppression _sessionSuppression;
 
     /// <summary>获取或设置打字机间隔。</summary>
     public TimeSpan TypewriterInterval { get; set; } = TimeSpan.FromMilliseconds(28);
@@ -62,13 +63,15 @@ public sealed class DialogueOverlay : Grid
         ProductTourOptions options,
         ITutorialAvatarProvider avatarProvider,
         ITutorialContentResolver? contentResolver = null,
-        ITutorialLanguageService? languageService = null)
+        ITutorialLanguageService? languageService = null,
+        ITutorialSessionSuppression? sessionSuppression = null)
     {
         _textProvider = textProvider;
         _options = options;
         _avatarProvider = avatarProvider;
         _contentResolver = contentResolver ?? new DefaultTutorialContentResolver();
         _languageService = languageService ?? new NoOpTutorialLanguageService();
+        _sessionSuppression = sessionSuppression ?? new TutorialSessionSuppression();
         TypewriterInterval = _options.TypewriterInterval;
         Style = TryFindResource("ProductTourDialogueOverlayStyle") as Style;
         Background = CreateMaskBrush(_options.DialogueMaskOpacity);
@@ -326,11 +329,6 @@ public sealed class DialogueOverlay : Grid
 
     private void Advance()
     {
-        if (_confirmDialog != null)
-        {
-            return;
-        }
-
         if (_completion == null || _lineIndex >= _lines.Count)
         {
             return;
@@ -387,31 +385,24 @@ public sealed class DialogueOverlay : Grid
         return source.Task;
     }
 
-    private void ShowConfirmDialog()
+    private async void ShowConfirmDialog()
     {
-        if (_confirmDialog != null)
+        var choice = await TutorialSkipContentDialog.ShowAsync(
+            OverlayHost.GetContentDialogHost(this),
+            _textProvider,
+            _textProvider.FirstRunSkipConfirmDescription,
+            _sessionSuppression);
+        if (choice == TutorialSkipChoice.Continue)
         {
             return;
         }
 
-        _confirmDialog = new SkipTutorialConfirmDialog(_textProvider, _options)
+        _completion?.TrySetResult(choice switch
         {
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        _confirmDialog.Canceled += (_, _) =>
-        {
-            Children.Remove(_confirmDialog);
-            _confirmDialog = null;
-        };
-        _confirmDialog.Confirmed += (_, _) =>
-        {
-            Children.Remove(_confirmDialog);
-            _confirmDialog = null;
-            _completion?.TrySetResult(TutorialRunResult.Skipped);
-        };
-        Children.Add(_confirmDialog);
-        Panel.SetZIndex(_confirmDialog, 5);
+            TutorialSkipChoice.SkipForCurrentSession => TutorialRunResult.Skipped,
+            TutorialSkipChoice.SkipPermanently => TutorialRunResult.SkippedPermanently,
+            _ => TutorialRunResult.Canceled
+        });
     }
 
     private Brush CreateMaskBrush(double opacity)

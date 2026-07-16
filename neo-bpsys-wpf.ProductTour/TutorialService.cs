@@ -36,6 +36,7 @@ internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCanc
     private readonly ITutorialContentResolver _contentResolver;
     private readonly ITutorialLanguageService _languageService;
     private readonly ProductTourOptions _options;
+    private readonly ITutorialSessionSuppression _sessionSuppression;
     private readonly ILogger<TutorialService> _logger;
     private ProductTourOverlay? _currentOverlay;
 
@@ -69,6 +70,26 @@ internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCanc
         ITutorialLanguageService languageService,
         ProductTourOptions options,
         ILogger<TutorialService> logger)
+        : this(serviceProvider, packageRegistry, sequenceRegistry, flowRegistry, stateStore, signalService, textProvider,
+            avatarProvider, runObserver, contentResolver, languageService, options, new TutorialSessionSuppression(), logger)
+    {
+    }
+
+    internal TutorialService(
+        IServiceProvider serviceProvider,
+        ITutorialPackageRegistry packageRegistry,
+        ITutorialSequenceRegistry sequenceRegistry,
+        ITutorialFlowRegistry flowRegistry,
+        ITutorialStateStore stateStore,
+        ITutorialSignalService signalService,
+        ITutorialTextProvider textProvider,
+        ITutorialAvatarProvider avatarProvider,
+        ITutorialRunObserver runObserver,
+        ITutorialContentResolver contentResolver,
+        ITutorialLanguageService languageService,
+        ProductTourOptions options,
+        ITutorialSessionSuppression sessionSuppression,
+        ILogger<TutorialService> logger)
     {
         _serviceProvider = serviceProvider;
         _packageRegistry = packageRegistry;
@@ -82,6 +103,7 @@ internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCanc
         _contentResolver = contentResolver;
         _languageService = languageService;
         _options = options;
+        _sessionSuppression = sessionSuppression;
         _logger = logger;
     }
 
@@ -151,7 +173,7 @@ internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCanc
         _runObserver.OnPackageCompleted(package.PackageId, result);
         var completionStateWritten = false;
         if ((result is TutorialRunResult.Completed
-                or TutorialRunResult.Skipped
+                or TutorialRunResult.SkippedPermanently
                 or TutorialRunResult.ChildWindowHandoff)
             && triggerMode != TutorialTriggerMode.EmbeddedInFlow)
         {
@@ -214,7 +236,7 @@ internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCanc
 
                 if (result != TutorialRunResult.Completed && result != TutorialRunResult.NotPending)
                 {
-                    if (result == TutorialRunResult.Skipped)
+                    if (result == TutorialRunResult.SkippedPermanently)
                     {
                         await MarkFlowAsync(
                             flow,
@@ -258,6 +280,27 @@ internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCanc
                      pair.Value.SourceFlowId == flowId).Select(pair => pair.Key).ToList())
         {
             state.CompletedPackages.Remove(package);
+        }
+
+        await _stateStore.SaveAsync(state, cancellationToken);
+    }
+
+    internal async Task MarkSequenceCompletedAsync(string pageKey, CancellationToken cancellationToken)
+    {
+        var state = await _stateStore.LoadAsync(cancellationToken);
+        foreach (var packageId in _sequenceRegistry.GetSequenceDefinition(pageKey).PackageIds)
+        {
+            var package = _packageRegistry.GetPackage(packageId);
+            if (package is null)
+            {
+                continue;
+            }
+
+            state.CompletedPackages[packageId] = new TutorialCompletionRecord
+            {
+                Version = package.Version,
+                CompletionKind = TutorialCompletionKind.Completed
+            };
         }
 
         await _stateStore.SaveAsync(state, cancellationToken);
@@ -437,7 +480,7 @@ internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCanc
             }
 
             _runObserver.OnStepShown(packageId ?? string.Empty, step.TargetName, step.Title);
-            var overlay = new ProductTourOverlay(_textProvider, _options, _avatarProvider, _contentResolver, _languageService);
+            var overlay = new ProductTourOverlay(_textProvider, _options, _avatarProvider, _contentResolver, _languageService, _sessionSuppression);
             _currentOverlay = overlay;
             var context = new ProductTourStepContext
             {
@@ -512,9 +555,14 @@ internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCanc
                 continue;
             }
 
-            if (action == ProductTourStepAction.Skip)
+            if (action == ProductTourStepAction.SkipForCurrentSession)
             {
                 return TutorialRunResult.Skipped;
+            }
+
+            if (action is ProductTourStepAction.Skip or ProductTourStepAction.SkipPermanently)
+            {
+                return TutorialRunResult.SkippedPermanently;
             }
 
             if (action == ProductTourStepAction.Cancel)
@@ -668,7 +716,7 @@ internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCanc
     {
         var overlayOwner = ResolveOverlayOwner(owner);
         var host = OverlayHost.GetHostPanel(overlayOwner);
-        var overlay = new DialogueOverlay(_textProvider, _options, _avatarProvider, _contentResolver, _languageService);
+        var overlay = new DialogueOverlay(_textProvider, _options, _avatarProvider, _contentResolver, _languageService, _sessionSuppression);
         host.Children.Add(overlay);
         try
         {

@@ -48,6 +48,7 @@ public sealed class TutorialRunner : ITutorialRunner
     private readonly ITutorialPackageRegistry _packageRegistry;
     private readonly ITutorialFlowRegistry _flowRegistry;
     private readonly ITutorialStateStore _stateStore;
+    private readonly ITutorialSessionSuppression _sessionSuppression;
     private readonly ILogger<TutorialRunner> _logger;
 
     internal TutorialRunner(
@@ -57,12 +58,26 @@ public sealed class TutorialRunner : ITutorialRunner
         ITutorialFlowRegistry flowRegistry,
         ITutorialStateStore stateStore,
         ILogger<TutorialRunner> logger)
+        : this(tutorialService, playbackCoordinator, packageRegistry, flowRegistry, stateStore,
+            new TutorialSessionSuppression(), logger)
+    {
+    }
+
+    internal TutorialRunner(
+        TutorialService tutorialService,
+        ITutorialPlaybackCoordinator playbackCoordinator,
+        ITutorialPackageRegistry packageRegistry,
+        ITutorialFlowRegistry flowRegistry,
+        ITutorialStateStore stateStore,
+        ITutorialSessionSuppression sessionSuppression,
+        ILogger<TutorialRunner> logger)
     {
         _tutorialService = tutorialService;
         _playbackCoordinator = playbackCoordinator;
         _packageRegistry = packageRegistry;
         _flowRegistry = flowRegistry;
         _stateStore = stateStore;
+        _sessionSuppression = sessionSuppression;
         _logger = logger;
     }
 
@@ -98,12 +113,18 @@ public sealed class TutorialRunner : ITutorialRunner
                 return TutorialRunResult.CompletedAlready;
             }
 
-            return await _tutorialService.RunPackageAsync(
+            var result = await _tutorialService.RunPackageAsync(
                 owner,
                 package.Id,
                 TutorialTriggerMode.Manual,
                 null,
                 token);
+            if (result == TutorialRunResult.SkippedPermanently)
+            {
+                await _tutorialService.MarkSequenceCompletedAsync(definition.PageKey, token);
+            }
+
+            return result;
         }, cancellationToken);
 
     /// <inheritdoc />
@@ -134,6 +155,11 @@ public sealed class TutorialRunner : ITutorialRunner
         string tutorialKey,
         CancellationToken cancellationToken)
     {
+        if (_sessionSuppression.IsTutorialDisplaySuppressed)
+        {
+            return TutorialRunResult.NotPending;
+        }
+
         var completedAny = false;
         while (true)
         {
@@ -168,6 +194,11 @@ public sealed class TutorialRunner : ITutorialRunner
             {
                 completedAny = true;
                 continue;
+            }
+
+            if (result == TutorialRunResult.SkippedPermanently)
+            {
+                await _tutorialService.MarkSequenceCompletedAsync(tutorialKey, cancellationToken);
             }
 
             _logger.LogInformation(

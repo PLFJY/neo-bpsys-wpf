@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using ContentDialogHost = Wpf.Ui.Controls.ContentDialogHost;
 
 namespace neo_bpsys_wpf.ProductTour.Controls;
 
@@ -19,7 +20,11 @@ public enum ProductTourStepAction
     /// <summary>步骤被取消。</summary>
     Cancel,
     /// <summary>步骤打开了一个拥有教程的子窗口并让出回放控制。</summary>
-    ChildWindowHandoff
+    ChildWindowHandoff,
+    /// <summary>用户仅跳过当前播放。</summary>
+    SkipForCurrentSession,
+    /// <summary>用户永久跳过教程。</summary>
+    SkipPermanently
 }
 
 /// <summary>
@@ -61,7 +66,7 @@ public sealed class ProductTourOverlay : Canvas
     private ProductTourAvatarPlacement _currentAvatarPlacement = ProductTourAvatarPlacement.Auto;
     private TutorialAvatarPose? _currentAvatarPose;
     private Point _currentCardOffset;
-    private SkipTutorialConfirmDialog? _confirmDialog;
+    private readonly ITutorialSessionSuppression _sessionSuppression;
 
     /// <summary>初始化 <see cref="ProductTourOverlay"/> 类的新实例。</summary>
     public ProductTourOverlay()
@@ -90,13 +95,15 @@ public sealed class ProductTourOverlay : Canvas
         ProductTourOptions options,
         ITutorialAvatarProvider avatarProvider,
         ITutorialContentResolver? contentResolver = null,
-        ITutorialLanguageService? languageService = null)
+        ITutorialLanguageService? languageService = null,
+        ITutorialSessionSuppression? sessionSuppression = null)
     {
         _textProvider = textProvider;
         _options = options;
         _avatarProvider = avatarProvider;
         _contentResolver = contentResolver ?? new DefaultTutorialContentResolver();
         _languageService = languageService ?? new NoOpTutorialLanguageService();
+        _sessionSuppression = sessionSuppression ?? new TutorialSessionSuppression();
         Style = TryFindResource("ProductTourOverlayStyle") as Style;
         Panel.SetZIndex(this, 10000);
         HorizontalAlignment = HorizontalAlignment.Stretch;
@@ -227,11 +234,6 @@ public sealed class ProductTourOverlay : Canvas
         UpdateNextButtonPresentation();
         _waitingText.Text = _textProvider.WaitingForAction;
 
-        if (_confirmDialog != null)
-        {
-            Children.Remove(_confirmDialog);
-            _confirmDialog = null;
-        }
 
         LayoutCurrent(_currentOwner, _currentTarget, _currentPlacement);
     }
@@ -481,7 +483,6 @@ public sealed class ProductTourOverlay : Canvas
         SetTop(_card, cardY);
 
         LayoutAvatarResult(layout);
-        LayoutConfirmDialog();
     }
 
     private void LayoutMasks(double width, double height, Rect spotlightRect)
@@ -546,39 +547,23 @@ public sealed class ProductTourOverlay : Canvas
         SetTop(_avatarImage, layout.AlicePosition.Y);
     }
 
-    private void ShowConfirmDialog()
+    private async void ShowConfirmDialog()
     {
-        if (_confirmDialog != null)
+        var choice = await TutorialSkipContentDialog.ShowAsync(
+            OverlayHost.GetContentDialogHost(this),
+            _textProvider,
+            _textProvider.SequenceSkipConfirmDescription,
+            _sessionSuppression);
+        if (choice == TutorialSkipChoice.Continue)
         {
             return;
         }
 
-        _confirmDialog = new SkipTutorialConfirmDialog(_textProvider, _options);
-        Children.Add(_confirmDialog);
-        Panel.SetZIndex(_confirmDialog, 5);
-        _confirmDialog.Canceled += (_, _) =>
+        _completion?.TrySetResult(choice switch
         {
-            Children.Remove(_confirmDialog);
-            _confirmDialog = null;
-        };
-        _confirmDialog.Confirmed += (_, _) =>
-        {
-            Children.Remove(_confirmDialog);
-            _confirmDialog = null;
-            _completion?.TrySetResult(ProductTourStepAction.Skip);
-        };
-        LayoutConfirmDialog();
-    }
-
-    private void LayoutConfirmDialog()
-    {
-        if (_confirmDialog == null)
-        {
-            return;
-        }
-
-        _confirmDialog.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-        SetLeft(_confirmDialog, Math.Max(0, ActualWidth / 2 - _confirmDialog.DesiredSize.Width / 2));
-        SetTop(_confirmDialog, Math.Max(0, ActualHeight / 2 - _confirmDialog.DesiredSize.Height / 2));
+            TutorialSkipChoice.SkipForCurrentSession => ProductTourStepAction.SkipForCurrentSession,
+            TutorialSkipChoice.SkipPermanently => ProductTourStepAction.SkipPermanently,
+            _ => ProductTourStepAction.Cancel
+        });
     }
 }
