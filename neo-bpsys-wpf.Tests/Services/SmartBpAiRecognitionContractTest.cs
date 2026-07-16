@@ -31,11 +31,6 @@ using QwenMmprojMode = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.
 using SmartBpRecognitionPromptBuilder = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpRecognitionPromptBuilder;
 using SmartBpCharacterResolver = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpCharacterResolver;
 using SmartBpRecognitionJsonSchemaProvider = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpRecognitionJsonSchemaProvider;
-using QwenModelAssetManager = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.QwenModelAssetManager;
-using QwenModelManifestProvider = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.QwenModelManifestProvider;
-using SmartBpPromptProfileProvider = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpPromptProfileProvider;
-using LlamaCppRuntimeManifestProvider = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.LlamaCppRuntimeManifestProvider;
-using LlamaCppRuntimeAssetManager = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.LlamaCppRuntimeAssetManager;
 using SmartBpAiRecognitionService = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpAiRecognitionService;
 using ISmartBpImageEncoder = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpImageEncoder;
 using ILlamaCppOpenAiClient = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ILlamaCppOpenAiClient;
@@ -863,17 +858,6 @@ public sealed class SmartBpAiRecognitionContractTest
         Assert.Equal("H1", snapshot.PickedHun.PlayerId);
     }
 
-    [Fact]
-    public void QwenDownloadsUseBrowserCompatibleHeaders()
-    {
-        using var client = new HttpClient();
-        QwenModelAssetManager.ConfigureDownloadHeaders(client, new Uri("https://models.example.test/path/model.gguf"));
-
-        Assert.Contains("Mozilla/5.0", client.DefaultRequestHeaders.UserAgent.ToString());
-        Assert.Contains(client.DefaultRequestHeaders.Accept, value => value.MediaType == "application/octet-stream");
-        Assert.Equal("https://models.example.test/", client.DefaultRequestHeaders.Referrer?.AbsoluteUri);
-    }
-
     [Theory]
     [InlineData("BanSur", "right", "right_top", "hunter", "survivor")]
     [InlineData("BanHun", "left", "left_top", "survivor", "hunter")]
@@ -1389,10 +1373,6 @@ public sealed class SmartBpAiRecognitionContractTest
         selection.Verify(x => x.SelectSurvivorAsync(0, survivor, false, It.IsAny<bool>()), Times.Once);
         ledger.Verify(x => x.MarkCompleted(It.IsAny<SmartBpWorkflowOperationKey>()), Times.Once);
     }
-
-    [Fact]
-    public void X86ManagedRuntimeIsRejected() =>
-        Assert.Throws<PlatformNotSupportedException>(() => LlamaCppRuntimeAssetManager.GetDefaultRuntimeId(Architecture.X86));
 
     [Fact]
     public void ParserPreservesBusinessPlayerIdsAndUnresolvedNames()

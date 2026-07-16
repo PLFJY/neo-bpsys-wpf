@@ -37,6 +37,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     private readonly IFilePickerService _filePickerService = null!;
     private readonly DispatcherTimer _captureAspectRefreshTimer;
     private readonly ILogger<SmartBpModuleContentViewModel> _logger;
+    // 已移除的 AI 识别链路仅保留这些声明，以便历史调试命令在下一轮源码清理前仍可编译；运行时不再注入或调用它们。
     private readonly IQwenModelAssetManager _qwenAssetManager = null!;
     private readonly ILlamaCppServerManager _llamaServerManager = null!;
     private readonly ILlamaCppServerManagerFactory _llamaServerManagers = null!;
@@ -86,13 +87,8 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         ISmartBpRegionConfigService regionConfigService,
         IEnumerable<ISmartBpSceneDefinition> sceneDefinitions,
         IFilePickerService filePickerService,
-        IQwenModelAssetManager qwenAssetManager,
-        ILlamaCppServerManager llamaServerManager,
-        ILlamaCppServerManagerFactory llamaServerManagers,
         ISmartBpRecognitionSettingsService recognitionSettingsService,
         ISmartBpDebugLog aiDebugLog,
-        ISmartBpPromptProfileProvider promptProfileProvider,
-        ILlamaCppRuntimeAssetManager llamaRuntimeAssetManager,
         ISmartBpAutoRecognitionCoordinator autoRecognitionCoordinator,
         IGameGuidanceService gameGuidanceService,
         ISmartBpCharacterResolver smartBpCharacterResolver,
@@ -101,12 +97,10 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         ISmartBpRecognitionStateStore aiRecognitionStateStore,
         ISmartBpGameStateSyncService gameStateSyncService,
         IInfoBarService infoBarService,
-        ILlamaCppRuntimeUpdateService llamaRuntimeUpdateService,
         ITesseractDataAssetManager tesseractDataAssetManager,
         IRapidOcrModelAssetManager rapidOcrModelAssetManager,
         ISmartBpAutoRecognitionGlobalControlSink autoRecognitionGlobalControl,
         ISmartBpOcrBpRecognitionService ocrBpRecognitionService,
-        ISmartBpAiPerformanceMonitor aiPerformanceMonitor,
         ISmartBpModuleStorageProvider smartBpModuleStorage,
         ILogger<SmartBpModuleContentViewModel> logger)
     {
@@ -122,13 +116,8 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
             throw new InvalidOperationException("Missing SmartBp scene definition: GameData");
         }
         _filePickerService = filePickerService;
-        _qwenAssetManager = qwenAssetManager;
-        _llamaServerManager = llamaServerManager;
-        _llamaServerManagers = llamaServerManagers;
         _recognitionSettingsService = recognitionSettingsService;
         _aiDebugLog = aiDebugLog;
-        _promptProfileProvider = promptProfileProvider;
-        _llamaRuntimeAssetManager = llamaRuntimeAssetManager;
         _autoRecognitionCoordinator = autoRecognitionCoordinator;
         _gameGuidanceService = gameGuidanceService;
         _smartBpCharacterResolver = smartBpCharacterResolver;
@@ -137,12 +126,10 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         _aiRecognitionStateStore = aiRecognitionStateStore;
         _gameStateSyncService = gameStateSyncService;
         _infoBarService = infoBarService;
-        _llamaRuntimeUpdateService = llamaRuntimeUpdateService;
         _tesseractDataAssetManager = tesseractDataAssetManager;
         _rapidOcrModelAssetManager = rapidOcrModelAssetManager;
         _autoRecognitionGlobalControl = autoRecognitionGlobalControl;
         _ocrBpRecognitionService = ocrBpRecognitionService;
-        _aiPerformanceMonitor = aiPerformanceMonitor;
         _smartBpModuleStorage = smartBpModuleStorage;
         InitializeAiRecognition();
         _ocrService.DownloadStateChanged += OcrService_DownloadStateChanged;

@@ -29,7 +29,7 @@
 
 `ImageHelper` 使用 `AppConstants.ResourcesPath` 拼接这些目录，按文件路径加载。新增运行时图片时，应确认文件被放在 `Resources` 下并能复制到输出目录。
 
-SmartBP 模块自有资源不放在主程序 `neo-bpsys-wpf/Resources` 下，应放在 `neo-bpsys-wpf.SmartBp.Module/Resources` 并由模块项目复制到输出目录。当前包括 `Resources/SmartBp` 下的 Qwen、llama.cpp 和 RapidOCR 模型 manifest、AI prompt、内置测试帧、BP 识别区域默认配置、OCR 角色别名，以及 `Resources/SmartBpDefaultConfigs` 下的赛后数据 OCR 默认区域配置。模型管理 UI 从相应 manifest 动态读取 profile。
+SmartBP 模块自有资源不放在主程序 `neo-bpsys-wpf/Resources` 下，应放在 `neo-bpsys-wpf.SmartBp.Module/Resources` 并由模块项目复制到输出目录。当前包括 `Resources/SmartBp` 下的 RapidOCR 模型 manifest、内置测试帧、BP 识别区域默认配置、OCR 角色别名，以及 `Resources/SmartBpDefaultConfigs` 下的赛后数据 OCR 默认区域配置。模型管理 UI 从相应 OCR manifest 动态读取 profile。
 
 v3 默认布局采用 Window-centric 一级路径，位于 `Resources/FrontedLayouts/{WindowTypeName}.json`。每个 v3 layout window 运行时固定生成 `ViewBox -> Canvas BaseCanvas`，Canvas 不再是资源路径或包管理单位。CutScene 背景使用 `Resources/cutScene.png`（解析到运行目录 `Resources/bpui/cutScene.png`），GameData 背景使用 `Resources/gameData.png`，BpWindow 背景使用 `Resources/bp.png`。`WidgetsWindow` 和 MapV1 已删除；旧 `BpOverViewCanvas` 迁移为 `BpOverviewWindow.json`，旧 `MapV2Canvas` 迁移为 `MapV2Window.json`，MapV2 背景继续使用 `Resources/mapBpV2.png`。内置业务控件复用这些资源目录：`TalentTraitDisplay` 通过 `ImageHelper.GetTalentImageSource` / `GetTraitImageSource` 读取 `Resources/talent` 和 `Resources/trait`；Ban 位默认布局使用通用 `Image` 绑定角色 `HeaderImageSingleColor`，锁定覆盖层优先使用 `LockImagePath`，为空时回退内置锁图；pick 呼吸边框优先使用 `PickingBorderImagePath`，为空时回退内置 BP 选择边框图；`CurrentBanDisplay`、`BanSlotDisplay` 和 `PickingBorderOverlay` 已移除；`MapV2Display` 复用现有 `MapV2Presenter` 并使用 v3 运行时默认样式。旧 Config.json 中可映射的图片会迁移到 v3 layout，旧前台设置不再作为 active Settings 运行时来源。
 

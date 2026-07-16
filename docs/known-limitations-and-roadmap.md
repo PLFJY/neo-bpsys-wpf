@@ -9,7 +9,7 @@
 | 赛后数据 OCR 自动回填 | 成熟且可用 |
 | PaddleOCR BP 状态识别 | 默认 OCR Provider；读取文字与边界框，本地解析阶段、禁用、选择与玩家 ID |
 | Tesseract BP 状态识别 | 可选 OCR Provider；可在 SmartBP 页面勾选下载 `chi_sim`/`eng`/`jpn` 到 SmartBP 模块目录，不会自动回退到 Paddle |
-| 本地视觉模型 + llama.cpp BP 状态识别 | 已从 SmartBP 自动识别运行路径移除 |
+| 本地视觉模型 + llama.cpp BP 状态识别 | 已从 SmartBP 模块移除；BP 状态识别仅支持 OCR Provider |
 | GameGuidance 自动对齐 | 可选，默认关闭；只向前匹配当前或最近步骤 |
 | 识别结果自动应用 | 可选，默认关闭；仅通过 `ICharacterSelectionService` 应用高置信度且已解析的角色操作 |
 | 自由全同步 | 实验能力；不依赖 GameGuidance，识别四类角色槽位并通过 `ICharacterSelectionService` 无动画同步，默认不启用 |

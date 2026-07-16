@@ -74,7 +74,7 @@ public interface ISmartBpService
 | PaddleOCR BP 状态识别 | 默认 OCR Provider；读取文字与边界框，本地解析阶段、禁用、选择与玩家 ID |
 | Tesseract BP 状态识别 | 可选 OCR Provider；可在 SmartBP 页面勾选下载 `chi_sim`/`eng`/`jpn` 到 SmartBP 模块目录，不会自动回退到 Paddle |
 | RapidOCR BP 状态识别 | 可选本地 OCR Provider；使用 SmartBP 托管的中文 det/cls/rec/dict 资产，不会自动回退到其他 Provider |
-| 本地视觉模型 + llama.cpp BP 状态识别 | 已从 SmartBP 自动识别运行路径移除 |
+| 本地视觉模型 + llama.cpp BP 状态识别 | 已从 SmartBP 模块移除；BP 状态识别仅支持 OCR Provider |
 | GameGuidance 自动对齐 | 可选，默认关闭；只向前匹配当前或最近步骤 |
 | 识别结果自动应用 | 可选，默认关闭；仅通过 `ICharacterSelectionService` 应用高置信度且已解析的角色操作 |
 | 自由全同步（FreeFullSync） | 实验能力；不依赖 GameGuidance，识别四类角色槽位并通过 `ICharacterSelectionService` 无动画同步 |
@@ -267,7 +267,7 @@ RapidOCR manifest 预置中、日、英三个官方组合。检测、分类、�
 
 每次安装会在 profile 目录写入 `.smartbp-install.json`，记录 profile、上游版本和内置 manifest 指纹。普通状态刷新比较安装记录与当前内置 manifest；版本或任一资产 URL、文件名、SHA-256、转换声明变化时提示更新。“检查模型更新”还会通过统一下载器临时读取 RapidOCR 官方 `default_models.yaml`，按当前识别模型的官方 ONNX URL 比较上游版本。若官方版本已领先内置 manifest，UI 会要求先更新 SmartBP 模块，不会把旧模型误标为可安装更新。旧版安装没有记录时标为“未知（旧版安装）”并提示更新，但现有完整模型仍可继续使用。
 
-RapidOCR 与本地视觉模型没有依赖关系。SmartBP 自动识别只使用所选 OCR Provider 读取文字与坐标；本地解释器、`CharacterSelectionService`、StateStore、门禁和应用管线继续承担业务语义与安全合并。
+RapidOCR 与其他 OCR Provider 没有依赖关系。SmartBP 自动识别只使用所选 OCR Provider 读取文字与坐标；本地解释器、`CharacterSelectionService`、StateStore、门禁和应用管线继续承担业务语义与安全合并。
 
 ### 旧 AI 字段兼容
 
@@ -368,7 +368,7 @@ neo-bpsys-wpf.SmartBp.Module/Resources/SmartBpDefaultConfigs/GameDataRegions.16-
 2. 场景门禁阻断写入时查看 `SmartBpSceneGateResult` 的 `Reason` 字段
 3. OCR contact sheet 映射异常时，可设置 `UseOcrContactSheet = false` 逐区域识别排查
 4. 角色解析失败时查看日志中的 `ocr-match` 诊断行，包含 `raw`、`result`、`matchMode`、`score` 等信息
-5. AI 引擎调试可开启 `ISmartBpDebugLog.IsEnabled`，在 SmartBP 页面 UI 中查看实时诊断日志
+5. 可开启 `ISmartBpDebugLog.IsEnabled`，在 SmartBP 页面 UI 中查看 OCR 识别与状态合并诊断日志
 6. 识别状态可通过 `SmartBpRecognitionStateStore.GetStaleFieldDiagnostics()` 查看各字段新鲜度
 
 ### 通用
@@ -437,6 +437,4 @@ neo-bpsys-wpf.SmartBp.Module/Resources/SmartBpDefaultConfigs/GameDataRegions.16-
 | `%APPDATA%\neo-bpsys-wpf\SmartBp\RecognitionSettings.json` | 识别引擎设置 |
 | `{SmartBpModuleRoot}\OCRModels\{modelKey}\` | PaddleOCR 模型文件（det/cls/rec） |
 | `{SmartBpModuleRoot}\tessdata\` | Tesseract traineddata 语言文件 |
-| `{SmartBpModuleRoot}\AI\Qwen\Models\{modelId}\` | Qwen GGUF 模型和 mmproj 文件 |
-| `{SmartBpModuleRoot}\AI\LlamaCpp\Runtimes\{runtimeId}\` | llama.cpp 运行时可执行文件 |
 | `{SmartBpModuleRoot}\Resources\` | 内置默认配置、prompt、测试帧等资源 |

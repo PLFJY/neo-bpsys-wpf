@@ -93,26 +93,16 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint, ITutoria
         services.AddSingleton<ITesseractDataAssetManager, TesseractDataAssetManager>();
         services.AddSingleton<IRapidOcrModelManifestProvider, RapidOcrModelManifestProvider>();
         services.AddSingleton<IRapidOcrModelAssetManager, RapidOcrModelAssetManager>();
-        services.AddSingleton<ISmartBpAiPerformanceMonitor, NvmlAiPerformanceMonitor>();
         services.AddSingleton<IOcrProvider>(provider => provider.GetRequiredService<PaddleOcrProvider>());
         services.AddSingleton<IOcrProvider>(provider => provider.GetRequiredService<TesseractOcrProvider>());
         services.AddSingleton<IOcrProvider>(provider => provider.GetRequiredService<RapidOcrNetProvider>());
         services.AddSingleton<SmartBpOcrProviderSelector>();
         services.AddSingleton<IOcrService, OcrService>();
         services.AddSingleton<ISmartBpService, SmartBpService>();
-        services.AddSingleton<IQwenModelManifestProvider, QwenModelManifestProvider>();
-        services.AddSingleton<ILocalVisionModelManifestProvider>(provider =>
-            (ILocalVisionModelManifestProvider)provider.GetRequiredService<IQwenModelManifestProvider>());
         services.AddSingleton<ISmartBpRecognitionSettingsService, SmartBpRecognitionSettingsService>();
-        services.AddSingleton<IQwenModelAssetManager, QwenModelAssetManager>();
-        services.AddSingleton<ILocalVisionModelAssetManager>(provider =>
-            (ILocalVisionModelAssetManager)provider.GetRequiredService<IQwenModelAssetManager>());
-        services.AddSingleton<ISmartBpPromptProfileProvider, SmartBpPromptProfileProvider>();
-        services.AddSingleton<ILlamaCppRuntimeAssetManager, LlamaCppRuntimeAssetManager>();
-        services.AddSingleton<ILlamaCppRuntimeUpdateService, LlamaCppRuntimeUpdateService>();
         services.AddSingleton<ISmartBpRecognitionRegionProfileService, SmartBpRecognitionRegionProfileService>();
 
-        // 自动识别流水线：裁剪、OCR/AI 识别、状态合并、候选操作、GameGuidance 同步与实际应用。
+        // 自动识别流水线：裁剪、OCR 识别、状态合并、候选操作、GameGuidance 同步与实际应用。
         services.AddSingleton<ISmartBpRecognitionFrameCropper, SmartBpRecognitionFrameCropper>();
         services.AddSingleton<ISmartBpFrameRingBuffer, SmartBpFrameRingBuffer>();
         services.AddSingleton<ISmartBpCropChangeDetector, SmartBpCropChangeDetector>();
@@ -124,8 +114,6 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint, ITutoria
         services.AddSingleton<SmartBpOcrRegionParser>();
         services.AddSingleton<ISmartBpOcrBpRecognitionService, SmartBpOcrBpRecognitionService>();
         services.AddSingleton<ISmartBpOcrSnapshotDeltaRecognitionService, SmartBpOcrSnapshotDeltaRecognitionService>();
-        services.AddSingleton<ILlamaCppServerManager, LlamaCppServerManager>();
-        services.AddSingleton<ILlamaCppServerManagerFactory, LlamaCppServerManagerFactory>();
         services.AddSingleton<ISmartBpGuidanceSyncService, SmartBpGuidanceSyncService>();
         services.AddSingleton<ISmartBpProgressInferenceService, SmartBpProgressInferenceService>();
         services.AddSingleton<ISmartBpProgressSyncService, SmartBpProgressSyncService>();

@@ -662,9 +662,6 @@ public partial class SmartBpModuleContentViewModel
         SelectedRecognitionStrategy = RecognitionStrategies.FirstOrDefault(x => x.Strategy == _recognitionSettingsService.Settings.RecognitionStrategy)
                                       ?? RecognitionStrategies.FirstOrDefault();
         RefreshRecognitionEngineVisibility();
-        QwenManifestStatus = ResolveLocalizedOrRaw("SmartBpAiStatusLoading");
-        LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusStopped");
-        LlamaServerExecutablePath = _recognitionSettingsService.Settings.LlamaServerExecutablePath;
         EnableAutoGuidanceSync = _recognitionSettingsService.Settings.EnableAutoGuidanceSync;
         EnableAutoApplyRecognition = _recognitionSettingsService.Settings.EnableAutoApplyRecognition;
         EnableAutoGuidancePageNavigation = _recognitionSettingsService.Settings.EnableAutoGuidancePageNavigation;
@@ -719,28 +716,10 @@ public partial class SmartBpModuleContentViewModel
         RecognitionBackfillLookBehindSteps = _recognitionSettingsService.Settings.RecognitionBackfillLookBehindSteps;
         RecognitionFieldStaleMilliseconds = _recognitionSettingsService.Settings.RecognitionFieldStaleMilliseconds;
         RecognitionVisualBufferMilliseconds = _recognitionSettingsService.Settings.RecognitionVisualBufferMilliseconds;
-        LlamaParallelSlots = _recognitionSettingsService.Settings.LlamaParallelSlots;
-        LlamaGpuLayers = _recognitionSettingsService.Settings.LlamaGpuLayers;
-        LlamaFlashAttention = _recognitionSettingsService.Settings.LlamaFlashAttention;
-        LlamaBatchSize = _recognitionSettingsService.Settings.LlamaBatchSize;
-        LlamaUBatchSize = _recognitionSettingsService.Settings.LlamaUBatchSize;
         RefreshRecognitionTimerInterval();
         RefreshRecognitionSpeedTestValidity();
-        RefreshLlamaServerUiState();
         // 自动循环 Tick 只负责调度当前帧识别，具体阶段门禁和写回保护在 coordinator 内完成。
         _aiPreviewTimer.Tick += async (_, _) => await RunAutomaticCurrentFrameCoreAsync();
-        _aiPerformanceTimer.Tick += async (_, _) => await RefreshAiPerformanceAsync();
-        _aiPerformanceTimer.Start();
-        _qwenAssetManager.StateChanged += (_, state) => RunOnUiThread(() =>
-        {
-            ApplyVisionModelDownloadState(state);
-            if (!state.IsDownloading)
-            {
-                _ = RefreshSelectedQwenModelInstallStatusAsync();
-                _ = RefreshSelectedAiOcrModelInstallStatusAsync();
-                _activeVisionModelDownloadRole = null;
-            }
-        });
         _rapidOcrModelAssetManager.StateChanged += (_, state) => RunOnUiThread(() =>
         {
             IsRapidOcrDownloading = state.IsDownloading;
@@ -761,17 +740,6 @@ public partial class SmartBpModuleContentViewModel
         _debugLogFlushTimer.Tick += (_, _) => FlushDebugLogBuffer();
         _debugLogFlushTimer.Start();
         _aiDebugLog.Write("SmartBP", "AI recognition diagnostics initialized.");
-        _llamaRuntimeAssetManager.StateChanged += (_, state) => RunOnUiThread(() =>
-        {
-            IsLlamaRuntimeDownloading = state.IsDownloading;
-            LlamaRuntimeDownloadProgress = state.Progress ?? 0;
-            LlamaRuntimeDownloadStatus = ResolveLocalizedOrRaw(state.Status);
-            LlamaRuntimeDownloadDetail = FormatDownloadState(state);
-            if (!string.IsNullOrWhiteSpace(state.ErrorMessage))
-                AiLastError = LlamaRuntimeDownloadDetail;
-            if (!state.IsDownloading)
-                _ = RefreshLlamaRuntimeStatusAsync();
-        });
         _tesseractDataAssetManager.StateChanged += (_, state) => RunOnUiThread(() =>
         {
             IsTesseractDataDownloading = state.IsDownloading;
@@ -781,10 +749,7 @@ public partial class SmartBpModuleContentViewModel
                 AiLastError = TesseractDownloadDetail;
             if (!state.IsDownloading) _ = RefreshTesseractDataStatusAsync();
         });
-        _ = LoadLlamaCppAssetsAsync();
-        _ = InitializeAiOptionsAsync();
         _ = LoadAiRegionProfileAsync();
-        _ = RefreshQwenStatusAsync();
     }
 
     /// <summary>

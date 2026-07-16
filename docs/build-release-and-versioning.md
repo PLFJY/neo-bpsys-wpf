@@ -67,7 +67,7 @@ SmartBpModuleManifest.json
 
 `SmartBpModule.7z` 和 full 安装包必须来自同一个 `build\SmartBpModule` staging 目录，避免 release 模块包与 full installer 内置模块不一致。官方 SmartBP 模块 release artifact 是 `SmartBpModule.7z`；运行时仍兼容旧 `SmartBpModule.zip` 包。
 
-SmartBP 模块通过在线下载、设置页导入或 SmartBP 页面手动导入 `.7z` / `.zip` 升级时，只替换模块程序文件；模块目录下的托管资产根目录 `OCRModels/` 和 `AI/` 会原地保留。这里包含 Paddle OCR 模型、Tesseract traineddata、Qwen 模型和 llama.cpp runtime。即使归档包误带同名资产目录，也不得覆盖用户已经下载好的模型资产。
+SmartBP 模块通过在线下载、设置页导入或 SmartBP 页面手动导入 `.7z` / `.zip` 升级时，只替换模块程序文件；模块目录下的托管 OCR 资产根目录 `OCRModels/` 和 `tessdata/` 会原地保留。这里包含 PaddleOCR、RapidOCR 模型和 Tesseract traineddata。即使归档包误带同名资产目录，也不得覆盖用户已经下载好的 OCR 资产。
 
 `SmartBpModuleManifest.json` 中的 `ModuleVersion` 和下载 URL 使用本次构建确定的 release tag，也就是主程序 `ProductVersion`。正式 GitHub Actions 发布时同样读取安装包 `ProductVersion` 并作为 `tag_name`，因此 manifest 内不再保留 `{tag}` 占位。full 安装器写入的 `SmartBpModuleState.ModuleVersion` 也使用同一个 `ProductVersion`。
 

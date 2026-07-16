@@ -14,11 +14,8 @@ using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Tests.Infrastructure;
 using Xunit;
-using QwenModelAssetManager = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.QwenModelAssetManager;
 using SmartBpParallelDownload = smartbp::neo_bpsys_wpf.Services.SmartBpParallelDownload;
 using SmartBpSceneGateService = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpSceneGateService;
-using QwenModelProfile = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.QwenModelProfile;
-using QwenModelSourceType = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.QwenModelSourceType;
 using SmartBpRecognitionScene = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionScene;
 using SmartBpRecognitionStrategy = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionStrategy;
 using SmartBpRecognitionSettings = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionSettings;
@@ -290,46 +287,4 @@ public sealed class SmartBpSceneGateAndModelSourceTest
         }
     }
 
-    [Fact]
-    public void ResolveDownloadUrl_BuildsOfficialHuggingFaceUrl()
-    {
-        var profile = HuggingFaceProfile();
-        var result = QwenModelAssetManager.ResolveDownloadUrl(
-            profile, profile.ModelFileName, false, new(), CultureInfo.GetCultureInfo("en-US"));
-        Assert.Equal("https://huggingface.co/owner/repo/resolve/main/model.gguf", result);
-    }
-
-    [Fact]
-    public void ResolveDownloadUrl_UsesChineseMirrorAndEndpointOverride()
-    {
-        var profile = HuggingFaceProfile();
-        var mirror = QwenModelAssetManager.ResolveDownloadUrl(
-            profile, profile.ModelFileName, false, new(), CultureInfo.GetCultureInfo("zh-CN"));
-        var overridden = QwenModelAssetManager.ResolveDownloadUrl(
-            profile, profile.ModelFileName, false,
-            new SmartBpRecognitionSettings { HuggingFaceEndpointOverride = "https://models.example.test/" },
-            CultureInfo.GetCultureInfo("zh-CN"));
-        Assert.Equal("https://hf-mirror.com/owner/repo/resolve/main/model.gguf", mirror);
-        Assert.Equal("https://models.example.test/owner/repo/resolve/main/model.gguf", overridden);
-    }
-
-    [Fact]
-    public void ResolveDownloadUrl_PreservesDirectUrlProfiles()
-    {
-        var profile = new QwenModelProfile
-        {
-            Id = "direct", SourceType = QwenModelSourceType.DirectUrl,
-            ModelUrl = "https://example.test/model.gguf", ModelFileName = "model.gguf"
-        };
-        var result = QwenModelAssetManager.ResolveDownloadUrl(
-            profile, profile.ModelFileName, false, new(), CultureInfo.GetCultureInfo("zh-CN"));
-        Assert.Equal(profile.ModelUrl, result);
-    }
-
-    private static QwenModelProfile HuggingFaceProfile() => new()
-    {
-        Id = "hf", SourceType = QwenModelSourceType.HuggingFace,
-        HuggingFaceRepoId = "owner/repo", HuggingFaceRevision = "main",
-        ModelFileName = "model.gguf", UseHuggingFaceMirrorForChineseUi = true
-    };
 }
