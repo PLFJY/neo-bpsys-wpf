@@ -21,6 +21,7 @@
 1. WPF `Page` 只能作为 `Window`、`Frame` 或导航宿主的内容；严禁把 `Page` 直接放入 `ContentControl`、`Border`、`Grid`、`TabItem`、插件/模块内容 host 等嵌入容器。需要嵌入的页面片段必须用 `UserControl` 或普通 `Control`，否则会触发 `InvalidOperationException: Page can have only Window or Frame as parent.`
 1. 不要把 FrontedWindow 理解成 Web 前端，也不要引入 Web 前端假设。
 1. 不要随意大规模重构服务、ViewModel 或资源结构。
+1. **默认保持既有行为与数据契约自然可运行，不要用读取期补字段、转换器、运行时猜测或 fallback 来掩盖新旧语义冲突。** 新功能应以增量方式加入：旧字段、旧字面量、旧流程继续按原有语义处理；只有实际使用新接入点、新字段或新模式时才启用新规则。除非开发者明确指定迁移或兼容策略，不得为了让旧数据通过新校验而手动补默认值、重写持久化内容，或把缺失字段猜成某个含义。需要区分模式时，应通过显式连接、明确字段或版本契约表达，并让校验在新能力被实际使用时给出准确错误。
 1. 用户可见文本要考虑 `WPFLocalizeExtension` 和 `Locales/*.resx`，避免随手硬编码。
 1. 插件安装/更新通常需要重启，因为插件在 Host build 前注入 DI。
 1. 插件是全信任模型；安全边界依赖市场审核、微步云扫描、人工审查和小生态，不是沙箱。

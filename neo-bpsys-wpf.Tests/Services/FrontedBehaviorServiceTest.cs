@@ -5,6 +5,7 @@ using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Xunit;
@@ -82,11 +83,10 @@ public class FrontedBehaviorServiceTest
     }
 
     /// <summary>
-    /// 加载旧行为文档时，应将缺少的数值输入单位迁移成显式 Absolute，
-    /// 使运行时不需要根据缺失字段推断单位。
+    /// 加载包含手填数值的行为文档时，不应补写数值输入单位。
     /// </summary>
     [Fact]
-    public async Task BehaviorService_LoadLegacyDocument_MigratesNumericInputUnits()
+    public async Task BehaviorService_LoadDocument_PreservesLiteralNumericValuesWithoutInputUnits()
     {
         var root = CreateTempRoot();
         try
@@ -124,11 +124,74 @@ public class FrontedBehaviorServiceTest
             var set = Assert.Single(nodes, node => node.NodeType == "action.setProperty");
             var animate = Assert.Single(nodes, node => node.NodeType == "action.animateProperty");
 
-            Assert.Equal("Absolute", set.Properties["ValueInputUnit"].GetString());
-            Assert.Equal("Absolute", animate.Properties["FromInputUnit"].GetString());
-            Assert.Equal("Absolute", animate.Properties["ToInputUnit"].GetString());
+            Assert.False(set.Properties.ContainsKey("ValueInputUnit"));
+            Assert.False(animate.Properties.ContainsKey("FromInputUnit"));
+            Assert.False(animate.Properties.ContainsKey("ToInputUnit"));
             Assert.DoesNotContain(
                 new FrontedNodeGraphValidator().Validate(document.ControlBehaviorSets[0].Behaviors[0].Graph),
+                message => message.Severity == FrontedNodeGraphValidationSeverity.Error);
+        }
+        finally
+        {
+            DeleteTempRoot(root);
+        }
+    }
+
+    /// <summary>
+    /// 加载转场行为文档时，不应改写退出和进入图中的手填数值。
+    /// </summary>
+    [Fact]
+    public async Task BehaviorService_LoadTransition_PreservesLiteralNumericValuesWithoutInputUnits()
+    {
+        var root = CreateTempRoot();
+        try
+        {
+            var behaviorsRoot = Path.Combine(root, "Resources", "FrontedBehaviors");
+            Directory.CreateDirectory(behaviorsRoot);
+            await File.WriteAllTextAsync(
+                Path.Combine(behaviorsRoot, "BpWindow.behaviors.json"),
+                """
+                {
+                  "Version": 1,
+                  "WindowType": "BpWindow",
+                  "CanvasName": "BaseCanvas",
+                  "ControlBehaviorSets": [
+                    {
+                      "BehaviorGuid": "a0000000-0000-0000-0000-000000000001",
+                      "Behaviors": [
+                        {
+                          "Kind": "Transition",
+                          "ExitGraph": {
+                            "Nodes": [
+                              { "NodeType": "action.setProperty", "Properties": { "Target": "Self", "TargetLayer": "Control", "PropertyName": "Opacity", "Value": "0" } }
+                            ]
+                          },
+                          "EnterGraph": {
+                            "Nodes": [
+                              { "NodeType": "action.animateProperty", "Properties": { "Target": "Self", "TargetLayer": "Control", "PropertyName": "Opacity", "From": "0", "To": "1", "DurationMs": 250 } }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+                """,
+                TestContext.Current.CancellationToken);
+
+            var behavior = Assert.Single((await CreateService(root)
+                    .LoadDocumentAsync("BpWindow", TestContext.Current.CancellationToken))
+                .ControlBehaviorSets)
+                .Behaviors.Single();
+            var exitSet = Assert.Single(behavior.ExitGraph.Nodes);
+            var enterAnimate = Assert.Single(behavior.EnterGraph.Nodes);
+
+            Assert.False(exitSet.Properties.ContainsKey("ValueInputUnit"));
+            Assert.False(enterAnimate.Properties.ContainsKey("FromInputUnit"));
+            Assert.False(enterAnimate.Properties.ContainsKey("ToInputUnit"));
+            Assert.DoesNotContain(
+                new FrontedNodeGraphValidator().Validate(behavior.ExitGraph)
+                    .Concat(new FrontedNodeGraphValidator().Validate(behavior.EnterGraph)),
                 message => message.Severity == FrontedNodeGraphValidationSeverity.Error);
         }
         finally

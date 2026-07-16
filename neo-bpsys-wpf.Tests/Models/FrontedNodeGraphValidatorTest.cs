@@ -227,6 +227,29 @@ public class FrontedNodeGraphValidatorTest
         Assert.Contains(messages, message => message.Code == "InputMultipleConnections");
     }
 
+    [Fact]
+    public void Validate_ConnectedNumericInput_RequiresExplicitUnitOnlyWhileConnected()
+    {
+        var value = _catalog.CreateNode("value.number");
+        var action = _catalog.CreateNode("action.setProperty");
+        action.Properties["PropertyName"] = JsonSerializer.SerializeToElement("ClipInsetRight");
+        action.Properties.Remove("ValueInputUnit");
+        var graph = new FrontedNodeGraph
+        {
+            Nodes = [value, action],
+            Connections = [Link(value, "Value", action, "ValueInput")]
+        };
+
+        var messages = new FrontedNodeGraphValidator(_catalog).Validate(graph);
+
+        Assert.Contains(messages, message => message.Code == "NumericInputUnitRequired" && message.PropertyName == "ValueInputUnit");
+
+        action.Properties["ValueInputUnit"] = JsonSerializer.SerializeToElement("Percent");
+        messages = new FrontedNodeGraphValidator(_catalog).Validate(graph);
+
+        Assert.DoesNotContain(messages, message => message.Severity == FrontedNodeGraphValidationSeverity.Error);
+    }
+
     private static FrontedNodeConnection Link(FrontedNode source, string sourcePort, FrontedNode target, string targetPort) =>
         new()
         {

@@ -693,7 +693,10 @@
                         <ItemsControl ItemsSource="{Binding SelectedNode.Properties}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <StackPanel Margin="0,0,0,10" ToolTip="{Binding Description}">
+                                    <StackPanel
+                                        Margin="0,0,0,10"
+                                        ToolTip="{Binding Description}"
+                                        Visibility="{Binding IsVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
                                         <TextBlock
                                             Margin="0,0,0,3"
                                             Foreground="{DynamicResource TextFillColorPrimaryBrush}"

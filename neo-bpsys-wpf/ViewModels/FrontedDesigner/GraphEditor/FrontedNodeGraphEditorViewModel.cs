@@ -1831,10 +1831,14 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableValid
     public FrontedNodePropertyDescriptor Descriptor { get; }
     public string DisplayName { get; }
     public string Description { get; }
+    /// <summary>获取当前属性是否应在属性面板中显示。</summary>
+    public bool IsVisible => !IsNumericInputUnitSelector || HasConnectedNumericInput;
     /// <summary>获取指示当前手动值是否可编辑的值。</summary>
     public bool IsManualValueEnabled => !HasExternalValueInput;
     /// <summary>获取指示当前属性是否由外部数值输入提供的值。</summary>
     public bool HasExternalValueInput => ResolveExternalInputPort() is { } port && _hasIncomingConnection(_node, port);
+    /// <summary>获取数值输入端口是否已连接。</summary>
+    public bool HasConnectedNumericInput => ResolveNumericInputPort() is { } port && _hasIncomingConnection(_node, port);
     /// <summary>获取外部数值输入说明。</summary>
     public string ExternalValueInputNotice => _localize("Designer.Graph.ExternalValueInput", "An external numeric input is connected; the manual value is disabled.");
     /// <summary>获取当前属性的上下文输入提示。</summary>
@@ -2321,15 +2325,27 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableValid
     public void RefreshExternalInputState()
     {
         OnPropertyChanged(nameof(HasExternalValueInput));
+        OnPropertyChanged(nameof(HasConnectedNumericInput));
         OnPropertyChanged(nameof(IsManualValueEnabled));
         OnPropertyChanged(nameof(ExternalValueInputNotice));
+        OnPropertyChanged(nameof(IsVisible));
     }
+
+    private bool IsNumericInputUnitSelector => Descriptor.Name is "ValueInputUnit" or "FromInputUnit" or "ToInputUnit";
 
     private string? ResolveExternalInputPort() => (_node.NodeType, Descriptor.Name) switch
     {
         ("action.setProperty", "Value") => "ValueInput",
         ("action.animateProperty", "From") => "FromInput",
         ("action.animateProperty", "To") => "ToInput",
+        _ => null
+    };
+
+    private string? ResolveNumericInputPort() => (_node.NodeType, Descriptor.Name) switch
+    {
+        ("action.setProperty", "Value") or ("action.setProperty", "ValueInputUnit") => "ValueInput",
+        ("action.animateProperty", "From") or ("action.animateProperty", "FromInputUnit") => "FromInput",
+        ("action.animateProperty", "To") or ("action.animateProperty", "ToInputUnit") => "ToInput",
         _ => null
     };
 

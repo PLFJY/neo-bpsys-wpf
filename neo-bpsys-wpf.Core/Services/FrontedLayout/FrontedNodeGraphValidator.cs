@@ -28,7 +28,7 @@ public sealed class FrontedNodeGraphValidator(FrontedNodeCatalog? catalog = null
 
         foreach (var node in graph.Nodes)
         {
-            ValidateNode(node, messages);
+            ValidateNode(graph, node, messages);
         }
 
         foreach (var connection in graph.Connections)
@@ -117,7 +117,7 @@ public sealed class FrontedNodeGraphValidator(FrontedNodeCatalog? catalog = null
         }
     }
 
-    private void ValidateNode(FrontedNode node, ICollection<FrontedNodeGraphValidationMessage> messages)
+    private void ValidateNode(FrontedNodeGraph graph, FrontedNode node, ICollection<FrontedNodeGraphValidationMessage> messages)
     {
         var descriptor = _catalog.Find(node.NodeType);
         if (descriptor is null)
@@ -161,10 +161,10 @@ public sealed class FrontedNodeGraphValidator(FrontedNodeCatalog? catalog = null
             messages.Add(Message(FrontedNodeGraphValidationSeverity.Error, "InvalidIfOperator", "If operator is invalid.", node.NodeId, propertyName: "Operator"));
         }
 
-        ValidateActionPropertyNode(node, messages);
+        ValidateActionPropertyNode(graph, node, messages);
     }
 
-    private static void ValidateActionPropertyNode(FrontedNode node, ICollection<FrontedNodeGraphValidationMessage> messages)
+    private static void ValidateActionPropertyNode(FrontedNodeGraph graph, FrontedNode node, ICollection<FrontedNodeGraphValidationMessage> messages)
     {
         if (node.NodeType is not ("action.animateProperty" or "action.setProperty" or "action.resetProperty"))
         {
@@ -213,6 +213,65 @@ public sealed class FrontedNodeGraphValidator(FrontedNodeCatalog? catalog = null
             ValidatePropertyValue(node, propertyName, "Value", messages, allowEmpty: false);
         }
 
+        ValidateConnectedNumericInputUnits(graph, node, propertyName, messages);
+    }
+
+    private static void ValidateConnectedNumericInputUnits(
+        FrontedNodeGraph graph,
+        FrontedNode node,
+        string? propertyName,
+        ICollection<FrontedNodeGraphValidationMessage> messages)
+    {
+        var inputs = node.NodeType switch
+        {
+            "action.setProperty" => new[] { (ValueName: "Value", PortName: "ValueInput") },
+            "action.animateProperty" => new[] { (ValueName: "From", PortName: "FromInput"), (ValueName: "To", PortName: "ToInput") },
+            _ => []
+        };
+
+        foreach (var (valueName, portName) in inputs)
+        {
+            if (!graph.Connections.Any(connection => connection.TargetNodeId == node.NodeId && connection.TargetPort == portName))
+            {
+                continue;
+            }
+
+            var unitPropertyName = $"{valueName}InputUnit";
+            var unit = GetString(node, unitPropertyName);
+            if (string.IsNullOrWhiteSpace(unit))
+            {
+                messages.Add(Message(
+                    FrontedNodeGraphValidationSeverity.Error,
+                    "NumericInputUnitRequired",
+                    $"{unitPropertyName} is required when {portName} is connected.",
+                    node.NodeId,
+                    propertyName: unitPropertyName));
+                continue;
+            }
+
+            if (!string.Equals(unit, "Absolute", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(unit, "Percent", StringComparison.OrdinalIgnoreCase))
+            {
+                messages.Add(Message(
+                    FrontedNodeGraphValidationSeverity.Error,
+                    "InvalidNumericInputUnit",
+                    $"{unitPropertyName} must be Absolute or Percent.",
+                    node.NodeId,
+                    propertyName: unitPropertyName));
+                continue;
+            }
+
+            if (string.Equals(unit, "Percent", StringComparison.OrdinalIgnoreCase)
+                && !FrontedBehaviorPropertyMetadata.SupportsPercentage(propertyName))
+            {
+                messages.Add(Message(
+                    FrontedNodeGraphValidationSeverity.Error,
+                    "PercentInputUnitUnsupported",
+                    $"{unitPropertyName} requires a relative-length target property.",
+                    node.NodeId,
+                    propertyName: unitPropertyName));
+            }
+        }
     }
 
     private static void ValidatePropertyValue(

@@ -164,8 +164,7 @@ public sealed class FrontedNodeGraphRuntime(
             var portName = name switch { "Value" => "ValueInput", "From" => "FromInput", "To" => "ToInput", _ => string.Empty };
             var literal = GetString(node, name);
             var usesNumericValue = !string.IsNullOrEmpty(portName)
-                                   && (literal.TrimStart().StartsWith('=')
-                                       || state.Graph.Connections.Any(connection => connection.TargetNodeId == node.NodeId && connection.TargetPort == portName));
+                                   && state.Graph.Connections.Any(connection => connection.TargetNodeId == node.NodeId && connection.TargetPort == portName);
             if (usesNumericValue && !FrontedBehaviorPropertyMetadata.IsNumericProperty(GetString(node, "PropertyName")))
             {
                 Log(state.Logs, FrontedGraphExecutionLogLevel.Warning, $"{requestType} skipped: numeric value '{name}' requires a numeric target property.", node.NodeId);
@@ -177,7 +176,13 @@ public sealed class FrontedNodeGraphRuntime(
                 Log(state.Logs, FrontedGraphExecutionLogLevel.Warning, $"{requestType} skipped: {name} could not be resolved: {error}", node.NodeId);
                 return;
             }
-            if (usesNumericValue && string.Equals(GetString(node, $"{name}InputUnit"), "Percent", StringComparison.OrdinalIgnoreCase))
+            var inputUnit = NumericInputUnit.Absolute;
+            if (usesNumericValue && !TryGetNumericInputUnit(node, name, out inputUnit))
+            {
+                Log(state.Logs, FrontedGraphExecutionLogLevel.Warning, $"{requestType} skipped: {name} has a connected numeric input but no valid unit.", node.NodeId);
+                return;
+            }
+            if (usesNumericValue && inputUnit == NumericInputUnit.Percent)
             {
                 if (!FrontedBehaviorPropertyMetadata.SupportsPercentage(GetString(node, "PropertyName")))
                 {
@@ -344,6 +349,15 @@ public sealed class FrontedNodeGraphRuntime(
         }
 
         return value.ValueKind == JsonValueKind.String && bool.TryParse(value.GetString(), out var result) ? result : fallback;
+    }
+
+    private static bool TryGetNumericInputUnit(FrontedNode node, string valueName, out NumericInputUnit unit) =>
+        Enum.TryParse(GetString(node, $"{valueName}InputUnit"), ignoreCase: true, out unit);
+
+    private enum NumericInputUnit
+    {
+        Absolute,
+        Percent
     }
 
     private static void Log(ConcurrentQueue<FrontedGraphExecutionLogItem> logs, FrontedGraphExecutionLogLevel level, string message, Guid? nodeId = null) =>
