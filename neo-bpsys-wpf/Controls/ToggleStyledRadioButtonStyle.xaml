@@ -6,12 +6,48 @@
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
     <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-    <Style BasedOn="{StaticResource {x:Type RadioButton}}" TargetType="{x:Type controls:ToggleStyledRadioButton}">
+    <Style BasedOn="{StaticResource {x:Type ToggleButton}}" TargetType="{x:Type controls:ToggleStyledRadioButton}">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type controls:ToggleStyledRadioButton}">
-                    <ToggleButton ContentTemplate="{TemplateBinding ContentTemplate}" IsChecked="{Binding Path=IsChecked, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
-                        <StackPanel IsEnabled="{TemplateBinding IsEnabled}">
+                    <ToggleButton
+                        Width="{TemplateBinding Width}"
+                        Height="{TemplateBinding Height}"
+                        MinWidth="{TemplateBinding MinWidth}"
+                        MinHeight="{TemplateBinding MinHeight}"
+                        MaxWidth="{TemplateBinding MaxWidth}"
+                        MaxHeight="{TemplateBinding MaxHeight}"
+                        Padding="{TemplateBinding Padding}"
+                        Command="{TemplateBinding Command}"
+                        CommandParameter="{TemplateBinding CommandParameter}"
+                        ContentTemplate="{TemplateBinding ContentTemplate}"
+                        IsEnabled="{TemplateBinding IsEnabled}"
+                        IsChecked="{Binding Path=IsChecked, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                        <ToggleButton.Style>
+                            <Style BasedOn="{StaticResource {x:Type ToggleButton}}" TargetType="ToggleButton">
+                                <Setter
+                                    Property="Background"
+                                    Value="{Binding Background, RelativeSource={RelativeSource TemplatedParent}}" />
+                                <Setter
+                                    Property="BorderBrush"
+                                    Value="{Binding BorderBrush, RelativeSource={RelativeSource TemplatedParent}}" />
+                                <Setter
+                                    Property="BorderThickness"
+                                    Value="{Binding BorderThickness, RelativeSource={RelativeSource TemplatedParent}}" />
+                                <Style.Triggers>
+                                    <MultiTrigger>
+                                        <MultiTrigger.Conditions>
+                                            <Condition Property="IsChecked" Value="True" />
+                                            <Condition Property="IsEnabled" Value="True" />
+                                        </MultiTrigger.Conditions>
+                                        <Setter Property="Background" Value="{DynamicResource SystemAccentColorPrimaryBrush}" />
+                                    </MultiTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ToggleButton.Style>
+                        <StackPanel
+                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
                             <Image
                                 Width="{TemplateBinding ImageWidth}"
                                 Height="{TemplateBinding ImageHeight}"
@@ -22,16 +58,23 @@
                                 Visibility="{TemplateBinding IsImageVisible,
                                                              Converter={StaticResource BooleanToVisibilityConverter}}" />
                             <TextBlock
-                                HorizontalAlignment="Center"
+                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                 Focusable="False"
-                                FontSize="{TemplateBinding TagNameFontSize}"
+                                FontFamily="{TemplateBinding FontFamily}"
+                                FontSize="{TemplateBinding FontSize}"
+                                FontStyle="{TemplateBinding FontStyle}"
+                                FontWeight="{TemplateBinding FontWeight}"
                                 Text="{Binding TagName, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
                                 <TextBlock.Style>
                                     <Style TargetType="TextBlock">
+                                        <Setter
+                                            Property="Foreground"
+                                            Value="{Binding Foreground, RelativeSource={RelativeSource TemplatedParent}}" />
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsEnabled, RelativeSource={RelativeSource TemplatedParent}}" Value="false">
+                                            <Trigger Property="IsEnabled" Value="false">
                                                 <Setter Property="Foreground" Value="Gray" />
-                                            </DataTrigger>
+                                            </Trigger>
                                         </Style.Triggers>
                                     </Style>
                                 </TextBlock.Style>
