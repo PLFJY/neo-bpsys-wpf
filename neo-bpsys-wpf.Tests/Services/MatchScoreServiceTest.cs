@@ -330,8 +330,8 @@ public class MatchScoreServiceTest
 
         var firstRow = viewModel.ScorePreviewRows[0];
         Assert.Equal(Loc("ThreeEscape"), firstRow.ResultText);
-        Assert.Equal(Loc("Survivor"), firstRow.HomeCampText);
-        Assert.Equal(Loc("Hunter"), firstRow.AwayCampText);
+        Assert.Equal(CommonLoc("Survivor"), firstRow.HomeCampText);
+        Assert.Equal(CommonLoc("Hunter"), firstRow.AwayCampText);
         Assert.Equal("3", firstRow.HomeMinorScoreText);
         Assert.Equal("1", firstRow.AwayMinorScoreText);
         Assert.True(firstRow.HasResult);
@@ -395,6 +395,9 @@ public class MatchScoreServiceTest
 
     private static string Loc(string key) =>
         neo_bpsys_wpf.Helpers.I18nHelper.GetLocalizedString(neo_bpsys_wpf.Helpers.AppI18nDictionaries.Score, key, CultureInfo.CurrentUICulture);
+
+    private static string CommonLoc(string key) =>
+        neo_bpsys_wpf.Helpers.I18nHelper.GetLocalizedString(neo_bpsys_wpf.Helpers.AppI18nDictionaries.Common, key, CultureInfo.CurrentUICulture);
 
     private static string Loc(string key, int arg) =>
         string.Format(CultureInfo.CurrentUICulture, Loc(key), arg);

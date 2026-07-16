@@ -8,8 +8,8 @@ using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Tutorial;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Globalization;
 using Team = neo_bpsys_wpf.Core.Models.Team;
+using WPFLocalizeExtension.Engine;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -129,6 +129,7 @@ public partial class ScorePageViewModel : ViewModelBase
         _matchScoreService = matchScoreService;
         _sharedDataService.CurrentGameChanged += OnCurrentGameChanged;
         _sharedDataService.IsBo3ModeChanged += OnIsBo3ModeChanged;
+        LocalizeDictionary.Instance.PropertyChanged += OnLocalizeDictionaryPropertyChanged;
         SubscribeGame(_sharedDataService.CurrentGame);
         RefreshScorePageState();
     }
@@ -353,7 +354,7 @@ public partial class ScorePageViewModel : ViewModelBase
             ? "ScorePreviewGameOvertimeFormat"
             : "ScorePreviewGameFormat";
 
-        return string.Format(CultureInfo.CurrentUICulture, Loc(formatKey), key.GameNumber);
+        return string.Format(LocalizeDictionary.CurrentCulture, Loc(formatKey), key.GameNumber);
     }
 
     private static string FormatHalfLabel(ScoreHalfKind halfKind) =>
@@ -363,7 +364,7 @@ public partial class ScorePageViewModel : ViewModelBase
 
     private static string FormatProgressLabel(ScoreGameKey key, ScoreHalfKind halfKind) =>
         string.Format(
-            CultureInfo.CurrentUICulture,
+            LocalizeDictionary.CurrentCulture,
             Loc("ScorePreviewProgressFormat"),
             FormatGameLabel(key),
             FormatHalfLabel(halfKind));
@@ -382,16 +383,29 @@ public partial class ScorePageViewModel : ViewModelBase
     private static string FormatRecordedCamp(ScoreHalf half, TeamType teamType)
     {
         if (half.SurTeamTypeWhenRecorded == teamType)
-            return Loc("Survivor");
+            return CommonLoc("Survivor");
 
         if (half.HunTeamTypeWhenRecorded == teamType)
-            return Loc("Hunter");
+            return CommonLoc("Hunter");
 
         return "-";
     }
 
     private static string Loc(string key) =>
-        I18nHelper.GetLocalizedString(AppI18nDictionaries.Score, key, CultureInfo.CurrentUICulture);
+        I18nHelper.GetLocalizedString(AppI18nDictionaries.Score, key, LocalizeDictionary.CurrentCulture);
+
+    private static string CommonLoc(string key) =>
+        I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, key, LocalizeDictionary.CurrentCulture);
+
+    private void OnLocalizeDictionaryPropertyChanged(object? sender, PropertyChangedEventArgs args)
+    {
+        if (string.IsNullOrEmpty(args.PropertyName)
+            || args.PropertyName == nameof(LocalizeDictionary.Culture)
+            || args.PropertyName == nameof(LocalizeDictionary.CurrentCulture))
+        {
+            RefreshScorePreviewRows();
+        }
+    }
 
     #endregion
 }
