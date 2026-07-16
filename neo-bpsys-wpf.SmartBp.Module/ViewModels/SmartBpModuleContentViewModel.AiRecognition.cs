@@ -69,18 +69,17 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty]
     public partial bool IsDebugLogEnabled { get; set; } = true;
 
-    // 已移除本地视觉模型提示词与 llama.cpp 运行时管理。
     [ObservableProperty]
-    public partial bool EnableAutoGuidanceSync { get; set; }
+    public partial bool EnableAutoGuidanceSync { get; set; } = true;
 
     [ObservableProperty]
-    public partial bool EnableAutoApplyRecognition { get; set; }
+    public partial bool EnableAutoApplyRecognition { get; set; } = true;
 
     [ObservableProperty]
     public partial bool EnableAutoGuidancePageNavigation { get; set; }
 
     [ObservableProperty]
-    public partial bool EnableSmartBpProgressAutoCorrection { get; set; }
+    public partial bool EnableSmartBpProgressAutoCorrection { get; set; } = true;
 
     [ObservableProperty]
     public partial string LastSmartBpProgressDiagnosis { get; set; } = "-";
