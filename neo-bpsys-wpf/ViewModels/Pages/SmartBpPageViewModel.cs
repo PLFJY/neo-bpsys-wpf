@@ -241,7 +241,6 @@ public partial class SmartBpPageViewModel : ViewModelBase
                 {
                     _globalRestartService.IsRestartRequired = true;
                     OverlayMessage = L("SmartBpModuleArchiveImportRestartPrepared");
-                    await OfferSmartBpModuleArchiveImportRestartAsync();
                 }
 
                 return;
@@ -295,7 +294,6 @@ public partial class SmartBpPageViewModel : ViewModelBase
                 OverlayMessage = L("SmartBpModuleArchiveImportRestartPrepared");
                 ProgressValue = 100;
                 IsProgressVisible = false;
-                await OfferSmartBpModuleArchiveImportRestartAsync();
                 return;
             }
 
@@ -487,22 +485,6 @@ public partial class SmartBpPageViewModel : ViewModelBase
     /// <param name="key">资源键。</param>
     /// <returns>本地化字符串；资源缺失时返回资源键本身。</returns>
     private static string L(string key) => I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, key);
-
-    /// <summary>
-    /// 显示 SmartBP 模块压缩包暂存替换后的重启提示。
-    /// </summary>
-    /// <returns>提示处理完成后结束的任务。</returns>
-    private static async Task OfferSmartBpModuleArchiveImportRestartAsync()
-    {
-        if (await MessageBoxHelper.ShowConfirmAsync(
-                L("SmartBpModuleArchiveImportRestartPrompt"),
-                I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "RestartNeeded"),
-                L("RestartNow"),
-                I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel")))
-        {
-            AppBase.Current.Restart();
-        }
-    }
 
     /// <summary>
     /// 持久化完整且安全的 SmartBP 模块路径，同时忽略未输入完成的用户文本。

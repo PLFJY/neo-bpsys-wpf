@@ -170,7 +170,6 @@ public partial class SettingPageViewModel
                 {
                     _globalRestartService.IsRestartRequired = true;
                     SmartBpModulePathStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "SmartBpModuleArchiveImportRestartPrepared");
-                    await OfferSmartBpModuleArchiveImportRestartAsync();
                     return;
                 }
 
@@ -206,15 +205,4 @@ public partial class SettingPageViewModel
         }
     }
 
-    private static async Task OfferSmartBpModuleArchiveImportRestartAsync()
-    {
-        if (await MessageBoxHelper.ShowConfirmAsync(
-                I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "SmartBpModuleArchiveImportRestartPrompt"),
-                I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "RestartNeeded"),
-                I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "RestartNow"),
-                I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel")))
-        {
-            AppBase.Current.Restart();
-        }
-    }
 }

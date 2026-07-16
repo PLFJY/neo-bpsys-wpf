@@ -106,6 +106,7 @@
             <controls:CustomTitleBar
                 Grid.Row="0"
                 Icon="/Assets/icon.png"
+                IsRestartRequired="{Binding IsRestartRequired}"
                 IsThemeChangeChecked="{Binding ApplicationTheme, Converter={StaticResource ApplicationThemeToBooleanConverter}, Mode=TwoWay}"
                 ThemeChangeCommand="{Binding ThemeSwitchCommand}" />
             <!--  Body  -->
@@ -177,22 +178,22 @@
                                 Text="{Binding TimerTime}" />
                             <ui:Button
                                 Margin="10,0,0,0"
+                                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
                                 Command="{Binding TimerStartCommand}"
                                 Content="{lex:Loc Start}"
-                                Icon="{ui:SymbolIcon Symbol=Play24}"
-                                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
+                                Icon="{ui:SymbolIcon Symbol=Play24}" />
                             <ui:Button
                                 Margin="10,0,0,0"
+                                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
                                 Command="{Binding TimerStopCommand}"
                                 Content="{lex:Loc Stop}"
-                                Icon="{ui:SymbolIcon Symbol=Stop24}"
-                                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
+                                Icon="{ui:SymbolIcon Symbol=Stop24}" />
                             <TextBlock
                                 Width="60"
                                 Margin="10,0,0,0"
                                 VerticalAlignment="Center"
-                                Text="{lex:Loc PreviewColon}"
-                                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
+                                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                                Text="{lex:Loc PreviewColon}" />
                             <TextBlock
                                 Width="30"
                                 Margin="10,0,0,0"
@@ -216,10 +217,10 @@
                 <ui:Button
                     x:Name="NewGameButton"
                     Margin="0,0,10,10"
+                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Game"
                     Command="{Binding NewGameCommand}"
                     Content="{lex:Loc NewGame}"
-                    Icon="{ui:SymbolIcon Symbol=Add24}"
-                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Game" />
+                    Icon="{ui:SymbolIcon Symbol=Add24}" />
                 <Border Margin="0,0,10,10" Style="{StaticResource Card}">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock
@@ -242,8 +243,8 @@
                 <TextBlock
                     Margin="0,0,10,10"
                     VerticalAlignment="Center"
-                    Text="{lex:Loc GameProgressColon}"
-                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Game" />
+                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Game"
+                    Text="{lex:Loc GameProgressColon}" />
                 <ComboBox
                     x:Name="GameProgressComboBox"
                     Width="215"
@@ -256,8 +257,7 @@
                     SelectedValuePath="Key">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
-                            <TextBlock
-                                Text="{Binding Value, Mode=OneWay, Converter={StaticResource ShellDictionaryLocalizationConverter}, ConverterParameter=Locales.Shell}" />
+                            <TextBlock Text="{Binding Value, Mode=OneWay, Converter={StaticResource ShellDictionaryLocalizationConverter}, ConverterParameter=Locales.Shell}" />
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
@@ -271,11 +271,11 @@
                 <ui:Button
                     x:Name="StopSmartBpAutoRecognitionButton"
                     Margin="0,0,10,10"
+                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Settings"
                     Command="{Binding StopSmartBpAutoRecognitionCommand}"
                     Content="{lex:Loc SmartBpStopAutomaticRecognition}"
                     Icon="{ui:SymbolIcon Symbol=Stop24}"
-                    Visibility="{Binding IsSmartBpAutoRecognitionRunning, Converter={StaticResource BoolToVisibilityConverter}}"
-                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Settings" />
+                    Visibility="{Binding IsSmartBpAutoRecognitionRunning, Converter={StaticResource BoolToVisibilityConverter}}" />
                 <ui:Button
                     x:Name="StartGameGuidanceButton"
                     Margin="0,0,10,10"

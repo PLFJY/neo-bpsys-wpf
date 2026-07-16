@@ -28,7 +28,6 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 public partial class SettingPageViewModel : ViewModelBase
 {
     private bool _isSyncingLogLevel;
-    private bool _initialIsPageTransitionAnimationEnabled;
 
     /// <summary>
     /// 用于设计时预览的无参构造函数。
@@ -123,7 +122,6 @@ public partial class SettingPageViewModel : ViewModelBase
         _isSyncingLogLevel = true;
         SelectedLogLevel = _settingsHostService.Settings.LogLevel;
         _isSyncingLogLevel = false;
-        _initialIsPageTransitionAnimationEnabled = _settingsHostService.Settings.IsPageTransitionAnimationEnabled;
 
         var columns = SplitIntoColumns(CreateOpenSourceRepos(), 3);
         OpenSourceRepoColumn1 = columns[0];
@@ -167,7 +165,7 @@ public partial class SettingPageViewModel : ViewModelBase
             _settingsHostService.Settings.IsClassicMode = value;
             _globalRestartService.IsRestartRequired = true;
             OnPropertyChanged();
-            _ = SaveClassicModeAndOfferRestartAsync();
+            _ = SaveClassicModeAsync();
         }
     }
 
@@ -187,42 +185,13 @@ public partial class SettingPageViewModel : ViewModelBase
             _settingsHostService.Settings.IsPageTransitionAnimationEnabled = value;
             _globalRestartService.IsRestartRequired = true;
             OnPropertyChanged();
-            OnPropertyChanged(nameof(IsPageTransitionAnimationRestartRequired));
             _ = _settingsHostService.SaveConfigAsync();
         }
     }
 
-    /// <summary>
-    /// 获取一个值，指示页面切换动画设置是否已相对于本次启动的初始值发生改变，需要重启才能生效。
-    /// </summary>
-    public bool IsPageTransitionAnimationRestartRequired
-        => _settingsHostService.Settings.IsPageTransitionAnimationEnabled != _initialIsPageTransitionAnimationEnabled;
-
-    /// <summary>
-    /// 立即重启应用以使页面切换动画设置生效。
-    /// </summary>
-    [RelayCommand]
-    private void RestartForPageTransitionAnimation()
-    {
-        AppBase.Current.Restart();
-    }
-
-    private async Task SaveClassicModeAndOfferRestartAsync()
+    private async Task SaveClassicModeAsync()
     {
         await _settingsHostService.SaveConfigAsync();
-
-        var shouldRestart = await MessageBoxHelper.ShowConfirmAsync(
-            I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "ClassicModeRestartRequired"),
-            I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Warning"),
-            I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "RestartNow"),
-            I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"));
-
-        if (!shouldRestart)
-        {
-            return;
-        }
-
-        AppBase.Current.Restart();
     }
 
     private void Settings_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)

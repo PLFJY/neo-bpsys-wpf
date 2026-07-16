@@ -566,10 +566,6 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
                 try
                 {
                     await InstallMarketDependenciesAsync(installableItems);
-                    await MessageBoxHelper.ShowInfoAsync(
-                        I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "SomeSettingsRequireRestartingTheApplication"),
-                        I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "RestartNeeded"),
-                        I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"));
                 }
                 catch (Exception ex)
                 {

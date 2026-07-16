@@ -71,12 +71,6 @@ public partial class PluginPageViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 获取或设置是否需要重启以生效插件更改。
-    /// </summary>
-    [ObservableProperty]
-    public partial bool IsRestartNeeded { get; set; }
-
-    /// <summary>
     /// 获取或设置已加载插件列表。
     /// </summary>
     [ObservableProperty]
@@ -88,7 +82,6 @@ public partial class PluginPageViewModel : ViewModelBase
         try
         {
             plugin.IsEnabled = !plugin.IsEnabled;
-            IsRestartNeeded = true;
             _globalRestartService.IsRestartRequired = true;
         }
         catch (Exception ex)
@@ -103,7 +96,6 @@ public partial class PluginPageViewModel : ViewModelBase
         try
         {
             plugin.IsUninstalling = !plugin.IsUninstalling;
-            IsRestartNeeded = plugin.IsRestartRequired;
             if (plugin.IsRestartRequired)
             {
                 _globalRestartService.IsRestartRequired = true;
@@ -116,14 +108,6 @@ public partial class PluginPageViewModel : ViewModelBase
     }
 
     private static bool CanUninstall(PluginInfo plugin) => !plugin.IsBuiltIn;
-
-    [RelayCommand]
-    private static async Task RestartAppAsync()
-    {
-        if (await MessageBoxHelper.ShowConfirmAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "SomeSettingsRequireRestartingTheApplication"),
-            I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "RestartNeeded"), I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"), I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel")))
-            AppBase.Current.Restart();
-    }
 
     /// <summary>
     /// 临时文件路径

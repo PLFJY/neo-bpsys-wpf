@@ -19,10 +19,6 @@
     lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.PluginMarket"
     mc:Ignorable="d">
 
-    <Page.Resources>
-        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-    </Page.Resources>
-
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -40,16 +36,6 @@
                     FontSize="28"
                     FontWeight="SemiBold"
                     Text="{lex:Loc PluginManagement}" />
-                <ui:Button
-                    Margin="20,0,0,0"
-                    VerticalAlignment="Center"
-                    Background="{DynamicResource SystemAccentColorPrimaryBrush}"
-                    Command="{Binding RestartAppCommand}"
-                    Content="{lex:Loc ClickToRestart}"
-                    Icon="{ui:SymbolIcon Symbol=ArrowClockwise24}"
-                    MouseOverBackground="{DynamicResource SystemAccentColorSecondaryBrush}"
-                    PressedBackground="{DynamicResource SystemAccentColorTertiaryBrush}"
-                    Visibility="{Binding IsRestartNeeded, Converter={StaticResource BooleanToVisibilityConverter}}" />
             </StackPanel>
             <ui:Button
                 HorizontalAlignment="Right"

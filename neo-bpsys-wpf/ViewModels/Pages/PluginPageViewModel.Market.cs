@@ -382,12 +382,6 @@ public partial class PluginPageViewModel
             return;
         }
 
-        if (SelectedMarketPlugin.IsRestartRequired)
-        {
-            await RestartAppAsync();
-            return;
-        }
-
         try
         {
             _ = await _pluginMarketService.QueuePluginDownloadAsync(SelectedMarketPlugin);
@@ -621,7 +615,6 @@ public partial class PluginPageViewModel
                 local.NewVersion = manifest.Version;
                 local.IsNewVersionInstalled = true;
             }
-            IsRestartNeeded = true;
             return;
         }
 
@@ -637,7 +630,6 @@ public partial class PluginPageViewModel
                 IsRestartRequired = true
             });
         }
-        IsRestartNeeded = true;
     }
 
     /// <summary>

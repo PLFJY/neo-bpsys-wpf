@@ -51,15 +51,6 @@
                 Text="{Binding Title, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}" />
         </StackPanel>
         <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
-            <ui:Button
-                x:Name="IsRestartRequiredButton"
-                Margin="0,0,10,0"
-                lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell"
-                Appearance="Primary"
-                Content="{lex:Loc RestartNeeded}"
-                Icon="{ui:SymbolIcon Symbol=ArrowSync24}"
-                Visibility="{Binding RelativeSource={RelativeSource AncestorType=controls:CustomTitleBar}, Path=RestartRequired, Converter={StaticResource BooleanToVisibilityConverter}, Mode=TwoWay}" />
             <ToggleButton
                 x:Name="ThemeSwitch"
                 Margin="0,0,10,0"
@@ -69,6 +60,15 @@
                 IsChecked="{Binding RelativeSource={RelativeSource AncestorType=controls:CustomTitleBar}, Path=IsThemeChangeChecked, Mode=TwoWay}"
                 Style="{StaticResource ToggleButtonGorgeousThemeSwitchStyle}"
                 Visibility="{Binding RelativeSource={RelativeSource AncestorType=controls:CustomTitleBar}, Path=IsThemeChangeVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+            <ui:Button
+                x:Name="IsRestartRequiredButton"
+                Margin="0,0,10,0"
+                lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell"
+                Appearance="Primary"
+                Content="{lex:Loc RestartNeeded}"
+                Icon="{ui:SymbolIcon Symbol=ArrowSync24}"
+                Visibility="{Binding RelativeSource={RelativeSource AncestorType=controls:CustomTitleBar}, Path=IsRestartRequired, Converter={StaticResource BooleanToVisibilityConverter}, Mode=TwoWay}" />
             <ToggleButton
                 Height="35"
                 Focusable="False"
