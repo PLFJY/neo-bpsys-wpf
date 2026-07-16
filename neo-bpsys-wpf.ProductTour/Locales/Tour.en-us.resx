@@ -65,6 +65,6 @@
     <value>Skipping this time is not saved. Skipping permanently disables the standard first-run BP tour.</value>
   </data>
   <data name="SequenceSkipConfirmDescription" xml:space="preserve">
-    <value>Skipping this time is not saved. Skipping permanently marks every remaining tutorial in this page queue as completed.</value>
+    <value>Skipping this time hides every remaining tutorial in this page queue until the next launch. Skipping permanently marks them as completed.</value>
   </data>
 </root>

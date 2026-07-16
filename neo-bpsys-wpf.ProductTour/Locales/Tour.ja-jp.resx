@@ -65,6 +65,6 @@
     <value>今回だけのスキップは保存されません。永久にスキップすると初回標準 BP ツアーを表示しません。</value>
   </data>
   <data name="SequenceSkipConfirmDescription" xml:space="preserve">
-    <value>今回だけのスキップは保存されません。永久にスキップすると、このページのキューに残るチュートリアルをすべて完了として記録します。</value>
+    <value>今回だけスキップすると、次回起動までこのページのキューに残るチュートリアルを表示しません。永久にスキップすると、すべて完了として記録します。</value>
   </data>
 </root>

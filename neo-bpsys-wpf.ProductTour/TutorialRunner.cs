@@ -123,6 +123,10 @@ public sealed class TutorialRunner : ITutorialRunner
             {
                 await _tutorialService.MarkSequenceCompletedAsync(definition.PageKey, token);
             }
+            else if (result == TutorialRunResult.Skipped)
+            {
+                _sessionSuppression.SuppressSequenceForCurrentSession(definition.PageKey);
+            }
 
             return result;
         }, cancellationToken);
@@ -155,7 +159,8 @@ public sealed class TutorialRunner : ITutorialRunner
         string tutorialKey,
         CancellationToken cancellationToken)
     {
-        if (_sessionSuppression.IsTutorialDisplaySuppressed)
+        if (_sessionSuppression.IsTutorialDisplaySuppressed
+            || _sessionSuppression.IsSequenceSuppressedForCurrentSession(tutorialKey))
         {
             return TutorialRunResult.NotPending;
         }
@@ -199,6 +204,10 @@ public sealed class TutorialRunner : ITutorialRunner
             if (result == TutorialRunResult.SkippedPermanently)
             {
                 await _tutorialService.MarkSequenceCompletedAsync(tutorialKey, cancellationToken);
+            }
+            else if (result == TutorialRunResult.Skipped)
+            {
+                _sessionSuppression.SuppressSequenceForCurrentSession(tutorialKey);
             }
 
             _logger.LogInformation(

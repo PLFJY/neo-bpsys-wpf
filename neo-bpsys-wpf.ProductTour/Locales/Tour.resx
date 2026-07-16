@@ -65,6 +65,6 @@
     <value>本次跳过不会保存选择；永久跳过会关闭首次标准 BP 导览。</value>
   </data>
   <data name="SequenceSkipConfirmDescription" xml:space="preserve">
-    <value>本次跳过不会保存选择；永久跳过会将本页面队列中后续的教程全部标记为已完成。</value>
+    <value>本次跳过会在本次启动内跳过本页面队列中后续的教程；永久跳过会将它们全部标记为已完成。</value>
   </data>
 </root>

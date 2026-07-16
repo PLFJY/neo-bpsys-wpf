@@ -130,16 +130,38 @@ public interface ITutorialSessionSuppression
 
     /// <summary>禁止自动显示新手教程，直到下次应用启动。</summary>
     void SuppressUntilNextStartup();
+
+    /// <summary>在当前进程内禁止显示指定页面队列的教程。</summary>
+    /// <param name="pageKey">稳定的教程页面键。</param>
+    void SuppressSequenceForCurrentSession(string pageKey);
+
+    /// <summary>获取指定页面队列是否已在当前进程内被跳过。</summary>
+    /// <param name="pageKey">稳定的教程页面键。</param>
+    /// <returns>若当前进程内不应显示该页面队列则返回 <see langword="true"/>。</returns>
+    bool IsSequenceSuppressedForCurrentSession(string pageKey);
 }
 
 /// <summary>默认的进程内新手教程显示抑制器。</summary>
 public sealed class TutorialSessionSuppression : ITutorialSessionSuppression
 {
+    private readonly HashSet<string> _suppressedSequenceKeys = new(StringComparer.Ordinal);
+
     /// <inheritdoc />
     public bool IsTutorialDisplaySuppressed { get; private set; }
 
     /// <inheritdoc />
     public void SuppressUntilNextStartup() => IsTutorialDisplaySuppressed = true;
+
+    /// <inheritdoc />
+    public void SuppressSequenceForCurrentSession(string pageKey)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(pageKey);
+        _suppressedSequenceKeys.Add(pageKey);
+    }
+
+    /// <inheritdoc />
+    public bool IsSequenceSuppressedForCurrentSession(string pageKey) =>
+        _suppressedSequenceKeys.Contains(pageKey);
 }
 
 /// <summary>
