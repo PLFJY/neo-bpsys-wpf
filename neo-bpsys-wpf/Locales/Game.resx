@@ -5,7 +5,7 @@
   <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
   <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
   <data name="NewGame">
-    <value>新对局</value>
+    <value>新对局（重置）</value>
   </data>
   <data name="GameProgressColon">
     <value>对局进度：</value>
