@@ -341,10 +341,10 @@
                         Content="{lex:Loc SmartBpStopAutomaticRecognition}"
                         Icon="{ui:SymbolIcon Symbol=Stop24}" />
                     <ui:Button
-                        Command="{Binding ForceSyncGameProgressCommand}"
-                        Content="{lex:Loc SmartBpForceSyncGameProgress}"
+                        Command="{Binding ForceSyncGameStateCommand}"
+                        Content="{lex:Loc SmartBpForceSyncGameState}"
                         Icon="{ui:SymbolIcon Symbol=ArrowSync24}"
-                        ToolTip="{lex:Loc SmartBpForceSyncGameProgressDescription}" />
+                        ToolTip="{lex:Loc SmartBpForceSyncGameStateDescription}" />
                 </WrapPanel>
                 <TextBlock
                     Margin="0,4,0,0"

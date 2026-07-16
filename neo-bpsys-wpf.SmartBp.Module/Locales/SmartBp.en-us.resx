@@ -286,11 +286,14 @@
   <data name="SmartBpProgressAutoCorrectionDescription">
     <value>When automatic recognition finds that GameGuidance clearly differs from the screen, confirm with full OCR and sync forward.</value>
   </data>
-  <data name="SmartBpForceSyncGameProgress">
-    <value>Force sync game progress</value>
+  <data name="SmartBpForceSyncGameState">
+    <value>Force sync game state</value>
   </data>
-  <data name="SmartBpForceSyncGameProgressDescription">
-    <value>Infer and switch to the best matching GameGuidance step from the currently recognized ban/pick slots.</value>
+  <data name="SmartBpForceSyncGameStateDescription">
+    <value>Sync game progress, banned characters, selected characters, and survivor character assignments from the current screen.</value>
+  </data>
+  <data name="SmartBpGameStateSyncAppliedFormat">
+    <value>{2} Applied {0}; skipped {1}.</value>
   </data>
   <data name="SmartBpOperationFailedFormat">
     <value>Operation failed: {0}</value>

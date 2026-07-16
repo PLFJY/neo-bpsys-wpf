@@ -283,11 +283,14 @@
   <data name="SmartBpProgressAutoCorrectionDescription">
     <value>自動認識で GameGuidance と画面状態の明確なずれを検出した場合、全量 OCR で確認してから前方へ同期します。</value>
   </data>
-  <data name="SmartBpForceSyncGameProgress">
-    <value>対局進行を強制同期</value>
+  <data name="SmartBpForceSyncGameState">
+    <value>対局状態を強制同期</value>
   </data>
-  <data name="SmartBpForceSyncGameProgressDescription">
-    <value>現在認識された ban / pick スロットから、最も一致する GameGuidance ステップを推定して切り替えます。</value>
+  <data name="SmartBpForceSyncGameStateDescription">
+    <value>現在の画面から対局進行、Ban、Pick、サバイバーのキャラクター配置を同期します。</value>
+  </data>
+  <data name="SmartBpGameStateSyncAppliedFormat">
+    <value>{2} {0} 件を適用し、{1} 件をスキップしました。</value>
   </data>
   <data name="SmartBpOperationFailedFormat">
     <value>操作に失敗しました：{0}</value>

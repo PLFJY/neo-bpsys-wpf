@@ -4586,8 +4586,8 @@
       "xmlSpacePreserve": false
     },
     {
-      "key": "SmartBpForceSyncGameProgress",
-      "value": "対局進行を強制同期",
+      "key": "SmartBpForceSyncGameState",
+      "value": "対局状態を強制同期",
       "comment": null,
       "xmlSpacePreserve": false
     },
@@ -4766,8 +4766,14 @@
       "xmlSpacePreserve": false
     },
     {
-      "key": "SmartBpForceSyncGameProgressDescription",
-      "value": "現在認識された ban / pick スロットから、最も一致する GameGuidance ステップを推定して切り替えます。",
+      "key": "SmartBpForceSyncGameStateDescription",
+      "value": "現在の画面から対局進行、Ban、Pick、サバイバーのキャラクター配置を同期します。",
+      "comment": null,
+      "xmlSpacePreserve": false
+    },
+    {
+      "key": "SmartBpGameStateSyncAppliedFormat",
+      "value": "{2} {0} 件を適用し、{1} 件をスキップしました。",
       "comment": null,
       "xmlSpacePreserve": false
     },

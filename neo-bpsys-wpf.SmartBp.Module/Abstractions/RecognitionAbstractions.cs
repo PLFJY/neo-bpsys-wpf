@@ -604,6 +604,18 @@ public interface ISmartBpProgressSyncService
         CancellationToken cancellationToken = default);
 }
 
+/// <summary>执行手动 SmartBP 对局状态同步。</summary>
+public interface ISmartBpGameStateSyncService
+{
+    /// <summary>根据完整 BP 快照同步对局引导与可靠的角色状态。</summary>
+    /// <param name="observed">观察到的完整 SmartBP 业务状态。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>进度对齐和角色状态应用的汇总结果。</returns>
+    Task<SmartBpGameStateSyncResult> ForceSyncAsync(
+        SmartBpBusinessStateRecognitionResult observed,
+        CancellationToken cancellationToken = default);
+}
+
 /// <summary>通过角色选择服务应用本地校验后的候选操作。</summary>
 public interface ISmartBpDetectedOperationApplier
 {

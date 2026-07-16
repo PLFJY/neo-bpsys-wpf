@@ -1485,7 +1485,7 @@ public partial class SmartBpModuleContentViewModel
     }
     [RelayCommand] private Task RecognizeCurrentCaptureFrameAsync() => RecognizeCurrentFrameCoreAsync();
     [RelayCommand]
-    private async Task ForceSyncGameProgressAsync()
+    private async Task ForceSyncGameStateAsync()
     {
         var frame = await GetValidatedCurrentFrameAsync(requireOcrReady: true, useInfoBar: true);
         if (frame == null) return;
@@ -1501,12 +1501,12 @@ public partial class SmartBpModuleContentViewModel
                 return;
             }
 
-            var result = await _progressSyncService.ForceSyncAsync(snapshot.BusinessState, SmartBpProgressSyncMode.Manual);
+            var result = await _gameStateSyncService.ForceSyncAsync(snapshot.BusinessState);
             ApplyRegionGatedResult(snapshot);
-            LastSmartBpProgressDiagnosis = FormatProgressSyncResult(result);
+            LastSmartBpProgressDiagnosis = FormatGameStateSyncResult(result);
             AiCandidateOperations = string.Join(Environment.NewLine, result.Diagnostics);
             AiNormalizedResult = AiCandidateOperations;
-            ShowForceSyncProgressInfoBar(result);
+            ShowForceSyncGameStateInfoBar(result);
         }
         catch (OperationCanceledException)
         {
@@ -2094,19 +2094,32 @@ public partial class SmartBpModuleContentViewModel
             string.Join(",", result.TargetIndexes));
     }
 
-    private void ShowForceSyncProgressInfoBar(SmartBpProgressSyncResult result)
+    private string FormatGameStateSyncResult(SmartBpGameStateSyncResult result)
     {
-        var message = FormatProgressSyncResult(result);
-        if (!result.Succeeded)
+        var progressMessage = FormatProgressSyncResult(result.ProgressSync);
+        if (result.ApplyResult == null)
+            return progressMessage;
+
+        return string.Format(
+            ResolveLocalizedOrRaw("SmartBpGameStateSyncAppliedFormat"),
+            result.ApplyResult.AppliedCount,
+            result.ApplyResult.SkippedCount,
+            progressMessage);
+    }
+
+    private void ShowForceSyncGameStateInfoBar(SmartBpGameStateSyncResult result)
+    {
+        var message = FormatGameStateSyncResult(result);
+        if (!result.ProgressSync.Succeeded)
         {
             _infoBarService.ShowWarningInfoBar(message);
             return;
         }
 
-        if (result.Moved)
-            _infoBarService.ShowSuccessInfoBar(message);
+        if (result.ApplyResult?.SkippedCount > 0)
+            _infoBarService.ShowWarningInfoBar(message);
         else
-            _infoBarService.ShowInformationalInfoBar(message);
+            _infoBarService.ShowSuccessInfoBar(message);
     }
 
     private string FormatProgressDiagnosis(SmartBpAutoRecognitionTickResult result)

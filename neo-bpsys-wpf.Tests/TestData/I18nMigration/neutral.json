@@ -4946,14 +4946,20 @@
       "xmlSpacePreserve": false
     },
     {
-      "key": "SmartBpForceSyncGameProgress",
-      "value": "强制同步对局进度",
+      "key": "SmartBpForceSyncGameState",
+      "value": "强制同步对局状态",
       "comment": null,
       "xmlSpacePreserve": false
     },
     {
-      "key": "SmartBpForceSyncGameProgressDescription",
-      "value": "根据当前识别到的禁选/选择槽位，推断并切换到最符合的对局引导步骤。",
+      "key": "SmartBpForceSyncGameStateDescription",
+      "value": "根据当前画面同步对局进度、禁用角色、选择角色和求生者角色分配。",
+      "comment": null,
+      "xmlSpacePreserve": false
+    },
+    {
+      "key": "SmartBpGameStateSyncAppliedFormat",
+      "value": "{2} 已应用 {0} 项，跳过 {1} 项。",
       "comment": null,
       "xmlSpacePreserve": false
     },

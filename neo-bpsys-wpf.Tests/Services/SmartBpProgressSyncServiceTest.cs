@@ -9,16 +9,26 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Events;
 using neo_bpsys_wpf.Core.Models;
+using Moq;
 using Xunit;
+using ISmartBpDetectedOperationApplier = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpDetectedOperationApplier;
+using ISmartBpGameStateSyncService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpGameStateSyncService;
+using ISmartBpProgressSyncService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpProgressSyncService;
+using ISmartBpRecognitionLedger = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpRecognitionLedger;
 using ISmartBpRecognitionSettingsService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpRecognitionSettingsService;
+using ISmartBpWorkflowBackfillService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpWorkflowBackfillService;
 using SmartBpBusinessStateRecognitionResult = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpBusinessStateRecognitionResult;
+using SmartBpGameStateSyncService = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpGameStateSyncService;
+using SmartBpOperationApplyResult = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpOperationApplyResult;
 using SmartBpProgressInferenceOptions = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpProgressInferenceOptions;
+using SmartBpProgressSyncResult = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpProgressSyncResult;
 using SmartBpProgressInferenceService = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpProgressInferenceService;
 using SmartBpProgressSyncMode = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpProgressSyncMode;
 using SmartBpProgressSyncService = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpProgressSyncService;
 using SmartBpRecognitionSettings = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionSettings;
 using SmartBpRecognizedCharacterSlot = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognizedCharacterSlot;
 using SmartBpRecognizedPlayerCharacterSlot = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognizedPlayerCharacterSlot;
+using SmartBpWorkflowBackfillPlan = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpWorkflowBackfillPlan;
 
 namespace neo_bpsys_wpf.Tests.Services;
 
@@ -199,6 +209,52 @@ public sealed class SmartBpProgressSyncServiceTest
 
         Assert.False(result.Succeeded);
         Assert.Equal(3, guidance.CurrentStepIndex);
+    }
+
+    [Fact]
+    public async Task GameStateSyncResetsLedgerThenAppliesBackfillAfterProgressSync()
+    {
+        var observed = State("选择求生者", bannedSur: [0, 1], bannedHun: [0, 1]);
+        var progress = new Mock<ISmartBpProgressSyncService>();
+        progress.Setup(service => service.ForceSyncAsync(observed, SmartBpProgressSyncMode.Manual, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new SmartBpProgressSyncResult(true, true, 0, 2, GameAction.PickSur, [0, 1], "moved", ["progress"]));
+        var guidance = new Mock<IGameGuidanceService>();
+        guidance.Setup(service => service.GetRuntimeSnapshot()).Returns(Snapshot(2, Workflow()));
+        var ledger = new Mock<ISmartBpRecognitionLedger>();
+        var backfill = new Mock<ISmartBpWorkflowBackfillService>();
+        backfill.Setup(service => service.BuildPlan(observed, It.IsAny<GameGuidanceRuntimeSnapshot>()))
+            .Returns(new SmartBpWorkflowBackfillPlan([], ["plan"]));
+        var applier = new Mock<ISmartBpDetectedOperationApplier>();
+        applier.Setup(service => service.ApplyAsync(It.IsAny<IReadOnlyList<smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpDetectedOperation>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new SmartBpOperationApplyResult(2, 1, ["applied"]));
+        var service = new SmartBpGameStateSyncService(progress.Object, guidance.Object, ledger.Object, backfill.Object, applier.Object);
+
+        var result = await service.ForceSyncAsync(observed);
+
+        Assert.Equal(2, result.ApplyResult?.AppliedCount);
+        ledger.Verify(item => item.ResetForCurrentGame(), Times.Once);
+        backfill.Verify(item => item.BuildPlan(observed, It.IsAny<GameGuidanceRuntimeSnapshot>()), Times.Once);
+        applier.Verify(item => item.ApplyAsync(It.IsAny<IReadOnlyList<smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpDetectedOperation>>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GameStateSyncDoesNotApplyStateWhenProgressSyncFails()
+    {
+        var observed = State("未知");
+        var progress = new Mock<ISmartBpProgressSyncService>();
+        progress.Setup(service => service.ForceSyncAsync(observed, SmartBpProgressSyncMode.Manual, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new SmartBpProgressSyncResult(false, false, 0, null, null, [], "ambiguous", []));
+        var ledger = new Mock<ISmartBpRecognitionLedger>();
+        var backfill = new Mock<ISmartBpWorkflowBackfillService>();
+        var applier = new Mock<ISmartBpDetectedOperationApplier>();
+        var service = new SmartBpGameStateSyncService(progress.Object, Mock.Of<IGameGuidanceService>(), ledger.Object, backfill.Object, applier.Object);
+
+        var result = await service.ForceSyncAsync(observed);
+
+        Assert.Null(result.ApplyResult);
+        ledger.Verify(item => item.ResetForCurrentGame(), Times.Never);
+        backfill.Verify(item => item.BuildPlan(It.IsAny<SmartBpBusinessStateRecognitionResult>(), It.IsAny<GameGuidanceRuntimeSnapshot>()), Times.Never);
+        applier.Verify(item => item.ApplyAsync(It.IsAny<IReadOnlyList<smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpDetectedOperation>>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     private static SmartBpProgressSyncService CreateSync(GameGuidanceRuntimeSnapshot snapshot) =>

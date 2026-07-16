@@ -375,3 +375,54 @@ internal sealed class SmartBpProgressSyncService(
         IReadOnlyList<string> diagnostics) =>
         new(false, false, previous, target, action, indexes, message, diagnostics);
 }
+
+/// <summary>
+/// 编排手动强制同步：先对齐引导步骤，再依据完整快照回填可靠的 Ban、Pick 和角色分配。
+/// </summary>
+internal sealed class SmartBpGameStateSyncService(
+    ISmartBpProgressSyncService progressSync,
+    IGameGuidanceService guidance,
+    ISmartBpRecognitionLedger ledger,
+    ISmartBpWorkflowBackfillService backfill,
+    ISmartBpDetectedOperationApplier applier,
+    ISmartBpDebugLog? debugLog = null) : ISmartBpGameStateSyncService
+{
+    /// <inheritdoc />
+    public async Task<SmartBpGameStateSyncResult> ForceSyncAsync(
+        SmartBpBusinessStateRecognitionResult observed,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(observed);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var progress = await progressSync.ForceSyncAsync(
+            observed, SmartBpProgressSyncMode.Manual, cancellationToken);
+        var diagnostics = new List<string>(progress.Diagnostics);
+        if (!progress.Succeeded)
+            return Finish(new(progress, null, diagnostics));
+
+        // 手动同步以当前画面为权威，不能被此前自动识别的完成记录阻止纠正。
+        ledger.ResetForCurrentGame();
+        diagnostics.Add("Reset recognition ledger before manual game-state synchronization.");
+
+        var plan = backfill.BuildPlan(observed, guidance.GetRuntimeSnapshot());
+        diagnostics.AddRange(plan.Diagnostics);
+        var operations = plan.StepCandidates
+            .OrderBy(set => set.StepIndex)
+            .SelectMany(set => set.Operations)
+            .ToArray();
+        diagnostics.Add($"Manual game-state sync prepared {operations.Length} operation(s).");
+
+        var apply = await applier.ApplyAsync(operations, cancellationToken);
+        diagnostics.AddRange(apply.Messages);
+        return Finish(new(progress, apply, diagnostics));
+    }
+
+    private SmartBpGameStateSyncResult Finish(SmartBpGameStateSyncResult result)
+    {
+        debugLog?.Write("GameStateSync", result.ProgressSync.Message);
+        foreach (var diagnostic in result.Diagnostics)
+            debugLog?.Write("GameStateSync", diagnostic);
+        return result;
+    }
+}

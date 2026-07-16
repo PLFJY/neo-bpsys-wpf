@@ -1099,6 +1099,15 @@ public sealed record SmartBpProgressSyncResult(
     string Message,
     IReadOnlyList<string> Diagnostics);
 
+/// <summary>SmartBP 手动对局状态同步结果。</summary>
+/// <param name="ProgressSync">对局引导进度同步结果。</param>
+/// <param name="ApplyResult">角色状态操作应用结果；进度同步失败时为 <see langword="null"/>。</param>
+/// <param name="Diagnostics">完整诊断信息。</param>
+public sealed record SmartBpGameStateSyncResult(
+    SmartBpProgressSyncResult ProgressSync,
+    SmartBpOperationApplyResult? ApplyResult,
+    IReadOnlyList<string> Diagnostics);
+
 /// <summary>构建预览候选操作的结果。</summary>
 public sealed record SmartBpCandidateOperationBuildResult(
     IReadOnlyList<SmartBpDetectedOperation> Operations,

@@ -50,7 +50,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     private readonly ISmartBpRecognitionRegionProfileService _aiRegionProfileService = null!;
     private readonly ISmartBpRecognitionLedger _aiRecognitionLedger = null!;
     private readonly ISmartBpRecognitionStateStore _aiRecognitionStateStore = null!;
-    private readonly ISmartBpProgressSyncService _progressSyncService = null!;
+    private readonly ISmartBpGameStateSyncService _gameStateSyncService = null!;
     private readonly IInfoBarService _infoBarService = null!;
     private readonly ILlamaCppRuntimeUpdateService _llamaRuntimeUpdateService = null!;
     private readonly ITesseractDataAssetManager _tesseractDataAssetManager = null!;
@@ -99,7 +99,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         ISmartBpRecognitionRegionProfileService aiRegionProfileService,
         ISmartBpRecognitionLedger aiRecognitionLedger,
         ISmartBpRecognitionStateStore aiRecognitionStateStore,
-        ISmartBpProgressSyncService progressSyncService,
+        ISmartBpGameStateSyncService gameStateSyncService,
         IInfoBarService infoBarService,
         ILlamaCppRuntimeUpdateService llamaRuntimeUpdateService,
         ITesseractDataAssetManager tesseractDataAssetManager,
@@ -135,7 +135,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         _aiRegionProfileService = aiRegionProfileService;
         _aiRecognitionLedger = aiRecognitionLedger;
         _aiRecognitionStateStore = aiRecognitionStateStore;
-        _progressSyncService = progressSyncService;
+        _gameStateSyncService = gameStateSyncService;
         _infoBarService = infoBarService;
         _llamaRuntimeUpdateService = llamaRuntimeUpdateService;
         _tesseractDataAssetManager = tesseractDataAssetManager;

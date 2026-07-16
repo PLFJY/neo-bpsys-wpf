@@ -4922,14 +4922,20 @@
       "xmlSpacePreserve": false
     },
     {
-      "key": "SmartBpForceSyncGameProgress",
-      "value": "Force sync game progress",
+      "key": "SmartBpForceSyncGameState",
+      "value": "Force sync game state",
       "comment": null,
       "xmlSpacePreserve": false
     },
     {
-      "key": "SmartBpForceSyncGameProgressDescription",
-      "value": "Infer and switch to the best matching GameGuidance step from the currently recognized ban/pick slots.",
+      "key": "SmartBpForceSyncGameStateDescription",
+      "value": "Sync game progress, banned characters, selected characters, and survivor character assignments from the current screen.",
+      "comment": null,
+      "xmlSpacePreserve": false
+    },
+    {
+      "key": "SmartBpGameStateSyncAppliedFormat",
+      "value": "{2} Applied {0}; skipped {1}.",
       "comment": null,
       "xmlSpacePreserve": false
     },
