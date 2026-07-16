@@ -16,10 +16,10 @@
                                      IsDesignTimeCreatable=True}"
     d:DesignHeight="2500"
     d:DesignWidth="685"
-    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
     lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Settings"
+    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
     <Page.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
@@ -46,9 +46,7 @@
                 SelectedValuePath="Value">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
-                        <TextBlock
-                            Text="{lex:Loc {Binding Key}}"
-                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
+                        <TextBlock lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" Text="{lex:Loc {Binding Key}}" />
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
@@ -162,8 +160,9 @@
                                                 </Grid.ColumnDefinitions>
                                                 <TextBlock
                                                     Grid.Column="0"
-                                                    Text="{lex:Loc {Binding DisplayNameKey}, FallbackBehavior=Key}"
-                                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
+                                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                                                    Text="{lex:Loc {Binding DisplayNameKey},
+                                                                   FallbackBehavior=Key}" />
                                                 <TextBlock
                                                     Grid.Column="1"
                                                     Margin="8,0,0,0"
@@ -224,8 +223,8 @@
                                 <ui:Button
                                     Margin="10,10,0,0"
                                     HorizontalAlignment="Left"
-                                    Command="{Binding CancelDownloadCommand}"
                                     lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                                    Command="{Binding CancelDownloadCommand}"
                                     Content="{lex:Loc Stop}"
                                     Icon="{ui:SymbolIcon Symbol=Stop24}"
                                     Visibility="{Binding IsDownloading, Converter={StaticResource BooleanToVisibilityConverter}}" />
@@ -434,14 +433,14 @@
                 <WrapPanel Margin="0,10,0,0">
                     <ui:Button
                         Margin="0,0,10,0"
-                        Command="{Binding SaveSmartBpModuleRootCommand}"
                         lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                        Command="{Binding SaveSmartBpModuleRootCommand}"
                         Content="{lex:Loc Save}"
                         Icon="{ui:SymbolIcon Symbol=Save24}" />
                     <ui:Button
                         Margin="0,0,10,0"
-                        Command="{Binding ResetSmartBpModuleRootCommand}"
                         lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                        Command="{Binding ResetSmartBpModuleRootCommand}"
                         Content="{lex:Loc ResetToBuiltIn}"
                         Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                     <ui:Button
@@ -460,6 +459,40 @@
                         IsIndeterminate="True"
                         Visibility="{Binding IsModuleExtracting, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 </WrapPanel>
+            </StackPanel>
+        </Border>
+
+        <TextBlock
+            Margin="0,10,0,0"
+            Style="{StaticResource Title}"
+            Text="{lex:Loc GameStateSaveSettingsTitle}" />
+        <Border Margin="0,10,0,0" Style="{StaticResource Card}">
+            <StackPanel>
+                <TextBlock
+                    FontSize="16"
+                    FontWeight="DemiBold"
+                    Text="{lex:Loc GameStateSaveDirectory}" />
+                <TextBlock
+                    Margin="0,6,0,10"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    Text="{lex:Loc GameStateSaveDirectoryDescription}" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBox
+                        Grid.Column="0"
+                        MinWidth="320"
+                        VerticalAlignment="Center"
+                        Text="{Binding GameStateSaveDirectory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <ui:Button
+                        Grid.Column="1"
+                        Margin="10,0,0,0"
+                        Command="{Binding BrowseGameStateSaveDirectoryCommand}"
+                        Content="{lex:Loc BrowseGameStateSaveDirectory}"
+                        Icon="{ui:SymbolIcon Symbol=FolderOpen24}" />
+                </Grid>
             </StackPanel>
         </Border>
 
@@ -605,9 +638,7 @@
                         SelectedValuePath="Value">
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
-                                <TextBlock
-                                    Text="{lex:Loc {Binding Key}}"
-                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Settings" />
+                                <TextBlock lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Settings" Text="{lex:Loc {Binding Key}}" />
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                     </ComboBox>

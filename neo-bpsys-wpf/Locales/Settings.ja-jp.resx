@@ -964,4 +964,16 @@
   <data name="WindowCaptureWgcWindowCaptureRequires1903OrLaterUsePickerOn1803Or1809">
     <value>選択したウィンドウのキャプチャには Windows 10 1903 以降が必要です。1803/1809 ではウィンドウ選択キャプチャを使用してください。</value>
   </data>
+  <data name="GameStateSaveSettingsTitle">
+    <value>試合状態の保存</value>
+  </data>
+  <data name="GameStateSaveDirectory">
+    <value>保存先</value>
+  </data>
+  <data name="GameStateSaveDirectoryDescription">
+    <value>現在の試合状態を保存するフォルダーです。</value>
+  </data>
+  <data name="BrowseGameStateSaveDirectory">
+    <value>フォルダーを選択</value>
+  </data>
 </root>

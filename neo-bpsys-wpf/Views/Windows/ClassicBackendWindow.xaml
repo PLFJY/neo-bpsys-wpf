@@ -79,6 +79,9 @@
             HorizontalAlignment="Right"
             VerticalAlignment="Top"
             Panel.ZIndex="1" />
+        <ui:ContentDialogHost
+            x:Name="ContentDialogHost"
+            Panel.ZIndex="2" />
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -215,13 +218,14 @@
                             </ComboBox.ItemTemplate>
                         </ComboBox>
                         <ui:Button
-                            Command="{Binding NextGameCommand}"
-                            Content="{lex:Loc Next}"
-                            Icon="{ui:SymbolIcon Symbol=ArrowNext24}" />
-                        <ui:Button
                             Command="{Binding StartNavigationCommand}"
                             Content="{lex:Loc StartGameGuidance}"
                             Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                        <ui:Button
+                            Command="{Binding NextGameCommand}"
+                            Content="{lex:Loc Next}"
+                            Icon="{ui:SymbolIcon Symbol=ArrowNext24}"
+                            IsEnabled="{Binding CanGameProgressChange}" />
                         <ui:Button
                             Command="{Binding NavigateToPreviousStepCommand}"
                             Content="{lex:Loc LastStep}"
@@ -256,11 +260,6 @@
                             Command="{Binding ImportGameInfoCommand}"
                             Content="{lex:Loc ImportGameInformation}"
                             Icon="{ui:SymbolIcon Symbol=FolderOpen24}" />
-                        <ui:Button
-                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Game"
-                            Command="{Binding NewGameCommand}"
-                            Content="{lex:Loc NewGame}"
-                            Icon="{ui:SymbolIcon Symbol=Add24}" />
                     </StackPanel>
                 </WrapPanel>
             </Border>

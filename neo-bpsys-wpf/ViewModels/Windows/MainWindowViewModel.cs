@@ -19,6 +19,8 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Windows;
+using System.Windows.Controls;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 using Game = neo_bpsys_wpf.Core.Models.Game;
@@ -40,6 +42,8 @@ public partial class MainWindowViewModel :
 
     private readonly ISharedDataService _sharedDataService;
     private readonly IFilePickerService _filePickerService;
+    private readonly ISettingsHostService _settingsHostService;
+    private readonly IContentDialogService _contentDialogService;
 
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -96,7 +100,6 @@ public partial class MainWindowViewModel :
                 _tutorialSignalService.Publish(TutorialSignalIds.GameProgressSelectedBo1FirstHalf, _selectedGameProgress);
             }
 
-            NextGameCommand.NotifyCanExecuteChanged();
         });
     }
 
@@ -107,6 +110,8 @@ public partial class MainWindowViewModel :
         ISharedDataService sharedDataService,
         IGameGuidanceService gameGuidanceService,
         IFilePickerService filePickerService,
+        ISettingsHostService settingsHostService,
+        IContentDialogService contentDialogService,
         ITutorialSignalService tutorialSignalService,
         ISmartBpAutoRecognitionGlobalControl smartBpAutoRecognitionGlobalControl,
         IGlobalRestartService globalRestartService,
@@ -115,6 +120,8 @@ public partial class MainWindowViewModel :
         _sharedDataService = sharedDataService;
         _gameGuidanceService = gameGuidanceService;
         _filePickerService = filePickerService;
+        _settingsHostService = settingsHostService;
+        _contentDialogService = contentDialogService;
         _tutorialSignalService = tutorialSignalService;
         _smartBpAutoRecognitionGlobalControl = smartBpAutoRecognitionGlobalControl;
         _globalRestartService = globalRestartService;
@@ -180,7 +187,6 @@ public partial class MainWindowViewModel :
 
         _selectedGameProgress = CurrentGame.GameProgress;
         OnPropertyChanged(nameof(SelectedGameProgress));
-        NextGameCommand.NotifyCanExecuteChanged();
     }
 
     [RelayCommand(CanExecute = nameof(CanStopSmartBpAutoRecognition))]
@@ -213,13 +219,6 @@ public partial class MainWindowViewModel :
     }
 
     [RelayCommand]
-    private void NewGame()
-    {
-        _sharedDataService.NewGame();
-        _tutorialSignalService.Publish(TutorialSignalIds.NewGameCreated, CurrentGame);
-    }
-
-    [RelayCommand]
     private void Swap()
     {
         _sharedDataService.CurrentGame.Swap();
@@ -231,11 +230,16 @@ public partial class MainWindowViewModel :
     {
         try
         {
+            var outputDirectory = await ResolveGameStateSaveDirectoryAsync();
+            if (outputDirectory is null)
+            {
+                return;
+            }
+
             var json = JsonSerializer.Serialize(CurrentGame, _jsonSerializerOptions);
-            var path = Path.Combine(AppConstants.AppOutputPath, "GameInfoOutput");
-            var fullPath = Path.Combine(path, $"{CurrentGame.StartTime:yyyy-MM-dd-HH-mm-ss}.json");
-            if (!Directory.Exists(path))
-                Directory.CreateDirectory(path);
+            var fullPath = Path.Combine(outputDirectory, $"{CurrentGame.StartTime:yyyy-MM-dd-HH-mm-ss}.json");
+            if (!Directory.Exists(outputDirectory))
+                Directory.CreateDirectory(outputDirectory);
             await File.WriteAllTextAsync(fullPath, json);
             await MessageBoxHelper.ShowInfoAsync($"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "SaveSuccessfullyTo")}\n{fullPath}",
                 I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "SaveInfo"));
@@ -247,6 +251,34 @@ public partial class MainWindowViewModel :
                 I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "SaveInfo"));
             _logger.LogError("Save game {CurrentGameGuid} info failed\n{ExMessage}", CurrentGame.Guid, ex.Message);
         }
+    }
+
+    private async Task<string?> ResolveGameStateSaveDirectoryAsync()
+    {
+        var settings = _settingsHostService.Settings;
+        var canReuseConfiguredDirectory = settings.IsGameStateSaveDirectoryPromptSuppressed
+            && !string.IsNullOrWhiteSpace(settings.GameStateSaveDirectory)
+            && Directory.Exists(settings.GameStateSaveDirectory);
+
+        if (canReuseConfiguredDirectory)
+        {
+            return settings.GameStateSaveDirectory;
+        }
+
+        var selectedDirectory = _filePickerService.PickFolder();
+        if (string.IsNullOrWhiteSpace(selectedDirectory))
+        {
+            return null;
+        }
+
+        settings.GameStateSaveDirectory = selectedDirectory;
+        settings.IsGameStateSaveDirectoryPromptSuppressed = await MessageBoxHelper.ShowConfirmAsync(
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "DoNotAskGameStateSaveDirectoryAgain"),
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "SaveInfo"),
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Yes"),
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"));
+        await _settingsHostService.SaveConfigAsync();
+        return selectedDirectory;
     }
 
     [RelayCommand]
@@ -299,16 +331,83 @@ public partial class MainWindowViewModel :
         _sharedDataService.TimerStop();
     }
 
-    [RelayCommand(CanExecute = nameof(CanNextGameExecute))]
-    private void NextGame()
+    [RelayCommand]
+    private async Task NextGameAsync()
     {
-        var index = GameList.IndexOf(SelectedGameProgress);
-        SelectedGameProgress = GameList.GetAt(index + 1).Key;
-        _tutorialSignalService.Publish(TutorialSignalIds.NextGameClicked);
+        if (_settingsHostService.Settings.IsNextGameConfirmationSuppressed)
+        {
+            StartNewGameAndAdvanceToNextGame();
+            return;
+        }
+
+        var doNotAskAgain = new CheckBox
+        {
+            Content = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "DoNotAskNextGameAgain"),
+            Margin = new Thickness(0, 12, 0, 0)
+        };
+        var canAdvance = CanAdvanceToNextGame();
+        var dialog = new ContentDialog
+        {
+            Title = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "StartNewGame"),
+            Content = new StackPanel
+            {
+                Children =
+                {
+                    new System.Windows.Controls.TextBlock
+                    {
+                        Text = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ResetAndMoveToNextGameQuestion"),
+                        TextWrapping = TextWrapping.Wrap
+                    },
+                    doNotAskAgain
+                }
+            },
+            PrimaryButtonText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Yes"),
+            PrimaryButtonIcon = new SymbolIcon(SymbolRegular.ArrowNext24),
+            IsPrimaryButtonEnabled = canAdvance,
+            SecondaryButtonText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ResetOnly"),
+            SecondaryButtonIcon = new SymbolIcon(SymbolRegular.ArrowReset24),
+            CloseButtonText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ClickedByMistake"),
+            CloseButtonIcon = new SymbolIcon(SymbolRegular.Dismiss24)
+        };
+        var result = await _contentDialogService.ShowAsync(dialog);
+        if (result is ContentDialogResult.None)
+        {
+            return;
+        }
+
+        if (doNotAskAgain.IsChecked == true)
+        {
+            _settingsHostService.Settings.IsNextGameConfirmationSuppressed = true;
+            await _settingsHostService.SaveConfigAsync();
+        }
+
+        if (result is ContentDialogResult.Primary)
+        {
+            StartNewGameAndAdvanceToNextGame();
+            return;
+        }
+
+        StartNewGame();
     }
 
-    private bool CanNextGameExecute() => GameList.IndexOf(SelectedGameProgress) < 8 && IsBo3Mode ||
-                                         GameList.IndexOf(SelectedGameProgress) < 12 && !IsBo3Mode;
+    private void StartNewGameAndAdvanceToNextGame()
+    {
+        StartNewGame();
+        if (CanAdvanceToNextGame())
+        {
+            var index = GameList.IndexOf(SelectedGameProgress);
+            SelectedGameProgress = GameList.GetAt(index + 1).Key;
+            _tutorialSignalService.Publish(TutorialSignalIds.NextGameClicked);
+        }
+    }
+
+    private void StartNewGame()
+    {
+        _sharedDataService.NewGame();
+        _tutorialSignalService.Publish(TutorialSignalIds.NewGameCreated, CurrentGame);
+    }
+
+    private bool CanAdvanceToNextGame() => GameList.IndexOf(SelectedGameProgress) < GameList.Count - 1;
 
     private static string GetGuidanceActionDisplayName(GameAction action) => action switch
     {

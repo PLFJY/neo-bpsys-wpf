@@ -208,8 +208,8 @@
   <data name="Countdown">
     <value>カウントダウン</value>
   </data>
-<data name="SaveGameInformation">
-    <value>現在の試合進行状況を保存</value>
+  <data name="SaveGameInformation">
+    <value>現在の試合状態を保存</value>
   </data>
   <data name="FormatColon">
     <value>フォーマット：</value>
@@ -999,5 +999,26 @@
   </data>
   <data name="SmartBp">
     <value>スマート BP</value>
+  </data>
+  <data name="StartNewGame">
+    <value>新しい試合を開始</value>
+  </data>
+  <data name="ResetAndMoveToNextGame">
+    <value>リセットして次の試合へ</value>
+  </data>
+  <data name="ResetAndMoveToNextGameQuestion">
+    <value>現在の試合をリセットして次の試合へ進みますか？</value>
+  </data>
+  <data name="ResetOnly">
+    <value>リセットのみ</value>
+  </data>
+  <data name="ClickedByMistake">
+    <value>間違えてクリックしました</value>
+  </data>
+  <data name="DoNotAskNextGameAgain">
+    <value>次回起動まで確認しない</value>
+  </data>
+  <data name="DoNotAskGameStateSaveDirectoryAgain">
+    <value>保存先を今後確認しませんか？</value>
   </data>
 </root>

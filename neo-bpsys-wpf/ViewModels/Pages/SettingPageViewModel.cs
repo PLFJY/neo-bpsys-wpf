@@ -194,6 +194,39 @@ public partial class SettingPageViewModel : ViewModelBase
         await _settingsHostService.SaveConfigAsync();
     }
 
+    /// <summary>
+    /// 获取或设置对局状态的默认保存目录。
+    /// </summary>
+    public string GameStateSaveDirectory
+    {
+        get => _settingsHostService.Settings.GameStateSaveDirectory ?? string.Empty;
+        set
+        {
+            if (string.Equals(_settingsHostService.Settings.GameStateSaveDirectory, value, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _settingsHostService.Settings.GameStateSaveDirectory = value;
+            _settingsHostService.Settings.IsGameStateSaveDirectoryPromptSuppressed = !string.IsNullOrWhiteSpace(value);
+            OnPropertyChanged();
+            _ = _settingsHostService.SaveConfigAsync();
+        }
+    }
+
+    /// <summary>
+    /// 打开文件夹选择器以设置对局状态保存目录。
+    /// </summary>
+    [RelayCommand]
+    private void BrowseGameStateSaveDirectory()
+    {
+        var selectedDirectory = _filePickerService.PickFolder();
+        if (!string.IsNullOrWhiteSpace(selectedDirectory))
+        {
+            GameStateSaveDirectory = selectedDirectory;
+        }
+    }
+
     private void Settings_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (e.PropertyName != nameof(_settingsHostService.Settings.GhProxyMirror))
@@ -390,9 +423,14 @@ public partial class SettingPageViewModel : ViewModelBase
     /// 跳转到游戏输出目录
     /// </summary>
     [RelayCommand]
-    private static void HopToGameOutputDir()
+    private void HopToGameOutputDir()
     {
-        var path = Path.Combine(AppConstants.AppOutputPath, "GameInfoOutput");
+        var path = _settingsHostService.Settings.GameStateSaveDirectory;
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            path = Path.Combine(AppConstants.AppOutputPath, "GameInfoOutput");
+        }
+
         Process.Start("explorer.exe", path);
     }
 

@@ -19,6 +19,9 @@
   <data name="Confirm">
     <value>Confirm</value>
   </data>
+  <data name="Yes">
+    <value>Yes</value>
+  </data>
   <data name="Save">
     <value>Save</value>
   </data>

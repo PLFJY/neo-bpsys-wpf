@@ -19,6 +19,9 @@
   <data name="Confirm">
     <value>确认</value>
   </data>
+  <data name="Yes">
+    <value>是</value>
+  </data>
   <data name="Save">
     <value>保存</value>
   </data>

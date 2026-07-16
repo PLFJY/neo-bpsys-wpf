@@ -1150,4 +1150,16 @@
   <data name="WindowCaptureWgcWindowCaptureRequires1903OrLaterUsePickerOn1803Or1809">
     <value>Capturing by selected window requires Windows 10 1903 or later. On 1803/1809, use picker capture.</value>
   </data>
+  <data name="GameStateSaveSettingsTitle">
+    <value>Game state saving</value>
+  </data>
+  <data name="GameStateSaveDirectory">
+    <value>Save location</value>
+  </data>
+  <data name="GameStateSaveDirectoryDescription">
+    <value>Folder used when saving the current game state.</value>
+  </data>
+  <data name="BrowseGameStateSaveDirectory">
+    <value>Choose folder</value>
+  </data>
 </root>

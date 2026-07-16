@@ -143,7 +143,7 @@ public partial class MainWindow : ITutorialOwner<MainWindow>
             .Package(Tours.NewGameBasic)
                 .StepKey("Step.GameManageNewGameBasic.0.Title")
                     .TextKey("Step.GameManageNewGameBasic.0.Description")
-                    .TargetName(nameof(NewGameButton))
+                    .TargetName(nameof(NextGameButton))
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
                     .WaitFor(TutorialSignalIds.NewGameCreated)
             .Package(Tours.GlobalBanCarryOver)

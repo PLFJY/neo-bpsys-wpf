@@ -217,13 +217,6 @@
                     Command="{Binding ImportGameInfoCommand}"
                     Content="{lex:Loc ImportGameInformation}"
                     Icon="{ui:SymbolIcon Symbol=FolderOpen24}" />
-                <ui:Button
-                    x:Name="NewGameButton"
-                    Margin="0,0,10,10"
-                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Game"
-                    Command="{Binding NewGameCommand}"
-                    Content="{lex:Loc NewGame}"
-                    Icon="{ui:SymbolIcon Symbol=Add24}" />
                 <Border Margin="0,0,10,10" Style="{StaticResource Card}">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock
@@ -265,13 +258,6 @@
                     </ComboBox.ItemTemplate>
                 </ComboBox>
                 <ui:Button
-                    x:Name="NextGameButton"
-                    Margin="0,0,10,10"
-                    Command="{Binding NextGameCommand}"
-                    Content="{lex:Loc Next}"
-                    Icon="{ui:SymbolIcon Symbol=ArrowNext24}"
-                    IsEnabled="{Binding CanGameProgressChange}" />
-                <ui:Button
                     x:Name="StopSmartBpAutoRecognitionButton"
                     Margin="0,0,10,10"
                     lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Settings"
@@ -285,6 +271,13 @@
                     Command="{Binding StartNavigationCommand}"
                     Content="{lex:Loc StartGameGuidance}"
                     Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                <ui:Button
+                    x:Name="NextGameButton"
+                    Margin="0,0,10,10"
+                    Command="{Binding NextGameCommand}"
+                    Content="{lex:Loc Next}"
+                    Icon="{ui:SymbolIcon Symbol=ArrowNext24}"
+                    IsEnabled="{Binding CanGameProgressChange}" />
                 <ui:Button
                     x:Name="PreviousGuidanceStepButton"
                     Margin="0,0,10,10"

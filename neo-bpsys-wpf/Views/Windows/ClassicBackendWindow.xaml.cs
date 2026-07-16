@@ -28,6 +28,7 @@ public partial class ClassicBackendWindow : FluentWindow
     public ClassicBackendWindow(
         IServiceProvider serviceProvider,
         IInfoBarService infoBarService,
+        IContentDialogService contentDialogService,
         MainWindowViewModel mainWindowViewModel,
         TeamInfoPageViewModel teamInfoPageViewModel,
         MapBpPageViewModel mapBpPageViewModel,
@@ -59,6 +60,7 @@ public partial class ClassicBackendWindow : FluentWindow
         GameDataRoot.DataContext = gameDataPageViewModel;
 
         infoBarService.SetInfoBarControl(InfoBar);
+        contentDialogService.SetContentDialogHost(ContentDialogHost);
 
         if (Application.Current.MainWindow is null)
         {

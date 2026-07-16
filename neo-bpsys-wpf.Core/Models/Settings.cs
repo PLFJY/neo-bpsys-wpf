@@ -44,6 +44,21 @@ public partial class Settings : ObservableObjectBase
     public bool IsPageTransitionAnimationEnabled { get; set; } = true;
 
     /// <summary>
+    /// 对局状态文件的输出目录。为空时，保存前需要由用户选择目录。
+    /// </summary>
+    public string? GameStateSaveDirectory { get; set; }
+
+    /// <summary>
+    /// 是否在保存对局状态时沿用 <see cref="GameStateSaveDirectory"/>，不再询问保存路径。
+    /// </summary>
+    public bool IsGameStateSaveDirectoryPromptSuppressed { get; set; }
+
+    /// <summary>
+    /// 是否在点击下一局时不再显示确认对话框。
+    /// </summary>
+    public bool IsNextGameConfirmationSuppressed { get; set; }
+
+    /// <summary>
     /// 当前选择的 OCR 模型标识键。
     /// </summary>
     public string? OcrModelKey { get; set; }

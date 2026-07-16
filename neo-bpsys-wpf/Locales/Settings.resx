@@ -1150,4 +1150,16 @@
   <data name="WindowCaptureWgcWindowCaptureRequires1903OrLaterUsePickerOn1803Or1809">
     <value>按窗口句柄捕获需要 Windows 10 1903 或更高版本。在 1803/1809 上请使用窗口选择器捕获。</value>
   </data>
+  <data name="GameStateSaveSettingsTitle">
+    <value>对局状态保存</value>
+  </data>
+  <data name="GameStateSaveDirectory">
+    <value>保存目录</value>
+  </data>
+  <data name="GameStateSaveDirectoryDescription">
+    <value>保存当前对局状态时使用的文件夹。</value>
+  </data>
+  <data name="BrowseGameStateSaveDirectory">
+    <value>选择文件夹</value>
+  </data>
 </root>
