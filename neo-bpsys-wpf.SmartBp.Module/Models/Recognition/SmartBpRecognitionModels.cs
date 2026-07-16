@@ -560,11 +560,11 @@ public sealed class SmartBpRecognitionSettings
     /// <summary>获取或设置 CPU 线程数。</summary>
     public int CpuThreads { get; set; } = 2;
     /// <summary>获取或设置自动模式是否可以同步 GameGuidance。</summary>
-    public bool EnableAutoGuidanceSync { get; set; }
+    public bool EnableAutoGuidanceSync { get; set; } = true;
     /// <summary>获取或设置引导同步是否跟随后台页面导航。</summary>
     public bool EnableAutoGuidancePageNavigation { get; set; }
     /// <summary>获取或设置是否可以应用已接受操作。</summary>
-    public bool EnableAutoApplyRecognition { get; set; }
+    public bool EnableAutoApplyRecognition { get; set; } = true;
     /// <summary>获取或设置识别结果应用策略。</summary>
     public SmartBpRecognitionApplyMode RecognitionApplyMode { get; set; } = SmartBpRecognitionApplyMode.GuidedWorkflow;
     /// <summary>获取或设置 AI 是否在移动引导前先完成前一步。</summary>
@@ -576,7 +576,7 @@ public sealed class SmartBpRecognitionSettings
     /// <summary>获取或设置引导对齐向前查找步数。</summary>
     public int GuidanceSyncLookAheadSteps { get; set; } = 4;
     /// <summary>获取或设置是否启用 SmartBP 进度智能诊断后的自动向前同步。</summary>
-    public bool EnableSmartBpProgressAutoCorrection { get; set; }
+    public bool EnableSmartBpProgressAutoCorrection { get; set; } = true;
     /// <summary>获取或设置自动进度同步前需要连续确认同一目标的次数。</summary>
     public int SmartBpProgressMismatchConfirmationCount { get; set; } = 2;
     /// <summary>获取或设置自动进度同步后的冷却时间（毫秒）。</summary>

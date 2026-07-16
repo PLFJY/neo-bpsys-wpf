@@ -10,6 +10,7 @@
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:modernScroll="clr-namespace:neo_bpsys_wpf.Controls.Modern.Scrolling"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     Title="{lex:Loc ClassicBackendShell}"
     Width="1280"
@@ -72,6 +73,7 @@
     <Grid
         x:Name="ClassicRoot"
         Background="{DynamicResource ApplicationBackgroundBrush}"
+        modernScroll:GuidanceAutoScrollScope.IsEnabled="True"
         PreviewMouseLeftButtonDown="ClassicRoot_PreviewMouseLeftButtonDown">
         <ui:InfoBar
             x:Name="InfoBar"
@@ -92,6 +94,7 @@
             <controls:CustomTitleBar
                 Grid.Row="0"
                 Icon="/Assets/icon.png"
+                IsRestartRequired="{Binding IsRestartRequired}"
                 IsThemeChangeChecked="{Binding ApplicationTheme, Converter={StaticResource ApplicationThemeToBooleanConverter}, Mode=TwoWay}"
                 ThemeChangeCommand="{Binding ThemeSwitchCommand}" />
 
@@ -118,7 +121,17 @@
                             Margin="8,8,8,8"
                             Command="{Binding SwapCommand}"
                             Content="{lex:Loc Swap}"
-                            Icon="{ui:SymbolIcon Symbol=ArrowSwap24}" />
+                            Icon="{ui:SymbolIcon Symbol=ArrowSwap24}"
+                            modernScroll:GuidanceScrollTarget.Action="PickCamp">
+                            <i:Interaction.Triggers>
+                                <i:DataTrigger Binding="{Binding IsSwapHighlighted}" Value="true">
+                                    <i:ChangePropertyAction PropertyName="Style" Value="{StaticResource HighlightedButton}" />
+                                </i:DataTrigger>
+                                <i:DataTrigger Binding="{Binding IsSwapHighlighted}" Value="false">
+                                    <i:ChangePropertyAction PropertyName="Style" Value="{StaticResource {x:Type ui:Button}}" />
+                                </i:DataTrigger>
+                            </i:Interaction.Triggers>
+                        </ui:Button>
                         <StackPanel>
                             <TextBlock VerticalAlignment="Center" Text="{lex:Loc CurrentHunterTeamColon}" />
                             <TextBlock
@@ -237,7 +250,18 @@
                         <ui:Button
                             Command="{Binding StopNavigationCommand}"
                             Content="{lex:Loc EndGameGuidance}"
-                            Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}" />
+                            Icon="{ui:SymbolIcon Symbol=Stop24}"
+                            modernScroll:GuidanceScrollTarget.Action="EndGuidance"
+                            Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <i:Interaction.Triggers>
+                                <i:DataTrigger Binding="{Binding IsEndGuidanceHighlighted}" Value="true">
+                                    <i:ChangePropertyAction PropertyName="Style" Value="{StaticResource HighlightedButton}" />
+                                </i:DataTrigger>
+                                <i:DataTrigger Binding="{Binding IsEndGuidanceHighlighted}" Value="false">
+                                    <i:ChangePropertyAction PropertyName="Style" Value="{StaticResource {x:Type ui:Button}}" />
+                                </i:DataTrigger>
+                            </i:Interaction.Triggers>
+                        </ui:Button>
                         <TextBlock Margin="0,5,8,8" Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}">
                             <TextBlock.Text>
                                 <MultiBinding Converter="{lex:StringFormatConverter}">
@@ -309,6 +333,7 @@
                         <Border
                             x:Name="MapRoot"
                             Margin="{StaticResource ClassicCardMargin}"
+                            modernScroll:GuidanceScrollTarget.Action="PickMap"
                             Style="{StaticResource Card}">
                             <StackPanel>
                                 <TextBlock
@@ -397,7 +422,10 @@
                                         </i:EventTrigger>
                                     </i:Interaction.Triggers>
                                 </ComboBox>
-                                <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding BannedMap}">
+                                <ItemsControl
+                                    Margin="0,8,0,0"
+                                    ItemsSource="{Binding BannedMap}"
+                                    modernScroll:GuidanceScrollTarget.Action="BanMap">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
                                             <WrapPanel Orientation="Horizontal" />
@@ -550,6 +578,7 @@
                         <Border
                             x:Name="BanHunRoot"
                             lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp"
+                            modernScroll:GuidanceScrollTarget.Action="BanHun"
                             Style="{StaticResource Card}">
                             <StackPanel>
                                 <TextBlock Style="{StaticResource Title}" Text="{lex:Loc BanHunter}" />
@@ -602,6 +631,7 @@
                             x:Name="BanSurRoot"
                             Margin="0,0,10,0"
                             lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp"
+                            modernScroll:GuidanceScrollTarget.Action="BanSur"
                             Style="{StaticResource Card}">
                             <StackPanel>
                                 <TextBlock Style="{StaticResource Title}" Text="{lex:Loc BanSurvivor}" />
@@ -659,7 +689,10 @@
                                     lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp"
                                     Style="{StaticResource Title}"
                                     Text="{lex:Loc PickSurvivor}" />
-                                <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding SurPickViewModelList}">
+                                <ItemsControl
+                                    Margin="0,10,0,0"
+                                    ItemsSource="{Binding SurPickViewModelList}"
+                                    modernScroll:GuidanceScrollTarget.Action="PickSur">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
                                             <WrapPanel />
@@ -684,7 +717,9 @@
                                                 <cc:CharacterChanger
                                                     Command="{Binding SwapCharacterInPlayersCommand}"
                                                     Index="{Binding Index}"
-                                                    IsHighlighted="{Binding IsCharaChangerHighlighted}" />
+                                                    IsHighlighted="{Binding IsCharaChangerHighlighted}"
+                                                    modernScroll:GuidanceScrollTarget.Action="DistributeChara"
+                                                    modernScroll:GuidanceScrollTarget.Index="{Binding Index}" />
                                             </StackPanel>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
@@ -701,7 +736,8 @@
                                     ImageSource="{Binding HunPickVm.PreviewImage}"
                                     IsHighlighted="{Binding HunPickVm.IsHighlighted}"
                                     ItemsSource="{Binding HunPickVm.CharaDict}"
-                                    SelectedValue="{Binding HunPickVm.SelectedChara}" />
+                                    SelectedValue="{Binding HunPickVm.SelectedChara}"
+                                    modernScroll:GuidanceScrollTarget.Action="PickHun" />
                             </StackPanel>
                         </Border>
                     </StackPanel>
@@ -831,7 +867,9 @@
                                 Style="{StaticResource Card}">
                                 <StackPanel>
                                     <TextBlock Style="{StaticResource Title}" Text="{lex:Loc SurvivorTalent}" />
-                                    <WrapPanel Margin="0,10,0,0">
+                                    <WrapPanel
+                                        Margin="0,10,0,0"
+                                        modernScroll:GuidanceScrollTarget.Action="PickSurTalent">
                                         <controls:TalentPicker
                                             Margin="0,0,10,10"
                                             CharacterName="{Binding CurrentGame.SurPlayerList[0].Character.Name, Mode=OneWay}"
@@ -863,7 +901,8 @@
                                         CharacterName="{Binding CurrentGame.HunPlayer.Character.Name, Mode=OneWay}"
                                         IsHighlighted="{Binding IsHunTalentHighlighted}"
                                         IsTypeHun="True"
-                                        Player="{Binding CurrentGame.HunPlayer}" />
+                                        Player="{Binding CurrentGame.HunPlayer}"
+                                        modernScroll:GuidanceScrollTarget.Action="PickHunTalent" />
                                     <TextBlock
                                         Margin="0,12,0,0"
                                         Style="{StaticResource Title}"
