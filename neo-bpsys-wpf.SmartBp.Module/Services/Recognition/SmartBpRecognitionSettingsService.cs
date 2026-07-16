@@ -1,6 +1,5 @@
 using System.IO;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.SmartBp.Module.Abstractions;
 using neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
@@ -25,7 +24,7 @@ internal sealed class SmartBpRecognitionSettingsService : ISmartBpRecognitionSet
     public SmartBpRecognitionSettings Settings { get; private set; }
 
     /// <summary>
-    /// 初始化 OCR 设置服务，并将历史 AI 策略值规范化为 OCR。
+    /// 初始化 OCR 设置服务。
     /// </summary>
     public SmartBpRecognitionSettingsService()
     {
@@ -34,7 +33,7 @@ internal sealed class SmartBpRecognitionSettingsService : ISmartBpRecognitionSet
             var json = File.Exists(_path) ? File.ReadAllText(_path) : null;
             Settings = string.IsNullOrWhiteSpace(json)
                 ? new SmartBpRecognitionSettings()
-                : JsonSerializer.Deserialize<SmartBpRecognitionSettings>(NormalizeLegacyRecognitionJson(json), Options)
+                : JsonSerializer.Deserialize<SmartBpRecognitionSettings>(json, Options)
                     ?? new SmartBpRecognitionSettings();
         }
         catch
@@ -42,8 +41,6 @@ internal sealed class SmartBpRecognitionSettingsService : ISmartBpRecognitionSet
             Settings = new SmartBpRecognitionSettings();
         }
 
-        Settings.RecognitionStrategy = SmartBpRecognitionStrategy.PureOcr;
-        Settings.RecognitionEngine = SmartBpRecognitionEngine.Ocr;
         Settings.OcrRecognitionIntervalMs = Math.Clamp(Settings.OcrRecognitionIntervalMs, 100, 5000);
         Settings.OcrFieldStaleMilliseconds = Math.Clamp(Settings.OcrFieldStaleMilliseconds, 250, 30000);
         Settings.OcrBackfillLookBehindSteps = Math.Clamp(Settings.OcrBackfillLookBehindSteps, 0, 20);
@@ -88,26 +85,4 @@ internal sealed class SmartBpRecognitionSettingsService : ISmartBpRecognitionSet
         }
     }
 
-    private static string NormalizeLegacyRecognitionJson(string json)
-    {
-        try
-        {
-            if (JsonNode.Parse(json) is not JsonObject node)
-                return json;
-            SetCaseInsensitive(node, "recognitionStrategy", (int)SmartBpRecognitionStrategy.PureOcr);
-            SetCaseInsensitive(node, "recognitionEngine", (int)SmartBpRecognitionEngine.Ocr);
-            return node.ToJsonString();
-        }
-        catch
-        {
-            return json;
-        }
-    }
-
-    private static void SetCaseInsensitive(JsonObject node, string propertyName, JsonNode? value)
-    {
-        var existing = node.Select(item => item.Key)
-            .FirstOrDefault(key => string.Equals(key, propertyName, StringComparison.OrdinalIgnoreCase));
-        node[existing ?? propertyName] = value;
-    }
 }

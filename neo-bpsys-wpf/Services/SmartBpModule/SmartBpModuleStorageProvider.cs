@@ -15,11 +15,5 @@ public sealed class SmartBpModuleStorageProvider(SmartBpModuleManager moduleMana
     /// <inheritdoc />
     public string RapidOcrModelsRoot => Path.Combine(OcrModelsRoot, "RapidOCR", "Models");
     /// <inheritdoc />
-    public string AiRoot => Path.Combine(ModuleRoot, "AI");
-    /// <inheritdoc />
-    public string QwenModelsRoot => Path.Combine(AiRoot, "QwenModels");
-    /// <inheritdoc />
-    public string LlamaCppRoot => Path.Combine(AiRoot, "LlamaCpp");
-    /// <inheritdoc />
-    public string RecognitionLogsRoot => Path.Combine(AiRoot, "RecognitionLogs");
+    public string RecognitionLogsRoot => Path.Combine(ModuleRoot, "RecognitionLogs");
 }

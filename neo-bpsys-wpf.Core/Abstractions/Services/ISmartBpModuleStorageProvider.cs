@@ -11,12 +11,6 @@ public interface ISmartBpModuleStorageProvider
     string TesseractDataRoot { get; }
     /// <summary>获取受管理的 RapidOCR 模型配置根目录。</summary>
     string RapidOcrModelsRoot { get; }
-    /// <summary>获取 AI 数据根目录。</summary>
-    string AiRoot { get; }
-    /// <summary>获取 Qwen 模型根目录。</summary>
-    string QwenModelsRoot { get; }
-    /// <summary>获取 llama.cpp 运行时根目录。</summary>
-    string LlamaCppRoot { get; }
     /// <summary>获取识别日志根目录。</summary>
     string RecognitionLogsRoot { get; }
 }
