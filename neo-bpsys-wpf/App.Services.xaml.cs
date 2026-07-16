@@ -19,7 +19,9 @@ using neo_bpsys_wpf.Views.Pages;
 using neo_bpsys_wpf.Views.Windows;
 using Wpf.Ui;
 using Wpf.Ui.DependencyInjection;
+using IContentDialogService = neo_bpsys_wpf.Core.Abstractions.Services.IContentDialogService;
 using ISnackbarService = neo_bpsys_wpf.Core.Abstractions.Services.ISnackbarService;
+using ContentDialogService = neo_bpsys_wpf.Services.ContentDialogService;
 using SnackbarService = neo_bpsys_wpf.Services.SnackbarService;
 
 
@@ -64,6 +66,7 @@ public partial class App
             sp.GetRequiredService<INavigationService>(),
             sp.GetRequiredService<IInfoBarService>(),
             sp.GetRequiredService<ISnackbarService>(),
+            sp.GetRequiredService<IContentDialogService>(),
             sp.GetRequiredService<ISettingsHostService>(),
             sp.GetRequiredService<IOnboardingCoordinator>(),
             sp.GetRequiredService<ITutorialRunner>(),
@@ -88,6 +91,7 @@ public partial class App
         services.AddSingleton<IArchiveService, SharpCompressArchiveService>();
         services.AddSingleton<IInfoBarService, InfoBarService>();
         services.AddSingleton<ISnackbarService, SnackbarService>();
+        services.AddSingleton<IContentDialogService, ContentDialogService>();
         services.AddSingleton<IWindowCaptureService, WindowCaptureService>();
         services.AddSingleton<SmartBpModuleManager>();
         services.AddSingleton<ISmartBpFeatureService, SmartBpFeatureService>();

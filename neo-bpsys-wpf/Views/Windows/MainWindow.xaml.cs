@@ -16,6 +16,7 @@ using Wpf.Ui;
 using Wpf.Ui.Abstractions;
 using Wpf.Ui.Controls;
 using neo_bpsys_wpf.Helpers;
+using IContentDialogService = neo_bpsys_wpf.Core.Abstractions.Services.IContentDialogService;
 using ISnackbarService = neo_bpsys_wpf.Core.Abstractions.Services.ISnackbarService;
 using MessageBox = Wpf.Ui.Controls.MessageBox;
 using MessageBoxResult = Wpf.Ui.Controls.MessageBoxResult;
@@ -39,6 +40,7 @@ public partial class MainWindow : FluentWindow, INavigationWindow
         INavigationService navigationService,
         IInfoBarService infoBarService,
         ISnackbarService snackbarService,
+        IContentDialogService contentDialogService,
         ISettingsHostService settingsHostService,
         IOnboardingCoordinator onboardingCoordinator,
         ITutorialRunner tutorialRunner,
@@ -60,6 +62,7 @@ public partial class MainWindow : FluentWindow, INavigationWindow
 
         infoBarService.SetInfoBarControl(InfoBar);
         snackbarService.SetSnackbarPresenter(SnbPre);
+        contentDialogService.SetContentDialogHost(ContentDialogHost);
         if (settingsHostService.Settings.ShowAfterUpdateTip)
             Loaded += async (s, e) =>
             {
