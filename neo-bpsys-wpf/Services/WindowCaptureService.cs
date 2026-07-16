@@ -228,7 +228,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
 
             StopCapture();
             // Picker 返回的 GraphicsCaptureItem 不直接暴露 HWND；
-            // 通过枚举顶层窗口并比较尺寸反查目标窗口，用于裁掉标题栏/边框。
+            // 通过显示名和尺寸反查目标窗口，用于裁掉标题栏/边框。
             _captureTargetHwnd = TryFindHwndForCaptureItem(item);
             return StartWgcCapture(item);
         }
@@ -937,7 +937,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
     /// </summary>
     /// <remarks>
     /// <see cref="GraphicsCapturePicker"/> 返回的 <see cref="GraphicsCaptureItem"/> 不公开 HWND，
-    /// 此处枚举顶层窗口并比较 <see cref="Win32.GetWindowRect"/> 尺寸与捕获项尺寸，
+    /// 此处优先以 <see cref="GraphicsCaptureItem.DisplayName"/> 匹配窗口标题，再使用整窗或客户区尺寸消除同名歧义。
     /// 仅在存在唯一匹配时返回该窗口句柄；无匹配或存在歧义时返回 <see cref="HWND.Zero"/>，
     /// 此时标题栏裁剪会被跳过（回退为不裁剪的原有行为）。
     /// </remarks>
@@ -966,8 +966,14 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
             }
         }
 
-        HWND? match = null;
-        var matchCount = 0;
+        var displayName = item.DisplayName?.Trim();
+        if (string.IsNullOrEmpty(displayName))
+        {
+            return HWND.Zero;
+        }
+
+        var titleMatches = new List<HWND>();
+        var sizeMatches = new List<HWND>();
 
         _ = Win32.EnumWindows((HWND hwnd, LPARAM _) =>
         {
@@ -987,27 +993,48 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
                 return true;
             }
 
-            // WGC 采集窗口时 item.Size 对应整窗尺寸，与 GetWindowRect 一致。
-            if (rect.right - rect.left == targetWidth && rect.bottom - rect.top == targetHeight)
+            if (!string.Equals(TryGetWindowTitle(hwnd), displayName, StringComparison.Ordinal))
             {
-                matchCount++;
-                match ??= hwnd;
+                return true;
+            }
+
+            titleMatches.Add(hwnd);
+
+            // 不同窗口类型及 DPI 上下文下，WGC 返回的可能是整窗或客户区尺寸。
+            // 两种尺寸都用于消除同名窗口的歧义；标题仍是必需条件，避免把显示器误判成窗口。
+            var windowWidth = rect.right - rect.left;
+            var windowHeight = rect.bottom - rect.top;
+            var isSizeMatch = windowWidth == targetWidth && windowHeight == targetHeight;
+            if (!isSizeMatch && Win32.GetClientRect(hwnd, out var clientRect))
+            {
+                isSizeMatch = clientRect.right - clientRect.left == targetWidth
+                              && clientRect.bottom - clientRect.top == targetHeight;
+            }
+
+            if (isSizeMatch)
+            {
+                sizeMatches.Add(hwnd);
             }
 
             return true;
         }, default);
 
-        // 仅在唯一匹配时使用；多个同尺寸窗口时不裁剪，避免裁剪区域错位。
-        if (matchCount == 1 && match.HasValue)
+        // 标题唯一时，即使窗口在 Picker 关闭后发生了尺寸变化，仍可安全用于裁剪。
+        if (titleMatches.Count == 1)
         {
-            return match.Value;
+            return titleMatches[0];
         }
 
-        if (matchCount > 1)
+        if (sizeMatches.Count == 1)
+        {
+            return sizeMatches[0];
+        }
+
+        if (titleMatches.Count > 1)
         {
             _logger.LogDebug(
-                "Picker capture skipped title bar crop: found {Count} windows matching size {Width}x{Height}.",
-                matchCount, targetWidth, targetHeight);
+                "Picker capture skipped title bar crop: found {TitleMatchCount} windows titled {DisplayName}, with {SizeMatchCount} matching capture size {Width}x{Height}.",
+                titleMatches.Count, displayName, sizeMatches.Count, targetWidth, targetHeight);
         }
 
         return HWND.Zero;
