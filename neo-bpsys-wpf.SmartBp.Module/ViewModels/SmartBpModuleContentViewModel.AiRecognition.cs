@@ -19,19 +19,9 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 public partial class SmartBpModuleContentViewModel
 {
     private readonly DispatcherTimer _aiPreviewTimer = new();
-    private readonly DispatcherTimer _aiPerformanceTimer = new() { Interval = TimeSpan.FromSeconds(2) };
     private int _recognitionBusy;
-    private bool _isSwitchingQwenModel;
-    private bool _isSwitchingAiOcrModel;
     private bool _isAutomaticRecognitionStopPendingAfterQueueDrain;
     private int _automaticRecognitionUnavailableFrameCount;
-    private LocalVisionModelDownloadRole? _activeVisionModelDownloadRole;
-
-    private enum LocalVisionModelDownloadRole
-    {
-        BusinessAi,
-        AiOcr
-    }
     /// <summary>获取可用的识别应用模式。</summary>
     public IReadOnlyList<SmartBpRecognitionApplyMode> RecognitionApplyModes { get; } = Enum.GetValues<SmartBpRecognitionApplyMode>();
     /// <summary>获取可用的混合融合模式。</summary>
@@ -49,104 +39,7 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty]
     public partial SmartBpTestFrame? SelectedAiTestFrame { get; set; }
 
-    [ObservableProperty]
-    public partial string QwenManifestStatus { get; set; } = "SmartBpAiStatusLoading";
-
-    [ObservableProperty]
-    public partial string QwenModelProfile { get; set; } = "-";
-
-    [ObservableProperty]
-    public partial string QwenMmprojProfile { get; set; } = "-";
-
-    [ObservableProperty]
-    public partial IReadOnlyList<QwenModelProfile> QwenModelProfiles { get; set; } = [];
-
-    [NotifyCanExecuteChangedFor(nameof(DownloadQwenModelCommand))]
-    [NotifyCanExecuteChangedFor(nameof(DeleteQwenModelCommand))]
-    [NotifyCanExecuteChangedFor(nameof(SwitchSelectedQwenModelCommand))]
-    [ObservableProperty]
-    public partial QwenModelProfile? SelectedQwenModelProfile { get; set; }
-
-    [ObservableProperty]
-    public partial string CurrentQwenModelDisplayName { get; set; } = "";
-
-    [NotifyCanExecuteChangedFor(nameof(DownloadQwenModelCommand))]
-    [NotifyCanExecuteChangedFor(nameof(DeleteQwenModelCommand))]
-    [NotifyCanExecuteChangedFor(nameof(SwitchSelectedQwenModelCommand))]
-    [ObservableProperty]
-    public partial bool IsBusinessAiModelDownloading { get; set; }
-
-    [ObservableProperty]
-    public partial double BusinessAiModelDownloadProgress { get; set; }
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasBusinessAiModelDownloadDetail))]
-    public partial string BusinessAiModelDownloadDetail { get; set; } = "";
-
-    [ObservableProperty]
-    public partial bool IsQwenInstalled { get; set; }
-
-    [NotifyCanExecuteChangedFor(nameof(DownloadQwenModelCommand))]
-    [NotifyCanExecuteChangedFor(nameof(DeleteQwenModelCommand))]
-    [NotifyCanExecuteChangedFor(nameof(SwitchSelectedQwenModelCommand))]
-    [ObservableProperty]
-    public partial bool IsQwenDownloading { get; set; }
-
-    [NotifyCanExecuteChangedFor(nameof(DownloadQwenModelCommand))]
-    [NotifyCanExecuteChangedFor(nameof(DeleteQwenModelCommand))]
-    [ObservableProperty]
-    public partial bool IsSelectedQwenModelInstalled { get; set; }
-
-    [ObservableProperty]
-    public partial IReadOnlyList<QwenModelProfile> AiOcrModelProfiles { get; set; } = [];
-
-    [NotifyCanExecuteChangedFor(nameof(DownloadAiOcrModelCommand))]
-    [NotifyCanExecuteChangedFor(nameof(DeleteAiOcrModelCommand))]
-    [NotifyCanExecuteChangedFor(nameof(SwitchSelectedAiOcrModelCommand))]
-    [ObservableProperty]
-    public partial QwenModelProfile? SelectedAiOcrModelProfile { get; set; }
-
-    [ObservableProperty]
-    public partial string CurrentAiOcrModelDisplayName { get; set; } = "";
-
-    [ObservableProperty]
-    public partial string AiOcrModelStatus { get; set; } = "-";
-
-    [NotifyCanExecuteChangedFor(nameof(DownloadAiOcrModelCommand))]
-    [NotifyCanExecuteChangedFor(nameof(DeleteAiOcrModelCommand))]
-    [NotifyCanExecuteChangedFor(nameof(SwitchSelectedAiOcrModelCommand))]
-    [ObservableProperty]
-    public partial bool IsAiOcrModelDownloading { get; set; }
-
-    [ObservableProperty]
-    public partial double AiOcrModelDownloadProgress { get; set; }
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasAiOcrModelDownloadDetail))]
-    public partial string AiOcrModelDownloadDetail { get; set; } = "";
-
-    [NotifyCanExecuteChangedFor(nameof(DownloadAiOcrModelCommand))]
-    [NotifyCanExecuteChangedFor(nameof(DeleteAiOcrModelCommand))]
-    [NotifyCanExecuteChangedFor(nameof(SwitchSelectedAiOcrModelCommand))]
-    [ObservableProperty]
-    public partial bool IsSelectedAiOcrModelInstalled { get; set; }
-
-    [ObservableProperty]
-    public partial double QwenDownloadProgress { get; set; }
-
-    [ObservableProperty]
-    public partial string QwenDownloadStatus { get; set; } = "-";
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasQwenDownloadDetail))]
-    public partial string QwenDownloadDetail { get; set; } = "";
-
-    [ObservableProperty]
-    public partial string LlamaServerExecutablePath { get; set; } = "";
-
-    [ObservableProperty]
-    public partial string LlamaServerStatus { get; set; } = "SmartBpAiStatusStopped";
-
+    // 已移除的本地视觉模型设置保留在历史配置兼容层中，不再暴露为 SmartBP 页面状态。
     [NotifyCanExecuteChangedFor(nameof(StartAiPreviewLoopCommand))]
     [NotifyCanExecuteChangedFor(nameof(StopAiPreviewLoopCommand))]
     [ObservableProperty]
@@ -176,66 +69,7 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty]
     public partial bool IsDebugLogEnabled { get; set; } = true;
 
-    [ObservableProperty]
-    public partial IReadOnlyList<SmartBpPromptProfile> AiPromptProfiles { get; set; } = [];
-
-    [ObservableProperty]
-    public partial SmartBpPromptProfile? SelectedAiPromptProfile { get; set; }
-
-    [ObservableProperty]
-    public partial IReadOnlyList<LlamaCppRuntimeAssetSelection> LlamaRuntimeAssets { get; set; } = [];
-
-    [ObservableProperty]
-    public partial LlamaCppRuntimeAssetSelection? SelectedLlamaRuntimeAsset { get; set; }
-
-    [NotifyCanExecuteChangedFor(nameof(DownloadLlamaRuntimeCommand))]
-    [NotifyCanExecuteChangedFor(nameof(DeleteLlamaRuntimeCommand))]
-    [NotifyCanExecuteChangedFor(nameof(RollbackLlamaRuntimeCommand))]
-    [NotifyCanExecuteChangedFor(nameof(StartLlamaServerCommand))]
-    [NotifyCanExecuteChangedFor(nameof(StopLlamaServerCommand))]
-    [NotifyCanExecuteChangedFor(nameof(ForceStopLlamaServerCommand))]
-    [ObservableProperty]
-    public partial bool IsLlamaRuntimeInstalled { get; set; }
-
-    [NotifyCanExecuteChangedFor(nameof(DownloadLlamaRuntimeCommand))]
-    [NotifyCanExecuteChangedFor(nameof(DeleteLlamaRuntimeCommand))]
-    [ObservableProperty]
-    public partial bool IsLlamaRuntimeDownloading { get; set; }
-
-    [NotifyCanExecuteChangedFor(nameof(DownloadLlamaRuntimeCommand))]
-    [NotifyCanExecuteChangedFor(nameof(DeleteLlamaRuntimeCommand))]
-    [NotifyCanExecuteChangedFor(nameof(RollbackLlamaRuntimeCommand))]
-    [NotifyCanExecuteChangedFor(nameof(StartLlamaServerCommand))]
-    [NotifyCanExecuteChangedFor(nameof(StopLlamaServerCommand))]
-    [NotifyCanExecuteChangedFor(nameof(ForceStopLlamaServerCommand))]
-    [ObservableProperty]
-    public partial bool IsLlamaServerRunning { get; set; }
-
-    [NotifyCanExecuteChangedFor(nameof(DownloadLlamaRuntimeCommand))]
-    [NotifyCanExecuteChangedFor(nameof(DeleteLlamaRuntimeCommand))]
-    [NotifyCanExecuteChangedFor(nameof(RollbackLlamaRuntimeCommand))]
-    [NotifyCanExecuteChangedFor(nameof(StartLlamaServerCommand))]
-    [NotifyCanExecuteChangedFor(nameof(StopLlamaServerCommand))]
-    [NotifyCanExecuteChangedFor(nameof(ForceStopLlamaServerCommand))]
-    [ObservableProperty]
-    public partial bool IsLlamaServerStarting { get; set; }
-
-    [ObservableProperty]
-    public partial double LlamaRuntimeDownloadProgress { get; set; }
-
-    [ObservableProperty]
-    public partial string LlamaRuntimeDownloadStatus { get; set; } = "-";
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasLlamaRuntimeDownloadDetail))]
-    public partial string LlamaRuntimeDownloadDetail { get; set; } = "";
-
-    [ObservableProperty]
-    public partial string ManagedLlamaServerExecutablePath { get; set; } = "-";
-
-    [ObservableProperty]
-    public partial string LlamaRuntimeUpdateStatus { get; set; } = "-";
-
+    // 已移除本地视觉模型提示词与 llama.cpp 运行时管理。
     [ObservableProperty]
     public partial bool EnableAutoGuidanceSync { get; set; }
 
@@ -276,9 +110,6 @@ public partial class SmartBpModuleContentViewModel
     public partial bool IsOcrRecognitionEngine { get; set; } = true;
 
     [ObservableProperty]
-    public partial bool IsAiQwenRecognitionEngine { get; set; }
-
-    [ObservableProperty]
     public partial bool IsPaddleRecognitionEngine { get; set; } = true;
 
     [ObservableProperty]
@@ -286,27 +117,6 @@ public partial class SmartBpModuleContentViewModel
 
     [ObservableProperty]
     public partial bool IsRapidRecognitionEngine { get; set; }
-
-    [ObservableProperty]
-    public partial bool IsBusinessAiModelVisible { get; set; }
-
-    [ObservableProperty]
-    public partial bool IsOcrProviderCardVisible { get; set; } = true;
-
-    [ObservableProperty]
-    public partial bool IsAiOcrModelVisible { get; set; }
-
-    [ObservableProperty]
-    public partial bool IsAiWithOcrFusionModeVisible { get; set; }
-
-    [ObservableProperty]
-    public partial bool IsAiWithAiOcrFusionModeVisible { get; set; }
-
-    [ObservableProperty]
-    public partial SmartBpHybridFusionMode AiWithOcrFusionMode { get; set; } = SmartBpHybridFusionMode.LocalCSharp;
-
-    [ObservableProperty]
-    public partial SmartBpHybridFusionMode AiWithAiOcrFusionMode { get; set; } = SmartBpHybridFusionMode.BusinessAi;
 
     [ObservableProperty]
     public partial bool EnableOcrBpRecognition { get; set; } = true;
@@ -467,21 +277,7 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty]
     public partial int RecognitionVisualBufferMilliseconds { get; set; }
 
-    [ObservableProperty]
-    public partial int LlamaParallelSlots { get; set; }
-
-    [ObservableProperty]
-    public partial int LlamaGpuLayers { get; set; }
-
-    [ObservableProperty]
-    public partial bool LlamaFlashAttention { get; set; }
-
-    [ObservableProperty]
-    public partial int LlamaBatchSize { get; set; }
-
-    [ObservableProperty]
-    public partial int LlamaUBatchSize { get; set; }
-
+    // 已移除 llama.cpp 运行时调优入口。
     [ObservableProperty]
     public partial string AiStageDetectionResult { get; set; } = "-";
 
@@ -536,8 +332,6 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty]
     public partial string AiVramUsage { get; set; } = "not available";
 
-    [ObservableProperty]
-    public partial string AiLlamaProcessId { get; set; } = "-";
 
     [ObservableProperty]
     public partial string AiPerformanceUpdatedAt { get; set; } = "-";
@@ -558,16 +352,8 @@ public partial class SmartBpModuleContentViewModel
     public partial string DebugPhaseScene { get; set; } = "-";
 
     [ObservableProperty]
-    public partial string DebugBusinessAiRaw { get; set; } = "-";
-
-    [ObservableProperty]
-    public partial string DebugPureAiFullRaw { get; set; } = "-";
-
-    [ObservableProperty]
     public partial string DebugOcrRawLines { get; set; } = "-";
 
-    [ObservableProperty]
-    public partial string DebugAiOcrTranscript { get; set; } = "-";
 
     [ObservableProperty]
     public partial string DebugParsedState { get; set; } = "-";
@@ -590,64 +376,8 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty]
     public partial bool IsRecognitionDebugLogAutoScrollEnabled { get; set; } = true;
 
-    [ObservableProperty]
-    public partial string BusinessAiServerStatus { get; set; } = "-";
-
-    [ObservableProperty]
-    public partial string BusinessAiServerProcessId { get; set; } = "-";
-
-    [ObservableProperty]
-    public partial string BusinessAiServerPortText { get; set; } = "-";
-
-    [ObservableProperty]
-    public partial string BusinessAiServerModelText { get; set; } = "-";
-
-    [ObservableProperty]
-    public partial string BusinessAiServerActivityText { get; set; } = "-";
-
-    [NotifyCanExecuteChangedFor(nameof(StartBusinessAiServerCommand))]
-    [NotifyCanExecuteChangedFor(nameof(StartRequiredLlamaServersCommand))]
-    [ObservableProperty]
-    public partial bool IsBusinessAiServerStarting { get; set; }
-
-    [ObservableProperty]
-    public partial string AiOcrServerStatus { get; set; } = "-";
-
-    [ObservableProperty]
-    public partial string AiOcrServerProcessId { get; set; } = "-";
-
-    [ObservableProperty]
-    public partial string AiOcrServerPortText { get; set; } = "-";
-
-    [ObservableProperty]
-    public partial string AiOcrServerModelText { get; set; } = "-";
-
-    [ObservableProperty]
-    public partial string AiOcrServerActivityText { get; set; } = "-";
-
-    [ObservableProperty]
-    public partial string AiOcrServerReuseStatus { get; set; } = "-";
-
-    [NotifyCanExecuteChangedFor(nameof(StartAiOcrServerCommand))]
-    [NotifyCanExecuteChangedFor(nameof(StartRequiredLlamaServersCommand))]
-    [ObservableProperty]
-    public partial bool IsAiOcrServerStarting { get; set; }
-
-    [NotifyCanExecuteChangedFor(nameof(StartRequiredLlamaServersCommand))]
-    [ObservableProperty]
-    public partial bool IsRequiredLlamaServersStarting { get; set; }
-
+    // 已移除本地视觉模型服务状态展示。
     private SmartBpRecognitionLayoutProfile? _aiRegionProfile;
-
-    /// <summary>是否显示 Qwen 模型下载详情。</summary>
-    public bool HasQwenDownloadDetail => !string.IsNullOrWhiteSpace(QwenDownloadDetail);
-    /// <summary>是否显示业务 AI 模型下载详情。</summary>
-    public bool HasBusinessAiModelDownloadDetail => !string.IsNullOrWhiteSpace(BusinessAiModelDownloadDetail);
-    /// <summary>是否显示 AI OCR 模型下载详情。</summary>
-    public bool HasAiOcrModelDownloadDetail => !string.IsNullOrWhiteSpace(AiOcrModelDownloadDetail);
-
-    /// <summary>是否显示 llama.cpp 运行时下载详情。</summary>
-    public bool HasLlamaRuntimeDownloadDetail => !string.IsNullOrWhiteSpace(LlamaRuntimeDownloadDetail);
 
     /// <summary>是否显示 Tesseract 语言数据下载详情。</summary>
     public bool HasTesseractDownloadDetail => !string.IsNullOrWhiteSpace(TesseractDownloadDetail);
@@ -678,8 +408,6 @@ public partial class SmartBpModuleContentViewModel
         PlayBackfillAnimations = _recognitionSettingsService.Settings.PlayBackfillAnimations;
         UseMultiImageSnapshotRequest = _recognitionSettingsService.Settings.UseMultiImageSnapshotRequest;
         EnableOcrBpRecognition = _recognitionSettingsService.Settings.EnableOcrBpRecognition;
-        AiWithOcrFusionMode = _recognitionSettingsService.Settings.AiWithOcrFusionMode;
-        AiWithAiOcrFusionMode = _recognitionSettingsService.Settings.AiWithAiOcrFusionMode;
         RecognitionIntervalMs = _recognitionSettingsService.Settings.RecognitionIntervalMs;
         OcrRecognitionIntervalMs = _recognitionSettingsService.Settings.OcrRecognitionIntervalMs;
         OcrFieldStaleMilliseconds = _recognitionSettingsService.Settings.OcrFieldStaleMilliseconds;
@@ -889,69 +617,7 @@ public partial class SmartBpModuleContentViewModel
         ("right_bottom", "SmartBpAiRegionRightBottom")
     ];
 
-    private async Task InitializeAiOptionsAsync()
-    {
-        try
-        {
-            AiPromptProfiles = await _promptProfileProvider.GetAvailableProfilesAsync();
-            SelectedAiPromptProfile = AiPromptProfiles.FirstOrDefault(x => x.Id == _recognitionSettingsService.Settings.PromptProfileId) ?? AiPromptProfiles.FirstOrDefault();
-            QwenModelProfiles = await _qwenAssetManager.GetProfilesAsync();
-            SelectedQwenModelProfile = QwenModelProfiles.FirstOrDefault(x => x.Id == _recognitionSettingsService.Settings.SelectedBusinessAiModelId) ??
-                                       QwenModelProfiles.FirstOrDefault(profile => profile.Role is LocalVisionModelRole.BusinessVlm or LocalVisionModelRole.Both) ??
-                                       QwenModelProfiles.FirstOrDefault();
-            AiOcrModelProfiles = QwenModelProfiles
-                .Where(profile => profile.Role is LocalVisionModelRole.AiOcrTextExtractor or LocalVisionModelRole.Both)
-                .ToArray();
-            SelectedAiOcrModelProfile = AiOcrModelProfiles.FirstOrDefault(x => x.Id == _recognitionSettingsService.Settings.SelectedAiOcrModelId) ??
-                                        AiOcrModelProfiles.FirstOrDefault();
-            await RefreshSelectedQwenModelInstallStatusAsync();
-            await RefreshSelectedAiOcrModelInstallStatusAsync();
-            // llama.cpp 资产通常已在 InitializeAiRecognition 中提前加载；这里兜底处理加载失败的场景。
-            if (LlamaRuntimeAssets.Count == 0)
-            {
-                var assets = await _llamaRuntimeAssetManager.GetAvailableAssetsAsync();
-                var selections = assets.Select(a => new LlamaCppRuntimeAssetSelection(a)).ToList();
-                await RefreshLlamaRuntimeAssetsInstallStatusAsync(selections);
-                LlamaRuntimeAssets = selections;
-                var selected = await _llamaRuntimeAssetManager.GetSelectedAssetAsync();
-                SelectedLlamaRuntimeAsset = selections.FirstOrDefault(s => s.Id == selected.Id) ?? selections.FirstOrDefault();
-                await RefreshLlamaRuntimeStatusAsync();
-            }
-        }
-        catch (Exception ex) { AiLastError = ex.Message; }
-    }
-
-    /// <summary>异步加载内置 llama.cpp 运行时资产，避免阻塞 UI 线程。</summary>
-    private async Task LoadLlamaCppAssetsAsync()
-    {
-        LlamaRuntimeDownloadStatus = ResolveLocalizedOrRaw("SmartBpAiStatusLoading");
-        try
-        {
-            var assets = await _llamaRuntimeAssetManager.GetAvailableAssetsAsync();
-            var selections = assets.Select(a => new LlamaCppRuntimeAssetSelection(a)).ToList();
-            foreach (var selection in selections)
-                selection.IsInstalled = await _llamaRuntimeAssetManager.IsAssetInstalledAsync(selection.Id, selection.EntryExe);
-            var selected = await _llamaRuntimeAssetManager.GetSelectedAssetAsync();
-            var installed = await _llamaRuntimeAssetManager.IsInstalledAsync();
-            var executable = installed ? await _llamaRuntimeAssetManager.GetInstalledExecutablePathAsync() : "-";
-            RunOnUiThread(() =>
-            {
-                LlamaRuntimeAssets = selections;
-                SelectedLlamaRuntimeAsset = selections.FirstOrDefault(s => s.Id == selected.Id) ?? selections.FirstOrDefault();
-                IsLlamaRuntimeInstalled = installed;
-                ManagedLlamaServerExecutablePath = executable;
-                LlamaRuntimeDownloadStatus = installed
-                    ? ResolveLocalizedOrRaw("SmartBpAiStatusInstalled")
-                    : ResolveLocalizedOrRaw("SmartBpAiStatusNotInstalled");
-                RefreshLlamaServerUiState();
-            });
-        }
-        catch (Exception ex)
-        {
-            _aiDebugLog.Write("runtime", $"llama.cpp asset load failed, will retry later: {ex.Message}");
-        }
-    }
-
+    // 本模块仅提供 OCR 识别；下列本地视觉模型管理实现已停止注册。
     [RelayCommand]
     private void ClearAiDebugLog()
     {
@@ -986,36 +652,12 @@ public partial class SmartBpModuleContentViewModel
         _aiDebugLog.IsEnabled = value;
     }
 
-    [RelayCommand] private async Task RefreshQwenStatusAsync()
-    {
-        try
-        {
-            var p = await _qwenAssetManager.GetProfileAsync();
-            QwenModelProfile = p.DisplayName;
-            CurrentQwenModelDisplayName = string.Format(ResolveLocalizedOrRaw("SmartBpCurrentQwenModelFormat"), p.DisplayName);
-            QwenMmprojProfile = Path.GetFileNameWithoutExtension(p.MmprojFileName);
-            SelectedQwenModelProfile = QwenModelProfiles.FirstOrDefault(x => x.Id == p.Id) ?? SelectedQwenModelProfile;
-            IsQwenInstalled = await _qwenAssetManager.IsInstalledAsync();
-            await RefreshSelectedQwenModelInstallStatusAsync();
-            QwenManifestStatus = ResolveLocalizedOrRaw("SmartBpAiStatusLoaded");
-            SwitchSelectedQwenModelCommand.NotifyCanExecuteChanged();
-        }
-        catch (Exception ex) { QwenManifestStatus = ResolveLocalizedOrRaw("SmartBpAiStatusFailed"); AiLastError = ex.Message; }
-    }
-
     private void RefreshRecognitionEngineVisibility()
     {
-        IsOcrRecognitionEngine = true;
-        IsAiQwenRecognitionEngine = false;
-        IsBusinessAiModelVisible = false;
-        IsOcrProviderCardVisible = true;
-        IsAiOcrModelVisible = false;
-        IsAiWithOcrFusionModeVisible = false;
-        IsAiWithAiOcrFusionModeVisible = false;
         var provider = SelectedOcrProvider?.Mode ?? _recognitionSettingsService.Settings.SelectedOcrProviderMode;
-        IsPaddleRecognitionEngine = IsOcrProviderCardVisible && provider == SmartBpOcrProviderMode.Paddle;
-        IsTesseractRecognitionEngine = IsOcrProviderCardVisible && provider == SmartBpOcrProviderMode.Tesseract;
-        IsRapidRecognitionEngine = IsOcrProviderCardVisible && provider == SmartBpOcrProviderMode.Rapid;
+        IsPaddleRecognitionEngine = provider == SmartBpOcrProviderMode.Paddle;
+        IsTesseractRecognitionEngine = provider == SmartBpOcrProviderMode.Tesseract;
+        IsRapidRecognitionEngine = provider == SmartBpOcrProviderMode.Rapid;
         RefreshRecognitionTimerInterval();
     }
 
@@ -1023,18 +665,6 @@ public partial class SmartBpModuleContentViewModel
     {
         var interval = _recognitionSettingsService.Settings.OcrRecognitionIntervalMs;
         _aiPreviewTimer.Interval = TimeSpan.FromMilliseconds(Math.Clamp(interval, 100, 5000));
-    }
-
-    private async Task RefreshAiPerformanceAsync()
-    {
-        if (!IsAiQwenRecognitionEngine && !_llamaServerManager.IsRunning) return;
-        var snapshot = await _aiPerformanceMonitor.GetSnapshotAsync(_llamaServerManager.ProcessId);
-        AiGpuName = snapshot.GpuName;
-        AiGpuUtilization = snapshot.GpuUtilizationPercent is { } utilization ? $"{utilization}%" : "not available";
-        AiVramUsage = snapshot.VramUsedBytes is { } used && snapshot.VramTotalBytes is { } total
-            ? $"{FormatBytes((long)used)} / {FormatBytes((long)total)}" : "not available";
-        AiLlamaProcessId = snapshot.ProcessId?.ToString() ?? "-";
-        AiPerformanceUpdatedAt = snapshot.UpdatedAt.ToString("HH:mm:ss");
     }
 
     [RelayCommand]
@@ -1090,361 +720,6 @@ public partial class SmartBpModuleContentViewModel
         RecognitionIntervalEditHint = IsRecognitionIntervalEditable
             ? ResolveLocalizedOrRaw("SmartBpRecognitionIntervalReady")
             : ResolveLocalizedOrRaw("SmartBpRecognitionIntervalRequiresSpeedTest");
-    }
-    [RelayCommand(CanExecute = nameof(CanDownloadQwenModel))]
-    private async Task DownloadQwenModelAsync()
-    {
-        if (SelectedQwenModelProfile == null) return;
-        try
-        {
-            _activeVisionModelDownloadRole = LocalVisionModelDownloadRole.BusinessAi;
-            await _qwenAssetManager.InstallAsync(SelectedQwenModelProfile.Id);
-            await RefreshQwenStatusAsync();
-        }
-        catch (OperationCanceledException) { }
-        catch (Exception ex) { AiLastError = ex.ToString(); }
-    }
-
-    [RelayCommand] private void CancelQwenDownload() => _qwenAssetManager.Cancel();
-    [RelayCommand] private void CancelBusinessAiModelDownload() => _qwenAssetManager.Cancel();
-    [RelayCommand] private void CancelAiOcrModelDownload() => _qwenAssetManager.Cancel();
-
-    [RelayCommand(CanExecute = nameof(CanDeleteQwenModel))]
-    private async Task DeleteQwenModelAsync()
-    {
-        if (SelectedQwenModelProfile == null) return;
-        try
-        {
-            if (_llamaServerManager.IsRunning) throw new InvalidOperationException("Stop llama-server before deleting the model.");
-            await _qwenAssetManager.DeleteAsync(SelectedQwenModelProfile.Id);
-            await RefreshQwenStatusAsync();
-        }
-        catch (Exception ex) { AiLastError = ex.Message; }
-    }
-
-    private bool CanDownloadQwenModel() =>
-        !IsBusinessAiModelDownloading && !IsAiOcrModelDownloading && SelectedQwenModelProfile != null && !IsSelectedQwenModelInstalled;
-
-    private bool CanDeleteQwenModel() =>
-        !IsBusinessAiModelDownloading && !IsAiOcrModelDownloading && !_llamaServerManagers.Get(LlamaVisionServerRole.BusinessAi).IsRunning && SelectedQwenModelProfile != null && IsSelectedQwenModelInstalled;
-
-    [RelayCommand(CanExecute = nameof(CanDownloadAiOcrModel))]
-    private async Task DownloadAiOcrModelAsync()
-    {
-        if (SelectedAiOcrModelProfile == null) return;
-        try
-        {
-            _activeVisionModelDownloadRole = LocalVisionModelDownloadRole.AiOcr;
-            await _qwenAssetManager.InstallAsync(SelectedAiOcrModelProfile.Id);
-            await RefreshSelectedAiOcrModelInstallStatusAsync();
-        }
-        catch (OperationCanceledException) { }
-        catch (Exception ex) { AiLastError = ex.ToString(); }
-    }
-
-    [RelayCommand(CanExecute = nameof(CanDeleteAiOcrModel))]
-    private async Task DeleteAiOcrModelAsync()
-    {
-        if (SelectedAiOcrModelProfile == null) return;
-        try
-        {
-            if (_llamaServerManager.IsRunning) throw new InvalidOperationException("Stop llama-server before deleting the model.");
-            await _qwenAssetManager.DeleteAsync(SelectedAiOcrModelProfile.Id);
-            await RefreshSelectedAiOcrModelInstallStatusAsync();
-        }
-        catch (Exception ex) { AiLastError = ex.Message; }
-    }
-
-    [RelayCommand(CanExecute = nameof(CanSwitchSelectedAiOcrModel))]
-    private async Task SwitchSelectedAiOcrModelAsync()
-    {
-        if (SelectedAiOcrModelProfile == null) return;
-        await SwitchAiOcrModelAsync(SelectedAiOcrModelProfile);
-    }
-
-    private bool CanDownloadAiOcrModel() =>
-        !IsAiOcrModelDownloading && !IsBusinessAiModelDownloading && SelectedAiOcrModelProfile != null && !IsSelectedAiOcrModelInstalled;
-
-    private bool CanDeleteAiOcrModel() =>
-        !IsAiOcrModelDownloading && !IsBusinessAiModelDownloading && !IsAiOcrRelevantServerRunning() && SelectedAiOcrModelProfile != null && IsSelectedAiOcrModelInstalled;
-
-    private bool CanSwitchSelectedAiOcrModel() =>
-        !IsAiOcrModelDownloading && !IsBusinessAiModelDownloading &&
-        SelectedAiOcrModelProfile != null &&
-        !string.Equals(SelectedAiOcrModelProfile.Id, _recognitionSettingsService.Settings.SelectedAiOcrModelId, StringComparison.Ordinal);
-
-    private bool CanDownloadLlamaRuntime() =>
-        !IsLlamaRuntimeDownloading && !IsLlamaServerRunning && !IsLlamaServerStarting && SelectedLlamaRuntimeAsset != null && !SelectedLlamaRuntimeAsset.IsInstalled;
-
-    private bool CanDeleteLlamaRuntime() =>
-        !IsLlamaRuntimeDownloading && !IsLlamaServerRunning && !IsLlamaServerStarting && SelectedLlamaRuntimeAsset != null && SelectedLlamaRuntimeAsset.IsInstalled;
-
-    private bool CanRollbackLlamaRuntime() =>
-        !IsLlamaRuntimeDownloading && !IsLlamaServerRunning && !IsLlamaServerStarting && IsLlamaRuntimeInstalled;
-
-    private bool CanStartLlamaServer() =>
-        !IsLlamaServerRunning && !IsLlamaServerStarting && IsLlamaRuntimeInstalled;
-
-    private bool CanStopLlamaServer() =>
-        IsLlamaServerRunning;
-
-    private bool CanForceStopLlamaServer() => true;
-    [RelayCommand] private async Task BrowseLlamaServerAsync() { var path = _filePickerService.PickExecutableFile(); if (path == null) return; LlamaServerExecutablePath = path; _recognitionSettingsService.Settings.LlamaServerExecutablePath = path; await _recognitionSettingsService.SaveAsync(); }
-    /// <inheritdoc cref="CanDownloadLlamaRuntime"/>
-    [RelayCommand(CanExecute = nameof(CanDownloadLlamaRuntime))]
-    private async Task DownloadLlamaRuntimeAsync() { try { if (_llamaServerManager.IsRunning) throw new InvalidOperationException("Stop llama-server before installing or updating the runtime."); await _llamaRuntimeAssetManager.InstallAsync(); LlamaServerExecutablePath = _recognitionSettingsService.Settings.LlamaServerExecutablePath; await RefreshLlamaRuntimeStatusAsync(); } catch (OperationCanceledException) { } catch (Exception ex) { AiLastError = ex.ToString(); } }
-    [RelayCommand] private void CancelLlamaRuntimeDownload() => _llamaRuntimeAssetManager.Cancel();
-    /// <inheritdoc cref="CanDeleteLlamaRuntime"/>
-    [RelayCommand(CanExecute = nameof(CanDeleteLlamaRuntime))]
-    private async Task DeleteLlamaRuntimeAsync() { try { if (_llamaServerManager.IsRunning) throw new InvalidOperationException("Stop llama-server before deleting the runtime."); await _llamaRuntimeAssetManager.DeleteAsync(); LlamaServerExecutablePath = _recognitionSettingsService.Settings.LlamaServerExecutablePath; await RefreshLlamaRuntimeStatusAsync(); } catch (Exception ex) { AiLastError = ex.Message; } }
-    /// <inheritdoc cref="CanRollbackLlamaRuntime"/>
-    [RelayCommand(CanExecute = nameof(CanRollbackLlamaRuntime))]
-    private async Task RollbackLlamaRuntimeAsync() { try { if (_llamaServerManager.IsRunning) throw new InvalidOperationException("Stop llama-server before rolling back the runtime."); await _llamaRuntimeAssetManager.RollbackAsync(); LlamaServerExecutablePath = _recognitionSettingsService.Settings.LlamaServerExecutablePath; await RefreshLlamaRuntimeStatusAsync(); } catch (Exception ex) { AiLastError = ex.Message; } }
-    [RelayCommand] private async Task RefreshLlamaRuntimeStatusAsync()
-    {
-        if (LlamaRuntimeAssets.Count > 0)
-            await RefreshLlamaRuntimeAssetsInstallStatusAsync(LlamaRuntimeAssets);
-        IsLlamaRuntimeInstalled = await _llamaRuntimeAssetManager.IsInstalledAsync();
-        ManagedLlamaServerExecutablePath = IsLlamaRuntimeInstalled ? await _llamaRuntimeAssetManager.GetInstalledExecutablePathAsync() : "-";
-        DownloadLlamaRuntimeCommand.NotifyCanExecuteChanged();
-        DeleteLlamaRuntimeCommand.NotifyCanExecuteChanged();
-        RollbackLlamaRuntimeCommand.NotifyCanExecuteChanged();
-        StartLlamaServerCommand.NotifyCanExecuteChanged();
-        StopLlamaServerCommand.NotifyCanExecuteChanged();
-        RefreshLlamaServerUiState();
-    }
-
-    private async Task RefreshLlamaRuntimeAssetsInstallStatusAsync(IReadOnlyList<LlamaCppRuntimeAssetSelection> selections)
-    {
-        foreach (var selection in selections)
-            selection.IsInstalled = await _llamaRuntimeAssetManager.IsAssetInstalledAsync(selection.Id, selection.EntryExe);
-    }
-    [RelayCommand] private async Task CheckLlamaRuntimeUpdateAsync() { try { var result = await _llamaRuntimeUpdateService.CheckForUpdatesAsync(true); LlamaRuntimeUpdateStatus = $"{result.Message} Current={result.CurrentVersion}; Latest={result.LatestVersion ?? "-"}"; if (result.LatestAssets.Count > 0) { var selections = result.LatestAssets.Select(a => new LlamaCppRuntimeAssetSelection(a)).ToList(); await RefreshLlamaRuntimeAssetsInstallStatusAsync(selections); LlamaRuntimeAssets = selections; } } catch (Exception ex) { LlamaRuntimeUpdateStatus = ex.Message; } }
-    [RelayCommand(CanExecute = nameof(CanStartLlamaServer))]
-    private async Task StartLlamaServerAsync()
-    {
-        IsLlamaServerStarting = true;
-        LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusStarting");
-        try
-        {
-            await _llamaServerManager.StartAsync();
-            LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusReady");
-            IsLlamaServerRunning = true;
-        }
-        catch (Exception ex)
-        {
-            LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusFailed");
-            IsLlamaServerRunning = false;
-            AiLastError = ex.Message;
-        }
-        finally
-        {
-            IsLlamaServerStarting = false;
-        }
-    }
-    [RelayCommand(CanExecute = nameof(CanStopLlamaServer))]
-    private async Task StopLlamaServerAsync() { await StopAiPreviewLoopAsync(); await _llamaServerManager.StopAsync(); LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusStopped"); IsLlamaServerRunning = false; }
-    [RelayCommand(CanExecute = nameof(CanForceStopLlamaServer))]
-    private async Task ForceStopLlamaServerAsync() { try { await StopAiPreviewLoopAsync(); await _llamaServerManager.ForceStopManagedProcessAsync(); LlamaServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusStopped"); IsLlamaServerRunning = false; } catch (Exception ex) { AiLastError = ex.Message; } }
-
-    [RelayCommand(CanExecute = nameof(CanStartBusinessAiServer))]
-    private async Task StartBusinessAiServerAsync() => await StartRoleServerAsync(LlamaVisionServerRole.BusinessAi);
-
-    [RelayCommand(CanExecute = nameof(CanStopBusinessAiServer))]
-    private async Task StopBusinessAiServerAsync() => await StopRoleServerAsync(LlamaVisionServerRole.BusinessAi);
-
-    [RelayCommand(CanExecute = nameof(CanForceStopBusinessAiServer))]
-    private async Task ForceStopBusinessAiServerAsync() => await ForceStopRoleServerAsync(LlamaVisionServerRole.BusinessAi);
-
-    [RelayCommand(CanExecute = nameof(CanStartAiOcrServer))]
-    private async Task StartAiOcrServerAsync() => await StartRoleServerAsync(LlamaVisionServerRole.AiOcr);
-
-    [RelayCommand(CanExecute = nameof(CanStopAiOcrServer))]
-    private async Task StopAiOcrServerAsync() => await StopRoleServerAsync(LlamaVisionServerRole.AiOcr);
-
-    [RelayCommand(CanExecute = nameof(CanForceStopAiOcrServer))]
-    private async Task ForceStopAiOcrServerAsync() => await ForceStopRoleServerAsync(LlamaVisionServerRole.AiOcr);
-
-    [RelayCommand(CanExecute = nameof(CanStartRequiredLlamaServers))]
-    private async Task StartRequiredLlamaServersAsync()
-    {
-        IsRequiredLlamaServersStarting = true;
-        try
-        {
-            await Task.CompletedTask;
-        }
-        finally
-        {
-            IsRequiredLlamaServersStarting = false;
-            NotifyRoleServerCommands();
-        }
-    }
-
-    [RelayCommand]
-    private async Task StopAllSmartBpLlamaServersAsync()
-    {
-        await StopRoleServerAsync(LlamaVisionServerRole.AiOcr);
-        await StopRoleServerAsync(LlamaVisionServerRole.BusinessAi);
-    }
-
-    private bool CanStartBusinessAiServer() => IsLlamaRuntimeInstalled && !IsBusinessAiServerStarting && !_llamaServerManagers.Get(LlamaVisionServerRole.BusinessAi).IsRunning;
-    private bool CanStopBusinessAiServer() => _llamaServerManagers.Get(LlamaVisionServerRole.BusinessAi).IsRunning;
-    private bool CanForceStopBusinessAiServer() => true;
-    private bool CanStartAiOcrServer() => IsLlamaRuntimeInstalled && !IsAiOcrServerStarting && !IsAiOcrReusingBusinessServer() && !_llamaServerManagers.Get(LlamaVisionServerRole.AiOcr).IsRunning;
-    private bool CanStopAiOcrServer() => !IsAiOcrReusingBusinessServer() && _llamaServerManagers.Get(LlamaVisionServerRole.AiOcr).IsRunning;
-    private bool CanForceStopAiOcrServer() => !IsAiOcrReusingBusinessServer();
-    private bool CanStartRequiredLlamaServers() => false;
-
-    private async Task StartRoleServerAsync(LlamaVisionServerRole role)
-    {
-        SetRoleServerStarting(role, true);
-        try
-        {
-            await _llamaServerManagers.Get(role).StartAsync();
-            RefreshRoleServerStatus();
-        }
-        catch (Exception ex)
-        {
-            SetRoleServerFailed(role);
-            AiLastError = ex.Message;
-        }
-        finally
-        {
-            SetRoleServerStarting(role, false);
-            NotifyRoleServerCommands();
-        }
-    }
-
-    private async Task StopRoleServerAsync(LlamaVisionServerRole role)
-    {
-        try
-        {
-            await _llamaServerManagers.Get(role).StopAsync();
-            RefreshRoleServerStatus();
-        }
-        catch (Exception ex) { AiLastError = ex.Message; }
-        finally { NotifyRoleServerCommands(); }
-    }
-
-    private async Task ForceStopRoleServerAsync(LlamaVisionServerRole role)
-    {
-        try
-        {
-            await _llamaServerManagers.Get(role).ForceStopManagedProcessAsync();
-            RefreshRoleServerStatus();
-        }
-        catch (Exception ex) { AiLastError = ex.Message; }
-        finally { NotifyRoleServerCommands(); }
-    }
-
-    private async Task ReconcileLlamaServersForCurrentStrategyAsync()
-    {
-        try
-        {
-            var business = _llamaServerManagers.Get(LlamaVisionServerRole.BusinessAi);
-            var aiOcr = _llamaServerManagers.Get(LlamaVisionServerRole.AiOcr);
-            switch (_recognitionSettingsService.Settings.RecognitionStrategy)
-            {
-                case SmartBpRecognitionStrategy.PureOcr:
-                    if (aiOcr.IsRunning) await aiOcr.StopAsync();
-                    if (business.IsRunning) await business.StopAsync();
-                    break;
-            }
-        }
-        catch (Exception ex)
-        {
-            AiLastError = ex.Message;
-        }
-        finally
-        {
-            RefreshLlamaServerUiState();
-        }
-    }
-
-    private void SetRoleServerStarting(LlamaVisionServerRole role, bool value, bool isRestart = false)
-    {
-        if (role == LlamaVisionServerRole.BusinessAi)
-        {
-            IsBusinessAiServerStarting = value;
-            if (value)
-            {
-                BusinessAiServerStatus = ResolveLocalizedOrRaw(isRestart ? "SmartBpAiStatusRestarting" : "SmartBpAiStatusStarting");
-                BusinessAiServerActivityText = ResolveLocalizedOrRaw(isRestart ? "SmartBpBusinessAiServerRestarting" : "SmartBpBusinessAiServerStarting");
-            }
-        }
-        else
-        {
-            IsAiOcrServerStarting = value;
-            if (value)
-            {
-                AiOcrServerStatus = ResolveLocalizedOrRaw(isRestart ? "SmartBpAiStatusRestarting" : "SmartBpAiStatusStarting");
-                AiOcrServerActivityText = ResolveLocalizedOrRaw(isRestart ? "SmartBpAiOcrServerRestarting" : "SmartBpAiOcrServerStarting");
-            }
-        }
-    }
-
-    private void SetRoleServerFailed(LlamaVisionServerRole role)
-    {
-        if (role == LlamaVisionServerRole.BusinessAi)
-            BusinessAiServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusFailed");
-        else
-            AiOcrServerStatus = ResolveLocalizedOrRaw("SmartBpAiStatusFailed");
-    }
-
-    private void RefreshRoleServerStatus()
-    {
-        var business = _llamaServerManagers.Get(LlamaVisionServerRole.BusinessAi);
-        var aiOcr = _llamaServerManagers.Get(LlamaVisionServerRole.AiOcr);
-        BusinessAiServerStatus = business.Status;
-        BusinessAiServerProcessId = business.ProcessId?.ToString() ?? "-";
-        BusinessAiServerPortText = business.Port.ToString();
-        BusinessAiServerModelText = _recognitionSettingsService.Settings.SelectedBusinessAiModelId;
-        AiOcrServerStatus = IsAiOcrReusingBusinessServer() ? "Reusing Business AI server" : aiOcr.Status;
-        AiOcrServerProcessId = IsAiOcrReusingBusinessServer() ? business.ProcessId?.ToString() ?? "-" : aiOcr.ProcessId?.ToString() ?? "-";
-        AiOcrServerPortText = IsAiOcrReusingBusinessServer() ? business.Port.ToString() : aiOcr.Port.ToString();
-        AiOcrServerModelText = _recognitionSettingsService.Settings.SelectedAiOcrModelId;
-        AiOcrServerReuseStatus = IsAiOcrReusingBusinessServer()
-            ? "AI OCR is reusing the Business AI server. No separate AI OCR server is required."
-            : "AI OCR uses a separate role-specific llama.cpp server.";
-        DebugServerStatus = FormatRoleServerStatus();
-    }
-
-    private void RefreshLlamaServerUiState()
-    {
-        IsLlamaServerRunning = _llamaServerManager.IsRunning;
-        LlamaServerStatus = _llamaServerManager.Status;
-        RefreshRoleServerStatus();
-        DownloadLlamaRuntimeCommand.NotifyCanExecuteChanged();
-        DeleteLlamaRuntimeCommand.NotifyCanExecuteChanged();
-        RollbackLlamaRuntimeCommand.NotifyCanExecuteChanged();
-        StartLlamaServerCommand.NotifyCanExecuteChanged();
-        StopLlamaServerCommand.NotifyCanExecuteChanged();
-        ForceStopLlamaServerCommand.NotifyCanExecuteChanged();
-        NotifyRoleServerCommands();
-    }
-
-    private bool IsAiOcrReusingBusinessServer() =>
-        !_recognitionSettingsService.Settings.UseSeparateAiOcrServer ||
-        string.Equals(_recognitionSettingsService.Settings.SelectedBusinessAiModelId, _recognitionSettingsService.Settings.SelectedAiOcrModelId, StringComparison.Ordinal);
-
-    private bool IsAiOcrRelevantServerRunning() =>
-        IsAiOcrReusingBusinessServer()
-            ? _llamaServerManagers.Get(LlamaVisionServerRole.BusinessAi).IsRunning
-            : _llamaServerManagers.Get(LlamaVisionServerRole.AiOcr).IsRunning;
-
-    private string FormatRoleServerStatus() =>
-        $"BusinessAi: model={_recognitionSettingsService.Settings.SelectedBusinessAiModelId}; port={_llamaServerManagers.Get(LlamaVisionServerRole.BusinessAi).Port}; status={BusinessAiServerStatus}; pid={BusinessAiServerProcessId}{Environment.NewLine}" +
-        $"AiOcr: model={_recognitionSettingsService.Settings.SelectedAiOcrModelId}; port={AiOcrServerPortText}; status={AiOcrServerStatus}; pid={AiOcrServerProcessId}; reuse={IsAiOcrReusingBusinessServer()}";
-
-    private void NotifyRoleServerCommands()
-    {
-        StartBusinessAiServerCommand.NotifyCanExecuteChanged();
-        StopBusinessAiServerCommand.NotifyCanExecuteChanged();
-        ForceStopBusinessAiServerCommand.NotifyCanExecuteChanged();
-        StartAiOcrServerCommand.NotifyCanExecuteChanged();
-        StopAiOcrServerCommand.NotifyCanExecuteChanged();
-        ForceStopAiOcrServerCommand.NotifyCanExecuteChanged();
-        StartRequiredLlamaServersCommand.NotifyCanExecuteChanged();
     }
     [RelayCommand] private async Task RecognizeSelectedTestFrameAsync()
     {
@@ -1542,7 +817,6 @@ public partial class SmartBpModuleContentViewModel
         if (!confirmed) return;
         try
         {
-            await EnsureRequiredLlamaServersForAutomaticRecognitionAsync();
             await _autoRecognitionCoordinator.StartAsync();
             _isAutomaticRecognitionStopPendingAfterQueueDrain = false;
             _automaticRecognitionUnavailableFrameCount = 0;
@@ -1588,16 +862,6 @@ public partial class SmartBpModuleContentViewModel
     /// 判断当前是否允许停止自动识别循环。
     /// </summary>
     private bool CanStopAutomaticRecognition() => IsAiPreviewLoopRunning || IsAiRecognizing;
-
-    /// <summary>
-    /// 按当前识别策略确保自动识别所需的 llama.cpp 服务已经启动。
-    /// </summary>
-    /// <returns>服务启动和校验任务。</returns>
-    /// <exception cref="InvalidOperationException">运行时未安装或必要服务启动失败时抛出。</exception>
-    private async Task EnsureRequiredLlamaServersForAutomaticRecognitionAsync()
-    {
-        await Task.CompletedTask;
-    }
 
     /// <summary>
     /// 刷新自动识别启动/停止命令状态。
@@ -2145,14 +1409,10 @@ public partial class SmartBpModuleContentViewModel
         DebugFinalBusinessState = "Recognition failed before final business state was produced.";
         DebugFusionSummary = "-";
         DebugPhaseScene = "-";
-        DebugBusinessAiRaw = "-";
-        DebugPureAiFullRaw = "-";
         DebugOcrRawLines = "-";
-        DebugAiOcrTranscript = "-";
         DebugParsedState = "-";
         DebugMergeLog = "-";
         DebugCandidateOperations = "-";
-        DebugServerStatus = FormatRoleServerStatus();
         DebugTiming = "-";
         RefreshRecognitionDebugLogText();
     }
@@ -2160,7 +1420,6 @@ public partial class SmartBpModuleContentViewModel
     private void RefreshStrategyDebugSections(SmartBpAutoRecognitionTickResult result)
     {
         var strategy = _recognitionSettingsService.Settings.RecognitionStrategy;
-        RefreshRoleServerStatus();
         DebugStrategySummary = $"debug_mode={DebugModeSummary}{Environment.NewLine}{FormatStrategySummary(strategy)}";
         DebugPhaseScene = result.SceneGate == null
             ? $"phase={result.PhaseResult?.Phase ?? "unknown"}"
@@ -2172,7 +1431,7 @@ public partial class SmartBpModuleContentViewModel
         DebugFusionSummary = "No hybrid fusion was used.";
         DebugCandidateOperations = FormatAutomaticOperations(result);
         DebugTiming = FormatRecognitionTiming();
-        DebugServerStatus = FormatRoleServerStatus();
+        DebugServerStatus = "-";
         DebugMergeLog = string.Join(Environment.NewLine, result.CandidateMessages.Where(message =>
             message.Contains("Applied ", StringComparison.OrdinalIgnoreCase) ||
             message.Contains("merge", StringComparison.OrdinalIgnoreCase) ||
@@ -2189,10 +1448,7 @@ public partial class SmartBpModuleContentViewModel
             message.Contains("updates=", StringComparison.OrdinalIgnoreCase)));
         if (string.IsNullOrWhiteSpace(DebugMergeLog)) DebugMergeLog = "-";
 
-        DebugBusinessAiRaw = "-";
-        DebugPureAiFullRaw = "-";
         DebugOcrRawLines = ExtractOcrRaw(result.RawJson);
-        DebugAiOcrTranscript = "-";
         RefreshRecognitionDebugLogText();
     }
 
@@ -2295,14 +1551,6 @@ public partial class SmartBpModuleContentViewModel
         return index < 0 ? "-" : raw[(index + "ocr raw:".Length)..].Trim();
     }
 
-    private static string ExtractAiOcrRaw(string raw)
-    {
-        if (string.IsNullOrWhiteSpace(raw)) return "-";
-        var lines = raw.Split(["\n\n"], StringSplitOptions.None)
-            .Where(section => section.Contains("ai_ocr_", StringComparison.OrdinalIgnoreCase))
-            .ToArray();
-        return lines.Length == 0 ? "-" : string.Join(Environment.NewLine + Environment.NewLine, lines);
-    }
 
     private BitmapSource LoadTestFrame(SmartBpTestFrame frame)
     {
@@ -2426,227 +1674,7 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty]
     public partial string AiParsedVisualResult { get; set; } = "";
 
-    partial void OnSelectedAiPromptProfileChanged(SmartBpPromptProfile? value)
-    {
-        if (value == null || value.Id == _recognitionSettingsService.Settings.PromptProfileId) return;
-        _recognitionSettingsService.Settings.PromptProfileId = value.Id;
-        RefreshRecognitionSpeedTestValidity();
-        _ = _recognitionSettingsService.SaveAsync();
-    }
-
-    partial void OnSelectedQwenModelProfileChanged(QwenModelProfile? value)
-    {
-        if (_isSwitchingQwenModel) return;
-        _ = RefreshSelectedQwenModelInstallStatusAsync();
-        SwitchSelectedQwenModelCommand.NotifyCanExecuteChanged();
-    }
-
-    partial void OnSelectedAiOcrModelProfileChanged(QwenModelProfile? value)
-    {
-        if (_isSwitchingAiOcrModel) return;
-        _ = RefreshSelectedAiOcrModelInstallStatusAsync();
-        SwitchSelectedAiOcrModelCommand.NotifyCanExecuteChanged();
-    }
-
-    private async Task RefreshSelectedQwenModelInstallStatusAsync()
-    {
-        try
-        {
-            IsSelectedQwenModelInstalled = SelectedQwenModelProfile != null &&
-                await _qwenAssetManager.IsInstalledAsync(SelectedQwenModelProfile.Id);
-        }
-        catch
-        {
-            IsSelectedQwenModelInstalled = false;
-        }
-    }
-
-    [RelayCommand]
-    private async Task RefreshSelectedAiOcrModelInstallStatusAsync()
-    {
-        try
-        {
-            IsSelectedAiOcrModelInstalled = SelectedAiOcrModelProfile != null &&
-                await _qwenAssetManager.IsInstalledAsync(SelectedAiOcrModelProfile.Id);
-            if (SelectedAiOcrModelProfile == null)
-            {
-                CurrentAiOcrModelDisplayName = "";
-                AiOcrModelStatus = "-";
-            }
-            else
-            {
-                CurrentAiOcrModelDisplayName = SelectedAiOcrModelProfile.DisplayName;
-                AiOcrModelStatus = IsSelectedAiOcrModelInstalled
-                    ? ResolveLocalizedOrRaw("SmartBpAiStatusInstalled")
-                    : ResolveLocalizedOrRaw("SmartBpAiStatusNotInstalled");
-            }
-        }
-        catch (Exception ex)
-        {
-            IsSelectedAiOcrModelInstalled = false;
-            AiOcrModelStatus = ResolveLocalizedOrRaw("SmartBpAiStatusFailed");
-            AiLastError = ex.Message;
-        }
-        finally
-        {
-            DownloadAiOcrModelCommand.NotifyCanExecuteChanged();
-            DeleteAiOcrModelCommand.NotifyCanExecuteChanged();
-            SwitchSelectedAiOcrModelCommand.NotifyCanExecuteChanged();
-        }
-    }
-
-    [RelayCommand(CanExecute = nameof(CanSwitchSelectedQwenModel))]
-    private async Task SwitchSelectedQwenModelAsync()
-    {
-        if (SelectedQwenModelProfile == null) return;
-        await SwitchQwenModelAsync(SelectedQwenModelProfile);
-    }
-
-    private bool CanSwitchSelectedQwenModel() =>
-        !IsBusinessAiModelDownloading && !IsAiOcrModelDownloading &&
-        SelectedQwenModelProfile != null &&
-        !string.Equals(SelectedQwenModelProfile.Id, _recognitionSettingsService.Settings.SelectedBusinessAiModelId, StringComparison.Ordinal);
-
-    private async Task SwitchQwenModelAsync(QwenModelProfile value)
-    {
-        _isSwitchingQwenModel = true;
-        var oldId = _recognitionSettingsService.Settings.SelectedBusinessAiModelId;
-        var business = _llamaServerManagers.Get(LlamaVisionServerRole.BusinessAi);
-        var aiOcr = _llamaServerManagers.Get(LlamaVisionServerRole.AiOcr);
-        var restartBusiness = business.IsRunning;
-        var preserveAiOcrRole = false;
-        var businessRestartStateSet = false;
-        var aiOcrRestartStateSet = false;
-        try
-        {
-            if (restartBusiness)
-            {
-                var confirmed = await MessageBoxHelper.ShowConfirmAsync(
-                    ResolveLocalizedOrRaw("SmartBpAiSwitchModelRestartConfirm"),
-                    ResolveLocalizedOrRaw("SmartBpAiSwitchModelTitle"),
-                    ResolveLocalizedOrRaw("Confirm"), ResolveLocalizedOrRaw("Cancel"));
-                if (!confirmed)
-                {
-                    SelectedQwenModelProfile = QwenModelProfiles.FirstOrDefault(profile => profile.Id == oldId);
-                    return;
-                }
-                SetRoleServerStarting(LlamaVisionServerRole.BusinessAi, true, true);
-                businessRestartStateSet = true;
-                await business.StopAsync();
-            }
-            _recognitionSettingsService.Settings.SelectedBusinessAiModelId = value.Id;
-            _recognitionSettingsService.Settings.SelectedQwenModelId = value.Id;
-            RefreshRecognitionSpeedTestValidity();
-            await SaveQwenSelectionAsync();
-            CurrentQwenModelDisplayName = string.Format(ResolveLocalizedOrRaw("SmartBpCurrentQwenModelFormat"), value.DisplayName);
-            IsQwenInstalled = await _qwenAssetManager.IsInstalledAsync(value.Id);
-            await RefreshSelectedQwenModelInstallStatusAsync();
-            SwitchSelectedQwenModelCommand.NotifyCanExecuteChanged();
-            if (restartBusiness && IsQwenInstalled)
-                await business.StartAsync();
-            else if (!IsQwenInstalled)
-                AiLastError = ResolveLocalizedOrRaw("SmartBpAiModelDownloadRequired");
-
-            var aiOcrModelInstalled = await _qwenAssetManager.IsInstalledAsync(_recognitionSettingsService.Settings.SelectedAiOcrModelId);
-            if (preserveAiOcrRole && !IsAiOcrReusingBusinessServer() && !aiOcr.IsRunning && aiOcrModelInstalled)
-            {
-                SetRoleServerStarting(LlamaVisionServerRole.AiOcr, true, true);
-                aiOcrRestartStateSet = true;
-                await aiOcr.StartAsync();
-            }
-            await ReconcileLlamaServersForCurrentStrategyAsync();
-            RefreshLlamaServerUiState();
-        }
-        catch (Exception ex) { AiLastError = ex.Message; }
-        finally
-        {
-            if (businessRestartStateSet) SetRoleServerStarting(LlamaVisionServerRole.BusinessAi, false);
-            if (aiOcrRestartStateSet) SetRoleServerStarting(LlamaVisionServerRole.AiOcr, false);
-            _isSwitchingQwenModel = false;
-            RefreshLlamaServerUiState();
-        }
-    }
-
-    private async Task SwitchAiOcrModelAsync(QwenModelProfile value)
-    {
-        _isSwitchingAiOcrModel = true;
-        var oldId = _recognitionSettingsService.Settings.SelectedAiOcrModelId;
-        var business = _llamaServerManagers.Get(LlamaVisionServerRole.BusinessAi);
-        var aiOcr = _llamaServerManagers.Get(LlamaVisionServerRole.AiOcr);
-        var wasReusingBusiness = IsAiOcrReusingBusinessServer();
-        var aiOcrRoleWasRunning = wasReusingBusiness ? business.IsRunning : aiOcr.IsRunning;
-        var aiOcrRestartStateSet = false;
-        var businessRestartStateSet = false;
-        try
-        {
-            if (aiOcrRoleWasRunning)
-            {
-                var confirmed = await MessageBoxHelper.ShowConfirmAsync(
-                    ResolveLocalizedOrRaw("SmartBpAiSwitchModelRestartConfirm"),
-                    ResolveLocalizedOrRaw("SmartBpAiSwitchModelTitle"),
-                    ResolveLocalizedOrRaw("Confirm"), ResolveLocalizedOrRaw("Cancel"));
-                if (!confirmed)
-                {
-                    SelectedAiOcrModelProfile = AiOcrModelProfiles.FirstOrDefault(profile => profile.Id == oldId);
-                    return;
-                }
-            }
-
-            if (!wasReusingBusiness && aiOcr.IsRunning)
-            {
-                SetRoleServerStarting(LlamaVisionServerRole.AiOcr, true, true);
-                aiOcrRestartStateSet = true;
-                await aiOcr.StopAsync();
-            }
-
-            _recognitionSettingsService.Settings.SelectedAiOcrModelId = value.Id;
-            RefreshRecognitionSpeedTestValidity();
-            await _recognitionSettingsService.SaveAsync();
-            CurrentAiOcrModelDisplayName = value.DisplayName;
-            await RefreshSelectedAiOcrModelInstallStatusAsync();
-
-            if (aiOcrRoleWasRunning && IsAiOcrReusingBusinessServer() && !business.IsRunning &&
-                     await _qwenAssetManager.IsInstalledAsync(_recognitionSettingsService.Settings.SelectedBusinessAiModelId))
-            {
-                SetRoleServerStarting(LlamaVisionServerRole.BusinessAi, true, true);
-                businessRestartStateSet = true;
-                await business.StartAsync();
-            }
-            else if (!IsAiOcrReusingBusinessServer() && !IsSelectedAiOcrModelInstalled)
-                AiLastError = ResolveLocalizedOrRaw("SmartBpAiModelDownloadRequired");
-            await ReconcileLlamaServersForCurrentStrategyAsync();
-            RefreshLlamaServerUiState();
-        }
-        catch (Exception ex) { AiLastError = ex.Message; }
-        finally
-        {
-            if (aiOcrRestartStateSet) SetRoleServerStarting(LlamaVisionServerRole.AiOcr, false);
-            if (businessRestartStateSet) SetRoleServerStarting(LlamaVisionServerRole.BusinessAi, false);
-            _isSwitchingAiOcrModel = false;
-            RefreshLlamaServerUiState();
-        }
-    }
-
-    partial void OnSelectedLlamaRuntimeAssetChanged(LlamaCppRuntimeAssetSelection? value)
-    {
-        if (value == null || value.Id == _recognitionSettingsService.Settings.SelectedLlamaRuntimeId) return;
-        if (_llamaServerManager.IsRunning)
-        {
-            // 服务运行时不允许切换运行时资产，回退到当前设置中的选择。
-            var current = LlamaRuntimeAssets.FirstOrDefault(a => a.Id == _recognitionSettingsService.Settings.SelectedLlamaRuntimeId);
-            if (current != null)
-            {
-                SelectedLlamaRuntimeAsset = current;
-                return;
-            }
-        }
-        _recognitionSettingsService.Settings.SelectedLlamaRuntimeId = value.Id;
-        _recognitionSettingsService.Settings.LlamaServerExecutablePath = "";
-        LlamaServerExecutablePath = "";
-        RefreshRecognitionSpeedTestValidity();
-        _ = SaveRuntimeSelectionAsync();
-    }
-
+    // 本模块仅提供 OCR 识别；下列本地视觉模型切换实现已停止注册。
     partial void OnEnableAutoGuidanceSyncChanged(bool value)
     {
         _recognitionSettingsService.Settings.EnableAutoGuidanceSync = value;
@@ -2731,41 +1759,7 @@ public partial class SmartBpModuleContentViewModel
         _ = _recognitionSettingsService.SaveAsync();
     }
 
-    partial void OnLlamaParallelSlotsChanged(int value)
-    {
-        _recognitionSettingsService.Settings.LlamaParallelSlots = value;
-        RefreshRecognitionSpeedTestValidity();
-        _ = _recognitionSettingsService.SaveAsync();
-    }
-
-    partial void OnLlamaGpuLayersChanged(int value)
-    {
-        _recognitionSettingsService.Settings.LlamaGpuLayers = value;
-        RefreshRecognitionSpeedTestValidity();
-        _ = _recognitionSettingsService.SaveAsync();
-    }
-
-    partial void OnLlamaFlashAttentionChanged(bool value)
-    {
-        _recognitionSettingsService.Settings.LlamaFlashAttention = value;
-        RefreshRecognitionSpeedTestValidity();
-        _ = _recognitionSettingsService.SaveAsync();
-    }
-
-    partial void OnLlamaBatchSizeChanged(int value)
-    {
-        _recognitionSettingsService.Settings.LlamaBatchSize = value;
-        RefreshRecognitionSpeedTestValidity();
-        _ = _recognitionSettingsService.SaveAsync();
-    }
-
-    partial void OnLlamaUBatchSizeChanged(int value)
-    {
-        _recognitionSettingsService.Settings.LlamaUBatchSize = value;
-        RefreshRecognitionSpeedTestValidity();
-        _ = _recognitionSettingsService.SaveAsync();
-    }
-
+    // 已移除 llama.cpp 运行时调优设置。
     [RelayCommand]
     private void ResetAiRecognitionLedger()
     {
@@ -2775,25 +1769,16 @@ public partial class SmartBpModuleContentViewModel
         _aiDebugLog.Write("Recognition", "Recognition ledger and local snapshot state reset for the current game.");
     }
 
-    private async Task SaveRuntimeSelectionAsync()
-    {
-        await _recognitionSettingsService.SaveAsync();
-        await RefreshLlamaRuntimeStatusAsync();
-    }
-
     partial void OnSelectedRecognitionStrategyChanged(RecognitionStrategySelection? value)
     {
         if (value == null)
             return;
 
         _recognitionSettingsService.Settings.RecognitionStrategy = value.Strategy;
-        _recognitionSettingsService.Settings.RecognitionEngine = value.Strategy == SmartBpRecognitionStrategy.PureOcr
-            ? SmartBpRecognitionEngine.Ocr
-            : SmartBpRecognitionEngine.AiQwen;
+        _recognitionSettingsService.Settings.RecognitionEngine = SmartBpRecognitionEngine.Ocr;
         RefreshRecognitionEngineVisibility();
         RefreshRecognitionSpeedTestValidity();
         _ = _recognitionSettingsService.SaveAsync();
-        _ = ReconcileLlamaServersForCurrentStrategyAsync();
         _aiDebugLog.Write("Recognition", $"Recognition strategy switched to {value.Strategy}.");
     }
 
@@ -2852,20 +1837,7 @@ public partial class SmartBpModuleContentViewModel
         _ = _recognitionSettingsService.SaveAsync();
     }
 
-    partial void OnAiWithOcrFusionModeChanged(SmartBpHybridFusionMode value)
-    {
-        _recognitionSettingsService.Settings.AiWithOcrFusionMode = value;
-        RefreshRecognitionSpeedTestValidity();
-        _ = _recognitionSettingsService.SaveAsync();
-    }
-
-    partial void OnAiWithAiOcrFusionModeChanged(SmartBpHybridFusionMode value)
-    {
-        _recognitionSettingsService.Settings.AiWithAiOcrFusionMode = value;
-        RefreshRecognitionSpeedTestValidity();
-        _ = _recognitionSettingsService.SaveAsync();
-    }
-
+    // OCR-only 模式不再保存已废弃的融合策略。
     partial void OnEnableOcrDebugOverlayChanged(bool value)
     {
         _recognitionSettingsService.Settings.EnableOcrDebugOverlay = value;
@@ -3044,43 +2016,7 @@ public partial class SmartBpModuleContentViewModel
         _ = _recognitionSettingsService.SaveAsync();
     }
 
-    private async Task SaveQwenSelectionAsync()
-    {
-        await _recognitionSettingsService.SaveAsync();
-        await RefreshQwenStatusAsync();
-    }
-
-    private void ApplyVisionModelDownloadState(QwenDownloadState state)
-    {
-        var detail = FormatDownloadState(state);
-        QwenDownloadStatus = ResolveLocalizedOrRaw(state.Status);
-        if (_activeVisionModelDownloadRole == LocalVisionModelDownloadRole.AiOcr)
-        {
-            IsAiOcrModelDownloading = state.IsDownloading;
-            AiOcrModelDownloadProgress = state.Progress ?? 0;
-            AiOcrModelDownloadDetail = detail;
-            IsBusinessAiModelDownloading = false;
-            BusinessAiModelDownloadDetail = "";
-        }
-        else
-        {
-            IsBusinessAiModelDownloading = state.IsDownloading;
-            IsQwenDownloading = state.IsDownloading;
-            BusinessAiModelDownloadProgress = state.Progress ?? 0;
-            BusinessAiModelDownloadDetail = detail;
-            QwenDownloadProgress = state.Progress ?? 0;
-            QwenDownloadDetail = detail;
-            IsAiOcrModelDownloading = false;
-            AiOcrModelDownloadDetail = "";
-        }
-        if (!string.IsNullOrWhiteSpace(state.ErrorMessage))
-            AiLastError = detail;
-        DownloadQwenModelCommand.NotifyCanExecuteChanged();
-        DeleteQwenModelCommand.NotifyCanExecuteChanged();
-        DownloadAiOcrModelCommand.NotifyCanExecuteChanged();
-        DeleteAiOcrModelCommand.NotifyCanExecuteChanged();
-    }
-
+    // 本模块仅提供 OCR 识别；下列本地视觉模型下载状态映射已停止注册。
     private string FormatDownloadState(SmartBpDownloadState state)
     {
         var status = ResolveLocalizedOrRaw(state.Status);
@@ -3115,40 +2051,6 @@ public partial class SmartBpModuleContentViewModel
     /// <param name="Mode">持久化使用的Provider模式。</param>
     /// <param name="DisplayName">界面显示名称。</param>
     public sealed record OcrProviderSelection(SmartBpOcrProviderMode Mode, string DisplayName);
-
-    /// <summary>SmartBP 界面下拉框中展示的 llama.cpp 运行时资产选项。</summary>
-    public sealed partial class LlamaCppRuntimeAssetSelection : ObservableObject
-    {
-        /// <summary>根据清单中的资产定义初始化运行时选项。</summary>
-        /// <param name="asset">清单资产定义。</param>
-        public LlamaCppRuntimeAssetSelection(LlamaCppRuntimeAsset asset)
-        {
-            Id = asset.Id;
-            DisplayName = asset.DisplayName;
-            Architecture = asset.Architecture;
-            Backend = asset.Backend;
-            EntryExe = asset.EntryExe ?? "";
-        }
-
-        /// <summary>获取资产标识。</summary>
-        public string Id { get; }
-        /// <summary>获取显示名称。</summary>
-        public string DisplayName { get; }
-        /// <summary>获取 CPU 架构名称。</summary>
-        public string Architecture { get; }
-        /// <summary>获取后端名称。</summary>
-        public string Backend { get; }
-        /// <summary>获取入口可执行文件名。</summary>
-        public string EntryExe { get; }
-
-        /// <summary>获取或设置该运行时资产当前是否已安装。</summary>
-        [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(StatusKey))]
-        public partial bool IsInstalled { get; set; }
-
-        /// <summary>获取当前安装状态对应的本地化资源键。</summary>
-        public string StatusKey => IsInstalled ? "SmartBpAiStatusInstalled" : "SmartBpAiStatusNotInstalled";
-    }
 
     /// <summary>SmartBP 界面中展示的可选择 Tesseract 语言数据选项。</summary>
     /// <param name="language">Tesseract 语言标识。</param>

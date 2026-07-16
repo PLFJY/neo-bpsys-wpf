@@ -226,9 +226,10 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
             if (item == null)
                 return false;
 
-            // Picker 路径无法稳定映射回 HWND，这里不做标题栏裁剪。
             StopCapture();
-            _captureTargetHwnd = HWND.Zero;
+            // Picker 返回的 GraphicsCaptureItem 不直接暴露 HWND；
+            // 通过枚举顶层窗口并比较尺寸反查目标窗口，用于裁掉标题栏/边框。
+            _captureTargetHwnd = TryFindHwndForCaptureItem(item);
             return StartWgcCapture(item);
         }
         catch (Exception ex)
@@ -929,6 +930,87 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
         var cropped = new CroppedBitmap(frame, new Int32Rect(x, y, width, height));
         cropped.Freeze();
         return cropped;
+    }
+
+    /// <summary>
+    /// 在窗口选择器返回后，尝试根据捕获项尺寸反查目标窗口句柄。
+    /// </summary>
+    /// <remarks>
+    /// <see cref="GraphicsCapturePicker"/> 返回的 <see cref="GraphicsCaptureItem"/> 不公开 HWND，
+    /// 此处枚举顶层窗口并比较 <see cref="Win32.GetWindowRect"/> 尺寸与捕获项尺寸，
+    /// 仅在存在唯一匹配时返回该窗口句柄；无匹配或存在歧义时返回 <see cref="HWND.Zero"/>，
+    /// 此时标题栏裁剪会被跳过（回退为不裁剪的原有行为）。
+    /// </remarks>
+    /// <param name="item">窗口选择器返回的捕获项。</param>
+    /// <returns>唯一匹配的窗口句柄；无匹配或存在歧义时返回 <see cref="HWND.Zero"/>。</returns>
+    private HWND TryFindHwndForCaptureItem(GraphicsCaptureItem item)
+    {
+        var targetWidth = item.Size.Width;
+        var targetHeight = item.Size.Height;
+        if (targetWidth <= 0 || targetHeight <= 0)
+        {
+            return HWND.Zero;
+        }
+
+        // 收集本应用顶层窗口句柄，避免把选择器宿主、预览窗口等误判为捕获目标。
+        var ownHwnds = new HashSet<nint>();
+        if (Application.Current is not null)
+        {
+            foreach (Window w in Application.Current.Windows)
+            {
+                var hwnd = new WindowInteropHelper(w).Handle;
+                if (hwnd != nint.Zero)
+                {
+                    ownHwnds.Add(hwnd);
+                }
+            }
+        }
+
+        HWND? match = null;
+        var matchCount = 0;
+
+        _ = Win32.EnumWindows((HWND hwnd, LPARAM _) =>
+        {
+            if (!WindowEnumerationHelper.IsWindowValidForCapture(hwnd))
+            {
+                return true;
+            }
+
+            // 排除本应用窗口。
+            if (ownHwnds.Contains(hwnd))
+            {
+                return true;
+            }
+
+            if (!Win32.GetWindowRect(hwnd, out var rect))
+            {
+                return true;
+            }
+
+            // WGC 采集窗口时 item.Size 对应整窗尺寸，与 GetWindowRect 一致。
+            if (rect.right - rect.left == targetWidth && rect.bottom - rect.top == targetHeight)
+            {
+                matchCount++;
+                match ??= hwnd;
+            }
+
+            return true;
+        }, default);
+
+        // 仅在唯一匹配时使用；多个同尺寸窗口时不裁剪，避免裁剪区域错位。
+        if (matchCount == 1 && match.HasValue)
+        {
+            return match.Value;
+        }
+
+        if (matchCount > 1)
+        {
+            _logger.LogDebug(
+                "Picker capture skipped title bar crop: found {Count} windows matching size {Width}x{Height}.",
+                matchCount, targetWidth, targetHeight);
+        }
+
+        return HWND.Zero;
     }
 
     /// <summary>

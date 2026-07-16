@@ -37,14 +37,8 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     private readonly IFilePickerService _filePickerService = null!;
     private readonly DispatcherTimer _captureAspectRefreshTimer;
     private readonly ILogger<SmartBpModuleContentViewModel> _logger;
-    // 已移除的 AI 识别链路仅保留这些声明，以便历史调试命令在下一轮源码清理前仍可编译；运行时不再注入或调用它们。
-    private readonly IQwenModelAssetManager _qwenAssetManager = null!;
-    private readonly ILlamaCppServerManager _llamaServerManager = null!;
-    private readonly ILlamaCppServerManagerFactory _llamaServerManagers = null!;
     private readonly ISmartBpRecognitionSettingsService _recognitionSettingsService = null!;
     private readonly ISmartBpDebugLog _aiDebugLog = null!;
-    private readonly ISmartBpPromptProfileProvider _promptProfileProvider = null!;
-    private readonly ILlamaCppRuntimeAssetManager _llamaRuntimeAssetManager = null!;
     private readonly ISmartBpAutoRecognitionCoordinator _autoRecognitionCoordinator = null!;
     private readonly IGameGuidanceService _gameGuidanceService = null!;
     private readonly ISmartBpCharacterResolver _smartBpCharacterResolver = null!;
@@ -53,12 +47,10 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     private readonly ISmartBpRecognitionStateStore _aiRecognitionStateStore = null!;
     private readonly ISmartBpGameStateSyncService _gameStateSyncService = null!;
     private readonly IInfoBarService _infoBarService = null!;
-    private readonly ILlamaCppRuntimeUpdateService _llamaRuntimeUpdateService = null!;
     private readonly ITesseractDataAssetManager _tesseractDataAssetManager = null!;
     private readonly IRapidOcrModelAssetManager _rapidOcrModelAssetManager = null!;
     private readonly ISmartBpAutoRecognitionGlobalControlSink _autoRecognitionGlobalControl = null!;
     private readonly ISmartBpOcrBpRecognitionService _ocrBpRecognitionService = null!;
-    private readonly ISmartBpAiPerformanceMonitor _aiPerformanceMonitor = null!;
     private readonly ISmartBpModuleStorageProvider _smartBpModuleStorage = null!;
     private readonly object _debugLogBufferLock = new();
     private readonly StringBuilder _debugLogBuffer = new();
