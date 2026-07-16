@@ -168,6 +168,7 @@ public partial class SettingPageViewModel
             {
                 if (_smartBpModuleManager.IsRestartRequiredForPendingModuleImport)
                 {
+                    _globalRestartService.IsRestartRequired = true;
                     SmartBpModulePathStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "SmartBpModuleArchiveImportRestartPrepared");
                     await OfferSmartBpModuleArchiveImportRestartAsync();
                     return;

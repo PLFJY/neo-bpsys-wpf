@@ -27,6 +27,7 @@ public partial class PluginPageViewModel : ViewModelBase
     private readonly IPluginMarketService _pluginMarketService;
     private readonly IInfoBarService _infoBarService;
     private readonly IPluginInstallService _pluginInstallService;
+    private readonly IGlobalRestartService _globalRestartService;
 
 #pragma warning disable CS8618 
     /// <summary>
@@ -49,10 +50,12 @@ public partial class PluginPageViewModel : ViewModelBase
     /// <param name="pluginMarketService">插件市场服务</param>
     /// <param name="infoBarService">信息栏服务</param>
     /// <param name="pluginInstallService">插件安装服务</param>
+    /// <param name="globalRestartService">全局重启状态服务</param>
     public PluginPageViewModel(IPluginService pluginService, IFilePickerService filePickerService,
         ILogger<PluginPageViewModel> logger, ISettingsHostService settingsHostService, IPluginMarketService pluginMarketService,
         IInfoBarService infoBarService,
-        IPluginInstallService pluginInstallService)
+        IPluginInstallService pluginInstallService,
+        IGlobalRestartService globalRestartService)
     {
         _pluginService = pluginService;
         _filePickerService = filePickerService;
@@ -61,6 +64,7 @@ public partial class PluginPageViewModel : ViewModelBase
         _pluginMarketService = pluginMarketService;
         _infoBarService = infoBarService;
         _pluginInstallService = pluginInstallService;
+        _globalRestartService = globalRestartService;
         PluginsCollection = new ObservableCollection<PluginInfo>(IPluginService.LoadedPlugins);
         MarketPluginsCollection = [];
         InitializePluginMarket();
@@ -85,6 +89,7 @@ public partial class PluginPageViewModel : ViewModelBase
         {
             plugin.IsEnabled = !plugin.IsEnabled;
             IsRestartNeeded = true;
+            _globalRestartService.IsRestartRequired = true;
         }
         catch (Exception ex)
         {
@@ -99,6 +104,10 @@ public partial class PluginPageViewModel : ViewModelBase
         {
             plugin.IsUninstalling = !plugin.IsUninstalling;
             IsRestartNeeded = plugin.IsRestartRequired;
+            if (plugin.IsRestartRequired)
+            {
+                _globalRestartService.IsRestartRequired = true;
+            }
         }
         catch (Exception ex)
         {

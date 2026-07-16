@@ -13,7 +13,8 @@ namespace neo_bpsys_wpf.Services;
 
 public sealed class PluginInstallService(
     ILogger<PluginInstallService> logger,
-    IArchiveService archiveService) : IPluginInstallService
+    IArchiveService archiveService,
+    IGlobalRestartService globalRestartService) : IPluginInstallService
 {
     /// <inheritdoc />
     public PluginInstallResult InstallFromArchive(string archivePath, string extractedDirectoryPath)
@@ -78,6 +79,7 @@ public sealed class PluginInstallService(
                     manifest.Id);
             }
 
+            globalRestartService.IsRestartRequired = true;
             return new PluginInstallResult
             {
                 Manifest = manifest,
@@ -89,6 +91,7 @@ public sealed class PluginInstallService(
         Directory.CreateDirectory(AppConstants.PluginPath);
         Directory.Move(extractedDirectoryPath, pluginFolderPath);
 
+        globalRestartService.IsRestartRequired = true;
         return new PluginInstallResult
         {
             Manifest = manifest,

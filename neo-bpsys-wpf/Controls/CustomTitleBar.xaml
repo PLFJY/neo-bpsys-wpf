@@ -7,6 +7,7 @@
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     d:DesignHeight="35"
@@ -50,6 +51,15 @@
                 Text="{Binding Title, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}" />
         </StackPanel>
         <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+            <ui:Button
+                x:Name="IsRestartRequiredButton"
+                Margin="0,0,10,0"
+                lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell"
+                Appearance="Primary"
+                Content="{lex:Loc RestartNeeded}"
+                Icon="{ui:SymbolIcon Symbol=ArrowSync24}"
+                Visibility="{Binding RelativeSource={RelativeSource AncestorType=controls:CustomTitleBar}, Path=RestartRequired, Converter={StaticResource BooleanToVisibilityConverter}, Mode=TwoWay}" />
             <ToggleButton
                 x:Name="ThemeSwitch"
                 Margin="0,0,10,0"
@@ -74,6 +84,7 @@
                 Visibility="{Binding RelativeSource={RelativeSource AncestorType=controls:CustomTitleBar}, Path=IsMinimizeVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
             <ui:Button
                 Name="MaximizeButton"
+                Appearance="Secondary"
                 Icon="{ui:SymbolIcon Symbol=Maximize24}"
                 Style="{StaticResource TitleBarButton}"
                 Visibility="{Binding RelativeSource={RelativeSource AncestorType=controls:CustomTitleBar}, Path=IsMaximizeVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />

@@ -47,6 +47,7 @@ public partial class App
 
         //UpdaterService
         services.AddSingleton<IUpdaterService, UpdaterService>();
+        services.AddSingleton<IGlobalRestartService, GlobalRestartService>();
 
         // Service containing navigation, same as INavigationWindow... but without window
         services.AddSingleton<Services.NavigationService>();

@@ -54,6 +54,8 @@ public partial class MainWindowViewModel :
     private readonly ITutorialSignalService _tutorialSignalService;
     private readonly ILogger<MainWindowViewModel> _logger;
     private readonly ISmartBpAutoRecognitionGlobalControl _smartBpAutoRecognitionGlobalControl;
+    private readonly IGlobalRestartService _globalRestartService;
+
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(StopSmartBpAutoRecognitionCommand))]
     public partial bool IsSmartBpAutoRecognitionRunning { get; set; }
@@ -107,6 +109,7 @@ public partial class MainWindowViewModel :
         IFilePickerService filePickerService,
         ITutorialSignalService tutorialSignalService,
         ISmartBpAutoRecognitionGlobalControl smartBpAutoRecognitionGlobalControl,
+        IGlobalRestartService globalRestartService,
         ILogger<MainWindowViewModel> logger)
     {
         _sharedDataService = sharedDataService;
@@ -114,6 +117,7 @@ public partial class MainWindowViewModel :
         _filePickerService = filePickerService;
         _tutorialSignalService = tutorialSignalService;
         _smartBpAutoRecognitionGlobalControl = smartBpAutoRecognitionGlobalControl;
+        _globalRestartService = globalRestartService;
         _logger = logger;
         _isGuidanceStarted = false;
         _jsonSerializerOptions = new JsonSerializerOptions
@@ -158,7 +162,12 @@ public partial class MainWindowViewModel :
         {
             SyncSelectedGameProgressFromCurrentGame();
         };
+
+        _globalRestartService.RestartRequiredStateChanged += (_, _) =>
+            OnPropertyChanged(nameof(IsRestartRequired));
     }
+
+    public bool IsRestartRequired => _globalRestartService.IsRestartRequired;
 
     private bool CanStopSmartBpAutoRecognition() => IsSmartBpAutoRecognitionRunning;
 

@@ -23,6 +23,12 @@ public partial class CustomTitleBar : UserControl
         MaximizeButton.Click += MaximizeButton_OnClick;
         MinimizeButton.Click += MinimizeButton_OnClick;
         ExitButton.Click += ExitButton_OnClick;
+        IsRestartRequiredButton.Click += IsRestartRequiredButton_OnClick;
+    }
+
+    private void IsRestartRequiredButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        App.Current.Restart();
     }
 
     private void WindowIcon_MouseDown(object sender, MouseButtonEventArgs e)
@@ -252,4 +258,22 @@ public partial class CustomTitleBar : UserControl
     /// </summary>
     public static readonly DependencyProperty IconProperty =
         DependencyProperty.Register(nameof(Icon), typeof(ImageSource), typeof(CustomTitleBar), new PropertyMetadata(null));
+
+
+    /// <summary>
+    /// 是否需要重启
+    /// </summary>
+    public bool IsRestartRequired
+    {
+        get { return (bool)GetValue(IsRestartRequiredProperty); }
+        set { SetValue(IsRestartRequiredProperty, value); }
+    }
+
+    /// <summary>
+    /// <see cref="IsRestartRequired"/> 依赖属性的标识符。
+    /// </summary>
+    public static readonly DependencyProperty IsRestartRequiredProperty =
+        DependencyProperty.Register(nameof(IsRestartRequired), typeof(bool), typeof(CustomTitleBar), new PropertyMetadata(false));
+
+
 }

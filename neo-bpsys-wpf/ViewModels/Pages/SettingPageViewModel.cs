@@ -49,6 +49,7 @@ public partial class SettingPageViewModel : ViewModelBase
     private readonly IOnboardingCoordinator _onboardingCoordinator;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<SettingPageViewModel> _logger;
+    private readonly IGlobalRestartService _globalRestartService;
     private FrontedBehaviorEventDebuggerWindow? _behaviorEventDebuggerWindow;
 
     /// <summary>
@@ -83,6 +84,7 @@ public partial class SettingPageViewModel : ViewModelBase
     /// <param name="onboardingCoordinator">首次导览协调器</param>
     /// <param name="serviceProvider">服务Provider</param>
     /// <param name="logger">日志记录器</param>
+    /// <param name="globalRestartService">全局重启状态服务</param>
     public SettingPageViewModel(
         IUpdaterService updaterService,
         ISettingsHostService settingsHostService,
@@ -94,7 +96,8 @@ public partial class SettingPageViewModel : ViewModelBase
         ITutorialRunner tutorialRunner,
         IOnboardingCoordinator onboardingCoordinator,
         IServiceProvider serviceProvider,
-        ILogger<SettingPageViewModel> logger)
+        ILogger<SettingPageViewModel> logger,
+        IGlobalRestartService globalRestartService)
     {
         AppVersion = AppConstants.AppVersion;
         UpdaterService = updaterService;
@@ -108,6 +111,7 @@ public partial class SettingPageViewModel : ViewModelBase
         _onboardingCoordinator = onboardingCoordinator;
         _serviceProvider = serviceProvider;
         _logger = logger;
+        _globalRestartService = globalRestartService;
 
         UpdaterService.DownloadStateChanged += UpdaterService_DownloadStateChanged;
         RefreshUpdateDownloadState();
@@ -161,6 +165,7 @@ public partial class SettingPageViewModel : ViewModelBase
             }
 
             _settingsHostService.Settings.IsClassicMode = value;
+            _globalRestartService.IsRestartRequired = true;
             OnPropertyChanged();
             _ = SaveClassicModeAndOfferRestartAsync();
         }
@@ -180,6 +185,7 @@ public partial class SettingPageViewModel : ViewModelBase
             }
 
             _settingsHostService.Settings.IsPageTransitionAnimationEnabled = value;
+            _globalRestartService.IsRestartRequired = true;
             OnPropertyChanged();
             OnPropertyChanged(nameof(IsPageTransitionAnimationRestartRequired));
             _ = _settingsHostService.SaveConfigAsync();

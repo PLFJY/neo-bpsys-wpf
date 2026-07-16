@@ -14,17 +14,17 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type cc:CharacterSelector}">
                     <StackPanel
-                        Orientation="Vertical"
                         lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common">
-                        <!-- 搜索失败提示：位于 ComboBox 上方，使用 Hidden 保留布局占位 -->
+                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                        Orientation="Vertical">
+                        <!--  搜索失败提示：位于 ComboBox 上方，使用 Hidden 保留布局占位  -->
                         <TextBlock
                             Margin="0,0,0,2"
+                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp"
                             FontSize="11"
                             Foreground="Gold"
                             Text="{lex:Loc CharacterSelectorSearchNoMatch}"
-                            TextWrapping="Wrap"
-                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp">
+                            TextWrapping="Wrap">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="Visibility" Value="Hidden" />
@@ -104,7 +104,7 @@
                                             </Style>
                                         </ComboBox.Style>
                                     </ComboBox>
-                                    <!-- 搜索失败黄框：覆盖在 ComboBox 之上，不参与命中测试，使用 Hidden 保留布局占位 -->
+                                    <!--  搜索失败黄框：覆盖在 ComboBox 之上，不参与命中测试，使用 Hidden 保留布局占位  -->
                                     <Border
                                         BorderBrush="Gold"
                                         BorderThickness="1"

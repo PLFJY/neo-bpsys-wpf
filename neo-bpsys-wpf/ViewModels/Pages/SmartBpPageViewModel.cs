@@ -23,6 +23,7 @@ public partial class SmartBpPageViewModel : ViewModelBase
     private readonly IFilePickerService _filePickerService = null!;
     private readonly IInfoBarService? _infoBarService;
     private readonly ILogger<SmartBpPageViewModel>? _logger;
+    private readonly IGlobalRestartService _globalRestartService = null!;
 
     /// <summary>
     /// 初始化 <see cref="SmartBpPageViewModel"/> 类的设计时实例。
@@ -40,16 +41,19 @@ public partial class SmartBpPageViewModel : ViewModelBase
     /// <param name="filePickerService">文件选择服务。</param>
     /// <param name="infoBarService">信息提示条服务，用于在模块版本过时等情况下向用户展示提示。</param>
     /// <param name="logger">日志记录器。</param>
+    /// <param name="globalRestartService">全局重启状态服务。</param>
     public SmartBpPageViewModel(
         SmartBpModuleManager moduleManager,
         IFilePickerService filePickerService,
         IInfoBarService infoBarService,
-        ILogger<SmartBpPageViewModel> logger)
+        ILogger<SmartBpPageViewModel> logger,
+        IGlobalRestartService globalRestartService)
     {
         _moduleManager = moduleManager;
         _filePickerService = filePickerService;
         _infoBarService = infoBarService;
         _logger = logger;
+        _globalRestartService = globalRestartService;
         SelectedModulePath = _moduleManager.GetPreferredModuleRoot();
         ConfigureLocalOnlyOverlayForDebugOrPreview();
         _moduleManager.ModuleStateChanged += (_, _) => SyncModuleState();
@@ -235,6 +239,7 @@ public partial class SmartBpPageViewModel : ViewModelBase
             {
                 if (_moduleManager.IsRestartRequiredForPendingModuleImport)
                 {
+                    _globalRestartService.IsRestartRequired = true;
                     OverlayMessage = L("SmartBpModuleArchiveImportRestartPrepared");
                     await OfferSmartBpModuleArchiveImportRestartAsync();
                 }
@@ -286,6 +291,7 @@ public partial class SmartBpPageViewModel : ViewModelBase
         {
             if (_moduleManager.IsRestartRequiredForPendingModuleImport)
             {
+                _globalRestartService.IsRestartRequired = true;
                 OverlayMessage = L("SmartBpModuleArchiveImportRestartPrepared");
                 ProgressValue = 100;
                 IsProgressVisible = false;

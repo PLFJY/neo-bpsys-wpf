@@ -132,7 +132,10 @@ public sealed class ArchiveServiceTest : IDisposable
 
     private PluginInstallService CreatePluginInstallService()
     {
-        return new PluginInstallService(NullLogger<PluginInstallService>.Instance, _archiveService);
+        return new PluginInstallService(
+            NullLogger<PluginInstallService>.Instance,
+            _archiveService,
+            new GlobalRestartService());
     }
 
     private static void CreatePluginArchive(string archivePath, ArchiveFormat format, string pluginId)
