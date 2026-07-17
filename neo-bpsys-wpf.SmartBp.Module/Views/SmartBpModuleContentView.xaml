@@ -4,18 +4,18 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:helpers="clr-namespace:neo_bpsys_wpf.Helpers"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:rec="clr-namespace:neo_bpsys_wpf.SmartBp.Module.Models.Recognition"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
     d:DataContext="{d:DesignInstance Type=vm:SmartBpModuleContentViewModel,
                                      IsDesignTimeCreatable=True}"
-    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     lex:LocalizeDictionary.Provider="{x:Static helpers:SmartBpLocalizationProvider.Instance}"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf.SmartBp.Module"
     lex:ResxLocalizationProvider.DefaultDictionary="Locales.SmartBp"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
@@ -500,11 +500,8 @@
                     Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                     Text="{lex:Loc SmartBpGameDataRecognitionDebugDescription}"
                     TextWrapping="Wrap" />
-                <TextBlock
-                    Margin="0,8,0,0"
-                    Text="{Binding GameDataRecognitionOcrLineCountText}" />
+                <TextBlock Margin="0,8,0,0" Text="{Binding GameDataRecognitionOcrLineCountText}" />
                 <ui:DataGrid
-                    Height="220"
                     Margin="0,6,0,0"
                     AutoGenerateColumns="False"
                     CanUserAddRows="False"
@@ -514,15 +511,42 @@
                     IsReadOnly="True"
                     ItemsSource="{Binding GameDataRecognitionDebugRows}">
                     <ui:DataGrid.Columns>
-                        <DataGridTextColumn Width="42" Binding="{Binding RowIndex}" Header="{lex:Loc SmartBpGameDataDebugColumnRow}" />
-                        <DataGridTextColumn Width="150" Binding="{Binding PlayerName}" Header="{lex:Loc SmartBpGameDataDebugColumnPlayerName}" />
-                        <DataGridTextColumn Width="110" Binding="{Binding ExtractedCharacterName}" Header="{lex:Loc SmartBpGameDataDebugColumnExtractedCharacter}" />
-                        <DataGridTextColumn Width="110" Binding="{Binding ResolvedCharacterName}" Header="{lex:Loc SmartBpGameDataDebugColumnResolvedCharacter}" />
-                        <DataGridTextColumn Width="56" Binding="{Binding Values[0]}" Header="D1" />
-                        <DataGridTextColumn Width="56" Binding="{Binding Values[1]}" Header="D2" />
-                        <DataGridTextColumn Width="56" Binding="{Binding Values[2]}" Header="D3" />
-                        <DataGridTextColumn Width="56" Binding="{Binding Values[3]}" Header="D4" />
-                        <DataGridTextColumn Width="56" Binding="{Binding Values[4]}" Header="D5" />
+                        <DataGridTextColumn
+                            Width="42"
+                            Binding="{Binding RowIndex}"
+                            Header="{lex:Loc neo-bpsys-wpf.SmartBp.Module:neo_bpsys_wpf.Locales.SmartBp:SmartBpGameDataDebugColumnRow}" />
+                        <DataGridTextColumn
+                            Width="150"
+                            Binding="{Binding PlayerName}"
+                            Header="{lex:Loc neo-bpsys-wpf.SmartBp.Module:neo_bpsys_wpf.Locales.SmartBp:SmartBpGameDataDebugColumnPlayerName}" />
+                        <DataGridTextColumn
+                            Width="110"
+                            Binding="{Binding ExtractedCharacterName}"
+                            Header="{lex:Loc neo-bpsys-wpf.SmartBp.Module:neo_bpsys_wpf.Locales.SmartBp:SmartBpGameDataDebugColumnExtractedCharacter}" />
+                        <DataGridTextColumn
+                            Width="110"
+                            Binding="{Binding ResolvedCharacterName}"
+                            Header="{lex:Loc neo-bpsys-wpf.SmartBp.Module:neo_bpsys_wpf.Locales.SmartBp:SmartBpGameDataDebugColumnResolvedCharacter}" />
+                        <DataGridTextColumn
+                            Width="56"
+                            Binding="{Binding Values[0]}"
+                            Header="D1" />
+                        <DataGridTextColumn
+                            Width="56"
+                            Binding="{Binding Values[1]}"
+                            Header="D2" />
+                        <DataGridTextColumn
+                            Width="56"
+                            Binding="{Binding Values[2]}"
+                            Header="D3" />
+                        <DataGridTextColumn
+                            Width="56"
+                            Binding="{Binding Values[3]}"
+                            Header="D4" />
+                        <DataGridTextColumn
+                            Width="56"
+                            Binding="{Binding Values[4]}"
+                            Header="D5" />
                     </ui:DataGrid.Columns>
                 </ui:DataGrid>
                 <TextBlock
