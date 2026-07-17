@@ -244,6 +244,42 @@
   <data name="SmartBpDebugOptions">
     <value>Debug options</value>
   </data>
+  <data name="SmartBpGameDataRecognitionDebug">
+    <value>試合後認識 DEBUG</value>
+  </data>
+  <data name="SmartBpGameDataRecognitionDebugDescription">
+    <value>直近の OCR 再構築表、抽出したキャラクターテキスト、辞書による解析結果を表示します。</value>
+  </data>
+  <data name="SmartBpGameDataDebugOcrLineCountFormat">
+    <value>OCR テキスト行: {0}</value>
+  </data>
+  <data name="SmartBpGameDataDebugTableHeader">
+    <value>行	プレイヤー ID	抽出キャラクター	解析キャラクター	データ列</value>
+  </data>
+  <data name="SmartBpGameDataDebugRowFormat">
+    <value>{0}	{1}	{2}	{3}	{4}</value>
+  </data>
+  <data name="SmartBpGameDataDebugUnresolved">
+    <value>未解決</value>
+  </data>
+  <data name="SmartBpGameDataDebugNoRows">
+    <value>プレイヤー（キャラクター）行を再構築できませんでした。</value>
+  </data>
+  <data name="SmartBpGameDataDebugDiagnostics">
+    <value>解析診断:</value>
+  </data>
+  <data name="SmartBpGameDataDebugColumnRow">
+    <value>行</value>
+  </data>
+  <data name="SmartBpGameDataDebugColumnPlayerName">
+    <value>プレイヤー ID</value>
+  </data>
+  <data name="SmartBpGameDataDebugColumnExtractedCharacter">
+    <value>抽出キャラクター</value>
+  </data>
+  <data name="SmartBpGameDataDebugColumnResolvedCharacter">
+    <value>解析キャラクター</value>
+  </data>
   <data name="SmartBpFullRecognitionTest">
     <value>画像全体を認識</value>
   </data>

@@ -247,6 +247,42 @@
   <data name="SmartBpDebugOptions">
     <value>Debug options</value>
   </data>
+  <data name="SmartBpGameDataRecognitionDebug">
+    <value>Post-game recognition debug</value>
+  </data>
+  <data name="SmartBpGameDataRecognitionDebugDescription">
+    <value>Shows the latest reconstructed OCR table, extracted character text, and resolved character.</value>
+  </data>
+  <data name="SmartBpGameDataDebugOcrLineCountFormat">
+    <value>OCR text lines: {0}</value>
+  </data>
+  <data name="SmartBpGameDataDebugTableHeader">
+    <value>Row	Player ID	Extracted character	Resolved character	Data columns</value>
+  </data>
+  <data name="SmartBpGameDataDebugRowFormat">
+    <value>{0}	{1}	{2}	{3}	{4}</value>
+  </data>
+  <data name="SmartBpGameDataDebugUnresolved">
+    <value>Unresolved</value>
+  </data>
+  <data name="SmartBpGameDataDebugNoRows">
+    <value>No player (character) row was reconstructed.</value>
+  </data>
+  <data name="SmartBpGameDataDebugDiagnostics">
+    <value>Parse diagnostics:</value>
+  </data>
+  <data name="SmartBpGameDataDebugColumnRow">
+    <value>Row</value>
+  </data>
+  <data name="SmartBpGameDataDebugColumnPlayerName">
+    <value>Player ID</value>
+  </data>
+  <data name="SmartBpGameDataDebugColumnExtractedCharacter">
+    <value>Extracted character</value>
+  </data>
+  <data name="SmartBpGameDataDebugColumnResolvedCharacter">
+    <value>Resolved character</value>
+  </data>
   <data name="SmartBpFullRecognitionTest">
     <value>Recognize full image</value>
   </data>

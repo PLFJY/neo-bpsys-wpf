@@ -1,5 +1,9 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
+using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.ProductTour.Controls;
+using neo_bpsys_wpf.Tests.Infrastructure;
 using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Controls;
@@ -21,5 +25,22 @@ public sealed class DialogueOverlayTypewriterTest
             characterInterval: TimeSpan.FromMilliseconds(28));
 
         Assert.Equal(expectedCount, count);
+    }
+
+    [Fact]
+    public async Task Cancel_ShouldEndAnActiveDialogueAsCanceled()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var overlay = new DialogueOverlay
+            {
+                TypewriterInterval = TimeSpan.FromSeconds(1)
+            };
+            var showTask = overlay.ShowAsync("Speaker", ["A dialogue that is still running."], CancellationToken.None);
+
+            overlay.Cancel();
+
+            Assert.Equal(TutorialRunResult.Canceled, await showTask);
+        });
     }
 }

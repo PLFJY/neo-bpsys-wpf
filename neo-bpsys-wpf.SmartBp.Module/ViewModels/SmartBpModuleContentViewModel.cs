@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Text;
 using System.Windows;
 using System.Windows.Threading;
@@ -32,10 +33,6 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
 
     private readonly IWindowCaptureService _windowCaptureService = null!;
     private readonly IOcrService _ocrService = null!;
-    private readonly ISmartBpRegionConfigService _regionConfigService = null!;
-    private readonly ISmartBpSceneDefinition _gameDataSceneDefinition = null!;
-    private readonly IFilePickerService _filePickerService = null!;
-    private readonly DispatcherTimer _captureAspectRefreshTimer;
     private readonly ILogger<SmartBpModuleContentViewModel> _logger;
     private readonly ISmartBpRecognitionSettingsService _recognitionSettingsService = null!;
     private readonly ISmartBpDebugLog _aiDebugLog = null!;
@@ -52,6 +49,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     private readonly ISmartBpAutoRecognitionGlobalControlSink _autoRecognitionGlobalControl = null!;
     private readonly ISmartBpOcrBpRecognitionService _ocrBpRecognitionService = null!;
     private readonly ISmartBpModuleStorageProvider _smartBpModuleStorage = null!;
+    private readonly IGameDataRecognitionDebugState _gameDataRecognitionDebugState = null!;
     private readonly object _debugLogBufferLock = new();
     private readonly StringBuilder _debugLogBuffer = new();
     private DispatcherTimer? _debugLogFlushTimer;
@@ -76,9 +74,6 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     public SmartBpModuleContentViewModel(
         IWindowCaptureService windowCaptureService,
         IOcrService ocrService,
-        ISmartBpRegionConfigService regionConfigService,
-        IEnumerable<ISmartBpSceneDefinition> sceneDefinitions,
-        IFilePickerService filePickerService,
         ISmartBpRecognitionSettingsService recognitionSettingsService,
         ISmartBpDebugLog aiDebugLog,
         ISmartBpAutoRecognitionCoordinator autoRecognitionCoordinator,
@@ -94,20 +89,12 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         ISmartBpAutoRecognitionGlobalControlSink autoRecognitionGlobalControl,
         ISmartBpOcrBpRecognitionService ocrBpRecognitionService,
         ISmartBpModuleStorageProvider smartBpModuleStorage,
+        IGameDataRecognitionDebugState gameDataRecognitionDebugState,
         ILogger<SmartBpModuleContentViewModel> logger)
     {
         _logger = logger;
         _windowCaptureService = windowCaptureService;
         _ocrService = ocrService;
-        _regionConfigService = regionConfigService;
-        _gameDataSceneDefinition = sceneDefinitions.FirstOrDefault(s =>
-                string.Equals(s.SceneKey, SmartBpSceneKeys.GameData, StringComparison.OrdinalIgnoreCase));
-        if (_gameDataSceneDefinition == null)
-        {
-            _logger.LogError("Missing SmartBp scene definition: GameData");
-            throw new InvalidOperationException("Missing SmartBp scene definition: GameData");
-        }
-        _filePickerService = filePickerService;
         _recognitionSettingsService = recognitionSettingsService;
         _aiDebugLog = aiDebugLog;
         _autoRecognitionCoordinator = autoRecognitionCoordinator;
@@ -123,25 +110,13 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         _autoRecognitionGlobalControl = autoRecognitionGlobalControl;
         _ocrBpRecognitionService = ocrBpRecognitionService;
         _smartBpModuleStorage = smartBpModuleStorage;
+        _gameDataRecognitionDebugState = gameDataRecognitionDebugState;
+        _gameDataRecognitionDebugState.SnapshotChanged += (_, _) => BeginOnUiThread(RefreshGameDataRecognitionDebugText);
+        RefreshGameDataRecognitionDebugText();
         InitializeAiRecognition();
         _ocrService.DownloadStateChanged += OcrService_DownloadStateChanged;
         _ocrService.ModelLoadStateChanged += OcrService_ModelLoadStateChanged;
         // 配置被保存/导入/重置时同步刷新比例状态展示。
-        _regionConfigService.GameDataProfileChanged += (_, _) => BeginOnUiThread(RefreshRegionAspectInfo);
-        _captureAspectRefreshTimer = new DispatcherTimer
-        {
-            Interval = TimeSpan.FromMilliseconds(300)
-        };
-        _captureAspectRefreshTimer.Tick += (_, _) =>
-        {
-            if (!_windowCaptureService.IsCapturing)
-            {
-                _captureAspectRefreshTimer.Stop();
-                return;
-            }
-
-            RefreshRegionAspectInfo();
-        };
 
         ActiveWindows = _windowCaptureService.ListActiveWindows();
 
@@ -154,12 +129,56 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         RefreshOcrModelStatus();
         SyncDownloadStateFromService();
         IsOcrModelLoading = _ocrService.IsModelLoading;
-        RefreshRegionAspectInfo();
 
         // 在 UI 空闲后触发后台模型加载，避免与 View 渲染竞争 loader lock。
         Application.Current?.Dispatcher?.BeginInvoke(
             new Action(() => _ocrService.StartLoadingPreferredModel()),
             DispatcherPriority.ApplicationIdle);
+    }
+
+    /// <summary>
+    /// 最近一次赛后数据整表 OCR 重建出的表格行。
+    /// </summary>
+    public ObservableCollection<GameDataRecognitionDebugRow> GameDataRecognitionDebugRows { get; } = [];
+
+    /// <summary>
+    /// 最近一次赛后 OCR 返回的文本行数量。
+    /// </summary>
+    [ObservableProperty]
+    public partial int GameDataRecognitionOcrLineCount { get; set; }
+
+    /// <summary>
+    /// 最近一次赛后 OCR 文本行数量的本地化展示文本。
+    /// </summary>
+    [ObservableProperty]
+    public partial string GameDataRecognitionOcrLineCountText { get; set; } = "-";
+
+    /// <summary>
+    /// 最近一次赛后整表 OCR 的坐标解析诊断文本。
+    /// </summary>
+    [ObservableProperty]
+    public partial string GameDataRecognitionDiagnosticsText { get; set; } = "-";
+
+    /// <summary>
+    /// 将最近一次整表 OCR 快照同步到页面调试表格。
+    /// </summary>
+    private void RefreshGameDataRecognitionDebugText()
+    {
+        var snapshot = _gameDataRecognitionDebugState.Current;
+        GameDataRecognitionOcrLineCount = snapshot.OcrLineCount;
+        GameDataRecognitionOcrLineCountText = string.Format(
+            ResolveLocalizedOrRaw("SmartBpGameDataDebugOcrLineCountFormat"),
+            snapshot.OcrLineCount);
+        GameDataRecognitionDebugRows.Clear();
+        foreach (var row in snapshot.Rows.OrderBy(row => row.RowIndex))
+            GameDataRecognitionDebugRows.Add(row with
+            {
+                ResolvedCharacterName = row.ResolvedCharacterName ?? ResolveLocalizedOrRaw("SmartBpGameDataDebugUnresolved")
+            });
+
+        GameDataRecognitionDiagnosticsText = snapshot.Diagnostics.Count == 0
+            ? "-"
+            : string.Join(Environment.NewLine, snapshot.Diagnostics);
     }
 
     /// <summary>
@@ -229,42 +248,6 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     public partial string CurrentOcrModelDisplayName { get; set; } = "";
 
     /// <summary>
-    /// 当前识别区域配置文件路径。
-    /// </summary>
-    [ObservableProperty]
-    public partial string RegionConfigPath { get; set; } = "-";
-
-    /// <summary>
-    /// 识别区域配置的比例文本（如 16:9）。
-    /// </summary>
-    [ObservableProperty]
-    public partial string RegionConfigAspectRatioText { get; set; } = "-";
-
-    /// <summary>
-    /// 当前捕获画面比例文本（如 16:9）。
-    /// </summary>
-    [ObservableProperty]
-    public partial string CaptureAspectRatioText { get; set; } = "-";
-
-    /// <summary>
-    /// 区域比例状态文本。
-    /// </summary>
-    [ObservableProperty]
-    public partial string RegionAspectStatusText { get; set; } = "-";
-
-    /// <summary>
-    /// 区域比例提示文本。
-    /// </summary>
-    [ObservableProperty]
-    public partial string RegionAspectHintText { get; set; } = "-";
-
-    /// <summary>
-    /// 区域比例是否不匹配。
-    /// </summary>
-    [ObservableProperty]
-    public partial bool RegionAspectIsMismatch { get; set; }
-
-    /// <summary>
     /// 是否显示下载模型按钮。
     /// </summary>
     public bool ShowDownloadModelButton => SelectedOcrModel is not { IsInstalled: true };
@@ -303,11 +286,8 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     private void StartCapture()
     {
         _ = _windowCaptureService.StartCapture(SelectedWindow, SelectedCaptureMethod);
-        if (_windowCaptureService.IsCapturing)
-            _captureAspectRefreshTimer.Start();
-        // 捕获状态变化会影响多个按钮的可用性和比例提示。
+        // 捕获状态变化会影响多个按钮的可用性。
         RefreshCommandStates();
-        RefreshRegionAspectInfo();
     }
 
     /// <summary>
@@ -323,9 +303,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         }
 
         _windowCaptureService.StopCapture();
-        _captureAspectRefreshTimer.Stop();
         RefreshCommandStates();
-        RefreshRegionAspectInfo();
     }
 
     /// <summary>
@@ -344,138 +322,9 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         if (await _windowCaptureService.StartCaptureWithPickerAsync())
         {
             SelectedCaptureMethod = CaptureMethod.WGC;
-            if (_windowCaptureService.IsCapturing)
-                _captureAspectRefreshTimer.Start();
         }
 
         RefreshCommandStates();
-        RefreshRegionAspectInfo();
-    }
-
-    /// <summary>
-    /// 打开赛后数据 OCR 区域编辑器，并在保存后写入当前 GameData profile。
-    /// </summary>
-    /// <returns>区域编辑窗口关闭后的任务。</returns>
-    [RelayCommand(CanExecute = nameof(CanOpenRegionEditor))]
-    private async Task OpenGameDataRegionEditorAsync()
-    {
-        // 识别区域编辑依赖当前帧快照，因此必须先启动捕获。
-        if (!_windowCaptureService.IsCapturing)
-        {
-            await MessageBoxHelper.ShowInfoAsync(ResolveLocalizedOrRaw("SmartBpRegionEditorRequireCaptureFirst"));
-            return;
-        }
-
-        // 编辑器仅使用单帧冻结图像，不做实时刷新。
-        var frame = _windowCaptureService.GetCurrentFrame();
-        if (frame == null)
-        {
-            await MessageBoxHelper.ShowInfoAsync(ResolveLocalizedOrRaw(CaptureFrameUnavailableMessageKey));
-            return;
-        }
-
-        var profile = _regionConfigService.GetCurrentGameDataProfile();
-        // 保存编辑基准尺寸/比例，便于后续页面匹配展示与诊断。
-        profile.BaseAspectRatio = SmartBpRegionConfigService.ToAspectRatioText(frame.PixelWidth, frame.PixelHeight);
-        profile.BaseSize = SmartBpRegionConfigService.ToAspectBaseSize(frame.PixelWidth, frame.PixelHeight);
-
-        // 配置已是通用布局结构；这里仅注入编辑展示元数据（标签/模板组）。
-        var layout = _gameDataSceneDefinition.BuildEditorLayout(profile.Layout);
-        var editor = new RegionEditorWindow(frame, layout)
-        {
-            Owner = Application.Current?.Windows.OfType<Window>().FirstOrDefault(w => w.IsActive)
-                    ?? Application.Current?.MainWindow
-        };
-
-        if (editor.ShowDialog() != true || editor.ResultLayout == null)
-            return;
-
-        // 保存前做结构校验，避免非法布局污染识别流程。
-        if (!_gameDataSceneDefinition.TryValidateEditedLayout(editor.ResultLayout, out var applyError))
-        {
-            await MessageBoxHelper.ShowErrorAsync(applyError);
-            return;
-        }
-
-        profile.Layout = _gameDataSceneDefinition.NormalizeEditedLayoutForPersistence(editor.ResultLayout);
-
-        if (!_regionConfigService.TrySaveGameDataProfile(profile, out var error))
-        {
-            await MessageBoxHelper.ShowErrorAsync(error);
-            return;
-        }
-
-        RefreshRegionAspectInfo();
-        await MessageBoxHelper.ShowInfoAsync(ResolveLocalizedOrRaw("SmartBpRegionConfigSaved"));
-    }
-
-    /// <summary>
-    /// 从外部 JSON 文件导入 GameData OCR 区域配置。
-    /// </summary>
-    /// <returns>导入流程完成后的任务。</returns>
-    [RelayCommand]
-    private async Task ImportGameDataRegionConfigAsync()
-    {
-        // 允许导入外部 JSON，校验由配置服务统一处理。
-        var file = _filePickerService.PickJsonFile();
-        if (string.IsNullOrWhiteSpace(file))
-            return;
-
-        if (!_regionConfigService.TryImportGameDataProfile(file, out var error))
-        {
-            await MessageBoxHelper.ShowErrorAsync(error);
-            return;
-        }
-
-        RefreshRegionAspectInfo();
-        await MessageBoxHelper.ShowInfoAsync(ResolveLocalizedOrRaw("SmartBpRegionConfigImported"));
-    }
-
-    /// <summary>
-    /// 将当前 GameData OCR 区域配置导出为 JSON 文件。
-    /// </summary>
-    /// <returns>导出流程完成后的任务。</returns>
-    [RelayCommand]
-    private async Task ExportGameDataRegionConfigAsync()
-    {
-        var file = _filePickerService.SaveJsonFile("GameDataRegions.json");
-        if (string.IsNullOrWhiteSpace(file))
-            return;
-
-        if (!_regionConfigService.TryExportGameDataProfile(file, out var error))
-        {
-            await MessageBoxHelper.ShowErrorAsync(error);
-            return;
-        }
-
-        await MessageBoxHelper.ShowInfoAsync(
-            string.Format(I18nHelper.GetLocalizedString("SaveSuccessfullyTo"), file));
-    }
-
-    /// <summary>
-    /// 将 GameData OCR 区域配置重置为模块内置默认值。
-    /// </summary>
-    /// <returns>重置流程完成后的任务。</returns>
-    [RelayCommand]
-    private async Task ResetGameDataRegionConfigAsync()
-    {
-        // 重置来自内置 16:9 默认模板，会覆盖用户当前配置。
-        var confirmed = await MessageBoxHelper.ShowConfirmAsync(
-            ResolveLocalizedOrRaw("SmartBpRegionConfigResetConfirm"),
-            ResolveLocalizedOrRaw("SmartBpRegionConfigResetTitle"),
-            ResolveLocalizedOrRaw("Confirm"),
-            ResolveLocalizedOrRaw("Cancel"));
-        if (!confirmed)
-            return;
-
-        if (!_regionConfigService.TryResetGameDataToBuiltinDefault(out var error))
-        {
-            await MessageBoxHelper.ShowErrorAsync(error);
-            return;
-        }
-
-        RefreshRegionAspectInfo();
-        await MessageBoxHelper.ShowInfoAsync(ResolveLocalizedOrRaw("SmartBpRegionConfigResetDone"));
     }
 
     [RelayCommand]
@@ -609,7 +458,6 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     private bool CanOpenPreviewWindow() => _windowCaptureService is { IsCapturing: true };
 
     private static bool CanOpenWindowPicker() => IsWgcSupported();
-    private static bool CanOpenRegionEditor() => true;
 
     private bool CanDownloadSelectedOcrModel() =>
         !IsModelDownloading && SelectedOcrModel is { IsInstalled: false };
@@ -630,7 +478,6 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         OpenPreviewWindowCommand.NotifyCanExecuteChanged();
         StartCaptureCommand.NotifyCanExecuteChanged();
         OpenWindowPickerCommand.NotifyCanExecuteChanged();
-        OpenGameDataRegionEditorCommand.NotifyCanExecuteChanged();
     }
 
     /// <summary>
@@ -686,68 +533,6 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     /// </summary>
     /// <returns>OCR 就绪时返回 <see langword="true"/>。</returns>
     private bool IsSelectedOcrProviderReady() => _ocrService.GetProviderStatus(_ocrService.SelectedProvider).IsReady;
-
-    /// <summary>
-    /// 刷新当前捕获比例与 GameData 区域配置比例的匹配提示。
-    /// </summary>
-    private void RefreshRegionAspectInfo()
-    {
-        // 页面显示的比例信息全部来自配置服务，避免 UI 层重复计算逻辑。
-        var captureAspect = GetCurrentCaptureAspectRatio();
-        var aspect = _regionConfigService.GetAspectInfo(captureAspect);
-        RegionConfigPath = aspect.ConfigPath;
-        RegionConfigAspectRatioText = aspect.ConfigAspectRatio;
-        CaptureAspectRatioText = aspect.CurrentCaptureAspectRatio;
-
-        if (!_windowCaptureService.IsCapturing)
-        {
-            RegionAspectStatusText = ResolveLocalizedOrRaw("SmartBpRegionAspectStatusNotStarted");
-            RegionAspectHintText = ResolveLocalizedOrRaw("SmartBpRegionAspectHintNotStarted");
-            RegionAspectIsMismatch = false;
-            return;
-        }
-
-        // 刚启动捕获时首帧可能尚未到达，此时不应误判为“不匹配”。
-        if (string.IsNullOrWhiteSpace(captureAspect) || captureAspect == "-")
-        {
-            RegionAspectStatusText = ResolveLocalizedOrRaw("SmartBpRegionAspectStatusWaitingFirstFrame");
-            RegionAspectHintText = ResolveLocalizedOrRaw("SmartBpRegionAspectHintWaitingFirstFrame");
-            RegionAspectIsMismatch = false;
-            return;
-        }
-
-        if (aspect.IsMatched)
-        {
-            RegionAspectStatusText = ResolveLocalizedOrRaw("SmartBpRegionAspectStatusMatched");
-            RegionAspectHintText = ResolveLocalizedOrRaw("SmartBpRegionAspectHintMatched");
-            RegionAspectIsMismatch = false;
-            return;
-        }
-
-        RegionAspectStatusText = ResolveLocalizedOrRaw("SmartBpRegionAspectStatusMismatched");
-        RegionAspectHintText = ResolveLocalizedOrRaw("SmartBpRegionAspectHintMismatched");
-        RegionAspectIsMismatch = true;
-    }
-
-    /// <summary>
-    /// 获取当前捕获帧比例文本（如 16:9）。
-    /// 若未捕获或帧不可用，返回 "-" 供界面展示。
-    /// </summary>
-    /// <summary>
-    /// 获取当前捕获帧的宽高比例文本。
-    /// </summary>
-    /// <returns>比例文本；当前无捕获帧时返回 <see langword="null"/>。</returns>
-    private string? GetCurrentCaptureAspectRatio()
-    {
-        if (!_windowCaptureService.IsCapturing)
-            return "-";
-
-        var frame = _windowCaptureService.GetCurrentFrame();
-        if (frame == null || frame.PixelWidth <= 0 || frame.PixelHeight <= 0)
-            return "-";
-
-        return SmartBpRegionConfigService.ToAspectRatioText(frame.PixelWidth, frame.PixelHeight);
-    }
 
     /// <summary>
     /// 处理 OCR 下载状态变化，并异步切回 UI 线程同步绑定属性。

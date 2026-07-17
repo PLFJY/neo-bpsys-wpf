@@ -3,10 +3,12 @@
 using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Threading;
 using System.IO;
 using System.Linq;
 using neo_bpsys_wpf.ProductTour.Controls;
 using neo_bpsys_wpf.Tests.Infrastructure;
+using Wpf.Ui.Controls;
 using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Controls;
@@ -78,6 +80,34 @@ public sealed class OverlayHostTest
 
                 host.Children.Remove(overlay);
                 Assert.Equal(WindowState.Maximized, window.WindowState);
+            }
+            finally
+            {
+                window.Close();
+            }
+        });
+    }
+
+    [Fact]
+    public void GetHostPanel_ShouldMoveTheWindowRegisteredHostAboveTheOverlay()
+    {
+        WpfTestThread.Run(() =>
+        {
+            var root = new Grid();
+            var registeredHost = new ContentDialogHost();
+            root.Children.Add(registeredHost);
+            var window = CreateWindow(root);
+
+            try
+            {
+                window.Show();
+                window.Dispatcher.Invoke(() => { }, DispatcherPriority.ContextIdle);
+                Assert.Same(registeredHost, ContentDialogHost.GetForWindow(window));
+
+                var overlayRoot = OverlayHost.GetHostPanel(window);
+
+                Assert.Contains(registeredHost, overlayRoot.Children.Cast<UIElement>());
+                Assert.Same(registeredHost, OverlayHost.GetContentDialogHost(window));
             }
             finally
             {

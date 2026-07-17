@@ -50,6 +50,7 @@ public sealed class TutorialRunner : ITutorialRunner
     private readonly ITutorialStateStore _stateStore;
     private readonly ITutorialSessionSuppression _sessionSuppression;
     private readonly ILogger<TutorialRunner> _logger;
+    private readonly ITutorialDebugService _debugService;
 
     internal TutorialRunner(
         TutorialService tutorialService,
@@ -57,9 +58,10 @@ public sealed class TutorialRunner : ITutorialRunner
         ITutorialPackageRegistry packageRegistry,
         ITutorialFlowRegistry flowRegistry,
         ITutorialStateStore stateStore,
-        ILogger<TutorialRunner> logger)
+        ILogger<TutorialRunner> logger,
+        ITutorialDebugService? debugService = null)
         : this(tutorialService, playbackCoordinator, packageRegistry, flowRegistry, stateStore,
-            new TutorialSessionSuppression(), logger)
+            new TutorialSessionSuppression(), logger, debugService)
     {
     }
 
@@ -70,7 +72,8 @@ public sealed class TutorialRunner : ITutorialRunner
         ITutorialFlowRegistry flowRegistry,
         ITutorialStateStore stateStore,
         ITutorialSessionSuppression sessionSuppression,
-        ILogger<TutorialRunner> logger)
+        ILogger<TutorialRunner> logger,
+        ITutorialDebugService? debugService = null)
     {
         _tutorialService = tutorialService;
         _playbackCoordinator = playbackCoordinator;
@@ -79,6 +82,7 @@ public sealed class TutorialRunner : ITutorialRunner
         _stateStore = stateStore;
         _sessionSuppression = sessionSuppression;
         _logger = logger;
+        _debugService = debugService ?? NoOpTutorialDebugService.Instance;
     }
 
     /// <inheritdoc />
@@ -151,7 +155,18 @@ public sealed class TutorialRunner : ITutorialRunner
                 return TutorialRunResult.CompletedAlready;
             }
 
-            return await _tutorialService.RunFlowAsync(owner, flowId, force, token);
+            var packageIds = flow.Items.OfType<PackageFlowItem>().Select(item => item.PackageId).ToArray();
+            _debugService.SetCurrentQueue(owner, flowId, packageIds);
+            while (true)
+            {
+                var result = await _tutorialService.RunFlowAsync(owner, flowId, force, token);
+                if (result == TutorialRunResult.Canceled && _debugService.ConsumeRestart(owner, flowId))
+                {
+                    continue;
+                }
+
+                return result;
+            }
         }, cancellationToken);
 
     private async Task<TutorialRunResult> RunSequenceCoreAsync(
@@ -169,6 +184,7 @@ public sealed class TutorialRunner : ITutorialRunner
         while (true)
         {
             await WaitForUiIdleAsync(owner, cancellationToken);
+            _debugService.SetCurrentQueue(owner, tutorialKey);
             var pending = await _tutorialService.GetNextPendingPackageAsync(owner, tutorialKey, cancellationToken);
             if (pending == null)
             {
@@ -201,6 +217,11 @@ public sealed class TutorialRunner : ITutorialRunner
                 continue;
             }
 
+            if (result == TutorialRunResult.Canceled && _debugService.ConsumeRestart(owner, tutorialKey))
+            {
+                continue;
+            }
+
             if (result == TutorialRunResult.SkippedPermanently)
             {
                 await _tutorialService.MarkSequenceCompletedAsync(tutorialKey, cancellationToken);
@@ -224,8 +245,7 @@ public sealed class TutorialRunner : ITutorialRunner
         CancellationToken cancellationToken)
     {
         var state = await _stateStore.LoadAsync(cancellationToken);
-        return state.CompletedPackages.TryGetValue(package.PackageId, out var record)
-            && record.Version >= package.Version;
+        return _debugService.IsPackageCompleted(state, package);
     }
 
     private async Task<bool> IsFlowCompletedAsync(

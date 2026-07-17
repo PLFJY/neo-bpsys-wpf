@@ -84,9 +84,7 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint, ITutoria
         services.AddSingleton(loggerFactory);
         services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
 
-        // GameData 赛后数据 OCR 与 BP 自动识别共用模块服务，但配置文件和区域 profile 分开管理。
-        services.AddSingleton<ISmartBpSceneDefinition, SmartBpGameDataSceneDefinition>();
-        services.AddSingleton<ISmartBpRegionConfigService, SmartBpRegionConfigService>();
+        // 赛后数据 OCR 使用完整捕获帧坐标聚类；只有全流程 BP 保留可编辑识别区域。
         services.AddSingleton<PaddleOcrProvider>();
         services.AddSingleton<TesseractOcrProvider>();
         services.AddSingleton<RapidOcrNetProvider>();
@@ -98,7 +96,9 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint, ITutoria
         services.AddSingleton<IOcrProvider>(provider => provider.GetRequiredService<RapidOcrNetProvider>());
         services.AddSingleton<SmartBpOcrProviderSelector>();
         services.AddSingleton<IOcrService, OcrService>();
-        services.AddSingleton<ISmartBpService, SmartBpService>();
+        services.AddSingleton<SmartBpService>();
+        services.AddSingleton<ISmartBpService>(provider => provider.GetRequiredService<SmartBpService>());
+        services.AddSingleton<IGameDataRecognitionDebugState>(provider => provider.GetRequiredService<SmartBpService>());
         services.AddSingleton<ISmartBpRecognitionSettingsService, SmartBpRecognitionSettingsService>();
         services.AddSingleton<ISmartBpRecognitionRegionProfileService, SmartBpRecognitionRegionProfileService>();
 

@@ -45,6 +45,23 @@ internal static class OverlayHost
         return host;
     }
 
+    private static void MoveRegisteredContentDialogHostToOverlayRoot(Panel overlayRoot, ContentDialogHost dialogHost)
+    {
+        if (ReferenceEquals(VisualTreeHelper.GetParent(dialogHost), overlayRoot))
+        {
+            return;
+        }
+
+        if (VisualTreeHelper.GetParent(dialogHost) is not Panel currentParent)
+        {
+            throw new InvalidOperationException("Unable to move the registered content dialog host to the window overlay root.");
+        }
+
+        currentParent.Children.Remove(dialogHost);
+        Panel.SetZIndex(dialogHost, int.MaxValue);
+        overlayRoot.Children.Add(dialogHost);
+    }
+
     public static Panel GetHostPanel(FrameworkElement owner)
     {
         if (owner is Window window)
@@ -52,6 +69,7 @@ internal static class OverlayHost
             if (window.GetValue(WindowOverlayRootProperty) is Panel existing
                 && VisualTreeHelper.GetParent(existing) != null)
             {
+                MoveRegisteredContentDialogHostToOverlayRootIfNeeded(window, existing);
                 return existing;
             }
 
@@ -65,6 +83,7 @@ internal static class OverlayHost
                 Panel.SetZIndex(overlayRoot, int.MaxValue);
                 contentGrid.Children.Add(overlayRoot);
                 window.SetValue(WindowOverlayRootProperty, overlayRoot);
+                MoveRegisteredContentDialogHostToOverlayRootIfNeeded(window, overlayRoot);
                 return overlayRoot;
             }
 
@@ -74,6 +93,7 @@ internal static class OverlayHost
                 var adorner = new OverlayAdorner(content);
                 adornerLayer.Add(adorner);
                 window.SetValue(WindowOverlayRootProperty, adorner.OverlayRoot);
+                MoveRegisteredContentDialogHostToOverlayRootIfNeeded(window, adorner.OverlayRoot);
                 return adorner.OverlayRoot;
             }
 
@@ -103,6 +123,14 @@ internal static class OverlayHost
         }
 
         throw new InvalidOperationException("Unable to locate an overlay host panel.");
+    }
+
+    private static void MoveRegisteredContentDialogHostToOverlayRootIfNeeded(Window window, Panel overlayRoot)
+    {
+        if (ContentDialogHost.GetForWindow(window) is { } registeredHost)
+        {
+            MoveRegisteredContentDialogHostToOverlayRoot(overlayRoot, registeredHost);
+        }
     }
 
     private static Grid CreateOverlayRoot() => new()

@@ -77,7 +77,6 @@ active `Settings.cs` 不再包含旧前台窗口设置。旧 `BpWindowSettings`�
 | v3 editor-local 资源 | `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\local\` |
 | v3 已安装布局包 | `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\{PackageId}\` |
 | v3 活动包状态 | `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\active-package.json` |
-| SmartBP 区域 | `%APPDATA%\neo-bpsys-wpf\SmartBp\GameDataRegions.json` |
 | SmartBP 模块状态 | `%APPDATA%\neo-bpsys-wpf\SmartBpModuleState.json` |
 | 教程与导览状态 | `%APPDATA%\neo-bpsys-wpf\TutorialState.json` |
 | SmartBP 模块目录迁移标记 | `%APPDATA%\neo-bpsys-wpf\SmartBpModuleMovePending.json` |

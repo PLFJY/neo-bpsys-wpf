@@ -39,7 +39,7 @@ SmartBP 包含两条独立的能力线：
 | 赛后数据 OCR 回填 | `ISmartBpService.AutoFillGameDataAsync` | PaddleOCR | 直接写 `CurrentGame` | 成熟可用 |
 | BP 状态自动识别 | `SmartBpAutoRecognitionCoordinator` | OCR-only | 候选操作 → 应用管线 → `CurrentGame` | BP 状态 OCR 可用 |
 
-两条线共享同一套窗口捕获、OCR 模型管理和粗裁剪区域配置基础设施，但区域配置（细区域 vs 粗区域）和结果写入路径完全独立。
+两条线共享同一套窗口捕获和 OCR 模型管理基础设施。赛后数据回填直接基于完整捕获帧的 OCR 坐标重建表格；全流程 BP 状态识别则使用可编辑的粗裁剪区域。
 
 ### 宿主侧接口
 
@@ -55,7 +55,7 @@ public interface ISmartBpService
 }
 ```
 
-实际实现 `SmartBpService` 位于主应用 `Services/` 目录，但依赖 `neo-bpsys-wpf.SmartBp.Module` 提供的 `IOcrService`、`ISmartBpRegionConfigService` 等。
+实际实现 `SmartBpService` 位于 SmartBP 模块，依赖模块提供的 `IOcrService`、角色解析和捕获服务等。
 
 ### 模块入口与 DI
 
@@ -152,12 +152,11 @@ SmartBP 模块在线安装和手动导入支持 `.7z` 与旧 `.zip` 包，归档
 1. 检查 OCR 模型是否已选择且已安装。
 2. 检查 `IWindowCaptureService.IsCapturing`。
 3. 通过窗口捕获服务读取当前帧。
-4. 使用 `SmartBpRegionConfigService.GetCurrentGameDataProfile()` 获取区域配置。
-5. 裁切监管者行和求生者行。
-6. 对名称区域做文本预处理并 OCR。
-7. 对数据列做数字预处理并 OCR。
-8. 将监管者字段直接写回 `CurrentGame.HunPlayer.Data`。
-9. 将求生者数据按角色名匹配后写回 `CurrentGame.SurPlayerList`。
+4. 对完整捕获帧只执行一次带边界框的 OCR。
+5. 从“玩家 ID（角色名）”文本按 Y 坐标建立五个有效行；取角色文本右侧的数字和空值标记，按 X 坐标推断五个统计列，再按最近 Y 坐标归属。
+6. 名称左侧的等级、天赋数字、徽章和其他残留文字不会参与名称、角色或数据列解析。
+7. 将监管者字段直接写回 `CurrentGame.HunPlayer.Data`。
+8. 将求生者数据按角色名匹配后写回 `CurrentGame.SurPlayerList`。
 
 求生者匹配先做规范化精确匹配，再用 Jaro-Winkler 模糊匹配兜底，阈值当前为 `0.50`。
 
@@ -302,33 +301,7 @@ SmartBP 自动识别曾提供 Pure AI、AI+OCR、AI+AI OCR、业务 AI 融合和
 
 ## 区域配置
 
-SmartBP 管理两套独立的区域配置：
-
-### 赛后数据细区域配置（GameData）
-
-用于赛后数据 OCR 回填，定义每行（监管者行 + 4 个求生者行）内各单元格的精确位置：
-
-```text
-%APPDATA%\neo-bpsys-wpf\SmartBp\GameDataRegions.json
-```
-
-默认配置优先来自：
-
-```text
-neo-bpsys-wpf.SmartBp.Module/Resources/SmartBpDefaultConfigs/GameDataRegions.16-9.default.json
-```
-
-运行时从 SmartBP 模块输出目录读取该文件；如果资源缺失，`SmartBpGameDataSceneDefinition` 会生成代码内 fallback 配置。配置保存前会校验：
-
-1. `Scene` 必须是 `GameData`。
-2. 根节点行数为 5（1 监管者 + 4 求生者）。
-3. 每行 6 个 cell（1 名称 + 5 数据列）。
-4. 大框和小框相对坐标合法。
-5. `BaseAspectRatio` 会被规范化，存储时优先保留比例基准。
-
-用户可通过 `SmartBpModuleContentViewModel` 中的"编辑识别区域"按钮打开 `RegionEditorWindow`，在当前捕获帧上可视化调整各单元格位置。
-
-### BP 识别粗区域配置（Recognition Layout）
+### 全流程 BP 识别粗区域配置（Recognition Layout）
 
 用于 BP 状态识别，定义 5 个粗裁剪区域：
 
@@ -345,17 +318,15 @@ neo-bpsys-wpf.SmartBp.Module/Resources/SmartBpDefaultConfigs/GameDataRegions.16-
 | `left_bottom` | `LeftBottom` | 左下角 | 求生者 Pick 位 |
 | `right_bottom` | `RightBottom` | 右下角 | 监管者 Pick 位 |
 
-默认配置来自 SmartBP 模块 `Resources` 中的 `BpRecognitionLayoutProfile.json`。用户可通过 `RegionEditorWindow` 在当前捕获帧或内置测试图上可视化调整六个粗区域（包括 `TopLeftStatus`）。保存后的同一份用户 profile 同时供编辑器预览和本地 OCR 状态检测读取。这套配置独立于赛后数据细区域配置。
+默认配置来自 SmartBP 模块 `Resources` 中的 `BpRecognitionLayoutProfile.json`。用户可通过 `RegionEditorWindow` 在当前捕获帧或内置测试图上可视化调整六个粗区域（包括 `TopLeftStatus`）。保存后的同一份用户 profile 同时供编辑器预览和本地 OCR 状态检测读取。
 
 自动循环会先 OCR `TopCenterStatus` / `TopLeftStatus`。本地规则以“求生者选择区域中”“监管者选择区域中”“等待游戏开始”三个标题为强锚点，并使用关键词与编辑距离容忍少量 OCR 错字；“剩余…秒”和“前往【…】”只作为辅助证据。命中后设置 post-BP latch，并在任何角色内容区域识别和字段合并前进入排空队列停止流程。
 
 ## 图像预处理
 
-名称文本使用 `PreprocessForText`：放大、灰度、背景抑制、二值化、形态学、反色。
+赛后数据回填对完整捕获帧只执行一次可返回文本边界框的 OCR，不裁切玩家行、名称列或数字单元格。解析器以 `玩家名（角色名）` 文本建立有效行，按 Y 坐标排序；再取角色文本右侧的数字/空值标记，按 X 坐标推断五个统计列、按最近 Y 坐标归属行。名称左侧的等级、天赋数字不会进入数据列，也不会参与玩家或角色解析。
 
-数字使用 `PreprocessForDigits`：放大、灰度、归一化、Otsu 二值化、闭运算、反色。
-
-数据列识别优先把 5 个数字列拼成 strip 一次 OCR；如果解析不出 5 个数字，再逐列 OCR 回退。
+现有 OCR Provider 的图像预处理能力仍可用于其自身的识别实现，但赛后表格不会使用旧的数字拼条或逐单元格 OCR 路径。
 
 ## 调试点
 
@@ -363,9 +334,8 @@ neo-bpsys-wpf.SmartBp.Module/Resources/SmartBpDefaultConfigs/GameDataRegions.16-
 
 1. OCR 不工作先看是否已下载并切换模型。
 2. 捕获不到数据先看窗口捕获服务是否处于 capturing。
-3. 识别错位先导出/检查 `GameDataRegions.json` 与实际画面比例。
+3. 查看全流程 BP 调试选项中的赛后调试表格：其中列出 OCR 原始文本、边界框、行聚类、列归属、被排除的名称列文本和最终行映射。
 4. 角色匹配失败时看日志中的 `SmartBp Match failed` 和 OCR 原始名称。
-5. 预处理图像可临时用 `SaveDebug` 输出到运行目录 `debug`，但不要把调试图片提交进仓库。
 
 ### BP 状态识别
 
@@ -437,7 +407,6 @@ neo-bpsys-wpf.SmartBp.Module/Resources/SmartBpDefaultConfigs/GameDataRegions.16-
 | 路径 | 内容 |
 | --- | --- |
 | `%APPDATA%\neo-bpsys-wpf\SmartBpModuleState.json` | 模块安装状态（ModuleRoot 路径） |
-| `%APPDATA%\neo-bpsys-wpf\SmartBp\GameDataRegions.json` | 赛后数据细区域配置 |
 | `%APPDATA%\neo-bpsys-wpf\SmartBp\BpRecognitionLayoutProfile.json` | BP 识别粗区域配置 |
 | `%APPDATA%\neo-bpsys-wpf\SmartBp\RecognitionSettings.json` | 识别引擎设置 |
 | `{SmartBpModuleRoot}\OCRModels\{modelKey}\` | PaddleOCR 模型文件（det/cls/rec） |

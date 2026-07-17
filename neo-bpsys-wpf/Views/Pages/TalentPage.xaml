@@ -1,6 +1,5 @@
 <Page
     x:Class="neo_bpsys_wpf.Views.Pages.TalentPage"
-    x:Name="TalentTraitPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls"
@@ -14,15 +13,16 @@
     xmlns:modernScroll="clr-namespace:neo_bpsys_wpf.Controls.Modern.Scrolling"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
+    x:Name="TalentTraitPage"
     Title="TalentPage"
     d:DataContext="{d:DesignInstance Type=vm:TalentPageViewModel,
                                      IsDesignTimeCreatable=True}"
     d:DesignHeight="1500"
     d:DesignWidth="685"
-    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
     lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp"
+    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
     <WrapPanel
         x:Name="TalentTraitSelectorPanel"
@@ -136,6 +136,11 @@
                     Margin="0,10,0,0"
                     Orientation="Horizontal"
                     Visibility="{Binding ElementName=IsTraitVisible, Path=IsChecked, Converter={StaticResource BoolToVisibilityConverter}, Mode=TwoWay}">
+                    <WrapPanel.Resources>
+                        <Style BasedOn="{StaticResource {x:Type controls:ToggleStyledRadioButton}}" TargetType="controls:ToggleStyledRadioButton">
+                            <Setter Property="Margin" Value="0,0,10,10" />
+                        </Style>
+                    </WrapPanel.Resources>
                     <controls:ToggleStyledRadioButton
                         ImageSource="{DynamicResource Listen}"
                         IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Listen}}"

@@ -47,15 +47,8 @@ dotnet test .\neo-bpsys-wpf.Tests\neo-bpsys-wpf.Tests.csproj
 1. OCR 模型是否已下载且已切换。
 2. `Settings.OcrModelKey` 是否指向已安装模型。
 3. 窗口捕获是否正在运行。
-4. 捕获画面比例是否和 `GameDataRegions.json` 匹配。
-5. OCR 原始文本日志是否合理。
-6. 求生者角色名匹配是 exact 还是 fuzzy，是否低于阈值。
-
-区域配置路径：
-
-```text
-%APPDATA%\neo-bpsys-wpf\SmartBp\GameDataRegions.json
-```
+4. 赛后调试表格中的 OCR 文本、坐标聚类、列归属和最终行映射是否合理。
+5. 求生者角色名匹配是 exact 还是 fuzzy，是否低于阈值。
 
 OCR 模型路径：
 

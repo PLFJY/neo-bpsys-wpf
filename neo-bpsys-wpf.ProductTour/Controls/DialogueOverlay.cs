@@ -230,6 +230,18 @@ public sealed class DialogueOverlay : Grid
         return result;
     }
 
+    /// <summary>
+    /// 立即结束当前对话，并将其作为已取消的教程运行返回。
+    /// </summary>
+    /// <remarks>
+    /// 用于教程调试跳转等需要中断当前流项、随后重新解析队列的场景。
+    /// </remarks>
+    public void Cancel()
+    {
+        StopTypewriter();
+        _completion?.TrySetResult(TutorialRunResult.Canceled);
+    }
+
     private static bool IsDefaultSpeaker(string speaker)
     {
         return string.IsNullOrWhiteSpace(speaker)

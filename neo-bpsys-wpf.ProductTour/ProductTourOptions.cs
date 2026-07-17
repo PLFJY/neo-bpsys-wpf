@@ -7,6 +7,9 @@ namespace neo_bpsys_wpf.ProductTour;
 /// </summary>
 public sealed class ProductTourOptions
 {
+    /// <summary>获取或设置是否启用产品导览调试队列窗口。</summary>
+    public bool IsDebugWindowEnabled { get; set; }
+
     /// <summary>获取或设置产品导览卡片宽度。</summary>
     public double CardWidth { get; set; } = 380;
 

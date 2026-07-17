@@ -376,80 +376,6 @@
                         Content="{lex:Loc SmartBpOpenBpRecognitionRegionEditor}"
                         Icon="{ui:SymbolIcon Symbol=Edit24}" />
                 </WrapPanel>
-                <TextBlock
-                    Margin="0,10,0,0"
-                    FontWeight="SemiBold"
-                    Text="{lex:Loc SmartBpGameDataRecognitionRegions}" />
-                <Grid Margin="0,8,0,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <TextBlock Margin="0,0,12,4" Text="{lex:Loc SmartBpRegionConfigCurrentPath}" />
-                    <TextBlock
-                        Grid.Column="1"
-                        Margin="0,0,0,4"
-                        Text="{Binding RegionConfigPath}"
-                        TextWrapping="Wrap" />
-                    <TextBlock
-                        Grid.Row="1"
-                        Margin="0,0,12,4"
-                        Text="{lex:Loc SmartBpRegionConfigConfiguredAspectRatio}" />
-                    <TextBlock
-                        Grid.Row="1"
-                        Grid.Column="1"
-                        Margin="0,0,0,4"
-                        Text="{Binding RegionConfigAspectRatioText}" />
-                    <TextBlock
-                        Grid.Row="2"
-                        Margin="0,0,12,4"
-                        Text="{lex:Loc SmartBpRegionConfigCurrentCaptureAspectRatio}" />
-                    <TextBlock
-                        Grid.Row="2"
-                        Grid.Column="1"
-                        Margin="0,0,0,4"
-                        Text="{Binding CaptureAspectRatioText}" />
-                    <TextBlock
-                        Grid.Row="3"
-                        Margin="0,0,12,0"
-                        Text="{lex:Loc SmartBpRegionConfigAspectStatus}" />
-                    <StackPanel Grid.Row="3" Grid.Column="1">
-                        <TextBlock Text="{Binding RegionAspectStatusText}" />
-                        <TextBlock
-                            Margin="0,4,0,0"
-                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                            Text="{Binding RegionAspectHintText}"
-                            TextWrapping="Wrap" />
-                    </StackPanel>
-                </Grid>
-                <WrapPanel Margin="0,10,0,0">
-                    <ui:Button
-                        Margin="0,0,8,8"
-                        Command="{Binding OpenGameDataRegionEditorCommand}"
-                        Content="{lex:Loc SmartBpEditGameDataRegionConfig}"
-                        Icon="{ui:SymbolIcon Symbol=Edit24}" />
-                    <ui:Button
-                        Margin="0,0,8,8"
-                        Command="{Binding ImportGameDataRegionConfigCommand}"
-                        Content="{lex:Loc SmartBpImportGameDataRegionConfig}"
-                        Icon="{ui:SymbolIcon Symbol=ArrowImport24}" />
-                    <ui:Button
-                        Margin="0,0,8,8"
-                        Command="{Binding ExportGameDataRegionConfigCommand}"
-                        Content="{lex:Loc SmartBpExportGameDataRegionConfig}"
-                        Icon="{ui:SymbolIcon Symbol=ArrowExportLtr24}" />
-                    <ui:Button
-                        Margin="0,0,8,8"
-                        Command="{Binding ResetGameDataRegionConfigCommand}"
-                        Content="{lex:Loc SmartBpResetGameDataRegionConfig}"
-                        Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
-                </WrapPanel>
             </StackPanel>
         </Border>
 
@@ -568,7 +494,47 @@
             Header="{lex:Loc SmartBpDebugOptions}"
             Icon="{ui:SymbolIcon Symbol=Bug24}">
             <StackPanel>
+                <TextBlock Style="{StaticResource Title}" Text="{lex:Loc SmartBpGameDataRecognitionDebug}" />
+                <TextBlock
+                    Margin="0,6,0,0"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    Text="{lex:Loc SmartBpGameDataRecognitionDebugDescription}"
+                    TextWrapping="Wrap" />
+                <TextBlock
+                    Margin="0,8,0,0"
+                    Text="{Binding GameDataRecognitionOcrLineCountText}" />
+                <ui:DataGrid
+                    Height="220"
+                    Margin="0,6,0,0"
+                    AutoGenerateColumns="False"
+                    CanUserAddRows="False"
+                    CanUserDeleteRows="False"
+                    CanUserResizeRows="False"
+                    HeadersVisibility="Column"
+                    IsReadOnly="True"
+                    ItemsSource="{Binding GameDataRecognitionDebugRows}">
+                    <ui:DataGrid.Columns>
+                        <DataGridTextColumn Width="42" Binding="{Binding RowIndex}" Header="{lex:Loc SmartBpGameDataDebugColumnRow}" />
+                        <DataGridTextColumn Width="150" Binding="{Binding PlayerName}" Header="{lex:Loc SmartBpGameDataDebugColumnPlayerName}" />
+                        <DataGridTextColumn Width="110" Binding="{Binding ExtractedCharacterName}" Header="{lex:Loc SmartBpGameDataDebugColumnExtractedCharacter}" />
+                        <DataGridTextColumn Width="110" Binding="{Binding ResolvedCharacterName}" Header="{lex:Loc SmartBpGameDataDebugColumnResolvedCharacter}" />
+                        <DataGridTextColumn Width="56" Binding="{Binding Values[0]}" Header="D1" />
+                        <DataGridTextColumn Width="56" Binding="{Binding Values[1]}" Header="D2" />
+                        <DataGridTextColumn Width="56" Binding="{Binding Values[2]}" Header="D3" />
+                        <DataGridTextColumn Width="56" Binding="{Binding Values[3]}" Header="D4" />
+                        <DataGridTextColumn Width="56" Binding="{Binding Values[4]}" Header="D5" />
+                    </ui:DataGrid.Columns>
+                </ui:DataGrid>
+                <TextBlock
+                    Margin="0,8,0,0"
+                    FontWeight="SemiBold"
+                    Text="{lex:Loc SmartBpGameDataDebugDiagnostics}" />
+                <TextBox
+                    FontFamily="Consolas"
+                    Style="{StaticResource SmartBpDebugOutputTextBox}"
+                    Text="{Binding GameDataRecognitionDiagnosticsText}" />
                 <ComboBox
+                    Margin="0,10,0,0"
                     DisplayMemberPath="Id"
                     ItemsSource="{Binding AiTestFrames}"
                     SelectedItem="{Binding SelectedAiTestFrame}" />

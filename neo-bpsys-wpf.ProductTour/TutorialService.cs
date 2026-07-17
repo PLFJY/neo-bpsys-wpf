@@ -38,7 +38,9 @@ internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCanc
     private readonly ProductTourOptions _options;
     private readonly ITutorialSessionSuppression _sessionSuppression;
     private readonly ILogger<TutorialService> _logger;
+    private readonly ITutorialDebugService _debugService;
     private ProductTourOverlay? _currentOverlay;
+    private DialogueOverlay? _currentDialogueOverlay;
 
     /// <summary>
     /// 初始化 <see cref="TutorialService"/> 类的新实例。
@@ -69,9 +71,10 @@ internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCanc
         ITutorialContentResolver contentResolver,
         ITutorialLanguageService languageService,
         ProductTourOptions options,
-        ILogger<TutorialService> logger)
+        ILogger<TutorialService> logger,
+        ITutorialDebugService? debugService = null)
         : this(serviceProvider, packageRegistry, sequenceRegistry, flowRegistry, stateStore, signalService, textProvider,
-            avatarProvider, runObserver, contentResolver, languageService, options, new TutorialSessionSuppression(), logger)
+            avatarProvider, runObserver, contentResolver, languageService, options, new TutorialSessionSuppression(), logger, debugService)
     {
     }
 
@@ -89,7 +92,8 @@ internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCanc
         ITutorialLanguageService languageService,
         ProductTourOptions options,
         ITutorialSessionSuppression sessionSuppression,
-        ILogger<TutorialService> logger)
+        ILogger<TutorialService> logger,
+        ITutorialDebugService? debugService = null)
     {
         _serviceProvider = serviceProvider;
         _packageRegistry = packageRegistry;
@@ -105,6 +109,8 @@ internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCanc
         _options = options;
         _sessionSuppression = sessionSuppression;
         _logger = logger;
+        _debugService = debugService ?? NoOpTutorialDebugService.Instance;
+        _debugService.JumpRequested += OnDebugJumpRequested;
     }
 
     /// <inheritdoc />
@@ -125,9 +131,11 @@ internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCanc
 
         foreach (var package in packages)
         {
-            if (state.CompletedPackages.TryGetValue(package.PackageId, out var record)
-                && record.Version >= package.Version)
+            if (_debugService.IsPackageCompleted(state, package))
             {
+                var record = state.CompletedPackages.TryGetValue(package.PackageId, out var storedRecord)
+                    ? storedRecord
+                    : new TutorialCompletionRecord { Version = package.Version };
                 _runObserver.OnPackageSkippedByState(
                     package.PackageId,
                     record.CompletionKind,
@@ -225,6 +233,13 @@ internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCanc
         {
             foreach (var item in flow.Items)
             {
+                if (item is PackageFlowItem packageItem
+                    && _packageRegistry.GetPackage(packageItem.PackageId) is { } packageDefinition
+                    && _debugService.IsPackageCompleted(state, packageDefinition))
+                {
+                    continue;
+                }
+
                 var result = item switch
                 {
                     DialogueFlowItem dialogue => await ShowDialogueAsync(owner, dialogue, cancellationToken),
@@ -270,6 +285,16 @@ internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCanc
     /// <inheritdoc />
     public void YieldCurrentStepForChildWindow() =>
         _currentOverlay?.ForceComplete(ProductTourStepAction.ChildWindowHandoff);
+
+    /// <inheritdoc />
+    public void CancelCurrentStepForDebugNavigation()
+    {
+        _currentOverlay?.ForceComplete(ProductTourStepAction.Cancel);
+        _currentDialogueOverlay?.Cancel();
+    }
+
+    private void OnDebugJumpRequested(object? sender, TutorialDebugJumpRequestedEventArgs e) =>
+        CancelCurrentStepForDebugNavigation();
 
     /// <inheritdoc />
     public async Task ClearFlowStateAsync(string flowId, CancellationToken cancellationToken = default)
@@ -720,10 +745,16 @@ internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCanc
         host.Children.Add(overlay);
         try
         {
+            _currentDialogueOverlay = overlay;
             return await overlay.ShowAsync(dialogue.Speaker, dialogue.Lines, cancellationToken, linesKey: dialogue.LinesKey);
         }
         finally
         {
+            if (ReferenceEquals(_currentDialogueOverlay, overlay))
+            {
+                _currentDialogueOverlay = null;
+            }
+
             host.Children.Remove(overlay);
         }
     }

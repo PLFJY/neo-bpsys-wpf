@@ -353,6 +353,11 @@ public interface ITutorialStepCancellation
     /// 如果当前没有可见步骤，则不执行任何操作。
     /// </summary>
     void YieldCurrentStepForChildWindow();
+
+    /// <summary>取消当前步骤，以便调试器从指定教程包重新开始队列。</summary>
+    void CancelCurrentStepForDebugNavigation()
+    {
+    }
 }
 
 /// <summary>

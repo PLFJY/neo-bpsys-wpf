@@ -247,6 +247,42 @@
   <data name="SmartBpDebugOptions">
     <value>调试选项</value>
   </data>
+  <data name="SmartBpGameDataRecognitionDebug">
+    <value>赛后数据识别 DEBUG</value>
+  </data>
+  <data name="SmartBpGameDataRecognitionDebugDescription">
+    <value>展示最近一次整表 OCR 重建结果、括号中分离出的角色文本以及角色字典解析结果。</value>
+  </data>
+  <data name="SmartBpGameDataDebugOcrLineCountFormat">
+    <value>OCR 文本行：{0}</value>
+  </data>
+  <data name="SmartBpGameDataDebugTableHeader">
+    <value>行	玩家 ID	括号角色文本	解析角色	数据列</value>
+  </data>
+  <data name="SmartBpGameDataDebugRowFormat">
+    <value>{0}	{1}	{2}	{3}	{4}</value>
+  </data>
+  <data name="SmartBpGameDataDebugUnresolved">
+    <value>未匹配</value>
+  </data>
+  <data name="SmartBpGameDataDebugNoRows">
+    <value>未重建出玩家（角色）行。</value>
+  </data>
+  <data name="SmartBpGameDataDebugDiagnostics">
+    <value>解析诊断：</value>
+  </data>
+  <data name="SmartBpGameDataDebugColumnRow">
+    <value>行</value>
+  </data>
+  <data name="SmartBpGameDataDebugColumnPlayerName">
+    <value>玩家 ID</value>
+  </data>
+  <data name="SmartBpGameDataDebugColumnExtractedCharacter">
+    <value>括号角色文本</value>
+  </data>
+  <data name="SmartBpGameDataDebugColumnResolvedCharacter">
+    <value>解析角色</value>
+  </data>
   <data name="SmartBpFullRecognitionTest">
     <value>识别全图</value>
   </data>

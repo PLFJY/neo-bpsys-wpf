@@ -48,7 +48,6 @@ public partial class App : IAppTutorial<App>
             .Step(ScorePage.Tours.Basic)
             .Step(CreateMainWindowActivateAction())
             .Step(MainWindowType.Tours.NewGameBasic)
-            .Step(MainWindowType.Tours.NextGameBasic)
             .Step(MainWindowType.Tours.GlobalBanCarryOver)
             .Step(new DialogueFlowItem
             {
